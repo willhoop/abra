@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-24T19:59:16.049Z",
+  "generated": "2026-08-24T23:02:24.849Z",
   "by": "tests/walk_tags.js",
   "design": "The tag list says WHAT to exercise; Showdown says what should happen. No hand-written expectations, because seven control failures were written by hand in one session.",
   "checked": 40,

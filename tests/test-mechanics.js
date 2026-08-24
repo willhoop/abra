@@ -7757,6 +7757,41 @@ probe('move', 'clearsScreens', 'Brick Break removes the opposing Reflect', () =>
            detail: 'screen up ' + behind + '  ->  after Brick Break ' + broken };
 });
 
+/* A SCREEN-BREAKER THAT THE TARGET IS IMMUNE TO LEAVES THE SCREEN STANDING. 2026-08-24.
+ *
+ * `psychicfangs.onTryHit` (data/moves.ts:14072) is a MOVE handler, and Showdown runs a move's own
+ * `onTryHit` from `spreadMoveHit` (sim/battle-actions.ts:1044), which lives INSIDE
+ * `hitStepMoveHitLoop` -- step 9 of `moveSteps`. Type immunity is step 3 and the accuracy roll is
+ * step 5, so a body the move cannot touch is dropped long before the screens are asked about. This
+ * engine broke them on USE, above every one of those gates.
+ *
+ * THE KNOB IS THE TARGET'S TYPE AND NOTHING ELSE: the same click, the same screen, the same physical
+ * follow-up. Grimmsnarl is Dark (Psychic-immune) and Clefable is Fairy (not), both read off the
+ * format rather than recalled, and both learn Reflect. The consequence is measured as DAMAGE TAKEN,
+ * which is the screen doing its job, not as a protocol line. */
+probe('move', 'clearsScreens', 'Psychic Fangs leaves the screen up when the target is immune to it', () => {
+  const run = (setter, breakIt) => {
+    const { me, ally, f1, f2, S } = board('metagross', 'corviknight', setter, 'garchomp');
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'reflect', null, S.field)], [f2, { kind: 'pass' }]]));
+    M.battleTurn(S, rng5,
+      new Map([[me, breakIt ? M.playerAction(me, 'psychicfangs', f1, S.field) : { kind: 'pass' }],
+               [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    f1.curHP = f1.st.hp; f1.fainted = false;
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'ironhead', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const immuneIdle = run('grimmsnarl', false), immuneClick = run('grimmsnarl', true);
+  const openIdle = run('clefable', false), openClick = run('clefable', true);
+  return { works: immuneIdle > 0 && immuneClick === immuneIdle && openClick > openIdle,
+           arms: { control: [openIdle, openClick], test: [immuneIdle, immuneClick] },
+           detail: 'Dark target (immune): screen up ' + immuneIdle + ' -> after Psychic Fangs '
+                 + immuneClick + ' (must be equal); Fairy target (hit): ' + openIdle + ' -> '
+                 + openClick + ' (must rise)' };
+});
+
 /* ARMS DECLARED, 2026-08-06 (#42/#45 part 3). ON THE CARVE-OUT LIST: a refusal or a redirection
  * turns a certainty into a failure whatever its usage, so tests/test-medicham-coverage.js
  * requires it to carry a machine-checked control. Both arms were already computed here; what was
@@ -8464,6 +8499,44 @@ probe('ability', 'damageBoost', 'Water Bubble raises a WATER move and nothing el
            detail: `Liquidation dealt: no ability ${control}, Water Bubble ${test}; Leech Life, a `
                  + `NON-Water move off the same body: ${otherMove[0]} -> ${otherMove[1]} `
                  + `(must not move -- the tag names a type and a wire that ignored it would boost both)` };
+});
+
+/* HUSTLE'S 1.5x ATTACK WAS NEVER SPENT, AND THE TWO CONTROLS ARE THE TWO WAYS TO FIX IT WRONG.
+ * 2026-08-24.
+ *
+ * `data/all-mechanics-fire.json` reports Hustle as `FIRED` and `diverged`, board verdict **STATE**,
+ * with its control arm at NO-DIVERGENCE: a Flapple's hit read `906/960` here against the authority's
+ * `879/960`. 54 against 81 is EXACTLY 1.5, which is the whole of `hustle.onModifyAtk`
+ * (`data/abilities.ts:1901` — `return this.modify(atk, 1.5)`, no Champions override).
+ *
+ * WHY IT WAS UNWIRED, AND IT WAS A GUARD DOING ITS JOB. The `damageBoost` stat-stage consumer in
+ * `dmgRange` requires `tags.length === 1` — the ability must carry NOTHING but `damageBoost` — because
+ * on nine abilities the tag DUPLICATES a sharper one the engine already spends. Hustle carries
+ * `writesAccuracy` and `accuracyMod` beside it, both of which are ACCURACY and are spent at a stage
+ * this function never touches, so the guard refused a member it had no reason to.
+ *
+ * THE TWO CONTROLS ARE THE TWO FAILURE MODES, and both are in the same run:
+ *   - GUTS on a HEALTHY body. `guts.damageBoost` carries `onlyWhen: null` in the artifact where the
+ *     handler is `if (pokemon.status)`, so a widening that simply dropped the guard would hand every
+ *     healthy Guts body a permanent 1.5x. It must read UNCHANGED.
+ *   - HUGE POWER. `dmgRange` spends it by NAME four lines above the tag branch; a widening that also
+ *     served it from the tag would pay 2x TWICE. It must read 2x, not 4x. */
+probe('ability', 'damageBoost', 'Hustle spends its 1.5x Attack — and neither control is paid twice', () => {
+  const hit = (ab) => turnDamageBig(['flapple', 'incineroar', 'garchomp', 'garchomp'],
+    (B) => { B.me.ability = ab; }, 'gravapple');
+  const none = hit('none'), hustle = hit('hustle'), guts = hit('guts'), huge = hit('hugepower');
+  /* the multiplier is applied to a STAT and then truncated through the damage formula, so the
+   * expectation is a band around the ratio rather than an exact product — but a band tight enough
+   * that 1.0x, 2.0x and 4.0x all fall outside it. */
+  const near = (got, want) => got >= Math.floor(none * want * 0.97) && got <= Math.ceil(none * want * 1.03);
+  return { works: none > 0 && near(hustle, 1.5) && guts === none && near(huge, 2),
+           arms: { control: [none, guts, huge], test: hustle },
+           detail: `Grav Apple off one Flapple, only the ability varies — no ability ${none}, `
+                 + `HUSTLE ${hustle} (must be ~1.5x = ${Math.round(none * 1.5)}); CONTROL GUTS on a `
+                 + `healthy body ${guts} (must be exactly ${none} — its artifact condition is null `
+                 + `and a careless widening pays it always); CONTROL HUGE POWER ${huge} (must be ~2x `
+                 + `= ${Math.round(none * 2)} and NOT 4x = ${Math.round(none * 4)}, which is what a `
+                 + `widening that double-pays the named line reads)` };
 });
 
 /* ROADMAP #112 -- THE PINCH FAMILY. THE CONDITION IS THE MECHANIC, AND THE BOUNDARY IS THE TEST.
@@ -18885,6 +18958,55 @@ probe('move', 'trapsTarget', 'a body that PIVOTS out of a Mean Look is not trapp
                  + `victim NEVER LEFT "${control}" (still held, the switch is refused); the victim `
                  + `PIVOTED OUT on turn 2 and walked back in on turn 3 "${test}" (clearVolatile took `
                  + `the trap with it, so the switch goes through)` };
+});
+
+/* THE TRAP DIES WITH ITS TRAPPER, AND THIS ENGINE'S OWN SOURCE SAID SO AND DID NOTHING. 2026-08-24.
+ *
+ * The comment beside `out._trapHard = null` in the switch-out block reads, verbatim: *"WHAT THIS DOES
+ * NOT FIX, STATED: Showdown links the victim's `trapped` to the TRAPPER through `linkedStatus:
+ * 'trapper'`, so the trap also dies when the SOURCE leaves. `_trapHard.by` records the source and
+ * nothing reads it at the switch gate. No failing probe on it; open, not silently half-done."* This
+ * is that probe.
+ *
+ * THE AUTHORITY'S OWN LINES. `meanlook`/`block` call `target.addVolatile('trapped', source, move,
+ * 'trapper')` — the fourth argument is `linkedStatus`. `Pokemon#addVolatile` (sim/pokemon.ts:2020)
+ * puts a `trapper` volatile on the SOURCE and cross-links the pair, and `Pokemon#clearVolatile`
+ * (:1532-1536) walks its own volatiles and calls `removeLinkedVolatiles` on anything carrying a
+ * `linkedStatus` — so the instant the trapper leaves the field, the VICTIM's `trapped` is removed.
+ * `trapped` declares no `onEnd`, so the removal is SILENT: nothing in either protocol stream betrays
+ * it, which is why the board leaf is the only witness (`active[].vol.trapped`, medicham 1 against the
+ * authority's 0, one game of the 961 pinned pool).
+ *
+ * THE KNOB IS THE TRAPPER'S SWITCH AND NOTHING ELSE — same trap, same victim, same turn count. */
+probe('move', 'trapsTarget', 'the trap dies with its TRAPPER: a Mean Look ends when its user leaves', () => {
+  const run = (trapperLeaves) => {
+    const me = bare('mudsdale'), ally = bare('incineroar');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    S.benchA = [bare('kangaskhan')];
+    S.benchB = [bare('kangaskhan')];
+    unfaintable(me); unfaintable(ally); unfaintable(f1); unfaintable(f2);
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'meanlook', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const laid = !!f1._trapHard;
+    /* turn 2 — the varied knob: the TRAPPER walks off, or stands still. */
+    M.battleTurn(S, rng5,
+      new Map([[me, trapperLeaves ? { kind: 'switch' } : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    /* turn 3 — the victim asks to leave. */
+    M.battleTurn(S, rng5, PASS2(S.actA[0], S.actA[1]),
+      new Map([[S.actB[0], { kind: 'switch' }], [f2, { kind: 'pass' }]]));
+    return { laid, who: S.actB[0].name || S.actB[0].species, held: !!f1._trapHard };
+  };
+  const stays = run(false), goes = run(true);
+  return { works: stays.laid && goes.laid && stays.who === 'milotic'
+                  && goes.who === 'kangaskhan' && goes.held === false,
+           arms: { control: stays.who + ' (trap held ' + stays.held + ')',
+                   test: goes.who + ' (trap held ' + goes.held + ')' },
+           detail: `[who holds the foe's slot 0 after the trapped body asks to switch on turn 3] — `
+                 + `the trapper STAYS "${stays.who}" (still trapped: the switch is refused); the `
+                 + `trapper LEAVES on turn 2 "${goes.who}" (the link died with it, so the victim `
+                 + `walks). Trap laid in both arms: ${stays.laid}/${goes.laid}` };
 });
 
 /* SUCTION CUPS — the MIRROR of Shed Shell: one restores the choice to leave, the other refuses being

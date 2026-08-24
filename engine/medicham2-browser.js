@@ -304,6 +304,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * screen rather than per entry, because "it cleared one side" and "it cleared both" are the two
    * things that can be true and only the second is the ability. */
   screensCleanedOnEntry: 0,
+  /* 2026-08-24 -- screens taken down by a MOVE (`clearsScreens`), now that the break is a hit STEP
+   * and can therefore be refused. The old block ran on the click and could not read zero; this one
+   * can, and a zero over a run with a Brick Break in it means the step never reaches a live row. */
+  screensBrokenByMove: 0, screensBrokenByMoveFirst: '',
+  /* 2026-08-24 -- a victim let go because its TRAPPER left the field or died (`linkedStatus:
+   * 'trapper'`). A zero over a run in which a Mean Look or a Block landed and its user then left
+   * means the link is unread again, which is the state this engine was in until this line. */
+  trapReleasedWithTrapper: 0, trapReleasedWithTrapperFirst: '',
   /* ROADMAP #175 -- a residual status chip turned into a HEAL (`healsFromOwnStatus`). A zero on a
    * board with a poisoned Gliscor on it means the status is landing and paying nothing, which is
    * halfway back to the immunity this replaced. */
@@ -808,6 +816,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   critInRange       a crit's x1.5 was applied inside dmgRange, before the roll, where the
    *                     authority applies it -- a zero means the battle loop is still doing it. */
   bpChainSpent: 0, bpChainMembers: 0, statChainSpent: 0, damageBoostStat: 0,
+  /* 2026-08-24 -- the subset of `damageBoostStat` served by the UNTYPED branch (Hustle today). It is
+   * counted apart because the typed branch has been live since ROADMAP #112 and a combined number
+   * could not say whether the new one ever fires. */
+  damageBoostStatUntyped: 0, damageBoostStatUntypedFirst: '',
   /* WIRE 157 -- the `damageBoost` members whose condition is about the CLICK rather than the body
    * (Reckless), folded into the base-power chain. Counted apart from `damageBoostStat` because the
    * two are different stages and a zero in one says nothing about the other. */
@@ -8337,6 +8349,13 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
      ROADMAP #81 WIRE 11 -- `attAb` and `defAb` were DECLARED HERE and are now declared above the
      stage lines, because `_critHere` needs the suppressed defender ability before the stages are
      applied. The two comments moved with them; this note is what is left at the old site. */
+  /* 2026-08-24 -- THE ABILITIES THIS FUNCTION SPENDS BY NAME, DECLARED SO A TAG-DRIVEN BRANCH CANNOT
+   * PAY THEM TWICE. It is read off the six lines below it and is a statement about THIS FILE, not
+   * about the game; see the `damageBoost` untyped branch further down for why the alternative test
+   * (`tags.length === 1`) is a proxy for the wrong question. A name missing here double-pays, which
+   * the census probe's Huge Power arm asserts against. */
+  const STAT_MULT_BY_NAME=new Set(['hugepower','purepower','guts','solarpower','orichalcumpulse',
+                                   'hadronengine','waterbubble']);
   if((attAb==='hugepower'||attAb==='purepower')&&phys)ACH(2);
   // --- stat-multiplying abilities (validated gaps vs @smogon/calc) ---
   if(attAb==='guts'&&phys&&att.status&&att.status!=='none')ACH(1.5);
@@ -8426,6 +8445,47 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
         if(!MEDFAILS.damageBoostUnknownCondFirst)
           MEDFAILS.damageBoostUnknownCondFirst=String(attAb)+'/'+JSON.stringify(_db.onlyWhen);}
       else if(_dbw){ACH(exact4096(attAb,+_db.mult));MEDSEEN.damageBoostStat++;}
+    }
+    /* ===== 2026-08-24 -- HUSTLE, AND THE `tags.length === 1` GUARD WAS REFUSING THE WRONG THING ===
+     *
+     * `hustle.onModifyAtk` is `return this.modify(atk, 1.5)` (data/abilities.ts:1901, no Champions
+     * override) and this engine spent NONE of it: `data/all-mechanics-fire.json` had a Flapple's hit
+     * at `906/960` against the authority's `879/960`, board verdict STATE with the control arm at
+     * NO-DIVERGENCE, and 54 against 81 is exactly 1.5.
+     *
+     * THE GUARD ABOVE IS RIGHT AND ITS TEST IS A PROXY. Its stated reason is that `damageBoost`
+     * DUPLICATES a sharper tag on nine abilities -- but `tags.length === 1` asks "does it carry
+     * anything else", where the real question is "does anything else this FUNCTION spends already
+     * pay it". Hustle's other two tags are `writesAccuracy` and `accuracyMod`: both are ACCURACY,
+     * both are spent in `hitChance`, and neither can reach a damage stage.
+     *
+     * SO THE COLLISION IS NOT WITH A TAG, IT IS WITH THE FOUR HARD-CODED LINES ABOVE, and this is
+     * that list rather than a proxy for it. It is a statement about THIS FILE -- read off the lines
+     * between `hugepower` and `waterbubble` -- and not a list of Pokemon facts, which is why it is
+     * allowed to be written down. A name missing from it double-pays, which the probe's Huge Power
+     * arm (must read 2x, never 4x) is there to catch.
+     *
+     * THE OTHER WAY TO GET THIS WRONG IS GUTS, AND IT IS THE SECOND CONTROL. `guts.damageBoost`
+     * carries `onlyWhen: null` in the artifact where the handler is `if (pokemon.status)`, so a
+     * widening that merely dropped the guard would hand a HEALTHY Guts body a permanent 1.5x. Guts is
+     * on the named list, so it never reaches here -- and the derivation gap is real and is reported
+     * rather than papered over: until `tag_dex.js` derives a `hasStatus` condition, `guts` may not be
+     * served from its tag.
+     *
+     * MEMBERSHIP, PRINTED OVER THE FORMAT BEFORE A LINE WAS WIRED (29 legal abilities carry
+     * `damageBoost`; the shape below -- `attackStat`, a stat, no type, no weather, no condition --
+     * selects four of them, and three are on the named list):
+     *     hugepower  purepower  guts   <- spent by name above
+     *     hustle                       <- the only member this branch adds today
+     * A fifth arriving with the same shape is served by the shape, not by an edit. */
+    if(_db&&+_db.mult>0&&_db.stage==='attackStat'&&_db.onStat
+       &&!_db.onType&&!_db.inWeather&&!_db.onlyWhen&&!STAT_MULT_BY_NAME.has(attAb)){
+      /* ONLY ON THE STAT THE HANDLER NAMES -- the same rule Plus and Minus needed, and for the same
+       * reason: `onModifyAtk` must not raise a special hit. */
+      if((_db.onStat==='atk'&&phys)||(_db.onStat==='spa'&&!phys)){
+        ACH(exact4096(attAb,+_db.mult)); MEDSEEN.damageBoostStat++; MEDSEEN.damageBoostStatUntyped++;
+        if(!MEDSEEN.damageBoostStatUntypedFirst)MEDSEEN.damageBoostStatUntypedFirst=String(attAb);
+      }
     }
   }
   /* WIRE 112 (STAGED consumer) -- MARVEL SCALE, through `condStatMult`: a stat multiplied while a
@@ -14657,6 +14717,11 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
      non-negotiable, and "switch to something" is not the decision; "switch to Amoonguss" is. */
   const nx=(wanted&&bench.indexOf(wanted)>=0&&!wanted.fainted&&wanted.curHP>0)?wanted:_live(bench)[0];
   if(!nx) return null;
+  /* 2026-08-24 -- THE FAINTED TRAPPER'S HALF OF `linkedStatus: 'trapper'`. A body that switched out
+   * was already released by `switchOut`; a body that DIED never goes through it (`switchOut` returns
+   * null on `out.fainted`) and this is the chokepoint every corpse passes on its way off the field.
+   * Idempotent, so the voluntary road paying twice costs nothing. See `releaseTrapsBy`. */
+  releaseTrapsBy(act&&act[i],[].concat(act||[],foes||[]));
   let _announceForme=false;
   /* ZERO TO HERO. Palafin leaves and comes back as Palafin-Hero -- 154 Attack to 233. The engine
    * could BUILD palafin-hero all along; nothing ever transformed anything, so Palafin was a
@@ -15044,6 +15109,52 @@ function capturePassedState(out,p){
    way out because it does not survive a switch in the real game: Protect's consecutive counter, the
    redirection mark and the Leech Seed link all belong to the body's time on the field. Boosts go too.
    Returns the incoming mon, or null when the bench is empty and the switch simply cannot happen. */
+/* ---- 2026-08-24 -- THE HARD TRAP DIES WITH ITS TRAPPER, AND THE FILE ALREADY SAID SO -------------
+ *
+ * The switch-out block below used to end its `_trapHard` paragraph with: *"WHAT THIS DOES NOT FIX,
+ * STATED: Showdown links the victim's `trapped` to the TRAPPER through `linkedStatus: 'trapper'`, so
+ * the trap also dies when the SOURCE leaves. `_trapHard.by` records the source and nothing reads it
+ * at the switch gate. No failing probe on it; open, not silently half-done."* There is a probe now
+ * (`move/trapsTarget` -- *"the trap dies with its TRAPPER"*) and this is the reader.
+ *
+ * THE AUTHORITY'S CHAIN, read at the lines rather than recalled:
+ *   `meanlook`/`block`  ->  `target.addVolatile('trapped', source, move, 'trapper')`
+ *   `Pokemon#addVolatile`   sim/pokemon.ts:2020-2029 -- puts `trapper` on the SOURCE and cross-links
+ *                           the pair (`linkedPokemon`, `linkedStatus`)
+ *   `Pokemon#clearVolatile` sim/pokemon.ts:1532-1536 -- walks its OWN volatiles and calls
+ *                           `removeLinkedVolatiles` for any carrying a `linkedStatus`
+ *   `removeLinkedVolatiles` :2053 -- `linkedPoke.removeVolatile('trapped')`
+ * So the release is the LEAVER's own `clearVolatile`, which is exactly where this engine's
+ * `out._trapHard=null` already sits -- the half that was missing is the other end of the link.
+ *
+ * IT IS SILENT, AND THAT IS WHY IT NEEDED A BOARD TO FIND IT. `trapped` declares no `onEnd`, so
+ * `removeVolatile` writes nothing; both protocol streams agree line for line while one engine holds
+ * a body the other has let go. The witness is `active[].vol.trapped` -- medicham 1 against the
+ * authority's 0 on turn 9 of one pinned game, whose protocol then parts a turn later on WHICH body
+ * switched.
+ *
+ * THE FAINTED TRAPPER IS THE SAME RULE AND IS SERVED FROM `bringIn`, ONE MOMENT LATE, DECLARED. The
+ * authority frees the victim inside `faintMessages()`, at the moment the `|faint|` is written; this
+ * engine sets `fainted` at 25 inline sites and has no single drain that owns the STATE, so there is
+ * no equivalent instant to hook. `bringIn` is the next chokepoint every dead body passes through,
+ * and it is inside the same turn -- so a turn-boundary board agrees, and a mid-turn switch decision
+ * taken between the KO and the replacement does not. Said here rather than left to be found.
+ *
+ * `partiallytrapped` (Infestation, this engine's `_trap`) is a DIFFERENT condition with a different
+ * rule -- `onResidual` drops it when the source is gone and writes a `-end ... [silent]` -- and is
+ * deliberately not touched here. Folding the two would make one of them wrong. */
+function releaseTrapsBy(src,bodies){
+  if(!src||!bodies)return 0;
+  let n=0;
+  for(const b of bodies){
+    if(!b||b===src||!b._trapHard||b._trapHard.by!==src)continue;
+    b._trapHard=null; n++;
+    MEDSEEN.trapReleasedWithTrapper++;
+    if(!MEDSEEN.trapReleasedWithTrapperFirst)
+      MEDSEEN.trapReleasedWithTrapperFirst=String(src.name||'?')+' let go of '+String(b.name||'?');
+  }
+  return n;
+}
 function switchOut(act,i,bench,foes,sf,field,wanted,pass){
   const out=act[i]; if(!out||out.fainted) return null;
   if(!_live(bench).length) return null;
@@ -15086,11 +15197,13 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * IT IS NOT CAPTURED BY BATON PASS AND DOES NOT NEED TO BE EXCLUDED: `trapped` declares
    * `noCopy: true`, and `capturePassedState` above carries `_trap` only.
    *
-   * WHAT THIS DOES NOT FIX, STATED: Showdown links the victim's `trapped` to the TRAPPER through
+   * ~~WHAT THIS DOES NOT FIX, STATED: Showdown links the victim's `trapped` to the TRAPPER through
    * `linkedStatus: 'trapper'`, so the trap also dies when the SOURCE leaves. `_trapHard.by` records
    * the source and nothing reads it at the switch gate. No failing probe on it; open, not silently
-   * half-done. */
+   * half-done.~~ **CLOSED 2026-08-24** -- there is a probe now and the line below it is the reader.
+   * See `releaseTrapsBy`, directly above this function, for the authority's chain. */
   if(out._trapHard){out._trapHard=null;MEDSEEN.trapClearedOnSwitch++;}
+  releaseTrapsBy(out,[].concat(act||[],foes||[]));
   /* WIRE 144 -- AND THE LOCK-IN LEAVES WITH THE BODY, with NO fatigue. `lockedmove` is an ordinary
    * volatile, so `Pokemon#clearVolatile()` removes it directly rather than through `removeVolatile`,
    * and `onEnd` -- the only writer of the confusion -- never runs. A body that gets off the field
@@ -22401,20 +22514,20 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `|-immune|pXX <> |-supereffective|pXX` from 0 to 38 and `|-immune|pXX <> |-damage|pXX` from 3
        * to 30 the moment they did. */
       if(_allyHit)targets=[_allyHit].concat(targets);
-      /* SCREENS BREAK. Brick Break, Psychic Fangs and Raging Bull carry `clearsScreens`, so the set
-         comes from the artifact rather than three names here. It fires on USE, before damage, which
-         is the real rule -- the screen is gone for this very hit, not the next one. */
-      if(TAGS.has('move',a.move.id,'clearsScreens')){
-        const fsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
-        if(fsf){
-          /* One `|-sideend|` per screen that was actually up, UNDER ITS OWN NAME and in the order
-           * Brick Break's own handler walks them (data/moves.ts:1833) -- see screenIds(). Until
-           * ROADMAP #81 WIRE 8 this engine kept two counters keyed by damage category and had to
-           * announce `Reflect` for the physical one and `Light Screen` for the special one, so a
-           * broken Aurora Veil read as both. */
-          const _sd=it.side==='A'?'p2':'p1';
-          for(const _id of screenIds(fsf)){delete fsf.sc[_id]; if(TR)TR.sendSide(_sd,_id);}}
-      }
+      /* SCREENS BREAK -- AND THE BLOCK THAT USED TO STAND HERE BROKE THEM ON USE. 2026-08-24.
+       *
+       * It has moved into the step list, as `_stepClearScreens`, below `_stepBreakProtect`. What it
+       * said for itself was *"it fires on USE, before damage, which is the real rule"*, and the first
+       * half of that sentence is what was wrong: the rule is `psychicfangs.onTryHit`
+       * (data/moves.ts:14072), a MOVE handler, and Showdown runs a move's own `onTryHit` from
+       * `spreadMoveHit` (sim/battle-actions.ts:1044) -- which is inside `hitStepMoveHitLoop`, step 9
+       * of `moveSteps`. Type immunity is step 3, `TryImmunity` is step 4 and the accuracy roll is
+       * step 5, so a target the move never reaches is dropped long before the screens are asked
+       * about. "Before damage" stays true; "on use" was four gates too early.
+       *
+       * Measured in the pool: a Psychic Fangs into a Grimmsnarl (Dark) took down a Reflect that had
+       * gone up on the same turn -- `|-immune|p2b: Grimmsnarl` on the authority against this engine's
+       * `|-sideend|p2: |move: reflect`, and `p2.screens.named.reflect` reading null against 7. */
       /* WIRE 48 -- IGNORES PROTECT, computed once for the move rather than per target. Feint (375
          uses) and Phantom Force (399) went through Protect in the real game and were stopped here,
          and Roar, After You, Decorate and ten other status moves were stopped by it too. Read once
@@ -23057,6 +23170,47 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_bp.announceAs==='bare')TR.act(tg,'move: '+moveDisplayName(a.move.id));
           else TR.act(tg,'move: '+moveDisplayName(a.move.id),'[broken]');
         }
+      };
+      /* ===== 2026-08-24 -- STEP 6: THE SCREENS COME DOWN, AND THE TARGET HAS TO BE REACHABLE ======
+       *
+       * `psychicfangs.onTryHit(pokemon) { pokemon.side.removeSideCondition('reflect'); ... }`
+       * (data/moves.ts:14072, no Champions override; brickbreak and ragingbull are the same shape).
+       * It is the MOVE's own `onTryHit`, and a move's own `onTryHit` is a `singleEvent` fired from
+       * `spreadMoveHit` (sim/battle-actions.ts:1044) -- which `hitStepMoveHitLoop` calls, and
+       * `hitStepMoveHitLoop` is the LAST entry in `moveSteps` (:577). So the authority has already
+       * run, and can already have dropped this target on:
+       *     step 1 invulnerability   step 2 TryHit (Protect, an absorbing ability)
+       *     step 3 TYPE IMMUNITY     step 4 TryImmunity (powder, onTryImmunity)
+       *     step 5 accuracy          step 5b breakProtect
+       * This engine broke the screens above all six, on the click itself.
+       *
+       * A STEP, NOT A LINE, so that the driver's `R.out` does the refusing. Every one of those six
+       * gates already sets `out` on the row it dropped, which means this needs no gate of its own and
+       * cannot drift from theirs -- the FACTS-ARE-GLOBAL shape. It sits ABOVE `_stepDamage` because
+       * the authority's `onTryHit` is above `tryPrimaryHitEvent`: the screen goes for THIS hit, and
+       * `data/moves.ts:14073` says in its own words *"will shatter screens through sub"*, so a
+       * Substitute must not save them either.
+       *
+       * THE SIDE IS THE TARGET'S OWN (`pokemon.side`), not the mover's foe side. Every member is
+       * `target: normal`, which in doubles can legally be aimed at a PARTNER, and the old block took
+       * the far side down whoever was aimed at.
+       *
+       * COUNTED WITH ITS FIRST WITNESS. `screensBrokenByMove` at zero over a run with a Brick Break
+       * in it would mean this step never fires, which is the failure mode the old block could not
+       * have had (it fired unconditionally) and this one can. */
+      const _stepClearScreens=(R)=>{const tg=R.tg;
+        if(!tg||!tg._sf)return;
+        if(!TAGS.has('move',a.move.id,'clearsScreens'))return;
+        /* One `|-sideend|` per screen that was actually up, UNDER ITS OWN NAME and in the order
+         * Brick Break's own handler walks them (data/moves.ts:1833) -- see screenIds(). Until
+         * ROADMAP #81 WIRE 8 this engine kept two counters keyed by damage category and had to
+         * announce `Reflect` for the physical one and `Light Screen` for the special one, so a
+         * broken Aurora Veil read as both. */
+        const _sd=tg._sf.side==='A'?'p1':'p2';
+        for(const _id of screenIds(tg._sf)){
+          delete tg._sf.sc[_id]; MEDSEEN.screensBrokenByMove++;
+          if(!MEDSEEN.screensBrokenByMoveFirst)MEDSEEN.screensBrokenByMoveFirst=a.move.id+' -> '+_id;
+          if(TR)TR.sendSide(_sd,_id);}
       };
       /* STEP 7a -- getSpreadDamage (battle-actions.ts:1072/1148): the roll, the crit and the
        * effectiveness announcement, for EVERY target, before a single point of HP moves. */
@@ -25625,6 +25779,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * re-shaped completely. */
       const _STEPS=[_stepInvuln,_stepTryHit,_stepTypeImm,_stepTryImm,_stepAccuracy,
                     _stepBreakProtect,                                   // ROADMAP #272 -- step 5
+                    _stepClearScreens,                 // 2026-08-24 -- the move's own `onTryHit`
                     _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
                     _stepDamagingHit,_stepBuffOnHit,                  // 2026-08-22 -- ONE `DamagingHit`
                     _stepAfterHit,

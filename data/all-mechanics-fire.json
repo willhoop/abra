@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-24T22:01:48.240Z",
- "release": "b35e96a0e7c7",
+ "generated": "2026-08-24T23:22:02.629Z",
+ "release": "f9ff2b031d93",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -33727,66 +33727,27 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 15,
-     "cls": "-damage field 3",
-     "detail": "-damage[3] 879/960 vs 906/960",
-     "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:feraligatr|879/960 vs |-damage|p2a:feraligatr|906/960]",
-     "showdown": "|-damage|p2a: Feraligatr|879/960",
-     "medicham": "|-damage|p2a: Feraligatr|906/960",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "STATE",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
-     "boundaries": 2,
-     "boundaries_agreed": 1,
-     "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
-     "state_parted_on_turn": 1,
-     "diffs": [
-      {
-       "path": "p2.party.feraligatr.hp",
-       "side": "p2",
-       "slot": "",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "party.hp",
-       "us": 906,
-       "sd": 879,
-       "bucket": "off-by-4-or-more",
-       "family": "party.hp"
-      },
-      {
-       "path": "p2.active[0].hp",
-       "side": "p2",
-       "slot": "p2a",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "hp",
-       "us": 906,
-       "sd": 879,
-       "bucket": "off-by-4-or-more",
-       "family": "active[].hp",
-       "maxhp": 960
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "boundaries": 6,
+     "boundaries_agreed": 6,
+     "last_boundary_turn": 5,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
-      "leaves_compared_min": 298,
+      "leaves_compared_min": 297,
       "leaves_compared_max": 298,
       "party_post_faint_skipped": 0,
-      "pp_slots_occupied": 8,
-      "pp_slots_compared": 8,
+      "pp_slots_occupied": 24,
+      "pp_slots_compared": 24,
       "screens_named_comparable": true
      }
     },
@@ -53337,7 +53298,7 @@
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 13,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 5.2
+   "seconds": 16.8
   },
   "abilities": {
    "exist": 316,
@@ -53350,11 +53311,11 @@
    "control_not_quiet": 108,
    "cannot_fire_in_this_fixture": 38,
    "did_not_fire_unexplained": 20,
-   "diverged": 4,
-   "diverged_including_shelved": 5,
+   "diverged": 3,
+   "diverged_including_shelved": 4,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 10
+   "seconds": 26.7
   },
   "then_what": {
    "rows": 62,
@@ -53380,7 +53341,7 @@
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 5.1
+   "seconds": 13.2
   },
   "board_state": {
    "rows": 15,
@@ -53670,14 +53631,13 @@
    },
    "abilities": {
     "tally": {
-     "NO-DIVERGENCE": 163,
+     "NO-DIVERGENCE": 164,
      "ANNOUNCEMENT-ONLY": 3,
-     "STATE": 4
+     "STATE": 3
     },
     "rows": 170,
     "core_leaf_unchecked_rows": [],
     "state_rows": [
-     "hustle",
      "klutz",
      "magicbounce",
      "sandforce"
@@ -54139,8 +54099,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "b35e96a0e7c7",
-    "roster_generated": "2026-08-24T21:24:20.308Z",
+    "roster_release": "f9ff2b031d93",
+    "roster_generated": "2026-08-24T23:19:51.156Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

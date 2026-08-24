@@ -13174,3 +13174,63 @@ land after the whole volley's `-hitcount` — and that is the multi-hit LOOP gra
 than an ordering fix; the `-damage field 3` trio (`hustle`, `sandforce`, `shellsidearm`); and the
 **four judgement cards** in `docs/_reports/2026-08-24-ordering-cards.md`, which are Will's, together
 with the mega-phase and residual sorts they cover. Untouched.
+
+---
+
+## BOARD-MATERIAL, SECOND PASS — 20 → 18 GAMES, NARRATION HELD AT 17, CENSUS 683 → 686. 2026-08-24.
+
+Full account: [`docs/_reports/2026-08-24-board-material-2.md`](_reports/2026-08-24-board-material-2.md).
+
+**THREE MECHANISMS. TWO POOL GAMES CLEARED, ZERO NEW, ZERO RELABELLED** — the game-by-game diff on
+`config|seed` is the attribution, not a net.
+
+1. **A screen-breaking move broke the screen through a type immunity, a miss and a Protect.** A move's
+   own `onTryHit` is a `singleEvent` inside `hitStepMoveHitLoop` (`sim/battle-actions.ts:1044`), the
+   LAST of the eight `moveSteps`; this engine ran it on the click, above all six earlier gates. Now the
+   hit step `_stepClearScreens`, so the driver's `R.out` does the refusing. Witness:
+   `p2.screens.named.reflect` null against 7 after a Psychic Fangs into a Dark body. 1 game.
+2. **A move trap outlived its trapper**, and this engine's own source had already written the gap down
+   verbatim and left it open. `trapped` carries `linkedStatus: 'trapper'` and `clearVolatile`
+   (`sim/pokemon.ts:1532`) frees the victim when the source leaves. It is SILENT — both protocol
+   streams agree line for line and `active[].vol.trapped` is the only witness. **The FAINTED trapper is
+   served from `bringIn`, one moment later than the authority**, because `fainted` is set at 25 inline
+   sites here; same turn, so a turn-boundary board agrees. Declared, not hidden. 1 game.
+3. **Hustle never spent its 1.5x Attack** — a LAB row, said before the run. The `damageBoost` stat-stage
+   consumer's `tags.length === 1` guard refused it for carrying two ACCURACY tags. Membership printed
+   over the format first: of 29 legal carriers the new shape selects four, three already spent by NAME.
+   Both controls in the probe: Guts on a healthy body must not move, Huge Power must read 2x not 4x.
+   **0 pool games; the `all_mechanics_fire` row is gone.**
+
+**NUMBERS.** Arm middle, **961 games played** at `--games 1200`, `--team-store data/team-pool-frozen`,
+census pin `9446a684709d`, `--end-state`. Before `b35e96a0e7c7` → after **`f9ff2b031d93`**. Raw parted
+**37 → 35**, board-material **20 → 18 games / 19 → 17 causes**, narration **17 / 16 unmoved**,
+undeclared **24 → 22 (2.3%)**, census **683 → 686 / 0 missing**, damage differential **0 of 6000 at all
+16 corners**. **Of the 18, 8 are Moody — 10 are ENGINE board-material, down from 12.**
+
+**ALL FOUR WITHHELD ARTIFACTS RESTORED** at the new release: roster items 0/0 (139 of 148), abilities
+0/0 (130 of 202), moves 0/0 (475 of 500), `all_mechanics_fire --kind all` re-run. Gate **5 of 8 PASS**,
+the same three failing.
+
+**`--games` IS A PAIR BUDGET, NOT A GAME COUNT.** The standing 961-game baseline was run at
+`--games 1200`; at `--games 961` the pool yields 777 pairs and reports 38 board-material, which reads
+as a catastrophic regression and is a different question. Caught by diffing the swarm's `available`
+column against HEAD. **And `engine/replay_one.js` rebuilt the pool cache on the way past** — the corpus
+came back identical (8778 teams), so nothing was lost.
+
+**A STANDING HAND-LIST ENTRY IS CORRECTED:** *"a Sitrus Berry is eaten and then not gone"* is HARVEST
+giving the berry back on a `randomChance(1,2)` coin — a die like Moody, not a rule — plus a genuinely
+wrong line (`|-activate|…|item:` where the authority writes `|-item|…|[from] ability: Harvest`). Not
+fixed, because fixing it moves a board-material game onto the narration gate rather than closing it.
+
+**SCOPED AND STOPPED:** `sandforce` (its `onType` keeps the first of three types — `tag_dex.js:7567`
+single-match regex — AND no consumer serves a typed, weathered `basePower` shape; fixing regenerates
+the tag artifacts), `guts.damageBoost.onlyWhen` being `null`, `shellsidearm` (not examined), and
+Castform's species label (2 games of board divergence, 0 of protocol — blocked on `data/engine-data.js`,
+which ENGINE may not edit).
+
+**OWED, NOT RUN:** `tests/run-all.js` in full; `engine/selftest.js` and `engine/conformance.js` (both
+RED at HEAD, named rather than filed); `engine/feature_fixture.js --check` (the REFIT question, MEASURE's);
+`tests/interaction_matrix.js`; `tests/mutation_harness.js`; the residual sort, the Tailwind pair and the
+four judgement cards, which are Will's; and `engine/replay_one.js`, which could not resolve the pinned
+seeds at `--games 961` and was not re-tried — three of the ten remaining rows were reasoned about from
+the artifact rather than replayed, and **none of them was fixed on that reasoning.**

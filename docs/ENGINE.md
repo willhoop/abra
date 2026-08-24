@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  683/683 probed mechanics live, 0 missing   (census 2026-08-24 16:59)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-24 17:12)
+  686/686 probed mechanics live, 0 missing   (census 2026-08-24 18:55)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-24 18:57)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,144 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 42398a49161e now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is ff4602fae2f4 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 276/294 probed, 18 unprobed
 ```
 
-_stamped 2026-08-24 17:49_
+_stamped 2026-08-24 19:28_
 
 <!-- /GENERATED -->
+
+## BOARD-MATERIAL 20 → 18 GAMES, NARRATION HELD AT 17, CENSUS 683 → 686. 2026-08-24.
+
+Full account: [`docs/_reports/2026-08-24-board-material-2.md`](_reports/2026-08-24-board-material-2.md).
+
+Three mechanisms. **Two pool games cleared, zero new diverging games, and no game merely changed its
+label** — the game-by-game diff on `config|seed` is the attribution, not a net.
+
+**1. A SCREEN-BREAKING MOVE BROKE THE SCREEN THROUGH AN IMMUNITY.** `psychicfangs.onTryHit`
+(`data/moves.ts:14072`) is the MOVE's own handler, and a move's own `onTryHit` is not the `TryHit`
+EVENT: it is a `singleEvent` fired from `spreadMoveHit` (`sim/battle-actions.ts:1044`), inside
+`hitStepMoveHitLoop`, which is the LAST of the eight `moveSteps`. So the authority has already had the
+chance to drop the target on invulnerability, Protect, TYPE IMMUNITY, `TryImmunity` and the accuracy
+roll. This engine broke the screens on the CLICK, above all six — its own comment said *"it fires on
+USE, before damage, which is the real rule"*, and the second half is true while the first was four
+gates too early. Now a hit STEP (`_stepClearScreens`, between `_stepBreakProtect` and `_stepDamage`),
+so the driver's `R.out` does the refusing and this needs no gate of its own. The side is the TARGET's
+own, not the mover's foe side. **Witness:** a Psychic Fangs into a Grimmsnarl (Dark) took down a
+Reflect raised the same turn — `p2.screens.named.reflect` null against 7.
+
+**2. A MOVE TRAP OUTLIVED ITS TRAPPER, AND THIS ENGINE'S OWN SOURCE HAD WRITTEN THE GAP DOWN.**
+`trapped` is applied with `linkedStatus: 'trapper'`; `Pokemon#clearVolatile` (`sim/pokemon.ts:1532`)
+walks its own volatiles and calls `removeLinkedVolatiles`, so the victim is freed the instant the
+trapper leaves. `trapped` has no `onEnd`, so the removal is SILENT — **both protocol streams agree line
+for line** and the only witness is `active[].vol.trapped`, 1 against 0. **The FAINTED trapper is served
+from `bringIn`, one moment later than the authority's `faintMessages()`**, because this engine sets
+`fainted` at 25 inline sites and has no drain that owns the state. Same turn, so a turn-boundary board
+agrees; declared, not hidden. `partiallytrapped` is a different condition with a different rule and is
+deliberately untouched.
+
+**3. HUSTLE NEVER SPENT ITS 1.5x ATTACK — a LAB row, and that was said before the run.** The
+`damageBoost` stat-stage consumer requires `tags.length === 1`; Hustle carries `writesAccuracy` and
+`accuracyMod` beside it, **both ACCURACY, spent in `hitChance`, neither able to reach a damage stage**.
+The guard asks *"does it carry anything else"* where the real question is *"does anything else this
+FUNCTION spends already pay it"*. Membership printed over the format first: of 29 legal `damageBoost`
+carriers the new shape selects four, and three (`hugepower`, `purepower`, `guts`) are already spent by
+NAME — so `STAT_MULT_BY_NAME` is that list rather than a proxy for it, a statement about this file and
+not about the game. **Both controls are in the probe:** Guts on a healthy body must not move (its
+artifact `onlyWhen` is `null` where the handler is `if (pokemon.status)`), and Huge Power must read 2x
+and never 4x.
+
+**THE NUMBERS.** Arm **middle**, **961 games played** at `--games 1200`, `--team-store
+data/team-pool-frozen`, census pinned to `census-pin-9446a684709d.json`, `--end-state`. Before-arm
+release **`b35e96a0e7c7`** (= HEAD `df2bef5`), after-arm **`f9ff2b031d93`**. Raw parted **37 → 35**,
+**BOARD-MATERIAL 20 games / 19 causes → 18 / 17**, **narration 17 / 16 → 17 / 16 (unmoved)**,
+undeclared **24 → 22 of 961 (2.3%)**, DIFFERENT-END-STATE **14 → 12**. Census **683 → 686 probed / 686
+live / 0 missing**. Damage differential **0 of 6000, all 16 corners**, seed 20260804, re-run after the
+Hustle change. A re-baseline, not a delta. **Of the 18 remaining, 8 are Moody — so 10 are ENGINE
+board-material, down from 12.**
+
+**ALL FOUR WITHHELD ARTIFACTS WERE RESTORED** at release `f9ff2b031d93`: roster items **0
+FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE** (139 of 148 tested), abilities **0 / 0** (130 of 202), moves
+**0 / 0** (475 of 500), and `all_mechanics_fire --kind all` re-run — **`hustle` is gone from its
+diverging list** (abilities 4 → 3; moves 18 and items 1 unchanged). Gate holds at **5 of 8 PASS**, the
+same three failing.
+
+**THE TRAP THAT ALMOST COST THE MEASUREMENT: `--games` IS A PAIR BUDGET, NOT A GAME COUNT.** The
+standing 961-game baseline was run at **`--games 1200`**. Run at `--games 961` the pool yields **777**
+pairs and reports **38 board-material of 777**, which reads as a catastrophic regression and is simply
+a different question. Caught by diffing the swarm's `available` column against HEAD's artifact —
+identical everywhere, while `picked` was 266 against 213. **And `engine/replay_one.js` REBUILT THE POOL
+CACHE** on the way past (*"the store moved, or no cache exists"*); the corpus came back identical at
+8778 teams, so nothing was lost, but a debugging tool that rewrites the sample's cache is worth knowing
+about before a measurement.
+
+### THE HAND LIST
+
+Leaves it, each now carried by a census probe: **a screen broken through an immunity** and **a move
+trap outliving its trapper**. **Hustle's missing 1.5x** leaves it too, carried by
+`ability/damageBoost`.
+
+Corrected rather than removed:
+
+- **"a Sitrus Berry is eaten and then not gone" IS A MISDIAGNOSIS. It is HARVEST giving the berry
+  back.** Trevenant's abilities are Natural Cure / Frisk / **Harvest** (derived from the format), and
+  `harvest` fires on `isWeather(['sunnyday','desolateland']) || randomChance(1, 2)`. There is no sun in
+  that game, so **the board difference is a COIN, not a rule** — the same shape as Moody, and not
+  claimed alignable. **The LINE is separately wrong and is a real narration defect:** the authority
+  writes `|-item|…|[from] ability: Harvest`, this engine writes `|-activate|…|item: sitrusberry`. Not
+  fixed, because fixing it moves a board-material game onto the narration gate rather than closing it.
+
+Stays on it, unchanged: **Magic Room parks the item rather than suppressing it**, **a refused Role
+Play does not blank its move line's target field**, and **`planted_state_proof_ok` reads `false` on
+both arms** (`vol.saltcure` and `vol.syrupbomb` plants NOT CAUGHT — pre-existing, and named because the
+artifact prints *"every state number below is worthless"* beside every board-material figure this
+sprint publishes, 20 and 18 included).
+
+Joins it, scoped and stopped rather than half-landed:
+
+- **`sandforce` is two gaps and one of them is upstream.** `data/tags.json` carries
+  `damageBoost.onType: "Rock"` where the handler is `move.type === 'Rock' || 'Ground' || 'Steel'`
+  (`data/abilities.ts:3950`) — `tag_dex.js:7567` reads the type with a single-match regex and keeps the
+  first of three. **And even with the list right, no consumer serves the shape:** Sand Force is
+  `stage:'basePower'` WITH a type AND a weather, and both base-power branches in `dmgRange` require
+  `!onType && !inWeather`. Fixing it regenerates `data/tags.json` and `data/abra-tags.js`;
+- **`guts.damageBoost.onlyWhen` is `null`** where the handler is `if (pokemon.status)`. Guts is correct
+  today because it is spent by NAME; the tag is not, and the next consumer to read it applies 1.5x to a
+  healthy body;
+- **Castform, 2 games of board divergence and 0 of protocol.** `active[].species` reads `castform`
+  against the authority's `castformrainy`. Already DECLARED in the engine and the declaration is
+  right — `data/engine-data.js` has no row for the three weather formes, so Forecast is modelled as a
+  RETYPE with `MEDFAILS.formeWeatherNameUnchanged` counting every application. The types are right and
+  the label is not. **ENGINE may not edit `data/engine-data.js`; this is a refit.** The cost is
+  recorded because it had never been quantified;
+- **`--games` is a pair budget, not a game count.** See above.
+
+### PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.
+
+The full text of seven proposed rows is in the report. In short: three CLOSED (the screen break, the
+move trap, Hustle) and four OPEN (`guts`'s null condition, `sandforce`'s truncated type list, the
+Harvest re-scope, and `--games` as an instrument-ergonomics note).
+
+### OWED, NOT RUN
+
+- `tests/run-all.js` in full. The ENGINE instruments were run individually and are listed in the
+  report;
+- `engine/selftest.js` — RED at HEAD and RED now, same clause, and named out loud rather than filed;
+- `engine/conformance.js` — RED at HEAD, almost all MEASURE/SEARCH artifacts;
+- `engine/feature_fixture.js --check` — FAILS before and after. **That is the REFIT question and
+  belongs to MEASURE; its verdict must be settled before anybody restamps**, because a restamp silences
+  the table gate and writes over the evidence;
+- `tests/interaction_matrix.js` (last run 2026-08-11); `tests/mutation_harness.js` (needs
+  `--gate-only --no-write`);
+- the RESIDUAL sort, the Tailwind pair, and the four judgement cards in
+  [`docs/_reports/2026-08-24-ordering-cards.md`](_reports/2026-08-24-ordering-cards.md) — Will's;
+- **`shellsidearm`**, the third named in-game damage row — not examined;
+- **`engine/replay_one.js` could not resolve the pinned seeds** at `--games 961` and was not re-tried at
+  `--games 1200`. Three of the ten remaining rows were reasoned about from the artifact rather than
+  from a replayed game, and **none of them was fixed on that reasoning**.
 
 ## THE MEGA PHASE IS ORDERED BY THE AUTHORITY'S QUEUE — CENSUS 681 → 683, NARRATION 19 → 17, BOARD-MATERIAL UNMOVED AT 20. 2026-08-24.
 
