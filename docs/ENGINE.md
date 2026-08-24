@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  658/658 probed mechanics live, 0 missing   (census 2026-08-23 19:29)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-23 19:29)
+  660/660 probed mechanics live, 0 missing   (census 2026-08-23 20:35)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-23 20:27)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,180 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is fd9b4f0b936a now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is eb5e6a218fb7 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 19:40_
+_stamped 2026-08-23 20:58_
 
 <!-- /GENERATED -->
+
+## THE FAINT QUEUE — FOURTEEN CLASSES, TWO CONVERTED, AND THREE OF THE FOUR FAINT-ORDERED DIVERGENCES ARE A DIFFERENT MECHANISM. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-faint-restructure.md`](_reports/2026-08-23-faint-restructure.md).
+Brief: *"Do NOT convert 27 sites and re-measure once… convert ONE CLASS at a time… Stop and report the
+moment a stage makes something worse."* **It stopped after two, deliberately, and this section says
+why the third would not have paid.**
+
+**Both relayed counts hold.** `faintMessages()` is called at **eight** places (`battle-actions.ts`
+336/347/976 + the Champions mod's copy at `scripts.ts:547`, `battle.ts` 565/1554/2180/2832/2897;
+`battle.ts:2532` is the definition). `Pokemon#faint()` at `sim/pokemon.ts:1587` only QUEUES and its own
+doc comment says so. This engine announces at **27** `TR.faint(` sites — 25 real ones now, two of the
+27 being inside the new helpers.
+
+**Whole-game differential, arm `middle`, 961 games, `--team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json`, `--end-state`. RE-BASELINE, not a delta —
+the release moved twice:**
+
+| quantity | baseline `3e00ea2575a9` | stage 1 `e507bcce0248` | stage 2 `3929459bb195` |
+|---|---|---|---|
+| **undeclared (`diverged − declared`), the gate's headline** | **53 of 961 = 5.5%** | — | **52 of 961 = 5.4%** |
+| protocol parted (raw) | 58 | **57** | **57 — unmoved** |
+| board-material games | 24 | 24 — did not move | 24 — did not move |
+| **narration-only games** | **34** | **33 — FELL** | **33 — did not rise** |
+| DIFFERENT-END-STATE | 18 | 17 | 17 |
+| census probed / live / missing | 658 / 658 / 0 | 659 / 659 / 0 | **660 / 660 / 0** |
+| damage differential | 0 of 6000 | — | **0 of 6000, exit 0, seed 20260804** |
+| roster items / abilities / moves | 0 DIFFER, 0 DID-NOT-FIRE | — | **identical, re-run on the FINAL release** |
+| `all_mechanics_fire --kind all` | moves 20 / abilities 9 / items 1 | — | **identical, re-run on the FINAL release** |
+| `tests/test-resolution-order.js` | — | — | **PASS, 26 arms, 0 failing** |
+| `tests/probe_announce_failure.js` (`move_result_state.js`) | — | — | **8 arms, BOARD + RESULT + NARRATION all ok** |
+
+**`declared` is 5 either side**, so the undeclared move is the raw move and nothing else. Raw
+`diverged` and `undeclared` are different quantities and are printed here as two rows on purpose.
+
+**Stage 1 is attributed to one row and nothing else.** The two runs' first-divergence cause tables are
+identical except `ordering :: |-damage|p2a|H/H|[from]sandstorm <> |faint|p1a`, **1 → 0**. Stage 2's
+tables are identical to stage 1's in every row, and the team-pool digest is `0d103fb9fa87` on both, so
+that is the same 961 games rather than a resample that landed on the same total.
+
+**THE ONE THING TO TAKE FROM THIS PASS.** The pool carries FOUR first-divergences whose medicham line
+is a `|faint|`, and **only one of them is a faint-timing defect.** The other three are the same missing
+mechanism in a `|faint|` costume: the authority runs `eachEvent('Update')` at `battle-actions.ts:967`,
+inside the hit loop and one statement above `faintMessages()` at :976, and **this engine has no update
+pass there at all.** So the partner's Sitrus, Fling's `-enditem` (`fling.condition.onUpdate`,
+`data/moves.ts:5773`) and Stone Axe's `onAfterHit` hazard are all owed ABOVE a faint line this engine
+writes at the correct moment. Moving the faint would relocate the mismatch, not remove it. **The same
+absent pass explains three MORE of the 58 that carry no faint at all** (two `…sitrusberry|[eat] <>
+…[from]recoil`, one `<> …[from]lifeorb`) — **six of 58 on one mechanism**, and it is the largest single
+item left in this area.
+
+**THE TWO THAT LANDED, each shown red on a probe first, each with an over-fire control that must NOT
+move, and both expectations OBSERVED in the official simulator rather than read:**
+
+1. **The residual WEATHER group is ONE handler over every body, so its `|faint|` lines are owed below
+   the LAST chip.** `sandstorm.onFieldResidual` (`data/conditions.ts:655`) is
+   `add('-weather'); eachEvent('Weather')`, and `eachEvent` (`battle.ts:465`) walks every active body
+   with no drain between them; `fieldEvent` drains once the handler returns (`battle.ts:565`). Staged in
+   the authority, Gengar on 1 HP in a Tyranitar's sand: the faint arrives **after the OTHER SIDE's
+   Milotic takes its chip.** Probe `condition`/`weatherResidualFaintQueue`. **The control is a BURN**,
+   whose `onResidual(pokemon)` is per body — staged on the same board with the FASTEST body dying, the
+   authority writes `|faint|` between the two chips, and an engine that deferred *every* residual faint
+   would break it.
+2. **A lethal `onDamagingHit` punish is drained WITH the target, and the target is first.** Both are in
+   one `faintQueue` and `faintMessages` empties it in push order; `spreadDamage` pushed the target
+   first. Staged: a Weavile on 1 HP into a Rough Skin Garchomp on 1 HP gives
+   `|faint|Garchomp` then `|faint|Weavile`; this engine read them the other way round because the
+   punish announced inside `_stepDamagingHit`, two steps above `_stepFaint`. Probe
+   `ability`/`punishesAttacker`, *"a punish that kills the attacker is announced BELOW the target it
+   just killed"*. **The control is the SHIELD's own contact punish** (Spiky Shield), which the authority
+   was asked about and which was already correct.
+
+**SIX OF THE FOURTEEN CLASSES WERE ALREADY AT THEIR BOUNDARY** — the target of a move (`_stepFaint`),
+the self-KO family (`_selfKOPending`, ROADMAP #331), the shield punish, entry hazards, every per-body
+residual group and Perish Song. "27 inline sites against 8 boundaries" overstated the work: the sites
+are inline, but the code they sit in is usually already standing at one of the eight.
+
+**THE KNOB IS WIRED AND WAS PROVED BY MOVING OUTPUT.** `MEDI_FAINT_INLINE=1` restores the pre-change
+announce at every converted site and stamps `MEDFAILS.faintInlineRestored`. 40 staged sand kills clean:
+`faintLineQueued 40, faintDrains 40, faintDrainWeatherGroup 40, faintLineInline 0, faintQueueLeaked 0`;
+the same board under the knob reproduces the old stream byte for byte with `faintLineQueued 0`.
+
+**THE STATE HALF IS NOT CLAIMED AND IS NAMED AT THE SITE.** The authority also defers `fainted`,
+`isActive`, `clearVolatile` and `side.totalFainted` to the drain. `queueFaint` moves the LINE and
+leaves the state write exactly where all 27 sites already had it, because ~40 guards in this file read
+`m.fainted` and no instrument here separates that change from this one. **The open finding that a
+fainted body stays in one of our active slots is therefore NOT addressed by this pass.**
+
+### THE HAND LIST
+
+One item left it, and it left NARROWER than it arrived:
+
+- ~~the faint queue (27 inline sites against 8 step boundaries)~~ — two classes are now census probes
+  (`condition`/`weatherResidualFaintQueue`, `ability`/`punishesAttacker`) and six more were measured as
+  already correct. **What remains is not "the faint queue"**; it is the two rows below.
+
+Still open, and now stated precisely rather than as one lump:
+
+- **`_stepSelfPay` is step 3 of 9 and holds two things the authority puts below `faintMessages`.**
+  Recoil is `battle-actions.ts:982` and Life Orb's `onAfterMoveSecondarySelf` is reached at :1005, both
+  BELOW :976; `selfDrops` and the drain belong above. Queueing the faint alone moves the first
+  divergence from one line to another without removing it — this needs the step split, not the queue.
+- **The `eachEvent('Update')` inside the hit loop** (`battle-actions.ts:967`) — six of the 58, above.
+
+Carried forward unchanged and NOT touched here: Throat Chop's one-turn-long `_noSound`, the broken
+Substitute's unclamped `lastDamage`, the Perish Song `-damage`, the weather-upkeep 5, and Growl doing
+nothing.
+
+**PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.**
+
+1. **`eachEvent('Update')` is missing from inside the hit loop.** The authority runs it at
+   `sim/battle-actions.ts:967`, one statement above `faintMessages()`. This engine's only update pass is
+   at the top of the NEXT action, so a partner's Sitrus, a Fling `-enditem` and a Stone Axe hazard all
+   land below a `|faint|` the authority puts them above. **Six of 58 whole-game divergences, one
+   mechanism, narration in every case measured so far.**
+2. **`_stepSelfPay` must be split.** Its recoil and Life Orb halves belong BELOW `_stepFaint` and
+   `_stepHitCount`; `selfDrops`, the drain and the recharge arming belong where they are. Blocks the
+   recoil/orb faint-order class, which is why that class was not converted.
+3. **The STATE half of the faint queue** — the authority defers `fainted`, `isActive`,
+   `clearVolatile(false)` and `side.totalFainted` to the drain and this engine writes all four at the
+   damage site. Includes the open finding about a fainted body sitting in an active slot. **Needs its
+   own instrument before it is attempted**: ~40 guards read `m.fainted`.
+4. **The whole-game differential's own STATE proof is failing** (`planted_state_proof_ok: false`) —
+   six plants read `NOT APPLIED` because they want a BENCHED body the fixture does not carry. True of
+   the baseline artifact on disk as well. **MEASURE's, not ENGINE's.**
+
+### OWED, NOT RUN
+
+```
+node tests/test-mechanics.js                          RUN — 660/660 live, 0 missing, 0 hollow, 0 threw
+tests/test-engine-diff.js --n 6000 --seed 20260804    RUN — exit 0, 0 disagreed
+node engine/game_differential.js (the pinned run)     RUN — three times: baseline, stage 1, stage 2
+node tests/probe_announce_failure.js                  RUN — 8 arms ok (move_result_state.js's consumer)
+node tests/test-resolution-order.js                   RUN — PASS, 26 arms, 0 failing
+node engine/status.js --write                         RUN at the end of this pass
+node tests/roster.js --stage {items,abilities,moves}  RUN — on the FINAL release, counts IDENTICAL to
+                                                            the previous release, 0 FIRED-AND-BOARDS-DIFFER
+                                                            and 0 DID-NOT-FIRE on all three
+node engine/all_mechanics_fire.js --kind all          RUN — on the FINAL release, moves 20 / abilities 9
+                                                            / items 1, identical
+node tests/test-encore-fail-silent.js                 RUN — was RED on arrival, FIXED (see below), PASS
+node engine/quarantine.js                             NOT RUN — the differential clause was run directly
+                                                            at the pins; `undeclared` is NOT re-derived
+tests/interaction_matrix.js                           NOT RUN
+node tests/run-all.js                                 NOT RUN
+node engine/replay_one.js                             NOT RUN
+```
+
+- **No fit, no self-play, no `mew.js`.** `board.js`, `magnemite.js` and `engine-data.js` untouched.
+- **Two untracked files left alone as instructed:** `data/_pair-pilot.json` and
+  `data/medicham-represented-clicks.json`.
+- **A RED GATE WAS FOUND ON ARRIVAL AND WAS FIXED, NOT FILED.** `tests/test-encore-fail-silent.js`
+  exited 1 on a single counter — `mvFailSilentNoLine want exactly 1, got 0`. **Pre-existing**: it is
+  red on release `3e00ea2575a9` as well, which predates every byte written here. The diagnosis is a
+  STALE EXPECTATION, not an engine defect: the phaze pass moved the Suction Cups site off
+  `mvFailSilent` because it measured the authority holding `moveThisTurnResult === true` there
+  (`engine/medicham2-browser.js:463` says exactly that), and the site now writes `mvOkSilentNoLine`.
+  All ten of the file's own arms read AGREES either side, and `tests/probe_announce_failure.js`'s
+  RESULT clause reads `moveLastTurnResult` off both engines on eight arms and finds them identical.
+  **The fix is a PAIR, not a relaxation** — `mvFailSilentNoLine: 0` AND `mvOkSilentNoLine: 1` — so the
+  site is still pinned to fire exactly once and a revert to the old write turns both numbers red
+  rather than neither. Measured at 1 before the WANT was touched.
+- **Stages 1 and 2 landed in ONE commit**, not two. The attribution the brief asked for is carried by
+  the two frozen releases and the two pinned differential runs, which is where it belongs; splitting
+  the commit would have meant regenerating the census twice more for a history line.
 
 ## THE EIGHTEEN REAL SILENT CATCHES ARE CLOSED, 80 -> 62, AND THE ONE HIDING IN THE FLOOR WENT WITH THEM. 2026-08-23.
 

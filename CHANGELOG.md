@@ -10,6 +10,63 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.106.0] — 2026-08-23
+
+### Added
+- **A FAINT QUEUE IN `engine/medicham2-browser.js` — `queueFaint()` / `drainFaints()`, behind
+  `MEDI_FAINT_INLINE=1`.** The authority does not write `|faint|` where the HP reaches zero:
+  `Pokemon#faint()` (`sim/pokemon.ts:1587`) only pushes onto `faintQueue`, and the line is written by
+  `faintMessages()` at **eight** call sites. Both relayed counts were verified here rather than taken
+  on trust — eight boundaries, and 27 `TR.faint(` sites in this engine.
+- **Two census probes, each shown RED first, each with an over-fire control that did not move:**
+  `condition`/`weatherResidualFaintQueue` and `ability`/`punishesAttacker` (*"a punish that kills the
+  attacker is announced BELOW the target it just killed"*). Census **658 → 660 probed / 660 live /
+  0 missing**.
+
+### Fixed
+- **The residual WEATHER group's `|faint|` lines are owed below the LAST chip.**
+  `sandstorm.onFieldResidual` calls `eachEvent('Weather')`, which walks every active body with no
+  drain between them; `fieldEvent` (`sim/battle.ts:565`) drains when the handler returns. Observed in
+  the official simulator: the faint arrives after the **other side's** body takes its chip. A burn,
+  whose `onResidual(pokemon)` is per body, keeps announcing between bodies and is the control.
+- **A lethal `onDamagingHit` punish is announced with the target it just killed, and the target is
+  first.** Both sit in one `faintQueue`, drained in push order, and `spreadDamage` pushed the target.
+  This engine announced the attacker inside `_stepDamagingHit`, two steps above `_stepFaint`.
+
+### Notes
+- **Measured as a RE-BASELINE across three frozen releases**, whole-game differential, arm `middle`,
+  961 games, `team-pool-frozen`, census pin `9446a684709d`, `--end-state`: protocol parted
+  **58 → 57 → 57**; **narration-only 34 → 33 → 33**; board-material **24 throughout**;
+  DIFFERENT-END-STATE 18 → 17 → 17. The gate's own headline, `undeclared = diverged − declared`,
+  **53 of 961 = 5.5% → 52 of 961 = 5.4%** (`declared` is 5 either side). Damage differential
+  **0 of 6000** at seed 20260804. The three roster stages and `all_mechanics_fire --kind all` were
+  re-run on the FINAL release — every count identical to the previous one, and re-run because the
+  engine moving had stranded those artifacts and `status.js` was withholding them.
+  `tests/test-resolution-order.js` PASS (26 arms). `tests/probe_announce_failure.js` — the consumer of
+  `engine/move_result_state.js` — 8 arms, BOARD + RESULT + NARRATION all identical.
+- **Stage 1 is attributed to ONE row.** The first-divergence cause tables either side are identical
+  except `ordering :: |-damage|…[from]sandstorm <> |faint|p1a`, 1 → 0. Stage 2's table is identical to
+  stage 1's in every row, on the same team-pool digest — a lab mechanic, and the pool was said to be
+  expected to sit still before the run.
+- **THE FINDING THAT OUTWEIGHS THE NUMBER, and the reason no third class was converted.** Four pool
+  divergences show a medicham `|faint|` and only ONE is a faint-timing defect. The other three — plus
+  three more carrying no faint — are the missing `eachEvent('Update')` at
+  `sim/battle-actions.ts:967`, inside the hit loop and one statement above `faintMessages()`. **Six of
+  58 on one mechanism.** Moving the faint would relocate those mismatches, not remove them.
+- **The STATE half is NOT claimed.** The authority also defers `fainted`, `isActive`,
+  `clearVolatile(false)` and `side.totalFainted` to the drain; `queueFaint` moves only the LINE,
+  because ~40 guards in this file read `m.fainted` and no instrument here separates the two changes.
+  The open finding about a fainted body sitting in an active slot is untouched and is proposed as a
+  register row.
+- **A red gate found on arrival and FIXED, not filed.** `tests/test-encore-fail-silent.js` exited 1 on
+  `mvFailSilentNoLine want exactly 1, got 0`, and is red on release `3e00ea2575a9` too — a stale
+  EXPECTATION rather than a defect. The phaze pass had moved the Suction Cups site to
+  `mvOkSilentNoLine` because the authority holds `moveThisTurnResult === true` there
+  (`engine/medicham2-browser.js:463`). Fixed as a PAIR — `mvFailSilentNoLine: 0` AND
+  `mvOkSilentNoLine: 1` — so the site is still pinned to fire exactly once and a revert reddens both.
+- Full account: `docs/_reports/2026-08-23-faint-restructure.md`. `docs/ROADMAP.md` was **not** edited;
+  four register rows are proposed in `docs/ENGINE.md`.
+
 ## [5.105.0] — 2026-08-23
 
 ### Changed

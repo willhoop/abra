@@ -3888,6 +3888,71 @@ probe('ability', 'weatherChipImmune', 'sandstorm chips, and Sand Veil / a Steel 
                  + `Sand Veil -${veil.d}; sand, Archaludon (Steel) -${steel.d}; snow, Milotic -${snow.d}` };
 });
 
+/* THE FAINT QUEUE, STAGE 1 — THE WEATHER GROUP IS **ONE HANDLER OVER EVERY BODY**, SO ITS `|faint|`
+ * LINES ARE OWED AFTER THE LAST CHIP AND NOT INSIDE THE WALK. 2026-08-23.
+ *
+ * The authority does not write `|faint|` at the moment HP reaches zero. `Pokemon#faint()`
+ * (sim/pokemon.ts:1587) sets hp to 0 and PUSHES onto `faintQueue`, emitting nothing; the line is
+ * written later by `faintMessages()` (sim/battle.ts:2532), which is called at eight places. Two of
+ * them decide this probe:
+ *
+ *   sim/battle.ts:565   `fieldEvent` runs `this.faintMessages()` AFTER EVERY HANDLER
+ *   data/conditions.ts:655-659  sandstorm's `onFieldResidual` is ONE handler and its body is
+ *                       `this.add('-weather',...); if (isWeather('sandstorm')) this.eachEvent('Weather')`
+ *                       — and `eachEvent` (sim/battle.ts:465) walks every active body with NO
+ *                       faintMessages between them.
+ *
+ * So the whole weather chip is a SINGLE handler and every body's faint is announced together, below
+ * the last chip. A burn is the opposite shape: `onResidual(pokemon)` is registered per body, so
+ * `fieldEvent` drains between them and the faint lands immediately after that body's own chip.
+ *
+ * BOTH ARMS ARE OBSERVED IN THE AUTHORITY, NOT REASONED. Staged in the official simulator (Gengar on
+ * 1 HP in Tyranitar's sand, doubles, everything else Protecting):
+ *     |-damage|p2b: Alakazam|122/130|[from] Sandstorm
+ *     |-damage|p2a: Gengar|0 fnt|[from] Sandstorm
+ *     |-damage|p1b: Milotic|160/170|[from] Sandstorm      <- the OTHER SIDE, still below the corpse
+ *     |faint|p2a: Gengar
+ * and the same board with a burn instead of the sand, Alakazam (120 spe, chipped FIRST) on 1 HP:
+ *     |-damage|p2b: Alakazam|0 fnt|[from] brn
+ *     |faint|p2b: Alakazam
+ *     |-damage|p2a: Gengar|127/135 brn|[from] brn
+ *
+ * THE DYING BODY IS THE FASTEST ON PURPOSE. Chipped LAST, the two models predict the SAME stream and
+ * the arm asks nothing — which is exactly what the first draft of this probe did. Alakazam (120)
+ * dies, Gengar (110), Milotic (81) and Clefable (60) are chipped after it, so the faint's position
+ * separates them: index 4 of the damage lines if the queue is right, index 1 if it is announced
+ * inline.
+ *
+ * THE BURN ARM IS THE OVER-FIRE CONTROL AND IT MUST NOT MOVE. An engine that deferred EVERY residual
+ * faint to the group close would satisfy the weather arm and break this one. */
+probe('condition', 'weatherResidualFaintQueue',
+      'a sandstorm faint is announced after the LAST body is chipped; a burn faint is not', () => {
+  const run = (mode) => {
+    const trace = [];
+    const me = bare('milotic'), ally = bare('clefable');
+    const f1 = bare('alakazam'), f2 = bare('gengar');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    if (mode === 'weather') S.field.weather = 'sand';
+    else { me.status = 'brn'; ally.status = 'brn'; f1.status = 'brn'; f2.status = 'brn'; }
+    f1.curHP = 1;                       /* Alakazam, 120 spe — the FIRST body the group reaches */
+    trace.length = 0;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon).filter(l => /^\|(-damage|faint)\|/.test(l));
+    return { lines, dmg: lines.filter(l => /^\|-damage\|/.test(l)).length,
+             faintAfter: lines.findIndex(l => /^\|faint\|/.test(l)) };
+  };
+  const sand = run('weather'), brn = run('burn');
+  return { works: sand.dmg === 4 && sand.faintAfter === 4
+                  && brn.dmg === 4 && brn.faintAfter === 1,
+           arms: { control: [brn.faintAfter, brn.dmg], test: [sand.faintAfter, sand.dmg] },
+           detail: 'SAND (one handler, every body): ' + sand.dmg + ' chip lines and the |faint| sits '
+                 + 'after ' + sand.faintAfter + ' of them (must be 4 of 4 — Alakazam dies first and '
+                 + 'three bodies are still owed their chip). BURN (a handler per body): '
+                 + brn.dmg + ' chip lines, |faint| after ' + brn.faintAfter
+                 + ' (must be 1 — the drain is between handlers). sand ' + JSON.stringify(sand.lines)
+                 + ' burn ' + JSON.stringify(brn.lines) };
+});
+
 /* WIRE 157 -- THE WEATHER RESIDUAL RUNS IN BOTH DIRECTIONS AND THIS ENGINE HELD ONLY THE ONE THAT
  * HURTS. The probe above is the whole of what existed: sand chips, and three things ignore it. The
  * SAME `onWeather` hook restores HP, and none of that reached any code -- Ice Body read LIVE off the
@@ -15094,6 +15159,72 @@ probe('ability', 'punishesAttacker', 'the contact punish is paid AFTER the damag
                  + `Tyranitar paid ${control.paid}; Rough Skin: [${test.shape}], paid ${test.paid} `
                  + `(an eighth is ${eighth}); the target lost ${control.d} and ${test.d}, which must `
                  + `be equal` };
+});
+
+/* THE FAINT QUEUE, STAGE 2 — A CONTACT PUNISH THAT KILLS THE ATTACKER IS ANNOUNCED WITH THE TARGET,
+ * AND THE TARGET IS FIRST. 2026-08-23.
+ *
+ * `punishesAttacker` is `onDamagingHit`, which runs inside `spreadMoveHit`; the target's own death
+ * was queued a few lines earlier by `spreadDamage`. NEITHER line is written there — both wait for
+ * `faintMessages()` at the tail of `hitStepMoveHitLoop` (sim/battle-actions.ts:976, and the Champions
+ * mod's own copy at data/mods/champions/scripts.ts:547), which drains `faintQueue` IN PUSH ORDER. So
+ * the target's line is owed FIRST and the attacker's second, and both sit below the punish damage.
+ *
+ * OBSERVED, NOT REASONED. Staged in the official simulator: a Weavile on 1 HP clicks Fake Out into a
+ * ROUGH SKIN Garchomp on 1 HP, doubles, the rest Protecting:
+ *     |-damage|p2a: Garchomp|0 fnt
+ *     |-damage|p1a: Weavile|0 fnt|[from] ability: Rough Skin|[of] p2a: Garchomp
+ *     |faint|p2a: Garchomp
+ *     |faint|p1a: Weavile
+ * This engine wrote the attacker's line inside `_stepDamagingHit`, which is two steps ABOVE
+ * `_stepFaint`, so it read `faint Weavile` then `faint Garchomp` — the queue in reverse.
+ *
+ * THE OVER-FIRE CONTROL IS THE SHIELD'S OWN PUNISH, AND IT IS ALREADY RIGHT. The same Weavile into a
+ * SPIKY SHIELD Chesnaught, measured on the same authority build:
+ *     |-activate|p2a: Chesnaught|move: Protect
+ *     |-damage|p1a: Weavile|0 fnt|[from] Spiky Shield|[of] p2a: Chesnaught
+ *     |faint|p1a: Weavile
+ * — one faint, immediately below its damage, because the shield refused the whole move and there is
+ * no second body in the queue. An engine that deferred EVERY faint to some later boundary would
+ * satisfy the Rough Skin arm and break this one, so both are asserted. */
+probe('ability', 'punishesAttacker',
+      'a punish that kills the attacker is announced BELOW the target it just killed', () => {
+  const roughSkin = () => {
+    const trace = [];
+    const me = bare('weavile'), ally = bare('milotic');
+    const f1 = bare('garchomp'), f2 = bare('gengar');
+    f1.ability = 'roughskin';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    me.curHP = 1; f1.curHP = 1;
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'fakeout', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return trace.map(M.traceCanon).filter(l => /^\|faint\|/.test(l));
+  };
+  const spikyShield = () => {
+    const trace = [];
+    const me = bare('weavile'), ally = bare('milotic');
+    const f1 = bare('chesnaught'), f2 = bare('gengar');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    me.curHP = 1;
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'fakeout', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'spikyshield', f1, S.field)], [f2, { kind: 'pass' }]]));
+    return trace.map(M.traceCanon).filter(l => /^\|faint\|/.test(l));
+  };
+  const rs = roughSkin(), ss = spikyShield();
+  const WANT_RS = ['|faint|p2a:garchomp', '|faint|p1a:weavile'];
+  const WANT_SS = ['|faint|p1a:weavile'];
+  return { works: JSON.stringify(rs) === JSON.stringify(WANT_RS)
+                  && JSON.stringify(ss) === JSON.stringify(WANT_SS),
+           arms: { control: ss, test: rs },
+           detail: 'ROUGH SKIN, both bodies on 1 HP, Fake Out — faint lines ' + JSON.stringify(rs)
+                 + ' (must be ' + JSON.stringify(WANT_RS) + ': the queue is drained in PUSH order and '
+                 + 'the target was pushed first). SPIKY SHIELD, the over-fire control, only the '
+                 + 'attacker dies — ' + JSON.stringify(ss) + ' (must be ' + JSON.stringify(WANT_SS)
+                 + '). Before the queue the Rough Skin arm read the two lines the other way round' };
 });
 
 /* 4a. A CRIT IGNORES THE ATTACKER'S NEGATIVE OFFENSIVE STAGES — the expensive one, because

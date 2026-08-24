@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-23T23:29:49.958Z",
+  "generated": "2026-08-24T00:35:01.391Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 658,
-  "live": 658,
+  "probed": 660,
+  "live": 660,
   "missing": 0,
-  "armed": 658,
+  "armed": 660,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -894,6 +894,16 @@
       "label": "sandstorm chips, and Sand Veil / a Steel type ignore it",
       "live": true,
       "detail": "sand, Milotic: ability none -10 (a sixteenth is 10), Sand Veil -0; sand, Archaludon (Steel) -0; snow, Milotic -0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "condition",
+      "tag": "weatherResidualFaintQueue",
+      "label": "a sandstorm faint is announced after the LAST body is chipped; a burn faint is not",
+      "live": true,
+      "detail": "SAND (one handler, every body): 4 chip lines and the |faint| sits after 4 of them (must be 4 of 4 — Alakazam dies first and three bodies are still owed their chip). BURN (a handler per body): 4 chip lines, |faint| after 1 (must be 1 — the drain is between handlers). sand [\"|-damage|p2a:alakazam|0fnt|[from]sandstorm\",\"|-damage|p2b:gengar|127/135|[from]sandstorm\",\"|-damage|p1a:milotic|160/170|[from]sandstorm\",\"|-damage|p1b:clefable|160/170|[from]sandstorm\",\"|faint|p2a:alakazam\"] burn [\"|-damage|p2a:alakazam|0fnt|[from]brn\",\"|faint|p2a:alakazam\",\"|-damage|p2b:gengar|127/135brn|[from]brn\",\"|-damage|p1a:milotic|160/170brn|[from]brn\",\"|-damage|p1b:clefable|160/170brn|[from]brn\"]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3363,7 +3373,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4334,6 +4344,16 @@
       "label": "the contact punish is paid AFTER the damage lands, not before",
       "live": true,
       "detail": "Tyranitar Knock Off into Garchomp — no ability: damage lines [target], Tyranitar paid 0; Rough Skin: [target,attacker], paid 21 (an eighth is 21); the target lost 79 and 79, which must be equal",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "a punish that kills the attacker is announced BELOW the target it just killed",
+      "live": true,
+      "detail": "ROUGH SKIN, both bodies on 1 HP, Fake Out — faint lines [\"|faint|p2a:garchomp\",\"|faint|p1a:weavile\"] (must be [\"|faint|p2a:garchomp\",\"|faint|p1a:weavile\"]: the queue is drained in PUSH order and the target was pushed first). SPIKY SHIELD, the over-fire control, only the attacker dies — [\"|faint|p1a:weavile\"] (must be [\"|faint|p1a:weavile\"]). Before the queue the Rough Skin arm read the two lines the other way round",
       "hollow": false,
       "armed": true,
       "directCall": false

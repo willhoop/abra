@@ -21,6 +21,60 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE FAINT QUEUE — TWO CLASSES OF FOURTEEN, NARRATION 34 → 33. 2026-08-23 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-23-faint-restructure.md`](_reports/2026-08-23-faint-restructure.md).
+Ledger section: `docs/ENGINE.md`, *"THE FAINT QUEUE — FOURTEEN CLASSES, TWO CONVERTED"*.
+
+**Whole-game differential, arm `middle`, 961 games, `team-pool-frozen`, census pin `9446a684709d`,
+`--end-state`. A RE-BASELINE across three releases, not a delta:**
+
+| quantity | baseline `3e00ea2575a9` | stage 1 `e507bcce0248` | stage 2 `3929459bb195` |
+|---|---|---|---|
+| **undeclared (`diverged − declared`), the headline** | **53 of 961 = 5.5%** | — | **52 of 961 = 5.4%** |
+| protocol parted (raw) | 58 | **57** | **57 — unmoved** |
+| board-material games | 24 | 24 — did not move | 24 — did not move |
+| narration-only games | 34 | **33 — fell** | 33 — did not rise |
+| DIFFERENT-END-STATE | 18 | 17 | 17 |
+| census probed / live / missing | 658 / 658 / 0 | 659 / 659 / 0 | **660 / 660 / 0** |
+| damage differential | 0 of 6000 | — | **0 of 6000, exit 0** |
+| roster items / abilities / moves | 0 DIFFER, 0 DID-NOT-FIRE | — | **identical, re-run on the FINAL release** |
+| `all_mechanics_fire --kind all` | moves 20 / abilities 9 / items 1 | — | **identical, re-run on the FINAL release** |
+
+**Two classes converted, each on a probe shown RED first with an over-fire control that did not move,
+and each expectation OBSERVED in the official simulator rather than read out of the source:**
+
+1. **The residual WEATHER group is ONE handler over every body** — `sandstorm.onFieldResidual` calls
+   `eachEvent('Weather')`, which drains nothing between bodies, and `fieldEvent` (`battle.ts:565`)
+   drains when the handler returns. So its `|faint|` lines are owed below the LAST chip, and the
+   authority puts one after the OTHER SIDE's chip. Probe `condition`/`weatherResidualFaintQueue`.
+   **Control: a BURN**, which is a handler PER body and must keep announcing between them.
+2. **A lethal `onDamagingHit` punish is drained with the target, and the target is first** — one
+   queue, push order, `spreadDamage` pushed the target. This engine announced the attacker inside
+   `_stepDamagingHit`, two steps above `_stepFaint`. Probe `ability`/`punishesAttacker`.
+   **Control: the SHIELD's contact punish**, verified in the authority as already correct.
+
+**Knob `MEDI_FAINT_INLINE=1`** restores the old announce at both sites and stamps
+`MEDFAILS.faintInlineRestored`; proved by moving the stream, not by existing.
+
+**THE FINDING THAT OUTWEIGHS THE NUMBER.** Four pool divergences show a medicham `|faint|`; only ONE
+is a faint-timing defect. The other three — plus three more that carry no faint — are the missing
+`eachEvent('Update')` at `battle-actions.ts:967`, inside the hit loop and one statement above
+`faintMessages()`. **Six of 58 on one mechanism**, proposed as a register row. Moving the faint would
+relocate those mismatches, not remove them, which is why stage 3 was not attempted.
+
+**A RED GATE FOUND ON ARRIVAL AND FIXED, NOT FILED.** `tests/test-encore-fail-silent.js` exited 1 on
+`mvFailSilentNoLine want exactly 1, got 0` — red on release `3e00ea2575a9` as well, so pre-existing.
+Stale EXPECTATION, not a defect: the phaze pass moved the Suction Cups site to `mvOkSilentNoLine`
+because the authority holds `moveThisTurnResult === true` there. Fixed as a PAIR (`0` and `1`), so the
+site stays pinned to fire exactly once.
+
+**NOT CLAIMED:** the STATE half. The authority also defers `fainted`, `isActive`, `clearVolatile` and
+`side.totalFainted` to the drain; `queueFaint` moves only the LINE, and the open finding about a
+fainted body sitting in an active slot is untouched.
+
+---
+
 ## THE BOARD-MATERIAL REMAINDER — FIVE MECHANISMS, ENGINE BOARD-MATERIAL 21 → 15. 2026-08-23 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-23-board-material-remainder.md`](_reports/2026-08-23-board-material-remainder.md).

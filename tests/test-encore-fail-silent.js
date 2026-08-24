@@ -319,7 +319,22 @@ for (const { c, r, short } of results) {
  *                           this read 0 the new clauses would be unreachable and the failencore arm
  *                           would be passing for some other reason.
  *   mvFailSilentNoLine      CALLS to mvFailSilent — `-fail` lines this engine used to write and no
- *                           longer does. One arm stages one (Suction Cups).
+ *                           longer does. **PINNED AT 0, and it was asserted at 1 until 2026-08-23.**
+ *                           The Suction Cups site it named no longer writes `false` at all: the
+ *                           phaze pass measured the authority holding `moveThisTurnResult === true`
+ *                           there and moved the site to `mvOkSilentNoLine`
+ *                           (engine/medicham2-browser.js:463 says so in as many words). The
+ *                           expectation was never moved with it, so this file has been RED on an
+ *                           engine everything else calls correct — including its own ten arms, all
+ *                           of which read AGREES either side of the change, and
+ *                           tests/probe_announce_failure.js, whose RESULT clause reads
+ *                           `moveLastTurnResult` off both engines on eight arms and finds them
+ *                           identical. Verified pre-existing rather than assumed: red on release
+ *                           `3e00ea2575a9`, which predates that day's engine work.
+ *   mvOkSilentNoLine        the SAME site under the value it actually writes, asserted at 1. The
+ *                           pair is what keeps this an assertion rather than a relaxation — the
+ *                           site is still pinned to fire exactly once, and a revert to the old
+ *                           `false` write turns BOTH numbers red instead of neither.
  *   yawnShieldAnnounced     `|-activate|…|move: Protect` LINES the yawn branch wrote. One arm.
  *   volRefusedSilent        REFUSALS classified as the authority's `null` inside applyMoveVolatile.
  *                           ONE, not two: the Aroma Veil arm goes through applyMoveVolatile and the
@@ -341,8 +356,8 @@ if (!SEEN) {
     + 'read at all. This is not a pass.');
   process.exit(2);
 }
-const WANT = { volFailLinesWritten: 4, encoreRefusedByOnStart: 1, mvFailSilentNoLine: 1,
-               yawnShieldAnnounced: 1, volRefusedSilent: 1 };
+const WANT = { volFailLinesWritten: 4, encoreRefusedByOnStart: 1, mvFailSilentNoLine: 0,
+               mvOkSilentNoLine: 1, yawnShieldAnnounced: 1, volRefusedSilent: 1 };
 console.log('');
 for (const [k, want] of Object.entries(WANT)) {
   const got = SEEN[k];

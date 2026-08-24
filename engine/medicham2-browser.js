@@ -365,6 +365,26 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * is never reached either. Reads zero on any board where at least one body was still standing after
    * the shields; a rise is a fact about the shield, not an error. */
   selfKOLineFromShieldExit: 0,
+  /* 2026-08-23 -- THE FAINT QUEUE. Three counters, and each names the noun it counts.
+   *   faintLineQueued          BODIES pushed onto `_FAINTQ` by `queueFaint`, i.e. `|faint|` lines
+   *                            deferred to one of the authority's eight drains. Not faints in
+   *                            general -- the 20-odd sites this pass has NOT converted still
+   *                            announce inline and score zero here. A body already on the queue is
+   *                            not counted twice.
+   *   faintLineInline          the SAME sites under `MEDI_FAINT_INLINE=1`, i.e. the before-arm. On a
+   *                            normal run this must read 0 and `MEDFAILS.faintInlineRestored` must
+   *                            be absent; a run with both non-zero is measuring the old engine.
+   *   faintDrains              `drainFaints` calls that actually EMITTED something. Not calls -- an
+   *                            empty drain is free and is deliberately not counted, so this number
+   *                            is "how many times a queued line reached the wire".
+   *   faintDrainWeatherGroup   the subset drained at the weather group's close (stage 1). It reads 0
+   *                            on every board with no weather kill on it, and that is correct rather
+   *                            than a hole.
+   *   faintDrainAfterHitLoop   the subset drained by `_stepDrainFaints`, one step below `_stepFaint`
+   *                            (stage 2 — the `onDamagingHit` punish that kills the attacker). It
+   *                            reads 0 on every board where no punish was lethal. */
+  faintLineQueued: 0, faintLineInline: 0, faintDrains: 0,
+  faintDrainWeatherGroup: 0, faintDrainAfterHitLoop: 0,
   /* 2026-08-22 -- ENTRY-ORDER PAIRS SEPARATED BY PRIORITY RATHER THAN BY SPEED. THE NOUN: it counts
    * COMPARISONS in which the two bodies carried DIFFERENT `onSwitchInPriority` values, so the sort
    * returned on the priority key and never consulted speed. Not entrants, not turns, and not "a
@@ -1441,6 +1461,14 @@ const MEDFAILS = { encoreAction: 0,
      to the 0.5 this wire exists to remove. LOUD on purpose: the fallback and the fix return the
      same number and only this counter tells them apart. */
   doubleWipeNoFaintOrder: 0,
+  /* 2026-08-23 -- THE FAINT QUEUE'S TWO FAILURE MODES, and neither may be silent.
+       faintInlineRestored  set for the whole run when `MEDI_FAINT_INLINE=1` puts every converted
+                            site back to announcing on the spot. A run carrying this is the
+                            BEFORE-arm and none of its numbers describe the current engine.
+       faintQueueLeaked     `|faint|` lines still owed when a NEW battle opened, i.e. a drain that
+                            never ran. Must read 0. A carried queue would emit one battle's corpse
+                            into the next one's stream, which is worse than the ordering it fixes. */
+  faintInlineRestored: 0, faintQueueLeaked: 0,
   /* ROADMAP #322 -- a body that clicked a charging move and was no longer on the field, or was
      fainted, when the charge phase reached it. The authority's own guard (sim/battle.ts:2737-2738),
      kept LOUD: nothing between the top of the turn and order 107 can currently faint a body that
@@ -14918,11 +14946,76 @@ function oneMegaPerSide(team){
  * indistinguishable from the bug this wire removed. */
 let _FAINT_SEQ=0, _FAINT_EPOCH=0;
 function noteFaint(m){ if(!m)return; if(m._fEpoch!==_FAINT_EPOCH){m._fEpoch=_FAINT_EPOCH;m._faintSeq=++_FAINT_SEQ;} }
+/* ---- THE FAINT QUEUE. 2026-08-23 ---------------------------------------------------------------
+ *
+ * THE AUTHORITY DOES NOT WRITE `|faint|` WHERE THE HP REACHES ZERO. `Pokemon#faint()`
+ * (sim/pokemon.ts:1587) sets `hp = 0`, sets `faintQueued` and PUSHES onto `battle.faintQueue`; its
+ * own doc comment says so in as many words -- *"This function only puts the pokemon in the faint
+ * queue"*. The LINE is written by `faintMessages()` (sim/battle.ts:2532) draining that queue, and
+ * `faintMessages()` is called at exactly eight places, read out of the source rather than recalled:
+ *
+ *     sim/battle-actions.ts:336   inside the Dancer loop
+ *     sim/battle-actions.ts:347   the tail of `runMove`
+ *     sim/battle-actions.ts:976   the tail of `hitStepMoveHitLoop`   (+ mods/champions/scripts.ts:547)
+ *     sim/battle.ts:565           `fieldEvent`, AFTER EVERY HANDLER
+ *     sim/battle.ts:1554          `lose()`
+ *     sim/battle.ts:2180          the `instafaint` arm of `spreadDamage`
+ *     sim/battle.ts:2832          the tail of `runAction`
+ *     sim/battle.ts:2897          after `BeforeSwitchOut`
+ *
+ * This engine announces INLINE at 27 sites. Most of them are already at one of those eight moments
+ * by accident of where the code sits, and the ones that are not are a real ordering defect --
+ * measured, not asserted: the pinned pool's whole-game differential carries four first-divergences
+ * whose medicham line is a `|faint|` the authority had not written yet.
+ *
+ * THIS IS NOT A NARRATION-ONLY REFACTOR AND THE SCOPE IS DECLARED RATHER THAN DISCOVERED. The
+ * authority ALSO defers `fainted`, `isActive`, `clearVolatile` and `side.totalFainted` to the drain.
+ * `queueFaint` moves the LINE and leaves the state write exactly where every one of those 27 sites
+ * already had it, because ~40 guards in this file read `m.fainted` and moving that flag is a second
+ * change that no instrument here separates from this one. The state half is OWED and named in
+ * docs/ENGINE.md; it is not claimed done by anything below.
+ *
+ * `noteFaint` STILL FIRES AT THE STATE TRANSITION and not at the drain, which is the existing rule
+ * one block up: `faintQueue` order is the order of the KILL, and WIRE 160's win rule reads it.
+ *
+ * THE KNOB IS THE BEFORE-ARM. `MEDI_FAINT_INLINE=1` makes `queueFaint` announce on the spot, i.e.
+ * puts every converted site back exactly as it was, and stamps `MEDFAILS.faintInlineRestored`. Same
+ * shape as MEDI_BENCH_APPEND, MEDI_SLEEP_WAKE_COIN and the rest.
+ *
+ * IT IS NEVER SILENT. Every queue push and every drain is counted; a queue that still holds a line
+ * when the battle loop hands back is `MEDFAILS.faintQueueLeaked`, not a shrug. */
+const FAINT_INLINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FAINT_INLINE==='1');
+let _FAINTQ=[];
+/* The STATE transition, unchanged, plus a deferred line. Callers that need `_sub`, `_sf.fainted` or
+ * anything else keep doing it themselves -- this owns the three writes every one of the 27 sites
+ * shared and nothing more. */
+function queueFaint(m,site){
+  if(!m)return false;
+  m.curHP=0; m.fainted=true; noteFaint(m);
+  if(FAINT_INLINE){ MEDFAILS.faintInlineRestored=1; MEDSEEN.faintLineInline++; if(TR)TR.faint(m); return true; }
+  if(_FAINTQ.indexOf(m)<0){ _FAINTQ.push(m); MEDSEEN.faintLineQueued++; }
+  return true;
+}
+/* ONE OF THE AUTHORITY'S EIGHT MOMENTS. `where` is the boundary's name and is counted, so a drain
+ * that stops firing is readable rather than inferred. */
+function drainFaints(where){
+  if(!_FAINTQ.length)return 0;
+  const n=_FAINTQ.length;
+  for(const m of _FAINTQ) if(TR)TR.faint(m);
+  _FAINTQ.length=0;
+  MEDSEEN.faintDrains++;
+  if(where==='weatherGroup')MEDSEEN.faintDrainWeatherGroup++;
+  else if(where==='afterHitLoop')MEDSEEN.faintDrainAfterHitLoop++;
+  return n;
+}
 function lastFaintSeq(arr){ let n=-1;
   for(const m of arr) if(m&&m.fainted&&m._fEpoch===_FAINT_EPOCH&&m._faintSeq>n)n=m._faintSeq;
   return n; }
 function battleInit(teamA,teamB,opts){
   _FAINT_EPOCH++;
+  /* A LINE STILL OWED WHEN A NEW BATTLE OPENS IS A DRAIN THAT NEVER RAN. Cleared, and LOUD -- a
+   * silently-carried queue would emit a corpse's `|faint|` into somebody else's game. */
+  if(_FAINTQ.length){ MEDFAILS.faintQueueLeaked=(MEDFAILS.faintQueueLeaked||0)+_FAINTQ.length; _FAINTQ.length=0; }
   oneMegaPerSide(teamA); oneMegaPerSide(teamB);
   /* ROADMAP #126 -- `wgA:false,wgB:false` STOOD HERE, a boolean pair whose NAME was the only record
    * of what it guarded against. `sgA`/`sgB` are maps of `guard move id -> true`, one entry per guard
@@ -22885,7 +22978,19 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_pun.fraction&&!m.fainted){
               m.curHP-=Math.floor(m.st.hp/(+_pun.fraction));
               if(TR)TR.dmg(m,'[from] ability: '+tg.ability,tg);
-              if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+              /* 2026-08-23 -- THE ATTACKER'S LINE IS QUEUED AND THE TARGET'S IS OWED FIRST.
+               * `onDamagingHit` runs inside `spreadMoveHit`; the target's death was pushed onto
+               * `faintQueue` a few lines earlier by `spreadDamage`, and NEITHER line is written
+               * until `faintMessages()` at sim/battle-actions.ts:976 drains that queue IN PUSH
+               * ORDER. Announcing here put the attacker's line two steps above `_stepFaint` and so
+               * ahead of the body it had just killed. Measured on the authority, Weavile on 1 HP
+               * into a Rough Skin Garchomp on 1 HP:
+               *     |-damage|p2a: Garchomp|0 fnt
+               *     |-damage|p1a: Weavile|0 fnt|[from] ability: Rough Skin|[of] p2a: Garchomp
+               *     |faint|p2a: Garchomp
+               *     |faint|p1a: Weavile
+               * Drained by `_stepDrainFaints`, one step below `_stepFaint`. */
+              if(m.curHP<=0)queueFaint(m,'punishesAttacker');
             }
             /* 2026-08-23 -- THE HANDLER'S OWN LINE ABOUT ITSELF, off `punishesAttacker.announce`.
              *
@@ -23968,6 +24073,23 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * IT IS A STEP RATHER THAN A LINE INSIDE `_stepFaint` because `_stepFaint` returns early on a
        * survivor, and the overwhelmingly common multi-hit is one nobody died to. */
+      /* STEP 8b -- THE REST OF THE SAME `faintMessages()` CALL. 2026-08-23.
+       *
+       * `_stepFaint` writes the TARGET's line and returns early on a survivor. Anything else the hit
+       * loop killed -- today that is the ATTACKER, taken out by an `onDamagingHit` punish -- was
+       * pushed onto `_FAINTQ` and is owed by the SAME drain, below the target, because
+       * `faintMessages` empties `faintQueue` in push order and `spreadDamage` pushed the target
+       * first.
+       *
+       * IT IS A STEP AND NOT A LINE AT THE FOOT OF `_stepFaint` for the reason the `-hitcount` step
+       * below it is one: `_stepFaint` returns early on a survivor, and a Rough Skin that kills the
+       * attacker without killing its holder is exactly that case. Being a step also means the driver
+       * runs it AFTER `_stepFaint` has visited every ROW, so on a spread move every target's line is
+       * already out before the attacker's -- which is the order the authority's single queue gives.
+       *
+       * IT IS ABOVE `_stepHitCount` because the whole of the 2026-08-22 note below is that the count
+       * is announced over a body the authority has already killed AND de-activated. */
+      const _stepDrainFaints=()=>{ drainFaints('afterHitLoop'); };
       const _stepHitCount=(R)=>{ if(!R.hitLanded)return;
         MEDSEEN.hitCountLinesDeferred++;
         if(R.tg&&R.tg.fainted)MEDSEEN.hitCountNamedACorpse++;
@@ -24343,7 +24465,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                     _stepBreakProtect,                                   // ROADMAP #272 -- step 5
                     _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
                     _stepDamagingHit,_stepBuffOnHit,                  // 2026-08-22 -- ONE `DamagingHit`
-                    _stepAfterHit,_stepFaint,
+                    _stepAfterHit,_stepFaint,_stepDrainFaints,
                     /* 2026-08-22 -- `-hitcount` IS BELOW THE FAINT, sim/battle-actions.ts:976-978:
                      *     this.battle.faintMessages(false, false, !pokemon.hp);
                      *     if (move.multihit && ...) this.battle.add('-hitcount', targets[0], hit - 1);
@@ -25432,7 +25554,11 @@ function battleTurn(S,rng,actsForA,actsForB){
            m.curHP-=Math.floor(m.st.hp/_dn);
            MEDSEEN.weatherAbilityChip++;
            if(TR)TR.dmg(m,'[from] ability: '+m.ability);
-           if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+           /* THE WEATHER GROUP'S LINE IS QUEUED, NOT WRITTEN. Solar Power and Dry Skin are
+            * `onWeather` handlers, so they run inside the SAME `eachEvent('Weather')` the sand chip
+            * runs in -- one `onFieldResidual` handler for the whole field -- and `fieldEvent` drains
+            * the queue after that handler, not between bodies. See `queueFaint`. */
+           if(m.curHP<=0)queueFaint(m,'weatherAbilityChip');
          }
        }}
       /* WIRE 154 -- WISH PAYS OUT HERE, AND THE POSITION IN THE RESIDUAL IS THE AUTHORITY'S.
@@ -25965,7 +26091,31 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the old call site) waited a full turn to eat. `residualBerryAteOffOldSlot` counts exactly that
        * case -- a berry eaten in a group other than the one the old fixed call sat in -- so the change
        * proves it fired instead of being asserted. */
-      if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+      /* 2026-08-23 -- AND THE `|faint|` LINE IS THE GROUP'S, NOT THE BODY'S, IN EXACTLY ONE GROUP.
+       * `fieldEvent` drains after every HANDLER (sim/battle.ts:565), and for every group in this
+       * walk EXCEPT the weather one a handler is per-body: burn is `onResidual(pokemon)`, so the
+       * authority writes the line between bodies and this loop is already right. The weather group
+       * is the exception and it is the authority's own shape rather than a special case here:
+       * `sandstorm.onFieldResidual` (data/conditions.ts:655) is ONE handler whose body is
+       * `eachEvent('Weather')` (sim/battle.ts:465), which walks every active body with no drain
+       * between them. So its lines are owed together, below the LAST chip.
+       *
+       * MEASURED IN THE AUTHORITY, both arms, before this line existed -- Gengar on 1 HP in sand:
+       *     |-damage|p2b: Alakazam|122/130|[from] Sandstorm
+       *     |-damage|p2a: Gengar|0 fnt|[from] Sandstorm
+       *     |-damage|p1b: Milotic|160/170|[from] Sandstorm     <- the OTHER SIDE, still above it
+       *     |faint|p2a: Gengar
+       * and the same board burned instead, the FASTEST body on 1 HP:
+       *     |-damage|p2b: Alakazam|0 fnt|[from] brn
+       *     |faint|p2b: Alakazam
+       *     |-damage|p2a: Gengar|127/135 brn|[from] brn
+       * The burn arm is the over-fire control for this branch and it is asserted in
+       * tests/test-mechanics.js `weatherResidualFaintQueue`: an engine that deferred EVERY residual
+       * faint to the group close passes the sand arm and breaks that one. */
+      if(m.curHP<=0){
+        if(_G.has('weather'))queueFaint(m,'weatherGroup');
+        else{m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+      }
     }
     /* 2026-08-22 -- `eachEvent('Update')` HAS EXACTLY TWO POSITIONS IN THE AUTHORITY'S TURN END, AND
      * "AFTER EVERY GROUP" IS NEITHER OF THEM. See `residualUpdatePass` for the derivation; this is
@@ -25981,6 +26131,13 @@ function battleTurn(S,rng,actsForA,actsForB){
      * its Sitrus BEFORE `|upkeep|` on both engines and the two streams agree line for line. Moving all
      * berries below `|upkeep|` would have broken that. */
     if(_G.has('weather')&&field.weather&&!field.wSup)residualUpdatePass(actA,actB,field,_gi);
+    /* 2026-08-23 -- AND THE DRAIN, BELOW THAT UPDATE PASS. `eachEvent` closes with
+     * `if (eventid === 'Weather' && this.gen >= 7) this.eachEvent('Update')` (sim/battle.ts:473-475),
+     * so the berries are still INSIDE the one weather handler; `fieldEvent`'s `faintMessages()` is
+     * the next statement after the handler returns. The drain is therefore below the update pass and
+     * not above it. It is called for the weather group ONLY -- every other group announces inline at
+     * the site above, so the queue is empty here and this costs nothing and is not counted. */
+    if(_G.has('weather'))drainFaints('weatherGroup');
     /* ROADMAP #242 -- AND THE SIDE AND FIELD CLOCKS OF THIS GROUP, AFTER ITS BODIES. A Side or a
      * Field has no speed, so `comparePriority`'s speed term (which sits BETWEEN order and subOrder)
      * puts every one of them below every body at the same order. It is called for EVERY group, not
