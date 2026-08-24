@@ -2657,43 +2657,115 @@ demoSource('ROADMAP #81 WIRE 3  a refused stat drop is ANNOUNCED, and the state 
  *
  * BOTH ASSERT THE CONTROL ARM TOO, AND IT IS EQUAL ON BOTH ENGINES BY CONSTRUCTION. That is what
  * makes an off-by-one legible: a demonstration that watched only the second number would also flip
- * on an engine that had simply stopped applying the modifier altogether. */
+ * on an engine that had simply stopped applying the modifier altogether.
+ *
+ * ================================================================================================
+ * RE-AIMED 2026-08-23, AND THE OLD FORM ACCUSED THE ENGINE OF TWO DAMAGE DEFECTS IT DOES NOT HAVE.
+ *
+ * These two rows read `shipped-arm=false` for days and were reported out as two live defects in the
+ * damage pipeline. They are neither. Every one of the four numbers they carried is the PRE-ROADMAP-
+ * #304 SPAN DRAW -- `min + floor(0.5 * (max - min + 1))` over the fixture's own band:
+ *
+ *     Flamethrower  58..70   -> 58 + floor(0.5*13) =  64        (row said 64)
+ *     Heat Wave     46..56   -> 46 + floor(0.5*11) =  51        (row said 51)
+ *     Close Combat  73..86   -> 73 + floor(0.5*14) =  80        (row said 80)
+ *       + Life Orb  95..112  -> 95 + floor(0.5*18) = 104        (row said 104)
+ *
+ * All four, exactly. #304 replaced that draw with an INDEX into sixteen (`damageRollIndex(u) =
+ * 15 - floor(u*16)`), so the single scalar `rng5 = () => 0.5` stopped naming a position in a span
+ * and started naming index 7 -- and the four values moved to 64 / 52 / 79 / 103. Flamethrower
+ * coincides at 64 under both conventions, which is why the CONTROL half of each row went on
+ * passing and hid the cause.
+ *
+ * SO THE EXPECTATION IS NO LONGER ONE NUMBER FROM ONE DIE POSITION. Each row now sweeps ALL SIXTEEN
+ * indices and compares the whole band against the AUTHORITY's band for the same bodies -- so a
+ * demonstration cannot go stale on a die convention again without saying which index moved.
+ *
+ * AND THE DIE IS ISOLATED BY STREAM RATHER THAN BY A SINGLE SCALAR. `rng5` answered the accuracy,
+ * crit and secondary questions too, so 90-accuracy Heat Wave MISSED at indices 0 and 1 and CRIT at
+ * 15: two thirds of the band was unreadable and the row could not have been re-aimed as it stood.
+ * The stream shape is copied from tests/test-damage-roll-support.js, whose header records why each
+ * held value is the value it is.
+ *
+ * THE AUTHORITY'S OWN LINES, READ RATHER THAN RECALLED:
+ *   spread   pokemon-showdown/data/mods/champions/scripts.ts:204-208 --
+ *            `baseDamage = this.battle.modify(baseDamage, spreadModifier)` with spreadModifier 0.75,
+ *            i.e. `modify`'s 4096ths rounding, NOT a truncation.
+ *   Life Orb pokemon-showdown/data/items.ts:3406-3408 --
+ *            `onModifyDamage(...) { return this.chainModify([5324, 4096]); }`, and
+ *            data/mods/champions/items.ts carries NO `lifeorb` key, so Champions does not override it.
+ *   the die  pokemon-showdown/sim/battle.ts:2388-2390 -- `randomizer`, `100 - this.random(16)`.
+ * ============================================================================================== */
+const DIE_SIDES_16 = 16;
+/* The other four streams are held where they cannot fire: `acc` is compared `< chance` so 0 always
+ * hits, `crit` and `sec` are compared `< rate` so 0.999 never fires, `stall` decides a shield nobody
+ * raises here. `dmg` is the only thing that moves. */
+const dieAtIndex = (i) => ({ any: () => 0.5, acc: () => 0, crit: () => 0.999, sec: () => 0.999,
+  /* damageRollIndex(u) = 15 - floor(u*16), so this u names index i and no other. */
+  dmg: () => (DIE_SIDES_16 - 1 - i + 0.5) / DIE_SIDES_16, stall: () => 0.999, split: true, seed: null });
+/* One staged hit, re-staged from scratch at every index so no turn can leak into the next. */
+function dmgBand16(E, stage, mv) {
+  const out = [];
+  for (let i = 0; i < DIE_SIDES_16; i++) {
+    const { me, ally, f1, f2 } = stage(E);
+    const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+    const before = f1.curHP;
+    E.battleTurn(S, dieAtIndex(i),
+      new Map([[me, E.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    out.push(before - f1.curHP);
+  }
+  return out;
+}
+const sameBand = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+/* THE AUTHORITY, index 0..15, THESE bodies -- medicham2's own stat lines pushed into a real
+ * Champions battle through engine/champions_sim.js and driven with `battle.random = n => (n === 16 ?
+ * i : 0)` over `battle.actions.moveHit`, the exact staging tests/test-damage-roll-support.js uses.
+ * Derived 2026-08-23; the derivation is in docs/_reports/2026-08-23-spread-rounding-life-orb.md. */
+const AUTH_FLAMETHROWER = [70, 68, 68, 66, 66, 66, 64, 64, 64, 62, 62, 62, 60, 60, 60, 58];
+const AUTH_HEATWAVE     = [56, 54, 54, 54, 52, 52, 52, 52, 50, 50, 50, 48, 48, 48, 48, 46];
+const AUTH_CC_BARE      = [86, 85, 84, 83, 82, 81, 80, 79, 79, 78, 77, 76, 75, 74, 73, 73];
+const AUTH_CC_LIFEORB   = [112, 110, 109, 108, 107, 105, 104, 103, 103, 101, 100, 99, 97, 96, 95, 95];
+const bareBody = (E, s) => { const b = E.buildMon(s, {}); b.item = ''; b.ability = 'none'; return b; };
+/* The defender's HP is multiplied so it cannot faint: a KO clamps the number and flattens the band. */
+const stageSpread4 = (E) => {
+  const me = bareBody(E, 'garchomp'), ally = bareBody(E, 'milotic');
+  const f1 = bareBody(E, 'kingambit'), f2 = bareBody(E, 'incineroar');
+  f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+  return { me, ally, f1, f2 };
+};
+const stageOrb4 = (item) => (E) => {
+  const me = bareBody(E, 'incineroar'), ally = bareBody(E, 'corviknight');
+  const f1 = bareBody(E, 'garchomp'), f2 = bareBody(E, 'garchomp');
+  f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
+  me.item = item;
+  return { me, ally, f1, f2 };
+};
+/* PRINTED ON EVERY ARM, NOT ONLY ON A FAILURE. The control is the whole reason an off-by-one is
+ * legible here, and a control that is only asserted inside a boolean is a control nobody can see:
+ * these two lines are what show the single-target band standing still while the spread band moves. */
+const showBand4 = (tag, ctlName, ctl, ctlAuth, subName, sub, subAuth) => {
+  console.log('      [' + tag + '] control ' + ctlName + ' ' + (sameBand(ctl, ctlAuth) ? 'MATCHES the authority' : 'MOVED: ' + ctl.join(','))
+    + '   ' + subName + ' ' + (sameBand(sub, subAuth) ? 'MATCHES' : 'PARTS: ' + sub.join(',')));
+};
+
 demoSource('ROADMAP #81 WIRE 4  a spread move takes x0.75 rounded half up on 4096ths, not a truncation',
   [['  if(spread)base=md4096(base,0.75);', '  if(spread)base=Math.floor(base*0.75);']],
   (E) => {
-    const run = (mv) => {
-      const B = (s) => { const b = E.buildMon(s, {}); b.item = ''; b.ability = 'none'; return b; };
-      const me = B('garchomp'), ally = B('milotic'), f1 = B('kingambit'), f2 = B('incineroar');
-      f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
-      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
-      const before = f1.curHP;
-      E.battleTurn(S, rng5,
-        new Map([[me, E.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
-        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
-      return before - f1.curHP;
-    };
-    /* The authority, same bodies, same rolls: Flamethrower 58-70 single, Heat Wave 46-56 spread. */
-    return run('flamethrower') === 64 && run('heatwave') === 51;
+    const single = dmgBand16(E, stageSpread4, 'flamethrower');   /* the case that must NOT move */
+    const spread = dmgBand16(E, stageSpread4, 'heatwave');
+    showBand4('WIRE 4 spread', 'Flamethrower(single)', single, AUTH_FLAMETHROWER, 'HeatWave(spread)', spread, AUTH_HEATWAVE);
+    return sameBand(single, AUTH_FLAMETHROWER) && sameBand(spread, AUTH_HEATWAVE);
   });
 
 demoSource('ROADMAP #81 WIRE 4  Life Orb is chainModify([5324,4096]), not Math.floor(d * 1.3)',
   [['    const _ch=lo>1?ch4096(mod,lo):mod;\n    return mdChain(d,_ch);',
     '    if(mod!==CH_ONE)d=Math.floor(d*mod/4096);\n    if(lo>1)d=Math.floor(d*lo);\n    return d;']],
   (E) => {
-    const run = (item) => {
-      const B = (s) => { const b = E.buildMon(s, {}); b.item = ''; b.ability = 'none'; return b; };
-      const me = B('incineroar'), ally = B('corviknight'), f1 = B('garchomp'), f2 = B('garchomp');
-      f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp;
-      me.item = item;
-      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
-      const before = f1.curHP;
-      E.battleTurn(S, rng5,
-        new Map([[me, E.playerAction(me, 'closecombat', f1, S.field)], [ally, { kind: 'pass' }]]),
-        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
-      return before - f1.curHP;
-    };
-    /* The authority, same bodies, same rolls: 73-86 bare, 95-112 holding a Life Orb. */
-    return run('') === 80 && run('lifeorb') === 104;
+    const bare = dmgBand16(E, stageOrb4(''), 'closecombat');     /* the case that must NOT move */
+    const orb = dmgBand16(E, stageOrb4('lifeorb'), 'closecombat');
+    showBand4('WIRE 4 lifeorb', 'CloseCombat(no item)', bare, AUTH_CC_BARE, 'CloseCombat(Life Orb)', orb, AUTH_CC_LIFEORB);
+    return sameBand(bare, AUTH_CC_BARE) && sameBand(orb, AUTH_CC_LIFEORB);
   });
 
 /* ROADMAP #81 WIRE 4, THE THIRD CLAIM — RECOIL. Same root as the two above (an integer rule written

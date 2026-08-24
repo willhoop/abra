@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  662/662 probed mechanics live, 0 missing   (census 2026-08-23 21:53)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-23 22:00)
+  662/662 probed mechanics live, 0 missing   (census 2026-08-23 22:32)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-23 22:39)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,107 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 5e2e664bc742 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is f0766c5e24d1 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 22:16_
+_stamped 2026-08-23 22:43_
 
 <!-- /GENERATED -->
+
+## THE TWO WIRE 4 DAMAGE FAILURES WERE THE HARNESS, NOT THE ENGINE — AND ALL FOUR CONSTANTS ARE THE PRE-#304 SPAN DRAW. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-spread-rounding-life-orb.md`](_reports/2026-08-23-spread-rounding-life-orb.md).
+
+**VERDICT: NO ENGINE DEFECT. `tests/probe_red_demo.js` read two live damage defects that do not
+exist.** The rows are `ROADMAP #81 WIRE 4 a spread move takes x0.75 rounded half up on 4096ths` and
+`ROADMAP #81 WIRE 4 Life Orb is chainModify([5324,4096])`, and both read `shipped-arm=false`.
+
+**THE CAUSE IS ONE FACT AND IT COVERS ALL FOUR NUMBERS.** ROADMAP #304 replaced the damage die: it used
+to draw a POSITION in the integer span, `min + floor(u*(max-min+1))`, and now selects an INDEX,
+`damageRollIndex(u) = 15 - floor(u*16)`. The rows drove it with a single scalar `() => 0.5`, which used
+to mean the middle of a span and now means index 7. Run the OLD expression at `u = 0.5` over each row's
+own declared band:
+
+| fixture | band in the row's own comment | old span draw at u=0.5 | the row's typed constant | index 7 |
+|---|---|---|---|---|
+| Flamethrower, single (the CONTROL) | 58..70 | 58 + floor(0.5·13) = **64** | 64 | 64 |
+| Heat Wave, spread | 46..56 | 46 + floor(0.5·11) = **51** | 51 | 52 |
+| Close Combat, no item (the CONTROL) | 73..86 | 73 + floor(0.5·14) = **80** | 80 | 79 |
+| Close Combat + Life Orb | 95..112 | 95 + floor(0.5·18) = **104** | 104 | 103 |
+
+Four of four. **That is not available to an engine defect**: a spread-rounding bug cannot move a
+single-target Close Combat with no item on it, and a Life Orb bug cannot move the no-item control.
+**Flamethrower coincides at 64 under both conventions, which is why the cause stayed hidden** — the
+control half went on passing, so the row looked like a clean red on its own subject.
+
+**THE ENGINE IS RIGHT AT EVERY INDEX, AGAINST THE AUTHORITY, ON THE DEMONSTRATIONS' OWN BODIES.**
+medicham2's stat lines pushed into a real Champions battle through `engine/champions_sim.js` with
+`battle.random = n => (n === 16 ? i : 0)` over `battle.actions.moveHit`, against medicham2's battle loop
+with the die isolated by stream:
+
+```
+                        index 0 ............................................ 15
+ Flamethrower  both      70 68 68 66 66 66 64 64 64 62 62 62 60 60 60 58      IDENTICAL
+ Heat Wave     both      56 54 54 54 52 52 52 52 50 50 50 48 48 48 48 46      IDENTICAL
+ CC no item    both      86 85 84 83 82 81 80 79 79 78 77 76 75 74 73 73      IDENTICAL
+ CC Life Orb   both     112 110 109 108 107 105 104 103 103 101 100 99 97 96 95 95   IDENTICAL
+```
+
+**THE CONTROLS ARE NAMED AND THEY DO NOT MOVE.** Under each row's own reversal, Heat Wave parts at 14
+of 16 indices and Life Orb at 9 of 16 — so both knobs are watched — while **Flamethrower and the
+no-item Close Combat are byte-identical across the shipped and reverted arms AND equal to the
+authority**. A second instrument agrees on the same two subjects without sharing a staging:
+`tests/test-damage-roll-support.js` is green on `Earthquake`, `Rock Slide` and
+`Flash Cannon with Life Orb`, 16 of 16 indices each.
+
+**THE AUTHORITY, READ AND CITED.** Spread is
+`pokemon-showdown/data/mods/champions/scripts.ts:204-208` — `this.battle.modify(baseDamage, 0.75)`,
+`modify`'s 4096ths rounding and not a truncation, which is `md4096(base,0.75)` at
+`engine/medicham2-browser.js:8228`. Life Orb is `pokemon-showdown/data/items.ts:3400-3416` —
+`onModifyDamage(...) { return this.chainModify([5324, 4096]); }` — and
+`data/mods/champions/items.ts` carries **no `lifeorb` key**, so Champions does not override it. The die
+is `pokemon-showdown/sim/battle.ts:2388-2390`.
+
+**NEITHER IS AN EXISTING OPEN ROW AND NEITHER MAY BE FILED AS A DUPLICATE OF ONE.** ROADMAP #339 is the
+spread **DRAIN** healing once over a summed total where the authority rounds per target
+(`sim/battle.ts:2167-2170`) — a different mechanism at a different site, **untouched by this pass and
+still open**. ROADMAP #338 / `MEDI_ORB_STALE_RANGE` is the Life Orb **TOLL**, the 10% self-damage, not
+the damage multiplier.
+
+**WHAT CHANGED: `tests/probe_red_demo.js` ONLY. NO ENGINE BYTE MOVED.** The two rows now sweep the whole
+sixteen-index band against the authority's band instead of one number from one die position, the die is
+isolated by stream (the old scalar also answered accuracy, crit and secondaries, so 90-accuracy Heat
+Wave **MISSED at indices 0 and 1 and CRIT at 15** — two thirds of the band was unreadable), and both
+controls **print on every arm** so the single-target band standing still is visible in the output rather
+than buried inside a boolean.
+
+| quantity | before | after |
+|---|---|---|
+| census probed / live / missing | 662 / 662 / 0 | **662 / 662 / 0 — unchanged, and it could not have moved** |
+| damage differential `--n 6000 --seed 20260804` | 0 of 6000, all 16 corners | **0 of 6000, all 16 corners, exit 0** |
+| `probe_red_demo.js` | **15 failed on this tree**, not the 14 the brief carried | **13 failed** |
+
+**THE DIFFERENTIAL DID NOT MOVE AND THAT IS THE EXPECTED RESULT, NOT A RELIEF.** It was never blind to
+these two multipliers — `test-damage-roll-support.js` already exercised both and was green. The blind
+instrument was the demonstration harness, and its fixture had gone stale.
+
+**AND THE `14 failed` WAS ALREADY 15 BEFORE ANY EDIT.** Run tonight against `HEAD`'s own copy of the
+file: `200 demonstrations, 15 failed`. The extra one is
+`ROADMAP #81 WIRE 7 the Sitrus is eaten between the two attackers, not at the residual`, reading
+`shipped-arm=true reverted-arm=true` — a **HOLLOW** row, not a stale one: the reversal applies, the
+engine plays, and the reverted build still satisfies the assertion, so the WIRE it defends is
+unwatched. It appeared between the 01:05Z reading and this one, with only engine bytes in between.
+**Reported and deliberately NOT fixed here** — different shape, own pass.
+
+### THE HAND LIST
+
+**Nothing left it and nothing joined it.** Two items that were being carried as engine work — the
+spread-move rounding and the Life Orb multiplier — are struck as **NOT DEFECTS**, with the evidence
+above. What is added to the harness's own open row is one HOLLOW demonstration, named above.
+
 
 ## THE IN-MOVE UPDATE PASS — ONE INSERTION, UNDECLARED 52 → 48, AND THE SIXTH DIVERGENCE WAS NEVER THIS EVENT. 2026-08-23.
 

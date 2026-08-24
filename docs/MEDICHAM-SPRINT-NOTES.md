@@ -21,6 +21,55 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE TWO WIRE 4 DAMAGE FAILURES WERE THE HARNESS — NO ENGINE DEFECT, CENSUS 662/662/0 UNCHANGED. 2026-08-23 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-23-spread-rounding-life-orb.md`](_reports/2026-08-23-spread-rounding-life-orb.md).
+Ledger section: `docs/ENGINE.md`, *"THE TWO WIRE 4 DAMAGE FAILURES WERE THE HARNESS"*.
+
+**VERDICT: BOTH ARE THE HARNESS.** `tests/probe_red_demo.js` reported the spread `x0.75` rounding and
+the Life Orb `chainModify([5324,4096])` as two live damage defects. They are neither. All four typed
+constants are exactly the PRE-ROADMAP-#304 span draw `min + floor(0.5*(max-min+1))` over the rows' own
+declared bands — Flamethrower 58..70 → 64, Heat Wave 46..56 → 51, Close Combat 73..86 → 80, the same
+holding a Life Orb 95..112 → 104. **Four of four.** #304 made `() => 0.5` name index 7 instead, moving
+the values to 64 / 52 / 79 / 103; Flamethrower coincides at 64 under both conventions, which is why the
+CONTROL half went on passing and hid the cause.
+
+**PROVEN AGAINST THE AUTHORITY, ALL SIXTEEN INDICES, ON THE DEMONSTRATIONS' OWN BODIES** (medicham2's
+stat lines staged through `engine/champions_sim.js`): every band identical. Under each row's own
+reversal Heat Wave parts at 14 of 16 and Life Orb at 9 of 16 — the knobs are watched — while the two
+CONTROLS (Flamethrower single-target; Close Combat with no item) are identical across both arms and
+equal to the authority. `tests/test-damage-roll-support.js` agrees on the same subjects without sharing
+a staging: Earthquake, Rock Slide and Flash Cannon + Life Orb, 16 of 16 each.
+
+**AUTHORITY:** `data/mods/champions/scripts.ts:204-208` (`modify(baseDamage, 0.75)`, not a truncation);
+`data/items.ts:3400-3416` (`chainModify([5324,4096])`, and `mods/champions/items.ts` has no `lifeorb`
+key); `sim/battle.ts:2388-2390` (the die).
+
+**NEITHER IS AN EXISTING ROW.** ROADMAP #339 is the spread **DRAIN**'s per-target heal — different
+mechanism, different site, untouched and still open. ROADMAP #338 / `MEDI_ORB_STALE_RANGE` is the Life
+Orb **TOLL**, not the multiplier.
+
+**WHAT CHANGED: `tests/probe_red_demo.js` ONLY — no engine byte moved.** Both rows now sweep the full
+sixteen-index band against the authority's band, the die is isolated by stream (the old scalar also
+answered accuracy and crit, so 90-accuracy Heat Wave MISSED at indices 0 and 1 and CRIT at 15), and both
+controls print on every arm.
+
+| quantity | before | after |
+|---|---|---|
+| census probed / live / missing | 662 / 662 / 0 | **662 / 662 / 0 — unchanged** |
+| damage differential `--n 6000 --seed 20260804` | 0 of 6000, all 16 corners | **0 of 6000, all 16 corners, exit 0** |
+| `probe_red_demo.js` | **15 failed on this tree**, not the 14 the brief carried | **13 failed** |
+
+**A NEW HOLLOW ROW, REPORTED AND NOT FIXED:** `ROADMAP #81 WIRE 7 the Sitrus is eaten between the two
+attackers, not at the residual` reads `reverted-arm=true` — the reversal applies, the engine plays, and
+the assertion still holds, so the WIRE is unwatched. It appeared between the 01:05Z reading (14) and
+this one (15) with only engine bytes in between.
+
+**OWED, NOT RUN:** the HOLLOW WIRE 7 row's diagnosis; the 12 stale reversals; `register_reality.js`;
+the two ROADMAP edits (proposed in the report, `docs/ROADMAP.md` is not ENGINE's to write).
+
+---
+
 ## THE IN-MOVE UPDATE PASS — SIX OF SIX CLEARED, UNDECLARED 52 → 48 (5.4% → 5.0%), NARRATION 33 → 29. 2026-08-23 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-23-update-event.md`](_reports/2026-08-23-update-event.md).
