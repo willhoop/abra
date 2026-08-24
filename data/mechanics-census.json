@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-24T19:56:31.039Z",
+  "generated": "2026-08-24T20:59:00.493Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 681,
-  "live": 681,
+  "probed": 683,
+  "live": 683,
   "missing": 0,
-  "armed": 681,
+  "armed": 683,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -144,6 +144,26 @@
       "label": "an entry ability on the MEGA forme fires on evolution",
       "live": true,
       "detail": "[ability, foe A atk stage, foe B atk stage, Earthquake taken] — no mega lightningrod,0,0,234; mega intimidate,-1,-1,122 (Intimidate arrived WITH the evolution and both foes are at -1, so the Earthquake that follows in the same turn hits softer)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "megaStone",
+      "label": "the mega PHASE resolves on PRE-mega Speed, and the last weather setter owns the sky",
+      "live": true,
+      "detail": "[Abomasnow forme, Tyranitar forme, sky, Abomasnow Speed AFTER, Tyranitar Speed AFTER] - Abomasnow 100 before (no crossing) abomasnow-mega,tyranitar-mega,snow,70,113 (want snow: Abomasnow megas last); Abomasnow 123 before (it out-speeds before and is out-sped after) abomasnow-mega,tyranitar-mega,sand,93,113 (want sand: the phase read the PRE-mega speeds, so Tyranitar megas last). Both arms leave Abomasnow-Mega SLOWER than Tyranitar-Mega, so an engine ordering on POST-mega Speed answers snow twice. Showdown answers snow then sand on this exact board.",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "megaStone",
+      "label": "a mega-phase SPEED TIE keeps the QUEUE order, not the move order",
+      "live": true,
+      "detail": "[Froslass forme, Charizard forme, sky] - EXACT TIE at 167/167 froslass-mega,charizard-mega-y,sun (want sun: the queue keeps p1`s mega first, so Charizard`s Drought resolves LAST); tie broken with Charizard at 152 froslass-mega,charizard-mega-y,sun (want sun); broken the other way with Froslass at 152 froslass-mega,charizard-mega-y,snow (want snow). The two controls answer OPPOSITE skies, so the board is sensitive; before 2026-08-24 the tied arm read snow. Knob: MEDI_MEGA_STABLE_SORT=1",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3473,7 +3493,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

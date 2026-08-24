@@ -1,10 +1,10 @@
 {
-  "current": "fbf74de3fbd6",
-  "cut": "2026-08-24T19:57:52.575Z",
+  "current": "b35e96a0e7c7",
+  "cut": "2026-08-24T21:14:20.740Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
   "cuts": 9,
-  "latest_cut": "2026-08-24T20:10:33.416Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-24T20:10:33.426Z",
+  "latest_cut": "2026-08-24T21:16:43.018Z",
+  "latest_why": "mega phase ordered by the authority's queue (WIRE 134 at the mega site)",
+  "pointer_written": "2026-08-24T21:16:43.029Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

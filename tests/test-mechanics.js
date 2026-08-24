@@ -910,6 +910,137 @@ probe('ability', 'megaEntryAbility', 'an entry ability on the MEGA forme fires o
                  + `Earthquake that follows in the same turn hits softer)` };
 });
 
+/* ---- 2026-08-24 -- THE MEGA PHASE IS A WEATHER WAR, AND IT IS FOUGHT ON *PRE*-MEGA SPEED --------
+ *
+ * Will: *"mega evolution order needs to follow showdown to a capital T"*, and the reason he gave is
+ * the board: two megas that both gain a weather-setting ability, and THE ONE THAT RESOLVES LAST OWNS
+ * THE SKY for the rest of the battle. Every damage roll after it is multiplied by that sky. Mega
+ * evolution also CHANGES SPEED, so a player can invest to sit BELOW an opponent before transforming
+ * and ABOVE them after -- and which Speed the phase reads decides the whole game.
+ *
+ * THE POPULATION IS FOUR, DERIVED FROM THE FORMAT (walk `items.all()` for `megaStone`, intersect the
+ * mega forme's abilities with the abilities whose `onStart` calls `setWeather`):
+ *     Abomasnow -> Abomasnow-Mega    Snow Warning   base spe 60 -> 30   (LOSES 30)
+ *     Tyranitar -> Tyranitar-Mega    Sand Stream             61 -> 71
+ *     Froslass  -> Froslass-Mega     Snow Warning           110 -> 120
+ *     Charizard -> Charizard-Mega-Y  Drought                100 -> 100
+ * Abomasnow and Tyranitar declare their weather ability on the BASE forme too, so this probe gives
+ * them their OTHER legal ability (Soundproof / Unnerve) -- otherwise the sky is decided on entry and
+ * the mega phase is not being asked anything.
+ *
+ * THE AUTHORITY, READ AND NOT RECALLED:
+ *   1. the megaEvo action is queued at ORDER 104 (sim/battle-queue.ts:184) and the queue is sorted at
+ *      `commitChoices` (sim/battle.ts:3015) off `pokemon.getActionSpeed()` (:2657) -- i.e. BEFORE
+ *      anything has transformed. The post-action re-sort only fires when the next queued action is a
+ *      `move` (:2917), and a megaEvo is not one, so the mega order is the PRE-mega order.
+ *   2. the new ability fires INSIDE the evolution: `runMegaEvo` (sim/battle-actions.ts:1898) ->
+ *      `formeChange` -> `setAbility(ability, null, null, true)` (data/mods/champions/scripts.ts:1493),
+ *      whose last act is `singleEvent('Start', ability, ...)` (sim/pokemon.ts:1946).
+ *   3. the LAST setter wins: `Field#setWeather` refuses only a re-set of the SAME id from an ability
+ *      in gen > 5 (sim/field.ts) and otherwise overwrites.
+ *
+ * STAGED IN THE OFFICIAL SIMULATOR FIRST, before a line of engine changed, one knob (the Abomasnow's
+ * nature) and the sky as the outcome:
+ *     Abomasnow 123 -> 90  vs Tyranitar 103 -> 113   the orders CROSS  ->  SAND   (Tyranitar last)
+ *     Abomasnow 100 -> 73  vs Tyranitar 103 -> 113   no crossing       ->  SNOW   (Abomasnow last)
+ * An engine reading POST-mega speed answers SNOW on both arms, because Abomasnow-Mega is slower than
+ * Tyranitar-Mega either way. The control moving is what says the fixture stages what it claims. */
+probe('item', 'megaStone', 'the mega PHASE resolves on PRE-mega Speed, and the last weather setter owns the sky', () => {
+  const run = (abomSpe) => {
+    /* The stone-holders are built from their own rows so the stone is the row's own item, and the
+     * WEATHER ability is given explicitly on both arms -- the base forme's OTHER legal ability, so
+     * nothing sets a sky before the mega phase. */
+    const abom = M.buildMon('abomasnow', {}); abom.item = 'abomasite'; abom.ability = 'soundproof';
+    const tyr = M.buildMon('tyranitar', {}); tyr.item = 'tyranitarite'; tyr.ability = 'unnerve';
+    const a1 = bare('clefable'), b1 = bare('milotic');
+    abom.st = Object.assign({}, abom.st, { sp: abomSpe });
+    tyr.st = Object.assign({}, tyr.st, { sp: 103 });
+    a1.st = Object.assign({}, a1.st, { sp: 60 }); b1.st = Object.assign({}, b1.st, { sp: 61 });
+    const S = M.battleInit([abom, a1], [tyr, b1], { seeded: true, autoMega: false });
+    const aAct = M.playerAction(abom, 'protect', abom, S.field); aAct.mega = true;
+    const bAct = M.playerAction(tyr, 'protect', tyr, S.field); bAct.mega = true;
+    M.battleTurn(S, rng5, new Map([[abom, aAct], [a1, { kind: 'pass' }]]),
+                          new Map([[tyr, bAct], [b1, { kind: 'pass' }]]));
+    return [abom.name, tyr.name, S.field.weather || 'none',
+            M.effSpeed(abom, S.field, 'A'), M.effSpeed(tyr, S.field, 'B')];
+  };
+  /* CONTROL first: no crossing, so both hypotheses answer snow. TEST: the orders cross. */
+  const control = run(100), test = run(123);
+  return { works: control[0] === 'abomasnow-mega' && control[1] === 'tyranitar-mega'
+                  && test[0] === 'abomasnow-mega' && test[1] === 'tyranitar-mega'
+                  && control[2] === 'snow' && test[2] === 'sand'
+                  && test[3] < test[4] && control[3] < control[4],
+           arms: { control, test },
+           detail: '[Abomasnow forme, Tyranitar forme, sky, Abomasnow Speed AFTER, Tyranitar Speed '
+                 + 'AFTER] - Abomasnow 100 before (no crossing) ' + control + ' (want snow: Abomasnow '
+                 + 'megas last); Abomasnow 123 before (it out-speeds before and is out-sped after) '
+                 + test + ' (want sand: the phase read the PRE-mega speeds, so Tyranitar megas last). '
+                 + 'Both arms leave Abomasnow-Mega SLOWER than Tyranitar-Mega, so an engine ordering '
+                 + 'on POST-mega Speed answers snow twice. Showdown answers snow then sand on this '
+                 + 'exact board.' };
+});
+
+/* ---- 2026-08-24 -- AND A MEGA-PHASE SPEED TIE IS BROKEN BY THE AUTHORITY'S QUEUE, NOT BY OURS ----
+ *
+ * Same argument as the entry pass (WIRE 134, and the `weatherSetter` entry-tie probe below): the
+ * authority resolves a tie with `speedSort`, a SELECTION SORT whose swaps move UNTIED elements past
+ * each other. The difference here is WHICH LIST is sorted, and that is the whole defect:
+ *
+ *   THE AUTHORITY SORTS ITS QUEUE, where the two megaEvo actions sit at ORDER 104 -- strictly below
+ *   every move (200) and strictly above every switch (103). They are therefore the FIRST group the
+ *   sort places, and no swap made for a faster MOVE can reach them. They keep the order they were
+ *   pushed in -- p1 slot 0, p1 slot 1, p2 slot 0, p2 slot 1 -- because `Side#commitChoices` hands them
+ *   to `BattleQueue#addChoice`, which PUSHES (sim/battle-queue.ts:306) rather than inserting.
+ *
+ *   THIS ENGINE HAS NO megaEvo ACTION. It read the mega order off `acts`, which had ALREADY been
+ *   speed-sorted for the MOVES -- so the swaps that lift a fast body to the front had reversed the
+ *   tied pair before the mega phase ever looked at it.
+ *
+ * STAGED IN THE OFFICIAL SIMULATOR FIRST, under the differential`s identity shuffle, with the sky as
+ * the outcome. Four bodies: two flankers at 202 and 194, and the two tied megas at 167 --
+ *   Froslass @ Froslassite (A, slot 1, snow) against Charizard @ Charizardite Y (B, slot 0, sun)
+ *     TIE at 167/167   showdown SUN     this engine SNOW    <- the defect
+ *     Charizard 152    showdown SUN     this engine SUN     <- control, tie broken one way
+ *     Froslass  152    showdown SNOW    this engine SNOW    <- control, tie broken the other way
+ * The two controls answering OPPOSITE skies is what says the fixture is sensitive; only the exact tie
+ * parted. Knob: MEDI_MEGA_STABLE_SORT=1 restores the pre-2026-08-24 sort. */
+probe('item', 'megaStone', 'a mega-phase SPEED TIE keeps the QUEUE order, not the move order', () => {
+  const run = (frosSpe, zardSpe) => {
+    const fros = M.buildMon('froslass', {}); fros.item = 'froslassite'; fros.ability = 'snowcloak';
+    const zard = M.buildMon('charizard', {}); zard.item = 'charizarditey'; zard.ability = 'blaze';
+    /* THE FLANKERS ARE THE MECHANISM. Both are faster than the tied pair and side B`s is the fastest
+     * body on the field -- that is what makes the move sort`s swaps drag the tied megas past each
+     * other. Take them away and both implementations answer the same thing. */
+    const a0 = bare('dragapult'), b1 = bare('dragapult');
+    a0.st = Object.assign({}, a0.st, { sp: 194 }); b1.st = Object.assign({}, b1.st, { sp: 202 });
+    fros.st = Object.assign({}, fros.st, { sp: frosSpe });
+    zard.st = Object.assign({}, zard.st, { sp: zardSpe });
+    const S = M.battleInit([a0, fros], [zard, b1], { seeded: true, autoMega: false });
+    const fAct = M.playerAction(fros, 'protect', fros, S.field); fAct.mega = true;
+    const zAct = M.playerAction(zard, 'protect', zard, S.field); zAct.mega = true;
+    /* EVERY BODY CLICKS THE SAME MOVE, so the whole field shares one priority bracket and only Speed
+     * can order it. A `pass` sits in a different bracket and would change which swaps happen. */
+    M.battleTurn(S, rng5,
+      new Map([[a0, M.playerAction(a0, 'protect', a0, S.field)], [fros, fAct]]),
+      new Map([[zard, zAct], [b1, M.playerAction(b1, 'protect', b1, S.field)]]));
+    return [fros.name, zard.name, S.field.weather || 'none'];
+  };
+  const tie = run(167, 167), zardSlow = run(167, 152), frosSlow = run(152, 167);
+  const evolved = r => r[0] === 'froslass-mega' && r[1] === 'charizard-mega-y';
+  return { works: evolved(tie) && evolved(zardSlow) && evolved(frosSlow)
+                  && tie[2] === 'sun' && zardSlow[2] === 'sun' && frosSlow[2] === 'snow',
+           /* THE ARM PAIR IS THE ONE THAT MOVES: `frosSlow` is the same board with the tie broken in
+            * FROSLASS'S favour and it answers the opposite sky, so the pair shows a knob that is
+            * wired. `zardSlow` is the second control and lives in the detail. */
+           arms: { control: frosSlow, test: tie },
+           detail: '[Froslass forme, Charizard forme, sky] - EXACT TIE at 167/167 ' + tie + ' (want '
+                 + 'sun: the queue keeps p1`s mega first, so Charizard`s Drought resolves LAST); tie '
+                 + 'broken with Charizard at 152 ' + zardSlow + ' (want sun); broken the other way '
+                 + 'with Froslass at 152 ' + frosSlow + ' (want snow). The two controls answer '
+                 + 'OPPOSITE skies, so the board is sensitive; before 2026-08-24 the tied arm read '
+                 + 'snow. Knob: MEDI_MEGA_STABLE_SORT=1' };
+});
+
 probe('item', 'megaStone', 'ONE mega per side per battle — a second stone-holder on the same side cannot', () => {
   const stoned = (key, item) => { const b = M.buildMon(key, {}); b.item = item; return b; };
   const run = (secondOnTheSameSide) => {

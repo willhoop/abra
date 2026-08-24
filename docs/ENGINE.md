@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  681/681 probed mechanics live, 0 missing   (census 2026-08-24 15:56)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-24 15:40)
+  683/683 probed mechanics live, 0 missing   (census 2026-08-24 16:59)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-24 17:12)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,118 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 1a69dfe17f31 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 42398a49161e now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 276/294 probed, 18 unprobed
 ```
 
-_stamped 2026-08-24 16:21_
+_stamped 2026-08-24 17:49_
 
 <!-- /GENERATED -->
+
+## THE MEGA PHASE IS ORDERED BY THE AUTHORITY'S QUEUE — CENSUS 681 → 683, NARRATION 19 → 17, BOARD-MATERIAL UNMOVED AT 20. 2026-08-24.
+
+Full account: [`docs/_reports/2026-08-24-mega-order.md`](_reports/2026-08-24-mega-order.md).
+
+Will: *"mega evolution order needs to follow showdown to a capital T."* The board he named is two
+megas that both gain a weather ability — **the one that resolves LAST owns the sky**, and mega
+evolution changes Speed, so which Speed the phase reads decides the whole battle. The population is
+real and was derived from the format, not recalled: **four legal megas set weather, three change Speed
+on transforming** (Abomasnow 60→30, Tyranitar 61→71, Froslass 110→120, Charizard-Y 100→100).
+
+**THREE OF THE FOUR RULES WERE ALREADY RIGHT AND THE FOURTH WAS THE SORT.** Each was read out of the
+source rather than assumed:
+
+1. **the phase is ordered on PRE-mega Speed.** `megaEvo` is order 104 (`sim/battle-queue.ts:184`); the
+   queue is sorted once at `commitChoices` (`sim/battle.ts:3015`) off `pokemon.getActionSpeed()`
+   (`:2657`), i.e. before anything transforms; and the mid-turn re-sort fires only when the next
+   queued action is a `move` (`:2917`), which a megaEvo is not. Staged: Abomasnow 123→90 against
+   Tyranitar 103→113 → **SAND** on both engines, and the control with no crossing → **SNOW** on both.
+   A post-mega reading answers SNOW twice. Already correct.
+2. **the new ability fires inside the evolution** — `runMegaEvo` (`sim/battle-actions.ts:1898`) →
+   `formeChange` (`data/mods/champions/scripts.ts:57`) → `setAbility(..., true)` (`:1493`) →
+   `singleEvent('Start', ...)` (`sim/pokemon.ts:1946`). Both engines emit `|detailschange|`,
+   `|-mega|`, `|-weather|...[from] ability:` in that order.
+3. **the last setter wins** — `Field#setWeather` refuses only a same-id re-set from an ability
+   (`sim/field.ts`) and otherwise overwrites.
+4. **the sort did NOT match, and the algorithm was only half of it.** The authority's two megaEvo
+   actions sit at order 104, so they are the FIRST group `speedSort` places and no swap made for a
+   faster MOVE can reach them; they keep the push order `addChoice` gave them
+   (`sim/battle-queue.ts:306` — it PUSHES, it does not insert). **This engine has no megaEvo action**
+   and read the order off `acts`, which `sortTurnOrder` had ALREADY sorted for the moves — and that
+   sort's swaps had reversed the tied pair before the mega phase looked at it.
+
+**THE STAGED WEATHER WAR, RED FIRST WITH TWO CLEARED CONTROLS.** Froslass @ Froslassite (p1 slot 1,
+snow) against Charizard @ Charizardite Y (p2 slot 0, sun), both at **167**, with flankers at 202 and
+194:
+
+| | showdown | before | after |
+|---|---|---|---|
+| **exact tie 167 v 167** | **SUN** | SNOW | **SUN** |
+| control — Charizard 152 | SUN | SUN | SUN |
+| control — Froslass 152 | SNOW | SNOW | SNOW |
+
+The two controls answer OPPOSITE skies, so the fixture is sensitive; only the tie parted. Knob
+`MEDI_MEGA_STABLE_SORT=1` puts the old sort back and the probe goes red.
+
+**AND ONE BOARD IS ONE BOARD, SO 648 OF THEM.** Every slot placement and nature of all four bodies,
+each played twice — plainly, and again with a Pokemon switching out on the same turn so the
+authority's `switch` order (103) sits alongside the mega order. **0 of 648 disagree; 36 of 648 under
+the knob, every one an exact tie.** Counters off the engine that played them: `megaTieResolved = 54`,
+`megaOrderTieNoDie = 0` (the shared coin was in scope every time), `megaQueueUnlisted = 0`,
+`megaEvolved = 1296`. **The coin is the SHARED `tie` stream and there is no second source** — the
+hazard the brief named, and the one the entry-order pass nearly landed.
+
+**THE NUMBERS.** Damage differential **0 of 6000, all 16 corners**, seed 20260804. Census **681 → 683
+probed / 683 live / 0 missing**. Whole game, arm **middle**, release **`b35e96a0e7c7`**,
+`--team-store data/team-pool-frozen`, census pinned to `census-pin-9446a684709d.json`, 961 pairs:
+**raw parted 39 → 37**, **BOARD-MATERIAL 20 games / 19 causes → UNMOVED**, **narration 19 games / 18
+causes → 17 / 16**, **undeclared 26 → 24 of 961 (2.5%)**, `ordering` **12 → 10 games**. A re-baseline,
+not a delta.
+
+**THE TWO GAMES THAT CLEARED ARE EXACTLY THE TWO MEGA ROWS**, both exact ties, and both are gone:
+`|detailschange|p1a|starmiemega <> |detailschange|p2a|charizardmegay` and
+`|detailschange|p1a|mawilemega <> |detailschange|p2a|mawilemega`. **Said plainly: in the POOL they were
+classed narration-only** — the mega order swapped and no compared board leaf moved in those two
+particular games. The board consequence is proved on the staged weather war, where the sky itself
+changes; the pool simply holds no game in which two WEATHER megas tie.
+
+**THE DELIBERATE ROSTER WAS RE-RUN, ALL THREE STAGES**, at release `b35e96a0e7c7`: items **0
+FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE** (139 of 148 tested), abilities **0 / 0** (130 of 202),
+moves **0 / 0** (475 of 500). Gate back to **5 of 8 clauses passing**, the same three failing.
+
+### PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.
+
+- *The mega phase resolved a Speed tie in the move order, not the queue order.* ENGINE. **CLOSED**
+  2026-08-24. Instrument: `engine/game_differential.js`, arm `middle`, causes
+  `ordering :: |detailschange|p1a|starmiemega,l50 <> |detailschange|p2a|charizardmegay,l50` and the
+  `mawilemega` pair. 2 games of 961, narration-only in the pool and board-material on the staged
+  weather war. Probe `item/megaStone — a mega-phase SPEED TIE keeps the QUEUE order, not the move
+  order`. Knob `MEDI_MEGA_STABLE_SORT=1`.
+- *The mega action's Speed is frozen at `commitChoices` in the authority and read live here.* ENGINE,
+  **OPEN**, unmeasured. Only switches resolve between those two points, so it can differ only if a
+  body's Speed moves during a switch-in. **No probe fails on it and none was written** — named rather
+  than claimed fixed.
+
+### OWED, NOT RUN
+
+- `tests/run-all.js` in full. The ENGINE instruments were run individually and are listed in the
+  report;
+- **the RESIDUAL sort** — the other half of card 3 of
+  [`docs/_reports/2026-08-24-ordering-cards.md`](_reports/2026-08-24-ordering-cards.md). Still
+  `Array.prototype.sort` in `residualOrder`. **Untouched per the brief's scope line (the mega phase
+  only)**, and Will has not ruled on batching. Narration: 2 Tailwind rows of 961;
+- the other three judgement cards in that file, which are Will's;
+- `tests/interaction_matrix.js` (last run 2026-08-11); `tests/mutation_harness.js` (needs
+  `--gate-only --no-write`);
+- **`megaQueueOrder` costs ~4 extra Speed lookups per turn on a turn where nothing megas.**
+  Deliberately NOT short-circuited: the guard would have been code the whole-game run never played.
+  Named so the next pass can take it with its own before-and-after.
+
+**OBSERVED, NOT CAUSED.** `planted_state_proof_ok` reads `false` again — identical in the standing
+artifact at HEAD, already on the hand list below, and repeated only because the artifact prints
+*"every state number below is worthless"* beside every board-material figure this sprint publishes.
 
 ## THE BOARD-MATERIAL SET MOVED — 24 → 20 GAMES, NARRATION HELD AT 19, CENSUS 677 → 681. 2026-08-24.
 
@@ -506,8 +609,10 @@ carried by a census probe. **"Hospitality carries `onSwitchInPriority: -2` and t
 entrants with no priority key"** was already closed on 2026-08-22 and is confirmed re-derived above;
 it should not have still been quoted as open.
 
-Joins it, named rather than missed: **the mega phase (`_run.sort`) and the residual (`residualOrder`)
-still use `Array.prototype.sort` where the authority uses `speedSort`.** Same mechanism as the defect
+Joins it, named rather than missed: ~~**the mega phase (`_run.sort`)**~~ — **CLOSED 2026-08-24;
+see the section at the top of this file, where it turned out not to be only the algorithm but the
+LIST being sorted** — and the residual (`residualOrder`), which
+still uses `Array.prototype.sort` where the authority uses `speedSort`. Same mechanism as the defect
 closed here, at two more call sites, and it is **card 3 of
 [`docs/_reports/2026-08-24-ordering-cards.md`](_reports/2026-08-24-ordering-cards.md) — Will's call
 whether that is one batch or two**, so it was derived and deliberately not landed.

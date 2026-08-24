@@ -21,6 +21,56 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE MEGA PHASE IS ORDERED BY THE AUTHORITY'S QUEUE — CENSUS 681 → 683, NARRATION 19 → 17, BOARD-MATERIAL UNMOVED AT 20. 2026-08-24 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-24-mega-order.md`](_reports/2026-08-24-mega-order.md).
+Ledger section: `docs/ENGINE.md`, *"THE MEGA PHASE IS ORDERED BY THE AUTHORITY'S QUEUE"*.
+
+Will: *"mega evolution order needs to follow showdown to a capital T."* **Three of the four rules were
+already right; the fourth was the sort, and the algorithm was only half of it.**
+
+- **PRE-mega Speed orders the phase** (`megaEvo` is order 104, `sim/battle-queue.ts:184`; the queue is
+  sorted at `commitChoices` off `getActionSpeed()` before anything transforms; the mid-turn re-sort
+  fires only in front of a `move`). Staged both ways — Abomasnow 123→90 vs Tyranitar 103→113 gives
+  **SAND** and the no-crossing control gives **SNOW**, on both engines. Already correct.
+- **the new ability fires inside the evolution** (`runMegaEvo` → `formeChange` → `setAbility` →
+  `singleEvent('Start')`), and **the last setter wins** (`Field#setWeather` refuses only a same-id
+  re-set from an ability). Both already correct.
+- **THE DEFECT: on a Speed tie the mega order was read off the MOVE order.** The authority's two
+  megaEvo actions are at order 104, so they are the first group its selection sort places and they
+  keep the push order `addChoice` gave them. This engine has no megaEvo action and read the order off
+  `acts`, already sorted for the moves — whose swaps had reversed the tied pair. New
+  `megaQueueOrder()` rebuilds the authority's queue list and sorts THAT, on the SHARED `tie` stream
+  with no second source. Knob `MEDI_MEGA_STABLE_SORT=1`.
+
+**RED FIRST, WITH TWO CLEARED CONTROLS.** Froslass @ Froslassite (snow) against Charizard @
+Charizardite Y (sun), both 167, flankers at 202/194: showdown **SUN**, this engine **SNOW**. The two
+controls (tie broken each way) answer OPPOSITE skies and both agreed, so the fixture is sensitive.
+**648-board sweep: 0 disagree now, 36 under the knob, every one an exact tie.** Counters:
+`megaTieResolved 54`, `megaOrderTieNoDie 0`, `megaQueueUnlisted 0`, `megaEvolved 1296`.
+
+Damage differential **0 of 6000 at all 16 corners** (seed 20260804). Census **681 → 683 probed / 683
+live / 0 missing**. Whole game, arm **middle**, release **`b35e96a0e7c7`**,
+`--team-store data/team-pool-frozen`, census pinned to `census-pin-9446a684709d.json`, 961 pairs:
+**raw parted 39 → 37**, **BOARD-MATERIAL 20 games / 19 causes → UNMOVED**, **narration 19 / 18 → 17 /
+16**, **undeclared 26 → 24 (2.5%)**, `ordering` **12 → 10 games**. A re-baseline, not a delta. The two
+games cleared are exactly the two `|detailschange|` mega rows, both exact ties — **and both were
+classed narration-only IN THE POOL**; the board consequence is proved on the staged weather war, where
+the sky itself changes.
+
+**THE DELIBERATE ROSTER WAS RE-RUN, ALL THREE STAGES** at release `b35e96a0e7c7`: items **0 / 0** (139
+of 148), abilities **0 / 0** (130 of 202), moves **0 / 0** (475 of 500). Gate back to **5 of 8**.
+
+**OWED, NOT RUN:** `tests/run-all.js` in full; **the RESIDUAL sort** — the other half of card 3 of
+`docs/_reports/2026-08-24-ordering-cards.md`, untouched per the brief's scope line and Will's call on
+batching; the other three cards; `tests/interaction_matrix.js` (2026-08-11);
+`tests/mutation_harness.js`; and `megaQueueOrder`'s ~4 extra Speed lookups per mega-less turn,
+deliberately not short-circuited so the whole-game run played the bytes that shipped.
+
+**OBSERVED, NOT CAUSED:** `planted_state_proof_ok` reads `false`, identically at HEAD.
+
+---
+
 ## THE BOARD-MATERIAL SET MOVED — 24 → 20 GAMES, NARRATION HELD AT 19, CENSUS 677 → 681. 2026-08-24 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-24-board-material.md`](_reports/2026-08-24-board-material.md).
