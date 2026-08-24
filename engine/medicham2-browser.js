@@ -398,9 +398,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                            than a hole.
    *   faintDrainAfterHitLoop   the subset drained by `_stepDrainFaints`, one step below `_stepFaint`
    *                            (stage 2 — the `onDamagingHit` punish that kills the attacker). It
-   *                            reads 0 on every board where no punish was lethal. */
+   *                            reads 0 on every board where no punish was lethal.
+   *   faintDrainResidualClocks the subset drained at the foot of the residual CLOCK walk (2026-08-24
+   *                            — the Perish Song death). It reads 0 on every board where no clock
+   *                            ran out on a body, which is nearly all of them. */
   faintLineQueued: 0, faintLineInline: 0, faintDrains: 0,
-  faintDrainWeatherGroup: 0, faintDrainAfterHitLoop: 0,
+  faintDrainWeatherGroup: 0, faintDrainAfterHitLoop: 0, faintDrainResidualClocks: 0,
   /* 2026-08-22 -- ENTRY-ORDER PAIRS SEPARATED BY PRIORITY RATHER THAN BY SPEED. THE NOUN: it counts
    * COMPARISONS in which the two bodies carried DIFFERENT `onSwitchInPriority` values, so the sort
    * returned on the priority key and never consulted speed. Not entrants, not turns, and not "a
@@ -502,6 +505,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * effect-less secondary entry that matched no tag, so a fourteenth member of that family arriving
    * in the rulebook reads as an unhandled count rather than as silence. */
   soundLockApplied: 0, secondaryEffectless: 0,
+  /* 2026-08-24 -- the other end of the same clock, counted separately because "the lock was never
+     applied" and "the lock was applied and never expired" are two different defects that both read as
+     a body that cannot use a sound move. It is also the emitter of the `-end` line, so a zero beside a
+     non-zero `soundLockApplied` means the line is missing again. */
+  soundLockEnded: 0,
   /* ROADMAP #161 -- Psychic Noise's heal block, applied by its ONE owner. A zero means the move is
    * back to landing 75 base power and nothing else, which is what WIRE 30 was written to fix. */
   healBlockApplied: 0,
@@ -529,6 +537,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * "the ability banks and nothing spends it" and "it is spent but never banked" are three different
    * defects that all read as a flat damage number on the board. */
   chargeBanked: 0, chargeSpentBP: 0, chargeCleared: 0, chargeClearedOnSwitch: 0,
+  /* 2026-08-24 -- the SUBSET of `chargeBanked` that landed on a body already holding the charge,
+     i.e. `onRestart` rather than `onStart`. Counted apart because the authority writes the SAME line
+     at both moments and this engine wrote it only at the first: a re-bank that is silent and a
+     re-bank that never happened read identically on the board, since the charge does not stack. */
+  chargeReBanked: 0,
   /* WIRE 157 -- the two directions of `onWeather`, counted apart. A zero in the second one on a board
    * full of sun is Dry Skin and Solar Power being paid without being charged. */
   weatherHealed: 0, weatherAbilityChip: 0,
@@ -1609,9 +1622,12 @@ const MEDFAILS = { encoreAction: 0,
      purpose, so a deliberate restore arm and a broken engine can never be read as the same thing. */
   drainLumpRoundRestored: 0,
   /* ROADMAP #339 -- a drain heal reached the payment step with `dealt > 0` and an EMPTY per-target
-     list, so the sum was rounded once as a fallback. Never expected: every damaging row pushes its
-     own number beside `dealt`. Non-zero means a damage path was added that fills one and not the
-     other, and the fallback is a perfectly plausible heal that is short by up to one per target. */
+     list, so the sum was rounded once as a fallback.
+     2026-08-24 -- RETIRED BY CONSTRUCTION AND KEPT DECLARED SO NOBODY LOOKS FOR IT. The drain is now
+     paid at the target's own damage line (`_payDrainRow`), so there is no separate list to be empty:
+     the row IS the number. It reads 0 on every run because the site that could increment it no longer
+     exists, which is a different thing from a counter that never fires, and both readings are zero --
+     hence saying so here rather than deleting a name a report may cite. */
   drainNoPerTargetRows: 0, drainNoPerTargetRowsFirst: '',
   /* ROADMAP #356 (RESCOPED) -- one per CONVERSION made without asking the four `onPrepareHit` guards
      Protean declares (`move.hasBounced`, `move.flags['futuremove']`, `sourceEffect === 'snatch'`,
@@ -15447,6 +15463,7 @@ function drainFaints(where){
   MEDSEEN.faintDrains++;
   if(where==='weatherGroup')MEDSEEN.faintDrainWeatherGroup++;
   else if(where==='afterHitLoop')MEDSEEN.faintDrainAfterHitLoop++;
+  else if(where==='residualClocks')MEDSEEN.faintDrainResidualClocks++;
   return n;
 }
 function lastFaintSeq(arr){ let n=-1;
@@ -22264,6 +22281,72 @@ function battleTurn(S,rng,actsForA,actsForB){
        * multi-hit volley -- the authority calls `spreadDamage` once per hit, so a per-occurrence push
        * is the same shape whether the move is single, spread or multi-hit. */
       const _dealtEach=[];
+      /* ===== ROADMAP #339's NARRATION HALF -- THE DRAIN HEAL IS PAID AT THE TARGET'S OWN DAMAGE
+       * LINE, NOT ONCE AT THE END OF THE MOVE. 2026-08-24. =========================================
+       *
+       * The arithmetic half landed on 2026-08-23 (one rounding per body, Big Root applied to the
+       * already-rounded amount) and its own comment named what it left open: *"the authority also
+       * emits one `|-heal|…|[from] drain|[of] TARGET` PER BODY and this engine still writes a single
+       * lumped line"*. This is that.
+       *
+       * THE HEAL IS INSIDE `spreadDamage`'s PER-TARGET LOOP, sim/battle.ts:2159-2171, immediately
+       * below the `-damage` line the same iteration just wrote:
+       *
+       *     this.add('-damage', target, target.getHealth);           // :2150
+       *     ...
+       *     if (targetDamage && effect.effectType === 'Move') {
+       *       if (this.gen > 4 && effect.drain && source) {
+       *         const amount = Math.round(targetDamage * effect.drain[0] / effect.drain[1]);
+       *         this.heal(amount, source, target, 'drain');          // :2168
+       *       }
+       *     }
+       *
+       * so a spread drain reads `-damage t1 / -heal / -damage t2 / -heal`, and this engine read
+       * `-damage t1 / -damage t2 / -heal`. Two whole-game narration games in `data/game-differential.json`
+       * (`event missing from medicham2 :: |-heal|…|[from]drain <> |-damage|…`) plus one board-material
+       * row of the same shape. Matcha Gotcha's Sinistcha is 17.3% of teams.
+       *
+       * THE NUMBER IS UNCHANGED, DELIBERATELY, AND THAT IS WHAT MAKES THIS A NARRATION FIX. Every row
+       * is paid `Math.min(dmg, tg.curHP)` -- the identical value 2026-08-23 pushed into `_dealtEach`
+       * and summed -- through the identical four steps. Clamping per row against the RUNNING `curHP`
+       * reaches the same final HP as one clamp against `_hpPreReact`, because nothing else moves the
+       * user's HP between the rows.
+       *
+       * AND WIRE 87 IS SATISFIED BY POSITION RATHER THAN BY A CAPTURED NUMBER. The reason the clamp
+       * was measured against `_hpPreReact` was that the contact toll used to be paid ABOVE the heal;
+       * `_stepDamagingHit` is now a later step than `_stepApply`, so at this point the toll has not
+       * been paid and `m.curHP` *is* the pre-reaction HP. `_hpPreReact` is still captured for the
+       * knob path below.
+       *
+       * IT IS PAID ON THE SUBSTITUTE ROAD TOO, and that is the authority's rule rather than an
+       * oversight: `substitute.condition.onTryPrimaryHit` (data/moves.ts:18359) ends
+       * `if (move.drain) this.heal(Math.ceil(damage * drain[0] / drain[1]), source, target, 'drain')`
+       * -- a doll DOES feed a drain move. Two things about that line are NOT copied here and are said
+       * rather than left to be found: it is `ceil` where the ordinary road is `round`, and its
+       * `damage` is clamped to the DOLL's remaining HP where this engine passes the unclamped hit.
+       * Both are the same open STATE item docs/_reports/2026-08-23-narration-timing.md §10.3 already
+       * files; this pass moves the line and changes no number.
+       *
+       * MEDI_DRAIN_LUMP_ROUND=1 STILL RESTORES THE WHOLE OF THE OLD BEHAVIOUR -- one rounding over the
+       * summed damage, paid once, at the old position -- so the census rows can be shown MISSING on
+       * demand and a run carrying the knob still stamps `MEDFAILS.drainLumpRoundRestored`. */
+      const _drTag=TAGS.param('move',a.move.id,'drain');
+      const _drBR=TAGS.param('item',m.item,'healMultBySource');
+      const _drMult=(_drBR&&_drBR.mult&&Array.isArray(_drBR.from)&&_drBR.from.includes('drain'))?+_drBR.mult:1;
+      const _payDrainRow=(td,tg)=>{
+        if(DRAIN_LUMP_ROUND)return;                     // the knob pays the old lump, below the loop
+        if(!(_drTag&&_drTag.fraction))return;
+        /* Heal Block takes the HEAL and leaves the DAMAGE, which is the rule and is also the only
+           version worth modelling: a Drain Punch under Heal Block is still a Drain Punch. */
+        if(!(td>0)||m.fainted||!m.st||healBlocked(m))return;
+        let _one=Math.round(td*_drTag.fraction);        // sim/battle.ts:2168, per target
+        if(_one&&_one<=1)_one=1;                        // :2265
+        _one=Math.trunc(_one);                          // :2266
+        if(_drMult!==1)_one=md4096(_one,_drMult);       // the TryHeal modifier, :932
+        MEDSEEN.drainRoundedPerTarget++;
+        const _gain=Math.min(m.st.hp,m.curHP+_one)-m.curHP;
+        if(_gain>0){m.curHP+=_gain;if(TR)TR.heal(m,'[from] drain',tg);}
+      };
       /* `_selfKOPending` USED TO BE DECLARED HERE and is now declared above the shield, because the
        * `always` site is above the shield. See its declaration for why. */
       /* ROADMAP #72 -- DID A SUBSTITUTE EAT IT. `connected` is deliberately true when a doll absorbed
@@ -22987,7 +23070,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          * not be a demonstration of anything. */
         let _koThisHit=false;
         dealt+=Math.min(dmg,tg.curHP);
-        _dealtEach.push(Math.min(dmg,tg.curHP));      /* ROADMAP #339 -- the same number, kept apart */
+        /* CAPTURED ONCE, BEFORE THE PACKET LOOP MOVES `tg.curHP`, so the per-row drain below is paid
+           the identical number `_dealtEach` carries. */
+        const _rowDealt=Math.min(dmg,tg.curHP);
+        _dealtEach.push(_rowDealt);                   /* ROADMAP #339 -- the same number, kept apart */
         /* WIRE 42 -- THE SUBSTITUTE EATS THE HIT, and the whole hit ends here.
            WHAT THAT SKIPS IS STATED RATHER THAN DISCOVERED: no item is knocked off, no resist berry
            is spent, no contact punish is paid and no secondary lands. Three of those four are the
@@ -23038,6 +23124,9 @@ function battleTurn(S,rng,actsForA,actsForB){
            * than folded into a line-ordering fix. */
           if(TR){ if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');
                   else TR.act(tg,'move: Substitute','[damage]'); }
+          /* 2026-08-24 -- AND THE DOLL FEEDS A DRAIN MOVE, below its own line, which is where
+             `onTryPrimaryHit` puts it (data/moves.ts:18359, after the `-activate` / `-end` arm). */
+          _payDrainRow(_rowDealt,tg);
           R.out=true;return;}
         /* THE BERRY IS CONSUMED HERE AND ONLY HERE. dmgRange applied the halve as a pure read --
          * it is called dozens of times per turn on hypothetical moves and must never mutate -- so
@@ -23319,6 +23408,9 @@ function battleTurn(S,rng,actsForA,actsForB){
         }else{ tg.curHP-=dmg;
           /* ROADMAP #308 -- `_chipFrom` is the formeOnHit chip's attribution and is consumed once. */
           if(TR){const _cf=tg._chipFrom;tg._chipFrom=null;TR.dmg(tg,_cf||undefined);} }
+        /* 2026-08-24 -- THE DRAIN HEAL, IMMEDIATELY BELOW THIS TARGET'S `-damage` LINE, which is
+           where sim/battle.ts:2168 sits inside `spreadDamage`'s own loop. See `_payDrainRow`. */
+        _payDrainRow(_rowDealt,tg);
         /* WIRE 135 -- WHO HIT ME THIS TURN, recorded on the one line every move's damage passes
          * through. `_hitBy` is a SET OF BODIES rather than a flag because Avalanche asks whether THE
          * TARGET damaged it -- a boolean would double off the partner's Earthquake, which is a
@@ -24249,10 +24341,30 @@ function battleTurn(S,rng,actsForA,actsForB){
               else if(!s.status&&!s.volatile&&!s.targetBoosts&&!s.selfBoosts){
                 const _bs=TAGS.param('move',a.move.id,'blocksSoundMoves');
                 if(_bs&&_bs.turns&&tg&&!tg.fainted){
-                  /* The duration and the +1 are WIRE 45's, unchanged: the end-of-turn tick fires on
-                     the application turn too, the same convention as Heal Block and Encore. */
-                  const _n0=tg._noSound; tg._noSound=+_bs.turns+1;
-                  if(TR&&!(_n0>0))TR.vstart(tg,'move: Throat Chop');
+                  /* 2026-08-24 -- THE `+1` IS GONE AND THE SILENCE IS ONE TURN SHORTER. WIRE 45 read
+                     the convention off Heal Block and Encore ("the end-of-turn tick fires on the
+                     application turn too") and it is the wrong convention for this volatile, because
+                     the authority's tick fires on the application turn as well:
+
+                       throatchop.condition.duration = 2                (data/moves.ts)
+                       residual t1: 2 -> 1, survives.  t2: the sound move is disabled.
+                       residual t2: 1 -> 0, `onEnd`.   t3: FREE.
+
+                     OBSERVED IN THE AUTHORITY rather than read: Weavile (145 spe) Throat Chops a
+                     Primarina (80 spe) that clicks Hyper Voice every turn --
+                       t1  |-start|p2a: Primarina|Throat Chop|[silent]   |cant|p2a: Primarina|move: Throat Chop
+                       t2  volatile duration 1, `hypervoice` disabled=true, and at the residual
+                           |-end|p2a: Primarina|Throat Chop|[silent]
+                       t3  |move|p2a: Primarina|Hyper Voice   -- free
+                     With `turns + 1` this engine blocked turn 3 as well: two turns of silence in the
+                     game and THREE here, on 5,071 corpus uses. That is STATE, and it is the half
+                     docs/_reports/2026-08-23-narration-timing.md §6.4 refused to fix the line above.
+
+                     THE `-start` FIELD 3 IS `Throat Chop`, NOT `move: Throat Chop`. Read off the
+                     authority's own line above; `this.add('-start', target, 'Throat Chop', '[silent]')`
+                     is the emitter and the `move:` prefix was this engine's invention. */
+                  const _n0=tg._noSound; tg._noSound=+_bs.turns;
+                  if(TR&&!(_n0>0))TR.vstart(tg,'Throat Chop','[silent]');
                   MEDSEEN.soundLockApplied++;
                 } else MEDSEEN.secondaryEffectless++;
               }
@@ -24881,12 +24993,27 @@ function battleTurn(S,rng,actsForA,actsForB){
               const _had=_cv.charge>0;
               _cv.charge=1;
               MEDSEEN.chargeBanked++;
+              if(_had)MEDSEEN.chargeReBanked++;
               /* ROADMAP #234 -- `add('-start', pokemon, 'Charge', this.activeMove.name,
                * '[from] ability: ' + effect.name)` (data/moves.ts charge condition onStart/onRestart).
                * The MOVE THAT HIT is field 4 and the ability is field 5; the CHARGE MOVE's own line
                * is the other branch of that same `if` and stays bare, which is why the two cannot
-               * share an emitter call. */
-              if(TR&&!_had)TR.vstart(tg,'Charge',a.move.id+'|'+ATTR.from(ATTR.ability(tg.ability)));
+               * share an emitter call.
+               *
+               * 2026-08-24 -- THE GUARD THAT STOOD HERE WAS `!_had`, AND IT CONTRADICTED THE COMMENT
+               * THREE LINES UP. The `charge` condition declares `onStart` and `onRestart` as the SAME
+               * six lines, so the authority announces on the re-bank too and names the move that just
+               * landed (field 4 is `this.activeMove.name`). A second hit therefore writes a SECOND
+               * line naming the SECOND move, which is why the probe uses two different moves: an
+               * engine that merely duplicated the first line would say `heavyslam` twice.
+               *
+               * This is a fix RE-APPLIED, not a new one. `docs/_reports/2026-08-24-mechanics-by-reach.md`
+               * reports it landed and `data/mechanics-census.json` was committed reading 674/674 live,
+               * but the edit is absent from the committed engine and the probe was RED on arrival on
+               * 2026-08-24 (673 live / 1 missing on HEAD's own tree, before anything in this pass was
+               * written). Nothing else in that batch is affected: the other five probes were green on
+               * the same run. */
+              if(TR)TR.vstart(tg,'Charge',a.move.id+'|'+ATTR.from(ATTR.ability(tg.ability)));
             } else {
               MEDFAILS.buffOnHitVolatileUnwired++;
               if(!MEDFAILS.buffOnHitVolatileUnwiredFirst)
@@ -25052,7 +25179,12 @@ function battleTurn(S,rng,actsForA,actsForB){
       let _rechargeArmed=false;
       const _stepSelfPay=()=>{
         if(_selfPaid)return; _selfPaid=true;
-        {
+        /* 2026-08-24 -- THE DRAIN IS PAID PER TARGET NOW, at the target's own `-damage` line inside
+         * `_stepApply` (`_payDrainRow`). This block is the KNOB PATH ONLY: MEDI_DRAIN_LUMP_ROUND=1
+         * restores the whole of the pre-2026-08-24 behaviour -- one `Math.round` over the summed
+         * damage with Big Root folded inside it, paid once, here. Keeping it whole rather than
+         * deleting it is what lets the two ROADMAP #339 census rows be shown MISSING on demand. */
+        if(DRAIN_LUMP_ROUND){
           const _dr=TAGS.param('move',a.move.id,'drain');
           /* Heal Block takes the HEAL and leaves the DAMAGE, which is the rule and is also the only
            * version worth modelling: a Drain Punch under Heal Block is still a Drain Punch. */
@@ -25060,79 +25192,19 @@ function battleTurn(S,rng,actsForA,actsForB){
             /* WIRE 87 -- CLAMPED AGAINST THE HP THE USER HAD BEFORE ANY REACTION, not against the HP
              * it has now. Showdown drains inside the move and pays the contact toll afterwards, so a
              * full-HP Draining Kiss into Rough Skin gains NOTHING from the drain and still pays the
-             * eighth. Adding the heal to the post-toll HP healed the toll straight back. */
-            /* ROADMAP #81 WIRE 4 -- THE DRAIN IS ROUNDED, NOT FLOORED. `sim/battle.ts:2168` is
-             * `Math.round(targetDamage * effect.drain[0] / effect.drain[1])` from gen 5 on (gen <= 4
-             * is the floor, and that branch is not this format). Same root as recoil, opposite sign:
-             * flooring cost the user half a point of health on average on 8,553 corpus clicks. */
-            /* BIG ROOT, 63 uses — a roster DID-NOT-FIRE row and it had no tag at all until 3.x.
-             * `onTryHeal` multiplies a heal by 5324/4096 (x1.2998) but ONLY when the effect that
-             * produced it is on its own list — drain, Leech Seed, Ingrain, Aqua Ring, Strength Sap.
-             * The SOURCE LIST IS PART OF THE FACT and is carried in the tag: this does not boost
-             * Recover, a berry or Leftovers, and an item that boosted all healing would be a
-             * different item. */
-            /* ---- ROADMAP #339, 2026-08-23 -- THE ORDER OF OPERATIONS, AND BOTH HALVES WERE WRONG.
-             *
-             * The line this replaces was `Math.round(dealt * fraction * mult)`: one rounding, over the
-             * SUM of every target, with Big Root's multiplier folded inside it. The authority does
-             * neither of those things, and it is four cited steps rather than one expression:
-             *
-             *   sim/battle.ts:2168   `const amount = Math.round(targetDamage * drain[0] / drain[1]);`
-             *                        INSIDE spreadDamage's per-target loop -- one rounding PER BODY.
-             *   sim/battle.ts:2265   `if (damage && damage <= 1) damage = 1;`
-             *   sim/battle.ts:2266   `damage = this.trunc(damage);`
-             *   sim/battle.ts:2268   `damage = this.runEvent('TryHeal', ...)`, whose accumulated
-             *                        modifier is applied by `this.modify` at battle.ts:932 --
-             *                        `tr((tr(value * tr(mult*4096)) + 2047) / 4096)`. Big Root's
-             *                        `chainModify([5324, 4096])` (data/items.ts:492) is that modifier.
-             *
-             * SO THE MULTIPLIER IS APPLIED TO THE ALREADY-ROUNDED PER-TARGET AMOUNT, and in fixed
-             * point rather than as a float. MEASURED ON A STAGED BOARD, Bitter Blade dealing 53 into
-             * an unfaintable body with a Big Root up: this engine healed 34 and the four steps above
-             * give 35. And Matcha Gotcha into two bodies for 15 and 15: this engine healed 15 where
-             * the authority heals round(15/2) + round(15/2) = 16. The two defects are independent and
-             * both are on this one line, which is why they land together.
-             *
-             * `md4096` IS SHOWDOWN'S `modify` AND IS ALREADY IN THIS FILE (WIRE 4). Writing the
-             * arithmetic out again here would be a second implementation of a multiplier chain --
-             * CLAUDE.md's FACTS ARE GLOBAL -- and it is the same function every damage modifier uses.
-             *
-             * THE CLAMP IS STILL ONE CLAMP, against `_hpPreReact` (WIRE 87). The authority caps each
-             * heal at max HP as it goes; summing first and clamping once reaches the identical final
-             * HP, and the WIRE 87 reason for measuring against the PRE-REACTION HP is untouched.
-             *
-             * WHAT IS *NOT* DONE HERE, said rather than left to be rediscovered: the authority also
-             * emits one `|-heal|...|[from] drain|[of] TARGET` PER BODY and this engine still writes a
-             * single lumped line with no `[of]`. That is the NARRATION half of ROADMAP #339 and it is
-             * still open; only the arithmetic half is closed by this.
-             *
-             * MEDI_DRAIN_LUMP_ROUND=1 puts the old single expression back, so the two census rows can
-             * be shown MISSING on demand; any run carrying it also carries a non-zero
-             * `MEDFAILS.drainLumpRoundRestored`. */
+             * eighth. Adding the heal to the post-toll HP healed the toll straight back. This is the
+             * ONLY remaining reader of `_hpPreReact`: the live road pays inside `_stepApply`, where
+             * the toll has not been taken yet, so the pre-reaction HP is simply `m.curHP`. */
+            /* ROADMAP #81 WIRE 4 -- THE DRAIN IS ROUNDED, NOT FLOORED, and BIG ROOT's multiplier is
+             * folded into the one expression here, which is the defect the knob exists to restore:
+             * `Math.round(dealt * fraction * mult)` is one rounding over the SUM of every target with
+             * the item's modifier inside it, where the authority rounds per body and applies the
+             * modifier to the already-rounded amount in fixed point. Both halves are wrong together,
+             * which is why one knob restores both. */
+            MEDFAILS.drainLumpRoundRestored++;
             const _br=TAGS.param('item',m.item,'healMultBySource');
             const _brM=(_br&&_br.mult&&Array.isArray(_br.from)&&_br.from.includes('drain'))?+_br.mult:1;
-            let _amt;
-            if(DRAIN_LUMP_ROUND){ MEDFAILS.drainLumpRoundRestored++;
-              _amt=Math.round(dealt*_dr.fraction*_brM); }
-            else {
-              /* A move that dealt damage with no per-target list is a path that does not fill
-               * `_dealtEach`; it falls back to the SUM as one round, and says so, because a silent
-               * fallback here reads exactly like the fix working. */
-              let _rows=_dealtEach;
-              if(!_rows.length){ MEDFAILS.drainNoPerTargetRows++;
-                if(!MEDFAILS.drainNoPerTargetRowsFirst)MEDFAILS.drainNoPerTargetRowsFirst=String(a.move.id);
-                _rows=[dealt]; }
-              _amt=0;
-              for(const _td of _rows){
-                if(!(_td>0))continue;
-                let _one=Math.round(_td*_dr.fraction);   // battle.ts:2168, per target
-                if(_one&&_one<=1)_one=1;                 // battle.ts:2265
-                _one=Math.trunc(_one);                   // battle.ts:2266
-                if(_brM!==1)_one=md4096(_one,_brM);      // the TryHeal modifier, battle.ts:932
-                _amt+=_one;
-                MEDSEEN.drainRoundedPerTarget++;
-              }
-            }
+            const _amt=Math.round(dealt*_dr.fraction*_brM);
             const _gain=Math.min(m.st.hp,_hpPreReact+_amt)-_hpPreReact;
             if(_gain>0){m.curHP=Math.min(m.st.hp,m.curHP+_gain);if(TR)TR.heal(m,'[from] drain');}
           }
@@ -27007,8 +27079,37 @@ function battleTurn(S,rng,actsForA,actsForB){
          asserted that it happens, so it is counted separately from the tick: `perishTicked` at zero
          means no clock ever ran, `perishKO` at zero with `perishTicked` non-zero means the clock ran
          and nothing ever died at the end of it. Both are in tests/test-wiring.js. */
+      /* 2026-08-24 -- THE PERISH DEATH IS A `faint()` AND NOTHING ELSE. `perishsong.condition.onEnd`
+         (data/moves.ts) is two statements -- `this.add('-start', target, 'perish0'); target.faint();`
+         -- and `Pokemon#faint()` (sim/pokemon.ts:1587) writes NO log line, so the `-damage|…|0 fnt`
+         this engine emitted here is a line the authority never writes at all. It carried no state:
+         `TR.dmg` is a single trace push (`medicham2:2565`), and the HP/flag writes below are the ones
+         `queueFaint` now makes.
+
+         AND THE `|faint|` IS OWED TO THE FOOT OF THE WALK RATHER THAN TO THIS BODY, which is the half
+         that is not obvious from the handler. `fieldEvent`'s duration-expiry branch is
+         sim/battle.ts:514-524:
+
+             if (eventid === 'Residual' && handler.end && handler.state?.duration) {
+               handler.state.duration--;
+               if (!handler.state.duration) { handler.end.call(...); continue; }   <- SKIPS :565
+             }
+             ...
+             this.faintMessages();                                                  <- :565
+
+         so an expiry `continue`s PAST the drain and every perish death in the walk is still queued
+         while the next body's `perish0` is announced. OBSERVED in the authority rather than reasoned
+         -- Primarina clicks Perish Song into a doubles board, everything Protects, turn 4 reads four
+         `-start|…|perish0` lines and then four `|faint|` lines, with no `-damage` anywhere.
+
+         THE DRAIN IS AT THE END OF THE CLOCK WALK, one of the authority's eight moments (the tail of
+         `runAction`, sim/battle.ts:2832, which is the next `faintMessages` a residual expiry reaches
+         when nothing after it runs a handler to completion). It does NOT defer any other residual
+         death: a burn is `onResidual(pokemon)`, registered per body, so `fieldEvent` reaches :565
+         between bodies -- that site is elsewhere in this file, is already correct, and is the
+         over-fire control the probe holds at 1. */
       if(x._perish!=null){x._perish--;MEDSEEN.perishTicked++;if(TR)TR.vstart(x,'perish'+x._perish);
-        if(x._perish<=0){x.fainted=true,noteFaint(x);x.curHP=0;MEDSEEN.perishKO++;if(TR){TR.dmg(x);TR.faint(x);}}}
+        if(x._perish<=0){MEDSEEN.perishKO++;queueFaint(x,'perish');}}
       if(x._yawn!=null){x._yawn--;if(x._yawn<=0){x._yawn=null;if(TR)TR.vend(x,'move: Yawn');if(!x.status)applyStatus(x,'slp');}}
       /* Heal Block ticks with the other clocks. It is applied as `turns + 1` because this tick fires
        * on the application turn too — the same convention as Encore's lock two blocks down. */
@@ -27017,7 +27118,17 @@ function battleTurn(S,rng,actsForA,actsForB){
          every other clock in this engine, for the reason the Disable comment gives: a duration that
          only counts down on turns the engine happens to be CHOOSING lasts forever in a rollout driven
          from outside. */
-      if(x._noSound>0)x._noSound--;
+      /* 2026-08-24 -- AND IT ANNOUNCES ITS OWN END. `throatchop.condition.onEnd` is
+         `this.add('-end', target, 'Throat Chop', '[silent]')` and this engine wrote nothing, so the
+         line was simply absent from the stream (the whole-game differential carries it twice as
+         `event missing from medicham2 :: |-end|…|throatchop <> |upkeep`). `[silent]` is a CLIENT hint,
+         not a suppression: the line is in the authority's log and the differential strips the flag
+         from both sides before comparing -- the same reading Syrup Bomb's `[silent]` end was given.
+
+         THE POSITION IS STILL THE DECLARED ONE. `residualExpiryDeferred()` already names
+         `throatchop@22` -- this clock ticks in the foot-of-turn block rather than at residual order
+         22 -- and that gap is unchanged here. What was missing was the line, not its neighbourhood. */
+      if(x._noSound>0&&--x._noSound<=0){MEDSEEN.soundLockEnded++;if(TR)TR.vend(x,'Throat Chop','[silent]');}
       if(x._noRepeatT>0&&--x._noRepeatT<=0)x._noRepeat=null;
       /* WIRE 144 -- THE LOCK-IN CLOCK, AND THE THREE LINES BELOW ARE SHOWDOWN'S RESIDUAL IN ITS OWN
        * ORDER. `Battle#residualEvent` decrements the effect's duration FIRST and calls `end` if it
@@ -27066,6 +27177,11 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
       }
     }
+    /* 2026-08-24 -- THE CLOCK WALK'S OWN `faintMessages()`. Every death this walk produced is still
+     * queued, because a duration expiry `continue`s past sim/battle.ts:565; the next drain the
+     * authority reaches is the tail of `runAction` (:2832), which is here. Empty on almost every
+     * turn, and an empty drain is free and deliberately uncounted. */
+    drainFaints('residualClocks');
     /* WIRE 144 -- an Uproar that just ended stops refusing sleep from this instant, so the Yawn that
      * resolves later in this same residual is allowed. Recomputed, never cleared by hand. */
     refreshSleepBlock(actA,actB,sfA,sfB);

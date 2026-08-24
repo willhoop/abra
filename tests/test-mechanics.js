@@ -7459,6 +7459,68 @@ probe('move', 'blocksSoundMoves', 'Throat Chop stops the target using a sound mo
            detail: 'sound move dealt ' + control + ' normally, ' + test + ' after Throat Chop' };
 });
 
+/* THE SILENCE IS TWO TURNS LONG, NOT THREE, AND IT ANNOUNCES ITS OWN END. 2026-08-24.
+ *
+ * `throatchop.condition` carries `duration: 2` and `onEnd(target) { this.add('-end', target,
+ * 'Throat Chop', '[silent]'); }` (data/moves.ts). `residualEvent` spends a duration on the turn the
+ * volatile was applied as well, so the arithmetic is:
+ *
+ *     residual t1: 2 -> 1, survives      t2: the sound move is disabled
+ *     residual t2: 1 -> 0, `onEnd`       t3: FREE
+ *
+ * This engine wrote `turns + 1`, which is Heal Block's and Encore's convention and is the wrong one
+ * here: it blocked turn 3 as well, i.e. THREE turns of silence in a game that gives two, on 5,071
+ * corpus uses. That is STATE, and it is why docs/_reports/2026-08-23-narration-timing.md §6.4 refused
+ * to add the missing line until the clock underneath it was settled.
+ *
+ * OBSERVED IN THE AUTHORITY, not reasoned. Weavile (145 spe) Throat Chops a Primarina (80 spe) that
+ * clicks Hyper Voice every turn, read out of `battle.log` plus `p.getMoves()`:
+ *     t1  |-start|p2a: Primarina|Throat Chop|[silent]  then  |cant|p2a: Primarina|move: Throat Chop
+ *     t2  volatile duration 1, hypervoice disabled=true, and at the residual
+ *         |-end|p2a: Primarina|Throat Chop|[silent]
+ *     t3  |move|p2a: Primarina|Hyper Voice     — free, and the volatile is gone
+ *
+ * BOTH HALVES ARE ASSERTED TOGETHER ON PURPOSE. Turn 2 blocked alone is satisfied by the old
+ * three-turn clock; turn 3 free alone is satisfied by an engine that never applied the lock alone.
+ * The `-end` line is asserted on the turn the clock runs out and NOT on turn 1, so a line emitted at
+ * the wrong moment fails as loudly as an absent one. */
+probe('move', 'blocksSoundMoves', 'the silence lasts the turn it lands and ONE more, and its end is a line', () => {
+  /* THE CHOPPER IS THE FASTER BODY, WHICH IS NOT COSMETIC. Weavile 145 against Primarina 80, the
+     same pair staged in the authority above. Chopping with a SLOWER body puts the sound move ahead of
+     the chop on turn 1, so the first entry reads HIT under every implementation and the arm asks
+     nothing about turn 1 at all — which is exactly what the first draft of this probe did. */
+  const run = (chop) => {
+    const me = bare('weavile'), ally = bare('corviknight');
+    const f1 = bare('primarina'), f2 = bare('garchomp');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    const dealt = [], ends = [];
+    for (let t = 1; t <= 3; t++) {
+      trace.length = 0;
+      me.curHP = me.st.hp;
+      const before = me.curHP;
+      M.battleTurn(S, rng5,
+        new Map([[me, (t === 1 && chop) ? M.playerAction(me, 'throatchop', f1, S.field) : { kind: 'pass' }],
+                 [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, 'hypervoice', me, S.field)], [f2, { kind: 'pass' }]]));
+      dealt.push(before - me.curHP > 0 ? 'HIT' : 'silenced');
+      if (trace.map(M.traceCanon).some(l => /^\|-end\|[^|]+\|throatchop/i.test(l))) ends.push(t);
+    }
+    return { dealt, ends };
+  };
+  const test = run(true), control = run(false);
+  return { works: JSON.stringify(test.dealt) === JSON.stringify(['silenced', 'silenced', 'HIT'])
+                  && JSON.stringify(test.ends) === '[2]'
+                  && JSON.stringify(control.dealt) === JSON.stringify(['HIT', 'HIT', 'HIT'])
+                  && control.ends.length === 0,
+           arms: { control: [control.dealt, control.ends], test: [test.dealt, test.ends] },
+           detail: `Hyper Voice out of the chopped body on three consecutive turns — [${test.dealt.join(' ')}] `
+                 + `(the authority silences turns 1 and 2 and frees turn 3; the old turns+1 clock read `
+                 + `silenced on all three), and the |-end| line lands on turn(s) [${test.ends.join(',')}] `
+                 + `— it must be turn 2 alone. CONTROL, the identical board with the chop withheld: `
+                 + `[${control.dealt.join(' ')}] with the end line on turn(s) [${control.ends.join(',')}]` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND IT HAD NO CONTROL AT ALL: `a.max === b.max`
  * is exactly what an engine that ignores stat stages for EVERY move prints, which is a much worse bug
  * than this one. Crunch is the control -- same user, same type, same category -- and it must be cut by
@@ -9070,6 +9132,58 @@ probe('move', 'drain',
                  + ' damage, healed ' + spread.gain + '; per-body ' + perBody + ', lumped ' + lumped
                  + '. Control Bitter Blade ' + single.d1 + ' damage, healed ' + single.gain
                  + ', authority ' + singleExp };
+});
+
+/* AND THE NARRATION HALF OF THE SAME RULE: THE HEAL IS PAID AT EACH TARGET'S OWN DAMAGE LINE.
+ * 2026-08-24.
+ *
+ * `spreadDamage` (sim/battle.ts:2159-2171) writes the `-damage` line for a target and then, four
+ * statements later and INSIDE the same iteration, `this.heal(amount, source, target, 'drain')`. So a
+ * two-target drain reads damage / heal / damage / heal, and the heal names the body it came off
+ * through `[of]`. This engine paid once for the whole move, after every target's damage.
+ *
+ * OBSERVED IN THE AUTHORITY rather than reasoned — a chipped Sinistcha's Matcha Gotcha into Garchomp
+ * and a Swampert it kills:
+ *     |-damage|p2a: Garchomp|129/183
+ *     |-heal|p1a: Sinistcha|75/146|[from] drain|[of] p2a: Garchomp
+ *     |-damage|p2b: Swampert|0 fnt
+ *     |-heal|p1a: Sinistcha|146/146|[from] drain|[of] p2b: Swampert
+ *     |faint|p2b: Swampert
+ *
+ * THE ARITHMETIC IS UNCHANGED AND THE PROBE ABOVE IS THE ONE THAT GUARDS IT. This asserts POSITION
+ * and ATTRIBUTION only; the two together are what `MEDI_DRAIN_LUMP_ROUND=1` restores.
+ *
+ * TWO CONTROLS, AND THEY FAIL DIFFERENT WRONG FIXES. A single-target drain must still read one damage
+ * and one heal — an engine that emitted a heal per target INCLUDING targets it did not reach would
+ * pass the spread arm. And a spread move with NO drain must emit no heal at all, which is what stops
+ * "emit a heal after every damage line" from passing. */
+probe('move', 'drain', 'a SPREAD drain heals at each target\'s own damage line, naming that target', () => {
+  const run = (mv) => {
+    const me = bare('sinistcha'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('swampert');
+    me.curHP = Math.floor(me.st.hp / 3);
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.map(M.traceCanon).filter(l => /^\|(-damage|-heal)\|/.test(l))
+      .map(l => l.startsWith('|-heal|') ? 'heal:' + (l.split('[of]')[1] || 'NOBODY').split(':')[1]
+                                       : 'dmg:' + l.split('|')[2].split(':')[1]);
+  };
+  const spread = run('matchagotcha');
+  const single = run('drainingkiss');
+  const noDrain = run('bulldoze');
+  const want = ['dmg:garchomp', 'heal:garchomp', 'dmg:swampert', 'heal:swampert'];
+  return { works: JSON.stringify(spread) === JSON.stringify(want)
+                  && JSON.stringify(single) === JSON.stringify(['dmg:garchomp', 'heal:garchomp'])
+                  && noDrain.every(x => x.startsWith('dmg:')) && noDrain.length === 2,
+           arms: { control: [single, noDrain], test: spread },
+           detail: `Matcha Gotcha out of a chipped Sinistcha into Garchomp + Swampert — the damage and `
+                 + `heal lines read [${spread.join(' ')}], and the authority reads [${want.join(' ')}]: `
+                 + `each heal sits under the body it came off and names it through [of]. CONTROLS — a `
+                 + `single-target Draining Kiss [${single.join(' ')}] (one damage, one heal), and a `
+                 + `spread move with no drain, Bulldoze, [${noDrain.join(' ')}] (two damages and no `
+                 + `heal at all)` };
 });
 
 probe('item', 'healMultBySource',
@@ -15831,6 +15945,68 @@ probe('move', 'perishClock', 'a body that switches out loses the clock and does 
                  + `at the end of turn 4; switching out on turn 2 it is fainted=${left.me.fainted} `
                  + `with _perish=${left.me._perish}. Its PARTNER, which stayed, is `
                  + `fainted=${left.ally.fainted}, so the clock did not simply stop running` };
+});
+
+/* 4d. THE PERISH DEATHS ARE QUEUED, AND THE CLOCK WRITES NO `-damage` LINE AT ALL. 2026-08-24.
+ *
+ * `perishsong.condition` (data/moves.ts) is `onEnd(target) { this.add('-start', target, 'perish0');
+ * target.faint(); }` — an `add` and a `faint()`, and NOTHING else. `Pokemon#faint()`
+ * (sim/pokemon.ts:1587) writes no log line; it queues. This engine wrote a `|-damage|…|0 fnt` line
+ * that the authority never writes, and announced the `|faint|` on the spot.
+ *
+ * AND THE QUEUE DOES NOT DRAIN BETWEEN THE FOUR BODIES, WHICH IS THE HALF THAT IS NOT OBVIOUS.
+ * `fieldEvent`'s duration-expiry branch (sim/battle.ts:514-524) calls `handler.end` and then
+ * `continue`s — SKIPPING the `this.faintMessages()` at :565. A perish clock reaching zero is exactly
+ * that branch, so every perish death in the walk is still owed when the next one is announced.
+ *
+ * OBSERVED IN THE AUTHORITY, not reasoned. Primarina clicks Perish Song on turn 1 into a doubles
+ * board (Primarina + Corviknight against Garchomp + Swampert), everything Protects, turn 4:
+ *     |-start|p2a: Garchomp|perish0      |-start|p1b: Corviknight|perish0
+ *     |-start|p2b: Swampert|perish0      |-start|p1a: Primarina|perish0
+ *     |faint|p2a: Garchomp   |faint|p1b: Corviknight   |faint|p2b: Swampert   |faint|p1a: Primarina
+ * Four clock lines, then four faints, and no `-damage` anywhere.
+ *
+ * THE CONTROL IS A RESIDUAL DEATH THAT MUST *NOT* DEFER. A burn is `onResidual(pokemon)`, registered
+ * PER BODY, so `fieldEvent` reaches its `faintMessages()` between bodies and the faint lands
+ * immediately after that body's own chip. An engine that deferred every residual faint to the foot of
+ * the turn passes the perish arm and breaks this one. */
+probe('move', 'perishClock', 'the four perish deaths are announced BELOW all four perish0 lines, with no -damage', () => {
+  const perishTrace = () => {
+    const me = bare('primarina'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('swampert');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    for (let t = 1; t <= 4; t++) {
+      trace.length = 0;
+      const mine = t === 1 ? M.playerAction(me, 'perishsong', f1, S.field) : { kind: 'pass' };
+      M.battleTurn(S, rng5, new Map([[me, mine], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    }
+    return trace.map(M.traceCanon)
+      .filter(l => /^\|faint\|/.test(l) || /^\|-damage\|/.test(l) || /^\|-start\|[^|]+\|perish0$/.test(l))
+      .map(l => l.startsWith('|faint|') ? 'faint' : l.startsWith('|-damage|') ? 'DAMAGE' : 'perish0');
+  };
+  const burnTrace = () => {
+    const me = bare('milotic'), ally = bare('clefable');
+    const f1 = bare('alakazam'), f2 = bare('gengar');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    for (const x of [me, ally, f1, f2]) x.status = 'brn';
+    f1.curHP = 1;                       /* Alakazam, 120 spe — chipped FIRST, so position separates */
+    trace.length = 0;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon).filter(l => /^\|(-damage|faint)\|/.test(l));
+    return lines.findIndex(l => /^\|faint\|/.test(l));
+  };
+  const seq = perishTrace(), brnFaintAfter = burnTrace();
+  const want = ['perish0', 'perish0', 'perish0', 'perish0', 'faint', 'faint', 'faint', 'faint'];
+  return { works: JSON.stringify(seq) === JSON.stringify(want) && brnFaintAfter === 1,
+           arms: { control: brnFaintAfter, test: seq },
+           detail: `the turn-4 residual stream reads [${seq.join(' ')}] — the authority reads `
+                 + `[${want.join(' ')}], four clock lines and then four queued deaths, with no `
+                 + `-damage line at all (a DAMAGE entry above is one this engine writes and the `
+                 + `authority does not). CONTROL, the same instrument on a BURN death, whose handler `
+                 + `is registered per body: the |faint| sits after ${brnFaintAfter} chip line(s) and `
+                 + `must stay at 1 — deferring every residual faint would break it` };
 });
 
 

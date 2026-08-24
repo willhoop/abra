@@ -21,6 +21,59 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## NARRATION TIMING, PART TWO — NARRATION 22 → 19 GAMES, CENSUS 674 → 677, BOARD-MATERIAL UNMOVED AT 24. 2026-08-24 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-24-narration-timing.md`](_reports/2026-08-24-narration-timing.md).
+Ledger section: `docs/ENGINE.md`, *"NARRATION TIMING, PART TWO"*.
+
+**FOUR RULES, THREE GAMES CLEARED, ZERO NEW DIVERGING GAMES.** Arm `middle`, release `2535a9c59886`,
+961 games, `--team-store data/team-pool-frozen`, census pinned to `census-pin-9446a684709d.json`:
+raw parted **46 → 43**, undeclared **33 of 961 (3.4%) → 30 (3.1%)**, narration **22 → 19 games /
+20 → 18 causes**, **board-material 24 → 24 games / 23 → 23 causes**.
+
+- **A spread drain heals at each target's OWN damage line** (`sim/battle.ts:2168`, inside
+  `spreadDamage`'s per-target loop), naming that target through `[of]`. 2 games. **No number moved** —
+  every row is paid the identical `Math.min(dmg, tg.curHP)` through the identical four rounding steps,
+  and WIRE 87's pre-reaction clamp is satisfied by POSITION now that `_stepDamagingHit` is a later
+  step. The doll feeds a drain too (`data/moves.ts:18359`); the `ceil` and the doll-HP clamp on that
+  line are deliberately NOT copied and stay open. Probe `move/drain`, red under
+  `MEDI_DRAIN_LUMP_ROUND=1`.
+- **Throat Chop's silence is TWO turns, not three, and its end is a line.** `duration: 2` and the
+  residual spends one on the application turn; this engine wrote `turns + 1` and silenced a third, on
+  5,071 corpus uses. **STATE — the clock is the fix and the `-end` is the by-product.** The `-start`'s
+  field 3 was also wrong (`move: Throat Chop` vs `Throat Chop`). 1 game. Probe
+  `move/blocksSoundMoves`, shown red by reverting both lines.
+- **Perish Song writes no `-damage` at all** (`onEnd` is `add('-start', …, 'perish0')` then `faint()`,
+  which logs nothing) **and its deaths are queued past the walk**, because `fieldEvent`'s expiry branch
+  `continue`s past `faintMessages` at `sim/battle.ts:565`. Probe `move/perishClock`, red under
+  `MEDI_FAINT_INLINE=1`, control a BURN death that must NOT defer. The pool's one perish game now
+  diverges on the faint's POSITION alone, which is a function of the residual handler list and is
+  declared, not fixed.
+- **A re-banked Charge re-announces — A RED FOUND ON ARRIVAL.** The census committed at HEAD reads
+  674/674 live; HEAD's own tree measures 673/1. The probe from the mechanics-by-reach batch shipped
+  and **its one-line engine edit did not.** Re-applied. New counter `MEDSEEN.chargeReBanked`.
+
+**MUST-NOT-MOVE, CHECKED:** damage differential **0 of 6000** at the midpoint and all 16 corners;
+census **677 / 677 / 0 missing**, 0 hollow, 0 threw, ratchet untouched; **board-material flat**.
+
+**ROSTER RE-RUN, ALL THREE STAGES, ON THE FINAL RELEASE**, every verdict vector byte-identical: items
+0/0 (139 of 148), abilities 0/0 (130 of 202), moves 0/0 (475 of 500). `all_mechanics_fire --kind all`
+identical set. Gate back to **5 of 8**, the same three failing.
+
+**TWO TRAPS RECORDED:** a roster or mechanics-fire run without `--write` prints correct numbers and
+leaves the artifact stamped to the OLD release, which `status.js` then withholds; and a census run
+under a restore knob WRITES the census, which read 674/677 with 3 missing until it was re-run clean.
+
+**DEFECTS FOUND AND NOT FIXED:** a KO'd spread target's `|faint|` is announced above the move's own
+secondary (board-material, 1 game, revealed behind the drain fix in the same game 13 lines later); the
+perish faint's position (narration, 1 game, blocked behind the residual handler list — judgement card
+3); the broken-Substitute drain's `round`-off-an-unclamped-hit (state, restated).
+
+**NOT TOUCHED, per the brief:** the four judgement cards, the mega-phase and residual sorts, the
+Tailwind pair, Moody, and every speed-tie row.
+
+---
+
 ## UNNERVE REACHED TWO OF THE FIVE PLACES A BERRY IS EATEN. CENSUS 664 → 666, BOARD-MATERIAL UNMOVED AT 24. 2026-08-23 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-23-suppression-ends.md`](_reports/2026-08-23-suppression-ends.md).

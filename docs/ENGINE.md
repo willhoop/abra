@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  674/674 probed mechanics live, 0 missing   (census 2026-08-24 05:33)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-24 05:35)
+  677/677 probed mechanics live, 0 missing   (census 2026-08-24 06:40)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-24 06:24)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,119 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0695cc7b183b now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is fe807894dee6 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-24 05:51_
+_stamped 2026-08-24 06:45_
 
 <!-- /GENERATED -->
+
+## NARRATION TIMING, PART TWO — NARRATION 22 → 19 GAMES, CENSUS 674 → 677, BOARD-MATERIAL UNMOVED AT 24. 2026-08-24.
+
+Full account: [`docs/_reports/2026-08-24-narration-timing.md`](_reports/2026-08-24-narration-timing.md).
+Probes: `tests/test-mechanics.js` **`move/drain`** (*a SPREAD drain heals at each target's own damage
+line, naming that target* — knob **`MEDI_DRAIN_LUMP_ROUND=1`**), **`move/blocksSoundMoves`** (*the
+silence lasts the turn it lands and ONE more, and its end is a line*) and **`move/perishClock`** (*the
+four perish deaths are announced BELOW all four perish0 lines, with no -damage* — knob
+**`MEDI_FAINT_INLINE=1`**, control a BURN death that must NOT defer).
+
+**FOUR RULES, THREE GAMES CLEARED, ZERO NEW DIVERGING GAMES.** Arm `middle`, release `2535a9c59886`,
+961 games, `--team-store data/team-pool-frozen`, census pinned to `census-pin-9446a684709d.json`:
+raw parted **46 → 43**, undeclared **33 of 961 (3.4%) → 30 of 961 (3.1%)**, narration **22 → 19 games
+/ 20 → 18 causes**, **board-material 24 → 24 games / 23 → 23 causes**. The game-by-game diff on
+`config|seed` names the three cleared and confirms none appeared.
+
+| rule | games | state? |
+|---|---|---|
+| a spread drain heals at each target's OWN damage line (`sim/battle.ts:2168`, inside `spreadDamage`'s loop) | 2 | no — same number, same four rounding steps, only the position and the `[of]` |
+| Throat Chop's silence is **two** turns, not three, and its end is a line | 1 | **YES — the clock is the fix and the line is the by-product** |
+| Perish Song writes no `-damage`, and its deaths are queued past the walk | 0 — the game diverges later on the same line | no |
+| a re-banked Charge re-announces — **a red found on arrival**, not new work | 0 (a lab row) | no |
+
+**A RED WAS FOUND ON ARRIVAL AND FIXED RATHER THAN FILED, AND IT IS A PUBLISHING DEFECT.**
+`data/mechanics-census.json` was committed at HEAD reading **674 live / 674 probed / 0 missing**;
+HEAD's own tree measures **673 live / 1 missing**. The missing row is the Charge re-bank from the
+mechanics-by-reach batch — **the probe was committed and the one-line engine edit was not.** Measured
+by stashing this pass's test edits before anything else was written. The other five probes in that
+batch are green on the same run.
+
+**THROAT CHOP WAS A CLOCK BEFORE IT WAS A LINE, WHICH IS WHY 2026-08-23 REFUSED IT.** `duration: 2`
+and `residualEvent` spends one on the application turn, so the authority silences the turn it lands
+and ONE more; this engine wrote `turns + 1` and silenced a third, on **5,071 corpus uses**. Observed
+in the official simulator — Weavile chops a Primarina that clicks Hyper Voice every turn: `cant` on
+t1, `hypervoice disabled=true` and `|-end|…|Throat Chop|[silent]` at the t2 residual, and a free Hyper
+Voice on t3. The `-start`'s field 3 was also wrong (`move: Throat Chop` where the authority writes
+`Throat Chop`), read off the authority's own logged line.
+
+**THE DRAIN FIX CHANGES NO NUMBER AND THAT IS CHECKABLE.** Every row is paid `Math.min(dmg, tg.curHP)`
+— byte for byte what ROADMAP #339 pushed into `_dealtEach` — through the identical `round` / clamp-1 /
+`trunc` / Big Root fixed-point steps. **WIRE 87's pre-reaction clamp is now satisfied by POSITION**:
+`_stepDamagingHit` is a later step than `_stepApply`, so the toll has not been taken when the heal is
+paid. The doll feeds a drain move too (`data/moves.ts:18359`), and the two things about that line NOT
+copied are stated: `ceil` rather than `round`, and a `damage` the authority clamps to the doll's HP.
+
+**THE PERISH FAINT IS STILL ONE LINE EARLY IN ONE GAME, AND THE REASON IS DERIVED RATHER THAN
+GUESSED.** The authority's drain point depends on **what follows the perish group in the residual**:
+instrumenting the official simulator shows `perishsong x4 (expire, `continue`, no drain) → stall/2
+(does not expire) → faintMessages` — so a board where anything Protected drains BEFORE `|upkeep|`,
+and a board where nothing follows drains AFTER it (`battle.ts:2814` writes `upkeep`, `:2832` drains).
+**Both are the authority. The position is a function of the handler list and this engine has no
+handler list** — that is `residualExpiryDeferred()`, already declared, and the residual sort is one of
+Will's four judgement cards. Not smuggled in behind a narration fix.
+
+**BOARD-MATERIAL HELD BY THE COUNT AND THE SET MOVED BY ONE, SAME GAME.** The old drain-ordering row
+left and `|faint|p2b <> |-status|p2a|brn` appeared — the identical game diverging **thirteen lines
+later**, which is the "one cause removed, one revealed behind it" shape. What it names: the authority
+writes a KO'd spread target's `|faint|` above the move's own 20% burn secondary, and this engine
+applies the burn first.
+
+**THE ROSTER WAS RE-RUN, ALL THREE STAGES, ON THE FINAL RELEASE.** Every verdict vector byte-identical:
+items **0 DIFFER / 0 DID-NOT-FIRE** (139 of 148), abilities **0 / 0** (130 of 202), moves **0 / 0**
+(475 of 500). `all_mechanics_fire --kind all`: moves 18 / abilities 4 / items 1 diverged, the SET
+identical — zero cleared, zero newly diverging. **A trap worth recording: the first roster and
+mechanics-fire runs were made without `--write`**, so they printed correct numbers and left the
+artifacts stamped to the old release; `status.js` would have withheld them. Re-run with `--write`.
+**And running the census under `MEDI_DRAIN_LUMP_ROUND=1` to show the red WRITES the census** —
+`status.js` then read 674/677 with 3 missing until it was re-run clean. A knob run is not a
+measurement.
+
+### THE HAND LIST
+
+Leaves it, each now carried by a census probe: **the spread drain's lumped heal**, **Throat Chop's
+three-turn silence and its missing `-end`**, and **Perish Song's spurious `-damage` line**.
+
+Joins it, named rather than missed:
+- **a KO'd spread target's `|faint|` is announced above the move's own secondary** — the authority
+  writes `|faint|p2b: Falinks`, this engine writes Matcha Gotcha's burn first. Board-material, 1 game;
+- **a perish death's `|faint|` is one line early when nothing follows the perish group** — a function
+  of the residual handler list, same root as `residualExpiryDeferred()`. Narration, 1 game;
+- **a broken Substitute's drain is `round` off an unclamped hit** where the authority is `ceil` off a
+  hit clamped to the doll's HP (`data/moves.ts:18345-18359`). State. Restated from 2026-08-23 because
+  the code that reads it moved.
+
+### PROPOSED REGISTER ROWS
+
+- *A KO'd spread target's `|faint|` is announced above the move's own secondary.* ENGINE. Instrument:
+  `engine/game_differential.js`, arm `middle`, cause
+  `extra event emitted by medicham2 :: |faint|p2b <> |-status|p2a|brn`. 1 game of 961, BOARD-MATERIAL.
+- *A perish death's `|faint|` is one line early when nothing follows the perish group in the residual.*
+  ENGINE. Instrument: the same, cause `ordering :: |upkeep <> |faint|p1b`. 1 game of 961,
+  NARRATION-ONLY. Blocked behind the residual handler list (`residualExpiryDeferred()`), which is
+  judgement card 3.
+- *A published census did not match its own engine.* NOT A GAME DEFECT — a publishing one. The Charge
+  re-bank probe shipped without its engine edit on 2026-08-24; re-applied the same day. Recorded so the
+  shape is on the books, not because anything is open.
+
+### OWED, NOT RUN
+
+- `node engine/replay_one.js --census <the pin>` — still the way to attribute the weather-upkeep five;
+- `node engine/explain_divergence.js --dump-speeds` — the tie-settling command, untouched per the brief;
+- `tests/interaction_matrix.js` (last run 2026-08-11); `tests/mutation_harness.js` (writes; needs
+  `--gate-only --no-write` wiring); `node engine/quarantine.js` (its clauses were run directly, at the
+  pins); `tests/run-all.js`; `engine/argmax_paired.js`.
 
 ## SIX DIVERGING MECHANICS BY REACH — 31 → 25 UNCLEARED, CENSUS 668 → 674, BOARD-MATERIAL UNMOVED AT 24. 2026-08-24.
 

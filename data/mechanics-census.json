@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-24T09:33:14.027Z",
+  "generated": "2026-08-24T10:40:05.292Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 674,
-  "live": 674,
+  "probed": 677,
+  "live": 677,
   "missing": 0,
-  "armed": 674,
+  "armed": 677,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -2050,6 +2050,16 @@
     },
     {
       "kind": "move",
+      "tag": "blocksSoundMoves",
+      "label": "the silence lasts the turn it lands and ONE more, and its end is a line",
+      "live": true,
+      "detail": "Hyper Voice out of the chopped body on three consecutive turns — [silenced silenced HIT] (the authority silences turns 1 and 2 and frees turn 3; the old turns+1 clock read silenced on all three), and the |-end| line lands on turn(s) [2] — it must be turn 2 alone. CONTROL, the identical board with the chop withheld: [HIT HIT HIT] with the end line on turn(s) []",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "ignoresBoosts",
       "label": "Darkest Lariat ignores a Defense boost",
       "live": true,
@@ -2494,6 +2504,16 @@
       "label": "a SPREAD drain rounds once per body, not once over the summed damage",
       "live": true,
       "detail": "Matcha Gotcha into Raichu + Kangaskhan: 15 and 15 damage, healed 16; per-body 16, lumped 15. Control Bitter Blade 53 damage, healed 27, authority 27",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "drain",
+      "label": "a SPREAD drain heals at each target's own damage line, naming that target",
+      "live": true,
+      "detail": "Matcha Gotcha out of a chipped Sinistcha into Garchomp + Swampert — the damage and heal lines read [dmg:garchomp heal:garchomp dmg:swampert heal:swampert], and the authority reads [dmg:garchomp heal:garchomp dmg:swampert heal:swampert]: each heal sits under the body it came off and names it through [of]. CONTROLS — a single-target Draining Kiss [dmg:garchomp heal:garchomp] (one damage, one heal), and a spread move with no drain, Bulldoze, [dmg:garchomp dmg:swampert] (two damages and no heal at all)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3413,7 +3433,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4524,6 +4544,16 @@
       "label": "a body that switches out loses the clock and does NOT faint",
       "live": true,
       "detail": "Primarina clicks Perish Song on turn 1 — staying in, it is fainted=true at the end of turn 4; switching out on turn 2 it is fainted=false with _perish=null. Its PARTNER, which stayed, is fainted=true, so the clock did not simply stop running",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perishClock",
+      "label": "the four perish deaths are announced BELOW all four perish0 lines, with no -damage",
+      "live": true,
+      "detail": "the turn-4 residual stream reads [perish0 perish0 perish0 perish0 faint faint faint faint] — the authority reads [perish0 perish0 perish0 perish0 faint faint faint faint], four clock lines and then four queued deaths, with no -damage line at all (a DAMAGE entry above is one this engine writes and the authority does not). CONTROL, the same instrument on a BURN death, whose handler is registered per body: the |faint| sits after 1 chip line(s) and must stay at 1 — deferring every residual faint would break it",
       "hollow": false,
       "armed": true,
       "directCall": false
