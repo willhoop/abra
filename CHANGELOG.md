@@ -10,6 +10,37 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.107.0] — 2026-08-23
+
+### Fixed
+- **THE VERDICT FILE THE "NO OPEN ENGINE DEFECT" CLAUSE READS WAS WRITTEN AT 07:48 AND ALL FIVE OF ITS
+  VERDICTS WERE OUT OF DATE.** The engine, the comparison data and two of the checkers themselves all
+  changed after it was written. Each of the five rows was re-checked against the current tree by
+  running its own instrument.
+- **One verdict was flat wrong** — the swallowed-errors row is **green**, and its row is now **CLOSED**
+  on its own passing checker: 0 new, floor untouched at 201, 62 blocks read one at a time and signed
+  off with written reasons, 18 genuinely fixed.
+- **One verdict was HOLLOW, and that is the more alarming half.** It recorded a **5-second run of a
+  test that takes 25 seconds** — the test had *crashed*, and the crash was filed as a *failure*. A
+  checker that cannot answer being recorded as a checker that found breakage is the same class this
+  repo fixed at the exit-code level this morning, arriving one level up.
+
+### Notes
+- **The clause cannot open, and the honest reason is three live reds** — effects landing on a body that
+  is not on the field (7 bad protocol lines, the engine's own counter at 10); the authority announcing
+  a move failed while we say nothing (now 2 cases, a Role Play and a Curse); and the prove-the-test-can-fail
+  harness. **The whole-game row took no verdict at all** — its checker was not run, and an unrun
+  instrument is not evidence in either direction.
+- **"Now 2 cases" is NOT an improvement on the old 30.** Different sample, different measurement. Said
+  plainly rather than presented as progress.
+- **THE DEMO HARNESS TURNED UP TWO REAL DAMAGE DEFECTS, AND THE DAMAGE DIFFERENTIAL READS 0 OF 6000.**
+  Of its 14 failures, 12 are the harness being out of date — the thing that row is actually about — but
+  **2 are the engine: spread-move rounding and the Life Orb multiplier.** Two instruments, two
+  questions: a clean differential is a claim about what it samples, not about the engine. Those two
+  need their own row and are not a harness problem.
+- Register rows updated for all five: one closed, one re-scoped, three left open with the measurement
+  named. **Nothing was closed to make a clause pass.**
+
 ## [5.106.0] — 2026-08-23
 
 ### Added
