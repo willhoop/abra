@@ -192,6 +192,10 @@ Moving the engine withholds these three artifacts, so all three were re-run at r
 | abilities | **0** | **0** | 130 of 202 |
 | moves | **0** | **0** | 475 of 500 |
 
+**`all_mechanics_fire --kind all` was re-run too**, at the same release — moving the engine withheld a
+fourth artifact that the brief did not name. It reads **moves 18 / abilities 4 / items 1**, the SET
+identical to the standing one: zero cleared, zero newly diverging.
+
 Gate back to **5 of 8 clauses passing**, the same three failing as before.
 
 ### Every ENGINE instrument, re-run green

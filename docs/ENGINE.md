@@ -150,7 +150,10 @@ changes; the pool simply holds no game in which two WEATHER megas tie.
 
 **THE DELIBERATE ROSTER WAS RE-RUN, ALL THREE STAGES**, at release `b35e96a0e7c7`: items **0
 FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE** (139 of 148 tested), abilities **0 / 0** (130 of 202),
-moves **0 / 0** (475 of 500). Gate back to **5 of 8 clauses passing**, the same three failing.
+moves **0 / 0** (475 of 500). **`all_mechanics_fire --kind all` was re-run too** — moving the engine
+withheld a FOURTH artifact that the brief did not name — and reads **moves 18 / abilities 4 / items
+1**, the SET identical to the standing one: zero cleared, zero newly diverging. Gate back to **5 of 8
+clauses passing**, the same three failing.
 
 ### PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.
 

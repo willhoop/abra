@@ -59,7 +59,9 @@ classed narration-only IN THE POOL**; the board consequence is proved on the sta
 the sky itself changes.
 
 **THE DELIBERATE ROSTER WAS RE-RUN, ALL THREE STAGES** at release `b35e96a0e7c7`: items **0 / 0** (139
-of 148), abilities **0 / 0** (130 of 202), moves **0 / 0** (475 of 500). Gate back to **5 of 8**.
+of 148), abilities **0 / 0** (130 of 202), moves **0 / 0** (475 of 500). **`all_mechanics_fire --kind
+all` re-run as well** (a fourth artifact the brief did not name): moves 18 / abilities 4 / items 1, the
+SET identical. Gate back to **5 of 8**.
 
 **OWED, NOT RUN:** `tests/run-all.js` in full; **the RESIDUAL sort** — the other half of card 3 of
 `docs/_reports/2026-08-24-ordering-cards.md`, untouched per the brief's scope line and Will's call on
