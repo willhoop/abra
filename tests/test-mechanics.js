@@ -2541,6 +2541,76 @@ probe('ability', 'preventsStatDrop', 'a refused stat drop is ANNOUNCED, naming t
                  + `stat, the scoped one names Attack — Showdown's own two shapes)` };
 });
 
+/* ---- 2026-08-24 -- THE REFLECTION IS ANNOUNCED, ONCE PER STAT, AND THE STATE PROBE CANNOT SEE IT --
+ *
+ * WIRE 157 made Mirror Armor return the drop and the two probes above check the STAGES, which were
+ * right. `data/abilities.ts:2658-2661` is three lines and this engine had two of them:
+ *     if (source.hp) { this.add('-ability', target, 'Mirror Armor'); this.boost(negativeBoost, ...) }
+ * The `this.add` was missing, so the aggressor's own `-unboost` arrived in the stream with nothing in
+ * front of it saying why — a narration gap that no board comparison can report, which is exactly the
+ * class Will asked to be gated separately from board-material.
+ *
+ * READ OFF A LIVE CHAMPIONS BATTLE BEFORE ANY OF IT WAS WRITTEN, never from the protocol document.
+ * Parting Shot into a Mirror Armor Corviknight, official simulator, identity shuffle:
+ *     |-ability|p2a: Corviknight|Mirror Armor      |-unboost|p1a: Incineroar|atk|1
+ *     |-ability|p2a: Corviknight|Mirror Armor      |-unboost|p1a: Incineroar|spa|1
+ * TWO announcements for two stats, each immediately above the drop it explains — because the `add`
+ * sits INSIDE the handler's per-stat loop. An engine that announced the ability once per MOVE would
+ * pass a probe that only counted "was it mentioned", so the arms are the whole line list in order.
+ *
+ * THE CONTROL IS CLEAR BODY ON THE IDENTICAL BOARD. It refuses the same drop from the same click and
+ * must print its own `-fail` and NO Mirror Armor line at all — so an engine that announced every
+ * refusal as a reflection fails here, and an engine that announced nothing fails the test arm. */
+probe('ability', 'preventsStatDrop', 'Mirror Armor ANNOUNCES itself once per stat, immediately above the drop it sends back', () => {
+  const entry = (defAb) => {
+    const me = bare('incineroar'), ally = bare('milotic');
+    const f1 = bare('corviknight'), f2 = bare('garchomp');
+    me.ability = 'intimidate'; f1.ability = defAb;
+    const trace = [];
+    M.battleInit([me, ally], [f1, f2], { trace });
+    return trace.filter(l => /^\|-(ability|unboost|fail)\|/.test(l)).map(M.traceCanon);
+  };
+  /* PARTING SHOT, because it drops TWO stats through the move path — the arm that tells a per-stat
+     announcement apart from a per-move one. The user is made unfaintable and fast so the click lands
+     and nothing else moves; the aimed foe passes. */
+  const shot = (defAb) => {
+    const me = bare('incineroar'), ally = bare('milotic');
+    const f1 = bare('corviknight'), f2 = bare('garchomp');
+    /* THE SINK IS HANDED TO battleInit, NOT BOLTED ON AFTERWARDS — that is the only arming site — and
+       it is emptied after the lead-in so the arms carry the CLICK's lines and not the entry's. */
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    f1.ability = defAb; unfaintable(me); unfaintable(f1);
+    me.st.sp = 400; f1.st.sp = 1; f2.st.sp = 1;
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'partingshot', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return trace.filter(l => /^\|-(ability|unboost|fail)\|/.test(l)).map(M.traceCanon);
+  };
+  const eMirror = entry('mirrorarmor'), eClear = entry('clearbody');
+  const sMirror = shot('mirrorarmor'), sClear = shot('clearbody');
+  const J = (x) => JSON.stringify(x);
+  return { works:
+      J(eMirror) === J(['|-ability|p1a:incineroar|intimidate|boost',
+                        '|-ability|p2a:corviknight|mirrorarmor',
+                        '|-unboost|p1a:incineroar|atk|1',
+                        '|-unboost|p2b:garchomp|atk|1'])
+      && J(sMirror) === J(['|-ability|p2a:corviknight|mirrorarmor', '|-unboost|p1a:incineroar|atk|1',
+                           '|-ability|p2a:corviknight|mirrorarmor', '|-unboost|p1a:incineroar|spa|1'])
+      && !eClear.some(l => /mirrorarmor/.test(l)) && !sClear.some(l => /mirrorarmor/.test(l))
+      && eClear.some(l => /^\|-fail\|p2a:corviknight\|unboost\|/.test(l))
+      && sClear.some(l => /^\|-fail\|p2a:corviknight\|unboost\|/.test(l)),
+    arms: { control: [eClear, sClear], test: [eMirror, sMirror] },
+    detail: `canonised lines, in order. INTIMIDATE at a Mirror Armor Corviknight: ${J(eMirror)} — the `
+          + `-ability must sit between Intimidate's own announcement and the reflected -unboost on the `
+          + `Intimidator. PARTING SHOT (two stats): ${J(sMirror)} — TWO announcements, each above its `
+          + `own drop, which is what tells a per-stat handler apart from a per-move one. CONTROL, the `
+          + `identical two clicks against CLEAR BODY: ${J(eClear)} / ${J(sClear)} — a -fail and no `
+          + `mirrorarmor line anywhere. Before 2026-08-24 the test arms carried the -unboost with no `
+          + `-ability above it at all` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). One arm, no control, and `atk stage 1` is also
  * what an engine that applied no drop and then a flat +1 would print. Now: a real Intimidate switch-
  * in, and the answer asked for is the NET stage, which is the number that decides the damage. */
@@ -5689,6 +5759,57 @@ probe('ability', 'weatherSetter', 'the SLOWER entry weather setter owns the fiel
            arms: { control: pelFast, test: tyrFast },
            detail: `Pelipper 117 v Tyranitar 81 -> ${pelFast} (want sand); Pelipper 85 v Tyranitar 113 `
                  + `-> ${tyrFast} (want rain); + Torkoal 40 as A's ALLY -> ${allyLast} (want sun)` };
+});
+
+/* ---- 2026-08-24 -- A SPEED TIE ON ENTRY IS DECIDED BY A SELECTION SORT OVER *ALL FOUR* BODIES ----
+ *
+ * The probe above proves the entry order follows Speed across both sides. It cannot see what happens
+ * when two entry abilities are EQUALLY fast, and the answer is not "input order": Showdown's
+ * `runSwitch` calls `speedSort(getAllActive(true))` (sim/battle-actions.ts:181) and `speedSort`
+ * (sim/battle.ts:429-460) is a SELECTION SORT whose swaps move UNTIED elements past the tied pair. A
+ * stable `Array.prototype.sort` cannot produce that permutation from any comparator -- WIRE 134's
+ * argument, which the MOVE queue had absorbed and the ENTRY pass had not.
+ *
+ * MEASURED IN THE OFFICIAL SIMULATOR FIRST, under the differential's own identity shuffle, before a
+ * line of the engine changed (scratch `tie.js`; four leads at 137 / X / 112 / 123, Drizzle on the
+ * SECOND body and Drought on the THIRD):
+ *     X = 113  no tie  ->  |-weather|RainDance  then  |-weather|SunnyDay   -> the field ends SUN
+ *     X = 112  a tie   ->  |-weather|SunnyDay   then  |-weather|RainDance  -> the field ends RAIN
+ *
+ * THE TIE FLIPS THE SKY, which is why this is read as an OUTCOME and not as an order list: the sky
+ * multiplies every damage roll for the rest of the battle. It flips because the sort's second round
+ * lifts the 123 body over the tied pair and leaves them REVERSED; the third round then shuffles a
+ * group that is already in the opposite order to the one it started in.
+ *
+ * THE CONTROL IS THE SAME BOARD WITH THE TIE BROKEN BY ONE POINT, and it is the whole of the reason
+ * this probe can be believed. Both implementations answer SUN there, so the control being green says
+ * the fixture stages what it claims; only the tied arm separates them. Before 2026-08-24 this engine
+ * answered SUN on BOTH arms -- identical output across a varied knob, which is the signature of an
+ * unwired one.
+ *
+ * IT IS THE MECHANISM BEHIND A REAL POOL DIVERGENCE. `data/game-differential.json`'s `ordering` class
+ * carries `|-unboost|p1a|atk|1 <> |-weather|raindance|[from]drizzle` on a lead where a Politoed and an
+ * Incineroar both read 112 under the harness's spread ladder -- an exact tie, verified by staging that
+ * board in the authority and reading `storedStats.spe` off both bodies. */
+probe('ability', 'weatherSetter', 'an entry SPEED TIE is broken by the selection sort, not by input order', () => {
+  const run = (drizzleSpe) => {
+    const a0 = bare('archaludon'), a1 = bare('pelipper');
+    const b0 = bare('torkoal'), b1 = bare('milotic');
+    /* explicit on BOTH arms -- bare() blanks the ability, so nothing is left to a species default */
+    a1.ability = 'drizzle'; b0.ability = 'drought'; a0.ability = 'none'; b1.ability = 'none';
+    a0.st.sp = 137; a1.st.sp = drizzleSpe; b0.st.sp = 112; b1.st.sp = 123;
+    const S = M.battleInit([a0, a1], [b0, b1], {});   // NOT seeded: entry effects fire
+    return S.field.weather || 'none';
+  };
+  const control = run(113), test = run(112);
+  return { works: control === 'sun' && test === 'rain',
+           arms: { control, test },
+           detail: `four leads at 137 / X / 112 / 123, Drizzle SECOND and Drought THIRD. X = 113 (no `
+                 + `tie) -> ${control} (want sun: Drought resolves last and owns the field). X = 112 `
+                 + `(an exact tie with Drought) -> ${test} (want rain: the selection sort's round-2 `
+                 + `swap lifts the 123 body over the tied pair and REVERSES them, so Drizzle resolves `
+                 + `last). Both arms read sun before 2026-08-24. Showdown answers sun then rain on `
+                 + `this exact board under the identity shuffle. Knob: MEDI_ENTRY_STABLE_SORT=1` };
 });
 
 /* ARMED, 2026-08-06. The control is Snarl — another status click aimed at the same foe that drops

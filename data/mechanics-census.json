@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-24T03:43:40.107Z",
+  "generated": "2026-08-24T08:20:25.886Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 666,
-  "live": 666,
+  "probed": 668,
+  "live": 668,
   "missing": 0,
-  "armed": 666,
+  "armed": 668,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -263,7 +263,7 @@
       "tag": "flinches",
       "label": "a secondary flinch fires at ITS OWN probability, not only at p=1",
       "live": true,
-      "detail": "over 4000 seeded turns each, the foe's own Knock Off is the receipt — Knock Off at the user 0.0% (no flinch on the move, must be 0), Fake Out 100.0% (must be 100), Rock Slide 28.4% (0.3 x 90% acc = 27), Iron Head 19.4% (this format's 0.2 x 100% = 20); and Rock Slide with the ATTACKER MOVING SECOND 0.0% (must be 0 — a flinch cannot reach a body that has already acted)",
+      "detail": "over 4000 seeded turns each, the foe's own Knock Off is the receipt — Knock Off at the user 0.0% (no flinch on the move, must be 0), Fake Out 100.0% (must be 100), Rock Slide 27.4% (0.3 x 90% acc = 27), Iron Head 21.4% (this format's 0.2 x 100% = 20); and Rock Slide with the ATTACKER MOVING SECOND 0.0% (must be 0 — a flinch cannot reach a body that has already acted)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -283,7 +283,7 @@
       "tag": "boostsOnFlinch",
       "label": "Steadfast is PAID +1 Speed by every flinch that lands, and by nothing else",
       "live": true,
-      "detail": "Iron Head (this format's 0.2 flinch) at a Machamp over 2000 seeded turns each, the foe's own Knock Off the receipt for the flinch — no ability: flinched 378, Speed raised 0 (must be 0); STEADFAST: flinched 378 (18.9%, declared 20), Speed raised 378 — EQUAL is the claim, so the boost is bound to the event and not to the click; Inner Focus: flinched 0 (must be 0 — it refuses), Speed raised 0 (must be 0 — a refusal is paid nothing); STEADFAST ON A SLEEPING BODY: Speed raised 0 (must be 0 — sleep runs at beforeMove priority 10 against the flinch's 8, so the flinch handler never runs); MEDSEEN.flinchTooLate over the control and test arms 0/0 (must be 0/0 — the attacker holds the turn, so no flinch arrived at a body that had already acted)",
+      "detail": "Iron Head (this format's 0.2 flinch) at a Machamp over 2000 seeded turns each, the foe's own Knock Off the receipt for the flinch — no ability: flinched 415, Speed raised 0 (must be 0); STEADFAST: flinched 415 (20.8%, declared 20), Speed raised 415 — EQUAL is the claim, so the boost is bound to the event and not to the click; Inner Focus: flinched 0 (must be 0 — it refuses), Speed raised 0 (must be 0 — a refusal is paid nothing); STEADFAST ON A SLEEPING BODY: Speed raised 0 (must be 0 — sleep runs at beforeMove priority 10 against the flinch's 8, so the flinch handler never runs); MEDSEEN.flinchTooLate over the control and test arms 0/0 (must be 0/0 — the attacker holds the turn, so no flinch arrived at a body that had already acted)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -524,6 +524,16 @@
       "label": "a refused stat drop is ANNOUNCED, naming the ability and (when scoped) the stat",
       "live": true,
       "detail": "one Intimidate switch-in, canonised — no abilities: [\"|-unboost|p2a:metagross|atk|1\",\"|-unboost|p2b:gallade|atk|1\"]; Clear Body + Inner Focus: [\"|-fail|p2a:metagross|unboost|[from]ability:clearbody|[of]p2a:metagross\",\"|-fail|p2b:gallade|unboost|attack|[from]ability:innerfocus|[of]p2b:gallade\"] (the blanket refuser names no stat, the scoped one names Attack — Showdown's own two shapes)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsStatDrop",
+      "label": "Mirror Armor ANNOUNCES itself once per stat, immediately above the drop it sends back",
+      "live": true,
+      "detail": "canonised lines, in order. INTIMIDATE at a Mirror Armor Corviknight: [\"|-ability|p1a:incineroar|intimidate|boost\",\"|-ability|p2a:corviknight|mirrorarmor\",\"|-unboost|p1a:incineroar|atk|1\",\"|-unboost|p2b:garchomp|atk|1\"] — the -ability must sit between Intimidate's own announcement and the reflected -unboost on the Intimidator. PARTING SHOT (two stats): [\"|-ability|p2a:corviknight|mirrorarmor\",\"|-unboost|p1a:incineroar|atk|1\",\"|-ability|p2a:corviknight|mirrorarmor\",\"|-unboost|p1a:incineroar|spa|1\"] — TWO announcements, each above its own drop, which is what tells a per-stat handler apart from a per-move one. CONTROL, the identical two clicks against CLEAR BODY: [\"|-ability|p1a:incineroar|intimidate|boost\",\"|-fail|p2a:corviknight|unboost|[from]ability:clearbody|[of]p2a:corviknight\",\"|-unboost|p2b:garchomp|atk|1\"] / [\"|-fail|p2a:corviknight|unboost|[from]ability:clearbody|[of]p2a:corviknight\"] — a -fail and no mirrorarmor line anywhere. Before 2026-08-24 the test arms carried the -unboost with no -ability above it at all",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1464,6 +1474,16 @@
       "label": "the SLOWER entry weather setter owns the field, across both sides",
       "live": true,
       "detail": "Pelipper 117 v Tyranitar 81 -> sand (want sand); Pelipper 85 v Tyranitar 113 -> rain (want rain); + Torkoal 40 as A's ALLY -> sun (want sun)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "weatherSetter",
+      "label": "an entry SPEED TIE is broken by the selection sort, not by input order",
+      "live": true,
+      "detail": "four leads at 137 / X / 112 / 123, Drizzle SECOND and Drought THIRD. X = 113 (no tie) -> sun (want sun: Drought resolves last and owns the field). X = 112 (an exact tie with Drought) -> rain (want rain: the selection sort's round-2 swap lifts the 123 body over the tied pair and REVERSES them, so Drizzle resolves last). Both arms read sun before 2026-08-24. Showdown answers sun then rain on this exact board under the identity shuffle. Knob: MEDI_ENTRY_STABLE_SORT=1",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3393,7 +3413,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6503,7 +6523,7 @@
       "tag": "pivotStatus",
       "label": "a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch",
       "live": true,
-      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 37 to 39",
+      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 39 to 41",
       "hollow": false,
       "armed": true,
       "directCall": false

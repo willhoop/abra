@@ -12874,3 +12874,74 @@ a whitelist, so such a row is not subtracted, counts as undeclared, and is named
 Clause `declared 5 -> 13`, `undeclared 43 -> 35` on 48 raw. **Still RED.**
 
 **OWED, NOT RUN:** the real ordering defects behind those rows; `interaction_matrix.js`.
+
+---
+
+## THE ENTRY ORDER IS A RANKING OVER ALL FOUR BODIES, AND MIRROR ARMOR ANNOUNCES ITSELF. CENSUS 667 → 668, BOARD-MATERIAL UNMOVED AT 24. 2026-08-24 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-24-entry-order.md`](_reports/2026-08-24-entry-order.md).
+Ledger section: `docs/ENGINE.md`, *"THE ENTRY ORDER IS A RANKING OVER ALL FOUR BODIES"*.
+Probe: `tests/test-mechanics.js` **`ability/weatherSetter`** — *an entry SPEED TIE is broken by the
+selection sort, not by input order* (knob `MEDI_ENTRY_STABLE_SORT=1`) — and **`ability/preventsStatDrop`**
+— *Mirror Armor ANNOUNCES itself once per stat*.
+
+**THIS PASS LANDED AN INTERRUPTED ONE.** An agent was killed twice by API errors mid-work and never
+wrote its report; its engine and census edits sat uncommitted. Verified as a stranger's, and the
+verification earned its keep: **it left `tests/test-resolution-order.js` RED.** That file's surgical
+revert `entry-sort-speed-only` anchored on `_arrived.sort((x,y)=>compareEntryOrder(x,y,field));`, a
+line the new work deletes, so the plant matched **0 times** and the whole instrument failed. Re-anchored
+onto `entryOrder`'s priority key — the one comparator both entry sites now reach — and it is green with
+`a2-red` RED PROVEN and `a2-control-equal-priority` CONTROL HELD.
+
+**NO SECOND TIE SOURCE WAS INTRODUCED**, which was the flagged hazard. `medTieRng()` is fed only from
+the shared `tie` stream (`MED_TIE_RNG`, assigned at both writers including to null). Measured over 120
+real games: `entryOrderTieNoDie = 0` — the shared die was in scope every time — and `entryTieResolved
+= 237`, so the path is not dead. `entryOrderUnranked = 0`: neither call site hands `entryOrder` a
+record it left out of the all-active list.
+
+**THE DOUBLE-`rngStreams` FIX IS REAL AND CORRECT.** `battleInit` called it twice on one seed, which
+builds two independent LCGs per stream; one call now, `.any` and `.tie||.any` off the same struct.
+
+**THE MECHANIC, MEASURED IN THE AUTHORITY BEFORE ANYTHING WAS BELIEVED.** Four leads at 137 / X / 112 /
+123, Drizzle second and Drought third: X = 113 (no tie) ends **sun**, X = 112 (exact tie) ends **rain**.
+The tie flips the sky. A 625-board sweep across the same four bodies: **0 disagree** now, **30 disagree**
+under `MEDI_ENTRY_STABLE_SORT=1`, and those 30 are exactly the pool's
+`|-unboost|p1a: Archaludon|atk|1 <> |-weather|raindance|[from] drizzle` shape. **Intimidate-before-Drizzle
+is fixed and no such row survives in the pool.**
+
+**THE SWITCH-IN PRIORITY FINDING WAS STALE — IT CLOSED 2026-08-22.** Re-derived rather than trusted:
+16 abilities declare `onSwitchInPriority`, **5 have a legal carrier** (Klutz 3, Unnerve 6, Mimicry 1,
+Forecast 4, Hospitality 2); Intimidate (19) and Drizzle (2) declare none. Zero to Hero and Imposter
+declare nothing at all. That is `data/switchin-order.json` exactly. Proved live with a knob that moves:
+the FASTEST body on the board resolves LAST carrying Hospitality (−2) and FIRST carrying Drizzle (0),
+both engines agreeing on both arms; `switchInPrioritySeparated = 60` over 120 games.
+
+**BOOST REACTIONS: TWO OF THREE WERE ALREADY RIGHT, ONE WAS A MISSING LINE.** Defiant and Competitive
+interleave correctly — the first target's `AfterEachBoost` resolves before the second is touched,
+asserted as the whole line list against the authority. **Mirror Armor's state was right and its
+announcement was absent.** `data/abilities.ts:2658-2661` is `if (source.hp) { this.add('-ability',
+target, 'Mirror Armor'); this.boost(...) }` and this engine had two of the three lines, so a reflected
+`-unboost` reached the stream with nothing explaining it. Emitted from inside `reflectStatDrop`, which
+is per stat: Parting Shot reflects two stats and now prints two lines, matching the authority exactly.
+
+**THE ANNOUNCEMENT IS INVISIBLE TO THE WHOLE-GAME DIFFERENTIAL BY CONSTRUCTION** — the
+`ability-announcement` normalisation rule collapses every `|-ability|` line before comparing. It is
+proved by the census probe and by the direct authority comparison, and by nothing else. Said here so
+nobody reads the unmoved narration count as evidence about it.
+
+**THE NUMBERS.** Damage differential **0 of 6000** at all 16 corners, seed 20260804. Census **667 → 668
+live, 668 probed, 0 missing, 0 threw**. Whole game, arm **middle**, release **`8b083baf2890`**,
+`--team-store data/team-pool-frozen`, census pinned to `census-pin-9446a684709d.json`, 961 pairs:
+**raw parted 48 → 46**, **BOARD-MATERIAL 23 causes / 24 games → UNMOVED**, **narration 24 → 22 games /
+20 causes**, **declared 13 → 13**. A re-baseline, not a delta.
+
+**OBSERVED, NOT CAUSED:** `tests/test-rollout-effects.js` reports 6 failures and exits 0. All six name
+entities absent from this format — Dark Void / Vital Throw / Lovely Kiss / Poison Gas are
+`isNonstandard: 'Past'`, Full Metal Body and Guard Dog have **zero legal carriers**. Pre-existing,
+unrelated, untouched.
+
+**OWED, NOT RUN:** the deliberate roster (three stages — withheld as measured against the previous
+release); `interaction_matrix.js`; and the **mega-phase and residual sorts**, which use
+`Array.prototype.sort` where the authority uses the tie-resolving one — that is card 3 of
+[`docs/_reports/2026-08-24-ordering-cards.md`](_reports/2026-08-24-ordering-cards.md) and it is **Will's
+call**, along with the other three cards, which are not answered here.

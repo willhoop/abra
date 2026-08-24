@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  666/666 probed mechanics live, 0 missing   (census 2026-08-23 23:43)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-23 23:55)
+  668/668 probed mechanics live, 0 missing   (census 2026-08-24 04:20)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-24 04:23)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,115 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 62e4fdfab727 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is a2fa98a9bc73 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-24 00:08_
+_stamped 2026-08-24 04:40_
 
 <!-- /GENERATED -->
+
+## THE ENTRY ORDER IS A RANKING OVER ALL FOUR BODIES — CENSUS 667 → 668, BOARD-MATERIAL UNMOVED AT 24. 2026-08-24.
+
+Full account: [`docs/_reports/2026-08-24-entry-order.md`](_reports/2026-08-24-entry-order.md).
+Probes: `tests/test-mechanics.js` **`ability/weatherSetter`** — *an entry SPEED TIE is broken by the
+selection sort, not by input order* (knob **`MEDI_ENTRY_STABLE_SORT=1`**) — and
+**`ability/preventsStatDrop`** — *Mirror Armor ANNOUNCES itself once per stat*.
+
+**THIS PASS LANDED AN INTERRUPTED ONE, AND VERIFYING IT AS A STRANGER'S IS WHAT PAID.** An agent was
+killed twice by API errors and left engine and census edits uncommitted with no report. Its three
+claims held — both call sites wired, no dead code, the double-`rngStreams` fix real — but **it left
+`tests/test-resolution-order.js` RED**: that file's surgical revert `entry-sort-speed-only` anchored
+on `_arrived.sort((x,y)=>compareEntryOrder(x,y,field));`, a line the new work deletes, so the plant
+matched **0 times** and the instrument failed. Re-anchored onto `entryOrder`'s priority key — the one
+comparator both entry sites reach — and it is green, `a2-red` RED PROVEN and
+`a2-control-equal-priority` CONTROL HELD.
+
+**WHAT THE AUTHORITY DOES, READ WHOLE** (`sim/battle-actions.ts:175-184`, `sim/battle.ts:429-460`):
+`runSwitch` coalesces the queued switches, `speedSort(getAllActive(true))` ranks **every active body,
+including ones that are not entering**, and only then are the handlers sorted by
+(`onSwitchInPriority` DESC, rank ASC). `speedSort` is a SELECTION SORT whose swaps move UNTIED
+elements past a tied pair — a permutation `Array.prototype.sort` cannot produce from any comparator.
+`Pokemon` carries no `effectOrder` field, so `comparePriority` on a bare body reduces to speed alone;
+that was checked rather than assumed, because a fifth sort key would have made the tie unreachable.
+
+**MEASURED IN THE OFFICIAL SIMULATOR FIRST.** Four leads at 137 / X / 112 / 123, Drizzle second and
+Drought third: **X = 113 (no tie) ends SUN, X = 112 (an exact tie) ends RAIN.** The tie flips the sky,
+which is why it is read as an OUTCOME. A 625-board sweep over the same four bodies with the tie across
+the two sides: **0 disagree** now, **30 disagree** under `MEDI_ENTRY_STABLE_SORT=1` — and those 30 are
+exactly the pool's `|-unboost|p1a: Archaludon|atk|1 <> |-weather|raindance|[from] drizzle`.
+**Intimidate-before-Drizzle is fixed and no such row survives the pool run.**
+
+**NO SECOND TIE SOURCE.** `medTieRng()` is fed only from the shared `tie` stream. Over 120 real games
+`entryOrderTieNoDie = 0` (the die was in scope every time), `entryTieResolved = 237` (not dead code),
+`entryOrderUnranked = 0` (neither call site hands `entryOrder` an unranked record).
+
+**THE SWITCH-IN PRIORITY FINDING WAS STALE — IT CLOSED 2026-08-22, AND THE LIST WAS RE-DERIVED RATHER
+THAN TRUSTED.** 16 abilities declare `onSwitchInPriority`; **5 have a legal carrier** — Klutz 3,
+Unnerve 6, Mimicry 1, Forecast 4, Hospitality 2. Intimidate (19 carriers) and Drizzle (2) declare
+none; Zero to Hero and Imposter declare nothing at all. That is `data/switchin-order.json` exactly.
+Proved live with a knob that moves: the FASTEST body on the board resolves **last** carrying
+Hospitality (−2) and **first** carrying Drizzle (0), both engines agreeing on both arms.
+`switchInPrioritySeparated = 60` over 120 games.
+
+**BOOST REACTIONS — TWO OF THREE WERE ALREADY RIGHT.** Defiant and Competitive interleave correctly:
+the first target's `AfterEachBoost` resolves before the second is touched (`sim/battle.ts:2073`, inside
+the per-stat loop), asserted as the whole line list against the authority rather than as a state.
+**Mirror Armor's state was right and its announcement was absent** — `data/abilities.ts:2658-2661` is
+`if (source.hp) { this.add('-ability', target, 'Mirror Armor'); this.boost(...) }` and this engine had
+two of those three lines, so a reflected `-unboost` reached the stream with nothing explaining it.
+Emitted from inside `reflectStatDrop`, which runs per stat: Parting Shot reflects two stats and now
+prints two lines, matching the authority exactly.
+
+**AND THAT LINE IS INVISIBLE TO THE WHOLE-GAME DIFFERENTIAL BY CONSTRUCTION** — the
+`ability-announcement` normalisation rule collapses every `|-ability|` before comparing (141,062 lines
+this run). It is proved by the census probe and by the direct authority comparison and by nothing
+else. Stated here so the unmoved narration count is not read as evidence about it.
+
+### THE NUMBERS — A RE-BASELINE, NOT A DELTA
+
+```
+census                        667 -> 668 live, 668 probed, 0 missing, 0 hollow, 0 threw
+damage differential           0 of 6000 at all 16 corners, seed 20260804, exit 0
+whole-game, arm middle        release 8b083baf2890, --team-store data/team-pool-frozen,
+  (961 pairs in the pool)     census pinned to census-pin-9446a684709d.json
+                              raw parted 48 -> 46
+                              BOARD-MATERIAL 23 causes / 24 games -> UNMOVED
+                              NARRATION-ONLY 22 causes / 24 games -> 20 causes / 22 games
+                              declared 13 -> 13
+```
+
+**Which scoreboard, SAID BEFORE THE RUN.** An entry tie happens on turn one of a real game, so the
+POOL was expected to move — it did, 48 → 46. The Mirror Armor line is a LAB mechanic here because the
+pool comparison deletes ability announcements, so the pool was expected to sit still on it, and did.
+The load-bearing claim is that **board-material did not RISE**.
+
+### THE HAND LIST
+
+Leaves it: **"Mirror Armor … announces `|-ability|X|Mirror Armor|`"** (point 9 of the nine-point
+list) — the reflection landed at WIRE 157 and the announcement lands here, so the whole point is now
+carried by a census probe. **"Hospitality carries `onSwitchInPriority: -2` and this engine speed-sorts
+entrants with no priority key"** was already closed on 2026-08-22 and is confirmed re-derived above;
+it should not have still been quoted as open.
+
+Joins it, named rather than missed: **the mega phase (`_run.sort`) and the residual (`residualOrder`)
+still use `Array.prototype.sort` where the authority uses `speedSort`.** Same mechanism as the defect
+closed here, at two more call sites, and it is **card 3 of
+[`docs/_reports/2026-08-24-ordering-cards.md`](_reports/2026-08-24-ordering-cards.md) — Will's call
+whether that is one batch or two**, so it was derived and deliberately not landed.
+
+### OWED, NOT RUN
+
+- the deliberate roster, three stages — WITHHELD, measured against the previous release;
+- `tests/interaction_matrix.js`, last run 2026-08-11;
+- the four judgement cards in `docs/_reports/2026-08-24-ordering-cards.md`, which are Will's.
+
+**OBSERVED, NOT CAUSED.** `tests/test-rollout-effects.js` reports 6 failures and exits 0 (it is not a
+gate). All six name entities absent from this format — Dark Void, Vital Throw, Lovely Kiss and Poison
+Gas are `isNonstandard: 'Past'`; Full Metal Body and Guard Dog have **zero legal carriers**. It walks
+mainline data. Pre-existing, unrelated, untouched.
 
 ## UNNERVE REACHED TWO OF THE FIVE PLACES A BERRY IS EATEN — CENSUS 664 → 666, BOARD-MATERIAL UNMOVED AT 24. 2026-08-23.
 

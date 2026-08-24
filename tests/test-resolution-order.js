@@ -166,11 +166,21 @@ const BREAKS = {
     edits: [['_stepDamagingHit,_stepBuffOnHit,', '_stepDamagingHit,'],
             ['_stepSelfPay,_stepEffects,', '_stepSelfPay,_stepBuffOnHit,_stepEffects,']] },
 
+  /* RE-ANCHORED 2026-08-24. The old anchor was `_arrived.sort((x,y)=>compareEntryOrder(...))` at the
+     faint-refill site, and that line NO LONGER EXISTS: the entry pass now ranks every active body
+     through `entryOrder`, so the plant matched zero times and this file went red — which is the plant
+     doing its job. The revert is the same one, moved to where the priority key now lives: `entryOrder`
+     is the ONE comparator both entry sites reach, so zeroing the key here reverts the fix at both and
+     leaves the ranking, the tie resolution and everything else untouched. The counter line is kept in
+     the patched text on purpose, so the break reads 0 by never separating rather than by not being
+     able to count. */
   'entry-sort-speed-only': {
-    what: 'reverts the faint-replacement entry sort to speed alone, which is what it did before '
-        + '`compareEntryOrder` read `onSwitchInPriority` out of data/switchin-order.json.',
-    edits: [['_arrived.sort((x,y)=>compareEntryOrder(x,y,field));',
-             '_arrived.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field));']] },
+    what: 'reverts the entry sort to speed alone, which is what it did before `entryOrder` read '
+        + '`onSwitchInPriority` out of data/switchin-order.json.',
+    edits: [[`  out.sort((x,y)=>{
+    const px=switchInPriorityOf(x.mon!==undefined?x.mon:x.nx), py=switchInPriorityOf(y.mon!==undefined?y.mon:y.nx);`,
+             `  out.sort((x,y)=>{
+    const px=0, py=0;`]] },
 
   'recharge-below-the-step-list': {
     what: 'deletes the step-4 arming so the backstop far below `_stepFaint` answers instead — i.e. '

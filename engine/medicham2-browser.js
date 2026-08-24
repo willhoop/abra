@@ -1040,6 +1040,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * defect it replaces: `Array.prototype.sort` swallowed every tie silently for the life of this
    * project and nothing counted them. */
   speedTieResolved: 0, speedTieLargestGroup: 0,
+  /* 2026-08-24 -- the same pair for the ENTRY sort (`entrySpeedSort`). Counted APART from the move
+     queue's, because the two sorts run over different lists at different moments and a single total
+     could not say which one had ever met a tie. A zero after real games means the entry selection
+     sort never recognised one, which is the shape of the defect it replaces. */
+  entryTieResolved: 0, entryTieLargestGroup: 0,
   /* ROADMAP #262 -- the announcement-site event-address write actually MOVED the address, i.e. the
    * action was rewritten between the top of the action and `setActiveMove`'s counterpart. Zero over
    * 900 differential games; kept and counted rather than deleted, because "no probe can see it" and
@@ -2283,6 +2288,20 @@ const MEDFAILS = { encoreAction: 0,
      Non-zero is not a bug — it is the share of battle starts whose entry-ability order this engine
      could not decide, and for two Drizzle bodies on the same speed it decides the weather. */
   entryOrderTie: 0,
+  /* 2026-08-24. THE ROW ABOVE IS NOW HISTORY AND IS KEPT: `entryOrderTie` still counts how many entry
+     ties this battle MET, which is the population figure, and the three below are what happened to
+     them. `entryOrderTieNoDie` is the loud fallback -- a tied group with no `tie` stream in scope, so
+     the group kept the order the selection sort handed it and this engine did not decide. Non-zero is
+     honest, not a bug; it is every caller that hands `battleInit` no rng. */
+  entryOrderTieNoDie: 0,
+  /* A record `entryOrder` was asked to place that was not in the ALL-ACTIVE list it ranked. That is a
+     caller bug, not a game event, and it falls back to the old speed comparison for that pair. Must
+     read 0. */
+  entryOrderUnranked: 0,
+  /* MEDI_ENTRY_STABLE_SORT=1 -- the pre-2026-08-24 `Array.prototype.sort` restored, so the census probe
+     can be shown MISSING. Set on the KNOB rather than on a tie that changed an answer, so a run with
+     no tie in it still says the knob was on. */
+  entryStableSortRestored: 0,
   /* 2026-08-12. The other half of the same approximation, one step later in the battle: two bodies
      replacing a faint on the same request whose DEPARTING speeds are equal. Showdown shuffles the
      instaswitch pair; this engine keeps side order and counts the event, because drawing a number
@@ -5382,6 +5401,104 @@ function compareEntryOrder(x,y,field){
   const px=switchInPriorityOf(x.mon!==undefined?x.mon:x.nx), py=switchInPriorityOf(y.mon!==undefined?y.mon:y.nx);
   if(px!==py){MEDSEEN.switchInPrioritySeparated++;return py-px;}
   return compareTurnOrder({spe:x.spe},{spe:y.spe},field);
+}
+
+/* ---- 2026-08-24 -- THE ENTRY ORDER IS A RANKING OVER *EVERY* ACTIVE BODY, NOT A SORT OF THE
+ * ARRIVALS, AND IT IS THE SELECTION SORT. This is WIRE 134 arriving at the entry pass; the move queue
+ * has had it since ROADMAP #290 and the two entry sites still used `Array.prototype.sort`.
+ *
+ * WHAT THE AUTHORITY ACTUALLY DOES, read whole (sim/battle-actions.ts:175-184, sim/battle.ts:429-460,
+ * :484-505, :1001-1015):
+ *
+ *   1. `runSwitch` coalesces the queued `runSwitch` actions, then `speedSort(getAllActive(true))` and
+ *      stores `speedOrder = allActive.map(a => a.getFieldPositionValue())`. THE SORT IS OVER EVERY
+ *      ACTIVE BODY, INCLUDING BODIES THAT ARE NOT ENTERING, and its comparator is the default
+ *      `comparePriority`, which on a bare Pokemon reads NOTHING BUT `.speed` -- no `onSwitchInPriority`
+ *      at this step.
+ *   2. `fieldEvent('SwitchIn')` collects the handlers and `resolvePriority` gives each
+ *      `speed = pokemon.speed - speedOrder.indexOf(fieldPos) / (activePerHalf * 2)`, i.e. the body's
+ *      speed minus a strictly increasing fraction of its RANK from step 1, plus
+ *      `priority = onSwitchInPriority`.
+ *   3. `speedSort(handlers)` -- and after step 2 no two bodies can tie, so this is exactly
+ *      (priority DESC, rank ASC).
+ *
+ * SO THE TIE IS BROKEN ONCE, IN STEP 1, OVER ALL FOUR BODIES -- and `speedSort` is a SELECTION SORT
+ * whose swaps move UNTIED elements past each other. That is not a permutation `Array.prototype.sort`
+ * can produce from any comparator, which is the whole of WIRE 134's argument, restated here because
+ * this engine had fixed it in one place and not the other.
+ *
+ * MEASURED BEFORE A LINE OF THIS WAS WRITTEN, in the official simulator under the differential's own
+ * identity shuffle (scratch `tie.js`), four leads at 137 / X / 112 / 123 with Drizzle on the SECOND
+ * body and Drought on the THIRD:
+ *     X = 113 (no tie)     RainDance then SunnyDay   -> the field ends SUN
+ *     X = 112 (exact tie)  SunnyDay then RainDance   -> the field ends RAIN
+ * The tie FLIPS THE SKY, and it flips it because the selection sort's round-2 swap lifts the 123 body
+ * over the tied pair and leaves them in the opposite order. A stable sort answers SUN on both arms,
+ * which is what this engine answered. It is the mechanism behind the `-unboost <> -weather` row of the
+ * pool's `ordering` class, where a Politoed and an Incineroar both read 112 under the harness spread.
+ *
+ * THE TIE RESOLVER IS A DIE, NEVER "TAKE THE LATER BODY". `speedSort` ends with
+ * `prng.shuffle(list, sorted, sorted + n)`: a speed tie is a COIN FLIP, and the authority's ANSWER
+ * under the differential's pin is a property of the pin. Hardcoding it would make this engine agree
+ * with the instrument and be wrong in every rollout -- the fitting-versus-playing error arriving
+ * green. So the group is ordered by one lazily-drawn uniform key per record, which IS a uniform random
+ * permutation under real dice and IS the identity under a constant pinned die, exactly as
+ * `sortTurnOrder` does. NO DIE IN SCOPE IS NOT SILENT: `MEDFAILS.entryOrderTieNoDie` counts it. */
+function entrySpeedSort(list,field){
+  const _r=medTieRng();
+  const tie=it=>{ if(it._etie==null)it._etie=_r?_r():0; return it._etie; };
+  let sorted=0;
+  while(sorted+1<list.length){
+    let next=[sorted];
+    for(let i=sorted+1;i<list.length;i++){
+      /* SPEED ONLY -- step 1 sorts Pokemon, and a Pokemon carries no `onSwitchInPriority`. Putting the
+       * priority in here would rank a Hospitality body BELOW every entrant before the fraction is even
+       * applied, which is a different (and wrong) table. */
+      const d=compareTurnOrder({spe:list[next[0]].spe},{spe:list[i].spe},field);
+      if(d<0)continue;
+      if(d>0)next=[i]; else next.push(i);
+    }
+    for(let i=0;i<next.length;i++){
+      const idx=next[i];
+      if(idx!==sorted+i){const t=list[sorted+i];list[sorted+i]=list[idx];list[idx]=t;}
+    }
+    if(next.length>1){
+      const grp=list.slice(sorted,sorted+next.length);
+      grp.sort((x,y)=>tie(y)-tie(x));
+      for(let i=0;i<grp.length;i++)list[sorted+i]=grp[i];
+      MEDSEEN.entryTieResolved++;
+      if(next.length>MEDSEEN.entryTieLargestGroup)MEDSEEN.entryTieLargestGroup=next.length;
+      if(!_r)MEDFAILS.entryOrderTieNoDie++;
+    }
+    sorted+=next.length;
+  }
+  return list;
+}
+/* THE OLD STABLE SORT, ON A KNOB, so `tests/test-mechanics.js ability/entryOrderSelectionSort` can be
+ * shown MISSING on demand without swapping a file. It is the pre-2026-08-24 line exactly. */
+const ENTRY_STABLE_SORT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ENTRY_STABLE_SORT==='1');
+/* `all` is EVERY active body's record and `entrants` the subset whose handlers run. They must share
+ * object identity; at a lead the two are the same array. Returns the entrants in resolution order. */
+function entryOrder(all,entrants,field){
+  if(ENTRY_STABLE_SORT){
+    MEDFAILS.entryStableSortRestored=1;
+    const out=entrants.slice(); out.sort((x,y)=>compareEntryOrder(x,y,field)); return out;
+  }
+  const rank=new Map();
+  entrySpeedSort(all.slice(),field).forEach((e,i)=>rank.set(e,i));
+  const out=entrants.slice();
+  /* (priority DESC, rank ASC) -- step 3. `Array.prototype.sort` is safe HERE and only here: the rank
+   * is a total order with no ties left in it, so stability decides nothing. */
+  out.sort((x,y)=>{
+    const px=switchInPriorityOf(x.mon!==undefined?x.mon:x.nx), py=switchInPriorityOf(y.mon!==undefined?y.mon:y.nx);
+    if(px!==py){MEDSEEN.switchInPrioritySeparated++;return py-px;}
+    /* A record the caller left out of `all` would rank `undefined` and sort arbitrarily, which is the
+     * silent-default shape. Loud instead, and it keeps the old behaviour for that one pair. */
+    const rx=rank.get(x),ry=rank.get(y);
+    if(rx===undefined||ry===undefined){MEDFAILS.entryOrderUnranked++;return compareTurnOrder({spe:x.spe},{spe:y.spe},field);}
+    return rx-ry;
+  });
+  return out;
 }
 
 function residualOrder(actA,actB,field){
@@ -11607,10 +11724,22 @@ const REFLECTS_DROP=['mirrorarmor'];
  * own first line is `if (!source || target === source || !boost || effect.name === 'Mirror Armor')
  * return;`, so a reflection arriving at a SECOND Mirror Armor body is taken rather than bounced back
  * forever. `statDropRefusal` honours it below. */
-function reflectStatDrop(holder,src,engStat,amount){
+/* 2026-08-24 -- THE REFLECTION ANNOUNCES ITSELF, AND IT DOES SO INSIDE THE PER-STAT LOOP.
+ * `data/abilities.ts:2658-2661` is three lines and the engine had two of them:
+ *     if (source.hp) { this.add('-ability', target, 'Mirror Armor'); this.boost(...); }
+ * So the line is emitted AFTER the three guards and BEFORE the bounced drop lands, once per stat that
+ * actually comes back -- a Parting Shot reflects two stats and prints two lines. The state was already
+ * right (WIRE 157); what was missing was the only event that says WHY the aggressor's own stat fell,
+ * so the whole-game differential read the reflected `-unboost` with nothing in front of it.
+ * `ab` is passed by the one caller that knows it rather than read back off the holder, because the
+ * membership is the artifact's (`preventsStatDrop.reflects`) and re-deriving it here would be a second
+ * copy of the fact. A caller that omits it falls back to the holder's own ability, which is the same
+ * string on every board this can reach. */
+function reflectStatDrop(holder,src,engStat,amount,ab){
   if(!src||src===holder)return false;             // the handler's `!source || target === source`
   if(src.fainted||src.curHP<=0)return false;      // the handler's `if (source.hp)`
   if(!(amount>0))return false;
+  if(TR)TR.ab(holder,ab||String(holder.ability||'').replace(/[^a-z0-9]/gi,'').toLowerCase());
   applyStatDrop(src,engStat,amount,'Mirror Armor',holder);
   MEDSEEN.statDropReflected++;
   return true;
@@ -11700,7 +11829,7 @@ function ownStatDropRefusal(target,engStat,effectName,isSecondary,src,amount){
   MEDSEEN.statDropRefused++;
   if(p.reflects){
     if(src===undefined||amount===undefined)MEDSEEN.reflectSourceUnknown++;
-    else reflectStatDrop(target,src,engStat,amount);
+    else reflectStatDrop(target,src,engStat,amount,ab);
   }
   return {ab, label:blocks==='all stats'?'':(STAT_LABEL[engStat]||''),
           announce:!isSecondary&&_eid!=='octolock'&&REFLECTS_DROP.indexOf(ab)<0};
@@ -13971,6 +14100,15 @@ function abRestoreOnLeave(m){
  * battle's sequence, which would be a silent cross-game coupling and far worse than having no die. */
 let MED_RNG=null;
 function medRng(){ return MED_RNG; }
+/* 2026-08-24 -- THE SAME STASH, ON THE `tie` STREAM, FOR THE ENTRY SORT. `sortTurnOrder` already
+ * resolves a residual tied group with `_R.tie` (WIRE 134 / ROADMAP #290); the two ENTRY sorts had no
+ * die at all and kept declaration order, which is what `MEDFAILS.entryOrderTie` counted. It is a
+ * SEPARATE binding from `MED_RNG` rather than a second read of it, because a tie key drawn off the
+ * generic stream would move the accuracy/crit/secondary sequence of every seeded run that meets a
+ * tie -- exactly the coupling the five named streams were split to remove. Assigned unconditionally
+ * at both writers, including to null, for the reason above. */
+let MED_TIE_RNG=null;
+function medTieRng(){ return MED_TIE_RNG; }
 function traceCopy(m,foes){
   if(!m||m.fainted||m.curHP<=0)return false;
   const p=TAGS.param('ability',m.ability,'copiesFoeAbility');
@@ -15304,7 +15442,15 @@ function battleInit(teamA,teamB,opts){
    * Showdown emits `|turn|1` from `nextTurn()` AFTER the lead-in, so `battle.turn` is 0 while the
    * entry abilities resolve. Without this line the first draw of a game would be addressed with
    * whatever turn the PREVIOUS game left behind, which is a sequence wearing an address's clothes. */
-  MED_RNG=(opts&&opts.rng)?rngStreams(opts.rng).any:null;
+  /* 2026-08-24 -- ONE `rngStreams` CALL, AND THAT IS NOT TIDYING. Given `{seed:N}` the function BUILDS
+   * a fresh LCG per stream on every call, so calling it twice hands out two independent generators
+   * seeded identically -- which produce the SAME sequence and would silently couple the entry tie to
+   * Trace's die. `battleTurn` has always taken one struct and read fields off it; this now matches. */
+  const _initR=(opts&&opts.rng)?rngStreams(opts.rng):null;
+  MED_RNG=_initR?_initR.any:null;
+  /* and the tie stream with it, for the lead's entry sort. `rngStreams` fills a missing `tie` from
+   * `any`, so a caller handing a bare function still gets a die rather than nothing. */
+  MED_TIE_RNG=_initR?(_initR.tie||_initR.any):null;
   MID_S=S; MID_TURN=0; MID_MOVE='-'; MID_TGT='-'; MID_ATT='-';
   /* ROADMAP #68 -- THE TRACE IS ARMED HERE AND NOWHERE ELSE IS IT DEFAULTED ON. `opts.trace` is any
    * pushable sink (an Array is what callers pass). Absent, `S._trace` is undefined, traceBind() sets
@@ -15350,7 +15496,7 @@ function battleInit(teamA,teamB,opts){
      * EFFECTS AND DROPS INTERLEAVE PER BODY rather than running as two passes, because Showdown has
      * one `onStart` handler per Pokemon and it does both. Neither reads the other's output today, so
      * no behaviour turns on it; it is written this way so it stays true when one of them grows. */
-    const entrants=[];
+    let entrants=[];
     for(const m of S.actA)if(m)entrants.push({mon:m,side:'A',slot:S.actA.indexOf(m),ally:S.actA.find(x=>x&&x!==m),foes:S.actB});
     for(const m of S.actB)if(m)entrants.push({mon:m,side:'B',slot:S.actB.indexOf(m),ally:S.actB.find(x=>x&&x!==m),foes:S.actA});
     for(const e of entrants)e.spe=effSpeed(e.mon,S.field,e.side);
@@ -15358,12 +15504,16 @@ function battleInit(teamA,teamB,opts){
      * key 3. See the comparator for the derivation. A lead is the commonest board there is and it is
      * the one this used to get wrong whenever a Forecast, Hospitality, Mimicry, Unnerve or Klutz body
      * walked in beside anything. */
-    entrants.sort((x,y)=>compareEntryOrder(x,y,S.field));
-    /* A SPEED TIE IS A COIN FLIP IN SHOWDOWN (speedSort's Fischer-Yates) AND A STABLE ARRAY ORDER
-     * HERE, because battleInit is handed no rng and inventing one would move every seeded run in the
-     * repo for a reason that has nothing to do with entry abilities. That is an approximation, so it
-     * is COUNTED rather than silent -- a non-zero here says some fraction of leads resolved in
-     * declaration order because this engine could not break the tie. */
+    /* 2026-08-24 -- THROUGH `entryOrder`, which is the authority's THREE steps and not one sort. At a
+     * lead every active body is also an entrant, so the ALL-ACTIVE list and the entrant list are the
+     * same array; that is the ONLY board where they coincide, and the refill site below passes two
+     * different lists for exactly that reason. `entrants` is reassigned rather than sorted in place so
+     * the ranking cannot be read off a list the sort is still mutating. */
+    entrants=entryOrder(entrants,entrants,S.field);
+    /* THE POPULATION FIGURE, KEPT. It is no longer a failure -- `entrySpeedSort` decides the group with
+     * the `tie` stream -- but "how often does a lead tie at all" is the number that says whether the
+     * mechanism above has ever been exercised, and a zero there would mean the census probe is staging
+     * something no game produces. The FALLBACK is what is loud now: `entryOrderTieNoDie`. */
     for(let i=1;i<entrants.length;i++)if(entrants[i].spe===entrants[i-1].spe)MEDFAILS.entryOrderTie++;
     for(const e of entrants){
       /* WIRE 141 -- a LEAD can carry Imposter too, and it resolves inside this same speed-sorted pass
@@ -15759,6 +15909,7 @@ function battleTurn(S,rng,actsForA,actsForB){
   MED_RNG=_R.any;   // ROADMAP #310 -- the switch-in die, reachable from four calls down
   /* ROADMAP #290 — the tied-group key, on its own stream. See RNG_STREAMS. */
   const _tieRng=_R.tie||rng;
+  MED_TIE_RNG=_tieRng;   // 2026-08-24 -- and the faint-replacement entry sort, four calls down
   rng=rng||Math.random;
   if(battleOver(S))return S;
   /* ROADMAP #68 -- bound at entry and released at every exit, so a nested rollout that shares this
@@ -26885,10 +27036,26 @@ function battleTurn(S,rng,actsForA,actsForB){
        * authority coalesces the queued `runSwitch` actions into ONE `fieldEvent('SwitchIn')`
        * (battle-actions.ts:175-184), which is why the two arrivals are sorted against each other at
        * all rather than resolving in the order the bodies were placed. */
-      _arrived.sort((x,y)=>compareEntryOrder(x,y,field));
-      for(let k=1;k<_arrived.length;k++)
-        if(_arrived[k].spe===_arrived[k-1].spe)MEDFAILS.entryOrderTie++;
-      for(const e of _arrived)runEntryPass(e.nx,e.foes,e.act,e.i,field);
+      /* 2026-08-24 -- AND THE RANKING IS OVER EVERY ACTIVE BODY, NOT OVER THE ARRIVALS. `runSwitch`
+       * calls `speedSort(getAllActive(true))` (battle-actions.ts:181) and only THEN sorts the handlers
+       * against that ranking, so a body that is standing still and entering nothing takes part in the
+       * sort and its swaps can move the two arrivals past each other. Sorting `_arrived` alone reaches
+       * the same answer only when the standing bodies happen not to swap across them.
+       *
+       * BUILT IN `getAllActive`'s OWN ORDER -- side, then slot -- because a selection sort is not
+       * order-invariant and building arrivals-first would be a different (and wrong) permutation.
+       * FAINTED BODIES ARE INCLUDED: the authority passes `includeFainted = true`, and on the board
+       * where a side has nothing left to send the corpse is still in the slot. */
+      const _allActive=[];
+      for(const _p of [[actA,'A'],[actB,'B']]) for(const _m of _p[0]){
+        if(!_m)continue;
+        const _got=_arrived.find(e=>e.nx===_m);
+        _allActive.push(_got||{nx:_m,spe:effSpeed(_m,field,_p[1])});
+      }
+      const _order=entryOrder(_allActive,_arrived,field);
+      for(let k=1;k<_order.length;k++)
+        if(_order[k].spe===_order[k-1].spe)MEDFAILS.entryOrderTie++;
+      for(const e of _order)runEntryPass(e.nx,e.foes,e.act,e.i,field);
     };
     /* `|upkeep|` CLOSES the residual and the faint replacements follow it -- Showdown's own order,
      * where the switch request resolves between `|upkeep|` and the next `|turn|`. */
