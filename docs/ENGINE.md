@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  660/660 probed mechanics live, 0 missing   (census 2026-08-23 20:35)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-23 20:27)
+  662/662 probed mechanics live, 0 missing   (census 2026-08-23 21:53)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-23 22:00)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,204 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is eb5e6a218fb7 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 5e2e664bc742 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 275/293 probed, 18 unprobed
 ```
 
-_stamped 2026-08-23 20:58_
+_stamped 2026-08-23 22:16_
 
 <!-- /GENERATED -->
+
+## THE IN-MOVE UPDATE PASS — ONE INSERTION, UNDECLARED 52 → 48, AND THE SIXTH DIVERGENCE WAS NEVER THIS EVENT. 2026-08-23.
+
+Full account: [`docs/_reports/2026-08-23-update-event.md`](_reports/2026-08-23-update-event.md).
+
+**VERDICT: ONE INSERTION AND ONE RELOCATION. NOT A STRUCTURAL PIECE.** The engine already had an
+Update pass (`_updateAll`, ROADMAP #81 WIRE 7); it ran at ONE of the authority's THREE positions.
+Landing the missing in-move position cost a **split** of that function plus a **step** in the existing
+per-move step list — no new event and no new schedule. The sixth of the six divergences it was aimed
+at turned out not to be the Update event at all: it is `onAfterHit`, and it is stage 2 below.
+
+**Whole-game differential, arm `middle`, 961 games, `--team-store data/team-pool-frozen`, census pin
+`9446a684709d`, `--end-state`. A RE-BASELINE across three releases, not a delta — every quantity named
+by the artifact key it is read from:**
+
+| quantity (arm `middle`) | baseline `3929459bb195` | stage 1 `c9a5c5a5826d` | stage 2 `c30534af567b` |
+|---|---|---|---|
+| `diverged`, protocol parted (RAW) | 57 | 54 | **53** |
+| `mid_void.void_games` | 2 | 2 | **2** |
+| **`undeclared` (`diverged − declared`), the gate clause's own headline** | **52 of 961 = 5.4%** | 49 of 961 = 5.1% | **48 of 961 = 5.0%** |
+| `declared` (5 Supreme Overlord `fallenundefined`, never counted) | 5 | 5 | 5 |
+| `mid_void.diverged_among_usable` (`diverged − void`), a DIFFERENT quantity | 55 of 959 = 5.74% | 52 = 5.42% | **51 of 959 = 5.32%** |
+| board-material causes / games | 23 / 24 | 23 / 24 | **23 / 24 — did not move** |
+| narration-only causes / games | 29 / 33 | 25 / 30 | **24 / 29 — fell, did not rise** |
+| DIFFERENT-END-STATE, all games | 18 | 18 | **18** |
+| DIFFERENT-END-STATE among parted | 17 | 17 | **17** |
+| census probed / live / missing | 660 / 660 / 0 | 661 / 661 / 0 | **662 / 662 / 0** |
+| damage differential | 0 of 6000 | 0 of 6000 | **0 of 6000, all 16 corners, exit 0** |
+| roster items / abilities / moves | 0 DIFFER, 0 DID-NOT-FIRE | — | **identical, on the FINAL release** |
+| `all_mechanics_fire --kind all`, `diverged` | moves 20 / abilities 9 / items 1 | — | **identical, on the FINAL release** |
+
+*(**THREE QUANTITIES, NOT ONE, AND THE FIRST DRAFT OF THIS TABLE CONFLATED TWO OF THEM.** `diverged`
+is raw; `undeclared` is `diverged − declared` and is what the gate clause and `engine/status.js`
+print; `mid_void.diverged_among_usable` is `diverged − void_games` and is a different number again.
+`declared` was counted, not assumed — 5 Supreme Overlord `fallenundefined` games on BOTH artifacts —
+so none of the move is a declaration shifting under the measurement.)*
+
+**PER-GAME ATTRIBUTION, WHICH IS THE ONLY REASON A FOUR-GAME MOVE IS WORTH REPORTING.** Joining the
+baseline and final `first_divergences` lists on the game seed:
+
+```
+  games that GAINED a first divergence        0
+  games that STOPPED diverging entirely       4   the Stone Axe -sidestart, the fling -enditem,
+                                                  and two sitrus rows
+  games whose first divergence MOVED LATER    2   index 42 -> 76, index 116 -> 130,
+                                                  onto pre-existing, unrelated causes
+```
+
+**All six of the six divergences the brief named are gone.** Nothing regressed.
+
+---
+
+### STAGE 1 — `eachEvent('Update')` INSIDE THE HIT LOOP
+
+#### What `Update` settles, derived from the format
+
+`Dex.forFormat('gen9championsvgc2026regmb')`, filtered `!isNonstandard`, everything carrying an
+`onUpdate` — **15 abilities, 11 items, 3 move conditions**:
+
+| kind | members |
+|---|---|
+| ability | Disguise, Commander, Ice Face, Trace, and the eleven status-refusers (Immunity, Insomnia, Limber, Magma Armor, Oblivious, Own Tempo, Pastel Veil, Thermal Exchange, Vital Spirit, Water Bubble, Water Veil) |
+| item | Aspear, Cheri, Chesto, Leppa, Lum, Mental Herb, **Oran**, Pecha, Persim, Rawst, **Sitrus** |
+| move condition | Fling (the spend), Attract, Syrup Bomb |
+
+**Champions overrides none of them.** `grep onUpdate` over the mod's `abilities.ts`, `moves.ts`,
+`items.ts` and `conditions.ts` returns nothing, so the mainline handlers are the ones that run.
+
+#### Where it belongs, and why inside the loop differs
+
+The authority runs the event at **three** positions per action:
+
+```
+  sim/battle-actions.ts:967    INSIDE the hit loop, one statement above faintMessages(:976)
+  sim/battle-actions.ts:1003   below applyRecoilDamage(:982), one above afterMoveSecondaryEvent(:1005)
+  sim/battle.ts:2842           the tail of runAction        <- the only one this engine had
+```
+
+Champions overrides `hitStepMoveHitLoop` and copies both in-move calls verbatim
+(`data/mods/champions/scripts.ts:538` and `:575`); only the `-hitcount` clause differs.
+
+`applyRecoilDamage`, the `|faint|` line and Life Orb's `onAfterMoveSecondarySelf` all sit BELOW :967,
+so a body that a hit takes below half is fed above all three. This engine fed it one whole action
+later.
+
+#### The split, and why it was necessary
+
+`_updateAll` was `eachEvent('Update')` **plus** the White Herb sweep. The herb hangs off
+`onAnyAfterMove`, which the authority raises in `useMove` — a level ABOVE `useMoveInner` — so calling
+the whole of `_updateAll` from inside a move would spend a herb mid-move: a new wrong answer bought
+with a right one. The function's own comment had said the two were different events since WIRE 11 and
+they were still one callable. They are now `_updateEvent` (the event) and
+`_updateAll = _updateEvent + restoreStatsAll` (the schedule).
+
+**The gate is the authority's own.** Two lines above the Update, `if (!moveDamage.some(val => val !==
+false)) break;` (:955) means the loop breaks ABOVE the pass when every target was refused. `_reached >
+0` is the same population, and the skip is COUNTED (`MEDSEEN.inMoveUpdateSkippedNoTarget`) rather than
+silent.
+
+#### The probe, and its over-fire control
+
+`item`/`healsAtThreshold` — *"a hit that drops a body below half feeds it BEFORE the recoil line and
+BEFORE the faint"*. Four arms, all staged in the official simulator first and the expectations read off
+`battle.log`, never typed:
+
+1. **Talonflame Brave Birds a Snorlax holding a Sitrus at 129/235** — `-enditem`, `-heal`, then
+   `-damage|[from] Recoil`. RED read the recoil at index 1 and the eat at 2; GREEN reads 1 and 3.
+2. **The same board with NO item** — the eat index must be `-1`. This clears the knob explicitly, so a
+   probe that passed by emitting the line unconditionally cannot.
+3. **THE OVER-FIRE CONTROL — the ATTACKER's own Sitrus, spent by its OWN recoil.** The authority puts
+   that `-enditem` BELOW the recoil, because that body was still above half when the :967 pass ran;
+   only :1003 can see it. It read `eat 2 / recoil 1` before AND after. An engine that settled the
+   Update at the top of the move, or that moved the recoil instead, passes arm 1 and breaks this one.
+4. **Garchomp Earthquakes a 1 HP Snorlax beside a Clefable holding one** — the partner's `-enditem` is
+   owed ABOVE the corpse's `|faint|`. RED read eat 4 / faint 3; GREEN reads eat 3 / faint 5.
+
+**Knob `MEDI_NO_INMOVE_UPDATE=1`** takes the pass back out and stamps `MEDFAILS.inMoveUpdateSuppressed`.
+
+---
+
+### STAGE 2 — THE TWO `onAfterHit` FIELD FAMILIES, WHICH WERE NEVER THE UPDATE EVENT
+
+The sixth divergence, `|-sidestart|p2:|stealthrock <> |faint|p2a`, is `onAfterHit`:
+
+```
+  if (moveData.onAfterHit && pokemon.hp) {                        battle-actions.ts:1120
+    for (const t of damagedTargets) this.battle.singleEvent('AfterHit', moveData, {}, t, pokemon, move);
+  }
+```
+
+That is inside `spreadMoveHit`, which returns at :947 — so everything an `onAfterHit` writes is above
+`faintMessages()` at :976. Stone Axe's Stealth Rock and Ceaseless Edge's Spikes hang off
+`onAfterHit`/`onAfterSubDamage`; so do Rapid Spin's and Mortal Spin's sweeps. **All four sat 400 lines
+BELOW `_STEPS` in this file**, so their side lines were written under the corpse. Both families moved
+into one step (`_stepAfterHitField`) immediately below `_stepAfterHit`, because they are ONE handler
+pair in the authority and splitting them across two positions would be two implementations of one fact.
+
+Probe `move`/`hazardOnHit` — *"a hazard laid or swept by a hit is announced ABOVE the `|faint|` of the
+body that hit killed"*. Both positive streams observed in the official simulator; **the spin arm
+carries the separator** (its `-boost|spe|1` was already above the faint, so an engine that moved the
+whole move rather than this family reads differently there). **Control:** X-Scissor off the same
+Kleavor onto the same body — one `|faint|`, no side line at all.
+
+**Knob `MEDI_HAZARD_BELOW_FAINT=1` RELOCATES rather than skips** — the step no-ops and the old site
+calls the same function — because a knob that merely skipped would look like an engine with no Stone
+Axe.
+
+#### THE BUG THIS PASS CAUSED, FOUND BY AN EXISTING PROBE AND NOT BY REASONING
+
+Moving those blocks into `_STEPS` turned `move`/`hazardOnHit` — *"Ceaseless Edge lays Spikes … through
+a Sub"* — from LIVE to MISSING, `throughSub` reading **0 layers where it must read 1**.
+
+**The driver is `for (const _step of _STEPS) for (const R of _rows) { if (R.out) continue; … }`, so a
+step whose scope is the WHOLE MOVE never runs at all when EVERY row is `out`** — and a Substitute that
+eats the hit sets exactly that (`R.out = true`, `medicham2-browser.js:22528`). The blocks used to sit
+below the driver, where no row liveness could reach them.
+
+`out` AND `_reached > 0` together mean a Substitute, and **the authority runs both of these there**:
+`tryPrimaryHitEvent` returns `HIT_SUBSTITUTE`, `spreadMoveHit` sets `damage[i] = true` and
+`targets[i] = null` (:1063-1066), so `moveDamage.some(val => val !== false)` at :955 is TRUE and the
+loop does not break above the Update. A miss, a Protect and a type immunity all leave `_reached` at
+zero and are refused by each step's own gate.
+
+So both once-per-move steps get an **idempotent backstop** below the driver, counted
+(`MEDSEEN.afterHitFieldFlushed`, `MEDSEEN.inMoveUpdateFlushed`) so that "the step is in the list" and
+"the step ever runs" stay different claims. `probe_red_demo.js` patches the driver line by literal
+text and it is untouched — its WIRE 10 arms all read OK.
+
+---
+
+### WHAT IS NOT CLAIMED
+
+- **The SECOND in-move pass, `battle-actions.ts:1003`, is NOT added.** It is below the recoil and above
+  `afterMoveSecondaryEvent`. The only handler between it and the end of the action that this engine
+  defers is the Life Orb toll, and a body cannot hold Life Orb AND a berry — so it costs nothing on the
+  pinned pool today. Named as a register row rather than smuggled in behind the first.
+- **The pass is PER HIT in the authority and this engine wraps the step list once per MOVE**, so a
+  multi-hit move gets one pass rather than n. Same declared limitation
+  `tests/test-resolution-order.js` already carries as a KNOWN-OPEN arm.
+- **STATUS moves do not reach this step list at all**, so their Update still waits for the
+  between-action pass. That lands at the same point in the stream — nothing is emitted between :967 and
+  the end of the action for a move that dealt no damage — but it is stated rather than assumed.
+- **A pre-existing, DECLARED red was re-observed and not fixed:** `tests/probe_red_demo.js` exits 1
+  with 10 of 200 demonstrations failing, eight of them stale reversals. `tests/run-all.js:321` already
+  carries that text and names the owner. Its WIRE 10 driver arms are green, which is the part this pass
+  could have broken.
+- **The whole-game differential's own STATE proof is still failing** (`planted_state_proof_ok: false`,
+  six plants `NOT APPLIED` wanting a benched body the fixture lacks). True of the baseline artifact as
+  well. **MEASURE's, not ENGINE's.**
 
 ## THE FAINT QUEUE — FOURTEEN CLASSES, TWO CONVERTED, AND THREE OF THE FOUR FAINT-ORDERED DIVERGENCES ARE A DIFFERENT MECHANISM. 2026-08-23.
 
@@ -178,11 +367,23 @@ One item left it, and it left NARROWER than it arrived:
 
 Still open, and now stated precisely rather than as one lump:
 
-- **`_stepSelfPay` is step 3 of 9 and holds two things the authority puts below `faintMessages`.**
-  Recoil is `battle-actions.ts:982` and Life Orb's `onAfterMoveSecondarySelf` is reached at :1005, both
-  BELOW :976; `selfDrops` and the drain belong above. Queueing the faint alone moves the first
-  divergence from one line to another without removing it — this needs the step split, not the queue.
-- **The `eachEvent('Update')` inside the hit loop** (`battle-actions.ts:967`) — six of the 58, above.
+- ~~**`_stepSelfPay` is step 3 of 9 and holds two things the authority puts below `faintMessages`** —
+  recoil at `battle-actions.ts:982` and Life Orb's `onAfterMoveSecondarySelf` at :1005.~~
+  **WITHDRAWN 2026-08-23 — THE CLAIM WAS FALSE AND NOTHING HAD MEASURED IT.** `_stepSelfPay` holds the
+  drain, `selfDrops` and the recharge arming, all three of which the authority pays inside
+  `spreadMoveHit`, i.e. where they are. **Recoil and the Life Orb toll are already BELOW the whole step
+  list**, which is below `_stepFaint`. Measured on a staged board rather than argued: a Talonflame Brave
+  Bird KO reads `-damage|0 fnt`, `|faint|`, `-damage|[from] recoil`, and the same click with a Life Orb
+  reads `|faint|`, recoil, `[from] item: lifeorb` — the authority's order in both. The paragraph was
+  reasoning from the file's layout, and the layout had already been fixed.
+- ~~**The `eachEvent('Update')` inside the hit loop** (`battle-actions.ts:967`) — six of the 58, above.~~
+  **LANDED 2026-08-23** as one insertion — census probe `item`/`healsAtThreshold`, *"a hit that drops a
+  body below half feeds it BEFORE the recoil line and BEFORE the faint"*. Five of the six cleared.
+- ~~**The sixth of those six** — Stone Axe's `|-sidestart|` written under the `|faint|`.~~
+  **LANDED 2026-08-23, AND IT WAS NEVER THE UPDATE EVENT.** It is `onAfterHit` inside `spreadMoveHit`
+  (`battle-actions.ts:1120`); the two field families that hang off it sat 400 lines below `_STEPS`.
+  Census probe `move`/`hazardOnHit`, *"a hazard laid or swept by a hit is announced ABOVE the `|faint|`
+  of the body that hit killed"*. See the section at the top of this file for both stages.
 
 Carried forward unchanged and NOT touched here: Throat Chop's one-turn-long `_noSound`, the broken
 Substitute's unclamped `lastDamage`, the Perish Song `-damage`, the weather-upkeep 5, and Growl doing
@@ -190,14 +391,11 @@ nothing.
 
 **PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.**
 
-1. **`eachEvent('Update')` is missing from inside the hit loop.** The authority runs it at
-   `sim/battle-actions.ts:967`, one statement above `faintMessages()`. This engine's only update pass is
-   at the top of the NEXT action, so a partner's Sitrus, a Fling `-enditem` and a Stone Axe hazard all
-   land below a `|faint|` the authority puts them above. **Six of 58 whole-game divergences, one
-   mechanism, narration in every case measured so far.**
-2. **`_stepSelfPay` must be split.** Its recoil and Life Orb halves belong BELOW `_stepFaint` and
-   `_stepHitCount`; `selfDrops`, the drain and the recharge arming belong where they are. Blocks the
-   recoil/orb faint-order class, which is why that class was not converted.
+1. ~~**`eachEvent('Update')` is missing from inside the hit loop.**~~ **CLOSED 2026-08-23** on release
+   `c9a5c5a5826d`; the Stone Axe half of it turned out to be `onAfterHit` and closed on
+   `c30534af567b`. Six of the six games are gone. See the section at the top of this file.
+2. ~~**`_stepSelfPay` must be split.**~~ **WITHDRAWN 2026-08-23 — the claim was false**; recoil and the
+   Life Orb toll are already below the step list. Measured, see the hand list above.
 3. **The STATE half of the faint queue** — the authority defers `fainted`, `isActive`,
    `clearVolatile(false)` and `side.totalFainted` to the drain and this engine writes all four at the
    damage site. Includes the open finding about a fainted body sitting in an active slot. **Needs its

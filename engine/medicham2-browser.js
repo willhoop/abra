@@ -1190,6 +1190,24 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * from the clock running out and had no reader at all. Zero across a corpus that contains a Syrup
    * Bomb and a pivot means the `onUpdate` road is unwired again. */
   perTurnVolatileSourceLeft: 0,
+  /* 2026-08-23 -- THE IN-MOVE UPDATE PASS, `sim/battle-actions.ts:967` (and the Champions mod's own
+   * copy at data/mods/champions/scripts.ts:538). Two counters because "it ran" and "it was skipped
+   * because nothing connected" are different facts and a single total cannot tell them apart:
+   *   inMoveUpdateRan               the pass ran inside a move's hit steps
+   *   inMoveUpdateSkippedNoTarget   `_reached === 0`, so the authority broke out of its hit loop
+   *                                 above the Update and this engine does the same. A run where
+   *                                 this is the ONLY non-zero one of the pair is a wire that never
+   *                                 fires wearing the shape of one that does. */
+  inMoveUpdateRan: 0, inMoveUpdateSkippedNoTarget: 0,
+  /* 2026-08-23 -- the two `onAfterHit` field families, counted at their new home so "the step is in
+   * the list" and "the step does anything" cannot be confused. Both must be non-zero on any corpus
+   * that contains a Stone Axe / Ceaseless Edge and a Rapid Spin / Mortal Spin. */
+  hazardOnHitAtAfterHit: 0, hazardSweepAtAfterHit: 0,
+  /* 2026-08-23 -- the once-per-move steps reached through the BACKSTOP below the driver rather than
+   * through the step list, i.e. every row was `out` (a Substitute ate the hit). Non-zero is expected
+   * on any corpus with a Substitute in it; ZERO on a corpus that contains one means the backstop is
+   * unreachable and one of the two is silently not running. */
+  afterHitFieldFlushed: 0, inMoveUpdateFlushed: 0,
   forcedBerryEaten: 0, forcedBerryEffectUnexpressed: 0, teatimeFieldPass: 0, stuffCheeksNoBerry: 0,
   volRestartRefused: 0, volSealNoLastMove: 0,
   /* ROADMAP #241(3) -- `null` MEANS "HANDLED, SAY NOTHING"; `false` MEANS "FAILED, ANNOUNCE IT", and
@@ -1469,6 +1487,13 @@ const MEDFAILS = { encoreAction: 0,
                             never ran. Must read 0. A carried queue would emit one battle's corpse
                             into the next one's stream, which is worse than the ordering it fixes. */
   faintInlineRestored: 0, faintQueueLeaked: 0,
+  /* 2026-08-23 -- set for the whole run when MEDI_NO_INMOVE_UPDATE=1 takes the in-move Update pass
+     back out on purpose, so a deliberate restore arm and an unwired pass can never be read as the
+     same thing. Same shape as orbStaleRangeRestored. */
+  inMoveUpdateSuppressed: 0,
+  /* 2026-08-23 -- set for the whole run when MEDI_HAZARD_BELOW_FAINT=1 relocates the two `onAfterHit`
+     field families back below the step list on purpose. Same shape as inMoveUpdateSuppressed. */
+  hazardBelowFaintRestored: 0,
   /* ROADMAP #322 -- a body that clicked a charging move and was no longer on the field, or was
      fainted, when the charge phase reached it. The authority's own guard (sim/battle.ts:2737-2738),
      kept LOUD: nothing between the top of the turn and order 107 can currently faint a body that
@@ -9151,6 +9176,21 @@ const FORMEONHIT_SPECIES_BLIND=(typeof process!=='undefined'&&process.env&&proce
  * knob per member could not restore a function that no longer exists. Any run carrying it also carries
  * a non-zero `MEDFAILS.suckerQueueBlindRestored`. Same shape as MEDI_FORMEONHIT_SPECIES_BLIND above. */
 const SUCKER_QUEUE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUCKER_QUEUE_BLIND==='1');
+/* 2026-08-23 -- MEDI_NO_INMOVE_UPDATE=1 TAKES THE IN-MOVE UPDATE PASS BACK OUT, i.e. `eachEvent('Update')`
+ * happens only BETWEEN actions again, the way this engine ran until today. It exists so the census rows
+ * for the in-move pass can be shown MISSING on demand without swapping a file. ONE knob for the whole
+ * pass rather than one per handler, because the pass is one event and a knob per handler could not
+ * restore a call that no longer happens. Any run carrying it also carries a non-zero
+ * `MEDFAILS.inMoveUpdateSuppressed`. Same shape as MEDI_SUCKER_QUEUE_BLIND above. */
+const NO_INMOVE_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_INMOVE_UPDATE==='1');
+/* 2026-08-23 -- MEDI_HAZARD_BELOW_FAINT=1 PUTS THE TWO `onAfterHit` FIELD FAMILIES BACK BELOW THE STEP
+ * LIST, where Stone Axe's `-sidestart` and Rapid Spin's `-sideend` were written UNDER a `|faint|` the
+ * authority writes them over. It RELOCATES rather than deletes -- the step becomes a no-op and the old
+ * site calls the same function -- because a knob that merely skipped the step would look like an
+ * engine with no Stone Axe at all. ONE knob for both members, because they are ONE handler pair in the
+ * authority. Any run carrying it also carries a non-zero `MEDFAILS.hazardBelowFaintRestored`. Same
+ * shape as MEDI_NO_INMOVE_UPDATE above. */
+const HAZARD_BELOW_FAINT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HAZARD_BELOW_FAINT==='1');
 /* ROADMAP #144, 2026-08-23 -- MEDI_DMG_OWNTYPE_BLIND=1 PUTS THE DAMAGE PATH BACK TO THE PRINTED TYPE:
  * `dmgRangeOneHit` stops reading `setsOwnTypeAlways`, so Struggle is priced as a NORMAL move again --
  * x1.5 STAB out of a Normal body and ZERO into a Ghost, which is where the differential's residual
@@ -16158,8 +16198,31 @@ function battleTurn(S,rng,actsForA,actsForB){
      * have left the whole turn ordered by PRE-mega speed -- a Mega Manectric (135 base Speed against
      * 105) moving second, which is the kind of divergence that reads as unattributable turn-order
      * noise later. */
-    /* ROADMAP #81 WIRE 7 -- the Update pass. See the call site at the top of the action loop. */
-    const _updateAll=()=>{
+    /* ROADMAP #81 WIRE 7 -- the Update pass. See the call site at the top of the action loop.
+     *
+     * ================= 2026-08-23 -- SPLIT IN TWO, AND THE SPLIT IS THE AUTHORITY'S ================
+     *
+     * `_updateEvent` is `eachEvent('Update')` and NOTHING ELSE. `_updateAll` is that pass PLUS the
+     * White Herb sweep, which hangs off `onAnyAfterMove` and is a different Showdown event that
+     * merely shares this schedule -- the paragraph at the foot of this function has said so since
+     * WIRE 11 and the two were still one callable.
+     *
+     * THEY HAD TO COME APART BECAUSE THE UPDATE EVENT HAS A THIRD HOME AND THE HERB DOES NOT. The
+     * authority runs `eachEvent('Update')` at THREE positions per action:
+     *
+     *     sim/battle-actions.ts:967   INSIDE the hit loop, one statement above faintMessages(:976)
+     *     sim/battle-actions.ts:1003  below the recoil (:982), one statement above
+     *                                 afterMoveSecondaryEvent(:1005) -- where Life Orb pays
+     *     sim/battle.ts:2842          the tail of runAction -- the only one this engine had
+     *
+     * (Champions overrides `hitStepMoveHitLoop` and keeps both of the first two verbatim:
+     * data/mods/champions/scripts.ts:538 and :575. Only the `-hitcount` clause differs.)
+     *
+     * `AfterMove` has no counterpart inside the hit loop -- it is raised in `useMove`, a level above
+     * `useMoveInner` -- so calling the whole of `_updateAll` from inside a move would spend a White
+     * Herb mid-move, which is a new wrong answer bought with a right one. Only `_updateEvent` is
+     * called from `_stepUpdate`; see that step for the position and the gate. */
+    const _updateEvent=()=>{
       const _all=[];
       for(const x of actA)if(x&&!x.fainted&&x.curHP>0)_all.push({m:x,s:'A'});
       for(const x of actB)if(x&&!x.fainted&&x.curHP>0)_all.push({m:x,s:'B'});
@@ -16239,9 +16302,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * NOT INSIDE THE SORTED LOOP ABOVE on purpose: that loop is `eachEvent('Update')`, a different
        * Showdown event with its own ordering, and the herb is not one of its handlers. Same schedule,
-       * separate pass, so a future change to either does not silently move the other. */
-      restoreStatsAll(actA,actB);
+       * separate pass, so a future change to either does not silently move the other.
+       *
+       * 2026-08-23 -- AND IT IS NOW OUTSIDE `_updateEvent` ENTIRELY, one function up, for exactly the
+       * reason this paragraph already gave. See the header on `_updateEvent`. */
     };
+    const _updateAll=()=>{ _updateEvent(); restoreStatsAll(actA,actB); };
     /* ===== ROADMAP #240 -- THE RE-SORT, AND THE TRIGGER IS THE MECHANIC ==========================
      *
      * ONE PLACE. Every caller that wants the remaining queue re-derived comes through here, so the
@@ -24035,6 +24101,71 @@ function battleTurn(S,rng,actsForA,actsForB){
          * has no such gate; it burns on ANY damaging hit. Now served by the punishesAttacker wire
          * above, from the artifact, with the gate the handler actually states (none). */
       };
+      /* STEP 7b -- `eachEvent('Update')`, INSIDE THE HIT LOOP AND ONE STATEMENT ABOVE THE FAINT.
+       * 2026-08-23. sim/battle-actions.ts:967, and the Champions mod's own verbatim copy at
+       * data/mods/champions/scripts.ts:538:
+       *
+       *     for (const [i, md] of moveDamage.entries()) { ... damage accounting ... }   :961-966
+       *     this.battle.eachEvent('Update');                                            :967
+       *     if (!pokemon.hp && targets.length === 1) { hit++; break; }                   :968
+       *   }                                                                             :970
+       *   this.battle.faintMessages(false, false, !pokemon.hp);                          :976
+       *
+       * THIS ENGINE HAD NO UPDATE PASS INSIDE A MOVE AT ALL. `_updateAll` ran between actions and
+       * nowhere else, so every handler on the Update event settled one whole action late: the target
+       * that a hit takes below half ate its Sitrus BELOW the attacker's recoil line and BELOW the
+       * `|faint|` of the body that died to the same spread, where the authority eats it above both.
+       *
+       * OBSERVED IN THE AUTHORITY, NOT REASONED. Talonflame Brave Birds a Snorlax holding a Sitrus at
+       * 129/235, doubles:
+       *     |-damage|p2a: Snorlax|44/235
+       *     |-enditem|p2a: Snorlax|Sitrus Berry|[eat]
+       *     |-heal|p2a: Snorlax|102/235|[from] item: Sitrus Berry
+       *     |-damage|p1a: Talonflame|125/153|[from] Recoil
+       * and a Garchomp Earthquakes a 1 HP Snorlax beside a Clefable holding one at 93/170:
+       *     |-damage|p2a: Snorlax|0 fnt
+       *     |-damage|p2b: Clefable|14/170
+       *     |-enditem|p2b: Clefable|Sitrus Berry|[eat]
+       *     |-heal|p2b: Clefable|56/170|[from] item: Sitrus Berry
+       *     |faint|p2a: Snorlax
+       *
+       * WHICH HANDLERS THIS SETTLES, derived from the format rather than listed from memory --
+       * `Dex.forFormat('gen9championsvgc2026regmb')` filtered to `!isNonstandard`, everything
+       * carrying an `onUpdate` (direct or on a move's condition): 15 abilities (Disguise, Commander,
+       * Ice Face, Trace, and the eleven status-refusing ones that cure a status the body must not
+       * have), 11 items (the seven status berries, Leppa, Mental Herb, Oran, Sitrus) and 3 move
+       * conditions (Fling's spend, Attract's, Syrup Bomb's source check). Champions overrides none of
+       * them -- `grep onUpdate data/mods/champions/{abilities,moves,items,conditions}.ts` is empty.
+       *
+       * IT IS `_updateEvent` AND NOT `_updateAll`: the White Herb sweep rides on `onAnyAfterMove`,
+       * which the authority raises in `useMove` a level ABOVE the hit loop, so it must not fire here.
+       * See the header on `_updateEvent`.
+       *
+       * THE GATE IS `_reached > 0` AND IT IS THE AUTHORITY'S OWN. Two lines above the Update the loop
+       * runs `if (!moveDamage.some(val => val !== false)) break;` (:955) -- every target refused means
+       * the loop breaks ABOVE the Update and the pass never happens. `_reached` is this engine's count
+       * of bodies past every gate (WIRE 1), which is the same population. A fully shielded move, a
+       * type immunity and a miss therefore settle nothing here and wait for the between-action pass,
+       * exactly as they do in the authority. The skip is COUNTED rather than silent.
+       *
+       * ONCE PER MOVE, NOT ONCE PER ROW: the driver runs every step across every target, and this is
+       * a field-wide event. `_updateDone` is the same shape as `_selfPaid` one step list up.
+       *
+       * WHAT THIS DOES NOT DO, SAID RATHER THAN LEFT TO BE FOUND: (1) the authority's SECOND in-move
+       * pass at :1003, below the recoil and above `afterMoveSecondaryEvent`, is NOT added here -- see
+       * `docs/_reports/2026-08-23-update-event.md`; (2) the pass is per HIT in the authority and this
+       * engine wraps the step list once per MOVE, so a multi-hit move gets one pass rather than n --
+       * the same declared limitation `tests/test-resolution-order.js` already carries as a KNOWN-OPEN
+       * arm; (3) STATUS moves do not reach this step list at all, so their Update still waits for the
+       * between-action pass -- which lands at the same point in the stream, because nothing is emitted
+       * between :967 and the end of the action for a move that hit nothing physical. */
+      let _updateDone=false;
+      const _stepUpdate=()=>{
+        if(_updateDone)return; _updateDone=true;
+        if(!(_reached>0)){MEDSEEN.inMoveUpdateSkippedNoTarget++;return;}
+        if(NO_INMOVE_UPDATE){MEDFAILS.inMoveUpdateSuppressed=1;return;}
+        _updateEvent(); MEDSEEN.inMoveUpdateRan++;
+      };
       /* STEP 8 -- faintMessages (battle.ts:2585), which `hitStepMoveHitLoop` calls once the loop is
        * done. The `|faint|` line and the AfterFaint event both live here, which is why a KO scored on
        * the first body of a spread move cannot be holding a Beast Boost when the second body is
@@ -24282,6 +24413,69 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}
         }
       };
+      /* STEP 7c(b) -- THE OTHER TWO `onAfterHit` FAMILIES, AND THEY WERE 400 LINES BELOW THE STEP
+       * LIST. 2026-08-23.
+       *
+       *     if (moveData.onAfterHit && pokemon.hp) {                      battle-actions.ts:1120
+       *       for (const t of damagedTargets)
+       *         this.battle.singleEvent('AfterHit', moveData, {}, t, pokemon, move);
+       *     }
+       *
+       * That is INSIDE `spreadMoveHit`, which returns at :947 -- so everything an `onAfterHit` writes
+       * is above `faintMessages()` at :976. Stone Axe's Stealth Rock and Ceaseless Edge's Spikes are
+       * `onAfterHit`/`onAfterSubDamage`; so are Rapid Spin's and Mortal Spin's sweeps. All four sat
+       * BELOW `_STEPS` in this file, so their side lines were written under a `|faint|` the authority
+       * writes them over.
+       *
+       * OBSERVED IN THE AUTHORITY, NOT REASONED. Kleavor's Stone Axe into a 1 HP Snorlax:
+       *     |-damage|p2a: Snorlax|0 fnt
+       *     |-sidestart|p2: B|move: Stealth Rock
+       *     |faint|p2a: Snorlax
+       * and a Corviknight's Rapid Spin into the same body with Stealth Rock on ITS OWN side:
+       *     |-damage|p2a: Snorlax|0 fnt
+       *     |-boost|p1a: Corviknight|spe|1
+       *     |-sideend|p1: A|Stealth Rock|[from] move: Rapid Spin|[of] p1a: Corviknight
+       *     |faint|p2a: Snorlax
+       * The `-boost` is the move's own secondary and was already above the faint in this engine; only
+       * the two side lines were below it. That pairing is the reason the spin arm is worth staging --
+       * it separates "the whole move moved" from "this family moved".
+       *
+       * BOTH FAMILIES IN ONE STEP, because both are the SAME handler pair in the authority. Splitting
+       * them across two positions would be two implementations of one fact (CLAUDE.md: FACTS ARE
+       * GLOBAL), and one of them would drift.
+       *
+       * ONCE PER MOVE, NOT ONCE PER ROW, which is what these blocks already did below the list --
+       * `layHazard` caps the layers and `sweepField` clears a side, so a per-row call would double a
+       * side effect that has no per-target quantity. `connected` and `_subAte` are both complete at
+       * the end of `_stepApply`, five steps up, so the gates read exactly what they read before.
+       *
+       * NOTHING ABOUT THE GATES OR THE EFFECTS MOVED. The two blocks are verbatim; their original
+       * headers stay at the old site as pointers rather than being re-typed here. */
+      let _afterHitFieldDone=false;
+      const _stepAfterHitField=()=>{
+        if(_afterHitFieldDone)return; _afterHitFieldDone=true;
+        if(HAZARD_BELOW_FAINT){MEDFAILS.hazardBelowFaintRestored=1;return;}
+        _afterHitField();
+      };
+      const _afterHitField=()=>{
+        {
+          const _hoh=TAGS.param('move',a.move&&a.move.id,'hazardOnHit');
+          if(_hoh&&_hoh.hazard&&connected&&!m.fainted&&(_hoh.throughSubstitute||!_subAte)){
+            const _hsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
+            if(_hsf){layHazard(_hsf,_hoh.hazard,_hoh.maxLayers,m,it.side==='A'?'p2':'p1');
+              MEDSEEN.hazardOnHitAtAfterHit++;}
+          }
+        }
+        {
+          const _rmh=TAGS.param('move',a.move&&a.move.id,'removesHazards');
+          if(_rmh&&connected&&!m.fainted&&(_rmh.throughSubstitute||!_subAte)
+             &&!(_rmh.refusedBySheerForce&&TAGS.param('ability',m.ability,'removesOwnSecondaries'))){
+            const _osf=m._sf, _fsf2=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
+            sweepField(_rmh,m,_osf,_fsf2,field,actA.concat(actB));
+            MEDSEEN.hazardSweepAtAfterHit++;
+          }
+        }
+      };
       /* STEP 7d -- THE TWO THINGS THE MOVE PAYS ITS OWN USER *INSIDE* `spreadMoveHit`, AND THEREFORE
        * ABOVE THE `|faint|` LINE. 2026-08-12.
        *
@@ -24465,7 +24659,10 @@ function battleTurn(S,rng,actsForA,actsForB){
                     _stepBreakProtect,                                   // ROADMAP #272 -- step 5
                     _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
                     _stepDamagingHit,_stepBuffOnHit,                  // 2026-08-22 -- ONE `DamagingHit`
-                    _stepAfterHit,_stepFaint,_stepDrainFaints,
+                    _stepAfterHit,
+                    _stepAfterHitField,                // 2026-08-23 -- the other two onAfterHit families
+                    _stepUpdate,                       // 2026-08-23 -- eachEvent('Update'), :967
+                    _stepFaint,_stepDrainFaints,
                     /* 2026-08-22 -- `-hitcount` IS BELOW THE FAINT, sim/battle-actions.ts:976-978:
                      *     this.battle.faintMessages(false, false, !pokemon.hp);
                      *     if (move.multihit && ...) this.battle.add('-hitcount', targets[0], hit - 1);
@@ -24486,6 +24683,29 @@ function battleTurn(S,rng,actsForA,actsForB){
        * not twelve instrumented steps -- a step list that has to remember to stamp itself is the
        * silent-default shape. */
       for(const _step of _STEPS)for(const R of _rows){if(R.out)continue;MID_TGT=midEventSlot(R.tg);_step(R);}
+      /* ===== 2026-08-23 -- THE ONCE-PER-MOVE STEPS, FLUSHED WHEN EVERY ROW LEFT THE DRIVER =========
+       *
+       * THE DRIVER SKIPS A ROW THAT IS `out`, SO A STEP WHOSE SCOPE IS THE WHOLE MOVE NEVER RUNS AT
+       * ALL WHEN EVERY ROW IS OUT. That is a silent default of exactly the shape CLAUDE.md is about,
+       * and it was FOUND BY A PROBE RATHER THAN REASONED: moving the hazard families into the step
+       * list turned `move`/`hazardOnHit` — *"Ceaseless Edge lays Spikes ... through a Sub"* — from
+       * LIVE to MISSING, `throughSub` reading 0 layers where it must read 1. The blocks used to sit
+       * BELOW the driver, where no row liveness could reach them.
+       *
+       * `out` AND `_reached > 0` TOGETHER MEAN A SUBSTITUTE, and the authority runs both of these
+       * there. `tryPrimaryHitEvent` returns `HIT_SUBSTITUTE`, `spreadMoveHit` sets `damage[i] = true`
+       * and `targets[i] = null` (battle-actions.ts:1063-1066), so `moveDamage.some(val => val !==
+       * false)` at :955 is TRUE and the loop does NOT break above `eachEvent('Update')`. A MISS, a
+       * PROTECT and a type immunity all leave `_reached` at zero and are refused by each step's own
+       * gate, which is where the authority refuses them too.
+       *
+       * SO THIS IS A BACKSTOP AND NOT A SECOND POSITION. Both calls are idempotent — each holds a
+       * done-flag set on its first entry — so a move whose rows survived the driver reaches these two
+       * lines and does nothing. The counters below say which of the two paths a run actually used,
+       * because "the step is in the list" and "the step ever runs" are different claims. */
+      if(!_afterHitFieldDone)MEDSEEN.afterHitFieldFlushed++;
+      if(!_updateDone)MEDSEEN.inMoveUpdateFlushed++;
+      _stepAfterHitField(); _stepUpdate();
       /* ROADMAP #81 WIRE 1 -- NOTHING GOT THROUGH, so the move FAILED and the crash is paid. This is
          the immunity half of the same rule the shield half above pays: measured in the authority, a
          High Jump Kick into a Ghost prints `|-immune|` and then takes the user to `0 fnt`. No
@@ -24531,13 +24751,10 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * THE SIDE IS THE FOE'S: `foeSidesWithConditions()` in the handler, taken here from a body
        * standing in that side's slots, the same read WIRE 41 makes and for the same reason. */
-      {
-        const _hoh=TAGS.param('move',a.move&&a.move.id,'hazardOnHit');
-        if(_hoh&&_hoh.hazard&&connected&&!m.fainted&&(_hoh.throughSubstitute||!_subAte)){
-          const _hsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
-          if(_hsf)layHazard(_hsf,_hoh.hazard,_hoh.maxLayers,m,it.side==='A'?'p2':'p1');
-        }
-      }
+      /* 2026-08-23 -- THE BODY OF THIS BLOCK IS NOW `_stepAfterHitField`, A POSITION IN `_STEPS`
+       * IMMEDIATELY BELOW `_stepAfterHit`. It stood here, below the whole step list, so its
+       * `|-sidestart|` was written UNDER a `|faint|` the authority writes it over. See that step for
+       * the derivation and for the two staged streams. Nothing about WHAT it does moved. */
       /* ROADMAP #72, THE OTHER HALF -- THE SPIN FAMILY, IN THE SAME PLACE AND UNDER THE SAME GATE.
        * Rapid Spin and Mortal Spin are ATTACKS whose sweep lives in `onAfterHit`/`onAfterSubDamage`,
        * which is the pair of handlers the block above already reads for the laying family -- so the
@@ -24552,14 +24769,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * THE SIDE SWEPT IS THE USER'S OWN (`hazardsFrom: 'self'`), which is the whole difference
        * between this family and Defog, and it comes off the tag rather than out of this call. */
-      {
-        const _rmh=TAGS.param('move',a.move&&a.move.id,'removesHazards');
-        if(_rmh&&connected&&!m.fainted&&(_rmh.throughSubstitute||!_subAte)
-           &&!(_rmh.refusedBySheerForce&&TAGS.param('ability',m.ability,'removesOwnSecondaries'))){
-          const _osf=m._sf, _fsf2=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
-          sweepField(_rmh,m,_osf,_fsf2,field,actA.concat(actB));
-        }
-      }
+      /* 2026-08-23 -- AND SO IS THIS ONE, FOR THE IDENTICAL REASON AND IN THE SAME STEP. Both
+       * families hang off the same `onAfterHit`/`onAfterSubDamage` pair; splitting them across two
+       * positions would have been two implementations of one fact. See `_stepAfterHitField`.
+       *
+       * THE RESTORE KNOB PUTS THEM BACK *HERE*, which is the only honest way to write one: a knob
+       * that merely SKIPPED the step would delete the mechanic rather than restore its old position,
+       * and a run under it would look like an engine with no Stone Axe. */
+      if(HAZARD_BELOW_FAINT)_afterHitField();
       /* THE PIVOT HALF, AFTER THE DAMAGE. U-turn, Volt Switch and Flip Turn carry base power, so
          they arrived here as ordinary attacks and the user simply stayed -- the chip was modelled
          and the momentum, which is the reason the move is played, was not. The tag says which moves

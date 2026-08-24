@@ -21,6 +21,74 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE IN-MOVE UPDATE PASS — SIX OF SIX CLEARED, UNDECLARED 52 → 48 (5.4% → 5.0%), NARRATION 33 → 29. 2026-08-23 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-23-update-event.md`](_reports/2026-08-23-update-event.md).
+Ledger section: `docs/ENGINE.md`, *"THE IN-MOVE UPDATE PASS — ONE INSERTION"*.
+
+**VERDICT: ONE INSERTION AND ONE RELOCATION, NOT A STRUCTURAL PIECE.** The engine already had an
+Update pass; it ran at one of the authority's three positions. Landing the in-move one cost a split of
+that function plus a step in the existing step list.
+
+**Whole-game differential, arm `middle`, 961 games, `team-pool-frozen`, census pin `9446a684709d`,
+`--end-state`. A RE-BASELINE across three releases, every quantity named by its artifact key:**
+
+| quantity (arm `middle`) | baseline `3929459bb195` | stage 1 `c9a5c5a5826d` | stage 2 `c30534af567b` |
+|---|---|---|---|
+| `diverged`, protocol parted (RAW) | 57 | 54 | **53** |
+| **`undeclared` (`diverged − declared`), the gate clause's own headline** | **52 of 961 = 5.4%** | 49 of 961 = 5.1% | **48 of 961 = 5.0%** |
+| `declared` (5 Supreme Overlord `fallenundefined`, never counted) | 5 | 5 | 5 |
+| `mid_void.diverged_among_usable` (`diverged − void`), a DIFFERENT quantity | 55 of 959 = 5.74% | 52 = 5.42% | **51 of 959 = 5.32%** |
+| board-material causes / games | 23 / 24 | 23 / 24 | **23 / 24 — did not move** |
+| narration-only causes / games | 29 / 33 | 25 / 30 | **24 / 29 — fell, did not rise** |
+| DIFFERENT-END-STATE (all / among parted) | 18 / 17 | 18 / 17 | **18 / 17** |
+| census probed / live / missing | 660 / 660 / 0 | 661 / 661 / 0 | **662 / 662 / 0** |
+| damage differential | 0 of 6000 | 0 of 6000 | **0 of 6000, all 16 corners, exit 0** |
+| roster items / abilities / moves | 0 DIFFER, 0 DID-NOT-FIRE | — | **identical, on the FINAL release** |
+| `all_mechanics_fire --kind all`, `diverged` | moves 20 / abilities 9 / items 1 | — | **identical** |
+
+**PER-GAME ATTRIBUTION, joining the two `first_divergences` lists on the seed:** 0 games GAINED a
+divergence, 4 STOPPED diverging entirely (Stone Axe, the fling `-enditem`, two sitrus rows), and 2 had
+their first divergence MOVE LATER (index 42 → 76, 116 → 130) onto pre-existing unrelated causes.
+**All six the brief named are gone.**
+
+**Two mechanisms, each with a census probe shown RED under its own knob and an over-fire control that
+did not move, and every expectation OBSERVED in the official simulator rather than typed:**
+
+1. **`eachEvent('Update')` inside the hit loop** (`battle-actions.ts:967`, Champions' own copy at
+   `data/mods/champions/scripts.ts:538`). It settles 15 abilities, 11 items and 3 move conditions in
+   this format — derived from `Dex.forFormat`, not listed from memory. Probe
+   `item`/`healsAtThreshold`. **Control: the ATTACKER's own Sitrus, spent by its own recoil**, which
+   the authority feeds BELOW the recoil line because only the :1003 pass can see it — it must not move,
+   and did not. Knob `MEDI_NO_INMOVE_UPDATE=1`.
+   `_updateAll` had to SPLIT: the White Herb rides on `onAnyAfterMove`, a level above the hit loop, so
+   running the whole of it mid-move would have spent a herb early.
+2. **The two `onAfterHit` field families** — Stone Axe / Ceaseless Edge laying, Rapid Spin / Mortal
+   Spin sweeping — sat 400 lines below `_STEPS`, so their side lines were written under the corpse.
+   Probe `move`/`hazardOnHit`. **Control: X-Scissor, no side line at all.** Knob
+   `MEDI_HAZARD_BELOW_FAINT=1`, which RELOCATES rather than skips.
+
+**A BUG THIS PASS CAUSED AND AN EXISTING PROBE CAUGHT.** Moving the hazard blocks into `_STEPS` turned
+`move`/`hazardOnHit` *"…through a Sub"* from LIVE to MISSING: the driver skips a row that is `out`, and
+a Substitute sets exactly that, so a step whose scope is the whole MOVE never ran. Both once-per-move
+steps now have an idempotent, COUNTED backstop below the driver. `out` + `_reached > 0` means a
+Substitute, and the authority runs both passes there (`damage[i] = true`, so :955 does not break).
+
+**NOT CLAIMED:** the SECOND in-move pass at `battle-actions.ts:1003`; the per-HIT repetition of the
+pass on a multi-hit move; and the STATUS-move door, which does not reach this step list at all.
+
+**A CLAIM IN THE PREVIOUS ROW IS WITHDRAWN AS FALSE.** *"`_stepSelfPay` is step 3 of 9 and holds recoil
+and Life Orb"* — it does not. Both are already below the whole step list, in the authority's order,
+measured on a staged KO. The paragraph was reasoning from the file's layout after the layout had been
+fixed.
+
+**A PRE-EXISTING DECLARED RED, RE-OBSERVED AND NOT FIXED:** `tests/probe_red_demo.js` exits 1 with 10
+of 200 demonstrations failing, eight of them stale reversals. `tests/run-all.js:321` already carries
+that text and names the owner. Its WIRE 10 driver arms are green, which is the part this pass could
+have broken.
+
+---
+
 ## THE FAINT QUEUE — TWO CLASSES OF FOURTEEN, NARRATION 34 → 33. 2026-08-23 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-23-faint-restructure.md`](_reports/2026-08-23-faint-restructure.md).

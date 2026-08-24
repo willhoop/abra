@@ -23973,6 +23973,189 @@ probe('move', 'semiInvulnerable', 'a STATUS move misses a semi-invulnerable body
                  + `move landed on a body that was not on the field` };
 });
 
+/* ================================================================================================
+ * THE IN-MOVE UPDATE PASS — `eachEvent('Update')` AT sim/battle-actions.ts:967, WHICH THIS ENGINE
+ * DID NOT HAVE AT ALL. 2026-08-23.
+ *
+ * The authority runs the Update event THREE times per action, and this engine ran it once:
+ *
+ *     sim/battle-actions.ts:967    INSIDE the hit loop, one statement above faintMessages(:976)
+ *     sim/battle-actions.ts:1003   below applyRecoilDamage(:982), above afterMoveSecondaryEvent(:1005)
+ *     sim/battle.ts:2842           the tail of runAction  <- the only one this engine had
+ *
+ * Champions overrides `hitStepMoveHitLoop` and copies both in-move calls verbatim
+ * (data/mods/champions/scripts.ts:538 and :575), so the mainline lines are the ones that run.
+ *
+ * SO EVERY `onUpdate` HANDLER SETTLED ONE WHOLE ACTION LATE. The visible half is the pinch berry:
+ * a body that a hit takes below half ate its Sitrus BELOW the attacker's recoil line and BELOW the
+ * `|faint|` of whatever died to the same spread. Six of the whole-game differential's 57 first
+ * divergences are this one missing pass.
+ *
+ * BOTH POSITIVE ARMS WERE OBSERVED IN THE OFFICIAL SIMULATOR, NOT TYPED
+ * (`new Battle({formatid:'gen9championsvgc2026regmb', seed:[1,2,3,4]})`, HP set directly):
+ *
+ *   Talonflame Brave Birds a Snorlax holding a Sitrus at 129/235 —
+ *     |-damage|p2a: Snorlax|44/235
+ *     |-enditem|p2a: Snorlax|Sitrus Berry|[eat]
+ *     |-heal|p2a: Snorlax|102/235|[from] item: Sitrus Berry
+ *     |-damage|p1a: Talonflame|125/153|[from] Recoil
+ *   Garchomp Earthquakes a 1 HP Snorlax beside a Clefable holding one at 93/170 —
+ *     |-damage|p2a: Snorlax|0 fnt
+ *     |-damage|p2b: Clefable|14/170
+ *     |-enditem|p2b: Clefable|Sitrus Berry|[eat]
+ *     |-heal|p2b: Clefable|56/170|[from] item: Sitrus Berry
+ *     |faint|p2a: Snorlax
+ *
+ * THE OVER-FIRE CONTROL IS THE ATTACKER'S OWN BERRY, AND IT IS THE REASON THIS PASS IS NOT SIMPLY
+ * "EAT EARLIER". The same Brave Bird with the SITRUS ON THE ATTACKER, whose own recoil is what takes
+ * it below half — the authority puts the `-enditem` BELOW the recoil line, because that body was
+ * still above half when the :967 pass ran and only the :1003 pass can see it:
+ *     |-damage|p1a: Talonflame|56/153|[from] Recoil
+ *     |-enditem|p1a: Talonflame|Sitrus Berry|[eat]
+ * An engine that settled the Update at the top of the move, or that moved the recoil, satisfies the
+ * first arm and breaks this one. It must NOT move, and it did not.
+ *
+ * AND THE FOURTH ARM CLEARS THE KNOB EXPLICITLY: the identical Brave Bird with NO item. There must be
+ * no `-enditem` at all, so a probe that passed by emitting the line unconditionally cannot.
+ *
+ * This reads the protocol stream out of `battleInit({trace})` and asserts a POSITION. A board
+ * comparison cannot see it — heal and damage commute, so every one of these turns ends on the same
+ * HP either way. That is exactly why the whole-game differential calls the family `ordering`. */
+probe('item', 'healsAtThreshold',
+      'a hit that drops a body below half feeds it BEFORE the recoil line and BEFORE the faint', () => {
+  const lines = (t) => t.map(M.traceCanon).filter(l => /^\|(-damage|-heal|-enditem|faint)\|/.test(l));
+  /* ARM 1 + ARM 4 — the recoil position, and the same board with the item cleared. */
+  const recoil = (item) => {
+    const trace = [];
+    const me = bare('talonflame'), ally = bare('milotic');
+    const f1 = bare('snorlax'), f2 = bare('clefable');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    f1.item = item; f1.curHP = Math.floor(f1.st.hp * 0.55);
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'bravebird', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const L = lines(trace);
+    return { L, eat: L.findIndex(l => /-enditem\|p2a:snorlax\|sitrusberry/.test(l)),
+             rec: L.findIndex(l => /-damage\|p1a:talonflame.*recoil/.test(l)) };
+  };
+  /* ARM 2 — the OVER-FIRE control: the attacker's own berry, spent by its own recoil, must stay BELOW
+   * the recoil line. */
+  const own = () => {
+    const trace = [];
+    const me = bare('talonflame'), ally = bare('milotic');
+    const f1 = bare('snorlax'), f2 = bare('clefable');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    me.item = 'sitrusberry'; me.curHP = Math.floor(me.st.hp * 0.55);
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'bravebird', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const L = lines(trace);
+    return { L, eat: L.findIndex(l => /-enditem\|p1a:talonflame\|sitrusberry/.test(l)),
+             rec: L.findIndex(l => /-damage\|p1a:talonflame.*recoil/.test(l)) };
+  };
+  /* ARM 3 — the faint position: the PARTNER's berry is owed above the corpse's line. */
+  const faint = () => {
+    const trace = [];
+    const me = bare('garchomp'), ally = bare('milotic');
+    const f1 = bare('snorlax'), f2 = bare('clefable');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    f1.curHP = 1; f2.item = 'sitrusberry'; f2.curHP = Math.floor(f2.st.hp * 0.55);
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'earthquake', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const L = lines(trace);
+    return { L, eat: L.findIndex(l => /-enditem\|p2b:clefable\|sitrusberry/.test(l)),
+             fnt: L.findIndex(l => /^\|faint\|p2a:snorlax/.test(l)) };
+  };
+  const hit = recoil('sitrusberry'), none = recoil(''), mine = own(), ko = faint();
+  const works = hit.eat >= 0 && hit.rec >= 0 && hit.eat < hit.rec
+                && none.eat === -1 && none.rec >= 0
+                && mine.eat >= 0 && mine.rec >= 0 && mine.eat > mine.rec
+                && ko.eat >= 0 && ko.fnt >= 0 && ko.eat < ko.fnt;
+  return { works,
+           arms: { control: [none.eat, mine.eat > mine.rec], test: [hit.eat < hit.rec, ko.eat < ko.fnt] },
+           detail: 'TARGET eats: -enditem at index ' + hit.eat + ', the attacker recoil at '
+                 + hit.rec + ' (the eat must come FIRST) ' + JSON.stringify(hit.L)
+                 + '. NO ITEM control: -enditem index ' + none.eat + ' (must be -1), recoil still at '
+                 + none.rec + '. OVER-FIRE control, the ATTACKER own berry spent by its own recoil: '
+                 + 'eat at ' + mine.eat + ', recoil at ' + mine.rec + ' (the eat must come SECOND — '
+                 + 'that body was above half when the :967 pass ran). PARTNER eats above the corpse: '
+                 + 'eat at ' + ko.eat + ', |faint| at ' + ko.fnt + ' ' + JSON.stringify(ko.L) };
+});
+
+/* ================================================================================================
+ * THE OTHER TWO `onAfterHit` FAMILIES, WHICH SAT 400 LINES BELOW THE STEP LIST. 2026-08-23.
+ *
+ * The probe above closes `eachEvent('Update')` at battle-actions.ts:967. This one is its neighbour and
+ * is NOT the same event — it is the pair of handlers `spreadMoveHit` runs at :1120:
+ *
+ *     if (moveData.onAfterHit && pokemon.hp) {
+ *       for (const t of damagedTargets) this.battle.singleEvent('AfterHit', moveData, {}, t, pokemon, move);
+ *     }
+ *
+ * `spreadMoveHit` returns at :947, so everything an `onAfterHit` writes is ABOVE `faintMessages()` at
+ * :976. Stone Axe's Stealth Rock and Ceaseless Edge's Spikes hang off `onAfterHit`/`onAfterSubDamage`;
+ * so do Rapid Spin's and Mortal Spin's sweeps. All four were emitted BELOW `_STEPS` in this engine, so
+ * their side lines were written UNDER a `|faint|` the authority writes them over. That is the sixth of
+ * the six divergences the Update pass was aimed at, and it was never the Update event.
+ *
+ * BOTH STREAMS WERE OBSERVED IN THE OFFICIAL SIMULATOR, NOT TYPED. Kleavor's Stone Axe into a 1 HP
+ * Snorlax, doubles:
+ *     |-damage|p2a: Snorlax|0 fnt
+ *     |-sidestart|p2: B|move: Stealth Rock
+ *     |faint|p2a: Snorlax
+ * and a Corviknight's Rapid Spin into the same body with Stealth Rock on ITS OWN side:
+ *     |-damage|p2a: Snorlax|0 fnt
+ *     |-boost|p1a: Corviknight|spe|1
+ *     |-sideend|p1: A|Stealth Rock|[from] move: Rapid Spin|[of] p1a: Corviknight
+ *     |faint|p2a: Snorlax
+ *
+ * THE SPIN ARM IS NOT A SECOND COPY OF THE FIRST — it carries the SEPARATOR. Its `-boost` is the
+ * move's own secondary and was already above the faint in this engine, so an engine that moved the
+ * whole move rather than this family reads the same on arm 1 and differently here.
+ *
+ * THE CONTROL IS A MOVE WITH NO SIDE EFFECT AT ALL (X-Scissor off the same Kleavor onto the same 1 HP
+ * body): one `|faint|`, no `-sidestart`, no `-sideend`. Without it a probe that emitted a side line
+ * unconditionally would pass both positive arms.
+ *
+ * `MEDI_HAZARD_BELOW_FAINT=1` puts both families back at the old site — it RELOCATES rather than
+ * skips, so a run under it still lays the rock and still sweeps, just under the corpse. */
+probe('move', 'hazardOnHit',
+      'a hazard laid or swept by a hit is announced ABOVE the |faint| of the body that hit killed', () => {
+  const shape = (attSp, mv, hzOnSelf) => {
+    const trace = [];
+    const me = bare(attSp), ally = bare('milotic');
+    const f1 = bare('snorlax'), f2 = bare('clefable');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    if (hzOnSelf) { me._sf.hz = me._sf.hz || {}; me._sf.hz.stealthrock = 1; }
+    f1.curHP = 1;
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const L = trace.map(M.traceCanon).filter(l => /^\|(-sidestart|-sideend|faint)\|/.test(l));
+    return { L, side: L.findIndex(l => /^\|-side(start|end)\|/.test(l)),
+             fnt: L.findIndex(l => /^\|faint\|/.test(l)) };
+  };
+  const axe = shape('kleavor', 'stoneaxe', false);
+  const spin = shape('corviknight', 'rapidspin', true);
+  const none = shape('kleavor', 'xscissor', false);
+  const works = axe.side === 0 && axe.fnt === 1
+                && spin.side === 0 && spin.fnt === 1
+                && none.side === -1 && none.fnt === 0;
+  return { works,
+           arms: { control: [none.side, none.fnt], test: [axe.side < axe.fnt, spin.side < spin.fnt] },
+           detail: 'STONE AXE into a 1 HP body: ' + JSON.stringify(axe.L) + ' — the -sidestart is at '
+                 + axe.side + ' and the |faint| at ' + axe.fnt + ' (must be 0 then 1). RAPID SPIN with '
+                 + 'Stealth Rock on its OWN side: ' + JSON.stringify(spin.L) + ' — -sideend at '
+                 + spin.side + ', |faint| at ' + spin.fnt + '. CONTROL, X-Scissor off the same Kleavor '
+                 + 'onto the same body: ' + JSON.stringify(none.L) + ' — side line index ' + none.side
+                 + ' (must be -1), |faint| at ' + none.fnt };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');
