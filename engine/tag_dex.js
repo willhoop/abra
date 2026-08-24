@@ -4999,6 +4999,44 @@ const MOVE_TAGS = [
                alsoCuresSleep: /cureStatus\(\)/.test(src) };
     } },
 
+  /* THE OTHER DIRECTION, AND IT IS A DIFFERENT MECHANIC RATHER THAN A MIRROR — ROADMAP #360.
+   *
+   * `rewritesTargetAbility` above reads `target.setAbility(...)`: the CLICKER changes somebody else.
+   * Role Play reads `source.setAbility(target.ability, target)` — the clicker changes ITSELF, and the
+   * body it copies from is untouched. Folding the two together would have Worry Seed strip the user
+   * and Role Play strip the target, which is each move doing the other one's job.
+   *
+   * MEMBERSHIP PRINTED OVER THE WHOLE LEGAL MOVE TABLE BEFORE THIS WAS WIRED, as this file's rule
+   * requires: FOUR legal moves call setAbility at all — entrainment, roleplay, simplebeam, worryseed
+   * — and exactly ONE of them writes to `source`. So this tag is Role Play and nothing else today,
+   * and a fifth member added next regulation is picked up by the shape rather than by its name.
+   *
+   * THE THREE REFUSALS ARE THE HANDLER'S OWN, in its own order (data/moves.ts:15327-15330):
+   *     if (target.ability === source.ability) return false;                      -> failsIfSame
+   *     if (target.getAbility().flags['failroleplay']) return false;              -> targetFlag
+   *     if (source.getAbility().flags['cantsuppress']) return false;              -> userFlag
+   * They are read as FLAG NAMES rather than as a list of abilities, because `refusesCopy` already
+   * carries the flags per ability — one fact, one place, which is why that tag exists. */
+  { tag: 'copiesTargetAbility', param: 'the USER takes the target\'s ability — and what refuses it',
+    probe: 'copiesTargetAbility',
+    why: 'Role Play (40 uses) read [pp, targetClass, neverMisses, ignoresProtect, statusCategory] — '
+       + 'an accuracy, a category and a Protect flag, and no effect at all. It resolved to a pass, so '
+       + 'the click spent a turn and changed nothing, and every later damage, speed and immunity '
+       + 'number was computed off an ability the body should not still have had',
+    of: m => {
+      const src = String(m.onHit || '').replace(/\s+/g, ' ');
+      if (!/source\.setAbility\(\s*target\.ability/.test(src)) return null;
+      const guard = String(m.onTryHit || '').replace(/\s+/g, ' ');
+      return { copiesFrom: 'target', onto: 'the user',
+               failsIfSame: /target\.ability\s*===\s*source\.ability/.test(guard),
+               /* BOTH QUOTE STYLES. The dex is loaded from `dist/`, where the TypeScript source's
+                * single quotes have been compiled to double ones — a regex that only knew the .ts
+                * spelling returned null for BOTH flags and would have shipped a tag that silently
+                * refuses nothing. Caught by printing the params before wiring them. */
+               targetFlagRefuses: (guard.match(/target\.getAbility\(\)\.flags\[["'](\w+)["']\]/) || [])[1] || null,
+               userFlagRefuses: (guard.match(/source\.getAbility\(\)\.flags\[["'](\w+)["']\]/) || [])[1] || null };
+    } },
+
   /* ---- WHAT A VOLATILE SAYS WHEN IT STARTS, READ OFF THE CONDITION THAT OWNS IT ------------------
    *
    * `applyMoveVolatile` in medicham2 announced EVERY volatile as `|-start|BODY|move: <volatile>`. That

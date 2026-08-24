@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-23T12:45:50.877Z",
+ "generated": "2026-08-24T19:08:49.708Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2398,6 +2398,19 @@
     "Entrainment",
     "Simple Beam",
     "Worry Seed"
+   ]
+  },
+  {
+   "tag": "copiesTargetAbility",
+   "kind": "move",
+   "param": "the USER takes the target's ability — and what refuses it",
+   "why": "Role Play (40 uses) read [pp, targetClass, neverMisses, ignoresProtect, statusCategory] — an accuracy, a category and a Protect flag, and no effect at all. It resolved to a pass, so the click spent a turn and changed nothing, and every later damage, speed and immunity number was computed off an ability the body should not still have had",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 40,
+   "examples": [
+    "Role Play"
    ]
   },
   {
@@ -26583,7 +26596,8 @@
     "neverMisses",
     "ignoresProtect",
     "statusCategory",
-    "formatSecondaryCount"
+    "formatSecondaryCount",
+    "copiesTargetAbility"
    ],
    "uses": 40,
    "params": {
@@ -26610,6 +26624,13 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "copiesTargetAbility": {
+     "copiesFrom": "target",
+     "onto": "the user",
+     "failsIfSame": true,
+     "targetFlagRefuses": "failroleplay",
+     "userFlagRefuses": "cantsuppress"
     }
    }
   },

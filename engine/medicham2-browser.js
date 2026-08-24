@@ -741,6 +741,24 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * Speed Swap means the routing is unread again and the turn is being spent on nothing, which is the
    * state these 939 + 100 clicks were in until 2026-08-11. */
   abilityRewritten: 0, statRewired: 0,
+  /* ROADMAP #360 -- ROLE PLAY. `abilityCopiedToUser` is the mechanic.
+   *
+   * `abilityCopyNoRefusalRow` IS EXPECTED TO BE NON-ZERO AND IS NOT A DEFECT SIGNAL, which is said
+   * here because a counter read as an alarm is worse than no counter. Only ten abilities in this
+   * format carry a `refusesCopy` row at all, so almost every lookup misses and the miss means exactly
+   * what the authority means by it: no refusal. Measured on 699 pinned games -- 3 copies, 6 misses,
+   * which is both flag checks on all three attempts. What WOULD be wrong is the family disappearing
+   * from `data/tags.json`, and the guard against that is not this number: Trace consumes the same
+   * rows through `refusesCopy.notrace` and has its own probe. */
+  abilityCopiedToUser: 0, abilityCopyNoRefusalRow: 0,
+  /* ROADMAP #361 -- `runAction`'s `if (!action.pokemon.isActive) return false`. A phazed body's own
+   * action, refused. The first witness is kept because this guard is new and a runaway would be
+   * indistinguishable from a quiet turn. */
+  actionSkippedOffField: 0, actionSkippedOffFieldFirst: '',
+  /* ROADMAP #362 -- a single-target NON-attack move drawn by Follow Me, Rage Powder, Lightning Rod or
+   * Storm Drain. The attack path has its own draw and is not counted here, so this number is exactly
+   * the population that was walking past a redirector. */
+  redirectedNonAttack: 0,
   /* WIRE 160 -- TRACE. `traceCopied` is the mechanic; `traceFoundNothing` is a legitimate board (every
    * foe carries an untraceable ability); `traceAmbiguousChoice` is THE HONEST SIZE OF WHAT IS GUESSED.
    *
@@ -1746,6 +1764,10 @@ const MEDFAILS = { encoreAction: 0,
    * silent. Non-zero means either a shield reached the board without `_shieldGate` recording it or
    * tag_dex stopped parsing the handler's argument list. Must stay ZERO. */
   shieldBlocksStatusUnknown: 0, shieldBlocksStatusUnknownFirst: '',
+  /* ROADMAP #362 -- a non-attack action aimed at a foe whose move carries no `targetClass.target`, so
+   * the dispatch draw cannot tell a single-target move from a spread one. It refuses to redirect and
+   * says so; guessing YES would pull a spread status move onto one body. */
+  redirectAimClassUnknown: 0, redirectAimClassUnknownFirst: '',
   /* ROADMAP #239 -- `applyStatus` returned false and named no clause, so the emitter cannot tell an
    * immunity (`-immune`) from an already-statused body (`-fail`) and falls back to the old `-fail`.
    * The three refusals ABOVE `canTakeStatus` -- an ally's veil, Uproar and a side buff -- emit their
@@ -2476,7 +2498,20 @@ const TRACE=(function(){
     turn(n){ this.push(['turn',n]); },
     upkeep(){ this.push(['upkeep']); },
     /* --- actions --- */
-    mv(user,id,target,extra){ this._mvLine=this.out.length; this.push(['move',ident(user),id,target?ident(target):'',extra]); },
+    /* ROADMAP #362 -- `_pendRedir` IS AN ABILITY REDIRECT DECIDED BEFORE THE MOVE LINE WAS WRITTEN.
+     *
+     * The authority emits Lightning Rod's `|-activate|BODY|ability: Lightning Rod` from inside
+     * `getMoveTargets`, which `useMoveInner` reaches AFTER `addMove('move', ...)` -- :457 then :467 in
+     * sim/battle-actions.ts. The attack branch computes its draw at that same point and announces
+     * itself; the NON-attack draw is computed one step earlier, at the dispatch choke point, because
+     * that is the one place `it.tgtSlot` can be moved before thirty branches read it. So the line is
+     * parked and written here, which is the authority's position rather than a convenience.
+     *
+     * IT IS CLEARED BY THE FLUSH AND ALSO BY THE CHOKE POINT ON EVERY ACTION, so a move that is
+     * refused before it ever writes a `|move|` line cannot leak its parked line onto the next body. */
+    _pendRedir:null,
+    mv(user,id,target,extra){ this._mvLine=this.out.length; this.push(['move',ident(user),id,target?ident(target):'',extra]);
+      if(this._pendRedir){ const p=this._pendRedir; this._pendRedir=null; this.act(p.m,p.label); } },
     /* Showdown's own `attrLastMove` (sim/battle.ts:3120): an attribute is APPENDED to the `|move|`
      * line already in the log rather than emitted as a new event, and `[still]` additionally BLANKS
      * the target field. Reproduced here rather than approximated, because a differ aligning two
@@ -15805,6 +15840,87 @@ function reaimToSlot(t,it,actA,actB,mvId,quiet){
   }
   return now;
 }
+/* ---- ROADMAP #362 -- WHO ACTUALLY GETS DRAWN, AS ONE FUNCTION ------------------------------------
+ *
+ * Follow Me, Rage Powder, Lightning Rod and Storm Drain lived inside the ATTACK branch, so a
+ * SINGLE-TARGET STATUS move was never redirected at all. Measured in the whole-game differential: an
+ * Arbok's Glare walked past a Maushold's Follow Me and paralysed the Blaziken behind it — the
+ * authority wrote `|-status|p1b: Maushold|par` and this engine wrote `|-status|p1a: Blaziken|par`,
+ * which is the wrong body carrying a status for the rest of the game.
+ *
+ * THE AUTHORITY MAKES NO SUCH SPLIT. `Pokemon#getMoveTargets` runs the `RedirectTarget` event in its
+ * `default:` case (sim/pokemon.ts:829-837) — every single-target move, damaging or not — and
+ * `useMoveInner` calls it once for every move it resolves. So this is ONE fact about the game and it
+ * gets ONE implementation, which is CLAUDE.md's rule; the attack branch now calls this instead of
+ * holding its own copy, so the two cannot drift.
+ *
+ * THE ORDER IS THE VOLATILE FIRST AND THE ABILITY SECOND, which is the order the extracted code had
+ * and the order `priorityEvent` produces (the move-volatile handlers outrank the ability ones).
+ *
+ * IT ANNOUNCES NOTHING ITSELF and hands the caller a label instead, because the two families announce
+ * differently and at different moments: Follow Me and Rage Powder write NO line at all (their only
+ * output is the `-singleturn` on the turn they were used), while Lightning Rod and Storm Drain write
+ * `|-activate|BODY|ability: NAME` — and the authority emits that AFTER the `|move|` line, which is a
+ * position only the caller knows.
+ *
+ * WHAT IT DOES NOT DO: it is not asked for spread moves and it does not test for them. `getMoveTargets`
+ * reaches redirection only in its single-target case; every caller here states its own membership. */
+/* ROADMAP #363 -- AND WHEN TWO BODIES BOTH ANSWER, THE ORDER IS THE AUTHORITY'S, NOT THE SLOT'S.
+ *
+ * `priorityEvent` passes `fastExit`, so `runEvent` sorts with `Battle.compareRedirectOrder`
+ * (sim/battle.ts:413) and takes the FIRST handler that returns a body:
+ *     handler priority DESC  ->  holder SPEED desc  ->  (two ABILITY holders) effectOrder asc
+ * Follow Me and Rage Powder both declare `onFoeRedirectTargetPriority: 1`; Lightning Rod and Storm
+ * Drain declare none, which is 0. That is where "the volatile outranks the ability" comes from -- it
+ * is the handler priority and not a rule this file invented, and it is why the two families stay in
+ * two passes below rather than being merged into one sorted list.
+ *
+ * WITHIN a family only SPEED separates them, and this engine used `Array.find` over the foe array --
+ * slot order, every time. Measured in a real game: a Maushold's Follow Me and a Sinistcha's Rage
+ * Powder were both up, the authority sent the Gunk Shot into the Maushold (the faster) and killed it,
+ * and this engine sent it into the Sinistcha.
+ *
+ * IT GOES THROUGH `compareTurnOrder` BECAUSE THE SORT KEY IS TRICK-ROOM-INVERTED UPSTREAM.
+ * `pokemon.speed` is `getActionSpeed()`, which is `10000 - speed` inside Trick Room
+ * (sim/pokemon.ts:641-648), and `compareRedirectOrder` then sorts it plain descending -- so the
+ * SLOWER redirector draws in a room. `compareTurnOrder` is this engine's one implementation of that
+ * same rule and is called rather than a second speed comparison being written here.
+ *
+ * A REMAINING TIE FALLS BACK TO SLOT ORDER, and that is stated rather than claimed correct: the sort
+ * below is `Array.prototype.sort`, which is stable, so a genuine Speed tie keeps the array order.
+ * The authority breaks a tie between two ABILITY holders on `abilityState.effectOrder` -- which body
+ * entered first -- and that is NOT modelled here. It needs two rods of the same type on one side at
+ * identical Speed, which the differential has never produced. */
+function redirectDrawnTo(user,aimed,foes,mvObj,mvId,field,scripted){
+  if(!user||!aimed)return null;
+  if(tracksTargetOf(mvId,user,!!scripted))return null;
+  const _bySpeed=arr=>arr.length<2?arr
+    :arr.slice().sort((x,y)=>compareTurnOrder({spe:effSpeed(x,field)},{spe:effSpeed(y,field)},field));
+  /* Rage Powder is a powder move, so a Grass type, Overcoat or Safety Goggles ignores the draw and
+   * hits what it aimed at; Follow Me is not a powder and draws regardless. Same helper Sleep Powder
+   * asks, rather than a second list. */
+  const _drawers=_bySpeed(_live(foes||[]).filter(f=>f&&f._redirect&&!powderBlocked(user,f._redirect)));
+  /* THE AIMED BODY BEING THE WINNER IS "NO REDIRECT", NOT "TRY THE NEXT ONE". The authority's handler
+   * for the fastest carrier returns ITS OWN body and `fastExit` stops there, so a slower partner
+   * never gets asked. */
+  if(_drawers.length)return _drawers[0]===aimed?null:{to:_drawers[0],announce:null};
+  /* The rod is checked against the move's EFFECTIVE type, so an -ate-converted or weather-converted
+   * move is drawn by the rod it has actually BECOME. */
+  const _t=effMoveType(mvObj,mvId,field,user);
+  const _rods=_bySpeed(_live(foes||[]).filter(f=>{
+    if(!f)return false;
+    const _rt=TAGS.param('ability',f.ability,'redirectsType');
+    return !!(_rt&&_rt.type===_t);
+  }));
+  if(_rods.length)return _rods[0]===aimed?null:{to:_rods[0],announce:'ability: '+_rods[0].ability};
+  return null;
+}
+/* THE SINGLE-TARGET FAMILY, IN SHOWDOWN'S OWN VOCABULARY. These are the `move.target` values that fall
+ * through `getMoveTargets`'s switch to `default:`, which is the only case redirection is reached from.
+ * `self`, `adjacentAlly` and `adjacentAllyOrSelf` fall there too and are LEFT OUT deliberately: they
+ * cannot be drawn, because Follow Me's handler gates on `this.validTarget(follower, source, move.target)`
+ * and a foe's body is not a valid `self` or `ally` target. Read off the switch rather than recalled. */
+const REDIRECTABLE_AIM=new Set(['normal','any','adjacentFoe','randomNormal','scripted']);
 /* ROADMAP #210 -- WHO A `scripted` MOVE IS REALLY AIMED AT, AS ONE FUNCTION.
  *
  * Counter, Mirror Coat, Metal Burst and Comeuppance carry Showdown target `scripted`, which means THE
@@ -17208,6 +17324,35 @@ function battleTurn(S,rng,actsForA,actsForB){
          never reaches runMove), which is the whole of the Fake-Out-after-a-pivot case. The fainted
          guard below is `runAction`'s own `if (action.pokemon.fainted) return false`, which sits ABOVE
          runMove -- so a body that died before its turn came up does not spend one either. */
+      /* ROADMAP #361 -- `runAction`'s OTHER REFUSAL, AND IT WAS THE MISSING ONE.
+       *
+       *     case 'move':
+       *       if (!action.pokemon.isActive) return false;      <- this line
+       *       if (action.pokemon.fainted) return false;        <- the line below, which was here
+       *
+       * Without it a body dragged out by Roar, Whirlwind, Dragon Tail or Circle Throw came back later
+       * in the SAME turn and used its move from the bench. The differential printed it in this
+       * engine's own emitter: `|move|??: farigiraf|roar|p2a: Farigiraf`, where `??:` is `ident()`
+       * saying the mover holds no slot -- and that phantom Roar then dragged the other side's lead
+       * out, so the two engines ended the turn with different Pokemon standing.
+       *
+       * `isActive` IS MEMBERSHIP OF THE FOUR SLOTS, which is what the name means upstream and what
+       * `switchOut`'s `act[i]=nx` already makes true here: the arriving body REPLACES the leaver in
+       * the active array, so the leaver's index goes to -1 the instant it is gone. No new flag.
+       *
+       * A SWITCH IS EXEMPT because the authority exempts it: `isActive` is tested under `case 'move'`
+       * and a switch action is a different case entirely. Its own mon is by construction still in the
+       * slot when it runs -- that is what makes it a switch.
+       *
+       * IT IS SILENT, AND THAT IS THE AUTHORITY'S OWN `return false`: no `-fail`, no `cant`, nothing.
+       * COUNTED rather than silent to the reader, with the first witness named, because a guard that
+       * started firing on every action would look exactly like a quiet engine. */
+      if(it.a&&it.a.kind!=='switch'&&actA.indexOf(m)<0&&actB.indexOf(m)<0){
+        MEDSEEN.actionSkippedOffField++;
+        if(!MEDSEEN.actionSkippedOffFieldFirst)
+          MEDSEEN.actionSkippedOffFieldFirst=String(m.name||'?')+'/'+String(actionMoveId(it.a)||it.a.kind);
+        continue;
+      }
       if(m.fainted||m.curHP<=0)continue;
       if(it.a&&it.a.kind!=='switch'&&it.a.kind!=='pass')m._mvActs=((m._mvActs)|0)+1;
       /* ROADMAP #232 -- THE SHIELD FAMILY'S GATE, AT THE ACTION. See `_shieldGate` above the loop.
@@ -17375,6 +17520,58 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(it.a&&it.a.target){
         const _aimed=reaimToSlot(it.a.target,it,actA,actB,actionMoveId(it.a));
         if(_aimed!==it.a.target){ MEDSEEN.reaimedAtDispatch++; it.a.target=_aimed; }
+      }
+      /* ---- ROADMAP #362 -- AND THE DRAW, FOR EVERY KIND THE ATTACK BRANCH DOES NOT OWN -----------
+       *
+       * `getMoveTargets` runs the `RedirectTarget` event for every single-target move, damaging or
+       * not (sim/pokemon.ts:829, the `default:` case). This engine only ever asked inside the attack
+       * branch, so a Glare, a Will-O-Wisp, a Taunt or a Thunder Wave walked past a Follow Me and
+       * landed on the body behind it.
+       *
+       * THE ATTACK KIND IS EXCLUDED HERE ON PURPOSE and keeps its own call. Not duplication: the two
+       * families ANNOUNCE, and the attack branch is the only site that knows where its `|move|` line
+       * is. Redirecting attacks from here would silence Lightning Rod's `-activate` entirely.
+       *
+       * BOTH `target` AND `tgtSlot` MOVE, and the second is what makes it stick. Every branch below
+       * re-resolves through `reaimToSlot`, which reads `it.tgtSlot` and hands back that SLOT's
+       * occupant -- so writing only `it.a.target` would be undone by the first branch that asked.
+       *
+       * THE MEMBERSHIP IS SHOWDOWN'S OWN `move.target` VALUE, off the `targetClass` tag: the five
+       * single-target names that fall through to `default:`. A spread status move (Cotton Spore,
+       * String Shot) never reaches redirection in the authority and does not reach it here.
+       * A missing tag row is NOT treated as redirectable -- it is counted, because guessing "yes"
+       * would silently pull a spread move onto one body.
+       *
+       * THE ANNOUNCEMENT IS DEFERRED, and that is the authority's position rather than a convenience.
+       * Lightning Rod's `-activate` is emitted INSIDE `getMoveTargets`, which `useMoveInner` calls
+       * AFTER `addMove('move', ...)` (sim/battle-actions.ts:457 then :467) -- so the line belongs
+       * below the move line, and this runs above it. `TR` holds it and flushes it on the next `|move|`
+       * it writes, which is this action's own. */
+      /* CLEARED FOR EVERY ACTION, NOT ONLY THE ONES THAT SET IT, and that is a correctness clause
+       * rather than tidiness. This site is ABOVE the five BeforeMove gates, so a body that is
+       * flinched, asleep or fully paralysed can have a draw computed and then never write a `|move|`
+       * line at all -- and the parked `-activate` would be flushed by the NEXT body's move line, on
+       * the wrong side of the field. (The authority cannot reach that state: `getMoveTargets` runs
+       * inside `useMoveInner`, past those gates. Here the target has to move before thirty branches
+       * read `tgtSlot`, which is why the two positions differ; the mutation itself is inert for a
+       * body whose action never runs.) */
+      if(TR)TR._pendRedir=null;
+      if(it.a&&it.a.target&&it.a.kind!=='attack'&&it.a.kind!=='switch'){
+        const _rid=actionMoveId(it.a);
+        const _rfoes2=it.side==='A'?actB:actA;
+        if(_rid&&_rfoes2.indexOf(it.a.target)>=0){
+          const _tc=TAGS.param('move',_rid,'targetClass');
+          if(!_tc||!_tc.target){ MEDFAILS.redirectAimClassUnknown++;
+            if(!MEDFAILS.redirectAimClassUnknownFirst)MEDFAILS.redirectAimClassUnknownFirst=String(_rid); }
+          else if(REDIRECTABLE_AIM.has(_tc.target)){
+            const _dr2=redirectDrawnTo(m,it.a.target,_rfoes2,MC.moves[_rid],_rid,field,false);
+            if(_dr2&&_dr2.to!==it.a.target){
+              it.a.target=_dr2.to; it.tgtSlot=_rfoes2.indexOf(_dr2.to); it.allySlot=-1;
+              MEDSEEN.redirectedNonAttack++;
+              if(TR&&_dr2.announce)TR._pendRedir={m:_dr2.to,label:_dr2.announce};
+            }
+          }
+        }
       }
       /* ROADMAP #68 -- `|cant|POKEMON|REASON`, and the REASON strings are Showdown's own, read off the
        * add() calls in data/conditions.ts (par :42, slp :76, frz :103, flinch :203, recharge :369) and
@@ -20066,6 +20263,62 @@ function battleTurn(S,rng,actsForA,actsForB){
         } else mvFail(m);
         continue;
       }
+      /* ROADMAP #360 -- ROLE PLAY: THE USER TAKES THE TARGET'S ABILITY AND THE TARGET KEEPS IT.
+       *
+       * The same refusal chain as `abilitywrite` directly above -- a status move aimed at a foe meets
+       * Good as Gold, a move-class immunity and Prankster-into-Dark exactly as its neighbours do --
+       * with ONE difference that is the move's own: Role Play has no `protect` flag (`ignoresProtect`
+       * in the artifact), and `shieldRefuses` already reads that, so the shield term below refuses
+       * nothing here rather than being special-cased out.
+       *
+       * THE THREE REFUSALS ARE THE HANDLER'S OWN, in the handler's order (data/moves.ts:15327):
+       *     target.ability === source.ability                          -> `failsIfSame`
+       *     target.getAbility().flags['failroleplay']                  -> `targetFlag`
+       *     source.getAbility().flags['cantsuppress']                  -> `userFlag`
+       * The two flags are read off `refusesCopy`, which is the ONE place this artifact records who
+       * may not be copied -- the same row Trace consults. An ability with NO such row is copyable,
+       * which is the authority's own default; the miss is counted (`abilityCopyNoRefusalRow`) so the
+       * ratio is visible, and that counter's own note says why a non-zero reading there is normal
+       * rather than an alarm.
+       *
+       * A REFUSAL IS `-fail`, NOT SILENCE: `onTryHit` returning false is a real failure in the
+       * authority (`add('-fail', pokemon)` + `[still]`), and Stomping Tantrum reads it.
+       *
+       * THE LINE IS `TR.ab`'s THREE-FIELD FORM, deliberately matching `abilitywrite` next door. The
+       * authority writes six fields here (new, old, `[from] move:`, `[of] TARGET`); `|-ability|` is
+       * DROPPED as cosmetic by the whole-game comparator (game_differential.js's reducer), so the
+       * extra fields are invisible to every instrument this repo owns and inventing a second emitter
+       * shape for one move would be the drift this file's FACTS-ARE-GLOBAL rule is about. Stated so
+       * it is a known residue rather than a discovery. */
+      if(a.kind==='abilitycopy'){
+        m._lastMove=a.mv;
+        const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        if(t&&t!==m){
+          const _isFoe=m._sf&&t._sf!==m._sf;
+          {
+            const _rf=tryHitRefusal(m,t,a.mv);
+            if(_rf){announceTryHitRefusal(_rf,t);continue;}
+          }
+          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m));
+          const _want=String(t.ability||'');
+          const _flagRefuses=(who,flag)=>{
+            if(!flag)return false;
+            const _rc=TAGS.param('ability',who&&who.ability,'refusesCopy');
+            if(!_rc){MEDSEEN.abilityCopyNoRefusalRow++;return false;}
+            return !!_rc[flag];
+          };
+          const _blocked=!_ok||!_want||_want==='none'
+            ||(a.failsIfSame&&_want===String(m.ability||''))
+            ||_flagRefuses(t,a.targetFlag)||_flagRefuses(m,a.userFlag);
+          if(_blocked){mvFail(m);}
+          else{
+            abRewrite(m,_want);          // ROADMAP #307 -- undone by leaving the field
+            MEDSEEN.abilityCopiedToUser++;
+            if(TR)TR.ab(m,m.ability,'[from] move: '+a.mv);
+          }
+        } else mvFail(m);
+        continue;
+      }
       /* WIRE 159 -- THE STORED-STAT REWIRE. `m.st` is this engine's stored (pre-stage) stat block,
        * which is exactly what Showdown calls `storedStats`, so the write lands in the same place the
        * damage formula and the speed order both read. Nothing in `boosts` is touched, deliberately:
@@ -21673,9 +21926,15 @@ function battleTurn(S,rng,actsForA,actsForB){
        * attacker track its target" is ONE fact about the game (CLAUDE.md) and this site having its own
        * answer is how the two drift. `a.rescript` is the scripted flag the ability's own handler
        * excludes. */
-      if(!a.move.spread&&targets.length&&!tracksTargetOf(a.move.id,m,!!a.rescript)){
-        const drawer=live(foes).find(f=>f&&f._redirect);
-        if(drawer&&drawer!==targets[0]&&!powderBlocked(m,drawer._redirect)){
+      /* ROADMAP #362 -- THE DRAW ITSELF NOW LIVES IN `redirectDrawnTo`, one function above
+       * `reaimToSlot`, because a single-target STATUS move is redirected by exactly the same event and
+       * this branch was the only place that knew how. The two announcements stay HERE, where their
+       * position relative to the `|move|` line is known. Everything below this line is the block that
+       * used to compute the draw inline; the comments are kept because they are the derivation. */
+      if(!a.move.spread&&targets.length){
+        const _dr=redirectDrawnTo(m,targets[0],foes,mv,a.move.id,field,!!a.rescript);
+        const drawer=_dr&&!_dr.announce?_dr.to:null;
+        if(drawer){
           /* Showdown REWRITES the target field of the move line it already emitted
            * (`retargetLastMove`, sim/battle.ts:3140) rather than adding an event, so the trace does
            * the same -- an extra line here would misalign every redirected turn in the differ.
@@ -21710,13 +21969,8 @@ function battleTurn(S,rng,actsForA,actsForB){
          * so an -ate-converted or weather-converted move is drawn by the rod it has actually become,
          * which is the same helper the immunity below uses -- one implementation of "what type is
          * this move really", not two. */
-        if(targets.length&&!(drawer&&targets[0]===drawer)){
-          const _t=effMoveType(mv,a.move.id,field,m);      // WIRE 126 -- the attacker, so an -ate move is drawn as what it BECAME
-          const _rod=live(foes).find(f=>{
-            if(!f||f===targets[0])return false;
-            const _rt=TAGS.param('ability',f.ability,'redirectsType');
-            return !!(_rt&&_rt.type===_t);
-          });
+        if(!drawer&&_dr&&_dr.announce){
+          const _rod=_dr.to;
           /* ROADMAP #81 WIRE 7 -- AND THE ABILITY REDIRECT ANNOUNCES THE OTHER WAY ROUND. Unlike
            * Follow Me, Lightning Rod and Storm Drain DO write a line when they pull, and it is an
            * `|-activate|` naming the ability, not an `|-ability|`:
@@ -21725,7 +21979,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * Intimidate uses and a different event. Two redirect families, two announcements, and this
            * engine had them exactly swapped -- silence where a line belongs and the wrong line where
            * silence does. */
-          if(_rod){targets=[_rod];if(TR){TR.act(_rod,'ability: '+_rod.ability);TR.retarget(_rod);}}
+          targets=[_rod];if(TR){TR.act(_rod,_dr.announce);TR.retarget(_rod);}
         }
       }
       /* ROADMAP #210 -- POLTERGEIST FAILS OUTRIGHT AGAINST A BODY HOLDING NOTHING.
@@ -28020,6 +28274,23 @@ function playerActionPrimary(me,moveId,target,field){
     const _ra=TAGS.param('move',id,'rewritesTargetAbility');
     if(_ra&&_ra.becomes)return {kind:'abilitywrite',mv:id,target,
       becomes:_ra.becomes,refused:(_ra.refusedAbilities||[]),curesSleep:!!_ra.alsoCuresSleep};
+  }
+  /* ROADMAP #360 -- ROLE PLAY, THE FOURTH `setAbility` MOVE AND THE ONLY ONE THAT WRITES TO ITSELF.
+   *
+   * It carried `[pp, targetClass, neverMisses, ignoresProtect, statusCategory]` -- an accuracy, a
+   * category and a Protect flag -- so it fell past every branch above and came out `{kind:'pass'}`:
+   * a spent turn that changed nothing, on 40 corpus uses. Found in the whole-game differential, where
+   * a Mr. Rime's `ability` leaf read `screencleaner` against the authority's `lightningrod` in one
+   * game and `hospitality` in another, with BOTH protocol streams agreeing -- `|-ability|` is dropped
+   * as cosmetic by the comparator, so the board was the only witness there was.
+   *
+   * IT IS NOT `abilitywrite` WITH THE BODIES SWAPPED, which is why this is its own kind. The rewriters
+   * change the TARGET and leave the user; this changes the USER and leaves the target. An engine that
+   * reused the branch would have Role Play strip the body it copied from. */
+  {
+    const _rp=TAGS.param('move',id,'copiesTargetAbility');
+    if(_rp&&_rp.copiesFrom==='target')return {kind:'abilitycopy',mv:id,target,
+      failsIfSame:!!_rp.failsIfSame,targetFlag:_rp.targetFlagRefuses||null,userFlag:_rp.userFlagRefuses||null};
   }
   /* WIRE 159 / ROADMAP #157 -- THE STORED-STAT REWIRERS, the same shape of hole. Guard Split, Power
    * Split and Speed Swap read `[pp, neverMisses, statusCategory]` and resolved to a pass. They move

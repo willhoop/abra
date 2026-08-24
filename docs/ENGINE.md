@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  677/677 probed mechanics live, 0 missing   (census 2026-08-24 06:40)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-24 06:24)
+  681/681 probed mechanics live, 0 missing   (census 2026-08-24 15:56)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-24 15:40)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,134 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is fe807894dee6 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 1a69dfe17f31 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 275/293 probed, 18 unprobed
+  tag coverage: 276/294 probed, 18 unprobed
 ```
 
-_stamped 2026-08-24 06:45_
+_stamped 2026-08-24 16:21_
 
 <!-- /GENERATED -->
+
+## THE BOARD-MATERIAL SET MOVED — 24 → 20 GAMES, NARRATION HELD AT 19, CENSUS 677 → 681. 2026-08-24.
+
+Full account: [`docs/_reports/2026-08-24-board-material.md`](_reports/2026-08-24-board-material.md).
+Probes: `tests/test-mechanics.js` **`move/copiesTargetAbility`** (*Role Play takes the TARGET's
+ability onto the USER* — the consequence is a Ground move at the user, so a copied Levitate has to be
+LIVE and not merely labelled), **`move/forcesSwitch`** (*a body dragged off the field does not then
+take its own action* — a priority sandwich, Roar at −6 over Trick Room at −7, so nothing rests on a
+tie) and **`move/redirects`** twice (*a single-target STATUS move is drawn by Follow Me too*, and
+*between two redirectors on one side, the FASTER one draws*).
+
+**FOUR MECHANISMS, FOUR GAMES CLEARED, ZERO NEW DIVERGING GAMES.** Arm `middle`, release
+`fbf74de3fbd6` (before-arm `2535a9c59886`, which is HEAD), 961 games,
+`--team-store data/team-pool-frozen`, census pinned to `census-pin-9446a684709d.json`: raw parted
+**43 → 39**, undeclared **30 of 961 (3.1%) → 26 of 961 (2.7%)**, **board-material 24 → 20 games /
+23 → 19 causes**, narration **19 → 19 games / 18 → 18 causes**, DIFFERENT-END-STATE **18 → 14**. The
+game-by-game diff on `config|seed` names the four cleared, confirms none appeared, and confirms none
+was merely relabelled.
+
+| mechanism | games | what the board did |
+|---|---|---|
+| **Role Play resolved to a pass** — the only legal move writing `source.setAbility`, and the artifact had no tag for it | 2 | the user's `ability` leaf, with BOTH streams agreeing — `\|-ability\|` is dropped as cosmetic, so the board was the only witness |
+| **`runAction`'s `if (!action.pokemon.isActive) return false` was missing** — a phazed body used its move from the bench | 1 | the two engines finished the turn with different Pokemon standing |
+| **a single-target STATUS move was never redirected** — the draw lived inside the attack branch | 0 alone | a Glare crossed a Follow Me and paralysed the body behind it |
+| **two redirectors on one side: slot order, not SPEED** | 1 | the authority killed the Maushold, this engine killed the Sinistcha |
+
+**THE MEMBERSHIP WAS PRINTED BEFORE THE TAG WAS WIRED AND THE DERIVATION WAS WRONG FIRST.** Exactly
+FOUR legal moves call `setAbility`; three write to `target` and are already tagged, and Role Play is
+the only one writing to `source`. The first cut of its refusal regexes read `flags['failroleplay']` —
+the TypeScript spelling — and the dex is loaded from `dist/`, where it is `flags["failroleplay"]`, so
+**both refusals came back `null` and the tag would have shipped refusing nothing.** Caught by printing
+the params, which is the rule that exists for exactly this.
+
+**THE DRAW IS NOW ONE FUNCTION AND THE ANNOUNCEMENTS ARE NOT.** `redirectDrawnTo()` answers "who does
+this single-target move actually reach" for both call sites; the attack branch keeps its own
+`-activate` and `retargetLastMove`, because it is the only site that knows where its `|move|` line is.
+The non-attack draw runs at the dispatch choke point and moves **`tgtSlot` as well as `target`** —
+writing only `target` is undone by the first branch that re-resolves through `reaimToSlot`. Lightning
+Rod's `-activate` is PARKED and flushed on the next `|move|`, because `useMoveInner` writes the move
+line at `:457` and reaches `getMoveTargets` at `:467`; the park is cleared at the top of EVERY action,
+because this site is above the five BeforeMove gates and a flinched body would otherwise flush its
+parked line onto the next body's move.
+
+**"THE VOLATILE OUTRANKS THE ABILITY" IS THE HANDLER PRIORITY, NOT A RULE THIS ENGINE INVENTED.**
+`Battle.compareRedirectOrder` is priority → SPEED → (two ability holders) `effectOrder`; Follow Me and
+Rage Powder declare `onFoeRedirectTargetPriority: 1` and the two rods declare none. Within a family
+only Speed separates them, and `pokemon.speed` is Trick-Room-inverted UPSTREAM — so the SLOWER
+redirector draws in a room, which is why the fix goes through `compareTurnOrder` and why the probe has
+a Trick Room arm.
+
+**THE ONE "INSTRUMENT" ITEM IN THE STANDING SET WAS AN ENGINE DEFECT.** The off-field body grouped
+with Moody as instrument noise was `|move|??: farigiraf|roar` — this engine's own emitter saying the
+mover holds no slot — and it is fixed. Of the 20 board-material games that remain, **8 are Moody**, so
+roughly **12 are ENGINE**.
+
+**A SINGLE-GAME REPLAY IS NOT REPRODUCIBLE IN ISOLATION, AND THAT IS A NEW FINDING.** The same pair
+played alone diverges on a different turn — sometimes on a different mechanic — from the same pair
+played in sequence inside the 961-game run. Reproduced with `medicham2-browser.js` reverted to HEAD,
+so it is not this batch: the tie key and the mid-battle address log are process-scoped. **Read a
+divergence with a single-game replay; never prove a fix with one.**
+
+### THE HAND LIST
+
+Leaves it, each now carried by a census probe: **Role Play doing nothing**, **an off-field body taking
+its turn**, **status moves ignoring redirection**, and **the redirect drawn by slot order rather than
+Speed**.
+
+Joins it, named rather than missed:
+- **Magic Room is PARKED, not suppressed, and the board reads the parked slot as empty.**
+  `itemRoomHide` moves the item to `_roomItem` and blanks `m.item`; Showdown suppresses the item's
+  EFFECTS while the body still HOLDS it. Every board taken inside a Magic Room reports every item on
+  the field as missing. Our REPRESENTATION, not our behaviour;
+- **a Sitrus Berry is eaten and then not gone** — Trevenant's `-enditem` and `-heal` both match the
+  authority, and this engine then writes an extra `|-activate|p1b: Trevenant|item: sitrusberry` and
+  finishes the turn still holding it. 1 game, board-material;
+- **a refused Role Play does not blank its move line's target field** — the authority's `onTryHit`
+  false is `-fail` **plus** `attrLastMove('[still]')`. Invisible to the comparator today, and left
+  alone rather than changed for one move and not its three neighbours;
+- **`planted_state_proof_ok` reads `false` on BOTH arms** — `vol.saltcure` and `vol.syrupbomb` plants
+  are NOT CAUGHT. Pre-existing, and named because the artifact prints *"every state number below is
+  worthless"* beside every board-material figure this sprint has published, including the standing 24.
+
+### PROPOSED REGISTER ROWS
+
+- *Role Play resolved to a pass — the user never took the target's ability.* ENGINE. **CLOSED**
+  2026-08-24. Instrument: `engine/game_differential.js`, arm `middle`, causes
+  `event missing from medicham2 :: |-fail|p1a <> |move|p2b|roleplay` and `… <> |move|p1a|curse`.
+  2 games of 961, BOARD-MATERIAL. Probe `move/copiesTargetAbility`.
+- *A body dragged off the field still took its own action.* ENGINE. **CLOSED** 2026-08-24.
+  Instrument: the same, cause `extra event emitted by medicham2 :: |upkeep <> |move|??:farigiraf|roar`.
+  1 game of 961, BOARD-MATERIAL. Probe `move/forcesSwitch`.
+- *A single-target STATUS move was never redirected.* ENGINE. **CLOSED** 2026-08-24. Exercised in the
+  pool but did not clear a game on its own. Probe `move/redirects`.
+- *Between two redirectors on one side, this engine took the one in the lower slot.* ENGINE.
+  **CLOSED** 2026-08-24. Instrument: the same, cause
+  `unrelated event mismatch :: |-damage|p1b|H/H <> |-supereffective|p1a|1`. 1 game of 961,
+  BOARD-MATERIAL. Probe `move/redirects`.
+- *A single-game replay is not reproducible in isolation.* ENGINE, **OPEN**, an instrument defect. The
+  tie key and the mid-battle address log are process-scoped, so a game's dice depend on how many games
+  ran before it. Blocks nothing; it makes every single-game debugging session quietly unreliable.
+
+### OWED, NOT RUN
+
+- `tests/run-all.js` in full. The ENGINE instruments were run individually and are listed in the
+  report;
+- **`engine/selftest.js` is RED and was RED at HEAD** — *"every raw reader of the ladder store declares
+  why"*, 10 files including `medicham2-browser.js`. Measured on a `git worktree` of `ce31ff0` before
+  this batch. Not this batch's, and not filed: it needs a clean filter or a `RAW-STORE-OK`
+  declaration;
+- **`engine/conformance.js` is RED and was RED at HEAD** — 60 S13 regressions there, 47 here, almost
+  all MEASURE/SEARCH artifacts with no attributable generator;
+- **`engine/feature_fixture.js --check` FAILED before and after** on `data/policy-weights.json` (the
+  fixture moved 10 → 12 scenarios; the damage table went 318 → 322 species). That is the REFIT
+  question and belongs to MEASURE. **Settle the table verdict before anybody restamps** — a restamp
+  writes over the evidence;
+- `tests/interaction_matrix.js` (last run 2026-08-11); `tests/mutation_harness.js` (needs
+  `--gate-only --no-write`); `node engine/quarantine.js` (its clauses were run through
+  `engine/status.js`, at the pins); `node engine/replay_one.js --census <the pin>`;
+  `node engine/explain_divergence.js --dump-speeds` (untouched per the brief).
 
 ## NARRATION TIMING, PART TWO — NARRATION 22 → 19 GAMES, CENSUS 674 → 677, BOARD-MATERIAL UNMOVED AT 24. 2026-08-24.
 

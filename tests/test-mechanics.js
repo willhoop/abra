@@ -2960,6 +2960,51 @@ probe('move', 'forcesSwitch', 'Roar drags whoever is standing in the slot, not t
                  + `nothing], the move fails and the slot is untouched` };
 });
 
+/* ROADMAP #361 — A BODY THAT IS NO LONGER ON THE FIELD STILL TOOK ITS TURN.
+ *
+ * `Battle#runAction` opens with TWO refusals and this engine only ever had one of them:
+ *
+ *     case 'move':
+ *       if (!action.pokemon.isActive) return false;      <- MISSING
+ *       if (action.pokemon.fainted) return false;        <- present, at the top of the action loop
+ *
+ * So a body dragged out by Roar, Whirlwind, Dragon Tail or Circle Throw came back later in the same
+ * turn and used its move from the bench. Found in the whole-game differential, where it printed
+ * itself: `|move|??: farigiraf|roar|p2a: Farigiraf` — the `??:` is this engine's own emitter saying
+ * the mover is in no slot — and the phantom Roar then dragged the OTHER side's lead out, so the two
+ * engines finished the turn with different Pokemon standing.
+ *
+ * THE FIXTURE IS A PRIORITY SANDWICH, not a speed one, so nothing here rests on a tie: Roar is -6 and
+ * Trick Room is -7 (the dex's own numbers), so the drag ALWAYS resolves first and the victim's own
+ * action is ALWAYS still pending when it happens. The consequence is read off the FIELD rather than
+ * off a line — `field.tr` is set or it is not — which is a leaf the board comparator reads.
+ *
+ * THE CONTROL IS THE SAME TURN WITH THE ROAR REPLACED BY A PASS. Trick Room must go up there, or the
+ * test arm proves nothing: an engine that had simply stopped setting Trick Room would pass a
+ * one-armed version of this. */
+probe('move', 'forcesSwitch', 'a body dragged off the field does not then take its own action', () => {
+  const run = (phaze) => {
+    const me = bare('incineroar'), ally = bare('clefable'), back = bare('snorlax');
+    const f1 = bare('corviknight'), f2 = bare('toxapex');
+    const S = M.battleInit([me, ally, back], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'trickroom', me, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, phaze ? M.playerAction(f1, 'roar', me, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    return { slot0: S.actA[0] && S.actA[0].name, tr: (S.field.tr | 0) > 0 };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.slot0 === 'incineroar' && control.tr === true
+                  && test.slot0 === 'snorlax' && test.tr === false,
+           arms: { control: [control.slot0, control.tr], test: [test.slot0, test.tr] },
+           detail: `Incineroar clicks Trick Room (priority -7); the foe clicks Roar (-6) at it. `
+                 + `[who holds p1 slot 0 at the end, is Trick Room up] — foe PASSES `
+                 + `[${control.slot0}, ${control.tr}] (the click lands, which is what makes the other `
+                 + `arm readable); foe ROARS [${test.slot0}, ${test.tr}] — Incineroar is on the bench `
+                 + `before its own action comes up, so the authority never runs it and the room must `
+                 + `stay down` };
+});
+
 /* ---- BATCH 2 — the next sixteen by corpus usage ------------------------------------------------
  *
  * Ordered by tests/mechanics_rank.js, which ranks by the clicks a tag covers rather than the number
@@ -3472,6 +3517,59 @@ probe('move', 'rewritesTargetAbility', 'Worry Seed / Simple Beam / Entrainment o
                  + '" (the user\'s own). The USER\'s ability across all three: ' + worry.user + '/'
                  + simple.user + '/' + entrain.user + ' — it must stay "' + U + '", which is what '
                  + 'separates these from Skill Swap' };
+});
+
+/* ROADMAP #360 — ROLE PLAY WRITES ONTO THE USER, AND IT WAS A WHOLE MOVE DOING NOTHING.
+ *
+ * The probe above proves the three one-ended rewriters change the TARGET. Role Play is the fourth
+ * `setAbility` move in this format and it is the only one that writes to `source`, so it fell through
+ * every branch in `playerAction` and came out `{kind:'pass'}` — a spent turn that changed nothing, on
+ * 40 corpus uses. Found in the whole-game differential rather than by reading the file: `p2.party.
+ * mrrime.ability` read `screencleaner` against the authority's `lightningrod` and then `hospitality`
+ * in two separate games, and NEITHER protocol stream said a word, because `|-ability|` is dropped as
+ * cosmetic by the comparator. The board was the only witness.
+ *
+ * THE CONSEQUENCE IS A GROUND MOVE AT THE USER, not a string comparison. A label that moves proves
+ * the assignment happened; an immunity that appears proves the copied ability is LIVE — which is the
+ * thing every damage, speed and immunity number downstream actually reads.
+ *
+ * TWO REFUSAL ARMS, BOTH THE HANDLER'S OWN and both read off the tag rather than typed:
+ *   `failsIfSame`      target.ability === source.ability -> the move fails outright;
+ *   `targetFlagRefuses` the target's ability carries `failroleplay` (Zero to Hero is a carrier —
+ *                      read out of `data/tags.json`'s `refusesCopy` row, and inert on this board
+ *                      because nothing ever switches out).
+ * Both must leave BOTH bodies holding what they started with; an engine that copied unconditionally
+ * would pass the first arm and fail these two. */
+probe('move', 'copiesTargetAbility', 'Role Play takes the TARGET\'s ability onto the USER', () => {
+  const play = (foeAb, click) => {
+    const { me, ally, f1, f2, S } = board('milotic', 'corviknight', 'garchomp', 'milotic');
+    me.ability = 'marvelscale'; f1.ability = foeAb;
+    if (click) M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'roleplay', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    /* THE CONSEQUENCE. Ground into a Water body is neutral, so the only thing that can zero it is an
+     * ability the user did not have a turn ago. */
+    const before = me.curHP;
+    M.battleTurn(S, rng5,
+      PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { user: me.ability, target: f1.ability, took: before - me.curHP };
+  };
+  const none = play('levitate', false);          // control: no click at all
+  const copy = play('levitate', true);           // the mechanic
+  const same = play('marvelscale', true);        // failsIfSame
+  const flag = play('zerotohero', true);         // the target refuses to be copied
+  return { works: none.user === 'marvelscale' && none.took > 0
+                  && copy.user === 'levitate' && copy.target === 'levitate' && copy.took === 0
+                  && same.user === 'marvelscale' && same.target === 'marvelscale' && same.took > 0
+                  && flag.user === 'marvelscale' && flag.target === 'zerotohero' && flag.took > 0,
+           arms: { control: [none.user, none.took], test: [copy.user, copy.took] },
+           detail: '[the user\'s ability, HP lost to a following Earthquake] — NO CLICK '
+                 + `[${none.user}, ${none.took}]; ROLE PLAY into a Levitate body [${copy.user}, `
+                 + `${copy.took}] and the target still holds "${copy.target}" (it is a copy, not a `
+                 + `swap); into a body holding the user\'s OWN ability [${same.user}, ${same.took}] `
+                 + `— the authority fails outright; into a failroleplay carrier [${flag.user}, `
+                 + `${flag.took}]. Only the second arm may change anything` };
 });
 
 /* ROADMAP #157 -- AND THE STORED-STAT REWIRERS, the same hole. Guard Split, Power Split and Speed
@@ -5526,6 +5624,97 @@ probe('move', 'redirects', 'Follow Me pulls the attack onto the partner', () => 
            arms: { control, test },
            detail: 'no Follow Me: aimed ' + control.aimed + ' / partner ' + control.guard
                  + '   |   Follow Me: aimed ' + test.aimed + ' / partner ' + test.guard };
+});
+
+/* ROADMAP #362 — AND A STATUS MOVE WALKED STRAIGHT PAST THE SAME FOLLOW ME.
+ *
+ * The probe above is the whole of what this engine tested, and it is a DAMAGING move — because the
+ * draw lived inside the attack branch and nothing else could reach it. The authority makes no such
+ * split: `Pokemon#getMoveTargets` runs the `RedirectTarget` event in its `default:` case
+ * (sim/pokemon.ts:829), which is every single-target move, and `useMoveInner` calls it once per move.
+ *
+ * MEASURED, NOT REASONED. In the whole-game differential an Arbok's Glare crossed a Maushold's Follow
+ * Me and paralysed the Blaziken behind it: `|-status|p1b: Maushold|par` against this engine's
+ * `|-status|p1a: Blaziken|par`, and the wrong body then carried paralysis for the rest of the game.
+ *
+ * THE THIRD ARM IS THE FIXTURE'S OWN CONTROL. A damaging move on the identical board must still be
+ * drawn — if it were not, a red status arm would only be saying the Follow Me never went up. */
+probe('move', 'redirects', 'a single-target STATUS move is drawn by Follow Me too', () => {
+  const run = (useFollowMe, moveId) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'clefable', 'garchomp', 'maushold');
+    const bAimed = f1.curHP, bDrawer = f2.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }],
+               [f2, useFollowMe ? M.playerAction(f2, 'followme', null, S.field) : { kind: 'pass' }]]));
+    return { aimed: f1.status, drawer: f2.status,
+             aimedHP: bAimed - f1.curHP, drawerHP: bDrawer - f2.curHP };
+  };
+  /* Will-O-Wisp is 85% and lands at a 0.5 roll; both Garchomp and Maushold can be burned, so the only
+   * thing that separates the arms is WHICH of them is standing in the way. */
+  const control = run(false, 'willowisp'), test = run(true, 'willowisp');
+  const hit = run(true, 'darkestlariat');    // the fixture's control: a damaging move IS drawn
+  return { works: control.aimed === 'brn' && control.drawer === ''
+                  && test.aimed === '' && test.drawer === 'brn'
+                  && hit.aimedHP === 0 && hit.drawerHP > 0,
+           arms: { control: [control.aimed, control.drawer], test: [test.aimed, test.drawer] },
+           detail: `Will-O-Wisp aimed at the Garchomp in foe slot A, [aimed body's status, `
+                 + `partner's status] — no Follow Me [${control.aimed || 'none'}, `
+                 + `${control.drawer || 'none'}]; Follow Me up [${test.aimed || 'none'}, `
+                 + `${test.drawer || 'none'}]. The burn must MOVE, not vanish. And on the same board `
+                 + `a damaging Darkest Lariat is drawn as it always was: aimed took ${hit.aimedHP}, `
+                 + `the Follow Me body took ${hit.drawerHP} — the arm that proves the redirector was `
+                 + `really up` };
+});
+
+/* ROADMAP #363 — TWO REDIRECTORS ON ONE SIDE, AND THIS ENGINE TOOK THE ONE IN THE LOWER SLOT.
+ *
+ * `priorityEvent` passes `fastExit`, so `runEvent` sorts the handlers with
+ * `Battle.compareRedirectOrder` (sim/battle.ts:413) and takes the FIRST that returns a body:
+ *     handler priority DESC  ->  holder SPEED desc  ->  (two ability holders) effectOrder asc
+ * Follow Me and Rage Powder both declare `onFoeRedirectTargetPriority: 1` and Lightning Rod and
+ * Storm Drain declare none (0), which is why the volatile still outranks the ability. Between two
+ * volatiles nothing but SPEED separates them, and this engine used `Array.find` over the foe array —
+ * slot order, every time.
+ *
+ * MEASURED IN A REAL GAME: a Maushold's Follow Me and a Sinistcha's Rage Powder were both up; the
+ * authority sent Gunk Shot into the Maushold (base 111 Speed) and killed it, and this engine sent it
+ * into the Sinistcha (base 70). Two engines, two different Pokemon dead.
+ *
+ * THE KNOB IS THE SPEED AND NOTHING ELSE. The same two bodies, the same two clicks, the same aimed
+ * slot; only the Speed numbers are exchanged. An engine reading slot order gives the SAME answer on
+ * both arms, which is the finding rather than a curiosity.
+ *
+ * `pokemon.speed` IS TRICK-ROOM-INVERTED UPSTREAM (`getActionSpeed`, sim/pokemon.ts:641-648) and the
+ * sort is plain descending, so under Trick Room the SLOWER redirector wins. That is why the fix goes
+ * through `compareTurnOrder`, which is this engine's one implementation of the same rule, and the
+ * third arm asserts it. */
+probe('move', 'redirects', 'between two redirectors on one side, the FASTER one draws', () => {
+  const run = (fastSlot, trickRoom) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'clefable', 'garchomp', 'milotic');
+    unfaintable(f1); unfaintable(f2);
+    f1.st = Object.assign({}, f1.st, { sp: fastSlot === 0 ? 150 : 50 });
+    f2.st = Object.assign({}, f2.st, { sp: fastSlot === 0 ? 50 : 150 });
+    if (trickRoom) S.field.tr = 5;
+    const b1 = f1.curHP, b2 = f2.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'darkestlariat', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'followme', null, S.field)],
+               [f2, M.playerAction(f2, 'followme', null, S.field)]]));
+    return [b1 - f1.curHP, b2 - f2.curHP];
+  };
+  const aimedIsFaster = run(0, false);      // the aimed body is the faster: it keeps the hit
+  const otherIsFaster = run(1, false);      // the PARTNER is faster: the hit must move
+  const underTR = run(0, true);             // same board as the first, room up: the slower draws
+  return { works: aimedIsFaster[0] > 0 && aimedIsFaster[1] === 0
+                  && otherIsFaster[0] === 0 && otherIsFaster[1] > 0
+                  && underTR[0] === 0 && underTR[1] > 0,
+           arms: { control: aimedIsFaster, test: otherIsFaster },
+           detail: `both foes click Follow Me, the attack is aimed at foe slot A, [damage to A, `
+                 + `damage to B] — A at 150 Speed and B at 50 [${aimedIsFaster}] so A keeps it; the `
+                 + `Speeds EXCHANGED [${otherIsFaster}] so B draws it. Same board as the first arm `
+                 + `with TRICK ROOM up [${underTR}]: the sort key is inverted upstream, so the `
+                 + `SLOWER body draws. An engine reading slot order prints the same pair three times` };
 });
 
 /* ROADMAP #175 -- `ignoresRedirection` WAS ON THE TWENTY-THREE-TAGS-WITH-NO-CONSUMER LIST, AND THE

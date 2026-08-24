@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-24T10:37:58.186Z",
- "release": "2535a9c59886",
+ "generated": "2026-08-24T20:10:34.644Z",
+ "release": "fbf74de3fbd6",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -20205,50 +20205,24 @@
     "resolved": true,
     "why": null,
     "medicham_attempted": true,
-    "medicham_resolved": false,
-    "medicham_why": "the move executed and produced no consequence line at all",
+    "medicham_resolved": true,
+    "medicham_why": null,
     "diverged": false,
     "divergence": null,
     "err": null,
     "board": {
-     "verdict": "STATE",
-     "state_parted_without_a_line": true,
+     "verdict": "NO-DIVERGENCE",
+     "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
-     "boundaries_agreed": 1,
+     "boundaries_agreed": 2,
      "last_boundary_turn": 1,
      "protocol_parted_on_turn": null,
      "boards_after_the_parting": null,
-     "state_parted_on_turn": 1,
-     "diffs": [
-      {
-       "path": "p1.party.alakazam.ability",
-       "side": "p1",
-       "slot": "",
-       "body": "alakazam",
-       "body_showdown": "alakazam",
-       "field": "party.ability",
-       "us": "synchronize",
-       "sd": "torrent",
-       "bucket": "different-value",
-       "family": "party.ability"
-      },
-      {
-       "path": "p1.active[0].ability",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "alakazam",
-       "body_showdown": "alakazam",
-       "field": "ability",
-       "us": "synchronize",
-       "sd": "torrent",
-       "bucket": "different-value",
-       "family": "active[].ability",
-       "maxhp": 780
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
       "leaves_compared_min": 298,
       "leaves_compared_max": 298,
@@ -53361,9 +53335,9 @@
    "diverged_including_shelved": 20,
    "shelved_by_owner": 3,
    "shelved_by_owner_diverging": 2,
-   "resolution_disagreements": 14,
+   "resolution_disagreements": 13,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 4.6
+   "seconds": 4.7
   },
   "abilities": {
    "exist": 316,
@@ -53380,7 +53354,7 @@
    "diverged_including_shelved": 5,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 8.8
+   "seconds": 9.1
   },
   "then_what": {
    "rows": 62,
@@ -53406,7 +53380,7 @@
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 4.2
+   "seconds": 4.5
   },
   "board_state": {
    "rows": 15,
@@ -53632,9 +53606,9 @@
   "boards": {
    "moves": {
     "tally": {
-     "NO-DIVERGENCE": 473,
+     "NO-DIVERGENCE": 474,
      "ANNOUNCEMENT-ONLY": 17,
-     "STATE": 6
+     "STATE": 5
     },
     "rows": 496,
     "core_leaf_unchecked_rows": [
@@ -53674,14 +53648,12 @@
      "clearsmog",
      "healbell",
      "reflecttype",
-     "roleplay",
      "shellsidearm"
     ],
     "not_asked_rows": [],
     "silent_state_rows": [
      "axekick",
-     "clearsmog",
-     "roleplay"
+     "clearsmog"
     ],
     "rows_with_a_held_leaf": [
      "explosion",
@@ -54167,8 +54139,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "2535a9c59886",
-    "roster_generated": "2026-08-24T10:37:28.766Z",
+    "roster_release": "fbf74de3fbd6",
+    "roster_generated": "2026-08-24T20:09:51.614Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

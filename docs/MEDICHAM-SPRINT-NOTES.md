@@ -21,6 +21,57 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE BOARD-MATERIAL SET MOVED — 24 → 20 GAMES, NARRATION HELD AT 19, CENSUS 677 → 681. 2026-08-24 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-24-board-material.md`](_reports/2026-08-24-board-material.md).
+Ledger section: `docs/ENGINE.md`, *"THE BOARD-MATERIAL SET MOVED"*.
+
+**FOUR MECHANISMS, FOUR GAMES CLEARED, ZERO NEW DIVERGING GAMES.** Arm `middle`, release
+`fbf74de3fbd6` (before-arm `2535a9c59886`, which is HEAD), 961 games,
+`--team-store data/team-pool-frozen`, census pinned to `census-pin-9446a684709d.json`: raw parted
+**43 → 39**, undeclared **30 of 961 (3.1%) → 26 (2.7%)**, **board-material 24 → 20 games / 23 → 19
+causes**, narration **19 → 19 / 18 → 18**, DIFFERENT-END-STATE **18 → 14**. Board-material had not
+moved in three previous passes.
+
+- **Role Play resolved to a pass** — it is the only legal move calling `source.setAbility`, the
+  artifact had no tag matching that shape, and it fell past all ~40 branches of `playerAction`. 2
+  games. Both protocol streams AGREED, because `|-ability|` is dropped as cosmetic by the comparator;
+  the `ability` board leaf was the only witness. New tag `copiesTargetAbility`, membership printed
+  first (exactly four legal moves call `setAbility`, three write to `target`). **The derivation was
+  wrong before the engine was**: the refusal regexes read the `.ts` single-quote spelling and the dex
+  loads from `dist/`, so both refusals came back `null` and the tag would have refused nothing.
+  Probe `move/copiesTargetAbility`.
+- **`runAction`'s `if (!action.pokemon.isActive) return false` was missing** — a body phazed out by
+  Roar came back later in the same turn and used its move from the bench, and its own emitter said so
+  (`|move|??: farigiraf|roar`) for as long as it existed. 1 game. Fires exactly ONCE in 699 pinned
+  games, witness `farigiraf/roar`. Probe `move/forcesSwitch`.
+- **A single-target STATUS move was never redirected** — `getMoveTargets` runs `RedirectTarget` for
+  every single-target move and this engine only asked inside the ATTACK branch, so a Glare crossed a
+  Follow Me. Extracted to one function both sites call; the choke-point call moves `tgtSlot` as well
+  as `target`, and Lightning Rod's `-activate` is parked and flushed on the next `|move|` because the
+  authority emits it BELOW the move line. Exercised in the pool; cleared no game on its own.
+  Probe `move/redirects`.
+- **Between two redirectors on one side we took the lower slot; the game takes the FASTER.**
+  `Battle.compareRedirectOrder` is priority → SPEED, and `pokemon.speed` is Trick-Room-inverted
+  upstream, so the SLOWER body draws in a room. 1 game — the authority killed the Maushold and this
+  engine killed the Sinistcha. Probe `move/redirects`, with a Trick Room arm.
+
+**MUST-NOT-MOVE, CHECKED:** damage differential **0 of 6000** at all 16 corners
+(`--n 6000 --seed 20260804`); census **681 probed / 681 live / 0 missing**, 0 threw; narration did not
+rise; all three deliberate-roster stages re-run and re-written against `fbf74de3fbd6` (0
+FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE in each); `all_mechanics_fire --kind all` re-run; the gate
+holds at **5 of 8 PASS**.
+
+**SAID PLAINLY:** `engine/selftest.js` and `engine/conformance.js` are RED and were **measured RED at
+HEAD** on a worktree before this batch — a ladder-store declaration and 47–60 S13 artifact
+regressions, neither ENGINE's. `engine/feature_fixture.js --check` also failed before and after; that
+is MEASURE's refit question and must be settled before anybody restamps.
+
+**NEW FINDING, OPEN:** a single-game replay is **not reproducible in isolation** — the same pair
+diverges on a different turn when played alone rather than in sequence, because the tie key and the
+mid-battle address log are process-scoped. Reproduced with the engine reverted to HEAD, so it is not
+this batch. Read a divergence with a single-game replay; never prove a fix with one.
+
 ## NARRATION TIMING, PART TWO — NARRATION 22 → 19 GAMES, CENSUS 674 → 677, BOARD-MATERIAL UNMOVED AT 24. 2026-08-24 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-24-narration-timing.md`](_reports/2026-08-24-narration-timing.md).

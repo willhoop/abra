@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-24T10:40:05.292Z",
+  "generated": "2026-08-24T19:56:31.039Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 677,
-  "live": 677,
+  "probed": 681,
+  "live": 681,
   "missing": 0,
-  "armed": 677,
+  "armed": 681,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -630,6 +630,16 @@
     },
     {
       "kind": "move",
+      "tag": "forcesSwitch",
+      "label": "a body dragged off the field does not then take its own action",
+      "live": true,
+      "detail": "Incineroar clicks Trick Room (priority -7); the foe clicks Roar (-6) at it. [who holds p1 slot 0 at the end, is Trick Room up] — foe PASSES [incineroar, true] (the click lands, which is what makes the other arm readable); foe ROARS [snorlax, false] — Incineroar is on the bench before its own action comes up, so the authority never runs it and the room must stay down",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "neverMissesAttack",
       "label": "Aura Sphere cannot miss",
       "live": true,
@@ -754,6 +764,16 @@
       "label": "Worry Seed / Simple Beam / Entrainment overwrite the TARGET only",
       "live": true,
       "detail": "the target's ability then a Spore at it — NO click \"roughskin\", slept true (must be true, or the consequence proves nothing); WORRY SEED \"insomnia\", slept false (must be false — Insomnia refuses it); SIMPLE BEAM \"simple\"; ENTRAINMENT \"marvelscale\" (the user's own). The USER's ability across all three: marvelscale/marvelscale/marvelscale — it must stay \"marvelscale\", which is what separates these from Skill Swap",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "copiesTargetAbility",
+      "label": "Role Play takes the TARGET's ability onto the USER",
+      "live": true,
+      "detail": "[the user's ability, HP lost to a following Earthquake] — NO CLICK [marvelscale, 93]; ROLE PLAY into a Levitate body [levitate, 0] and the target still holds \"levitate\" (it is a copy, not a swap); into a body holding the user's OWN ability [marvelscale, 93] — the authority fails outright; into a failroleplay carrier [marvelscale, 93]. Only the second arm may change anything",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1404,6 +1424,26 @@
       "label": "Follow Me pulls the attack onto the partner",
       "live": true,
       "detail": "no Follow Me: aimed 91 / partner 0   |   Follow Me: aimed 0 / partner 100",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "redirects",
+      "label": "a single-target STATUS move is drawn by Follow Me too",
+      "live": true,
+      "detail": "Will-O-Wisp aimed at the Garchomp in foe slot A, [aimed body's status, partner's status] — no Follow Me [brn, none]; Follow Me up [none, brn]. The burn must MOVE, not vanish. And on the same board a damaging Darkest Lariat is drawn as it always was: aimed took 0, the Follow Me body took 108 — the arm that proves the redirector was really up",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "redirects",
+      "label": "between two redirectors on one side, the FASTER one draws",
+      "live": true,
+      "detail": "both foes click Follow Me, the attack is aimed at foe slot A, [damage to A, damage to B] — A at 150 Speed and B at 50 [85,0] so A keeps it; the Speeds EXCHANGED [0,99] so B draws it. Same board as the first arm with TRICK ROOM up [0,99]: the sort key is inverted upstream, so the SLOWER body draws. An engine reading slot order prints the same pair three times",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3433,7 +3473,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4043,7 +4083,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "48/48 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "49/49 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6553,7 +6593,7 @@
       "tag": "pivotStatus",
       "label": "a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch",
       "live": true,
-      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 39 to 41",
+      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 38 to 40",
       "hollow": false,
       "armed": true,
       "directCall": false

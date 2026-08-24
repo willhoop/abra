@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-23T13:09:54.087Z",
+ "generated": "2026-08-24T20:03:11.816Z",
  "by": "engine/conformance.js",
- "files": 470,
+ "files": 471,
  "findings": [
   {
    "std": "S12",
@@ -365,9 +365,10 @@
   {
    "std": "S12",
    "file": "engine/quarantine.js",
-   "what": "names 1 Pokemon thing(s) in code: move:tailwind",
+   "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:protect",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
+    "move:protect",
     "move:tailwind"
    ]
   },
@@ -759,6 +760,15 @@
   },
   {
    "std": "S13",
+   "file": "data/effective-identity-baseline.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of tests/test-effective-identity.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
+   ]
+  },
+  {
+   "std": "S13",
    "file": "data/engine-release.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -826,12 +836,6 @@
   {
    "std": "S13",
    "file": "data/mc-key-baseline.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/mc-key-door-baseline.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
   },
