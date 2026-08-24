@@ -10,6 +10,43 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.111.0] — 2026-08-24
+
+### Fixed
+- **MOODY IS DECLARED; SPEED TIES WERE REFUSED, AND THE REFUSAL IS THE FINDING.** Will waived both by
+  name — *"some things we can jsut quarantine as a known failure with a quoted reason (speed ties,
+  moody, etc)"* — which is the sanctioned third state in `CLAUDE.md`. Only one of them qualified.
+  - **Moody: declared, 8 of 961.** The authority picks with `sample()` twice (+2/−1, five main stats,
+    `accuracy` and `evasion` skipped by name at `data/abilities.ts:2699` and `:2710`) and this engine
+    implements the identical rule with a real draw. The rule is not in dispute — only *which stat the
+    die names*, and that draw sits on a generic stream at an occurrence index each engine fills with
+    its own unrelated draws. The row states plainly that this is the instrument's **addressing**, not
+    a law: give the pick a named stream and the row must be deleted.
+  - **Speed ties: REFUSED.** The derivation behind the ruling was **mine and it was wrong.**
+- **RETRACTION — the coordinator's speed-tie analysis was false on every point.** I told Will the
+  authority coin-flips ties and that the die is unshared, citing a five-entry list. In fact
+  `engine/medicham2-browser.js:15614` reads `RNG_STREAMS = ['acc','crit','sec','dmg','stall','tie']` —
+  **six streams, `tie` among them, since 2026-08-20**; the list I read (`MID_CATS`,
+  `game_differential.js:699`) is a different thing. Showdown's `prng.shuffle` on the tied group is a
+  **no-op in every arm** the differential runs, the middle arm pins `tie` to zero, and 3.74.0 fixed the
+  tie at the root. **So those rows are a real turn-order disagreement**, and declaring them would have
+  hidden a live defect under a heading reading *"nothing to fix"*.
+
+### Changed
+- **Two declaration kinds, printed apart and never summed** — `IMPOSSIBLE TO COMPARE` (8) and `THE
+  AUTHORITY IS WRONG` (5), each with its own count, beside the raw number.
+- **A `DEFERRED` kind was deliberately NOT built.** The kind is a whitelist, so a row typed `DEFERRED`
+  is **not** subtracted, counts as undeclared, and is named on the run — asserted in the selftest. A
+  half-wired deferral bucket would be a place for known defects to disappear into.
+
+### Notes
+- **The proof is the negatives, not the positives.** Nine mutations of the Moody cause — evasion in the
+  pool, accuracy in the pool, +3, −2, unattributed, half-attributed, attributed elsewhere, following a
+  move click, wrong slot — all fall through to undeclared. Speed ties assert undeclared at gap 0 **and**
+  gap 40, so re-adding that row goes red. Selftest 108/0.
+- Clause moved `declared 5 → 13`, `undeclared 43 → 35` on 48 raw over 961. **Still RED**; nothing here
+  could have opened it, and nothing was declared to make it pass.
+
 ## [5.107.0] — 2026-08-23
 
 ### Fixed

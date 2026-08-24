@@ -12848,3 +12848,29 @@ Floor untouched at 201; `--update` deliberately not run (it would drop it to 197
 made today). **No census count moved and none is claimed** (658 probed / 658 live / 0 missing).
 
 **OWED, NOT RUN:** `--update` to lock in the 6 baselined blocks that now speak; two register rows.
+
+---
+
+## MOODY DECLARED, SPEED TIES REFUSED — 2026-08-24
+
+Will waived both by name. **Only Moody qualified.**
+
+Moody: 8 of 961, `IMPOSSIBLE TO COMPARE`. Both engines implement the same rule with a real draw
+(+2/-1, five main stats, accuracy and evasion skipped by name at `data/abilities.ts:2699` / `:2710`);
+only WHICH STAT THE DIE NAMES differs, and that draw has no shared address. The row states this is the
+instrument's addressing, not a law — give the pick a named stream and the row must be deleted.
+
+**Speed ties: refused, and the coordinator's derivation was the thing that was wrong.**
+`medicham2-browser.js:15614` reads `RNG_STREAMS = ['acc','crit','sec','dmg','stall','tie']` — SIX
+streams, `tie` among them, since 2026-08-20. The five-entry list quoted at it (`MID_CATS`) is a
+different thing. The authority's shuffle is a no-op in every arm, the middle arm pins `tie` to zero,
+and 3.74.0 fixed the tie at the root. **Those rows are a real turn-order disagreement**, and declaring
+them would have hidden a live defect under a heading reading "nothing to fix".
+
+Two kinds print apart and are never summed. A `DEFERRED` kind was deliberately NOT built — the kind is
+a whitelist, so such a row is not subtracted, counts as undeclared, and is named.
+
+**No mechanic changed and no census count moved by this pass** (666 probed / 666 live / 0 missing).
+Clause `declared 5 -> 13`, `undeclared 43 -> 35` on 48 raw. **Still RED.**
+
+**OWED, NOT RUN:** the real ordering defects behind those rows; `interaction_matrix.js`.

@@ -1082,8 +1082,36 @@ function roadmapRowSaysBroken(l) {
  * single blended percentage is the merged-number failure this file already learned once, when the
  * midpoint residual hid a range wrong at both ends. */
 /* ==================================================================================================
- * DIVERGENCES WHERE MATCHING THE AUTHORITY WOULD MAKE THIS ENGINE LESS CORRECT — WILL, 2026-08-18.
+ * DIVERGENCES THAT ARE NOT DEFECTS — TWO KINDS, PRINTED APART, NEVER SUMMED.
  * ==================================================================================================
+ * Opened 2026-08-18 for ONE kind ("matching the authority would make this engine LESS correct").
+ * WIDENED 2026-08-23 for a SECOND kind, on Will's ruling: *"yeah some things we can just quarantine
+ * as a known failure with a quoted reason (speed ties, moody, etc)"*, and then, on how to shape it:
+ * *"yes we can have two things, impossible to compare, and too difficult and irrelevant to add at the
+ * moment."*
+ *
+ *   AUTHORITY-WRONG  — the authority has a bug and we do not. Reproducing it is not correctness.
+ *   INCOMPARABLE     — the authority makes a RANDOM DRAW at an address this harness does not share.
+ *                      The two engines therefore disagree BY CONSTRUCTION, about half the time,
+ *                      forever. There is no defect and nothing to fix.
+ *
+ * BOTH KINDS ASSERT "THERE IS NO DEFECT HERE", WHICH IS THE ONLY REASON EITHER MAY BE SUBTRACTED FROM
+ * THE DIVERGENCE COUNT. They are printed under SEPARATE HEADINGS with SEPARATE COUNTS because they are
+ * different claims and a reader must be able to tell which one is being made.
+ *
+ * THE THIRD KIND WILL NAMED — *"too difficult and irrelevant to add at the moment"* — IS DELIBERATELY
+ * NOT BUILT HERE, and this comment is where that decision is recorded. A DEFERRED row would assert the
+ * opposite: that there IS a real defect and we chose not to fix it yet. Such a row must never open this
+ * gate, and it must never print under a heading that reads as "no defect", because that is precisely
+ * how *"one of the two known failures"* cost this project two days and got the phrase banned in
+ * CLAUDE.md. The mechanism for it is proposed in `docs/_reports/2026-08-23-declared-moody-ties.md`, not
+ * half-wired in here.
+ *
+ * AND IT IS FAIL-SAFE AGAINST SOMEBODY TRYING ANYWAY. A row is only subtracted when its `kind` is one
+ * of the two in `DECLARED_KINDS` below. A row typed `kind: 'DEFERRED'` — or with a misspelt or missing
+ * kind — is counted as UNDECLARED and NAMED on the run, so it holds the gate shut rather than opening
+ * it quietly. That is asserted in the selftest.
+ *
  * `ok = div === 0` is the right bar and the comment below defends it well: mode A pins every die, so
  * the engines are deterministic functions of one input and every disagreement is a RULE. Will:
  * *"so if its not correct then it shouldnt pass man"*. Nothing here weakens that.
@@ -1094,8 +1122,17 @@ function roadmapRowSaysBroken(l) {
  * endless until it started counting evidence instead of sentences.
  *
  * THE BAR IS DELIBERATELY NARROW, AND "THIS IS HARD" IS NOT ON IT. A row belongs here only when
- * matching the authority would make this engine WORSE. It does NOT belong here because the fix is
- * expensive, because nobody has got to it, or because it has been open a long time.
+ * matching the authority would make this engine WORSE, or when the authority's answer HAS NO SHARED
+ * ADDRESS to be compared against. It does NOT belong here because the fix is expensive, because
+ * nobody has got to it, or because it has been open a long time.
+ *
+ * THE SECOND KIND HAS ITS OWN NARROW BAR, AND IT IS NOT "THERE IS RANDOMNESS INVOLVED". Mode A pins
+ * FIVE dice on both sides — `MID_CATS = ['acc','crit','sec','dmg','stall']` at
+ * `engine/game_differential.js:699` — and every other draw the authority makes is unaddressed. An
+ * INCOMPARABLE row must name the authority's draw at the line, must show that the draw is not one of
+ * those five, and must MATCH ONLY THE DRAW: everything around the draw (its magnitude, its pool, when
+ * it fires, what it is allowed to touch) is still a rule the two engines must agree about, and a
+ * matcher that shelters any of that is a defect wearing a label exactly like the one below.
  *
  * THE RECEIPT FOR WHY THAT BAR MATTERS IS FRESH. `medicham2-browser.js:17440` carried a DECLARED
  * divergence reading *"rolling per target here would change how much rng every existing seeded run
@@ -1113,8 +1150,152 @@ function roadmapRowSaysBroken(l) {
  * recorded and printed beside the declared count rather than absorbed into it. Empty is the claim
  * that every matcher answered. */
 const MATCHER_THREW = [];
+
+/* THE ONLY TWO KINDS THAT MAY BE SUBTRACTED, AND THEIR HEADINGS. A `kind` outside this table is not
+ * declared — see the loop in `wholeGameClause`. Keeping the headings HERE, beside the rows, is what
+ * makes "which claim is this row making" answerable without reading the printer. */
+const DECLARED_KINDS = {
+  INCOMPARABLE:
+    'DECLARED / IMPOSSIBLE TO COMPARE — the authority makes a RANDOM DRAW at an address this harness '
+    + 'does not share, so the two engines disagree by construction and always will. NO DEFECT, NOTHING '
+    + 'TO FIX:',
+  'AUTHORITY-WRONG':
+    'DECLARED / THE AUTHORITY IS WRONG — matching it here would make this engine LESS correct, so '
+    + 'these do not count:',
+};
+
+/* ---- THE EVIDENCE A MATCHER IS ALLOWED TO SEE ----------------------------------------------------
+ *
+ * A cause string is NORMALISED — `|-boost|p2a|spa|2` — and the normalisation is what strips the very
+ * fields a narrow matcher needs: which ability emitted the line, and whether the two bodies were
+ * actually speed-tied. Both facts are already in the artifact, measured, on the rows the differential
+ * writes for the same cause: `first_divergences` carries the raw pair of lines, and `order_probe`
+ * carries `speed_tied` / `speed_gap` / `same_priority` read off the AUTHORITY at the turn boundary.
+ *
+ * So the matcher is handed them rather than being asked to guess from a normalised string. This is
+ * narrowing, not widening: without it the only available Moody matcher is "a +2 boost picked a
+ * different stat", which would also swallow a real defect in any other +2 boost in the game.
+ *
+ * Returns [] for a cause with no rows, and a matcher that requires evidence therefore DECLINES on
+ * absence — the safe direction, because an undeclared divergence holds the gate shut. */
+function causeEvidence(j) {
+  const firsts = new Map(), probes = new Map();
+  const push = (m, r) => {
+    const k = String((r && r.cause) || '');
+    if (!k) return;
+    const a = m.get(k); if (a) a.push(r); else m.set(k, [r]);
+  };
+  for (const r of (Array.isArray(j && j.first_divergences) ? j.first_divergences : [])) push(firsts, r);
+  for (const r of (Array.isArray(j && j.order_probe) ? j.order_probe : [])) push(probes, r);
+  return (cause) => ({ firsts: firsts.get(cause) || [], probes: probes.get(cause) || [] });
+}
+
+/* `|-boost|p2a|spa|2` -> {kind,slot,stat,mag}, or null for anything that is not exactly that shape. */
+function parseBoostEvent(s) {
+  const p = String(s).split('|');
+  if (p.length !== 5 || p[0] !== '') return null;
+  if (p[1] !== '-boost' && p[1] !== '-unboost') return null;
+  return { kind: p[1], slot: p[2], stat: p[3], mag: p[4] };
+}
+/* Moody's pool, read off the authority at `data/abilities.ts:2691-2716` on 2026-08-23: both loops
+ * `continue` on accuracy and evasion, so a pick outside these five is a DEFECT and must not match. */
+const MOODY_POOL = ['atk', 'def', 'spa', 'spd', 'spe'];
+
 const DECLARED_DIVERGENCE = [
   {
+    kind: 'INCOMPARABLE',
+    name: "Moody's stat pick",
+    /* MATCHES: the two engines named a DIFFERENT STAT on the same slot, at the same magnitude, with
+     * our line attributed to Moody and theirs attributed to nothing else.
+     * DOES NOT MATCH, deliberately, because each of these is a real defect:
+     *   - a magnitude that is not +2 / -1                       (mag !== want)
+     *   - a pick outside the five main stats — ACCURACY or EVASION in the pool  (MOODY_POOL)
+     *   - a boost the authority attributes to some other effect (their [from] names it)
+     *   - a boost that immediately follows the same slot clicking a MOVE — that boost is the move's
+     *   - any occurrence of this cause that is NOT attributed to Moody (rows.every) */
+    match: (c, ev) => {
+      const i = c.indexOf(' :: ');
+      if (i < 0) return false;
+      const cls = c.slice(0, i);
+      /* `field 3` IS the stat position of `|-boost|SLOT|STAT|MAG`, so the class name already asserts
+       * that the event, the slot and the magnitude agree and only the STAT differs. Parsed again
+       * below rather than trusted, because a class name is a label and the fields are the fact. */
+      if (cls !== '-boost field 3' && cls !== '-unboost field 3') return false;
+      const halves = c.slice(i + 4).split(' <> ');
+      if (halves.length !== 2) return false;
+      const A = parseBoostEvent(halves[0]), B = parseBoostEvent(halves[1]);
+      if (!A || !B) return false;
+      if (A.kind !== B.kind || A.slot !== B.slot || A.mag !== B.mag) return false;
+      if (A.mag !== (A.kind === '-boost' ? '2' : '1')) return false;
+      if (MOODY_POOL.indexOf(A.stat) < 0 || MOODY_POOL.indexOf(B.stat) < 0) return false;
+      if (A.stat === B.stat) return false;
+      const rows = (ev && ev.firsts) || [];
+      if (!rows.length) return false;
+      return rows.every((r) => {
+        if (!/\|\[from\] ability: moody$/i.test(String(r && r.medicham || '').trim())) return false;
+        const theirs = String(r && r.showdown || '').match(/\[from\] (.+)$/);
+        if (theirs && !/moody/i.test(theirs[1])) return false;
+        const before = (Array.isArray(r && r.showdown_before) ? r.showdown_before : []).slice(-2);
+        const clicked = new RegExp('^\\|move\\|' + A.slot + ':');
+        return !before.some((L) => clicked.test(String(L)));
+      });
+    },
+    why: "THE STAT PICK IS A DIE WITH NO SHARED ADDRESS. `data/abilities.ts:2691-2716` picks with "
+       + "`this.sample(stats)` twice — +2 on one stat, -1 on another — over the five main stats only, "
+       + "because both loops `continue` on accuracy and evasion. THE RULE IS NOT IN DISPUTE AND THIS "
+       + "ENGINE IMPLEMENTS IT: medicham2-browser.js:25831 draws over `['at','df','sa','sd','sp']`, "
+       + "+2 then -1, second draw excluding the first, capped stats excluded — Will's condition, "
+       + "*\"as long as we genuinely model a random chance its fine\"*, is met. WHAT CANNOT BE "
+       + "COMPARED IS WHICH STAT THE DIE NAMES. The middle arm addresses a draw by "
+       + "`[seed, turn, category, move, target]` plus an occurrence index (medicham2's `midEventDraw`), "
+       + "and a residual `sample()` belongs to no named category on either side, so both engines take "
+       + "it off the GENERIC `any` stream at an occurrence index each engine populates with its own "
+       + "unrelated draws. Six streams are shared or neutralised — `acc crit sec dmg stall` "
+       + "(engine/game_differential.js:699) and `tie` (`o.tie = () => 0`) — and this is not one of "
+       + "them. IT IS THE INSTRUMENT'S ADDRESSING, NOT A LAW: give the residual pick a named stream on "
+       + "both sides, the way ROADMAP #290 did for `tie`, and this row must be deleted rather than "
+       + "kept. Corroboration, derived rather than recalled: in the PINNED CORNER arms this cannot "
+       + "diverge at all — `pinRandom` returns `top ? m-1 : 0` and medicham2's `_pick` reads the same "
+       + "end of the same list — so a Moody divergence can only exist in the arm with real dice, "
+       + "which is where all 8 of these are. "
+       + "BOUNDARY — this covers the PICK ONLY. A wrong magnitude, a wrong number of stats, a wrong "
+       + "trigger, or a pool that includes ACCURACY or EVASION does not match here and is a real "
+       + "defect that holds this gate shut.",
+  },
+  /* ~~`Speed tie / the tie-break coin flip`~~ — WRITTEN, THEN REFUSED THE SAME HOUR, 2026-08-23, AND
+   * LEFT HERE AS A COMMENT BECAUSE A CLOSET THAT SILENTLY LOSES ROWS TEACHES NOBODY.
+   *
+   * The case for it is true about the GAME and false about this HARNESS, and only the harness's number
+   * reaches this clause. Yes, `sim/battle.ts:429` speedSort ends in `prng.shuffle(list, sorted, sorted
+   * + nextIndexes.length)` at :455-457 and a real speed tie is an actual coin flip. But the whole-game
+   * differential does not run real dice on that coin, on EITHER side:
+   *
+   *   - Showdown's shuffle is replaced by a NO-OP in every shipped arm (`pinShuffle`,
+   *     `sdShuffleReverses` false everywhere) — engine/game_differential.js:1085;
+   *   - medicham2's tied-group key has had ITS OWN NAMED STREAM since 2026-08-20, `RNG_STREAMS =
+   *     ['acc','crit','sec','dmg','stall','tie']` (medicham2-browser.js:15613), and the middle arm
+   *     neutralises it to a constant — `o.tie = () => 0` at game_differential.js:1182 — precisely so
+   *     it mirrors the no-op on the other side;
+   *   - and the tie was FIXED AT THE ROOT in 3.74.0: medicham2 runs the authority's own selection sort
+   *     and resolves the residual group with the key it already drew, which is why the two
+   *     `tie-second` arms were RETIRED for "breaking a correct one" (game_differential.js:1229-1256).
+   *
+   * SO THE SIXTH DIE THIS DECLARATION WOULD CLAIM DOES NOT EXIST IS ALREADY SHARED. A cause that still
+   * diverges with both tie-breaks pinned is a real disagreement — a queue built in a different order,
+   * or a speed the probe read as equal at the turn boundary that was not equal when the queue was
+   * built (the probe's own artifact calls an EQUAL reading weak evidence for exactly that reason).
+   * Declaring it would subtract a live turn-order defect under a heading that reads "nothing to fix",
+   * which is the `medicham2-browser.js:17440` failure — a declaration that hid per-target spread
+   * accuracy for weeks — repeated with a better-sounding reason.
+   *
+   * MEASURED, so it is a number and not a worry: 3 of this run's `ordering` causes carry an order
+   * probe reading `speed_tied: true, speed_gap: 0, same_priority: true`. They stay UNDECLARED and are
+   * proposed as a roadmap row instead. Will's ruling was about the GAME (*"we know the sps and natures
+   * and exact speeds ... its just when we play showdowns games we have ties"*) and it is right about
+   * the game; it does not reach this artifact, and MEASURE's job is to say so rather than to spend
+   * it. */
+  {
+    kind: 'AUTHORITY-WRONG',
     name: "Supreme Overlord `fallenundefined`",
     match: (c) => /fallenundefined/.test(c),
     why: "THE AUTHORITY IS WRONG AND THE LINE IS INVISIBLE. `data/abilities.ts` guards supremeoverlord's "
@@ -1310,10 +1491,11 @@ function wholeGameClause(artifact, wgDecisionImpact) {
     : wgDecisionImpact;
   const impactHits = [];
   let impactGames = 0;
+  const EV = causeEvidence(j);
   for (const c of (Array.isArray(j.classes) ? j.classes : [])) {
     for (const k of (c.causes || [])) {
       const d = DECLARED_DIVERGENCE.find((x) => {
-        try { return x.match(String(k.cause || "")); }
+        try { return x.match(String(k.cause || ""), EV(String(k.cause || ""))); }
         catch (e) {
           /* ROADMAP #258 — A MATCHER THAT THREW IS NOT A CAUSE THAT IS UNDECLARED. This returned
            * `false` silently, which moves the cause into the UNDECLARED pile and inflates the
@@ -1324,10 +1506,18 @@ function wholeGameClause(artifact, wgDecisionImpact) {
           return false;
         }
       });
-      if (d) {
+      if (d && !DECLARED_KINDS[d.kind]) {
+        /* A ROW WHOSE KIND IS NOT ONE OF THE TWO IS NOT DECLARED. This is the guard that stops a
+         * DEFERRED row — "a real defect we chose not to fix yet" — from being subtracted and opening
+         * the gate. It is counted as UNDECLARED and named, exactly like a matcher that threw. */
+        MATCHER_THREW.push({ cause: String(k.cause || ""),
+          error: 'declared row `' + d.name + '` carries kind `' + String(d.kind) + '`, which is not '
+               + 'one of ' + Object.keys(DECLARED_KINDS).join(' / ') + ' — NOT subtracted' });
+      } else if (d) {
         declaredGames += (k.n || 0);
         const row = declaredHits.find((r) => r.name === d.name);
-        if (row) row.n += (k.n || 0); else declaredHits.push({ name: d.name, why: d.why, n: (k.n || 0) });
+        if (row) row.n += (k.n || 0);
+        else declaredHits.push({ kind: d.kind, name: d.name, why: d.why, n: (k.n || 0) });
         continue;
       }
       const imp = DI.clear('cause:' + String(k.cause || ''));
@@ -1347,11 +1537,19 @@ function wholeGameClause(artifact, wgDecisionImpact) {
       + " which is therefore counted as UNDECLARED and is INFLATING the rate above:" + _NL
       + MATCHER_THREW.map((r) => "    " + r.cause + "  ->  " + r.error).join(_NL)
     : "";
+  /* ONE BLOCK PER KIND, EACH WITH ITS OWN COUNT, NEVER SUMMED INTO ONE LINE. The two kinds make
+   * OPPOSITE claims about whether a defect exists, so a single blended "declared: 11" would hide
+   * which claim is being made — the merged-number failure this file has already paid for twice. */
   const declaredLine = declaredHits.length
-    ? _NL + "  DECLARED — matching the authority here would make this engine LESS correct, so these"
-      + " do not count:" + _NL
-      + declaredHits.map((r) => "    " + String(r.n).padStart(4) + "  " + r.name + _NL
-          + "           " + r.why).join(_NL)
+    ? Object.keys(DECLARED_KINDS).map((kind) => {
+        const rows = declaredHits.filter((r) => r.kind === kind);
+        if (!rows.length) return "";
+        const n = rows.reduce((a, r) => a + r.n, 0);
+        return _NL + "  " + DECLARED_KINDS[kind] + "  [" + n + " game(s), " + rows.length + " row(s)]"
+          + _NL
+          + rows.map((r) => "    " + String(r.n).padStart(4) + "  " + r.name + _NL
+              + "           " + r.why).join(_NL);
+      }).join("")
     : "";
   const impactLine = _NL + "  DECISION IMPACT — " + (impactHits.length
     ? impactGames + " game(s) across " + impactHits.length + " cause(s) cleared by a paired argmax run: "
@@ -1370,6 +1568,11 @@ function wholeGameClause(artifact, wgDecisionImpact) {
     regressed: comparable ? rose : null,
     baseline_mode: baseMode || null, run_mode: runMode || null, baseline_comparable: comparable,
     declared: declaredGames, decision_cleared: impactGames, undeclared,
+    /* the split a reader needs to tell "nothing is wrong here" from "something is" — never summed */
+    declared_by_kind: Object.keys(DECLARED_KINDS).reduce((o, kind) => {
+      o[kind] = declaredHits.filter((r) => r.kind === kind).reduce((a, r) => a + r.n, 0);
+      return o;
+    }, {}),
     declared_matcher_threw: MATCHER_THREW,
     why: ok
       ? `ZERO divergences across ${games} games that anything is asked to answer for`
@@ -2715,6 +2918,100 @@ if (require.main === module) {
         clauseExit(null) === 2 && clauseExit(undefined) === 2);
       ok('RED — `cannot_answer` alone is enough for 2, without `withheld`',
         clauseExit({ ok: false, cannot_answer: true }) === 2);
+    }
+
+    /* -- THE TWO DECLARED KINDS, AND THE BOUNDARY ON EACH MATCHER — 2026-08-23 ------------------
+     *
+     * THE POSITIVE CASE IS NOT THE PROOF. A declaration is one loose matcher away from hiding a real
+     * defect, so what is asserted here is mostly what does NOT match: every one of these mutations is
+     * a REAL defect wearing the same cause shape, and each must fall through to UNDECLARED and hold
+     * the gate shut. Driven through the shipping `wholeGameClause` on injected artifacts, so these
+     * assert the function the gate calls rather than a restatement of it. */
+    {
+      const MOODY_SD = '|-boost|p2a: Scovillain|spa|2';
+      const MOODY_ME = '|-boost|p2a: Scovillain|def|2|[from] ability: moody';
+      const WG = (cause, rows, probe) => ({ games: 100, diverged: rows.length, mode: 'M',
+        planted_divergence_proof_ok: true,
+        classes: [{ cls: cause.split(' :: ')[0], causes: [{ cause, n: rows.length }] }],
+        first_divergences: rows.map((r) => ({ cause, showdown_before: [], ...r })),
+        order_probe: (probe || []).map((r) => ({ cause, ...r })) });
+      const INERT = { active: false, why: 'no run', clear: () => null };
+      const dec = (cause, rows, probe) => wholeGameClause(WG(cause, rows, probe), INERT);
+      const MOODY = '-boost field 3 :: |-boost|p2a|spa|2 <> |-boost|p2a|def|2';
+
+      const control = dec(MOODY, [{ showdown: MOODY_SD, medicham: MOODY_ME }]);
+      ok("DECLARED/INCOMPARABLE — Moody's stat pick is declared, and under its OWN heading",
+        control.declared === 1 && control.declared_by_kind.INCOMPARABLE === 1
+        && control.declared_by_kind['AUTHORITY-WRONG'] === 0, control.declared_by_kind);
+      ok('the two kinds are printed apart and never summed into one number',
+        /IMPOSSIBLE TO COMPARE/.test(control.why) && /\[1 game\(s\), 1 row\(s\)\]/.test(control.why));
+
+      const NEG = [
+        ['EVASION in the pool — the authority `continue`s on it, so this is a DEFECT',
+          '-boost field 3 :: |-boost|p2a|evasion|2 <> |-boost|p2a|def|2',
+          [{ showdown: '|-boost|p2a: Scovillain|evasion|2', medicham: MOODY_ME }]],
+        ['ACCURACY in the pool',
+          '-boost field 3 :: |-boost|p2a|spa|2 <> |-boost|p2a|accuracy|2',
+          [{ showdown: MOODY_SD, medicham: '|-boost|p2a: Scovillain|accuracy|2|[from] ability: moody' }]],
+        ['a wrong MAGNITUDE on the raise (+3, not +2)',
+          '-boost field 3 :: |-boost|p2a|spa|3 <> |-boost|p2a|def|3',
+          [{ showdown: '|-boost|p2a: Scovillain|spa|3', medicham: '|-boost|p2a: Scovillain|def|3|[from] ability: moody' }]],
+        ['a wrong magnitude on the drop (-2, not -1)',
+          '-unboost field 3 :: |-unboost|p2a|spa|2 <> |-unboost|p2a|def|2',
+          [{ showdown: '|-unboost|p2a: Scovillain|spa|2', medicham: '|-unboost|p2a: Scovillain|def|2|[from] ability: moody' }]],
+        ['our line is not attributed to Moody at all',
+          MOODY, [{ showdown: MOODY_SD, medicham: '|-boost|p2a: Scovillain|def|2' }]],
+        ['only ONE of two occurrences is Moody — the other is something else',
+          MOODY, [{ showdown: MOODY_SD, medicham: MOODY_ME },
+                  { showdown: MOODY_SD, medicham: '|-boost|p2a: Scovillain|def|2' }]],
+        ['the AUTHORITY attributes its boost to a different effect',
+          MOODY, [{ showdown: MOODY_SD + '|[from] ability: download', medicham: MOODY_ME }]],
+        ['the boost follows that same slot clicking a MOVE, so it is the move\'s boost',
+          MOODY, [{ showdown: MOODY_SD, medicham: MOODY_ME,
+                    showdown_before: ['|-weather|Sandstorm|[upkeep]',
+                                      '|move|p2a: Scovillain|Swords Dance|p2a: Scovillain'] }]],
+        ['a different SLOT on each side — that is a wrong target, not a pick',
+          '-boost field 3 :: |-boost|p2a|spa|2 <> |-boost|p1a|def|2',
+          [{ showdown: MOODY_SD, medicham: '|-boost|p1a: Scovillain|def|2|[from] ability: moody' }]],
+      ];
+      for (const [label, cause, rows] of NEG) {
+        const r = dec(cause, rows);
+        ok('RED — Moody does NOT shelter ' + label,
+          r.declared === 0 && r.undeclared === rows.length, r.declared_by_kind);
+      }
+
+      /* SPEED TIES ARE NOT DECLARED, AND THIS ASSERTS THE REFUSAL RATHER THAN LEAVING IT TO THE
+       * ABSENCE OF A ROW. The middle arm pins the tie on BOTH sides (`o.tie = () => 0` against a
+       * no-op `pinShuffle`), so a probed tie that still diverges is a real turn-order disagreement.
+       * If somebody re-adds the row, this goes red. */
+      const TIE = 'ordering :: |move|p1b|protect <> |move|p2a|protect';
+      const tieRow = [{ showdown: '|move|p1b: Venusaur|Protect|p1b: Venusaur',
+                        medicham: '|move|p2a: Politoed|protect|p2a: Politoed' }];
+      for (const gap of [0, 40]) {
+        const r = dec(TIE, tieRow, [{ speed_tied: gap === 0, speed_gap: gap, same_priority: true }]);
+        ok('RED — a probed speed tie at gap ' + gap + ' is UNDECLARED: the harness already shares '
+          + 'the tie die, so this is a real disagreement and not an incomparability',
+          r.declared === 0 && r.undeclared === 1, r.declared_by_kind);
+      }
+
+      /* THE GUARD THAT MAKES THE THIRD KIND SAFE TO NOT BUILD. A DEFERRED row asserts there IS a
+       * defect; it must never be subtracted and must never open this gate. `DECLARED_KINDS` is the
+       * whitelist, so a row typed with any other kind is counted UNDECLARED and NAMED. */
+      const before = MATCHER_THREW.length;
+      DECLARED_DIVERGENCE.push({ kind: 'DEFERRED', name: 'a deferred defect',
+        match: () => true, why: 'we know this is wrong and have not fixed it' });
+      try {
+        const r = dec('anything at all :: |x <> |y', [{ showdown: '|x', medicham: '|y' }]);
+        ok('RED — a row typed `kind: DEFERRED` is NOT subtracted and does NOT open the clause: a '
+          + 'defect we chose to skip is not the same as no defect',
+          r.declared === 0 && r.undeclared === 1 && r.ok === false, r);
+        ok('...and it is NAMED on the run rather than going quiet',
+          MATCHER_THREW.length > before && /DEFERRED/.test(MATCHER_THREW[MATCHER_THREW.length - 1].error),
+          MATCHER_THREW[MATCHER_THREW.length - 1]);
+      } finally {
+        DECLARED_DIVERGENCE.pop();
+        MATCHER_THREW.length = before;
+      }
     }
 
     /* -- membership, on a synthetic source tree ------------------------------------------------ */

@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 24 unsafe, 1 void (declared), 110 possibly stale, 95 ok, 0 missing
+  provenance: 25 unsafe, 1 void (declared), 109 possibly stale, 95 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-08-23 22:58
+    moved after the fit: engine/medicham2-browser.js  2026-08-23 23:39
     moved after the fit: engine/board.js  2026-08-23 15:27
     moved after the fit: data/engine-data.js  2026-08-22 01:46
     moved after the fit: data/abra-tags.js  2026-08-22 15:37
 ```
 
-_stamped 2026-08-23 23:16_
+_stamped 2026-08-24 00:08_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,55 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### 000000000000000000. MOODY IS DECLARED INCOMPARABLE; SPEED TIES WERE REFUSED, BECAUSE THIS HARNESS ALREADY SHARES THE TIE DIE — 2026-08-23
+
+Full account: `docs/_reports/2026-08-23-declared-moody-ties.md`. Will ruled on both by name
+(*"yeah some things we can just quarantine as a known failure with a quoted reason (speed ties, moody,
+etc)"*, then *"yes we can have two things, impossible to compare, and too difficult and irrelevant to
+add at the moment"*). One of the two landed.
+
+**MOODY LANDED.** `data/abilities.ts:2691-2716` picks the stat with `this.sample(stats)` twice, over
+the five main stats only, and `medicham2-browser.js:25831` implements the same rule over
+`['at','df','sa','sd','sp']` with a real draw — so the RULE is not in dispute and only WHICH STAT the
+die names is. The middle arm addresses a draw by `[seed, turn, category, move, target]` plus an
+occurrence index, and a residual `sample()` has no named category on either side, so both engines take
+it off the generic `any` stream at indices each fills with its own unrelated draws. 8 of 961 games.
+The row states that this is **the instrument's addressing, not a law**: give the residual pick a named
+stream on both sides the way ROADMAP #290 did for `tie`, and the row must be DELETED rather than kept.
+
+**SPEED TIES WERE REFUSED, AND THAT IS THE FINDING.** The derivation handed over — `sim/battle.ts:429`
+speedSort ends in `prng.shuffle`, so a tie is a coin flip — is true of the GAME and false of this
+HARNESS, and only the harness's number reaches the clause. Showdown's shuffle is a **no-op** in every
+shipped arm (`sdShuffleReverses` false), medicham2's tied-group key has had **its own stream since
+2026-08-20** (`RNG_STREAMS` includes `tie`) which the middle arm neutralises with `o.tie = () => 0`,
+and 3.74.0 fixed the tie at the root — which is why the two `tie-second` arms were RETIRED for
+"breaking a correct one". **The sixth die the declaration would have claimed does not exist is already
+shared.** So the 3 causes whose own probe reads `speed_tied: true, speed_gap: 0, same_priority: true`
+are a REAL turn-order disagreement, and declaring them would have subtracted a live defect under a
+heading reading "nothing to fix" — the `medicham2-browser.js:17440` failure with a better-sounding
+reason. They stay UNDECLARED and are proposed as a roadmap row.
+
+**THE TWO KINDS PRINT APART AND ARE NEVER SUMMED.** `INCOMPARABLE` ("the authority makes a random draw
+we have no shared address for — no defect") and `AUTHORITY-WRONG` ("matching it would make us less
+correct") get separate headings and separate counts, plus `declared_by_kind` on the clause result. The
+clause moved `declared 5 -> 13`, `undeclared 43 -> 35` on 48 raw over 961 games; `diverged` and
+`declared` both still print, so the allowance is legible rather than absorbed. **It is still RED and
+nothing here could have opened it.**
+
+**THE THIRD KIND — DEFERRED — IS DELIBERATELY NOT BUILT, AND THE HOLE IS NAILED SHUT.** A DEFERRED row
+asserts the opposite of the other two: that there IS a defect. `DECLARED_KINDS` is a whitelist, so a
+row typed with any other kind is NOT subtracted, counts as UNDECLARED and is NAMED on the run. The
+selftest pushes a `kind: 'DEFERRED'` row with `match: () => true` and asserts `declared=0,
+undeclared=1, ok=false`. The design for it, if it is ever wanted, is in the report.
+
+**THE NEGATIVE CASES ARE THE PROOF, NOT THE POSITIVE ONE.** Nine mutations of the Moody cause — each a
+real defect wearing the same shape — were injected through the shipping clause and every one fell
+through to UNDECLARED: accuracy in the pool, evasion in the pool, `+3` instead of `+2`, `-2` instead of
+`-1`, our line unattributed, one of two occurrences unattributed, the authority attributing the boost
+elsewhere, the boost following that slot clicking a move, and a different slot on each side. Speed ties
+are asserted undeclared at gap 0 **and** gap 40, so re-adding the row goes red. Selftest: 108 passed,
+0 failed.
 
 ### 00000000000000000. THE IDENTITY GATE IS A RUNTIME TRIPWIRE NOW, AND IT FOUND ON ITS FIRST RUN A DEFECT THE COUNT HAD BEEN GREEN ON FOR THREE WEEKS — 2026-08-23
 
