@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-25T02:29:50.055Z",
+  "generated": "2026-08-25T03:41:40.398Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 693,
-  "live": 693,
+  "probed": 696,
+  "live": 696,
   "missing": 0,
-  "armed": 693,
+  "armed": 696,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -2460,6 +2460,26 @@
     },
     {
       "kind": "move",
+      "tag": "statusCategory",
+      "label": "Thunder Wave is refused by a GROUND body, and an ordinary status move is not",
+      "live": true,
+      "detail": "Thunder Wave into a GROUND Garchomp -> \"none\" (must be none); the same click into a Normal Snorlax -> \"par\"; Will-O-Wisp into the SAME Garchomp -> \"brn\", because it declares no `ignoreImmunity` and the chart never runs for it. Before the fix the first arm read \"par\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "removesItem",
+      "label": "Bug Bite takes a BERRY and leaves anything else — and Knock Off still takes both",
+      "live": true,
+      "detail": "after the hit the target still holds — Bug Bite into a Mystic Water \"mysticwater\" (it must SURVIVE); Bug Bite into a Sitrus Berry \"\" (it must not); Knock Off into the same Mystic Water \"\", which is what stops a do-nothing engine passing. Before the fix the first arm read \"\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "statSwap",
       "label": "Psyshock is scored against the target Defense",
       "live": true,
@@ -3513,7 +3533,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5874,6 +5894,16 @@
       "label": "Harvest gives the berry back — always in sun, half the time otherwise",
       "live": true,
       "detail": "after the Sitrus is eaten, the item slot reads: rain + a losing roll \"\", rain + a winning roll \"sitrusberry\", SUN + the SAME losing roll \"sitrusberry\" (the sky overrides the die). CONTROL, no ability in sun: \"\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "restoresBerryAtResidual",
+      "label": "Harvest announces the returned berry with `-item`, not `-activate`",
+      "live": true,
+      "detail": "the restore line, in sun so the die cannot decide it — Harvest [\"|-item|p2a:incineroar|sitrusberry|[from]ability:harvest\"]; CONTROL, the same board with no ability []. Before the fix the Harvest arm read `|-activate|BODY|item:sitrusberry`, which is Quick Claw's event and not this one",
       "hollow": false,
       "armed": true,
       "directCall": false

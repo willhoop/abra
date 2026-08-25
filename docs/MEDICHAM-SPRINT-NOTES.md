@@ -21,6 +21,47 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## BOARD-MATERIAL 18 → 10 GAMES, AND THE BIGGEST CAUSE WAS AN ADDRESS. CENSUS 693 → 696. 2026-08-25 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-25-board-material-3.md`](_reports/2026-08-25-board-material-3.md).
+Ledger section: `docs/ENGINE.md`, *"BOARD-MATERIAL 18 → 10 GAMES, AND THE BIGGEST CAUSE WAS AN ADDRESS"*.
+
+Arm `middle`, 961 games (`--games 1200`, a PAIR budget), release `cbf345e56bc0`,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state`. Raw parted **35 → 28**, undeclared **30 → 23**, **board-material 18 games / 17 causes →
+10 / 10**, DIFFERENT-END-STATE 12 → 8, narration 17 → 18. Census 693 → **696**, 0 missing. Damage
+differential unmoved at **0 of 6000** on all sixteen corners.
+
+- **The event address outlived the action.** The middle arm keys both engines' dice on
+  `seed|turn|category|move|target|nth`; the authority nulls `activeMove`/`activeTarget` after every
+  action and again at the top of the residual (`sim/battle.ts:2828`, `:2810`, `:376`) and this engine
+  never did. Every residual chance was therefore a private coin — **Moody's two `sample()` draws most
+  of all**. Knob `MEDI_ACTIVE_MOVE_STICKY=1`; paired 344-game control moved 18 board-material → 15 with
+  every other cause identical line for line. **Refutes the standing "Moody has no shared die" reading:
+  the die was unshared because the address was ours and wrong.**
+- **Thunder Wave paralysed a Ground type.** It is the ONE Status move in Reg M-B declaring
+  `ignoreImmunity: false` (derived, 564 uses), so `hitStepTypeImmunity` still judges it by the chart.
+  New derived param `statusCategory.respectsTypeChart`. Two existing census rows were GREEN ON THE
+  DEFECT — both aimed Thunder Wave at a Garchomp — and the FIXTURE was repointed.
+- **Bug Bite stripped a non-berry.** `removesItem` said only whether the user keeps the item; the
+  handler's own guard is `item.isBerry`. New derived param `requiresItemClass`, matching exactly
+  `bugbite` and `pluck`. An unknown class is refused and counted, never read as a pass.
+- **Harvest and Pickup announced `-activate` where the authority writes `-item`.** Narration; staged
+  under sun so the coin cannot decide it.
+
+**Attribution is a per-seed diff, not a net:** seven games stopped parting, **zero started**, and three
+that used to part on Moody or a sleep counter now part later on something underneath. The one game
+narration gained came DOWN from board-material.
+
+**SCOPED AND STOPPED:** the `getRandomTarget` address (fixing the Outrage void moves `PIN_DIGEST`), the
+Bug Bite EAT half, and two new surfaces Moody was hiding. **The move trap is NOT fully closed** — the
+pool row is gone but `all_mechanics_fire` still reports `magicbounce` parting on
+`vol.trapped showdown 0 / we 1` with both narration streams agreeing.
+
+**OWED, NOT RUN:** `tests/run-all.js` in full; `tests/interaction_matrix.js`; `tests/mutation_harness.js`;
+`engine/selftest.js` and `engine/conformance.js`; `engine/feature_fixture.js --check` (MEASURE's);
+**`engine/provenance.js` was not re-stamped**; a pool-scale sweep of the three new counters.
+
 ## FIVE MECHANICS BY REACH — 15 → 10 UNCLEARED, CENSUS 687 → 693, POOL UNMOVED. 2026-08-24 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-24-mechanics-by-reach-3.md`](_reports/2026-08-24-mechanics-by-reach-3.md).

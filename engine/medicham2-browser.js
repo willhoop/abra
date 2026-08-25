@@ -830,6 +830,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                             expected unless one is brought and says only that;
    *   volatileCuredByItem       a Lum or a Persim spent on a volatile rather than on a status. */
   confusionSet: 0, confusionMinDuration: 0, confusionSelfHit: 0, confusionExpired: 0,
+  /* 2026-08-25 -- a Status move that DECLARES `ignoreImmunity: false` refused by the type chart.
+     Thunder Wave into a Ground type is the whole of this class in Reg M-B; a zero over a run that
+     staged one means the gate stopped being asked. */
+  statusMoveTypeImmune: 0,
+  /* 2026-08-25 -- a `removesItem` strip refused because the target's item is not the CLASS the
+     handler's own guard demands (Bug Bite / Pluck, berries only). */
+  itemStripRefusedByClass: 0,
   confusionAlreadyOn: 0, confusionRefusedByAbility: 0, confusionRefusedBySideBuff: 0,
   volatileCuredByItem: 0,
   /* ROADMAP #92 -- THE DAMAGE-STAGE CLASS, one counter per family that MOVED STAGE, because moving a
@@ -1751,9 +1758,17 @@ const MEDFAILS = { encoreAction: 0,
      back on the `|-weather|W|[upkeep]` LINE, which the authority exempts. The chip is never under
      this knob; only the announcement is. */
   weatherUpkeepGatedRestored: 0,
+  /* 2026-08-25 -- set for the whole run when MEDI_ACTIVE_MOVE_STICKY=1 swallows the authority's
+     `clearActiveMove()`, so the event address keeps naming a move that has already finished and
+     every end-of-turn die is addressed differently from the authority's. See midClearActiveMove. */
+  activeMoveStickyRestored: 0,
   /* ROADMAP #352 -- set for the whole run when MEDI_WSUP_STALE=1 puts the once-a-turn `field.wSup`
      cache back, so a suppressor that leaves mid-turn goes on suppressing until the next turn. */
   wSupStaleRestored: 0,
+  /* 2026-08-25 -- a `removesItem.requiresItemClass` naming a class this engine has no tag for, so
+     the strip was REFUSED rather than allowed. `isGem` is the only other class the authority uses
+     and it has no legal carrier in Reg M-B; a non-zero here means one arrived. */
+  itemClassGuardUnknown: 0, itemClassGuardUnknownFirst: '',
   /* 2026-08-23 -- set for the whole run when MEDI_UNNERVE_PARTIAL=1 puts Unnerve back on two of the
      five berry sites, so the cure berry, the instantaneous confusion cure and the resist berry are
      eaten under an Unnerve body again. */
@@ -16485,6 +16500,45 @@ function midEventValue(ctx) { return midEventHash(ctx) / 4294967296; }
 let MID_S = null, MID_TURN = 0, MID_MOVE = '-', MID_TGT = '-', MID_ATT = '-';
 const MID_NTH = new Map();
 const MID_LOG = [];
+/* ---- 2026-08-25 -- `clearActiveMove`, WHICH THIS ENGINE NEVER CALLED, SO THE ADDRESS OUTLIVED THE
+ * ACTION AND EVERY END-OF-TURN DIE WAS ADDRESSED TO A MOVE THAT HAD ALREADY FINISHED.
+ *
+ * The middle arm keys both engines' dice on `seed|turn|category|move|target|nth`. The authority's
+ * `move`/`target` fields come off `battle.activeMove` / `battle.activeTarget`, and the authority
+ * NULLS BOTH after every action and again at the top of the residual:
+ *
+ *     sim/battle.ts:2828   this.clearActiveMove();               <- after EVERY action
+ *     sim/battle.ts:2810   case 'residual': this.clearActiveMove(true);
+ *     sim/battle.ts:376    clearActiveMove() { ... this.activeMove = null;
+ *                                                  this.activePokemon = null;
+ *                                                  this.activeTarget = null; }
+ *
+ * This engine wrote MID_MOVE/MID_TGT at the top of each action (the block by `actionMoveId(it.a)`)
+ * and NEVER cleared them, so a die rolled at the END of the turn carried the last click's name.
+ * MEASURED, one staged turn, Trevenant clicking Curse and eating its Sitrus, both address logs
+ * printed side by side:
+ *
+ *     authority   20260813|1|any|-|-|0            <- Harvest's coin
+ *     this engine 20260813|1|any|curse|p20|0      <- the same coin, a different address
+ *
+ * Two addresses that cannot match are two INDEPENDENT dice, so every residual chance in this arm was
+ * a fresh coin rather than a shared one — Harvest's 1/2, Moody's two `sample()` draws, anything else
+ * rolled outside `hitStepAccuracy` / `secondaries` / `getDamage`. It is not a small population: the
+ * `-boost field 3` family is Moody and was the single biggest board-material class in the run.
+ *
+ * IT IS THE ADDRESS THAT MOVES, NOT THE MECHANIC. Nothing here changes what Harvest or Moody DO;
+ * what changes is that the two engines now agree about WHICH EVENT they are rolling for, which is
+ * the whole premise of the arm. Under a scalar-pinned arm the value is a constant and this is inert;
+ * under real dice it is the difference between a shared die and two coins. */
+/* `MEDI_ACTIVE_MOVE_STICKY=1` RESTORES THE LEAK so the defect can be shown RED rather than asserted —
+ * same shape as MEDI_RESIDUAL_COLLAPSE, MEDI_DAMAGE_SPAN_DRAW and MEDI_SLEEP_WAKE_COIN. It is loud:
+ * `activeMoveStickyRestored` is written the moment the knob swallows a clear. */
+const ACTIVE_MOVE_STICKY = (typeof process !== 'undefined' && process.env
+                            && process.env.MEDI_ACTIVE_MOVE_STICKY === '1');
+function midClearActiveMove() {
+  if (ACTIVE_MOVE_STICKY) { MEDFAILS.activeMoveStickyRestored = 1; return; }
+  MID_MOVE = '-'; MID_TGT = '-'; MID_ATT = '-';
+}
 /* `p1`/`p2` + the 0-based active position, which is exactly Showdown's `target.side.id + target.position`.
  * A body that is not on the field has no slot and reports `-`, the same as no target at all. */
 function midEventSlot(m) {
@@ -17679,6 +17733,11 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
     };
     for(let actIdx=0;actIdx<acts.length;actIdx++){
+      /* 2026-08-25 -- THE AUTHORITY'S `clearActiveMove()` AFTER EVERY ACTION (sim/battle.ts:2828).
+       * At the TOP of iteration k rather than the bottom of k-1 for the same reason `_updateAll` is
+       * here: this loop body carries ~30 `continue`s and a line at the bottom is skipped by all of
+       * them. Before action 0 it is a no-op. See midClearActiveMove for what it costs to omit. */
+      midClearActiveMove();
       if(!_megaPhaseDone&&acts[actIdx]&&(acts[actIdx]._pri||0)<6)_megaPhase(actIdx);
       /* ROADMAP #322 -- 104 THEN 107. Same trigger as the mega phase, strictly after it: the first
        * action that is not a bare switch is exactly "the switches are done", and the mega phase runs
@@ -21884,6 +21943,41 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!t||t.fainted){mvFail(m);continue;}
         if(t.protect){if(TR)TR.act(t,'move: Protect');continue;}
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}   // Good as Gold
+        /* 2026-08-25 -- THE TYPE CHART, WHICH A STATUS MOVE USUALLY IGNORES AND ONE OF THEM DOES NOT.
+         *
+         * `hitStepTypeImmunity` is step 2 of the authority's move-step list and it runs for EVERY
+         * move, status included:
+         *
+         *     if (move.ignoreImmunity === undefined) move.ignoreImmunity = (move.category === 'Status');
+         *     hitResults[i] = (move.ignoreImmunity && ...) || targets[i].runImmunity(move, ...);
+         *
+         * The default sends every Status move past it, which is why this branch never needed the gate
+         * and why its absence was invisible for as long as it was. A move that DECLARES
+         * `ignoreImmunity: false` is judged by the chart like any attack — and this format contains
+         * exactly one, Thunder Wave (564 uses), which is why a Ground type cannot be paralysed by it.
+         *
+         * MEASURED RED FIRST, staged Kingambit Thunder Wave into an Excadrill that was not Protecting
+         * (the first version of the probe had the target clicking Protect and both engines agreed
+         * about nothing at all):
+         *     authority   |-immune|p1a: Excadrill        status ''
+         *     this engine (no line)                      status 'par'
+         * — two board leaves apart, `active[].status` and `party.status`, and they stay apart.
+         *
+         * IT IS READ OFF THE TAG, NOT OFF A NAME. `statusCategory.respectsTypeChart` is derived in
+         * tag_dex.js from `ignoreImmunity === false`, so a second member of the class is covered
+         * without an edit here. The gate sits between Good as Gold (step 1, `onTryHit`) and
+         * `moveClassBlocked` (step 3, `onTryImmunity`), which is the authority's own order.
+         *
+         * `typeEffAgainst` rather than a bare chart lookup, for the same reason `_stepTypeImm` uses
+         * it: Scrappy, Freeze-Dry's override and the whole grounded axis live in there, and a second
+         * reader of "how effective is this" is the two-implementations failure CLAUDE.md is about. */
+        {const _sc=TAGS.param('move',a.mv,'statusCategory');
+         if(_sc&&_sc.respectsTypeChart){
+           const _smv=MC.moves[a.mv];
+           if(_smv&&typeEffAgainst(m,t,_smv,effMoveType(_smv,a.mv,field,m))===0){
+             MEDSEEN.statusMoveTypeImmune++;
+             if(TR)TR.imm(t);
+             continue;}}}
         if(moveClassBlocked(t,a.mv,m)){if(TR)TR.imm(t,moveClassImmuneAttr(t,m));continue;}      // WIRE 66 / #256
         const fx=moveFx(a.mv);
         const st=(fx&&fx.status)||null;
@@ -25869,6 +25963,32 @@ function battleTurn(S,rng,actsForA,actsForB){
        * three refusals; nothing about that moved. */
       const _stepAfterHit=(R)=>{const tg=R.tg;
         const _ri=TAGS.param('move',a.move.id,'removesItem');
+        /* 2026-08-25 -- AND THE CLASS GUARD THE HANDLER OPENS WITH. Bug Bite and Pluck are
+         *     if (source.hp && item.isBerry && target.takeItem(source)) { ... }
+         * so the strip only happens on a BERRY. Without this the branch took whatever was in the
+         * slot: measured, Scizor's Bug Bite removed a Pelipper's MYSTIC WATER, which the authority
+         * leaves standing -- `active[].item` and `party.item` apart, and they stay apart.
+         *
+         * READ OFF THE TAG. `removesItem.requiresItemClass` is derived in tag_dex.js from the guard
+         * itself and selects exactly `bugbite` and `pluck` today; Knock Off, Corrosive Gas, Thief,
+         * Covet, Trick and Switcheroo carry no class and are untouched.
+         *
+         * A CLASS THIS ENGINE CANNOT ASK ABOUT IS COUNTED, NOT ASSUMED TRUE. `isGem` has no legal
+         * carrier in Reg M-B and no tag, so a row demanding it would silently allow every strip if
+         * the unknown were read as a pass -- the silent-default shape. It refuses and says so.
+         *
+         * WHAT IS STILL OWED, STATED: the authority does not merely remove the berry, it makes the
+         * ATTACKER eat it (`singleEvent('Eat', item, ..., source, ...)`) and writes
+         * `[from] stealeat|[move] Bug Bite` rather than `[from] move: bugbite`. Neither is fixed
+         * here; this closes the over-fire only. No failing probe on the eat half yet. */
+        if(_ri&&Array.isArray(_ri.requiresItemClass)&&tg.item){
+          for(const _cls of _ri.requiresItemClass){
+            if(_cls!=='isBerry'){ MEDFAILS.itemClassGuardUnknown++;
+              if(!MEDFAILS.itemClassGuardUnknownFirst)MEDFAILS.itemClassGuardUnknownFirst=String(_cls);
+              return; }
+          }
+          if(!TAGS.has('item',tg.item,'isBerry')){MEDSEEN.itemStripRefusedByClass++;return;}
+        }
         if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){
           const _taken=tg.item; tg.item='';
           if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);
@@ -26854,6 +26974,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          `_hadTargets`. The old comment called the placement "the wrong order by a hair"; it was worth
          the whole of the ability's offensive half. */
     }
+    /* 2026-08-25 -- and the LAST action's `clearActiveMove()`, which the loop-top call cannot reach.
+     * Everything below this line — the settles, the final `_updateAll`, the whole residual walk —
+     * runs with `battle.activeMove === null` in the authority. See midClearActiveMove. */
+    midClearActiveMove();
     flushAfterMoveSpends([...actA,...actB]);   // WIRE 152 -- the LAST action's debt, same reason
     opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;   // ROADMAP #212 -- and the LAST action's copy
     receiverSweep([...actA,...actB]);          // ROADMAP #175 -- and the LAST action's faint
@@ -27582,7 +27706,15 @@ function battleTurn(S,rng,actsForA,actsForB){
              &&_hv.alwaysInWeather.some(x=>String(x).indexOf(_w)===0);
            if(_sun||rng()<(+_hv.chance||0.5)){
              m.item=m._lastItem; m._lastItem=''; MEDSEEN.harvestRestored++;
-             if(TR)TR.act(m,'item: '+m.item);
+             /* 2026-08-25 -- `-item`, NOT `-activate`. Harvest's own line is
+              *   this.add('-item', pokemon, pokemon.getItem(), '[from] ability: Harvest')
+              * (data/abilities.ts harvest; Pickup below is the identical shape). This engine wrote
+              * `|-activate|BODY|item: <id>`, which is the wrong EVENT, not a wrong field: measured on
+              * a staged Trevenant under sun, where the restore is certain on both engines and the
+              * only thing left to compare is the line —
+              *   authority   |-item|p1a: Trevenant|Sitrus Berry|[from] ability: Harvest
+              *   this engine |-activate|p1a: Trevenant|item: sitrusberry                             */
+             if(TR)TR.item(m,m.item,'[from] ability: '+m.ability);
            }
          }}
         /* PICKUP -- take what an adjacent body spent this turn. `_usedItemThisTurn` is cleared at the
@@ -27595,7 +27727,9 @@ function battleTurn(S,rng,actsForA,actsForB){
            if(_cands.length){
              const _t=_cands[Math.floor(rng()*_cands.length)%_cands.length];
              m.item=_t._lastItem; _t._lastItem=''; MEDSEEN.pickupTook++;
-             if(TR)TR.act(m,'item: '+m.item);
+             /* 2026-08-25 -- `-item`, not `-activate`; see the Harvest block above. Pickup's line is
+              *   this.add('-item', pokemon, this.dex.items.get(item), '[from] ability: Pickup') */
+             if(TR)TR.item(m,m.item,'[from] ability: '+m.ability);
            }
          }}
       }

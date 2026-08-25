@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  693/693 probed mechanics live, 0 missing   (census 2026-08-24 22:29)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-24 22:36)
+  696/696 probed mechanics live, 0 missing   (census 2026-08-24 23:41)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-24 23:44)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,155 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is c1da019c1ee8 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 66baa94f7904 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-24 22:54_
+_stamped 2026-08-24 23:59_
 
 <!-- /GENERATED -->
+
+## BOARD-MATERIAL 18 → 10 GAMES, AND THE BIGGEST CAUSE WAS AN ADDRESS. CENSUS 693 → 696. 2026-08-25.
+
+Full account: [`docs/_reports/2026-08-25-board-material-3.md`](_reports/2026-08-25-board-material-3.md).
+
+Arm `middle`, **961 games** (`--games 1200` — a PAIR budget), release **`cbf345e56bc0`**,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state --write`. The before column is computed from `git show HEAD:data/game-differential.json`
+by the same expression, so the two are the same question.
+
+| quantity | before (`df82b43`) | after (`cbf345e56bc0`) |
+|---|---|---|
+| protocol parted, raw | 35 | **28** |
+| **undeclared** (less the 5 `fallenundefined`) | 30 = 3.1% | **23 = 2.4%** |
+| **board-material** | **18 games / 17 causes** | **10 games / 10 causes** |
+| narration-only | 17 games / 16 causes | 18 games / 17 causes |
+| DIFFERENT-END-STATE | 12 | **8** |
+| census probed / live / missing | 693 / 693 / 0 | **696 / 696 / 0** |
+
+**The brief's "undeclared 22 = 2.3%" does not reproduce from the committed artifact**, which reads
+30 = 3.1% under the same declared list.
+
+**NARRATION ROSE BY ONE GAME AND IT CAME DOWN FROM BOARD-MATERIAL.** The attribution is a diff on
+`config|seed`, never a net: **seven games stopped parting, ZERO started**, and three that used to part
+on Moody or on a sleep counter now part later on something that was hidden underneath.
+
+**1. THE EVENT ADDRESS OUTLIVED THE ACTION, SO EVERY END-OF-TURN DIE WAS UNSHARED.** The middle arm
+keys both engines' dice on `seed|turn|category|move|target|nth`, and the authority's `move`/`target`
+come off `battle.activeMove`/`battle.activeTarget` — which it **nulls after every action and again at
+the top of the residual** (`sim/battle.ts:2828`, `:2810`, `clearActiveMove` at `:376`). This engine
+wrote the two fields at the top of each action and never cleared them, so a die rolled at the END of a
+turn carried the last click's name. **Both address logs, printed side by side on one staged turn:**
+
+```
+authority     20260813|1|any|-|-|0            <- Harvest's randomChance(1,2)
+this engine   20260813|1|any|curse|p20|0      <- the same coin, a different address
+```
+
+Two addresses that cannot match are two INDEPENDENT dice. The population is every residual chance, and
+**Moody is most of it** — two `sample()` draws at `onResidualOrder: 28`, and `-boost/-unboost field 3`
+was the single biggest board-material class (8 of 18 games). Staged Scovillain, four turns:
+`MEDI_ACTIVE_MOVE_STICKY=1` reads **8 DIFF of 288** on the boosts; clean reads identical on every turn.
+Staged Trevenant with a Sitrus and Harvest, no sun: **2 DIFF** on `item` becomes identical.
+
+**PAIRED CONTROL, 344 games, the knob the only difference:** STICKY 28 diverged / 18 board-material /
+10 narration against FIXED 25 / 15 / 10 — three games cleared, all three Moody, **every other cause
+identical line for line**.
+
+**CLAUDE.md's memory *"Moody is a declared non-defect — the stat pick has no shared die"* is REFUTED.**
+True as a description, wrong as a conclusion: the die was unshared **because the address was ours and
+wrong**. Nothing about how Moody picks a stat changed.
+
+**2. THUNDER WAVE IGNORED THE TYPE CHART.** `hitStepTypeImmunity` runs for every move —
+`if (move.ignoreImmunity === undefined) move.ignoreImmunity = (move.category === 'Status')` — so a
+Status move skips the chart BY DEFAULT and one that DECLARES `ignoreImmunity: false` does not.
+**Derived over the format: exactly one, `thunderwave` (564 uses)**, which is why a Ground body cannot
+be paralysed by it. Staged Kingambit Thunder Wave into Excadrill read `status us "par" / sd ""`, two
+leaves, and they stayed apart. `statusCategory.respectsTypeChart` is derived in `tag_dex.js` and was
+PRINTED before it was wired. **Two existing census rows were GREEN ON THE DEFECT** — `inflictsParalysis`
+and `statusCategory` both aimed Thunder Wave at a GARCHOMP — and the fixture was repointed, not the
+gate relaxed.
+
+**3. BUG BITE ATE A NON-BERRY.** `bugbite`/`pluck` open
+`if (source.hp && item.isBerry && target.takeItem(source))`; `removesItem` recorded only whether the
+user KEEPS the item, so the branch took whatever was in the slot. Staged Scizor Bug Bite into a
+Pelipper holding **Mystic Water**: gone here, standing on the authority. `requiresItemClass` derived
+from the guard and printed first — eight legal moves call `takeItem`, exactly **two** carry a class
+guard. A class this engine has no tag for is **refused and counted**, never read as a pass.
+
+**4. HARVEST AND PICKUP ANNOUNCED THE WRONG EVENT** (narration, closed on the way past). Both write
+`this.add('-item', pokemon, …, '[from] ability: …')`; this engine wrote `|-activate|BODY|item: <id>`,
+which is Quick Claw's and Cud Chew's event. Staged under SUN so the restore is certain on both sides
+and the LINE is the only thing left to compare.
+
+**A STANDING SPRINT NOTE IS CORRECTED.** `docs/MEDICHAM-SPRINT-NOTES.md` recorded the Harvest coin and
+predicted that fixing it *"moves a board-material game onto the narration gate rather than closing it."*
+Wrong: the coin was never the thing to fix — the address was — and the game closed.
+
+**A SCRATCHPAD FILE FROM AN EARLIER SESSION WAS EXECUTED BY ACCIDENT** while writing this section, and
+duplicated 126 lines of the previous pass into this file. Caught on the diff and reverted with
+`git checkout`; nothing was lost. It is the exact hazard CLAUDE.md names — **execute nothing in the
+scratchpad you did not write this session** — and it is recorded because the next person will reach for
+the same pattern.
+
+### THE HAND LIST
+
+Leaves it: **the Harvest line** — closed above, with a census probe.
+
+Joins it, scoped and stopped rather than half-landed:
+
+- **the `any`-category address for `getRandomTarget`.** The run's ONE void game is Outrage:
+  `unshared_address_shapes` names `acc/crit/dmg outrage [sd only]` and `[me only]`, and
+  `unshared_address_field` reads `target differs`. `randomNormal` re-draws its target and the authority's
+  draw is not addressable from where the wrapper stands. Fixing it wraps another method in
+  `game_differential.js` and therefore MOVES `PIN_DIGEST` — a new instrument, not a fix;
+- **the Bug Bite / Pluck EAT half.** The authority makes the ATTACKER eat the berry
+  (`singleEvent('Eat', item, …, source, …)`) and writes `[from] stealeat|[move] Bug Bite`; this engine
+  removes it and writes `[from] move: bugbite`. Only the over-fire is closed. It is now the visible first
+  divergence of the berry-holder control arm, which is where a probe should start;
+- **two NEW SURFACES that Moody was hiding**: `|-immune|p1a <> |-miss|p2b|p1a` (an immunity the authority
+  sees and we answer with a miss) and `|switch|p1a|krookodile <> |detailschange|p1b|charizardmegay`
+  (mega against switch ordering).
+
+Stays on it, unchanged: **`AfterMoveSecondary` above `|-hitcount|`**, **the three spread-status rows are
+ONE mechanism**, **`supremeoverlord` is a clause-consistency question**, **`data/abra-tags.js` can go
+stale against `data/tags.json` and nothing says so**, **`shellsidearm`**, **`sandforce`'s truncated
+`damageBoost.onType`**, **`guts.damageBoost.onlyWhen` null**, **Castform's forme label (a refit)**,
+**Magic Room parks the item**, **a refused Role Play does not blank its move line's target field**, and
+**`planted_state_proof_ok` false on both arms**.
+
+**AND THE MOVE TRAP IS NOT FULLY CLOSED.** The brief named it the strongest candidate and it was
+verified, not trusted: the pool row it was named for is gone and `vol.trapped` is absent from
+`end_state_families`, but `data/all-mechanics-fire.json` still reports `magicbounce` parting on
+`vol.trapped showdown 0 / we 1` with **no line difference at all**. Lab-only today, and open.
+
+### PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.
+
+**CLOSED (4).** *"The event address kept naming a move that had already finished, so every end-of-turn
+die in the middle arm was unshared"* — knob `MEDI_ACTIVE_MOVE_STICKY=1`, paired 344-game control,
+6 Moody + 1 Harvest pool games. *"Thunder Wave paralysed a Ground type"* — probe
+`move/statusCategory`. *"Bug Bite stripped a non-berry"* — probe `move/removesItem`. *"Harvest and
+Pickup announced `-activate` where the authority writes `-item`"* — probe
+`ability/restoresBerryAtResidual`.
+
+**OPEN (3).** *"`getRandomTarget` has no shared address, so Outrage's target is a private coin"*;
+*"Bug Bite does not make the attacker EAT the berry"*; *"a move trap still outlives the authority's in
+the lab (`magicbounce`, `vol.trapped`), with both narration streams agreeing"*.
+
+### OWED, NOT RUN
+
+- `tests/run-all.js` in full. Run individually: `tests/test-mechanics.js`, `tests/test-engine-diff.js`
+  (`--n 6000 --seed 20260804`, **0 of 6000 at all 16 corners**), `tests/roster.js` x3,
+  `engine/all_mechanics_fire.js --kind all`, `engine/game_differential.js`, `engine/tag_dex.js`,
+  `engine/status.js`;
+- `tests/interaction_matrix.js` (last run 2026-08-11), `tests/mutation_harness.js`,
+  `engine/selftest.js`, `engine/conformance.js`, `engine/feature_fixture.js --check` (RED at HEAD; the
+  refit question is MEASURE's);
+- **`engine/provenance.js` was NOT re-stamped** — the artifacts moved and the stamp did not;
+- a POOL-SCALE counter sweep for the three new counters (`statusMoveTypeImmune`,
+  `itemStripRefusedByClass`, `itemClassGuardUnknown`).
 
 ## FIVE MECHANICS BY REACH — 15 → 10 UNCLEARED, CENSUS 687 → 693, POOL UNMOVED. 2026-08-24.
 

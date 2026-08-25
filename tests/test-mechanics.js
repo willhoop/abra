@@ -1990,10 +1990,16 @@ probe('move', 'lowersTarget', 'Charm drops the target Attack', () => {
  * The third arm is what separates "this move inflicts this status" from "a status move stamps one
  * status", and a one- or two-armed probe cannot. Garchomp is the target throughout so nothing in the
  * type chart varies between arms. */
-const statusProbe = (tag, label, user, mv, want, other, otherWant) => probe('move', tag, label, () => {
+/* 2026-08-25 -- THE TARGET IS A PARAMETER NOW, AND THE REASON IS THAT GARCHOMP IS GROUND.
+ * Thunder Wave is the ONE Status move in this format that declares `ignoreImmunity: false`, so the
+ * type chart applies to it and a Ground body cannot be paralysed by it at all. This probe aimed
+ * every arm at a Garchomp, so the paralysis row was GREEN ON A DEFECT: it asserted an outcome the
+ * authority refuses, and it went red the moment the engine started refusing it too. The fixture was
+ * wrong, not the engine. Defaulted to garchomp so the burn row is bit-identical. */
+const statusProbe = (tag, label, user, mv, want, other, otherWant, foe) => probe('move', tag, label, () => {
   const run = (which) => {
     const me = bare(user), ally = bare('incineroar');
-    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const f1 = bare(foe || 'garchomp'), f2 = bare(foe || 'garchomp');
     const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
     const fa = new Map([[me, which ? M.playerAction(me, which, f1, S.field) : { kind: 'pass' }],
                         [ally, { kind: 'pass' }]]);
@@ -2008,7 +2014,7 @@ const statusProbe = (tag, label, user, mv, want, other, otherWant) => probe('mov
 });
 statusProbe('inflictsBurn', 'Will-O-Wisp burns', 'incineroar', 'willowisp', 'brn', 'spore', 'slp');
 
-statusProbe('inflictsParalysis', 'Thunder Wave paralyses', 'raichu', 'thunderwave', 'par', 'willowisp', 'brn');
+statusProbe('inflictsParalysis', 'Thunder Wave paralyses', 'raichu', 'thunderwave', 'par', 'willowisp', 'brn', 'snorlax');
 
 probe('move', 'locksTarget', 'Encore locks the target in', () => {
   /* THE FOURTH VERSION. v1 accepted kind !== 'pass' (Encore returns 'status' and applied nothing).
@@ -8902,7 +8908,10 @@ probe('move', 'variablePower', 'Acrobatics doubles with no item held', () => {
  * the control is the same turn with no click at all -- the STATUS is what must differ. */
 probe('move', 'statusCategory', 'Thunder Wave paralyses without dealing damage', () => {
   const run = (click) => {
-    const { me, ally, f1, f2, S } = board('raichu', 'incineroar', 'garchomp', 'garchomp');
+    /* 2026-08-25 -- SNORLAX, NOT GARCHOMP, and for the same reason the paralysis row above moved:
+     * Garchomp is GROUND and Thunder Wave is the one Status move the type chart still judges, so
+     * this fixture was asserting a paralysis the authority refuses. */
+    const { me, ally, f1, f2, S } = board('raichu', 'incineroar', 'snorlax', 'snorlax');
     const before = f1.curHP;
     M.battleTurn(S, rng5,
       new Map([[me, click ? M.playerAction(me, 'thunderwave', f1, S.field) : { kind: 'pass' }],
@@ -8920,6 +8929,71 @@ probe('move', 'statusCategory', 'Thunder Wave paralyses without dealing damage',
  * PHYSICAL side, so raising Defence must lower the damage; if the engine reads Special Defence the
  * two are equal and that equality is the null result. Psychic is the added control -- the same user,
  * type and category -- and it must be UNMOVED by the same Defence change. */
+/* 2026-08-25 -- THE ONE STATUS MOVE THE TYPE CHART STILL JUDGES.
+ *
+ *     hitStepTypeImmunity   if (move.ignoreImmunity === undefined)
+ *                             move.ignoreImmunity = (move.category === 'Status');
+ *                           hitResults[i] = (move.ignoreImmunity && ...) || targets[i].runImmunity(...)
+ *
+ * A Status move skips the chart BY DEFAULT, which is why this engine never asked and why the gap was
+ * invisible. Thunder Wave DECLARES `ignoreImmunity: false` and is the only move in Reg M-B that does
+ * (derived over the format, 564 uses), so a Ground body cannot be paralysed by it.
+ *
+ * THREE ARMS, AND THE THIRD IS THE ONE THAT MATTERS. An engine that simply refused every status move
+ * into a Ground type passes the first two and fails Will-O-Wisp, which the authority lands on a
+ * Garchomp; an engine that refuses nothing fails the first. */
+probe('move', 'statusCategory', 'Thunder Wave is refused by a GROUND body, and an ordinary status move is not', () => {
+  const run = (mv, foe) => {
+    const me = bare('raichu'), ally = bare('incineroar');
+    const f1 = bare(foe), f2 = bare(foe);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.status || 'none';
+  };
+  const ground = run('thunderwave', 'garchomp');      // Ground/Dragon — the chart says zero
+  const notGround = run('thunderwave', 'snorlax');    // Normal — the same click must land
+  const otherStatus = run('willowisp', 'garchomp');   // no chart guard — Ground burns fine
+  return { works: ground === 'none' && notGround === 'par' && otherStatus === 'brn',
+           arms: { control: [notGround, otherStatus], test: ground },
+           detail: 'Thunder Wave into a GROUND Garchomp -> "' + ground + '" (must be none); the same '
+                 + 'click into a Normal Snorlax -> "' + notGround + '"; Will-O-Wisp into the SAME '
+                 + 'Garchomp -> "' + otherStatus + '", because it declares no `ignoreImmunity` and the '
+                 + 'chart never runs for it. Before the fix the first arm read "par"' };
+});
+
+/* 2026-08-25 -- AND THE ITEM CLASS A STRIP IS GATED ON.
+ *
+ *     bugbite / pluck   if (source.hp && item.isBerry && target.takeItem(source)) { ... }
+ *
+ * Eight legal moves call `takeItem` and exactly two carry that guard. `removesItem` said only whether
+ * the user KEEPS the item, so this engine took whatever was in the slot — a Pelipper's Mystic Water
+ * went to a Scizor's Bug Bite, measured against the official simulator, two board leaves apart.
+ *
+ * KNOCK OFF IS THE CONTROL AND IT IS NOT DECORATION: it strips the SAME Mystic Water off the SAME
+ * body, so an engine that fixed this by simply refusing to strip anything fails here. */
+probe('move', 'removesItem', 'Bug Bite takes a BERRY and leaves anything else — and Knock Off still takes both', () => {
+  const run = (mv, item) => {
+    const me = bare('scizor'), ally = bare('clefable');
+    const f1 = bare('milotic'), f2 = bare('garchomp');
+    f1.item = item;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(f1);
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.item || '';
+  };
+  const nonBerry = run('bugbite', 'mysticwater');
+  const berry = run('bugbite', 'sitrusberry');
+  const knockNonBerry = run('knockoff', 'mysticwater');
+  return { works: nonBerry === 'mysticwater' && berry === '' && knockNonBerry === '',
+           arms: { control: [berry, knockNonBerry], test: nonBerry },
+           detail: 'after the hit the target still holds — Bug Bite into a Mystic Water "' + nonBerry
+                 + '" (it must SURVIVE); Bug Bite into a Sitrus Berry "' + berry + '" (it must not); '
+                 + 'Knock Off into the same Mystic Water "' + knockNonBerry + '", which is what stops '
+                 + 'a do-nothing engine passing. Before the fix the first arm read ""' };
+});
+
 probe('move', 'statSwap', 'Psyshock is scored against the target Defense', () => {
   const hit = (mult, mv) => turnDamage(['alakazam', 'incineroar', 'milotic', 'garchomp'],
     (B) => { B.f1.st = Object.assign({}, B.f1.st, { df: B.f1.st.df * mult }); unfaintable(B.f1); }, mv);
@@ -20824,6 +20898,44 @@ probe('ability', 'restoresBerryAtResidual', 'Harvest gives the berry back — al
            detail: 'after the Sitrus is eaten, the item slot reads: rain + a losing roll "' + missed
                  + '", rain + a winning roll "' + rolled + '", SUN + the SAME losing roll "' + sunny
                  + '" (the sky overrides the die). CONTROL, no ability in sun: "' + control + '"' };
+});
+
+/* 2026-08-25 -- AND THE LINE IT WRITES, WHICH WAS THE WRONG EVENT ENTIRELY.
+ *
+ *     harvest   this.add('-item', pokemon, pokemon.getItem(), '[from] ability: Harvest')
+ *     pickup    this.add('-item', pokemon, this.dex.items.get(item), '[from] ability: Pickup')
+ *
+ * Both write `|-item|`. This engine wrote `|-activate|BODY|item: <id>`, which is the event Quick Claw
+ * and Cud Chew use and is not this one. The probe above asserts the item comes BACK and can see none
+ * of that, which is exactly why it stayed wrong: measured against the official simulator on a staged
+ * Trevenant under sun, where the restore is certain on both sides and the LINE is the only thing left
+ * to compare —
+ *     authority   |-item|p1a: Trevenant|Sitrus Berry|[from] ability: Harvest
+ *     this engine |-activate|p1a: Trevenant|item: sitrusberry
+ *
+ * THE SUN IS THE CONTROL'S KNOB, not a convenience: with no ability the same board writes NO restore
+ * line at all, so an engine that emitted `-item` unconditionally fails the control. */
+probe('ability', 'restoresBerryAtResidual', 'Harvest announces the returned berry with `-item`, not `-activate`', () => {
+  const run = (ability) => {
+    /* built here rather than through `board()` because the trace sink has to be handed to
+     * `battleInit`, and the helper does not take one. Same four bodies `berryRun` uses. */
+    const T = [];
+    const me = bare('garchomp'), ally = bare('skeledirge');
+    const f1 = bare('incineroar'), f2 = bare('farigiraf');
+    f1.ability = ability; f1.item = 'sitrusberry';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace: T });
+    S.field.weather = 'sun'; S.field.weatherT = 20;
+    f1.curHP = Math.floor(f1.st.hp * 0.45);
+    for (let t = 0; t < 2; t++) M.battleTurn(S, () => 0.9, PASS2(me, ally), PASS2(f1, f2));
+    return T.filter(l => /^\|(-item|-activate)\|/.test(l) && /sitrus/i.test(l)).map(M.traceCanon);
+  };
+  const test = run('harvest'), control = run('none');
+  return { works: test.length === 1 && /^\|-item\|/.test(test[0]) && control.length === 0,
+           arms: { control, test },
+           detail: 'the restore line, in sun so the die cannot decide it — Harvest '
+                 + JSON.stringify(test) + '; CONTROL, the same board with no ability '
+                 + JSON.stringify(control) + '. Before the fix the Harvest arm read '
+                 + '`|-activate|BODY|item:sitrusberry`, which is Quick Claw\'s event and not this one' };
 });
 
 probe('ability', 'picksUpUsedItem', 'Pickup takes an item another body spent THIS turn', () => {

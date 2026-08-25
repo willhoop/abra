@@ -3836,7 +3836,24 @@ const MOVE_TAGS = [
   { tag: 'statusCategory', param: 'category is Status: Prankster +1, blanked by Taunt, illegal under Assault Vest', probe: 'isStatus',
     why: 'The class Prankster boosts and Taunt deletes. isStatus exists as a FEATURE but was never a '
        + 'named parameter, so nothing connected it to priorityMod or to Taunt',
-    of: m => m.category === 'Status' ? { status: true } : null },
+    /* 2026-08-25 -- AND WHETHER THE TYPE CHART STILL APPLIES, which is the one thing a Status move
+     * usually gets to ignore and one of them does not. `hitStepTypeImmunity` (sim/battle-actions.ts):
+     *
+     *     if (move.ignoreImmunity === undefined) move.ignoreImmunity = (move.category === 'Status');
+     *     hitResults[i] = (move.ignoreImmunity && ...) || targets[i].runImmunity(move, ...);
+     *
+     * So a Status move skips `runImmunity` BY DEFAULT and only a move that DECLARES
+     * `ignoreImmunity: false` is judged by the chart. `Dex.moves.get()` fills the default in its
+     * constructor, so `m.ignoreImmunity === false` on a Status move means the move declared it —
+     * there is no other way for that value to be there.
+     *
+     * DERIVED, NOT NAMED. Measured over the format on the day this was written it matches exactly
+     * ONE move — Thunder Wave, which is why a Ground type cannot be paralysed by it — and the point
+     * of reading the field is that the second member needs no edit here. The engine reads the param;
+     * `respectsTypeChart` is absent (rather than false) on every other Status move. */
+    of: m => m.category === 'Status'
+      ? (m.ignoreImmunity === false ? { status: true, respectsTypeChart: true } : { status: true })
+      : null },
   /* Will: "encore is sorta similar to choice lock". Exactly -- choiceLock is an ITEM you carry,
    * this is the same restriction APPLIED TO THEM. Both collapse the opponent's option set to one
    * move, which is the strongest thing you can know about their next turn. */
@@ -4582,10 +4599,24 @@ const MOVE_TAGS = [
     probe: 'removesItem',
     why: 'Knock Off is one of the most clicked moves in the format and the item survived it, so '
        + 'every Life Orb, Sash and Berry in a rollout was immortal',
+    /* 2026-08-25 -- AND WHAT KIND OF ITEM IT MAY TAKE, WHICH THE ROW DID NOT SAY AND TWO MEMBERS
+     * REQUIRE. Bug Bite and Pluck open `if (source.hp && item.isBerry && target.takeItem(source))`
+     * -- the strip is GATED on the item being a berry, and the row said only `steals: false`, so the
+     * consumer removed whatever was there. MEASURED: staged Scizor Bug Bite into a Pelipper holding
+     * MYSTIC WATER, which the authority leaves alone and this engine took, two board leaves apart.
+     *
+     * DERIVED AND PRINTED BEFORE IT WAS WIRED, over every legal move in the format: eight moves call
+     * `takeItem` and exactly TWO carry a class guard -- `bugbite` and `pluck`, both `["isBerry"]`.
+     * Knock Off, Corrosive Gas, Thief, Covet, Trick and Switcheroo carry none and are unchanged. No
+     * legal move mentions `.isBerry`/`.isGem` WITHOUT calling `takeItem`, so the scan cannot pick up
+     * a berry-reading move that does not strip one. (`incinerate` is `isBerry || isGem` and is
+     * `isNonstandard: 'Past'` -- out of this format, and the reason the field is a LIST.) */
     of: m => {
       const src = String(m.onHit || '') + String(m.onAfterHit || '') + String(m.onTryHit || '');
       if (!/takeItem/.test(src)) return null;
-      return { steals: /setItem|addItem/.test(src) };
+      const classes = [...new Set([...src.matchAll(/\.is(Berry|Gem)\b/g)].map(x => 'is' + x[1]))];
+      return classes.length ? { steals: /setItem|addItem/.test(src), requiresItemClass: classes }
+                            : { steals: /setItem|addItem/.test(src) };
     } },
   /* WHICH STAT A MOVE ATTACKS WITH, AND WHICH IT ATTACKS INTO.
    *
