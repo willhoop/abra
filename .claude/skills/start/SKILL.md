@@ -274,6 +274,48 @@ No preamble, no recap of his own request, no closing paragraph restating what yo
 
 ## 7. THE FAILURE SHAPES THIS PROJECT ACTUALLY HAS
 
+**A DECLARATION IS ONLY AS GOOD AS ITS MECHANISM, AND FOUR IN THREE DAYS HAD NONE.** "Nothing to fix
+here" is where real defects hide. Speed ties were declared incomparable on the claim that the tie die
+was unshared — `RNG_STREAMS` has carried `tie` since 2026-08-20, and those rows were a real turn-order
+defect. Tailwind was refused twice on the same shape. Moody was declared because the stat pick "has no
+shared address" — the address was **ours and stale**, and fixing it cleared 6 of 8 games and exposed
+two more defects the exemption had been hiding. **Every one was set up by the coordinator with
+plausible reasoning; every one was caught by an agent checking the mechanism rather than accepting it.
+Refusing a declaration is a result — brief for it.**
+
+**A PHRASE IN A REGISTER CELL IS EXECUTABLE.** `engine/quarantine.js:1040` tests
+`/NOT A DEFECT/i` against a row's status cell and treats it as a ruling that **overrides the
+derived verdict**. A sentence somebody typed as a note was subtracting three live turn-order
+divergences from the gate and printing them as excused.
+
+**A GENERATED FILE DRIFTS FROM ITS SOURCE IN MINUTES, NOT DAYS.** `data/abra-tags.js` — frozen into
+every release — went stale against `data/tags.json` **38 minutes** after the previous drift was fixed,
+because a `tag_dex` run rewrote the source and nothing rebuilt the copy. Fourth instance of this class.
+Care does not close it; a check does.
+
+**A MOVE CAN BE IMPLEMENTED AND DO NOTHING.** Destiny Bond wrote its volatile and **no line in the
+engine ever read it** — the killer never fainted, the window never closed, a second use refreshed
+instead of failing. It spent 5 PP for nothing, and nothing noticed because nothing compared that leaf.
+
+**COVERAGE OF MECHANICS IS NOT COVERAGE OF DEFECTS.** At turn cap 12 the last new mechanic first acts
+on turn 11 and real games have a median of 7 turns — so 12 is the right cap. But the same mechanics
+exercised longer diverge more: parted 28 → 80 and board-material 10 → 41 between cap 12 and cap 30.
+**Every board-material figure is a claim about the first twelve turns.**
+
+**A PROOF CAN FAIL ON ITS OWN FIXTURE AND LOOK LIKE A BROKEN COMPARATOR.** The planted-state proof was
+`false` on every artifact for two days. At the plant boundary one side was corpses: six plants
+correctly refused a dead body and seven wrote onto one where the comparator deliberately stops reading.
+`applied: true` was a false receipt. **The control — the same mutations on a STANDING body — settled it
+in one run.**
+
+**A FIXTURE IMMUNE FOR TWO REASONS PROVES NOTHING.** Two census probes were green on a live Thunder
+Wave defect because both aimed it at a body blocked by type *and* by status. The sweep that replaced
+them records **how many reasons each cell is immune for** and refuses any cell with more than one.
+
+**`--games` IS A PAIR BUDGET, NOT A GAME COUNT.** `--games 1200` yields 961 played. An agent read a
+different budget's output as a catastrophe before catching it; the coordinator twice briefed figures
+from two different budgets side by side.
+
 Read this before believing any number, including your own. Every line is a real event with a receipt in
 `CHANGELOG.md`. **They are ordered by how often they have bitten.**
 
@@ -464,6 +506,28 @@ was once closed on exactly that mistake.
 never says `refrigerate`; it matches the TAG shape `convertsMoveType` + `damageBoost`, so Pixilate,
 Refrigerate and Aerilate are one mechanic and a fourth would be picked up with no code edit. **`grep`
 returning zero is not evidence the mechanic is missing** — check `data/tags.json` before concluding it.
+
+### The authority — anchors found the expensive way, 2026-08-24/25 (re-open the line, the checkout moves)
+
+| Anchor | Answers |
+|---|---|
+| `sim/battle.ts:429-460` `speedSort` | why a tie is not a stable sort — the swaps move UNTIED bodies past a tied pair, so sorting the front displaces the tail |
+| `sim/battle.ts:507` | the residual list is speed-sorted ONCE, before the walk — nothing mid-walk can reorder it |
+| `sim/battle.ts:2031` / `:2073` / `:2079` | `TryBoost` before any stat lands; `AfterEachBoost` INSIDE the per-stat loop; `AfterBoost` once at the end |
+| `sim/battle.ts:615-621` | weather handlers are suppressed by Air Lock EXCEPT `FieldStart`/`FieldResidual`/`FieldEnd` — which is why the upkeep line still prints under Cloud Nine |
+| `sim/pokemon.ts:1528-1566` `clearVolatile` | switching out wipes every volatile and unlinks linked ones — so a benched body should carry nothing |
+| `sim/pokemon.ts:1587` `faint()` | only QUEUES; the `|faint|` line comes from `faintMessages()` at eight step boundaries |
+| `sim/battle-actions.ts:627` / `:731` | Toxic from a Poison-type user bypasses BOTH the invulnerability check and accuracy — the Aerial Ace mechanism, not 100% |
+| `data/moves.ts:3483-3517` | Destiny Bond's window: stripped by `onBeforeMove` at priority −1, so surviving into the next turn depends on SPEED ORDER; KO must be from a move, not delayed, not an ally |
+| `data/abilities.ts:2694-2713` | Moody skips `accuracy` and `evasion` by name, on BOTH the +2 and the −1 |
+| `Dex.getImmunity(status, type)` | the whole type-immunity matrix without reading a handler — par/Electric, brn/Fire, psn/Poison+Steel, frz/Ice, powder/Grass, trapped/Ghost |
+
+### Derivations that answer a question faster than reading source
+
+- **`Dex.getImmunity('powder', type)`** and `move.flags.powder` — the seven legal powder moves and who resists them.
+- **`ability.onSwitchInPriority`** — only a handful of switch-in abilities declare one; everything else, including Intimidate and Drizzle, sorts on speed alone.
+- **Filter every entity walk by CARRIER, not by `isNonstandard`.** Neutralizing Gas reads legal and has **zero legal carriers**, so it cannot occur — an entity check alone would have sent someone to implement it.
+- **`move.ignoreImmunity`** — the axis that separates Thunder Wave (respects type immunity) from Stun Spore and Glare (do not). One Ground body taking all three is a fixture that cannot be green by accident.
 
 ### Conventions worth knowing before you trip them
 
