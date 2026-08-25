@@ -13401,3 +13401,23 @@ RED at HEAD, named rather than filed); `engine/feature_fixture.js --check` (the 
 four judgement cards, which are Will's; and `engine/replay_one.js`, which could not resolve the pinned
 seeds at `--games 961` and was not re-tried — three of the ten remaining rows were reasoned about from
 the artifact rather than replayed, and **none of them was fixed on that reasoning.**
+
+---
+
+## THE MOODY EXEMPTION IS REMOVED, AND IT WAS HIDING TWO REAL DEFECTS — 2026-08-25
+
+Declared `IMPOSSIBLE TO COMPARE` on 08-23 because the stat pick supposedly had no shared address.
+**False.** The authority clears the active-move label after every action and again at the residual,
+before Moody rolls; we never did. The coin was private because **our label was stale**.
+
+Six of the eight games cleared when the label was fixed. **The other two are still wrong** — an
+immunity the authority sees and we miss, and a mega-versus-switch ordering — and neither was visible
+while the Moody line came first.
+
+Removing it changed no figure: the excused count had already gone **8 → 0**, so the clause reads
+**23 of 961 = 2.4%** before and after. **A dead exemption, not a live one.**
+
+**No census count moved and none is claimed** (697 probed / 697 live / 0 missing).
+
+**OWED, NOT RUN:** the two remaining Moody-adjacent defects; the address print for the Outrage void
+game, whose reason is the same argument that just failed.

@@ -1190,78 +1190,62 @@ function causeEvidence(j) {
   return (cause) => ({ firsts: firsts.get(cause) || [], probes: probes.get(cause) || [] });
 }
 
-/* `|-boost|p2a|spa|2` -> {kind,slot,stat,mag}, or null for anything that is not exactly that shape. */
-function parseBoostEvent(s) {
-  const p = String(s).split('|');
-  if (p.length !== 5 || p[0] !== '') return null;
-  if (p[1] !== '-boost' && p[1] !== '-unboost') return null;
-  return { kind: p[1], slot: p[2], stat: p[3], mag: p[4] };
-}
-/* Moody's pool, read off the authority at `data/abilities.ts:2691-2716` on 2026-08-23: both loops
- * `continue` on accuracy and evasion, so a pick outside these five is a DEFECT and must not match. */
-const MOODY_POOL = ['atk', 'def', 'spa', 'spd', 'spe'];
+/* `parseBoostEvent` and `MOODY_POOL` lived here and were REMOVED WITH THE MOODY ROW on 2026-08-25 —
+ * they had exactly one caller, its matcher, and a helper kept alive after its premise is refuted is
+ * an invitation to rebuild the same declaration. The pool derivation they carried is preserved in
+ * the withdrawal note below, where it is still true and no longer load-bearing. */
 
 const DECLARED_DIVERGENCE = [
-  {
-    kind: 'INCOMPARABLE',
-    name: "Moody's stat pick",
-    /* MATCHES: the two engines named a DIFFERENT STAT on the same slot, at the same magnitude, with
-     * our line attributed to Moody and theirs attributed to nothing else.
-     * DOES NOT MATCH, deliberately, because each of these is a real defect:
-     *   - a magnitude that is not +2 / -1                       (mag !== want)
-     *   - a pick outside the five main stats — ACCURACY or EVASION in the pool  (MOODY_POOL)
-     *   - a boost the authority attributes to some other effect (their [from] names it)
-     *   - a boost that immediately follows the same slot clicking a MOVE — that boost is the move's
-     *   - any occurrence of this cause that is NOT attributed to Moody (rows.every) */
-    match: (c, ev) => {
-      const i = c.indexOf(' :: ');
-      if (i < 0) return false;
-      const cls = c.slice(0, i);
-      /* `field 3` IS the stat position of `|-boost|SLOT|STAT|MAG`, so the class name already asserts
-       * that the event, the slot and the magnitude agree and only the STAT differs. Parsed again
-       * below rather than trusted, because a class name is a label and the fields are the fact. */
-      if (cls !== '-boost field 3' && cls !== '-unboost field 3') return false;
-      const halves = c.slice(i + 4).split(' <> ');
-      if (halves.length !== 2) return false;
-      const A = parseBoostEvent(halves[0]), B = parseBoostEvent(halves[1]);
-      if (!A || !B) return false;
-      if (A.kind !== B.kind || A.slot !== B.slot || A.mag !== B.mag) return false;
-      if (A.mag !== (A.kind === '-boost' ? '2' : '1')) return false;
-      if (MOODY_POOL.indexOf(A.stat) < 0 || MOODY_POOL.indexOf(B.stat) < 0) return false;
-      if (A.stat === B.stat) return false;
-      const rows = (ev && ev.firsts) || [];
-      if (!rows.length) return false;
-      return rows.every((r) => {
-        if (!/\|\[from\] ability: moody$/i.test(String(r && r.medicham || '').trim())) return false;
-        const theirs = String(r && r.showdown || '').match(/\[from\] (.+)$/);
-        if (theirs && !/moody/i.test(theirs[1])) return false;
-        const before = (Array.isArray(r && r.showdown_before) ? r.showdown_before : []).slice(-2);
-        const clicked = new RegExp('^\\|move\\|' + A.slot + ':');
-        return !before.some((L) => clicked.test(String(L)));
-      });
-    },
-    why: "THE STAT PICK IS A DIE WITH NO SHARED ADDRESS. `data/abilities.ts:2691-2716` picks with "
-       + "`this.sample(stats)` twice — +2 on one stat, -1 on another — over the five main stats only, "
-       + "because both loops `continue` on accuracy and evasion. THE RULE IS NOT IN DISPUTE AND THIS "
-       + "ENGINE IMPLEMENTS IT: medicham2-browser.js:25831 draws over `['at','df','sa','sd','sp']`, "
-       + "+2 then -1, second draw excluding the first, capped stats excluded — Will's condition, "
-       + "*\"as long as we genuinely model a random chance its fine\"*, is met. WHAT CANNOT BE "
-       + "COMPARED IS WHICH STAT THE DIE NAMES. The middle arm addresses a draw by "
-       + "`[seed, turn, category, move, target]` plus an occurrence index (medicham2's `midEventDraw`), "
-       + "and a residual `sample()` belongs to no named category on either side, so both engines take "
-       + "it off the GENERIC `any` stream at an occurrence index each engine populates with its own "
-       + "unrelated draws. Six streams are shared or neutralised — `acc crit sec dmg stall` "
-       + "(engine/game_differential.js:699) and `tie` (`o.tie = () => 0`) — and this is not one of "
-       + "them. IT IS THE INSTRUMENT'S ADDRESSING, NOT A LAW: give the residual pick a named stream on "
-       + "both sides, the way ROADMAP #290 did for `tie`, and this row must be deleted rather than "
-       + "kept. Corroboration, derived rather than recalled: in the PINNED CORNER arms this cannot "
-       + "diverge at all — `pinRandom` returns `top ? m-1 : 0` and medicham2's `_pick` reads the same "
-       + "end of the same list — so a Moody divergence can only exist in the arm with real dice, "
-       + "which is where all 8 of these are. "
-       + "BOUNDARY — this covers the PICK ONLY. A wrong magnitude, a wrong number of stats, a wrong "
-       + "trigger, or a pool that includes ACCURACY or EVASION does not match here and is a real "
-       + "defect that holds this gate shut.",
-  },
+  /* ~~`Moody's stat pick`~~ — DECLARED 2026-08-23 AS `INCOMPARABLE`, **WITHDRAWN 2026-08-25 BECAUSE
+   * ITS MECHANISM WAS REFUTED BY MEASUREMENT.** Left as a comment, like the speed-tie and drag rows
+   * below and above, because a closet that silently loses rows teaches nobody.
+   *
+   * WHAT IT CLAIMED. That the authority's residual `sample()` "belongs to no named category on either
+   * side, so both engines take it off the GENERIC `any` stream at an occurrence index each engine
+   * populates with its own unrelated draws" — therefore no shared address, therefore disagreement by
+   * construction, therefore nothing to fix. Will waived it by name on that reasoning.
+   *
+   * WHAT WAS ACTUALLY WRONG. The `any` stream WAS shared. The ADDRESS ON OUR SIDE WAS NOT. The middle
+   * arm keys both engines' dice on `seed|turn|category|move|target|nth`; the authority's `move`/
+   * `target` come off `battle.activeMove`/`battle.activeTarget`, and it NULLS BOTH after every action
+   * (`sim/battle.ts:2828`) and again at the top of the residual (`:2810`, `clearActiveMove(true)`,
+   * which runs BEFORE `fieldEvent('Residual')` and therefore before Moody draws). `medicham2-browser.js`
+   * wrote `MID_MOVE`/`MID_TGT` at the top of each action and never cleared them, so every end-of-turn
+   * die was addressed with a move name that had already finished:
+   *
+   *     authority     20260813|1|any|-|-|0
+   *     this engine   20260813|1|any|curse|p20|0
+   *
+   * Two addresses that cannot match are two independent dice. The die was private BECAUSE THE ADDRESS
+   * WAS OURS AND IT WAS WRONG, not because the authority's draw is unaddressable. The row's own text
+   * said the exit condition out loud — *"give the residual pick a named stream on both sides ... and
+   * this row must be deleted rather than kept"* — and that is what happened.
+   *
+   * THE EVIDENCE, derived from the committed artifacts rather than recalled. Same 961 games, same
+   * pool, `wholeGameClause` run over each:
+   *
+   *     0447cd1 (rel ffdec64bed0c, pre-fix)   35 raw   declared 13 = INCOMPARABLE 8 + AUTH-WRONG 5
+   *     382e998 (rel cbf345e56bc0, post-fix)  28 raw   declared  5 = INCOMPARABLE 0 + AUTH-WRONG 5
+   *     65a9c5c (rel 359b51b61d83, HEAD)      28 raw   declared  5 = INCOMPARABLE 0 + AUTH-WRONG 5
+   *
+   * The eight games were 7 causes: 6 x `-boost field 3` and 2 x `-unboost field 3`. After the address
+   * fix ZERO games carry either shape. Six stopped diverging outright; two now part on a DIFFERENT
+   * cause — `|-immune|p1a <> |-miss|p2b|p1a` and `|switch|p1a|krookodile <> |detailschange|p1b|
+   * charizardmegay`. **So the declaration was sheltering two real defects that nothing could see while
+   * it stood.** Knob `MEDI_ACTIVE_MOVE_STICKY=1` restores the leak, so the red is reproducible.
+   *
+   * WHAT WAS NEVER IN DISPUTE, and is recorded here so it is not re-litigated: Moody's rule. The
+   * authority (`data/abilities.ts:2691-2716`) takes two `sample()` draws over the five main stats only
+   * — both loops `continue` on accuracy and evasion — and this engine implements that. The withdrawn
+   * matcher's negative boundary (a wrong magnitude, accuracy or evasion in the pool, a boost the
+   * authority attributes elsewhere, a boost that follows the same slot clicking a move) is now simply
+   * the default: every one of those is UNDECLARED and holds the gate shut, which is what the selftest
+   * ratchet asserts.
+   *
+   * THE GENERAL LESSON, and the reason this note is long: a declaration is only as good as its
+   * mechanism, and this mechanism was never independently checked. It is the fourth "nothing to fix
+   * here" in three days that turned out to be a real defect — speed ties, Tailwind twice, now Moody.
+   * A plausible reason typed beside a citation reads exactly like a measured one. */
   /* ~~`Speed tie / the tie-break coin flip`~~ — WRITTEN, THEN REFUSED THE SAME HOUR, 2026-08-23, AND
    * LEFT HERE AS A COMMENT BECAUSE A CLOSET THAT SILENTLY LOSES ROWS TEACHES NOBODY.
    *
@@ -2939,45 +2923,36 @@ if (require.main === module) {
       const dec = (cause, rows, probe) => wholeGameClause(WG(cause, rows, probe), INERT);
       const MOODY = '-boost field 3 :: |-boost|p2a|spa|2 <> |-boost|p2a|def|2';
 
-      const control = dec(MOODY, [{ showdown: MOODY_SD, medicham: MOODY_ME }]);
-      ok("DECLARED/INCOMPARABLE — Moody's stat pick is declared, and under its OWN heading",
-        control.declared === 1 && control.declared_by_kind.INCOMPARABLE === 1
-        && control.declared_by_kind['AUTHORITY-WRONG'] === 0, control.declared_by_kind);
-      ok('the two kinds are printed apart and never summed into one number',
-        /IMPOSSIBLE TO COMPARE/.test(control.why) && /\[1 game\(s\), 1 row\(s\)\]/.test(control.why));
+      /* MOODY IS NO LONGER DECLARED, AND THIS IS THE RATCHET THAT KEEPS IT THAT WAY — 2026-08-25.
+       * The row claimed the residual `sample()` had no shared address. It had one; OUR half of it was
+       * stale, because this engine never cleared the active move the way `sim/battle.ts:2810/:2828`
+       * does. With the address fixed the eight declared games went to ZERO in the artifact, six of
+       * them stopped diverging at all, and TWO were revealed to be different real defects the label
+       * had been hiding. If somebody re-adds the row, this goes red — the same shape as the speed-tie
+       * refusal below, and for the same reason. */
+      const gone = dec(MOODY, [{ showdown: MOODY_SD, medicham: MOODY_ME }]);
+      ok("RED — a Moody-shaped stat-pick divergence is UNDECLARED and HOLDS THE GATE SHUT: the "
+        + "declaration's mechanism was refuted, so the exemption is withdrawn",
+        gone.declared === 0 && gone.declared_by_kind.INCOMPARABLE === 0 && gone.undeclared === 1
+        && gone.ok === false, gone.declared_by_kind);
+      ok('...and no INCOMPARABLE heading is printed when no row makes that claim',
+        !/IMPOSSIBLE TO COMPARE/.test(gone.why), gone.why);
 
-      const NEG = [
-        ['EVASION in the pool — the authority `continue`s on it, so this is a DEFECT',
-          '-boost field 3 :: |-boost|p2a|evasion|2 <> |-boost|p2a|def|2',
-          [{ showdown: '|-boost|p2a: Scovillain|evasion|2', medicham: MOODY_ME }]],
-        ['ACCURACY in the pool',
-          '-boost field 3 :: |-boost|p2a|spa|2 <> |-boost|p2a|accuracy|2',
-          [{ showdown: MOODY_SD, medicham: '|-boost|p2a: Scovillain|accuracy|2|[from] ability: moody' }]],
-        ['a wrong MAGNITUDE on the raise (+3, not +2)',
-          '-boost field 3 :: |-boost|p2a|spa|3 <> |-boost|p2a|def|3',
-          [{ showdown: '|-boost|p2a: Scovillain|spa|3', medicham: '|-boost|p2a: Scovillain|def|3|[from] ability: moody' }]],
-        ['a wrong magnitude on the drop (-2, not -1)',
-          '-unboost field 3 :: |-unboost|p2a|spa|2 <> |-unboost|p2a|def|2',
-          [{ showdown: '|-unboost|p2a: Scovillain|spa|2', medicham: '|-unboost|p2a: Scovillain|def|2|[from] ability: moody' }]],
-        ['our line is not attributed to Moody at all',
-          MOODY, [{ showdown: MOODY_SD, medicham: '|-boost|p2a: Scovillain|def|2' }]],
-        ['only ONE of two occurrences is Moody — the other is something else',
-          MOODY, [{ showdown: MOODY_SD, medicham: MOODY_ME },
-                  { showdown: MOODY_SD, medicham: '|-boost|p2a: Scovillain|def|2' }]],
-        ['the AUTHORITY attributes its boost to a different effect',
-          MOODY, [{ showdown: MOODY_SD + '|[from] ability: download', medicham: MOODY_ME }]],
-        ['the boost follows that same slot clicking a MOVE, so it is the move\'s boost',
-          MOODY, [{ showdown: MOODY_SD, medicham: MOODY_ME,
-                    showdown_before: ['|-weather|Sandstorm|[upkeep]',
-                                      '|move|p2a: Scovillain|Swords Dance|p2a: Scovillain'] }]],
-        ['a different SLOT on each side — that is a wrong target, not a pick',
-          '-boost field 3 :: |-boost|p2a|spa|2 <> |-boost|p1a|def|2',
-          [{ showdown: MOODY_SD, medicham: '|-boost|p1a: Scovillain|def|2|[from] ability: moody' }]],
-      ];
-      for (const [label, cause, rows] of NEG) {
-        const r = dec(cause, rows);
-        ok('RED — Moody does NOT shelter ' + label,
-          r.declared === 0 && r.undeclared === rows.length, r.declared_by_kind);
+      /* THE TWO KINDS STILL PRINT APART AND ARE NEVER SUMMED. Asserted on a SYNTHETIC row rather than
+       * a shipping one, push/pop like the DEFERRED guard below, because the shipping list currently
+       * holds no INCOMPARABLE row and a printer property must not silently lose its test when the
+       * last row of a kind is withdrawn. */
+      {
+        DECLARED_DIVERGENCE.push({ kind: 'INCOMPARABLE', name: 'a synthetic unshared draw',
+          match: (c) => c === MOODY, why: 'selftest only — never shipped' });
+        try {
+          const r = dec(MOODY, [{ showdown: MOODY_SD, medicham: MOODY_ME }]);
+          ok('an INCOMPARABLE row prints under its OWN heading and is not summed with AUTHORITY-WRONG',
+            r.declared === 1 && r.declared_by_kind.INCOMPARABLE === 1
+            && r.declared_by_kind['AUTHORITY-WRONG'] === 0
+            && /IMPOSSIBLE TO COMPARE/.test(r.why) && /\[1 game\(s\), 1 row\(s\)\]/.test(r.why),
+            r.declared_by_kind);
+        } finally { DECLARED_DIVERGENCE.pop(); }
       }
 
       /* SPEED TIES ARE NOT DECLARED, AND THIS ASSERTS THE REFUSAL RATHER THAN LEAVING IT TO THE

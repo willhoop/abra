@@ -10,6 +10,37 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.126.0] — 2026-08-25
+
+### Fixed
+- **THE MOODY DECLARATION IS REMOVED — ITS STATED REASON WAS FALSE.** It was declared
+  `IMPOSSIBLE TO COMPARE` on 2026-08-23 on the reasoning that the authority's stat pick sits on a
+  generic stream at an index each engine fills with its own draws, **so no shared address exists**.
+  Will waived it by name on that basis. **The mechanism was never independently checked, and it was
+  wrong.** The authority clears the active-move label after every action and again at the residual —
+  three lines apart in one file, and **before Moody rolls**. We never cleared it. So the coin was
+  private because **our label was stale**, not because the authority's roll is unreachable.
+- **It was hiding two real defects.** Six of the eight games stopped disagreeing the moment the label
+  was cleared. **The other two are still wrong** — an immunity the authority sees and we miss, and a
+  mega-versus-switch ordering — and neither was visible while the Moody line came first.
+- Measured across three committed artifacts on the same 961 games: the excused count went **8 → 0**.
+  So this removed a **dead** exemption, not a live one: the clause reads **23 of 961 = 2.4% before and
+  after** (28 raw, less 5 for Supreme Overlord). **Taking it out raises nothing.**
+
+### Notes
+- **THIS IS THE FOURTH TIME IN THREE DAYS A "NOTHING TO FIX HERE" CLAIM WAS A REAL DEFECT** — speed
+  ties, Tailwind twice, now Moody. Every one was set up by the coordinator with plausible reasoning;
+  every one was caught by an agent checking the mechanism instead of accepting it. **A declaration is
+  only as good as its mechanism, and a mechanism nobody independently verified is a guess wearing a
+  citation.**
+- **The row is updated, not closed** — the old verdicts stand as dated history with a withdrawal block
+  appended, and the `NOT A DEFECT` escape hatch it had spent is given back. Left open deliberately;
+  closing belongs to whoever lands the engine fix.
+- **THE NEXT ONE OF THE SAME SHAPE IS NAMED AND NOT TOUCHED.** The single game excluded for Outrage's
+  target roll carries the reason *"an address the harness can't share"* — **word for word the argument
+  that just failed** — and nobody has printed the two addresses for it. Flagged for Will, unchanged.
+  The one other live exemption, Supreme Overlord, was re-derived from source and holds.
+
 ## [5.122.0] — 2026-08-25
 
 ### Added
