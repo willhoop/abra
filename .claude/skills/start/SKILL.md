@@ -5,8 +5,13 @@ description: Start an ABRA session. Prints the real state, the open work and wha
 
 # Start the session by PRINTING the state, never by reading prose
 
-Six steps, in order. The order is load-bearing twice: step 1 must precede step 2 because step 2
-writes, and step 5 must precede any real work because the coordinator's job is to route it.
+The sections below run in order, and the order is load-bearing twice: the tree check must precede the
+state print because the print WRITES, and the routing section must precede any real work because the
+coordinator's job is to hand it out rather than do it.
+
+**No count is written here on purpose.** This line read "Six steps" while the file carried ten
+sections — the same rot that had `docs/DIVISIONS.md` saying "Four divisions" for nineteen days after
+WEB was added. A number typed next to a list is wrong the moment the list grows.
 
 ---
 
