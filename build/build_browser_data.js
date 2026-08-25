@@ -42,10 +42,24 @@
  * Definitive source: Dex.forFormat('gen9championsvgc2026regmb').  Output: ABRA/data/*.js.
  * Re-run after a Showdown update:
  *     node build/build_browser_data.js
- */
+ *     node build/build_browser_data.js --check    exit non-zero if what is on disk is not what this
+ *                                                 script would write from the dex TODAY
+ *
+ * WHY --check EXISTS (2026-08-25). NOTHING COMPARED THESE TWO FILES TO THE DEX. `data/move-effects.js`
+ * is frozen into every engine release and is required lazily by medicham2-browser for move priority,
+ * and `data/mega-formes.js` decides what a mega turns into on ~26% of format usage — and the only
+ * standing check on either was tests/test-site-data-fresh.js, which asks whether the file is NEWER
+ * than the corpus. CLAUDE.md is explicit that newer is no evidence at all: engine-data.js was newer
+ * than the merge script and had still lost its output. The pair that made this a rule was
+ * data/tags.json / data/abra-tags.js, which drifted twice, the second time into a commit.
+ *
+ * THE DATE IN THE HEADER IS EXCLUDED, DELIBERATELY. It is today's date by construction, so a byte
+ * comparison would fail one day after every legitimate build — and a test that does that is one
+ * people waive. Only the PAYLOAD is compared, which is the whole fact anybody reads. */
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const CHECK = process.argv.includes('--check');
 
 const ABRA = path.join(__dirname, '..');
 require(path.join(ABRA, 'engine', 'showdown_path.js'));
@@ -155,6 +169,30 @@ for (const t of TARGETS) {
    * the contract test loads these files with `new Function('window', src)(stub)`. */
   const body = `(function(r){r.${t.global}=` + JSON.stringify(t.payload) +
                `;})(typeof window!=='undefined'?window:globalThis);\n`;
+  if (CHECK) {
+    /* Compare the PAYLOAD, not the bytes — see the header note about the date stamp. The shipped
+     * file is read back through its own wrapper rather than by re-parsing the text, so a wrapper
+     * that changed shape is a named failure instead of a silent mismatch. */
+    const rel = path.relative(ABRA, t.out);
+    let onDisk = null, why = null;
+    try {
+      const stub = {};
+      new Function('window', fs.readFileSync(t.out, 'utf8'))(stub);
+      onDisk = stub[t.global];
+      if (!onDisk) why = `the file loaded but did not set window.${t.global} — the wrapper changed shape`;
+    } catch (e) { why = e.message; }
+    if (why) { console.error(`  ${rel}: cannot read what is on disk — ${why}`); process.exitCode = 1; continue; }
+    const S = JSON.stringify;
+    const rows = [...new Set([...Object.keys(t.payload), ...Object.keys(onDisk)])]
+      .filter(k => S(t.payload[k]) !== S(onDisk[k]));
+    if (!rows.length) { console.log(`  ${rel} is what the Champions dex says today (${Object.keys(t.payload).length} ${t.note}).`); wrote++; continue; }
+    console.error(`  ${rel} DOES NOT MATCH the Champions dex — ${rows.length} of ` +
+      `${Object.keys(t.payload).length} ${t.note} differ: ${rows.slice(0, 10).join(', ')}` +
+      (rows.length > 10 ? ' …' : ''));
+    console.error('  fix: node build/build_browser_data.js');
+    process.exitCode = 1;
+    continue;
+  }
   /* The targets are named on the write line -- data/move-effects.js, data/mega-formes.js -- because
    * tests/test-site-data-fresh.js pairs a filename with a write on ONE line, and writing through
    * t.out alone made this generator invisible. */
@@ -162,4 +200,5 @@ for (const t of TARGETS) {
   console.log(`  ${path.relative(ABRA, t.out)}  <- Champions dex  (${Object.keys(t.payload).length} ${t.note}, ${(fs.statSync(t.out).size / 1024).toFixed(0)} KB)`);
   wrote++;
 }
-console.log(`generated ${wrote}/${TARGETS.length} browser data files from the Champions dex`);
+console.log(`${CHECK ? 'checked' : 'generated'} ${wrote}/${TARGETS.length} browser data files ` +
+  'against the Champions dex');

@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-24",
- "by": "tests/test-no-silent-failure.js --accept engine/champions_sim.js#b958762b3701 (reason corrected)",
+ "generated": "2026-08-25",
+ "by": "tests/test-no-silent-failure.js --accept engine/artifact_audit.js#3314d002d506",
  "note": "GENERATED. Never hand-edit. `entries` is the ratchet floor: the silent catch blocks that existed when it was set. `--update` is MONOTONE — it writes min(baseline, current) per key, so it locks in FIXES and structurally cannot launder a new offender into the floor (ROADMAP #258). `accepted` is separate and is the ONLY door in: one block at a time, named by <file>#<hash of the catch body>, each carrying the reason a person wrote after reading that block. An accepted block that is EDITED hashes differently and fails again.",
  "count": 201,
  "entries": {
@@ -171,7 +171,7 @@
   "tests/test-tag-wire.js#db2eeaf2f910": 1,
   "tests/test-wiring.js#da39a3ee5e6b": 1
  },
- "acceptedCount": 62,
+ "acceptedCount": 65,
  "accepted": {
   "engine/orient.js#604a40a7c4d6": {
    "at": "2026-08-23",
@@ -701,6 +701,33 @@
     56
    ],
    "body": "/* a throw is a different defect */"
+  },
+  "engine/artifact_audit.js#7a8360c0ddb3": {
+   "at": "2026-08-25",
+   "why": "LOUD: flag('GAP', ...) does problems++ AND console.log at artifact_audit.js:50, so an unreadable data/ dir is counted and named, and the audit exits non-zero. The detector does not recognise flag() as a reporter.",
+   "count": 1,
+   "lines": [
+    482
+   ],
+   "body": "flag('GAP', `cannot list data/ — ${e.message}`);"
+  },
+  "engine/artifact_audit.js#92a39576ba86": {
+   "at": "2026-08-25",
+   "why": "LOUD: same flag('GAP', ...) reporter at :50 -- problems++ plus a printed line naming the unreadable file. Skipping one bundle is correct; the gap is reported and fails the audit.",
+   "count": 1,
+   "lines": [
+    488
+   ],
+   "body": "flag('GAP', `data/${f} exists and could not be read — ${e.message}`); "
+  },
+  "engine/artifact_audit.js#3314d002d506": {
+   "at": "2026-08-25",
+   "why": "LOUD: same flag('GAP', ...) reporter at :50 -- an unreadable builder is counted and named, and the audit exits non-zero. Continuing to the next bundle is correct.",
+   "count": 1,
+   "lines": [
+    494
+   ],
+   "body": "flag('GAP', `data/${f} names builder ${builder}, which cannot be read "
   }
  }
 }
