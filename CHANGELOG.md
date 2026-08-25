@@ -10,6 +10,50 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.131.0] — 2026-08-25
+
+### Fixed
+- **THE PLANTED-STATE PROOF WAS FAILING ON ITS OWN FIXTURE, NOT ON THE COMPARATOR — SO THE PUBLISHED
+  BOARD-MATERIAL FIGURES STAND.** `planted_state_proof_ok` had been `false` on **every committed
+  artifact since 24 August**, with `engine/game_differential.js` exiting 1 on it. That proof is what
+  establishes the state comparator can detect anything at all, so while it failed, every
+  "board-material" figure rested on an unproven ruler.
+- **It was the fixture, both halves.** At the plant boundary one side was two corpses and **all four
+  benched bodies on both sides were dead**. The six bench plants **correctly refused to plant on a
+  corpse**. The seven volatile plants **did** write — onto a dead body, where `board_state.js`
+  deliberately stops reading `item`/`status_counter`/`boosts`/`ability`/`vol`/`stall`. Nothing moved,
+  so there was nothing to catch. **`applied: true` was a false receipt, not a miss.**
+- **The control settles it:** the same seven mutate functions handed a **standing** body are all
+  caught and localised at the same boundary. Not a comparator bug.
+- **The "side B" pattern was a coincidence** — side B is simply the side that got swept. Pass/fail was
+  a function of `--games`: the identical code at `--games 45` passes all 42.
+
+### Changed
+- Plants now **find a standing body and report the slot used** (tighter, not looser); **`applied` now
+  means the board actually MOVED where the comparator looks**, asked of `BS.compare` rather than
+  trusting the callback's return; and a plant that cannot land at the last agreeing boundary walks back
+  through earlier ones — **on `applied` only, never on `caught`.** After: **42 of 42 caught and
+  localised**, `all_ok: true`, and MEASURE's own gate green with 42/42 applied across all six pairs.
+
+### Removed
+- **A PUBLISHED CAVEAT IS WITHDRAWN.** A register row held that the different-end-state count was a
+  **lower bound**, including the 83 figure in CHANGELOG 5.54.0, on the strength of those 13 plants
+  being indeterminate. **They were the fixture.** The footnote comes off; that count needs no
+  qualifier.
+
+### Notes
+- **This says the RULER works. It says nothing about MEDICHAM being correct** — those are different
+  claims and the report is explicit about it.
+- **A coordination failure of mine, recorded because it nearly cost a measurement:** MEASURE edited
+  `engine/game_differential.js` while an ENGINE agent was *running* it — two runs started at 15:41:01
+  and 15:41:54. **Node reads a module at require time, so either may hold a half-edited driver.**
+  Neither wrote an artifact; both are to be discarded and repeated. That is precisely the collision the
+  division rules exist to prevent, and I set it up by putting two agents in one file.
+- **Still owed:** the committed `data/game-differential.json` carries `planted_state_proof_ok: false`
+  until the next `--state` run; `tests/probe_bench_plants.js` **exits 0 while reporting failures**; and
+  `docs/ENGINE.md`'s note that *"41 of 42 are caught, the one hole is the benched-HP plant"* is now
+  doubly wrong.
+
 ## [5.129.0] — 2026-08-25
 
 ### Fixed

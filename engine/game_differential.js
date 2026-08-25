@@ -4224,13 +4224,47 @@ const benchedLiving = (S, side) => {
  * LOUD, NOT SILENT: the flip is recorded per plant and published as `fell_back_to_the_other_side`, and
  * a plant that finds no living benched body on EITHER side still returns false and still fails the
  * proof. */
-let BENCH_PLANT_SIDE_FLIP = false;
+let PLANT_SIDE_FLIP = false;
 const benchedLivingEither = (S, side) => {
   const first = benchedLiving(S, side);
   if (first) return first;
   const other = benchedLiving(S, side === 'B' ? 'A' : 'B');
-  if (other) BENCH_PLANT_SIDE_FLIP = true;
+  if (other) PLANT_SIDE_FLIP = true;
   return other;
+};
+/* AN ACTIVE SLOT THAT IS ACTUALLY STANDING, AND THE SLOT INDEX IT ENDED UP IN — 2026-08-25, MEASURE.
+ *
+ * THE SEVEN VOLATILE PLANTS OF THE 2026-08-12 SWEEP WROTE STRAIGHT INTO `S.actB[0]` / `S.actB[1]`
+ * WITHOUT ASKING WHETHER ANYBODY WAS STANDING THERE, and `board_state.js` holds the whole post-faint
+ * group — `item, status_counter, boosts, ability, vol, stall` — on a body both engines call dead. So
+ * the plant landed on a corpse, moved no compared leaf, and reported NOT CAUGHT. That reads as seven
+ * blind spots in the comparator and was seven plants aimed at bodies that could not carry them: on the
+ * proof pair of the committed artifact, side B's board at the plant boundary is
+ * `tyranitar-mega hp0 [FNT]  milotic hp0 [FNT]` and every benched body on both sides is a corpse too.
+ * MEASURED, not argued: handing the SAME seven mutate functions a living body catches all seven,
+ * localised, at the same boundary (docs/_reports/2026-08-25-planted-state-proof.md).
+ *
+ * This is the same correction `livingEither` made for four other plants on 2026-08-18, one slot over,
+ * and it is not a loosening: the plant returns the slot it actually used, so the localisation assertion
+ * is exactly as tight as `active[0].vol.taunt` was — it just names the slot the body is in rather than
+ * the slot the table hoped for. THE SIDE AND THE SLOT WERE NEVER THE CLAIM; the LEAF is. */
+const livingSlot = (S, side, from) => {
+  const pick = (list) => {
+    const m = living(list || [], from);
+    return m ? { m, i: (list || []).indexOf(m) } : null;
+  };
+  const first = pick(side === 'B' ? S.actB : S.actA);
+  if (first) return first;
+  const other = pick(side === 'B' ? S.actA : S.actB);
+  if (other) PLANT_SIDE_FLIP = true;
+  return other;
+};
+/* THE PLANT WRITES THROUGH THE CANONICAL `bumpVol` AND NAMES ITS OWN PATH. One helper rather than
+ * seven copies of the same four lines — a second copy of a fact is what this repo has a rule about. */
+const volPlant = (S, side, from, key, value) => {
+  const r = livingSlot(S, side, from);
+  if (!r) return false;
+  return bumpVol(r.m, key, value(r.m)) && 'active[' + r.i + '].vol.' + key;
 };
 const STATE_PLANTS = [
   ['HP off by one on an active body', 'active',
@@ -4275,18 +4309,24 @@ const STATE_PLANTS = [
    S => { S.sfA.hz = S.sfA.hz || {}; S.sfA.hz.spikes = (S.sfA.hz.spikes || 0) + 1; return true; }],
   ['a Substitute that is not there', 'active[0].vol.substitute',
    S => !!S.actA[0] && ((S.actA[0]._sub = (S.actA[0]._sub || 0) + 42), true)],
+  /* THESE TWO, AND THE FIVE BELOW, GO THROUGH `volPlant` — see its header. They used to write into a
+   * fixed `S.actB[n]` and the slot is a corpse at a late plant boundary more often than not. */
   ['a Taunt counter off by one', 'active[0].vol.taunt',
-   S => bumpVol(S.actB[0], 'taunt', volOf(S.actB[0], 'taunt') + 3)],
+   S => volPlant(S, 'B', 0, 'taunt', m => volOf(m, 'taunt') + 3)],
   ['an Encore counter off by one', 'active[0].vol.encore',
-   S => bumpVol(S.actB[0], 'encore', volOf(S.actB[0], 'encore') + 3)],
+   S => volPlant(S, 'B', 0, 'encore', m => volOf(m, 'encore') + 3)],
   ['a Disable counter off by one', 'active[1].vol.disable',
    S => bumpVol(S.actA[1], 'disable', volOf(S.actA[1], 'disable') + 4)],
   ['a Leech Seed that is not there', 'active[1].vol.leechseed',
    S => !!S.actA[1] && ((S.actA[1]._seededBy = S.actA[1]._seededBy ? null : { by: S.actB[0], per: 8 }), true)],
   ['a confusion counter off by one', 'active[0].vol.confusion',
    S => bumpVol(S.actA[0], 'confusion', volOf(S.actA[0], 'confusion') + 2)],
+  /* PERISH IS ITS OWN FIELD AND NOT `_vol`, so it writes the field the reader actually reads — but it
+   * still has to find a body that is STANDING, for the reason in `livingSlot`'s header. */
   ['a Perish count off by one', 'active[1].vol.perish',
-   S => !!S.actB[1] && ((S.actB[1]._perish = (S.actB[1]._perish == null ? 0 : S.actB[1]._perish) + 2), true)],
+   S => { const r = livingSlot(S, 'B', 1); if (!r) return false;
+          r.m._perish = (r.m._perish == null ? 0 : r.m._perish) + 2;
+          return 'active[' + r.i + '].vol.perish'; }],
   /* ---- THE 2026-08-12 SWEEP: ONE PLANT PER LEAF ADDED, OR THE LEAF IS UNPROVEN ------------------
    * Nine volatiles joined the compared set on this pass. A leaf with no plant behind it is a leaf
    * nobody has ever seen catch anything, which is the whole reason this proof exists — so each one
@@ -4297,17 +4337,17 @@ const STATE_PLANTS = [
   ['an INGRAIN that is not there', 'vol.ingrain',
    S => bumpVol(S.actA[1], 'ingrain', volOf(S.actA[1], 'ingrain') ? 0 : 1)],
   ['a MAGNET RISE that is not there', 'vol.magnetrise',
-   S => bumpVol(S.actB[0], 'magnetrise', volOf(S.actB[0], 'magnetrise') ? 0 : 1)],
+   S => volPlant(S, 'B', 0, 'magnetrise', m => volOf(m, 'magnetrise') ? 0 : 1)],
   ['a FOCUS ENERGY that is not there', 'vol.focusenergy',
-   S => bumpVol(S.actB[1], 'focusenergy', volOf(S.actB[1], 'focusenergy') ? 0 : 1)],
+   S => volPlant(S, 'B', 1, 'focusenergy', m => volOf(m, 'focusenergy') ? 0 : 1)],
   ['a TORMENT that is not there', 'vol.torment',
    S => bumpVol(S.actA[0], 'torment', volOf(S.actA[0], 'torment') ? 0 : 1)],
   ['an IMPRISON that is not there', 'vol.imprison',
    S => bumpVol(S.actA[1], 'imprison', volOf(S.actA[1], 'imprison') ? 0 : 1)],
   ['a SALT CURE that is not there', 'vol.saltcure',
-   S => bumpVol(S.actB[0], 'saltcure', volOf(S.actB[0], 'saltcure') ? 0 : 1)],
+   S => volPlant(S, 'B', 0, 'saltcure', m => volOf(m, 'saltcure') ? 0 : 1)],
   ['a SYRUP BOMB that is not there', 'vol.syrupbomb',
-   S => bumpVol(S.actB[1], 'syrupbomb', volOf(S.actB[1], 'syrupbomb') ? 0 : 1)],
+   S => volPlant(S, 'B', 1, 'syrupbomb', m => volOf(m, 'syrupbomb') ? 0 : 1)],
   /* THE CHARGE LOCK IS NOT IN `_vol` — it is its own field, so the plant writes the field the reader
    * actually reads. A plant aimed at the wrong storage would report NOT CAUGHT and read as a broken
    * comparator when it was a broken plant. */
@@ -4428,28 +4468,71 @@ function plantedStateProof(pairA, pairB) {
              clean: cleanRow, all_ok: false };
   }
   const plants = STATE_PLANTS.map(([what, wantPath, mutate]) => {
-    let applied = false;
-    /* A PLANT MAY NAME ITS OWN PATH, and the party plants have to. `mutate` returning `true` keeps the
-     * static `wantPath` — which is every plant written before 2026-08-18 — while a returned STRING
-     * replaces it. The party map is keyed by SPECIES, so `p1.party.<species>.item` is not knowable
-     * when the table is written, and a static `party.` prefix would be satisfied by ANY party
-     * difference: the plant would report LOCALISED while proving nothing about its own leaf. */
-    let path = wantPath;
-    BENCH_PLANT_SIDE_FLIP = false;
-    const r = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'stateproof/' + what.slice(0, 14), {
-      statePlant: (S2, b2, turnIdx) => { if (turnIdx !== lastAgreeing) return;
-        const res = mutate(S2); applied = !!res;
-        if (typeof res === 'string') path = res; } }));
-    const flipped = BENCH_PLANT_SIDE_FLIP;
+    /* ---- `applied` MEANS THE BOARD MOVED WHERE THE COMPARATOR LOOKS — 2026-08-25, ROADMAP #314 ----
+     *
+     * It used to mean "the mutate callback returned truthy", and those are not the same sentence. The
+     * bench-HP plant takes the last party slot and runs `Math.max(0, curHP - 1)`; on a corpse that is
+     * a no-op that returns `true`. Seven volatile plants wrote onto whichever body sat in `S.actB[n]`,
+     * and `board_state.js` HOLDS the post-faint group on a body both engines call dead. Both reported
+     * APPLIED, neither could ever be caught, and the proof read as a comparator with holes in it.
+     *
+     * A PLANT THAT CANNOT MOVE THE BOARD IS A TEST THAT CANNOT FAIL. So the plant reads medicham's own
+     * board either side of the mutation and asks `BS.compare` — the SAME comparator, stamped as the
+     * other engine so the real cross-engine rule applies — whether anything it compares moved. This is
+     * strictly stronger than the old receipt: nothing that used to be provable stops being provable,
+     * and a mutation that changes nothing visible can no longer report itself as a demonstration. */
+    let path = wantPath, applied = false, truthy = false, moved = false, flipped = false;
+    let r = null, boundary = lastAgreeing;
+    const tried = [];
+    /* ---- AND IF IT CANNOT LAND AT THE LAST AGREEING BOUNDARY, WALK BACK THROUGH THE OTHERS --------
+     *
+     * The plant boundary is the LAST board the two engines agreed on, which on a pair whose game ends
+     * in a sweep is a board where one side is two corpses and every bench body is dead. On the proof
+     * pair of the 2026-08-25 artifact that is exactly the position, and all six BENCH plants reported
+     * NOT APPLIED — six compared leaves with no live demonstration behind them, on a fixture fact
+     * rather than on anything about the comparator.
+     *
+     * EVERY BOUNDARY AT OR BELOW `lastAgreeing` IS A BOARD BOTH ENGINES PRODUCED IDENTICALLY, so the
+     * defining property of the plant site is unchanged and so is every assertion: caught, AT the
+     * boundary planted, and LOCALISED to the planted leaf. THE RETRY IS ON `applied` ONLY. Retrying a
+     * plant that landed and was NOT caught would be the one change that could not be made here — it
+     * would hide the exact failure this proof exists to expose — and it is not made: the loop stops
+     * the moment the board moves, whatever the comparator then does about it. */
+    for (let b = lastAgreeing; b >= 0; b--) {
+      /* A PLANT MAY NAME ITS OWN PATH, and the party plants have to. `mutate` returning `true` keeps
+       * the static `wantPath` — which is every plant written before 2026-08-18 — while a returned
+       * STRING replaces it. The party map is keyed by SPECIES, so `p1.party.<species>.item` is not
+       * knowable when the table is written, and a static `party.` prefix would be satisfied by ANY
+       * party difference: the plant would report LOCALISED while proving nothing about its own leaf. */
+      path = wantPath; truthy = false; moved = false;
+      PLANT_SIDE_FLIP = false;
+      r = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'stateproof/' + what.slice(0, 14), {
+        statePlant: (S2, b2, turnIdx) => { if (turnIdx !== b) return;
+          const before = BS.readMedi(S2, BS_CTX);
+          const res = mutate(S2); truthy = !!res;
+          if (typeof res === 'string') path = res;
+          if (!truthy) return;
+          const after = BS.readMedi(S2, BS_CTX);
+          moved = BS.compare(before, Object.assign({}, after, { engine: 'showdown' }), null).length > 0;
+        } }));
+      flipped = PLANT_SIDE_FLIP; boundary = b; tried.push(b);
+      applied = truthy && moved;
+      if (applied) break;
+    }
     const at = r.stateDiv ? r.stateDiv.turn : null;
     const paths = r.stateDiv ? r.stateDiv.diffs.map(d => d.path) : [];
     const wantPath2 = path;
-    return { what, planted_field: wantPath2, applied, caught: !!r.stateDiv, at, expected_at: lastAgreeing,
-             /* THE FIXTURE RECEIPT. A plant that had to cross to the other side did so because the
-              * requested side's bench was all corpses at the plant boundary — a fact about this pair,
-              * printed rather than absorbed. */
+    return { what, planted_field: wantPath2, applied, caught: !!r.stateDiv, at, expected_at: boundary,
+             /* THE FIXTURE RECEIPTS, PRINTED RATHER THAN ABSORBED. `fell_back_to_the_other_side`: the
+              * requested side had no body that could carry the plant at this boundary. `planted_at`
+              * and `boundaries_tried`: how far back from the last agreeing board this one had to go
+              * to find a position that could demonstrate its leaf at all. `callback_returned_truthy`
+              * with `applied: false` is the no-op case ROADMAP #314 filed — the plant ran and the
+              * board did not move. All three are facts about THIS PAIR, not about the comparator. */
              fell_back_to_the_other_side: flipped,
-             at_the_planted_boundary: at === lastAgreeing,
+             callback_returned_truthy: truthy, moved_a_compared_leaf: moved,
+             planted_at: boundary, boundaries_tried: tried.length,
+             at_the_planted_boundary: at === boundary,
              localised: paths.some(p => p.indexOf(wantPath2) >= 0),
              /* WHAT IT ACTUALLY REPORTED, kept so a "localised: false" can be read rather than
               * guessed at. Capped: one plant on an active body legitimately moves the party row too,
@@ -5167,11 +5250,17 @@ if (STATE) {
     console.log('    clean arm: ' + STATE_PROOF.clean.boundaries_agreed + '/' + STATE_PROOF.clean.boundaries
       + ' boundaries agreed, plants go at boundary ' + STATE_PROOF.clean.planted_at_boundary);
     for (const p of STATE_PROOF.plants) console.log('    '
-      + (!p.applied ? 'NOT APPLIED     '
+      + (!p.applied ? (p.callback_returned_truthy ? 'NO-OP, NOT APPLIED' : 'NOT APPLIED     ')
         : p.caught && p.at_the_planted_boundary && p.localised ? 'CAUGHT+LOCALISED'
         : p.caught && p.at_the_planted_boundary ? 'caught, NOT LOCALISED'
         : p.caught ? 'caught at ' + p.at + ', PLANTED AT ' + p.expected_at : 'NOT CAUGHT      ')
       + '  ' + String(p.planted_field).padEnd(28) + p.what
+      /* THE FIXTURE RECEIPT, IN THE PRINTED OUTPUT AND NOT ONLY IN THE ARTIFACT: a plant that had to
+       * walk back from the last agreeing board says so, because "boundary 6 had nobody standing" is
+       * a fact about this pair that a reader should not have to open a JSON file to learn. */
+      + (p.planted_at !== STATE_PROOF.clean.planted_at_boundary
+          ? '   [planted at boundary ' + p.planted_at + ', ' + p.boundaries_tried + ' tried]' : '')
+      + (p.fell_back_to_the_other_side ? '   [the other side]' : '')
       + (p.caught && !p.localised ? '   reported: ' + p.paths.slice(0, 3).join(', ') : ''));
     if (!STATE_PROOF.all_ok) { console.log('    THE STATE COMPARATOR FAILED ITS OWN PROOF — every state '
       + 'number below is worthless.'); process.exitCode = 1; }

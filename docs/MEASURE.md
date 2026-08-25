@@ -53,6 +53,40 @@ restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
 
+### CLOSED. THE PLANTED-STATE PROOF WAS FAILING ON THE FIXTURE, NOT THE COMPARATOR — 2026-08-25
+
+Full account: `docs/_reports/2026-08-25-planted-state-proof.md`.
+
+`planted_state_proof_ok` has been **false on every committed artifact back to 24 August**, and
+`game_differential.js` exits 1 on it — so every board-material figure carried an unexamined caveat
+about whether the state comparator can detect anything at all.
+
+**It can.** Thirteen of forty-two plants failed on the artifact's proof pair, and all thirteen were
+aimed at bodies that could not carry them: at the plant boundary side B is two corpses and all four
+benched bodies on both sides are dead. `board_state.js` holds the post-faint group — `item`,
+`status_counter`, `boosts`, `ability`, `vol`, `stall` — on a body both engines call dead, so seven
+volatile plants written into a fixed `S.actB[n]` moved no compared leaf and six bench plants
+correctly refused to plant at all. **The control is what settles it:** the same seven mutate
+functions handed a body that is standing are caught, localised, at the same boundary.
+
+The pass/fail was a function of `--games`. `diff_swarm` picks by a deterministic stride, so the
+SECOND team of the proof pair moves with the sample size; the identical code at `--games 45` passes
+all 42 plants and at `--games 1200` fails thirteen.
+
+Three fixture fixes in `engine/game_differential.js`, none of them a weakening: the volatile plants
+find a standing body and return the slot they used (a tighter localisation than four of them
+asserted before); `applied` now means the board MOVED where the comparator looks, asked of
+`BS.compare` rather than of the callback's return value; and a plant that cannot land at the last
+agreeing boundary walks back through the earlier ones — **on `applied` only**, never on `caught`,
+because retrying a plant that landed and was missed would hide the one thing this proof exists to
+expose. 42 of 42 CAUGHT+LOCALISED afterwards on the same pair, and
+`tests/test-state-differential.js` passes with `42/42 applied` on all six pairs.
+
+**The published board-material figures stand.** `ROADMAP #314`'s consequence line — that
+DIFFERENT-END-STATE is a lower bound wherever quoted, including the 83 in CHANGELOG 5.54.0 — rested
+on those thirteen being indeterminate. They are the fixture, so that caveat is withdrawn. The
+committed artifact still carries the false flag until the next `--state` run regenerates it.
+
 ### CLOSED. THE BROWSER RULEBOOK DRIFTED FROM THE NODE RULEBOOK, TWICE, AND NOTHING COMPARED THEM — 2026-08-25
 
 Full account: `docs/_reports/2026-08-25-tags-drift.md`.
