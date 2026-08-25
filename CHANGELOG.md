@@ -10,6 +10,44 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.131.2] — 2026-08-25
+
+### Added
+- **TWO UNTRACKED ARTIFACTS THAT HAD SAT IN THE TREE SINCE 2026-08-23 ARE NOW COMMITTED.** Both were
+  reported and left by four previous sessions, which is why they were still there. Neither was created
+  by this session, so DISCARD could never mean delete; the choice was LAND or LEAVE, and both landed.
+- **`data/medicham-represented-clicks.json`** — written by `engine/medicham_coverage.js`, generated
+  2026-08-23T19:47:28Z. A FULL run: 12,806 clean games / 298,910 human clicks, the fraction that
+  `playerAction` can represent as a KIND at all. This is ROADMAP #27’s question.
+- **`data/_pair-pilot.json`** — written by `engine/game_differential.js --out`, generated
+  2026-08-23T03:57:01Z. A 50-game, 12-turn-cap pilot on release `5e0853311131`, protocol only
+  (`state_mode: false`), planted proof OK, nothing thrown. 29 of the 30 `data/_*.json` pilots in this
+  tree were already tracked, including `_scratch-jobs3.json`; this was the only one that was not, and it
+  is not in `.gitignore`.
+
+### Notes
+- **BOTH FIGURES ARE WITHHELD, NOT CAPTIONED.** Each is downstream of MEDICHAM and each proves its own
+  staleness by CONTENT, which is why they were worth landing:
+  - the coverage artifact stamps three inputs and **two have moved**, including
+    `engine/medicham2-browser.js` (`d35956ad9967` → `1d4705a4a403`) — the subject of the measurement.
+    Its own note says a coverage figure *"is a statement about ONE BUILD of the simulator and transfers
+    to no other."* **19 of its 22 remaining pass-clicks are Role Play**, fixed since it was written, and
+    its denominator moves hourly as OPS appends. **99.9926% is quotable of nothing.**
+  - the pilot has **5 of 26** declared digests moved, again starting with the simulator. 17/50 = 34% raw,
+    protocol only, n=50 against the 961-game runs. **Not a before/after for anything.**
+- **The pilot’s release is NOT stranded**: `engine/engine_release.js compat engine/medicham2-browser.js`
+  reports `5e0853311131 PROVIDES` (402 of 407 releases can serve that caller). Stale, not unreachable.
+- **`engine/medicham_coverage.js` stamps NO release** — it requires the LIVE simulator and records
+  content digests only, so its output can never be reopened, only re-run. That is an instrument gap on
+  ROADMAP #27’s re-run and it is recorded in OWED.
+- **Landing them moves no gate.** `engine/provenance.js` walks `data/` from disk, not from git: both
+  filenames were already in `data/provenance-stamp.json`’s `graph_files` while untracked. `provenance.js`
+  was NOT run — it writes a file another agent already has modified.
+- ROADMAP #27’s status is unchanged by this: it still wants the same run on a settled engine and a
+  fresh release. Committing the artifact records the run; it does not publish the number.
+- Account: `docs/_reports/2026-08-25-red-instrument-rows.md` §6.
+
+---
 ## [5.131.1] — 2026-08-25
 
 ### Changed

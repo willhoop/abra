@@ -1,0 +1,100 @@
+{
+  "generated": "2026-08-23T19:47:28.020Z",
+  "by": "engine/medicham_coverage.js",
+  "what": "What fraction of REAL HUMAN CLICKS MEDICHAM can represent as an action at all. Anything playerAction does not recognise becomes {kind:\"pass\"} — a no-op turn — so an unmodelled move is not noise, it is a ONE-DIRECTIONAL bias against exactly the utility and multi-turn moves that decide doubles games.",
+  "not_what_it_says": "It counts a click as covered when it maps to a KIND. It does NOT check that the engine then does the right thing with that kind — that is the interaction matrix and the differential test. A move can be counted here and still be wrong.",
+  "corpus": {
+    "games": 12806,
+    "clicks": 298910
+  },
+  "covered_clicks": 298888,
+  "pass_clicks": 22,
+  "covered_fraction": 0.999926,
+  "pass_fraction": 0.000074,
+  "by_kind": {
+    "protect": 45892,
+    "attack": 202203,
+    "tail": 8480,
+    "affect": 5243,
+    "haze": 78,
+    "setup": 6326,
+    "redirect": 4680,
+    "status": 4820,
+    "trickroom": 3786,
+    "weather": 521,
+    "screen": 3397,
+    "switch": 4890,
+    "wideguard": 1602,
+    "slotswap": 86,
+    "helpinghand": 2468,
+    "reorder": 137,
+    "phaze": 133,
+    "instruct": 172,
+    "heal": 1558,
+    "perish": 607,
+    "abilityswap": 70,
+    "yawn": 605,
+    "typesplit": 58,
+    "healdesc": 82,
+    "sharehp": 18,
+    "boostally": 421,
+    "trickitem": 64,
+    "terrain": 97,
+    "typechange": 40,
+    "hazard": 32,
+    "pploss": 11,
+    "PASS": 22,
+    "callmove": 8,
+    "abilitywrite": 69,
+    "statrewire": 4,
+    "passstate": 89,
+    "gravity": 63,
+    "statcode": 43,
+    "trapmove": 3,
+    "sidebuff": 6,
+    "futurehit": 16,
+    "transform": 5,
+    "room": 5
+  },
+  "unmodelled_moves_ranked": [
+    {
+      "move": "roleplay",
+      "clicks": 19,
+      "share": 0.000064
+    },
+    {
+      "move": "reflecttype",
+      "clicks": 3,
+      "share": 0.00001
+    }
+  ],
+  "distinct_unmodelled": 2,
+  "moves_needed_to_reach": {
+    "90": 1,
+    "95": 1,
+    "97": 1,
+    "98": 1,
+    "99": 1
+  },
+  "verified_partial_coverage": {
+    "what": "The switch half of pivot moves. U-turn and friends carry base power, so they arrive as `attack`, are counted as fully covered above, and the momentum — the reason the move is clicked — is not counted at all. This is the one partial-coverage figure here that is verified by reading the engine rather than inferred.",
+    "correction_2026_08_06": "THIS ENTRY PREVIOUSLY READ \"MEDICHAM has NO voluntary switching\" AND THAT IS STALE. The ENGINE gained it: medicham2-browser.js bringIn() is documented as \"shared by faint replacement and by voluntary/pivot switching\" and takes a `wanted` argument so a caller can name WHO comes in, and battleTurn handles kind==='switch'. What is true is narrower and lives one level up: THE ROLLOUT never switches. rollout_leaf.js's playout picks from mon.moves and has no switch branch at all, so after the stepped turn nobody switches for the rest of the imagined game. The search can offer a switch as a ROOT candidate and then simulates a future in which switching does not exist.",
+    "what_the_rollout_gap_costs": "One-directional, like the pass gap. A future with no switching misprices preserving a Pokemon, punishing a switch, and the whole \"switch out of a predicted attack\" pattern the engine models priority order for. Separately, the LIVE BOT has voluntary switching OFF against a measured 10-point loss (mew.js:135) — three different states (engine capability, rollout behaviour, live setting) that must not be quoted for each other.",
+    "pivot_moves": [
+      "chillyreception",
+      "flipturn",
+      "partingshot",
+      "uturn",
+      "voltswitch"
+    ],
+    "clicks": 6922,
+    "counted_above_as_attack": 2032,
+    "share_of_all_clicks": 0.023157
+  },
+  "source_digests": {
+    "engine/medicham2-browser.js": "d35956ad9967",
+    "data/abra-tags.js": "774f83614e4a",
+    "data/engine-data.js": "c73da1d25212",
+    "note": "Content, not mtime. A coverage figure is a statement about ONE BUILD of the simulator and transfers to no other — five WIREs landed on 2026-08-06 alone."
+  }
+}

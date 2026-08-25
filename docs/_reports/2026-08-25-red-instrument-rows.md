@@ -360,6 +360,101 @@ moved no pinned document. Checked by running the docs-currency gate on both side
 than by reasoning about it.
 
 ---
+## 6. THE TWO UNCLAIMED ARTIFACTS — both LANDED, both figures WITHHELD
+
+Third pass, still no game play, ENGINE’s differential still in flight. `data/game-differential.json`,
+`data/roster.*.json` and `data/mechanics-census.json` were NOT read in this pass.
+
+**FIRST, THE OPTION THAT DOES NOT EXIST.** Neither file was created by me, so DISCARD cannot mean
+delete — that rule is absolute and an untracked file is unrecoverable. The real choice was LAND
+(commit) or LEAVE UNTRACKED. Both were landed. Leaving them is what the last four sessions did, which
+is why they were still here.
+
+### 6.1 `data/medicham-represented-clicks.json` — LANDED, figure WITHHELD
+
+**What wrote it.** It declares its own builder: `by: "engine/medicham_coverage.js"`, generated
+**2026-08-23T19:47:28Z**. The builder confirms it — `medicham_coverage.js:250` writes
+`data/medicham-represented-clicks.json` as its default output. **It is not unclaimed after all:**
+`docs/_reports/2026-08-23-one-door-species-keys.md` records that it was regenerated as a side effect of
+a smoke run and left untracked, and **ROADMAP #27 already carries a full account of it, measured
+2026-08-24 by MEASURE.** The label matched the receipt here — checked, not assumed.
+
+**What it actually measured** (its own `what` field, not the filename): the fraction of REAL HUMAN
+CLICKS that `playerAction` can represent as a KIND at all; anything unrecognised becomes
+`{kind:"pass"}`. Its `not_what_it_says` field is explicit that a click counted here can still be
+handled WRONGLY — that is the differential’s question, not this one. Corpus **12,806 games /
+298,910 clicks**, through `fit_policy.loadCorpus()` with no cap and no thinning: a FULL run.
+
+**IS IT STALE? YES, DECISIVELY, BY CONTENT.** It stamps three inputs by sha256 digest; against the
+bytes on disk now:
+
+| declared input | declared | now | |
+|---|---|---|---|
+| `engine/medicham2-browser.js` | `d35956ad9967` | `1d4705a4a403` | **STALE** |
+| `data/abra-tags.js` | `774f83614e4a` | `784bdb77ed0e` | **STALE** |
+| `data/engine-data.js` | `c73da1d25212` | `c73da1d25212` | match |
+
+The stale one is **the subject of the measurement**. The artifact says so itself: *"A coverage figure
+is a statement about ONE BUILD of the simulator and transfers to no other."*
+
+**THE FIGURE IS QUOTABLE OF NOTHING AND IS WITHHELD.** 99.9926% covered / 22 pass-clicks is downstream
+of MEDICHAM and pinned to a superseded build. Concretely: **19 of those 22 remaining pass-clicks are
+Role Play**, which has been fixed since. The denominator moves too — OPS appends to the store
+hourly, so 12,806 is a photograph. **A caption is not a quarantine; the number is withheld.**
+
+**AND IT CANNOT BE RE-OPENED, ONLY RE-RUN.** `engine/medicham_coverage.js` never mentions a release:
+it `require`s the LIVE `engine/medicham2-browser.js` (line 53) and stamps content digests only. There
+is no `engine_release` field to reopen. That is an instrument gap on ROADMAP #27’s own re-run, and
+it is in OWED as an edit rather than a command.
+
+**LANDED because the content is sound and the stash was the hazard.** The method is right, the run is
+full, and the artifact is the only machine-checkable statement of its own staleness — those three
+digests are what proved the paragraph above. The number is ALREADY in the repository as prose in
+ROADMAP #27 and `data/open-work.json`, so committing the artifact adds no exposure and adds the receipt.
+
+**Not to be confused with `data/medicham-coverage.json`**, which IS tracked and answers a DIFFERENT
+question: `by: tests/test-medicham-coverage.js`, Will’s 99%-of-usage coverage target with a downward
+ratchet, generated 2026-08-06. One is a ratcheted target over USAGE; the other is a fraction of CLICKS
+that map to a kind. They must not be quoted for each other.
+
+### 6.2 `data/_pair-pilot.json` — LANDED, figure WITHHELD
+
+**What wrote it.** `by: "engine/game_differential.js"`, generated **2026-08-23T03:57:01Z**. The `--out`
+flag exists (`game_differential.js:144`), so this is a named-output pilot run, and
+`docs/_reports/2026-08-23-open-defect-clause-staleness.md` already recorded it as untracked and not that
+session’s. **The `_` prefix is a convention, not scratch:** of the **30** `data/_*.json` files in the
+tree, **29 are tracked and committed** — including `_scratch-jobs3.json`. `_pair-pilot.json` was the
+only one that was not, and it is not in `.gitignore` (`git check-ignore` exits 1).
+
+**What it actually measured**, read out of the file rather than off the name: **50 games**, turn cap
+**12**, elapsed **10.1 s**, mode `A/middle/pins:1fd77b835ee2/credit:observed-effect/v1/nature:real`,
+release `5e0853311131`, `planted_divergence_proof_ok: true`, `threw: 0`. **`state_mode: false` and
+`end_state_mode: false`** — so it is PROTOCOL ONLY and carries no board-material quantity at all.
+`diverged: 17`. Classes: event missing 6, extra event 4, ordering 3, `-boost` field 3 × 2, `-damage`
+field 3 × 1, unrelated mismatch 1.
+
+**IS IT STALE? YES.** 5 of its 26 declared source digests have moved, and the first is the simulator:
+`engine/medicham2-browser.js` `156be771a4f8` → `1d4705a4a403`, plus `position_features.js`,
+`mc_key.js`, `data/abra-tags.js` and `data/tags.json`. 21 of 26 still match.
+
+**THE FIGURE IS WITHHELD.** 17 of 50 = 34% raw is downstream of MEDICHAM, protocol-only, on a superseded
+release, at **n=50 against the 961-game runs** — a pilot, and not a before/after for anything. It
+carries its own steering stamp (census `a347cfeb2073`, pool `13656fca9a04`), a different sample from any
+current run.
+
+**ITS RELEASE IS NOT STRANDED.** `node engine/engine_release.js compat engine/medicham2-browser.js`
+reports `5e0853311131 PROVIDES`; 402 of 407 releases can serve that caller (4 pruned, 1 broken). So the
+pilot is reproducible if anyone wants it — the difference between a stale figure and a stranded one.
+
+### 6.3 Landing them changes nothing any gate sees
+
+`engine/provenance.js` walks `data/` from DISK, not from git — proof: `data/provenance-stamp.json`’s
+`graph_files` already lists **both** `_pair-pilot.json` and `medicham-represented-clicks.json` while both
+were untracked. So `git add` moves no gate and creates no new red; it only stops the next session
+rediscovering them. **`engine/provenance.js` was NOT run** — it writes `data/provenance-stamp.json`,
+which another agent already has modified.
+
+---
 ## OWED, NOT RUN
 
 ```bash
@@ -394,4 +489,16 @@ node engine/register_reality.js
 
 # 6. Restamp the generated blocks. NOT run here, by instruction.
 node engine/status.js --write
+# 7. ROADMAP #27’s re-run, when the engine settles. It plays no game, but it reads the LIVE simulator
+#    and the LIVE store, so it is a photograph of both. Two things are owed together:
+#      (a) the run itself
+node engine/medicham_coverage.js
+#      (b) an EDIT FIRST: engine/medicham_coverage.js stamps content digests and NO engine_release, so
+#          its output can never be reopened, only re-run. Give it a release stamp like the differential
+#          has, or #27 buys a number that expires on the next wire again.
+
+# 8. NOT RUN HERE, deliberately: engine/provenance.js WRITES data/provenance-stamp.json, which another
+#    agent already has modified. Run it when the tree is yours, and it will judge the two newly landed
+#    artifacts by CONTENT.
+node engine/provenance.js
 ```
