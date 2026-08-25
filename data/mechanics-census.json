@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-25T04:32:44.186Z",
+  "generated": "2026-08-25T05:41:25.464Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 697,
-  "live": 697,
+  "probed": 701,
+  "live": 701,
   "missing": 0,
-  "armed": 697,
+  "armed": 701,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -2470,6 +2470,16 @@
     },
     {
       "kind": "move",
+      "tag": "statusCategory",
+      "label": "the paralysis family split at ONE Ground body — Thunder Wave, Nuzzle and Zap Cannon are refused; Glare and Stun Spore land",
+      "live": true,
+      "detail": "[Thunder Wave, Nuzzle, Zap Cannon, Glare, Stun Spore] at a MONO-Ground Hippowdon [\"none\",\"none\",\"none\",\"par\",\"par\"] (must be none,none,none,par,par — the three Electric ones are judged by the chart and the two chart-free ones are not)   |   the SAME five clicks at a Normal Snorlax [\"par\",\"par\",\"par\",\"par\",\"par\"] (must be par x5, which is what says all five clicks work at all)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "removesItem",
       "label": "Bug Bite takes a BERRY and leaves anything else — and Knock Off still takes both",
       "live": true,
@@ -3140,6 +3150,26 @@
     },
     {
       "kind": "ability",
+      "tag": "reflectsStatusMoves",
+      "label": "Magic Bounce sends a STATUS MOVE back, and the paralysis lands on the clicker",
+      "live": true,
+      "detail": "[target status, clicker status] after Thunder Wave at the Espeon — ability none par/none (the click works and the Espeon takes it); MAGIC BOUNCE none/par (it must come BACK, not merely fail — a refusal reads identical on the target and the whole difference is on the clicker)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reflectsStatusMoves",
+      "label": "a bounced Leech Seed drains to the BOUNCER, not to the body that clicked it",
+      "live": true,
+      "detail": "[clicker, target] after three turns — ability none full/drained; MAGIC BOUNCE drained/full. Both arms must show SOMEBODY drained, or \"the seed changed hands\" is indistinguishable from \"the seed stopped working\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
       "tag": "typeImmunityHeals",
       "label": "Volt Absorb heals a quarter off the move it absorbs",
       "live": true,
@@ -3533,7 +3563,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6064,6 +6094,16 @@
       "label": "Corrosion poisons a Steel type, and does not burn a Fire type",
       "live": true,
       "detail": "[Toxic at a STEEL Corviknight, Will-O-Wisp at a FIRE Incineroar, Toxic at a neutral Milotic] — no ability [\"none\",\"none\",\"tox\"] (must be none,none,tox: the first two are refused by type and the third is the control that says the click works at all)   |   CORROSION [\"tox\",\"none\",\"tox\"] (must be tox,none,tox — the Fire immunity is NOT bypassed)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "nameImplementedBySim",
+      "label": "Corrosion reaches a status carried on a composed rider (Toxic Thread), not only a status move",
+      "live": true,
+      "detail": "[target status, target Speed stage] — no ability [\"none\",-2] (Steel refuses the poison)   |   CORROSION [\"psn\",-2] (must be psn). The Speed drop is identical in both arms, which is what says the move landed either way and only the immunity moved.",
       "hollow": false,
       "armed": true,
       "directCall": false

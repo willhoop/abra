@@ -1048,6 +1048,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * capability counters: a zero after games with a Salazzle, a Glimmora, a Kangaskhan or a Houndoom
    * on the field is the finding. */
   statusImmunityIgnoredByAbility: 0, sleepTickAccelerated: 0,
+  /* 2026-08-25 -- a status applied by a COMPOSED RIDER with its attacker in hand. Zero on a run that
+   * clicked Toxic Thread means MEDI_RIDER_STATUS_NO_SOURCE is armed or the road is dead again. */
+  riderStatusSourced: 0,
+  /* 2026-08-25 -- a reflectable STATUS or SHAREHP move sent back at its user by Magic Bounce. Zero on
+   * a run where a bouncer took a Thunder Wave means the re-aim is eating the bounce again. */
+  statusBouncedBackAtUser: 0,
+  /* 2026-08-25 -- a Leech Seed that was reflected and credited to the REFLECTOR rather than to the
+   * body that clicked it. Zero on a run where a bouncer took a Leech Seed means the credit is back
+   * on the clicker and the drain nets to nothing. */
+  bouncedSeedOwnedByBouncer: 0,
+  /* 2026-08-25 -- a STATUS move refused by an absorbing ability (Sap Sipper, Volt Absorb, Motor
+   * Drive, Lightning Rod, Flash Fire). Zero on a run where a Thunder Wave met a Volt Absorb means
+   * MEDI_STATUS_ABSORB_BLIND is armed or the reader has come unwired again. */
+  statusAbsorbRefused: 0,
   /* ROADMAP #323 -- THREE NOUNS, AND THEY ARE THREE DIFFERENT EVENTS. See SLEEP_START_TIMES.
    *
    *   sleepDurationDrawn        SLEEPS whose length was sampled AT APPLICATION, which is where the
@@ -9951,6 +9965,42 @@ const SWITCH_CAUSE_BLIND=(typeof process!=='undefined'&&process.env&&process.env
  * that clicked it instead of to the body that reflected it, which is the pre-fix behaviour. See the
  * `trapmove` branch for the authority's chain and for what it cost. */
 const BOUNCED_TRAP_KEEPS_CLICKER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BOUNCED_TRAP_KEEPS_CLICKER==='1');
+/* 2026-08-25 -- MEDI_RIDER_STATUS_NO_SOURCE=1 DROPS THE SOURCE OFF A STATUS CARRIED ON A COMPOSED
+ * RIDER, which is what this engine did until today. `applyStatus(t, st)` with no third argument
+ * cannot answer three questions that all belong to the ATTACKER: Corrosion's immunity bypass
+ * (`src?.hasAbility('corrosion')`, sim/pokemon.ts:1715), Safeguard's own-side exemption, and
+ * Synchronize's `if (!source || source === target) return`. Toxic Thread is `kind:'affect'` because
+ * it carries a stat drop as well as a status, so it went down this road and NOT the `kind:'status'`
+ * road the existing Corrosion probe walks -- the ability worked on one and not on the other, and
+ * only a sweep over every status road could see that. */
+const RIDER_STATUS_NO_SOURCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RIDER_STATUS_NO_SOURCE==='1');
+/* 2026-08-25 -- MEDI_BOUNCE_UNDONE_BY_REAIM=1 PUTS BACK `bounceOff` BEFORE `reaimToSlot` on the
+ * `status` and `sharehp` roads, which is what this engine did until today.
+ *
+ * The two calls do not commute and the trap branch already says so in full at its own site: reversed,
+ * `reaimToSlot` is handed the body Magic Bounce sent the move BACK to and then looks that body up by
+ * the ACTION'S OWN FOE SLOT -- which resolves straight back to the original target, so the bounce was
+ * computed and thrown away. The trap branch was fixed on 2026-08-24 and the other two roads were not
+ * swept, so Magic Bounce reflected a Block and reflected nothing else. Every reflectable move that
+ * `playerAction` classifies as `status` -- Thunder Wave, Toxic, Will-O-Wisp, Spore, Sleep Powder,
+ * Stun Spore, Poison Powder, Glare, Hypnosis, Sing, Magic Powder, Leech Seed -- landed on the
+ * bouncer. Found by `engine/immunity_sweep.js`. */
+const BOUNCE_UNDONE_BY_REAIM=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BOUNCE_UNDONE_BY_REAIM==='1');
+/* 2026-08-25 -- MEDI_STATUS_ABSORB_BLIND=1 STOPS AN ABSORBING ABILITY REFUSING A *STATUS* MOVE, which
+ * is what this engine did until today.
+ *
+ * `absorbedBy` had exactly two callers -- `dmgRange` and the ATTACK branch -- so the whole
+ * `typeImmunity` family only ever answered a move that dealt damage. The authority's handlers do not
+ * care: `onTryHit(target, source, move) { if (target !== source && move.type === 'Grass') ... }` runs
+ * at `hitStepTryHitEvent` for every move in the step list, status included. Measured by
+ * `engine/immunity_sweep.js`, one cell each and all reasons-1:
+ *     Sap Sipper     Spore / Sleep Powder / Stun Spore / Cotton Spore   authority refuses, atk +1
+ *     Volt Absorb    Thunder Wave                                       authority refuses
+ *     Motor Drive    Thunder Wave                                       authority refuses, spe +1
+ *     Lightning Rod  Thunder Wave                                       authority refuses, spa +1
+ *     Flash Fire     Will-O-Wisp                                        authority refuses
+ * this engine slept, paralysed and burned every one of them. */
+const STATUS_ABSORB_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STATUS_ABSORB_BLIND==='1');
 /* 2026-08-24 -- MEDI_NO_CONDPOWER_LINE=1 TAKES FICKLE BEAM'S `|-activate|move: Fickle Beam` BACK OUT,
  * so the double still lands and says nothing, as this engine did until today. Any run carrying it also
  * carries a non-zero `MEDFAILS.condPowerLineSuppressed`. Same shape as MEDI_SWITCH_CAUSE_BLIND. */
@@ -12090,12 +12140,77 @@ function tryHitRefusal(m,t,mv){
    * call site of thirteen. It now lives inside `pranksterBlocked` where the rest of the rule is, so
    * every site inherits it; this line is a plain ask. */
   if(pranksterBlocked(m,t,mv)) return {why:'prankster',ab:null,attr:undefined};
+  /* 2026-08-25 -- and the ABSORBING abilities, which answer at this same `onTryHit` step and which
+   * this function has never asked. ONE reader, so every branch that already calls the pair inherits
+   * it instead of growing a twenty-second copy. */
+  {const _abs=absorbRefusal(m,t,mv); if(_abs) return _abs;}
   return null;
+}
+/* 2026-08-25 -- IS THIS *STATUS* MOVE ABSORBED BY THE TARGET'S ABILITY. See MEDI_STATUS_ABSORB_BLIND.
+ *
+ * SCOPED TO STATUS MOVES ON PURPOSE. The attack branch already asks `absorbedBy` for anything that
+ * deals damage (`_stepTryHit`), and a second asker there would apply the gift twice. `MC.moves[id].c`
+ * is the same field `dmgRange` reads for the category, so the split is exact rather than a guess.
+ *
+ * THE TYPE IS THE MOVE'S PRINTED TYPE AND NOT `effMoveType`, and that is a stated limitation rather
+ * than an oversight: this reader has no `field`, and every type-CHANGING mechanism in this format
+ * (Weather Ball, Terrain Pulse, the -ate abilities) rides a DAMAGING move, which goes down the attack
+ * road where `effMoveType` is already used. A status move that changes type would need the field
+ * threaded here, and there is none today. */
+function absorbRefusal(m,t,mvId){
+  if(STATUS_ABSORB_BLIND){MEDFAILS.statusAbsorbBlindRestored=1;return null;}
+  if(!m||!t||m===t||!mvId)return null;
+  /* THE CATEGORY COMES OFF THE ARTIFACT AND NOT OFF `MC.moves`, and the first draft of this line got
+   * it exactly backwards. `MC.moves` carries `{t, c, bp}` where `c` is P or S for EVERY non-physical
+   * move -- Spore reads `c:'S'`, Night Shade reads `c:'S'` -- so it cannot tell a Status move from a
+   * special attack at all, and a guard written on it excluded every move this reader exists for.
+   * `statusCategory` is derived from the format's own `category === 'Status'`; membership asserted
+   * EQUAL both ways before this was wired: 175 legal Status moves, 175 tagged, none either side. */
+  if(!TAGS.has('move',mvId,'statusCategory'))return null;        /* the attack branch owns the rest */
+  const _mo=MC.moves[mvId];
+  if(!_mo)return null;
+  const _ab=absorbedBy(m,t,_mo.t,'Status');
+  if(!_ab)return null;
+  MEDSEEN.statusAbsorbRefused++;
+  return {why:'absorb',ab:t.ability,attr:'[from] ability: '+t.ability,absorb:_ab};
+}
+/* The GIFT an absorbing ability collects, in ONE place so the attack road and the status road cannot
+ * come to disagree about what Volt Absorb is worth. Lifted verbatim out of `_stepTryHit`, which now
+ * calls it. Returns true when a stage or an HP actually moved -- which is what decides whether the
+ * authority writes `-immune` at all (`if (!this.boost(...)) this.add('-immune', ...)`). */
+function absorbGift(tg,_ab){
+  let _gift=false;
+  if(_ab&&_ab.gain&&!tg.fainted){
+    const _h=_ab.gain.heal&&String(_ab.gain.heal).match(/1\/(\d+)/);
+    if(_h){const _p0=tg.curHP;tg.curHP=Math.min(tg.st.hp,tg.curHP+Math.floor(tg.st.hp/(+_h[1])));
+      if(tg.curHP>_p0){_gift=true;if(TR)TR.heal(tg,'[from] ability: '+tg.ability);}}
+    if(_ab.gain.boosts&&tg.boosts)for(const k in _ab.gain.boosts){
+      const _s=SD2ENG[k];if(_s&&tg.boosts[_s]!=null){const _b0=tg.boosts[_s];
+        tg.boosts[_s]=clamp(tg.boosts[_s]+_ab.gain.boosts[k],-6,6);
+        if(tg.boosts[_s]!==_b0)_gift=true;
+        if(TR)TR.bst(tg,_s,tg.boosts[_s]-_b0,'[from] ability: '+tg.ability);}
+    }
+    /* FLASH FIRE'S GIFT IS A VOLATILE AND THIS ENGINE DOES NOT GRANT IT -- unchanged and COUNTED,
+       exactly as the attack branch counted it before this was hoisted. */
+    if(!_h&&!_ab.gain.boosts&&_ab.gain.volatile){
+      MEDFAILS.absorbGiftUnmodelled++;
+      if(!MEDFAILS.absorbGiftUnmodelledFirst)
+        MEDFAILS.absorbGiftUnmodelledFirst=String(tg.ability)+'/'+String(_ab.gain.volatile);
+    }
+  }
+  return _gift;
 }
 /* The line, and the counter, in one place so no caller can emit half of it. */
 function announceTryHitRefusal(r,t){
   if(!r)return;
   MEDSEEN.tryHitRefused++;
+  /* AN ABSORB IS A REFUSAL THAT PAYS. The `-immune` is the gift's ELSE and never its companion --
+   * see the note in `absorbGift`. */
+  if(r.why==='absorb'){
+    if(absorbGift(t,r.absorb))MEDSEEN.absorbGiftLanded++;
+    else{MEDSEEN.absorbImmuneAnnounced++;if(TR)TR.imm(t,'[from] ability: '+t.ability);}
+    return;
+  }
   /* ROADMAP #255 -- the ally half gets its own counter so it can prove it ran. `_sf` is the side
    * record; two bodies sharing one are on the same side, which is the same test `tryHitRefusal`
    * inverts for the Prankster clause. */
@@ -19403,6 +19518,11 @@ function battleTurn(S,rng,actsForA,actsForB){
            * tests category !== 'Status' and blocks an ALLY'S DAMAGE, and Wonder Guard, which tests
            * for Status and then bare-returns to ALLOW it. */
           if(TAGS.has('ability',_t.ability,'refusesStatusMoves')&&_t!==m){if(TR)TR.imm(_t,'[from] ability: '+_t.ability);continue;}
+          /* 2026-08-25 -- AND THE ABSORBING ABILITIES ANSWER AT THIS SAME STEP. `tryHitRefusal` now
+           * carries them for the twenty-one branches that call it; this branch keeps its own inline
+           * chain of onTryHit gates, so it asks the shared reader directly rather than growing a
+           * second copy of the rule. See MEDI_STATUS_ABSORB_BLIND. */
+          {const _abs=absorbRefusal(m,_t,a.mv);if(_abs){announceTryHitRefusal(_abs,_t);continue;}}
           if(moveClassBlocked(_t,a.mv,m)){if(TR)TR.imm(_t,moveClassImmuneAttr(_t,m));continue;}   // WIRE 66 / #256
           if(powderBlocked(_t,a.mv)){if(TR)TR.imm(_t,powderImmuneAttr(_t,m));continue;}           // #256
           if(pranksterBlocked(m,_t,a.mv)){if(TR)TR.imm(_t);continue;}
@@ -19526,7 +19646,13 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_e.to==='user'&&_landed>0) continue;
             if(!_who||_who.fainted) continue;
             if(_e.chance<100&&_R.sec()*100>=_e.chance) continue;   // ROADMAP #222
-            if(_e.status) applyStatus(_who,_e.status);
+            /* 2026-08-25 -- THE SOURCE TRAVELS WITH THE STATUS HERE TOO. This line read
+             * `applyStatus(_who,_e.status)` and the sibling rider loop twelve hundred lines up has
+             * always read `applyStatus(_who,_e.status,m)`. Everything `applyStatus` asks of the
+             * ATTACKER was therefore off on this road: a Corrosion Toxic Thread could not poison a
+             * Steel type, Safeguard refused a self-inflicted rider, and Synchronize never fired.
+             * `MEDI_RIDER_STATUS_NO_SOURCE=1` puts the sourceless call back. */
+            if(_e.status){ if(applyStatus(_who,_e.status,RIDER_STATUS_NO_SOURCE?undefined:m))MEDSEEN.riderStatusSourced++; }
             /* WIRE 26 -- sealsMoves, and it is where the tag actually resolves.
              *
              * The consumer that read this tag lived in the `kind==='status'` branch and its guard could
@@ -19708,6 +19834,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        * and a Substitute does not absorb that because it is not damage -- it is `sethp`. */
       if(a.kind==='sharehp'){
         m._lastMove=a.mv;
+        /* THE BOUNCE/RE-AIM INVERSION THAT THE `status` ROAD CARRIED IS HERE TOO AND IS LEFT ALONE.
+         * `bounceOff` before `reaimToSlot` discards a reflection (see MEDI_BOUNCE_UNDONE_BY_REAIM),
+         * but NO `sharehp` move in this format can reach it: Pain Split is the only one and its flags
+         * are `{protect, mirror}` with no `reflectable`, so `bounceOff` returns the target untouched
+         * on every call from here. Not "fixed" silently, because a change no probe can show red is
+         * not a fix -- it is on the ENGINE hand list as a latent inversion. */
         let t=bounceOff(m,a.target,a.mv,true);
         t=reaimToSlot(t,it,actA,actB,a.mv);
         if(!t||t.fainted||t===m){mvFail(m);continue;}
@@ -20595,7 +20727,16 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(a.kind==='typechange'){
         m._lastMove=a.mv;
         const _ct=TAGS.param('move',a.mv,'changesTargetType')||{};
-        const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        /* 2026-08-25 -- THE FOURTH BOUNCE ROAD, AND IT NEVER ASKED AT ALL. Soak, Magic Powder,
+         * Trick-or-Treat and Forest's Curse are all `reflectable`; this branch resolved its target
+         * straight off the action, so a Magic Bounce body had its type REWRITTEN where the authority
+         * rewrites the CLICKER'S. Found by `engine/immunity_sweep.js` (Magic Powder into Magic Bounce:
+         * authority leaves the Bug a Bug, this engine made it Psychic). Only the bounce is added --
+         * this branch has never re-aimed to a SLOT and that is a separate mechanic, deliberately not
+         * folded in here. `MEDI_BOUNCE_UNDONE_BY_REAIM=1` restores the un-bounced target. */
+        const _tc0=BOUNCE_UNDONE_BY_REAIM?a.target:bounceOff(m,a.target,a.mv,true);
+        if(_tc0===m&&a.target&&a.target!==m)MEDSEEN.statusBouncedBackAtUser++;
+        const t=_tc0&&!_tc0.fainted&&_tc0.curHP>0?_tc0:null;
         const _ty=(MC.moves[a.mv]||{}).t;
         /* WIRE 241 -- Soak / Magic Powder / Trick-or-Treat / Forest's Curse into a Good as Gold wrote
          * no type and printed nothing; the authority prints the ability's own line. */
@@ -21949,7 +22090,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * to read `applyStatus(t, ['brn','par','slp'][rng()*3|0])` - a uniformly random pick, so Thunder
        * Wave burned a third of the time. The status and the accuracy now come from the rulebook. */
       if(a.kind==='status'){
-        let t=bounceOff(m,a.target,a.mv,true);
+        /* 2026-08-25 -- RE-AIM FIRST, THEN BOUNCE, and the order is the whole mechanic. See
+         * MEDI_BOUNCE_UNDONE_BY_REAIM at the top of this file: written the other way round,
+         * `reaimToSlot` looks the bounced body up by the ACTION'S foe slot and hands back the
+         * original target, so Magic Bounce was computed and discarded on every status move. */
+        const _b0=BOUNCE_UNDONE_BY_REAIM?a.target:reaimToSlot(a.target,it,actA,actB,a.mv);
+        let t=bounceOff(m,_b0,a.mv,true);
+        const _stBounced=(t===m&&_b0&&_b0!==m);
+        if(_stBounced)MEDSEEN.statusBouncedBackAtUser++;
         /* WIRE 137 -- A MOVE TARGETS A SLOT, AND THIS BRANCH WAS STILL TARGETING A BODY.
          *
          * The attack branch has resolved its aim to "whoever is in that slot NOW" since voluntary
@@ -21966,10 +22114,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          * the body had left the FIELD, so a body that merely changed SLOT (Ally Switch) was still
          * followed by object; `reaimToSlot` is the authority's rule and is the same one the attack and
          * effect branches use. `statusReaimedToSlot` is subsumed by `MEDSEEN.reaimedToSlot`. */
-        t=reaimToSlot(t,it,actA,actB,a.mv);
+        if(BOUNCE_UNDONE_BY_REAIM)t=reaimToSlot(t,it,actA,actB,a.mv);
         if(!t||t.fainted){mvFail(m);continue;}
         if(t.protect){if(TR)TR.act(t,'move: Protect');continue;}
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}   // Good as Gold
+        /* 2026-08-25 -- AND THE ABSORBING ABILITIES ANSWER AT THIS SAME STEP, which this branch has
+         * never asked. Sap Sipper slept, Volt Absorb was paralysed and Flash Fire burned. See
+         * MEDI_STATUS_ABSORB_BLIND; the reader is shared with `tryHitRefusal`. */
+        {const _abs=absorbRefusal(m,t,a.mv);if(_abs){announceTryHitRefusal(_abs,t);continue;}}
         /* 2026-08-25 -- THE TYPE CHART, WHICH A STATUS MOVE USUALLY IGNORES AND ONE OF THEM DOES NOT.
          *
          * `hitStepTypeImmunity` is step 2 of the authority's move-step list and it runs for EVERY
@@ -22028,8 +22180,18 @@ function battleTurn(S,rng,actsForA,actsForB){
             /* ROADMAP #264 -- the same draw rule as every other roll site. `!accMustRoll` short-
              * circuits BEFORE `_R.acc()`, so a test the authority does not roll consumes nothing. */
             if(!accMustRoll(acc)||_R.acc()*100<=acc){
-              const _sown=it.side==='A'?actA:actB;
-              t._seededBy={by:m,per:_pt.per,side:it.side,slot:_sown.indexOf(m)};
+              /* 2026-08-25 -- A BOUNCED SEED BELONGS TO THE BOUNCER, exactly as a bounced trap does
+               * (2026-08-24). `useMove(newMove, target, {target: source})` makes the reflected move's
+               * USER the body that reflected it (data/abilities.ts:2436), so the drain is credited to
+               * ITS slot. Written with the clicker as the owner, the seed lands on the clicker and
+               * drains to the clicker -- a net zero, and the authority drains it for a sixth a turn.
+               * Measured on the staged board: authority 114/180 to this engine's 180/180 over three
+               * turns. Reverts with the same knob that reverts the bounce itself. */
+              const _sowner=_stBounced?_b0:m;
+              const _sside=_stBounced?(it.side==='A'?'B':'A'):it.side;
+              const _sown=_sside==='A'?actA:actB;
+              if(_stBounced)MEDSEEN.bouncedSeedOwnedByBouncer++;
+              t._seededBy={by:_sowner,per:_pt.per,side:_sside,slot:_sown.indexOf(_sowner)};
               if(TR)TR.vstart(t,'move: Leech Seed');}   // ROADMAP #222
             else if(TR)TR.miss(m,t);
           }
@@ -23381,29 +23543,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              when it is already up -- so the line means "absorbed, and there was nothing in it for me".
              NOTHING IS NAMED HERE: the gift comes off the tag's own `gain`, so the rule is the same
              one for all eight and a ninth arrives working. */
-          let _gift=false;
-          if(_ab.gain&&!tg.fainted){
-            const _h=_ab.gain.heal&&String(_ab.gain.heal).match(/1\/(\d+)/);
-            if(_h){const _p0=tg.curHP;tg.curHP=Math.min(tg.st.hp,tg.curHP+Math.floor(tg.st.hp/(+_h[1])));
-              if(tg.curHP>_p0){_gift=true;if(TR)TR.heal(tg,'[from] ability: '+tg.ability);}}
-            if(_ab.gain.boosts&&tg.boosts)for(const k in _ab.gain.boosts){
-              const _s=SD2ENG[k];if(_s&&tg.boosts[_s]!=null){const _b0=tg.boosts[_s];
-                tg.boosts[_s]=clamp(tg.boosts[_s]+_ab.gain.boosts[k],-6,6);
-                if(tg.boosts[_s]!==_b0)_gift=true;
-                if(TR)TR.bst(tg,_s,tg.boosts[_s]-_b0,'[from] ability: '+tg.ability);}
-            }
-            /* FLASH FIRE'S GIFT IS A VOLATILE AND THIS ENGINE DOES NOT GRANT IT -- see the WIRE 11
-               header above, which has said so since it was written. That is UNCHANGED here and it is
-               COUNTED rather than covered up: with no volatile there is nothing for the `else` to
-               test, so the absorb keeps announcing `-immune` on every Fire hit where the authority
-               announces it only on the second. Wiring the volatile is a separate mechanic; claiming
-               the gift landed when nothing was granted would be a silent default. */
-            if(!_h&&!_ab.gain.boosts&&_ab.gain.volatile){
-              MEDFAILS.absorbGiftUnmodelled++;
-              if(!MEDFAILS.absorbGiftUnmodelledFirst)
-                MEDFAILS.absorbGiftUnmodelledFirst=String(tg.ability)+'/'+String(_ab.gain.volatile);
-            }
-          }
+          const _gift=absorbGift(tg,_ab);
           if(_gift)MEDSEEN.absorbGiftLanded++;
           else{MEDSEEN.absorbImmuneAnnounced++;if(TR)TR.imm(tg,'[from] ability: '+tg.ability);}
           R.out=true;return;

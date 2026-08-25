@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-25T03:52:36.162Z",
+ "generated": "2026-08-25T04:51:38.384Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "cbf345e56bc0",
+ "engine_release": "359b51b61d83",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -7378,7 +7378,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pressure"
+      "ability": "pressure",
+      "vol": null
      },
      "without": null
     },
@@ -7403,7 +7404,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "limber"
+      "ability": "limber",
+      "vol": null
      }
     },
     {
@@ -7450,7 +7452,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pressure"
+      "ability": "pressure",
+      "vol": null
      },
      "without": null
     },
@@ -7475,7 +7478,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "limber"
+      "ability": "limber",
+      "vol": null
      }
     },
     {
@@ -7522,7 +7526,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pressure"
+      "ability": "pressure",
+      "vol": null
      },
      "without": null
     },
@@ -7547,7 +7552,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "limber"
+      "ability": "limber",
+      "vol": null
      }
     },
     {
@@ -9626,7 +9632,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "limber"
+      "ability": "limber",
+      "vol": null
      },
      "without": null
     },
@@ -9674,7 +9681,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "limber"
+      "ability": "limber",
+      "vol": null
      },
      "without": null
     },
@@ -9740,7 +9748,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "limber"
+      "ability": "limber",
+      "vol": null
      },
      "without": null
     },
@@ -9806,7 +9815,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "limber"
+      "ability": "limber",
+      "vol": null
      },
      "without": null
     },

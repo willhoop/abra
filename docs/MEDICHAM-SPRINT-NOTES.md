@@ -21,6 +21,43 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## EVERY IMMUNITY IN THE FORMAT, SWEPT — 21 WRONG OF 1,800 CELLS, NOW 0. CENSUS 697 → 701. 2026-08-25 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-25-immunity-sweep.md`](_reports/2026-08-25-immunity-sweep.md).
+Ledger section: `docs/ENGINE.md`, *"EVERY IMMUNITY IN THE FORMAT, SWEPT"*.
+
+Arm `middle`, 961 games (`--games 1200`, a PAIR budget), release `c6d45355668e`,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state --write`.
+
+**NEW INSTRUMENT:** `engine/immunity_sweep.js` — eleven populations, 1,800 cells, every axis derived
+from `Dex.forFormat` on the run (the immunity CLASSES themselves off `TypeInfo.damageTaken === 3`), both
+engines playing the same staged turn, Showdown as the expectation, nothing typed. Not a gate; run by hand.
+
+**FIXED (3), each red-then-green with a knob and a control that does not move:**
+
+| defect | knob | cells |
+|---|---|---|
+| Magic Bounce discarded by the slot re-aim on the `status` road, and never asked at all on the `typechange` road; and a bounced Leech Seed credited to the clicker instead of the bouncer | `MEDI_BOUNCE_UNDONE_BY_REAIM=1` | 12 |
+| an absorbing ability (`typeImmunity`) never refused a STATUS move — Sap Sipper, Volt Absorb, Motor Drive, Lightning Rod, Flash Fire | `MEDI_STATUS_ABSORB_BLIND=1` | 7 |
+| Corrosion reached Toxic and not Toxic Thread — the composed-rider road dropped the source | `MEDI_RIDER_STATUS_NO_SOURCE=1` | 2 |
+
+**PROBES:** `ability/reflectsStatusMoves` x2, `ability/nameImplementedBySim`, and
+`move/statusCategory` (Will's Ground board, derived — the sweep finds exactly ONE anchor board in the
+whole regulation, `par` into Ground, and that probe was GREEN on arrival and says so).
+
+**THE INSTRUMENT WAS WRONG FOUR TIMES BEFORE THE ENGINE WAS:** a choice string typed instead of derived
+from `move.target` (52 cells), an unanswered forced-switch request after a KO (4), a fixture that killed
+the victim it was asking about switching (3), and a Rage Powder population whose knob was on the DRAWER
+when the authority reads the ATTACKER (4 arms, one answer — the separation check caught it).
+
+**POOL UNMOVED, AND IT WAS SAID BEFORE THE RUN.** 28 raw parted, 10 board-material games / 10 causes,
+18 narration games / 17 causes, 8 DIFFERENT-END-STATE — byte-identical to HEAD, cause set difference
+empty both ways. `all_mechanics_fire` STATE rows 8 → 8. Roster 0/0/0 DIFFER on all three stages against
+release `c6d45355668e`. Damage differential 0 of 6000 at all 16 corners.
+
+---
+
 ## THE BENCH IS COMPARED ON ITS VOLATILES; A BOUNCED TRAP BELONGS TO THE BOUNCER. CENSUS 696 → 697. 2026-08-25 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-25-bench-clean.md`](_reports/2026-08-25-bench-clean.md).

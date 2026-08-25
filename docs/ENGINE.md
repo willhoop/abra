@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  697/697 probed mechanics live, 0 missing   (census 2026-08-25 00:32)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-25 00:35)
+  701/701 probed mechanics live, 0 missing   (census 2026-08-25 01:41)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-25 01:44)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,223 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is ff28c167bb82 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is be0eb78b121c now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-25 00:54_
+_stamped 2026-08-25 01:57_
 
 <!-- /GENERATED -->
+
+## EVERY IMMUNITY IN THE FORMAT, SWEPT — 21 WRONG OF 1,800 CELLS, NOW 0. CENSUS 697 → 701. 2026-08-25.
+
+Full account: [`docs/_reports/2026-08-25-immunity-sweep.md`](_reports/2026-08-25-immunity-sweep.md).
+
+Will: *"make sure all the immunities, like fire types cant be burned are in there"*, *"grass types are
+immune to powder moves"*, *"no poison into steel"*, *"unless corrosive"*, and then *"does stun spore
+work on a ground type?"*.
+
+**`engine/immunity_sweep.js` IS A SWEEP AND NOT A LIST, AND EVERY AXIS IS DERIVED ON THE RUN.** The
+immunity CLASSES come from `TypeInfo.damageTaken[k] === 3` — that one line IS `Dex#getImmunity`, so the
+set of things a type can be immune to is the set of keys some type scores 3 on (18 today: the 18 types
+plus `brn frz hail par powder prankster psn sandstorm tox trapped`). The moves come from
+`move.status`, `move.flags.powder`, `move.weather` and a scan of the RAW handler SOURCE for
+`addVolatile('trapped')`. The abilities come from **the authority's own handler set**, never a name and
+never `data/tags.json`. The bodies come from a filtered walk, one per type, mono-type preferred, and
+the walk is PRINTED. Eleven populations, **1,800 cells**, both engines playing the same staged turn
+with the same species and the same ability, Showdown as the expectation, nothing typed.
+
+**EVERY ROW CARRIES ITS REASON COUNT, WHICH IS THE WHOLE POINT.** Two census probes were GREEN on the
+live Thunder Wave defect because both aimed it at a body immune for an unrelated reason. So each cell
+records the independent authority-side refusals that apply: `reasons 0` means the move MUST land,
+`reasons 1` is the only kind a census probe may be built on, `reasons 2+` is over-determined and is
+evidence about neither. Measured: **zero cells anywhere carry 2+ reasons**, so all 21 defects are
+attributable to exactly one mechanism each.
+
+**THE RESULT, ON ONE POPULATION, WITH THREE KNOBS AS THE ONLY DIFFERENCE:**
+
+| | DIFFER | NOT-STAGED (declared) |
+|---|---|---|
+| `MEDI_BOUNCE_UNDONE_BY_REAIM=1 MEDI_STATUS_ABSORB_BLIND=1 MEDI_RIDER_STATUS_NO_SOURCE=1` | **21** | 3 |
+| knobs off | **0** | 3 |
+
+### THE THREE DEFECTS
+
+**MAGIC BOUNCE WAS COMPUTED AND THROWN AWAY ON THREE OF ITS FOUR ROADS — 12 cells.**
+`MEDI_BOUNCE_UNDONE_BY_REAIM=1`. `bounceOff` ran BEFORE `reaimToSlot` in the `kind === 'status'`
+branch, and `reaimToSlot` then looks the bounced body up **by the action's own foe SLOT** and hands
+back the original target. The `trapmove` branch was fixed for exactly this on 2026-08-24 and its own
+comment describes the inversion in full; **the other roads were never swept**, so Magic Bounce
+reflected a Block and reflected nothing else. Eleven moves resolve through `status` — Thunder Wave,
+Toxic, Will-O-Wisp, Spore, Sleep Powder, Stun Spore, Poison Powder, Glare, Hypnosis, Sing and Leech
+Seed's drain — and a twelfth, Magic Powder, resolves through `typechange`, which **never asked
+`bounceOff` at all**. Probes `ability/reflectsStatusMoves`. **The first draft of the probe used a
+RAICHU as the clicker, which is Electric and cannot be paralysed at all** — so the bounce arm read
+"nobody is paralysed", which is also what a broken bounce reads. It is a Kangaskhan now.
+
+**AND A BOUNCED LEECH SEED BELONGS TO THE BOUNCER**, which is 2026-08-24's bounced-trap lesson in a
+second mechanism. Making the bounce work exposed it: the seed's beneficiary was the body that CLICKED,
+which after a reflection is the victim, so it drained itself and healed itself and the move netted to
+nothing. Authority 114/180 over three turns against this engine's 180/180. Counter
+`MEDSEEN.bouncedSeedOwnedByBouncer`.
+
+**AN ABSORBING ABILITY NEVER REFUSED A STATUS MOVE — 7 cells.** `MEDI_STATUS_ABSORB_BLIND=1`.
+`absorbedBy` had exactly two callers, `dmgRange` and the ATTACK branch, so the whole `typeImmunity`
+family only ever answered a move that dealt damage. The authority's handlers do not care —
+`onTryHit(target, source, move) { if (target !== source && move.type === 'Grass') ... }` runs at
+`hitStepTryHitEvent` for every move in the step list. Sap Sipper slept through Spore, Sleep Powder,
+Stun Spore and Cotton Spore; Volt Absorb, Motor Drive and Lightning Rod were paralysed by Thunder
+Wave; Flash Fire was burned by Will-O-Wisp — and the authority pays three of them a stat stage for it.
+Fixed at ONE reader (`absorbRefusal`, called from `tryHitRefusal`, so twenty-one branches inherit it),
+with the GIFT hoisted out of the attack branch into `absorbGift` so the two roads cannot disagree
+about what Volt Absorb is worth.
+
+**THE CATEGORY GUARD WAS WRONG FIRST, IN THE DIRECTION THAT DOES NOTHING.** It read
+`MC.moves[id].c === 'S'` to mean "special attack, the attack branch owns it". `MC.moves` carries
+`c: 'S'` for **every non-physical move** — Spore reads `c:'S'` and so does Night Shade — so the guard
+excluded every move the reader exists for and the counters read 0. It reads the artifact's
+`statusCategory` tag now, membership asserted EQUAL both ways first: **175 legal Status moves, 175
+tagged, none on either side.**
+
+**CORROSION REACHED TOXIC AND NOT TOXIC THREAD — 2 cells.** `MEDI_RIDER_STATUS_NO_SOURCE=1`.
+`playerAction` classifies a move by what it carries: Toxic is `kind:'status'`, Toxic Thread carries a
+stat drop as well so it is `kind:'affect'` and its status arrives on a COMPOSED RIDER. That road called
+`applyStatus(who, status)` with no third argument while the sibling rider loop twelve hundred lines up
+has always passed `m`, so everything `applyStatus` asks of the ATTACKER — Corrosion, Safeguard's
+own-side exemption, Synchronize — was answered against nobody. Probe
+`ability/nameImplementedBySim`; the Speed drop is the control that must NOT move, or "Corrosion
+bypassed the immunity" is indistinguishable from "the whole move started working".
+
+### WILL'S BOARD, DERIVED RATHER THAN ACCEPTED
+
+He asked whether Stun Spore works on a Ground type. Rather than take the four moves he named, the sweep
+derives every such split: for each status, every legal targeted move that writes it (primary or 100%
+secondary), grouped on whether the type chart judges the move, and then it searches all eighteen types
+for a body at which the two groups MUST answer differently.
+
+```
+par   chart-judged: nuzzle, thunderwave, zapcannon    chart-free: glare, stunspore
+brn   chart-judged: inferno                           chart-free: willowisp
+psn / slp / tox   chart-judged: (none)
+```
+
+**It finds exactly ONE anchor board in the whole regulation: `par` into GROUND.** `brn` has the split
+and no separating body, because nothing in this format is immune to Fire; the other three statuses have
+no chart-judged deliverer at all. A derived statement with one solution, not a fixture somebody chose.
+Landed as census probe `move/statusCategory` against a **mono-Ground Hippowdon** — Thunder Wave, Nuzzle
+and Zap Cannon must FAIL, Glare and Stun Spore must LAND, and the same five clicks at a Normal Snorlax
+must all land. **This probe was GREEN on arrival and is stated as such**; it pins the earlier Thunder
+Wave fix at a board that cannot be green by accident in either direction, which is what the two broken
+probes could not do.
+
+### THE INSTRUMENT WAS WRONG BEFORE THE ENGINE WAS, FOUR TIMES
+
+Every one accused the engine first. **52 cells read `THREW-AUTHORITY`** because Showdown rejects
+`move 1 1` for a spread move and rejects a bare `move 1` for an `any`-target move in doubles — Cotton
+Spore and Sandstorm were in that set, two immunities the sweep exists to check. **Four more** because a
+KO opens a forced-switch request and the turn does not advance until it is answered, so the harness
+threw on exactly the cells where the attack WORKED. **Three more** accused the trap of not holding when
+the fixture had re-clicked a DAMAGING trap move and killed the victim — `stillActive: false` cannot
+tell "switched out" from "died". And **the Rage Powder population did not separate at all**: the powder
+immunity there belongs to the ATTACKER (`if (source.runStatusImmunity('powder'))`), and my arms varied
+the drawer, so both engines agreed for the right reason and the population proved nothing. The
+separation check is what said so.
+
+### TWO FINDINGS THAT ARE NOT DEFECTS
+
+**`data/tags.json` under-derives `statusImmune`, and every gap is unreachable.** The format has 14
+legal abilities carrying an `onSetStatus`/`onAllySetStatus`; the artifact tags 7. The five it misses —
+comatose, pastelveil, shieldsdown, thermalexchange, waterveil — have **no legal carrier species in Reg
+M-B**, and eleven of the 45 status-handler abilities are unreachable for the same reason. Printed on
+every sweep run rather than patched, because the day a carrier becomes legal the print is the warning.
+
+**Toxic from a Poison type is correct on BOTH of its branches**, which are two different source lines:
+`accuracy = true` (the Aerial Ace mechanism, not 100) and a separate invulnerability bypass. Staged
+with the die LEFT IN at +6 evasion, and against a target that had used Fly, each with a non-Poison user
+as the control. The authority separates every arm and this engine matches all four.
+
+| quantity | HEAD (`7256d5a`) | after |
+|---|---|---|
+| census probed / live / missing | 697 / 697 / 0 | **701 / 701 / 0** |
+| immunity sweep, 1,800 cells | **21 DIFFER** (knobs armed) | **0 DIFFER**, 3 declared NOT-STAGED |
+| damage differential, all 16 corners | 0 of 6000 | **0 of 6000** |
+| whole-game, arm `middle` | 961 games, 28 parted | **961 games, 28 parted** |
+| board-material | 10 causes / 10 games | **10 causes / 10 games** |
+| narration-only | 17 causes / 18 games | **17 causes / 18 games** |
+| DIFFERENT-END-STATE | 8 | **8** |
+| `all_mechanics_fire` STATE rows | 8 | **8** |
+| roster items / abilities / moves DIFFER | 0 / 0 / 0 | **0 / 0 / 0** |
+
+Arm `middle`, **961 games** (`--games 1200` — a PAIR budget), release **`c6d45355668e`**,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state --write`. **A re-baseline, not a delta** — the standing figure was taken on release
+`359b51b61d83`. The before column is computed from `git show HEAD:data/game-differential.json` by the
+same expression as the after column.
+
+**THE POOL WAS PREDICTED NOT TO MOVE AND IT DID NOT MOVE AT ALL** — not by a game, not by a cause.
+Computed by set difference rather than by eye: board-material causes only in HEAD `[]`, only in NOW
+`[]`, and the same for the full 27-cause list. That was said before the run: Magic Bounce has one
+carrier family, Sap Sipper / Motor Drive / Lightning Rod / Volt Absorb are rare, and Toxic Thread reads
+6 corpus uses. **This is a LAB result and the lab is where it shows** — census 697 → 701, sweep 21 → 0.
+
+### THE HAND LIST
+
+Nothing leaves it: none of these three defects was on it, because nobody knew they were there. That is
+the argument for a sweep.
+
+Joins it:
+
+- **the `sharehp` road carries the SAME bounce/re-aim inversion and was deliberately NOT changed.**
+  Pain Split is the only `sharehp` move in this format and its flags are `{protect, mirror}` with no
+  `reflectable`, so `bounceOff` returns the target untouched on every call from there and no probe can
+  show it red. A change no probe can show red is not a fix. Left with a comment saying so.
+- **the `typechange` branch has never re-aimed to a SLOT.** It now asks `bounceOff`; it still resolves
+  its target straight off the action, so a Soak or Magic Powder aimed at a body that pivots out in the
+  same turn follows the BODY rather than the slot. A separate mechanic, not folded into the bounce fix.
+- **`data/tags.json`'s `statusImmune` misses five `onSetStatus` abilities**, all five unreachable in
+  this regulation today. `engine/tag_dex.js` work, not engine work.
+
+Stays on it, unchanged: **the `trapper` mark on a trap's SOURCE**, **`planted_state_proof_ok` is still
+false and `game_differential.js` exits 1 on it**, **the `any`-category address for `getRandomTarget`**,
+**the Bug Bite / Pluck EAT half**, **`AfterMoveSecondary` above `|-hitcount|`**, **the three
+spread-status rows are ONE mechanism**, **`supremeoverlord`**, **`data/abra-tags.js` going stale against
+`data/tags.json`**, **`shellsidearm`**, **`sandforce`'s truncated `damageBoost.onType`**,
+**`guts.damageBoost.onlyWhen` null**, **Castform's forme label (a refit)**, **Magic Room parks the
+item**, and **a refused Role Play does not blank its move line's target field**.
+
+### PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.
+
+**CLOSED (3).** *"Magic Bounce is discarded by the slot re-aim on the `status` road and never asked for
+at all on the `typechange` road, so twelve reflectable moves land on the bouncer"* — knob
+`MEDI_BOUNCE_UNDONE_BY_REAIM=1`, probes `ability/reflectsStatusMoves` x2, sweep 12 cells red → green.
+*"An absorbing ability (`typeImmunity`) is only consulted on a damaging move, so Sap Sipper, Volt
+Absorb, Motor Drive, Lightning Rod and Flash Fire take every status move at full effect"* — knob
+`MEDI_STATUS_ABSORB_BLIND=1`, sweep 7 cells red → green. *"Corrosion's immunity bypass reaches the
+`status` road and not the composed-rider road, so a Corrosion Toxic Thread cannot poison a Steel type"*
+— knob `MEDI_RIDER_STATUS_NO_SOURCE=1`, probe `ability/nameImplementedBySim`, sweep 2 cells red → green.
+
+**OPEN (3).** *"The `sharehp` road carries the bounce/re-aim inversion and no legal move can show it
+red"*; *"the `typechange` branch resolves its target off the action rather than off the slot"*;
+*"`data/tags.json`'s `statusImmune` derivation misses five legal `onSetStatus` abilities, all currently
+without a legal carrier."*
+
+### OWED, NOT RUN
+
+- `tests/run-all.js` in full. Run individually and green: `tests/test-mechanics.js` (701/701),
+  `tests/test-engine-diff.js` (`--n 6000 --seed 20260804`, **0 of 6000 at all 16 corners**),
+  `tests/test-game-diff.js`, `tests/test-end-state.js`, `tests/test-volatile-duration.js`,
+  `tests/test-resolution-order.js`, `tests/test-encore-fail-silent.js`, `tests/test-mc-seal.js`,
+  `tests/test-tag-params-derived.js`, `tests/test-immunity-gate.js`,
+  `tests/test-no-silent-failure.js`, `tests/roster.js` x3, `engine/all_mechanics_fire.js --kind all`,
+  `engine/game_differential.js`;
+- `tests/interaction_matrix.js` (last run 2026-08-11), `tests/mutation_harness.js`,
+  `engine/selftest.js`, `engine/conformance.js`, `engine/feature_fixture.js --check`;
+- a POOL-SCALE reading of `MEDSEEN.statusAbsorbRefused`, `MEDSEEN.statusBouncedBackAtUser`,
+  `MEDSEEN.bouncedSeedOwnedByBouncer` and `MEDSEEN.riderStatusSourced` — proved by probe and by sweep,
+  never read over 961 pool games, where all four are expected to be near zero;
+- `engine/immunity_sweep.js` is NOT registered as a gate, per the brief. It is run by hand.
 
 ## THE BENCH IS COMPARED ON ITS VOLATILES, AND THE DEFECT IT WAS AIMED AT WAS NEVER ON THE BENCH. CENSUS 696 → 697. 2026-08-25.
 

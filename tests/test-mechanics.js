@@ -8962,6 +8962,54 @@ probe('move', 'statusCategory', 'Thunder Wave is refused by a GROUND body, and a
                  + 'chart never runs for it. Before the fix the first arm read "par"' };
 });
 
+/* 2026-08-25 — WILL'S BOARD. *"does stun spore work on a ground type?"* It does. Thunder Wave does
+ * not. They inflict the SAME STATUS, and the difference is one declared field.
+ *
+ * THE WHOLE PARALYSIS FAMILY AT ONE BODY, WHICH IS WHY THIS EXISTS BESIDE THE PROBE ABOVE. That one
+ * asks whether Thunder Wave is refused; this one asks whether the engine can tell the FIVE APART.
+ * Derived over the format by `engine/immunity_sweep.js` rather than recalled — every legal targeted
+ * move that writes `par`, as a primary or as a 100% secondary, split on whether the type chart judges
+ * it:
+ *     chart-judged   Thunder Wave (Electric, `ignoreImmunity: false`)
+ *                    Nuzzle, Zap Cannon (Electric, damaging — the chart always judges an attack)
+ *     chart-free     Glare (Normal), Stun Spore (Grass, powder)
+ * and the sweep then searched every one of the eighteen types for a body at which those two groups
+ * MUST answer differently. It found exactly ONE in this whole regulation: GROUND. Not a fixture
+ * somebody chose — a derivation with one solution.
+ *
+ * THE BODY IS IMMUNE FOR EXACTLY ONE REASON AND THAT IS THE POINT. Hippowdon is MONO-Ground:
+ * `getImmunity` says Ground refuses Electric and refuses NOTHING else here — not paralysis, not
+ * powder, not Grass, not Normal. Two census probes were green on the live Thunder Wave defect because
+ * both aimed it at a body immune for an unrelated reason and could not tell "refused by TYPE" from
+ * "refused by STATUS". This board cannot be green by accident in either direction: an engine that
+ * ignores type immunity fails the first three arms, an engine that applies it to every status move
+ * fails the last two, and the Snorlax control fails an engine that has simply stopped paralysing.
+ *
+ * NUZZLE IS THE FOURTH SHAPE AND IT IS NOT DECORATION: it is a DAMAGING Electric move whose paralysis
+ * is a 100% secondary, so it reaches `par` down a different road from Thunder Wave and must be refused
+ * for the same reason. */
+probe('move', 'statusCategory', "the paralysis family split at ONE Ground body — Thunder Wave, Nuzzle and Zap Cannon are refused; Glare and Stun Spore land", () => {
+  const run = (foe, mv) => {
+    const me = bare('kangaskhan'), ally = bare('incineroar');
+    const f1 = bare(foe), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.status || 'none';
+  };
+  const MV = ['thunderwave', 'nuzzle', 'zapcannon', 'glare', 'stunspore'];
+  const ground = MV.map(mv => run('hippowdon', mv));
+  const control = MV.map(mv => run('snorlax', mv));
+  return { works: JSON.stringify(ground) === JSON.stringify(['none', 'none', 'none', 'par', 'par'])
+                  && JSON.stringify(control) === JSON.stringify(['par', 'par', 'par', 'par', 'par']),
+           arms: { control, test: ground },
+           detail: '[Thunder Wave, Nuzzle, Zap Cannon, Glare, Stun Spore] at a MONO-Ground Hippowdon '
+                 + JSON.stringify(ground) + ' (must be none,none,none,par,par — the three Electric '
+                 + 'ones are judged by the chart and the two chart-free ones are not)   |   the SAME '
+                 + 'five clicks at a Normal Snorlax ' + JSON.stringify(control)
+                 + ' (must be par x5, which is what says all five clicks work at all)' };
+});
+
 /* 2026-08-25 -- AND THE ITEM CLASS A STRIP IS GATED ON.
  *
  *     bugbite / pluck   if (source.hp && item.isBerry && target.takeItem(source)) { ... }
@@ -11251,6 +11299,62 @@ probe('ability', 'reflectsStatusMoves', 'Magic Bounce sends Charm back at its us
            arms: { control: off, test: on },
            detail: `atk stages (target/user): ability none ${off.target}/${off.user}, `
                  + `Magic Bounce ${on.target}/${on.user}` };
+});
+
+/* 2026-08-25 — THE THIRD ROAD, AND IT WAS THE BIG ONE. Found by `engine/immunity_sweep.js`.
+ *
+ * The two probes above walk `affect` (Charm) and `trapmove` (Block). ELEVEN MOVES resolve through
+ * `kind === 'status'` instead — Thunder Wave, Toxic, Will-O-Wisp, Spore, Sleep Powder, Stun Spore,
+ * Poison Powder, Glare, Hypnosis, Sing, Magic Powder — and that road carried the identical inversion
+ * the trap road was fixed for one day earlier: `bounceOff` ran BEFORE `reaimToSlot`, and
+ * `reaimToSlot` then looked the bounced body up by the action's own foe SLOT and handed back the
+ * original target. The reflection was computed and thrown away, on every one of them.
+ *
+ * THE USER IS A KANGASKHAN AND THAT IS THE POINT. The first draft of this probe used a RAICHU, which
+ * is Electric and therefore cannot be paralysed at all — so the bounce arm read "nobody is
+ * paralysed", which is also what a broken bounce reads. A fixture immune for an unrelated reason is
+ * the exact trap this whole sweep was commissioned after. */
+probe('ability', 'reflectsStatusMoves', 'Magic Bounce sends a STATUS MOVE back, and the paralysis lands on the clicker', () => {
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('kangaskhan', 'incineroar', 'espeon', 'garchomp');
+    f1.ability = ab;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'thunderwave', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { target: f1.status || 'none', user: me.status || 'none' };
+  };
+  const off = run('none'), on = run('magicbounce');
+  return { works: off.target === 'par' && off.user === 'none' && on.target === 'none' && on.user === 'par',
+           arms: { control: off, test: on },
+           detail: `[target status, clicker status] after Thunder Wave at the Espeon — ability none `
+                 + `${off.target}/${off.user} (the click works and the Espeon takes it); MAGIC BOUNCE `
+                 + `${on.target}/${on.user} (it must come BACK, not merely fail — a refusal reads `
+                 + `identical on the target and the whole difference is on the clicker)` };
+});
+
+/* AND A BOUNCED LEECH SEED BELONGS TO THE BOUNCER, which is the same lesson the bounced TRAP taught
+ * one day earlier and a second mechanism entirely. The seed's beneficiary was written as the body
+ * that CLICKED the move; after a reflection that body is the VICTIM, so it drained itself and healed
+ * itself and the whole move netted to nothing. `useMove(newMove, target, {target: source})`
+ * (data/abilities.ts:2436) makes the reflected move's USER the reflector, so the drain is credited to
+ * ITS slot. Staged over three turns because one turn of a sixth is inside the noise of a full body. */
+probe('ability', 'reflectsStatusMoves', 'a bounced Leech Seed drains to the BOUNCER, not to the body that clicked it', () => {
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('kangaskhan', 'incineroar', 'espeon', 'garchomp');
+    f1.ability = ab;
+    for (let i = 0; i < 3; i++) {
+      M.battleTurn(S, rng5,
+        new Map([[me, M.playerAction(me, 'leechseed', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    }
+    return { clicker: me.curHP < me.st.hp ? 'drained' : 'full',
+             target: f1.curHP < f1.st.hp ? 'drained' : 'full' };
+  };
+  const off = run('none'), on = run('magicbounce');
+  return { works: off.clicker === 'full' && off.target === 'drained'
+                  && on.clicker === 'drained' && on.target === 'full',
+           arms: { control: off, test: on },
+           detail: `[clicker, target] after three turns — ability none ${off.clicker}/${off.target}; `
+                 + `MAGIC BOUNCE ${on.clicker}/${on.target}. Both arms must show SOMEBODY drained, or `
+                 + `"the seed changed hands" is indistinguishable from "the seed stopped working"` };
 });
 
 /* THE ABSORBED HIT HEALS THE ABSORBER, and `tests/test-tag-wire.js` has printed "(1 -> 1)" on this
@@ -21667,6 +21771,43 @@ probe('ability', 'nameImplementedBySim', 'Corrosion poisons a Steel type, and do
                  + ' (must be none,none,tox: the first two are refused by type and the third is the '
                  + 'control that says the click works at all)   |   CORROSION ' + JSON.stringify(test)
                  + ' (must be tox,none,tox — the Fire immunity is NOT bypassed)' };
+});
+
+/* 2026-08-25 — THE SAME ABILITY, THE OTHER ROAD, AND IT WAS DEAD. Found by `engine/immunity_sweep.js`,
+ * which plays every (status x type) and (ability x status move) cell in both engines: Corrosion's
+ * bypass reached Toxic and not Toxic Thread.
+ *
+ * WHY THE PROBE ABOVE COULD NOT SEE IT. `playerAction` classifies a move by what it carries. Toxic is
+ * `kind:'status'`; Toxic Thread carries a STAT DROP as well, so it is `kind:'affect'` and its status
+ * arrives on a COMPOSED RIDER. That road called `applyStatus(who, status)` with no third argument,
+ * and every question `applyStatus` asks of the attacker — Corrosion, Safeguard's own-side exemption,
+ * Synchronize — was answered against nobody.
+ *
+ * THE FIXTURE IS IMMUNE FOR EXACTLY ONE REASON, and that is the whole point of this probe existing
+ * beside the one above rather than inside it. Corviknight is Flying/Steel; Toxic Thread is a Poison
+ * STATUS move and does NOT declare `ignoreImmunity: false`, so the type chart never runs on it and
+ * `psn`-into-Steel is the single refusal in the cell. (The move that DOES declare it — Thunder Wave,
+ * the only one in this format — is why the sweep counts reasons per cell at all.)
+ *
+ * THE SPEED DROP IS THE CONTROL THAT MUST NOT MOVE. Both arms must land it, or "Corrosion bypassed
+ * the immunity" is indistinguishable from "the whole move started working". */
+probe('ability', 'nameImplementedBySim', 'Corrosion reaches a status carried on a composed rider (Toxic Thread), not only a status move', () => {
+  const run = (ab) => {
+    const me = bare('salazzle'), ally = bare('milotic');
+    const f1 = bare('corviknight'), f2 = bare('milotic');
+    me.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'toxicthread', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [f1.status || 'none', f1.boosts.sp | 0];
+  };
+  const control = run('none'), test = run('corrosion');
+  return { works: control[0] === 'none' && test[0] === 'psn' && control[1] < 0 && control[1] === test[1],
+           arms: { control, test },
+           detail: '[target status, target Speed stage] — no ability ' + JSON.stringify(control)
+                 + ' (Steel refuses the poison)   |   CORROSION ' + JSON.stringify(test)
+                 + ' (must be psn). The Speed drop is identical in both arms, which is what says the '
+                 + 'move landed either way and only the immunity moved.' };
 });
 
 /* ================= ROADMAP #239 -- A REFUSED STATUS IS `-immune`, AND WE WROTE `-fail` ==========
