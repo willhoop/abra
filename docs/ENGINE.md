@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  704/704 probed mechanics live, 0 missing   (census 2026-08-25 03:50)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-25 03:28)
+  705/705 probed mechanics live, 0 missing   (census 2026-08-25 16:00)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-25 16:04)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -70,16 +70,172 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 25be5be4bf9c now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 4dc89ffbbc0d now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 3cf4fba5f420 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-25 04:03_
+_stamped 2026-08-25 16:19_
 
 <!-- /GENERATED -->
+
+## A MEGA'S QUEUE ENTRY DECIDES WHICH PROTECT GOES UP. CENSUS 704 → 705. 2026-08-25.
+
+Full account: [`docs/_reports/2026-08-25-protect-stall.md`](_reports/2026-08-25-protect-stall.md).
+
+`active[].stall` was the largest board-leaf family in the pinned pool, and the counter is only ever set
+by a SUCCESSFUL shield — so the two engines were disagreeing about **which Protect succeeded**, i.e.
+about who held the last action of the turn.
+
+**THE CAUSE IS AN ENTRY THIS ENGINE HAS NO ACTION FOR.** Showdown's commit-time queue carries a
+`megaEvo` action at ORDER 104 in front of the megaing body's move, and `queue.sort()` is a SELECTION
+SORT: placing that entry SWAPS it with whatever stood at the head of the list, throwing a MOVE to a
+later index. On a board with a **speed tie at the tail** that one displacement decides which tied body
+is last — and the last body's Protect is the one that FAILS (`!!this.queue.willAct()`). This engine
+sorted an array with no megaEvo entry in it, so its tied pair came out the other way round.
+
+**ONE QUEUE READER OR TWO — THE ANSWER IS THAT THE `willAct` QUESTION HAS EXACTLY ONE READER, AND THAT
+IS NOT WHERE THE DUPLICATION WAS.** `_anyActionAfter` is `BattleQueue.willAct()` and is called from one
+place, `_shieldGate`, which serves the six `stallingMove` shields, the two side Guards and Endure.
+`queueWillMove` is a DIFFERENT authority function (`BattleQueue.willMove(pokemon)`, which Sucker Punch
+and Upper Hand open on) reading the SAME `acts` array through the SAME `unresolved` set and the SAME
+`sdChoiceOf` mapping. **The real duplication was one level down and it is the fourth instance of the
+pattern:** the authority's commit-time QUEUE was built twice — `megaQueueOrder` built it, sorted it,
+read the MEGA order off it and threw the move order away, while `sortTurnOrder` sorted a second list
+that omitted the megaEvo entry. They agreed on every board without a tie. They are now **one function**,
+`commitQueueSort`, which sorts one list once and returns both answers; `sortTurnOrder` delegates to it
+with an empty entry set, so the selection sort exists once.
+
+**RED FIRST, WITH THE CONTROL CLEARED.** `tests/probe_protect_stall.js` (new) — four bodies all
+clicking Protect, one megaing, everything derived (the carrier is the biggest Speed jump among legal
+stones whose base forme learns Protect):
+
+```
+ARM 2A  Aerodactyl 182 | Archaludon 127 | Absol 127 | Beedrill 117 -> Beedrill-Mega 187
+  SHOWDOWN   Beedrill, Aerodactyl, Archaludon, Absol   -> ABSOL refused
+  MEDICHAM2  Beedrill, Aerodactyl, Absol, Archaludon   -> ARCHALUDON refused   two stall leaves part
+ARM 2B  THE CONTROL, the identical board with the stone removed  -> both refuse Beedrill, every leaf equal
+ARM 1A/1B  the same pair with NO tie  -> identical with the stone and without it
+```
+
+**With the tie broken the two engines agree in every arrangement**, so the divergence cannot be blamed
+on the mega, on Protect, or on the speeds. After the fix all four arms are identical; under
+`MEDI_COMMIT_QUEUE_BLIND=1` arm 2A is red again and the three controls are unmoved.
+
+**THE CENSUS PROBE ASSERTS ON HP AND NEVER ON `tookProtectTurns`**, which is that file's own standing
+rule. The consequence is staged on TURN TWO: a refused shield leaves the stall counter unarmed so the
+next Protect is a free 100%, while a shield that went up leaves it at 3 and the next one loses the 1/3
+roll. **So the body the mega entry displaces is the body that eats the attack** — tied arm 0 damage,
+tie broken 81, tie broken the other way 0. Two controls answering opposite outcomes; under the knob the
+tied arm reads 81 and **both controls are unchanged**.
+
+**THE NUMBERS ARE AN ATTRIBUTION, NOT A DELTA.** `engine/game_differential.js` changed underneath this
+pass (MEASURE landed the planted-state fixture fix), so the standing `28 parted / 27 causes` figure was
+taken on a different driver and is not comparable. Both columns below are the SAME driver
+(`274b2f327989`), the SAME release, the SAME pins and the SAME pool, with only the knob varied.
+
+| arm `middle`, 961 games | knob ON (defect restored) | knob OFF (fixed) |
+|---|---|---|
+| census probed / live / missing | 705 / 704 / **1** | **705 / 705 / 0** |
+| damage differential, all 16 corners | — | **0 of 6000** |
+| protocol PARTED | 27 | **24** |
+| board-material | 12 causes / 12 games | **11 causes / 11 games** |
+| narration-only | 14 causes / 15 games | **12 causes / 13 games** |
+| DIFFERENT-END-STATE | 7 | **7** |
+| `active[].stall` at any boundary | 6 games / 7 leaves | **5 games / 5 leaves** |
+| `active[].stall` at the LAST board | 4 | **4** |
+| turn-1 causes | species x2, item x1, **stall off-by-2-or-3 x2** | species x2, item x1 |
+| `ordering` reaching an identical turn-1 board | 9 games, 7 same | **6 games, 5 same** |
+| roster items / abilities / moves DIFFER | — | **0 / 0 / 0** |
+| `all_mechanics_fire` STATE rows | — | **8** |
+
+**Narration did not rise.** **The turn-1 stall witness is gone entirely** — the exact board the
+destiny-bond report ranked #1 no longer appears in the turn-1 table at all.
+
+Arm `middle`, **961 games** (`--games 1200`, a PAIR budget), release **`9cfe6b3b97a8`**,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state --write`, turn cap 12.
+
+**`planted_state_proof_ok` IS TRUE**, for the first time since 24 August, and the run exits 0.
+`planted_divergence_proof_ok` is also true. That is MEASURE's fixture fix, not this pass's, and it is
+recorded here because this pass's artifact is the first one to carry it.
+
+**FOUR ARTIFACTS WERE RESTORED, NOT LEFT DEGRADED.** All three roster stages and `all_mechanics_fire
+--kind all` were re-run **with `--write`** on release `9cfe6b3b97a8`: roster items / abilities / moves
+all **0 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE**, and `all_mechanics_fire` **8 STATE rows** —
+unchanged.
+
+### THE HAND LIST
+
+Leaves it: **`active[].stall`'s turn-1 mega witness** — the `willAct()` / last-action question on a
+board where a mega mid-turn re-sorts the queue into a Speed tie. Proved by one probe with three cleared
+controls and one census probe asserting on HP.
+
+Joins it:
+
+- **`active[].stall` SURVIVES AT LATER TURNS — 5 games / 5 leaves at any boundary, 4 at the last
+  board**, plus a board-material cause
+  `unrelated event mismatch :: |-singleturn|p2a|protect <> |-fail|p2a` parting at **turn 5** with the
+  board parting EARLIER than the narration, and the `healbell` `all_mechanics_fire` STATE row still
+  carrying `stall showdown 0 we 3` at turn 4. **A different mechanism wearing the same leaf** — it is
+  not a turn-1 mega board. Named and ranked, not diagnosed.
+- **THE ORDER-107 HALF OF THIS FIX IS CORRECT BY CONSTRUCTION AND NOT MEASURED.** Focus Punch and Beak
+  Blast get the same commit-queue entry off the same `preTurnShield` tag, but no board in this pass
+  staged one beside a speed tie. Said plainly rather than counted as landed.
+- **`_megaPhase` IS ENTERED AT THE FIRST ACTION WITH `_pri < 6`, AND A PRANKSTER HELPING HAND IS 6.**
+  On a board carrying one, the mega would fire AFTER that move where the authority fires it before.
+  Pre-existing, noticed here, not touched.
+
+Stays on it, unchanged: **the `trapper` mark on a trap's SOURCE**, **the `any`-category address for
+`getRandomTarget`**, **the Bug Bite / Pluck EAT half**, **the two surfaces Moody was hiding**,
+**`AfterMoveSecondary` above `|-hitcount|`**, **the three spread-status rows are ONE mechanism**,
+**`supremeoverlord`**, **`shellsidearm`**, **`sandforce`'s truncated `damageBoost.onType`**,
+**`guts.damageBoost.onlyWhen` null**, **Castform's forme label (a refit)**, **Magic Room parks the
+item**, **a refused Role Play does not blank its move line's target field**, **PP exhaustion is
+narrated wrong**, **a multi-turn counter reaching zero is silent**, **a forme does not revert when its
+field effect ends**, and **the 33 extra board-material causes visible only past turn 12**.
+
+**`planted_state_proof_ok` LEAVES THIS LIST.** It was *"still false and the highest-value item here"*
+on the previous pass; MEASURE fixed the FIXTURE behind it (the plants were landing on corpses) and it
+reads TRUE on this pass's artifact.
+
+### PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.
+
+**CLOSED (1).** *"The two engines disagree about WHICH consecutive Protect goes up — `active[].stall`
+is the largest board leaf family in the pinned pool at 6 games / 7 leaves, and the witness is a
+`willAct()` / last-action question on a board where a mega mid-turn re-sorts the queue into a Speed
+tie"* — cause was the authority's commit-time queue carrying a `megaEvo` entry at order 104 whose
+selection-sort placement displaces a MOVE; knob `MEDI_COMMIT_QUEUE_BLIND=1`, one probe with three
+cleared controls, one census probe on `move/failsIfMovesLast` asserting on HP, and the turn-1 witness
+gone from the pool.
+
+**OPEN (2).** *"`active[].stall` survives at later turns — 5 games / 5 leaves, 4 at the last board, a
+board-material `|-singleturn|protect <> |-fail|` parting at turn 5 with the board parting EARLIER, and
+`healbell`'s STATE row carrying `stall showdown 0 we 3` at turn 4. A different mechanism from the
+turn-1 mega board, named and not diagnosed."*
+
+*"The commit-queue's order-107 (priorityChargeMove) entries are wired on the same rule as the megaEvo
+entries and have never been exercised: no staged board put a Focus Punch or a Beak Blast beside a speed
+tie, so that half of the fix is correct by construction and unmeasured."*
+
+### OWED, NOT RUN
+
+- **`tests/run-all.js` in full — NOT RUN.** Run individually and green: `tests/test-mechanics.js`
+  (705/705, 0 missing), `tests/test-engine-diff.js` (`--n 6000 --seed 20260804`, **0 of 6000 at all 16
+  corners**), `tests/roster.js` x3, `engine/all_mechanics_fire.js --kind all`.
+- **`tests/test-resolution-order.js`, `tests/test-volatile-duration.js`, `tests/test-game-diff.js`,
+  `tests/test-end-state.js`, `tests/test-encore-fail-silent.js`, `tests/test-engine-consistency.js`,
+  `tests/test-bracket-regain.js`, `tests/test-roster-arm-pin.js` — NOT RUN.** Every one of them
+  touches turn order or the queue. **This is the largest gap in the pass** and it is a consequence of
+  wrapping up at a boundary, not a judgement that they do not matter.
+- `tests/interaction_matrix.js`, `tests/mutation_harness.js`, `engine/selftest.js`,
+  `engine/conformance.js`, `engine/feature_fixture.js --check`, `engine/quarantine.js` — **NOT RUN**
+  (their clauses were run directly, at the pins).
+- **A POOL-SCALE reading of `MEDSEEN.commitQueuePhantomDisplacedAct`.** `game_differential.js` surfaces
+  no `MEDSEEN`, so the mechanism counter has been read only on staged boards.
+- The later-turn `active[].stall` family and the order-107 half — **NOT DIAGNOSED, deliberately.**
 
 ## DESTINY BOND WAS A 5-PP NO-OP, AND THE STALL COUNTER IS COMPARABLE AFTER ALL. CENSUS 701 → 704. 2026-08-25.
 

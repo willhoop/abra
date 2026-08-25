@@ -1469,6 +1469,78 @@ probe('move', 'failsIfMovesLast', 'ENDURE faces the same willAct gate as a shiel
                  + `still unarmed and the Protect holds)` };
 });
 
+/* ---- 2026-08-25 -- A MEGA'S QUEUE ENTRY DECIDES WHICH PROTECT GOES UP ---------------------------
+ *
+ * `active[].stall` was the largest board-leaf family in the pinned pool, and the counter is only ever
+ * set by a SUCCESSFUL shield -- so the two engines were disagreeing about which Protect succeeded,
+ * i.e. about who held the last action of the turn (`!!this.queue.willAct()`).
+ *
+ * THE CAUSE IS AN ENTRY THIS ENGINE HAS NO ACTION FOR. Showdown's commit-time queue carries a
+ * `megaEvo` action at order 104 in front of the megaing body's move, and `queue.sort()` is a
+ * SELECTION SORT: placing that entry swaps it with whatever stood at index 0, throwing a MOVE to a
+ * later index. On a board with a SPEED TIE at the tail, that displacement is what decides which of
+ * the tied bodies ends up last. This engine sorted an array with no megaEvo entry in it, so the tied
+ * pair came out the other way round.
+ *
+ * MEASURED IN THE OFFICIAL SIMULATOR FIRST -- tests/probe_protect_stall.js, arm 2A against its
+ * stone-removed control 2B, four bodies all clicking Protect:
+ *     Aerodactyl 182 | Archaludon 127 | Absol 127 | Beedrill 117 -> Beedrill-Mega 187
+ *     showdown    Beedrill, Aerodactyl, Archaludon, Absol   -> ABSOL is refused
+ *     this engine  Beedrill, Aerodactyl, Absol, Archaludon  -> ARCHALUDON is refused
+ *     control, the same board with the stone removed: both engines refuse Beedrill, identically.
+ *
+ * ASSERTED ON HP AND NEVER ON `tookProtectTurns`, for the reason the two probes above give: a probe
+ * that reads the counter field proves the bookkeeping, and the bookkeeping is not what a game plays.
+ * The consequence is TURN TWO -- a refused shield leaves the counter unarmed, so the next Protect is
+ * a free 100%, while a shield that went up leaves it at 3 and the next one loses the 1/3 roll. So the
+ * body the mega entry displaces is the body that eats the attack. Knob: MEDI_COMMIT_QUEUE_BLIND=1. */
+probe('move', 'failsIfMovesLast', "a mega's QUEUE ENTRY displaces a tied body, and that decides which Protect holds", () => {
+  const run = (absolSpe) => {
+    const a0 = bare('aerodactyl'), a1 = bare('archaludon'), b0 = bare('absol');
+    /* The stone-holder is built as its BASE forme and evolves on the CHOICE below, which is what puts
+     * a megaEvo entry in the queue in the first place. Its ability is set explicitly so nothing can
+     * arrive silently from the usage row. */
+    const b1 = M.buildMon('beedrill', {}); b1.item = 'beedrillite'; b1.ability = 'swarm';
+    /* THE FAST FLANKER IS THE MECHANISM. It is the only body above the tied pair, so it is what the
+     * selection sort lifts to the front -- and the megaEvo entry is what it gets swapped with. */
+    a0.st = Object.assign({}, a0.st, { sp: 182 });
+    a1.st = Object.assign({}, a1.st, { sp: 127 });
+    b0.st = Object.assign({}, b0.st, { sp: absolSpe });
+    b1.st = Object.assign({}, b1.st, { sp: 117 });          // 187 after it evolves
+    const S = M.battleInit([a0, a1], [b0, b1], { seeded: true, autoMega: false });
+    const P = (m) => M.playerAction(m, 'protect', m, S.field);
+    const mAct = P(b1); mAct.mega = true;
+    /* TURN 1 — four Protects and one evolution. Exactly one shield must be refused: the last one. */
+    M.battleTurn(S, rng5, new Map([[a0, P(a0)], [a1, P(a1)]]), new Map([[b0, P(b0)], [b1, mAct]]));
+    /* TURN 2 — the same four bodies, and ONE real attack behind the shields so every one of them
+     * passes the willAct gate and only the COUNTER can refuse it. Aerial Ace never misses and carries
+     * no secondary, so the only thing that decides `b0`'s HP is whether its shield went up. */
+    const before = b0.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[a0, M.playerAction(a0, 'aerialace', b0, S.field)], [a1, P(a1)]]),
+      new Map([[b0, P(b0)], [b1, P(b1)]]));
+    return [b1.name, before - b0.curHP];
+  };
+  const tied = run(127);        // Absol ties Archaludon for last — the arm the queue entry decides
+  const faster = run(152);      // the tie broken in Absol's favour: Archaludon is last instead
+  const slower = run(100);      // the tie broken the other way: Absol is last on plain Speed
+  const evolved = r => r[0] === 'beedrill-mega';
+  return { works: evolved(tied) && evolved(faster) && evolved(slower)
+                  && tied[1] === 0 && faster[1] > 0 && slower[1] === 0,
+           /* THE ARM PAIR IS THE ONE THAT MOVES: `faster` is the same board with the tie broken and
+            * it answers the opposite outcome, so the board is sensitive. `slower` is the second
+            * control and lives in the detail. */
+           arms: { control: faster, test: tied },
+           detail: '[mega forme, damage Absol takes on turn 2] — EXACT TIE at 127/127 ' + tied
+                 + ' (want 0: the megaEvo entry throws Absol to the BACK of the turn, its turn-1 '
+                 + 'Protect is refused for holding the last action, and the unarmed counter makes '
+                 + 'turn 2 a free shield); tie broken with Absol at 152 ' + faster + ' (want damage: '
+                 + 'Archaludon is last instead, Absol shielded on turn 1 and loses the 1/3 roll on '
+                 + 'turn 2); broken the other way with Absol at 100 ' + slower + ' (want 0). The two '
+                 + 'controls answer OPPOSITE outcomes, so the board is sensitive; before 2026-08-25 '
+                 + 'the tied arm took the hit. Knob: MEDI_COMMIT_QUEUE_BLIND=1' };
+});
+
 probe('move', 'stallCounterChecks', 'a SECOND consecutive Endure loses the 1/3 roll, so the lethal hit lands', () => {
   /* The knob is turn 1's click and nothing else. Both arms then click the SAME Endure into the SAME
    * lethal Earthquake at the SAME losing roll, so any difference is the counter.

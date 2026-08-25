@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-25T07:50:52.045Z",
+  "generated": "2026-08-25T20:00:42.718Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 704,
-  "live": 704,
+  "probed": 705,
+  "live": 705,
   "missing": 0,
-  "armed": 704,
+  "armed": 705,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -264,6 +264,16 @@
       "label": "ENDURE faces the same willAct gate as a shield — it never did",
       "live": true,
       "detail": "damage taken on turn 2 behind a Protect at roll 0.99 — turn-1 ENDURE at Speed 200, three actions queued behind it 182 (it resolved and advanced the shared counter, so the 1/3 roll fails and the Protect does not go up); at Speed 1, holding the last action 0 (the Endure was refused before its onHit, the counter is still unarmed and the Protect holds)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "failsIfMovesLast",
+      "label": "a mega's QUEUE ENTRY displaces a tied body, and that decides which Protect holds",
+      "live": true,
+      "detail": "[mega forme, damage Absol takes on turn 2] — EXACT TIE at 127/127 beedrill-mega,0 (want 0: the megaEvo entry throws Absol to the BACK of the turn, its turn-1 Protect is refused for holding the last action, and the unarmed counter makes turn 2 a free shield); tie broken with Absol at 152 beedrill-mega,81 (want damage: Archaludon is last instead, Absol shielded on turn 1 and loses the 1/3 roll on turn 2); broken the other way with Absol at 100 beedrill-mega,0 (want 0). The two controls answer OPPOSITE outcomes, so the board is sensitive; before 2026-08-25 the tied arm took the hit. Knob: MEDI_COMMIT_QUEUE_BLIND=1",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3563,7 +3573,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

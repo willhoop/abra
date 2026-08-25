@@ -21,6 +21,62 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A MEGA'S QUEUE ENTRY DECIDES WHICH PROTECT GOES UP. CENSUS 704 → 705. 2026-08-25 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-25-protect-stall.md`](_reports/2026-08-25-protect-stall.md).
+Ledger section: `docs/ENGINE.md`, *"A MEGA'S QUEUE ENTRY DECIDES WHICH PROTECT GOES UP"*.
+
+`active[].stall` was the largest board-leaf family in the pinned pool. The counter is only set by a
+SUCCESSFUL shield, so the disagreement was about **which Protect succeeded** — who held the last action
+of the turn.
+
+**The cause is a queue entry this engine has no action for.** Showdown queues `megaEvo` at ORDER 104 in
+front of the megaing body's move, and `queue.sort()` is a SELECTION SORT: placing that entry swaps it
+with whatever stood at the head, throwing a MOVE to a later index. With a **speed tie at the tail** that
+displacement decides who is last, and the last body's Protect FAILS. This engine sorted a list with no
+megaEvo entry in it.
+
+**One fact, two builders — the fourth instance.** `megaQueueOrder` built the authority's commit-time
+queue, sorted it, read the MEGA order off it and threw the move order away; `sortTurnOrder` sorted a
+second list without the megaEvo entry, and that was the MOVE order. Now **one function**,
+`commitQueueSort`, returning both answers off one sort, with `sortTurnOrder` delegating to it.
+*(The `willAct` question itself has exactly ONE reader and always did; `queueWillMove` is the
+authority's own separate `willMove`, not a copy.)*
+
+**Proved red first with the control cleared** — `tests/probe_protect_stall.js`, four Protects and a
+mega: Showdown refuses Absol, this engine refused Archaludon, and the identical board **with the stone
+removed** is byte-equal on both engines. With the tie broken they agree in every arrangement. Knob
+`MEDI_COMMIT_QUEUE_BLIND=1`. The census probe (`move/failsIfMovesLast`) asserts on **HP, never on
+`tookProtectTurns`**: the displaced body is the one that eats the attack on turn two.
+
+**An ATTRIBUTION, not a delta** — `engine/game_differential.js` changed underneath this pass, so the
+standing 28/27 figure is not comparable. Both columns are the same driver `274b2f327989`, release
+`9cfe6b3b97a8`, arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json`, only the knob varied.
+
+| quantity | knob ON (defect restored) | knob OFF (fixed) |
+| --- | --- | --- |
+| census probed / live / missing | 705 / 704 / 1 | **705 / 705 / 0** |
+| damage differential, all 16 corners | — | **0 of 6000** |
+| whole-game, arm `middle` | 961 games, 27 parted | **961 games, 24 parted** |
+| board-material | 12 / 12 | **11 / 11** |
+| narration-only | 14 / 15 | **12 / 13** |
+| DIFFERENT-END-STATE | 7 | **7** |
+| `active[].stall` at any boundary | 6 games / 7 leaves | **5 games / 5 leaves** |
+| turn-1 stall witness | present (off-by-2-or-3 x2) | **gone** |
+| roster items / abilities / moves DIFFER | — | **0 / 0 / 0** |
+| `all_mechanics_fire` STATE rows | — | **8** |
+
+Narration did not rise. All four withheld artifacts were re-run **with `--write`** on
+`9cfe6b3b97a8`. **`planted_state_proof_ok` is TRUE** for the first time since 24 August — MEASURE's
+fixture fix, recorded here because this pass's artifact is the first to carry it.
+
+**Still open:** `active[].stall` survives at later turns (5 games / 5 leaves, 4 at the last board, plus
+`healbell`'s STATE row) — a different mechanism, named and not diagnosed. The order-107
+(priorityChargeMove) half of the same fix is correct by construction and **unmeasured**.
+
+---
+
 ## DESTINY BOND WAS A 5-PP NO-OP, AND THE STALL COUNTER IS COMPARABLE AFTER ALL. CENSUS 701 → 704. 2026-08-25 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-25-destinybond-stall.md`](_reports/2026-08-25-destinybond-stall.md).

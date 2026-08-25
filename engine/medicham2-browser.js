@@ -1162,6 +1162,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      from both of the above for their reason: three sorts, three lists, three moments, and a
      pooled total could not say which one had ever met a tie. */
   megaTieResolved: 0,
+  /* 2026-08-25 -- THE COMMIT QUEUE, AND THE SECOND ONE IS THE COUNTER THAT PROVES THE FIX DOES
+   * SOMETHING. `commitQueuePhantomEntries` counts the megaEvo / priorityChargeMove entries this
+   * engine has no action for but the authority's queue holds; a zero means no mega and no Focus
+   * Punch was clicked, not that the branch is absent. `commitQueuePhantomDisplacedAct` counts the
+   * selection-sort SWAPS that placed one of those entries by throwing a MOVE to a later index --
+   * which is the entire mechanism: the displaced move is what changes which body holds the last
+   * action of the turn, and therefore which Protect goes up. */
+  commitQueuePhantomEntries: 0, commitQueuePhantomDisplacedAct: 0,
+  /* 2026-08-25 -- THE TWO WAYS A MEGA CANDIDATE IS NOT GIVEN A QUEUE ENTRY. `megaAskRefused` is a
+   * caller that set `mega: true` on a body Showdown's own request would never have offered the choice
+   * to (no stone, off the field, the side's mega already spent); `megaCandSameSideDropped` is the AUTO
+   * policy finding two stone-holders on one side, where the authority's request offers exactly one.
+   * Both were previously invisible: the second candidate was queued and `megaEvolveNow` refused it. */
+  megaAskRefused: 0, megaCandSameSideDropped: 0,
   /* 2026-08-24 -- and the FOURTH sort, the END-OF-TURN walk (`residualOrder`). Counted apart from the
      other three for their reason. The number is per CALL, and `residualOrder` is deliberately re-asked
      once per order group (speeds move during the walk), so a single turn with one tied pair raises
@@ -2488,6 +2502,19 @@ const MEDFAILS = { encoreAction: 0,
      `megaStableSortRestored` is set on the KNOB, not on a tie that changed an answer, so a run
      with no tie in it still says the knob was on. */
   megaOrderTieNoDie: 0, megaQueueUnlisted: 0, megaStableSortRestored: 0,
+  /* 2026-08-25 -- THE COMMIT QUEUE'S OWN FOUR. See `commitQueueSort`.
+     `chargeQueueUnlisted` is `megaQueueUnlisted`'s twin for the order-107 entries. Must read 0.
+     `queueTieMixedKinds` must read 0 BY CONSTRUCTION -- a tied group holds one kind of entry only,
+     because the three kinds carry different `order` values and `compareTurnOrder` separates on order
+     before it reaches speed. It is asked rather than assumed, because the whole tie rule below is
+     written on that assumption.
+     `megaPhantomDidNotEvolve` is the receipt that the queue entry set MATCHES what actually happens:
+     an entry placed in the authority's queue for a body that then fails to evolve is a phantom the
+     authority never had, and it moved the sort. Must read 0.
+     `commitQueueBlindRestored` is set on MEDI_COMMIT_QUEUE_BLIND=1, on the KNOB rather than on a
+     board that changed, so a run with no mega in it still says the knob was on. */
+  chargeQueueUnlisted: 0, queueTieMixedKinds: 0, megaPhantomDidNotEvolve: 0,
+  commitQueueBlindRestored: 0,
   /* 2026-08-24 -- THE END-OF-TURN WALK'S TWO, the same shape again. `residualOrderTieNoDie` is the
      loud fallback: a tied residual group with no `tie` stream in scope, so the group kept whatever the
      selection sort handed it. `residualStableSortRestored` is set on MEDI_RESIDUAL_STABLE_SORT=1, on
@@ -5737,21 +5764,78 @@ function compareEntryOrder(x,y,field){
  * reproduced -- and their internal order cannot move a mega entry, because a group's shuffle permutes
  * only inside its own contiguous block. Drawing for them would consume the tie stream in a place the
  * authority does not, and shift every seeded run. */
-function megaQueueOrder(queued, cands, field, rng){
-  const byMon=new Map(); for(const c of cands)byMon.set(c.mon,c);
+/* ================= 2026-08-25 -- AND THE SAME LIST DECIDES THE *MOVE* ORDER =====================
+ *
+ * The function below used to be `megaQueueOrder`: it built the authority's commit-time queue, sorted
+ * it, READ THE MEGA ORDER OFF IT AND THREW THE REST AWAY. The move order was sorted separately by
+ * `sortTurnOrder` over an array that has NO megaEvo entry in it at all -- two builders of one fact,
+ * which is the shape CLAUDE.md names, and the two came apart exactly where you would expect.
+ *
+ * `speedSort` IS A SELECTION SORT AND ITS SWAPS ARE A FUNCTION OF THE WHOLE LIST. Placing the entry
+ * that belongs at position `sorted` swaps it with whatever was standing there -- so AN ENTRY THIS
+ * ENGINE HAS NO ACTION FOR still moves the moves around. A megaEvo carries order 104 and is placed
+ * before every move (200), and that one placement throws whatever sat at index 0 to the megaEvo's own
+ * index. On a board with a SPEED TIE at the tail, that displacement decides which of the tied bodies
+ * ends up last -- and the last body's Protect is the one that FAILS (`!!this.queue.willAct()`).
+ *
+ * MEASURED BEFORE A LINE OF THIS WAS WRITTEN (tests/probe_protect_stall.js, arm 2A against its
+ * stone-removed control 2B). Four bodies all clicking Protect, p2 slot 1 megaing:
+ *
+ *     Aerodactyl 182 | Archaludon 127 | Absol 127 | Beedrill 117 -> Beedrill-Mega 187
+ *     showdown    |move| Beedrill, Aerodactyl, Archaludon, then Absol  -> ABSOL is refused
+ *     this engine |move| Beedrill, Aerodactyl, Absol, then Archaludon  -> ARCHALUDON is refused
+ *     control (the same board with the stone removed): both engines refuse Beedrill, identically.
+ *
+ * Two `active[].stall` leaves parted on one turn, and the tie is the whole of it: with the tie broken
+ * the two engines agree in every arrangement.
+ *
+ * WHAT IS IN THE COMMIT QUEUE, READ WHOLE (sim/battle-queue.ts:166-247, sim/battle.ts:2996-3015):
+ *   `Side#commitChoices` PUSHES each side's actions in slot order, p1 slot 0 first, and
+ *   `resolveAction` unshifts a body's extra actions in front of its move, giving
+ *       [ priorityChargeMove(107), megaEvo(104), beforeTurnMove(5), move(200) ]
+ *   then `Battle#commitChoices` calls `queue.sort()` over the WHOLE list.
+ *   `beforeTurn`(4) and `residual`(300) are NOT in it -- `turnLoop` adds them AFTER commitChoices --
+ *   and the residual, when it does arrive, is order 300 and therefore placed last, so it can never
+ *   displace a move. `beforeTurnMove` has NO legal carrier in this regulation (its only source is a
+ *   `beforeTurnCallback`, which is Pursuit's, `isNonstandard: 'Past'` here), so it is named and not
+ *   modelled; a member arriving in a later regulation belongs in `chargeCands`' shape, not here.
+ *
+ * SO THERE IS ONE LIST AND ONE SORT, AND BOTH ANSWERS COME OFF IT. The tie rule is the union of the
+ * two rules that were here before, and it consumes the SAME dice: a tied group holds one KIND of
+ * entry only (the three kinds carry different `order` values), so an act group draws act keys exactly
+ * as `sortTurnOrder` did and a mega group draws record keys exactly as `megaQueueOrder` did. A group
+ * of only CHARGE entries draws nothing -- it is ordering ballast whose internal order moves no act
+ * and no mega, and drawing for it would spend the tie stream where the authority does not.
+ *
+ * THE DIE IS THE SHARED ONE AND THERE IS NO SECOND SOURCE -- the identity under a constant pinned die,
+ * a uniform permutation under real dice, which is what `prng.shuffle(list, sorted, sorted + n)` is.
+ * NO DIE IN SCOPE IS NOT SILENT: `MEDFAILS.megaOrderTieNoDie` counts it. */
+function commitQueueSort(queued, megaCands, chargeCands, field, rng){
+  const megaBy=new Map(); for(const c of (megaCands||[]))megaBy.set(c.mon,c);
+  const chargeBy=new Map(); for(const c of (chargeCands||[]))chargeBy.set(c.mon,c);
   const list=[];
-  const megaEntry=c=>({mega:c,k:{order:TURN_ORDER.megaEvo,pri:0,qc:0,spe:c.spe,tie:0},_t:null});
+  const ph=(kind,c,order)=>{ MEDSEEN.commitQueuePhantomEntries++;
+    return {kind,mega:kind==='megaEvo'?c:null,it:null,_t:null,
+            k:{order,pri:0,qc:0,spe:c.spe,tie:0}}; };
   for(const it of queued){
-    const c=byMon.get(it.mon);
-    if(c){ list.push(megaEntry(c)); byMon.delete(it.mon); }
-    list.push({mega:null,_t:null,k:{
-      order:sdChoiceOf(it.a)==='switch'?TURN_ORDER.switch:TURN_ORDER.move,
-      pri:it._pri==null?0:it._pri, qc:it._qc||0, spe:effSpeed(it.mon,field,it.side), tie:0}});
+    const _ch=chargeBy.get(it.mon); if(_ch){list.push(ph('charge',_ch,TURN_ORDER.charge));chargeBy.delete(it.mon);}
+    const _mg=megaBy.get(it.mon);   if(_mg){list.push(ph('megaEvo',_mg,TURN_ORDER.megaEvo));megaBy.delete(it.mon);}
+    /* THE SAME KEY BUILDER THE MOVE SORT ALREADY USED, with ONE override: a bare switch is order 103
+     * here rather than move-order-carrying-priority-6. The two spellings answer switch-versus-move
+     * identically (both put the switch first) and only ever differ against a megaEvo at 104, which is
+     * an entry that did not exist in this list until today. `tie` is zeroed for the reason
+     * `sortTurnOrder` zeroed it: a key carrying an already-drawn `_tie` would make a genuine tie
+     * compare NON-zero on a later pass and the group would never be recognised at all. */
+    const k=turnOrderKey(it,field); k.tie=0;
+    if(sdChoiceOf(it.a)==='switch')k.order=TURN_ORDER.switch;
+    list.push({kind:'act',mega:null,it,_t:null,k});
   }
   /* A CANDIDATE THE CALLER NEVER QUEUED cannot be placed by the authority's rule at all, so it keeps
    * the order it was handed in and is COUNTED. Must read 0; loud rather than silently mis-sorted. */
-  for(const c of byMon.values()){ MEDFAILS.megaQueueUnlisted++; list.push(megaEntry(c)); }
-  const tie=e=>{ if(e._t==null)e._t=rng?rng():0; return e._t; };
+  for(const c of megaBy.values()){ MEDFAILS.megaQueueUnlisted++; list.push(ph('megaEvo',c,TURN_ORDER.megaEvo)); }
+  for(const c of chargeBy.values()){ MEDFAILS.chargeQueueUnlisted++; list.push(ph('charge',c,TURN_ORDER.charge)); }
+  const tie=e=>{ if(e.it){ if(e.it._tie==null)e.it._tie=rng?rng():0; return e.it._tie; }
+                 if(e._t==null)e._t=rng?rng():0; return e._t; };
   let sorted=0;
   while(sorted+1<list.length){
     let next=[sorted];
@@ -5764,22 +5848,41 @@ function megaQueueOrder(queued, cands, field, rng){
      * authority's own comment, and it is the swap that this whole function exists to reproduce. */
     for(let i=0;i<next.length;i++){
       const idx=next[i];
-      if(idx!==sorted+i){const t=list[sorted+i];list[sorted+i]=list[idx];list[idx]=t;}
+      if(idx!==sorted+i){
+        /* THE MECHANISM, COUNTED WHERE IT HAPPENS. A phantom entry being placed by throwing a MOVE to
+         * a later index is the entire defect this list exists to fix; a zero here on a run that
+         * carried megas means no swap ever crossed one, not that the branch is absent. */
+        if(list[sorted+i]&&list[sorted+i].it&&list[idx]&&!list[idx].it)MEDSEEN.commitQueuePhantomDisplacedAct++;
+        const t=list[sorted+i];list[sorted+i]=list[idx];list[idx]=t;
+      }
     }
-    if(next.length>1&&list.slice(sorted,sorted+next.length).some(e=>e.mega)){
+    if(next.length>1){
       const grp=list.slice(sorted,sorted+next.length);
-      grp.sort((x,y)=>tie(y)-tie(x));
-      for(let i=0;i<grp.length;i++)list[sorted+i]=grp[i];
-      MEDSEEN.megaTieResolved++;
-      if(!rng)MEDFAILS.megaOrderTieNoDie++;
+      const hasAct=grp.some(e=>e.it), hasMega=grp.some(e=>e.kind==='megaEvo');
+      /* MUST READ 0 BY CONSTRUCTION -- the kinds carry different `order` values, so a tied group is
+       * homogeneous. Asked rather than assumed, because the branch below is written on it. */
+      if(hasAct&&hasMega)MEDFAILS.queueTieMixedKinds++;
+      if(hasAct||hasMega){
+        grp.sort((x,y)=>tie(y)-tie(x));
+        for(let i=0;i<grp.length;i++)list[sorted+i]=grp[i];
+        if(hasMega){ MEDSEEN.megaTieResolved++; if(!rng)MEDFAILS.megaOrderTieNoDie++; }
+        else { MEDSEEN.speedTieResolved++;
+               if(next.length>MEDSEEN.speedTieLargestGroup)MEDSEEN.speedTieLargestGroup=next.length; }
+      }
     }
     sorted+=next.length;
   }
-  return list.filter(e=>e.mega).map(e=>e.mega);
+  return { acts: list.filter(e=>e.it).map(e=>e.it),
+           megas: list.filter(e=>e.kind==='megaEvo').map(e=>e.mega) };
 }
 /* THE OLD SORT, ON A KNOB, so `tests/test-mechanics.js item/megaStone` can be shown MISSING on demand
  * without swapping a file. It is the pre-2026-08-24 line exactly. */
 const MEGA_STABLE_SORT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MEGA_STABLE_SORT==='1');
+/* MEDI_COMMIT_QUEUE_BLIND=1 -- the pre-2026-08-25 shape restored: the MOVE order is sorted over an
+ * action list that has no megaEvo and no priorityChargeMove entry in it, and the mega order is
+ * re-derived at the mega phase off its own copy of the queue. Two builders of one fact, which is what
+ * this knob exists to show red on demand. */
+const COMMIT_QUEUE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_COMMIT_QUEUE_BLIND==='1');
 
 /* ---- 2026-08-24 -- THE ENTRY ORDER IS A RANKING OVER *EVERY* ACTIVE BODY, NOT A SORT OF THE
  * ARRIVALS, AND IT IS THE SELECTION SORT. This is WIRE 134 arriving at the entry pass; the move queue
@@ -11233,7 +11336,10 @@ if((side==='A'?field.twA:field.twB)>0)_mods.push(2);
  * use for. `switch: 103` and `megaEvo: 104` are the AUTHORITY'S numbers and are what puts a mega
  * strictly after every switch and strictly before every move; `next`/`last` are this engine's own
  * scale and sit either side of them, which is the relationship they already had. */
-const TURN_ORDER = { move: 200, next: 3, last: 201, switch: 103, megaEvo: 104 };
+/* `charge` is `priorityChargeMove`, sim/battle-queue.ts:191 -- 107, strictly after the megas and
+ * strictly before every move. It is here because the COMMIT-TIME QUEUE carries an entry for it and
+ * this engine has no action of its own for it; see `commitQueueSort`. */
+const TURN_ORDER = { move: 200, next: 3, last: 201, switch: 103, megaEvo: 104, charge: 107 };
 /* The bracket, lifted out of battleTurn so the comparator is one module-level function rather than a
  * closure nothing outside the turn could reach. Behaviour is unchanged from the closure it replaces. */
 function actionPriority(it, field){
@@ -11415,35 +11521,18 @@ function compareTurnOrder(a, b, field){
  * function runs again before every action, so a key carrying an already-drawn `_tie` would make a
  * genuine tie compare NON-zero on the second pass -- the group would never be recognised, and the
  * whole mechanism would silently degrade to the stable sort it replaces. */
+/* 2026-08-25 -- AND THE SELECTION SORT ITSELF IS `commitQueueSort`'s, BECAUSE IT IS ONE SORT.
+ *
+ * This function held a byte-for-byte copy of it, and the copy was the whole defect: the two lists
+ * differ only in whether the authority's non-move queue entries are IN them, and a caller that wants
+ * "sort this action list" is asking the same question with an empty entry set. What remains here is
+ * the in-place contract its two callers rely on -- `_resortTail` hands it a slice, and the mid-turn
+ * queue genuinely holds nothing but actions, because every megaEvo and priorityChargeMove has been
+ * shifted off before the authority's first re-sort fires (its guard passes only when the head of the
+ * queue is a `move`; sim/battle.ts:2915). */
 function sortTurnOrder(acts, field, rng){
-  /* Keys built once per ACTION, not once per comparison: effSpeed is not free and this now runs
-   * before every action instead of once a turn. */
-  const K=new Map(); for(const it of acts){const k=turnOrderKey(it,field);k.tie=0;K.set(it,k);}
-  const tie=it=>{ if(it._tie==null)it._tie=rng?rng():0; return it._tie; };
-  const list=acts;
-  let sorted=0;
-  while(sorted+1<list.length){
-    let next=[sorted];
-    for(let i=sorted+1;i<list.length;i++){
-      const d=compareTurnOrder(K.get(list[next[0]]),K.get(list[i]),field);
-      if(d<0)continue;
-      if(d>0)next=[i]; else next.push(i);
-    }
-    /* `next` is ascending by construction, so an earlier swap can never disturb a later one -- the
-     * authority's own comment, and it is load-bearing rather than decorative. */
-    for(let i=0;i<next.length;i++){
-      const idx=next[i];
-      if(idx!==sorted+i){const t=list[sorted+i];list[sorted+i]=list[idx];list[idx]=t;}
-    }
-    if(next.length>1){
-      const grp=list.slice(sorted,sorted+next.length);
-      grp.sort((x,y)=>tie(y)-tie(x));
-      for(let i=0;i<grp.length;i++)list[sorted+i]=grp[i];
-      MEDSEEN.speedTieResolved++;
-      if(next.length>MEDSEEN.speedTieLargestGroup)MEDSEEN.speedTieLargestGroup=next.length;
-    }
-    sorted+=next.length;
-  }
+  const out=commitQueueSort(acts,null,null,field,rng).acts;
+  for(let i=0;i<out.length;i++)acts[i]=out[i];
   return acts;
 }
 
@@ -14198,18 +14287,30 @@ function applyEntryEffects(m,field,ally){
  * applyEntryEffects + applyEntryDrops here, the same two calls battleInit makes for a lead -- one
  * implementation, so a mechanic wired for a switch-in cannot be missing for an evolution. WIRE 123
  * was these two resolving in the wrong order, which is why they are called and not re-implemented. */
-function megaEvolveNow(S,m,auto){
+/* 2026-08-25 -- `canMegaEvo`, ASKED WITHOUT DOING IT.
+ *
+ * The commit-time queue has to know WHICH bodies will produce a `megaEvo` action BEFORE the turn is
+ * sorted, because that entry moves the sort (see `commitQueueSort`). Showdown answers it with
+ * `activeRequest.active[i].canMegaEvo`, decided at request time and never re-derived; here it is
+ * `megaEvolveNow`'s own four refusals, lifted so there is ONE rule rather than a predicate written
+ * beside the thing it predicts. An entry queued for a body this refuses would be a phantom the
+ * authority never had -- `MEDFAILS.megaPhantomDidNotEvolve` is the receipt that it never happens. */
+function canMegaNow(S,m){
   if(!m||m.fainted||m.curHP<=0)return false;
-  const key=megaTargetFor(m);
-  if(!key)return false;
+  if(!megaTargetFor(m))return false;
   const onB=S.actB.indexOf(m);
-  const slot=onB>=0?onB:S.actA.indexOf(m);
-  if(slot<0)return false;                       // a benched body cannot mega
-  const sd=onB>=0?'B':'A';
-  const sf=sd==='B'?S.sfB:S.sfA;
+  if(onB<0&&S.actA.indexOf(m)<0)return false;   // a benched body cannot mega
   /* ONE MEGA PER SIDE PER BATTLE. The flag lives on the per-side object battleInit already hands
    * every body by reference, so a bench member that comes in later shares the same answer. */
-  if(sf.megaUsed)return false;
+  return !(onB>=0?S.sfB:S.sfA).megaUsed;
+}
+function megaEvolveNow(S,m,auto){
+  if(!canMegaNow(S,m))return false;
+  const key=megaTargetFor(m);
+  const onB=S.actB.indexOf(m);
+  const slot=onB>=0?onB:S.actA.indexOf(m);
+  const sd=onB>=0?'B':'A';
+  const sf=sd==='B'?S.sfB:S.sfA;
   const megRow=monRow(key), baseRow=monRow(m.name);
   if(megRow&&megRow.bs&&baseRow&&baseRow.bs){
     /* buildMon's own rule, verbatim: swap the BASE STATS and keep whatever spread this body already
@@ -17282,7 +17383,83 @@ function battleTurn(S,rng,actsForA,actsForB){
      * queue -- and the mega phase needs it, because the authority's megaEvo actions are sorted
      * from THAT list and not from the one the moves end up in. See `megaQueueOrder`. */
     const _actsQueued=acts.slice();
-    sortTurnOrder(acts,field,_tieRng);
+    /* ===== 2026-08-25 -- THE COMMIT-TIME QUEUE, BUILT ONCE, AND THE MOVE ORDER COMES OFF IT ========
+     *
+     * `commitQueueSort` is what `megaQueueOrder` was, widened to return BOTH answers. The candidate
+     * sets have to be computed HERE rather than inside the mega phase, because the entries they
+     * produce are in the list the authority sorts at `commitChoices` -- before any action runs -- and
+     * their placement swaps are what decide the MOVE order. Deriving them at the mega phase, off an
+     * `acts` array that had already been sorted, is precisely the ordering the two engines disagreed
+     * about; see the header on `commitQueueSort` for the staged board.
+     *
+     * A BARE SWITCH IS SKIPPED AND NOTHING ELSE IS. The old scan started at the mega phase's entry
+     * index, which is "the first action that is not a bare switch", so this is the same membership
+     * written directly instead of inherited from a loop bound.
+     *
+     * THE SPEEDS ARE READ HERE TOO, AND THAT IS A CORRECTION RATHER THAN A CONVENIENCE. The authority
+     * stamps `megaEvo`'s sort speed inside `resolveAction` at commit time (sim/battle.ts:3015 sorts a
+     * queue whose keys were filled by `getActionSpeed` on the way in) and never re-sorts before the
+     * megas run, so the mega phase's own order is a PRE-SWITCH reading. Taking it at the mega phase
+     * read it AFTER any bare switch had already brought an entry ability onto the field. */
+    const _megaRun=(()=>{
+      const _cand=[];
+      for(const a of _actsQueued){
+        if(!a||!a.mon||!a.a)continue;
+        if(sdChoiceOf(a.a)==='switch')continue;
+        const want=!!a.a.mega;
+        /* A BODY WITH NO ACTION DOES NOT MEGA under the auto policy. Showdown never offers the choice
+         * without a move, and `pass` here is "this slot is doing nothing", which is not a click. */
+        if(!want&&!(S._autoMega&&a.a.kind!=='pass'))continue;
+        /* THE AUTHORITY'S OWN LEGALITY, ASKED BEFORE THE ENTRY IS QUEUED. An ask it refuses is COUNTED
+         * rather than dropped: a caller that set `mega: true` on a body with no stone, or on a side
+         * that has already spent its mega, is telling this engine something Showdown's request would
+         * never have offered. */
+        if(!canMegaNow(S,a.mon)){ if(want)MEDSEEN.megaAskRefused++; continue; }
+        _cand.push({mon:a.mon,want,side:S.actB.indexOf(a.mon)>=0?'B':'A'});
+      }
+      /* AN EXPLICIT CHOICE OUTRANKS THE AUTO POLICY ON ITS OWN SIDE, and it is done by REMOVING the
+       * auto candidates rather than by sorting them last -- because there is one mega per side, and a
+       * sort that put the caller's body second would let the faster auto body silently spend it. */
+      const _asked=new Set(_cand.filter(c=>c.want).map(c=>c.side));
+      const _run=_cand.filter(c=>c.want||!_asked.has(c.side));
+      for(const c of _run)c.spe=effSpeed(c.mon,field,c.side);
+      /* AT MOST ONE ENTRY PER SIDE, DECIDED HERE INSTEAD OF BY `megaEvolveNow` REFUSING THE SECOND.
+       * Showdown rejects the second choice outright (*"You can only mega-evolve once per battle"*), so
+       * its queue never holds two on one side -- and a second entry here would be a phantom that moved
+       * the sort. Only the auto policy can produce one; a caller asking twice is `megaAskRefused`. */
+      const _keep=[];
+      for(const _s of ['A','B']){
+        const mine=_run.filter(c=>c.side===_s);
+        if(!mine.length)continue;
+        if(mine.length>1)MEDSEEN.megaCandSameSideDropped+=mine.length-1;
+        mine.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field));
+        _keep.push(mine[0]);
+      }
+      return _run.filter(c=>_keep.indexOf(c)>=0);          // and in the QUEUE's order, not speed's
+    })();
+    /* THE ORDER-107 ENTRIES, on the same rule and from the same tag `_chargePhase` reads. This is
+     * MEMBERSHIP AT COMMIT TIME, which is what the authority's queue holds; `_chargePhase` keeps its
+     * own live gate for the same bodies, because a body that fainted during the switches still has a
+     * queued action the sort counted and `runAction` refuses only when it is shifted. */
+    const _chargeRun=[];
+    for(const a of _actsQueued){
+      if(!a||!a.mon||!a.a)continue;
+      const _pid=a.a.kind==='attack'&&a.a.move&&a.a.move.id;
+      if(!_pid||!TAGS.param('move',_pid,'preTurnShield'))continue;
+      const _sb=S.actB.indexOf(a.mon)>=0;
+      if(!_sb&&S.actA.indexOf(a.mon)<0)continue;
+      _chargeRun.push({mon:a.mon,side:_sb?'B':'A',spe:effSpeed(a.mon,field,_sb?'B':'A')});
+    }
+    /* `_megaOrder` null means the knob is on and the mega phase re-derives it where it used to. */
+    let _megaOrder=null;
+    if(COMMIT_QUEUE_BLIND){
+      MEDFAILS.commitQueueBlindRestored=1;
+      sortTurnOrder(acts,field,_tieRng);
+    }else{
+      const _cq=commitQueueSort(_actsQueued,_megaRun,_chargeRun,field,_tieRng);
+      for(let i=0;i<_cq.acts.length;i++)acts[i]=_cq.acts[i];
+      _megaOrder=_cq.megas;
+    }
     /* ROADMAP #232 -- `BattleQueue.willAct()`, AND IT IS ONE FUNCTION BECAUSE IT IS ONE FACT.
      *
      *     willAct() { for (const action of this.list)
@@ -17791,31 +17968,22 @@ function battleTurn(S,rng,actsForA,actsForB){
        * ONE COMPARATOR, WIRE 118's -- `compareTurnOrder` carries the Trick Room inversion, and
        * battleInit's entry-ability sort is the same two lines for the same reason. */
       let any=false;
-      const _cand=[];
-      for(let k=from;k<acts.length;k++){
-        const a=acts[k];
-        if(!a||!a.mon||!a.a)continue;
-        const want=!!a.a.mega;
-        /* A BODY WITH NO ACTION DOES NOT MEGA under the auto policy. Showdown never offers the choice
-         * without a move, and `pass` here is "this slot is doing nothing", which is not a click. */
-        if(!want&&!(S._autoMega&&a.a.kind!=='pass'))continue;
-        _cand.push({mon:a.mon,want,side:S.actB.indexOf(a.mon)>=0?'B':'A'});
-      }
-      /* AN EXPLICIT CHOICE OUTRANKS THE AUTO POLICY ON ITS OWN SIDE, and it is done by REMOVING the
-       * auto candidates rather than by sorting them last -- because there is one mega per side, and a
-       * sort that put the caller's body second would let the faster auto body silently spend it. The
-       * ORDER of what remains is then purely speed, which is the rule above. */
-      const _asked=new Set(_cand.filter(c=>c.want).map(c=>c.side));
-      let _run=_cand.filter(c=>c.want||!_asked.has(c.side));
-      for(const c of _run)c.spe=effSpeed(c.mon,field,c.side);
-      /* 2026-08-24 -- THE ORDER IS THE AUTHORITY'S QUEUE, NOT THIS ARRAY'S. `acts` has already been
-       * sorted for the MOVES by the time this runs, and on a speed tie that sort's swaps leave the two
-       * mega bodies REVERSED against the order Showdown's queue holds them in. See `megaQueueOrder`
-       * for the derivation and for the staged weather war that measures it. */
+      /* 2026-08-25 -- THE CANDIDATE SET AND THE ORDER BOTH COME FROM THE TOP OF THE TURN NOW, because
+       * the authority decides both at `commitChoices` and its megaEvo entries are in the very list
+       * that sorts the moves. This phase used to re-derive them off `acts`, which had ALREADY been
+       * speed-sorted for the moves -- see the header on `commitQueueSort`. `_megaOrder` is null only
+       * under MEDI_COMMIT_QUEUE_BLIND=1, where the derivation is done here exactly as it used to be. */
+      let _run=_megaOrder!=null?_megaOrder
+             :commitQueueSort(_actsQueued,_megaRun,_chargeRun,field,_tieRng).megas;
       if(MEGA_STABLE_SORT){ MEDFAILS.megaStableSortRestored=1;
-        _run.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field)); }
-      else _run=megaQueueOrder(_actsQueued,_run,field,_tieRng);
-      for(const c of _run)if(megaEvolveNow(S,c.mon,!c.want)){any=true;_megasDone++;}
+        _run=_megaRun.slice().sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field)); }
+      for(const c of _run){
+        if(megaEvolveNow(S,c.mon,!c.want)){any=true;_megasDone++;}
+        /* AN ENTRY THE AUTHORITY'S QUEUE HELD FOR A BODY THAT THEN DID NOT EVOLVE. `canMegaNow` is
+         * asked before the entry is queued, so this must read 0; a non-zero names a refusal that rule
+         * does not cover, and the entry moved the move order for nothing. */
+        else MEDFAILS.megaPhantomDidNotEvolve++;
+      }
       if(!any)return;
       /* ROADMAP #240 -- THROUGH THE ONE TRIGGER, not a second copy of the sort. In the authority the
        * megaEvo actions sit at order 104 between the switches (103) and the moves (200), so the
