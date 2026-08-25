@@ -35,6 +35,15 @@ if (!process.argv.includes('--team-store')) process.argv.push('--team-store', 'd
 process.argv.push('--end-state');   // play to the cap: a bench is only populated after somebody pivots
 const G = require(D('engine', 'game_differential.js'));
 const N = require(D('engine', 'names.js'));
+/* 2026-08-25 -- THE `vol` PROJECTION IS READ THROUGH `board_state.js`'S OWN BODY READERS AND NOT
+ * COPIED HERE. The question this probe now has to answer is "what would the END-STATE COMPARISON
+ * match if `benchRow` carried `vol`", and the only honest way to ask it is with the SAME projection
+ * the comparison would use — a second copy would agree today and drift the first time either moved,
+ * which is the two-implementations breach CLAUDE.md names. The raw `volatiles`/`sub`/`seeded` rows
+ * below are KEPT: they read each engine's own field names untranslated and are what caught the
+ * 2026-08-18 sweep, so they stay as the unfiltered view beside the projected one. */
+const BS = require(D('engine', 'board_state.js'));
+const BODY = BS._internals;
 
 const argGames = (() => { const i = process.argv.indexOf('--games');
   return i >= 0 ? +process.argv[i + 1] : 40; })();
@@ -63,7 +72,7 @@ function mediBench(S) {
         boosts: JSON.stringify(m.boosts || {}),
         volatiles: Object.keys(v).filter(k => v[k]).sort().join(','),
         sub: num(m._sub), seeded: m._seededBy ? 1 : 0,
-      } });
+      }, vol: (BODY.mediBody(m, id) || {}).vol || {} });
     }
   }
   return out;
@@ -86,7 +95,7 @@ function sdBench(battle) {
         boosts: JSON.stringify(p.boosts || {}),
         volatiles: Object.keys(v).sort().join(','),
         sub: v.substitute ? num(v.substitute.hp) : 0, seeded: v.leechseed ? 1 : 0,
-      } });
+      }, vol: (BODY.sdBody(p, id) || {}).vol || {} });
     }
   }
   return out;
@@ -99,10 +108,16 @@ const MEDI_B = ['at', 'df', 'sa', 'sd', 'sp', 'acc', 'eva'];
 const SD_B = ['atk', 'def', 'spa', 'spd', 'spe', 'accuracy', 'evasion'];
 const boostVec = (obj, keys) => keys.map(k => num((obj || {})[k])).join(',');
 
-const LEAVES = ['item', 'status', 'status_counter', 'ability', 'types', 'boosts', 'volatiles', 'sub', 'seeded'];
+const RAW_LEAVES = ['item', 'status', 'status_counter', 'ability', 'types', 'boosts', 'volatiles', 'sub', 'seeded'];
+/* THE PROJECTED LEAVES, NAMED BY THE READER RATHER THAN BY ME. Whatever `board_state.js` puts in a
+ * body's `vol` is what the end-state comparison would compare on a benched body, so the list is read
+ * off an actual projection at run time and a leaf added there appears here without an edit. */
+let VOL_LEAVES = [];
+const LEAVES = RAW_LEAVES.slice();
 const tally = {};
-for (const L of LEAVES) tally[L] = { compared: 0, differ: 0, nonempty: 0, witnesses: [],
-                                     differ_fainted: 0, differ_alive: 0, compared_alive: 0 };
+const bucketFor = L => (tally[L] || (tally[L] = { compared: 0, differ: 0, nonempty: 0, witnesses: [],
+                                     differ_fainted: 0, differ_alive: 0, compared_alive: 0 }));
+for (const L of LEAVES) bucketFor(L);
 let bodiesCompared = 0, boundaries = 0, unmatched = 0, games = 0, threw = 0;
 
 const PAIRS = G.pairsFor('baseline');
@@ -120,6 +135,26 @@ for (const pr of PAIRS.slice(0, argGames)) {
         const b = bySpecies.get(a.side + '|' + a.species);
         if (!b) { unmatched++; continue; }
         bodiesCompared++;
+        /* THE PROJECTED `vol` LEAVES, DISCOVERED FROM THE BODIES THEMSELVES. Both engines' `vol`
+         * objects carry the same key set by construction (`mediBody`/`sdBody` are written against
+         * each other), so a key appearing on one side only is itself worth seeing and the union is
+         * taken rather than one side's list. */
+        for (const k of new Set([...Object.keys(a.vol || {}), ...Object.keys(b.vol || {})])) {
+          const L = 'vol.' + k;
+          if (VOL_LEAVES.indexOf(L) < 0) VOL_LEAVES.push(L);
+          const t = bucketFor(L);
+          const av = num((a.vol || {})[k]), bv = num((b.vol || {})[k]);
+          t.compared++;
+          if (!a.fainted && !b.fainted) t.compared_alive++;
+          if (av || bv) t.nonempty++;
+          if (av !== bv) {
+            t.differ++;
+            if (a.fainted || b.fainted) t.differ_fainted++; else t.differ_alive++;
+            if (t.witnesses.length < 6)
+              t.witnesses.push(a.side + ' ' + a.species + (a.fainted || b.fainted ? ' [FAINTED]' : ' [alive on the bench]')
+                + '  medi=' + av + '  sd=' + bv);
+          }
+        }
         for (const L of LEAVES) {
           let av = a.row[L], bv = b.row[L];
           if (L === 'boosts') { av = boostVec(JSON.parse(a.row.boosts), MEDI_B); bv = boostVec(JSON.parse(b.row.boosts), SD_B); }
@@ -150,7 +185,7 @@ console.log('\n  A BENCHED BODY, READ OUT OF BOTH ENGINES — ' + games + ' game
   + (threw ? ', ' + threw + ' game(s) threw' : ''));
 console.log('  (' + unmatched + ' benched bodies had no counterpart of that species in the other engine)\n');
 console.log('  ' + 'leaf'.padEnd(16) + 'compared'.padStart(9) + 'non-empty'.padStart(11) + 'DIFFER'.padStart(8) + '   verdict');
-for (const L of LEAVES) {
+for (const L of LEAVES.concat(VOL_LEAVES.sort())) {
   const t = tally[L];
   const verdict = t.compared === 0 ? 'NEVER OBSERVED — a claim about the fixture'
                 : t.differ === 0 ? (t.nonempty ? 'AGREES EVERYWHERE (and was non-empty ' + t.nonempty + 'x)'

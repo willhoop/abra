@@ -1027,6 +1027,12 @@ function playScenario(spec) {
   const onBoundary = (snap, turnIdx) => {
     boards.push({ turn: turnIdx, identical: snap.identical, leaves_compared: snap.leaves_compared,
                   party_post_faint_skipped: snap.party_post_faint_skipped,
+                  /* 2026-08-25 — the BENCH VOLATILE receipt. A benched body's volatiles became a
+                   * compared leaf this pass, and a party row answers `null` while its body is
+                   * STANDING (the active slot already compares it). This counts those skips, so
+                   * "the bench was never asked" and "the bench agreed" stay different sentences —
+                   * the same rule the three receipts above are here for. */
+                  party_vol_on_field_skipped: snap.party_vol_on_field_skipped,
                   pp_comparable: snap.pp_comparable,
                   screens_named_comparable: snap.screens_named_comparable,
                   diffs: snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap)) });
@@ -1144,6 +1150,9 @@ function boardVerdict(r, kind, key) {
     leaves_compared_min: boards.length ? Math.min(...boards.map(b => b.leaves_compared)) : 0,
     leaves_compared_max: boards.length ? Math.max(...boards.map(b => b.leaves_compared)) : 0,
     party_post_faint_skipped: boards.reduce((s, b) => s + (b.party_post_faint_skipped || 0), 0),
+    /* A ZERO HERE IS A FAULT AND NOT A CLEAN BILL: every boundary has four standing bodies, so this
+     * counts roughly 4 per boundary whatever the game did. Zero means the bench leaf is unwired. */
+    party_vol_on_field_skipped: boards.reduce((s, b) => s + (b.party_vol_on_field_skipped || 0), 0),
     pp_slots_occupied: boards.reduce((s, b) => s + ((b.pp_comparable || {}).slots_occupied || 0), 0),
     pp_slots_compared: boards.reduce((s, b) => s + ((b.pp_comparable || {}).slots_compared || 0), 0),
     screens_named_comparable: boards.every(b => b.screens_named_comparable),
@@ -3044,6 +3053,22 @@ function red() {
                     m._mtLock = { move: 'uproar', left: 3, confuse: false, vol: 'uproar', blockSleep: true }; return true; } },
       { what: 'an ACTIVE body is holding a banked CHARGE nobody mentioned', want: 'charge',
         f: (S) => { const m = (S.actA || [])[0]; if (!m) return false; (m._vol = m._vol || {}).charge = 1; return true; } },
+      /* ---- THE BENCH IS COMPARED ON ITS VOLATILES SINCE 2026-08-25, AND THESE TWO ARE WHAT SAYS SO.
+       * Will: *"yeah the pokemon in the back need to be clean."* The authority's `clearVolatile`
+       * (sim/pokemon.ts:1519-1566) empties a body's volatiles on the way off the field, so a benched
+       * body carrying one is a body that did not drop what leaving drops — and until this pass no
+       * instrument in this repository read it. Both plants are on a body that is NOT standing and
+       * neither writes a protocol line, which is the whole point: a stream cannot see the bench.
+       *
+       * TWO PLANTS, TWO DIFFERENT MECHANISMS, deliberately. One catch is one catch: the trap is a
+       * LINKED volatile whose owner is another body, the doll is a per-body HP pool, and a comparator
+       * that saw one and missed the other would read as healthy. */
+      { what: 'a BENCHED body is still TRAPPED by a move — the bench is where a leaf gets laundered',
+        want: 'party.vol.trapped',
+        f: (S) => { const m = benched(S); if (!m) return false;
+                    m._trapHard = { by: (S.actB || [])[0] || m, mv: 'block' }; return true; } },
+      { what: 'a BENCHED body is still standing behind a SUBSTITUTE with 40 HP', want: 'party.vol.substitute',
+        f: (S) => { const m = benched(S); if (!m) return false; m._sub = 40; return true; } },
     ];
     const control = stage(undefined);
     const cv = boardVerdict(control);

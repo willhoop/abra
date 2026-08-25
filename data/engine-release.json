@@ -1,10 +1,10 @@
 {
-  "current": "cbf345e56bc0",
-  "cut": "2026-08-25T03:37:49.688Z",
+  "current": "359b51b61d83",
+  "cut": "2026-08-25T04:29:02.331Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 3,
-  "latest_cut": "2026-08-25T03:45:04.463Z",
-  "latest_why": "board-material 3: the event address is cleared with the active move, Thunder Wave respects the type chart, Bug Bite takes only a berry, Harvest and Pickup announce -item",
-  "pointer_written": "2026-08-25T03:45:04.474Z",
+  "cuts": 8,
+  "latest_cut": "2026-08-25T04:42:44.453Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-25T04:42:44.464Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

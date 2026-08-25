@@ -136,14 +136,39 @@ const NOT_COMPARED = [
   /* ---- THE BENCH SWEEP OF 2026-08-18. Same treatment as the volatile sweep above: the candidates
    * that were NOT wired are named with the reason, because "we looked and did not add it" and "we
    * never looked" are different sentences and only one of them is honest. */
-  { field: 'a benched body\'s volatiles, Substitute HP and Leech Seed',
-    why: 'NOT A JUDGEMENT ABOUT THE ENGINES — a claim about the FIXTURE, the same distinction as the '
-       + 'yawn/attract/curse row above. Over 2,029 benched bodies `tests/probe_bench_leaves.js` never '
-       + 'once saw ANY of the three non-empty in EITHER engine, which is what the authority\'s own '
-       + '`clearVolatile` on switch-out predicts. A leaf whose two shapes have never been seen carrying '
-       + 'anything is wired for free and catches nothing, and it is exactly how a comparator starts '
-       + 'manufacturing divergences the day one of them does.',
-    next: 'nothing to do until a fixture puts a volatile on a body that then leaves the field' },
+  /* ---- THE BENCH VOLATILES ARE COMPARED NOW (2026-08-25). THE ROW BELOW IS THE RECORD OF WHY THEY
+   * WERE NOT, AND IT IS CORRECTED HERE RATHER THAN DELETED. It read: *"NOT A JUDGEMENT ABOUT THE
+   * ENGINES — a claim about the FIXTURE ... Over 2,029 benched bodies `tests/probe_bench_leaves.js`
+   * never once saw ANY of the three non-empty in EITHER engine ... A leaf whose two shapes have never
+   * been seen carrying anything is wired for free and catches nothing."*
+   *
+   * WILL, 2026-08-25: *"yeah the pokemon in the back need to be clean."*
+   *
+   * THE ARGUMENT WAS RIGHT ABOUT THE MEASUREMENT AND WRONG ABOUT WHAT TO DO WITH IT, and the
+   * difference is which engine each half is a claim about. The authority's `clearVolatile`
+   * (sim/pokemon.ts:1519-1566) sets `this.volatiles = {}` on the way out — EVERYTHING goes — after
+   * calling `removeLinkedVolatiles` so a linked effect is unhooked from the OTHER body too. So
+   * Showdown's half of this comparison is empty BY CONSTRUCTION rather than by luck, and comparing
+   * against it is not "two shapes nobody has seen": it is the assertion that OUR bench is clean, with
+   * the authority supplying the zero. There is no representation to get wrong.
+   *
+   * RE-MEASURED BEFORE WIRING, per this file's own rule and ENGINE's: `tests/probe_bench_leaves.js`
+   * over 64 games / 803 boundaries / 3,211 benched bodies, every projected `vol` leaf compared and
+   * printed — 0 differ, and 0 ever non-empty on either side. So this catches NOTHING TODAY and is
+   * wired anyway, which is the opposite of the decision above and is said plainly: an uncompared leaf
+   * is one whose regression reads as agreement, and medicham2 clears its bench FIELD BY FIELD in
+   * `switchOut` rather than with one wipe — so the next volatile added to the engine is clean only if
+   * somebody remembers to add a line, and this is what notices when nobody does.
+   *
+   * IT IS DEFENDED BY TWO PLANTS RATHER THAN BY THE ARGUMENT ABOVE — `engine/all_mechanics_fire.js
+   * --red` puts a move TRAP and a SUBSTITUTE on a body that has walked to the bench and asserts both
+   * are caught, on the leaf they were aimed at, with no protocol line.
+   *
+   * THE STANDING BODIES ARE EXCLUDED, and that is the one thing this needed care about. `sf.team` and
+   * `side.pokemon` are the WHOLE party, actives included, so comparing `vol` there would report every
+   * active-slot volatile difference a SECOND time under a party path — one finding read as two. A
+   * party row therefore carries `vol: null` while its body is standing, and `walkBody` skips a null
+   * leaf and COUNTS it (`party_vol_on_field_skipped`), so "not asked" can never read as "agreed". */
   { field: 'the stall counter behind consecutive Protect',
     why: 'medicham2 holds `tookProtectTurns` (a count UP of consecutive successful shields) and '
        + 'Showdown holds a `stall` volatile with a `counter` that is a DENOMINATOR (3, 9, 27). They '
@@ -585,17 +610,23 @@ function sdScreens(side) {
  * Whether the party should also stop holding for those callers is a SEPARATE change with its own
  * before/after cost, and it is not smuggled in here. */
 const POST_FAINT = ['item', 'status_counter', 'boosts', 'ability', 'vol'];
-/* The bench row has no `vol` key, so the party's group is unchanged by that entry: this is one list
- * because it is one rule, not because the two projections hold the same leaves. */
+/* THE BENCH ROW CARRIES `vol` SINCE 2026-08-25, so the party's group uses that entry too — and it is
+ * the right rule there for the same reason it is on the active slot: `faintMessages` runs
+ * `clearVolatile(false)` on the corpse (sim/battle.ts:2560) and medicham2 keeps whatever the body was
+ * holding when it died, so comparing a dead body's volatiles measures the reader. One list, because
+ * it is one rule. */
 const PARTY_POST_FAINT = POST_FAINT;
 /* THE PROJECTION OF A FULL BODY ONTO A BENCH ROW. Deliberately built FROM `mediBody`/`sdBody` rather
  * than by re-reading the engines here: `statusOf`, the boost key mapping and `getTypes()` are FACTS,
  * and a second copy of any of them in this file is the two-implementations breach CLAUDE.md names. */
-function benchRow(b) {
+function benchRow(b, onField) {
   if (!b) return null;
   return { species: b.species, hp: b.hp, maxhp: b.maxhp, fainted: b.fainted, status: b.status,
            types: b.types, item: b.item, status_counter: b.status_counter, boosts: b.boosts,
-           ability: b.ability };
+           ability: b.ability,
+           /* `null` means "this body is STANDING, so the active slot is the place to ask" — never
+            * "it is carrying nothing". `walkBody` skips a null leaf and counts the skip. */
+           vol: onField ? null : b.vol };
 }
 function partyMap(rows, fails) {
   const out = {};
@@ -607,7 +638,7 @@ function partyMap(rows, fails) {
     }
     out[r.species] = { hp: r.hp, maxhp: r.maxhp, fainted: r.fainted, status: r.status,
                        types: r.types, item: r.item, status_counter: r.status_counter,
-                       boosts: r.boosts, ability: r.ability };
+                       boosts: r.boosts, ability: r.ability, vol: r.vol };
   }
   return out;
 }
@@ -770,7 +801,8 @@ function readMedi(S, ctx) {
     tailwind: num(tw),
     hazards: { stealthrock: num(sf && sf.hz && sf.hz.stealthrock), spikes: num(sf && sf.hz && sf.hz.spikes),
                toxicspikes: num(sf && sf.hz && sf.hz.toxicspikes), stickyweb: num(sf && sf.hz && sf.hz.stickyweb) },
-    party: partyMap(((sf && sf.team) || []).map(m => benchRow(mediBody(m, id))), ctx.fails),
+    party: (() => { const on = new Set((act || []).filter(Boolean));
+      return partyMap(((sf && sf.team) || []).map(m => benchRow(mediBody(m, id), on.has(m))), ctx.fails); })(),
     active: [0, 1].map(i => mediBody(act[i], id)),
     /* PP SITS BESIDE THE BODY AND NOT INSIDE IT, exactly as `screens.named` does, because it is the
      * one leaf an engine may be UNABLE TO EXPRESS. A release cut before ROADMAP #144 has no `_pp` and
@@ -819,7 +851,8 @@ function readShowdown(battle, ctx) {
                spikes: layers((sd.sideConditions || {}).spikes),
                toxicspikes: layers((sd.sideConditions || {}).toxicspikes),
                stickyweb: layers((sd.sideConditions || {}).stickyweb) },
-    party: partyMap((sd.pokemon || []).map(p => benchRow(sdBody(p, id))), ctx.fails),
+    party: (() => { const on = new Set((sd.active || []).filter(Boolean));
+      return partyMap((sd.pokemon || []).map(p => benchRow(sdBody(p, id), on.has(p))), ctx.fails); })(),
     active: [0, 1].map(i => sdBody((sd.active || [])[i], id)),
     /* HELD ON BOTH SIDES OR NEITHER. A hold that only silenced OUR side would leave Showdown's map
      * walking against `null` and report every move as present-in-one-engine-only — a manufactured
@@ -875,9 +908,27 @@ function walk(a, b, path, out, stats) {
  * slot passes the cross-engine test, for the reason written out in the POST_FAINT block. A leaf that
  * is NOT held on a corpse is counted under `post_faint_not_held_same_engine`, so the population the
  * rule deliberately does not cover is a number rather than an assumption. */
+/* A LEAF EITHER PROJECTION DECLINED TO ANSWER. Today there is exactly one — a party row's `vol` on a
+ * body that is STANDING, which the active-slot walk already compares — and it is a `null` rather than
+ * an absent key so that both sides keep the same SHAPE: a key absent on one side only would walk as
+ * `undefined` against an object and report a difference nobody has. Named per leaf, so a later
+ * addition cannot hide inside a generic counter. */
+const NULL_SKIP_COUNTER = { vol: 'party_vol_on_field_skipped' };
 function walkBody(A, B, path, out, stats, hold, count) {
   const standing = !A.fainted && !B.fainted;
   for (const leaf of new Set([...Object.keys(A), ...Object.keys(B)])) {
+    if (A[leaf] === null || B[leaf] === null) {
+      if (stats) {
+        const k = NULL_SKIP_COUNTER[leaf] || 'null_leaf_skipped';
+        stats[k] = (stats[k] || 0) + 1;
+        /* ONE SIDE STANDING AND THE OTHER BENCHED IS A REAL DISAGREEMENT, and it is already carried by
+         * the active slots' own `species` walk. Counted here so the asymmetry is visible rather than
+         * expanded into a second, louder copy of the same finding. */
+        if ((A[leaf] === null) !== (B[leaf] === null))
+          stats.null_leaf_asymmetric = (stats.null_leaf_asymmetric || 0) + 1;
+      }
+      continue;
+    }
     if (!standing && POST_FAINT.indexOf(leaf) >= 0) {
       if (hold) {
         if (stats) stats[count] = (stats[count] || 0) + 1;
@@ -1087,6 +1138,15 @@ function explain(loc, v, pretty) {
   if (f === 'party.types') return P(loc.body) + ' on the bench is typed ' + String(v);
   if (f.indexOf('party.boosts.') === 0)
     return P(loc.body) + ' on the bench is at ' + stage(v) + ' ' + (BOOST_NAME[f.slice(13)] || f.slice(13));
+  /* THE BENCH VOLATILES, 2026-08-25 — each says "on the bench" for the same reason the row above does:
+   * a Substitute on a standing body is a doll, and a Substitute on a benched one is a body that did
+   * not drop what leaving the field drops. */
+  if (f === 'party.vol.substitute')
+    return P(loc.body) + ' on the bench ' + (v ? 'still has a Substitute on ' + v + ' HP' : 'has no Substitute');
+  if (f === 'party.vol.leechseed')
+    return P(loc.body) + ' on the bench is ' + (v ? 'still seeded' : 'not seeded');
+  if (f.indexOf('party.vol.') === 0) { const k = f.slice(10);
+    return P(loc.body) + ' on the bench ' + (v ? 'still has ' + k + ' (' + v + ')' : 'has no ' + k); }
   if (f.indexOf('party.') === 0) return P(loc.body) + ' on the team: ' + f.slice(6) + ' is ' + v;
   if (f === 'tailwind') return v ? 'Tailwind has ' + v + ' turn(s) left' : 'there is no Tailwind';
   if (f.indexOf('hazards.') === 0) return v ? v + ' layer(s) of ' + f.slice(8) : 'no ' + f.slice(8);
@@ -1104,7 +1164,8 @@ function snapshot(S, battle, ctx) {
   const medi = readMedi(S, ctx), sd = readShowdown(battle, ctx);
   const stats = { compared: 0, party_post_faint_skipped: 0,
                   active_post_faint_skipped: 0, pp_post_faint_skipped: 0,
-                  post_faint_not_held_same_engine: 0 };
+                  post_faint_not_held_same_engine: 0,
+                  party_vol_on_field_skipped: 0, null_leaf_asymmetric: 0 };
   const diffs = compare(medi, sd, stats);
   return { medi, sd, diffs,
            identical: diffs.length === 0,
@@ -1113,6 +1174,17 @@ function snapshot(S, battle, ctx) {
             * post-faint leaves agreed" are different sentences, and only one of them is honest —
             * exactly the argument `pp_comparable` two entries down was built on. */
            party_post_faint_skipped: stats.party_post_faint_skipped,
+           /* THE BENCH VOLATILES' RECEIPT (2026-08-25). A party row's `vol` is `null` while the body
+            * is STANDING, because the active slot already compares it; this counts those skips so a
+            * run in which the bench was never asked can never be read as a run in which it agreed.
+            * A ZERO HERE ON A REAL GAME IS A FAULT, not a clean bill: every game has four standing
+            * bodies at every boundary, so the count is roughly 4 per boundary and nothing else. */
+           party_vol_on_field_skipped: stats.party_vol_on_field_skipped,
+           /* AND THE HALF THAT IS A FINDING RATHER THAN BOOKKEEPING. Non-zero means the two engines
+            * disagree about WHO IS STANDING — carried by the active slots' own `species` walk, and
+            * counted here so the asymmetry is visible instead of being expanded into a second copy
+            * of the same finding. */
+           null_leaf_asymmetric: stats.null_leaf_asymmetric,
            /* THE OTHER TWO THIRDS OF THE SAME RECEIPT (2026-08-20). The bench half rode on every
             * snapshot for a day while the active slot and the PP map were compared on corpses and
             * said nothing — so the hold was published and the ASYMMETRY was not, which is the shape
@@ -1191,4 +1263,4 @@ module.exports = { readMedi, readShowdown, compare, snapshot, family, mappingPro
                    explain, MAPPINGS, NOT_COMPARED, PHYSICAL_SCREENS, SPECIAL_SCREENS,
                    SD_VOLATILE_KEYS, SD_SIDE_KEYS, SD_PSEUDO_KEYS,
                    _internals: { num, layers, dur, sleptTurns, frozenTurns, mediBoosts, sdBoosts,
-                                 mediScreens, sdScreens, sdPP } };
+                                 mediScreens, sdScreens, sdPP, mediBody, sdBody } };

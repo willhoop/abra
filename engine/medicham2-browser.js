@@ -312,6 +312,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * 'trapper'`). A zero over a run in which a Mean Look or a Block landed and its user then left
    * means the link is unread again, which is the state this engine was in until this line. */
   trapReleasedWithTrapper: 0, trapReleasedWithTrapperFirst: '',
+  /* 2026-08-25 -- a BOUNCED trap credited to the body that reflected it rather than to the body that
+   * clicked it. A zero over a run in which Magic Bounce sent a Block or a Mean Look back means the
+   * owner is being taken off the clicker again, which is the state that trapped a victim by itself
+   * for ever. */
+  bouncedTrapOwnedByBouncer: 0,
   /* ROADMAP #175 -- a residual status chip turned into a HEAL (`healsFromOwnStatus`). A zero on a
    * board with a poisoned Gliscor on it means the status is landing and paying nothing, which is
    * halfway back to the immunity this replaced. */
@@ -9942,6 +9947,10 @@ const NO_BEFOREMOVE_LINE=(typeof process!=='undefined'&&process.env&&process.env
  * (sim/battle-actions.ts:146). Any run carrying it also carries a non-zero
  * `MEDFAILS.switchCauseBlindRestored`. */
 const SWITCH_CAUSE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SWITCH_CAUSE_BLIND==='1');
+/* 2026-08-25 -- MEDI_BOUNCED_TRAP_KEEPS_CLICKER=1 gives a BOUNCED Block/Mean Look back to the body
+ * that clicked it instead of to the body that reflected it, which is the pre-fix behaviour. See the
+ * `trapmove` branch for the authority's chain and for what it cost. */
+const BOUNCED_TRAP_KEEPS_CLICKER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BOUNCED_TRAP_KEEPS_CLICKER==='1');
 /* 2026-08-24 -- MEDI_NO_CONDPOWER_LINE=1 TAKES FICKLE BEAM'S `|-activate|move: Fickle Beam` BACK OUT,
  * so the double still lands and says nothing, as this engine did until today. Any run carrying it also
  * carries a non-zero `MEDFAILS.condPowerLineSuppressed`. Same shape as MEDI_SWITCH_CAUSE_BLIND. */
@@ -19864,7 +19873,25 @@ function battleTurn(S,rng,actsForA,actsForB){
          * for the derivation and for why the same fact means something else at the secondary site. */
         if(trapAlreadyHeld(t)){MEDSEEN.trapRefusedRepeat++;mvFail(m);continue;}
         if((t.types||[]).includes('Ghost')){MEDSEEN.ghostRefusedTrap++;mvFail(m);continue;}
-        t._trapHard={by:m,mv:a.mv};
+        /* 2026-08-25 -- THE TRAP BELONGS TO WHOEVER USED THE MOVE, AND AFTER A BOUNCE THAT IS THE
+         * BOUNCER. Magic Bounce is `this.actions.useMove(newMove, target, {target: source})`
+         * (data/abilities.ts:2436) -- the reflected move's USER is the bounce holder -- so Block's
+         * `onHit(target, source)` hangs `trapped` on the clicker with the BOUNCER as its `trapper`,
+         * and `Pokemon#clearVolatile` (sim/pokemon.ts:1532-1536) frees the victim when the BOUNCER
+         * leaves the field.
+         *
+         * This line wrote `by: m` unconditionally, and after a bounce `m` is the clicker -- which is
+         * the VICTIM. `releaseTrapsBy` skips `b === src`, so no body on the field could ever free it:
+         * the victim was trapped by itself, permanently. Witness: `all_mechanics_fire`'s magicbounce
+         * row, `p2a feraligatr vol.trapped showdown 0 / we 1`, on the turn the authority's log shows
+         * the Espeon leaving -- with both protocol streams agreeing line for line.
+         *
+         * `MEDI_BOUNCED_TRAP_KEEPS_CLICKER=1` restores the old owner so the defect can be shown RED
+         * rather than asserted. */
+        const _by=(_bounced&&!BOUNCED_TRAP_KEEPS_CLICKER)?_t0:m;
+        if(_bounced){if(BOUNCED_TRAP_KEEPS_CLICKER)MEDFAILS.bouncedTrapOwnerRestored=1;
+                     else MEDSEEN.bouncedTrapOwnedByBouncer++;}
+        t._trapHard={by:_by,mv:a.mv};
         /* ROADMAP #143 -- THE LINE BELONGS TO THE VOLATILE, NOT TO THE MOVE THAT APPLIED IT. Both
          * members write `target.addVolatile("trapped", …)`, and the `trapped` condition's whole
          * onStart is `this.add("-activate", target, "trapped")` -- so the authority names the TRAP on

@@ -19148,6 +19148,61 @@ probe('move', 'trapsTarget', 'the trap dies with its TRAPPER: a Mean Look ends w
                  + `walks). Trap laid in both arms: ${stays.laid}/${goes.laid}` };
 });
 
+/* =================================================================================================
+ * 2026-08-25 — A BOUNCED TRAP BELONGS TO THE BOUNCER, AND THIS ENGINE GAVE IT TO THE VICTIM.
+ *
+ * DERIVED, NOT RECALLED. Magic Bounce is `this.actions.useMove(newMove, target, { target: source })`
+ * (data/abilities.ts:2436, not overridden by Champions) — the USER of the reflected move is the
+ * BOUNCE HOLDER, so Block's `onHit(target, source)` runs with `source` = the bouncer and
+ * `target.addVolatile('trapped', source, move, 'trapper')` hangs the link on the bouncer.
+ * `Pokemon#clearVolatile` (sim/pokemon.ts:1532-1536) then frees the victim the moment the BOUNCER
+ * leaves the field.
+ *
+ * This engine wrote `t._trapHard = { by: m }` with `m` still the ORIGINAL CLICKER — which, after a
+ * bounce, is the victim itself. `releaseTrapsBy` skips `b === src`, so nothing could ever free it:
+ * the victim was trapped by itself, for ever, and the only body that could release it was standing
+ * in the other slot with no link to it.
+ *
+ * The witness is `engine/all_mechanics_fire.js`'s `magicbounce` row — `p2a feraligatr vol.trapped
+ * showdown 0 / we 1` at the turn-4 boundary, with the two protocol streams AGREEING line for line,
+ * on the turn the authority's own log shows `|switch|p1a: Charizard` replacing the Espeon. */
+probe('move', 'trapsTarget', 'a BOUNCED trap belongs to the BOUNCER: the trap dies when the Magic Bounce body leaves', () => {
+  const run = (bouncerLeaves) => {
+    const me = bare('espeon'), ally = bare('incineroar');
+    const f1 = bare('feraligatr'), f2 = bare('milotic');
+    me.ability = 'magicbounce';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    S.benchA = [bare('kangaskhan')];
+    S.benchB = [bare('kangaskhan')];
+    unfaintable(me); unfaintable(ally); unfaintable(f1); unfaintable(f2);
+    /* turn 1 — the FOE clicks Block at the Espeon and Magic Bounce sends it back at the clicker. */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'block', me, S.field)], [f2, { kind: 'pass' }]]));
+    const landedOn = f1._trapHard ? 'the clicker' : (me._trapHard ? 'the bouncer' : 'nobody');
+    /* turn 2 — THE VARIED KNOB, and it is the BOUNCER that moves: it walks off, or it stands still. */
+    M.battleTurn(S, rng5,
+      new Map([[me, bouncerLeaves ? { kind: 'switch' } : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    /* turn 3 — the victim asks to leave. */
+    M.battleTurn(S, rng5, PASS2(S.actA[0], S.actA[1]),
+      new Map([[S.actB[0], { kind: 'switch' }], [f2, { kind: 'pass' }]]));
+    return { landedOn, whoA: S.actA[0].name || S.actA[0].species,
+             who: S.actB[0].name || S.actB[0].species, held: !!f1._trapHard };
+  };
+  const stays = run(false), goes = run(true);
+  return { works: stays.landedOn === 'the clicker' && goes.landedOn === 'the clicker'
+                  && stays.who === 'feraligatr' && goes.who === 'kangaskhan' && goes.held === false,
+           arms: { control: stays.who + ' (trap held ' + stays.held + ')',
+                   test: goes.who + ' (trap held ' + goes.held + ')' },
+           detail: `[who holds the foe's slot 0 after the trapped body asks to switch on turn 3] — `
+                 + `the bounce puts the trap on ${stays.landedOn}, which is the clicker, in both `
+                 + `arms. BOUNCER STAYS: "${stays.who}" (still trapped, the switch is refused). `
+                 + `BOUNCER LEAVES on turn 2 — slot A holds "${goes.whoA}" — "${goes.who}" (the link `
+                 + `died with the body that OWNED it, so the victim walks). An over-release costs a `
+                 + `game exactly as an under-release does, which is why the control arm is the same `
+                 + `board with the bouncer standing still` };
+});
+
 /* SUCTION CUPS — the MIRROR of Shed Shell: one restores the choice to leave, the other refuses being
  * thrown out. There was no `suctioncups` row in data/tags.json at all, so no reader could precede it. */
 /* THE REFUSAL HAS TWO DOORS AND ONLY ONE OF THEM WAS PROBED, 2026-08-22 (ROADMAP #341).

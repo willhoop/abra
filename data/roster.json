@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-25T03:53:17.086Z",
+ "generated": "2026-08-25T04:52:17.271Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "cbf345e56bc0",
+ "engine_release": "359b51b61d83",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -42769,7 +42769,7 @@
    "reads": "priority !== 0 on a damaging move",
    "note": "priority +3 — Crabominable is the SLOWEST legal user of this move in the format (63 against 120 Speed) and dies outright to Volcarona's Flamethrower. It carries a 100% FLINCH, which fires in both pin arms, so with the bracket correct the foe never acts and the user is UNTOUCHED at the boundary; with it ignored the user is dead before it clicks.  NO ON-BOARD NEGATIVE: no second doomed body with an ordinary click could be derived, so the ignored-bracket board is supplied by the CONTROL ARM alone.",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 848 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1048 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,

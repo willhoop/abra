@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  696/696 probed mechanics live, 0 missing   (census 2026-08-24 23:41)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-24 23:44)
+  697/697 probed mechanics live, 0 missing   (census 2026-08-25 00:32)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-25 00:35)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,135 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 66baa94f7904 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is ff28c167bb82 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-24 23:59_
+_stamped 2026-08-25 00:54_
 
 <!-- /GENERATED -->
+
+## THE BENCH IS COMPARED ON ITS VOLATILES, AND THE DEFECT IT WAS AIMED AT WAS NEVER ON THE BENCH. CENSUS 696 → 697. 2026-08-25.
+
+Full account: [`docs/_reports/2026-08-25-bench-clean.md`](_reports/2026-08-25-bench-clean.md).
+
+Will: *"yeah the pokemon in the back need to be clean."* `engine/board_state.js`'s party row now carries
+the same twenty-leaf `vol` projection the active slots carry, on every party member that is **not
+standing**, on both sides, at every turn boundary. Before this pass a body that walked off the field
+carrying something it should have dropped was read by **nothing in this repository**, and the
+disagreement could only surface when it came back — attributed to the switch-in, several turns after
+the cause.
+
+**IT CATCHES NOTHING TODAY, AND THAT WAS MEASURED BEFORE IT WAS WIRED.** `tests/probe_bench_leaves.js`,
+extended this pass to read the comparison's own projection rather than a second copy of it: 64 games,
+803 boundaries, **3,211 benched bodies**, every one of the twenty leaves **0 differ and 0 ever
+non-empty on either side** — which is what the authority's `clearVolatile` (`sim/pokemon.ts:1519-1566`,
+`this.volatiles = {}` after `removeLinkedVolatiles`) predicts. The `NOT_COMPARED` row it replaces argued
+from exactly that measurement that the leaf should stay out. **That argument was right about the
+measurement and wrong about what to do with it:** an uncompared leaf is one whose regression reads as
+agreement, and medicham2 clears its bench **field by field** in `switchOut` rather than with one wipe,
+so the next volatile added to the engine is clean only if somebody remembers to add a line.
+
+**THE BRIEF'S ACCEPTANCE TEST COULD NOT BE MET, AND THE BRIEF'S PREMISE IS WHAT WAS WRONG.** The
+`magicbounce` row's witness is `p2a feraligatr vol.trapped` — an **ACTIVE** body, in a slot compared
+since ROADMAP #308. The body that walks to the bench is the **Espeon**, and what it should be carrying
+is Showdown's `trapper` mark, which this engine does not model and which is a standing `NOT_COMPARED`
+row. A bench comparison cannot be red on this defect; it was tried and it is not. So the wiring is
+proved by **two planted failures** instead — a benched body still TRAPPED, and a benched body still
+behind a SUBSTITUTE — each **NOT CAUGHT** with `engine/board_state.js` stashed and **CAUGHT** with it,
+on the leaf it was aimed at, with no protocol line, behind the red block's own clean control arm.
+
+**THE KNOWN DEFECT IS FIXED, AND IT IS A DIFFERENT BUG FROM THE ONE IT LOOKED LIKE.** Magic Bounce is
+`this.actions.useMove(newMove, target, { target: source })` (`data/abilities.ts:2436`), so the reflected
+move's USER is the bounce holder and `trapped` links to **the bouncer**. This engine wrote
+`t._trapHard = { by: m }` with `m` the original CLICKER unconditionally — and after a bounce the clicker
+IS the victim. `releaseTrapsBy` skips `b === src`, so **the victim was trapped by itself, for ever**, and
+no body on the field could free it. Knob `MEDI_BOUNCED_TRAP_KEEPS_CLICKER=1` restores it; counter
+`MEDSEEN.bouncedTrapOwnedByBouncer`. Probe `move/trapsTarget` — *"a BOUNCED trap belongs to the BOUNCER"* —
+written first, watched fail, and it tests the OUTCOME (who holds the victim's slot after it asks to
+leave) with the bouncer standing still as the control arm.
+
+| quantity | HEAD (`382e998`) | after |
+|---|---|---|
+| census probed / live / missing | 696 / 696 / 0 | **697 / 697 / 0** |
+| damage differential, all 16 corners | 0 of 6000 | **0 of 6000** |
+| whole-game, arm `middle` | 961 games, 28 parted | **961 games, 28 parted** |
+| board-material | 10 causes / 10 games | **10 causes / 10 games** |
+| narration-only | 17 causes / 18 games | **17 causes / 18 games** |
+| DIFFERENT-END-STATE | 8 | **8** |
+| `all_mechanics_fire` STATE rows | 9 | **8** |
+| roster items / abilities / moves DIFFER | 0 / 0 / 0 | **0 / 0 / 0** |
+
+Arm `middle`, **961 games** (`--games 1200` — a PAIR budget), release **`359b51b61d83`**,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state --write`. The before column is computed from `git show HEAD:data/game-differential.json`
+by the same expression as the after column.
+
+**THE WHOLE-GAME NUMBER WAS PREDICTED TO RISE AND IT DID NOT MOVE AT ALL** — not by a game, not by a
+cause. Computed by set difference rather than by eye: `BOARD-MATERIAL causes only in HEAD: []`, `only in
+NOW: []`, and the same for the full cause list. No `party.vol.*` family appears anywhere in the leaf
+table. That is the predicted consequence of the 3,211-body probe, and it is also the outcome that
+mattered most: **the wiring did not MANUFACTURE anything either**, which was the real risk. The lab moved
+by exactly one row in three populations — `magicbounce [vol.trapped]` is gone and everything else is
+byte-identical. **A rare mechanic moves the lab and leaves the pool still, and that was said before the
+run.**
+
+### THE HAND LIST
+
+Leaves it: **the move trap** — `magicbounce` is `NO-DIVERGENCE` in the lab, with a census probe and a
+knob.
+
+Joins it:
+
+- **the `trapper` mark on a trap's SOURCE.** medicham2 keeps the trapper inside the VICTIM's own
+  `_trapHard` and has no field on the source at all. It is the one bench leaf this pass could not add,
+  and it is why the Espeon's bench is genuinely unreadable rather than merely empty.
+
+**`planted_state_proof_ok` IS STILL FALSE AND IT IS NOW ONE FACT, NOT THIRTEEN.** It was already on this
+list; what is new is the shape. Every plant aimed at `S.actA[*]` — substitute, disable, leechseed,
+confusion, aquaring, ingrain, torment, imprison — is **8 of 8 CAUGHT+LOCALISED**. Every plant aimed at
+`S.actB[*]` — taunt, encore, perish, magnetrise, focusenergy, saltcure, syrupbomb — is **7 of 7 applied
+and NOT CAUGHT**. All six BENCH plants are **NOT APPLIED**. A perfect side split is not a comparator that
+half works; the leading hypothesis, **unconfirmed and needing the boundary-6 board printed first**, is
+that side B's actives and both benches are CORPSES at the plant boundary, so `board_state.js` correctly
+holds their `vol` under POST_FAINT and the plant is correctly ignored. **`engine/game_differential.js`
+exits 1 because of this**, on this pass and on the three before it. Not fixed here, per the brief; it is
+the highest-value item on this list, because while it stands every state figure carries a caveat and a
+caveat is not a quarantine.
+
+Stays on it, unchanged: **the `any`-category address for `getRandomTarget`**, **the Bug Bite / Pluck EAT
+half**, **the two surfaces Moody was hiding**, **`AfterMoveSecondary` above `|-hitcount|`**, **the three
+spread-status rows are ONE mechanism**, **`supremeoverlord`**, **`data/abra-tags.js` going stale against
+`data/tags.json`**, **`shellsidearm`**, **`sandforce`'s truncated `damageBoost.onType`**,
+**`guts.damageBoost.onlyWhen` null**, **Castform's forme label (a refit)**, **Magic Room parks the item**,
+and **a refused Role Play does not blank its move line's target field**.
+
+### PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.
+
+**CLOSED (2).** *"A move trap outlives the authority's: a BOUNCED Block credits the trap to the body that
+clicked it rather than to the body that reflected it, so the victim is trapped by itself and nothing can
+release it"* — knob `MEDI_BOUNCED_TRAP_KEEPS_CLICKER=1`, probe `move/trapsTarget`, `magicbounce` lab row
+`STATE` → `NO-DIVERGENCE`. *"A benched body's volatiles, Substitute HP and Leech Seed are compared by
+nothing"* — wired, two plants, 3,211-body pre-measurement.
+
+**OPEN (2).** *"`planted_state_proof_ok` is false and `game_differential.js` exits 1: every plant aimed
+at side B's actives, and every bench plant, fails — a perfect side split that points at the fixture
+rather than the comparator"*; *"medicham2 has no `trapper` field on a trap's SOURCE, so the bench cannot
+be compared on it."*
+
+### OWED, NOT RUN
+
+- `tests/run-all.js` in full. Run individually and green: `tests/test-mechanics.js` (697/697),
+  `tests/test-engine-diff.js` (`--n 6000 --seed 20260804`, **0 of 6000 at all 16 corners**),
+  `tests/test-end-state.js`, `tests/test-game-diff.js`, `tests/test-no-silent-failure.js` on the three
+  changed engine files, `tests/roster.js` x3, `engine/all_mechanics_fire.js --kind all`,
+  `engine/game_differential.js`;
+- `tests/interaction_matrix.js` (last run 2026-08-11), `tests/mutation_harness.js`,
+  `engine/selftest.js`, `engine/conformance.js`, `engine/feature_fixture.js --check`;
+- a POOL-SCALE reading of `MEDSEEN.bouncedTrapOwnedByBouncer` — proved by the probe and by the lab row,
+  never read over 961 pool games, where it is expected to be zero.
 
 ## BOARD-MATERIAL 18 → 10 GAMES, AND THE BIGGEST CAUSE WAS AN ADDRESS. CENSUS 693 → 696. 2026-08-25.
 

@@ -21,6 +21,46 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE BENCH IS COMPARED ON ITS VOLATILES; A BOUNCED TRAP BELONGS TO THE BOUNCER. CENSUS 696 → 697. 2026-08-25 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-25-bench-clean.md`](_reports/2026-08-25-bench-clean.md).
+Ledger section: `docs/ENGINE.md`, *"THE BENCH IS COMPARED ON ITS VOLATILES, AND THE DEFECT IT WAS AIMED
+AT WAS NEVER ON THE BENCH"*.
+
+Arm `middle`, 961 games (`--games 1200`, a PAIR budget), release `359b51b61d83`,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state --write`.
+
+**WIRED:** a benched body's twenty `vol` leaves, on both sides, at every boundary. Standing bodies answer
+`null` and the skip is counted (`party_vol_on_field_skipped`, 8,624 on the lab run), because `sf.team`
+and `side.pokemon` are the WHOLE party and comparing them there would report every active-slot volatile
+difference twice.
+
+**PRINTED BEFORE IT WAS WIRED:** 3,211 benched bodies, all twenty leaves 0 differ / 0 non-empty.
+**It catches nothing today and was wired anyway**, said plainly: medicham2 clears its bench field by
+field, so the next volatile added is clean only if somebody remembers a line.
+
+**PROVED BY TWO PLANTS, NOT BY THE ARGUMENT:** a benched body still TRAPPED and a benched body still
+behind a SUBSTITUTE, both NOT CAUGHT with `board_state.js` stashed and CAUGHT with it.
+
+**FIXED:** a bounced Block credited the trap to the CLICKER, which after a bounce is the victim — so the
+victim was trapped by itself and `releaseTrapsBy` (which skips `b === src`) could never free it.
+`data/abilities.ts:2436` says the reflected move's user is the bouncer. Knob
+`MEDI_BOUNCED_TRAP_KEEPS_CLICKER=1`; probe `move/trapsTarget`.
+
+**MOVED:** census 696 → 697; `all_mechanics_fire` STATE rows 9 → 8 (`magicbounce` gone, everything else
+byte-identical). **UNMOVED:** whole-game 961/28, board-material 10c/10g, narration 17c/18g,
+DIFFERENT-END-STATE 8, roster x3 all zero, damage differential 0 of 6000 at all 16 corners.
+
+**THE BRIEF'S ACCEPTANCE TEST COULD NOT BE MET:** the `magicbounce` witness is an ACTIVE body, so a bench
+comparison cannot be red on it. Reported rather than fudged.
+
+**NAMED, NOT FIXED:** `planted_state_proof_ok` is still false and `game_differential.js` exits 1 because
+of it. New this pass: it is ONE fact — every plant aimed at side A is caught (8 of 8), every plant aimed
+at side B is not (7 of 7), and all six bench plants never apply. A fixture claim, hypothesis unconfirmed.
+
+---
+
 ## BOARD-MATERIAL 18 → 10 GAMES, AND THE BIGGEST CAUSE WAS AN ADDRESS. CENSUS 693 → 696. 2026-08-25 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-25-board-material-3.md`](_reports/2026-08-25-board-material-3.md).

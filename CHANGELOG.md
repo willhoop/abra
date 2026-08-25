@@ -10,6 +10,59 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.122.0] — 2026-08-25
+
+### Added
+- **A BENCHED POKEMON'S VOLATILES ARE COMPARED.** Will: *"yeah the pokemon in the back need to be
+  clean."* `engine/board_state.js`'s party row now carries the same twenty-leaf `vol` projection the
+  active slots carry, for every party member that is not standing, on both sides, at every turn
+  boundary. Before this a body that walked off the field carrying something it should have dropped was
+  read by nothing in this repository, and the disagreement could only surface when it came back —
+  attributed to the switch-in, several turns after the cause. The field list is not typed: it is the
+  projection both engines were already measured against on the active slots, and the authority's
+  `clearVolatile` (`sim/pokemon.ts:1519-1566`) empties a body's volatiles wholesale on the way out, so
+  Showdown's half of the comparison is empty by construction.
+- **Standing bodies answer `null` and the skip is counted.** `sf.team` and `side.pokemon` are the WHOLE
+  party, so comparing `vol` there would report every active-slot volatile difference a second time under
+  a party path — one finding read as two. `party_vol_on_field_skipped` rides on every snapshot (8,624 on
+  the lab run) so "not asked" can never read as "agreed", and `null_leaf_asymmetric` counts the case
+  where the two engines disagree about who is standing.
+- **Two planted failures defend it, not the argument for it.** `engine/all_mechanics_fire.js --red` now
+  plants a move TRAP and a SUBSTITUTE on a body that has walked to the bench. Both are **NOT CAUGHT**
+  with `engine/board_state.js` stashed and **CAUGHT** with it, on the leaf they were aimed at, with no
+  protocol line, behind the red block's own clean control arm.
+
+### Fixed
+- **A BOUNCED TRAP BELONGED TO THE VICTIM, SO THE VICTIM WAS TRAPPED BY ITSELF FOR EVER.** Magic Bounce
+  is `this.actions.useMove(newMove, target, { target: source })` (`data/abilities.ts:2436`), so the
+  reflected move's USER is the bounce holder and Block's `trapped` links to **the bouncer**.
+  `medicham2-browser.js` wrote `t._trapHard = { by: m }` with `m` the original CLICKER unconditionally,
+  and after a bounce the clicker is the victim — and `releaseTrapsBy` skips `b === src`, so no body on
+  the field could ever free it. Knob `MEDI_BOUNCED_TRAP_KEEPS_CLICKER=1` restores the defect; counter
+  `MEDSEEN.bouncedTrapOwnedByBouncer`. Census **696 → 697** on a new `move/trapsTarget` probe written
+  first and watched fail. `all_mechanics_fire`'s `magicbounce` row goes `STATE` → `NO-DIVERGENCE` and is
+  the only row that moved in three populations.
+
+### Notes
+- **The brief's acceptance test could not be met, and the brief's premise is what was wrong.** The
+  `magicbounce` witness is `p2a feraligatr vol.trapped` — an ACTIVE body, compared since ROADMAP #308.
+  The body that walks to the bench is the Espeon, and what it should carry is Showdown's `trapper` mark,
+  which this engine does not model. A bench comparison cannot be red on that defect; it was tried and it
+  is not. Reported rather than fudged.
+- **The whole-game number was predicted to rise and did not move at all.** 961 games, 28 parted,
+  board-material 10 causes / 10 games, narration 17 / 18, DIFFERENT-END-STATE 8 — identical to HEAD, and
+  identical cause for cause by set difference rather than by eye. No `party.vol.*` family appears in the
+  leaf table. That is the predicted consequence of a pre-measurement over 3,211 benched bodies in which
+  every leaf was empty on both sides, and it is also the outcome that mattered most: **the wiring did not
+  manufacture anything either.**
+- **`planted_state_proof_ok` is still false and `engine/game_differential.js` exits 1 because of it** —
+  on this pass and on the three before it. Pre-existing, already on the ENGINE hand list, and traced to
+  all twelve committed artifact versions back to 2026-08-24. What is new is that it is ONE fact rather
+  than thirteen: every plant aimed at side A's actives is caught (8 of 8), every plant aimed at side B's
+  is applied and not caught (7 of 7), and all six bench plants never apply. A perfect side split points
+  at the FIXTURE, not the comparator. Named and left, per the brief; the hypothesis (corpses at the plant
+  boundary, correctly held by POST_FAINT) is **unconfirmed**.
+
 ## [5.121.0] — 2026-08-24
 
 ### Changed

@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-25T03:41:40.398Z",
+  "generated": "2026-08-25T04:32:44.186Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 696,
-  "live": 696,
+  "probed": 697,
+  "live": 697,
   "missing": 0,
-  "armed": 696,
+  "armed": 697,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3533,7 +3533,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5434,6 +5434,16 @@
       "label": "the trap dies with its TRAPPER: a Mean Look ends when its user leaves",
       "live": true,
       "detail": "[who holds the foe's slot 0 after the trapped body asks to switch on turn 3] — the trapper STAYS \"milotic\" (still trapped: the switch is refused); the trapper LEAVES on turn 2 \"kangaskhan\" (the link died with it, so the victim walks). Trap laid in both arms: true/true",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "trapsTarget",
+      "label": "a BOUNCED trap belongs to the BOUNCER: the trap dies when the Magic Bounce body leaves",
+      "live": true,
+      "detail": "[who holds the foe's slot 0 after the trapped body asks to switch on turn 3] — the bounce puts the trap on the clicker, which is the clicker, in both arms. BOUNCER STAYS: \"feraligatr\" (still trapped, the switch is refused). BOUNCER LEAVES on turn 2 — slot A holds \"kangaskhan\" — \"kangaskhan\" (the link died with the body that OWNED it, so the victim walks). An over-release costs a game exactly as an under-release does, which is why the control arm is the same board with the bouncer standing still",
       "hollow": false,
       "armed": true,
       "directCall": false

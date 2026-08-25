@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-25T03:48:21.171Z",
+  "generated": "2026-08-25T04:46:53.392Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:6a6b87eafc6a/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -102,7 +102,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 167,
+  "elapsed_s": 170.6,
   "planted_divergence_proof": [
     {
       "what": "a wrong FIELD on the last agreeing line",
@@ -843,7 +843,7 @@
           "case": {
             "seed": "gen9championsvgc2026regmbbo3-2661597319 vs gen9championsvgc2026regmbbo3-2661573110",
             "config": "omit-protect",
-            "engine_release": "cbf345e56bc0",
+            "engine_release": "359b51b61d83",
             "team_pool_digest": "0d103fb9fa87",
             "turn": 1,
             "leads": {
@@ -872,8 +872,8 @@
                 "how_wrong": "different-value"
               }
             ],
-            "fields_compared": 287,
-            "fields_identical": 286,
+            "fields_compared": 367,
+            "fields_identical": 366,
             "protocol_diverged_at_turn": null
           }
         },
@@ -883,7 +883,7 @@
           "case": {
             "seed": "gen9championsvgc2026regmbbo3-2659015200 vs gen9championsvgc2026regmbbo3-2659004938",
             "config": "omit-spread",
-            "engine_release": "cbf345e56bc0",
+            "engine_release": "359b51b61d83",
             "team_pool_digest": "0d103fb9fa87",
             "turn": 1,
             "leads": {
@@ -942,8 +942,8 @@
                 "how_wrong": "present-in-one-engine-only"
               }
             ],
-            "fields_compared": 300,
-            "fields_identical": 296,
+            "fields_compared": 380,
+            "fields_identical": 376,
             "protocol_diverged_at_turn": 2
           }
         }
@@ -1313,7 +1313,8 @@
                 "accuracy": 0,
                 "evasion": 0
               },
-              "ability": "forecast"
+              "ability": "forecast",
+              "vol": null
             },
             "showdown": null
           },
@@ -1337,7 +1338,8 @@
                 "accuracy": 0,
                 "evasion": 0
               },
-              "ability": "forecast"
+              "ability": "forecast",
+              "vol": null
             }
           },
           {
@@ -1420,7 +1422,8 @@
                 "accuracy": 0,
                 "evasion": 0
               },
-              "ability": "forecast"
+              "ability": "forecast",
+              "vol": null
             },
             "showdown": null
           },
@@ -1444,7 +1447,8 @@
                 "accuracy": 0,
                 "evasion": 0
               },
-              "ability": "forecast"
+              "ability": "forecast",
+              "vol": null
             }
           },
           {
@@ -1591,11 +1595,6 @@
       {
         "field": "the DURATIONS on magnet rise and syrup bomb, and WHICH move a charge is committed to",
         "why": "the presence of all three IS compared. Showdown carries a clock on magnetrise and syrupbomb and medicham2 writes a bare 1, so comparing the numbers would part every board carrying one on the READER'S representation rather than on a rule. The missing clock is a real gap in medicham2 and is stated here rather than absorbed into a `!!`. Likewise the two-turn lock: medicham2 names the move in `_charging` and Showdown in a separate volatile keyed by the move id, and a mismatch there would be a reader question."
-      },
-      {
-        "field": "a benched body's volatiles, Substitute HP and Leech Seed",
-        "why": "NOT A JUDGEMENT ABOUT THE ENGINES — a claim about the FIXTURE, the same distinction as the yawn/attract/curse row above. Over 2,029 benched bodies `tests/probe_bench_leaves.js` never once saw ANY of the three non-empty in EITHER engine, which is what the authority's own `clearVolatile` on switch-out predicts. A leaf whose two shapes have never been seen carrying anything is wired for free and catches nothing, and it is exactly how a comparator starts manufacturing divergences the day one of them does.",
-        "next": "nothing to do until a fixture puts a volatile on a body that then leaves the field"
       },
       {
         "field": "the stall counter behind consecutive Protect",
@@ -3077,7 +3076,7 @@
                     "turns": 7,
                     "end_reason": "the boards parted — medicham2's placement cannot be expressed to showdown (p1: slot 1 holds metagross, which showdown has but cannot switch in (fainted/active))",
                     "board_turn": 7,
-                    "leaves_compared": 246,
+                    "leaves_compared": 306,
                     "differing_leaves": 7
                   },
                   "shape": "RULE",
@@ -3151,7 +3150,7 @@
                     "turns": 12,
                     "end_reason": "the turn cap (12)",
                     "board_turn": 12,
-                    "leaves_compared": 300,
+                    "leaves_compared": 380,
                     "differing_leaves": 5
                   },
                   "shape": "ORDERING",
@@ -3216,7 +3215,7 @@
                     "turns": 12,
                     "end_reason": "the turn cap (12)",
                     "board_turn": 12,
-                    "leaves_compared": 304,
+                    "leaves_compared": 364,
                     "differing_leaves": 16
                   },
                   "shape": "EMISSION",
@@ -3322,7 +3321,7 @@
                     "turns": 12,
                     "end_reason": "the turn cap (12)",
                     "board_turn": 12,
-                    "leaves_compared": 280,
+                    "leaves_compared": 320,
                     "differing_leaves": 1
                   },
                   "shape": "RULE",
@@ -3360,7 +3359,7 @@
                     "turns": 12,
                     "end_reason": "the turn cap (12)",
                     "board_turn": 12,
-                    "leaves_compared": 281,
+                    "leaves_compared": 321,
                     "differing_leaves": 2
                   },
                   "shape": "EMISSION",
@@ -3391,7 +3390,7 @@
                     "turns": 11,
                     "end_reason": "both engines ended the battle",
                     "board_turn": 11,
-                    "leaves_compared": 192,
+                    "leaves_compared": 232,
                     "differing_leaves": 1
                   },
                   "shape": "PROTOCOL-NEVER-PARTED",
@@ -3422,7 +3421,7 @@
                     "turns": 12,
                     "end_reason": "the turn cap (12)",
                     "board_turn": 12,
-                    "leaves_compared": 192,
+                    "leaves_compared": 232,
                     "differing_leaves": 1
                   },
                   "shape": "EMISSION",
@@ -3543,7 +3542,6 @@
     "the TRAPPER mark a move trap leaves on its source (Showdown `volatiles.trapper`)",
     "destiny bond",
     "the DURATIONS on magnet rise and syrup bomb, and WHICH move a charge is committed to",
-    "a benched body's volatiles, Substitute HP and Leech Seed",
     "the stall counter behind consecutive Protect"
   ],
   "severity_usage_source": {
@@ -14286,7 +14284,7 @@
     "input_digest": "9446a684709d",
     "input_rows": 643,
     "input_generated": "2026-08-23T09:53:56.393Z",
-    "input_live_digest": "66baa94f7904",
+    "input_live_digest": "ff28c167bb82",
     "pinned": true,
     "matches_live": false,
     "selects_from": 580,
@@ -14298,12 +14296,12 @@
     "team_store_pinned_to": "data\\team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "cbf345e56bc0",
-  "engine_release_cut": "2026-08-25T03:37:49.688Z",
-  "engine_release_cuts": 3,
+  "engine_release": "359b51b61d83",
+  "engine_release_cut": "2026-08-25T04:29:02.331Z",
+  "engine_release_cuts": 8,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "5fbc0caa6975",
+    "engine/medicham2-browser.js": "80e034a1dd18",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "a9de35b3808d",
     "engine/position_features.js": "4850adf1a2ab",

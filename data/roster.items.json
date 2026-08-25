@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-25T03:52:08.430Z",
+ "generated": "2026-08-25T04:51:11.484Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "cbf345e56bc0",
+ "engine_release": "359b51b61d83",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -79,7 +79,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "snowwarning"
+      "ability": "snowwarning",
+      "vol": null
      },
      "without": null
     },
@@ -104,7 +105,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "snowwarning"
+      "ability": "snowwarning",
+      "vol": null
      }
     },
     {
@@ -133,7 +135,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "snowwarning"
+      "ability": "snowwarning",
+      "vol": null
      },
      "without": null
     },
@@ -158,7 +161,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "snowwarning"
+      "ability": "snowwarning",
+      "vol": null
      }
     },
     {
@@ -212,7 +216,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "magicbounce"
+      "ability": "magicbounce",
+      "vol": null
      },
      "without": null
     },
@@ -237,7 +242,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pressure"
+      "ability": "pressure",
+      "vol": null
      }
     },
     {
@@ -272,7 +278,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "magicbounce"
+      "ability": "magicbounce",
+      "vol": null
      },
      "without": null
     },
@@ -297,7 +304,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pressure"
+      "ability": "pressure",
+      "vol": null
      }
     },
     {
@@ -357,7 +365,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toughclaws"
+      "ability": "toughclaws",
+      "vol": null
      },
      "without": null
     },
@@ -382,7 +391,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "rockhead"
+      "ability": "rockhead",
+      "vol": null
      }
     },
     {
@@ -417,7 +427,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toughclaws"
+      "ability": "toughclaws",
+      "vol": null
      },
      "without": null
     },
@@ -442,7 +453,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "rockhead"
+      "ability": "rockhead",
+      "vol": null
      }
     },
     {
@@ -502,7 +514,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "filter"
+      "ability": "filter",
+      "vol": null
      },
      "without": null
     },
@@ -527,7 +540,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sturdy"
+      "ability": "sturdy",
+      "vol": null
      }
     },
     {
@@ -568,7 +582,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "filter"
+      "ability": "filter",
+      "vol": null
      },
      "without": null
     },
@@ -593,7 +608,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sturdy"
+      "ability": "sturdy",
+      "vol": null
      }
     },
     {
@@ -659,7 +675,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pressure"
+      "ability": "pressure",
+      "vol": null
      },
      "without": null
     },
@@ -684,7 +701,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "synchronize"
+      "ability": "synchronize",
+      "vol": null
      }
     },
     {
@@ -719,7 +737,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pressure"
+      "ability": "pressure",
+      "vol": null
      },
      "without": null
     },
@@ -744,7 +763,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "synchronize"
+      "ability": "synchronize",
+      "vol": null
      }
     },
     {
@@ -804,7 +824,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pixilate"
+      "ability": "pixilate",
+      "vol": null
      },
      "without": null
     },
@@ -829,7 +850,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "naturalcure"
+      "ability": "naturalcure",
+      "vol": null
      }
     },
     {
@@ -870,7 +892,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pixilate"
+      "ability": "pixilate",
+      "vol": null
      },
      "without": null
     },
@@ -895,7 +918,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "naturalcure"
+      "ability": "naturalcure",
+      "vol": null
      }
     },
     {
@@ -961,7 +985,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "moldbreaker"
+      "ability": "moldbreaker",
+      "vol": null
      },
      "without": null
     },
@@ -986,7 +1011,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "static"
+      "ability": "static",
+      "vol": null
      }
     },
     {
@@ -1027,7 +1053,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "moldbreaker"
+      "ability": "moldbreaker",
+      "vol": null
      },
      "without": null
     },
@@ -1052,7 +1079,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "static"
+      "ability": "static",
+      "vol": null
      }
     },
     {
@@ -1136,7 +1164,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "healer"
+      "ability": "healer",
+      "vol": null
      },
      "without": null
     },
@@ -1161,7 +1190,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "healer"
+      "ability": "healer",
+      "vol": null
      }
     },
     {
@@ -1196,7 +1226,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "healer"
+      "ability": "healer",
+      "vol": null
      },
      "without": null
     },
@@ -1221,7 +1252,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "healer"
+      "ability": "healer",
+      "vol": null
      }
     },
     {
@@ -1318,7 +1350,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "prankster"
+      "ability": "prankster",
+      "vol": null
      },
      "without": null
     },
@@ -1343,7 +1376,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "insomnia"
+      "ability": "insomnia",
+      "vol": null
      }
     },
     {
@@ -1378,7 +1412,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "prankster"
+      "ability": "prankster",
+      "vol": null
      },
      "without": null
     },
@@ -1403,7 +1438,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "insomnia"
+      "ability": "insomnia",
+      "vol": null
      }
     },
     {
@@ -1463,7 +1499,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toughclaws"
+      "ability": "toughclaws",
+      "vol": null
      },
      "without": null
     },
@@ -1488,7 +1525,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toughclaws"
+      "ability": "toughclaws",
+      "vol": null
      }
     },
     {
@@ -1523,7 +1561,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toughclaws"
+      "ability": "toughclaws",
+      "vol": null
      },
      "without": null
     },
@@ -1548,7 +1587,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toughclaws"
+      "ability": "toughclaws",
+      "vol": null
      }
     },
     {
@@ -1608,7 +1648,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "adaptability"
+      "ability": "adaptability",
+      "vol": null
      },
      "without": null
     },
@@ -1633,7 +1674,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "swarm"
+      "ability": "swarm",
+      "vol": null
      }
     },
     {
@@ -1668,7 +1710,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "adaptability"
+      "ability": "adaptability",
+      "vol": null
      },
      "without": null
     },
@@ -1693,7 +1736,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "swarm"
+      "ability": "swarm",
+      "vol": null
      }
     },
     {
@@ -1942,7 +1986,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "megalauncher"
+      "ability": "megalauncher",
+      "vol": null
      },
      "without": null
     },
@@ -1967,7 +2012,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "torrent"
+      "ability": "torrent",
+      "vol": null
      }
     },
     {
@@ -2002,7 +2048,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "megalauncher"
+      "ability": "megalauncher",
+      "vol": null
      },
      "without": null
     },
@@ -2027,7 +2074,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "torrent"
+      "ability": "torrent",
+      "vol": null
      }
     },
     {
@@ -2087,7 +2135,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "speedboost"
+      "ability": "speedboost",
+      "vol": null
      },
      "without": null
     },
@@ -2112,7 +2161,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "blaze"
+      "ability": "blaze",
+      "vol": null
      }
     },
     {
@@ -2153,7 +2203,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "speedboost"
+      "ability": "speedboost",
+      "vol": null
      },
      "without": null
     },
@@ -2178,7 +2229,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "blaze"
+      "ability": "blaze",
+      "vol": null
      }
     },
     {
@@ -2305,7 +2357,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sheerforce"
+      "ability": "sheerforce",
+      "vol": null
      },
      "without": null
     },
@@ -2330,7 +2383,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "magmaarmor"
+      "ability": "magmaarmor",
+      "vol": null
      }
     },
     {
@@ -2365,7 +2419,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sheerforce"
+      "ability": "sheerforce",
+      "vol": null
      },
      "without": null
     },
@@ -2390,7 +2445,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "magmaarmor"
+      "ability": "magmaarmor",
+      "vol": null
      }
     },
     {
@@ -2450,7 +2506,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "infiltrator"
+      "ability": "infiltrator",
+      "vol": null
      },
      "without": null
     },
@@ -2475,7 +2532,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "flashfire"
+      "ability": "flashfire",
+      "vol": null
      }
     },
     {
@@ -2510,7 +2568,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "infiltrator"
+      "ability": "infiltrator",
+      "vol": null
      },
      "without": null
     },
@@ -2535,7 +2594,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "flashfire"
+      "ability": "flashfire",
+      "vol": null
      }
     },
     {
@@ -2656,7 +2716,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toughclaws"
+      "ability": "toughclaws",
+      "vol": null
      },
      "without": null
     },
@@ -2681,7 +2742,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "blaze"
+      "ability": "blaze",
+      "vol": null
      }
     },
     {
@@ -2722,7 +2784,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toughclaws"
+      "ability": "toughclaws",
+      "vol": null
      },
      "without": null
     },
@@ -2747,7 +2810,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "blaze"
+      "ability": "blaze",
+      "vol": null
      }
     },
     {
@@ -2825,7 +2889,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "drought"
+      "ability": "drought",
+      "vol": null
      },
      "without": null
     },
@@ -2850,7 +2915,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "blaze"
+      "ability": "blaze",
+      "vol": null
      }
     },
     {
@@ -2897,7 +2963,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "drought"
+      "ability": "drought",
+      "vol": null
      },
      "without": null
     },
@@ -2922,7 +2989,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "blaze"
+      "ability": "blaze",
+      "vol": null
      }
     },
     {
@@ -3116,7 +3184,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "bulletproof"
+      "ability": "bulletproof",
+      "vol": null
      },
      "without": null
     },
@@ -3141,7 +3210,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "overgrow"
+      "ability": "overgrow",
+      "vol": null
      }
     },
     {
@@ -3176,7 +3246,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "bulletproof"
+      "ability": "bulletproof",
+      "vol": null
      },
      "without": null
     },
@@ -3201,7 +3272,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "overgrow"
+      "ability": "overgrow",
+      "vol": null
      }
     },
     {
@@ -3365,7 +3437,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "levitate"
+      "ability": "levitate",
+      "vol": null
      },
      "without": null
     },
@@ -3390,7 +3463,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "levitate"
+      "ability": "levitate",
+      "vol": null
      }
     },
     {
@@ -3425,7 +3499,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "levitate"
+      "ability": "levitate",
+      "vol": null
      },
      "without": null
     },
@@ -3450,7 +3525,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "levitate"
+      "ability": "levitate",
+      "vol": null
      }
     },
     {
@@ -3728,7 +3804,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "magicbounce"
+      "ability": "magicbounce",
+      "vol": null
      },
      "without": null
     },
@@ -3753,7 +3830,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "cutecharm"
+      "ability": "cutecharm",
+      "vol": null
      }
     },
     {
@@ -3794,7 +3872,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "magicbounce"
+      "ability": "magicbounce",
+      "vol": null
      },
      "without": null
     },
@@ -3819,7 +3898,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "cutecharm"
+      "ability": "cutecharm",
+      "vol": null
      }
     },
     {
@@ -4007,7 +4087,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "ironfist"
+      "ability": "ironfist",
+      "vol": null
      },
      "without": null
     },
@@ -4032,7 +4113,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "hypercutter"
+      "ability": "hypercutter",
+      "vol": null
      }
     },
     {
@@ -4067,7 +4149,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "ironfist"
+      "ability": "ironfist",
+      "vol": null
      },
      "without": null
     },
@@ -4092,7 +4175,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "hypercutter"
+      "ability": "hypercutter",
+      "vol": null
      }
     },
     {
@@ -4225,7 +4309,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "levitate"
+      "ability": "levitate",
+      "vol": null
      },
      "without": null
     },
@@ -4250,7 +4335,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "blaze"
+      "ability": "blaze",
+      "vol": null
      }
     },
     {
@@ -4285,7 +4371,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "levitate"
+      "ability": "levitate",
+      "vol": null
      },
      "without": null
     },
@@ -4310,7 +4397,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "blaze"
+      "ability": "blaze",
+      "vol": null
      }
     },
     {
@@ -4370,7 +4458,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "regenerator"
+      "ability": "regenerator",
+      "vol": null
      },
      "without": null
     },
@@ -4395,7 +4484,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "poisonpoint"
+      "ability": "poisonpoint",
+      "vol": null
      }
     },
     {
@@ -4430,7 +4520,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "regenerator"
+      "ability": "regenerator",
+      "vol": null
      },
      "without": null
     },
@@ -4455,7 +4546,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "poisonpoint"
+      "ability": "poisonpoint",
+      "vol": null
      }
     },
     {
@@ -4576,7 +4668,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "multiscale"
+      "ability": "multiscale",
+      "vol": null
      },
      "without": null
     },
@@ -4601,7 +4694,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "innerfocus"
+      "ability": "innerfocus",
+      "vol": null
      }
     },
     {
@@ -4636,7 +4730,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "multiscale"
+      "ability": "multiscale",
+      "vol": null
      },
      "without": null
     },
@@ -4661,7 +4756,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "innerfocus"
+      "ability": "innerfocus",
+      "vol": null
      }
     },
     {
@@ -4721,7 +4817,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "berserk"
+      "ability": "berserk",
+      "vol": null
      },
      "without": null
     },
@@ -4746,7 +4843,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "berserk"
+      "ability": "berserk",
+      "vol": null
      }
     },
     {
@@ -4775,7 +4873,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "berserk"
+      "ability": "berserk",
+      "vol": null
      },
      "without": null
     },
@@ -4800,7 +4899,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "berserk"
+      "ability": "berserk",
+      "vol": null
      }
     },
     {
@@ -4854,7 +4954,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "eelevate"
+      "ability": "eelevate",
+      "vol": null
      },
      "without": null
     },
@@ -4879,7 +4980,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "levitate"
+      "ability": "levitate",
+      "vol": null
      }
     },
     {
@@ -4914,7 +5016,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "eelevate"
+      "ability": "eelevate",
+      "vol": null
      },
      "without": null
     },
@@ -4939,7 +5042,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "levitate"
+      "ability": "levitate",
+      "vol": null
      }
     },
     {
@@ -4999,7 +5103,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "moldbreaker"
+      "ability": "moldbreaker",
+      "vol": null
      },
      "without": null
     },
@@ -5024,7 +5129,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "blaze"
+      "ability": "blaze",
+      "vol": null
      }
     },
     {
@@ -5059,7 +5165,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "moldbreaker"
+      "ability": "moldbreaker",
+      "vol": null
      },
      "without": null
     },
@@ -5084,7 +5191,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "blaze"
+      "ability": "blaze",
+      "vol": null
      }
     },
     {
@@ -5144,7 +5252,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "piercingdrill"
+      "ability": "piercingdrill",
+      "vol": null
      },
      "without": null
     },
@@ -5169,7 +5278,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandrush"
+      "ability": "sandrush",
+      "vol": null
      }
     },
     {
@@ -5204,7 +5314,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "piercingdrill"
+      "ability": "piercingdrill",
+      "vol": null
      },
      "without": null
     },
@@ -5229,7 +5340,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandrush"
+      "ability": "sandrush",
+      "vol": null
      }
     },
     {
@@ -5411,7 +5523,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "defiant"
+      "ability": "defiant",
+      "vol": null
      },
      "without": null
     },
@@ -5436,7 +5549,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "battlearmor"
+      "ability": "battlearmor",
+      "vol": null
      }
     },
     {
@@ -5471,7 +5585,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "defiant"
+      "ability": "defiant",
+      "vol": null
      },
      "without": null
     },
@@ -5496,7 +5611,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "battlearmor"
+      "ability": "battlearmor",
+      "vol": null
      }
     },
     {
@@ -5556,7 +5672,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "dragonize"
+      "ability": "dragonize",
+      "vol": null
      },
      "without": null
     },
@@ -5581,7 +5698,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "torrent"
+      "ability": "torrent",
+      "vol": null
      }
     },
     {
@@ -5622,7 +5740,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "dragonize"
+      "ability": "dragonize",
+      "vol": null
      },
      "without": null
     },
@@ -5647,7 +5766,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "torrent"
+      "ability": "torrent",
+      "vol": null
      }
     },
     {
@@ -5713,7 +5833,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "fairyaura"
+      "ability": "fairyaura",
+      "vol": null
      },
      "without": null
     },
@@ -5738,7 +5859,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "flowerveil"
+      "ability": "flowerveil",
+      "vol": null
      }
     },
     {
@@ -5773,7 +5895,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "fairyaura"
+      "ability": "fairyaura",
+      "vol": null
      },
      "without": null
     },
@@ -5798,7 +5921,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "flowerveil"
+      "ability": "flowerveil",
+      "vol": null
      }
     },
     {
@@ -6009,7 +6133,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "snowwarning"
+      "ability": "snowwarning",
+      "vol": null
      },
      "without": null
     },
@@ -6034,7 +6159,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "snowcloak"
+      "ability": "snowcloak",
+      "vol": null
      }
     },
     {
@@ -6081,7 +6207,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "snowwarning"
+      "ability": "snowwarning",
+      "vol": null
      },
      "without": null
     },
@@ -6106,7 +6233,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "snowcloak"
+      "ability": "snowcloak",
+      "vol": null
      }
     },
     {
@@ -6166,7 +6294,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "innerfocus"
+      "ability": "innerfocus",
+      "vol": null
      },
      "without": null
     },
@@ -6191,7 +6320,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "steadfast"
+      "ability": "steadfast",
+      "vol": null
      }
     },
     {
@@ -6226,7 +6356,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "innerfocus"
+      "ability": "innerfocus",
+      "vol": null
      },
      "without": null
     },
@@ -6251,7 +6382,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "steadfast"
+      "ability": "steadfast",
+      "vol": null
      }
     },
     {
@@ -6311,7 +6443,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandforce"
+      "ability": "sandforce",
+      "vol": null
      },
      "without": null
     },
@@ -6336,7 +6469,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandveil"
+      "ability": "sandveil",
+      "vol": null
      }
     },
     {
@@ -6371,7 +6505,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandforce"
+      "ability": "sandforce",
+      "vol": null
      },
      "without": null
     },
@@ -6396,7 +6531,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandveil"
+      "ability": "sandveil",
+      "vol": null
      }
     },
     {
@@ -6456,7 +6592,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pixilate"
+      "ability": "pixilate",
+      "vol": null
      },
      "without": null
     },
@@ -6481,7 +6618,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "synchronize"
+      "ability": "synchronize",
+      "vol": null
      }
     },
     {
@@ -6516,7 +6654,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pixilate"
+      "ability": "pixilate",
+      "vol": null
      },
      "without": null
     },
@@ -6541,7 +6680,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "synchronize"
+      "ability": "synchronize",
+      "vol": null
      }
     },
     {
@@ -6601,7 +6741,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "shadowtag"
+      "ability": "shadowtag",
+      "vol": null
      },
      "without": null
     },
@@ -6626,7 +6767,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "cursedbody"
+      "ability": "cursedbody",
+      "vol": null
      }
     },
     {
@@ -6661,7 +6803,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "shadowtag"
+      "ability": "shadowtag",
+      "vol": null
      },
      "without": null
     },
@@ -6686,7 +6829,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "cursedbody"
+      "ability": "cursedbody",
+      "vol": null
      }
     },
     {
@@ -6746,7 +6890,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "refrigerate"
+      "ability": "refrigerate",
+      "vol": null
      },
      "without": null
     },
@@ -6771,7 +6916,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "innerfocus"
+      "ability": "innerfocus",
+      "vol": null
      }
     },
     {
@@ -6806,7 +6952,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "refrigerate"
+      "ability": "refrigerate",
+      "vol": null
      },
      "without": null
     },
@@ -6831,7 +6978,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "innerfocus"
+      "ability": "innerfocus",
+      "vol": null
      }
     },
     {
@@ -6891,7 +7039,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "adaptability"
+      "ability": "adaptability",
+      "vol": null
      },
      "without": null
     },
@@ -6916,7 +7065,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toxicdebris"
+      "ability": "toxicdebris",
+      "vol": null
      }
     },
     {
@@ -6951,7 +7101,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "adaptability"
+      "ability": "adaptability",
+      "vol": null
      },
      "without": null
     },
@@ -6976,7 +7127,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toxicdebris"
+      "ability": "toxicdebris",
+      "vol": null
      }
     },
     {
@@ -7036,7 +7188,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "unseenfist"
+      "ability": "unseenfist",
+      "vol": null
      },
      "without": null
     },
@@ -7061,7 +7214,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "ironfist"
+      "ability": "ironfist",
+      "vol": null
      }
     },
     {
@@ -7096,7 +7250,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "unseenfist"
+      "ability": "unseenfist",
+      "vol": null
      },
      "without": null
     },
@@ -7121,7 +7276,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "ironfist"
+      "ability": "ironfist",
+      "vol": null
      }
     },
     {
@@ -7181,7 +7337,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "protean"
+      "ability": "protean",
+      "vol": null
      },
      "without": null
     },
@@ -7206,7 +7363,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "torrent"
+      "ability": "torrent",
+      "vol": null
      }
     },
     {
@@ -7247,7 +7405,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "protean"
+      "ability": "protean",
+      "vol": null
      },
      "without": null
     },
@@ -7272,7 +7431,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "torrent"
+      "ability": "torrent",
+      "vol": null
      }
     },
     {
@@ -7338,7 +7498,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "moldbreaker"
+      "ability": "moldbreaker",
+      "vol": null
      },
      "without": null
     },
@@ -7363,7 +7524,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "intimidate"
+      "ability": "intimidate",
+      "vol": null
      }
     },
     {
@@ -7404,7 +7566,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "moldbreaker"
+      "ability": "moldbreaker",
+      "vol": null
      },
      "without": null
     },
@@ -7429,7 +7592,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "intimidate"
+      "ability": "intimidate",
+      "vol": null
      }
     },
     {
@@ -7593,7 +7757,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "noguard"
+      "ability": "noguard",
+      "vol": null
      },
      "without": null
     },
@@ -7618,7 +7783,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "limber"
+      "ability": "limber",
+      "vol": null
      }
     },
     {
@@ -7653,7 +7819,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "noguard"
+      "ability": "noguard",
+      "vol": null
      },
      "without": null
     },
@@ -7678,7 +7845,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "limber"
+      "ability": "limber",
+      "vol": null
      }
     },
     {
@@ -7811,7 +7979,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "skilllink"
+      "ability": "skilllink",
+      "vol": null
      },
      "without": null
     },
@@ -7836,7 +8005,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "swarm"
+      "ability": "swarm",
+      "vol": null
      }
     },
     {
@@ -7871,7 +8041,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "skilllink"
+      "ability": "skilllink",
+      "vol": null
      },
      "without": null
     },
@@ -7896,7 +8067,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "swarm"
+      "ability": "swarm",
+      "vol": null
      }
     },
     {
@@ -7956,7 +8128,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "solarpower"
+      "ability": "solarpower",
+      "vol": null
      },
      "without": null
     },
@@ -7981,7 +8154,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "earlybird"
+      "ability": "earlybird",
+      "vol": null
      }
     },
     {
@@ -8016,7 +8190,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "solarpower"
+      "ability": "solarpower",
+      "vol": null
      },
      "without": null
     },
@@ -8041,7 +8216,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "earlybird"
+      "ability": "earlybird",
+      "vol": null
      }
     },
     {
@@ -8307,7 +8483,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "parentalbond"
+      "ability": "parentalbond",
+      "vol": null
      },
      "without": null
     },
@@ -8332,7 +8509,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "earlybird"
+      "ability": "earlybird",
+      "vol": null
      }
     },
     {
@@ -8367,7 +8545,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "parentalbond"
+      "ability": "parentalbond",
+      "vol": null
      },
      "without": null
     },
@@ -8392,7 +8571,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "earlybird"
+      "ability": "earlybird",
+      "vol": null
      }
     },
     {
@@ -8914,7 +9094,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "scrappy"
+      "ability": "scrappy",
+      "vol": null
      },
      "without": null
     },
@@ -8939,7 +9120,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "cutecharm"
+      "ability": "cutecharm",
+      "vol": null
      }
     },
     {
@@ -8980,7 +9162,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "scrappy"
+      "ability": "scrappy",
+      "vol": null
      },
      "without": null
     },
@@ -9005,7 +9188,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "cutecharm"
+      "ability": "cutecharm",
+      "vol": null
      }
     },
     {
@@ -9071,7 +9255,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "adaptability"
+      "ability": "adaptability",
+      "vol": null
      },
      "without": null
     },
@@ -9096,7 +9281,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "steadfast"
+      "ability": "steadfast",
+      "vol": null
      }
     },
     {
@@ -9131,7 +9317,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "adaptability"
+      "ability": "adaptability",
+      "vol": null
      },
      "without": null
     },
@@ -9156,7 +9343,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "steadfast"
+      "ability": "steadfast",
+      "vol": null
      }
     },
     {
@@ -9308,7 +9496,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "contrary"
+      "ability": "contrary",
+      "vol": null
      },
      "without": null
     },
@@ -9333,7 +9522,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "contrary"
+      "ability": "contrary",
+      "vol": null
      }
     },
     {
@@ -9362,7 +9552,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "contrary"
+      "ability": "contrary",
+      "vol": null
      },
      "without": null
     },
@@ -9387,7 +9578,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "contrary"
+      "ability": "contrary",
+      "vol": null
      }
     },
     {
@@ -9465,7 +9657,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "intimidate"
+      "ability": "intimidate",
+      "vol": null
      },
      "without": null
     },
@@ -9490,7 +9683,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "static"
+      "ability": "static",
+      "vol": null
      }
     },
     {
@@ -9549,7 +9743,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "intimidate"
+      "ability": "intimidate",
+      "vol": null
      },
      "without": null
     },
@@ -9574,7 +9769,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "static"
+      "ability": "static",
+      "vol": null
      }
     },
     {
@@ -9634,7 +9830,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "hugepower"
+      "ability": "hugepower",
+      "vol": null
      },
      "without": null
     },
@@ -9659,7 +9856,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "hypercutter"
+      "ability": "hypercutter",
+      "vol": null
      }
     },
     {
@@ -9694,7 +9892,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "hugepower"
+      "ability": "hugepower",
+      "vol": null
      },
      "without": null
     },
@@ -9719,7 +9918,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "hypercutter"
+      "ability": "hypercutter",
+      "vol": null
      }
     },
     {
@@ -9779,7 +9979,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "purepower"
+      "ability": "purepower",
+      "vol": null
      },
      "without": null
     },
@@ -9804,7 +10005,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "purepower"
+      "ability": "purepower",
+      "vol": null
      }
     },
     {
@@ -9833,7 +10035,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "purepower"
+      "ability": "purepower",
+      "vol": null
      },
      "without": null
     },
@@ -9858,7 +10061,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "purepower"
+      "ability": "purepower",
+      "vol": null
      }
     },
     {
@@ -9912,7 +10116,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "megasol"
+      "ability": "megasol",
+      "vol": null
      },
      "without": null
     },
@@ -9937,7 +10142,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "overgrow"
+      "ability": "overgrow",
+      "vol": null
      }
     },
     {
@@ -9978,7 +10184,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "megasol"
+      "ability": "megasol",
+      "vol": null
      },
      "without": null
     },
@@ -10003,7 +10210,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "overgrow"
+      "ability": "overgrow",
+      "vol": null
      }
     },
     {
@@ -10130,7 +10338,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pressure"
+      "ability": "pressure",
+      "vol": null
      },
      "without": null
     },
@@ -10155,7 +10364,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "keeneye"
+      "ability": "keeneye",
+      "vol": null
      }
     },
     {
@@ -10190,7 +10400,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "pressure"
+      "ability": "pressure",
+      "vol": null
      },
      "without": null
     },
@@ -10215,7 +10426,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "keeneye"
+      "ability": "keeneye",
+      "vol": null
      }
     },
     {
@@ -10275,7 +10487,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toughclaws"
+      "ability": "toughclaws",
+      "vol": null
      },
      "without": null
     },
@@ -10300,7 +10513,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "clearbody"
+      "ability": "clearbody",
+      "vol": null
      }
     },
     {
@@ -10335,7 +10549,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "toughclaws"
+      "ability": "toughclaws",
+      "vol": null
      },
      "without": null
     },
@@ -10360,7 +10575,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "clearbody"
+      "ability": "clearbody",
+      "vol": null
      }
     },
     {
@@ -11165,7 +11381,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "noguard"
+      "ability": "noguard",
+      "vol": null
      },
      "without": null
     },
@@ -11190,7 +11407,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "keeneye"
+      "ability": "keeneye",
+      "vol": null
      }
     },
     {
@@ -11225,7 +11443,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "noguard"
+      "ability": "noguard",
+      "vol": null
      },
      "without": null
     },
@@ -11250,7 +11469,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "keeneye"
+      "ability": "keeneye",
+      "vol": null
      }
     },
     {
@@ -11310,7 +11530,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "aerilate"
+      "ability": "aerilate",
+      "vol": null
      },
      "without": null
     },
@@ -11335,7 +11556,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "hypercutter"
+      "ability": "hypercutter",
+      "vol": null
      }
     },
     {
@@ -11376,7 +11598,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "aerilate"
+      "ability": "aerilate",
+      "vol": null
      },
      "without": null
     },
@@ -11401,7 +11624,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "hypercutter"
+      "ability": "hypercutter",
+      "vol": null
      }
     },
     {
@@ -11528,7 +11752,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "firemane"
+      "ability": "firemane",
+      "vol": null
      },
      "without": null
     },
@@ -11553,7 +11778,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "rivalry"
+      "ability": "rivalry",
+      "vol": null
      }
     },
     {
@@ -11588,7 +11814,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "firemane"
+      "ability": "firemane",
+      "vol": null
      },
      "without": null
     },
@@ -11613,7 +11840,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "rivalry"
+      "ability": "rivalry",
+      "vol": null
      }
     },
     {
@@ -11703,7 +11931,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "electricsurge"
+      "ability": "electricsurge",
+      "vol": null
      },
      "without": null
     },
@@ -11728,7 +11957,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "static"
+      "ability": "static",
+      "vol": null
      }
     },
     {
@@ -11775,7 +12005,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "electricsurge"
+      "ability": "electricsurge",
+      "vol": null
      },
      "without": null
     },
@@ -11800,7 +12031,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "static"
+      "ability": "static",
+      "vol": null
      }
     },
     {
@@ -11860,7 +12092,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "noguard"
+      "ability": "noguard",
+      "vol": null
      },
      "without": null
     },
@@ -11885,7 +12118,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "static"
+      "ability": "static",
+      "vol": null
      }
     },
     {
@@ -11920,7 +12154,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "noguard"
+      "ability": "noguard",
+      "vol": null
      },
      "without": null
     },
@@ -11945,7 +12180,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "static"
+      "ability": "static",
+      "vol": null
      }
     },
     {
@@ -12193,7 +12429,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "magicbounce"
+      "ability": "magicbounce",
+      "vol": null
      },
      "without": null
     },
@@ -12218,7 +12455,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "keeneye"
+      "ability": "keeneye",
+      "vol": null
      }
     },
     {
@@ -12253,7 +12491,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "magicbounce"
+      "ability": "magicbounce",
+      "vol": null
      },
      "without": null
     },
@@ -12278,7 +12517,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "keeneye"
+      "ability": "keeneye",
+      "vol": null
      }
     },
     {
@@ -12338,7 +12578,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "lightningrod"
+      "ability": "lightningrod",
+      "vol": null
      },
      "without": null
     },
@@ -12363,7 +12604,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "overgrow"
+      "ability": "overgrow",
+      "vol": null
      }
     },
     {
@@ -12404,7 +12646,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "lightningrod"
+      "ability": "lightningrod",
+      "vol": null
      },
      "without": null
     },
@@ -12429,7 +12672,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "overgrow"
+      "ability": "overgrow",
+      "vol": null
      }
     },
     {
@@ -12495,7 +12739,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "technician"
+      "ability": "technician",
+      "vol": null
      },
      "without": null
     },
@@ -12520,7 +12765,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "swarm"
+      "ability": "swarm",
+      "vol": null
      }
     },
     {
@@ -12555,7 +12801,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "technician"
+      "ability": "technician",
+      "vol": null
      },
      "without": null
     },
@@ -12580,7 +12827,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "swarm"
+      "ability": "swarm",
+      "vol": null
      }
     },
     {
@@ -12640,7 +12888,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "shellarmor"
+      "ability": "shellarmor",
+      "vol": null
      },
      "without": null
     },
@@ -12665,7 +12914,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "poisonpoint"
+      "ability": "poisonpoint",
+      "vol": null
      }
     },
     {
@@ -12700,7 +12950,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "shellarmor"
+      "ability": "shellarmor",
+      "vol": null
      },
      "without": null
     },
@@ -12725,7 +12976,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "poisonpoint"
+      "ability": "poisonpoint",
+      "vol": null
      }
     },
     {
@@ -12803,7 +13055,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "spicyspray"
+      "ability": "spicyspray",
+      "vol": null
      },
      "without": null
     },
@@ -12828,7 +13081,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "chlorophyll"
+      "ability": "chlorophyll",
+      "vol": null
      }
     },
     {
@@ -12863,7 +13117,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "spicyspray"
+      "ability": "spicyspray",
+      "vol": null
      },
      "without": null
     },
@@ -12888,7 +13143,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "chlorophyll"
+      "ability": "chlorophyll",
+      "vol": null
      }
     },
     {
@@ -12972,7 +13228,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "intimidate"
+      "ability": "intimidate",
+      "vol": null
      },
      "without": null
     },
@@ -12997,7 +13254,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "shedskin"
+      "ability": "shedskin",
+      "vol": null
      }
     },
     {
@@ -13056,7 +13314,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "intimidate"
+      "ability": "intimidate",
+      "vol": null
      },
      "without": null
     },
@@ -13081,7 +13340,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "shedskin"
+      "ability": "shedskin",
+      "vol": null
      }
     },
     {
@@ -13202,7 +13462,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "strongjaw"
+      "ability": "strongjaw",
+      "vol": null
      },
      "without": null
     },
@@ -13227,7 +13488,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "roughskin"
+      "ability": "roughskin",
+      "vol": null
      }
     },
     {
@@ -13262,7 +13524,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "strongjaw"
+      "ability": "strongjaw",
+      "vol": null
      },
      "without": null
     },
@@ -13287,7 +13550,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "roughskin"
+      "ability": "roughskin",
+      "vol": null
      }
     },
     {
@@ -13664,7 +13928,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "stalwart"
+      "ability": "stalwart",
+      "vol": null
      },
      "without": null
     },
@@ -13689,7 +13954,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "keeneye"
+      "ability": "keeneye",
+      "vol": null
      }
     },
     {
@@ -13724,7 +13990,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "stalwart"
+      "ability": "stalwart",
+      "vol": null
      },
      "without": null
     },
@@ -13749,7 +14016,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "keeneye"
+      "ability": "keeneye",
+      "vol": null
      }
     },
     {
@@ -13809,7 +14077,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "shellarmor"
+      "ability": "shellarmor",
+      "vol": null
      },
      "without": null
     },
@@ -13834,7 +14103,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "oblivious"
+      "ability": "oblivious",
+      "vol": null
      }
     },
     {
@@ -13869,7 +14139,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "shellarmor"
+      "ability": "shellarmor",
+      "vol": null
      },
      "without": null
     },
@@ -13894,7 +14165,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "oblivious"
+      "ability": "oblivious",
+      "vol": null
      }
     },
     {
@@ -14149,7 +14421,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "contrary"
+      "ability": "contrary",
+      "vol": null
      },
      "without": null
     },
@@ -14174,7 +14447,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "intimidate"
+      "ability": "intimidate",
+      "vol": null
      }
     },
     {
@@ -14215,7 +14489,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "contrary"
+      "ability": "contrary",
+      "vol": null
      },
      "without": null
     },
@@ -14240,7 +14515,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "intimidate"
+      "ability": "intimidate",
+      "vol": null
      }
     },
     {
@@ -14306,7 +14582,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "hugepower"
+      "ability": "hugepower",
+      "vol": null
      },
      "without": null
     },
@@ -14331,7 +14608,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "illuminate"
+      "ability": "illuminate",
+      "vol": null
      }
     },
     {
@@ -14366,7 +14644,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "hugepower"
+      "ability": "hugepower",
+      "vol": null
      },
      "without": null
     },
@@ -14391,7 +14670,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "illuminate"
+      "ability": "illuminate",
+      "vol": null
      }
     },
     {
@@ -14451,7 +14731,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandforce"
+      "ability": "sandforce",
+      "vol": null
      },
      "without": null
     },
@@ -14476,7 +14757,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "rockhead"
+      "ability": "rockhead",
+      "vol": null
      }
     },
     {
@@ -14511,7 +14793,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandforce"
+      "ability": "sandforce",
+      "vol": null
      },
      "without": null
     },
@@ -14536,7 +14819,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "rockhead"
+      "ability": "rockhead",
+      "vol": null
      }
     },
     {
@@ -14596,7 +14880,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "swiftswim"
+      "ability": "swiftswim",
+      "vol": null
      },
      "without": null
     },
@@ -14621,7 +14906,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "torrent"
+      "ability": "torrent",
+      "vol": null
      }
     },
     {
@@ -14656,7 +14942,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "swiftswim"
+      "ability": "swiftswim",
+      "vol": null
      },
      "without": null
     },
@@ -14681,7 +14968,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "torrent"
+      "ability": "torrent",
+      "vol": null
      }
     },
     {
@@ -14887,7 +15175,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandstream"
+      "ability": "sandstream",
+      "vol": null
      },
      "without": null
     },
@@ -14912,7 +15201,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandstream"
+      "ability": "sandstream",
+      "vol": null
      }
     },
     {
@@ -14941,7 +15231,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandstream"
+      "ability": "sandstream",
+      "vol": null
      },
      "without": null
     },
@@ -14966,7 +15257,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "sandstream"
+      "ability": "sandstream",
+      "vol": null
      }
     },
     {
@@ -15020,7 +15312,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "thickfat"
+      "ability": "thickfat",
+      "vol": null
      },
      "without": null
     },
@@ -15045,7 +15338,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "overgrow"
+      "ability": "overgrow",
+      "vol": null
      }
     },
     {
@@ -15080,7 +15374,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "thickfat"
+      "ability": "thickfat",
+      "vol": null
      },
      "without": null
     },
@@ -15105,7 +15400,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "overgrow"
+      "ability": "overgrow",
+      "vol": null
      }
     },
     {
@@ -15165,7 +15461,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "innardsout"
+      "ability": "innardsout",
+      "vol": null
      },
      "without": null
     },
@@ -15190,7 +15487,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "chlorophyll"
+      "ability": "chlorophyll",
+      "vol": null
      }
     },
     {
@@ -15225,7 +15523,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "innardsout"
+      "ability": "innardsout",
+      "vol": null
      },
      "without": null
     },
@@ -15250,7 +15549,8 @@
        "accuracy": 0,
        "evasion": 0
       },
-      "ability": "chlorophyll"
+      "ability": "chlorophyll",
+      "vol": null
      }
     },
     {
