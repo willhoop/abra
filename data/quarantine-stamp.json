@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. citation_sites may SHRINK and may never grow while the MEDICHAM quarantine is closed. A new entry means a withheld figure was just published somewhere.",
   "source_digests": {
-    "engine/quarantine.js": "64fb9af0a087",
+    "engine/quarantine.js": "6e0d873751b5",
     "engine/provenance.js": "58ccb92d8075",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
@@ -29,11 +29,13 @@
     "feature-audit.json",
     "feature-engine-contrast.json",
     "feature-shift.json",
+    "immunity-sweep.json",
     "ladder.json",
     "leaf-engine-contrast.json",
     "leaf-position-contrast.json",
     "lookahead-cost.json",
     "mag.js",
+    "medicham-represented-clicks.json",
     "mew.js",
     "million-run-150k.json",
     "million-run-staged.json",
@@ -77,5 +79,5 @@
     "web/build-status.js",
     "web/publish-rule.js"
   ],
-  "generated": "2026-08-23T13:11:52.271Z"
+  "generated": "2026-08-25T22:54:04.542Z"
 }

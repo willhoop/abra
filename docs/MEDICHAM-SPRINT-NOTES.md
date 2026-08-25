@@ -13763,3 +13763,48 @@ clause now reads **2** red rows (#218, #273) instead of 3; it still FAILS and no
 was held); `node engine/register_reality.js` (its #273 entry is a refusal spelled as a red: exit 1 after
 4,980 ms against a ~25 s run); and an `ABRA-EXIT` declaration for `tests/probe_red_demo.js` so
 `classifyExit` can stop publishing a crashed run as a defect.
+
+---
+
+## THE SWITCH INDEX WAS NOT THE BUG; THE TRAP IS EVALUATED ONE PHASE TOO LATE — 2026-08-25 (MEASURE).
+
+Full account: [`docs/_reports/2026-08-25-switch-index-instrument.md`](_reports/2026-08-25-switch-index-instrument.md).
+
+ENGINE handed over the last two board-material *"a chosen switch the authority performs and medicham2
+does not"* games with the harness named as the suspect: `engine/game_differential.js` sends `switch N`
+against a `side.pokemon` array Showdown **reorders** (`sim/battle-actions.ts:118-132`). Right first
+suspect — the ruler has been the culprit five times in two days — and **REFUTED**.
+
+The harness resolves that index off the LIVE array, by species, immediately before `battle.choose`, and
+it now says so with its own counter instead of being read. Release `2ecd3bdc274b`, `--games 1200`
+(961 played), frozen pool, census `9446a684709d`, cap 12: **63,258 switch indices sent, 43,125 of them
+against an already-permuted party, 0 MISADDRESSED.** Shown RED first —
+`MEDI_SWITCH_BY_INITIAL_INDEX=1` restores the cached-index bug and gives 4,932 misaddressed, 1,796
+choices refused by Showdown and 901 of 961 games thrown. **Zero of the 23 first divergences on this
+release are a switch-addressing artefact.**
+
+**The real mechanism is ENGINE's and it is ONE defect for both games.** medicham2 evaluates
+`preventsSwitch` at switch-EXECUTION time; Showdown evaluates it at CHOICE time and never re-asks, so a
+Gengar-Mega (the format's only legal carrier, derived) arriving on an earlier switch in the same turn
+retro-cancels a switch this engine had already been told to make. `tests/probe_trap_timing.js` isolates
+it in five arms: A (the trapper ARRIVES) parts, B (no trap), C (Shed Shell) and D (Ghost victim) agree,
+and E (the trapper already in place) is refused by the AUTHORITY in its own words —
+*"Can't switch: The active Pokémon is trapped"*.
+
+**Predicted effect of the fix, stated before it is taken:** 23 → 21 raw, gate **18 → 16 of 961**,
+board-material 10 causes → 8. Honest range 21–22 / 16–17 / 8–9, because the `omit-protect` game may
+simply re-part later once turn 8 stops stopping it. More than two leaving is a finding.
+
+**A second instrument defect, found on the way and fixed.** `freshBodies` dropped `_switchKey`, so it
+was `undefined` on every body this instrument has ever played and the medicham switch lookup always
+fell through to `id(x.name)` — the mutable display name Disguise, Zero to Hero and Hunger Switch all
+change mid-game. CLAUDE.md names that cause already (Morpeko) and it was still live.
+**Nothing in the pool moved and that is the check:** 23 of 961 parted before and after,
+`first_divergences` identical row for row, `planted_divergence_proof_ok` still true.
+**No census count moved and none is claimed** (706 probed / 706 live / 0 missing). No quarantine lifts.
+
+**OWED, NOT RUN:** the trap fix itself (ENGINE) and the re-measure at these pins; the move-trap and
+Fairy Lock branches, which share the block and were never probed for the same choice-time gap; the
+switch-addressing audit at `--turns 30`, the only cap it has not been asked at; and `run-all`, which
+reports 29 of 163 red on this tree — three of the four differential-loading failures are red at HEAD
+and unrelated, checked one at a time.

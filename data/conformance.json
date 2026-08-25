@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-24T20:03:11.816Z",
+ "generated": "2026-08-25T22:52:01.776Z",
  "by": "engine/conformance.js",
- "files": 471,
+ "files": 476,
  "findings": [
   {
    "std": "S12",
@@ -189,6 +189,17 @@
    "file": "engine/illusion.js",
    "what": "no opening comment",
    "why": "every file states why it exists"
+  },
+  {
+   "std": "S12",
+   "file": "engine/immunity_sweep.js",
+   "what": "names 3 Pokemon thing(s) in code: move:ragepowder, ability:levitate, ability:prankster",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "ability:levitate",
+    "ability:prankster",
+    "move:ragepowder"
+   ]
   },
   {
    "std": "convention",
@@ -575,6 +586,12 @@
   {
    "std": "S12",
    "file": "tests/probe_trace_choice.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_trap_timing.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },

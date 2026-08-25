@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 26 unsafe, 1 void (declared), 115 possibly stale, 92 ok, 0 missing
+  provenance: 24 unsafe, 1 void (declared), 113 possibly stale, 96 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -35,7 +35,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-25 04:05
 ```
 
-_stamped 2026-08-25 18:05_
+_stamped 2026-08-25 18:57_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,37 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### CLOSED. THE SWITCH INDEX WAS NOT THE BUG — 2026-08-25
+
+Full account: `docs/_reports/2026-08-25-switch-index-instrument.md`.
+
+ENGINE handed over the last two board-material "a chosen switch the authority performs and medicham2
+does not" games with the harness named as the suspect: `engine/game_differential.js` sends `switch N`
+against a `side.pokemon` array Showdown **reorders** (`sim/battle-actions.ts:118-132`), so a cached
+index would not name the same body twice. Right first suspect — in this repo the ruler has been the
+culprit five times in two days — and **refuted**.
+
+The instrument resolves that index off the LIVE array, by species, immediately before `battle.choose`.
+It now says so with its own counter rather than by being read: release `2ecd3bdc274b`, 961 games,
+**63,258 switch indices sent, 43,125 of them against an already-permuted party, 0 MISADDRESSED.**
+The counter has been shown RED — `MEDI_SWITCH_BY_INITIAL_INDEX=1` restores the cached-index bug and
+produces 4,932 misaddressed, 1,796 choices refused by Showdown and 901 of 961 games thrown.
+**Zero of the 23 first divergences on this release are a switch-addressing artefact**, so every
+board-material figure taken on this instrument stands.
+
+The real mechanism is **ENGINE's and is one defect for both games**: medicham2 evaluates
+`preventsSwitch` at switch-EXECUTION time while Showdown evaluates it at CHOICE time and never
+re-asks, so a Gengar-Mega arriving on an earlier switch in the same turn retro-cancels a switch this
+engine had already been told to make. `tests/probe_trap_timing.js` isolates it in five arms with the
+authority's own refusal as the positive control. Predicted effect of the fix, stated before it is
+taken: 23 → 21 raw, gate 18 → 16 of 961, board-material 10 causes → 8, honest range 21–22 / 16–17 / 8–9.
+
+**A second instrument defect was found on the way and fixed**: `freshBodies` dropped `_switchKey`, so
+it was `undefined` on every body this instrument has ever played and the medicham switch lookup has
+always fallen through to the mutable display name. CLAUDE.md already names that cause (Morpeko) and it
+was still live. Predicted before the run — misses stay 3, diverged stays 23 — and measured exactly so.
+A dead safety net looks exactly like a working one.
 
 ### CLOSED. THE PLANTED-STATE PROOF WAS FAILING ON THE FIXTURE, NOT THE COMPARATOR — 2026-08-25
 

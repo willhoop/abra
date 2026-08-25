@@ -10,6 +10,79 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.131.3] — 2026-08-25
+
+### Fixed
+- **`engine/game_differential.js` NOW CARRIES `_switchKey` ONTO THE BODIES THAT ACTUALLY PLAY.**
+  `buildPair` stamped it; `playGame` rebuilds every side through `freshBodies`, which reads the SPEC
+  and never saw it — so the key was `undefined` on all eight bodies of every game this instrument has
+  ever played, and the medicham-side switch lookup has always fallen through to `id(x.name)`, the
+  mutable display name the comment above it says it must not use (Disguise, Zero to Hero and Hunger
+  Switch all rename a body mid-game). Measured, not inferred:
+  `freshBodies(buildPair([...])).map(b => b._switchKey)` read `[undefined x4]`. CLAUDE.md already
+  names this cause — "`game_differential.js`'s `freshBodies` dropping `_switchKey`", Morpeko — and it
+  was still live. The key is now carried on the spec: one source, two readers.
+  Predicted before the run and then measured: `medicham_lookup_missed` stays 3, `diverged` stays 23,
+  because all three misses are bodies genuinely absent from our bench rather than name mismatches.
+  A dead safety net looks exactly like a working one.
+
+### Added
+- **THE HARNESS AUDITS ITS OWN SWITCH ADDRESSING, AND THE AUDIT IS IN THE ARTIFACT.**
+  `switch_addressing` in `data/game-differential.json`: every `switch N` sent to Showdown is read
+  back against `Side.chooseSwitch`'s own rule — the slot holds the intended species and it is a BENCH
+  slot — and the party is recorded as permuted-or-not so the denominator is visible. Release
+  `2ecd3bdc274b`, 961 games: **63,258 sent, 43,125 of them against an already-permuted party,
+  0 MISADDRESSED.**
+- **`MEDI_SWITCH_BY_INITIAL_INDEX=1` — the positive control**, which resolves the index against the
+  party order snapshotted at the game's first choice, i.e. exactly the cached-index bug that was
+  hypothesised. Shown RED before the counter was trusted: 4,932 misaddressed, 1,796 choices refused
+  by Showdown (*"Can't switch: You can't switch to an active Pokémon"*), 901 of 961 games thrown.
+- **`tests/probe_trap_timing.js`** — five arms, staged as data, isolating an ENGINE defect that both
+  remaining "a chosen switch the authority performs and medicham2 does not" games turn out to be.
+  A (the trapper ARRIVES this turn) parts; B (no trap), C (Shed Shell) and D (Ghost victim) agree;
+  E (the trapper already on the field) is refused by the AUTHORITY at choice time in its own words —
+  *"Can't switch: The active Pokémon is trapped"*. It is a probe, not a gate, and is not registered
+  in `tests/run-all.js`.
+- **`switch lookups that MISSED` now NAMES the body and the game.** `medicham 3` is unactionable;
+  `omit-protect t9 ... wanted metagross bench[crabominable]` is a diagnosis. All three on this
+  release are downstream of a board that had already parted, or in the stones-removed control leg.
+
+### Notes
+- **THE PREMISE HANDED TO MEASURE WAS REFUTED, AND THAT IS THE RESULT.** ENGINE named the harness as
+  the suspect behind the last two board-material switch games — `switch N` against a `side.pokemon`
+  array Showdown reorders. The instrument resolves that index off the LIVE array immediately before
+  `battle.choose` and is right 63,258 times out of 63,258. **Zero of the 23 first divergences on this
+  release are a switch-addressing artefact.**
+- **THE REAL MECHANISM IS ENGINE'S**: medicham2 evaluates `preventsSwitch` at switch-EXECUTION time
+  while Showdown evaluates it at CHOICE time and never re-asks, so a Gengar-Mega arriving on an
+  earlier switch in the same turn retro-cancels a switch this engine had already been told to make.
+  Gengar-Mega is the format's only legal `preventsSwitch` carrier, derived rather than recalled.
+  Predicted effect of the fix, stated before it is taken: 23 → 21 raw, gate 18 → 16 of 961,
+  board-material 10 causes → 8, with an honest range of 21–22 / 16–17 / 8–9.
+- **NOTHING IN THE POOL MOVED AND THAT IS THE CHECK.** Same release `2ecd3bdc274b`, same
+  `--games 1200` pair budget (961 played), same frozen pool, same census pin, cap 12: 23 of 961
+  parted before and after, `first_divergences` identical row for row, `planted_divergence_proof_ok`
+  still true. Everything here is instrumentation; if the pool had moved, the instrumentation would
+  have been changing the game and the run would be void.
+- **`tests/test-switch-back-renamed.js` PART 1 IS INVERTED, AND THE OLD SENSE IS RECORDED RATHER THAN
+  DELETED.** It asserted the DEFECT — "the stamp is written by buildPair and dropped by freshBodies" —
+  so it failed on the fix. It now asserts the fixed state, and asserts more than "something is
+  stamped": both readers must produce a key AND the two lists must be equal, because a `freshBodies`
+  key that disagreed with `buildPair`'s would be a second implementation of one fact and would read
+  healthy. The arm count is unchanged at 3 of 4 with 1 declared KNOWN-OPEN, before and after — the
+  `hungerswitch` arm was already passing through the `id(x.name)` fallback, which is exactly why the
+  dead key was invisible. Its sufficiency arm is relabelled a redundancy control.
+- **THE STANDING RED COUNT IS NOT MINE AND IS NOT CLAIMED CLEAN.** `tests/run-all.js` reports 29 of
+  163 checks failing on this tree. The four that touch `engine/game_differential.js` were each run
+  against `HEAD` with this change stashed: `test-assert-mode`, `test-engine-diff` and `test-pin-arms`
+  are red at HEAD and are unrelated to this pass; `test-switch-back-renamed` is green at HEAD and
+  green now. Gates run green after this change: `test-game-differential`, `test-forced-switch-mirror`,
+  `test-forced-switch`, `test-game-diff`, `test-end-state`, `test-middle-identity`,
+  `test-roster-arm-pin`, `test-encore-fail-silent`, `test-docs-current`.
+- Account: `docs/_reports/2026-08-25-switch-index-instrument.md`.
+
+---
+
 ## [5.131.2] — 2026-08-25
 
 ### Added

@@ -82,9 +82,11 @@ const ARMS = [
         + 'the driver names every candidate by — its base species.',
     lead: mk('Morpeko', 'Hunger Switch', ['Aura Wheel']), trigger: null },
   { id: 'hungerswitch-restamped', subject: 'morpeko', ask: 'morpeko', restamp: true,
-    what: 'THE SUFFICIENCY ARM. Identical board, with the stamp `freshBodies` drops put back on the '
-        + 'bench bodies one boundary before the ask — no file edited, the fix simulated in place. If '
-        + 'the ask then resolves, the missing stamp is the mechanism.',
+    what: 'THE SUFFICIENCY ARM, NOW A REDUNDANCY CONTROL. It restamps `_switchKey` on the bench '
+        + 'bodies one boundary before the ask. Until 2026-08-25 that was the fix simulated in place, '
+        + 'because `freshBodies` dropped the stamp; the stamp now survives construction, so this arm '
+        + 'restamps what is already stamped and MUST agree exactly as the arm above does. If the two '
+        + 'ever disagree again, the key has stopped reaching the played bodies.',
     lead: mk('Morpeko', 'Hunger Switch', ['Aura Wheel']), trigger: null },
   { id: 'mega-base-key', subject: 'abomasnow', ask: 'abomasnow',
     what: 'A MEGA is a permanent rename, so BOTH engines hold abomasnow-mega and the ask still says '
@@ -168,12 +170,25 @@ const p0 = G0.buildPair([mk('Morpeko', 'Hunger Switch', ['Aura Wheel']),
 const f0 = G0.freshBodies(p0);
 const stampedByBuildPair = p0.map(x => (x && x.medi && x.medi._switchKey) || null);
 const stampedByFresh = f0.map(b => (b && b._switchKey) || null);
-const part1 = stampedByBuildPair.every(Boolean) && stampedByFresh.every(x => x == null);
-say('  PART 1 — THE STAMP THAT DOES NOT SURVIVE CONSTRUCTION');
+/* INVERTED 2026-08-25 (CHANGELOG 5.131.3), AND THE OLD SENSE IS RECORDED RATHER THAN DELETED.
+ *
+ * This asserted the DEFECT: `buildPair` stamps `_switchKey` and `freshBodies` drops it, so the key
+ * was `undefined` on every body this instrument has ever played and the medicham-side switch lookup
+ * always fell through to `id(x.name)` — the mutable display name, which Disguise, Zero to Hero and
+ * Hunger Switch all change mid-game. That is exactly what the arms below were built to demonstrate,
+ * and CLAUDE.md names it as the cause of Morpeko's divergences.
+ *
+ * `freshBodies` now carries the key off the spec, so the assertion has to flip or it fails on the
+ * fix. It asserts the FIXED state and not merely "something is stamped": both readers must produce a
+ * key AND the two must be the same list, because a freshBodies key that disagreed with buildPair's
+ * would be a second implementation of the same fact and would read healthy here. */
+const part1 = stampedByBuildPair.every(Boolean) && stampedByFresh.every(Boolean)
+           && JSON.stringify(stampedByBuildPair) === JSON.stringify(stampedByFresh);
+say('  PART 1 — THE STAMP MUST SURVIVE CONSTRUCTION (it did not until 2026-08-25)');
 say('    buildPair   _switchKey: ' + JSON.stringify(stampedByBuildPair));
 say('    freshBodies _switchKey: ' + JSON.stringify(stampedByFresh) + '   <- what every PLAYED game uses');
-say('    ' + (part1 ? 'CONFIRMED' : 'NOT CONFIRMED')
-    + ' — the stamp is written by buildPair and dropped by freshBodies');
+say('    ' + (part1 ? 'ok  ' : 'FAIL')
+    + ' — the two readers agree, so the played bodies carry the key buildPair stamped');
 
 const results = [];
 let failed = 0, declaredCount = 0;

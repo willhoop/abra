@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-25T21:51:25.432Z",
+  "generated": "2026-08-25T22:37:01.443Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:6a6b87eafc6a/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -102,7 +102,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 88.7,
+  "elapsed_s": 89.2,
   "credit_turn_profile": {
     "rows_with_any_credit": 252,
     "credits_with_no_turn_index": 0,
@@ -229,6 +229,25 @@
     }
   ],
   "planted_divergence_proof_ok": true,
+  "switch_addressing": {
+    "sent": 63258,
+    "after_permutation": 43125,
+    "misaddressed": 0,
+    "first_bad": null,
+    "by_initial_index_control": false,
+    "medicham_lookup_missed": 3,
+    "showdown_lookup_missed": 0,
+    "lookup_missed_bodies": {
+      "floetteeternal": 1,
+      "incineroar": 1,
+      "metagross": 1
+    },
+    "lookup_missed_where": [
+      "baseline t7 gen9championsvgc2026regmb-2635328192 vs gen9championsvgc2026regmb-2635033305 [stones removed] wanted floetteeternal bench[incineroar/incineroar]",
+      "baseline t12 gen9championsvgc2026regmb-2634782171 vs gen9championsvgc2026regmb-2635176997 [stones removed] wanted incineroar bench[]",
+      "omit-protect t9 gen9championsvgc2026regmbbo3-2656624602 vs gen9championsvgc2026regmbbo3-2657402800 wanted metagross bench[crabominable/crabominable]"
+    ]
+  },
   "rate_excludes": "both engines are built with 0 EVs and 31 IVs and each DERIVES its own stat line (nature mode: real), so they agree before AND after a forme change without either being told the other's answer. THE SPREADS ARE ABSENT AND ALWAYS WILL BE: an open team sheet does not reveal them (`\"evs\": null` on every stored body), so this instrument tests RULES and not the stat lines the ladder actually brings — the NATURE narrows that gap and does not close it. Mega bodies ARE tested as of ROADMAP #31 (2626 stone sets kept, 0 stripped from the measured arm).",
   "mega": {
     "why": "the 2026-08-06 run stripped 460 stone sets and tested ZERO mega bodies in a ~26%-mega format. medicham2 now evolves on a CHOICE mid-turn, so the stones stay on and every pair is played TWICE — the difference between the two arms IS what megas cost.",
@@ -14437,7 +14456,7 @@
   "baseline_comparability": null,
   "engine_release": "2ecd3bdc274b",
   "engine_release_cut": "2026-08-25T21:46:00.919Z",
-  "engine_release_cuts": 5,
+  "engine_release_cuts": 8,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
     "engine/medicham2-browser.js": "1d4705a4a403",

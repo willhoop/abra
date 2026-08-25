@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-23T13:03:02.941Z",
+  "generated": "2026-08-25T22:55:41.681Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
@@ -197,7 +197,7 @@
     ],
     "megas": 76
   },
-  "pool_why": "A species with no MC.mons row can never be drawn, so it is invisible to `compared`. Resolved through engine/mc_key.js, the one doorway; a raw buildMon(id.toLowerCase()) dropped every hyphenated forme and all 76 megas in silence.",
+  "pool_why": "A species with no MC.mons row can never be drawn, so it is invisible to `compared`. Resolved through engine/mc_key.js, the one doorway; a raw flattened lookup dropped every hyphenated forme and all 76 megas in silence.",
   "controls": "both leads are really sent out on the Showdown side, so MEDICHAM is given the same switch-in (Intimidate, weather setters) through the engine's own applyEntryEffects/applyIntimidate; and the defender ability's onTryHit is asked directly, because Showdown's moveHit entry point does not run it.",
   "touched": {
     "intimidate": 6,

@@ -2070,7 +2070,30 @@ let STONES_STRIPPED = 0, STONES_KEPT = 0, TEAMS_UNBUILDABLE = 0, MONS_UNBUILDABL
 let MCKEY_MISSED = 0;
 /* A declared switch that one engine could not resolve. MUST read 0/0: a miss means that side PASSED
  * while the other switched, which is a different board and was previously invisible. */
-const SWITCH_LOOKUP_MISS = { medi: 0, sd: 0 };   /* species mc_key had no row for; the raw id is tried and the body is usually skipped */
+const SWITCH_LOOKUP_MISS = { medi: 0, sd: 0, names: Object.create(null), where: [] };   /* species mc_key had no row for; the raw id is tried and the body is usually skipped */
+/* 2026-08-25, MEASURE — AND IT NAMES THE BODY. `medicham 3` is unactionable; `palafinhero 3` is a
+ * one-line fix. A count with no handle on it is the same failure as a silent default. */
+/* 2026-08-25, MEASURE — DOES `switch N` NAME THE BODY THIS HARNESS MEANT, AFTER THE PARTY HAS MOVED?
+ *
+ * `sim/battle-actions.ts:118-132` — a switch SWAPS PARTY INDICES. `side.pokemon` is the index space
+ * `switch N` addresses (`Side.chooseSwitch`: `const targetPokemon = this.pokemon[slot]`), and every
+ * switch already performed in that game has permuted it. An index captured before a switch does not
+ * name the same body afterwards, so a harness that CACHED one would accuse the engine of a missing
+ * switch that the harness itself misaddressed. ENGINE named this as the live suspect behind the two
+ * remaining "a chosen switch the authority performs and medicham2 does not" games.
+ *
+ * IT IS NOT A GUESS EITHER WAY NOW. `str()` reads the index back off the authority's own array on
+ * every switch it sends and checks three things against `chooseSwitch`'s own rule: the slot holds the
+ * intended species, it is a BENCH slot (`slot >= active.length`, which is the line Showdown refuses
+ * on), and the party is recorded as PERMUTED-or-not so the denominator is visible. `misaddressed`
+ * must read 0; `after_permutation` must be LARGE, or the run never met the hazard and proves nothing.
+ *
+ * MEDI_SWITCH_BY_INITIAL_INDEX=1 IS THE POSITIVE CONTROL. It resolves the index against the party
+ * order snapshotted at the first choice of the game — exactly the cached-index bug hypothesised —
+ * so the counter can be shown RED. A probe that has never been red is a probe with no evidence. */
+const SWITCH_BY_INITIAL_INDEX = process.env.MEDI_SWITCH_BY_INITIAL_INDEX === '1';
+const SWITCH_ADDRESSING = { sent: 0, after_permutation: 0, misaddressed: 0, first_bad: null };
+const INITIAL_PARTY = new WeakMap();
 let ALIGN_MOVED = 0;   // a stat the alignment had to CHANGE — must be 0 outside the hpBoost arms
 const ALIGN_MOVED_WHO = new Map();   // ...and WHICH body, because a bare 21 cannot be acted on
 /* ROADMAP #31 — THE EVOLUTION COUNTERS, PRINTED EVERY RUN AND A ZERO CALLED OUT LOUDLY. Mega has
@@ -2234,7 +2257,18 @@ function buildPair(sheet, opts) {
     const evs = spreadFor(picked.length, sp);
     const spTeam = { at: evs.atk, df: evs.def, sa: evs.spa, sd: evs.spd, sp: evs.spe };
     picked.push({ medi: b, spec: { key, moves: b.moves.slice(), item, ability, hpx, bs: sp.baseStats,
-                                   nature, sp: spTeam, ident: sp.baseSpecies || sp.name }, sd: {
+                                   nature, sp: spTeam, ident: sp.baseSpecies || sp.name,
+                                   /* 2026-08-25, MEASURE — CARRIED ON THE SPEC, BECAUSE THE BODY IT WAS
+                                    * STAMPED ON IS NOT THE BODY THAT PLAYS. `playGame` rebuilds every
+                                    * side through `freshBodies`, which reads THIS OBJECT and never saw
+                                    * `b._switchKey` — so the key above was undefined on all eight
+                                    * bodies of every game ever played by this instrument and the
+                                    * medicham lookup has always fallen through to `id(x.name)`, the
+                                    * mutable display state the comment above says it must not use.
+                                    * Named in CLAUDE.md as the cause of Morpeko's divergences and
+                                    * still live tonight, measured: `freshBodies(...).map(b=>b._switchKey)`
+                                    * reads `[undefined x4]`. One source, two readers. */
+                                   switchKey: id(sp.id || sp.name) }, sd: {
       name: sp.name, species: sp.name,
       /* GENDER IS 'N' ON BOTH SIDES. Showdown writes the gender into the `|switch|` details field
        * (`Incineroar, L50, F`) and medicham2 has no gender at all, so a declared gender would part
@@ -2402,6 +2436,8 @@ function freshBodies(pair) {
      * representations, and `baseSpecies` is the dex's own field rather than string arithmetic on a
      * forme name. medicham2 keeps its own convention when nobody stamps one. */
     if (x.spec.ident) b._ident = x.spec.ident;
+    /* 2026-08-25 — AND THE SWITCH KEY, which buildPair stamps and this used to drop. See the spec. */
+    if (x.spec.switchKey) b._switchKey = x.spec.switchKey;
     /* HP BOOST — opt-in, staged measurements only, and it exists for one reason: A DAMAGE RATIO
      * CANNOT BE READ OFF A BODY THAT DIED. Showdown clamps the recorded HP loss at the target's max,
      * so the first run of the Knock Off arms read 135 / 135 / 135 — three different multipliers all
@@ -3442,6 +3478,12 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
                       || bench.find(x => x && !x.fainted && id(x.name) === a.switchTo);
             if (want) { map.set(mon, { kind: 'switch', to: want }); return; }
             SWITCH_LOOKUP_MISS.medi++;
+            SWITCH_LOOKUP_MISS.names[a.switchTo] = (SWITCH_LOOKUP_MISS.names[a.switchTo] || 0) + 1;
+            /* AND WHERE. A miss makes THIS engine pass while the authority switches, so it is a
+             * MANUFACTURED divergence — a count of 3 that cannot be told apart from 3 real engine
+             * defects is exactly the ruler-versus-engine confusion this counter exists to settle. */
+            SWITCH_LOOKUP_MISS.where.push(cfgId + ' t' + (t + 1) + ' ' + seedTag + ' wanted ' + a.switchTo
+              + ' bench[' + bench.filter(Boolean).map(x => (x._switchKey || '?') + '/' + id(x.name)).join(' ') + ']');
             map.set(mon, { kind: 'pass' }); return;
           }
           /* THE ONE DISPATCH, AND THE ONE PLACE THE AIM IS COUNTED. `own` is this side's actives, so
@@ -3468,8 +3510,28 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
           const a = acts[i];
           if (!p || p.fainted || !a || a.pass) return 'pass';
           if (a.switchTo != null) {
-            const j = side.pokemon.findIndex(q => !q.isActive && !q.fainted && id(q.species.id) === a.switchTo);
+            /* SNAPSHOTTED ON FIRST USE, WHICH IS TURN 1 — before Showdown has resolved anything, so
+             * this is the party as built. Per SIDE, because a side's array is permuted only by that
+             * side's own switches. */
+            if (!INITIAL_PARTY.has(side)) INITIAL_PARTY.set(side, side.pokemon.slice());
+            const init = INITIAL_PARTY.get(side);
+            const permuted = side.pokemon.some((q, n) => q !== init[n]);
+            const live = q => !q.isActive && !q.fainted && id(q.species.id) === a.switchTo;
+            /* THE LIVE ARRAY IS THE ONE SHOWDOWN INDEXES. `init` is the control's stale one. */
+            const j = (SWITCH_BY_INITIAL_INDEX ? init : side.pokemon).findIndex(live);
             if (j < 0) SWITCH_LOOKUP_MISS.sd++;
+            else {
+              SWITCH_ADDRESSING.sent++;
+              if (permuted) SWITCH_ADDRESSING.after_permutation++;
+              const named = side.pokemon[j];
+              if (!named || id(named.species.id) !== a.switchTo || j < side.active.length) {
+                SWITCH_ADDRESSING.misaddressed++;
+                if (!SWITCH_ADDRESSING.first_bad) SWITCH_ADDRESSING.first_bad =
+                  'asked for ' + a.switchTo + ', `switch ' + (j + 1) + '` names '
+                  + (named ? id(named.species.id) + (j < side.active.length ? ' (an ACTIVE slot)' : '') : 'nothing')
+                  + (permuted ? ' — party permuted' : ' — party NOT permuted');
+              }
+            }
             return j >= 0 ? 'switch ' + (j + 1) : 'pass';
           }
           return 'move ' + a.slot + (a.target != null ? ' ' + a.target : '') + (a.mega ? ' mega' : '');
@@ -6817,7 +6879,19 @@ console.log('    ' + TEAMS_UNBUILDABLE + ' teams and ' + MONS_UNBUILDABLE + ' in
  * colours, Sinistcha's masterpiece — and nothing else. If this climbs on ORDINARY species the alias
  * table is broken, not the pool, and the bodies behind it were skipped rather than measured. */
 console.log('    switch lookups that MISSED: medicham ' + SWITCH_LOOKUP_MISS.medi + ', showdown ' + SWITCH_LOOKUP_MISS.sd
-  + ((SWITCH_LOOKUP_MISS.medi || SWITCH_LOOKUP_MISS.sd) ? '  <-- MUST READ 0. A miss means that side PASSED while the other switched.' : '  (must read 0)'));
+  + ((SWITCH_LOOKUP_MISS.medi || SWITCH_LOOKUP_MISS.sd) ? '  <-- MUST READ 0. A miss means that side PASSED while the other switched.' : '  (must read 0)')
+  + (Object.keys(SWITCH_LOOKUP_MISS.names).length
+      ? '\n      the bodies it could not find: ' + Object.entries(SWITCH_LOOKUP_MISS.names).map(([k, v]) => k + ' x' + v).join(', ')
+        + SWITCH_LOOKUP_MISS.where.slice(0, 8).map(w => '\n        ' + w).join('')
+      : ''));
+/* 2026-08-25 — AND THE INDEX THOSE SWITCHES WERE SENT AS. `after_permutation` is the denominator that
+ * decides whether this run met the hazard at all; a 0 there would mean the number below proves
+ * nothing. `MEDI_SWITCH_BY_INITIAL_INDEX=1` is the positive control. */
+console.log('    switch indices SENT to showdown: ' + SWITCH_ADDRESSING.sent
+  + ', of which ' + SWITCH_ADDRESSING.after_permutation + ' against an ALREADY-PERMUTED party'
+  + ' — MISADDRESSED ' + SWITCH_ADDRESSING.misaddressed
+  + (SWITCH_ADDRESSING.misaddressed ? '  <-- MUST READ 0. ' + SWITCH_ADDRESSING.first_bad : '  (must read 0)')
+  + (SWITCH_BY_INITIAL_INDEX ? '   [MEDI_SWITCH_BY_INITIAL_INDEX=1 — the control, not the instrument]' : ''));
 console.log('    ' + MCKEY_MISSED + ' set(s) had no MC.mons row for their species'
   + (MCKEY_MISSED ? '  <-- expected: cosmetic formes only. An ordinary species here is a broken alias table.' : ''));
 /* PRINTED BECAUSE A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN. `ally` reading 0 on a run
@@ -6934,6 +7008,14 @@ if (WRITE) {
     /* 2026-08-25 — the evidence for the cap. See the console block of the same name. */
     credit_turn_profile: CREDIT_TURN_PROFILE,
     planted_divergence_proof: PROOF, planted_divergence_proof_ok: PROOF_OK,
+    /* 2026-08-25 — the harness auditing its OWN switch addressing. See SWITCH_ADDRESSING. In the
+     * artifact and not only on stdout, because the question it answers ("is a board-material switch
+     * divergence the engine or the ruler?") is asked of RUNS THAT ARE ALREADY OVER. */
+    switch_addressing: { ...SWITCH_ADDRESSING, by_initial_index_control: SWITCH_BY_INITIAL_INDEX,
+                         medicham_lookup_missed: SWITCH_LOOKUP_MISS.medi,
+                         showdown_lookup_missed: SWITCH_LOOKUP_MISS.sd,
+                         lookup_missed_bodies: { ...SWITCH_LOOKUP_MISS.names },
+                         lookup_missed_where: SWITCH_LOOKUP_MISS.where.slice(0, 20) },
     /* THE HEADLINE RATE IS NOT READABLE WITHOUT THIS. Stated at the top level, not buried in
      * declared_gaps, because a reader who takes `diverged / games` and nothing else has taken a
      * number about a population it does not know the shape of.
