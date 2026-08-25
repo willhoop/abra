@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-24T22:55:19.207Z",
+  "generated": "2026-08-25T00:40:23.665Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 686,
-  "live": 686,
+  "probed": 687,
+  "live": 687,
   "missing": 0,
-  "armed": 686,
+  "armed": 687,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -283,7 +283,7 @@
       "tag": "flinches",
       "label": "a secondary flinch fires at ITS OWN probability, not only at p=1",
       "live": true,
-      "detail": "over 4000 seeded turns each, the foe's own Knock Off is the receipt — Knock Off at the user 0.0% (no flinch on the move, must be 0), Fake Out 100.0% (must be 100), Rock Slide 27.4% (0.3 x 90% acc = 27), Iron Head 21.4% (this format's 0.2 x 100% = 20); and Rock Slide with the ATTACKER MOVING SECOND 0.0% (must be 0 — a flinch cannot reach a body that has already acted)",
+      "detail": "over 4000 seeded turns each, the foe's own Knock Off is the receipt — Knock Off at the user 0.0% (no flinch on the move, must be 0), Fake Out 100.0% (must be 100), Rock Slide 27.1% (0.3 x 90% acc = 27), Iron Head 20.3% (this format's 0.2 x 100% = 20); and Rock Slide with the ATTACKER MOVING SECOND 0.0% (must be 0 — a flinch cannot reach a body that has already acted)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -303,7 +303,7 @@
       "tag": "boostsOnFlinch",
       "label": "Steadfast is PAID +1 Speed by every flinch that lands, and by nothing else",
       "live": true,
-      "detail": "Iron Head (this format's 0.2 flinch) at a Machamp over 2000 seeded turns each, the foe's own Knock Off the receipt for the flinch — no ability: flinched 415, Speed raised 0 (must be 0); STEADFAST: flinched 415 (20.8%, declared 20), Speed raised 415 — EQUAL is the claim, so the boost is bound to the event and not to the click; Inner Focus: flinched 0 (must be 0 — it refuses), Speed raised 0 (must be 0 — a refusal is paid nothing); STEADFAST ON A SLEEPING BODY: Speed raised 0 (must be 0 — sleep runs at beforeMove priority 10 against the flinch's 8, so the flinch handler never runs); MEDSEEN.flinchTooLate over the control and test arms 0/0 (must be 0/0 — the attacker holds the turn, so no flinch arrived at a body that had already acted)",
+      "detail": "Iron Head (this format's 0.2 flinch) at a Machamp over 2000 seeded turns each, the foe's own Knock Off the receipt for the flinch — no ability: flinched 397, Speed raised 0 (must be 0); STEADFAST: flinched 397 (19.9%, declared 20), Speed raised 397 — EQUAL is the claim, so the boost is bound to the event and not to the click; Inner Focus: flinched 0 (must be 0 — it refuses), Speed raised 0 (must be 0 — a refusal is paid nothing); STEADFAST ON A SLEEPING BODY: Speed raised 0 (must be 0 — sleep runs at beforeMove priority 10 against the flinch's 8, so the flinch handler never runs); MEDSEEN.flinchTooLate over the control and test arms 0/0 (must be 0/0 — the attacker holds the turn, so no flinch arrived at a body that had already acted)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3513,7 +3513,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 28.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4634,6 +4634,16 @@
       "label": "the four perish deaths are announced BELOW all four perish0 lines, with no -damage",
       "live": true,
       "detail": "the turn-4 residual stream reads [perish0 perish0 perish0 perish0 faint faint faint faint] — the authority reads [perish0 perish0 perish0 perish0 faint faint faint faint], four clock lines and then four queued deaths, with no -damage line at all (a DAMAGE entry above is one this engine writes and the authority does not). CONTROL, the same instrument on a BURN death, whose handler is registered per body: the |faint| sits after 1 chip line(s) and must stay at 1 — deferring every residual faint would break it",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perishClock",
+      "label": "a residual SPEED TIE is broken by the authority`s selection sort, and it picks the WINNER of a double wipe",
+      "live": true,
+      "detail": "[battleResult (1 = side A won, 0 = side B, 0.5 = neither), bodies fainted, faint order] — EXACT TIE at 91/91 [1,4,\"gengar(B) absol(A) primarina(B) primarina(A)\"] (want 1: the selection sort throws p1`s Primarina behind p2`s, so p1 faints LAST and wins); p1`s Primarina slowed to 88 [1,4,\"gengar(B) absol(A) primarina(B) primarina(A)\"] (want 1); p2`s slowed to 88 [0,4,\"gengar(B) absol(A) primarina(A) primarina(B)\"] (want 0). The two controls answer OPPOSITE winners, so the board is sensitive; before 2026-08-24 the tied arm read 0. Showdown answers A on this exact board. Knob: MEDI_RESIDUAL_STABLE_SORT=1",
       "hollow": false,
       "armed": true,
       "directCall": false

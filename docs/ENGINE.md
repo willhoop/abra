@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  686/686 probed mechanics live, 0 missing   (census 2026-08-24 18:55)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-24 18:57)
+  687/687 probed mechanics live, 0 missing   (census 2026-08-24 20:40)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-24 20:44)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,99 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is ff4602fae2f4 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 769190fa03f9 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 276/294 probed, 18 unprobed
 ```
 
-_stamped 2026-08-24 19:28_
+_stamped 2026-08-24 21:11_
 
 <!-- /GENERATED -->
+
+## THE END-OF-TURN WALK IS THE AUTHORITY'S SELECTION SORT — CENSUS 686 → 687, POOL UNMOVED GAME FOR GAME. 2026-08-24.
+
+Full account: [`docs/_reports/2026-08-24-residual-order.md`](_reports/2026-08-24-residual-order.md).
+
+Will: *"we need end of turn ordering to match showdown, do it now."* **The fourth and last of the four
+speed sorts.** The move queue got the authority's algorithm in 3.74.0 (WIRE 134), the entry pass and
+the mega phase earlier the same day; `residualOrder` was still `Array.prototype.sort`.
+
+**THE END OF A TURN IS TWO SORTED LISTS AND THEY ARE NOT THE SAME LIST.**
+`fieldEvent('Residual')` (`sim/battle.ts:484-506`) gathers every residual handler — field conditions,
+side conditions, and per body its volatiles, status, ability and item — and `speedSort`s the whole
+thing **once at `:505`, before the walk**. `sandstorm.onFieldResidual` calls `eachEvent('Weather')`
+(`:465-468`), which `speedSort`s `getAllActive()`: exactly the four active BODIES, in
+`[p1a, p1b, p2a, p2b]` order, under a speed-only comparator. `resolvePriority` fills the fifth key
+`effectOrder` **only** for `SwitchIn` and `RedirectTarget` (`:993-999`), so two residual handlers that
+match on order/priority/speed/subOrder are FULLY TIED and go to `prng.shuffle`.
+
+**AND `speedSort` IS A SELECTION SORT WHOSE SWAPS MOVE UNTIED BODIES PAST A TIED PAIR.** Placing the
+element that belongs at position `sorted` swaps it with whatever was standing there; a winner drawn
+from BEYOND the tied pair throws the first half of that pair behind its partner. No comparator handed
+to `Array.prototype.sort` can produce that permutation.
+
+**IT IS NOT NARRATION — IT IS THE WIN CONDITION.** `checkWin` (`sim/battle.ts:2603`) awards a
+SIMULTANEOUS double wipe to `faintData.target.side`, the side of the LAST body off the faint queue,
+and the queue is filled in exactly this order.
+
+**RED FIRST, ON A WINNER, WITH TWO CLEARED CONTROLS.** Perish Song endgame staged in the official
+simulator under the differential's identity shuffle, nothing in the back, all four counters expiring
+together, list order Absol 95 / Primarina 91 / Primarina 91 / Gengar 130:
+
+```
+showdown      Gengar, Absol, p2a Primarina, p1b Primarina   winner="A"
+this engine   Gengar, Absol, p1b Primarina, p2a Primarina   battleResult=0  -> B
+now           Gengar, Absol, p2a Primarina, p1b Primarina   battleResult=1  -> A, line for line
+```
+
+The authority's own residual handler list on that board was read off an instrumented `speedSort` and
+holds **exactly the four perish handlers**, so the tied pair's order is decided by the swap and by
+nothing else. The two controls (the tie broken each way) answer **opposite** winners and neither
+moves. Knob `MEDI_RESIDUAL_STABLE_SORT=1` puts the old sort back and the probe goes MISSING.
+Census probe: `move/perishClock — a residual SPEED TIE is broken by the authority's selection sort,
+and it picks the WINNER of a double wipe`.
+
+**THE COIN IS THE SHARED ONE AND IT IS DRAWN ONCE PER RESIDUAL PHASE.** The authority sorts once and
+walks; this engine re-asks `residualOrder` per order-group because speeds move during the walk (Speed
+Boost is a step at order 28). A fresh key per call would let one tied pair come out one way at order 5
+and the other way at order 9 — an order the authority cannot produce. `_RES_TIE_GEN` is bumped where
+the residual phase opens and the key is memoised against it.
+
+**THE TWO TAILWIND ROWS DID NOT CLEAR, AND THE REASON IS STAGED RATHER THAN ASSERTED.** Four arms of
+one constructed board; only *Leftovers on every body AND the fastest body on p2* flips the authority
+(p2 then p1) while we still say p1 then p2. The two Tailwinds are tied and their final order depends
+on the swaps made while the **order-5 item handlers** were being placed — handlers that belong to
+Pokemon, sit between the two Tailwinds in the authority's collection order, and whose EXISTENCE this
+engine does not track. So this fix reproduces `eachEvent('Weather')` **exactly** and a clock group
+exactly **only when the tied members are the whole of the list**. Building the authority's full
+handler list is a separate and much larger piece of work; it is owed, not done, and the same
+limitation covers two screens expiring on both sides in one turn.
+
+**THE NUMBERS.** Damage differential **0 of 6000 at all 16 corners** (seed 20260804). Census **686 →
+687 probed / 687 live / 0 missing**. Whole game, arm **`middle`**, release **`ffdec64bed0c`**, pin
+digest `6a6b87eafc6a` (identical to the standing run, so `arms_comparable` accepts the pair),
+`--team-store data/team-pool-frozen`, census pinned to `census-pin-9446a684709d.json`, 961 pairs:
+**raw parted 35 → 35, BOARD-MATERIAL 18 games / 17 causes → UNMOVED, narration-only 17 games / 16
+causes → UNMOVED**, and the two artifacts hold the **same 35 games** by `config|seed` — zero cleared,
+zero new. **Which scoreboard, said before the run:** a residual speed tie that changes a compared line
+is a LAB mechanic (the pool comparison never asks who won), so the lab was expected to move and the
+pool to sit still. It did.
+
+**THE NEW CODE IS NOT DEAD** — over 120 real pool games: `residualGroupsWalked 32880`,
+`residualTieResolved 4087`, `residualTieLargestGroup 2`, `residualOrderTieNoDie 0`,
+`residualStableSortRestored 0`. Ties are common at the end of a turn and the pool still did not move;
+meeting a tie is not the same as the tie coming out in a different order.
+
+**ALL FOUR WITHHELD ARTIFACTS RE-RUN** at `ffdec64bed0c`: roster items **0 / 0** (139 of 148),
+abilities **0 / 0** (130 of 202), moves **0 / 0** (475 of 500), and `all_mechanics_fire --kind all`
+**9 STATE rows, the SET identical to the standing run** — zero cleared, zero new.
+
+**Observed, not caused:** `planted_state_proof_ok` reads false with seven NOT CAUGHT and six NOT
+APPLIED plants — **byte-identical in the committed standing artifact**, checked rather than assumed,
+because one of them is *"a Perish count off by one"* and this pass could plausibly have caused it. And
+a perish death's `|faint|` sits one line from the authority's position relative to `|upkeep|`, present
+under the old sort as well.
 
 ## BOARD-MATERIAL 20 → 18 GAMES, NARRATION HELD AT 17, CENSUS 683 → 686. 2026-08-24.
 

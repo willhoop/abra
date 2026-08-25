@@ -1108,6 +1108,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      from both of the above for their reason: three sorts, three lists, three moments, and a
      pooled total could not say which one had ever met a tie. */
   megaTieResolved: 0,
+  /* 2026-08-24 -- and the FOURTH sort, the END-OF-TURN walk (`residualOrder`). Counted apart from the
+     other three for their reason. The number is per CALL, and `residualOrder` is deliberately re-asked
+     once per order group (speeds move during the walk), so a single turn with one tied pair raises
+     this several times -- it is a count of tied GROUPS PLACED, never of turns. */
+  residualTieResolved: 0, residualTieLargestGroup: 0,
   /* ROADMAP #262 -- the announcement-site event-address write actually MOVED the address, i.e. the
    * action was rewritten between the top of the action and `setActiveMove`'s counterpart. Zero over
    * 900 differential games; kept and counted rather than deleted, because "no probe can see it" and
@@ -2397,6 +2402,11 @@ const MEDFAILS = { encoreAction: 0,
      `megaStableSortRestored` is set on the KNOB, not on a tie that changed an answer, so a run
      with no tie in it still says the knob was on. */
   megaOrderTieNoDie: 0, megaQueueUnlisted: 0, megaStableSortRestored: 0,
+  /* 2026-08-24 -- THE END-OF-TURN WALK'S TWO, the same shape again. `residualOrderTieNoDie` is the
+     loud fallback: a tied residual group with no `tie` stream in scope, so the group kept whatever the
+     selection sort handed it. `residualStableSortRestored` is set on MEDI_RESIDUAL_STABLE_SORT=1, on
+     the KNOB rather than on a tie that changed an answer, so a run with no tie still says it was on. */
+  residualOrderTieNoDie: 0, residualStableSortRestored: 0,
   /* 2026-08-12. The other half of the same approximation, one step later in the battle: two bodies
      replacing a faint on the same request whose DEPARTING speeds are equal. Showdown shuffles the
      instaswitch pair; this engine keeps side order and counts the event, because drawing a number
@@ -5758,13 +5768,103 @@ function entryOrder(all,entrants,field){
   return out;
 }
 
+/* ---- 2026-08-24 -- THE END-OF-TURN WALK IS THE AUTHORITY'S SELECTION SORT, NOT A STABLE ONE ------
+ *
+ * Will: *"we need end of turn ordering to match showdown"*. This is the FOURTH and last of the four
+ * places this engine sorts on speed. The move queue got the selection sort in 3.74.0 (WIRE 134), the
+ * entry pass and the mega phase earlier on 2026-08-24; this line was still `Array.prototype.sort`.
+ *
+ * WHAT THE AUTHORITY DOES, READ WHOLE. The end of a turn is TWO sorted lists, not one, and both are
+ * `Battle#speedSort` (sim/battle.ts:429-459):
+ *
+ *   1. `fieldEvent('Residual')` (:484-506) collects every residual handler on the field -- field
+ *      conditions, side conditions, and per body its volatiles, status, ability and item -- and
+ *      `speedSort(handlers)` ONCE at :505, BEFORE the walk. Keys are `comparePriority`'s five:
+ *      order ASC, priority DESC, speed DESC, subOrder ASC, effectOrder ASC. `resolvePriority` fills
+ *      key 5 ONLY for `SwitchIn` and `RedirectTarget` (:993-999), so two residual handlers that match
+ *      on the first four are FULLY TIED and go to `prng.shuffle`.
+ *   2. `sandstorm.onFieldResidual` (data/conditions.ts) calls `this.eachEvent('Weather')`, and
+ *      `eachEvent` (:465-468) `speedSort`s `getAllActive()` -- a list of exactly the active BODIES,
+ *      in [p1a, p1b, p2a, p2b] order, under a speed-only comparator.
+ *
+ * `speedSort` IS A SELECTION SORT AND ITS SWAPS MOVE UNTIED BODIES PAST A TIED PAIR. Placing the
+ * element that belongs at position `sorted` swaps it with whatever was standing there -- and if the
+ * winner came from BEYOND the tied pair, the displaced half of that pair is thrown behind its
+ * partner. No comparator handed to `Array.prototype.sort` can produce that permutation, which is
+ * WIRE 134's whole argument arriving at the last of the four sites.
+ *
+ * MEASURED BEFORE A LINE OF THIS WAS WRITTEN, on a Perish Song endgame in the official simulator
+ * under the differential's own identity shuffle (which is what makes the reading a property of the
+ * SORT and not of the coin). Four bodies, nothing in the back, all four counters expiring together:
+ *
+ *     list order   p1a Absol 95 | p1b Primarina 91 | p2a Primarina 91 | p2b Gengar 130
+ *     showdown     Gengar, Absol, p2a Primarina, p1b Primarina   -> the LAST faint is p1's -> A WINS
+ *     this engine  Gengar, Absol, p1b Primarina, p2a Primarina   -> the LAST faint is p2's -> B WINS
+ *
+ * THE TWO ENGINES DISAGREED ABOUT WHO WON THE GAME. `checkWin` (sim/battle.ts:2603) hands a
+ * simultaneous double wipe to `faintData.target.side` -- the side of the LAST body off the faint
+ * queue -- and the faint queue is filled in exactly this order. So this sort is not narration: it is
+ * the win condition, which is the thing every rollout in this project scores.
+ *
+ * THE DIE IS THE SHARED ONE AND THERE IS NO SECOND SOURCE. A tied group is resolved by one uniform
+ * key per body off the `tie` stream `sortTurnOrder`, `entrySpeedSort` and `megaQueueOrder` already
+ * use -- the identity under a constant pinned die, a uniform permutation under real dice, which is
+ * what `prng.shuffle(list, sorted, sorted + n)` is. NO DIE IN SCOPE IS NOT SILENT:
+ * `MEDFAILS.residualOrderTieNoDie` counts it.
+ *
+ * THE KEY IS DRAWN ONCE PER RESIDUAL PHASE, NOT ONCE PER CALL, and that is load-bearing rather than
+ * an optimisation. The authority sorts its handler list ONCE and walks it; this engine walks GROUPS
+ * and re-asks `residualOrder` for each (speeds move during the walk -- Speed Boost is itself a step at
+ * order 28), so a fresh key per call would let one tied pair come out one way at order 5 and the other
+ * way at order 9 -- an order the authority cannot produce. `_RES_TIE_GEN` is bumped once where the
+ * residual phase opens and the key is memoised against it.
+ *
+ * WHAT THIS DOES *NOT* REPRODUCE, SAID PLAINLY. The authority's list at (1) holds every handler, not
+ * every body, and a tied pair's final order depends on the swaps made while the OTHER handlers were
+ * placed. This engine's walk is group-major over BODIES and does not know which handlers a body
+ * actually has, so it reproduces (2) exactly and (1) only when the tied group's members are the whole
+ * of what is in the list. Staged and measured: the two `|-sideend|…|tailwind` rows in the pool are a
+ * case it does NOT fix, and the reason is written up in docs/_reports/2026-08-24-residual-order.md. */
+let _RES_TIE_GEN=0;
+/* THE OLD STABLE SORT, ON A KNOB, so the census probe can be shown MISSING on demand without swapping
+ * a file. It is the pre-2026-08-24 line exactly. */
+const RESIDUAL_STABLE_SORT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RESIDUAL_STABLE_SORT==='1');
 function residualOrder(actA,actB,field){
   const list=[...actA,...actB].filter(Boolean);
   for(const x of list)x._resSpe=effSpeed(x,field,actA.indexOf(x)>=0?'A':'B');
   /* `compareTurnOrder` reads the field, so Trick Room comes free — the same call the mega step and
-   * the switch-in step already make. A speed TIE is a coin flip in Showdown and a stable order here,
-   * which is the approximation those two sites already declare. */
-  list.sort((x,y)=>compareTurnOrder({spe:x._resSpe},{spe:y._resSpe},field));
+   * the switch-in step already make. */
+  if(RESIDUAL_STABLE_SORT){
+    MEDFAILS.residualStableSortRestored=1;
+    list.sort((x,y)=>compareTurnOrder({spe:x._resSpe},{spe:y._resSpe},field));
+    return list;
+  }
+  const _r=medTieRng();
+  const tie=it=>{ if(it._rtieGen!==_RES_TIE_GEN){ it._rtieGen=_RES_TIE_GEN; it._rtie=_r?_r():0; } return it._rtie; };
+  let sorted=0;
+  while(sorted+1<list.length){
+    let next=[sorted];
+    for(let i=sorted+1;i<list.length;i++){
+      const d=compareTurnOrder({spe:list[next[0]]._resSpe},{spe:list[i]._resSpe},field);
+      if(d<0)continue;
+      if(d>0)next=[i]; else next.push(i);
+    }
+    /* `next` is ascending by construction, so an earlier swap can never disturb a later one -- the
+     * authority's own comment, and it is the swap this whole function exists to reproduce. */
+    for(let i=0;i<next.length;i++){
+      const idx=next[i];
+      if(idx!==sorted+i){const t=list[sorted+i];list[sorted+i]=list[idx];list[idx]=t;}
+    }
+    if(next.length>1){
+      const grp=list.slice(sorted,sorted+next.length);
+      grp.sort((x,y)=>tie(y)-tie(x));
+      for(let i=0;i<grp.length;i++)list[sorted+i]=grp[i];
+      MEDSEEN.residualTieResolved++;
+      if(next.length>MEDSEEN.residualTieLargestGroup)MEDSEEN.residualTieLargestGroup=next.length;
+      if(!_r)MEDFAILS.residualOrderTieNoDie++;
+    }
+    sorted+=next.length;
+  }
   return list;
 }
 /* ---- ROADMAP #242 -- THE SIDE AND FIELD CLOCKS, SPENT AT THE POSITION THE FORMAT PUBLISHES -------
@@ -26529,6 +26629,12 @@ function battleTurn(S,rng,actsForA,actsForB){
      * turn) sat on the flag and stole the target's NEXT turn instead. Fake Out's +3 priority hid this
      * because it almost always moved first; adding Rock Slide's flinch would have made it common. */
     [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
+    /* 2026-08-24 -- THE RESIDUAL PHASE OPENS HERE, AND THE SPEED-TIE COIN IS DRAWN ONCE FOR ALL OF IT.
+     * The authority speed-sorts its residual handler list ONCE (sim/battle.ts:505) and walks it; this
+     * engine re-asks `residualOrder` per order-group because speeds move during the walk. Bumping the
+     * generation here is what makes those calls agree with each other about a tied pair -- see the
+     * header of `residualOrder`. */
+    _RES_TIE_GEN++;
     /* WIRE 74 -- THE FIELD CLOCKS TICK BEFORE THE RESIDUAL, NOT AFTER IT.
      *
      * They used to tick below the loop, so the sandstorm chipped on the turn it RAN OUT: a five-turn

@@ -16402,6 +16402,71 @@ probe('move', 'perishClock', 'the four perish deaths are announced BELOW all fou
                  + `must stay at 1 — deferring every residual faint would break it` };
 });
 
+/* 4e. AND THE ORDER THE CLOCKS EXPIRE IN IS A SELECTION SORT, WHICH DECIDES WHO WINS. 2026-08-24.
+ *
+ * Will: *"we need end of turn ordering to match showdown, do it now."* This is the FOURTH and last
+ * speed sort in this engine; the move queue got the authority's algorithm in 3.74.0 and the entry pass
+ * and the mega phase earlier the same day. The end-of-turn walk was still `Array.prototype.sort`.
+ *
+ * `Battle#speedSort` (sim/battle.ts:429-459) is a SELECTION SORT. Placing the body that belongs at
+ * position `sorted` swaps it with whatever was standing there — so a winner drawn from BEYOND a tied
+ * pair throws the first half of that pair behind its partner. No comparator handed to
+ * `Array.prototype.sort` can produce that permutation.
+ *
+ * AND IT IS NOT NARRATION. `checkWin` (sim/battle.ts:2603) hands a SIMULTANEOUS DOUBLE WIPE to
+ * `faintData.target.side` — the side of the LAST body off the faint queue — and Perish Song fills that
+ * queue in exactly this order. So the sort picks the winner, which is the number every rollout scores.
+ *
+ * STAGED IN THE OFFICIAL SIMULATOR FIRST, under the differential's identity shuffle so the reading is
+ * a property of the SORT and not of the coin. Four bodies, nothing in the back, all four counters
+ * expiring together, in list order p1a Absol 95 / p1b Primarina 91 / p2a Primarina 91 / p2b Gengar 130:
+ *     showdown     Gengar, Absol, p2a Primarina, p1b Primarina   -> last faint is p1's -> winner A
+ *     this engine  Gengar, Absol, p1b Primarina, p2a Primarina   -> last faint is p2's -> winner B
+ * The two engines disagreed about WHO WON. The authority's own residual handler list on that board was
+ * read off an instrumented `speedSort` and holds exactly the four perish handlers, so the tied pair's
+ * order is decided by the swap and by nothing else.
+ *
+ * THE TWO CONTROLS ANSWER OPPOSITE WINNERS, which is what says the board is sensitive to the thing
+ * being tested: slowing p1's Primarina hands it p1, slowing p2's hands it p2, and only the exact tie
+ * ever parted. Knob: MEDI_RESIDUAL_STABLE_SORT=1 puts the old sort back and the tied arm reads B. */
+probe('move', 'perishClock', 'a residual SPEED TIE is broken by the authority`s selection sort, and it picks the WINNER of a double wipe', () => {
+  const run = (aTieSpe, bTieSpe) => {
+    /* Two bodies a side and NOTHING in the back, so the fourth faint empties both sides at once and
+     * `battleResult`'s double-wipe rule is the only thing that can answer. */
+    const a0 = bare('absol'), a1 = bare('primarina');
+    const b0 = bare('primarina'), b1 = bare('gengar');
+    a0.st = Object.assign({}, a0.st, { sp: 95 });  a1.st = Object.assign({}, a1.st, { sp: aTieSpe });
+    b0.st = Object.assign({}, b0.st, { sp: bTieSpe }); b1.st = Object.assign({}, b1.st, { sp: 130 });
+    const S = M.battleInit([a0, a1], [b0, b1], { seeded: true });
+    for (let t = 1; t <= 4; t++) {
+      const mine = t === 1 ? M.playerAction(a0, 'perishsong', b0, S.field) : { kind: 'pass' };
+      M.battleTurn(S, rng5, new Map([[a0, mine], [a1, { kind: 'pass' }]]), PASS2(b0, b1));
+    }
+    /* `_faintSeq` is the monotone stamp WIRE 160 writes at every faint site and the one
+     * `battleResult` reads — printed so the verdict cannot be read as the rule guessing a side. */
+    const seq = [a0, a1, b0, b1].filter(x => x._faintSeq != null)
+      .sort((p, q) => p._faintSeq - q._faintSeq)
+      .map(x => x.name + (x === a0 || x === a1 ? '(A)' : '(B)')).join(' ');
+    return [M.battleResult(S), [a0, a1, b0, b1].filter(x => x.fainted).length, seq];
+  };
+  /* The GENGAR at 130 is the mechanism: it is the fastest body on the field AND it sits after the
+   * tied pair in the walk's list, so the swap that lifts it to the front is what reverses them. */
+  const tie = run(91, 91), aSlow = run(88, 91), bSlow = run(91, 88);
+  const wiped = r => r[1] === 4;
+  return { works: wiped(tie) && wiped(aSlow) && wiped(bSlow)
+                  && tie[0] === 1 && aSlow[0] === 1 && bSlow[0] === 0,
+           /* The pair that MOVES: `bSlow` is the same board with the tie broken the other way and it
+            * answers the opposite winner, so the knob under this probe is a wired one. */
+           arms: { control: bSlow, test: tie },
+           detail: '[battleResult (1 = side A won, 0 = side B, 0.5 = neither), bodies fainted, faint '
+                 + 'order] — EXACT TIE at 91/91 ' + JSON.stringify(tie) + ' (want 1: the selection '
+                 + 'sort throws p1`s Primarina behind p2`s, so p1 faints LAST and wins); p1`s '
+                 + 'Primarina slowed to 88 ' + JSON.stringify(aSlow) + ' (want 1); p2`s slowed to 88 '
+                 + JSON.stringify(bSlow) + ' (want 0). The two controls answer OPPOSITE winners, so '
+                 + 'the board is sensitive; before 2026-08-24 the tied arm read 0. Showdown answers '
+                 + 'A on this exact board. Knob: MEDI_RESIDUAL_STABLE_SORT=1' };
+});
+
 
 /* 5. ROADMAP #81 WIRE 12 — THE LIFE ORB TOLL IS PAID BY A MOVE THAT LANDED, AND WIRE 10 STOPPED
  *    CHECKING. This is that rung's board regression, found by staging the path it altered.

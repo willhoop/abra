@@ -21,6 +21,54 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE END-OF-TURN WALK IS THE AUTHORITY'S SELECTION SORT — CENSUS 686 → 687, POOL UNMOVED GAME FOR GAME. 2026-08-24 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-24-residual-order.md`](_reports/2026-08-24-residual-order.md).
+Ledger section: `docs/ENGINE.md`, *"THE END-OF-TURN WALK IS THE AUTHORITY'S SELECTION SORT"*.
+
+Will: *"we need end of turn ordering to match showdown, do it now."* **This is the FOURTH and last of
+the four speed sorts** — the move queue in 3.74.0, the entry pass and the mega phase earlier today,
+and `residualOrder` was still `Array.prototype.sort`.
+
+- **The end of a turn is TWO sorted lists.** `fieldEvent('Residual')` (`sim/battle.ts:484-506`)
+  collects every residual handler and `speedSort`s it ONCE at `:505`, before the walk;
+  `sandstorm.onFieldResidual` calls `eachEvent('Weather')` (`:465-468`), which `speedSort`s
+  `getAllActive()` — exactly the four bodies, in `[p1a, p1b, p2a, p2b]` order.
+- **`resolvePriority` fills `effectOrder` only for `SwitchIn`/`RedirectTarget`** (`:993-999`), so two
+  residual handlers matching on the first four keys are FULLY TIED and go to `prng.shuffle`.
+- **AND IT IS NOT NARRATION.** `checkWin` (`:2603`) awards a simultaneous double wipe to
+  `faintData.target.side` — the side of the LAST body off the faint queue — and the queue is filled
+  in this order. **The sort picks the winner.**
+- **THE FIX:** `residualOrder()` runs the authority's selection sort on the SHARED `tie` stream, with
+  the key drawn ONCE PER RESIDUAL PHASE (`_RES_TIE_GEN`) because this engine re-asks the order per
+  order-group while the authority sorts once. Knob `MEDI_RESIDUAL_STABLE_SORT=1`.
+
+**RED FIRST, ON A WINNER, WITH TWO CLEARED CONTROLS.** Perish Song endgame, nothing in the back,
+list order Absol 95 / Primarina 91 / Primarina 91 / Gengar 130: **showdown `winner="A"`, this engine
+`battleResult=0` (B)** — the two engines disagreed about WHO WON. Now `battleResult=1` and the faint
+order matches line for line. The two controls (tie broken each way) answer OPPOSITE winners.
+
+**THE TWO TAILWIND ROWS DID NOT CLEAR, AND THAT IS A FINDING, NOT AN EXCUSE.** Staged and reproduced:
+only the arm with Leftovers on every body AND the fastest body on p2 flips the authority, because the
+tied pair's order depends on swaps made while the order-5 ITEM handlers were placed. This engine's
+walk is group-major over BODIES and does not know which handlers a body has, so it reproduces
+`eachEvent('Weather')` exactly and a clock group only when the tied members are the whole list.
+Building the authority's full handler list is owed, not done.
+
+Damage differential **0 of 6000 at all 16 corners** (seed 20260804). Census **686 → 687 probed / 687
+live / 0 missing**. Whole game, arm **middle**, release **`ffdec64bed0c`**, pin digest `6a6b87eafc6a`
+(matches the standing run, so they are comparable), `--team-store data/team-pool-frozen`, census
+pinned, 961 pairs: **raw parted 35 → 35, BOARD-MATERIAL 18 games / 17 causes → UNMOVED, narration 17 /
+16 → UNMOVED**, and the two artifacts hold the SAME 35 games by `config|seed` — zero cleared, zero
+new. Said before the run: this is a lab mechanic and the pool was expected to sit still.
+
+Counters over 120 real pool games: `residualGroupsWalked 32880`, `residualTieResolved 4087`,
+`residualTieLargestGroup 2`, `residualOrderTieNoDie 0`, `residualStableSortRestored 0`. All four
+withheld artifacts re-run at `ffdec64bed0c`: roster items/abilities/moves **0 FIRED-AND-BOARDS-DIFFER
+and 0 DID-NOT-FIRE** on all three, `all_mechanics_fire --kind all` **9 STATE rows, the SET identical**.
+
+---
+
 ## THE MEGA PHASE IS ORDERED BY THE AUTHORITY'S QUEUE — CENSUS 681 → 683, NARRATION 19 → 17, BOARD-MATERIAL UNMOVED AT 20. 2026-08-24 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-24-mega-order.md`](_reports/2026-08-24-mega-order.md).
