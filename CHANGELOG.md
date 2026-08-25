@@ -10,6 +10,73 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.131.4] — 2026-08-25
+
+### Fixed
+- **THE SITE'S QUARANTINE BLOCK WAS THREE DAYS STALE AND PUBLISHED A HARSHER GATE THAN THE
+  ARTIFACTS SUPPORT.** `node web/build-quarantine.js --check` was red on both outputs.
+  `web/quarantine-data.js` and the block stamped inside `web/stadium.html` were built 2026-08-22 and
+  rendered **"6 of 8 gate clauses fail"**, naming the three deliberate-roster clauses as FAILING and
+  `58 of 227` artifacts withheld. The gate reads **3 of 8** now, all three roster clauses are clean
+  (items 139/148, abilities 130/202, moves 475/500), and `60 of 234` are withheld. Rebuilt with
+  `node web/build-quarantine.js`; `tests/test-web-quarantine-loaders.js` back to ALL PASS.
+  The drift ran **toward** over-withholding, which is why nothing flagged it as dangerous and why it
+  survived: `web/figure-audit.js` scored every one of those numbers as traced, because each cited an
+  artifact. A citation proves a figure HAS a source, never that the source still says it — only the
+  rebuild-and-diff guard can decide that.
+- **THE STADIUM'S MEDICHAM CABINET DREW AN ENGINE DEFECT THAT ITS OWN CITED ARTIFACT SAYS DOES NOT
+  EXIST.** `CTRLDATA.medicham` carried `cmp:"150", agreed:"149", diff:"1"` and a named red tick
+  (`CHESNAUGHT WOOD HAMMER → MIMIKYU`, Showdown `0-0` vs MEDICHAM `120-130`), plus `worst:"3%"`.
+  `data/engine-diff.json` reads 6,000 compared / 6,000 agreed / **0 disagreed**, and
+  `data/damage-validation.json`'s `result.worst_pct` has read **0 since 2026-08-08**. The stat card
+  one screen above was corrected on 2026-08-22 and this line was not — one fact, two copies, one
+  page, only one fixed. The canvas strip no longer loops 150 hardcoded ticks with a red one at index
+  103: it draws a proportion and the counts live in the label, so no artifact value can make the
+  drawing lie about its own resolution. The red segment is still drawn whenever `diff` is non-zero.
+- **AND THE SCOPE CAVEAT WAS ADDED IN THE SAME EDIT, BECAUSE REMOVING A DISAGREEMENT IS NOT THE SAME
+  AS EARNING A CLEAN BILL.** The whole-game clause fails at 18 of 961. The scene now ends on
+  `DAMAGE ONLY — NOT THE WHOLE GAME` with the artifact's own `scope` line, so a full bar cannot be
+  read as *the simulator is correct*. The stat card also stopped reproducing the artifact's
+  `generated` stamp (it said 2026-08-18; the artifact regenerated 2026-08-25) — a stamp typed onto a
+  page is a second copy of a field that moves every time the run repeats.
+- **`web/index.html` ROUNDED A MEASURED NUMBER AND CITED NOTHING.** The MEDICHAM room warned the
+  in-page engine was *"off by about 30 points on average"* and picked *"the wrong winner in three out
+  of eight"*. `docs/ADR-001-use-the-champions-mod.md` says **31.1 percentage points** and **3 of 8**.
+  Both are now exact and cited, and the ADR's own ±12-point-per-cell caveat is carried onto the page.
+  `web/figure-audit.js` could not see any of this: its scale filter only counts a token with a
+  decimal point, a thousands comma, a `%`, or a value ≥ 100, so `30` and a spelled-out `three` were
+  not figures at all and the page still scored 100% traced. The blind spot is recorded in
+  `docs/WEB.md` and deliberately **not** patched by lowering the threshold.
+
+### Added
+- **`engine/immunity_sweep.js` and `engine/switchin_order.js` are DECLARED not-a-model in
+  `tests/test-stadium-roster.js`**, each with its own reason and its own reversal condition rather
+  than a shared one. Both derive a rule out of the authority and then ask whether our simulator
+  reproduces it, so the artifact states something about ABRA's conformance and not about Champions —
+  the same class as the two GATEs already declared there. Each entry names the event that would make
+  the call wrong: anything DECIDING off `immuneTypes`/`bypassAbilities`, or the simulator LOADING
+  `data/switchin-order.json` instead of deriving the priority. Guard back to ALL PASS
+  (15 cabinets, 37 ledger headings, 129 generators).
+
+### Notes
+- **`tests/test-model-map.js` IS RED AND WAS NOT CLOSED.** `docs/MODELS.md`'s new heading
+  **THE PER-TURN PIPELINE — WHO DOES WHAT** has no box and no declared reason. It is the composition
+  block, not a model, so it wants a `DECLARED` entry — and that table lives in a file outside the WEB
+  division's write set. Reported with the exact text to add, in
+  `docs/_reports/2026-08-25-site-truthfulness.md`. Not filed as a known failure.
+- **`app/` is twelve days behind `web/` and its quarantine block says "1 of 6 gate clauses fail"** —
+  the optimistic, pre-roster-clause era. `tests/test-site-sync.js` is red on five pages. Not synced
+  in this pass: copying into `app/` is effectively publishing, and publishing is confirmed first.
+- **`web/status-data.js` is fourteen days old** and `tests/test-web-status.js` is red on 12 scalars.
+  Nothing false reaches a visitor — `web/status.html` and `web/models.html` both compute SUPERSEDED
+  from the bundle's own `built_at` and render a plate instead of the value. The rebuild needs
+  `node web/build-status.js`, which runs `engine/status.js`, and must not run beside a live MEASURE
+  agent.
+- **`divergences.html` sits at the repository root, unaudited by every WEB guard, and was left in
+  place.** 215 KB of rendered MEDICHAM-vs-Showdown output that reads like a room. It is untracked, so
+  it cannot ship; that is the only reason this is a note. Not deleted — an untracked file is
+  unrecoverable.
+
 ## [5.131.3] — 2026-08-25
 
 ### Fixed

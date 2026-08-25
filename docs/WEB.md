@@ -187,6 +187,102 @@ roster, which is what the Open item below used to ask for.
 
 ## Open
 
+- **THE SITE WAS THREE DAYS BEHIND ITS OWN GATE, AND IT DRIFTED IN THE DIRECTION NOBODY WATCHES.
+  Fixed 2026-08-25.** `node web/build-quarantine.js --check` was RED on both outputs: the committed
+  `web/quarantine-data.js` and the block stamped inside `web/stadium.html` were built on 2026-08-22
+  and told a visitor **6 of 8 gate clauses fail**, naming the three deliberate-roster clauses as
+  FAILING. The gate today is **3 of 8**, and all three roster clauses are CLEAN
+  (`items 139 of 148`, `abilities 130 of 202`, `moves 475 of 500`). It also said `58 of 227`
+  artifacts were withheld against `60 of 234` now.
+
+  **The direction is the lesson.** This project's stated fear is a page telling a visitor the
+  simulator is clean; what actually happened is the opposite — the site OVER-withheld and published
+  a harsher verdict than the artifacts support. That is still drift, it is still a figure on a page
+  that no artifact says, and it was invisible to `web/figure-audit.js` because every one of those
+  numbers *did* cite an artifact. **A citation proves a figure has a source, never that it still
+  says this.** Only the rebuild-and-diff guard could see it, which is the argument for
+  `tests/test-web-quarantine-loaders.js` restated.
+
+  Rebuilt with `node web/build-quarantine.js`; both guards green. **The block is a SNAPSHOT and goes
+  stale by construction — re-run `--check` immediately before any publish, not at the start of the
+  pass.** Two of the artifacts it now names, `data/_pair-pilot.json` and
+  `data/medicham-represented-clicks.json`, are **untracked in git**, so the committed page names two
+  files a fresh clone does not have. Reported, not acted on: the classification is
+  `engine/quarantine.js`'s and not this division's to filter.
+
+- **THE STADIUM'S MEDICHAM CABINET DREW A DISAGREEMENT ITS OWN CITED ARTIFACT SAYS DOES NOT EXIST.
+  Fixed 2026-08-25.** `CTRLDATA.medicham` held `cmp:"150", agreed:"149", diff:"1"` with a named red
+  tick — `CHESNAUGHT WOOD HAMMER → MIMIKYU`, `Showdown 0-0` against `MEDICHAM's 120-130` — and
+  `worst:"3%"`. `data/engine-diff.json` reads **6,000 compared / 6,000 agreed / 0 disagreed**, and
+  `data/damage-validation.json`'s `result.worst_pct` has read **0 since 2026-08-08**. The canvas
+  loop drew exactly 150 ticks with a red one hardcoded at index 103.
+
+  **The stat card one screen above it was corrected on 2026-08-22 and this line was not**, which is
+  the whole failure: one FACT lived in two places on one page and only one copy got fixed. That is
+  CLAUDE.md's FACTS ARE GLOBAL, inside a single HTML file. The strip now draws a **proportion**, not
+  a count — it fills, and the counts are in the label — so no future artifact value can make the
+  drawing itself a lie about its resolution; the red segment still exists and is drawn whenever
+  `diff` is non-zero, because deleting a failure state is how a page loses the ability to report the
+  next one. The `badFrac` quotient is **geometry and is never printed**, on the same reasoning that
+  keeps `web/models.html` from dividing `matrix_agree` by `matrix_live`.
+
+  **The scope caveat was ADDED while the disagreement was removed, deliberately.** A full green bar
+  with nothing beside it reads as *the simulator is correct*, and the whole-game clause is still
+  FAILING at 18 of 961. The scene now ends on `DAMAGE ONLY — NOT THE WHOLE GAME` and the artifact's
+  own `scope` line. The stat card also stopped reproducing the artifact's `generated` stamp: a stamp
+  typed onto a page is a second copy of a field that moves every time the run repeats.
+
+- **`web/index.html` ROUNDED A NUMBER, AND THE FIGURE AUDIT COULD NOT SEE IT. Fixed 2026-08-25.**
+  The MEDICHAM room's warning read *"off by about **30 points on average**, and it picked the
+  **wrong winner in three out of eight**"* with **no citation on the line**.
+  `docs/ADR-001-use-the-champions-mod.md` says **31.1 percentage points** and **3 of 8**. Both are
+  now quoted exactly, both ADRs are cited, and the ADR's own caveat — 8 matchups at 60 battles each
+  is roughly a ±12 point interval per cell — is carried onto the page rather than dropped.
+
+  **Why nothing caught it:** `web/figure-audit.js` counts a token as a figure only when it has a
+  decimal point, a thousands comma, a `%`, or a value **≥ 100** (its scale filter, Definition 1(b)).
+  `30` fails all four and `three out of eight` is words, so a rounded, uncited, stale claim scored
+  as no figure at all and the page reported **100% traced**. This is a real blind spot in this
+  division's own instrument and it is **NOT fixed here** — lowering the threshold would sweep in
+  every `2`, `4` and `50` in the page's prose, which is the over-firing gate CLAUDE.md #148 warns
+  about. The narrower shape worth building is a spelled-out-number check plus a small-integer check
+  that fires only on a line already carrying a comparison word. Filed, not done.
+
+- **`tests/test-model-map.js` IS RED AND THIS DIVISION COULD NOT CLOSE IT.** `docs/MODELS.md` gained
+  a heading, **THE PER-TURN PIPELINE — WHO DOES WHAT, 2026-08-13**, that has no box on the map and
+  no declared reason. It is not a model: it is the COMPOSITION block, and every model it names
+  (MAG, DODUO, MILTANK, SLOWKING, DUSK) already has a box. So it wants a `DECLARED` entry, and
+  `DECLARED` lives inside `tests/test-model-map.js`, which is outside this division's write set
+  (`web/`, `tests/test-*web*.js`, `tests/test-stadium-roster.js`). **Reported RED, not filed** — the
+  exact text to add is in `docs/_reports/2026-08-25-site-truthfulness.md` under OWED, NOT RUN.
+
+- **`web/status-data.js` IS FOURTEEN DAYS OLD AND EVERY CONSUMER CORRECTLY REFUSES IT.** Built
+  2026-08-11; `tests/test-web-status.js` is red on **12** scalars — the mechanics census reads
+  `423/423` against `706/706`, the interaction matrix `1624 of 1643` against `1642 of 1642`, and
+  `ops.games` `52,089` against `69,932`. **Nothing false is published**: `web/status.html` and
+  `web/models.html` both compute `SUPERSEDED` off the bundle's own `built_at` and render a plate
+  instead of the value. That is the design working — and it means the whole status room is currently
+  blank, so *"no page yet renders the project's own state for a visitor"* is true again in practice.
+  The rebuild is `node web/build-status.js`, which runs `node engine/status.js` (two minutes-plus)
+  and **must not be run beside a live MEASURE agent** — baking a snapshot out of a moving tree is
+  the defect the SUPERSEDED state exists to stop, not the fix for it. OWED.
+
+- **`app/` IS TWELVE DAYS BEHIND `web/` AND ITS COPY OF THE GATE IS THE OPTIMISTIC ONE.**
+  `tests/test-site-sync.js` is red on five pages. `app/quarantine-data.js`, and the block inside
+  `app/stadium.html`, say **"1 of 6 gate clauses fail"** — five of six passing, from the era before
+  the roster clauses existed. **That is the shape this brief was written to find**: a shipped page
+  telling a visitor the simulator is nearly clean while 3 of 8 clauses fail. It was NOT fixed in
+  this pass, on purpose — syncing `app/` is effectively a publish, and publishing is confirmed
+  before it happens, not during a read-mostly pass. The command is one line and it is in the report.
+
+- **`divergences.html` SITS AT THE REPOSITORY ROOT, IS 215 KB OF RENDERED MEDICHAM-VS-SHOWDOWN
+  OUTPUT, AND NO WEB GUARD CAN SEE IT.** Titled *"Where MEDICHAM and Showdown part"*, it reads like
+  a room and is not in `web/`, so `figure-audit.js` does not scan it, `test-web-parses.js` does not
+  parse it and it loads no quarantine payload. It is **untracked**, so it cannot ship — which is the
+  only reason this is a note and not a red row. **Left in place and not deleted** (CLAUDE.md: an
+  untracked file is unrecoverable). If it is ever meant to be a room, it belongs under `web/` where
+  the guards reach it.
+
 - **THE MODEL MAP NAMED 14 OF THE LEDGER'S 31 MODELS, AND NOTHING COULD SEE IT. Fixed and GUARDED
   2026-08-06.** (Will: *"i want to make sure nothing is left out, this project is massive and has so
   many different parts i cant keep track of all them."*) A missing box leaves **no gap on screen**,

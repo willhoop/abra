@@ -15,30 +15,27 @@
  */
 (function (root) {
   var Q = {
-    "generated": "2026-08-22T18:29:12.868Z",
+    "generated": "2026-08-25T23:07:43.861Z",
     "by": "web/build-quarantine.js",
     "simulator": "engine/medicham2-browser.js",
     "open": false,
     "clauses": [
-      {"name":"game differential","ok":true,"why":"clean at BOTH corners of the damage roll: midpoint 0 of 6000, top 0/6000, bottom 0/6000 (seed 20260804) [read from data/engine-diff.json]"},
-      {"name":"deliberate roster / items","ok":false,"why":"MEASURED AGAINST A DIFFERENT ENGINE — this artifact ran on release 603d9a69d5a3 and the tree is e12ef20e7910. That is not a weaker answer, it is an answer about other bytes. WITHHELD, not annotated: every count in data/roster.items.json describes a simulator that is not this one, and none of them is repeated here. Re-run SHOWDOWN_PATH=... node tests/roster.js --stage items --write. [read from data/roster.items.json]"},
-      {"name":"deliberate roster / abilities","ok":false,"why":"MEASURED AGAINST A DIFFERENT ENGINE — this artifact ran on release 603d9a69d5a3 and the tree is e12ef20e7910. That is not a weaker answer, it is an answer about other bytes. WITHHELD, not annotated: every count in data/roster.abilities.json describes a simulator that is not this one, and none of them is repeated here. Re-run SHOWDOWN_PATH=... node tests/roster.js --stage abilities --write. [read from data/roster.abilities.json]"},
-      {"name":"deliberate roster / moves","ok":false,"why":"MEASURED AGAINST A DIFFERENT ENGINE — this artifact ran on release 603d9a69d5a3 and the tree is e12ef20e7910. That is not a weaker answer, it is an answer about other bytes. WITHHELD, not annotated: every count in data/roster.moves.json describes a simulator that is not this one, and none of them is repeated here. Re-run SHOWDOWN_PATH=... node tests/roster.js --stage moves --write. [read from data/roster.moves.json]"},
+      {"name":"game differential","ok":true,"why":"clean at BOTH corners of the damage roll: midpoint 0 of 6000, top 0/6000, bottom 0/6000, idx01 0/6000, idx02 0/6000, idx03 0/6000, idx04 0/6000, idx05 0/6000, idx06 0/6000, idx07 0/6000, idx08 0/6000, idx09 0/6000, idx10 0/6000, idx11 0/6000, idx12 0/6000, idx13 0/6000, idx14 0/6000 (seed 20260804) [read from data/engine-diff.json]"},
+      {"name":"deliberate roster / items","ok":true,"why":"clean: 139 of 148 tested [read from data/roster.items.json]"},
+      {"name":"deliberate roster / abilities","ok":true,"why":"clean: 130 of 202 tested. 45 row(s) count in NEITHER column — the control arm is itself a live ability: aftermath, analytic, angerpoint, anticipation, battlebond, berserk, cheekpouch, compoundeyes, cudchew, damp, earlybird, forewarn, frisk, gluttony, heavymetal, hydration, illuminate, justified, keeneye, klutz, magicguard, magmaarmor, merciless, minus, moxie, noguard, opportunist, pickpocket, pickup, poisonheal, pressure, rivalry, screencleaner, skilllink, slushrush, sniper, stall, stalwart, steadfast, stickyhold, superluck, supremeoverlord, tangledfeet, telepathy, trace [read from data/roster.abilities.json]"},
+      {"name":"deliberate roster / moves","ok":true,"why":"clean: 475 of 500 tested [read from data/roster.moves.json]"},
       {"name":"coverage / every used mechanic is measured by something","ok":true,"why":"clean: all 412 moves above 25 clicks are measured by the roster or the census [read from engine/quarantine.js]"},
-      {"name":"whole-game differential / the same game on both engines","ok":false,"why":"MEASURED AGAINST A DIFFERENT ENGINE — this artifact ran on release 603d9a69d5a3 and the tree is e12ef20e7910. That is not a weaker answer, it is an answer about other bytes. THE RATE, THE DIVERGED COUNT, THE GAME COUNT AND THE CLASS COMPOSITION ARE ALL WITHHELD rather than printed with a caveat — a figure beside a warning is what got the PRE-CHANGE numbers quoted for days. Re-run before this clause can say anything: SHOWDOWN_PATH=... node engine/game_differential.js --games 1200 --write [read from engine/quarantine.js]"},
-      {"name":"mechanics / each one staged and compared against showdown","ok":false,"why":"MEASURED AGAINST A DIFFERENT ENGINE — this artifact ran on release 603d9a69d5a3 and the tree is e12ef20e7910. That is not a weaker answer, it is an answer about other bytes. Re-run before this clause can say anything. [moves 22, abilities 12, items 2; 67 never fired — a harness gap, not counted here; 4 shelved by the owner — still staged and played, not counted] [read from engine/quarantine.js]"},
-      {"name":"no open, known engine defect","ok":false,"why":"3 OPEN roadmap row(s) name an instrument that is RED: #218 (94,313 uses), #241, #258. A gate cannot report the engine correct while the register says otherwise — that is \"known failure\" filed one level up. 3 open row(s) declare NOT A DEFECT in their status cell and are excused from this clause: #252 [deferred by decision — search; **NOT A DEFECT** (audited 2026-08-15: nothing here says a m]; #336 [open — verification owed, MEASURE. NOT A DEFECT: raised by Will 2026-08-22 as a question, ]; #344 [open — observed by MEASURE 2026-08-22, consequence unmeasured; ENGINE if a consequence is ] 27 open row(s) assert breakage with NO instrument that decides them — DEBT, not evidence, and they do not hold this clause shut: #339, #327, #220, #300, #301, #310, #312, #314, #315, #318, #319, #323, #325, #317, #345, #343, #341, #340, #338, #337, #334, #335, #333, #329, #330, #331, #332. Give one a verdict by adding a VERIFIED BY line naming the gate. [read from engine/quarantine.js]"}
+      {"name":"whole-game differential / the same game on both engines","ok":false,"why":"18 of 961 = 1.9% DIVERGE — the two engines disagree about 18 games (23 raw, less 5 declared and 0 cleared on decision impact). Mode A pins every die on both sides, so each one is a RULE they disagree about, not noise. This clause fails until that is zero. DECLARED / THE AUTHORITY IS WRONG — matching it here would make this engine LESS correct, so these do not count: [5 game(s), 1 row(s)] 5 Supreme Overlord `fallenundefined` THE AUTHORITY IS WRONG AND THE LINE IS INVISIBLE. `data/abilities.ts` guards supremeoverlord's onStart on `pokemon.side.totalFainted` and does NOT guard its onEnd, so when nothing has fainted `effectState.fallen` is never set and the template emits the literal string `fallenundefined` on a `[silent]` line players never see. The ABILITY is correct — onBasePower is guarded and the multiplier table is right. Reproducing a typo is not correctness. DECISION IMPACT — NO DECISION-IMPACT RUN — data/decision-impact.json is absent, so nothing is excused on decision impact and every played divergence counts. It is written by a paired argmax run (engine/argmax_paired.js, ROADMAP #278) with arms that differ by the FIX. DIRECTION OF TRAVEL WITHHELD — the baseline was stamped under `A/top-tie-first/pins:ef342837b791/credit:observed-effect/v1/nature:real` and this run is `A/middle/pins:6a6b87eafc6a/credit:observed-effect/v1/nature:real`. One pin is one corner: those are two instruments, and subtracting one rate from the other invents a trend. Re-stamp under this pin (node engine/quarantine.js --stamp-whole-game) if it is the pin you mean to hold. [rule 10, emission 9, ordering 4] [read from engine/quarantine.js]"},
+      {"name":"mechanics / each one staged and compared against showdown","ok":false,"why":"10 of 17 DIVERGING MECHANICS ARE PLAYED AND UNCLEARED — each is a rule, not a sampling artefact, since the teams are built from the mechanic list. Worst: ability:supremeoverlord (112 teams/13,116 open-sheet games), move:shellsidearm (101 clicks/64,846 stored games), move:switcheroo (85 clicks/64,846 stored games), move:smackdown (59 clicks/64,846 stored games), ability:berserk (56 teams/13,116 open-sheet games), move:stringshot (46 clicks/64,846 stored games) [moves 13, abilities 3, items 1; 67 never fired — a harness gap, not counted here; 4 shelved by the owner — still staged and played, not counted] REACH — one anchor (25 clicks in 64,846 stored games) carried to each population at the same rate; still staged and played, not counted [moves count at 25+ clicks in 64,846 games; abilities/items count at 6+ teams in 13,116 games]: move:recycle (22 clicks/64,846 stored games), move:gastroacid (11 clicks/64,846 stored games), move:reflecttype (11 clicks/64,846 stored games), move:corrosivegas (1 clicks/64,846 stored games), move:sweetscent (1 clicks/64,846 stored games), item:leppaberry (1 teams/13,116 open-sheet games), move:healbell (0 clicks/64,846 stored games) NO USAGE FIGURE: none — every diverging mechanic has a store-derived usage number. DECISION IMPACT — NO DECISION-IMPACT RUN — data/decision-impact.json is absent, so nothing is excused on decision impact and every played divergence counts. It is written by a paired argmax run (engine/argmax_paired.js, ROADMAP #278) with arms that differ by the FIX. [read from engine/quarantine.js]"},
+      {"name":"no open, known engine defect","ok":false,"why":"2 OPEN roadmap row(s) name an instrument that is RED: #218 (94,313 uses), #273. A gate cannot report the engine correct while the register says otherwise — that is \"known failure\" filed one level up. 8 open row(s) declare NOT A DEFECT in their status cell and are excused from this clause: #252 [deferred by decision — search; **NOT A DEFECT** (audited 2026-08-15: nothing here says a m]; #336 [open — verification owed, MEASURE. NOT A DEFECT: raised by Will 2026-08-22 as a question, ]; #344 [open — observed by MEASURE 2026-08-22, consequence unmeasured; ENGINE if a consequence is ]; #381 [open — register hygiene, NOT A DEFECT: nothing about the game is claimed wrong here; five ]; #386 [open — instrument coverage, NOT A DEFECT: the tool is correct and its input set is one art]; #387 [open — reporting clarity, NOT A DEFECT: every number the clause prints is correctly comput]; #395 [open — instrument reporting, NOT A DEFECT: every published row is correctly computed; what]; #396 [open — measurement index, NOT A DEFECT in itself; the board-material split is UNMEASURED a] 2 open row(s) name an instrument that WOULD NOT RUN — that is not agreement and it is not evidence either: #318, #319. 60 open row(s) assert breakage with NO instrument that decides them — DEBT, not evidence, and they do not hold this clause shut: #349, #364, #289, #339, #397, #400, #327, #220, #300, #301, #310, #312, #314, #315, #323, #325, #317, #350, #347, #348, #345, #343, #341, #340, #338, #337, #334, #335, #333, #329, #331, #332, #356, #360, #362, #365, #369, #370, #371, #375, #376, #380, #384, #385, #389, #393, #399, #412, #413, #416, #418, #419, #421, #422, #425, #438, #439, #440, #441, #442. Give one a verdict by adding a VERIFIED BY line naming the gate. [read from engine/quarantine.js]"}
     ],
     "failing": [
-      "deliberate roster / items",
-      "deliberate roster / abilities",
-      "deliberate roster / moves",
       "whole-game differential / the same game on both engines",
       "mechanics / each one staged and compared against showdown",
       "no open, known engine defect"
     ],
-    "n_quarantined": 58,
-    "n_artifacts": 227,
+    "n_quarantined": 60,
+    "n_artifacts": 234,
     "rule": "CLAUDE.md — EVERYTHING DOWNSTREAM OF MEDICHAM IS WITHHELD UNTIL MEDICHAM IS CORRECT. Will, 2026-08-08: \"all engines that take medicham's output should be regarded as out of date and we should stop referencing them until medicham is up to date and we can rerun them.\"",
     "derivation": "node engine/quarantine.js --graph",
     "root": {
@@ -46,7 +43,7 @@
       "root": true,
       "because": "it is the simulator every withheld artifact is derived from",
       "rerun": "node engine/quarantine.js",
-      "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+      "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
     },
     "play": [
       "build/build_scoreboard.js",
@@ -82,6 +79,7 @@
       "engine/game_differential.js",
       "engine/gate_seed_source_audit.js",
       "engine/gate_weather_guard.js",
+      "engine/immunity_sweep.js",
       "engine/joint_rows.js",
       "engine/ko_calibration.js",
       "engine/ladder.js",
@@ -102,6 +100,7 @@
       "engine/open_work.js",
       "engine/opponent_calibration.js",
       "engine/opponent_recall.js",
+      "engine/orient.js",
       "engine/play.js",
       "engine/player_digest.js",
       "engine/position_features.js",
@@ -135,11 +134,15 @@
     ],
     "classified": [
       "data/_dmg-inverted.json",
+      "data/_pair-pilot.json",
       "data/_r220-census-pin.json",
       "data/_r220-gd-post.json",
       "data/_r220-gd-pre.json",
       "data/_r220-void-pair-POST.json",
       "data/_r220-void-pair-PRE.json",
+      "data/_turncap-cap12.json",
+      "data/_turncap-cap16.json",
+      "data/_turncap-cap30.json",
       "data/_void-fields.json",
       "data/_void-fields2.json",
       "data/_void-final.json",
@@ -183,8 +186,8 @@
       "data/double-protect.json",
       "data/dusk-size-gate.json",
       "data/dynamics.json",
-      "data/effective-identity-baseline.json",
       "data/engine-data.js",
+      "data/engine-diff-PLANTED-band.json",
       "data/engine-diff-PLANTED-spread.json",
       "data/engine-diff.json",
       "data/engine-release.json",
@@ -211,6 +214,7 @@
       "data/guru-matchups.json",
       "data/guru.js",
       "data/illusion.json",
+      "data/immunity-sweep.json",
       "data/interaction-matrix.json",
       "data/jolteon-weights.json",
       "data/json-nan-guard-baseline.json",
@@ -229,6 +233,7 @@
       "data/mechanics-surface.json",
       "data/medicham-bench.json",
       "data/medicham-coverage.json",
+      "data/medicham-represented-clicks.json",
       "data/mega-decision.json",
       "data/mega-dex-official.json",
       "data/mega-dex.json",
@@ -243,6 +248,7 @@
       "data/mod-audit.json",
       "data/move-effects.js",
       "data/move-priors.json",
+      "data/move-priors.observed.json",
       "data/mutation-coverage.json",
       "data/nature-arms.json",
       "data/nmf-rank-selection.json",
@@ -368,406 +374,420 @@
         "state": "quarantined",
         "because": "its generator engine/mew.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/mew.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/all-mechanics-fire.json": {
         "file": "data/all-mechanics-fire.json",
         "state": "quarantined",
         "because": "its generator engine/all_mechanics_fire.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/all_mechanics_fire.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/brood.json": {
         "file": "data/brood.json",
         "state": "quarantined",
         "because": "its generator engine/brood.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/brood.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/censoring-value.json": {
         "file": "data/censoring-value.json",
         "state": "quarantined",
         "because": "its generator engine/censoring_value.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/censoring_value.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/click-censoring-census.json": {
         "file": "data/click-censoring-census.json",
         "state": "quarantined",
         "because": "its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/click_census.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/collinearity-audit.json": {
         "file": "data/collinearity-audit.json",
         "state": "quarantined",
         "because": "its generator engine/collinearity_audit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/collinearity_audit.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/collinearity-fix.json": {
         "file": "data/collinearity-fix.json",
         "state": "quarantined",
         "because": "its generator engine/collinearity_fix.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/collinearity_fix.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/collinearity-joint.json": {
         "file": "data/collinearity-joint.json",
         "state": "quarantined",
         "because": "its generator engine/collinearity_joint.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/collinearity_joint.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/exploit-step-probe-reparam.json": {
         "file": "data/exploit-step-probe-reparam.json",
         "state": "quarantined",
         "because": "its generator engine/exploit_step_probe.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/exploit_step_probe.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/exploit-step-probe.json": {
         "file": "data/exploit-step-probe.json",
         "state": "quarantined",
         "because": "its generator engine/exploit_step_probe.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/exploit_step_probe.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/exploitability-machamp.json": {
         "file": "data/exploitability-machamp.json",
         "state": "quarantined",
         "because": "its generator engine/exploit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/exploit.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/exploitability-mag.json": {
         "file": "data/exploitability-mag.json",
         "state": "quarantined",
         "because": "its generator engine/exploit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/exploit.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/exploitability.json": {
         "file": "data/exploitability.json",
         "state": "quarantined",
         "because": "its generator engine/exploit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/exploit.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/feature-audit.json": {
         "file": "data/feature-audit.json",
         "state": "quarantined",
         "because": "its generator engine/feature_audit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/feature_audit.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/feature-engine-contrast.json": {
         "file": "data/feature-engine-contrast.json",
         "state": "quarantined",
         "because": "its generator engine/feature_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/feature_engine_contrast.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/feature-shift.json": {
         "file": "data/feature-shift.json",
         "state": "quarantined",
         "because": "its generator engine/feature_shift.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/feature_shift.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+      },
+      "data/immunity-sweep.json": {
+        "file": "data/immunity-sweep.json",
+        "state": "quarantined",
+        "because": "its generator engine/immunity_sweep.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/immunity_sweep.js",
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/ladder.json": {
         "file": "data/ladder.json",
         "state": "quarantined",
         "because": "its generator engine/ladder.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/ladder.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/leaf-engine-contrast.json": {
         "file": "data/leaf-engine-contrast.json",
         "state": "quarantined",
         "because": "its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/leaf_engine_contrast.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/leaf-position-contrast.json": {
         "file": "data/leaf-position-contrast.json",
         "state": "quarantined",
         "because": "its generator engine/leaf_position_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/leaf_position_contrast.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/lookahead-cost.json": {
         "file": "data/lookahead-cost.json",
         "state": "quarantined",
         "because": "its generator engine/lookahead_cost.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/lookahead_cost.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/mag.js": {
         "file": "data/mag.js",
         "state": "quarantined",
         "because": "it reads policy-weights.json, which is quarantined",
         "rerun": "node build/build_mag_data.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+      },
+      "data/medicham-represented-clicks.json": {
+        "file": "data/medicham-represented-clicks.json",
+        "state": "quarantined",
+        "because": "its generator engine/medicham_coverage.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
+        "rerun": "node engine/medicham_coverage.js",
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/mew.js": {
         "file": "data/mew.js",
         "state": "quarantined",
         "because": "build/build_mew_bundle.js reads games.selfplay.jsonl — a dump of games MEDICHAM played",
         "rerun": "node build/build_mew_bundle.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/million-run-150k.json": {
         "file": "data/million-run-150k.json",
         "state": "quarantined",
         "because": "its generator engine/million_run.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/million_run.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/million-run-staged.json": {
         "file": "data/million-run-staged.json",
         "state": "quarantined",
         "because": "its generator engine/million_run.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/million_run.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/million-run.json": {
         "file": "data/million-run.json",
         "state": "quarantined",
         "because": "its generator engine/million_run.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/million_run.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/open-work.json": {
         "file": "data/open-work.json",
         "state": "quarantined",
         "because": "its generator engine/open_work.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/open_work.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/opponent-calibration.json": {
         "file": "data/opponent-calibration.json",
         "state": "quarantined",
         "because": "its generator engine/opponent_calibration.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/opponent_calibration.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/opponent-recall.json": {
         "file": "data/opponent-recall.json",
         "state": "quarantined",
         "because": "its generator engine/opponent_recall.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/opponent_recall.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/partial-label-em.json": {
         "file": "data/partial-label-em.json",
         "state": "quarantined",
         "because": "its generator engine/em_validation.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/em_validation.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/policy-weights-joint-presheet.json": {
         "file": "data/policy-weights-joint-presheet.json",
         "state": "quarantined",
         "because": "its generator engine/fit_joint.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/fit_joint.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/policy-weights-joint.json": {
         "file": "data/policy-weights-joint.json",
         "state": "quarantined",
         "because": "its generator engine/fit_joint.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/fit_joint.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/policy-weights.json": {
         "file": "data/policy-weights.json",
         "state": "quarantined",
         "because": "its generator engine/fit_policy.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/fit_policy.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/pp-board-probe.json": {
         "file": "data/pp-board-probe.json",
         "state": "quarantined",
         "because": "its generator engine/pp_board_probe.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/pp_board_probe.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/quarantine-stamp.json": {
         "file": "data/quarantine-stamp.json",
         "state": "quarantined",
         "because": "its generator engine/quarantine.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/quarantine.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/recall-at-k.json": {
         "file": "data/recall-at-k.json",
         "state": "quarantined",
         "because": "its generator engine/recall_at_k.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/recall_at_k.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/redirect-audit.json": {
         "file": "data/redirect-audit.json",
         "state": "quarantined",
         "because": "its generator engine/redirect_audit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/redirect_audit.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/register-reality.json": {
         "file": "data/register-reality.json",
         "state": "quarantined",
         "because": "its generator engine/register_reality.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/register_reality.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/replay-differential-bo3-freezes.json": {
         "file": "data/replay-differential-bo3-freezes.json",
         "state": "quarantined",
         "because": "its generator engine/replay_differential.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/replay_differential.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/replay-differential-bo3.json": {
         "file": "data/replay-differential-bo3.json",
         "state": "quarantined",
         "because": "its generator engine/replay_differential.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/replay_differential.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/replay-differential-freezes.json": {
         "file": "data/replay-differential-freezes.json",
         "state": "quarantined",
         "because": "its generator engine/replay_differential.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/replay_differential.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/replay-differential-sheets-freezes.json": {
         "file": "data/replay-differential-sheets-freezes.json",
         "state": "quarantined",
         "because": "its generator engine/replay_differential.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/replay_differential.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/replay-differential-sheets.json": {
         "file": "data/replay-differential-sheets.json",
         "state": "quarantined",
         "because": "its generator engine/replay_differential.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/replay_differential.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/replay-differential.json": {
         "file": "data/replay-differential.json",
         "state": "quarantined",
         "because": "its generator engine/replay_differential.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/replay_differential.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/rollout-cost.json": {
         "file": "data/rollout-cost.json",
         "state": "quarantined",
         "because": "its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/rollout_r2.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/rollout-r1-explore-sweep.json": {
         "file": "data/rollout-r1-explore-sweep.json",
         "state": "quarantined",
         "because": "engine/rollout_explore_sweep.js reads rollout-r1-explore1-rows.jsonl, rollout-r1-rows.jsonl — a dump of games MEDICHAM played",
         "rerun": "node engine/rollout_explore_sweep.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/rollout-r1-explore1.json": {
         "file": "data/rollout-r1-explore1.json",
         "state": "quarantined",
         "because": "engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played",
         "rerun": "node engine/rollout_r1_artifact.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/rollout-r1.json": {
         "file": "data/rollout-r1.json",
         "state": "quarantined",
         "because": "engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played",
         "rerun": "node engine/rollout_r1_artifact.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/rollout-r3.json": {
         "file": "data/rollout-r3.json",
         "state": "quarantined",
         "because": "its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/rollout_r3.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/rollout-r4.json": {
         "file": "data/rollout-r4.json",
         "state": "quarantined",
         "because": "engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played",
         "rerun": "node engine/rollout_r4.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/rollout-switch-probe.json": {
         "file": "data/rollout-switch-probe.json",
         "state": "quarantined",
         "because": "its generator engine/rollout_switch_probe.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/rollout_switch_probe.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/scoreboard.js": {
         "file": "data/scoreboard.js",
         "state": "quarantined",
         "because": "its generator build/build_scoreboard.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node build/build_scoreboard.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/scoreboard.json": {
         "file": "data/scoreboard.json",
         "state": "quarantined",
         "because": "its generator build/build_scoreboard.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node build/build_scoreboard.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/seed-source-audit.json": {
         "file": "data/seed-source-audit.json",
         "state": "quarantined",
         "because": "its generator engine/seed_source_audit.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/seed_source_audit.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/sheet-channel-value.json": {
         "file": "data/sheet-channel-value.json",
         "state": "quarantined",
         "because": "its generator engine/sheet_channel_value.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/sheet_channel_value.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/speed-vs-pokeenv.json": {
         "file": "data/speed-vs-pokeenv.json",
         "state": "quarantined",
         "because": "its generator engine/speed_vs_pokeenv.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/speed_vs_pokeenv.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/weight-multiplicity.json": {
         "file": "data/weight-multiplicity.json",
         "state": "quarantined",
         "because": "it reads policy-weights.json, which is quarantined",
         "rerun": "node engine/weight_multiplicity.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/whole-game-baseline.json": {
         "file": "data/whole-game-baseline.json",
         "state": "quarantined",
         "because": "its generator engine/quarantine.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/quarantine.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       },
       "data/winrate-backtest.json": {
         "file": "data/winrate-backtest.json",
         "state": "quarantined",
         "because": "its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)",
         "rerun": "node engine/backtest_winrate.js",
-        "clause": "6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
+        "clause": "3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)"
       }
     },
     "sources": {

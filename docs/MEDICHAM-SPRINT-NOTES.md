@@ -13808,3 +13808,34 @@ Fairy Lock branches, which share the block and were never probed for the same ch
 switch-addressing audit at `--turns 30`, the only cap it has not been asked at; and `run-all`, which
 reports 29 of 163 red on this tree — three of the four differential-loading failures are red at HEAD
 and unrelated, checked one at a time.
+
+## 2026-08-25 — WEB: the quarantine block the site published was three days stale, in the safe direction
+
+Not an engine change and it claims no census or gate movement. Recorded here because the sprint rule
+requires it and because the failure shape is one MEDICHAM work keeps paying for.
+
+`web/build-quarantine.js --check` exited 1. The committed block told a visitor **"6 of 8 clauses
+fail"** with all three deliberate-roster clauses red; the gate reads **3 of 8** and those three are
+clean. The drift OVER-withheld, which is why nobody caught it: a page that overstates the damage
+raises no alarm, and `figure-audit.js` scored it 100% traced throughout. **A citation proves a figure
+has a source. It never proves the source still says it** — the same distinction that put fourteen
+handoffs and a ban list of four in this file's ancestry.
+
+Separately the Stadium's MEDICHAM cabinet still drew `cmp:150 / agreed:149 / diff:1` and a hardcoded
+red tick naming one comparison, against a `data/engine-diff.json` that reads 6000/6000/0 with
+`worst_pct` at 0 since 2026-08-08. One fact, two copies, one file: the stat card one screen up was
+corrected on 2026-08-22 and this strip was not.
+
+**The scope line was ADDED while the disagreement was removed** — `DAMAGE ONLY — NOT THE WHOLE GAME`.
+Taking a red mark off a page is not the same as earning a clean bill, and the whole-game clause is
+still failing at 18 of 961.
+
+**NOT DONE AND NAMED:** `app/stadium.html` and `app/quarantine-data.js` still publish **"1 of 6 gate
+clauses fail"**. That is a live understatement of a failing gate, the copy is 12 days old, and
+syncing `app/` is a PUBLISH — Will's call, so `test-site-sync` stays red on purpose rather than
+being quietly cleared.
+
+**OWED, NOT RUN:** `node web/build-quarantine.js --check` immediately before any publish (the census
+and quarantine stamps both moved while the pass was open); `test-model-map`, which needs a `DECLARED`
+entry outside the WEB write set; and `test-web-status`, whose rebuild runs `status.js` and may not
+run beside a live MEASURE agent.
