@@ -10,6 +10,45 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.121.0] — 2026-08-24
+
+### Changed
+- **THE TAILWIND EXPIRY ORDER IS SHELVED BY WILL'S DECISION — DEFERRED, NOT DECLARED.** He ruled:
+  *"tailwind coming out in the wrong order doesnt matter, put it into the closet with that note and
+  move on."* His reasoning was verified against the derived residual order and holds: Tailwind resolves
+  at **order 26**, after everything that can kill anything (weather 1, poison 9, burn 10, Perish 24);
+  the two handlers are **adjacent**, so nothing between them can read the difference; the handler list
+  is **sorted once before the walk** (`sim/battle.ts:507`); and the speed effect is not applied until
+  the next turn, identically on both sides. **Which Tailwind ends first cannot affect a game.**
+- **It stays a defect and stays red.** `engine/quarantine.js` was not touched, the row remains
+  undeclared and is named on every run. **A deferral must not become a quiet pass** — that is the whole
+  reason the `DEFERRED` kind is a whitelist that subtracts nothing. Register unchanged at 407 rows /
+  234 open / 65 asserting breakage before and after; **no gate figure moved.**
+
+### Fixed
+- **TWO DERIVATIONS IN THE REGISTER WERE WRONG ABOUT THIS PAIR AND ARE CORRECTED.**
+  - *"A coin decides it"* — it does not. With `prng.shuffle` pinned to the identity in **every arm**,
+    the authority still reverses the pair. **Deterministic, therefore comparable**, which is why
+    INCOMPARABLE was correctly refused twice.
+  - The remaining cause is the residual handler-**list construction**, not the sort — which is now
+    correct at all four sites. The authority's selection sort **swaps rather than shifts**, so sorting
+    the front of the list displaces the tail, and every held item adds a participating handler. **The
+    same cause covers two screens expiring on both sides in one turn.**
+
+### Notes
+- **This is the third time in two days that a "nothing to fix here" claim turned out to be a real
+  defect** — speed ties, then Tailwind twice. In each case an agent refused a declaration the
+  coordinator had set up, and was right. The pattern is now explicit: **the "nobody is wrong" heading
+  is where real defects hide**, and a declaration must be refused unless the incomparability is proven
+  at the line.
+- **We do follow the authority's residual order**, and that was the large fix of 2026-08-14: this
+  engine used to walk **body by body** where the authority builds one list across both sides and the
+  field. Measured then, not asserted — **43 of 78 ordered pairs were inverted, 55%**, including
+  Leftovers healing *after* the burn chip, which is the difference between surviving a turn and
+  fainting.
+- A stale citation remains in that row's dated history (`:505` where the live line is `:507`); the new
+  text cites the live line. Left rather than rewritten, since a dated record is not edited in place.
+
 ## [5.118.0] — 2026-08-24
 
 ### Fixed
