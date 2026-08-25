@@ -1,10 +1,10 @@
 {
-  "current": "9cfe6b3b97a8",
-  "cut": "2026-08-25T19:52:45.381Z",
+  "current": "2ecd3bdc274b",
+  "cut": "2026-08-25T21:46:00.919Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 7,
-  "latest_cut": "2026-08-25T20:03:07.587Z",
-  "latest_why": "the commit-time queue carries the megaEvo entry, so a mega decides which Protect goes up",
-  "pointer_written": "2026-08-25T20:03:07.723Z",
+  "cuts": 6,
+  "latest_cut": "2026-08-25T21:56:20.432Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-25T21:56:20.443Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

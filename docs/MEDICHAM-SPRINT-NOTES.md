@@ -21,6 +21,64 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## AN ITEM PARKED BY MAGIC ROOM IS NOT AN ITEM LOST. CENSUS 705 → 706, PARTED 24 → 23. 2026-08-25 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-25-medicham-batch-2.md`](_reports/2026-08-25-medicham-batch-2.md).
+Ledger section: `docs/ENGINE.md`, *"AN ITEM PARKED BY MAGIC ROOM IS NOT AN ITEM LOST"*.
+
+Showdown's Unburden is a VOLATILE added only by `onAfterUseItem` / `onTakeItem`, and its condition needs
+`!pokemon.item`. Magic Room does neither — it sets `Pokemon#ignoringItem()` and leaves the item in the
+slot. This engine models the volatile as `_hadItem && !m.item`, and `itemRoomHide` EMPTIES that same
+slot into `_roomItem` so every item read returns nothing while the room is up. **A suppressed item read
+as a lost one: 165 → 330 here, where the authority reads 140 → 140 with no `unburden` volatile at all.**
+
+Found by reading the authority's queue rather than guessing. `ordering :: |switch|p1b|whimsicott <>
+|switch|p1a|alakazam` is four bodies switching at once; Showdown sorts `switch` actions (order 103) on
+the switching-OUT body's `getActionSpeed()`, and instrumenting `Battle#getActionSpeed` for that exact
+game gives Meowstic-M-Mega 182, Sneasler 151, Samurott-Hisui 115, Hatterene 54 — a clean descending
+sort. Our Sneasler holds a White Herb, carries Unburden, and its partner put Magic Room up the turn
+before, so it read 302 and outran the mega.
+
+Red first with three controls cleared — `tests/probe_room_unburden.js`, every body derived from the
+format. **A** (room + item + Unburden) parts at 344 against the authority's 172; **B** (same board,
+ability `Pressure`), **C** (same board, no Magic Room) and **D** (no room, the item genuinely knocked
+off — 172 → 344 on BOTH engines) are unmoved. Under `MEDI_ROOM_ITEM_IS_LOST=1` only A moves.
+
+**DECLARED RESIDUE, MEASURED RATHER THAN LEFT TO BE FOUND.** `itemRoomHide` still empties `m.item`, so
+the `item` board leaf parts on every Magic Room and Klutz board — arms A and B alike, before the fix
+and after — and `all_mechanics_fire`'s `klutz` STATE row is the same fact from the other instrument.
+That is the standing *"Magic Room parks the item"* hand-list item and it is a refactor of every item
+reader, not this line.
+
+**THE BRIEF'S PREMISE WAS REFUSED.** It asked for the largest board-material class; there is not one.
+All eleven board-material causes were a single game each and, grouped by mechanism, the biggest groups
+are two.
+
+Census 705 → 706 live, 0 missing. Damage differential **0 of 6000 at all 16 corners**. Whole game,
+release **`2ecd3bdc274b` for BOTH legs**, arm `middle`, **961 games** (`--games 1200`, a PAIR budget),
+cap 12, `--team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json`, the knob the only variable:
+**parted 24 → 23, board-material 11 → 10 causes and games, narration held at 12 causes / 13 games,
+ORDERING 5 → 4, RULE 10 → 10, EMISSION 9 → 9, DIFFERENT-END-STATE 12 → 12**, and the differential's own
+`SPEED AGREEMENT` check 34 readings in 10 games → **32 in 9**. **Exactly one cause left the list** and
+it is the one this pass aimed at — the remaining 23 are the previous 24 minus the `omit-spread` switch
+row, checked row for row. Roster x3 and `all_mechanics_fire` re-run with `--write` on the same release:
+**0/0/0 DIFFER** with identical match counts (139 / 130 / 475), **8 STATE rows**, unchanged. Gate clause
+**19 of 961 = 2.0% → 18 of 961 = 1.9%**.
+
+**STILL OPEN AND NAMED, NOT DIAGNOSED:** two board-material games are a chosen SWITCH the authority
+performs and this engine does not (`omit-protect` t8, `pair-redirect-priority` t11). `--trace-choices`
+shows 24 choices and 0 refused: the harness sent `"switch 3, move 3 mega"`, Showdown accepted it and
+brought Krookodile in, and this engine megaed and never switched. `game_differential.js` sends
+`switch N` against a `side.pokemon` array Showdown REORDERS on every switch, so **the instrument is a
+live suspect and ENGINE may not edit it** — that row is MEASURE's if the harness is the cause.
+
+**OWED, NOT RUN:** `tests/test-end-state.js`, `tests/test-encore-fail-silent.js`,
+`tests/test-roster-arm-pin.js`, `tests/test-middle-identity.js`, `tests/run-all.js`,
+`tests/interaction_matrix.js`, `tests/mutation_harness.js`, `engine/quarantine.js`; and a POOL-SCALE
+reading of `MEDFAILS.roomItemIsLostRestored`, which `game_differential.js` does not surface, so the
+knob's own counter has only ever been read on a staged board.
+
 ## A MEGA'S QUEUE ENTRY DECIDES WHICH PROTECT GOES UP. CENSUS 704 → 705. 2026-08-25 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-25-protect-stall.md`](_reports/2026-08-25-protect-stall.md).

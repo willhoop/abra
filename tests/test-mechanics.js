@@ -4449,6 +4449,53 @@ probe('ability', 'speedOnItemLoss', 'the Unburden doubling does NOT survive a sw
                  + ' (doubles while it is out, and the volatile dies with the switch)' };
 });
 
+/* 2026-08-25 — AN ITEM PARKED BY MAGIC ROOM IS NOT AN ITEM LOST.
+ *
+ * The two probes above are both about an item that is GONE. Neither can ask what happens when the
+ * item is still in the hand and merely IGNORED, and that is a state this engine reaches by EMPTYING
+ * the slot: `itemRoomHide` moves the item into `_roomItem` so every item read in the file returns
+ * nothing while Magic Room (or Klutz) is up. `effSpeed`'s stand-in for the authority's volatile is
+ * `_hadItem && !m.item`, which reads that same slot — so a suppressed item read as a lost one.
+ *
+ * THE AUTHORITY HAS NO AMBIGUITY HERE BECAUSE SUPPRESSION AND LOSS ARE DIFFERENT FIELDS. `unburden`
+ * is added only by `onAfterUseItem` / `onTakeItem`, and its condition needs `!pokemon.item`
+ * (data/abilities.ts; `data/mods/champions/abilities.ts` has no `unburden` key, so mainline's is what
+ * this format runs). Measured in the official simulator — Sneasler @ Focus Sash, Magic Room up:
+ * `spe 140` before, `spe 140` after, `item focussash`, no `unburden` volatile at all.
+ *
+ * THREE ARMS, AND THE THIRD IS WHAT STOPS A FIX THAT SIMPLY DELETES THE MECHANIC. The test arm is
+ * the room; the control is the SAME board with the ability off, so a board where nothing could ever
+ * move fails both rather than passing this one; and the positive re-asks the ORIGINAL question on the
+ * same body, so an engine that never doubles at all cannot pass. The fixture asserts that the room
+ * really went up and that the item really was parked — an arm that never staged Magic Room would read
+ * "no doubling" for the wrong reason.
+ *
+ * Knob: MEDI_ROOM_ITEM_IS_LOST=1 takes this MISSING. */
+probe('ability', 'speedOnItemLoss', 'an item PARKED by Magic Room is not an item LOST', () => {
+  const run = (ab) => {
+    const me = bare('sneasler'); me.ability = ab; me.item = 'focussash';
+    const ally = bare('alakazam'), f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const held = M.effSpeed(me, S.field, 'A');
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }],
+      [ally, M.playerAction(ally, 'magicroom', ally, S.field)]]), PASS2(f1, f2));
+    const roomed = M.effSpeed(me, S.field, 'A');
+    /* THE FIXTURE, ASSERTED RATHER THAN ASSUMED: the room is up and the item really is parked. */
+    const staged = (S.field.magicRoom | 0) > 0 && !me.item && !!me._roomItem;
+    /* AND NOW A GENUINE LOSS ON THE SAME BODY, so "it never doubles" cannot pass. */
+    me._roomItem = null; me.item = '';
+    return [held, roomed, M.effSpeed(me, S.field, 'A'), staged];
+  };
+  const control = run('none'), test = run('unburden');
+  return { works: control[3] === true && test[3] === true
+                  && control[1] === control[0] && control[2] === control[0]
+                  && test[1] === test[0] && test[2] === test[0] * 2,
+           arms: { control, test },
+           detail: '[holding, under Magic Room, after a genuine loss, was the room really staged] — '
+                 + 'ability none ' + control + ' (never moves); Unburden ' + test
+                 + ' (the parked item does NOT proc it; the lost one does)' };
+});
+
 probe('move', 'takesTargetItem', 'Covet steals the item', () => {
   const run = (mv) => {
     const me = bare('incineroar'), ally = bare('corviknight');

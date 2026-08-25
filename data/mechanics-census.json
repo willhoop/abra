@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-25T20:00:42.718Z",
+  "generated": "2026-08-25T21:49:10.820Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 705,
-  "live": 705,
+  "probed": 706,
+  "live": 706,
   "missing": 0,
-  "armed": 705,
+  "armed": 706,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -994,6 +994,16 @@
       "label": "the Unburden doubling does NOT survive a switch out and back",
       "live": true,
       "detail": "[holding, item gone, after switching out and back, did it really come back] — ability none 165,165,165,true (never moves); Unburden 165,330,165,true (doubles while it is out, and the volatile dies with the switch)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "speedOnItemLoss",
+      "label": "an item PARKED by Magic Room is not an item LOST",
+      "live": true,
+      "detail": "[holding, under Magic Room, after a genuine loss, was the room really staged] — ability none 165,165,165,true (never moves); Unburden 165,165,330,true (the parked item does NOT proc it; the lost one does)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3573,7 +3583,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -15,7 +15,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-encore-fail-silent.js`, `tests/probe_drag_body.js`, `tests/probe_lifeorb_toll.js`,
 `tests/test-resolution-order.js`, `tests/probe_selfdestruct_winner.js`, `engine/switchin_order.js`,
 `data/switchin-order.json`, `tests/test-immunity-gate.js`, `tests/test-tag-params-derived.js`,
-`tests/test-roster-arm-pin.js`, `engine/mc_key.js`, `tests/test-mc-key.js`, `tests/test-mc-seal.js`
+`tests/test-roster-arm-pin.js`, `engine/mc_key.js`, `tests/test-mc-key.js`, `tests/test-mc-seal.js`,
+`tests/probe_room_unburden.js`
 
 **Twenty instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -58,8 +59,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  705/705 probed mechanics live, 0 missing   (census 2026-08-25 16:00)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-25 16:04)
+  706/706 probed mechanics live, 0 missing   (census 2026-08-25 17:49)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -70,16 +71,178 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 4dc89ffbbc0d now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 3cf4fba5f420 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is ca264903bc1a now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 5d3b3186f8f3 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-25 16:19_
+_stamped 2026-08-25 18:05_
 
 <!-- /GENERATED -->
+
+## AN ITEM PARKED BY MAGIC ROOM IS NOT AN ITEM LOST. CENSUS 705 → 706, PARTED 24 → 23. 2026-08-25.
+
+Full account: [`docs/_reports/2026-08-25-medicham-batch-2.md`](_reports/2026-08-25-medicham-batch-2.md).
+
+**THE BRIEF'S PREMISE WAS WRONG AND IT IS WORTH SAYING FIRST.** It asked for *the one largest
+board-material class*. There is no such thing in the current set: **all eleven board-material causes
+were one game each**, and grouped by mechanism the biggest groups were TWO. So the pick was made on
+what could be diagnosed and proved rather than on a count, and the remainder is reported below as a
+fact rather than as a ranking.
+
+**THE MECHANISM, FOUND BY READING THE AUTHORITY'S OWN QUEUE.** The board-material cause
+`ordering :: |switch|p1b|whimsicott <> |switch|p1a|alakazam` (config `omit-spread`, turn 2) is four
+bodies all switching out at once. Showdown sorts `switch` actions (order 103) on the SWITCHING-OUT
+body's `getActionSpeed()`; instrumenting `Battle#getActionSpeed` for that exact game gives
+
+```
+  outgoing on turn 2:  Meowstic-M-Mega 182 | Sneasler 151 | Samurott-Hisui 115 | Hatterene 54
+  showdown  p1b, p1a, p2a, p2b   — a clean descending sort
+  medicham2 p1a, p1b, p2a, p2b   — so ITS Sneasler outran 182
+```
+
+The Sneasler holds a White Herb and carries **Unburden**, and its partner had put **Magic Room** up
+the turn before. `effSpeed` models the authority's `unburden` VOLATILE as `_hadItem && !m.item` — it
+reads the SLOT — and `itemRoomHide` empties that same slot into `_roomItem` so that every item read in
+the file returns nothing while the room is up. **A suppressed item read as a lost one and the Speed
+doubled.**
+
+**THE AUTHORITY HAS NO SUCH AMBIGUITY, BECAUSE SUPPRESSION AND LOSS ARE DIFFERENT FIELDS.** `unburden`
+is added only by `onAfterUseItem` / `onTakeItem`, and its condition needs `!pokemon.item`
+(`data/abilities.ts`; `data/mods/champions/abilities.ts` carries no `unburden` key, so mainline's is
+what this format runs). Magic Room sets `Pokemon#ignoringItem()` and leaves `pokemon.item` where it
+was. Measured in the official simulator — Sneasler @ Focus Sash, Magic Room up: **`spe 140` before,
+`spe 140` after, `item focussash`, and no `unburden` volatile at all.** The same body read
+**165 → 330** here.
+
+**RED FIRST, WITH THREE CONTROLS CLEARED.** `tests/probe_room_unburden.js` (new) — everything derived,
+four arms, one board, one thing varied per arm:
+
+| arm | knob OFF (fixed) | knob ON (`MEDI_ROOM_ITEM_IS_LOST=1`) |
+|---|---|---|
+| **A** Magic Room + the item + Unburden | speed AGREE | **speed PARTS** (344 against the authority's 172) |
+| **B** CONTROL: the same board, ability `Pressure` | speed AGREE | speed AGREE |
+| **C** CONTROL: the same board, NO Magic Room | speed AGREE | speed AGREE |
+| **D** POSITIVE: no room, the item is KNOCKED OFF | speed AGREE | speed AGREE |
+
+Under the knob **only arm A moves** and the three controls are unmoved. D is what stops a "fix" that
+merely deletes the mechanic: the doubling still fires on a real loss, 172 → 344 on both engines.
+
+**WHAT THIS DOES NOT FIX, AND THE PROBE MEASURES IT RATHER THAN LEAVING IT TO BE FOUND.**
+`itemRoomHide` still EMPTIES `m.item`, so `p1.*.item` is a board leaf that parts on **every** Magic
+Room and Klutz board — arms A and B part on that leaf identically, before the fix and after. That is
+the standing *"Magic Room parks the item"* item on the hand list, it is a refactor of every item
+reader, and `all_mechanics_fire`'s `klutz` STATE row (*"boards parted at turn 1 — WITH NO LINE
+DIFFERENCE AT ALL"*) is the same fact arriving from the other instrument.
+
+**THE NUMBERS ARE A KNOB ATTRIBUTION ON ONE RELEASE, ONE DRIVER, ONE CENSUS PIN.**
+
+| arm `middle`, 961 games (`--games 1200`, a PAIR budget) | knob ON (defect restored) | knob OFF (fixed) |
+|---|---|---|
+| census probed / live / missing | 706 / 705 / **1** | **706 / 706 / 0** |
+| protocol PARTED | 24 | **23** |
+| board-material | 11 causes / 11 games | **10 causes / 10 games** |
+| narration-only | 12 causes / 13 games | 12 causes / 13 games |
+| shape RULE / EMISSION / ORDERING | 10 / 9 / 5 | 10 / 9 / **4** |
+| DIFFERENT-END-STATE | 12 | 12 |
+| `SPEED AGREEMENT` disagreeing readings | 34 in 10 games | **32 in 9 games** |
+| damage differential, all 16 corners | — | **0 of 6000** |
+| roster items / abilities / moves DIFFER | — | **0 / 0 / 0** (139 / 130 / 475 match — counts identical) |
+| `all_mechanics_fire` STATE rows | — | **8** — unchanged |
+
+**EXACTLY ONE CAUSE LEFT THE LIST AND IT IS THE ONE THIS PASS AIMED AT.** The 23 remaining causes are
+the previous 24 minus `omit-spread :: |switch|p1b|whimsicott <> |switch|p1a|alakazam`, row for row.
+The status gate reads **18 of 961 = 1.9% DIVERGE** (was 19 = 2.0%) — 23 raw less the 5 declared
+`fallenundefined` rows.
+
+Arm `middle`, **961 games**, release **`2ecd3bdc274b`** for BOTH legs,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state`, turn cap 12. `planted_divergence_proof_ok` TRUE.
+
+**WHICH SCOREBOARD THIS SHOULD MOVE, SAID BEFORE THE RUN.** Magic Room is rare and Unburden is rarer;
+the LAB was expected to gain a row and the POOL to move by the single game the mechanism was found in.
+Both happened, and nothing else did.
+
+### THE HAND LIST
+
+Leaves it: nothing that was on it — this mechanism was not on the list. It was found by diagnosing a
+board-material cause.
+
+Joins it:
+
+- **THE BOARD-MATERIAL REMAINDER HAS NO CLASS BIGGER THAN ONE GAME, AND THE TWO BIGGEST MECHANISM
+  GROUPS ARE TWO GAMES EACH.** Named so the next pass does not re-derive it. (a) **A chosen switch the
+  authority performs and medicham2 does not** — `omit-protect` t8 `|switch|p2a|crabominable <>
+  |cant|p1b|recharge` and `pair-redirect-priority` t11 `|switch|p1a|krookodile <>
+  |detailschange|p1b|charizardmegay`. In the second the harness sent `"switch 3, move 3 mega"`,
+  Showdown ACCEPTED it and brought Krookodile in, and this engine did the mega and never switched.
+  **The harness is a live suspect and it is `game_differential.js`, which ENGINE may not edit** — if
+  it is the instrument, the row belongs to MEASURE. (b) the Protect/stall pair, below.
+- **`active[].stall` SURVIVES AT LATER TURNS** — carried over unchanged from the previous pass and
+  still not diagnosed: `pair-protect-bust` t6 `|-singleturn|p2a|protect <> |-fail|p2a` (a Clefable that
+  woke up on the turn it shielded) and `pair-protect-bust` t9 `|-fail|p2b <>
+  |-start|p1a|disable|protect`, which on inspection is **Disable's own failure condition and probably
+  NOT the stall family at all**. Do not group them without measuring.
+- **THE ORDER-107 HALF OF THE COMMIT-QUEUE FIX IS STILL UNMEASURED** — carried over unchanged.
+
+Stays on it, unchanged: **`_megaPhase` is entered at the first action with `_pri < 6` and a Prankster
+Helping Hand is 6**, **the `trapper` mark on a trap's SOURCE**, **the `any`-category address for
+`getRandomTarget`**, **the Bug Bite / Pluck EAT half**, **the two surfaces Moody was hiding**,
+**`AfterMoveSecondary` above `|-hitcount|`**, **the three spread-status rows are ONE mechanism**,
+**`supremeoverlord`**, **`shellsidearm`**, **`sandforce`'s truncated `damageBoost.onType`**,
+**`guts.damageBoost.onlyWhen` null**, **Castform's forme label (a refit)**, **Magic Room parks the
+item** *(now MEASURED rather than merely named — see above)*, **a refused Role Play does not blank its
+move line's target field**, **PP exhaustion is narrated wrong**, **a multi-turn counter reaching zero
+is silent**, **a forme does not revert when its field effect ends**, and **the 33 extra board-material
+causes visible only past turn 12**.
+
+### PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.
+
+**CLOSED (1).** *"An item PARKED by Magic Room or Klutz is read as an item LOST, so Unburden doubles
+the Speed of a body that is still holding one — 165 → 330 where the authority reads 140 → 140. It
+mis-sorts the commit queue's `switch` actions and cost a board-material game in the pinned pool."*
+Knob `MEDI_ROOM_ITEM_IS_LOST=1`; one two-engine probe with three cleared controls and a positive, and
+one census probe.
+
+**OPEN (2).** *"Two board-material games are a chosen switch the authority performs and medicham2 does
+not. In `pair-redirect-priority` turn 11 the harness sent `switch 3, move 3 mega`, Showdown accepted
+it, and this engine megaed and never switched. `game_differential.js` is a live suspect — route to
+MEASURE if the instrument is the cause."*
+
+*"`itemRoomHide` empties `m.item`, so the `item` board leaf parts on every Magic Room and Klutz board,
+and any move reading `pokemon.item` raw (Acrobatics' `basePowerCallback` is the loud one) sees an empty
+hand where the authority sees a full one. Measured by `tests/probe_room_unburden.js` arms A and B and
+by `all_mechanics_fire`'s `klutz` STATE row. It is a refactor of every item reader."*
+
+### OWED, NOT RUN
+
+```bash
+# the gates this pass did NOT run — every one of them can see a turn-order change
+node tests/test-end-state.js
+node tests/test-encore-fail-silent.js
+node tests/test-roster-arm-pin.js
+node tests/test-middle-identity.js
+node tests/run-all.js
+
+# the two undiagnosed board-material games, replayed whole
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node engine/replay_one.js \
+  --release 2ecd3bdc274b --team-store data/team-pool-frozen --games 1200 --arm middle \
+  --config omit-protect --trace-choices \
+  --seed "gen9championsvgc2026regmbbo3-2656624602 vs gen9championsvgc2026regmbbo3-2657402800"
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node engine/replay_one.js \
+  --release 2ecd3bdc274b --team-store data/team-pool-frozen --games 1200 --arm middle \
+  --config pair-redirect-priority --trace-choices \
+  --seed "gen9championsvgc2026regmbbo3-2656847681 vs gen9championsvgc2026regmbbo3-2656808520"
+
+# the interaction matrix and the mutation harness, neither re-run on this release
+node tests/interaction_matrix.js
+node tests/mutation_harness.js
+
+# a POOL-SCALE reading of MEDFAILS.roomItemIsLostRestored — game_differential.js surfaces no MEDFAILS,
+# so the knob's counter has only ever been read on a staged board
+```
 
 ## A MEGA'S QUEUE ENTRY DECIDES WHICH PROTECT GOES UP. CENSUS 704 → 705. 2026-08-25.
 

@@ -2515,6 +2515,12 @@ const MEDFAILS = { encoreAction: 0,
      board that changed, so a run with no mega in it still says the knob was on. */
   chargeQueueUnlisted: 0, queueTieMixedKinds: 0, megaPhantomDidNotEvolve: 0,
   commitQueueBlindRestored: 0,
+  /* 2026-08-25 -- `roomItemIsLostRestored` is set on MEDI_ROOM_ITEM_IS_LOST=1 AND ONLY WHEN THE KNOB
+     ACTUALLY CHANGED AN ANSWER: it is written inside the branch, on a body whose item is PARKED
+     (`_roomItem != null`) rather than gone, which is the only situation the knob reaches. A run with
+     no Magic Room and no Klutz in it therefore reads 0 with the knob on, which is correct -- there
+     was nothing for it to restore. See `effSpeed`. */
+  roomItemIsLostRestored: 0,
   /* 2026-08-24 -- THE END-OF-TURN WALK'S TWO, the same shape again. `residualOrderTieNoDie` is the
      loud fallback: a tied residual group with no `tie` stream in scope, so the group kept whatever the
      selection sort handed it. `residualStableSortRestored` is set on MEDI_RESIDUAL_STABLE_SORT=1, on
@@ -11198,6 +11204,11 @@ function sdModify(value, mod){
   const modifier = _sdTrunc(mod * 4096);
   return _sdTrunc((_sdTrunc(value * modifier) + 2048 - 1) / 4096);
 }
+/* MEDI_ROOM_ITEM_IS_LOST=1 -- the pre-2026-08-25 read restored: an item PARKED by Magic Room or Klutz
+ * counts as an item LOST, so Unburden doubles the Speed of a body that is still holding one. It is
+ * here rather than beside the other knobs because it is read by exactly one line, in the function
+ * below. */
+const ROOM_ITEM_IS_LOST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ROOM_ITEM_IS_LOST==='1');
 function effSpeed(m,field,side){
   /* WIRE 83 -- THE SIDE MAY BE OMITTED, and then it is READ off the body rather than assumed. Gyro
      Ball and Electro Ball are base-power-from-a-speed-RATIO, computed inside dmgRange, which is
@@ -11224,7 +11235,45 @@ function effSpeed(m,field,side){
    * itself wrong until today: it matched any onTakeItem and so included STICKY HOLD, whose handler
    * exists to refuse the loss. Reading that would have doubled the Speed of an ability that does
    * the opposite. */
-  if(m._hadItem&&!m.item){const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)_mods.push(+_ub.speedMult);}
+  /* 2026-08-25 -- AN ITEM PARKED BY MAGIC ROOM OR KLUTZ IS NOT AN ITEM LOST, AND THE SLOT ALONE
+   * CANNOT TELL THEM APART.
+   *
+   * `_hadItem && !m.item` is this engine's stand-in for the authority's `unburden` VOLATILE, and it
+   * reads the SLOT. `itemRoomHide` empties that same slot into `_roomItem` so that every item read in
+   * the file returns nothing while the room is up -- so a SUPPRESSED item read here as a LOST one.
+   *
+   * THE AUTHORITY HAS NO SUCH AMBIGUITY, because suppression and loss are different fields.
+   * `unburden` is added ONLY by `onAfterUseItem` / `onTakeItem`, and its condition needs
+   * `!pokemon.item` (data/abilities.ts; `data/mods/champions/abilities.ts` carries no `unburden` key,
+   * so mainline's is what this format runs). Magic Room sets `Pokemon#ignoringItem()` and leaves
+   * `pokemon.item` exactly where it was. MEASURED in the official simulator -- Sneasler @ Focus Sash,
+   * Magic Room up: `spe 140` before, `spe 140` after, `item focussash`, and NO `unburden` volatile.
+   * Here the same body read 165 -> 330, and the same board with the ability off was unmoved at 165.
+   *
+   * IT COST A BOARD-MATERIAL GAME IN THE PINNED POOL. `ordering :: |switch|p1b|whimsicott <>
+   * |switch|p1a|alakazam` (config `omit-spread`, turn 2): Showdown sorts `switch` actions (order 103)
+   * on the SWITCHING-OUT body's `getActionSpeed()`, and its queue for that game reads Sneasler 151,
+   * Meowstic-M-Mega 182, Samurott-Hisui 115, Hatterene 54 -- a clean descending sort. This engine's
+   * Sneasler was holding a White Herb under a Magic Room its partner had put up the turn before, so it
+   * came out at 302 and outran the mega.
+   *
+   * `_roomItem` IS THE RIGHT WITNESS RATHER THAN `itemSuppressed(m,field)`, which is the same fact one
+   * level up: that predicate bumps `MEDSEEN.itemSuppressedByAbility` and effSpeed is called several
+   * times per action, so asking it here would turn a diagnostic counter into a speed-read counter.
+   * `_roomItem` is written by the ONE function that parks an item and is null whenever nothing is
+   * parked, which is exactly the question being asked.
+   *
+   * WHAT THIS DOES NOT FIX, SAID PLAINLY: `itemRoomHide` still empties the slot, so `p1.*.item` is a
+   * board leaf that parts on every Magic Room / Klutz board, and any move reading `pokemon.item` raw
+   * (Acrobatics' basePowerCallback is the loud one) still sees an empty hand where the authority sees
+   * a full one. That is the standing "Magic Room parks the item" item on docs/ENGINE.md's hand list
+   * and it is a refactor of every item reader, not this line. `tests/probe_room_unburden.js` measures
+   * both and reports the item leaf as declared residue.
+   *
+   * Knob: MEDI_ROOM_ITEM_IS_LOST=1 restores the pre-fix read. */
+  if(m._hadItem&&!m.item&&(ROOM_ITEM_IS_LOST||m._roomItem==null)){
+    if(m._roomItem!=null)MEDFAILS.roomItemIsLostRestored=1;
+    const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)_mods.push(+_ub.speedMult);}
 if((side==='A'?field.twA:field.twB)>0)_mods.push(2);
   /* WIRE 78 — a suppressed sky does not haste anybody. effSpeed sees ONE body, so it reads the
      field's own answer (set by battleTurn over all four actives) as well as this body's ability. */
