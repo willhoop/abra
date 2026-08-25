@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-25T04:51:38.384Z",
+ "generated": "2026-08-25T07:45:58.785Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "359b51b61d83",
+ "engine_release": "77c221c9dba5",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -7369,6 +7369,7 @@
       "types": "dark/ice",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7395,6 +7396,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7443,6 +7445,7 @@
       "types": "dark/ice",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7469,6 +7472,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7517,6 +7521,7 @@
       "types": "dark/ice",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7543,6 +7548,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9623,6 +9629,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9672,6 +9679,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9739,6 +9747,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9806,6 +9815,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,

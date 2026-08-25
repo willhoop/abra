@@ -3069,6 +3069,27 @@ function red() {
                     m._trapHard = { by: (S.actB || [])[0] || m, mv: 'block' }; return true; } },
       { what: 'a BENCHED body is still standing behind a SUBSTITUTE with 40 HP', want: 'party.vol.substitute',
         f: (S) => { const m = benched(S); if (!m) return false; m._sub = 40; return true; } },
+      /* ---- DESTINY BOND AND THE STALL COUNTER ARE COMPARED SINCE 2026-08-25, AND THESE FOUR ARE
+       * WHAT SAYS SO. Both leaves were in `data/game-differential.json`'s `end_state_not_compared`
+       * -- read by NOTHING in this repository -- and the Destiny Bond row was right that wiring it
+       * first would have manufactured a divergence: the mechanic was not implemented at all.
+       *
+       * TWO PLANTS PER LEAF, AND EACH PAIR IS TWO DIFFERENT PLACES THE SAME LEAF CAN BE WRONG. One
+       * catch is one catch: a comparator that saw the ACTIVE slot and missed the BENCH would read as
+       * healthy, and the bench is exactly where a leaf has been laundered before.
+       *
+       * NONE OF THE FOUR WRITES A PROTOCOL LINE, which is the whole point. `-singlemove` is not a
+       * line this engine claims, and the stall counter is never narrated by either engine at all --
+       * so a stream instrument cannot see any of this, on either side, ever. */
+      { what: 'an ACTIVE body is holding a DESTINY BOND nobody announced', want: 'vol.destinybond',
+        f: (S) => { const m = (S.actA || [])[0]; if (!m) return false; (m._vol = m._vol || {}).destinybond = 1; return true; } },
+      { what: 'a BENCHED body walked off the field still holding a DESTINY BOND', want: 'party.vol.destinybond',
+        f: (S) => { const m = benched(S); if (!m) return false; (m._vol = m._vol || {}).destinybond = 1; return true; } },
+      { what: 'an ACTIVE body has TWO consecutive Protects on its stall counter and no line says so',
+        want: 'stall',
+        f: (S) => { const m = (S.actA || [])[0]; if (!m) return false; m.tookProtectTurns = 2; return true; } },
+      { what: 'a BENCHED body took its stall counter to the bench with it', want: 'party.stall',
+        f: (S) => { const m = benched(S); if (!m) return false; m.tookProtectTurns = 1; return true; } },
     ];
     const control = stage(undefined);
     const cv = boardVerdict(control);

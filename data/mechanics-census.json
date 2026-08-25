@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-25T06:29:05.110Z",
+  "generated": "2026-08-25T07:50:52.045Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 701,
-  "live": 701,
+  "probed": 704,
+  "live": 704,
   "missing": 0,
-  "armed": 701,
+  "armed": 704,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3563,7 +3563,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.4% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7024,6 +7024,36 @@
       "label": "Fickle Beam announces the roll that doubled it — and says nothing when it did not",
       "live": true,
       "detail": "[one real turn each into an unfaintable Feraligatr, the same board, only the die varied] — a roll inside 3/10 [\"|-activate|p1a:hydrapple|move:ficklebeam\"] for 166 HP; CONTROL a roll outside it [] for 99. The line and the doubling are ONE handler, so the announcement must appear exactly where the damage doubles and nowhere else. The two arms also draw different damage rolls, so the bar is a ratio above 1.5 — wider than the 1.176 the 0.85..1.00 band can produce on its own",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "Destiny Bond takes the body that landed the killing MOVE, and does nothing without it",
+      "live": true,
+      "detail": "[the bond holder fainted, the KILLER fainted, the killer HP] - clicking Nasty Plot [true,false,183] (the killer walks away), clicking DESTINY BOND [true,true,0] (it goes with it). Same board, same lethal Crunch, one click varied",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "Destiny Bond does NOT fire when the KO came from POISON rather than a move",
+      "live": true,
+      "detail": "[the bond holder fainted, the KILLER fainted] - killed by POISON at the residual [true,false] (the attacker MUST survive: chip is not a Move), killed by CRUNCH [true,true] (it must not). Same 1 HP, same Destiny Bond click, only the source of the KO varied",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "the Destiny Bond window closes when its user moves again, and a second one FAILS",
+      "live": true,
+      "detail": "[the bond holder fainted, the KILLER fainted] - bond on turn 1 then an ORDINARY move on turn 2 [true,false] (window closed, killer lives); a SECOND Destiny Bond on turn 2 [true,false] (it FAILS and takes the first one with it, killer lives); the user does NOTHING on turn 2 [true,true] (the window is still open across the turn boundary, killer dies)",
       "hollow": false,
       "armed": true,
       "directCall": false

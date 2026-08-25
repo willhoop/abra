@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  701/701 probed mechanics live, 0 missing   (census 2026-08-25 02:29)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-25 02:28)
+  704/704 probed mechanics live, 0 missing   (census 2026-08-25 03:50)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-25 03:28)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,191 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is a65f42d2673e now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 25be5be4bf9c now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-25 02:40_
+_stamped 2026-08-25 04:03_
 
 <!-- /GENERATED -->
+
+## DESTINY BOND WAS A 5-PP NO-OP, AND THE STALL COUNTER IS COMPARABLE AFTER ALL. CENSUS 701 → 704. 2026-08-25.
+
+Full account: [`docs/_reports/2026-08-25-destinybond-stall.md`](_reports/2026-08-25-destinybond-stall.md).
+
+Will picked these two out of `end_state_not_compared` because they decide games. Both were fields
+**nothing in this repository read**, so a regression in either read as agreement. Wiring the first one
+found that the mechanic underneath it did not exist.
+
+**DESTINY BOND WAS NOT IMPLEMENTED. `grep destinybond` in `engine/medicham2-browser.js` returned one
+substitute-bypass entry and three comments.** The generic `statusInflict` applier wrote the volatile
+and no line in the file ever read it, removed it, or took the killer with it — so the most feared status
+move in the format cost 5 PP and did nothing, and every rollout priced a Destiny Bond body as harmless.
+Measured on both engines before a word was written (`tests/probe_dbond_stall.js` A2, against its A1 and
+A3 controls): the bond holder is knocked out by a foe's move, and Showdown takes the killer with it
+while this engine left the killer at full HP.
+
+**THREE CLAUSES, ONE KNOB (`MEDI_NO_DESTINY_BOND=1`), AND THE FOUR REFUSALS ARE ASKED SEPARATELY** — an
+engine wrong on any single one of them looks correct on most boards. `destinyBondOnFaint` is called from
+the move-damage faint step inside the hit loop (`_stepFaint`, the analogue of `faintMessages()`) and from
+Super Fang's halving branch, and from nowhere else: **`effect.effectType === 'Move'` is wired by WHERE
+the hook is called rather than by a test**, so sandstorm, burn, poison, Leech Seed, Life Orb recoil,
+hazards and Perish Song cannot reach it, and Future Sight's residual payout is not a call site
+(`!flags['futuremove']`). An ally's KO is refused on `_sf`; an already-dead killer is refused because
+`Pokemon#faint` is a no-op with no hp. The WINDOW is one line at the head of the `onBeforeMove` gate —
+five cases enumerated first, and every path that reaches a move attempt ends with the old bond gone,
+which is why one line is the whole rule rather than a strip repeated at six `continue`s. Consecutive use
+is `onPrepareHit` verbatim in `applyMoveVolatile`. Keyed on the VOLATILE ID the tag already derives
+(`statusInflict.effects[].volatile`), never on a move name — `engine/faces.js` makes exactly that
+argument for the seven moves whose whole mechanic is which volatile they write.
+
+**THE STALL ROW'S ARGUMENT WAS TRUE AND ITS CONCLUSION WAS NOT.** It read: *"medicham2 holds
+`tookProtectTurns` (a count UP) and Showdown holds a `stall` volatile with a `counter` that is a
+DENOMINATOR (3, 9, 27). They are different quantities, not two spellings of one, and a mapping between
+them would be this file inventing a rule."* The map is not invented here: it is **medicham2's own**,
+lifted out of `_stallRoll` into `stallBoardCounter` and CALLED by the comparator, with its three
+constants read off `stallCounterChecks` and therefore off `data/conditions.ts`'s `stall`. Printed side by
+side before it was wired — five consecutive Protects and a skipped turn, `3^n` against `stall.counter`,
+**twelve boundaries and twelve exact matches including both resets**. The six legal `stallingMove`
+members are derived BY CARRIER on every probe run (`protect(231) endure(231) detect(27) spikyshield(2)
+banefulbunker(1) kingsshield(1)`; five more are `isNonstandard: 'Past'`), and all six carry identical
+params — `STALL_SHARED {members:6, disagree:0}`, asserted rather than assumed.
+
+**THE WIRING IS PROVED BY FOUR PLANTED FAILURES, TWO PER LEAF, ACTIVE AND BENCH.** All four **NOT
+CAUGHT — `NO-DIVERGENCE`** with `engine/board_state.js` stashed at HEAD, all four **CAUGHT — `STATE`**
+with it back, each on the leaf it was aimed at, at the planted boundary, with no protocol line, behind
+the red block's own clean control. `NO-DIVERGENCE` is the strong form: with the leaves out, nothing
+noticed at all.
+
+**A LEAF IS PROJECTED THREE TIMES AND IT WAS IN TWO OF THE LISTS.** `mediBody`/`sdBody` build the body,
+`benchRow` projects it, `partyMap` re-projects that — and `stall` was missing from the third, so every
+bench row compared `undefined` against `undefined`, which is EQUAL and silent. Found by planting a stall
+counter on a benched body and watching nothing be caught. `stall` also sits at BODY level rather than
+inside `vol`, because it is a leaf an engine may be unable to express and a `null` nested inside `vol`
+would compare null-against-null and read as agreement; at body level `walkBody`'s null rule fires and
+`stall_leaf_skipped` counts it.
+
+| quantity | HEAD (`769186b4`) | after |
+|---|---|---|
+| census probed / live / missing | 701 / 701 / 0 | **704 / 704 / 0** |
+| damage differential, all 16 corners | 0 of 6000 | **0 of 6000** |
+| whole-game, arm `middle` | 961 games, 28 parted, 27 causes | **961 games, 28 parted, 27 causes** |
+| board-material | 10 causes / 10 games | **12 causes / 12 games** |
+| narration-only | 17 causes / 18 games | **15 causes / 16 games** |
+| DIFFERENT-END-STATE | 7 | **7** |
+| largest end-state leaf family | `active[].hp`, 3 games | **`active[].stall`, 4 games** |
+| `end_state_not_compared` rows | 7 | **5** |
+| `all_mechanics_fire` STATE rows | 8 | **8** |
+| roster items / abilities / moves DIFFER | 0 / 0 / 0 | **0 / 0 / 0** |
+
+Arm `middle`, **961 games** (`--games 1200` — a PAIR budget), release **`c592445fe011`**,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state --write`, turn cap 12. **A RE-BASELINE, not a delta** — the comparison itself changed.
+
+**THE RISE WAS PREDICTED AND IT IS THE INSTRUMENT REACHING FURTHER, NOT A NEW POPULATION.** Computed by
+set difference against `git show HEAD:data/game-differential.json` rather than by eye: the cause list is
+IDENTICAL (`only in HEAD: []`, `only in NOW: []`), 27 causes and 28 games on both sides, and exactly two
+causes changed VERDICT — both Protect:
+
+```
+NARRATION-ONLY -> BOARD-MATERIAL   ordering :: |move|p1b|protect <> |move|p2a|protect
+NARRATION-ONLY -> BOARD-MATERIAL   unrelated event mismatch :: |-singleturn|p2a|protect <> |-fail|p2a
+```
+
+The second is the damning one: **one engine's Protect succeeded and the other's FAILED, and that was
+being scored as WORDING.** No `vol.destinybond` divergence appears anywhere in the pool, which is
+consistent both with "it agrees" and with "it never happened inside twelve turns" — two different
+sentences, and the pool-scale counter reading that would separate them is OWED below.
+
+**ANOTHER WRITER WAS IN THE TREE AND ONE FROZEN FILE MOVED MID-RUN.** The brief said this session was
+alone; it was not. Four files nobody here opened changed inside the session window and have since landed
+as commit `224c8d6b` (*"The browser tag bundle drifted from its source again"*) —
+`build/build_browser_data.js`, `build/build_tags_js.js`, `data/abra-tags.js`, `engine/artifact_audit.js` —
+and `data/abra-tags.js` is one of the 26 frozen SOURCE files — `27e7a3cfa369 -> 4883ee33156a`, verified
+by DIGEST and not by mtime, with nothing else in the set moving. **The measurement survived because it
+was a photograph**: the whole-game run read the frozen copy, and it was then re-run in full on
+`c592445fe011` cut from the tree as it stands, with **every headline number identical** — which is also
+the receipt that `abra-tags.js` is a browser mirror and the node engine reads `data/tags.json`. The three
+roster stages and `all_mechanics_fire` were re-run **with `--write`** on the same release (the first pass
+omitted `--write`, and `engine/status.js` correctly WITHHELD them). Nothing of the other writer's is
+staged.
+
+### THE HAND LIST
+
+Leaves it: **`data/game-differential.json`'s `destiny bond` and `the stall counter behind consecutive
+Protect` rows** — both wired, both proved by two plants each, both with the mechanic underneath them
+corrected first. `end_state_not_compared` is 7 rows → 5.
+
+Joins it, and it is **the largest board leaf family in the pinned pool**:
+
+- **`active[].stall` — 6 games / 7 leaves at any boundary, 4 still differing at the last board.** It is
+  the SHIELD, not the counter: the counter is only set by a successful shield, so the two engines
+  disagree about **which Protect went up**. The turn-1 witness is four bodies, three Protects and a mega:
+  `SHOWDOWN Venusaur 3 / Politoed 0`, `OURS Venusaur 0 / Politoed 3`, 394 of 396 fields identical. Both
+  engines agree about the Swampert. They disagree about which of the other two held the LAST action —
+  `willAct()` / `failsIfMovesLast` — on a board where a mega mid-turn re-sorts the queue and
+  Swampert-Mega's Speed meets Politoed's. That is a turn-order and speed-tie question, the most delicate
+  area in this engine, and it needs its own probe and its own batch. A second instance sits inside an
+  existing `all_mechanics_fire` STATE row (`healbell`, `stall showdown 0 we 3`) without raising that count.
+
+**`tests/test-no-silent-failure.js` WAS RED MID-PASS AND IS GREEN, AND IT WAS NEVER THIS PASS'S.** For
+about twenty minutes it reported three NEW silent catch blocks, all three in `engine/artifact_audit.js`
+(`:482`, `:488`, `:494`, all `flag('GAP', …)` skips) — the other writer's in-flight work, caught here
+mid-edit. It is green at `224c8d6b` (`NEW since the baseline 0`, and six baselined blocks now speak).
+No file this pass touched contributes a silent catch. Recorded rather than dropped, because a red gate
+read once and not written down is how *"one of the two known failures"* happened.
+
+**`planted_state_proof_ok` IS STILL FALSE** and `engine/game_differential.js` still exits 1 on it —
+**byte-identical to HEAD**: 42 plants, 13 not caught, the same 13 (seven side-B actives applied and not
+caught, six bench plants never applied). Unchanged by this pass and still the highest-value item here.
+
+Stays on it, unchanged: **the `trapper` mark on a trap's SOURCE**, **the `any`-category address for
+`getRandomTarget`**, **the Bug Bite / Pluck EAT half**, **the two surfaces Moody was hiding**,
+**`AfterMoveSecondary` above `|-hitcount|`**, **the three spread-status rows are ONE mechanism**,
+**`supremeoverlord`**, **`data/abra-tags.js` going stale against `data/tags.json`** (another writer
+appears to have regenerated it this morning — unstaged, unverified here), **`shellsidearm`**,
+**`sandforce`'s truncated `damageBoost.onType`**, **`guts.damageBoost.onlyWhen` null**, **Castform's
+forme label (a refit)**, **Magic Room parks the item**, and **a refused Role Play does not blank its move
+line's target field**.
+
+### PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.
+
+**CLOSED (3).** *"Destiny Bond is not implemented: medicham2 writes the volatile and nothing reads it, so
+the killer never faints, the window never closes, and a second one in a row refreshes instead of
+failing"* — knob `MEDI_NO_DESTINY_BOND=1`, three census probes on `move/statusInflict`, roster row
+`destinybond FIRED-AND-BOARDS-MATCH`. *"A Destiny Bond is compared by nothing"* — wired, two plants,
+five-arm pre-measurement. *"The stall counter behind consecutive Protect is compared by nothing"* —
+wired, two plants, twelve-boundary pre-measurement, mapping `stall-counter-is-the-denominator` with a
+red demonstration in both directions.
+
+**OPEN (2).** *"The two engines disagree about WHICH consecutive Protect goes up — `active[].stall` is
+the largest board leaf family in the pinned pool at 6 games / 7 leaves, and the witness is a
+`willAct()` / last-action question on a board where a mega mid-turn re-sorts the queue into a Speed
+tie"*. **The second proposed OPEN row was WITHDRAWN before it was written down**: it would have said
+`engine/artifact_audit.js` gained three silent catch blocks and `tests/test-no-silent-failure.js` was red
+on them. Both were true when read and neither is true now — `224c8d6b` landed and the gate is green. It
+is recorded here rather than filed, because a register row that is already stale on arrival is exactly
+what the fourteen handoffs were.
+
+### OWED, NOT RUN
+
+- `tests/run-all.js` in full. Run individually and green: `tests/test-mechanics.js` (704/704),
+  `tests/test-engine-diff.js` (`--n 6000 --seed 20260804`, **0 of 6000 at all 16 corners**),
+  `tests/test-end-state.js`, `tests/test-game-diff.js`, `tests/test-volatile-duration.js`,
+  `tests/test-resolution-order.js`, `tests/test-encore-fail-silent.js`,
+  `tests/test-engine-consistency.js`, `tests/roster.js` x3, `engine/all_mechanics_fire.js --kind all`
+  and `--red`;
+- `tests/interaction_matrix.js` (last run 2026-08-11), `tests/mutation_harness.js`,
+  `engine/selftest.js`, `engine/conformance.js`, `engine/feature_fixture.js --check`;
+- **a POOL-SCALE reading of the six `MEDSEEN.destinyBond*` counters.** `game_differential.js` surfaces no
+  `MEDSEEN`, so the mechanic is proved by three census probes and one roster row and has never been read
+  over 961 pool games;
+- the `active[].stall` family above — named and ranked, not diagnosed;
+- `engine/feature_fixture.js` reports the damage table regenerated (318 species → 322) and the fixture
+  changed (10 → 12 scenarios). **Not this pass's** — `data/engine-data.js` and the builders are the other
+  writer's. Flagged for MEASURE, not touched.
 
 ## THE TURN CAP IS SET BY COVERAGE, AND COVERAGE IS FLAT BY TURN 6 — SO 12 STAYS. CENSUS UNMOVED AT 701. 2026-08-25.
 

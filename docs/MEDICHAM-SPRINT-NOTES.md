@@ -21,6 +21,61 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## DESTINY BOND WAS A 5-PP NO-OP, AND THE STALL COUNTER IS COMPARABLE AFTER ALL. CENSUS 701 → 704. 2026-08-25 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-25-destinybond-stall.md`](_reports/2026-08-25-destinybond-stall.md).
+Ledger section: `docs/ENGINE.md`, *"DESTINY BOND WAS A 5-PP NO-OP"*.
+
+Two rows of `data/game-differential.json`'s `end_state_not_compared` — fields NOTHING in this repository
+read, so a regression in either read as agreement. Both wired; `end_state_not_compared` 7 rows → 5.
+
+**Destiny Bond was not implemented.** The generic `statusInflict` applier wrote the volatile and no line
+in `engine/medicham2-browser.js` ever read it: the killer never fainted, the window never closed, and a
+second Destiny Bond refreshed instead of failing. Three clauses landed behind one knob
+(`MEDI_NO_DESTINY_BOND=1`), with the four `onFaint` refusals asked separately and `effect.effectType ===
+'Move'` wired by WHERE the hook is called rather than by a test — so no residual site and no delayed-move
+payout can reach it. Keyed on the volatile id the tag derives, never on a move name.
+
+**The stall counter's map is medicham2's own, called and not copied.** `stallBoardCounter` lifted out of
+`_stallRoll`, constants off `stallCounterChecks`. Printed side by side first: twelve boundaries, twelve
+exact matches of `3^n` against `stall.counter`, including both resets.
+
+**Four planted failures, two per leaf, ACTIVE and BENCH:** all four `NOT CAUGHT — NO-DIVERGENCE` with
+`engine/board_state.js` at HEAD, all four `CAUGHT — STATE` with it back, on the leaf aimed at, with no
+protocol line. `stall` was missing from `partyMap`, the third of three projections, so every bench row
+compared `undefined` against `undefined` — found by a plant, not by reading.
+
+Arm `middle`, 961 games (`--games 1200`, a PAIR budget), release **`c592445fe011`**,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state --write`, turn cap 12. **A RE-BASELINE, not a delta.**
+
+| quantity | HEAD (`769186b4`) | after |
+|---|---|---|
+| census probed / live / missing | 701 / 701 / 0 | **704 / 704 / 0** |
+| damage differential, all 16 corners | 0 of 6000 | **0 of 6000** |
+| whole-game, arm `middle` | 961 games, 28 parted, 27 causes | **961 games, 28 parted, 27 causes** |
+| board-material | 10 / 10 | **12 / 12** |
+| narration-only | 17 / 18 | **15 / 16** |
+| largest end-state leaf family | `active[].hp` 3 games | **`active[].stall` 4 games** |
+| `all_mechanics_fire` STATE rows | 8 | **8** |
+| roster items / abilities / moves DIFFER | 0 / 0 / 0 | **0 / 0 / 0** |
+
+The rise was predicted. Cause list identical by set difference (`only in HEAD: []`, `only in NOW: []`);
+exactly two causes changed verdict, both Protect, and one of them was a Protect that SUCCEEDED on one
+engine and FAILED on the other being scored as wording.
+
+**ANOTHER WRITER WAS IN THE TREE.** `data/abra-tags.js` — one of the 26 frozen SOURCE files — changed
+digest mid-run (`27e7a3cfa369 -> 4883ee33156a`), along with `build/build_browser_data.js`,
+`build/build_tags_js.js` and `engine/artifact_audit.js`; all four have since landed as `224c8d6b`. The
+measurement survived because it read a frozen copy, and it was re-run in full on a release cut from the
+tree as it stands with every headline number identical. Nothing of theirs was staged here.
+`tests/test-no-silent-failure.js` was RED for about twenty minutes on three new silent catches in
+`engine/artifact_audit.js` and is GREEN at `224c8d6b` — never this pass's, recorded rather than dropped.
+
+**OPEN, RANKED #1:** `active[].stall` — 6 games / 7 leaves, the largest board leaf family in the pinned
+pool. The two engines disagree about WHICH consecutive Protect goes up; the witness is a `willAct()` /
+last-action question on a board where a mega mid-turn re-sorts the queue into a Speed tie.
+
 ## THE TURN CAP IS SET BY COVERAGE, AND COVERAGE IS FLAT BY TURN 6 — SO 12 STAYS. CENSUS UNMOVED AT 701. 2026-08-25 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-25-turn-cap.md`](_reports/2026-08-25-turn-cap.md).

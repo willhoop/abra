@@ -301,8 +301,18 @@ const HIT_FAILS = {};
  * artifact would hand an old engine a capability it never had and make the ladder measure the reader.
  * The absence is counted so a run cannot quietly compare nothing. */
 if (!M.ppSpentMap) STATE_FAILS.pp_not_expressible_by_this_engine = 1;
+/* 2026-08-25 -- `stallBoardCounter` IS TAKEN FROM THE RELEASE ON THE SAME RULE AND FOR THE SAME
+ * REASON. board_state.js compares the stall counter behind consecutive Protect, and the two engines
+ * hold it in different shapes: a count UP here, a denominator there. The translation must be the
+ * ENGINE'S, because it is the engine that decides whether a shield holds -- a copy in the comparator
+ * would eventually disagree with the simulator while both kept working, which is the
+ * two-implementations-of-one-fact breach CLAUDE.md names. A release cut before this date does not
+ * export it; the leaf is then skipped and COUNTED (`stall_not_expressible_skipped`), never quietly
+ * reconstructed from the tag artifact, which would hand an old engine a rule it never had. */
+if (!M.stallBoardCounter) STATE_FAILS.stall_not_expressible_by_this_engine = 1;
 const BS_CTX = { id, weatherId: M.weatherId, terrainId: M.terrainId, fails: STATE_FAILS,
-                 ppSpent: M.ppSpentMap || null };
+                 ppSpent: M.ppSpentMap || null,
+                 stallCounter: M.stallBoardCounter || null };
 /* THE AUTHORITY'S OWN DISPLAY NAME FOR AN ID, so the plain-English report says "Sitrus Berry" and not
  * `sitrusberry`. It is passed INTO board_state.js rather than duplicated there — one naming table,
  * and it is the dex's. A name the dex does not know falls back to the id, LOUDLY (counted), because a

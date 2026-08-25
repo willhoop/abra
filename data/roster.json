@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-25T05:49:41.853Z",
+ "generated": "2026-08-25T07:59:00.361Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "c6d45355668e",
+ "engine_release": "c592445fe011",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -2759,6 +2759,12 @@
      "path": "p2.active[0].ability",
      "with": "strongjaw",
      "without": "pressure"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].stall",
+     "with": 3,
+     "without": 0
     },
     {
      "turn": 1,
@@ -9124,6 +9130,12 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].vol.destinybond",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.pp[0].destinybond",
      "with": 1,
      "without": 0
@@ -9224,6 +9236,12 @@
      "path": "p2.active[0].ability",
      "with": "strongjaw",
      "without": "pressure"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].stall",
+     "with": 3,
+     "without": 0
     },
     {
      "turn": 1,
@@ -12337,6 +12355,12 @@
      "path": "p2.active[0].ability",
      "with": "strongjaw",
      "without": "pressure"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].stall",
+     "with": 3,
+     "without": 0
     },
     {
      "turn": 1,
@@ -21016,6 +21040,12 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].stall",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.pp[0].kingsshield",
      "with": 1,
      "without": null
@@ -28442,6 +28472,12 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].stall",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.pp[0].protect",
      "with": 1,
      "without": null
@@ -29305,6 +29341,12 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].stall",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.pp[0].quickguard",
      "with": 1,
      "without": 0
@@ -29326,6 +29368,12 @@
      "path": "p2.pp[0].focusenergy",
      "with": 1,
      "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].stall",
+     "with": 3,
+     "without": 0
     },
     {
      "turn": 3,
@@ -35595,6 +35643,12 @@
      "path": "p2.active[0].ability",
      "with": "strongjaw",
      "without": "pressure"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].stall",
+     "with": 3,
+     "without": 0
     },
     {
      "turn": 1,
@@ -42769,7 +42823,7 @@
    "reads": "priority !== 0 on a damaging move",
    "note": "priority +3 — Crabominable is the SLOWEST legal user of this move in the format (63 against 120 Speed) and dies outright to Volcarona's Flamethrower. It carries a 100% FLINCH, which fires in both pin arms, so with the bracket correct the foe never acts and the user is UNTOUCHED at the boundary; with it ignored the user is dead before it clicks.  NO ON-BOARD NEGATIVE: no second doomed body with an ordinary click could be derived, so the ignored-bracket board is supplied by the CONTROL ARM alone.",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1048 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1092 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "out_of_scope": null,
@@ -44060,6 +44114,12 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].stall",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.pp[0].wideguard",
      "with": 1,
      "without": 0
@@ -44081,6 +44141,12 @@
      "path": "p2.pp[0].focusenergy",
      "with": 1,
      "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].stall",
+     "with": 3,
+     "without": 0
     },
     {
      "turn": 3,

@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-25T05:49:15.431Z",
+ "generated": "2026-08-25T07:58:39.221Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "c6d45355668e",
+ "engine_release": "c592445fe011",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -70,6 +70,7 @@
       "types": "grass/ice",
       "item": "abomasite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -96,6 +97,7 @@
       "types": "grass/ice",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -126,6 +128,7 @@
       "types": "grass/ice",
       "item": "abomasite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -152,6 +155,7 @@
       "types": "grass/ice",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -207,6 +211,7 @@
       "types": "dark",
       "item": "absolite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -233,6 +238,7 @@
       "types": "dark",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -269,6 +275,7 @@
       "types": "dark",
       "item": "absolite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -295,6 +302,7 @@
       "types": "dark",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -356,6 +364,7 @@
       "types": "flying/rock",
       "item": "aerodactylite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -382,6 +391,7 @@
       "types": "flying/rock",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -418,6 +428,7 @@
       "types": "flying/rock",
       "item": "aerodactylite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -444,6 +455,7 @@
       "types": "flying/rock",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -505,6 +517,7 @@
       "types": "steel",
       "item": "aggronite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -531,6 +544,7 @@
       "types": "rock/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -573,6 +587,7 @@
       "types": "steel",
       "item": "aggronite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -599,6 +614,7 @@
       "types": "rock/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -666,6 +682,7 @@
       "types": "psychic",
       "item": "alakazite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -692,6 +709,7 @@
       "types": "psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -728,6 +746,7 @@
       "types": "psychic",
       "item": "alakazite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -754,6 +773,7 @@
       "types": "psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -815,6 +835,7 @@
       "types": "dragon/fairy",
       "item": "altarianite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -841,6 +862,7 @@
       "types": "dragon/flying",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -883,6 +905,7 @@
       "types": "dragon/fairy",
       "item": "altarianite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -909,6 +932,7 @@
       "types": "dragon/flying",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -976,6 +1000,7 @@
       "types": "dragon/electric",
       "item": "ampharosite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1002,6 +1027,7 @@
       "types": "electric",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1044,6 +1070,7 @@
       "types": "dragon/electric",
       "item": "ampharosite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1070,6 +1097,7 @@
       "types": "electric",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1155,6 +1183,7 @@
       "types": "fairy/normal",
       "item": "audinite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1181,6 +1210,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1217,6 +1247,7 @@
       "types": "fairy/normal",
       "item": "audinite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1243,6 +1274,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1341,6 +1373,7 @@
       "types": "ghost",
       "item": "banettite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1367,6 +1400,7 @@
       "types": "ghost",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1403,6 +1437,7 @@
       "types": "ghost",
       "item": "banettite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1429,6 +1464,7 @@
       "types": "ghost",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1490,6 +1526,7 @@
       "types": "fighting/rock",
       "item": "barbaracite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1516,6 +1553,7 @@
       "types": "rock/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1552,6 +1590,7 @@
       "types": "fighting/rock",
       "item": "barbaracite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1578,6 +1617,7 @@
       "types": "rock/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1639,6 +1679,7 @@
       "types": "bug/poison",
       "item": "beedrillite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1665,6 +1706,7 @@
       "types": "bug/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1701,6 +1743,7 @@
       "types": "bug/poison",
       "item": "beedrillite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1727,6 +1770,7 @@
       "types": "bug/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -1977,6 +2021,7 @@
       "types": "water",
       "item": "blastoisinite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2003,6 +2048,7 @@
       "types": "water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2039,6 +2085,7 @@
       "types": "water",
       "item": "blastoisinite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2065,6 +2112,7 @@
       "types": "water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2126,6 +2174,7 @@
       "types": "fighting/fire",
       "item": "blazikenite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2152,6 +2201,7 @@
       "types": "fighting/fire",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2194,6 +2244,7 @@
       "types": "fighting/fire",
       "item": "blazikenite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2220,6 +2271,7 @@
       "types": "fighting/fire",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2348,6 +2400,7 @@
       "types": "fire/ground",
       "item": "cameruptite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2374,6 +2427,7 @@
       "types": "fire/ground",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2410,6 +2464,7 @@
       "types": "fire/ground",
       "item": "cameruptite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2436,6 +2491,7 @@
       "types": "fire/ground",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2497,6 +2553,7 @@
       "types": "fire/ghost",
       "item": "chandelurite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2523,6 +2580,7 @@
       "types": "fire/ghost",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2559,6 +2617,7 @@
       "types": "fire/ghost",
       "item": "chandelurite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2585,6 +2644,7 @@
       "types": "fire/ghost",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2707,6 +2767,7 @@
       "types": "dragon/fire",
       "item": "charizarditex",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2733,6 +2794,7 @@
       "types": "fire/flying",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2775,6 +2837,7 @@
       "types": "dragon/fire",
       "item": "charizarditex",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2801,6 +2864,7 @@
       "types": "fire/flying",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2880,6 +2944,7 @@
       "types": "fire/flying",
       "item": "charizarditey",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2906,6 +2971,7 @@
       "types": "fire/flying",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2954,6 +3020,7 @@
       "types": "fire/flying",
       "item": "charizarditey",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -2980,6 +3047,7 @@
       "types": "fire/flying",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3175,6 +3243,7 @@
       "types": "fighting/grass",
       "item": "chesnaughtite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3201,6 +3270,7 @@
       "types": "fighting/grass",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3237,6 +3307,7 @@
       "types": "fighting/grass",
       "item": "chesnaughtite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3263,6 +3334,7 @@
       "types": "fighting/grass",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3428,6 +3500,7 @@
       "types": "psychic/steel",
       "item": "chimechite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3454,6 +3527,7 @@
       "types": "psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3490,6 +3564,7 @@
       "types": "psychic/steel",
       "item": "chimechite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3516,6 +3591,7 @@
       "types": "psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3795,6 +3871,7 @@
       "types": "fairy/flying",
       "item": "clefablite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3821,6 +3898,7 @@
       "types": "fairy",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3863,6 +3941,7 @@
       "types": "fairy/flying",
       "item": "clefablite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -3889,6 +3968,7 @@
       "types": "fairy",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4078,6 +4158,7 @@
       "types": "fighting/ice",
       "item": "crabominite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4104,6 +4185,7 @@
       "types": "fighting/ice",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4140,6 +4222,7 @@
       "types": "fighting/ice",
       "item": "crabominite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4166,6 +4249,7 @@
       "types": "fighting/ice",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4300,6 +4384,7 @@
       "types": "fire/psychic",
       "item": "delphoxite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4326,6 +4411,7 @@
       "types": "fire/psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4362,6 +4448,7 @@
       "types": "fire/psychic",
       "item": "delphoxite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4388,6 +4475,7 @@
       "types": "fire/psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4449,6 +4537,7 @@
       "types": "dragon/poison",
       "item": "dragalgite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4475,6 +4564,7 @@
       "types": "dragon/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4511,6 +4601,7 @@
       "types": "dragon/poison",
       "item": "dragalgite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4537,6 +4628,7 @@
       "types": "dragon/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4659,6 +4751,7 @@
       "types": "dragon/flying",
       "item": "dragoninite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4685,6 +4778,7 @@
       "types": "dragon/flying",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4721,6 +4815,7 @@
       "types": "dragon/flying",
       "item": "dragoninite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4747,6 +4842,7 @@
       "types": "dragon/flying",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4808,6 +4904,7 @@
       "types": "dragon/normal",
       "item": "drampanite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4834,6 +4931,7 @@
       "types": "dragon/normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4864,6 +4962,7 @@
       "types": "dragon/normal",
       "item": "drampanite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4890,6 +4989,7 @@
       "types": "dragon/normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4945,6 +5045,7 @@
       "types": "electric",
       "item": "eelektrossite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -4971,6 +5072,7 @@
       "types": "electric",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5007,6 +5109,7 @@
       "types": "electric",
       "item": "eelektrossite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5033,6 +5136,7 @@
       "types": "electric",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5094,6 +5198,7 @@
       "types": "fighting/fire",
       "item": "emboarite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5120,6 +5225,7 @@
       "types": "fighting/fire",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5156,6 +5262,7 @@
       "types": "fighting/fire",
       "item": "emboarite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5182,6 +5289,7 @@
       "types": "fighting/fire",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5243,6 +5351,7 @@
       "types": "ground/steel",
       "item": "excadrite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5269,6 +5378,7 @@
       "types": "ground/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5305,6 +5415,7 @@
       "types": "ground/steel",
       "item": "excadrite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5331,6 +5442,7 @@
       "types": "ground/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5514,6 +5626,7 @@
       "types": "fighting",
       "item": "falinksite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5540,6 +5653,7 @@
       "types": "fighting",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5576,6 +5690,7 @@
       "types": "fighting",
       "item": "falinksite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5602,6 +5717,7 @@
       "types": "fighting",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5663,6 +5779,7 @@
       "types": "dragon/water",
       "item": "feraligite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5689,6 +5806,7 @@
       "types": "water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5731,6 +5849,7 @@
       "types": "dragon/water",
       "item": "feraligite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5757,6 +5876,7 @@
       "types": "water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5824,6 +5944,7 @@
       "types": "fairy",
       "item": "floettite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5850,6 +5971,7 @@
       "types": "fairy",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5886,6 +6008,7 @@
       "types": "fairy",
       "item": "floettite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -5912,6 +6035,7 @@
       "types": "fairy",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6124,6 +6248,7 @@
       "types": "ghost/ice",
       "item": "froslassite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6150,6 +6275,7 @@
       "types": "ghost/ice",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6198,6 +6324,7 @@
       "types": "ghost/ice",
       "item": "froslassite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6224,6 +6351,7 @@
       "types": "ghost/ice",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6285,6 +6413,7 @@
       "types": "fighting/psychic",
       "item": "galladite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6311,6 +6440,7 @@
       "types": "fighting/psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6347,6 +6477,7 @@
       "types": "fighting/psychic",
       "item": "galladite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6373,6 +6504,7 @@
       "types": "fighting/psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6434,6 +6566,7 @@
       "types": "dragon/ground",
       "item": "garchompite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6460,6 +6593,7 @@
       "types": "dragon/ground",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6496,6 +6630,7 @@
       "types": "dragon/ground",
       "item": "garchompite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6522,6 +6657,7 @@
       "types": "dragon/ground",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6583,6 +6719,7 @@
       "types": "fairy/psychic",
       "item": "gardevoirite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6609,6 +6746,7 @@
       "types": "fairy/psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6645,6 +6783,7 @@
       "types": "fairy/psychic",
       "item": "gardevoirite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6671,6 +6810,7 @@
       "types": "fairy/psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6732,6 +6872,7 @@
       "types": "ghost/poison",
       "item": "gengarite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6758,6 +6899,7 @@
       "types": "ghost/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6794,6 +6936,7 @@
       "types": "ghost/poison",
       "item": "gengarite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6820,6 +6963,7 @@
       "types": "ghost/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6881,6 +7025,7 @@
       "types": "ice",
       "item": "glalitite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6907,6 +7052,7 @@
       "types": "ice",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6943,6 +7089,7 @@
       "types": "ice",
       "item": "glalitite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -6969,6 +7116,7 @@
       "types": "ice",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7030,6 +7178,7 @@
       "types": "poison/rock",
       "item": "glimmoranite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7056,6 +7205,7 @@
       "types": "poison/rock",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7092,6 +7242,7 @@
       "types": "poison/rock",
       "item": "glimmoranite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7118,6 +7269,7 @@
       "types": "poison/rock",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7179,6 +7331,7 @@
       "types": "ghost/ground",
       "item": "golurkite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7205,6 +7358,7 @@
       "types": "ghost/ground",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7241,6 +7395,7 @@
       "types": "ghost/ground",
       "item": "golurkite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7267,6 +7422,7 @@
       "types": "ghost/ground",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7328,6 +7484,7 @@
       "types": "normal",
       "item": "greninjite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7354,6 +7511,7 @@
       "types": "dark/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7396,6 +7554,7 @@
       "types": "normal",
       "item": "greninjite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7422,6 +7581,7 @@
       "types": "dark/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7489,6 +7649,7 @@
       "types": "dark/water",
       "item": "gyaradosite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7515,6 +7676,7 @@
       "types": "flying/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7557,6 +7719,7 @@
       "types": "dark/water",
       "item": "gyaradosite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7583,6 +7746,7 @@
       "types": "flying/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7748,6 +7912,7 @@
       "types": "fighting/flying",
       "item": "hawluchanite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7774,6 +7939,7 @@
       "types": "fighting/flying",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7810,6 +7976,7 @@
       "types": "fighting/flying",
       "item": "hawluchanite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7836,6 +8003,7 @@
       "types": "fighting/flying",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7970,6 +8138,7 @@
       "types": "bug/fighting",
       "item": "heracronite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -7996,6 +8165,7 @@
       "types": "bug/fighting",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -8032,6 +8202,7 @@
       "types": "bug/fighting",
       "item": "heracronite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -8058,6 +8229,7 @@
       "types": "bug/fighting",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -8119,6 +8291,7 @@
       "types": "dark/fire",
       "item": "houndoominite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -8145,6 +8318,7 @@
       "types": "dark/fire",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -8181,6 +8355,7 @@
       "types": "dark/fire",
       "item": "houndoominite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -8207,6 +8382,7 @@
       "types": "dark/fire",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -8474,6 +8650,7 @@
       "types": "normal",
       "item": "kangaskhanite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -8500,6 +8677,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -8536,6 +8714,7 @@
       "types": "normal",
       "item": "kangaskhanite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -8562,6 +8741,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9085,6 +9265,7 @@
       "types": "fighting/normal",
       "item": "lopunnite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9111,6 +9292,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9153,6 +9335,7 @@
       "types": "fighting/normal",
       "item": "lopunnite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9179,6 +9362,7 @@
       "types": "normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9246,6 +9430,7 @@
       "types": "fighting/steel",
       "item": "lucarionite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9272,6 +9457,7 @@
       "types": "fighting/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9308,6 +9494,7 @@
       "types": "fighting/steel",
       "item": "lucarionite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9334,6 +9521,7 @@
       "types": "fighting/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9487,6 +9675,7 @@
       "types": "dark/psychic",
       "item": "malamarite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9513,6 +9702,7 @@
       "types": "dark/psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9543,6 +9733,7 @@
       "types": "dark/psychic",
       "item": "malamarite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9569,6 +9760,7 @@
       "types": "dark/psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9648,6 +9840,7 @@
       "types": "electric",
       "item": "manectite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9674,6 +9867,7 @@
       "types": "electric",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9734,6 +9928,7 @@
       "types": "electric",
       "item": "manectite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9760,6 +9955,7 @@
       "types": "electric",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9821,6 +10017,7 @@
       "types": "fairy/steel",
       "item": "mawilite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9847,6 +10044,7 @@
       "types": "fairy/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9883,6 +10081,7 @@
       "types": "fairy/steel",
       "item": "mawilite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9909,6 +10108,7 @@
       "types": "fairy/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9970,6 +10170,7 @@
       "types": "fighting/psychic",
       "item": "medichamite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -9996,6 +10197,7 @@
       "types": "fighting/psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10026,6 +10228,7 @@
       "types": "fighting/psychic",
       "item": "medichamite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10052,6 +10255,7 @@
       "types": "fighting/psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10107,6 +10311,7 @@
       "types": "fairy/grass",
       "item": "meganiumite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10133,6 +10338,7 @@
       "types": "grass",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10175,6 +10381,7 @@
       "types": "fairy/grass",
       "item": "meganiumite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10201,6 +10408,7 @@
       "types": "grass",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10329,6 +10537,7 @@
       "types": "psychic",
       "item": "meowsticite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10355,6 +10564,7 @@
       "types": "psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10391,6 +10601,7 @@
       "types": "psychic",
       "item": "meowsticite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10417,6 +10628,7 @@
       "types": "psychic",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10478,6 +10690,7 @@
       "types": "psychic/steel",
       "item": "metagrossite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10504,6 +10717,7 @@
       "types": "psychic/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10540,6 +10754,7 @@
       "types": "psychic/steel",
       "item": "metagrossite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -10566,6 +10781,7 @@
       "types": "psychic/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11372,6 +11588,7 @@
       "types": "flying/normal",
       "item": "pidgeotite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11398,6 +11615,7 @@
       "types": "flying/normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11434,6 +11652,7 @@
       "types": "flying/normal",
       "item": "pidgeotite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11460,6 +11679,7 @@
       "types": "flying/normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11521,6 +11741,7 @@
       "types": "bug/flying",
       "item": "pinsirite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11547,6 +11768,7 @@
       "types": "bug",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11589,6 +11811,7 @@
       "types": "bug/flying",
       "item": "pinsirite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11615,6 +11838,7 @@
       "types": "bug",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11743,6 +11967,7 @@
       "types": "fire/normal",
       "item": "pyroarite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11769,6 +11994,7 @@
       "types": "fire/normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11805,6 +12031,7 @@
       "types": "fire/normal",
       "item": "pyroarite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11831,6 +12058,7 @@
       "types": "fire/normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11922,6 +12150,7 @@
       "types": "electric",
       "item": "raichunitex",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11948,6 +12177,7 @@
       "types": "electric",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -11996,6 +12226,7 @@
       "types": "electric",
       "item": "raichunitex",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12022,6 +12253,7 @@
       "types": "electric",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12083,6 +12315,7 @@
       "types": "electric",
       "item": "raichunitey",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12109,6 +12342,7 @@
       "types": "electric",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12145,6 +12379,7 @@
       "types": "electric",
       "item": "raichunitey",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12171,6 +12406,7 @@
       "types": "electric",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12420,6 +12656,7 @@
       "types": "dark/ghost",
       "item": "sablenite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12446,6 +12683,7 @@
       "types": "dark/ghost",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12482,6 +12720,7 @@
       "types": "dark/ghost",
       "item": "sablenite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12508,6 +12747,7 @@
       "types": "dark/ghost",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12569,6 +12809,7 @@
       "types": "dragon/grass",
       "item": "sceptilite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12595,6 +12836,7 @@
       "types": "grass",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12637,6 +12879,7 @@
       "types": "dragon/grass",
       "item": "sceptilite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12663,6 +12906,7 @@
       "types": "grass",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12730,6 +12974,7 @@
       "types": "bug/steel",
       "item": "scizorite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12756,6 +13001,7 @@
       "types": "bug/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12792,6 +13038,7 @@
       "types": "bug/steel",
       "item": "scizorite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12818,6 +13065,7 @@
       "types": "bug/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12879,6 +13127,7 @@
       "types": "bug/poison",
       "item": "scolipite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12905,6 +13154,7 @@
       "types": "bug/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12941,6 +13191,7 @@
       "types": "bug/poison",
       "item": "scolipite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -12967,6 +13218,7 @@
       "types": "bug/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13046,6 +13298,7 @@
       "types": "fire/grass",
       "item": "scovillainite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13072,6 +13325,7 @@
       "types": "fire/grass",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13108,6 +13362,7 @@
       "types": "fire/grass",
       "item": "scovillainite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13134,6 +13389,7 @@
       "types": "fire/grass",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13219,6 +13475,7 @@
       "types": "dark/fighting",
       "item": "scraftinite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13245,6 +13502,7 @@
       "types": "dark/fighting",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13305,6 +13563,7 @@
       "types": "dark/fighting",
       "item": "scraftinite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13331,6 +13590,7 @@
       "types": "dark/fighting",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13453,6 +13713,7 @@
       "types": "dark/water",
       "item": "sharpedonite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13479,6 +13740,7 @@
       "types": "dark/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13515,6 +13777,7 @@
       "types": "dark/water",
       "item": "sharpedonite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13541,6 +13804,7 @@
       "types": "dark/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13919,6 +14183,7 @@
       "types": "flying/steel",
       "item": "skarmorite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13945,6 +14210,7 @@
       "types": "flying/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -13981,6 +14247,7 @@
       "types": "flying/steel",
       "item": "skarmorite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14007,6 +14274,7 @@
       "types": "flying/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14068,6 +14336,7 @@
       "types": "psychic/water",
       "item": "slowbronite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14094,6 +14363,7 @@
       "types": "psychic/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14130,6 +14400,7 @@
       "types": "psychic/water",
       "item": "slowbronite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14156,6 +14427,7 @@
       "types": "psychic/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14412,6 +14684,7 @@
       "types": "fighting/flying",
       "item": "staraptite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14438,6 +14711,7 @@
       "types": "flying/normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14480,6 +14754,7 @@
       "types": "fighting/flying",
       "item": "staraptite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14506,6 +14781,7 @@
       "types": "flying/normal",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14573,6 +14849,7 @@
       "types": "psychic/water",
       "item": "starminite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14599,6 +14876,7 @@
       "types": "psychic/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14635,6 +14913,7 @@
       "types": "psychic/water",
       "item": "starminite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14661,6 +14940,7 @@
       "types": "psychic/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14722,6 +15002,7 @@
       "types": "ground/steel",
       "item": "steelixite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14748,6 +15029,7 @@
       "types": "ground/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14784,6 +15066,7 @@
       "types": "ground/steel",
       "item": "steelixite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14810,6 +15093,7 @@
       "types": "ground/steel",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14871,6 +15155,7 @@
       "types": "ground/water",
       "item": "swampertite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14897,6 +15182,7 @@
       "types": "ground/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14933,6 +15219,7 @@
       "types": "ground/water",
       "item": "swampertite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -14959,6 +15246,7 @@
       "types": "ground/water",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15166,6 +15454,7 @@
       "types": "dark/rock",
       "item": "tyranitarite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15192,6 +15481,7 @@
       "types": "dark/rock",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15222,6 +15512,7 @@
       "types": "dark/rock",
       "item": "tyranitarite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15248,6 +15539,7 @@
       "types": "dark/rock",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15303,6 +15595,7 @@
       "types": "grass/poison",
       "item": "venusaurite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15329,6 +15622,7 @@
       "types": "grass/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15365,6 +15659,7 @@
       "types": "grass/poison",
       "item": "venusaurite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15391,6 +15686,7 @@
       "types": "grass/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15452,6 +15748,7 @@
       "types": "grass/poison",
       "item": "victreebelite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15478,6 +15775,7 @@
       "types": "grass/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15514,6 +15812,7 @@
       "types": "grass/poison",
       "item": "victreebelite",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,
@@ -15540,6 +15839,7 @@
       "types": "grass/poison",
       "item": "",
       "status_counter": 0,
+      "stall": null,
       "boosts": {
        "atk": 0,
        "def": 0,

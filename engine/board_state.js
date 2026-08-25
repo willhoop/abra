@@ -119,13 +119,33 @@ const NOT_COMPARED = [
     why: 'one fact, two shapes: medicham2 stores the trapper inside the VICTIM own `_trapHard` record '
        + 'and has no field on the source at all. The victim half (`trapped`) IS compared and is the '
        + 'half a switch decision reads.' },
-  { field: 'destiny bond',
-    why: 'ONE-SIDED IN THE PROBE AND THEREFORE A SUSPECT, NOT A LEAF. At the last boundary of a '
-       + 'two-turn script medicham2 still held `_vol.destinybond = 1` after its user had moved again '
-       + 'and Showdown held nothing — Showdown clears the volatile when the user next moves. Wiring it '
-       + 'now would part every board carrying a Destiny Bond and present a possible ENGINE DEFECT as a '
-       + 'comparison leaf. It is named here so it gets a probe of its own.',
-    next: 'a directed scenario: click Destiny Bond, then move again, and compare the two engines' },
+  /* ---- DESTINY BOND IS COMPARED NOW (2026-08-25), AND THE ROW BELOW IS THE RECORD OF WHY IT WAS
+   * NOT. It is corrected here rather than deleted. It read:
+   *
+   *   *"ONE-SIDED IN THE PROBE AND THEREFORE A SUSPECT, NOT A LEAF. At the last boundary of a
+   *   two-turn script medicham2 still held `_vol.destinybond = 1` after its user had moved again and
+   *   Showdown held nothing ... Wiring it now would part every board carrying a Destiny Bond and
+   *   present a possible ENGINE DEFECT as a comparison leaf. It is named here so it gets a probe of
+   *   its own."* — `next:` *"a directed scenario: click Destiny Bond, then move again, and compare
+   *   the two engines."*
+   *
+   * THAT WAS RIGHT ON EVERY POINT AND THE SUSPECT WAS GUILTY. The directed scenario it asked for is
+   * `tests/probe_dbond_stall.js`, and it found three separate defects, not one: medicham2 never
+   * removed the volatile when its user moved again, never failed a second Destiny Bond in a row, and
+   * — the one that decides games — NEVER TOOK THE KILLER WITH IT. The volatile was written by the
+   * generic applier and read by nothing in the file. All three are fixed in the same pass, and the
+   * leaf is wired only after both engines were printed side by side and agreed. */
+  /* ---- AND THE STALL COUNTER IS COMPARED NOW TOO. Its row read: *"medicham2 holds
+   * `tookProtectTurns` (a count UP of consecutive successful shields) and Showdown holds a `stall`
+   * volatile with a `counter` that is a DENOMINATOR (3, 9, 27). They are different quantities, not
+   * two spellings of one, and a mapping between them would be this file inventing a rule. The SHIELD
+   * itself is a within-turn effect and is not board state at the boundary."*
+   *
+   * THE FIRST SENTENCE IS TRUE AND THE CONCLUSION DOES NOT FOLLOW. The map is not invented here: it
+   * is medicham2's own `stallBoardCounter`, whose constants come off `stallCounterChecks` and
+   * therefore off the authority's `stall` condition. The last sentence is also true and is not an
+   * argument for leaving the COUNTER out — the counter is exactly the part that survives to the
+   * boundary and decides the NEXT turn's shield. See the `stall` leaf on `mediBody`. */
   { field: 'the DURATIONS on magnet rise and syrup bomb, and WHICH move a charge is committed to',
     why: 'the presence of all three IS compared. Showdown carries a clock on magnetrise and syrupbomb '
        + 'and medicham2 writes a bare 1, so comparing the numbers would part every board carrying one '
@@ -169,12 +189,6 @@ const NOT_COMPARED = [
    * active-slot volatile difference a SECOND time under a party path — one finding read as two. A
    * party row therefore carries `vol: null` while its body is standing, and `walkBody` skips a null
    * leaf and COUNTS it (`party_vol_on_field_skipped`), so "not asked" can never read as "agreed". */
-  { field: 'the stall counter behind consecutive Protect',
-    why: 'medicham2 holds `tookProtectTurns` (a count UP of consecutive successful shields) and '
-       + 'Showdown holds a `stall` volatile with a `counter` that is a DENOMINATOR (3, 9, 27). They '
-       + 'are different quantities, not two spellings of one, and a mapping between them would be '
-       + 'this file inventing a rule. The SHIELD itself is a within-turn effect and is not board '
-       + 'state at the boundary.' },
 ];
 
 /* ---- THE MAPPINGS ------------------------------------------------------------------------------
@@ -278,6 +292,26 @@ const MAPPINGS = [
        + 'been clicked once reads 1 in both engines and 1 !== 0, and a move spent by different '
        + 'amounts reads two different numbers.',
     equal: [{ tackle: 0 }, { tackle: 0 }], distinct: [{ tackle: 0 }, { tackle: 1 }] },
+  /* ---- THE STALL COUNTER, 2026-08-25. TWO SHAPES OF ONE FACT, AND THE MAP IS THE AUTHORITY'S ----
+   *
+   * medicham2 counts consecutive successful shields UP (`tookProtectTurns`) and Showdown holds the
+   * DENOMINATOR it rolls against (`volatiles.stall.counter`: 3, 9, 27 ...). The map between them is
+   * not written here: it is `medicham2.stallBoardCounter`, the same function the engine uses to
+   * decide whether a shield holds, whose three numbers come off `stallCounterChecks` and therefore
+   * off `data/conditions.ts`'s `stall`. Calling it rather than copying it is what stops this file
+   * checking its own belief about the decay against the authority.
+   *
+   * IT CANNOT HIDE A WRONG COUNTER, which is the only question a mapping has to answer: the map is
+   * strictly increasing, so two different numbers of shields read as two different numbers on both
+   * sides, and a body that has shielded once can never read the same as one that has shielded twice. */
+  { id: 'stall-counter-is-the-denominator',
+    why: 'medicham2 counts consecutive successful shields UP (`tookProtectTurns`) and Showdown holds '
+       + 'the DENOMINATOR (`volatiles.stall.counter` — 3, 9, 27, capped at `counterMax`). The '
+       + 'translation is medicham2 own `stallBoardCounter`, called through `ctx` and never copied '
+       + 'here, and its three constants are read off `stallCounterChecks` which tag_dex derives from '
+       + '`data/conditions.ts` `stall`. It cannot hide a real difference: the map is strictly '
+       + 'increasing, so one shield reads 3 on both sides and two reads 9 on both, and 3 !== 9.',
+    equal: [3, 3], distinct: [3, 9] },
   { id: 'sleep-counter-is-turns-slept',
     why: 'medicham2 counts sleep UP (`slpTurns`, incremented as the body tries to move) and Showdown '
        + 'counts DOWN (`statusState.time` from `startTime`). TURNS ALREADY SLEPT is the quantity both '
@@ -321,6 +355,18 @@ function mappingProof(N, M) {
   }
   check('fainted-is-not-a-status', statusOf(true, '') === statusOf(true, 'fnt'),
         statusOf(false, 'brn') !== statusOf(true, 'fnt'));
+  /* THE STALL MAP, EXERCISED THROUGH THE ENGINE'S OWN FUNCTION rather than through a restatement of
+   * it — the same rule the weather block above follows. COLLAPSES: one successful shield reads 3 on
+   * both sides, and no shield reads 0 on both. KEEPS MEANING: one shield and two shields must NOT
+   * come out the same, which is the only way this map could silence a real counter difference.
+   * A release that cannot express it answers `null` and the check says NOT AVAILABLE rather than
+   * passing on an absence. */
+  {
+    const f = M.stallBoardCounter;
+    if (!f) out.push({ id: 'stall-counter-is-the-denominator', collapses: null, keeps_meaning: null,
+                       why: 'this engine does not export stallBoardCounter — the leaf is skipped, not compared' });
+    else check('stall-counter-is-the-denominator', f(1) === 3 && f(0) === 0, f(1) !== f(2));
+  }
   /* THE PP MAPPING, EXERCISED IN BOTH DIRECTIONS THROUGH THE CODE THAT APPLIES IT.
    *
    * COLLAPSES: a body that has clicked nothing. Our lazy table is EMPTY and Showdown's eager slots are
@@ -609,7 +655,10 @@ function sdScreens(side) {
  * so a same-engine caller can never read "the rule did not apply" as "there was nothing to hold".
  * Whether the party should also stop holding for those callers is a SEPARATE change with its own
  * before/after cost, and it is not smuggled in here. */
-const POST_FAINT = ['item', 'status_counter', 'boosts', 'ability', 'vol'];
+/* `stall` JOINS THE GROUP 2026-08-25 for the identical reason `vol` is in it: `faintMessages` runs
+ * `clearVolatile(false)` on the corpse, which drops the `stall` volatile, and medicham2 leaves
+ * `tookProtectTurns` on the body it died with. Comparing a dead body's counter measures the reader. */
+const POST_FAINT = ['item', 'status_counter', 'boosts', 'ability', 'vol', 'stall'];
 /* THE BENCH ROW CARRIES `vol` SINCE 2026-08-25, so the party's group uses that entry too — and it is
  * the right rule there for the same reason it is on the active slot: `faintMessages` runs
  * `clearVolatile(false)` on the corpse (sim/battle.ts:2560) and medicham2 keeps whatever the body was
@@ -624,6 +673,16 @@ function benchRow(b, onField) {
   return { species: b.species, hp: b.hp, maxhp: b.maxhp, fainted: b.fainted, status: b.status,
            types: b.types, item: b.item, status_counter: b.status_counter, boosts: b.boosts,
            ability: b.ability,
+           /* THE STALL COUNTER TRAVELS TO THE BENCH TOO, and on the same rule as the bench volatiles
+            * beside it: `clearVolatile` empties the whole table on the way off the field, so the
+            * authority's answer there is 0 BY CONSTRUCTION, and medicham2 clears `tookProtectTurns`
+            * field by field in `switchOut` -- which is clean only while somebody remembers the line.
+            * A row left off here would compare `undefined` against `undefined` and read as agreement.
+            *
+            * AND IT IS `null` WHILE THE BODY IS STANDING, exactly as `vol` is one line down: `sf.team`
+            * is the WHOLE party, actives included, so a standing body's stall counter would otherwise
+            * be reported a SECOND time under a party path and one finding would read as two. */
+           stall: onField ? null : b.stall,
            /* `null` means "this body is STANDING, so the active slot is the place to ask" — never
             * "it is carrying nothing". `walkBody` skips a null leaf and counts the skip. */
            vol: onField ? null : b.vol };
@@ -638,13 +697,21 @@ function partyMap(rows, fails) {
     }
     out[r.species] = { hp: r.hp, maxhp: r.maxhp, fainted: r.fainted, status: r.status,
                        types: r.types, item: r.item, status_counter: r.status_counter,
+                       /* `stall` HAS TO BE LISTED HERE TOO, and forgetting it is why this projection
+                        * is worth a note. A party row is built THREE times -- `mediBody`/`sdBody`
+                        * build the body, `benchRow` projects it, and this re-projects that -- and a
+                        * leaf missing from any one of them arrives as `undefined` ON BOTH SIDES,
+                        * which compares EQUAL and reads as agreement. Caught by planting a stall
+                        * counter on a benched body and watching NOTHING be caught; the leaf was in
+                        * two of the three lists. */
+                       stall: r.stall,
                        boosts: r.boosts, ability: r.ability, vol: r.vol };
   }
   return out;
 }
 
 /* ---- ONE BODY --------------------------------------------------------------------------------- */
-function mediBody(m, id) {
+function mediBody(m, id, ctx) {
   if (!m) return null;
   const vol = m._vol || {};
   return {
@@ -736,10 +803,49 @@ function mediBody(m, id) {
       trapped: m._trapHard ? 1 : 0,
       uproar: (m._mtLock && m._mtLock.vol === 'uproar') ? num(m._mtLock.left) : 0,
       charge: num(vol.charge) ? 1 : 0,
+      /* ---- DESTINY BOND. 2026-08-25. The row this replaces in NOT_COMPARED said it was ONE-SIDED
+       * and therefore a SUSPECT rather than a leaf, and it was right at the time and for the right
+       * reason: this engine held `_vol.destinybond` for ever, so wiring it would have parted every
+       * board carrying one and presented an ENGINE DEFECT as a comparison leaf.
+       *
+       * IT WAS ONE-SIDED BECAUSE THE MECHANIC WAS NOT IMPLEMENTED, which is what the row asked
+       * somebody to go and find out. medicham2 wrote the volatile and never read it, never removed it
+       * and never took the killer with it. All three are fixed in the same pass, and only then is the
+       * leaf wired -- measured on both engines first (tests/probe_dbond_stall.js A4 and A5, the two
+       * boundaries where the two sides used to differ, now identical).
+       *
+       * PRESENCE, NOT A CLOCK: Showdown's condition carries no duration and neither does this. */
+      destinybond: (vol.destinybond ? 1 : 0),
     },
+    /* ---- THE STALL COUNTER BEHIND CONSECUTIVE PROTECT. 2026-08-25. -------------------------------
+     *
+     * IT SITS BESIDE THE BODY AND NOT INSIDE `vol`, for the reason `pp` does: it is a leaf an engine
+     * may be UNABLE TO EXPRESS. A release cut before this date does not export `stallCounter`, and a
+     * `null` nested inside `vol` would compare null-against-null and read as AGREEMENT -- silently.
+     * At body level `walkBody`'s null rule fires and the skip is counted by name.
+     *
+     * THE ROW THIS REPLACES ARGUED THE TWO ENGINES HOLD DIFFERENT QUANTITIES: *"medicham2 holds
+     * `tookProtectTurns` (a count UP of consecutive successful shields) and Showdown holds a `stall`
+     * volatile with a `counter` that is a DENOMINATOR (3, 9, 27). They are different quantities, not
+     * two spellings of one, and a mapping between them would be this file inventing a rule."*
+     *
+     * THE FIRST HALF IS TRUE AND THE CONCLUSION IS NOT, AND IT WAS MEASURED BEFORE IT WAS WIRED. The
+     * map is the AUTHORITY'S OWN and the engine already computes it to decide whether a shield holds:
+     * `counter = firstCounter * growsBy^(n-1)`, capped at `counterMax`, all three read off
+     * `stallCounterChecks` which `tag_dex` derives from `data/conditions.ts`'s `stall`. So this is not
+     * a rule invented here -- it is medicham2's own `stallCounter`, called rather than copied, which
+     * is what stops the comparator checking its own belief against the authority.
+     *
+     * PRINTED SIDE BY SIDE OVER TWO SCRIPTS BEFORE ANY OF IT WAS WIRED (tests/probe_dbond_stall.js
+     * B1/B2): five consecutive Protects and a skipped turn, every boundary, `3^n` against
+     * `stall.counter` -- 0/0, 3/3, 9/9, then 0/0 on the turn the 1/9 roll was LOST, 3/3, 0/0. Twelve
+     * boundaries, twelve exact matches, including both resets. There is nothing to collapse.
+     *
+     * `null` MEANS "THIS ENGINE CANNOT SAY", never "no shields". */
+    stall: ctx && ctx.stallCounter ? ctx.stallCounter(num(m.tookProtectTurns)) : null,
   };
 }
-function sdBody(p, id) {
+function sdBody(p, id, ctx) {
   if (!p) return null;
   const v = p.volatiles || {};
   return {
@@ -785,7 +891,14 @@ function sdBody(p, id) {
       trapped: v.trapped ? 1 : 0,
       uproar: dur(v.uproar),
       charge: v.charge ? 1 : 0,
+      /* THE AUTHORITY'S SIDE OF DESTINY BOND. `data/moves.ts` destinybond.condition carries no
+       * duration, so presence is the whole of it and nothing is being collapsed. */
+      destinybond: v.destinybond ? 1 : 0,
     },
+    /* THE AUTHORITY'S SIDE OF THE STALL COUNTER: the raw denominator off its own volatile, with NO
+     * volatile reading 0. Gated on the same capability as medicham2's so both sides are `null`
+     * together -- a leaf one engine can express and the other cannot is not a comparison. */
+    stall: ctx && ctx.stallCounter ? (v.stall ? num(v.stall.counter) : 0) : null,
   };
 }
 
@@ -802,8 +915,8 @@ function readMedi(S, ctx) {
     hazards: { stealthrock: num(sf && sf.hz && sf.hz.stealthrock), spikes: num(sf && sf.hz && sf.hz.spikes),
                toxicspikes: num(sf && sf.hz && sf.hz.toxicspikes), stickyweb: num(sf && sf.hz && sf.hz.stickyweb) },
     party: (() => { const on = new Set((act || []).filter(Boolean));
-      return partyMap(((sf && sf.team) || []).map(m => benchRow(mediBody(m, id), on.has(m))), ctx.fails); })(),
-    active: [0, 1].map(i => mediBody(act[i], id)),
+      return partyMap(((sf && sf.team) || []).map(m => benchRow(mediBody(m, id, ctx), on.has(m))), ctx.fails); })(),
+    active: [0, 1].map(i => mediBody(act[i], id, ctx)),
     /* PP SITS BESIDE THE BODY AND NOT INSIDE IT, exactly as `screens.named` does, because it is the
      * one leaf an engine may be UNABLE TO EXPRESS. A release cut before ROADMAP #144 has no `_pp` and
      * no `ppSpentMap`, and folding an inexpressible field into the body would make every board of
@@ -852,8 +965,8 @@ function readShowdown(battle, ctx) {
                toxicspikes: layers((sd.sideConditions || {}).toxicspikes),
                stickyweb: layers((sd.sideConditions || {}).stickyweb) },
     party: (() => { const on = new Set((sd.active || []).filter(Boolean));
-      return partyMap((sd.pokemon || []).map(p => benchRow(sdBody(p, id), on.has(p))), ctx.fails); })(),
-    active: [0, 1].map(i => sdBody((sd.active || [])[i], id)),
+      return partyMap((sd.pokemon || []).map(p => benchRow(sdBody(p, id, ctx), on.has(p))), ctx.fails); })(),
+    active: [0, 1].map(i => sdBody((sd.active || [])[i], id, ctx)),
     /* HELD ON BOTH SIDES OR NEITHER. A hold that only silenced OUR side would leave Showdown's map
      * walking against `null` and report every move as present-in-one-engine-only — a manufactured
      * divergence, which is worse than the thing being held. */
@@ -913,7 +1026,16 @@ function walk(a, b, path, out, stats) {
  * an absent key so that both sides keep the same SHAPE: a key absent on one side only would walk as
  * `undefined` against an object and report a difference nobody has. Named per leaf, so a later
  * addition cannot hide inside a generic counter. */
-const NULL_SKIP_COUNTER = { vol: 'party_vol_on_field_skipped' };
+const NULL_SKIP_COUNTER = { vol: 'party_vol_on_field_skipped',
+  /* TWO REASONS, ONE COUNTER, AND THE PAIR IS SEPARABLE FROM THE RUN'S OWN RECEIPTS:
+   *   the body is STANDING, so its party row defers to the active slot — the same rule as `vol`
+   *     above, and roughly 4 per boundary on any real game;
+   *   the ENGINE CANNOT SAY. A release cut before 2026-08-25 exports no `stallBoardCounter`, so both
+   *     sides answer null everywhere, ACTIVE SLOTS INCLUDED. That case is separately declared by
+   *     `game_differential.js` as `stall_not_expressible_by_this_engine`, so the two never have to be
+   *     told apart from this number alone.
+   * Counted either way, because "not asked" must never read as "agreed". */
+  stall: 'stall_leaf_skipped' };
 function walkBody(A, B, path, out, stats, hold, count) {
   const standing = !A.fainted && !B.fainted;
   for (const leaf of new Set([...Object.keys(A), ...Object.keys(B)])) {

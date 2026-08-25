@@ -26030,6 +26030,139 @@ probe('move', 'conditionalPower', 'Fickle Beam announces the roll that doubled i
                  + `band can produce on its own` };
 });
 
+
+/* ================= 2026-08-25 - DESTINY BOND, WHICH WAS NOT IMPLEMENTED AT ALL ====================
+ *
+ * The volatile was written by the generic `statusInflict` applier and read by NOTHING: no line in
+ * medicham2 removed it, failed a second one, or took the killer with it. Three probes, because the
+ * authority's condition is three separate rules and an engine wrong on any one of them looks correct
+ * on most boards.
+ *
+ * THE TAG IS `statusInflict` AND THE MECHANIC IS THE VOLATILE IT NAMES. `engine/faces.js` makes this
+ * argument for the seven moves whose whole behaviour is which volatile they write: keying on the move
+ * NAME is the hand list docs/TAGS.md forbids, and keying on `statusInflict` alone would claim a third
+ * of the move table -- the volatile id is the PARAM the artifact already derives.
+ *
+ * A NOTE ON THE FIXTURE, because it decides what these probes can see. `me` is given an explicit
+ * Speed of 200 against a Speed of 20, so Destiny Bond is up BEFORE the attack lands; without that the
+ * foe kills the body on a turn where the bond was never applied and every arm agrees for the wrong
+ * reason. `me.curHP = 1` makes any connecting hit lethal, so no damage-roll question enters. */
+probe('move', 'statusInflict', 'Destiny Bond takes the body that landed the killing MOVE, and does nothing without it', () => {
+  const run = (click) => {
+    const { me, ally, f1, f2, S } = board('houndoom', 'incineroar', 'garchomp', 'garchomp');
+    me.st = Object.assign({}, me.st, { sp: 200 });
+    f1.st = Object.assign({}, f1.st, { sp: 20 });
+    me.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, click, null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'crunch', me, S.field)], [f2, { kind: 'pass' }]]));
+    return [!!me.fainted, !!f1.fainted, f1.curHP];
+  };
+  /* THE CONTROL IS THE IDENTICAL BOARD WITH THE CLICK CHANGED AND NOTHING ELSE. Nasty Plot is a
+   * self-targeting status move on the same body: it costs the same turn, moves no HP on either side
+   * and leaves the same lethal Crunch coming. If the killer dies here too, the arm above proves
+   * nothing about Destiny Bond. */
+  const control = run('nastyplot'), test = run('destinybond');
+  return { works: control[0] === true && control[1] === false
+                && test[0] === true && test[1] === true,
+           arms: { control, test },
+           detail: `[the bond holder fainted, the KILLER fainted, the killer HP] - clicking Nasty `
+                 + `Plot ${JSON.stringify(control)} (the killer walks away), clicking DESTINY BOND `
+                 + `${JSON.stringify(test)} (it goes with it). Same board, same lethal Crunch, one `
+                 + `click varied` };
+});
+
+/* WILL'S OWN FIXTURE, AND IT IS THE WHOLE OF `effect.effectType === 'Move'`. A body dying to POISON
+ * with the bond up must leave its attacker standing -- sandstorm, burn, poison, Leech Seed, Life Orb
+ * recoil and hazards are none of them a Move, and an engine that hangs the bond off "the body died"
+ * rather than off "a move killed it" passes every probe above and loses a game here.
+ *
+ * A CONTROL IMMUNE FOR EXACTLY ONE REASON: the two arms are the same board, the same 1 HP, the same
+ * Destiny Bond click. The ONLY thing varied is whether the foe's click connects, and therefore which
+ * of the two lethal things reaches the body first. */
+probe('move', 'statusInflict', 'Destiny Bond does NOT fire when the KO came from POISON rather than a move', () => {
+  const run = (foeClick) => {
+    const { me, ally, f1, f2, S } = board('houndoom', 'incineroar', 'garchomp', 'garchomp');
+    me.st = Object.assign({}, me.st, { sp: 200 });
+    f1.st = Object.assign({}, f1.st, { sp: 20 });
+    me.curHP = 1; me.status = 'psn';
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'destinybond', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, foeClick, foeClick === 'crunch' ? me : null, S.field)],
+               [f2, { kind: 'pass' }]]));
+    return [!!me.fainted, !!f1.fainted];
+  };
+  /* `protect` is the foe harmless click: it spends the turn, moves no HP and reaches nobody, so the
+   * only thing left that can kill `me` is the poison at the residual. */
+  const chip = run('protect'), byMove = run('crunch');
+  return { works: chip[0] === true && chip[1] === false
+                && byMove[0] === true && byMove[1] === true,
+           arms: { control: chip, test: byMove },
+           detail: `[the bond holder fainted, the KILLER fainted] - killed by POISON at the residual `
+                 + `${JSON.stringify(chip)} (the attacker MUST survive: chip is not a Move), killed by `
+                 + `CRUNCH ${JSON.stringify(byMove)} (it must not). Same 1 HP, same Destiny Bond click, `
+                 + `only the source of the KO varied` };
+});
+
+/* THE WINDOW, AND IT IS THE HALF THAT RAN FOR EVER. `onBeforeMove` at priority -1 strips the volatile
+ * before its user NEXT attack, and `onMoveAborted` strips it on an attempt that never happened; a
+ * second Destiny Bond is refused outright by `onPrepareHit` and takes the first one with it. So the
+ * bond is spent by the user next action WHATEVER that action is -- and medicham2 kept it for the
+ * rest of the battle, which made every later KO of that body a free kill on the attacker.
+ *
+ * READ AS AN OUTCOME AND NOT AS A FLAG: turn 2 the body clicks something else, turn 3 it is killed by
+ * a move. If the window is right the killer lives; if the bond is still riding, the killer dies. */
+probe('move', 'statusInflict', 'the Destiny Bond window closes when its user moves again, and a second one FAILS', () => {
+  const run = (turn2) => {
+    const { me, ally, f1, f2, S } = board('houndoom', 'incineroar', 'garchomp', 'garchomp');
+    me.st = Object.assign({}, me.st, { sp: 200 });
+    f1.st = Object.assign({}, f1.st, { sp: 20 });
+    unfaintable(me);
+    /* turn 1 - the bond goes up and nobody is attacked */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'destinybond', null, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    /* turn 2 - the user acts again, which is the event under test */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, turn2, null, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    /* turn 3 - the foe lands a lethal move */
+    me.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'crunch', me, S.field)], [f2, { kind: 'pass' }]]));
+    return [!!me.fainted, !!f1.fainted];
+  };
+  /* BOTH ARMS MOVE ON TURN 2 AND BOTH MUST LEAVE THE KILLER ALIVE, and that is the point rather than
+   * a duplicate: an ORDINARY move must strip the bond, and a SECOND DESTINY BOND must fail and strip
+   * it too. An engine that refreshed the bond on the second click would keep the killer dying, and an
+   * engine that never stripped it at all fails both. The third arm is the one that must still WORK -
+   * the body does nothing on turn 2, so the bond survives and the killer goes with it. */
+  const ordinary = run('nastyplot'), second = run('destinybond');
+  const held = (() => {
+    const { me, ally, f1, f2, S } = board('houndoom', 'incineroar', 'garchomp', 'garchomp');
+    me.st = Object.assign({}, me.st, { sp: 200 }); f1.st = Object.assign({}, f1.st, { sp: 20 });
+    unfaintable(me);
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'destinybond', null, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    me.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'crunch', me, S.field)], [f2, { kind: 'pass' }]]));
+    return [!!me.fainted, !!f1.fainted];
+  })();
+  return { works: ordinary[0] === true && ordinary[1] === false
+                && second[0] === true && second[1] === false
+                && held[0] === true && held[1] === true,
+           arms: { control: held, test: ordinary },
+           detail: `[the bond holder fainted, the KILLER fainted] - bond on turn 1 then an ORDINARY `
+                 + `move on turn 2 ${JSON.stringify(ordinary)} (window closed, killer lives); a SECOND `
+                 + `Destiny Bond on turn 2 ${JSON.stringify(second)} (it FAILS and takes the first one `
+                 + `with it, killer lives); the user does NOTHING on turn 2 ${JSON.stringify(held)} `
+                 + `(the window is still open across the turn boundary, killer dies)` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');
