@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  687/687 probed mechanics live, 0 missing   (census 2026-08-24 20:40)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-24 20:44)
+  693/693 probed mechanics live, 0 missing   (census 2026-08-24 22:29)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-24 22:36)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,141 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 769190fa03f9 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is c1da019c1ee8 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 276/294 probed, 18 unprobed
+  tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-24 21:32_
+_stamped 2026-08-24 22:54_
 
 <!-- /GENERATED -->
+
+## FIVE MECHANICS BY REACH — 15 → 10 UNCLEARED, CENSUS 687 → 693, POOL UNMOVED. 2026-08-24.
+
+Full account: [`docs/_reports/2026-08-24-mechanics-by-reach-3.md`](_reports/2026-08-24-mechanics-by-reach-3.md).
+
+Five diverging mechanics closed, ranked by the corpus usage they cover — **1,559 clicks between them**
+(Scale Shot 543, Dragon Darts 452, Chilly Reception 236, Dragon Cheer 216, Fickle Beam 112). Each was a
+failing census probe first, each has a `MEDI_*` knob that puts the defect back, and each control was
+already green and stayed green. **All three populations were confirmed present in the artifact before
+any count was taken** — moves 500, abilities 316, items 148 — because `--kind` defaults to `moves` and
+a move-only artifact makes this clause BLIND rather than red.
+
+**1. `selfBoost` IS NOT `self`, AND THE FAINT IS BETWEEN THEM.** `data/engine-data.js` folds three dex
+fields into one `mv.self` key; the authority pays two of them in different places — `self` through
+`selfDrops` INSIDE the hit loop (`sim/battle-actions.ts:936`, above `faintMessages` at `:976` and above
+`|-hitcount|` at `:978`), `selfBoost` through `moveHit(pokemon, pokemon, …)` AFTER `trySpreadMoveHit`
+has returned (`:520`). Staged in the authority with the target pinned to 1 HP: Close Combat prints
+`-unboost, -unboost, |faint|`; Clanging Scales prints `|faint|, -unboost`; Scale Shot prints
+`|faint|, -hitcount, -unboost, -boost`. **The control is the authority's own other answer**, so an
+engine that moved every self stat change below the faint fails. `via` is derived in `engine/tag_dex.js`
+off the dex field and was PRINTED first: `self` 10 moves, `selfBoost` **2**, `boosts` 22.
+**`ability:berserk` did NOT clear** — its fixture stages Scale Shot, and with this fixed it moved to
+`|-hitcount| <> |-boost|spa|1`, which is `AfterMoveSecondary` running above the hitcount where the
+authority runs it below (`:1005`). Scoped, not started; on the hand list.
+
+**2. THE SHIELD GATE READ A FEATURE-SCOPED TAG.** `checkMoveBypassesProtect` (`sim/battle.ts:1301`)
+bypasses on the absence of `flags.protect`, unscoped. `shieldRefuses` read `ignoresProtect`, which
+`tag_dex.js` NARROWS to foe-facing moves on purpose — harmless in singles, and in doubles it deletes
+the case that matters, because **the body Protecting is very often your own partner**. Dragon Cheer,
+Coaching, Helping Hand and Aromatic Mist were all refused. A NEW tag rather than a widening,
+deliberately: `ignoresProtect` feeds a board feature and widening it 14 → 111 is a refit.
+`noProtectFlag` holds all 14 old members plus 97 more, membership printed before wiring.
+
+**3. A SMART-TARGET MOVE IS REFUSED IN SILENCE.** Protect, Spiky Shield, Baneful Bunker and King's
+Shield all open `condition.onTryHit` with `if (move.smartTarget) { move.smartTarget = false; } else {
+this.add('-activate', …) }`. One move in the format carries `smartTarget`. **The board was already
+right and the probe asserts it as the control that must not move** — both darts land on the other foe,
+HP lost `[98, 0]`, the authority's numbers.
+
+**4. CHILLY RECEPTION'S TWO MISSING LINES, THE SECOND FOUND BY FIXING THE FIRST.** The `-prepare` lives
+in the CONDITION's `onBeforeMove` at priority 100, and `volatileAnnounce` read only `onStart` — a
+DERIVATION gap, so the artifact said "announces nothing". `beforeOwnMove` matches by handler SHAPE and
+was printed over every condition a legal move can apply: **nine carry an `onBeforeMove` and exactly one
+matches**; a looser rule would have swept five `|cant|` REFUSALS into an announcement table. With that
+landed the entry line parted one line later: the authority names the cause on every pivot entry
+(`:145-148`), across four families (Chilly Reception, U-turn, Parting Shot, Baton Pass). **The control
+is a voluntary switch, which must stay BARE** — the commonest entry in the game, and over-attributing
+it would be worse than the defect.
+
+**5. FICKLE BEAM ANNOUNCES THE ROLL THAT DOUBLED IT.** The `chainModify(2)` and the `-activate` are the
+same four-line handler; this engine took the double and said nothing. The `[anim]` half is deliberately
+NOT emitted and it is recorded rather than left as a gap — `engine/game_differential.js:1627` strips
+`[anim]` from BOTH streams, so no instrument here can see it. Control: the same click on a losing roll,
+judged by a RATIO above 1.5 because the two arms also draw a different damage roll.
+
+**WHICH SCOREBOARD, SAID BEFORE THE RUN.** All five are narration, so the LAB was expected to move and
+the PINNED POOL to sit still. It did: whole game, arm **`middle`**, release **`294a529b83c8`**,
+`--team-store data/team-pool-frozen`, census pinned to `census-pin-9446a684709d.json`, `--games 1200`
+→ **961 pairs**, **raw parted 35 and undeclared 22 of 961 = 2.3%, both unmoved**. A re-baseline, not a
+delta — the standing baseline is stamped under `top-tie-first` and `quarantine.js` withholds a
+direction of travel, correctly.
+
+**THE NUMBERS.** Damage differential **0 of 6000 at all 16 corners** (seed 20260804), unmoved. Census
+**687 → 693 probed / 693 live / 0 missing / 0 threw**. Uncleared diverging mechanics **15 → 10**, and
+the five removed are exactly the five above with nothing added. **All four withheld artifacts re-run**
+at `294a529b83c8`: roster items **0 / 0** (139 of 148), abilities **0 / 0** (130 of 202), moves
+**0 / 0** (475 of 500), and `all_mechanics_fire --kind all`. Gate **5 of 8**, exactly as before.
+
+**THE NEW CODE IS NOT DEAD:** `selfBoostPaidAfterLoop 2`, `shieldSawNoProtectFlag 1`,
+`smartTargetShieldSilent 1`, `volatileAnnouncedBeforeMove 1`, `switchNamedItsCause 2`,
+`conditionalPowerAnnounced 1`, and all eight failure counters at 0 — measured on the staged boards.
+A POOL-SCALE counter sweep was **not** run; no script exports engine counters from
+`game_differential.js` and this pass did not add one.
+
+**Found by the release cut, not by a gate:** `data/abra-tags.js` — the BROWSER copy of `tags.json`,
+frozen in every release — was **two days stale**. Rebuilt with `build/build_tags_js.js`.
+
+### THE HAND LIST
+
+Leaves it: nothing. None of the five closed above was on the previous list — they came off
+`data/all-mechanics-fire.json` ranked by reach.
+
+Joins it, scoped and stopped rather than half-landed:
+
+- **`AfterMoveSecondary` runs ABOVE `|-hitcount|` and the authority runs it below** (`:1005` against
+  `:978`). Berserk (56 sheets) is the visible member and it is the row that did not clear when Scale
+  Shot did;
+- **the three spread-status rows are ONE mechanism.** `hitStepTryHitEvent` runs across ALL targets
+  before any effect (`sim/battle-actions.ts:600-611` — the step list is step-major) and this engine's
+  `kind === 'affect'` branch is target-major, so a Protect on the second foe is announced AFTER the
+  first foe's stat drop. Confirmed in the authority on Cotton Spore, String Shot and Teeter Dance.
+  Fixing it properly is a restructure of that branch into a step list, the way WIRE 10 did the damaging
+  path — a two-pass version gets the common case right and the mixed-refusal case wrong;
+- **`supremeoverlord` (112 sheets) is the `fallenundefined` line the WHOLE-GAME clause already declares
+  as "the authority is wrong"**, and the MECHANICS clause has no such declaration and counts it. That
+  is a clause-consistency question, not an engine one;
+- **`data/abra-tags.js` can go stale against `data/tags.json` and nothing says so;**
+- **`shellsidearm` (101 clicks)** moves here from OWED, still unexamined.
+
+Stays on it, unchanged from the previous pass: **`sandforce`'s truncated `damageBoost.onType` plus the
+absent `type + weather` consumer at `stage:'basePower'`**, **`guts.damageBoost.onlyWhen` null**,
+**Castform's forme label (a refit — ENGINE may not edit `data/engine-data.js`)**, **Magic Room parks
+the item**, **a refused Role Play does not blank its move line's target field**, **the Harvest line**,
+and **`planted_state_proof_ok` false on both arms**.
+
+### PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.
+
+Seven rows, full text in the report: **five CLOSED** (the `selfBoost` position, the shield flag's
+scope, Dragon Darts' silent refusal, Chilly Reception's two lines, Fickle Beam's announcement), each
+naming its probe and its knob; **two OPEN** (`AfterMoveSecondary` above the hitcount; `abra-tags.js`
+staleness has no gate).
+
+### OWED, NOT RUN
+
+- `tests/run-all.js` in full — eleven ENGINE instruments were run individually and are listed in the
+  report;
+- a POOL-SCALE counter sweep for the six new counters;
+- `engine/selftest.js`, `engine/conformance.js` and `engine/feature_fixture.js --check` — all three RED
+  at HEAD and not run here. The last is the REFIT question and belongs to MEASURE; a restamp silences
+  the table gate and writes over the evidence;
+- `tests/interaction_matrix.js` (last run 2026-08-11) and `tests/mutation_harness.js`;
+- **`shellsidearm` (101 clicks)** and **`sandforce` (34 sheets)** — the two remaining in-game DAMAGE
+  rows, both `off-by-4-or-more` on one `-damage` line;
+- **`switcheroo` (85), `smackdown` (59), `stringshot` (46), `teeterdance` (33), `cottonspore` (31),
+  `attract` (30)** — the rest of the counted list; the last four are the one spread-status mechanism
+  above.
 
 ## THE END-OF-TURN WALK IS THE AUTHORITY'S SELECTION SORT — CENSUS 686 → 687, POOL UNMOVED GAME FOR GAME. 2026-08-24.
 

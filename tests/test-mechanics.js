@@ -25420,6 +25420,308 @@ probe('ability', 'buffsHolderOnHit', 'a second hit RE-ANNOUNCES the Charge it re
                  + `heavyslam twice` };
 });
 
+/* ================= 2026-08-24 — `selfBoost` IS NOT `self`, AND THE FAINT IS BETWEEN THEM =========
+ *
+ * `data/all-mechanics-fire.json` reads Scale Shot (543 corpus clicks, the largest diverging move in
+ * the artifact) as `[ordering] showdown |-hitcount|p2a: Feraligatr|2 <> medicham |-unboost|p1a:
+ * Arbok|def|1`, and Berserk (56 sheets) as the SAME line — the ability's fixture stages Scale Shot as
+ * the receiver's move, so the two rows are one fact.
+ *
+ * THE AUTHORITY PAYS A MOVE'S OWN STAT TABLE FROM TWO DIFFERENT PLACES, and `data/engine-data.js`
+ * folds both dex fields into one `mv.self` key so this engine could not tell them apart:
+ *
+ *     self       `selfDrops`, called from `spreadMoveHit`      sim/battle-actions.ts:936
+ *                -> INSIDE the hit loop, above `faintMessages` (:976) and `-hitcount` (:978)
+ *     selfBoost  `if (move.selfBoost && moveResult)
+ *                     this.moveHit(pokemon, pokemon, move, move.selfBoost, false, true);`      :520
+ *                -> AFTER `trySpreadMoveHit` has returned, so BELOW both
+ *
+ * MEASURED IN THE AUTHORITY, one staged doubles turn each, the target pinned to 1 HP so the KO puts
+ * a `|faint|` between the two positions:
+ *     Close Combat KO     -damage 0 fnt, -unboost def, -unboost spd, |faint|
+ *     Clanging Scales KO  -damage 0 fnt, |faint|, -unboost def
+ *     Scale Shot KO       -damage 0 fnt, |faint|, -hitcount, -unboost def, -boost spe
+ *
+ * THE CONTROL IS THE AUTHORITY'S OWN OTHER ANSWER. Close Combat drops the SAME stat on the SAME slot
+ * and the authority puts it on the OTHER side of the faint, so an engine that simply moved every self
+ * stat change below the faint fails this arm. Both members of the format's `selfBoost` set are
+ * staged; the set is derived in `engine/tag_dex.js` (`via`) off the dex field and holds exactly
+ * Clanging Scales and Scale Shot, against 10 for `self` and 22 for a self-targeted status move.
+ *
+ * MEDI_SELFBOOST_IN_LOOP=1 pays `selfBoost` at `selfDrops`' position again and this probe goes red on
+ * it, with the Close Combat arm unmoved. */
+probe('move', 'lowersUser', 'Scale Shot and Clanging Scales pay their own stats AFTER the faint — and Close Combat pays before it', () => {
+  const order = (sp, mv) => attrRun([sp, 'clefable', 'feraligatr', 'snorlax'],
+      (B) => { B.f1.curHP = 1; }, { mv }, null)
+    .map(M.traceCanon).filter(l => /^\|(faint|-hitcount|-boost|-unboost)\|/.test(l))
+    .map(l => l.split('|')[1]);
+  const scale = order('arbok', 'scaleshot');
+  const clang = order('kommoo', 'clangingscales');
+  const control = order('machamp', 'closecombat');
+  return { works: JSON.stringify(scale) === '["faint","-hitcount","-unboost","-boost"]'
+                  && JSON.stringify(clang) === '["faint","-unboost"]'
+                  && JSON.stringify(control) === '["-unboost","-unboost","faint"]',
+           arms: { control, test: { scale, clang } },
+           detail: `[the faint line and every stat line, one real turn each, target pinned to 1 HP] — `
+                 + `Scale Shot off an Arbok ${JSON.stringify(scale)}; Clanging Scales off a Kommo-o `
+                 + `${JSON.stringify(clang)}; CONTROL Close Combat off a Machamp `
+                 + `${JSON.stringify(control)}, whose identical -1 Def is paid by selfDrops INSIDE `
+                 + `the hit loop. An engine with one payment site cannot satisfy both sides` };
+});
+
+/* ================= 2026-08-24 — THE SHIELD GATE READ A FEATURE-SCOPED TAG =========================
+ *
+ * `data/all-mechanics-fire.json` reads Dragon Cheer (216 corpus clicks) as `[unrelated event
+ * mismatch] showdown |-start|p1b: Venusaur|move: Dragon Cheer <> medicham |-activate|p1b: Venusaur|
+ * move: Protect`. The move landed in the authority and this engine refused it.
+ *
+ * THE AUTHORITY IS ONE CLAUSE (sim/battle.ts:1300-1303, `checkMoveBypassesProtect`):
+ *     if ((move.category !== 'Status' || blockStatus) && move.flags['protect'] && ...) return false;
+ *     return true;
+ * -- no `flags.protect`, no refusal, whoever the move is aimed at. Dragon Cheer's flags are
+ * `{bypasssub, allyanim, metronome, sound}`.
+ *
+ * WHAT THIS ENGINE READ INSTEAD was `ignoresProtect`, which `engine/tag_dex.js` NARROWS on purpose:
+ * `if (m.category === 'Status' && !hitsFoe) return null`. In singles that scope costs nothing. In
+ * DOUBLES it deletes the case that matters — the body Protecting is often YOUR OWN PARTNER, and
+ * Dragon Cheer, Coaching, Helping Hand and Aromatic Mist are all aimed there. `noProtectFlag` carries
+ * the unscoped fact: 111 legal moves, containing all 14 `ignoresProtect` members, so nothing that was
+ * already exempt moved.
+ *
+ * THE CONTROL IS A MOVE THE SHIELD REALLY DOES STOP, on the same board shape — String Shot has
+ * `flags.protect` and must still be refused by BOTH Protecting foes. An engine that simply stopped
+ * asking about Protect passes the test arm and fails this one.
+ *
+ * MEDI_SHIELD_SCOPED_FLAG=1 puts the narrow read back and this probe goes red on it. */
+probe('move', 'noProtectFlag', 'a Protecting PARTNER does not refuse Dragon Cheer — and String Shot is still refused by both foes', () => {
+  const atAlly = (sp, mv) => {
+    const me = bare(sp), ally = bare('venusaur'), f1 = bare('feraligatr'), f2 = bare('charizard');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, ally, S.field)],
+               [ally, M.playerAction(ally, 'protect', ally, S.field)]]),
+      PASS2(f1, f2));
+    return trace.map(M.traceCanon).filter(l => /^\|(-start|-activate)\|p1b:/.test(l));
+  };
+  const atFoes = (sp, mv) => {
+    const me = bare(sp), ally = bare('clefable'), f1 = bare('feraligatr'), f2 = bare('charizard');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'protect', f1, S.field)],
+               [f2, M.playerAction(f2, 'protect', f2, S.field)]]));
+    return trace.map(M.traceCanon).filter(l => /^\|(-unboost|-activate)\|p2[ab]:/.test(l));
+  };
+  const test = atAlly('altaria', 'dragoncheer');
+  const control = atFoes('ariados', 'stringshot');
+  return { works: JSON.stringify(test) === '["|-start|p1b:venusaur|move:dragoncheer"]'
+                  && JSON.stringify(control) === '["|-activate|p2a:feraligatr|move:protect",'
+                                               + '"|-activate|p2b:charizard|move:protect"]',
+           arms: { control, test },
+           detail: `[one real turn each] — Dragon Cheer aimed at an ally that clicked Protect on the `
+                 + `same turn ${JSON.stringify(test)}: the shield must not see it at all, because the `
+                 + `move carries no flags.protect. CONTROL String Shot, which DOES carry the flag, `
+                 + `into two Protecting foes ${JSON.stringify(control)} — both refusals still owed, `
+                 + `so an engine that stopped asking about Protect fails here` };
+});
+
+/* ================= 2026-08-24 — A SMART-TARGET MOVE IS REFUSED IN SILENCE ========================
+ *
+ * `data/all-mechanics-fire.json` reads Dragon Darts (452 corpus clicks, the largest diverging move in
+ * the artifact) as `[extra event emitted by medicham2] showdown |-crit|p2a: Feraligatr <> medicham
+ * |-activate|p2b: Charizard|move: Protect`. The engine wrote a line the authority does not write.
+ *
+ * THE AUTHORITY SAYS IT FOUR TIMES, IDENTICALLY — Protect, Spiky Shield, Baneful Bunker and King's
+ * Shield each open their `condition.onTryHit` (data/moves.ts; no Champions override on any of them):
+ *     if (this.checkMoveBypassesProtect(move, source, target)) return;
+ *     if (move.smartTarget) { move.smartTarget = false; }
+ *     else { this.add('-activate', target, 'move: Protect'); }
+ * so the shield still REFUSES the dart; it just says nothing about it.
+ *
+ * ONE MOVE IN THE FORMAT CARRIES `smartTarget` and it is Dragon Darts, derived from the dex field
+ * rather than named. The BOARD was already right here — both darts land on the other foe — so this is
+ * a narration fix, and the probe asserts the board as the thing that must NOT move.
+ *
+ * THE CONTROL IS THE SAME DRAGAPULT INTO THE SAME PROTECTING CHARIZARD with a move that is not smart:
+ * Shadow Ball must still print the refusal and deal nothing. An engine that stopped announcing shields
+ * passes the test arm and fails this one.
+ *
+ * MEDI_SMART_PROTECT_LINE=1 puts the line back and this probe goes red on it. */
+probe('move', 'smartTarget', 'a Protect refuses a dart WITHOUT announcing it — and still announces an ordinary move', () => {
+  const run = (mv, aimAtProtector) => {
+    const me = bare('dragapult'), ally = bare('clefable'), f1 = bare('feraligatr'), f2 = bare('charizard');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    const h1 = f1.curHP, h2 = f2.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, aimAtProtector ? f2 : f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, M.playerAction(f2, 'protect', f2, S.field)]]));
+    return { act: trace.map(M.traceCanon).filter(l => /^\|-activate\|/.test(l)),
+             hits: trace.map(M.traceCanon).filter(l => /^\|-damage\|/.test(l)).length,
+             lost: [h1 - f1.curHP, h2 - f2.curHP] };
+  };
+  const test = run('dragondarts', false);
+  const control = run('shadowball', true);
+  return { works: test.act.length === 0 && test.hits === 2 && test.lost[1] === 0 && test.lost[0] > 0
+                  && JSON.stringify(control.act) === '["|-activate|p2b:charizard|move:protect"]'
+                  && control.lost[0] === 0 && control.lost[1] === 0,
+           arms: { control, test },
+           detail: `[one real turn each, the same Protecting Charizard] — Dragon Darts aimed at the `
+                 + `OTHER foe: activate lines ${JSON.stringify(test.act)} (must be none), `
+                 + `${test.hits} damage lines, HP lost ${JSON.stringify(test.lost)} — the shield still `
+                 + `refuses its dart, so BOTH land on the unprotected body and the board must not `
+                 + `move. CONTROL Shadow Ball from the same Dragapult straight into the shield `
+                 + `${JSON.stringify(control.act)}, HP lost ${JSON.stringify(control.lost)}: an `
+                 + `ordinary move is still announced` };
+});
+
+/* ================= 2026-08-24 — CHILLY RECEPTION'S TWO MISSING LINES ==============================
+ *
+ * `data/all-mechanics-fire.json` reads Chilly Reception (236 corpus clicks) as `[event missing from
+ * medicham2] showdown |-prepare|p1a: Slowking|Chilly Reception|[premajor] <> medicham |move|p1a:
+ * Slowking|chillyreception`. The engine wrote no line at all above its own `|move|`.
+ *
+ * THE AUTHORITY PUTS IT IN THE CONDITION, NOT IN THE MOVE (data/moves.ts `chillyreception`, no
+ * Champions override):
+ *     priorityChargeCallback(source) { source.addVolatile('chillyreception'); }   // turn start
+ *     condition: { onBeforeMovePriority: 100,
+ *                  onBeforeMove(source, target, move) {
+ *                    if (move.id !== 'chillyreception') return;
+ *                    this.add('-prepare', source, 'Chilly Reception', '[premajor]'); } }
+ * so the line lands ABOVE the `|move|` line. `volatileAnnounce` read only `onStart` and this
+ * condition has none, so the artifact row said `event: null` — a derivation gap, not a missing
+ * handler. `beforeOwnMove` is derived from the handler's SHAPE (a guard on its own move id and one
+ * `add()`) and matches ONE of the nine conditions in this format that carry an `onBeforeMove`; the
+ * other eight write a `|cant|` and REFUSE the move, which is a different fact.
+ *
+ * THE CONTROL IS THE OTHER `-prepare` IN THE ENGINE — a charge move's wind-up, which has three
+ * fields and no `[premajor]`, and comes from a completely different site. An engine that stapled
+ * `[premajor]` onto every `-prepare` fails it.
+ *
+ * MEDI_NO_BEFOREMOVE_LINE=1 removes the line again and this probe goes red on it. */
+probe('move', 'volatileAnnounce', 'Chilly Reception announces itself ABOVE its own move line — and a charge wind-up still does not', () => {
+  const lines = (sp, mv) => {
+    const me = bare(sp), ally = bare('clefable'), f1 = bare('feraligatr'), f2 = bare('charizard'), bench = bare('milotic');
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.map(M.traceCanon).filter(l => /^\|(-prepare|move)\|p1a:/.test(l));
+  };
+  const test = lines('slowking', 'chillyreception');
+  const control = lines('venusaur', 'solarbeam');
+  return { works: test.length === 2
+                  && test[0] === '|-prepare|p1a:slowking|chillyreception|[premajor]'
+                  && /^\|move\|p1a:slowking\|chillyreception/.test(test[1])
+                  && JSON.stringify(control) === '["|move|p1a:venusaur|solarbeam|p2a:feraligatr",'
+                                               + '"|-prepare|p1a:venusaur|solarbeam"]',
+           arms: { control, test },
+           detail: `[the move line and every -prepare of one real turn] — Chilly Reception off a `
+                 + `Slowking ${JSON.stringify(test)}: the line is FIRST and carries [premajor], `
+                 + `because the condition writes it at BeforeMove priority 100. CONTROL Solar Beam's `
+                 + `wind-up ${JSON.stringify(control)} — three fields, no [premajor], and BELOW the `
+                 + `move line, because onTryMove runs after it` };
+});
+
+/* ================= 2026-08-24 — AN ENTRY NAMES WHAT CAUSED IT ====================================
+ *
+ * Found while closing the row above: with the `-prepare` landed, the NEXT line of the same Chilly
+ * Reception turn still parted. The authority writes `|switch|p1a: Ditto|Ditto, L50|123/123|[from]
+ * Chilly Reception` and this engine wrote the bare `|switch|`.
+ *
+ * ONE LINE IN THE AUTHORITY, and it covers every door (sim/battle-actions.ts:145-148):
+ *     if (sourceEffect) this.battle.add(isDrag ? 'drag' : 'switch', pokemon, pokemon.getFullDetails,
+ *                                       `[from] ${sourceEffect}`);
+ *     else              this.battle.add(isDrag ? 'drag' : 'switch', pokemon, pokemon.getFullDetails);
+ * A pivot sets `source.switchFlag = move.id` (:1311) and the queued switch action carries it, so all
+ * four families are named: the status pivot, the damaging pivot, the state pass and Chilly Reception.
+ *
+ * THE CONTROL IS A VOLUNTARY SWITCH, which has NO source effect and must stay bare. That is the arm
+ * that stops this being passed by an engine that appends `[from]` to every entry — and it is the
+ * commonest entry in the game, so getting it wrong would be worse than the defect.
+ *
+ * MEDI_SWITCH_CAUSE_BLIND=1 takes the field back off and this probe goes red on it. */
+probe('move', 'pivotStatus', 'a pivot entry names the move that caused it — and a voluntary switch stays bare', () => {
+  const entry = (sp, mv, aimSelf) => {
+    const me = bare(sp), ally = bare('clefable'), f1 = bare('feraligatr'), f2 = bare('charizard'), bench = bare('milotic');
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, mv ? M.playerAction(me, mv, aimSelf ? me : f1, S.field) : { kind: 'switch', to: bench }],
+               [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.map(M.traceCanon).filter(l => /^\|switch\|/.test(l));
+  };
+  const chilly = entry('slowking', 'chillyreception', true);
+  const uturn = entry('scizor', 'uturn', false);
+  const control = entry('scizor', null, false);
+  const bare1 = '|switch|p1a:milotic|milotic,l50|170/170';
+  return { works: JSON.stringify(chilly) === JSON.stringify([bare1 + '|[from]chillyreception'])
+                  && JSON.stringify(uturn) === JSON.stringify([bare1 + '|[from]uturn'])
+                  && JSON.stringify(control) === JSON.stringify([bare1]),
+           arms: { control, test: { chilly, uturn } },
+           detail: `[the entry line of one real turn each, the same Milotic arriving every time] — `
+                 + `Chilly Reception ${JSON.stringify(chilly)}; U-turn, the damaging door, `
+                 + `${JSON.stringify(uturn)}; CONTROL a plain switch by the same Scizor `
+                 + `${JSON.stringify(control)}, which the authority leaves bare because there is no `
+                 + `source effect at all` };
+});
+
+/* ================= 2026-08-24 — FICKLE BEAM'S DOUBLE ANNOUNCES ITSELF ============================
+ *
+ * `data/all-mechanics-fire.json` reads Fickle Beam (112 corpus clicks) as `[event missing from
+ * medicham2] showdown |-activate|p1a: Hydrapple|move: Fickle Beam <> medicham |-crit|p2a`. The engine
+ * TOOK the double — the board agreed — and said nothing about it.
+ *
+ * THE DOUBLE AND THE LINE ARE ONE HANDLER (data/moves.ts `ficklebeam.onBasePower`, no Champions
+ * override):
+ *     if (this.randomChance(3, 10)) {
+ *       this.attrLastMove('[anim] Fickle Beam All Out');
+ *       this.add('-activate', pokemon, 'move: Fickle Beam');
+ *       return this.chainModify(2);
+ *     }
+ * so an engine that procs and stays silent is holding half of one event. The subject is the USER's
+ * slot (`pokemon` is the handler's second argument), and the line lands between the `|move|` line and
+ * the first `|-damage|` — read off six staged seeds in the authority, not assumed.
+ *
+ * THE `[anim]` HALF IS DELIBERATELY NOT EMITTED and that is recorded rather than left as a gap:
+ * `engine/game_differential.js:1627` strips `[anim]` from BOTH streams before comparing, so no
+ * instrument in this repo can see it either way.
+ *
+ * THE CONTROL IS THE SAME CLICK ON A LOSING ROLL, which must be silent AND deal half. Varying the die
+ * is what makes this a measurement instead of a spelling check: an engine that announces every Fickle
+ * Beam passes the test arm and fails the control. */
+probe('move', 'conditionalPower', 'Fickle Beam announces the roll that doubled it — and says nothing when it did not', () => {
+  const run = (r) => {
+    const me = bare('hydrapple'), ally = bare('clefable'), f1 = bare('feraligatr'), f2 = bare('charizard');
+    f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 4 }); f1.curHP = f1.st.hp;   // nothing may faint: a KO clamps the arms together
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace; const h = f1.curHP;
+    M.battleTurn(S, r, new Map([[me, M.playerAction(me, 'ficklebeam', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { act: trace.map(M.traceCanon).filter(l => /^\|-activate\|/.test(l)), lost: h - f1.curHP };
+  };
+  const test = run(() => 0.05);      // inside 3/10 — the move goes all out
+  const control = run(() => 0.95);   // outside it — ordinary power
+  return { works: JSON.stringify(test.act) === '["|-activate|p1a:hydrapple|move:ficklebeam"]'
+                  && control.act.length === 0
+                  /* THE TWO ARMS DRAW A DIFFERENT DAMAGE ROLL TOO -- one rng feeds both sites -- so
+                   * the bar is a RATIO the roll alone cannot reach. The band is 0.85..1.00 of the
+                   * same maximum, so the widest an undoubled pair can be is 1.00/0.85 = 1.176; a
+                   * factor of 1.5 can only be the chainModify(2). Written as arithmetic rather than
+                   * as a pinned number so the probe does not go red on an unrelated roll change. */
+                  && test.lost > control.lost * 1.5,
+           arms: { control, test },
+           detail: `[one real turn each into an unfaintable Feraligatr, the same board, only the die `
+                 + `varied] — a roll inside 3/10 ${JSON.stringify(test.act)} for ${test.lost} HP; `
+                 + `CONTROL a roll outside it ${JSON.stringify(control.act)} for ${control.lost}. The `
+                 + `line and the doubling are ONE handler, so the announcement must appear exactly `
+                 + `where the damage doubles and nowhere else. The two arms also draw different `
+                 + `damage rolls, so the bar is a ratio above 1.5 — wider than the 1.176 the 0.85..1.00 `
+                 + `band can produce on its own` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');

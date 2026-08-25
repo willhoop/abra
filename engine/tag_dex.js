@@ -959,6 +959,23 @@ const userTypeRequirement = (m) => {
   return req ? req[1] : null;
 };
 
+/* WHICH OF THE THREE FIELDS CARRIED THE TABLE, BECAUSE THE AUTHORITY PAYS THEM IN THREE PLACES.
+ * `readFrom` above is a LABEL and has said `m.self.boosts` for all three since the day Will found
+ * the third field; a consumer that has to know WHEN the stages land could not get it from that
+ * string. The authority's own three sites:
+ *
+ *   self       `selfDrops`, called from `spreadMoveHit` at sim/battle-actions.ts:936 -- INSIDE the
+ *              hit loop, so above `faintMessages` (:976) and above `|-hitcount|` (:978)
+ *   selfBoost  `if (move.selfBoost && moveResult) this.moveHit(pokemon, pokemon, ...)` at :520 --
+ *              AFTER `trySpreadMoveHit` has returned, so below the faint, below `-hitcount` and
+ *              below the recoil, and still above `AfterMoveSecondarySelf` (Life Orb) at :540
+ *   boosts     an ordinary self-targeted status move; it is the move's whole effect
+ *
+ * Measured in the format: `self` 10 moves, `selfBoost` 2 (Clanging Scales, Scale Shot), `boosts`
+ * 22. Derived from the dex field, never from a name list, so a move added later routes itself. */
+const selfBoostVia = (m) => (m.self && m.self.boosts) ? 'self'
+  : (m.selfBoost && m.selfBoost.boosts) ? 'selfBoost'
+  : ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') && m.boosts) ? 'boosts' : null;
 const MOVE_TAGS = [
   /* ROADMAP #144 -- HOW MANY TIMES THIS MOVE CAN BE CLICKED, and until 2026-08-11 the engine had no
    * such number at all: zero mentions of PP in medicham2-browser.js and no `pp` field on a built
@@ -2810,6 +2827,36 @@ const MOVE_TAGS = [
       if (m.category === 'Status' && !hitsFoe) return null;
       return { throughProtect: true };
     } },
+  /* 2026-08-24 -- AND THE ENGINE NEEDS THE RAW FLAG, WHICH `ignoresProtect` DELIBERATELY DOES NOT
+   * CARRY. The tag above is SCOPED to moves a Protect could plausibly have stopped -- Will's own
+   * challenge about After You -- and the scope reads `if (m.category === 'Status' && !hitsFoe) return
+   * null`. In SINGLES that scope is harmless. In DOUBLES it removes exactly the case that matters:
+   * your PARTNER can be the one Protecting, and a Dragon Cheer (216 corpus clicks), a Coaching, a
+   * Helping Hand or an Aromatic Mist aimed at that partner has no `flags.protect` and must land.
+   * This engine refused all of them, because `shieldRefuses` read the FEATURE-scoped tag as if it
+   * were the FACT.
+   *
+   * THE AUTHORITY IS ONE LINE (sim/battle.ts:1300-1303):
+   *     if ((move.category !== 'Status' || blockStatus) && move.flags['protect'] &&
+   *         this.runEvent('HitProtect', ...)) return false;      // does NOT bypass
+   *     return true;                                             // bypasses
+   * -- so the absence of the flag is the whole of the first clause, unscoped and untargeted.
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED: 111 legal moves carry no `flags.protect`, against the 14
+   * `ignoresProtect` keeps -- and every one of those 14 is inside this set, so nothing this tag
+   * replaces changes meaning. The 97 extra are the self-buffs, the field and side moves, and the
+   * ally-facing family named above; the first two never meet a foe's shield at all.
+   *
+   * IT IS A SEPARATE TAG RATHER THAN A WIDENING, deliberately. `ignoresProtect` is read by a board
+   * feature, and widening it from 14 members to 111 would change what that feature MEANS -- which is
+   * a refit, not an engine fix. */
+  { tag: 'noProtectFlag', param: 'the move carries no flags.protect, so a shield does not refuse it',
+    probe: 'shieldRefuses',
+    why: 'Dragon Cheer, Coaching, Helping Hand and Aromatic Mist are aimed at YOUR OWN PARTNER, who '
+       + 'is often the body Protecting. All four have no protect flag and this engine blocked every '
+       + 'one of them',
+    of: m => (m.flags && m.flags.protect) ? null
+           : { protectFlag: false, target: m.target || null, category: m.category || null } },
   /* ROADMAP #272 -- AND GOING THROUGH A SHIELD IS NOT THE SAME AS BREAKING IT.
    *
    * `ignoresProtect` above is the ABSENCE of `flags.protect`: the shield does not refuse this move.
@@ -3543,7 +3590,7 @@ const MOVE_TAGS = [
        * is a plain dex field. Copying it here would duplicate the dex and let the two drift.
        * raisesSpeed and alsoLowers are kept because they are DERIVED -- a consumer reading this tag
        * needs to know the speed case and the mixed case without re-deriving them. */
-      return { readFrom: 'm.self.boosts', raisesSpeed: (b.spe || 0) > 0,
+      return { readFrom: 'm.self.boosts', via: selfBoostVia(m), raisesSpeed: (b.spe || 0) > 0,
                alsoLowers: Object.values(b).some(v => v < 0) };
     } },
   /* SPLIT BY SIGN on Will's point -- "close combat, superpower, they DECREASE user not boost".
@@ -3743,7 +3790,7 @@ const MOVE_TAGS = [
       const b = (m.self && m.self.boosts) || (m.selfBoost && m.selfBoost.boosts)
         || ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') ? m.boosts : null);
       if (!b || !Object.values(b).some(v => v < 0)) return null;
-      return { readFrom: 'm.self.boosts', lowersSpeed: (b.spe || 0) < 0,
+      return { readFrom: 'm.self.boosts', via: selfBoostVia(m), lowersSpeed: (b.spe || 0) < 0,
                alsoRaises: Object.values(b).some(v => v > 0) };
     } },
   /* SPLIT BY THE SIGN OF THE EFFECT, not by the declared target, on Will's review: "coaching would
@@ -5127,10 +5174,45 @@ const MOVE_TAGS = [
         return { event: '-start', desc: [...descs][0], arg: args[0],
                  why: 'every -start this condition writes carries the same runtime argument' };
       };
+      /* 2026-08-24 -- (4) A CONDITION THAT ANNOUNCES FROM `onBeforeMove`, ABOUT ITS OWN MOVE.
+       *
+       * The three shapes above all read `onStart`, and one condition in this format writes its line
+       * somewhere else entirely (data/moves.ts `chillyreception.condition`, no Champions override):
+       *
+       *     onBeforeMovePriority: 100,
+       *     onBeforeMove(source, target, move) {
+       *       if (move.id !== 'chillyreception') return;
+       *       this.add('-prepare', source, 'Chilly Reception', '[premajor]');
+       *     }
+       *
+       * -- so the line lands ABOVE the `|move|` line rather than after it, and `onStart` is empty, so
+       * the row read `event: null, why: the condition declares no onStart` and a consumer learned that
+       * the move announces nothing. It announces on 236 corpus clicks.
+       *
+       * THE RULE IS THE HANDLER'S OWN SHAPE, NOT A NAME: an `onBeforeMove` whose entire body is a
+       * guard on its OWN move id followed by one `this.add`. PRINTED OVER EVERY CONDITION A LEGAL
+       * MOVE CAN APPLY before it was wired -- nine carry `onBeforeMove` and exactly ONE matches.
+       * The other eight all do something else and are left alone: Attract announces unconditionally
+       * and then rolls, Taunt / Disable / Gravity / Throat Chop / Recharge write a `|cant|` and REFUSE
+       * the move, Confusion counts down, Destiny Bond removes itself. A looser rule would have swept
+       * five refusals into an announcement table. */
+      const BEFORE = /^onBeforeMove\s*\(\s*[\w\s,]*\)\s*\{\s*if\s*\(\s*move\.id\s*!==\s*["'](\w+)["']\s*\)\s*return;\s*this\.add\(\s*["'](-\w+)["']\s*,\s*[\w.]+\s*,\s*["']([^"']*)["']\s*(?:,\s*["']([^"']*)["']\s*)?\)\s*;?\s*\}$/;
+      const beforeOwnMove = (c) => {
+        if (!c.onBeforeMove) return null;
+        const hit = BEFORE.exec(fnsrc(c.onBeforeMove).replace(/\s+/g, ' ').trim());
+        if (!hit) return null;
+        return { move: hit[1], event: hit[2], desc: hit[3], arg: hit[4] || null,
+                 priority: c.onBeforeMovePriority == null ? null : c.onBeforeMovePriority,
+                 why: 'the whole onBeforeMove is a guard on its own move id and one add()' };
+      };
       const byVolatile = {};
       for (const v of [...vols].sort()) {
         const c = dex.conditions.get(v);
         if (!c) continue;
+        const bm = beforeOwnMove(c);
+        if (bm) { byVolatile[v] = { event: null, desc: null,
+                                    why: 'the condition declares no onStart; it announces at onBeforeMove',
+                                    beforeOwnMove: bm }; continue; }
         if (!c.onStart) { byVolatile[v] = { event: null, desc: null, why: 'the condition declares no onStart' }; continue; }
         const hit = fnsrc(c.onStart).match(ONE);
         if (hit) { byVolatile[v] = { event: hit[1], desc: hit[2], why: 'the condition\'s whole onStart is this one add()' }; continue; }

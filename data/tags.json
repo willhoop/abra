@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-24T19:08:49.708Z",
+ "generated": "2026-08-25T02:19:31.358Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -257,8 +257,8 @@
    "kind": "move",
    "param": "destroys Reflect, Light Screen and Aurora Veil on their side",
    "why": "Psychic Fangs (1,352 uses), Brick Break (289), Raging Bull. The answer to 5,187 uses of screens, and it lands as a damaging move rather than costing a turn",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "removeSideCondition",
+   "used": true,
    "n": 3,
    "uses": 3502,
    "examples": [
@@ -1016,6 +1016,24 @@
     "Feint",
     "Future Sight",
     "Mean Look"
+   ]
+  },
+  {
+   "tag": "noProtectFlag",
+   "kind": "move",
+   "param": "the move carries no flags.protect, so a shield does not refuse it",
+   "why": "Dragon Cheer, Coaching, Helping Hand and Aromatic Mist are aimed at YOUR OWN PARTNER, who is often the body Protecting. All four have no protect flag and this engine blocked every one of them",
+   "consumedBy": "shieldRefuses",
+   "used": true,
+   "n": 111,
+   "uses": 259465,
+   "examples": [
+    "Baneful Bunker",
+    "Clangorous Soul",
+    "Dragon Cheer",
+    "Growth",
+    "Howl",
+    "King's Shield"
    ]
   },
   {
@@ -2405,8 +2423,8 @@
    "kind": "move",
    "param": "the USER takes the target's ability — and what refuses it",
    "why": "Role Play (40 uses) read [pp, targetClass, neverMisses, ignoresProtect, statusCategory] — an accuracy, a category and a Protect flag, and no effect at all. It resolved to a pass, so the click spent a turn and changed nothing, and every later damage, speed and immunity number was computed off an ability the body should not still have had",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "copiesTargetAbility",
+   "used": true,
    "n": 1,
    "uses": 40,
    "examples": [
@@ -9060,6 +9078,7 @@
     "targetClass",
     "priority",
     "neverMisses",
+    "noProtectFlag",
     "punishesContact",
     "stalling",
     "stallCounterChecks",
@@ -9092,6 +9111,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "punishesContact": {
      "onContact": true,
@@ -9340,6 +9364,7 @@
     "targetClass",
     "sound",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -9370,8 +9395,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -9587,6 +9618,7 @@
     "targetClass",
     "sound",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
@@ -9611,6 +9643,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "adjacentAlly",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -10027,6 +10064,7 @@
     "weatherScaled",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -10059,8 +10097,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -10090,6 +10134,7 @@
     "targetClass",
     "sound",
     "neverMisses",
+    "noProtectFlag",
     "boostsTarget",
     "statusCategory",
     "statChange",
@@ -10114,6 +10159,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "allies",
+     "category": "Status"
     },
     "boostsTarget": {
      "boosts": {
@@ -10243,6 +10293,7 @@
     "targetClass",
     "priority",
     "neverMisses",
+    "noProtectFlag",
     "punishesContact",
     "stalling",
     "stallCounterChecks",
@@ -10274,6 +10325,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "punishesContact": {
      "onContact": true,
@@ -10392,6 +10448,7 @@
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "self",
      "lowersSpeed": false,
      "alsoRaises": false
     },
@@ -10594,6 +10651,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict"
@@ -10614,6 +10672,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -10639,6 +10702,7 @@
     "targetClass",
     "priority",
     "neverMisses",
+    "noProtectFlag",
     "stalling",
     "stallCounterChecks",
     "shieldsUser",
@@ -10669,6 +10733,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "stalling": {
      "stalling": true
@@ -10885,6 +10954,7 @@
     "targetClass",
     "moveClass",
     "neverMisses",
+    "noProtectFlag",
     "setsWeather",
     "statusCategory",
     "formatSecondaryCount"
@@ -10910,6 +10980,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "setsWeather": {
      "weather": "Sandstorm"
@@ -11025,6 +11100,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "setsWeather",
     "statusCategory",
     "formatSecondaryCount"
@@ -11046,6 +11122,11 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
+    },
     "setsWeather": {
      "weather": "snowscape"
     },
@@ -11064,6 +11145,7 @@
     "targetClass",
     "priority",
     "neverMisses",
+    "noProtectFlag",
     "punishesContact",
     "stalling",
     "stallCounterChecks",
@@ -11095,6 +11177,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "punishesContact": {
      "onContact": true,
@@ -11235,6 +11322,7 @@
     "forcesBerryEat",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statChangeInCode",
     "statusCategory",
     "formatSecondaryCount"
@@ -11269,6 +11357,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statChangeInCode": {
      "procedural": true,
@@ -11547,6 +11640,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -11569,8 +11663,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -11687,6 +11787,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statChangeInCode",
     "statusCategory",
     "formatSecondaryCount"
@@ -11707,6 +11808,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "adjacentAllyOrSelf",
+     "category": "Status"
     },
     "statChangeInCode": {
      "procedural": true,
@@ -11773,6 +11879,7 @@
     "targetClass",
     "neverMisses",
     "ignoresProtect",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount"
    ],
@@ -11799,6 +11906,11 @@
     "ignoresProtect": {
      "throughProtect": true
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Status"
+    },
     "statusCategory": {
      "status": true
     },
@@ -11813,6 +11925,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -11835,8 +11948,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -11996,6 +12115,7 @@
     "targetClass",
     "priority",
     "neverMisses",
+    "noProtectFlag",
     "privateStallCounter",
     "swapsSlots",
     "statusCategory",
@@ -12022,6 +12142,11 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "privateStallCounter": {
      "volatile": "allyswitch",
      "firstCounter": 3,
@@ -12047,6 +12172,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -12069,8 +12195,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -12221,6 +12353,7 @@
     "perTurnHP",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
@@ -12251,6 +12384,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -12380,6 +12518,7 @@
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "self",
      "lowersSpeed": false,
      "alsoRaises": false
     },
@@ -12405,6 +12544,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsTarget",
     "statusCategory",
     "statChange",
@@ -12426,6 +12566,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "adjacentAlly",
+     "category": "Status"
     },
     "boostsTarget": {
      "boosts": {
@@ -12671,6 +12816,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "halvesDamage",
     "failsWithoutWeather",
     "statusCategory",
@@ -12692,6 +12838,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "allySide",
+     "category": "Status"
     },
     "halvesDamage": {
      "mult": 0.5,
@@ -12913,6 +13064,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "passesState",
     "statusCategory",
     "formatSecondaryCount"
@@ -12933,6 +13085,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "passesState": {
      "passes": true,
@@ -12986,6 +13143,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statChangeInCode",
     "statusCategory",
     "formatSecondaryCount"
@@ -13006,6 +13164,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statChangeInCode": {
      "procedural": true,
@@ -13380,6 +13543,7 @@
     "trapsTarget",
     "neverMisses",
     "ignoresProtect",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "volatileAnnounce"
@@ -13414,6 +13578,11 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -13896,6 +14065,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -13918,8 +14088,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -14121,6 +14297,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -14143,8 +14320,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -14215,6 +14398,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -14238,8 +14422,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -14418,6 +14608,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "pivotStatus",
     "setsWeather",
     "statusCategory",
@@ -14441,6 +14632,11 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
+    },
     "pivotStatus": {
      "selfSwitch": true
     },
@@ -14458,7 +14654,15 @@
       "chillyreception": {
        "event": null,
        "desc": null,
-       "why": "the condition declares no onStart"
+       "why": "the condition declares no onStart; it announces at onBeforeMove",
+       "beforeOwnMove": {
+        "move": "chillyreception",
+        "event": "-prepare",
+        "desc": "Chilly Reception",
+        "arg": "[premajor]",
+        "priority": 100,
+        "why": "the whole onBeforeMove is a guard on its own move id and one add()"
+       }
       }
      }
     }
@@ -14541,6 +14745,7 @@
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "selfBoost",
      "lowersSpeed": false,
      "alsoRaises": false
     },
@@ -14614,6 +14819,7 @@
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "self",
      "lowersSpeed": false,
      "alsoRaises": false
     },
@@ -14639,6 +14845,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsTarget",
     "statusCategory",
     "statChange",
@@ -14660,6 +14867,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "adjacentAlly",
+     "category": "Status"
     },
     "boostsTarget": {
      "boosts": {
@@ -14692,6 +14904,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "accuracyMod",
     "boostsUser",
     "statusCategory",
@@ -14715,11 +14928,17 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "accuracyMod": {
      "accuracy": true
     },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -14844,6 +15063,7 @@
     "targetClass",
     "callsAnotherMove",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "callRefusalFlags"
@@ -14871,6 +15091,11 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "statusCategory": {
      "status": true
     },
@@ -14895,6 +15120,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -14917,8 +15143,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -14947,6 +15179,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -14969,8 +15202,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -15308,6 +15547,7 @@
     "targetClass",
     "neverMisses",
     "ignoresProtect",
+    "noProtectFlag",
     "typeSplitMove",
     "statusCategory",
     "formatSecondaryCount",
@@ -15341,6 +15581,11 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Status"
     },
     "typeSplitMove": {
      "splitsOnType": "Ghost",
@@ -15495,6 +15740,7 @@
     "targetClass",
     "neverMisses",
     "ignoresProtect",
+    "noProtectFlag",
     "boostsTarget",
     "statusCategory",
     "statChange",
@@ -15519,6 +15765,11 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Status"
     },
     "boostsTarget": {
      "boosts": {
@@ -15623,6 +15874,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
@@ -15645,6 +15897,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -15685,6 +15942,7 @@
     "targetClass",
     "priority",
     "neverMisses",
+    "noProtectFlag",
     "stalling",
     "stallCounterChecks",
     "shieldsUser",
@@ -15715,6 +15973,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "stalling": {
      "stalling": true
@@ -16084,6 +16347,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "accuracyMod",
     "boostsUser",
     "statusCategory",
@@ -16107,11 +16371,17 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "accuracyMod": {
      "accuracy": true
     },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -16157,6 +16427,7 @@
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "self",
      "lowersSpeed": false,
      "alsoRaises": false
     },
@@ -16181,6 +16452,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -16203,8 +16475,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -16836,6 +17114,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "setsTerrain",
     "statusCategory",
     "formatSecondaryCount",
@@ -16857,6 +17136,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "setsTerrain": {
      "terrain": "electricterrain"
@@ -17104,6 +17388,7 @@
     "priority",
     "survivesAnyHit",
     "neverMisses",
+    "noProtectFlag",
     "stalling",
     "stallCounterChecks",
     "failsIfMovesLast",
@@ -17139,6 +17424,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "stalling": {
      "stalling": true
@@ -17523,6 +17813,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "setsRoom",
     "statusCategory",
     "formatSecondaryCount"
@@ -17543,6 +17834,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "setsRoom": {
      "pseudoWeather": "fairylock",
@@ -17672,6 +17968,7 @@
     "targetClass",
     "priority",
     "ignoresProtect",
+    "noProtectFlag",
     "breaksProtect",
     "formatSecondaryCount",
     "callRefusalFlags"
@@ -17695,6 +17992,11 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Physical"
     },
     "breaksProtect": {
      "breaksShield": true,
@@ -18743,6 +19045,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
@@ -18764,6 +19067,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -18870,6 +19178,7 @@
     "targetClass",
     "priority",
     "neverMisses",
+    "noProtectFlag",
     "redirects",
     "statusCategory",
     "formatSecondaryCount",
@@ -18896,6 +19205,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "redirects": {
      "redirect": true
@@ -19075,6 +19389,7 @@
     "targetClass",
     "noExtraHit",
     "ignoresProtect",
+    "noProtectFlag",
     "formatSecondaryCount"
    ],
    "uses": 18,
@@ -19105,6 +19420,11 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Special"
     },
     "formatSecondaryCount": {
      "count": 0
@@ -19415,6 +19735,7 @@
     "perTurnHP",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "setsTerrain",
     "statusCategory",
     "formatSecondaryCount",
@@ -19446,6 +19767,11 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
+    },
     "setsTerrain": {
      "terrain": "grassyterrain"
     },
@@ -19469,6 +19795,7 @@
     "sealsMoves",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "accuracyMod",
     "statusCategory",
     "groundsField",
@@ -19496,6 +19823,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "accuracyMod": {
      "accuracy": true
@@ -19779,6 +20111,7 @@
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "self",
      "lowersSpeed": true,
      "alsoRaises": false
     },
@@ -19838,6 +20171,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "clearsBoosts",
     "statusCategory",
     "formatSecondaryCount"
@@ -19858,6 +20192,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "clearsBoosts": {
      "resets": true
@@ -19904,6 +20243,7 @@
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "self",
      "lowersSpeed": false,
      "alsoRaises": false
     },
@@ -19963,6 +20303,7 @@
     "targetClass",
     "sound",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount"
    ],
@@ -19986,6 +20327,11 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "allyTeam",
+     "category": "Status"
+    },
     "statusCategory": {
      "status": true
     },
@@ -20000,6 +20346,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "userFaints",
     "statusCategory",
     "healsSelf",
@@ -20022,6 +20369,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "userFaints": {
      "faints": "ifHit"
@@ -20311,6 +20663,7 @@
     "targetClass",
     "priority",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
@@ -20336,6 +20689,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "adjacentAlly",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -20904,6 +21262,7 @@
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "self",
      "lowersSpeed": true,
      "alsoRaises": false
     },
@@ -21178,6 +21537,7 @@
     "sealsMoves",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
@@ -21204,6 +21564,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -21336,6 +21701,7 @@
     "perTurnHP",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
@@ -21367,6 +21733,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -21489,6 +21860,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -21511,8 +21883,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -21933,6 +22311,7 @@
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "self",
      "lowersSpeed": false,
      "alsoRaises": false
     },
@@ -22089,6 +22468,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "healsSelf",
     "healsAlly",
@@ -22110,6 +22490,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "allies",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -22137,6 +22522,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "halvesDamage",
     "statusCategory",
     "formatSecondaryCount"
@@ -22157,6 +22543,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "allySide",
+     "category": "Status"
     },
     "halvesDamage": {
      "mult": 0.5,
@@ -22572,6 +22963,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "suppressesItems",
     "statusCategory",
     "formatSecondaryCount"
@@ -22593,6 +22985,11 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
+    },
     "suppressesItems": {
      "suppress": true
     },
@@ -22610,6 +23007,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "boostsAlliesWithAbility"
@@ -22630,6 +23028,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "allySide",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -22658,6 +23061,7 @@
     "failsIfVolatile",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "failsWithoutWeather",
     "statusCategory",
     "formatSecondaryCount",
@@ -22687,6 +23091,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "failsWithoutWeather": {
      "needsWeather": true
@@ -22795,6 +23204,7 @@
     "trapsTarget",
     "neverMisses",
     "ignoresProtect",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "volatileAnnounce"
@@ -22829,6 +23239,11 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -23164,6 +23579,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "accuracyMod",
     "boostsUser",
     "statusCategory",
@@ -23189,11 +23605,17 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "accuracyMod": {
      "accuracy": true
     },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -23337,6 +23759,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "setsTerrain",
     "statusCategory",
     "formatSecondaryCount",
@@ -23358,6 +23781,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "setsTerrain": {
      "terrain": "mistyterrain"
@@ -23382,6 +23810,7 @@
     "weatherScaled",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "healsSelf",
     "formatSecondaryCount"
@@ -23420,6 +23849,11 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "statusCategory": {
      "status": true
     },
@@ -23438,6 +23872,7 @@
     "weatherScaled",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "healsSelf",
     "formatSecondaryCount"
@@ -23475,6 +23910,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -23748,6 +24188,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -23770,8 +24211,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -23887,6 +24334,7 @@
     "failsIfVolatile",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -23917,8 +24365,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -24083,6 +24537,7 @@
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "self",
      "lowersSpeed": false,
      "alsoRaises": false
     },
@@ -24292,6 +24747,7 @@
     "targetClass",
     "sound",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "perishClock",
     "formatSecondaryCount",
@@ -24316,6 +24772,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -24435,6 +24896,7 @@
     "contact",
     "noExtraHit",
     "ignoresProtect",
+    "noProtectFlag",
     "breaksProtect",
     "chargeTurn",
     "semiInvulnerable",
@@ -24464,6 +24926,11 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Physical"
     },
     "breaksProtect": {
      "breaksShield": true,
@@ -25105,6 +25572,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict"
@@ -25125,6 +25593,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -25339,6 +25812,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "setsTerrain",
     "statusCategory",
     "formatSecondaryCount",
@@ -25360,6 +25834,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "setsTerrain": {
      "terrain": "psychicterrain"
@@ -25419,6 +25898,7 @@
     "targetClass",
     "neverMisses",
     "ignoresProtect",
+    "noProtectFlag",
     "statChangeInCode",
     "statusCategory",
     "formatSecondaryCount"
@@ -25442,6 +25922,11 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Status"
     },
     "statChangeInCode": {
      "procedural": true,
@@ -25575,6 +26060,7 @@
     "targetClass",
     "priority",
     "neverMisses",
+    "noProtectFlag",
     "stallCounterFeeds",
     "failsIfMovesLast",
     "oneTurnGuard",
@@ -25602,6 +26088,11 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "allySide",
+     "category": "Status"
+    },
     "stallCounterFeeds": {
      "counter": "stall",
      "rolls": false
@@ -25626,6 +26117,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -25648,8 +26140,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -25681,6 +26179,7 @@
     "priority",
     "powder",
     "neverMisses",
+    "noProtectFlag",
     "redirects",
     "statusCategory",
     "formatSecondaryCount",
@@ -25711,6 +26210,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "redirects": {
      "redirect": true
@@ -25838,6 +26342,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "setsWeather",
     "statusCategory",
     "formatSecondaryCount"
@@ -25858,6 +26363,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "setsWeather": {
      "weather": "RainDance"
@@ -25995,6 +26505,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "healsSelf",
     "formatSecondaryCount"
@@ -26015,6 +26526,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -26037,6 +26553,7 @@
     "restoresOwnLastItem",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount"
    ],
@@ -26062,6 +26579,11 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "statusCategory": {
      "status": true
     },
@@ -26076,6 +26598,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "halvesDamage",
     "statusCategory",
     "formatSecondaryCount"
@@ -26096,6 +26619,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "allySide",
+     "category": "Status"
     },
     "halvesDamage": {
      "mult": 0.5,
@@ -26159,6 +26687,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "healsSelf",
     "healDescriptor",
@@ -26180,6 +26709,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -26308,6 +26842,7 @@
     "sound",
     "neverMisses",
     "ignoresProtect",
+    "noProtectFlag",
     "forcesSwitch",
     "statusCategory",
     "formatSecondaryCount",
@@ -26344,6 +26879,11 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Status"
     },
     "forcesSwitch": {
      "forceSwitch": true
@@ -26409,6 +26949,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -26431,8 +26972,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -26595,6 +27142,7 @@
     "targetClass",
     "neverMisses",
     "ignoresProtect",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "copiesTargetAbility"
@@ -26619,6 +27167,11 @@
     "ignoresProtect": {
      "throughProtect": true
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Status"
+    },
     "statusCategory": {
      "status": true
     },
@@ -26640,6 +27193,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "healsSelf",
     "typeRemovedForTurn",
@@ -26661,6 +27215,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -26761,6 +27320,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "sideBuff",
     "statusCategory",
     "formatSecondaryCount"
@@ -26781,6 +27341,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "allySide",
+     "category": "Status"
     },
     "sideBuff": {
      "sideCondition": "safeguard",
@@ -26934,11 +27499,13 @@
     },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "selfBoost",
      "raisesSpeed": true,
      "alsoLowers": true
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "selfBoost",
      "lowersSpeed": false,
      "alsoRaises": true
     },
@@ -27352,6 +27919,7 @@
     "costsUserHP",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "passesState",
     "substitute",
     "statusCategory",
@@ -27379,6 +27947,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "passesState": {
      "passes": true,
@@ -27498,6 +28071,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "lowersUser",
     "statusCategory",
@@ -27521,13 +28095,20 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": true,
      "alsoLowers": true
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "lowersSpeed": false,
      "alsoRaises": true
     },
@@ -27559,6 +28140,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -27581,8 +28163,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -27867,6 +28455,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "healsSelf",
     "formatSecondaryCount"
@@ -27887,6 +28476,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -27963,6 +28557,7 @@
     "targetClass",
     "callsAnotherMove",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "callRefusalFlags",
@@ -27991,6 +28586,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -28344,6 +28944,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "healsSelf",
     "formatSecondaryCount"
@@ -28364,6 +28965,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -28689,6 +29295,7 @@
     "targetClass",
     "moveClass",
     "neverMisses",
+    "noProtectFlag",
     "hazard",
     "statusCategory",
     "formatSecondaryCount",
@@ -28715,6 +29322,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "foeSide",
+     "category": "Status"
     },
     "hazard": {
      "hazard": "spikes",
@@ -28921,6 +29533,7 @@
     "targetClass",
     "moveClass",
     "neverMisses",
+    "noProtectFlag",
     "hazard",
     "statusCategory",
     "formatSecondaryCount"
@@ -28946,6 +29559,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "foeSide",
+     "category": "Status"
     },
     "hazard": {
      "hazard": "stealthrock",
@@ -29079,6 +29697,7 @@
     "targetClass",
     "moveClass",
     "neverMisses",
+    "noProtectFlag",
     "hazard",
     "statusCategory",
     "formatSecondaryCount"
@@ -29105,6 +29724,11 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "foeSide",
+     "category": "Status"
+    },
     "hazard": {
      "hazard": "stickyweb",
      "maxLayers": 1
@@ -29123,6 +29747,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
@@ -29144,6 +29769,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -29589,6 +30219,7 @@
     "costsUserHP",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "substitute",
     "statusCategory",
     "formatSecondaryCount",
@@ -29616,6 +30247,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "substitute": {
      "buffer": 0.25,
@@ -29694,6 +30330,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "setsWeather",
     "statusCategory",
     "formatSecondaryCount"
@@ -29714,6 +30351,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "setsWeather": {
      "weather": "sunnyday"
@@ -29831,6 +30473,7 @@
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
+     "via": "self",
      "lowersSpeed": false,
      "alsoRaises": false
     },
@@ -29958,6 +30601,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "healsSelf",
     "formatSecondaryCount",
@@ -29979,6 +30623,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -30189,6 +30838,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "boostsUser",
     "statusCategory",
     "statChange",
@@ -30211,8 +30861,14 @@
      "pHit": 1,
      "note": "default for status"
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
+    },
     "boostsUser": {
      "readFrom": "m.self.boosts",
+     "via": "boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -30241,6 +30897,7 @@
     "weatherScaled",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "healsSelf",
     "formatSecondaryCount"
@@ -30278,6 +30935,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -30336,6 +30998,7 @@
     "targetClass",
     "moveClass",
     "neverMisses",
+    "noProtectFlag",
     "doublesSideSpeed",
     "statusCategory",
     "formatSecondaryCount"
@@ -30361,6 +31024,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "allySide",
+     "category": "Status"
     },
     "doublesSideSpeed": {
      "speedMult": 2
@@ -30436,6 +31104,7 @@
     "moveClass",
     "neverMisses",
     "ignoresProtect",
+    "noProtectFlag",
     "lowersTarget",
     "statusCategory",
     "statChange",
@@ -30465,6 +31134,11 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Status"
     },
     "lowersTarget": {
      "readFrom": "m.boosts",
@@ -30497,6 +31171,7 @@
     "forcesBerryEat",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount"
    ],
@@ -30525,6 +31200,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -31118,6 +31798,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "removesHazards",
     "statChangeInCode",
     "statusCategory",
@@ -31139,6 +31820,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "removesHazards": {
      "hazards": [
@@ -31385,6 +32071,7 @@
     "targetClass",
     "moveClass",
     "neverMisses",
+    "noProtectFlag",
     "hazard",
     "statusCategory",
     "formatSecondaryCount",
@@ -31411,6 +32098,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "foeSide",
+     "category": "Status"
     },
     "hazard": {
      "hazard": "toxicspikes",
@@ -31486,6 +32178,7 @@
     "targetClass",
     "neverMisses",
     "ignoresProtect",
+    "noProtectFlag",
     "statusCategory",
     "formatSecondaryCount",
     "callRefusalFlags"
@@ -31516,6 +32209,11 @@
     },
     "ignoresProtect": {
      "throughProtect": true
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -31645,6 +32343,7 @@
     "targetClass",
     "priority",
     "neverMisses",
+    "noProtectFlag",
     "reversesSpeed",
     "statusCategory",
     "formatSecondaryCount"
@@ -31669,6 +32368,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "reversesSpeed": {
      "reverses": true
@@ -32470,6 +33174,7 @@
     "moveClass",
     "neverMisses",
     "ignoresProtect",
+    "noProtectFlag",
     "forcesSwitch",
     "statusCategory",
     "formatSecondaryCount",
@@ -32505,6 +33210,11 @@
     "ignoresProtect": {
      "throughProtect": true
     },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "normal",
+     "category": "Status"
+    },
     "forcesSwitch": {
      "forceSwitch": true
     },
@@ -32529,6 +33239,7 @@
     "targetClass",
     "priority",
     "neverMisses",
+    "noProtectFlag",
     "stallCounterFeeds",
     "failsIfMovesLast",
     "oneTurnGuard",
@@ -32555,6 +33266,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "allySide",
+     "category": "Status"
     },
     "stallCounterFeeds": {
      "counter": "stall",
@@ -32663,6 +33379,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "statusCategory",
     "healsSelf",
     "healDescriptor",
@@ -32684,6 +33401,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "self",
+     "category": "Status"
     },
     "statusCategory": {
      "status": true
@@ -32712,6 +33434,7 @@
     "pp",
     "targetClass",
     "neverMisses",
+    "noProtectFlag",
     "swapsDefences",
     "statusCategory",
     "formatSecondaryCount"
@@ -32732,6 +33455,11 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "noProtectFlag": {
+     "protectFlag": false,
+     "target": "all",
+     "category": "Status"
     },
     "swapsDefences": {
      "swaps": true

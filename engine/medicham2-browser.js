@@ -439,6 +439,34 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                              the whole distinction card 39 turns on. */
   buffOnHitAfterSecondaries: 0, rechargeArmedAtSelfDrops: 0,
   hitCountLinesDeferred: 0, hitCountNamedACorpse: 0,
+  /* 2026-08-24 -- STAT TABLES PAID FROM `selfBoost`'s OWN POSITION, i.e. below the faint, below
+   * `-hitcount` and below the recoil (sim/battle-actions.ts:520). Two moves in the format carry it,
+   * Clanging Scales and Scale Shot; a zero with either of them clicked means the `via` derivation is
+   * not reaching the engine and every one of those clicks paid at `selfDrops`' position instead. */
+  selfBoostPaidAfterLoop: 0,
+  /* 2026-08-24 -- CLICKS A SHIELD LET THROUGH BECAUSE THE MOVE CARRIES NO `flags.protect`. 111 legal
+   * moves are in that set; the ones that actually meet a shield are the ally-facing family (Dragon
+   * Cheer, Coaching, Helping Hand, Aromatic Mist) and the `all`-targeting one (Teatime, Perish Song,
+   * Haze). A zero with one of those clicked at a Protecting body means the gate is reading the
+   * feature-scoped tag again and every one of them is being refused. */
+  shieldSawNoProtectFlag: 0,
+  /* 2026-08-24 -- SHIELD REFUSALS THAT WROTE NO LINE BECAUSE THE MOVE WAS SMART-TARGET. One move in
+   * the format reaches it (Dragon Darts), so a zero on a board where it was clicked into a Protect
+   * means the silence is not happening and the stream carries a line the authority does not. */
+  smartTargetShieldSilent: 0,
+  /* 2026-08-24 -- LINES WRITTEN FROM A CONDITION'S `onBeforeMove`, ABOVE THE `|move|` LINE. One member
+   * in this format (Chilly Reception's `-prepare ... [premajor]`). A zero on a turn it was clicked
+   * means the derived row is not reaching this site and the stream is one line short. */
+  volatileAnnouncedBeforeMove: 0,
+  /* 2026-08-24 -- ENTRIES THAT NAMED THE EFFECT THAT CAUSED THEM (`|switch|...|[from] U-turn`). Three
+   * doors reach it: the status pivot (Parting Shot, Chilly Reception, Teleport), the damaging pivot
+   * (U-turn, Volt Switch, Flip Turn) and the state pass (Baton Pass, Shed Tail). A zero on a game
+   * with any pivot in it means every entry line is one field short. */
+  switchNamedItsCause: 0,
+  /* 2026-08-24 -- FICKLE BEAM PROCS THAT ANNOUNCED THEMSELVES. One move in the format carries
+   * `conditionalPower {when:'chance'}`; a zero across a run with it clicked ~10 times means the line
+   * is not being written and the stream is short exactly where the damage doubled. */
+  conditionalPowerAnnounced: 0,
   /* ROADMAP #242 -- THE EXPIRIES THAT RUN FROM INSIDE THE WALK. A side or field clock is in the
    * authority's residual on its `duration` alone (no handler), at an order it DECLARES, and this
    * engine used to spend every one of them ABOVE the walk. `residualExpiryTicked` counts a clock
@@ -2556,7 +2584,9 @@ const TRACE=(function(){
       const p=this.out[this._mvLine].split('|'); p[4]=''; this.out[this._mvLine]=p.join('|')+'|[still]'; },
     _mvLine:null,
     cant(m,reason,id,of){ this.push(['cant',ident(m),reason,id,of?'[of] '+ident(of):'']); },
-    prep(m,id){ this.push(['-prepare',ident(m),id]); },
+    /* `extra` is the fourth field, added 2026-08-24 for Chilly Reception's `[premajor]`. The ten
+     * charge moves pass nothing and their line is unchanged -- `push` drops a trailing undefined. */
+    prep(m,id,extra){ this.push(['-prepare',ident(m),id,extra]); },
     recharge(m){ this.push(['-mustrecharge',ident(m)]); },
     fail(m,what){ this.push(['-fail',ident(m),what]); },
     /* A REFUSED STAT DROP IS AN ANNOUNCEMENT, and Showdown writes it in two shapes depending on
@@ -2795,7 +2825,18 @@ const TRACE=(function(){
     retarget(m){ if(this._mvLine==null||this._mvLine>=this.out.length)return;
       const p=this.out[this._mvLine].split('|'); p[4]=ident(m); this.out[this._mvLine]=p.join('|'); },
     /* --- entry --- */
-    swin(m,drag){ this.push([drag?'drag':'switch',ident(m),m.name+', L50',health(m)]); },
+    /* 2026-08-24 -- THE FIFTH FIELD IS THE EFFECT THAT CAUSED THE ENTRY, and `switchIn` writes it
+     * whenever there IS one (sim/battle-actions.ts:145-148):
+     *     if (sourceEffect) this.battle.add(isDrag ? 'drag' : 'switch', pokemon, getFullDetails,
+     *                                       `[from] ${sourceEffect}`);
+     *     else              this.battle.add(isDrag ? 'drag' : 'switch', pokemon, getFullDetails);
+     * A pivot sets `source.switchFlag = move.id` (:1311) and the queued switch action carries that as
+     * its sourceEffect, so a U-turn entry reads `|switch|...|[from] U-turn`. A VOLUNTARY switch and a
+     * faint replacement carry none and stay bare -- `_swFrom` is null on both, which is why it is a
+     * mode flag on the sink rather than a parameter every caller has to remember to pass. */
+    _swFrom:null,
+    swin(m,drag){ this.push([drag?'drag':'switch',ident(m),m.name+', L50',health(m),
+                             this._swFrom?'[from] '+this._swFrom:undefined]); },
     /* --- MEGA EVOLUTION, ROADMAP #31. Two lines, in Showdown's own order and shapes, read off a
      * real Champions battle.log rather than off SIM-PROTOCOL.md:
      *     |detailschange|p1a: Tyranitar|Tyranitar-Mega, L50
@@ -4314,7 +4355,19 @@ function sideGuardRefuses(guard, moveId, ctx){
  * behaviour, so a silent default is impossible: `shieldBlocksStatusUnknown` must stay zero. */
 function shieldRefuses(tgt, moveId){
   if(!tgt || !tgt.protect || !moveId) return false;
-  if(TAGS.has('move', moveId, 'ignoresProtect')) return false;   // no flags.protect -- upstream clause
+  /* 2026-08-24 -- THE RAW FLAG, NOT THE FEATURE-SCOPED TAG. This line read `ignoresProtect`, which
+   * `engine/tag_dex.js` deliberately narrows to moves aimed at a foe -- so an ally-facing move with
+   * no `flags.protect` fell through to the clauses below and was REFUSED. Dragon Cheer (216 corpus
+   * clicks) aimed at a partner who is Protecting printed `|-activate|move: Protect` where the
+   * authority prints `|-start|move: Dragon Cheer`; Coaching, Helping Hand and Aromatic Mist are the
+   * same shape. `noProtectFlag` carries the unscoped fact -- `checkMoveBypassesProtect`'s first
+   * clause, sim/battle.ts:1301 -- and holds all 14 `ignoresProtect` members plus 97 more, so nothing
+   * that was already exempt changes. MEDI_SHIELD_SCOPED_FLAG=1 puts the narrow read back. */
+  if(SHIELD_SCOPED_FLAG){
+    if(TAGS.has('move', moveId, 'ignoresProtect')){MEDFAILS.shieldScopedFlagRestored=1;return false;}
+    MEDFAILS.shieldScopedFlagRestored=1;
+  }
+  else if(TAGS.has('move', moveId, 'noProtectFlag')){MEDSEEN.shieldSawNoProtectFlag++;return false;}
   if(!TAGS.has('move', moveId, 'statusCategory')) return true;   // a damaging move: blockStatus is moot
   const sh = tgt._protectMove ? TAGS.param('move', tgt._protectMove, 'shieldsUser') : null;
   if(!sh || typeof sh.blocksStatus !== 'boolean'){
@@ -9694,6 +9747,15 @@ function formeOnHitAbsorbs(tg){
  * moves respectively — the format's dex says 9 and 10, so the hand tables carried entries for moves
  * not even in the pool while staying silent on any future addition. Look it up, never restate it. */
 const recoilOf=mv=>(mv&&mv.rc)?mv.rc[0]/mv.rc[1]:0;
+/* WHICH DEX FIELD CARRIED A MOVE'S OWN STAT TABLE -- 'self', 'selfBoost' or 'boosts'. `mv.self`
+ * above cannot answer it: the generator folds all three into that one key, and the authority pays
+ * `self` inside the hit loop and `selfBoost` after the whole loop has returned. Derived in
+ * engine/tag_dex.js off the dex field itself and carried on BOTH stat tags, so a move that only
+ * raises and a move that only lowers are both readable through one call. */
+const selfBoostVia=(id)=>{
+  const b=TAGS.param('move',id,'boostsUser'), l=TAGS.param('move',id,'lowersUser');
+  return (b&&b.via)||(l&&l.via)||null;
+};
 
 /* ---- THE PRICING-RISK ENGINE (Will: "what is the cost/risk of clicking this move" ... "that
  * actually get priced into decisions"). Lives HERE, not in a helper module, because the scorer
@@ -9843,6 +9905,40 @@ const NO_INMOVE_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.M
  * authority. Any run carrying it also carries a non-zero `MEDFAILS.hazardBelowFaintRestored`. Same
  * shape as MEDI_NO_INMOVE_UPDATE above. */
 const HAZARD_BELOW_FAINT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HAZARD_BELOW_FAINT==='1');
+/* 2026-08-24 -- MEDI_SHIELD_SCOPED_FLAG=1 MAKES THE SHIELD GATE READ `ignoresProtect` AGAIN, the tag
+ * that is scoped to foe-facing moves, so an ally-aimed Dragon Cheer / Coaching / Helping Hand is
+ * refused by the partner's own Protect exactly as it was until today. It exists so the census row for
+ * the unscoped flag can be shown MISSING on demand. Any run carrying it also carries a non-zero
+ * `MEDFAILS.shieldScopedFlagRestored`. Same shape as MEDI_HAZARD_BELOW_FAINT above. */
+const SHIELD_SCOPED_FLAG=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SHIELD_SCOPED_FLAG==='1');
+/* 2026-08-24 -- MEDI_SMART_PROTECT_LINE=1 PUTS THE `|-activate|move: Protect` BACK ON A SMART-TARGET
+ * MOVE, i.e. Dragon Darts into a Protecting body announces the shield again, as this engine did until
+ * today. Any run carrying it also carries a non-zero `MEDFAILS.smartProtectLineRestored`. Same shape
+ * as MEDI_SHIELD_SCOPED_FLAG above. */
+const SMART_PROTECT_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SMART_PROTECT_LINE==='1');
+/* 2026-08-24 -- MEDI_NO_BEFOREMOVE_LINE=1 STOPS THE ENGINE WRITING A CONDITION'S `onBeforeMove` LINE,
+ * i.e. Chilly Reception's `|-prepare|...|[premajor]` disappears from above its own `|move|` line, as
+ * it was until today. Any run carrying it also carries a non-zero
+ * `MEDFAILS.beforeMoveLineSuppressed`. Same shape as MEDI_SMART_PROTECT_LINE above. */
+const NO_BEFOREMOVE_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_BEFOREMOVE_LINE==='1');
+/* 2026-08-24 -- MEDI_SWITCH_CAUSE_BLIND=1 TAKES THE `[from]` OFF EVERY ENTRY LINE, so a U-turn,
+ * Parting Shot, Baton Pass or Chilly Reception pivot writes the bare `|switch|` this engine wrote
+ * until today. ONE knob for all three doors, because the authority writes the field from ONE line
+ * (sim/battle-actions.ts:146). Any run carrying it also carries a non-zero
+ * `MEDFAILS.switchCauseBlindRestored`. */
+const SWITCH_CAUSE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SWITCH_CAUSE_BLIND==='1');
+/* 2026-08-24 -- MEDI_NO_CONDPOWER_LINE=1 TAKES FICKLE BEAM'S `|-activate|move: Fickle Beam` BACK OUT,
+ * so the double still lands and says nothing, as this engine did until today. Any run carrying it also
+ * carries a non-zero `MEDFAILS.condPowerLineSuppressed`. Same shape as MEDI_SWITCH_CAUSE_BLIND. */
+const NO_CONDPOWER_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_CONDPOWER_LINE==='1');
+/* 2026-08-24 -- MEDI_SELFBOOST_IN_LOOP=1 PAYS `selfBoost` AT `selfDrops`' POSITION AGAIN, i.e. Scale
+ * Shot and Clanging Scales put their own stat lines out INSIDE the hit loop, above the `|faint|` and
+ * above `|-hitcount|`, exactly as this engine did until today. It exists so the census row for the
+ * split can be shown MISSING on demand without swapping a file. ONE knob for both moves, because the
+ * authority pays them from ONE line (sim/battle-actions.ts:520) and a knob per move could not restore
+ * a position. Any run carrying it also carries a non-zero `MEDFAILS.selfBoostInLoopRestored`. Same
+ * shape as MEDI_HAZARD_BELOW_FAINT above. */
+const SELFBOOST_IN_LOOP=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELFBOOST_IN_LOOP==='1');
 /* ROADMAP #144, 2026-08-23 -- MEDI_DMG_OWNTYPE_BLIND=1 PUTS THE DAMAGE PATH BACK TO THE PRINTED TYPE:
  * `dmgRangeOneHit` stops reading `setsOwnTypeAlways`, so Struggle is priced as a NORMAL move again --
  * x1.5 STAB out of a Normal body and ZERO into a Ghost, which is where the differential's residual
@@ -15255,6 +15351,17 @@ function releaseTrapsBy(src,bodies){
   }
   return n;
 }
+/* 2026-08-24 -- ONE HELPER FOR THE THREE PIVOT DOORS. `switchOut` is the single funnel every entry
+ * goes through, and the `[from]` belongs to the ACTION rather than to the entry -- a voluntary switch
+ * and a faint replacement reach the same funnel and must stay bare. Wrapping the call is the same
+ * shape `TR.drag` already uses for the drag/switch split, and it means a fourth pivot door added
+ * later cannot forget the field by forgetting a parameter. */
+function pivotFrom(mvId,fn){
+  if(SWITCH_CAUSE_BLIND){MEDFAILS.switchCauseBlindRestored=1;return fn();}
+  if(!TR||!mvId)return fn();
+  const _p=TR._swFrom; TR._swFrom=mvId; MEDSEEN.switchNamedItsCause++;
+  try{ return fn(); } finally { TR._swFrom=_p; }
+}
 function switchOut(act,i,bench,foes,sf,field,wanted,pass){
   const out=act[i]; if(!out||out.fainted) return null;
   if(!_live(bench).length) return null;
@@ -18519,6 +18626,35 @@ function battleTurn(S,rng,actsForA,actsForB){
            * field entirely, which is a weaker rule than the authority's and disagreed with the attack
            * branch three lines of reasoning away. */
           const _tt=reaimToSlot(a.target,it,actA,actB,_mid,true);
+          /* 2026-08-24 -- THE LINE A VOLATILE WRITES *ABOVE* ITS OWN `|move|` LINE.
+           *
+           * Chilly Reception (236 corpus clicks) puts its volatile up at `priorityChargeCallback`
+           * (turn start) and announces from the condition's `onBeforeMove` at PRIORITY 100
+           * (data/moves.ts `chillyreception.condition`, no Champions override):
+           *     if (move.id !== 'chillyreception') return;
+           *     this.add('-prepare', source, 'Chilly Reception', '[premajor]');
+           * so the authority's stream reads `|-prepare|...|[premajor]` and THEN `|move|`. This engine
+           * wrote no line at all, which is `data/all-mechanics-fire.json`'s chillyreception row.
+           *
+           * NOTHING IS NAMED HERE. `volatileAnnounce.byVolatile[v].beforeOwnMove` is derived in
+           * engine/tag_dex.js from the handler's own SHAPE -- a guard on its own move id followed by
+           * one `add()` -- and matches exactly one of the nine conditions in this format that carry
+           * an `onBeforeMove`; the other eight write a `|cant|` and REFUSE the move, which is a
+           * different thing and is deliberately not swept in here.
+           *
+           * WHAT THIS DOES NOT DO, SAID RATHER THAN LEFT TO BE FOUND: the authority's line is owed at
+           * BeforeMove priority 100, which is ABOVE the flinch (8) and the Taunt (5) refusals -- so a
+           * Slowking that is flinched still prints `|-prepare|` in the authority and prints nothing
+           * here, because this site is the `|move|` line and a refused body never reaches it. Not
+           * reachable from the census fixture, counted rather than claimed absent. */
+          {const _va=TAGS.param('move',_mid,'volatileAnnounce');
+           const _bm=_va&&_va.byVolatile
+             ? Object.values(_va.byVolatile).map(e=>e&&e.beforeOwnMove).find(b=>b&&b.move===_mid)
+             : null;
+           if(_bm&&_bm.event==='-prepare'&&NO_BEFOREMOVE_LINE)MEDFAILS.beforeMoveLineSuppressed=1;
+           else if(_bm&&_bm.event==='-prepare'){MEDSEEN.volatileAnnouncedBeforeMove++;
+             TR.prep(m,_bm.desc,_bm.arg||undefined);}
+           else if(_bm)MEDFAILS.volatileBeforeMoveUnknownEvent=(MEDFAILS.volatileBeforeMoveUnknownEvent||0)+1;}
           TR.mv(m,_mid,_tt||m);
         }
         /* ROADMAP #262 -- THE COMMIT SITE IS THE AUTHORITY'S `setActiveMove(move, pokemon, target)`,
@@ -21100,7 +21236,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const idx=own.indexOf(m);
         /* `a.to` names the replacement when the caller chose one. A switch action without it keeps
            the old behaviour of taking whoever is first, so nothing that used this before changes. */
-        if(idx>=0)switchOut(own,idx,bench,foes,sf,field,a.to);
+        if(idx>=0)pivotFrom(a.mv,()=>switchOut(own,idx,bench,foes,sf,field,a.to));
         continue;
       }
       /* ---- ROADMAP #81 WIRE 12 -- CURSE, BOTH HALVES --------------------------------------------
@@ -21227,7 +21363,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         const idx=own.indexOf(m);
         if(idx<0){mvFail(m);continue;}
-        if(switchOut(own,idx,bench,foes,sf,field,a.to||a.pivotTo,_ps||{passesBoosts:false,passesVolatiles:[]}))
+        if(pivotFrom(a.mv,()=>switchOut(own,idx,bench,foes,sf,field,a.to||a.pivotTo,_ps||{passesBoosts:false,passesVolatiles:[]})))
           MEDSEEN.passesStateSwitch++;
         continue;
       }
@@ -22633,7 +22769,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          and Roar, After You, Decorate and ten other status moves were stopped by it too. Read once
          because it is a property of the MOVE, and used at BOTH the block and the Piercing Drill
          quarter below -- a move that ignores Protect deals FULL damage, not a quarter of it. */
-      const _thruProtect=TAGS.has('move',a.move.id,'ignoresProtect');
+      /* 2026-08-24 -- THE SAME UNSCOPED FLAG THE STATUS GATE READS. `ignoresProtect` and
+       * `noProtectFlag` give the IDENTICAL answer for every damaging move -- the narrowing clause is
+       * `category === 'Status' && !hitsFoe`, which no damaging move can satisfy -- so this line
+       * changes no board and is switched anyway, because a fact with two readers is how the two come
+       * to disagree later (CLAUDE.md, FACTS ARE GLOBAL). */
+      const _thruProtect=TAGS.has('move',a.move.id,'noProtectFlag');
       /* WIRE 158 -- PIERCES PROTECT, READ OFF THE TAG INSTEAD OF OFF AN ABILITY NAME. ROADMAP #155.
        *
        * `piercesProtect` has been derived with correct params since the tag dex was written and was
@@ -22810,7 +22951,26 @@ function battleTurn(S,rng,actsForA,actsForB){
            * poison, and -1 Attack. A consumer that guessed would have been wrong on two of the three.
            * WHICH shield went up is read off the mon, because `protect` is a boolean and every
            * Protect-family move sets it. Contact is asked of the same helper Rough Skin uses. */
-          if(TR)TR.act(tg,'move: Protect');
+          /* 2026-08-24 -- A SMART-TARGET MOVE IS REFUSED IN SILENCE. Protect's own condition, and
+           * Spiky Shield's and Baneful Bunker's and King's Shield's, all say it in the same three
+           * lines (data/moves.ts, each `condition.onTryHit`, no Champions override):
+           *     if (this.checkMoveBypassesProtect(move, source, target)) return;
+           *     if (move.smartTarget) { move.smartTarget = false; }
+           *     else { this.add('-activate', target, 'move: Protect'); }
+           * -- so a Dragon Darts (452 corpus clicks) into a Protecting body writes NO line at all;
+           * the darts simply stop being smart and both land on the other foe. This engine wrote the
+           * line, which is `data/all-mechanics-fire.json`'s dragondarts row.
+           *
+           * ONLY THE LINE IS SILENCED. The `return this.NOT_FAIL` and the contact punish are BELOW
+           * the branch in all four conditions, so a Dragon Darts into a Spiky Shield still pays the
+           * eighth -- measured in the authority, not assumed. `move.smartTarget = false` needs no
+           * counterpart here: the refused body is dropped from `targets` on the next line, and the
+           * dart-splitting rule already reads how many rows SURVIVED (`_smartRows`).
+           *
+           * MEDI_SMART_PROTECT_LINE=1 puts the line back. */
+          if(_smartTarget&&!SMART_PROTECT_LINE)MEDSEEN.smartTargetShieldSilent++;
+          else{if(SMART_PROTECT_LINE&&_smartTarget)MEDFAILS.smartProtectLineRestored=1;
+               if(TR)TR.act(tg,'move: Protect');}
           const _pc=TAGS.param('move',tg._protectMove,'punishesContact');
           /* ROADMAP #331 -- `!m.fainted` IS `spreadDamage`'s OWN `if (!target || !target.hp)`, AND IT
            * IS HERE FOR A CASE THIS FAMILY CANNOT REACH. The `selfdestruct: 'always'` site above puts
@@ -23344,6 +23504,31 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_condPowerThisUse===undefined){
           const _cpr=rollConditionalPower(a.move.id,rng);
           _condPowerThisUse=(_cpr===null)?null:_cpr;
+          /* 2026-08-24 -- AND A PROC ANNOUNCES ITSELF. The whole handler is four lines
+           * (data/moves.ts `ficklebeam.onBasePower`, no Champions override):
+           *     if (this.randomChance(3, 10)) {
+           *       this.attrLastMove('[anim] Fickle Beam All Out');
+           *       this.add('-activate', pokemon, 'move: Fickle Beam');
+           *       return this.chainModify(2);
+           *     }
+           * -- so the double and the LINE are the same event, and this engine took the double and
+           * said nothing. That is `data/all-mechanics-fire.json`'s ficklebeam row (112 corpus clicks),
+           * `showdown |-activate|p1a: Hydrapple|move: Fickle Beam <> medicham |-crit|p2a`.
+           *
+           * IT IS THE USER'S SLOT, NOT THE TARGET'S -- `pokemon` is `onBasePower`'s second argument.
+           * Confirmed in the authority on six staged seeds: the line sits between the `|move|` line
+           * and the first `|-damage|`, which is where this site is.
+           *
+           * THE `[anim]` HALF IS DELIBERATELY NOT EMITTED. `engine/game_differential.js:1627` strips
+           * `[anim]` from BOTH streams before comparing, so it is unobservable by every instrument
+           * this repo has -- adding it would be an unmeasurable change, which is the shape the
+           * declared-not-emitted list exists for.
+           *
+           * NOTHING IS NAMED: the branch fires for any move whose `conditionalPower.when` is
+           * `chance`, which is one move in this format, and the line's text is the move's own id. */
+          if(_condPowerThisUse&&TR&&!NO_CONDPOWER_LINE){MEDSEEN.conditionalPowerAnnounced++;
+            TR.act(m,'move: '+a.move.id);}
+          else if(_condPowerThisUse&&NO_CONDPOWER_LINE)MEDFAILS.condPowerLineSuppressed=1;
         }
         if(!_smartRows)_smartRows=_rows.filter(x=>!x.out).length;
         /* ROADMAP #81 WIRE 11 -- THE WHOLE PRICE OF ONE HIT, IN ONE CLOSURE, TAKEN TWICE.
@@ -25845,8 +26030,32 @@ function battleTurn(S,rng,actsForA,actsForB){
            cost the user its stats for nothing -- and the searcher saw that cost on every one of them.
            `connected` is set only where a body actually took the hit, which is after Protect, after
            the type immunity, after the absorb ability and after the invulnerability check. */
+        /* 2026-08-24 -- AND `selfBoost` IS NOT `self`, WHICH IS WHY SCALE SHOT PRINTED ITS DROP TOO
+         * EARLY. `data/engine-data.js` folds THREE dex fields into one `mv.self` table, and the
+         * authority pays them in two different places:
+         *
+         *     self       selfDrops, called from spreadMoveHit at sim/battle-actions.ts:936 -- inside
+         *                the hit loop, so ABOVE faintMessages (:976) and ABOVE |-hitcount| (:978)
+         *     selfBoost  if (move.selfBoost && moveResult) this.moveHit(pokemon, pokemon, ...)
+         *                at :520 -- AFTER trySpreadMoveHit has returned, so BELOW the faint, below
+         *                the hitcount and below the recoil
+         *
+         * MEASURED IN THE AUTHORITY, one staged doubles turn each, the target pinned to 1 HP:
+         *     Close Combat KO     -damage 0 fnt, -unboost def, -unboost spd, |faint|
+         *     Clanging Scales KO  -damage 0 fnt, |faint|, -unboost def
+         *     Scale Shot KO       -damage 0 fnt, |faint|, -hitcount, -unboost def, -boost spe
+         * The same drop on the same slot, on opposite sides of the faint, decided ONLY by which dex
+         * field carried it. `via` is derived in engine/tag_dex.js off that field and matches exactly
+         * two moves in the format -- Clanging Scales and Scale Shot -- so nothing is name-listed.
+         *
+         * AN UNKNOWN `via` IS COUNTED, NOT ASSUMED. A tags.json cut before this derivation existed
+         * hands back undefined, and falling through to the old position would be the silent default
+         * this repository keeps paying for; `selfBoostViaUnknown` says how many clicks did it. */
         // self stat changes from mv.self (dex-generated); Contrary flips drops into boosts
-        const sdrop=connected?(a.move.mv&&a.move.mv.self):null;
+        const _sbVia=selfBoostVia(a.move.id);
+        if((a.move.mv&&a.move.mv.self)&&!_sbVia)MEDFAILS.selfBoostViaUnknown=(MEDFAILS.selfBoostViaUnknown||0)+1;
+        if(SELFBOOST_IN_LOOP&&_sbVia==='selfBoost')MEDFAILS.selfBoostInLoopRestored=1;
+        const sdrop=(connected&&(SELFBOOST_IN_LOOP||_sbVia!=='selfBoost'))?(a.move.mv&&a.move.mv.self):null;
         if(sdrop){const sgn=invSign(m);   // WIRE 100b
           for(const k in sdrop){const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null){const _b0=m.boosts[_st];
             m.boosts[_st]=clamp(m.boosts[_st]+sdrop[k]*sgn,-6,6);
@@ -26164,6 +26373,37 @@ function battleTurn(S,rng,actsForA,actsForB){
        * inside `spreadDamage` in the authority, which is above `faintMessages` -- so a Giga Drain
        * that scores a KO prints its `-heal` BEFORE the `|faint|`, and paying it from this block
        * printed it after. See the step's own header for the measurement. */
+      /* 2026-08-24 -- `selfBoost`, AND IT IS PAID HERE BECAUSE THE AUTHORITY PAYS IT HERE.
+       *
+       *     moveResult = this.trySpreadMoveHit(targets, pokemon, move);        battle-actions.ts:518
+       *     if (move.selfBoost && moveResult) this.moveHit(pokemon, pokemon, move, move.selfBoost,
+       *                                                    false, true);                       :520
+       *
+       * `trySpreadMoveHit` is the WHOLE hit-step list, so everything inside it -- the damage, the
+       * faint messages, `|-hitcount|` and `applyRecoilDamage` -- is already on the wire when this
+       * line runs. `_stepSelfPay` is `selfDrops` and is four steps too early for these two moves;
+       * the gate there routes them to this site and `selfBoostViaUnknown` counts anything it could
+       * not classify.
+       *
+       * THE GATE IS `moveResult`, NOT `connected`. `moveResult` is this engine's `_reached > 0` --
+       * ROADMAP #84's own derivation two hundred lines up -- and a Protect leaves it at zero, which
+       * is what the authority does too: a Scale Shot into a Protect prints `|-activate|move: Protect`
+       * and NO `-unboost`, measured on a staged doubles turn.
+       *
+       * IT IS ABOVE SHELL BELL AND LIFE ORB, which hang off `AfterMoveSecondarySelf` at :540 -- one
+       * line below the selfBoost call and therefore one payment later. */
+      {
+        const _sb2=selfBoostVia(a.move.id);
+        const _tbl=(_sb2==='selfBoost'&&_reached>0&&!SELFBOOST_IN_LOOP)?(a.move.mv&&a.move.mv.self):null;
+        if(_tbl&&!m.fainted&&m.boosts){
+          MEDSEEN.selfBoostPaidAfterLoop++;
+          const _sg2=invSign(m);   // WIRE 100b -- Contrary flips this exactly as it flips selfDrops
+          for(const k in _tbl){const _st3=SD2ENG[k];
+            if(_st3&&m.boosts[_st3]!=null){const _p0=m.boosts[_st3];
+              m.boosts[_st3]=clamp(m.boosts[_st3]+_tbl[k]*_sg2,-6,6);
+              if(TR)TR.bst(m,_st3,m.boosts[_st3]-_p0);}}
+        }
+      }
       /* SHELL BELL, 44 uses — a roster DID-NOT-FIRE row, and it sits here for the same reason recoil
        * does: both are a fraction of the damage the move ACTUALLY dealt.
        *     onAfterMoveSecondarySelf: if (move.totalDamage && !forceSwitchFlag) heal(totalDamage / 8)
@@ -26363,7 +26603,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* A PIVOT IS ALSO A CHOICE. U-turn is not 'leave' -- it is 'leave and bring THIS in', and
            the whole reason the move is played is the body that arrives. `a.pivotTo` carries it when
            the caller picked one; without it the first healthy bench mon comes in as before. */
-        if(idx>=0)switchOut(own,idx,bench,foes,sf,field,a.pivotTo);
+        if(idx>=0)pivotFrom(a.move.id,()=>switchOut(own,idx,bench,foes,sf,field,a.pivotTo));
       }
       /* WIRE 40 -- DRAGON TAIL AND CIRCLE THROW, the DAMAGING half of forcesSwitch. They carry base
          power, so they arrived here as ordinary attacks and the drag -- which is the entire reason a

@@ -1,10 +1,10 @@
 {
-  "current": "ffdec64bed0c",
-  "cut": "2026-08-25T00:46:30.092Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 11,
-  "latest_cut": "2026-08-25T00:49:42.910Z",
-  "latest_why": "residual order: the end-of-turn walk uses the authority's selection sort",
-  "pointer_written": "2026-08-25T00:49:42.937Z",
+  "current": "294a529b83c8",
+  "cut": "2026-08-25T02:36:43.586Z",
+  "why": "fickle beam announces its double; browser tag copy rebuilt",
+  "cuts": 2,
+  "latest_cut": "2026-08-25T02:48:49.183Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-25T02:48:49.200Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

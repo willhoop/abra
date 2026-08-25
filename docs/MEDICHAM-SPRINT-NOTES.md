@@ -21,6 +21,44 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## FIVE MECHANICS BY REACH — 15 → 10 UNCLEARED, CENSUS 687 → 693, POOL UNMOVED. 2026-08-24 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-24-mechanics-by-reach-3.md`](_reports/2026-08-24-mechanics-by-reach-3.md).
+Ledger section: `docs/ENGINE.md`, *"FIVE MECHANICS BY REACH — 15 → 10 UNCLEARED"*.
+
+Five diverging mechanics from `data/all-mechanics-fire.json`, ranked by corpus reach — **1,559 clicks**
+between them. All five are NARRATION and that was said before the run, so the lab was expected to move
+and the pinned pool to sit still; it did.
+
+- **`selfBoost` is not `self`** (Scale Shot 543). `data/engine-data.js` folds three dex fields into one
+  `mv.self` key and the authority pays `self` inside the hit loop (`battle-actions.ts:936`) and
+  `selfBoost` after `trySpreadMoveHit` returns (`:520`) — opposite sides of the `|faint|` and of
+  `|-hitcount|`. `via` derived in `tag_dex.js`, printed first: 10 / **2** / 22.
+- **The shield gate read a FEATURE-scoped tag** (Dragon Cheer 216). `checkMoveBypassesProtect`
+  (`battle.ts:1301`) bypasses on the absence of `flags.protect`, unscoped; `ignoresProtect` is narrowed
+  to foe-facing moves, which in doubles deletes exactly the ally-facing family. New tag
+  `noProtectFlag`, 111 members containing all 14 old ones.
+- **A smart-target move is refused in SILENCE** (Dragon Darts 452). All four shields:
+  `if (move.smartTarget) { move.smartTarget = false; } else { this.add('-activate', …) }`. The board
+  was already right and the probe asserts it as the control.
+- **Chilly Reception's two missing lines** (236). The `-prepare` lives in the condition's
+  `onBeforeMove` at priority 100 and `volatileAnnounce` read only `onStart` — a derivation gap. Fixing
+  it exposed the entry line, which the authority names on every pivot (`:145-148`).
+- **Fickle Beam announces the roll that doubled it** (112). The `chainModify(2)` and the `-activate`
+  are one handler.
+
+Knobs: `MEDI_SELFBOOST_IN_LOOP`, `MEDI_SHIELD_SCOPED_FLAG`, `MEDI_SMART_PROTECT_LINE`,
+`MEDI_NO_BEFOREMOVE_LINE`, `MEDI_SWITCH_CAUSE_BLIND`, `MEDI_NO_CONDPOWER_LINE` — each shown red first.
+
+**Numbers.** Damage differential **0 of 6000 at all 16 corners** (seed 20260804), unmoved. Census
+**687 → 693 probed / 693 live / 0 missing**. Whole game, arm `middle`, release `294a529b83c8`,
+`--games 1200` → 961 pairs, pinned team store and pinned census: **raw parted 35, undeclared 22 of 961
+= 2.3%, both unmoved** (a re-baseline, not a delta). All four withheld artifacts re-run at that
+release; roster **0 / 0** on all three stages. Gate **5 of 8**, unchanged.
+
+**Also:** `data/abra-tags.js`, the browser copy of `tags.json` frozen in every release, was two days
+stale and is rebuilt. Found by the release cut, not by a gate.
+
 ## THE END-OF-TURN WALK IS THE AUTHORITY'S SELECTION SORT — CENSUS 686 → 687, POOL UNMOVED GAME FOR GAME. 2026-08-24 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-24-residual-order.md`](_reports/2026-08-24-residual-order.md).
