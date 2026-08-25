@@ -2577,6 +2577,21 @@ function aimBody(aim, own, foes, i) {
 const COV_CREDIT = new Map();    // census key -> times an observed effect (or a declared non-effect)
 const COV_ATTEMPT = new Map();   // census key -> times an entity of it was clicked / stood
 const CREDIT_KIND = new Map();   // census key -> { effect, negative, click }
+/* ---- WHEN A MECHANIC IS FIRST SEEN TO ACT (2026-08-25) -------------------------------------------
+ * The turn cap was 12 and nothing anywhere recorded WHICH TURN a census row was first credited on, so
+ * "is 12 deep enough" could only be answered by guessing or by running longer and comparing totals.
+ * Will's rule for choosing the cap is coverage, not game length — *"50 turn games where sides spam
+ * protect and encores does not help us"* — and the number that decides it is the curve below: the
+ * EARLIEST turn each row was ever observed to do something. If no row's earliest is past the cap, a
+ * deeper cap buys repetition and nothing else.
+ *
+ * Purely observational: it reads the same credit events the steering already computes and changes no
+ * die, no click and no board. It rides in the driver snapshot with the other credit maps, because a
+ * map that did not freeze with them would carry the control arm's replays into the primary arm's
+ * profile — the same silent-unfreeze bug driverSnap exists to prevent. */
+const COV_FIRST_TURN = new Map();     // census key -> the EARLIEST turn index it was ever credited on
+const CREDIT_BY_TURN = new Map();     // turn index -> how many credit events landed on that turn
+let CREDIT_TURN_UNKNOWN = 0;          // credits that arrived without a turn index. MUST read 0.
 const ATTEMPT_CAP = 1e6 - 1;
 const covWant = (sec, key) => {
   let worst = Infinity;
@@ -2587,10 +2602,20 @@ const covWant = (sec, key) => {
   }
   return worst;
 };
-const bumpCredit = (key, kind) => {
+const bumpCredit = (key, kind, turn) => {
   COV_CREDIT.set(key, (COV_CREDIT.get(key) || 0) + 1);
   const k = CREDIT_KIND.get(key) || { effect: 0, negative: 0, click: 0 };
   k[kind]++; CREDIT_KIND.set(key, k);
+  /* LOUD, NOT DEFAULTED. Every credit comes from creditTurn and creditTurn always has the turn index;
+   * a missing one would quietly file real credits under turn -1 and flatten the curve toward "12 is
+   * plenty", which is the comfortable answer and therefore the one to refuse to reach by accident. */
+  const tn = (typeof turn === 'number' && turn > 0) ? turn : -1;
+  if (tn < 0) CREDIT_TURN_UNKNOWN++;
+  else {
+    const prev = COV_FIRST_TURN.get(key);
+    if (prev === undefined || tn < prev) COV_FIRST_TURN.set(key, tn);
+    CREDIT_BY_TURN.set(tn, (CREDIT_BY_TURN.get(tn) || 0) + 1);
+  }
 };
 const CLICKS = new Map();
 /* Kept so the artifact can report how far the number moved when credit tightened. A row is "clicked
@@ -2626,7 +2651,7 @@ function inScope(chg, sc) {
   return sc.slots.some(s => s.side === chg.side && s.slot === chg.slot);
 }
 let CREDIT_TURNS = 0;
-function creditTurn(play, prev, cur) {
+function creditTurn(play, prev, cur, turnIdx) {
   if (!prev || !cur) return;
   CREDIT_TURNS++;
   const chgs = changedFamilies(prev, cur);
@@ -2670,11 +2695,11 @@ function creditTurn(play, prev, cur) {
        * multiplier — none of them moves a board leaf, so a connected click is the strongest evidence
        * this instrument can produce and pretending otherwise would be the opposite over-claim. */
       if (t.sec === 'moves' ? connectedClick : play.moves.some(m => m.connected))
-        bumpCredit(t.key, 'click');
+        bumpCredit(t.key, 'click', turnIdx);
       continue;
     }
     const hit = chgs.some(c => w.families.some(f => famRe(f).test(c.family)) && inScope(c, scope));
-    if (hit) { bumpCredit(t.key, 'effect'); continue; }
+    if (hit) { bumpCredit(t.key, 'effect', turnIdx); continue; }
     /* THE DECLARED NEGATIVE CASE. A blocking tag whose carrier stood there while a connected move
      * that moves exactly this family was aimed at it, and the family did not move on that body. */
     if (w.blocking && t.sec !== 'moves' && carriers.length) {
@@ -2683,7 +2708,7 @@ function creditTurn(play, prev, cur) {
         if (!aimed || !aimed.length) return false;
         return carriers.some(b => aimed.some(s => s.side === b.side && s.slot === b.slot));
       });
-      if (reached) bumpCredit(t.key, 'negative');
+      if (reached) bumpCredit(t.key, 'negative', turnIdx);
     }
   }
 }
@@ -2897,7 +2922,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
     /* `opts.ppHold` IS A CALLER'S DECLARATION, NOT A DEFAULT. This driver always compares PP; the one
      * caller that asks for it to be held is tests/roster.js, and it says why on its own call. */
     const snap = BS.snapshot(S, battle, opts.ppHold ? { ...BS_CTX, ppHold: true } : BS_CTX);
-    if (play) creditTurn(play, prevSnap, snap);
+    if (play) creditTurn(play, prevSnap, snap, turnIdx);
     prevSnap = snap;
     if (!STATE) return null;
     /* A TEST HOOK, and the only one. `tests/test-state-differential.js` has to observe boundaries the
@@ -4044,14 +4069,17 @@ function plantsFor(k, fieldK) {
  * (ROADMAP #91), and a snapshot that restored one and not the other would silently unfreeze the
  * steering — which is the exact bug this function exists to prevent, one layer down. */
 function driverSnap() { return { c: new Map(CLICKS), cr: new Map(COV_CREDIT), at: new Map(COV_ATTEMPT),
-                                 kd: new Map(CREDIT_KIND), tc: new Set(COV_TOUCHED) }; }
+                                 kd: new Map(CREDIT_KIND), tc: new Set(COV_TOUCHED),
+                                 ft: new Map(COV_FIRST_TURN), bt: new Map(CREDIT_BY_TURN) }; }
 function driverRestore(s) {
   const put = (m, v) => { m.clear(); for (const [k, x] of v) m.set(k, x); };
   put(CLICKS, s.c); put(COV_CREDIT, s.cr); put(COV_ATTEMPT, s.at); put(CREDIT_KIND, s.kd);
+  put(COV_FIRST_TURN, s.ft || new Map()); put(CREDIT_BY_TURN, s.bt || new Map());
   COV_TOUCHED.clear(); for (const k of s.tc) COV_TOUCHED.add(k);
 }
 function driverReset() { driverRestore({ c: new Map(), cr: new Map(), at: new Map(),
-                                         kd: new Map(), tc: new Set() }); }
+                                         kd: new Map(), tc: new Set(),
+                                         ft: new Map(), bt: new Map() }); }
 function withFrozenDriver(fn) {
   const s = driverSnap();
   try { return fn(); }
@@ -5277,7 +5305,8 @@ if (!has('--proof')) {
                       games_played: played, batches,
                       stopped_because: stop.reason, stopped_on_budget: !!stop.on_budget };
     ARM_RUNS.push({ arm: PRIMARY_ARM, results: primaryResults, control: primaryControl,
-                    credit: new Map(COV_CREDIT), kinds: new Map(CREDIT_KIND), touched: new Set(COV_TOUCHED) });
+                    credit: new Map(COV_CREDIT), kinds: new Map(CREDIT_KIND), touched: new Set(COV_TOUCHED),
+                    firstTurn: new Map(COV_FIRST_TURN), byTurn: new Map(CREDIT_BY_TURN) });
     results = primaryResults; control = primaryControl;
     /* EVERY OTHER ARM REPLAYS EXACTLY THE SAME GAMES. Same pairs, same order, same starting driver
      * state — so the arms share a denominator and a difference between two rows is the DIE. */
@@ -5287,7 +5316,8 @@ if (!has('--proof')) {
       const armResults = [], armControl = [];
       for (let i = 0; i < played; i++) playOne(arm, WORK[i].cfg, WORK[i].pr, false, armResults, armControl);
       ARM_RUNS.push({ arm, results: armResults, control: armControl,
-                      credit: new Map(COV_CREDIT), kinds: new Map(CREDIT_KIND), touched: new Set(COV_TOUCHED) });
+                      credit: new Map(COV_CREDIT), kinds: new Map(CREDIT_KIND), touched: new Set(COV_TOUCHED),
+                      firstTurn: new Map(COV_FIRST_TURN), byTurn: new Map(CREDIT_BY_TURN) });
     }
   } else
   for (const arm of ARMS_RUN) {
@@ -5308,7 +5338,8 @@ if (!has('--proof')) {
     }
     ARM_RUNS.push({ arm, results: armResults, control: armControl,
                     credit: new Map(COV_CREDIT), kinds: new Map(CREDIT_KIND),
-                    touched: new Set(COV_TOUCHED) });
+                    touched: new Set(COV_TOUCHED),
+                    firstTurn: new Map(COV_FIRST_TURN), byTurn: new Map(CREDIT_BY_TURN) });
     if (isPrimary) { results = armResults; control = armControl; }
   }
   /* THE CREDIT MAPS AFTER THE LAST ARM ARE THAT ARM'S, NOT THE RUN'S. The coverage report is a claim
@@ -5316,6 +5347,13 @@ if (!has('--proof')) {
    * arm happened to finish last — which would have been a silent, plausible, wrong number. */
   driverReset();
   for (const a of ARM_RUNS) {
+    /* THE EARLIEST TURN IS A MINIMUM ACROSS ARMS, NOT A SUM. Every other map here adds up because it
+     * counts events; "the first turn this was ever seen to act" is the smallest one any arm saw. */
+    for (const [k, t] of (a.firstTurn || new Map())) {
+      const prev = COV_FIRST_TURN.get(k);
+      if (prev === undefined || t < prev) COV_FIRST_TURN.set(k, t);
+    }
+    for (const [t, n] of (a.byTurn || new Map())) CREDIT_BY_TURN.set(t, (CREDIT_BY_TURN.get(t) || 0) + n);
     for (const [k, v] of a.credit) COV_CREDIT.set(k, (COV_CREDIT.get(k) || 0) + v);
     for (const [k, v] of a.kinds) { const e = CREDIT_KIND.get(k) || { effect: 0, negative: 0, click: 0 };
       e.effect += v.effect; e.negative += v.negative; e.click += v.click; CREDIT_KIND.set(k, e); }
@@ -6572,6 +6610,45 @@ console.log('    clicked and MISSED at least once (the top arm\'s pin misses eve
 }
 console.log('');
 
+/* ---- HOW DEEP THE CAP HAS TO BE, MEASURED (2026-08-25) -------------------------------------------
+ * Not "how long do games last" — Will's rule is that a fifty-turn Protect stall is the same turn fifty
+ * times and buys nothing. The question is the turn at which the LAST NEW mechanic first acts. Rows
+ * whose earliest credit is past the cap are the only thing a deeper cap can buy; if that list is
+ * empty, raising it buys repetition. */
+const CREDIT_TURN_PROFILE = (() => {
+  const first = [...COV_FIRST_TURN.entries()];
+  const hist = new Map();
+  for (const [, t] of first) hist.set(t, (hist.get(t) || 0) + 1);
+  const turns = [...hist.keys()].sort((a, b) => a - b);
+  const rowsFrom = c => first.filter(([, t]) => t >= c).map(([k]) => k).sort();
+  const cum = [];
+  let acc = 0;
+  for (const t of turns) { acc += hist.get(t); cum.push({ turn: t, rows_first_here: hist.get(t),
+    rows_first_by_here: acc, pct_of_credited: +(100 * acc / (first.length || 1)).toFixed(2) }); }
+  return { rows_with_any_credit: first.length,
+           credits_with_no_turn_index: CREDIT_TURN_UNKNOWN,
+           deepest_first_credit_turn: turns.length ? turns[turns.length - 1] : null,
+           by_first_turn: cum,
+           credit_events_by_turn: Object.fromEntries([...CREDIT_BY_TURN.entries()].sort((a, b) => a[0] - b[0])),
+           rows_first_credited_at_turn_13_or_later: rowsFrom(13),
+           rows_first_credited_at_turn_9_or_later: rowsFrom(9) };
+})();
+console.log('  WHEN A MECHANIC IS FIRST SEEN TO ACT — this is what decides the turn cap, not how long');
+console.log('  games run. Turn cap this run: ' + MAXTURNS + '.');
+console.log('    ' + CREDIT_TURN_PROFILE.rows_with_any_credit + ' rows were credited at least once; the '
+  + 'deepest FIRST credit landed on turn ' + CREDIT_TURN_PROFILE.deepest_first_credit_turn + '.');
+for (const r of CREDIT_TURN_PROFILE.by_first_turn)
+  console.log('      turn ' + String(r.turn).padStart(2) + '  first-credited here ' + String(r.rows_first_here).padStart(4)
+    + '   cumulative ' + String(r.rows_first_by_here).padStart(4) + '  (' + r.pct_of_credited + '% of all credited rows)');
+console.log('    rows whose FIRST credit is turn 13 or later: ' + CREDIT_TURN_PROFILE.rows_first_credited_at_turn_13_or_later.length
+  + (CREDIT_TURN_PROFILE.rows_first_credited_at_turn_13_or_later.length
+      ? '  ' + CREDIT_TURN_PROFILE.rows_first_credited_at_turn_13_or_later.slice(0, 25).join(', ')
+      : '  <-- a deeper cap buys REPETITION, not coverage'));
+if (CREDIT_TURN_PROFILE.credits_with_no_turn_index)
+  console.log('    *** ' + CREDIT_TURN_PROFILE.credits_with_no_turn_index + ' CREDITS ARRIVED WITH NO TURN INDEX '
+    + '— the curve above is missing them and must not be read as complete.');
+console.log('');
+
 /* ---- THE STOPPING RULE, REPORTED WHERE THE COVERAGE IS ------------------------------------------- */
 if (COVERAGE_STOP) {
   const C = COVERAGE_STOP;
@@ -6755,6 +6832,8 @@ if (WRITE) {
                   medicham_tie_sequence_saturated: TIE_SATURATED,
                   bare_float_draws: BARE_FLOAT_DRAWS },
     games: results.length, turns_cap: MAXTURNS, elapsed_s: +elapsed,
+    /* 2026-08-25 — the evidence for the cap. See the console block of the same name. */
+    credit_turn_profile: CREDIT_TURN_PROFILE,
     planted_divergence_proof: PROOF, planted_divergence_proof_ok: PROOF_OK,
     /* THE HEADLINE RATE IS NOT READABLE WITHOUT THIS. Stated at the top level, not buried in
      * declared_gaps, because a reader who takes `diverged / games` and nothing else has taken a
@@ -6911,6 +6990,10 @@ if (WRITE) {
         showdown: r.div.sdRaw, medicham: r.div.meRaw }, r.div.orderProbe)),
     first_divergences: diverged.slice(0, 60).map(r => ({
       config: r.config, seed: r.seed, index: r.div.index, agreed_lines: r.div.agreedLines,
+      /* 2026-08-25 — WHICH TURN IT PARTED ON. `index` is a line offset and two runs at different turn
+       * caps cannot be compared by it; the turn can. Without this there is no way to say which of a
+       * deeper run's divergences are ones the shallower cap could never have reached. */
+      turn: r.divTurn,
       cls: r._cls.cls, cause: r._cls.cause, showdown: r.div.sdRaw, medicham: r.div.meRaw,
       /* ROADMAP #241(3) — see `sdBeforeRaw` at the divergence record. A bare `-fail` names the mover
        * and never the move; this is where the move is named. */

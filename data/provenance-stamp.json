@@ -179,7 +179,7 @@
   "void_files": [
     "exploitability.json"
   ],
-  "verified": 3,
+  "verified": 6,
   "graph_files": [
     "_dmg-inverted.json",
     "_pair-pilot.json",
@@ -188,6 +188,9 @@
     "_r220-gd-pre.json",
     "_r220-void-pair-POST.json",
     "_r220-void-pair-PRE.json",
+    "_turncap-cap12.json",
+    "_turncap-cap16.json",
+    "_turncap-cap30.json",
     "_void-fields.json",
     "_void-fields2.json",
     "_void-final.json",
@@ -918,5 +921,5 @@
       ]
     }
   ],
-  "generated": "2026-08-25T06:03:16.454Z"
+  "generated": "2026-08-25T06:41:10.505Z"
 }

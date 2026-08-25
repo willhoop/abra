@@ -21,6 +21,58 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE TURN CAP IS SET BY COVERAGE, AND COVERAGE IS FLAT BY TURN 6 — SO 12 STAYS. CENSUS UNMOVED AT 701. 2026-08-25 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-25-turn-cap.md`](_reports/2026-08-25-turn-cap.md).
+Ledger section: `docs/ENGINE.md`, *"THE TURN CAP IS SET BY COVERAGE"*.
+
+Arm `middle`, 961 games (`--games 1200`, a PAIR budget), release `c6d45355668e`,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state --write`, at caps **12 / 16 / 30**.
+
+**NO ENGINE CHANGE. `engine/medicham2-browser.js` was not touched, `game_differential.js` is not a
+frozen release SOURCE, so NOTHING IS WITHHELD** — the three roster stages and `all_mechanics_fire`
+stay valid and were deliberately not re-run.
+
+**NEW INSTRUMENTATION (observational only):** `credit_turn_profile` in
+`engine/game_differential.js` — the EARLIEST turn each census row is ever credited on, plus credit
+events per turn, plus `turn` on every `first_divergences` row. It reads events the coverage steering
+already computes, moves no die and no board, and rides in `driverSnap` with the other credit maps so a
+control replay cannot leak into the primary arm. `credits_with_no_turn_index` must read 0 and does.
+**Proven a no-op:** the standing configuration re-run with it in place matches
+`git show HEAD:data/game-differential.json` on the mode string, 961 games, 28 diverged, all five class
+counts, the end-state verdicts, 27 causes, 17 narration, 10 board-material, 252 rows credited.
+
+**THE ANSWER, ON WILL'S OWN CRITERION** (*"50 turn games where sides spam protect and encores does not
+help us"*): the last NEW census row is first credited on **turn 11**; turns 9 and 12 introduce nothing;
+at cap 30 only **2 of 254** rows are first credited past turn 12 and **both are credited inside 12 turns
+by the other pinned arms** — same 254 rows, byte-identical did-nothing (8) and not-exercised (17) lists.
+**A deeper cap buys repetition (~25,000 credit events per turn to turn 30) and no coverage**, at ~2.5x
+runtime (95.3 s → 195.9 s → 238.8 s). **The default stays 12.** Real games agree: 17,381 stored games in
+`data/team-pool-frozen`, median **7** turns, 96.6% / 95.0% done by turn 12.
+
+**THE SECOND HALF POINTS THE OTHER WAY — a RE-BASELINE, no column comparable with another:**
+
+| | cap 12 (standing) | cap 16 | cap 30 |
+|---|---|---|---|
+| protocol PARTED | 28 | 40 | 80 |
+| board-material | 10 / 10 | 17 / 19 | **41 / 43** |
+| narration-only | 17 / 18 | 19 / 20 | 34 / 36 |
+| DIFFERENT-END-STATE | 8 | 18 | 31 |
+
+The quarantine gate's board-material clause is a claim about the **first twelve turns** and reads wider
+than it is. Turns 13+ by mechanism, ranked: upkeep ordering 5, berry/item timing 5, counter expiry 4,
+damage VALUES 3, forme revert 3, Protect/miss ordering 3, switch/phaze 3, PP exhausted 2, wrong-body
+status 2, immunity announce 2. **Three families are genuinely turn-13-only** — PP running out
+(`|-activate|struggle` vs `|cant|nopp`), a multi-turn counter expiring silently (Infestation, Heal
+Block, Throat Chop), and a forme not reverting when its field effect ends (Forecast, Morpeko).
+**Nothing was fixed; per the brief this is a work list, and those three belong in the LAB.**
+
+**CONTROLS HELD:** census **701 / 701 / 0**; `test-engine-diff.js --n 6000 --seed 20260804`
+**0 of 6000 at all 16 corners**.
+
+---
+
 ## EVERY IMMUNITY IN THE FORMAT, SWEPT — 21 WRONG OF 1,800 CELLS, NOW 0. CENSUS 697 → 701. 2026-08-25 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-25-immunity-sweep.md`](_reports/2026-08-25-immunity-sweep.md).

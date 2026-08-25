@@ -58,8 +58,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  701/701 probed mechanics live, 0 missing   (census 2026-08-25 01:41)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-25 01:44)
+  701/701 probed mechanics live, 0 missing   (census 2026-08-25 02:29)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-25 02:28)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -71,15 +71,131 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1a9d45809719 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is be0eb78b121c now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is a65f42d2673e now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-25 01:57_
+_stamped 2026-08-25 02:40_
 
 <!-- /GENERATED -->
+
+## THE TURN CAP IS SET BY COVERAGE, AND COVERAGE IS FLAT BY TURN 6 — SO 12 STAYS. CENSUS UNMOVED AT 701. 2026-08-25.
+
+Full account: [`docs/_reports/2026-08-25-turn-cap.md`](_reports/2026-08-25-turn-cap.md).
+
+**Nothing in `engine/medicham2-browser.js` was touched, so NO ARTIFACT IS WITHHELD.**
+`engine/game_differential.js` is not one of the frozen release SOURCES; the three roster stages and
+`all_mechanics_fire` are untouched and still valid, and re-running them would prove nothing.
+
+**WHY THE CAP WAS 12.** `game_differential.js:56` — `const MAXTURNS = +flag('--turns', 12)`, a flag with
+a default, set in the instrument's first commit (`f60b01c7`) and never defended in writing. It is the
+scope Will set at the start: *"I ONLY CARE ABOUT TURN 1 TO START"*. Deeper caps had been run twice as
+side experiments (19/30/40 on 2026-08-12, 12 vs 30 on 2026-08-19) and never carried into the standing
+figure.
+
+**WILL'S CRITERION, AND IT IS NOT GAME LENGTH.** *"but like 50 turn games where sides spam protect and
+encores does not help us."* The cap should be set by the turn at which the **last new** thing happens.
+Nothing recorded that, so `credit_turn_profile` was built: for every census row, the EARLIEST turn any
+game was ever observed to credit it. Purely observational — it reads the credit events the coverage
+steering already computes, moves no die and no board, rides in `driverSnap` with the other credit maps
+so a control replay cannot leak in, and counts `credits_with_no_turn_index`, which must read 0 and does.
+**Proven a no-op**: the standing configuration re-run with it in place is identical to
+`git show HEAD:data/game-differential.json` on the mode string, 961 games, 28 diverged, all five class
+counts, the end-state verdicts, 27 causes, 17 narration, 10 board-material and 252 rows credited.
+
+**THE CURVE IS FLAT BY TURN 6 AND DEAD BY TURN 11.** Arm `middle`, cap 12: 179 rows first credited on
+turn 1 (71.0%), 240 by turn 4 (95.2%), 248 by turn 6 (98.4%), and the last one on **turn 11**. **Turns 9
+and 12 introduce nothing at all.** At cap 30 exactly **2 of 254** rows are first credited past turn 12 —
+and both are credited INSIDE twelve turns by the other pinned arms, whose union credits the same **254**
+rows with a byte-identical did-nothing list (8) and not-exercised list (17). **A deeper cap buys
+repetition, not coverage**: ~25,000 credit events per turn all the way to turn 30, and one row.
+
+**REAL GAMES AGREE.** `data/team-pool-frozen`, 17,381 stored games, counted not modelled: median **7**
+turns, mean 6.8–7.0, **96.6% / 95.0%** finished by turn 12 (95.3% / 92.9% with forfeits stripped). The
+whole tail past turn 20 is 0.38% of games.
+
+**SO THE DEFAULT STAYS AT 12**, and `--turns` remains a flag, so a deep run is one word away. The cost
+of moving it is real: the same 961 games take **95.3 s at cap 12, 195.9 s at 16, 238.8 s at 30**.
+
+### THE SECOND HALF POINTS THE OTHER WAY AND IS NOT CANCELLED BY THE FIRST
+
+Coverage of census ROWS is not coverage of DEFECTS. Same release `c6d45355668e`, same pins, same pool,
+same 961 games, only the cap differing — **a RE-BASELINE, and no column may be compared with another**:
+games run to different lengths, the coverage credit that STEERS the driver accumulates differently, and
+`first_divergences` is indexed by protocol LINE, which is not comparable across caps at all.
+
+| | cap 12 (standing) | cap 16 | cap 30 |
+|---|---|---|---|
+| protocol PARTED | **28** | 40 | **80** |
+| board-material | **10 causes / 10 games** | 17 / 19 | **41 / 43** |
+| narration-only | 17 / 18 | 19 / 20 | 34 / 36 |
+| DIFFERENT-END-STATE | 8 | 18 | 31 |
+| rows credited (this arm) | 252 | 253 | 254 |
+| deepest FIRST credit | turn 11 | turn 13 | turn 23 |
+
+**The rise was predicted before the run; the scale was not.** The quarantine gate's board-material
+clause is a claim about the FIRST TWELVE TURNS of a game and reads wider than it is.
+
+**WHAT TURNS 13+ CONTAIN, BY MECHANISM** — 36 of the 60 listed first divergences part at turn 13 or
+later. Ranked: end-of-turn/upkeep ordering **5**; berry and item consumption timing **5**; a multi-turn
+counter EXPIRING unannounced **4**; damage VALUES disagreeing **3** (Kingambit 92 vs 124, Swampert 28 vs
+42, a confusion self-hit 14 vs 16); forme revert when a field effect ends **3**; Protect/miss/Instruct
+ordering **3**; switch and phaze ordering **3**; PP EXHAUSTED **2**; status on the wrong body **2**;
+immunity announcement **2**; then singletons.
+
+**Only three families are genuinely turn-13-only**: **PP running out** (we announce Struggle where the
+authority says `cant|nopp` — a 16-PP move cannot empty before turn ~17), **a multi-turn counter reaching
+its end** (Infestation x2, Heal Block, Throat Chop), and **a forme reverting when the field effect that
+forced it expires** (Forecast on weather end, Morpeko on Throat Chop end). Everything else is a mechanism
+the cap-12 run already sees, given more chances to fire. **Nothing was fixed — per the brief this is a
+work list.**
+
+**AND THE CHEAP WAY TO REACH THOSE THREE IS THE LAB, NOT THE CAP.** A probe that empties a 5-PP move or
+lets an Infestation count down costs milliseconds; 18 extra turns on 961 games costs 2.5x every run.
+
+### THE HAND LIST
+
+Nothing leaves it — no mechanic was fixed this pass.
+
+Joins it:
+
+- **PP EXHAUSTION IS NARRATED WRONG.** We emit `|-activate|…|struggle` where the authority emits
+  `|cant|…|nopp|<move>`. Two games at cap 30, unreachable before turn ~17, so no existing probe can see
+  it. Belongs in the lab.
+- **A MULTI-TURN COUNTER REACHING ZERO IS SILENT.** `|-end|…|infestation|[partiallytrapped]`,
+  `|-end|…|healblock` and `|-end|…|throatchop` are all missing from our stream at expiry.
+- **A FORME DOES NOT REVERT WHEN ITS FIELD EFFECT ENDS.** Castform/Forecast on `|-weather|none`, Morpeko
+  on the end of Throat Chop — the authority emits `|-formechange|` and we do not.
+- **THE 33 EXTRA BOARD-MATERIAL CAUSES VISIBLE ONLY PAST TURN 12** — 41 at cap 30 against 10 at cap 12.
+  A population, not a defect; three of them are damage VALUES and would rank first on a fix list.
+
+Stays on it, unchanged: everything on the previous list, including **`planted_state_proof_ok` is still
+false and `game_differential.js` exits 1 on it** — seven volatile plants (`vol.taunt`, `vol.encore`,
+`vol.perish`, `vol.magnetrise`, `vol.focusenergy`, `vol.saltcure`, `vol.syrupbomb`) come back NOT
+CAUGHT. Pre-existing, not introduced here, and unchanged by this pass.
+
+### PROPOSED REGISTER ROW — `docs/ROADMAP.md` was NOT edited, per the brief.
+
+**OPEN (1).** *"The whole-game differential's 12-turn cap is CORRECT on coverage — the last new census
+row is first credited on turn 11 and cap 30 adds none — but it is NOT correct on defects: the same 961
+games part 80 times instead of 28 and carry 41 board-material causes instead of 10. Three families are
+genuinely turn-13-only (PP exhaustion, multi-turn counter expiry, forme revert on field-effect end) and
+belong in the lab; the other 33 board-material causes are a population to be worked."*
+
+### OWED, NOT RUN
+
+- `tests/roster.js --stage {items,abilities,moves}` and `engine/all_mechanics_fire.js --kind all` —
+  **NOT RUN AND NOT WITHHELD.** The engine did not move; `game_differential.js` is not a frozen SOURCE.
+- `engine/quarantine.js` — NOT RUN; its clauses were run directly, at the pins.
+- `tests/run-all.js`, `tests/interaction_matrix.js` — NOT RUN.
+- `engine/replay_one.js` — NOT RUN; a single-game replay is not reproducible in isolation (the tie key
+  and the address log are process-scoped).
+- The three late-only families and the 33 extra board-material causes — **NOT DIAGNOSED, deliberately.**
+
+Run and green: `tests/test-mechanics.js` (**701/701 live, 0 missing**), `tests/test-engine-diff.js`
+(`--n 6000 --seed 20260804`, **0 of 6000 at all 16 corners**).
 
 ## EVERY IMMUNITY IN THE FORMAT, SWEPT — 21 WRONG OF 1,800 CELLS, NOW 0. CENSUS 697 → 701. 2026-08-25.
 
