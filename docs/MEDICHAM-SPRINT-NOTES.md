@@ -13670,3 +13670,38 @@ about MEDICHAM being correct.**
 **OWED, NOT RUN:** the committed artifact still carries `planted_state_proof_ok: false` until the next
 `--state` run; `tests/probe_bench_plants.js` exits 0 while reporting failures; and this ledger's own
 note that "41 of 42 are caught, the one hole is the benched-HP plant" is now doubly wrong.
+
+---
+
+## ROADMAP #241(3) CLOSES ON ITS INSTRUMENT, AND THE GATE NOW SAYS WHAT WALKS PAST IT — 2026-08-25 (MEASURE).
+
+Full account: [`docs/_reports/2026-08-25-red-instrument-rows.md`](_reports/2026-08-25-red-instrument-rows.md).
+
+One of the three rows holding the open-defect clause shut was **stale prose, and it was measured rather
+than judged**. `node engine/gate_fail_and_silent.js` exits **0 — CLEAN, `ABRA-EXIT 0 VERDICT-GREEN`**
+on release `9cfe6b3b97a8` (961 games, census `9446a684709d`, pool `0d103fb9fa87`): zero causes. It is a
+clean and **not** an empty class — the counted class `event missing from medicham2` is present with 9
+causes, none with a `-fail` on the authority half.
+
+**NO DELTA IS CLAIMED** against the 2/2 of 2026-08-24 or the pin’s 30/51: the release and the pin digest
+both moved and the gate withholds a REGRESSION verdict itself. The masking alternative was checked, not
+assumed — divergences FELL 57 → 28 → 24 over the window, so there is less masking, not more.
+
+**The close went unanswerable 24 minutes later and the row says so.** ENGINE cut `2ecd3bdc274b` at
+21:46Z, so the same command now returns **exit 2 CANNOT-ANSWER**. The close is true of `9cfe6b3b97a8`
+and of no other bytes. A CANNOT-ANSWER is not a red and must not be filed as a premature close.
+
+**The engine-side change is a COMMENT ONLY** — no code path in `engine/gate_fail_and_silent.js` moved.
+Its header now states the two conditions `isFailAndSilent` requires and what walks past them: an
+authority `-fail` filed under another class is invisible to it, and one is live today (in
+`unrelated event mismatch`, Showdown announces a bare `-fail` on p2b where this engine announces a
+Disable start on p1a). **A green there means that class is empty; it does not mean no `-fail`
+disagreement remains.** Those rows are counted by #218, which is red. Selftest 23/23 after the edit.
+
+**No census count moved and none is claimed. No board figure is published here.** The open-defect
+clause now reads **2** red rows (#218, #273) instead of 3; it still FAILS and no quarantine lifts.
+
+**OWED, NOT RUN:** `node tests/probe_red_demo.js` (#273’s verdict — it plays turns and the play layer
+was held); `node engine/register_reality.js` (its #273 entry is a refusal spelled as a red: exit 1 after
+4,980 ms against a ~25 s run); and an `ABRA-EXIT` declaration for `tests/probe_red_demo.js` so
+`classifyExit` can stop publishing a crashed run as a defect.

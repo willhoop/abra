@@ -40,7 +40,36 @@
  * 2026-08-18 on release `6875c8ace00e`: exactly the three the row names — a `-fail` against a Taunt
  * click, a `-fail` against an Encore click, and a `-fail` against the sandstorm upkeep.
  *
- * ================= WHAT IT REFUSES TO ANSWER ====================================================
+ * ================= WHAT THIS GATE DOES NOT MATCH: ONE SHAPE IN ONE CLASS ========================
+ *
+ * A GATE THAT CATCHES ITS INSTANCE AND NOT ITS CLASS MUST SAY SO IN ITS OWN HEADER. This project has
+ * paid three times for the opposite: the species-key mismatch was found, fixed and gated twice, and
+ * the third instance walked past both gates because the ratchet had been written as a list of
+ * known-bad spellings rather than as one door everyone goes through. So this is stated here rather
+ * than left for a reader to infer from `isFailAndSilent`.
+ *
+ * `isFailAndSilent` requires BOTH of:
+ *   (a) the cause sits in the class `event missing from medicham2`, and
+ *   (b) the AUTHORITY half (the left half, before ` <> `) is a `-fail`.
+ *
+ * WHAT WALKS PAST IT, AND IT IS NOT HYPOTHETICAL. An authority `-fail` that the comparator files
+ * under a DIFFERENT class is invisible here. Measured 2026-08-25 on release `9cfe6b3b97a8` (961
+ * games), while this gate read CLEAN at zero, `data/game-differential.json` carried in
+ * `unrelated event mismatch`: the authority announcing a bare `-fail` on p2b where this engine
+ * announces a Disable start on p1a. That is an authority failure this engine does not emit — it is
+ * simply not SILENT, it says something else, so it falls outside (a).
+ *
+ * THAT IS DELIBERATE AND IT IS ALSO A LIMIT. ROADMAP #241(3) is scoped to *the authority announces a
+ * failure and this engine says NOTHING*, and widening this gate to "any cause containing a `-fail`"
+ * would make it a second, weaker implementation of the whole-game differential. The rows that walk
+ * past are NOT unowned: every one of them is a divergence counted by `wholeGameClause` and by
+ * ROADMAP #218, which is red until the whole-game differential reaches zero.
+ *
+ * SO: A GREEN HERE MEANS THE `-fail`-AND-SILENT CLASS IS EMPTY. IT DOES NOT MEAN NO `-fail`
+ * DISAGREEMENT REMAINS. Anyone quoting this gate as the latter is quoting it wrong, and the mirror
+ * shape proves the point from the other side — an OUR-side `-fail` against an authority Protect is
+ * excluded by name in the selftest below, and is likewise live and likewise counted by #218.
+ * * ================= WHAT IT REFUSES TO ANSWER ====================================================
  *
  * A missing artifact, an artifact with no classes, or an artifact measured against other bytes:
  * exit 2. `wholeGameClause` refuses a mismatched release for the same reason and #298 is the receipt

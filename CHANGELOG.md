@@ -10,6 +10,52 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.131.1] — 2026-08-25
+
+### Changed
+- **ROADMAP #241 PART (3) IS CLOSED ON ITS OWN INSTRUMENT, NOT ON A READING OF IT.**
+  `node engine/gate_fail_and_silent.js` exits **0 — CLEAN, `ABRA-EXIT 0 VERDICT-GREEN`** against
+  `data/game-differential.json` generated 2026-08-25T20:08:48Z on release `9cfe6b3b97a8` (961 games,
+  arm A/middle, census `9446a684709d`, pool `0d103fb9fa87`): **zero causes of the shape.** It is a
+  clean and not an empty class — the counted class `event missing from medicham2` is present with 9
+  causes, none carrying a `-fail` on the authority half.
+- **NO DELTA IS CLAIMED** against the 2 causes / 2 games of 2026-08-24 or the pin’s 30 / 51. Census,
+  pool and game count match the 2026-08-24 run, but the release and the pin digest both moved, and the
+  gate withholds a REGRESSION verdict on sample grounds itself. The masking alternative was checked
+  rather than assumed: total divergences FELL over the window (57 → 28 → 24), so there is less masking,
+  not more.
+- **THE CLOSE WENT UNANSWERABLE 24 MINUTES LATER AND THE ROW SAYS SO.** ENGINE cut release
+  `2ecd3bdc274b` at 21:46Z while the close was being written, so re-running the `VERIFIED BY` today
+  returns **exit 2 — CANNOT ANSWER**. The close is true of `9cfe6b3b97a8` and of no other bytes. A
+  CANNOT-ANSWER is not a red and must not be filed as a PREMATURE CLOSE.
+- **The open-defect gate clause now reads 2 red rows, not 3** — `#218` and `#273`. It still FAILS and
+  no quarantine lifts.
+
+### Added
+- **`engine/gate_fail_and_silent.js` NOW STATES IN ITS OWN HEADER WHAT SHAPE IT MATCHES AND WHAT WALKS
+  PAST IT.** `isFailAndSilent` requires the cause to sit in the class `event missing from medicham2`
+  AND to carry the `-fail` on the authority half. An authority `-fail` filed under another class is
+  invisible to it, and one is live today: in `unrelated event mismatch`, Showdown announces a bare
+  `-fail` on p2b where this engine announces a Disable start on p1a. A green here means that class is
+  empty; **it does not mean no `-fail` disagreement remains.** Those rows are not unowned — they are
+  counted by `wholeGameClause` and by ROADMAP #218, which is red. This is written down because the
+  project has paid three times for a gate that caught its instance and not its class.
+
+### Notes
+- **ROADMAP #273’s register entry is still the wrong one and the row now records it.**
+  `data/register-reality.json` (generated 2026-08-23T11:48:06Z) records `node tests/probe_red_demo.js`
+  at `exit 1` after **4,980 ms** against a run that takes ~25 s and prints 200 demonstrations — an
+  instrument that STOPPED EARLY, published as `VERDICT-RED`. **It was NOT hand-edited**: it is a
+  generated artifact and correcting it honestly needs the probe to run. The structural cause is that
+  `probe_red_demo.js` declares no `ABRA-EXIT` line, so `classifyExit` cannot tell its refusal from its
+  red — the same fix `declareExit` already gives this gate.
+- **#273 was NOT run** (no-play clause; it drives the engine through turns). It is judged live by
+  inference: a stale reversal is repaired only by editing `tests/probe_red_demo.js`, untouched since
+  2026-08-23 22:44, while `engine/medicham2-browser.js` moved six times since the 2026-08-24 reading of
+  12 stale. Engine movement can only ADD staleness. The exact count is OWED.
+- Account: `docs/_reports/2026-08-25-red-instrument-rows.md`.
+
+---
 ## [5.131.0] — 2026-08-25
 
 ### Fixed
