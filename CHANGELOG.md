@@ -10,6 +10,46 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.131.7] — 2026-08-26
+
+### Fixed
+- **THE DIFFERENTIAL EXCLUDED 43 TEAMS FROM ITS SAMPLE AND THE ARTIFACT THE GATE READS DID NOT SAY SO.**
+  `engine/game_differential.js` drops every pool team carrying an Illusion carrier (ROADMAP #160, Will
+  2026-08-11) and stamped that exclusion into `data/divergence-turns.json` — the `--dump-games`
+  DEBUGGING view, which most runs never write. `data/game-differential.json` **had no `closet` key at
+  all**, so every whole-game figure this project has published described a narrowed sample without
+  saying it was narrowed. The declaration now lives in the measurement artifact, is rendered from ONE
+  `closetDeclaration()` that the dump and the console also render, and **prints on every run including
+  the empty case as a sentence** — a silent empty closet reads exactly like a closet with no members.
+- **AND THE ONE NUMBER THAT DID EXIST WAS WRONG: `teams_dropped: 51` IS 43.** `CLOSET_DROPPED` was a
+  running total incremented inside `pairsFor`, and `pairsFor('baseline')` runs TWICE on every run — the
+  planted-divergence proof and then the scheduler's pair cache. Baseline drops 8; 43 + 8 = 51. The
+  drops are now recorded per configuration and **SET, never added to**, so the count is a property of
+  the pool rather than of how often anything asked.
+
+### Added
+- **`engine/quarantine.js`'s whole-game clause READS the new key**, rendering `closet.says` beside the
+  headline in both branches and returning it as `sample_exclusions`. An artifact with no block prints
+  `SAMPLE EXCLUSIONS — UNDECLARED` and the repair command; it is not a FAIL (an older artifact predates
+  the key) but it may never read as "nothing was excluded".
+- **`tests/test-closet-scope.js` section 7** — the artifact declares WHAT, WHY, HOW MANY and WHO; its
+  membership equals the live derived membership; pairing one configuration twice does not inflate the
+  count; and the sentence is never blank. Shown RED on a deliberate break (`.set(cfg, prev.concat(...))`
+  → *"paired twice it declares 1 then 2"*).
+
+### Notes
+- **THE EXCLUSION IS OVER-BROAD BY 17 TEAMS OF 43, MEASURED, AND NOT YET NARROWED.** `closetRejects`
+  tests the whole 6-body SHEET; `buildPair` brings the first 4 buildable bodies. On the pinned pool
+  (`0d103fb9fa87`) 26 of the 43 rejected teams field a Zoroark and **17 are dropped for a body neither
+  engine ever brings**. The slot proxy was checked against the truth over all 43 — 17 and 17, zero
+  disagreements — before publishing. Narrowing the rule adds games and moves the denominator, so it is
+  declared and owed rather than done inside a run that publishes a rate. **The published 17 of 961 is
+  measured on the narrower pool and is if anything understated.**
+- **Whole-game unmoved at 17 of 961**, `planted_divergence_proof_ok` still true, pool digest and census
+  pin identical. Proved inert by control: `HEAD:engine/game_differential.js` was re-run under the same
+  pins to `data/verification/closet-control.json` and **zero keys differ** from the new code's run.
+  Release `d38d117e68e9`, unchanged — the instrument is not in the frozen set.
+
 ## [5.131.6] — 2026-08-25
 
 ### Fixed

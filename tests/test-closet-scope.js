@@ -220,5 +220,98 @@ if (!art) {
   }
 }
 
+/* ---- 7. THE FIFTH READER: THE DIFFERENTIAL'S OWN MEASUREMENT ARTIFACT ---------------------------
+ *
+ * `engine/game_differential.js` does not merely honour the shelf, it APPLIES it to the sample: whole
+ * teams carrying a carrier are dropped from the pool before pairing. That exclusion was stamped into
+ * `data/divergence-turns.json` -- the DEBUGGING dump, written only under `--dump-games` -- and NOT
+ * into `data/game-differential.json`, the artifact `engine/quarantine.js` reads and the whole-game
+ * rate is quoted from. So every whole-game figure this project has published described a sample that
+ * had been narrowed, and nothing in the measurement said so.
+ *
+ * A SILENT EXCLUSION IS NOT A DECLARED ONE. An excluded team nobody counts is indistinguishable from
+ * a mechanic that never came up, which is the failure this whole project is organised against.
+ *
+ * AND THE COUNT ITSELF WAS WRONG. `CLOSET_DROPPED` was a running total incremented inside `pairsFor`,
+ * and `pairsFor('baseline')` is called TWICE on every run -- once for the planted-divergence proof and
+ * again through the scheduler's pair cache -- so the baseline configuration's drops were counted
+ * twice. The published `teams_dropped: 51` was 43 teams with 8 of them counted a second time. Check
+ * 7c is that bug: the declared count must not move when the same configuration is paired again.
+ */
+{
+  const GDART = D('data', 'game-differential.json');
+  /* THE REASON IS CARRIED, NOT SWALLOWED -- absent and MALFORMED have the same symptom and
+   * different remedies, and a torn artifact half-written by a live run parses as a SyntaxError. */
+  let ga = null, gaWhy = null;
+  try { ga = JSON.parse(fs.readFileSync(GDART, 'utf8')); } catch (e) { gaWhy = e.message; }
+  if (!ga) {
+    ok(false, 'data/game-differential.json is readable',
+       'unreadable (' + gaWhy + ') -- a claim that cannot be computed FAILS. SHOWDOWN_PATH=... node '
+       + 'engine/game_differential.js --games 1200 --write');
+  } else {
+    const c = ga.closet;
+    ok(!!c && typeof c === 'object',
+       'the MEASUREMENT artifact declares the exclusion it applied to its own sample',
+       c ? 'declared'
+         : 'data/game-differential.json has NO `closet` key -- the sample was narrowed and the '
+           + 'artifact the gate reads does not say so');
+    if (c) {
+      ok(typeof c.teams_dropped === 'number' && !!c.ability && Array.isArray(c.species)
+         && !!c.why && !!c.by && !!c.on,
+         'the declaration names WHAT, WHY, HOW MANY and WHO decided it',
+         'ability=' + c.ability + '  species=' + (c.species || []).join(', ')
+         + '  teams_dropped=' + c.teams_dropped + '  by=' + c.by + ' on ' + c.on);
+      if (illusion) {
+        const same = Array.isArray(c.species)
+          && c.species.slice().sort().join(',') === [...illusion].sort().join(',');
+        ok(same, 'the artifact membership IS the live derived membership, not a copy that drifted',
+           'artifact [' + (c.species || []).join(', ') + ']  live ['
+           + [...illusion].sort().join(', ') + ']');
+      }
+    }
+  }
+
+  /* 7c. THE COUNT IS A COUNT OF TEAMS, NOT OF CALLS. */
+  if (!GD) {
+    ok(false, 'the idempotency half needs the Showdown checkout (SHOWDOWN_PATH)', 'GD did not load');
+  } else if (typeof GD.closetDeclaration !== 'function') {
+    ok(false, 'game_differential.js exports closetDeclaration()',
+       'absent -- the artifact and the dump cannot be written from ONE declaration, and the drop '
+       + 'count cannot be read back to check it');
+  } else {
+    /* THE CHECK IS RUN ON A CONFIGURATION THAT ACTUALLY DROPS SOMETHING, and it says so when it
+     * cannot find one. `baseline` was the obvious choice and it dropped ZERO teams from the live
+     * pool, so the assertion read `0 === 0` and asked nothing at all -- identical output across the
+     * knob is the unwired-knob shape, not a pass. */
+    const withHits = GD.SW.out
+      .map(c => ({ cfg: c.config, n: (c.picked_teams || []).filter(t => GD.closetHits(t.team).length).length }))
+      .filter(x => x.n > 0)
+      .sort((a, b) => b.n - a.n);
+    if (!withHits.length) {
+      ok(false, 'CONTROL — the pool this test read contains an Illusion carrier to drop',
+         'no configuration in the live pool carries one, so the idempotency check below would '
+         + 'compare 0 with 0 and assert nothing. Re-run against the pinned pool, which does: '
+         + 'SHOWDOWN_PATH=... node tests/test-closet-scope.js  (pool: data/team-pool-frozen)');
+    } else {
+      const { cfg, n } = withHits[0];
+      GD.pairsFor(cfg);
+      const first = GD.closetDeclaration().teams_dropped_by_config[cfg];
+      GD.pairsFor(cfg);
+      const second = GD.closetDeclaration().teams_dropped_by_config[cfg];
+      ok(first === second && first === n,
+         'pairing the same configuration twice does not inflate the declared drop count',
+         cfg + ' carries ' + n + ' closeted team(s); paired twice it declares ' + first + ' then '
+         + second
+         + (first === second && first === n
+              ? '  (a real run pairs one configuration twice -- the planted proof and the pair cache)'
+              : '  -- this is the double count that published 51 for 43'));
+    }
+    /* THE EMPTY CASE IS A SENTENCE, NOT A BLANK. A closet that matched nothing must say so. */
+    const d = GD.closetDeclaration();
+    ok(typeof d.says === 'string' && d.says.length > 0,
+       'the declaration renders a sentence even when it dropped nothing', d.says);
+  }
+}
+
 console.log('\n  ' + (bad ? bad + ' CHECK(S) FAILED' : 'all checks passed') + '\n');
 process.exit(bad ? 1 : 0);

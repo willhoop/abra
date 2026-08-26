@@ -21,6 +21,27 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE DIFFERENTIAL DECLARES ITS OWN EXCLUSION — 51 WAS 43, AND 17 OF THE 43 ARE DROPPED FOR A BODY NEITHER ENGINE BRINGS. WHOLE-GAME UNMOVED AT 17 OF 961. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, *"THE DIFFERENTIAL NOW DECLARES ITS OWN EXCLUSION"*. CHANGELOG 5.131.7.
+Probe: `tests/test-closet-scope.js` section 7 (four checks, shown red on a deliberate break). Release
+`d38d117e68e9` — unchanged, the instrument is not in the frozen set.
+
+`data/game-differential.json` carried **no `closet` key** while `pairsFor` dropped every pool team
+carrying an Illusion carrier. The exclusion existed only in the `--dump-games` view. It is now declared
+in the measurement artifact, rendered from ONE `closetDeclaration()`, printed every run (empty case
+included), and READ by `engine/quarantine.js`'s whole-game clause beside the headline.
+
+**`teams_dropped: 51` was 43.** `pairsFor('baseline')` runs twice — the planted proof and the pair cache
+— and the total was incremented in both. Drops are recorded per configuration and SET, never added to.
+
+**The exclusion is over-broad by 17 of 43.** The rule tests the 6-body sheet; the battle brings 4. On the
+pinned pool 26 rejected teams field a Zoroark and 17 do not. Narrowing it moves the denominator, so it is
+owed with its command in the ledger's `OWED, NOT RUN`, not done in a run that publishes a rate.
+
+Inert by control: HEAD's own differential re-run under the same pins differs from the new code's run in
+**zero** keys.
+
 ## THE THREE ROSTER STAGES ARE QUOTABLE AGAIN — 964 ROWS, 743 TESTED, 0 DIFFER, 0 DID-NOT-FIRE. GATE UNMOVED, AND THAT WAS THE PREDICTION. 2026-08-25 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, *"THE THREE ROSTER STAGES ARE QUOTABLE AGAIN"*. Gates re-run:

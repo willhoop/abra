@@ -1513,6 +1513,41 @@ function wholeGameClause(artifact, wgDecisionImpact) {
   }
   const undeclared = Math.max(0, div - declaredGames - impactGames);
   const _NL = String.fromCharCode(10);
+  /* ==============================================================================================
+   * WHAT LEFT THE SAMPLE BEFORE THE RATE WAS TAKEN — 2026-08-26.
+   * ==============================================================================================
+   * `engine/game_differential.js` drops every pool team carrying an Illusion carrier (ROADMAP #160,
+   * Will's call, 2026-08-11) and that exclusion was stamped only into `data/divergence-turns.json`,
+   * the `--dump-games` debugging view. The artifact THIS CLAUSE reads carried no `closet` key at all,
+   * so every whole-game figure the project has published described a narrowed sample and said nothing.
+   *
+   * IT IS RENDERED BESIDE THE HEADLINE, NOT STORED AND FORGOTTEN. A declaration nothing consults is
+   * the same defect wearing a receipt — `engine/register_reality.js --list` was a read-only-looking
+   * enumeration that flipped a clause to a false OK, one layer down from exactly this.
+   *
+   * AND AN ARTIFACT THAT DECLARES NOTHING SAYS SO, LOUDLY. It is not a FAIL: an older artifact simply
+   * predates the key and refusing it would withhold the rate for a reason that is about the writer,
+   * not the engine. But it may not read as "nothing was excluded", which is the silent-default shape
+   * this repo has a standing rule about.
+   * ============================================================================================ */
+  const closetLine = (() => {
+    const c = j.closet;
+    if (!c) {
+      return _NL + '  SAMPLE EXCLUSIONS — UNDECLARED. This artifact carries no `closet` block, so it '
+        + 'cannot say what left the pool before the rate above was taken. That is NOT a claim that '
+        + 'nothing did: engine/game_differential.js has dropped Illusion carriers since 2026-08-11. '
+        + 'Re-run to get a declaration: SHOWDOWN_PATH=... node engine/game_differential.js '
+        + '--games 1200 --write';
+    }
+    return _NL + '  SAMPLE EXCLUSIONS [' + (c.authority || 'undeclared authority') + ', '
+      + (c.by || '?') + ' ' + (c.on || '?') + ']  ' + (c.says || '(no sentence published)')
+      + (c.teams_whose_only_carrier_sits_past_the_bodies_brought
+          ? _NL + '    of which ' + c.teams_whose_only_carrier_sits_past_the_bodies_brought
+            + ' carry the body PAST the ' + c.bodies_a_pair_brings + ' bodies a pair brings, so it '
+            + 'never entered either engine — the rule is over-broad by that much and the rate above '
+            + 'is measured on the narrower pool.'
+          : '');
+  })();
   /* ROADMAP #258 — printed at zero as well, because "every matcher answered" is the claim that makes
    * the declared count mean anything. A matcher that throws pushes its cause into UNDECLARED, so this
    * line has to sit beside the number it would distort. */
@@ -1558,18 +1593,22 @@ function wholeGameClause(artifact, wgDecisionImpact) {
       return o;
     }, {}),
     declared_matcher_threw: MATCHER_THREW,
+    /* the exclusion, carried as DATA as well as prose so status.js and any later reader can see it
+     * without parsing a sentence. `null` means the artifact declared none — see closetLine. */
+    sample_exclusions: j.closet || null,
     why: ok
       ? `ZERO divergences across ${games} games that anything is asked to answer for`
         + (declaredGames || impactGames ? ` (${div} raw, ${declaredGames} declared, ${impactGames}`
           + ` cleared on decision impact)` : '')
         + `. Mode A pins every die on both sides, so this is the real bar and it has been met.`
-        + declaredLine + impactLine + matcherLine
+        + declaredLine + impactLine + matcherLine + closetLine
       : `${undeclared} of ${games} = ${(100 * undeclared / games).toFixed(1)}% DIVERGE — the two engines`
         + ` disagree about ${undeclared} games`
         + (declaredGames || impactGames ? ` (${div} raw, less ${declaredGames} declared and`
           + ` ${impactGames} cleared on decision impact)` : '')
         + `. Mode A pins every die on both sides, so each one is a RULE they disagree about, not noise.`
         + ` This clause fails until that is zero.` + declaredLine + impactLine + matcherLine
+        + closetLine
         + (!comparable
              ? `  DIRECTION OF TRAVEL WITHHELD — the baseline was stamped under \`${baseMode}\` and this`
                + ` run is \`${runMode}\`. One pin is one corner: those are two instruments, and`

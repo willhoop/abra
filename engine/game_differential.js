@@ -2240,6 +2240,10 @@ if (typeof M.spreadL50 !== 'function') {
     + 'and pass that id to --release.');
 }
 
+/* HOW MANY BODIES A PAIR BRINGS. Named because the CLOSET declaration has to cite it: a carrier
+ * sitting past this index is on the sheet and never enters the battle, and a reader cannot judge the
+ * exclusion without knowing where the battle stops. One constant, two readers. */
+const PAIR_BODIES = 4;
 function buildPair(sheet, opts) {
   const hpx = (opts && opts.hpBoost) || 1;
   const strip = !!(opts && opts.stripStones);
@@ -2249,7 +2253,7 @@ function buildPair(sheet, opts) {
    * outright — *"You must bring at least 6 Pokemon (your team has 4)"* — so a team that is only ever
    * four bodies long cannot be validated at all, whatever is on it. The battle still brings four
    * (`team 1234`); the other two sit on the sheet so the AUTHORITY can pass judgement on it. */
-  const cap = (opts && opts.max) || 4;
+  const cap = (opts && opts.max) || PAIR_BODIES;
   const picked = [];
   for (const p of sheet) {
     if (picked.length >= cap) break;
@@ -5118,12 +5122,73 @@ const CLOSET_SPECIES = (() => {
   }
   return out;
 })();
-let CLOSET_DROPPED = 0;
-function closetRejects(team) {
-  return (team || []).some(m => {
-    const id = dex.toID((m && (m.spec ? m.spec.species || m.spec.name : m.species || m.name)) || '');
-    return CLOSET_SPECIES.has(id);
+/* WHAT THE SHELF REMOVED, RECORDED PER CONFIGURATION AND *SET*, NEVER ADDED TO.
+ *
+ * This was `let CLOSET_DROPPED = 0`, incremented inside `pairsFor` — and `pairsFor('baseline')` runs
+ * TWICE on every run, once for the planted-divergence proof and again through the scheduler's pair
+ * cache, so the baseline configuration's drops were counted a second time. The dump published
+ * `teams_dropped: 51` for a pool that rejects 43 teams. A count of CALLS wearing the name of a count
+ * of TEAMS is exactly the shape this instrument exists to catch, and it was in the instrument.
+ *
+ * Keyed by configuration and overwritten on each call, so the number is a property of the POOL and
+ * cannot depend on how many times anything asked for it. `tests/test-closet-scope.js` pairs
+ * `baseline` twice and asserts the declared count does not move. */
+const CLOSET_DROPS = new Map();          /* cfgId -> [{ team, carriers:[{species,slot}], sheet_length }] */
+function closetHits(team) {
+  const out = [];
+  (team || []).forEach((m, i) => {
+    const sid = dex.toID((m && (m.spec ? m.spec.species || m.spec.name : m.species || m.name)) || '');
+    if (CLOSET_SPECIES.has(sid)) out.push({ species: sid, slot: i });
   });
+  return out;
+}
+function closetRejects(team) { return closetHits(team).length > 0; }
+
+/* THE ONE DECLARATION. The measurement artifact, the debugging dump and the console all render THIS
+ * object; three renderings of one fact cannot disagree, three hand-written blocks eventually do.
+ *
+ * `says` is the printed sentence AND IT IS NEVER BLANK. A closet that shelved nothing reads exactly
+ * like a closet with no members unless it says so out loud — the roster's shelf was fixed to that bar
+ * on 2026-08-25 and this is the same bar one instrument over. */
+function closetDeclaration() {
+  const rows = [];
+  for (const [config, ds] of CLOSET_DROPS) for (const d of ds) rows.push(Object.assign({ config }, d));
+  const byConfig = {};
+  for (const r of rows) byConfig[r.config] = (byConfig[r.config] || 0) + 1;
+  /* WHERE ON THE SHEET THE CARRIER SAT, because that is the fact that says whether the exclusion is
+   * the right SIZE. A pair brings the first PAIR_BODIES buildable bodies; a carrier at a later slot
+   * is dropped for a body that never enters either engine's battle. Published as the raw histogram
+   * rather than as a verdict — the count of teams that would survive a narrower rule is measured by
+   * building them, which this function must not do (buildPair moves five other declared counters). */
+  const slots = {};
+  for (const r of rows) for (const h of r.carriers) slots[h.slot] = (slots[h.slot] || 0) + 1;
+  const past = rows.filter(r => r.carriers.every(h => h.slot >= PAIR_BODIES)).length;
+  const says = rows.length
+    ? rows.length + ' team(s) dropped from the pool before pairing for carrying ' + CLOSET_ABILITY
+        + ' (' + [...CLOSET_SPECIES].sort().join(', ') + ')'
+    : 'none in this run — the shelf is live, derived from the ability `' + CLOSET_ABILITY
+        + '` (' + [...CLOSET_SPECIES].sort().join(', ') + '), and matched no team in this pool';
+  return {
+    ability: CLOSET_ABILITY,
+    species: [...CLOSET_SPECIES].sort(),
+    teams_dropped: rows.length,
+    teams_dropped_by_config: byConfig,
+    carrier_sheet_slot: slots,
+    bodies_a_pair_brings: PAIR_BODIES,
+    teams_whose_only_carrier_sits_past_the_bodies_brought: past,
+    dropped: rows.map(r => ({ config: r.config, team: r.team, sheet_length: r.sheet_length,
+                              carriers: r.carriers })),
+    by: 'Will', on: '2026-08-11', authority: 'ROADMAP #160',
+    why: 'OUR shelf, not the format\'s: zoroark is isNonstandard:null and legal to bring. '
+       + 'ROADMAP #160 — Illusion is in the closet because a body pretending to be another body '
+       + 'makes every divergence it causes unreadable as a rule defect. Derived from the ABILITY '
+       + 'so a carrier added next regulation is covered without an edit. THE RULE IS APPLIED TO THE '
+       + 'SHEET AND THE BATTLE BRINGS ONLY THE FIRST ' + PAIR_BODIES + ' BUILDABLE BODIES, so a team '
+       + 'whose carrier sits past that index is dropped for a body that never enters either engine '
+       + '(see carrier_sheet_slot). Narrowing the rule would CHANGE THE SAMPLE and therefore the '
+       + 'headline rate, so it is declared here and owed, not done quietly.',
+    says,
+  };
 }
 
 const SW = SWARM.buildSwarm(Math.max((UNTIL_COVERED ? MAX_GAMES : GAMES) * 2, 18),
@@ -5171,11 +5236,14 @@ function pairsFor(cfgId) {
    * time one shelved body met a clean one; filtering TEAMS keeps the pairing dense and makes the cost
    * exactly the number of teams removed. */
   const rawPool = (cfg && cfg.picked_teams) || [];
+  const drops = [];
   const pool = rawPool.filter(t => {
-    if (!closetRejects(t.team)) return true;
-    CLOSET_DROPPED++;
+    const hits = closetHits(t.team);
+    if (!hits.length) return true;
+    drops.push({ team: t.id || t.key || null, carriers: hits, sheet_length: (t.team || []).length });
     return false;
   });
+  CLOSET_DROPS.set(cfgId, drops);
   for (let i = 0; i + 1 < pool.length; i += 2) {
     const a = buildPair(pool[i].team), b = buildPair(pool[i + 1].team);
     if (!a || !b) continue;
@@ -5321,7 +5389,7 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                     * defect in either move. Derived from the ABILITY, so a carrier added next
                     * regulation is covered without an edit; a name list is the failure this repo has a
                     * standing rule about. */
-                   CLOSET_ABILITY, CLOSET_SPECIES,
+                   CLOSET_ABILITY, CLOSET_SPECIES, closetHits, closetDeclaration,
                    plantedProof, pairsFor, COV_TARGETS, COV_UNMEASURABLE, PIN_CLAIMS, REL, SW,
                    runDirected, damageInterior, DIRECTED, EQUIV, equivProof, semantic, reduce, NORM_COUNTS,
                    knockOffArms, KO_TARGET_ITEMS,
@@ -6972,6 +7040,26 @@ console.log('      the alignment had to MOVE a stat ' + ALIGN_MOVED + ' times ou
   + (ALIGN_MOVED ? '  <-- the two engines are NOT the same Pokemon' : ' (must read 0)'));
 for (const [w, c] of [...ALIGN_MOVED_WHO.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8))
   console.log('        ' + String(c).padStart(4) + '  ' + w);
+{
+  /* THE EXCLUSION IS PRINTED EVERY RUN, AND THE EMPTY CASE IS A SENTENCE. A shelf that shelved
+   * nothing reads exactly like a shelf with no members unless it says which it was. */
+  const CD = closetDeclaration();
+  console.log('    THE CLOSET (' + CD.authority + ', ' + CD.by + ' ' + CD.on + '): ' + CD.says);
+  if (CD.teams_dropped) {
+    console.log('      per configuration: ' + Object.entries(CD.teams_dropped_by_config)
+      .sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + v).join(', '));
+    console.log('      where the carrier sat on the sheet: '
+      + Object.entries(CD.carrier_sheet_slot).sort((a, b) => +a[0] - +b[0])
+          .map(([k, v]) => 'slot ' + k + ' x' + v).join(', ')
+      + '   (a pair brings the first ' + CD.bodies_a_pair_brings + ' buildable bodies)');
+    console.log('      ' + CD.teams_whose_only_carrier_sits_past_the_bodies_brought + ' of '
+      + CD.teams_dropped + ' were dropped for a carrier sitting PAST that index — a body neither '
+      + 'engine ever brings.'
+      + (CD.teams_whose_only_carrier_sits_past_the_bodies_brought
+          ? '  <-- the rule is over-broad by that much. Narrowing it CHANGES THE SAMPLE, so it is '
+            + 'declared and owed, never done inside a run that publishes a rate.' : ''));
+  }
+}
 console.log('    gender is N on both sides, so Attract / Rivalry / Cute Charm are not exercised.');
 console.log('    ZERO TO HERO IS SILENT — found by this run, not assumed. Showdown transforms Palafin on');
 console.log('      SWITCH-OUT (`|detailschange|p1a: Palafin|Palafin-Hero, L50`) and announces');
@@ -7132,6 +7220,13 @@ if (WRITE) {
      *
      * IT USED TO SAY "ZERO MEGA BODIES WERE TESTED". ROADMAP #31 closed that; what remains is the
      * SPREADS, which is a smaller and differently-shaped hole and is named rather than inherited. */
+    /* THE SAMPLE'S OWN EXCLUSION, IN THE ARTIFACT THE GATE READS — not only in the --dump-games
+     * debugging view, which is where it lived until 2026-08-26 and which most runs never write. A
+     * narrowed sample that does not say it was narrowed is indistinguishable from a mechanic that
+     * never came up; `engine/quarantine.js`'s whole-game clause renders `closet.says` beside the
+     * rate, so a reader of the headline cannot miss it and a change in the count is visible on the
+     * gate line itself. Rendered from `closetDeclaration()`, the same object the dump renders. */
+    closet: closetDeclaration(),
     rate_excludes: 'both engines are built with 0 EVs and 31 IVs and each DERIVES its own stat line '
       + '(nature mode: ' + NATURE_MODE + '), so they agree before AND after a forme change without '
       + 'either being told the other\'s answer. THE SPREADS ARE ABSENT AND ALWAYS WILL BE: an open '
@@ -7502,15 +7597,7 @@ if (DUMP_GAMES && DUMP_POOL.length) {
     /* THE EXCLUSION IS DECLARED, NEVER SILENT. A narrowed sample that does not say it was narrowed is
      * indistinguishable from a mechanic that simply never came up — which is the failure mode this
      * whole project is organised against. */
-    closet: {
-      ability: CLOSET_ABILITY,
-      species: [...CLOSET_SPECIES].sort(),
-      teams_dropped: CLOSET_DROPPED,
-      why: 'OUR shelf, not the format\'s: zoroark is isNonstandard:null and legal to bring. '
-         + 'ROADMAP #160 — Illusion is in the closet because a body pretending to be another body '
-         + 'makes every divergence it causes unreadable as a rule defect. Derived from the ABILITY '
-         + 'so a carrier added next regulation is covered without an edit.',
-    },
+    closet: closetDeclaration(),
     /* `of_diverged` IS THE POPULATION, NOT THE POOL. DUMP_POOL is capped at twice the dump size, so
      * reporting its length here would have the page say "80 of 160" for a run that diverged on 655 —
      * a sample announcing itself as the whole thing. */
