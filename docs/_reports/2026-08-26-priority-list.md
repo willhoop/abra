@@ -199,3 +199,58 @@ node engine/replay_one.js --census data/verification/census-pin-9446a684709d.jso
 # item 20's workaround until it is fixed
 node --max-old-space-size=4096 tests/test-resolution-order.js
 ```
+
+---
+
+## ADDENDUM, 2026-08-26 — THE MECHANICS CLAUSE IS MEASURING THE WRONG 964 THINGS
+
+**This reorders the list and it is the most important finding of the night after Protect.**
+
+The failing clause reports **10 of 17 diverging mechanics uncleared**, worst row 112 teams. Separately it
+excludes **67 mechanics that NEVER FIRED** as "a harness gap, not counted here."
+
+**Those 67 are the most-played mechanics in the format.** Verified by the coordinator directly against
+`data/all-mechanics-fire.json` — every one of these carries verdict `DID-NOT-FIRE`:
+
+| mechanic | teams | staged? |
+|---|---|---|
+| Prankster | 9,313 | **never fires** |
+| Hospitality | 6,740 | **never fires** |
+| Flower Veil | 4,109 | **never fires** |
+| Lightning Rod | 3,326 | **never fires** |
+| Unburden | 3,026 | **never fires** |
+| Light Clay | 2,798 | **never fires** |
+
+**The worst row on the failing clause is 112 teams.** So the untested set is roughly eighty times more
+played than the worst thing the clause is currently chasing. **Driving this clause to zero would say
+nothing about the nine most-played mechanics in this format** — it would only say that the ones we
+happen to be able to stage agree.
+
+This is the coverage-versus-correctness distinction one level up, and it is exactly the shape of the
+2026-07-28 lesson: **a capability that cannot prove it ran is assumed broken.** A mechanic that never
+fires is not passing; it is unmeasured, and it is being reported in the same breath as the ones that
+pass.
+
+**AND THE CLAUSE'S ARTIFACT IS STALE RIGHT NOW.** `data/all-mechanics-fire.json` ran on release
+`419e9636ec6a` at 07:30:28Z; the pointer has since moved to `7fc604e5bc44` and the simulator was
+rewritten at 08:07Z. The clause short-circuits to MEASURED AGAINST A DIFFERENT ENGINE today. **The "10
+of 17" is true of that release only and must not be quoted as current.**
+
+### THE TEN ARE EIGHT MECHANISMS, AND ONLY ONE FIX CLOSES MORE THAN ONE ROW
+
+1. **The spread hit-step pipeline.** The authority runs each hit STEP across every target before moving
+   to the next step, so a Protect refusal always precedes any target's effect; we resolve target by
+   target. Closes String Shot, Cotton Spore and Teeter Dance together, plus one whole-game divergence,
+   and it is the frame the unread immunity gate needs.
+2. **Supreme Overlord: DELETE THE ROW, DO NOT FIX IT.** It heads the list at 112 teams and it is the
+   placeholder-string line the whole-game clause **already declares AUTHORITY-WRONG**. The narration fix
+   landed before that run; the survivor is the declared case. `classifyMechanics` never consults the
+   declared list the whole-game clause applies. **A MEASURE ticket about an instrument, not engine work.**
+3. **Shell Side Arm (101 clicks) and Sand Force (34 teams)** — the only two board-material rows. Shell
+   Side Arm's category choice has no representation in the tags at all. Sand Force's tag records one
+   type where the authority boosts three, and it is the only multi-type damage boost in the file — one
+   scalar that should be a list.
+
+**The Switcheroo hypothesis in the earlier brief is REFUTED.** Its divergence is the announcement NAME —
+the authority announces it as Trick with an attribution tag, we print the raw id. The unread gate does
+own one row, and it is Attract, whose gate is gender, which this engine does not model at all.
