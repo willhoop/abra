@@ -13918,3 +13918,43 @@ being quietly cleared.
 and quarantine stamps both moved while the pass was open); `test-model-map`, which needs a `DECLARED`
 entry outside the WEB write set; and `test-web-status`, whose rebuild runs `status.js` and may not
 run beside a live MEASURE agent.
+
+## 2026-08-25 — Illusion goes in the closet, and it was manufacturing a GREEN
+
+Will, 2026-08-25: *"illusion and all things zoroark related go into the closet."*
+
+**The roster was staging `abilities:illusion` on Zoroark and scoring it FIRED-AND-BOARDS-MATCH — a
+PASS, inside the ability stage's tested set, for a mechanic this engine does not implement at all.**
+The only occurrence of the word in `medicham2-browser.js` is the sentence *"this engine models no
+Illusion"*. The two arms agreed because the disguise moves no leaf the comparator reads, so the row
+was agreement about the CONTROL's work. **That is not a hidden divergence. It is the opposite and
+worse — a manufactured green**, and it is the `a-green-test-can-be-asking-nothing` shape with a
+receipt.
+
+**Two instruments were already saying opposite things about one Pokemon.**
+`engine/all_mechanics_fire.js` shelves `bittermalice` (Zoroark-Hisui) and `nightdaze` (Zoroark) on
+exactly this rule; the roster shelved nothing. `tests/test-closet-scope.js` exists to catch that drift
+and could not see it, because the roster published no carrier field at all — the body was recorded
+only as prose inside `note`. It is a field now, and 812 of 964 rows carry one.
+
+**MEMBERSHIP IS IMPORTED, NEVER RE-DERIVED.** `game_differential.js` computes the closet from the
+ABILITY — every legal species holding `illusion` — and the roster reads that set through `SB.harness`.
+So a carrier added by a later regulation is shelved with no edit, and the two instruments cannot come
+to hold different sets. **An absent export THROWS rather than shelving nothing**, because a silent
+empty closet reads exactly like a closet with no members.
+
+**It is a shelf, not a deletion.** A closeted row is still staged, still played, still printed. What
+it stops doing is voting.
+
+Verified: `tests/test-closet-scope.js` exit 0, all checks passed, **with its controls**: the shelf
+covers 1 of 964 rows (0.10%), and a named control FAILS if that reaches zero — if the roster ever
+stops staging a Zoroark the assertion would become unfalsifiable, and the test says so out loud.
+
+**OWED, NOT RUN:** the three roster stages and `all_mechanics_fire` were interrupted by the session
+ending, so `data/roster.*.json` here are the artifacts of a run that did not complete. Re-run before
+quoting any stage count:
+`cmd /c tools\lownode.cmd tests\roster.js --stage abilities --write` (likewise items, moves), then
+`cmd /c tools\lownode.cmd engine\all_mechanics_fire.js --kind all --write`, then
+`cmd /c tools\lownode.cmd engine\quarantine.js`.
+Also owed: the LOUD PRINT of the closet in the roster's own run output — the artifact and the gate
+carry the receipt, the console does not yet.

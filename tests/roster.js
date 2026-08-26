@@ -1664,6 +1664,93 @@ function usageShelf(r) {
        + 'shelf: ' + r.verdict + ' — ' + String(r.why || '').slice(0, 160) };
 }
 
+/* ---- WHICH BODY IS THIS ROW ABOUT — THE RECEIPT, WRITTEN ON EVERY ROW --------------------------
+ *
+ * The artifact carried the carrier only inside `note`, as prose ("SUPPRESS carrier Zoroark"), so no
+ * reader could ask which body a row was staged on without matching text. It is a field now.
+ *
+ * `carrierSpecies` is the explicit stamp the ability stagings write. Everything else names its
+ * subject SLOT ('B0', 'A1'), which resolves against the side `scaffold` built. A row that can say
+ * neither returns null and is COUNTED — never guessed at, because a silent null here would read
+ * exactly like "this row is on nobody", which is the shape of every identity bug in this repo. */
+/* ---- THE SECOND SHELF: ILLUSION, AND IT IS DECIDED BY THE CARRIER ------------------------------
+ *
+ * Will, 2026-08-25: *"illusion and all things zoroark related go into the closet."*
+ *
+ * THE NAMED `DEFERRED` MAP ABOVE COULD NOT EXPRESS THIS AND MUST NOT BE MADE TO. It is keyed on the
+ * ENTITY, and the closet here is a judgement about a BODY: every row staged on a carrier of Illusion,
+ * whatever the row is about. Adding `illusion` to `DEFERRED` would shelve the ability and leave a move
+ * or an item staged on the same body untouched — and would be a list of names, which is the
+ * ban-list-of-four failure this repo has already paid for twice.
+ *
+ * WHAT IT WAS COSTING, MEASURED BEFORE IT WAS WIRED. `abilities:illusion` was staged on Zoroark and
+ * came back **FIRED-AND-BOARDS-MATCH** — counted as a PASS inside the ability stage's tested set, for
+ * a mechanic `engine/medicham2-browser.js` does not implement: the only occurrence of the word in the
+ * whole simulator is the sentence *"this engine models no Illusion"*. The two arms agreed because the
+ * disguise moves no leaf this comparator reads, so the row was agreement about the CONTROL's work.
+ * That is not a hidden divergence, it is the opposite and worse — a manufactured green.
+ *
+ * AND `engine/all_mechanics_fire.js` WAS ALREADY SHELVING THE SAME BODY. It defers `bittermalice`
+ * (Zoroark-Hisui) and `nightdaze` (Zoroark) on this exact rule. Two instruments were saying opposite
+ * things about one Pokemon, which is the drift `tests/test-closet-scope.js` exists to catch and could
+ * not see, because it had no fourth reader and the roster published no carrier.
+ *
+ * THE MEMBERSHIP IS IMPORTED, NEVER RE-DERIVED. `game_differential.js` computes it from the ABILITY —
+ * every legal species holding `illusion` — so a body added by a later regulation is shelved here with
+ * no edit to this file, and the two instruments cannot come to hold different sets. It is read through
+ * `SB.harness`, the same driver object this file plays its games on, so there is genuinely one copy.
+ * The REASON below is this file's own, because the observation is this file's own: the mechanics
+ * runner shelves a divergence, this shelves a vacuous pass, and those are different sentences.
+ *
+ * A ROW IN HERE IS STILL STAGED, STILL PLAYED AND STILL PRINTED, exactly like every other shelf in
+ * this file. What it stops doing is voting. */
+let _CLOSET = null;
+function illusionCloset() {
+  if (_CLOSET) return _CLOSET;
+  const G = SB.harness(null);
+  const species = G && G.CLOSET_SPECIES;
+  /* LOUD, NEVER A SILENT EMPTY SET. An absent export would shelve nothing and read exactly like a
+   * closet with no members, which is the silent default this project has a rule about. */
+  if (!(species instanceof Set) || !species.size)
+    throw new Error('engine/game_differential.js published no CLOSET_SPECIES — the Illusion shelf '
+      + 'cannot be honoured and this run would silently count a closeted body. Refusing to play.');
+  _CLOSET = { ability: G.CLOSET_ABILITY, species };
+  return _CLOSET;
+}
+function closetShelf(r) {
+  if (!r || !r.carrier) return r;
+  const C = illusionCloset();
+  if (!C.species.has(idOf(r.carrier))) return r;
+  return { ...r, verdict: 'DEFERRED-BY-OWNER', closet: C.ability, underlying_verdict: r.verdict,
+    deferred: { on: '2026-08-25', by: 'Will',
+      why: 'ROADMAP #160 — ILLUSION IS IN THE CLOSET and this row is staged on a carrier of it. '
+         + 'Will: "illusion and all things zoroark related go into the closet."' },
+    why: 'SHELVED BY THE OWNER ON THE CARRIER, NOT MEASURED CLEAN. This row is staged on '
+       + pretty(r.carrier) + ', which holds ' + C.ability + '; the membership is derived from the '
+       + 'ABILITY by engine/game_differential.js (' + [...C.species].sort().join(', ') + ') and '
+       + 'imported here, so a carrier added by a later regulation is shelved without an edit. '
+       + 'Underlying verdict without the shelf: ' + r.verdict
+       + (r.verdict === 'FIRED-AND-BOARDS-MATCH'
+           ? ' — AND THAT PASS IS VACUOUS, WHICH IS WHY THE SHELF IS NOT "STALE". medicham2-browser.js '
+             + 'implements no Illusion at all, so the two engines agree here about the CONTROL arm\'s '
+             + 'work and about nothing else. A green on a mechanic that is not written is the "a green '
+             + 'test can be asking nothing" failure, not evidence.'
+           : '.') + ' Still staged and still played against the authority every run; it does not hold '
+       + 'the gate.' };
+}
+
+let CARRIER_UNKNOWN = 0;
+function carrierOf(sc) {
+  if (!sc) return null;
+  if (sc.carrierSpecies) return idOf(sc.carrierSpecies);
+  const m = /^([AB])(\d+)$/.exec(String(sc.subject || ''));
+  const side = m && (m[1] === 'A' ? sc.A : sc.B);
+  const body = side && side[+m[2]];
+  if (body && body.species) return idOf(body.species);
+  CARRIER_UNKNOWN++;
+  return null;
+}
+
 function runEntry(e) {
   const sc = e.scenario;
   const { sc: ctrlSc, ignore } = controlOf(sc);
@@ -8873,13 +8960,31 @@ function main() {
   console.log('    all ' + staged.reduce((n, e) => n + e.scenario.script.length * 4, 0)
     + ' derived clicks are guaranteed hits carried by the body that clicks them.');
 
+  /* THE CARRIER SHELF, DERIVED AND PRINTED BEFORE IT IS APPLIED. A mechanic removed from a
+   * denominator with no printed line is how a gate quietly stops asking, so the membership and the
+   * rows it will take are stated here rather than inferred from a count that came out lower. Read
+   * eagerly, on the shipped engine, so no later patched-engine reload can move it. */
+  {
+    const C = illusionCloset();
+    const will = entries.filter(e => C.species.has(idOf(carrierOf(e.scenario))));
+    console.log('\n  THE CLOSET — ' + STAGE + ' rows staged on a carrier of ' + C.ability
+      + ', shelved and NOT counted (ROADMAP #160):');
+    console.log('    membership, derived from the ABILITY by engine/game_differential.js: '
+      + [...C.species].sort().join(', '));
+    console.log(will.length
+      ? will.map(e => '    ' + e.id + '  on ' + pretty(carrierOf(e.scenario))).join('\n')
+      : '    none in this stage — the shelf is live and matched nothing here');
+  }
+
   const results = [];
   for (const e of entries) {
-    if (e.verdict) { results.push(e); continue; }
+    if (e.verdict) { results.push(closetShelf({ ...e, carrier: carrierOf(e.scenario) })); continue; }
     let r;
     try { r = runEntry(e); }
     catch (err) { r = { ...e, verdict: 'COULD-NOT-STAGE', why: 'the harness threw: ' + err.message }; }
+    r = { ...r, carrier: carrierOf(e.scenario) };
     r = usageShelf(r);          // one choke point, so no verdict path can bypass the shelf
+    r = closetShelf(r);         // ...and the same one for the shelf decided by the CARRIER
     /* A DIFFERING PAIR IS ONLY A FOLDING BUG IF EACH HALF AGREES ON ITS OWN. Re-run the two singles
      * and record which arms parted, because "both together are wrong" and "one of them is wrong"
      * are different findings and the pair arm cannot tell them apart. */
@@ -9261,6 +9366,13 @@ function main() {
       results: results.map(r => ({ kind: r.kind, id: r.id, name: r.name, rule: r.rule, reads: r.reads || null,
         note: r.note || null, verdict: r.verdict, why: r.why || null,
         arm: (r.scenario && r.scenario.arm) || PRIMARY_ARM_ID, control_why: r.control_why || null,
+        /* THE BODY THIS ROW WAS STAGED ON, as a field rather than as prose inside `note`. A shelf
+         * that is decided by the CARRIER cannot be audited from outside without it. */
+        carrier: r.carrier || null,
+        /* WHO SHELVED THIS ROW, WHEN, AND WHY. It was computed and then dropped on the way to the
+         * artifact, so `DEFERRED-BY-OWNER` arrived with no reason attached and every external reader
+         * had to take the verdict on trust. */
+        deferred: r.deferred || null,
         /* the regulation refusal, tagged at the refusal rather than matched out of the prose */
         out_of_scope: r.out_of_scope || null,
         declared_untestable: r.declared_untestable || false,
