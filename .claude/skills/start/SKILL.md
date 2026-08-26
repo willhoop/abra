@@ -520,6 +520,7 @@ ours with `where.js`, the authority's by opening the line.
 | `node engine/feature_fixture.js --check <weights>` | the refit signal; `status.js` PARSES its output, so its shape is load-bearing |
 | `node web/build-quarantine.js --check` | whether the site is telling a visitor the simulator is clean |
 | `node engine/explain_divergence.js`, `engine/divergence_cards.js` | render `data/divergence-turns.json` into readable cards — **the highest-yield instrument in the repo** |
+| `node -e "require('./data/engine-data.js');const{mcKey}=require('./engine/mc_key.js');console.log(mcKey(X))"` | **THE COORDINATOR MUST USE THIS TOO.** It resolves `castformsunny` to `castform-sunny` and THROWS by name on `raichumega`. On 2026-08-26 the coordinator hand-typed three keys into greps -- `castformsunny`, `raichumega`, `floette-eternal-mega` -- and reported a species MISSING that was present, twice, sending a false blocker to Will. Will: **"BRO U MISS SO MANY HYPHENS"**. Never type a species key into a grep or an `includes()`; ask the resolver |
 | `engine/mc_key.js` | the ONE species-name → `MC.mons` key resolver. Three separate bugs came from not using it |
 | `engine/artifact_audit.js` | does a generated file actually contain its source's values |
 | `engine/policy.js --promote` | lands `move-priors.observed.json` on the engine and prints the delta — the scheduler no longer writes it |
