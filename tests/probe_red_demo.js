@@ -120,7 +120,7 @@ function demoSource(name, edits, assertFn) {
   let bad;
   try { bad = revertedEngine(edits); }
   catch (e) {
-    failures++; stale.push(name);
+    stale.push(name);
     console.log(`  STALE ${name}   THE REVERSAL NO LONGER MATCHES THE ENGINE — a later wire rewrote `
       + `the lines it patches, so this demonstration has not run since. ${String(e.message).split('\n')[0]}`);
     if (VERBOSE) console.log('    ' + String(e.message).split('\n').slice(1).join('\n    '));
@@ -146,7 +146,12 @@ function demoSource(name, edits, assertFn) {
       + 'play a turn, so nothing was demonstrated: ' + String(e.message).split('\n')[0]; }
   }
   if (threw !== null) {
-    failures++; stale.push(name + '   (' + threw + ')');
+    /* WHICH ARM THREW DECIDES WHICH COUNTER IT LANDS IN, and that distinction is the whole of the
+     * exit-code split at the bottom of this file. A SHIPPED arm that throws is a finding ABOUT THE
+     * ENGINE and is a HOLLOW row. A REVERTED arm that throws is a broken PATCH: the demonstration
+     * did not run, exactly as a non-matching pattern did not run, so it is counted with those. */
+    if (/^THE SHIPPED ENGINE THREW/.test(threw)) failures++;
+    stale.push(name + '   (' + threw + ')');
     console.log(`  THREW ${name}   ${threw}`);
     return;
   }
@@ -538,7 +543,7 @@ demoSource('WIRE 117 Grassy Terrain does not heal a Levitate body',
  * WIRE 118's bug. Deleting the block would also have removed the counters, and a demonstration that
  * turns off the instrument as well as the mechanic proves the weaker thing. */
 demoSource('WIRE 118 Tailwind speeds the PARTNER up inside the same turn (dynamic speed)',
-  [['      const _rest=sortTurnOrder(acts.slice(from),field,rng);',
+  [['      const _rest=sortTurnOrder(acts.slice(from),field,_tieRng);',
     '      const _rest=acts.slice(from);']],
   (E) => {
     const took = (setTailwind) => {
@@ -674,8 +679,14 @@ demo('WIRE 122 refusesStatusMoves -- Good as Gold refuses Yawn',
  *
  * A per-side implementation would pass the first two arms, which is why the third is here. */
 demoSource('WIRE 123 the SLOWER entry weather setter owns the field, across both sides',
-  [['    entrants.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},S.field));',
-    '    entrants.sort((x,y)=>0);']],
+  /* RE-AIMED 2026-08-26 (ROADMAP #449): the sort is not written at the entry pass any more. It moved into
+   * `entryOrder(all, entrants, field)`, which ranks through `entrySpeedSort` and then applies the
+   * switch-in priority term on top. Reverting the CALLER would have taken the priority term with it,
+   * so the reversal is at the function's own door: it hands the entrants back in the order it was
+   * given them, which is exactly what this pass did before WIRE 123 — array order, side A then side B,
+   * with speed consulted nowhere. */
+  [['function entryOrder(all,entrants,field){',
+    'function entryOrder(all,entrants,field){ return entrants.slice();   // reverted -- WIRE 123: no speed sort at entry\n']],
   (E) => {
     const run = (pelSpe, tyrSpe, allySp, allyAb, allySpe) => {
       const pel = bare('pelipper'), ally = bare(allySp);
@@ -1254,8 +1265,13 @@ demoSource('WIRE 129 No Guard works from the TARGET as well as from the attacker
  * of the step list and therefore made it read its surviving-row count instead of `targets`. The
  * reversal is still exactly the defender argument, at its new home. */
 demoSource('WIRE 129 the attack-site roll knows WHO it is aimed at',
-  [["          const _accDef=(!a.move.spread&&_acc1.length===1)?_acc1[0].tg:null;",
-    "          const _accDef=null;"]],
+  /* RE-AIMED 2026-08-26 (ROADMAP #449): `_accDef` is gone. The roll reads the ROW'S OWN body unconditionally
+   * (the site says so in its own header — "`a.move.spread` is not consulted"), so the reversal is now
+   * the one thing this claim is about: hand `hitChance` no defender at all. Every modifier that lives
+   * on the target side — Bright Powder, Sand Veil, an evasion stage — then goes unread, and the
+   * attacker-side control (Wide Lens) is unmoved, which is what separates the arms. */
+  [["          const _mvAcc=hitChance(m,tg,a.move.id,field,",
+    "          const _mvAcc=hitChance(m,null,a.move.id,field,   // reverted -- WIRE 129: the roll did not know its defender"]],
   (E) => {
     const at = (roll, stage) => hitOn(E, roll, 'hydropump', stage ? { stage } : null);
     const lens = at(0.85, (B) => { B.me.item = 'widelens'; }) > 0;   // attacker side: TRUE on both engines
@@ -1320,11 +1336,14 @@ demoSource('WIRE 130 a sound move and an Infiltrator go THROUGH the doll',
    * branch, so the three-line pattern stopped matching. It is CARRIED ACROSS into the replacement
    * rather than dropped — a reversal that also unset that flag would make this a `_subAte` demo as
    * well, and it would then be red for two reasons. */
-  [[`        if(subBlocks(m,tg,a.move.id)){const _s0=tg._sub;tg._sub=Math.max(0,tg._sub-dmg);
-          _subAte=true;                      // ROADMAP #72 -- see the declaration for why this is not \`!connected\`
-          if(TR){TR.act(tg,'move: Substitute','[damage]');if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');}
-          R.out=true;return;}`,
-    '        if(tg._sub>0){tg._sub=Math.max(0,tg._sub-dmg);_subAte=true;R.out=true;return;}']],
+  /* RE-AIMED 2026-08-26 (ROADMAP #449), AND THE ANCHOR SHRANK TO ONE LINE ON PURPOSE. This pattern has been
+   * re-anchored three times, every time because the BODY of the branch grew another line (the `_subAte`
+   * flag, then ROADMAP #357's counter, then the `-end`/`-activate` split). The claim was never about the
+   * body: it is about the CONDITION, `subBlocks(...)` against a bare `_sub > 0`. So the reversal now
+   * rewrites the test and leaves the block alone, which is the shape that cannot go stale on the next
+   * line somebody adds inside it. */
+  [["        if(subBlocks(m,tg,a.move.id)){const _s0=tg._sub;",
+    "        if(tg._sub>0){const _s0=tg._sub;   // reverted -- WIRE 130: the doll ate everything"]],
   (E) => {
     const beam = twoOn(E, { setupFoe: 'substitute', move: 'icebeam' });
     const sound = twoOn(E, { setupFoe: 'substitute', move: 'hypervoice' });
@@ -1340,7 +1359,12 @@ demoSource('WIRE 130 a second Substitute costs nothing',
 /* RE-TARGETED BY ROADMAP #84: the twenty-one `if(TR)TR.fail(m)` sites became `mvFail(m)`, which
  * writes the move result whether or not a trace is attached. The reversal still deletes exactly this
  * one early-fail line and nothing else. */
-  [['          if(m._sub>0&&TAGS.has(\'move\',a.mv||a.move.id,\'substitute\')){m._lastMove=a.mv||a.move.id;mvFail(m);continue;}\n', '']],
+  /* RE-AIMED 2026-08-26 (ROADMAP #449): the one-line early fail became six — ROADMAP #256 gave it the move's
+   * own name in the `-fail` and an `attrStill`. Same shape as the substitute branch above: the claim is
+   * that the guard EXISTS, not what it announces, so the reversal turns the condition off and leaves
+   * the body untouched. */
+  [["          if(m._sub>0&&TAGS.has('move',a.mv||a.move.id,'substitute')){",
+    "          if(false&&m._sub>0&&TAGS.has('move',a.mv||a.move.id,'substitute')){   // reverted -- no early fail"]],
   (E) => {
     const twice = twoOn(E, { setupFoe: 'substitute', foeMove: 'substitute' });
     const once = twoOn(E, { setupFoe: 'howl', foeMove: 'substitute' });
@@ -2314,7 +2338,10 @@ demoSource('ROADMAP #31  a stone-holder is BASE at build (the pre-change engine 
  *    point that performs it rather than at the caller - a caller revert would also disable the phase
  *    placement, and the next case needs that placement intact to be meaningful. */
 demoSource('ROADMAP #31  the evolution resolves inside the turn',
-  [['function megaEvolveNow(S,m,auto){\n  if(!m||m.fainted||m.curHP<=0)return false;',
+  /* RE-AIMED 2026-08-26 (ROADMAP #449): the three eligibility tests were lifted out of `megaEvolveNow` into
+   * `canMegaNow`, so the old first line is not there any more. The reversal is the same one — the single
+   * point that performs the evolution refuses to perform it. */
+  [['function megaEvolveNow(S,m,auto){\n  if(!canMegaNow(S,m))return false;',
     'function megaEvolveNow(S,m,auto){\n  return false;']],
   (E) => {
     const me = MEGA_BODY(E, 'gengar', 'gengarite');
@@ -2330,8 +2357,13 @@ demoSource('ROADMAP #31  the evolution resolves inside the turn',
  *    nobody asked which slot. The assertion is deliberately two-sided - an engine that megaed only
  *    from the RIGHT slot must fail it too. */
 demoSource('ROADMAP #31  mega fires from the RIGHT slot as well as the left',
-  [['  if(slot<0)return false;                       // a benched body cannot mega',
-    '  if(slot!==0)return false;                     // a benched body cannot mega']],
+  /* RE-AIMED 2026-08-26 (ROADMAP #449), AND THE ENGINE HAS TWO `canMegaNow` DECLARATIONS — the second one wins,
+   * because a later function declaration overwrites an earlier one at load. The reversal is aimed at the
+   * LIVE (second) copy, whose text carries the doubled parentheses in the `megaUsed` return; patching the
+   * dead first copy would have applied cleanly and changed nothing, which is the hollow shape this pass
+   * exists to remove. The duplicate itself is reported, not fixed here. */
+  [['  if(onB<0&&S.actA.indexOf(m)<0)return false;\n  return !((onB>=0?S.sfB:S.sfA).megaUsed);',
+    '  const _slotREV=onB>=0?onB:S.actA.indexOf(m);\n  if(_slotREV!==0)return false;   // reverted -- the base class megaed from the LEFT slot only\n  return !((onB>=0?S.sfB:S.sfA).megaUsed);']],
   (E) => {
     const run = (slot) => {
       const me = MEGA_BODY(E, 'gengar', 'gengarite');
@@ -2350,7 +2382,7 @@ demoSource('ROADMAP #31  mega fires from the RIGHT slot as well as the left',
  *    frozen on the PRE-mega Speed. Nothing about the end state gives this away; only who moved does,
  *    which is why the probe reads damage taken by a body whose foe was left on 1 HP. */
 demoSource('ROADMAP #31  the turn re-sorts around the new Speed the mega brought',
-  [['      const _rest=sortTurnOrder(acts.slice(from),field,rng);\n      for(let _k=0;_k<_rest.length;_k++)acts[from+_k]=_rest[_k];',
+  [['      const _rest=sortTurnOrder(acts.slice(from),field,_tieRng);\n      for(let _k=0;_k<_rest.length;_k++)acts[from+_k]=_rest[_k];',
     '      void from;']],
   (E) => {
     const me = MEGA_BODY(E, 'gengar', 'gengarite');
@@ -2390,8 +2422,11 @@ demoSource('ROADMAP #31  an entry ability on the mega forme fires when it evolve
  *    must still succeed on both engines, or the probe would be testing "megas are rationed" rather
  *    than "megas are rationed PER SIDE". */
 demoSource('ROADMAP #31  the second stone-holder on a side is refused',
-  [['  if(sf.megaUsed)return false;\n  const megRow=monRow(key), baseRow=monRow(m.name);',
-    '  const megRow=monRow(key), baseRow=monRow(m.name);']],
+  /* RE-AIMED 2026-08-26 (ROADMAP #449): the per-side ration moved into `canMegaNow` with the rest of the
+   * eligibility tests. Aimed at the LIVE (second) declaration — see the slot demonstration above for why
+   * that distinction is load-bearing. */
+  [['  return !((onB>=0?S.sfB:S.sfA).megaUsed);\n}',
+    '  return true;   // reverted -- no per-side ration\n}']],
   (E) => {
     const a0 = MEGA_BODY(E, 'gengar', 'gengarite'), a1 = MEGA_BODY(E, 'mawile', 'mawilite');
     const b0 = MEGA_BODY(E, 'scizor', 'scizorite'), b1 = bare('milotic');
@@ -2441,8 +2476,11 @@ const WIRE81 = {
  *    engines, or this would be watching "High Jump Kick hurts its user" rather than "it hurts its
  *    user when a shield stops it". */
 demoSource('ROADMAP #81  a blocked High Jump Kick still pays its crash',
-  [['      if(_hadTargets&&!targets.length){m._mvRes=null;_crashOnFail();continue;}',
-    '      if(_hadTargets&&!targets.length){m._mvRes=null;continue;}'],
+  /* RE-AIMED 2026-08-26 (ROADMAP #449): ROADMAP #331 put the pending self-KO line inside this exit, so the
+   * one-line pattern stopped matching. The reversal drops the crash call and nothing else — the self-KO
+   * line is carried across, or this would be a `|faint|` demonstration as well. */
+  [['        m._mvRes=null;_crashOnFail();continue;}',
+    '        m._mvRes=null;continue;}   // reverted -- the fully-shielded exit paid no crash'],
    ['      if(_hadTargets&&!_reached)_crashOnFail();',
     '      if(_hadTargets&&!_reached)void 0;']],
   (E) => {
@@ -2565,8 +2603,19 @@ demoSource('ROADMAP #81 WIRE 2  a FAILED Protect resets the counter, so the next
    * reversal is unchanged in substance — the counter climbs on every attempt and is never reset on a
    * failure, which is the literal historical behaviour — and it keeps the derived cap so this stays a
    * demonstration about the RESET and not about the ceiling. */
-  [['          it.mon.tookProtectTurns=_ok?Math.min(_cap,_n+1):0;',
-    '          it.mon.tookProtectTurns=Math.min(_cap,_n+1);']],
+  /* RE-AIMED AGAIN 2026-08-26 (ROADMAP #449), TWICE OVER. The line is four columns further left than it was
+   * (its block lost a level of nesting), and re-anchoring it ALONE left the demonstration hollow: the
+   * arms did not separate, because the failed shield's reset is not delivered here any more. `stall`
+   * carries `duration: 2`, and the residual LAPSE SWEEP now clears `tookProtectTurns` on any turn the
+   * counter was not refreshed — which on this fixture is exactly the turn the shield lost its roll. So
+   * the reversal takes BOTH: the ternary's `:0` and the lapse, through the knob the engine already
+   * carries for it. Measured on the streak fixture — one reversal alone: [0,0,158,0] on both arms,
+   * counters [1,2,0,1] on both. Both: shipped [0,0,158,0], reverted [0,0,158,158], counters [1,2,3,4].
+   * The claim is unchanged; what moved is WHICH LINE performs the reset. */
+  [['      it.mon.tookProtectTurns=_ok?Math.min(_cap,_n+1):0;',
+    '      it.mon.tookProtectTurns=Math.min(_cap,_n+1);'],
+   ["const PROTECT_STALL_NO_LAPSE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PROTECT_STALL_NO_LAPSE==='1');",
+    'const PROTECT_STALL_NO_LAPSE=true;   // reverted -- the stall counter did not lapse at the residual']],
   (E) => {
     const d = WIRE82.streak(E);
     /* turns 1-2 blocked and turn 3 taken on BOTH engines -- that is the decay half, which was never
@@ -2973,8 +3022,14 @@ demoSource('ROADMAP #81 WIRE 7  Knock Off cannot take the Sash that just saved t
    * Sash — the position it held before this wire. BOTH refusal guards are carried into the moved copy
    * on purpose, so what is reverted is only the ORDER; the refusal SET is the next demonstration's
    * claim and must not ride on this one. */
-  [["      const _stepAfterHit=(R)=>{const tg=R.tg;\n        const _ri=TAGS.param('move',a.move.id,'removesItem');\n        if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){\n          const _taken=tg.item; tg.item='';\n          if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);\n          if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}\n        }\n      };",
-    "      const _stepAfterHit=(R)=>{void R;};"],
+  /* RE-AIMED AGAIN 2026-08-26 (ROADMAP #449), AND THE ANCHOR IS THE CLOSURE'S DOOR RATHER THAN ITS BODY.
+   * The 2026-08-25 `requiresItemClass` guard (Bug Bite / Pluck take a BERRY only) landed inside this
+   * step, so a pattern quoting the whole body stopped matching — the third time this one has gone
+   * stale on a line added inside it. The step is now neutered at its first statement, which cannot go
+   * stale on the fourth. The MOVED copy below is unchanged and deliberately carries both refusal
+   * guards, so what is reverted is only the ORDER. */
+  [["      const _stepAfterHit=(R)=>{const tg=R.tg;",
+    "      const _stepAfterHit=(R)=>{if(1){void R;return;}const tg=R.tg;"],
    ["        const _rbHit=TAGS.param('item',tg.item,'resistBerry');",
     "        {\n          const _ri=TAGS.param('move',a.move.id,'removesItem');\n          if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){\n            const _taken=tg.item; tg.item='';\n            if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);\n            if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}\n          }\n        }\n        const _rbHit=TAGS.param('item',tg.item,'resistBerry');"]],
   (E) => { const none = W7.knock(E, 'gengar', ''), sash = W7.knock(E, 'gengar', 'focussash');
@@ -2999,10 +3054,30 @@ demoSource('ROADMAP #81 WIRE 7  a mega stone cannot be knocked off the body it b
 demoSource('ROADMAP #81 WIRE 7  the Sitrus is eaten between the two attackers, not at the residual',
   /* RE-AIMED 2026-08-14 (ROADMAP #273): the loop-top Update pass no longer sits directly above
    * `const it=acts[actIdx]` — ROADMAP #262's opportunist snapshot was inserted between them. The
-   * anchor moves to that line; the reversal removes the same one call and nothing else. */
+   * anchor moves to that line; the reversal removes the same one call and nothing else.
+   *
+   * RE-AIMED AGAIN 2026-08-26 (ROADMAP #449), AND THIS ONE WENT HOLLOW RATHER THAN STALE: both edits
+   * still matched, the berry was still eaten mid-turn, and the arms did not separate. The reason is a
+   * SECOND mid-turn Update pass that did not exist when this was written — the in-move
+   * `eachEvent('Update')` landed 2026-08-23 at step 7b of the hit loop, one statement above the faint,
+   * and it eats the Sitrus between the two attackers on its own. WIRE 7's between-action pass is
+   * therefore no longer the SOLE deliverer of this observable.
+   *
+   * SO A THIRD EDIT TAKES THAT PASS OUT TOO, through the knob the engine already carries for exactly
+   * this purpose (`MEDI_NO_INMOVE_UPDATE`, whose own header says it "takes the in-move Update pass back
+   * out ... the way this engine ran until today"). It is flipped TEXTUALLY rather than through the
+   * environment, because an env knob read at module load is read once for the whole process and would
+   * silently apply to the shipped arm as well.
+   *
+   * WHAT THIS DEMONSTRATION NOW CLAIMS, said plainly rather than left to be inferred: that the census
+   * probe watches "the pinch berry is an onUpdate and settles inside the turn". It no longer isolates
+   * WIRE 7's site from the in-move site — two sites deliver one observable, so no reversal of one
+   * alone can go red. */
   [['      _updateAll();\n      _oppSnap=opportunistSnapshot(actA,actB);', '      _oppSnap=opportunistSnapshot(actA,actB);'],
    ['    _updateAll();   // ROADMAP #81 WIRE 7 -- after the LAST action',
-    '    if(0)_updateAll();   // reverted -- after the LAST action']],
+    '    if(0)_updateAll();   // reverted -- after the LAST action'],
+   ["const NO_INMOVE_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_INMOVE_UPDATE==='1');",
+    'const NO_INMOVE_UPDATE=true;   // reverted -- the in-move Update pass did not exist before 2026-08-23']],
   (E) => {
     const run = (item) => {
       const { me, ally, f1, f2, S } = W7.board(E, 'milotic', 'milotic', 'corviknight', 'garchomp');
@@ -3044,8 +3119,10 @@ demoSource('ROADMAP #81 WIRE 12  the substitute doll is a rounded-DOWN quarter',
 demoSource('ROADMAP #81 WIRE 7  the Substitute -start precedes the -damage that pays for it',
   /* ROADMAP #81 WIRE 12 -- the reversal text follows the cost line's rounding, which is now read
      from `costsUserHP.rounds` rather than hard-floored. Nothing about the ORDER claim changed. */
-  [['grantSubstitute(m,a.mv||a.move.id);\n          m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);continue;}',
-    'm.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n          if(TR)TR.dmg(m);\n          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);continue;}\n          grantSubstitute(m,a.mv||a.move.id);']],
+  /* RE-AIMED 2026-08-26 (ROADMAP #449): two more columns of indentation — ROADMAP #331's `_hpCostAfterBoosts`
+   * branch wrapped the block. The three lines and the claim are untouched. */
+  [['grantSubstitute(m,a.mv||a.move.id);\n            m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n            if(TR)TR.dmg(m);\n            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);continue;}',
+    'm.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n            if(TR)TR.dmg(m);\n            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);continue;}\n            grantSubstitute(m,a.mv||a.move.id);']],
   (E) => {
     const { me, ally, f1, f2, S } = W7.board(E, 'garchomp', 'incineroar', 'garchomp', 'garchomp');
     const trace = []; S._trace = trace;
@@ -3059,9 +3136,15 @@ demoSource('ROADMAP #81 WIRE 7  the Substitute -start precedes the -damage that 
  *    every branch of the resolved move — which is a real engine that existed until tonight, not a
  *    deletion. The control is the SAME body with no ability, which must deal the same 123 on both. */
 demoSource('ROADMAP #81 WIRE 7  Protean gives the move it converts into its STAB',
-  [['      if(_hadTargets){\n        const _tb=', '      if(false){\n        const _tb='],
-   ["      /* WIRE 54's PROTEAN BLOCK USED TO SIT HERE, below every branch of the resolved move, and\n         ROADMAP #81 WIRE 7 moved it up to the PrepareHit position -- see the block just under\n         `_hadTargets`. The old comment called the placement \"the wrong order by a hair\"; it was worth\n         the whole of the ability's offensive half. */\n    }",
-    "      {\n        const _tbOld=TAGS.param('ability',m.ability,'typeBecomesMoveType');\n        if(_tbOld&&!m.fainted&&!(_tbOld.oncePerSwitchIn&&m._proteanUsed)){\n          const _ntOld=effMoveType(a.move.mv,a.move.id,field,m);\n          if(_ntOld&&!(m.types.length===1&&m.types[0]===_ntOld)){m.types=[_ntOld];m._proteanUsed=true;\n            if(TR)TR.vstart(m,'typechange',_ntOld+'|[from] ability: '+m.ability);}\n        }\n      }\n    }"]],
+  /* RE-AIMED 2026-08-26 (ROADMAP #449): the PrepareHit block is a CALL now — `proteanConvert(m, id, field)`,
+   * extracted so a second caller could share it — so neither of the old patterns exists. Both halves are
+   * re-aimed onto that one function: the call at the PrepareHit position is switched off, and an
+   * identical call is put back at the OLD site. Using the same function on both sides is what keeps this
+   * a demonstration about POSITION; re-pasting the block's body would have re-tested its contents too. */
+  [['      if(_hadTargets) proteanConvert(m,a.move.id,field);',
+    '      if(false) proteanConvert(m,a.move.id,field);   // reverted -- no PrepareHit conversion'],
+   ["         the whole of the ability's offensive half. */\n    }",
+    "         the whole of the ability's offensive half. */\n      proteanConvert(m,a.move.id,field);   // reverted -- WIRE 54's position\n    }"]],
   (E) => {
     const run = (ab) => {
       const { me, ally, f1, f2, S } = W7.board(E, 'meowscarada', 'incineroar', 'ceruledge', 'garchomp');
@@ -3081,7 +3164,11 @@ demoSource('ROADMAP #81 WIRE 7  Protean gives the move it converts into its STAB
  *    right in both engines, which is why the case reads announcement lines and not damage. */
 demoSource('ROADMAP #81 WIRE 7  Follow Me announces nothing when it draws, Lightning Rod announces an -activate',
   [['if(TR)TR.retarget(drawer);}', "if(TR){TR.act(drawer,'move: '+drawer._redirect);TR.retarget(drawer);}}"],
-   ["TR.act(_rod,'ability: '+_rod.ability)", 'TR.ab(_rod,_rod.ability)']],
+   /* RE-AIMED 2026-08-26 (ROADMAP #449): the label is not pasted from the ability id at this site any more —
+    * it comes off `_dr.announce`, which `redirectOf` built. The reversal is the same swap it always
+    * was: the `|-activate|` becomes the `|-ability|` this engine used to write. */
+   ["targets=[_rod];if(TR){TR.act(_rod,_dr.announce);TR.retarget(_rod);}",
+    "targets=[_rod];if(TR){TR.ab(_rod,_rod.ability);TR.retarget(_rod);}"]],
   (E) => {
     const run = (ab, mv) => {
       const { me, ally, f1, f2, S } = W7.board(E, 'raichu', 'incineroar', 'corviknight', 'milotic');
@@ -3361,8 +3448,18 @@ demoSource('ROADMAP #81 WIRE 9  a spread move clicked with NO named target still
  *    third state on it is what makes the reverted build emit exactly one `|-miss|` with an empty
  *    target field, which is what this engine did before WIRE 9. */
 demoSource('ROADMAP #81 WIRE 9  a MISS names its targets and an impossible move still writes -fail',
+  /* RE-AIMED 2026-08-26 (ROADMAP #449), AND IT WAS A BROKEN PATCH RATHER THAN A FRAGILE ENGINE. The pattern
+   * MATCHED and the reverted engine then threw `_mvMissed is not defined` on the first turn it played,
+   * so nothing was demonstrated — and until this run that throw was being counted as an engine defect.
+   * `_mvMissed` was the pre-WIRE-9 "say it once" latch, and WIRE 9 deleted it along with the line that
+   * read it; the reversal went on referring to it. The shipped engine is not implicated: it neither
+   * declares nor reads that name.
+   *
+   * THE LATCH IS RESTORED ON THE ACTION OBJECT, which is per move execution exactly as the old local
+   * was, so the reverted engine writes ONE body-less `|-miss|` for a spread move — the historical
+   * behaviour this demonstration exists to show red — instead of crashing. */
   [['        if(TR)TR.miss(m,tg);\n        _explicitFail=true;R.out=true;',
-    "        if(TR&&_mvMissed!=='said'){_mvMissed='said';TR.miss(m,null);}\n        _explicitFail=true;R.out=true;"]],
+    "        if(TR&&a._mvMissedREV!=='said'){a._mvMissedREV='said';TR.miss(m,null);}\n        _explicitFail=true;R.out=true;"]],
   (E) => {
     /* THE TARGET IS NAMED FOR THE SINGLE-TARGET ARM AND WITHHELD FOR THE SPREAD ONE, which is what
      * each of them is legal as. Handing Fake Out a null target would test WIRE 9's refusal branch
@@ -4212,8 +4309,12 @@ demoSource('ROADMAP #81 WIRE 12  switching out ends the perish clock',
  *    paid by a move that MISSED. A control sits in the same assertion, because the fix is one line
  *    away from turning Life Orb off entirely: a LANDED move must still pay on both builds. */
 demoSource('ROADMAP #81 WIRE 12  the Life Orb toll is refused by a move that MISSED',
-  [["      if(m.item==='lifeorb'&&a.move.d.max>0&&_reached>0){",
-    "      if(m.item==='lifeorb'&&a.move.d.max>0){   // reverted to WIRE 10 -- no connection gate"]],
+  /* RE-AIMED 2026-08-26 (ROADMAP #449): the branch stopped naming the Orb — the toll is read off the item's own
+   * `costsUserHPOnAttack` params (`_loC`) and the printed-range test moved behind its own knob. The
+   * connection gate is still the one clause this claim is about, so the reversal removes `_reached>0`
+   * and leaves everything else standing. */
+  [["      if(_loC&&_reached>0&&!m.fainted&&!TAGS.has('move',a.move.id,'statusCategory')",
+    "      if(_loC&&!m.fainted&&!TAGS.has('move',a.move.id,'statusCategory')   // reverted -- no connection gate"]],
   (E) => {
     const lose = () => 0.99;
     const toll = (moveId, item) => {
@@ -4488,8 +4589,10 @@ demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any co
   /* ROADMAP #259 — the guard asked for the ACTION KIND, and a pivot move wears `kind:'switch'`, so a
    * frozen body pivoted out of a solid block of ice. Reverting the one test puts that back. */
   demoSource('ROADMAP #259  a frozen body clicking a PIVOT move is refused, and the pivot does not happen',
-    [["      if(!actionMoveId(it.a)){ MEDSEEN.beforeMoveGateSkipped++; }",
-      "      if(it.a&&(it.a.kind==='switch'||it.a.kind==='pass')){ MEDSEEN.beforeMoveGateSkipped++; }"]],
+    /* RE-AIMED 2026-08-26 (ROADMAP #449): the test is an `else if` now — Sleep Talk's copied move gets its own
+   * skip one clause above it. The reverted clause is the same one, in its new position. */
+  [["      else if(!actionMoveId(it.a)){ MEDSEEN.beforeMoveGateSkipped++; }",
+      "      else if(it.a&&(it.a.kind==='switch'||it.a.kind==='pass')){ MEDSEEN.beforeMoveGateSkipped++; }"]],
     (E) => {
       const run = (frz) => {
         const { trace } = traceOf(E, ['incineroar', 'clefable', 'snorlax', 'milotic', 'garchomp'],
@@ -4532,15 +4635,27 @@ demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any co
 
   /* ROADMAP #256 — an unmodelled click dropped the body it was aimed at, so the `|move|` line named
    * the USER and there was nothing for the onTryHit refusal to answer against. BOTH halves are in
-   * this one reversal, which is the point: they were one omission. */
+   * this one reversal, which is the point: they were one omission.
+   *
+   * RE-AIMED 2026-08-26 (ROADMAP #449) — AND IT WAS HOLLOW, NOT STALE. The patch still MATCHED; it
+   * simply stopped reverting anything, because ROLE PLAY IS MODELLED NOW. `playerAction` hands it back
+   * as `kind:'abilitycopy'` with a target attached, so it never reaches the terminal `pass` this branch
+   * is about, and both arms printed the identical two lines. A reversal that applies and changes
+   * nothing is the worse half of this file's failure mode: it reads as a working demonstration.
+   *
+   * THE NEW BODY IS DERIVED, NOT PICKED. Every move in data/tags.json was walked through
+   * `playerAction(meowstic, id, gholdengo)` on this board: exactly ONE comes back `kind:'pass'` with an
+   * `mv` and a target, and it is REFLECT TYPE (4 corpus clicks). The branch is down to a single legal
+   * member in this format — worth saying, because the day that member is modelled too this
+   * demonstration goes hollow again and there is nothing left to aim it at. */
   demoSource('ROADMAP #256  an unmodelled click keeps its target, and is still refused at onTryHit',
     [["  const _tc=id?TAGS.param('move',id,'targetClass'):null;\n  if(_tc&&_tc.chooseable&&target){MEDSEEN.unmodelledClickKeptTarget++;return {kind:'pass',mv:id,target};}\n  return {kind:'pass',mv:id};",
       "  return {kind:'pass',mv:id};"]],
     (E) => {
       const run = (ab) => canon(E, traceOf(E, ['meowstic', 'clefable', 'gholdengo', 'milotic'],
-        b => { b.f1.ability = ab; }, 'roleplay').trace, /^\|(move|-immune)\|/);
-      return JSON.stringify(run('none')) === JSON.stringify(['|move|p1a:meowstic|roleplay|p2a:gholdengo'])
-          && JSON.stringify(run('goodasgold')) === JSON.stringify(['|move|p1a:meowstic|roleplay|p2a:gholdengo',
+        b => { b.f1.ability = ab; }, 'reflecttype').trace, /^\|(move|-immune)\|/);
+      return JSON.stringify(run('none')) === JSON.stringify(['|move|p1a:meowstic|reflecttype|p2a:gholdengo'])
+          && JSON.stringify(run('goodasgold')) === JSON.stringify(['|move|p1a:meowstic|reflecttype|p2a:gholdengo',
                                                                    '|-immune|p2a:gholdengo|[from]ability:goodasgold']);
     });
 
@@ -4567,10 +4682,44 @@ demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any co
     });
 }
 
-console.log(`\n  ${ran} demonstrations, ${failures} failed`);
-if (stale.length) {
-  console.log(`  ${stale.length} of those are STALE REVERSALS — the demonstration is fine, the patch it applies is not:`);
+/* ================= THE VERDICT, AND IT IS THREE STATES RATHER THAN TWO ==========================
+ *
+ * "N DEMONSTRATIONS COULD NOT BE APPLIED" IS A STATE OF ITS OWN, AND NOT COUNTING IT COST 18 OF THEM.
+ * 2026-08-26, ROADMAP #449. This file used to add a stale reversal to `failures` and exit 1, and exit
+ * 1 is the universal "I failed" -- so `engine/register_reality.js` read it as VERDICT-RED, published
+ * ROADMAP #273 as a live, MEASURED engine defect, and `openDefectClause` in engine/quarantine.js held
+ * the MEDICHAM gate shut on it. Measured on the pre-change bytes: 20 rows red, of which 2 were hollow
+ * probes and EIGHTEEN were demonstrations whose patch no longer matched the engine -- eighteen "shown
+ * red before trusted" certificates that had expired silently, being reported as a broken simulator.
+ *
+ * A refusal is not a finding in either direction, which is exactly what `ABRA-EXIT 2 CANNOT-ANSWER`
+ * says. `engine/gate_fail_and_silent.js` is the working example of the idiom and this follows it
+ * rather than inventing a second: the declaration is matched at the START OF A LINE, names the code
+ * the process is about to exit with, and goes to stderr so it cannot land inside anybody's stdout.
+ *
+ *   exit 0   VERDICT-GREEN.  Every demonstration ran and every one flipped.
+ *   exit 1   VERDICT-RED.    At least one HOLLOW row: a probe whose assertion held on the known-bad
+ *                            engine too, so it cannot fail for the reason it claims. That is a
+ *                            finding, and it outranks a refusal -- a run with both reports the red.
+ *   exit 2   CANNOT-ANSWER.  No hollow row, but N demonstrations COULD NOT BE APPLIED. This file has
+ *                            nothing to say about those N certificates until their edits are
+ *                            re-aimed; saying "red" would be a claim it has not measured.
+ *
+ * THE COUNT IS PRINTED ON EVERY RUN, GREEN INCLUDED, because a guard that can only be seen when it
+ * fires is a guard nobody can tell has stopped running. `0 COULD NOT BE APPLIED` on a clean run is the
+ * receipt that the staleness detector is still there. */
+const cannot = stale.length;
+console.log('\n  ' + ran + ' demonstrations: ' + failures + ' HOLLOW, ' + cannot
+  + ' COULD NOT BE APPLIED, ' + notInFormat + ' not in this format');
+if (cannot) {
+  console.log('  ' + cannot + ' demonstration(s) COULD NOT BE APPLIED — the demonstration is fine, '
+    + 'the patch it applies is not:');
   for (const s of stale) console.log('    ' + s);
-  console.log('  Each one needs its edit re-aimed at what the engine says TODAY. Until then it has not run.');
+  console.log('  Each one needs its edit re-aimed at what the engine says TODAY. Until then it has not run,');
+  console.log('  and a certificate that has not run is not a certificate. PROBE_VERBOSE=1 prints the full pattern.');
 }
-if (failures) { console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.'); process.exit(1); }
+if (failures) console.log('  A green-and-stripped pair that did not flip means the probe does NOT watch its knob.');
+const CODE = failures ? 1 : cannot ? 2 : 0;
+console.error('ABRA-EXIT ' + CODE + ' '
+  + (CODE === 2 ? 'CANNOT-ANSWER' : CODE === 1 ? 'VERDICT-RED' : 'VERDICT-GREEN'));
+process.exit(CODE);

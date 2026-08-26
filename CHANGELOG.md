@@ -10,6 +10,83 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.136.6] — 2026-08-26
+
+### Fixed
+- **EIGHTEEN "SHOWN RED BEFORE TRUSTED" CERTIFICATES HAD EXPIRED SILENTLY, AND AN UNDECLARED EXIT CODE
+  WAS PUBLISHING THEM AS A LIVE, MEASURED SIMULATOR DEFECT.** `tests/probe_red_demo.js` is the standing
+  certificate for ~175 probes — *no check is committed until it has been shown failing on a known-bad
+  input*. It read `200 demonstrations, 20 failed` and exited **1**; exit 1 is the universal *"I
+  failed"*, so `classifyExit` in `engine/register_reality.js` classified it `VERDICT-RED`, ROADMAP #273
+  published as a live engine defect, and `openDefectClause` in `engine/quarantine.js` held one of the
+  three failing MEDICHAM gate clauses shut on it. **Of the 20, only 2 were findings**: 2 HOLLOW rows (a
+  probe whose assertion held on the known-bad engine too) and **18 that COULD NOT BE APPLIED** — the
+  reversal's patch text no longer matched the engine, so those eighteen demonstrations had not run at
+  all. The exit is declared now, in the idiom `engine/gate_fail_and_silent.js` already uses rather than
+  a second one: `ABRA-EXIT 0 VERDICT-GREEN`, `1 VERDICT-RED` (a hollow row, which outranks a refusal so
+  a run with both reports the red), `2 CANNOT-ANSWER` (nothing hollow, but N demonstrations could not
+  be applied), on stderr so it cannot land inside stdout. A REVERTED arm that throws counts with the
+  could-not-be-applied rows; a SHIPPED arm that throws stays a red, because those are two different
+  facts. **The could-not-be-applied count is printed on EVERY run, green included** — `0 COULD NOT BE
+  APPLIED` is the receipt that the staleness detector is still there, which is the difference between
+  this recurring silently and being visible. All three states were watched on real bytes as the work
+  landed: `1 VERDICT-RED` at 2 hollow / 18 stale, `2 CANNOT-ANSWER` at 0 / 18, then `0 VERDICT-GREEN`.
+- **All 20 demonstrations re-aimed or diagnosed; `tests/probe_red_demo.js` now reads `200
+  demonstrations: 0 HOLLOW, 0 COULD NOT BE APPLIED, 2 not in this format`, exit 0, in 6.0 s.** Seventeen
+  reversals re-anchored at what the engine says today. Three of those had gone stale on a line added
+  **inside** the block they quoted, so they now patch the CONDITION and leave the body alone — the shape
+  that cannot go stale on the next line somebody adds inside it. **WIRE 9's throw is a BROKEN PATCH, not
+  a fragile engine**: its reversal referred to `_mvMissed`, the pre-WIRE-9 say-it-once latch that WIRE 9
+  deleted along with its reader, and the shipped engine neither declares nor reads that name; the latch
+  is restored on the action object so the reverted engine writes ONE body-less `|-miss|` instead of
+  crashing. **Two rows were HOLLOW rather than stale, which is the worse shape because the patch applies
+  and reads as a working demonstration**: Role Play is MODELLED now (`kind:'abilitycopy'`) and never
+  reaches the unmodelled-click branch — re-aimed onto Reflect Type, DERIVED as the only move in this
+  format that still reaches that branch with a target; and the Sitrus row, whose observable the
+  2026-08-23 in-move `eachEvent('Update')` delivers on its own, so both passes must be reverted. **A
+  third went hollow under re-anchoring and was caught by measuring it**: WIRE 2's stall counter had
+  merely moved four columns, but the failed shield's reset is delivered by the residual lapse sweep now
+  (`stall`'s `duration: 2`) — one reversal gives `[0,0,158,0]` on both arms, both reversals give shipped
+  `[0,0,158,0]` against reverted `[0,0,158,158]`.
+- **Every broadened reversal was checked on its OBSERVABLE rather than on its boolean**, because
+  `green && !red` cannot tell a reverted arm that is false for the right reason from one that is false
+  for the wrong one: entry weather `[sand,rain,sun]` → `[sand,sand,sand]`; mega from either slot
+  `[left,right]` → `[left,base]`; the per-side ration `[gengar-mega,mawile]` →
+  `[gengar-mega,mawile-mega]`; a second Substitute 0 → 45 damage with its control unmoved on both arms;
+  the Knock Off Sash survivor 1 HP → dead.
+
+### Changed
+- `data/register-reality.json` — ROADMAP #273 moves from `green:false / VERDICT-RED / CONFIRMED` to
+  `green:true / VERDICT-GREEN`, and `openDefectClause`'s `withRed` drops from **`#218, #273` to
+  `#218`**. The clause is still `ok:false`; it closes when the whole-game clause does.
+- ROADMAP #273 and #449 closed on the instrument's own declared exit code.
+- `tests/run-all.js` — `PENDING_WIRE`'s note for `probe_red_demo.js` said "RED … 10 of 200 … EIGHT are
+  stale reversals", which is no longer true. Replaced with what is measured today, and with the reason
+  it stays unwired: `engine/register_reality.js` already executes it on every pass as the `VERIFIED BY`
+  of #273 and #449, so wiring it here buys a second run of the same command and a second place for its
+  verdict to be decided.
+
+### Notes
+- **No engine byte moved and no game number moved, and the receipt is the release id.**
+  `engine/engine_release.js cut` after this pass returns **`ef2c826b5718` — the same id the previous
+  chain cut** — because an identical tree yields an identical id by design.
+  `data/mechanics-census.json` is unmoved at **716/716, 0 missing**; it was regenerated by
+  `register_reality.js` running `tests/test-mechanics.js` as some row's `VERIFIED BY`, and the entire
+  diff against `HEAD` is the timestamp plus one unseeded Monte-Carlo detail string (Iron Head 19.3% →
+  19.9% over 6,000 turns). The whole-game and board-material differentials were **not re-measured and
+  are not quoted**: the engine did not move, and a differential re-run draws its team pool live from a
+  store OPS appends to, so a figure taken here would be a different question rather than a
+  before/after.
+- **REPORTED, NOT FIXED — `engine/medicham2-browser.js` declares `canMegaNow` TWICE**, at ~:14633 and
+  ~:14736 with identical bodies. The second wins at load, so **a patch aimed at the first applies
+  cleanly and changes nothing** — exactly the hollow shape above, sitting in the engine rather than in
+  the harness. It cost time in this pass, and two of the re-aimed reversals are deliberately aimed at
+  the live copy for that reason. Nothing about the game is wrong today because the bodies agree; it is
+  a trap for the next editor. Deleting one is an engine edit, and this pass predicted no engine bytes
+  would move.
+
+---
+
 ## [5.136.5] — 2026-08-26
 
 ### Fixed

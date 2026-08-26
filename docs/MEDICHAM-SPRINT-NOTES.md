@@ -21,6 +21,64 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## EIGHTEEN EXPIRED "SHOWN RED" CERTIFICATES WERE BEING PUBLISHED AS A BROKEN SIMULATOR. OPEN-DEFECT CLAUSE 2 RED ROWS -> 1. CENSUS UNMOVED AT 716/716. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.136.6. Release cut: `ef2c826b5718` — **the same
+id as the previous chain**, which is the receipt rather than a coincidence: an identical tree yields an
+identical id, and `engine/medicham2-browser.js` was not edited at all in this pass. ROADMAP #449 and
+#273 closed.
+
+**THE ROW HELD A GATE CLAUSE SHUT AND THE THING IT NAMED WAS NOT AN ENGINE DEFECT.**
+`tests/probe_red_demo.js` read `200 demonstrations, 20 failed` and exited 1. Exit 1 is the universal
+*"I failed"*, so `classifyExit` in `engine/register_reality.js` published it `VERDICT-RED`, and
+`openDefectClause` in `engine/quarantine.js` held one of the three failing MEDICHAM gate clauses shut on
+it. Of the 20: **2 HOLLOW** (a probe whose assertion held on the known-bad engine too — a real finding)
+and **18 COULD NOT BE APPLIED** — the patch text no longer matched the engine, so eighteen "shown red
+before trusted" certificates had expired silently and were being reported as a broken simulator.
+
+**THE EXIT IS DECLARED NOW, IN THE IDIOM `engine/gate_fail_and_silent.js` ALREADY USES.** `ABRA-EXIT 0
+VERDICT-GREEN` / `1 VERDICT-RED` (a hollow row, which outranks a refusal) / `2 CANNOT-ANSWER` (nothing
+hollow, but N demonstrations could not be applied), on stderr. A REVERTED arm that throws counts with
+the could-not-be-applied rows; a SHIPPED arm that throws stays red. **The could-not-be-applied count is
+printed on EVERY run, green included**, so an expired certificate is a counted state rather than a
+silent one — that is the whole answer to *"nothing checks the certificate has not expired"*.
+
+**ALL THREE STATES WERE WATCHED ON REAL BYTES, IN ORDER**: `1 VERDICT-RED` at 2 hollow / 18 stale, then
+`2 CANNOT-ANSWER` at 0 / 18 once the hollow pair was fixed, then `0 VERDICT-GREEN`.
+
+**17 REVERSALS RE-AIMED; WIRE 9 DIAGNOSED AS A BROKEN PATCH, NOT A FRAGILE ENGINE.** Its patch named
+`_mvMissed`, the pre-WIRE-9 say-it-once latch that WIRE 9 deleted along with its reader; the shipped
+engine neither declares nor reads that name. The latch is restored on the action object and the
+reverted engine writes ONE body-less `|-miss|` — the historical behaviour — instead of crashing.
+
+**TWO WERE HOLLOW, AND A THIRD WENT HOLLOW UNDER RE-ANCHORING.** Role Play is MODELLED now
+(`kind:'abilitycopy'`) so it never reaches the unmodelled-click branch — re-aimed onto Reflect Type,
+**derived** as the only move in this format that still reaches it with a target. The Sitrus row's
+observable is delivered independently by the 2026-08-23 in-move `eachEvent('Update')`, so both passes
+must be reverted. WIRE 2's stall counter looked like a four-column indentation move and was not: the
+reset is delivered by the residual **lapse sweep** now (`stall`'s `duration: 2`). One reversal:
+`[0,0,158,0]` on both arms. Both: shipped `[0,0,158,0]`, reverted `[0,0,158,158]`.
+
+**EVERY BROADENED REVERSAL WAS CHECKED ON ITS OBSERVABLE RATHER THAN ON ITS BOOLEAN**, because
+`green && !red` cannot tell a reverted arm that is false for the right reason from one that is false for
+the wrong one: entry weather `[sand,rain,sun]` -> `[sand,sand,sand]`; mega `[left,right]` -> `[left,
+base]`; the ration `[gengar-mega,mawile]` -> `[gengar-mega,mawile-mega]`; the second Substitute 0 -> 45
+damage with its control unmoved on both arms; the Knock Off Sash survivor 1 HP -> dead.
+
+**WHAT MOVED, AGAINST A PREDICTION MADE BEFORE THE RUN (no game number moves).** `openDefectClause`
+`withRed` `#218, #273` -> `#218`; the clause is still `ok:false` and closes when the whole-game clause
+does. Census unmoved at **716/716, 0 missing** — the entire diff against `HEAD` is the timestamp plus
+one unseeded Monte-Carlo detail string. Whole-game and board-material were NOT re-measured and are NOT
+quoted: the engine did not move, and a differential re-run draws its pool live from the store.
+
+**REPORTED, NOT FIXED:** `engine/medicham2-browser.js` declares `canMegaNow` TWICE (~:14633 and
+~:14736, identical bodies). The second wins at load, so a patch aimed at the first applies cleanly and
+changes nothing — the hollow shape, in the engine rather than the harness. Nothing about the game is
+wrong today; it is a trap for the next editor, and it needs an engine edit this pass predicted it would
+not make.
+
+---
+
 ## A SPREAD SECONDARY WAS ADDRESSED TO THE WRONG BODY, AND THREE BOARD-MATERIAL GAMES WERE THE RULER. WHOLE-GAME 16 -> 14, BOARD-MATERIAL 13 -> 10. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.136.5. Release cut: `ef2c826b5718`

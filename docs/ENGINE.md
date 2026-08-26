@@ -60,7 +60,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  716/716 probed mechanics live, 0 missing   (census 2026-08-26 04:55)
+  716/716 probed mechanics live, 0 missing   (census 2026-08-26 05:47)
   0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -73,15 +73,160 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0a982abaeb5a now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 689cb0501111 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0a2b7054255e now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-26 05:18_
+_stamped 2026-08-26 05:52_
 
 <!-- /GENERATED -->
+
+## EIGHTEEN "SHOWN RED BEFORE TRUSTED" CERTIFICATES HAD EXPIRED SILENTLY, AND AN UNDECLARED EXIT CODE WAS PUBLISHING THEM AS A BROKEN SIMULATOR. OPEN-DEFECT CLAUSE 2 RED ROWS -> 1. CENSUS UNMOVED AT 716/716. 2026-08-26.
+
+`tests/probe_red_demo.js` is the standing certificate for ~175 probes: *no check is committed until it
+has been shown failing on a known-bad input.* It read **20 of 200 failed** and exited 1 — and exit 1 is
+the universal *"I failed"*, so `engine/register_reality.js` classified it `VERDICT-RED`, ROADMAP #273
+published as a live MEASURED engine defect, and `openDefectClause` held one of the three failing
+MEDICHAM gate clauses shut on it.
+
+**IT WAS TWO DEFECTS AND NEITHER WAS THE ENGINE.** Proved rather than argued: `engine_release.js cut`
+after this pass returns **`ef2c826b5718`, the same id the previous chain cut**, because an identical
+tree yields an identical id and `engine/medicham2-browser.js` was not edited at all.
+
+### THE FIRST DEFECT: THE EXIT CODE COULD NOT TELL A REFUSAL FROM A RED
+
+Of the 20 rows, **2 were HOLLOW** (a probe whose assertion held on the known-bad engine too, which is a
+real finding) and **18 COULD NOT BE APPLIED** — the reversal's patch text no longer matched the engine,
+so those eighteen demonstrations had not run at all. The file added both to one counter and exited 1.
+
+Fixed in the idiom `engine/gate_fail_and_silent.js` already uses, rather than by inventing a second:
+
+```
+exit 0   VERDICT-GREEN    every demonstration ran and every one flipped
+exit 1   VERDICT-RED      at least one HOLLOW row — it outranks a refusal, so a run with both is red
+exit 2   CANNOT-ANSWER    nothing hollow, but N demonstrations COULD NOT BE APPLIED
+```
+
+declared on stderr as `ABRA-EXIT <n> <kind>` so it cannot land inside anybody's stdout. A REVERTED arm
+that throws now counts with the could-not-be-applied rows; a SHIPPED arm that throws stays a red,
+because those are two different facts and one label for both is false for one of them.
+
+**AND THE COUNT IS PRINTED ON EVERY RUN, GREEN INCLUDED** — `0 COULD NOT BE APPLIED` is the receipt
+that the staleness detector is still there. That is the whole answer to *"a certificate is worthless if
+nothing checks it has not expired"*: the expiry is a counted state, not a silent one.
+
+**ALL THREE STATES WERE SHOWN ON REAL BYTES, IN ORDER, AS THE WORK LANDED** — `1 VERDICT-RED` at 2
+hollow / 18 stale, then `2 CANNOT-ANSWER` at 0 hollow / 18 stale once the hollow pair was fixed, then
+`0 VERDICT-GREEN`. The instrument was watched saying each thing before any of them was trusted.
+
+### THE SECOND DEFECT: 20 DEMONSTRATIONS, RE-AIMED OR DIAGNOSED
+
+Seventeen were re-anchored at what the engine says today. Three of those had gone stale on a line
+somebody added **inside** the block they quoted (the substitute absorb, the second-Substitute early
+fail, the Knock Off step), so they now patch the **condition** and leave the body alone — the shape
+that cannot go stale on the fourth line added inside it.
+
+**WIRE 9 THREW, AND IT IS A BROKEN PATCH RATHER THAN A FRAGILE ENGINE.** Its reversal referred to
+`_mvMissed`, the pre-WIRE-9 say-it-once latch that WIRE 9 deleted along with its reader. The shipped
+engine neither declares nor reads that name, so nothing about it is implicated. The latch is restored
+on the action object — per move execution, exactly as the old local was — and the reverted engine now
+writes ONE body-less `|-miss|`, which is the historical behaviour the demonstration exists to show red.
+
+**TWO WERE HOLLOW, WHICH IS THE WORSE SHAPE**, because the patch applies and reads as a working
+demonstration:
+
+- **the unmodelled click.** Role Play is MODELLED now — `playerAction` returns `kind:'abilitycopy'`
+  with a target — so it never reaches the terminal `pass` this branch is about, and both arms printed
+  the identical two lines. Re-aimed onto **Reflect Type**, which is DERIVED and not picked: walking
+  every move in `data/tags.json` through `playerAction(meowstic, id, gholdengo)` on that board returns
+  **exactly one** `kind:'pass'` with an `mv` and a target. The branch is down to a single legal member
+  in this format, and the day that member is modelled too there is nothing left to aim this at.
+- **the Sitrus row.** The 2026-08-23 in-move `eachEvent('Update')` delivers the same observable on its
+  own, so reverting WIRE 7's between-action pass alone changes nothing. The reversal now takes both,
+  through the engine's own `MEDI_NO_INMOVE_UPDATE` knob flipped textually (an env knob is read once at
+  module load and would silently apply to the shipped arm too). Said plainly in the file: this row no
+  longer isolates WIRE 7's site from the in-move site.
+
+**A THIRD WENT HOLLOW UNDER RE-ANCHORING AND WAS CAUGHT BY MEASURING IT** — WIRE 2's stall counter. The
+line had merely moved four columns, but re-anchoring it alone left both arms identical, because the
+failed shield's reset is delivered by the residual **lapse sweep** now (`stall` carries `duration: 2`).
+One reversal: `[0,0,158,0]` on both arms, counters `[1,2,0,1]` on both. Both reversals: shipped
+`[0,0,158,0]`, reverted `[0,0,158,158]`, counters `[1,2,3,4]`.
+
+### EVERY BROADENED REVERSAL WAS CHECKED ON ITS OBSERVABLE, NOT ON ITS BOOLEAN
+
+A reverted arm can be `false` for the wrong reason, and `green && !red` cannot tell the difference. The
+five reversals that were widened were printed side by side instead:
+
+| demonstration | shipped | reverted | is that the historical defect |
+|---|---|---|---|
+| the slower entry weather setter | `[sand, rain, sun]` | `[sand, sand, sand]` | yes — array order, no speed race |
+| mega from either slot | `[gengar-mega, gengar-mega]` | `[gengar-mega, gengar]` | yes — the base class's LEFT-slot-only |
+| one mega per side | `[gengar-mega, mawile]` | `[gengar-mega, mawile-mega]` | yes — no per-side ration |
+| a second Substitute costs nothing | `dmg 0`, control `dmg 45` | `dmg 45`, control `dmg 45` | yes — and the control is unmoved |
+| Knock Off cannot take the Sash | survivor at 1 HP | survivor dead | yes — the strip ran above the Sash |
+
+### WHAT MOVED, AGAINST A PREDICTION MADE BEFORE THE RUN
+
+Predicted: **no game number moves**, because this is an instrument pass.
+
+- `tests/probe_red_demo.js` — `200 demonstrations, 20 failed` / exit 1 → **`200 demonstrations: 0
+  HOLLOW, 0 COULD NOT BE APPLIED, 2 not in this format`, exit 0, `ABRA-EXIT 0 VERDICT-GREEN`**, 6.0 s.
+- `data/register-reality.json` — #273 `green:false / VERDICT-RED / CONFIRMED` → **`green:true /
+  VERDICT-GREEN / CONFIRMED`** (the row is closed now, so CONFIRMED is agreement rather than staleness).
+- `openDefectClause` — `withRed` **`#218, #273` → `#218`**. The clause is still `ok:false`, and it
+  closes when the whole-game clause does; #218 is unmoved at `exit 1`.
+- **Census unmoved at 716/716, 0 missing.** `data/mechanics-census.json` was regenerated by
+  `register_reality.js` running `test-mechanics.js` as some row's `VERIFIED BY`, and the entire diff
+  against `HEAD` is the timestamp plus one Monte-Carlo detail string (Iron Head 19.3% → 19.9% over
+  6,000 turns, a sampling row with no seed). Nothing else in 3,600 rows.
+- **Whole-game and board-material: NOT re-measured and NOT quoted.** The engine did not move, and a
+  differential re-run draws its pool live from a store OPS appends to, so a number taken here would be
+  a different question rather than a before/after.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~`tests/probe_red_demo.js` is red with stale reversals~~ — **CLOSED (#273, #449).** The file is its
+  own instrument, it names every row, and it now declares its exit code so a refusal can never again be
+  published as a measured engine defect.
+
+**Still open, filed with its evidence:**
+- **`engine/medicham2-browser.js` DECLARES `canMegaNow` TWICE**, at ~:14633 and ~:14736, with identical
+  bodies. The second wins at load, so **a patch aimed at the first applies cleanly and changes
+  nothing** — the hollow shape above, sitting in the engine rather than in the harness. It cost time in
+  this pass and two of #449's reversals are aimed at the live copy for that reason. Nothing about the
+  game is wrong today (the bodies agree); it is a trap for the next editor. **Reported, not fixed** —
+  deleting one is an engine edit and this pass predicted no engine bytes would move.
+- **`p2.active[1].stall  medicham 0 / showdown 3`** — carried forward from the previous batch, unmoved.
+- **`data/protocol-events.json` is UNSAFE and already was** — unchanged by this pass, which emits no
+  new event kind.
+- **`tests/test-resolution-order.js` OOMs at the default heap** (#446) — not mine, not waived, still open.
+
+### OWED, NOT RUN
+
+- `tests/run-all.js` — not run. Nothing in this pass touches the engine, so the suite's engine-facing
+  members cannot have moved; that is an argument, not a measurement, and it is recorded as owed.
+- `tests/test-mechanics.js` — not run **by me**. It ran inside `engine/register_reality.js` and read
+  716/716 with 0 missing; the census diff against `HEAD` is quoted above.
+- `tests/test-engine-diff.js` exits **3** at its default sample (`PUBLISH REFUSED`, 150 rows declining
+  to overwrite a 6,000-row artifact). The owed 6,000-row re-run is still owed; it is not this pass's.
+- `engine/quarantine.js --check` — not run directly. `openDefectClause` and the register were read
+  through `require`, which is the same code, and the GENERATED block above is stamped by `status.js`.
+- `tests/interaction_matrix.js`, `engine/wire_ladder.js` — not re-run; their ledger figures predate
+  this batch and this batch cannot have moved them.
+
+### LEFT ALONE, REPORTED
+
+- `.scratch_eng/`, `data/_pair-pilot.json`, `data/medicham-represented-clicks.json` — another session's.
+  Untouched, executed nothing in them.
+- `data/archetypes.json`, `data/conformance.json`, `data/forme-assert.json`, `data/job-costs.jsonl`,
+  `data/kad-replays.js`, `data/live.js`, `data/provenance-stamp.json`, `data/regulation-usage.json`,
+  `data/rulebook-collision.json`, `data/switch-back-renamed.json`,
+  `data/verification/engine-diff.n150.json` — modified in the working tree before this pass started
+  (mtimes 03:15 and 05:24, ahead of my first command). **Not part of this commit — added by name only.**
 
 ## THE HYPOTHESIS WAS ONE ROOT UNDER FOUR SYMPTOMS. IT IS THREE DIFFERENT THINGS, AND THE ONE THAT COST BOARDS WAS THE RULER RATHER THAN THE ENGINE. WHOLE-GAME CLAUSE 16 -> 14, BOARD-MATERIAL 13 -> 10. 2026-08-26.
 
