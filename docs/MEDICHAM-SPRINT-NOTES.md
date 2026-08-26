@@ -21,6 +21,55 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## SUPREME OVERLORD DID THE DAMAGE AND SAID NOTHING — THREE LINES AT EVERY COUNT ABOVE ZERO. CENSUS 706 -> 710. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, *"SUPREME OVERLORD DID THE DAMAGE AND NEVER SAID A WORD"*.
+CHANGELOG 5.133.0. Release `d684a2f1f183`.
+
+Will: *"lets test supreme overlord by staging it in scenarios where no allies have fainted, one ally,
+and two allies. (i guess 3 is possible but thats unique) it gets like a 10% boost per ally thats
+fainted and its only on switch in does it count i believe"*. All four staged; both halves of his
+model confirmed at the source and then measured.
+
+Probes: `tests/test-mechanics.js`, four new `boostsFromFallen` rows — entry narration at 0/1/2/3 with
+the order asserted below the `|switch|`; the switch-out `-end` asserted BEFORE the incoming `|switch|`;
+the faint `-end` with the faint itself asserted in every arm; and the snapshot-versus-live fixture,
+whose arms differ on the side counter (1 vs 2) and must not differ on the marker. All four shown RED
+before the fix and red again on demand under `MEDI_NO_FALLEN_LINES=1`.
+
+The damage was already correct. What was absent was narration:
+
+| moment | authority | this engine, before |
+|---|---|---|
+| entry, n>0 | `-activate\|IDENT\|ability: Supreme Overlord` **(not `[silent]`)** then `-start\|IDENT\|fallenN\|[silent]` | nothing |
+| switch-out, n>0 | `-end\|IDENT\|fallenN\|[silent]`, before the incoming `\|switch\|` | nothing |
+| faint, n>0 | `\|faint\|` then `-end\|IDENT\|fallenN\|[silent]`, carrying the SNAPSHOT | nothing |
+| n = 0 | nothing on entry; `fallenundefined` on exit | nothing — **correct, and still declared** |
+
+One helper (`fallenShown`) feeds all three emitters, so the guard on the zero case and the cap live in
+one place. The faint line is emitted from `TRACE.faint()` — the one funnel — rather than at the twenty
+sites that kill a body.
+
+`MEDI_FALLEN_APPROX=1` settles the rounding question the tag raised: `perFallen: 0.1` and the handler's
+powMod table differ by one part in 4096 at n=1 and n=3 and not at all at n=2/4/5, and under the revert
+`tests/test-damage-stages.js` goes **1696/1696 exact -> 58 parted rolls** on Kowtow Cleave, with the
+n=5 rows still exact as the built-in over-fire control. The engine already read the table; this is how
+that stops being a claim.
+
+**The scoreboard was named before the run.** Rare mechanic — expect the lab to move and the pool to sit
+still. Census **706/706 -> 710/710**; whole-game differential **17 of 961, unchanged** (22 raw less the
+same 5 declared, `planted_divergence_proof_ok` true, release `d684a2f1f183`, `--games 1200`, arm
+`middle`, cap 12, pool `data/team-pool-frozen`, census pin `census-pin-9446a684709d`). The pinned pool
+holds ZERO `fallenN` causes for N >= 1, so it could not have moved. Roster re-run on the new release:
+**0 / 0** across items, abilities and moves.
+
+Open, named rather than left to be found: `fallenShown()` reads `mon.ability` directly, so a body under
+Neutralizing Gas would narrate where the authority's `onStart` would not have run. The forme
+announcement beside it in `bringIn` reads the same field the same way; there is no shared
+entry-handler suppression predicate in this file yet.
+
+---
+
 ## THE THREE CHECKS WHOSE FIXTURES WERE TYPED FROM MEMORY — DAMAGE GOLDEN MASTER 92% -> 100%, AND A FLINCH LEAK ON THE WIPE PATH. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, *"THE GOLDEN MASTER ON THE DAMAGE NUMBER WAS RED FOR SIXTEEN DAYS"*.

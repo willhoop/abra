@@ -59,7 +59,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  706/706 probed mechanics live, 0 missing   (census 2026-08-26 00:58)
+  710/710 probed mechanics live, 0 missing   (census 2026-08-26 02:05)
   0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -72,15 +72,96 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1787b2479502 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is f66d46f584fd now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 5a2bbfe05c09 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-26 01:07_
+_stamped 2026-08-26 02:15_
 
 <!-- /GENERATED -->
+
+## SUPREME OVERLORD DID THE DAMAGE AND NEVER SAID A WORD. THREE PROTOCOL LINES, MISSING AT EVERY COUNT ABOVE ZERO. CENSUS 706 -> 710. 2026-08-26.
+
+Will: *"lets test supreme overlord by staging it in scenarios where no allies have fainted, one ally,
+and two allies. (i guess 3 is possible but thats unique) it gets like a 10% boost per ally thats
+fainted and its only on switch in does it count i believe"*. Both halves of that are right. All four
+counts were staged, in this engine and in the official simulator, against a Defiant control.
+
+**THE DAMAGE WAS ALREADY CORRECT AND ALREADY PROBED, WHICH IS WHY THIS WAS INVISIBLE.** Two census
+rows assert the x1.3 and assert that a mid-stint death does *not* reach it. Both read HP, and every
+probe in that file reads state — so the fact that the ability **narrates** and this engine emitted
+**none** of its lines could not be seen from there. Measured in the authority at `totalFainted`
+0/1/2/3:
+
+| moment | the authority writes | this engine wrote |
+|---|---|---|
+| entry, n>0 | `-activate\|IDENT\|ability: Supreme Overlord` **(not `[silent]`)**, then `-start\|IDENT\|fallenN\|[silent]` | nothing |
+| switch-out, n>0 | `-end\|IDENT\|fallenN\|[silent]`, **before** the incoming `\|switch\|` | nothing |
+| faint, n>0 | `\|faint\|` then `-end\|IDENT\|fallenN\|[silent]`, carrying the SNAPSHOT | nothing |
+| n = 0 | nothing on entry; `fallenundefined` on exit | nothing — **correct, and still declared** |
+
+**`-activate` IS NOT `[silent]`.** It is a line a player reads in the log. Its absence was a
+player-facing gap, not a cosmetic one, and it is the half of this that the hand list below never named
+— the list carried only the `fallenundefined` exit line, which is the one case where silence is right.
+
+**THE DECLARATION WAS NEVER OVER-BROAD, AND THAT WAS CHECKED RATHER THAN ASSUMED.**
+`engine/quarantine.js`'s matcher is `/fallenundefined/`. A `fallen2` line has therefore never been
+excused by it; the three legitimate lines were undeclared divergences the whole time and simply never
+surfaced in a pinned-pool game. The declaration is untouched — the authority's `onStart` is guarded on
+`side.totalFainted` and its `onEnd` is not, so with nothing fallen the template interpolates a literal
+`undefined`, and reproducing a typo is not correctness.
+
+**ONE HELPER FEEDS ALL THREE EMITTERS.** `fallenShown()` holds the tag lookup, the cap and the
+zero-guard, so the three moments cannot disagree about the number — CLAUDE.md's
+facts-are-global rule applied inside one file. The faint line is emitted from `TRACE.faint()`, the one
+funnel, rather than at the twenty-odd sites that kill a body: a line added at nineteen of twenty places
+is exactly the silent default this file exists to avoid.
+
+**THE SNAPSHOT SURVIVES INTO THE NARRATION, AND THE FIXTURE FOR IT DISCRIMINATES.** A Kingambit that
+walks in on one dead ally and watches a second die beside it still writes `fallen1` on the way out. The
+probe's two arms differ on the side counter (**1 vs 2**, so the second death demonstrably landed) and
+must not differ on the marker; forcing a live-count read on the same board produces `fallen2`, which is
+how we know the assertion is load-bearing rather than a fixture that could not tell them apart.
+
+**AND THE ROUNDING QUESTION IS SETTLED, WITH A NUMBER.** The tag carries `perFallen: 0.1` and the
+handler carries `[4096, 4506, 4915, 5325, 5734, 6144]`. They differ by **one part in 4096** at n=1
+(4505 vs 4506) and n=3 (5324 vs 5325), and **not at all** at n=2, 4 or 5. Derived over every legal
+move: the two arithmetics floor to a different base power on **every base power ending in 5**.
+`MEDI_FALLEN_APPROX=1` puts the approximation back, and `tests/test-damage-stages.js` goes from
+**1696/1696 exact to 58 parted rolls** on Kingambit's own Kowtow Cleave (n=3, crit, roll 9 — authority
+184, ours 183). The **n=5 rows stay exact under the same revert**, because 6144 is `trunc(1.5 × 4096)`
+on the nose — the over-fire control was already built into that file. MEDICHAM already read the table;
+the knob is what turns "it reads the table" from a claim into a demonstration.
+
+**THE SCOREBOARD WAS NAMED BEFORE THE RUN.** Rare mechanic, narration-only: expect the **lab** to move
+and the **pinned pool** to sit still, because the pool holds **zero** `fallenN` causes for n >= 1.
+
+| instrument | before | after |
+|---|---|---|
+| census (`tests/test-mechanics.js`) | 706/706 | **710/710** |
+| whole-game differential | 17 of 961 (22 raw − 5 declared) | **17 of 961 (22 raw − 5 declared)** |
+| roster — items / abilities / moves | 0 / 0 (release `4174fe78d1ee`) | **0 / 0** (release `d684a2f1f183`) |
+
+Whole-game pins: release `d684a2f1f183`, `--games 1200`, arm `middle`, cap 12, pool
+`data/team-pool-frozen`, census pin `census-pin-9446a684709d`, `--state --end-state`;
+`planted_divergence_proof_ok` true, `threw` 0.
+
+**OPEN, NAMED RATHER THAN LEFT TO BE FOUND.** `fallenShown()` reads `mon.ability` directly, so a body
+whose ability is suppressed by Neutralizing Gas would narrate here where the authority's `onStart`
+would not have run. The forme announcement a few lines above it in `bringIn` reads the same field the
+same way; there is no shared entry-handler suppression predicate in this file, and inventing one for
+this member would be the wrong place to start.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~Supreme Overlord announces its volatile ending and we stay silent~~ — CLOSED, and the entry it
+  described was only a fifth of the mechanic. The `fallenundefined` half **stays silent on purpose**
+  and stays declared; the entry `-activate`/`-start` and the n>=1 `-end` on both switch-out and faint
+  are now four `boostsFromFallen` probes in `tests/test-mechanics.js`, all four shown RED first and
+  red again on demand under `MEDI_NO_FALLEN_LINES=1`.
 
 ## THE GOLDEN MASTER ON THE DAMAGE NUMBER WAS RED FOR SIXTEEN DAYS AND EVERY RED ROW WAS AN ENTITY THIS FORMAT DOES NOT HAVE. 100% WITHIN 2%, FROM 92% WITHIN 5% / WORST 50%. 2026-08-26.
 
@@ -5413,9 +5494,12 @@ photograph rule working, and it is not a new defect.
   RED first with their ids kept, both now AGREES.
 
 **Added, MEASURED this pass and NOT fixed — the announce-failure family's next five:**
-- **Supreme Overlord announces its volatile ending and we stay silent** — `|-end|pXb: Kingambit|`
-  `fallenundefined|[silent]` as the body leaves. Five causes. `undefined` is the AUTHORITY'S own text
-  (`effectState.fallen` is gone by `onEnd`), not a normaliser artefact — do not "fix" it to a number.
+- ~~**Supreme Overlord announces its volatile ending and we stay silent**~~ — **CLOSED 2026-08-26,
+  and this entry named a fifth of the mechanic.** The `fallenundefined` half is the AUTHORITY'S own
+  text (`effectState.fallen` is gone by `onEnd`) and stays silent on purpose, still declared. What it
+  never named is the three LEGITIMATE lines at every count above zero — the entry `-activate` (which
+  is not `[silent]`) and `-start fallenN`, and the `-end fallenN` on switch-out AND on faint. Four
+  `boostsFromFallen` probes now, all shown RED first.
 - **a drain `-heal` we do not write** — `|-heal|pXa|H/H|[from]drain`, five games across two causes,
   first seen on Sinistcha's Matcha Gotcha (a SPREAD drain move, which is the thing to check first).
 - **the `-weather ... [upkeep]` line stops before the authority's does** — four rain, one sand. We

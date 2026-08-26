@@ -1,10 +1,10 @@
 {
-  "current": "4174fe78d1ee",
-  "cut": "2026-08-26T04:12:08.492Z",
-  "why": "fixture pass: derived legality fixtures + flinch clears on the wipe exit",
-  "cuts": 62,
-  "latest_cut": "2026-08-26T05:16:28.657Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-26T05:16:28.669Z",
+  "current": "d684a2f1f183",
+  "cut": "2026-08-26T06:06:07.824Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 5,
+  "latest_cut": "2026-08-26T06:08:57.331Z",
+  "latest_why": "supreme overlord narrates: -activate / -start fallenN on entry, -end fallenN on switch-out and on faint; fallenundefined still refused",
+  "pointer_written": "2026-08-26T06:08:57.342Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

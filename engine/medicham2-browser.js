@@ -1197,6 +1197,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * "it never happens" are different statements and only one of them is measured. */
   midAddrMovedAtAnnounce: 0,
   switchOutTrigger: 0, switchOutCure: 0, formeSwapped: 0, formeAnnouncedOnReturn: 0,
+  /* 2026-08-26 -- SUPREME OVERLORD'S THREE LINES, ONE COUNTER EACH, because the three fire at three
+   * different moments and a single total could not tell "the exit line is missing" from "nothing ever
+   * entered on a corpse". Entry and switch-out pair up over a game; the faint counter is the one that
+   * needs its own reading, since a body that dies never reaches `switchOut` at all. */
+  fallenAnnouncedOnEntry: 0, fallenClosedOnSwitchOut: 0, fallenClosedOnFaint: 0,
   /* WIRE 136 -- a forme change performed as a RENAME because the target forme has no row and the
    * artifact states it is identical to the base in stats and types. Mimikyu-Busted is the one. */
   formeRenamedNoRow: 0,
@@ -2289,6 +2294,10 @@ const MEDFAILS = { encoreAction: 0,
    * place. battleInit always stamps `sf.team`, so this must read 0; a non-zero means a battle state
    * was built by some other route and its Last Respects / Supreme Overlord numbers are undercounts. */
   fallenNoRoster: 0,
+  /* 2026-08-26 -- MEDI_NO_FALLEN_LINES / MEDI_FALLEN_APPROX. Both must read 0 on any shipping run;
+   * a non-zero says the run was taken under a deliberate revert and its Supreme Overlord rows
+   * describe the pre-2026-08-26 engine rather than this one. */
+  fallenLinesSuppressed: 0, fallenApproxRestored: 0,
   /* WIRE 119 -- the artifact named a forbidden move CATEGORY this engine has no predicate for, so the
    * move was allowed through. Today the only member is Taunt's "Status" and this must read 0; a
    * non-zero means `forbidsStatusMoves` grew a category and the gate is silently passing it. */
@@ -2796,7 +2805,19 @@ const TRACE=(function(){
      * '[from] ability: Regenerator', '[silent]')`. push() drops an empty field, so with no `of` the
      * flag lands where the authority puts it and every existing three-argument caller is unchanged. */
     heal(m,from,of,tag){ this.push(['-heal',ident(m),health(m),from,of?'[of] '+ident(of):'',tag]); },
-    faint(m){ if(m._traceFainted)return; m._traceFainted=true; this.push(['faint',ident(m)]); },
+    /* 2026-08-26 -- AND SUPREME OVERLORD'S MARKER CLOSES HERE TOO, BECAUSE A DEATH IS THE OTHER
+     * MOMENT THE ABILITY ENDS. `faintMessages` writes `|faint|`, increments `side.totalFainted` and
+     * THEN fires the ability's End (sim/battle.ts:2550-2553), with `isActive` still true -- so the
+     * line names `p1a:` and carries the SNAPSHOT the body walked in on, NOT the count its own death
+     * just raised. Measured: a Kingambit that entered on two dead and then dies writes `fallen2`.
+     * IT IS IN THE TRACE FUNNEL RATHER THAN AT THE TWENTY-ODD SITES THAT KILL A BODY, for the reason
+     * `bringIn` gives about entries: this is the one door, and a line added at nineteen of twenty
+     * places is the silent default this file is built to avoid. The `_traceFainted` latch above
+     * already makes it once-per-body. */
+    faint(m){ if(m._traceFainted)return; m._traceFainted=true; this.push(['faint',ident(m)]);
+              const _fn=fallenShown(m);
+              if(_fn>0){ this.push(['-end',ident(m),'fallen'+_fn,'[silent]']);
+                         MEDSEEN.fallenClosedOnFaint++; } },
     /* --- stages, status, volatiles --- */
     /* ROADMAP #289 -- A CLAMPED STAT CHANGE IS STILL ANNOUNCED, AND ITS MAGNITUDE IS ZERO.
      *
@@ -8955,7 +8976,11 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
       if(_bf&&att._fallenStuck){
         const _POW=[4096,4506,4915,5325,5734,6144];
         const _n=Math.min(att._fallenStuck,+_bf.max||5,5);
-        if(_n>0)BPCH([_POW[_n],4096]);
+        /* MEDI_FALLEN_APPROX=1 puts the tag's `perFallen` arithmetic back. See the knob for the
+         * derivation of where the two part -- every base power ending in 5, at n=1 and n=3 only. */
+        if(_n>0)BPCH(FALLEN_APPROX?(MEDFAILS.fallenApproxRestored++,
+                                    [Math.trunc((1+(+_bf.perFallen||0.1)*_n)*4096),4096])
+                                  :[_POW[_n],4096]);
       }
     }
     /* THE MOVE'S OWN TERRAIN SCALING -- Expanding Force `chainModify(1.5)` in Psychic Terrain and
@@ -10156,6 +10181,28 @@ const STATUS_ABSORB_BLIND=(typeof process!=='undefined'&&process.env&&process.en
  * so the double still lands and says nothing, as this engine did until today. Any run carrying it also
  * carries a non-zero `MEDFAILS.condPowerLineSuppressed`. Same shape as MEDI_SWITCH_CAUSE_BLIND. */
 const NO_CONDPOWER_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_CONDPOWER_LINE==='1');
+/* 2026-08-26 -- MEDI_NO_FALLEN_LINES=1 PUTS SUPREME OVERLORD BACK TO SILENCE. The boost still lands
+ * and the three protocol lines vanish, which is exactly what this engine did until today. It reverts
+ * NARRATION ONLY, deliberately: the damage table sits at its own site behind its own knob below, so a
+ * run can separate "the ability is mispriced" from "the ability says nothing". Any run carrying it
+ * also carries a non-zero `MEDFAILS.fallenLinesSuppressed`. Same shape as MEDI_NO_CONDPOWER_LINE. */
+const NO_FALLEN_LINES=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_FALLEN_LINES==='1');
+/* 2026-08-26 -- MEDI_FALLEN_APPROX=1 COMPUTES THE MULTIPLIER FROM THE TAG'S `perFallen` AGAIN --
+ * `Math.trunc((1 + 0.1n) * 4096)` -- INSTEAD OF READING THE HANDLER'S OWN powMod TABLE. It differs by
+ * exactly ONE 4096th at n=1 (4505 vs 4506) and n=3 (5324 vs 5325) and NOT AT ALL at n=2, 4 or 5.
+ *
+ * ONE PART IN 4096 IS WORTH A FINAL HP AND THAT IS MEASURED, NOT ASSUMED. Derived over every legal
+ * move in the format: the two arithmetics floor to a different base power on EVERY base power ending
+ * in 5 (132 move-by-count rows), and Kingambit's own Kowtow Cleave reads 94 against 93.
+ *
+ * THE INSTRUMENT ALREADY CATCHES IT, WHICH THIS KNOB IS HOW WE KNOW. `tests/test-damage-stages.js`
+ * stages Supreme Overlord at n=1, 3 and 5 on exactly that Kowtow Cleave: under this revert it goes
+ * from 1696/1696 exact to 58 parted rolls (e.g. n=3, crit, roll 9 -- authority 184, ours 183), and the
+ * n=5 rows stay EXACT because 6144 is `trunc(1.5*4096)` on the nose. That is the over-fire control
+ * built in: a revert that broke everything would have broken n=5 too. The knob exists so that fact can
+ * be re-demonstrated rather than remembered. Any run carrying it also carries a non-zero
+ * `MEDFAILS.fallenApproxRestored`. */
+const FALLEN_APPROX=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FALLEN_APPROX==='1');
 /* 2026-08-24 -- MEDI_SELFBOOST_IN_LOOP=1 PAYS `selfBoost` AT `selfDrops`' POSITION AGAIN, i.e. Scale
  * Shot and Clanging Scales put their own stat lines out INSIDE the hit loop, above the `|faint|` and
  * above `|-hitcount|`, exactly as this engine did until today. It exists so the census row for the
@@ -14634,6 +14681,49 @@ function fallenSettle(S){
   S.sfA.fainted=fallenCount(S.sfA,S.actA,S.benchA);
   S.sfB.fainted=fallenCount(S.sfB,S.actB,S.benchB);
 }
+/* 2026-08-26 -- THE NUMBER IN SUPREME OVERLORD'S THREE PROTOCOL LINES, DERIVED ONCE FOR ALL THREE.
+ *
+ * Will: *"lets test supreme overlord by staging it in scenarios where no allies have fainted, one
+ * ally, and two allies ... it gets like a 10% boost per ally thats fainted and its only on switch in
+ * does it count i believe"*. Both halves of that are right, the damage half was already correct here,
+ * and the ability turned out to be SILENT at every count.
+ *
+ * WHAT THE AUTHORITY WRITES (data/abilities.ts `supremeoverlord`; Champions does not override it),
+ * then MEASURED in the official simulator at totalFainted 0/1/2/3 against a Defiant control:
+ *
+ *     entry, n>0   |-activate|p1a: Kingambit|ability: Supreme Overlord     <- NOT [silent]
+ *                  |-start|p1a: Kingambit|fallenN|[silent]
+ *     exit,  n>0   |-end|p1a: Kingambit|fallenN|[silent]
+ *     n = 0        NOTHING on entry, and `fallenundefined` on exit
+ *
+ * THE ZERO CASE IS REFUSED ON PURPOSE. `onStart` is guarded on `side.totalFainted` and `onEnd` is
+ * NOT, so with nothing fallen `effectState.fallen` was never assigned and the template interpolates
+ * the literal string `fallenundefined`. `engine/quarantine.js` declares that AUTHORITY-WRONG and the
+ * declaration is untouched -- reproducing a typo is not correctness. Returning 0 here is what makes
+ * all three emitters silent at once, which is why the guard lives in the shared function rather than
+ * three times at three call sites.
+ *
+ * AND THE DECLARATION NEVER COVERED THE OTHER THREE COUNTS: its matcher is `/fallenundefined/`, so a
+ * `fallen2` line was always an undeclared divergence and simply never appeared in a pinned-pool game.
+ *
+ * ON THE TAG, NOT ON THE NAME. `boostsFromFallen` is derived from `totalFainted` in onStart plus the
+ * powMod table, and its `max` bounds the index exactly as the damage site's does. The `fallen${n}`
+ * spelling is the handler's own template and is READ from data/abilities.ts rather than derived --
+ * stated here because a second carrier added later would inherit this spelling on the strength of the
+ * tag alone.
+ *
+ * THE GAP, NAMED RATHER THAN LEFT TO BE FOUND: this reads `mon.ability` directly, so a body whose
+ * ability is suppressed (Neutralizing Gas) would still narrate here where the authority's onStart
+ * would not have run. The forme announcement two blocks above `bringIn`'s exit reads the same field
+ * the same way; one shared suppression predicate for entry handlers does not exist in this file yet
+ * and inventing it for this member would be the wrong place to start. */
+function fallenShown(mon){
+  if(!mon)return 0;
+  if(NO_FALLEN_LINES){MEDFAILS.fallenLinesSuppressed++;return 0;}
+  const p=TAGS.param('ability',mon.ability,'boostsFromFallen');
+  if(!p)return 0;
+  return Math.min(+mon._fallenStuck||0,+p.max||5,5);
+}
 /* WIRE 133 -- ONE FORME SWAP, CALLED FROM BOTH MOMENTS.
  *
  * `switchOut` needs it (Zero to Hero fires as the body leaves) and `bringIn` still needs it as a
@@ -15635,6 +15725,14 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
    * for the reason written there. */
   if(_announceForme){nx._formeAnnounced=true;MEDSEEN.formeAnnouncedOnReturn++;
     if(TR)TR.act(nx,'ability: '+nx.ability);}
+  /* 2026-08-26 -- SUPREME OVERLORD ANNOUNCES THE DEAD IT WALKED IN ON, and it lands HERE for the two
+   * reasons the forme line above lands here: `onStart` runs after the entry is announced, so both
+   * lines sit BELOW the `|switch|`, and `ident()` reads the body's position on the field, so a line
+   * written before `act[i]=nx` prints `??`. `_fallenStuck` is stamped a few lines up from `sf.fainted`
+   * and is the same snapshot the damage site reads -- there is one count here, not two. */
+  {const _fn=fallenShown(nx);
+   if(_fn>0&&TR){TR.act(nx,'ability: '+nx.ability);TR.vstart(nx,'fallen'+_fn,'[silent]');
+     MEDSEEN.fallenAnnouncedOnEntry++;}}
   /* WIRE 133 -- MAGIC ROOM REACHES A BODY THAT ARRIVES WHILE IT IS UP. The suppression is a swap of
    * the item slot (see itemRoomSync), and a switch-in is the one path that can put an item on the
    * field after the room went down over an empty one. */
@@ -15918,6 +16016,18 @@ function pivotFrom(mvId,fn){
 function switchOut(act,i,bench,foes,sf,field,wanted,pass){
   const out=act[i]; if(!out||out.fainted) return null;
   if(!_live(bench).length) return null;
+  /* 2026-08-26 -- AND THE MARKER CLOSES ON THE WAY OUT, ABOVE EVERYTHING ELSE IN THIS FUNCTION.
+   *
+   * The authority fires the outgoing body's ability End at the point its own comment calls "will
+   * definitely switch out at this point" (sim/battle-actions.ts:103) -- after the two refusals and
+   * BEFORE the replacement's `|switch|` is written. Measured on the same staging: the `-end` line
+   * precedes the incoming switch every time. It is above the clearing block below because that block
+   * exists to erase the body, and `ident()` must still find it in the slot.
+   * A body that DIED never reaches here (`out.fainted` returns null one line up); its `-end` is
+   * written from the faint funnel in TRACE, which is the other of the authority's two End moments
+   * (sim/battle.ts:2553). */
+  {const _fn=fallenShown(out);
+   if(_fn>0&&TR){TR.vend(out,'fallen'+_fn,'[silent]');MEDSEEN.fallenClosedOnSwitchOut++;}}
   /* ROADMAP #81 WIRE 12 -- CAPTURED HERE, at the top, BEFORE the clearing below. Every line from
      `out.protect=false` down exists to erase what does not survive a switch, and what Baton Pass
      exists to do is survive one; reading after the clear would have handed the replacement a body

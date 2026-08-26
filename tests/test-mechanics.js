@@ -441,7 +441,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * so an action-reading probe is structurally blind to the defect. Its full reason is written at the
  * helper itself.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\bMISSRATE\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -14666,6 +14666,177 @@ probe('ability', 'boostsFromFallen', 'Supreme Overlord does NOT see an ally that
                  + `${control}; the SAME board with the ally KOd earlier in the same turn ${test}. The `
                  + `death must reach the counter and must NOT reach the damage: the snapshot is frozen `
                  + `at entry (authority, same staging: 70 -> 70, x1.000, where Last Respects is x1.917)` };
+});
+
+/* ================= 2026-08-26 — SUPREME OVERLORD SAYS NOTHING, AT EVERY COUNT =====================
+ *
+ * Will: *"lets test supreme overlord by staging it in scenarios where no allies have fainted, one
+ * ally, and two allies. (i guess 3 is possible but thats unique)"*. Staged at all four.
+ *
+ * THE DAMAGE WAS ALREADY RIGHT AND ALREADY PROBED — the two probes directly above assert the x1.3
+ * and assert that a mid-stint death does NOT reach it. What no probe in this file could see is that
+ * the ability NARRATES THREE LINES and this engine emitted none of them. Read off the authority
+ * (`data/abilities.ts`, `supremeoverlord`) and then MEASURED in the official simulator at
+ * `p1.totalFainted` = 0/1/2/3, ability arm against a Defiant control:
+ *
+ *   fallen 0   entry: (nothing)                             exit: |-end|p1a: K|fallenundefined|[silent]
+ *   fallen 1   |-activate|p1a: K|ability: Supreme Overlord  exit: |-end|p1a: K|fallen1|[silent]
+ *              |-start|p1a: K|fallen1|[silent]
+ *   fallen 2   ...|fallen2|[silent]                         exit: ...|fallen2|[silent]
+ *   fallen 3   ...|fallen3|[silent]                         exit: ...|fallen3|[silent]
+ *   Defiant    nothing at any count, on either side         (the control is clear at all four)
+ *
+ * THE 0-FALLEN EXIT LINE STAYS UNEMITTED AND THAT IS DELIBERATE. `onStart` is guarded on
+ * `side.totalFainted` and `onEnd` is not, so with nothing fainted `effectState.fallen` was never set
+ * and the authority interpolates the literal string `fallenundefined`. `engine/quarantine.js` declares
+ * it AUTHORITY-WRONG and the declaration is UNCHANGED — reproducing a typo is not correctness. What
+ * the declaration never covered, and what these probes are about, is the three LEGITIMATE lines at
+ * every count above zero: its matcher is `/fallenundefined/`, so a `fallen2` line has never been
+ * excused by anything.
+ *
+ * `-activate` IS NOT `[silent]`. It is a line a player reads in the log, so its absence is a
+ * player-facing gap and not a cosmetic one; the two `-start`/`-end` markers are what the client uses
+ * to draw the boost. A state-reading probe is structurally blind to all three, which is why these
+ * read the stream.
+ *
+ * `overlordLines(` is DECLARED IN REALTURN with the same reason `moveLines(` and `entryLines(` were:
+ * it stages a real doubles board through `battleInit` and spends three real turns through
+ * `battleTurn` — the deaths are planted, a turn is spent so the end-of-turn recount runs, the body
+ * walks IN, and then either walks OUT or DIES. The snapshot is taken at entry, so a probe that put
+ * the Kingambit on the field at battleInit would read the same thing in every arm.
+ *
+ * THE REVERT IS NAMED: MEDI_NO_FALLEN_LINES=1 restores the silence and all three go MISSING. */
+const overlordLines = (dead, ab, how) => {
+  const lead = bare('milotic'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('incineroar');
+  const king = bare('kingambit'); king.ability = ab;
+  const d = [bare('milotic'), bare('milotic'), bare('milotic')];
+  const S = M.battleInit([lead, ally, king].concat(d), [f1, f2], { seeded: true });
+  unfaintable(f1); unfaintable(ally);
+  for (let i = 0; i < dead; i++) { d[i].fainted = true; d[i].curHP = 0; }
+  M.battleTurn(S, rng5, PASS2(lead, ally), PASS2(f1, f2));            // the end-of-turn recount runs
+  const entry = []; S._trace = entry;
+  M.battleTurn(S, rng5, new Map([[lead, { kind: 'switch', to: king }], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));                                                    // the body walks IN
+  const left = []; S._trace = left;
+  if (how === 'faint') {
+    king.curHP = 1;
+    M.battleTurn(S, rng5, new Map([[king, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', king, S.field)], [f2, { kind: 'pass' }]]));
+  } else {
+    M.battleTurn(S, rng5, new Map([[king, { kind: 'switch', to: lead }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+  }
+  const mine = (a) => a.filter(l => /^\|(switch|drag|faint|-activate|-start|-end)\|p1a:/.test(l));
+  return { stuck: king._fallenStuck, entry: mine(entry), left: mine(left) };
+};
+
+probe('ability', 'boostsFromFallen', 'Supreme Overlord ANNOUNCES the dead it walked in on at 1, 2 and 3 — and says nothing at 0', () => {
+  const at = (n, ab) => overlordLines(n, ab, 'switch').entry;
+  const want = (n) => ['|-activate|p1a: kingambit|ability: supremeoverlord',
+                       '|-start|p1a: kingambit|fallen' + n + '|[silent]'];
+  const said = (a) => a.filter(l => !/^\|(switch|drag)\|/.test(l));
+  const zero = at(0, 'supremeoverlord'), one = at(1, 'supremeoverlord');
+  const two = at(2, 'supremeoverlord'), three = at(3, 'supremeoverlord');
+  const off = at(3, 'none');
+  /* THE ORDER IS PART OF THE CLAIM: both lines land AFTER the `|switch|` that put the body on the
+   * field, because `onStart` runs after the entry is announced. An `-activate` written before the
+   * slot is filled prints `??` — the trap `bringIn`'s own comment records. */
+  const afterSwitch = [one, two, three].every(a => a.length === 3 && /^\|switch\|/.test(a[0]));
+  const ok = JSON.stringify(said(one)) === JSON.stringify(want(1))
+          && JSON.stringify(said(two)) === JSON.stringify(want(2))
+          && JSON.stringify(said(three)) === JSON.stringify(want(3))
+          && said(zero).length === 0 && said(off).length === 0 && afterSwitch;
+  return { works: ok, arms: { control: [said(zero).length, said(off).length], test: said(three) },
+           detail: `entry lines on the p1a slot — 0 fallen ${JSON.stringify(said(zero))}; `
+                 + `1 ${JSON.stringify(said(one))}; 2 ${JSON.stringify(said(two))}; `
+                 + `3 ${JSON.stringify(said(three))}; the same board with no ability at 3 fallen `
+                 + `${JSON.stringify(said(off))} (authority: -activate then -start fallenN, both `
+                 + `after the |switch|, and NOTHING at 0)` };
+});
+
+probe('ability', 'boostsFromFallen', 'Supreme Overlord closes its fallen marker on the way OUT, and refuses the authority fallenundefined', () => {
+  const at = (n, ab) => overlordLines(n, ab, 'switch').left;
+  const ends = (a) => a.filter(l => /^\|-end\|/.test(l));
+  const zero = at(0, 'supremeoverlord'), one = at(1, 'supremeoverlord');
+  const two = at(2, 'supremeoverlord'), three = at(3, 'supremeoverlord');
+  const off = at(3, 'none');
+  /* THE `-end` PRECEDES THE INCOMING `|switch|`: the authority fires the outgoing body's ability End
+   * at "will definitely switch out at this point" (battle-actions.ts:103), before the replacement is
+   * announced. Measured in the official simulator, same staging. */
+  const before = [one, two, three].every(a => /^\|-end\|/.test(a[0]) && /^\|switch\|/.test(a[1] || ''));
+  const shape = (a, n) => JSON.stringify(ends(a)) === JSON.stringify(['|-end|p1a: kingambit|fallen' + n + '|[silent]']);
+  const ok = shape(one, 1) && shape(two, 2) && shape(three, 3) && before
+          && ends(zero).length === 0 && ends(off).length === 0;
+  return { works: ok, arms: { control: [ends(zero).length, ends(off).length], test: ends(three) },
+           detail: `exit lines on the p1a slot — 0 fallen ${JSON.stringify(ends(zero))} (the authority `
+                 + `writes fallenundefined here and engine/quarantine.js declares it AUTHORITY-WRONG, `
+                 + `so this MUST stay empty); 1 ${JSON.stringify(ends(one))}; 2 ${JSON.stringify(ends(two))}; `
+                 + `3 ${JSON.stringify(ends(three))}; no ability at 3 fallen ${JSON.stringify(ends(off))}` };
+});
+
+probe('ability', 'boostsFromFallen', 'A Supreme Overlord that DIES closes its marker too, after the faint line', () => {
+  const at = (n, ab) => overlordLines(n, ab, 'faint').left;
+  const ends = (a) => a.filter(l => /^\|-end\|/.test(l));
+  const two = at(2, 'supremeoverlord'), zero = at(0, 'supremeoverlord'), off = at(2, 'none');
+  /* `faintMessages` writes `|faint|` and increments `side.totalFainted` and THEN fires the ability's
+   * End (sim/battle.ts:2550-2553), and the body is still `isActive` at that point — so the line names
+   * `p1a:` and carries the SNAPSHOT, not the freshly-incremented count. Measured: fallen2, not fallen3.
+   * The control that matters here is the FAINT itself: without it, an arm where nothing died would
+   * report "no -end" for the wrong reason. */
+  const died = (a) => a.some(l => /^\|faint\|p1a: kingambit/.test(l));
+  const ok = died(two) && died(zero) && died(off)
+          && JSON.stringify(ends(two)) === JSON.stringify(['|-end|p1a: kingambit|fallen2|[silent]'])
+          && two.indexOf('|faint|p1a: kingambit') < two.indexOf(ends(two)[0])
+          && ends(zero).length === 0 && ends(off).length === 0;
+  return { works: ok, arms: { control: [died(two), ends(zero).length, ends(off).length], test: ends(two) },
+           detail: `a Kingambit killed on the field — 2 fallen ${JSON.stringify(two)}; 0 fallen `
+                 + `${JSON.stringify(zero)}; the same death with no ability ${JSON.stringify(off)}. `
+                 + `The faint must land in every arm (${died(two)}/${died(zero)}/${died(off)}) and the `
+                 + `marker must carry the SNAPSHOT 2, not the freshly-incremented 3` };
+});
+
+probe('ability', 'boostsFromFallen', 'The marker a Supreme Overlord closes is the one it OPENED, not the count at the door', () => {
+  /* WILL NAMED THIS ONE: *"its only on switch in does it count i believe"*. The damage half is
+   * probed two entries above; this is the NARRATION half, and it is the fixture that separates the
+   * two hypotheses. A body that walks in on ONE dead ally and then watches a SECOND die beside it
+   * must still write `fallen1` on the way out, because `effectState.fallen` was assigned once in
+   * `onStart` and `onEnd` reads that field and nothing else. An engine reading the live side counter
+   * writes `fallen2` and is indistinguishable from a correct one on every fixture where nothing dies
+   * mid-stint — which is every other probe in this family. */
+  const run = (killAlly) => {
+    const lead = bare('milotic'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('incineroar');
+    const king = bare('kingambit'); king.ability = 'supremeoverlord';
+    const d = [bare('milotic'), bare('milotic'), bare('milotic')];
+    const S = M.battleInit([lead, ally, king].concat(d), [f1, f2], { seeded: true });
+    unfaintable(f1);
+    d[0].fainted = true; d[0].curHP = 0;                       // ONE dead before the door
+    M.battleTurn(S, rng5, PASS2(lead, ally), PASS2(f1, f2));   // the recount runs
+    M.battleTurn(S, rng5, new Map([[lead, { kind: 'switch', to: king }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));                                          // the body walks IN on 1
+    const stuck = king._fallenStuck;
+    if (killAlly) ally.curHP = 1;                              // the ONLY varied thing
+    M.battleTurn(S, rng5, new Map([[king, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', ally, S.field)], [f2, { kind: 'pass' }]]));
+    const sideNow = S.sfA.fainted;
+    const out = []; S._trace = out;
+    M.battleTurn(S, rng5, new Map([[king, { kind: 'switch', to: d[1] }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { stuck, sideNow, ends: out.filter(l => /^\|-end\|p1a:.*fallen/.test(l)) };
+  };
+  const control = run(false), test = run(true);
+  const said = (r) => JSON.stringify(r.ends);
+  const one = JSON.stringify(['|-end|p1a: kingambit|fallen1|[silent]']);
+  return { works: control.stuck === 1 && test.stuck === 1
+                  && control.sideNow === 1 && test.sideNow === 2
+                  && said(control) === one && said(test) === one,
+           arms: { control: [control.sideNow, control.ends], test: [test.sideNow, test.ends] },
+           detail: `[side fallen count when it left, the -end it wrote] — walked in on ONE dead and `
+                 + `nothing else died ${control.sideNow} ${said(control)}; the SAME board with the `
+                 + `partner KOd while it stood there ${test.sideNow} ${said(test)}. The second death `
+                 + `must reach the side counter (1 vs 2, or the fixture proves nothing) and must NOT `
+                 + `reach the marker — the authority assigns effectState.fallen once, in onStart` };
 });
 
 /* ================= ROADMAP #81 WIRE 6 — DOES THE ENGINE ANNOUNCE THE ACTION IT TOOK ===============

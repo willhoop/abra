@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T05:08:45.232Z",
+  "generated": "2026-08-26T06:17:04.946Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 706,
-  "live": 706,
+  "probed": 710,
+  "live": 710,
   "missing": 0,
-  "armed": 706,
+  "armed": 710,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3583,7 +3583,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4174,6 +4174,46 @@
       "label": "Supreme Overlord does NOT see an ally that dies while it stands there",
       "live": true,
       "detail": "[side fallen count, Iron Head damage] — Kingambit already on the field, ally alive 0,97; the SAME board with the ally KOd earlier in the same turn 1,97. The death must reach the counter and must NOT reach the damage: the snapshot is frozen at entry (authority, same staging: 70 -> 70, x1.000, where Last Respects is x1.917)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsFromFallen",
+      "label": "Supreme Overlord ANNOUNCES the dead it walked in on at 1, 2 and 3 — and says nothing at 0",
+      "live": true,
+      "detail": "entry lines on the p1a slot — 0 fallen []; 1 [\"|-activate|p1a: kingambit|ability: supremeoverlord\",\"|-start|p1a: kingambit|fallen1|[silent]\"]; 2 [\"|-activate|p1a: kingambit|ability: supremeoverlord\",\"|-start|p1a: kingambit|fallen2|[silent]\"]; 3 [\"|-activate|p1a: kingambit|ability: supremeoverlord\",\"|-start|p1a: kingambit|fallen3|[silent]\"]; the same board with no ability at 3 fallen [] (authority: -activate then -start fallenN, both after the |switch|, and NOTHING at 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsFromFallen",
+      "label": "Supreme Overlord closes its fallen marker on the way OUT, and refuses the authority fallenundefined",
+      "live": true,
+      "detail": "exit lines on the p1a slot — 0 fallen [] (the authority writes fallenundefined here and engine/quarantine.js declares it AUTHORITY-WRONG, so this MUST stay empty); 1 [\"|-end|p1a: kingambit|fallen1|[silent]\"]; 2 [\"|-end|p1a: kingambit|fallen2|[silent]\"]; 3 [\"|-end|p1a: kingambit|fallen3|[silent]\"]; no ability at 3 fallen []",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsFromFallen",
+      "label": "A Supreme Overlord that DIES closes its marker too, after the faint line",
+      "live": true,
+      "detail": "a Kingambit killed on the field — 2 fallen [\"|faint|p1a: kingambit\",\"|-end|p1a: kingambit|fallen2|[silent]\",\"|switch|p1a: milotic|milotic, L50|170/170\"]; 0 fallen [\"|faint|p1a: kingambit\",\"|switch|p1a: milotic|milotic, L50|170/170\"]; the same death with no ability [\"|faint|p1a: kingambit\",\"|switch|p1a: milotic|milotic, L50|170/170\"]. The faint must land in every arm (true/true/true) and the marker must carry the SNAPSHOT 2, not the freshly-incremented 3",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsFromFallen",
+      "label": "The marker a Supreme Overlord closes is the one it OPENED, not the count at the door",
+      "live": true,
+      "detail": "[side fallen count when it left, the -end it wrote] — walked in on ONE dead and nothing else died 1 [\"|-end|p1a: kingambit|fallen1|[silent]\"]; the SAME board with the partner KOd while it stood there 2 [\"|-end|p1a: kingambit|fallen1|[silent]\"]. The second death must reach the side counter (1 vs 2, or the fixture proves nothing) and must NOT reach the marker — the authority assigns effectState.fallen once, in onStart",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -10,6 +10,68 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.133.0] — 2026-08-26
+
+### Fixed
+- **SUPREME OVERLORD DID THE DAMAGE AND NEVER SAID A WORD — THREE PROTOCOL LINES, MISSING AT EVERY
+  COUNT ABOVE ZERO.** Will asked for it staged at nought, one and two fallen allies (*"i guess 3 is
+  possible but thats unique"*); all four were staged. The multiplier was already right and already
+  probed. What no probe could see is that the ability narrates and this engine emitted nothing:
+  `|-activate|IDENT|ability: Supreme Overlord` and `|-start|IDENT|fallenN|[silent]` on entry, and
+  `|-end|IDENT|fallenN|[silent]` when the body leaves the field. **`-activate` is not `[silent]`** —
+  it is a line a player reads in the log, so its absence was a player-facing gap and not a cosmetic
+  one. Read off `data/abilities.ts` (Champions does not override it) and then MEASURED in the official
+  simulator at `totalFainted` 0/1/2/3 against a Defiant control, which is silent at all four.
+- **A DEATH IS THE OTHER MOMENT THE ABILITY ENDS, AND IT IS EMITTED FROM THE TRACE FUNNEL.**
+  `faintMessages` writes `|faint|`, increments `side.totalFainted` and *then* fires the ability's End
+  (sim/battle.ts:2550-2553) with the body still active — so the line names `p1a:` and carries the
+  SNAPSHOT, not the count its own death just raised. A Kingambit that entered on two dead and then
+  dies writes `fallen2`. The emission sits inside `TRACE.faint()` rather than at the twenty-odd sites
+  that kill a body, for the reason `bringIn` gives about entries: one door, or a line added at
+  nineteen of twenty places is the silent default this file exists to avoid.
+- **THE MARKER A BODY CLOSES IS THE ONE IT OPENED.** Will: *"its only on switch in does it count i
+  believe"* — correct, and the narration inherits it. A Kingambit that walks in on one dead ally and
+  watches a second die beside it still writes `fallen1` on the way out. `_fallenStuck` is the entry
+  snapshot and all three lines read it, so there is one count in this engine and not two.
+
+### Added
+- **FOUR CENSUS PROBES ON `boostsFromFallen`, ALL FOUR SHOWN RED FIRST.** Entry narration at 0/1/2/3
+  with an order assertion (both lines land BELOW the `|switch|`, because `onStart` runs after the entry
+  is announced); the switch-out `-end`, asserted to PRECEDE the incoming `|switch|` as the authority
+  puts it; the faint `-end`, with the faint itself asserted in every arm so "no line" cannot mean "no
+  death"; and the snapshot-versus-live fixture, whose two arms differ on the side counter (1 vs 2)
+  and must NOT differ on the marker. Each clears its control explicitly — the same board with the
+  ability removed emits nothing anywhere. `MEDI_NO_FALLEN_LINES=1` restores the silence and all four
+  go MISSING on demand. **Census 706/706 → 710/710.**
+- **`MEDI_FALLEN_APPROX=1`, AND WITH IT AN ANSWER TO THE ROUNDING QUESTION.** The tag carries
+  `perFallen: 0.1` and the handler carries a table, and they disagree by one part in 4096 at n=1
+  (4505 vs **4506**) and n=3 (5324 vs **5325**) — and not at all at n=2, 4 or 5. **That one part is
+  worth a final HP and it is measured, not assumed:** derived over every legal move, the two
+  arithmetics floor to a different base power on every base power ending in 5, and under this revert
+  `tests/test-damage-stages.js` goes from **1696/1696 exact to 58 parted rolls** (n=3, crit, roll 9 —
+  authority 184, ours 183) on Kingambit's own Kowtow Cleave. The n=5 rows stay exact under the same
+  revert, because 6144 is `trunc(1.5 × 4096)` on the nose — the over-fire control was already built in.
+  MEDICHAM already read the table; the knob is how that stops being a claim.
+
+### Notes
+- **THE `fallenundefined` DECLARATION IS UNCHANGED, AND IT WAS NEVER OVER-BROAD.** With nothing fallen
+  the authority's unguarded `onEnd` interpolates the literal string `fallenundefined`; reproducing a
+  typo is not correctness, and `engine/quarantine.js` still declares it AUTHORITY-WRONG. Its matcher
+  is `/fallenundefined/`, so a `fallen2` line was **never** excused by it — the three legitimate lines
+  were undeclared divergences the whole time and simply never surfaced in a pinned-pool game.
+- **THE SCOREBOARD THAT SHOULD MOVE WAS NAMED BEFORE THE RUN AND IT DID WHAT WAS PREDICTED.** The
+  pinned pool holds **zero** `fallenN` causes for N ≥ 1, so the lab was expected to move and the pool
+  to sit still. Whole-game differential on release `d684a2f1f183`, `--games 1200`, arm `middle`, cap
+  12, pool `data/team-pool-frozen`, census pin `census-pin-9446a684709d`: **17 of 961 = 1.8%,
+  unchanged**, 22 raw less the same 5 declared, `planted_divergence_proof_ok` true. The three roster
+  stages were re-run against the new release and are **0 FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE**
+  across items, abilities and moves.
+- **A GAP NAMED RATHER THAN LEFT TO BE FOUND:** `fallenShown()` reads `mon.ability` directly, so a
+  body whose ability is suppressed by Neutralizing Gas would narrate here where the authority's
+  `onStart` would not have run. The forme announcement a few lines above it in `bringIn` reads the same
+  field the same way; one shared suppression predicate for entry handlers does not exist in this file,
+  and inventing it for this member would be the wrong place to start.
+
 ## [5.132.0] — 2026-08-26
 
 ### Fixed
