@@ -14159,3 +14159,36 @@ quoting any stage count:
 `cmd /c tools\lownode.cmd engine\quarantine.js`.
 Also owed: the LOUD PRINT of the closet in the roster's own run output — the artifact and the gate
 carry the receipt, the console does not yet.
+
+## 2026-08-26 — The rulebook alarm was a line ending, and no generated file can prove itself
+
+Not an engine change; no census or gate movement is claimed. Recorded because it RETRACTS a finding
+this session reported as real, and because it names a hole under the release system.
+
+**RETRACTION.** The registered artifact gate has been red saying the browser engine and the node
+engine read different rulebooks. **That is false.** `core.autocrlf=true`, so the working-tree copy of
+`data/abra-tags.js` carries **41,252 CR bytes** while `data/tags.json` carries none — verified
+independently of the agent that found it: 41,252 on disk, **0 in the committed blob**, and 0 on both
+sides for `tags.json`. Both hash to the same blob, so git reports the tree clean while a byte-comparing
+`--check` reports drift. The content agrees. `engine/generated_audit.js` gives this its own verdict,
+`CHECKOUT-EOL`, rather than folding it into drift or into ok — the distinction is the point.
+
+**IT REACHES THE RELEASES.** `engine_release.js` digests raw bytes, so across 407 releases **35 froze
+CRLF**, and one file's identical content split into **two release identities** purely by line endings —
+18 releases are byte-duplicates of two others under different ids. A checkout with no content change
+flips every `source_digests` entry for that file. **That is the content-not-mtime rule defeated one
+level down**, and it is exactly the shape this project keeps paying for: the fix was right and the
+layer beneath it was not.
+
+**THE SCOPE, DERIVED.** 360 generated files. **8** can prove they match their source. **0** carry a
+digest of their own content. 203 name a builder with no `--check`; 78 name no builder at all.
+`data/engine-data.js` is on the shortlist — frozen into every release, with no comparison today.
+
+**THE CHECK CATCHES THE CLASS, AND THAT WAS MEASURED.** `--break` damages two pairs built by two
+different builders in a scratch tree: control exit 0 / 0 drifted, break exit 1 / 2 drifted, both named.
+Membership is a union of two derived doors — the file's own header, and provenance's writer graph read
+from the stamp — so a new generator is picked up with no edit. **A builder with no `--check` is counted
+and named, never passed.** Its header states what still walks past it.
+
+**OWED:** the tag rebuild, provenance, `status.js --write`, and a decision on whether release digests
+should normalise line endings before hashing.
