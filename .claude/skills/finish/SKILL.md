@@ -94,6 +94,32 @@ carried under a new label is the normalisation that has cost this project two da
 
 *(Will, 2026-08-23: "i want to keep refining the start command to make it better and better.")*
 
+### DO NOT WAIT FOR `/finish` TO RUN THIS STEP. A SESSION THAT ENDS BADLY NEVER REACHES IT.
+
+*(2026-08-25. This step is written as the end of a session, and that assumption cost a session its
+whole account of itself.)*
+
+**Two background agents were killed when the Claude Code process exited.** Their in-process state was
+lost, mid-measurement, with no warning and no `/finish`. Three lessons that session had already paid
+for — a peer-session collision, `cmd /c` returning a banner and exit 0 for the third and fourth time,
+a published figure that had drifted in the SAFE direction for three days — survived **only because
+they had been written and pushed hours earlier, during a wait on an agent.** Everything not yet
+written would have gone with the process.
+
+**So the trigger for §6 is not "the session is ending". It is "I just learned something that cost
+me".** Write it then, commit it then. The natural moment is while an agent is running and the
+coordinator is otherwise idle — that time is free, and it is exactly when a killed process is most
+likely to take the session with it.
+
+`/finish` then becomes a SWEEP for what the session missed, not the only chance to record anything.
+**Ask the §6 question anyway at the end** — some lessons are only visible from the far side of a day's
+work — but never carry a known lesson to it.
+
+**AND CHECK THE PUSH LANDED.** With agents pushing concurrently, a lesson commit is routinely rejected
+as non-fast-forward. **Never rebase while an agent still has unstaged work in the tree** — hold the
+commit locally and push once the tree is yours. A lesson committed and not pushed is a lesson on one
+machine.
+
 **This is the step that makes the next session cheaper, and it is the reason this skill is not just
 `commit && push`.** Ask one question of the session:
 
