@@ -14192,3 +14192,53 @@ and named, never passed.** Its header states what still walks past it.
 
 **OWED:** the tag rebuild, provenance, `status.js --write`, and a decision on whether release digests
 should normalise line endings before hashing.
+
+## 2026-08-26 — A CHECK THAT COULD NOT SEE A SINGLE `git add` PATH, AND SAID IT HAD BEEN SHOWN RED
+
+`tests/test-workflow-paths.js` guards the failure that ran **570 times** and aged out an estimated
+2,500-3,000 unrecoverable ladder games. It matched `line.match(/git\s+add\s+(.+)$/)` over
+`joined.split('\n')`. `core.autocrlf` is `true`, so a tracked workflow is CRLF in the working tree
+while its committed blob is LF — and in JavaScript `.` excludes all four line terminators, so `(.+)`
+cannot eat the trailing `\r` and `$` (no `m` flag) asserts only at end of string. **The match failed
+outright.** `smogon-stats.yml` carried 98 CR / 98 LF and held the only static `git add` in the repo,
+so `staged` stayed **0** for the check's entire life. **Green on CI, blind locally** — the machine
+where somebody edits a workflow is the machine where the check was asleep. Its own
+`asserted nothing` guard is the only reason this was ever visible.
+
+Fixed by normalising **once at the read**, not with `\r?` in one regex, so nothing added downstream
+in that file inherits the same bite. **0 -> 4 static paths**, and the count now prints every run:
+`0` and "all passed" are the same output from a blind matcher.
+
+The header's `SHOWN RED BEFORE BEING TRUSTED` claim was **false when written**. It is true now, on
+**both** line endings: the historical defect `git add data/games.ladder.jsonl` planted on a CRLF line
+in `smogon-stats.yml` (old matcher: **0** matches with the regression on disk; new check: `FAIL ...
+which .gitignore excludes`), and again in the LF `ingest.yml`, to prove the fix did not just move the
+blindness. Both files backed up and restored byte-for-byte, SHA-1 verified.
+
+**THE CLASS, NOT THE INSTANCE — AND THE REPO HAD ALREADY PAID FOR IT ONCE.** `engine/status.js:1212`
+carries a comment dated **2026-08-07** describing the identical bug: `-->\n` did not match `-->\r\n`,
+so `--write` printed `skip docs/ENGINE.md (no GENERATED block)` while that ledger sat frozen at an
+older run's numbers. Fixed **in that file**; nineteen days later this check shipped with the same
+defect. **510 of 1,753 tracked files are CRLF here.** The discriminator was measured, not assumed:
+`\s` matches `\r`, so `\s*$` is *accidentally* immune and `(.+)$` is not; `/…$/m` is safe because `$`
+in multiline mode matches before a line terminator; `===` on a whole line and `.endsWith` are
+silently false.
+
+Swept `tests/` + `engine/`: 140 heuristic -> 27 idiom -> **11 sites, 2 real**, neither MEASURE's file,
+so both **reported and left** with reproduction commands. `engine/conformance.js:110`
+`stripComments()` is **completely inert on CRLF files** — it strips nothing — defeating its stated
+purpose on **168 of the 473 files it scans**; it over-fires and is **ratcheted**, so its verdict moves
+with checkout history rather than with the code. `engine/orient.js:262` is latent: `docs/MODELS.md`
+as CRLF takes the `**Job:**` capture from **32 to 0** while headings survive, because those end `\s*$`.
+
+No new gate, deliberately. The class-level door is one shared normalising `readText()` made the only
+door — not a ratchet enumerating known-bad regexes, which is how the species-key bug walked past two
+gates.
+
+Full account: `docs/_reports/2026-08-26-crlf-blind-checks.md`.
+
+**OWED, NOT RUN:** `engine/conformance.js` and `engine/orient.js` are unfixed and are not MEASURE's
+files; exact commands are in the report's `## OWED, NOT RUN`. Separately, the same test's second half
+is red on a real, unrelated finding — the tracked `.gz` stores lag their plain stores
+(`games.ladder`, `games.bo3`). `data/` was owned by live agents this pass, so
+`node build/compress-stores.js` was **not** run.

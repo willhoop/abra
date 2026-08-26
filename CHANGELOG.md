@@ -10,6 +10,65 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.135.0] — 2026-08-26
+
+### Fixed
+- **A CHECK THAT COULD NOT SEE A SINGLE `git add` PATH ON THIS MACHINE, AND WHOSE HEADER CLAIMED IT
+  HAD BEEN SHOWN RED.** `tests/test-workflow-paths.js` exists to stop the silent collector failure
+  that ran 570 times and aged out an estimated 2,500-3,000 unrecoverable ladder games. It matched
+  with `line.match(/git\s+add\s+(.+)$/)` over `joined.split('\n')`. `git config core.autocrlf` is
+  `true`, so a tracked workflow is CRLF in the working tree while its committed blob is LF — and in
+  JavaScript `.` **excludes** the line terminators `\n \r \u2028 \u2029`, so `(.+)` cannot consume
+  the trailing `\r` and `$` (no `m` flag) asserts only at end of string. The match failed
+  **outright**; every `git add` line was skipped in silence. Measured: `smogon-stats.yml` carried
+  98 CR / 98 LF and held the **only** static `git add` in the repo, so `staged` stayed 0 for the
+  check's whole life. **It worked on CI and was blind locally** — the worst arrangement available,
+  because the machine where somebody edits a workflow is the machine where the check is asleep.
+  The only thing that made it visible was its own `asserted nothing` guard.
+  Fixed by normalising **once, at the read** (`.replace(/\r\n?/g, '\n')`) rather than adding `\r?`
+  to one regex, so nothing added downstream in that file inherits the same bite. The check now
+  reports **4 static paths where it reported 0**, and prints that count on every run as the receipt
+  — `0` and "all passed" are the same output from a blind matcher.
+- **The `SHOWN RED BEFORE BEING TRUSTED` line in that header was false when written.** It is now
+  true and dated, demonstrated on **both** line endings: the historical defect
+  (`git add data/games.ladder.jsonl`) planted on a CRLF line in `smogon-stats.yml` — old matcher
+  `0` matches with the regression on disk, new check `FAIL … which .gitignore excludes` — and again
+  in the LF `ingest.yml`, to prove the fix did not merely move the blindness to the other ending.
+  Both workflow files were backed up and restored byte-for-byte (SHA-1 verified; `git status` on
+  `.github/` empty afterwards).
+
+### Notes
+- **THE CLASS WAS SWEPT, NOT JUST THE INSTANCE, AND THIS REPO HAD ALREADY PAID FOR IT ONCE.**
+  `engine/status.js:1212` carries a comment dated **2026-08-07** describing the identical bug — a
+  `-->\n` that did not match `-->\r\n`, so `--write` printed `skip docs/ENGINE.md (no GENERATED
+  block)` while that ledger sat frozen at an older run's numbers. It was fixed **in that file** with
+  a local `\r?\n`; nineteen days later this check shipped with the same defect. The instance was
+  gated, the class was not — the species-key pattern again.
+- **510 of 1,753 readable tracked files are CRLF in this working tree** (329 `.js`, 96 `.json`,
+  57 `.md`, 12 `.py`, 10 `.html`, 1 `.yml`). The discriminator was measured rather than assumed:
+  `\s` matches `\r`, so a regex ending `\s*$` is *accidentally* immune and one ending `(.+)$` is
+  not; `$` in multiline mode matches before a LineTerminator, so every `/…$/m` is safe. `===` on a
+  whole line and `.endsWith` are silently broken; `startsWith` and `JSON.parse` are tolerant.
+- Sweep of `tests/` and `engine/` narrowed 140 heuristic hits → 27 idiom hits → **11 sites, of which
+  2 are real** and neither is MEASURE's file, so both are **reported and left**, with exact
+  reproduction commands, per *report it, leave it*:
+  **`engine/conformance.js:110`** — `stripComments()` is **completely inert on CRLF files** (it
+  strips nothing), defeating its own stated purpose on **168 of the 473 files it scans**, 98 of them
+  carrying comments. It over-fires, and it is **ratcheted**, so its verdict moves with checkout
+  history rather than with the code. **`engine/orient.js:262`** — latent: `docs/MODELS.md` is LF
+  today, but the same file as CRLF takes the `**Job:**` capture from **32 to 0** while the headings
+  survive, because those end `\s*$`.
+- No new gate was added, deliberately. The correct class-level door is a single shared normalising
+  `readText()`, not a ratchet enumerating known-bad regexes — that is how the species-key bug walked
+  past two gates.
+- Full account, including the per-site verdicts and everything owed:
+  `docs/_reports/2026-08-26-crlf-blind-checks.md`.
+- Unrelated pre-existing red, untouched and out of scope: the same test's second half reports the
+  tracked `.gz` stores are stale (`games.ladder`, `games.bo3`). `data/` was owned by live agents this
+  pass. Owner action: `node build/compress-stores.js`.
+
+---
+
 ## [5.134.0] — 2026-08-26
 
 ### Fixed

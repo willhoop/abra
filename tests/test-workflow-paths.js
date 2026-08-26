@@ -23,9 +23,24 @@
  * allowed only when it is a generated artifact whose directory is tracked, because failing on those
  * would make the test fire on a fresh clone; an IGNORED path is never allowed, which is the defect.
  *
- * SHOWN RED BEFORE BEING TRUSTED: put `data/games.ladder.jsonl` back into ingest.yml's `git add`
- * and this reports
- *     FAIL  ingest.yml stages data/games.ladder.jsonl, which .gitignore excludes
+ * SHOWN RED BEFORE BEING TRUSTED (re-demonstrated 2026-08-26, on BOTH line endings): put
+ * `git add data/games.ladder.jsonl` back into a workflow and this reports
+ *     FAIL  <file> stages data/games.ladder.jsonl, which .gitignore excludes
+ * Removed again, it reports `ok` and a non-zero static-path count.
+ *
+ * LINE ENDINGS — WHY THE READ NORMALISES. This check was BLIND ON THIS MACHINE for its whole life
+ * and green on CI, which is the worst arrangement available: the box where somebody edits a
+ * workflow is the box where the check is asleep. `git config core.autocrlf` is true, so a workflow
+ * can be CRLF in the working tree while its committed blob is LF. `joined.split('\n')` then leaves
+ * a trailing `\r` on every line, and in JavaScript `.` EXCLUDES all FOUR line terminators
+ * (\n, \r, \u2028, \u2029 - WRITTEN ESCAPED ON PURPOSE: the last two are invisible
+ * in an editor, and this repo has already lost a regex to two raw 0x08 bytes that rendered as
+ * nothing). So `(.+)$` (no `m` flag, `$` = end of string) cannot consume that `\r` and the match
+ * fails OUTRIGHT. Every `git add` line was silently skipped; `staged` stayed 0 and the only reason
+ * this was ever visible is the "asserted nothing" guard below. Measured before the fix:
+ * smogon-stats.yml carried 98 CR / 98 LF and held the ONLY static `git add` in the repo.
+ * The normalisation is done ONCE, at the read, so nothing added downstream in this file can be
+ * bitten by the same thing again — a per-regex `\r?` would have fixed the instance, not the class.
  */
 'use strict';
 const fs = require('fs'), path = require('path'), cp = require('child_process');
@@ -53,9 +68,15 @@ const files = fs.readdirSync(WF).filter(f => /\.ya?ml$/.test(f));
 console.log('WORKFLOW STAGING PATHS — every `git add` must name something git can actually commit\n');
 console.log('  ' + files.length + ' workflow file(s): ' + files.join(', ') + '\n');
 
-let staged = 0;
+/* ONE normalisation, at the read. CRLF and lone-CR both become \n here, so every regex, split and
+ * trim below sees exactly what CI sees. See the LINE ENDINGS note in the header. */
+const readWorkflow = p => fs.readFileSync(p, 'utf8').replace(/\r\n?/g, '\n');
+
+let staged = 0, crlfFiles = 0;
 for (const f of files) {
-  const text = fs.readFileSync(path.join(WF, f), 'utf8');
+  const raw = fs.readFileSync(path.join(WF, f), 'utf8');
+  if (raw.includes('\r')) crlfFiles++;
+  const text = readWorkflow(path.join(WF, f));
 
   /* A `git add` may be continued across lines with a trailing backslash, which ingest.yml does.
    * Joining them first is why this sees the .gz paths on the second line rather than stopping at
@@ -90,6 +111,11 @@ for (const f of files) {
   }
 }
 
+/* THE RECEIPT. A count is the only thing that separates "every path is fine" from "the matcher is
+ * blind and reported every path fine by never looking at one". It is printed on every run, pass or
+ * fail, because that is what made the CRLF blindness visible. */
+console.log('\n  ' + staged + ' static `git add` path(s) checked'
+  + (crlfFiles ? '  (' + crlfFiles + ' workflow file(s) are CRLF in the working tree — normalised at the read)' : ''));
 if (!staged) bad('no `git add` path was found in any workflow — this test asserted nothing, which '
   + 'is worse than failing. Did the staging move out of the workflow files?');
 
