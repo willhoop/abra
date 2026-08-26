@@ -433,6 +433,13 @@ by that pattern.
 
 **YOUR OWN COMMANDS CAN SUCCEED HAVING DONE NOTHING.** Twice: `cmd /c "…"` from Git Bash. The artifact
 kept its old timestamp both times and the stale number was nearly reported as a confirmation.
+**AND A FIFTH SHAPE, FOUND 2026-08-26: `toolslownode.cmd` ENDS IN `exit /b`, SO CALLING IT FROM
+ANOTHER `.cmd` WITHOUT `call` ENDS THE CALLER.** An agent batching three roster stages ran the FIRST one
+and stopped, **exit 0**, output that looks exactly like a finished run. The wrapper is correct — `exit /b`
+is what propagates the exit code, which is the load-bearing property `tests/test-lownode.js` exists to
+defend. The caller is what must say `call toolslownode.cmd …` when chaining. **One stage of three, with
+a success code and no error, is this file's signature failure wearing yet another costume.**
+
 **FOUR TIMES NOW, AND THE THIRD AND FOURTH WERE THE COORDINATOR, TEN MINUTES APART, WITH THIS
 PARAGRAPH ALREADY ON THE PAGE.** Unquoted is no safer: `cmd /c tools\\lownode.cmd tests\\run-all.js`
 from the Bash tool produced a three-line command-prompt banner and exit 0. And `> "$TMPDIR/x.txt"`
