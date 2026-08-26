@@ -89,13 +89,29 @@ const ARMS = [
         + 'ever disagree again, the key has stopped reaching the played bodies.',
     lead: mk('Morpeko', 'Hunger Switch', ['Aura Wheel']), trigger: null },
   { id: 'mega-base-key', subject: 'abomasnow', ask: 'abomasnow',
-    what: 'A MEGA is a permanent rename, so BOTH engines hold abomasnow-mega and the ask still says '
-        + 'abomasnow. This is the arm that THROWS rather than diverging.',
+    what: 'A MEGA is a permanent rename — it rewrites the authority\'s `species` AND its '
+        + '`baseSpecies` — so BOTH engines hold abomasnow-mega and the ask still says abomasnow. '
+        + 'This arm THREW until 2026-08-25; it closed when both sides moved onto `rosterKey`.',
     lead: mk('Abomasnow', 'Snow Warning', ['Ice Shard'], 'Abomasite'),
     trigger: { m: 'iceshard', t: 0, mega: true } },
-  { id: 'mega-forme-key', subject: 'abomasnow', ask: 'abomasnowmega',
-    what: 'THE OVER-FIRE CONTROL FOR THE ARM ABOVE. The same board asked by the forme key instead of '
-        + 'the base key. It must SUCCEED — otherwise the mega arm proves nothing about the KEY.',
+  { id: 'mega-forme-key', subject: 'abomasnow', ask: 'abomasnowmega', mustRefuse: true,
+    /* RE-AIMED 2026-08-25, AND THE OLD SENSE IS RECORDED RATHER THAN DELETED.
+     *
+     * This arm read "it must SUCCEED — otherwise the mega arm proves nothing about the KEY", and
+     * that was right while there were TWO ways to name a body: the base key threw and the forme key
+     * worked, so the pair localised the defect to the key. The base key now resolves (the arm above
+     * closed), and there is exactly ONE way to name a body — its ROSTER IDENTITY, the species the
+     * side brought, which `rosterKey` reads off the authority's PACKED SET and off medicham2's
+     * `_switchKey`, and which no forme change rewrites.
+     *
+     * So the control keeps its job and reverses its sign: a spelling that is NOT a roster identity
+     * must be REFUSED. Accepting both would be a list of accepted spellings — the shape this class
+     * of bug has taken five times — and here it would be UNSOUND rather than merely lax: resolving
+     * an ask through the forme->base table answers `rotom` for an ask of `rotomwash`, and a side may
+     * carry both. */
+    what: 'THE OVER-FIRE CONTROL FOR THE ARM ABOVE, RE-AIMED. The same board asked by the FORME key '
+        + 'instead of the roster identity. It must be REFUSED — if a non-identity spelling still '
+        + 'resolves then a body can be named two ways again, and the arm above proves nothing.',
     lead: mk('Abomasnow', 'Snow Warning', ['Ice Shard'], 'Abomasite'),
     trigger: { m: 'iceshard', t: 0, mega: true } },
 ];
@@ -150,12 +166,16 @@ const DECLARED = {
     owed: 'C1 only — engine/medicham2-browser.js must revert a non-permanent forme change on the way '
         + 'out. The switch itself is already closed on this arm, which is what makes C2 sufficient '
         + 'for the divergence card and C1 a separate, still-open engine defect.' },
-  'mega-base-key': {
-    measured: ['the game THREW: p1 choice rejected'],
-    owed: 'engine/game_differential.js — the Showdown branch at :3436 resolves a bench ask against '
-        + '`id(q.species.id)` and a mega\'d body never reverts, so the ask must also try '
-        + '`baseSpecies.id` (or the driver must name the candidate by its CURRENT forme). NOT the '
-        + 'same defect as the arm above: restamping `_switchKey` leaves it throwing.' },
+  /* `mega-base-key` WAS DECLARED HERE AND IS CLOSED, 2026-08-25. Its OWED read: "the Showdown branch
+   * resolves a bench ask against `id(q.species.id)` and a mega'd body never reverts, so the ask must
+   * also try `baseSpecies.id`". THE SECOND HALF OF THAT PRESCRIPTION WAS WRONG and is recorded here
+   * rather than quietly replaced: `baseSpecies` is ALSO rewritten by a permanent forme change, and
+   * mega is permanent. Measured — after a mega, `set.species` still reads Tyranitar while BOTH
+   * `species.id` and `baseSpecies.id` read tyranitarmega. Keying on `baseSpecies` took the pinned
+   * 961-game run from 22 parted to 227. Both sides now go through `rosterKey` in
+   * engine/game_differential.js, which reads the PACKED SET on the authority's side and `_switchKey`
+   * on medicham2's. The arm AGREES; the declaration is deleted rather than left standing, because a
+   * stale exemption looks exactly as authoritative as a live one. */
 };
 
 /* ---- RUN --------------------------------------------------------------------------------------- */
@@ -220,6 +240,23 @@ for (const arm of ARMS) {
     const sb = (out.sd_bench || []).find(n => n.indexOf(arm.subject) === 0);
     if (ob && sb && ob.replace(/-/g, '') !== sb)
       bad.push('the bench body kept its flipped name: ours ' + ob + ', the authority ' + sb);
+  }
+  /* THE ARM WHOSE EXPECTATION IS INVERTED. `bad` is computed exactly as for every other arm — only
+   * the READING of it flips, so this cannot drift away from the others' definition of "came back". */
+  if (arm.mustRefuse) {
+    rec.must_refuse = true;
+    rec.observed_refusal = bad.slice();
+    const problems = bad.length ? [] : ['THE FORME KEY STILL RESOLVED — a body can be named two ways '
+      + 'again, so the arm above no longer proves anything about the key'];
+    if (problems.length) failed++;
+    rec.problems = problems; rec.known_open = null;
+    rec.verdict = problems.length ? 'DIFFERS' : 'AGREES';
+    say('\n  ' + rec.verdict.padEnd(11) + arm.id + '   ask: {sw:' + arm.ask + '}');
+    say('        ' + arm.what);
+    for (const b of bad) say('        REFUSED, which is what this arm REQUIRES  ' + b);
+    for (const b of problems) say('        RED  ' + b);
+    results.push(rec);
+    continue;
   }
   const d = DECLARED[arm.id];
   let declared = null;

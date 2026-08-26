@@ -10,6 +10,76 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.131.6] — 2026-08-25
+
+### Fixed
+- **A SPECIES NAME IS DISPLAY STATE, AND THE SWITCH MIRROR WAS KEYED ON IT.**
+  `engine/game_differential.js` asked *which body of the roster is this* with `id(body.name)` on
+  medicham2's side and `id(q.species.id)` on the authority's. **Seven abilities in this format rewrite
+  that string mid-game** — Disguise, Forecast, Hunger Switch, Illusion, Imposter, Stance Change, Zero to
+  Hero, derived from `data/tags.json` and printed on every run rather than recalled — so a renamed body
+  became a body **nothing could ask for**: `mirrorForcedSwitch` answered `cannot`, the driver stopped the
+  game, and three of `tests/staged_board.js`'s scenarios came back **SHORT**, which is neither a
+  divergence nor an agreement. **Staged scenarios 22 → 24 of 25.** This is the FIFTH instance of the
+  class recorded in `engine/mc_key.js`'s header.
+- **The fix is a DOOR, not another entry on a list of wrong spellings** — the shape that has failed three
+  times. `rosterKey(x)` answers for a medicham2 body **and** for a Showdown Pokemon; the mirror, the
+  medicham bench find, the authority's `live` predicate, the misaddressing audit, the alive-set
+  comparison, the speed-desync identity test and the mint of `switchTo` all go through it. Any read that
+  falls back on display state is **counted and printed** (`must read 0/0/0`), because every instance of
+  this class returns `undefined` and reads as "the engine has never seen this Pokemon".
+- **`tests/test-switch-back-renamed.js` closed a DECLARED KNOWN-OPEN as a side effect** — 3 of 4 arms
+  with one declared, now **4 of 4 with none**. Its `mega-base-key` arm threw; its OWED text prescribed
+  `baseSpecies.id`, which is the WRONG fix, and that is recorded in the file rather than quietly
+  replaced.
+
+### Changed
+- **`tests/test-switch-back-renamed.js`'s `mega-forme-key` control is RE-AIMED and the old sense is
+  recorded.** It required the FORME spelling of the ask to SUCCEED, which was right while there were two
+  ways to name a body. There is now exactly one — the roster identity — so the control keeps its job and
+  reverses its sign: a non-identity spelling must be **REFUSED**. Accepting both would be a list of
+  accepted spellings, and here it would be unsound rather than merely lax: resolving an ask through the
+  forme→base table answers `rotom` for an ask of `rotomwash`, and a side may carry both.
+- **`tests/run-all.js`'s note on `tests/staged_board.js` now says what was MEASURED.** It filed
+  `roar-drags-whoever-is-standing-there` as the third face of one defect; its refusal message is
+  byte-identical before and after this fix (*"which showdown HAS but cannot switch in"*, never *"does not
+  have under that name"*), so it is a separate, TEMPORAL defect and is described as one.
+
+### Added
+- **`tests/test-roster-identity.js`** — renames a real body the way each tagged ability renames it and
+  asks the real `mirrorForcedSwitch` for an index. It does not match a spelling; it makes the wrong
+  source of truth unusable and checks the answer still comes back. Three controls: the unrenamed body
+  must resolve to the same index, an absent species must still be refused and counted, and a fainted
+  roster entry must still be refused — so the arm cannot pass by picking whatever is free. Its scope and
+  what walks past it are stated in its own header.
+
+### Notes
+- **A SECOND INSTANCE, SPELLED DIFFERENTLY, WALKED PAST THE FIRST FIX INSIDE THE HOUR — AND ONLY A
+  961-GAME RUN CAUGHT IT.** The first `rosterKey` keyed the authority on `Pokemon#baseSpecies`, on the
+  reading that `formeChange` writes only `this.species`. **It writes `baseSpecies` too when the change is
+  `isPermanent`, and mega evolution is permanent.** Measured: after a mega, `set.species` still reads
+  `Tyranitar` while both `species.id` and `baseSpecies.id` read `tyranitarmega`. The OLD pair agreed
+  through a mega because both engines rename together, which is why megas were never the visible half of
+  this bug. The pinned run went **22 parted → 227** with 70 unmirrorable switches. The stable field is
+  `Pokemon#set.species`, the packed set; a `mega` arm now fails on that exact break in one second and was
+  shown red by reverting the resolver.
+- **THE POOL DID NOT MOVE, AND THAT WAS THE PREDICTION.** All three unmirrorable switches in the pinned
+  pool were already the other shape, so it held no rename-in-a-pivot to fix. Both legs on release
+  `d38d117e68e9` (identical — no frozen SOURCE moved), census pin
+  `data/verification/census-pin-9446a684709d.json`, `--team-store data/team-pool-frozen`, `--games 1200`
+  → 961 played, cap 12: **22 parted, the SAME 22 games by `config|seed`, the same class table,
+  `planted_divergence_proof_ok` true, 3 unmirrorable, 63258 switch indices, 0 misaddressed.** Census
+  unmoved at **706/706, 0 missing**.
+- **THE SAMPLE MOVED ONCE AND IT WAS THE RULER.** Routing the mint of `switchTo` through the resolver
+  also re-keys the coverage steering's **bandit counter**, merging a mega'd body's click history with its
+  base's; that changes which action the driver prefers and therefore which games part — **22 → 27**, 8
+  newly parting, 3 stopping, and not one of the seven new causes a switch line. Holding that single
+  expression returned the run to the before leg byte-for-byte. It ships held, with the reason at the call
+  site: `clicks` is asked *how bored am I of this key*, never *which of the four is this*. Re-keying it
+  is a change to the SAMPLE and belongs to MEASURE.
+
+---
+
 ## [5.131.5] — 2026-08-25
 
 ### Fixed

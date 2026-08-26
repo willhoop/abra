@@ -59,7 +59,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  706/706 probed mechanics live, 0 missing   (census 2026-08-25 20:23)
+  706/706 probed mechanics live, 0 missing   (census 2026-08-25 21:44)
   0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -71,16 +71,108 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is ca264903bc1a now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 97c27cddf846 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 564157e5740d now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is bb6f7b066557 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-25 20:48_
+_stamped 2026-08-25 21:59_
 
 <!-- /GENERATED -->
+
+## A SPECIES NAME IS DISPLAY STATE, AND THE SWITCH MIRROR WAS KEYED ON IT. STAGED SCENARIOS 22 → 24 OF 25; POOL UNMOVED, GAME FOR GAME. 2026-08-25.
+
+**THE DEFECT.** `engine/game_differential.js` asked *which body of the roster is this* by reading a
+**mutable display name** — `id(body.name)` on medicham2's side, `id(q.species.id)` on the authority's.
+Seven abilities in this format rewrite that string mid-game (Disguise, Forecast, Hunger Switch,
+Illusion, Imposter, Stance Change, Zero to Hero — **derived from `data/tags.json`, not recalled**), so a
+renamed body became a body **nothing could ask for**: `mirrorForcedSwitch` reported `cannot`, the driver
+stopped the game, and three staged scenarios came back **SHORT** — neither a divergence nor an agreement,
+the instrument declining to answer.
+
+This is the **fifth** instance of one class; `engine/mc_key.js`'s header carries the other four.
+
+**THE FIX IS A DOOR, NOT A LIST.** `rosterKey(x)` answers the question for a medicham2 body **and** for
+a Showdown Pokemon, and every roster-identity caller is routed through it: the mirror, the medicham
+bench find, the authority's `live` predicate, the misaddressing audit, the alive-set comparison, the
+speed-desync identity test, and the mint of `switchTo` itself. A read that has to fall back on display
+state is **counted and printed every run** (`must read 0/0/0`), because the reason this class hides is
+never the spelling — every instance returns `undefined`, which reads as "the engine has never seen this
+Pokemon", a real and common condition.
+
+**A SECOND INSTANCE WALKED PAST THE FIRST FIX INSIDE THE HOUR, AND ONLY A 961-GAME RUN CAUGHT IT.** The
+first `rosterKey` keyed the authority on `Pokemon#baseSpecies`, on the reading that `formeChange` writes
+only `this.species`. **It writes `baseSpecies` too when the change is `isPermanent`, and mega is
+permanent.** Measured, not argued:
+
+```
+before mega   set.species Tyranitar   baseSpecies tyranitar       species tyranitar
+after  mega   set.species Tyranitar   baseSpecies tyranitarMEGA   species tyranitarmega
+```
+
+The OLD pair (`species.id` against `name`) agreed through a mega because both engines rename together —
+which is exactly why megas were never the visible half of this bug. The pinned run went **22 parted →
+227**, 70 unmirrorable switches, first witness `slot 1 holds tyranitar, which showdown does not have
+under that name`. The stable field is `Pokemon#set.species`, the packed set, which nothing rewrites.
+`tests/test-roster-identity.js` now carries a `mega` arm that goes red on that exact break in one second,
+shown red by reverting the resolver.
+
+**THE POOL DID NOT MOVE, AND THAT WAS THE PREDICTION.** All three unmirrorable switches in the pinned
+pool were already the OTHER shape (`… which showdown HAS but cannot switch in`), so there was no
+rename-in-a-pivot to fix there. Both legs on release `d38d117e68e9` — identical, because no frozen SOURCE
+moved — same census pin, same frozen team store: **22 parted, the SAME 22 games by `config|seed`, the
+same class table, `planted_divergence_proof_ok` true, 3 unmirrorable, 63258 switch indices, 0
+misaddressed.** Will's 2026-08-23 ranking rule working as written.
+
+**THE SAMPLE MOVED ONCE AND IT WAS THE RULER.** Routing the mint of `switchTo` through the resolver also
+re-keys the coverage steering's **bandit counter** (`CLICKS.get('switch:' + …)`), merging a mega'd body's
+click history with its base's. That changes which ACTION the driver prefers and therefore which games
+part: **22 → 27**, 8 newly parting, 3 stopping, and **not one** of the seven new causes a switch line.
+Holding that one expression put the run back to 22 parted / 63258 sends / 3 unmirrorable, byte-for-byte.
+It ships held, with the reason at the call site: `clicks` is asked *how bored am I of this key*, never
+*which of the four is this*. **Re-keying it is a change to the SAMPLE and belongs to MEASURE.**
+
+**A DECLARED KNOWN-OPEN CLOSED AS A SIDE EFFECT.** `tests/test-switch-back-renamed.js` went 3 of 4 with
+one KNOWN-OPEN to **4 of 4 with none** — its `mega-base-key` arm threw and now agrees. Its OWED text
+prescribed `baseSpecies.id`, which is the wrong fix; that is recorded in the file rather than quietly
+replaced. Its over-fire control `mega-forme-key` is **re-aimed**: it required the FORME spelling to
+succeed, and now requires it to be REFUSED, because there is exactly one way to name a body. Accepting
+both would be a list of accepted spellings, and here it would be unsound — resolving an ask through the
+forme→base table answers `rotom` for `rotomwash`, and a side may carry both.
+
+**THE THIRD SCENARIO WAS FILED WITH THESE TWO AND IS A DIFFERENT DEFECT.** `roar-drags-whoever-is-standing-there`
+refuses with a message that is **byte-identical before and after** — `slot 1 holds corviknight, which
+showdown HAS but cannot switch in (fainted/active)`, never *does not have under that name*. Nothing in it
+is ever renamed. It is **TEMPORAL**: medicham2 resolves a whole turn at once, Showdown pauses mid-turn at
+U-turn's switch request (`runAction` ends with `makeRequest('switch')`), so the Roar at priority −6 has
+not run on the authority's side; the mirror is handed the **end-of-turn** occupant (Corviknight, put back
+by that later Roar) instead of the body medicham2 sent in at the request (Snorlax).
+
+### THE HAND LIST
+
+Leaves it: **the species-NAME-keyed switch mirror** — closed and gated by `tests/test-roster-identity.js`
+(discovered, runs in the suite). **`mega-base-key`** leaves `tests/test-switch-back-renamed.js`'s
+declared set.
+
+Joins it:
+
+- **THE MIRROR READS THE END-OF-TURN OCCUPANT, NOT THE BODY SENT IN AT THE REQUEST.** The Roar scenario
+  above, and the pinned pool's own 3 unmirrorable switches and 2 medicham lookup misses
+  (`floetteeternal`, `incineroar`) — every one of them this shape. The fix is a **switch-in journal** at
+  `bringIn()`, medicham2's one chokepoint for all four switch roads, keyed on the body OBJECT. The
+  obvious cheap source is a trap: medicham2's own `|switch|` lines are display state a third time,
+  because Illusion deliberately narrates the disguised species.
+- **NOBODY OWNS "WHICH ROSTER ENTRY IS THIS" ACROSS THE REPO.** `test-mc-key.js` and `test-mc-seal.js`
+  own the `MC.mons` table; `test-roster-identity.js` owns ONE decision in ONE file. A second file asking
+  the same question its own way still walks past both.
+- **A RENAME WITH NO TAG WALKS PAST THE SWEEP.** The membership is derived from `data/tags.json` and
+  printed every run for that reason; the moves table carries no rename-shaped tag today, and the run
+  says so rather than staying silent.
+
+Stays on it, unchanged: everything in the trap batch's list below, plus **the 33 extra board-material
+causes visible only past turn 12**.
 
 ## THE TRAP IS EVALUATED ONE PHASE TOO LATE — AND IT WAS FOUR BRANCHES, NOT ONE. GATE 18 → 17 OF 961, BOARD-MATERIAL 10 → 8. 2026-08-25.
 

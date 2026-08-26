@@ -21,6 +21,45 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A SPECIES NAME IS DISPLAY STATE, AND THE SWITCH MIRROR WAS KEYED ON IT. STAGED 22 → 24 OF 25, POOL UNMOVED GAME FOR GAME, CENSUS 706/706. 2026-08-25 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, *"A SPECIES NAME IS DISPLAY STATE"*. Gate: `tests/test-roster-identity.js`
+(new, discovered, runs in the suite).
+
+`engine/game_differential.js` asked *which body of the roster is this* by reading a MUTABLE DISPLAY NAME —
+`id(body.name)` on medicham2's side, `id(q.species.id)` on the authority's. Seven abilities in this format
+rewrite that string mid-game (Disguise, Forecast, Hunger Switch, Illusion, Imposter, Stance Change, Zero to
+Hero — derived from `data/tags.json`, printed every run, never recalled), so a renamed body became a body
+NOTHING COULD ASK FOR: `mirrorForcedSwitch` reported `cannot`, the driver stopped the game, and three staged
+scenarios came back SHORT. **Fifth instance of the class in `engine/mc_key.js`'s header.**
+
+The fix is one door — `rosterKey(x)`, answering for a medicham2 body AND for a Showdown Pokemon — with
+every roster-identity caller routed through it and a LOUD counter on any fall-back to display state
+(`must read 0/0/0`).
+
+**A SECOND INSTANCE WALKED PAST THE FIRST FIX INSIDE THE HOUR.** Keying the authority on `baseSpecies` is
+wrong: `formeChange` rewrites it when `isPermanent`, and mega is permanent (measured — after a mega
+`set.species` reads Tyranitar while both `species.id` and `baseSpecies.id` read tyranitarmega). The pinned
+run went 22 parted → 227 before that was caught. The stable field is `Pokemon#set.species`, and a `mega`
+arm now fails on it in one second.
+
+**POOL UNMOVED, AND THAT WAS THE PREDICTION** — both legs on release `d38d117e68e9`, same census pin, same
+frozen store: 22 parted, the SAME 22 games, same class table, `planted_divergence_proof_ok` true, 3
+unmirrorable, 63258 sends, 0 misaddressed. The one time the pool did move (22 → 27) it was the coverage
+steering's bandit key being re-keyed, proved by holding that single expression and getting the before leg
+back byte-for-byte; it ships held, because re-keying the sample is MEASURE's.
+
+**Side effects:** `tests/test-switch-back-renamed.js` 3 of 4 with one KNOWN-OPEN → 4 of 4 with none
+(`mega-base-key` closed; its OWED prescribed `baseSpecies.id`, which is the wrong fix, recorded rather than
+replaced), and its over-fire control `mega-forme-key` re-aimed to REQUIRE a refusal — there is exactly one
+way to name a body.
+
+**Not this defect:** `roar-drags-whoever-is-standing-there` refuses with a byte-identical message before and
+after (*"which showdown HAS but cannot switch in"*, never *"does not have under that name"*). It is TEMPORAL —
+the mirror is handed the end-of-turn occupant instead of the body sent in at the request. Own batch; needs a
+switch-in journal at `bringIn()`, because medicham2's own `|switch|` lines are display state a third time
+under Illusion.
+
 ## THE TRAP IS EVALUATED ONE PHASE TOO LATE — FOUR BRANCHES, NOT ONE. GATE 18 → 17 OF 961, BOARD-MATERIAL 10 → 8. 2026-08-25 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-25-trap-timing-fix.md`](_reports/2026-08-25-trap-timing-fix.md).

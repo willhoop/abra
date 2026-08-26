@@ -2093,6 +2093,77 @@ const SWITCH_LOOKUP_MISS = { medi: 0, sd: 0, names: Object.create(null), where: 
  * so the counter can be shown RED. A probe that has never been red is a probe with no evidence. */
 const SWITCH_BY_INITIAL_INDEX = process.env.MEDI_SWITCH_BY_INITIAL_INDEX === '1';
 const SWITCH_ADDRESSING = { sent: 0, after_permutation: 0, misaddressed: 0, first_bad: null };
+
+/* ================== WHICH BODY OF THE ROSTER IS THIS — ONE DOOR, BOTH ENGINES ==================
+ *
+ *   rosterKey(x)   -> 'morpeko'  for a medicham2 body OR a showdown Pokemon, renamed or not
+ *
+ * THE QUESTION IS "WHICH OF THE FOUR BODIES THIS SIDE BROUGHT", AND IT IS NOT "WHAT IS THIS CALLED".
+ * The two agree for an ordinary body and stop agreeing the moment something renames one, which in
+ * this format is seven abilities: Disguise, Forecast, Hunger Switch, Illusion, Imposter, Stance
+ * Change and Zero to Hero. `tests/test-roster-identity.js` derives that membership from
+ * data/tags.json and prints it, so an eighth arrives as a new arm rather than as silence.
+ *
+ * THIS IS THE FIFTH INSTANCE OF ONE CLASS. `engine/mc_key.js`'s header lists the other four — a
+ * builder keying `venusaurmega` against `venusaur-mega`, `MC.mons[norm(x)]` in four files,
+ * `buildMon(s.toLowerCase())` in tests/test-engine-diff.js, a bare `globalThis.` prefix in eight
+ * more. Every previous fix was A LIST OF WRONG SPELLINGS and two of the four walked past a list that
+ * was already written, so this is not another entry on that list: it is the one accessor, and the
+ * probe RENAMES A BODY AND ASKS FOR THE ANSWER instead of matching text.
+ *
+ * WHAT EACH SIDE'S STABLE IDENTITY ACTUALLY IS — MEASURED, NOT READ, AND THE FIRST ANSWER WAS WRONG:
+ *   showdown   `Pokemon#set.species` — THE PACKED SET, which nothing in the simulator rewrites.
+ *   medicham2  `_switchKey`, stamped by `buildPair` from `id(sp.id)` and by nothing else;
+ *              `name` is display state that `formeSwap` and the Hunger Switch rename rewrite.
+ *
+ * `baseSpecies` WAS THE FIRST ANSWER AND IT IS NOT STABLE. `Pokemon#formeChange(species, effect,
+ * isPermanent)` writes `this.baseSpecies = rawSpecies` when `isPermanent` — and MEGA EVOLUTION IS
+ * PERMANENT. Measured directly rather than argued:
+ *
+ *     before mega   set.species Tyranitar   baseSpecies tyranitar       species tyranitar
+ *     after  mega   set.species Tyranitar   baseSpecies tyranitarMEGA   species tyranitarmega
+ *
+ * The old code read `id(q.species.id)` on this side and `id(x.name)` on medicham's, and those two
+ * AGREE through a mega because both engines rename together — which is why megas were never the
+ * visible half of this bug. Keying showdown on `baseSpecies` broke exactly that agreement: the
+ * pinned 961-game run went from 22 parted games to 227 and from 3 unmirrorable switches to 70, with
+ * `slot 1 holds tyranitar, which showdown does not have under that name` as its first witness. The
+ * run is the only reason this is not in the tree. `tests/test-roster-identity.js` now carries a
+ * `mega` arm that fails on it in one second.
+ *
+ * A FALLBACK IS LOUD, NEVER SILENT. Reaching display state means one of the two stamps is missing,
+ * which is precisely how this was invisible before (MEASURE, 2026-08-25: `_switchKey` read
+ * `undefined` on all eight bodies of every game this instrument had ever played, and the lookup fell
+ * through to `id(x.name)` without a word). The counters are printed on every run and asserted at 0.
+ *
+ * WHAT WALKS PAST THIS: a THIRD kind of object. The two branches are told apart by which stamp they
+ * carry, so anything with neither returns null and is counted as `neither`, which is a refusal
+ * rather than a guess. */
+const ROSTER_KEY_FALLBACK = { sd_species: 0, medi_name: 0, neither: 0, first: null };
+function rosterKey(x) {
+  if (!x) return null;
+  /* showdown first: a Pokemon also carries `.name` (its nickname), so testing the medicham branch
+   * first would read a nickname for every authority body. */
+  if (x.set && (x.set.species || x.set.name)) return id(x.set.species || x.set.name);
+  if (x._switchKey) return id(x._switchKey);
+  if (x.baseSpecies && x.baseSpecies.id) {
+    ROSTER_KEY_FALLBACK.sd_species++;
+    if (!ROSTER_KEY_FALLBACK.first) ROSTER_KEY_FALLBACK.first = 'showdown body with no set: ' + id(x.baseSpecies.id);
+    return id(x.baseSpecies.id);
+  }
+  if (x.species && x.species.id) {
+    ROSTER_KEY_FALLBACK.sd_species++;
+    if (!ROSTER_KEY_FALLBACK.first) ROSTER_KEY_FALLBACK.first = 'showdown body with no set: ' + id(x.species.id);
+    return id(x.species.id);
+  }
+  if (x.name) {
+    ROSTER_KEY_FALLBACK.medi_name++;
+    if (!ROSTER_KEY_FALLBACK.first) ROSTER_KEY_FALLBACK.first = 'medicham body with no _switchKey: ' + id(x.name);
+    return id(x.name);
+  }
+  ROSTER_KEY_FALLBACK.neither++;
+  return null;
+}
 const INITIAL_PARTY = new WeakMap();
 let ALIGN_MOVED = 0;   // a stat the alignment had to CHANGE — must be 0 outside the hpBoost arms
 const ALIGN_MOVED_WHO = new Map();   // ...and WHICH body, because a bare 21 cannot be acted on
@@ -3141,7 +3212,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
       for (let i = 0; i < Math.max(sd.active.length, acts.length); i++) {
         const q = sd.active[i], m = acts[i];
         if (!q || !m) continue;
-        if (id(q.species.id) !== id(m.name)) { speedDesync++; continue; }
+        if (rosterKey(q) !== rosterKey(m)) { speedDesync++; continue; }
         /* ---- ROADMAP #241(3) — DO THE TWO ENGINES AGREE ABOUT `lastMove`? ------------------------
          * The retraction inside medicham2's own affect branch names this as the lead it did not
          * follow: the Encore announcement was pulled because it manufactured 4 and 6 games, and the
@@ -3474,8 +3545,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
             /* `_switchKey`, stamped at build time — see buildPair. NOT `x.name`, which a forme
              * rename mutates. A miss is COUNTED, never a silent pass: one engine switching while the
              * other passes is a different board with no evidence attached. */
-            const want = bench.find(x => x && !x.fainted && x._switchKey === a.switchTo)
-                      || bench.find(x => x && !x.fainted && id(x.name) === a.switchTo);
+            const want = bench.find(x => x && !x.fainted && rosterKey(x) === a.switchTo);
             if (want) { map.set(mon, { kind: 'switch', to: want }); return; }
             SWITCH_LOOKUP_MISS.medi++;
             SWITCH_LOOKUP_MISS.names[a.switchTo] = (SWITCH_LOOKUP_MISS.names[a.switchTo] || 0) + 1;
@@ -3483,7 +3553,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
              * MANUFACTURED divergence — a count of 3 that cannot be told apart from 3 real engine
              * defects is exactly the ruler-versus-engine confusion this counter exists to settle. */
             SWITCH_LOOKUP_MISS.where.push(cfgId + ' t' + (t + 1) + ' ' + seedTag + ' wanted ' + a.switchTo
-              + ' bench[' + bench.filter(Boolean).map(x => (x._switchKey || '?') + '/' + id(x.name)).join(' ') + ']');
+              + ' bench[' + bench.filter(Boolean).map(x => (rosterKey(x) || '?') + '/' + id(x.name)).join(' ') + ']');
             map.set(mon, { kind: 'pass' }); return;
           }
           /* THE ONE DISPATCH, AND THE ONE PLACE THE AIM IS COUNTED. `own` is this side's actives, so
@@ -3516,7 +3586,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
             if (!INITIAL_PARTY.has(side)) INITIAL_PARTY.set(side, side.pokemon.slice());
             const init = INITIAL_PARTY.get(side);
             const permuted = side.pokemon.some((q, n) => q !== init[n]);
-            const live = q => !q.isActive && !q.fainted && id(q.species.id) === a.switchTo;
+            const live = q => !q.isActive && !q.fainted && rosterKey(q) === a.switchTo;
             /* THE LIVE ARRAY IS THE ONE SHOWDOWN INDEXES. `init` is the control's stale one. */
             const j = (SWITCH_BY_INITIAL_INDEX ? init : side.pokemon).findIndex(live);
             if (j < 0) SWITCH_LOOKUP_MISS.sd++;
@@ -3524,11 +3594,11 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
               SWITCH_ADDRESSING.sent++;
               if (permuted) SWITCH_ADDRESSING.after_permutation++;
               const named = side.pokemon[j];
-              if (!named || id(named.species.id) !== a.switchTo || j < side.active.length) {
+              if (!named || rosterKey(named) !== a.switchTo || j < side.active.length) {
                 SWITCH_ADDRESSING.misaddressed++;
                 if (!SWITCH_ADDRESSING.first_bad) SWITCH_ADDRESSING.first_bad =
                   'asked for ' + a.switchTo + ', `switch ' + (j + 1) + '` names '
-                  + (named ? id(named.species.id) + (j < side.active.length ? ' (an ACTIVE slot)' : '') : 'nothing')
+                  + (named ? rosterKey(named) + (j < side.active.length ? ' (an ACTIVE slot)' : '') : 'nothing')
                   + (permuted ? ' — party permuted' : ' — party NOT permuted');
               }
             }
@@ -3575,9 +3645,9 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
              *     Parted board again, reached from the other side. Stopped, not thrown.
              * The alive-set comparison is not a second copy of a Showdown rule; it is the one question
              * this whole instrument exists to ask, asked about a roster instead of a protocol line. */
-            const aliveSd = new Set(side.pokemon.filter(q => !q.fainted).map(q => id(q.species.id)));
+            const aliveSd = new Set(side.pokemon.filter(q => !q.fainted).map(q => rosterKey(q)));
             const aliveMe = new Set([...(sd === 'p1' ? S.actA : S.actB), ...(sd === 'p1' ? S.benchA : S.benchB)]
-              .filter(m => m && !m.fainted).map(m => id(m.name)));
+              .filter(m => m && !m.fainted).map(m => rosterKey(m)));
             const agree = aliveSd.size === aliveMe.size && [...aliveSd].every(x => aliveMe.has(x));
             if (agree) throw new Error('forced-switch choice rejected ' + refusedChoice(sd, cs, why));
             mirrorImpossible = sd + ' "' + cs + '" refused (' + why + '); alive showdown ['
@@ -3865,13 +3935,17 @@ function mirrorForcedSwitch(forceSwitch, mine, roster) {
     if (!need) { out.picks.push('pass'); return; }
     const body = mine && mine[i];
     const live = !!(body && !body.fainted);
-    const want = live ? id(body.name) : null;
+    /* `rosterKey`, NOT `body.name`. The name is display state and seven abilities in this format
+     * rewrite it mid-game; a renamed body used to be a body NOTHING COULD ASK FOR, so the mirror
+     * reported `cannot`, the driver stopped the game, and three staged scenarios came back SHORT.
+     * See the rosterKey header and tests/test-roster-identity.js. */
+    const want = live ? rosterKey(body) : null;
     const j = want == null ? -1
       : roster.findIndex((q, n) => !claimed.has(n) && !q.isActive && !q.fainted
-                                   && id(q.species.id) === want);
+                                   && rosterKey(q) === want);
     if (j >= 0) { claimed.add(j); out.switched++; out.picks.push('switch ' + (j + 1)); return; }
     if (!live) { out.passed++; out.picks.push('pass'); return; }
-    const named = roster.some(q => id(q.species.id) === want);
+    const named = roster.some(q => rosterKey(q) === want);
     if (!named) out.lookupMiss++;
     if (!out.cannot) {
       out.cannot = 'slot ' + (i + 1) + ' holds ' + want + ', which showdown '
@@ -3934,9 +4008,30 @@ function chooseAction(battle, side, i, act, axis, claimed) {
   if (!act.trapped && !act.maybeTrapped) {
     side.pokemon.forEach(q => {
       if (q.isActive || q.fainted) return;
-      if (claimed.has(id(q.species.id))) return;
-      cands.push({ switchTo: id(q.species.id), want: 1e6, prefer: 0, banned: false,
-                   clicks: (CLICKS.get('switch:' + id(q.species.id)) || 0) * 6 });
+      /* MINTED THROUGH THE ONE DOOR. `switchTo` is the ask BOTH engines then resolve, so if it
+       * were minted from display state the two sides would be asking different questions again —
+       * which is the whole defect, one level up. */
+      const qk = rosterKey(q);
+      if (claimed.has(qk)) return;
+      /* ---- THE STEERING COUNTER IS NOT AN IDENTITY, AND IT DELIBERATELY DID NOT MOVE ----------
+       * `clicks` is a BANDIT COUNTER the coverage steering reads to prefer the least-clicked body.
+       * It is not asked "which of the four is this"; it is asked "how bored am I of this key". So it
+       * keeps the expression it has always had — showdown's CURRENT species, which for a mega'd body
+       * is `tyranitarmega` and not `tyranitar`.
+       *
+       * MEASURED, BECAUSE THE ALTERNATIVE LOOKED LIKE A REGRESSION. Re-keying this counter onto the
+       * roster identity merges a mega'd body's history with its base's, which changes WHICH ACTION
+       * the driver prefers, which changes which games part: the pinned 961-game run went 22 -> 27
+       * parted with 8 newly-parting games and 3 that stopped parting, and NOT ONE of the seven new
+       * causes was a switch line. Holding this one expression put it back to 22 parted, 63258 switch
+       * indices and 3 unmirrorable — byte-for-byte the before leg. So the fix above moves the pool by
+       * EXACTLY ZERO, and the +5 was the ruler, not the engine.
+       *
+       * RE-KEYING IT IS A CHANGE TO THE SAMPLE, WHICH IS MEASURE'S TO MAKE, NOT A MECHANICS BATCH'S. */
+      const steerKeyNotAnIdentity = id(q.species.id);
+      cands.push({ switchTo: qk, want: 1e6, prefer: 0, banned: false,
+                   steer: steerKeyNotAnIdentity,
+                   clicks: (CLICKS.get('switch:' + steerKeyNotAnIdentity) || 0) * 6 });
     });
   }
   if (!cands.length) {
@@ -3967,7 +4062,10 @@ function chooseAction(battle, side, i, act, axis, claimed) {
    * now recorded at the turn boundary by `creditTurn`, where the board is — and where a SCRIPTED game,
    * which never reaches this function, is counted too. */
   if (pick.move) CLICKS.set(pick.move, (CLICKS.get(pick.move) || 0) + 1);
-  else CLICKS.set('switch:' + pick.switchTo, (CLICKS.get('switch:' + pick.switchTo) || 0) + 1);
+  /* `pick.steer` — the bandit counter's key, NOT the roster identity. See the cands.push above for
+   * why the two are deliberately different and what re-keying it cost when it was tried. */
+  else { const _sk = pick.steer || pick.switchTo;
+         CLICKS.set('switch:' + _sk, (CLICKS.get('switch:' + _sk) || 0) + 1); }
   return pick;
 }
 
@@ -5153,6 +5251,11 @@ function endStateVerdict(r) {
 }
 
 module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CHANCE, sdStream, chooseAction,
+                   /* 2026-08-25 — THE ONE DOOR onto "which body of the roster is this", exported so a
+                    * probe drives THE resolver rather than a second copy of it. `rosterKeyFallbacks`
+                    * is the loud half: any read that had to fall back on display state is counted
+                    * here and must be 0. */
+                   rosterKey, rosterKeyFallbacks: () => ({ ...ROSTER_KEY_FALLBACK }),
                    /* 2026-08-12 — the end-state measurement. `endStateVerdict` is the classifier,
                     * `shapeOfCause` is THE SHAPE MODULE'S function re-exported rather than a second
                     * copy, and the two flags let a test assert the driver actually read the argument
@@ -6884,6 +6987,13 @@ console.log('    switch lookups that MISSED: medicham ' + SWITCH_LOOKUP_MISS.med
       ? '\n      the bodies it could not find: ' + Object.entries(SWITCH_LOOKUP_MISS.names).map(([k, v]) => k + ' x' + v).join(', ')
         + SWITCH_LOOKUP_MISS.where.slice(0, 8).map(w => '\n        ' + w).join('')
       : ''));
+/* 2026-08-25 — AND WHETHER ANY OF THEM WAS ANSWERED OUT OF DISPLAY STATE. `rosterKey` is the one
+ * door onto "which body of the roster is this"; a fallback means a stamp is missing, which is how
+ * the same class of bug has been invisible five times. See the rosterKey header. */
+console.log('    roster identities read from DISPLAY state: showdown ' + ROSTER_KEY_FALLBACK.sd_species
+  + ', medicham ' + ROSTER_KEY_FALLBACK.medi_name + ', neither-stamp ' + ROSTER_KEY_FALLBACK.neither
+  + ((ROSTER_KEY_FALLBACK.sd_species || ROSTER_KEY_FALLBACK.medi_name || ROSTER_KEY_FALLBACK.neither)
+      ? '  <-- MUST READ 0/0/0. ' + ROSTER_KEY_FALLBACK.first : '  (must read 0/0/0)'));
 /* 2026-08-25 — AND THE INDEX THOSE SWITCHES WERE SENT AS. `after_permutation` is the denominator that
  * decides whether this run met the hazard at all; a 0 there would mean the number below proves
  * nothing. `MEDI_SWITCH_BY_INITIAL_INDEX=1` is the positive control. */

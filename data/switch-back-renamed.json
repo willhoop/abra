@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-26T00:28:04.345Z",
+ "generated": "2026-08-26T01:52:23.223Z",
  "by": "tests/test-switch-back-renamed.js",
  "what": "can a body medicham2 renamed mid-battle be switched back in — subject against a control on the same board and turn",
  "write_policy": "FINDINGS. A DIFFERS arm is the measurement and is published with run_ok:false, so a consumer can refuse it. Before 2026-08-23 the artifact carried no run status at all.",
@@ -76,22 +76,8 @@
   },
   {
    "id": "mega-base-key",
-   "what": "A MEGA is a permanent rename, so BOTH engines hold abomasnow-mega and the ask still says abomasnow. This is the arm that THROWS rather than diverging.",
+   "what": "A MEGA is a permanent rename — it rewrites the authority's `species` AND its `baseSpecies` — so BOTH engines hold abomasnow-mega and the ask still says abomasnow. This arm THREW until 2026-08-25; it closed when both sides moved onto `rosterKey`.",
    "ask": "abomasnow",
-   "err": "p1 choice rejected p1 \"pass, switch 4\": Can't pass: Your Espathra must make a move (or switch)",
-   "known_open": {
-    "measured": [
-     "the game THREW: p1 choice rejected p1 \"pass, switch 4\": Can't pass: Your Espathra must make a move (or switch)"
-    ],
-    "owed": "engine/game_differential.js — the Showdown branch at :3436 resolves a bench ask against `id(q.species.id)` and a mega'd body never reverts, so the ask must also try `baseSpecies.id` (or the driver must name the candidate by its CURRENT forme). NOT the same defect as the arm above: restamping `_switchKey` leaves it throwing."
-   },
-   "problems": [],
-   "verdict": "KNOWN-OPEN"
-  },
-  {
-   "id": "mega-forme-key",
-   "what": "THE OVER-FIRE CONTROL FOR THE ARM ABOVE. The same board asked by the forme key instead of the base key. It must SUCCEED — otherwise the mega arm proves nothing about the KEY.",
-   "ask": "abomasnowmega",
    "err": null,
    "observed": {
     "after_the_ask": [
@@ -115,7 +101,20 @@
    "known_open": null,
    "problems": [],
    "verdict": "AGREES"
+  },
+  {
+   "id": "mega-forme-key",
+   "what": "THE OVER-FIRE CONTROL FOR THE ARM ABOVE, RE-AIMED. The same board asked by the FORME key instead of the roster identity. It must be REFUSED — if a non-identity spelling still resolves then a body can be named two ways again, and the arm above proves nothing.",
+   "ask": "abomasnowmega",
+   "err": "p1 choice rejected p1 \"pass, switch 4\": Can't pass: Your Espathra must make a move (or switch)",
+   "must_refuse": true,
+   "observed_refusal": [
+    "the game THREW: p1 choice rejected p1 \"pass, switch 4\": Can't pass: Your Espathra must make a move (or switch)"
+   ],
+   "problems": [],
+   "known_open": null,
+   "verdict": "AGREES"
   }
  ],
- "known_open": 1
+ "known_open": 0
 }
