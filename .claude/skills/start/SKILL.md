@@ -302,6 +302,24 @@ two more defects the exemption had been hiding. **Every one was set up by the co
 plausible reasoning; every one was caught by an agent checking the mechanism rather than accepting it.
 Refusing a declaration is a result — brief for it.**
 
+**A DECISION WILL HAS ALREADY MADE CAN SIT IN THE REGISTER AS PROSE AND NEVER BE BUILT — AND THEN YOU
+ASK HIM AGAIN.** On 2026-08-24 he closed the Tailwind ordering question outright: *"tailwind coming out
+in the wrong order doesnt matter, put it into the closet with that note and move on."* The row records
+the decision faithfully **and says in its own words that it was never implemented** — *"NOT FIXED and
+NOT declared — it is absent from the declared kinds in `engine/quarantine.js`, so it is still counted
+UNDECLARED and named on every run."* So it kept appearing on every gate print, a session read it as
+live blocking work, and **took it back to Will as a decision to make.** He answered: *"im pretty
+certain last session already dealt with tailwind why are you bringing it up."* He had.
+
+**The register recorded the RULING and not the WIRING, and nothing anywhere could tell the difference.**
+This is the same shape as the fourteen handoffs and the ban list of four, arriving through the one door
+that looks safest — a row that is honest, current, and correctly written.
+
+**So: a decision is not done when it is recorded. It is done when the gate stops asking.** Before
+carrying any "deferred by decision" row to Will, check whether the mechanism exists — is it in
+`DECLARED_KINDS`, is it in the closet, does the instrument actually skip it. **If the decision is made
+and the wiring is missing, that is not a question for him. That is the work.**
+
 **A PHRASE IN A REGISTER CELL IS EXECUTABLE.** `engine/quarantine.js:1040` tests
 `/NOT A DEFECT/i` against a row's status cell and treats it as a ruling that **overrides the
 derived verdict**. A sentence somebody typed as a note was subtracting three live turn-order
