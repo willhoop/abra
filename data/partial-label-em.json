@@ -1,11 +1,11 @@
 {
- "generated": "2026-08-07T01:55:15.382Z",
+ "generated": "2026-08-26T00:45:49.577Z",
  "source": "engine/em_validation.js",
  "source_digests": {
-  "engine/fit_policy.js": "37df17935c16",
+  "engine/fit_policy.js": "a963537c91e8",
   "engine/click_class.js": "011bb621fe76",
   "engine/click_match.js": "e266c98ffb47",
-  "engine/board.js": "5bdaa3923958",
+  "engine/board.js": "c85a3b756c98",
   "engine/em_validation.js": "0dda9b036dd9"
  },
  "what": "Planted-weight recovery under the real censoring process. docs/CLICK-CENSORING-FIX.md Stage C.",
@@ -13,8 +13,8 @@
  "corpus": {
   "games": 1200,
   "games_requested": 1200,
-  "of_total": 6675,
-  "rows": 31940
+  "of_total": 13144,
+  "rows": 31938
  },
  "iters": 300,
  "features": [
@@ -79,167 +79,167 @@
  ],
  "regimes": {
   "amplified": {
-   "rows": 31940,
+   "rows": 31938,
    "seeds": [
     20260805,
     20260806,
     20260807
    ],
-   "censored_mean": 6704,
-   "relabelled_mean": 3340.3333333333335,
-   "censored_rate": 0.20989355040701316,
+   "censored_mean": 6628,
+   "relabelled_mean": 3300.6666666666665,
+   "censored_rate": 0.20752708372471665,
    "l2_from_planted": {
-    "oracle": 0.9899893191375694,
-    "naive": 1.947658007169273,
-    "em": 1.0722679643739939
+    "oracle": 1.2582200465339104,
+    "naive": 2.022496372519421,
+    "em": 1.3109623645367714
    },
    "per_seed": [
     {
      "seed": 20260805,
-     "censored": 6620,
-     "relabelled": 3311,
+     "censored": 6588,
+     "relabelled": 3335,
      "oracle": {
-      "l2_from_planted": 1.1719084523056287,
-      "worst_feature": "stallIntoEncore",
-      "worst_delta": 0.6606918008078952
+      "l2_from_planted": 1.60472973251602,
+      "worst_feature": "clickCost",
+      "worst_delta": 1.209942753895501
      },
      "naive": {
-      "l2_from_planted": 2.043185792030303,
-      "worst_feature": "deadNoLastMove",
-      "worst_delta": 1.0969412919048727
+      "l2_from_planted": 2.4639971751208605,
+      "worst_feature": "clickCost",
+      "worst_delta": 1.1872826207629639
      },
      "em": {
-      "l2_from_planted": 1.2688750588408004,
-      "worst_feature": "stallIntoEncore",
-      "worst_delta": 0.667334347676767
+      "l2_from_planted": 1.4837254828623552,
+      "worst_feature": "clickCost",
+      "worst_delta": 1.1071171192165767
      }
     },
     {
      "seed": 20260806,
-     "censored": 6767,
-     "relabelled": 3374,
+     "censored": 6690,
+     "relabelled": 3265,
      "oracle": {
-      "l2_from_planted": 0.9545664782646357,
-      "worst_feature": "pranksterFailsDark",
-      "worst_delta": 0.41248493103059203
+      "l2_from_planted": 0.7392532031963874,
+      "worst_feature": "deadWeather",
+      "worst_delta": 0.33275585555581244
      },
      "naive": {
-      "l2_from_planted": 1.759941626739885,
+      "l2_from_planted": 1.6759764607811798,
       "worst_feature": "immune",
-      "worst_delta": 0.9407440261611939
+      "worst_delta": 0.9423462869970873
      },
      "em": {
-      "l2_from_planted": 1.1256760998281703,
-      "worst_feature": "clickCost",
-      "worst_delta": 0.7359083326445639
+      "l2_from_planted": 0.8631989087368968,
+      "worst_feature": "pranksterFailsDark",
+      "worst_delta": 0.44971657812801635
      }
     },
     {
      "seed": 20260807,
-     "censored": 6725,
-     "relabelled": 3336,
+     "censored": 6606,
+     "relabelled": 3302,
      "oracle": {
-      "l2_from_planted": 0.8434930268424439,
+      "l2_from_planted": 1.4306772038893232,
       "worst_feature": "pranksterFailsDark",
-      "worst_delta": 0.40182072972375393
+      "worst_delta": 0.9049851580053601
      },
      "naive": {
-      "l2_from_planted": 2.0398466027376316,
-      "worst_feature": "deadNoLastMove",
-      "worst_delta": 1.0795267249850233
+      "l2_from_planted": 1.927515481656223,
+      "worst_feature": "immune",
+      "worst_delta": 0.9125211126979145
      },
      "em": {
-      "l2_from_planted": 0.8222527344530105,
-      "worst_feature": "pranksterFailsDark",
-      "worst_delta": 0.3453508256585065
+      "l2_from_planted": 1.5859627020110623,
+      "worst_feature": "deadNoLastMove",
+      "worst_delta": 0.9682575788153676
      }
     }
    ],
-   "noise_floor_oracle_spread": 0.3284154254631848,
-   "censoring_bias": 0.9576686880317037,
-   "bias_exceeds_noise_floor": true,
-   "em_recovered_fraction": 0.9140844362307263,
+   "noise_floor_oracle_spread": 0.8654765293196325,
+   "censoring_bias": 0.7642763259855105,
+   "bias_exceeds_noise_floor": false,
+   "em_recovered_fraction": 0.9309905119266236,
    "em_beats_naive": true
   },
   "observed": {
-   "rows": 31940,
+   "rows": 31938,
    "seeds": [
     20260805,
     20260806,
     20260807
    ],
-   "censored_mean": 139.66666666666666,
-   "relabelled_mean": 63.333333333333336,
-   "censored_rate": 0.004372782300146107,
+   "censored_mean": 142.66666666666666,
+   "relabelled_mean": 64.66666666666667,
+   "censored_rate": 0.004466988122821299,
    "l2_from_planted": {
-    "oracle": 0.9899893191375694,
-    "naive": 0.9735627497515725,
-    "em": 0.9923327590730618
+    "oracle": 1.2582200465339104,
+    "naive": 1.242671777789531,
+    "em": 1.251772036007002
    },
    "per_seed": [
     {
      "seed": 20260805,
-     "censored": 139,
-     "relabelled": 61,
+     "censored": 138,
+     "relabelled": 58,
      "oracle": {
-      "l2_from_planted": 1.1719084523056287,
-      "worst_feature": "stallIntoEncore",
-      "worst_delta": 0.6606918008078952
+      "l2_from_planted": 1.60472973251602,
+      "worst_feature": "clickCost",
+      "worst_delta": 1.209942753895501
      },
      "naive": {
-      "l2_from_planted": 1.153618302304846,
-      "worst_feature": "stallIntoEncore",
-      "worst_delta": 0.652069167316857
+      "l2_from_planted": 1.5846412165713817,
+      "worst_feature": "clickCost",
+      "worst_delta": 1.1832621539265125
      },
      "em": {
-      "l2_from_planted": 1.1772248861122678,
-      "worst_feature": "stallIntoEncore",
-      "worst_delta": 0.6644892508616242
+      "l2_from_planted": 1.5998878619712733,
+      "worst_feature": "clickCost",
+      "worst_delta": 1.2010092174966065
      }
     },
     {
      "seed": 20260806,
-     "censored": 148,
-     "relabelled": 66,
+     "censored": 134,
+     "relabelled": 68,
      "oracle": {
-      "l2_from_planted": 0.9545664782646357,
-      "worst_feature": "pranksterFailsDark",
-      "worst_delta": 0.41248493103059203
+      "l2_from_planted": 0.7392532031963874,
+      "worst_feature": "deadWeather",
+      "worst_delta": 0.33275585555581244
      },
      "naive": {
-      "l2_from_planted": 0.9208888164402788,
-      "worst_feature": "pranksterFailsDark",
-      "worst_delta": 0.4129616232076361
+      "l2_from_planted": 0.7152624705513696,
+      "worst_feature": "deadWeather",
+      "worst_delta": 0.3326257416270161
      },
      "em": {
-      "l2_from_planted": 0.9551174233394998,
-      "worst_feature": "pranksterFailsDark",
-      "worst_delta": 0.41234823729474956
+      "l2_from_planted": 0.7262841313341761,
+      "worst_feature": "deadWeather",
+      "worst_delta": 0.33269814608368253
      }
     },
     {
      "seed": 20260807,
-     "censored": 132,
-     "relabelled": 63,
+     "censored": 156,
+     "relabelled": 68,
      "oracle": {
-      "l2_from_planted": 0.8434930268424439,
+      "l2_from_planted": 1.4306772038893232,
       "worst_feature": "pranksterFailsDark",
-      "worst_delta": 0.40182072972375393
+      "worst_delta": 0.9049851580053601
      },
      "naive": {
-      "l2_from_planted": 0.8461811305095924,
+      "l2_from_planted": 1.4281116462458423,
       "worst_feature": "pranksterFailsDark",
-      "worst_delta": 0.4025777844073213
+      "worst_delta": 0.9053079278700904
      },
      "em": {
-      "l2_from_planted": 0.8446559677674175,
+      "l2_from_planted": 1.4291441147155568,
       "worst_feature": "pranksterFailsDark",
-      "worst_delta": 0.402352870879487
+      "worst_delta": 0.9050595696626564
      }
     }
    ],
-   "noise_floor_oracle_spread": 0.3284154254631848,
-   "censoring_bias": -0.016426569385996848,
+   "noise_floor_oracle_spread": 0.8654765293196325,
+   "censoring_bias": -0.015548268744379312,
    "bias_exceeds_noise_floor": false,
    "em_recovered_fraction": null,
    "em_beats_naive": false

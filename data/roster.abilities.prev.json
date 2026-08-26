@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-25T20:14:12.134Z",
+ "generated": "2026-08-25T21:59:31.321Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "9cfe6b3b97a8",
+ "engine_release": "2ecd3bdc274b",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,

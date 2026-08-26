@@ -21,6 +21,46 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE TRAP IS EVALUATED ONE PHASE TOO LATE — FOUR BRANCHES, NOT ONE. GATE 18 → 17 OF 961, BOARD-MATERIAL 10 → 8. 2026-08-25 (ENGINE).
+
+Full account: [`docs/_reports/2026-08-25-trap-timing-fix.md`](_reports/2026-08-25-trap-timing-fix.md).
+Diagnosis: [`docs/_reports/2026-08-25-switch-index-instrument.md`](_reports/2026-08-25-switch-index-instrument.md).
+Ledger section: `docs/ENGINE.md`, *"THE TRAP IS EVALUATED ONE PHASE TOO LATE"*.
+
+Showdown decides "is this body trapped" ONCE, while it builds the REQUEST (`Pokemon#runTrapped` inside
+`makeRequest`, read by `Side#chooseSwitch`), and **never re-asks** — `Battle#runAction`'s `case 'switch'`
+just performs the queued switch. medicham2 asked inside the switch's own execution branch. A bare switch
+is order 103 and the four of them resolve in OUTGOING-speed order, so **a Shadow Tag body brought in by
+a faster switch retro-cancelled a switch the authority had already accepted and performed.** Both
+remaining "a chosen switch the authority performs and medicham2 does not" board-material games are this,
+and in both the arriving body is Gengar-Mega — the format's only legal `preventsSwitch` carrier.
+
+**All four refusal branches moved, because the authority has one `runTrapped` and not four.**
+`preventsSwitch` is the branch a trapper can newly ARRIVE on; `_trapHard` (Block / Mean Look), Fairy Lock
+and the partial trap (`_trap`) are branches a trap can newly LAPSE on. `switchTrapVerdict` is one pure
+function now, stamped on the action at commit time and read at execution — with the live verdict
+computed anyway and compared, so the phase gap is counted per branch instead of argued about.
+
+Red first: `tests/probe_trap_timing.js`, MEASURE's five arms extended to eight, everything derived.
+**A** (trapper ARRIVES) AGREES where it used to PART; **B/C/D** controls unmoved; **E** the authority
+itself refuses and this engine refuses too; **F/G** are new and move the Shed Shell and Ghost exemptions
+to the phase where they are actually consulted (after the fix, C and D no longer test them at all);
+**H** stages the move trap LAPSING and reads `trapChoiceTimeDifferedMove +1`. The probe re-runs ITSELF
+under `MEDI_TRAP_AT_EXECUTION=1` and asserts the child exits non-zero — `child exit 1 — RED, as required`.
+
+MEASURE put the prediction on the record first: raw 23 → 21 (range 21–22), gate 18 → 16 (16–17),
+board-material 10 → 8 (8–9). **Measured: 22 / 17 / 8** — board-material exactly, the other two at the
+top of the honest range. Exactly two games moved and no others: `omit-protect` t8 gone outright,
+`pair-redirect-priority` t11 fixed and that game re-parting at t12 on an unrelated Torment row
+(narration-only). No new divergence anywhere.
+
+Both legs at `--games 1200` (961 played), `--arm middle`, cap 12, `--team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json`, `--end-state`.
+BEFORE release `2ecd3bdc274b`, AFTER release `d38d117e68e9`. `planted_divergence_proof_ok` TRUE on both.
+Census unmoved at 706/706/0 — all four trap branches already carry LIVE census rows and a single-turn
+staged probe cannot ask a phase question. Roster re-run against the new release: 0/0/0 DIFFER, counts
+identical (139/130/475). `all_mechanics_fire` STATE rows 8, unchanged.
+
 ## AN ITEM PARKED BY MAGIC ROOM IS NOT AN ITEM LOST. CENSUS 705 → 706, PARTED 24 → 23. 2026-08-25 (ENGINE).
 
 Full account: [`docs/_reports/2026-08-25-medicham-batch-2.md`](_reports/2026-08-25-medicham-batch-2.md).

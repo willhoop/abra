@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-25T22:55:34.919Z",
+ "generated": "2026-08-26T00:28:04.345Z",
  "by": "tests/test-switch-back-renamed.js",
  "what": "can a body medicham2 renamed mid-battle be switched back in — subject against a control on the same board and turn",
  "write_policy": "FINDINGS. A DIFFERS arm is the measurement and is published with run_ok:false, so a consumer can refuse it. Before 2026-08-23 the artifact carried no run status at all.",
@@ -12,10 +12,10 @@
   "garchomp"
  ],
  "switchkey_on_played_bodies": [
-  null,
-  null,
-  null,
-  null
+  "morpeko",
+  "dragonite",
+  "espathra",
+  "garchomp"
  ],
  "arms": [
   {
@@ -48,7 +48,7 @@
   },
   {
    "id": "hungerswitch-restamped",
-   "what": "THE SUFFICIENCY ARM. Identical board, with the stamp `freshBodies` drops put back on the bench bodies one boundary before the ask — no file edited, the fix simulated in place. If the ask then resolves, the missing stamp is the mechanism.",
+   "what": "THE SUFFICIENCY ARM, NOW A REDUNDANCY CONTROL. It restamps `_switchKey` on the bench bodies one boundary before the ask. Until 2026-08-25 that was the fix simulated in place, because `freshBodies` dropped the stamp; the stamp now survives construction, so this arm restamps what is already stamped and MUST agree exactly as the arm above does. If the two ever disagree again, the key has stopped reaching the played bodies.",
    "ask": "morpeko",
    "err": null,
    "observed": {

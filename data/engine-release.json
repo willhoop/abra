@@ -1,10 +1,10 @@
 {
-  "current": "2ecd3bdc274b",
-  "cut": "2026-08-25T21:46:00.919Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 51,
-  "latest_cut": "2026-08-25T22:55:42.086Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-25T22:55:42.098Z",
+  "current": "d38d117e68e9",
+  "cut": "2026-08-26T00:11:25.860Z",
+  "why": "trap refusal moved to choice time -- switchTrapVerdict",
+  "cuts": 33,
+  "latest_cut": "2026-08-26T00:39:54.966Z",
+  "latest_why": "trap refusal moved to choice time -- switchTrapVerdict",
+  "pointer_written": "2026-08-26T00:39:54.977Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

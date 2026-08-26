@@ -1013,6 +1013,16 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* WIRE 92 -- a voluntary switch refused because a live foe carries `preventsSwitch` (Shadow Tag on
    * Gengar-Mega). A zero here after real games with a Mega Gengar on the field is the finding. */
   trapBlockedSwitch: 0,
+  /* 2026-08-25 -- THE PHASE GAP ITSELF, COUNTED PER BRANCH RATHER THAN ARGUED ABOUT. Every bare
+   * switch now carries a trap verdict taken at CHOICE time; at execution the verdict is recomputed
+   * and the two are compared. A non-zero here is a turn on which the answer MOVED between the two
+   * phases -- i.e. exactly one of the two corpus games' shape. `...Ability` is the branch a trapper
+   * can newly ARRIVE on; the other three are branches a trap can newly LAPSE on (a Mean Look dies
+   * with its source, and the source leaving is itself a bare switch). See `switchTrapVerdict`.
+   * The pooled counter is what the report quotes; the four splits are what attribute it. */
+  trapChoiceTimeDiffered: 0, trapChoiceTimeDifferedAbility: 0, trapChoiceTimeDifferedMove: 0,
+  trapChoiceTimeDifferedFairy: 0, trapChoiceTimeDifferedPartial: 0,
+  trapChoiceTimeDifferedFirst: '',
   /* WIRE 116 -- a voluntary switch refused by a partial-trapping MOVE (Fire Spin, Infestation,
    * Wrap, Whirlpool, Sand Tomb, Thunder Cage, Magma Storm). Counted apart from the ability above
    * because the two have different exemptions and a merged counter could not tell them apart. */
@@ -2521,6 +2531,14 @@ const MEDFAILS = { encoreAction: 0,
      no Magic Room and no Klutz in it therefore reads 0 with the knob on, which is correct -- there
      was nothing for it to restore. See `effSpeed`. */
   roomItemIsLostRestored: 0,
+  /* 2026-08-25 -- THE TRAP VERDICT'S TWO. `trapVerdictUnstamped` is the LOUD fallback: a bare switch
+     reached the execution branch with no choice-time verdict on it, so the answer was recomputed
+     there and the fix did not apply to it. Must read 0 -- every bare switch in `acts` is stamped
+     before the first action runs, so a non-zero names a switch that entered the queue some other way
+     and it is a hole, not a rounding. `trapAtExecutionRestored` is set on MEDI_TRAP_AT_EXECUTION=1
+     AND ONLY WHEN THE KNOB ACTUALLY CHANGED AN ANSWER, so a run with no mid-turn trapper reads 0 with
+     the knob on -- there was nothing for it to restore. See `switchTrapVerdict`. */
+  trapVerdictUnstamped: 0, trapVerdictUnstampedFirst: '', trapAtExecutionRestored: 0,
   /* 2026-08-24 -- THE END-OF-TURN WALK'S TWO, the same shape again. `residualOrderTieNoDie` is the
      loud fallback: a tied residual group with no `tie` stream in scope, so the group kept whatever the
      selection sort handed it. `residualStableSortRestored` is set on MEDI_RESIDUAL_STABLE_SORT=1, on
@@ -10636,6 +10654,75 @@ function mvOkSilent(mon){ if(mon)mon._mvRes=true; MEDSEEN.mvOkSilentNoLine++; }
  * (Bind, Fire Spin) is a DIFFERENT condition with its own `onRestart` question, and folding the two
  * would refuse a Mean Look into a body that is merely Wrapped. */
 function trapAlreadyHeld(t){ return !!(t&&t._trapHard); }
+/* ================= 2026-08-25 -- IS THIS BODY TRAPPED, ASKED ONCE, AT CHOICE TIME ================
+ *
+ * THE AUTHORITY ASKS THIS QUESTION EXACTLY ONCE PER TURN AND NEVER RE-ASKS IT. `Side#chooseSwitch`
+ * (sim/side.ts) refuses a switch when the REQUEST is built -- `if (pokemon.trapped) return
+ * this.emitChoiceError("Can't switch: The active Pokemon is trapped")` -- and `trapped` was filled by
+ * `Pokemon#runTrapped` during `makeRequest`, before a single action of the turn has run. Once a
+ * switch is in the queue, `Battle#runAction`'s `case 'switch'` performs it: there is no second trap
+ * test anywhere between the commit and `actions.switchIn`.
+ *
+ * THIS ENGINE ASKED IT AT EXECUTION TIME, WHICH IS ONE PHASE TOO LATE. A bare switch is order 103 and
+ * the four of them resolve in OUTGOING-speed order, so a Shadow Tag body brought in by a FASTER
+ * switch was on the field by the time a slower switch on the other side came up -- and retro-cancelled
+ * a switch the authority had already accepted and performed. Both of the two "a chosen switch the
+ * authority performs and medicham2 does not" board-material games on release 2ecd3bdc274b are this,
+ * and in both of them the arriving body is a Gengar-Mega (the format's only `preventsSwitch` carrier).
+ * Diagnosed by MEASURE in docs/_reports/2026-08-25-switch-index-instrument.md; reproduced with four
+ * cleared controls and an authority-refuses positive by tests/probe_trap_timing.js.
+ *
+ * ALL FOUR REFUSAL BRANCHES MOVE, BECAUSE THE AUTHORITY HAS ONE `runTrapped` AND NOT FOUR. The
+ * ability trap is the one that can newly ARRIVE mid-turn; `_trapHard` (Block / Mean Look), Fairy Lock
+ * and the partial trap (`_trap`) can newly LAPSE mid-turn -- a Mean Look dies when its source leaves
+ * the field, and a source leaving is itself a bare switch that can resolve first. Same mechanism, both
+ * signs. Splitting them would put two rules where the authority has one, which is the very failure
+ * CLAUDE.md's "FEATURES ARE PER-MODEL, FACTS ARE GLOBAL" paragraph is about. How often each of the
+ * four actually CHANGES its answer between the two phases is counted rather than argued -- see
+ * MEDSEEN.trapChoiceTimeDiffered* at the switch branch.
+ *
+ * PURE. It reads and never writes, so choice time and execution time can both call it and be compared.
+ * The `shed` count is a NUMBER rather than a flag because the pre-fix code could bump
+ * shedShellEscapedTrap once per branch a Shed Shell holder walked through, and that arithmetic is
+ * preserved exactly.
+ *
+ * Knob: MEDI_TRAP_AT_EXECUTION=1 restores the pre-fix read (the verdict is recomputed at execution
+ * and the stamped one is discarded). */
+const TRAP_AT_EXECUTION=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TRAP_AT_EXECUTION==='1');
+function switchTrapVerdict(m,foes,field){
+  const out={block:null,shed:0};
+  if(!m)return out;
+  const _ghost=(m.types||[]).includes('Ghost');
+  const _shed=!!TAGS.param('item',m.item,'escapesTrap');
+  /* WIRE 92 -- the ability trap. The Shadow Tag mirror rule is read as tag-against-tag rather than by
+     name; `onlyTypes` (Magnet Pull) and `onlyGrounded` (Arena Trap) come from the tag's own params. */
+  if(!_ghost&&!TAGS.param('ability',m.ability,'preventsSwitch')){
+    const _held=(foes||[]).some(x=>{
+      if(!x||x.fainted||x.curHP<=0)return false;
+      const _ps=TAGS.param('ability',x.ability,'preventsSwitch');
+      if(!_ps)return false;
+      if(_ps.onlyTypes&&!_ps.onlyTypes.some(ty=>(m.types||[]).includes(ty)))return false;
+      if(_ps.onlyGrounded&&!isGrounded(m))return false;   // WIRE 117 -- the shared predicate
+      return true;
+    });
+    if(_held&&_shed)out.shed++;
+    else if(_held){out.block='ability';return out;}
+  }
+  /* ROADMAP #139 -- the move-laid hard trap (Block, Mean Look, Spirit Shackle). */
+  if(!_ghost&&m._trapHard){
+    if(_shed)out.shed++;
+    else {out.block='move';return out;}
+  }
+  /* ROADMAP #308 -- Fairy Lock holds every active body on both sides. */
+  if(!_ghost&&field&&field.fairylock>0){
+    if(_shed)out.shed++;
+    else {out.block='fairy';return out;}
+  }
+  /* WIRE 116 -- the partial trap (Fire Spin, Infestation, Wrap, Whirlpool, Sand Tomb, Thunder Cage,
+     Magma Storm). Its exemptions are Ghost and Shed Shell only -- it has no mirror rule. */
+  if(!_ghost&&m._trap&&!_shed){out.block='partial';return out;}
+  return out;
+}
 function liveFoesOf(me){
   const _s=me&&me._sf, _S=_s&&_s._S;
   if(!_S)return [];
@@ -17509,6 +17596,26 @@ function battleTurn(S,rng,actsForA,actsForB){
       for(let i=0;i<_cq.acts.length;i++)acts[i]=_cq.acts[i];
       _megaOrder=_cq.megas;
     }
+    /* ===== 2026-08-25 -- IS THIS SWITCH TRAPPED? ASKED HERE, ONCE, BEFORE ANYTHING RUNS ===========
+     *
+     * This is the authority's `makeRequest` -> `Pokemon#runTrapped` -> `Side#chooseSwitch` moment: the
+     * trap test happens while the request is being built, with the board exactly as the turn opened,
+     * and NOTHING re-asks it afterwards. The verdict rides on the action object, so it survives every
+     * re-sort below and is read at the switch's own execution.
+     *
+     * IT IS PLACED AFTER THE COMMIT SORT AND THAT IS COSMETIC, NOT SEMANTIC -- no action has run at
+     * either point, and `switchTrapVerdict` is pure. It sits here so that "everything above this line
+     * decides the ORDER, everything below it runs the turn" stays readable.
+     *
+     * ONLY A BARE SWITCH IS STAMPED. `sdChoiceOf` is the file's one reader of "is this action a
+     * switch to the authority", and a pivot MOVE (Parting Shot, Chilly Reception, U-turn) is a `move`
+     * to it -- trapping does not stop those in the real game and the execution branch's `!a.mv` gate
+     * says the same thing. Written through the shared function so the two cannot drift apart. */
+    for(const it of acts){
+      if(!it||!it.mon||!it.a)continue;
+      if(sdChoiceOf(it.a)!=='switch')continue;
+      it._trapV=switchTrapVerdict(it.mon,it.side==='A'?actB:actA,field);
+    }
     /* ROADMAP #232 -- `BattleQueue.willAct()`, AND IT IS ONE FUNCTION BECAUSE IT IS ONE FACT.
      *
      *     willAct() { for (const action of this.list)
@@ -21827,83 +21934,53 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
         const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;
-        /* WIRE 92 -- `preventsSwitch` (Shadow Tag on Gengar-Mega) holds a VOLUNTARY switch. Only the
-           bare switch is gated: `a.mv` present means a pivot MOVE (Parting Shot, Chilly Reception),
-           which trapping does not stop in the real game either. The exemptions that ARE derivable
-           from the body are applied -- a Ghost type always leaves, and a holder of the same tag is
-           not held (the Shadow Tag mirror rule, read as tag-against-tag rather than a name).
-           `onlyTypes` (Magnet Pull wants Steel) and `onlyGrounded` (Arena Trap) come from the
-           params, which the tag_dex enrichment landed and this code reads -- the comment that used
-           to sit here said those were "not in the params yet" and that both carriers over-trap, and
-           it described a world that ended when the staged batch ran. Counted in
-           MEDSEEN.trapBlockedSwitch, because a refusal that cannot prove it fired is assumed broken.
-
-           SHED SHELL IS NOT HONOURED ON THIS BRANCH and that is a stated gap, not an oversight: the
-           item lets its holder out of ability trapping too, and this dispatch was scoped to leave the
-           ability branch alone. Zero corpus exposure today (Shadow Tag is Gengar-Mega; Magnet Pull
-           and Arena Trap have none), and the move branch below does honour it. */
-        if(!a.mv&&!(m.types||[]).includes('Ghost')&&!TAGS.param('ability',m.ability,'preventsSwitch')){
-          const _held=foes.some(x=>{
-            if(!x||x.fainted||x.curHP<=0)return false;
-            const _ps=TAGS.param('ability',x.ability,'preventsSwitch');
-            if(!_ps)return false;
-            if(_ps.onlyTypes&&!_ps.onlyTypes.some(ty=>(m.types||[]).includes(ty)))return false;
-            if(_ps.onlyGrounded&&!isGrounded(m))return false;   // WIRE 117 -- the shared predicate
-            return true;
-          });
-          /* ROADMAP #139 -- SHED SHELL LETS IT OUT, AND AN OVER-REFUSAL IS A DEFECT EXACTLY AS AN
-           * UNDER-REFUSAL IS. The paragraph above this block declared the gap by name ("SHED SHELL IS
-           * NOT HONOURED ON THIS BRANCH ... Zero corpus exposure today"), and a Shadow Tag fixture
-           * then read it live as `OURS-REFUSED-AND-THE-AUTHORITY-DID-NOT`. A bot that believes it is
-           * trapped does not switch when switching is correct, which is a lost game, not a point of
-           * HP.
-           * BY SHAPE NOW, NOT BY NAME. The other half of that comment said Shed Shell "is a NAME
-           * because the item carries no tag at all" -- it carries `escapesTrap` now, derived from its
-           * own `onTrapPokemon`, and exactly one item in the format declares one. The move-trap branch
-           * below reads the same tag, so the two roads cannot disagree about one item. */
-          if(_held&&TAGS.param('item',m.item,'escapesTrap')){MEDSEEN.shedShellEscapedTrap++;}
-          else if(_held){MEDSEEN.trapBlockedSwitch++;continue;}
-        }
-        /* ROADMAP #139 -- AND A MOVE-LAID TRAP HOLDS IT TOO. Block and Mean Look write `_trapHard`
-         * onto the victim, which outlives its source's turn and travels with the victim -- that is
-         * what makes it a different mechanism from the ability trap above, which lapses the moment the
-         * carrier leaves the field. The exemptions are the same three the partial-trap branch below
-         * honours and they are read the same way: a pivot MOVE is not a bare switch, a Ghost always
-         * leaves, and a Shed Shell holder leaves. */
-        if(!a.mv&&m._trapHard&&!(m.types||[]).includes('Ghost')){
-          if(TAGS.param('item',m.item,'escapesTrap'))MEDSEEN.shedShellEscapedTrap++;
-          else {MEDSEEN.moveTrapBlockedSwitch++;continue;}
-        }
-        /* ROADMAP #308 -- AND FAIRY LOCK HOLDS EVERYBODY, WHICH IS THE WHOLE MOVE.
-         * `onTrapPokemon(pokemon) { pokemon.tryTrap(); }` on the FIELD condition, so it is asked of
-         * every active body on both sides rather than of a victim a trapper named. The three
-         * exemptions are the ones the two branches above already honour and are read the same way: a
-         * pivot MOVE is not a bare switch, a Ghost always leaves (`tryTrap` bails on
-         * `runStatusImmunity('trapped')`), and a Shed Shell holder leaves. */
-        if(!a.mv&&field.fairylock>0&&!(m.types||[]).includes('Ghost')){
-          if(TAGS.param('item',m.item,'escapesTrap'))MEDSEEN.shedShellEscapedTrap++;
-          else {MEDSEEN.fairyLockBlockedSwitch++;continue;}
-        }
-        /* WIRE 116 -- THE PARTIAL TRAP HOLDS THE SWITCH, and until now it did not, anywhere. `_trap`
-           was set (WIRE 51), chipped, expired and even taught to die with its trapper (WIRE 105) --
-           and it appeared in no switch decision at all, so Fire Spin, Wrap, Infestation, Whirlpool,
-           Sand Tomb, Thunder Cage and Magma Storm dealt their per-turn chip and let the victim walk
-           out. That is most of what those moves are for. The comment at the site that SETS the trap
-           said "the switch-blocking half is NOT modelled" and it is now, so that line is gone too.
-
-           THE RULE, TAKEN OFF THE OFFICIAL ENGINE RATHER THAN FROM MEMORY -- all four arms played at
-           the pinned commit and printed: a bare switch out of an Infestation is REJECTED with
-           "Can't switch: The active Pokémon is trapped"; a GHOST type leaves freely and KEEPS the
-           volatile and the chip (98/130 -> 82/130 over the following turn), which is why the exempt
-           test is here at the switch and not at the tick; a SHED SHELL holder leaves; and U-turn
-           pivots out of it, which the `!a.mv` gate above already expresses.
-
-           Shed Shell is a NAME because the item carries no tag at all -- `data/tags.json` has no
-           `shedshell` entry, so there is nothing to read by shape. Stated, in the place it is read. */
-        /* ROADMAP #139 -- AND THE NAME IS GONE. The paragraph above says Shed Shell "is a NAME because
-         * the item carries no tag at all"; `escapesTrap` is derived now and both trap roads ask it. */
-        if(!a.mv&&m._trap&&!(m.types||[]).includes('Ghost')&&!TAGS.param('item',m.item,'escapesTrap')){
-          MEDSEEN.trapBlockedSwitchByMove++;continue;
+        /* ===== WIRE 92 / #139 / #308 / WIRE 116 -- THE TRAP REFUSAL, READ OFF THE CHOICE ===========
+         *
+         * ALL FOUR REFUSALS USED TO BE COMPUTED HERE, and here is one phase too late. The authority
+         * decides "is this body trapped" while it BUILDS THE REQUEST (`Pokemon#runTrapped` ->
+         * `Side#chooseSwitch`) and never re-asks: once a switch is in the queue, `runAction`'s
+         * `case 'switch'` performs it. A bare switch is order 103, so the four of them resolve in
+         * OUTGOING-speed order -- which means a Shadow Tag body brought in by a FASTER switch was on
+         * the field by the time a slower switch on the other side reached this line, and cancelled a
+         * switch the authority had already accepted and performed. That is both of the two
+         * "a chosen switch the authority performs and medicham2 does not" board-material games on
+         * release 2ecd3bdc274b. See `switchTrapVerdict` for the full derivation and the four branches.
+         *
+         * THE VERDICT IS THE STAMPED ONE AND THE LIVE ONE IS COMPUTED ANYWAY, so the size of the gap
+         * is MEASURED per branch instead of being reasoned about. `trapVerdictUnstamped` is the loud
+         * fallback for a bare switch that reached here without a stamp -- it must read 0.
+         *
+         * `!a.mv` STILL GATES IT. A pivot MOVE is not a bare switch to the authority either, and the
+         * stamping loop uses the same `sdChoiceOf` test, so the two ends cannot drift. */
+        if(!a.mv){
+          const _tvNow=switchTrapVerdict(m,foes,field);
+          let _tv=it._trapV;
+          if(_tv===undefined){
+            MEDFAILS.trapVerdictUnstamped++;
+            if(!MEDFAILS.trapVerdictUnstampedFirst)MEDFAILS.trapVerdictUnstampedFirst=String(m.name||'?');
+            _tv=_tvNow;
+          }
+          if(_tv.block!==_tvNow.block){
+            MEDSEEN.trapChoiceTimeDiffered++;
+            const _br=_tv.block||_tvNow.block;
+            if(_br==='ability')MEDSEEN.trapChoiceTimeDifferedAbility++;
+            else if(_br==='move')MEDSEEN.trapChoiceTimeDifferedMove++;
+            else if(_br==='fairy')MEDSEEN.trapChoiceTimeDifferedFairy++;
+            else if(_br==='partial')MEDSEEN.trapChoiceTimeDifferedPartial++;
+            if(!MEDSEEN.trapChoiceTimeDifferedFirst)
+              MEDSEEN.trapChoiceTimeDifferedFirst=String(m.name||'?')+' choice='+String(_tv.block)+' exec='+String(_tvNow.block);
+            if(TRAP_AT_EXECUTION)MEDFAILS.trapAtExecutionRestored++;
+          }
+          if(TRAP_AT_EXECUTION)_tv=_tvNow;
+          /* THE SHED SHELL RECEIPT KEEPS ITS OLD ARITHMETIC. The pre-fix code bumped this once per
+             branch a Shed Shell holder walked past, so a holder facing both an ability trap and a
+             Fairy Lock counted twice; `switchTrapVerdict` returns that same count rather than a flag,
+             because changing a counter's meaning silently is how a probe stops asking anything. */
+          for(let _s=0;_s<_tv.shed;_s++)MEDSEEN.shedShellEscapedTrap++;
+          if(_tv.block==='ability'){MEDSEEN.trapBlockedSwitch++;continue;}
+          if(_tv.block==='move'){MEDSEEN.moveTrapBlockedSwitch++;continue;}
+          if(_tv.block==='fairy'){MEDSEEN.fairyLockBlockedSwitch++;continue;}
+          if(_tv.block==='partial'){MEDSEEN.trapBlockedSwitchByMove++;continue;}
         }
         const idx=own.indexOf(m);
         /* `a.to` names the replacement when the caller chose one. A switch action without it keeps

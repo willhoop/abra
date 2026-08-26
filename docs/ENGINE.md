@@ -59,7 +59,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  706/706 probed mechanics live, 0 missing   (census 2026-08-25 18:45)
+  706/706 probed mechanics live, 0 missing   (census 2026-08-25 20:23)
   0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -72,15 +72,208 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is ca264903bc1a now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is a3ced2cba29d now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 97c27cddf846 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-25 18:57_
+_stamped 2026-08-25 20:48_
 
 <!-- /GENERATED -->
+
+## THE TRAP IS EVALUATED ONE PHASE TOO LATE — AND IT WAS FOUR BRANCHES, NOT ONE. GATE 18 → 17 OF 961, BOARD-MATERIAL 10 → 8. 2026-08-25.
+
+Full account: [`docs/_reports/2026-08-25-trap-timing-fix.md`](_reports/2026-08-25-trap-timing-fix.md).
+Diagnosis handed over by MEASURE: [`docs/_reports/2026-08-25-switch-index-instrument.md`](_reports/2026-08-25-switch-index-instrument.md).
+
+**THE MECHANISM, TAKEN OFF THE AUTHORITY.** `Side#chooseSwitch` refuses a trapped switch when the
+REQUEST is built — `Pokemon#runTrapped` runs inside `makeRequest`, before a single action of the turn —
+and **nothing re-asks it.** Once a switch is in the queue, `Battle#runAction`'s `case 'switch'` performs
+it; there is no second trap test between the commit and `actions.switchIn`.
+
+medicham2 asked the question inside the switch's own execution branch. A bare switch is order 103 and
+the four of them resolve in OUTGOING-speed order, so a Shadow Tag body brought in by a FASTER switch was
+on the field by the time a slower switch on the other side came up — and **retro-cancelled a switch the
+authority had already accepted and performed.** Both remaining "a chosen switch the authority performs
+and medicham2 does not" board-material games are this; in both, the arriving body is a **Gengar-Mega**,
+the format's only legal `preventsSwitch` carrier (derived, not recalled).
+
+**ALL FOUR REFUSAL BRANCHES MOVED, BECAUSE THE AUTHORITY HAS ONE `runTrapped` AND NOT FOUR.**
+`preventsSwitch`, `_trapHard` (Block / Mean Look), Fairy Lock and the partial trap (`_trap`) were four
+separate refusals computed at the same wrong moment. The ability trap is the branch a trapper can newly
+ARRIVE on; the other three are branches a trap can newly LAPSE on — a Mean Look dies with its source, and
+the source leaving is itself a bare switch that can resolve first. Splitting them would put two rules
+where the authority has one. `switchTrapVerdict` is now one PURE function; the verdict is stamped on the
+action at commit time and read at execution, and the LIVE verdict is computed anyway and compared, so
+the size of the phase gap is **measured per branch** rather than argued about.
+
+**RED FIRST, WITH THE KNOB RUN RATHER THAN DESCRIBED.** `tests/probe_trap_timing.js` (MEASURE's five
+arms, extended to eight). Everything derived: the trapper from `data/tags.json` × the format dex, the
+move-trap carrier through the format's own `TeamValidator` and filtered to a body that is not itself an
+ability trapper.
+
+| arm | knob OFF (fixed) | knob ON (`MEDI_TRAP_AT_EXECUTION=1`) |
+|---|---|---|
+| **A** TEST: the trapper ARRIVES this turn | **AGREES**, `trapChoiceTimeDifferedAbility +1` | **PARTS** at reduced index 6 |
+| **B** CONTROL: the entrant carries no trap | AGREES | AGREES |
+| **C** CONTROL: the victim holds a Shed Shell | AGREES | AGREES |
+| **D** CONTROL: the victim is a Ghost | AGREES | AGREES |
+| **E** POSITIVE: the trapper is ALREADY on the field | **the AUTHORITY REFUSES** in its own words, and this engine refuses too (`trapBlockedSwitch +1`) | the same |
+| **F** POSITIVE: as E + a Shed Shell | **the authority ACCEPTS**, both switch, `shedShellEscapedTrap +1` | the same |
+| **G** POSITIVE: as E + a Ghost victim | **the authority ACCEPTS**, both switch | the same |
+| **H** the MOVE trap, LAPSING mid-turn | refuses, matching the authority: `moveTrapBlockedSwitch +1`, `trapChoiceTimeDifferedMove +1` | lets the body out: `moveTrapBlockedSwitch +0`, `trapAtExecutionRestored 1` |
+
+**F AND G ARE NEW AND THEY ARE NOT DECORATION.** After the fix, MEASURE's arms C and D no longer hold
+their exemptions down: with the trapper ARRIVING mid-turn nobody is trapped at choice time, so neither
+the Shed Shell nor the Ghost typing is ever consulted and both arms would pass on an engine that had
+simply deleted the trap. F and G move the same two exemptions to the phase where they ARE consulted. The
+probe re-executes ITSELF under the knob and asserts the child exits non-zero — it does, `child exit 1 —
+RED, as required` — under **one exit rule for both runs**, because an inverted expectation under the knob
+would pass on an engine that had stopped playing the fixture.
+
+**THE PREDICTION WAS ON THE RECORD BEFORE THE RUN AND IS SCORED AGAINST HERE.**
+
+| | predicted (honest range) | measured |
+|---|---|---|
+| raw parted | 21 (21–22) | **22** |
+| gate clause of 961 | 16 (16–17) | **17** |
+| board-material causes | 8 (8–9) | **8** — exactly |
+
+**EXACTLY TWO GAMES MOVED AND NO OTHERS**, diffed on the `config|seed` key rather than eyeballed:
+`omit-protect` t8 (`|switch|p2a|crabominable`) is GONE outright, and `pair-redirect-priority` t11
+(`|switch|p1a|krookodile`) is fixed — that game then re-parts at **t12** on an unrelated pre-existing
+Torment row (`|-fail|p1a <> |-start|p2a|torment`), which is narration-only. That is the caveat MEASURE
+wrote down, arriving on the OTHER of the two games than the one it was predicted for. **No new
+divergence appeared anywhere.**
+
+| arm `middle`, 961 games (`--games 1200`, a PAIR budget) | BEFORE `2ecd3bdc274b` | AFTER `d38d117e68e9` |
+|---|---|---|
+| protocol PARTED | 23 | **22** |
+| status gate clause | 18 of 961 = 1.9% | **17 of 961 = 1.8%** |
+| board-material | 10 causes / 10 games | **8 / 8** |
+| narration-only | 12 causes / 13 games | 13 / 14 |
+| shape RULE / EMISSION / ORDERING | 10 / 9 / 4 | **10 / 8 / 4** |
+| switch addressing sent / permuted / MISADDRESSED | 63,258 / 43,125 / 0 | 63,258 / 43,125 / **0** |
+| medicham switch lookups MISSED | 3 | **2** |
+| `planted_divergence_proof_ok` | true | **true** |
+| census probed / live / missing | 706 / 706 / 0 | **706 / 706 / 0** |
+| roster items / abilities / moves DIFFER | 0 / 0 / 0 (139 / 130 / 475 match) | **0 / 0 / 0** (139 / 130 / 475 — identical) |
+| `all_mechanics_fire` STATE rows | 8 | **8** |
+
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--end-state`, turn cap 12, for both legs. The roster and `all_mechanics_fire` were **re-run**, not
+annotated: an engine change strands every artifact cut against the old release and three gate clauses
+went to WITHHELD until they were re-earned.
+
+**THE SUITE IS UNCHANGED AND THAT IS MEASURED, NOT ASSERTED.** `tests/run-all.js` reads **132 passed,
+29 failed, 2 skipped**; MEASURE measured **29 failing on the same tree** two hours earlier, before this
+change. Every one of the 29 was re-run at HEAD sources one at a time and by name, under the suite's own
+`ABRA_STRICT_SEMANTICS=1`, and **every one exits with the same code at HEAD as it does with this
+change**. None of them is this pass's. *(`test-forced-switch.js` exits 0 standalone and 1 under the
+suite: the suite turns the standing `feature_fixture --check` warning — REFIT OWED — into a throw. A
+MEASURE-owned condition of this tree, not a switch defect.)*
+
+**ONE PROCESS ERROR, CORRECTED AND RECORDED RATHER THAN TIDIED AWAY.** Those HEAD baseline runs required
+`engine/game_differential.js` WITHOUT `--release`, which CLAUDE.md records as cutting a release at
+require time. It did — `data/engine-release.json` was rewritten to point at the reverted tree, and the
+next `quarantine.js` run reported *"this artifact ran on release d38d117e68e9 and the tree is
+2ecd3bdc274b"* on five clauses. **The artifacts were right and the pointer was wrong.** Corrected by
+re-cutting the restored tree (identical content, so the same id) and re-running `provenance.js`,
+`quarantine.js` and the four artifact writers that had run against the reverted bytes.
+
+**`medicham_lookup_missed` 3 → 2 IS A CONSEQUENCE, NOT A SECOND FIX.** MEASURE named the third miss as
+`omit-protect t9 wanted metagross` and attributed it to the t8 trap defect leaving Metagross standing
+here and benched on Showdown's side. t8 is fixed and the miss is gone, exactly as that attribution said
+it would be.
+
+**THE CENSUS IS UNMOVED AT 706/706 AND THAT IS CORRECT, NOT A MISS.** All four trap branches already
+carry LIVE census rows (`ability preventsSwitch`, `move trapsTarget` ×5, `move partialTrap` ×3, `move
+setsRoom` for Fairy Lock). What changed is *when* the question is asked, and a single-turn staged census
+probe structurally cannot ask a phase question — that is what `probe_trap_timing.js` exists for.
+
+**WHICH SCOREBOARD THIS SHOULD MOVE, SAID BEFORE THE RUN.** Gengar-Mega is the format's only trapper and
+it must arrive on the same turn as an opposing bare switch, so the LAB was expected to gain nothing (the
+mechanic was already probed) and the POOL to lose exactly the two games the mechanism was found in. Both
+happened.
+
+### THE HAND LIST
+
+Leaves it: **"a chosen switch the authority performs and medicham2 does not"** — both games, and the
+`game_differential.js` suspicion that came with it (MEASURE cleared the harness at 63,258 sends with
+43,125 against a permuted party and 0 misaddressed).
+
+Joins it:
+
+- **THE PARTIAL TRAP (`_trap`) IS NOT STAGED FOR THE PHASE GAP.** It has the same LAPSE shape as
+  `_trapHard` — cleared when its trapper leaves the field — and it is covered by the same lines, but no
+  arm proves it. Every partial-trap move deals damage and carries a 4–5 turn duration RANGE, so a
+  damage-free, die-free fixture of the kind arms A–H use cannot be built from one.
+  `trapChoiceTimeDifferedPartial` exists to catch it and has never been read.
+- **FAIRY LOCK IS NOT STAGED EITHER, AND THE REASONING IS NOT THE EVIDENCE.** It is a FIELD
+  pseudo-weather set by a MOVE (all moves resolve after all bare switches) and decremented only at the
+  residual, so its value cannot change across the switch phase. That is a reading of the code, not a
+  measurement. `trapChoiceTimeDifferedFairy` is what would say otherwise.
+- **`game_differential.js` SURFACES NO MEDSEEN, SO FOUR NEW COUNTERS HAVE NO POOL-SCALE READING** —
+  `trapChoiceTimeDiffered{Ability,Move,Fairy,Partial}` and, more seriously, `MEDFAILS.trapVerdictUnstamped`,
+  which MUST read 0 and is only ever asserted on a staged board. Same standing gap as
+  `roomItemIsLostRestored`; ENGINE may not edit that file, so it is MEASURE's.
+- **`pair-redirect-priority` t12 `|-fail|p1a <> |-start|p2a|torment`** — a narration row this fix made
+  visible by letting the game reach turn 12. Not a new defect; a pre-existing one that was hidden behind
+  an earlier stop.
+
+Stays on it, unchanged: **`active[].stall` survives at later turns** (and the `pair-protect-bust` t9
+Disable row that is probably NOT the stall family — do not group them without measuring), **the order-107
+half of the commit-queue fix is still unmeasured**, **`_megaPhase` is entered at the first action with
+`_pri < 6` and a Prankster Helping Hand is 6**, **the `trapper` mark on a trap's SOURCE**, **the
+`any`-category address for `getRandomTarget`**, **the Bug Bite / Pluck EAT half**, **the two surfaces
+Moody was hiding**, **`AfterMoveSecondary` above `|-hitcount|`**, **the three spread-status rows are ONE
+mechanism**, **`supremeoverlord`**, **`shellsidearm`**, **`sandforce`'s truncated `damageBoost.onType`**,
+**`guts.damageBoost.onlyWhen` null**, **Castform's forme label (a refit)**, **Magic Room parks the item**,
+**a refused Role Play does not blank its move line's target field**, **PP exhaustion is narrated wrong**,
+**a multi-turn counter reaching zero is silent**, **a forme does not revert when its field effect ends**,
+and **the 33 extra board-material causes visible only past turn 12**.
+
+### PROPOSED REGISTER ROWS — `docs/ROADMAP.md` was NOT edited, per the brief.
+
+**CLOSED (1).** *"medicham2 evaluated `preventsSwitch` at switch-EXECUTION time where Showdown evaluates
+it at CHOICE time and never re-asks, so a trapper arriving on an earlier switch in the same turn
+retro-cancelled a switch the authority had already performed. It cost two board-material games in the
+pinned pool. The move trap, Fairy Lock and the partial trap sat on the same block and shared the
+mechanism; all four are now one choice-time verdict."* Knob `MEDI_TRAP_AT_EXECUTION=1`; eight-arm probe
+with three cleared controls and three authority-judged positives, red under the knob by its own child
+process.
+
+**OPEN (2).** *"The partial trap and Fairy Lock branches are covered by the choice-time verdict but
+neither is staged for the phase gap; `trapChoiceTimeDiffered{Partial,Fairy}` have never been read."*
+
+*"`game_differential.js` surfaces no MEDSEEN or MEDFAILS, so `MEDFAILS.trapVerdictUnstamped` — a loud
+fallback that MUST read 0 — has only ever been asserted on a staged board and has no pool-scale reading.
+MEASURE's, because ENGINE may not edit that file."*
+
+### OWED, NOT RUN
+
+```bash
+# the two unstaged branches, staged rather than reasoned about
+node tests/probe_trap_timing.js --release d38d117e68e9      # after adding a partial-trap arm
+node tests/probe_trap_timing.js --release d38d117e68e9      # after adding a Fairy Lock arm
+
+# the positive control for MEASURE's addressing audit, not re-run on this release
+MEDI_SWITCH_BY_INITIAL_INDEX=1 node engine/game_differential.js --games 1200 --arm middle \
+  --release d38d117e68e9 --team-store data/team-pool-frozen \
+  --census data/verification/census-pin-9446a684709d.json --end-state
+
+# the same run at a LONGER cap — nothing here says anything about turn 13 onward
+SHOWDOWN_PATH=... node engine/game_differential.js --games 1200 --arm middle \
+  --release d38d117e68e9 --team-store data/team-pool-frozen \
+  --census data/verification/census-pin-9446a684709d.json --end-state --turns 30
+
+# not re-run on this release by this pass
+node tests/interaction_matrix.js
+node tests/mutation_harness.js
+node engine/quarantine.js
+node engine/wire_ladder.js      # data/wire-ladder.json is UNSAFE and its figure is withheld
+```
 
 ## AN ITEM PARKED BY MAGIC ROOM IS NOT AN ITEM LOST. CENSUS 705 → 706, PARTED 24 → 23. 2026-08-25.
 
