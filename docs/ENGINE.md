@@ -16,7 +16,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-resolution-order.js`, `tests/probe_selfdestruct_winner.js`, `engine/switchin_order.js`,
 `data/switchin-order.json`, `tests/test-immunity-gate.js`, `tests/test-tag-params-derived.js`,
 `tests/test-roster-arm-pin.js`, `engine/mc_key.js`, `tests/test-mc-key.js`, `tests/test-mc-seal.js`,
-`tests/probe_room_unburden.js`
+`tests/probe_room_unburden.js`, `tests/probe_trap_timing.js`
 
 **Twenty instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
