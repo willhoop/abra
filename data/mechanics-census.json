@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T14:56:18.575Z",
+  "generated": "2026-08-26T15:31:31.248Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 733,
-  "live": 733,
+  "probed": 735,
+  "live": 735,
   "missing": 0,
-  "armed": 733,
+  "armed": 735,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1474,6 +1474,26 @@
       "label": "Disable stops the move its target has ALREADY chosen this turn",
       "live": true,
       "detail": "HP the Earthquake took on the Disable turn: no Disable 44, with Disable 0 (the seal itself landed: _sealed=earthquake, clock 3)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "Disable finds nothing to seal when the target's last move is out of PP",
+      "live": true,
+      "detail": "sealed slot has PP: clock 3, _sealed earthquake, [\"|-start|p2a:garchomp|disable|earthquake\"]. Sealed slot EMPTY: clock 0, _sealed null, [\"|-fail|p1a:whimsicott\"]. A DIFFERENT slot empty (the over-fire control): clock 3, _sealed earthquake. Before the wire the empty-slot arm read clock 4 and sealed earthquake, which is the pinned pool's turn-9 card exactly.",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "Disable refuses a target whose last move was Struggle",
+      "live": true,
+      "detail": "last move Earthquake: clock 3, _sealed earthquake. Last move Struggle: clock 0, _sealed null. Before the wire the Struggle arm sealed `struggle` and read clock 4.",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3673,7 +3693,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

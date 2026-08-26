@@ -21,6 +21,67 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE SEAL HAD NOTHING TO SEAL AND WENT ON ANYWAY. BOARD-MATERIAL 7 -> 6 OF 961, WHOLE-GAME CLAUSE 11 -> 10, CENSUS 733 -> 735. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.140.0. Register row: ROADMAP #454.
+Engine release cut: **`894f59791a84`** — *"disable refuses a seal with nothing to seal: an empty
+last-move slot and a struggling target"*. Every figure below is stamped with it.
+
+**WHY THIS CARD AND NOT ONE OF THE OTHER SIX.** It was the only board-material game whose
+`protocol_diverged_at_turn` was not null, so one mechanism held two clauses shut at once.
+
+**THE DEFECT.** The authority refuses a Disable **twice** and this engine had neither refusal.
+`disable.onTryHit` (`data/moves.ts:3659`) returns false when the target's last move was **Struggle**;
+`disable.condition.onStart` (`data/moves.ts:3667`) walks the target's move slots and returns false when
+the slot matching that last move is **out of PP**. Only `!target.lastMove` was live here (WIRE 69 /
+ROADMAP #111). `data/mods/champions/moves.ts` carries no `disable` key, so mainline's is what runs —
+checked, because Encore's IS one of the eight files the mod overrides.
+
+**THE GAME, REPLAYED IN FULL FIRST.** `engine/replay_one.js` on `de0096d8f078` reproduced the split
+exactly (agreed lines 104, both split lines byte-identical to the artifact): Gardevoir clicked Protect
+on turns 1-8 and **Protect's `maxpp` here is 8**, so Gengar's Disable found an empty slot.
+`SD |-fail|p2b: Gengar` against `US |-start|p1a: Gardevoir|Disable|protect`.
+
+**MEASURED ON BOTH ENGINES ON ONE STAGED BOARD** (`tests/probe_disable_pp.js`, the plant applied to
+medicham2 AND to Showdown at the same boundary): control (slot has PP) authority APPLIED / ours
+APPLIED; `nopp` (slot planted empty) authority **refused** with a `-fail` / ours APPLIED; `struggle`
+(`lastMove` planted) authority **refused** / ours APPLIED.
+
+**THE FIX IS NOT ENCORE'S GUARD WIDENED.** Encore looks its move up with `target.moves.indexOf` and
+fails when it is absent; Disable WALKS the slots and refuses only on a MATCH that is empty, so a
+`lastMove` the body does not own leaves the loop with no match and the seal APPLIES. Sharing it would
+refuse Disables the authority lands — the exact over-fire the 2026-08-12 Encore retraction was pulled
+for. `disableOnStartRefusal` sits beside `encoreOnStartRefusal` and is called from `applyMoveVolatile`,
+the position the authority takes its refusals, so **Cursed Body's `addVolatile('disable')` inherits it**.
+
+**THE FIXTURE COST FOUR CORRECTIONS, ALL FIXTURE AND NONE ENGINE**, written into the probe header:
+target Protecting while faster (both engines' shields refused the Disable, so the CONTROL failed too
+and the probe said so); `pass`, which Showdown rejects for a live active; Protecting while slower
+(priority +4 sorts before Speed); and a derived second move of `batonpass`, which switched the target
+off the field.
+
+**THE NUMBERS, PREDICTED BEFORE THE RUN** (`--games 1200`, arm `middle`, cap 12,
+`data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`): board-material
+**7 -> 6 of 961**, whole-game clause **11 -> 10**, raw diverged **16 -> 15**, census **733 -> 735 live,
+0 missing**, mechanics clause **9 of 16 unmoved**, `tests/test-engine-diff.js` unmoved at **0/6000 at
+all sixteen corners**. Same sample as the baseline — same census pin digest, team pool `0d103fb9fa87`,
+1,968 teams, 961 games. Exactly one game left both lists and it is the same game. All three roster
+stages re-run on this release at **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE**.
+
+**AND ONE INSTRUMENT LESSON.** The mechanics clause read 9 -> 12 -> 9 across this pass with no engine
+change between the readings: `engine/all_mechanics_fire.js` defaults to `--kind moves`, so the first
+re-run wrote an artifact with no per-entity rows for abilities or items and `status.js` correctly said
+*"THE REACH FILTER CANNOT BE APPLIED … so every divergence counts"*. Re-run with `--kind all` it is 9.
+The clause was right both times; the input was narrower than the caller thought.
+
+VERIFIED BY: `node tests/test-mechanics.js` — two rows under `move / sealsMoves`, both shown RED first
+and red on demand under `MEDI_DISABLE_ONSTART_BLIND=1` (census 735 -> 733 with exactly those two
+MISSING). The PP row's third arm is the over-fire control — a DIFFERENT slot emptied, which must still
+seal — because a guard written as "refuse if any slot is empty" passes the other two arms and produces
+a Disable that never works again.
+
+---
+
 ## TWO VOLATILES WITH DIFFERENT LIFETIMES WERE LIVING IN ONE FLAG. BOARD-MATERIAL 9 -> 7 OF 961, CENSUS 731 -> 733, WHOLE-GAME CLAUSE UNMOVED AT 11. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.139.0. Register row: ROADMAP #453.

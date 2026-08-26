@@ -10,6 +10,82 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.140.0] — 2026-08-26
+
+### Fixed
+- **THE SEAL HAD NOTHING TO SEAL AND WENT ON ANYWAY — BOARD-MATERIAL 7 -> 6 OF 961, WHOLE-GAME CLAUSE
+  11 -> 10, CENSUS 733 -> 735.** The authority refuses a Disable **twice** and this engine had neither
+  refusal. `disable.onTryHit` (`data/moves.ts:3659`) returns false when the target's last move was
+  **Struggle**, and `disable.condition.onStart` (`data/moves.ts:3667`) walks the target's move slots and
+  returns false when the slot matching that last move is **out of PP**. `data/mods/champions/moves.ts`
+  carries no `disable` key, so mainline's is what this format runs — checked rather than assumed,
+  because Encore's IS one of the eight files the mod overrides. Only `!target.lastMove` was live here
+  (WIRE 69 / ROADMAP #111); the other two clauses had been carried on `docs/ENGINE.md`'s hand list for
+  three batches with no probe failing on them.
+- **ONE GAME WAS ON BOTH SCOREBOARDS AT ONCE, WHICH IS WHY IT WAS PICKED.** Of the seven board-material
+  games, `pair-protect-bust` `gen9championsvgc2026regmbbo3-2660202801 vs …-2660335898` was the only one
+  whose `protocol_diverged_at_turn` was not null. `engine/replay_one.js` reproduced the split exactly
+  (agreed lines 104, both split lines byte-identical to the artifact): Gardevoir had clicked Protect on
+  turns 1-8 and **Protect's `maxpp` in this format is 8**, so Gengar's Disable found an empty slot —
+  `SD |-fail|p2b: Gengar` against `US |-start|p1a: Gardevoir|Disable|protect`, and
+  `p1.active[0].vol.disable` medicham 3 / showdown 0.
+- **MEASURED ON BOTH ENGINES ON ONE STAGED BOARD BEFORE A BYTE MOVED** (`tests/probe_disable_pp.js`,
+  the plant applied to medicham2 AND to Showdown at the same boundary, everything else identical):
+  control — the sealed slot still has PP — authority APPLIED, this engine APPLIED; `nopp` — the slot
+  planted empty — authority **refused** and wrote `-fail`, this engine APPLIED; `struggle` — `lastMove`
+  planted to `struggle` — authority **refused**, this engine APPLIED.
+- **THE FIX DOES NOT REUSE ENCORE'S GUARD, AND THE DIFFERENCE IS THE `noslot` CLAUSE.** Encore looks
+  its move up with `target.moves.indexOf` and fails when it is absent; Disable WALKS the slots and
+  refuses only on a MATCH that is empty, so a `lastMove` the body does not own — one called by Instruct
+  or Sleep Talk, one a Transform has taken away — leaves the loop with no match and the seal APPLIES.
+  Sharing the guard would refuse Disables the authority lands, which is the exact over-fire the
+  2026-08-12 Encore retraction was pulled for. `disableOnStartRefusal` therefore sits BESIDE
+  `encoreOnStartRefusal` and is called from `applyMoveVolatile`, the position the authority takes its
+  refusals — inside `addVolatile`, so **Cursed Body's `source.addVolatile('disable')` inherits it too**.
+  `isZOrMaxPowered` and `isMax` are declared unreachable in this format rather than written as a dead
+  branch.
+- **THE FIXTURE COST FOUR CORRECTIONS AND EVERY ONE OF THEM WAS THE FIXTURE, NOT THE ENGINE**, written
+  into the probe's own header. Cut one had the target Protect while FASTER — both engines answered the
+  shield's activate line, so the CONTROL never applied the seal and the probe correctly said *"the
+  FIXTURE failed"* instead of accusing anybody. Cut two made the target `pass`, which Showdown REJECTS
+  for a live active. Cut three had it Protect while SLOWER, and the Protect still went first because
+  priority +4 is sorted before Speed is read. Cut four's derived second move was `batonpass`, which
+  switched the target off the field so both arms read a bench body.
+- **MEASURED, PINNED AND PREDICTED BEFORE THE RUN** (`--games 1200`, arm `middle`, cap 12,
+  `data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`, engine release
+  `894f59791a84`): board-material **7 -> 6 of 961**, whole-game clause **11 -> 10**, raw diverged
+  **16 -> 15**, census **733 -> 735 live, 0 missing**, mechanics clause **9 of 16, unmoved**,
+  `tests/test-engine-diff.js` unmoved at **0/6000 at all sixteen corners**. Same sample as the
+  baseline — same census pin digest, same team pool `0d103fb9fa87`, 1,968 teams, 961 games. **Exactly
+  one game left both lists and it is the same game;** the remaining six board records and fifteen
+  protocol records are otherwise identical row for row.
+
+### Added
+- `tests/probe_disable_pp.js` — three arms on one staged board, both engines, the plant reported back
+  so an arm that planted nothing cannot read as one that planted successfully. It asserts nothing and
+  exits 0; the census rows are what assert.
+- Two census rows under `move / sealsMoves`, both shown RED first and red on demand under
+  `MEDI_DISABLE_ONSTART_BLIND=1` (census 735 -> 733 with exactly those two MISSING). The PP row carries
+  a third arm that is the **over-fire control**: a DIFFERENT slot emptied, which must still seal. A
+  guard written as "refuse if any slot is empty" passes the other two arms and produces a Disable that
+  never works again.
+
+### Notes
+- **THE MECHANICS CLAUSE WENT 9 -> 12 -> 9 BECAUSE OF A DEFAULT, NOT AN ENGINE CHANGE.**
+  `engine/all_mechanics_fire.js` defaults to `--kind moves`; run without `--kind all` it wrote an
+  artifact with no per-entity rows for abilities or items, and `engine/status.js` correctly reported
+  *"THE REACH FILTER CANNOT BE APPLIED … so every divergence counts"* and printed 12. Re-run with
+  `--kind all` it is 9 of 16, unmoved. The clause was right both times; the input was narrower than the
+  caller thought.
+- The three roster stages were re-run on `894f59791a84` (a new release strands the previous stamps):
+  **0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`** on all three — items 139 of 148, abilities 129
+  of 202, moves 475 of 500.
+- Still open and filed with evidence in `docs/ENGINE.md`: the party map keyed by displayed species (a
+  transformed Ditto colliding with the Garchomp it copied — `duplicate_species_in_party` reads 20 and
+  nothing acts on it), Magic Room parking an item by emptying the slot (**159** `.item` reads measured,
+  not estimated), Castform's Forecast (`data/engine-data.js`, which ENGINE may not edit), and the
+  `active[].stall` game, which needs the ARMING side and not the lapse side.
+
 ## [5.139.0] — 2026-08-26
 
 ### Fixed

@@ -6161,6 +6161,101 @@ probe('move', 'sealsMoves', 'Disable stops the move its target has ALREADY chose
                  + sealed.sealed + ', clock ' + sealed.clock + ')' };
 });
 
+/* 2026-08-26 -- AND THE SEAL HAS TO FIND SOMETHING TO SEAL. THE AUTHORITY'S TWO REFUSALS, NEITHER OF
+ * WHICH THIS ENGINE HAD READ.
+ *
+ *     disable.onTryHit(target) {                                          data/moves.ts:3659
+ *       if (!target.lastMove || target.lastMove.isZOrMaxPowered ||
+ *           target.lastMove.isMax || target.lastMove.id === 'struggle') return false; }
+ *     disable.condition.onStart(pokemon, source, effect) {                data/moves.ts:3667
+ *       ...  if (!pokemon.lastMove) return false;
+ *       for (const moveSlot of pokemon.moveSlots)
+ *         if (moveSlot.id === pokemon.lastMove.id)
+ *           if (!moveSlot.pp) { this.debug('Move out of PP'); return false; }   }
+ *
+ * `!target.lastMove` was live already (WIRE 69 / ROADMAP #111). THE EMPTY SLOT COST A BOARD-MATERIAL
+ * GAME AND A PROTOCOL DIVERGENCE IN THE PINNED POOL, and they are the same game: config
+ * `pair-protect-bust`, `…-2660202801 vs …-2660335898`, turn 9. A Gardevoir had clicked Protect on
+ * turns 1-8 and Protect's `maxpp` here is 8, so the slot was empty and there was nothing to seal —
+ * `SD |-fail|p2b: Gengar` against `US |-start|p1a: Gardevoir|Disable|protect`, and
+ * `p1.active[0].vol.disable` medicham 3 / showdown 0.
+ *
+ * MEASURED ON BOTH ENGINES ON ONE STAGED BOARD BEFORE A BYTE MOVED (tests/probe_disable_pp.js, three
+ * arms, the plant applied to medicham2 AND to Showdown at the same boundary):
+ *
+ *     control    sealed slot has PP        authority APPLIED   this engine APPLIED
+ *     nopp       sealed slot planted 0     authority refused   this engine APPLIED   <-- the defect
+ *     struggle   lastMove planted struggle authority refused   this engine APPLIED   <-- the defect
+ *
+ * THE THIRD ARM HERE IS THE OVER-FIRE CONTROL AND IT IS THE ONE THAT MATTERS. A guard written as
+ * "refuse if any slot is empty" passes both arms above and is wrong: the authority walks the slots
+ * and refuses only on a MATCH. So this drains a move the target did NOT just use, and the seal must
+ * still land. Without it, the probe would go green on a Disable that never works again.
+ *
+ * IT READS THE OUTCOME, NOT THE FLAG: the `-start` line and the sealed move together, so an engine
+ * that suppressed the volatile and still narrated the seal is caught. */
+probe('move', 'sealsMoves', 'Disable finds nothing to seal when the target\'s last move is out of PP', () => {
+  const run = (drain) => {
+    const me = bare('whimsicott'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    /* turn 1 — the foe commits Earthquake, so it HAS a last move for turn 2 to name. */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    /* THE PLANT IS THE ONLY THING THAT VARIES. Same board, same clicks, same dice in all three arms. */
+    if (drain) { f1._pp = f1._pp || {}; f1._pp[drain] = 0; }
+    trace.length = 0;
+    /* turn 2 — Whimsicott is faster, so the Disable resolves while `_lastMove` is still Earthquake. */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'disable', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { clock: (f1._vol || {}).disable || 0, sealed: f1._sealed || null,
+             start: trace.filter(l => /^\|-start\|.*[Dd]isable/.test(l)).map(M.traceCanon),
+             fail: trace.filter(l => /^\|-fail\|/.test(l)).map(M.traceCanon) };
+  };
+  const control = run(null);              // the sealed move still has PP
+  const nopp = run('earthquake');         // the sealed move's own slot is empty
+  const other = run('rockslide');         // a DIFFERENT slot is empty — the seal must still land
+  return { works: control.clock > 0 && control.sealed === 'earthquake' && control.start.length === 1
+                  && nopp.clock === 0 && nopp.sealed === null && nopp.start.length === 0 && nopp.fail.length === 1
+                  && other.clock > 0 && other.sealed === 'earthquake' && other.start.length === 1,
+           arms: { control: control.start, test: nopp.fail },
+           detail: 'sealed slot has PP: clock ' + control.clock + ', _sealed ' + control.sealed + ', '
+                 + JSON.stringify(control.start) + '. Sealed slot EMPTY: clock ' + nopp.clock
+                 + ', _sealed ' + nopp.sealed + ', ' + JSON.stringify(nopp.fail)
+                 + '. A DIFFERENT slot empty (the over-fire control): clock ' + other.clock
+                 + ', _sealed ' + other.sealed + '. Before the wire the empty-slot arm read clock '
+                 + '4 and sealed earthquake, which is the pinned pool\'s turn-9 card exactly.' };
+});
+
+/* 2026-08-26 -- THE OTHER CLAUSE OF THE SAME `onTryHit`, AND IT IS ITS OWN ROW BECAUSE IT IS ITS OWN
+ * RULE. `target.lastMove.id === 'struggle'` is checked BEFORE any slot is walked, and a Struggling
+ * body owns no `struggle` slot for the PP clause to match — so folding the two into one row would
+ * leave a probe that cannot say which of them refused. The control is the identical board with the
+ * plant removed. */
+probe('move', 'sealsMoves', 'Disable refuses a target whose last move was Struggle', () => {
+  const run = (last) => {
+    const me = bare('whimsicott'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    if (last) f1._lastMove = last;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'disable', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { clock: (f1._vol || {}).disable || 0, sealed: f1._sealed || null };
+  };
+  const control = run(null), struggling = run('struggle');
+  return { works: control.clock > 0 && control.sealed === 'earthquake'
+                  && struggling.clock === 0 && struggling.sealed === null,
+           arms: { control: control.sealed, test: struggling.sealed },
+           detail: 'last move Earthquake: clock ' + control.clock + ', _sealed ' + control.sealed
+                 + '. Last move Struggle: clock ' + struggling.clock + ', _sealed ' + struggling.sealed
+                 + '. Before the wire the Struggle arm sealed `struggle` and read clock 4.' };
+});
+
 /* THE WHOLE HEALING CLASS IS INVISIBLE TO THE DIFFERENTIAL, and this file is its only guard.
  *
  * `tests/test-engine-diff.js` compares ONE call to `moveHit` against one call to `dmgRange` — a

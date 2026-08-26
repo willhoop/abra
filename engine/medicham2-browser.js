@@ -1471,6 +1471,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   destinyBondConsecutiveFail  a second Destiny Bond in a row refused by `onPrepareHit`. */
   destinyBondAsked: 0, destinyBondKO: 0, destinyBondRefusedAlly: 0, destinyBondSourceAlreadyDead: 0,
   destinyBondNoSource: 0, destinyBondClearedOnMove: 0, destinyBondConsecutiveFail: 0,
+  /* 2026-08-26 -- THE OTHER SEALER'S OWN CLAUSES, WHICH THIS ENGINE HAD NEVER READ.
+   *   disableRefusedByOnStart  Disable refusals from a clause of `data/moves.ts` disable OTHER than
+   *                            the shared `!lastMove` guard -- the target's sealed slot being OUT OF
+   *                            PP (`condition.onStart`'s `if (!moveSlot.pp) return false`), or its
+   *                            last move being STRUGGLE (`onTryHit`). A zero over a corpus that
+   *                            contains a Protect spammed to its 8th click means the clauses are
+   *                            unreachable, which is exactly how they looked before this pass: the
+   *                            pinned pool carried a board-material game and a protocol divergence
+   *                            for it (`…-2660202801`, turn 9, `-fail` against our `-start`).
+   *                            DELIBERATELY NOT SHARED WITH `encoreRefusedByOnStart`: the two
+   *                            conditions refuse on DIFFERENT rules -- Encore also refuses a move
+   *                            that is not on the target's slots at all, and Disable does not,
+   *                            because its loop simply finds no match and falls through. */
+  disableRefusedByOnStart: 0,
   volRefusedAnnounceOwed: 0, volRefusedSilent: 0, volFailLinesWritten: 0, encoreRefusedByOnStart: 0,
   /* ROADMAP #241(3) -- FAILURES RECORDED WITH NO LINE AT ALL, because the authority's handler
    * returned `null` and wrote its own. Counts CALLS to mvFailSilent -- i.e. `|-fail|` lines this
@@ -1902,6 +1916,10 @@ const MEDFAILS = { encoreAction: 0,
                                          `duration: 2` expiry, so the counter rides through a turn its
                                          holder could not act and the next Protect is rolled at 1/3. */
   protectGateAboveRefusalsRestored: 0, protectStallNoLapseRestored: 0,
+  /* 2026-08-26 -- set for the whole run when MEDI_DISABLE_ONSTART_BLIND=1 puts the pre-fix read back
+     on purpose, so a deliberate restore arm and a broken engine can never be read as the same thing.
+     Same shape as suckerQueueBlindRestored. */
+  disableOnStartBlindRestored: 0,
   /* ROADMAP #357 -- an arrival the authority WOULD have added to `timesAttacked` and this engine does
      not, because a Substitute absorbed it and that road returns before the counter site. Declared at
      the site rather than hidden; it makes Rage Fist slightly weaker here than in the game and the
@@ -10507,6 +10525,14 @@ const SUCKER_QUEUE_BLIND=(typeof process!=='undefined'&&process.env&&process.env
  * MEDI_SUCKER_QUEUE_BLIND above. */
 const PROTECT_GATE_ABOVE_REFUSALS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PROTECT_GATE_ABOVE_REFUSALS==='1');
 const PROTECT_STALL_NO_LAPSE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PROTECT_STALL_NO_LAPSE==='1');
+/* 2026-08-26 -- MEDI_DISABLE_ONSTART_BLIND=1 TAKES DISABLE'S OWN TWO CLAUSES BACK OUT: the seal stops
+ * asking whether the target's last move has any PP left and whether it was STRUGGLE, the way this
+ * engine ran until today -- so a Protect clicked for the ninth time is still Disable-able here and is
+ * not in the authority. ONE knob for both clauses, because they are ONE handler pair in the authority
+ * (`disable.onTryHit` and `disable.condition.onStart`) and a knob per clause could not restore a
+ * refusal that is taken at one site. Any run carrying it also carries a non-zero
+ * `MEDFAILS.disableOnStartBlindRestored`. Same shape as MEDI_SUCKER_QUEUE_BLIND above. */
+const DISABLE_ONSTART_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DISABLE_ONSTART_BLIND==='1');
 /* 2026-08-23 -- MEDI_NO_INMOVE_UPDATE=1 TAKES THE IN-MOVE UPDATE PASS BACK OUT, i.e. `eachEvent('Update')`
  * happens only BETWEEN actions again, the way this engine ran until today. It exists so the census rows
  * for the in-move pass can be shown MISSING on demand without swapping a file. ONE knob for the whole
@@ -14384,6 +14410,45 @@ function encoreOnStartRefusal(target){
   if(_pp===0)return 'nopp';
   return null;
 }
+/* 2026-08-26 -- DISABLE'S OWN TWO REFUSALS, AND THEY ARE NOT ENCORE'S.
+ *
+ *     disable.onTryHit(target) {                                          data/moves.ts:3659
+ *       if (!target.lastMove || target.lastMove.isZOrMaxPowered ||
+ *           target.lastMove.isMax || target.lastMove.id === 'struggle') return false; }
+ *     disable.condition.onStart(pokemon, source, effect) {                data/moves.ts:3667
+ *       ...  if (!pokemon.lastMove) return false;
+ *       for (const moveSlot of pokemon.moveSlots)
+ *         if (moveSlot.id === pokemon.lastMove.id)
+ *           if (!moveSlot.pp) { this.debug('Move out of PP'); return false; }   }
+ *
+ * (`data/mods/champions/moves.ts` carries no `disable` key, so mainline's is what this format runs --
+ * checked rather than assumed, because the mod overrides EIGHT files and Encore's IS one of them.)
+ *
+ * THE EMPTY-SLOT CLAUSE COST A BOARD-MATERIAL GAME AND A PROTOCOL DIVERGENCE IN THE PINNED POOL, and
+ * they are the same game: config `pair-protect-bust`, `…-2660202801 vs …-2660335898`, turn 9. A
+ * Gardevoir had clicked Protect on turns 1-8 and Protect's `maxpp` here is 8, so its slot was empty;
+ * Gengar's Disable found nothing to seal. `SD |-fail|p2b: Gengar` against `US |-start|p1a:
+ * Gardevoir|Disable|protect`, and `p1.active[0].vol.disable` medicham 3 / showdown 0.
+ *
+ * IT DELIBERATELY DOES NOT REUSE `encoreOnStartRefusal`, AND THE DIFFERENCE IS THE `noslot` CLAUSE.
+ * Encore looks the move up with `target.moves.indexOf(move.id)` and fails when it is not there;
+ * Disable WALKS the slots and refuses only on a MATCH that is empty, so a `lastMove` the body does not
+ * own -- one called by Instruct or Sleep Talk, one a Transform has since taken away -- falls out of
+ * the loop with no match and the seal APPLIES. Sharing the guard would refuse Disables the authority
+ * lands, which is the exact over-fire the 2026-08-12 Encore retraction was pulled for. `ppLeft`
+ * answers the move's own maximum for a slot this body has never touched, so the two agree there too.
+ *
+ * `isZOrMaxPowered` AND `isMax` ARE NOT IMPLEMENTED AND ARE NOT REACHABLE: this format has neither
+ * Z-moves nor Dynamax, so no legal click can set either flag. Declared here rather than written as a
+ * branch that can never be true. */
+function disableOnStartRefusal(who){
+  const _lm=who&&who._lastMove;
+  if(!_lm)return null;                       // the shared volNeedsLastMove guard owns this one
+  if(String(_lm).toLowerCase().replace(/[^a-z0-9]/g,'')==='struggle')return 'struggle';
+  const _pp=ppLeft(who,_lm);
+  if(_pp===0)return 'nopp';
+  return null;
+}
 function applyMoveVolatile(who,vol,src,mvId,field,opts){
   if(!who||!vol)return false;
   /* ROADMAP #212 -- THE SIDE'S VOLATILE VEIL, ASKED FIRST, AND AROMA VEIL IS WHY.
@@ -14471,6 +14536,15 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
     const _er=encoreOnStartRefusal(who);
     if(_er){ MEDSEEN.encoreRefusedByOnStart++; return volRefuse(opts,VOLRES.FAIL,_er); }
   }
+  /* 2026-08-26 -- AND DISABLE'S OWN TWO, at the same position and for the same reason: the authority
+   * takes them inside `addVolatile`, so putting them here makes every caller inherit them -- Cursed
+   * Body's `source.addVolatile('disable')` as well as the move's. See disableOnStartRefusal for the
+   * citation and for why the Encore guard could not simply be widened. */
+  if(vol==='disable'&&!DISABLE_ONSTART_BLIND){
+    const _dr=disableOnStartRefusal(who);
+    if(_dr){ MEDSEEN.disableRefusedByOnStart++; return volRefuse(opts,VOLRES.FAIL,_dr); }
+  }
+  if(vol==='disable'&&DISABLE_ONSTART_BLIND&&disableOnStartRefusal(who))MEDFAILS.disableOnStartBlindRestored=1;
   /* WIRE 152 -- A LAYERED VOLATILE IS OWNED, and the guard has to come ABOVE the no-restart rule
      three lines below, not below it. That rule is written for a DURATION -- a Taunt re-clicked on
      turn 2 must not refresh its clock -- and a layer counter is the exact opposite: being re-applied
