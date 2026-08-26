@@ -463,7 +463,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * it. Turn 1 IS the control arm: it must still land, or "no second start line" is satisfied by a move
  * that never worked at all.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -21546,6 +21546,115 @@ probe('move', 'groundsField', 'Gravity brings a Flying type down and Earthquake 
            detail: 'Earthquake into a Flying Corviknight: ' + control + ' with nothing up, ' + test
                  + ' after a real Gravity CLICK. CONTROL, the other direction: ' + floorControl
                  + ' into a grounded Incineroar, so this is not an engine that stopped refusing Ground' };
+});
+
+/* ---- GRAVITY CANCELS TWO CHARGES, NOT EVERY CHARGE -----------------------------------------------
+ *
+ * `gravity.condition.onFieldStart` (data/moves.ts) names the bodies it brings down ONE AT A TIME:
+ *
+ *     if (pokemon.removeVolatile('bounce') || pokemon.removeVolatile('fly')) {
+ *       applies = true; this.queue.cancelMove(pokemon); pokemon.removeVolatile('twoturnmove');
+ *     }
+ *     if (pokemon.volatiles['skydrop'])    { ... }
+ *     if (pokemon.volatiles['magnetrise']) { applies = true; delete pokemon.volatiles['magnetrise']; }
+ *     if (pokemon.volatiles['telekinesis']){ applies = true; delete pokemon.volatiles['telekinesis']; }
+ *     if (applies) this.add('-activate', pokemon, 'move: Gravity');
+ *
+ * THIS ENGINE MATCHED ON `semiInvulnerable`, WHICH IS A DIFFERENT SET AND A BIGGER ONE. Dig, Dive,
+ * Phantom Force and Shadow Force are all semi-invulnerable and NONE of them is airborne, so none of
+ * them is on the authority's list — a body underground does not come up because gravity got heavier.
+ * The engine brought all four down.
+ *
+ * THE MEASURED COST, on release `e5f9f3d29660`: `pair-protect-bust`
+ * `gen9championsvgc2026regmbbo3-2655381344`, board-material from turn 6. A Dragapult charges Phantom
+ * Force; a Metagross clicks Gravity; the authority leaves the charge standing and the release KOs the
+ * Metagross on turn 7. Here the charge was wiped, the release did nothing, and the Metagross lived.
+ * `vol.charging` was 1 of the 10 board-material games' three biggest leaf, and this is its cause.
+ *
+ * THE SET IS DERIVED, NOT LISTED. `groundsField.cancels` is parsed out of the authority's own
+ * `onFieldStart` source by `tag_dex.js` and then filtered to what this format legally has — Sky Drop
+ * and Telekinesis are `isNonstandard: 'Past'`, so Champions' answer is `{ charges: [bounce, fly],
+ * volatiles: [magnetrise] }`. The engine reads that and never a name.
+ *
+ * FOUR ARMS, TWO IN EACH DIRECTION, because there are two ways to be wrong and one of them is the way
+ * this engine WAS wrong. An engine that cancels every charge fails the Phantom Force arm; one that
+ * cancels none fails the Fly arm; one where the Gravity click never reaches the field fails both, so
+ * `field.gravity` is asserted on every arm rather than inferred. The no-Gravity baseline fixes the
+ * damage so "the charge released" cannot be confused with "the body was already going to hit". */
+const gravVsCharge = (chargeMove, clickGravity) => {
+  const B = board('dragapult', 'skeledirge', 'torterra', 'farigiraf');
+  M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+    new Map([[B.f1, M.playerAction(B.f1, chargeMove, B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+  if (B.f1._charging !== chargeMove || !B.f1._invuln) return null;
+  const before = B.me.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, clickGravity ? M.playerAction(B.me, 'gravity', null, B.S.field) : { kind: 'pass' }],
+             [B.ally, { kind: 'pass' }]]),
+    new Map([[B.f1, M.playerAction(B.f1, chargeMove, B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+  return { dealt: before - B.me.curHP, gravity: B.S.field.gravity | 0 };
+};
+
+probe('move', 'groundsField', 'Gravity cancels a Fly, and leaves a Phantom Force underground charge alone', () => {
+  const pfFlat = gravVsCharge('phantomforce', false);
+  const pfGrav = gravVsCharge('phantomforce', true);
+  const flyFlat = gravVsCharge('fly', false);
+  const flyGrav = gravVsCharge('fly', true);
+  if (!pfFlat || !pfGrav || !flyFlat || !flyGrav)
+    return { works: false, detail: 'COULD NOT STAGE — a charge did not take' };
+  const clickLanded = pfGrav.gravity > 0 && flyGrav.gravity > 0
+                   && pfFlat.gravity === 0 && flyFlat.gravity === 0;
+  return { works: clickLanded && pfFlat.dealt > 0 && pfGrav.dealt === pfFlat.dealt
+                  && flyFlat.dealt > 0 && flyGrav.dealt === 0,
+           arms: { control: [pfFlat.dealt, flyFlat.dealt], test: [pfGrav.dealt, flyGrav.dealt] },
+           detail: 'Phantom Force released into the Gravity user: ' + pfFlat.dealt
+                 + ' with nothing up, ' + pfGrav.dealt + ' under a real Gravity CLICK — the charge is '
+                 + 'NOT on the authority\'s list and must survive. CONTROL, the other direction: Fly '
+                 + flyFlat.dealt + ' -> ' + flyGrav.dealt + ', cancelled, because Fly IS on it. '
+                 + 'field.gravity ' + pfGrav.gravity + ' on the clicked arms and ' + pfFlat.gravity
+                 + ' on the baselines, so the knob is wired' };
+});
+
+probe('move', 'groundsField', 'Gravity strips the Magnet Rise volatile and announces it', () => {
+  /* THE SECOND HALF OF THE SAME HANDLER, and it is a `delete pokemon.volatiles['magnetrise']` rather
+   * than a charge — so an engine that fixed only the charge set passes the probe above and fails here.
+   * Magnet Rise is the one member of the authority's volatile list this format legally has:
+   * `telekinesis` is `isNonstandard: 'Past'` and is dropped by the derivation, not by hand.
+   *
+   * THIS ONE CANNOT BE AN HP PROBE AND THAT IS DECLARED RATHER THAN WORKED AROUND. `isGrounded`
+   * (sim/pokemon.ts) tests `'gravity' in field.pseudoWeather` FIRST and returns true, so a body under
+   * Gravity is grounded whether or not the volatile is still standing — the deletion changes no damage
+   * for as long as Gravity is up. Nor can it be seen after Gravity lapses: both clocks are five turns,
+   * so Magnet Rise has expired on its own by then. The observable is the LEAF the differential
+   * compares (`vol.magnetrise`, engine/board_state.js) and the `-activate` line the authority emits
+   * when anything applied. An outcome probe here would be green on an engine that did nothing.
+   *
+   * THE `applies` CONTROL IS THE ARM THAT MATTERS. A Gravity clicked at a board with nothing to strip
+   * must emit NO `-activate` at all — an engine that announces on every Gravity passes the first two
+   * assertions and fails this one. */
+  const run = (rise) => {
+    const B = board('dragapult', 'skeledirge', 'torterra', 'farigiraf');
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, rise ? M.playerAction(B.f1, 'magnetrise', null, B.S.field) : { kind: 'pass' }],
+               [B.f2, { kind: 'pass' }]]));
+    const rose = !!(B.f1._vol && B.f1._vol.magnetrise);
+    if (rise && !rose) return null;
+    const trace = []; B.S._trace = trace;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'gravity', null, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { still: !!(B.f1._vol && B.f1._vol.magnetrise), gravity: B.S.field.gravity | 0,
+             announced: trace.filter(l => /^\|-activate\|/.test(l) && /Gravity/i.test(l)).length };
+  };
+  const risen = run(true), bare = run(false);
+  if (!risen || !bare) return { works: false, detail: 'COULD NOT STAGE — Magnet Rise did not take' };
+  return { works: risen.gravity > 0 && bare.gravity > 0 && risen.still === false
+                  && risen.announced === 1 && bare.announced === 0,
+           arms: { control: [bare.still, bare.announced], test: [risen.still, risen.announced] },
+           detail: 'a Torterra holding its own Magnet Rise, then a Gravity CLICK (field.gravity '
+                 + risen.gravity + '): volatile still standing = ' + risen.still + ', `-activate move: '
+                 + 'Gravity` lines = ' + risen.announced + '. CONTROL, the same click at a board with '
+                 + 'NOTHING to strip: ' + bare.announced + ' announcements — so the line is the '
+                 + 'authority\'s `applies` flag and not a Gravity banner' };
 });
 
 /* IRON BALL DOES NOT ONLY GROUND THE BODY — IT FLATTENS THE WHOLE MATCHUP, AND THE SECOND TYPE IS

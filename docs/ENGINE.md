@@ -63,8 +63,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  729/729 probed mechanics live, 0 missing   (census 2026-08-26 09:25)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-26 08:42)
+  731/731 probed mechanics live, 0 missing   (census 2026-08-26 10:10)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-26 10:11)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -76,15 +76,189 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c2d51e0b4b7d now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 20bdbabaf5f3 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 9b348657400f now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 09:31_
+_stamped 2026-08-26 10:23_
 
 <!-- /GENERATED -->
+
+## GRAVITY BROUGHT DOWN EVERY SEMI-INVULNERABLE CHARGE AND THE AUTHORITY BRINGS DOWN TWO. BOARD-MATERIAL 10 -> 9 OF 961, WHOLE-GAME CLAUSE 12 -> 11, CENSUS 729 -> 731. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.138.0. Register row: ROADMAP #452.
+Engine release cut for this batch: **`b2cb60aa7274`** — *"gravity grounds only the airborne charges the
+authority names, cancels the queued move, and strips magnet rise"*. Every figure below is stamped with
+it.
+
+**THREE CUTS OF THE SAME FIX, AND ALL THREE MEASURE THE SAME.** `e43c36343097` was the engine change
+alone; `64065e18dbad` added the `MEDI_GRAVITY_GROUNDS_EVERY_CHARGE` knob, which is inert unless the
+variable is set; `b2cb60aa7274` adds `data/abra-tags.js` regenerated from the new `data/tags.json`,
+which the node path does not read (`engine/tags.js:56` loads `data/tags.json`; `ABRA_TAGS` is the
+BROWSER door) but which is a frozen SOURCE and would otherwise have stranded the release. **The 1,200-
+request differential was run on all three and returns 961 games, 16 diverged, board-material 9, the same
+nine games in the same order** — so the two later cuts are proved inert rather than assumed to be.
+
+### THE DEFECT
+
+The pick was made the way `docs/CARD-REVIEW-2026-08-22.md` asks for: group the 16 cards by MECHANISM
+rather than by comparator class, then take the one that can be driven to the bottom. The largest
+board-material MECHANISM was `vol.charging`, three of the ten games. **Two of the three are one shape
+and the third is another**, which is exactly why the class name is not the defect:
+
+| game | turn | what it really is |
+|---|---|---|
+| `pair-protect-bust` `…2655381344` | 6 | **Gravity.** The real defect, fixed here. |
+| `pair-protect-bust` `…2657789498` | 11 | the authority's `twoturnmove` wrapper (`duration: 2`) is cleared at the RESIDUAL, and the battle ended before the residual ran. Not this. |
+| `pair-protect-bust` `…2660356793` | 12 | same shape. Not this. |
+
+`gravity.condition.onFieldStart` names what it brings down one body at a time, and **every name is
+airborne**:
+
+```js
+if (pokemon.removeVolatile('bounce') || pokemon.removeVolatile('fly')) {
+  applies = true; this.queue.cancelMove(pokemon); pokemon.removeVolatile('twoturnmove'); }
+if (pokemon.volatiles['skydrop'])     { ... }
+if (pokemon.volatiles['magnetrise'])  { applies = true; delete pokemon.volatiles['magnetrise']; }
+if (pokemon.volatiles['telekinesis']) { applies = true; delete pokemon.volatiles['telekinesis']; }
+if (applies) this.add('-activate', pokemon, 'move: Gravity');
+```
+
+This engine matched on the `semiInvulnerable` tag, **which is a different set and a bigger one**: Dig,
+Dive, Phantom Force and Shadow Force all hide the user without lifting it off the ground. By corpus use
+the over-match was **Phantom Force's 714 clicks, Dig's 9 and Dive's 1 against Fly's 8 and Bounce's 2 —
+roughly seventy times the mechanic.** The comment above the line already said *"a Fly/Bounce/Dig"*, so
+the wrong set was written down and read past.
+
+**IT COST A BOARD, NOT A LINE.** `engine/replay_one.js` on `…2655381344`, REPRODUCED against the dump:
+turn 6, a Dragapult charges Phantom Force and a Metagross clicks Gravity. In the authority the charge
+stands and on turn 7 the release KOs the Metagross. Here the charge was wiped, the release did nothing,
+and the Metagross lived to the turn cap.
+
+### WHAT LANDED
+
+- **`data/tags.json` `groundsField.cancels`, DERIVED FROM THE HANDLER.** `tag_dex.js` parses the
+  volatile names out of `onFieldStart` itself and keeps only what this format legally has, so nothing is
+  typed: `twoturnmove` is not a move and `exists` is false; **`skydrop` and `telekinesis` are
+  `isNonstandard: 'Past'`** and fall out through the same lookup. Champions' answer is
+  `{ charges: [bounce, fly], volatiles: [magnetrise], cancelsTheQueuedMove: true }`, plus an
+  `announceOnCancel` row for the `-activate`. **Printed before it was wired**, per the standing rule —
+  one carrier, and that is the whole match.
+- **The `semiInvulnerable` predicate replaced by the derived set** in `medicham2-browser.js`'s `gravity`
+  branch. A missing row counts `MEDFAILS.gravityNoCancelSet` and strips NOTHING; it does not fall back
+  on the predicate it replaced, because that fallback would be indistinguishable from the fix working.
+- **`this.queue.cancelMove(pokemon)`** — the grounded body's action for that turn is deleted, silently,
+  above the kind dispatch. Without it a cancelled Fly simply charged again and the turn was spent
+  anyway, so the board a turn later was still wrong. `_lastMove` and `_mvRes` are deliberately left
+  alone: a move that was never attempted did not set `moveThisTurnResult`.
+- **Magnet Rise stripped, and the `-activate` gated on the authority's own `applies` flag.**
+
+### THE TWO PROBES
+
+Both shown RED first and both go red on demand under `MEDI_GRAVITY_GROUNDS_EVERY_CHARGE=1`, which
+restores the old predicate and nothing else — **census 731 -> 729 with exactly the two `groundsField`
+rows MISSING.**
+
+- *"Gravity cancels a Fly, and leaves a Phantom Force underground charge alone"* — four arms, two in
+  each direction, judged on DAMAGE DEALT rather than on a flag. Phantom Force released into the Gravity
+  user: **140 with nothing up, 0 before the fix, 140 after.** Control the other way: Fly **70 -> 0**,
+  cancelled. `field.gravity` is asserted on every arm (4 on the clicked arms, 0 on the baselines) so an
+  engine whose Gravity click never reached the field cannot pass either half.
+- *"Gravity strips the Magnet Rise volatile and announces it"* — **this one cannot be an HP probe and
+  the probe says so rather than working around it.** `isGrounded` tests `'gravity' in pseudoWeather`
+  FIRST, so the deletion changes no damage while Gravity is up, and both clocks are five turns so it
+  cannot be seen after Gravity lapses either. It reads the compared LEAF and the `-activate` line. The
+  arm that matters is the over-fire control: the same click at a board with nothing to strip must
+  announce **0** times.
+
+### THE NUMBERS, AND THEY WERE PREDICTED BEFORE THE RUN
+
+Pinned: `--games 1200`, arm `middle`, cap 12, `--team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json` (the same 643-row pin the `e5f9f3d29660`
+baseline used, so the SAMPLE is identical), `--state --end-state`.
+
+| quantity | before | after | predicted |
+|---|---|---|---|
+| board-material (`games − games_board_never_diverged`) | 10 of 961 | **9** | 9 — `…2655381344` leaves, nothing else moves |
+| whole-game clause (undeclared protocol divergence) | 12 of 961 | **11** | 11 or 12 |
+| raw diverged games | 17 | **16** | 16 |
+| census live | 729 | **731** | 731 |
+| `tests/test-engine-diff.js`, all 16 corners | 0/6000 | **0/6000** | unmoved — no damage arithmetic is touched |
+
+**Nothing moved beyond the prediction.** The nine remaining board-material games are the same nine, in
+the same order, at the same turns and on the same leaves. Turn-1 boards 958 of 961 and turn-boundary
+agreement 0.9970, both unchanged.
+
+**THIS IS A CASE WHERE THE POOL WAS THE RIGHT SCOREBOARD AND IT MOVED.** Gravity is 108 corpus uses and
+Phantom Force 714, so the prediction stated up front was that BOTH instruments would move — the lab by
+two census rows and the pool by one game. They did.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~Gravity brings down a charge the authority does not touch~~ — **CLOSED.** Two census rows under
+  `move / groundsField`, both shown red first, both with an over-fire control, both red on demand.
+
+**Still open, filed with its evidence:**
+- **THE `twoturnmove` WRAPPER OUTLIVES THE RELEASE AND THIS ENGINE'S `_charging` DOES NOT.** Two of the
+  ten board-material games (`…2657789498` turn 11, `…2660356793` turn 12) are this and NOT Gravity.
+  `conditions.ts:287` gives `twoturnmove` `duration: 2`, decremented in `residualEvent`, so the
+  authority holds it for the whole of the RELEASE turn and drops it at the residual; this engine clears
+  `_charging` the instant the move executes (`m._charging=null` on the release branch). At a normal
+  boundary both read 0 and nothing shows. **It only shows when the residual never runs — the battle
+  ended mid-turn** — which is what both games are. Not fixed here because the naive fix is wrong: the
+  sub-volatile (`phantomforce`) IS removed at execution by `onTryMove`'s `attacker.removeVolatile(move.id)`,
+  so deferring `_charging` would leave the user semi-invulnerable for the rest of the turn after it had
+  already struck. It needs a separate wrapper field, and it needs a probe first.
+- **A SELF-AIMED VOLATILE'S `-fail` IS OWED.** Imprison (487 uses), Magnet Rise, Aqua Ring, Ingrain —
+  carried forward unchanged from the previous batch, untouched by this one.
+- **GASTRO ACID ANNOUNCES `-start|move: gastroacid` WHERE THE AUTHORITY WRITES `-endability`.** Carried
+  forward.
+- **DISABLE'S PP BRANCH AND STRUGGLE ARE NOT IMPLEMENTED AND NO PROBE FAILS ON THEM YET.** Carried
+  forward. `…2660202801` (`p1.active[0].vol.disable`, medicham 3 / showdown 0, turn 9) is still one of
+  the nine.
+- **CASTFORM'S FORECAST MOVES THE TYPE AND NOT THE SPECIES — TWO OF THE NINE, AND THIS DIVISION CANNOT
+  FIX IT.** `…2661597319` and `…2661455548`, both turn 1, `active[0].species` `castform` vs
+  `castformrainy`. `syncWeatherFormes` models it as a retype and counts the shortfall on every
+  application (`MEDFAILS.formeWeatherNameUnchanged`) because **`data/engine-data.js` has no row for
+  Castform-Sunny / -Rainy / -Snowy** and that file is on ENGINE's may-not-edit list. Reported, not
+  touched — it is a refit, and it is Will's call.
+- **`engine/medicham2-browser.js` DECLARES `canMegaNow` TWICE**, second wins at load — ROADMAP #449,
+  carried forward, untouched.
+- **`tests/staged_board.js` IS STILL 24 OF 25** on `roar-drags-whoever-is-standing-there` — carried
+  forward, not diagnosed, not waived.
+- **`tests/test-board-browser.js` IS RED and is `board.js`'s**, which this division may not edit.
+- **`tests/test-resolution-order.js` OOMs at the default heap** (#446) — carried forward.
+- **`engine/artifact_audit.js` is RED on `data/engine-data.js`** — carried forward, NOT fixable by this
+  division and flagged for Will. `data/abra-tags.js` WAS regenerated this pass, so that half is clean.
+- **`.scratch_eng/` AND `stash@{0}` ARE ANOTHER SESSION'S.** Reported, left, nothing executed in either.
+  `data/releases/e43c36343097/` and `data/releases/64065e18dbad/` are this batch's first two cuts and are
+  left standing — a cut is an event, never an overwrite.
+
+### OWED, NOT RUN
+
+- **`tests/test-engine-diff.js` WAS OWED BY THIS BATCH AND WAS RUN**: the full 6,000 rows, seed
+  20260804, **0 disagreements at the midpoint and at all sixteen corners**. It moved off nothing, as
+  predicted — this change touches no damage arithmetic.
+- **The three roster stages and `engine/all_mechanics_fire.js` were re-run on `b2cb60aa7274`**, because
+  a new release strands the previous stamps and a withheld clause says nothing. All three stages are
+  **0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`** — items 139 of 148 tested, abilities 129 of 202
+  (45 `CONTROL-NOT-QUIET`, 141 `COULD-NOT-STAGE`), moves 475 of 500 — so the roster clause PASSES on all
+  three. The mechanics clause is **9 of 16**, unmoved.
+- **`tools\lownode.cmd` ENDS IN `exit /b`, SO CALLING IT FROM A BATCH FILE WITHOUT `call` ENDS THE
+  CALLER.** The first roster batch ran the items stage and then stopped dead, silently and with exit 0 —
+  the two later stages never printed their own echo. Written down because it looks exactly like a run
+  that finished. Use `call tools\lownode.cmd …` from inside a `.cmd`.
+- `tests/interaction_matrix.js` — **not re-run.** Stamped 2026-08-11 and already stale before this pass.
+  Nothing here changes a carrier x reactor damage ratio, but that is a derivation and it is written here
+  as one rather than as a result.
+- `engine/wire_ladder.js` — not re-run; the release ladder stays WITHHELD, as it already was.
+- `tests/run-all.js` — **not run in full this pass.** The targeted set was run: `test-mechanics`,
+  `test-charge`, `test-engine-consistency`, `test-volatile-duration`, `test-engine-diff`, all green.
+
+---
 
 ## TWO REFUSAL RULES EXISTED IN MACHINE-READABLE FORM AND NEITHER HAD A CONSUMER. CENSUS 718 -> 729, WHOLE-GAME CLAUSE 13 -> 12 OF 961, BOARD-MATERIAL UNMOVED AT 10. 2026-08-26.
 

@@ -10,6 +10,86 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.138.0] — 2026-08-26
+
+### Fixed
+- **GRAVITY BROUGHT DOWN EVERY SEMI-INVULNERABLE CHARGE AND THE AUTHORITY BRINGS DOWN TWO —
+  BOARD-MATERIAL 10 -> 9 OF 961, WHOLE-GAME CLAUSE 12 -> 11, CENSUS 729 -> 731.**
+  `gravity.condition.onFieldStart` names what it grounds one body at a time and **every name is
+  airborne**: `removeVolatile('bounce') || removeVolatile('fly')` (then `queue.cancelMove` and
+  `removeVolatile('twoturnmove')`), then `skydrop`, `magnetrise`, `telekinesis`, then
+  `if (applies) this.add('-activate', pokemon, 'move: Gravity')`. `engine/medicham2-browser.js` matched
+  on the `semiInvulnerable` TAG instead, **which is a different set and a bigger one** — Dig, Dive,
+  Phantom Force and Shadow Force all hide the user without lifting it off the ground. By corpus use the
+  over-match was **Phantom Force's 714 clicks, Dig's 9 and Dive's 1 against Fly's 8 and Bounce's 2,
+  roughly seventy times the mechanic.** The comment above the line already read *"a Fly/Bounce/Dig"*, so
+  the wrong set was written down and then read past.
+- **IT COST A BOARD, NOT A LINE.** `engine/replay_one.js` on `pair-protect-bust`
+  `gen9championsvgc2026regmbbo3-2655381344`, REPRODUCED against `data/divergence-turns.json`: turn 6, a
+  Dragapult charges Phantom Force and a Metagross clicks Gravity. In the authority the charge stands and
+  the turn-7 release KOs the Metagross; here the charge was wiped, the release did nothing, and the
+  Metagross lived to the turn cap.
+- **THE SET IS DERIVED FROM THE HANDLER, NOT LISTED.** `engine/tag_dex.js` now parses the volatile names
+  out of `onFieldStart` itself and keeps only what this format legally has, so nothing is typed:
+  `twoturnmove` is not a move, and **`skydrop` and `telekinesis` are `isNonstandard: 'Past'`** — all
+  three leave through the same lookup. Champions' answer, printed before it was wired:
+  `groundsField.cancels = { charges: [bounce, fly], volatiles: [magnetrise], cancelsTheQueuedMove: true }`,
+  plus `announceOnCancel` for the `-activate`. A missing row counts `MEDFAILS.gravityNoCancelSet` and
+  strips NOTHING — it does not fall back on the predicate it replaced, because that fallback would be
+  indistinguishable from the fix working.
+- **`this.queue.cancelMove(pokemon)` LANDED TOO, AND IT IS THE HALF THAT DECIDES THE NEXT BOARD.**
+  Removing the charge alone left the body free to re-select the same move and charge again, so its turn
+  was spent either way. The action is now deleted silently above the kind dispatch; `_lastMove` and
+  `_mvRes` are deliberately untouched, because a move that was never attempted did not set
+  `moveThisTurnResult` and Stomping Tantrum reads that next turn.
+- **Magnet Rise is stripped and the `-activate` is gated on the authority's own `applies` flag.**
+
+### Added
+- Two census rows under `move / groundsField`, **both shown RED before the engine moved**, both with an
+  over-fire control in the opposite direction, and both red on demand under
+  `MEDI_GRAVITY_GROUNDS_EVERY_CHARGE=1` — which restores the old predicate and nothing else and takes
+  the census **731 -> 729 with exactly those two rows MISSING**. The charge probe is judged on DAMAGE
+  DEALT: Phantom Force released into the Gravity user is **140 with nothing up, 0 before the fix, 140
+  after**, with Fly **70 -> 0** as the control the other way and `field.gravity` asserted on every arm.
+  **The Magnet Rise probe cannot be an HP probe and says so rather than working around it** —
+  `isGrounded` tests `'gravity' in pseudoWeather` FIRST, so the deletion changes no damage while Gravity
+  is up, and both clocks are five turns so it cannot be seen after Gravity lapses either. It reads the
+  compared LEAF and the `-activate` line, and its load-bearing arm is the over-fire control: the same
+  click at a board with nothing to strip must announce **0** times.
+- `MEDSEEN.gravityStrippedVolatile`, `MEDSEEN.gravityCancelledQueuedMove`,
+  `MEDSEEN.gravityChargeLeftStanding` and `MEDFAILS.gravityNoCancelSet` — the last two are the
+  over-match alarms: zero `gravityChargeLeftStanding` with `gravitySet` above zero means the derived set
+  has started matching everything again.
+
+### Notes
+- **THE NUMBERS WERE PREDICTED BEFORE THE RUN AND NOTHING MOVED BEYOND THE PREDICTION.** Pinned to
+  `--games 1200`, arm `middle`, cap 12, `--team-store data/team-pool-frozen` and the same 643-row census
+  pin `data/verification/census-pin-9446a684709d.json` the `e5f9f3d29660` baseline used, so the SAMPLE
+  is identical. Board-material 10 -> **9**; raw diverged 17 -> **16**; whole-game clause 12 -> **11**;
+  census 729 -> **731**. The nine remaining board-material games are the same nine, at the same turns,
+  on the same leaves. `tests/test-engine-diff.js` reads **0 of 6000 at the midpoint and at all sixteen
+  corners**, unmoved, as predicted — no damage arithmetic is touched.
+- **THIS IS A CASE WHERE THE POOL WAS THE RIGHT SCOREBOARD AND IT MOVED.** Per Will's 2026-08-23 ranking
+  rule the expected movement was stated first: Gravity is 108 corpus uses and Phantom Force 714, so BOTH
+  instruments should move — the lab by two census rows and the pool by one game. They did.
+- **THREE CUTS OF THE SAME FIX, ALL THREE MEASURED.** `e43c36343097` (the engine change),
+  `64065e18dbad` (adds the knob, inert unless set), `b2cb60aa7274` (adds `data/abra-tags.js`
+  regenerated from the new `data/tags.json`; the node path reads `data/tags.json` and `ABRA_TAGS` is the
+  browser door, but it is a frozen SOURCE and would otherwise have stranded the release). The
+  differential was run on all three and returns the same 961 / 16 / 9.
+- **STILL OPEN, FILED WITH EVIDENCE: the `twoturnmove` WRAPPER OUTLIVES THE RELEASE HERE AND DOES NOT
+  THERE.** The other two `vol.charging` games (`…2657789498` turn 11, `…2660356793` turn 12) are NOT
+  Gravity. `conditions.ts:287` gives `twoturnmove` `duration: 2`, decremented at the residual, so the
+  authority holds it through the release turn; this engine clears `_charging` the instant the move
+  executes. At a normal boundary both read 0 — **it only shows when the battle ends mid-turn and the
+  residual never runs.** Not fixed here because the naive fix is wrong: the sub-volatile is removed at
+  execution by `onTryMove`'s `attacker.removeVolatile(move.id)`, so deferring `_charging` would leave the
+  user semi-invulnerable after it had already struck. It needs a separate field and a probe first.
+- **CASTFORM'S FORECAST IS TWO OF THE NINE AND THIS DIVISION CANNOT FIX IT.** `syncWeatherFormes` moves
+  the TYPE and not the SPECIES, and counts the shortfall on every application, because
+  `data/engine-data.js` has no row for Castform-Sunny / -Rainy / -Snowy and that file is on ENGINE's
+  may-not-edit list. Reported, untouched — it is a refit and it is Will's call.
+
 ## [5.137.0] — 2026-08-26
 
 ### Fixed

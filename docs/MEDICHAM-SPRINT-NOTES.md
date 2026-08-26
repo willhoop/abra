@@ -21,6 +21,55 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## GRAVITY BROUGHT DOWN EVERY SEMI-INVULNERABLE CHARGE AND THE AUTHORITY BRINGS DOWN TWO. BOARD-MATERIAL 10 -> 9 OF 961, WHOLE-GAME CLAUSE 12 -> 11, CENSUS 729 -> 731. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.138.0. Register row: ROADMAP #452.
+Engine release cut: **`b2cb60aa7274`** — *"gravity grounds only the airborne charges the authority
+names, cancels the queued move, and strips magnet rise"*. Every figure below is stamped with it.
+
+**THE DEFECT.** `gravity.condition.onFieldStart` grounds `bounce` and `fly` (then `queue.cancelMove` and
+`removeVolatile('twoturnmove')`), `skydrop`, `magnetrise` and `telekinesis`, and announces
+`-activate|move: Gravity` only `if (applies)`. This engine matched on the `semiInvulnerable` TAG, which
+also holds **Dig, Dive, Phantom Force and Shadow Force** — four charges that hide the user without
+lifting it off the ground. By corpus use that is **714 + 9 + 1 clicks over-matched against the 8 + 2
+that belong**, about seventy times the mechanic. The comment above the line already read *"a
+Fly/Bounce/Dig"*: the wrong set was written down and read past.
+
+**IT COST A BOARD.** `engine/replay_one.js` on `pair-protect-bust`
+`gen9championsvgc2026regmbbo3-2655381344`, REPRODUCED against the dump: turn 6, a Dragapult charges
+Phantom Force and a Metagross clicks Gravity. The authority leaves the charge standing and the turn-7
+release KOs the Metagross; here the charge was wiped, the release did nothing, the Metagross lived.
+
+**WHAT LANDED.** `groundsField.cancels`, DERIVED by `tag_dex.js` out of the handler's own source and
+filtered to what the format legally has — `twoturnmove` is not a move, `skydrop` and `telekinesis` are
+`isNonstandard: 'Past'`, all three leave by the same lookup. Champions' answer, printed before wiring:
+`{ charges: [bounce, fly], volatiles: [magnetrise], cancelsTheQueuedMove: true }`. Plus
+`queue.cancelMove` (silent, above the kind dispatch — without it a cancelled Fly simply charged again),
+the Magnet Rise strip, and the `applies`-gated `-activate`. A missing row counts
+`MEDFAILS.gravityNoCancelSet` and strips nothing rather than falling back on the predicate it replaced.
+
+**TWO PROBES, BOTH RED FIRST, BOTH RED ON DEMAND** under `MEDI_GRAVITY_GROUNDS_EVERY_CHARGE=1` —
+census **731 -> 729** with exactly the two `groundsField` rows MISSING. The charge probe is judged on
+DAMAGE: Phantom Force **140 flat, 0 before, 140 after**, Fly **70 -> 0** as the opposite control,
+`field.gravity` asserted on every arm. The Magnet Rise probe **declares that it cannot be an HP probe** —
+`isGrounded` tests gravity FIRST and both clocks are five turns — and reads the compared LEAF plus the
+`-activate`, with a zero-announcement over-fire control.
+
+**THE NUMBERS WERE PREDICTED FIRST AND NOTHING MOVED BEYOND THE PREDICTION.** Same pins and the same
+643-row census pin as the `e5f9f3d29660` baseline, so the sample is identical. Board-material 10 -> **9**
+(the same nine remain, same turns, same leaves); raw diverged 17 -> **16**; whole-game clause 12 -> **11**;
+census 729 -> **731**; `test-engine-diff` **0/6000 at all sixteen corners**, unmoved. Three cuts of the
+same fix (`e43c36343097`, `64065e18dbad`, `b2cb60aa7274`) and the differential run on all three returns
+the same 961 / 16 / 9. All three roster stages re-run clean on `b2cb60aa7274`.
+
+**STILL OPEN.** The other two `vol.charging` games are NOT Gravity: the authority's `twoturnmove`
+wrapper is `duration: 2` and drops at the RESIDUAL, this engine clears `_charging` at execution, and it
+only shows when the battle ends mid-turn. The naive fix is wrong — the sub-volatile IS removed at
+execution — so it needs a separate field and a probe first. Castform's Forecast (two of the nine) is
+blocked on `data/engine-data.js`, which this division may not edit.
+
+---
+
 ## TWO REFUSAL RULES EXISTED IN MACHINE-READABLE FORM AND NEITHER HAD A CONSUMER. CENSUS 718 -> 729, WHOLE-GAME CLAUSE 13 -> 12 OF 961, BOARD-MATERIAL UNMOVED AT 10. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.137.0. Register row: ROADMAP #451.

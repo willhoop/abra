@@ -4330,7 +4330,28 @@ const MOVE_TAGS = [
    * stated reason. `reversesSpeed`, `swapsDefences` and `suppressesItems` are three more pseudo-weather
    * tags derived the same way, one file over. The ENGINE still reads a tag and never a name.
    *
-   * THE ACCURACY MULTIPLIER IS READ, NOT TYPED -- 6840/4096 out of the condition's own chainModify. */
+   * THE ACCURACY MULTIPLIER IS READ, NOT TYPED -- 6840/4096 out of the condition's own chainModify.
+   *
+   * `cancels` -- WHAT COMES DOWN WHEN THE FIELD GOES UP, 2026-08-26. `onFieldStart` walks every active
+   * body and names the things it strips ONE AT A TIME:
+   *
+   *     if (pokemon.removeVolatile('bounce') || pokemon.removeVolatile('fly')) {
+   *       applies = true; this.queue.cancelMove(pokemon); pokemon.removeVolatile('twoturnmove'); }
+   *     if (pokemon.volatiles['skydrop'])     { ... }
+   *     if (pokemon.volatiles['magnetrise'])  { applies = true; delete ... }
+   *     if (pokemon.volatiles['telekinesis']) { applies = true; delete ... }
+   *     if (applies) this.add('-activate', pokemon, 'move: Gravity');
+   *
+   * MEDICHAM READ NO SUCH ROW AND MATCHED ON `semiInvulnerable` INSTEAD, which is a different set and
+   * a bigger one: Dig, Dive, Phantom Force and Shadow Force are all semi-invulnerable and NONE of them
+   * is airborne. Phantom Force alone is 714 corpus uses against Fly's 8 and Bounce's 2, so the wrong
+   * set was ~70x the right one. It cost a board-material game on release `e5f9f3d29660`.
+   *
+   * THE NAMES COME OUT OF THE HANDLER, NOT OUT OF THIS COMMENT, and are then filtered to what the
+   * format legally has -- `skydrop` and `telekinesis` are `isNonstandard: 'Past'` and drop out on
+   * their own, so nothing here needs editing if Champions ever restores them. `twoturnmove` is not a
+   * move and is skipped by the same lookup. The split between `charges` and `volatiles` is the move's
+   * own `flags.charge`, because that is exactly what makes the authority reach for `cancelMove`. */
   { tag: 'groundsField', param: 'a pseudo-weather that puts every Pokemon on the ground', probe: 'groundsField',
     why: 'Gravity, 79 corpus uses. It is the largest single input to isGrounded() -- Spikes, Toxic '
        + 'Spikes, Sticky Web, all four terrains and the Ground immunity all change answer under it',
@@ -4338,8 +4359,26 @@ const MOVE_TAGS = [
       if (!(m.pseudoWeather && /gravity/.test(norm(m.id)))) return null;
       const c = m.condition || {};
       const mm = String(c.onModifyAccuracy || '').match(/chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]/);
+      const fs = String(c.onFieldStart || '');
+      const named = new Set();
+      for (const re of [/removeVolatile\(\s*["']([a-z0-9]+)["']/g, /volatiles\[\s*["']([a-z0-9]+)["']\s*\]/g]) {
+        let q; while ((q = re.exec(fs))) named.add(q[1]);
+      }
+      const charges = [], volatiles = [];
+      for (const id of [...named].sort()) {
+        const mv = dex.moves.get(id);
+        /* `twoturnmove` is a condition and not a move, so `exists` is false; `skydrop` and
+         * `telekinesis` are real moves and `isNonstandard: 'Past'` in Champions. All three leave by
+         * the SAME lookup, which is why no name is written down here. */
+        if (!mv || !mv.exists || mv.isNonstandard || mv.id !== id) continue;
+        (mv.flags && mv.flags.charge ? charges : volatiles).push(id);
+      }
+      const ann = /this\.add\(\s*['"]-activate['"]/.test(fs)
+        ? { event: '-activate', desc: 'move: ' + m.name, onlyIfSomethingApplied: true } : null;
       return { pseudoWeather: m.pseudoWeather, turns: +c.duration || 5,
-               accuracyMult: mm ? (+mm[1] / +mm[2]) : null };
+               accuracyMult: mm ? (+mm[1] / +mm[2]) : null,
+               cancels: { charges, volatiles, cancelsTheQueuedMove: /cancelMove\(/.test(fs) },
+               announceOnCancel: ann };
     } },
   /* ROADMAP #147 -- ROOST, AND THE ENGINE HAD NO WAY TO SAY "NOT THIS TYPE, THIS TURN".
    *

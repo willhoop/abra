@@ -1566,7 +1566,9 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * predicate, and a predicate leaves no trace in the log.
    *   gravitySet              a Gravity click actually moved the field. Zero = the classifier is still
    *                           routing it down the sealsMoves road and nothing happened.
-   *   gravityGroundedCharge   Gravity brought a Fly/Bounce/Dig back down mid-charge.
+   *   gravityGroundedCharge   Gravity brought a Fly or a Bounce back down mid-charge. It said
+   *                           "Fly/Bounce/Dig" until 2026-08-26 and the engine did exactly that, which
+   *                           was the bug: Dig is not airborne and the authority does not touch it.
    *   roostTypeDropped        a type was deleted for the turn. Zero = Roost is a plain heal again and
    *                           an Earthquake into a Roosting Corviknight is still doing nothing.
    *   roostTypeRestored       and it came BACK. A drop without a restore is a permanently retyped
@@ -1574,6 +1576,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                           rather than the drop alone.
    *   groundedByVolatile      Ingrain or Smack Down put a body on the floor that was not on it. */
   gravitySet: 0, gravityGroundedCharge: 0, roostTypeDropped: 0, roostTypeRestored: 0,
+  /* 2026-08-26 -- THE OTHER TWO THIRDS OF `onFieldStart`, each counted on its own because each can be
+   * absent while the other works.
+   *   gravityStrippedVolatile      a Magnet Rise deleted by the field going up. Invisible in HP by
+   *                                construction (`isGrounded` tests gravity FIRST), so the counter and
+   *                                the compared leaf are the only evidence there is.
+   *   gravityCancelledQueuedMove   `this.queue.cancelMove(pokemon)` -- the grounded body's action for
+   *                                THIS turn is deleted, silently. Without it a cancelled Fly simply
+   *                                charged again and the turn was spent anyway.
+   *   gravityChargeLeftStanding    the arm that used to be wrong: a charge Gravity does NOT touch.
+   *                                Zero here with `gravitySet` above zero means the derived set is
+   *                                over-matching again. */
+  gravityStrippedVolatile: 0, gravityCancelledQueuedMove: 0, gravityChargeLeftStanding: 0,
   /* ROADMAP #343 -- a self-rider that was NOT applied because the move's primary effect failed on the
    * user (a Roost at full HP). The authority reaches step 4 only for a target step 3 left standing;
    * this is that skip, counted, so the fix cannot become a silent no-op the way its own comment did. */
@@ -2286,6 +2300,11 @@ const MEDFAILS = { encoreAction: 0,
    * division may not add one, so the TYPE follows the sky and the species LABEL does not. */
   formeWeatherNoTypeMap: 0, formeWeatherNoTypeMapFirst: '', formeWeatherStatsMove: 0,
   formeWeatherStatsMoveFirst: '', formeWeatherNoRevert: 0, formeWeatherNameUnchanged: 0,
+  /* 2026-08-26 -- GRAVITY WITH NO DERIVED CANCEL SET. `groundsField.cancels` is parsed out of the
+   * authority's own `onFieldStart`; if a regenerated artifact ever loses it, the branch strips NOTHING
+   * and says so here. It must NOT fall back on the `semiInvulnerable` match it replaced -- that match
+   * was the defect, and a silent fallback to it would look exactly like the fix working. */
+  gravityNoCancelSet: 0, gravityNoCancelSetFirst: '', gravityOverMatchRestored: 0,
   /* ROADMAP #175 -- SYMBIOSIS's declared shortfalls, and 2026-08-23 CLOSED BOTH OF THE BIG ONES.
    * `symbiosisLineShort` counted the `-activate` line that named the two bodies and the effect but
    * not the ITEM; the item token is now emitted and the counter MUST stay at zero, so a non-zero
@@ -3487,6 +3506,11 @@ function volRestartTable(){
   return _volNoRestart;
 }
 const VOL_RESTART_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_VOL_RESTART_BLIND==='1');
+/* 2026-08-26 -- MEDI_GRAVITY_GROUNDS_EVERY_CHARGE=1 restores the pre-fix predicate in the `gravity`
+ * branch: every `semiInvulnerable` charge comes down, no queued move is cancelled and no Magnet Rise
+ * is stripped. That is the whole of the defect and nothing else, so a knob run turns exactly the two
+ * `groundsField` census rows red and leaves the rest of the file alone. */
+const GRAVITY_GROUNDS_EVERY_CHARGE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_GRAVITY_GROUNDS_EVERY_CHARGE==='1');
 function volRefusesRestart(vol){
   if(VOL_RESTART_BLIND){MEDFAILS.volRestartBlindRestored=1;return false;}
   const d=volRestartTable().get(vol);
@@ -18325,6 +18349,10 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the residual, i.e. AFTER every gate that could set it, and a flag cleared after it is read is
        * a flag that never falls. */
       it.mon._stallFresh=false;
+      /* 2026-08-26 -- AND THE GRAVITY CANCEL IS A ONE-TURN FLAG, cleared here for the same reason:
+       * `this.queue.cancelMove(pokemon)` deletes an action from THIS turn's queue and nothing else, so
+       * a flag that survived to the next turn would silence a body Gravity had already finished with. */
+      it.mon._gravCancel=false;
       if(it.a.kind==='protect'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
         /* DEFERRED. `_preWillAct` is the answer the TOP-OF-TURN order would have given, recorded only
          * so `MEDSEEN.shieldGateOrderChanged` can say how often the two disagree -- a fix whose
@@ -19682,6 +19710,17 @@ function battleTurn(S,rng,actsForA,actsForB){
          75 while one thrown after a Fake Out flinch is 150. Written as an explicit null rather than
          left undefined so the three states are distinguishable in the state itself. */
       if(m._recharge){m._recharge=false;m._mvRes=null;m._lastMove=m._lastMove||null;if(TR)TR.cant(m,'recharge');continue;}
+      /* 2026-08-26 -- `this.queue.cancelMove(pokemon)`: GRAVITY DELETED THIS ACTION EARLIER IN THE TURN.
+       *
+       * SILENT, AND THAT IS THE POINT. A `|cant|` would be this engine inventing a line -- the
+       * authority removes the action from the queue, so nothing is ever announced for it and nothing
+       * runs. `_lastMove` and `_mvRes` are deliberately left exactly as they were, because a move that
+       * was never attempted did not set `moveThisTurnResult` and Stomping Tantrum reads that next turn.
+       *
+       * ABOVE THE KIND DISPATCH for the reason the Throat Chop silence below it is: the cancel is not
+       * about the KIND of action the body had queued. Only a body Gravity actually grounded carries
+       * the flag, and it is cleared at the top of every turn. */
+      if(m._gravCancel){m._gravCancel=false;MEDSEEN.gravityCancelledQueuedMove++;continue;}
       /* WIRE 77 -- THE THROAT CHOP SILENCE APPLIES TO EVERY KIND OF ACTION, not only to a damaging
          one. WIRE 45 put the gate inside the attack branch and WIRE 26's menu filter put it in
          chooseAction, and both are one CLASS of action: ROAR is a sound move that resolves down the
@@ -21662,16 +21701,78 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * IT CANCELS A SEMI-INVULNERABLE CHARGE, which is in `onFieldStart` and is not decoration: it is
        * the interaction between the two mechanics this batch landed together, so a Fly that goes up on
-       * the same turn Gravity does comes straight back down and its turn is spent. */
+       * the same turn Gravity does comes straight back down and its turn is spent.
+       *
+       * ---- 2026-08-26 -- AND `semiInvulnerable` WAS THE WRONG SET. -------------------------------
+       *
+       * The paragraph above is right about the mechanic and the line under it matched the wrong tag.
+       * `onFieldStart` names what it strips one body at a time and every name is AIRBORNE:
+       *
+       *     if (pokemon.removeVolatile('bounce') || pokemon.removeVolatile('fly')) {
+       *       applies = true; this.queue.cancelMove(pokemon); pokemon.removeVolatile('twoturnmove'); }
+       *     if (pokemon.volatiles['skydrop'])     { ... }
+       *     if (pokemon.volatiles['magnetrise'])  { applies = true; delete ... }
+       *     if (pokemon.volatiles['telekinesis']) { applies = true; delete ... }
+       *     if (applies) this.add('-activate', pokemon, 'move: Gravity');
+       *
+       * `semiInvulnerable` ALSO holds Dig, Dive, Phantom Force and Shadow Force -- four charges that
+       * hide the user without lifting it off the ground. Gravity does not reach any of them, and this
+       * engine brought all four down. By corpus use that is Phantom Force's 714 clicks against Fly's 8
+       * and Bounce's 2: the over-match was ~70x the mechanic.
+       *
+       * IT COST A BOARD, NOT A LINE. `pair-protect-bust`
+       * `gen9championsvgc2026regmbbo3-2655381344` on release `e5f9f3d29660`, board-material from turn
+       * 6 -- a Dragapult charges Phantom Force, a Metagross clicks Gravity, and in the authority the
+       * release KOs the Metagross on turn 7. Here the charge was wiped, the release did nothing, and
+       * the Metagross lived to the turn cap. `vol.charging` was one of the three biggest leaves in the
+       * ten board-material games.
+       *
+       * THE SET IS READ OUT OF THE HANDLER, so this cannot go stale against a mod: `tag_dex.js` parses
+       * the names out of `onFieldStart` itself and keeps only what the format legally has -- Sky Drop
+       * and Telekinesis are `isNonstandard: 'Past'` and fall out on their own. Champions' answer is
+       * `charges: [bounce, fly]`, `volatiles: [magnetrise]`. A missing row is COUNTED and the branch
+       * does nothing rather than falling back on the old over-match, because a silent fallback here is
+       * indistinguishable from the bug being fixed.
+       *
+       * `cancelMove` IS THE HALF THAT IS EASY TO MISS AND IT DECIDES THE NEXT BOARD. Removing the
+       * charge alone left the body free to re-select the same move and charge again, so its turn was
+       * spent either way and the board a turn later was still wrong. The authority deletes the queued
+       * action outright and emits nothing for it. */
       if(a.kind==='gravity'){
         if(field.gravity>0){m._lastMove=a.mv;mvFail(m);continue;}
         field.gravity=+a.turns||5;
         MEDSEEN.gravitySet++;
         if(TR)TR.fstart('Gravity',m);
-        for(const _b of [...actA,...actB]){
-          if(!_b||!_b._charging)continue;
-          if(!TAGS.has('move',_b._charging,'semiInvulnerable'))continue;
-          _b._charging=null;_b._invuln=false;MEDSEEN.gravityGroundedCharge++;
+        const _gp=TAGS.param('move',a.mv,'groundsField')||{};
+        const _gc=_gp.cancels;
+        if(!_gc||!Array.isArray(_gc.charges)){ MEDFAILS.gravityNoCancelSet++;
+          if(!MEDFAILS.gravityNoCancelSetFirst)MEDFAILS.gravityNoCancelSetFirst=String(a.mv); }
+        else for(const _b of [...actA,...actB]){
+          if(!_b||_b.fainted||_b.curHP<=0)continue;
+          let _ap=false;
+          if(_b._charging){
+            /* `MEDI_GRAVITY_GROUNDS_EVERY_CHARGE=1` PUTS THE OVER-MATCH BACK — the exact predicate
+             * that was here, `semiInvulnerable`, and nothing else — so both probes in
+             * `tests/test-mechanics.js` can be shown RED on demand for as long as this branch exists,
+             * and a knob run separates THIS fix from every other change in the file. */
+            const _grounds=GRAVITY_GROUNDS_EVERY_CHARGE
+              ? TAGS.has('move',_b._charging,'semiInvulnerable')
+              : _gc.charges.includes(_b._charging);
+            if(GRAVITY_GROUNDS_EVERY_CHARGE)MEDFAILS.gravityOverMatchRestored=1;
+            if(_grounds){
+              _b._charging=null;_b._invuln=false;_ap=true;MEDSEEN.gravityGroundedCharge++;
+              if(_gc.cancelsTheQueuedMove&&!GRAVITY_GROUNDS_EVERY_CHARGE)_b._gravCancel=true;
+            } else MEDSEEN.gravityChargeLeftStanding++;
+          }
+          if(!GRAVITY_GROUNDS_EVERY_CHARGE)for(const _v of _gc.volatiles||[]){
+            if(_b._vol&&_b._vol[_v]!=null){ delete _b._vol[_v];_ap=true;MEDSEEN.gravityStrippedVolatile++; }
+          }
+          /* `if (applies)` -- ON THE BODY, not on the field, and only when something really came down.
+           * A Gravity clicked into a board with nothing airborne announces NOTHING, which is why the
+           * flag is per-body and not a banner beside the `-fieldstart`. */
+          if(_ap&&!GRAVITY_GROUNDS_EVERY_CHARGE&&TR&&_gp.announceOnCancel
+             &&_gp.announceOnCancel.event==='-activate')
+            TR.act(_b,_gp.announceOnCancel.desc);
         }
         m._lastMove=a.mv;continue;
       }

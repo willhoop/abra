@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T13:25:38.919Z",
+  "generated": "2026-08-26T14:10:00.988Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 729,
-  "live": 729,
+  "probed": 731,
+  "live": 731,
   "missing": 0,
-  "armed": 729,
+  "armed": 731,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3653,7 +3653,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.3% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5944,6 +5944,26 @@
       "label": "Gravity brings a Flying type down and Earthquake reaches it",
       "live": true,
       "detail": "Earthquake into a Flying Corviknight: 0 with nothing up, 150 after a real Gravity CLICK. CONTROL, the other direction: 168 into a grounded Incineroar, so this is not an engine that stopped refusing Ground",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "groundsField",
+      "label": "Gravity cancels a Fly, and leaves a Phantom Force underground charge alone",
+      "live": true,
+      "detail": "Phantom Force released into the Gravity user: 140 with nothing up, 140 under a real Gravity CLICK — the charge is NOT on the authority's list and must survive. CONTROL, the other direction: Fly 70 -> 0, cancelled, because Fly IS on it. field.gravity 4 on the clicked arms and 0 on the baselines, so the knob is wired",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "groundsField",
+      "label": "Gravity strips the Magnet Rise volatile and announces it",
+      "live": true,
+      "detail": "a Torterra holding its own Magnet Rise, then a Gravity CLICK (field.gravity 4): volatile still standing = false, `-activate move: Gravity` lines = 1. CONTROL, the same click at a board with NOTHING to strip: 0 announcements — so the line is the authority's `applies` flag and not a Gravity banner",
       "hollow": false,
       "armed": true,
       "directCall": false
