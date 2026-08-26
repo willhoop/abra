@@ -21,6 +21,32 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## AN ITEM PARKED IS NOT AN ITEM LOST, AND THE SAME SLOT WAS EMPTIED FOR BOTH. CENSUS 746/749 -> 749 LIVE / 752 PROBED / 3 MISSING. TURN-1 BOARDS 960/961 -> 961/961, BOARD-MATERIAL 957 -> 958 OF 961. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.145.0. Register row: ROADMAP #462 CLOSED.
+Engine release cut for this batch: **`e04350588de1`**.
+
+`itemRoomForget` was declared, its own header said it was called, and it **had no caller**. Every
+strip site wrote `m.item = ''`, which inside a Magic Room or on a Klutz body lands on an already-empty
+slot — so a suppressed item could not be taken and came back when the suppression ended, at the wrong
+Speed and with the Choice lock restored.
+
+Fixed by separating three questions that were one field: `itemOn` (what is ON the body — the
+authority's `pokemon.item`), `m.item` (what it can USE now — left raw at ~159 effect sites on purpose)
+and `_hadItem` (what it started with). `itemLose` is the one loss door and clears the slot AND the
+park; `itemGive` is the one gain door and parks on arrival. Twelve strip/steal/swap sites routed
+through them. `board_state.js` takes the identity read so the two engines stop comparing different
+quantities, and Acrobatics' `userNoItem` branch does too.
+
+Three census rows, each red first, each with its own knob. Pool: turn-1 boards 100.0%, board-material
+958/961; whole-game clause **unmoved at 10 of 961**, said before the run. `test-engine-diff --n 6000`
+unmoved at 0 across sixteen corners. Roster 0/0 on all three stages.
+
+Still open and filed with its citation: **Recycle's `refusesIfHolding` gate reads the slot** where
+`if (pokemon.item || !pokemon.lastItem) return false` reads the identity. No probe fails on it yet.
+
+---
+
 ## THE ITEM RE-READ WAS A SIDE EFFECT OF BUILDING A MENU, AND A HANDED-IN ACTION BUILDS NONE. CENSUS 743/746 -> 746 LIVE / 749 PROBED / 3 MISSING. PINNED POOL PREDICTED TO MOVE AND MEASURED UNMOVED. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.144.0. Register rows: ROADMAP #460 and #461

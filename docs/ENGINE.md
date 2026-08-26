@@ -63,12 +63,12 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  746/749 probed mechanics live, 3 missing   (census 2026-08-26 14:43)
+  749/752 probed mechanics live, 3 missing   (census 2026-08-26 15:54)
   missing:
     ability refusesAllyDamage      Telepathy announces |-activate|ally|ability: Telepathy, not |-immune|
     move    statChangeInCode       Psych Up announces |-copyboost| on the copier
     ability punishesAttacker       Spicy Spray announces a bare |-immune| at the FIRE ATTACKER, and only when it is unstatused
-  0/6000 differential comparisons disagree with Showdown   (2026-08-26 14:44)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-26 15:55)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -80,15 +80,224 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 93645758e350 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 9a3ef1400ffd now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 962e20847c65 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 15:05_
+_stamped 2026-08-26 16:03_
 
 <!-- /GENERATED -->
+
+## `itemRoomForget` WAS DECLARED, ITS OWN HEADER SAID IT WAS CALLED, AND IT HAD NO CALLER. CENSUS 746/749 -> 749 LIVE / 752 PROBED / 3 MISSING. TURN-1 BOARDS 960/961 -> 961/961, BOARD-MATERIAL 957 -> 958 OF 961, WHOLE-GAME CLAUSE UNMOVED AT 10. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.145.0. Register row: ROADMAP #462 CLOSED.
+Engine release cut for this batch: **`e04350588de1`**.
+
+### THE ROOT, IN ONE SENTENCE
+
+**An item that is PARKED is not an item that is LOST, and this engine emptied the same slot for both.**
+
+WIRE 133 chose a SWAP over a GATE for Magic Room and Klutz: `itemRoomHide` moves `m.item` into
+`_roomItem` so that every effect reader in the file sees an empty hand. That is a good trade and its
+own header says so. The header then promised the mitigation:
+
+> *"a Knock Off landing inside Magic Room removes an item this engine has already parked. The parked
+> slot is cleared with it (`itemRoomForget`) so the two cannot come apart."*
+
+**`itemRoomForget` had two occurrences in the file: the declaration and that sentence.** Every strip
+site wrote `m.item = ''`, which inside a suppression lands on an already-empty slot. So the promise
+was false from the day it was written — CLAUDE.md's silent-default shape, in prose, guarding the exact
+defect it described.
+
+### THE AUTHORITY, PLAYED RATHER THAN RECALLED
+
+One real `Battle` in `gen9championsvgc2026regmb`, Incineroar @ Choice Scarf locked into Swords Dance
+on turn 1, Magic Room up on turn 2, eight turns, and **the foe's turn-3 click the only difference**:
+
+| foe t3 | t3 item | t3 spe | t3 lock | t6 item | t6 spe | t6 lock | t6 menu |
+|---|---|---|---|---|---|---|---|
+| **KNOCK OFF** | – | 80 | – | – | **80** | – | free |
+| **PROTECT** | choicescarf | 80 | swordsdance | choicescarf | **120** | swordsdance | LOCKED |
+
+`choicelock.onDisableMove`'s FIRST clause is `!pokemon.getItem().isChoice`, tested **above** the
+`ignoringItem()` suspend — so a loss inside the room takes the DESTROY road, not the suspend road.
+That is the whole distinction in one handler.
+
+**KLUTZ WALKS THE SAME ROAD AND IS NOT THE SAME MECHANIC**, and it was measured rather than assumed.
+Lopunny @ Choice Scarf / Klutz, Worry Seed taking the ability away on turn 3:
+
+| foe t2 | t2 item | t3 ability | t3 spe | t3 lock | t3 menu |
+|---|---|---|---|---|---|
+| **KNOCK OFF** | – | insomnia | **125** | – | free |
+| **PROTECT** | choicescarf | insomnia | **187** | swordsdance | LOCKED |
+
+125 against 187 on one foe click. And **no `choicelock` is ever armed while Klutz is on** — the item's
+`onModifyMove` cannot run, so the lock does not exist to be suspended. Magic Room can be raised over an
+already-armed lock; Klutz cannot. Two causes, one predicate, **not one mechanic**.
+
+### THIS ENGINE READ BOTH PAIRS BYTE-IDENTICAL
+
+```
+MAGIC ROOM + KO    clicks [sd,sd,ko,ko,ko,ko,sd,sd]   spe [150,100,100,100,100,150,150,150]   item choicescarf
+MAGIC ROOM ONLY    clicks [sd,sd,ko,ko,ko,ko,sd,sd]   spe [150,100,100,100,100,150,150,150]   item choicescarf
+KLUTZ + KO         spe [165,165,247,247]   item choicescarf
+KLUTZ ONLY         spe [165,165,247,247]   item choicescarf
+```
+
+**Identical results across a varied knob mean the knob is unwired**, and the trace said which: the room
+arm carried `|move|p2a: klefki|knockoff|p1a: incineroar` with **no `|-enditem|` under it**. The no-room
+control emitted the `-enditem` and dropped the multiplier, which is what says the fixture was sound.
+
+### WHAT LANDED — THREE QUESTIONS, ONE LOSS DOOR, ONE GAIN DOOR
+
+The refactor is the SPLIT, not the routing. Three genuinely different questions were living in one
+field, and the bugs were all callers asking one and meaning another:
+
+| | asks | who wants it |
+|---|---|---|
+| `itemOn(m)` | **what item is ON this body** — Showdown's `pokemon.item` / `getItem().id`, untouched by `ignoringItem()` | Knock Off, Thief, Trick, Pickpocket, Magician, Symbiosis, Acrobatics, the board leaf |
+| `m.item` | **what it can USE right now** — the slot this engine empties while an item is parked | every effect reader: the Focus Sash, the berries, the Life Orb toll, the Choice Scarf ×1.5, Fling |
+| `_hadItem` | **what it started with**, as a boolean | Unburden's condition, and nothing else |
+
+`itemLose(m)` is **the one door an item leaves by**: it reads the identity, empties the slot AND the
+park, and **returns what it took, so the RETURN is the gate**. A site that asked `if (tg.item)` and then
+wrote `tg.item = ''` is exactly the shape that produced this defect, and there are now none.
+`itemGive(m,id)` is the one it arrives by; it refuses a hand that is full in the IDENTITY sense (the
+authority's `setItem`) and **parks on arrival** into a standing suppression rather than leaving the item
+working until the next sync.
+
+**~159 raw `.item` reads were deliberately NOT converted.** The swap already makes every effect reader
+correct — an item whose effects are suppressed cannot be spent, and the empty slot IS that refusal.
+Converting them would be churn with no defect behind it. **The accessor's header names what still walks
+past it**: every USE site, `engine/board_state.js`, any consumer of a built body outside the file, and
+the one-turn lag in `itemRoomSync`.
+
+**`itemRoomForget` finally has its caller, and it is `itemLose`.**
+
+### TWO SITES THAT WERE THE SAME QUESTION IN A DIFFERENT COSTUME
+
+- **`engine/board_state.js` was asking the two engines DIFFERENT QUESTIONS.** `sdBody` reads `p.item`,
+  which a room does not empty; `mediBody` read `m.item`, which this engine's park does. That is not a
+  divergence about the game — it is the walker comparing two quantities. It now takes the identity read
+  on both sides, and it was **the sole remaining turn-1 board-material game in the pinned pool**.
+- **Acrobatics.** `basePowerCallback(pokemon, target, move) { if (!pokemon.item) ... }`
+  (`data/moves.ts:121-124`, no Champions override) — the RAW field, not `getItem()`. Played on the
+  authority: **123 / 112** empty-handed and **57 / 52** holding, and the room moves neither. This engine
+  read 39 without a room and **76 with one**, off the same Leftovers.
+
+### EVERY ROW WAS SHOWN RED, AND EACH KNOB MOVES EXACTLY ITS OWN
+
+| knob | rows that go MISSING |
+|---|---|
+| `MEDI_ROOM_ITEM_SURVIVES_LOSS=1` | *a Knock Off INSIDE Magic Room takes the item for GOOD* **and** *a Klutz body really LOSES a knocked-off item* — and nothing else |
+| `MEDI_EMPTY_HAND_IS_THE_SLOT=1` | *Acrobatics asks what the body is HOLDING* **only** |
+
+**AND THE PATHS WERE PROVED REACHED, NOT MERELY PRESENT** — this file already contains two proofs that
+it holds code nobody calls. `MEDSEEN.itemLostThroughDoor` / `itemLostWhileSuppressed` /
+`itemGivenThroughDoor` on staged boards: a plain Knock Off **1 / 0 / 0**, a Knock Off inside a room
+**1 / 1 / 0**, a Trick inside a room **2 / 2 / 2** — and that last one leaves both items parked in the
+other body's `_roomItem`, which is the gain door working.
+
+**THE ACROBATICS PROBE WAS WRONG BEFORE THE ENGINE WAS, AND THE FILE CAUGHT IT.** Its first version
+reported `arms: {control: heldOut, test: heldIn}` — the row's own EQUALITY assertion — so the two arms
+agreed by design and `test-mechanics.js` flagged it HOLLOW and exited 1. The arm pair is now the knob
+that must MOVE the number: empty-handed against holding, both measured inside the room.
+
+### THE NUMBERS, AND ONE PREDICTION WAS HALF WRONG
+
+| quantity | before | after | predicted |
+|---|---|---|---|
+| census live | 746 | **749** | 748, then 749 once Acrobatics was added |
+| census probed | 749 | **752** | 751, then 752 |
+| census missing | 3 | **3** | 3 — the same three narration rows |
+| pinned pool, turn-1 boards identical | 960 / 961 | **961 / 961** | rise |
+| board-material (`games_board_never_diverged`) | 957 of 961 | **958 of 961** | 958 |
+| turn boundaries identical | 12428 / 12449 | **12432 / 12449** | rise |
+| whole-game clause | 10 of 961 | **10 of 961** | unmoved — said before the run |
+| raw diverged, primary arm | 15 of 961 | **15 of 961** | unmoved |
+| `tests/test-engine-diff.js --n 6000` | 0 of 6000 | **0 of 6000**, sixteen corners | unmoved |
+| roster items / abilities / moves | 0 / 0 | **0 DIFFER, 0 DID-NOT-FIRE** on all three | unmoved |
+| `all_mechanics_fire` items / abilities / moves STATE | 1 / 2 / 5 | **1 / 1 / 5** | not predicted; the census steering moved, so it is not a like-for-like |
+
+**THE HALF THAT WAS WRONG IS WORTH RECORDING.** The engine fix ALONE moved the pool **not at all** —
+957/961 before and after, measured on its own release before `board_state.js` was touched. The
+board-material game closed only when the RULER stopped asking the two engines different questions.
+Both runs are in `docs/_reports/2026-08-26-parked-vs-lost.md`; the first is not deleted, because
+"the engine fix closed it" would have been a false attribution.
+
+**THE POOL RUN IS PINNED THREE WAYS** and the guard was expected this time:
+`--census data/verification/census-pin-9446a684709d.json --team-store data/team-pool-frozen --end-state`,
+and the artifact reports `COMPARABLE — same selection policy, census 9446a684709d, team pool
+0d103fb9fa87` against the baseline.
+
+### THE HAND LIST
+
+**Leaving it — it is closed:**
+- ~~**`itemRoomForget` HAS NO CALLER AND A KNOCK OFF INSIDE MAGIC ROOM IS SWALLOWED**~~ — **FIXED.**
+  ROADMAP #462, two census rows LIVE.
+- ~~**MAGIC ROOM PARKS THE ITEM BY EMPTYING THE SLOT, so `*.item` parts on every room board**~~ —
+  **FIXED** in `engine/board_state.js`; `tests/probe_room_unburden.js` now reports `board leaves: hp`
+  in arms A and B, and its declared-residue note is rewritten to say a reappearance is a regression.
+
+**Still open, filed with its evidence:**
+- **RECYCLE'S GATE READS THE SLOT.** The authority is `onHit(pokemon) { if (pokemon.item ||
+  !pokemon.lastItem) return false; ... }` — an identity read — and this engine's `refusesIfHolding`
+  branch asks `!m.item`, so a body holding a PARKED item can Recycle here and cannot there. Found by
+  the same sweep that found Acrobatics; **no probe fails on it yet**, so it is filed rather than fixed.
+- **THE ITEM SYNC IS ONE TURN LATE.** `itemRoomSync` runs at the top of a turn, so an item
+  un-suppressed mid-turn (Klutz removed by Worry Seed, a Magic Room ended early) comes back one turn
+  after the authority hands it back. Measured on the Klutz board this pass; both arms of the census row
+  are read at turn 4, after the sync in both engines, so no probe rests on it.
+- **THE `|-activate|move: Struggle` LINE IS NOT EMITTED HERE.** Board-correct, narration-open.
+- **#456 Telepathy's `-activate`**, **#457 Psych Up's `-copyboost`**, **#458 Spicy Spray's `-immune`** —
+  all three narration with the board already correct, all three carried by the census as MISSING.
+- **THE PARTY MAP IS KEYED BY THE SPECIES A BODY IS SHOWING.** HELD; MEASURE's if the sample moves.
+- **A SELF-AIMED VOLATILE'S `-fail` IS OWED.** Imprison (487 uses), Magnet Rise, Aqua Ring, Ingrain.
+- **GASTRO ACID ANNOUNCES `-start|move: gastroacid` WHERE THE AUTHORITY WRITES `-endability`.**
+- **`p2.active[1].stall` medicham 0 / showdown 3** — needs the arming side.
+- **`p2.party.staraptor.hp` 160/87 AND `p2.party.incineroar.hp` 106/170** — not diagnosed.
+- **A TRANSFORMED BODY STILL FORECASTS HERE.** No probe fails on it yet.
+- **A CASTFORM RE-ENTERING UNDER A STANDING SKY WRITES NO `|-formechange|` HERE.**
+- **`engine/medicham2-browser.js` DECLARES `canMegaNow` TWICE** — ROADMAP #449.
+- **`tests/staged_board.js` IS STILL 24 OF 25** on `roar-drags-whoever-is-standing-there`, re-run this
+  pass and unchanged.
+- **`tests/test-middle-identity.js` IS RED**, on *"game_differential.js CAPTURES the battle in the
+  BattleActions wrapper"*. **It was red at HEAD before this batch** — verified by stashing the two
+  changed engine files and re-running — so it is not this batch's, and it is named here rather than
+  filed away.
+- **`tests/test-board-browser.js` IS RED and is `board.js`'s** (#218).
+- **`tests/test-resolution-order.js` OOMs at the default heap** (#446). It **PASSES** at
+  `--max-old-space-size=6144`, run this pass: 26 arms, 1 declared KNOWN-OPEN, 0 failing.
+- **`engine/artifact_audit.js` is RED on `data/engine-data.js`** — not fixable by this division.
+- **THE PRIORS LEAK IS VISIBLE AGAIN** — ROADMAP #119/#295. This batch's rows hand in every click.
+- **`.scratch_eng/`, `stash@{0}` AND THE PRE-MODIFIED `data/*.json` ARE ANOTHER SESSION'S.** Reported,
+  left, nothing executed in any of them.
+
+### OWED, NOT RUN
+
+- **`tests/test-mechanics.js` ran clean at the end** — 749 live, 3 missing, 752 probed, 0 hollow, 0
+  threw, 0 unarmed, 1 direct-call, exit 0, `run_ok: true`.
+- **`tests/test-engine-diff.js --n 6000` — RUN TWICE**, before and after the Acrobatics change, 0 of
+  6000 at all sixteen corners both times, exit 0. Owed because this batch reaches the damage path.
+- **The three roster stages — RUN** on release `e04350588de1` with `--write`, all three at 0 DIFFER /
+  0 DID-NOT-FIRE, match counts 139 / 129 / 475, unmoved.
+- **`engine/all_mechanics_fire.js --kind all --write` — RUN** on the same release, 1289 games, 0 threw.
+- **`engine/game_differential.js` — RUN THREE TIMES**, and the middle one is the attribution: engine
+  only (957/961, unmoved), engine + leaf (958/961), then the published `--write` on the final release.
+- `tests/interaction_matrix.js` — **not re-run**; stamped 2026-08-11 and already stale before this pass.
+- `engine/wire_ladder.js` — **not re-run**; the release ladder stays WITHHELD, as it already was.
+- `tests/run-all.js` — **not run in full.** Run: `test-mechanics`, `test-engine-consistency`,
+  `test-tag-wire`, `test-volatile-duration`, `test-encore-fail-silent`, `test-immunity-gate`,
+  `test-tag-params-derived`, `test-mc-seal`, `test-bracket-regain`, `test-roster-arm-pin`,
+  `test-protocol-trace`, `test-end-state`, `test-game-diff`, `test-roadmap-register`,
+  `test-coverage-stop`, `test-nature-differential`, `test-middle-stall-address`,
+  `test-middle-draw-scope`, `test-middle-damage-roll`, `test-damage-roll-support`,
+  `test-resolution-order`, `staged_board`, `probe_room_unburden`.
+- **`tests/test-fixture-legality.js` is red at HEAD** (#266), pre-existing, not this batch's.
+
+---
 
 ## THE ITEM RE-READ HAPPENED ONLY AS A SIDE EFFECT OF BUILDING A MENU, AND A HANDED-IN ACTION BUILDS NONE. CENSUS 743/746 -> 746 LIVE / 749 PROBED / 3 MISSING. PINNED POOL PREDICTED TO MOVE AND MEASURED UNMOVED. 2026-08-26.
 

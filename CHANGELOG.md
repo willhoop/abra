@@ -10,6 +10,76 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.145.0] — 2026-08-26
+
+### Fixed
+- **AN ITEM THAT IS PARKED IS NOT AN ITEM THAT IS LOST, AND THIS ENGINE EMPTIED THE SAME SLOT FOR
+  BOTH. CENSUS 746/749 -> 749 LIVE / 752 PROBED / 3 MISSING. TURN-1 BOARDS IN THE PINNED POOL
+  960/961 -> 961/961; BOARD-MATERIAL 957/961 -> 958/961. RELEASE `e04350588de1`.** ROADMAP #462.
+  WIRE 133 implements Magic Room and Klutz as a **swap**: `itemRoomHide` empties `m.item` into
+  `_roomItem` so every effect reader in the file sees an empty hand. Its own header promised that a
+  loss inside the park would clear both — *"the parked slot is cleared with it (`itemRoomForget`) so
+  the two cannot come apart"* — and **`itemRoomForget` had no caller at all.** Every strip site wrote
+  `m.item = ''`, which inside a suppression lands on an already-empty slot, so **a Knock Off inside a
+  Magic Room did nothing and the item came back when the room fell, at the wrong Speed.**
+- **MEASURED ON THE AUTHORITY BEFORE A LINE MOVED**, one real `Battle`, eight turns, the foe's
+  turn-3 click the only knob: `foe = KNOCK OFF` reads item `-`, spe 80 and no `choicelock` from t3 to
+  the end; `foe = PROTECT` reads item `choicescarf`, spe 80 in the room and **spe 120 with the lock
+  back** the turn it falls. **This engine read the two arms byte-identical** — the unwired-knob
+  signature — and the trace carried `|move|p2a: klefki|knockoff|p1a: incineroar` with **no
+  `|-enditem|` under it**.
+- **KLUTZ WALKS THE SAME ROAD AND IS NOT THE SAME MECHANIC, measured rather than assumed.** Lopunny
+  @ Choice Scarf / Klutz, Worry Seed removing the ability: the authority reads **125 against 187** on
+  one foe click, and **no `choicelock` is ever armed** while Klutz is on, because the item's
+  `onModifyMove` never runs. Magic Room can be raised over an already-armed lock; Klutz cannot. This
+  engine read both arms at 165 -> 247.
+- **THE FIX IS THE DISTINCTION, NOT A LINE AT EACH STRIP SITE.** Three questions now have three
+  answers in `engine/medicham2-browser.js`: `itemOn(m)` — what item is ON this body (Showdown's
+  `pokemon.item` / `getItem()`, survives a room); `m.item` — what it can USE right now, left as a raw
+  read at ~159 effect sites because the swap already makes every one of them correct; `_hadItem` —
+  what it started with. `itemLose(m)` is the **one door an item leaves by** and empties the slot AND
+  the park; `itemGive(m,id)` is the one it arrives by and parks on arrival into a standing room.
+  Knock Off, Thief, Covet, Corrosive Gas, Bug Bite, Pluck, Trick, Switcheroo, Pickpocket, Magician,
+  Symbiosis, Harvest and Pickup are routed through them; the accessor's header **names what still
+  walks past it**.
+- **ACROBATICS ASKED THE SLOT AND THE AUTHORITY ASKS THE HAND.** `basePowerCallback` is
+  `if (!pokemon.item)` (`data/moves.ts:121-124`, no Champions override) — the raw field, not
+  `getItem()` and not gated on `ignoringItem()`. Played: Gliscor into Snorlax reads **123 / 112**
+  empty-handed and **57 / 52** holding, and the room moves neither. This engine read 39 without a room
+  and **76 with one** off the same Leftovers. Now `itemOn`.
+- **`engine/board_state.js` WAS ASKING THE TWO ENGINES DIFFERENT QUESTIONS.** `sdBody` reads
+  `p.item`, which a room does not empty; `mediBody` read `m.item`, which this engine's park does. The
+  leaf is now the identity read on both sides. **It was the sole remaining turn-1 board-material game
+  in the pinned pool** — *"Meowstic clicks Magic Room, and mega evolves"*, four items reading empty on
+  our side against White Herb, Meowsticite, Focus Sash and Twisted Spoon.
+
+### Added
+- Three census rows, each shown RED first and each with its own `MEDI_*` knob that turns exactly it
+  red and nothing else: *a Knock Off INSIDE Magic Room takes the item for GOOD*
+  (`MEDI_ROOM_ITEM_SURVIVES_LOSS=1`), *a Klutz body really LOSES a knocked-off item* (same knob), and
+  *Acrobatics asks what the body is HOLDING* (`MEDI_EMPTY_HAND_IS_THE_SLOT=1`).
+- `MEDSEEN.itemLostThroughDoor`, `itemLostWhileSuppressed` and `itemGivenThroughDoor` — the receipts
+  that each new path is REACHED rather than merely present. Measured on staged boards: a plain Knock
+  Off 1/0, a Knock Off inside a room 1/1, a Trick inside a room 2/2 with 2 gives.
+
+### Notes
+- **Predicted before the run and both halves stated.** Census 749/752 — correct. Board-material
+  957 -> 958 of 961 — correct, and it took the `board_state.js` leaf as well as the engine: the
+  engine-only run measured **957/961 unmoved**, which is recorded rather than smoothed over.
+- **The whole-game clause is UNMOVED at 10 of 961**, as is the raw diverged count at 15. Different
+  quantity, said before the run.
+- `tests/test-engine-diff.js --n 6000` re-run after the Acrobatics change: **0 of 6000 at all sixteen
+  corners**, unmoved. The three roster stages: **0 DIFFER / 0 DID-NOT-FIRE**, unmoved.
+- **`Recycle` is left open with its citation.** `if (pokemon.item || !pokemon.lastItem) return false`
+  is an identity read and this engine's `refusesIfHolding` gate still reads the slot. No probe fails
+  on it yet, so it is filed rather than fixed.
+- `tests/test-middle-identity.js` is RED and was RED at HEAD before this batch (verified by stashing
+  the two changed engine files and re-running). Not this batch's, and it is named rather than filed.
+- `tests/staged_board.js` is 24 of 25 on `roar-drags-whoever-is-standing-there`, unchanged.
+  `tests/test-resolution-order.js` PASSES at `--max-old-space-size=6144` (#446 is the default heap).
+
+---
+
 ## [5.144.0] — 2026-08-26
 
 ### Fixed

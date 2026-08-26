@@ -468,8 +468,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * when the same click comes again — and no single-turn probe and no direct call to the applier can see
  * it. Turn 1 IS the control arm: it must still land, or "no second start line" is satisfied by a move
  * that never worked at all.
+ *
+ * `klutzRun(` added 2026-08-26 with the parked-vs-lost family, declared here on the same rule. It
+ * stages a real doubles board through `battleInit` and spends FOUR real turns through `battleTurn`,
+ * and it has to: the claim is that an item LOST while its effects are suppressed stays lost once the
+ * suppression ends, which is a fact carried across three turn boundaries and a re-sync that only the
+ * turn loop runs. A direct call to the strip site would be green on an engine whose room sync hands
+ * the item straight back, which is exactly the state the engine was in.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -21408,6 +21415,220 @@ probe('item', 'choiceLock', 'a SUPPRESSED Choice item suspends the lock; only a 
                  + 'removed. KNOCK OFF -> ' + JSON.stringify(gone.clicks) + ' at speeds '
                  + JSON.stringify(gone.spe) + ': the item is really gone, so turn 7 must stay free. '
                  + 'The authority reads exactly this pair' };
+});
+
+/* ---- ROADMAP #462 -- AN ITEM PARKED IS NOT AN ITEM LOST, AND A LOSS INSIDE THE PARK WAS SWALLOWED.
+ *
+ * The row above proves the SUSPEND. This one proves that a real LOSS still happens while the item is
+ * suspended, which is the other half of the same distinction and the half this engine could not make:
+ * `itemRoomHide` parks a suppressed item by emptying `m.item` into `_roomItem`, and every strip site
+ * in the file wrote `m.item = ''`. Inside a Magic Room that write hits an ALREADY EMPTY slot, so the
+ * Knock Off did nothing at all and the item came back when the room fell.
+ *
+ * MEASURED ON THE AUTHORITY BEFORE A LINE WAS TOUCHED -- one real `Battle`, Incineroar @ Choice Scarf
+ * locked into Swords Dance on turn 1, Magic Room up on turn 2, and the foe's turn-3 click the only
+ * difference between the two runs (`getActionSpeed()`, `pokemon.item`, `volatiles.choicelock`):
+ *
+ *   foe t3 = KNOCK OFF      t3 item -            spe 80    lock -           menu free
+ *                           t6 item -            spe 80    lock -           menu free   <- room has fallen
+ *   foe t3 = PROTECT        t3 item choicescarf  spe 80    lock swordsdance menu free
+ *                           t6 item choicescarf  spe 120   lock swordsdance menu LOCKED <- room has fallen
+ *
+ * So the authority destroys the lock the instant the item leaves -- `onDisableMove`'s FIRST clause is
+ * `!pokemon.getItem().isChoice`, and it is tested BEFORE the `ignoringItem()` suspend, so a loss
+ * inside the room takes the destroy road and not the suspend road.
+ *
+ * THIS ENGINE READ THE TWO ARMS BYTE-IDENTICAL, which is the unwired-knob signature and is what said
+ * the strip was not happening at all rather than happening late:
+ *   both arms  clicks [sd,sd,ko,ko,ko,ko,sd,sd]   spe [150,100,100,100,100,150,150,150]   item choicescarf
+ * and the trace carried `|move|p2a: klefki|knockoff|p1a: incineroar` with NO `|-enditem|` under it.
+ *
+ * THE THIRD ARM IS THE FIXTURE CONTROL AND IT MUST ALREADY PASS: the same Knock Off with no room in
+ * the game at all. It emits the `-enditem`, drops the multiplier and frees the menu today. A red on
+ * THAT arm is a broken fixture; a red on the first two is the mechanic. */
+probe('item', 'removesItem', 'a Knock Off INSIDE Magic Room takes the item for GOOD -- the room '
+                           + 'falling does not hand it back', () => {
+  const script = (foeT3) => [['swordsdance', 'protect'], ['swordsdance', 'magicroom'],
+                             ['knockoff', foeT3], ['knockoff', 'protect'],
+                             ['knockoff', 'protect'], ['knockoff', 'protect'],
+                             ['knockoff', 'protect'], ['knockoff', 'protect']];
+  const noRoom = (foeT3) => [['swordsdance', 'protect'], ['swordsdance', 'protect'],
+                             ['knockoff', foeT3], ['knockoff', 'protect'],
+                             ['knockoff', 'protect'], ['knockoff', 'protect'],
+                             ['knockoff', 'protect'], ['knockoff', 'protect']];
+  const inside = koRun({ speeds: true, turns: script('knockoff') });
+  const parked = koRun({ speeds: true, turns: script('protect') });
+  const bare2 = koRun({ speeds: true, turns: noRoom('knockoff') });
+  /* THE ROOM MUST HAVE RISEN AND FALLEN INSIDE THE SCRIPT, or this is a differently-named copy of the
+   * plain Knock Off row and asks nothing. */
+  const roomRanItsCourse = inside.room[1] > 0 && inside.room[5] === 0
+                        && parked.room[1] > 0 && parked.room[5] === 0;
+  /* THE FIXTURE CONTROL. Same body, same click, no room: the item must already go. */
+  const fixtureOK = bare2.item === '-' && bare2.spe[7] === 100;
+  /* THE KNOB. One foe click apart, and the two must NOT agree. */
+  const goneForGood = inside.item === '-' && inside.spe[5] === 100 && inside.spe[7] === 100
+                   && inside.clicks[6] === 'knockoff' && inside.clicks[7] === 'knockoff';
+  const comesBack = parked.item === 'choicescarf' && parked.spe[5] === 150 && parked.spe[7] === 150
+                 && parked.clicks[6] === 'swordsdance';
+  return { works: roomRanItsCourse && fixtureOK && goneForGood && comesBack,
+           arms: { control: parked.spe.join(','), test: inside.spe.join(',') },
+           detail: 'eight turns, every click handed in, Magic Room up on turn 2, the foe turn-3 click '
+                 + 'the only difference. KNOCKED OFF INSIDE THE ROOM -> item `' + inside.item + '`, '
+                 + 'speeds ' + JSON.stringify(inside.spe) + ', clicks ' + JSON.stringify(inside.clicks)
+                 + '; the identical board with the foe clicking Protect instead -> item `'
+                 + parked.item + '`, speeds ' + JSON.stringify(parked.spe) + ', clicks '
+                 + JSON.stringify(parked.clicks) + '; and the same Knock Off with NO room anywhere -> '
+                 + 'item `' + bare2.item + '`, speeds ' + JSON.stringify(bare2.spe) + ', which is the '
+                 + 'fixture control and must already pass. Room clock ' + JSON.stringify(inside.room)
+                 + '. The authority reads spe 80 / item none / no lock at turn 6 for the first and '
+                 + 'spe 120 / choicescarf / locked into swordsdance for the second' };
+});
+
+/* ---- ROADMAP #462, THE SECOND CAUSE. KLUTZ WALKS THE SAME SUPPRESSION ROAD AND IS NOT THE SAME.
+ *
+ * `Pokemon#ignoringItem()` is one predicate with two inputs, and this engine already honours that --
+ * `itemSuppressed` answers for the room and for the ability out of one function. So a loss inside a
+ * KLUTZ suppression is swallowed by exactly the same missing distinction, and it is probed separately
+ * because the two are NOT interchangeable and the difference was measured rather than assumed:
+ *
+ *   MAGIC ROOM   the lock can be ARMED before the room goes up, and the authority retains the
+ *                volatile through the room and re-locks the body when it falls (the row above).
+ *   KLUTZ        the ability is on from turn 1, so the item's `onModifyMove` never runs and NO LOCK
+ *                IS EVER ARMED. Measured: Lopunny @ Choice Scarf, ability Klutz, four turns --
+ *                `volatiles.choicelock` absent on every one of them.
+ *
+ * MEASURED ON THE AUTHORITY, Lopunny @ Choice Scarf / Klutz, the foe's turn-2 click the only
+ * difference, Worry Seed on turn 3 taking Klutz away:
+ *
+ *   foe t2 = KNOCK OFF   t2 item -            t3 ability insomnia  spe 125  lock -           menu free
+ *   foe t2 = PROTECT     t2 item choicescarf  t3 ability insomnia  spe 187  lock swordsdance menu LOCKED
+ *
+ * -- 125 against 187 on one foe click. This engine read BOTH arms at 165 -> 247, the unwired-knob
+ * signature again, because `_roomItem` still held the Scarf that had been knocked off two turns
+ * earlier.
+ *
+ * THE ABILITY IS TAKEN AWAY DIRECTLY RATHER THAN BY WORRY SEED, declared exactly as the sibling row
+ * declares its cleared item: the claim here is that a LOSS under suppression is permanent, not that
+ * Worry Seed works, and routing the readout through a second mechanic would make a red ambiguous.
+ *
+ * THE ONE-TURN LAG IS DECLARED AND IS NOT WHAT THIS ROW ASSERTS. The authority recomputes
+ * `ignoringItem()` live, so the Scarf is back inside the turn Klutz leaves; this engine re-syncs at
+ * the top of a turn, so it is back one turn later. Both arms are read at turn 4, after the sync in
+ * both engines, so the lag cannot decide this row. It is on docs/ENGINE.md's hand list. */
+const klutzRun = (o) => {
+  const B = board('lopunny', 'clefable', 'klefki', 'farigiraf');
+  B.me.moves = ['swordsdance', 'knockoff', 'protect', 'batonpass'];
+  B.f1.moves = ['magicroom', 'knockoff', 'protect', 'dragonclaw'];
+  for (const b of [B.me, B.ally, B.f1, B.f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 60 }); b.curHP = b.st.hp; }
+  B.me.ability = o.ability === undefined ? 'klutz' : o.ability;
+  B.me.item = 'choicescarf';
+  const trace = []; B.S._trace = trace;
+  const clicks = [], spe = [], abil = [];
+  for (let i = 0; i < o.turns.length; i++) {
+    if (o.each) o.each(B, i);
+    const t = o.turns[i], mark = trace.length;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, t[0], B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, M.playerAction(B.f1, t[1], B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    clicks.push((trace.slice(mark).filter(l => /^\|move\|p1a/.test(l)).map(l => l.split('|')[3]))[0] || null);
+    spe.push(M.effSpeed(B.me, B.S.field));
+    abil.push(B.me.ability);
+  }
+  return { clicks, spe, abil, item: B.me.item || '-', lock: B.me._lock || '-' };
+};
+probe('ability', 'suppressesOwnItem', 'a Klutz body really LOSES a knocked-off item: taking Klutz '
+                                    + 'away does not hand it back', () => {
+  const turns = (foeT2) => [['swordsdance', 'protect'], ['swordsdance', foeT2],
+                            ['swordsdance', 'protect'], ['swordsdance', 'protect']];
+  /* Klutz is taken off before turn 3, so both engines have re-read it by the turn-4 reading. */
+  const drop = (B, i) => { if (i === 2) B.me.ability = 'none'; };
+  const took = klutzRun({ turns: turns('knockoff'), each: drop });
+  const kept = klutzRun({ turns: turns('protect'), each: drop });
+  /* THE FIXTURE CONTROL: the same body with NO Klutz at all, so nothing is ever parked and the same
+   * Knock Off must simply work. It also fixes the two numbers the arms above are compared against. */
+  const bareAb = klutzRun({ ability: 'none', turns: turns('knockoff') });
+  const BASE = bareAb.spe[3], SCARFED = bareAb.spe[0];
+  const suppressedWhileOn = took.spe[0] === BASE && kept.spe[0] === BASE;
+  const fixtureOK = bareAb.item === '-' && SCARFED === Math.floor(BASE * 1.5) && SCARFED !== BASE;
+  const goneForGood = took.item === '-' && took.spe[3] === BASE;
+  const comesBack = kept.item === 'choicescarf' && kept.spe[3] === SCARFED;
+  return { works: suppressedWhileOn && fixtureOK && goneForGood && comesBack,
+           arms: { control: kept.spe.join(','), test: took.spe.join(',') },
+           detail: 'Lopunny @ Choice Scarf with Klutz; the foe turn-2 click is the only difference and '
+                 + 'Klutz is removed before turn 3. KNOCKED OFF -> item `' + took.item + '`, speeds '
+                 + JSON.stringify(took.spe) + '; the identical board with the foe clicking Protect -> '
+                 + 'item `' + kept.item + '`, speeds ' + JSON.stringify(kept.spe) + '; and the same '
+                 + 'body with NO Klutz at all -> item `' + bareAb.item + '`, speeds '
+                 + JSON.stringify(bareAb.spe) + ', which is what fixes bare Speed at ' + BASE
+                 + ' and Scarfed Speed at ' + SCARFED + ' and says the Knock Off lands on this board. '
+                 + 'Abilities per turn ' + JSON.stringify(took.abil) + '. The authority reads 125 '
+                 + 'against 187 across the same one-click knob' };
+});
+
+/* ---- ROADMAP #462, THE DAMAGE HALF. "IS ITS HAND EMPTY?" IS AN IDENTITY QUESTION AND THIS ENGINE
+ * ANSWERED IT OFF THE SLOT.
+ *
+ * The two rows above are about an item LEAVING. This one is about an item that never left: a move
+ * whose base power asks whether the body is holding anything. The authority's callback, read on the
+ * line rather than recalled (`data/moves.ts:121-124`; `data/mods/champions/moves.ts` carries no
+ * `acrobatics` key, so mainline's is what this format runs):
+ *
+ *     basePowerCallback(pokemon, target, move) { if (!pokemon.item) { ... return move.basePower * 2; } }
+ *
+ * `pokemon.item` -- the raw field, NOT `getItem()` and NOT gated on `ignoringItem()`. So a body
+ * holding a Leftovers inside a Magic Room is still HOLDING it and Acrobatics stays at 55.
+ *
+ * PLAYED, NOT REASONED. Gliscor into a Snorlax in one real `Battle`, the first `|-damage|p2b` line of
+ * each arm:
+ *     no item, no room   123        leftovers, no room   57
+ *     no item, ROOM UP   112        leftovers, ROOM UP   52
+ * -- the two item-holding arms sit in the same band and the two empty-handed arms sit in the other,
+ * and the room moves neither. This engine read `!att.item`, which `itemRoomHide` empties, so the ROOM
+ * arm doubled: 39 without a room and 76 with one, off the same Leftovers.
+ *
+ * THE FOURTH ARM IS WHAT MAKES IT A KNOB RATHER THAN A COMPARISON. `no item + room` must equal
+ * `no item + no room`: if the room changed the number for a body that genuinely holds nothing, the
+ * reading would be about the room and not about the item. And the parked slot is READ OFF THE BODY at
+ * the end of the room arm, so an arm whose room never went up cannot pass by looking like the
+ * no-room arm. */
+const acroArm = (item, room) => {
+  const B = board('gliscor', 'clefable', 'snorlax', 'milotic');
+  B.me.moves = ['acrobatics', 'protect', 'swordsdance', 'earthquake'];
+  B.me.item = item;
+  unfaintable(B.f1);
+  if (room) B.S.field.magicRoom = 5;
+  const before = B.f1.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, 'acrobatics', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return { dmg: before - B.f1.curHP, slot: B.me.item || '-', park: B.me._roomItem || '-',
+           room: B.S.field.magicRoom || 0 };
+};
+probe('move', 'variablePower', 'Acrobatics asks what the body is HOLDING, so a Magic Room does not '
+                             + 'double it', () => {
+  const heldOut = acroArm('leftovers', false), heldIn = acroArm('leftovers', true);
+  const bareOut = acroArm('', false), bareIn = acroArm('', true);
+  /* THE ROOM MUST HAVE GONE UP AND THE ITEM MUST HAVE BEEN PARKED, asserted rather than assumed. */
+  const staged = heldIn.room > 0 && heldIn.slot === '-' && heldIn.park === 'leftovers'
+              && heldOut.room === 0 && heldOut.slot === 'leftovers';
+  return { works: staged && heldIn.dmg === heldOut.dmg && bareIn.dmg === bareOut.dmg
+                  && bareOut.dmg > heldOut.dmg && heldOut.dmg > 0,
+           /* THE ARM PAIR IS THE KNOB THAT MUST MOVE THE NUMBER, and it is measured INSIDE the room:
+            * empty-handed against holding, on the same board with the same room clock. `heldIn` vs
+            * `heldOut` is the row's OTHER assertion and it is an EQUALITY, so putting it here would
+            * hand this file two arms that agree by design -- which its own hollow detector flags,
+            * correctly, and did on the first version of this row. */
+           arms: { control: bareIn.dmg, test: heldIn.dmg },
+           detail: 'the same Acrobatics at the same Snorlax, four arms. HOLDING LEFTOVERS -- no room '
+                 + heldOut.dmg + ', Magic Room up ' + heldIn.dmg + ' (these must be EQUAL: the '
+                 + 'authority reads the raw `pokemon.item`, which a room does not empty). '
+                 + 'EMPTY-HANDED -- no room ' + bareOut.dmg + ', Magic Room up ' + bareIn.dmg
+                 + ' (also equal, and that is the control saying the room by itself moves no damage). '
+                 + 'The empty-handed number must be the LARGER, or the doubling is not happening at '
+                 + 'all. Staging read off the body in the room arm: slot `' + heldIn.slot
+                 + '`, parked `' + heldIn.park + '`, room clock ' + heldIn.room + '. Before the fix '
+                 + 'the room arm read the doubled number off a slot `itemRoomHide` had emptied. The '
+                 + 'authority plays 123 / 112 empty-handed and 57 / 52 holding, on one real Battle' };
 });
 
 const mbRun = (attAb, defAb, arm) => {

@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T18:43:20.350Z",
+  "generated": "2026-08-26T19:54:04.903Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 749,
-  "live": 746,
+  "probed": 752,
+  "live": 749,
   "missing": 3,
-  "armed": 749,
+  "armed": 752,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3693,7 +3693,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 27.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5854,6 +5854,36 @@
       "label": "a SUPPRESSED Choice item suspends the lock; only a LOST one destroys it",
       "live": true,
       "detail": "eight turns, every click handed in, the foe turn-2 click the only difference. MAGIC ROOM -> [\"swordsdance\",\"swordsdance\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\",\"swordsdance\",\"swordsdance\"] with the room at [0,4,3,2,1,0,0,0] and speeds [120,80,80,80,80,120,120,120]: the Knock Offs must be honoured while the room stands and the body must be dragged back to swordsdance the turn it falls, because the volatile was never removed. KNOCK OFF -> [\"swordsdance\",\"swordsdance\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\"] at speeds [120,80,80,80,80,80,80,80]: the item is really gone, so turn 7 must stay free. The authority reads exactly this pair",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "removesItem",
+      "label": "a Knock Off INSIDE Magic Room takes the item for GOOD -- the room falling does not hand it back",
+      "live": true,
+      "detail": "eight turns, every click handed in, Magic Room up on turn 2, the foe turn-3 click the only difference. KNOCKED OFF INSIDE THE ROOM -> item `-`, speeds [150,100,100,100,100,100,100,100], clicks [\"swordsdance\",\"swordsdance\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\"]; the identical board with the foe clicking Protect instead -> item `choicescarf`, speeds [150,100,100,100,100,150,150,150], clicks [\"swordsdance\",\"swordsdance\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\",\"swordsdance\",\"swordsdance\"]; and the same Knock Off with NO room anywhere -> item `-`, speeds [150,150,100,100,100,100,100,100], which is the fixture control and must already pass. Room clock [0,4,3,2,1,0,0,0]. The authority reads spe 80 / item none / no lock at turn 6 for the first and spe 120 / choicescarf / locked into swordsdance for the second",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "suppressesOwnItem",
+      "label": "a Klutz body really LOSES a knocked-off item: taking Klutz away does not hand it back",
+      "live": true,
+      "detail": "Lopunny @ Choice Scarf with Klutz; the foe turn-2 click is the only difference and Klutz is removed before turn 3. KNOCKED OFF -> item `-`, speeds [165,165,165,165]; the identical board with the foe clicking Protect -> item `choicescarf`, speeds [165,165,247,247]; and the same body with NO Klutz at all -> item `-`, speeds [247,165,165,165], which is what fixes bare Speed at 165 and Scarfed Speed at 247 and says the Knock Off lands on this board. Abilities per turn [\"klutz\",\"klutz\",\"none\",\"none\"]. The authority reads 125 against 187 across the same one-click knob",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "variablePower",
+      "label": "Acrobatics asks what the body is HOLDING, so a Magic Room does not double it",
+      "live": true,
+      "detail": "the same Acrobatics at the same Snorlax, four arms. HOLDING LEFTOVERS -- no room 52, Magic Room up 52 (these must be EQUAL: the authority reads the raw `pokemon.item`, which a room does not empty). EMPTY-HANDED -- no room 102, Magic Room up 102 (also equal, and that is the control saying the room by itself moves no damage). The empty-handed number must be the LARGER, or the doubling is not happening at all. Staging read off the body in the room arm: slot `-`, parked `leftovers`, room clock 4. Before the fix the room arm read the doubled number off a slot `itemRoomHide` had emptied. The authority plays 123 / 112 empty-handed and 57 / 52 holding, on one real Battle",
       "hollow": false,
       "armed": true,
       "directCall": false

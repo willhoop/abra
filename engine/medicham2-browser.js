@@ -1288,6 +1288,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * out and the one ability that stops it was never asked. */
   instructRefusedByAbility: 0,
   sideBuffRefused: 0, itemRoomHidden: 0, wonderRoomSwap: 0, powerDoubledOnRead: 0,
+  /* ROADMAP #462 -- the parked-vs-lost doors. `itemLostThroughDoor` is every item that left a body by
+   * the ONE loss door; `itemLostWhileSuppressed` is the subset that was PARKED at the time, which is
+   * the population that used to be swallowed entirely and must read > 0 in any run containing a Magic
+   * Room or a Klutz body that gets robbed. `itemGivenThroughDoor` is the gain door. A zero on the
+   * middle one in a run with no suppression is correct and says nothing. */
+  itemLostThroughDoor: 0, itemLostWhileSuppressed: 0, itemGivenThroughDoor: 0,
   /* ROADMAP #212 -- a strip refused by the holder's own ability (`refusesItemLoss`; Sticky Hold is
      the format's only carrier). Counted so the capability can prove it ran. */
   itemLossRefused: 0,
@@ -2716,6 +2722,8 @@ const MEDFAILS = { encoreAction: 0,
      no Magic Room and no Klutz in it therefore reads 0 with the knob on, which is correct -- there
      was nothing for it to restore. See `effSpeed`. */
   roomItemIsLostRestored: 0,
+  roomItemSurvivesLossRestored: 0,
+  emptyHandIsTheSlotRestored: 0,
   /* 2026-08-25 -- THE TRAP VERDICT'S TWO. `trapVerdictUnstamped` is the LOUD fallback: a bare switch
      reached the execution branch with no choice-time verdict on it, so the answer was recomputed
      there and the fix did not apply to it. Must read 0 -- every bare switch in `acts` is stamped
@@ -3596,6 +3604,16 @@ const SUPPRESSED_ITEM_IS_LOST=(typeof process!=='undefined'&&process.env&&proces
  * path is untouched by this knob and stays correct, which is exactly how the defect hid: the re-read
  * was a SIDE EFFECT of building a menu that a handed-in action never builds. */
 const LOCK_STALE_ON_HANDED_ACTION=(typeof process!=='undefined'&&process.env&&process.env.MEDI_LOCK_STALE_ON_HANDED_ACTION==='1');
+/* 2026-08-26 -- MEDI_ROOM_ITEM_SURVIVES_LOSS=1 puts `itemLose` back on the raw SLOT, so an item
+ * taken while its effects are SUPPRESSED is not really taken: the write lands on an already-empty
+ * slot, `_roomItem` still holds it, and the room falling (or Klutz leaving) hands it straight back.
+ * That is ROADMAP #462 exactly. A knob run turns the two parked-vs-lost census rows red and leaves
+ * the suspension row green, because the knob touches the LOSS door and not the identity reader. */
+const ROOM_ITEM_SURVIVES_LOSS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ROOM_ITEM_SURVIVES_LOSS==='1');
+/* 2026-08-26 -- MEDI_EMPTY_HAND_IS_THE_SLOT=1 puts Acrobatics back on the raw slot, so a body whose
+ * item is merely PARKED reads as empty-handed and the move doubles. The authority asks `pokemon.item`,
+ * which a Magic Room does not empty. A knob run turns exactly the Acrobatics census row red. */
+const EMPTY_HAND_IS_THE_SLOT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EMPTY_HAND_IS_THE_SLOT==='1');
 function volRefusesRestart(vol){
   if(VOL_RESTART_BLIND){MEDFAILS.volRestartBlindRestored=1;return false;}
   const d=volRestartTable().get(vol);
@@ -7601,11 +7619,14 @@ function passItemFromAlly(spender){
   if(!giver)return false;
   const p=TAGS.param('ability',giver.ability,'passesItemToAlly');
   if(!p)return false;
-  if(!giver.item)return false;
-  if(spender.item)return false;              // setItem fails on a body that is already holding one
+  /* ROADMAP #462 -- both hands are read by IDENTITY and the hand-over goes through the two doors,
+   * because `takeItem`/`setItem` are what the handler calls and neither consults `ignoringItem()`. */
+  if(!itemOn(giver))return false;
+  if(itemOn(spender))return false;           // setItem fails on a body that is already holding one
   if(itemRefusesTake(giver))return false;    // the TakeItem event, through the predicate that owns it
-  const _it=giver.item;
-  giver.item=''; spender.item=_it;
+  const _it=itemLose(giver);
+  if(!_it)return false;
+  if(!itemGive(spender,_it)){itemGive(giver,_it);return false;}   // handed BACK, as setItem's failure path does
   MEDSEEN.itemPassedToAlly++;
   /* `|-activate|GIVER|ability: Symbiosis|ITEM|[of] RECEIVER`, read verbatim off the authority's log:
    *     |-activate|p2a: Oranguru|ability: Symbiosis|Life Orb|[of] p2b: Torkoal
@@ -8756,7 +8777,15 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
     else if(_vp.kind==='weightRatio'&&att.wt&&def.wt){const _r=effWeight(att)/effWeight(def);for(const _b of _vp.brackets){if(_r>=_b[0]){mvBP=_b[1];break;}}}
     else if(_vp.kind==='userHPFrac'&&att.st&&att.curHP!=null)mvBP=Math.max(1,Math.floor(mvBP*att.curHP/att.st.hp));
     else if(_vp.kind==='targetStatused'&&def.status)mvBP=mvBP*_vp.mult;
-    else if(_vp.kind==='userNoItem'&&!att.item)mvBP=mvBP*_vp.mult;
+    /* ROADMAP #462 -- `itemOn`, NOT THE SLOT. The authority's callback is
+     *     basePowerCallback(pokemon, target, move) { if (!pokemon.item) ... return move.basePower * 2; }
+     * (data/moves.ts:121-124, no Champions override) -- the RAW field, not `getItem()` and not gated
+     * on `ignoringItem()`. So a body holding a Leftovers inside a Magic Room is still holding it and
+     * Acrobatics stays at 55. This read `att.item`, which `itemRoomHide` empties, so the room
+     * doubled it: 39 -> 76 off the same Leftovers, against 57 -> 52 in the authority. */
+    else if(_vp.kind==='userNoItem'&&!(EMPTY_HAND_IS_THE_SLOT?att.item:itemOn(att))){
+      if(EMPTY_HAND_IS_THE_SLOT&&att._roomItem!=null)MEDFAILS.emptyHandIsTheSlotRestored=1;
+      mvBP=mvBP*_vp.mult;}
     /* THE PRODUCT IS TRUNCATED, AND THIS IS THE ONLY MEMBER WHERE THAT SHOWS.
      *
      * Showdown reaches this through `onBasePower -> chainModify(1.5)`, and chainModify is FIXED
@@ -12005,12 +12034,18 @@ function effSpeed(m,field,side){
    * `_roomItem` is written by the ONE function that parks an item and is null whenever nothing is
    * parked, which is exactly the question being asked.
    *
-   * WHAT THIS DOES NOT FIX, SAID PLAINLY: `itemRoomHide` still empties the slot, so `p1.*.item` is a
-   * board leaf that parts on every Magic Room / Klutz board, and any move reading `pokemon.item` raw
-   * (Acrobatics' basePowerCallback is the loud one) still sees an empty hand where the authority sees
-   * a full one. That is the standing "Magic Room parks the item" item on docs/ENGINE.md's hand list
-   * and it is a refactor of every item reader, not this line. `tests/probe_room_unburden.js` measures
-   * both and reports the item leaf as declared residue.
+   * WHAT THIS DID NOT FIX WHEN IT WAS WRITTEN, AND WHAT HAPPENED TO IT (2026-08-26, ROADMAP #462).
+   * This paragraph used to say that `itemRoomHide` still empties the slot, so `p1.*.item` parts on
+   * every Magic Room / Klutz board and Acrobatics' base power reads an empty hand. BOTH ARE CLOSED and
+   * both were closed by asking the IDENTITY question instead of reading the slot: `itemOn` is the
+   * accessor, `engine/board_state.js` reads `m.item || m._roomItem` for the leaf, and the
+   * `userNoItem` branch in dmgRange calls `itemOn`. The turn-1 board agreement in the pinned pool went
+   * 960/961 to 961/961 on the leaf alone.
+   *
+   * WHAT IS STILL OPEN HERE, NAMED: Recycle's `refusesIfHolding` gate reads `m.item` where the
+   * authority's `if (pokemon.item || !pokemon.lastItem) return false` reads the identity, so a body
+   * holding a parked item can Recycle here and cannot there. No probe fails on it yet; it is on
+   * docs/ENGINE.md's hand list with that citation.
    *
    * Knob: MEDI_ROOM_ITEM_IS_LOST=1 restores the pre-fix read. */
   if(m._hadItem&&!m.item&&(ROOM_ITEM_IS_LOST||m._roomItem==null)){
@@ -15583,9 +15618,21 @@ function formeSwap(mon,becomes,why){
  *
  * The swap is taken, and the cost is stated: Showdown's `ignoringItem()` suppresses the item's
  * EFFECTS while the body still HOLDS it, so a Knock Off landing inside Magic Room removes an item
- * this engine has already parked. The parked slot is cleared with it (`itemRoomForget`) so the two
- * cannot come apart, and the residue is that `-enditem` names nothing. Written down rather than
- * discovered.
+ * this engine has already parked.
+ *
+ * 2026-08-26 -- THE NEXT SENTENCE USED TO READ "the parked slot is cleared with it (`itemRoomForget`)
+ * so the two cannot come apart", AND IT WAS FALSE FROM THE DAY IT WAS WRITTEN. `itemRoomForget` was
+ * declared here and CALLED FROM NOWHERE; every strip site wrote `m.item = ''`, which inside a
+ * suppression lands on an already-empty slot. So a Knock Off inside a room did nothing at all and the
+ * item came back when the room fell, at the wrong Speed. ROADMAP #462. It is left standing rather than
+ * deleted because a mitigation that was WRITTEN DOWN and never wired is this project's signature
+ * failure, and the sentence is the evidence.
+ *
+ * IT IS TRUE NOW, and it is true because of a DOOR rather than a promise: `itemLose` (below
+ * `itemRoomForget`) is the one way an item leaves a body, it empties the slot AND the park, and
+ * `MEDSEEN.itemLostWhileSuppressed` counts the population that used to be swallowed. The residue that
+ * remains is that `-enditem` is emitted with the parked item's name, which is what the authority
+ * writes too.
  *
  * ROOM-OFF IS THE OTHER HALF AND IT IS THE ONE THAT WOULD ROT SILENTLY: a body must get its item
  * back when the clock runs out, when it leaves the field, and when the battle asks. */
@@ -15601,6 +15648,90 @@ function statsRoseThisTurn(m){
 function itemRoomHide(m){ if(!m)return; if(m.item&&m._roomItem==null){m._roomItem=m.item;m.item='';MEDSEEN.itemRoomHidden++;} }
 function itemRoomShow(m){ if(!m)return; if(m._roomItem!=null){if(!m.item)m.item=m._roomItem;m._roomItem=null;} }
 function itemRoomForget(m){ if(m)m._roomItem=null; }
+/* ---- ROADMAP #462 -- PARKED IS NOT LOST. THREE QUESTIONS, ONE LOSS DOOR, ONE GAIN DOOR. 2026-08-26
+ *
+ * WIRE 133 above chose a SWAP over a GATE: while an item's effects are suppressed the body simply has
+ * no item as far as every reader is concerned, and the real one is parked in `_roomItem`. Its own
+ * header states the cost -- "a Knock Off landing inside Magic Room removes an item this engine has
+ * already parked. The parked slot is cleared with it (`itemRoomForget`) so the two cannot come apart"
+ * -- and that sentence was FALSE FOR AS LONG AS IT EXISTED. `itemRoomForget` had no caller; every
+ * strip site in this file wrote `m.item = ''`, which inside a suppression hits an ALREADY EMPTY slot
+ * and does nothing at all. So a suppressed item could not be taken, and it came back at room-end.
+ *
+ * MEASURED ON THE AUTHORITY, one real `Battle`, eight turns, the foe's turn-3 click the only knob:
+ *     foe = KNOCK OFF   t3 item -            spe 80    lock -            (t6, room down: still 80)
+ *     foe = PROTECT     t3 item choicescarf  spe 80    lock swordsdance  (t6, room down: 120, LOCKED)
+ * and the same shape for Klutz through Worry Seed -- 125 against 187. This engine read BOTH arms of
+ * BOTH pairs byte-identical, which is the unwired-knob signature and is what said the strip was never
+ * happening rather than happening late.
+ *
+ * SO THE FIX IS THE DISTINCTION, NOT A LINE AT EACH STRIP SITE. Three questions live here, they are
+ * genuinely different questions, and the bugs live where a caller asks one and means another:
+ *
+ *   itemOn(m)      WHAT ITEM IS ON THIS BODY. Showdown's `pokemon.item` / `getItem().id`. Survives a
+ *                  Magic Room and a Klutz; only a real LOSS empties it. This is what a THIEF, a
+ *                  TRICK, a KNOCK OFF and the BOARD LEAF are asking, because `takeItem` and
+ *                  `getItem` do not consult `ignoringItem()`.
+ *   m.item         WHAT IT CAN USE RIGHT NOW. The slot, which this engine empties while an item is
+ *                  parked. This is what every EFFECT reader is asking -- the Focus Sash, the berry,
+ *                  the Life Orb toll, the Choice Scarf multiplier -- and it is deliberately LEFT as a
+ *                  raw read at those ~159 sites, because the swap already makes every one of them
+ *                  correct. Renaming it would be churn with no defect behind it.
+ *   _hadItem       WHAT IT STARTED WITH, as a boolean. Stamped in `battleInit` and on every switch-in;
+ *                  Unburden's condition is the only consumer.
+ *
+ * WHAT STILL WALKS PAST `itemOn`, NAMED RATHER THAN LEFT TO BE FOUND:
+ *   - every USE site (`restoreStatsUpdate`, `itemCuresVolatile`, the Mental Herb, the Power Herb, the
+ *     Focus Sash, the resist berry, `consumeBerry`, Fling). Each reads `m.item` on purpose: an item
+ *     whose effects are suppressed cannot be spent, and the empty slot IS that refusal.
+ *   - `engine/board_state.js`, which reads the body's `.item` field directly for the differential's
+ *     board leaf. It is given the identity read in the same pass, because Showdown's own leaf is
+ *     `pokemon.item` and keeps the item through a room -- so the two engines were comparing two
+ *     different quantities on every Magic Room and Klutz board.
+ *   - any OTHER consumer of a built body outside this file (`engine/board.js`, the feature files, the
+ *     probes that assign `b.item = x` after `buildMon`). A write still lands on the slot, which is
+ *     right for a body being SET UP and would be wrong for one mid-suppression; no such caller exists
+ *     today and this sentence is the receipt if one appears.
+ *   - the ONE-TURN LAG. `itemRoomSync` runs at the top of a turn, so an item un-suppressed mid-turn
+ *     comes back on the next one; the authority recomputes `ignoringItem()` live. Declared on
+ *     docs/ENGINE.md's hand list, not fixed here, and no probe rests on it.
+ *
+ * `itemRoomForget` FINALLY HAS ITS CALLER, and it is this one. */
+function itemOn(m){ return m ? String(m.item || m._roomItem || '') : ''; }
+/* THE ONE DOOR AN ITEM LEAVES BY. Returns what was taken, '' when there was nothing to take, and it
+ * is the RETURN that every caller gates on -- a site that asked `if (tg.item)` and then wrote
+ * `tg.item = ''` is exactly the shape that produced this defect. */
+function itemLose(m){
+  if(!m)return '';
+  if(ROOM_ITEM_SURVIVES_LOSS){
+    /* the pre-2026-08-26 read: the SLOT only, and the park left standing. */
+    const _slot=String(m.item||''); if(!_slot)return '';
+    if(m._roomItem!=null)MEDFAILS.roomItemSurvivesLossRestored=1;
+    m.item=''; return _slot;
+  }
+  const _it=itemOn(m); if(!_it)return '';
+  if(!m.item&&m._roomItem!=null)MEDSEEN.itemLostWhileSuppressed++;
+  m.item=''; itemRoomForget(m); MEDSEEN.itemLostThroughDoor++;
+  return _it;
+}
+/* THE ONE DOOR AN ITEM ARRIVES BY, and it is not a mirror of the loss door: an item handed to a body
+ * whose items are already suppressed must be parked ON ARRIVAL, or it would sit in the slot working
+ * until the next sync. `setItem` fails on a full hand in the authority and it fails here, and the
+ * hand it looks at is the IDENTITY one -- a body holding a parked Scarf is not empty-handed. */
+function itemGive(m,id){
+  if(!m)return false;
+  const _id=String(id||''); if(!_id)return false;
+  if(ROOM_ITEM_SURVIVES_LOSS?m.item:itemOn(m))return false;
+  m.item=_id;
+  if(!ROOM_ITEM_SURVIVES_LOSS&&itemSuppressed(m,fieldOfBody(m)))itemRoomHide(m);
+  MEDSEEN.itemGivenThroughDoor++;
+  return true;
+}
+/* THE FIELD A BODY IS STANDING ON, for the one caller that needs it. `_sf` is the per-side record and
+ * carries the battle state by reference (`activeAllyOf` reads the same chain), so a body that was
+ * never put on a board answers null and `itemSuppressed` then answers the ability half alone -- which
+ * is the right answer for a body with no field. */
+function fieldOfBody(m){ const sf=m&&m._sf, S=sf&&sf._S; return (S&&S.field)||null; }
 /* ROADMAP #175 -- KLUTZ JOINS MAGIC ROOM HERE, IN ONE PREDICATE, because upstream they ARE one
  * predicate: `Pokemon#ignoringItem` (sim/pokemon.ts:885-892) returns true for
  * `field.pseudoWeather['magicroom']` and for `hasAbility('klutz')` out of the same function, and
@@ -22387,13 +22518,20 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(immunityGateRefuses(m,t,a.mv)){immunityGateAnnounce(t,a.mv);continue;}
           if(t===m
              ||moveClassBlocked(t,a.mv,m)||pranksterBlocked(m,t,a.mv)
-             ||TAGS.has('item',m.item,'megaStone')||TAGS.has('item',t.item,'megaStone')
+             ||TAGS.has('item',itemOn(m),'megaStone')||TAGS.has('item',itemOn(t),'megaStone')
              ||abilityRefusesItemLoss(t,m))continue;
-          if(_ti.swaps){const _mi=m.item;m.item=t.item;t.item=_mi;
+          /* ROADMAP #462 -- BOTH HALVES OF THE SWAP GO THROUGH THE DOORS. The authority's Trick is
+           * `target.takeItem(source)` then `source.takeItem()`, neither of which consults
+           * `ignoringItem()`, so a Trick inside a Magic Room really does swap two parked items -- and
+           * this engine, reading two empty slots, used to swap nothing and say so twice. The lines are
+           * emitted off `itemOn` AFTER the gives, which is each body's new item exactly as before. */
+          if(_ti.swaps){const _mi=itemLose(m),_yours=itemLose(t);
+            if(_yours)itemGive(m,_yours);
+            if(_mi)itemGive(t,_mi);
             if(TR){TR.act(m,'move: '+a.mv);
-                   if(t.item)TR.item(t,t.item,'[from] move: '+a.mv);
-                   if(m.item)TR.item(m,m.item,'[from] move: '+a.mv);}}
-          else if(_ti.removes){const _lost=t.item;t.item='';
+                   if(itemOn(t))TR.item(t,itemOn(t),'[from] move: '+a.mv);
+                   if(itemOn(m))TR.item(m,itemOn(m),'[from] move: '+a.mv);}}
+          else if(_ti.removes){const _lost=itemLose(t);
             if(TR&&_lost)TR.enditem(t,_lost,'[from] move: '+a.mv,m);
             /* THE EMPTY-HANDED TARGET IS ANNOUNCED, and it is the handler's own line rather than the
              * generic mover-named one: `this.add('-fail', target, 'move: Corrosive Gas')` sits in the
@@ -26712,12 +26850,15 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _st=TAGS.param('ability',tg.ability,'stealsItem');
           if(_st&&_st.takesFrom==='attacker'&&m!==tg
              &&stealFlagOK(_st,a.move.id,m)
-             &&(!_st.requiresEmptyHand||!tg.item)
-             &&m.item&&!itemRefusesTake(m)){
-            const _took=m.item; m.item='';
-            tg.item=_took; MEDSEEN.itemStolenByAbility++;
-            if(TR){TR.enditem(m,_took,'[silent][from] ability: '+tg.ability,m);
-                   TR.item(tg,_took,'[from] ability: '+tg.ability,m);}
+             &&(!_st.requiresEmptyHand||!itemOn(tg))
+             &&itemOn(m)&&!itemRefusesTake(m)){
+            /* ROADMAP #462 -- the doors. `source.item` in the handler is the identity read. */
+            const _took=itemLose(m);
+            if(_took&&itemGive(tg,_took)){
+              MEDSEEN.itemStolenByAbility++;
+              if(TR){TR.enditem(m,_took,'[silent][from] ability: '+tg.ability,m);
+                     TR.item(tg,_took,'[from] ability: '+tg.ability,m);}
+            }
           }
         }
         }   /* end WIRE 84 per-hit reaction loop */
@@ -27953,18 +28094,28 @@ function battleTurn(S,rng,actsForA,actsForB){
          * ATTACKER eat it (`singleEvent('Eat', item, ..., source, ...)`) and writes
          * `[from] stealeat|[move] Bug Bite` rather than `[from] move: bugbite`. Neither is fixed
          * here; this closes the over-fire only. No failing probe on the eat half yet. */
-        if(_ri&&Array.isArray(_ri.requiresItemClass)&&tg.item){
+        /* ROADMAP #462 -- THE CLASS GUARD ASKS WHAT IS ON THE BODY, not what the body can use.
+         * The authority's guard is `const item = target.getItem()`, which does not consult
+         * `ignoringItem()`, so a berry parked by a Magic Room is still a berry to Bug Bite. */
+        if(_ri&&Array.isArray(_ri.requiresItemClass)&&itemOn(tg)){
           for(const _cls of _ri.requiresItemClass){
             if(_cls!=='isBerry'){ MEDFAILS.itemClassGuardUnknown++;
               if(!MEDFAILS.itemClassGuardUnknownFirst)MEDFAILS.itemClassGuardUnknownFirst=String(_cls);
               return; }
           }
-          if(!TAGS.has('item',tg.item,'isBerry')){MEDSEEN.itemStripRefusedByClass++;return;}
+          if(!TAGS.has('item',itemOn(tg),'isBerry')){MEDSEEN.itemStripRefusedByClass++;return;}
         }
-        if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){
-          const _taken=tg.item; tg.item='';
-          if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);
-          if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}
+        /* ROADMAP #462 -- THE ONE LOSS DOOR, AND THE RETURN IS THE GATE. This block used to read
+         * `tg.item` and then write `tg.item = ''`, so inside a Magic Room or on a Klutz body it wrote
+         * an empty string over an already-empty slot and the item came back at room-end. `itemLose`
+         * empties the slot AND the park and hands back what it took; `itemGive` refuses a hand that is
+         * full in the IDENTITY sense, which is the authority's `setItem`. */
+        if(_ri&&itemOn(tg)&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){
+          const _taken=itemLose(tg);
+          if(_taken){
+            if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);
+            if(_ri.steals&&itemGive(m,_taken)&&TR)TR.item(m,_taken,'[from] move: '+a.move.id);
+          }
         }
       };
       /* STEP 7c(b) -- THE OTHER TWO `onAfterHit` FAMILIES, AND THEY WERE 400 LINES BELOW THE STEP
@@ -28649,18 +28800,21 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the wrong one without the sort. */
       {
         const _mg=TAGS.param('ability',m.ability,'stealsItem');
-        if(_mg&&_mg.takesFrom==='target'&&_reached>0&&!m.item
+        if(_mg&&_mg.takesFrom==='target'&&_reached>0&&!itemOn(m)
            &&(!_mg.excludesStatus||a.move.mv.c==='P'||a.move.mv.c==='S')
            &&stealFlagOK(_mg,a.move.id,m)){
           if(a.move.id==='fling'){MEDFAILS.stealFromFlingUnmodelled++;}
           else{
-            const _cand=_rows.filter(R=>!R.out&&R.tg&&R.tg!==m&&R.tg.item&&!itemRefusesTake(R.tg))
+            const _cand=_rows.filter(R=>!R.out&&R.tg&&R.tg!==m&&itemOn(R.tg)&&!itemRefusesTake(R.tg))
                              .sort((x,y)=>effSpeed(y.tg,field)-effSpeed(x.tg,field));
             if(_cand.length){
-              const _v=_cand[0].tg, _took=_v.item; _v.item='';
-              m.item=_took; MEDSEEN.itemStolenByAbility++;
-              if(TR){TR.enditem(_v,_took,'[silent][from] ability: '+m.ability,m);
-                     TR.item(m,_took,'[from] ability: '+m.ability,_v);}
+              /* ROADMAP #462 -- the doors. */
+              const _v=_cand[0].tg, _took=itemLose(_v);
+              if(_took&&itemGive(m,_took)){
+                MEDSEEN.itemStolenByAbility++;
+                if(TR){TR.enditem(_v,_took,'[silent][from] ability: '+m.ability,m);
+                       TR.item(m,_took,'[from] ability: '+m.ability,_v);}
+              }
             }
           }
         }
@@ -29684,7 +29838,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            const _sun=!!_w&&Array.isArray(_hv.alwaysInWeather)
              &&_hv.alwaysInWeather.some(x=>String(x).indexOf(_w)===0);
            if(_sun||rng()<(+_hv.chance||0.5)){
-             m.item=m._lastItem; m._lastItem=''; MEDSEEN.harvestRestored++;
+             /* ROADMAP #462 -- the gain door, so a berry given back under a standing room is parked
+              * on arrival rather than working until the next sync. */
+             const _hb=m._lastItem;
+             if(itemGive(m,_hb)){ m._lastItem=''; MEDSEEN.harvestRestored++; }
              /* 2026-08-25 -- `-item`, NOT `-activate`. Harvest's own line is
               *   this.add('-item', pokemon, pokemon.getItem(), '[from] ability: Harvest')
               * (data/abilities.ts harvest; Pickup below is the identical shape). This engine wrote
@@ -29693,22 +29850,24 @@ function battleTurn(S,rng,actsForA,actsForB){
               * only thing left to compare is the line —
               *   authority   |-item|p1a: Trevenant|Sitrus Berry|[from] ability: Harvest
               *   this engine |-activate|p1a: Trevenant|item: sitrusberry                             */
-             if(TR)TR.item(m,m.item,'[from] ability: '+m.ability);
+             if(TR&&!m._lastItem)TR.item(m,itemOn(m),'[from] ability: '+m.ability);
            }
          }}
         /* PICKUP -- take what an adjacent body spent this turn. `_usedItemThisTurn` is cleared at the
          * top of every turn, so "this turn" is a real clock rather than "ever". The ally is the only
          * adjacent body in a doubles slot layout this engine models, plus both foes. */
         {const _pu=TAGS.param('ability',m.ability,'picksUpUsedItem');
-         if(_pu&&!m.item){
+         if(_pu&&!itemOn(m)){
            const _cands=[...actA,...actB].filter(x=>x&&x!==m&&!x.fainted&&x.curHP>0
                                                  &&x._lastItem&&x._usedItemThisTurn);
            if(_cands.length){
              const _t=_cands[Math.floor(rng()*_cands.length)%_cands.length];
-             m.item=_t._lastItem; _t._lastItem=''; MEDSEEN.pickupTook++;
+             /* ROADMAP #462 -- the gain door. */
+             const _pb=_t._lastItem;
+             if(itemGive(m,_pb)){ _t._lastItem=''; MEDSEEN.pickupTook++; }
              /* 2026-08-25 -- `-item`, not `-activate`; see the Harvest block above. Pickup's line is
               *   this.add('-item', pokemon, this.dex.items.get(item), '[from] ability: Pickup') */
-             if(TR)TR.item(m,m.item,'[from] ability: '+m.ability);
+             if(TR&&!_t._lastItem)TR.item(m,itemOn(m),'[from] ability: '+m.ability);
            }
          }}
       }

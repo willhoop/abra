@@ -209,6 +209,12 @@ console.log(row('B  CONTROL, ability ' + CARRIER_OTHER, B));
 console.log(row('C  CONTROL, no magic room', C));
 console.log(row('D  POSITIVE, the item is knocked off', Dp));
 console.log('\n  THE QUESTION UNDER TEST is A\'s SPEED column. It must read AGREE, and it must read the');
-console.log('  same as B\'s -- one board, one varied ability, one answer. The `item` board leaf parts in');
-console.log('  A and B alike and is declared residue (docs/ENGINE.md, "Magic Room parks the item").');
+console.log('  same as B\'s -- one board, one varied ability, one answer.');
+/* 2026-08-26 -- THESE TWO LINES USED TO SAY the `item` board leaf parts in A and B alike and is
+ * declared residue. It no longer parts: ROADMAP #462 gave engine/board_state.js the IDENTITY read
+ * (`m.item || m._roomItem`), which is the same quantity Showdown's own `pokemon.item` leaf carries
+ * through a room, so the two engines stopped being asked different questions. Both arms now report
+ * `board leaves: hp`, and an `item` reappearing in that column is a REGRESSION, not the known cost. */
+console.log('  THE `item` LEAF IS NO LONGER RESIDUE (ROADMAP #462, 2026-08-26): board_state.js reads');
+console.log('  the identity `m.item || m._roomItem`, so A and B must now report NO item leaf at all.');
 console.log('\n  Nothing above is asserted. tests/test-mechanics.js is what asserts.\n');

@@ -727,7 +727,25 @@ function mediBody(m, id, ctx) {
     status_counter: m.status === 'tox' ? num(m.toxTurns)
                   : (m.status === 'slp' ? num(m.slpTurns)
                   : (m.status === 'frz' ? num(m.frzTurns) : 0)),
-    item: id(m.item || ''),
+    /* ---- ROADMAP #462 -- THE TWO ENGINES WERE COMPARING TWO DIFFERENT QUANTITIES HERE. 2026-08-26
+     *
+     * `sdBody` below reads `p.item`, and Showdown's `pokemon.item` is the item ON the body: it is
+     * untouched by `ignoringItem()`, so a Magic Room and a Klutz leave it exactly where it was.
+     * medicham2 implements suppression as a SWAP -- `itemRoomHide` empties the slot into `_roomItem`
+     * so that every effect reader in that file sees an empty hand -- so this leaf read `""` on every
+     * suppressed body while the authority read the item. That is not a divergence about the GAME, it
+     * is this walker asking each engine a different question, and it was the sole remaining turn-1
+     * board-material game in the pinned pool: "Meowstic clicks Magic Room, and mega evolves", four
+     * items reading empty on our side against White Herb, Meowsticite, Focus Sash and Twisted Spoon.
+     *
+     * `m.item || m._roomItem` IS THE IDENTITY READ, and it is the same expression `itemOn` uses
+     * inside medicham2 -- deliberately, because this file may not require the simulator. `_roomItem`
+     * is written by the ONE function that parks an item and is null whenever nothing is parked.
+     *
+     * THIS IS NOT A LOSS BEING HIDDEN. A real removal now goes through medicham2's `itemLose`, which
+     * empties the slot AND the park, so a knocked-off item reads `""` on both sides. The two states
+     * this leaf could not previously tell apart are exactly the two ROADMAP #462 is about. */
+    item: id(m.item || m._roomItem || ''),
     /* ---- ROADMAP #225 -- TYPING AND ABILITY, AND THEIR ABSENCE MADE THE COMPARISON UNABLE TO SEE
      * THE WORST DEFECT WE HAVE FOUND. ------------------------------------------------------------
      *
