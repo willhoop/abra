@@ -71,6 +71,72 @@ function learnable() {
   return LEARNABLE;
 }
 
+/* CARRIERS — THE FILTER THAT `isNonstandard` CANNOT DO, AND THE ONE THE TESTS WERE MISSING.
+ *
+ * Tinted Lens, Full Metal Body, Guard Dog and Storm Drain all read LEGAL in Reg M-B: `exists`, no
+ * `isNonstandard`, not `Illegal`. Every one of them has **zero legal carriers**, so the mechanic
+ * cannot occur in a game of this format at all. Three separate checks in this repo were staging
+ * them and reporting the engine broken for not implementing them:
+ *
+ *     tests/test-rollout-effects.js   fullmetalbody, guarddog  — "takes no Attack drop from Intimidate"
+ *     tests/test-fragility.js         stormdrain               — "zeroes a committed Hydro Pump"
+ *     engine/validate_damage.js       tintedlens on Charizard  — "resisted x2", 50% off @smogon/calc
+ *
+ * An `isNonstandard` check alone clears all four. This is the same shape as clause 3 above — Spore
+ * is a legal move that nothing legal can learn — one level up, on abilities. It is the ability half
+ * of `learnable()` and it is derived the same way: walk the FILTERED species list and read the
+ * abilities they actually have. Never a list; a list is what went stale.
+ *
+ * `carriers(id)` -> the legal species names that have it. An empty array is the answer, not a gap. */
+let CARRIERS = null;
+function carrierIndex() {
+  if (CARRIERS) return CARRIERS;
+  CARRIERS = new Map();
+  for (const sp of D.species.all()) {
+    if (!legal(sp)) continue;
+    for (const slot of Object.keys(sp.abilities || {})) {
+      const aid = D.toID(sp.abilities[slot]);
+      if (!aid) continue;
+      if (!CARRIERS.has(aid)) CARRIERS.set(aid, []);
+      CARRIERS.get(aid).push(sp.name);
+    }
+  }
+  return CARRIERS;
+}
+function carriers(abilityId) { return carrierIndex().get(id(abilityId)) || []; }
+
+/* PLAYABLE — the one question a fixture has to pass before it means anything.
+ *
+ * kind is 'species' | 'item' | 'ability' | 'move'. Returns {ok, why}. The `why` names the entity,
+ * because a refusal that does not name what it refused is a refusal nobody can act on. */
+function playable(kind, name) {
+  const nm = String(name || '');
+  if (kind === 'species') {
+    const sp = D.species.get(nm);
+    return legal(sp) ? { ok: true, why: null }
+      : { ok: false, why: `species "${nm}" is not in Reg M-B (isNonstandard=${sp && sp.isNonstandard}, tier=${sp && sp.tier})` };
+  }
+  if (kind === 'item') {
+    const it = D.items.get(nm);
+    return legal(it) ? { ok: true, why: null }
+      : { ok: false, why: `item "${nm}" is not in Reg M-B (isNonstandard=${it && it.isNonstandard})` };
+  }
+  if (kind === 'ability') {
+    const ab = D.abilities.get(nm);
+    if (!legal(ab)) return { ok: false, why: `ability "${nm}" is not in Reg M-B (isNonstandard=${ab && ab.isNonstandard})` };
+    const c = carriers(ab.id);
+    return c.length ? { ok: true, why: null }
+      : { ok: false, why: `ability "${nm}" reads legal and has ZERO legal carriers — it cannot occur in this format` };
+  }
+  if (kind === 'move') {
+    const mv = D.moves.get(nm);
+    if (!legal(mv)) return { ok: false, why: `move "${nm}" is not in Reg M-B (isNonstandard=${mv && mv.isNonstandard})` };
+    return learnable().has(mv.id) ? { ok: true, why: null }
+      : { ok: false, why: `move "${nm}" reads legal and NO legal species can learn it` };
+  }
+  throw new Error('playable(): unknown kind ' + kind);
+}
+
 /* The status a move inflicts, if any — read off the move rather than named here. */
 function statusOf(mv) {
   if (mv.status) return mv.status;
@@ -1187,7 +1253,9 @@ function check(sc) {
 
 module.exports = { check, legal, learnable, statusOf,
                    moveNeeds, satisfiesNeed, learnsetOf, EVENT_ROLE,
-                   boardNeeds, readByOthers, statusesRead };
+                   boardNeeds, readByOthers, statusesRead,
+                   /* the carrier half of `learnable` — see the block above `statusOf` */
+                   carriers, playable, dex: D };
 
 if (require.main === module) {
   const S = [

@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-26T00:19:04.480Z",
- "release": "d38d117e68e9",
+ "generated": "2026-08-26T04:46:40.926Z",
+ "release": "4174fe78d1ee",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -54276,7 +54276,7 @@
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 12,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 4.3
+   "seconds": 4.6
   },
   "abilities": {
    "exist": 316,
@@ -54293,7 +54293,7 @@
    "diverged_including_shelved": 4,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 8.1
+   "seconds": 9
   },
   "then_what": {
    "rows": 62,
@@ -54319,7 +54319,7 @@
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 3.9
+   "seconds": 4.3
   },
   "board_state": {
    "rows": 15,
@@ -54698,7 +54698,7 @@
   "abilities": {
    "available": true,
    "file": "data/roster.abilities.json",
-   "roster_fired": 130,
+   "roster_fired": 129,
    "here_fired": 104,
    "both": 73,
    "only_here": [
@@ -54749,7 +54749,6 @@
     "heatproof",
     "hospitality",
     "hungerswitch",
-    "illusion",
     "immunity",
     "imposter",
     "innardsout",
@@ -54857,6 +54856,7 @@
     "hydration",
     "iceface",
     "icescales",
+    "illusion",
     "intrepidsword",
     "ironbarbs",
     "libero",
@@ -55060,8 +55060,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "d38d117e68e9",
-    "roster_generated": "2026-08-26T00:18:19.542Z",
+    "roster_release": "4174fe78d1ee",
+    "roster_generated": "2026-08-26T04:43:32.040Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

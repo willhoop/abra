@@ -21,6 +21,35 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE THREE CHECKS WHOSE FIXTURES WERE TYPED FROM MEMORY — DAMAGE GOLDEN MASTER 92% -> 100%, AND A FLINCH LEAK ON THE WIPE PATH. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, *"THE GOLDEN MASTER ON THE DAMAGE NUMBER WAS RED FOR SIXTEEN DAYS"*.
+CHANGELOG 5.132.0. Release `4174fe78d1ee` (one file differs from `d38d117e68e9`).
+
+Probes: `engine/validate_damage.js` (36/36 compared, within-2% **100%**, worst **0%**, up from
+within-5% 92% / worst 50%); `tests/test-rollout-effects.js` (**38 passed, 0 failed**, up from 36/7);
+`tests/test-fragility.js` (**14 passed**, up from 10/2). All five red demonstrations fired and
+restored: a banned item put back in the table, a 10% perturbation of `dmgRange`,
+`movePriority('trickroom')` forced to 0, `applyIntimidate` forced to −1 for Clear Body, and
+`clickFragility` forced to retention 1 on Thunderbolt.
+
+Every red row in all three files was the FIXTURE. Choice Band and Choice Specs are banned here;
+Tinted Lens, Storm Drain, Guard Dog, Full Metal Body and Simple are legal with **zero legal carriers**;
+nine moves are `Past` and Spore has no legal learner; Iron Head's flinch is **20**, not the mainline 30
+somebody remembered. Four more illegal species — including **Amoonguss** — sat in 20 of 36
+`validate_damage` rows at 0% error, because `@smogon/calc` is mainline and both engines carry them.
+
+Two engine-side findings came out of it. `validate_damage.js` stubbed `globalThis.MC = {mons:{}}`, so
+every SPECIES-LOCKED tag param silently stopped applying and Light Ball read x1 against the calc's x2 —
+the instrument, not the engine. And `_flinch` leaked out of any battle that ended by wiping a side,
+because the end-of-turn clear sits below all four `break _TURN` sites; found only after the arm was
+seeded at a base that FAILED, since it had been running on `Math.random` and going red half the time.
+
+Pins held: whole-game **17 of 961** with `first_divergences`, `classes` and `end_state` byte-identical;
+census **706/706**; roster summaries identical; `planted_divergence_proof_ok` true.
+
+---
+
 ## THE DIFFERENTIAL DECLARES ITS OWN EXCLUSION — 51 WAS 43, AND 17 OF THE 43 ARE DROPPED FOR A BODY NEITHER ENGINE BRINGS. WHOLE-GAME UNMOVED AT 17 OF 961. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, *"THE DIFFERENTIAL NOW DECLARES ITS OWN EXCLUSION"*. CHANGELOG 5.131.7.

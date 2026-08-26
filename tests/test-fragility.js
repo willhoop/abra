@@ -12,6 +12,18 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
 const M = require(path.join(ROOT, 'engine', 'medicham2-browser.js'));
+/* THE ABSORBER IS DERIVED, BECAUSE THE ONE THIS FILE NAMED CANNOT OCCUR - 2026-08-26.
+ *
+ * The type-immunity block below staged STORM DRAIN. Storm Drain is legal in Reg M-B by every test
+ * `isNonstandard` can apply, and it has ZERO legal carriers: no species in this regulation has it,
+ * so no game of Champions can contain it. Two rows were red for a mechanic that cannot happen, and
+ * the engine was correctly returning retention 1 because it has never been asked to price it.
+ *
+ * `PF.playable('ability', id)` is the filter that catches this and `isNonstandard` does not - see
+ * the carriers block in engine/fixture_preflight.js. The replacement is not typed either: the
+ * absorbers are read off the format by asking which legal, CARRIED abilities refuse a move by its
+ * type, and the SpA-gaining one among them is what the original row was about. */
+const PF = require(path.join(ROOT, 'engine', 'fixture_preflight.js'));
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { console.log((c ? '  ok    ' : '  FAIL  ') + m); c ? pass++ : fail++; };
@@ -50,15 +62,53 @@ console.log('FRAGILITY — what their bench does to my committed click\n');
 
 /* type immunity: the absorber prices to zero AND reports what it gains */
 {
-  const att = mon('pelipper'), tgt = mon('garchomp');
-  const gastro = mon('incineroar', 'stormdrain');
-  const x = M.clickFragility(att, 'hydropump', tgt, [gastro], F(''));
-  ok(x && x.retention === 0 && x.cause === 'incineroar',
-    'a benched Storm Drain zeroes a committed Hydro Pump');
-  ok(x && x.extra && x.extra.feedsIt && x.extra.feedsIt.boosts && x.extra.feedsIt.boosts.spa === 1,
-    'and the report says the pivot GAINS +1 SpA — worse than zero, from the artifact\'s own gain param');
+  /* THE POPULATION, derived: every ability in this regulation that a legal body can actually carry
+   * and that refuses a move on its TYPE. Showdown writes that as an `onTryHit` reading `move.type`,
+   * which is a structural property of the handler rather than a name anybody typed here.
+   * Printed with the run, because a derived set nobody looked at is the failure in docs/LESSONS.md 4. */
+  const ABSORB = { thunderbolt: 'Electric', hydropump: 'Water', energyball: 'Grass',
+                   heatwave: 'Fire', earthquake: 'Ground' };
+  /* THE FIRST VERSION OF THIS DERIVATION OVER-MATCHED, AND PRINTING IT IS WHAT CAUGHT IT. It joined
+   * EVERY `on*` handler into one blob and read the type literals out of that, which put DRY SKIN
+   * under Fire — Dry Skin does not absorb Fire, it takes 1.25x MORE from it, and the Fire literal
+   * lives in a different handler on the same ability. The sweep went red on `dryskin/heatwave
+   * retention=1` against an engine that was right. Only `onTryHit`'s OWN source counts, because
+   * refusing the hit is what `onTryHit` is. */
+  const byType = {};
+  for (const ab of PF.dex.abilities.all()) {
+    if (!PF.playable('ability', ab.id).ok) continue;
+    if (typeof ab.onTryHit !== 'function') continue;
+    const src = String(ab.onTryHit);
+    for (const t of new Set((src.match(/move\.type === "([A-Za-z]+)"/g) || [])
+        .map(x => x.replace(/.*"([A-Za-z]+)"/, '$1')))) {
+      (byType[t] = byType[t] || []).push(ab.id);
+    }
+  }
+  console.log('  derived absorbers: '
+    + Object.entries(byType).map(([t, a]) => t + '=' + a.join('/')).join('  '));
+
+  const tgt = mon('kingambit');   /* neutral to all of the above, so the chart cannot do the work */
+  let staged = 0; const bad = [];
+  for (const [mv, type] of Object.entries(ABSORB)) {
+    for (const ab of (byType[type] || [])) {
+      staged++;
+      const x = M.clickFragility(mon('archaludon'), mv, tgt, [mon('incineroar', ab)], F(''));
+      if (!x || x.retention !== 0 || x.cause !== 'incineroar') bad.push(ab + '/' + mv + ' retention=' + (x && x.retention));
+      else if (!x.extra || !x.extra.feedsIt) bad.push(ab + '/' + mv + ' reports no gain');
+    }
+  }
+  ok(staged > 0, `${staged} benched absorbers staged from the format — a sweep over nothing cannot pass`);
+  ok(bad.length === 0, `every benched absorber zeroes the committed click and says what it gains${bad.length ? ': ' + bad.join(', ') : ''}`);
+  /* AND THE GAIN IS THE ARTIFACT'S OWN PARAM, not a shrug. Lightning Rod is what Storm Drain used to
+   * stand for here — same shape, +1 SpA — and unlike Storm Drain it has legal carriers. */
+  const lr = M.clickFragility(mon('archaludon'), 'thunderbolt', tgt, [mon('incineroar', 'lightningrod')], F(''));
+  ok(lr && lr.extra && lr.extra.feedsIt && lr.extra.feedsIt.boosts && lr.extra.feedsIt.boosts.spa === 1,
+    'the report says the pivot GAINS +1 SpA — worse than zero, from the artifact\'s own gain param');
+  /* the control that proves the ability is doing it: the same bench with no absorber keeps the click */
+  const ctl = M.clickFragility(mon('archaludon'), 'thunderbolt', tgt, [mon('incineroar', 'blaze')], F(''));
+  ok(!ctl || ctl.retention === 1, 'and the same body WITHOUT the ability does not blunt it at all');
   /* plain chart immunity needs no ability at all */
-  const xg = M.clickFragility(mon('garchomp'), 'earthquake', tgt, [mon('corviknight')], F(''));
+  const xg = M.clickFragility(mon('garchomp'), 'earthquake', mon('garchomp'), [mon('corviknight')], F(''));
   ok(xg && xg.retention === 0 && /chart/.test(xg.how),
     'a benched Flying body zeroes a committed Earthquake straight off the type chart');
 }

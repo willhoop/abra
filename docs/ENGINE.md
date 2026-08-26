@@ -59,7 +59,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  706/706 probed mechanics live, 0 missing   (census 2026-08-25 22:26)
+  706/706 probed mechanics live, 0 missing   (census 2026-08-26 00:58)
   0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -71,16 +71,143 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 564157e5740d now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is b975a519b975 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1787b2479502 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is f66d46f584fd now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-25 23:40_
+_stamped 2026-08-26 01:07_
 
 <!-- /GENERATED -->
+
+## THE GOLDEN MASTER ON THE DAMAGE NUMBER WAS RED FOR SIXTEEN DAYS AND EVERY RED ROW WAS AN ENTITY THIS FORMAT DOES NOT HAVE. 100% WITHIN 2%, FROM 92% WITHIN 5% / WORST 50%. 2026-08-26.
+
+**THE DEFECT WAS IN THE FIXTURES, NOT THE ENGINE, IN ALL THREE FILES.** `engine/validate_damage.js`
+is the guard on the number every other result in this project rests on, and it had been failing at
+`within-5% 92% / worst 50%`. **A check that is permanently red cannot report a regression**, because
+a real one is indistinguishable from the standing failure — the banned-phrase trap sitting on the
+damage number. All three red rows were illegal fixtures and the engine agreed with the format on
+every one:
+
+| fixture | the format says | what it cost |
+|---|---|---|
+| `'Choice Band'` | `isNonstandard: 'Past'` — **BANNED**, and named on CLAUDE.md's ban list | −34% |
+| `'Choice Specs'` | the same | −33% |
+| `'Tinted Lens'` on Charizard | legal by every flag, **ZERO legal carriers** | −50% |
+| `ironhead: 30` (`test-rollout-effects.js`) | `secondaries[0].chance` is **20** | 1 red row |
+| 9 `Past` moves + `spore` | `Past`, and Spore is legal with **no legal learner** | 4 red rows |
+| `fullmetalbody`, `guarddog`, `simple` | legal, **ZERO legal carriers** | 2 red rows |
+| `stormdrain` (`test-fragility.js`) | legal, **ZERO legal carriers** | 2 red rows |
+
+**MEDICHAM ALREADY KNEW ABOUT TWO OF THEM.** The `if (phys && att.item === 'choiceband') ACH(1.5)`
+lines were deleted from `medicham2-browser.js` on 2026-08-10 *because those items are banned*. The
+table went on asking for them for sixteen days and read the deletion as a 34% formula error.
+
+**FOUR MORE ILLEGAL ENTITIES WERE IN THE TABLE AND NOTHING WAS RED, WHICH IS WORSE.** Flutter Mane,
+Chien-Pao, Rillaboom and **Amoonguss** are all `isNonstandard: 'Past'` and appeared in **20 of the 36
+rows** at 0% error. `@smogon/calc` is MAINLINE and answers happily for a Pokémon this format does not
+have; MEDICHAM's table carries them too. **The two engines agreed perfectly about a game nobody
+plays.** Amoonguss is the one Will named by name.
+
+**THE REPAIR IS THE CLASS, NOT THE FOUR LINES.** Every replaced fixture keeps its row's intent and
+every choice was derived rather than recalled: Chien-Pao → **Weavile** (same two types), Amoonguss →
+**Venusaur** (same two types), Flutter Mane → **Mimikyu-Busted** (the only legal Ghost/Fairy, BUSTED
+so the calc does not apply Disguise and zero the row) and **Gardevoir** as the Fairy special attacker,
+Rillaboom → **Machamp**. Choice Band / Choice Specs → **Pikachu @ Light Ball**, which is the ONLY item
+left in this regulation that multiplies a RAW ATTACK STAT (`chainModify(2)`) rather than base power —
+derived by walking every legal item for `onModifyAtk`/`onModifySpA`. Substituting a type-boost item
+instead would have duplicated the Black Glasses / Charcoal / Fairy Feather rows, which is deleting
+coverage while appearing to keep it. Tinted Lens → **Charizard-Mega-X @ Tough Claws**, an attacker
+ability that multiplies damage under a condition, on a legal carrier, still into a resisted hit.
+
+**AND THE INSTRUMENT WAS RUNNING A DIFFERENT ENGINE. `globalThis.MC = {mons:{}, moves:{}}`.**
+`validate_damage.js` stubbed the species table. `pasteKey()` resolves a name through `monKey()`, which
+reads `MC.mons`; with the table empty it answers nothing, so **every tag whose param is SPECIES-LOCKED
+silently stopped applying.** Light Ball's `statMult` carries `onlySpecies: 'Pikachu'`, so under the stub
+it read x1 against the calc's x2 — a clean 50% error that looks exactly like a formula bug. Suspect the
+instrument first. It now loads `data/engine-data.js` and passes each body's `name`.
+
+**THE DURABLE HALF IS THAT THE FIXTURE IS DERIVED AT RUN TIME.**
+`engine/fixture_preflight.js` gains `carriers()` and `playable(kind, name)` — the ability half of its
+existing `learnable()`, and the clause `isNonstandard` cannot do. Then:
+
+- **`validate_damage.js`** puts all 67 named entities to the format on every run and refuses BY NAME.
+  It skips LOUDLY (never silently) with no Showdown checkout, because the damage arm needs no format
+  and must keep running in CI.
+- **`test-rollout-effects.js`** sections 1–4 are no longer tables. They sweep **every playable move in
+  Reg M-B** — 10 primary-status, 172 status-accuracy, 19 flinch, **496 priority** — against Showdown's
+  own `move.status` / `.accuracy` / `.secondaries` / `.priority`. The old tables held 30 moves, five of
+  which do not exist here. Section 8 sweeps every legal ability WITH A CARRIER that declares
+  `onTryBoost` / `onChangeBoost` / `onAfterEachBoost` (15), and **the expected value is the authority's
+  own handler, CALLED** with an Intimidate-shaped `{atk:-1}` — so the 2026-08-05 re-pin needs no comment
+  to defend it, it is computed. That population contains `ripen`, the other WIRE 113 over-match, which
+  no arm of this file had ever touched.
+- **`test-fragility.js`** derives the absorbers by asking which legal, CARRIED abilities refuse a move
+  on its type.
+
+**MEDICHAM AGREED WITH THE FORMAT ON ALL 496 PLAYABLE MOVES, FIRST TIME, ON ALL FOUR PROPERTIES.**
+Zero disagreements. Every red row in that file was the table.
+
+**THE ABSORBER DERIVATION OVER-MATCHED AND PRINTING IT IS WHAT CAUGHT IT.** The first version joined
+every `on*` handler into one blob and read the type literals out of that, which filed **DRY SKIN under
+Fire** — Dry Skin does not absorb Fire, it takes 1.25x MORE, and the Fire literal lives in a different
+handler on the same ability. The sweep went red on `dryskin/heatwave retention=1` against an engine
+that was right. Only `onTryHit`'s own source counts now. (docs/LESSONS.md 4, once more.)
+
+**ONE REAL ENGINE DEFECT CAME OUT OF IT, AND IT WAS INVISIBLE BECAUSE THE ARM WAS UNSEEDED.** Section 7
+ran on `Math.random` and reported `1 leaked of 320` on three runs of six — a coin-flip red nobody can
+attribute. Seeded with an LCG (the `test-engine-diff.js` pattern), **at a seed that FAILED**: of ten
+bases swept, `20260825`, `20260827` and `123456` leaked and seven did not, so pinning a clean one would
+have made the arm green without fixing anything. The leak is the WIPE path — the end-of-turn
+`_flinch` clear sits BELOW all four `break _TURN` sites, so a turn that ends by wiping a side skips it
+and the body carries the flag out. Measured, not assumed: seed 20260825 trial 8 leaks on an Arcanine
+and that battle's counters read `turnEndedSideWiped 1, turnEndedMidAction 1`. Fixed by clearing on
+every exit of the turn block. **It cannot change a board** — every `break _TURN` is a `sideWiped(S)`.
+
+**EVERY REPAIRED CHECK WAS SHOWN RED ON A DELIBERATE BREAK BEFORE BEING TRUSTED** — five of them: a
+banned item put back in the table (refused by name, exit 1), a 10% perturbation of `dmgRange`
+(`REGRESSION: within-5% 0%`, exit 1), `movePriority('trickroom')` forced to 0, `applyIntimidate`
+forced to −1 for Clear Body, and `clickFragility` forced to retention 1 on Thunderbolt. All five fired
+and all five restored.
+
+**AND NOTHING ELSE MOVED — PROVEN, NOT ASSUMED.** Release `4174fe78d1ee` (one file differs from
+`d38d117e68e9`: `medicham2-browser.js`). Whole-game **17 of 961**, unmoved, with `first_divergences`,
+`classes` and the `end_state` summary **byte-identical** to the pre-change artifact. Census
+**706/706**. Roster items/abilities/moves summaries **identical**. `all-mechanics-fire` identical
+except wall-clock seconds. A control run of the OLD release under the same flags produced an artifact
+differing from the new one **only in the recorded release id**.
+
+### THE HAND LIST
+
+Leaves it: **THE THREE CHECKS WHOSE FIXTURES WERE TYPED FROM MEMORY** — `validate_damage.js`,
+`test-rollout-effects.js` and `test-fragility.js` all derive their population from `Dex.forFormat`
+now, and `playable()` refuses by name.
+
+Joins it:
+
+- **`--games` IS A REQUEST DIVIDED ACROSS CONFIGS AND THE ARTIFACT RECORDS THE ACHIEVED COUNT.**
+  `perConfig = floor(GAMES / live.length)`, so `--games 1200` yields 961 played. Passing the artifact's
+  own `games: 961` back as `--games 961` draws a **different, smaller sample — 777 games / 39 raw** —
+  with a different team-pool digest, and it reads exactly like a 2.5x regression. It is not one: the
+  same flags on the OLD release give the identical 777/39. This is the same class as the `--state`
+  item below and it cost most of an hour. **The artifact should record the REQUEST beside the achieved
+  count.**
+- **`display_name_lookups_that_missed` moved 2 → 4** across the two 961-game runs while every other
+  key in `state.turn1` held. It is a diagnostic counter, not a divergence, and it is not asserted
+  anywhere — noted so it is not discovered later as a surprise.
+
+Stays on it, unchanged: everything in the batches below.
+
+### OWED, NOT RUN
+
+- **The scenario table is still an array of positional arrays, so `engine/fixture_legality.js` cannot
+  see it.** That sweep finds sets by SHAPE (object literal keyed species+moves, or mutation) and this
+  table matches neither — which is exactly why seven illegal entities survived a repo-wide legality
+  gate. `validate_damage.js` now checks itself, but the general hole is open: **any fixture declared
+  as a positional array is invisible to the repo's legality sweep.**
+- **The register row.** `docs/ROADMAP.md` was not edited, per the standing brief.
 
 ## THE DIFFERENTIAL NOW DECLARES ITS OWN EXCLUSION — AND THE COUNT WAS 51 FOR 43, WITH 17 OF THOSE 43 DROPPED FOR A BODY NEITHER ENGINE BRINGS. WHOLE-GAME UNMOVED AT 17 OF 961. 2026-08-26.
 

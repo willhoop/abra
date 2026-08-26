@@ -26,60 +26,120 @@ const { mcKey } = require(path.join(__dirname, '..', 'engine', 'mc_key.js'));
 const MONMISS = { mayMiss: 'this fixture sweeps the damage table for a body that fits; absence is an answer' };
 const E = require(path.join(__dirname, '..', 'engine', 'medicham2-browser.js'));
 
+/* THE FIXTURE IS DERIVED FROM THE FORMAT, NOT TYPED - 2026-08-26.
+ *
+ * Sections 1-4 and 8 used to be hand-typed tables of move -> value and a hand-typed list of
+ * abilities. Every red row in this file on 2026-08-26 was the TABLE being wrong, never the engine:
+ *
+ *     darkvoid, lovelykiss, grasswhistle, poisongas   isNonstandard: 'Past' - NOT IN THIS FORMAT
+ *     headbutt, astonish, vitalthrow, revenge, teleport      the same
+ *     spore                                            legal, and NO legal species can learn it
+ *     ironhead flinch 30                               the format says 20
+ *     fullmetalbody, guarddog                          legal, ZERO legal carriers - cannot occur
+ *
+ * Eleven of those fourteen are CLAUDE.md's oldest rule broken inside a test: "NEVER NAME A POKEMON,
+ * ITEM, ABILITY OR MOVE THAT IS NOT IN THE REGULATION... every example, every illustration and every
+ * derived result." A fixture built on an entity that cannot occur is measuring a game we do not
+ * play, and the engine was being called broken for agreeing with the format.
+ *
+ * So the tables are gone. The population is read out of `Dex.forFormat` on every run and filtered
+ * through `engine/fixture_preflight.js` - legal AND learnable for a move, legal AND carried for an
+ * ability. A regulation change is picked up with no edit here, which a typed list can never do.
+ *
+ * IT IS NOT CIRCULAR AND THAT IS THE POINT. The expected value comes from Showdown, which is the
+ * authority; reading it out of `data/abra-tags.js` instead would compare the engine against the
+ * artifact the engine already reads, and that check would pass while both were wrong together.
+ *
+ * IT NEEDS THE SIMULATOR. `tests/run-all.js` skips this file loudly when there is no checkout,
+ * exactly as it does for `tests/test-engine-diff.js`, which is the pattern this follows. */
+const PF = require(path.join(__dirname, '..', 'engine', 'fixture_preflight.js'));
+const DEX = PF.dex;
+/* Every move that can actually be clicked in Reg M-B. 500-odd; the old table had 30. */
+const PLAYABLE = DEX.moves.all().filter(m => PF.playable('move', m.id).ok);
+
 let P = 0, F = 0;
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); c ? P++ : F++; };
+/* A SWEEP OVER AN EMPTY POPULATION PASSES. `0 of 0 mismatched` reads exactly like a clean engine, so
+ * every arm below declares how many rows it actually compared and FAILS at zero. */
+const sweep = (label, rows, bad) => {
+  ok(rows > 0, label + ': the derived population is ' + rows + ' - a sweep over nothing cannot pass');
+  ok(bad.length === 0, label + ': ' + rows + ' compared, ' + bad.length + ' disagree'
+     + (bad.length ? ': ' + bad.slice(0, 8).join(', ') : ''));
+};
 
 console.log('== 1. a status move inflicts ITS status, not a random one ==');
-/* Hand-derived from the moves themselves: Thunder Wave paralyses, Will-O-Wisp burns, Spore sleeps,
- * Toxic badly poisons. Under the old random pick each of these was 1-in-3 for the wrong status. */
-const PRIMARY = { thunderwave:'par', willowisp:'brn', spore:'slp', hypnosis:'slp', toxic:'tox',
-                  glare:'par', stunspore:'par', sleeppowder:'slp', poisonpowder:'psn', sing:'slp',
-                  darkvoid:'slp', lovelykiss:'slp', grasswhistle:'slp', poisongas:'psn', toxicthread:'psn' };
-let sOk = 0, sBad = [];
-for (const [mv, st] of Object.entries(PRIMARY)) {
-  const got = (E.moveFx(mv) || {}).status;
-  got === st ? sOk++ : sBad.push(`${mv} -> ${got} (want ${st})`);
+/* Under the old random pick each of these was 1-in-3 for the wrong status. The population is every
+ * playable move the FORMAT says carries a primary status - Thunder Wave paralyses because
+ * `moves.get('thunderwave').status` is 'par', not because somebody typed 'par' here. */
+{
+  const pop = PLAYABLE.filter(m => m.status);
+  const bad = [];
+  for (const m of pop) {
+    const got = (E.moveFx(m.id) || {}).status;
+    if (got !== m.status) bad.push(m.id + ' -> ' + got + ' (format says ' + m.status + ')');
+  }
+  sweep('primary status', pop.length, bad);
 }
-ok(sBad.length === 0, `all ${sOk} status moves carry their real status${sBad.length ? ': ' + sBad.join(', ') : ''}`);
 ok(!(E.moveFx('rockslide') || {}).status, 'an attacking move carries no PRIMARY status (Rock Slide)');
 
 console.log('== 2. accuracy comes from the move, so status moves can miss ==');
-// Thunder Wave 90, Will-O-Wisp 85, Hypnosis 60, Spore 100 - the real values, not a flat 100.
-const ACCU = { thunderwave:90, willowisp:85, hypnosis:60, spore:100, sleeppowder:75, darkvoid:50 };
-let aBad = [];
-for (const [mv, acc] of Object.entries(ACCU)) {
-  const got = (E.moveFx(mv) || {}).accuracy;
-  if (got !== acc) aBad.push(`${mv} ${got}!=${acc}`);
+/* The real values, not a flat 100. The comparison is VERBATIM against `move.accuracy`, including
+ * Showdown's `true` for a move that cannot miss — 122 of the 172 playable status moves are `true`,
+ * and folding that to 100 here would be this file inventing a value again, one line after deleting
+ * the last one. `data/abra-tags.js` records the same convention (`consumedBy: 'accuracy === true'`),
+ * so a consumer that must roll a die can still tell "never rolls" from "rolls and always wins". */
+{
+  const pop = PLAYABLE.filter(m => m.category === 'Status');
+  const bad = [];
+  for (const m of pop) {
+    const want = m.accuracy;
+    const got = (E.moveFx(m.id) || {}).accuracy;
+    if (got !== want) bad.push(m.id + ' ' + got + '!=' + want);
+  }
+  sweep('status-move accuracy', pop.length, bad);
 }
-ok(aBad.length === 0, `status-move accuracy is the real value${aBad.length ? ': ' + aBad.join(', ') : ''}`);
 
 console.log('== 3. flinch chances exist for more than Fake Out ==');
-const FLINCH = { rockslide:30, ironhead:30, airslash:30, darkpulse:20, icefang:10, zenheadbutt:20,
-                 headbutt:30, bite:30, astonish:30, waterfall:20 };
-let fBad = [];
-for (const [mv, ch] of Object.entries(FLINCH)) {
-  const secs = (E.moveFx(mv) || {}).secondary || [];
-  const fl = secs.find(s => s.volatile === 'flinch');
-  if (!fl || fl.chance !== ch) fBad.push(`${mv} ${fl ? fl.chance : 'none'}!=${ch}`);
+/* Rock Slide's 30 and Iron Head's TWENTY. The hand-typed table said Iron Head was 30, which is
+ * mainline recall - `dex.moves.get('ironhead').secondaries[0].chance` is 20 in this format, and the
+ * engine had it right. The population is every playable move whose secondary applies `flinch`. */
+{
+  const flinchOf = (m) => {
+    const secs = [].concat(m.secondaries || [], m.secondary ? [m.secondary] : []);
+    return secs.find(x => x && x.volatileStatus === 'flinch') || null;
+  };
+  const pop = PLAYABLE.filter(m => flinchOf(m));
+  const bad = [];
+  for (const m of pop) {
+    const want = flinchOf(m).chance;
+    const secs = (E.moveFx(m.id) || {}).secondary || [];
+    const got = (secs.find(x => x.volatile === 'flinch') || {}).chance;
+    if (got !== want) bad.push(m.id + ' ' + got + '!=' + want);
+  }
+  sweep('flinch chance', pop.length, bad);
 }
-ok(fBad.length === 0, `${Object.keys(FLINCH).length} moves carry their real flinch chance${fBad.length ? ': ' + fBad.join(', ') : ''}`);
 
 console.log('== 4. priority spans the full bracket range, not a hand-typed subset ==');
-/* Showdown's own values. The old table had 18 positive entries and NOTHING negative, so every one
- * of these negatives resolved at 0 - Trick Room most damagingly, since it must always go last. */
-const PRIO = { helpinghand:5, protect:4, detect:4, kingsshield:4, fakeout:3, quickguard:3, wideguard:3,
-               followme:2, ragepowder:2, extremespeed:2, aquajet:1, bulletpunch:1, suckerpunch:1,
-               thunderwave:0, rockslide:0, earthquake:0,
-               vitalthrow:-1, focuspunch:-3, beakblast:-3, avalanche:-4, revenge:-4, counter:-5,
-               mirrorcoat:-5, roar:-6, whirlwind:-6, dragontail:-6, circlethrow:-6, teleport:-6,
-               trickroom:-7 };
-let pOk = 0, pBad = [];
-for (const [mv, pr] of Object.entries(PRIO)) {
-  const got = E.movePriority(mv, {});
-  got === pr ? pOk++ : pBad.push(`${mv} ${got}!=${pr}`);
+/* The old table had 18 positive entries and NOTHING negative, so every negative-priority move
+ * resolved at 0 - Trick Room most damagingly, since it must always go last. It also named five moves
+ * this format does not have. Showdown's own `move.priority`, over every playable move. */
+{
+  const bad = [];
+  for (const m of PLAYABLE) {
+    const got = E.movePriority(m.id, {});
+    if (got !== m.priority) bad.push(m.id + ' ' + got + '!=' + m.priority);
+  }
+  sweep('priority', PLAYABLE.length, bad);
+  /* AND THE RANGE IS ASSERTED, because a sweep in which every move is bracket 0 would also report
+   * zero disagreements. The brackets have to actually span. */
+  const br = [...new Set(PLAYABLE.map(m => m.priority))].sort((a, b) => a - b);
+  ok(br[0] < 0 && br[br.length - 1] > 0,
+     'the population spans ' + br[0] + ' to ' + br[br.length - 1]
+     + ' - a sweep of all-zero brackets would prove nothing');
 }
-ok(pBad.length === 0, `all ${pOk} priorities correct, +5 down to -7${pBad.length ? ': ' + pBad.join(', ') : ''}`);
-ok(E.movePriority('trickroom', {}) === -7, 'Trick Room is -7 and therefore resolves last');
+ok(E.movePriority('trickroom', {}) === DEX.moves.get('trickroom').priority
+   && DEX.moves.get('trickroom').priority < 0,
+   'Trick Room is negative priority and therefore resolves last');
 ok(E.movePriority('nosuchmove', {}) === 0, 'an unknown move defaults to bracket 0');
 // Grassy Glide is +1 ONLY in Grassy Terrain - a conditional, which is why Showdown stores no static value
 ok(E.movePriority('grassyglide', { terrain: 'grassy' }) === 1, 'Grassy Glide is +1 in Grassy Terrain');
@@ -152,7 +212,26 @@ ok(illegal === 0, `no immune Pokemon ended a battle with an illegal status (${il
 
 console.log('== 7. flinch cannot leak past the turn it was applied ==');
 /* Every Pokemon must leave a battle with _flinch cleared. It used to be cleared only when the
- * flinched Pokemon tried to act, so a flinch from a slower attacker persisted into the next turn. */
+ * flinched Pokemon tried to act, so a flinch from a slower attacker persisted into the next turn.
+ *
+ * SEEDED 2026-08-26, AND IT HAD TO BE BEFORE THE REMAINING LEAK COULD BE FIXED. `E.battle(a,b,null)`
+ * takes its die from `Math.random`, so this arm reported `1 leaked of 320` on three runs out of six
+ * and `0 leaked` on the other three - a coin-flip red that no one can reproduce and that therefore
+ * cannot be attributed to anything. It is the same defect `tests/test-engine-diff.js` fixed with an
+ * LCG and for the same reason: THE HEADLINE OF THIS ARM IS A COUNT, and a count nobody can re-run is
+ * not a measurement. The constants are Numerical Recipes', as there.
+ *
+ * THE SEED IS 20260825 BECAUSE THAT ONE USED TO FAIL. Of ten bases swept, 20260825, 20260827 and
+ * 123456 leaked and the other seven did not; pinning one of the clean ones would have made this arm
+ * green without fixing anything, which is exactly the comfortable answer this project keeps catching
+ * itself reaching for. Trial 8 of base 20260825 leaks on an Arcanine.
+ *
+ * WHAT THE SEEDING THEN EXPOSED: the leak is the WIPE path. The end-of-turn clear
+ * (`[...actA,...actB].forEach(m => m._flinch = false)`) sits BELOW the four `break _TURN` sites, so a
+ * turn that ends by wiping a side skips it and the flinched body carries the flag out of the battle.
+ * Fixed at the engine by clearing on every exit of the turn block rather than on the ordinary one. */
+const lcg = (seed) => { let x = (seed >>> 0) || 1;
+  return () => { x = (Math.imul(1664525, x) + 1013904223) >>> 0; return x / 4294967296; }; };
 let leaked = 0, seen = 0;
 for (let trial = 0; trial < 40; trial++) {
   const A = pool.slice(trial * 2, trial * 2 + 4);
@@ -160,7 +239,7 @@ for (let trial = 0; trial < 40; trial++) {
   const teamA = A.map(n => E.buildMon(n)).filter(Boolean);
   const teamB = B.map(n => E.buildMon(n)).filter(Boolean);
   if (teamA.length < 4 || teamB.length < 4) continue;
-  E.battle(teamA, teamB, null);
+  E.battle(teamA, teamB, null, lcg(20260825 + trial));
   for (const m of [...teamA, ...teamB]) { seen++; if (m._flinch) leaked++; }
 }
 ok(leaked === 0, `no Pokemon left a battle still flinching (${leaked} leaked of ${seen})`);
@@ -170,47 +249,87 @@ console.log('== 8. Intimidate is not a blanket -1 ==');
 /* Intimidate was applied unconditionally to every foe. It is on Incineroar, the most-used Pokemon in
  * the format, so the error was paid in nearly every game.
  *
- * RE-PINNED 2026-08-05 (WIRE 100). Three of these assertions pinned a model of the retaliation that
- * was itself wrong: in the real game the drop LANDS and THEN Defiant/Competitive fire, so the nets
- * are +1 and -1/+2, not the +2 and 0/+2 this file used to demand. Verified against the OFFICIAL
- * engine at the pinned commit by real battles (an Intimidate Incineroar switch-in against each
- * target, boosts read off the battle object), not from memory:
+ * DERIVED 2026-08-26, AND THE HAND LIST WAS WRONG TWICE OVER.
  *
- *     target ability   official boosts after Intimidate
- *     Honey Gather     atk -1
- *     Defiant          atk +1            (-1 lands, +2 fires)
- *     Competitive      atk -1, spa +2    (the Attack drop is NOT refused)
- *     Contrary         atk +1
- *     Simple           atk -2
+ * It named `fullmetalbody` and `guarddog`, which are legal in Reg M-B and have ZERO legal carriers,
+ * so both rows were red for a mechanic that cannot occur. It named `simple`, also at zero carriers.
+ * And it could only ever contain what somebody remembered: `ripen` is over-tagged as an
+ * invertsBoosts carrier in the artifact (the WIRE 113 defect) and was in NO arm of this file.
  *
- * The Simple row is also why this block caught a REAL regression the same day: the artifact
- * over-tags Simple (and Ripen) as invertsBoosts carriers, and the WIRE 100b shape-read turned that
- * over-match into Intimidate-into-Simple = +1. This file went red on it, which is this file doing
- * its job -- that assertion was TRUE and was not re-pinned; the engine was fixed (WIRE 113). */
+ * THE POPULATION IS STRUCTURAL, NOT A REGEX ON HANDLER TEXT. Every legal ability with at least one
+ * legal carrier that declares any of the three handlers Showdown routes a boost through:
+ * `onTryBoost` (refuse it), `onChangeBoost` (rewrite it), `onAfterEachBoost` (retaliate). Asking for
+ * the handler by NAME cannot over-match the way a source-text match can - that is docs/LESSONS.md 4
+ * and it has cost this repo three times (refusesStatusMoves caught Telepathy and Wonder Guard;
+ * speedOnItemLoss caught Sticky Hold; the weather clause in fixture_preflight matched ZERO).
+ *
+ * THE EXPECTED VALUE IS THE AUTHORITY'S OWN CODE, RUN. Not read, not remembered: each handler is
+ * CALLED with an Intimidate-shaped `{atk: -1}` and the surviving boost is whatever Showdown's own
+ * function leaves behind. That is why the 2026-08-05 re-pin (the drop LANDS and THEN Defiant fires,
+ * so the net is +1 and not +2) needs no comment to defend it any more - it is computed.
+ *
+ * The stub below is deliberately minimal and it distinguishes WHO a retaliation boosts: Mirror Armor
+ * reflects the drop onto the SOURCE and must leave our body at 0, while Defiant and Competitive
+ * boost the TARGET. A stub that recorded both as ours would have scored Mirror Armor as -1. */
 const foe = (ability) => ({ ability, fainted: false, curHP: 100,
                             boosts: { at: 0, df: 0, sa: 0, sd: 0, sp: 0 } });
 const intim = (ability) => { const f = foe(ability); const r = E.applyIntimidate(f); return { r, f }; };
 
+const BOOST_HANDLERS = ['onTryBoost', 'onChangeBoost', 'onAfterEachBoost'];
+/* -> {at, sa} the format itself leaves on a body with this ability after one Intimidate. */
+function officialIntimidate(ab) {
+  const boost = { atk: -1 };
+  const gain = {};
+  const target = { isAlly: () => false, boosts: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 } };
+  const source = { isAlly: () => false, boosts: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 } };
+  const eff = { id: 'intimidate', name: 'Intimidate', effectType: 'Ability' };
+  const battle = {
+    add() {}, hint() {}, effectState: {},
+    boost(b, who) { if (who === target) Object.assign(gain, b); },
+  };
+  if (ab.onChangeBoost) ab.onChangeBoost.call(battle, boost, target, source, eff);
+  if (ab.onTryBoost) ab.onTryBoost.call(battle, boost, target, source, eff);
+  const landed = boost.atk === undefined ? 0 : boost.atk;
+  if (ab.onAfterEachBoost && landed < 0) {
+    ab.onAfterEachBoost.call(battle, { atk: landed }, target, source, eff);
+  }
+  return { at: landed + (gain.atk || 0), sa: gain.spa || 0 };
+}
+
 const plain = intim('');
 ok(plain.f.boosts.at === -1, 'an ordinary Pokemon drops to -1 Attack');
 
-for (const ab of ['clearbody', 'whitesmoke', 'fullmetalbody', 'hypercutter', 'innerfocus',
-                  'oblivious', 'owntempo', 'scrappy', 'guarddog', 'mirrorarmor']) {
-  const { f } = intim(ab);
-  ok(f.boosts.at === 0, `${ab} takes no Attack drop from Intimidate`);
+{
+  const pop = DEX.abilities.all().filter(a =>
+    PF.playable('ability', a.id).ok && BOOST_HANDLERS.some(h => typeof a[h] === 'function'));
+  const bad = [];
+  const shapes = { refused: 0, flipped: 0, retaliated: 0, plain: 0 };
+  for (const ab of pop) {
+    const want = officialIntimidate(ab);
+    const { f } = intim(ab.id);
+    if (f.boosts.at !== want.at || f.boosts.sa !== want.sa) {
+      bad.push(ab.id + ' at=' + f.boosts.at + '/' + want.at + ' sa=' + f.boosts.sa + '/' + want.sa);
+    }
+    if (want.at === 0 && want.sa === 0) shapes.refused++;
+    else if (want.at > 0) shapes.flipped++;
+    else if (want.sa > 0) shapes.retaliated++;
+    else shapes.plain++;
+  }
+  sweep('Intimidate vs every legal boost-handling ability', pop.length, bad);
+  /* AND THE POPULATION HAS TO CONTAIN MORE THAN ONE ANSWER. If every derived ability came out at a
+   * plain -1 the sweep would be green against an engine that had never heard of Clear Body. */
+  ok(shapes.refused > 0 && shapes.flipped > 0 && shapes.retaliated > 0,
+     'the sweep spans all four outcomes - refused ' + shapes.refused + ', flipped ' + shapes.flipped
+     + ', retaliated ' + shapes.retaliated + ', plain -1 ' + shapes.plain);
 }
+
+/* The two rows the derivation cannot state for itself: the SIZE of the Defiant swing, which is the
+ * thing the sign error actually cost, and that a refusal is not merely "some ability did nothing". */
 const d = intim('defiant');
-ok(d.f.boosts.at === 1,  'Defiant: the drop lands and the +2 fires -- net +1 Attack (official: atk +1)');
-const c = intim('competitive');
-ok(c.f.boosts.sa === 2 && c.f.boosts.at === -1,
-   'Competitive: +2 Special Attack AND the Attack drop still lands (official: atk -1, spa +2)');
-const ct = intim('contrary');
-ok(ct.f.boosts.at === 1, 'Contrary flips the drop into +1 Attack');
-const si = intim('simple');
-ok(si.f.boosts.at === -2, 'Simple doubles the drop to -2 Attack');
-// the sign error, stated as the thing it actually costs
 ok(d.f.boosts.at - plain.f.boosts.at === 2,
-   'a Defiant target is two stages better off than a plain one (-1 vs +1)');
+   'a Defiant target is two stages better off than a plain one (' + plain.f.boosts.at + ' vs ' + d.f.boosts.at + ')');
+ok(intim('clearbody').f.boosts.at === 0 && plain.f.boosts.at === -1,
+   'and a refusing ability really is a refusal, against a control that drops');
 
 console.log(`\nROLLOUT EFFECT TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

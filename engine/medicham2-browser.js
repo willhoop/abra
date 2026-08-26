@@ -29092,6 +29092,22 @@ function battleTurn(S,rng,actsForA,actsForB){
      * from empty to occupied, which is the commonest way a Trace that found nothing gets a target. */
     traceSweep([...actA,...actB]);
   }
+  /* 2026-08-26 -- FLINCH EXPIRES ON EVERY EXIT OF THE TURN, NOT ONLY THE ORDINARY ONE.
+   *
+   * The clear inside the block (`[...actA,...actB].forEach(m => m._flinch = false)`, above the
+   * residual) sits BELOW all four `break _TURN` sites, so a turn that ends by WIPING A SIDE jumped
+   * straight over it and the flinched body carried `_flinch` out of the battle. Measured, not
+   * assumed: seed 20260825 trial 8 leaks on an Arcanine, and the same battle's counters read
+   * `turnEndedSideWiped 1, turnEndedMidAction 1` -- the break at the mid-action win check.
+   *
+   * THIS CHANGES NO BOARD AND CANNOT. Every `break _TURN` is a `sideWiped(S)`, so the battle is over
+   * at this line and nothing downstream reads the flag; on the ordinary path the in-block clear has
+   * already run and this is a no-op. It is the state-hygiene invariant the arm in
+   * tests/test-rollout-effects.js names, held on all five exits instead of on four.
+   *
+   * It was invisible for as long as it was because that arm ran on `Math.random` and reported the
+   * leak on roughly half its runs -- see the seeding note beside it. */
+  [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
   S.turn++;
   traceRelease(_trPrev);
   return S;

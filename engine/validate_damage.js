@@ -22,8 +22,26 @@ const TC={Normal:{Rock:.5,Ghost:0,Steel:.5},Fire:{Fire:.5,Water:.5,Grass:2,Ice:2
  Dark:{Fighting:.5,Psychic:2,Ghost:2,Dark:.5,Fairy:.5},
  Steel:{Fire:.5,Water:.5,Electric:.5,Ice:2,Rock:2,Steel:.5,Fairy:2},
  Fairy:{Fire:.5,Fighting:2,Poison:.5,Dragon:2,Dark:2,Steel:.5}};
+/* THE SPECIES TABLE IS THE REAL ONE, AND THE STUB THAT USED TO STAND HERE MADE THIS GOLDEN MASTER
+ * MEASURE A DIFFERENT ENGINE - 2026-08-26.
+ *
+ *     globalThis.MC = {mons:{}, moves:{}};        <- what this line was
+ *
+ * An empty `MC.mons` is not a harmless stand-in. `pasteKey()` resolves a species NAME through
+ * `monKey()`, which reads `MC.mons`; with the table empty it answers nothing, so every tag whose
+ * param is SPECIES-LOCKED silently stops applying. Light Ball is exactly that shape - `statMult`
+ * carries `onlySpecies: 'Pikachu'` - and under the stub it read x1 while @smogon/calc read x2, a
+ * clean 50% error that looked like a formula bug and was a harness bug.
+ *
+ * That is this project's signature failure with the roles reversed: the ENGINE was right and the
+ * instrument was quietly running it with a piece missing. Suspect the instrument first
+ * (docs/LESSONS.md, "suspect the instrument before the engine").
+ *
+ * The type chart is still this file's own TC, assigned AFTER the require so it wins - engine-data
+ * exports an `mcEff` of its own and the point of this file is to isolate the damage MATH against a
+ * chart that is known good, not to co-test the chart. */
+require(path.join(__dirname,'..','data','engine-data.js'));
 globalThis.mcEff=function(atk,defTypes){let m=1;for(const d of (defTypes||[])){const e=TC[atk]&&TC[atk][d];m*=(e===undefined?1:e);}return m;};
-globalThis.MC={mons:{},moves:{}};
 const MEDI=require(path.join(__dirname,'medicham2-browser.js'));   // exports {dmgRange,...}
 const gen=Generations.get(9);
 
@@ -42,45 +60,98 @@ const CALCMOVE={earthquake:'Earthquake',rockslide:'Rock Slide',closecombat:'Clos
  moonblast:'Moonblast',makeitrain:'Make It Rain',shadowball:'Shadow Ball',iciclecrash:'Icicle Crash',
  thunderbolt:'Thunderbolt',dragonclaw:'Dragon Claw',suckerpunch:'Sucker Punch',playrough:'Play Rough',airslash:'Air Slash',bulletpunch:'Bullet Punch'};
 
+/* THE SCENARIO TABLE, REPAIRED 2026-08-26. SEVEN OF ITS ENTITIES WERE NOT IN THIS REGULATION.
+ *
+ * This is the golden master on the damage number - the guard on the figure every other result in
+ * the project rests on - and it had been RED at within-5% 92% / worst 50% for long enough to be
+ * background noise. A check that is permanently red cannot report a regression, because a real one
+ * is indistinguishable from the standing failure. That is the "known failure" trap CLAUDE.md bans
+ * the phrase for, sitting on the damage number.
+ *
+ * All three red rows were the FIXTURE, and the engine agreed with the format on every one:
+ *
+ *   Choice Band     isNonstandard: 'Past' - BANNED here. CLAUDE.md names it on the ban list.
+ *   Choice Specs    the same.
+ *   Tinted Lens     legal, and ZERO legal carriers. It cannot occur in a game of this format.
+ *
+ * MEDICHAM already knew. The `if (phys && att.item === 'choiceband') ACH(1.5)` lines were removed
+ * from medicham2-browser.js on 2026-08-10 precisely because those items are banned; this table went
+ * on asking for them for sixteen days and reading the removal as a 34% error.
+ *
+ * FOUR MORE ENTITIES WERE ILLEGAL AND NOTHING WAS RED, WHICH IS WORSE. Flutter Mane, Chien-Pao,
+ * Rillaboom and AMOONGUSS are all `isNonstandard: 'Past'`, and they appeared in 20 of the 36 rows.
+ * @smogon/calc is MAINLINE, so it answers happily for a Pokemon this format does not have, and
+ * MEDICHAM's table carries them too - the two agreed perfectly about a game nobody is playing.
+ * Amoonguss is the one Will named by name: "IF I SEE ONE MORE AMOONGUSS OR BAXCALIBUR FROM YOU, YOU
+ * ARE FIRED."
+ *
+ * EVERY REPLACEMENT KEEPS THE ROW'S INTENT, and the choice was derived rather than recalled:
+ *
+ *   Chien-Pao   -> Weavile           Dark/Ice, physical. The same two types.
+ *   Amoonguss   -> Venusaur          Grass/Poison. The same two types.
+ *   Flutter Mane-> Mimikyu-Busted    Ghost/Fairy - the only legal body with that pair, and the
+ *                                    BUSTED forme so `@smogon/calc` does not apply Disguise (it
+ *                                    excludes Mimikyu-Busted by name), which would zero the row.
+ *   Flutter Mane-> Gardevoir         as the Fairy SPECIAL attacker; derived from the legal species
+ *      (as attacker)                 that are Fairy, learn Moonblast and have SpA >= 100.
+ *   Rillaboom   -> Machamp           a legal Fighting body that learns Close Combat.
+ *   Choice Band -> Pikachu @ Light Ball, Play Rough
+ *   Choice Specs-> Pikachu @ Light Ball, Thunderbolt
+ *      Light Ball is the ONLY item left in this regulation that multiplies a RAW ATTACK STAT
+ *      (`chainModify(2)` on both Atk and SpA) rather than base power - derived by walking every
+ *      legal item for onModifyAtk/onModifySpA. Swapping in a type-boost item instead would have
+ *      duplicated the Black Glasses / Charcoal / Fairy Feather rows, which is deleting coverage
+ *      while appearing to keep it. It also has 49 corpus uses and was a roster DID-NOT-FIRE row.
+ *   Tinted Lens -> Charizard-Mega-X @ Tough Claws, Flare Blitz into Pelipper
+ *      An ATTACKER ability that multiplies damage under a condition - the layer Tinted Lens was
+ *      standing for - carried by a legal body, and still a RESISTED hit, which is what the original
+ *      row was checking. Derived from the legal abilities with carriers that declare onBasePower.
+ *
+ * AND TWO ABILITIES WERE STAMPED ON BODIES THAT CANNOT HAVE THEM. Solid Rock was put on Incineroar
+ * and Thick Fat on Amoonguss. Both now sit on real carriers (Rhyperior, Venusaur-Mega), so the row
+ * is a board that could occur.
+ *
+ * THE PREFLIGHT BELOW IS THE DURABLE HALF. Every literal in this table is put to the format on every
+ * run, so the next regulation change is named rather than absorbed. */
 // scenarios: [attacker, ability, item, nature, evAtkOrSpa, move, defender, defNature, defEVs, weather]
 const W_NONE=undefined;
 const S=[
  // --- plain STAB / neutral / resist / super-effective, no weather/item ---
  ['Garchomp','Rough Skin',null,'Adamant','atk','earthquake','Incineroar','Careful',{hp:252,spd:4},W_NONE],
  ['Garchomp','Rough Skin',null,'Adamant','atk','earthquake','Gholdengo','Bold',{hp:252,def:4},W_NONE],
- ['Kingambit','Defiant',null,'Adamant','atk','suckerpunch','Flutter Mane','Timid',{hp:252},W_NONE],
- ['Chien-Pao','Sword of Ruin',null,'Jolly','atk','iciclecrash','Garchomp','Jolly',{hp:252},W_NONE],
- ['Incineroar','Intimidate',null,'Adamant','atk','flareblitz','Amoonguss','Calm',{hp:252,def:4},W_NONE],
- ['Flutter Mane','Protosynthesis',null,'Timid','spa','moonblast','Garchomp','Jolly',{hp:252},W_NONE],
- ['Gholdengo','Good as Gold',null,'Modest','spa','makeitrain','Flutter Mane','Timid',{hp:252},W_NONE],
+ ['Kingambit','Defiant',null,'Adamant','atk','suckerpunch','Mimikyu-Busted','Timid',{hp:252},W_NONE],
+ ['Weavile','Pressure',null,'Jolly','atk','iciclecrash','Garchomp','Jolly',{hp:252},W_NONE],
+ ['Incineroar','Intimidate',null,'Adamant','atk','flareblitz','Venusaur','Calm',{hp:252,def:4},W_NONE],
+ ['Gardevoir','Synchronize',null,'Timid','spa','moonblast','Garchomp','Jolly',{hp:252},W_NONE],
+ ['Gholdengo','Good as Gold',null,'Modest','spa','makeitrain','Mimikyu-Busted','Timid',{hp:252},W_NONE],
  ['Archaludon','Stamina',null,'Modest','spa','thunderbolt','Pelipper','Bold',{hp:252,def:4},W_NONE],
- ['Rillaboom','Grassy Surge',null,'Adamant','atk','closecombat','Kingambit','Adamant',{hp:252},W_NONE],
+ ['Machamp','Guts',null,'Adamant','atk','closecombat','Kingambit','Adamant',{hp:252},W_NONE],
  ['Dragonite','Multiscale',null,'Adamant','atk','dragonclaw','Garchomp','Jolly',{hp:252},W_NONE],
- // --- items (Band / Specs / Life Orb) ---
- ['Garchomp','Rough Skin','Choice Band','Adamant','atk','earthquake','Incineroar','Careful',{hp:252,spd:4},W_NONE],
- ['Flutter Mane','Protosynthesis','Choice Specs','Timid','spa','moonblast','Kingambit','Adamant',{hp:252},W_NONE],
- ['Chien-Pao','Sword of Ruin','Life Orb','Jolly','atk','iciclecrash','Dragonite','Adamant',{hp:252},W_NONE],
- ['Gholdengo','Good as Gold','Life Orb','Modest','spa','shadowball','Flutter Mane','Timid',{hp:252},W_NONE],
- // --- spread moves (doubles ×0.75) ---
+ // --- items: the raw attack-stat multiplier (Light Ball, x2, Pikachu-only) and Life Orb ---
+ ['Pikachu','Static','Light Ball','Adamant','atk','playrough','Garchomp','Jolly',{hp:252},W_NONE],
+ ['Pikachu','Static','Light Ball','Modest','spa','thunderbolt','Pelipper','Bold',{hp:252,def:4},W_NONE],
+ ['Weavile','Pressure','Life Orb','Jolly','atk','iciclecrash','Dragonite','Adamant',{hp:252},W_NONE],
+ ['Gholdengo','Good as Gold','Life Orb','Modest','spa','shadowball','Mimikyu-Busted','Timid',{hp:252},W_NONE],
+ // --- spread moves (doubles x0.75) ---
  ['Garchomp','Rough Skin',null,'Adamant','atk','rockslide','Talonflame','Jolly',{hp:252},W_NONE],
- ['Incineroar','Intimidate',null,'Modest','spa','heatwave','Amoonguss','Calm',{hp:252,spd:4},W_NONE],
- ['Gholdengo','Good as Gold',null,'Modest','spa','makeitrain','Flutter Mane','Timid',{hp:252},W_NONE],
+ ['Incineroar','Intimidate',null,'Modest','spa','heatwave','Venusaur','Calm',{hp:252,spd:4},W_NONE],
+ ['Gholdengo','Good as Gold',null,'Modest','spa','makeitrain','Mimikyu-Busted','Timid',{hp:252},W_NONE],
  // --- weather: Rain boosts Water / cuts Fire; Sun boosts Fire / cuts Water ---
  ['Pelipper','Drizzle',null,'Modest','spa','hydropump','Incineroar','Careful',{hp:252,spd:4},'Rain'],
  ['Basculegion','Swift Swim',null,'Adamant','atk','wavecrash','Garchomp','Jolly',{hp:252},'Rain'],
- ['Charizard','Solar Power',null,'Timid','spa','heatwave','Amoonguss','Calm',{hp:252,spd:4},'Sun'],
+ ['Charizard','Solar Power',null,'Timid','spa','heatwave','Venusaur','Calm',{hp:252,spd:4},'Sun'],
  ['Torkoal','Drought',null,'Modest','spa','heatwave','Kingambit','Adamant',{hp:252},'Sun'],
  ['Pelipper','Drizzle',null,'Modest','spa','hydropump','Torkoal','Bold',{hp:252,def:4},'Sun'], // fire-cut water
  // --- ability/item layer (attacker ab/item; defAb is 11th, defItem 12th) ---
  ['Basculegion','Adaptability',null,'Adamant','atk','wavecrash','Garchomp','Jolly',{hp:252},W_NONE],            // STAB x2
- ['Scizor','Technician',null,'Adamant','atk','bulletpunch','Flutter Mane','Timid',{hp:252},W_NONE],             // <=60bp x1.5
- ['Charizard','Tinted Lens',null,'Timid','spa','heatwave','Pelipper','Bold',{hp:252,def:4},W_NONE],             // resisted x2
- ['Garchomp','Rough Skin',null,'Adamant','atk','earthquake','Incineroar','Careful',{hp:252,spd:4},W_NONE,'Solid Rock'],   // SE x0.75
+ ['Scizor','Technician',null,'Adamant','atk','bulletpunch','Mimikyu-Busted','Timid',{hp:252},W_NONE],           // <=60bp x1.5
+ ['Charizard-Mega-X','Tough Claws',null,'Adamant','atk','flareblitz','Pelipper','Bold',{hp:252,def:4},W_NONE],  // contact x1.3, resisted
+ ['Garchomp','Rough Skin',null,'Adamant','atk','earthquake','Rhyperior','Careful',{hp:252,spd:4},W_NONE,'Solid Rock'],    // SE x0.75
  ['Mamoswine','Thick Fat',null,'Adamant','atk','iciclecrash','Dragonite','Adamant',{hp:252},W_NONE,'Multiscale'],         // full HP x0.5
- ['Incineroar','Intimidate',null,'Adamant','atk','flareblitz','Amoonguss','Calm',{hp:252,def:4},W_NONE,'Thick Fat'],      // fire x0.5
+ ['Incineroar','Intimidate',null,'Adamant','atk','flareblitz','Venusaur-Mega','Calm',{hp:252,def:4},W_NONE,'Thick Fat'],  // fire x0.5
  ['Garchomp','Rough Skin','Expert Belt','Adamant','atk','earthquake','Incineroar','Careful',{hp:252,spd:4},W_NONE],       // SE x1.2
  ['Garchomp','Rough Skin','Muscle Band','Adamant','atk','earthquake','Gholdengo','Bold',{hp:252,def:4},W_NONE],           // phys x1.1
- ['Gholdengo','Good as Gold','Wise Glasses','Modest','spa','shadowball','Flutter Mane','Timid',{hp:252},W_NONE],          // spec x1.1
+ ['Gholdengo','Good as Gold','Wise Glasses','Modest','spa','shadowball','Mimikyu-Busted','Timid',{hp:252},W_NONE],        // spec x1.1
  /* --- ADDED 2026-07-29, and the reason matters. Will asked how the damage could line up with
     Showdown if the calc had so many errors. It lined up on everything it was ASKED: the original 31
     scenarios covered Choice Band, Life Orb, Expert Belt, Muscle Band and Wise Glasses, and not one
@@ -88,14 +159,57 @@ const S=[
     case list was written from the same mental model as the calc, so both were blind to the same 18
     items. These scenarios are the gap, and they FAIL with ABRA_TAGS_OFF=1 by construction. */
  ['Kingambit','Defiant','Black Glasses','Adamant','atk','suckerpunch','Gholdengo','Bold',{hp:252,def:4},W_NONE],          // Dark x1.2
- ['Incineroar','Intimidate','Charcoal','Adamant','atk','flareblitz','Amoonguss','Calm',{hp:252,def:4},W_NONE],            // Fire x1.2
- ['Flutter Mane','Protosynthesis','Fairy Feather','Timid','spa','moonblast','Garchomp','Jolly',{hp:252},W_NONE],          // Fairy x1.2
+ ['Incineroar','Intimidate','Charcoal','Adamant','atk','flareblitz','Venusaur','Calm',{hp:252,def:4},W_NONE],             // Fire x1.2
+ ['Gardevoir','Synchronize','Fairy Feather','Timid','spa','moonblast','Garchomp','Jolly',{hp:252},W_NONE],                // Fairy x1.2
  ['Kingambit','Defiant',null,'Adamant','atk','suckerpunch','Gholdengo','Bold',{hp:252,def:4},W_NONE,null,'Colbur Berry'], // SE Dark halved
- ['Rillaboom','Grassy Surge',null,'Adamant','atk','closecombat','Kingambit','Adamant',{hp:252},W_NONE,null,'Chople Berry'],// SE Fighting halved
+ ['Machamp','Guts',null,'Adamant','atk','closecombat','Kingambit','Adamant',{hp:252},W_NONE,null,'Chople Berry'],         // SE Fighting halved
 ];
+
+/* THE PREFLIGHT - EVERY LITERAL ABOVE, PUT TO THE FORMAT ON EVERY RUN.
+ *
+ * @smogon/calc is mainline Gen 9 and answers for anything; MEDICHAM's table carries the same bodies.
+ * So two engines agreeing about a banned item, or about a Pokemon this regulation does not have, is
+ * not evidence of anything - it is the FIXTURE being wrong in a way neither side can see. That is
+ * how Amoonguss sat in twenty rows at 0% error.
+ *
+ * It is DERIVED, so a regulation change is caught with no edit here. It refuses BY CARRIER as well
+ * as by `isNonstandard`, which is the clause that catches Tinted Lens: legal by every flag and
+ * impossible in play.
+ *
+ * IT SKIPS LOUDLY RATHER THAN FAILING when no Showdown checkout is reachable, because the DAMAGE
+ * comparison needs no format and must keep running in CI. A skip is not a pass and it says so. */
+function preflight(){
+  let PF=null;
+  try{ PF=require(path.join(__dirname,'fixture_preflight.js')); }
+  catch(e){
+    console.log('\n  PREFLIGHT SKIPPED - no Champions format reachable ('+String(e.message).slice(0,60)+').');
+    console.log('  The legality of these '+S.length+' scenarios was NOT checked on this run.');
+    return true;
+  }
+  const bad=[];
+  const seen=new Set();
+  const put=(kind,name)=>{ if(!name)return; const k=kind+':'+name; if(seen.has(k))return; seen.add(k);
+    const r=PF.playable(kind,name); if(!r.ok)bad.push(r.why); };
+  for(const sc of S){
+    const [att,ab,item,,,mvKey,def,,,,defAb,defItem]=sc;
+    put('species',att); put('species',def);
+    put('ability',ab);  put('ability',defAb);
+    put('item',item);   put('item',defItem);
+    put('move',mvKey);
+  }
+  if(bad.length){
+    console.error('\nREFUSING: this scenario table names '+bad.length+' entities that are not in Reg M-B.');
+    for(const b of bad) console.error('  - '+b);
+    console.error('A fixture built on an entity that cannot occur measures a game we do not play.');
+    return false;
+  }
+  console.log('  preflight: all '+seen.size+' named entities are playable in Reg M-B (derived at run time)');
+  return true;
+}
 
 function medStat(res, side, cat){ const st=res[side].stats; return cat==='P'?st.atk:st.spa; }
 function run(){
+ if(!preflight()) process.exit(1);
  let rows=[], errsMin=[], errsMax=[];
  for(const sc of S){
   const [att,ab,item,nat,off,mvKey,def,dnat,devs,weather,defAb,defItem]=sc;
@@ -110,11 +224,16 @@ function run(){
   // align stats: read calc's computed stats, feed MEDICHAM the same
   const Araw = cat==='P'?A.stats.atk:A.stats.spa;
   const Draw = cat==='P'?D.stats.def:D.stats.spd;
+  /* `name` IS NOT COSMETIC. A species-locked tag param (Light Ball's `onlySpecies: 'Pikachu'`) is
+   * matched against the body's own key, so a nameless body silently declines every one of them -
+   * the same class of hole as the empty MC stub at the top of this file. The key shape is
+   * medicham2's: lower case, hyphens kept, so `Charizard-Mega-X` -> `charizard-mega-x`. */
+  const key=n=>String(n||'').toLowerCase().replace(/[^a-z0-9-]/g,'');
   const mAtt={ st:{at:Araw,sa:Araw}, boosts:{at:0,sa:0}, item:(item||'').toLowerCase().replace(/[^a-z]/g,''),
-    ability:(ab||'').toLowerCase().replace(/[^a-z]/g,''), types:A.types.slice(), status:null };
+    ability:(ab||'').toLowerCase().replace(/[^a-z]/g,''), types:A.types.slice(), status:null, name:key(att) };
   const mDef={ st:{df:Draw,sd:Draw,hp:D.stats.hp}, boosts:{df:0,sd:0}, item:(defItem||'').toLowerCase().replace(/[^a-z]/g,''),
-    ability:(defAb||'').toLowerCase().replace(/[^a-z]/g,''), types:D.types.slice(), curHP:D.stats.hp };
-  const mMove={bp,c:cat,t:type};
+    ability:(defAb||'').toLowerCase().replace(/[^a-z]/g,''), types:D.types.slice(), curHP:D.stats.hp, name:key(def) };
+  const mMove={bp,c:cat,t:type,id:mvKey};
   const mField={weather:(weather||'').toLowerCase()};
   const dr=MEDI.dmgRange(mAtt,mDef,mMove,mField,!!spread);
   const eMin=calcLo?100*(dr.min-calcLo)/calcLo:0, eMax=calcHi?100*(dr.max-calcHi)/calcHi:0;

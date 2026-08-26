@@ -10,6 +10,73 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.132.0] — 2026-08-26
+
+### Fixed
+- **THE GOLDEN MASTER ON THE DAMAGE NUMBER WAS RED FOR SIXTEEN DAYS AND EVERY RED ROW WAS A FIXTURE
+  THIS FORMAT DOES NOT HAVE.** `engine/validate_damage.js` guards the figure every other result in the
+  project rests on and was failing at `within-5% 92% / worst 50%`. A permanently red check cannot
+  report a regression, because a real one is indistinguishable from the standing failure. All three
+  red rows were illegal fixtures and the engine agreed with the format on every one: `'Choice Band'`
+  and `'Choice Specs'` are `isNonstandard: 'Past'` — banned here, and on CLAUDE.md's own ban list —
+  and `'Tinted Lens'` is legal by every flag with **zero legal carriers**, so it cannot occur in a
+  game of this regulation. MEDICHAM already knew about the first two: the `att.item === 'choiceband'`
+  lines were deleted on 2026-08-10 *because* the items are banned, and this table read the deletion as
+  a 34% formula error. **Now 100% within 2%, worst 0%, 36 of 36 compared.**
+- **FOUR MORE ILLEGAL ENTITIES SAT IN THE SAME TABLE AND NOTHING WAS RED, WHICH IS WORSE.** Flutter
+  Mane, Chien-Pao, Rillaboom and **Amoonguss** are all `Past`, and they appeared in **20 of the 36
+  rows at 0% error**. `@smogon/calc` is mainline and answers happily for a Pokémon this format does
+  not have; MEDICHAM's table carries them too. The two engines agreed perfectly about a game nobody
+  plays. Replacements keep each row's intent and were derived, not recalled — Weavile, Venusaur,
+  Mimikyu-Busted, Gardevoir, Machamp, and **Pikachu @ Light Ball**, the only item left in this
+  regulation that multiplies a raw attack stat rather than base power.
+- **`engine/validate_damage.js` WAS RUNNING A DIFFERENT ENGINE.** It stubbed
+  `globalThis.MC = {mons:{}, moves:{}}`. `pasteKey()` resolves a species name through `monKey()`,
+  which reads `MC.mons`; with the table empty **every tag whose param is species-locked silently
+  stopped applying**. Light Ball's `statMult` carries `onlySpecies: 'Pikachu'`, so it read x1 against
+  the calc's x2 — a clean 50% error wearing a formula bug's clothes. It loads the real table now.
+- **FLINCH LEAKED OUT OF ANY BATTLE THAT ENDED BY WIPING A SIDE.** The end-of-turn `_flinch` clear in
+  `engine/medicham2-browser.js` sits below all four `break _TURN` sites, so a turn ending on
+  `sideWiped(S)` skipped it. Measured: seed 20260825 trial 8 leaks on an Arcanine with
+  `turnEndedSideWiped 1, turnEndedMidAction 1`. Cleared on every exit of the turn block now. It
+  changes no board — every `break _TURN` is a wipe, so the battle is already over at that line.
+- **THE FLINCH ARM WAS UNSEEDED, WHICH IS WHY THAT DEFECT SURVIVED.** It ran on `Math.random` and
+  reported `1 leaked of 320` on three runs of six. The headline of an arm is a COUNT, and a count
+  nobody can re-run is not a measurement. Seeded with an LCG at a base that **failed** (of ten swept,
+  20260825, 20260827 and 123456 leaked); pinning a clean one would have made it green without fixing
+  anything.
+
+### Changed
+- **THREE CHECKS NOW DERIVE THEIR FIXTURES FROM THE FORMAT INSTEAD OF TYPING THEM.**
+  `engine/fixture_preflight.js` gains `carriers()` and `playable(kind, name)` — the ability half of
+  its existing `learnable()`, and the clause `isNonstandard` cannot do. `tests/test-rollout-effects.js`
+  sections 1–4 stop being tables of 30 hand-typed moves (five of which this format does not have) and
+  sweep **every playable move in Reg M-B**: 10 primary-status, 172 status-accuracy, 19 flinch and
+  **496 priority**, against Showdown's own values. MEDICHAM agreed on all 496, on all four properties,
+  first time. Section 8 sweeps every legal ability with a carrier that declares a boost handler, and
+  computes the expected Intimidate outcome by **calling the authority's own handler**. That population
+  contains `ripen`, the other WIRE 113 over-match, which no arm of this file had ever touched.
+  `tests/test-fragility.js` derives its absorbers the same way. Every fixture was typed from memory
+  and every one of them broke CLAUDE.md's oldest rule inside a test.
+- The derived absorber set **over-matched on the first attempt and printing it is what caught it** —
+  Dry Skin was filed under Fire, which it does not absorb (it takes 1.25x more), because the type
+  literal lives in a different handler on the same ability. Only `onTryHit`'s own source counts now.
+
+### Notes
+- **Every repaired check was shown RED on a deliberate break before being trusted** — five of them,
+  all fired, all restored.
+- **Nothing else moved, and that is measured rather than argued.** Release `4174fe78d1ee` differs from
+  `d38d117e68e9` in one file. Whole-game **17 of 961**, unmoved, with `first_divergences`, `classes`
+  and the `end_state` summary byte-identical to the pre-change artifact; a control run of the OLD
+  release under the same flags differs from the new one **only in the recorded release id**. Census
+  **706/706**. Roster items/abilities/moves summaries identical. `all-mechanics-fire` identical except
+  wall-clock seconds.
+- **`--games` is a REQUEST divided across configs and the artifact records the ACHIEVED count.**
+  `perConfig = floor(GAMES / live.length)`, so the 961-game baseline came from `--games 1200`. Feeding
+  the artifact's own `games: 961` back as `--games 961` draws a different, smaller sample (777 games,
+  39 raw) that reads exactly like a 2.5x regression and is not one. Same class as the unrecorded
+  `--state`; filed on the ENGINE hand list.
+
 ## [5.131.7] — 2026-08-26
 
 ### Fixed
