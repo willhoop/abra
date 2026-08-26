@@ -21,6 +21,60 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## `data/engine-data.js` CAN NOW PROVE ITSELF, AND IT IS DRIFTED BY ONE ROW. 2026-08-26 (MEASURE).
+
+Ledger section: `docs/MEASURE.md` — OWED, not written (outside this brief). CHANGELOG 5.136.3.
+Report: `docs/_reports/2026-08-26-engine-data-check.md`. **No engine byte and no artifact byte moved** —
+`data/engine-data.js` sha256 `c73da1d2...` verified identical before and after every run, so no release
+is affected and nothing needs re-cutting.
+
+**THE BUILDER, DERIVED NOT TYPED.** `build/build_engine_data.js`, named by
+`engine/generated_audit.js --list` through the writer scan of `engine/provenance.js`. Sources:
+`CHOMP/engine/champ-model.js` (308 rows), the Champions dex via `engine/champions_sim.js`,
+`data/tags.json`. It is in `engine_release.js` `SOURCES`, so it is frozen into **every** release, and
+until today it had **no comparison of any kind** — while being the file the 2026-07-30 mega-null bug
+first bit us on.
+
+**VERDICT: DRIFTED, ONE ROW.** `floette-eternal-mega` is in champ-model and absent from the artifact.
+321 mon rows, 500 moves, the 18-row type chart, 230 priors and the whole wrapper agree byte-for-byte.
+**Not a playable hole, and that is measured:** `floette-mega` and `floette-eternal-mega` have identical
+base stats, and of all 308 champ-model rows exactly one fails to round-trip through `mcKey` — that one.
+It is a duplicate alias no lookup can ask for; the reachable `floette-mega` row is fully populated. The
+store holds **103,098** `floettemega` occurrences, so had the reachable key been the missing one this
+would have been 2026-07-30 again at scale. **Reported, not fixed** — regenerating changes the bytes
+every future release freezes, which is a decision for Will.
+
+**THE CENSUS IS THE HALF THAT MATTERS.** This builder reads the artifact it is about to overwrite and
+carries most of it through, so `ab`, `mv` and `item` — the exact three fields of the 2026-07-30 bug —
+compare equal to themselves and a byte diff can never see them. The census counts that shape directly
+and declares the expected ones from the format, never from a list: **0 UNBUILDABLE, 0 null ability, 4
+empty movelists (all 4 not legal here), 10 null items (7 battle-only), 10 null weights (0 declared).**
+The 10 null weights are a real builder gap — the `wt` fill runs only over champ-model keys, so the 15
+*preserved* rows never get one — and the dex knows all ten. A missing weight makes Low Kick, Grass Knot,
+Heavy Slam and Heat Crash **uncomputable rather than mis-priced** (`basePower` 0). Left unfixed on
+purpose: fixing it would change what `--check` compares and turn the verdict above into a drift the fix
+introduced.
+
+**RED TWICE ON REAL BYTES, GREEN ONCE.** `venusaur` base HP 80 to 81 was caught and named to the field.
+Then `venusaur` `ab`/`mv`/`item` wiped — the byte diff **did not see it**, exactly as the header of the
+check predicts, and the census moved UNEXPLAINED 13 to 16 naming `venusaur` in all three bands. Green
+control: the output of the builder on disk gives exit 0, so the red attributes to exactly one row.
+Every restore verified sha256-identical with the mtime preserved to the whole millisecond, and 488 ns
+in the *safe* direction, since `build_pdfs.js` and `provenance.js` compare `mtimeMs` with `<`.
+
+**A BUG THE GREEN CONTROL FOUND.** The stamp guard read `if (stamped === out)` — "the string changed"
+standing in for "the pattern matched". On any **second run in the same calendar day** the header is
+already right, the replace is a no-op, and the builder exited 1 claiming the file *"does not open with
+a block comment"*. False, and it would have read as a broken generator. Now tests the pattern.
+
+**WHAT WALKS PAST IT** is in the header of the check, not only here. Chiefly: `engine/generated_audit.js`
+**will not spawn this check** — its play-layer walk sees the require of `engine/champions_sim.js`, which
+is in `SOURCES`, and refuses any builder that reaches the simulator. So `data/engine-data.js` stays
+`UNPROVABLE` in that report and this must be run by hand. The refusal is the safe direction and was not
+worked around.
+
+---
+
 ## THE PROTECT RECONCILE, WILL'S WIDE GUARD FIXTURE, AND THE OWED CLAUSES. CENSUS 714 -> 715. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, the three subsections under *"A SLEEPING BODY WAS RAISING A PROTECT"*.

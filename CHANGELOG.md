@@ -10,6 +10,86 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.136.3] — 2026-08-26
+
+### Added
+- **`data/engine-data.js` CAN NOW PROVE ITSELF, AND IT CURRENTLY FAILS.** `build/build_engine_data.js`
+  gains a `--check` mode in the `build/build_tags_js.js --check` idiom — it writes nothing and exits
+  non-zero if the artifact on disk is not what the builder would produce from its sources. This file
+  was on the twelve-file shortlist because it is frozen into **every** engine release
+  (`engine_release.js` `SOURCES`) and had **no comparison of any kind**. It is also the file this whole
+  class of bug first bit us on, on 2026-07-30, when zero of 67 mega writes matched and every mega in
+  the format carried `ab: null`, `mv: []`, `item: null`. The builder was DERIVED, not typed:
+  `engine/generated_audit.js --list` names it through the writer scan of `engine/provenance.js`.
+- **A ROW CENSUS, PRINTED EVERY RUN, IN BOTH MODES.** It counts the exact 2026-07-30 shape — missing
+  `bs` (buildMon returns null, i.e. UNBUILDABLE), null `ab`, empty `mv`, null `item`, null `wt` — and
+  DECLARES the expected ones with a **derived** reason (`isNonstandard` / `tier: Illegal` means not in
+  this format; `species.battleOnly` means never built), never a typed list. This is not decoration:
+  those three fields are precisely the ones the byte diff CANNOT see, because the builder copies them
+  off the artifact it is about to overwrite.
+
+### Fixed
+- **THE BUILDER REFUSED TO RUN TWICE IN ONE DAY AND MISDIAGNOSED WHY.** The header-stamp guard read
+  `if (stamped === out)`, using "the string changed" as a proxy for "the pattern matched". On any
+  second run on the same calendar day the header is already correct, the replacement is a no-op, the
+  strings are equal — and the builder exited 1 announcing that the file *"does not open with a block
+  comment"*, which was false. It now tests the PATTERN, which is the condition the message describes.
+  **Found by a green control**, not by inspection: running `--check` against the freshly-stamped
+  output of the builder is exactly the same-day case.
+
+### Notes
+- **VERDICT: `data/engine-data.js` IS DRIFTED FROM ITS SOURCES. Exactly one row —
+  `floette-eternal-mega` is carried by `CHOMP/engine/champ-model.js` and absent from the artifact.**
+  321 mon rows, 500 moves, the 18-row type chart, 230 priors and the whole wrapper agree byte-for-byte.
+  **Reported, not fixed**: regenerating changes the bytes every future release freezes, and that is a
+  decision for Will rather than a chore. The check says so in its own failure text.
+- **The drift is not a playable hole, and that was MEASURED rather than assumed.** `champ-model`
+  carries three floette keys and the artifact two; `floette-mega` and `floette-eternal-mega` have
+  identical base stats, and across all 308 champ-model rows exactly one fails to round-trip through
+  `mcKey` — Floette-Eternal-Mega. It is a duplicate alias **no lookup can ask for**, and the reachable
+  `floette-mega` row in the artifact is fully populated. This mattered: the store holds **103,098**
+  `floettemega` occurrences, so had the reachable key been the missing one, this would have been the
+  2026-07-30 bug again at scale.
+- **CENSUS ON THE BYTES ON DISK: 0 UNBUILDABLE, 0 null ability, 4 empty movelists (all 4 declared
+  not-in-format), 10 null items (7 declared battle-only), 10 null weights (0 declared).** The 10 null
+  weights are a **real builder gap** — the `wt` fill runs only over the champ-model keys, so the 15
+  rows the builder *preserves* never get one — and the dex knows every one of them (`victreebel-mega`
+  125.5 kg, `aegislash-blade` 53.0, `gourgeist-small` 9.5, `palafin-hero` 97.4, and six more). All 10
+  are legal in this format. A missing weight makes Low Kick, Grass Knot, Heavy Slam and Heat Crash
+  **uncomputable rather than mis-priced**, because their dex `basePower` is 0. Deliberately NOT fixed
+  in this pass: it would change what `--check` compares and turn the verdict above into a drift
+  introduced by the fix.
+- **SHOWN RED ON REAL BYTES, TWICE, AND GREEN ONCE.** Break 1, `venusaur` base HP 80 to 81 — caught
+  and named to the row and the field. Break 2 wiped the `ab`/`mv`/`item` of `venusaur`, the exact
+  2026-07-30 shape: **the byte diff did not see it**, as the header of the check predicts, and the
+  census did — UNEXPLAINED 13 to 16, with `venusaur` named in all three bands. Green control: the
+  output of the builder placed on disk gives exit 0, so the red is attributable to exactly the one row
+  it names. Every restore was verified sha256-identical (`c73da1d2...`) **with the mtime preserved** —
+  488 ns coarser, whole millisecond identical, and in the safe direction, since `build_pdfs.js` and
+  `provenance.js` compare `mtimeMs` with `<`. **`data/engine-data.js` was never regenerated.**
+- **WHAT WALKS PAST IT, stated in the header of the check so it travels with the code.** (a) Every
+  field the builder copies off the artifact — that is where the 2026-07-30 bug lived, hence the census.
+  (b) A wrong source: it proves AGREEMENT, never correctness. (c) `generated_audit.js` will **not**
+  spawn it — its play-layer walk sees the require of `engine/champions_sim.js`, which is in `SOURCES`,
+  and it refuses any builder reaching the simulator, so this file stays `UNPROVABLE` there and must be
+  run by hand. That refusal is the safe direction and was not worked around. (d) A **second artifact
+  by the same builder would NOT be caught** — the check is written against the one output path, not a
+  scan of what was written; this builder writes one file, so it is moot today, but it is the
+  instance-not-class hazard and is named rather than papered over. (e) The **same artifact written by
+  a different path IS caught**, which is the useful half — a hand-edit, a merge, a later script or a
+  stale checkout all read as drift. That is how the missing row was found.
+- **A dex-less `--check` is REFUSED (exit 2), not passed.** Without the dex, `wt`, `bp`, `rc` and
+  `self` all fall back to the stored values of the artifact and would be compared against themselves —
+  a green test asking nothing. A build may degrade that way; a measurement may not.
+- **The CRLF trap cannot reach this check, structurally.** `data/engine-data.js` holds 13 CRLF and
+  zero bare LF. The candidate bytes are built by editing the disk buffer, so they inherit the line
+  endings of the file, and the only substituted text is `JSON.stringify` output, which carries no CR.
+  Both sides also pass through `engine/read_text.js`. No third answer to the EOL hazard was invented;
+  the `CHECKOUT-EOL` verdict of `generated_audit.js` remains the one answer for it.
+- Full account: `docs/_reports/2026-08-26-engine-data-check.md`.
+
+---
+
 ## [5.136.2] — 2026-08-26
 
 ### Fixed

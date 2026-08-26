@@ -18,18 +18,112 @@
  * carries BOTH the base stats (source) and the level-50 line (convenience), so any consumer can
  * recompute rather than copy.
  *
- *   node build/build_engine_data.js
- * Overwrites data/engine-data.js. Never hand-edit that file.
+ *   node build/build_engine_data.js            overwrites data/engine-data.js
+ *   node build/build_engine_data.js --check    writes NOTHING; exits non-zero if the artifact on
+ *                                              disk is not what this script would write today
+ *
+ * Never hand-edit data/engine-data.js.
+ *
+ * ══ WHY `--check` EXISTS (2026-08-26) ═══════════════════════════════════════════════════════════
+ *
+ * engine/generated_audit.js derived that 360 generated files exist in this repository, 8 could
+ * prove they match their source, and 0 carried a digest of their own content. This file was on the
+ * shortlist because it is frozen into EVERY engine release (it is in engine_release.js's SOURCES)
+ * and had no comparison at all.
+ *
+ * It is also the file the whole class of bug first bit us on. 2026-07-30: merge_mega_into_engine.js
+ * keyed `venusaurmega`, the source artifact keyed `venusaur-mega`, ZERO of 67 writes matched, and
+ * every mega in this format carried `ab: null`, `mv: []`, `item: null` — 26% of the format's usage,
+ * scoring as though it threatened nothing. Nothing noticed, because nothing compared the two files.
+ * engine/artifact_audit.js was built in response and watches ONE named file pair, which is why the
+ * fourth instance of the class walked straight past it.
+ *
+ * The comparison is against what THIS script would write, never against a re-implementation of the
+ * generator — the pattern tests/test-guru-derived.js set in 2026-08-04 and build/build_tags_js.js
+ * reused in 2026-08-25. A second implementation stops being right the moment the generator changes
+ * shape, and then reports a drift that is really its own staleness.
+ *
+ * ══ WHAT SHAPE THIS MATCHES — AND WHAT WALKS PAST IT ════════════════════════════════════════════
+ *
+ * READ THIS BEFORE BELIEVING A GREEN RUN. This builder is NOT a pure transform: it reads the
+ * artifact it is about to overwrite and CARRIES most of it through (`...old`, `prior.moves`,
+ * `prior.priors`, and the `preserved` rows). So the check divides cleanly in two, and only one half
+ * is provable:
+ *
+ *   PROVABLE — the fields this builder OWNS, recomputed from a source outside the artifact:
+ *     mons[k].t, mons[k].bs   from CHOMP/engine/champ-model.js
+ *     mons[k].wt              from the Champions dex (species.weighthg)
+ *     moves[k].bp, .rc, .self from the Champions dex
+ *     moves added by the tags.json ∩ dex backfill
+ *     MC.C (the type chart)   from champ-model
+ *     the KEY SET of mons     champ-model's keys ∪ the preserved rows
+ *
+ *   NOT PROVABLE — the fields this builder COPIES OFF THE ARTIFACT. They compare equal to
+ *   themselves by construction and always will:
+ *     mons[k].st, .mv, .item, .ab, .nature, .sp, .set_source, .mv_provenance
+ *     moves[k].t and .c on any pre-existing row
+ *     MC.priors, and every `preserved` row in full
+ *
+ * THAT SECOND LIST IS WHERE THE 2026-07-30 BUG LIVED. `ab`, `mv` and `item` are exactly the three
+ * fields this check cannot compare. So it is NOT sufficient on its own, and the ROW CENSUS below —
+ * printed on every run, in both modes — is the compensating instrument: it counts the null/empty
+ * shape of that failure directly and DECLARES the expected ones with a DERIVED reason.
+ *
+ * Four more things get through, named so nobody has to rediscover them:
+ *
+ *  1. A SECOND ARTIFACT WRITTEN BY THIS BUILDER would NOT be caught. This builder writes exactly
+ *     one file, so the question is moot here — but the check is written against OUT, not against a
+ *     scan of what was written, so if a second output were added it would need its own clause. This
+ *     is the instance-not-class hazard engine/read_text.js spends its header on.
+ *  2. THE SAME ARTIFACT WRITTEN BY A DIFFERENT PATH **IS** CAUGHT, and that is the useful half: the
+ *     check asks whether the BYTES ON DISK equal what this builder would produce, so a hand-edit, a
+ *     merge, a later script or a stale checkout all read as drift regardless of who wrote them.
+ *     That is how the missing row below was found.
+ *  3. A WRONG SOURCE is invisible. If champ-model.js is itself wrong, artifact and source agree and
+ *     this check goes green. It proves AGREEMENT, never correctness.
+ *  4. engine/generated_audit.js WILL NOT SPAWN THIS CHECK. Its play-layer walk sees the require of
+ *     engine/champions_sim.js — which is in engine_release.js's SOURCES — and refuses, by design,
+ *     to run any builder that reaches the simulator. So this file stays UNPROVABLE in that report
+ *     and must be run by hand. That refusal is the safe direction and is not worked around here.
+ *
+ * ══ THE EOL TRAP, WHICH THIS CHECK IS IMMUNE TO BY CONSTRUCTION ════════════════════════════════
+ *
+ * `core.autocrlf` is true on this machine, so a tracked file sits in the working tree as CRLF while
+ * the committed blob is LF — same content, different bytes. Three checks in this repository have
+ * already been wrong about the project because of it (see engine/read_text.js), and one of them
+ * claimed the browser engine and the node engine were reading different rulebooks. Measured
+ * 2026-08-26: data/engine-data.js holds 13 CRLF and zero bare LF, i.e. it is fully CRLF on disk.
+ *
+ * This check cannot be fooled by that, for a structural reason rather than a careful one: the
+ * candidate bytes are built BY EDITING THE DISK BUFFER (`src.replace(...)`), so they inherit the
+ * file's own line endings, and the only text substituted is JSON.stringify output, which contains
+ * no CR. Both sides are additionally passed through engine/read_text.js's `normalise` so the
+ * immunity is stated rather than relied upon. engine/generated_audit.js's CHECKOUT-EOL verdict is
+ * the one answer to that hazard in this repo; a third answer is not invented here.
  */
 'use strict';
 const fs = require('fs'), path = require('path');
+const { normalise } = require(path.join(__dirname, '..', 'engine', 'read_text.js'));
 const M = require(path.join(__dirname, '..', '..', 'CHOMP', 'engine', 'champ-model.js'));
+const CHECK = process.argv.includes('--check');
 /* The dex, for the facts the engine owns and CHOMP's model does not carry — currently weight. */
 let DEX = null;
 try {
   const CS = require(path.join(__dirname, '..', 'engine', 'champions_sim.js'));
   DEX = CS.sim().Dex.forFormat(CS.FORMAT);
 } catch (e) { console.warn('  no dex available — weights will fall back to whatever was stored'); }
+/* A DEX-LESS `--check` WOULD BE A GREEN TEST THAT ASKS NOTHING, so it is refused rather than passed.
+ * Without the dex, `wt`, `bp`, `rc` and `self` all fall back to the value already stored in the
+ * artifact — the candidate bytes would then be compared against themselves in every field the dex
+ * owns, and the run would report agreement it never tested. A build may degrade that way (it
+ * preserves what it cannot recompute, which is correct); a MEASUREMENT may not. */
+if (CHECK && !DEX) {
+  console.error('build_engine_data --check: NO VERDICT. The Champions dex did not load, so every');
+  console.error('  dex-owned field (wt, bp, rc, self) would fall back to the artifact\'s own stored');
+  console.error('  value and compare equal to itself. That is not a pass, it is a check asking');
+  console.error('  nothing. Fix the dex (engine/champions_sim.js / SHOWDOWN_PATH) and re-run.');
+  process.exit(2);
+}
 const OUT = path.join(__dirname, '..', 'data', 'engine-data.js');
 
 // keep whatever move/item/ability priors the previous file carried - those are ABRA's, not the
@@ -211,14 +305,162 @@ let out = src.replace(m[0], 'const MC = ' + JSON.stringify(MC) + ';');
  * project keeps paying for, in the one place a human actually looks. `\r?\n`, and the replace is now
  * CHECKED rather than assumed: a stamp that fails to land says so and exits non-zero, because a
  * generator that cannot date its own output must not pretend it did. */
-const stamped = out.replace(/^\/\*[\s\S]*?\*\/\r?\n/, src.includes('\r\n') ? stamp.replace(/\n/g, '\r\n') : stamp);
-if (stamped === out) {
+/* THE GUARD BELOW TESTED THE WRONG THING UNTIL 2026-08-26, AND A GREEN CONTROL FOUND IT. It read
+ * `if (stamped === out)`, using "the string changed" as a proxy for "the pattern matched". Those are
+ * not the same claim, and they come apart in the one case that matters: when the header is ALREADY
+ * exactly right — i.e. any SECOND run on the same calendar day — the replacement is a no-op, the
+ * strings are equal, and the builder exited 1 announcing that the file "does not open with a block
+ * comment", which was false. A generator that refuses to run twice in a day while misdiagnosing why
+ * is the silent-default failure this project keeps paying for, wearing a loud error message.
+ *
+ * Found by running `--check` against the builder's OWN freshly-stamped output as a green control,
+ * which is exactly the case a same-day re-run produces. Test the PATTERN, which is the condition the
+ * message actually describes. */
+const HEADER = /^\/\*[\s\S]*?\*\/\r?\n/;
+const stamped = out.replace(HEADER, src.includes('\r\n') ? stamp.replace(/\n/g, '\r\n') : stamp);
+if (!HEADER.test(src)) {
   console.error('could not replace the header stamp in ' + OUT + ' — the file does not open with a ' +
-    'block comment, so the "Last generated" date would silently stay stale. Refusing to write.');
+    'block comment, so the "Last generated" date would silently stay stale. ' +
+    (CHECK ? 'The stamp step is BROKEN.' : 'Refusing to write.'));
   process.exit(1);
 }
+
+/* ── THE ROW CENSUS ──────────────────────────────────────────────────────────────────────────────
+ * The 2026-07-30 failure had a SHAPE — `ab: null`, `mv: []`, `item: null` on rows that should carry
+ * values — and those three fields are precisely the ones this builder copies off the artifact and
+ * therefore cannot compare (see the header). So they are COUNTED instead, every run, in both modes.
+ *
+ * A non-zero count is not automatically a defect, and "tolerated silently" is the thing to avoid, so
+ * each flagged row is put to the format and DECLARED with a DERIVED reason rather than a typed one:
+ *
+ *   NOT IN THIS FORMAT — isNonstandard, or tier Illegal. It cannot be brought, so a team-build fact
+ *                        about it is meaningless. (CLAUDE.md: the ban is a MECHANISM, not a list.)
+ *   BATTLE-ONLY FORME  — species.battleOnly is set. Nobody builds Aegislash-Blade; it is a state the
+ *                        base forme enters mid-game, so it has no item, ability prior or moveset.
+ *
+ * WEIGHT IS DELIBERATELY JUDGED ON A DIFFERENT RULE. `item`/`ab`/`mv` are TEAM-BUILD facts and a
+ * forme that is never built legitimately lacks them. `wt` is a FIELD fact: it is read the moment the
+ * forme is on the board, because Low Kick and Grass Knot scale with the target's weight and Heavy
+ * Slam and Heat Crash with the ratio, and their dex basePower is 0 — so a missing weight makes those
+ * moves UNCOMPUTABLE rather than merely mis-priced, which is invisible. A null `wt` is therefore
+ * declared benign ONLY when the dex does not know the weight either. */
+/* NO try/catch AROUND THE DEX LOOKUP, DELIBERATELY. `Dex.species.get` does not throw on an unknown
+ * key — it returns a species with `exists: false` (verified against `not-a-real-mon-xyz` and the
+ * empty string) — so a catch here could only ever swallow a REAL instrument failure and hand back a
+ * null that reads identically to "this row has no declaration". That is the silent default this
+ * project keeps paying for, and tests/test-no-silent-failure.js flagged it on the first draft of
+ * this function. The dex-less case is handled ONCE, above the bands, and is announced. */
+/* The bands are declared ONCE. The dex-less path and the normal path both walk this list, so the two
+ * cannot come apart and report different sets of rows for the same artifact. */
+const CENSUS_BANDS = [
+  ['bs missing (buildMon returns null — UNBUILDABLE)', m => !m.bs, 'build'],
+  ['ab null', m => m.ab == null, 'build'],
+  ['mv empty', m => !m.mv || !m.mv.length, 'build'],
+  ['item null', m => m.item == null, 'build'],
+  ['wt null (Low Kick / Grass Knot / Heavy Slam / Heat Crash uncomputable)', m => m.wt == null, 'wt'],
+];
+function census(rows) {
+  const ks = Object.keys(rows);
+  const ask = k => DEX.species.get(k);
+  const WHY = {
+    build: k => {
+      const s = ask(k);
+      if (!s.exists) return null;
+      if (s.isNonstandard || s.tier === 'Illegal') return 'not in this format';
+      if (s.battleOnly) return 'battle-only forme';
+      return null;
+    },
+    wt: k => { const s = ask(k); return (!s.exists || !s.weighthg) ? 'the dex has no weight either' : null; },
+  };
+  return CENSUS_BANDS.map(([label, pred, kind]) => {
+    const hit = ks.filter(k => pred(rows[k]));
+    /* Dex-less: nothing can be declared, and every row is left OPEN rather than quietly cleared.
+     * printCensus announces the state; it is never inferred from the counts. */
+    if (!DEX) return { label, n: hit.length, declared: {}, open: hit };
+    const why = WHY[kind], declared = {}, open = [];
+    for (const k of hit) { const r = why(k); if (r) (declared[r] = declared[r] || []).push(k); else open.push(k); }
+    return { label, n: hit.length, declared, open };
+  });
+}
+function printCensus(rows, what) {
+  console.log(`  row census of ${what} (${Object.keys(rows).length} rows) — the 2026-07-30 shape:`);
+  /* A build may legitimately run without the dex (it preserves what it cannot recompute). The census
+   * cannot DECLARE anything in that state, so it says so instead of quietly declaring nothing and
+   * letting every row read as UNEXPLAINED — a count nobody can act on is a count nobody reads. */
+  if (!DEX) {
+    console.log('    NO DECLARATIONS — the dex did not load, so no row can be put to the format.');
+    console.log('    Raw counts only; do not read the UNEXPLAINED column on this run.');
+  }
+  let open = 0;
+  for (const b of census(rows)) {
+    const decl = Object.entries(b.declared).map(([r, ks]) => `${ks.length} ${r}`).join(', ');
+    console.log(`    ${b.label}: ${b.n}` + (b.n ? `  [declared: ${decl || 'none'}]  [UNEXPLAINED: ${b.open.length}` +
+      (b.open.length ? ' -> ' + b.open.join(', ') : '') + ']' : ''));
+    open += b.open.length;
+  }
+  console.log(`    UNEXPLAINED rows in total: ${open}` + (open ? '  <- these are the ones to look at' : ''));
+}
+
+if (CHECK) {
+  /* --check. Nothing below writes. The candidate is `out` rather than `stamped`, because the header
+   * carries the RUN DATE and is rewritten on every build by design — comparing it would make this
+   * check permanently red for a reason that is not drift, which is how a gate becomes "one of the
+   * known failures". The stamp step is still exercised above, so a stamp that could not land is a
+   * failure here too; it is just not the same failure as drift.
+   *
+   * `normalise` on both sides is belt-and-braces: `out` is `src` with one JSON substitution, so it
+   * already carries the file's own line endings. See the EOL section in the header. */
+  const disk = normalise(src), want = normalise(out);
+  /* The census in check mode is taken over `prior.mons` — the rows ON DISK — and NOT over the
+   * candidate. The artifact is what every engine release froze and what the rollout actually reads;
+   * censusing the candidate would describe a file that does not exist yet. */
+  printCensus(prior.mons || {}, 'THE ARTIFACT ON DISK — the bytes every release froze');
+  console.log(`  sources: CHOMP/engine/champ-model.js (${Object.keys(M.MONS).length} rows), the Champions dex, data/tags.json`);
+  const stampedDate = (src.match(/Last generated: (\d{4}-\d{2}-\d{2})/) || [])[1] || 'UNSTAMPED';
+  console.log(`  header stamp on disk: ${stampedDate} (excluded from the verdict — rewritten every build)`);
+
+  if (disk === want) {
+    console.log('data/engine-data.js is exactly what its sources would produce today.');
+    process.exit(0);
+  }
+
+  console.error('data/engine-data.js DOES NOT MATCH its sources — the artifact frozen into every');
+  console.error('engine release disagrees with the model it is generated from.');
+  const S = JSON.stringify;
+  let had = null;
+  try { had = JSON.parse(disk.match(/const MC = (\{[\s\S]*?\});/)[1]); }
+  catch (e) { console.error(`  the MC object on disk is not parseable — ${e.message}`); }
+  if (had) {
+    for (const top of new Set([...Object.keys(had), ...Object.keys(MC)])) {
+      if (S(had[top]) === S(MC[top])) continue;
+      const a = had[top] || {}, b = MC[top] || {};
+      if (a && b && typeof a === 'object' && typeof b === 'object') {
+        const rows = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(r => S(a[r]) !== S(b[r]));
+        console.error(`  ${top}: ${rows.length} row(s) differ — ${rows.slice(0, 12).join(', ')}${rows.length > 12 ? ' …' : ''}`);
+        /* Named per FIELD, not "row 210 differs". A diff nobody can act on gets waived. */
+        for (const r of rows.slice(0, 8)) {
+          if (!(r in a)) { console.error(`     ${r}: MISSING FROM THE ARTIFACT — the source carries it`); continue; }
+          if (!(r in b)) { console.error(`     ${r}: PRESENT ONLY IN THE ARTIFACT — no source row and no preserve rule`); continue; }
+          const x = a[r] || {}, y = b[r] || {};
+          const flds = [...new Set([...Object.keys(x), ...Object.keys(y)])].filter(f => S(x[f]) !== S(y[f]));
+          console.error(`     ${r}: ${flds.map(f => `${f} ${S(x[f])} -> ${S(y[f])}`).join(' | ').slice(0, 200)}`);
+        }
+      } else { console.error(`  ${top}: differs`); }
+    }
+    /* Bytes outside the MC object — a hand-edit to the wrapper, mcEff or the export block. It is a
+     * separate failure from a payload drift and would otherwise be reported as neither. */
+    const strip = s => s.replace(/const MC = \{[\s\S]*?\};/, '<PAYLOAD>').replace(/Last generated: \d{4}-\d{2}-\d{2}/, '<DATE>');
+    if (strip(disk) !== strip(want)) console.error('  AND the wrapper/mcEff/export block differs from what this builder would leave.');
+  }
+  console.error('  fix: node build/build_engine_data.js — BUT READ THIS FIRST. data/engine-data.js is');
+  console.error('  in engine_release.js SOURCES, so it is frozen into every release. Regenerating it');
+  console.error('  changes the bytes every future release freezes and is a decision, not a chore.');
+  process.exit(1);
+}
+
 fs.writeFileSync(OUT, stamped);
 
+printCensus(mons, 'what was just written');
 console.log(`build_engine_data — ${Object.keys(mons).length} species written`);
 console.log(`  base stats present: ${Object.values(mons).filter(m => m.bs).length}`);
 console.log(`  species kept that champ-model no longer carries: ${preserved.length}` +
