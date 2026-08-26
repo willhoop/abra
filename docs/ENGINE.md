@@ -64,11 +64,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  750/753 probed mechanics live, 3 missing   (census 2026-08-26 18:20)
-  missing:
-    ability refusesAllyDamage      Telepathy announces |-activate|ally|ability: Telepathy, not |-immune|
-    move    statChangeInCode       Psych Up announces |-copyboost| on the copier
-    ability punishesAttacker       Spicy Spray announces a bare |-immune| at the FIRE ATTACKER, and only when it is unstatused
+  753/753 probed mechanics live, 0 missing   (census 2026-08-26 19:08)
   0/6000 differential comparisons disagree with Showdown   (2026-08-26 16:35)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -81,15 +77,245 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 4b6a6d0a025b now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 4a08ab12c912 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 56638f4f8443 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 18:27_
+_stamped 2026-08-26 19:10_
 
 <!-- /GENERATED -->
+
+## THREE LINES, THREE KNOBS, AND TWO OF THEM CLOSED A DIVERGENCE IN A REAL LADDER GAME. CENSUS 750 -> **753 LIVE / 753 PROBED / 0 MISSING**. WHOLE-GAME DIVERGED 15 -> 13 OF 961, BOARD-MATERIAL UNMOVED AT 1. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.149.0. Register rows: ROADMAP **#456, #457, #458 — all three
+closed**. Release cut: **`2c343e3ffaaa`**, named `three narration lines: Telepathy -activate (#456),
+Psych Up -copyboost (#457), Spicy Spray attacker -immune (#458)`.
+
+**THE CENSUS HAS NO MISSING ROW FOR THE FIRST TIME.** 753 probed, 753 live. That is not a claim that
+the engine is finished — it is a claim that every mechanic *somebody thought to probe* is live, which
+is the census's own standing caveat and is why the differential and the roster are quoted beside it.
+
+### WHAT WAS WRONG, IN ONE SENTENCE EACH
+
+All three had a CORRECT BOARD and a WRONG SENTENCE, which is why the roster passed them: the roster
+compares boards, and a missing line moves no board.
+
+| # | the authority writes | this engine wrote | why no board comparison could see it |
+|---|---|---|---|
+| #456 Telepathy | `-activate\|HOLDER\|ability: Telepathy` | `-immune\|HOLDER\|[from] ability: telepathy` | the hit is priced at zero either way |
+| #457 Psych Up | `-copyboost\|COPIER\|COPIED\|[from] move: Psych Up` | nothing at all | the boost vector is overwritten either way |
+| #458 Spicy Spray | a BARE `-immune` naming the **ATTACKER** | nothing at all | the burn fails either way |
+
+### #456 — THE ALLY REFUSAL WAS RIDING THE ABSORB ROAD, AND THE ABSORB ROAD SAYS `-immune`
+
+`absorbedBy()` answers two different questions with one return value. A TYPE absorb (Volt Absorb, Sap
+Sipper) announces `-immune` **as the gift's else** — `if (!this.boost({atk:1})) this.add('-immune',
+target, '[from] ability: Sap Sipper')`. An ALLY refusal announces unconditionally and in another
+shape: `this.add('-activate', target, 'ability: Telepathy'); return null;`. Two sentences, one
+emitter, and the wrong one won.
+
+The fix is `absorbRefusalAnnounce(tg, _ab)` — one function, called from **both** the attack road
+(`_stepTryHit`) and the status road (`announceTryHitRefusal`), for the same reason `absorbGift` was
+hoisted out of `_stepTryHit`: those two had already come apart once over Mold Breaker.
+
+**THE LINE IS DERIVED, NOT NAMED.** `refusesAllyDamage` now carries `announce`, read off the handler's
+own `this.add` by the same `announceIn` the item, priority and punish families already use. Membership
+printed before a byte was wired: **exactly one legal ability** has an `onTryHit` that tests
+`isAlly(source)` — Telepathy — and it announces. A future member that stayed silent returns `null` and
+emits nothing, counted in `MEDFAILS.allyRefusalUnannounced`, which must read 0 on any shipping run.
+
+### #457 — `-copyboost` IS THE LAST STATEMENT OF A HANDLER THIS ENGINE ONLY READ THE TOP OF
+
+`applyStatOp`'s header argues, correctly, that three of the four `statChangeInCode` kinds bypass the
+boost pipeline and therefore emit no `-boost`. That was read as *therefore no line at all*. Psych Up's
+`onHit` **ends** below the loop the descriptor was written from:
+
+```
+this.add("-copyboost", source, target, "[from] move: Psych Up");
+```
+
+One event for the whole vector, no `if`, fired in **both** speed orders — copying an empty board is
+still a copy, which is exactly what the sibling census row asserts.
+
+**THE SIBLINGS ARE THE OVER-MATCH CONTROL AND THEY STAY SILENT.** `-swapboost` and `-invertboost` are
+real Showdown events with real legal carriers here (Guard Swap, Power Swap, Topsy-Turvy) and this
+engine claims **neither**. The record is derived per-handler onto the op, so the family is not assumed
+uniform. Printed before wiring:
+
+```
+  acupressure  randomOne  null
+  guardswap    exchange   null
+  powerswap    exchange   null
+  psychup      copy       {"event":"-copyboost","prefix":"[from] move"}
+  topsyturvy   invert     null
+```
+
+**CLAIMING AN EVENT IS NOT FREE, AND THIS PASS PAID FOR IT.** `-copyboost` sat in
+`data/protocol-events.json` as NOT EMITTED with the reason *"the STATE is right and the ANNOUNCEMENT
+is owed"*. That reason is **deleted rather than reworded**, exactly as `-setboost`'s and `-sethp`'s
+were, and `data/protocol-events.json` regenerated: 43 emitted -> **44**, 51 declared -> **50**.
+`tests/test-protocol-trace.js` PART 1 requires every claimed event to FIRE in a scripted game, so a
+Psych Up board was added there — Clefable's fourth slot, Garchomp clicking Swords Dance so the copy
+takes a real +2. Learnset asked of `champions_sim.canLearn`, not recalled.
+
+**AND THE DECLARED LIST IS THE DIFFERENTIAL'S SKIP LIST.** Until this pass Showdown's `-copyboost`
+lines were *removed from its stream before alignment*. Claiming the event puts them back in the
+comparison, so this fix could only ever have made the whole-game number **worse**. It did not: see the
+prediction table below.
+
+### #458 — THE ONE PUNISH LINE THAT NAMES THE ATTACKER
+
+```
+spicyspray.onDamagingHit(damage, target, source, move) {
+  if (!source.trySetStatus("brn", target) && !source.status && source.hasType("Fire"))
+    this.add("-immune", source); }
+```
+
+`punishesAttacker.announce` structurally cannot carry this. `announceIn` matches a THREE-argument
+`this.add(event, BODY, 'prefix: Name')` and **every member it has ever matched names the holder**;
+this one is two arguments, no `[from]`, at the SOURCE. Reading it as an `announce` would have put the
+line on the wrong Pokemon. So it is its own derived record, `attackerImmune`, with all three clauses
+read rather than assumed — two of them are the over-fire control:
+
+```
+  unlessStatused         !source.status        an already-paralysed Fire body is still burn-proof
+                                               and the authority STAYS SILENT
+  requiresAttackerType   source.hasType("Fire")  the TYPE is read out of the handler
+```
+
+Membership printed first: of every legal ability whose `onDamagingHit` calls `this.add`, six match and
+exactly **one** writes a bare `-immune` at `source`. The other five (Cotton Down, Gooey, Perish Body,
+Tangling Hair, Toxic Debris) name `target` and are `announce`'s business, unchanged.
+
+### THE PREDICTION, WRITTEN BEFORE THE RUN
+
+| what | predicted | measured |
+|---|---|---|
+| census live | 750 -> **753**, missing -> 0 | **753 live / 753 probed / 0 missing** |
+| whole-game diverged | the Telepathy row must close (it is named in the artifact); board-material must not move | **15 -> 13**, board-material **1 -> 1** |
+| a NEW divergence from `-copyboost` leaving the skip list | possible, and would mean the line is wrong | **none** |
+| roster, all three stages | unchanged — narration moves no board | **identical, count for count** |
+
+### THE SECOND CLOSED DIVERGENCE WAS NOT ASSUMED, IT WAS RED-ARMED
+
+One of the two rows that left the artifact names its own mechanic:
+`|-activate|p2a|telepathy <> |-immune|p2a|[from]telepathy`. The other is a bare `|-immune|p1b <>
+|cant|p2a|flinch`, and *"the only bare `-immune` I added is Spicy Spray's"* is a guess, not a
+measurement. So the pinned run was repeated with **`MEDI_NO_ATTACKER_IMMUNE_LINE=1` and nothing else**:
+
+```
+  release 2c343e3ffaaa, 961 games, arm middle, cap 12, pinned pool, pinned census
+    clean                             13 diverged   event-missing 7 games
+    MEDI_NO_ATTACKER_IMMUNE_LINE=1    14 diverged   event-missing 8 games
+```
+
+The row comes back under its own knob and under no other. That is #458 firing in a real ladder game,
+not in a fixture.
+
+**#457 IS THE ONE THE POOL CANNOT SPEAK TO, AND A SECOND LAB INSTRUMENT ANSWERED IT INSTEAD.** No
+divergence closed for it and none opened, and those two readings are indistinguishable in the pool:
+Psych Up is 97 sheet fields and may simply not be clicked in these 961 games. Said plainly rather than
+counted as a pool win. What DID move is `data/all-mechanics-fire.json`, re-run on the same release —
+**`moves.resolution_disagreements` 12 -> 11, and a row-by-row diff of all 739 rows shows EXACTLY ONE
+changed**:
+
+```
+  moves:psychup   medicham_resolved false -> true
+                  medicham_why "the move executed and produced no consequence line at all" -> null
+```
+
+That is a different instrument from the census, on a different fixture, and it names the mechanic.
+
+### A KNOB PER LINE, AND EACH REDS EXACTLY ITS OWN ROW
+
+Run three times, one knob each, and the MISSING list read back off the artifact:
+
+```
+  MEDI_ALLY_REFUSAL_IMMUNE=1      MISSING: Telepathy announces |-activate| ...        (and nothing else)
+  MEDI_NO_COPYBOOST_LINE=1        MISSING: Psych Up announces |-copyboost| ...        (and nothing else)
+  MEDI_NO_ATTACKER_IMMUNE_LINE=1  MISSING: Spicy Spray announces a bare |-immune| ... (and nothing else)
+```
+
+Each also sets its own `MEDFAILS.*Restored` flag, so a deliberate restore arm and a broken engine can
+never be read as the same thing.
+
+### REACHED, NOT PRESENT
+
+`canMegaNow` was declared twice and `itemRoomForget` had no caller, so a new emission is not believed
+because it is in the file. Counter deltas, one staged turn each, with the knob-cleared control beside:
+
+```
+  TELEPATHY  ability telepathy   |-activate|p1a:gardevoir|ability:telepathy   allyRefusalActivate +1
+             ability none        (no line)                                    allyRefusalActivate +0
+  PSYCH UP   copier clicks it    |-copyboost|p1a:aromatisse|p2a:delphox|...   copyBoostAnnounced  +1
+             copier PASSES       (no line)                                    copyBoostAnnounced  +0
+  SPICY      Fire, unstatused    |-immune|p1a:charizard                       punishAttackerImmuneAnnounced +1
+             Fire, PARALYSED     (no line)                                    punishAttackerImmuneAnnounced +0
+             no ability          (no line)                                    punishAttackerImmuneAnnounced +0
+  CONTROL    Levitate absorb     |-immune|p2a:eelektross|[from]ability:levitate   absorbImmuneAnnounced +1
+```
+
+The last row is the one that says #456 narrowed rather than replaced: the type-absorb road still says
+`-immune` with its attribution, and `absorbImmuneAnnounced` no longer moves for Telepathy.
+
+### THE PSYCH UP PROBE'S ARMS WERE A PRECONDITION WEARING A CONTROL'S CLOTHES
+
+It shipped with `arms: {control: ran, test: got.length}` — 1 and 0 while the engine was silent, which
+LOOKS like two arms. `ran` is *"the click happened"*. The moment the line landed both read 1 and this
+file's own hollow detector said so, correctly. The replacement control is the identical board with the
+**copier passing** while Delphox's Nasty Plot still lands, which is a real over-fire question: an
+engine that announced every boost as a copy passes the test arm and fails this one. The precondition
+is kept, inside `works`, where it belongs.
+
+*(The regex went in wrong first and the row stayed MISSING for one run — `\|sa\|2` against a `-boost`
+line the emitter writes through `sdStat()` as `spa`. The probe was wrong before the engine was, for
+the fifteenth-ish time.)*
+
+### WHAT REGENERATING `data/tags.json` COST, SAID OUT LOUD
+
+Three derived params cannot be added without re-running `tag_dex.js`, and `tag_dex.js` reads `uses`
+off the **live store**, which grows hourly. **443 rows changed and every one of them changed only
+`uses`** (verified field-by-field against the pre-run copy; telepathy 308 -> 309, psychup 96 -> 97).
+
+That is not free and it was checked rather than waved through: `medicham2`'s only behavioural reader of
+`uses` is `sideGuardClickRate`, and Wide Guard 5,989 -> 6,100 / Quick Guard 1,563 -> 1,584 moves
+Quick Guard's click prior 0.09135 -> 0.09088. **It does not reach this pass's numbers** — the
+differential drives both engines from its own coverage-steered `chooseAction` and its `CLICKS` map is
+in-run state, and the roster and the census stage explicit clicks. It WOULD reach a rollout or a
+self-play run, which is not this division's to make.
+
+### THE GATES
+
+| gate | verdict |
+|---|---|
+| `tests/test-mechanics.js` | **753/753 live, 0 missing, 0 hollow, 0 unarmed, 0 threw** |
+| `tests/test-protocol-trace.js` | ALL PASSED — 45 games, 44/44 claimed events fired |
+| `engine/derive_protocol_events.js` | BOTH GATES PASS — 44 emitted, 50 declared, 10 partial |
+| `tests/test-game-diff.js`, `tests/walk_tags.js` | 0 |
+| `tests/test-encore-fail-silent.js`, `test-volatile-duration.js`, `test-immunity-gate.js`, `test-tag-params-derived.js`, `test-mc-seal.js` | 0 |
+| `tests/test-resolution-order.js` | **PASSES at `--max-old-space-size=6144`** — 26 arms, 1 declared KNOWN-OPEN, 0 failing. OOMs at the default heap, which is #446 and already on this list |
+| `tests/test-engine-diff.js` | 150 compared, **0 disagreed**; exits 3 because `publish_guard` refuses to republish a 150-game sample over the artifact's 6,000 — the guard working, not a red |
+| roster, all three stages, release `2c343e3ffaaa` | `FIRED-AND-BOARDS-DIFFER` 0, `DID-NOT-FIRE` 0 — identical to the previous release |
+
+### THE HAND LIST
+
+**Leaving it — the census carries them now:**
+- ~~**#456 Telepathy's `-activate`**~~ — **LANDED.** Closed a whole-game divergence.
+- ~~**#457 Psych Up's `-copyboost`**~~ — **LANDED.** Lab only; the pool does not exercise it.
+- ~~**#458 Spicy Spray's `-immune`**~~ — **LANDED.** Closed a whole-game divergence, red-armed.
+
+**Arriving on it — found by this pass, NOT fixed by it:**
+- **`tests/test-tag-consumed.js` IS RED**, on `punishesMinimize` (992 uses, 6 carriers: Body Slam,
+  Dragon Rush, Flying Press and three more) being DEAD outside the ratchet floor. **It is red at HEAD
+  too** — the string does not appear in `engine/medicham2-browser.js` or `engine/board.js` in either
+  tree, and the test's own diagnosis says `STILL DEAD` rather than `REGRESSED`. Not folded into this
+  batch: it is a mechanic (never miss a minimised target, double into it), it has no failing probe
+  yet, and landing it here would cost this batch its attribution. **Next.**
+- **`data/provenance-stamp.json` went `verified: 5 -> 4`** during this session. Expected fallout of
+  `data/tags.json` moving — a stamped artifact whose SOURCE changed stops being content-verified,
+  which is the stamp doing its job. The VOID ratchet (the one that may not grow) is unchanged at 1.
 
 ## THE PARTY KEY: THE GAME LIST HELD AND 109 OF 961 TRAJECTORIES DID NOT. MEASURED AND **HELD**, NOT LANDED. CENSUS UNMOVED AT 750 LIVE / 753 PROBED / 3 MISSING. 2026-08-26.
 
@@ -551,8 +777,6 @@ and the artifact reports `COMPARABLE — same selection policy, census 9446a6847
   after the authority hands it back. Measured on the Klutz board this pass; both arms of the census row
   are read at turn 4, after the sync in both engines, so no probe rests on it.
 - **THE `|-activate|move: Struggle` LINE IS NOT EMITTED HERE.** Board-correct, narration-open.
-- **#456 Telepathy's `-activate`**, **#457 Psych Up's `-copyboost`**, **#458 Spicy Spray's `-immune`** —
-  all three narration with the board already correct, all three carried by the census as MISSING.
 - **THE PARTY MAP IS KEYED BY THE SPECIES A BODY IS SHOWING.** HELD; MEASURE's if the sample moves.
 - **A SELF-AIMED VOLATILE'S `-fail` IS OWED.** Imprison (487 uses), Magnet Rise, Aqua Ring, Ingrain.
 - **GASTRO ACID ANNOUNCES `-start|move: gastroacid` WHERE THE AUTHORITY WRITES `-endability`.**
@@ -747,8 +971,6 @@ and a seed.
   mechanism and is the sole remaining turn-1 board-material game in the pinned pool.
 - **THE `|-activate|move: Struggle` LINE IS NOT EMITTED HERE.** Board-correct, narration-open; no probe
   fails on it yet.
-- **#456 Telepathy's `-activate`**, **#457 Psych Up's `-copyboost`**, **#458 Spicy Spray's `-immune`** —
-  all three narration with the board already correct, all three carried by the census as MISSING.
 - **THE PARTY MAP IS KEYED BY THE SPECIES A BODY IS SHOWING.** HELD, credit shift measured; MEASURE's if
   the sample moves.
 - **A SELF-AIMED VOLATILE'S `-fail` IS OWED.** Imprison (487 uses), Magnet Rise, Aqua Ring, Ingrain.
@@ -981,8 +1203,6 @@ either would not tell you which.
 **Still open, filed with its evidence** (carried forward, untouched by this pass):
 - **THE `|-activate|move: Struggle` LINE IS NOT EMITTED HERE.** The authority writes it above
   `|move|…|Struggle|` on every Struggle. Board-correct, narration-open; no probe fails on it yet.
-- **#456 Telepathy's `-activate`**, **#457 Psych Up's `-copyboost`**, **#458 Spicy Spray's `-immune`** —
-  all three narration with the board already correct, all three carried by the census as MISSING.
 - **THE PARTY MAP IS KEYED BY THE SPECIES A BODY IS SHOWING.** HELD, credit shift measured; MEASURE's if
   the sample moves.
 - **A SELF-AIMED VOLATILE'S `-fail` IS OWED.** Imprison (487 uses), Magnet Rise, Aqua Ring, Ingrain.
@@ -1059,9 +1279,9 @@ remembered rule.
 | # | fixture | the authority | this engine | verdict |
 |---|---|---|---|---|
 | 1 | Brick Break / Psychic Fangs into a target the hit never reaches | immune target and Protect both keep the screens; a clean hit takes them | same, all three arms | **CORRECT** |
-| 2 | Telepathy's line | `-activate\|p1b: Gardevoir\|ability: Telepathy` | `-immune\|p1a: gardevoir\|[from] ability: telepathy` | **DIVERGING** — #456 |
-| 3 | Psych Up across a speed gap | copier second +2 SpA, copier first nothing; `-copyboost` both ways | state correct; **no `-copyboost` at all** | **CORRECT** on state, **DIVERGING** on the line — #457 |
-| 4 | Spicy Spray | burns a non-Fire attacker off a ranged special; bare `-immune` at an unstatused Fire one | burn correct and not contact-gated; **no line** | **CORRECT** on state, **DIVERGING** on the line — #458 |
+| 2 | Telepathy's line | `-activate\|p1b: Gardevoir\|ability: Telepathy` | ~~`-immune\|p1a: gardevoir\|[from] ability: telepathy`~~ **now `-activate\|p1a: gardevoir\|ability: telepathy`** | **CLOSED 2026-08-26** — #456 |
+| 3 | Psych Up across a speed gap | copier second +2 SpA, copier first nothing; `-copyboost` both ways | state correct, and the `-copyboost` is written | **CLOSED 2026-08-26** — #457 |
+| 4 | Spicy Spray | burns a non-Fire attacker off a ranged special; bare `-immune` at an unstatused Fire one | burn correct and not contact-gated, and the bare `-immune` is written at the ATTACKER | **CLOSED 2026-08-26** — #458 |
 | 5 | the ten charge moves x three skies | exactly three escape, each in its own weather | identical, and Electro Shot boosts AND fires in rain | **CORRECT** |
 | 6 | Encore then Disable | `-activate\|move: Struggle` and Struggle is played | **`\|cant\|` and the turn is spent on nothing** | **DIVERGING** — #459 |
 

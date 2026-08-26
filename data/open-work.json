@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-26T20:03:02.977Z",
+  "generated": "2026-08-26T23:09:37.823Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 426,
-    "open": 238,
-    "closed": 188,
-    "open_asserting_breakage": 68,
+    "register_rows": 429,
+    "open": 236,
+    "closed": 193,
+    "open_asserting_breakage": 66,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -1859,31 +1859,13 @@
       "full": "the status-move spread branch still resolves one target at a time, so a protect refusal on the second body is narrated after the first body's effect — measured 2026-08-26 by engine and deliberately not fixed. roadmap #81 wire 10 made the damaging hit a step list over the target array (`for (step) for (row)`, showdown's own shape) and the `a.kind==='affect'` branch was never converted: its own header says *\"every target runs the whole gauntlet on its own\"*. the authority runs `hitsteptryhitevent` across all targets before any effect lands, so the shield refusal always precedes every target's effect. five rows, one shape, read off `data/all-mechanics-fire.json` at release `ef2c826b5718`: `cottonspore`, `stringshot`, `sweetscent`, `teeterdance` and `corrosivegas`, each `ordering :: \\|-activate\\|p2b\\|protect <> \\|-unboost\\|p2a\\|...`. all five are announcement-only and the board comparator says so — `board.verdict = announcement-only`, `state_parted_on_turn = null`, zero diffs on each — so this belongs to the narration gate and not to the board-material bar. it is zero in the pinned pool: none of the five appears in the 961-game differential's diverging set, which is the expected split for a lab-only mechanic and is stated here rather than explained afterwards. the hypothesis that sent engine here was that one root sat under four symptoms; this is the one half of it that held. the damaging half was already landed (wire 10, with `tests/probe_red_demo.js` reverting the two `for`s to demonstrate it), and the spread-secondary half was an address rather than an order (#447). what would decide it: split the `affect` loop into two passes — every target's refusal gates, then every target's effect — and require the five rows above to read no-divergence with a single-target status click carried as the control that must not move. verified by: `showdown_path=... node engine/all_mechanics_fire.js --release <id> --kind moves` — the five `ordering :: \\|-activate\\|pxy\\|protect` rows"
     },
     {
-      "n": 456,
+      "n": 465,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
       "saysBroken": true,
       "uses": 0,
-      "title": "TELEPATHY ANNOUNCES `-immune` WHERE THE AUTHORITY ANNOUNCES `-activate`, AND NO BOARD COMPARISON CAN SEE IT — STAGED 202",
-      "full": "telepathy announces `-immune` where the authority announces `-activate`, and no board comparison can see it — staged 2026-08-26 by engine from will's own fixture list, deliberately not fixed. divergence card 16. `data/abilities.ts` telepathy: `if (target !== source && target.isally(source) && move.category !== 'status') { this.add('-activate', target, 'ability: telepathy'); return null; }` — `data/mods/champions/abilities.ts` carries no `telepathy` key, so mainline's handler is what this format runs. measured in the official simulator, milotic's surf across a gardevoir partner: `\\|move\\|p1a: milotic\\|surf\\|p2a: garchomp\\|[spread] p2a,p2b` then `\\|-activate\\|p1b: gardevoir\\|ability: telepathy`. this engine writes `\\|-immune\\|p1a: gardevoir\\|[from] ability: telepathy`. the board is right and has been since roadmap #213, which is why the roster and the whole-game differential are both blind to this: the holder takes zero, both foes take the same damage either way, and a helping hand from the same partner still lands (the `move.category !== 'status'` clause). this is a narration row and belongs to the narration gate, not to the board-material bar. what would decide it: emit `-activate` on the ally with `ability: telepathy` and no `[from]` tag, and require the new census row to read live while the existing `refusesallydamage` damage row stays live. verified by: `node tests/test-mechanics.js` — `ability / refusesallydamage`, *\"telepathy announces -activate at the ally, not -immune\"*, red at 741 live / 4 missing / 745 probed. its positive arm asserts the hp (holder 0, foes unchanged) beside the line, so a red here can only ever be the wording; its control is the same body with the ability cleared, which must print neither line"
-    },
-    {
-      "n": 457,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "PSYCH UP CHANGES THE STATS CORRECTLY AND ANNOUNCES NOTHING — STAGED 2026-08-26 BY ENGINE FROM WILL'S OWN FIXTURE LIST, D",
-      "full": "psych up changes the stats correctly and announces nothing — staged 2026-08-26 by engine from will's own fixture list, deliberately not fixed. will asked for *\"a fast delphox clicks nasty plot and a slow psych up user targets it to make sure the stats change works\"*. the state is right, measured both ways across a speed gap: aromatisse (29 base speed) copying a delphox (104) that just clicked nasty plot takes +2 spa, and the identical board with the copier moving first copies an empty board — the control that makes the row non-vacuous, since an engine reading the boosts at end of turn agrees with the slow arm and parts on the fast one. what is missing is the line: the authority writes `\\|-copyboost\\|p1a: aromatisse\\|p2a: delphox\\|[from] move: psych up` in both orders (the copy of an empty board is still a copy) and this engine writes only its `\\|move\\|` line. narration row, narration gate. what would decide it: emit `-copyboost` naming the copier, the source and `[from] move: psych up` wherever `statchangeincode`'s `op.kind === 'copy'` applies, and require both census rows live. verified by: `node tests/test-mechanics.js` — `move / statchangeincode`, *\"psych up announces -copyboost on the copier\"*, red; its sibling row *\"psych up copies the boosts standing when it runs\"* is live and asserts the state, so the two cannot be confused. the state row was shown red on a deliberate break (`dst.boosts[k]=dst.boosts[k]`) and the engine restored byte-identical"
-    },
-    {
-      "n": 458,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "SPICY SPRAY'S `-immune` AT THE FIRE ATTACKER IS NEVER WRITTEN — STAGED 2026-08-26 BY ENGINE FROM WILL'S OWN FIXTURE LIST",
-      "full": "spicy spray's `-immune` at the fire attacker is never written — staged 2026-08-26 by engine from will's own fixture list, deliberately not fixed. divergence card 6, and the reason the roster passes this ability is that the roster compares boards. `data/abilities.ts` spicyspray: `if (!source.trysetstatus('brn', target) && !source.status && source.hastype('fire')) { this.add('-immune', source); }`; `data/mods/champions/abilities.ts` carries `spicyspray: { inherit: true, isnonstandard: null }`, so the format un-bans mainline's handler unchanged. its one legal carrier is scovillain's mega (`abilities: {0: \"spicy spray\"}`). the board half is right and it is not contact-gated, which is the arm a plausible implementation gets wrong: the handler is `ondamaginghit` with no contact check, and a ranged special (earth power, `flags {protect, mirror, nonsky, metronome}` — read off the format) burns a non-fire attacker here exactly as it does in the authority. what is missing is the announcement, and its three clauses: the burn attempt failed and the attacker has no status and the attacker is fire. measured in the official simulator — charizard/flamethrower unstatused gives a bare `\\|-immune\\|p1a: charizard` with no `[from]` tag; the same charizard already paralysed produces no line at all, which is the over-fire control. narration row, narration gate. what would decide it: write the bare `-immune` at the attacker under all three clauses and require both census rows live. verified by: `node tests/test-mechanics.js` — `ability / punishesattacker`, *\"spicy spray announces a bare -immune at the fire attacker, and only when it is unstatused\"*, red. its sibling burn row is live and was shown red on a deliberate break (contact-gating the `_pun.trigger` default), engine restored byte-identical"
+      "title": "THE PARTY IS KEYED BY THE DISPLAYED SPECIES, SO A TRANSFORMED BODY OVERWRITES THE ONE IT COPIED -- MEASURED 2026-08-26 B",
+      "full": "the party is keyed by the displayed species, so a transformed body overwrites the one it copied -- measured 2026-08-26 by engine and held, because the re-key moves the sample. `duplicate_species_in_party` has read 20 on every pinned 961-game run and nothing acted on it. it is not a cosmetic tally: `partymap`'s second row overwrites the first, so one body is compared against the other engine's other body and the survivor is decided by whichever of them `sf.team` / `side.pokemon` lists last. one of the two remaining board-parted games is this -- `baseline ...2636042531 vs ...2635567733`, turn 3, `p2.party.garchomp` reading `hp/maxhp 123 vs 183`, `item lifeorb vs choicescarf`, `boosts.atk -2 vs 0`: one engine's row is a transformed ditto and the other's is the real garchomp it copied. the brief and #463's closing line both said both remaining games were this cause. they are not -- the other, `-damage: a different body` at turn 2, is a genuine spread-target divergence and survives the re-key untouched, so closing the party key takes board-material to one, not to zero. the sample answer, which is the point of the card: the ordered game list did not move (961 of 961, same pairs, same order) and 109 of 961 trajectories did. the list criterion is necessary and not sufficient and it gives the comfortable answer here -- under `--games n` the scheduler takes a fixed prefix of `pairscached`, so the pair list cannot move whatever the credit does; only `--until-covered` moves the stop point. what moves is which clicks the census-coverage driver makes, because credit is bucketed by `bs.family(path)` and a transform reported as `party.missing-or-extra-member` is different credit from one reported as `party.species` + `party.types`. so `board-material 2 -> 4` and `diverged 15 -> 20` are two populations, not a before/after, and neither was landed on. the instrument that made this answerable is new and has a control: `medi_sample_dump=<file>` writes per game the pair, the turns, the lines, the board result and a digest of medicham2's own stream; two identical display-key runs differ in 0 of 961, and the display arm reproduces the published artifact's 15-game diverged set member for member. what is in the tree: `stablekey` moved from `game_differential.js` to `board_state.js` (not copied -- the fifth instance of the species-key class is not getting a sixth implementation), `medi_party_key_identity=1` off by default, and `tests/probe_party_key_collision.js`, whose derived fixture was wrong first -- it put the copied body in the foe's slot a, imposter copies the diagonal, and it went green because the derived filler happened to be what got copied. under the knob `duplicate_species_in_party` reads 20 -> 0 with no fallback of any kind on 961 games."
     },
     {
       "n": 47,
@@ -2161,7 +2143,7 @@
     {
       "artifact": "data/interaction-matrix.json",
       "generated": "2026-08-11T22:00:06.336Z",
-      "age_days": 14.9
+      "age_days": 15
     }
   ]
 }

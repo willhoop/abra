@@ -214,9 +214,17 @@ const NOT_EMITTED = {
   '-invertboost': 'Topsy-Turvy IS modelled as of WIRE 151 and its stage inversion is probed; the '
     + 'raw `boosts[i] = -boosts[i]` assignment emits no line in this engine, and `-invertboost` is '
     + 'not claimed in TRACE_EVENTS. The STATE is right and the ANNOUNCEMENT is owed.',
-  '-copyboost': 'Psych Up IS modelled as of WIRE 151 and its whole-vector copy is probed; '
-    + '`source.boosts[i] = target.boosts[i]` emits no line in this engine, and `-copyboost` is not '
-    + 'claimed in TRACE_EVENTS. The STATE is right and the ANNOUNCEMENT is owed.',
+  /* '-copyboost' HAS MOVED INTO TRACE_EVENTS AND ITS REASON IS DELETED RATHER THAN REWORDED,
+   * 2026-08-26 (ROADMAP #457) -- the same call the '-setboost', '-sethp' and '-hitcount' entries
+   * around it record. It read "Psych Up IS modelled as of WIRE 151 and its whole-vector copy is
+   * probed; `source.boosts[i] = target.boosts[i]` emits no line in this engine, and `-copyboost` is
+   * not claimed in TRACE_EVENTS. The STATE is right and the ANNOUNCEMENT is owed." Every clause of
+   * that was true and the CONCLUSION drawn from it was not: the block above still argues that the
+   * whole `statChangeInCode` family is silent because none of it produces a per-stat delta, and Psych
+   * Up's handler ENDS with a line of its own below the loop -- `this.add("-copyboost", source, target,
+   * "[from] move: Psych Up")` -- which needs no delta and fires in both speed orders. The owed line is
+   * paid; `-invertboost` and `-swapboost` above are NOT, and stay declared, because their handlers
+   * really do end without an add. */
   '-swapboost': 'Guard Swap and Power Swap ARE modelled as of WIRE 151 and their stat-pair exchange '
     + 'is probed; `setBoost` emits no line in this engine, and `-swapboost` is not claimed in '
     + 'TRACE_EVENTS. Heart Swap is isNonstandard Past and unplayable here. The STATE is right and the '

@@ -413,6 +413,34 @@ const SCENARIOS = [
            mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
     [{ a: [{ m: 'bellydrum' }, { m: 'moonblast', t: 1 }], b: [{ m: 'dragonclaw', t: 1 }, { m: 'protect' }] },
      { a: null, b: null }]],
+
+  /* `-copyboost`: THE ONE EVENT THAT NAMES TWO POKEMON — added 2026-08-26 (ROADMAP #457) with the
+   * emitter, on the same rule the Belly Drum board above was added on.
+   *
+   * `data/moves.ts` psychup's onHit ends with `this.add("-copyboost", source, target, "[from] move:
+   * Psych Up")`, and it is the ONLY legal move in this format that writes the event — the sweep for
+   * `this.add('-copyboost'` over every legal move's handlers matches exactly one. So no scenario above
+   * can produce it by accident and none does: a claimed event nothing produces is the shape PART 1
+   * exists to refuse, which is why it gets a board rather than a caveat.
+   *
+   * THE SET IS SCENARIO 1's OWN CLEFABLE with Psych Up in the fourth slot; `champions_sim.canLearn`
+   * says Clefable learns it and Garchomp learns Swords Dance, asked of the format rather than
+   * recalled. Nothing else on either team moves.
+   *
+   * THE FOE BOOSTS FIRST AND THAT IS DELIBERATE, THOUGH THE EVENT DOES NOT DEPEND ON IT. Garchomp is
+   * 102 base Speed against Clefable's 60, so the copy takes a REAL +2 rather than an empty vector —
+   * the authority writes the line in both orders, and an arm where the copied board is empty would be
+   * a weaker board for the same pass. `protect` in the other three slots keeps the turn from ending
+   * before the click. */
+  ['Psych Up: the one line that names the body copied FROM as well as the copier',
+    () => [mon('clefable', ['moonblast', 'protect', 'helpinghand', 'psychup'], 'unaware', ''),
+           mon('incineroar', ['fakeout', 'protect', 'knockoff', 'flareblitz'], 'intimidate', ''),
+           mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
+    () => [mon('garchomp', ['swordsdance', 'dragonclaw', 'protect', 'rockslide'], 'roughskin', ''),
+           mon('milotic', ['scald', 'recover', 'protect', 'icywind'], 'marvelscale', ''),
+           mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
+    [{ a: [{ m: 'psychup', t: 0 }, { m: 'protect' }], b: [{ m: 'swordsdance' }, { m: 'protect' }] },
+     { a: null, b: null }]],
 ];
 
 const seen = {};

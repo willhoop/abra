@@ -1,9 +1,9 @@
 {
-  "generated": "2026-08-24 09:15:15",
+  "generated": "2026-08-26 22:47:00",
   "source": "engine/derive_protocol_events.js",
   "source_digests": {
-    "engine/derive_protocol_events.js": "1ee3421c6c67",
-    "engine/medicham2-browser.js": "9342df51e757"
+    "engine/derive_protocol_events.js": "477e53d8315b",
+    "engine/medicham2-browser.js": "1337ff095e92"
   },
   "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
@@ -30,13 +30,14 @@
     "note": "the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins."
   },
   "showdownEvents": 91,
-  "emittedCount": 43,
+  "emittedCount": 44,
   "emitted": [
     "-ability",
     "-activate",
     "-boost",
     "-clearallboost",
     "-clearnegativeboost",
+    "-copyboost",
     "-crit",
     "-curestatus",
     "-damage",
@@ -76,7 +77,7 @@
     "turn",
     "upkeep"
   ],
-  "notEmittedCount": 51,
+  "notEmittedCount": 50,
   "notEmitted": [
     {
       "event": "-anim",
@@ -109,10 +110,6 @@
     {
       "event": "-combine",
       "reason": "no combined moves."
-    },
-    {
-      "event": "-copyboost",
-      "reason": "Psych Up IS modelled as of WIRE 151 and its whole-vector copy is probed; `source.boosts[i] = target.boosts[i]` emits no line in this engine, and `-copyboost` is not claimed in TRACE_EVENTS. The STATE is right and the ANNOUNCEMENT is owed."
     },
     {
       "event": "-cureteam",
@@ -533,7 +530,7 @@
         "SIM-PROTOCOL.md"
       ],
       "champions": false,
-      "medicham": "declared"
+      "medicham": "emitted"
     },
     {
       "name": "-crit",

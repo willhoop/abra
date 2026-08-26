@@ -1327,6 +1327,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #213 -- a damaging move from the holder's OWN PARTNER refused (`refusesAllyDamage`;
      Telepathy is the only carrier). Zero unless an ally clicks a spread move over its own side. */
   allyDamageRefused: 0,
+  /* ROADMAP #456 -- the LINE that refusal writes, `-activate|HOLDER|ability: Telepathy`, actually
+     emitted. It is a strict subset of allyDamageRefused above: the refusal can happen inside a bare
+     dmgRange call with no trace bound, so the two are not equal and the pair is what says whether the
+     announcement was REACHED rather than merely present. */
+  allyRefusalActivate: 0,
+  /* ROADMAP #457 -- a `-copyboost` actually written. Zero unless Psych Up is clicked; it is the only
+     legal move whose handler carries that line. */
+  copyBoostAnnounced: 0,
+  /* ROADMAP #458 -- the bare `-immune` a punish handler writes at the ATTACKER when its status could
+     not land (`punishesAttacker.attackerImmune`; Spicy Spray, through Scovillain's mega, is the only
+     legal carrier). Zero unless a Fire body with no status attacks one. */
+  punishAttackerImmuneAnnounced: 0,
   /* ROADMAP #213 -- a POSITIVE evasion stage cancelled by the attacker's own ability
      (`ignoresEvasion`; Keen Eye and Illuminate). Zero unless one of them clicks into a boosted
      target -- a negative evasion stage is left alone, because the ability ignores evasion rather
@@ -1996,6 +2008,20 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-23 -- set for the whole run when MEDI_PUNISH_ANNOUNCE_BLIND=1 puts the silent punish and
      the inline `[from] ability:` boost line back on purpose. Same shape as the row above. */
   punishAnnounceBlindRestored: 0,
+  /* ROADMAP #456 -- set for the whole run when MEDI_ALLY_REFUSAL_IMMUNE=1 puts the absorb road's
+     `-immune` back on the ally refusal, so a deliberate restore arm and a broken engine can never be
+     read as the same thing. Same shape as punishAnnounceBlindRestored. */
+  allyRefusalImmuneRestored: 0,
+  /* ROADMAP #457 -- set for the whole run when MEDI_NO_COPYBOOST_LINE=1 restores the silent copy. */
+  copyBoostLineBlindRestored: 0,
+  /* ROADMAP #458 -- set for the whole run when MEDI_NO_ATTACKER_IMMUNE_LINE=1 restores the silent
+     punish failure. */
+  attackerImmuneLineBlindRestored: 0,
+  /* ROADMAP #456 -- a `refusesAllyDamage` carrier refused a partner's hit and the artifact carried NO
+     `announce` record for it, so nothing was said. MUST READ 0 while Telepathy is the only member:
+     non-zero means tag_dex stopped deriving the line and the refusal went silent, which is a WORSE
+     state than the `-immune` it replaced and would otherwise be invisible. */
+  allyRefusalUnannounced: 0,
   /* 2026-08-23 -- set for the whole run when MEDI_VOL_START_ARG_BLIND=1 puts the generic
      `-start|move: <vol>` back on the one volatile whose field 4 is computed. */
   volStartArgBlindRestored: 0,
@@ -2998,6 +3024,12 @@ const TRACE=(function(){
       this.out.push(s);
     },
     imm(m,from){ this.push(['-immune',ident(m),from]); },
+    /* ROADMAP #457, 2026-08-26 -- THE ONE TWO-BODY LINE IN THIS EMITTER. `-copyboost` names the body
+     * that TOOK the vector first and the body it was taken FROM second, in the handler's own argument
+     * order (`this.add("-copyboost", source, target, "[from] move: Psych Up")`), so `dst` is the
+     * copier. Every other announcement here carries one Pokemon plus an attribution, which is why
+     * `TR.announced` cannot compose this and why the shape is read off the op rather than assumed. */
+    copyboost(dst,src,attr){ this.push(['-copyboost',ident(dst),ident(src),attr]); },
     /* ROADMAP #234 -- `tag` is a FIFTH field that is not `[of]`. The authority's partial-trap chip is
      * `add('-damage', target, health, '[from] ' + sourceEffect.fullname, '[partiallytrapped]')`
      * (sim/battle.ts:2141): the slot `[of]` normally occupies carries a bracket tag instead. They are
@@ -3304,6 +3336,14 @@ const TRACE_EVENTS=['turn','upkeep','move','cant','switch','drag','faint','detai
   '-ability','-item','-enditem','-weather','-fieldstart','-fieldend','-fieldactivate',
   '-sidestart','-sideend','-start','-end','-activate','-singleturn','-fail','-miss',
   '-crit','-supereffective','-resisted','-immune','-prepare','-mustrecharge','-hitcount','-formechange',
+  /* ROADMAP #457, 2026-08-26 -- `-copyboost` IS CLAIMED NOW, AND CLAIMING IT IS NOT FREE.
+   * `data/protocol-events.json` carried it as NOT EMITTED with the reason "the STATE is right and the
+   * ANNOUNCEMENT is owed"; that reason is deleted rather than reworded in
+   * engine/derive_protocol_events.js, exactly as `-setboost`'s and `-sethp`'s were. tests/
+   * test-protocol-trace.js PART 1 requires every claimed event to FIRE in one of its scripted games,
+   * so a Psych Up board was added there in the same pass — a claimed event nothing produces is the
+   * shape PART 1 exists to refuse. */
+  '-copyboost',
   '-transform'];
 /* ARM / DISARM. Returns the previous sink so a nested call restores rather than clobbers. */
 function traceBind(S){
@@ -10878,6 +10918,24 @@ const ABILITY_VOL_LINE_BLIND=(typeof process!=='undefined'&&process.env&&process
  * carrying it also carries a non-zero `MEDFAILS.punishAnnounceBlindRestored`. Same shape as
  * MEDI_ABILITY_VOL_LINE_BLIND above. */
 const PUNISH_ANNOUNCE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PUNISH_ANNOUNCE_BLIND==='1');
+/* ROADMAP #456, 2026-08-26 -- MEDI_ALLY_REFUSAL_IMMUNE=1 PUTS THE ABSORB ROAD'S `-immune` BACK ON THE
+ * ALLY REFUSAL: `|-immune|HOLDER|[from] ability: telepathy` instead of the authority's
+ * `|-activate|HOLDER|ability: Telepathy`. It exists so the census row
+ * "Telepathy announces |-activate|ally|ability: Telepathy, not |-immune|" can be shown MISSING on
+ * demand without swapping a file. Any run carrying it also carries a non-zero
+ * `MEDFAILS.allyRefusalImmuneRestored`. Same shape as MEDI_PUNISH_ANNOUNCE_BLIND above. */
+const ALLY_REFUSAL_IMMUNE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ALLY_REFUSAL_IMMUNE==='1');
+/* ROADMAP #457, 2026-08-26 -- MEDI_NO_COPYBOOST_LINE=1 PUTS THE SILENT COPY BACK: the boost vector is
+ * still overwritten and the `-copyboost` line is not written, which is every game this engine has ever
+ * played. It reds the census row "Psych Up announces |-copyboost| on the copier" and leaves the STATE
+ * row beside it green, which is the split those two rows exist to keep. Any run carrying it also
+ * carries a non-zero `MEDFAILS.copyBoostLineBlindRestored`. */
+const NO_COPYBOOST_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_COPYBOOST_LINE==='1');
+/* ROADMAP #458, 2026-08-26 -- MEDI_NO_ATTACKER_IMMUNE_LINE=1 PUTS THE SILENT PUNISH-FAILURE BACK: a
+ * Spicy Spray that cannot burn a Fire attacker says nothing at all. It reds the census row
+ * "Spicy Spray announces a bare |-immune| at the FIRE ATTACKER..." and touches no board. Any run
+ * carrying it also carries a non-zero `MEDFAILS.attackerImmuneLineBlindRestored`. */
+const NO_ATTACKER_IMMUNE_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_ATTACKER_IMMUNE_LINE==='1');
 /* 2026-08-23 -- MEDI_VOL_START_ARG_BLIND=1 PUTS THE GENERIC VOLATILE START LINE BACK for the one
  * volatile whose field 4 is computed: `-start|BODY|move: disable` instead of
  * `-start|BODY|Disable|<the sealed move>`. It exists so `tests/probe_volatile_start_field.js` can be
@@ -13276,6 +13334,42 @@ function absorbGift(tg,_ab){
   }
   return _gift;
 }
+/* ROADMAP #456, 2026-08-26 -- WHAT AN ABSORB-ROAD REFUSAL SAYS, IN ONE PLACE AND READ OFF THE HANDLER.
+ *
+ * `absorbedBy` answers two DIFFERENT questions with one return value: a type absorb (Volt Absorb, Sap
+ * Sipper, ...) and an ALLY refusal (Telepathy). The board is the same — the hit is priced at zero —
+ * and the SENTENCE is not:
+ *
+ *     absorb   `if (!this.boost({atk:1})) this.add('-immune', target, '[from] ability: Sap Sipper')`
+ *     ally     `this.add('-activate', target, 'ability: Telepathy'); return null;`
+ *
+ * The absorb line is the GIFT'S ELSE and carries an attribution; the ally line is UNCONDITIONAL and
+ * carries a prefix instead. This engine routed both through `TR.imm`, so a Telepathy body announced
+ * an immunity the authority never claims — right board, wrong line, invisible to every board
+ * comparison including the roster's.
+ *
+ * BOTH CALL SITES ASK THIS ONE FUNCTION, for the same reason `absorbGift` was hoisted out of
+ * `_stepTryHit`: the attack road and the status road had already come apart once over Mold Breaker,
+ * and two copies of "what does a refusal say" would come apart again.
+ *
+ * THE `announce` RECORD IS THE ARTIFACT'S, NOT A BRANCH ON A NAME. A `refusesAllyDamage` member that
+ * derived no record announces NOTHING and is counted (`allyRefusalUnannounced`), because a silent
+ * refusal is a worse state than the wrong line and would otherwise look identical to this working. */
+function absorbRefusalAnnounce(tg,_ab){
+  if(!TR)return;
+  const _ally=!!(_ab&&_ab.viaAlly);
+  if(_ally&&!ALLY_REFUSAL_IMMUNE){
+    const _rec=TAGS.param('ability',tg.ability,'refusesAllyDamage');
+    const _an=_rec&&_rec.announce;
+    if(!_an||!_an.event){MEDFAILS.allyRefusalUnannounced++;return;}
+    TR.announced(tg,_an,tg.ability);
+    MEDSEEN.allyRefusalActivate++;
+    return;
+  }
+  if(_ally)MEDFAILS.allyRefusalImmuneRestored=1;
+  MEDSEEN.absorbImmuneAnnounced++;
+  TR.imm(tg,'[from] ability: '+tg.ability);
+}
 /* The line, and the counter, in one place so no caller can emit half of it. */
 function announceTryHitRefusal(r,t){
   if(!r)return;
@@ -13284,7 +13378,7 @@ function announceTryHitRefusal(r,t){
    * see the note in `absorbGift`. */
   if(r.why==='absorb'){
     if(absorbGift(t,r.absorb))MEDSEEN.absorbGiftLanded++;
-    else{MEDSEEN.absorbImmuneAnnounced++;if(TR)TR.imm(t,'[from] ability: '+t.ability);}
+    else absorbRefusalAnnounce(t,r.absorb);       /* ROADMAP #456 -- ally refusals say -activate */
     return;
   }
   /* ROADMAP #255 -- the ally half gets its own counter so it can prove it ran. `_sf` is the side
@@ -13721,6 +13815,31 @@ function applyStatOp(user,target,op,mvId,rng){
      * a declared fact rather than on the move's name; `copyCritStageVolatiles` owns the set and the
      * order, and Transform calls the same function. */
     if(Array.isArray(op.copiesVolatiles)&&op.copiesVolatiles.length) copyCritStageVolatiles(src,dst);
+    /* ROADMAP #457, 2026-08-26 -- AND THE LINE, WHICH IS THE LAST STATEMENT OF THE SAME HANDLER.
+     *
+     * The block header above is right that a raw `boosts[i] =` assignment produces no `-boost`, and
+     * that was read as "therefore no line at all" for as long as this function has existed. Psych Up's
+     * onHit ENDS with `this.add("-copyboost", source, target, "[from] move: Psych Up")` — one event
+     * for the whole vector, written whether or not a single stage moved, which is why it sits after
+     * the loop and carries no `if`. The authority writes it in BOTH speed orders; copying an empty
+     * board is still a copy, and the census row beside this one asserts exactly that.
+     *
+     * OFF THE OP'S OWN `announces` RECORD, so the three sibling kinds stay silent. `-swapboost` and
+     * `-invertboost` are real Showdown events with real legal carriers here (Guard Swap, Power Swap,
+     * Topsy-Turvy) and this engine claims NEITHER; deriving the record per-handler rather than per
+     * family is what keeps those three unchanged instead of guessing that the family is uniform.
+     *
+     * FIELD ORDER IS THE HANDLER'S: `source` (the copier — `dst` here, because `op.to === 'user'`)
+     * then `target` (the copied — `src`). Reading it off `from`/`to` rather than naming the move
+     * means a future member copying the other way emits the other order with no edit. */
+    if(op.announces&&op.announces.event&&TR){
+      if(NO_COPYBOOST_LINE)MEDFAILS.copyBoostLineBlindRestored=1;
+      else if(op.announces.event==='-copyboost'){
+        TR.copyboost(dst,src,op.announces.prefix?op.announces.prefix+': '+mvId:undefined);
+        MEDSEEN.copyBoostAnnounced++;
+      }else{ MEDFAILS.announceEventUnknown++;
+             if(!MEDFAILS.announceEventUnknownFirst)MEDFAILS.announceEventUnknownFirst=String(op.announces.event); }
+    }
     MEDSEEN.statOpApplied++;return true;
   }
   if(op.kind==='invert'){
@@ -25576,7 +25695,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              one for all eight and a ninth arrives working. */
           const _gift=absorbGift(tg,_ab);
           if(_gift)MEDSEEN.absorbGiftLanded++;
-          else{MEDSEEN.absorbImmuneAnnounced++;if(TR)TR.imm(tg,'[from] ability: '+tg.ability);}
+          else absorbRefusalAnnounce(tg,_ab);     /* ROADMAP #456 -- ally refusals say -activate */
           R.out=true;return;
         }
       };
@@ -26833,7 +26952,41 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_pun.inflicts&&!m.fainted){
               const _r=rng();let _cum=0;
               for(const _inf of _pun.inflicts){_cum+=_inf.chance;
-                if(_r<_cum){applyStatus(m,CODE_OF_STATUS[_inf.status]||_inf.status,null,ATTR.ability(tg.ability,tg));break;}}
+                if(_r<_cum){
+                  const _land=applyStatus(m,CODE_OF_STATUS[_inf.status]||_inf.status,null,ATTR.ability(tg.ability,tg));
+                  /* ROADMAP #458, 2026-08-26 -- THE BARE `-immune` AT THE **ATTACKER**, WHICH IS THE
+                   * ONLY LINE IN THIS BLOCK THAT DOES NOT NAME THE HOLDER.
+                   *
+                   *     data/abilities.ts  spicyspray.onDamagingHit(damage, target, source, move) {
+                   *       if (!source.trySetStatus("brn", target) && !source.status
+                   *           && source.hasType("Fire")) this.add("-immune", source); }
+                   *
+                   * `_pun.announce` above cannot carry it: that reader takes a THREE-argument
+                   * `this.add(event, BODY, 'prefix: Name')` and every member it matches names the
+                   * TARGET. This one is two arguments, no `[from]`, at the SOURCE — so it is its own
+                   * derived record (`attackerImmune`) and its own emission.
+                   *
+                   * ALL THREE CLAUSES ARE ASKED AND TWO OF THEM ARE THE OVER-FIRE CONTROL. `!_land` is
+                   * the failed `trySetStatus`; `unlessStatused` is `!source.status`, so a Fire body
+                   * that is ALREADY paralysed stays silent even though it is still burn-proof; and
+                   * `requiresAttackerType` is the handler's own `hasType`, read out of the artifact so
+                   * nothing is typed beside a name here. An engine that announced off the immunity
+                   * alone passes the positive arm and fails the paralysed one.
+                   *
+                   * IT IS NOT CONTACT-GATED AND MUST NOT BE: `onDamagingHit` fires for any hit that
+                   * dealt damage, so a ranged special sets it off. That half is the board row beside
+                   * this one and is already live; this adds only the sentence. */
+                  const _ai=_pun.attackerImmune;
+                  if(!_land&&_ai&&_ai.event==='-immune'&&TR){
+                    if(NO_ATTACKER_IMMUNE_LINE)MEDFAILS.attackerImmuneLineBlindRestored=1;
+                    else{
+                      const _okStatus=!_ai.unlessStatused||!m.status;
+                      const _okType=!_ai.requiresAttackerType||
+                        (m.types||[]).some(x=>String(x).toLowerCase()===String(_ai.requiresAttackerType).toLowerCase());
+                      if(_okStatus&&_okType){TR.imm(m);MEDSEEN.punishAttackerImmuneAnnounced++;}
+                    }
+                  }
+                  break;}}
             }
             /* `tg` is the HOLDER of the punish ability and `m` is the attacker who set it off, so
              * the rock that extends this sky is the holder's. The first cut of this line read

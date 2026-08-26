@@ -28511,24 +28511,42 @@ probe('move', 'statChangeInCode',
  * is a stream defect and belongs with the narration gate. The arm that keeps it honest is the SAME
  * click in the same run: the `|move|psychup|` line must be there, so "no copyboost" cannot be
  * satisfied by a move that never ran. */
+/* THE CONTROL IS THE SAME BOARD WITH THE COPIER PASSING, AND IT WAS ADDED WHEN THE ROW WENT GREEN
+ * (ROADMAP #457, 2026-08-26). The arms this probe shipped with were `{control: ran, test: got.length}`
+ * — 1 and 0 while the engine was silent, which LOOKED like two arms and was not: `ran` is a
+ * PRECONDITION ("the click happened"), not a control, and the moment the line landed both read 1 and
+ * this file's own hollow detector said so. The real question a control has to ask is whether the
+ * engine writes `-copyboost` for the CLICK or merely for a stat change happening somewhere on the
+ * turn: Delphox's Nasty Plot fires in both arms, so an engine that announced every boost as a copy
+ * passes the test arm and fails this one. The precondition is kept — inside `works`, where it belongs. */
 probe('move', 'statChangeInCode', 'Psych Up announces |-copyboost| on the copier', () => {
-  const { me, ally, f1, f2, S } = board('aromatisse', 'incineroar', 'delphox', 'garchomp');
-  me.st = Object.assign({}, me.st, { sp: 1 });
-  f1.st = Object.assign({}, f1.st, { sp: 999 });
-  const trace = []; S._trace = trace;
-  M.battleTurn(S, rng5,
-    new Map([[me, M.playerAction(me, 'psychup', f1, S.field)], [ally, { kind: 'pass' }]]),
-    new Map([[f1, M.playerAction(f1, 'nastyplot', null, S.field)], [f2, { kind: 'pass' }]]));
-  const lines = trace.map(M.traceCanon);
+  const go = (click) => {
+    const { me, ally, f1, f2, S } = board('aromatisse', 'incineroar', 'delphox', 'garchomp');
+    me.st = Object.assign({}, me.st, { sp: 1 });
+    f1.st = Object.assign({}, f1.st, { sp: 999 });
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, click ? M.playerAction(me, click, f1, S.field) : { kind: 'pass' }],
+               [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'nastyplot', null, S.field)], [f2, { kind: 'pass' }]]));
+    const lines = trace.map(M.traceCanon);
+    return { got: lines.filter(l => /^\|-copyboost\|/.test(l)),
+             ran: lines.filter(l => /^\|move\|p1a[^|]*\|psychup/.test(l)).length,
+             /* the arm that says the CONTROL is a real turn and not an empty one */
+             plot: lines.filter(l => /^\|-boost\|p2a[^|]*\|spa\|2/.test(l)).length };
+  };
+  const test = go('psychup'), control = go(null);
   const WANT = M.traceCanon('|-copyboost|p1a: aromatisse|p2a: delphox|[from] move: Psych Up');
-  const got = lines.filter(l => /^\|-copyboost\|/.test(l));
-  const ran = lines.filter(l => /^\|move\|p1a[^|]*\|psychup/.test(l)).length;
-  return { works: ran === 1 && got.length === 1 && got[0] === WANT,
-           arms: { control: ran, test: got.length },
+  return { works: test.ran === 1 && test.got.length === 1 && test.got[0] === WANT
+                  && control.ran === 0 && control.got.length === 0 && control.plot === 1,
+           arms: { control: [control.got.length, control.plot], test: [test.got.length, test.plot] },
            detail: 'the authority writes `' + WANT + '` (measured on one staged turn). This engine '
-                 + 'writes [' + (got.join(' ') || '(no -copyboost at all)') + ']. The move ran '
-                 + ran + ' time(s) on the same turn and the copy LANDED (the row above asserts the '
-                 + '+2), so this is the line and nothing else' };
+                 + 'writes [' + (test.got.join(' ') || '(no -copyboost at all)') + ']. The move ran '
+                 + test.ran + ' time(s) on the same turn and the copy LANDED (the row above asserts '
+                 + 'the +2), so this is the line and nothing else. THE CONTROL is the identical board '
+                 + 'with the copier PASSING: it writes ' + control.got.length + ' -copyboost line(s) '
+                 + 'off ' + control.plot + ' Nasty Plot(s) that still landed, so the line is tied to '
+                 + 'the CLICK and not to a stat change happening anywhere on the turn' };
 });
 
 /* ---- 4. SPICY SPRAY IS NOT CONTACT-GATED, AND ITS `-immune` NAMES THE ATTACKER ------------------

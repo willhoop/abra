@@ -875,7 +875,25 @@ function STAT_OP(h) {
     return { kind: 'exchange', stats: statSubsetIn(s), between: ['user', 'target'] };
   /* COPY: one direction only, straight assignment out of the target's vector into the source's. */
   if (/\bsource\.boosts\[\s*\w+\s*\]\s*=\s*target\.boosts\[\s*\w+\s*\]/.test(s))
-    return { kind: 'copy', stats: statSubsetIn(s), from: 'target', to: 'user' };
+    return { kind: 'copy', stats: statSubsetIn(s), from: 'target', to: 'user',
+             /* ROADMAP #457, 2026-08-26 -- THE ONE MEMBER OF THIS FAMILY THAT ANNOUNCES ITSELF.
+              *
+              * The block header above says three of the four kinds "deliberately do not go through the
+              * boost pipeline", which is true of the STATE and was silently read as true of the STREAM
+              * as well: no `-boost` line means no line at all. It is not. `data/moves.ts` psychup's
+              * onHit ENDS with a line of its own, below the loop this descriptor was written from:
+              *     this.add("-copyboost", source, target, "[from] move: Psych Up");
+              * A two-BODY event, which is why `announceIn` (one body, one attribution) cannot carry it
+              * and why it is read here instead: field 2 is the op's DESTINATION and field 3 its SOURCE,
+              * in the handler's own argument order.
+              *
+              * MEMBERSHIP PRINTED OVER THE FORMAT BEFORE THIS WAS WIRED: walking every legal move's
+              * onHit/onAfterHit/onTryHit/... for `this.add('-copyboost'` matches exactly ONE, Psych Up.
+              * The three sibling kinds (`exchange`, `invert`, `randomOne`) are the over-match control —
+              * `-swapboost` and `-invertboost` are real Showdown events and are NOT claimed here,
+              * because this reads the handler rather than assuming the family is uniform. */
+             announces: (m => m ? { event: m[1], prefix: (i => i >= 0 ? m[2].slice(0, i).trim() : null)(m[2].indexOf(':')) } : null)(
+               s.match(/add\(\s*["'](-copyboost)["']\s*,\s*source\s*,\s*target\s*,\s*["']([^"']*)["']/)) };
   /* INVERT: the target's own slot assigned its own negation. `nonzeroOnly` is the handler's `continue`
    * guard, and it is the difference between a move that fails on an empty vector and one that does
    * nothing quietly -- Showdown returns false when no stage moved. */
@@ -7490,6 +7508,37 @@ const ABILITY_TAGS = [
                 * announcing members in the dex (Cotton Down, Perish Body, Tangling Hair) have NO LEGAL
                 * CARRIER in this regulation. */
                announce: announceIn(a.onDamagingHit),
+               /* ROADMAP #458, 2026-08-26 -- THE LINE THE HANDLER WRITES ABOUT THE **ATTACKER**, WHICH
+                * `announce` ABOVE STRUCTURALLY CANNOT CARRY.
+                *
+                * `announceIn` reads a THREE-argument `this.add(event, BODY, 'prefix: Name')` and every
+                * member it has ever matched names the HOLDER. Spicy Spray's is two arguments and names
+                * the SOURCE:
+                *     data/abilities.ts  spicyspray.onDamagingHit(damage, target, source, move) {
+                *       if (!source.trySetStatus("brn", target) && !source.status && source.hasType("Fire"))
+                *         this.add("-immune", source); }
+                * -- a BARE `-immune` with no `[from]`, at the body that just attacked. Reading it as an
+                * `announce` would have put the line on the wrong Pokemon.
+                *
+                * ALL THREE CLAUSES ARE READ, NOT ASSUMED, because two of them are the over-fire
+                * control: an engine that announced off the burn immunity alone would light up for a
+                * Fire attacker that is ALREADY paralysed, where the authority stays silent.
+                *   unlessStatused          `!source.status`
+                *   requiresAttackerType    `source.hasType("Fire")` -- the TYPE is read out of the
+                *                           handler, so a sibling that named a different one arrives
+                *                           working and nothing here is typed beside a name.
+                *
+                * MEMBERSHIP PRINTED OVER THE FORMAT BEFORE THIS WAS WIRED: of every legal ability with
+                * an `onDamagingHit` that calls `this.add`, six match at all and exactly ONE writes a
+                * bare `-immune` at `source` -- Spicy Spray. The other five (Cotton Down, Gooey, Perish
+                * Body, Tangling Hair, Toxic Debris) all name `target` and are `announce`'s business. */
+               attackerImmune: (() => {
+                 if (!/add\(\s*["']-immune["']\s*,\s*source\s*\)/.test(src)) return null;
+                 return { event: '-immune',
+                          unlessStatused: /!\s*source\.status\b/.test(src),
+                          requiresAttackerType:
+                            (src.match(/source\.hasType\(\s*["'](\w+)["']\s*\)/) || [])[1] || null };
+               })(),
                fraction: (src.match(/baseMaxhp\s*\/\s*(\d+)/) || [])[1] || null,
                hazard,
                maxLayers: hazard ? +((src.match(/layers\s*<\s*(\d+)/) || [])[1] || 0) || null : null,
@@ -7671,7 +7720,21 @@ const ABILITY_TAGS = [
       return { refuses: true,
                /* the two halves of the handler's own condition, each stated */
                exceptCategory: /category !== ["']Status["']/.test(src) ? 'Status' : null,
-               notSelf: /target !== source/.test(src) };
+               notSelf: /target !== source/.test(src),
+               /* ROADMAP #456, 2026-08-26 -- WHAT THE REFUSAL SAYS, READ OFF THE HANDLER'S OWN
+                * `this.add` BY THE SAME `announceIn` THE ITEM, PRIORITY AND PUNISH FAMILIES USE.
+                *
+                * This is NOT an absorb and it does NOT say `-immune`. The handler writes
+                * `this.add('-activate', target, 'ability: Telepathy')` and returns null, so the line
+                * names the HOLDER and carries the `ability:` prefix. medicham2 routed the refusal
+                * through the absorb road, which announces `-immune|HOLDER|[from] ability: X` -- right
+                * board, wrong sentence, and no board comparison can see it.
+                *
+                * MEMBERSHIP PRINTED OVER THE FORMAT BEFORE THIS WAS WIRED: exactly ONE legal ability
+                * carries an `onTryHit` that tests `isAlly(source)` -- Telepathy -- and it announces.
+                * A future second member that stayed silent returns null here and emits nothing, which
+                * is the whole reason this is a record rather than a boolean. */
+               announce: announceIn(a.onTryHit) };
     } },
   { tag: 'modifiesWeight', param: 'the holder weighs more or less than its species does', probe: 'onModifyWeight',
     why: 'Heavy Metal and Light Metal. Low Kick reads the target weight off a bracket table and Heat '

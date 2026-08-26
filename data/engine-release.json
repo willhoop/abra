@@ -1,10 +1,10 @@
 {
-  "current": "667278050dcf",
-  "cut": "2026-08-26T20:28:52.746Z",
+  "current": "2c343e3ffaaa",
+  "cut": "2026-08-26T22:51:47.216Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 25,
-  "latest_cut": "2026-08-26T22:19:30.457Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-26T22:19:30.471Z",
+  "cuts": 2,
+  "latest_cut": "2026-08-26T22:54:05.970Z",
+  "latest_why": "three narration lines: Telepathy -activate (#456), Psych Up -copyboost (#457), Spicy Spray attacker -immune (#458)",
+  "pointer_written": "2026-08-26T22:54:05.981Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

@@ -10,6 +10,67 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.149.0] — 2026-08-26
+
+### Fixed
+- **TELEPATHY'S REFUSAL WAS ANNOUNCED AS AN ABSORB, AND AN ABSORB SAYS `-immune`.** ROADMAP #456,
+  ENGINE. `absorbedBy()` returns one value for two different questions — a TYPE absorb, whose
+  `-immune` is the gift's *else* and carries `[from] ability: X`, and an ALLY refusal, which the
+  authority announces unconditionally as `-activate|HOLDER|ability: Telepathy`. Both went through
+  `TR.imm`. The line is now derived onto `refusesAllyDamage.announce` by the same `announceIn` the
+  item, priority and punish families use, and emitted by ONE function called from both the attack road
+  and the status road. Membership printed first: exactly one legal ability has an `onTryHit` testing
+  `isAlly(source)`. **Closed a whole-game divergence in the pinned pool.**
+- **PSYCH UP'S HANDLER ENDS WITH A LINE THIS ENGINE ONLY READ THE TOP OF.** ROADMAP #457, ENGINE.
+  `applyStatOp` is right that a raw `boosts[i] =` assignment produces no `-boost`; that was read as
+  *no line at all*. `psychup.onHit` ends `this.add("-copyboost", source, target, "[from] move: Psych
+  Up")` — one two-BODY event for the whole vector, no `if`, fired in both speed orders. Derived
+  per-handler onto the copy op, so `-swapboost` and `-invertboost` (Guard Swap, Power Swap,
+  Topsy-Turvy) stay unclaimed rather than being assumed uniform with it.
+  **`data/all-mechanics-fire.json` `moves.resolution_disagreements` 12 → 11, and a row-by-row diff of
+  all 739 rows shows exactly one changed: `psychup`.**
+- **SPICY SPRAY'S `-immune` NAMES THE ATTACKER, AND `announce` STRUCTURALLY COULD NOT CARRY IT.**
+  ROADMAP #458, ENGINE. `announceIn` matches a three-argument `this.add(event, BODY, 'prefix: Name')`
+  and every member it has ever matched names the HOLDER; this one is two arguments, no `[from]`, at
+  the SOURCE. New derived record `punishesAttacker.attackerImmune`, carrying all three of the
+  handler's clauses — the failed status, `!source.status`, and `source.hasType("Fire")` with the TYPE
+  read out of the handler. Two of those are the over-fire control: an already-paralysed Fire body is
+  still burn-proof and the authority stays silent. **Closed a whole-game divergence, attributed by
+  re-running the pinned differential under `MEDI_NO_ATTACKER_IMMUNE_LINE=1` alone (13 → 14 diverged).**
+
+### Changed
+- **`-copyboost` IS CLAIMED IN `TRACE_EVENTS`.** Its NOT-EMITTED reason in
+  `engine/derive_protocol_events.js` is **deleted rather than reworded**, as `-setboost`'s and
+  `-sethp`'s were. `data/protocol-events.json` regenerated: 43 emitted → 44, 51 declared → 50.
+  A Psych Up board was added to `tests/test-protocol-trace.js` PART 1, because a claimed event
+  nothing produces is what that check exists to refuse.
+- **`data/tags.json` and `data/abra-tags.js` regenerated** for the three new derived params. 443 rows
+  also moved on `uses` alone, because `tag_dex.js` reads usage off the live store; verified
+  field-by-field that `uses` is the only field that changed on any of them. `medicham2`'s one
+  behavioural reader of `uses` is `sideGuardClickRate` (Quick Guard 0.09135 → 0.09088), which reaches
+  a rollout and reaches none of this pass's instruments — the differential drives both engines from
+  its own coverage-steered chooser, and the roster and census stage explicit clicks.
+- **The Psych Up narration probe's arms were a precondition, not a control.** It returned
+  `{control: ran, test: got.length}`, which differ only while the row is RED; green, both read 1 and
+  the hollow detector said so. Replaced with the identical board and the copier PASSING, which asks
+  the real over-fire question — does the engine tie the line to the CLICK or to any stat change on
+  the turn.
+
+### Notes
+- Engine release **`2c343e3ffaaa`** — *three narration lines: Telepathy -activate (#456), Psych Up
+  -copyboost (#457), Spicy Spray attacker -immune (#458)*. Roster re-run on it: all three stages
+  identical, count for count, `FIRED-AND-BOARDS-DIFFER` 0 and `DID-NOT-FIRE` 0.
+- **Census 750 → 753 live of 753 probed, 0 missing** — the first run with no MISSING row. That is not
+  a claim the engine is finished; the census probes what somebody thought to probe.
+- **Board-material is unmoved at 1 of 961, as predicted** — all three defects were narration with the
+  board already correct.
+- **`tests/test-tag-consumed.js` is RED** on `punishesMinimize` (992 uses) being a tag with no
+  consumer. **It is red at HEAD too** — the string is absent from `medicham2-browser.js` and
+  `board.js` in both trees and the test's own diagnosis reads `STILL DEAD`. Not folded into this
+  batch, which would have cost it its attribution; it is on the ENGINE hand list as next.
+
+---
+
 ## [5.148.0] — 2026-08-26
 
 ### Added

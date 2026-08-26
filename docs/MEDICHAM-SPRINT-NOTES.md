@@ -21,6 +21,36 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THREE NARRATION LINES, THREE KNOBS, AND THE CENSUS HAS NO MISSING ROW FOR THE FIRST TIME. CENSUS 750/753/3 -> 753 LIVE / 753 PROBED / **0 MISSING**. WHOLE-GAME CLAUSE 10 -> 8 OF 961 (RAW 15 -> 13), BOARD-MATERIAL UNMOVED AT 1, MECHANICS CLAUSE UNMOVED AT 8 OF 16. 2026-08-26 (ENGINE).
+
+Release **`2c343e3ffaaa`**. ROADMAP **#456, #457, #458 all closed.** Full account: `docs/ENGINE.md`,
+section *"THREE LINES, THREE KNOBS..."*. CHANGELOG 5.149.0.
+
+All three were narration with the board ALREADY correct, which is why the roster passed them for as
+long as they existed — the roster compares boards.
+
+| # | the authority | this engine wrote | proved by |
+|---|---|---|---|
+| #456 Telepathy | `-activate\|HOLDER\|ability: Telepathy` | `-immune\|HOLDER\|[from] ability: telepathy` — it rode the ABSORB road, whose `-immune` is the gift's *else* | a whole-game divergence CLOSED, and the row named the mechanic |
+| #457 Psych Up | `-copyboost\|COPIER\|COPIED\|[from] move: Psych Up` | nothing — the handler's last statement was never read | `all-mechanics-fire` `resolution_disagreements` 12 -> 11, and a diff of all 739 rows shows exactly one changed: `psychup` |
+| #458 Spicy Spray | a BARE `-immune` naming the **ATTACKER** | nothing — `announce` reads a 3-arg `this.add` and every member it matches names the HOLDER | a whole-game divergence CLOSED, red-armed: `MEDI_NO_ATTACKER_IMMUNE_LINE=1` alone takes 13 -> 14 |
+
+**THE PREDICTION WAS WRITTEN FIRST AND HELD.** Census 750 -> 753 and missing -> 0; board-material
+unmoved (narration moves no board); roster identical count for count; and **no NEW divergence** from
+`-copyboost` leaving `data/protocol-events.json`'s declared list, which is the differential's skip
+list — Showdown's `-copyboost` lines were being dropped before alignment and are now compared.
+
+**EACH KNOB REDS EXACTLY ITS OWN ROW AND NOTHING ELSE** — `MEDI_ALLY_REFUSAL_IMMUNE`,
+`MEDI_NO_COPYBOOST_LINE`, `MEDI_NO_ATTACKER_IMMUNE_LINE` — each with its own `MEDFAILS.*Restored`
+flag. Each new emission was shown REACHED rather than present, by a counter delta against a
+knob-cleared control, because this engine has shipped a function declared twice and a function with
+no caller.
+
+**RED FOUND, NOT MINE, NOT FIXED HERE:** `tests/test-tag-consumed.js` on `punishesMinimize`
+(992 uses) — red at HEAD too, `STILL DEAD` rather than `REGRESSED`. Next on the ENGINE hand list.
+
+---
+
 ## ONE DECLARED LIST HAD ONE READER — THE MECHANICS CLAUSE COUNTED A ROW THE WHOLE-GAME CLAUSE HAD ALREADY DECLARED. MECHANICS 9 -> 8 OF 16, WHOLE-GAME UNMOVED AT 10 OF 961, BOARD-MATERIAL UNMOVED AT 2 OF 961, CENSUS UNMOVED AT 750/753/3. 2026-08-26 (MEASURE).
 
 Ledger section: `docs/MEASURE.md`, written. CHANGELOG 5.147.0. Register row: ROADMAP #464 CLOSED.
