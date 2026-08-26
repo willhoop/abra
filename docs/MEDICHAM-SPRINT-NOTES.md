@@ -21,6 +21,42 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE STALL COUNTER WAS SPENT ON A TURN THE AUTHORITY'S RESIDUAL NEVER OPENS. CENSUS 749/752 -> 750 LIVE / 753 PROBED / 3 MISSING. BOARD-MATERIAL 3 -> 2 OF 961, WHOLE-GAME CLAUSE UNMOVED AT 10. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.146.0. Register row: ROADMAP #463 CLOSED.
+Engine release cut for this batch: **`667278050dcf`**.
+
+The card said *"the authority armed a counter and we armed it zero times — find the arming path"*.
+**It is not an arming failure.** Both engines armed it on the same turn to the same value; one of them
+then SPENT the clock on a turn where the authority never opens the residual at all.
+
+Replayed rather than reasoned about — the recorded game's own Garchomp: t7 Protect lands and both read
+3 (`showdown stall = 3, duration 1`, `|upkeep|` emitted); t8 Earthquake, both remaining bodies faint,
+`|win|B`, **no `|upkeep|` at all**, showdown still 3 and medicham 0. `turnLoop` returns the instant
+`this.ended` and the residual is a QUEUED ACTION, so a battle that ends mid-turn never spends
+`stall`'s `duration`.
+
+The authority deletes `volatiles.stall` in exactly three places — a lost `StallMove` roll, a
+`breaksProtect` hit, and the residual's duration reaching zero. This engine had four more (the turn
+pre-pass and `_shieldGate`'s three "you hold the last action" refusals, none of which the authority
+reaches because `onPrepareHit`/`onTry` short-circuit before `StallMove`), and its real one sat on the
+OUTER exit of `battleTurn`, below every `break _TURN` — borrowed from the FLINCH clear, whose own
+header says *"THIS CHANGES NO BOARD AND CANNOT"*, when `stall` is a board leaf.
+
+`_stallExpire` is now the one door, called where the residual opens. `MEDI_STALL_EAGER_CLEAR=1` and
+`MEDI_STALL_LAPSE_OFF_RESIDUAL=1` each take exactly one census row red and no other;
+`MEDSEEN.stallSurvivedSkippedResidual` reads +1 on the wiped arm and +0 on the control, so the new
+placement is proved reached rather than present. Declared and not fixed, in the header: a turn that
+ends INSIDE its own residual, and a fainted body's counter.
+
+Predicted before the run and measured after — board-material **3 -> 2 of 961**, whole-game clause
+**unmoved at 10**, raw diverged **unmoved at 15** (that game's protocol never parted, so it was never
+inside the gate's count). Turn-1 boards 961/961 unmoved, `test-engine-diff --n 6000` unmoved at 0
+across sixteen corners, roster 0 DIFFER / 0 DID-NOT-FIRE with match counts 139 / 129 / 475 unmoved.
+The two board-material games left are the HELD Ditto body-key pair.
+
+---
+
 ## AN ITEM PARKED IS NOT AN ITEM LOST, AND THE SAME SLOT WAS EMPTIED FOR BOTH. CENSUS 746/749 -> 749 LIVE / 752 PROBED / 3 MISSING. TURN-1 BOARDS 960/961 -> 961/961, BOARD-MATERIAL 957 -> 958 OF 961. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.145.0. Register row: ROADMAP #462 CLOSED.

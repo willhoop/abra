@@ -63,12 +63,12 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  749/752 probed mechanics live, 3 missing   (census 2026-08-26 15:54)
+  750/753 probed mechanics live, 3 missing   (census 2026-08-26 16:30)
   missing:
     ability refusesAllyDamage      Telepathy announces |-activate|ally|ability: Telepathy, not |-immune|
     move    statChangeInCode       Psych Up announces |-copyboost| on the copier
     ability punishesAttacker       Spicy Spray announces a bare |-immune| at the FIRE ATTACKER, and only when it is unstatused
-  0/6000 differential comparisons disagree with Showdown   (2026-08-26 15:55)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-26 16:35)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -80,15 +80,190 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 93645758e350 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 962e20847c65 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 2c96ffaa5d59 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 16:03_
+_stamped 2026-08-26 17:09_
 
 <!-- /GENERATED -->
+
+## THE STALL COUNTER WAS SPENT ON A TURN THE AUTHORITY'S RESIDUAL NEVER OPENS. CENSUS 749/752 -> 750 LIVE / 753 PROBED / 3 MISSING. BOARD-MATERIAL 3 -> 2 OF 961, WHOLE-GAME CLAUSE UNMOVED AT 10. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.146.0. Register row: ROADMAP #463 CLOSED.
+Engine release cut for this batch: **`667278050dcf`**.
+
+### THE BRIEF SAID THIS WAS AN ARMING FAILURE. IT IS NOT, AND SAYING SO IS THE FINDING
+
+The card was read as *"the authority armed a counter once and we armed it zero times — find the arming
+site"*, from the fact that 3 is `stall.onStart`'s FIRST value. That reading is wrong, and it is wrong
+in a way that would have sent the whole pass looking at the wrong half of the mechanic.
+
+**Both engines armed it, on the same turn, to the same value.** What differs is that one of them then
+SPENT the clock on a turn where the authority never opens the residual at all.
+
+### THE RECORDED GAME, REPLAYED RATHER THAN REASONED ABOUT
+
+`gen9championsvgc2026regmbbo3-2662815123 vs -2662930043`, config `baseline`, the middle arm. Read off
+a real `Battle` object at every turn boundary, beside this engine's own counter:
+
+```
+  t7  p2a Garchomp clicks Protect      showdown stall = 3 (duration 1)   medicham 3    |upkeep| emitted
+  t8  p2a Garchomp clicks Earthquake   showdown stall = 3 (duration 1)   medicham 0    NO |upkeep| AT ALL
+      |move|p2b: Tsareena|Taunt||[still]  |move|p2a: Garchomp|Earthquake|...  |win|B
+```
+
+The battle ENDS on t8. `turnLoop` (`sim/battle.ts:2947-2950`) is
+
+```js
+  while ((action = this.queue.shift())) { this.runAction(action);
+                                          if (this.requestState || this.ended) return; }
+```
+
+and **the residual is a queued action**, so a battle that ends mid-turn never runs it: `stall`'s
+`duration` is not decremented and the counter is still standing on the last board the authority
+writes. The missing `|upkeep|` is the receipt — `case 'residual'` emits it, conditionally
+(`if (!this.ended) this.add('upkeep')`).
+
+### THE AUTHORITY HAS THREE DOORS. THIS ENGINE HAD SEVEN, AND ITS REAL ONE WAS ON THE WRONG SIDE OF `break _TURN`
+
+`volatiles.stall` is deleted in exactly three places:
+
+| | where | this engine |
+|---|---|---|
+| a LOST roll | `stall.onStallMove`: `if (!success) delete pokemon.volatiles['stall'];` | `_stallRoll` — correct |
+| a BREAK | `hitStepBreakProtect`, `sim/battle-actions.ts:775` | `breaksProtect.clearsStallCounter` — correct |
+| THE RESIDUAL | `duration: 2`, `handler.state.duration--` at `sim/battle.ts:516` | on the OUTER EXIT of the turn |
+
+and this engine had **four more that the authority has no counterpart for**: the turn pre-pass wiped
+the counter for any body that clicked something that is not a stalling move, and `_shieldGate` wiped
+it on each of its three *"you hold the last action"* refusals. The authority reaches none of those —
+`onPrepareHit` / `onTry` short-circuit on `!!this.queue.willAct()` **before** `StallMove` runs, so the
+volatile is not touched at all.
+
+**AND THE PLACEMENT WAS BORROWED FROM A CLEAR THAT CANNOT MOVE A BOARD.** The sweep sat beside the
+flinch clear on the outer exit, below every `break _TURN`, and said so in its own header. The flinch
+clear's header, two blocks up, says *"THIS CHANGES NO BOARD AND CANNOT"* — which is exactly why the
+outer exit is right for it. `stall` **is** a board leaf (`engine/board_state.js` compares
+`active[].stall`), and the block those breaks belong to already carried the rule in its own header:
+
+> ROADMAP #231: *"a win mid-turn cancels: every remaining ACTION, the whole RESIDUAL, the `|upkeep|`
+> line, and the faint REPLACEMENTS."*
+
+### THE STAGED CONTROL, BECAUSE ONE GAME IS NOT AN ARM
+
+Same script, same bodies, the ONLY knob being whether the last Rock Slide wipes the foe side. Played
+in the official simulator and in this engine at once:
+
+```
+  residual RUNS      t(n) armed 3   t(n+1) ABSENT / 0                 <- already agreed, before and after
+  residual SKIPPED   t(n) armed 3   t(n+1) showdown 3 / medicham 0    <- the defect, now 3 / 3
+```
+
+### THE FIX IS ONE DOOR, AND ITS HEADER NAMES WHAT WALKS PAST IT
+
+`_stallExpire` is called where the residual OPENS and nowhere else. Two knobs, because it was two
+edits and a single one could not say which half a red arm accuses:
+
+| knob | what it restores | the census row |
+|---|---|---|
+| `MEDI_STALL_EAGER_CLEAR=1` | the four `tookProtectTurns = 0` writes with no counterpart in the authority | MISSING |
+| `MEDI_STALL_LAPSE_OFF_RESIDUAL=1` | the duration sweep back on the outer exit of the turn | MISSING |
+
+Each takes the census to **749 live / 4 missing** — exactly one row, and no other.
+`MEDSEEN.stallSurvivedSkippedResidual` is the receipt that the new placement is REACHED rather than
+present: **+1 on the wiped arm, +0 on the control.**
+
+**DECLARED, NOT FIXED, AND WRITTEN INTO THE HEADER:** a turn that ends INSIDE its own residual
+(`turnEndedInResidual`) spends the clock here, where the authority's speed-sorted walk might not have
+reached `stall` yet — this engine models the duration as a per-turn boolean and cannot express half a
+residual. And a FAINTED body's counter is swept here where `fieldEvent` skips a fainted handler holder;
+no board leaf reads a fainted slot's counter, so nothing measures it either way today.
+
+### THE PROBE
+
+One new row in `tests/test-mechanics.js`, census **749 -> 750 live, 753 probed, 3 missing, 0 hollow,
+0 unarmed**:
+
+- `stallCounterChecks` — *a turn that ENDS THE BATTLE never reaches its residual, so the stall counter
+  is still standing.* **RED first**, and red on demand under either knob. The arms vary ONE thing, the
+  foes' HP (1 against full), and the row asserts that **both arms really armed the counter** and that
+  **the knob really moved the wipe** — a fixture where the wipe never happened would otherwise pass by
+  agreeing with itself.
+
+### WHAT MOVED, AND THE TWO QUANTITIES ARE NAMED SEPARATELY
+
+**Predicted before the run: board-material 3 -> 2, whole-game clause UNMOVED at 10, raw diverged
+unmoved at 15.** All three measured as predicted.
+
+| | before, `e04350588de1` | after, `667278050dcf` | moved |
+|---|---|---|---|
+| **BOARD-MATERIAL** — `state.games − state.games_board_never_diverged` | **3** / 961 | **2** / 961 | one game |
+| **THE GATE CLAUSE** — undeclared whole-game PROTOCOL divergence | 15 raw − 5 declared = **10** | 15 raw − 5 declared = **10** | none |
+| turn-1 boards identical | 961 / 961 | 961 / 961 | none |
+| `game_agreement` | 0.9968 | **0.9979** | — |
+| roster items / abilities / moves (FIRED-AND-BOARDS-MATCH) | 139 / 129 / 475 | 139 / 129 / 475 | none |
+| `test-engine-diff --n 6000`, all sixteen corners | 0 | 0 | none |
+
+The gate could not move and the prediction said so in advance: that game's
+`protocol_diverged_at_turn` is `null`, so it was never inside the gate's 10 to begin with. Same pinned
+pool `0d103fb9fa87`, same census pin `9446a684709d`, same 961 games, `--arm middle --turns 12 --state
+--end-state`, 5 declared `AUTHORITY-WRONG` rows on both sides.
+
+**THE TWO BOARD-MATERIAL GAMES THAT REMAIN ARE THE HELD DITTO BODY-KEY PAIR** and were not touched:
+`p2.party.garchomp.{hp,maxhp,item,boosts.atk}` at turn 3, and
+`p2.party.{staraptor,incineroar}.hp` at turn 2. Re-keying changes what the comparator credits and
+therefore which games the coverage driver plays, so it belongs to its own before/after.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~`p2.active[1].stall` medicham 0 / showdown 3 — needs the arming side~~ — **CLOSED**, and it never
+  needed the arming side. One probe, two arms, red first, red on demand under either of two knobs.
+
+**Still open, filed with its evidence:**
+- **`data/protocol-events.json` IS UNSAFE AND WAS ALREADY** — it declares a digest of
+  `engine/medicham2-browser.js` that is neither HEAD's nor this tree's, and the staleness predates
+  this batch. This batch emits no new event kind, so re-deriving it here would move an artifact for
+  reasons this batch cannot attribute. Reported, left.
+- **`MECHANICS_NO_WRITE=1` IS NOT A FLAG AND IT LOOKED LIKE ONE.** Set on a knob run of
+  `tests/test-mechanics.js`, it was silently ignored and the run **overwrote
+  `data/mechanics-census.json` with the knobbed 749 live / 4 missing**. Caught by reading the artifact
+  back, not by any check. The census was regenerated clean in the same pass, but the shape is
+  CLAUDE.md's exactly — an absent capability reporting success — and any knob run of that file writes
+  the census today.
+
+### OWED, NOT RUN
+
+- **`tests/test-mechanics.js` ran clean at the end** — 750 live, 3 missing, 753 probed, 0 hollow, 0
+  threw, 0 unarmed, 1 direct-call, exit 0.
+- **`tests/test-engine-diff.js --n 6000` — RUN**, 0 of 6000 at all sixteen corners, exit 0. Owed as a
+  precaution only: this batch reaches no damage path.
+- **The three roster stages — RUN** on release `667278050dcf` with `--write`, all three at 0 DIFFER /
+  0 DID-NOT-FIRE, match counts 139 / 129 / 475, unmoved.
+- **`engine/all_mechanics_fire.js --kind all --write` — RUN** on the same release, 1289 games, 0 threw.
+- **`engine/game_differential.js` — RUN ONCE** in the published configuration, pinned three ways, with
+  `--write`. The BEFORE figures are read from the artifact this batch replaced (`e04350588de1`), not
+  from a second run.
+- `tests/interaction_matrix.js` — **not re-run**; stamped 2026-08-11 and already stale before this pass.
+- `engine/wire_ladder.js` — **not re-run**; the release ladder stays WITHHELD, as it already was.
+- `tests/run-all.js` — **not run in full.** Run and green: `test-mechanics`, `test-engine-consistency`,
+  `test-volatile-duration`, `test-game-diff`, `test-end-state`, `test-coverage-stop`,
+  `test-protocol-trace`, `test-encore-fail-silent`, `test-immunity-gate`, `test-tag-params-derived`,
+  `test-mc-seal`, `test-bracket-regain`, `test-roster-arm-pin`, `test-damage-roll-support`,
+  `test-resolution-order` (at `--max-old-space-size=6144`), `test-roadmap-register`,
+  `test-docs-current`.
+- **`tests/staged_board.js` IS STILL 24 OF 25** on `roar-drags-whoever-is-standing-there`, re-run this
+  pass and unchanged.
+- **`tests/test-middle-identity.js` and `tests/test-fixture-legality.js` are red at HEAD**,
+  pre-existing, not this batch's — named rather than filed away.
+- **`engine/artifact_audit.js` is RED on `data/engine-data.js`** — not fixable by this division.
+- **`.scratch_eng/`, `stash@{0}` AND THE PRE-MODIFIED `data/*.json` ARE ANOTHER SESSION'S.** Reported,
+  left, nothing executed in any of them.
+
+---
 
 ## `itemRoomForget` WAS DECLARED, ITS OWN HEADER SAID IT WAS CALLED, AND IT HAD NO CALLER. CENSUS 746/749 -> 749 LIVE / 752 PROBED / 3 MISSING. TURN-1 BOARDS 960/961 -> 961/961, BOARD-MATERIAL 957 -> 958 OF 961, WHOLE-GAME CLAUSE UNMOVED AT 10. 2026-08-26.
 

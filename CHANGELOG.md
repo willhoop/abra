@@ -10,6 +10,57 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.146.0] — 2026-08-26
+
+### Fixed
+- **THE STALL COUNTER WAS SPENT ON A TURN THE AUTHORITY'S RESIDUAL NEVER OPENS. CENSUS 749/752 ->
+  750 LIVE / 753 PROBED / 3 MISSING. BOARD-MATERIAL 3 -> 2 OF 961. WHOLE-GAME CLAUSE UNMOVED AT 10.
+  RELEASE `667278050dcf`.** ROADMAP #463. The last board-material `stall` game in the pinned pool
+  pointed the OTHER way to every `stall` fix before it — `baseline turn 8 p2.active[1].stall
+  medicham 0 / showdown 3`, protocol never parted — and it is **not** an arming failure.
+- **REPLAYED, NOT REASONED ABOUT.** That game's Garchomp arms the counter on t7 and both engines read
+  3 (`showdown stall = 3, duration 1`, `|upkeep|` emitted). On t8 it clicks Earthquake, both remaining
+  bodies faint, the log reads `|win|B` and **carries no `|upkeep|` at all**: `turnLoop`
+  (`sim/battle.ts:2947-2950`) returns the instant `this.ended`, and **the residual is a queued
+  action**, so `stall`'s `duration` is never spent. The authority's counter is still standing on the
+  last board it writes.
+- **THIS ENGINE HAD TWO DOORS THE AUTHORITY DOES NOT HAVE, AND ITS ONE REAL DOOR ON THE WRONG SIDE OF
+  `break _TURN`.** Showdown deletes `volatiles.stall` in exactly three places — a lost `StallMove`
+  roll, a `breaksProtect` hit (`sim/battle-actions.ts:775`) and the residual duration reaching zero.
+  This engine also wiped it in the turn pre-pass for any body that clicked something that is not a
+  stalling move, and on each of `_shieldGate`'s three "you hold the last action" refusals; none of
+  those is reached in the authority, because `onPrepareHit` / `onTry` short-circuit on
+  `!!this.queue.willAct()` before `StallMove` runs. The duration sweep itself sat on the OUTER exit of
+  `battleTurn`, below every `break _TURN` — contradicting the header of the block it sat under, which
+  already said *"a win mid-turn cancels: every remaining ACTION, the whole RESIDUAL, the `|upkeep|`
+  line"*. The reasoning that put it there was the FLINCH clear's, and that clear's own header says
+  *"THIS CHANGES NO BOARD AND CANNOT"*. `stall` **is** a board leaf.
+
+### Added
+- `_stallExpire` in `engine/medicham2-browser.js` — the one door the counter expires through, called
+  where the residual opens. Its header names what still walks past it: a turn that ends INSIDE its own
+  residual, and a fainted body's counter.
+- Two knobs, because it was two edits: `MEDI_STALL_EAGER_CLEAR=1` restores the four eager
+  `tookProtectTurns = 0` writes, `MEDI_STALL_LAPSE_OFF_RESIDUAL=1` restores the outer-exit placement.
+  Each takes exactly one census row to MISSING (749 live / 4 missing) and no other.
+- One census row, red first — `move / stallCounterChecks`, *"a turn that ENDS THE BATTLE never reaches
+  its residual, so the stall counter is still standing"*. Its arms vary one thing, the foes' HP, and
+  it asserts that both arms really armed the counter and that the knob really moved the wipe.
+- `MEDSEEN.stallSurvivedSkippedResidual` — the receipt that the new placement is REACHED and not
+  merely present: +1 on the wiped arm, +0 on the control.
+
+### Notes
+- **Predicted before the run and measured after**: board-material 3 -> 2, whole-game clause unmoved at
+  10, raw diverged unmoved at 15. The recorded game's protocol never parted, so it was never inside
+  the gate's count. Turn-1 boards 961/961 unmoved; `tests/test-engine-diff.js --n 6000` unmoved at 0
+  across all sixteen corners; the three roster stages unmoved at 0 DIFFER / 0 DID-NOT-FIRE with match
+  counts 139 / 129 / 475.
+- The two board-material games that remain are the HELD Ditto body-key pair, which is not this
+  division's to take: re-keying changes what the comparator credits and therefore which games the
+  coverage driver plays.
+
+---
+
 ## [5.145.0] — 2026-08-26
 
 ### Fixed

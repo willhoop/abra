@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T19:54:04.903Z",
+  "generated": "2026-08-26T20:30:55.931Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 752,
-  "live": 749,
+  "probed": 753,
+  "live": 750,
   "missing": 3,
-  "armed": 752,
+  "armed": 753,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -224,6 +224,16 @@
       "label": "a turn the body could not act ENDS the stall counter — the Protect it wakes to is free",
       "live": true,
       "detail": "HP the shielder lost per turn, the last Protect at a LOSING 0.99 — NO GAP [0,112] (turn 2 must take the hit: the counter is armed and the 1/3 fails)   |   ONE SLEEPING TURN IN BETWEEN [0,98,0] (turn 2 must take the hit because a sleeper raises nothing, and turn 3 must be 0 because the volatile expired at the residual of the turn nobody used it). Knobs: MEDI_PROTECT_GATE_ABOVE_REFUSALS=1 and MEDI_PROTECT_STALL_NO_LAPSE=1 each take turn 3 back to a hit on their own",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "stallCounterChecks",
+      "label": "a turn that ENDS THE BATTLE never reaches its residual, so the stall counter is still standing",
+      "live": true,
+      "detail": "the shielder's stall counter after a turn 2 Rock Slide — SIDE WIPED (foes at 1 HP) {\"armed\":3,\"after\":3,\"wiped\":true} must keep the 3 it armed on turn 1, because the battle ended before the residual could spend the duration   |   FOES ALIVE {\"armed\":3,\"after\":0,\"wiped\":false} must read 0, because that turn DID reach its residual. Knobs: MEDI_STALL_EAGER_CLEAR=1 (the four `tookProtectTurns = 0` writes the authority has no counterpart for) and MEDI_STALL_LAPSE_OFF_RESIDUAL=1 (the sweep back on the outer exit of the turn) each take the wiped arm to 0 on their own",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3693,7 +3703,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

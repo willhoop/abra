@@ -1303,6 +1303,65 @@ probe('move', 'stallCounterChecks', 'a turn the body could not act ENDS the stal
                  + 'turn 3 back to a hit on their own' };
 });
 
+/* 2026-08-26 -- THE OTHER SIGN OF THE SAME VOLATILE, AND EVERY `stall` FIX BEFORE IT COULD ONLY
+ * REMOVE A COUNTER WE WERE WRONGLY HOLDING. This one says the authority KEEPS one we let go, which is
+ * the last board-material `stall` game in the pinned pool:
+ *
+ *     baseline  turn 8  p2.active[1].stall   medicham 0   showdown 3
+ *     seeds gen9championsvgc2026regmbbo3-2662815123 vs -2662930043
+ *
+ * `stall` expires by DURATION, and the residual is a QUEUED ACTION:
+ *     turnLoop() { while ((action = this.queue.shift())) { this.runAction(action);
+ *                    if (this.requestState || this.ended) return; } }      sim/battle.ts:2947-2950
+ * so a turn that ENDS THE BATTLE never runs it. The counter is not spent, and the last board the
+ * authority writes still carries it. This engine expired it on the outer exit of the turn, below every
+ * `break _TURN`, and additionally wiped it in the pre-pass for any body that clicked something else.
+ *
+ * READ OFF THE AUTHORITY ON THE RECORDED GAME, BEFORE A BYTE MOVED — that game's own Garchomp:
+ *     t7  Protect lands   showdown stall = 3 (duration 1)   `|upkeep|` emitted   medicham 3
+ *     t8  Earthquake, both remaining bodies faint, `|win|B`, NO `|upkeep|` AT ALL
+ *         showdown stall = 3 (duration 1)                                        medicham 0
+ * and on a staged pair whose only knob is whether the last Rock Slide wipes the side (Charizard foes
+ * against Milotic foes, same script): residual RUNS -> ABSENT in both engines; residual SKIPPED ->
+ * showdown 3, medicham 0.
+ *
+ * THE ARMS VARY ONE THING: THE FOES' HP. Same shielder, same two clicks, same everything else. Turn 1
+ * arms the counter in both arms — asserted, so an arm that never armed cannot pass by accident — and
+ * turn 2 is a Rock Slide that kills the whole foe side at 1 HP and does not at full HP. The control is
+ * the half that must STILL read 0; two arms that agree here would mean the wipe is not wired. */
+probe('move', 'stallCounterChecks', 'a turn that ENDS THE BATTLE never reaches its residual, so the stall counter is still standing', () => {
+  const run = (foesAtOneHP) => {
+    const me = bare('garchomp'), ally = bare('swampert');
+    const f1 = bare('milotic'), f2 = bare('clefable');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(ally);
+    /* turn 1 — the shield arms the counter. Both foes act behind it, so willAct() is not null. */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'protect', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'scald', me, S.field)], [f2, M.playerAction(f2, 'moonblast', me, S.field)]]));
+    const armed = M.stallBoardCounter(me.tookProtectTurns | 0);
+    /* THE ONE KNOB. Nothing else differs between the arms. */
+    if (foesAtOneHP) { f1.curHP = 1; f2.curHP = 1; }
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'rockslide', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { armed, after: M.stallBoardCounter(me.tookProtectTurns | 0),
+             wiped: f1.curHP <= 0 && f2.curHP <= 0 };
+  };
+  const wiped = run(true), lives = run(false);
+  return { works: wiped.armed === 3 && lives.armed === 3      // both arms really armed it
+                  && wiped.wiped && !lives.wiped              // and the knob really moved the wipe
+                  && wiped.after === 3 && lives.after === 0,
+           arms: { sideWiped: wiped.after, foesLive: lives.after },
+           detail: 'the shielder\'s stall counter after a turn 2 Rock Slide — SIDE WIPED (foes at 1 HP) '
+                 + JSON.stringify(wiped) + ' must keep the ' + wiped.armed + ' it armed on turn 1, '
+                 + 'because the battle ended before the residual could spend the duration   |   FOES '
+                 + 'ALIVE ' + JSON.stringify(lives) + ' must read 0, because that turn DID reach its '
+                 + 'residual. Knobs: MEDI_STALL_EAGER_CLEAR=1 (the four `tookProtectTurns = 0` writes '
+                 + 'the authority has no counterpart for) and MEDI_STALL_LAPSE_OFF_RESIDUAL=1 (the '
+                 + 'sweep back on the outer exit of the turn) each take the wiped arm to 0 on their own' };
+});
+
 /* ROADMAP #81 WIRE 2, THE SECOND HALF. Every shield in data/moves.ts opens with
  *     onPrepareHit(pokemon) { return !!this.queue.willAct() && this.runEvent('StallMove', pokemon); }
  * `BattleQueue.willAct()` (sim/battle-queue.ts:310) returns the first remaining `move`/`switch`/

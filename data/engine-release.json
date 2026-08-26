@@ -1,10 +1,10 @@
 {
-  "current": "e04350588de1",
-  "cut": "2026-08-26T19:54:05.169Z",
+  "current": "667278050dcf",
+  "cut": "2026-08-26T20:28:52.746Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 2,
-  "latest_cut": "2026-08-26T19:54:16.073Z",
-  "latest_why": "parked is not lost: one loss door, one gain door and an identity accessor, so a Knock Off inside Magic Room or on a Klutz body really takes the item and Acrobatics reads the hand rather than the slot (ROADMAP #462)",
-  "pointer_written": "2026-08-26T19:54:16.083Z",
+  "cuts": 12,
+  "latest_cut": "2026-08-26T20:36:08.217Z",
+  "latest_why": "stall expires at the residual and only there",
+  "pointer_written": "2026-08-26T20:36:08.229Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

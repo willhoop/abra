@@ -776,6 +776,21 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                              a body that could not act never reaches. Will, reading the card:
    *                              *"by definition it could not have previously protected."* */
   shieldGateSkippedNoAct: 0, stallLapsedUnrefreshed: 0,
+  /* 2026-08-26 -- AND THE THIRD HALF, WHICH IS THE OTHER SIGN: a counter this engine dropped and the
+   * authority did not. Both of the rows above can only REMOVE a counter we were wrongly holding; the
+   * one board-material `stall` game left in the pinned pool says the opposite --
+   * `p2.active[1].stall  medicham 0 / showdown 3` -- and the cause is a turn that ENDED.
+   *   stallSurvivedSkippedResidual   the turn ended before its residual opened (a side was wiped) and
+   *                                  a body was still carrying a counter, so the duration was NOT
+   *                                  spent. This is the receipt that the new placement is REACHED: a
+   *                                  zero over a run with a decided game in it means the sweep is
+   *                                  still firing on every exit, not that the case is rare.
+   *                                  THIS IS EXACTLY THE POPULATION THE FIX CHANGES: under the old
+   *                                  outer-exit placement every one of these was cleared. There is
+   *                                  deliberately no second counter for that, because it would be
+   *                                  equal to this one by construction and a counter that cannot
+   *                                  disagree with another is not evidence. */
+  stallSurvivedSkippedResidual: 0,
   /* ROADMAP #240 -- THE RE-SORT TRIGGER. `sim/battle.js:2403` runs the re-sort after EVERY action and
    * the guard passes only when the NEXT QUEUED action is a `move`, so a queue whose head is a switch
    * keeps the speeds it was stamped with at turn start.
@@ -1949,6 +1964,14 @@ const MEDFAILS = { encoreAction: 0,
                                          `duration: 2` expiry, so the counter rides through a turn its
                                          holder could not act and the next Protect is rolled at 1/3. */
   protectGateAboveRefusalsRestored: 0, protectStallNoLapseRestored: 0,
+  /* 2026-08-26 -- and the two knobs of the OPPOSITE sign, the counter dropped too early.
+       stallEagerClearRestored        MEDI_STALL_EAGER_CLEAR=1 puts back the four
+                                      `tookProtectTurns = 0` writes the authority has no counterpart
+                                      for -- the pre-pass `else` and the three `_shieldGate` refusals.
+       stallLapseOffResidualRestored  MEDI_STALL_LAPSE_OFF_RESIDUAL=1 puts the duration sweep back on
+                                      the OUTER exit of the turn, so it fires on a turn that ended by
+                                      wiping a side -- a turn the authority's residual never opens. */
+  stallEagerClearRestored: 0, stallLapseOffResidualRestored: 0,
   /* 2026-08-26 -- set for the whole run when MEDI_DISABLE_ONSTART_BLIND=1 puts the pre-fix read back
      on purpose, so a deliberate restore arm and a broken engine can never be read as the same thing.
      Same shape as suckerQueueBlindRestored. */
@@ -10650,6 +10673,30 @@ const SUCKER_QUEUE_BLIND=(typeof process!=='undefined'&&process.env&&process.env
  * MEDI_SUCKER_QUEUE_BLIND above. */
 const PROTECT_GATE_ABOVE_REFUSALS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PROTECT_GATE_ABOVE_REFUSALS==='1');
 const PROTECT_STALL_NO_LAPSE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PROTECT_STALL_NO_LAPSE==='1');
+/* 2026-08-26 -- THE OTHER TWO `stall` KNOBS, AND THEY ARE THE OPPOSITE SIGN TO THE PAIR ABOVE.
+ *
+ * The pair above is about the counter being held too LONG. These two are about it being dropped too
+ * EARLY, which is what one board-material game of 961 had been saying since before this batch:
+ *
+ *     baseline  turn 8  p2.active[1].stall   medicham 0   showdown 3
+ *
+ * MEDI_STALL_EAGER_CLEAR=1 puts back the FOUR `tookProtectTurns = 0` writes the authority has no
+ *   counterpart for -- the turn pre-pass's `else` (a body that clicked something that is not a
+ *   stalling move) and the three refusal branches inside `_shieldGate` (a shield, an Endure or a side
+ *   guard refused for holding the last action of the turn). Showdown deletes `volatiles.stall` in
+ *   exactly three places: a LOST `StallMove` roll (data/conditions.ts `stall.onStallMove`), a
+ *   `breaksProtect` hit (sim/battle-actions.ts:775) and the residual's own duration reaching zero.
+ *   None of those four is one of them.
+ * MEDI_STALL_LAPSE_OFF_RESIDUAL=1 puts the duration sweep back on the OUTER exit of the turn, below
+ *   every `break _TURN`, where it ran until today -- so it fires on a turn that ended by wiping a
+ *   side, which is a turn the authority's residual never reaches at all
+ *   (`turnLoop`: `if (this.requestState || this.ended) return;`, sim/battle.ts:2949).
+ *
+ * SEPARATE, because either one alone still fails the card and a single knob could not say which half
+ * a red arm is accusing. Any run carrying one also carries its own non-zero MEDFAILS row. Same shape
+ * as MEDI_PROTECT_STALL_NO_LAPSE above. */
+const STALL_EAGER_CLEAR=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STALL_EAGER_CLEAR==='1');
+const STALL_LAPSE_OFF_RESIDUAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STALL_LAPSE_OFF_RESIDUAL==='1');
 /* 2026-08-26 -- MEDI_DISABLE_ONSTART_BLIND=1 TAKES DISABLE'S OWN TWO CLAUSES BACK OUT: the seal stops
  * asking whether the target's last move has any PP left and whether it was STRUGGLE, the way this
  * engine ran until today -- so a Protect clicked for the ninth time is still Disable-able here and is
@@ -18267,6 +18314,58 @@ function battleTurn(S,rng,actsForA,actsForB){
    * snapshot proves it -- Showdown reports `p1.pokemonLeft: 0` and a winner while medicham2 goes on
    * to emit another `|move|`, another `|upkeep|`, and in one case a `|switch|` bringing a body in on
    * a side that has already lost. */
+  /* ============ 2026-08-26 -- THE ONE DOOR THE `stall` COUNTER EXPIRES THROUGH ==================
+   *
+   * THE AUTHORITY DELETES `volatiles.stall` IN EXACTLY THREE PLACES, and this is the third:
+   *   1. a LOST roll        data/conditions.ts `stall.onStallMove`:
+   *                         `if (!success) delete pokemon.volatiles['stall'];`   -- `_stallRoll`,
+   *                         inside the turn block below.
+   *   2. a BREAK            sim/battle-actions.ts:775, inside `hitStepBreakProtect`:
+   *                         `if (this.battle.gen >= 6) delete target.volatiles['stall'];`
+   *                         -- `_bp.clearsStallCounter` in step 5.
+   *   3. THE RESIDUAL       `duration: 2`, decremented once per residual by
+   *                         `handler.state.duration--` (sim/battle.ts:516) and removed at zero.
+   *
+   * THERE IS NO FOURTH, AND THIS ENGINE HAD FOUR MORE. The turn pre-pass wiped the counter for any
+   * body that clicked something that was not a stalling move, and `_shieldGate` wiped it on each of
+   * its three "you hold the last action" refusals -- none of which the authority reaches, because
+   * `onPrepareHit` / `onTry` short-circuit on `!!this.queue.willAct()` BEFORE `StallMove` runs. All
+   * four are behind MEDI_STALL_EAGER_CLEAR now.
+   *
+   * AND THE PLACEMENT IS THE MECHANIC, NOT A TIDY-UP. The sweep used to sit on the OUTER exit of
+   * `battleTurn`, below every `break _TURN`, so it fired on a turn that ended by WIPING A SIDE.
+   * Showdown's `turnLoop` (sim/battle.ts:2947-2950) is
+   *     while ((action = this.queue.shift())) { this.runAction(action);
+   *                                             if (this.requestState || this.ended) return; }
+   * and the residual is a QUEUED ACTION, so a battle that ends mid-turn never runs it: the duration
+   * is not spent and the counter is still standing when the last board is read.
+   *
+   * MEASURED ON THE AUTHORITY, ON THE RECORDED GAME AND ON A STAGED ONE, BEFORE A BYTE MOVED.
+   * The recorded game is `gen9championsvgc2026regmbbo3-2662815123 vs -2662930043`, config
+   * `baseline`, and its Garchomp is the body on the card:
+   *     t7  Protect lands   showdown stall = 3 (duration 1)   `|upkeep|` emitted   medicham 3
+   *     t8  Earthquake, both remaining bodies faint, `|win|B`, NO `|upkeep|` AT ALL
+   *         showdown stall = 3 (duration 1)  <- untouched      medicham 0   <- THE DEFECT
+   * and the staged pair, same script, the only knob being whether the last Rock Slide wipes the side:
+   *     residual RUNS      t(n) armed 3   t(n+1) ABSENT in BOTH engines      <- already agreed
+   *     residual SKIPPED   t(n) armed 3   t(n+1) showdown 3 / medicham 0
+   *
+   * WHAT STILL WALKS PAST THIS DOOR, said out loud rather than left to be found:
+   *   - A TURN THAT ENDS INSIDE ITS OWN RESIDUAL (`turnEndedInResidual`). The authority speed-sorts
+   *     its residual handlers and returns the instant one of them ends the battle, so whether
+   *     `stall`'s decrement happened depends on where that body sorted. This engine models the
+   *     duration as a per-turn boolean and cannot express half a residual: it spends the clock when
+   *     the residual OPENS, so a counter is expired here where the authority might have left it.
+   *     Rare (`turnEndedInResidual` is the smallest of the four wipe sites) and declared, not fixed.
+   *   - A FAINTED BODY still carrying a counter. `fieldEvent` skips a fainted handler holder
+   *     (sim/battle.ts:509) while this sweep does not, exactly as the sweep it replaces did not.
+   *     No board leaf reads a fainted slot's counter, so nothing measures it either way today. */
+  const _stallExpire=()=>{
+    for(const m of [...actA,...actB]){
+      if(!m)continue;
+      if(m.tookProtectTurns>0&&!m._stallFresh){m.tookProtectTurns=0;MEDSEEN.stallLapsedUnrefreshed++;}
+    }
+  };
   _TURN:{
     /* WIRE 133 -- `_boostSnap`, AND IT IS A SNAPSHOT RATHER THAN TWELVE INSTRUMENTED CALL SITES.
      *
@@ -18899,7 +18998,14 @@ function battleTurn(S,rng,actsForA,actsForB){
               &&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
         it._stallPending=true;it._preWillAct=_anyActionAfter(i);
       }
-      else it.mon.tookProtectTurns=0;
+      /* 2026-08-26 -- AND THE `else` THAT CLEARED THE COUNTER HERE IS GONE. See `_stallExpire` below
+       * the action loop for the whole rule; in one line, the authority has no "you clicked something
+       * else, so your counter is wiped" write at all -- `volatiles.stall` simply stops being refreshed
+       * and dies at the RESIDUAL of that same turn. The two answers are identical at every board read
+       * on an ordinary turn, and differ on exactly one kind of turn: one that ENDS, because
+       * `turnLoop` returns before the residual action. That is the whole of
+       * `p2.active[1].stall  medicham 0 / showdown 3`. */
+      else if(STALL_EAGER_CLEAR){it.mon.tookProtectTurns=0;MEDFAILS.stallEagerClearRestored=1;}
     }
     /* WIRE 118 -- "HAS THIS BODY ALREADY ACTED?" IS NOW "HAS IT RESOLVED?", AND THAT IS THE POINT.
      * A flinch only stops a body that has not yet moved. That used to be an INDEX into a list frozen
@@ -19403,8 +19509,8 @@ function battleTurn(S,rng,actsForA,actsForB){
       it.mon.tookProtectTurns=_ok?Math.min(_cap,_n+1):0;
       /* 2026-08-26 -- `onRestart`'s OTHER LINE. `stall.onRestart` triples the counter AND writes
        * `this.effectState.duration = 2`; a successful use is the only thing that refreshes the clock.
-       * Read at the residual by the lapse sweep below the action loop -- see it for why a boolean per
-       * turn is the whole of `duration: 2` and not an approximation of it. */
+       * Spent by `_stallExpire` where the residual OPENS -- see its header for why a boolean per turn
+       * is the whole of `duration: 2`, and for what a turn that never reaches the residual does. */
       if(_ok)it.mon._stallFresh=true;
       return _ok;
     };
@@ -19427,7 +19533,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * error and is 1 ulp low from n = 3 onward. The window that changes is ~1e-17 wide and no
          * die in this repository can land in it -- it is a correctness point, not a measured one,
          * and it is stated rather than claimed as a fix. */
-        if(!_will){it.mon.protect=false;it.mon.tookProtectTurns=0;}   // willAct() === null
+        /* 2026-08-26 -- THE REFUSAL NO LONGER WIPES THE COUNTER. `onPrepareHit` short-circuits on
+         * `!!this.queue.willAct()` BEFORE `runEvent('StallMove')`, so the authority never reaches the
+         * `delete pokemon.volatiles['stall']` line and the volatile is left exactly as it was -- to
+         * die at the residual like any other unrefreshed duration. See `_stallExpire`. */
+        if(!_will){it.mon.protect=false;
+          if(STALL_EAGER_CLEAR){it.mon.tookProtectTurns=0;MEDFAILS.stallEagerClearRestored=1;}}   // willAct() === null
         else it.mon.protect=_stallRoll(it);
         it.mon._lastMove=it.a.mv||'protect';it.mon._protectMove=it.a.mv||null;
       }
@@ -19445,7 +19556,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `stallMoveLostItsRoll` is the 1/3, 1/9, 1/27 decay off the shared `stall` counter. A single
        * counter could not tell a gate that never fires from a die that never loses. */
       else if(it._stallPending){
-        if(!_will){it.mon.tookProtectTurns=0;it._stallRefused=true;MEDSEEN.stallMoveRefusedMovesLast++;}
+        /* 2026-08-26 -- and the same refusal on Endure leaves the counter alone for the same reason. */
+        if(!_will){if(STALL_EAGER_CLEAR){it.mon.tookProtectTurns=0;MEDFAILS.stallEagerClearRestored=1;}
+          it._stallRefused=true;MEDSEEN.stallMoveRefusedMovesLast++;}
         else if(!_stallRoll(it)){it._stallRefused=true;MEDSEEN.stallMoveLostItsRoll++;}
         it.mon._lastMove=it.a.mv||it.mon._lastMove;
       }else{
@@ -19472,7 +19585,11 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(TAGS.has('move',_g,'failsIfMovesLast')&&!_will){
           /* NO PROTOCOL LINE. The shield branch above emits none either, and the announcement half
            * belongs to ROADMAP #68's stream comparison; the refusal is a STATE fact here. */
-          it.mon.tookProtectTurns=0;MEDSEEN.sideGuardRefusedMovesLast++;
+          /* 2026-08-26 -- and the counter is LEFT ALONE here too. The Guard's own `onTry` is the same
+           * `!!this.queue.willAct()` read and it returns false BEFORE `onHitSide` ever runs, so the
+           * authority neither adds the volatile nor deletes it. */
+          if(STALL_EAGER_CLEAR){it.mon.tookProtectTurns=0;MEDFAILS.stallEagerClearRestored=1;}
+          MEDSEEN.sideGuardRefusedMovesLast++;
         }else{
           (it.side==='A'?field.sgA:field.sgB)[_g]=true;
           if(TAGS.has('move',_g,'stallCounterFeeds')){
@@ -29132,6 +29249,12 @@ function battleTurn(S,rng,actsForA,actsForB){
      * generation here is what makes those calls agree with each other about a tied pair -- see the
      * header of `residualOrder`. */
     _RES_TIE_GEN++;
+    /* 2026-08-26 -- AND `stall`'S DURATION IS SPENT HERE, because THIS is where the residual opens.
+     * Above every remaining `break _TURN` and below the two that skip the residual entirely, which is
+     * the whole point: a turn that ended before this line never spends the clock, exactly as
+     * `turnLoop` never runs the residual action once the battle is over. See `_stallExpire`. */
+    if(PROTECT_STALL_NO_LAPSE)MEDFAILS.protectStallNoLapseRestored=1;
+    else if(!STALL_LAPSE_OFF_RESIDUAL)_stallExpire();
     /* WIRE 74 -- THE FIELD CLOCKS TICK BEFORE THE RESIDUAL, NOT AFTER IT.
      *
      * They used to tick below the loop, so the sandstorm chipped on the turn it RAN OUT: a five-turn
@@ -30618,16 +30741,32 @@ function battleTurn(S,rng,actsForA,actsForB){
    *     t1 counter 3   t2 ABSENT   t3 ABSENT   t4 counter 3    <- FRESH, not 9
    * against the uninterrupted control on the same board, `t1 3, t3 3, t4 9`.
    *
-   * ON THE OUTER EXIT, beside the flinch clear and for the identical reason: every `break _TURN` is a
-   * `sideWiped`, and a sweep that lives inside the block is skipped by all four of them. `_stallFresh`
-   * is cleared in the pre-pass, which is above every break, so the flag cannot survive into a turn
-   * that did not set it. */
+   * ~~ON THE OUTER EXIT, beside the flinch clear and for the identical reason: every `break _TURN` is
+   * a `sideWiped`, and a sweep that lives inside the block is skipped by all four of them.~~
+   *
+   * 2026-08-26, SAME DAY, REVERSED AND NOT REWRITTEN: THAT REASONING IS THE FLINCH CLEAR'S AND IT DOES
+   * NOT TRANSFER. The flinch clear's own header two blocks up says *"THIS CHANGES NO BOARD AND CANNOT"*
+   * -- which is exactly why the outer exit is right for it and wrong here. `stall` IS a board leaf
+   * (`engine/board_state.js` compares `active[].stall` against `volatiles.stall.counter`), and the
+   * authority's residual is a QUEUED ACTION that a turn ending mid-way never reaches:
+   *     turnLoop() { while ((action = this.queue.shift())) { this.runAction(action);
+   *                    if (this.requestState || this.ended) return; } }      sim/battle.ts:2947-2950
+   * So a turn that wipes a side leaves the counter STANDING in the authority and this sweep cleared
+   * it. One board-material game of 961 said so -- `p2.active[1].stall  medicham 0 / showdown 3` --
+   * and it was the only one on the card pointing that direction. The expiry now lives at
+   * `_stallExpire`, called where the residual opens.
+   *
+   * WHAT IS LEFT HERE IS THE RECEIPT AND THE FLAG RESET. `stallSurvivedSkippedResidual` counts a body
+   * that carried a counter out of a turn whose residual never opened -- which, after `_stallExpire`
+   * has run, is the ONLY way `tookProtectTurns > 0 && !_stallFresh` can still be true. A zero over a
+   * run containing a decided game means the sweep is still firing on every exit; it is the proof that
+   * the new placement is REACHED rather than merely present. */
   if(PROTECT_STALL_NO_LAPSE)MEDFAILS.protectStallNoLapseRestored=1;
+  else if(STALL_LAPSE_OFF_RESIDUAL){MEDFAILS.stallLapseOffResidualRestored=1;_stallExpire();}
   else [...actA,...actB].forEach(m=>{
-    if(!m)return;
-    if(m.tookProtectTurns>0&&!m._stallFresh){m.tookProtectTurns=0;MEDSEEN.stallLapsedUnrefreshed++;}
-    m._stallFresh=false;
+    if(m&&m.tookProtectTurns>0&&!m._stallFresh)MEDSEEN.stallSurvivedSkippedResidual++;
   });
+  [...actA,...actB].forEach(m=>{if(m)m._stallFresh=false;});
   S.turn++;
   traceRelease(_trPrev);
   return S;
