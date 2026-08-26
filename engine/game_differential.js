@@ -4570,8 +4570,19 @@ const STATE_PLANTS = [
   /* THE CHARGE LOCK IS NOT IN `_vol` — it is its own field, so the plant writes the field the reader
    * actually reads. A plant aimed at the wrong storage would report NOT CAUGHT and read as a broken
    * comparator when it was a broken plant. */
+  /* 2026-08-26 -- AND THERE ARE TWO FIELDS NOW, SO THE PLANT WRITES BOTH. medicham2 splits the
+   * authority's pair: `_charging` is the sub-volatile (gone at execution) and `_ttmWrap` is the
+   * `twoturnmove` wrapper (gone at the residual), and `board_state.js` reads the leaf off the
+   * wrapper with `_charging` as an old-release fallback. A plant that flipped only `_charging` would
+   * be UNDETECTABLE on any body actually mid-charge -- the wrapper would hold the leaf at 1 -- and
+   * would read as a broken comparator when it was a broken plant. That is the same sentence the
+   * comment above already had to write once. */
   ['a TWO-TURN CHARGE LOCK that is not there', 'vol.charging',
-   S => { const m = living(S.actA); if (!m) return false; m._charging = m._charging ? null : 'solarbeam'; return true; }],
+   S => { const m = living(S.actA); if (!m) return false;
+          const on = !!(m._ttmWrap || m._charging);
+          m._charging = on ? null : 'solarbeam';
+          m._ttmWrap = on ? null : { move: 'solarbeam', dur: 2 };
+          return true; }],
   ['a MOVE TRAP counter off by one', 'active[0].vol.trapped_by_move',
    S => !!S.actA[0] && ((S.actA[0]._trap = { turns: ((S.actA[0]._trap && S.actA[0]._trap.turns) || 0) + 3,
                                              frac: 1 / 8, by: S.actB[0] }), true)],

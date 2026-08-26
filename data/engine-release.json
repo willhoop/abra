@@ -1,10 +1,10 @@
 {
-  "current": "b2cb60aa7274",
-  "cut": "2026-08-26T14:13:52.789Z",
-  "why": "gravity grounds only the airborne charges the authority names, cancels the queued move, and strips magnet rise",
-  "cuts": 2,
-  "latest_cut": "2026-08-26T14:19:17.162Z",
+  "current": "de0096d8f078",
+  "cut": "2026-08-26T14:42:57.275Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 4,
+  "latest_cut": "2026-08-26T14:56:24.383Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-26T14:19:17.173Z",
+  "pointer_written": "2026-08-26T14:56:24.394Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

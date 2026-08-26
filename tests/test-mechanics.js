@@ -6851,6 +6851,129 @@ probe('move', 'chargeTurn', 'Fly deals nothing on the turn it is clicked and lan
            detail: `Brave Bird turn 1 dealt ${bird[0]}; Fly dealt ${fly[0]} on the charge turn and ${fly[1]} on the next` };
 });
 
+/* ================= TWO THINGS WERE LIVING IN ONE FLAG, AND THAT IS THE DEFECT ====================
+ *
+ * The authority keeps a two-turn move in TWO volatiles with DIFFERENT lifetimes, and this engine had
+ * one `_charging` doing both jobs.
+ *
+ *   `twoturnmove`   data/conditions.ts:287. `duration: 2`, no `onResidual` handler at all — so
+ *                   `Battle#fieldEvent('Residual')` collects it on its duration alone and drops it
+ *                   when the count reaches zero. It is what LOCKS the user into the move.
+ *   the SUB-VOLATILE  `attacker.addVolatile(effect.id)` from that condition's own `onStart` —
+ *                   `phantomforce`, `fly`, `dig`, `dive`, `bounce`. It is what makes the user
+ *                   SEMI-INVULNERABLE, and every charge move's `onTryMove` opens with
+ *                   `if (attacker.removeVolatile(move.id)) return;` — so it is gone the instant the
+ *                   move executes (data/moves.ts:17228, solarbeam; identical on all ten).
+ *
+ * MEASURED ON THE AUTHORITY BEFORE A LINE WAS CHANGED, Dragapult clicking Phantom Force into a
+ * doubles board, `Object.keys(user.volatiles)` read after every `runMove` and at each boundary:
+ *
+ *     charge boundary                       twoturnmove(d1), phantomforce(d1)
+ *     release turn, after Skeledirge moved  twoturnmove(d1), phantomforce(d1)
+ *     release turn, after DRAGAPULT moved   twoturnmove(d1)              <-- the sub-volatile is GONE
+ *     release boundary (residual has run)   (none)
+ *
+ * So the wrapper OUTLIVES the strike by the rest of the turn, and this engine cleared `_charging` at
+ * execution — `vol.charging` (engine/board_state.js) read 0 where the authority reads 1. At a normal
+ * turn boundary both read 0 and nothing shows. IT ONLY SHOWS WHEN THE RESIDUAL NEVER RUNS, which is
+ * a battle that ended mid-turn: two of the ten board-material games on release `e5f9f3d29660`
+ * (`…2657789498` turn 11, `…2660356793` turn 12) are exactly this.
+ *
+ * THE NAIVE FIX IS WRONG AND THE SECOND PROBE IS THE TRAP IT WALKS INTO. Simply deferring `_charging`
+ * to the residual would leave the user SEMI-INVULNERABLE for the rest of the turn AFTER it had already
+ * struck — a Dragapult that releases Phantom Force and then cannot be hit back. A fixture that only
+ * reads the charge turn passes a broken engine. So the clock and the invulnerability are probed
+ * separately, on the same board, and the second one is an HP measurement.
+ *
+ * THE OBSERVABLE IS THE LEAF THE DIFFERENTIAL COMPARES, not a field this engine happens to own.
+ * `board_state.js` is required here rather than `me._ttmWrap` being read directly, because the leaf is
+ * what parted and a probe that reads the private field would go green on an engine whose reader never
+ * saw it. */
+const BOARD_STATE = require(D('engine', 'board_state.js'));
+const BS_CTX = { id: s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''), fails: {}, ppHold: true };
+const chargingLeaf = (S) => BOARD_STATE.readMedi(S, BS_CTX).sides.p1.active[0].vol.charging;
+
+probe('move', 'chargeTurn', 'a released charge keeps its two-turn clock until the residual, and a battle that ends above the residual still shows it', () => {
+  /* ONE foe and NO bench on side B, so the release WIPES the side and the turn breaks out above the
+   * residual walk (`turnEndedBeforeResidual`). That is the only way to read the mid-turn state from
+   * outside the engine, and it is the shape both diverged games have. */
+  const run = (moveId, killIt) => {
+    const me = bare('dragapult'), ally = bare('incineroar'), f1 = bare('skeledirge');
+    const S = M.battleInit([me, ally], [f1], { seeded: true });
+    if (killIt) f1.curHP = 1; else unfaintable(f1);
+    const step = () => M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }]]));
+    step();
+    const charge = { leaf: chargingLeaf(S), over: M.battleOver(S) };
+    step();
+    return { charge, release: chargingLeaf(S), over: M.battleOver(S), foeDead: !!f1.fainted };
+  };
+  const midTurn = run('phantomforce', true);     // release KOs the last foe: the residual never runs
+  const boundary = run('phantomforce', false);   // release does not KO: the residual runs
+  /* THE OVER-FIRE CONTROL. The same mid-turn ending with NO charge in it at all — an engine that
+   * simply reports 1 whenever a battle stops mid-turn passes the first arm and fails this one. */
+  const noCharge = run('shadowball', true);
+  if (!midTurn.charge.leaf || midTurn.charge.over || !midTurn.foeDead || boundary.foeDead)
+    return { works: false, detail: 'COULD NOT STAGE — charge leaf ' + midTurn.charge.leaf
+                                 + ', over-at-charge ' + midTurn.charge.over + ', foe dead '
+                                 + midTurn.foeDead + '/' + boundary.foeDead };
+  return { works: midTurn.charge.leaf === 1 && boundary.charge.leaf === 1
+                  && midTurn.over === true && midTurn.release === 1
+                  && boundary.over === false && boundary.release === 0
+                  && noCharge.over === true && noCharge.release === 0,
+           arms: { control: [boundary.release, noCharge.release], test: [midTurn.release] },
+           detail: 'vol.charging on the Dragapult: ' + midTurn.charge.leaf + ' at the charge boundary; '
+                 + midTurn.release + ' when the release WIPES the last foe and the turn breaks out '
+                 + 'above the residual (the authority holds twoturnmove(d1) there); '
+                 + boundary.release + ' at a normal boundary where the residual DID run — that pair '
+                 + 'is the whole rule, and an engine that never drops the clock fails the second. '
+                 + 'CONTROL, the same mid-turn ending with a Shadow Ball instead of a charge: '
+                 + noCharge.release };
+});
+
+probe('move', 'chargeTurn', 'the semi-invulnerability ends at the strike even though the two-turn clock does not', () => {
+  /* THE TRAP. Dragapult 205 Speed against an 86-Speed Skeledirge, so the user acts FIRST on both
+   * turns and the foe's Flare Blitz lands AFTER it every time. Turn 1 the user is underground and
+   * must take NOTHING; turn 2 it has already struck and must take REAL DAMAGE. Both bodies are made
+   * unfaintable so neither arm can be a corpse reading zero.
+   *
+   * `_invuln` is deliberately NOT the assertion — an HP number is, because the flag being right and
+   * the damage loop reading it are different questions and this file has been fooled by the first
+   * before. The clock is read on the SAME turn as the damage, so the two halves cannot be satisfied
+   * by an engine that simply keeps or drops everything together. */
+  const run = (moveId) => {
+    const me = bare('dragapult'), ally = bare('incineroar'), f1 = bare('skeledirge'), f2 = bare('torterra');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(f1);
+    const out = [];
+    for (let t = 0; t < 2; t++) {
+      const before = me.curHP;
+      M.battleTurn(S, rng5,
+        new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, 'flareblitz', me, S.field)], [f2, { kind: 'pass' }]]));
+      out.push({ took: before - me.curHP, spe: [me.st.sp, f1.st.sp] });
+    }
+    return out;
+  };
+  const pf = run('phantomforce'), fly = run('fly');
+  /* THE OTHER DIRECTION: a charge that does NOT leave the field is hittable on BOTH turns, so an
+   * engine that made every charge untargetable fails here. */
+  const beam = run('solarbeam');
+  if (pf[0].spe[0] <= pf[0].spe[1])
+    return { works: false, detail: 'COULD NOT STAGE — the user is not faster (' + pf[0].spe + ')' };
+  return { works: pf[0].took === 0 && pf[1].took > 0 && fly[0].took === 0 && fly[1].took > 0
+                  && beam[0].took > 0 && beam[1].took > 0,
+           arms: { control: [pf[0].took, beam[0].took], test: [pf[1].took, fly[1].took] },
+           detail: 'Phantom Force: the Flare Blitz aimed at the charging Dragapult dealt ' + pf[0].took
+                 + ' on the charge turn and ' + pf[1].took + ' on the RELEASE turn, after the strike '
+                 + '— the sub-volatile is removed at execution by the move\'s own onTryMove, so the '
+                 + 'user is back on the field for the rest of that turn. Fly, the same: '
+                 + fly[0].took + ' -> ' + fly[1].took + '. CONTROL, a charge that does NOT leave the '
+                 + 'field: Solar Beam took ' + beam[0].took + ' and ' + beam[1].took + ', hittable '
+                 + 'on both turns' };
+});
+
 probe('move', 'chargeSkippedByWeather', 'Solar Beam fires the same turn in sun and not otherwise', () => {
   const run = (weather) => {
     const { me, ally, f1, f2, S } = board('venusaur', 'incineroar', 'garchomp', 'garchomp');

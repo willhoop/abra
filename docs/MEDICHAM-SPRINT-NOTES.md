@@ -21,6 +21,66 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## TWO VOLATILES WITH DIFFERENT LIFETIMES WERE LIVING IN ONE FLAG. BOARD-MATERIAL 9 -> 7 OF 961, CENSUS 731 -> 733, WHOLE-GAME CLAUSE UNMOVED AT 11. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.139.0. Register row: ROADMAP #453.
+Engine release cut: **`de0096d8f078`** — *"the twoturnmove wrapper outlives the strike and is spent at
+the residual, and the sub-volatile still is not"*. Every figure below is stamped with it.
+
+**THE DEFECT.** The authority keeps a two-turn move in a PAIR with two lifetimes. `twoturnmove`
+(`data/conditions.ts:287`) carries `duration: 2` and **no handler at all**, so `fieldEvent('Residual')`
+collects it on the duration alone and drops it at zero — it is the LOCK. Its `onStart` adds a SECOND
+volatile named for the move (`attacker.addVolatile(effect.id)`) and that is the SEMI-INVULNERABILITY;
+every charge move opens `onTryMove` with `if (attacker.removeVolatile(move.id)) return;`
+(`data/moves.ts:17228`, checked on all ten), so the sub-volatile dies at EXECUTION and the wrapper does
+not. This engine had one `_charging` doing both jobs and cleared it on the release line.
+
+**MEASURED ON THE AUTHORITY FIRST**, Dragapult clicking Phantom Force, `Object.keys(volatiles)` after
+every `runMove`: charge boundary `twoturnmove(d1), phantomforce(d1)`; release turn after the FOE moved,
+both; **release turn after DRAGAPULT moved, `twoturnmove(d1)` alone**; release boundary, none.
+
+**IT IS INVISIBLE AT A NORMAL BOUNDARY, WHICH IS WHY IT SURVIVED.** Both engines read 0 once the
+residual has run. It shows only when the residual NEVER runs — a battle that ended mid-turn — and that
+is exactly what both games were: `pair-protect-bust` `…-2657789498` turn 11 and `…-2660356793` turn 12,
+`active[0].vol.charging` medicham 0 / showdown 1.
+
+**WHAT LANDED, AND WHY IT IS A SPLIT RATHER THAN A DEFERRAL.** The naive fix — deferring `_charging`
+itself — would leave the user untargetable after it had already struck. So `_charging` keeps its exact
+meaning (the sub-volatile: `_invuln`, the lock, the PP question, the Gravity cancel) and a new
+`_ttmWrap` carries the wrapper. Applied only where the authority applies it, BELOW the weather
+short-circuit and BELOW the `ChargeMove` event, so a skipped charge and a Power Herb get none. Spent
+once per residual beside the Ally Switch and sealing-volatile clocks — a position that is the whole
+point, because all four `break _TURN` sites sit above it. Cleared at switch-out, at an abandoned
+charge (`onMoveAborted`), at Gravity's own `removeVolatile('twoturnmove')`, and at `queueFaint` where
+`clearVolatile` takes the authority's.
+
+**THE READER TAKES THE WRAPPER, WITH AN EXPLICIT OLD-RELEASE FALLBACK.** `engine/board_state.js` is
+NOT a frozen release SOURCE — it is the live reader pointed at whatever engine a measurement opened —
+so `charging: (m._ttmWrap || m._charging) ? 1 : 0`. On the live engine the wrapper is a strict superset
+of `_charging`, so the fallback cannot mask a live defect; without it every release cut before today
+would part on a leaf that engine got right. `game_differential.js`'s `vol.charging` plant writes both
+fields for the same reason its own comment already gives once.
+
+**TWO PROBES.** The clock probe was RED first and is red on demand under
+`MEDI_CHARGE_WRAP_CLEARED_AT_EXECUTION=1` (census 733 -> 732, exactly that row MISSING). It reads the
+LEAF, not the field: mid-turn ending where the release wipes the last foe (1), normal boundary where
+the residual ran (0 — the over-fire control), same mid-turn ending with a Shadow Ball (0). The trap
+probe is an HP measurement on the same board: the Flare Blitz aimed at the Dragapult deals **0 on the
+charge turn and 33 on the release turn after the strike**, with Solar Beam at 33/33 as the opposite
+control.
+
+**PREDICTED BEFORE THE RUN, NOTHING MOVED BEYOND IT.** Same pins and the same 643-row census pin as the
+`b2cb60aa7274` baseline: board-material **9 -> 7**, whole-game clause **11 -> 11 unmoved**, raw diverged
+**16 -> 16**, census **731 -> 733**, `tests/test-engine-diff.js` **0/6000 at all sixteen corners**. The
+`active[].vol.charging` family is GONE and every other board family is identical row for row; the seven
+remaining first-divergence records are byte-identical to the old seven.
+
+**A COUNTER THAT IS NaN LOOKS EXACTLY LIKE A COUNTER THAT NEVER FIRED.** The six new `MEDSEEN` keys had
+to be declared in the initialiser — an undeclared key makes `MEDSEEN.x++` produce NaN, which serialises
+as `null`. Caught on the first receipt read.
+
+---
+
 ## GRAVITY BROUGHT DOWN EVERY SEMI-INVULNERABLE CHARGE AND THE AUTHORITY BRINGS DOWN TWO. BOARD-MATERIAL 10 -> 9 OF 961, WHOLE-GAME CLAUSE 12 -> 11, CENSUS 729 -> 731. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.138.0. Register row: ROADMAP #452.

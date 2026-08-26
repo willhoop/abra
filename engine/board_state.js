@@ -780,8 +780,24 @@ function mediBody(m, id, ctx) {
       /* THE TWO-TURN LOCK. medicham2 holds the move id in `_charging` and Showdown a `twoturnmove`
        * volatile; both answer "is this body committed to a charge". WHICH move is not compared — see
        * NOT_COMPARED — because the two engines name it in different places and a mismatch there would
-       * be a reader question rather than a rule one. */
-      charging: m._charging ? 1 : 0,
+       * be a reader question rather than a rule one.
+       *
+       * 2026-08-26 — `_ttmWrap` FIRST, AND THE `_charging` FALLBACK IS FOR OLD RELEASES ONLY.
+       *
+       * The authority holds TWO volatiles here with different lifetimes: `twoturnmove` (duration 2,
+       * dropped at the residual) and a sub-volatile named for the move (removed at execution by the
+       * move's own `onTryMove`). `v.twoturnmove` on the other side of this comparison is the WRAPPER,
+       * so the wrapper is what medicham2 must be read for — and until this date it had only the one
+       * field, cleared at execution, which read 0 for the rest of every release turn.
+       *
+       * THE `||` IS NOT A SILENT DEFAULT AND THE DISTINCTION MATTERS. On the live engine `_ttmWrap`
+       * is a strict superset of `_charging` (they are written on the same line and the wrapper
+       * outlives it), so the fallback can never mask a live defect — it changes nothing. It is here
+       * because this file is NOT one of the frozen release SOURCES: it is the live reader pointed at
+       * whatever engine a measurement opened, and a release cut before `_ttmWrap` existed would
+       * otherwise report 0 on every charge turn and part on a leaf the engine of that day got right.
+       * That is the manufactured divergence `partyMap` and `pp` each record paying for once already. */
+      charging: (m._ttmWrap || m._charging) ? 1 : 0,
       /* ---- ROADMAP #308 -- THREE LEAVES THAT ARE THE WHOLE MECHANIC OF THE MOVE THAT WRITES THEM.
        * Each was reported ANNOUNCEMENT-ONLY by `all_mechanics_fire.js` -- identical in the fields this
        * file looked at -- and each was measured through `tests/probe_volatile_leaves.js` BEFORE being

@@ -63,8 +63,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  731/731 probed mechanics live, 0 missing   (census 2026-08-26 10:10)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-26 10:11)
+  733/733 probed mechanics live, 0 missing   (census 2026-08-26 10:56)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-26 10:55)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -76,15 +76,208 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c2d51e0b4b7d now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 9b348657400f now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 4cc6cc44c23b now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 10:23_
+_stamped 2026-08-26 11:02_
 
 <!-- /GENERATED -->
+
+## TWO VOLATILES WITH DIFFERENT LIFETIMES WERE LIVING IN ONE FLAG. BOARD-MATERIAL 9 -> 7 OF 961, CENSUS 731 -> 733, WHOLE-GAME CLAUSE UNMOVED AT 11. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.139.0. Register row: ROADMAP #453.
+Engine release cut for this batch: **`de0096d8f078`** — *"the twoturnmove wrapper outlives the strike
+and is spent at the residual, and the sub-volatile still is not"*. Every figure below is stamped with
+it.
+
+**THE PREVIOUS BATCH HANDED THIS OVER DIAGNOSED AND WITH ITS TRAP ALREADY NAMED**, and the trap is the
+reason it was handed over rather than fixed: the naive repair breaks a mechanic that currently works.
+
+### THE AUTHORITY KEEPS A TWO-TURN MOVE IN A PAIR, AND THE PAIR HAS TWO LIFETIMES
+
+```
+data/conditions.ts:287   twoturnmove: { duration: 2, onStart(attacker,...) {
+                             this.effectState.move = effect.id;
+                             attacker.addVolatile(effect.id);        <-- the SUB-VOLATILE
+                             ...  }, onLockMove() {...}, onMoveAborted(p) {...} }
+
+data/moves.ts:17228      solarbeam.onTryMove(attacker, defender, move) {
+                             if (attacker.removeVolatile(move.id)) return;   <-- release: the SUB dies
+                             this.add('-prepare', ...);
+                             if (weatherSkips) { ...; return; }              <-- no wrapper
+                             if (!this.runEvent('ChargeMove', ...)) return;  <-- no wrapper
+                             attacker.addVolatile('twoturnmove', defender);  <-- the WRAPPER
+                             return null; }
+```
+
+`twoturnmove` declares **no handler of any kind** beyond the lock, so `Battle#fieldEvent('Residual')`
+collects it on its DURATION alone and `handler.state.duration--` ends it at zero. The sub-volatile —
+`phantomforce`, `fly`, `dig`, `dive`, `bounce` — is what grants semi-invulnerability, and it is removed
+**at execution** by the move's own first line. **This engine had one `_charging` doing both jobs and
+cleared it on the release line.**
+
+### MEASURED ON THE OFFICIAL SIMULATOR BEFORE A LINE CHANGED
+
+Dragapult clicking Phantom Force into a doubles board, `Object.keys(user.volatiles)` read after every
+`runMove` and at each boundary:
+
+| moment | the authority holds |
+|---|---|
+| charge boundary | `twoturnmove(d1)`, `phantomforce(d1)` |
+| release turn, after Skeledirge moved | `twoturnmove(d1)`, `phantomforce(d1)` |
+| release turn, **after Dragapult moved** | **`twoturnmove(d1)`** — the sub-volatile is gone |
+| release boundary (the residual has run) | none |
+
+**IT IS INVISIBLE AT A NORMAL BOUNDARY AND THAT IS WHY IT SURVIVED FOR AS LONG AS IT DID.** Both
+engines read 0 once the residual has run. It shows only when the residual NEVER runs — a battle that
+ended mid-turn — and that is exactly what both games were: `pair-protect-bust`
+`gen9championsvgc2026regmbbo3-2657789498` turn 11 and `…-2660356793` turn 12, both
+`active[0].vol.charging` medicham **0** / showdown **1**.
+
+### WHAT LANDED — A SPLIT, NOT A DEFERRAL
+
+`_charging` keeps its meaning **exactly**: it is the SUB-VOLATILE, and it is what `_invuln`, the
+release lock, the PP question and Gravity's cancel are all read off. `_ttmWrap` is new and carries the
+wrapper alone.
+
+- **Applied where the authority applies it** — inside the same `if` as `_charging`, so it sits BELOW
+  the weather short-circuit and BELOW the `ChargeMove` event. A Solar Beam in sun, an Electro Shot in
+  rain and a Power Herb get no wrapper, in either engine.
+- **`dur: 2` is the artifact's number**, not a guess, and it is spent once per residual in the same
+  sweep as the Ally Switch and sealing-volatile clocks. **That position is the whole fix**: all four
+  `break _TURN` sites are `sideWiped` and every one of them is ABOVE this sweep, so a battle that ends
+  mid-turn leaves the clock standing — which is what the authority does.
+- **Cleared at four places, each on the authority's own line**: switch-out (`clearVolatile` is
+  `this.volatiles = {}`), an abandoned charge the engine cannot re-aim (`twoturnmove.onMoveAborted`),
+  Gravity (`data/moves.ts:7785`, inside the same branch that cancels the queued move), and
+  `queueFaint` (`faintMessages()` calls `clearVolatile`). The faint case matters BECAUSE a mid-turn
+  ending never reaches the residual sweep.
+
+**`engine/board_state.js` READS THE WRAPPER, WITH `_charging` AS AN EXPLICIT OLD-RELEASE FALLBACK.**
+That file is **not** one of the frozen release SOURCES — it is the live reader pointed at whatever
+engine a measurement opened — so a release cut before `_ttmWrap` existed would report 0 on every charge
+turn and part on a leaf that engine got right. On the live engine `_ttmWrap` is a strict superset of
+`_charging` (written on the same line, outliving it), so the fallback cannot mask a live defect. This
+is the manufactured divergence `partyMap` and `pp` each record paying for once already.
+
+**AND THE PLANT WRITES BOTH FIELDS NOW.** `game_differential.js`'s `vol.charging` plant flipped
+`_charging` alone; on any body actually mid-charge the wrapper would have held the leaf at 1 and the
+plant would have reported NOT CAUGHT — reading as a broken comparator when it was a broken plant. That
+is the sentence that site's own comment already had to write once.
+
+### THE TWO PROBES, AND THE SECOND ONE IS THE TRAP
+
+- *"a released charge keeps its two-turn clock until the residual, and a battle that ends above the
+  residual still shows it"* — **shown RED first**, red on demand under
+  `MEDI_CHARGE_WRAP_CLEARED_AT_EXECUTION=1` (census **733 -> 732** with exactly that row MISSING). It
+  reads the **LEAF the differential compares**, through `board_state.readMedi`, and not `me._ttmWrap`:
+  a probe on the private field would go green on an engine whose READER never saw it, and the leaf is
+  what parted. Three arms — a mid-turn ending where the release wipes the last foe (must read 1), a
+  normal boundary where the residual ran (must read 0, the over-fire control against an engine that
+  never drops the clock), and the same mid-turn ending with a Shadow Ball instead of a charge (must
+  read 0).
+- *"the semi-invulnerability ends at the strike even though the two-turn clock does not"* — the trap,
+  and it is an **HP measurement**, not a flag read, because the flag being right and the damage loop
+  reading it are different questions. Dragapult at 205 Speed against an 86-Speed Skeledirge, so the
+  foe's Flare Blitz lands AFTER the user every turn: **0 on the charge turn, 33 on the release turn
+  after the strike.** Fly the same, 0 -> 33. The opposite control is Solar Beam, which does not leave
+  the field: **33 and 33**, hittable on both turns.
+
+### THE NUMBERS, AND THEY WERE PREDICTED BEFORE THE RUN
+
+Pinned: `--games 1200`, arm `middle`, cap 12, `--team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json` (the same 643-row pin the `b2cb60aa7274`
+baseline used, so the SAMPLE is identical), `--state --end-state`.
+
+| quantity | before | after | predicted |
+|---|---|---|---|
+| board-material (`games − games_board_never_diverged`) | 9 of 961 | **7** | 7 — the two `vol.charging` games leave, nothing else moves |
+| whole-game clause (undeclared protocol divergence) | 11 of 961 | **11** | 11 — unmoved; no protocol line changes |
+| raw diverged games | 16 | **16** | 16 |
+| census live | 731 | **733** | 733 |
+| `tests/test-engine-diff.js`, all 16 corners | 0/6000 | **0/6000** | unmoved — no damage arithmetic is touched |
+
+**NOTHING MOVED BEYOND THE PREDICTION, AND THAT WAS CHECKED RATHER THAN ASSERTED.** The
+`active[].vol.charging` family (2 games, 2 leaves) is GONE from `state.families` and **every other
+family is identical row for row**; the seven remaining `first_board_divergences` records are
+byte-identical to the old seven, same games, same turns, same leaves. Turn-1 boards 958 of 961 and
+turn-boundary agreement 0.9970, both unchanged.
+
+**THIS IS A CASE WHERE THE POOL WAS THE RIGHT SCOREBOARD AND THE LAB WAS ALSO RIGHT.** There are ten
+legal charge moves and Phantom Force alone is 714 corpus uses, so the prediction stated up front was
+that both instruments would move — the lab by two census rows and the pool by two games. They did.
+
+**A COUNTER THAT IS NaN LOOKS EXACTLY LIKE A COUNTER THAT NEVER FIRED.** The six new `MEDSEEN` keys had
+to be declared in the initialiser: an undeclared key makes `MEDSEEN.x++` produce NaN, which
+`JSON.stringify` writes as `null`. The first receipt read printed six nulls and looked like six dead
+code paths. Written into the block so the next person reads it before diagnosing a live handler.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~The `twoturnmove` wrapper outlives the release and this engine's `_charging` does not~~ —
+  **CLOSED.** Two census rows under `move / chargeTurn`; the clock row shown red first with an
+  over-fire control and red on demand, the invulnerability row an HP measurement that a naive fix
+  would break.
+
+**Still open, filed with its evidence:**
+- **A SELF-AIMED VOLATILE'S `-fail` IS OWED.** Imprison (487 uses), Magnet Rise, Aqua Ring, Ingrain —
+  carried forward unchanged from the previous two batches, untouched by this one.
+- **GASTRO ACID ANNOUNCES `-start|move: gastroacid` WHERE THE AUTHORITY WRITES `-endability`.** Carried
+  forward.
+- **DISABLE'S PP BRANCH AND STRUGGLE ARE NOT IMPLEMENTED AND NO PROBE FAILS ON THEM YET.** Carried
+  forward. `…2660202801` (`p1.active[0].vol.disable`, medicham 3 / showdown 0, turn 9) is one of the
+  seven.
+- **CASTFORM'S FORECAST MOVES THE TYPE AND NOT THE SPECIES — TWO OF THE SEVEN, AND THIS DIVISION CANNOT
+  FIX IT.** `…2661597319` and `…2661455548`, both turn 1, `active[0].species` `castform` vs
+  `castformrainy`. `data/engine-data.js` has no row for Castform-Sunny / -Rainy / -Snowy and that file
+  is on ENGINE's may-not-edit list. Reported, not touched — it is a refit, and it is Will's call.
+- **`engine/medicham2-browser.js` DECLARES `canMegaNow` TWICE**, second wins at load — ROADMAP #449,
+  carried forward, untouched. Every line edited in this pass was checked for a duplicate declaration
+  first; there is none, so the edits are on the live copy.
+- **`tests/staged_board.js` IS STILL 24 OF 25** on `roar-drags-whoever-is-standing-there` — carried
+  forward, re-run this pass and unchanged, not diagnosed, not waived.
+- **`tests/test-board-browser.js` IS RED and is `board.js`'s**, which this division may not edit.
+- **`tests/test-resolution-order.js` OOMs at the default heap** (#446) — carried forward.
+- **`engine/artifact_audit.js` is RED on `data/engine-data.js`** — carried forward, NOT fixable by this
+  division and flagged for Will.
+- **`.scratch_eng/`, `stash@{0}` AND THE TWO UNTRACKED `data/_pair-pilot.json` /
+  `data/medicham-represented-clicks.json` ARE ANOTHER SESSION'S.** Reported, left, nothing executed in
+  any of them. `data/releases/de0096d8f078/` is this batch's cut and is left standing — a cut is an
+  event, never an overwrite, and this same tree had already been frozen twice today by
+  `tests/test-game-diff.js` and `tests/test-end-state.js`, which cut their own.
+
+### OWED, NOT RUN
+
+- **`tests/test-engine-diff.js` WAS RUN** — the full 6,000 rows, seed 20260804, **0 disagreements at
+  the midpoint and at all sixteen corners.** It moved off nothing, as predicted; this change touches no
+  damage arithmetic.
+- **The three roster stages and `engine/all_mechanics_fire.js` were re-run on `de0096d8f078`**, because
+  a new release strands the previous stamps and a withheld clause says nothing. All three stages are
+  **0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`** — items 139 of 148 tested, abilities 129 of 202
+  (45 `CONTROL-NOT-QUIET`, 141 `COULD-NOT-STAGE`), moves 475 of 500 — so the roster clause PASSES on
+  all three. The mechanics clause is **9 of 16**, unmoved.
+- **THE FIRST ROSTER BATCH AND THE FIRST DIFFERENTIAL BOTH RAN WITHOUT `--write` AND LOOKED FINISHED.**
+  Both printed a full report and exited 0; neither moved its artifact, so `engine/status.js` went on
+  reading the previous release's bytes and correctly WITHHELD every clause. Written down beside the
+  `call tools\lownode.cmd` trap because it is the same shape: **check that `generated` MOVED, never the
+  exit code.** A third shape was hit in the same pass — `cmd.exe /c "<path>"` from Git Bash opened an
+  interactive shell and returned a three-line banner at exit 0, which is why the size of the output is
+  the thing to look at; `cmd.exe //c` is the working form.
+- `tests/interaction_matrix.js` — **not re-run.** Stamped 2026-08-11 and already stale before this
+  pass. Nothing here changes a carrier x reactor damage ratio, but that is a derivation and it is
+  written here as one rather than as a result.
+- `engine/wire_ladder.js` — not re-run; the release ladder stays WITHHELD, as it already was.
+- `tests/run-all.js` — **not run in full this pass.** The targeted set was run and is all green:
+  `test-mechanics`, `test-charge`, `test-engine-consistency`, `test-dead-volatile`,
+  `test-precharge-order`, `test-choice-lock`, `test-volatile-duration`, `test-game-diff`,
+  `test-end-state`, `test-roadmap-register`, `test-engine-diff`, and `staged_board` at its
+  carried-forward 24 of 25.
+
+---
 
 ## GRAVITY BROUGHT DOWN EVERY SEMI-INVULNERABLE CHARGE AND THE AUTHORITY BRINGS DOWN TWO. BOARD-MATERIAL 10 -> 9 OF 961, WHOLE-GAME CLAUSE 12 -> 11, CENSUS 729 -> 731. 2026-08-26.
 

@@ -1576,6 +1576,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                           rather than the drop alone.
    *   groundedByVolatile      Ingrain or Smack Down put a body on the floor that was not on it. */
   gravitySet: 0, gravityGroundedCharge: 0, roostTypeDropped: 0, roostTypeRestored: 0,
+  /* 2026-08-26 -- THE `twoturnmove` WRAPPER, WHOSE LIFETIME IS NOT THE SUB-VOLATILE'S. Five counters
+   * because the wrapper has five fates and four of them are ways for the fix to be silently wrong.
+   *   chargeWrapApplied         a charge committed and the clock started. Zero means the split never
+   *                             happened and the engine is back to one field doing two jobs.
+   *   chargeWrapOutlivedRelease the move STRUCK and the clock stayed up — the whole defect, counted at
+   *                             the line that used to end it.
+   *   chargeWrapTicked/Expired  the residual sweep spending it, and the spend that reaches zero. A
+   *                             rising `Ticked` with a flat `Expired` is a clock that never runs out.
+   *   chargeWrapAbandoned       a charge the engine could not re-aim, dropped as `onMoveAborted` does.
+   *   chargeWrapClearedOnFaint  a corpse's copy, taken where `clearVolatile` takes the authority's.
+   * THESE MUST BE DECLARED HERE. An undeclared key makes `MEDSEEN.x++` produce NaN, which prints as
+   * `null` and reads exactly like a counter that never fired — caught on this fix's first run. */
+  chargeWrapApplied: 0, chargeWrapOutlivedRelease: 0, chargeWrapTicked: 0, chargeWrapExpired: 0,
+  chargeWrapAbandoned: 0, chargeWrapClearedOnFaint: 0,
   /* 2026-08-26 -- THE OTHER TWO THIRDS OF `onFieldStart`, each counted on its own because each can be
    * absent while the other works.
    *   gravityStrippedVolatile      a Magnet Rise deleted by the field going up. Invisible in HP by
@@ -3511,6 +3525,12 @@ const VOL_RESTART_BLIND=(typeof process!=='undefined'&&process.env&&process.env.
  * is stripped. That is the whole of the defect and nothing else, so a knob run turns exactly the two
  * `groundsField` census rows red and leaves the rest of the file alone. */
 const GRAVITY_GROUNDS_EVERY_CHARGE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_GRAVITY_GROUNDS_EVERY_CHARGE==='1');
+/* 2026-08-26 -- MEDI_CHARGE_WRAP_CLEARED_AT_EXECUTION=1 puts the two-turn WRAPPER back inside the
+ * sub-volatile's lifetime, which is the pre-fix state: `_ttmWrap` is dropped on the same line as
+ * `_charging` when the move executes, instead of surviving to the residual. It restores that and
+ * NOTHING else -- the semi-invulnerability already ended at execution and still does -- so a knob run
+ * turns exactly the one `chargeTurn` clock row red and leaves the invulnerability row green. */
+const CHARGE_WRAP_CLEARED_AT_EXECUTION=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CHARGE_WRAP_CLEARED_AT_EXECUTION==='1');
 function volRefusesRestart(vol){
   if(VOL_RESTART_BLIND){MEDFAILS.volRestartBlindRestored=1;return false;}
   const d=volRestartTable().get(vol);
@@ -16538,7 +16558,12 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
   /* A charge does not survive leaving the field, and neither does the invulnerability. Left set,
    * a benched mon would come back locked into a move it started two switches ago -- or worse,
    * come back untargetable. */
-  out._charging=null; out._invuln=false;
+  /* AND THE WRAPPER GOES WITH IT. `Pokemon#clearVolatile()` is `this.volatiles = {}` — everything
+   * leaves, `twoturnmove` included — so a body that gets off the field is not committed to a charge
+   * when it comes back. Beside `_charging` rather than in the residual sweep, because the two are
+   * ended by the SAME event here and a wrapper left standing on a benched body would report a charge
+   * that no longer exists. */
+  out._charging=null; out._invuln=false; out._ttmWrap=null;
   /* ROADMAP #147 -- AND A ROOSTED TYPE COMES BACK WITH IT. `roost` is an ordinary volatile, so
    * `Pokemon#clearVolatile()` takes it on the way out and the body is Flying again the instant it
    * leaves. The end-of-turn restore walks the ACTIVE slots and would never see a body that pivoted
@@ -17092,6 +17117,14 @@ function faintQueueOwed(){ return _FAINTQ.length>0; }
 function queueFaint(m,site){
   if(!m)return false;
   m.curHP=0; m.fainted=true; noteFaint(m);
+  /* 2026-08-26 -- THE TWO-TURN CLOCK DIES WITH THE BODY. `faintMessages()` calls
+   * `pokemon.clearVolatile(false)` (sim/battle.ts), so a corpse holds no `twoturnmove` in the
+   * authority. It is cleared HERE, at the one state transition all 27 faint sites share, rather than
+   * in the residual sweep — that sweep skips a fainted holder (`residualEvent`'s own first line) and
+   * a battle that ends mid-turn never reaches it at all, which is precisely the window this whole
+   * fix is about. Without this line a released charge whose user is then knocked out would report a
+   * clock the authority has already wiped. */
+  if(m._ttmWrap){m._ttmWrap=null;MEDSEEN.chargeWrapClearedOnFaint++;}
   if(FAINT_INLINE){ MEDFAILS.faintInlineRestored=1; MEDSEEN.faintLineInline++; if(TR)TR.faint(m); return true; }
   if(_FAINTQ.indexOf(m)<0){ _FAINTQ.push(m); MEDSEEN.faintLineQueued++; }
   return true;
@@ -17902,7 +17935,12 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(mon._charging&&MC.moves[mon._charging]){
         const _t=live(foes)[0]||null;
         _a=playerAction(mon,mon._charging,_t,field);
-        if(!_a||_a.kind!=='attack'){mon._charging=null;mon._invuln=false;_a=forced||chooseAction(mon,foes,ally,field,side,rng);}
+        /* THE WRAPPER IS ABANDONED WITH THE CHARGE. This is a charge the engine cannot re-aim, so it
+         * is dropped rather than released — the authority's own `twoturnmove.onMoveAborted` does
+         * exactly that (`pokemon.removeVolatile('twoturnmove')`, data/conditions.ts:319), and its
+         * `onEnd` takes the sub-volatile down with it. Leaving `_ttmWrap` here would report a charge
+         * clock on a body that is about to click something else. */
+        if(!_a||_a.kind!=='attack'){mon._charging=null;mon._invuln=false;mon._ttmWrap=null;MEDSEEN.chargeWrapAbandoned++;_a=forced||chooseAction(mon,foes,ally,field,side,rng);}
       } else _a=forced||chooseAction(mon,foes,ally,field,side,rng);
       /* WIRE 24 -- THE LOCK BINDS A HANDED-IN ACTION TOO, and until now it only bound a CHOSEN one.
        *
@@ -21760,7 +21798,12 @@ function battleTurn(S,rng,actsForA,actsForB){
               : _gc.charges.includes(_b._charging);
             if(GRAVITY_GROUNDS_EVERY_CHARGE)MEDFAILS.gravityOverMatchRestored=1;
             if(_grounds){
-              _b._charging=null;_b._invuln=false;_ap=true;MEDSEEN.gravityGroundedCharge++;
+              /* AND THE WRAPPER, on the authority's own line: `data/moves.ts:7785`, inside the same
+               * `if (pokemon.removeVolatile('bounce') || pokemon.removeVolatile('fly'))` branch that
+               * cancels the queued move, is `pokemon.removeVolatile('twoturnmove')`. A Gravity that
+               * grounded the charge and left the clock standing would report a lock this body no
+               * longer has. */
+              _b._charging=null;_b._invuln=false;_b._ttmWrap=null;_ap=true;MEDSEEN.gravityGroundedCharge++;
               if(_gc.cancelsTheQueuedMove&&!GRAVITY_GROUNDS_EVERY_CHARGE)_b._gravCancel=true;
             } else MEDSEEN.gravityChargeLeftStanding++;
           }
@@ -23687,7 +23730,36 @@ function battleTurn(S,rng,actsForA,actsForB){
        * official engine, Archaludon into a Snorlax under Drizzle -- Showdown 97, medicham2 65. */
       if(TAGS.has('move',a.move.id,'chargeTurn')){
         if(m._charging===a.move.id){
+          /* 2026-08-26 -- TWO VOLATILES, TWO LIFETIMES, AND THIS LINE USED TO END BOTH OF THEM.
+           *
+           * The authority keeps a two-turn move in a PAIR. `twoturnmove` (data/conditions.ts:287)
+           * carries `duration: 2` and no `onResidual` at all, so `fieldEvent('Residual')` collects it
+           * on the duration alone and drops it when the count reaches zero -- it is what LOCKS the
+           * user in. Its `onStart` then adds a SECOND volatile named for the move itself
+           * (`attacker.addVolatile(effect.id)`) and THAT is what makes the user semi-invulnerable;
+           * every charge move's `onTryMove` opens `if (attacker.removeVolatile(move.id)) return;`
+           * (data/moves.ts:17228 solarbeam, identical on all ten), so the sub-volatile dies HERE and
+           * the wrapper does not.
+           *
+           * MEASURED ON THE AUTHORITY FIRST, Dragapult clicking Phantom Force, `Object.keys(volatiles)`
+           * read after every runMove:
+           *     charge boundary                twoturnmove(d1), phantomforce(d1)
+           *     release turn, after it strikes  twoturnmove(d1)          <-- the sub-volatile is gone
+           *     release boundary (residual ran) (none)
+           *
+           * `_charging` is the SUB-VOLATILE and keeps its meaning exactly: it is what `_invuln`, the
+           * lock, the PP question and the Gravity cancel are all read off. `_ttmWrap` is the wrapper
+           * and it is spent in the residual walk with the other durations. Merging the two is what
+           * made `vol.charging` read 0 where the authority reads 1 for the rest of the release turn --
+           * invisible at a normal boundary, and two of the nine board-material games on release
+           * `e5f9f3d29660` where the battle ENDED above the residual.
+           *
+           * THE NAIVE FIX IS THE ONE THIS SPLIT EXISTS TO AVOID: deferring `_charging` itself would
+           * leave the user untargetable after it had already struck. `tests/test-mechanics.js` probes
+           * that with an HP measurement on the same board. */
           m._charging=null; m._invuln=false;                    // release turn: fall through and hit
+          if(CHARGE_WRAP_CLEARED_AT_EXECUTION){m._ttmWrap=null;MEDFAILS.chargeWrapClearedAtExecutionRestored=1;}
+          else MEDSEEN.chargeWrapOutlivedRelease++;
         } else {
           /* `|-prepare|ATTACKER|MOVE` -- sim/SIM-PROTOCOL.md:594, and it is unconditional. */
           if(TR)TR.prep(m,a.move.id);
@@ -23716,6 +23788,18 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(!(_sk&&_sk.skipsIn&&effWeatherOf(field,m)===_sk.skipsIn)&&!_herb){
             m._charging=a.move.id;
             m._invuln=TAGS.has('move',a.move.id,'semiInvulnerable');
+            /* THE WRAPPER, ADDED HERE AND ONLY HERE, because the authority adds it here and only
+             * here: `attacker.addVolatile('twoturnmove', defender)` is the LAST line of the handler,
+             * BELOW the weather short-circuit and BELOW the `ChargeMove` event that spends a Power
+             * Herb -- so a skipped charge gets no wrapper in either engine, which is why this sits
+             * inside the same `if` as `_charging` rather than above it.
+             *
+             * `dur: 2` IS THE ARTIFACT'S NUMBER, NOT A GUESS: `data/conditions.ts:287` declares
+             * `duration: 2` on `twoturnmove`. It is spent once per residual in the end-of-turn clock
+             * sweep, so it reads 1 at the charge boundary (which is what the authority reads) and is
+             * gone at the release boundary. */
+            m._ttmWrap={move:a.move.id,dur:2};
+            MEDSEEN.chargeWrapApplied++;
             m._lastMove=a.move.id;
             continue;                                           // the turn is spent
           }
@@ -29800,6 +29884,22 @@ function battleTurn(S,rng,actsForA,actsForB){
        * rather than at the branch, for the reason the Disable comment below gives: a clock that only
        * moves when the engine happens to be choosing is a clock that never runs out in a rollout. */
       if(m&&m._aswDur>0&&--m._aswDur<=0)m._aswCount=0;
+      /* 2026-08-26 -- THE TWO-TURN WRAPPER'S CLOCK, SPENT HERE WITH THE OTHER DURATIONS AND FOR THE
+       * SAME REASON THE ALLY SWITCH ONE IS. `twoturnmove` (data/conditions.ts:287) declares
+       * `duration: 2` and NO handler of any kind, so `Battle#fieldEvent('Residual')` collects it on
+       * the duration alone and `handler.state.duration--` ends it at zero. Applied on the charge turn
+       * it therefore reads 1 at that boundary and is gone at the boundary of the release turn — both
+       * of which were read off the official simulator before this line was written.
+       *
+       * THE POSITION IS THE WHOLE POINT. Every `break _TURN` in this loop is a `sideWiped`, and all
+       * four of them sit ABOVE this sweep — so a battle that ends mid-turn leaves the clock standing,
+       * which is exactly what the authority does and exactly what this engine used to get wrong.
+       * A FAINTED holder is skipped here (`residualEvent`'s own first line); the corpse's copy is
+       * taken at `queueFaint` instead, where `clearVolatile` takes the authority's. */
+      if(m&&m._ttmWrap&&!m.fainted){
+        MEDSEEN.chargeWrapTicked++;
+        if(--m._ttmWrap.dur<=0){m._ttmWrap=null;MEDSEEN.chargeWrapExpired++;}
+      }
       /* ROADMAP #111 -- ONE TICK FOR THE WHOLE DURATION FAMILY, and it replaces three separate lines
        * that each ticked one member (Disable here, Taunt through the forbid table beside it, Encore
        * two thousand lines up inside `_chooseAction`). Three sites is how the same defect came back

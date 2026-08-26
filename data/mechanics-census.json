@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T14:10:00.988Z",
+  "generated": "2026-08-26T14:56:18.575Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 731,
-  "live": 731,
+  "probed": 733,
+  "live": 733,
   "missing": 0,
-  "armed": 731,
+  "armed": 733,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1684,6 +1684,26 @@
       "label": "Fly deals nothing on the turn it is clicked and lands on the next",
       "live": true,
       "detail": "Brave Bird turn 1 dealt 123; Fly dealt 0 on the charge turn and 93 on the next",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "chargeTurn",
+      "label": "a released charge keeps its two-turn clock until the residual, and a battle that ends above the residual still shows it",
+      "live": true,
+      "detail": "vol.charging on the Dragapult: 1 at the charge boundary; 1 when the release WIPES the last foe and the turn breaks out above the residual (the authority holds twoturnmove(d1) there); 0 at a normal boundary where the residual DID run — that pair is the whole rule, and an engine that never drops the clock fails the second. CONTROL, the same mid-turn ending with a Shadow Ball instead of a charge: 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "chargeTurn",
+      "label": "the semi-invulnerability ends at the strike even though the two-turn clock does not",
+      "live": true,
+      "detail": "Phantom Force: the Flare Blitz aimed at the charging Dragapult dealt 0 on the charge turn and 33 on the RELEASE turn, after the strike — the sub-volatile is removed at execution by the move's own onTryMove, so the user is back on the field for the rest of that turn. Fly, the same: 0 -> 33. CONTROL, a charge that does NOT leave the field: Solar Beam took 33 and 33, hittable on both turns",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3653,7 +3673,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
