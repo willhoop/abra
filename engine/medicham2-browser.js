@@ -444,6 +444,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                              the whole distinction card 39 turns on. */
   buffOnHitAfterSecondaries: 0, rechargeArmedAtSelfDrops: 0,
   hitCountLinesDeferred: 0, hitCountNamedACorpse: 0,
+  /* 2026-08-26 -- THE MIDDLE ARM'S SECONDARY ADDRESS. Both are INSTRUMENT counters: `MID_TGT` is read
+   * only by `midEventDraw`, so neither number describes anything a self-play game or a rollout can see.
+   *   secAddrFromLastTarget   SECONDARY DRAWS taken at the last-target address instead of the row's
+   *                           own body, i.e. the authority's `activeTarget` at `BattleActions
+   *                           #secondaries`. Draws, not moves and not targets. It reads 0 under
+   *                           MEDI_SEC_ADDR_PER_TARGET=1 and 0 on any run that never used the event
+   *                           dice at all, which is why it is reported beside the one below rather
+   *                           than alone.
+   *   secAddrMovedByFire      the subset of those where a secondary that FIRED moved the address onto
+   *                           its own target -- the authority's nested `moveHit` -> `spreadMoveHit`
+   *                           -> `getSpreadDamage` writing `activeTarget = target` (:1154). A 100%
+   *                           two-target spread scores exactly one; a 0% one scores none. */
+  secAddrFromLastTarget: 0, secAddrMovedByFire: 0,
   /* 2026-08-24 -- STAT TABLES PAID FROM `selfBoost`'s OWN POSITION, i.e. below the faint, below
    * `-hitcount` and below the recoil (sim/battle-actions.ts:520). Two moves in the format carry it,
    * Clanging Scales and Scale Shot; a zero with either of them clicked means the `via` derivation is
@@ -10252,6 +10265,14 @@ const SHIELD_SCOPED_FLAG=(typeof process!=='undefined'&&process.env&&process.env
  * what "an unwired knob gives identical output" looks like from the outside. Any run carrying it also
  * carries a non-zero `MEDFAILS.guardNoHitProtectRestored`. Same shape as MEDI_SHIELD_SCOPED_FLAG. */
 const GUARD_NO_HITPROTECT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_GUARD_NO_HITPROTECT==='1');
+/* 2026-08-26 -- MEDI_SEC_ADDR_PER_TARGET=1 ADDRESSES EVERY SPREAD SECONDARY TO ITS OWN BODY AGAIN,
+ * which is what this engine did until today and which the authority does NOT do. It is an
+ * INSTRUMENT knob and not a game one: `MID_TGT` is read by `midEventDraw` alone, so nothing outside
+ * `midEventDice` -- no self-play game, no rollout, no seeded census probe -- can observe either arm.
+ * It exists so tests/probe_spread_secondary_address.js can be shown RED on the old address, three
+ * spread arms parting and both single-body controls holding. Any run carrying it also carries a
+ * non-zero `MEDFAILS.secAddrPerTargetRestored`. Same shape as MEDI_GUARD_NO_HITPROTECT above. */
+const SEC_ADDR_PER_TARGET=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SEC_ADDR_PER_TARGET==='1');
 /* 2026-08-24 -- MEDI_SMART_PROTECT_LINE=1 PUTS THE `|-activate|move: Protect` BACK ON A SMART-TARGET
  * MOVE, i.e. Dragon Darts into a Protecting body announces the shield again, as this engine did until
  * today. Any run carrying it also carries a non-zero `MEDFAILS.smartProtectLineRestored`. Same shape
@@ -24258,6 +24279,51 @@ function battleTurn(S,rng,actsForA,actsForB){
        * inside getDamage. Both are ordering divergences WITHIN a step, they are filed in docs/ENGINE.md,
        * and folding them in here would make it impossible to say which change moved the ladder. */
       const _rows=[]; for(const tg of targets){ if(!tg||tg.fainted)continue; _rows.push({tg}); }
+      /* ================= ROADMAP #262 -- A SECONDARY IS NOT ADDRESSED TO THE BODY IT HITS =========
+       *
+       * THIS IS AN INSTRUMENT LINE, NOT A GAME LINE, and saying so first matters: `MID_TGT` is read
+       * by `midEventDraw` and by nothing else, so both arms below are byte-identical to every caller
+       * that is not `engine/game_differential.js`'s middle arm. No self-play game, no rollout and no
+       * seeded census probe can tell them apart.
+       *
+       * `BattleActions#secondaries` (sim/battle-actions.ts:1336-1351) loops its targets and NEVER
+       * writes `this.battle.activeTarget`. The last writer is `getSpreadDamage`'s own per-target loop
+       * (:1154), which leaves it on the LAST body that reached the damage step -- so the authority
+       * addresses every roll of a spread move's secondary to that one body and separates them with
+       * `nth`. AND A SECONDARY THAT FIRES MOVES IT: `moveHit` re-enters `spreadMoveHit`, whose step 1
+       * is `getSpreadDamage` over `[target]`, which writes `activeTarget = target` before returning.
+       *
+       * MEASURED IN THE AUTHORITY BEFORE A BYTE MOVED HERE, one staged doubles turn each, an
+       * unshielded pair of foes (tests/probe_spread_secondary_address.js stages both):
+       *
+       *     Rock Slide  30%, neither fires    showdown  p21|0  p21|1     medicham  p20|0  p21|0
+       *     Icy Wind   100%, both fire        showdown  p21|0  p20|0     medicham  p20|0  p21|0
+       *
+       * The second row is the one to read: the same two addresses in the OPPOSITE ORDER, so a
+       * set-shaped identity check calls it a match while each engine spends the other's number.
+       *
+       * NO TARGET FAINTS IN EITHER ROW. The two board-material games this produced -- Matcha Gotcha
+       * burning an Excadrill and Rock Slide flinching a Metagross, in both of which the OTHER target
+       * of the spread died on the same hit -- looked like a fainting rule and are not: the mismatch
+       * is already there with two healthy bodies.
+       *
+       * ONE TARGET IS UNTOUCHED BY THIS, BY CONSTRUCTION. With a single surviving body, "its own
+       * slot" and "the last slot" are the same string. That is what the two controls in the probe
+       * pin, and it is why a single-target click cannot move here. */
+      let _secAddrSlot=null;
+      const _secDraw=()=>{
+        if(SEC_ADDR_PER_TARGET){MEDFAILS.secAddrPerTargetRestored=1;return _R.sec();}
+        if(_secAddrSlot==null)return _R.sec();
+        const _p=MID_TGT; MID_TGT=_secAddrSlot; MEDSEEN.secAddrFromLastTarget++;
+        try{ return _R.sec(); } finally { MID_TGT=_p; }
+      };
+      /* Called the moment a roll PASSES -- the authority calls `moveHit` there and nowhere else. */
+      const _secFired=(tg)=>{
+        if(SEC_ADDR_PER_TARGET)return;
+        const _s=midEventSlot(tg);
+        if(_s!==_secAddrSlot)MEDSEEN.secAddrMovedByFire++;
+        _secAddrSlot=_s;
+      };
       /* STEP 2 -- TYPE IMMUNITY (`hitStepTypeImmunity`, battle-actions.ts:654). */
       const _stepTypeImm=(R)=>{const tg=R.tg;
         /* AN IMMUNE TARGET TAKES NOTHING AT ALL -- not the damage, and not the SECONDARY either.
@@ -24586,6 +24652,11 @@ function battleTurn(S,rng,actsForA,actsForB){
       let _condPowerThisUse;
       const _stepDamage=(R)=>{const tg=R.tg;
         _reached++;   // ROADMAP #81 WIRE 1 -- past every gate: this target is a HIT, so the move did not fail
+        /* ROADMAP #262 -- THE ONE LINE THAT MIRRORS `getSpreadDamage`'s `this.battle.activeTarget =
+         * target` (sim/battle-actions.ts:1154). It is written for EVERY row this step reaches, so
+         * what is left standing when the step ends is the LAST such row -- which is exactly what the
+         * authority carries into `runMoveEffects`, `selfDrops` and `secondaries`. See `_secDraw`. */
+        _secAddrSlot=midEventSlot(tg);
         /* ROADMAP #175 -- the ATTACKER is passed so `multihitAlwaysMax` (Skill Link) can be read. */
         if(_hitsThisUse===null)_hitsThisUse=rollHitsOf(a.move.id,rng,m);
         if(_condPowerThisUse===undefined){
@@ -26104,7 +26175,8 @@ function battleTurn(S,rng,actsForA,actsForB){
                * burn, Hurricane's confuse, Discharge's paralysis and Blizzard's freeze all showing up
                * in the `any` bucket instead. A non-split caller is bit-identical -- every stream
                * aliases the one function -- so no census probe and no seeded harness moves. */
-              if(_R.sec()*100>=(_fmt!=null?_fmt:_generic)) continue;
+              if(_secDraw()*100>=(_fmt!=null?_fmt:_generic)) continue;
+              _secFired(tg);   // ROADMAP #262 -- the authority's nested moveHit moves activeTarget here
               /* WIRE 133 -- the ATTACKER is passed so a side buff on the target's side can refuse
                  it. Showdown's Safeguard suppresses the `-activate` line for a SECONDARY (`!effect
                  .secondaries`), which is why the refusal here is silent and the direct status path's
@@ -26329,7 +26401,8 @@ function battleTurn(S,rng,actsForA,actsForB){
                * (data/items.ts:3219), so the authority draws for it inside `BattleActions#secondaries`
                * like any other secondary. Addressing it as a generic draw made the same event carry two
                * different names across the two engines -- 6 of each in 900 games, matching zero times. */
-              &&_R.sec()<+_kr.pFlinch){
+              &&_secDraw()<+_kr.pFlinch){
+             _secFired(tg);   // ROADMAP #262 -- see `_secDraw`; King's Rock is a secondary like any other
              if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
              else if(refusesFlinch(tgAb)) MEDSEEN.flinchBlockedByInnerFocus++;
              else { tg._flinch=true; MEDSEEN.flinch++; }
@@ -26458,7 +26531,14 @@ function battleTurn(S,rng,actsForA,actsForB){
             * (data/moves.ts:3641), so the authority takes its chance roll in `secondaries` and its
             * three-way pick inside the `onHit` that `secondaries` called -- both under the same
             * category, chance first, pick second. Same two draws, same order, same names. */
-           if(_ps&&_ps.p&&Array.isArray(_ps.oneOf)&&_ps.oneOf.length&&!suppressed&&_R.sec()<+_ps.p){
+           if(_ps&&_ps.p&&Array.isArray(_ps.oneOf)&&_ps.oneOf.length&&!suppressed&&_secDraw()<+_ps.p){
+             /* ROADMAP #262 -- THE CHANCE ROLL AND THE PICK ARE ADDRESSED DIFFERENTLY, and that is the
+              * authority rather than an inconsistency: the chance is drawn in `secondaries` at the
+              * carried `activeTarget`, and then `moveHit` -> `spreadMoveHit` -> `getSpreadDamage`
+              * writes `activeTarget = target` BEFORE `runMoveEffects` calls the `onHit` that takes the
+              * pick. So the pick is addressed to this body -- which is what the driver already left in
+              * `MID_TGT` -- and `_secFired` is what carries that forward to the next row's chance. */
+             _secFired(tg);
              const _i=Math.min(_ps.oneOf.length-1,Math.floor(_R.sec()*_ps.oneOf.length));
              applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i],m,ATTR.move(a.move.id));
            }}

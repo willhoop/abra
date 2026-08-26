@@ -10,6 +10,63 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.136.5] — 2026-08-26
+
+### Fixed
+- **A SPREAD MOVE'S SECONDARY WAS ADDRESSED TO THE BODY IT HIT; THE AUTHORITY ADDRESSES IT TO THE LAST
+  BODY OF THE SPREAD. Three of the thirteen board-material differential games were the RULER and not
+  the engine.** `BattleActions#secondaries` (`sim/battle-actions.ts:1336-1351`) loops its targets and
+  never writes `this.battle.activeTarget`; the last writer is `getSpreadDamage`'s per-target loop
+  (`:1154`), which leaves it on the last body that reached the damage step — and a secondary that
+  FIRES moves it, because `moveHit` re-enters `spreadMoveHit`, whose step 1 writes
+  `activeTarget = target`. The middle arm of `engine/game_differential.js` shares its dice by
+  ADDRESS, so two engines that both roll a correct 30% per target still receive different numbers
+  when their addresses differ. Measured in the official simulator first, two unshielded foes: Rock
+  Slide (30%, neither fires) `showdown p21|0 p21|1` against `medicham p20|0 p21|0`; Icy Wind (100%,
+  both fire) `showdown p21|0 p20|0` against `medicham p20|0 p21|0` — **the same two addresses in the
+  opposite order**, which a set comparison calls a match while each engine spends the other's number.
+  medicham2 now carries the authority's `activeTarget` through the secondary step (`_secDraw` /
+  `_secFired`), at the move's own secondaries loop, King's Rock and Dire Claw's chance roll; Dire
+  Claw's `oneOf` pick deliberately keeps its own body, because the nested `getSpreadDamage` has
+  already moved `activeTarget` there. ROADMAP #447.
+
+### Changed
+- **`tests/test-middle-identity.js`'s standing declaration is retracted, in its own words.** It
+  printed this shape and left it, reasoning that *"copying the authority here would make the address
+  stop naming the event"*. That is wrong on its own terms: the authority's address already does not
+  name the target, and the arm's one claim is that both engines compute the same string for the same
+  event. Both standing shapes are now CLOSED.
+
+### Added
+- **`tests/probe_spread_secondary_address.js`** — five staged arms comparing the `sec` address log of
+  both engines as an ORDERED sequence, three engine counters at exact equality, and `--red` under
+  `MEDI_SEC_ADDR_PER_TARGET=1` where the three spread arms must PART and both single-body controls
+  must HOLD. Shown red first.
+- **ROADMAP #448** — the `a.kind==='affect'` branch still resolves one target at a time, so a Protect
+  refusal on the second body is narrated after the first body's effect. Five rows in
+  `data/all-mechanics-fire.json` (Cotton Spore, String Shot, Sweet Scent, Teeter Dance, Corrosive
+  Gas), **all ANNOUNCEMENT-ONLY by the board comparator and zero games in the pinned pool**. Measured
+  and deliberately not fixed.
+
+### Notes
+- **The handed-over hypothesis — one root under four symptoms, "we resolve target by target" — does
+  not hold, and that was the first deliverable.** The damaging hit path has been a step list over the
+  target array since ROADMAP #81 WIRE 10 (`for (const _step of _STEPS) for (const R of _rows)`); the
+  spread-secondary symptom is an ADDRESS, and re-ordering addressed dice cannot change a value; only
+  the status-move branch is genuinely target-at-a-time, and that half is #448.
+- **This changes nothing any ordinary caller can observe.** `MID_TGT` is read by `midEventDraw`
+  alone, so no self-play game, rollout or seeded census probe can tell the two arms apart. The census
+  read **716/716, 0 missing** either side.
+- Measured on release **`ef2c826b5718`**, `--games 1200`, arm `middle`, cap 12,
+  `--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`, run twice:
+  whole-game clause **16 -> 14 of 961**, board-material **13 -> 10 of 961**,
+  `planted_divergence_proof_ok` true, `sec` address identity **91.6% over 250 events -> 97.9% over
+  288**. Board-material dropped by three where two were predicted; the third is named — a Discharge
+  spread paralysing a Gholdengo in this engine and not in the authority.
+- The three `tests/roster.js` stages and `engine/all_mechanics_fire.js` were re-run under the new
+  release, which the cut owed them. Roster: **0 DIFFER, 0 DID-NOT-FIRE across items, abilities and
+  moves.** The MEDICHAM gate moved from **6 of 8 clauses failing to 3**.
+
 ## [5.136.4] — 2026-08-26
 
 ### Fixed

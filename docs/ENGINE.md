@@ -16,7 +16,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-resolution-order.js`, `tests/probe_selfdestruct_winner.js`, `engine/switchin_order.js`,
 `data/switchin-order.json`, `tests/test-immunity-gate.js`, `tests/test-tag-params-derived.js`,
 `tests/test-roster-arm-pin.js`, `engine/mc_key.js`, `tests/test-mc-key.js`, `tests/test-mc-seal.js`,
-`tests/probe_room_unburden.js`, `tests/probe_trap_timing.js`
+`tests/probe_room_unburden.js`, `tests/probe_trap_timing.js`,
+`tests/probe_spread_secondary_address.js`
 
 **Twenty instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -59,7 +60,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  716/716 probed mechanics live, 0 missing   (census 2026-08-26 04:19)
+  716/716 probed mechanics live, 0 missing   (census 2026-08-26 04:55)
   0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -72,15 +73,180 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0a982abaeb5a now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 4135bcf000a5 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 689cb0501111 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-26 04:30_
+_stamped 2026-08-26 05:18_
 
 <!-- /GENERATED -->
+
+## THE HYPOTHESIS WAS ONE ROOT UNDER FOUR SYMPTOMS. IT IS THREE DIFFERENT THINGS, AND THE ONE THAT COST BOARDS WAS THE RULER RATHER THAN THE ENGINE. WHOLE-GAME CLAUSE 16 -> 14, BOARD-MATERIAL 13 -> 10. 2026-08-26.
+
+Handed over as a single root: *"the authority resolves a spread move by running each hit STEP across
+every target before advancing to the next step; we resolve target by target"*, said to sit under the
+spread-secondary address, the spread target order, three status-spread moves and one whole-game
+divergence. **The first deliverable was whether it holds. It does not, and the three pieces are:**
+
+| symptom | what it actually is | where |
+|---|---|---|
+| spread-secondary (cards 13 and 15, 2 of the board-material games) | **NOT an order problem.** The middle arm's dice are ADDRESSED, so re-ordering the draws cannot change one of them. The two engines were NAMING the roll differently | fixed here, ROADMAP #447 |
+| spread target order (card 9) and the damaging hit path generally | **ALREADY LANDED, since ROADMAP #81 WIRE 10.** medicham2 holds a `_STEPS` array driven by `for (const _step of _STEPS) for (const R of _rows)` — step outside, target inside, Showdown's own shape. `tests/probe_red_demo.js` reverts the two `for`s to demonstrate it | nothing owed |
+| String Shot, Cotton Spore, Teeter Dance (+ Sweet Scent and Corrosive Gas, which the brief did not name) | **THE HALF THAT HELD.** The `a.kind==='affect'` branch was never converted and its own header says so: *"EVERY TARGET RUNS THE WHOLE GAUNTLET ON ITS OWN"* | measured, NOT fixed, ROADMAP #448 |
+
+**THE NO-RISK DIAGNOSTIC WAS RUN FIRST AND IT ALREADY HELD THE ANSWER.** `tests/test-middle-identity.js`
+printed the secondary shape as a DECLARED standing divergence, with the reasoning that copying the
+authority *"would make the address stop naming the event, so it is left"*. That judgement is the thing
+this batch overturns, and it is wrong on its own terms — see below.
+
+### THE DEFECT: `BattleActions#secondaries` NEVER WRITES `activeTarget`, AND THE ADDRESS IS BUILT FROM IT
+
+The middle arm shares its dice by address rather than by sequence:
+
+```
+value = FNV1a(seed | turn | category | move id | target slot | nth) -> [0,1)
+```
+
+The authority half of that string is built from `battle.activeTarget` at the draw
+(`engine/game_differential.js:1022`). And `secondaries` (`sim/battle-actions.ts:1336-1351`) loops its
+targets **and never writes it**:
+
+```js
+for (const target of targets) {
+  if (target === false) continue;
+  const secondaries = this.battle.runEvent('ModifySecondaries', target, source, moveData, ...);
+  for (const secondary of secondaries) {
+    const secondaryRoll = this.battle.random(100);       // <- activeTarget is whatever it was
+    ...
+    if (...) this.moveHit(target, source, move, secondary, true, isSelf);
+  }
+}
+```
+
+The last writer is `getSpreadDamage`'s own per-target loop (`:1154`), which leaves `activeTarget` on
+the **last body that reached the damage step**. So the authority addresses every roll of a spread
+secondary to that one body and separates them with `nth`. **AND A SECONDARY THAT FIRES MOVES IT**:
+`moveHit` re-enters `spreadMoveHit`, whose step 1 is `getSpreadDamage` over `[target]`, which writes
+`activeTarget = target` before returning.
+
+**MEASURED IN THE AUTHORITY BEFORE A BYTE MOVED HERE**, one staged doubles turn each, two unshielded
+foes, `sec` addresses in the order each engine asked them (slot|nth):
+
+| arm | showdown | medicham2 |
+|---|---|---|
+| Rock Slide, 30%, neither fires | `p21.0`  `p21.1` | `p20.0`  `p21.0` |
+| Icy Wind, 100%, both fire | `p21.0`  `p20.0` | `p20.0`  `p21.0` |
+| single-target Iron Head (CONTROL) | `p20.0` | `p20.0` |
+| spread whose SECOND body Protects (CONTROL) | `p20.0` | `p20.0` |
+
+**READ THE SECOND ROW.** The same two addresses in the OPPOSITE ORDER — a set-shaped identity check
+calls that a match, and each engine is spending the other's number. Every claim in the probe is
+therefore an ORDERED sequence equality, and the first scratch version of this measurement compared
+sets and reported the Icy Wind arm clean.
+
+**THE FAINTED-TARGET THEORY IS REFUTED, AND IT WAS THE OBVIOUS ONE.** Both board-material games had
+the other target of the spread die on the same hit (`-status p2a: Excadrill brn` behind a Matcha
+Gotcha whose Falinks fainted; `cant p2a: Metagross flinch` behind a Rock Slide whose Volcarona
+fainted). The mismatch is already there with **two healthy bodies**, and the KO arm in the probe
+produces the identical address pair — carried so this is visibly ONE defect and not two.
+
+### IT IS AN INSTRUMENT LINE LIVING IN THE ENGINE, AND THAT IS SAID FIRST RATHER THAN BURIED
+
+`MID_TGT` is read by `midEventDraw` and by nothing else. Both arms are **byte-identical to every
+caller that is not the middle arm** — no self-play game, no rollout, no seeded census probe can tell
+them apart. Which is also why the census could not have caught it and does not move: **716/716, 0
+missing, either side.**
+
+That does not make it cosmetic. An address mismatch hands two CORRECT engines different numbers for
+the same roll, one burns and the other does not, and the differential reports a divergence that is
+entirely the ruler's. Three of the thirteen board-material games this repository was working on were
+that.
+
+### THE FIX: MEDICHAM2 CARRIES THE AUTHORITY'S `activeTarget` THROUGH THE SECONDARY STEP
+
+One line mirrors `getSpreadDamage` — `_secAddrSlot = midEventSlot(tg)` at the top of `_stepDamage`,
+written for every row the step reaches, so what stands when the step ends is the last one. Two
+closures spend it: `_secDraw()` swaps `MID_TGT` for the duration of the roll, and `_secFired(tg)`
+moves the address onto this body the moment a roll passes, which is exactly where the authority calls
+`moveHit`. Three draw sites read them — the move's own `secondaries` loop, King's Rock (which the
+authority pushes onto `move.secondaries` in `onModifyMove`, so it is a secondary like any other) and
+Dire Claw's chance roll. **Dire Claw's `oneOf` PICK deliberately does not**: it happens inside the
+`onHit` that the nested `moveHit` called, by which point the nested `getSpreadDamage` has already put
+`activeTarget` on that body — which is what the driver already left in `MID_TGT`.
+
+**AT ONE SURVIVING TARGET THE TWO ARMS ARE THE SAME STRING**, which is why the two controls in the
+probe cannot move and why they are there: an arm that made every address agree by making them all
+constant would fail nothing without them.
+
+### WHAT MOVED, AGAINST A PREDICTION MADE BEFORE THE RUN
+
+Predicted: census unchanged; whole-game clause 16 -> 14; board-material 13 -> 11, dropping exactly
+the Excadrill burn and the Metagross flinch.
+
+| | before | after |
+|---|---|---|
+| census | 716/716, 0 missing | **716/716, 0 missing** |
+| whole-game clause (undeclared protocol divergence) | 16 of 961 | **14 of 961** |
+| board-material (`state.games - state.games_board_never_diverged`) | 13 of 961 | **10 of 961** |
+| `planted_divergence_proof_ok` | true | **true** |
+| `sec` address identity, 900 games | 91.6% over 250 events | **97.9% over 288** |
+| deliberate roster, items / abilities / moves | withheld (measured on the previous release) | **0 DIFFER, 0 DID-NOT-FIRE on all three** |
+
+Release `ef2c826b5718`, `--games 1200`, arm `middle`, cap 12, `--team-store data/team-pool-frozen`,
+census pin `9446a684709d`, `--state --end-state`. `generated` moved 08:12 -> 09:08. Run twice (once
+without `--write`, once with) and both read 19 diverged / 951 boards never parted.
+
+**BOARD-MATERIAL DROPPED BY THREE AND I PREDICTED TWO, SO THE THIRD IS NAMED.** It is
+`gen9championsvgc2026regmb-2634782171 vs ...2635176997`, whose board carried
+`p2.party.gholdengo.status = par` against the authority's empty string. Its click is **a Discharge
+spread paralysing a Gholdengo in this engine and not in the authority** — the same mechanism on a
+move nobody had named, found because the prediction was written down first. That game's PROTOCOL
+divergence survives and is unrelated: it is the Telepathy wording,
+`-activate p2a: Oranguru ability: Telepathy` against `-immune p2a: Oranguru [from] ability: telepathy`.
+
+Also restored, and owed by the release cut rather than by any defect: the three `tests/roster.js`
+stages and `engine/all_mechanics_fire.js` were re-run under `ef2c826b5718`, because a roster artifact
+stamped with the previous release is *"an answer about other bytes"* and `status.js` withholds it.
+**The MEDICHAM gate went from 6 of 8 clauses failing to 3.**
+
+### THE PROBE, AND THE FACT THAT IT WAS WRONG BEFORE THE ENGINE WAS
+
+`tests/probe_spread_secondary_address.js` — five staged arms, ordered sequence equality on the `sec`
+address log of both engines, three engine counters at exact equality, and `--red` under
+`MEDI_SEC_ADDR_PER_TARGET=1` where the three spread arms must PART and both controls must HOLD.
+
+Three things it got wrong first, all of them shapes this ledger keeps recording:
+
+- **The knob read as unwired.** `--red` came back GREEN on all five arms because the probe set
+  `process.env.MEDI_SEC_ADDR_PER_TARGET` **below** the `require` that loads `game_differential.js`,
+  which loads medicham2, which reads the flag once at module load. Identical output across a varied
+  knob IS the finding — and the finding was that the knob had never been read.
+- **A set comparison passed the Icy Wind arm**, which is the sharpest of the five.
+- **A typed count was wrong where the engine was right**: `secAddrMovedByFire` was asserted at 1
+  ("the first roll moves the address off p21 onto p20") and the measured answer is 2, because the
+  second roll then moves it back. The expectation was corrected, not the engine.
+
+And two arms staged nothing on the first attempt — both foes clicking Protect, so the spread reached
+no body and both engines logged an empty list, **which compares equal**. Every arm now asserts that
+the roll happened at all before it asserts the engines agree about it.
+
+### WHAT IS STILL OPEN OUT OF THIS BRIEF
+
+- **ROADMAP #448** — the `affect` branch's per-target loop. Five rows in
+  `data/all-mechanics-fire.json`, all **ANNOUNCEMENT-ONLY by the board comparator** (`state_parted_on_turn`
+  null, zero diffs on each) and **zero games in the pinned pool**, so it is the narration gate's and
+  not the board-material bar's. Not fixed because splitting that loop into a gates pass and an effects
+  pass is more than the hypothesis required.
+- **Card 9 is NOT closed and is NOT the target ordering.** `pair-protect-bust`
+  `...2655608049 vs ...2655559026`, turn 10 — `-miss p1b: Garchomp p2b: Houndstone` against
+  `-activate p2a: Milotic move: Protect`. The step list already runs invulnerability across every
+  target before TryHit, so a row-order explanation does not survive contact with WIRE 10; something
+  about that Houndstone is not invulnerable in this engine at the step the authority refuses it. It is
+  NARRATION-ONLY (not in the ten board-material games) and it is unexplained, which is why nothing
+  about it is claimed here.
+
 
 ## THE SIDE GUARDS IMPLEMENTED HALF OF `checkMoveBypassesProtect`, AND A PIERCING ABILITY WAS REFUSED BY THE ONE PROTECTION IT SHOULD WALK THROUGH. CENSUS 715 -> 716. GATE CLAUSE AND BOARD-MATERIAL BOTH UNMOVED, AS PREDICTED. 2026-08-26.
 
