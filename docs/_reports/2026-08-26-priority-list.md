@@ -259,3 +259,61 @@ of 17" is true of that release only and must not be quoted as current.**
 **The Switcheroo hypothesis in the earlier brief is REFUTED.** Its divergence is the announcement NAME —
 the authority announces it as Trick with an attribution tag, we print the raw id. The unread gate does
 own one row, and it is Attract, whose gate is gender, which this engine does not model at all.
+
+---
+
+## CORRECTION, 2026-08-26 — THE NEVER-FIRED ALARM WAS OVERSTATED, AND A DIFFERENT HOLE IS REAL
+
+The addendum above says the 67 never-fired mechanics are *"the most-played mechanics in the format"* and
+that the clause *"would say nothing about"* them. **The usage figures are right and the conclusion is
+wrong.** Measured rather than inferred:
+
+| | rows | teams |
+|---|---|---|
+| the excluded set | 67 | 41,235 |
+| carry a LIVE census probe on their own tag (0 hollow) | **67** | all |
+| roster staged it, the authority moved, and **both engines' boards matched** | **32** | **34,192 (82.9%)** |
+| covered by **neither** a roster board delta nor an entity-named probe | **3** | **910** |
+
+**Those three are Overgrow (697 teams), Magma Armor (159) and Healer (54).** So the genuinely blind set is
+910 teams, not 41,235. **A mechanic covered by another instrument is not untested**, and this clause not
+seeing it is a fact about this clause, not about the engine.
+
+**Two methodological catches worth more than the number.** A roster `FIRED` whose `sd_delta` is **only the
+ability's own name leaf** is the ruler measuring itself — 8 rows are like that, and counting them would
+have reported 40 of 67 covered instead of 32. And the pass nearly declared Magma Armor a *format fact* on
+the premise that Fire types cannot be frozen; `data/typechart.ts:151` gives Fire a burn immunity and **no
+freeze immunity**, so that was false. The real cause is the fixture's hit-picker returning the same move
+for both damage categories, so the Ice Beam it built is never clicked.
+
+**Split of the 67:** 54 are stageable with work; **13 can never fire here and should be DECLARED** — 7 are
+pinned-die (accuracy and crit forced by the chosen arm, and they belong to a different instrument), 4 are
+announce-only or not abilities at all, 1 is gender (**medicham2 models no gender whatsoever**), 1 is
+speed-order.
+
+**The cheapest fix is not in this harness.** Unburden (3,026) and Overgrow (697) are DID-NOT-FIRE here
+**and** COULD-NOT-STAGE in the roster, on one shared cause: the driver answers `pass` for a slot that must
+act. **Two rows, 3,723 teams, one choice-construction bug** — and they are the only mechanics in the set
+that no differential instrument measures at all.
+
+### THE HOLE THAT IS REAL — 8 SHOWDOWN-ONLY ROWS, 7 UNCLASSIFIED
+
+The same artifact holds **8 rows where the authority's A/B moved and ours did not.** Verified directly:
+
+```
+forewarn        counts_against_the_gate: false
+moldbreaker     counts_against_the_gate: undefined
+naturalcure     counts_against_the_gate: undefined
+pressure        counts_against_the_gate: undefined
+rockhead        counts_against_the_gate: undefined
+superluck       counts_against_the_gate: undefined
+supremeoverlord counts_against_the_gate: undefined
+unnerve         counts_against_the_gate: undefined
+```
+
+**Seven carry `undefined` — not `true`, not `false`.** The field was never set, so the gate has no opinion
+about a class where the authority did something and this engine did nothing. Unnerve is 2,343 teams and
+Rock Head 1,885. **That is the shape this project has a rule against: a state that is neither passing nor
+counted, sitting in the artifact a gate reads.**
+
+Also found and unrelated: `MOVE_FACES` / `movesFacesFor` in `engine/faces.js` have **zero code consumers**.
