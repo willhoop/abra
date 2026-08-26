@@ -1,7 +1,7 @@
 {
-  "generated": "2026-08-26T10:28:55.920Z",
+  "generated": "2026-08-26T11:44:39.114Z",
   "by": "engine/game_differential.js",
-  "mode": "A/middle/pins:6a6b87eafc6a/credit:observed-effect/v1/nature:real",
+  "mode": "A/middle/pins:2efbc9ed1946/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
   "pins": {
     "why": "ONE PIN IS ONE CORNER. Every published number before 2026-08-07 describes `top-tie-in-order` and nothing else: max damage, every sub-100 move missing, and every speed tie resolving to input order in both engines BY CONSTRUCTION.",
@@ -9,7 +9,7 @@
       "middle"
     ],
     "primary": "middle",
-    "digest": "6a6b87eafc6a",
+    "digest": "2efbc9ed1946",
     "arms": [
       {
         "id": "middle",
@@ -27,7 +27,8 @@
           "middle: the hash is UNIFORM enough to price a 90-accuracy move  [2,000 contexts, +/- 5 points]",
           "middle: and to price a 30% secondary  [2,000 contexts, +/- 5 points]",
           "middle: a certainty is still a certainty: 100 accuracy always hits, 0 never does",
-          "middle: the category wrapper ATTACHED — an unattached one silently buckets every roll as ANY"
+          "middle: the category wrapper ATTACHED — an unattached one silently buckets every roll as ANY",
+          "middle: ...and the installed wrapper writes into THIS module load’s holder"
         ]
       }
     ],
@@ -97,7 +98,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 82.9,
+  "elapsed_s": 83.5,
   "credit_turn_profile": {
     "rows_with_any_credit": 252,
     "credits_with_no_turn_index": 0,
@@ -3742,6 +3743,7 @@
     "middle: and to price a 30% secondary  [2,000 contexts, +/- 5 points]",
     "middle: a certainty is still a certainty: 100 accuracy always hits, 0 never does",
     "middle: the category wrapper ATTACHED — an unattached one silently buckets every roll as ANY",
+    "middle: ...and the installed wrapper writes into THIS module load’s holder",
     "top-tie-first: a 100-accuracy move HITS  [medicham2 skips the check at acc >= 100]",
     "top-tie-first: a 90-accuracy move MISSES  [medicham2: 99.99 > 90 -> miss]",
     "top-tie-first: a 1-in-24 crit does NOT happen  [medicham2: 0.9999 < 1/24 is false]",
@@ -13993,7 +13995,7 @@
     "input_digest": "9446a684709d",
     "input_rows": 643,
     "input_generated": "2026-08-23T09:53:56.393Z",
-    "input_live_digest": "ecc1562aad86",
+    "input_live_digest": "19e3cb9fc214",
     "pinned": true,
     "matches_live": false,
     "selects_from": 580,
@@ -14007,7 +14009,7 @@
   "baseline_comparability": null,
   "engine_release": "705d2c7e86e8",
   "engine_release_cut": "2026-08-26T10:18:44.161Z",
-  "engine_release_cuts": 3,
+  "engine_release_cuts": 283,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
     "engine/medicham2-browser.js": "4babf2744f9d",

@@ -15,16 +15,16 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 23 unsafe, 1 void (declared), 112 possibly stale, 98 ok, 0 missing
+  provenance: 23 unsafe, 1 void (declared), 111 possibly stale, 99 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
@@ -35,7 +35,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-25 04:05
 ```
 
-_stamped 2026-08-26 06:51_
+_stamped 2026-08-26 07:55_
 
 <!-- /GENERATED -->
 

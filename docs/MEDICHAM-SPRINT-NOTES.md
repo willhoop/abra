@@ -21,6 +21,79 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE RULER WAS DEAD FROM ITS SECOND LOAD, AND IT HAD BEEN READ AS A SPREAD-IMMUNITY DAMAGE DEFECT. STAGED SCENARIOS 10 -> 24 OF 25, CENSUS 717 -> 718, POOL UNMOVED GAME FOR GAME. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.136.8. Register row: ROADMAP #450.
+No release cut is owed: `engine/game_differential.js` is the INSTRUMENT and is deliberately not one of
+the frozen SOURCES, so a re-cut over this tree returns `705d2c7e86e8` and appends a cut event.
+
+**THE HANDOVER'S PREMISE WAS WRONG, AND SAYING SO IS THE RESULT.** `tests/test-assert-mode.js` was red
+on two Levitate rows where the attacker's own ALLY parted — `earthquake` 86 vs 73, `bulldoze` 119 vs
+115, WE DEAL LESS. That is the exact direction and shape of a spread reduction applied where the
+authority applies none, and the lead handed over pointed at `sim/battle-actions.ts:551` setting
+`move.spreadHit` from the PRE-immunity target list. **Both numbers reproduce and neither is the game.**
+Play the same board with ONE module load and both engines say 86; the two numbers appear only on the
+SECOND load and after.
+
+**THE MECHANISM.** `midWrapShowdown` patches `BattleActions.prototype`, which comes out of SHOWDOWN's
+require cache and is never reloaded. `engine/game_differential.js` comes out of ours, and
+`tests/staged_board.js`'s `harness()` DELETES it every time it swaps the simulator source — once per
+row in `test-assert-mode.js`, once per arm in `test-resolution-order.js`, on every `--reds` pass. On
+the second load `if (BattleActions.__midWrapped) return;` fired, the wrapper was not reinstalled, and
+the standing closure kept writing `MID_CAT` into the evicted instance. The live instance read `'any'`
+for the rest of the process.
+
+**READ OFF THE ADDRESSES, NOT REASONED ABOUT.** Same staged Earthquake turn, second load:
+
+    showdown  <seed>|2|any|earthquake|p11|0   |1   |2
+    medicham  <seed>|2|acc|earthquake|p11|0   <seed>|2|dmg|...   <seed>|2|crit|...
+
+Two consequences and the second is damage: the shared die stops being shared, and `pinRandom`'s
+damage-index inversion is gated on `cat === 'dmg'`, so Showdown's `random(16)` is read as
+`floor(u*16)` — the ANTI-CORRELATED read this file's own pin header warns is worse than an independent
+one. The index was 13 against 0.
+
+**THE GUARD THAT EXISTED COULD NOT SEE IT.** The install site says a wrapper that fails to attach
+"would leave every roll in the 'any' bucket and the arm would quietly stop being what it says it is".
+It attached perfectly. Attachment and liveness are two questions.
+
+**THE FIX** puts the category/battle/attacker state on a `globalThis` holder — the one thing that
+outlives a reload the way the wrapper does — and adds a second PIN_CLAIM,
+`MID_WRAP_CLASS.__midHolder === MIDW`, which asks the other half. A false pin claim is
+`process.exit(1)` at load, so it cannot be silent again. `MID_WRAP_ERROR` and `MID_WRAP_CLASS` were
+lifted above the install site in the same pass, closing a latent TDZ in which the catch that records a
+failed wrap would itself have thrown.
+
+**WHAT IT RECOVERED.** `tests/staged_board.js --reds` **10 of 25 clean -> 24 of 25** — fourteen
+scenarios printed under "each is a FINDING about the engine" were the instrument.
+`tests/test-assert-mode.js` **1 of 3 -> 3 of 3**, `--break` still all-red. `test-resolution-order`
+(at `--max-old-space-size=6144`, #446), `test-encore-fail-silent` and `probe_selfdestruct_winner` all
+still pass. The one remaining `staged_board` red, `roar-drags-whoever-is-standing-there` SHORT, is
+identical on the single-load path and predates this pass.
+
+**NOTHING SINGLE-LOAD MOVED, PROVED RATHER THAN ASSUMED.** The same 120-game pinned differential with
+and without `MEDI_MID_CAT_UNSHARED=1` is byte-identical bar the elapsed-time line, `MIDW.enters` 9,658
+both ways. On the full pin (census pin `9446a684709d`, `data/team-pool-frozen`, arm `middle`, cap 12,
+961 games): whole-game clause **13 of 961 unmoved**, board-material **10 of 961 unmoved**,
+`tests/test-engine-diff.js` **0/6000 at all sixteen corners unmoved**. All predicted before the run.
+
+**AND THEN THE SPREAD RULE WAS MEASURED ANYWAY**, because "the premise was wrong" is not the same as
+"the engine is right". Four staged boards against the authority — a spread with one foe IMMUNE (the
+boundary: one target left), one with a foe behind a PROTECT, one with no refusal at all, and a
+genuinely single-target control — all four IDENTICAL, and deleting `_spreadHit` parts the first three
+while leaving the single-target control untouched. The census carried the Protect door and the
+already-fainted door and had **no row for the immunity door**, which is `hitStepTypeImmunity`, a
+different step of the same list. It has one now: `spreadFoes` *"a TYPE-IMMUNE partner still costs the
+survivor the spread 0.75"*, Hyper Voice into an Archaludon with a Gengar beside it — 36 / 36 / 48,
+`immune/alone = 0.750`, shown red twice (drop the immune body before the count: 36/48/48; remove the
+modifier: 48/48/48). Census **717 -> 718**.
+
+**REPORTED, NOT TOUCHED.** `engine/medicham2-browser.js` declares `canMegaNow` twice (~:14633 and
+~:14736, identical bodies) and the second wins at load, so an edit to the first is inert. Already on
+ROADMAP #449; it belongs in its own commit with its own demonstration.
+
+---
+
 ## CARD 8: THE PERISH FAINT IS OWED TO THE TAIL OF `runAction`, WHICH IS BELOW `|upkeep|` — BUT ONLY WHEN NOTHING FOLLOWS IT. WHOLE-GAME 14 -> 13 OF 961, BOARD-MATERIAL UNMOVED AT 10, CENSUS 716 -> 717. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.136.7. Release cut: `705d2c7e86e8`.

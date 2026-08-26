@@ -440,8 +440,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * field), and `playerAction` hands back the same action object whatever that list turns out to be —
  * so an action-reading probe is structurally blind to the defect. Its full reason is written at the
  * helper itself.
+ *
+ * `voiceAt(` added 2026-08-26, declared here on the same rule. It is `gleamAt(`'s sibling for the
+ * third door out of the target array — a TYPE IMMUNITY — and stages the same way: a real doubles
+ * board through `battleInit` and a real turn through `battleTurn`. It has to, for the reason WIRE 11
+ * gives: `move.spreadHit` is set from the array the ACTION LOOP builds, and a probe that priced the
+ * move directly would never see which bodies were in it.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -16756,6 +16762,58 @@ probe('move', 'spreadFoes', 'an ALREADY-FAINTED partner removes the spread modif
            detail: `Dazzling Gleam into Archaludon — partner alive ${both.d}, partner fainted `
                  + `${alone.d}; ratio ${r.toFixed(3)} (0.75 = the modifier applies with two bodies `
                  + `in the array and not with one)` };
+});
+
+/* 1c. AND THE THIRD DOOR OUT OF THE ARRAY IS AN **IMMUNITY**, WHICH NEITHER 1a NOR 1b ASKS ABOUT.
+ *
+ * 1a removes a body with Protect (`hitStepTryHitEvent`, moveSteps index 1) and 1b removes it before
+ * the array is built at all (`Side#allies()` filters `!!hp`). A TYPE IMMUNITY is a THIRD place —
+ * `hitStepTypeImmunity`, moveSteps index 2 — and `move.spreadHit` was set above the whole list at
+ * `sim/battle-actions.ts:551`, so it survives that filter too. Nothing measured it.
+ *
+ * WHY IT IS NOT AN ACADEMIC GAP. On 2026-08-26 this engine was accused of exactly this defect off a
+ * Levitate row in `tests/test-assert-mode.js` — a Ground move refused by an immunity where the
+ * attacker's ALLY parted, `earthquake` 86 vs 73 and `bulldoze` 119 vs 115, WE DEAL LESS, which is the
+ * direction and shape of a spread reduction applied where the authority applies none. It was the
+ * INSTRUMENT (see tests/probe_mid_cat_reload.js) and the engine was right. The engine being right is
+ * a claim the census should carry rather than a sentence in a report, and there was no row for it.
+ *
+ * HYPER VOICE RATHER THAN A QUAKE, and that is the whole design: `allAdjacent` puts my own partner in
+ * the array as well, so the array can never fall to ONE body and the arms cannot be told apart.
+ * `allAdjacentFoes` with a GHOST beside the target is the only shape where the immunity is what
+ * decides the array length. The `alone` arm is the discriminator: an engine that priced the modifier
+ * off the targets it HIT would read `immune` and `alone` the same. */
+const voiceAt = (partner) => {
+  const me = bare('gholdengo'), ally = bare('incineroar'); unfaintable(ally);
+  const f1 = bare('archaludon');
+  /* the ghost is a DIFFERENT BODY, not the same one made immune, because an ability or a type edit
+   * applied to `pelipper` would also be a change the damage formula could see on f1 through the
+   * effectiveness table. Only the array length may differ between arms. */
+  const f2 = bare(partner === 'immune' ? 'gengar' : 'pelipper');
+  unfaintable(f1); unfaintable(f2);
+  if (partner === 'fainted') { f2.fainted = true; f2.curHP = 0; }
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const h1 = f1.curHP, h2 = f2.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'hypervoice', f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { d: h1 - f1.curHP, partnerTook: h2 - f2.curHP };
+};
+probe('move', 'spreadFoes', 'a TYPE-IMMUNE partner still costs the survivor the spread 0.75', () => {
+  const both = voiceAt('alive'), immune = voiceAt('immune'), alone = voiceAt('fainted');
+  const r = alone.d ? immune.d / alone.d : 0;
+  /* The ghost must have taken NOTHING. Without that, "the survivor still eats the 0.75" would be
+   * satisfied by an engine in which Normal simply hits Ghost. */
+  return { works: both.d > 0 && immune.d === both.d && alone.d > both.d
+                  && immune.partnerTook === 0 && both.partnerTook > 0
+                  && r > 0.72 && r < 0.78,
+           arms: { control: alone.d, test: immune.d },
+           detail: `Hyper Voice into Archaludon — partner a Pelipper that is HIT ${both.d} (it took `
+                 + `${both.partnerTook}); partner a GHOST, immune to Normal, ${immune.d} (it took `
+                 + `${immune.partnerTook}, and the damage to Archaludon must be the SAME: the ghost `
+                 + `is still in the array when spreadHit is set, two steps above the immunity); `
+                 + `partner already FAINTED ${alone.d} (bigger — it never entered). immune/alone = `
+                 + `${r.toFixed(3)}` };
 });
 
 /* 2a. THE HERB IS CONSUMED AND THE NEGATIVE STAGE GOES *ON THE SWITCH-IN*. Observed live: Incineroar

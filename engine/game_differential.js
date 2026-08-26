@@ -241,6 +241,47 @@ const M = REL.require('engine/medicham2-browser.js', {
   want: ['MEDI_SPREAD'],
 });
 const CS = require('./champions_sim.js');
+/* ---- THESE FOUR ARE DECLARED ABOVE THE INSTALL SITE BECAUSE THE INSTALL SITE READS THEM ------
+ * `midWrapShowdown` runs on the next screen, and a `let`/`const` below it is in the TEMPORAL DEAD
+ * ZONE at that moment. `MID_WRAP_ERROR` sat 560 lines further down and its own catch block would
+ * therefore have thrown a ReferenceError instead of recording the failure -- latent, because the
+ * catch has never fired. */
+let MID_WRAP_ERROR = null;
+/* the class the wrapper was installed on, so a later load can ask whose holder it feeds */
+let MID_WRAP_CLASS = null;
+/* ---- THE WRAPPER OUTLIVES THIS MODULE, SO ITS STATE MAY NOT LIVE IN THIS MODULE ----------------
+ *
+ * `midWrapShowdown` patches `BattleActions.prototype`, and that class comes out of SHOWDOWN'S require
+ * cache. This file comes out of OURS — and `tests/staged_board.js`'s `harness()` deletes it every time
+ * it swaps the simulator source: once per row in `tests/test-assert-mode.js`, once per arm in
+ * `tests/test-resolution-order.js`, on every `--reds` pass, and in `tests/probe_selfdestruct_winner.js`.
+ *
+ * These three were `let` bindings of THIS module. On the second load `__midWrapped` was already true,
+ * so the wrapper was not reinstalled, and the one still standing went on writing the category into the
+ * DEAD module instance. The live instance read `'any'` for the rest of the process. Nothing threw and
+ * nothing was counted — the install site one screen up says in as many words that a wrapper which fails
+ * to attach "would leave every roll in the 'any' bucket and the arm would quietly stop being what it
+ * says it is", and that is precisely what happened, through a door its guard does not cover.
+ *
+ * TWO THINGS WENT, AND THE SECOND IS DAMAGE. The addresses stopped matching medicham2's, so the shared
+ * die stopped being shared; and `pinRandom`'s damage-index inversion is gated on `cat === 'dmg'`, so
+ * Showdown's `random(16)` was read as `floor(u*16)` — the ANTI-CORRELATED read this file's own pin
+ * header warns is worse than an independent one. It surfaced as a Levitate row where the attacker's
+ * ALLY parted, `earthquake` 86 vs 73 and `bulldoze` 119 vs 115, WE DEAL LESS — the exact direction and
+ * shape of a spread reduction applied where the authority applies none, and none of that.
+ *
+ * SO THE STATE LIVES ON `globalThis`, WHICH IS THE ONE THING THAT OUTLIVES A RELOAD THE WAY THE
+ * WRAPPER DOES. Every load adopts the same holder, so whichever instance installed the wrapper, the
+ * instance doing the drawing reads what it wrote. `MEDI_MID_CAT_UNSHARED=1` restores the per-module
+ * binding for `tests/probe_mid_cat_reload.js`'s red arm. */
+const MID_UNSHARED = !!process.env.MEDI_MID_CAT_UNSHARED;
+const MIDW = (() => {
+  const K = '__abra_mid_wrapper_state__';
+  const fresh = () => ({ cat: 'any', att: '-', battle: null, adopted: 0, enters: 0 });
+  if (MID_UNSHARED) return fresh();
+  if (!globalThis[K]) globalThis[K] = fresh(); else globalThis[K].adopted++;
+  return globalThis[K];
+})();
 /* WRAPPING HAPPENS ONCE, AT LOAD, AND ONLY MATTERS FOR THE MIDDLE ARM — the wrapper merely records
  * which method is executing and is inert for every other arm, so arming it unconditionally keeps one
  * code path rather than two that could disagree about when it is on. It THROWS if a method it names
@@ -757,9 +798,6 @@ function midCtx(parts) {
   return base + '|' + n;
 }
 const midClearNth = () => MID_NTH.clear();
-let MID_CAT = 'any';
-let MID_ATT = '-';
-let MID_BATTLE = null;   /* set by the wrapper above; the prng override cannot see the battle */                  /* which KIND of roll Showdown is making right now */
 const MID_DRAWS = { sd: {}, me: {} }; /* per-category draw counts, per side, for the void check */
 /* THE CONTEXTS THEMSELVES, NOT JUST THE COUNTS. Under hashing a count mismatch is EXPECTED and
  * harmless — that is the whole point — so the void check changes question: of the events BOTH engines
@@ -781,7 +819,6 @@ let MID_NO_BATTLE_DRAWS = 0;
 const midReset = () => { for (const k of ['sd', 'me']) { MID_DRAWS[k] = {}; for (const c of MID_CATS.concat('any')) MID_DRAWS[k][c] = 0; } };
 midReset();
 let MID_VOID_GAMES = 0, MID_VOID_DETAIL = [], MID_SAMPLE = [];
-let MID_WRAP_ERROR = null;
 /* ---- WHY A GAME WAS VOIDED, BY CAUSE AND BY CATEGORY -------------------------------------------
  *
  * Half a run being unreadable was published as ONE number for as long as this check has existed, and
@@ -948,29 +985,35 @@ function midGameVoid() {
  * `random(16)` is a damage roll or a 1-in-16 chance with no way to know which (no legal move has one
  * today; that is luck, not design — see ROADMAP #260). Wrapping the four owning methods is exact. */
 function midWrapShowdown(BattleActions) {
-  if (!BattleActions || BattleActions.__midWrapped) return;
+  if (!BattleActions) return;
+  /* CAPTURED BEFORE THE EARLY RETURN, because a RELOAD is exactly the case the claim has to be able
+   * to judge: the wrapper is already installed, this call does nothing, and the only question left is
+   * whose holder the standing closure feeds. Capturing it after the guard would leave `MID_WRAP_CLASS`
+   * null on every load after the first and the claim would refuse the very case it exists for. */
+  MID_WRAP_CLASS = BattleActions;
+  if (BattleActions.__midWrapped) return;
   const around = (name, cat, attIdx) => {
     const fn = BattleActions.prototype[name];
     if (typeof fn !== 'function') throw new Error('MIDDLE ARM: BattleActions#' + name + ' is not a function — '
       + 'the authority moved and this wrapper is guessing. Fix the name rather than falling back.');
     BattleActions.prototype[name] = function (...a) {
-      const prev = MID_CAT, prevB = MID_BATTLE;
-      MID_CAT = cat;
+      const prev = MIDW.cat, prevB = MIDW.battle;
+      MIDW.cat = cat; MIDW.enters++;
       /* THE BATTLE HAS TO BE CAPTURED HERE, AND ASSUMING OTHERWISE COST THE WHOLE FEATURE.
        * The address builder is installed as `battle.prng.random`, and `Battle#random` is
        * `return this.prng.random(m, n)` -- so inside it `this` is the PRNG, not the battle. Every
        * address computed there read `undefined|-|-` and the arm measured 0.0% identity while
        * looking like it worked. `BattleActions` carries `.battle`, and this wrapper is the one
        * place that genuinely runs as a method on it. */
-      MID_BATTLE = this.battle || null;
+      MIDW.battle = this.battle || null;
       /* THE ATTACKER, WHICH THE ADDRESS DID NOT CARRY AND NEEDED — see the midCtx note.
        * The position differs per method and is read from the signature rather than assumed:
        * getDamage(source, target, move), hitStepAccuracy(targets, pokemon, move),
        * secondaries(targets, source, move, ...). A draw with no attacker in scope keeps '-'. */
-      const prevA = MID_ATT;
+      const prevA = MIDW.att;
       const _att = (attIdx != null) ? a[attIdx] : null;
-      MID_ATT = (_att && _att.side && _att.position != null) ? (_att.side.id + _att.position) : '-';
-      try { return fn.apply(this, a); } finally { MID_CAT = prev; MID_BATTLE = prevB; MID_ATT = prevA; }
+      MIDW.att = (_att && _att.side && _att.position != null) ? (_att.side.id + _att.position) : '-';
+      try { return fn.apply(this, a); } finally { MIDW.cat = prev; MIDW.battle = prevB; MIDW.att = prevA; }
     };
   };
   /* THE BATTLE IS THE CONTEXT AND IT COSTS NOTHING TO READ. The override runs as a method, so the
@@ -981,6 +1024,11 @@ function midWrapShowdown(BattleActions) {
   around('secondaries', 'sec', 1);
   around('getDamage', 'dmg', 0);      /* the crit roll lives in here too and is split out below */
   BattleActions.__midWrapped = true;
+  /* WHICH HOLDER THE INSTALLED WRAPPER ACTUALLY WRITES TO. The closure above captured `MIDW` of
+   * whichever module load got here first, and every later load has to be able to ask whether that is
+   * still the object it is reading. `MID_WRAP_ERROR === null` cannot answer it -- the wrapper attached
+   * perfectly and wrote its answers into a dead module -- so the pin claim compares identities. */
+  BattleActions.__midHolder = MIDW;
 }
 
 /* THE TWO CORNERS OF MEDICHAM2'S SINGLE SCALAR. */
@@ -1018,7 +1066,7 @@ function makeArm(spec) {
    * (there is one per game) still gets a stable answer rather than throwing. */
   const midDraw = (cat, battle) => {
     MID_DRAWS.sd[cat] = (MID_DRAWS.sd[cat] || 0) + 1;
-    const b = battle && battle.activeMove !== undefined ? battle : MID_BATTLE;
+    const b = battle && battle.activeMove !== undefined ? battle : MIDW.battle;
     const mv = b && b.activeMove, tg = b && b.activeTarget;
     if (!b) MID_NO_BATTLE_DRAWS++;
     const ctx = midCtx([MID_SEED, b ? b.turn : 0, cat,
@@ -1032,7 +1080,7 @@ function makeArm(spec) {
      * form with m === 16 is the damage roll and the two-argument form is the crit — the only place a
      * denominator IS a reliable discriminator, because the wrapper has already narrowed the caller. */
     if (spec.middle) {
-      const cat = (MID_CAT === 'dmg' && n !== undefined) ? 'crit' : MID_CAT;
+      const cat = (MIDW.cat === 'dmg' && n !== undefined) ? 'crit' : MIDW.cat;
       const u = midDraw(cat === 'any' ? 'any' : cat, this);
       if (n === undefined) {
         if (m === undefined) return u;                       // random() -> float in [0,1)
@@ -1061,7 +1109,7 @@ function makeArm(spec) {
          * the same argument the header makes about `random(16)` being undiscriminable from its
          * arguments alone (ROADMAP #260). `MID_CAT === 'dmg'` is set by `midWrapShowdown` around
          * `getDamage` and nowhere else. */
-        if (MID_CAT === 'dmg' && m === DAMAGE_ROLL_SIDES && !MID_NO_INVERT) {
+        if (MIDW.cat === 'dmg' && m === DAMAGE_ROLL_SIDES && !MID_NO_INVERT) {
           MID_DAMAGE_INDEX_FLIPS++;
           return midDamageIndex(u);
         }
@@ -1082,7 +1130,7 @@ function makeArm(spec) {
    * uniform from a floor and loses resolution at small denominators. It draws the float directly. */
   const chance = (num, den) => {
     if (spec.middle) {
-      const cat = (MID_CAT === 'dmg') ? 'crit' : MID_CAT;
+      const cat = (MIDW.cat === 'dmg') ? 'crit' : MIDW.cat;
       return midDraw(cat === 'any' ? 'any' : cat, this) < (num / den);
     }
     return random(den) < num;
@@ -1342,6 +1390,13 @@ function armClaims(a) {
                                              if (a.chance(0, 100) !== false) return false; } return true; });
     P('the category wrapper ATTACHED — an unattached one silently buckets every roll as ANY',
       () => MID_WRAP_ERROR === null);
+    /* AND IT WRITES INTO **THIS** MODULE'S HOLDER. The claim above was true for eleven days while the
+     * arm was mis-addressing every authority draw: `harness()` re-requires this file, the wrapper is
+     * already on `BattleActions.prototype`, and the still-installed closure kept writing the category
+     * into the module instance that had been evicted. Attachment and liveness are two questions and
+     * only one of them was being asked. */
+    P('...and the installed wrapper writes into THIS module load’s holder',
+      () => MID_WRAP_ERROR === null && !!MID_WRAP_CLASS && MID_WRAP_CLASS.__midHolder === MIDW);
     return C;
   }
   if (a.top) {
@@ -2993,7 +3048,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * BOUND AT INSTALL RATHER THAN AT EACH CALL SITE: this is the one line that already knows which
    * battle these dice belong to, and the wrapper above saves and restores `MID_BATTLE` around itself,
    * so binding here is what its `prevB` restores to instead of `null`. */
-  MID_BATTLE = MID_UNBOUND ? null : battle;
+  MIDW.battle = MID_UNBOUND ? null : battle;
   /* THE SPEED-TIE RESOLVER IS REPLACED AS A FUNCTION, not steered through `random(m,n)` — that form is
    * also the sleep duration, a multi-hit count and a queue insertion index, and moving it would have
    * made the tie arm differ from the baseline in four ways at once. See the pin header. */
@@ -5423,7 +5478,15 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                    midResetAddresses: () => { MID_CTX_ALL.sd.length = 0; MID_NO_BATTLE_DRAWS = 0; },
                    /* the damage-roll mapping and the arms it is derived from, for tests/test-middle-damage-roll.js */
                    midDamageIndex, DAMAGE_ROLL_SIDES, CORNER_TOP, CORNER_BOTTOM,
-                   midDamageFlips: () => MID_DAMAGE_INDEX_FLIPS };
+                   midDamageFlips: () => MID_DAMAGE_INDEX_FLIPS,
+                   /* THE WRAPPER'S OWN RECEIPT. `adopted` is how many times this file was RELOADED
+                    * into a process that had already installed the `BattleActions` patch; `enters` is
+                    * how many times the patch has since told THIS holder which category is running. A
+                    * reload with `adopted > 0` and `enters === 0` is the defect
+                    * `tests/probe_mid_cat_reload.js` exists for, and it is readable rather than
+                    * inferred from a percentage. */
+                   midWrapState: () => ({ adopted: MIDW.adopted, enters: MIDW.enters,
+                                          shared: !MID_UNSHARED, installed: !MID_WRAP_ERROR }) };
 
 if (require.main !== module) return;
 
@@ -6225,6 +6288,10 @@ if (PRIMARY_ARM.middle) {
     + '   -- the two engines did not name the same events; these are NOT divergences');
   console.log('  DIVERGED among the ' + usable.length + ' usable games: ' + divUsable
     + (usable.length ? '  (' + (100 * divUsable / usable.length).toFixed(1) + '%)' : ''));
+  console.log('  category wrapper: ' + (MID_WRAP_ERROR ? 'NOT INSTALLED — ' + MID_WRAP_ERROR
+    : MIDW.enters + ' entries into this module\'s holder, ' + MIDW.adopted + ' reload(s) adopted it, '
+      + (MID_UNSHARED ? 'state PER-MODULE (--red arm)' : 'state shared'))
+    + (!MID_WRAP_ERROR && !MIDW.enters ? '   <-- ZERO: every authority draw was addressed `any`' : ''));
   console.log('  MID_BATTLE bound at install: ' + (MID_UNBOUND ? 'NO — --mid-unbound, this is the '
     + 'ROADMAP #220 BEFORE-ARM and is not a current measurement' : 'yes'));
   console.log('  empty-address games counted VOID: ' + (VOID_EMPTY_IS_VOID ? 'YES — --void-empty-is-void, '

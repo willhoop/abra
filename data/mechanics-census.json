@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T10:55:28.538Z",
+  "generated": "2026-08-26T11:48:22.808Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 717,
-  "live": 717,
+  "probed": 718,
+  "live": 718,
   "missing": 0,
-  "armed": 717,
+  "armed": 718,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3653,7 +3653,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4614,6 +4614,16 @@
       "label": "an ALREADY-FAINTED partner removes the spread modifier entirely",
       "live": true,
       "detail": "Dazzling Gleam into Archaludon — partner alive 65, partner fainted 87; ratio 0.747 (0.75 = the modifier applies with two bodies in the array and not with one)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spreadFoes",
+      "label": "a TYPE-IMMUNE partner still costs the survivor the spread 0.75",
+      "live": true,
+      "detail": "Hyper Voice into Archaludon — partner a Pelipper that is HIT 36 (it took 69); partner a GHOST, immune to Normal, 36 (it took 0, and the damage to Archaludon must be the SAME: the ghost is still in the array when spreadHit is set, two steps above the immunity); partner already FAINTED 48 (bigger — it never entered). immune/alone = 0.750",
       "hollow": false,
       "armed": true,
       "directCall": false

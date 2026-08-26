@@ -10,6 +10,83 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.136.8] — 2026-08-26
+
+### Fixed
+- **THE MIDDLE ARM'S CATEGORY WRAPPER WROTE INTO A MODULE INSTANCE THAT HAD BEEN EVICTED, SO EVERY
+  STAGED-BOARD INSTRUMENT AFTER ITS FIRST SOURCE SWAP COMPARED TWO ENGINES ON UNSHARED DICE.**
+  `midWrapShowdown` patches `BattleActions.prototype` — Showdown's class, out of Showdown's require
+  cache, never reloaded. `engine/game_differential.js` is ours, and `tests/staged_board.js`'s
+  `harness()` deletes it from the cache on every change of simulator source. On the second load the
+  guard `if (BattleActions.__midWrapped) return;` fired, the wrapper was not reinstalled, and the
+  standing closure kept writing the roll category into the dead instance; **the live instance read
+  `'any'` for the rest of the process.** Two things went at once. Every authority draw was addressed
+  `<seed>|<turn>|any|<move>|<target>|<nth>`, so the arm's whole premise — both engines drawing the
+  same value for the same kind of roll — was gone; and `pinRandom`'s damage-index inversion is gated
+  on `cat === 'dmg'`, so Showdown's `random(16)` was read as `floor(u*16)`, **the anti-correlated
+  read the pin's own header warns is worse than an independent one.**
+  **It was being read as a live engine damage defect.** `tests/test-assert-mode.js`'s Levitate rows
+  showed a Ground move refused by an immunity where the attacker's ALLY parted — `earthquake` 86 vs
+  73, `bulldoze` 119 vs 115, we deal LESS, the exact direction and shape of a spread reduction applied
+  where the authority applies none. Played on ONE load both engines say 86; the damage index was 13
+  against 0. The engine was right and the ruler was wrong.
+  **The install site had already written the failure down and its guard could not see it** — *"a
+  wrapper that silently fails to attach would leave every roll in the 'any' bucket and the arm would
+  quietly stop being what it says it is"* — because the wrapper attached perfectly. Attachment and
+  liveness are two questions and only one was being asked. The state now lives on a `globalThis`
+  holder, the one thing that outlives a reload the way the wrapper does, and a second PIN_CLAIM
+  (`MID_WRAP_CLASS.__midHolder === MIDW`) asks the other half; a false pin claim is `process.exit(1)`
+  at load, so this cannot be silent again. Every run prints `category wrapper: N entries into this
+  module's holder, M reload(s) adopted it`.
+  **What it recovered:** `tests/staged_board.js --reds` went **10 of 25 clean → 24 of 25**; fourteen
+  scenarios listed as *"a FINDING about the engine"* were the instrument. `tests/test-assert-mode.js`
+  **1 of 3 → 3 of 3**, with `--break` still all-red. `test-resolution-order`, `test-encore-fail-silent`
+  and `probe_selfdestruct_winner` all still pass.
+  **Nothing single-load moved, and that was proved rather than assumed:** the same 120-game pinned
+  differential with and without `MEDI_MID_CAT_UNSHARED=1` is byte-identical bar the elapsed-time line
+  (`MIDW.enters` 9,658 both ways). On the full pin — census pin `9446a684709d`, frozen team store, arm
+  `middle`, cap 12, 961 games — the whole-game clause is **unmoved at 13 of 961** and board-material
+  **unmoved at 10 of 961**; `tests/test-engine-diff.js` is **0/6000 at all sixteen corners, unmoved**.
+  All four were predicted before the run.
+- **A latent TDZ in the wrap failure path.** `MID_WRAP_ERROR` was declared 560 lines below the
+  `try { midWrapShowdown(...) } catch` that assigns it, so the catch would have thrown a
+  `ReferenceError` instead of recording the failure. Never fired; lifted above the install site with
+  `MID_WRAP_CLASS`.
+
+### Added
+- `tests/probe_mid_cat_reload.js` — three loads of the SAME engine, two boards each. Arm 2's bytes
+  differ from arm 1's by a trailing comment, so a verdict that moves between them cannot be the
+  engine; arm 3 returns to arm 1's exact bytes to separate "the second load is special" from "every
+  load after the first". Each row asserts board identity AND that the Showdown draws carry
+  `acc`/`crit`/`dmg`. Red on demand under `MEDI_MID_CAT_UNSHARED=1`, run in a child process because
+  the demonstration now kills the process at the pin claim — the child must die at the second load
+  with the two first-load rows already green.
+- `tests/test-mechanics.js` — `spreadFoes`: *a TYPE-IMMUNE partner still costs the survivor the spread
+  0.75*. The census carried the Protect door (`hitStepTryHitEvent`, step 1) and the already-fainted
+  door (`Side#allies()` filters before the array is built) and had no row for the THIRD one, a type
+  immunity at `hitStepTypeImmunity`, step 2 — which is exactly what this batch was accused of getting
+  wrong. Hyper Voice rather than a quake, because `allAdjacent` puts the attacker's own partner in the
+  array and the arms could then never be told apart. Three arms: partner hit 36, partner a Ghost 36
+  (it took 0), partner already fainted 48; `immune/alone = 0.750`. Shown red twice — dropping the
+  immune body before the count reads 36/48/48, and removing the modifier reads 48/48/48. Census
+  **717 → 718 live, 0 missing.**
+
+### Notes
+- **The spread rule itself was measured, not assumed, once the premise was refuted.** Four staged
+  boards against the authority: a spread with one foe immune (the boundary — one target left), one
+  with a foe behind a Protect, one with no refusal at all, and a genuinely single-target control. All
+  four IDENTICAL; deleting `_spreadHit` parts the first three and leaves the single-target control
+  untouched, so the knob is wired and is not always-on.
+- **The engine was not edited in this batch.** `engine/game_differential.js` is the INSTRUMENT and is
+  deliberately not one of the frozen release SOURCES, so a re-cut over this tree returns the same id
+  (`705d2c7e86e8`) and appends a cut event. That is correct: the fix applies to every re-run of every
+  release, including old ones, which is the same reason `steering.js` and `board_state.js` are not
+  frozen.
+- **`engine/medicham2-browser.js` declares `canMegaNow` TWICE** (≈:14633 and ≈:14736, identical
+  bodies) and the second wins at load, so an edit to the first is silently inert. Reported, not
+  touched — it is already recorded on ROADMAP #449 and belongs in its own commit with its own
+  demonstration.
+
 ## [5.136.7] — 2026-08-26
 
 ### Fixed

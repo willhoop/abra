@@ -17,7 +17,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `data/switchin-order.json`, `tests/test-immunity-gate.js`, `tests/test-tag-params-derived.js`,
 `tests/test-roster-arm-pin.js`, `engine/mc_key.js`, `tests/test-mc-key.js`, `tests/test-mc-seal.js`,
 `tests/probe_room_unburden.js`, `tests/probe_trap_timing.js`,
-`tests/probe_spread_secondary_address.js`
+`tests/probe_spread_secondary_address.js`,
+`tests/probe_mid_cat_reload.js`
 
 **Twenty instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -51,6 +52,8 @@ CLAUDE.md records going stale three times over.)*
 | `test-mc-seal.js` | can a species name be LOST or MISREAD because of how it was spelled — `MC.mons` is a Proxy that throws on a key it does not have, `buildMon` resolves any spelling, seven evasion shapes executed rather than pattern-matched, all five historical instances replayed as live code | anything outside `MC.mons`: it is one table, not a type system. The browser (node only by default, and it says so), Python, a species key carried through JSON and compared somewhere else, and the SAME class of bug on a per-mon FIELD rather than a table key |
 | `test-resolution-order.js` | does an event happen WHERE the authority puts it — four orderings, twelve staged arms judged by two protocol streams with no typed expectation, each arm played twice (clean, then under a NAMED surgical revert of exactly one fix), five reds that must part under their own revert and six controls that must NOT, plus seven engine counters at exact equality as per-arm deltas | anything whose consequence the reducer normalises away, and any ordering nobody staged: it is twelve boards, not a sweep. The multi-hit LOOP, by construction — the authority wraps the whole step list once per hit and this engine wraps it once per move, which is staged as a declared KNOWN-OPEN arm and never as a pass |
 
+| `probe_mid_cat_reload.js` | does the middle arm's category wrapper still reach THIS module after `staged_board.js` re-requires the driver — three loads of the SAME engine, two boards each, arm 2 differing from arm 1 by a trailing comment so no engine difference exists to be, each row asserting board identity AND that the Showdown draws carry `acc`/`crit`/`dmg`; red on demand in a child under `MEDI_MID_CAT_UNSHARED=1`, which must die at the SECOND load with the two first-load rows already green | whether either engine plays the game right — it compares the RULER against itself across a reload. And every OTHER module-scoped binding a reloaded driver inherits: it is one holder, not an audit |
+
 **Its one number:** mechanics live. **It must never go down.**
 
 **May not:** claim a strength gain (that is SEARCH, gated by MEASURE), change what board.js
@@ -60,8 +63,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  717/717 probed mechanics live, 0 missing   (census 2026-08-26 06:35)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
+  718/718 probed mechanics live, 0 missing   (census 2026-08-26 07:48)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-26 07:42)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -73,15 +76,135 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 354cda044697 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 904c2cb22963 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is fc9bf86658c5 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-26 06:51_
+_stamped 2026-08-26 07:55_
 
 <!-- /GENERATED -->
+
+## THE RULER WAS DEAD FROM ITS SECOND MODULE LOAD, AND IT HAD BEEN HANDED OVER AS A SPREAD-IMMUNITY DAMAGE DEFECT. STAGED SCENARIOS 10 -> 24 OF 25, CENSUS 717 -> 718, POOL UNMOVED GAME FOR GAME. 2026-08-26.
+
+**THE TWO NUMBERS REPRODUCE AND NEITHER IS THE GAME.** The handover was specific: `tests/test-assert-mode.js`
+red on two Levitate rows where the attacker's own ALLY parted — `earthquake` 86 vs 73, `bulldoze`
+119 vs 115, WE DEAL LESS, which is the exact direction and shape of a spread reduction applied where
+the authority applies none — and a lead pointing at `sim/battle-actions.ts:551`, where `move.spreadHit`
+is set from the target list BEFORE immunity filters it.
+
+Reproduced first, as instructed. Then reproduced ALONE, which is where it fell apart: the same board
+played as the only scenario in a process is **IDENTICAL, both engines 86**. Playing it after any other
+scenario that swaps the simulator source gives 86 against 73. The order of the run decided the answer,
+so the finding was never about Levitate.
+
+    PLAN=eq        >> eq   IDENTICAL
+    PLAN=eq,eq     >> eq   IDENTICAL   >> eq  IDENTICAL
+    PLAN=eqM,eq    >> eqM  DIFFERS     >> eq  DIFFERS   clefable us 86 / sd 73
+
+**THE ADDRESSES NAME THE MECHANISM.** `midAddresses()` on the same staged Earthquake turn:
+
+    first load   showdown  <seed>|2|acc|earthquake|p11|0   <seed>|2|crit|...   <seed>|2|dmg|...
+    second load  showdown  <seed>|2|any|earthquake|p11|0   |1                  |2
+    medicham     (both)    <seed>|2|acc|earthquake|p11|0   <seed>|2|dmg|...    <seed>|2|crit|...
+
+The authority's category is stuck at `any`. `midWrapShowdown` patches `BattleActions.prototype` —
+Showdown's class, out of SHOWDOWN's require cache, never reloaded. `engine/game_differential.js` is
+ours, and `tests/staged_board.js`'s `harness()` DELETES it from the cache every time it swaps the
+simulator source: once per row in `test-assert-mode.js`, once per arm in `test-resolution-order.js`,
+on every `--reds` pass, and in `probe_selfdestruct_winner.js`. On the second load the guard
+`if (BattleActions.__midWrapped) return;` fired, the wrapper was not reinstalled, and the standing
+closure went on writing `MID_CAT` into the module instance that had been evicted.
+
+**TWO THINGS WENT AND THE SECOND IS DAMAGE.** The shared die stopped being shared — which is the
+middle arm's entire premise — and `pinRandom`'s damage-index inversion is gated on `MID_CAT === 'dmg'`,
+so Showdown's `random(16)` was read as `floor(u * 16)`. That is the **anti-correlated** read this
+file's own pin header warns is worse than an independent one: our index 13 against the authority's 0.
+84 damage against 97, which is 0.866 and never was 0.75.
+
+**THE GUARD THAT EXISTED HAD ALREADY WRITTEN THE FAILURE DOWN AND STILL COULD NOT SEE IT.** The
+install site says a wrapper that fails to attach *"would leave every roll in the 'any' bucket and the
+arm would quietly stop being what it says it is"*, and the PIN_CLAIM behind it is
+`MID_WRAP_ERROR === null`. The wrapper attached perfectly. **Attachment and liveness are two questions
+and only one was being asked** — the same shape as #443 (a plant anchored on a deleted line) and
+#441 (process-scoped dice state), and the third time this register has paid for the ruler.
+
+**THE FIX IS WHERE THE STATE LIVES, NOT WHERE THE WRAPPER GOES.** `MID_CAT` / `MID_ATT` /
+`MID_BATTLE` became one holder on `globalThis`, which is the one thing that outlives a reload the way
+the wrapper does, so whichever instance installed the patch, the instance drawing the dice reads what
+it wrote. A second PIN_CLAIM asks the other half — `MID_WRAP_CLASS.__midHolder === MIDW` — captured
+BEFORE the early return, because a RELOAD is precisely the case it has to judge. A false pin claim is
+`process.exit(1)` at load, so the defect is now fatal rather than silent, and every run prints
+`category wrapper: N entries into this module's holder, M reload(s) adopted it`.
+`MID_WRAP_ERROR` and `MID_WRAP_CLASS` were lifted above the install site in the same pass, closing a
+latent TDZ in which the catch that records a failed wrap would itself have thrown a `ReferenceError`.
+
+**WHAT IT RECOVERED, MEASURED WITH THE KNOB AS THE BEFORE-ARM:**
+
+| instrument | before (`MEDI_MID_CAT_UNSHARED=1`) | after |
+|---|---|---|
+| `tests/staged_board.js --reds` | **10 of 25** clean and board-identical | **24 of 25** |
+| `tests/test-assert-mode.js` | 1 of 3 | **3 of 3**, `--break` still all-red |
+| `tests/test-resolution-order.js` | pass | pass (26 arms, 1 KNOWN-OPEN, 0 failing) |
+| `tests/test-encore-fail-silent.js` | pass | pass |
+| `tests/probe_selfdestruct_winner.js` | pass | pass |
+
+Fourteen `staged_board` scenarios were printed under *"each is a FINDING about the engine, not about
+this file"* — Stealth Rock, Nuzzle, Black Glasses, Regenerator, Disguise, Speed Boost, the pivot pair,
+Imposter, Mawile-Mega, Hunger Switch, Knock Off, Fling and the failed Roost. Every one of them was the
+instrument. The single remaining red, `roar-drags-whoever-is-standing-there` SHORT, is identical on the
+single-load path, is unchanged by this pass and predates it.
+
+**NOTHING SINGLE-LOAD MOVED, AND THAT IS PROVED RATHER THAN ASSUMED.** The same 120-game pinned
+differential run with and without the knob is byte-identical apart from the elapsed-time line, and
+`MIDW.enters` reads 9,658 in both. On the full pin — census pin `9446a684709d`,
+`data/team-pool-frozen`, arm `middle`, cap 12, 961 games:
+
+    whole-game clause              13 of 961    UNMOVED   (predicted)
+    board-material                 10 of 961    UNMOVED   (predicted)
+    tests/test-engine-diff.js      0 of 6000 at all sixteen corners   UNMOVED   (predicted)
+
+**AND THEN THE SPREAD RULE WAS MEASURED ANYWAY**, because "the premise was wrong" is not "the engine
+is right". Four staged boards against the authority, each played clean and again with `_spreadHit`
+deleted:
+
+    A. spread, one foe IMMUNE (one target left)   IDENTICAL   |  modifier deleted: DIFFERS
+    B. spread, one foe PROTECTED                  IDENTICAL   |  modifier deleted: DIFFERS
+    C. spread, no refusal at all                  IDENTICAL   |  modifier deleted: DIFFERS
+    D. genuinely single-target                    IDENTICAL   |  modifier deleted: IDENTICAL
+
+D is what stops the knob reading as always-on, and the first two fixtures were WRONG before they were
+right — arm A protected both foes so nobody was hit, and the single-target control was Sparkling Aria,
+which is `allAdjacent`. Both were caught by the deleted-modifier arm answering IDENTICAL where it had
+to answer DIFFERS.
+
+**THE CENSUS HAD TWO OF THE THREE DOORS AND NOT THE ONE THIS BATCH WAS ABOUT.** A body leaves the
+target array in three places: `Side#allies()` filters `!!hp` before the array is built (row: *an
+ALREADY-FAINTED partner removes the spread modifier entirely*), `hitStepTryHitEvent` at step 1 (row:
+*a PROTECTING partner still costs the survivor the spread 0.75*), and `hitStepTypeImmunity` at step 2,
+which had no row. It has one now — Hyper Voice into an Archaludon with a Gengar standing beside it,
+because `allAdjacent` would put the attacker's own partner in the array and the arms could then never
+be told apart:
+
+    partner hit (Pelipper)   36   (it took 69)
+    partner a GHOST          36   (it took 0)      <- must EQUAL the first
+    partner already fainted  48                    <- must be BIGGER
+    immune / alone = 0.750
+
+Shown red twice: dropping the immune body before the count reads 36 / 48 / 48, and removing the
+modifier reads 48 / 48 / 48. Census **717 -> 718 live, 0 missing.**
+
+**REPORTED, NOT TOUCHED.** `engine/medicham2-browser.js` declares `canMegaNow` TWICE (~:14633 and
+~:14736, identical bodies) and the second wins at load, so an edit to the first is silently inert. It
+is already on ROADMAP #449 and belongs in its own commit with its own demonstration, not folded into
+this one.
+
+**OWED, NOT RUN:** the interaction matrix, the deliberate roster and `all_mechanics_fire.js` were not
+re-run on this pass. None of them re-requires `game_differential.js`, so none can have been affected —
+but that is a derivation, not a measurement, and it is written here as one.
+
+---
 
 ## CARD 8. THE PERISH FAINT IS OWED TO A DRAIN THAT SITS **BELOW** `|upkeep|` — BUT ONLY WHEN NOTHING FOLLOWS IT IN THE WALK. WHOLE-GAME CLAUSE 14 -> 13 OF 961, BOARD-MATERIAL UNMOVED AT 10, CENSUS 716 -> 717. 2026-08-26.
 
