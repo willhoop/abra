@@ -82,7 +82,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-26 07:55_
+_stamped 2026-08-26 07:57_
 
 <!-- /GENERATED -->
 
@@ -195,14 +195,41 @@ be told apart:
 Shown red twice: dropping the immune body before the count reads 36 / 48 / 48, and removing the
 modifier reads 48 / 48 / 48. Census **717 -> 718 live, 0 missing.**
 
-**REPORTED, NOT TOUCHED.** `engine/medicham2-browser.js` declares `canMegaNow` TWICE (~:14633 and
-~:14736, identical bodies) and the second wins at load, so an edit to the first is silently inert. It
-is already on ROADMAP #449 and belongs in its own commit with its own demonstration, not folded into
-this one.
+### THE HAND LIST
 
-**OWED, NOT RUN:** the interaction matrix, the deliberate roster and `all_mechanics_fire.js` were not
-re-run on this pass. None of them re-requires `game_differential.js`, so none can have been affected —
-but that is a derivation, not a measurement, and it is written here as one.
+**Leaving it — it is a probe now:**
+- ~~`tests/test-assert-mode.js` is red on two Levitate rows where the ALLY's HP parts, `earthquake`
+  86/73 and `bulldoze` 119/115, and we deal LESS~~ — **CLOSED, AND IT WAS NEVER THE GAME.** The file
+  is 3 of 3 and `--break` is still all-red. `tests/probe_mid_cat_reload.js` carries the real cause and
+  goes red on demand under `MEDI_MID_CAT_UNSHARED=1`.
+- ~~the spread modifier's behaviour when a target is removed by an IMMUNITY rather than by a Protect~~
+  — **CLOSED.** The census carries it as `spreadFoes` *a TYPE-IMMUNE partner still costs the survivor
+  the spread 0.75*, shown red under two different plants.
+
+**Still open, filed with its evidence:**
+- **`engine/medicham2-browser.js` DECLARES `canMegaNow` TWICE**, at ~:14633 and ~:14736, with identical
+  bodies; the second wins at load, so an edit to the first is silently inert. Carried forward, unmoved
+  and untouched — it is on ROADMAP #449 and owes its own commit with its own demonstration.
+- **`tests/staged_board.js` IS STILL RED ON ONE ROW AND IT IS NOT THIS PASS'S.**
+  `roar-drags-whoever-is-standing-there` reports SHORT with `party.boosts.spa/spd/def`, `pp.roar`,
+  `pp.calmmind`, `pp.irondefense`. It reads IDENTICALLY on the single-load path, which this pass cannot
+  touch, and identically under this pass's before-arm knob. **Not diagnosed, not waived, open.**
+- **`tests/test-board-browser.js` IS RED and is `board.js`'s**, which this division may not edit —
+  carried forward, unmoved. MEASURE's.
+- **`tests/test-resolution-order.js` OOMs at the default heap** (#446) — carried forward. It passes at
+  `--max-old-space-size=6144`, which is how it was run here.
+- **`data/protocol-events.json` is UNSAFE and already was** — this pass emits no new event kind and no
+  engine byte moved.
+
+### OWED, NOT RUN
+
+- **`tests/test-engine-diff.js` WAS OWED BY THIS BATCH AND WAS RUN**: the full 6,000 rows, seed
+  20260804, **0 disagreements at the midpoint and at all sixteen corners**, 134 not comparable
+  (multihit). It is the current headline and it is this pass's.
+- `tests/interaction_matrix.js`, `tests/roster.js` and `engine/all_mechanics_fire.js` were **not**
+  re-run. None of them re-requires `game_differential.js`, so none can have been affected — but that
+  is a derivation, not a measurement, and it is written here as one rather than as a result.
+- `engine/wire_ladder.js` — not re-run; the release ladder stays WITHHELD, as it already was.
 
 ---
 
