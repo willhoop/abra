@@ -18,7 +18,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-roster-arm-pin.js`, `engine/mc_key.js`, `tests/test-mc-key.js`, `tests/test-mc-seal.js`,
 `tests/probe_room_unburden.js`, `tests/probe_trap_timing.js`,
 `tests/probe_spread_secondary_address.js`,
-`tests/probe_mid_cat_reload.js`
+`tests/probe_mid_cat_reload.js`, `tests/probe_party_key_collision.js`
 
 **Twenty instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -53,6 +53,7 @@ CLAUDE.md records going stale three times over.)*
 | `test-resolution-order.js` | does an event happen WHERE the authority puts it — four orderings, twelve staged arms judged by two protocol streams with no typed expectation, each arm played twice (clean, then under a NAMED surgical revert of exactly one fix), five reds that must part under their own revert and six controls that must NOT, plus seven engine counters at exact equality as per-arm deltas | anything whose consequence the reducer normalises away, and any ordering nobody staged: it is twelve boards, not a sweep. The multi-hit LOOP, by construction — the authority wraps the whole step list once per hit and this engine wraps it once per move, which is staged as a declared KNOWN-OPEN arm and never as a pass |
 
 | `probe_mid_cat_reload.js` | does the middle arm's category wrapper still reach THIS module after `staged_board.js` re-requires the driver — three loads of the SAME engine, two boards each, arm 2 differing from arm 1 by a trailing comment so no engine difference exists to be, each row asserting board identity AND that the Showdown draws carry `acc`/`crit`/`dmg`; red on demand in a child under `MEDI_MID_CAT_UNSHARED=1`, which must die at the SECOND load with the two first-load rows already green | whether either engine plays the game right — it compares the RULER against itself across a reload. And every OTHER module-scoped binding a reloaded driver inherits: it is one holder, not an audit |
+| `probe_party_key_collision.js` | can the board reader LOSE a body - one staged collision (a transform-on-entry carrier copying the species its own side also brings), read out of BOTH engines' party maps under BOTH keyings, the second in a child because the knob is read at module load; it ASSERTS the identity key (four rows in each engine, the same four, and the rename as a compared `species` leaf) and only MEASURES the display key, because asserting the current behaviour would pin the bug | whether either engine plays the game right - it compares two READERS of one board. And any rename that is not `transformsOnEntry`: the membership comes off `data/tags.json` and is printed, but the arm is ONE ability's carrier, not the seven |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -86,9 +87,133 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 18:22_
+_stamped 2026-08-26 18:27_
 
 <!-- /GENERATED -->
+
+## THE PARTY KEY: THE GAME LIST HELD AND 109 OF 961 TRAJECTORIES DID NOT. MEASURED AND **HELD**, NOT LANDED. CENSUS UNMOVED AT 750 LIVE / 753 PROBED / 3 MISSING. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.148.0. Register row: ROADMAP #465, **open and held**.
+No release cut — no file in `engine_release.js`'s `SOURCES` moved, so **`667278050dcf`** still
+describes this tree. `data/game-differential.json` was NOT written by any run in this session.
+
+### THE SAMPLE ANSWER FIRST, BECAUSE IT IS THE WHOLE CARD
+
+The ordered `config|seed` list is **identical across the two keyings — 961 of 961, same pairs, same
+order.** And **109 of 961 games were played differently anyway.**
+
+**THE LIST CRITERION IS NECESSARY AND NOT SUFFICIENT, AND HERE IT GIVES THE COMFORTABLE ANSWER.**
+Under `--games N` the scheduler builds `WORK` from `pairsCached(cfg)` and takes a fixed prefix of it,
+so the pair list is decided by the pinned pool alone and **cannot move whatever the credit does**.
+Only `--until-covered` moves the stop point. A run that compared only the list would have reported
+*"sample held, land it"*.
+
+What actually moves is **which clicks the census-coverage driver makes**. `changedFamilies` credits
+off `BS.compare(prev, cur)` bucketed by `BS.family(path)`, and a transform reported as
+`party.MISSING-OR-EXTRA-MEMBER` is different credit from one reported as `party.species` +
+`party.types`. Different credit, different `covWant`, different action.
+
+So these are **two populations and not a before/after**, and nothing was landed on them:
+
+```
+  display  vs  identity (MEDI_PARTY_KEY_IDENTITY=1)      961 games, arm middle, release 667278050dcf
+    GAME LIST identical (ordered)     true          961 vs 961, 0 positions differ
+    TRAJECTORY differing games        109 of 961    turns 10 · lines 67 · diverged-flag 7
+    diverged count                    15  ->  20    1 left the set, 6 joined it
+    board-parted games                 2  ->   4
+    reader failures       {"duplicate_species_in_party":20,...}  ->  {}
+```
+
+### THE INSTRUMENT IS NEW AND IT WAS CONTROLLED BEFORE IT WAS BELIEVED
+
+`MEDI_SAMPLE_DUMP=<file>` writes one row per game per arm: the pair, the turns, the lines, the board
+result, and **a digest of medicham2's own emitted stream**. `turns` and `lines` are not a substitute —
+a different click that produces the same number of lines is invisible to both.
+
+Two identical display-key runs at identical pins: **0 of 961 trajectories differ.** And the display
+arm reproduces the published artifact's 15-game diverged set **member for member**, with the same two
+board-parted games — so the `stableKey` move and the dump are proven behaviour-neutral against an
+artifact rather than assumed.
+
+### WHAT IS ATTRIBUTABLE, AND THE BRIEF'S PREMISE IS NOT
+
+Both board-parted games carry an **unchanged trace digest across the arms**, so their per-game
+verdicts transfer. That is a claim about two named games, not a count over a moved sample.
+
+| game, config `baseline` | display key | identity key |
+|---|---|---|
+| `...2636042531 vs ...2635567733` | parts at turn 3 on four `p2.party.garchomp.*` leaves | **does not part at all** |
+| `...2635122796 vs ...2634861011` | parts at turn 2, `-damage: a different body` | **parts identically** |
+
+```
+  p2.party.garchomp.hp          medi 123        sd 183
+  p2.party.garchomp.maxhp       medi 123        sd 183
+  p2.party.garchomp.item        medi lifeorb    sd choicescarf
+  p2.party.garchomp.boosts.atk  medi -2         sd 0
+```
+
+One engine's row is a transformed Ditto (its own 123 HP, its own Life Orb); the other's is the real
+Garchomp it copied (183, Choice Scarf). Four leaves that read as four rule disagreements and are **one
+reader losing a body** — `partyMap`'s second row overwrites the first, and which body survives is
+decided by whichever of them `sf.team` / `side.pokemon` lists last.
+
+**THE BRIEF AND ROADMAP #463's CLOSING LINE BOTH SAID BOTH REMAINING GAMES WERE THIS CAUSE. THEY ARE
+NOT.** The second is a genuine spread-target divergence and survives the re-key untouched. **Closing
+the party key takes board-material to ONE, not to zero.**
+
+### THE RE-KEY IS CORRECT AND IT IS REACHED
+
+`duplicate_species_in_party` **20 -> 0** on 961 games, with no `stable_key_fallback_*` and no
+`party_key_no_identity`: every party row on both sides of every game resolved off a stamp.
+
+`stableKey` **moved** from `game_differential.js` into `board_state.js` and was not copied. The reader
+needs the same answer the instrument needs, and turning a species into an identity is on its fifth
+instance as a bug class here — `engine/mc_key.js`'s header lists the other four. `rosterKey`
+delegates and keeps the counters it prints and asserts at zero; `tests/test-roster-identity.js` drives
+the moved function through that name and its `no-display-fallback` arm is green.
+
+### THE PROBE, AND ITS FIXTURE WAS WRONG FIRST
+
+`tests/probe_party_key_collision.js`. The copier is derived as the legal carrier of the
+`transformsOnEntry` tag read out of `data/tags.json`; the copied body sits **diagonally opposite it
+AND on its own bench**, which is what makes two rows collide.
+
+**VERSION ONE PUT THE COPIED BODY IN THE FOE'S SLOT A AND WENT GREEN FOR THE WRONG REASON.** Imposter
+copies the DIAGONAL, so the collision only happened because the derived filler happened to be the body
+that actually got copied. Two guards now fail the probe if the copier did not rename, and if it did
+not rename onto the species its own side carries.
+
+```
+  DISPLAY KEY   medicham2 3 of 4 party rows   showdown 3 of 4   <- one body lost, in both engines
+  IDENTITY KEY  medicham2 4 of 4              showdown 4 of 4   same four, rename carried as `species`
+```
+
+It asserts the FIX and only MEASURES the display key. Asserting the collision would pin the bug.
+
+### AND THE RE-KEY EXPOSES REAL DEFECTS, WHICH WILL ARRIVE LOOKING LIKE A REGRESSION
+
+Among the three new board-parted games — all on moved trajectories, so **not** attributable as a count:
+
+```
+  p1.party.ditto.species  medi "metagross"      sd "ditto"
+  p1.party.ditto.types    medi "psychic/steel"  sd "normal"
+```
+
+A transform this engine is holding and the authority is not. Under the display key that row could
+never be written under a stable name at all.
+
+### WHAT A VALID MEASUREMENT NEEDS — A RE-BASELINE, NOT A COMPARISON
+
+Land the re-key as the default, keep the knob as the control that restores display keying, re-run the
+pinned differential and **stamp it as the new baseline** (`node engine/quarantine.js
+--stamp-whole-game` under this pin). The old board-material and diverged numbers are **retired, not
+compared**. The alternative — freezing the CREDIT walk on display keying while the COMPARATOR uses
+identity — buys one comparable number and leaves the steering keyed on the known-wrong thing in the
+one file whose whole point is that there is one door.
+
+Full account, including every plant, comparator and serialiser that touches party identity:
+`docs/_reports/2026-08-26-party-key-decision.md`.
+
 
 ## THE STALL COUNTER WAS SPENT ON A TURN THE AUTHORITY'S RESIDUAL NEVER OPENS. CENSUS 749/752 -> 750 LIVE / 753 PROBED / 3 MISSING. BOARD-MATERIAL 3 -> 2 OF 961, WHOLE-GAME CLAUSE UNMOVED AT 10. 2026-08-26.
 

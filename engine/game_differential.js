@@ -2194,31 +2194,16 @@ const SWITCH_ADDRESSING = { sent: 0, after_permutation: 0, misaddressed: 0, firs
  * WHAT WALKS PAST THIS: a THIRD kind of object. The two branches are told apart by which stamp they
  * carry, so anything with neither returns null and is counted as `neither`, which is a refusal
  * rather than a guess. */
+/* THE RESOLVER ITSELF MOVED TO `board_state.js` ON 2026-08-26 (ROADMAP #465) AND IS NOT COPIED BACK.
+ * That file has to key the party on the same answer, and a second implementation of the identity
+ * question — in the very class of bug that has been found five times — would be the two-copies breach
+ * this whole header is about. Everything above still describes what it does and what it cost to get
+ * right; the counters and the name stay here, because this is the caller that prints them. */
 const ROSTER_KEY_FALLBACK = { sd_species: 0, medi_name: 0, neither: 0, first: null };
-function rosterKey(x) {
-  if (!x) return null;
-  /* showdown first: a Pokemon also carries `.name` (its nickname), so testing the medicham branch
-   * first would read a nickname for every authority body. */
-  if (x.set && (x.set.species || x.set.name)) return id(x.set.species || x.set.name);
-  if (x._switchKey) return id(x._switchKey);
-  if (x.baseSpecies && x.baseSpecies.id) {
-    ROSTER_KEY_FALLBACK.sd_species++;
-    if (!ROSTER_KEY_FALLBACK.first) ROSTER_KEY_FALLBACK.first = 'showdown body with no set: ' + id(x.baseSpecies.id);
-    return id(x.baseSpecies.id);
-  }
-  if (x.species && x.species.id) {
-    ROSTER_KEY_FALLBACK.sd_species++;
-    if (!ROSTER_KEY_FALLBACK.first) ROSTER_KEY_FALLBACK.first = 'showdown body with no set: ' + id(x.species.id);
-    return id(x.species.id);
-  }
-  if (x.name) {
-    ROSTER_KEY_FALLBACK.medi_name++;
-    if (!ROSTER_KEY_FALLBACK.first) ROSTER_KEY_FALLBACK.first = 'medicham body with no _switchKey: ' + id(x.name);
-    return id(x.name);
-  }
-  ROSTER_KEY_FALLBACK.neither++;
-  return null;
-}
+const rosterKey = x => BS.stableKey(x, id, (kind, detail) => {
+  ROSTER_KEY_FALLBACK[kind]++;
+  if (!ROSTER_KEY_FALLBACK.first) ROSTER_KEY_FALLBACK.first = detail;
+});
 const INITIAL_PARTY = new WeakMap();
 let ALIGN_MOVED = 0;   // a stat the alignment had to CHANGE — must be 0 outside the hpBoost arms
 const ALIGN_MOVED_WHO = new Map();   // ...and WHICH body, because a bare 21 cannot be acted on
@@ -5765,6 +5750,60 @@ if (!has('--proof')) {
       e.effect += v.effect; e.negative += v.negative; e.click += v.click; CREDIT_KIND.set(k, e); }
     for (const k of a.touched) COV_TOUCHED.add(k);
   }
+}
+
+/* ---- THE SAMPLE FINGERPRINT — `MEDI_SAMPLE_DUMP=<file>` (2026-08-26, ROADMAP #465) --------------
+ *
+ * A BEFORE/AFTER ACROSS A MOVED SAMPLE IS NOT A BEFORE/AFTER, and until this existed there was no way
+ * to tell whether a sample had moved. `first_divergences` carries the DIVERGING games only, so two
+ * runs could play a different set of trajectories and agree on every published count by coincidence.
+ * This project has already voided a measurement exactly that way.
+ *
+ * TWO QUANTITIES, AND THEY ARE NOT THE SAME QUESTION:
+ *   the GAME LIST     `config|seed`, in the order played. Under `--games N` the pairs come off the
+ *                     pinned pool in a fixed order, so this can hold while the games themselves
+ *                     differ — it is necessary and NOT sufficient.
+ *   the TRAJECTORY    a digest of medicham2's own emitted stream for that game. The census-coverage
+ *                     driver picks the CLICKS, so anything that feeds credit (which is to say
+ *                     anything BS.compare reports) can change what was played without changing which
+ *                     pair was drawn. This is the quantity that decides.
+ *
+ * Purely observational: it reads records that already exist and changes no die, no click and no
+ * board. Off unless the env var names a file, so an ordinary run is byte-identical. */
+if (process.env.MEDI_SAMPLE_DUMP) {
+  const crypto = require('crypto');
+  const sha = s => crypto.createHash('sha1').update(String(s)).digest('hex').slice(0, 12);
+  const arms = (ARM_RUNS || []).map(a => ({
+    arm: (a.arm && a.arm.id) || a.id || '?',
+    games: (a.results || []).map(r => ({
+      config: r.config, seed: r.seed, turns: r.turns, lines: r.lines,
+      diverged: !!r.div, div_index: r.div ? r.div.index : null,
+      end_reason: r.endReason || null,
+      /* THE BOARD RESULT PER GAME, because the published artifact carries the parted games only as a
+       * TOTAL and a per-cause table. A re-key that moves the sample cannot be judged on either of
+       * those; it can be judged on a named game whose trace digest above is unchanged. */
+      board_parted_turn: r.stateDiv ? r.stateDiv.turn : null,
+      board_parted_paths: r.stateDiv ? r.stateDiv.diffs.map(d => d.path + ' medi=' + JSON.stringify(d.medicham)
+                                                                        + ' sd=' + JSON.stringify(d.showdown)) : null,
+      /* THE STREAM ITSELF, not a summary of it. `turns`/`lines` agree on games that played out
+       * differently — a different click that deals the same number of lines is invisible to both. */
+      trace: sha((r.mediTrace || []).join('\n')),
+    })),
+  }));
+  fs.writeFileSync(D(process.env.MEDI_SAMPLE_DUMP), JSON.stringify({
+    what: 'THE ORDERED SAMPLE THIS RUN ACTUALLY PLAYED — one row per game per arm, carrying the pair '
+        + 'that was drawn AND a digest of the stream medicham2 emitted. Two runs whose rows are equal '
+        + 'played the same games; two runs whose game list matches and whose traces do not played '
+        + 'DIFFERENT games out of the same pairs, and no count may be compared across them.',
+    generated: new Date().toISOString(),
+    engine_release: REL.id,
+    team_store_pinned_to: TEAM_STORE || null,
+    census_pinned_to: CENSUS_PIN || null,
+    pins_digest: (PINS && PINS.digest) || null,
+    arms,
+  }, null, 2) + '\n');
+  console.log('  wrote ' + process.env.MEDI_SAMPLE_DUMP + '  (sample fingerprint: '
+    + arms.map(a => a.arm + ' ' + a.games.length).join(', ') + ')');
 }
 const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
 const DIR = runDirected();

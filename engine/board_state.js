@@ -665,12 +665,75 @@ const POST_FAINT = ['item', 'status_counter', 'boosts', 'ability', 'vol', 'stall
  * holding when it died, so comparing a dead body's volatiles measures the reader. One list, because
  * it is one rule. */
 const PARTY_POST_FAINT = POST_FAINT;
+/* ================== WHICH BODY OF THE ROSTER IS THIS — ONE DOOR, BOTH ENGINES ==================
+ *
+ *   stableKey(x, id, note)  -> 'morpeko'  for a medicham2 body OR a showdown Pokemon, renamed or not
+ *
+ * MOVED HERE FROM `game_differential.js` ON 2026-08-26 AND NOT COPIED. It was `rosterKey` there and
+ * that instrument still calls it under that name; this file needed the same answer to key the party
+ * (ROADMAP #465), and a second implementation of "which of the four bodies is this" is the
+ * two-copies-of-one-fact breach CLAUDE.md names — the more so because this exact question is the
+ * FIFTH instance of the species-key class and the previous four were all one file re-deriving what
+ * another file already knew.
+ *
+ * THE QUESTION IS "WHICH OF THE FOUR BODIES THIS SIDE BROUGHT", AND IT IS NOT "WHAT IS THIS CALLED".
+ * The two agree for an ordinary body and stop agreeing the moment something renames one, which in
+ * this format is seven abilities: Disguise, Forecast, Hunger Switch, Illusion, Imposter, Stance
+ * Change and Zero to Hero. The full derivation — including why `baseSpecies` is NOT stable through a
+ * mega, measured — is in `game_differential.js`'s `rosterKey` header, which is where the run that
+ * settled it is recorded. `tests/test-roster-identity.js` drives THIS function through that name.
+ *
+ * `id` IS PASSED IN RATHER THAN IMPORTED, exactly as it is for `readMedi`/`readShowdown`: the name
+ * normaliser is the caller's, and a copy of it here would be the same breach one level down.
+ *
+ * A FALLBACK IS LOUD, NEVER SILENT, AND `note` IS A CALLBACK RATHER THAN A COUNTER OBJECT. Two
+ * callers keep the tally in two different places — `game_differential.js` in `ROSTER_KEY_FALLBACK`,
+ * which it prints and asserts at 0, and the readers below in `ctx.fails`, which every caller already
+ * publishes as `reader_failures`. Handing this function a shared object shape would have made one of
+ * those two a private counter nobody reads, which is the silent-default failure wearing a receipt. */
+function stableKey(x, id, note) {
+  const say = (kind, detail) => { if (typeof note === 'function') note(kind, detail); };
+  if (!x) return null;
+  /* showdown first: a Pokemon also carries `.name` (its nickname), so testing the medicham branch
+   * first would read a nickname for every authority body. */
+  if (x.set && (x.set.species || x.set.name)) return id(x.set.species || x.set.name);
+  if (x._switchKey) return id(x._switchKey);
+  if (x.baseSpecies && x.baseSpecies.id) {
+    say('sd_species', 'showdown body with no set: ' + id(x.baseSpecies.id));
+    return id(x.baseSpecies.id);
+  }
+  if (x.species && x.species.id) {
+    say('sd_species', 'showdown body with no set: ' + id(x.species.id));
+    return id(x.species.id);
+  }
+  if (x.name) {
+    say('medi_name', 'medicham body with no _switchKey: ' + id(x.name));
+    return id(x.name);
+  }
+  say('neither', 'an object that is neither engine\'s body');
+  return null;
+}
+/* THE READERS' OWN TALLY, written into the failure object the caller already prints. Built per read
+ * rather than module-scoped so two concurrently-open readers cannot share a counter. */
+const keyNote = (fails) => (kind, detail) => {
+  if (!fails) return;
+  const k = 'stable_key_fallback_' + kind;
+  fails[k] = (fails[k] || 0) + 1;
+  fails.stable_key_fallback_first = fails.stable_key_fallback_first || detail;
+};
+
 /* THE PROJECTION OF A FULL BODY ONTO A BENCH ROW. Deliberately built FROM `mediBody`/`sdBody` rather
  * than by re-reading the engines here: `statusOf`, the boost key mapping and `getTypes()` are FACTS,
  * and a second copy of any of them in this file is the two-implementations breach CLAUDE.md names. */
-function benchRow(b, onField) {
+function benchRow(b, onField, key) {
   if (!b) return null;
-  return { species: b.species, hp: b.hp, maxhp: b.maxhp, fainted: b.fainted, status: b.status,
+  return { species: b.species,
+           /* THE STABLE IDENTITY OF THE BODY, carried BESIDE the displayed species and never instead
+            * of it. It is read off the raw engine object by `stableKey` (the caller has it; this
+            * projection does not), it is consumed by `partyMap` alone, and `compare()` never walks it
+            * because `partyMap` drops it — so it cannot become a compared leaf by accident. */
+           key,
+           hp: b.hp, maxhp: b.maxhp, fainted: b.fainted, status: b.status,
            types: b.types, item: b.item, status_counter: b.status_counter, boosts: b.boosts,
            ability: b.ability,
            /* THE STALL COUNTER TRAVELS TO THE BENCH TOO, and on the same rule as the bench volatiles
@@ -687,15 +750,51 @@ function benchRow(b, onField) {
             * "it is carrying nothing". `walkBody` skips a null leaf and counts the skip. */
            vol: onField ? null : b.vol };
 }
+/* ---- ROADMAP #465 — `MEDI_PARTY_KEY_IDENTITY=1`: KEY THE PARTY ON THE BODY, NOT ON ITS NAME ------
+ *
+ * WHAT THE DISPLAY KEY COSTS, measured rather than argued: `duplicate_species_in_party` reads 20 on
+ * every pinned 961-game run and nothing acts on it. A transformed body takes the NAME of the body it
+ * copied, so two rows collide and the second overwrites the first — the survivor carrying whichever
+ * body `sf.team`/`side.pokemon` happened to list last. On the pinned pool that is one of the two
+ * remaining board-parted games: a Ditto that has copied a Garchomp (Life Orb, maxhp 123) lands on the
+ * real Garchomp's row (Choice Scarf, maxhp 183) and the two engines then report a party leaf that
+ * describes different Pokemon in each of them.
+ *
+ * THIS IS BEHIND A KNOB AND OFF BY DEFAULT BECAUSE THE RE-KEY MOVES THE MEASUREMENT, NOT ONLY THE
+ * ANSWER. `game_differential.js` credits census coverage off `BS.compare(prev, cur)` bucketed by
+ * `BS.family(path)`, and the driver then steers every later click toward the least-credited row. A
+ * transform reported as `party.MISSING-OR-EXTRA-MEMBER` and a transform reported as `party.species`
+ * plus `party.maxhp` are different credit, so the knob has to be MEASURED against the sample before
+ * it is allowed to decide a count. See docs/ENGINE.md for the arm that settled it.
+ *
+ * SPECIES BECOMES A COMPARED LEAF UNDER THE IDENTITY KEY, and it must: under the display key the
+ * species IS the key, so a body whose name changed in one engine and not the other was reported as a
+ * missing member. Under the identity key the row survives the rename and the rename itself is the
+ * finding. */
+const PARTY_KEY_IDENTITY = process.env.MEDI_PARTY_KEY_IDENTITY === '1';
 function partyMap(rows, fails) {
   const out = {};
   for (const r of rows) {
     if (!r) continue;
-    if (out[r.species] && fails) {
+    /* THE FALLBACK IS LOUD. A row with no stable key means `stableKey` refused, which is a receipt
+     * that something reached this reader that is neither engine's body — never a licence to quietly
+     * key on display state, which is the bug this whole block is about. */
+    let k = r.species;
+    if (PARTY_KEY_IDENTITY) {
+      if (r.key) k = r.key;
+      else if (fails) {
+        fails.party_key_no_identity = (fails.party_key_no_identity || 0) + 1;
+        fails.party_key_no_identity_first = fails.party_key_no_identity_first || r.species;
+      }
+    }
+    if (out[k] && fails) {
       fails.duplicate_species_in_party = (fails.duplicate_species_in_party || 0) + 1;
       fails.duplicate_species_first = fails.duplicate_species_first || r.species;
     }
-    out[r.species] = { hp: r.hp, maxhp: r.maxhp, fainted: r.fainted, status: r.status,
+    out[k] = { /* `species` rides ONLY under the identity key — see the header. Absent otherwise, so a
+                * display-keyed board is byte-identical to what it was before this block existed. */
+               ...(PARTY_KEY_IDENTITY ? { species: r.species } : {}),
+               hp: r.hp, maxhp: r.maxhp, fainted: r.fainted, status: r.status,
                        types: r.types, item: r.item, status_counter: r.status_counter,
                        /* `stall` HAS TO BE LISTED HERE TOO, and forgetting it is why this projection
                         * is worth a note. A party row is built THREE times -- `mediBody`/`sdBody`
@@ -949,7 +1048,8 @@ function readMedi(S, ctx) {
     hazards: { stealthrock: num(sf && sf.hz && sf.hz.stealthrock), spikes: num(sf && sf.hz && sf.hz.spikes),
                toxicspikes: num(sf && sf.hz && sf.hz.toxicspikes), stickyweb: num(sf && sf.hz && sf.hz.stickyweb) },
     party: (() => { const on = new Set((act || []).filter(Boolean));
-      return partyMap(((sf && sf.team) || []).map(m => benchRow(mediBody(m, id, ctx), on.has(m))), ctx.fails); })(),
+      return partyMap(((sf && sf.team) || []).map(
+        m => benchRow(mediBody(m, id, ctx), on.has(m), stableKey(m, id, keyNote(ctx.fails)))), ctx.fails); })(),
     active: [0, 1].map(i => mediBody(act[i], id, ctx)),
     /* PP SITS BESIDE THE BODY AND NOT INSIDE IT, exactly as `screens.named` does, because it is the
      * one leaf an engine may be UNABLE TO EXPRESS. A release cut before ROADMAP #144 has no `_pp` and
@@ -999,7 +1099,8 @@ function readShowdown(battle, ctx) {
                toxicspikes: layers((sd.sideConditions || {}).toxicspikes),
                stickyweb: layers((sd.sideConditions || {}).stickyweb) },
     party: (() => { const on = new Set((sd.active || []).filter(Boolean));
-      return partyMap((sd.pokemon || []).map(p => benchRow(sdBody(p, id, ctx), on.has(p))), ctx.fails); })(),
+      return partyMap((sd.pokemon || []).map(
+        p => benchRow(sdBody(p, id, ctx), on.has(p), stableKey(p, id, keyNote(ctx.fails)))), ctx.fails); })(),
     active: [0, 1].map(i => sdBody((sd.active || [])[i], id, ctx)),
     /* HELD ON BOTH SIDES OR NEITHER. A hold that only silenced OUR side would leave Showdown's map
      * walking against `null` and report every move as present-in-one-engine-only — a manufactured
@@ -1416,6 +1517,7 @@ if (!SD_VOLATILE_KEYS.length || !SD_SIDE_KEYS.length) {
 }
 
 module.exports = { readMedi, readShowdown, compare, snapshot, family, mappingProof, locate, bucket,
+                   stableKey, PARTY_KEY_IDENTITY,
                    explain, MAPPINGS, NOT_COMPARED, PHYSICAL_SCREENS, SPECIAL_SCREENS,
                    SD_VOLATILE_KEYS, SD_SIDE_KEYS, SD_PSEUDO_KEYS,
                    _internals: { num, layers, dur, sleptTurns, frozenTurns, mediBoosts, sdBoosts,

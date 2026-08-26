@@ -10,6 +10,48 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.148.0] — 2026-08-26
+
+### Added
+- **A SAMPLE FINGERPRINT, BECAUSE UNTIL NOW NOTHING COULD SAY WHETHER A SAMPLE HAD MOVED.**
+  ROADMAP #465, ENGINE. `MEDI_SAMPLE_DUMP=<file>` in `engine/game_differential.js` writes one row per
+  game per arm — the pair drawn, the turns, the lines, the board result, and a **digest of medicham2's
+  own emitted stream**. `first_divergences` carries the diverging games only, so two runs could play a
+  different set of trajectories and agree on every published count by coincidence. Purely
+  observational; off unless the env var names a file.
+- `tests/probe_party_key_collision.js` — two bodies, one party row, staged from a derived fixture and
+  asserted under both keyings, the second in a child process because the knob is read at module load.
+
+### Changed
+- **`stableKey` MOVED FROM `engine/game_differential.js` TO `engine/board_state.js` AND WAS NOT
+  COPIED.** The reader needs the same answer to key the party, and turning a species name into an
+  identity is on its fifth instance as a bug class in this repository; it is not getting a sixth
+  implementation. `rosterKey` delegates and keeps the counters it prints and asserts at zero.
+
+### Notes
+- **THE PARTY KEY IS A MEASURED, DELIBERATELY HELD DEFECT — THE GAME LIST HELD AND 109 OF 961
+  TRAJECTORIES DID NOT.** `engine/board_state.js`'s `partyMap` keys the party by the DISPLAYED
+  species, so a transformed body overwrites the one it copied; `duplicate_species_in_party` has read
+  20 on every pinned 961-game run and nothing acted on it. `MEDI_PARTY_KEY_IDENTITY=1` fixes it —
+  20 -> 0 with no fallback of any kind — and is **off by default**.
+- **THE SAMPLE CRITERION IN THE BRIEF IS NECESSARY AND NOT SUFFICIENT, AND IT GAVE THE COMFORTABLE
+  ANSWER.** The ordered `config|seed` list is identical, 961 of 961 — it cannot move, because under
+  `--games N` the scheduler takes a fixed prefix of `pairsCached(cfg)`. What moves is which CLICKS the
+  census-coverage driver makes, since credit is bucketed by `BS.family(path)`. So `board-material
+  2 -> 4` and `diverged 15 -> 20` are two populations rather than a before/after, and neither was
+  landed on. A re-baseline is what this needs.
+- **THE BRIEF AND ROADMAP #463's CLOSING LINE BOTH SAID BOTH REMAINING BOARD-PARTED GAMES WERE THIS
+  CAUSE. THEY ARE NOT.** One is; the other is `-damage: a different body` at turn 2, a genuine
+  spread-target divergence that survives the re-key untouched. Closing the party key takes
+  board-material to one, not to zero.
+- **NOTHING WAS PUBLISHED OVER.** `data/game-differential.json` was not written by any run in this
+  session and still describes display keying. No release was cut: no file in `engine_release.js`'s
+  `SOURCES` moved, so `667278050dcf` still describes this tree. Census unmoved at **750 live / 753
+  probed / 3 missing**.
+- Full account: `docs/_reports/2026-08-26-party-key-decision.md`.
+
+---
+
 ## [5.147.0] — 2026-08-26
 
 ### Fixed

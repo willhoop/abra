@@ -15295,3 +15295,53 @@ Full account: `docs/_reports/2026-08-26-crlf-remainder.md`.
 
 **OWED, NOT RUN:** the twelve queued PDFs are still stale or missing; rebuilding them is a publish.
 220 of 223 utf8 read sites still do not use the door, unverified beyond the triaged sets.
+
+---
+
+## THE PARTY KEY: THE GAME LIST HELD AND 109 OF 961 TRAJECTORIES DID NOT — MEASURED AND **HELD**, NOT LANDED. CENSUS UNMOVED AT 750 LIVE / 753 PROBED / 3 MISSING. 2026-08-26 (ENGINE).
+
+ROADMAP #465, open and held. No release cut — no file in `SOURCES` moved, so `667278050dcf` still
+describes this tree. `data/game-differential.json` was NOT written by any run in this session.
+
+**THE SAMPLE ANSWER FIRST.** The ordered `config|seed` list is identical across the two keyings, 961
+of 961, same order. **109 of 961 games were played differently anyway.** The list criterion is
+necessary and not sufficient: under `--games N` the scheduler takes a fixed prefix of
+`pairsCached(cfg)`, so the pair list cannot move whatever the credit does — only `--until-covered`
+moves the stop point. What moves is which CLICKS the census-coverage driver makes, because credit is
+bucketed by `BS.family(path)` and a transform reported as `party.MISSING-OR-EXTRA-MEMBER` is different
+credit from one reported as `party.species` + `party.types`.
+
+So **`board-material 2 -> 4` and `diverged 15 -> 20` are two populations, not a before/after**, and
+nothing was landed on either.
+
+**THE INSTRUMENT HAS A CONTROL.** `MEDI_SAMPLE_DUMP=<file>` writes, per game per arm, the pair, the
+turns, the lines, the board result and a digest of medicham2's own emitted stream. Two identical
+display-key runs differ in **0 of 961**, and the display arm reproduces the published artifact's
+15-game diverged set member for member — so the `stableKey` move and the dump are proven
+behaviour-neutral against an artifact rather than assumed.
+
+**WHAT IS ATTRIBUTABLE, BECAUSE THOSE TWO GAMES WERE PLAYED IDENTICALLY.** Both board-parted games
+carry an unchanged trace digest across the arms, so their per-game verdicts transfer:
+`...2636042531 vs ...2635567733` parts at turn 3 under the display key on four `p2.party.garchomp.*`
+leaves (`hp/maxhp 123 vs 183`, `item lifeorb vs choicescarf`, `boosts.atk -2 vs 0` — a transformed
+Ditto sitting on the row of the Garchomp it copied) and **does not part at all** under the identity
+key. `...2635122796 vs ...2634861011` parts identically under both.
+
+**THE BRIEF AND #463's CLOSING LINE BOTH SAID THE TWO REMAINING GAMES WERE ONE CAUSE. THEY ARE NOT.**
+The second is `-damage: a different body` at turn 2, a genuine spread-target divergence that survives
+the re-key untouched. Closing the party key takes board-material to **one**, not to zero.
+
+**THE RE-KEY IS CORRECT AND REACHED**: `duplicate_species_in_party` 20 -> 0 on 961 games with no
+`stable_key_fallback_*` and no `party_key_no_identity` of any kind. `stableKey` MOVED from
+`game_differential.js` to `board_state.js` rather than being copied — the species-key class is on its
+fifth instance and is not getting a sixth implementation.
+`tests/probe_party_key_collision.js` stages the collision from a derived fixture and **was wrong
+first**: version one put the copied body in the foe's slot A, Imposter copies the DIAGONAL, and the
+arm went green because the derived filler happened to be what got copied.
+
+Full account, including every plant/comparator/serialiser that touches party identity and what a valid
+re-baseline needs: `docs/_reports/2026-08-26-party-key-decision.md`.
+
+**OWED, NOT RUN:** the re-baseline itself (`quarantine.js --stamp-whole-game` under this pin, after
+landing). The roster stages, `all_mechanics_fire.js` and `test-engine-diff.js` were not re-run and do
+not need to be — the simulator is byte-identical and the display-key board reproduces the artifact.
