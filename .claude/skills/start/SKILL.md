@@ -509,6 +509,11 @@ ours with `where.js`, the authority's by opening the line.
 | `engine/mc_key.js` | the ONE species-name → `MC.mons` key resolver. Three separate bugs came from not using it |
 | `engine/artifact_audit.js` | does a generated file actually contain its source's values |
 | `engine/policy.js --promote` | lands `move-priors.observed.json` on the engine and prints the delta — the scheduler no longer writes it |
+| `engine/quarantine.js:1157` `DECLARED_KINDS` | **the only two things the gate will excuse**, and what a third would have to be. A row typed `DEFERRED` is counted UNDECLARED *by design* and the selftest asserts it — so "Will deferred it" does NOT stop it holding the clause shut |
+| `SB.harness(null).CLOSET_SPECIES` / `.CLOSET_ABILITY` | who is in the Illusion closet, computed from the ABILITY over legal species. Import it; two instruments deriving membership separately is how they came to disagree about one Pokémon |
+| `engine/medicham_coverage.js` | what % of real clicks the engine can perform (ROADMAP #27). **It stamps NO release** — it needs the live simulator, so its output can never be re-opened, only re-run |
+| `.githooks/pre-commit` silent-catch gate | whether a staged `.js` adds a `catch` that hides an error. It names the file:line and the fix; a genuinely-correct silence is recorded ONE block at a time by the hash of the catch BODY, so editing the block re-arms the gate |
+| `data/roster.*.json` → `carrier` / `carrierSpecies` | **which BODY a roster row was staged on.** It was prose inside `note` until 2026-08-25, which is why a carrier-shaped shelf could not be expressed or audited |
 
 **TWO DIFFERENTIALS EXIST AND CONFUSING THEM COSTS AN HOUR.** `tests/test-engine-diff.js` is the DAMAGE
 one and owns `data/engine-diff.json`. `engine/game_differential.js` is the WHOLE-GAME one and owns
