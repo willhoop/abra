@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T16:26:25.103Z",
+  "generated": "2026-08-26T17:22:46.194Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 737,
-  "live": 737,
-  "missing": 0,
-  "armed": 737,
+  "probed": 745,
+  "live": 741,
+  "missing": 4,
+  "armed": 745,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3693,7 +3693,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 25.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7384,6 +7384,86 @@
       "label": "ELECTRIFY is `duration: 1` and stays re-settable — the exemption, measured",
       "live": true,
       "detail": "turn-2 start lines — ELECTRIFY (duration 1, exempt) 1 fail[-], GASTRO ACID (no duration, refused) 0 fail[|-fail|p1a:gholdengo]. Both declare no onRestart, so the two arms are the exemption and the rule and nothing else; both turn-1 clicks landed (1/1), so neither arm is a move that never worked. Electrify vol {\"electrify\":1}/{}",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "clearsScreens",
+      "label": "Brick Break and Psychic Fangs leave the screens standing when the hit never lands",
+      "live": true,
+      "detail": "[screens up on the target side after the click, HP it lost] — PSYCHIC FANGS into Dark 1,0 (|-immune| true); BRICK BREAK into PROTECT 1,0 (|-activate|move: Protect true); the SAME Brick Break with no Protect 0,70 — the control, and the arm that says a surviving screen is a refusal rather than a missing mechanic. All three started with exactly one screen up",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesAllyDamage",
+      "label": "Telepathy announces |-activate|ally|ability: Telepathy, not |-immune|",
+      "live": false,
+      "detail": "the authority writes `|-activate|p1a:gardevoir|ability:telepathy` (measured: |-activate|p1b: Gardevoir|ability: Telepathy). This engine writes [|-immune|p1a:gardevoir|[from]ability:telepathy]. The BOARD half is right and is asserted beside it — the holder lost 0 against 52 with the ability cleared, and both foes took the same 67/96 either way, so the move resolved. The no-ability control prints [(silent)]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "label": "Psych Up copies the boosts standing WHEN IT RUNS — nothing if the copier moved first",
+      "live": true,
+      "detail": "[copier SpA stage, target SpA stage] — copier SLOWER 2,2 (it takes the +2 Nasty Plot); the identical board with the copier FASTER 0,2 (it copies an empty board). The target reads +2 in BOTH arms, so the control is a real ordering and not a Nasty Plot that failed to happen",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "label": "Psych Up announces |-copyboost| on the copier",
+      "live": false,
+      "detail": "the authority writes `|-copyboost|p1a:aromatisse|p2a:delphox|[from]move:psychup` (measured on one staged turn). This engine writes [(no -copyboost at all)]. The move ran 1 time(s) on the same turn and the copy LANDED (the row above asserts the +2), so this is the line and nothing else",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "Spicy Spray burns a NON-CONTACT special attacker, and never burns a Fire one",
+      "live": true,
+      "detail": "[attacker status after the hit, did the hit land] — EARTH POWER, a ranged SPECIAL with no contact flag: brn,true with Spicy Spray and none,true with the same body carrying no ability. A contact-gated implementation reads `none` on the first. The FIRE attacker (Flamethrower, unstatused) reads none — Fire cannot be burned, and its control with no ability reads none, so the arms differ by the ability and not by the type",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "Spicy Spray announces a bare |-immune| at the FIRE ATTACKER, and only when it is unstatused",
+      "live": false,
+      "detail": "the authority writes `|-immune|p1a:charizard` — a BARE line naming the attacker, no [from] tag (measured). This engine writes [(silent)]. The hit landed (103 HP) so the handler was reached, and the ALREADY-PARALYSED control must stay silent — it prints [(silent)] off a hit of 103 HP",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "chargeSkippedByWeather",
+      "label": "exactly three of the ten charge moves skip their turn, each only in its OWN weather",
+      "live": true,
+      "detail": "10 charge moves in the artifact, 3 with a weather escape (electroshot:rain solarbeam:sun solarblade:sun); every one played in clear sky, sun and rain — no disagreement(s). ELECTRO SHOT: clear sky turn-1 damage 0 at SpA stage 1 (it charged and still took the boost); in RAIN 78 at stage 2 — it fires AND boosts on the same turn, because the handler boosts above the weather test",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "Encore then Disable leaves no legal move: the engine must Struggle",
+      "live": false,
+      "detail": "turn 4, with the engine choosing — ENCORE + DISABLE played [null] (the authority Struggles); DISABLE ALONE played [rockslide] (three slots survive, so anything but Struggle is right and this is what says the Struggle would come from the conjunction); ENCORE ALONE played [bodyslam] (locked but functional). Full run, encore+disable: [\"bodyslam\",\"bodyslam\",null,null]",
       "hollow": false,
       "armed": true,
       "directCall": false

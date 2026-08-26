@@ -21,6 +21,43 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## SIX FIXTURES WILL ASKED FOR BY NAME: THREE FOUND THE ENGINE ALREADY RIGHT AND THREE FOUND A DEFECT. CENSUS 737/737 -> 741/745, 4 MISSING. NO ENGINE BYTE MOVED. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.142.0. Register rows: ROADMAP #456, #457, #458,
+#459. Engine release: **`9c71bc9b5815`**, unchanged — `git diff engine/medicham2-browser.js` is EMPTY
+at the end of this pass and was checked before the census was regenerated.
+
+**STAGING ONLY, BY INSTRUCTION.** Six boards, eight probes, and not one line of the simulator changed.
+Four probes report LIVE and four report MISSING; `live` went UP by four and the file exits 0, which is
+what a census is for.
+
+| # | fixture | verdict |
+|---|---|---|
+| 1 | Brick Break / Psychic Fangs into an immune target and into a Protect | **CORRECT** |
+| 2 | Telepathy's line | **DIVERGING** — `-immune` where the authority writes `-activate` on the ALLY (#456, card 16) |
+| 3 | Psych Up across a speed gap | **CORRECT** on state; **DIVERGING** — no `-copyboost` (#457) |
+| 4 | Spicy Spray | **CORRECT** on state and not contact-gated; **DIVERGING** — no `-immune` (#458, card 6) |
+| 5 | ten charge moves x three skies | **CORRECT** |
+| 6 | Encore then Disable | **DIVERGING, and it is STATE** — `\|cant\|` and a wasted turn where the authority Struggles (#459) |
+
+**EVERY GREEN ROW WAS SHOWN RED ON A DELIBERATE BREAK AND THE ENGINE WAS RESTORED.** Six breaks:
+`_stepClearScreens` hoisted to the head of `_STEPS`, the same step exempted from the driver's
+`if(R.out)continue;`, the Psych Up copy neutered, the charge escape stripped of its `=== _sk.skipsIn`
+comparison (3 disagreements) and then made unconditional (**17** — the seven non-escapers firing), and
+`_pun.trigger`'s default contact-gated.
+
+**ONE ARM IS WEAKER THAN IT LOOKS AND THE PROBE SAYS SO.** Neither screen break reds the PROTECT arm —
+a shielded body never enters the hit loop here at all, so that arm is blind to a mis-ordering INSIDE the
+step list. It still fails a break placed at the CLICK, which is the shape this engine had before
+2026-08-24.
+
+**THE PINNED POOL WAS NOT RE-RUN AND IS NOT QUOTED.** No engine byte changed, so board-material (4 of
+961) and the whole-game clause (10 of 961) cannot have moved; and the census gained eight rows, which
+steers `covWant` and selects a different sample. All six are LAB mechanics and the pool was predicted to
+sit still BEFORE the pass.
+
+---
+
 ## THE COMMENT SAYING THIS COULD NOT BE FIXED WAS FOUR DAYS STALE, AND THE HANDED HYPOTHESIS COVERED ONE GAME RATHER THAN THREE. BOARD-MATERIAL 6 -> 4 OF 961, CENSUS 735 -> 737, WHOLE-GAME CLAUSE UNMOVED AT 10. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.141.0. Register row: ROADMAP #455.

@@ -63,7 +63,12 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  737/737 probed mechanics live, 0 missing   (census 2026-08-26 12:26)
+  741/745 probed mechanics live, 4 missing   (census 2026-08-26 13:15)
+  missing:
+    ability refusesAllyDamage      Telepathy announces |-activate|ally|ability: Telepathy, not |-immune|
+    move    statChangeInCode       Psych Up announces |-copyboost| on the copier
+    ability punishesAttacker       Spicy Spray announces a bare |-immune| at the FIRE ATTACKER, and only when it is unstatused
+    move    sealsMoves             Encore then Disable leaves no legal move: the engine must Struggle
   0/6000 differential comparisons disagree with Showdown   (2026-08-26 12:33)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -76,15 +81,239 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 231e72dc0d42 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 1318d7a94b07 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 5d161ae2b540 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 12:41_
+_stamped 2026-08-26 13:22_
 
 <!-- /GENERATED -->
+
+## SIX FIXTURES WILL ASKED FOR BY NAME, ALL STAGED, THREE FOUND THE ENGINE ALREADY RIGHT AND THREE FOUND A DEFECT. CENSUS 737/737 -> 741/745, 4 MISSING. NO ENGINE BYTE MOVED. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.142.0. Register rows: ROADMAP #456, #457, #458, #459.
+Engine release for this batch: **`9c71bc9b5815`** — unchanged, and that is the point. `git diff
+engine/medicham2-browser.js` is EMPTY at the end of this pass; the four deliberate breaks below were
+each reverted and the file was asserted byte-identical to HEAD before the census was regenerated.
+
+### THIS BATCH LANDED STAGING AND NOT FIXES, DELIBERATELY
+
+Six boards, six probes' worth of work, and **not one line of the simulator changed**. That is the
+instruction and it is also the only way the four new register rows are attributable: six fixtures plus
+six fixes in one pass would leave nobody able to say which fix moved which number.
+
+**A RED CENSUS ROW IS THIS FILE WORKING.** `tests/test-mechanics.js` exits 0 on MISSING by design —
+the header says so and has since it was written — and `live` went **UP** by four. What the four
+MISSING rows buy is that three narration defects and one state defect are now carried by the census
+instead of by a sentence in a handover.
+
+### WHAT THE AUTHORITY DOES, PLAYED RATHER THAN RECALLED
+
+Every expectation below came out of a staged game in the official simulator run **before** the probe
+was written — `battle.log` and `battle.pN.sideConditions`, captured this session. Nothing here is a
+remembered rule.
+
+| # | fixture | the authority | this engine | verdict |
+|---|---|---|---|---|
+| 1 | Brick Break / Psychic Fangs into a target the hit never reaches | immune target and Protect both keep the screens; a clean hit takes them | same, all three arms | **CORRECT** |
+| 2 | Telepathy's line | `-activate\|p1b: Gardevoir\|ability: Telepathy` | `-immune\|p1a: gardevoir\|[from] ability: telepathy` | **DIVERGING** — #456 |
+| 3 | Psych Up across a speed gap | copier second +2 SpA, copier first nothing; `-copyboost` both ways | state correct; **no `-copyboost` at all** | **CORRECT** on state, **DIVERGING** on the line — #457 |
+| 4 | Spicy Spray | burns a non-Fire attacker off a ranged special; bare `-immune` at an unstatused Fire one | burn correct and not contact-gated; **no line** | **CORRECT** on state, **DIVERGING** on the line — #458 |
+| 5 | the ten charge moves x three skies | exactly three escape, each in its own weather | identical, and Electro Shot boosts AND fires in rain | **CORRECT** |
+| 6 | Encore then Disable | `-activate\|move: Struggle` and Struggle is played | **`\|cant\|` and the turn is spent on nothing** | **DIVERGING** — #459 |
+
+### 1. THE SCREENS COME DOWN AT STEP 7, AND THE ORDERING WAS ALREADY RIGHT
+
+`psychicfangs.onTryHit(pokemon){ pokemon.side.removeSideCondition('reflect'); ... }` — no Champions
+override, and `brickbreak` is byte-identical. The comment on the line reads *"will shatter screens
+through sub, before you hit"*, which is easy to read as *before anything*. It is not: the TARGET's
+`onTryHit` effects run at step 2, but the MOVE's own is a `singleEvent` fired from `spreadMoveHit`
+(sim/battle-actions.ts:1044) inside `hitStepMoveHitLoop`, the LAST entry in `moveSteps`. So it sits
+BELOW type immunity and BELOW Protect, and **an immune target keeps its screens.**
+
+This engine has had it right since 2026-08-24, when the break moved into `_STEPS` as
+`_stepClearScreens` below `_stepBreakProtect`. The probe is what says so.
+
+**AND ONE ARM IS WEAKER THAN IT LOOKS, WHICH IS WRITTEN INTO THE PROBE RATHER THAN LEFT TO BE FOUND.**
+Two deliberate breaks were run: hoisting `_stepClearScreens` to the head of `_STEPS`, and exempting it
+from the driver's `if(R.out)continue;`. **Both red the IMMUNE arm. Neither reds the PROTECT arm** — a
+shielded body never enters the hit loop at all in this engine (the note at the head of `_stepTryHit`
+says so), so that arm is blind to a mis-ordering INSIDE the step list. It still fails a screen break
+placed at the CLICK, which is the shape this engine actually had before 2026-08-24, and it is still
+the right OUTCOME to assert. It is simply not the arm that guards the ordering.
+
+### 2, 3 AND 4 ARE THE SAME SHAPE: A RIGHT BOARD AND A WRONG LINE
+
+All three are invisible to every board comparator this division owns, which is why they survived. The
+roster compares BOARDS. The whole-game differential compares BOARDS. `all_mechanics_fire.js` sees the
+stream but only for the entities it stages. So the instrument that finds them is a census probe that
+reads `S._trace`, and each of the three carries its POSITIVE arm in the same run so that a red can
+only ever be the wording:
+
+- **Telepathy** (#456, divergence card 16): the holder's HP loss is asserted at 0, both foes' losses
+  are asserted unchanged (so the Surf really resolved), and the no-ability control must print neither
+  line. 308 sheet uses.
+- **Psych Up** (#457): its sibling row asserts the +2 across the speed gap and is LIVE, so the two rows
+  cannot be confused. The `-copyboost` row additionally asserts the `|move|psychup|` line is present,
+  so "no copyboost" cannot be satisfied by a move that never ran.
+- **Spicy Spray** (#458, divergence card 6): the sibling burn row is LIVE, and the narration row asserts
+  the hit LANDED (103 HP) so the handler was reached. Its over-fire control is the **already-paralysed**
+  Fire attacker, which the authority leaves silent — `!source.status` is a real clause and an engine
+  printing the line off the immunity alone would pass the positive arm and break this one.
+
+**SPICY SPRAY IS NOT CONTACT-GATED AND THAT IS THE ARM WORTH HAVING.** The handler is `onDamagingHit`
+with no contact check anywhere in it, so a ranged special triggers the burn. The staged move is Earth
+Power — `flags {protect, mirror, nonsky, metronome}`, read off the format rather than recalled. Contact-
+gating `_pun.trigger`'s default reds that row, which was demonstrated and reverted.
+
+### 5. TEN CHARGE MOVES, THREE ESCAPES, AND THE SEVEN ARE THE CONTROL
+
+The membership is read out of `data/tags.json` on every run, both halves of it, and the authority's own
+sets agree exactly — `dex.moves.all()` filtered on `flags.charge` gives the same ten, and grepping each
+`onTryMove` for a weather list gives `electroshot ["raindance","primordialsea"]`, `solarbeam` and
+`solarblade` `["sunnyday","desolateland"]`, and **nothing else**.
+
+Each of the ten is played in clear sky, sun and rain, two turns per arm. The seven non-escapers are the
+over-match control and they earn their place: breaking the skip to ignore WHICH weather produces 3
+disagreements, and breaking it to fire under ANY weather produces **17**. Both were demonstrated and
+reverted.
+
+**THE TWO TRAPS WERE NAMED BEFORE THE RUN AND BOTH HOLD.** `-prepare` is emitted ABOVE the weather test,
+so asserting its absence in sun would assert the wrong thing — every arm requires it. And the SpA boost
+sits above the weather test too: **Electro Shot in rain fires for 78 and carries +1 SpA on the same
+turn**, against 0 damage and the same +1 in clear sky. Solar Beam's `onBasePower` weather halving comes
+out for free beside it (50 in clear sky, 26 in rain).
+
+**THE RELEASE TURN IS ASSERTED IN EVERY ONE OF THE THIRTY ARMS.** "Turn 1 dealt nothing" is also what a
+move that does not work prints, so every arm plays a second turn and requires damage on it.
+
+### 6. THE ONE STATE DEFECT, AND IT COSTS A TURN
+
+Will: *"stage a mon being encored and then disabled it should result in a struggle."*
+
+Champions **overrides** Encore (`data/mods/champions/moves.ts` — `condition.onStart` only, recalculating
+action priority when it rewrites the queued move) and inherits the rest, so `onDisableMove` is
+mainline's: it disables every slot EXCEPT the encored one. Disable takes that one. Nothing legal remains
+and `Pokemon#getMoveRequestData` replaces the whole menu with Struggle.
+
+Measured over four staged turns in the authority, Alakazam against a Snorlax:
+
+```
+T2  |-start|p2a: Snorlax|Encore
+T3  |-start|p2a: Snorlax|Disable|<the encored move>
+T4  |-activate|p2a: Snorlax|move: Struggle    |move|p2a: Snorlax|Struggle|...
+```
+
+This engine plays **nothing** on turn 4: `|cant|p1a: snorlax|disable|<move>`. The chooser handed back
+the encored move and the execution gate refused it. `mustStruggle` already asks the authority's own
+question — is the ENABLED menu empty — and already covers a Choice lock onto a Disabled move
+(#144/#152); the ENCORE lock is not one of the inputs it reads.
+
+**TWO CONTROLS, EACH REMOVING ONE HALF, because either half alone must leave a menu.** Disable alone
+leaves three slots and plays one; Encore alone stays locked and functional. Full run: `["bodyslam",
+"bodyslam", null, null]` with both, against `[..., null, "rockslide"]` with Disable alone.
+
+**AND #454's PP BOUNDARY IS DELIBERATELY OUT OF THE WAY.** Disable refuses when the target's last move
+has no PP and Encore ends when the encored move is exhausted; the sealed move is clicked three times
+against a `pp.max` of **16** read out of `data/tags.json`. Protect's 8 in this format is exactly how
+card 19 happened and is not staged here.
+
+**ONE THING THE DISABLE-ALONE CONTROL EXPOSED IN PASSING AND THIS PASS DID NOT FIX:** it played
+`rockslide`, which is not one of the four moves the body was given. That is the pre-existing priors leak
+already recorded at ROADMAP #119/#295 — `_chooseAction`'s priors sampler picks by NAME out of
+`MC.priors` rather than reading `me.moves`. It does not weaken the control (the claim is only that the
+body did not Struggle) and it is reported here rather than folded into this batch.
+
+### WHICH SCOREBOARD EACH ONE SHOULD MOVE, SAID BEFORE THE RUN
+
+Per CLAUDE.md's ranking rule. **All six are LAB mechanics and none of them should move the pinned
+pool**, and the pool was NOT re-run — with no engine byte changed it cannot move, and re-running the
+differential under a census that gained eight rows would be a different sample and not a before/after.
+
+| quantity | before | after | predicted |
+|---|---|---|---|
+| census probed | 737 | **745** | 745 — eight new rows |
+| census live | 737 | **741** | 741 — four correct, four red |
+| census missing | 0 | **4** | 4 |
+| board-material | 4 of 961 | **4 of 961** | unmoved — no engine byte changed |
+| whole-game clause | 10 of 961 | **10 of 961** | unmoved, same reason |
+| `unarmed` / `directCall` ratchets | 0 / 1 | **0 / 1** | unmoved — all eight probes are armed and spend real turns |
+| `hollow` / `threw` | 0 / 0 | **0 / 0** | unmoved |
+
+### EVERY GREEN ROW WAS SHOWN RED ON A DELIBERATE BREAK, AND THE ENGINE WAS RESTORED
+
+Four of the eight new rows report LIVE. A green probe that has never been shown to watch its own knob
+is exactly what `tests/probe_red_demo.js` exists to complain about, so each was broken on purpose,
+measured, and reverted:
+
+| row | the break | result |
+|---|---|---|
+| screens survive an unreachable target | `_stepClearScreens` to the head of `_STEPS` | 739 live, 6 missing — the immune arm reads 0 screens |
+| the same | driver's `if(R.out)continue;` exempted for that step | same row red |
+| Psych Up copies what is standing | `dst.boosts[k]=dst.boosts[k]` | 739 live, 6 missing (it also reds the pre-existing overwrite row) |
+| three of ten escape, each in its own weather | drop the `===_sk.skipsIn` comparison | red, naming `electroshot/sun`, `solarbeam/rain`, `solarblade/rain` |
+| the same | escape under any weather at all | red with **17** disagreements — the seven-move control |
+| Spicy Spray burns a ranged special | contact-gate `_pun.trigger`'s default | 740 live, 5 missing |
+
+`git diff engine/medicham2-browser.js` is empty and was checked before the final census run.
+
+### THE HAND LIST
+
+**Leaving it — they are probes now:**
+- ~~**#360 / card 16 — Telepathy `-activate` vs our `-immune`**, listed `unprobed` in the divergence-card
+  table since it was filed~~ — **PROBED, RED**, ROADMAP #456. The table row is updated.
+- ~~**Card 6 — Spicy Spray, staged in the roster and passing because the roster compares boards**~~ —
+  **PROBED**: the board half LIVE, the `-immune` line RED, ROADMAP #458.
+- ~~Psych Up across a speed gap has never been staged~~ — **PROBED**, state LIVE, `-copyboost` RED
+  (ROADMAP #457).
+- ~~The ten charge moves have one probe (Fly) and their weather escapes have two (Solar Beam, and Mega
+  Sol's private sun)~~ — **the whole set is now one sweep**, ten moves x three skies, with the seven
+  non-escapers as the over-match control.
+- ~~Brick Break / Psychic Fangs through an immune target and through a Protect~~ — **PROBED**, LIVE.
+- ~~Encore then Disable~~ — **PROBED, RED**, ROADMAP #459.
+
+**Still open, filed with its evidence** (carried forward from the previous batch, untouched by this one):
+- **THE PARTY MAP IS KEYED BY THE SPECIES A BODY IS SHOWING**, one of the four remaining board-material
+  games. HELD, with the credit shift measured — belongs with MEASURE if the sample moves.
+- **A SELF-AIMED VOLATILE'S `-fail` IS OWED.** Imprison (487 uses), Magnet Rise, Aqua Ring, Ingrain.
+- **GASTRO ACID ANNOUNCES `-start|move: gastroacid` WHERE THE AUTHORITY WRITES `-endability`.**
+- **MAGIC ROOM PARKS THE ITEM BY EMPTYING THE SLOT**, so `*.item` parts on every room board.
+- **`p2.active[1].stall` medicham 0 / showdown 3** — needs the arming side.
+- **`p2.party.staraptor.hp` 160/87 AND `p2.party.incineroar.hp` 106/170** — not a keying artifact, not
+  diagnosed.
+- **A TRANSFORMED BODY STILL FORECASTS HERE.** No probe fails on it yet.
+- **A CASTFORM RE-ENTERING UNDER A STANDING SKY WRITES NO `|-formechange|` HERE.** Narration gate.
+- **`engine/medicham2-browser.js` DECLARES `canMegaNow` TWICE** — ROADMAP #449.
+- **`tests/staged_board.js` IS STILL 24 OF 25** on `roar-drags-whoever-is-standing-there`.
+- **`tests/test-board-browser.js` IS RED and is `board.js`'s**, which this division may not edit (#218).
+- **`tests/test-resolution-order.js` OOMs at the default heap** (#446).
+- **`engine/artifact_audit.js` is RED on `data/engine-data.js`** — not fixable by this division.
+- **NEW, FOUND IN PASSING, NOT FIXED:** the chooser can return a move the body does not have
+  (`rockslide` off a four-slot Snorlax) — the ROADMAP #119/#295 priors leak, seen again here.
+- **`.scratch_eng/` AND THE PRE-MODIFIED `data/*.json` ARE ANOTHER SESSION'S.** Reported, left, nothing
+  executed in any of them.
+
+### OWED, NOT RUN
+
+- **`tests/test-mechanics.js` was run clean at the end** — 741 live, 4 missing, 745 probed, 0 hollow,
+  0 threw, 0 unarmed, 1 direct-call, exit 0, `run_ok: true`. It is the instrument this batch moved.
+- **The pinned pool was NOT re-run and must not be quoted as a before/after.** No engine byte changed,
+  so board-material and the whole-game clause cannot have moved; and the census gained eight rows,
+  which steers `covWant` and therefore selects a different sample. Two reasons, one conclusion.
+- `tests/test-engine-diff.js` — **not re-run.** Nothing in this pass touches damage arithmetic, and that
+  is a derivation, written here as one rather than as a result.
+- The three roster stages and `engine/all_mechanics_fire.js` — **not re-run**, same reason, and the
+  release is unchanged so their existing stamps still match.
+- `tests/interaction_matrix.js` — not re-run; stamped 2026-08-11 and already stale before this pass.
+- `engine/wire_ladder.js` — not re-run; the release ladder stays WITHHELD, as it already was.
+- `tests/run-all.js` — **not run in full.** `tests/test-mechanics.js` and `tests/test-roadmap-register.js`
+  were run and are green.
+- **`engine/status.js` still prints `FEATURE SEMANTICS CHECK FAILED`.** It is MEASURE's and was firing
+  before this pass. Untouched, reported.
+
+---
 
 ## THE COMMENT SAYING THIS COULD NOT BE FIXED WAS FOUR DAYS STALE, AND THE HANDED HYPOTHESIS COVERED ONE GAME RATHER THAN THREE. BOARD-MATERIAL 6 -> 4 OF 961, CENSUS 735 -> 737, WHOLE-GAME CLAUSE UNMOVED AT 10. 2026-08-26.
 
@@ -7340,7 +7569,7 @@ and after — that is the expected shape of this fix, not a weak result.
 | **#345** volatile counter expiry | board-material **if** the turn is off by one, narration if not | unprobed |
 | **#352** `-weather [upkeep]` | **both**: the `wSup` gate on the LINE is narration, and the once-a-turn CACHE behind it is board-material | ~~unprobed~~ — **CLOSED 2026-08-23**, two probes, see the Cloud Nine section at the top |
 | **#359** Poltergeist names the item | narration (emission only) | unprobed |
-| **#360** Telepathy `-activate` vs our `-immune` | narration (right board, wrong line type) | unprobed |
+| **#360** Telepathy `-activate` vs our `-immune` | narration (right board, wrong line type) | ~~unprobed~~ — **PROBED 2026-08-26 AND RED**, ROADMAP #456; the board half stays LIVE beside it |
 
 **#371 does not block this class.** Its two board-material sub-causes are already at HEAD and its
 third is an instrument limit.

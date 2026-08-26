@@ -27779,6 +27779,446 @@ probe('move', 'volatileRestart', 'ELECTRIFY is `duration: 1` and stays re-settab
                  + `Electrify vol ${e[1].vol}` };
 });
 
+/* ================================================================================================
+ * WILL'S SIX FIXTURES, 2026-08-26. STAGING ONLY — NOTHING IN THE ENGINE MOVED IN THE PASS THAT
+ * ADDED THEM, AND THREE OF THEM ARE RED ON ARRIVAL.
+ *
+ * Six boards he asked for by name. Each one was played in the OFFICIAL simulator FIRST and the
+ * expectation below is what Showdown did, never what anybody remembered — the arms are written out
+ * of `battle.log` and `battle.pN.sideConditions`, captured this session. Where a fixture finds the
+ * engine already right that is REPORTED AS A RESULT rather than padded into a fix, and where it
+ * finds a defect the probe is left RED and the defect is filed. A census row that reports MISSING is
+ * this file working: `works:false` exits 0 and the row is the open work.
+ * ============================================================================================== */
+
+/* ---- 1. THE SCREENS COME DOWN AT STEP 7, SO A TARGET THAT WAS NEVER REACHED KEEPS THEM ----------
+ *
+ * `psychicfangs.onTryHit(pokemon){ pokemon.side.removeSideCondition('reflect'); ... }` (data/moves.ts,
+ * no Champions override; `brickbreak` is byte-identical). The comment on the line says *"will shatter
+ * screens through sub, before you hit"* and it is easy to read that as "before anything" — it is not.
+ * The TARGET's `onTryHit` effects run at step 2 of `moveSteps`; the MOVE's own runs from `singleEvent`
+ * inside `spreadMoveHit` (sim/battle-actions.ts:1044), which `hitStepMoveHitLoop` calls LAST. So it
+ * sits BELOW type immunity (step 3) and BELOW Protect (step 2), and a move that never reaches its
+ * target takes no screens with it.
+ *
+ * MEASURED IN THE AUTHORITY BEFORE THIS PROBE EXISTED, one staged doubles game per arm, Grimmsnarl
+ * (Dark/Fairy) holding a Reflect:
+ *     Psychic Fangs into it   |-immune|p2a: Grimmsnarl          sideConditions ["reflect"]
+ *     Brick Break into Protect |-activate|p2a: ...|move: Protect sideConditions ["reflect"]
+ *     Brick Break, clean       |-sideend|p2: B|Reflect           sideConditions []
+ *
+ * THE CONTROL IS THE THIRD ARM AND IT IS NOT OPTIONAL. Two arms that both show a surviving screen are
+ * also what an engine with no screen-breaking at all prints. The clean Brick Break is the same
+ * attacker, the same defender and the same screen — only the gate in front of it differs.
+ *
+ * AND THE TWO REFUSALS MUST NOT BE THE SAME REFUSAL. Psychic Fangs is Psychic into a DARK body, which
+ * is a type immunity; Brick Break is Fighting into a body that is not immune to it and is stopped by
+ * Protect instead. Staging both through one gate would leave "screens survive" resting on one clause.
+ *
+ * WHAT EACH ARM IS SENSITIVE TO, MEASURED RATHER THAN ASSUMED — because "immune for two reasons
+ * proves nothing" cuts both ways and one of these arms is weaker than it looks. Two deliberate
+ * breaks were run against this row on 2026-08-26 and the engine was restored byte-identical after:
+ *   `_stepClearScreens` moved to the HEAD of `_STEPS`          -> the IMMUNE arm goes red (0 screens)
+ *   the driver's `if(R.out)continue;` exempted for that step   -> the IMMUNE arm goes red
+ *   ...and the PROTECT arm survived BOTH. A shielded body never enters the hit loop in this engine
+ *   at all (see the note at the head of `_stepTryHit`), so that arm is blind to a mis-ordering INSIDE
+ *   the step list. It is still a real assertion — it fails a screen break placed at the CLICK, which
+ *   is the shape this engine actually had before 2026-08-24 — but it is not the arm that guards the
+ *   ordering, and saying so here is cheaper than somebody re-deriving it later. */
+probe('move', 'clearsScreens',
+      'Brick Break and Psychic Fangs leave the screens standing when the hit never lands', () => {
+  /* THE CARRIER IS DERIVED, not picked: it must learn BOTH members so the two arms differ only in the
+   * gate. Ten legal species learn both; this is one of them, and the ability and item are blanked by
+   * `bare()` so nothing else can supply the refusal. */
+  const run = (atk, defProtect) => {
+    const { me, ally, f1, f2, S } = board('feraligatr', 'incineroar', 'grimmsnarl', 'garchomp');
+    const trace = []; S._trace = trace;
+    /* TURN 1 — the screen goes up. Read back before the attack so a run where Reflect never landed
+     * cannot be mistaken for a run where it survived. */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'reflect', null, S.field)], [f2, { kind: 'pass' }]]));
+    const before = Object.keys((f1._sf && f1._sf.sc) || {});
+    const hp = f1.curHP; const mark = trace.length;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, atk, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, defProtect ? M.playerAction(f1, 'protect', null, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    const lines = trace.slice(mark).map(M.traceCanon);
+    return { before, after: Object.keys((f1._sf && f1._sf.sc) || {}), took: hp - f1.curHP,
+             /* WHY the hit failed, read off the stream rather than assumed. Without this, "0 damage"
+              * covers a type immunity, a Protect, a miss and a move the engine simply never ran. */
+             imm: lines.some(l => /^\|-immune\|p2a/.test(l)),
+             prot: lines.some(l => /^\|-activate\|p2a.*protect/i.test(l)) };
+  };
+  const immune = run('psychicfangs', false);
+  const shielded = run('brickbreak', true);
+  const clean = run('brickbreak', false);
+  return { works: immune.before.length === 1 && shielded.before.length === 1 && clean.before.length === 1
+                  && immune.after.length === 1 && immune.took === 0 && immune.imm
+                  && shielded.after.length === 1 && shielded.took === 0 && shielded.prot
+                  && clean.after.length === 0 && clean.took > 0,
+           arms: { control: [clean.after.length, clean.took > 0], test: [immune.after.length, immune.took > 0] },
+           detail: '[screens up on the target side after the click, HP it lost] — PSYCHIC FANGS into '
+                 + 'Dark ' + immune.after.length + ',' + immune.took + ' (|-immune| ' + immune.imm
+                 + '); BRICK BREAK into PROTECT ' + shielded.after.length + ',' + shielded.took
+                 + ' (|-activate|move: Protect ' + shielded.prot + '); the SAME Brick Break with no '
+                 + 'Protect ' + clean.after.length + ',' + clean.took + ' — the control, and the arm '
+                 + 'that says a surviving screen is a refusal rather than a missing mechanic. All '
+                 + 'three started with exactly one screen up' };
+});
+
+/* ---- 2. TELEPATHY SAYS `-activate`, NOT `-immune` — DIVERGENCE CARD 16 -------------------------
+ *
+ * The BOARD half has been LIVE since ROADMAP #213 and is untouched here: the holder takes zero from
+ * its partner's Surf and still takes a Helping Hand. What no board comparison can see is the LINE.
+ *
+ *     data/abilities.ts  telepathy.onTryHit(target, source, move) {
+ *       if (target !== source && target.isAlly(source) && move.category !== 'Status') {
+ *         this.add('-activate', target, 'ability: Telepathy'); return null; } }
+ *
+ * MEASURED IN THE AUTHORITY, Milotic's Surf across a Gardevoir partner:
+ *     |move|p1a: Milotic|Surf|p2a: Garchomp|[spread] p2a,p2b
+ *     |-activate|p1b: Gardevoir|ability: Telepathy
+ * This engine writes `|-immune|p1a: gardevoir|[from] ability: telepathy` instead. Same board, and the
+ * only instrument that can tell is a stream reader.
+ *
+ * THE POSITIVE ARM IS CARRIED HERE ON PURPOSE: the holder's HP loss is asserted at zero and the two
+ * foes' losses are asserted unchanged, so this row can never go red because the ability stopped
+ * working — a red here is the WORDING and nothing else. The no-ability control must print neither
+ * line, which is what fails an engine that announces something for every ally hit. */
+probe('ability', 'refusesAllyDamage',
+      'Telepathy announces |-activate|ally|ability: Telepathy, not |-immune|', () => {
+  const surf = (ab) => {
+    const me = bare('gardevoir'); me.ability = ab;
+    const ally = bare('milotic'); ally.moves = ['surf', 'protect'];
+    const f1 = bare('garchomp'), f2 = bare('incineroar');
+    unfaintable(me); unfaintable(f1); unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    const h = me.curHP, h1 = f1.curHP, h2 = f2.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[ally, M.playerAction(ally, 'surf', null, S.field)], [me, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon).filter(l => /gardevoir/.test(l) && /^\|-(activate|immune)\|/.test(l));
+    return { holder: h - me.curHP, foe1: h1 - f1.curHP, foe2: h2 - f2.curHP, lines };
+  };
+  const WANT = M.traceCanon('|-activate|p1a: gardevoir|ability: telepathy');
+  const off = surf('none'), on = surf('telepathy');
+  return { works: on.holder === 0 && off.holder > 0
+                  && on.foe1 === off.foe1 && on.foe2 === off.foe2   /* the move still resolved */
+                  && off.lines.length === 0
+                  && on.lines.length === 1 && on.lines[0] === WANT,
+           arms: { control: off.lines, test: on.lines },
+           detail: 'the authority writes `' + WANT + '` (measured: |-activate|p1b: Gardevoir|ability: '
+                 + 'Telepathy). This engine writes [' + (on.lines.join(' ') || '(silent)') + ']. The '
+                 + 'BOARD half is right and is asserted beside it — the holder lost ' + on.holder
+                 + ' against ' + off.holder + ' with the ability cleared, and both foes took the same '
+                 + off.foe1 + '/' + off.foe2 + ' either way, so the move resolved. The no-ability '
+                 + 'control prints [' + (off.lines.join(' ') || '(silent)') + ']' };
+});
+
+/* ---- 3. PSYCH UP COPIES WHAT IS ON THE BOARD WHEN IT RUNS ---------------------------------------
+ *
+ * Will: *"a fast delphox clicks nasty plot and a slow psych up user targets it to make sure the stats
+ * change works."* The mechanic is `statChangeInCode {op:{kind:'copy', from:'target', to:'user'}}`, and
+ * the thing a one-armed probe cannot ask is WHEN the copy is taken.
+ *
+ * THE CONTROL IS THE SAME BOARD WITH THE COPIER MOVING FIRST, AND IT MUST COPY NOTHING. A test where
+ * both orders pass is asking nothing at all: an engine that copied the target's boosts at the end of
+ * the turn, or that read them off a snapshot, agrees with the slow arm and parts on the fast one.
+ * Only the SPEEDS differ between the arms — same species, same clicks, same dice.
+ *
+ * MEASURED IN THE AUTHORITY FIRST, Aromatisse (29 base Speed) vs Delphox (104), one staged turn each,
+ * `p1.active[0].boosts` read out afterwards:
+ *     copier SECOND  {spa: 2}   |-boost|p2a: Delphox|spa|2  then  |-copyboost|p1a: Aromatisse|...
+ *     copier FIRST   {spa: 0}   |-copyboost| first, then the Nasty Plot
+ * The `|-copyboost|` line fires in BOTH orders — the copy of an empty board is still a copy. This
+ * engine emits no `-copyboost` at all, which is a separate narration defect and has its own row
+ * below; this row asserts the STATE and deliberately says nothing about the line, so fixing one does
+ * not move the other. */
+probe('move', 'statChangeInCode',
+      'Psych Up copies the boosts standing WHEN IT RUNS — nothing if the copier moved first', () => {
+  const go = (copierFast) => {
+    const { me, ally, f1, f2, S } = board('aromatisse', 'incineroar', 'delphox', 'garchomp');
+    /* THE SPEEDS ARE SET ON BOTH SIDES IN BOTH ARMS. Varying only one body would leave "the copier
+     * moved first" resting on whatever `buildMon` happened to hand the other one. */
+    me.st = Object.assign({}, me.st, { sp: copierFast ? 999 : 1 });
+    f1.st = Object.assign({}, f1.st, { sp: copierFast ? 1 : 999 });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'psychup', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'nastyplot', null, S.field)], [f2, { kind: 'pass' }]]));
+    return { copier: (me.boosts && me.boosts.sa) | 0, target: (f1.boosts && f1.boosts.sa) | 0 };
+  };
+  const second = go(false), first = go(true);
+  return { works: second.target === 2 && first.target === 2      /* the Nasty Plot landed in BOTH */
+                  && second.copier === 2 && first.copier === 0,
+           arms: { control: [first.copier, first.target], test: [second.copier, second.target] },
+           detail: '[copier SpA stage, target SpA stage] — copier SLOWER ' + second.copier + ','
+                 + second.target + ' (it takes the +2 Nasty Plot); the identical board with the '
+                 + 'copier FASTER ' + first.copier + ',' + first.target + ' (it copies an empty '
+                 + 'board). The target reads +2 in BOTH arms, so the control is a real ordering and '
+                 + 'not a Nasty Plot that failed to happen' };
+});
+
+/* THE NARRATION HALF, AND IT IS RED. The authority announces the copy itself; this engine announces
+ * only the `|move|` line. Filed rather than fixed in this pass — the state above is correct, so this
+ * is a stream defect and belongs with the narration gate. The arm that keeps it honest is the SAME
+ * click in the same run: the `|move|psychup|` line must be there, so "no copyboost" cannot be
+ * satisfied by a move that never ran. */
+probe('move', 'statChangeInCode', 'Psych Up announces |-copyboost| on the copier', () => {
+  const { me, ally, f1, f2, S } = board('aromatisse', 'incineroar', 'delphox', 'garchomp');
+  me.st = Object.assign({}, me.st, { sp: 1 });
+  f1.st = Object.assign({}, f1.st, { sp: 999 });
+  const trace = []; S._trace = trace;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'psychup', f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'nastyplot', null, S.field)], [f2, { kind: 'pass' }]]));
+  const lines = trace.map(M.traceCanon);
+  const WANT = M.traceCanon('|-copyboost|p1a: aromatisse|p2a: delphox|[from] move: Psych Up');
+  const got = lines.filter(l => /^\|-copyboost\|/.test(l));
+  const ran = lines.filter(l => /^\|move\|p1a[^|]*\|psychup/.test(l)).length;
+  return { works: ran === 1 && got.length === 1 && got[0] === WANT,
+           arms: { control: ran, test: got.length },
+           detail: 'the authority writes `' + WANT + '` (measured on one staged turn). This engine '
+                 + 'writes [' + (got.join(' ') || '(no -copyboost at all)') + ']. The move ran '
+                 + ran + ' time(s) on the same turn and the copy LANDED (the row above asserts the '
+                 + '+2), so this is the line and nothing else' };
+});
+
+/* ---- 4. SPICY SPRAY IS NOT CONTACT-GATED, AND ITS `-immune` NAMES THE ATTACKER ------------------
+ *
+ *     data/abilities.ts  spicyspray.onDamagingHit(damage, target, source, move) {
+ *       if (!source.trySetStatus('brn', target) && !source.status && source.hasType('Fire')) {
+ *         this.add('-immune', source); } }
+ * `data/mods/champions/abilities.ts` carries `spicyspray: { inherit: true, isNonstandard: null }` —
+ * the handler is mainline's and the format merely un-bans it. Its one legal carrier is Scovillain's
+ * mega, `abilities: {0: "Spicy Spray"}`.
+ *
+ * THERE IS NO CONTACT CHECK ANYWHERE IN THE HANDLER, which is the arm a plausible implementation gets
+ * wrong: `onDamagingHit` fires for any hit that dealt damage, so a RANGED SPECIAL attack triggers the
+ * burn. The staged move here is Earth Power — `flags {protect, mirror, nonsky, metronome}`, no
+ * `contact` — read off the format, not recalled.
+ *
+ * MEASURED IN THE AUTHORITY, three staged games, the ability written onto Scovillain directly:
+ *     Garchomp / Earth Power (non-Fire, non-contact)  |-status|p1a: Garchomp|brn|[from] ability: Spicy Spray
+ *     Charizard / Flamethrower (Fire, unstatused)     |-immune|p1a: Charizard        (no [from] tag)
+ *     the same Charizard already paralysed            no line at all, and no burn
+ * This row is the BOARD half and it is LIVE. The `-immune` line has its own row below and is RED. */
+probe('ability', 'punishesAttacker',
+      'Spicy Spray burns a NON-CONTACT special attacker, and never burns a Fire one', () => {
+  const hit = (attSp, mv, pre, ab) => {
+    const { me, ally, f1, f2, S } = board(attSp, 'incineroar', 'scovillain-mega', 'garchomp');
+    f1.ability = ab;
+    if (pre) me.status = pre;
+    unfaintable(f1);
+    const hp = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { status: me.status || 'none', took: hp - f1.curHP };
+  };
+  const ranged = hit('garchomp', 'earthpower', null, 'spicyspray');
+  const control = hit('garchomp', 'earthpower', null, 'none');
+  const fire = hit('charizard', 'flamethrower', null, 'spicyspray');
+  const fireCtl = hit('charizard', 'flamethrower', null, 'none');
+  return { works: ranged.status === 'brn' && control.status === 'none' && ranged.took > 0
+                  && fire.status === 'none' && fireCtl.status === 'none' && fire.took > 0,
+           arms: { control: [control.status, control.took > 0], test: [ranged.status, ranged.took > 0] },
+           detail: '[attacker status after the hit, did the hit land] — EARTH POWER, a ranged SPECIAL '
+                 + 'with no contact flag: ' + ranged.status + ',' + (ranged.took > 0) + ' with Spicy '
+                 + 'Spray and ' + control.status + ',' + (control.took > 0) + ' with the same body '
+                 + 'carrying no ability. A contact-gated implementation reads `none` on the first. '
+                 + 'The FIRE attacker (Flamethrower, unstatused) reads ' + fire.status + ' — Fire '
+                 + 'cannot be burned, and its control with no ability reads ' + fireCtl.status
+                 + ', so the arms differ by the ability and not by the type' };
+});
+
+/* THE `-immune` LINE, AND IT IS RED — DIVERGENCE CARD 6. The roster stages this ability and passes it,
+ * because the roster compares BOARDS and a missing line moves no board. The authority prints a BARE
+ * `|-immune|` naming the ATTACKER (no `[from] ability` tag), and only when all three clauses hold:
+ * the burn attempt failed, the attacker has no status, and the attacker is Fire.
+ *
+ * THE OVER-FIRE CONTROL IS THE ALREADY-STATUSED ARM. `!source.status` is a real clause: a Fire body
+ * that is already paralysed is still immune to the burn and the authority stays SILENT. An engine
+ * that printed the line off the immunity alone would satisfy the positive arm and break this one. */
+probe('ability', 'punishesAttacker',
+      'Spicy Spray announces a bare |-immune| at the FIRE ATTACKER, and only when it is unstatused', () => {
+  const hit = (pre) => {
+    const { me, ally, f1, f2, S } = board('charizard', 'incineroar', 'scovillain-mega', 'garchomp');
+    f1.ability = 'spicyspray';
+    if (pre) me.status = pre;
+    unfaintable(f1);
+    const trace = []; S._trace = trace;
+    const hp = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'flamethrower', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { lines: trace.map(M.traceCanon).filter(l => /^\|-immune\|p1a/.test(l)),
+             took: hp - f1.curHP, status: me.status || 'none' };
+  };
+  const WANT = M.traceCanon('|-immune|p1a: charizard');
+  const clean = hit(null), statused = hit('par');
+  return { works: clean.took > 0 && statused.took > 0
+                  && clean.lines.length === 1 && clean.lines[0] === WANT
+                  && statused.lines.length === 0,
+           arms: { control: statused.lines, test: clean.lines },
+           detail: 'the authority writes `' + WANT + '` — a BARE line naming the attacker, no [from] '
+                 + 'tag (measured). This engine writes [' + (clean.lines.join(' ') || '(silent)')
+                 + ']. The hit landed (' + clean.took + ' HP) so the handler was reached, and the '
+                 + 'ALREADY-PARALYSED control must stay silent — it prints ['
+                 + (statused.lines.join(' ') || '(silent)') + '] off a hit of ' + statused.took + ' HP' };
+});
+
+/* ---- 5. TEN CHARGE MOVES, THREE WEATHER SHORT-CIRCUITS, AND THE SEVEN THAT ARE THE CONTROL -------
+ *
+ * The membership is READ OUT OF data/tags.json on every run, both halves of it, so a move that gains
+ * or loses a charge turn arrives here with a regenerated artifact and no edit. The authority's own
+ * sets, derived by walking `dex.moves.all()` for `flags.charge` and grepping each `onTryMove` for a
+ * weather list, agree exactly:
+ *     charge flag (10)  bounce dig dive electroshot fly meteorbeam phantomforce skyattack solarbeam solarblade
+ *     escape (3)        electroshot ["raindance","primordialsea"], solarbeam / solarblade ["sunnyday","desolateland"]
+ *
+ * THE SEVEN NON-ESCAPERS ARE THE OVER-MATCH CONTROL, and they are why this is a sweep rather than two
+ * probes. An engine that skipped the charge for ANY charge move under ANY weather passes a Solar Beam
+ * probe and a Electro Shot probe and fails here. Each of the ten is played in three skies.
+ *
+ * AND THE RELEASE TURN IS ASSERTED IN EVERY ARM. "Turn 1 dealt nothing" is also what a move that does
+ * not work at all prints, so every arm plays a SECOND turn and requires damage on it. That is the arm
+ * that separates "it is charging" from "it is broken".
+ *
+ * TWO TRAPS, EACH ITS OWN CLAUSE, and both were named before the run:
+ *   - `-prepare` IS EMITTED ABOVE THE WEATHER TEST. Asserting its ABSENCE in sun would assert the
+ *     wrong thing: the authority announces the wind-up and then fires in the same turn.
+ *   - THE SpA BOOST SITS ABOVE THE WEATHER TEST TOO. Electro Shot in rain boosts AND fires on the
+ *     same turn, which is why its rain arm is read for a +1 as well as for damage. */
+probe('move', 'chargeSkippedByWeather',
+      'exactly three of the ten charge moves skip their turn, each only in its OWN weather', () => {
+  const T = require(D('data', 'tags.json'));
+  const TEN = Object.keys(T.moves).filter(id => (T.moves[id].tags || []).indexOf('chargeTurn') >= 0).sort();
+  const SKIP = {};
+  for (const id of TEN) {
+    const p = T.moves[id].params && T.moves[id].params.chargeSkippedByWeather;
+    if (p && p.skipsIn) SKIP[id] = p.skipsIn;
+  }
+  /* THE TARGET IS NOT IMMUNE TO ANY OF THE TEN TYPES. A Normal body takes nothing from Phantom Force,
+   * which would make one row's "no damage" mean two things at once — the shape this batch was told to
+   * avoid. Milotic is neutral or weak to every type in the set. */
+  const go = (mv, weather) => {
+    const { me, ally, f1, f2, S } = board('garchomp', 'incineroar', 'milotic', 'snorlax');
+    me.moves = [mv, 'protect'];
+    unfaintable(f1); unfaintable(f2);
+    const trace = []; S._trace = trace;
+    const out = [];
+    for (let t = 0; t < 2; t++) {
+      S.field.weather = weather;               // re-set each turn: the sky must not tick away mid-arm
+      const hp = f1.curHP;
+      M.battleTurn(S, rng5,
+        new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+      out.push(hp - f1.curHP);
+    }
+    return { t1: out[0], t2: out[1], sa: (me.boosts && me.boosts.sa) | 0,
+             prep: trace.map(M.traceCanon).filter(l => /^\|-prepare\|/.test(l)).length };
+  };
+  const wrong = [];
+  for (const mv of TEN) {
+    for (const sky of ['', 'sun', 'rain']) {
+      const r = go(mv, sky);
+      const shouldSkip = SKIP[mv] === sky;
+      if (shouldSkip && !(r.t1 > 0)) wrong.push(mv + '/' + (sky || 'clear') + ' should have fired on turn 1, dealt ' + r.t1);
+      if (!shouldSkip && r.t1 !== 0) wrong.push(mv + '/' + (sky || 'clear') + ' should have charged, dealt ' + r.t1);
+      if (!(r.t2 > 0)) wrong.push(mv + '/' + (sky || 'clear') + ' dealt nothing on the RELEASE turn (' + r.t2 + ')');
+      if (r.prep < 1) wrong.push(mv + '/' + (sky || 'clear') + ' announced no |-prepare|');
+    }
+  }
+  /* THE ONE ARM THAT IS NOT A MEMBERSHIP QUESTION: the boost is taken whether or not the turn is
+   * spent, so Electro Shot must carry +1 SpA on the very turn rain fires it. */
+  const esRain = go('electroshot', 'rain'), esClear = go('electroshot', '');
+  if (!(esRain.t1 > 0 && esRain.sa >= 1)) wrong.push('electroshot in rain fired ' + esRain.t1 + ' with SpA stage ' + esRain.sa);
+  return { works: TEN.length === 10 && Object.keys(SKIP).length === 3 && wrong.length === 0,
+           arms: { control: [esClear.t1, esClear.sa], test: [esRain.t1, esRain.sa] },
+           detail: TEN.length + ' charge moves in the artifact, ' + Object.keys(SKIP).length
+                 + ' with a weather escape (' + Object.entries(SKIP).map(([k, v]) => k + ':' + v).join(' ')
+                 + '); every one played in clear sky, sun and rain — ' + (wrong.length || 'no')
+                 + ' disagreement(s)' + (wrong.length ? ': ' + wrong.slice(0, 4).join('; ') : '')
+                 + '. ELECTRO SHOT: clear sky turn-1 damage ' + esClear.t1 + ' at SpA stage '
+                 + esClear.sa + ' (it charged and still took the boost); in RAIN ' + esRain.t1
+                 + ' at stage ' + esRain.sa + ' — it fires AND boosts on the same turn, because the '
+                 + 'handler boosts above the weather test' };
+});
+
+/* ---- 6. ENCORE THEN DISABLE EMPTIES THE MENU, AND THE AUTHORITY STRUGGLES -----------------------
+ *
+ * Will: *"stage a mon being encored and then disabled it should result in a struggle."*
+ *
+ * Champions OVERRIDES Encore (`data/mods/champions/moves.ts`, `condition.onStart` only — it
+ * recalculates action priority when it rewrites the queued move) and INHERITS the rest, so
+ * `onDisableMove` is mainline's: it disables every slot EXCEPT the encored one. Disable then takes
+ * that one. Nothing legal remains, and `Pokemon#getMoveRequestData` replaces the whole menu with
+ * Struggle — the same road ROADMAP #144/#152 already wired for a Choice lock onto a Disabled move.
+ *
+ * MEASURED IN THE AUTHORITY, four staged turns, Alakazam (Encore + Disable, both legal on it) against
+ * a Snorlax clicking one move:
+ *     T2  |-start|p2a: Snorlax|Encore
+ *     T3  |-start|p2a: Snorlax|Disable|<the encored move>
+ *     T4  |-activate|p2a: Snorlax|move: Struggle   |move|p2a: Snorlax|Struggle|...
+ *
+ * THIS ENGINE PLAYS NOTHING ON TURN 4. It emits `|cant|p1a: snorlax|disable|<move>` — the chooser
+ * handed back the encored move and the execution gate refused it, so the turn is spent on nothing.
+ * That is a WASTED TURN, not a narration difference, and it is why this row asserts state and not a
+ * line. RED on arrival; filed, not fixed in this pass.
+ *
+ * TWO CONTROLS, EACH REMOVING ONE HALF, because either half alone must leave a menu:
+ *   DISABLE WITHOUT ENCORE — three other slots survive, so the body must play SOMETHING and it must
+ *     not be Struggle. This is what says the Struggle came from the CONJUNCTION.
+ *   ENCORE WITHOUT DISABLE — locked but functional: it must keep playing the encored move.
+ *
+ * AND THE PP BOUNDARY IS AVOIDED DELIBERATELY. Disable refuses when the target's last move has no PP
+ * and Encore ends when the encored move is exhausted; the sealed move here is clicked three times
+ * against a `pp.max` of 16, read out of data/tags.json rather than assumed. Protect's 8 in this
+ * format is exactly how divergence card 19 happened and is not staged here. */
+probe('move', 'sealsMoves',
+      'Encore then Disable leaves no legal move: the engine must Struggle', () => {
+  const run = (useEncore, useDisable) => {
+    const { me, ally, f1, f2, S } = board('snorlax', 'incineroar', 'alakazam', 'garchomp');
+    /* A DECLARED FOUR-MOVE SET, all four legal on this body, because the whole claim is about which
+     * of THESE four the chooser may still offer. The sealer outruns the victim 120 base to 30, so
+     * both seals land before the victim acts. */
+    me.moves = ['bodyslam', 'amnesia', 'crunch', 'icebeam'];
+    f1.moves = ['encore', 'disable', 'protect'];
+    /* Nothing may faint: a KO ends the sequence early and the arms would then differ because somebody
+     * died rather than because a menu emptied. */
+    for (const b of [me, ally, f1, f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 60 }); b.curHP = b.st.hp; }
+    const trace = []; S._trace = trace;
+    const turnMoves = [];
+    const script = [{ me: 'bodyslam', foe: null },
+                    { me: 'bodyslam', foe: useEncore ? 'encore' : null },
+                    { me: 'bodyslam', foe: useDisable ? 'disable' : null },
+                    { me: undefined, foe: null }];   // the engine chooses: what is left on the menu?
+    for (const t of script) {
+      const mark = trace.length;
+      const mine = t.me === undefined ? undefined
+        : new Map([[me, M.playerAction(me, t.me, f1, S.field)], [ally, { kind: 'pass' }]]);
+      const theirs = new Map([[f1, t.foe === null ? { kind: 'pass' } : M.playerAction(f1, t.foe, me, S.field)],
+                              [f2, { kind: 'pass' }]]);
+      M.battleTurn(S, rng5, mine, theirs);
+      const mv = trace.slice(mark).filter(l => /^\|move\|p1a/.test(l)).map(l => l.split('|')[3]);
+      turnMoves.push(mv[0] || null);
+    }
+    return { turnMoves, fourth: turnMoves[3] };
+  };
+  const both = run(true, true);
+  const disableOnly = run(false, true);
+  const encoreOnly = run(true, false);
+  return { works: both.fourth === 'struggle'
+                  && disableOnly.fourth !== null && disableOnly.fourth !== 'struggle'
+                  && encoreOnly.fourth === 'bodyslam',
+           arms: { control: disableOnly.fourth, test: both.fourth },
+           detail: 'turn 4, with the engine choosing — ENCORE + DISABLE played [' + both.fourth
+                 + '] (the authority Struggles); DISABLE ALONE played [' + disableOnly.fourth
+                 + '] (three slots survive, so anything but Struggle is right and this is what says '
+                 + 'the Struggle would come from the conjunction); ENCORE ALONE played ['
+                 + encoreOnly.fourth + '] (locked but functional). Full run, encore+disable: '
+                 + JSON.stringify(both.turnMoves) };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');

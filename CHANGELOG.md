@@ -10,6 +10,74 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.142.0] — 2026-08-26
+
+### Added
+- **SIX FIXTURES WILL ASKED FOR BY NAME, ALL STAGED. CENSUS 737/737 -> 741 LIVE / 745 PROBED, 4
+  MISSING. NO ENGINE BYTE MOVED.** Eight new probes in `tests/test-mechanics.js`. `git diff
+  engine/medicham2-browser.js` is EMPTY at the end of this pass and was checked before the census was
+  regenerated — this batch landed STAGING and deliberately no fixes, because six fixtures plus six
+  fixes in one pass leaves nobody able to say which fix moved which number. Every expectation came out
+  of a game played in the official simulator BEFORE the probe was written.
+- **SCREENS THROUGH AN UNREACHABLE TARGET — CORRECT.** Brick Break and Psychic Fangs carry an
+  identical `onTryHit` removing all three screens, commented *"will shatter screens through sub, before
+  you hit"*. That is easy to read as *before anything* and it is not: the MOVE's own `onTryHit` is a
+  `singleEvent` fired from `spreadMoveHit` inside `hitStepMoveHitLoop`, the LAST entry in `moveSteps`,
+  so it sits BELOW type immunity and BELOW Protect. Three arms staged — Psychic Fangs into a Dark body,
+  Brick Break into a Protect, and a clean Brick Break as the control — and this engine matches the
+  authority on all three.
+- **THE TEN CHARGE MOVES AND THEIR THREE WEATHER SHORT-CIRCUITS — CORRECT.** Membership read out of
+  `data/tags.json` on every run and checked against the authority both ways: ten moves carry
+  `flags.charge` and exactly three carry a weather list in `onTryMove`. Each of the ten is played in
+  clear sky, sun and rain, two turns per arm, with the seven non-escapers as the over-match control.
+  Both traps hold: `-prepare` is emitted ABOVE the weather test (so asserting its absence in sun would
+  assert the wrong thing) and the SpA boost sits above it too — Electro Shot in rain fires for 78 AND
+  carries +1 SpA on the same turn.
+- **PSYCH UP ACROSS A SPEED GAP — CORRECT ON STATE.** Aromatisse (29 base Speed) copying a Delphox
+  (104) that just clicked Nasty Plot takes +2 SpA; the identical board with the copier moving FIRST
+  copies an empty board. That second arm is what makes the row non-vacuous — an engine reading the
+  boosts at end of turn agrees with the slow arm and parts on the fast one.
+- **SPICY SPRAY IS NOT CONTACT-GATED — CORRECT ON STATE.** The handler is `onDamagingHit` with no
+  contact check anywhere in it, so a ranged special triggers the burn; the staged move is Earth Power,
+  whose flags were read off the format rather than recalled. `data/mods/champions/abilities.ts` carries
+  `spicyspray: { inherit: true, isNonstandard: null }`, so the format un-bans mainline's handler.
+
+### Fixed
+- Nothing. This pass changed no engine behaviour, by instruction.
+
+### Notes
+- **THREE NARRATION DEFECTS AND ONE STATE DEFECT, FILED RATHER THAN FIXED.** `docs/ROADMAP.md` #456
+  (Telepathy announces `-immune` where the authority announces `-activate` on the ALLY — divergence
+  card 16, listed `unprobed` since it was filed and now PROBED and RED), #457 (Psych Up's state is
+  right and it writes no `-copyboost` at all), #458 (Spicy Spray never writes its bare `-immune` at an
+  unstatused Fire attacker — divergence card 6, which the roster passes because the roster compares
+  BOARDS), #459 (**state, not narration**: an Encored body whose encored move is then Disabled plays
+  NOTHING — `|cant|` and a wasted turn — where the authority Struggles).
+- **A RED CENSUS ROW IS THE INSTRUMENT WORKING.** `tests/test-mechanics.js` exits 0 on MISSING by
+  design and `live` went UP by four. What the four MISSING rows buy is that the defects are carried by
+  the census instead of by a sentence in a handover.
+- **EVERY GREEN ROW WAS SHOWN RED ON A DELIBERATE BREAK AND THE ENGINE WAS RESTORED BYTE-IDENTICAL.**
+  Six breaks in all: `_stepClearScreens` hoisted to the head of `_STEPS` and again exempted from the
+  driver's `if(R.out)continue;` (both red the immune arm), the Psych Up copy neutered, the charge
+  escape stripped of its weather comparison (3 disagreements) and then made unconditional (**17**, the
+  seven-move control firing), and `_pun.trigger`'s default contact-gated.
+- **ONE ARM IS WEAKER THAN IT LOOKS AND THE PROBE SAYS SO.** Neither screen break reds the PROTECT arm:
+  a shielded body never enters the hit loop in this engine at all, so that arm is blind to a
+  mis-ordering INSIDE the step list. It still fails a break placed at the CLICK — the shape this
+  engine had before 2026-08-24 — and it is still the right outcome to assert; it is simply not the arm
+  that guards the ordering. Written into the probe rather than left to be re-derived.
+- **THE PINNED POOL WAS NOT RE-RUN AND MUST NOT BE QUOTED AS A BEFORE/AFTER.** No engine byte changed,
+  so board-material (4 of 961) and the whole-game clause (10 of 961) cannot have moved; and the census
+  gained eight rows, which steers `covWant` and therefore selects a different sample. Two reasons, one
+  conclusion. All six fixtures are LAB mechanics and the pool was predicted to sit still before the
+  pass, not explained afterwards.
+- **FOUND IN PASSING, NOT FIXED**: the Disable-alone control played `rockslide` off a Snorlax given four
+  other moves — the pre-existing ROADMAP #119/#295 priors leak, where `_chooseAction`'s sampler picks
+  by NAME out of `MC.priors` rather than reading `me.moves`. It does not weaken the control and is
+  reported rather than folded into this batch.
+
+---
+
 ## [5.141.0] — 2026-08-26
 
 ### Fixed
