@@ -10,6 +10,57 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.136.7] — 2026-08-26
+
+### Fixed
+- **A PERISH DEATH IS ANNOUNCED BELOW `|upkeep|` WHEN NOTHING FOLLOWS IT IN THE RESIDUAL WALK, AND
+  THIS ENGINE ALWAYS PUT IT ABOVE.** Will's card 8, read off a real battle: *"showdown is showing a
+  perished mon hitting zero, a turn ending, and then the mon faints with replacements. ours logically
+  shows the mon fainting immediately after perish hits 0 and then the turn ends."* Both halves right.
+  `perishsong.condition.onEnd` is `add('-start', target, 'perish0'); target.faint()` and
+  `Pokemon#faint()` only QUEUES; the line is written by a `faintMessages()`, and a duration expiry
+  `continue`s past the one inside `fieldEvent` (sim/battle.ts:514-524, the drain is :565). So the
+  perish deaths are paid by **the next handler that does not itself expire** — and when there is no
+  such handler the walk ends with the queue full, `case 'residual'` writes `|upkeep|` (:2814) and the
+  tail of `runAction` (:2832) pays it **below** that line. This engine drained unconditionally at the
+  foot of the clock walk, which is right whenever something follows and wrong when nothing does.
+  **The membership is derived, never listed:** `data/residual-order.json` publishes (order, subOrder)
+  by CALLING `Battle#resolvePriority`, perishsong is `24.2`, and the 58 rows that sort after it split
+  three ways — 18 that ALWAYS expire (`duration: 1`, so they can never pay), 14 `route: 'handler'`
+  rows with no duration at all (thirteen abilities and White Herb, which can never expire so they
+  ALWAYS pay), and 26 clocks that may or may not survive their own decrement. `residualFollowerRuns`
+  reads that split against the engine's own live state; a clock row with no reader is collected into
+  `MEDFAILS.residualFollowerUnmapped` rather than quietly reading false, and it is empty on this
+  build. **Measured, not asserted:** on the pinned pool (release `705d2c7e86e8`, census pin
+  `9446a684709d`, frozen team store, arm `middle`, cap 12, 961 games) the whole-game clause moves
+  **14 → 13 of 961** and board-material is **unmoved at 10 of 961**, with exactly one game moving
+  (`ordering :: |upkeep <> |faint|p1b: Glimmora`) and no new divergence appearing. Census **716 →
+  717 live, 0 missing**. Knob `MEDI_RESIDUAL_DRAIN_ABOVE_UPKEEP=1` restores the unconditional drain
+  and was the before-arm of that measurement.
+
+### Added
+- `tests/test-mechanics.js` — `perishClock`: *a perish `|faint|` sits below `|upkeep|` when nothing
+  follows it in the walk, and above it when something does*. Four arms, all four measured in the
+  official simulator before a byte of the fix was written: BARE (nothing follows), PROTECT (a
+  refreshed `stall`), TAILWIND (a side clock at order 26) and PICKUP (an ability handler at order 28
+  that carries no duration). The last three are the over-fire control — an engine that simply moved
+  the drain below `|upkeep|` passes the first and breaks all three.
+
+### Notes
+- **`faintMessages(lastFirst = true)` is unreachable in this format**, so the self-KO ordering does
+  not come from it. Its only caller is the `instafaint` arm of `spreadDamage` (sim/battle.ts:2180),
+  and `instafaint` is passed `true` at zero call sites: `battle.ts:2201` is the only forwarder and
+  both `damage(` callers (`battle-actions.ts:1392`, `data/mods/champions/moves.ts:843`) omit it. The
+  user-before-target order comes from QUEUE ORDER — `selfdestruct: 'always'` calls `pokemon.faint()`
+  inside `damageCallback`, above the target's damage — and both engines already agree on it, staged
+  and checked: Kingambit's Explosion writes `|faint|p1a: Kingambit` then `|faint|p2a: Alakazam` in
+  the authority and identically here.
+- **The `p2a:`/`p2:` naming symptom did NOT fall out of this change, so the two are not one root.**
+  The authority flips `isActive = false` INSIDE `faintMessages` (sim/battle.ts:2563); this engine has
+  no `isActive` and `ident()` never consults `fainted` — `TR.hitcount` is the one reader that
+  special-cases a corpse. Moving WHEN the queue drains cannot change what `ident()` returns. No
+  corpse-naming divergence is live in the pinned pool today.
+
 ## [5.136.6] — 2026-08-26
 
 ### Fixed

@@ -21,6 +21,69 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## CARD 8: THE PERISH FAINT IS OWED TO THE TAIL OF `runAction`, WHICH IS BELOW `|upkeep|` — BUT ONLY WHEN NOTHING FOLLOWS IT. WHOLE-GAME 14 -> 13 OF 961, BOARD-MATERIAL UNMOVED AT 10, CENSUS 716 -> 717. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.136.7. Release cut: `705d2c7e86e8`.
+
+**THE DEFECT IS A CONDITION, NOT A POSITION, AND THE PREVIOUS PASS NAMED THE RIGHT DRAIN AND PUT IT IN
+THE WRONG PLACE.** The 2026-08-24 comment at the foot of the clock walk says the queue is paid by *"the
+tail of `runAction`, sim/battle.ts:2832"* — and then drained ABOVE `|upkeep|`. `case 'residual'` writes
+`|upkeep|` at :2814; :2832 is eighteen lines BELOW it. A duration expiry `continue`s past `fieldEvent`'s
+own drain (:565), so the perish deaths survive the walk and are paid by **the next handler that does not
+itself expire**; only when there is no such handler do they reach :2832.
+
+**THE MEMBERSHIP IS DERIVED AND WAS PRINTED BEFORE IT WAS WIRED.** `data/residual-order.json` publishes
+(order, subOrder) by CALLING `Battle#resolvePriority`. perishsong is `24.2`; 58 rows sort after it and
+split three ways — **18 ALWAYS-EXPIRES** (`route: duration`, `duration: 1` — Protect, the shields,
+Follow Me, roost@25: a one-turn clock always reaches zero, so it always `continue`s), **14
+HANDLER-ALWAYS-RUNS** (`route: handler`, no duration — thirteen abilities and White Herb, which can
+never expire), **26 CLOCKS** that may or may not survive. Nothing over-matched and nothing is unmapped;
+`residualFollowerReport()` prints the whole split and `MEDFAILS.residualFollowerUnmapped` is the loud
+hole if a later regulation adds a row this engine has no reader for.
+
+**FOUR ARMS, ALL MEASURED IN THE OFFICIAL SIMULATOR BEFORE A BYTE MOVED**, over
+`engine/game_differential.js`'s two-stream harness — one board, Perish Song into doubles, everybody
+clicking a stat boost so no `stall` is standing on the death turn:
+
+| arm | authority | why |
+|---|---|---|
+| BARE | `perish0 x4  \|upkeep  \|faint x4` | nothing follows; :2832 pays |
+| PROTECT | `perish0 x4  \|faint x4  \|upkeep` | `stall` (duration 2, refreshed this turn) survives |
+| TAILWIND | `perish0 x4  \|faint x4  \|upkeep` | a side clock at order 26 survives |
+| PICKUP | `perish0 x4  \|faint x4  \|upkeep` | an ability handler at order 28 that cannot expire |
+
+The last three are the OVER-FIRE CONTROL and they are not decoration: an engine that simply moved the
+drain below `|upkeep|` passes the first and breaks all three. Speed Boost was the obvious carrier for
+the handler arm and was rejected ON MEASUREMENT — it parts from the authority on turn 1 for an unrelated
+reason, so that board never reaches turn 4.
+
+**PREDICTED BEFORE THE RUN, AND THE PREDICTION HELD.** Whole-game 14 → 13; board-material unmoved at 10,
+because an `|upkeep|`/`|faint|` swap writes no different board leaf. Both arms on release
+`705d2c7e86e8`, census pin `9446a684709d`, `--team-store data/team-pool-frozen`, arm `middle`, cap 12,
+961 games; the before-arm is the engine's own `MEDI_RESIDUAL_DRAIN_ABOVE_UPKEEP=1` knob, so the two
+runs differ in NO bytes at all. Exactly one game moved (`ordering :: |upkeep <> |faint|p1b: Glimmora`),
+**no new divergence appeared**, and the eleven board families are identical row for row.
+
+**THE MULTIPLIER CLAIM IS REFUTED FOR THIS DRAIN.** The brief ranked card 8 as a multiplier — *"a faint
+announced early shifts every line after it, so games currently filed under other classes may be
+downstream of it"*. On this pool, at this drain, nothing else moved: one game aimed at, one game gone,
+zero games newly diverged. That is a claim about ONE of the authority's eight drains and about the ~25
+sites this engine still announces inline; it is not a verdict on faint batching as a whole.
+
+**`lastFirst` IS DEAD CODE IN THIS FORMAT.** `faintMessages(lastFirst = true)` has one caller, the
+`instafaint` arm of `spreadDamage` (sim/battle.ts:2180), and `instafaint` is passed `true` at ZERO call
+sites: `battle.ts:2201` is the only forwarder and both `damage(` callers omit it. The self-KO order
+comes from the QUEUE instead — `selfdestruct: 'always'` calls `pokemon.faint()` inside `damageCallback`,
+above the target's damage — and a staged Explosion confirms both engines already write
+`|faint|<user>` before `|faint|<target>`.
+
+**THE NAMING SYMPTOM DID NOT FALL OUT FOR FREE, WHICH MEANS THE TWO ARE NOT ONE ROOT.** `isActive` flips
+INSIDE `faintMessages` (:2563); this engine has no `isActive` and `ident()` never consults `fainted` —
+`TR.hitcount` is the single special-cased reader. Moving WHEN the queue drains cannot change what
+`ident()` returns, and no corpse-naming divergence is live in the pinned pool today.
+
+---
+
 ## EIGHTEEN EXPIRED "SHOWN RED" CERTIFICATES WERE BEING PUBLISHED AS A BROKEN SIMULATOR. OPEN-DEFECT CLAUSE 2 RED ROWS -> 1. CENSUS UNMOVED AT 716/716. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.136.6. Release cut: `ef2c826b5718` — **the same

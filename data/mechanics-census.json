@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T09:47:41.250Z",
+  "generated": "2026-08-26T10:55:28.538Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 716,
-  "live": 716,
+  "probed": 717,
+  "live": 717,
   "missing": 0,
-  "armed": 716,
+  "armed": 717,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1014,6 +1014,16 @@
       "label": "a sandstorm faint is announced after the LAST body is chipped; a burn faint is not",
       "live": true,
       "detail": "SAND (one handler, every body): 4 chip lines and the |faint| sits after 4 of them (must be 4 of 4 — Alakazam dies first and three bodies are still owed their chip). BURN (a handler per body): 4 chip lines, |faint| after 1 (must be 1 — the drain is between handlers). sand [\"|-damage|p2a:alakazam|0fnt|[from]sandstorm\",\"|-damage|p2b:gengar|127/135|[from]sandstorm\",\"|-damage|p1a:milotic|160/170|[from]sandstorm\",\"|-damage|p1b:clefable|160/170|[from]sandstorm\",\"|faint|p2a:alakazam\"] burn [\"|-damage|p2a:alakazam|0fnt|[from]brn\",\"|faint|p2a:alakazam\",\"|-damage|p2b:gengar|127/135brn|[from]brn\",\"|-damage|p1a:milotic|160/170brn|[from]brn\",\"|-damage|p1b:clefable|160/170brn|[from]brn\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perishClock",
+      "label": "a perish |faint| sits below |upkeep| when nothing follows it in the walk, and above it when something does",
+      "live": true,
+      "detail": "first of the |faint|/|upkeep| lines — BARE |upkeep (must be |upkeep: nothing follows the expiry, so the tail of runAction pays), PROTECT |faint|p2b:garchomp, TAILWIND |faint|p1b:corviknight, PICKUP |faint|p2b:diggersby (all three must be a |faint|: a surviving handler pays before |upkeep|). faints per arm 4/4/4/4 (must be 4 each). bare [\"|upkeep\",\"|faint|p2b:garchomp\",\"|faint|p1b:corviknight\",\"|faint|p1a:primarina\",\"|faint|p2a:snorlax\"] protect [\"|faint|p2b:garchomp\",\"|faint|p1b:corviknight\",\"|faint|p1a:primarina\",\"|faint|p2a:snorlax\",\"|upkeep\"]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3643,7 +3653,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

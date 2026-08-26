@@ -60,7 +60,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  716/716 probed mechanics live, 0 missing   (census 2026-08-26 05:47)
+  717/717 probed mechanics live, 0 missing   (census 2026-08-26 06:35)
   0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -72,16 +72,197 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0a982abaeb5a now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0a2b7054255e now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 354cda044697 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 904c2cb22963 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-26 05:52_
+_stamped 2026-08-26 06:51_
 
 <!-- /GENERATED -->
+
+## CARD 8. THE PERISH FAINT IS OWED TO A DRAIN THAT SITS **BELOW** `|upkeep|` — BUT ONLY WHEN NOTHING FOLLOWS IT IN THE WALK. WHOLE-GAME CLAUSE 14 -> 13 OF 961, BOARD-MATERIAL UNMOVED AT 10, CENSUS 716 -> 717. 2026-08-26.
+
+Will, reading card 8: *"showdown is showing a perished mon hitting zero, a turn ending, and then the mon
+faints with replacements. ours logically shows the mon fainting immediately after perish hits 0 and then
+the turn ends. i feel like ours is correct but obviously showdown is the authority."* Both halves right,
+and the authority's order is deliberate.
+
+### THE DEFECT IS A CONDITION, AND THE PREVIOUS PASS NAMED THE RIGHT DRAIN IN THE WRONG PLACE
+
+`perishsong.condition.onEnd` is two statements — `add('-start', target, 'perish0'); target.faint()` —
+and `Pokemon#faint()` only QUEUES. The line is written by a `faintMessages()`, and a duration expiry
+`continue`s past the one inside `fieldEvent`:
+
+```
+if (eventid === 'Residual' && handler.end && handler.state?.duration) {
+  handler.state.duration--;
+  if (!handler.state.duration) { handler.end.call(...); continue; }   <- SKIPS :565
+}
+...
+this.faintMessages();                                                 <- :565
+```
+
+So the deaths survive the expiry and are paid by **the next handler that does not itself expire**. Only
+when there is no such handler do they reach the tail of `runAction` — and the 2026-08-24 comment at the
+foot of this engine's clock walk names exactly that call, *"the tail of `runAction`,
+sim/battle.ts:2832"*, and then drains **above** `|upkeep|`. `case 'residual'` writes `|upkeep|` at
+:2814. **:2832 is eighteen lines below it.** The old position is right whenever something follows and
+wrong when nothing does; `residualFollowerRuns` is the whole of the difference.
+
+### THE MEMBERSHIP IS DERIVED, AND IT WAS PRINTED BEFORE IT WAS WIRED
+
+`data/residual-order.json` publishes (order, subOrder) for every walk participant by CALLING
+`Battle#resolvePriority`, so this file owns no copy of the sort rule. perishsong is `24.2`. **58 rows
+sort after it** — `order: null` becomes `false` in `resolvePriority` and `comparePriority` substitutes
+`4294967296`, so an undeclared order sorts LAST — and they split three ways:
+
+| family | rows | can it pay the queue |
+|---|---|---|
+| **ALWAYS-EXPIRES** | 18 | **never.** `route: duration`, `duration: 1` — Protect and the other shields, Follow Me, Helping Hand, Rage Powder, roost@25. A one-turn clock always reaches zero at the residual, so it always `continue`s |
+| **HANDLER-ALWAYS-RUNS** | 14 | **always.** `route: handler`, no duration at all — Pickup, Harvest, Cud Chew, Moody, Speed Boost, Bad Dreams, Slow Start, Opportunist, Zen Mode, Schooling, Shields Down, Power Construct, Hunger Switch, and White Herb |
+| **CLOCKS** | 26 | **if it survives its own decrement** — the screens, Tailwind, Trick Room, Gravity, the rooms, the terrains, `stall`, the two-turn wind-ups, `lockedmove`, Uproar, Ally Switch, Lock-On, `mustrecharge`, Fairy Lock |
+
+Nothing over-matched, and the list was printed and read against an independent derivation from the
+format before a line of the reader existed. `residualFollowerReport()` exports the whole split and
+`MEDFAILS.residualFollowerUnmapped` is the loud hole — a clocks row with no engine reader is collected
+there rather than quietly reading false, which is the exact shape of a working feature. **It is empty on
+this build.**
+
+The readers are the per-turn flags this engine already keeps, which is why no second clock was added: a
+duration-2 volatile survives exactly when it was applied THIS turn, so `stall` is `_stallFresh`, the
+wind-ups are `_charging`, the recharge is `_recharge`, and the side/field clocks are simply still
+standing after `residualExpireAt` has run.
+
+### FOUR ARMS, ALL MEASURED IN THE OFFICIAL SIMULATOR BEFORE A BYTE MOVED
+
+One board — Perish Song into a doubles board, everybody clicking a stat boost so no `stall` is left
+standing on the death turn — through `engine/game_differential.js`'s two-stream harness:
+
+| arm | the authority writes | why |
+|---|---|---|
+| BARE | `perish0 x4` `\|upkeep` `\|faint x4` | nothing follows the expiry; :2832 pays |
+| PROTECT | `perish0 x4` `\|faint x4` `\|upkeep` | `stall` (duration 2, refreshed) survives |
+| TAILWIND | `perish0 x4` `\|faint x4` `\|upkeep` | a side clock at order 26 survives |
+| PICKUP | `perish0 x4` `\|faint x4` `\|upkeep` | an ability handler at order 28 that cannot expire |
+
+**The last three are the over-fire control and they are not decoration.** An engine that simply moved
+the drain below `|upkeep|` passes the bare arm and breaks all three. Speed Boost was the obvious carrier
+for the handler arm and was **rejected on measurement** rather than on taste: it parts from the
+authority on turn 1 for an unrelated reason, so that board never reaches turn 4.
+
+### THE PROBE, RED FIRST, AND THE KNOB THAT MOVES IT
+
+`tests/test-mechanics.js` `perishClock` — *a perish `|faint|` sits below `|upkeep|` when nothing follows
+it in the walk, and above it when something does*. Before the fix it read **MISSING** with all four arms
+answering `|faint|` first; after it, BARE reads `|upkeep` and the three controls are unmoved.
+`MEDI_RESIDUAL_DRAIN_ABOVE_UPKEEP=1` puts it back to MISSING and moves **only the bare arm**, which is
+what says the knob is wired to the condition rather than to the drain.
+
+Two knobs now, deliberately: `MEDI_FAINT_INLINE=1` is *"the line is deferred at all"* and this one is
+*"the drain it is deferred to is the right one"*. One knob would make the second claim unfallible.
+
+### WHAT MOVED, AGAINST A PREDICTION PUBLISHED BEFORE THE RUN
+
+Predicted: whole-game **14 → 13**; board-material **10 → 10, unmoved**, because an `|upkeep|`/`|faint|`
+swap writes no different board leaf; exactly one game moving; the named risk that the game might play on
+past turn 4 and part somewhere else instead.
+
+Both arms on release `705d2c7e86e8`, census pin `9446a684709d`, `--team-store data/team-pool-frozen`,
+arm `middle`, cap 12, 961 games — the before-arm is the engine's own knob, so **the two runs differ in
+no bytes at all**.
+
+- `diverged` **19 → 18**; `state.games_board_never_diverged` **951 → 951**.
+- The gate's whole-game clause **14 → 13 of 961** (18 raw, less the 5 declared `fallenundefined` rows).
+- **Exactly one game gone:** `baseline / gen9championsvgc2026regmbbo3-2654016071`, turn 4,
+  `ordering :: |upkeep <> |faint|p1b: Glimmora`. **Zero new.** Zero games changed cause. The eleven
+  board families are identical row for row.
+- Census **716 → 717 live, 0 missing**.
+- The three roster stages and `all_mechanics_fire.js` were re-run on the new release, because an engine
+  edit makes the old artifacts an answer about other bytes. Roster: **0 FIRED-AND-BOARDS-DIFFER and 0
+  DID-NOT-FIRE across items, abilities and moves**.
+
+**SO THE MULTIPLIER CLAIM IS REFUTED FOR THIS DRAIN, AND SAYING SO IS THE RESULT.** The brief ranked
+card 8 as a multiplier — *"a faint announced early shifts every line after it, so games currently filed
+under other classes may be downstream of it"*. One game was aimed at, one game went, nothing else moved
+in either direction. That is a verdict about ONE of the authority's eight drains on THIS pool; it is not
+a verdict about faint batching, because ~25 sites in this engine still announce inline and none of them
+was touched here.
+
+### `lastFirst` IS DEAD CODE IN THIS FORMAT, AND THE SELF-KO ORDER COMES FROM THE QUEUE
+
+`faintMessages(lastFirst = true)` has exactly one caller — the `instafaint` arm of `spreadDamage`,
+sim/battle.ts:2180 — and `instafaint` is passed `true` at **zero** call sites: `battle.ts:2201` is the
+only forwarder and both `damage(` callers (`battle-actions.ts:1392`, `data/mods/champions/moves.ts:843`)
+omit it. So the parameter cannot be the reason a self-KO move faints its user first. The reason is
+QUEUE ORDER: `selfdestruct: 'always'` calls `pokemon.faint()` inside `damageCallback`, above the
+target's damage, so the user is first on `faintQueue`. **Staged rather than argued** — Kingambit's
+Explosion into an Alakazam it kills writes `|faint|p1a: Kingambit` then `|faint|p2a: Alakazam` in the
+authority, and medicham2 agrees line for line. The engine already models it (`_selfKOPending` at the top
+of `_stepFaint`); nothing was changed.
+
+### THE NAMING SYMPTOM DID NOT FALL OUT FOR FREE — SO THEY ARE NOT ONE ROOT
+
+The brief expected `Pokemon#toString()`'s `p2a:` → `p2:` flip to come along with this. It does not, and
+the reason is structural rather than an oversight: the authority sets `isActive = false` **inside**
+`faintMessages` (sim/battle.ts:2563), whereas this engine has no `isActive` at all and `ident()` never
+consults `fainted` — `TR.hitcount` is the single reader that special-cases a corpse, and it was fixed on
+its own in 2026-08-22. Moving WHEN the queue drains cannot change what `ident()` returns. **No
+corpse-naming divergence is live in the pinned pool today**: the only bare-`p1:`/`p2:` idents in the 18
+remaining first-divergences are Tailwind's `-sideend`, which names a SIDE and is correct in both.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~the perish `|faint|` is announced above `|upkeep|` unconditionally~~ — **CLOSED.** The census
+  carries it as `perishClock` with its three over-fire controls, and the knob is the before-arm.
+
+**Still open, filed with its evidence:**
+- **`tests/test-assert-mode.js` IS RED AND IT IS NOT MINE — PROVED, NOT ASSUMED.** `git stash`ed to
+  HEAD it reads **3 of 3 FAILED** (one of them HOLLOW); with this pass's bytes it reads **2 of 3**.
+  Both survivors are the same shape — a Ground move whose Levitate target refuses it, where the ALLY's
+  HP parts: `levitate-refuses-bulldoze` medicham 119 / showdown 115, `levitate-refuses-earthquake`
+  medicham 86 / showdown 73. **This engine deals LESS**, which is the direction a spread reduction
+  applied where the authority applies none would take it (`move.spreadHit` is set at
+  battle-actions.ts:551 from `targets.length > 1`, before any immunity runs). Not diagnosed further and
+  NOT fixed here — it is a damage change, which owes the 6,000-row `test-engine-diff.js` re-run, and
+  mixing it into this batch would destroy the attribution of the numbers above.
+- **`tests/test-board-browser.js` IS RED and is `board.js`'s**, which this division may not edit:
+  `tgtMayProtect`, `koTarget` and `stallIntoEncore` disagree between node and the browser bundle. It
+  fails identically under this pass's before-arm knob. **Reported, not fixed** — a refit question,
+  MEASURE's.
+- **`engine/medicham2-browser.js` DECLARES `canMegaNow` TWICE**, at ~:14633 and ~:14736, with identical
+  bodies — carried forward from the previous batch, unmoved and untouched.
+- **`p2.active[1].stall  medicham 0 / showdown 3`** — carried forward, unmoved.
+- **`data/protocol-events.json` is UNSAFE and already was** — this pass emits no new event kind.
+- **`tests/test-resolution-order.js` OOMs at the default heap** (#446) — not mine, not waived, still
+  open. This batch's four arms are census probes for that reason; the two-stream measurements above
+  were taken through the same harness that file uses, by hand.
+
+### OWED, NOT RUN
+
+- `tests/test-engine-diff.js` exits **3** at its default sample (`PUBLISH REFUSED`, 150 rows declining
+  to overwrite a 6,000-row artifact). The owed 6,000-row re-run is **not owed by this pass**, and that
+  is a measurement rather than an argument: nothing here reads `_FAINTQ` for state, `_fallenStuck` is
+  stamped only by `bringIn` so the `-end|fallenN` line is unchanged, and the only new state-dependent
+  branch is whether the `|upkeep|` LINE is written. Damage did not move.
+- `engine/wire_ladder.js`, `tests/interaction_matrix.js` — not re-run; their ledger figures predate
+  this batch.
+- `tests/run-all.js` — **run, then VOIDED BY MY OWN HAND and re-run.** The first pass was in flight when
+  I `git stash`ed two files for four seconds to date the `test-assert-mode` red, so every check that
+  started inside that window read HEAD's bytes. That is the "nothing in frame may move" rule broken by
+  the measurer rather than by a neighbour, and the honest thing is to say so rather than quote the run.
+
+### LEFT ALONE, REPORTED
+
+- `.scratch_eng/`, `data/_pair-pilot.json`, `data/medicham-represented-clicks.json` — another session's.
+  Untouched, executed nothing in them.
+- `data/archetypes.json`, `data/conformance.json`, `data/forme-assert.json`, `data/job-costs.jsonl`,
+  `data/kad-replays.js`, `data/live.js`, `data/provenance-stamp.json`, `data/regulation-usage.json`,
+  `data/rulebook-collision.json`, `data/switch-back-renamed.json` — modified in the working tree before
+  this pass started. **Not part of this commit — added by name only.**
 
 ## EIGHTEEN "SHOWN RED BEFORE TRUSTED" CERTIFICATES HAD EXPIRED SILENTLY, AND AN UNDECLARED EXIT CODE WAS PUBLISHING THEM AS A BROKEN SIMULATOR. OPEN-DEFECT CLAUSE 2 RED ROWS -> 1. CENSUS UNMOVED AT 716/716. 2026-08-26.
 

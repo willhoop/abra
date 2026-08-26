@@ -414,9 +414,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                            reads 0 on every board where no punish was lethal.
    *   faintDrainResidualClocks the subset drained at the foot of the residual CLOCK walk (2026-08-24
    *                            — the Perish Song death). It reads 0 on every board where no clock
-   *                            ran out on a body, which is nearly all of them. */
+   *                            ran out on a body, which is nearly all of them.
+   *   faintDrainResidualAfterUpkeep  2026-08-26 — the SAME perish deaths, drained BELOW `|upkeep|`
+   *                            instead, at the tail of `runAction` (sim/battle.ts:2832). Which of
+   *                            these two the walk uses is decided by `residualFollowerRuns`, so the
+   *                            pair is a split of one population and never an addition to it: a
+   *                            board with a perish death scores exactly one of them.
+   *   residualFollowerFound    residual walks that ENDED with a handler still to run after the last
+   *                            expiry, i.e. the decision above resolved "drain here". Counted even
+   *                            when the queue is empty, because the point of the number is that the
+   *                            predicate is being ASKED — a zero on a run full of Protects would say
+   *                            the reader is unwired rather than that nothing followed. */
   faintLineQueued: 0, faintLineInline: 0, faintDrains: 0,
   faintDrainWeatherGroup: 0, faintDrainAfterHitLoop: 0, faintDrainResidualClocks: 0,
+  faintDrainResidualAfterUpkeep: 0, residualFollowerFound: 0,
   /* 2026-08-22 -- ENTRY-ORDER PAIRS SEPARATED BY PRIORITY RATHER THAN BY SPEED. THE NOUN: it counts
    * COMPARISONS in which the two bodies carried DIFFERENT `onSwitchInPriority` values, so the sort
    * returned on the priority key and never consulted speed. Not entrants, not turns, and not "a
@@ -5747,6 +5758,136 @@ const RESIDUAL_EXPIRY_SITES = new Set(['side', 'pseudoweather', 'terrain']);
 const residualExpiryDeferred = () => [...RESIDUAL_EXPIRY.entries()]
   .filter(([id, r]) => !RESIDUAL_EXPIRY_SITES.has(r.site) && id !== 'roost' && r.order != null)
   .map(([id, r]) => id + '@' + r.order).sort();
+/* 2026-08-26 -- WHO FOLLOWS A PERISH DEATH IN THE WALK, AND WHY THAT DECIDES WHERE `|faint|` LANDS.
+ *
+ * `perishsong.condition.onEnd` is `add('-start', target, 'perish0'); target.faint()`, and
+ * `Pokemon#faint()` only QUEUES -- it emits nothing. The line is written by a `faintMessages()`, and
+ * a DURATION EXPIRY `continue`s past the one inside `fieldEvent` (sim/battle.ts:514-524, the drain is
+ * :565). So the perish deaths are still owed when the loop moves on, and they are paid by THE NEXT
+ * HANDLER THAT DOES NOT ITSELF EXPIRE. If no such handler exists the walk ends with the queue full,
+ * `case 'residual'` writes `|upkeep|` (:2814) and the tail of `runAction` (:2832) pays it BELOW that
+ * line -- which is Will's card 8 exactly: *"showdown is showing a perished mon hitting zero, a turn
+ * ending, and then the mon faints with replacements"*.
+ *
+ * SO THE POSITION IS CONDITIONAL. This engine drained unconditionally at the foot of the clock walk,
+ * i.e. always above `|upkeep|` -- right whenever anything follows, wrong when nothing does.
+ *
+ * THE MEMBERSHIP IS DERIVED, NOT LISTED, for the reason `RESIDUAL_EXPIRY` above is: the artifact
+ * CALLS `Battle#resolvePriority`, so a row's (order, subOrder) is the authority's own answer. A row
+ * sorts after perishsong when its order is greater, or when it declares none at all -- `order: null`
+ * becomes `false` in `resolvePriority` and `comparePriority` substitutes 4294967296, so those sort
+ * LAST. Measured on this build: 58 rows follow perishsong@24.2, splitting three ways.
+ *
+ *   alwaysExpires  18 rows, every one `route: 'duration'` with `duration: 1` -- Protect, the other
+ *                  shields, Follow Me, Helping Hand, roost@25. A one-turn clock ALWAYS reaches zero
+ *                  at the residual, so it always `continue`s and can never pay the queue. They are
+ *                  separated rather than dropped because "it is in the walk" and "it can drain" are
+ *                  two different facts and only the second one is wanted here.
+ *   handlers       14 rows, `route: 'handler'` and no duration at all -- thirteen abilities
+ *                  (Pickup, Harvest, Cud Chew, Moody, Speed Boost, Bad Dreams, Slow Start,
+ *                  Opportunist, Zen Mode, Schooling, Shields Down, Power Construct, Hunger Switch)
+ *                  and White Herb. Nothing can expire, so a body carrying one ALWAYS pays the queue.
+ *   clocks         26 rows that may or may not survive their own decrement -- the screens, Tailwind,
+ *                  Trick Room, Gravity, the rooms, the terrains, `stall`, the two-turn wind-ups,
+ *                  `lockedmove`, Uproar, Ally Switch, Lock-On, `mustrecharge`, Fairy Lock.
+ *
+ * ALL THREE FAMILIES WERE MEASURED IN THE OFFICIAL SIMULATOR BEFORE THIS WAS WRITTEN, on one board
+ * (Perish Song into a doubles board, everybody clicking a stat boost so no `stall` is left standing):
+ * bare reads `perish0 x4 | upkeep | faint x4`; the same board with a Protect, with a Tailwind, or
+ * with a Pickup body on it reads `perish0 x4 | faint x4 | upkeep`. The last three are the over-fire
+ * control -- an engine that simply moved the drain below `|upkeep|` passes the first and breaks all
+ * three.
+ *
+ * IT IS NEVER SILENT. A `clocks` row this engine has no reader for is collected at load into
+ * `MEDFAILS.residualFollowerUnmapped` rather than quietly reading false, because a follower that
+ * cannot be seen is a drain that silently moves below `|upkeep|` -- the exact shape of a working
+ * feature. It is empty on this build and `residualFollowerReport()` prints the whole split. */
+const RESIDUAL_AFTER_PERISH = (() => {
+  const out = { clocks: [], handlerAbility: new Set(), handlerItem: new Set(), alwaysExpires: [] };
+  let rows = null;
+  try { rows = require('../data/residual-order.json').rows; }
+  catch (e) { rows = null; MEDFAILS.residualFollowerTableMissingWhy = String((e && e.message) || e); }
+  const perish = (rows || []).find(r => r.id === 'perishsong' && r.site === 'volatile');
+  if (!perish) { MEDFAILS.residualFollowerTableMissing = 1; return out; }
+  for (const r of rows) {
+    const after = r.order === null || (perish.order !== null && r.order !== null && r.order > perish.order)
+      || (r.order === perish.order && r.subOrder > perish.subOrder);
+    if (!after || r === perish) continue;
+    if (r.route === 'duration' && r.duration === 1) { out.alwaysExpires.push(r.id); continue; }
+    if (r.route === 'handler') { (r.ns === 'item' ? out.handlerItem : out.handlerAbility).add(r.id); continue; }
+    out.clocks.push({ id: r.id, site: r.site });
+  }
+  return out;
+})();
+/* THE FIELD-LEVEL CLOCKS, KEYED BY THE ARTIFACT'S ID. `fairylock` is the one read that is not `> 0`:
+ * its clock is spent at the FOOT of the turn, below this decision, so at the moment it is asked the
+ * value is still pre-decrement and 1 means "expires this residual". Every other field clock in this
+ * map is spent by `residualExpireAt` inside the group loop, which is above -- so a survivor is
+ * already `> 0` and a body that expired is already gone. */
+const RESIDUAL_FOLLOWER_FIELD = { trickroom: 'tr', gravity: 'gravity', wonderroom: 'wonderRoom',
+                                  magicroom: 'magicRoom', fairylock: 'fairylock' };
+/* THE PER-BODY CLOCKS. Each returns whether the volatile is STILL THERE after this residual, which is
+ * the same question `handler.state.duration` answers in the authority. A duration-2 volatile survives
+ * exactly when it was applied THIS turn, which is why `_stallFresh`, `_charging` and `_recharge` --
+ * all per-turn flags this engine already keeps -- are the right readers and no second clock is added. */
+const RESIDUAL_FOLLOWER_VOL = {
+  stall:        m => !!m._stallFresh,
+  allyswitch:   m => m._aswDur > 1,
+  lockon:       m => !!(m._vol && m._vol.lockon > 1),
+  mustrecharge: m => !!m._recharge,
+  lockedmove:   m => !!m._mtLock,
+  uproar:       m => !!(m._mtLock && m._mtLock.vol === 'uproar'),
+  twoturnmove:  m => !!m._charging,
+  fly:          m => !!m._charging, dig: m => !!m._charging, dive: m => !!m._charging,
+  bounce:       m => !!m._charging, phantomforce: m => !!m._charging,
+};
+{ const un = RESIDUAL_AFTER_PERISH.clocks.filter(c =>
+    !(c.site === 'side' || (c.site === 'pseudoweather' && RESIDUAL_FOLLOWER_FIELD[c.id])
+      || c.site === 'terrain' || (c.site === 'volatile' && RESIDUAL_FOLLOWER_VOL[c.id])))
+    .map(c => c.site + ':' + c.id);
+  if (un.length) MEDFAILS.residualFollowerUnmapped = un.join(','); }
+const residualFollowerReport = () => ({
+  clocks: RESIDUAL_AFTER_PERISH.clocks.map(c => c.site + ':' + c.id).sort(),
+  handlers: [...RESIDUAL_AFTER_PERISH.handlerAbility, ...RESIDUAL_AFTER_PERISH.handlerItem].sort(),
+  alwaysExpires: RESIDUAL_AFTER_PERISH.alwaysExpires.slice().sort(),
+  unmapped: MEDFAILS.residualFollowerUnmapped || '',
+});
+/* DOES ANYTHING RUN AFTER THE LAST PERISH EXPIRY? Asked at the foot of the clock walk, which is where
+ * the authority's walk has just finished; a `true` means the queue is paid there and a `false` means
+ * it is owed to the tail of `runAction`, below `|upkeep|`.
+ *
+ * A FAINTED BODY STILL COUNTS, and that is the authority's own reading rather than a convenience:
+ * `fieldEvent` skips a handler whose holder is `fainted`, and `fainted` is set INSIDE `faintMessages`
+ * -- so a body killed by the perish this very walk is still `fainted: false` up there and its own
+ * Pickup, Protect counter or wind-up is still in the list. This engine sets `fainted` at the state
+ * transition (see `queueFaint`), so filtering on it here would be a divergence rather than a match. */
+function residualFollowerRuns(field, sfA, sfB, actA, actB) {
+  const bodies = [...(actA || []), ...(actB || [])].filter(Boolean);
+  for (const m of bodies) {
+    const ab = String(m.ability || '').replace(/[^a-z0-9]/g, '');
+    if (RESIDUAL_AFTER_PERISH.handlerAbility.has(ab)) return true;
+    const it = String(m.item || '').replace(/[^a-z0-9]/g, '');
+    if (RESIDUAL_AFTER_PERISH.handlerItem.has(it)) return true;
+  }
+  for (const c of RESIDUAL_AFTER_PERISH.clocks) {
+    if (c.site === 'side') {
+      if (c.id === 'tailwind') { if (field.twA > 0 || field.twB > 0) return true; continue; }
+      for (const sf of [sfA, sfB]) if (sf && sf.sc && sf.sc[c.id] > 0) return true;
+    } else if (c.site === 'pseudoweather') {
+      const k = RESIDUAL_FOLLOWER_FIELD[c.id];
+      if (!k) continue;
+      if (k === 'fairylock') { if (field.fairylock > 1) return true; }
+      else if (field[k] > 0) return true;
+    } else if (c.site === 'terrain') {
+      if (field.terrainT > 0 && residualTerrainKey(field.terrain) === c.id) return true;
+    } else if (c.site === 'volatile') {
+      const rd = RESIDUAL_FOLLOWER_VOL[c.id];
+      if (!rd) continue;
+      for (const m of bodies) if (rd(m)) return true;
+    }
+  }
+  return false;
+}
 const RESIDUAL_GROUPS = (() => {
   /* chunk -> the authority effect whose order it inherits. One id is enough; where a chunk implements
    * several they share an order by construction (psn/tox/brn are 9,9,10 and run as one step). */
@@ -16722,7 +16863,21 @@ function noteFaint(m){ if(!m)return; if(m._fEpoch!==_FAINT_EPOCH){m._fEpoch=_FAI
  * IT IS NEVER SILENT. Every queue push and every drain is counted; a queue that still holds a line
  * when the battle loop hands back is `MEDFAILS.faintQueueLeaked`, not a shrug. */
 const FAINT_INLINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FAINT_INLINE==='1');
+/* 2026-08-26 -- THE SECOND KNOB, AND IT IS A DIFFERENT BEFORE-ARM FROM THE ONE ABOVE.
+ * `MEDI_FAINT_INLINE=1` restores announcing at the moment of damage; this one keeps the queue and
+ * restores the UNCONDITIONAL drain at the foot of the residual clock walk, i.e. the position this
+ * engine held from 2026-08-24 until card 8 -- always above `|upkeep|`, never below. Two knobs
+ * because they are two claims: one is "the line is deferred at all", the other is "the drain it is
+ * deferred to is the right one". A single knob would make the second unfallible. */
+const RESIDUAL_DRAIN_ABOVE_UPKEEP=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_RESIDUAL_DRAIN_ABOVE_UPKEEP==='1');
+if(RESIDUAL_DRAIN_ABOVE_UPKEEP)MEDFAILS.residualDrainAboveUpkeepRestored=1;
 let _FAINTQ=[];
+/* IS A `|faint|` STILL OWED? The authority's `this.ended` is set inside a DRAIN and never at the
+ * state transition, so a caller asking "has the battle ended at this line" has to know whether the
+ * queue is empty as well as whether a side is out of bodies. One reader, so the two places that ask
+ * cannot drift. */
+function faintQueueOwed(){ return _FAINTQ.length>0; }
 /* The STATE transition, unchanged, plus a deferred line. Callers that need `_sub`, `_sf.fainted` or
  * anything else keep doing it themselves -- this owns the three writes every one of the 27 sites
  * shared and nothing more. */
@@ -16744,6 +16899,7 @@ function drainFaints(where){
   if(where==='weatherGroup')MEDSEEN.faintDrainWeatherGroup++;
   else if(where==='afterHitLoop')MEDSEEN.faintDrainAfterHitLoop++;
   else if(where==='residualClocks')MEDSEEN.faintDrainResidualClocks++;
+  else if(where==='residualAfterUpkeep')MEDSEEN.faintDrainResidualAfterUpkeep++;
   return n;
 }
 function lastFaintSeq(arr){ let n=-1;
@@ -29286,7 +29442,16 @@ function battleTurn(S,rng,actsForA,actsForB){
      * queued, because a duration expiry `continue`s past sim/battle.ts:565; the next drain the
      * authority reaches is the tail of `runAction` (:2832), which is here. Empty on almost every
      * turn, and an empty drain is free and deliberately uncounted. */
-    drainFaints('residualClocks');
+    /* 2026-08-26 -- AND IT IS CONDITIONAL, WHICH IS WILL'S CARD 8. The line above named the tail of
+     * `runAction` and then drained ABOVE `|upkeep|`, which is not where that call sits: `case
+     * 'residual'` writes `|upkeep|` at :2814 and `runAction`'s drain is at :2832, EIGHTEEN LINES
+     * BELOW IT. The old position is right whenever some handler follows the expiry (that handler's
+     * own :565 pays the queue first, above the upkeep line) and wrong when none does.
+     * `residualFollowerRuns` is the whole of the difference; see its header for the derivation and
+     * for the three families it splits the artifact into. The other half is the deferred drain below
+     * `TR.upkeep()`, and the two are exclusive by construction. */
+    const _follower=RESIDUAL_DRAIN_ABOVE_UPKEEP||residualFollowerRuns(field,sfA,sfB,actA,actB);
+    if(_follower){MEDSEEN.residualFollowerFound++;drainFaints('residualClocks');}
     /* WIRE 144 -- an Uproar that just ended stops refusing sleep from this instant, so the Yawn that
      * resolves later in this same residual is allowed. Recomputed, never cleared by hand. */
     refreshSleepBlock(actA,actB,sfA,sfB);
@@ -29461,7 +29626,21 @@ function battleTurn(S,rng,actsForA,actsForB){
      * `endTurn()` and `turnLoop` has already returned. Measured in the differential: one of the
      * dumped games had Showdown fall silent and medicham2 answer with a bare `|upkeep`. */
     const _wipedAtResidual=sideWiped(S);
-    if(!_wipedAtResidual&&TR)TR.upkeep();
+    /* 2026-08-26 -- AND `this.ended` IS A FACT ABOUT THE DRAIN, NOT ABOUT THE BOARD. `ended` is set
+     * inside `faintMessages`, by the `checkWin` that runs after `side.pokemonLeft--` -- so a body
+     * whose `|faint|` is still OWED has not been counted against its side yet and the battle is not
+     * over at this line however dead the body is. `_wipedAtResidual` reads the flags, which this
+     * engine writes at the state transition (`queueFaint`), so it is true one drain early. A perish
+     * that takes a side's last body therefore still gets its `|upkeep|`, and the faint and the win
+     * land below it -- the same order the bare arm of the probe measures. */
+    const _endedAtUpkeep=_wipedAtResidual&&!faintQueueOwed();
+    if(!_endedAtUpkeep&&TR)TR.upkeep();
+    /* THE OTHER HALF OF THE CLOCK WALK'S DRAIN -- the tail of `runAction`, sim/battle.ts:2832, which
+     * is BELOW `add('upkeep')` at :2814. Reached only when nothing followed the expiry in the walk;
+     * when something did, the queue was emptied up there and this costs nothing. Exclusive with it by
+     * construction, so `faintDrainResidualClocks + faintDrainResidualAfterUpkeep` is the population
+     * of residual clock deaths and never a double count. */
+    drainFaints('residualAfterUpkeep');
     /* ROADMAP #175 -- BEFORE the replacements walk in, and that ordering is the whole of it: `refill`
      * puts a new body in the dead one's slot, so a sweep placed one line lower would find the corpse
      * gone and every residual faint would inherit nothing. */
@@ -30683,6 +30862,12 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
    * `residualExpiryDeferred()` says which of it is still spent at a position the format does not
    * declare. A gap that is printed is open work; a gap that is only true is a silent default. */
   RESIDUAL_EXPIRY, residualExpiryDeferred,
+  /* 2026-08-26 -- WHO CAN PAY A QUEUED PERISH DEATH, and the reader that asks it. Exported for the
+   * reason `residualExpiryDeferred` is: the three families are DERIVED from the artifact and the
+   * fourth (`unmapped`) is the loud hole, so a caller reads what actually matched rather than taking
+   * a comment's word for it. `residualFollowerRuns` is exported too so a probe drives THE predicate
+   * and not a second copy of the rule. */
+  residualFollowerReport, residualFollowerRuns,
   /* The swallowed-failure counters. Zero is a CLAIM, not a pass — read it, do not assume it. */
   fails:MEDFAILS,
   /* Capabilities that FIRED. A zero here is the finding — see MEDSEEN's own comment. */

@@ -4682,6 +4682,89 @@ probe('condition', 'weatherResidualFaintQueue',
                  + ' burn ' + JSON.stringify(brn.lines) };
 });
 
+/* THE FAINT QUEUE, STAGE 2 — A PERISH DEATH IS ANNOUNCED **BELOW `|upkeep|`** WHEN NOTHING FOLLOWS
+ * IT IN THE WALK, AND ABOVE IT WHEN SOMETHING DOES. 2026-08-26.
+ *
+ * Will, reading card 8: *"showdown is showing a perished mon hitting zero, a turn ending, and then
+ * the mon faints with replacements. ours logically shows the mon fainting immediately after perish
+ * hits 0 and then the turn ends."* Both halves are right and the authority's order is deliberate.
+ *
+ * A PERISH EXPIRY `continue`s PAST THE DRAIN, which is the whole mechanism and is the authority's
+ * own control flow (sim/battle.ts:514-524, inside `fieldEvent`):
+ *
+ *     if (eventid === 'Residual' && handler.end && handler.state?.duration) {
+ *       handler.state.duration--;
+ *       if (!handler.state.duration) { handler.end.call(...); continue; }   <- SKIPS :565
+ *     }
+ *     ...
+ *     this.faintMessages();                                                 <- :565, the drain
+ *
+ * `perishsong.condition.onEnd` is `add('-start', target, 'perish0'); target.faint()`, and
+ * `Pokemon#faint()` only QUEUES. So every perish death in the walk is still owed when the loop moves
+ * on. It is paid by THE NEXT HANDLER THAT DOES NOT EXPIRE — and if there is no such handler the walk
+ * ends with the queue full, `fieldEvent` returns, `case 'residual'` writes `|upkeep|`
+ * (sim/battle.ts:2814) and the tail of `runAction` (:2832) drains it BELOW that line.
+ *
+ * SO THE POSITION IS CONDITIONAL AND THIS ENGINE HELD IT UNCONDITIONAL — it always drained at the
+ * foot of the clock walk, i.e. always above `|upkeep|`. Right in the common case and wrong in the
+ * bare one; the pinned pool's whole-game differential carries it as
+ * `ordering :: |upkeep <> |faint|p1b: Glimmora`.
+ *
+ * WHICH HANDLERS CAN FOLLOW A PERISH IS DERIVED, NEVER LISTED. `data/residual-order.json` publishes
+ * (order, subOrder) for every walk participant by CALLING `Battle#resolvePriority`; perishsong is
+ * `24.2` and 58 rows sort after it. The engine reads that artifact — see `residualFollowerRuns` —
+ * and the three families it splits into are exactly the three control arms below.
+ *
+ * ALL FOUR ARMS WERE MEASURED IN THE OFFICIAL SIMULATOR BEFORE A BYTE OF THE FIX WAS WRITTEN, over
+ * `engine/game_differential.js`'s two-stream harness (Primarina's Perish Song into a doubles board,
+ * everything clicking a stat boost so no `stall` is left standing on the death turn):
+ *
+ *   BARE          |-start|…|perish0 x4  |upkeep  |faint| x4      <- nothing follows; the tail of runAction pays
+ *   PROTECT       |-start|…|perish0 x4  |faint| x4  |upkeep      <- `stall` (duration 2, refreshed) survives
+ *   TAILWIND      |-start|…|perish0 x4  |faint| x4  |upkeep      <- a side clock at order 26 survives
+ *   PICKUP        |-start|…|perish0 x4  |faint| x4  |upkeep      <- an ABILITY handler at order 28 always runs
+ *
+ * THE LAST THREE ARE THE OVER-FIRE CONTROL AND THEY ARE NOT DECORATION: an engine that simply moved
+ * the drain below `|upkeep|` passes the bare arm and breaks all three. Pickup is the sharpest of them
+ * because it carries no duration at all — `route: handler` — so it runs on every residual and can
+ * never expire. (Speed Boost would have been the obvious carrier and was rejected on measurement: it
+ * parts from the authority on turn 1 for an unrelated reason, so the board never reaches turn 4.)
+ *
+ * THE CLOCK IS PLANTED RATHER THAN PLAYED — `_perish = 1` on all four bodies, so the walk ticks it to
+ * zero on the turn this probe spends. `perishClock`'s own probes already prove the counter reaches
+ * zero on the right turn; what is asked here is only WHERE the line lands. */
+probe('move', 'perishClock',
+      'a perish |faint| sits below |upkeep| when nothing follows it in the walk, and above it when something does', () => {
+  const run = (mode) => {
+    const trace = [];
+    const me = bare('primarina'), ally = bare('corviknight');
+    const f1 = bare('snorlax'), f2 = bare(mode === 'pickup' ? 'diggersby' : 'garchomp');
+    if (mode === 'pickup') f2.ability = 'pickup';
+    const S = M.battleInit([me, ally, bare('clefable'), bare('milotic')],
+                           [f1, f2, bare('archaludon'), bare('toxapex')], { seeded: true, trace });
+    if (mode === 'tailwind') S.field.twA = 3;
+    for (const x of [me, ally, f1, f2]) x._perish = 1;
+    trace.length = 0;
+    const act = (m) => (mode === 'protect' ? M.playerAction(m, 'protect', m, S.field) : { kind: 'pass' });
+    M.battleTurn(S, rng5, new Map([[me, act(me)], [ally, act(ally)]]),
+                          new Map([[f1, act(f1)], [f2, act(f2)]]));
+    const lines = trace.map(M.traceCanon).filter(l => /^\|(faint|upkeep)/.test(l));
+    return { lines, faints: lines.filter(l => l.startsWith('|faint')).length, first: lines[0] || '(none)' };
+  };
+  const bareArm = run('bare'), prot = run('protect'), tw = run('tailwind'), pick = run('pickup');
+  const four = (r) => r.faints === 4;
+  return { works: four(bareArm) && four(prot) && four(tw) && four(pick)
+                  && bareArm.first === '|upkeep'
+                  && prot.first !== '|upkeep' && tw.first !== '|upkeep' && pick.first !== '|upkeep',
+           arms: { control: [prot.first, tw.first, pick.first], test: [bareArm.first, bareArm.faints] },
+           detail: 'first of the |faint|/|upkeep| lines — BARE ' + bareArm.first + ' (must be |upkeep: '
+                 + 'nothing follows the expiry, so the tail of runAction pays), PROTECT ' + prot.first
+                 + ', TAILWIND ' + tw.first + ', PICKUP ' + pick.first + ' (all three must be a |faint|: '
+                 + 'a surviving handler pays before |upkeep|). faints per arm '
+                 + [bareArm.faints, prot.faints, tw.faints, pick.faints].join('/') + ' (must be 4 each). '
+                 + 'bare ' + JSON.stringify(bareArm.lines) + ' protect ' + JSON.stringify(prot.lines) };
+});
+
 /* WIRE 157 -- THE WEATHER RESIDUAL RUNS IN BOTH DIRECTIONS AND THIS ENGINE HELD ONLY THE ONE THAT
  * HURTS. The probe above is the whole of what existed: sand chips, and three things ignore it. The
  * SAME `onWeather` hook restores HP, and none of that reached any code -- Ice Body read LIVE off the
