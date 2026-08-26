@@ -14316,3 +14316,42 @@ files; exact commands are in the report's `## OWED, NOT RUN`. Separately, the sa
 is red on a real, unrelated finding — the tracked `.gz` stores lag their plain stores
 (`games.ladder`, `games.bo3`). `data/` was owned by live agents this pass, so
 `node build/compress-stores.js` was **not** run.
+
+---
+
+## THE PDF BUILDER WAS DELETING EVERY HEADING OF EVERY CRLF DOCUMENT. 2026-08-26 (MEASURE).
+
+Ledger section: none yet — this is `build/`, not an engine mechanic. CHANGELOG 5.136.2. No release
+cut and no engine byte touched.
+
+**RED ON BYTES ALREADY ON DISK.** `build/md_to_pdf.js` splits on LF and matches
+`/^(#{1,6})\s+(.*)$/`. `.` does not match CR and there is no `m` flag, so a CRLF checkout can never
+reach end-of-line. `docs/ROADMAP.md` rendered **0** headings, `docs/SEARCH.md` **0**, `docs/ENGINE.md`
+**0** — against 43 / 195 / 1,209 after routing the read through `engine/read_text.js`.
+
+**THE FAILURE IS DELETION, NOT DEMOTION** — the previous pass assumed headings became paragraphs. The
+paragraph fallback rejects any line starting `#`, so `buf` stays empty, `else i++` runs, and the line
+leaves the document. All **43** ROADMAP heading strings, **including its title**, appear nowhere in the
+HTML. Nothing tells a reader the document got shorter.
+
+**AND IT WAS QUEUED, NOT LATENT.** `build_pdfs.js` derives its list from every `docs/*.md`: **23 of 78
+are CRLF and 12 have a stale or missing PDF**, so the next rebuild the living-docs rule requires
+publishes twelve heading-less documents. Repo-wide 2,937 -> 6,965 heading matches across 239 markdown
+files; **58 are CRLF now, up from 24**.
+
+Two byte-level identity checks: the LF render of `docs/ABRA-whitepaper.md` is **identical before and
+after** the fix, and that file flipped to CRLF now renders **identical to its LF render** (38 both
+ways, 0 before). Flip restored with `cp -p` — sha256 `c107583c9ede` verified **and mtime preserved**,
+because `build_pdfs.js` reads staleness off mtime.
+
+The other twelve sites the brief called unverified are **verified and not blind**: `web/` has 6 utf8
+reads (5 immune by design, 1 by accident) and `engine/*.py` has 84 (all immune by universal
+newlines, measured on 3.12.10; the one `rb` read is a digest and is right to be byte-exact).
+**Nothing in `web/` was edited and no PDF was rebuilt** — web is paused.
+
+No new gate, deliberately — the same reason as the door itself.
+
+Full account: `docs/_reports/2026-08-26-crlf-remainder.md`.
+
+**OWED, NOT RUN:** the twelve queued PDFs are still stale or missing; rebuilding them is a publish.
+220 of 223 utf8 read sites still do not use the door, unverified beyond the triaged sets.

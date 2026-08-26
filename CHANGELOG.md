@@ -10,6 +10,57 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.136.2] — 2026-08-26
+
+### Fixed
+- **THE PDF BUILDER WAS DELETING EVERY HEADING OF EVERY CRLF DOCUMENT, INCLUDING THE TITLE, AND
+  TWELVE PUBLISHED DOCUMENTS WERE QUEUED TO BE BUILT THAT WAY.** `build/md_to_pdf.js` splits on LF
+  and then matches `/^(#{1,6})\s+(.*)$/`; `.` does not match CR and there is no `m` flag, so on a
+  CRLF checkout the pattern can never reach the end of a line. Its read now goes through the
+  existing door, `engine/read_text.js`. **Shown red on bytes that were already on disk** — no
+  synthesis: `docs/ROADMAP.md` rendered **0** headings, `docs/SEARCH.md` **0**, `docs/ENGINE.md`
+  **0**, against 43 / 195 / 1,209 after the fix.
+- **The failure was DELETION, not demotion, which is the correction to the previous pass's account.**
+  An unmatched heading line falls into the paragraph accumulator, whose own guard rejects any line
+  starting `#`; `buf` stays empty, `else i++` runs, and the line leaves the document. All **43** of
+  ROADMAP's heading strings — starting with its `<h1>` title `ABRA — roadmap` — appear **nowhere** in
+  the rendered HTML. A silently shorter document gives the reader nothing to notice.
+- **The blast radius was not "the four hand-published documents happen to be LF".**
+  `build/build_pdfs.js` derives its list from every `docs/*.md`; **23 of 78 are CRLF and 12 of those
+  have a stale or missing PDF**, so the next rebuild the living-docs rule requires would have
+  published twelve heading-less documents. Repo-wide the heading match moved **2,937 -> 6,965**
+  across 239 tracked markdown files (**58** now CRLF, up from 24 nineteen hours earlier).
+- **Two byte-level identity checks, so the fix is not taken on trust.** The LF render of
+  `docs/ABRA-whitepaper.md` is **byte-identical before and after** — no published document changes —
+  and the same file flipped to CRLF now renders **byte-identical to its LF render** (38 headings
+  both ways; 0 before). The flip was restored with `cp -p`: sha256 `c107583c9ede…` verified, **and
+  the mtime preserved**, because `build_pdfs.js` decides staleness by mtime and a bumped timestamp
+  would have been a real state change for no measurement gain.
+
+### Notes
+- **The other twelve read sites the brief listed as unverified are VERIFIED AND NOT BLIND**, and the
+  distinction that matters is *how* they are safe. `web/` has **6** utf8 read sites, not 3 — five
+  immune by design (`JSON.parse`; `indexOf` on newline-free markers; `figure-audit.js`'s
+  character-at-a-time scanner) and one by accident (`/;\s*$/` eating the CR, on a file that is LF
+  today anyway). Every `web/*.html` is fully CRLF, so these were **live** sites, not latent: each
+  builder was run twice, real bytes against normalised bytes, with writes redirected to a scratch
+  directory. `figure-audit.js` returned an identical 100% / 162 of 162; `build-quarantine.js`
+  emitted identical artifacts. **Nothing in `web/` was edited, because nothing in `web/` is broken.**
+- **`engine/*.py` has 84 read sites, not 9, and all 84 are safe for a reason that has nothing to do
+  with the JavaScript story.** Python text mode is universal-newline by default, so CR never enters
+  the string — measured on this interpreter (3.12.10) across every idiom the repo uses: `open`,
+  `io.open`, per-line iteration, `gzip.open(...,'rt')` and `subprocess.run(text=True)` all yield **0**
+  CR from a 3-CR fixture. `newline=''` appears in zero call sites. The single binary read,
+  `porygon2_separation_gate.py:198` `sha256_file()`, is CR-sensitive **correctly** — a digest of
+  normalised bytes is not a digest of the file — and it only compares a checkout against itself.
+- **No gate was added, deliberately.** A check asserting "every read site uses the door" is the
+  enumerated ratchet the species-key bug walked past twice; it would flag 220 correct sites and go
+  stale on the 224th. The argument is left in the report for Will rather than shipped.
+- Full account, with the red/green tables and the queued-PDF list:
+  `docs/_reports/2026-08-26-crlf-remainder.md`.
+
+---
+
 ## [5.136.1] — 2026-08-26
 
 ### Added

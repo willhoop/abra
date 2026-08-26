@@ -15,6 +15,16 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
+/* THE READ IS NORMALISED, because this renderer is line-oriented and CR is not whitespace to `.`.
+ * `render()` splits on LF, so on a CRLF checkout every line arrives carrying a trailing CR — and the
+ * heading pattern below ends `(.*)$`, which `.` can never carry a CR past. Measured 2026-08-26: the
+ * heading match went 2,937 -> 6,965 across the repo's tracked markdown once normalised, and all 43
+ * headings of docs/ROADMAP.md, INCLUDING ITS TITLE, were absent from the rendered HTML — not demoted
+ * to paragraphs but DROPPED, because the paragraph fallback's own guard rejects a line starting `#`.
+ * The four hand-published documents were LF and so were rendering correctly; that was luck, and
+ * build_pdfs.js derives its list from every docs/*.md, TWELVE of which are CRLF with a stale or
+ * missing PDF — so the next required rebuild was going to publish twelve heading-less documents. */
+const { readText } = require('../engine/read_text.js');
 
 const IN = process.argv[2];
 if (!IN) { console.error('usage: node build/md_to_pdf.js <file.md> [out.pdf] [--html-only]'); process.exit(2); }
@@ -112,7 +122,7 @@ hr { border:0; border-top:1px solid #c3c9d4; margin:14px 0; }
 a { color:#1a4f9c; text-decoration:none; }
 strong { color:#000; }
 </style></head><body>
-${render(fs.readFileSync(IN, 'utf8'))}
+${render(readText(IN))}
 </body></html>`;
 
 const tmpHtml = OUT.replace(/\.pdf$/, '') + '.print.html';
