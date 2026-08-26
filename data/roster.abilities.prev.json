@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-26T02:12:13.066Z",
+ "generated": "2026-08-26T02:16:26.124Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "engine_release": "d38d117e68e9",
@@ -7,8 +7,8 @@
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
-  "DEFERRED-BY-OWNER": 0,
-  "FIRED-AND-BOARDS-MATCH": 130,
+  "DEFERRED-BY-OWNER": 1,
+  "FIRED-AND-BOARDS-MATCH": 129,
   "CONTROL-NOT-QUIET": 45,
   "COULD-NOT-STAGE": 141
  },
@@ -23,11 +23,11 @@
    "no-legal-carrier": 114
   },
   "in_scope": 202,
-  "tested": 130,
-  "matched": 130,
+  "tested": 129,
+  "matched": 129,
   "differ": 0,
   "silent": 0,
-  "deferred": 0,
+  "deferred": 1,
   "unattributable": 45,
   "unattributable_ids": [
    "aftermath",
@@ -7352,12 +7352,16 @@
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
    "note": "SUPPRESS carrier Zoroark; control = Gastro Acid suppression; staged as generic",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED BY THE OWNER ON THE CARRIER, NOT MEASURED CLEAN. This row is staged on Zoroark, which holds illusion; the membership is derived from the ABILITY by engine/game_differential.js (zoroark, zoroarkhisui) and imported here, so a carrier added by a later regulation is shelved without an edit. Underlying verdict without the shelf: FIRED-AND-BOARDS-MATCH — AND THAT PASS IS VACUOUS, WHICH IS WHY THE SHELF IS NOT \"STALE\". medicham2-browser.js implements no Illusion at all, so the two engines agree here about the CONTROL arm's work and about nothing else. A green on a mechanic that is not written is the \"a green test can be asking nothing\" failure, not evidence. Still staged and still played against the authority every run; it does not hold the gate.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "zoroark",
-   "deferred": null,
+   "deferred": {
+    "on": "2026-08-25",
+    "by": "Will",
+    "why": "ROADMAP #160 — ILLUSION IS IN THE CLOSET and this row is staged on a carrier of it. Will: \"illusion and all things zoroark related go into the closet.\""
+   },
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,

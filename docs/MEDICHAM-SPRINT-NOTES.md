@@ -21,6 +21,74 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE THREE ROSTER STAGES ARE QUOTABLE AGAIN — 964 ROWS, 743 TESTED, 0 DIFFER, 0 DID-NOT-FIRE. GATE UNMOVED, AND THAT WAS THE PREDICTION. 2026-08-25 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, *"THE THREE ROSTER STAGES ARE QUOTABLE AGAIN"*. Gates re-run:
+`tests/test-closet-scope.js` (exit 0), `tests/test-roster-arm-pin.js` (all clauses, red demonstration
+included). **VERIFICATION PASS — no engine byte changed and none was meant to.**
+
+Commit `86fd1220` landed the Illusion closet from an interrupted session and said in its own body that its
+roster artifacts came from a run that did not complete. **Three of the eight MEDICHAM gate clauses read
+those artifacts**, so three PASSes were resting on a run nobody watched finish. They are re-derived now.
+
+**ONE RELEASE, `d38d117e68e9`, NAMED ON ALL THREE STAGES.** `list` reported 0 of 26 files moved before the
+cut, so the re-cut appended an event and returned the same id — the same 26 files the interrupted pass read.
+
+```
+items      139 tested of 148 in scope   0 DIFFER  0 DID-NOT-FIRE   0 neither-column    8 could-not-stage  1 deferred
+abilities  129 tested of 202 in scope   0 DIFFER  0 DID-NOT-FIRE  45 neither-column  141 could-not-stage  1 deferred
+moves      475 tested of 500 in scope   0 DIFFER  0 DID-NOT-FIRE   0 neither-column   22 could-not-stage  3 deferred
+```
+
+Abilities also carries 114 OUT OF SCOPE (no legal carrier — a fact about the regulation), and its 45
+neither-column rows are the ones where the control arm is itself a live ability. **Every count came back
+byte-for-byte what the interrupted run published**, each stage printing `REPLACING an existing …` with the
+old stamp and counts beside the new. Old bytes kept at `data/roster.<stage>.prev.json`.
+
+**THE ARM RECEIPT AGREES WITH THE DECLARED SET ON ALL THREE.** `PRIMARY_ARM` is `middle`, so any caller
+that omits `arm` is on it. `arms_played`: items `{top-tie-first: 280}`, abilities `{top: 444, bottom: 19}`,
+moves `{top: 741, bottom: 246}` — **zero on `middle`, zero on `DRIVER-DEFAULT`**. Under
+`ROSTER_ARM_FALLS_THROUGH=1` the items stage reports `{DRIVER-DEFAULT:middle: 280}` and the check fails by
+name, so it can still go red.
+
+**THE CLOSET PRINTS, INCLUDING ITS EMPTY CASE** — the second thing left owed. Abilities prints
+`illusion  on Zoroark`; items and moves print `none in this stage — the shelf is live and matched nothing
+here`. An empty match is a printed sentence, not an absent one.
+
+**THE SHELF IS STILL 1 OF 964.** `test-closet-scope.js`: `abilities:illusion` on zoroark (0.10%), named
+control fails if it reaches 0, 812 of 964 rows publish a carrier and the other 152 are COULD-NOT-STAGE.
+The other four DEFERRED rows are the NAMED shelf — `items:metronome`, `moves:{axekick,copycat,electrify}`.
+
+**GATE BEFORE AND AFTER: IDENTICAL.** `status.js` differs on twelve lines — timestamp, two provenance
+counters, working-tree count. Three roster clauses PASS, whole-game **17 of 961** (22 raw less 5 declared),
+mechanics **10 of 17 uncleared**, census **706/706**, `planted_divergence_proof_ok` **true**.
+
+**MEASURED, NOT ASSUMED: the team pool does not reach a roster result.** Items played twice — live pool
+`e99acc1be254` (90 of 11,331) and pinned `9e0af19d6449` (87 of 8,778) — identical `0/0/1/139/0/8`. The
+published run is the pinned one.
+
+**OWED, NOT RUN:** `tests/run-all.js` in full; the `--reds` arm on any stage (the per-RULE red
+demonstration was not re-run — only the arm-pin and closet-scope reds were); `engine/all_mechanics_fire.js`
+(the mechanics clause's artifact was NOT regenerated — it is stamped `2026-08-26T00:19Z` on the same
+release `d38d117e68e9` and was read, not re-derived); `tests/test-mechanics.js` (**deliberately not run** —
+no mechanic changed, and regenerating the census would move a digest other artifacts pin). Exact commands:
+
+```
+SHOWDOWN_PATH=... node tests/roster.js --stage items     --release d38d117e68e9 --team-store data/team-pool-frozen --reds
+SHOWDOWN_PATH=... node tests/roster.js --stage abilities --release d38d117e68e9 --team-store data/team-pool-frozen --reds
+SHOWDOWN_PATH=... node tests/roster.js --stage moves     --release d38d117e68e9 --team-store data/team-pool-frozen --reds
+SHOWDOWN_PATH=... node engine/all_mechanics_fire.js --kind all --write
+SHOWDOWN_PATH=... node tests/run-all.js
+```
+
+**JOINS THE HAND LIST, NOT FIXED HERE (both are change passes):** the roster artifact's `results.map()`
+whitelist drops `closet` and `underlying_verdict`, which `closetShelf()` computes — so a published row
+cannot say which shelf took it or what it would have scored; and `data/game-differential.json` still has
+**no `closet` key** while `closetRejects()` drops whole teams, an undeclared exclusion inside the artifact
+the gate reads.
+
+---
+
 ## A SPECIES NAME IS DISPLAY STATE, AND THE SWITCH MIRROR WAS KEYED ON IT. STAGED 22 → 24 OF 25, POOL UNMOVED GAME FOR GAME, CENSUS 706/706. 2026-08-25 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, *"A SPECIES NAME IS DISPLAY STATE"*. Gate: `tests/test-roster-identity.js`

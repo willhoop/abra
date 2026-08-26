@@ -59,7 +59,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  706/706 probed mechanics live, 0 missing   (census 2026-08-25 21:44)
+  706/706 probed mechanics live, 0 missing   (census 2026-08-25 22:26)
   0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -72,15 +72,120 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 564157e5740d now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is bb6f7b066557 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is b975a519b975 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-25 21:59_
+_stamped 2026-08-25 22:59_
 
 <!-- /GENERATED -->
+
+## THE THREE ROSTER STAGES ARE QUOTABLE AGAIN — 964 ROWS RE-RUN ON ONE PINNED RELEASE, EVERY COUNT IDENTICAL, AND THE CLOSET ANNOUNCES ITSELF. 2026-08-25.
+
+**WHY THIS IS A SECTION AND NOT A LINE.** Commit `86fd1220` landed the Illusion closet from an
+interrupted session and said so in its own body: *"the roster artifacts here are from a run that did
+not complete… do not quote a stage count until the three stages are re-run."* Three of the eight
+MEDICHAM gate clauses read those artifacts. **A PASS computed over an artifact nobody watched finish
+is not a PASS** — it is the fourteen-stale-handoffs failure with a JSON extension — so the clauses were
+unquotable until somebody re-ran them and watched. This pass re-ran them. **No engine byte changed and
+none was meant to.**
+
+**ONE RELEASE, CUT ONCE, NAMED ON EVERY STAGE: `d38d117e68e9`.** `engine_release.js list` reported **0
+of 26 files moved** before the cut, so the re-cut appended a cut event and returned the same id — which
+is the point of an id derived from content, and it means this pass and the interrupted one read the
+same 26 files.
+
+| stage | tested | DIFFER | DID-NOT-FIRE | neither column | COULD-NOT-STAGE | DEFERRED | total |
+|---|---|---|---|---|---|---|---|
+| items | 139 of 148 in scope | **0** | **0** | 0 | 8 | 1 | 148 |
+| abilities | 129 of 202 in scope | **0** | **0** | **45** | 141 | 1 | 316 |
+| moves | 475 of 500 in scope | **0** | **0** | 0 | 22 | 3 | 500 |
+
+The abilities stage carries **114 OUT OF SCOPE — no legal carrier**, which is a fact about the
+regulation and not a gap, and **45 UNATTRIBUTABLE**, where the control arm is itself a live ability so
+the delta cannot be charged to the entity. Those 45 count in NEITHER column and the clause prints them
+by name; a second control **released or narrowed 97 rows** and the run says which.
+
+**EVERY COUNT CAME BACK BYTE-FOR-BYTE WHAT THE INTERRUPTED RUN PUBLISHED.** Each stage printed
+`REPLACING an existing data/roster.<stage>.json` with the old file's stamp and counts, and each old
+count matched the new one exactly. **That is a verification, not a formality** — the roster is the
+instrument with the worst record in this repository (169 accusations, 162 of them the ruler; moves
+read 157 DIFFER when the truth was 5), and it had just been caught publishing a manufactured green.
+The old bytes are kept at `data/roster.<stage>.prev.json`.
+
+**THE ARM RECEIPT, WHICH IS THE HALF A LABEL CANNOT ANSWER.** `game_differential.js` publishes three
+arms and **`PRIMARY_ARM` is `middle`** — every caller that omits `arm` is on it, whatever it believes.
+The receipt and the declared set agree on all three stages:
+
+```
+items      declared top-tie-first                    arms_played {top-tie-first: 280}
+abilities  declared top-tie-first, bottom-tie-first  arms_played {top-tie-first: 444, bottom-tie-first: 19}
+moves      declared top-tie-first, bottom-tie-first  arms_played {top-tie-first: 741, bottom-tie-first: 246}
+```
+
+**Zero on `middle`, zero on `DRIVER-DEFAULT`, in all three.** `tests/test-roster-arm-pin.js` passes
+every clause and its red demonstration still goes red: under `ROSTER_ARM_FALLS_THROUGH=1` the same
+items stage reports `arms_played {DRIVER-DEFAULT:middle: 280}` and §2 fails by name. A check that
+cannot go red is not evidence.
+
+**THE CLOSET PRINTS, AND IT PRINTS ITS EMPTY CASE TOO.** This was the second thing the interrupted
+commit left owed, and *"a silent empty closet reads exactly like a closet with no members"* is its own
+sentence. Measured on all three stages:
+
+```
+  THE CLOSET — abilities rows staged on a carrier of illusion, shelved and NOT counted (ROADMAP #160):
+    membership, derived from the ABILITY by engine/game_differential.js: zoroark, zoroarkhisui
+    illusion  on Zoroark
+```
+
+and, on items and on moves, `none in this stage — the shelf is live and matched nothing here`. **The
+empty case is a printed sentence, not an absent one** — which is the only version of this that is
+worth anything, because the failure being guarded against is a shelf that quietly stopped matching.
+
+**THE SHELF IS STILL EXACTLY WHAT IT CLAIMS: 1 OF 964.** `tests/test-closet-scope.js` exits 0, all
+checks passed. `abilities:illusion` on `zoroark` is the one roster row the carrier shelf takes
+(0.10%), its named control fails if that reaches 0, **812 of 964 rows publish a carrier and the other
+152 are COULD-NOT-STAGE**, so no body was staged for the closet to be blind about. The row carries who
+shelved it, when and why, in the ARTIFACT. The other four DEFERRED rows are the NAMED shelf and a
+different decision — `items:metronome` on Kangaskhan, and `moves:axekick`, `moves:copycat`,
+`moves:electrify` on Goodra-Hisui, all Will, 2026-08-10.
+
+**THE GATE DID NOT MOVE, AND THAT WAS THE PREDICTION.** `engine/status.js` before and after differs on
+**twelve lines: the timestamp, two provenance counters and the working-tree count.** Every clause is
+character-identical — three roster clauses PASS, whole-game **17 of 961** (22 raw, less 5 declared),
+mechanics **10 of 17 uncleared**, census **706/706**. `planted_divergence_proof_ok` still reads `true`.
+Nothing here was expected to move a number; what moved is that the three numbers are now attached to a
+run somebody watched finish.
+
+**AND THE TEAM POOL PROVABLY DOES NOT REACH A ROSTER RESULT.** The items stage was played twice — once
+with the pool read LIVE (`e99acc1be254`, 90 teams of 11,331) and once **pinned** to
+`data/team-pool-frozen` (`9e0af19d6449`, 87 of 8,778) — and returned the identical
+`0/0/1/139/0/8`. The roster builds its own boards through `buildPair`; the swarm is built at
+`game_differential.js` module load and never played here. That is now MEASURED rather than assumed,
+and the pinned run is the one that was published.
+
+### THE HAND LIST
+
+Leaves it: **the interrupted roster artifacts** — re-run on `d38d117e68e9`, watched, and the three gate
+clauses re-derived from them. **The closet's loud print** — it exists, it fires, and its empty case is
+a printed sentence.
+
+Joins it:
+
+- **THE ARTIFACT DROPS `closet` AND `underlying_verdict` ON THE WAY OUT.** `closetShelf()` computes
+  both; `results.map(...)` in `tests/roster.js` is an explicit whitelist and neither is in it, so the
+  published row cannot say **which** shelf took it or **what it would have scored**. Today nothing is
+  blind — `test-closet-scope.js` re-derives membership from `CLOSET_SPECIES` and the underlying verdict
+  survives inside the `why` prose — but *"computed and then dropped on the way to the artifact"* is the
+  exact sentence that file's own comment uses about `deferred`, one field earlier. Two lines, and it
+  is a change pass, not this one.
+- **THE DIFFERENTIAL'S CLOSET IS UNDECLARED IN ITS OWN ARTIFACT.** `data/game-differential.json` has no
+  `closet` key while `closetRejects()` drops whole teams carrying a carrier. Next batch, named here so
+  it is not discovered twice.
+
+Stays on it, unchanged: everything in the two batches below.
 
 ## A SPECIES NAME IS DISPLAY STATE, AND THE SWITCH MIRROR WAS KEYED ON IT. STAGED SCENARIOS 22 → 24 OF 25; POOL UNMOVED, GAME FOR GAME. 2026-08-25.
 
