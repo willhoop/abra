@@ -82,6 +82,20 @@ git status                     # must be clean, and NO rebase in progress
 ls docs/_inbox/                # Cowork drafts waiting to be applied
 ```
 
+**AND CHECK YOU ARE THE ONLY SESSION ON THIS REPO — `ListAgents`.** The one-publisher rule in
+CLAUDE.md is written about Cowork, and it does not mention the case that actually occurs: **a second
+Claude Code session, on this machine, in this same working directory.** They cannot see each other's
+edits and the later write silently wins.
+
+*(2026-08-25: a session ran `/start` and worked for an hour before noticing `abra-f3` — an earlier
+session on the SAME repo, started an hour before it, titled with the SAME brief. It turned out to be
+finished and idle, so nothing was lost. Nothing in `/start` would have said if it had not been.)*
+
+Ask it rather than assuming: a session that has already pushed is harmless, one mid-write is not.
+`list_sessions` gives `isRunning` and `lastActivityAt`; a peer that answers "nothing running, nothing
+uncommitted" can be left alone. **Do not archive another session to resolve this — that is Will's
+call**, and the one time it was offered he took it himself.
+
 **`git status` goes before `status.js`, not after.** `status.js` rewrites
 `data/provenance-stamp.json` (a timestamp, every run) and `open_work.js` rewrites
 `data/open-work.json`. Run them first and the clean-tree check is polluted by this skill's own
@@ -401,6 +415,21 @@ by that pattern.
 
 **YOUR OWN COMMANDS CAN SUCCEED HAVING DONE NOTHING.** Twice: `cmd /c "…"` from Git Bash. The artifact
 kept its old timestamp both times and the stale number was nearly reported as a confirmation.
+**FOUR TIMES NOW, AND THE THIRD AND FOURTH WERE THE COORDINATOR, TEN MINUTES APART, WITH THIS
+PARAGRAPH ALREADY ON THE PAGE.** Unquoted is no safer: `cmd /c tools\\lownode.cmd tests\\run-all.js`
+from the Bash tool produced a three-line command-prompt banner and exit 0. And `> "$TMPDIR/x.txt"`
+with `$TMPDIR` unset writes to `/x.txt`, which is refused — the inner command reported `EXIT=1` while
+the harness reported the background task **completed, exit code 0**. **Reading the exit code is not
+enough; the run-all output was 3 lines where a real run is ~660.** Check the SIZE of what came back
+before you believe it, and run the wrapper from the PowerShell tool, which is what §5 says.
+
+**A DRIFT IN THE SAFE DIRECTION SURVIVES LONGEST, BECAUSE NOTHING IT PRODUCES LOOKS WRONG.** The site
+published *"6 of 8 gate clauses fail"* against a real 3 of 8, with three clean clauses marked red, for
+three days. It OVERSTATED the damage, so no reader had a reason to check it, and `figure-audit.js`
+scored the page **100% traced** the whole time. **A citation proves a figure HAS a source. It never
+proves the source still says it** — and a checker that only asks "does this number appear somewhere"
+cannot tell the difference. Meanwhile the published `app/` copy said *"1 of 6"*, understating the same
+gate. **One fact, two copies, drifting opposite ways, both passing their checks.**
 
 **A SCRATCHPAD SCRIPT RE-RUN IS NOT A NO-OP.** Re-invoking a previous append script duplicated 46 lines
 of a ledger silently. **Make every scratchpad script idempotent — refuse if its own marker is present.**
