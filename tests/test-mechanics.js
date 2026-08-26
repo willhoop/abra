@@ -446,8 +446,24 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * board through `battleInit` and a real turn through `battleTurn`. It has to, for the reason WIRE 11
  * gives: `move.spreadHit` is set from the array the ACTION LOOP builds, and a probe that priced the
  * move directly would never see which bodies were in it.
+ *
+ * `immArm(` added 2026-08-26 with the `immunityGate` family, declared here on the same rule. It
+ * stages a real doubles board through `battleInit` and spends a real turn through `battleTurn`, and
+ * it HAS to: the whole finding is that the move's own `onTryImmunity` is a STEP in the resolution
+ * order — above the accuracy roll, below Protect — that five different action branches each had to be
+ * taught to ask. A probe that called the refusal reader itself would be green on an engine where not
+ * one branch consults it, which is exactly the state the engine was in. It returns both the board
+ * (HP, item, ability, the seed record, the attract volatile) and the emitted stream, because four of
+ * the six members move no board at all and a state-reading probe is structurally blind to them.
+ *
+ * `volTwice(` added 2026-08-26 with the `volatileRestart` family, declared here on the same rule. It
+ * stages a real doubles board through `battleInit` and spends TWO real turns through `battleTurn`,
+ * because the mechanic is a fact carried ACROSS a turn boundary — whether a volatile is still standing
+ * when the same click comes again — and no single-turn probe and no direct call to the applier can see
+ * it. Turn 1 IS the control arm: it must still land, or "no second start line" is satisfied by a move
+ * that never worked at all.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -27043,6 +27059,279 @@ probe('move', 'statusInflict', 'the Destiny Bond window closes when its user mov
                  + `Destiny Bond on turn 2 ${JSON.stringify(second)} (it FAILS and takes the first one `
                  + `with it, killer lives); the user does NOTHING on turn 2 ${JSON.stringify(held)} `
                  + `(the window is still open across the turn boundary, killer dies)` };
+});
+
+/* ---- THE MOVE'S OWN IMMUNITY: `immunityGate`, DERIVED SINCE 2026-08-22 AND READ BY NOBODY --------
+ *
+ * `data/tags.json` carries an `immunityGate` row for six moves — Leech Seed (598 uses), Trick (501),
+ * Endeavor (133), Worry Seed (114), Switcheroo (17) and Attract (2) — each with the authority's own
+ * `onTryImmunity` handler source, a machine-readable CONDITION, the line it announces (`-immune`),
+ * its attribution (`null`, i.e. a bare line on the TARGET) and the step it runs at (3, above
+ * `hitStepAccuracy`). `tests/test-immunity-gate.js` already proves that condition predicts the
+ * official simulator, twelve staged arms, gate closed and gate open.
+ *
+ * `engine/medicham2-browser.js` read that tag ZERO times. Grepped, not assumed.
+ *
+ * WHAT THAT COST IS NOT ONE THING, WHICH IS WHY THERE ARE SIX PROBES AND NOT ONE. Measured on this
+ * engine, one staged turn each, BEFORE anything was wired:
+ *
+ *     Endeavor at equal HP     |-damage|p2a: garchomp|100/183   — an event describing something that
+ *                              did not happen: the HP is unchanged and we narrate a drop
+ *     Worry Seed -> Truant     |-fail|p1a: gholdengo            — refused correctly, ANNOUNCED on the
+ *                              wrong body with the wrong event
+ *     Leech Seed -> Grass      (nothing at all)                 — refused correctly, silently
+ *     Trick -> Sticky Hold     (nothing at all)                 — ditto
+ *     Switcheroo -> Sticky Hold(nothing at all)                 — ditto
+ *     Attract, same gender     (nothing at all)                 — ditto
+ *
+ * So one of the six moves the BOARD, four are pure emission, and one announces the wrong shape on the
+ * wrong body. They are one family and one door: `immunityGateRefuses` evaluates the tag's condition
+ * and every branch that resolves a move asks it at step 3.
+ *
+ * EVERY ARM VARIES ONE KNOB ON THE SAME BODIES. Leech Seed writes `f1.types` rather than swapping in a
+ * Grass species, so the two arms differ by the typing and by nothing else; Attract writes both
+ * genders; Endeavor writes both HP values. A control that changed the species would also change the
+ * damage table, the ability slot and the speed tier, and a probe cannot then say which one moved. */
+const immArm = (stage, moveId) => {
+  const me = bare('gholdengo'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  if (stage) stage({ me, ally, f1, f2 });
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const lines = trace.map(M.traceCanon).filter(l => !/^\|(turn|upkeep|move)\b/.test(l));
+  return { lines,
+           imm: lines.filter(l => /^\|-immune\|/.test(l)).join(' '),
+           fail: lines.filter(l => /^\|-fail\|/.test(l)).join(' '),
+           dmg: lines.filter(l => /^\|-damage\|/.test(l)).join(' '),
+           foeHP: f1.curHP, myHP: me.curHP, foeItem: f1.item, myItem: me.item,
+           foeAb: f1.ability, seeded: !!f1._seededBy,
+           attracted: !!(f1._vol && f1._vol.attract) };
+};
+/* THE BARE LINE ON THE TARGET. `attribution: null` in the artifact, and `hitStepTryImmunity` writes
+ * `this.battle.add('-immune', target)` with nothing after it — so a version that pasted a `[from]`
+ * field would be inventing one. */
+const IMM_FOE = M.traceCanon('|-immune|p2a: garchomp');
+
+probe('move', 'immunityGate', 'Endeavor at equal HP is IMMUNE — no damage AND no damage LINE', () => {
+  /* THE CONDITION IS RAW HP, NOT A PERCENTAGE: `pokemon.hp < target.hp`. Both bodies are put on the
+   * SAME number in the test arm, so "the user is not lower" is exact rather than approached. */
+  const test    = immArm(c => { c.me.curHP = 100; c.f1.curHP = 100; }, 'endeavor');
+  const control = immArm(c => { c.me.curHP =  50; c.f1.curHP = 100; }, 'endeavor');
+  return { works: test.foeHP === 100 && test.imm === IMM_FOE && test.dmg === ''
+                  && control.foeHP === 50 && control.imm === '' && control.dmg !== '',
+           arms: { control: [control.foeHP, control.imm || '-', control.dmg || '-'],
+                   test:    [test.foeHP,    test.imm    || '-', test.dmg    || '-'] },
+           detail: `user 100 vs target 100 — target ends ${test.foeHP}, immune[${test.imm || '-'}], `
+                 + `damage lines[${test.dmg || '-'}] (there must be NONE: we used to write a -damage `
+                 + `at unchanged HP); user 50 vs target 100 — target ends ${control.foeHP}, `
+                 + `immune[${control.imm || '-'}], damage[${control.dmg || '-'}]` };
+});
+
+probe('move', 'immunityGate', 'Leech Seed into a GRASS type announces the immunity it already refused', () => {
+  const test    = immArm(c => { c.f1.types = ['Grass']; }, 'leechseed');
+  const control = immArm(c => { c.f1.types = ['Dragon', 'Ground']; }, 'leechseed');
+  return { works: test.seeded === false && test.imm === IMM_FOE
+                  && control.seeded === true && control.imm === '',
+           arms: { control: [control.seeded, control.imm || '-'],
+                   test:    [test.seeded,    test.imm    || '-'] },
+           detail: `same Garchomp, typing is the only knob — [Grass] seeded ${test.seeded} `
+                 + `immune[${test.imm || '-'}]; [Dragon,Ground] seeded ${control.seeded} `
+                 + `immune[${control.imm || '-'}]` };
+});
+
+probe('move', 'immunityGate', 'Trick into Sticky Hold announces `-immune` on the TARGET', () => {
+  const st = ab => c => { c.me.item = 'choicescarf'; c.f1.item = 'leftovers'; c.f1.ability = ab; };
+  const test    = immArm(st('stickyhold'), 'trick');
+  const control = immArm(st('none'),       'trick');
+  return { works: test.myItem === 'choicescarf' && test.foeItem === 'leftovers' && test.imm === IMM_FOE
+                  && control.myItem === 'leftovers' && control.foeItem === 'choicescarf'
+                  && control.imm === '',
+           arms: { control: [control.myItem, control.foeItem, control.imm || '-'],
+                   test:    [test.myItem,    test.foeItem,    test.imm    || '-'] },
+           detail: `Sticky Hold — mine "${test.myItem}" theirs "${test.foeItem}" `
+                 + `immune[${test.imm || '-'}]; ability none — mine "${control.myItem}" theirs `
+                 + `"${control.foeItem}" immune[${control.imm || '-'}] (the swap is the control: `
+                 + `without it "no swap" would be satisfied by a Trick that never worked)` };
+});
+
+probe('move', 'immunityGate', 'Switcheroo into Sticky Hold announces it too — the tag, not the name', () => {
+  const st = ab => c => { c.me.item = 'choicescarf'; c.f1.item = 'leftovers'; c.f1.ability = ab; };
+  const test    = immArm(st('stickyhold'), 'switcheroo');
+  const control = immArm(st('none'),       'switcheroo');
+  return { works: test.myItem === 'choicescarf' && test.foeItem === 'leftovers' && test.imm === IMM_FOE
+                  && control.myItem === 'leftovers' && control.foeItem === 'choicescarf'
+                  && control.imm === '',
+           arms: { control: [control.myItem, control.foeItem, control.imm || '-'],
+                   test:    [test.myItem,    test.foeItem,    test.imm    || '-'] },
+           detail: `Sticky Hold — mine "${test.myItem}" theirs "${test.foeItem}" `
+                 + `immune[${test.imm || '-'}]; ability none — mine "${control.myItem}" theirs `
+                 + `"${control.foeItem}" immune[${control.imm || '-'}]` };
+});
+
+probe('move', 'immunityGate', 'Worry Seed into Truant is `-immune` on the target, not `-fail` on the user', () => {
+  /* THE WHOLE POINT IS THE SHAPE OF THE LINE. Both engines refuse the rewrite; only one of them says
+   * so on the right body with the right event. `fail` is asserted EMPTY in the test arm, because the
+   * defect this closes is a `-fail|p1a: gholdengo` and a fix that added `-immune` beside it would
+   * leave the stream two lines apart instead of one. */
+  const test    = immArm(c => { c.f1.ability = 'truant';   }, 'worryseed');
+  const test2   = immArm(c => { c.f1.ability = 'insomnia'; }, 'worryseed');
+  const control = immArm(c => { c.f1.ability = 'levitate'; }, 'worryseed');
+  return { works: test.foeAb === 'truant' && test.imm === IMM_FOE && test.fail === ''
+                  && test2.foeAb === 'insomnia' && test2.imm === IMM_FOE && test2.fail === ''
+                  && control.foeAb === 'insomnia' && control.imm === '',
+           arms: { control: [control.foeAb, control.imm || '-', control.fail || '-'],
+                   test:    [test.foeAb,    test.imm    || '-', test.fail    || '-'] },
+           detail: `Truant — ability ${test.foeAb} immune[${test.imm || '-'}] fail[${test.fail || '-'}]; `
+                 + `Insomnia — ${test2.foeAb} immune[${test2.imm || '-'}] fail[${test2.fail || '-'}]; `
+                 + `Levitate — ${control.foeAb} immune[${control.imm || '-'}] (the rewrite lands, so `
+                 + `the two refusals are the ability and not a Worry Seed that never worked)` };
+});
+
+probe('move', 'immunityGate', 'Attract between two MALES announces the immunity — gender is modelled, the line was not', () => {
+  const test    = immArm(c => { c.me.gender = 'M'; c.f1.gender = 'M'; }, 'attract');
+  const control = immArm(c => { c.me.gender = 'F'; c.f1.gender = 'M'; }, 'attract');
+  return { works: test.attracted === false && test.imm === IMM_FOE
+                  && control.attracted === true && control.imm === '',
+           arms: { control: [control.attracted, control.imm || '-'],
+                   test:    [test.attracted,    test.imm    || '-'] },
+           detail: `M -> M attracted ${test.attracted} immune[${test.imm || '-'}]; F -> M attracted `
+                 + `${control.attracted} immune[${control.imm || '-'}] (both genders are declared on `
+                 + `both arms — a genderless body refuses for a different reason)` };
+});
+
+/* ---- A VOLATILE THE BODY ALREADY CARRIES IS REFUSED, AND THE ENGINE HAD THE RULE THREE TIMES ------
+ *
+ * `Pokemon#addVolatile` (sim/pokemon.ts:1994-1997) is one branch:
+ *
+ *     if (this.volatiles[status.id]) { if (!status.onRestart) return false; return singleEvent(...); }
+ *
+ * -- so a second application of a volatile whose condition declares no `onRestart` FAILS, and the move
+ * says so. This engine implemented that over three NAMED subsets: `durationVolatiles()` (keyed off
+ * `sealsMoves`, i.e. Taunt / Encore / Disable), `critStageVolatiles()` (Focus Energy, Dragon Cheer),
+ * and a hand-owned refusal each for Attract, Destiny Bond and Substitute. Everything else was
+ * REFRESHED and announced again. Will read it off a divergence card: the authority printed
+ * `Krookodile fails` and this engine wrote a fresh Torment start line.
+ *
+ * MEASURED BEFORE ANY OF IT WAS WIRED, the same click on two consecutive turns, one staged board each.
+ * Eight volatiles reached the generic write and were re-announced on turn 2 — torment, imprison (487
+ * uses, the largest), gastroacid, magnetrise, aquaring, ingrain, saltcure and syrupbomb — where the
+ * authority refuses all eight.
+ *
+ * `duration: 1` IS THE EXEMPTION AND IT IS THE WHOLE REASON THIS IS NOT A ONE-LINE RULE. A condition
+ * the authority removes at the end of its own turn is never STANDING on a later turn, so the authority
+ * never reaches its own refusal — Protect, Follow Me, Rage Powder, Endure, flinch and Electrify are all
+ * that class. A rule written on `!onRestart` alone refuses six per-turn mechanics to fix eight
+ * permanent ones. The membership was PRINTED over every legal move in this format before the consumer
+ * existed: 56 volatiles carry a row, 8 declare `onRestart`, 6 more are `duration: 1`.
+ *
+ * WHAT IS NOT CLAIMED HERE. The `-fail` line is written by the `affect` branch's `didAnything` site,
+ * whose fifth clause is `effects[0].to !== 'user'` (ROADMAP #241(3)) — so a SELF-aimed volatile
+ * (Imprison, Magnet Rise, Aqua Ring, Ingrain) has its duplicate start line removed and its `-fail`
+ * still owed. That is #241(3)'s clause, not this one's, and the Imprison probe below asserts only the
+ * half this pass fixed rather than pinning the half it did not. */
+const volTwice = (moveId, stage) => {
+  const me = bare('gholdengo'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  /* BOTH BODIES MADE UNFAINTABLE, because two turns of a damaging member (Salt Cure) would otherwise
+   * end the game and turn "no second start line" into "no second turn". */
+  unfaintable(f1); unfaintable(me);
+  if (stage) stage({ me, ally, f1, f2 });
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const out = [];
+  for (let t = 0; t < 2; t++) {
+    const trace = []; S._trace = trace;
+    const hpBefore = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon).filter(l => !/^\|(turn|upkeep|move)\b/.test(l));
+    /* THE ANNOUNCEMENT IS COUNTED, NOT MATCHED, AND `-endability` IS IN THE SET DELIBERATELY. Gastro
+     * Acid's condition writes `this.add('-endability', pokemon)` where this engine still writes the
+     * generic `-start|move: gastroacid` — a SHAPE defect that predates this pass and is untouched by
+     * it. Counting both means the probe asserts "the second click announces NOTHING" without also
+     * asserting that the first click's line is the right one, so fixing that shape later does not
+     * turn this row red and leaving it broken does not make this row a false LIVE. */
+    out.push({ start: lines.filter(l => /^\|-(start|singleturn|endability)\|/.test(l)).length,
+               fail:  lines.filter(l => /^\|-fail\|/.test(l)).join(' '),
+               took:  hpBefore - f1.curHP,
+               vol:   JSON.stringify(f1._vol || {}) + '/' + JSON.stringify(me._vol || {}) });
+  }
+  return out;
+};
+const FAIL_ME = M.traceCanon('|-fail|p1a: gholdengo');
+
+probe('move', 'volatileRestart', 'a second TORMENT fails and writes no second start line', () => {
+  const t = volTwice('torment');
+  return { works: t[0].start === 1 && t[0].fail === ''
+                  && t[1].start === 0 && t[1].fail === FAIL_ME,
+           arms: { control: [t[0].start, t[0].fail || '-'], test: [t[1].start, t[1].fail || '-'] },
+           detail: `turn 1 start lines ${t[0].start} fail[${t[0].fail || '-'}] vol ${t[0].vol}; `
+                 + `turn 2 start lines ${t[1].start} fail[${t[1].fail || '-'}] vol ${t[1].vol} `
+                 + `(the same click on the same body — turn 1 IS the control, and it must still land)` };
+});
+
+probe('move', 'volatileRestart', 'a second GASTRO ACID fails too — the rule, not a Torment special case', () => {
+  /* CONFIRMED ON THE OFFICIAL SIMULATOR, two staged turns: T1 `|-endability|p2a: Snorlax`, T2
+   * `|-fail|p1a: Dragapult`. Only the T2 half is this pass's; the T1 line's SHAPE is a separate,
+   * older defect (this engine writes `-start|move: gastroacid`) and the counter above is deliberately
+   * blind to which of the two shapes was written. */
+  const t = volTwice('gastroacid');
+  return { works: t[0].start === 1 && t[0].fail === ''
+                  && t[1].start === 0 && t[1].fail === FAIL_ME,
+           arms: { control: [t[0].start, t[0].fail || '-'], test: [t[1].start, t[1].fail || '-'] },
+           detail: `turn 1 start lines ${t[0].start} fail[${t[0].fail || '-'}]; turn 2 start lines `
+                 + `${t[1].start} fail[${t[1].fail || '-'}] (a second member of the derived set, so a `
+                 + `fix that named Torment would fail this one)` };
+});
+
+probe('move', 'volatileRestart', 'a second IMPRISON writes no second start line (its `-fail` is #241(3)’s clause)', () => {
+  /* THE LARGEST MEMBER — 487 corpus clicks. Only the start-line half is asserted: the `-fail` site in
+   * the affect branch requires `effects[0].to !== 'user'` and Imprison's volatile lands on the USER,
+   * so its failure line is owed by a different rule and is deliberately not pinned either way here. */
+  const t = volTwice('imprison');
+  return { works: t[0].start === 1 && t[1].start === 0,
+           arms: { control: t[0].start, test: t[1].start },
+           detail: `turn 1 start lines ${t[0].start} vol ${t[0].vol}; turn 2 start lines ${t[1].start} `
+                 + `vol ${t[1].vol}; turn-2 fail[${t[1].fail || '-'}] is REPORTED, not asserted — a `
+                 + `self-aimed volatile's -fail belongs to the didAnything site, not to this rule` };
+});
+
+probe('move', 'volatileRestart', 'a second SALT CURE still HITS — a refused volatile does not fail a damaging move', () => {
+  /* THE OVER-FIRE CONTROL FOR THE ANNOUNCEMENT. Salt Cure carries the same no-restart volatile and is
+   * a damaging move, so `didAnything` is true from the damage alone and the authority writes no
+   * `-fail` at all. A consumer that failed the MOVE rather than the VOLATILE would pass the two probes
+   * above and break this one. */
+  const t = volTwice('saltcure');
+  return { works: t[0].start === 1 && t[0].took > 0
+                  && t[1].start === 0 && t[1].took > 0 && t[1].fail === '',
+           arms: { control: [t[0].start, t[0].took > 0], test: [t[1].start, t[1].took > 0] },
+           detail: `turn 1 start lines ${t[0].start}, damage ${t[0].took}; turn 2 start lines `
+                 + `${t[1].start}, damage ${t[1].took}, fail[${t[1].fail || '-'}] (the damage must `
+                 + `still land and nothing may fail — only the duplicate start line goes)` };
+});
+
+probe('move', 'volatileRestart', 'ELECTRIFY is `duration: 1` and stays re-settable — the exemption, measured', () => {
+  /* THE OVER-FIRE CONTROL FOR THE RULE ITSELF. Electrify's condition declares no `onRestart` and IS
+   * refused by the derived set on shape alone; what saves it is `duration: 1`, which means the
+   * authority has already removed it before a second click can be made. Six volatiles in this format
+   * are in that class and all six must keep re-announcing.
+   *
+   * IT ALSO PINS A RESIDUE RATHER THAN HIDING IT: this engine does not LAPSE `_vol.electrify`, so the
+   * volatile is still standing on turn 2 and the exemption is doing real work. If the lapse is ever
+   * fixed, this probe keeps passing for the right reason instead of the current one. */
+  const e = volTwice('electrify'), g = volTwice('gastroacid');
+  return { works: e[0].start === 1 && e[1].start === 1 && e[1].fail === ''
+                  && g[0].start === 1 && g[1].start === 0,
+           arms: { control: [e[1].start, e[1].fail || '-'], test: [g[1].start, g[1].fail || '-'] },
+           detail: `turn-2 start lines — ELECTRIFY (duration 1, exempt) ${e[1].start} `
+                 + `fail[${e[1].fail || '-'}], GASTRO ACID (no duration, refused) ${g[1].start} `
+                 + `fail[${g[1].fail || '-'}]. Both declare no onRestart, so the two arms are the `
+                 + `exemption and the rule and nothing else; both turn-1 clicks landed `
+                 + `(${e[0].start}/${g[0].start}), so neither arm is a move that never worked. `
+                 + `Electrify vol ${e[1].vol}` };
 });
 
 const works = results.filter(r => r.works);

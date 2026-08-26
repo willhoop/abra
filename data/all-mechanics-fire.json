@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-26T10:31:25.093Z",
- "release": "705d2c7e86e8",
+ "generated": "2026-08-26T13:14:28.963Z",
+ "release": "28ee5a64daf4",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -1562,35 +1562,22 @@
     "why": "-immune",
     "medicham_attempted": true,
     "medicham_resolved": false,
-    "medicham_why": "the move executed and produced no consequence line at all",
-    "diverged": true,
-    "divergence": {
-     "at": 12,
-     "cls": "event missing from medicham2",
-     "detail": "-immune",
-     "cause": "event missing from medicham2 :: |-immune|p2a <> |upkeep",
-     "showdown": "|-immune|p2a: Feraligatr",
-     "medicham": "|upkeep",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "medicham_why": "-immune",
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [
       "volatile:attract"
      ],
-     "core_leaf_unchecked": true,
+     "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -54257,8 +54244,8 @@
    "attempted": 496,
    "tried": 500,
    "resolved": 495,
-   "diverged": 13,
-   "diverged_including_shelved": 15,
+   "diverged": 12,
+   "diverged_including_shelved": 14,
    "shelved_by_owner": 3,
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 12,
@@ -54280,7 +54267,7 @@
    "diverged_including_shelved": 4,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 9.1
+   "seconds": 8.8
   },
   "then_what": {
    "rows": 62,
@@ -54306,7 +54293,7 @@
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 4.3
+   "seconds": 4.2
   },
   "board_state": {
    "rows": 15,
@@ -54532,18 +54519,12 @@
   "boards": {
    "moves": {
     "tally": {
-     "NO-DIVERGENCE": 479,
-     "ANNOUNCEMENT-ONLY": 12,
-     "STATE": 5
+     "NO-DIVERGENCE": 480,
+     "STATE": 5,
+     "ANNOUNCEMENT-ONLY": 11
     },
     "rows": 496,
     "core_leaf_unchecked_rows": [
-     {
-      "id": "attract",
-      "leaves": [
-       "volatile:attract"
-      ]
-     },
      {
       "id": "gastroacid",
       "leaves": [
@@ -55047,8 +55028,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "705d2c7e86e8",
-    "roster_generated": "2026-08-26T10:30:42.103Z",
+    "roster_release": "28ee5a64daf4",
+    "roster_generated": "2026-08-26T13:12:27.734Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

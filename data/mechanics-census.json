@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T11:48:22.808Z",
+  "generated": "2026-08-26T13:21:20.923Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 718,
-  "live": 718,
+  "probed": 729,
+  "live": 729,
   "missing": 0,
-  "armed": 718,
+  "armed": 729,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3653,7 +3653,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.9% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7194,6 +7194,116 @@
       "label": "the Destiny Bond window closes when its user moves again, and a second one FAILS",
       "live": true,
       "detail": "[the bond holder fainted, the KILLER fainted] - bond on turn 1 then an ORDINARY move on turn 2 [true,false] (window closed, killer lives); a SECOND Destiny Bond on turn 2 [true,false] (it FAILS and takes the first one with it, killer lives); the user does NOTHING on turn 2 [true,true] (the window is still open across the turn boundary, killer dies)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "immunityGate",
+      "label": "Endeavor at equal HP is IMMUNE — no damage AND no damage LINE",
+      "live": true,
+      "detail": "user 100 vs target 100 — target ends 100, immune[|-immune|p2a:garchomp], damage lines[-] (there must be NONE: we used to write a -damage at unchanged HP); user 50 vs target 100 — target ends 50, immune[-], damage[|-damage|p2a:garchomp|50/183]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "immunityGate",
+      "label": "Leech Seed into a GRASS type announces the immunity it already refused",
+      "live": true,
+      "detail": "same Garchomp, typing is the only knob — [Grass] seeded false immune[|-immune|p2a:garchomp]; [Dragon,Ground] seeded true immune[-]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "immunityGate",
+      "label": "Trick into Sticky Hold announces `-immune` on the TARGET",
+      "live": true,
+      "detail": "Sticky Hold — mine \"choicescarf\" theirs \"leftovers\" immune[|-immune|p2a:garchomp]; ability none — mine \"leftovers\" theirs \"choicescarf\" immune[-] (the swap is the control: without it \"no swap\" would be satisfied by a Trick that never worked)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "immunityGate",
+      "label": "Switcheroo into Sticky Hold announces it too — the tag, not the name",
+      "live": true,
+      "detail": "Sticky Hold — mine \"choicescarf\" theirs \"leftovers\" immune[|-immune|p2a:garchomp]; ability none — mine \"leftovers\" theirs \"choicescarf\" immune[-]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "immunityGate",
+      "label": "Worry Seed into Truant is `-immune` on the target, not `-fail` on the user",
+      "live": true,
+      "detail": "Truant — ability truant immune[|-immune|p2a:garchomp] fail[-]; Insomnia — insomnia immune[|-immune|p2a:garchomp] fail[-]; Levitate — insomnia immune[-] (the rewrite lands, so the two refusals are the ability and not a Worry Seed that never worked)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "immunityGate",
+      "label": "Attract between two MALES announces the immunity — gender is modelled, the line was not",
+      "live": true,
+      "detail": "M -> M attracted false immune[|-immune|p2a:garchomp]; F -> M attracted true immune[-] (both genders are declared on both arms — a genderless body refuses for a different reason)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "volatileRestart",
+      "label": "a second TORMENT fails and writes no second start line",
+      "live": true,
+      "detail": "turn 1 start lines 1 fail[-] vol {\"torment\":1}/{}; turn 2 start lines 0 fail[|-fail|p1a:gholdengo] vol {\"torment\":1}/{} (the same click on the same body — turn 1 IS the control, and it must still land)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "volatileRestart",
+      "label": "a second GASTRO ACID fails too — the rule, not a Torment special case",
+      "live": true,
+      "detail": "turn 1 start lines 1 fail[-]; turn 2 start lines 0 fail[|-fail|p1a:gholdengo] (a second member of the derived set, so a fix that named Torment would fail this one)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "volatileRestart",
+      "label": "a second IMPRISON writes no second start line (its `-fail` is #241(3)’s clause)",
+      "live": true,
+      "detail": "turn 1 start lines 1 vol {}/{\"imprison\":1}; turn 2 start lines 0 vol {}/{\"imprison\":1}; turn-2 fail[-] is REPORTED, not asserted — a self-aimed volatile's -fail belongs to the didAnything site, not to this rule",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "volatileRestart",
+      "label": "a second SALT CURE still HITS — a refused volatile does not fail a damaging move",
+      "live": true,
+      "detail": "turn 1 start lines 1, damage 97; turn 2 start lines 0, damage 97, fail[-] (the damage must still land and nothing may fail — only the duplicate start line goes)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "volatileRestart",
+      "label": "ELECTRIFY is `duration: 1` and stays re-settable — the exemption, measured",
+      "live": true,
+      "detail": "turn-2 start lines — ELECTRIFY (duration 1, exempt) 1 fail[-], GASTRO ACID (no duration, refused) 0 fail[|-fail|p1a:gholdengo]. Both declare no onRestart, so the two arms are the exemption and the rule and nothing else; both turn-1 clicks landed (1/1), so neither arm is a move that never worked. Electrify vol {\"electrify\":1}/{}",
       "hollow": false,
       "armed": true,
       "directCall": false

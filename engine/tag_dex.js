@@ -5252,6 +5252,66 @@ const MOVE_TAGS = [
       }
       return Object.keys(byVolatile).length ? { byVolatile } : null;
     } },
+
+  /* MAY THIS VOLATILE BE APPLIED A SECOND TIME? `Pokemon#addVolatile` (sim/pokemon.ts:1994-1997):
+   *
+   *     if (this.volatiles[status.id]) {
+   *       if (!status.onRestart) return false;
+   *       return this.battle.singleEvent('Restart', status, ...);
+   *     }
+   *
+   * -- so a volatile already standing whose condition declares NO `onRestart` REFUSES, the move's
+   * `didAnything` is false, and the authority writes `|-fail|<USER>`. That rule is one line and this
+   * engine implemented it three times over a NAMED subset: `durationVolatiles()` (keyed off
+   * `sealsMoves`, i.e. Taunt / Encore / Disable), `critStageVolatiles()` (Focus Energy, Dragon Cheer)
+   * and a hand-owned refusal each for Attract, Destiny Bond and Substitute. Everything outside those
+   * lists was silently REFRESHED and announced a second time -- Will read it off a card: the authority
+   * printed `Krookodile fails` and we wrote a fresh Torment start line.
+   *
+   * `duration` TRAVELS WITH IT AND IS NOT A DECORATION. A `duration: 1` condition is removed at the
+   * end of the turn it was set, so the authority NEVER reaches its own refusal on a later turn --
+   * Follow Me, Rage Powder, Protect, Endure, flinch and Electrify are all in that class and all of
+   * them must stay re-settable. A consumer that refused on `!restart` alone would break six per-turn
+   * mechanics to fix ten permanent ones, which is docs/LESSONS §4 exactly: print what the rule matches
+   * before wiring it.
+   *
+   * MEMBERSHIP OVER EVERY LEGAL MOVE IN THIS FORMAT, printed before this was written: 40 volatiles, of
+   * which 8 declare `onRestart` (helpinghand, healblock, stockpile, smackdown, minimize, charge,
+   * powertrick, powershift) and 6 more are `duration: 1`. `sparklingaria` is named by a legal move and
+   * `dex.conditions.get` does not have it at all -- it gets no row rather than a guessed one. */
+  { tag: 'volatileRestart', param: 'whether a volatile already standing may be applied again, and its declared duration',
+    probe: 'volatileRestart',
+    why: 'a volatile the body already carries is REFUSED by addVolatile unless its condition declares '
+       + 'onRestart, and the move then fails and says so. The engine refreshed Torment, Imprison, '
+       + 'Gastro Acid, Magnet Rise, Aqua Ring, Ingrain, Salt Cure and Syrup Bomb and announced a '
+       + 'second start line each time',
+    of: m => {
+      const vols = new Set();
+      const put = v => { if (typeof v === 'string' && v) vols.add(v); };
+      put(m.volatileStatus);
+      if (m.self) put(m.self.volatileStatus);
+      for (const s of (m.secondaries || [])) { put(s.volatileStatus); if (s.self) put(s.self.volatileStatus); }
+      const srcs = [];
+      const scan = (o, depth) => { if (!o || typeof o !== 'object' || depth > 2) return;
+        for (const k in o) { const v = o[k];
+          if (typeof v === 'function') srcs.push(fnsrc(v));
+          else if (v && typeof v === 'object') scan(v, depth + 1); } };
+      scan(m, 0);
+      for (const s of srcs) for (const g of s.matchAll(/\.addVolatile\(\s*["'](\w+)["']/g)) put(g[1]);
+      if (!vols.size) return null;
+      const byVolatile = {};
+      for (const v of [...vols].sort()) {
+        const c = dex.conditions.get(v);
+        /* NO ROW RATHER THAN A GUESSED ONE. A volatile the dex has no condition for cannot be said to
+         * declare or not declare an onRestart, and a consumer must be able to tell "the authority
+         * refuses this" from "nobody asked". */
+        if (!c || !c.exists) continue;
+        byVolatile[v] = { restart: !!c.onRestart,
+                          duration: (c.duration == null ? null : +c.duration),
+                          from: 'DERIVED:dex.conditions.get(' + v + ').onRestart' };
+      }
+      return Object.keys(byVolatile).length ? { byVolatile } : null;
+    } },
 ];
 
 /* ---- THE EFFECTIVENESS EVENT IS RAISED ONCE PER DEFENDING TYPE, AND SOME HANDLERS IGNORE THE TYPE --

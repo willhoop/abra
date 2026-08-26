@@ -21,6 +21,78 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## TWO REFUSAL RULES EXISTED IN MACHINE-READABLE FORM AND NEITHER HAD A CONSUMER. CENSUS 718 -> 729, WHOLE-GAME CLAUSE 13 -> 12 OF 961, BOARD-MATERIAL UNMOVED AT 10. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.137.0. Register row: ROADMAP #451.
+Engine release cut: **`28ee5a64daf4`** — *"the move's own onTryImmunity is consulted at step 3, and a
+volatile already standing is refused"*. Every figure below is stamped with it.
+
+**ONE FAMILY, NOT TWO CARDS.** Will read every divergence card and found the same shape twice: a move
+the authority REFUSES and we APPLY. Both halves were a rule that already existed, derived, in an
+artifact nothing consulted.
+
+**(A) `immunityGate` HAD BEEN DERIVED SINCE 2026-08-22 AND `medicham2-browser.js` CONTAINED THE STRING
+ZERO TIMES.** Six moves, each carrying the authority's handler, a machine-readable condition, the event
+(`-immune`), the attribution (`null`) and the step (3). Measured one staged turn each before anything
+moved: **Endeavor at equal HP dealt the damage and narrated `|-damage|p2a: garchomp|100/183` at
+100/183** — Will's *"we say 'drops' when in reality nothing happened"*, and the only member that moves a
+board; **Worry Seed** announced `|-fail|<USER>` for a `|-immune|<TARGET>`; **Leech Seed (598), Trick
+(501), Switcheroo (17) and Attract (2)** refused correctly and said nothing. One reader, five branches,
+at the authority's own position between the powder clause and Prankster. An unrecognised condition shape
+does NOT refuse and is counted.
+
+**IT SEPARATES THREE MOVES NOBODY HAD SEPARATED.** Worry Seed, Entrainment and Simple Beam all carry a
+`refusedAbilities` list and Worry Seed's is the same pair the gate holds — but Worry Seed refuses at
+`onTryImmunity` (`-immune`, the target) and the other two at `onTryHit` (`-fail`, the user). The gate
+takes only the moves the artifact gives a row.
+
+**ATTRACT WAS FIXABLE, NOT DECLARABLE, AND THE BRIEF ASKED FOR THAT TO BE ESTABLISHED.** This engine
+does model gender (`genderOf`, `attractCompatible`); the clause simply sat inside `applyAttract`, below
+the accuracy roll, and said nothing.
+
+**(B) A VOLATILE ALREADY STANDING IS REFUSED, AND THE ENGINE HELD THAT RULE THREE TIMES OVER NAMED
+SUBSETS.** `addVolatile` returns false for a present volatile with no `onRestart`; this engine
+implemented it as `sealsMoves` (three moves), the crit-stage pair, and hand-owned refusals for Attract,
+Destiny Bond and Substitute. Will's card: the authority printed `Krookodile fails` and we wrote a fresh
+Torment start line. **Eight volatiles were being refreshed and re-announced: torment, imprison (487
+uses, the largest), gastroacid, magnetrise, aquaring, ingrain, saltcure, syrupbomb** — every one
+confirmed on the official simulator over two staged turns.
+
+**`duration: 1` IS THE EXEMPTION AND IS WHY THIS IS NOT A ONE-LINE RULE.** Membership printed over
+every legal move first: **56 volatiles carry a row, 8 declare `onRestart`, 6 more are `duration: 1`.**
+A rule on `!onRestart` alone would have broken Protect, Follow Me, Rage Powder, Endure, flinch and
+Electrify — six per-turn mechanics to fix eight permanent ones. `sparklingaria` gets NO row because the
+dex has no condition for it at all.
+
+**MEASURED, EACH SAYING WHICH SCOREBOARD.** Predicted before the run: lab moves on all eleven rows, pool
+moves a little on the whole-game clause, **board-material does not move** because five of six immunity
+members and every volatile refusal are emission-only.
+
+| instrument | before | after |
+|---|---|---|
+| census | 718/718, 0 missing | **729/729, 0 missing** |
+| whole-game clause, pinned pool | 13 of 961 | **12 of 961** |
+| board-material | 10 of 961 | **10 — unmoved, as predicted** |
+| staged mechanics, moves | 13 diverged | **12** |
+| damage differential, 16 corners | 0 of 6000 | **0 of 6000 — re-run, owed by this batch** |
+| roster items / abilities / moves | — | **0 and 0 on all three, on `28ee5a64daf4`** |
+
+Pins: `--games 1200`, arm `middle`, cap 12, `--team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json`, `--state --end-state`,
+`--release 28ee5a64daf4`. `generated` moved 11:44Z -> 12:45Z before any number was read;
+`planted_divergence_proof_ok` true; 961 games either side.
+
+**BOTH KNOBS SHOWN RED ON DEMAND.** `MEDI_IMMUNITY_GATE_BLIND=1` takes the census 724 -> 718 with
+exactly the six rows MISSING; `MEDI_VOL_RESTART_BLIND=1` takes it 729 -> 724 with exactly the five.
+
+**STILL OWED AND SAID PLAINLY:** a SELF-aimed volatile's `|-fail|<USER>` (Imprison, Magnet Rise, Aqua
+Ring, Ingrain) — that line belongs to the `affect` branch's `didAnything` site, whose fifth clause is
+`effects[0].to !== 'user'` (#241(3)), and the Imprison probe REPORTS it rather than pinning it. Gastro
+Acid's turn-1 line is `-endability` on the authority and `-start|move: gastroacid` here; older, not
+caused by this pass, and the probe's counter spans both shapes so it will not go red when it is fixed.
+
+---
+
 ## THE RULER WAS DEAD FROM ITS SECOND LOAD, AND IT HAD BEEN READ AS A SPREAD-IMMUNITY DAMAGE DEFECT. STAGED SCENARIOS 10 -> 24 OF 25, CENSUS 717 -> 718, POOL UNMOVED GAME FOR GAME. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.136.8. Register row: ROADMAP #450.

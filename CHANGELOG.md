@@ -10,6 +10,88 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.137.0] — 2026-08-26
+
+### Fixed
+- **THE AUTHORITY REFUSES A MOVE AND WE APPLIED IT — TWO DOORS, ONE DISEASE, ELEVEN CENSUS ROWS.**
+  Will read every divergence card and found the same shape twice. Both halves were a rule that exists,
+  in machine-readable form, in an artifact nothing consulted.
+- **(A) THE MOVE'S OWN `onTryImmunity` — `data/tags.json` HAS DERIVED IT SINCE 2026-08-22 AND
+  `engine/medicham2-browser.js` READ THE TAG ZERO TIMES.** Grepped, not assumed. Six moves carry an
+  `immunityGate` row with the authority's handler source, a machine-readable CONDITION, the announced
+  event (`-immune`), its attribution (`null`, a bare line on the TARGET) and the step (3, above
+  `hitStepAccuracy`); `tests/test-immunity-gate.js` already proved that condition predicts the official
+  simulator across twelve staged arms. **The cost was not uniform, and that is why there are six probes
+  and not one.** Measured one staged turn each before anything was wired:
+  **Endeavor** (133 uses, `pokemon.hp < target.hp` — RAW HP, not a percentage) **dealt the damage
+  anyway and narrated `|-damage|p2a: garchomp|100/183` at 100/183** — an event describing something
+  that did not happen, and the only member of the six that moves a board; **Worry Seed** (114) refused
+  correctly and announced `|-fail|<USER>` where the authority writes `|-immune|<TARGET>`; **Leech Seed**
+  (598), **Trick** (501), **Switcheroo** (17) and **Attract** (2) all refused correctly and **said
+  nothing at all**. One reader, `immunityGateRefuses`, evaluates the tag's condition; five action
+  branches — `status`, `affect`, `trickitem`, `abilitywrite` and the attack path's `_stepTryImm` — now
+  ask it at the authority's own position, between the powder clause and Prankster. A `pass` shape it
+  cannot evaluate **does not refuse and is counted** (`MEDFAILS.immunityGatePassUnknown`): an invented
+  immunity is worse than the missing one it replaced. **It separates three moves nobody had separated** —
+  Worry Seed's Truant/Insomnia refusal is `onTryImmunity` and announces `-immune`, while Entrainment's
+  and Simple Beam's identical-looking `refusedAbilities` lists come from `onTryHit` and announce
+  `-fail`; the gate takes only the moves the artifact gives a row, so the other two are untouched.
+- **(B) A VOLATILE THE BODY ALREADY CARRIES IS REFUSED — THE ENGINE HELD THAT RULE THREE TIMES OVER
+  NAMED SUBSETS AND EVERYTHING OUTSIDE THEM WAS SILENTLY REFRESHED.** `Pokemon#addVolatile`
+  (sim/pokemon.ts:1994-1997) returns false for a volatile already standing whose condition declares no
+  `onRestart`. This engine implemented it as `durationVolatiles()` (keyed off `sealsMoves` — a table of
+  three: Taunt, Encore, Disable), `critStageVolatiles()` (Focus Energy, Dragon Cheer), and hand-owned
+  refusals for Attract, Destiny Bond and Substitute. Will's card: the authority printed
+  `Krookodile fails`, we wrote a fresh Torment start line. **Eight volatiles reached the generic write
+  and were re-announced on turn 2** — torment, **imprison (487 uses, the largest)**, gastroacid,
+  magnetrise, aquaring, ingrain, saltcure, syrupbomb — confirmed on the official simulator, two staged
+  turns each. New derived tag `volatileRestart` (`restart`, `duration`, per volatile, from
+  `dex.conditions.get(v).onRestart`) with one consumer, `volRefusesRestart`.
+- **`duration: 1` IS THE EXEMPTION AND IT IS WHY THIS IS NOT A ONE-LINE RULE.** A condition the
+  authority removes at the end of its own turn is never standing when the next click arrives, so the
+  authority never reaches its own refusal — Protect, Follow Me, Rage Powder, Endure, flinch and
+  Electrify are all that class. **Membership was printed over every legal move before the consumer
+  existed**, as this repository's rule requires: 56 volatiles carry a row, 8 declare `onRestart`, 6 more
+  are `duration: 1`. A rule written on `!onRestart` alone would have broken six per-turn mechanics to
+  fix eight permanent ones. `sparklingaria` is written by a legal move and the dex has **no condition
+  for it at all**, so it gets NO row rather than a guessed one — "the authority refuses this" and
+  "nobody asked" must not read alike.
+- **WHAT IS EXPLICITLY NOT CLAIMED.** A SELF-aimed volatile (Imprison, Magnet Rise, Aqua Ring, Ingrain)
+  loses its duplicate start line and is **still owed its `|-fail|<USER>`**: that line is written by the
+  `affect` branch's `didAnything` site, whose fifth clause is `effects[0].to !== 'user'` (ROADMAP
+  #241(3)). The Imprison probe asserts only the half this pass fixed and REPORTS the other rather than
+  pinning it. Gastro Acid's turn-1 line is `-endability` on the authority and `-start|move: gastroacid`
+  here — an older shape defect, untouched; the probe counts announcements across both shapes so it
+  neither pins the defect nor goes red when someone fixes it.
+
+### Added
+- `volatileRestart` — a derived move tag carrying, per volatile, whether the authority's condition
+  declares `onRestart` and what duration it declares. `engine/tag_dex.js`, one consumer in
+  `engine/medicham2-browser.js`.
+- Eleven census probes, **every one shown RED before the engine moved**: six on `immunityGate` (each
+  varying ONE knob on the same bodies — Leech Seed writes `f1.types` rather than swapping in a Grass
+  species, Attract writes both genders, Endeavor writes both HP values) and five on `volatileRestart`
+  (Torment and Gastro Acid for the rule; Imprison for the largest member; **Salt Cure as the
+  over-fire control** — a damaging move whose refused volatile must NOT fail the move; **Electrify vs
+  Gastro Acid as the exemption control** — both declare no `onRestart` and only one is `duration: 1`).
+- Two named knobs, both proven to turn the family red on demand: `MEDI_IMMUNITY_GATE_BLIND=1`
+  (census 724 → 718) and `MEDI_VOL_RESTART_BLIND=1` (729 → 724).
+
+### Changed
+- `data/tags.json` and `data/abra-tags.js` regenerated. Beyond the new tag the whole diff is `uses`
+  counts — the corpus grew from 198,840 to 205,488 sheet entries while OPS ingested.
+
+### Notes
+- **Census 718/718 → 729/729, 0 missing.** Hollow 0, unarmed 0, direct-call 1 (unchanged).
+- **Damage differential unmoved and RE-RUN because this batch owed it**: 0 of 6000 at the midpoint and
+  at all sixteen corners, seed 20260804, 134 not comparable (multihit).
+- **Pinned pool, release `28ee5a64daf4`, 961 games, census pin `9446a684709d`, `data/team-pool-frozen`:
+  whole-game clause 13 → 12 of 961; board-material 10 → 10, UNMOVED.** Both predicted before the run —
+  five of the six immunity members and every volatile refusal are emission-only, so the lab was
+  expected to move and the board was not. Staged mechanics (moves) 13 → 12 diverging.
+- All three roster stages re-run on this release: **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE across
+  items, abilities and moves.**
+
 ## [5.136.8] — 2026-08-26
 
 ### Fixed

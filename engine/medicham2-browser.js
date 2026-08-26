@@ -1005,6 +1005,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * bare line is back. `Bare` is NOT a failure counter -- a Grass body refusing a powder move is
    * announced bare by the authority too. */
   moveClassImmuneAttributed: 0, moveClassImmuneBare: 0,
+  /* 2026-08-26 -- the move's OWN `onTryImmunity`, the second clause of `hitStepTryImmunity`. A run
+   * containing an Endeavor at equal HP, a Leech Seed into a Grass body, a Trick into Sticky Hold, a
+   * Worry Seed into Truant or a same-gender Attract and reading ZERO here means `immunityGateRefuses`
+   * stopped being consulted -- which is the state this engine was in until it was written, and which
+   * showed up as damage the authority never dealt. */
+  immunityGateRefused: 0,
   passesStateSwitch: 0, passesStateBoosts: 0, passesStateVolatiles: 0,
   curseGhost: 0, curseNonGhost: 0,
   /* WIRE 132 -- the three recoveries the mega path now makes, each named so a ZERO is readable.
@@ -1419,6 +1425,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      saved -- see berryRefusedByFoe's header. */
   berryRefusedByUnnerve: 0,
   volRestartRefused: 0, volSealNoLastMove: 0,
+  /* 2026-08-26 -- the two halves of the DERIVED no-restart rule, kept apart because only one of them
+     is a gap. `SingleTurnExempt` is the `duration: 1` class doing its job (Electrify is the only
+     member that reaches the generic write today) and a zero on a run containing one means the
+     exemption stopped being consulted, which would refuse a per-turn volatile. `NoRow` is a volatile
+     the artifact has no `volatileRestart` entry for -- `sparklingaria` is the one member in this
+     format and it is a volatile the dex has no condition for at all, so a non-zero is expected and a
+     RISE means a new volatile arrived that nobody derived. */
+  volRestartSingleTurnExempt: 0, volRestartNoRow: 0,
   /* ROADMAP #241(3) -- `null` MEANS "HANDLED, SAY NOTHING"; `false` MEANS "FAILED, ANNOUNCE IT", and
    * this engine had no way to hold the difference. See `VOLRES` beside applyMoveVolatile for the
    * authority's own sites. Four counters, and each names a DIFFERENT noun on purpose, because three
@@ -1706,6 +1720,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* 2026-08-26 -- the three ways `immunityGateRefuses` can be handed a row it cannot evaluate, kept
+     apart because they mean different things. `PassUnknown` is a NEW condition shape in the artifact
+     and is the one that matters: the gate returns "not refused", i.e. exactly the behaviour this
+     engine had before the reader existed, so a non-zero here is a mechanic quietly going back to
+     missing. `UnknownOp` is the same for a comparison operator. `EventNotClaimed` is a row whose
+     `announces` is not `-immune`; all six rows say `-immune` today, so it is zero by construction and
+     is here so a seventh cannot arrive announcing something this engine emits as an `-immune`.
+     `immunityGateBlindRestored` is the knob and must read 0 on any shipping run. */
+  immunityGatePassUnknown: 0, immunityGatePassUnknownFirst: '',
+  immunityGateUnknownOp: 0, immunityGateUnknownOpFirst: '',
+  immunityGateEventNotClaimed: 0, immunityGateEventNotClaimedFirst: '',
+  immunityGateBlindRestored: 0,
+  /* 2026-08-26 -- the derived no-restart table could not be built at all, which leaves this engine
+     exactly where it was before the rule existed: the sealing family refuses and nothing else does.
+     `volRestartBlindRestored` is the knob and must read 0 on any shipping run. */
+  volRestartTableFailed: 0, volRestartTableFailedFirst: '',
+  volRestartBlindRestored: 0,
   /* 2026-08-24 -- a move carrying BOTH costsUserHP and a declared boost table that did NOT dispatch to
      the `setup` branch, so the deferred payment would have had nowhere to land and it paid at the old
      (authority-wrong) position instead. Zero across this format today -- clangoroussoul is the only
@@ -3410,6 +3441,60 @@ if(TAGS&&typeof TAGS.__onSetDB==='function') TAGS.__onSetDB(function(){ _forbidV
  * lastMove`; `encore.condition.onStart` returns false on `!target.lastMove`). So the membership falls
  * out of the artifact as `durationVolatiles - forbidByVolatile` = {encore, disable}, which is what
  * WIRE 69 hand-wrote for encore alone and what Disable never had at all. */
+/* 2026-08-26 -- MAY THIS VOLATILE BE APPLIED A SECOND TIME? ONE TABLE, DERIVED, NOT THREE LISTS.
+ *
+ * `Pokemon#addVolatile` (sim/pokemon.ts:1994-1997) refuses a volatile the body already carries unless
+ * its condition declares `onRestart`. This engine held that rule THREE times over named subsets --
+ * `durationVolatiles()` below (keyed off `sealsMoves`: Taunt, Encore, Disable), `critStageVolatiles()`
+ * (Focus Energy, Dragon Cheer) and hand-owned refusals for Attract, Destiny Bond and Substitute -- and
+ * everything outside them was silently REFRESHED and announced again. Will read it off a card: the
+ * authority printed `Krookodile fails` and this engine wrote a fresh Torment start line.
+ *
+ * `duration: 1` IS THE EXEMPTION AND IT IS NOT A CONVENIENCE. A condition the authority removes at the
+ * end of its own turn is never standing when the next click arrives, so the authority NEVER reaches
+ * its own refusal for one -- Protect, Follow Me, Rage Powder, Endure, flinch and Electrify are all in
+ * that class and all six must stay re-settable. A rule written on `!restart` alone would break six
+ * per-turn mechanics to fix eight permanent ones, which is docs/LESSONS §4 exactly.
+ *
+ * MEMBERSHIP PRINTED OVER EVERY LEGAL MOVE BEFORE THIS WAS WIRED, as this file's rule requires: 56
+ * volatiles carry a `volatileRestart` row, 8 declare `onRestart` (helpinghand, healblock, stockpile,
+ * smackdown, minimize, charge, powertrick, powershift) and 6 more are `duration: 1`. Of the 30 the
+ * rule refuses, most never reach the generic write at all -- they are owned by their own handler
+ * further up this function, or by a field outside `_vol` entirely. The eight it actually changes,
+ * measured one staged pair of turns each: torment, imprison, gastroacid, magnetrise, aquaring,
+ * ingrain, saltcure, syrupbomb.
+ *
+ * A VOLATILE WITH NO ROW DOES NOT REFUSE, AND IS COUNTED. `sparklingaria` is written by a legal move
+ * and `dex.conditions.get` has no condition for it at all, so the artifact gives it no row -- "the
+ * authority refuses this" and "nobody asked" must not read alike. */
+let _volNoRestart=null;
+function volRestartTable(){
+  if(_volNoRestart) return _volNoRestart;
+  _volNoRestart=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','volatileRestart'):[])){
+      const p=TAGS.param('move',id,'volatileRestart');
+      if(!p||!p.byVolatile) continue;
+      for(const v of Object.keys(p.byVolatile)) _volNoRestart.set(v,p.byVolatile[v]);
+    }
+  }catch(e){
+    /* IT SPEAKS, for the reason durationVolatiles' catch does: an empty table here is exactly what
+     * this engine looked like BEFORE the rule existed, which is a silent default wearing the shape of
+     * a working feature. */
+    MEDFAILS.volRestartTableFailed++;
+    if(!MEDFAILS.volRestartTableFailedFirst) MEDFAILS.volRestartTableFailedFirst=String((e&&e.message)||e);
+  }
+  return _volNoRestart;
+}
+const VOL_RESTART_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_VOL_RESTART_BLIND==='1');
+function volRefusesRestart(vol){
+  if(VOL_RESTART_BLIND){MEDFAILS.volRestartBlindRestored=1;return false;}
+  const d=volRestartTable().get(vol);
+  if(!d){MEDSEEN.volRestartNoRow++;return false;}
+  if(d.restart)return false;
+  if(+d.duration===1){MEDSEEN.volRestartSingleTurnExempt++;return false;}
+  return true;
+}
 let _volDur=null;
 function durationVolatiles(){
   if(_volDur) return _volDur;
@@ -12592,6 +12677,96 @@ function powderBlocked(t,moveId){
   return (t.types||[]).includes('Grass') || ab==='overcoat' ||
          String(t.item||'').replace(/[^a-z0-9]/g,'')==='safetygoggles';
 }
+/* 2026-08-26 -- THE MOVE'S OWN IMMUNITY, AND IT IS THE SECOND HALF OF `hitStepTryImmunity`.
+ *
+ * `powderBlocked` directly above is the FIRST clause of that step (battle-actions.ts:669). The second
+ * is `singleEvent('TryImmunity', move, ...)` -- the MOVE's own `onTryImmunity` -- and this engine had
+ * no reader for it at all. `data/tags.json` has derived one since 2026-08-22, per move, carrying the
+ * handler source, a machine-readable CONDITION, the announced event and the step; grepped for
+ * `immunityGate` across this file on 2026-08-26 the count was ZERO.
+ *
+ * SIX MOVES IN THIS FORMAT AND THE COST IS NOT UNIFORM, measured one staged turn each before this
+ * existed (tests/test-mechanics.js carries all six as probes and each was shown red first):
+ *
+ *     endeavor    133  the user's HP is not lower  ->  WE DEALT THE DAMAGE ANYWAY and narrated a
+ *                                                     `|-damage|` at unchanged HP. The only member
+ *                                                     of the six that moves a board.
+ *     worryseed   114  truant / insomnia           ->  refused, announced `|-fail|<USER>` where the
+ *                                                     authority writes `|-immune|<TARGET>`
+ *     leechseed   598  target is Grass             ->  refused, SILENTLY
+ *     trick       501  target has Sticky Hold      ->  refused, SILENTLY
+ *     switcheroo   17  the same                    ->  refused, SILENTLY
+ *     attract       2  the genders do not pair     ->  refused, SILENTLY
+ *
+ * THE CONDITION IS EVALUATED, NOT RE-DERIVED. Four `pass` kinds exist in the artifact today and each
+ * is one line below; `tests/test-immunity-gate.js` already proves every one of them predicts the
+ * official simulator, gate closed and gate open, so nothing here re-reads a handler or names a move.
+ * A `pass` this function does not recognise DOES NOT REFUSE and is COUNTED -- a silent default here
+ * would be an invented immunity, which is worse than the missing one it replaced.
+ *
+ * `who` IS READ OFF THE CONDITION even though every row today says `target`, because the `hpCompare`
+ * row already names both sides and a future row naming the user must not be answered by position.
+ *
+ * THE ABILITY IS READ RAW, AND THAT IS A DECLARED RESIDUE RATHER THAN AN OVERSIGHT. Trick's handler
+ * is `!target.hasAbility("stickyhold")`, which a Mold Breaker suppresses; Worry Seed's is
+ * `target.ability === "truant"`, which it does not. `abilityRefusesItemLoss` -- the refusal that was
+ * already carrying Trick's half of this SILENTLY -- also reads `m.ability` raw, so reading raw here
+ * changes NOTHING about what a Mold Breaker Trick does today and adds no second answer to the same
+ * question. It is written down so the residue is known, not discovered.
+ *
+ * MEDI_IMMUNITY_GATE_BLIND=1 puts the whole family back to unread, so all six census rows can be
+ * shown MISSING on demand; any run carrying it also carries a non-zero
+ * `MEDFAILS.immunityGateBlindRestored`. */
+const IMMUNITY_GATE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_IMMUNITY_GATE_BLIND==='1');
+function immunityGateRefuses(user,target,moveId){
+  if(IMMUNITY_GATE_BLIND){MEDFAILS.immunityGateBlindRestored=1;return false;}
+  if(!moveId||!target||!user)return false;
+  const g=TAGS.param('move',moveId,'immunityGate');
+  if(!g||!g.condition)return false;
+  const c=g.condition;
+  const body=w=>(String(w)==='user'?user:target);
+  let pass;
+  if(c.pass==='hpCompare'){
+    /* RAW HP, NOT A PERCENTAGE. `pokemon.hp < target.hp` (data/moves.ts endeavor). */
+    const L=+body(c.left).curHP, R=+body(c.right).curHP;
+    pass=(c.op==='<')?(L<R):(c.op==='>')?(L>R):(c.op==='<=')?(L<=R):(c.op==='>=')?(L>=R):null;
+    if(pass===null){MEDFAILS.immunityGateUnknownOp++;
+      if(!MEDFAILS.immunityGateUnknownOpFirst)MEDFAILS.immunityGateUnknownOpFirst=moveId+' op '+String(c.op);
+      return false;}
+  } else if(c.pass==='lacksType'){
+    const ty=(body(c.who).types)||[];
+    pass=!(c.types||[]).some(x=>ty.includes(x));
+  } else if(c.pass==='lacksAbility'){
+    const ab=String(body(c.who).ability||'').replace(/[^a-z0-9]/g,'');
+    pass=!(c.abilities||[]).some(x=>String(x).replace(/[^a-z0-9]/g,'')===ab);
+  } else if(c.pass==='genderPairs'){
+    pass=(c.anyOf||[]).some(pair=>pair.every(cl=>genderOf(body(cl.who))===String(cl.gender)));
+  } else {
+    MEDFAILS.immunityGatePassUnknown++;
+    if(!MEDFAILS.immunityGatePassUnknownFirst)MEDFAILS.immunityGatePassUnknownFirst=moveId+' pass '+String(c.pass);
+    return false;
+  }
+  if(pass)return false;
+  MEDSEEN.immunityGateRefused++;
+  return true;
+}
+/* THE ANNOUNCEMENT, BESIDE THE READER, for the same reason `volAnnounceEmit` sits beside `volAnnounce`:
+ * a caller that had to remember `-immune` and a bare field would be a second place deciding what this
+ * step says. `attribution` is `null` on all six rows and `hitStepTryImmunity` writes
+ * `this.battle.add('-immune', target)` with nothing after it, so an attribution here would be
+ * INVENTED. It is read off the row rather than hard-coded, and an event this engine does not claim is
+ * counted rather than guessed at. */
+function immunityGateAnnounce(target,moveId){
+  const g=TAGS.param('move',moveId,'immunityGate')||{};
+  if(!TR)return;
+  if(g.announces!=='-immune'){
+    MEDFAILS.immunityGateEventNotClaimed++;
+    if(!MEDFAILS.immunityGateEventNotClaimedFirst)
+      MEDFAILS.immunityGateEventNotClaimedFirst=String(moveId)+' -> '+String(g.announces);
+    return;
+  }
+  TR.imm(target,g.attribution||undefined);
+}
 /* PRANKSTER. Its +1 priority does not apply against Dark types, and the move fails on them outright
  * (Gen 7+). Prankster Thunder Wave into a Dark type does nothing at all. */
 /* ONE PLACE THAT ANSWERS "IS THIS PRANKSTER". Two callers now -- the Dark-type block below and the
@@ -14302,7 +14477,16 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
      the duration family on purpose: Protect, Follow Me, Rage Powder and Helping Hand are
      per-turn volatiles that MUST be re-settable, and a blanket no-restart rule would have
      caught all four (docs/LESSONS §4 -- print what the rule matches before wiring it). */
-  if(durationVolatiles().has(vol)&&who._vol&&who._vol[vol]>0){
+  /* 2026-08-26 -- AND THE MEMBERSHIP IS NOW DERIVED RATHER THAN BEING THE SEALING FAMILY. The
+   * paragraph above is still the reason the rule exists and it named its own limit: `durationVolatiles`
+   * is keyed off `sealsMoves`, which is a table of three, so Torment, Imprison, Gastro Acid, Magnet
+   * Rise, Aqua Ring, Ingrain, Salt Cure and Syrup Bomb were all refreshed and announced twice. The
+   * union is written rather than the replacement: the sealing table is what the old behaviour rested
+   * on, and keeping it means an empty `volatileRestart` table cannot silently widen a Taunt back into
+   * a refreshable one. `volRefusesRestart` carries the `duration: 1` exemption that keeps Protect,
+   * Follow Me, Rage Powder, Endure and Electrify re-settable -- see its own note.
+   * MEDI_VOL_RESTART_BLIND=1 puts the sealing-family-only rule back. */
+  if((durationVolatiles().has(vol)||volRefusesRestart(vol))&&who._vol&&who._vol[vol]>0){
     MEDSEEN.volRestartRefused++;
     /* ROADMAP #241(3) -- AND IT IS THE AUTHORITY'S `false`, SO THE ANNOUNCEMENT IS OWED. This is the
      * second-Encore card: `sim/pokemon.ts:1994-1997` returns a bare false for a present volatile whose
@@ -20548,6 +20732,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           {const _abs=absorbRefusal(m,_t,a.mv);if(_abs){announceTryHitRefusal(_abs,_t);continue;}}
           if(moveClassBlocked(_t,a.mv,m)){if(TR)TR.imm(_t,moveClassImmuneAttr(_t,m));continue;}   // WIRE 66 / #256
           if(powderBlocked(_t,a.mv)){if(TR)TR.imm(_t,powderImmuneAttr(_t,m));continue;}           // #256
+          /* 2026-08-26 -- THE MOVE'S OWN onTryImmunity, and it sits BETWEEN powder and Prankster
+           * because that is the order inside `hitStepTryImmunity` (battle-actions.ts:669-679). This is
+           * Attract's door: the gender clause lived inside `applyAttract`, below the accuracy roll and
+           * silent, so a same-gender click printed nothing where the authority prints `|-immune|`. */
+          if(immunityGateRefuses(m,_t,a.mv)){immunityGateAnnounce(_t,a.mv);continue;}
           if(pranksterBlocked(m,_t,a.mv)){if(TR)TR.imm(_t);continue;}
           /* WIRE 129 -- hitChance, not moveAccuracy: a Minimize'd target dodges a Will-O-Wisp exactly
            * as it dodges an Ice Beam, and No Guard lands one exactly as it lands a Stone Edge. */
@@ -21725,6 +21914,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* WIRE 241 -- a Trick into a Good as Gold kept both items and said nothing at all. */
           {const _rf=tryHitRefusal(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
           if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
+          /* 2026-08-26 -- THE MOVE'S OWN onTryImmunity, and it is Trick's and Switcheroo's door.
+           * `abilityRefusesItemLoss` in the chain below was already refusing a Sticky Hold body, so the
+           * BOARD was right and the stream was a line short; that refusal is Sticky Hold's own
+           * `onTakeItem` and stays where it is, because it also answers for Knock Off, Thief and Covet,
+           * none of which carry an `immunityGate` row. This one answers for the move. */
+          if(immunityGateRefuses(m,t,a.mv)){immunityGateAnnounce(t,a.mv);continue;}
           if(t===m
              ||moveClassBlocked(t,a.mv,m)||pranksterBlocked(m,t,a.mv)
              ||TAGS.has('item',m.item,'megaStone')||TAGS.has('item',t.item,'megaStone')
@@ -21964,6 +22159,14 @@ function battleTurn(S,rng,actsForA,actsForB){
             const _rf=tryHitRefusal(m,t,a.mv);
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
+          /* 2026-08-26 -- THE MOVE'S OWN onTryImmunity, and it is Worry Seed's door. The `refused`
+           * list four lines below carries the SAME two abilities for Worry Seed and it is NOT the same
+           * fact: Entrainment and Simple Beam reach that list through their own `onTryHit`, which the
+           * authority answers with `|-fail|<USER>`, and Worry Seed reaches it through `onTryImmunity`,
+           * which it answers with `|-immune|<TARGET>`. Both lists stay; this gate takes only the moves
+           * the artifact gives an `immunityGate` row, so the other two are untouched -- and that is a
+           * shape read rather than a name, which is why it separates three moves nobody separated. */
+          if(immunityGateRefuses(m,t,a.mv)){immunityGateAnnounce(t,a.mv);continue;}
           const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m));
           const _want=a.becomes==='the user\'s own ability'?m.ability:a.becomes;
           /* THE AUTHORITY FAILS RATHER THAN NO-OPS when the target already holds it, and Stomping
@@ -23158,6 +23361,13 @@ function battleTurn(S,rng,actsForA,actsForB){
              if(TR)TR.imm(t);
              continue;}}}
         if(moveClassBlocked(t,a.mv,m)){if(TR)TR.imm(t,moveClassImmuneAttr(t,m));continue;}      // WIRE 66 / #256
+        /* 2026-08-26 -- THE MOVE'S OWN onTryImmunity. This is Leech Seed's door. The `perTurnHP` block
+         * below ALREADY refused a Grass target -- `!(_pt.immuneType && t.types.includes(...))` -- and
+         * refused it SILENTLY, inside the seeding condition, three gates below where the authority
+         * answers. The clause down there is left standing rather than deleted: it is the drain's own
+         * guard against a body that became Grass between the click and the tick, and removing it would
+         * make this line the only thing keeping a seed off a Grass type. */
+        if(immunityGateRefuses(m,t,a.mv)){immunityGateAnnounce(t,a.mv);continue;}
         const fx=moveFx(a.mv);
         const st=(fx&&fx.status)||null;
         /* WIRE 8 -- perTurnHP, the drain half. Leech Seed carries no major status, so this branch
@@ -24517,6 +24727,18 @@ function battleTurn(S,rng,actsForA,actsForB){
          * That rule was already written down and had one implementation per stage-3 mechanism instead
          * of one per stage. */
         if(moveClassBlocked(tg,a.move.id,m)){_explicitFail=true;if(TR)TR.imm(tg,moveClassImmuneAttr(tg,m));R.out=true;return;}   // WIRE 128 -- Mold Breaker suppresses Bulletproof too; #256 reads the attribution off the handler instead of pasting the id
+        /* 2026-08-26 -- AND THE MOVE'S OWN onTryImmunity, which is the clause this step is NAMED after
+         * and never had. ENDEAVOR is the one member of the family that reaches a damaging branch, and
+         * it is the one member whose absence moved a board: `pokemon.hp < target.hp` is false at equal
+         * HP, the authority answers `|-immune|` and stops, and this engine ran the damage callback to a
+         * delta of zero and then NARRATED it -- `|-damage|p2a: garchomp|100/183` at 100/183, an event
+         * describing something that did not happen. Removing the phantom line is as much of the fix as
+         * adding the right one, which is why the census probe asserts the damage lines EMPTY.
+         *
+         * `_explicitFail` for the same reason the line above sets it: `hitStepTryImmunity` writes
+         * `hitResults[i] = false`, which makes `atLeastOneFailure` true, which leaves
+         * `moveThisTurnResult` at FALSE rather than null -- so Stomping Tantrum reads a failure here. */
+        if(immunityGateRefuses(m,tg,a.move.id)){_explicitFail=true;immunityGateAnnounce(tg,a.move.id);R.out=true;return;}
       };
       /* STEP 0 -- SEMI-INVULNERABILITY (`hitStepInvulnerabilityEvent`, battle-actions.ts:621). FIRST
        * in Showdown's list and fourth here, which is why the step list is data and the blocks below

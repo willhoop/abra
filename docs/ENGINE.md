@@ -63,8 +63,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  718/718 probed mechanics live, 0 missing   (census 2026-08-26 07:48)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-26 07:42)
+  729/729 probed mechanics live, 0 missing   (census 2026-08-26 08:49)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-26 08:42)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -75,16 +75,238 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 354cda044697 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is fc9bf86658c5 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c2d51e0b4b7d now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0e1191e26f54 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 277/295 probed, 18 unprobed
+  tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 07:57_
+_stamped 2026-08-26 09:20_
 
 <!-- /GENERATED -->
+
+## TWO REFUSAL RULES EXISTED IN MACHINE-READABLE FORM AND NEITHER HAD A CONSUMER. CENSUS 718 -> 729, WHOLE-GAME CLAUSE 13 -> 12 OF 961, BOARD-MATERIAL UNMOVED AT 10. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.137.0. Register row: ROADMAP #451.
+Engine release cut for this batch: **`28ee5a64daf4`** — *"the move's own onTryImmunity is consulted at
+step 3, and a volatile already standing is refused"*. Every figure below is stamped with it.
+
+**WILL READ EVERY DIVERGENCE CARD AND FOUND THE SAME DISEASE TWICE: A MOVE THE AUTHORITY REFUSES AND
+WE APPLY.** It is one family and fixing it card by card would have been the mistake. Both halves turned
+out to be a rule that already existed, derived, in an artifact nothing consulted.
+
+### A. THE MOVE'S OWN `onTryImmunity`, DERIVED SINCE 2026-08-22, READ ZERO TIMES
+
+`data/tags.json` carries an `immunityGate` row for six moves. Each one holds the authority's handler
+source, a machine-readable CONDITION, the event it announces (`-immune`), its attribution (`null` — a
+BARE line on the TARGET) and the step it runs at (3, above `hitStepAccuracy`).
+`tests/test-immunity-gate.js` has been proving that condition predicts the official simulator across
+twelve staged arms, gate closed and gate open, since the day it was derived.
+
+**`engine/medicham2-browser.js` contained the string `immunityGate` zero times.** Grepped, not assumed.
+
+**THE COST IS NOT UNIFORM AND THAT IS WHY THERE ARE SIX PROBES.** One staged turn each, on this engine,
+before a line changed:
+
+| move | uses | the gate | what we did |
+|---|---|---|---|
+| Endeavor | 133 | `pokemon.hp < target.hp` — **RAW HP, not a percentage** | **dealt the damage anyway** and wrote `\|-damage\|p2a: garchomp\|100/183` **at 100/183** |
+| Worry Seed | 114 | target's ability is Truant or Insomnia | refused correctly, announced `\|-fail\|<USER>` where the authority writes `\|-immune\|<TARGET>` |
+| Leech Seed | 598 | target is Grass | refused correctly, **silently** |
+| Trick | 501 | target has Sticky Hold | refused correctly, **silently** |
+| Switcheroo | 17 | the same | refused correctly, **silently** |
+| Attract | 2 | the genders do not pair | refused correctly, **silently** |
+
+Will's card 2 was Endeavor into a poisoned body, and his words were exactly right: *"we say 'drops'
+when in reality nothing happened."* **Removing the phantom event is as much of the fix as adding the
+right one**, which is why the census probe asserts the damage lines EMPTY and not merely the HP
+unchanged.
+
+**ONE DOOR, FIVE CALLERS.** `immunityGateRefuses(user, target, moveId)` evaluates the tag's condition —
+four `pass` shapes exist today (`hpCompare`, `lacksType`, `lacksAbility`, `genderPairs`) — and
+`immunityGateAnnounce` reads the event and the attribution off the same row rather than remembering
+them. Five action branches ask it at the authority's own position, between `hitStepTryImmunity`'s
+powder clause and its Prankster clause: `status` (Leech Seed), `affect` (Attract), `trickitem` (Trick,
+Switcheroo), `abilitywrite` (Worry Seed) and the attack path's `_stepTryImm` (Endeavor) — a step named
+after the very clause it did not have.
+
+**A SHAPE IT CANNOT EVALUATE DOES NOT REFUSE, AND IS COUNTED.** `MEDFAILS.immunityGatePassUnknown`
+names the move and the shape. An invented immunity is worse than the missing one it replaced, and a
+silent default here would put the whole family back to unread without saying so.
+
+**IT SEPARATES THREE MOVES NOBODY HAD SEPARATED, AND ON SHAPE RATHER THAN NAME.** Worry Seed,
+Entrainment and Simple Beam all carry a `rewritesTargetAbility.refusedAbilities` list, and Worry Seed's
+is the same `[truant, insomnia]` pair the gate holds. **They are not the same fact.** Worry Seed refuses
+through `onTryImmunity` and the authority answers `|-immune|<TARGET>`; the other two refuse through
+their own `onTryHit` and the authority answers `|-fail|<USER>`. The gate takes only the moves the
+artifact gives an `immunityGate` row, so the other two keep the line they already had.
+
+**ATTRACT IS FIXABLE, NOT DECLARABLE, AND THE HANDOVER ASKED THAT TO BE ESTABLISHED.** This engine
+DOES model gender — `genderOf` returns `'N'` for a body with no declared one, and `attractCompatible`
+already refused a same-gender click. What it did not do is refuse at the right STEP or say anything at
+all: the clause sat inside `applyAttract`, below the accuracy roll. Both genders are declared on both
+arms of the probe, so a genderless refusal (a different reason) cannot be mistaken for this one.
+
+**THE ABILITY IS READ RAW, AND THAT IS A DECLARED RESIDUE.** Trick's handler is
+`!target.hasAbility("stickyhold")`, which a Mold Breaker suppresses; Worry Seed's is
+`target.ability === "truant"`, which it does not. `abilityRefusesItemLoss` — the refusal that was
+already carrying Trick's half of this silently — also reads `m.ability` raw, so reading raw here
+changes NOTHING about what a Mold Breaker Trick does today and adds no second answer to one question.
+Written down so it is known rather than discovered.
+
+### B. A VOLATILE ALREADY STANDING IS REFUSED — THE RULE EXISTED THREE TIMES, OVER NAMED SUBSETS
+
+`Pokemon#addVolatile` (sim/pokemon.ts:1994-1997) is one branch: a volatile the body already carries,
+whose condition declares no `onRestart`, returns **false**. This engine held that as
+`durationVolatiles()` — keyed off `sealsMoves`, a table of THREE (Taunt, Encore, Disable) —
+`critStageVolatiles()` (Focus Energy, Dragon Cheer), and a hand-owned refusal each for Attract, Destiny
+Bond and Substitute. Everything outside those lists was REFRESHED and announced again.
+
+Confirmed on the official simulator, two staged turns of the same click, fast user so the second click
+is not lost to a turn-order artefact:
+
+```
+  Torment      T1 |-start|p2a: Snorlax|Torment      T2 |-fail|p1a: Dragapult      <- the USER
+  Gastro Acid  T1 |-endability|p2a: Snorlax         T2 |-fail|p1a: Dragapult
+  Imprison     T1 |-start|p1a|move: Imprison        T2 |-fail|p1a: Dragapult
+  Salt Cure    T1 damage + |-start|Salt Cure        T2 damage, NO -start, NO user -fail
+  Electrify    T1 |-singleturn|move: Electrify      T2 |-singleturn| AGAIN        <- duration 1
+  Follow Me    T1 |-singleturn|move: Follow Me      T2 |-singleturn| AGAIN        <- duration 1
+```
+
+Eight volatiles reached this engine's generic write and were re-announced on turn 2: **torment,
+imprison (487 uses, the largest), gastroacid, magnetrise, aquaring, ingrain, saltcure, syrupbomb.**
+
+**`duration: 1` IS THE EXEMPTION AND IT IS THE WHOLE REASON THIS IS NOT A ONE-LINE RULE.** A condition
+the authority removes at the end of its own turn is never standing when the next click arrives, so the
+authority never reaches its own refusal for one. **MEMBERSHIP PRINTED OVER EVERY LEGAL MOVE BEFORE THE
+CONSUMER EXISTED**, as this file's rule requires: **56 volatiles carry a row, 8 declare `onRestart`
+(helpinghand, healblock, stockpile, smackdown, minimize, charge, powertrick, powershift) and 6 more are
+`duration: 1`.** A rule written on `!onRestart` alone would have refused Protect, Follow Me, Rage
+Powder, Endure, flinch and Electrify — six per-turn mechanics broken to fix eight permanent ones, which
+is docs/LESSONS §4 word for word.
+
+**A VOLATILE THE DEX HAS NO CONDITION FOR GETS NO ROW.** `sparklingaria` is written by a legal move and
+`dex.conditions.get('sparklingaria')` does not exist; it is skipped rather than guessed, and the miss is
+counted (`MEDSEEN.volRestartNoRow`). "The authority refuses this" and "nobody asked" must not read
+alike.
+
+**THE REFUSAL RIDES THE ROAD THAT WAS ALREADY THERE.** `volRefuse(opts, VOLRES.FAIL, 'alreadyon')` is
+the same return the sealing family already used, so the `affect` branch's `didAnything` site decides the
+`-fail` and the secondary loop on a damaging move ignores it — which is exactly why Salt Cure keeps its
+damage and gains no failure line. Nothing new decides when a move failed.
+
+### WHAT IS NOT CLAIMED, STATED HERE RATHER THAN LEFT TO BE FOUND
+
+- **A SELF-AIMED VOLATILE IS STILL OWED ITS `-fail`.** Imprison, Magnet Rise, Aqua Ring and Ingrain lose
+  their duplicate start line and the authority also writes `|-fail|<USER>`, which this engine does not:
+  that line comes from the `affect` branch's `didAnything` site and its fifth clause is
+  `effects[0].to !== 'user'` (ROADMAP #241(3)). **The Imprison probe asserts only the half this pass
+  fixed and REPORTS the other rather than pinning it.**
+- **Gastro Acid's turn-1 line is the wrong SHAPE and always was.** The authority writes
+  `|-endability|p2a`, this engine writes `|-start|move: gastroacid`. Untouched here. The probe's counter
+  spans `-start`, `-singleturn` AND `-endability`, so it asserts "the second click announces nothing"
+  without asserting that the first click's line is right — it will not go red when somebody fixes it.
+- **`_vol.electrify` never lapses in this engine.** The `duration: 1` exemption is therefore doing real
+  work rather than being vacuous, and the probe says so. If the lapse is fixed, the probe keeps passing
+  for the right reason instead of the current one.
+- **This pass did not touch `_mvRes` for the immunity gate in the four status-side branches**, matching
+  `moveClassBlocked` and `powderBlocked` beside it. The attack path DOES set `_explicitFail`, because
+  the line above it already does and `hitStepTryImmunity` writing `hitResults[i] = false` is what
+  Stomping Tantrum reads. Consistency within each gauntlet was chosen over a wider edit; #84 owns
+  `_mvRes`.
+
+### THE MEASUREMENTS, EACH SAYING WHICH SCOREBOARD IT IS
+
+**PREDICTED BEFORE THE RUN**, per CLAUDE.md's rule: the lab should move on all eleven rows; the pinned
+pool should move a little on the whole-game clause (Leech Seed 598 and Trick 501 are common shapes,
+Imprison 487 less so as a REPEATED click) and **should not move at all on board-material**, because five
+of the six immunity members and every volatile refusal are emission-only.
+
+| instrument | before | after |
+|---|---|---|
+| census (the lab) | 718/718, 0 missing | **729/729, 0 missing** |
+| whole-game clause, pinned pool | 13 of 961 | **12 of 961** |
+| board-material (`state.games − games_board_never_diverged`) | 10 of 961 | **10 of 961 — unmoved, as predicted** |
+| staged mechanics, moves diverged | 13 | **12** |
+| damage differential, all 16 corners | 0 of 6000 | **0 of 6000 — RE-RUN because this batch owed it** |
+| roster items / abilities / moves | — | **0 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE, all three, on `28ee5a64daf4`** |
+| tag coverage | 277/295 | 279/296 |
+
+Pins: `--games 1200` (a REQUEST split across configs), arm `middle`, cap 12,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--state --end-state`, `--release 28ee5a64daf4`. `generated` moved 11:44Z -> 12:45Z before any number
+was read; `planted_divergence_proof_ok` true; game count identical at 961 either side.
+
+**BOTH KNOBS WERE SHOWN TO TURN THE FAMILY RED ON DEMAND**, which is the only thing that says the
+probes are measuring the engine and not the staging: `MEDI_IMMUNITY_GATE_BLIND=1` takes the census
+724 -> 718 with exactly the six rows MISSING, and `MEDI_VOL_RESTART_BLIND=1` takes it 729 -> 724 with
+exactly the five.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~the six `immunityGate` rows in `data/tags.json` that nothing in the simulator read~~ — **CLOSED.**
+  Six census rows under `move / immunityGate`, each shown red first, each with a cleared control.
+- ~~Torment re-applied to a body that already carries it~~ and ~~a second application of any volatile
+  the authority refuses~~ — **CLOSED.** Five census rows under `move / volatileRestart`, including the
+  two over-fire controls (Salt Cure must still hit; Electrify must still re-announce).
+
+**Still open, filed with its evidence:**
+- **A SELF-AIMED VOLATILE'S `-fail` IS OWED.** Imprison (487 uses), Magnet Rise, Aqua Ring, Ingrain: the
+  authority writes `|-fail|<USER>` on the second click and this engine writes nothing. The clause is
+  `a.si.effects[0].to !== 'user'` in the `affect` branch's `didAnything` site — ROADMAP #241(3)'s, not
+  this pass's. Measured on the official simulator and printed above.
+- **GASTRO ACID ANNOUNCES `-start|move: gastroacid` WHERE THE AUTHORITY WRITES `-endability`.** Found
+  while confirming (B) against the authority; not caused by it and not fixed here.
+  `data/all-mechanics-fire.json` independently lists `gastroacid` and `smackdown` under
+  `core_leaf_unchecked_rows`.
+- **DISABLE'S REMAINING RULES ARE NOT DONE.** The handover named three — no `lastMove`, the sealed
+  move's slot having **no PP**, and Struggle — plus the duration shortening when the target has not yet
+  acted. The first and the duration bump are live (WIRE 69 / #111); **the PP branch and Struggle are
+  not, and no probe fails on them yet**, so by this division's own rule they are not open work until
+  one does. Named here so the next pass starts from a probe rather than from a card.
+- **`engine/medicham2-browser.js` DECLARES `canMegaNow` TWICE**, at ~:14633 and ~:14736, identical
+  bodies, second wins at load. Carried forward, unmoved and untouched — ROADMAP #449.
+- **`tests/staged_board.js` IS STILL RED ON ONE ROW AND IT IS NOT THIS PASS'S.** 24 of 25 clean;
+  `roar-drags-whoever-is-standing-there` reports SHORT with `party.boosts.spa/spd/def`, `pp.roar`,
+  `pp.calmmind`, `pp.irondefense`. Unchanged by this batch, not diagnosed, not waived.
+- **`tests/test-board-browser.js` IS RED and is `board.js`'s**, which this division may not edit.
+  MEASURE's. Carried forward.
+- **`tests/test-resolution-order.js` OOMs at the default heap** (#446) — carried forward.
+- **`data/protocol-events.json` is UNSAFE and already was** — this pass emits no new event KIND.
+  `-immune` and `-fail` are both already claimed.
+- **`engine/artifact_audit.js` is RED on `data/engine-data.js`** — the source
+  (`CHOMP/engine/champ-model.js`) carries `floette-eternal-mega` and the artifact does not. **NOT
+  THIS PASS'S and NOT FIXABLE BY THIS DIVISION**: `data/engine-data.js` is on ENGINE's may-not-edit
+  list and regenerating it changes the bytes every future release freezes. Reported, not touched. Its
+  OTHER gap WAS this pass's and is fixed: regenerating `data/tags.json` stales `data/abra-tags.js`, and
+  `node build/build_tags_js.js` was run.
+- **`data/releases/7391847e60dd/` IS DEBRIS FROM THIS SESSION'S BASELINE MEASUREMENT AND IS LEFT IN
+  PLACE.** To establish which of `tests/run-all.js`'s 30 reds were pre-existing, five files were
+  temporarily reverted to HEAD and a dozen gates re-run; one of them cut a release of those bytes, and
+  `tests/roster.js` then stamped that stale pointer. **The roster was re-run afterwards and all three
+  stages are stamped `28ee5a64daf4`.** The stray release directory is reported and not deleted.
+
+### OWED, NOT RUN
+
+- **`tests/test-engine-diff.js` WAS OWED BY THIS BATCH AND WAS RUN**: the full 6,000 rows, seed
+  20260804, **0 disagreements at the midpoint and at all sixteen corners**, 134 not comparable
+  (multihit). It moved off nothing.
+- `tests/interaction_matrix.js` — **not re-run.** It is stamped 2026-08-11 and was already stale before
+  this pass; nothing here changes a carrier x reactor damage ratio, but that is a derivation and it is
+  written here as one rather than as a result.
+- `engine/wire_ladder.js` — not re-run; the release ladder stays WITHHELD, as it already was.
+- `tests/run-all.js` was run in full: **134 passed, 30 failed.** Every ENGINE-relevant red was checked
+  against HEAD with the five changed files reverted and **is red at HEAD too** — `selftest`,
+  `conformance`, `gate_fail_and_silent`, `em_validation`, `test-tag-consumed`, `test-fixture-legality`,
+  `test-model-map`, `test-pin-arms`, `test-middle-identity`, `test-workflow-paths`, `test-site-sync`,
+  `test-mutation-coverage` (its planted-stub gate catches 0 of 2 on HEAD as well). `test-forced-switch`
+  was red inside the suite and **passes standalone on this tree**, so that one is the suite and not the
+  engine. None of the 30 is new.
+
+---
 
 ## THE RULER WAS DEAD FROM ITS SECOND MODULE LOAD, AND IT HAD BEEN HANDED OVER AS A SPREAD-IMMUNITY DAMAGE DEFECT. STAGED SCENARIOS 10 -> 24 OF 25, CENSUS 717 -> 718, POOL UNMOVED GAME FOR GAME. 2026-08-26.
 
