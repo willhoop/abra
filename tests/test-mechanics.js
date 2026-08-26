@@ -1163,6 +1163,111 @@ probe('move', 'stallCounterChecks', 'consecutive Protect decays, and a FAILED Pr
                  + `— turn 3 must be the FAILURE and turn 4 must be blocked again` };
 });
 
+/* 2026-08-26 -- THE SHIELD IS RAISED INSIDE `useMove`, SO A BODY THAT CANNOT ACT DOES NOT RAISE ONE.
+ *
+ * `runMove` (sim/battle-actions.ts:255-262) RETURNS when the BeforeMove event comes back false, and
+ * again at :282-287 when `deductPP` finds an empty slot. `useMove` is never entered on either road, so
+ * `trySpreadMoveHit`'s `singleEvent('PrepareHit')` at :591 -- the shield's whole gate -- never runs.
+ * This engine called that gate ABOVE the five BeforeMove refusals and above the PP deduction, and the
+ * comment on the line said so and left it: *"a flinched or sleeping body should not shield either, but
+ * that is a second defect with no failing probe on it."*
+ *
+ * MEASURED ON THE AUTHORITY FIRST, one Clefable against an Iron Head Garchomp in this format, seed
+ * [1,2,3,4], `statusState.time = 3`:
+ *     showdown   |cant|p1a: Clefable|slp   lost 160   volatiles.stall ABSENT
+ *     medicham   (no cant)                 lost   0   tookProtectTurns 1
+ * -- shielded AND armed a counter it had not earned.
+ *
+ * THE THREE ARMS ARE THE THREE STATES OF ONE BODY and the control is explicit: the SAME Clefable
+ * clicking the SAME Protect into the SAME Iron Head, awake with PP. Knob: MEDI_PROTECT_GATE_ABOVE_REFUSALS=1
+ * restores the old call site and takes both refusing arms back to 0 damage. */
+probe('move', 'stalling', 'a body that cannot act raises no shield — asleep, and out of PP', () => {
+  const run = (how) => {
+    const me = bare('clefable'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(ally);
+    if (how === 'slp') { me.status = 'slp'; me.slpTurns = 0; }
+    /* `_pp` is the engine's own slot map and `ppLeft` fills it lazily, so writing the key directly is
+     * the same road a spent click takes. Nothing else about the body moves. */
+    if (how === 'nopp') { me._pp = me._pp || {}; me._pp.protect = 0; }
+    const before = me.curHP;
+    M.battleTurn(S, () => 0.2,
+      new Map([[me, M.playerAction(me, 'protect', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'ironhead', me, S.field)], [f2, { kind: 'pass' }]]));
+    return [before - me.curHP, me.protect === true, me.tookProtectTurns];
+  };
+  const control = run('ok'), slp = run('slp'), nopp = run('nopp');
+  const refused = (r) => r[0] > 0 && r[1] === false && r[2] === 0;
+  return { works: control[0] === 0 && control[1] === true && control[2] === 1
+                  && refused(slp) && refused(nopp),
+           arms: { control, test: slp },
+           detail: '[HP the shielder lost, shield up, stall counter] — the SAME Clefable clicking the '
+                 + 'SAME Protect into the SAME Iron Head. AWAKE, with PP ' + JSON.stringify(control)
+                 + ' (must block, and arm the counter)   |   ASLEEP ' + JSON.stringify(slp)
+                 + '   |   PROTECT SLOT AT 0 PP ' + JSON.stringify(nopp)
+                 + ' — both refusals must take the hit, raise nothing and leave the counter at 0, '
+                 + 'because `runMove` returns above `useMove` on either road'
+                 + '. Knob: MEDI_PROTECT_GATE_ABOVE_REFUSALS=1' };
+});
+
+/* 2026-08-26 -- AND THE COUNTER LAPSES OVER THE TURN THE BODY COULD NOT ACT. WILL'S CARD.
+ *
+ * Will, reading the protocol: Clefable wakes from sleep, uses Protect, the authority's succeeds and
+ * ours fails -- *"by definition it could not have previously protected."*
+ *
+ * `stall` IS A VOLATILE WITH A CLOCK, NOT A TALLY (data/conditions.ts; no Champions override):
+ * `duration: 2`, refreshed to 2 by `onRestart` on every successful use, and decremented once per
+ * residual -- `Battle#fieldEvent('Residual')` passes `getKey = 'duration'` (sim/battle.ts:487) so a
+ * volatile carrying a duration is collected with no `onResidual` handler at all, and :516 removes it
+ * at zero. A turn with no successful use therefore ends the volatile. This engine reset the counter in
+ * the turn's PRE-PASS, in the `else` for a body that clicked something else -- a branch a sleeping body
+ * never reaches, because it did click Protect.
+ *
+ * READ OFF THE AUTHORITY BEFORE THIS WAS WRITTEN (`volatiles.stall.counter`, same board and seed):
+ *     asleep on t2/t3   t1 3   t2 ABSENT   t3 ABSENT   t4 3     <- FRESH
+ *     never asleep      t1 3   t2 ABSENT(*)            t4 9
+ * so the gap does not deepen the decay, it ENDS it.
+ *
+ * THE CONTROL IS THE SAME TWO PROTECTS WITH NO GAP, at the same losing roll, and it must take the hit
+ * -- otherwise this passes on an engine with no stall counter at all. TWO KNOBS, because the defect
+ * was two edits and either alone still fails this: MEDI_PROTECT_GATE_ABOVE_REFUSALS=1 shields the
+ * sleeper (so it arms the counter), MEDI_PROTECT_STALL_NO_LAPSE=1 carries the counter through. */
+probe('move', 'stallCounterChecks', 'a turn the body could not act ENDS the stall counter — the Protect it wakes to is free', () => {
+  const seq = (plan) => {
+    const me = bare('clefable'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(ally);
+    const out = [];
+    for (const step of plan) {
+      if (step.sleep) { me.status = 'slp'; me.slpTurns = 0; }
+      const before = me.curHP;
+      M.battleTurn(S, step.roll,
+        new Map([[me, M.playerAction(me, 'protect', null, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, 'ironhead', me, S.field)], [f2, { kind: 'pass' }]]));
+      out.push(before - me.curHP);
+    }
+    return out;
+  };
+  const win = () => 0.2, lose = rngLose;
+  /* NO GAP: turn 1 arms the counter, turn 2 rolls 1/3 at 0.99 and loses. */
+  const control = seq([{ roll: win }, { roll: lose }]);
+  /* ONE SLEEPING TURN IN BETWEEN. Champions' sleep counter is sample([2,3,3]); at 0.2 the body is
+   * asleep for turn 2 only and is awake for turn 3, which the middle reading below shows. */
+  const test = seq([{ roll: win }, { sleep: 1, roll: win }, { roll: lose }]);
+  return { works: control[0] === 0 && control[1] > 0
+                  && test[0] === 0 && test[1] > 0 && test[2] === 0,
+           arms: { control: control[1], test: test[2] },
+           detail: 'HP the shielder lost per turn, the last Protect at a LOSING 0.99 — NO GAP '
+                 + JSON.stringify(control) + ' (turn 2 must take the hit: the counter is armed and '
+                 + 'the 1/3 fails)   |   ONE SLEEPING TURN IN BETWEEN ' + JSON.stringify(test)
+                 + ' (turn 2 must take the hit because a sleeper raises nothing, and turn 3 must be 0 '
+                 + 'because the volatile expired at the residual of the turn nobody used it). Knobs: '
+                 + 'MEDI_PROTECT_GATE_ABOVE_REFUSALS=1 and MEDI_PROTECT_STALL_NO_LAPSE=1 each take '
+                 + 'turn 3 back to a hit on their own' };
+});
+
 /* ROADMAP #81 WIRE 2, THE SECOND HALF. Every shield in data/moves.ts opens with
  *     onPrepareHit(pokemon) { return !!this.queue.willAct() && this.runEvent('StallMove', pokemon); }
  * `BattleQueue.willAct()` (sim/battle-queue.ts:310) returns the first remaining `move`/`switch`/
@@ -3927,6 +4032,123 @@ probe('ability', 'piercesProtect', 'the pierce counter is non-zero and the flag 
                  + 'pierceFlagUnknown ' + unknown + ' (must be 0'
                  + (M.fails && M.fails.pierceFlagUnknownFirst ? ', first ' + M.fails.pierceFlagUnknownFirst : '')
                  + ')' };
+});
+
+/* 2026-08-26 -- A PIERCE IS NOT A BREAK, AND THE PARTNER IS WHERE THE TWO PART. Will's ask, in as
+ * many words: *"feint breaking through a protect and letting an ally also attack the now busted
+ * protect pokemon."*
+ *
+ * TWO DIFFERENT MECHANISMS WEARING ONE OUTCOME on the attacker's own damage roll, which is why a
+ * one-attacker fixture cannot tell them apart and the probe above does not try:
+ *   FEINT and PHANTOM FORCE go through `hitStepBreakProtect` (sim/battle-actions.ts:755), which
+ *   REMOVES the volatile -- `banefulbunker, burningbulwark, kingsshield, obstruct, protect, silktrap,
+ *   spikyshield` plus four side conditions -- so the protection is gone for the REST OF THE TURN and
+ *   anybody behind it connects.
+ *   UNSEEN FIST and PIERCING DRILL set `bypassProtect` in their own `onHitProtect` and the quarter is
+ *   applied at :1827. The volatile is untouched. The bypass is PER MOVE, so the next attacker into the
+ *   same body is refused exactly as it would have been.
+ *
+ * THE READING IS THE PARTNER'S DAMAGE AND NOTHING ELSE. Weavile opens at Speed 200, Garchomp's Dragon
+ * Claw follows at 150, and the shield's own body is unfaintable so no arm can clamp. The no-ability
+ * Ice Punch control fixes that a partner behind an INTACT shield deals zero on this board -- without
+ * it, a pierce arm reading zero would prove nothing. */
+probe('ability', 'piercesProtect', 'a PIERCE leaves the shield standing, so the partner is still refused — a Feint does not', () => {
+  const run = (openerMv, openerAb) => {
+    const me = bare('weavile'), ally = bare('garchomp');
+    const f1 = bare('incineroar'), f2 = bare('milotic');
+    me.ability = openerAb;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(f1);
+    me.st = Object.assign({}, me.st, { sp: 200 });
+    ally.st = Object.assign({}, ally.st, { sp: 150 });
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, openerMv, f1, S.field)],
+               [ally, M.playerAction(ally, 'dragonclaw', f1, S.field)]]),
+      new Map([[f1, M.playerAction(f1, 'protect', null, S.field)], [f2, { kind: 'pass' }]]));
+    return [before - f1.curHP, f1.protect === true, f1.tookProtectTurns];
+  };
+  const blocked = run('icepunch', 'none');       // an ordinary contact move: nothing gets through
+  const feint = run('feint', 'none');            // the volatile is REMOVED
+  const unseen = run('closecombat', 'unseenfist');
+  const drill = run('closecombat', 'piercingdrill');
+  const pierced = (r) => r[0] > 0 && r[1] === true && r[2] === 1;
+  return { works: blocked[0] === 0 && blocked[1] === true && blocked[2] === 1
+                  && feint[0] > 0 && feint[1] === false && feint[2] === 0
+                  && pierced(unseen) && pierced(drill)
+                  /* and the partner really was refused in the pierce arms: the whole turn's damage is
+                   * no more than the FEINT arm's, which carries the partner's Dragon Claw as well. */
+                  && unseen[0] < feint[0] && drill[0] < feint[0],
+           arms: { control: feint, test: unseen },
+           detail: '[HP the shielded Incineroar lost over the WHOLE turn, shield still up, stall '
+                 + 'counter] — Weavile opens, Garchomp\'s Dragon Claw follows in every arm. '
+                 + 'ICE PUNCH opener ' + JSON.stringify(blocked) + ' (must be 0: an intact shield '
+                 + 'refuses both)   |   FEINT ' + JSON.stringify(feint) + ' (the volatile is REMOVED, '
+                 + 'so the partner connects and the counter is wiped)   |   UNSEEN FIST + Close Combat '
+                 + JSON.stringify(unseen) + '   |   PIERCING DRILL + Close Combat '
+                 + JSON.stringify(drill) + ' — both must get their own quartered hit through AND '
+                 + 'leave the shield standing with the counter armed, so the partner is still refused '
+                 + 'and the turn total stays below the Feint arm\'s' };
+});
+
+/* 2026-08-26 -- EACH SHIELD'S OWN SECONDARY, AND THE CONTROL IS A SHIELD THAT DID NOT BLOCK. Will:
+ * *"test the protect variants as well like baneful bunker and kings shield and make sure their
+ * secondary effects proc."*
+ *
+ * MEMBERSHIP DERIVED, NOT RECALLED. `punishesContact` params off data/tags.json: banefulbunker
+ * `{onContact:true, inflicts:'psn'}`, kingsshield `{onContact:true, boosts:{atk:-1}}`, spikyshield
+ * `{onContact:true, fraction:8}`. Spiky Shield's chip has its own two probes above; these are the two
+ * that had none.
+ *
+ * THREE ARMS EACH, AND THE THIRD IS THE ONE A NAIVE WIRE FAILS:
+ *   CONTACT into the raised shield          the secondary must fire
+ *   NON-CONTACT into the same raised shield the block still happens and the secondary must NOT
+ *   CONTACT into a shield that LOST ITS ROLL the move connects and the secondary must NOT
+ * The last is staged by clicking the shield twice and taking the second at 0.99, so the 1/3 fails --
+ * i.e. the punisher is on the field, was clicked, and still may not toll. */
+probe('move', 'punishesContact', 'Baneful Bunker poisons and King\'s Shield drops Attack — only on a contact move it actually blocked', () => {
+  /* `armWith` is the turn-1 click, and it is a NON-CONTACT move on purpose: the shield goes up, the
+   * counter arms, and NOTHING is tolled — so the third arm's reading can only have come from turn 2.
+   * The first version of this probe armed the counter with the contact move itself and read a poison
+   * that turn 1 had already landed; the arm was green and was measuring the wrong turn. */
+  const run = (sp, shield, mv, armWith) => {
+    const me = bare('weavile'), ally = bare('corviknight');
+    const f1 = bare(sp), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(f1);
+    const click = (attMv, roll) => M.battleTurn(S, roll,
+      new Map([[me, M.playerAction(me, attMv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, shield, null, S.field)], [f2, { kind: 'pass' }]]));
+    if (armWith) click(armWith, () => 0.2);
+    const hpBefore = f1.curHP;
+    click(mv, armWith ? rngLose : rng5);   // with a counter armed, 0.99 loses the 1/3 and no shield goes up
+    return [me.status || '-', me.boosts.at, f1.protect === true, hpBefore - f1.curHP > 0];
+  };
+  /* KNOCK OFF is contact; STONE EDGE is physical and is NOT — same Weavile, same shield, same turn. */
+  const bbHit = run('toxapex', 'banefulbunker', 'knockoff', null);
+  const bbNoContact = run('toxapex', 'banefulbunker', 'stoneedge', null);
+  const bbFailed = run('toxapex', 'banefulbunker', 'knockoff', 'stoneedge');
+  const ksHit = run('aegislash', 'kingsshield', 'knockoff', null);
+  const ksNoContact = run('aegislash', 'kingsshield', 'stoneedge', null);
+  const ksFailed = run('aegislash', 'kingsshield', 'knockoff', 'stoneedge');
+  const quiet = (r) => r[0] === '-' && r[1] === 0;
+  return { works: bbHit[0] === 'psn' && bbHit[1] === 0 && bbHit[2] === true
+                  && quiet(bbNoContact) && bbNoContact[2] === true
+                  && quiet(bbFailed) && bbFailed[2] === false && bbFailed[3] === true
+                  && ksHit[1] === -1 && ksHit[0] === '-' && ksHit[2] === true
+                  && quiet(ksNoContact) && ksNoContact[2] === true
+                  && quiet(ksFailed) && ksFailed[2] === false && ksFailed[3] === true,
+           arms: { control: bbNoContact, test: bbHit },
+           detail: '[attacker status, attacker atk stage, the shield went up, the shielder took '
+                 + 'damage] — BANEFUL BUNKER blocking a contact Knock Off ' + JSON.stringify(bbHit)
+                 + ' (must poison)   |   the same Bunker blocking a NON-CONTACT Stone Edge '
+                 + JSON.stringify(bbNoContact) + ' (blocked, and must not poison)   |   a Bunker that '
+                 + 'LOST its 1/3 roll (armed on turn 1 by a NON-CONTACT Stone Edge, which tolls nothing), the '
+                 + 'Knock Off connecting ' + JSON.stringify(bbFailed)
+                 + ' (no shield, so no toll).   KING\'S SHIELD, the same three ' + JSON.stringify(ksHit)
+                 + ' / ' + JSON.stringify(ksNoContact) + ' / ' + JSON.stringify(ksFailed)
+                 + ' — the -1 Attack must appear only in the first, and neither shield may leak the '
+                 + 'other\'s effect' };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE OLD STAGING VARIED EVERYTHING. It fired

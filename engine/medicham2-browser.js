@@ -717,6 +717,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                              THE COUNTER THAT PROVES THE FIX DOES SOMETHING; a zero here with a
    *                              non-zero above means every shield this run held its pre-pass place. */
   shieldGateAtExecution: 0, shieldGateOrderChanged: 0,
+  /* 2026-08-26 -- THE TWO HALVES OF `stall` THAT ONLY A BODY THAT COULD NOT ACT CAN SHOW.
+   *   shieldGateSkippedNoAct     a body CLICKED one of the eight `willAct()` members and never reached
+   *                              `onPrepareHit`, because a BeforeMove refusal (sleep, freeze, flinch,
+   *                              confusion, paralysis, Attract, recharge, Throat Chop, Disable, a
+   *                              refused Focus Punch) or an empty PP slot returned out of `runMove`
+   *                              first. No shield goes up and the `stall` volatile is not touched.
+   *                              A zero over real games means no shielder was ever stopped, not that
+   *                              the branch is absent -- the census fixture is what proves it fires.
+   *   stallLapsedUnrefreshed     `stall` carries `duration: 2` (data/conditions.ts, and the tag's own
+   *                              `stallCounterChecks.duration`), refreshed to 2 by `onRestart` on
+   *                              every successful use and decremented once per residual. So a turn
+   *                              that does not successfully use one lets it expire, and the NEXT
+   *                              shield is a free 100%. This engine counted CLICKS, and the reset for
+   *                              a body that clicked something else lived in the pre-pass -- a branch
+   *                              a body that could not act never reaches. Will, reading the card:
+   *                              *"by definition it could not have previously protected."* */
+  shieldGateSkippedNoAct: 0, stallLapsedUnrefreshed: 0,
   /* ROADMAP #240 -- THE RE-SORT TRIGGER. `sim/battle.js:2403` runs the re-sort after EVERY action and
    * the guard passes only when the NEXT QUEUED action is a `move`, so a queue whose head is a switch
    * keeps the speeds it was stamped with at turn start.
@@ -1786,6 +1803,16 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-23 -- set whenever MEDI_SUCKER_QUEUE_BLIND=1 puts the whole-turn `acts.find` back on
      purpose, so a deliberate restore arm and a broken engine can never be read as the same thing. */
   suckerQueueBlindRestored: 0,
+  /* 2026-08-26 -- the two halves of `stall`, each with its own knob because they are two edits and a
+     single knob could not say which one a red arm is accusing.
+       protectGateAboveRefusalsRestored  MEDI_PROTECT_GATE_ABOVE_REFUSALS=1 calls `_shieldGate` back at
+                                         its old position ABOVE the BeforeMove gates, so a body that is
+                                         asleep, frozen, flinched, confused, fully paralysed, Disabled
+                                         or out of PP shields anyway.
+       protectStallNoLapseRestored       MEDI_PROTECT_STALL_NO_LAPSE=1 switches off `stall`'s
+                                         `duration: 2` expiry, so the counter rides through a turn its
+                                         holder could not act and the next Protect is rolled at 1/3. */
+  protectGateAboveRefusalsRestored: 0, protectStallNoLapseRestored: 0,
   /* ROADMAP #357 -- an arrival the authority WOULD have added to `timesAttacked` and this engine does
      not, because a Substitute absorbed it and that road returns before the counter site. Declared at
      the site rather than hidden; it makes Rage Fist slightly weaker here than in the game and the
@@ -10100,6 +10127,17 @@ const FORMEONHIT_SPECIES_BLIND=(typeof process!=='undefined'&&process.env&&proce
  * knob per member could not restore a function that no longer exists. Any run carrying it also carries
  * a non-zero `MEDFAILS.suckerQueueBlindRestored`. Same shape as MEDI_FORMEONHIT_SPECIES_BLIND above. */
 const SUCKER_QUEUE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUCKER_QUEUE_BLIND==='1');
+/* 2026-08-26 -- THE TWO PROTECT KNOBS, AND THEY ARE TWO BECAUSE THE DEFECT WAS TWO EDITS.
+ * MEDI_PROTECT_GATE_ABOVE_REFUSALS=1 calls `_shieldGate` back at the position it held until today --
+ * above the five BeforeMove gates, above Disable and above the PP deduction -- so a body that cannot
+ * act raises a shield and arms a `stall` counter, which is the state Will read off the card.
+ * MEDI_PROTECT_STALL_NO_LAPSE=1 switches off `stall`'s `duration: 2` expiry at the residual, so the
+ * counter survives a turn nobody used a stalling move on.
+ * SEPARATE, because either alone still fails Will's card and a single knob could not say which half a
+ * red arm is accusing. Any run carrying one also carries its own non-zero MEDFAILS row. Same shape as
+ * MEDI_SUCKER_QUEUE_BLIND above. */
+const PROTECT_GATE_ABOVE_REFUSALS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PROTECT_GATE_ABOVE_REFUSALS==='1');
+const PROTECT_STALL_NO_LAPSE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PROTECT_STALL_NO_LAPSE==='1');
 /* 2026-08-23 -- MEDI_NO_INMOVE_UPDATE=1 TAKES THE IN-MOVE UPDATE PASS BACK OUT, i.e. `eachEvent('Update')`
  * happens only BETWEEN actions again, the way this engine ran until today. It exists so the census rows
  * for the in-move pass can be shown MISSING on demand without swapping a file. ONE knob for the whole
@@ -17828,6 +17866,11 @@ function battleTurn(S,rng,actsForA,actsForB){
      * only this turn's chosen action and no ordering at all. */
     for(let i=0;i<acts.length;i++){
       const it=acts[i];
+      /* 2026-08-26 -- THE `duration: 2` CLOCK STARTS THIS TURN UNREFRESHED, for every body that is
+       * about to act. Written here rather than in the sweep that reads it because the sweep runs at
+       * the residual, i.e. AFTER every gate that could set it, and a flag cleared after it is read is
+       * a flag that never falls. */
+      it.mon._stallFresh=false;
       if(it.a.kind==='protect'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
         /* DEFERRED. `_preWillAct` is the answer the TOP-OF-TURN order would have given, recorded only
          * so `MEDSEEN.shieldGateOrderChanged` can say how often the two disagree -- a fix whose
@@ -18391,6 +18434,11 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _ctr=stallCounter(_n,_sc);
       const _ok=(_ctr<=1||_R.stall()<1/_ctr);   // ROADMAP #222 -- its own die
       it.mon.tookProtectTurns=_ok?Math.min(_cap,_n+1):0;
+      /* 2026-08-26 -- `onRestart`'s OTHER LINE. `stall.onRestart` triples the counter AND writes
+       * `this.effectState.duration = 2`; a successful use is the only thing that refreshes the clock.
+       * Read at the residual by the lapse sweep below the action loop -- see it for why a boolean per
+       * turn is the whole of `duration: 2` and not an approximation of it. */
+      if(_ok)it.mon._stallFresh=true;
       return _ok;
     };
     const _shieldGate=(it,idx)=>{
@@ -18462,6 +18510,10 @@ function battleTurn(S,rng,actsForA,actsForB){
           (it.side==='A'?field.sgA:field.sgB)[_g]=true;
           if(TAGS.has('move',_g,'stallCounterFeeds')){
             it.mon.tookProtectTurns=Math.min(6,it.mon.tookProtectTurns+1);MEDSEEN.stallCounterFed++;
+            /* `addVolatile('stall')` out of `onHitSide` lands on `onStart` or on `onRestart`, and both
+             * set `duration: 2`. So a Guard refreshes the clock exactly as a shield does -- see the
+             * lapse sweep below the action loop. */
+            it.mon._stallFresh=true;
           }else{
             /* A side guard the artifact does NOT call a feeder. Nothing in this format is one, so a
              * non-zero here names a member that arrived with no rule -- loud, not silent. */
@@ -18594,17 +18646,16 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       if(m.fainted||m.curHP<=0)continue;
       if(it.a&&it.a.kind!=='switch'&&it.a.kind!=='pass')m._mvActs=((m._mvActs)|0)+1;
-      /* ROADMAP #232 -- THE SHIELD FAMILY'S GATE, AT THE ACTION. See `_shieldGate` above the loop.
-       *
-       * IT SITS HERE AND NOT LOWER ON PURPOSE. Above it is `runAction`'s own fainted refusal, which is
-       * the authority's -- a body that died earlier in the turn never reaches `useMove`, so it raises
-       * nothing, and that is a change from the pre-pass, which shielded it anyway. Below it are the
-       * five `BeforeMove` gates. Those are LEFT above the shield deliberately: a flinched or sleeping
-       * body should not shield either, but that is a second defect with no failing probe on it, and
-       * folding it in would make a moved differential unattributable. Keeping the raise ahead of them
-       * preserves exactly today's behaviour there, so the only thing this batch changes is WHEN the
-       * queue is scanned. STATED, not silently left. */
-      if(it._shieldPending||it._guardPending||it._stallPending)_shieldGate(it,actIdx);
+      /* ROADMAP #232 -- THE SHIELD FAMILY'S GATE USED TO BE CALLED HERE, ABOVE THE `BeforeMove` GATES,
+       * AND THE COMMENT THAT STOOD ON THIS LINE NAMED THE DEFECT AND LEFT IT: *"a flinched or sleeping
+       * body should not shield either, but that is a second defect with no failing probe on it."*
+       * 2026-08-26 -- IT HAS TWO NOW AND THE CALL HAS MOVED. See `_shieldGate`'s own header and the
+       * new call site under the PP deduction. THE KNOB CALLS IT FROM HERE AGAIN, unchanged, so the
+       * before-arm is the old ORDER and not a re-implementation of the old behaviour. */
+      if(PROTECT_GATE_ABOVE_REFUSALS&&(it._shieldPending||it._guardPending||it._stallPending)){
+        MEDFAILS.protectGateAboveRefusalsRestored=1;
+        _shieldGate(it,actIdx); it._gateRan=true;
+      }
       /* WIRE 144 -- did the Encore override below rewrite this action? The randomTarget re-roll after
        * it must not draw a second time for one rule; see its own comment. */
       let _ovr=false;
@@ -19375,6 +19426,37 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _ex=ppPressureExtra(_pt,m);
           if(_ex>0) ppDeduct(m,_ppId,_ex);
         }
+      }
+      /* 2026-08-26 -- THE SHIELD FAMILY'S GATE, AND IT IS BELOW THE `BeforeMove` REFUSALS AND BELOW
+       * THE PP DEDUCTION BECAUSE `onPrepareHit` IS.
+       *
+       * `runMove` (sim/battle-actions.ts:255-262, 282-287) RETURNS on a false BeforeMove and on an
+       * empty PP slot -- `useMove` is never entered, so `trySpreadMoveHit`'s
+       * `singleEvent('PrepareHit')` (:591) never runs and the shield's whole gate never happens.
+       * A body that cannot act cannot raise a shield and cannot touch its `stall` volatile.
+       *
+       * MEASURED ON THE AUTHORITY BEFORE THIS LINE MOVED, one Clefable behind an Iron Head Garchomp,
+       * `statusState.time = 3` (gen9championsvgc2026regmb, seed [1,2,3,4]):
+       *
+       *     turn   showdown                                   this engine, before
+       *     t1     |cant|p1a: Clefable|slp, lost 160,          lost 0, protect=true,
+       *            volatiles.stall ABSENT                      tookProtectTurns 1
+       *
+       * so the sleeping body was shielded AND armed a counter it never earned. `-- by definition it
+       * could not have previously protected` (Will, reading the card).
+       *
+       * THE SECOND HALF IS `duration: 2`, AND IT IS AT THE RESIDUAL. See the `stall` lapse below the
+       * action loop: with the gate alone the counter still carried ACROSS the sleeping turn, so the
+       * Protect on the turn the body woke up was rolled at 1/3 when the authority gives it a free one.
+       *
+       * WHAT IS *NOT* CLAIMED. The authority's PrepareHit is one step lower still -- below the
+       * `|move|` line and below `singleEvent('Try')`. Nothing in that window can refuse any of the
+       * eight members (all are `target:self` or a side condition, none carries `failsIfVolatile`, and
+       * `_stepInvuln` cannot fire on a body aiming at itself), so the two positions are the same
+       * answer for this family today and this one keeps the announcement order untouched. Stated
+       * rather than left to be found. */
+      if(!it._gateRan&&(it._shieldPending||it._guardPending||it._stallPending)){
+        _shieldGate(it,actIdx); it._gateRan=true;
       }
       /* ROADMAP #68 -- `|move|USER|MOVE|TARGET`, AND ITS POSITION IS THE MECHANIC.
        *
@@ -27794,6 +27876,13 @@ function battleTurn(S,rng,actsForA,actsForB){
      * body that wipes a side is usually the last one with an action left. */
     if(sideWiped(S)){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedBeforeResidual++;break _TURN;}
     _updateAll();   // ROADMAP #81 WIRE 7 -- after the LAST action, the half the loop-top call cannot reach
+    /* 2026-08-26 -- HOW MANY SHIELDS NEVER REACHED THEIR OWN GATE. A capability that cannot prove it
+     * ran is assumed broken, and the inverse holds too: a REFUSAL that cannot prove it fired looks
+     * exactly like a gate that moved to a line nothing reaches. Counted at the end of the turn rather
+     * than at each of the ~30 `continue`s that can cause it -- one reader, one number. */
+    for(const it of acts)
+      if((it._shieldPending||it._guardPending||it._stallPending)&&!it._gateRan)
+        MEDSEEN.shieldGateSkippedNoAct++;
     /* Flinch expires at the END of the turn it was applied. It used to be cleared only when the
      * flinched Pokemon tried to act, so a flinch landed by a SLOWER attacker (impossible to use this
      * turn) sat on the flag and stole the target's NEXT turn instead. Fake Out's +3 priority hid this
@@ -29218,6 +29307,45 @@ function battleTurn(S,rng,actsForA,actsForB){
    * It was invisible for as long as it was because that arm ran on `Math.random` and reported the
    * leak on roughly half its runs -- see the seeding note beside it. */
   [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
+  /* 2026-08-26 -- `stall` EXPIRES AT THE RESIDUAL, AND THAT IS THE HALF THIS ENGINE COUNTED CLICKS
+   * INSTEAD OF.
+   *
+   * THE AUTHORITY IS A DURATION, NOT A TALLY (data/conditions.ts, `stall`; no Champions override):
+   *     duration: 2, counterMax: 729,
+   *     onStart()   { this.effectState.counter = 3; }
+   *     onRestart() { if (counter < counterMax) counter *= 3; this.effectState.duration = 2; }
+   * and `Battle#fieldEvent('Residual')` passes `getKey = 'duration'` (sim/battle.ts:487), so a
+   * volatile carrying a duration is collected EVEN WITH NO `onResidual` handler and
+   * `handler.state.duration--` at :516 removes it when it reaches zero. Two decrements with no
+   * refresh in between and the volatile is gone.
+   *
+   * SO THE RULE IS "A TURN WITH NO SUCCESSFUL USE ENDS THE VOLATILE", AND A PER-TURN BOOLEAN IS THAT
+   * RULE EXACTLY RATHER THAN AN APPROXIMATION OF IT. A use sets duration to 2 and the residual of the
+   * same turn takes it to 1; a turn without one takes 1 to 0. The duration is therefore never above 1
+   * at the top of a turn, so it survives a turn iff that turn refreshed it. There is no third case to
+   * model and no second field to keep.
+   *
+   * WHAT IT REPAIRS. The `else it.mon.tookProtectTurns = 0` in the pre-pass is a body that CLICKED
+   * something else. A body that clicked Protect and was then refused by sleep, freeze, a flinch,
+   * confusion, full paralysis, Attract, a recharge, Throat Chop, Disable or an empty PP slot reaches
+   * neither branch, so its counter rode straight through the turn it could not act and the Protect on
+   * the turn it woke up was rolled at 1/3.
+   *
+   * MEASURED ON THE AUTHORITY BEFORE THIS WAS WRITTEN -- Clefable, Protect on t1, asleep t2 and t3,
+   * Protect on t4 (`volatiles.stall.counter` read off the battle object):
+   *     t1 counter 3   t2 ABSENT   t3 ABSENT   t4 counter 3    <- FRESH, not 9
+   * against the uninterrupted control on the same board, `t1 3, t3 3, t4 9`.
+   *
+   * ON THE OUTER EXIT, beside the flinch clear and for the identical reason: every `break _TURN` is a
+   * `sideWiped`, and a sweep that lives inside the block is skipped by all four of them. `_stallFresh`
+   * is cleared in the pre-pass, which is above every break, so the flag cannot survive into a turn
+   * that did not set it. */
+  if(PROTECT_STALL_NO_LAPSE)MEDFAILS.protectStallNoLapseRestored=1;
+  else [...actA,...actB].forEach(m=>{
+    if(!m)return;
+    if(m.tookProtectTurns>0&&!m._stallFresh){m.tookProtectTurns=0;MEDSEEN.stallLapsedUnrefreshed++;}
+    m._stallFresh=false;
+  });
   S.turn++;
   traceRelease(_trPrev);
   return S;

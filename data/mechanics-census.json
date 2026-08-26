@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T06:17:04.946Z",
+  "generated": "2026-08-26T06:49:56.989Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 710,
-  "live": 710,
+  "probed": 714,
+  "live": 714,
   "missing": 0,
-  "armed": 710,
+  "armed": 714,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -204,6 +204,26 @@
       "label": "consecutive Protect decays, and a FAILED Protect resets the counter to fresh",
       "live": true,
       "detail": "damage taken per consecutive Protect at a fixed roll of 0.2: 0, 0, 158, 0 — turn 3 must be the FAILURE and turn 4 must be blocked again",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "stalling",
+      "label": "a body that cannot act raises no shield — asleep, and out of PP",
+      "live": true,
+      "detail": "[HP the shielder lost, shield up, stall counter] — the SAME Clefable clicking the SAME Protect into the SAME Iron Head. AWAKE, with PP [0,true,1] (must block, and arm the counter)   |   ASLEEP [98,false,0]   |   PROTECT SLOT AT 0 PP [98,false,0] — both refusals must take the hit, raise nothing and leave the counter at 0, because `runMove` returns above `useMove` on either road. Knob: MEDI_PROTECT_GATE_ABOVE_REFUSALS=1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "stallCounterChecks",
+      "label": "a turn the body could not act ENDS the stall counter — the Protect it wakes to is free",
+      "live": true,
+      "detail": "HP the shielder lost per turn, the last Protect at a LOSING 0.99 — NO GAP [0,112] (turn 2 must take the hit: the counter is armed and the 1/3 fails)   |   ONE SLEEPING TURN IN BETWEEN [0,98,0] (turn 2 must take the hit because a sleeper raises nothing, and turn 3 must be 0 because the volatile expired at the residual of the turn nobody used it). Knobs: MEDI_PROTECT_GATE_ABOVE_REFUSALS=1 and MEDI_PROTECT_STALL_NO_LAPSE=1 each take turn 3 back to a hit on their own",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -844,6 +864,26 @@
       "label": "the pierce counter is non-zero and the flag lookup never fell back",
       "live": true,
       "detail": "protectPierced 3 -> 4 across one pierced Protect; pierceFlagUnknown 0 (must be 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "piercesProtect",
+      "label": "a PIERCE leaves the shield standing, so the partner is still refused — a Feint does not",
+      "live": true,
+      "detail": "[HP the shielded Incineroar lost over the WHOLE turn, shield still up, stall counter] — Weavile opens, Garchomp's Dragon Claw follows in every arm. ICE PUNCH opener [0,true,1] (must be 0: an intact shield refuses both)   |   FEINT [113,false,0] (the volatile is REMOVED, so the partner connects and the counter is wiped)   |   UNSEEN FIST + Close Combat [43,true,1]   |   PIERCING DRILL + Close Combat [43,true,1] — both must get their own quartered hit through AND leave the shield standing with the counter armed, so the partner is still refused and the turn total stays below the Feint arm's",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "punishesContact",
+      "label": "Baneful Bunker poisons and King's Shield drops Attack — only on a contact move it actually blocked",
+      "live": true,
+      "detail": "[attacker status, attacker atk stage, the shield went up, the shielder took damage] — BANEFUL BUNKER blocking a contact Knock Off [\"psn\",0,true,false] (must poison)   |   the same Bunker blocking a NON-CONTACT Stone Edge [\"-\",0,true,false] (blocked, and must not poison)   |   a Bunker that LOST its 1/3 roll (armed on turn 1 by a NON-CONTACT Stone Edge, which tolls nothing), the Knock Off connecting [\"-\",0,false,true] (no shield, so no toll).   KING'S SHIELD, the same three [\"-\",-1,true,false] / [\"-\",0,true,false] / [\"-\",0,false,true] — the -1 Attack must appear only in the first, and neither shield may leak the other's effect",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3583,7 +3623,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.3% (format 20, generic 30), control Rock Slide 27.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

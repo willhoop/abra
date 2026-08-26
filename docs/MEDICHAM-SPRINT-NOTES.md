@@ -21,6 +21,40 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A SLEEPING BODY WAS RAISING A PROTECT, AND ITS COUNTER NEVER LAPSED. BOARD-MATERIAL 17 -> 13 OF 961, CENSUS 710 -> 714. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, *"A SLEEPING BODY WAS RAISING A PROTECT"*.
+CHANGELOG 5.134.0. Release `419e9636ec6a`.
+
+Will: *"protect needs to match showdown perfectly its the most clicked move in the game spend all your
+efforts on that"* — 134,710 corpus clicks. His card: Clefable wakes from sleep, uses Protect, the
+authority's succeeds and ours fails — *"by definition it could not have previously protected."*
+
+TWO EDITS, ONE MECHANIC. (1) `_shieldGate` — the whole `onPrepareHit` step for all eight
+`willAct()` members — moves BELOW the five BeforeMove gates and below the PP deduction, because
+`runMove` returns above `useMove` on both roads (sim/battle-actions.ts:255-262, :282-287) and the
+gate lives at :591. The comment on the old line had already named this defect and left it. (2) `stall`
+gains its `duration: 2` expiry at the residual: it is a volatile with a clock, refreshed only by a
+successful use, and this engine counted CLICKS with its reset in a pre-pass branch a body that could
+not act never reaches.
+
+Probes: `tests/test-mechanics.js` — `stalling` (a body that cannot act raises no shield: asleep, and
+out of PP), `stallCounterChecks` (a turn the body could not act ENDS the counter — Will's card), both
+shown RED first and red on demand under `MEDI_PROTECT_GATE_ABOVE_REFUSALS=1` and
+`MEDI_PROTECT_STALL_NO_LAPSE=1` — each knob alone reproduces the card. Plus two Will asked for by name
+and that had none: `piercesProtect` (a pierce leaves the shield standing so the ALLY is still refused,
+against a Feint that removes it and lets the ally connect) and `punishesContact` (Baneful Bunker's
+poison and King's Shield's -1 Attack, each shown NOT to proc on a non-contact move and NOT to proc
+when the shield lost its roll).
+
+Measured, same pinned pool `0d103fb9fa87`, same census pin `9446a684709d`, 961 games, arm `middle`,
+cap 12: board-material parted 17 -> 13, DIFFERENT-END-STATE 11 -> 8, `active[].stall` 5 games -> 1,
+protocol 22 -> 21, both planted proofs still true. All four fixed games are `medicham HIGH / showdown 0`
+stall counters (3, 3, 27 and 729 — 729 is the cap, priced at 1/729 for the rest of that game). The one
+survivor is the opposite direction (`medicham 0 / showdown 3`), byte-identical at HEAD, filed open.
+
+Predicted 17 -> 12..17 before the run; measured 13.
+
 ## SUPREME OVERLORD DID THE DAMAGE AND SAID NOTHING — THREE LINES AT EVERY COUNT ABOVE ZERO. CENSUS 706 -> 710. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, *"SUPREME OVERLORD DID THE DAMAGE AND NEVER SAID A WORD"*.

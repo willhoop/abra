@@ -59,7 +59,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  710/710 probed mechanics live, 0 missing   (census 2026-08-26 02:05)
+  714/714 probed mechanics live, 0 missing   (census 2026-08-26 02:49)
   0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -72,15 +72,200 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1787b2479502 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 5a2bbfe05c09 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 6cae916c6799 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-26 02:15_
+_stamped 2026-08-26 02:54_
 
 <!-- /GENERATED -->
+
+## A SLEEPING BODY WAS RAISING A PROTECT, AND THE COUNTER IT ARMED NEVER LAPSED. BOARD-MATERIAL 17 -> 13 OF 961, CENSUS 710 -> 714. 2026-08-26.
+
+Will: *"protect needs to match showdown perfectly its the most clicked move in the game spend all your
+efforts on that"*. It is **134,710 corpus clicks**, the largest single number in `data/tags.json`.
+
+The card he read off the protocol: **Clefable wakes from sleep, uses Protect, the authority's succeeds
+and ours fails** — *"by definition it could not have previously protected."* He was right, and the
+cause was one line further up than the card could see.
+
+### THE DEFECT WAS THE POSITION OF ONE CALL, AND THIS FILE ALREADY NAMED IT AND LEFT IT
+
+`_shieldGate` — the whole `onPrepareHit` step for all eight `willAct()` members — was called ABOVE the
+five BeforeMove gates, above Disable and above the PP deduction. The comment sitting on that line said
+so in as many words:
+
+> *"Below it are the five `BeforeMove` gates. Those are LEFT above the shield deliberately: a flinched
+> or sleeping body should not shield either, but that is a second defect with no failing probe on it."*
+
+It has two now. The authority's `runMove` (`sim/battle-actions.ts:255-262`) RETURNS on a false
+BeforeMove and again at `:282-287` on an empty PP slot — `useMove` is never entered, so
+`trySpreadMoveHit`'s `singleEvent('PrepareHit')` at `:591` never runs and the shield's gate never
+happens at all.
+
+**MEASURED ON THE AUTHORITY BEFORE A BYTE MOVED** — one Clefable behind an Iron Head Garchomp,
+`gen9championsvgc2026regmb`, seed `[1,2,3,4]`, `statusState.time = 3`:
+
+| turn | showdown | this engine, before |
+|---|---|---|
+| t1 asleep | `\|cant\|p1a: Clefable\|slp`, lost 160, `volatiles.stall` **absent** | lost **0**, `protect = true`, `tookProtectTurns` **1** |
+
+So the sleeping body was shielded, and it armed a counter it had not earned.
+
+### THE SECOND HALF IS `duration: 2`, AND IT IS NOT A TALLY
+
+`stall` (`data/conditions.ts`, no Champions override) carries `duration: 2`, `onRestart` writes
+`this.effectState.duration = 2` on every successful use, and `Battle#fieldEvent('Residual')` passes
+`getKey = 'duration'` (`sim/battle.ts:487`) — so a volatile carrying a duration is collected **even
+with no `onResidual` handler at all** and `handler.state.duration--` at `:516` removes it at zero.
+A turn with no successful use ends the volatile.
+
+This engine counted CLICKS, and its reset lived in the turn's pre-pass, in the `else` for a body that
+clicked something else — **a branch a body that clicked Protect and then could not act never reaches.**
+So the counter rode straight through the sleeping turn.
+
+Read off the authority on the same board, `volatiles.stall.counter` per turn:
+
+```
+  asleep on t2 and t3   t1 3   t2 ABSENT   t3 ABSENT   t4 3     <- FRESH, not 9
+  never asleep          t1 3   t2 (roll lost)          t4 9
+```
+
+The gap does not deepen the decay. It ENDS it.
+
+**A per-turn boolean is that rule exactly rather than an approximation of it.** A use sets the duration
+to 2 and the residual of the same turn takes it to 1; a turn without one takes 1 to 0. The duration is
+therefore never above 1 at the top of a turn, so it survives a turn iff that turn refreshed it. There
+is no third case and no second field to keep.
+
+### BOTH HALVES ARE LOAD-BEARING, SHOWN SEPARATELY
+
+Two knobs, because it was two edits and a single one could not say which half a red arm accuses:
+
+| knob | what it restores | Will's card under it |
+|---|---|---|
+| `MEDI_PROTECT_GATE_ABOVE_REFUSALS=1` | the old call site above the BeforeMove gates | fails |
+| `MEDI_PROTECT_STALL_NO_LAPSE=1` | the counter surviving an idle turn | fails |
+
+Each **alone** takes the woken Protect back to a hit, and the no-gap control arm is byte-identical
+under both — so neither knob is touching the ordinary path.
+
+### THE PROBES
+
+Four new rows in `tests/test-mechanics.js`, census **710 -> 714, 0 missing, 0 hollow, 0 unarmed**:
+
+- `stalling` — *a body that cannot act raises no shield — asleep, and out of PP.* The SAME Clefable,
+  the SAME Protect, the SAME Iron Head; awake with PP `[0, true, 1]` against asleep `[98, false, 0]`
+  and a 0-PP slot `[98, false, 0]`. **RED first**, and red on demand under the gate knob.
+- `stallCounterChecks` — *a turn the body could not act ENDS the stall counter — the Protect it wakes
+  to is free.* No gap `[0, 112]` against one sleeping turn `[0, 98, 0]`, the last shield at a LOSING
+  0.99. **RED first**, and red on demand under EITHER knob.
+- `piercesProtect` — *a PIERCE leaves the shield standing, so the partner is still refused — a Feint
+  does not.* Will's ask, in as many words: *"feint breaking through a protect and letting an ally also
+  attack the now busted protect pokemon."* Weavile opens, Garchomp's Dragon Claw follows in all four
+  arms: Ice Punch `[0, up, 1]`, **FEINT `[113, down, 0]`** (the volatile is REMOVED and the partner
+  connects), **UNSEEN FIST and PIERCING DRILL `[43, up, 1]`** (the bypass is per-move, the volatile is
+  untouched, and the partner is still refused). Green from birth — it is the CONTROL that separates
+  the two mechanisms, and a fixture that cannot tell them apart proves nothing.
+- `punishesContact` — *Baneful Bunker poisons and King's Shield drops Attack — only on a contact move
+  it actually blocked.* Three arms each: contact into the raised shield, a NON-CONTACT Stone Edge into
+  the same raised shield, and a shield that LOST its 1/3 roll. **The third arm was written wrong
+  first** — it armed the counter with the contact move itself and then read a poison turn 1 had
+  already landed. Arming it with the non-contact move instead is what made the arm measure turn 2.
+
+Membership derived, never recalled: `punishesContact` params off `data/tags.json` —
+`banefulbunker {onContact, inflicts:'psn'}`, `kingsshield {onContact, boosts:{atk:-1}}`,
+`spikyshield {onContact, fraction:8}`. Spiky Shield's chip already had two probes; these two had none.
+
+### WHAT MOVED, AND THE PREDICTION WAS MADE FIRST
+
+Predicted before the run: board-material **17 -> 12..17**, central 12, and it must not rise. Measured
+**13** — inside the range, and the one above the central guess is named below.
+
+Same pinned pool `0d103fb9fa87`, same census pin `9446a684709d`, same 961 games, `--arm middle`,
+`--turns 12`, `--state --end-state`:
+
+| | before, release `d684a2f1f183` | after, release `419e9636ec6a` |
+|---|---|---|
+| board-material games parted | **17** / 961 | **13** / 961 |
+| protocol diverged | 22 | 21 |
+| `DIFFERENT-END-STATE` | 11 | **8** |
+| `active[].stall` family | 5 leaves / 5 games | 1 leaf / 1 game |
+| `planted_divergence_proof_ok` / `planted_state_proof_ok` | true / true | true / true |
+
+**All four games it fixed are the same shape**, and it is the shape Will named — a counter that never
+came down:
+
+```
+  pair-protect-bust        turn  5   p2.active[0].stall   medicham 3     showdown 0
+  pair-redirect-priority   turn 10   p2.active[0].stall   medicham 729   showdown 0
+  pair-redirect-priority   turn 10   p1.active[0].stall   medicham 3     showdown 0
+  pair-redirect-priority   turn 12   p2.active[0].stall   medicham 27    showdown 0
+```
+
+`729` is the cap. That body's Protect had been priced at 1/729 for the rest of the game.
+
+### THE ONE THAT SURVIVED IS THE OPPOSITE DIRECTION AND IS NOT MINE
+
+```
+  baseline   turn 8   p2.active[1].stall   medicham 0   showdown 3
+```
+
+**Byte-identical at HEAD** (`git show HEAD:data/game-differential.json`), so it predates this batch and
+this batch did not move it. It is the other sign: the authority holds a counter we have let go, and the
+protocol never parted on that game, so both engines emitted the same shield line. It is on the hand
+list below with its seed, not closed and not guessed at.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~the consecutive-use counter is a tally rather than a volatile with a clock~~ — CLOSED, two probes.
+- ~~a body that cannot act still raises a shield~~ — CLOSED, and it was never only sleep: freeze,
+  confusion, full paralysis, Attract, a recharge, Throat Chop, Disable and an empty PP slot all take
+  the same road out of `runMove`. Flinch cannot reach it in this format and that is stated rather than
+  claimed — Protect is +4 and every flinch source in Reg M-B is below it.
+- ~~Feint breaks the shield outright and an ally then connects, while a pierce does not~~ — CLOSED, one
+  probe holding both mechanisms and their controls.
+- ~~Baneful Bunker's poison and King's Shield's -1 Attack proc, and do not proc without a block~~ —
+  CLOSED, one probe, three arms each.
+
+**Still open, filed with its evidence:**
+- **`p2.active[1].stall  medicham 0 / showdown 3`, turn 8, config `baseline`, seeds
+  `gen9championsvgc2026regmbbo3-2662815123 vs -2662930043`.** The authority holds a stall counter this
+  engine does not, on a game whose protocol NEVER parted — so both emitted the same shield line and only
+  the board leaf differs. One game of 961. Pre-existing, unmoved by this batch, and NOT the lapse (the
+  lapse only ever removes a counter this engine holds and the authority does not).
+- **`-zbroken` on a pierced Protect stays undeclared.** `derive_protocol_events.js` records it as a
+  Z-move display leftover the champions mod re-uses and drops it from the comparison; the `-ability`
+  half IS emitted and IS compared. Named because Will asked for both lines by name; it is a declared
+  drop, not an absence.
+
+### OWED, NOT RUN
+
+- `tests/roster.js` — the three deliberate stages (items, abilities, moves) were NOT re-run. The gate
+  clause reads them and they were last written on release `d684a2f1f183`.
+  `node tests/roster.js --stage moves --release 419e9636ec6a` (and `items`, `abilities`).
+- `engine/quarantine.js --check` — not run in this pass.
+  `cmd /c tools\lownode.cmd engine\quarantine.js --check`
+- `tests/run-all.js` — not run. The targeted gates that WERE run and passed:
+  `test-mechanics` (714/714), `test-engine-diff` (0/6000), `test-engine-consistency`,
+  `test-volatile-duration` (4/4 identical), `test-resolution-order` (26 arms, 0 failing,
+  `--max-old-space-size=4096`).
+- `tests/test-fixture-legality.js` is RED at **5 FAILED**, and it is RED IDENTICALLY AT HEAD — verified
+  by stashing this batch and re-running. Pre-existing: one Milotic/Calm Mind pairing in
+  `probe_mental_herb_order.js`, eight stale baseline allowances, and five prose string literals in
+  `test-imposter-transform-line.js` / `test-precharge-order.js`. Not mine, not waived, reported.
+
+### LEFT ALONE, REPORTED
+
+- `.scratch_eng/` and `docs/_reports/2026-08-26-red-triage.md` are another session's, untouched.
+- `data/archetypes.json`, `data/conformance.json`, `data/forme-assert.json`,
+  `data/regulation-usage.json`, `data/rulebook-collision.json`, `data/switch-back-renamed.json` and
+  `data/job-costs.jsonl` are modified in the working tree by generators this pass ran through
+  (`tests/test-fixture-legality.js`) and are NOT part of this commit — added by name only.
+
 
 ## SUPREME OVERLORD DID THE DAMAGE AND NEVER SAID A WORD. THREE PROTOCOL LINES, MISSING AT EVERY COUNT ABOVE ZERO. CENSUS 706 -> 710. 2026-08-26.
 
