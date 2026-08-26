@@ -433,6 +433,13 @@ by that pattern.
 
 **YOUR OWN COMMANDS CAN SUCCEED HAVING DONE NOTHING.** Twice: `cmd /c "…"` from Git Bash. The artifact
 kept its old timestamp both times and the stale number was nearly reported as a confirmation.
+**A SIXTH AND SEVENTH, BOTH HIT IN ONE PASS ON 2026-08-26.** The differential and the roster stages
+run WITHOUT `--write` print a full report, name every count, and **exit 0 while their artifact never
+moves** — a complete-looking measurement of nothing. And `cmd.exe /c "<path>"` from Git Bash opens an
+INTERACTIVE shell and returns a three-line banner at exit 0; **`cmd.exe //c` is the working form.**
+Seven variants now. **Stop reading the exit code. Read the SIZE of the output and the `generated`
+stamp on the artifact** — those are the only two things that have ever caught this.
+
 **AND A FIFTH SHAPE, FOUND 2026-08-26: `toolslownode.cmd` ENDS IN `exit /b`, SO CALLING IT FROM
 ANOTHER `.cmd` WITHOUT `call` ENDS THE CALLER.** An agent batching three roster stages ran the FIRST one
 and stopped, **exit 0**, output that looks exactly like a finished run. The wrapper is correct — `exit /b`
