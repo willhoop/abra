@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-26T12:45:18.282Z",
+  "generated": "2026-08-26T13:27:09.093Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:2efbc9ed1946/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -98,7 +98,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 82.4,
+  "elapsed_s": 84.2,
   "credit_turn_profile": {
     "rows_with_any_credit": 252,
     "credits_with_no_turn_index": 0,
@@ -1415,7 +1415,7 @@
           "case": {
             "seed": "gen9championsvgc2026regmbbo3-2661597319 vs gen9championsvgc2026regmbbo3-2661573110",
             "config": "omit-protect",
-            "engine_release": "28ee5a64daf4",
+            "engine_release": "e5f9f3d29660",
             "team_pool_digest": "0d103fb9fa87",
             "turn": 1,
             "leads": {
@@ -1455,7 +1455,7 @@
           "case": {
             "seed": "gen9championsvgc2026regmbbo3-2659015200 vs gen9championsvgc2026regmbbo3-2659004938",
             "config": "omit-spread",
-            "engine_release": "28ee5a64daf4",
+            "engine_release": "e5f9f3d29660",
             "team_pool_digest": "0d103fb9fa87",
             "turn": 1,
             "leads": {
@@ -3272,7 +3272,7 @@
                 {
                   "body": "metagross",
                   "games": 1,
-                  "corpus_teams": 2466
+                  "corpus_teams": 2484
                 }
               ],
               "examples": [
@@ -3310,7 +3310,7 @@
                   },
                   "shape": "RULE",
                   "protocol_parted": true,
-                  "max_body_uses": 2466
+                  "max_body_uses": 2484
                 }
               ],
               "examples_capped_at": 25,
@@ -3325,17 +3325,17 @@
                 {
                   "body": "incineroar",
                   "games": 1,
-                  "corpus_teams": 9500
+                  "corpus_teams": 9580
                 },
                 {
                   "body": "farigiraf",
                   "games": 1,
-                  "corpus_teams": 7318
+                  "corpus_teams": 7391
                 },
                 {
                   "body": "staraptor",
                   "games": 1,
-                  "corpus_teams": 5872
+                  "corpus_teams": 5924
                 }
               ],
               "examples": [
@@ -3384,7 +3384,7 @@
                   },
                   "shape": "ORDERING",
                   "protocol_parted": true,
-                  "max_body_uses": 9500
+                  "max_body_uses": 9580
                 }
               ],
               "examples_capped_at": 25,
@@ -3409,22 +3409,22 @@
                 {
                   "body": "garchomp",
                   "games": 1,
-                  "corpus_teams": 9590
+                  "corpus_teams": 9669
                 },
                 {
                   "body": "gardevoirmega",
                   "games": 1,
-                  "corpus_teams": 1483
+                  "corpus_teams": 1490
                 },
                 {
                   "body": "dragapult",
                   "games": 1,
-                  "corpus_teams": 836
+                  "corpus_teams": 837
                 },
                 {
                   "body": "golurkmega",
                   "games": 1,
-                  "corpus_teams": 429
+                  "corpus_teams": 432
                 }
               ],
               "examples": [
@@ -3457,7 +3457,7 @@
                   },
                   "shape": "PROTOCOL-NEVER-PARTED",
                   "protocol_parted": false,
-                  "max_body_uses": 9590
+                  "max_body_uses": 9669
                 },
                 {
                   "band": 5,
@@ -3495,7 +3495,7 @@
                   },
                   "shape": "EMISSION",
                   "protocol_parted": true,
-                  "max_body_uses": 1483
+                  "max_body_uses": 1490
                 },
                 {
                   "band": 5,
@@ -3526,7 +3526,7 @@
                   },
                   "shape": "PROTOCOL-NEVER-PARTED",
                   "protocol_parted": false,
-                  "max_body_uses": 836
+                  "max_body_uses": 837
                 },
                 {
                   "band": 5,
@@ -3557,7 +3557,7 @@
                   },
                   "shape": "EMISSION",
                   "protocol_parted": true,
-                  "max_body_uses": 429
+                  "max_body_uses": 432
                 }
               ],
               "examples_capped_at": 25,
@@ -13960,7 +13960,7 @@
     "input_digest": "9446a684709d",
     "input_rows": 643,
     "input_generated": "2026-08-23T09:53:56.393Z",
-    "input_live_digest": "acc8de74988a",
+    "input_live_digest": "20bdbabaf5f3",
     "pinned": true,
     "matches_live": false,
     "selects_from": 580,
@@ -13972,8 +13972,8 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "28ee5a64daf4",
-  "engine_release_cut": "2026-08-26T12:43:18.583Z",
+  "engine_release": "e5f9f3d29660",
+  "engine_release_cut": "2026-08-26T13:25:13.702Z",
   "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
@@ -13997,8 +13997,8 @@
     "data/regulations.json": "6c1995e9a9fb",
     "data/quality-filter.json": "e675d10477c8",
     "data/engine-data.js": "c73da1d25212",
-    "data/abra-tags.js": "7573647a4496",
-    "data/tags.json": "abc32a88d5a6",
+    "data/abra-tags.js": "767fe5371faa",
+    "data/tags.json": "386f9c1b1cdf",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "e667fe8ab457",

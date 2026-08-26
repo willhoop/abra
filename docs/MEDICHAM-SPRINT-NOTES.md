@@ -24,8 +24,16 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 ## TWO REFUSAL RULES EXISTED IN MACHINE-READABLE FORM AND NEITHER HAD A CONSUMER. CENSUS 718 -> 729, WHOLE-GAME CLAUSE 13 -> 12 OF 961, BOARD-MATERIAL UNMOVED AT 10. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.137.0. Register row: ROADMAP #451.
-Engine release cut: **`28ee5a64daf4`** — *"the move's own onTryImmunity is consulted at step 3, and a
+Engine release cut: **`e5f9f3d29660`** — *"the move's own onTryImmunity is consulted at step 3, and a
 volatile already standing is refused"*. Every figure below is stamped with it.
+
+**IT IS THE SECOND CUT OF THE SAME ENGINE AND THE REASON IS A LINE ENDING.** The first was
+`28ee5a64daf4`, over `tag_dex.js`'s freshly written LF output; `core.autocrlf = true` handed it back as
+CRLF on the rebase onto an OPS ingest, so two of twenty-six frozen SOURCES read as MOVED and
+`engine/status.js` correctly WITHHELD every stage. `engine/medicham2-browser.js` did NOT move — it was
+edited in place and kept its CRLF — so only a GENERATED file was affected. Re-cut over the bytes a
+checkout actually produces and everything re-run: **961 games, the diverged count, the board-material
+count and all three roster tallies identical across the two ids.**
 
 **ONE FAMILY, NOT TWO CARDS.** Will read every divergence card and found the same shape twice: a move
 the authority REFUSES and we APPLY. Both halves were a rule that already existed, derived, in an
@@ -75,11 +83,11 @@ members and every volatile refusal are emission-only.
 | board-material | 10 of 961 | **10 — unmoved, as predicted** |
 | staged mechanics, moves | 13 diverged | **12** |
 | damage differential, 16 corners | 0 of 6000 | **0 of 6000 — re-run, owed by this batch** |
-| roster items / abilities / moves | — | **0 and 0 on all three, on `28ee5a64daf4`** |
+| roster items / abilities / moves | — | **0 and 0 on all three, on `e5f9f3d29660`** |
 
 Pins: `--games 1200`, arm `middle`, cap 12, `--team-store data/team-pool-frozen`,
 `--census data/verification/census-pin-9446a684709d.json`, `--state --end-state`,
-`--release 28ee5a64daf4`. `generated` moved 11:44Z -> 12:45Z before any number was read;
+`--release e5f9f3d29660`. `generated` moved 11:44Z -> 12:45Z before any number was read;
 `planted_divergence_proof_ok` true; 961 games either side.
 
 **BOTH KNOBS SHOWN RED ON DEMAND.** `MEDI_IMMUNITY_GATE_BLIND=1` takes the census 724 -> 718 with

@@ -85,12 +85,22 @@ silently rewritten; what changed and why is stated.
 - **Census 718/718 → 729/729, 0 missing.** Hollow 0, unarmed 0, direct-call 1 (unchanged).
 - **Damage differential unmoved and RE-RUN because this batch owed it**: 0 of 6000 at the midpoint and
   at all sixteen corners, seed 20260804, 134 not comparable (multihit).
-- **Pinned pool, release `28ee5a64daf4`, 961 games, census pin `9446a684709d`, `data/team-pool-frozen`:
+- **Pinned pool, release `e5f9f3d29660`, 961 games, census pin `9446a684709d`, `data/team-pool-frozen`:
   whole-game clause 13 → 12 of 961; board-material 10 → 10, UNMOVED.** Both predicted before the run —
   five of the six immunity members and every volatile refusal are emission-only, so the lab was
   expected to move and the board was not. Staged mechanics (moves) 13 → 12 diverging.
 - All three roster stages re-run on this release: **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE across
   items, abilities and moves.**
+- **THE BATCH WAS CUT TWICE AND THE SECOND CUT IS A LINE ENDING, NOT AN ENGINE.** `28ee5a64daf4` froze
+  `tag_dex.js`'s freshly written **LF** output; `core.autocrlf = true` handed the same file back as
+  **CRLF** when the branch was rebased onto an OPS ingest — 794,538 bytes became 836,962, the content
+  identical and the sha256 not — so two of the twenty-six frozen SOURCES read as MOVED and
+  `engine/status.js` correctly WITHHELD every roster stage and the whole-game differential.
+  `engine/medicham2-browser.js` did NOT move, and that is the discriminator: it was EDITED in place and
+  kept the CRLF it already had, so only a file this pass GENERATED was affected. Re-cut as
+  `e5f9f3d29660` over the bytes a checkout actually produces, and everything re-run on it: **961 games,
+  the diverged count, the board-material count and all three roster tallies identical across the two
+  ids.** Both cuts are left standing — a cut is an event, never an overwrite.
 
 ## [5.136.8] — 2026-08-26
 

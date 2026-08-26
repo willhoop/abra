@@ -63,7 +63,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  729/729 probed mechanics live, 0 missing   (census 2026-08-26 08:49)
+  729/729 probed mechanics live, 0 missing   (census 2026-08-26 09:25)
   0/6000 differential comparisons disagree with Showdown   (2026-08-26 08:42)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -76,21 +76,37 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c2d51e0b4b7d now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 0e1191e26f54 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 20bdbabaf5f3 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 09:20_
+_stamped 2026-08-26 09:31_
 
 <!-- /GENERATED -->
 
 ## TWO REFUSAL RULES EXISTED IN MACHINE-READABLE FORM AND NEITHER HAD A CONSUMER. CENSUS 718 -> 729, WHOLE-GAME CLAUSE 13 -> 12 OF 961, BOARD-MATERIAL UNMOVED AT 10. 2026-08-26.
 
 Ledger section: this one. CHANGELOG 5.137.0. Register row: ROADMAP #451.
-Engine release cut for this batch: **`28ee5a64daf4`** — *"the move's own onTryImmunity is consulted at
+Engine release cut for this batch: **`e5f9f3d29660`** — *"the move's own onTryImmunity is consulted at
 step 3, and a volatile already standing is refused"*. Every figure below is stamped with it.
+
+**IT IS THE SECOND CUT OF THE SAME ENGINE AND THE REASON IS A LINE ENDING, WHICH IS WORTH WRITING DOWN
+BECAUSE IT WILL HAPPEN AGAIN TO WHOEVER NEXT REGENERATES `data/tags.json`.** The first cut was
+`28ee5a64daf4`, taken over `tag_dex.js`'s freshly written output, which is **LF**. This repository runs
+`core.autocrlf = true`, so the moment that file was committed and the branch rebased onto an OPS ingest,
+git checked it back out as **CRLF** — 794,538 bytes became 836,962, the content identical and the sha256
+not. Two of the twenty-six frozen SOURCES (`data/tags.json`, `data/abra-tags.js`) then read as MOVED, and
+`engine/status.js` correctly WITHHELD every roster stage and the whole-game differential as *"measured
+against a different engine"*. Nothing was wrong with the measurement and everything was wrong with the
+gate a reader would have seen.
+
+`engine/medicham2-browser.js` did **not** move, and that is the discriminator: it was EDITED in place so
+it kept the CRLF it already had. Only a file this pass GENERATED was affected. The fix is not to fight
+git — it is to cut over the bytes a checkout actually produces. Every figure below was measured twice,
+once on each id, and **every count is identical**; the numbers quoted are the `e5f9f3d29660` run, which
+is the tree anybody else will have.
 
 **WILL READ EVERY DIVERGENCE CARD AND FOUND THE SAME DISEASE TWICE: A MOVE THE AUTHORITY REFUSES AND
 WE APPLY.** It is one family and fixing it card by card would have been the mistake. Both halves turned
@@ -231,13 +247,16 @@ of the six immunity members and every volatile refusal are emission-only.
 | board-material (`state.games − games_board_never_diverged`) | 10 of 961 | **10 of 961 — unmoved, as predicted** |
 | staged mechanics, moves diverged | 13 | **12** |
 | damage differential, all 16 corners | 0 of 6000 | **0 of 6000 — RE-RUN because this batch owed it** |
-| roster items / abilities / moves | — | **0 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE, all three, on `28ee5a64daf4`** |
+| roster items / abilities / moves | — | **0 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE, all three, on `e5f9f3d29660`** |
 | tag coverage | 277/295 | 279/296 |
 
 Pins: `--games 1200` (a REQUEST split across configs), arm `middle`, cap 12,
 `--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
-`--state --end-state`, `--release 28ee5a64daf4`. `generated` moved 11:44Z -> 12:45Z before any number
-was read; `planted_divergence_proof_ok` true; game count identical at 961 either side.
+`--state --end-state`, `--release e5f9f3d29660`. `generated` moved 11:44Z -> 12:45Z on the first cut and
+12:45Z -> 13:27Z on the re-cut, confirmed MOVED before any number was read either time;
+`planted_divergence_proof_ok` true both times; **the game count (961), the diverged count, the
+board-material count and all three roster tallies are identical across the two release ids** — which is
+what says the re-cut was a line ending and not an engine.
 
 **BOTH KNOBS WERE SHOWN TO TURN THE FAMILY RED ON DEMAND**, which is the only thing that says the
 probes are measuring the engine and not the staging: `MEDI_IMMUNITY_GATE_BLIND=1` takes the census
@@ -287,7 +306,17 @@ exactly the five.
   PLACE.** To establish which of `tests/run-all.js`'s 30 reds were pre-existing, five files were
   temporarily reverted to HEAD and a dozen gates re-run; one of them cut a release of those bytes, and
   `tests/roster.js` then stamped that stale pointer. **The roster was re-run afterwards and all three
-  stages are stamped `28ee5a64daf4`.** The stray release directory is reported and not deleted.
+  stages are stamped `e5f9f3d29660`.** The stray release directory is reported and not deleted.
+  `data/releases/28ee5a64daf4/` is the first cut of THIS batch and is likewise left standing — it is the
+  id every figure was first measured under, and a cut is an event, never an overwrite.
+- **A GIT STASH IS PARKED AND IT IS NOT THIS SESSION'S WORK.** `stash@{0}` — *"not-mine: generated
+  artifacts modified before/during the 2026-08-26 ENGINE refusal-gate session"* — holds twelve
+  generated `data/` files that were already modified in the working tree when this session opened
+  (03:17–08:14, before its first command). They had to be stashed to rebase onto an OPS ingest that
+  landed mid-session. Eleven popped back cleanly and are still uncommitted; **`data/live.js` conflicted**
+  because the ingest had just published a newer one (71,140 games against the stash's 65,777) and was
+  resolved to the committed version. **The stash entry is deliberately kept** rather than dropped, so
+  the older bytes are recoverable by whoever owns them.
 
 ### OWED, NOT RUN
 

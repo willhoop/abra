@@ -1,10 +1,10 @@
 {
-  "current": "28ee5a64daf4",
-  "cut": "2026-08-26T12:43:18.583Z",
-  "why": "the move's own onTryImmunity is consulted at step 3, and a volatile already standing is refused",
-  "cuts": 36,
-  "latest_cut": "2026-08-26T13:21:23.742Z",
+  "current": "e5f9f3d29660",
+  "cut": "2026-08-26T13:25:13.702Z",
+  "why": "the move's own onTryImmunity is consulted at step 3, and a volatile already standing is refused (re-cut over the checked-out CRLF bytes)",
+  "cuts": 2,
+  "latest_cut": "2026-08-26T13:28:01.316Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-26T13:21:23.754Z",
+  "pointer_written": "2026-08-26T13:28:01.328Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
