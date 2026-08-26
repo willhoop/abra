@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T06:49:56.989Z",
+  "generated": "2026-08-26T07:39:25.567Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 714,
-  "live": 714,
+  "probed": 715,
+  "live": 715,
   "missing": 0,
-  "armed": 714,
+  "armed": 715,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -2300,6 +2300,16 @@
     },
     {
       "kind": "move",
+      "tag": "breaksProtect",
+      "label": "Feint tears down a Wide Guard, so the ALLY's spread move connects -- a pierce does not",
+      "live": true,
+      "detail": "[what the two foes lost to Make It Rain, Gholdengo spa stage, Pelipper stall counter] -- Wide Guard raised in all four arms. NO OPENER [[0,0],0,1] (blocked, and the Guard arms the shared counter on its own user)   |   FEINT [[88,118],-2,0], break announced 1x (the side condition is REMOVED, so the ally connects to BOTH and pays its own -2 SpA, and the counter is wiped)   |   UNSEEN FIST + Breaking Swipe [[0,0],0,1]   |   PIERCING DRILL + Breaking Swipe [[0,0],0,1] -- a pierce bypasses for its OWN move only, so the side condition SURVIVES and the ally is still refused. OPEN AND MEASURED, not asserted here: the authority lets the PIERCER's own Breaking Swipe through the same Wide Guard (5 and 10 HP, with -1 Atk on both) and this engine deals 0 -- see the ENGINE hand list.",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "critRatioUp",
       "label": "Night Slash crits on a roll Crunch does not",
       "live": true,
@@ -3623,7 +3633,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.3% (format 20, generic 30), control Rock Slide 27.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

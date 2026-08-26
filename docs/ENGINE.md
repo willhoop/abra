@@ -59,7 +59,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  714/714 probed mechanics live, 0 missing   (census 2026-08-26 02:49)
+  715/715 probed mechanics live, 0 missing   (census 2026-08-26 03:39)
   0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -71,18 +71,18 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 1787b2479502 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 6cae916c6799 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0a982abaeb5a now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 3fe2c5400ddf now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-26 02:54_
+_stamped 2026-08-26 03:44_
 
 <!-- /GENERATED -->
 
-## A SLEEPING BODY WAS RAISING A PROTECT, AND THE COUNTER IT ARMED NEVER LAPSED. BOARD-MATERIAL 17 -> 13 OF 961, CENSUS 710 -> 714. 2026-08-26.
+## A SLEEPING BODY WAS RAISING A PROTECT, AND THE COUNTER IT ARMED NEVER LAPSED. GATE CLAUSE 17 -> 16, BOARD-MATERIAL 17 -> 13 OF 961, CENSUS 710 -> 715. 2026-08-26.
 
 Will: *"protect needs to match showdown perfectly its the most clicked move in the game spend all your
 efforts on that"*. It is **134,710 corpus clicks**, the largest single number in `data/tags.json`.
@@ -179,33 +179,56 @@ Membership derived, never recalled: `punishesContact` params off `data/tags.json
 `banefulbunker {onContact, inflicts:'psn'}`, `kingsshield {onContact, boosts:{atk:-1}}`,
 `spikyshield {onContact, fraction:8}`. Spiky Shield's chip already had two probes; these two had none.
 
-### WHAT MOVED, AND THE PREDICTION WAS MADE FIRST
+### WHAT MOVED — AND THE TWO QUANTITIES BOTH READ 17 BEFORE, WHICH IS HOW THIS GOT MISREPORTED
 
-Predicted before the run: board-material **17 -> 12..17**, central 12, and it must not rise. Measured
-**13** — inside the range, and the one above the central guess is named below.
+**THE FIRST REPORT OF THIS BATCH GAVE ONLY THE BOARD-MATERIAL NUMBER AND THE COORDINATOR READ IT
+AGAINST THE GATE CLAUSE.** Both quantities stood at **17** before the fix, so `17 -> 13` looked like a
+claim about the gate and is not one. Corrected here rather than rewritten silently, and NOT by
+re-running: `engine/quarantine.js`'s own `wholeGameClause` was pointed at the BEFORE artifact through
+an in-process `fs.readFileSync` redirect, so the declared-exclusion rule is the gate's own and not a
+second copy of it in a verifier.
 
-Same pinned pool `0d103fb9fa87`, same census pin `9446a684709d`, same 961 games, `--arm middle`,
-`--turns 12`, `--state --end-state`:
+| | before, `d684a2f1f183` | after, `419e9636ec6a` | moved |
+|---|---|---|---|
+| **THE GATE CLAUSE** — undeclared whole-game PROTOCOL divergence | 22 raw − 5 declared = **17** | 21 raw − 5 declared = **16** | **one game** |
+| **BOARD-MATERIAL** — `state.games − state.games_board_never_diverged` | **17** / 961 | **13** / 961 | **four games** |
+| `DIFFERENT-END-STATE` | 11 | **8** | three |
+| `active[].stall` family | 5 leaves / 5 games | 1 leaf / 1 game | four |
+| `board_parted_before_the_protocol_did` | 11 | 7 | four |
+| `game_agreement` | 0.9823 | 0.9865 | — |
+| `planted_divergence_proof_ok` / `planted_state_proof_ok` | true / true | true / true | — |
 
-| | before, release `d684a2f1f183` | after, release `419e9636ec6a` |
-|---|---|---|
-| board-material games parted | **17** / 961 | **13** / 961 |
-| protocol diverged | 22 | 21 |
-| `DIFFERENT-END-STATE` | 11 | **8** |
-| `active[].stall` family | 5 leaves / 5 games | 1 leaf / 1 game |
-| `planted_divergence_proof_ok` / `planted_state_proof_ok` | true / true | true / true |
+The declared count is **5, all `AUTHORITY-WRONG`, on both sides** — the same rows, so nothing was
+declared away to make the number move. Same pinned pool `0d103fb9fa87`, same census pin
+`9446a684709d`, same 961 games, `--arm middle --turns 12 --state --end-state`. **They are also not the
+same 17:** `protocol_diverged_board_never_did` is 14 of 22, so the gate's 17 and the board's 17
+overlap in 8 games and merely share a cardinality.
 
-**All four games it fixed are the same shape**, and it is the shape Will named — a counter that never
-came down:
+**Predicted before the run: board-material `17 -> 12..17`, central 12. Measured 13.** The prediction
+was about the board because the stall counter is a board leaf; no prediction was published for the
+gate clause, and that omission is what made the report ambiguous.
+
+**WHY THE GATE MOVED BY ONE AND THE BOARD BY FOUR — the question the coordinator asked, answered from
+the artifacts.** Four games left the board-parted list. **Each carried exactly ONE differing leaf, the
+stall counter**, so none of them stayed parted for another reason and no new game entered the list:
 
 ```
-  pair-protect-bust        turn  5   p2.active[0].stall   medicham 3     showdown 0
-  pair-redirect-priority   turn 10   p2.active[0].stall   medicham 729   showdown 0
-  pair-redirect-priority   turn 10   p1.active[0].stall   medicham 3     showdown 0
-  pair-redirect-priority   turn 12   p2.active[0].stall   medicham 27    showdown 0
+  config                   turn   leaf                 ours/showdown   protocol_diverged_at_turn
+  pair-protect-bust           5   p2.active[0].stall     3 / 0                 6   <- the ONE the gate saw
+  pair-redirect-priority     10   p2.active[0].stall   729 / 0              null
+  pair-redirect-priority     10   p1.active[0].stall     3 / 0              null
+  pair-redirect-priority     12   p2.active[0].stall    27 / 0              null
 ```
 
-`729` is the cap. That body's Protect had been priced at 1/729 for the rest of the game.
+Three of the four **never parted the protocol at all** — the board differed and the emitted stream did
+not — and the gate clause counts protocol divergence, so **those three were never inside the gate's 17
+and could not move it.** `729` is `counterMax`: that body's Protect had been priced at 1/729 for the
+rest of the game.
+
+**Nothing was diverted or overwritten.** `engine/publish_guard.js` wrote no alternate copy — there is
+no `game-differential`-shaped file under `data/verification/` newer than 06:40Z — and the artifact at
+`06:47:32.893Z` on release `419e9636ec6a` IS this run and the only one.
+
 
 ### THE ONE THAT SURVIVED IS THE OPPOSITE DIRECTION AND IS NOT MINE
 
@@ -217,6 +240,126 @@ came down:
 this batch did not move it. It is the other sign: the authority holds a counter we have let go, and the
 protocol never parted on that game, so both engines emitted the same shield line. It is on the hand
 list below with its seed, not closed and not guessed at.
+
+### THE SIDE CONDITION IS THE SECOND PLACE A SHIELD LIVES — WILL'S OWN FIXTURE
+
+Will: *"do feint into a pelipper wide guard then hit em with a make it rain."* Staged exactly, and the
+ordering falls out of the moves rather than out of a rigged Speed:
+
+```
+  priority 3   Pelipper    Wide Guard      the side condition goes up, and `stall` arms on PELIPPER
+  priority 2   Gliscor     Feint           single-target, so Wide Guard never sees it
+  priority 0   Gholdengo   Make It Rain    allAdjacentFoes -- and it now connects
+```
+
+`hitStepBreakProtect` (`sim/battle-actions.ts:755`) removes four SIDE CONDITIONS as well as the seven
+volatiles, so a Feint tears the guard down for the whole side. Measured in this engine, four arms, one
+turn (`duration: 1`, so a probe reading the flag next turn would be reading a lapse and calling it a
+break):
+
+| opener | Make It Rain onto [Pelipper, Garchomp] | Gholdengo SpA | Pelipper `stall` |
+|---|---|---|---|
+| none | `[0, 0]` blocked | 0 | 1 |
+| **FEINT** | **`[88, 118]`** both connect, break announced 1x | **-2** | **0** wiped |
+| Unseen Fist + Breaking Swipe | `[0, 0]` still blocked | 0 | 1 |
+| Piercing Drill + Breaking Swipe | `[0, 0]` still blocked | 0 | 1 |
+
+The `-2` is Make It Rain's own `self: {boosts:{spa:-2}}` and only pays when the move actually fires —
+so the self-drop is a second, independent witness that the ally connected. Every body is DERIVED:
+**Make It Rain has exactly one legal user in this regulation and it is Gholdengo**; Gliscor is one of
+three legal species carrying both Feint and Breaking Swipe; Pelipper learns Wide Guard.
+
+**THE PROBE WAS WRONG BEFORE THE ENGINE WAS, AGAIN.** Its first version read MISSING on a correct
+engine: the two protocol regexes lost their escaping through the generator and became
+`/-singleturn|.*Wide Guard/` — an ALTERNATION, not a literal pipe — so `broke` matched every
+`-activate` line, including the Wide Guard refusals in the arms where nothing broke. Every printed
+number was already right; only the assertion was wrong.
+
+### THE BRIEF SAID THE TWO GUARDS SIT OUTSIDE THE STALL COUNTER. THEY DO NOT, AND THE ENGINE ALREADY KNEW
+
+The dispatch brief stated *"Quick Guard / Wide Guard (side conditions, NOT sharing the counter)."*
+That is wrong, and it is worth recording that **no probe in this batch asserts it** — checked by name
+rather than assumed. `data/moves.ts` `wideguard` AND `quickguard` carry the byte-identical pair:
+
+```js
+  onTry()                 { return !!this.queue.willAct(); },
+  onHitSide(side, source) { source.addVolatile('stall'); },
+```
+
+`onHitSide` adds `stall` to the SOURCE, so both Guards arm the same counter Protect does. **Quick Guard
+was read rather than assumed to match** — the brief said not to assume it, and it does.
+
+This engine has had it right since ROADMAP #162/#59: both moves carry `stallCounterFeeds` and
+`failsIfMovesLast` in `data/tags.json` (5,761 and 1,524 corpus uses), and the pre-existing probe *"a
+Wide Guard ADVANCES the shared stall counter, so the next Protect is 1/3"* asserts the opposite of the
+brief. Re-measured on the live tree for Quick Guard specifically — turn 1 the named click, turn 2 a
+Protect at a losing 0.99, the shielder's Speed set high so the Guard never holds the last action:
+
+```
+  turn-1 click        counter after t1     HP lost on t2 behind the Protect
+  (control) Howl             0                    0     the shield holds
+  WIDE GUARD                 1                  362     the 1/3 fails
+  QUICK GUARD                1                  362     identical
+  PROTECT                    1                  362     identical
+```
+
+### AND THE FIXTURE FOUND A NEW DEFECT — A PIERCE DOES NOT GO THROUGH A SIDE GUARD
+
+`checkMoveBypassesProtect` (`sim/battle.ts:1300`) is ONE function with TWO clauses, and Wide Guard's
+`onTryHit` calls it:
+
+```js
+  if ((move.category !== 'Status' || blockStatus) && move.flags['protect'] &&
+      this.runEvent('HitProtect', attacker, defender, move)) return false;   // BLOCKED
+  return true;                                                              // BYPASSES
+```
+
+`guardRefusalOf` in this engine implements the FIRST clause only — `ignoresProtect`, which is
+`move.flags['protect']` — and never asks the ability half, `runEvent('HitProtect')`, that Unseen Fist
+and Piercing Drill answer. So the volatile shields are pierced correctly and the SIDE guards are not.
+
+MEASURED IN THE OFFICIAL SIMULATOR, seed `[1,2,3,4]`, Pelipper Wide Guard, Gliscor Breaking Swipe (the
+format's only spread contact moves are `breakingswipe`, `brutalswing` and `mortalspin` — derived, not
+recalled):
+
+```
+  ability            authority                                       this engine
+  none               0 / 0, -activate move: Wide Guard on both       0 / 0   AGREES
+  Unseen Fist        5 / 10, [spread] p2a,p2b, -unboost atk 1 both   0 / 0   DIVERGES
+  Piercing Drill     5 / 10, identical                               0 / 0   DIVERGES
+```
+
+**NOT FIXED IN THIS BATCH, AND THE REASON IS SCHEDULING RATHER THAN DIFFICULTY.** Four gate clauses
+were just re-measured on release `419e9636ec6a`; touching the simulator again voids all four and they
+cost ~25 minutes of wall clock to restore. It is also a different mechanic from the stall counter this
+batch was cut for, so folding it in would make a moved differential unattributable — the argument the
+gate-position comment itself made and then honoured. Filed below with its numbers.
+
+### THE OWED CLAUSES WERE RUN — FOUR OF THEM WERE AN UNMEASURED STATE, NOT A RED
+
+This batch moved the engine under artifacts stamped `d684a2f1f183`, so four clauses flipped to
+`MEASURED AGAINST A DIFFERENT ENGINE`. That is not evidence in either direction; it is nothing. Re-run
+on `419e9636ec6a`:
+
+| clause | before | after |
+|---|---|---|
+| `deliberate roster / items` | WITHHELD | **PASS** — 0 differ, 0 did-not-fire, 139 tested of 148 |
+| `deliberate roster / abilities` | WITHHELD | **PASS** — 0 differ, 0 did-not-fire, 129 tested of 202 |
+| `deliberate roster / moves` | WITHHELD | **PASS** — 0 differ, 0 did-not-fire, 475 tested of 500 |
+| `mechanics / staged and compared` | WITHHELD | ANSWERS — 10 of 17 diverging mechanics uncleared |
+
+**Every roster count is identical to the previous release's run**, which is the result: the Protect
+batch moved no roster row. The gate now fails on three clauses rather than six — whole-game (16),
+mechanics (10 of 17) and two open register rows (#218, #273). The mechanics clause's worst row is
+`ability:supremeoverlord`, which belongs to the narration batch that landed immediately before this
+one, not to this one.
+
+`--team-store` and `--census` were **deliberately omitted** from the roster commands, against the
+dispatch line: `tests/roster.js` reads neither — it stages entities from their own upstream data and
+plays no pool game — so those flags would only have been forwarded into the differential driver's
+`process.argv` where they could steer without being used. The clause's own repair command was used
+instead, plus `--release`. `engine/all_mechanics_fire.js` cut its own release over the live tree and
+got `419e9636ec6a`, the same id, because the tree had not moved.
 
 ### THE HAND LIST
 
@@ -232,6 +375,14 @@ list below with its seed, not closed and not guessed at.
   CLOSED, one probe, three arms each.
 
 **Still open, filed with its evidence:**
+- **A PIERCING ABILITY DOES NOT GO THROUGH A SIDE GUARD.** `guardRefusalOf` consults `ignoresProtect`
+  — `move.flags['protect']`, the Feint clause of `checkMoveBypassesProtect` — and never the
+  `runEvent('HitProtect')` clause that Unseen Fist and Piercing Drill answer. The authority puts a
+  pierced Breaking Swipe through a Wide Guard for 5 and 10 HP with -1 Atk on both bodies; this engine
+  deals 0. Both piercing abilities, both measured, against a no-ability control that AGREES. The fix is
+  to give `guardRefusalOf` the second clause off the SAME pierce predicate the attack branch already
+  builds (`_pierceP`, a local IIFE at the attack site) — hoisted, not copied, because two readers of
+  one fact is what the facts-are-global rule exists to stop. Owed a probe shown RED first.
 - **`p2.active[1].stall  medicham 0 / showdown 3`, turn 8, config `baseline`, seeds
   `gen9championsvgc2026regmbbo3-2662815123 vs -2662930043`.** The authority holds a stall counter this
   engine does not, on a game whose protocol NEVER parted — so both emitted the same shield line and only

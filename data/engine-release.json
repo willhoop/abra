@@ -2,9 +2,9 @@
   "current": "419e9636ec6a",
   "cut": "2026-08-26T06:39:00.164Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 2,
-  "latest_cut": "2026-08-26T06:41:21.312Z",
-  "latest_why": "protect: the shield gate moves below the BeforeMove refusals and stall gains its duration-2 lapse",
-  "pointer_written": "2026-08-26T06:41:21.345Z",
+  "cuts": 3,
+  "latest_cut": "2026-08-26T07:30:26.784Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-26T07:30:26.795Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

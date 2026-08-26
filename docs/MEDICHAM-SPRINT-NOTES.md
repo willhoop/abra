@@ -21,6 +21,43 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE PROTECT RECONCILE, WILL'S WIDE GUARD FIXTURE, AND THE OWED CLAUSES. CENSUS 714 -> 715. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, the three subsections under *"A SLEEPING BODY WAS RAISING A PROTECT"*.
+CHANGELOG 5.136.1. Release `419e9636ec6a` (unmoved — this pass edited no engine byte).
+
+**THE RECONCILE.** `17 -> 13` in the previous row is BOARD-MATERIAL
+(`state.games − state.games_board_never_diverged`). The GATE clause is undeclared whole-game PROTOCOL
+divergence and moved **17 -> 16**. Both quantities read 17 before the fix, which is the whole of the
+confusion, and they are not even the same 17 — `protocol_diverged_board_never_did` is 14 of 22, so the
+sets overlap in 8 games. Settled WITHOUT re-running, by pointing `quarantine.js`'s own
+`wholeGameClause` at the BEFORE artifact through an in-process `fs.readFileSync` redirect. Declared
+count is 5 `AUTHORITY-WRONG` on both sides. The gate moved by one and the board by four because three
+of the four fixed games carry `protocol_diverged_at_turn: null` — their board parted and their stream
+never did, so the gate could not see them.
+
+**WILL'S FIXTURE.** *"do feint into a pelipper wide guard then hit em with a make it rain."* One probe,
+four arms, one turn: no opener `[0,0]`; FEINT `[88,118]` with `-activate … move: Feint`, Gholdengo's
+own `-2` SpA and Pelipper's `stall` wiped; Unseen Fist and Piercing Drill both `[0,0]` — the side
+condition SURVIVES a pierce. Every body derived; Make It Rain has exactly one legal user and it is
+Gholdengo.
+
+**A DISPATCHED CLAIM CORRECTED.** The brief said the two Guards sit outside the stall counter. They do
+not — `onHitSide(side, source) { source.addVolatile('stall'); }`, byte-identical on both, and Quick
+Guard was READ rather than assumed. No probe in this batch asserts the brief's version; the engine has
+had it right since ROADMAP #162/#59 and an existing probe says so.
+
+**NEW DEFECT, FILED NOT FIXED.** A piercing ability does not go through a SIDE guard: `guardRefusalOf`
+implements only the `move.flags['protect']` clause of `checkMoveBypassesProtect` and never the
+`runEvent('HitProtect')` clause. Authority puts a pierced Breaking Swipe through a Wide Guard for 5 and
+10 HP with `-1` Atk on both; this engine deals 0. Left for its own batch so the four clauses just
+measured on `419e9636ec6a` are not voided.
+
+**THE OWED CLAUSES.** Roster items / abilities / moves re-run on `419e9636ec6a`: 0 differ and 0
+did-not-fire on all three, every count identical to the previous release's run. `all_mechanics_fire.js`
+answers again. Gate now fails on three clauses rather than six.
+
+
 ## ONE NORMALISING DOOR FOR EVERY TEXT READ. TWO CHECKS ROUTED, BOTH SHOWN RED ON REAL BYTES; A THIRD NAMED AND LEFT. 2026-08-26 (MEASURE).
 
 CHANGELOG 5.136.0. Full account: `docs/_reports/2026-08-26-normalising-read.md`.
@@ -58,7 +95,7 @@ Sweep against the door: 409 js files, **2** require it; 548 `readFileSync` sites
 a raw read with a fragile idiom. `build/` triaged clean apart from `md_to_pdf`. `web/` (3) and
 `engine/*.py` (9) still unverified and recorded as owed, not as clear.
 
-## A SLEEPING BODY WAS RAISING A PROTECT, AND ITS COUNTER NEVER LAPSED. BOARD-MATERIAL 17 -> 13 OF 961, CENSUS 710 -> 714. 2026-08-26 (ENGINE).
+## A SLEEPING BODY WAS RAISING A PROTECT, AND ITS COUNTER NEVER LAPSED. GATE 17 -> 16, BOARD-MATERIAL 17 -> 13 OF 961, CENSUS 710 -> 714. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, *"A SLEEPING BODY WAS RAISING A PROTECT"*.
 CHANGELOG 5.134.0. Release `419e9636ec6a`.

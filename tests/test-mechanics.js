@@ -8609,6 +8609,82 @@ probe('move', 'breaksProtect', 'Feint sweeps the target side\'s Quick Guard, so 
                  + feintOnly.lost + '), guard refused ' + both.refused };
 });
 
+/* 2026-08-26 -- WILL'S OWN FIXTURE, IN HIS WORDS: *"do feint into a pelipper wide guard then hit em
+ * with a make it rain."*
+ *
+ * THE SIDE CONDITION IS A SECOND PLACE A SHIELD LIVES, AND THE TWO MECHANISMS PART HERE TOO.
+ * `hitStepBreakProtect` (sim/battle-actions.ts:755) removes four SIDE CONDITIONS as well as the
+ * seven volatiles -- `craftyshield, matblock, quickguard, wideguard` -- so a Feint tears the guard
+ * down for the WHOLE SIDE and anything behind it connects. A piercing ability does not: its
+ * `onHitProtect` sets `bypassProtect` for its OWN move inside `checkMoveBypassesProtect`, which Wide
+ * Guard's `onTryHit` consults, and the side condition is untouched.
+ *
+ * THE ORDERING FALLS OUT OF THE MOVES, so nothing here rigs a Speed:
+ *     priority 3   Pelipper    Wide Guard      the side condition goes up
+ *     priority 2   Gliscor     Feint           single-target, so Wide Guard never sees it
+ *     priority 0   Gholdengo   Make It Rain    allAdjacentFoes -- and it now connects
+ *
+ * EVERY BODY IS DERIVED, NOT PICKED. Make It Rain has exactly ONE legal user in this regulation and
+ * it is Gholdengo; Gliscor is one of three legal species carrying both Feint and Breaking Swipe;
+ * Pelipper learns Wide Guard. Checked against the format's learnsets, not recalled.
+ *
+ * `duration: 1` ON THE CONDITION, so the whole fixture is ONE turn. A probe that read the guard flag
+ * on the next turn would be reading a lapse and calling it a break.
+ *
+ * MEASURED IN THE OFFICIAL SIMULATOR FIRST (seed [1,2,3,4], HP raised on both sides):
+ *     no opener   Make It Rain blocked, `-activate|p2a: Pelipper|move: Wide Guard`, Gholdengo spa 0
+ *     FEINT       `-activate|p2a: Pelipper|move: Feint`, then Make It Rain lands and
+ *                 `-unboost|p1b: Gholdengo|spa|2` -- the self-drop only pays when the move fires
+ *     PIERCE      the side condition SURVIVES and Make It Rain is still refused
+ * and `volatiles.stall.counter` on Pelipper reads 3 in every arm the Feint did not break, which is
+ * the correction to the claim that the two Guards sit outside the shared counter: `onHitSide` adds
+ * `stall` to the SOURCE. Quick Guard carries the byte-identical handler -- checked, not assumed. */
+probe('move', 'breaksProtect', 'Feint tears down a Wide Guard, so the ALLY\'s spread move connects -- a pierce does not', () => {
+  const run = (opener, ability) => {
+    const B = board('gliscor', 'gholdengo', 'pelipper', 'garchomp');
+    const trace = []; B.S._trace = trace;
+    B.me.ability = ability || 'none';
+    unfaintable(B.f1); unfaintable(B.f2);
+    const b1 = B.f1.curHP, b2 = B.f2.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, opener ? M.playerAction(B.me, opener, B.f1, B.S.field) : { kind: 'pass' }],
+               [B.ally, M.playerAction(B.ally, 'makeitrain', B.f1, B.S.field)]]),
+      new Map([[B.f1, { kind: 'wideguard', mv: 'wideguard' }], [B.f2, { kind: 'pass' }]]));
+    return {
+      /* THE GUARD MUST ACTUALLY HAVE GONE UP in every arm, or a fixture whose Wide Guard silently
+       * failed reads exactly like one that was swept. */
+      raised: trace.filter(l => /-singleturn\|.*Wide Guard/i.test(l)).length,
+      broke: trace.filter(l => /-activate\|.*move: Feint/i.test(l)).length,
+      /* THE PAYLOAD: what the two foes lost to the ALLY's spread move, read as damage rather than
+       * as a flag -- the condition is `duration: 1` and is gone by the time a flag could be read. */
+      spread: [b1 - B.f1.curHP, b2 - B.f2.curHP],
+      /* the self-drop is Make It Rain's own `self: {boosts:{spa:-2}}` and only pays when it fires */
+      spa: B.ally.boosts.sa,
+      /* `onHitSide(side, source) { source.addVolatile('stall'); }` -- the Guard arms the SHARED
+       * counter on its own user, and a Feint that breaks the guard wipes it. */
+      stall: B.f1.tookProtectTurns,
+    };
+  };
+  const none = run(null, null);
+  const feint = run('feint', null);
+  const unseen = run('breakingswipe', 'unseenfist');
+  const drill = run('breakingswipe', 'piercingdrill');
+  const survived = (r) => r.raised === 1 && r.broke === 0 && r.spread[0] === 0 && r.spread[1] === 0
+                          && r.spa === 0 && r.stall === 1;
+  return { works: survived(none)
+                  && feint.raised === 1 && feint.broke === 1
+                  && feint.spread[0] > 0 && feint.spread[1] > 0
+                  && feint.spa === -2 && feint.stall === 0
+                  && survived(unseen) && survived(drill),
+           arms: { control: [none.spread, none.spa, none.stall],
+                   test: [feint.spread, feint.spa, feint.stall] },
+           detail: '[what the two foes lost to Make It Rain, Gholdengo spa stage, Pelipper stall '
+                 + 'counter] -- Wide Guard raised in all four arms. NO OPENER '
+                 + JSON.stringify([none.spread, none.spa, none.stall]) + ' (blocked, and the Guard arms the shared counter on its own user)   |   FEINT ' + JSON.stringify([feint.spread, feint.spa, feint.stall])
+                 + ', break announced ' + feint.broke + 'x (the side condition is REMOVED, so the ally connects to BOTH and pays its own -2 SpA, and the counter is wiped)   |   UNSEEN FIST + Breaking Swipe ' + JSON.stringify([unseen.spread, unseen.spa, unseen.stall])
+                 + '   |   PIERCING DRILL + Breaking Swipe ' + JSON.stringify([drill.spread, drill.spa, drill.stall])
+                 + ' -- a pierce bypasses for its OWN move only, so the side condition SURVIVES and the ally is still refused. OPEN AND MEASURED, not asserted here: the authority lets the PIERCER\'s own Breaking Swipe through the same Wide Guard (5 and 10 HP, with -1 Atk on both) and this engine deals 0 -- see the ENGINE hand list.' };
+});
 /* THIS PROBE ASKED dmgRange THE WRONG QUESTION AND WAS REWRITTEN, 2026-08-04.
  *
  * It used to read `dmgRange(Night Slash) > dmgRange(the same move with its id changed)` -- i.e. it

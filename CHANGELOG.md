@@ -10,6 +10,103 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.136.1] — 2026-08-26
+
+### Added
+- **WILL'S OWN FIXTURE, PROBED: `piercesProtect` / `breaksProtect` AT THE SIDE CONDITION.** *"do feint
+  into a pelipper wide guard then hit em with a make it rain."* Staged exactly, and the ordering falls
+  out of the moves rather than a rigged Speed — Wide Guard is priority 3, Feint is 2, Make It Rain is
+  0. `hitStepBreakProtect` removes four SIDE CONDITIONS as well as the seven volatiles, so a Feint
+  tears the guard down for the whole side. Four arms, one turn (`duration: 1`): no opener `[0, 0]`
+  blocked; **FEINT `[88, 118]`** — both foes connect, `-activate … move: Feint` fires once, Gholdengo
+  pays its own `-2` SpA and Pelipper's `stall` counter is wiped; **Unseen Fist and Piercing Drill both
+  `[0, 0]`** — a pierce bypasses for its own move only, so the side condition SURVIVES and the ally is
+  still refused. Every body derived, not picked: **Make It Rain has exactly one legal user in this
+  regulation and it is Gholdengo**; Gliscor is one of three legal species carrying both Feint and
+  Breaking Swipe; Pelipper learns Wide Guard. Census 714 -> 715.
+
+### Fixed
+- **THE 5.134.0 HEADLINE (this session, one commit earlier) NAMED THE BOARD-MATERIAL COUNT AND WAS READ AS THE GATE CLAUSE. BOTH READ 17
+  BEFORE THE FIX, WHICH IS THE WHOLE OF THE CONFUSION.** `17 -> 13` is
+  `state.games − state.games_board_never_diverged`, the games whose BOARD parted. The gate clause is
+  `engine/quarantine.js`'s `wholeGameClause`: raw whole-game PROTOCOL divergence less declared
+  exclusions, and it moved **17 -> 16**. Corrected rather than silently rewritten, and **not by
+  re-running** — two artifacts of this instrument are only comparable on a matching budget, and these
+  two match exactly (same 961 games, same pinned pool `0d103fb9fa87`, same census pin `9446a684709d`,
+  `--arm middle --turns 12 --state --end-state`). The BEFORE artifact was scored by pointing
+  `wholeGameClause` at it through an in-process `fs.readFileSync` redirect, so the declared-exclusion
+  arithmetic is the gate's own implementation and not a second copy of it living inside a verifier.
+
+  | | before `d684a2f1f183` | after `419e9636ec6a` | moved |
+  |---|---|---|---|
+  | **gate clause** — undeclared protocol divergence | 22 raw − 5 declared = **17** | 21 raw − 5 declared = **16** | one game |
+  | **board-material** — games whose board parted | **17** | **13** | four games |
+  | `DIFFERENT-END-STATE` | 11 | 8 | three |
+  | `board_parted_before_the_protocol_did` | 11 | 7 | four |
+
+  The declared count is **5 on both sides, all `AUTHORITY-WRONG`** — the same rows, so nothing was
+  declared away to move a number. The two 17s are also **not the same 17**:
+  `protocol_diverged_board_never_did` is 14 of 22, so the sets overlap in 8 games and merely share a
+  cardinality.
+
+### Notes
+- **WHY THE GATE MOVED BY ONE WHILE THE BOARD MOVED BY FOUR.** Four games left the board-parted list
+  and **each carried exactly one differing leaf, the stall counter** — none stayed parted for another
+  reason, and no new game entered the list. But three of the four carry
+  `protocol_diverged_at_turn: null`: their board parted and their emitted stream never did. The gate
+  counts PROTOCOL divergence, so those three were never inside its 17 and could not move it. Only
+  `pair-protect-bust` (turn 5, `p2.active[0].stall 3/0`, protocol parted at turn 6) was visible to
+  both instruments. So the 5.134.0 sentence *"all four fixed games are one shape"* is right, and the
+  sentence it was missing is that three of them were invisible to the gate by construction.
+- **Nothing was diverted and nothing overwrote the run.** `engine/publish_guard.js` produced no
+  alternate copy; there is no `game-differential`-shaped file under `data/verification/` newer than
+  06:40Z; the artifact stamped `2026-08-26T06:47:32.893Z` on release `419e9636ec6a` is this run and
+  the only one.
+- **CORRECTION TO A DISPATCHED CLAIM: WIDE GUARD AND QUICK GUARD *DO* SHARE THE STALL COUNTER, AND NO
+  PROBE IN THIS BATCH SAYS OTHERWISE.** The brief stated they sit outside it. `data/moves.ts` gives
+  both moves the byte-identical `onHitSide(side, source) { source.addVolatile('stall'); }` — it arms
+  the counter on the SOURCE — plus the same `onTry() { return !!this.queue.willAct(); }` gate.
+  **Quick Guard was read rather than assumed to match**, and it does. This engine has had it right
+  since ROADMAP #162/#59: both carry `stallCounterFeeds` and `failsIfMovesLast` in `data/tags.json`
+  (5,761 and 1,524 corpus uses) and an existing probe asserts the opposite of the brief. Re-measured
+  on the live tree, turn 1 the named click and turn 2 a Protect at a losing 0.99: control Howl leaves
+  the counter at 0 and the shield holds; **Wide Guard, Quick Guard and Protect all leave it at 1 and
+  all cost 362 HP** — identical, which is the claim.
+- **NEW DEFECT FOUND BY THAT FIXTURE, FILED NOT FIXED: A PIERCING ABILITY DOES NOT GO THROUGH A SIDE
+  GUARD.** `checkMoveBypassesProtect` (`sim/battle.ts:1300`) is one function with two clauses and Wide
+  Guard's `onTryHit` calls it. `guardRefusalOf` implements only the first — `ignoresProtect`, i.e.
+  `move.flags['protect']` — and never the `runEvent('HitProtect')` clause that Unseen Fist and
+  Piercing Drill answer, so the volatile shields are pierced correctly and the SIDE guards are not.
+  Measured in the official simulator: a pierced Breaking Swipe goes through a Wide Guard for **5 and
+  10 HP with `-1` Atk on both bodies**, and this engine deals **0**; the no-ability control agrees at
+  0/0 on both engines. Not fixed here because four gate clauses were just re-measured on
+  `419e9636ec6a` and touching the simulator voids all four, and because it is a different mechanic
+  from the stall counter this batch was cut for — folding it in would make a moved differential
+  unattributable, which is the argument the gate-position comment itself made. Owed a probe shown RED
+  first.
+- **THE PROBE WAS WRONG BEFORE THE ENGINE WAS, AGAIN.** The Wide Guard probe's first version read
+  MISSING on a correct engine: its two protocol regexes lost their escaping through the generator and
+  became `/-singleturn|.*Wide Guard/` — an ALTERNATION, not a literal pipe — so `broke` matched every
+  `-activate` line including the Wide Guard refusals in the arms where nothing broke. Every printed
+  number was already right; only the assertion was wrong.
+- **THE OWED CLAUSES WERE RUN, AND FOUR OF THEM WERE AN UNMEASURED STATE RATHER THAN A RED.** This
+  batch moved the engine under artifacts stamped `d684a2f1f183`, so the three roster clauses and the
+  mechanics clause flipped to `MEASURED AGAINST A DIFFERENT ENGINE`, which is not evidence in either
+  direction. Re-run on `419e9636ec6a`: **roster items 0 differ / 0 did-not-fire (139 tested of 148),
+  abilities 0 / 0 (129 of 202), moves 0 / 0 (475 of 500)** — all three now PASS, and every count is
+  identical to the previous release's run, which is the result: the Protect batch moved no roster row.
+  `all_mechanics_fire.js` now answers instead of withholding (10 of 17 diverging mechanics uncleared;
+  its worst row, `ability:supremeoverlord`, belongs to the narration batch that landed immediately
+  before this one). The gate fails on three clauses now rather than six.
+- **`--team-store` and `--census` were deliberately omitted from the roster commands**, against the
+  dispatched line. `tests/roster.js` reads neither — it stages entities from their own upstream data
+  and plays no pool game — so those flags would only have been forwarded into the differential
+  driver's `process.argv` where they could steer without being used. The clause's own repair command
+  was used instead, plus `--release`. `all_mechanics_fire.js` cut its own release over the live tree
+  and got `419e9636ec6a`, the same id, because the tree had not moved.
+
+---
+
 ## [5.136.0] — 2026-08-26
 
 ### Added
@@ -150,65 +247,6 @@ silently rewritten; what changed and why is stated.
 - Unrelated pre-existing red, untouched and out of scope: the same test's second half reports the
   tracked `.gz` stores are stale (`games.ladder`, `games.bo3`). `data/` was owned by live agents this
   pass. Owner action: `node build/compress-stores.js`.
-
----
-
-## [5.134.1] — 2026-08-26
-
-### Fixed
-- **THE 5.134.0 HEADLINE NAMED THE BOARD-MATERIAL COUNT AND WAS READ AS THE GATE CLAUSE. BOTH READ 17
-  BEFORE THE FIX, WHICH IS THE WHOLE OF THE CONFUSION.** `17 -> 13` is
-  `state.games − state.games_board_never_diverged`, the games whose BOARD parted. The gate clause is
-  `engine/quarantine.js`'s `wholeGameClause`: raw whole-game PROTOCOL divergence less declared
-  exclusions, and it moved **17 -> 16**. Corrected rather than silently rewritten, and **not by
-  re-running** — two artifacts of this instrument are only comparable on a matching budget, and these
-  two match exactly (same 961 games, same pinned pool `0d103fb9fa87`, same census pin `9446a684709d`,
-  `--arm middle --turns 12 --state --end-state`). The BEFORE artifact was scored by pointing
-  `wholeGameClause` at it through an in-process `fs.readFileSync` redirect, so the declared-exclusion
-  arithmetic is the gate's own implementation and not a second copy of it living inside a verifier.
-
-  | | before `d684a2f1f183` | after `419e9636ec6a` | moved |
-  |---|---|---|---|
-  | **gate clause** — undeclared protocol divergence | 22 raw − 5 declared = **17** | 21 raw − 5 declared = **16** | one game |
-  | **board-material** — games whose board parted | **17** | **13** | four games |
-  | `DIFFERENT-END-STATE` | 11 | 8 | three |
-  | `board_parted_before_the_protocol_did` | 11 | 7 | four |
-
-  The declared count is **5 on both sides, all `AUTHORITY-WRONG`** — the same rows, so nothing was
-  declared away to move a number. The two 17s are also **not the same 17**:
-  `protocol_diverged_board_never_did` is 14 of 22, so the sets overlap in 8 games and merely share a
-  cardinality.
-
-### Notes
-- **WHY THE GATE MOVED BY ONE WHILE THE BOARD MOVED BY FOUR.** Four games left the board-parted list
-  and **each carried exactly one differing leaf, the stall counter** — none stayed parted for another
-  reason, and no new game entered the list. But three of the four carry
-  `protocol_diverged_at_turn: null`: their board parted and their emitted stream never did. The gate
-  counts PROTOCOL divergence, so those three were never inside its 17 and could not move it. Only
-  `pair-protect-bust` (turn 5, `p2.active[0].stall 3/0`, protocol parted at turn 6) was visible to
-  both instruments. So the 5.134.0 sentence *"all four fixed games are one shape"* is right, and the
-  sentence it was missing is that three of them were invisible to the gate by construction.
-- **Nothing was diverted and nothing overwrote the run.** `engine/publish_guard.js` produced no
-  alternate copy; there is no `game-differential`-shaped file under `data/verification/` newer than
-  06:40Z; the artifact stamped `2026-08-26T06:47:32.893Z` on release `419e9636ec6a` is this run and
-  the only one.
-- **THE OWED ROSTER STAGES WERE RUN ON `419e9636ec6a`, CLEARING THREE `MEASURED AGAINST A DIFFERENT
-  ENGINE` CLAUSES.** Those clauses were not evidence of breakage in either direction — they were an
-  unmeasured state, created by this batch moving the engine under artifacts stamped `d684a2f1f183`.
-  Counts are unchanged from the previous release's run, which is the result: the Protect batch moved
-  no roster row.
-
-  | stage | FIRED-AND-BOARDS-DIFFER | DID-NOT-FIRE | tested / in scope |
-  |---|---|---|---|
-  | items | 0 | 0 | 139 / 148 |
-  | abilities | 0 | 0 | 129 / 202 |
-  | moves | see the ENGINE ledger | | |
-
-  Run as the clause's own repair command (`node tests/roster.js --stage <s> --write`) plus
-  `--release 419e9636ec6a`. `--team-store` and `--census` were **deliberately omitted**: `tests/roster.js`
-  reads neither — it stages entities from their own upstream data and plays no pool game — so those
-  flags would only have been forwarded into the differential driver's `process.argv` where they could
-  steer without being used. Stated rather than silently dropped.
 
 ---
 
