@@ -14882,6 +14882,124 @@ probe('ability', 'formeFollowsWeather', 'Forecast retypes Castform per sky — I
                  + `${ended.types} (must match the clear-sky arm exactly)` };
 });
 
+/* 2026-08-26 — THE OTHER HALF OF THE SAME ABILITY, AND THE PROBE ABOVE COULD NOT SEE IT.
+ *
+ * The row above asserts the TYPES and the damage, and it has been LIVE the whole time the body's own
+ * SPECIES LABEL never moved. `data/abilities.ts` forecast calls
+ * `pokemon.formeChange(forme, this.effect, false, '0', '[msg]')` and guards its own re-entry on
+ * `pokemon.species.id !== 'castformrainy'` — the authority's question is WHICH SPECIES AM I, and this
+ * engine's was WHICH TYPES DO I HAVE. Champions carries no `forecast` key in
+ * `data/mods/champions/abilities.ts`, so mainline's is what this format runs — checked, not assumed.
+ *
+ * IT IS A BOARD LEAF AND NOT NARRATION. `engine/board_state.js` compares `active[].species`, and two
+ * of the six board-material games on release `894f59791a84` were exactly this
+ * (`p2.active[0].species` medicham `castform` / showdown `castformrainy`), plus the party map keyed by
+ * that same name reporting one body twice.
+ *
+ * THREE ARMS THAT ARE CONTROLS AND NOT DECORATION:
+ *   no-ability      the identical Castform under the identical rain with the ability cleared. It must
+ *                   keep BOTH its label and its types — a rename driven by the sky rather than by the
+ *                   ability passes every other assertion here.
+ *   the IDENTIFIER  `_ident` must NOT follow the forme. `identName()` reads it for every protocol line
+ *                   on this body, and the authority's `|-formechange|p2a: Castform|Castform-Rainy|`
+ *                   keeps naming the ORIGINAL. A fix that renamed the body by rebuilding it would move
+ *                   this too and silently re-address the whole stream.
+ *   the SAME BODY   a Special Attack drop planted before the sky changes must still be there after,
+ *                   and `st` must be byte-identical. `formeFollowsWeather`'s own `sameStats` is true,
+ *                   so a relabel that went through a fresh `buildMon` would hand back a stranger with
+ *                   no boosts — which is the shape ROADMAP #151 already paid for once on Aegislash. */
+probe('ability', 'formeFollowsWeather', 'Forecast RENAMES the body — Castform-Rainy in rain, and back to Castform when the sky clears', () => {
+  const key = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const run = (ab, wx, endIt) => {
+    const B = board('charizard', 'milotic', 'castform', 'garchomp');
+    B.f1.ability = ab;
+    B.f1.boosts = Object.assign({}, B.f1.boosts, { sa: -1 });
+    const st0 = JSON.stringify(B.f1.st), hp0 = B.f1.curHP;
+    B.S.field.weather = wx; B.S.field.weatherT = wx ? 5 : 0;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    if (endIt) { B.S.field.weather = ''; B.S.field.weatherT = 0;
+                 M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2)); }
+    return { name: key(B.f1.name), types: (B.f1.types || []).join('/'), ident: key(B.f1._ident),
+             sameSt: JSON.stringify(B.f1.st) === st0, hpHeld: B.f1.curHP === hp0,
+             sa: (B.f1.boosts || {}).sa };
+  };
+  const off   = run('none', 'rain', false);
+  const rain  = run('forecast', 'rain', false);
+  const sun   = run('forecast', 'sun', false);
+  const snow  = run('forecast', 'snow', false);
+  const clear = run('forecast', '', false);
+  const back  = run('forecast', 'rain', true);
+  const bodyHeld = [rain, sun, snow, back].every(a => a.sameSt && a.hpHeld && a.sa === -1
+                                                      && a.ident === 'castform');
+  return { works: off.name === 'castform' && off.types === 'Normal'
+                  && rain.name === 'castformrainy' && rain.types === 'Water'
+                  && sun.name === 'castformsunny' && sun.types === 'Fire'
+                  && snow.name === 'castformsnowy' && snow.types === 'Ice'
+                  && clear.name === 'castform' && clear.types === 'Normal'
+                  && back.name === 'castform' && back.types === 'Normal'
+                  && bodyHeld,
+           arms: { control: [off.name, off.types, off.ident],
+                   test:    [rain.name, rain.types, rain.ident] },
+           detail: `Castform's own [species label, types] after one turn under each sky — RAIN with the `
+                 + `ability CLEARED ${off.name},${off.types} (the control: neither may move)   |   `
+                 + `Forecast: rain ${rain.name},${rain.types}; sun ${sun.name},${sun.types}; snow `
+                 + `${snow.name},${snow.types}; clear sky ${clear.name},${clear.types}; rain THEN `
+                 + `ALLOWED TO CLEAR ${back.name},${back.types} (must revert)   |   it is the SAME `
+                 + `body throughout: protocol identifier stays "${rain.ident}" (never the forme), stats `
+                 + `unmoved ${rain.sameSt}, HP unmoved ${rain.hpHeld}, planted −1 SpA still reads `
+                 + `${rain.sa}` };
+});
+
+/* 2026-08-26 -- THE OTHER END OF THE SAME EVENT, AND THE TYPE HALF OF IT WAS ALREADY WRONG.
+ *
+ * `Pokemon#clearVolatile()` ends with `this.setSpecies(this.baseSpecies)` (sim/pokemon.ts), so a
+ * Castform that pivots out of the rain is CASTFORM on the bench, Normal-typed -- and Forecast's
+ * `onSwitchInPriority: -2` puts the sky back on the way in. `engine/board_state.js`'s `benchRow`
+ * compares `types`, so this engine's Water-typed benched Castform was a board leaf nobody had
+ * measured; it survived because Castform is 15 corpus uses and no pinned-pool game pivoted one.
+ *
+ * THE BENCH IS THE WHOLE POINT, so this probe reads the body WHILE IT IS OFF THE FIELD rather than
+ * after it returns -- a revert that happened on the way BACK IN would satisfy a naive before/after
+ * and leave every bench board still parted.
+ *
+ * TWO CONTROLS, AND THE SECOND ONE IS THE REASON THIS IS ITS OWN ROW:
+ *   the rain is REAL      the same body, same pivot, under a CLEAR sky. Nothing may move at any of the
+ *                         three boundaries, so a revert that fired on every switch-out would be
+ *                         indistinguishable from one driven by the sky without it.
+ *   it COMES BACK typed   the body returns to the same standing rain and must read Water again. An
+ *                         engine that reverted and then failed to re-apply has traded one bench defect
+ *                         for a field one, which is strictly worse. */
+probe('ability', 'formeFollowsWeather', 'a Castform that pivots out of the rain sits on the BENCH as Castform, and is Water again when it returns', () => {
+  const key = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const run = (ab, wx) => {
+    const lead = bare('castform'), ally = bare('milotic'), bench = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    lead.ability = ab;
+    const S = M.battleInit([lead, ally, bench], [f1, f2], {});      // NOT seeded: the lead arrives
+    S.field.weather = wx; S.field.weatherT = wx ? 5 : 0;
+    M.battleTurn(S, rng5, PASS2(lead, ally), PASS2(f1, f2));
+    const onField = key(lead.name) + '/' + (lead.types || []).join('/');
+    M.battleTurn(S, rng5, new Map([[lead, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const benched = key(lead.name) + '/' + (lead.types || []).join('/');
+    M.battleTurn(S, rng5, new Map([[bench, { kind: 'switch', to: lead }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const back = key(lead.name) + '/' + (lead.types || []).join('/');
+    return { line: onField + ' -> ' + benched + ' -> ' + back, home: S.actA[0] === lead };
+  };
+  const rain = run('forecast', 'rain'), clear = run('forecast', ''), off = run('none', 'rain');
+  return { works: rain.line === 'castformrainy/Water -> castform/Normal -> castformrainy/Water'
+                  && clear.line === 'castform/Normal -> castform/Normal -> castform/Normal'
+                  && off.line === 'castform/Normal -> castform/Normal -> castform/Normal'
+                  && rain.home && clear.home && off.home,
+           arms: { control: clear.line, test: rain.line },
+           detail: `Castform's [label/types] on the field, then ON THE BENCH, then back -- RAIN with `
+                 + `Forecast ${rain.line} (it must go back to Castform/Normal while it is OFF the `
+                 + `field, and be Water again on return)   |   CLEAR SKY with Forecast ${clear.line} `
+                 + `(the control: a revert that fired on every pivot would look identical to this one `
+                 + `from the rain arm alone)   |   RAIN with the ability CLEARED ${off.line}` };
+});
+
 /* ROADMAP #175 — SYMBIOSIS. THE OUTCOME IS THE PARTNER EATING TWICE, NOT AN ITEM SLOT CHANGING.
  *
  * 53 corpus uses and three legal carriers in Reg M-B (Florges, Floette-Eternal, Oranguru — asked of

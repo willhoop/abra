@@ -63,8 +63,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  735/735 probed mechanics live, 0 missing   (census 2026-08-26 11:31)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-26 11:39)
+  737/737 probed mechanics live, 0 missing   (census 2026-08-26 12:26)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-26 12:33)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -75,16 +75,228 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c2d51e0b4b7d now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 039a259b23fd now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 231e72dc0d42 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 1318d7a94b07 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 11:46_
+_stamped 2026-08-26 12:41_
 
 <!-- /GENERATED -->
+
+## THE COMMENT SAYING THIS COULD NOT BE FIXED WAS FOUR DAYS STALE, AND THE HANDED HYPOTHESIS COVERED ONE GAME RATHER THAN THREE. BOARD-MATERIAL 6 -> 4 OF 961, CENSUS 735 -> 737, WHOLE-GAME CLAUSE UNMOVED AT 10. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.141.0. Register row: ROADMAP #455.
+Engine release cut for this batch: **`9c71bc9b5815`** — *"forecast moves the species label and not only
+the types, and clearVolatile takes the weather forme off a benched body"*. Every figure below is
+stamped with it.
+
+### THE HANDOVER WAS WRONG ABOUT WHICH GAMES THE PARTY KEY COVERS, AND CHECKING THAT FIRST IS WHAT CHANGED THE BATCH
+
+This was routed as *"`partyMap` is keyed by DISPLAYED species … potentially 3 of the 6"*, with the two
+Castform games filed as **blocked on a `data/engine-data.js` regeneration**, which is Will's call. Both
+halves are wrong, and neither could be settled by reading the hypothesis:
+
+- **Re-keying the party fixes ONE game, not three.** The Ditto/Garchomp collision is real and is purely
+  the comparator. The two Castform games carry an **independent** `p2.active[0].species` divergence —
+  medicham `castform` against showdown `castformrainy` — which sits on the ACTIVE slot, not in the party
+  map, and no comparator change can close it.
+- **They were never blocked.** `syncWeatherFormes`'s own header refused to rename on the written reason
+  *"`data/engine-data.js` holds a row for `castform` and NONE for Castform-Sunny, Castform-Rainy or
+  Castform-Snowy, so `formeSwap` would fail its `buildMon` lookup … Adding the three rows is a change to
+  `data/engine-data.js` and belongs to a refit, not here."* Commit **`f15bf80a` (2026-08-22) had already
+  added all three rows** — `git show 9a060821:data/engine-data.js | grep -c castform-rainy` is **0** and
+  HEAD is **1** — and `buildMon` resolves `Castform-Rainy`, `castform-rainy` and `castformrainy` to the
+  same row today. The block was dead and the comment outlived it, which is the shape CLAUDE.md's
+  fourteen stale handoffs are about, arriving as a **refusal to do work that was already unblocked**.
+
+**SO WILL'S PENDING `engine-data.js` DECISION DOES NOT TURN ON THESE GAMES.** That is the fact the
+handover asked for.
+
+### WHAT THE AUTHORITY DOES, READ RATHER THAN RECALLED
+
+```
+data/abilities.ts  forecast.onWeatherChange(pokemon) {
+                     if (pokemon.baseSpecies.baseSpecies !== 'Castform' || pokemon.transformed) return;
+                     ...  if (pokemon.species.id !== 'castformrainy') forme = 'Castform-Rainy';
+                     if (pokemon.isActive && forme)
+                       pokemon.formeChange(forme, this.effect, false, '0', '[msg]'); }
+```
+
+`data/mods/champions/abilities.ts` carries **no `forecast` key**, so mainline's is what this format
+runs — checked, not assumed. **The authority's own re-entry guard is on `species.id`; this engine's was
+on the TYPE LIST.** The types were right the whole time and the label never moved once.
+
+### TWO HALVES, LANDED TOGETHER ON PURPOSE
+
+**The rename** sits in `syncWeatherFormes` and is a **RELABEL, not a `formeSwap`**. The tag's own
+`sameStats: true` (derived over the dex) means there is no stat line to rebase and no HP to rescale, and
+routing through `formeSwap` would emit a **second** protocol line beside the `|-formechange|` this site
+already writes. The name is resolved through `pasteKey`, the file's one door into the mon table, so a
+forme the artifact spells differently from the table still lands. `_ident` is deliberately untouched:
+`identName()` reads it for every later line on the body, and the authority's
+`|-formechange|p2a: Castform|Castform-Rainy|` keeps naming the original.
+
+**The switch-out revert** is the other end of the same event. `Pokemon#clearVolatile()` ends with
+`this.setSpecies(this.baseSpecies)`, so a Castform that pivots out of the rain sits on the bench as
+**Castform, Normal-typed**, and Forecast's `onSwitchInPriority: -2` puts the sky back on the way in.
+
+**THE TYPE HALF OF THAT WAS ALREADY WRONG AND NOBODY HAD FOUND IT.** `benchRow` compares `types`, so
+this engine's Water-typed benched Castform was a board leaf with no measurement on it; it survived
+because Castform is 15 corpus uses and no pinned-pool game pivoted one. **Shipping the rename alone
+would have traded two board-material games for a `|switch|p2b|castform-rainy,l50` details field the
+authority never writes** — `swin()` puts `m.name` in the details slot, and the differential compares it.
+
+### THE TWO PROBES, AND WHAT EACH CONTROL IS FOR
+
+Both are `ability / formeFollowsWeather`, beside the existing row — which asserts the TYPES and the
+damage and has been **LIVE the entire time the label never moved**. A green probe asking nothing about
+the other half of its own mechanic.
+
+- *"Forecast RENAMES the body — Castform-Rainy in rain, and back to Castform when the sky clears"* —
+  **shown RED before any engine byte moved** (735 live, 1 missing, 736 probed). Controls: the SAME
+  Castform under the SAME rain with the ability cleared (a rename driven by the sky rather than by the
+  ability passes everything else); `_ident` asserted UNCHANGED; and a planted **-1 SpA** plus a
+  byte-identical `st` asserted after the change, because a relabel that went through a fresh `buildMon`
+  would hand back a stranger with no boosts — the shape ROADMAP #151 already paid for on Aegislash.
+- *"a Castform that pivots out of the rain sits on the BENCH as Castform, and is Water again when it
+  returns"* — reads the body **while it is off the field**, because a revert that happened on the way
+  back IN would satisfy a naive before/after and leave every bench board still parted. Its clear-sky
+  control is what separates this revert from one that fires on every pivot.
+
+**EACH IS RED ON DEMAND UNDER ITS OWN KNOB.** `MEDI_FORECAST_NAME_BLIND=1` reds **both** rows (735 live,
+2 missing); `MEDI_FORECAST_NO_SWITCHOUT_REVERT=1` reds **only** the bench row (736 live, 1 missing). One
+knob could not have said which half a red run was about.
+
+### THE PARTY RE-KEY IS HELD, AND THE CREDIT SHIFT IS MEASURED RATHER THAN ARGUED
+
+The handover's own caveat was right and here is the mechanism. `game_differential.js` credits coverage
+from `BS.compare(prev, cur)` — a WITHIN-ENGINE turn-to-turn diff — and buckets each path through
+`BS.family()`. Under species keying a transform makes one key vanish and another appear, which reports
+as `party.MISSING-OR-EXTRA-MEMBER`, and `BOARD_FAMILY` maps that to the **`fainted`** family. Under
+identity keying the same transform reports `boosts` (transform copies stat stages) and, if a `species`
+leaf were added to the row, `species`. **That is a different credit, the credit steers `covWant`, and
+`covWant` selects the sample** — so the corrected count would be a number about a different run. Filed,
+not smuggled in. `duplicate_species_in_party` still reads **20** and `duplicate_species_first` is still
+`garchomp`.
+
+**AND THE COLLISION IS PROVABLY THE COMPARATOR, FROM THE ARTIFACT ALONE.** Both engines hold both
+bodies; both `partyMap`s collapse them to one key; medicham keeps Ditto's row (`maxhp` 123, `lifeorb`,
+`atk` -2) and Showdown keeps Garchomp's (183, `choicescarf`, 0), because `sf.team` is stamped once and
+`side.pokemon` is **reordered on every switch-in**, so last-write-wins picks a different survivor on
+each side.
+
+### THE NUMBERS, PREDICTED BEFORE THE RUN
+
+Pinned: `--games 1200`, arm `middle`, cap 12, `--team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json`, `--state --end-state`,
+`--release 9c71bc9b5815`.
+
+| quantity | before | after | predicted |
+|---|---|---|---|
+| board-material (`games - games_board_never_diverged`) | 6 of 961 | **4** | 4 — both Castform games leave, nothing else moves |
+| whole-game clause (undeclared protocol divergence) | 10 of 961 | **10** | unmoved — both had `protocol_diverged_at_turn: null` |
+| raw diverged games | 15 | **15** | unmoved |
+| census live | 735 | **737** | 737 |
+| mechanics clause | 9 of 16 | **9 of 16** | unmoved |
+| `tests/test-engine-diff.js` | 0/6000 at all 16 corners | **0/6000 at all 16 corners** | unmoved; no damage arithmetic touched |
+
+**THE SAMPLE DID NOT MOVE, AND THAT WAS CHECKED RATHER THAN ASSUMED.** The `swarm` block is
+byte-identical, the census steering digest is the same `9446a684709d` over 643 rows, and all **fifteen**
+protocol first-divergences match row for row on `config|seed|turn|cause`. Exactly the two Castform games
+left the board list; the other four are the same four.
+
+### A RED GATE FROM AN EARLIER BATCH CLOSED ON THE WAY PAST
+
+`tests/test-mc-key.js` was **RED at HEAD** — *"NO file outside the named holders reaches a mon table
+except through mcKey (engine/immunity_sweep.js:184,377)"*, from commit `3ab94955`. Both lines were
+`M.buildMon(norm(name), {})`, the fourth historical instance of the class. Routed through `mcKey` and
+the gate is green (21 passed, 0 failed).
+
+**THE VALUE DID NOT CHANGE AND THAT IS NOT EVIDENCE OF ANYTHING** — said explicitly, because "identical
+output" is normally this division's signal that a knob is unwired. Over all **347 legal species**,
+`buildMon(norm(name))` and `buildMon(mcKey(name))` return the same body, 0 nulls either way. `buildMon`
+became total, so the two agree TODAY; the point of the change is the **door**, not the value, and the
+seal is what makes a future wrong spelling visible.
+
+### THE HAND LIST
+
+**Leaving it — they are probes now:**
+- ~~Castform's Forecast moves the type and not the species — two of the six, and this division cannot
+  fix it~~ — **CLOSED, and the premise was false.** `data/engine-data.js` has carried all three weather
+  formes since `f15bf80a` (2026-08-22). Two census rows, the first shown red before the fix existed,
+  each red on demand under its own knob.
+
+**Still open, filed with its evidence:**
+- **THE PARTY MAP IS KEYED BY THE SPECIES A BODY IS SHOWING, AND TWO BODIES CAN SHOW ONE NAME.** Now
+  **one** of the four remaining board-material games rather than three: `…-2636042531 vs …-2635567733`,
+  p2's Garchomp @ Choice Scarf against the Ditto @ Life Orb whose Imposter copied it. HELD, with the
+  credit shift measured above. It needs its own before/after and belongs with MEASURE if the sample
+  moves.
+- **A SELF-AIMED VOLATILE'S `-fail` IS OWED.** Imprison (487 uses), Magnet Rise, Aqua Ring, Ingrain —
+  carried forward unchanged, untouched by this batch.
+- **GASTRO ACID ANNOUNCES `-start|move: gastroacid` WHERE THE AUTHORITY WRITES `-endability`.** Carried
+  forward.
+- **MAGIC ROOM PARKS THE ITEM BY EMPTYING THE SLOT, SO `*.item` PARTS ON EVERY ROOM BOARD.** Carried
+  forward, **159** `.item` reads in `engine/medicham2-browser.js`. `…-2659015200 vs …-2659004938` is one
+  of the four.
+- **`p2.active[1].stall` medicham 0 / showdown 3** (`…-2662815123 vs …-2662930043`, turn 8) is one of
+  the four. Carried forward: the two `stall` halves that landed earlier can only REMOVE a counter, so
+  this game needs the arming side.
+- **`p2.party.staraptor.hp` 160/87 AND `p2.party.incineroar.hp` 106/170** (`…-2635122796 vs
+  …-2634861011`, turn 2) is the fourth, and it is **NOT a keying artifact** — the same species reads a
+  different HP on each engine, on the active slots as well as in the party, and this is the one
+  remaining board game whose protocol also parted (turn 2). Not diagnosed in this pass.
+- **A TRANSFORMED BODY STILL FORECASTS HERE.** `forecast.onWeatherChange` returns early on
+  `pokemon.transformed`; `syncWeatherFormes` reads only `m.ability`, so a Ditto that copied a Castform
+  would follow the sky in this engine and not in the authority. Found while reading the handler, NOT
+  fixed, and no probe fails on it yet.
+- **A CASTFORM RE-ENTERING UNDER A STANDING SKY WRITES NO `|-formechange|` HERE.** The authority reverts
+  on switch-out and re-applies on switch-in, emitting the line both ways; this engine now reverts on the
+  way out, and its entry sync is guarded on the TYPES. Board state agrees at every boundary; the
+  narration does not. Filed for the narration gate.
+- **`engine/medicham2-browser.js` DECLARES `canMegaNow` TWICE**, second wins at load — ROADMAP #449,
+  carried forward, untouched. Every line edited in this pass was checked for a duplicate declaration
+  first (`syncWeatherFormes` 1, `pasteKey` 1, `FORECAST_NAME_BLIND` 1); the edits are on the live copy.
+- **`tests/staged_board.js` IS STILL 24 OF 25** on `roar-drags-whoever-is-standing-there` — carried
+  forward, not diagnosed, not waived.
+- **`tests/test-board-browser.js` IS RED and is `board.js`'s**, which this division may not edit. It is
+  the single row holding the `no open, known engine defect` clause shut (#218).
+- **`tests/test-resolution-order.js` OOMs at the default heap** (#446) — carried forward.
+- **`engine/artifact_audit.js` is RED on `data/engine-data.js`** — carried forward, NOT fixable by this
+  division and flagged for Will.
+- **`.scratch_eng/`, `stash@{0}` AND THE TWO UNTRACKED `data/_pair-pilot.json` /
+  `data/medicham-represented-clicks.json` ARE ANOTHER SESSION'S.** Reported, left, nothing executed in
+  any of them. `data/releases/9c71bc9b5815/` is this batch's cut and is left standing.
+
+### OWED, NOT RUN
+
+- **`tests/test-engine-diff.js` WAS RUN AT FULL SIZE** — 6,000 rows, seed 20260804, **0 disagreements at
+  the midpoint and at all sixteen corners**, unmoved. **AND ITS DEFAULT IS A TRAP**: `--n 150` exits
+  **3** because `engine/publish_guard.js` refuses to shrink the published artifact. The exit code is not
+  the reading; `--n 6000` is.
+- **The three roster stages and `engine/all_mechanics_fire.js --kind all` were re-run on
+  `9c71bc9b5815`.** All three stages are **0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`** — items
+  139 of 148, abilities 129 of 202 (45 `CONTROL-NOT-QUIET`, 141 `COULD-NOT-STAGE`), moves 475 of 500 —
+  identical to the previous release's counts. **`tests/roster.js` WITHOUT `--write` PRINTS A FULL CLEAN
+  REPORT AND WRITES NOTHING**, and `status.js` went on withholding all three stages as MEASURED AGAINST
+  A DIFFERENT ENGINE until they were re-run with it. One more shape of a command reporting success
+  having done less than the caller thought.
+- `tests/interaction_matrix.js` — **not re-run.** Stamped 2026-08-11 and already stale before this pass.
+  Nothing here changes a carrier x reactor damage ratio, but that is a derivation and it is written here
+  as one rather than as a result.
+- `engine/wire_ladder.js` — not re-run; the release ladder stays WITHHELD, as it already was.
+- `tests/run-all.js` — **not run in full this pass.** The targeted set was run and is all green:
+  `test-mechanics`, `test-engine-consistency`, `test-charge`, `test-dead-volatile`, `test-choice-lock`,
+  `test-encore-gate`, `test-volatile-duration`, `test-mc-key`, `test-mc-seal`, `test-forme-assert`,
+  `test-roster-identity`, `test-switch-back-renamed`, `test-game-diff`, `test-end-state`,
+  `test-protocol-trace`, `test-roadmap-register`, `test-engine-diff`.
+- **`engine/status.js` still prints `FEATURE SEMANTICS CHECK FAILED`.** It is MEASURE's (the fixture
+  scenarios and the damage table) and was firing before this pass. Untouched, reported.
+
+---
 
 ## THE SEAL HAD NOTHING TO SEAL AND WENT ON ANYWAY. BOARD-MATERIAL 7 -> 6 OF 961, WHOLE-GAME CLAUSE 11 -> 10, CENSUS 733 -> 735. 2026-08-26.
 

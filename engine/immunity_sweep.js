@@ -78,6 +78,11 @@ const dex = Dex.forFormat(CS.FORMAT);
 
 require(D('data', 'engine-data.js'));
 const M = require(D('engine', 'medicham2-browser.js'));
+/* 2026-08-26 -- THE MON TABLE IS REACHED THROUGH ITS ONE DOOR. Both `buildMon` calls below used
+ * to hand-normalise with `norm()`, which strips hyphens and therefore asks for `floetteeternal`
+ * where the table says `floette-eternal` -- the fourth historical instance of the class
+ * engine/mc_key.js exists to end, and `tests/test-mc-key.js` was RED on these two lines. */
+const { mcKey } = require(D('engine', 'mc_key.js'));
 const TAGS = JSON.parse(fs.readFileSync(D('data', 'tags.json'), 'utf8'));
 
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -181,7 +186,7 @@ const SPECIES = dex.species.all().filter(legalSpecies);
  * report a clean run over a fixture nobody chose. Counted and printed with the derivation. */
 const buildFailures = { n: 0, first: '' };
 const hasRow = name => {
-  try { return !!M.buildMon(norm(name), {}); }
+  try { return !!M.buildMon(mcKey(name), {}); }
   catch (e) {
     buildFailures.n++;
     if (!buildFailures.first) buildFailures.first = name + ': ' + e.message;
@@ -374,7 +379,7 @@ function showdown(o) {
 }
 
 const bare = (sp, o) => {
-  const b = M.buildMon(norm(sp), {});
+  const b = M.buildMon(mcKey(sp), {});
   if (!b) throw new Error('no MC row for ' + sp);
   b.item = (o && o.item) || '';
   b.ability = norm((o && o.ability) || INERT_ABILITY);

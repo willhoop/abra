@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-26T15:37:33.737Z",
- "release": "894f59791a84",
+ "generated": "2026-08-26T16:30:51.397Z",
+ "release": "9c71bc9b5815",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -54267,7 +54267,7 @@
    "diverged_including_shelved": 4,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 9.1
+   "seconds": 9
   },
   "then_what": {
    "rows": 62,

@@ -21,6 +21,65 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE COMMENT SAYING THIS COULD NOT BE FIXED WAS FOUR DAYS STALE, AND THE HANDED HYPOTHESIS COVERED ONE GAME RATHER THAN THREE. BOARD-MATERIAL 6 -> 4 OF 961, CENSUS 735 -> 737, WHOLE-GAME CLAUSE UNMOVED AT 10. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.141.0. Register row: ROADMAP #455.
+Engine release cut: **`9c71bc9b5815`** — *"forecast moves the species label and not only the types, and
+clearVolatile takes the weather forme off a benched body"*. Every figure below is stamped with it.
+
+**THE HANDOVER'S HYPOTHESIS WAS CHECKED BEFORE IT WAS ACTED ON, AND BOTH HALVES OF IT WERE WRONG.** It
+was routed as *"`partyMap` is keyed by DISPLAYED species … potentially 3 of the 6"*, with the two
+Castform games filed as blocked on a `data/engine-data.js` regeneration.
+
+- Re-keying the party fixes **ONE** game — the transformed Ditto colliding with the Garchomp it copied.
+  Neither Castform game is a keying problem: both carry an independent `p2.active[0].species` divergence
+  (`castform` against `castformrainy`) on the ACTIVE slot, which no comparator change can close.
+- They were **never blocked**. `syncWeatherFormes` refused to rename on a written reason that commit
+  `f15bf80a` (2026-08-22) had already invalidated by adding all three weather-forme rows to
+  `data/engine-data.js`. `git show 9a060821:data/engine-data.js | grep -c castform-rainy` is 0; HEAD is
+  1. **Will's pending decision on that file does not turn on these games.**
+
+**WHAT LANDED, TWO HALVES TOGETHER.** The rename in `syncWeatherFormes` is a RELABEL through `pasteKey`
+(no stat rebase — the tag's `sameStats` is true; no second protocol line — `formeSwap` would add one;
+`_ident` untouched, so later lines still name the original body). The switch-out revert in `switchOut`
+follows `clearVolatile`'s own `setSpecies(baseSpecies)`. **The TYPE half of the revert was already wrong
+and nobody had found it** — `benchRow` compares `types` — and shipping the rename alone would have
+traded two board games for a `|switch|p2b|castform-rainy,l50` details field the authority never writes.
+
+**THE PROBES.** Two rows under `ability / formeFollowsWeather`, beside an existing row that asserts the
+TYPES and the damage and had been LIVE the whole time the label never moved. The first was **shown RED
+before any engine byte moved** (735 live, 1 missing, 736 probed). Each is red on demand under its own
+knob: `MEDI_FORECAST_NAME_BLIND=1` reds both, `MEDI_FORECAST_NO_SWITCHOUT_REVERT=1` reds only the bench
+row. Controls: the same Castform under the same rain with the ability CLEARED; `_ident` asserted
+unchanged; a planted -1 SpA and a byte-identical `st` asserted after the change; and the bench row reads
+the body WHILE IT IS OFF THE FIELD, with a clear-sky arm so a revert firing on every pivot is
+distinguishable.
+
+**THE PARTY RE-KEY IS HELD, WITH THE CREDIT SHIFT MEASURED.** `BS.compare(prev, cur)` feeds the coverage
+credit and is bucketed by `BS.family(path)`. Species keying reports a transform as
+`party.MISSING-OR-EXTRA-MEMBER` -> the `fainted` family; identity keying would report `boosts` and
+`species`. Different credit -> different `covWant` -> different sample. Filed, not smuggled in.
+
+**THE NUMBERS.** Pinned `--games 1200`, arm `middle`, cap 12, `data/team-pool-frozen`, census pin
+`9446a684709d`, `--state --end-state`, release `9c71bc9b5815`. Board-material **6 -> 4 of 961**;
+whole-game clause **10 unmoved**; raw diverged **15 unmoved**; census **735 -> 737 live, 0 missing**;
+mechanics clause **9 of 16 unmoved**; `tests/test-engine-diff.js` **0/6000 at all sixteen corners,
+unmoved**. **The sample did not move and it was checked**: byte-identical `swarm`, same census digest,
+all fifteen protocol first-divergences matching row for row. All three roster stages re-run on this
+release at 0 `FIRED-AND-BOARDS-DIFFER` / 0 `DID-NOT-FIRE`.
+
+**ONE RED GATE CLOSED ON THE WAY PAST.** `tests/test-mc-key.js` was RED at HEAD on
+`engine/immunity_sweep.js:184,377` (`buildMon(norm(name))`, the fourth historical instance of the
+class). Routed through `mcKey`; 21 passed, 0 failed. The value is identical over all 347 legal species
+and that is said out loud rather than claimed as evidence.
+
+**TWO MORE COMMANDS THAT REPORTED SOMETHING OTHER THAN WHAT WAS ASKED.** `tests/roster.js` without
+`--write` prints a full clean report, exits 0 and writes nothing. `tests/test-engine-diff.js` at its
+default `--n 150` exits **3** because `engine/publish_guard.js` refuses to shrink the published
+artifact.
+
+---
+
 ## THE SEAL HAD NOTHING TO SEAL AND WENT ON ANYWAY. BOARD-MATERIAL 7 -> 6 OF 961, WHOLE-GAME CLAUSE 11 -> 10, CENSUS 733 -> 735. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.140.0. Register row: ROADMAP #454.

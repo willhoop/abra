@@ -10,6 +10,72 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.141.0] — 2026-08-26
+
+### Fixed
+- **FORECAST MOVED CASTFORM'S TYPES AND NOT ITS SPECIES LABEL — BOARD-MATERIAL 6 -> 4 OF 961, CENSUS
+  735 -> 737, WHOLE-GAME CLAUSE UNMOVED AT 10.** `data/abilities.ts` forecast calls
+  `pokemon.formeChange(forme, this.effect, false, '0', '[msg]')` and guards its own re-entry on
+  `pokemon.species.id !== 'castformrainy'` — the authority's question is WHICH SPECIES AM I and this
+  engine's was WHICH TYPES DO I HAVE. `data/mods/champions/abilities.ts` carries no `forecast` key, so
+  mainline's is what this format runs; checked rather than assumed. The rename is a RELABEL and not a
+  `formeSwap`: the tag's own `sameStats: true` means there is no stat line to rebase, and `formeSwap`
+  would emit a second protocol line beside the `|-formechange|` this site already writes. `_ident` is
+  untouched, so every later line still names the original body, as the authority's
+  `|-formechange|p2a: Castform|Castform-Rainy|` does.
+- **AND A WEATHER FORME NOW COMES OFF A BENCHED BODY.** `Pokemon#clearVolatile()` ends with
+  `this.setSpecies(this.baseSpecies)`, so a Castform that pivots out of the rain sits on the bench as
+  Castform, Normal-typed. **The TYPE half of that was already wrong and nobody had found it** —
+  `engine/board_state.js`'s `benchRow` compares `types`, and this engine kept Water on the bench — and
+  shipping the rename alone would have traded two board-material games for a
+  `|switch|p2b|castform-rainy,l50` details field the authority never writes.
+- **`engine/immunity_sweep.js` NOW REACHES THE MON TABLE THROUGH ITS ONE DOOR**, closing
+  `tests/test-mc-key.js`, which was RED at HEAD from commit `3ab94955` on two `buildMon(norm(name))`
+  calls. The value does not change — over all 347 legal species `buildMon(norm(x))` and
+  `buildMon(mcKey(x))` return the same body with 0 nulls either way, because `buildMon` became total —
+  and that is stated rather than claimed as evidence: the point is the door, not the value.
+
+### Changed
+- **THE `data/engine-data.js` BLOCK ON CASTFORM WAS DEAD AND ITS COMMENT OUTLIVED IT BY FOUR DAYS.**
+  `syncWeatherFormes` refused to rename on the written reason that the file *"holds a row for `castform`
+  and NONE for Castform-Sunny, Castform-Rainy or Castform-Snowy … Adding the three rows is a change to
+  `data/engine-data.js` and belongs to a refit, not here."* Commit `f15bf80a` (2026-08-22) had already
+  added all three: `git show 9a060821:data/engine-data.js | grep -c castform-rainy` is 0 and HEAD is 1.
+  **So the two Castform board-material games were never blocked on a regeneration of that file**, which
+  is the fact the pending decision on it turns on.
+- `MEDFAILS.formeWeatherNameUnchanged` stops being a standing non-zero shortfall and now counts only the
+  case where the artifact names no forme to move to. `MEDSEEN.weatherRenamed`,
+  `MEDSEEN.weatherFormeReverted` and `MEDFAILS.formeWeatherNoRow` are new and each is expected at a
+  specific value rather than at "some number".
+
+### Notes
+- **THE HANDED HYPOTHESIS COVERED ONE GAME RATHER THAN THREE, AND CHECKING THAT FIRST CHANGED THE
+  BATCH.** `engine/board_state.js`'s `partyMap` being keyed by displayed species is real and is exactly
+  ONE of the four remaining board-material games (a transformed Ditto colliding with the Garchomp it
+  copied). Neither Castform game is a keying problem: they carry an independent `p2.active[0].species`
+  divergence on the ACTIVE slot that no comparator change can close.
+- **THE PARTY RE-KEY SHIPS HELD, WITH THE CREDIT SHIFT MEASURED RATHER THAN ARGUED.**
+  `engine/game_differential.js` credits coverage from `BS.compare(prev, cur)` and buckets by
+  `BS.family(path)`; a species-keyed party reports a transform as `party.MISSING-OR-EXTRA-MEMBER`, which
+  `BOARD_FAMILY` maps to the `fainted` family, where an identity-keyed one would report `boosts` and
+  `species`. That is a different credit, the credit steers `covWant`, and `covWant` selects the sample —
+  so the corrected count would be a number about a different run.
+- **THE SAMPLE DID NOT MOVE AND IT WAS CHECKED RATHER THAN ASSUMED.** Same census pin `9446a684709d`
+  over 643 rows, byte-identical `swarm` block, and all fifteen protocol first-divergences matching row
+  for row on `config|seed|turn|cause`. Exactly the two Castform games left the board list; the other
+  four are the same four.
+- **TWO MORE SHAPES OF A COMMAND REPORTING SOMETHING OTHER THAN WHAT THE CALLER ASKED.**
+  `tests/roster.js` without `--write` prints a full clean report, exits 0 and writes nothing, so
+  `engine/status.js` went on withholding all three stages as MEASURED AGAINST A DIFFERENT ENGINE; and
+  `tests/test-engine-diff.js` at its default `--n 150` exits **3**, because `engine/publish_guard.js`
+  refuses to shrink the published 6,000-comparison artifact. Read the size and the stamp, not the exit
+  code.
+- Engine release for every figure above: **`9c71bc9b5815`**. `tests/test-engine-diff.js` re-run at full
+  size: 0/6000 at the midpoint and at all sixteen corners, unmoved. All three roster stages re-run on
+  that release at 0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`.
+
+---
+
 ## [5.140.0] — 2026-08-26
 
 ### Fixed

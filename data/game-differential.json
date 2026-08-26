@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-26T15:33:47.818Z",
+  "generated": "2026-08-26T16:29:13.414Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:2efbc9ed1946/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -50,7 +50,7 @@
         "the turn cap (12)": 948,
         "both engines ended the battle": 13
       },
-      "turn1_boards_identical": 958,
+      "turn1_boards_identical": 960,
       "turn1_boards_reached": 961,
       "rows_credited": 253,
       "credit_events": {
@@ -97,7 +97,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 83.1,
+  "elapsed_s": 84.4,
   "credit_turn_profile": {
     "rows_with_any_credit": 253,
     "credits_with_no_turn_index": 0,
@@ -1220,16 +1220,16 @@
     "sd_addresses_dropped_as_not_this_game": 13853
   },
   "state": {
-    "turn1_boards_identical": 958,
-    "turn1_boards_identical_fraction": 0.9969,
+    "turn1_boards_identical": 960,
+    "turn1_boards_identical_fraction": 0.999,
     "identical_at_end_of_turn": [
       {
         "turn": 1,
         "games": 961,
         "reached": 961,
-        "identical": 958,
-        "rate_of_all_games": 0.9969,
-        "rate_of_games_that_reached_it": 0.9969
+        "identical": 960,
+        "rate_of_all_games": 0.999,
+        "rate_of_games_that_reached_it": 0.999
       },
       {
         "turn": 2,
@@ -1243,114 +1243,114 @@
         "turn": 3,
         "games": 961,
         "reached": 961,
-        "identical": 956,
-        "rate_of_all_games": 0.9948,
-        "rate_of_games_that_reached_it": 0.9948
+        "identical": 958,
+        "rate_of_all_games": 0.9969,
+        "rate_of_games_that_reached_it": 0.9969
       }
     ],
     "agreement_by_turn": [
       {
         "turn": 1,
         "reached": 961,
+        "identical": 960,
+        "rate_given_it_reached_this_turn": 0.999,
+        "rate_of_all_games": 0.999
+      },
+      {
+        "turn": 2,
+        "reached": 961,
+        "identical": 959,
+        "rate_given_it_reached_this_turn": 0.9979,
+        "rate_of_all_games": 0.9979
+      },
+      {
+        "turn": 3,
+        "reached": 961,
         "identical": 958,
         "rate_given_it_reached_this_turn": 0.9969,
         "rate_of_all_games": 0.9969
       },
       {
-        "turn": 2,
-        "reached": 961,
-        "identical": 957,
-        "rate_given_it_reached_this_turn": 0.9958,
-        "rate_of_all_games": 0.9958
-      },
-      {
-        "turn": 3,
-        "reached": 961,
-        "identical": 956,
-        "rate_given_it_reached_this_turn": 0.9948,
-        "rate_of_all_games": 0.9948
-      },
-      {
         "turn": 4,
         "reached": 961,
-        "identical": 956,
-        "rate_given_it_reached_this_turn": 0.9948,
-        "rate_of_all_games": 0.9948
+        "identical": 958,
+        "rate_given_it_reached_this_turn": 0.9969,
+        "rate_of_all_games": 0.9969
       },
       {
         "turn": 5,
         "reached": 961,
-        "identical": 956,
-        "rate_given_it_reached_this_turn": 0.9948,
-        "rate_of_all_games": 0.9948
+        "identical": 958,
+        "rate_given_it_reached_this_turn": 0.9969,
+        "rate_of_all_games": 0.9969
       },
       {
         "turn": 6,
         "reached": 960,
-        "identical": 955,
-        "rate_given_it_reached_this_turn": 0.9948,
-        "rate_of_all_games": 0.9938
+        "identical": 957,
+        "rate_given_it_reached_this_turn": 0.9969,
+        "rate_of_all_games": 0.9958
       },
       {
         "turn": 7,
         "reached": 958,
-        "identical": 953,
-        "rate_given_it_reached_this_turn": 0.9948,
-        "rate_of_all_games": 0.9917
+        "identical": 955,
+        "rate_given_it_reached_this_turn": 0.9969,
+        "rate_of_all_games": 0.9938
       },
       {
         "turn": 8,
         "reached": 958,
-        "identical": 952,
-        "rate_given_it_reached_this_turn": 0.9937,
-        "rate_of_all_games": 0.9906
+        "identical": 954,
+        "rate_given_it_reached_this_turn": 0.9958,
+        "rate_of_all_games": 0.9927
       },
       {
         "turn": 9,
         "reached": 957,
-        "identical": 952,
-        "rate_given_it_reached_this_turn": 0.9948,
-        "rate_of_all_games": 0.9906
+        "identical": 954,
+        "rate_given_it_reached_this_turn": 0.9969,
+        "rate_of_all_games": 0.9927
       },
       {
         "turn": 10,
         "reached": 952,
-        "identical": 947,
-        "rate_given_it_reached_this_turn": 0.9947,
-        "rate_of_all_games": 0.9854
+        "identical": 949,
+        "rate_given_it_reached_this_turn": 0.9968,
+        "rate_of_all_games": 0.9875
       },
       {
         "turn": 11,
         "reached": 950,
-        "identical": 945,
-        "rate_given_it_reached_this_turn": 0.9947,
-        "rate_of_all_games": 0.9834
+        "identical": 947,
+        "rate_given_it_reached_this_turn": 0.9968,
+        "rate_of_all_games": 0.9854
       },
       {
         "turn": 12,
         "reached": 948,
-        "identical": 943,
-        "rate_given_it_reached_this_turn": 0.9947,
-        "rate_of_all_games": 0.9813
+        "identical": 945,
+        "rate_given_it_reached_this_turn": 0.9968,
+        "rate_of_all_games": 0.9834
       }
     ],
     "agreement_by_turn_cross_check": [
       {
         "turn": 1,
-        "from_kept_boards": 958,
-        "from_the_counters": 958,
+        "from_kept_boards": 960,
+        "from_the_counters": 960,
         "agree": true
       },
       {
         "turn": 2,
         "from_kept_boards": 959,
-        "from_the_counters": 957,
-        "agree": false
+        "from_the_counters": 959,
+        "agree": true
       },
       {
         "turn": 3,
-        "from_kept_boards": 956,
-        "from_the_counters": 956,
+        "from_kept_boards": 958,
+        "from_the_counters": 958,
         "agree": true
       }
     ],
@@ -1358,21 +1358,13 @@
       "what": "THE HEADLINE. The board at the end of turn 1, after the whole residual phase — the board the turn-2 decision is actually made from. Target 100%.",
       "games": 961,
       "reached_a_turn1_boundary": 961,
-      "identical": 958,
-      "rate_of_all_games": 0.9969,
-      "rate_of_games_that_reached_it": 0.9969,
+      "identical": 960,
+      "rate_of_all_games": 0.999,
+      "rate_of_games_that_reached_it": 0.999,
       "never_reached_turn1": 0,
       "protocol_parted_during_turn1": 1,
       "protocol_parted_during_turn1_board_identical_anyway": 1,
       "by_field": [
-        {
-          "field": "active[].species",
-          "games": 2,
-          "differing_leaves": 2,
-          "buckets": {
-            "different-value": 2
-          }
-        },
         {
           "field": "active[].item",
           "games": 1,
@@ -1383,10 +1375,6 @@
         }
       ],
       "by_cause": [
-        {
-          "cause": "active[].species (different-value)",
-          "games": 2
-        },
         {
           "cause": "active[].item (present-in-one-engine-only)",
           "games": 1
@@ -1416,52 +1404,12 @@
       ],
       "cases": [
         {
-          "cause": "active[].species (different-value)",
-          "games": 2,
-          "case": {
-            "seed": "gen9championsvgc2026regmbbo3-2661597319 vs gen9championsvgc2026regmbbo3-2661573110",
-            "config": "omit-protect",
-            "engine_release": "894f59791a84",
-            "team_pool_digest": "0d103fb9fa87",
-            "turn": 1,
-            "leads": {
-              "p1": "Froslass + Whimsicott",
-              "p2": "Pelipper + Swampert"
-            },
-            "clicks": [
-              "Froslass switches out to Aurorus",
-              "Whimsicott switches out to Staraptor",
-              "Pelipper switches out to Castform",
-              "Swampert switches out to Rotom-Wash"
-            ],
-            "showdown_says": [
-              "the body in that slot is Castform-Rainy"
-            ],
-            "we_say": [
-              "the body in that slot is Castform"
-            ],
-            "field_diff": [
-              {
-                "slot": "p2a",
-                "body": "Castform",
-                "field": "species",
-                "showdown": "castformrainy",
-                "ours": "castform",
-                "how_wrong": "different-value"
-              }
-            ],
-            "fields_compared": 383,
-            "fields_identical": 382,
-            "protocol_diverged_at_turn": null
-          }
-        },
-        {
           "cause": "active[].item (present-in-one-engine-only)",
           "games": 1,
           "case": {
             "seed": "gen9championsvgc2026regmbbo3-2659015200 vs gen9championsvgc2026regmbbo3-2659004938",
             "config": "omit-spread",
-            "engine_release": "894f59791a84",
+            "engine_release": "9c71bc9b5815",
             "team_pool_digest": "0d103fb9fa87",
             "turn": 1,
             "leads": {
@@ -1526,29 +1474,24 @@
           }
         }
       ],
-      "party_rows_suppressed_as_a_second_view_of_a_standing_body": 8,
+      "party_rows_suppressed_as_a_second_view_of_a_standing_body": 4,
       "display_name_lookups_that_missed": 2
     },
     "turn_boundaries_compared": 12449,
-    "turn_boundaries_identical": 12418,
-    "turn_boundary_agreement": 0.9975,
+    "turn_boundaries_identical": 12428,
+    "turn_boundary_agreement": 0.9983,
     "games": 961,
-    "games_board_never_diverged": 955,
-    "game_agreement": 0.9938,
-    "median_turn_of_first_board_divergence": 2,
+    "games_board_never_diverged": 957,
+    "game_agreement": 0.9958,
+    "median_turn_of_first_board_divergence": 3,
     "protocol_diverged_games": 15,
     "protocol_diverged_board_never_did": 14,
     "protocol_diverged_board_held_longer": 0,
-    "board_parted_before_the_protocol_did": 5,
+    "board_parted_before_the_protocol_did": 3,
     "families": [
       {
         "family": "party.item",
         "differing_leaves": 5,
-        "games": 2
-      },
-      {
-        "family": "party.MISSING-OR-EXTRA-MEMBER",
-        "differing_leaves": 4,
         "games": 2
       },
       {
@@ -1565,11 +1508,6 @@
         "family": "active[].hp",
         "differing_leaves": 2,
         "games": 1
-      },
-      {
-        "family": "active[].species",
-        "differing_leaves": 2,
-        "games": 2
       },
       {
         "family": "active[].stall",
@@ -1658,69 +1596,6 @@
         ]
       },
       {
-        "config": "omit-protect",
-        "seed": "gen9championsvgc2026regmbbo3-2661597319 vs gen9championsvgc2026regmbbo3-2661573110",
-        "turn": 1,
-        "protocol_diverged_at_turn": null,
-        "diffs": [
-          {
-            "path": "p2.party.castform",
-            "medicham": {
-              "hp": 145,
-              "maxhp": 145,
-              "fainted": false,
-              "status": "",
-              "types": "water",
-              "item": "quickclaw",
-              "status_counter": 0,
-              "stall": null,
-              "boosts": {
-                "atk": 0,
-                "def": 0,
-                "spa": 0,
-                "spd": 0,
-                "spe": 0,
-                "accuracy": 0,
-                "evasion": 0
-              },
-              "ability": "forecast",
-              "vol": null
-            },
-            "showdown": null
-          },
-          {
-            "path": "p2.party.castformrainy",
-            "medicham": null,
-            "showdown": {
-              "hp": 145,
-              "maxhp": 145,
-              "fainted": false,
-              "status": "",
-              "types": "water",
-              "item": "quickclaw",
-              "status_counter": 0,
-              "stall": null,
-              "boosts": {
-                "atk": 0,
-                "def": 0,
-                "spa": 0,
-                "spd": 0,
-                "spe": 0,
-                "accuracy": 0,
-                "evasion": 0
-              },
-              "ability": "forecast",
-              "vol": null
-            }
-          },
-          {
-            "path": "p2.active[0].species",
-            "medicham": "castform",
-            "showdown": "castformrainy"
-          }
-        ]
-      },
-      {
         "config": "omit-spread",
         "seed": "gen9championsvgc2026regmbbo3-2659015200 vs gen9championsvgc2026regmbbo3-2659004938",
         "turn": 1,
@@ -1765,69 +1640,6 @@
             "path": "p2.active[1].item",
             "medicham": "",
             "showdown": "twistedspoon"
-          }
-        ]
-      },
-      {
-        "config": "omit-spread",
-        "seed": "gen9championsvgc2026regmbbo3-2661455548 vs gen9championsvgc2026regmbbo3-2661573110",
-        "turn": 1,
-        "protocol_diverged_at_turn": null,
-        "diffs": [
-          {
-            "path": "p2.party.castform",
-            "medicham": {
-              "hp": 145,
-              "maxhp": 145,
-              "fainted": false,
-              "status": "",
-              "types": "water",
-              "item": "quickclaw",
-              "status_counter": 0,
-              "stall": null,
-              "boosts": {
-                "atk": 0,
-                "def": 0,
-                "spa": 0,
-                "spd": 0,
-                "spe": 0,
-                "accuracy": 0,
-                "evasion": 0
-              },
-              "ability": "forecast",
-              "vol": null
-            },
-            "showdown": null
-          },
-          {
-            "path": "p2.party.castformrainy",
-            "medicham": null,
-            "showdown": {
-              "hp": 145,
-              "maxhp": 145,
-              "fainted": false,
-              "status": "",
-              "types": "water",
-              "item": "quickclaw",
-              "status_counter": 0,
-              "stall": null,
-              "boosts": {
-                "atk": 0,
-                "def": 0,
-                "spa": 0,
-                "spd": 0,
-                "spe": 0,
-                "accuracy": 0,
-                "evasion": 0
-              },
-              "ability": "forecast",
-              "vol": null
-            }
-          },
-          {
-            "path": "p2.active[0].species",
-            "medicham": "castform",
-            "showdown": "castformrainy"
           }
         ]
       }
@@ -13559,7 +13371,7 @@
     "input_digest": "9446a684709d",
     "input_rows": 643,
     "input_generated": "2026-08-23T09:53:56.393Z",
-    "input_live_digest": "039a259b23fd",
+    "input_live_digest": "1318d7a94b07",
     "pinned": true,
     "matches_live": false,
     "selects_from": 580,
@@ -13571,12 +13383,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "894f59791a84",
-  "engine_release_cut": "2026-08-26T15:26:37.087Z",
+  "engine_release": "9c71bc9b5815",
+  "engine_release_cut": "2026-08-26T16:26:29.225Z",
   "engine_release_cuts": 7,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "0ddbda9bba65",
+    "engine/medicham2-browser.js": "e970fcd6326e",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "a9de35b3808d",
     "engine/position_features.js": "4850adf1a2ab",

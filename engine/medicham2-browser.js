@@ -1702,6 +1702,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * snow give-back, which is owned by `formeOnHit`) and is a receipt that the refusal is deliberate
    * rather than a member that fell through a gap. */
   weatherRetyped: 0, formeWeatherRestoreOnly: 0,
+  /* 2026-08-26 -- THE SPECIES LABEL, COUNTED APART FROM THE TYPES. It is a SUBSET of
+   * `weatherRetyped` and never equal to it: the revert-with-no-`revertsTo` case retypes and cannot
+   * rename. A gap between the two is therefore readable, where one merged counter would hide it. */
+  weatherRenamed: 0,
+  /* 2026-08-26 -- THE SWITCH-OUT REVERT (`clearVolatile` -> `setSpecies(baseSpecies)`), counted only
+   * when it MOVED a body's types. A zero across a run holding a Castform that pivoted means the
+   * revert is not reaching switchOut, which is precisely the shape that hid the type half of this
+   * for as long as it did. */
+  weatherFormeReverted: 0,
   /* 2026-08-23 -- THE ENTRY SYNC. `forecast` and `mimicry` both fire their field event from `onStart`,
    * so ARRIVING is one of the moments a field-driven forme follows. Counts entry passes that ran the
    * sync, not retypes -- `weatherRetyped`/`terrainRetyped` above are the ones that moved a body, and a
@@ -2326,12 +2335,18 @@ const MEDFAILS = { encoreAction: 0,
    * with correct STATE and is expected to be non-zero the moment a terrain lapses under a carrier. */
   terrainTypeUnmapped: 0, terrainTypeUnmappedFirst: '', terrainTypeNoBase: 0, terrainTypeNoBaseFirst: '',
   typeRevertUnannounced: 0,
-  /* ROADMAP #175 -- FORECAST's four refusals and its one standing shortfall, apart, because they are
-   * five different facts. `formeWeatherNameUnchanged` is the standing one and is EXPECTED to be
-   * non-zero on every application: `data/engine-data.js` has no row for the weather formes and this
-   * division may not add one, so the TYPE follows the sky and the species LABEL does not. */
+  /* ROADMAP #175 -- FORECAST's refusals, apart, because they are different facts.
+   *
+   * 2026-08-26 -- `formeWeatherNameUnchanged` STOPPED BEING THE STANDING ONE. It used to read
+   * *"EXPECTED to be non-zero on every application: `data/engine-data.js` has no row for the weather
+   * formes and this division may not add one"*, and commit `f15bf80a` had already added all three
+   * rows four days earlier. It now counts only the case where the artifact names no forme to move to
+   * -- a `revertsToTypes` with no `revertsTo` -- so a non-zero reading is a claim about the ARTIFACT.
+   * `formeWeatherNoRow` is the other half: a forme the artifact names and the mon table does not
+   * have. Both are expected at ZERO for Forecast, whose three formes and its revert all resolve. */
   formeWeatherNoTypeMap: 0, formeWeatherNoTypeMapFirst: '', formeWeatherStatsMove: 0,
   formeWeatherStatsMoveFirst: '', formeWeatherNoRevert: 0, formeWeatherNameUnchanged: 0,
+  formeWeatherNoRow: 0, formeWeatherNoRowFirst: '',
   /* 2026-08-26 -- GRAVITY WITH NO DERIVED CANCEL SET. `groundsField.cancels` is parsed out of the
    * authority's own `onFieldStart`; if a regenerated artifact ever loses it, the branch strips NOTHING
    * and says so here. It must NOT fall back on the `semiInvulnerable` match it replaced -- that match
@@ -10635,6 +10650,18 @@ const NO_CONDPOWER_LINE=(typeof process!=='undefined'&&process.env&&process.env.
  * run can separate "the ability is mispriced" from "the ability says nothing". Any run carrying it
  * also carries a non-zero `MEDFAILS.fallenLinesSuppressed`. Same shape as MEDI_NO_CONDPOWER_LINE. */
 const NO_FALLEN_LINES=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_FALLEN_LINES==='1');
+/* 2026-08-26 -- MEDI_FORECAST_NAME_BLIND=1 PUTS CASTFORM'S LABEL BACK. The TYPES still follow the sky
+ * and the `|-formechange|` line is still written; only the body's own species name stops moving, which
+ * is exactly what this engine did until today. It is the red-on-demand knob for the census row
+ * "Forecast RENAMES the body"; any run carrying it also carries a non-zero
+ * `MEDFAILS.formeWeatherNameUnchanged` and a ZERO `MEDSEEN.weatherRenamed`. */
+const FORECAST_NAME_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FORECAST_NAME_BLIND==='1');
+/* 2026-08-26 -- MEDI_FORECAST_NO_SWITCHOUT_REVERT=1 LEAVES THE WEATHER FORME ON A BENCHED BODY, which
+ * is what this engine did until today for the TYPES and would have started doing for the NAME. It is
+ * a SEPARATE knob from the one above on purpose: the two halves are two census rows and a single knob
+ * could not say which of them a red run was about. Any run carrying it also carries a ZERO
+ * `MEDSEEN.weatherFormeReverted` on a game where a weather forme pivoted. */
+const FORECAST_NO_REVERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FORECAST_NO_SWITCHOUT_REVERT==='1');
 /* 2026-08-26 -- MEDI_FALLEN_APPROX=1 COMPUTES THE MULTIPLIER FROM THE TAG'S `perFallen` AGAIN --
  * `Math.trunc((1 + 0.1n) * 4096)` -- INSTEAD OF READING THE HANDLER'S OWN powMod TABLE. It differs by
  * exactly ONE 4096th at n=1 (4505 vs 4506) and n=3 (5324 vs 5325) and NOT AT ALL at n=2, 4 or 5.
@@ -15534,14 +15561,34 @@ function syncTerrainTypes(field,bodies){
  * handler: `onStart` fires nothing but `this.singleEvent('WeatherChange', ...)` on itself
  * (data/abilities.ts:1462-1464), so entry and weather-change are ONE function in the authority.
  *
- * IT IS MODELLED AS A RETYPE, NOT AS A FORME SWAP, AND THE REASON IS A FILE THIS DIVISION MAY NOT
- * EDIT. `data/engine-data.js` holds a row for `castform` and NONE for Castform-Sunny, Castform-Rainy
- * or Castform-Snowy, so `formeSwap` would fail its `buildMon` lookup, count `formeSwapNoRow` and
- * change nothing -- the mechanic would be "wired" and inert. The artifact says `sameStats: true` over
- * all three formes (derived from the dex, not assumed), so the ONLY thing a board can observe is the
- * TYPE, and the type is what moves. What does NOT move is the species label, and that is counted on
- * every application rather than left for someone to discover: `formeWeatherNameUnchanged`. Adding the
- * three rows is a change to `data/engine-data.js` and belongs to a refit, not here.
+ * THE LABEL MOVES TOO, SINCE 2026-08-26, AND THE PARAGRAPH THAT SAID IT COULD NOT WAS FOUR DAYS
+ * STALE. It read: *"`data/engine-data.js` holds a row for `castform` and NONE for Castform-Sunny,
+ * Castform-Rainy or Castform-Snowy, so `formeSwap` would fail its `buildMon` lookup, count
+ * `formeSwapNoRow` and change nothing ... Adding the three rows is a change to `data/engine-data.js`
+ * and belongs to a refit, not here."* Commit `f15bf80a` (2026-08-22, *"The dice, the formes, and a
+ * line ending..."*) ADDED all three rows; `9a060821` has none and HEAD has all of them, and
+ * `buildMon('castformrainy')` resolves today under every spelling. So the block was dead and the
+ * comment outlived it -- exactly the shape CLAUDE.md's fourteen stale handoffs are about, arriving as
+ * a refusal to do work that was already unblocked.
+ *
+ * WHY THE LABEL IS A BOARD LEAF AND NOT A CAPTION. `engine/board_state.js` compares
+ * `active[].species`, and it KEYS THE PARTY MAP on the same string -- so a Castform whose types moved
+ * and whose name did not parted two of the six board-material games on release `894f59791a84`, once
+ * on `p2.active[0].species` and again as `party.castform` against `party.castformrainy`, one body
+ * reported twice.
+ *
+ * A RELABEL, NOT A REBUILD, AND THAT IS THE WHOLE DIFFERENCE FROM `formeSwap`. The artifact says
+ * `sameStats: true` over all three formes (derived from the dex, not assumed) and the guard three
+ * lines up REFUSES any member where it is not -- so there is no stat line to rebase, no HP to
+ * rescale, and going through `formeSwap` would emit a SECOND protocol line and re-derive a spread
+ * this body already has. `_ident` is deliberately untouched, for the reason `formeSwap` gives: the
+ * authority's `|-formechange|p2a: Castform|Castform-Rainy|` keeps naming the ORIGINAL, and
+ * `identName()` reads `_ident` for every later line on this body.
+ *
+ * THE NAME IS RESOLVED THROUGH `pasteKey`, the file's own door into the mon table, so a forme the
+ * artifact spells differently from the table still lands instead of silently never renaming. A row
+ * the table does not have is COUNTED (`formeWeatherNoRow`) and the retype still happens -- half a
+ * body beats none here, because the types are the half that changes damage.
  *
  * `restoresRatherThanChanges` MEMBERS ARE REFUSED HERE, not served. Ice Face's snow give-back is the
  * other half of a mechanic whose break is `formeOnHit`, and treating "put the ice hat back" as a
@@ -15572,7 +15619,14 @@ function syncWeatherFormes(field,bodies){
     if((m.types||[]).join('/')===want.join('/'))continue;
     m.types=want.slice();
     MEDSEEN.weatherRetyped++;
-    MEDFAILS.formeWeatherNameUnchanged++;
+    /* THE SPECIES LABEL FOLLOWS THE SKY. `MEDI_FORECAST_NAME_BLIND=1` puts it back the way it was
+     * before 2026-08-26, which is how the census row above it is shown red on demand. */
+    if(forme&&!FORECAST_NAME_BLIND){
+      const nk=pasteKey(forme);
+      if(nk){ if(m.name!==nk){ m.name=nk; MEDSEEN.weatherRenamed++; } }
+      else { MEDFAILS.formeWeatherNoRow++;
+             if(!MEDFAILS.formeWeatherNoRowFirst)MEDFAILS.formeWeatherNoRowFirst=String(forme); }
+    } else MEDFAILS.formeWeatherNameUnchanged++;
     /* `|-formechange|IDENT|Castform-Sunny|[msg]|[from] ability: forecast` -- the authority's own event
      * for a NON-permanent formeChange whose source is an ABILITY (`sim/pokemon.ts:1487`), and the
      * forme NAME comes from the artifact rather than from the mon table, which is why the line can be
@@ -16644,6 +16698,31 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * out on the same turn -- so without this line a U-turn after a Roost is a Pokemon that is
    * permanently no longer Flying, which is worse than the bug being fixed and would be silent. */
   if(out._typeWas){ out.types=out._typeWas; out._typeWas=null; MEDSEEN.roostTypeRestored++; }
+  /* 2026-08-26 -- AND A WEATHER FORME COMES OFF WITH IT, ON THE SAME LINE'S AUTHORITY.
+   *
+   * `Pokemon#clearVolatile()` ENDS with `this.setSpecies(this.baseSpecies)` (sim/pokemon.ts), so a
+   * Castform that pivots out of the rain sits on the bench as CASTFORM, Normal -- and Forecast's
+   * `onSwitchInPriority: -2` re-applies the sky on the way back, which is why the two engines have
+   * always agreed while the body was STANDING and only ever parted on the bench.
+   *
+   * THE TYPE HALF OF THIS WAS ALREADY WRONG AND NOBODY HAD FOUND IT: `benchRow` compares `types`, so
+   * a benched Castform-Rainy read Water here against the authority's Normal. It never showed up
+   * because Castform is 15 corpus uses and no pinned-pool game pivoted one. The NAME half only
+   * became reachable today -- see syncWeatherFormes -- and shipping the rename without this would
+   * have traded two board-material games for a `|switch|p2a: Castform|castform-rainy, L50` details
+   * field the authority never writes. Both halves land together, deliberately.
+   *
+   * ON THE TAG'S OWN `revertsTo`, never on a stashed base: the artifact already names the body to go
+   * back to and the types to go back to, and a second copy of that fact is the FACTS-ARE-GLOBAL
+   * breach. `restoresRatherThanChanges` members (Ice Face) are refused here exactly as they are
+   * refused by the sync, because their break is `formeOnHit` and not the sky. */
+  {const fw=FORECAST_NO_REVERT?null:TAGS.param('ability',out.ability,'formeFollowsWeather');
+   if(fw&&!fw.restoresRatherThanChanges&&Array.isArray(fw.revertsToTypes)&&fw.revertsToTypes.length){
+     if((out.types||[]).join('/')!==fw.revertsToTypes.join('/')){
+       out.types=fw.revertsToTypes.slice(); MEDSEEN.weatherFormeReverted++; }
+     const bk=fw.revertsTo?pasteKey(fw.revertsTo):null;
+     if(bk&&out.name!==bk&&!FORECAST_NAME_BLIND)out.name=bk;
+   }}
   /* THE STATE ADDED BY WIRES 42-54 LEAVES WITH THE BODY, and each of these is a volatile in the real
      game: the substitute is gone, Throat Chop's silence ends, the Gigaton Hammer lockout ends, the
      recharge is not owed by a body that left, the partial trap releases, and Protean converts again

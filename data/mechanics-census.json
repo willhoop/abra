@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T15:31:31.248Z",
+  "generated": "2026-08-26T16:26:25.103Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 735,
-  "live": 735,
+  "probed": 737,
+  "live": 737,
   "missing": 0,
-  "armed": 735,
+  "armed": 737,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3693,7 +3693,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4114,6 +4114,26 @@
       "label": "Forecast retypes Castform per sky — Ice in snow, Water in rain, back to Normal when it clears",
       "live": true,
       "detail": "Flamethrower into Castform [damage, its types] — SNOW no ability 121,Normal vs Forecast 242,Ice (must roughly DOUBLE, Ice); RAIN no ability 60,Normal vs Forecast 30,Water (must roughly HALVE, Water); clear sky with Forecast 121,Normal; snow then ALLOWED TO CLEAR 121,Normal (must match the clear-sky arm exactly)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "formeFollowsWeather",
+      "label": "Forecast RENAMES the body — Castform-Rainy in rain, and back to Castform when the sky clears",
+      "live": true,
+      "detail": "Castform's own [species label, types] after one turn under each sky — RAIN with the ability CLEARED castform,Normal (the control: neither may move)   |   Forecast: rain castformrainy,Water; sun castformsunny,Fire; snow castformsnowy,Ice; clear sky castform,Normal; rain THEN ALLOWED TO CLEAR castform,Normal (must revert)   |   it is the SAME body throughout: protocol identifier stays \"castform\" (never the forme), stats unmoved true, HP unmoved true, planted −1 SpA still reads -1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "formeFollowsWeather",
+      "label": "a Castform that pivots out of the rain sits on the BENCH as Castform, and is Water again when it returns",
+      "live": true,
+      "detail": "Castform's [label/types] on the field, then ON THE BENCH, then back -- RAIN with Forecast castformrainy/Water -> castform/Normal -> castformrainy/Water (it must go back to Castform/Normal while it is OFF the field, and be Water again on return)   |   CLEAR SKY with Forecast castform/Normal -> castform/Normal -> castform/Normal (the control: a revert that fired on every pivot would look identical to this one from the rain arm alone)   |   RAIN with the ability CLEARED castform/Normal -> castform/Normal -> castform/Normal",
       "hollow": false,
       "armed": true,
       "directCall": false
