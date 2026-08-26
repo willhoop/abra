@@ -29,7 +29,12 @@ The batch also carries, all requested by Will:
   attacker is still blocked. That is the control separating it from Feint.
 - **Phantom Force** breaking a Protect on its strike turn.
 - **The variants and their on-block effects** — legal here: Protect, Detect, Baneful Bunker, Spiky
-  Shield, King's Shield, plus Quick Guard / Wide Guard (side conditions, NOT sharing the counter).
+  Shield, King's Shield, plus Quick Guard / Wide Guard. **CORRECTION, 2026-08-26: the coordinator
+  wrote here that Quick Guard and Wide Guard do NOT share the counter. They DO** — Wide Guard's
+  onHitSide adds stall to the USER, and Quick Guard's handler was read rather than assumed and is
+  byte-identical. Measured live: a control leaves the counter at 0; Protect, Wide Guard and Quick
+  Guard all leave it at 1 and all cost the same HP. The engine already had this right; only the
+  brief was wrong.
   **Banned and forbidden in any fixture: Obstruct, Silk Trap, Burning Bulwark, Max Guard, Crafty
   Shield, Mat Block.**
 - The success check is `randomChance(1, counter)` on the **shared die** — match the draw, not just
