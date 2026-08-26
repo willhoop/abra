@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T07:39:25.567Z",
+  "generated": "2026-08-26T08:31:20.555Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 715,
-  "live": 715,
+  "probed": 716,
+  "live": 716,
   "missing": 0,
-  "armed": 715,
+  "armed": 716,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -874,6 +874,16 @@
       "label": "a PIERCE leaves the shield standing, so the partner is still refused — a Feint does not",
       "live": true,
       "detail": "[HP the shielded Incineroar lost over the WHOLE turn, shield still up, stall counter] — Weavile opens, Garchomp's Dragon Claw follows in every arm. ICE PUNCH opener [0,true,1] (must be 0: an intact shield refuses both)   |   FEINT [113,false,0] (the volatile is REMOVED, so the partner connects and the counter is wiped)   |   UNSEEN FIST + Close Combat [43,true,1]   |   PIERCING DRILL + Close Combat [43,true,1] — both must get their own quartered hit through AND leave the shield standing with the counter armed, so the partner is still refused and the turn total stays below the Feint arm's",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "piercesProtect",
+      "label": "a piercing ability walks through a WIDE GUARD at a quarter — its ally does not",
+      "live": true,
+      "detail": "[what the two foes lost, Wide Guard refusals announced, their Atk stages] — one Wide Guard on the foe side, Gliscor clicks Breaking Swipe, Gholdengo clicks Make It Rain behind it. NO ABILITY [[0,0],4,[0,0]], sideGuardPierced +0 (both spread moves refused, 4 announcements, and the pierce branch was never taken)   |   UNSEEN FIST [[7,14],2,[-1,-1]], -ability said 2x, sideGuardPierced +1, ally spa 0   |   PIERCING DRILL [[7,14],2,[-1,-1]], -ability said 2x, sideGuardPierced +1, ally spa 0   |   NON-CONTACT control (Rock Slide off the same piercer) [[0,0],4] — refused, and the same click with NO guard deals [70,18], so the zero is the guard   |   NO GUARD control (the quarter's denominator) [28,58] — the pierced hits must be ~0.25 of it, only the piercer's OWN move gets through (the ally's Make It Rain stays refused, spa 0), and the guard must still announce its 2 refusals of that ally move",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2303,7 +2313,7 @@
       "tag": "breaksProtect",
       "label": "Feint tears down a Wide Guard, so the ALLY's spread move connects -- a pierce does not",
       "live": true,
-      "detail": "[what the two foes lost to Make It Rain, Gholdengo spa stage, Pelipper stall counter] -- Wide Guard raised in all four arms. NO OPENER [[0,0],0,1] (blocked, and the Guard arms the shared counter on its own user)   |   FEINT [[88,118],-2,0], break announced 1x (the side condition is REMOVED, so the ally connects to BOTH and pays its own -2 SpA, and the counter is wiped)   |   UNSEEN FIST + Breaking Swipe [[0,0],0,1]   |   PIERCING DRILL + Breaking Swipe [[0,0],0,1] -- a pierce bypasses for its OWN move only, so the side condition SURVIVES and the ally is still refused. OPEN AND MEASURED, not asserted here: the authority lets the PIERCER's own Breaking Swipe through the same Wide Guard (5 and 10 HP, with -1 Atk on both) and this engine deals 0 -- see the ENGINE hand list.",
+      "detail": "[what the two foes lost to Make It Rain, Gholdengo spa stage, Pelipper stall counter] -- Wide Guard raised in all four arms. NO OPENER [[0,0],0,1] (blocked, and the Guard arms the shared counter on its own user)   |   FEINT [[88,118],-2,0], break announced 1x (the side condition is REMOVED, so the ally connects to BOTH and pays its own -2 SpA, and the counter is wiped)   |   UNSEEN FIST + Breaking Swipe [[7,14],0,1]   |   PIERCING DRILL + Breaking Swipe [[7,14],0,1] -- a pierce bypasses for its OWN move only: the PIERCER's own Breaking Swipe now lands QUARTERED (the quarter itself is asserted against an unguarded click by the piercesProtect WIDE GUARD probe), and the side condition SURVIVES, so the ally's Make It Rain is still refused -- spa 0, the guard announced 2 refusals of it, and the shared counter is still armed.",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3633,7 +3643,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.0% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

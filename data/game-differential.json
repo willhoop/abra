@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-26T06:47:32.893Z",
+  "generated": "2026-08-26T08:12:45.953Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:6a6b87eafc6a/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -102,7 +102,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 181.3,
+  "elapsed_s": 85.7,
   "credit_turn_profile": {
     "rows_with_any_credit": 252,
     "credits_with_no_turn_index": 0,
@@ -1433,7 +1433,7 @@
           "case": {
             "seed": "gen9championsvgc2026regmbbo3-2661597319 vs gen9championsvgc2026regmbbo3-2661573110",
             "config": "omit-protect",
-            "engine_release": "419e9636ec6a",
+            "engine_release": "7fc604e5bc44",
             "team_pool_digest": "0d103fb9fa87",
             "turn": 1,
             "leads": {
@@ -1473,7 +1473,7 @@
           "case": {
             "seed": "gen9championsvgc2026regmbbo3-2659015200 vs gen9championsvgc2026regmbbo3-2659004938",
             "config": "omit-spread",
-            "engine_release": "419e9636ec6a",
+            "engine_release": "7fc604e5bc44",
             "team_pool_digest": "0d103fb9fa87",
             "turn": 1,
             "leads": {
@@ -3454,7 +3454,7 @@
                 {
                   "body": "metagross",
                   "games": 1,
-                  "corpus_teams": 2445
+                  "corpus_teams": 2466
                 }
               ],
               "examples": [
@@ -3492,7 +3492,7 @@
                   },
                   "shape": "RULE",
                   "protocol_parted": true,
-                  "max_body_uses": 2445
+                  "max_body_uses": 2466
                 }
               ],
               "examples_capped_at": 25,
@@ -3507,17 +3507,17 @@
                 {
                   "body": "incineroar",
                   "games": 1,
-                  "corpus_teams": 9398
+                  "corpus_teams": 9500
                 },
                 {
                   "body": "farigiraf",
                   "games": 1,
-                  "corpus_teams": 7241
+                  "corpus_teams": 7318
                 },
                 {
                   "body": "staraptor",
                   "games": 1,
-                  "corpus_teams": 5823
+                  "corpus_teams": 5872
                 }
               ],
               "examples": [
@@ -3566,7 +3566,7 @@
                   },
                   "shape": "ORDERING",
                   "protocol_parted": true,
-                  "max_body_uses": 9398
+                  "max_body_uses": 9500
                 }
               ],
               "examples_capped_at": 25,
@@ -3591,32 +3591,32 @@
                 {
                   "body": "garchomp",
                   "games": 1,
-                  "corpus_teams": 9502
+                  "corpus_teams": 9590
                 },
                 {
                   "body": "incineroar",
                   "games": 1,
-                  "corpus_teams": 9398
+                  "corpus_teams": 9500
                 },
                 {
                   "body": "metagrossmega",
                   "games": 1,
-                  "corpus_teams": 2445
+                  "corpus_teams": 2466
                 },
                 {
                   "body": "gardevoirmega",
                   "games": 1,
-                  "corpus_teams": 1470
+                  "corpus_teams": 1483
                 },
                 {
                   "body": "dragapult",
                   "games": 1,
-                  "corpus_teams": 831
+                  "corpus_teams": 836
                 },
                 {
                   "body": "golurkmega",
                   "games": 1,
-                  "corpus_teams": 428
+                  "corpus_teams": 429
                 }
               ],
               "examples": [
@@ -3649,7 +3649,7 @@
                   },
                   "shape": "PROTOCOL-NEVER-PARTED",
                   "protocol_parted": false,
-                  "max_body_uses": 9502
+                  "max_body_uses": 9590
                 },
                 {
                   "band": 5,
@@ -3687,7 +3687,7 @@
                   },
                   "shape": "RULE",
                   "protocol_parted": true,
-                  "max_body_uses": 9398
+                  "max_body_uses": 9500
                 },
                 {
                   "band": 5,
@@ -3718,7 +3718,7 @@
                   },
                   "shape": "RULE",
                   "protocol_parted": true,
-                  "max_body_uses": 2445
+                  "max_body_uses": 2466
                 },
                 {
                   "band": 5,
@@ -3756,7 +3756,7 @@
                   },
                   "shape": "EMISSION",
                   "protocol_parted": true,
-                  "max_body_uses": 1470
+                  "max_body_uses": 1483
                 },
                 {
                   "band": 5,
@@ -3787,7 +3787,7 @@
                   },
                   "shape": "PROTOCOL-NEVER-PARTED",
                   "protocol_parted": false,
-                  "max_body_uses": 831
+                  "max_body_uses": 836
                 },
                 {
                   "band": 5,
@@ -3818,7 +3818,7 @@
                   },
                   "shape": "EMISSION",
                   "protocol_parted": true,
-                  "max_body_uses": 428
+                  "max_body_uses": 429
                 }
               ],
               "examples_capped_at": 25,
@@ -3938,7 +3938,7 @@
     "file": "data/meta-usage.json",
     "read": "LIVE — not in the frozen release",
     "generated": "2026-08-26",
-    "species_with_a_usage_figure": 258,
+    "species_with_a_usage_figure": 260,
     "base_forme_fallbacks": 6,
     "base_forme_note": "A mega forme has no row of its own and falls back to the dex's baseSpecies, counted here. Without it every mega ranked UNKNOWN in a format whose mega usage is ~26%.",
     "error": null
@@ -14334,7 +14334,7 @@
     "input_digest": "9446a684709d",
     "input_rows": 643,
     "input_generated": "2026-08-23T09:53:56.393Z",
-    "input_live_digest": "0bd74a98f16d",
+    "input_live_digest": "5efeec637bd6",
     "pinned": true,
     "matches_live": false,
     "selects_from": 580,
@@ -14346,12 +14346,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "419e9636ec6a",
-  "engine_release_cut": "2026-08-26T06:39:00.164Z",
+  "engine_release": "7fc604e5bc44",
+  "engine_release_cut": "2026-08-26T08:05:11.373Z",
   "engine_release_cuts": 2,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "f3dc52694b14",
+    "engine/medicham2-browser.js": "83ca0b1d4881",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "a9de35b3808d",
     "engine/position_features.js": "4850adf1a2ab",

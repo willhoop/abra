@@ -59,7 +59,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  715/715 probed mechanics live, 0 missing   (census 2026-08-26 03:39)
+  716/716 probed mechanics live, 0 missing   (census 2026-08-26 04:19)
   0/6000 differential comparisons disagree with Showdown   (2026-08-25 17:58)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -72,15 +72,231 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0a982abaeb5a now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 3fe2c5400ddf now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 4135bcf000a5 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 277/295 probed, 18 unprobed
 ```
 
-_stamped 2026-08-26 03:44_
+_stamped 2026-08-26 04:30_
 
 <!-- /GENERATED -->
+
+## THE SIDE GUARDS IMPLEMENTED HALF OF `checkMoveBypassesProtect`, AND A PIERCING ABILITY WAS REFUSED BY THE ONE PROTECTION IT SHOULD WALK THROUGH. CENSUS 715 -> 716. GATE CLAUSE AND BOARD-MATERIAL BOTH UNMOVED, AS PREDICTED. 2026-08-26.
+
+Handed over by the previous batch as a defect it had **found and deliberately not fixed** — touching the
+simulator would have voided the four gate clauses it had just measured. That is the photograph rule
+working, and this is the batch that owed it a probe.
+
+### THE DEFECT: ONE CLAUSE OF ONE FUNCTION, AND IT HAD TWO CALLERS THAT COULD NOT SEE IT
+
+The authority, whole (`sim/battle.ts:1300-1309`):
+
+```js
+checkMoveBypassesProtect(move, attacker, defender, blockStatus = true) {
+  if ((move.category !== 'Status' || blockStatus) && move.flags['protect'] &&
+      this.runEvent('HitProtect', attacker, defender, move)) {            // <- CLAUSE 2
+    return false;                                                        //    BLOCKED
+  }
+  if (move.isZOrMaxPowered && !['gmaxoneblow','gmaxrapidflow'].includes(move.id)) {
+    defender.getMoveHitData(move).bypassProtect = true;                   // <- CLAUSE 3
+  }
+  return true;
+}
+```
+
+`guardRefusalOf` implemented **clause 1 only** — `move.flags['protect']`, through our `ignoresProtect`
+tag, which is the Feint door. Clause 2 is `runEvent('HitProtect')`, the hook **both** of this format's
+piercing abilities answer: Champions' **Unseen Fist** (`onModifyMove: undefined`, then an
+`onHitProtect`) and **Piercing Drill**, byte-identical handlers, one legal carrier each —
+**Golurk-Mega** and **Excadrill-Mega**, derived through `champions_sim.abilityCarriers`, not recalled.
+
+Wide Guard's and Quick Guard's conditions call that identical function. So the mon-level shield had
+pierced correctly since WIRE 158 and the **side condition refused every pierce**, which is exactly why
+it was invisible: the mechanic fired, at one of its two doors.
+
+**CLAUSE 3 IS NOT WIRED AND CANNOT FIRE HERE, SAID OUT LOUD RATHER THAN LEFT TO BE FOUND.**
+`isZOrMaxPowered` is set only by a Z-move or a Max move. Gen 9 has neither, and
+`gen9championsvgc2026regmb` has no Dynamax clause to lift because there is nothing to lift. If a later
+regulation reintroduces either, that is the line that has to grow. It is named in the code.
+
+### MEASURED IN THE OFFICIAL SIMULATOR BEFORE A BYTE MOVED
+
+Seed `[1,2,3,4]`, both foes' `maxhp` x8, Wide Guard up on the foe side, a Gliscor clicking **Breaking
+Swipe** (contact, `allAdjacentFoes`, -1 Atk) with **Make It Rain** (no contact) behind it from the ally:
+
+| arm | Pelipper | Garchomp | Atk | `-activate move: Wide Guard` | ally's Make It Rain |
+|---|---|---|---|---|---|
+| no ability | **0** | **0** | 0 / 0 | **4** | refused |
+| Unseen Fist | **5** | **9** | **-1 / -1** | **0** | still refused |
+| Piercing Drill | **5** | **9** | **-1 / -1** | **0** | still refused |
+
+and the two lines the quarter writes, per target, in the authority's own order:
+
+```
+  |move|p1a: Gliscor|Breaking Swipe|p2b: Garchomp|[spread] p2a,p2b
+  |-ability|p1a: Gliscor|Unseen Fist
+  |-zbroken|p2a: Pelipper
+  |-supereffective|p2b: Garchomp|1
+  |-ability|p1a: Gliscor|Unseen Fist
+  |-zbroken|p2b: Garchomp
+```
+
+**The premise reproduced in shape and sign.** The brief recorded *5 and 10*; this staging reads
+**5 and 9** — one HP apart on a different set, not a different mechanic. What matters is 0 -> non-zero
+with `-1 Atk` on both, against a no-ability control that stays at 0 with four refusals announced.
+
+**THE SIDE CONDITION SURVIVES A PIERCE, AND THAT IS THE HALF A FEINT DOES DIFFERENTLY.** `-activate` is
+never written — `wideguard.condition.onTryHit` returns above its own `this.add` — but the condition is
+still up, so the ALLY's Make It Rain is refused in every pierce arm (`spa` stays 0, two refusals
+announced). `hitStepBreakProtect` removes it; `bypassProtect` does not.
+
+### THE FIX IS ONE FUNCTION, NOT A WIDE GUARD BRANCH
+
+`_pierceP` was an inline IIFE at the attack site. It is now `hitProtectBypass(attacker, moveId, count)`,
+clause for clause unchanged, and it has three readers: the damage path, `guardRefusalOf`, and the
+chooser's threat scan. Two readers of one fact is what the FACTS-ARE-GLOBAL rule exists to stop, and a
+fix keyed to Wide Guard would have been the gate-built-from-an-instance failure this repo has paid for
+three times.
+
+`guardRefusalOf` now returns a **third** answer, `'pierced'` — the guard's class matched and clause 2
+walked the move through. It is not a fourth boolean because the two cases have different consequences:
+a pierced hit is quartered and announces the ability, a hit the guard never applied to is neither.
+Every existing caller compares against `true`, so the chooser reads it correctly with no edit — a guard
+that will be pierced stops counting as worth clicking.
+
+**THE QUARTER FOLLOWS THROUGH THE SAME DOOR THE AUTHORITY USES.** `bypassProtect` is ONE flag on the
+target's move-hit data, set inside `checkMoveBypassesProtect` by whichever protection consulted it and
+read back in `champions/scripts.ts:299` as the FINAL damage modifier, after `ModifyDamage`. This engine
+now carries `_guardPierced` for the same job, declared at the top of the per-action iteration because
+the two guard questions are asked hundreds of lines apart — the non-spread one above the kind dispatch
+and the spread one inside the attack branch — and a flag hung on the action or the mon would survive
+into a turn that raised no guard.
+
+**BOTH DOORS, NOT JUST THE SPREAD ONE.** Wiring only Wide Guard's site would have left Quick Guard
+letting a pierced Fake Out / Bullet Punch / Aqua Jet through at **full** damage, which is a worse defect
+than the one being fixed. `sideGuardRefuses` takes an `out` object at both execution sites; the
+chooser passes none and is unaffected by the counting.
+
+### THE PROBE, RED FIRST, AND THE PROBE THAT WAS PINNING THE BUG
+
+`tests/test-mechanics.js`, census **715 -> 716, 0 missing, 0 hollow, 0 unarmed**:
+
+- `piercesProtect` — *a piercing ability walks through a WIDE GUARD at a quarter — its ally does not.*
+  Shown **RED** on the clean engine first: no-ability `[[0,0],4,[0,0]]` and **UNSEEN FIST
+  `[[0,0],4,[0,0]]` — byte-identical arms, which is what an unwired knob looks like from outside.**
+  Green after: `[[7,14],2,[-1,-1]]`, `-ability` said 2x, `sideGuardPierced +1`, ally `spa` 0.
+- `MEDI_GUARD_NO_HITPROTECT=1` takes clause 2 back out and **both** rows go MISSING on demand.
+
+**FOUR CONTROLS, EACH REMOVING ONE THING**, because a fixture that is immune for a second reason proves
+nothing:
+
+| control | reads | what it fixes |
+|---|---|---|
+| no ability | `[0,0]`, 4 refusals | the guard works at all |
+| the ALLY's Make It Rain | refused in **every** arm | the bypass is per MOVE, not per side |
+| **Rock Slide** off the same piercer | `[0,0]` with the guard, **`[70,18]` without it** | `onHitProtect` gates on `flags['contact']` — and the zero is the guard, not the fixture |
+| no guard raised | `[28,58]` | the quarter's denominator: 7/28 and 14/58 |
+
+**THE NON-CONTACT CONTROL WAS WORTHLESS IN ITS FIRST DRAFT AND THAT IS RECORDED RATHER THAN QUIETLY
+FIXED.** It used Earth Power, and Pelipper is Water/**Flying** — a Ground move reads 0 whether the guard
+refused it or not. Rock Slide is 2x into Pelipper and 0.5x into Garchomp; neither is zero.
+
+**AND THE `counted === 2` ASSERTION WAS WRONG BEFORE THE ENGINE WAS.** `sideGuardPierced` reads **1**
+where `-ability` reads **2**: the guard is asked ONCE PER MOVE (a side condition refuses a spread click
+as a whole) while `bypassProtect` is per TARGET. The probe was corrected, not the engine.
+
+**THE `breaksProtect` WIDE-GUARD PROBE WAS ASSERTING THE DEFECT.** It read
+`spread === [0,0]` for both piercers — its own closing sentence said the authority disagreed, which is
+why this is a correction and not a discovery, but a probe that ASSERTS a known-wrong number is pinning
+it. Its claim is unchanged (*a pierce is not a break*) and is now read off the two things that actually
+separate the mechanisms — `spa`, because Make It Rain's own -2 only pays when it FIRES, and a new
+`refused` count, two in every arm the guard still stands in and zero once a Feint has torn it down —
+rather than off one damage total that conflated the opener with the ally.
+
+### WHAT MOVED, AND THE PREDICTION THAT WAS PUBLISHED BEFORE THE RUN
+
+**PREDICTED IN ADVANCE: the pinned pool does not move.** The conjunction is narrow — a Wide or Quick
+Guard side condition up, an attacker carrying one of the format's TWO piercing abilities (one legal
+carrier each, both MEGA formes), and that attacker clicking a CONTACT move of the guard's class on the
+same turn. This is a LAB mechanic; the census is where it shows.
+
+| | before, `419e9636ec6a` | after, `7fc604e5bc44` | moved |
+|---|---|---|---|
+| census live / missing | 715 / 0 | **716 / 0** | **+1** |
+| **THE GATE CLAUSE** — undeclared whole-game PROTOCOL divergence | 21 raw − 5 declared = **16** / 961 | 21 − 5 = **16** / 961 | **none** |
+| **BOARD-MATERIAL** — `state.games − state.games_board_never_diverged` | **13** / 961 | **13** / 961 | **none** |
+| `planted_divergence_proof_ok` | true | true | — |
+| roster / items | WITHHELD (other bytes) | **139 of 148, DIFFER 0, DID-NOT-FIRE 0** | re-run |
+| roster / abilities | WITHHELD (other bytes) | **129 of 202, DIFFER 0, DID-NOT-FIRE 0** | re-run |
+| roster / moves | WITHHELD (other bytes) | **475 of 500, DIFFER 0, DID-NOT-FIRE 0** | re-run |
+| `all-mechanics-fire` diverged | moves 13 / abilities 3 / items 1 | **moves 13 / abilities 3 / items 1** | none |
+
+**THE TWO WHOLE-GAME FIGURES ARE NOT THE SAME QUANTITY** — the reconcile the previous batch cost.
+The gate clause is *undeclared protocol divergence*; board-material is
+`state.games − state.games_board_never_diverged`. Both are quoted above, separately, in every row.
+
+**THE SAMPLES ARE PROVEN IDENTICAL, NOT ASSUMED.** Against the `HEAD` artifact: the same **21**
+first divergences in the same order, `classes` byte-identical, `coverage` byte-identical, `state`
+identical apart from the release id stamped inside one case. `--games 1200 --arm middle --turns 12
+--team-store data/team-pool-frozen --census data/verification/census-pin-9446a684709d.json --state
+--end-state`, 961 games, pool `0d103fb9fa87`, 5 declared `AUTHORITY-WRONG` rows on both sides.
+`generated` moved `06:47:32.893Z -> 08:12:45.953Z` and was checked before any number was read.
+
+### THE HAND LIST
+
+**Leaving it — it is a probe now:**
+- ~~a piercing ability does not go through a side guard~~ — **CLOSED.** One probe, five arms, red first,
+  red on demand under `MEDI_GUARD_NO_HITPROTECT=1`; and the `breaksProtect` probe that was asserting the
+  zero is corrected in the same pass.
+
+**Still open, filed with its evidence:**
+- **`p2.active[1].stall  medicham 0 / showdown 3`**, turn 8, config `baseline`, seeds
+  `gen9championsvgc2026regmbbo3-2662815123 vs -2662930043`. The authority holds a stall counter this
+  engine does not, on a game whose protocol NEVER parted. One game of 961. Carried forward unmoved.
+- **`-zbroken` on a pierced protection stays undeclared** — and it is now a pierced SIDE GUARD as well as
+  a pierced Protect. `derive_protocol_events.js` records it as a Z-move display leftover the champions
+  mod re-uses and drops it from the comparison; the `-ability` half IS emitted and IS compared. A
+  declared drop, not an absence.
+- **`tests/test-resolution-order.js` DIES OOM AT NODE'S DEFAULT HEAP** — `FATAL ERROR: Reached heap
+  limit`, exit 134, after ~17 `release store OVERRIDDEN` lines. **It is red identically at HEAD**,
+  proved by putting `git show HEAD:engine/medicham2-browser.js` in place and re-running: same exit 134,
+  same message. It **PASSES clean at `--max-old-space-size=6144`** — 26 arms staged, 1 KNOWN-OPEN, 0
+  failing. So the engine is fine and the instrument opens one release per arm. Not mine, not waived,
+  reported; it needs a register row and its own pass.
+- **`data/protocol-events.json` is UNSAFE and was already** — it declares `engine/medicham2-browser.js`
+  at `9342df51e757`; HEAD is `2fb89f83be8f` and this tree is `83ca0b1d4881`, so **neither** matches and
+  the staleness predates this batch. This batch emits no new event kind (the `-ability` line is already
+  claimed), so re-deriving it here would move an artifact for reasons this batch cannot attribute.
+  Reported, left.
+
+### OWED, NOT RUN
+
+- `tests/run-all.js` — not run. The targeted gates that WERE run and passed: `test-mechanics`
+  (716/716), `test-wiring`, `test-engine-consistency`, `test-protocol-trace`, `test-volatile-duration`,
+  `test-encore-fail-silent`, `test-bracket-regain`, `test-game-diff`, `test-mc-seal`,
+  `test-immunity-gate`, `test-roster-arm-pin`, `test-damage-roll-support`, `test-end-state`,
+  `test-coverage-stop`, and `test-resolution-order` at a raised heap.
+- `tests/test-engine-diff.js` exits **3** at its default sample — `PUBLISH REFUSED`, a verification run
+  declining to overwrite a 6,000-row artifact with 150 rows. **150/150 agree at every one of the 16
+  indices**; the 6,000 figure in the ledger is `2026-08-25 17:58` and is NOT re-measured here. A full
+  6,000-row re-run under this release is owed.
+- `engine/quarantine.js --check` — not run directly; `engine/status.js` computes the same clauses and
+  its output is stamped into the GENERATED block above.
+- `tests/interaction_matrix.js` — not re-run; the ledger figure is `2026-08-11` and predates this batch
+  by two weeks.
+- `engine/wire_ladder.js` — `data/wire-ladder.json` is UNSAFE for store drift, pre-existing.
+
+### LEFT ALONE, REPORTED
+
+- `.scratch_eng/`, `data/_pair-pilot.json`, `data/medicham-represented-clicks.json` and
+  `docs/_reports/2026-08-26-crlf-remainder.md` are another session's. Untouched.
+- `build/md_to_pdf.js`, `data/conformance.json`, `data/archetypes.json`, `data/forme-assert.json`,
+  `data/regulation-usage.json`, `data/rulebook-collision.json`, `data/switch-back-renamed.json`,
+  `data/kad-replays.js`, `data/live.js`, `data/job-costs.jsonl` and
+  `data/verification/engine-diff.n150.json` are modified in the working tree by the other live agent or
+  by generators this pass ran through. **Not part of this commit — added by name only.**
+
 
 ## A SLEEPING BODY WAS RAISING A PROTECT, AND THE COUNTER IT ARMED NEVER LAPSED. GATE CLAUSE 17 -> 16, BOARD-MATERIAL 17 -> 13 OF 961, CENSUS 710 -> 715. 2026-08-26.
 

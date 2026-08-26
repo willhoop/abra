@@ -10,6 +10,71 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.136.4] — 2026-08-26
+
+### Fixed
+- **A PIERCING ABILITY WAS REFUSED BY A WIDE GUARD, BECAUSE `guardRefusalOf` IMPLEMENTED HALF OF
+  `checkMoveBypassesProtect`.** The authority's function has two live clauses: `move.flags['protect']`
+  (clause 1, the Feint door, which this engine had as the `ignoresProtect` tag) and
+  `runEvent('HitProtect', ...)` (clause 2), which is the hook Champions' **Unseen Fist** and **Piercing
+  Drill** both answer with byte-identical `onHitProtect` handlers. Wide Guard's and Quick Guard's
+  conditions call that same function the mon-level shield calls — so the shield had pierced correctly
+  since WIRE 158 while **the side condition refused every pierce.** Measured in the official simulator
+  first: a pierced Breaking Swipe into a Wide Guard deals **5 and 9 HP with -1 Atk on both bodies**,
+  writes an `-ability` + `-zbroken` pair per target and **no** `-activate`; this engine dealt **0**, the
+  same answer as the no-ability control, which is the unwired-knob signature. Handed over by the
+  previous batch as found-and-deliberately-not-fixed, because touching the simulator would have voided
+  the gate clauses it had just measured.
+- **THE FIX IS ONE FUNCTION AND BOTH DOORS, NOT A WIDE GUARD BRANCH.** The inline `_pierceP` IIFE at
+  the attack site is now `hitProtectBypass(attacker, moveId, count)` with three readers — the damage
+  path, `guardRefusalOf` and the chooser's threat scan — because two readers of one fact is what the
+  FACTS-ARE-GLOBAL rule exists to stop. `guardRefusalOf` returns a third answer, `'pierced'`, which
+  every existing caller already reads correctly as "not refused". `sideGuardRefuses` reports it through
+  an `out` object at **both** execution sites: the spread door and the non-spread Quick Guard door,
+  since wiring only the first would have let a pierced Fake Out or Bullet Punch through at **full**
+  damage — a worse defect than the one being fixed. `_guardPierced` carries the authority's
+  `bypassProtect` to the quarter, which is the FINAL damage modifier (`champions/scripts.ts:299`) and
+  does not care which protection was consulted, so the `-ability` line lands too.
+- **`tests/test-mechanics.js` WAS ASSERTING THE DEFECT.** The `breaksProtect` Wide Guard probe demanded
+  `spread === [0,0]` from both piercers. Its own closing sentence recorded that the authority disagreed,
+  so this is a correction rather than a discovery — but a probe that ASSERTS a known-wrong number is
+  pinning it. Its claim is unchanged (*a pierce is not a break*) and now rests on the two things that
+  separate the mechanisms: `spa`, because Make It Rain's own -2 only pays when it FIRES, and a new
+  refusal count that is two in every arm the guard still stands in and zero once a Feint has torn it
+  down.
+
+### Added
+- **A CENSUS ROW, SHOWN RED FIRST.** `piercesProtect` — *a piercing ability walks through a WIDE GUARD
+  at a quarter — its ally does not.* Five arms with four separating controls: the no-ability guard
+  (`[0,0]`, four refusals), the ally's non-contact Make It Rain (refused in **every** arm — the bypass
+  is per MOVE, not per side), a non-contact **Rock Slide** off the same piercer (`[0,0]` with the guard
+  and `[70,18]` without it, so the zero is the guard), and the unguarded click that sets the quarter's
+  denominator (`[28,58]` against `[7,14]`). **Census 715 -> 716, 0 missing, 0 hollow, 0 unarmed.**
+- **`MEDI_GUARD_NO_HITPROTECT=1`**, which takes clause 2 back out and puts both rows back to MISSING on
+  demand, and **`MEDSEEN.sideGuardPierced`**, the capability's own receipt, asserted non-zero by the
+  probe.
+
+### Notes
+- **PREDICTED BEFORE THE RUN AND CONFIRMED: THE PINNED POOL DOES NOT MOVE.** The conjunction is narrow —
+  a Wide or Quick Guard up, an attacker carrying one of the format's two piercing abilities (one legal
+  carrier each, **Golurk-Mega** and **Excadrill-Mega**, derived and not recalled), and that attacker
+  clicking a CONTACT move of the guard's class on the same turn. Gate clause **16 of 961 -> 16**,
+  board-material **13 of 961 -> 13**, and the samples are proven identical rather than assumed: the same
+  21 first divergences in the same order, `classes` and `coverage` byte-identical against the previous
+  artifact. **The two whole-game figures are different quantities** — the gate clause is undeclared
+  protocol divergence, board-material is `state.games − state.games_board_never_diverged` — and both are
+  quoted separately here because conflating them cost a reconcile in 5.136.2.
+- Engine release **`7fc604e5bc44`** cut. The three deliberate roster stages, WITHHELD by `status.js` for
+  having been measured against other bytes, are re-run clean on it: items **139 of 148**, abilities
+  **129 of 202**, moves **475 of 500**, `FIRED-AND-BOARDS-DIFFER` and `DID-NOT-FIRE` **0** on all three.
+  `data/all-mechanics-fire.json` re-run and unmoved at moves 13 / abilities 3 / items 1.
+- **RED, NOT MINE, REPORTED RATHER THAN FILED.** `tests/test-resolution-order.js` dies with
+  `FATAL ERROR: Reached heap limit` at node's default heap and is **red identically at HEAD** — proved
+  by putting `git show HEAD:engine/medicham2-browser.js` in place and re-running. It PASSES clean at
+  `--max-old-space-size=6144`: 26 arms staged, 1 KNOWN-OPEN, 0 failing. The instrument opens one release
+  per arm; it needs a register row and its own pass. `data/protocol-events.json` is UNSAFE and already
+  was — it declares a `medicham2-browser.js` digest that matches neither HEAD nor this tree.
+
 ## [5.136.3] — 2026-08-26
 
 ### Added

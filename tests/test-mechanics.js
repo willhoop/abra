@@ -4091,6 +4091,136 @@ probe('ability', 'piercesProtect', 'a PIERCE leaves the shield standing, so the 
                  + 'and the turn total stays below the Feint arm\'s' };
 });
 
+/* 2026-08-26 -- THE SECOND CLAUSE OF `checkMoveBypassesProtect`, AND `guardRefusalOf` HAD ONLY THE FIRST.
+ *
+ * THE AUTHORITY (sim/battle.ts:1300-1309), both clauses:
+ *
+ *     checkMoveBypassesProtect(move, attacker, defender, blockStatus = true) {
+ *       if ((move.category !== 'Status' || blockStatus) && move.flags['protect'] &&
+ *           this.runEvent('HitProtect', attacker, defender, move)) {      // <- CLAUSE 2
+ *         return false;                                                  //    BLOCKED
+ *       }
+ *       if (move.isZOrMaxPowered && !['gmaxoneblow','gmaxrapidflow'].includes(move.id)) {
+ *         defender.getMoveHitData(move).bypassProtect = true;            // <- no Z/Max in gen 9
+ *       }
+ *       return true;
+ *     }
+ *
+ * `guardRefusalOf` implemented `move.flags['protect']` (as `ignoresProtect`) and nothing else, so the
+ * SIDE guards -- Wide Guard and Quick Guard, both of whose conditions call this one function -- were
+ * the only protection in the game a pierce could not walk through. The mon-level shield already
+ * pierced correctly (the three probes above), which is exactly why this was invisible: the mechanic
+ * fired, and it fired at one of the two doors.
+ *
+ * MEASURED IN THE OFFICIAL SIMULATOR FIRST, seed [1,2,3,4], both foes' maxhp x8, Wide Guard up on the
+ * foe side and a Gliscor clicking Breaking Swipe (contact, allAdjacentFoes) with the ally clicking
+ * Make It Rain (no contact) behind it:
+ *     no ability       |-activate|p2a: Pelipper|move: Wide Guard   x4   -- both spread moves refused
+ *     Unseen Fist      |-ability|p1a: Gliscor|Unseen Fist          x2   then 5 and 9 HP and -1 Atk on
+ *     Piercing Drill   |-ability|p1a: Gliscor|Piercing Drill       x2   BOTH, byte-identical arms
+ * and in the two pierce arms the ALLY's Make It Rain is STILL refused (`spa` stays 0), because the
+ * bypass is per-move: the side condition is not removed the way a Feint removes it.
+ *
+ * THE QUARTER RIDES THE SAME FLAG. `bypassProtect` is read in champions/scripts.ts:299 as the FINAL
+ * damage modifier, after `ModifyDamage`, and it does not care WHICH protection was consulted -- so a
+ * hit that walks through a side guard is quartered exactly like one that walks through a Protect.
+ * The `open` arm is the same click with no guard raised, and the pierced hit must be ~1/4 of it.
+ *
+ * FOUR CONTROLS, EACH REMOVING ONE THING:
+ *   no ability          the guard refuses everything          -> lost [0,0], the guard announces 4x
+ *   the ALLY's move     no contact, no pierce                 -> refused in EVERY arm (spa stays 0)
+ *   no guard raised     the pierce has nothing to walk through-> FULL damage, which sets the quarter
+ *   a NON-CONTACT move  Rock Slide off the same piercer        -> refused, because `onHitProtect`
+ *                                                               gates on `move.flags['contact']`, and
+ *                                                               the same click with no guard raised
+ *                                                               proves the zero is the guard
+ *
+ * ROCK SLIDE AND NOT EARTH POWER, and the first draft used Earth Power and was WORTHLESS: Pelipper is
+ * Water/Flying, so a Ground move reads 0 whether the guard refused it or not. A control that is
+ * immune for a second reason proves nothing. Rock Slide is 2x into Pelipper and 0.5x into Garchomp --
+ * neither is zero -- and it is `allAdjacentFoes` with no `flags.contact`, which is the one knob. */
+probe('ability', 'piercesProtect', 'a piercing ability walks through a WIDE GUARD at a quarter — its ally does not', () => {
+  const run = (ability, mv, guard, ally) => {
+    const B = board('gliscor', 'gholdengo', 'pelipper', 'garchomp');
+    const trace = []; B.S._trace = trace;
+    const c0 = M.seen ? M.seen.sideGuardPierced : null;
+    B.me.ability = ability || 'none';
+    unfaintable(B.f1); unfaintable(B.f2);
+    const b1 = B.f1.curHP, b2 = B.f2.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)],
+               [B.ally, ally ? M.playerAction(B.ally, ally, B.f1, B.S.field) : { kind: 'pass' }]]),
+      guard ? new Map([[B.f1, { kind: 'wideguard', mv: 'wideguard' }], [B.f2, { kind: 'pass' }]])
+            : new Map([[B.f1, { kind: 'pass' }], [B.f2, { kind: 'pass' }]]));
+    return {
+      raised: trace.filter(l => /-singleturn\|.*Wide Guard/i.test(l)).length,
+      refused: trace.filter(l => /-activate\|.*move: Wide Guard/i.test(l)).length,
+      said: trace.filter(l => /^\|-ability\|/.test(l) && new RegExp(ability || '\\0', 'i').test(l)).length,
+      lost: [b1 - B.f1.curHP, b2 - B.f2.curHP],
+      atk: [B.f1.boosts.at, B.f2.boosts.at],
+      spa: B.ally.boosts.sa,
+      /* THE CAPABILITY'S OWN RECEIPT. The `-ability` count above proves the DAMAGE path took the
+       * pierce branch; this proves the REFUSAL path did, rather than the guard's class predicate
+       * simply having answered false for some unrelated reason.
+       *
+       * IT IS 1 WHERE `said` IS 2, AND THAT IS THE RIGHT SHAPE RATHER THAN A MISS. The guard is asked
+       * ONCE PER MOVE -- a side condition refuses a spread click as a whole, which is why the engine's
+       * Wide Guard branch empties the target list in one go -- while `bypassProtect` is per TARGET in
+       * the authority and the `-ability` line is written inside the per-target damage loop. Asserting
+       * 2 here was this probe's first draft and it was the PROBE that was wrong. */
+      counted: M.seen ? M.seen.sideGuardPierced - c0 : null,
+    };
+  };
+  if (!MC.moves['breakingswipe'] || !MC.moves['makeitrain'] || !MC.moves['rockslide'])
+    return { works: false, detail: 'a fixture move is absent from MC.moves' };
+  const none = run(null, 'breakingswipe', true, 'makeitrain');
+  const unseen = run('unseenfist', 'breakingswipe', true, 'makeitrain');
+  const drill = run('piercingdrill', 'breakingswipe', true, 'makeitrain');
+  const nocontact = run('unseenfist', 'rockslide', true, 'makeitrain');
+  /* THE QUARTER'S DENOMINATOR IS THE PIERCER'S OWN CLICK AND NOTHING ELSE, and the first draft got
+   * this wrong in the flattering direction: with no guard up the ALLY's Make It Rain lands too, so
+   * `open.lost` was Breaking Swipe PLUS Make It Rain and the ratio read 0.072 instead of 0.25 — a
+   * correct engine failing on the probe's arithmetic. The ally PASSES in the two open arms. Both
+   * foes are still in the target array either way, so the spread 0.75 is in both sides of the ratio. */
+  const ncOpen = run('unseenfist', 'rockslide', false, null);
+  const open = run('unseenfist', 'breakingswipe', false, null);
+  /* the pierced hit must be about a quarter of the same click with no guard up. `modify(x, 0.25)`
+   * rounds at 4096, so this is a band and not an equality — the same band the Protect probe uses. */
+  const q = (r, i) => open.lost[i] > 0 && r.lost[i] > 0
+                      && Math.abs(r.lost[i] / open.lost[i] - 0.25) < 0.06;
+  const pierced = (r) => r.raised === 1 && r.refused === 2 && r.said === 2 && r.counted === 1
+                         && r.lost[0] > 0 && r.lost[1] > 0
+                         && r.atk[0] === -1 && r.atk[1] === -1
+                         && r.spa === 0 && q(r, 0) && q(r, 1);
+  return { works: none.raised === 1 && none.refused === 4 && none.said === 0
+                  && none.lost[0] === 0 && none.lost[1] === 0 && none.counted === 0
+                  && none.atk[0] === 0 && none.atk[1] === 0 && none.spa === 0
+                  && nocontact.raised === 1 && nocontact.refused === 4 && nocontact.said === 0
+                  && nocontact.lost[0] === 0 && nocontact.lost[1] === 0
+                  && ncOpen.lost[0] > 0 && ncOpen.lost[1] > 0
+                  && open.raised === 0 && open.refused === 0
+                  && pierced(unseen) && pierced(drill),
+           arms: { control: [none.lost, none.refused, none.atk],
+                   test: [unseen.lost, unseen.refused, unseen.atk] },
+           detail: '[what the two foes lost, Wide Guard refusals announced, their Atk stages] — one '
+                 + 'Wide Guard on the foe side, Gliscor clicks Breaking Swipe, Gholdengo clicks Make '
+                 + 'It Rain behind it. NO ABILITY ' + JSON.stringify([none.lost, none.refused, none.atk])
+                 + ', sideGuardPierced +' + none.counted + ' (both spread moves refused, 4 announcements, '
+                 + 'and the pierce branch was never taken)   |   UNSEEN FIST '
+                 + JSON.stringify([unseen.lost, unseen.refused, unseen.atk]) + ', -ability said '
+                 + unseen.said + 'x, sideGuardPierced +' + unseen.counted + ', ally spa ' + unseen.spa
+                 + '   |   PIERCING DRILL '
+                 + JSON.stringify([drill.lost, drill.refused, drill.atk]) + ', -ability said '
+                 + drill.said + 'x, sideGuardPierced +' + drill.counted + ', ally spa ' + drill.spa
+                 + '   |   NON-CONTACT control (Rock Slide off the same piercer) '
+                 + JSON.stringify([nocontact.lost, nocontact.refused]) + ' — refused, and the same '
+                 + 'click with NO guard deals ' + JSON.stringify(ncOpen.lost) + ', so the zero is the guard'
+                 + '   |   NO GUARD control (the quarter\'s denominator) ' + JSON.stringify(open.lost)
+                 + ' — the pierced hits must be ~0.25 of it, only the piercer\'s OWN move gets '
+                 + 'through (the ally\'s Make It Rain stays refused, spa 0), and the guard must '
+                 + 'still announce its 2 refusals of that ally move' };
+});
+
 /* 2026-08-26 -- EACH SHIELD'S OWN SECONDARY, AND THE CONTROL IS A SHIELD THAT DID NOT BLOCK. Will:
  * *"test the protect variants as well like baneful bunker and kings shield and make sure their
  * secondary effects proc."*
@@ -8638,7 +8768,20 @@ probe('move', 'breaksProtect', 'Feint sweeps the target side\'s Quick Guard, so 
  *     PIERCE      the side condition SURVIVES and Make It Rain is still refused
  * and `volatiles.stall.counter` on Pelipper reads 3 in every arm the Feint did not break, which is
  * the correction to the claim that the two Guards sit outside the shared counter: `onHitSide` adds
- * `stall` to the SOURCE. Quick Guard carries the byte-identical handler -- checked, not assumed. */
+ * `stall` to the SOURCE. Quick Guard carries the byte-identical handler -- checked, not assumed.
+ *
+ * CORRECTED 2026-08-26 -- THIS PROBE ASSERTED THE PIERCE ARMS AT [0,0] AND THAT WAS THE ENGINE'S BUG,
+ * NOT THE GAME'S. Its own closing line said so ("the authority lets the PIERCER's own Breaking Swipe
+ * through the same Wide Guard and this engine deals 0"), which is why this is a correction and not a
+ * discovery -- but a probe that ASSERTS a known-wrong number is PINNING it, and this one asserted
+ * `spread === [0,0]` for both piercers. `guardRefusalOf` now implements clause 2 of
+ * `checkMoveBypassesProtect`, so the PIERCER's own Breaking Swipe lands quartered while the ALLY's
+ * Make It Rain is still refused.
+ *
+ * THE CLAIM THIS PROBE MAKES IS UNCHANGED -- a pierce is not a break -- and it is now read off the two
+ * things that actually separate them rather than off one number that conflated them: `spa` (Make It
+ * Rain's own -2 only pays when it FIRES) and `refused` (the guard announces two refusals of the ally's
+ * move in every arm it still stands in, and none once a Feint has torn it down). */
 probe('move', 'breaksProtect', 'Feint tears down a Wide Guard, so the ALLY\'s spread move connects -- a pierce does not', () => {
   const run = (opener, ability) => {
     const B = board('gliscor', 'gholdengo', 'pelipper', 'garchomp');
@@ -8658,6 +8801,10 @@ probe('move', 'breaksProtect', 'Feint tears down a Wide Guard, so the ALLY\'s sp
       /* THE PAYLOAD: what the two foes lost to the ALLY's spread move, read as damage rather than
        * as a flag -- the condition is `duration: 1` and is gone by the time a flag could be read. */
       spread: [b1 - B.f1.curHP, b2 - B.f2.curHP],
+      /* HOW MANY TIMES THE GUARD ANNOUNCED A REFUSAL. Two per spread move it stopped, and zero once a
+       * Feint has torn it down -- so this separates "the guard is gone" from "the guard let one
+       * particular move through", which the damage total on its own cannot. */
+      refused: trace.filter(l => /-activate[|].*move: Wide Guard/i.test(l)).length,
       /* the self-drop is Make It Rain's own `self: {boosts:{spa:-2}}` and only pays when it fires */
       spa: B.ally.boosts.sa,
       /* `onHitSide(side, source) { source.addVolatile('stall'); }` -- the Guard arms the SHARED
@@ -8669,13 +8816,19 @@ probe('move', 'breaksProtect', 'Feint tears down a Wide Guard, so the ALLY\'s sp
   const feint = run('feint', null);
   const unseen = run('breakingswipe', 'unseenfist');
   const drill = run('breakingswipe', 'piercingdrill');
-  const survived = (r) => r.raised === 1 && r.broke === 0 && r.spread[0] === 0 && r.spread[1] === 0
-                          && r.spa === 0 && r.stall === 1;
-  return { works: survived(none)
-                  && feint.raised === 1 && feint.broke === 1
+  /* THE GUARD IS STILL THERE AND THE ALLY IS STILL REFUSED. Nothing about the OPENER's own damage is
+   * in here, which is the whole correction: a pierce and a break both let the OPENER through, and only
+   * what happens to the ALLY tells them apart. */
+  const guardHeld = (r) => r.raised === 1 && r.broke === 0 && r.refused === 2
+                           && r.spa === 0 && r.stall === 1;
+  const pierced = (r) => guardHeld(r) && r.spread[0] > 0 && r.spread[1] > 0
+                         /* the PIERCER's own quartered hit, and nothing like the ally's whole move */
+                         && r.spread[0] < feint.spread[0] && r.spread[1] < feint.spread[1];
+  return { works: guardHeld(none) && none.spread[0] === 0 && none.spread[1] === 0
+                  && feint.raised === 1 && feint.broke === 1 && feint.refused === 0
                   && feint.spread[0] > 0 && feint.spread[1] > 0
                   && feint.spa === -2 && feint.stall === 0
-                  && survived(unseen) && survived(drill),
+                  && pierced(unseen) && pierced(drill),
            arms: { control: [none.spread, none.spa, none.stall],
                    test: [feint.spread, feint.spa, feint.stall] },
            detail: '[what the two foes lost to Make It Rain, Gholdengo spa stage, Pelipper stall '
@@ -8683,7 +8836,7 @@ probe('move', 'breaksProtect', 'Feint tears down a Wide Guard, so the ALLY\'s sp
                  + JSON.stringify([none.spread, none.spa, none.stall]) + ' (blocked, and the Guard arms the shared counter on its own user)   |   FEINT ' + JSON.stringify([feint.spread, feint.spa, feint.stall])
                  + ', break announced ' + feint.broke + 'x (the side condition is REMOVED, so the ally connects to BOTH and pays its own -2 SpA, and the counter is wiped)   |   UNSEEN FIST + Breaking Swipe ' + JSON.stringify([unseen.spread, unseen.spa, unseen.stall])
                  + '   |   PIERCING DRILL + Breaking Swipe ' + JSON.stringify([drill.spread, drill.spa, drill.stall])
-                 + ' -- a pierce bypasses for its OWN move only, so the side condition SURVIVES and the ally is still refused. OPEN AND MEASURED, not asserted here: the authority lets the PIERCER\'s own Breaking Swipe through the same Wide Guard (5 and 10 HP, with -1 Atk on both) and this engine deals 0 -- see the ENGINE hand list.' };
+                 + ' -- a pierce bypasses for its OWN move only: the PIERCER\'s own Breaking Swipe now lands QUARTERED (the quarter itself is asserted against an unguarded click by the piercesProtect WIDE GUARD probe), and the side condition SURVIVES, so the ally\'s Make It Rain is still refused -- spa 0, the guard announced ' + unseen.refused + ' refusals of it, and the shared counter is still armed.' };
 });
 /* THIS PROBE ASKED dmgRange THE WRONG QUESTION AND WAS REWRITTEN, 2026-08-04.
  *

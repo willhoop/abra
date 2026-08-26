@@ -782,6 +782,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * real games says the family is off the path -- 4,924 corpus uses between them, so it should not
    * be. Wide Guard's half was live before this wire and Quick Guard's was structurally impossible. */
   sideGuardBlocked: 0,
+  /* 2026-08-26 -- THE SAME FAMILY, WALKED THROUGH BY `runEvent('HitProtect')`. `protectPierced` below
+   * counts the MON-level shield being pierced; this counts the SIDE condition being pierced, and they
+   * are separate because they were separate doors: the mon-level one has pierced correctly since WIRE
+   * 158 and the side-condition one refused every pierce until today. A zero after games holding both
+   * a pierce carrier and a Wide/Quick Guard means clause 2 is unread again. */
+  sideGuardPierced: 0,
   /* WIRE 149 -- THE CHOOSER SELECTED A SIDE GUARD. `sideGuardBlocked` above counts a guard that was
    * ALREADY UP refusing a move, which says nothing about whether the internal heuristic chooser can
    * pick one -- and it could not pick Quick Guard at all. These two count the SELECTION, split by the
@@ -4450,14 +4456,83 @@ function abilityLabel(id){
  * chooser below asks this HYPOTHETICALLY, once per foe move per turn, and a counter fired here would
  * inflate `sideGuardBlocked` -- the very number this wire is measured by -- with events that never
  * happened. The execution-time wrapper owns the counting; see LESSONS on a probe measuring itself. */
+/* 2026-08-26 -- `runEvent('HitProtect')`, AS A FUNCTION, BECAUSE IT HAS TWO READERS.
+ *
+ * THE AUTHORITY, whole (sim/battle.ts:1300-1309):
+ *
+ *     checkMoveBypassesProtect(move, attacker, defender, blockStatus = true) {
+ *       if ((move.category !== 'Status' || blockStatus) && move.flags['protect'] &&
+ *           this.runEvent('HitProtect', attacker, defender, move)) return false;   // <- CLAUSE 2
+ *       if (move.isZOrMaxPowered && !['gmaxoneblow','gmaxrapidflow'].includes(move.id))
+ *         defender.getMoveHitData(move).bypassProtect = true;                      // <- CLAUSE 3
+ *       return true;
+ *     }
+ *
+ * CLAUSE 3 IS NOT WIRED AND CANNOT FIRE IN THIS FORMAT, said out loud rather than left to be found:
+ * `isZOrMaxPowered` is set only by a Z-move or a Dynamax/Max move, neither of which exists in gen 9,
+ * and `gen9championsvgc2026regmb` has no Dynamax clause to lift because there is nothing to lift. If
+ * a later regulation reintroduces either, this is the line that has to grow.
+ *
+ * CLAUSE 2 is the door BOTH piercing abilities in this format go through -- Champions' Unseen Fist
+ * (`onModifyMove: undefined`, then an `onHitProtect`) and Piercing Drill, byte-identical handlers. It
+ * is a plain `onHitProtect`, so `runEvent`'s target is the ATTACKER and only the attacker's own
+ * ability contributes a handler; nothing on the defender can answer this event.
+ *
+ * WHY IT IS A FUNCTION AND NOT A SECOND COPY OF THE PREDICATE. Until today the pierce was computed
+ * inline in the damage path, so the SIDE guards -- whose conditions call the identical
+ * `checkMoveBypassesProtect` -- had no idea it existed and refused a pierced move outright. Two
+ * readers of one fact is exactly CLAUDE.md's FACTS-ARE-GLOBAL rule, and the damage path now calls
+ * this too rather than keeping its own arithmetic.
+ *
+ * `count` IS OFF FOR THE HYPOTHETICAL READER. `guardRefusalOf` is asked once per foe move per turn by
+ * the chooser, and a counter fired there would inflate a number the wire is judged by -- the same
+ * reason `guardRefusalOf` itself carries none. */
+function hitProtectBypass(attacker, moveId, count){
+  if(!attacker || !moveId) return null;
+  const p = TAGS.param('ability', attacker.ability, 'piercesProtect');
+  if(!p || !p.bypassesProtect) return null;
+  const flag = p.onlyMoveFlag;
+  if(!flag) return p;
+  /* `onlyMoveFlag` NAMING A FLAG NO MOVE CARRIES WOULD SILENTLY PIERCE NOTHING, which is the silent
+   * default this project keeps paying for. `pierceFlagUnknown` is the receipt. */
+  if(!TAGS.withTag || TAGS.withTag('move', flag).length === 0){
+    if(count){
+      MEDFAILS.pierceFlagUnknown++;
+      if(!MEDFAILS.pierceFlagUnknownFirst) MEDFAILS.pierceFlagUnknownFirst = attacker.ability+':'+flag;
+    }
+    return null;
+  }
+  return TAGS.has('move', moveId, flag) ? p : null;
+}
+/* WIRE 149 -- THE REFUSAL, AS A PURE QUESTION. true / false / 'pierced' / null, where null means the
+ * artifact named a `blocks` class this engine has no predicate for. It carries NO COUNTER,
+ * deliberately: the chooser below asks this HYPOTHETICALLY, once per foe move per turn, and a counter
+ * fired here would inflate `sideGuardBlocked` -- the very number this wire is measured by -- with
+ * events that never happened. The execution-time wrapper owns the counting; see LESSONS on a probe
+ * measuring itself.
+ *
+ * 2026-08-26 -- 'pierced' IS A THIRD ANSWER AND NOT A FOURTH BOOLEAN. The guard's CLASS matched, so
+ * the move would have been refused, and `runEvent('HitProtect')` walked it through. The caller has to
+ * be able to tell that apart from "this guard does not block this class" because the two have
+ * DIFFERENT consequences downstream: a pierced hit is quartered and announces the ability, and a hit
+ * the guard never applied to is neither. Every existing caller compares against `true`, so a truthy
+ * string reads as "not refused" in the chooser without an edit. */
 function guardRefusalOf(gid, moveId, ctx){
   if(!gid || !moveId) return false;
-  if(TAGS.has('move', moveId, 'ignoresProtect')) return false;   // checkMoveBypassesProtect, upstream
+  if(TAGS.has('move', moveId, 'ignoresProtect')) return false;   // checkMoveBypassesProtect, clause 1
   const row = GUARD_PRED[sideGuardBlocksClass(gid)];
   if(!row) return null;
-  return !!row.test(ctx);
+  if(!row.test(ctx)) return false;
+  if(GUARD_NO_HITPROTECT) MEDFAILS.guardNoHitProtectRestored=1;
+  else if(ctx && ctx.attacker && hitProtectBypass(ctx.attacker, moveId, false))
+    return 'pierced';                                            // checkMoveBypassesProtect, clause 2
+  return true;
 }
-function sideGuardRefuses(guard, moveId, ctx){
+/* `out`, WHEN GIVEN, RECEIVES `out.pierced = <the guard that was walked through>`. The two execution
+ * sites need it: a guard that was pierced still stood, so its side condition is untouched and its
+ * `-activate` is never written, but the hit that walked through it takes the quarter and names the
+ * ability. The chooser passes no `out` and is unaffected. */
+function sideGuardRefuses(guard, moveId, ctx, out){
   if(!guard || !moveId) return null;
   for(const gid of Object.keys(guard)){
     if(!guard[gid]) continue;
@@ -4465,6 +4540,13 @@ function sideGuardRefuses(guard, moveId, ctx){
     if(r === null){
       MEDFAILS.guardClassUnknown++;
       if(!MEDFAILS.guardClassUnknownFirst) MEDFAILS.guardClassUnknownFirst = gid+':'+(sideGuardBlocksClass(gid)||'(no oneTurnGuard param)');
+      continue;
+    }
+    if(r === 'pierced'){
+      MEDSEEN.sideGuardPierced++;
+      /* the LOUD half of the fallback, at an execution site rather than in the hypothetical reader */
+      hitProtectBypass(ctx && ctx.attacker, moveId, true);
+      if(out) out.pierced = gid;
       continue;
     }
     if(r){ MEDSEEN.sideGuardBlocked++; return gid; }
@@ -4685,7 +4767,11 @@ function foeThreatensGuardClass(gid, live, mine, field){
       /* the same `+_pk` Prankster term the execution gate adds -- a Prankster body's status move is
        * refused at +1, which is more than half of what Quick Guard is for. */
       const pk = (TAGS.has('move',id,'statusCategory') && isPrankster(fo)) ? 1 : 0;
-      if(guardRefusalOf(gid, id, {spread:SPREAD.has(id), priority:movePriority(id,field)+pk}) !== true) continue;
+      /* 2026-08-26 -- `attacker: fo` IS WHAT MAKES CLAUSE 2 REACHABLE FROM THE CHOOSER. Without it a
+       * guard looks worth clicking against a piercing ability's contact move that will walk straight
+       * through it. `guardRefusalOf` answers 'pierced', which is `!== true`, so this line already
+       * reads it correctly and the chooser stops counting that move as a threat. */
+      if(guardRefusalOf(gid, id, {spread:SPREAD.has(id), priority:movePriority(id,field)+pk, attacker:fo}) !== true) continue;
       if(row.worth(fo, id, mine, field)) return true;
     }
   }
@@ -10159,6 +10245,13 @@ const HAZARD_BELOW_FAINT=(typeof process!=='undefined'&&process.env&&process.env
  * the unscoped flag can be shown MISSING on demand. Any run carrying it also carries a non-zero
  * `MEDFAILS.shieldScopedFlagRestored`. Same shape as MEDI_HAZARD_BELOW_FAINT above. */
 const SHIELD_SCOPED_FLAG=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SHIELD_SCOPED_FLAG==='1');
+/* 2026-08-26 -- MEDI_GUARD_NO_HITPROTECT=1 TAKES CLAUSE 2 OF `checkMoveBypassesProtect` BACK OUT of
+ * `guardRefusalOf`, so a Wide Guard or a Quick Guard refuses a piercing ability's own contact move
+ * exactly as this engine did until today. It exists so the census row for the clause can be shown
+ * MISSING on demand -- the row's four arms collapse onto the no-ability control under it, which is
+ * what "an unwired knob gives identical output" looks like from the outside. Any run carrying it also
+ * carries a non-zero `MEDFAILS.guardNoHitProtectRestored`. Same shape as MEDI_SHIELD_SCOPED_FLAG. */
+const GUARD_NO_HITPROTECT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_GUARD_NO_HITPROTECT==='1');
 /* 2026-08-24 -- MEDI_SMART_PROTECT_LINE=1 PUTS THE `|-activate|move: Protect` BACK ON A SMART-TARGET
  * MOVE, i.e. Dragon Darts into a Protecting body announces the shield again, as this engine did until
  * today. Any run carrying it also carries a non-zero `MEDFAILS.smartProtectLineRestored`. Same shape
@@ -18582,6 +18675,14 @@ function battleTurn(S,rng,actsForA,actsForB){
       _updateAll();
       _oppSnap=opportunistSnapshot(actA,actB);
       const it=acts[actIdx];const m=it.mon;
+      /* 2026-08-26 -- DID A SIDE GUARD'S REFUSAL GET WALKED THROUGH BY `runEvent('HitProtect')` ON
+       * THIS ACTION. It is the engine's stand-in for `target.getMoveHitData(move).bypassProtect`, the
+       * flag the authority sets inside `checkMoveBypassesProtect` and reads back as the FINAL damage
+       * modifier (champions/scripts.ts:299). Declared HERE, at the top of the per-action iteration,
+       * because the two questions are asked hundreds of lines apart -- the non-spread guard sits above
+       * the kind dispatch and the spread guard sits inside the attack branch -- and a flag hung on the
+       * action or the mon would survive into a turn that never raised a guard. */
+      let _guardPierced=false;
       /* ---- ROADMAP #262 -- ONE WRITE PER ACTION, AND IT IS AT THE TOP OF THE ACTION ---------------
        *
        * The authority calls `setActiveMove(move, pokemon, target)` on the FIRST line of `runMove`,
@@ -19796,8 +19897,16 @@ function battleTurn(S,rng,actsForA,actsForB){
            * the action, so a reader cannot mistake this for a spread-aware test that happens to be
            * false. */
           if(!(a.move&&a.move.spread)){
+            /* 2026-08-26 -- `attacker: m` CARRIES CLAUSE 2 OF `checkMoveBypassesProtect` INTO THE
+             * NON-SPREAD DOOR TOO. A Quick Guard is the guard that lives here (priority moves), and
+             * every legal priority contact move -- Fake Out, Bullet Punch, Shadow Sneak, Aqua Jet,
+             * Sucker Punch -- is one an Unseen Fist or a Piercing Drill body walks through. The pierce
+             * is recorded on `_guardPierced` rather than acted on here, because the QUARTER and the
+             * `-ability` line are the damage path's and this site is above the kind dispatch. */
+            const _sgOut={};
             const _sgid=sideGuardRefuses(it.side==='A'?field.sgB:field.sgA,_pmv,
-                          {spread:false,priority:movePriority(_pmv,field)+_pk});
+                          {spread:false,priority:movePriority(_pmv,field)+_pk,attacker:m},_sgOut);
+            if(_sgOut.pierced)_guardPierced=true;
             if(_sgid){m._lastMove=_pmv;
               /* `|-activate|TARGET|move: Quick Guard` -- the condition's own onTryHit names the
                * SHIELDED body, not the attacker, and fires once per body it stopped. */
@@ -23725,8 +23834,16 @@ function battleTurn(S,rng,actsForA,actsForB){
        * gets its spread case here too, and the `-activate` names whichever guard did the refusing. */
       {
         const _fsg=it.side==='A'?field.sgB:field.sgA;
+        /* 2026-08-26 -- `attacker: m` CARRIES CLAUSE 2 OF `checkMoveBypassesProtect`. When the guard's
+         * class matches and the attacker's ability answers `HitProtect`, `sideGuardRefuses` reports
+         * `pierced` instead of the guard id: the targets stay in the list, the side condition is NOT
+         * removed (that is Feint's job and a different handler), and NO `-activate` is written --
+         * `wideguard.condition.onTryHit` returns above its own `this.add`. What the pierce owes is
+         * paid in the damage path off `_guardPierced`. */
+        const _sgOut={};
         const _gid=a.move.spread?sideGuardRefuses(_fsg,a.move.id,
-                                   {spread:true,priority:movePriority(a.move.id,field)}):null;
+                                   {spread:true,priority:movePriority(a.move.id,field),attacker:m},_sgOut):null;
+        if(_sgOut.pierced)_guardPierced=true;
         if(_gid){
           if(TR)for(const _wg of targets)TR.act(_wg,'move: '+sideGuardName(_gid));
           targets=[];}
@@ -23801,19 +23918,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `onlyMoveFlag` IS RESOLVED AS A MOVE TAG AND A MISS IS COUNTED, LOUDLY. Our move-side tag for
        * `flags.contact` is literally `contact` (see `mvMakesContact`), so the param resolves without a
        * translation table -- but a param naming a flag no move carries would silently pierce nothing,
-       * which is the silent default this project keeps paying for. `pierceFlagUnknown` is the receipt. */
-      const _pierceP=(function(){
-        const p=TAGS.param('ability',m.ability,'piercesProtect');
-        if(!p||!p.bypassesProtect)return null;
-        const flag=p.onlyMoveFlag;
-        if(!flag)return p;
-        if(!TAGS.withTag||TAGS.withTag('move',flag).length===0){
-          MEDFAILS.pierceFlagUnknown++;
-          if(!MEDFAILS.pierceFlagUnknownFirst)MEDFAILS.pierceFlagUnknownFirst=m.ability+':'+flag;
-          return null;
-        }
-        return TAGS.has('move',a.move.id,flag)?p:null;
-      })();
+       * which is the silent default this project keeps paying for. `pierceFlagUnknown` is the receipt.
+       *
+       * 2026-08-26 -- THIS WAS AN INLINE IIFE AND IS NOW `hitProtectBypass`, unchanged clause for
+       * clause. It had to move: the SIDE guards call the identical `checkMoveBypassesProtect` in the
+       * authority and could not see this predicate from where they run, so a Wide Guard refused every
+       * pierce for as long as the mon-level shield had been letting them through. One fact, one
+       * function (CLAUDE.md, FACTS ARE GLOBAL). */
+      const _pierceP=hitProtectBypass(m,a.move.id,true);
       /* ROADMAP #81 WIRE 1 -- THE CRASH IS AN onMoveFail, NOT AN onMiss, and that is not a rename.
        *
        * `crashOnMiss` was consumed at exactly one site: the accuracy roll. Showdown fires it from
@@ -24734,7 +24846,15 @@ function battleTurn(S,rng,actsForA,actsForB){
          * derived, the multiplier has to be derived with it or a move that legitimately reaches a
          * protected body for another reason would be quartered for nothing.
          * `modify(baseDamage, 0.25)` in champions/scripts.ts -- so md4096, not a truncation. */
-        if(tg.protect&&!_thruProtect&&_pierceP){
+        /* 2026-08-26 -- `_guardPierced` IS THE SECOND DOOR INTO THIS BLOCK, and the authority has no
+         * second door at all: `bypassProtect` is ONE flag on the target's move-hit data, set inside
+         * `checkMoveBypassesProtect` by whichever protection consulted it, and read back here as the
+         * final damage modifier. A Wide Guard and a Protect volatile are two callers of one function,
+         * so a hit that walks through a side condition is quartered and announced EXACTLY like a hit
+         * that walks through a shield -- measured in the authority before this line was written, a
+         * pierced Breaking Swipe into a Wide Guard printing `-ability` + `-zbroken` per target and 5
+         * and 9 HP against 97 and 176 unguarded. */
+        if(((tg.protect&&!_thruProtect)||_guardPierced)&&_pierceP){
           /* ROADMAP #322 -- QUARTERED PER ARRIVAL WHEN THE ARRIVALS ARE REAL. `modify(baseDamage,
            * 0.25)` sits inside `modifyDamage`, which runs inside `getDamage`, which runs inside
            * `spreadMoveHit` -- so the authority quarters each hit, not the total. Quartering the sum

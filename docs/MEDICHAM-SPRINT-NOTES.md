@@ -21,6 +21,59 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A PIERCING ABILITY WAS REFUSED BY A WIDE GUARD — CLAUSE 2 OF `checkMoveBypassesProtect` WAS NEVER WIRED. CENSUS 715 -> 716. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.136.4. Release cut: `7fc604e5bc44`
+(previous `419e9636ec6a`).
+
+**THE DEFECT.** `guardRefusalOf` implemented `move.flags['protect']` — clause 1, the Feint door,
+through our `ignoresProtect` tag — and never `runEvent('HitProtect')`, clause 2, which is the hook
+Champions' **Unseen Fist** and **Piercing Drill** both answer with byte-identical `onHitProtect`
+handlers. Wide Guard's and Quick Guard's conditions call the same `checkMoveBypassesProtect` the
+mon-level shield does, so the shield had pierced correctly since WIRE 158 while **the side condition
+refused every pierce.** Handed over by the previous batch, found and deliberately not fixed there
+because touching the simulator would have voided the gate clauses it had just measured.
+
+**THE AUTHORITY, MEASURED FIRST** (seed `[1,2,3,4]`, foes' `maxhp` x8, Gliscor's Breaking Swipe into a
+Wide Guard with a Gholdengo Make It Rain behind it): no ability `[0,0]` with four
+`-activate|move: Wide Guard`; **Unseen Fist and Piercing Drill both `[5,9]` with `-1 Atk` on both**, an
+`-ability` + `-zbroken` pair per target, **no** `-activate`, and the ALLY's Make It Rain still refused.
+This engine dealt 0 in all three arms — an identical answer across a varied knob, which is the
+unwired-knob signature.
+
+**THE FIX IS ONE FUNCTION.** The inline `_pierceP` IIFE became `hitProtectBypass(attacker, moveId,
+count)` with three readers (the damage path, `guardRefusalOf`, the chooser's threat scan);
+`guardRefusalOf` gained a third answer `'pierced'`; `sideGuardRefuses` reports it through an `out`
+object at both execution sites — the spread door AND the non-spread Quick Guard door, because wiring
+only the first would have let a pierced Fake Out through at FULL damage. `_guardPierced` carries the
+authority's `bypassProtect` to the quarter, which is the FINAL damage modifier in
+`champions/scripts.ts:299` and does not care which protection was consulted. Clause 3
+(`isZOrMaxPowered`) is named in the code as unreachable in gen 9 rather than left to be found.
+
+**PROBED RED FIRST.** `piercesProtect` — *a piercing ability walks through a WIDE GUARD at a quarter —
+its ally does not.* Five arms; `MEDI_GUARD_NO_HITPROTECT=1` restores the defect and takes it (and the
+`breaksProtect` row) back to MISSING on demand. **The `breaksProtect` Wide Guard probe was ASSERTING
+the zero** and is corrected in the same pass — its claim (*a pierce is not a break*) is unchanged and
+is now read off `spa` and a refusal count rather than off a damage total that conflated the opener
+with the ally.
+
+**TWO PROBE ERRORS RECORDED RATHER THAN QUIETLY FIXED:** the non-contact control was Earth Power into a
+Water/**Flying** Pelipper (immune for a second reason, so it proved nothing — now Rock Slide, with the
+unguarded click printed beside it); and `sideGuardPierced` was asserted at 2 when it is 1 — the guard
+is asked once per MOVE while `bypassProtect` is per TARGET.
+
+**WHAT MOVED.** Census **715 -> 716**, 0 missing, 0 hollow, 0 unarmed. **PREDICTED BEFORE THE RUN and
+confirmed: the pinned pool does not move** — gate clause **16 of 961 -> 16**, board-material
+**13 of 961 -> 13**, same 21 first divergences in the same order, `classes` and `coverage`
+byte-identical. The three roster stages were WITHHELD (measured against other bytes) and are re-run
+clean on the new release: items 139/148, abilities 129/202, moves 475/500, `FIRED-AND-BOARDS-DIFFER`
+and `DID-NOT-FIRE` **0** on all three. `all-mechanics-fire` unmoved at moves 13 / abilities 3 / items 1.
+
+**RED AND NOT MINE, REPORTED NOT FILED:** `tests/test-resolution-order.js` dies OOM at node's default
+heap (exit 134) and is **red identically at HEAD** — proved by replaying HEAD's `medicham2-browser.js`
+— and PASSES clean at `--max-old-space-size=6144` (26 arms, 0 failing). The instrument opens one
+release per arm. Owed a register row.
+
 ## `data/engine-data.js` CAN NOW PROVE ITSELF, AND IT IS DRIFTED BY ONE ROW. 2026-08-26 (MEASURE).
 
 Ledger section: `docs/MEASURE.md` — OWED, not written (outside this brief). CHANGELOG 5.136.3.
