@@ -80,3 +80,58 @@ event describing something that did not happen — where the authority refuses t
 #    The control that makes it non-vacuous: the SAME board with the copier moving FIRST, which must
 #    copy nothing. A test where both orders pass is asking nothing.
 ```
+
+---
+
+## ADDENDUM — MORE OF WILL'S CARD READ, AND TWO MORE TEST REQUESTS
+
+**Card 18 — a charge move's strike is LOST, not merely reordered.** Lead-in: Scovillain Protects,
+Dragapult charges Phantom Force. Showdown then has Metagross take super-effective damage and faint;
+we have Metagross click Gravity and fail. **So the strike never happens in our game at all** and the
+target survives to act. Will's hypothesis was the semi-invulnerable charge phase, and it fits: on the
+strike turn the move is FORCED by the lock rather than chosen, so an engine that treats that turn as a
+normal choice, or fails to re-queue the locked move after the vanish, silently drops the attack. Same
+signature as the trap defect — nothing refuses, the action is simply absent.
+
+**Card 19 — a stale `lastMove`, not a leftover Disable.** Will guessed Gardevoir was carrying an
+unexpired Disable. The authority's gate is narrower: Disable **fails outright when the target has no
+`lastMove`**, and `lastMove` is nulled inside `clearVolatile` — i.e. on switch-out (`sim/pokemon.ts:1547`).
+So Showdown fails it and attributes the failure to Gengar; we believed Gardevoir's last move was
+Protect and disabled that. **Same disease as card 17: we retain per-body state the authority discards.**
+Disable also fails on Struggle or a PP-less slot, and SHORTENS ITS OWN DURATION when the target has not
+yet acted this turn — so its timer depends on turn order.
+
+**Gravity, asked and derived:** a second Gravity while Gravity is up **just fails**. It does not undo
+and does not refresh. `Field#addPseudoWeather` returns false when the effect is present and has no
+`onFieldRestart`, and Gravity declares only `onFieldStart` / `onFieldEnd`.
+
+## OWED, NOT RUN — THE CHARGE-MOVE SWEEP (WILL, 2026-08-26)
+
+> *"lets stage all the two turn charge up moves (and if they have weather that makes them 1 like arch
+> in rain with electro shot or zard in sun with solarbeam"*
+
+**Ten legal charge moves, derived** (`flags.charge`, filtered to the regulation): Bounce, Dig, Dive,
+Electro Shot, Fly, Meteor Beam, Phantom Force, Sky Attack, Solar Beam, Solar Blade.
+
+**Weather short-circuits — only three moves have one:** Solar Beam and Solar Blade skip the charge in
+`sunnyday` or `desolateland`; Electro Shot skips it in `raindance` or `primordialsea`. The other seven
+never skip.
+
+**TWO THINGS THAT ARE EASY TO GET WRONG AND MUST EACH BE AN ARM:**
+1. **The stat boost fires even when the charge is skipped.** Electro Shot boosts SpA +1 and Meteor Beam
+   boosts SpA +1 on the charge, and in Electro Shot's case the boost is applied **above** the weather
+   check — so in rain it boosts AND fires the same turn. An implementation that ties the boost to
+   "we are charging" loses it exactly in the weather case.
+2. **`-prepare` is emitted BEFORE the short-circuit**, followed by `[still]` and an `-anim`. So the
+   skip is not "no announcement" — it is "announce, then do not wait." A test asserting the absence of
+   `-prepare` in sun would be asserting the wrong thing.
+
+```bash
+# stage each of the ten: charge turn (semi-invulnerable where applicable), strike turn FORCED by the
+# lock, and for the three weather moves both arms — weather present (one turn) and absent (two turns).
+# CONTROLS: the same board with the weather removed must take two turns; and the boost assertion must
+# hold in BOTH arms for Electro Shot, which is what separates the two implementations.
+# Meteor Beam additionally routes through runEvent('ChargeMove') -- the Power-Herb hook -- so check
+# whether that path exists here before asserting it does nothing.
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node tests/test-mechanics.js
+```
