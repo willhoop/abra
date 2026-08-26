@@ -215,6 +215,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * in the dispatch loop and voided the whole turn. They are counted apart from `struggleFromEmptyMenu`
    * because a hot number here is a BUG REPORT, not evidence that Struggle works. */
   struggleFromLockUnbuilt: 0, struggleFromNoOption: 0,
+  /* ROADMAP #459 -- a LOCK REWRITE THAT DECLINED because the action it was about to rewrite is
+     Struggle, which is the authority's `baseMove.id !== 'struggle'` guard on runMove's OverrideAction.
+     Counted at BOTH sites and told apart, because until 2026-08-26 they each tested `kind` and a real
+     Struggle action carries `kind:'attack'` -- so both fired on exactly the board the mechanic
+     produces. `Collect` is WIRE 24's rewrite in `mk()`; `Exec` is WIRE 143's Encore override. A zero
+     in both across a game containing an emptied menu means this predicate stopped being consulted. */
+  lockRewriteDeclinedStruggleCollect: 0, lockRewriteDeclinedStruggleExec: 0,
   /* ROADMAP #172 -- the LEGAL button that was there all along. The scanner found no damaging option
    * and the priors sampler produced nothing usable, but `selectableMoves` is non-empty (a status-only
    * body: Protect, Roost, Tailwind). Struggle was clicked instead, which is a 50 BP recoil attack the
@@ -1929,6 +1936,10 @@ const MEDFAILS = { encoreAction: 0,
      on purpose, so a deliberate restore arm and a broken engine can never be read as the same thing.
      Same shape as suckerQueueBlindRestored. */
   disableOnStartBlindRestored: 0,
+  /* ROADMAP #459 -- set for the whole run when MEDI_STRUGGLE_KIND_ONLY=1 puts the sentinel-only read
+     of `isStruggleAction` back on purpose, so a deliberate restore arm and a broken engine can never
+     be read as the same thing. Same shape as suckerQueueBlindRestored. */
+  struggleKindOnlyRestored: 0,
   /* ROADMAP #357 -- an arrival the authority WOULD have added to `timesAttacked` and this engine does
      not, because a Substitute absorbed it and that road returns before the counter site. Declared at
      the site rather than hidden; it makes Rage Fist slightly weaker here than in the game and the
@@ -4329,6 +4340,55 @@ const KIND_MOVE={protect:'protect',wideguard:'wideguard',tail:'tailwind'};
 function actionMoveId(a){
   if(!a) return null;
   return a.mv||(a.move&&a.move.id)||KIND_MOVE[a.kind]||null;
+}
+/* ROADMAP #459 -- IS THIS ACTION STRUGGLE. ONE READER, BECAUSE STRUGGLE HAS TWO SHAPES IN THIS ENGINE
+ * AND EVERY SITE THAT TESTED FOR IT ONLY KNEW ONE OF THEM.
+ *
+ * The two shapes are both deliberate and both stay:
+ *   `{kind:'struggle'}`   the sentinel, kept at exactly the three sites where there is nothing to aim
+ *                         at (ROADMAP #119) -- no living foe, or a lock whose move `playerAction`
+ *                         could not build. It matches no branch in the dispatch loop on purpose.
+ *   a real attack action  what `struggleAction` builds: `playerAction(me,'struggle',target,field)`,
+ *                         so `kind` is `'attack'` and the id lives on `move.id`/`mv`. THIS is the one
+ *                         the mechanic actually produces, and it is the one every `kind==='struggle'`
+ *                         test walked straight past.
+ *
+ * WHY THAT MATTERED. The authority excludes Struggle from `OverrideAction` by MOVE ID, one line into
+ * runMove (`sim/battle-actions.ts:226`: `if (baseMove.id !== 'struggle' && !zMove && ...)`), and its
+ * `getMoveRequestData` hands back Struggle as the whole menu with `lockedMove = 'struggle'`. So a
+ * body under Encore + Disable Struggles and NOTHING rewrites it. This engine reached the identical
+ * `mustStruggle` verdict and then let two lock-rewrite sites -- WIRE 24's at collection and WIRE 143's
+ * at execution -- turn the Struggle back into the encored move, which the Disable gate then refused:
+ * `|cant|` and a turn spent on nothing.
+ *
+ * WHAT WOULD STILL WALK PAST THIS, said here rather than left to be found:
+ *   - A NEW OVERRIDE SITE THAT DOES NOT CALL IT. This is a predicate, not an enforcement point. The
+ *     two callers below are the two that exist today; a third rewrite added later is in exactly the
+ *     position these two were in this morning, and nothing in this file will notice.
+ *   - A SITE THAT KEYS ON `kind` FOR A DIFFERENT REASON. `a.kind!=='switch'` and `a.kind!=='pass'` are
+ *     still correct as kind tests, because a switch and a pass are genuinely action KINDS with no move
+ *     behind them. Only the Struggle test was a move question wearing a kind test's clothes.
+ *   - THE OTHER MOVE IDS THE AUTHORITY EXCLUDES ON THE SAME LINE -- zMove, maxMove, externalMove.
+ *     None of the three exists in this format or in this engine, so they are not modelled and this
+ *     predicate does not pretend to answer for them.
+ *   - A CALLER THAT ASKS "did the body Struggle" of the PROTOCOL rather than of an action. That is a
+ *     different question with a different reader (`|move|...|struggle|`), and this says nothing about
+ *     the `|-activate|move: Struggle` line the authority writes above it, which this engine still
+ *     does not emit. */
+function isStruggleAction(a){
+  if(!a) return false;
+  if(a.kind==='struggle') return true;
+  if(STRUGGLE_KIND_ONLY){ MEDFAILS.struggleKindOnlyRestored=1; return false; }
+  return actionMoveId(a)==='struggle';
+}
+/* THE TWO LOCK-REWRITE SITES' ONE GUARD, so the predicate cannot be consulted at one and forgotten at
+ * the other, and so a decline is COUNTED rather than inferred from a move that did not change. `where`
+ * is 'Collect' (WIRE 24, in `mk()`) or 'Exec' (WIRE 143, the Encore override). */
+function _declineStruggle(a,where){
+  if(!isStruggleAction(a)) return false;
+  if(where==='Exec') MEDSEEN.lockRewriteDeclinedStruggleExec++;
+  else MEDSEEN.lockRewriteDeclinedStruggleCollect++;
+  return true;
 }
 /* Does a volatile this body is carrying refuse this move? One function, called by the SELECTION-time
  * menu filter and by the EXECUTION-time gate above the kind dispatch, because they are the same
@@ -10548,6 +10608,15 @@ const PROTECT_STALL_NO_LAPSE=(typeof process!=='undefined'&&process.env&&process
  * refusal that is taken at one site. Any run carrying it also carries a non-zero
  * `MEDFAILS.disableOnStartBlindRestored`. Same shape as MEDI_SUCKER_QUEUE_BLIND above. */
 const DISABLE_ONSTART_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DISABLE_ONSTART_BLIND==='1');
+/* ROADMAP #459 -- MEDI_STRUGGLE_KIND_ONLY=1 PUTS THE SINGLE-SHAPE READ BACK: `isStruggleAction` stops
+ * asking `actionMoveId` and recognises only the `{kind:'struggle'}` sentinel, the way every override
+ * site in this file read it until today. Under it, a body under Encore + Disable reaches the correct
+ * `mustStruggle` verdict, builds a real Struggle, and then has it rewritten back into the encored move
+ * by the two lock sites -- which is the `|cant|` and the wasted turn Will's fixture found. ONE knob for
+ * both call sites, because they are ONE question (`baseMove.id !== 'struggle'`, one line of runMove)
+ * and a knob per site could not restore a predicate that no longer exists. Any run carrying it also
+ * carries a non-zero `MEDFAILS.struggleKindOnlyRestored`. Same shape as MEDI_SUCKER_QUEUE_BLIND. */
+const STRUGGLE_KIND_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STRUGGLE_KIND_ONLY==='1');
 /* 2026-08-23 -- MEDI_NO_INMOVE_UPDATE=1 TAKES THE IN-MOVE UPDATE PASS BACK OUT, i.e. `eachEvent('Update')`
  * happens only BETWEEN actions again, the way this engine ran until today. It exists so the census rows
  * for the in-move pass can be shown MISSING on demand without swapping a file. ONE knob for the whole
@@ -18190,11 +18259,19 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `_selMv` IS COMPUTED ABOVE THIS BLOCK AND STAYS THERE. WIRE 118's rule is that the priority
        * bracket belongs to the move the PLAYER SELECTED; a Choice/Encore lock is an override, so the
        * bracket must remain the caller's. Nothing here touches it. */
+      /* ROADMAP #459 -- AND IT DECLINES ON A STRUGGLE, which is the authority's guard and not a special
+       * case for Encore. `getMoveRequestData` replaces the WHOLE menu with Struggle once every slot is
+       * disabled, so there is no lock left to bind: the lock is one of the things that emptied the menu.
+       * This site tested `_a.kind!=='struggle'` nowhere at all and the execution site tested it by
+       * KIND, which a real Struggle action (`kind:'attack'`, id `struggle`) does not answer to. Both now
+       * ask `isStruggleAction`, whose header names what still walks past it. */
       if(_a&&mon._lock&&!(mon._mtLock&&mon._mtLock.left>0)
          &&_a.kind!=='switch'&&_a.kind!=='pass'
          &&actionMoveId(_a)!==mon._lock){
-        const _lk=lockedAction(mon,mon._lock,live(foes),field,rng);
-        if(_lk)_a=_lk;
+        if(!_declineStruggle(_a,'Collect')){
+          const _lk=lockedAction(mon,mon._lock,live(foes),field,rng);
+          if(_lk)_a=_lk;
+        }
       }
       /* AND DISABLE BINDS A HANDED-IN ACTION TOO — the same WIRE 24 rule with the opposite sign. A
        * caller that hands in the disabled move is re-asked rather than obeyed; chooseAction has the
@@ -19390,9 +19467,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * A REBUILD THAT FAILS IS LOUD. Falling through and playing the un-encored move is a real
        * behaviour change dressed as a no-op, which is this project's signature failure, so it counts
        * itself rather than vanishing. */
+      /* ROADMAP #459 -- `it.a.kind!=='struggle'` USED TO STAND WHERE `!_declineStruggle` NOW DOES, and
+       * it was the wrong shape of test for the right rule. The authority excludes Struggle from
+       * OverrideAction by MOVE ID; this engine's real Struggle action carries `kind:'attack'`, so the
+       * kind test matched nothing the mechanic ever produces and the encored move was forced back over
+       * a Struggle that `mustStruggle` had correctly reached. See `isStruggleAction`. */
       if(it.a&&m._vol&&m._vol.encore>0&&m._encoreMove&&MC.moves[m._encoreMove]
-         &&it.a.kind!=='switch'&&it.a.kind!=='pass'&&it.a.kind!=='struggle'
-         &&actionMoveId(it.a)!==m._encoreMove){
+         &&it.a.kind!=='switch'&&it.a.kind!=='pass'
+         &&actionMoveId(it.a)!==m._encoreMove&&!_declineStruggle(it.a,'Exec')){
         const _efoes=it.side==='A'?actB:actA, _elive=live(_efoes);
         if(_elive.length){
           const _etgt=_elive[Math.floor(rng()*_elive.length)%_elive.length];

@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T17:22:46.194Z",
+  "generated": "2026-08-26T18:20:58.395Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 745,
-  "live": 741,
-  "missing": 4,
-  "armed": 745,
+  "probed": 746,
+  "live": 743,
+  "missing": 3,
+  "armed": 746,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3693,7 +3693,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 25.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5819,6 +5819,16 @@
       "directCall": false
     },
     {
+      "kind": "item",
+      "tag": "choiceLock",
+      "label": "the Choice lock is re-read every turn: a different slot sealed still plays, and losing the item stops the Struggle",
+      "live": true,
+      "detail": "OVER-FIRE CONTROL — Scarf-locked into knockoff with SWORDS DANCE sealed instead (seal `swordsdance`, 2 turn(s) left — it must still be standing or this arm is asking nothing), turn 3 played [knockoff] (the authority offers bodyslam with the other three disabled and plays it; anything else here is a lock+disable rule firing on the wrong pair). REMOVAL — the same board with lock and seal on the SAME move played [struggle] on turn 3 for 2 recoil line(s), then, with the Scarf taken away, played [flareblitz] on turn 4 (the authority Tricks the Scarf off and plays amnesia; it must be neither struggle nor the sealed knockoff — NOTE: that click is NOT one of the four declared moves [knockoff,taunt,swordsdance,tailwind], the ROADMAP #119/#295 priors leak, not this mechanic). Full runs: [\"swordsdance\",\"knockoff\",\"knockoff\"] / [\"knockoff\",null,\"struggle\",\"flareblitz\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "ability",
       "tag": "breakable",
       "label": "Mold Breaker breaks a BREAKABLE ability and leaves a non-breakable one alone",
@@ -7462,8 +7472,8 @@
       "kind": "move",
       "tag": "sealsMoves",
       "label": "Encore then Disable leaves no legal move: the engine must Struggle",
-      "live": false,
-      "detail": "turn 4, with the engine choosing — ENCORE + DISABLE played [null] (the authority Struggles); DISABLE ALONE played [rockslide] (three slots survive, so anything but Struggle is right and this is what says the Struggle would come from the conjunction); ENCORE ALONE played [bodyslam] (locked but functional). Full run, encore+disable: [\"bodyslam\",\"bodyslam\",null,null]",
+      "live": true,
+      "detail": "turn 4, with the engine choosing — ENCORE + DISABLE played [struggle] (the authority Struggles: |-activate|move: Struggle then |move|Struggle); DISABLE ALONE played [rockslide] (three slots survive, so anything but Struggle and anything but the SEALED bodyslam is right, and this is what says the Struggle came from the conjunction — NOTE: that click is NOT one of the four declared moves [bodyslam,amnesia,crunch,icebeam], which is the ROADMAP #119/#295 priors leak and not this mechanic); ENCORE ALONE played [bodyslam] (locked but functional). Full run, encore+disable: [\"bodyslam\",\"bodyslam\",null,\"struggle\"]",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -21046,6 +21046,11 @@ const menuRun = (o) => {
    * a refused turn reads as a refused turn instead of shifting everything after it. */
   const turnMoves = [];
   for (const t of o.turns) {
+    /* ROADMAP #459 — A HOOK RUN BEFORE EACH TURN, so an arm can change ONE field of the board part
+     * way through without a second copy of this helper. It exists for the Choice-lock arms that need
+     * the item to ARRIVE (lock late, seal early) or to LEAVE (`choicelock.onDisableMove` removes
+     * itself once `getItem().isChoice` is false). Every existing caller omits it and is unaffected. */
+    if (o.each) o.each(B, turnMoves.length);
     const _mark = trace.length;
     const mine = t.me === undefined ? undefined
       : new Map([[B.me, t.me === null ? { kind: 'pass' } : M.playerAction(B.me, t.me, B.f1, B.S.field)],
@@ -21071,6 +21076,12 @@ const menuRun = (o) => {
     recoil: trace.filter(l => /^\|-damage\|p1a[^|]*\|[^|]*\|\[from\] recoil/i.test(l)).length,
     lock: B.me._lock || null,
     lockT: B.me._lockT === Infinity ? 'inf' : (B.me._lockT || 0),
+    /* ROADMAP #459 — THE SEAL, so an arm can assert that the Disable it staged is STILL STANDING when
+     * the decision turn arrives. These are engine bookkeeping and no arm may READ its verdict off
+     * them (the note above says exactly that about `_lock`); they exist to catch a fixture that has
+     * quietly stopped staging the conjunction it claims to stage. */
+    sealed: B.me._sealed || null,
+    disableLeft: (B.me._vol && B.me._vol.disable) || 0,
   };
 };
 
@@ -21142,6 +21153,98 @@ probe('item', 'choiceLock', 'a Choice lock onto a Disabled move empties the menu
                  + 'the same Disable with NO lock -> ' + third(noLock) + '. Either half alone must '
                  + 'leave a menu, so a red on one control is the fix over-firing and a red on the '
                  + 'other is it not firing at all' };
+});
+
+/* ROADMAP #459 — THE CHOICE LOCK IS THE SECOND INSTANCE OF THE SAME SHAPE, AND IT IS THE COMMON ONE.
+ *
+ * Will: *"disable on a choice scarf mon also leads to struggle i believe"*. He is right, and it is
+ * the everyday version of the Encore fixture further down this file: **Choice Scarf is the ONLY legal
+ * Choice item in this format** — derived, `choicescarf.isNonstandard` is null with `isChoice: true`
+ * while `choiceband` and `choicespecs` are both `Past` — so there is exactly one door and it is on
+ * 7,844 sheet uses. Encore is the exotic instance.
+ *
+ * `choicelock.onDisableMove` (`data/conditions.ts`) and Encore's are STRUCTURALLY THE SAME HANDLER:
+ * both disable every slot EXCEPT one, and Disable then takes that one. Any fix that special-cases
+ * Encore fails here outright, which is why this row exists beside that one rather than instead of it.
+ *
+ * THE STRUGGLE ITSELF WAS ALREADY LIVE (ROADMAP #144/#152, and the row directly above asserts it), so
+ * THIS ROW IS THE TWO ARMS THAT ROW HAS NOT GOT, and both are about the lock being READ LIVE rather
+ * than LATCHED. Measured in the official simulator this session, `getMoveRequestData().moves`:
+ *
+ *   locked into Body Slam, Body Slam Disabled     -> ["struggle"], and `|-activate|move: Struggle`
+ *   locked into Body Slam, CRUNCH Disabled        -> bodyslam, amnesia(X), crunch(X), icebeam(X)
+ *                                                   — it plays BODY SLAM. The over-fire control.
+ *   locked + Disabled, then Tricked out of the    -> bodyslam(X), amnesia, crunch, icebeam
+ *   Scarf                                          — it plays AMNESIA. Struggle STOPS.
+ *
+ * THE OVER-FIRE ARM IS THE ONE WORTH HAVING. A naive rule — "a lock is present and some slot is
+ * disabled, so Struggle" — passes the positive arm and breaks here. It needs the lock and the seal to
+ * name the SAME move, which is what asking `selectableMoves` for an EMPTY menu does and what a list
+ * of reasons does not.
+ *
+ * THE ITEM IS CLEARED DIRECTLY RATHER THAN KNOCKED OFF, and that is declared rather than hidden: the
+ * claim is that the lock re-reads the live item on every menu build (`lockMenuMove`'s
+ * `TAGS.has('item', m.item, 'choiceLock')`, counted as `choiceLockDroppedWithItem`), not that Knock
+ * Off works. The authority's own clause is `if (!pokemon.getItem().isChoice ...) removeVolatile`, so
+ * an empty slot IS the input; Trick was used above only to prove the in-game route reaches it.
+ *
+ * EVERY ARM ASSERTS THE MOVE THAT WAS CLICKED, not merely that something happened — the sibling row's
+ * `noLock` control was satisfied for years by a move the body had never been given (the ROADMAP
+ * #119/#295 priors leak). Where an arm cannot name the click because the chooser is free, it asserts
+ * the two moves it must NOT be and PRINTS whether the click came from the declared four. */
+probe('item', 'choiceLock', 'the Choice lock is re-read every turn: a different slot sealed still '
+                          + 'plays, and losing the item stops the Struggle', () => {
+  /* THE OVER-FIRE ARM. Swords Dance is clicked with an EMPTY hand, so it is the body's last move when
+   * the Scarf arrives; Garchomp (102 base Speed) outruns Incineroar (60) on turn 2, so DISABLE SEALS
+   * SWORDS DANCE and the Knock Off that resolves after it arms the lock onto KNOCK OFF. Lock and seal
+   * now name different moves: exactly one legal button, and the body must press it.
+   *
+   * THE FIRST CLICK IS NOT TAUNT, AND THAT IS THE PROBE BEING WRONG BEFORE THE ENGINE WAS. Taunt was
+   * the obvious pick from the declared four and it TAUNTS THE FOE — turn 2 then read
+   * `|cant|p2a: garchomp|move: taunt|disable`, the seal never landed, `_sealed` stayed undefined, and
+   * the arm was passing while testing a lock with NO Disable anywhere near it. That is the sibling
+   * row's `noDisable` control wearing this one's name. `vol.disable` is 2 and standing on the decision
+   * turn, which is what makes this a conjunction rather than a second copy of that control. */
+  const elsewhere = menuRun({ item: '', turns: [
+    { me: 'swordsdance', foe: null },    // lastMove = swordsdance, no lock yet, nobody is Taunted
+    { me: 'knockoff', foe: 'disable' },  // the Scarf has arrived: the foe seals SWORDS DANCE first,
+                                         // then the Knock Off locks the body into KNOCK OFF
+    { me: undefined, foe: null },        // the engine chooses
+  ], each: (B, i) => { if (i === 1) B.me.item = 'choicescarf'; } });
+  /* THE REMOVAL ARM, which carries its own positive on turn 3: the same board Struggles while the
+   * Scarf is held and must stop the instant it is gone. */
+  const removed = menuRun({ item: 'choicescarf', turns: [
+    { me: 'knockoff', foe: null },       // arms the lock and gives Disable a last move
+    { me: null, foe: 'disable' },        // seals KNOCK OFF — lock and seal now name the SAME move
+    { me: undefined, foe: null },        // menu empty -> Struggle
+    { me: undefined, foe: null },        // the Scarf is gone: the lock must drop
+  ], each: (B, i) => { if (i === 3) B.me.item = ''; } });
+  const DECLARED = ['knockoff', 'taunt', 'swordsdance', 'tailwind'];
+  const after = removed.turnMoves[3];
+  const leak = after && DECLARED.indexOf(after) < 0;
+  /* THE SEAL MUST STILL BE STANDING WHEN THE OVER-FIRE ARM DECIDES, asserted rather than assumed —
+   * a lapsed Disable turns this arm into "a lock with no Disable", which is a DIFFERENT row that is
+   * already green, and the arm would keep passing while asking nothing. */
+  const sealStanding = elsewhere.sealed === 'swordsdance' && elsewhere.disableLeft > 0;
+  return { works: elsewhere.turnMoves[2] === 'knockoff' && sealStanding
+                  && removed.turnMoves[2] === 'struggle' && removed.recoil > 0
+                  && after && after !== 'struggle' && after !== 'knockoff',
+           arms: { control: elsewhere.turnMoves[2], test: removed.turnMoves[2] },
+           detail: 'OVER-FIRE CONTROL — Scarf-locked into knockoff with SWORDS DANCE sealed instead '
+                 + '(seal `' + elsewhere.sealed + '`, ' + elsewhere.disableLeft + ' turn(s) left — it '
+                 + 'must still be standing or this arm is asking nothing), turn 3 '
+                 + 'played [' + elsewhere.turnMoves[2] + '] (the authority offers bodyslam with the '
+                 + 'other three disabled and plays it; anything else here is a lock+disable rule '
+                 + 'firing on the wrong pair). REMOVAL — the same board with lock and seal on the '
+                 + 'SAME move played [' + removed.turnMoves[2] + '] on turn 3 for ' + removed.recoil
+                 + ' recoil line(s), then, with the Scarf taken away, played [' + after + '] on turn '
+                 + '4 (the authority Tricks the Scarf off and plays amnesia; it must be neither '
+                 + 'struggle nor the sealed knockoff'
+                 + (leak ? ' — NOTE: that click is NOT one of the four declared moves ['
+                           + DECLARED.join(',') + '], the ROADMAP #119/#295 priors leak, not this '
+                           + 'mechanic' : '; it is one of the four declared moves')
+                 + '). Full runs: ' + JSON.stringify(elsewhere.turnMoves) + ' / '
+                 + JSON.stringify(removed.turnMoves) };
 });
 
 const mbRun = (attAb, defAb, arm) => {
@@ -28160,15 +28263,38 @@ probe('move', 'chargeSkippedByWeather',
  *     T3  |-start|p2a: Snorlax|Disable|<the encored move>
  *     T4  |-activate|p2a: Snorlax|move: Struggle   |move|p2a: Snorlax|Struggle|...
  *
- * THIS ENGINE PLAYS NOTHING ON TURN 4. It emits `|cant|p1a: snorlax|disable|<move>` — the chooser
- * handed back the encored move and the execution gate refused it, so the turn is spent on nothing.
- * That is a WASTED TURN, not a narration difference, and it is why this row asserts state and not a
- * line. RED on arrival; filed, not fixed in this pass.
+ * THIS ENGINE PLAYED NOTHING ON TURN 4 UNTIL 2026-08-26. It emitted `|cant|p1a: snorlax|Disable|
+ * <move>` — a WASTED TURN, not a narration difference, which is why this row asserts state and not a
+ * line.
  *
- * TWO CONTROLS, EACH REMOVING ONE HALF, because either half alone must leave a menu:
- *   DISABLE WITHOUT ENCORE — three other slots survive, so the body must play SOMETHING and it must
- *     not be Struggle. This is what says the Struggle came from the CONJUNCTION.
- *   ENCORE WITHOUT DISABLE — locked but functional: it must keep playing the encored move.
+ * AND THE DIAGNOSIS IT WAS FILED WITH WAS WRONG, WHICH IS RECORDED HERE BECAUSE THE WRONG ONE IS THE
+ * PLAUSIBLE ONE. It was filed as *"`mustStruggle` does not read the Encore lock"*. It does, and always
+ * did: `lockMenuMove` reads `_lock`/`_lockT` for BOTH the Choice item and Encore, `selectableMoves`
+ * then filters that one-move menu through `moveDisabledBy`, and the counters say so — this fixture ran
+ * `struggleFromEmptyMenu` 2 and `struggleFromDisabled` 2 on the BROKEN engine. The chooser reached the
+ * authority's verdict and built a real Struggle. TWO LOCK-REWRITE SITES THEN TURNED IT BACK INTO THE
+ * ENCORED MOVE — WIRE 24's in `mk()` and WIRE 143's Encore override at execution — because both asked
+ * `a.kind === 'struggle'`, and `struggleAction` builds `playerAction(me,'struggle',…)`, whose kind is
+ * `'attack'`. The authority excludes Struggle by MOVE ID one line into runMove
+ * (`sim/battle-actions.ts:226`), so `engine/medicham2-browser.js` now has one `isStruggleAction`
+ * reader that knows both shapes. `MEDI_STRUGGLE_KIND_ONLY=1` restores the single-shape read and this
+ * row goes MISSING again.
+ *
+ * TWO CONTROLS, EACH REMOVING ONE HALF, because either half alone must leave a menu. Both were played
+ * in the official simulator this session, not recalled:
+ *   DISABLE WITHOUT ENCORE — three other slots survive (`disabled:true` on Body Slam alone), so the
+ *     body must play SOMETHING, it must not be Struggle, AND IT MUST NOT BE THE SEALED MOVE. The
+ *     authority played Amnesia. This is what says the Struggle came from the CONJUNCTION.
+ *   ENCORE WITHOUT DISABLE — locked but functional (`disabled:true` on the other three): it must keep
+ *     playing the encored move.
+ *
+ * THE DISABLE-ALONE ARM IS DELIBERATELY NOT ASSERTED AGAINST THE DECLARED FOUR, AND THE REASON IS
+ * PRINTED RATHER THAN LEFT OUT. This engine plays `rockslide` there — a move the body was never given
+ * — which is the pre-existing ROADMAP #119/#295 priors leak (`_chooseAction`'s sampler picks by NAME
+ * out of `MC.priors` instead of reading `me.moves`). Asserting set membership here would make this row
+ * red for a defect it is not about. So the arm asserts what it actually claims — not null, not
+ * Struggle, not the sealed move — and `detail` states out loud whether the click came from the
+ * declared set, so a priors-chosen move can never silently satisfy it.
  *
  * AND THE PP BOUNDARY IS AVOIDED DELIBERATELY. Disable refuses when the target's last move has no PP
  * and Encore ends when the encored move is exhausted; the sealed move here is clicked three times
@@ -28207,15 +28333,23 @@ probe('move', 'sealsMoves',
   const both = run(true, true);
   const disableOnly = run(false, true);
   const encoreOnly = run(true, false);
+  const DECLARED = ['bodyslam', 'amnesia', 'crunch', 'icebeam'];
+  const leak = disableOnly.fourth && DECLARED.indexOf(disableOnly.fourth) < 0;
   return { works: both.fourth === 'struggle'
                   && disableOnly.fourth !== null && disableOnly.fourth !== 'struggle'
+                  && disableOnly.fourth !== 'bodyslam'
                   && encoreOnly.fourth === 'bodyslam',
            arms: { control: disableOnly.fourth, test: both.fourth },
            detail: 'turn 4, with the engine choosing — ENCORE + DISABLE played [' + both.fourth
-                 + '] (the authority Struggles); DISABLE ALONE played [' + disableOnly.fourth
-                 + '] (three slots survive, so anything but Struggle is right and this is what says '
-                 + 'the Struggle would come from the conjunction); ENCORE ALONE played ['
-                 + encoreOnly.fourth + '] (locked but functional). Full run, encore+disable: '
+                 + '] (the authority Struggles: |-activate|move: Struggle then |move|Struggle); '
+                 + 'DISABLE ALONE played [' + disableOnly.fourth
+                 + '] (three slots survive, so anything but Struggle and anything but the SEALED '
+                 + 'bodyslam is right, and this is what says the Struggle came from the conjunction'
+                 + (leak ? ' — NOTE: that click is NOT one of the four declared moves ['
+                           + DECLARED.join(',') + '], which is the ROADMAP #119/#295 priors leak and '
+                           + 'not this mechanic' : '; it is one of the four declared moves')
+                 + '); ENCORE ALONE played [' + encoreOnly.fourth
+                 + '] (locked but functional). Full run, encore+disable: '
                  + JSON.stringify(both.turnMoves) };
 });
 

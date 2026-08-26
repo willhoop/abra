@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-26T17:18:43.967Z",
+  "generated": "2026-08-26T18:21:18.458Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
     "register_rows": 423,
-    "open": 239,
-    "closed": 184,
-    "open_asserting_breakage": 69,
+    "open": 238,
+    "closed": 185,
+    "open_asserting_breakage": 68,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -1884,15 +1884,6 @@
       "uses": 0,
       "title": "SPICY SPRAY'S `-immune` AT THE FIRE ATTACKER IS NEVER WRITTEN — STAGED 2026-08-26 BY ENGINE FROM WILL'S OWN FIXTURE LIST",
       "full": "spicy spray's `-immune` at the fire attacker is never written — staged 2026-08-26 by engine from will's own fixture list, deliberately not fixed. divergence card 6, and the reason the roster passes this ability is that the roster compares boards. `data/abilities.ts` spicyspray: `if (!source.trysetstatus('brn', target) && !source.status && source.hastype('fire')) { this.add('-immune', source); }`; `data/mods/champions/abilities.ts` carries `spicyspray: { inherit: true, isnonstandard: null }`, so the format un-bans mainline's handler unchanged. its one legal carrier is scovillain's mega (`abilities: {0: \"spicy spray\"}`). the board half is right and it is not contact-gated, which is the arm a plausible implementation gets wrong: the handler is `ondamaginghit` with no contact check, and a ranged special (earth power, `flags {protect, mirror, nonsky, metronome}` — read off the format) burns a non-fire attacker here exactly as it does in the authority. what is missing is the announcement, and its three clauses: the burn attempt failed and the attacker has no status and the attacker is fire. measured in the official simulator — charizard/flamethrower unstatused gives a bare `\\|-immune\\|p1a: charizard` with no `[from]` tag; the same charizard already paralysed produces no line at all, which is the over-fire control. narration row, narration gate. what would decide it: write the bare `-immune` at the attacker under all three clauses and require both census rows live. verified by: `node tests/test-mechanics.js` — `ability / punishesattacker`, *\"spicy spray announces a bare -immune at the fire attacker, and only when it is unstatused\"*, red. its sibling burn row is live and was shown red on a deliberate break (contact-gating the `_pun.trigger` default), engine restored byte-identical"
-    },
-    {
-      "n": 459,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": true,
-      "uses": 0,
-      "title": "AN ENCORED BODY WHOSE ENCORED MOVE IS THEN DISABLED SPENDS THE TURN ON NOTHING WHERE THE AUTHORITY STRUGGLES — STAGED 20",
-      "full": "an encored body whose encored move is then disabled spends the turn on nothing where the authority struggles — staged 2026-08-26 by engine from will's own fixture list, deliberately not fixed. this one is state, not narration. will: *\"stage a mon being encored and then disabled it should result in a struggle.\"* champions overrides encore (`data/mods/champions/moves.ts`, `condition.onstart` only — it recalculates action priority when it rewrites the queued move) and inherits the rest, so `ondisablemove` is mainline's and disables every slot except the encored one; disable then takes that one; `pokemon#getmoverequestdata` replaces the whole menu with struggle. measured in the official simulator over four staged turns, alakazam (encore and disable both legal on it) against a snorlax: t2 `\\|-start\\|p2a: snorlax\\|encore`, t3 `\\|-start\\|p2a: snorlax\\|disable\\|<move>`, t4 `\\|-activate\\|p2a: snorlax\\|move: struggle` and `\\|move\\|p2a: snorlax\\|struggle`. this engine plays nothing on turn 4: it emits `\\|cant\\|p1a: snorlax\\|disable\\|<move>` — the chooser handed back the encored move and the execution gate refused it — so the turn is spent on nothing. that is a wasted turn and a real hp consequence, not a message. `muststruggle` already asks the authority's own question (is the enabled menu empty) and already covers a choice lock onto a disabled move (#144/#152); the encore lock is not one of the inputs it reads. what would decide it: make encore's lock an input to `muststruggle`/`movedisabledby` exactly as the choice lock is, and require the census row live with both controls unchanged. verified by: `node tests/test-mechanics.js` — `move / sealsmoves`, *\"encore then disable leaves no legal move: the engine must struggle\"*, red. two controls, each removing one half: disable alone leaves three slots and must play anything but struggle; encore alone stays locked but functional. the sealed move is clicked three times against a `pp.max` of 16 read out of `data/tags.json`, so #454's pp boundary is deliberately not in the way"
     },
     {
       "n": 47,

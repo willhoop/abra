@@ -21,6 +21,60 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A LOCK REWRITE ASKED WHETHER AN ACTION WAS STRUGGLE BY ITS KIND, AND THE AUTHORITY ASKS BY ITS MOVE ID. CENSUS 742/745 -> 743 LIVE / 746 PROBED / 3 MISSING. PINNED POOL MEASURED UNMOVED. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.143.0. Register row: ROADMAP #459, CLOSED.
+Engine release cut for this batch: **`93a51075e83f`**.
+
+**THE HANDED DIAGNOSIS WAS WRONG AND IT IS THE PLAUSIBLE ONE.** #459 was filed as *"`mustStruggle` does
+not read the Encore lock"*. It does, and always did — `lockMenuMove` reads `_lock`/`_lockT` for the
+Choice item AND for Encore. The counters said so on the BROKEN engine: `struggleFromEmptyMenu` 2,
+`struggleFromDisabled` 2. **The chooser reached the authority's verdict and built a real Struggle.**
+
+**TWO LOCK-REWRITE SITES THEN TURNED IT BACK INTO THE ENCORED MOVE.** WIRE 24's rewrite in `mk()` and
+WIRE 143's Encore override at execution both asked `a.kind === 'struggle'`, and `struggleAction` builds
+`playerAction(me,'struggle',…)` whose kind is `'attack'` — so the test matched nothing the mechanic ever
+produces. The authority excludes Struggle by MOVE ID, one line into runMove
+(`sim/battle-actions.ts:226`).
+
+**ONE PREDICATE, NOT A SECOND SPECIAL CASE.** `isStruggleAction` knows both Struggle shapes this engine
+has; both sites call it through `_declineStruggle`, counting
+`lockRewriteDeclinedStruggleCollect`/`…Exec`. Its header names what still walks past it. Knob:
+`MEDI_STRUGGLE_KIND_ONLY=1` -> 741 live / 4 missing, this row only.
+
+**THE SECOND INSTANCE IS THE COMMON ONE AND IT NEEDED NO WIDENING.** Will: *"disable on a choice scarf
+mon also leads to struggle i believe"*. `choicelock.onDisableMove` is the same handler shape, and Choice
+Scarf is the ONLY legal Choice item here (derived: `choiceband`/`choicespecs` are `Past`). Already LIVE
+under #144/#152 — which is the evidence the fix is general rather than an Encore patch. Its two missing
+arms are now a probe: `item / choiceLock`, the OVER-FIRE control (locked into Knock Off with Swords
+Dance sealed, seal asserted still standing) and the REMOVAL arm (Scarf taken away, Struggle must stop).
+
+| quantity | before | after | predicted |
+|---|---|---|---|
+| census live | 742 | **743** | 743 |
+| census probed | 745 | **746** | 746 — one new row |
+| census missing | 3 | **3** | 3 |
+| pinned pool (published config, both releases) | 961 games / 15 diverged | **961 / 15, byte-identical** | unmoved |
+| whole-game clause | 10 of 961 | **10 of 961** | unmoved |
+| `tests/test-engine-diff.js --n 6000` | 0 of 6000 | **0 of 6000**, all sixteen corners | unmoved |
+| roster items / abilities / moves | 0 differ, 0 did-not-fire | **0 / 0** | unmoved |
+
+
+**THE POOL WAS MEASURED IN THE PUBLISHED CONFIGURATION, NOT A SMALLER ONE.** `--games 1200 --turns 12
+--end-state --census data/verification/census-pin-9446a684709d.json --team-store data/team-pool-frozen`, run
+on release `9c71bc9b5815` and on `93a51075e83f`: 961 games, 15 diverged, and `first_divergences`, `classes`,
+`end_state`, `mid_void` and `coverage` byte-identical. `data/game-differential.json` is restamped, so the
+whole-game clause is quotable again instead of WITHHELD. Two reader counters doubled against the previous
+artifact (`duplicate_species_in_party` 20 -> 40) and the OLD release reproduces 40 on the same command, so it
+is the invocation and not the engine.
+
+**THE PROBE WAS WRONG BEFORE THE ENGINE WAS, AGAIN.** The over-fire arm first clicked Taunt out of the
+fixture's declared four — which TAUNTS THE FOE, so the Disable was refused, `_sealed` stayed undefined,
+and the arm passed while testing a lock with no Disable near it. It clicks Swords Dance now and ASSERTS
+the seal is still standing on the decision turn.
+
+---
+
 ## SIX FIXTURES WILL ASKED FOR BY NAME: THREE FOUND THE ENGINE ALREADY RIGHT AND THREE FOUND A DEFECT. CENSUS 737/737 -> 741/745, 4 MISSING. NO ENGINE BYTE MOVED. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.142.0. Register rows: ROADMAP #456, #457, #458,

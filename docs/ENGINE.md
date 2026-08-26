@@ -63,13 +63,12 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  741/745 probed mechanics live, 4 missing   (census 2026-08-26 13:15)
+  743/746 probed mechanics live, 3 missing   (census 2026-08-26 13:51)
   missing:
     ability refusesAllyDamage      Telepathy announces |-activate|ally|ability: Telepathy, not |-immune|
     move    statChangeInCode       Psych Up announces |-copyboost| on the copier
     ability punishesAttacker       Spicy Spray announces a bare |-immune| at the FIRE ATTACKER, and only when it is unstatused
-    move    sealsMoves             Encore then Disable leaves no legal move: the engine must Struggle
-  0/6000 differential comparisons disagree with Showdown   (2026-08-26 12:33)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-26 13:56)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -81,15 +80,254 @@ ENGINE — does the simulator do what Pokémon does
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 231e72dc0d42 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 5d161ae2b540 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is d2da36b3b912 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 13:22_
+_stamped 2026-08-26 14:20_
 
 <!-- /GENERATED -->
+
+## THE HANDED DIAGNOSIS NAMED THE WRONG FUNCTION, AND THE REAL DEFECT WAS TWO LOCK REWRITES ASKING WHETHER AN ACTION WAS STRUGGLE BY ITS *KIND*. CENSUS 742/745 -> 743 LIVE / 746 PROBED / 3 MISSING. PINNED POOL MEASURED UNMOVED. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.143.0. Register row: ROADMAP #459, CLOSED.
+Engine release cut for this batch: **`93a51075e83f`** — *"a lock rewrite declines on Struggle by MOVE
+ID, so Encore plus Disable empties the menu and the body Struggles"*. Every figure below is stamped
+with it.
+
+### THE DIAGNOSIS WAS WRONG, AND CHECKING IT FIRST IS WHAT MADE THE FIX GENERAL
+
+#459 was filed — by this division, last batch — as *"`mustStruggle` does not read the Encore lock"*.
+That is a good story and it is false. `mustStruggle` reads EVERY source of a closed slot and always did:
+
+```
+mustStruggle -> selectableMoves -> lockMenuMove   (_lock/_lockT: Infinity = Choice item, finite = Encore)
+                                -> moveDisabledBy (disable, throat chop, noRepeat, taunt-family
+                                                   volatiles, 0 PP, first-turn-only)
+```
+
+**The counters said so on the BROKEN engine.** Running Will's fixture before a byte moved:
+`struggleFromEmptyMenu` 2, `struggleFromDisabled` 2, and `encoreOverrodeAtExecution` 1. The chooser
+reached the authority's verdict and built a real Struggle — and something took it away again.
+
+### THE REAL DEFECT: TWO SITES ASKED A MOVE QUESTION WITH A KIND TEST
+
+Struggle has **two shapes** in this engine and both are deliberate:
+
+| shape | where | `kind` | `actionMoveId` |
+|---|---|---|---|
+| `{kind:'struggle'}` | the three sites with nothing to aim at (ROADMAP #119) | `'struggle'` | `null` |
+| a real attack action | what `struggleAction` builds, i.e. what the MECHANIC produces | **`'attack'`** | `'struggle'` |
+
+Two lock-rewrite sites tested the first and met the second:
+
+- **WIRE 24, in `mk()`** — the Choice/Encore lock binding a handed-in or chosen action. It excluded
+  `switch` and `pass` and had no Struggle clause at all.
+- **WIRE 143, at execution** — Encore's `onOverrideAction`. It excluded `it.a.kind !== 'struggle'`.
+
+The authority excludes Struggle by **move id**, one line into `runMove`
+(`sim/battle-actions.ts:226`):
+
+```js
+if (baseMove.id !== 'struggle' && !zMove && !maxMove && !externalMove) {
+  const changedMove = this.battle.runEvent('OverrideAction', pokemon, target, baseMove);
+```
+
+So the Struggle was rewritten back into the encored move and Disable's execution gate refused it:
+`|cant|p1a: snorlax|Disable|bodyslam`, and the turn was spent on nothing.
+
+### WHAT LANDED — ONE PREDICATE, AND ITS HEADER NAMES WHAT STILL WALKS PAST IT
+
+`isStruggleAction(a)` knows both shapes; `_declineStruggle(a, where)` is the two sites' one guard and
+counts `MEDSEEN.lockRewriteDeclinedStruggleCollect` / `…Exec`, so a decline is READ rather than inferred
+from a move that did not change. A fix that special-cased Encore would be the same bug waiting for a
+third lock, which is the whole point of the row.
+
+Written into the predicate's own header, because a gate built from an instance catches that instance:
+
+- **a NEW override site that does not call it.** This is a predicate, not an enforcement point. The two
+  callers are the two that exist today; a third rewrite added later sits exactly where these two sat.
+- **`a.kind !== 'switch'` and `!== 'pass'` stay kind tests** and are correct — a switch and a pass are
+  genuinely action kinds with no move behind them. Only the Struggle test was a move question wearing a
+  kind test's clothes.
+- **zMove / maxMove / externalMove**, the other three the authority excludes on the same line. None
+  exists in this format or in this engine, so the predicate does not pretend to answer for them.
+- **the `|-activate|move: Struggle` line**, which the authority writes above `|move|…|Struggle|` and
+  this engine still does not emit. A protocol question with a different reader; NOT fixed here.
+
+**`MEDI_STRUGGLE_KIND_ONLY=1`** restores the single-shape read and sets
+`MEDFAILS.struggleKindOnlyRestored`. Under it the census reports **741 live / 4 missing**, this row red
+and the other three unchanged.
+
+### THE SECOND INSTANCE IS THE COMMON ONE, AND IT PASSED WITHOUT WIDENING ANYTHING
+
+Will, mid-pass: *"disable on a choice scarf mon also leads to struggle i believe"*. He is right, and it
+matters more than the Encore case: **Choice Scarf is the ONLY legal Choice item in this format** —
+derived, `choicescarf.isNonstandard` is null with `isChoice: true`, `choiceband` and `choicespecs` are
+both `Past`. `choicelock.onDisableMove` disables every slot except one, exactly as Encore's does.
+
+**It was already LIVE, and it stayed live with no change to the fix.** That is the honest answer to
+*"was the fix general or did you widen it"*: general. It never needed widening because the Choice lock
+has no execution-time override — WIRE 143 is Encore's alone — so only Encore's Struggle was being
+rewritten. The collect-site rewrite (WIRE 24) DID reach it, and the Disable-binding clause immediately
+below re-asked the chooser, which handed the Struggle back. The Encore road had no such second chance.
+
+Measured in the official simulator this session, `getMoveRequestData().moves`:
+
+| board | the authority's menu | plays |
+|---|---|---|
+| locked into Body Slam, **Body Slam** Disabled | `["struggle"]` | `-activate\|move: Struggle`, then Struggle |
+| locked into Body Slam, **Crunch** Disabled | bodyslam, amnesia(X), crunch(X), icebeam(X) | **Body Slam** |
+| locked + Disabled, then **Tricked out of the Scarf** | bodyslam(X), amnesia, crunch, icebeam | **Amnesia** |
+
+The Struggle itself was already asserted by an existing row (#144/#152). What this batch adds is the two
+arms that row has not got, both about the lock being READ LIVE rather than LATCHED:
+
+- **the OVER-FIRE control** — lock and seal naming DIFFERENT moves. A naive *"a lock is present and some
+  slot is disabled, so Struggle"* rule passes the positive arm and breaks here.
+- **the REMOVAL arm** — the item leaves and the Struggle must STOP, which is the authority's own
+  `if (!pokemon.getItem().isChoice) removeVolatile` clause.
+
+**THE ITEM IS CLEARED DIRECTLY IN THE PROBE AND THAT IS DECLARED, NOT HIDDEN.** The claim is that the
+lock re-reads the live item on every menu build (`lockMenuMove`'s `TAGS.has('item', m.item,
+'choiceLock')`, counted as `choiceLockDroppedWithItem`), not that Knock Off works. The authority's own
+clause is `if (!pokemon.getItem().isChoice ...) removeVolatile`, so an empty slot IS the input; Trick was
+used in the authority run only to prove an in-game route reaches it. Note that the authority rebuilds
+the menu at `update()`, so poking `pokemon.item = ''` mid-turn there leaves the CACHED Struggle menu
+standing — that was tried first, read as a contradiction, and was the staging rather than the game.
+
+### THE PROBE WAS WRONG BEFORE THE ENGINE WAS, AGAIN, AND IT IS WRITTEN INTO THE PROBE
+
+The over-fire arm's first click was **Taunt**, the obvious pick out of the fixture's declared four. Taunt
+**taunts the foe**, so turn 2 read `|cant|p2a: garchomp|move: taunt|disable`, the seal never landed,
+`_sealed` stayed `undefined` — and the arm was green while testing a lock with no Disable anywhere near
+it, i.e. the sibling row's `noDisable` control wearing this one's name. **A fixture immune for two
+reasons proves nothing.**
+
+It clicks **Swords Dance** now, and the arm ASSERTS the seal is still standing on the decision turn
+(`sealed === 'swordsdance'`, `disableLeft` 2). `menuRun` gained an optional per-turn hook so an arm can
+make the item ARRIVE or LEAVE without a second copy of the helper.
+
+### THE NUMBERS, AND THEY WERE PREDICTED BEFORE THE RUN
+
+Per CLAUDE.md's ranking rule, stated before the pass: Encore+Disable is a narrow conjunction and
+Choice+Disable was already live, so **the LAB should move and the pinned pool should sit still.**
+
+| quantity | before | after | predicted |
+|---|---|---|---|
+| census live | 742 | **743** | 743 |
+| census probed | 745 | **746** | 746 — one new row |
+| census missing | 3 | **3** | 3 |
+| `hollow` / `threw` | 0 / 0 | **0 / 0** | unmoved |
+| `unarmed` / `directCall` ratchets | 0 / 1 | **0 / 1** | unmoved |
+| pinned pool, same pins, both releases | 961 games / 15 diverged | **961 / 15** | unmoved |
+| whole-game clause | 10 of 961 | **10 of 961** | unmoved |
+| `tests/test-engine-diff.js --n 6000` | 0 of 6000 | **0 of 6000**, all sixteen corners | unmoved |
+| roster items / abilities / moves | 0 differ, 0 did-not-fire | **0 / 0** | unmoved |
+| `all_mechanics_fire --kind all` STATE | moves 5, abilities 2, items 1 | **5 / 2 / 1** | unmoved |
+
+**THE POOL WAS MEASURED, NOT ASSERTED, AND IN THE PUBLISHED CONFIGURATION.**
+`game_differential.js` was run twice with identical pins —
+
+```
+--games 1200 --turns 12 --end-state
+--census data/verification/census-pin-9446a684709d.json --team-store data/team-pool-frozen
+```
+
+— once on release `9c71bc9b5815` (the before-arm) and once on `93a51075e83f`. Both drew **961 games and
+15 divergences**, and `first_divergences`, `classes`, `end_state`, `mid_void` and `coverage` are
+**byte-identical** between the two. The only thing that moved in `state.turn1` is the release stamp
+printed inside the one recorded `cases` entry. The whole-game clause therefore stays at **10 of 961**
+(15 raw, less 5 declared) and the board-material split is unchanged.
+
+**AND THE ONE COUNTER THAT DID MOVE WAS CLEARED WITH A CONTROL RATHER THAN EXPLAINED.**
+`state.reader_failures.duplicate_species_in_party` reads 40 where HEAD's artifact read 20, and
+`display_name_lookups_that_missed` 4 where it read 2 — exact doublings, which look like a regression.
+They are not: the SAME command on the OLD release reproduces 40 and 4, so the difference is between the
+published run's invocation and this one, not between the two engines. Both are instrument reader
+counters and neither is a board figure.
+
+`data/game-differential.json` is now stamped `93a51075e83f`, so the whole-game clause is quotable again
+instead of WITHHELD — it read *"MEASURED AGAINST A DIFFERENT ENGINE"* the moment the release was cut.
+
+### EVERY NEW OR CHANGED ROW WAS SHOWN RED ON A DELIBERATE BREAK, AND THE ENGINE WAS RESTORED
+
+`md5sum engine/medicham2-browser.js` read `1b90baa12b10d7dca1bdb3c14fadf1f1` before and after every
+break, and `node engine/engine_release.js verify 93a51075e83f` reports the release intact.
+
+| row | the break | result |
+|---|---|---|
+| Encore then Disable Struggles | `MEDI_STRUGGLE_KIND_ONLY=1` | 741 live, 4 missing — this row only |
+| the Choice lock is re-read every turn | `mustStruggle` returns true on "a lock and any disabled slot" | 742 live, 4 missing — **both** halves red |
+| the same | `lockMenuMove`'s item re-read deleted (the lock LATCHES) | 742 live, 4 missing — the REMOVAL half only |
+
+The two breaks on the new row fail differently on purpose: the list-of-reasons break reds the over-fire
+arm AND the removal arm, the latch break reds only the removal arm. A single red that could come from
+either would not tell you which.
+
+### THE HAND LIST
+
+**Leaving it — it is closed:**
+- ~~**Encore then Disable** — ROADMAP #459, RED~~ — **FIXED**, LIVE, and the diagnosis it was filed with
+  is corrected above rather than quietly dropped.
+- ~~The Choice lock's over-fire and removal arms had never been staged~~ — **PROBED**, LIVE, and they
+  are what says the fix is a class fix rather than an Encore patch.
+
+**Still open, filed with its evidence** (carried forward, untouched by this pass):
+- **THE `|-activate|move: Struggle` LINE IS NOT EMITTED HERE.** The authority writes it above
+  `|move|…|Struggle|` on every Struggle. Board-correct, narration-open; no probe fails on it yet.
+- **#456 Telepathy's `-activate`**, **#457 Psych Up's `-copyboost`**, **#458 Spicy Spray's `-immune`** —
+  all three narration with the board already correct, all three carried by the census as MISSING.
+- **THE PARTY MAP IS KEYED BY THE SPECIES A BODY IS SHOWING.** HELD, credit shift measured; MEASURE's if
+  the sample moves.
+- **A SELF-AIMED VOLATILE'S `-fail` IS OWED.** Imprison (487 uses), Magnet Rise, Aqua Ring, Ingrain.
+- **GASTRO ACID ANNOUNCES `-start|move: gastroacid` WHERE THE AUTHORITY WRITES `-endability`.**
+- **MAGIC ROOM PARKS THE ITEM BY EMPTYING THE SLOT**, so `*.item` parts on every room board.
+- **`p2.active[1].stall` medicham 0 / showdown 3** — needs the arming side.
+- **`p2.party.staraptor.hp` 160/87 AND `p2.party.incineroar.hp` 106/170** — not diagnosed.
+- **A TRANSFORMED BODY STILL FORECASTS HERE.** No probe fails on it yet.
+- **A CASTFORM RE-ENTERING UNDER A STANDING SKY WRITES NO `|-formechange|` HERE.**
+- **`engine/medicham2-browser.js` DECLARES `canMegaNow` TWICE** — ROADMAP #449.
+- **`tests/staged_board.js` IS STILL 24 OF 25** on `roar-drags-whoever-is-standing-there`, re-run this
+  pass and unchanged.
+- **`tests/test-board-browser.js` IS RED and is `board.js`'s** (#218).
+- **`tests/test-resolution-order.js` OOMs at the default heap** (#446).
+- **`engine/artifact_audit.js` is RED on `data/engine-data.js`** — not fixable by this division.
+- **THE PRIORS LEAK IS VISIBLE IN TWO PROBES NOW** — `rockslide` off a four-slot Snorlax and
+  `flareblitz` off a four-slot Incineroar. ROADMAP #119/#295, seen again, not fixed here. Both affected
+  arms assert not-null / not-Struggle / **not the sealed move** and PRINT the leak rather than
+  swallowing it.
+- **REPORTED, NOT TOUCHED:** release `93a51075e83f`'s top-level `why` names a DIFFERENT batch's work.
+  Two cuts of this identical tree were appended at 17:36:04 and 17:36:10 before this batch's cut at
+  17:36:43 — `engine_release.js list` was ruled out by test (running it appends nothing). By design
+  `cut`/`why` mean the FIRST freeze and are never rewritten; `cuts.jsonl` carries all three and the id
+  and digests are correct. `engine/engine_release.js` is not this division's file.
+- **`.scratch_eng/` AND THE PRE-MODIFIED `data/*.json` ARE ANOTHER SESSION'S.** Verified by mtime — all
+  of them predate this session's first command. Reported, left, nothing executed in any of them.
+
+### OWED, NOT RUN
+
+- **`tests/test-mechanics.js` ran clean at the end** — 743 live, 3 missing, 746 probed, 0 hollow, 0
+  threw, 0 unarmed, 1 direct-call, exit 0, `run_ok: true`.
+- **`tests/test-engine-diff.js --n 6000` — RUN**, 0 of 6000 at all sixteen corners, exit 0. Re-run
+  because this batch touches action selection, not because it touches arithmetic.
+- **The three roster stages and `engine/all_mechanics_fire.js --kind all` — RUN** on release
+  `93a51075e83f`, and the fire run was re-run a second time after the new census row so its steering
+  matches the census on disk. **`all_mechanics_fire.js` needs `--write` and reports success without it**
+  — the first run exited 0, printed 217 lines of results, and left the artifact stamped at the OLD
+  release. Read the artifact stamp, never the exit code.
+- `tests/interaction_matrix.js` — **not re-run**; stamped 2026-08-11 and already stale before this pass.
+- `engine/wire_ladder.js` — **not re-run**; the release ladder stays WITHHELD, as it already was.
+- `tests/run-all.js` — **not run in full.** `tests/test-mechanics.js`, `tests/test-roadmap-register.js`,
+  `tests/test-encore-fail-silent.js`, `tests/test-volatile-duration.js`,
+  `tests/test-engine-consistency.js`, `tests/test-tag-wire.js` and `tests/staged_board.js` were run.
+- **`engine/status.js` still prints `FEATURE SEMANTICS CHECK FAILED`.** MEASURE's, and firing before
+  this pass. Untouched, reported.
+- **`tests/test-fixture-legality.js` is red at HEAD** (#266), pre-existing, not this batch's.
+
+---
 
 ## SIX FIXTURES WILL ASKED FOR BY NAME, ALL STAGED, THREE FOUND THE ENGINE ALREADY RIGHT AND THREE FOUND A DEFECT. CENSUS 737/737 -> 741/745, 4 MISSING. NO ENGINE BYTE MOVED. 2026-08-26.
 
