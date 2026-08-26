@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 23 unsafe, 1 void (declared), 118 possibly stale, 94 ok, 0 missing
+  provenance: 24 unsafe, 1 void (declared), 113 possibly stale, 98 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
@@ -29,13 +29,13 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-08-26 16:28
+    moved after the fit: engine/medicham2-browser.js  2026-08-26 17:11
     moved after the fit: engine/board.js  2026-08-23 15:27
     moved after the fit: data/engine-data.js  2026-08-22 01:46
     moved after the fit: data/abra-tags.js  2026-08-26 10:13
 ```
 
-_stamped 2026-08-26 17:09_
+_stamped 2026-08-26 18:22_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,42 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### CLOSED. ONE DECLARED LIST, ONE READER — THE MECHANICS CLAUSE COUNTED A ROW THE WHOLE-GAME CLAUSE HAD ALREADY DECLARED — 2026-08-26
+
+Full account: `docs/_reports/2026-08-26-declared-list.md`. ROADMAP #464. CHANGELOG 5.147.0.
+
+`DECLARED_DIVERGENCE` in `engine/quarantine.js` was consulted at exactly one site, inside
+`wholeGameClause`. That clause declared the Supreme Overlord `fallenundefined` line AUTHORITY-WRONG
+and subtracted its 5 games; `tests/test-mechanics.js` carried a live probe asserting we refuse the
+line deliberately; and `classifyMechanics` counted it as a defect on the same run, filtering on
+`!r.diverged || r.deferred` and never looking at the list.
+
+**It was never two artifacts that needed reconciling — it was one grammar with one reader.** Both
+artifacts write `<cls> :: |lineA <> |lineB` from the same comparator, so the matching rule needed no
+loosening and was not loosened. `declaredMatch(cause, ev, threw)` is now the one door; the whole-game
+clause's inline loop was deleted rather than duplicated.
+
+**MEASURED, HEAD beside the working copy in one process against MD5-frozen artifacts (release
+`667278050dcf`):** mechanics clause **9 → 8 of 16**, exactly one row leaving —
+`ability:supremeoverlord`, 112 teams in 13,116 open-sheet games, the most-played of the sixteen, so
+the reach filter would never have removed it. Whole-game clause **unmoved at 10 of 961** with a
+byte-identical `why` string; board-material **unmoved at 2 of 961**; census **unmoved at 750 live /
+753 probed / 3 missing**; shelf list identical; `declared + counted + shelved + unknown + cleared =
+16 = rowsSeen = summary`. **No engine byte touched.**
+
+Nine selftest assertions added (**100 → 109 passing**), pushing a SYNTHETIC declaration rather than
+asserting anything about Supreme Overlord, because a gate built from an instance catches that
+instance and not the class. Shown red first: breaking the mechanics door (`const dec = null`) turns 4
+red and leaves the whole-game one green.
+
+**What still walks past the door is named in the code's own header** — `differentialClause` (numbers,
+no cause string), the three roster stages (our two engines, `DEFERRED-BY-OWNER`), `coverageClause`
+and `openDefectClause` (no cause string), and `orderProbeClause`, which DOES carry a cause and does
+not read the list. That last one is inert today (0 pairs probed, no ordering declaration) and is the
+nearest thing to the next instance of this bug. `SHOWDOWN-ONLY` is likewise a verdict no clause
+reads; those eight ability rows are handled correctly BY ACCIDENT. Both are recorded, neither is
+fixed here.
 
 ### CLOSED. THE SWITCH INDEX WAS NOT THE BUG — 2026-08-25
 

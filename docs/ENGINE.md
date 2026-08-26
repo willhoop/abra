@@ -63,7 +63,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  750/753 probed mechanics live, 3 missing   (census 2026-08-26 16:30)
+  750/753 probed mechanics live, 3 missing   (census 2026-08-26 18:20)
   missing:
     ability refusesAllyDamage      Telepathy announces |-activate|ally|ability: Telepathy, not |-immune|
     move    statChangeInCode       Psych Up announces |-copyboost| on the copier
@@ -79,14 +79,14 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 93645758e350 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 2c96ffaa5d59 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 4b6a6d0a025b now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 4a08ab12c912 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 17:09_
+_stamped 2026-08-26 18:22_
 
 <!-- /GENERATED -->
 

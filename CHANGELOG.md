@@ -10,6 +10,72 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.147.0] — 2026-08-26
+
+### Fixed
+- **ONE DECLARED LIST HAD ONE READER, SO THE SAME DECLARATION EXEMPTED A ROW IN ONE CLAUSE AND
+  COUNTED IT AS A DEFECT IN ANOTHER. MECHANICS CLAUSE 9 -> 8 OF 16. WHOLE-GAME UNMOVED AT 10 OF 961,
+  BOARD-MATERIAL UNMOVED AT 2 OF 961, CENSUS UNMOVED AT 750 LIVE / 753 PROBED / 3 MISSING.**
+  ROADMAP #464, MEASURE. `DECLARED_DIVERGENCE` in `engine/quarantine.js` was consulted at exactly one
+  site, inside `wholeGameClause`. That clause declared the Supreme Overlord `fallenundefined` line
+  AUTHORITY-WRONG and subtracted its 5 games; `tests/test-mechanics.js` carried a live probe asserting
+  we refuse the line deliberately; and `classifyMechanics` counted it as a defect on the same run,
+  filtering on `!r.diverged || r.deferred` and never looking at the list at all.
+- **IT WAS NEVER TWO ARTIFACTS THAT NEEDED RECONCILING — IT WAS ONE GRAMMAR WITH ONE READER.**
+  `data/all-mechanics-fire.json` writes `rows[kind][].divergence.cause` and
+  `data/game-differential.json` writes `classes[].causes[].cause` in the identical shape,
+  `<cls> :: |lineA <> |lineB`, from the same comparator. The matching rule needed no loosening to
+  reach across, and it was not loosened.
+- **THE FIX IS A FUNCTION, NOT A SECOND COPY OF THE LOOP.** `declaredMatch(cause, ev, threw)` holds
+  the matching rule, the throw handling and the `DECLARED_KINDS` whitelist once; the whole-game
+  clause's inline loop was deleted rather than duplicated. Its `threw` sink belongs to the CALLER —
+  `MATCHER_THREW` is module state, and a shared accumulator would have printed a mechanics cause under
+  the whole-game clause's heading, which is the same bug one layer down.
+- **THE EVIDENCE WAS ADAPTED NARROWLY AND NOT WIDENED.** `mechanicsCauseEvidence` hands a matcher the
+  four keys that genuinely mean the same thing on both sides — `cause`, `cls`, `showdown`, `medicham`
+  — through the existing `causeEvidence`, and supplies NO order probe, because the mechanics artifact
+  has none. A matcher that requires evidence therefore DECLINES on absence, which is the safe
+  direction: an undeclared divergence holds the gate shut.
+- **THE DECLARED CHECK IS ASKED FIRST, AHEAD OF REACH AND DECISION IMPACT.** DECLARED does not say
+  the defect is small, it says there is no defect; filing such a row under "nobody plays it" would be
+  a true statement making a false claim and would go quiet the moment the mechanic became popular.
+  Measured before wiring: no row below the reach shelf matches any declaration, so the ordering moves
+  nothing today.
+
+### Changed
+- **THE MECHANICS CLAUSE PRINTS WHAT IT SUBTRACTED AND WHY, AT ZERO AS WELL AS AT ONE**, with one
+  block per declared kind and never summed — the two kinds make opposite claims about whether a defect
+  exists. `--reach` gained a `DECLARED` dump for the same reason: it showed all 16 diverging rows
+  across four buckets before, and a row subtracted without being re-printed is a gate getting quieter
+  without saying what it stopped counting.
+- **WHAT STILL WALKS PAST THE DOOR IS NAMED IN THE CODE, NOT IMPLIED.** `differentialClause` carries
+  numbers and no cause string; the three roster stages compare our two engines to each other and use
+  `DEFERRED-BY-OWNER`; `coverageClause` and `openDefectClause` have no cause string. `orderProbeClause`
+  DOES carry one and does not consult the list — inert today (0 pairs probed, no ordering declaration)
+  and the nearest thing to the next instance of this bug.
+
+### Notes
+- **MEASURED ON FROZEN BYTES, BOTH CLAUSES, IN ONE PROCESS.** HEAD's `engine/quarantine.js` was loaded
+  through `git show HEAD:` and `Module._compile` and run beside the working copy against MD5-frozen
+  copies of both artifacts (release `667278050dcf`). Whole-game returned a byte-identical `why` string
+  and identical fields; mechanics went `counted 9 -> 8`, `declared 0 -> 1`, shelf list identical,
+  nothing joined. `declared + counted + shelved + unknown + cleared = 16 = rowsSeen = summary`.
+- **THE ROW THAT LEFT IS THE MOST-PLAYED OF THE SIXTEEN** — `ability:supremeoverlord`, 112 teams in
+  13,116 open-sheet games. The reach filter would never have removed it, and it was holding the clause
+  shut on the strength of a Showdown typo emitted on a `[silent]` line no player sees.
+- **NINE SELFTEST ASSERTIONS ADDED, 100 -> 109 PASSING, SHOWN RED FIRST.** They push a SYNTHETIC
+  declaration and pop it rather than asserting anything about Supreme Overlord — a gate built from an
+  instance catches that instance and not the class. The first assertion runs with nothing declared and
+  requires both synthetic mechanics to COUNT, because a probe reading zero from an empty fixture would
+  pass everything below it. Breaking the mechanics door (`const dec = null`) turns 4 of them red and
+  leaves the whole-game one green, which is the discrimination that matters.
+- **NO ENGINE BYTE WAS TOUCHED.** `git diff engine/medicham2-browser.js` is empty; the only source
+  file modified is `engine/quarantine.js`. Neither the differential nor `all_mechanics_fire.js` was
+  re-run — ENGINE holds the play layer. Full account: `docs/_reports/2026-08-26-declared-list.md`.
+- **`SHOWDOWN-ONLY` IS A VERDICT NO CLAUSE READS**, and `classifyMechanics` filtering on
+  `diverged`/`deferred` handles those eight ability rows correctly BY ACCIDENT. Recorded in the new
+  door's header; deliberately not fixed in this batch.
+
 ## [5.146.0] — 2026-08-26
 
 ### Fixed

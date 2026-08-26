@@ -21,6 +21,55 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ONE DECLARED LIST HAD ONE READER — THE MECHANICS CLAUSE COUNTED A ROW THE WHOLE-GAME CLAUSE HAD ALREADY DECLARED. MECHANICS 9 -> 8 OF 16, WHOLE-GAME UNMOVED AT 10 OF 961, BOARD-MATERIAL UNMOVED AT 2 OF 961, CENSUS UNMOVED AT 750/753/3. 2026-08-26 (MEASURE).
+
+Ledger section: `docs/MEASURE.md`, written. CHANGELOG 5.147.0. Register row: ROADMAP #464 CLOSED.
+Full account: `docs/_reports/2026-08-26-declared-list.md`. **No engine byte touched** — the only
+source file modified is `engine/quarantine.js`; artifacts read at release `667278050dcf` and not
+re-run.
+
+`DECLARED_DIVERGENCE` was consulted at exactly one site, inside `wholeGameClause`. That clause
+declared the Supreme Overlord `fallenundefined` line AUTHORITY-WRONG and subtracted its 5 games,
+`tests/test-mechanics.js` carried a live probe asserting we refuse the line deliberately, and
+`classifyMechanics` counted it as a defect on the same run — it filtered on
+`!r.diverged || r.deferred` and never looked at the list.
+
+**It was never two artifacts that needed reconciling.** Both write the same cause grammar,
+`<cls> :: |lineA <> |lineB`, from the same comparator. So the matching rule needed no loosening and
+was not loosened; what needed adapting was the EVIDENCE, and it was narrowed rather than widened —
+`mechanicsCauseEvidence` supplies the four keys that mean the same thing on both sides and NO order
+probe, so a matcher that requires one DECLINES, which is the direction that holds the gate shut.
+
+The declared check is asked FIRST, ahead of reach and decision impact: DECLARED does not say the
+defect is small, it says there is no defect, and filing it under "nobody plays it" would go quiet the
+moment the mechanic became popular. Measured before wiring — no shelved row matches any declaration,
+so the ordering moves nothing today.
+
+**Exactly one row left: `ability:supremeoverlord`, 112 teams in 13,116 open-sheet games — the
+most-played of the sixteen.** HEAD and the working copy were run side by side in one process against
+MD5-frozen artifacts: whole-game `why` byte-identical, mechanics `counted 9 -> 8`, shelf list
+identical, nothing joined, and `declared + counted + shelved + unknown + cleared = 16 = rowsSeen =
+summary`.
+
+The clause now PRINTS what it subtracted and why, at zero as well as at one, and `--reach` gained a
+DECLARED dump — it showed all 16 rows across four buckets before, and a subtraction that is not
+re-printed is a gate getting quieter without saying what it stopped counting. What still walks past
+the door is named in the code: `differentialClause` (numbers, no cause string), the three roster
+stages (our two engines, `DEFERRED-BY-OWNER`), `coverageClause` and `openDefectClause` (no cause
+string), and `orderProbeClause` — which DOES carry a cause and does not read the list, inert today
+and the nearest thing to the next instance of this bug.
+
+Nine selftest assertions, 100 -> 109 passing, shown red first: breaking the mechanics door
+(`const dec = null`) turns 4 red and leaves the whole-game one green. They push a SYNTHETIC
+declaration and pop it rather than asserting anything about Supreme Overlord, and the first assertion
+runs with nothing declared and requires both synthetic mechanics to COUNT — a probe reading zero from
+an empty fixture would pass everything below it.
+
+Noted, not fixed: `SHOWDOWN-ONLY` is a verdict no clause reads, so those eight ability rows are
+handled correctly by accident.
+
+---
+
 ## THE STALL COUNTER WAS SPENT ON A TURN THE AUTHORITY'S RESIDUAL NEVER OPENS. CENSUS 749/752 -> 750 LIVE / 753 PROBED / 3 MISSING. BOARD-MATERIAL 3 -> 2 OF 961, WHOLE-GAME CLAUSE UNMOVED AT 10. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.146.0. Register row: ROADMAP #463 CLOSED.

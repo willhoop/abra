@@ -714,7 +714,11 @@ function classifyMechanics(j, curId, inject) {
   const U = (inject && inject.U) || usageIndex();
   const DI = (inject && inject.DI) || decisionImpact(curId);
   const SH = reachShelf(U);       /* one anchor, one rate, a threshold per population — #295 */
-  const counted = [], belowShelf = [], unknown = [], excused = [];
+  const counted = [], belowShelf = [], unknown = [], excused = [], declaredHits = [];
+  /* THIS CLAUSE'S OWN THROW SINK. Not `MATCHER_THREW`: a shared accumulator would print a mechanics
+   * cause under the whole-game clause's heading. See `declaredMatch`. */
+  const declaredThrew = [];
+  const EV = mechanicsCauseEvidence(j);
   let rowsSeen = 0; const rowsMissing = [];
   for (const kind of ['moves', 'abilities', 'items']) {
     const list = Array.isArray(j && j.rows && j.rows[kind]) ? j.rows[kind] : null;
@@ -725,6 +729,23 @@ function classifyMechanics(j, curId, inject) {
       const key = SINGULAR[kind] + ':' + nid(r.id);
       const reach = reachOf(U, kind, r.id);
       const row = { kind, id: r.id, key, reach, shelf: SH.of(kind) };
+      /* ---- THE DECLARED LIST IS ASKED FIRST, AND THE ORDER IS THE CLAIM ------------------------
+       * DECLARED does not say "this defect is small" — it says THERE IS NO DEFECT, because matching
+       * the authority here would make this engine less correct, or because there is no shared
+       * address to compare against. Reach and decision impact both presuppose a defect and ask
+       * whether it is worth fixing. So a declared row must never be filed under "nobody plays it":
+       * that would be a true statement making a false claim, and it would go quiet the moment the
+       * mechanic became popular.
+       *
+       * MEASURED on the 2026-08-26 artifact before this was wired: no row below the reach shelf
+       * matches any declaration, so putting this first moves nothing today. It is first for the
+       * reason above, not for the count. */
+      const dec = declaredMatch(r.divergence && r.divergence.cause, EV, declaredThrew);
+      if (dec) {
+        declaredHits.push({ ...row, kind_declared: dec.kind, name: dec.name, why: dec.why,
+                            cause: String((r.divergence && r.divergence.cause) || '') });
+        continue;
+      }
       if (!reach.known) { unknown.push(row); continue; }
       if (SH.below(kind, reach.n)) { belowShelf.push(row); continue; }
       const c = DI.clear(key);
@@ -732,7 +753,8 @@ function classifyMechanics(j, curId, inject) {
       counted.push(row);
     }
   }
-  return { U, DI, SH, counted, belowShelf, unknown, excused, rowsSeen, rowsMissing };
+  return { U, DI, SH, counted, belowShelf, unknown, excused, declared: declaredHits,
+           declaredThrew, rowsSeen, rowsMissing };
 }
 
 function mechanicsClause() {
@@ -775,7 +797,8 @@ function mechanicsClause() {
    * only ever SUBTRACT from a number a reader can still see. What decides the clause is the set of
    * diverging entities that somebody plays and that no paired run has cleared. */
   const C = classifyMechanics(j, curId);
-  const { U, DI, counted, belowShelf, unknown, excused, rowsSeen, rowsMissing } = C;
+  const { U, DI, counted, belowShelf, unknown, excused, declared, declaredThrew,
+          rowsSeen, rowsMissing } = C;
 
   /* A DERIVED SET IS NOT A FACT UNTIL SOMETHING COMPARES IT TO ITS SOURCE. If the per-entity rows and
    * the artifact's own summary disagree about how many diverged, the filter is being applied to a
@@ -819,17 +842,54 @@ function mechanicsClause() {
         + r.impact.bound.toFixed(1) + '% — a floor, not a zero; fixed in ' + r.impact.fixed_in + ')').join(', ')
     : DI.why);
   const driftLine = drift ? NL + '  SHELF DRIFT — ' + drift : '';
+  /* ---- WHAT THIS CLAUSE SUBTRACTED ON A DECLARATION, AND WHY -------------------------------------
+   * PRINTED AT ZERO AS WELL, exactly like the whole-game clause's Illusion closet and its
+   * matcher-threw line. A gate that gets quieter without saying what it stopped counting is how a
+   * real defect hides — and this clause got quieter by one the day the door was opened, so the line
+   * that names the row is the whole point of the change rather than decoration on it.
+   *
+   * ONE BLOCK PER KIND, NEVER SUMMED: the two kinds make OPPOSITE claims about whether a defect
+   * exists, so a blended "declared: 1" would hide which claim is being made. Same reasoning, and the
+   * same headings, as `wholeGameClause`. */
+  const declaredLine = NL + '  DECLARED — ' + (declared.length
+    ? `${declared.length} diverging mechanic(s) subtracted because a declaration in `
+      + `engine/quarantine.js covers the cause. Each is NOT a defect; it is not "small":`
+      + Object.keys(DECLARED_KINDS).map((kind) => {
+          const rows = declared.filter((r) => r.kind_declared === kind);
+          if (!rows.length) return '';
+          return NL + '    ' + DECLARED_KINDS[kind] + '  [' + rows.length + ' mechanic(s)]'
+            + rows.map((r) => NL + '      ' + r.key + '  ' + r.name
+                + NL + '        cause: ' + r.cause
+                + NL + '        ' + r.why).join('');
+        }).join('')
+    : `none — no diverging mechanic's cause is covered by a declaration, so all ${rowsSeen} are `
+      + `judged on reach and decision impact alone.`);
+  /* ROADMAP #258, CARRIED ACROSS. A matcher that throws pushes its row into the UNDECLARED pile and
+   * INFLATES the count above, so the line sits beside the number it would distort — and is this
+   * clause's own list, never the whole-game clause's. */
+  const declaredThrewLine = declaredThrew.length
+    ? NL + '  A DECLARED-DIVERGENCE MATCHER THREW on ' + declaredThrew.length + ' cause(s), each of '
+      + 'which is therefore counted as UNDECLARED and is INFLATING the count above:' + NL
+      + declaredThrew.map((r) => '    ' + r.cause + '  ->  ' + r.error).join(NL)
+    : '';
 
   return { name: NAME, ok: counted.length === 0, generated: j.generated || null,
     diverged: div, unfired, counted: counted.length, shelved: belowShelf.length,
     unknown_reach: unknown.length, decision_cleared: excused.length,
+    /* the split a reader needs, as DATA and not only as prose — never summed into `diverged` */
+    declared: declared.length,
+    declared_by_kind: Object.keys(DECLARED_KINDS).reduce((o, kind) => {
+      o[kind] = declared.filter((r) => r.kind_declared === kind).length; return o; }, {}),
+    declared_rows: declared.map((r) => ({ key: r.key, kind: r.kind_declared, name: r.name })),
+    declared_matcher_threw: declaredThrew,
     why: (counted.length === 0
-      ? `every mechanic anybody plays agrees with the authority: ${div} diverge, ${belowShelf.length} are `
-        + `below the reach shelf and ${excused.length} were cleared on decision impact, leaving 0.`
+      ? `every mechanic anybody plays agrees with the authority: ${div} diverge, ${declared.length} are `
+        + `declared, ${belowShelf.length} are below the reach shelf and ${excused.length} were cleared `
+        + `on decision impact, leaving 0.`
       : `${counted.length} of ${div} DIVERGING MECHANICS ARE PLAYED AND UNCLEARED — each is a rule, not `
         + `a sampling artefact, since the teams are built from the mechanic list. Worst: `
         + show(counted.slice()).split(', ').slice(0, 6).join(', ')) + tail
-      + reachLine + unknownLine + impactLine + driftLine };
+      + declaredLine + declaredThrewLine + reachLine + unknownLine + impactLine + driftLine };
 }
 
 function coverageClause() {
@@ -1303,6 +1363,109 @@ const DECLARED_DIVERGENCE = [
    * than deleted, because a closet that silently loses rows teaches nobody, and because "declared" is a
    * third axis that must not become a dumping ground for the two real ones. */
 ];
+
+/* ================================================================================================
+ * ONE DOOR ONTO THE DECLARED LIST — 2026-08-26
+ * ================================================================================================
+ * `DECLARED_DIVERGENCE` had exactly ONE reader: the loop inside `wholeGameClause`. So the Supreme
+ * Overlord row was subtracted from the whole-game count and COUNTED AS A DEFECT by
+ * `classifyMechanics` on the same run, off the same declaration, on a cause string in the same
+ * grammar. `tests/test-mechanics.js` carried a live probe asserting we refuse that line deliberately,
+ * `wholeGameClause` agreed with the probe, and the mechanics clause did not — one declaration, two
+ * verdicts, and nothing said so. That is the two-implementations-of-one-fact failure CLAUDE.md names
+ * by its own casualty, arriving as an ABSENT reader rather than a duplicated one.
+ *
+ * THE FIX IS A FUNCTION, NOT A SECOND COPY OF THE LOOP. Both clauses call `declaredMatch`, so the
+ * matching rule, the throw handling and the `DECLARED_KINDS` whitelist exist once. A row added
+ * tomorrow is honoured by both because neither clause knows what is in the list.
+ *
+ * ---- WHAT STILL WALKS PAST THIS DOOR, NAMED RATHER THAN IMPLIED ---------------------------------
+ *
+ * A gate built from an instance catches that instance, not the class. These are the readers that do
+ * NOT consult the declared list today, each with the reason it is out of scope rather than pending:
+ *
+ *   - `differentialClause` (data/engine-diff.json) — damage-table rows carry attacker / move /
+ *     defender and two NUMBERS, not a `|line <> |line` cause. There is no string for a matcher to
+ *     read, so a damage-roll declaration would need its own evidence shape. NOT SUPPORTED: a
+ *     declaration about a damage row would be silently ignored here.
+ *   - the three `rosterStage` clauses — they compare OUR TWO ENGINES to each other, so "the authority
+ *     is wrong" cannot arise; their exemption axis is `DEFERRED-BY-OWNER` and it is separate on
+ *     purpose. An INCOMPARABLE row could in principle apply and would be ignored.
+ *   - `orderProbeClause` — its rows DO carry `cause`, and it counts every unequal-speed/same-priority
+ *     pair whether or not the cause is declared. Inert today (this run probed 0 pairs and no live row
+ *     is an ordering row); it is the nearest thing to the next instance of this bug.
+ *   - `coverageClause` asks whether an instrument measures a mechanic, not whether it agrees, and
+ *     `openDefectClause` reads register sentences. Neither has a cause string; both are out of scope.
+ *   - `engine/all_mechanics_fire.js` writes `summary[k].diverged` knowing nothing about declarations,
+ *     and that is deliberate: a filter may only ever SUBTRACT from a number a reader can still see.
+ *     The headline stays 16 and the subtraction is printed beneath it.
+ *
+ * `SHOWDOWN-ONLY` IS A VERDICT NO CLAUSE READS, AND THAT IS RECORDED HERE RATHER THAN FIXED.
+ * `classifyMechanics` filters on `diverged` / `deferred` and never looks at `verdict`, so the eight
+ * SHOWDOWN-ONLY ability rows are handled correctly BY ACCIDENT. Out of scope for this batch.
+ * ================================================================================================ */
+
+/* `threw` IS A SINK THE CALLER OWNS, NOT A MODULE GLOBAL, so the two clauses cannot print each
+ * other's failures. `wholeGameClause` passes `MATCHER_THREW` — its existing array, and the one the
+ * selftest push/pops — and `classifyMechanics` passes its own. A shared accumulator would have put a
+ * mechanics cause under the whole-game clause's heading, which is a smaller version of exactly the
+ * bug this function is closing. */
+function declaredMatch(cause, ev, threw) {
+  const c = String(cause || '');
+  const d = DECLARED_DIVERGENCE.find((x) => {
+    try { return x.match(c, ev(c)); }
+    catch (e) {
+      /* ROADMAP #258 — A MATCHER THAT THREW IS NOT A CAUSE THAT IS UNDECLARED. This returned
+       * `false` silently, which moves the cause into the UNDECLARED pile and inflates the
+       * divergence rate this file publishes. `false` is still the safe direction — an undeclared
+       * divergence is the conservative reading — but it is counted and named now. */
+      threw.push({ cause: c,
+                   error: String((e && e.message) || e).split(String.fromCharCode(10))[0] });
+      return false;
+    }
+  });
+  if (!d) return null;
+  if (!DECLARED_KINDS[d.kind]) {
+    /* A ROW WHOSE KIND IS NOT ONE OF THE TWO IS NOT DECLARED. This is the guard that stops a
+     * DEFERRED row — "a real defect we chose not to fix yet" — from being subtracted and opening
+     * the gate. It is counted as UNDECLARED and named, exactly like a matcher that threw. */
+    threw.push({ cause: c,
+      error: 'declared row `' + d.name + '` carries kind `' + String(d.kind) + '`, which is not '
+           + 'one of ' + Object.keys(DECLARED_KINDS).join(' / ') + ' — NOT subtracted' });
+    return null;
+  }
+  return d;
+}
+
+/* THE MECHANICS ARTIFACT'S EVIDENCE, ADAPTED HONESTLY AND NOT WIDENED.
+ *
+ * The two artifacts already speak ONE cause grammar — `<cls> :: |lineA <> |lineB`, written by the
+ * same comparator — so the matching rule needs no loosening to reach across. What differs is the
+ * EVIDENCE a matcher may ask for. `data/game-differential.json` carries `first_divergences` (the raw
+ * pair of lines) and `order_probe` (speed read off the authority at the turn boundary);
+ * `data/all-mechanics-fire.json` carries the raw pair on each row's `divergence` and NO ORDER PROBE
+ * AT ALL.
+ *
+ * So this hands over the four keys that genuinely mean the same thing on both sides and INVENTS
+ * NOTHING. `probes` is empty here by construction, and the contract on `causeEvidence` already says
+ * what that means: a matcher that requires evidence DECLINES on absence, which is the safe direction
+ * — an undeclared divergence holds the gate shut. A future order-probe matcher will therefore refuse
+ * to subtract a mechanics row rather than subtract it on evidence nobody measured.
+ *
+ * It builds through `causeEvidence` rather than beside it, so "index the evidence by cause" has one
+ * implementation. */
+function mechanicsCauseEvidence(j) {
+  const firsts = [];
+  for (const kind of ['moves', 'abilities', 'items']) {
+    for (const r of (Array.isArray(j && j.rows && j.rows[kind]) ? j.rows[kind] : [])) {
+      const d = r && r.divergence;
+      if (!d || !d.cause) continue;
+      firsts.push({ cause: d.cause, cls: d.cls, showdown: d.showdown, medicham: d.medicham });
+    }
+  }
+  return causeEvidence({ first_divergences: firsts });   /* deliberately no `order_probe` */
+}
+
 /* `wgDecisionImpact` IS THE SECOND INJECTION POINT AND IT EXISTS FOR THE SELFTEST ONLY, on the same
  * reasoning as `artifact` above and as `withholder`'s gate argument: a `--force` flag anybody can pass
  * on the command line eventually gets passed, and a parameter is visible in the caller where a flag is
@@ -1478,26 +1641,11 @@ function wholeGameClause(artifact, wgDecisionImpact) {
   const EV = causeEvidence(j);
   for (const c of (Array.isArray(j.classes) ? j.classes : [])) {
     for (const k of (c.causes || [])) {
-      const d = DECLARED_DIVERGENCE.find((x) => {
-        try { return x.match(String(k.cause || ""), EV(String(k.cause || ""))); }
-        catch (e) {
-          /* ROADMAP #258 — A MATCHER THAT THREW IS NOT A CAUSE THAT IS UNDECLARED. This returned
-           * `false` silently, which moves the cause into the UNDECLARED pile and inflates the
-           * divergence rate this file publishes. `false` is still the safe direction — an undeclared
-           * divergence is the conservative reading — but it is counted and named now. */
-          MATCHER_THREW.push({ cause: String(k.cause || ""),
-                               error: String((e && e.message) || e).split(String.fromCharCode(10))[0] });
-          return false;
-        }
-      });
-      if (d && !DECLARED_KINDS[d.kind]) {
-        /* A ROW WHOSE KIND IS NOT ONE OF THE TWO IS NOT DECLARED. This is the guard that stops a
-         * DEFERRED row — "a real defect we chose not to fix yet" — from being subtracted and opening
-         * the gate. It is counted as UNDECLARED and named, exactly like a matcher that threw. */
-        MATCHER_THREW.push({ cause: String(k.cause || ""),
-          error: 'declared row `' + d.name + '` carries kind `' + String(d.kind) + '`, which is not '
-               + 'one of ' + Object.keys(DECLARED_KINDS).join(' / ') + ' — NOT subtracted' });
-      } else if (d) {
+      /* THE SHARED DOOR — see `declaredMatch`. The matching rule, the throw handling and the
+       * `DECLARED_KINDS` whitelist used to live inline here and were therefore this clause's alone,
+       * which is how the mechanics clause came to count a row this one had already declared. */
+      const d = declaredMatch(k.cause, EV, MATCHER_THREW);
+      if (d) {
         declaredGames += (k.n || 0);
         const row = declaredHits.find((r) => r.name === d.name);
         if (row) row.n += (k.n || 0);
@@ -2532,6 +2680,11 @@ if (require.main === module) {
       }
     };
     dump('COUNTED — played, uncleared, and holding the clause shut', C.counted);
+    /* THE DECLARED BUCKET IS DUMPED TOO, OR THE LISTING LOSES A ROW SILENTLY. Before the shared door
+     * this printer showed all 16 diverging rows across four buckets; a row that is subtracted and not
+     * re-printed is the "gate got quieter" failure one layer down from the one being fixed. */
+    dump('DECLARED — the authority is wrong or there is no shared address; NOT a defect', C.declared,
+      (r) => r.kind_declared + ': ' + r.name);
     dump('SHELVED BY REACH — staged and played every run, not counted', C.belowShelf);
     dump('NO USAGE FIGURE — unknown is not zero, these COUNT', C.unknown, (r) => r.reach.why);
     dump('CLEARED ON DECISION IMPACT', C.excused,
@@ -3026,6 +3179,99 @@ if (require.main === module) {
         DECLARED_DIVERGENCE.pop();
         MATCHER_THREW.length = before;
       }
+
+      /* -- ONE DECLARED LIST, TWO CLAUSES — 2026-08-26 -------------------------------------------
+       *
+       * THE BUG THIS RATCHETS. `DECLARED_DIVERGENCE` had one reader. The whole-game clause subtracted
+       * the Supreme Overlord `fallenundefined` row and `classifyMechanics` counted the same
+       * declaration as a defect on the same run, off a cause string in the SAME grammar. One
+       * declaration, two verdicts, and nothing printed the disagreement.
+       *
+       * SO WHAT IS ASSERTED IS NOT "SUPREME OVERLORD IS EXEMPT" — a gate built from an instance
+       * catches that instance and not the class. It is that a declaration NOBODY HAS WRITTEN YET is
+       * honoured by BOTH clauses and by neither when it is withdrawn. Driven by pushing a synthetic
+       * row and popping it, through the two shipping functions the gate decides on.
+       *
+       * THE INSTRUMENT IS CHECKED BEFORE IT IS BELIEVED. The first assertion runs with NO declaration
+       * pushed and requires BOTH synthetic mechanics to COUNT. A probe that reads "0 counted" because
+       * its fixture never staged anything would pass every assertion below it while measuring
+       * nothing, which is this repository's most expensive failure shape. */
+      const MECHCAUSE = 'event missing from medicham2 :: |-end|p1a|synthdeclared <> |upkeep';
+      const NEARMISS  = 'event missing from medicham2 :: |-end|p1a|synthundeclared <> |upkeep';
+      const MECH = (cause, near) => ({ rows: { moves: [
+        { id: 'declaredmech', diverged: true, divergence: { cause, showdown: '|-end|p1a|x', medicham: '|upkeep' } },
+        { id: 'nearmissmech', diverged: true, divergence: { cause: near, showdown: '|-end|p1a|y', medicham: '|upkeep' } },
+      ] } });
+      const MECHU = { ...UIDX, moves: new Map([['declaredmech', 9999], ['nearmissmech', 9999]]) };
+      const mech = () => classifyMechanics(MECH(MECHCAUSE, NEARMISS), null,
+        { U: MECHU, DI: decisionImpact('nothing-on-disk') });
+
+      const blank = mech();
+      ok('INSTRUMENT CHECK — with NOTHING declared, BOTH synthetic mechanics COUNT. A probe that '
+        + 'reads zero because its fixture staged nothing would pass every assertion below it',
+        blank.counted.length === 2 && blank.declared.length === 0,
+        { counted: blank.counted.map((r) => r.id), declared: blank.declared.map((r) => r.id) });
+
+      const wgBefore = MATCHER_THREW.length;
+      DECLARED_DIVERGENCE.push({ kind: 'AUTHORITY-WRONG', name: 'a synthetic authority typo',
+        match: (c) => /synthdeclared/.test(c), why: 'selftest only — never shipped' });
+      try {
+        const m = mech();
+        ok('ONE DOOR — a declaration written TODAY is honoured by the MECHANICS clause, which read '
+          + 'the list not at all until 2026-08-26',
+          m.declared.length === 1 && m.declared[0].id === 'declaredmech'
+          && m.declared[0].kind_declared === 'AUTHORITY-WRONG' && m.counted.length === 1,
+          { declared: m.declared.map((r) => r.id), counted: m.counted.map((r) => r.id) });
+        ok('RED — and the NEAR MISS still counts: the matching rule is the declaration, not the '
+          + 'shape of the cause around it',
+          m.counted.length === 1 && m.counted[0].id === 'nearmissmech');
+        ok('the mechanics clause loses NO row when it subtracts one — declared + counted + shelved + '
+          + 'unknown + cleared still equals every diverging row it saw',
+          m.declared.length + m.counted.length + m.belowShelf.length + m.unknown.length
+            + m.excused.length === m.rowsSeen, m.rowsSeen);
+        /* THE SAME PUSH, THE OTHER CLAUSE, THE SAME CAUSE STRING. This is the invariant the whole
+         * change exists for: neither clause knows what is in the list, so neither can be the only
+         * one that honours it. */
+        const w = dec(MECHCAUSE, [{ showdown: '|-end|p1a|x', medicham: '|upkeep' }]);
+        ok('ONE DOOR — the SAME declaration, on the SAME cause string, is honoured by the WHOLE-GAME '
+          + 'clause too, so a row added tomorrow cannot be seen by one clause and not the other',
+          w.declared === 1 && w.declared_by_kind['AUTHORITY-WRONG'] === 1 && w.undeclared === 0);
+      } finally { DECLARED_DIVERGENCE.pop(); MATCHER_THREW.length = wgBefore; }
+
+      const after = mech();
+      ok('RED — WITHDRAW the declaration and BOTH mechanics count again: the exemption lives in the '
+        + 'list, never in the clause',
+        after.counted.length === 2 && after.declared.length === 0
+        && dec(MECHCAUSE, [{ showdown: '|-end|p1a|x', medicham: '|upkeep' }]).undeclared === 1);
+
+      /* THE DEFERRED GUARD REACHES THE MECHANICS CLAUSE TOO, AND THAT IS THE HALF MOST LIKELY TO BE
+       * SKIPPED. Sharing a door is only safe if the whitelist came through it: a `kind: DEFERRED` row
+       * asserts a defect EXISTS, and subtracting it here would open the clause on the strength of a
+       * label. It must hold the clause shut AND be named. */
+      DECLARED_DIVERGENCE.push({ kind: 'DEFERRED', name: 'a deferred mechanic',
+        match: (c) => /synthdeclared/.test(c), why: 'we know this is wrong and have not fixed it' });
+      try {
+        const m = mech();
+        ok('RED — a `kind: DEFERRED` row does NOT open the MECHANICS clause either: a defect we chose '
+          + 'to skip is not the same as no defect',
+          m.declared.length === 0 && m.counted.length === 2);
+        ok('...and the mechanics clause NAMES it, in its OWN throw list rather than the whole-game '
+          + "clause's — a shared accumulator would print one clause's failures under the other's",
+          m.declaredThrew.length === 1 && /DEFERRED/.test(m.declaredThrew[0].error)
+          && MATCHER_THREW.length === wgBefore, m.declaredThrew);
+      } finally { DECLARED_DIVERGENCE.pop(); }
+
+      /* A MATCHER THAT THROWS MUST INFLATE THE MECHANICS COUNT AND SAY SO — ROADMAP #258, carried
+       * across the door rather than left behind it. */
+      DECLARED_DIVERGENCE.push({ kind: 'AUTHORITY-WRONG', name: 'a matcher that throws',
+        match: () => { throw new Error('deliberate selftest throw'); }, why: 'selftest only' });
+      try {
+        const m = mech();
+        ok('RED — a matcher that THROWS leaves every mechanic UNDECLARED and is NAMED beside the '
+          + 'count it inflates, never swallowed',
+          m.counted.length === 2 && m.declared.length === 0 && m.declaredThrew.length === 2
+          && /deliberate selftest throw/.test(m.declaredThrew[0].error), m.declaredThrew);
+      } finally { DECLARED_DIVERGENCE.pop(); }
     }
 
     /* -- membership, on a synthetic source tree ------------------------------------------------ */
