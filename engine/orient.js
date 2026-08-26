@@ -93,8 +93,16 @@ const broken = s => BREAK === s;
 
 /* AN UNREADABLE FILE IS SAID OUT LOUD. Every consumer here spells `rd(x) || ''`, so a silent null
  * renders as an EMPTY ledger — a map that reads "nothing to report" because it could not read. */
+/* AND IT GOES THROUGH THE NORMALISING DOOR, because this file's parsers are line-oriented prose
+ * parsers and CR is not matched by `.`. Measured on real bytes: with docs/MODELS.md converted to
+ * CRLF, section 5's `**Job:**` capture — which ends `(.+)$` — goes from 32 matches to 0, the model
+ * count falls 33 -> 6, and 29 headings drop into "matched NEITHER shape". It does NOT exit non-zero,
+ * because the six pipeline-table rows survive on a pattern that happens to end `\s*$` and `\s`
+ * matches CR. A quiet 82% loss, switched on by nothing but somebody's checkout. See
+ * engine/read_text.js. */
+const { readText } = require('./read_text.js');
 const rd = f => {
-  try { return fs.readFileSync(f, 'utf8'); }
+  try { return readText(f); }
   catch (e) { console.error('  !! orient: could not read ' + f + ' (' + e.code + ') — anything derived '
     + 'from it below reads as EMPTY rather than as absent'); return null; }
 };

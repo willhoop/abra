@@ -21,6 +21,43 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## ONE NORMALISING DOOR FOR EVERY TEXT READ. TWO CHECKS ROUTED, BOTH SHOWN RED ON REAL BYTES; A THIRD NAMED AND LEFT. 2026-08-26 (MEASURE).
+
+CHANGELOG 5.136.0. Full account: `docs/_reports/2026-08-26-normalising-read.md`.
+No engine bytes touched, no release cut, no measurement invalidated.
+
+`core.autocrlf` is `true`: **600 of 1,937 tracked files are CRLF in the working tree** and LF in the
+committed blob. `engine/read_text.js` is the door — CR-to-LF at the read, fs errors not swallowed. The
+discriminator lives in its header: **`\s` matches CR, `.` does not**, so `\s*$` is accidentally immune,
+`(.+)$` is not, `/…$/m` is safe, and `===` on a line or `.endsWith` is silently false. **The rest of
+the repo is fine by luck rather than by design** — which is why this is a door and not a ratchet
+listing bad regexes. `engine/status.js` carries a comment dated 2026-08-07 fixing this bug **in that
+one file**, and nineteen days later `tests/test-workflow-paths.js` shipped carrying it.
+
+`engine/conformance.js` — `stripComments()` removed **0** line comments across the **169** CRLF files
+of its 478-file scan, against **1,316** / **71,986 chars** normalised. **And the verdict did not move:**
+the run is byte-identical either side except `478 -> 479 source files`, and a per-file cross-check over
+both S12 predicates gives 60 findings on CRLF bytes, 60 normalised, 0 added, 0 removed. The mechanism
+was broken and the answer was right by coincidence. **Ratchet floor unchanged and verified** —
+`data/conformance-baseline.json` md5 `c38b75d0…` before and after, `96 baselined / 66 new (49
+regression, 17 discovery) / 14 fixed` both runs, exit 1 both runs on 49 S13 `data/` regressions that
+are other divisions' and predate this pass.
+
+`engine/orient.js` — latent here (`docs/MODELS.md` is LF). Flipped to CRLF on the real file, run,
+restored from a scratch copy, SHA re-verified `8c520a57…` and `git status` clean. The `**Job:**`
+capture goes **32 -> 0**, models **33 -> 6**, 29 headings unclassified — and it **exits 0**. The brief
+expected a loud `CANNOT DERIVE`; there is none, because six pipeline-table rows survive on a `\s*$`
+pattern. A quiet 82% loss. Post-fix the CRLF and LF runs are identical; `tests/test-orient.js` GREEN.
+
+NAMED AND NOT FIXED — `build/md_to_pdf.js:61`, `/^(#{1,6})\s+(.*)$/` on a bare-split line: **6 headings
+matched against 3,516 normalised** across 24 CRLF markdown files (`CHANGELOG.md` 1,258,
+`docs/ENGINE.md` 1,214). Not publishing anything wrong today only because the four PDF'd documents are
+LF. Batches of one; this was two.
+
+Sweep against the door: 409 js files, **2** require it; 548 `readFileSync` sites, 224 utf8, 70 pairing
+a raw read with a fragile idiom. `build/` triaged clean apart from `md_to_pdf`. `web/` (3) and
+`engine/*.py` (9) still unverified and recorded as owed, not as clear.
+
 ## A SLEEPING BODY WAS RAISING A PROTECT, AND ITS COUNTER NEVER LAPSED. BOARD-MATERIAL 17 -> 13 OF 961, CENSUS 710 -> 714. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, *"A SLEEPING BODY WAS RAISING A PROTECT"*.

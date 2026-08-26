@@ -10,6 +10,90 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.136.0] — 2026-08-26
+
+### Added
+- **`engine/read_text.js` — ONE NORMALISING DOOR FOR READING A TEXT FILE, because three
+  carriage-return failures in this repository came out of one setting and a fourth was found while
+  fixing them.** `git config core.autocrlf` is `true`: **600 of 1,937 tracked files are CRLF in the
+  working tree** while their committed blobs are LF. Same content, different bytes. `readText(file)`
+  normalises CR-to-LF at the read; `normalise(text)` does the same for text already in hand. fs errors
+  are deliberately NOT swallowed — the two callers handle an unreadable file differently and both are
+  right to.
+
+  **THE DISCRIMINATOR, MEASURED AND PUT IN THE MODULE HEADER:** `\s` matches CR; `.` does not. So a
+  pattern ending `\s*$` is *accidentally* immune, one ending `(.+)$` is not and captures nothing at
+  all on a CRLF line, `/…$/m` is safe because `$` then anchors before a LineTerminator, and `===` on
+  a whole line or `.endsWith(…)` is silently false. **The rest of this repository is fine by luck
+  rather than by design**, which is the whole argument for normalising once instead of auditing every
+  regex forever.
+
+  **WHY A DOOR AND NOT A RATCHET LISTING KNOWN-BAD REGEXES.** `engine/status.js` carries a comment
+  **dated 2026-08-07** describing this exact defect — a GENERATED marker followed by CRLF failing to
+  match a pattern ending `-->` plus a newline, so a whole ledger printed *"no GENERATED block"* while
+  frozen at an older run's numbers. It was fixed **in that one file**, and nineteen days later
+  `tests/test-workflow-paths.js` shipped with the same defect and matched zero `git add` paths for
+  its entire life. That is the species-key shape: found, fixed and gated twice, and the third instance
+  walked past both gates because the ratchet enumerated known-bad forms.
+
+### Fixed
+- **`engine/conformance.js` — `stripComments()` WAS COMPLETELY INERT ON EVERY CRLF FILE IT SCANNED,
+  AND THE VERDICT DID NOT MOVE.** Measured on the real working-tree bytes: **0** line comments removed
+  across the **169** CRLF files in its 478-file scan, against **1,316** comment lines / **71,986
+  characters** once normalised. Its own header states the purpose — *"Comments are PROSE, and prose may
+  name a thing in order to explain it… Only code is checked"* — and that purpose was defeated on 35% of
+  the scan.
+
+  **The honest half, because the brief that raised this asserted an over-fire and did not measure one.**
+  The full run before and after is **byte-identical except `478 → 479 source files`** (this module).
+  Same 60 S12 findings, same 67 S13, same 20 convention, same `TOTAL 148 findings across 146 files`.
+  Cross-checked per-file over both S12 predicates: 60 findings on CRLF bytes, 60 normalised, **0
+  appearing and 0 disappearing** — because no CRLF file names a config value or a Pokemon term
+  *exclusively* inside a `//` or `#` comment. **The mechanism was broken and the answer was right by
+  coincidence**, and that coincidence is one comment away from ending.
+
+  **THE RATCHET DID NOT MOVE, AND THAT IS VERIFIED RATHER THAN ASSUMED.**
+  `data/conformance-baseline.json` is byte-identical either side (md5 `c38b75d017612c000ecf35e77d76c7f7`),
+  both runs print `RATCHET — 96 baselined, 66 new (49 regression, 17 discovery), 14 fixed` and both
+  exit 1. `writeBaseline` is not reached while a regression stands and 49 stand — every one an S13
+  `data/` artifact another division added or rewrote, none of them touched here. **No floor was
+  lowered.**
+
+- **`engine/orient.js` — THE MODEL LEDGER PARSER LOSES 82% OF ITS ANSWER ON A CRLF CHECKOUT, AND EXITS
+  0 WHILE DOING IT.** Section 5's `**Job:**` capture ends `(.+)$`. Shown red on real bytes:
+  `docs/MODELS.md` converted to CRLF in the working tree, run, then restored from a scratch copy and
+  the SHA re-verified (`8c520a57…` before and after, `git status` clean). The capture goes **32 → 0**,
+  the printed count **33 models → 6**, and 29 headings drop into *"matched NEITHER shape"*.
+
+  **The brief expected this to surface loudly and it does not.** `fail('THE MODELS', …)` fires only
+  when *nothing* carries a question, and the six pipeline-table rows survive on a pattern that happens
+  to end `\s*$`. So there is no `CANNOT DERIVE` and no non-zero exit — it is a quiet 82% loss switched
+  on by nothing but somebody's checkout. After the fix the CRLF and LF runs are identical output;
+  `tests/test-orient.js` is GREEN including its `33 models` assertion.
+
+### Notes
+- **A THIRD LIVE SITE WAS FOUND, MEASURED AND DELIBERATELY LEFT UNFIXED: `build/md_to_pdf.js:61`.**
+  `L.match(/^(#{1,6})\s+(.*)$/)` over a bare-split line. Across the repo's **24 CRLF markdown files**
+  it matches **6 headings where normalising matches 3,516** — `CHANGELOG.md` alone loses 1,258 and
+  `docs/ENGINE.md` 1,214. Every heading in a CRLF markdown file renders as a paragraph. It is not
+  publishing anything wrong *today* only because the four documents `build/build_pdfs.js` renders are
+  all LF in this tree — the same coincidence as the conformance one, worth the same. Batches of one,
+  and this batch was two; it is owed its own pass with a before/after render.
+- **Sweep against the door: 409 js files, 2 require it; 548 `readFileSync` sites, 224 utf8, 70 pairing
+  a raw read with a CR-fragile idiom.** `build/` was unverified by the previous pass and is triaged
+  now — `strong_player_baseline.js` twice, `build_scoreboard.js`, `compress-stores.js`,
+  `merge-jsonl-store.js` and `triggers.js` are all safe (row regexes ending `\|`, a `\s*$` that eats
+  the CR, or JSONL with `JSON.parse` per line; both game stores carry 0 CR bytes). `web/` and
+  `engine/*.py` remain unverified and are recorded as owed, not as clear.
+- **Two pre-existing control-byte findings CONFIRMED INERT and left in place.** `CHANGELOG.md:951`
+  carries two raw `U+0008` inside a backticked span quoting a regex; `CHANGELOG.md` is on
+  `docs_scan.js`'s `EXEMPT_FILES` for every content rule and the two places it is read —
+  `changelogTop()` and `figuresIn()` — do not reach that line. `docs/MEDICHAM-SPRINT-NOTES.md:9543` and
+  `:9878` carry `U+000C`, exempted by `sprintActive()` and only ever checked by the hook for being
+  staged. Reported rather than repaired: they are somebody else's rows, and the two sprint-notes ones
+  are **lossy** — a `\f` ate the `f` of "field" and of "files".
+- Full account: `docs/_reports/2026-08-26-normalising-read.md`.
+
 ## [5.135.0] — 2026-08-26
 
 ### Fixed
@@ -66,6 +150,65 @@ silently rewritten; what changed and why is stated.
 - Unrelated pre-existing red, untouched and out of scope: the same test's second half reports the
   tracked `.gz` stores are stale (`games.ladder`, `games.bo3`). `data/` was owned by live agents this
   pass. Owner action: `node build/compress-stores.js`.
+
+---
+
+## [5.134.1] — 2026-08-26
+
+### Fixed
+- **THE 5.134.0 HEADLINE NAMED THE BOARD-MATERIAL COUNT AND WAS READ AS THE GATE CLAUSE. BOTH READ 17
+  BEFORE THE FIX, WHICH IS THE WHOLE OF THE CONFUSION.** `17 -> 13` is
+  `state.games − state.games_board_never_diverged`, the games whose BOARD parted. The gate clause is
+  `engine/quarantine.js`'s `wholeGameClause`: raw whole-game PROTOCOL divergence less declared
+  exclusions, and it moved **17 -> 16**. Corrected rather than silently rewritten, and **not by
+  re-running** — two artifacts of this instrument are only comparable on a matching budget, and these
+  two match exactly (same 961 games, same pinned pool `0d103fb9fa87`, same census pin `9446a684709d`,
+  `--arm middle --turns 12 --state --end-state`). The BEFORE artifact was scored by pointing
+  `wholeGameClause` at it through an in-process `fs.readFileSync` redirect, so the declared-exclusion
+  arithmetic is the gate's own implementation and not a second copy of it living inside a verifier.
+
+  | | before `d684a2f1f183` | after `419e9636ec6a` | moved |
+  |---|---|---|---|
+  | **gate clause** — undeclared protocol divergence | 22 raw − 5 declared = **17** | 21 raw − 5 declared = **16** | one game |
+  | **board-material** — games whose board parted | **17** | **13** | four games |
+  | `DIFFERENT-END-STATE` | 11 | 8 | three |
+  | `board_parted_before_the_protocol_did` | 11 | 7 | four |
+
+  The declared count is **5 on both sides, all `AUTHORITY-WRONG`** — the same rows, so nothing was
+  declared away to move a number. The two 17s are also **not the same 17**:
+  `protocol_diverged_board_never_did` is 14 of 22, so the sets overlap in 8 games and merely share a
+  cardinality.
+
+### Notes
+- **WHY THE GATE MOVED BY ONE WHILE THE BOARD MOVED BY FOUR.** Four games left the board-parted list
+  and **each carried exactly one differing leaf, the stall counter** — none stayed parted for another
+  reason, and no new game entered the list. But three of the four carry
+  `protocol_diverged_at_turn: null`: their board parted and their emitted stream never did. The gate
+  counts PROTOCOL divergence, so those three were never inside its 17 and could not move it. Only
+  `pair-protect-bust` (turn 5, `p2.active[0].stall 3/0`, protocol parted at turn 6) was visible to
+  both instruments. So the 5.134.0 sentence *"all four fixed games are one shape"* is right, and the
+  sentence it was missing is that three of them were invisible to the gate by construction.
+- **Nothing was diverted and nothing overwrote the run.** `engine/publish_guard.js` produced no
+  alternate copy; there is no `game-differential`-shaped file under `data/verification/` newer than
+  06:40Z; the artifact stamped `2026-08-26T06:47:32.893Z` on release `419e9636ec6a` is this run and
+  the only one.
+- **THE OWED ROSTER STAGES WERE RUN ON `419e9636ec6a`, CLEARING THREE `MEASURED AGAINST A DIFFERENT
+  ENGINE` CLAUSES.** Those clauses were not evidence of breakage in either direction — they were an
+  unmeasured state, created by this batch moving the engine under artifacts stamped `d684a2f1f183`.
+  Counts are unchanged from the previous release's run, which is the result: the Protect batch moved
+  no roster row.
+
+  | stage | FIRED-AND-BOARDS-DIFFER | DID-NOT-FIRE | tested / in scope |
+  |---|---|---|---|
+  | items | 0 | 0 | 139 / 148 |
+  | abilities | 0 | 0 | 129 / 202 |
+  | moves | see the ENGINE ledger | | |
+
+  Run as the clause's own repair command (`node tests/roster.js --stage <s> --write`) plus
+  `--release 419e9636ec6a`. `--team-store` and `--census` were **deliberately omitted**: `tests/roster.js`
+  reads neither — it stages entities from their own upstream data and plays no pool game — so those
+  flags would only have been forwarded into the differential driver's `process.argv` where they could
+  steer without being used. Stated rather than silently dropped.
 
 ---
 

@@ -64,7 +64,13 @@ const findings = [];
  * ratchet compares; see fingerprint(). */
 const flag = (std, file, what, why, detail) => findings.push({ std, file, what, why, detail });
 
-const read = f => { try { return fs.readFileSync(f, 'utf8'); } catch (e) { return ''; } };
+/* EVERY READ IN THIS FILE GOES THROUGH THE NORMALISING DOOR. `core.autocrlf` is true here, so 169 of
+ * the 478 files this scan reads are CRLF in the working tree and LF in the committed blob — and
+ * stripComments() below was measurably INERT on all 169: 0 line comments removed, against 1,316
+ * (71,986 characters) once the bytes are normalised. See engine/read_text.js for why CR survives a
+ * `.`-based pattern and what else in this repo is immune only by accident. */
+const { readText } = require('./read_text.js');
+const read = f => { try { return readText(f); } catch (e) { return ''; } };
 
 /* ---------------------------------------------------------------------------------------------
  * THE PROJECT'S OWN FILE CONVENTION
