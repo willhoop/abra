@@ -21,6 +21,60 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE ITEM RE-READ WAS A SIDE EFFECT OF BUILDING A MENU, AND A HANDED-IN ACTION BUILDS NONE. CENSUS 743/746 -> 746 LIVE / 749 PROBED / 3 MISSING. PINNED POOL PREDICTED TO MOVE AND MEASURED UNMOVED. 2026-08-26 (ENGINE).
+
+Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.144.0. Register rows: ROADMAP #460 and #461
+CLOSED, #462 OPEN. Engine release cut for this batch: **`a98b43a5f384`**.
+
+Will: *"test when choice scarf is knocked off if we allow a mon to click other moves"*. **Half one — the
+menu — was NO on the caller-supplied road and is fixed. Half two — the ×1.5 — was already YES and is
+said so plainly.** Both were measured, because `choicescarf` carries `isChoice` AND `onModifySpe` and a
+fixture that only checks the menu passes an engine that still moves first.
+
+**THE UNWIRED-KNOB SIGNATURE SAID IT FIRST.** One board, every click handed in: Scarf knocked off gave
+`["swordsdance" x8]` and Scarf untouched gave `["swordsdance" x8]` — byte-identical across the knob —
+while a body that had never HELD a Scarf played `["swordsdance","swordsdance","knockoff" x6]`.
+`lockMenuMove` implemented the authority's re-read correctly and the COLLECT SITE in `mk()` read
+`mon._lock` raw and never called it. `chooseAction` builds a menu on the way past, so the chooser road
+was accidentally right; a handed-in action builds none, and that road is every rollout candidate, every
+scripted differential game and every MILTANK evaluation.
+
+**AND A THIRD CASE THE SAME HANDLER OWNS, WRONG IN THE OPPOSITE DIRECTION.** `choicelock.onDisableMove`
+has TWO escapes with opposite lifetimes: `!getItem().isChoice || !hasMove(...)` DESTROYS, and
+`ignoringItem()` SUSPENDS. Measured on the authority, eight turns: under Magic Room the menu is free at
+spe 80 with `volatiles.choicelock.move` still `swordsdance`, and the turn the room falls the menu is
+`swordsdance` ALONE again at spe 120 — the body is re-locked into the move it clicked seven turns ago.
+This engine parks a suppressed item by emptying the slot, so the slot said LOST where the authority said
+IGNORED. Reg M-B reaches `ignoringItem` two ways, derived: Magic Room (31 carriers) and Klutz (Lopunny,
+Audino, Golurk); Embargo is `Past`.
+
+**THE SPLIT IS THE FIX RATHER THAN TIDYING.** `lockStillBinds` carries the item re-read alone;
+`lockMenuMove` keeps `hasMove` on top. Written as ONE function first, which cost five census rows,
+because `onDisableMove` tests `hasMove` and `onBeforeMove` does not.
+
+| quantity | before | after | predicted |
+|---|---|---|---|
+| census live | 743 | **746** | 746 |
+| census probed | 746 | **749** | 749 — three new rows |
+| census missing | 3 | **3** | 3 |
+| pinned pool (published config, both releases) | 961 / 15 diverged | **961 / 15, identical but for the release stamp** | **MOVE — the prediction was WRONG** |
+| whole-game clause | 10 of 961 | **10 of 961** | fall |
+| board-material | 957 of 961 never parted | **957 of 961** | fall |
+| `tests/test-engine-diff.js --n 6000` | 0 of 6000 | **0 of 6000**, sixteen corners | unmoved |
+| roster items / abilities / moves | 0 / 0 | **0 DIFFER, 0 DID-NOT-FIRE** | unmoved |
+
+Knobs: `MEDI_LOCK_STALE_ON_HANDED_ACTION=1` reds #460's row and #461's (which also hands in its clicks);
+`MEDI_SUPPRESSED_ITEM_IS_LOST=1` reds #461's alone. The already-green speed row was shown red by caching
+`speedMult` on the body — **a break no other instrument in this repository catches**, not the 6,000-row
+differential and not the other 745 census rows.
+
+**REPORTED, NOT FIXED — #462.** `itemRoomForget` is declared, its own comment says it is called, and it
+has no caller: a Knock Off inside Magic Room is swallowed and the Scarf **comes back at room-end, spe
+120 where the authority reads 80**. The sole remaining turn-1 board-material game in the pinned pool is
+that same mechanism (*"Meowstic clicks Magic Room, and mega evolves"*, four items empty on our side).
+
+---
+
 ## A LOCK REWRITE ASKED WHETHER AN ACTION WAS STRUGGLE BY ITS KIND, AND THE AUTHORITY ASKS BY ITS MOVE ID. CENSUS 742/745 -> 743 LIVE / 746 PROBED / 3 MISSING. PINNED POOL MEASURED UNMOVED. 2026-08-26 (ENGINE).
 
 Ledger section: `docs/ENGINE.md`, written. CHANGELOG 5.143.0. Register row: ROADMAP #459, CLOSED.

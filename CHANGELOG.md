@@ -10,6 +10,95 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.144.0] — 2026-08-26
+
+### Fixed
+- **THE CHOICE LOCK'S ITEM RE-READ WAS A SIDE EFFECT OF BUILDING A MENU, SO A HANDED-IN ACTION WAS
+  BOUND BY A SCARF THAT HAD BEEN KNOCKED OFF. CENSUS 743/746 -> 746 LIVE / 749 PROBED / 3 MISSING.
+  RELEASE `a98b43a5f384`.** Will's fixture: *"test when choice scarf is knocked off if we allow a mon
+  to click other moves"*. **The answer was NO on the road that matters, and YES on the one that was
+  already right** — both halves were measured, because `choicescarf` carries `isChoice: true` AND an
+  `onModifySpe`, and a fixture that only checks the menu passes an engine that still moves first.
+  ROADMAP #460.
+- **THE MENU HALF.** `choicelock.onBeforeMove` (`data/conditions.ts:324`, no Champions override) opens
+  `if (!pokemon.getItem().isChoice) { pokemon.removeVolatile('choicelock'); return; }`, and
+  `lockMenuMove` implemented exactly that. The COLLECT SITE in `mk()` read `mon._lock` **raw** and never
+  called it. `chooseAction` builds a menu on the way past and `lockMenuMove` clears a dead lock as a side
+  effect of that build, so the chooser road was accidentally right; a caller-supplied action builds no
+  menu, and that road is every rollout candidate, every scripted differential game and every MILTANK
+  evaluation. Measured, one board, every click handed in, the foe's turn-2 click the only difference: the
+  Scarf knocked off gave `["swordsdance" x8]` and the Scarf untouched gave `["swordsdance" x8]` —
+  **byte-identical across the knob**, the unwired-knob signature — while a body that had never HELD a
+  Scarf played `["swordsdance","swordsdance","knockoff" x6]`.
+- **THE SPEED HALF WAS ALREADY CORRECT AND IS SAID SO PLAINLY.** `effSpeed` reads the item live off the
+  slot, so the ×1.5 died with the item before this batch. It is now probed, on a board where
+  100 < 120 < 150 so the arm can only pass if the multiplier is gone, and it was shown red by a
+  deliberate break (caching `speedMult` on the body and replaying it once the slot empties) that **no
+  other instrument in the repository caught** — not `tests/test-engine-diff.js` at 6,000 rows, not the
+  other 745 census rows. The engine was restored and verified to carry zero occurrences of the marker.
+- **A SUPPRESSED CHOICE ITEM DESTROYED THE LOCK WHERE THE AUTHORITY SUSPENDS IT.** ROADMAP #461.
+  `choicelock.onDisableMove` has TWO escapes with opposite lifetimes and this engine had one:
+  `!getItem().isChoice || !hasMove(...)` DESTROYS the lock; `ignoringItem() || volatiles['dynamax']`
+  SUSPENDS it, returning without disabling and leaving the volatile standing, because Magic Room and
+  Klutz suppress an item's EFFECTS and never take it away. Reg M-B reaches `ignoringItem` two ways,
+  derived rather than recalled — Magic Room (31 legal carriers) and Klutz (Lopunny, Audino, Golurk);
+  Embargo is `isNonstandard: 'Past'` and cannot. **Measured on the authority before a line changed**,
+  one board, eight turns: under the room the menu is free at spe 80 with `volatiles.choicelock.move`
+  still `swordsdance`, and the turn the room falls the menu is `swordsdance` ALONE again at spe 120 —
+  the body is re-locked into the move it clicked seven turns ago, having spent the room clicking Knock
+  Off. This engine parks a suppressed item by emptying `m.item` into `_roomItem`, so the slot said LOST
+  where the authority said IGNORED: the lock died at t3, never came back, and re-armed onto the wrong
+  move permanently.
+
+### Changed
+- **`lockStillBinds` SPLIT OUT OF `lockMenuMove`, AND THE SPLIT IS THE FIX RATHER THAN TIDYING.** The
+  item re-read is shared because the authority runs it in BOTH handlers; `hasMove` stays in
+  `lockMenuMove` alone because `onDisableMove` tests it and `onBeforeMove` does not. Written as ONE
+  function first, which cost five census rows — a lock naming a move outside the body's declared list
+  stopped binding a handed-in click — and the split restored them. The item is now read as
+  `m.item || m._roomItem`, which is `getItem()` rather than the slot.
+- **`chooseAction`'s LOCK FALLBACK MOVED TO THE SAME PREDICATE, AND IT IS REQUIRED RATHER THAN
+  COSMETIC.** Once a lock can be SUSPENDED without being cleared, a raw `me._lock` read there forces the
+  locked move inside the room — the opposite of the authority.
+- Two counters, deliberately apart because the two escapes have opposite lifetimes and a shared total
+  could not say which fired: `MEDSEEN.choiceLockSuspendedWhileIgnored` and
+  `MEDSEEN.choiceLockRereadOnHandedAction`.
+- Two knobs, each red on its own row and on nothing else: `MEDI_LOCK_STALE_ON_HANDED_ACTION=1` restores
+  the raw field read; `MEDI_SUPPRESSED_ITEM_IS_LOST=1` restores the slot read.
+
+### Added
+- Three census rows in `tests/test-mechanics.js`, all through the new `koRun(` helper — declared in the
+  direct-call paragraph and added to `REALTURN`, because it hands in EVERY click on both sides and that
+  is the whole point of the rows. `item / choiceLock` *"a Knock Off frees a HANDED-IN action, not only a
+  chosen one"*; `item / speedMult` *"the Choice Scarf x1.5 dies with the item, on the turn after it
+  leaves"*; `item / choiceLock` *"a SUPPRESSED Choice item suspends the lock; only a LOST one destroys
+  it"*.
+- `docs/_reports/2026-08-26-knockoff-choice.md` — the full account, both authority runs transcribed.
+
+### Notes
+- **THE PINNED POOL DID NOT MOVE AND THE PREDICTION SAID IT WOULD.** 961 games, 15 diverged on both
+  releases, `first_divergences` and `classes` identical. The prediction was that a differential replaying
+  recorded human clicks — handed-in actions, the exact broken road — would move, with Choice Scarf on
+  11,384 sheets. It did not, and that is recorded as a wrong prediction rather than quietly dropped.
+  What DID move inside the same 961 games is the dice-address alignment:
+  `sd_addresses_dropped_as_not_this_game` 13,853 -> 9,480 and `damage_roll_index_inversions`
+  3,238 -> 2,341, with no verdict changing.
+- **THE FIRST TWO ATTEMPTS AT THAT MEASUREMENT WERE REFUSED BY THE ARTIFACT'S OWN GUARD, AND THE
+  REFUSAL WAS RIGHT.** Run without `--census` and `--team-store` the numbers read 976 games / 45
+  diverged, which is not a worse answer but a different question: the live store had grown from 8,778 to
+  11,493 distinct teams and the census pin had defaulted to the freshly regenerated live census.
+  `--baseline` caught it and exited before playing a game.
+- `tests/test-engine-diff.js --n 6000` re-run: **0 of 6000 at all sixteen corners.** Damage unmoved.
+- All three `tests/roster.js` stages re-run on the new release: **0 FIRED-AND-BOARDS-DIFFER and 0
+  DID-NOT-FIRE** across items (139 of 148 tested), abilities (129 of 202) and moves (475 of 500).
+- **REPORTED, NOT FIXED — ROADMAP #462.** `itemRoomForget` is declared, its own comment says it is
+  called, and it has no caller anywhere in the file. A Knock Off landing inside Magic Room is therefore
+  swallowed and **the Choice Scarf comes back when the room ends, spe 120 where the authority reads 80**
+  — CLAUDE.md's named cost of an untracked Knock Off arriving through the item model's open door. Not a
+  clause: every strip site reads `m.item`, so seeing through the park is a refactor of a dozen sites.
+
+---
+
 ## [5.143.0] — 2026-08-26
 
 ### Fixed

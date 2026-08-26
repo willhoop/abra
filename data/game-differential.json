@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-26T18:14:32.911Z",
+  "generated": "2026-08-26T19:00:54.033Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:8c7a4ccd36ac/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -267,7 +267,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 178.3,
+  "elapsed_s": 171.4,
   "credit_turn_profile": {
     "rows_with_any_credit": 253,
     "credits_with_no_turn_index": 0,
@@ -1560,7 +1560,7 @@
           "case": {
             "seed": "gen9championsvgc2026regmbbo3-2659015200 vs gen9championsvgc2026regmbbo3-2659004938",
             "config": "omit-spread",
-            "engine_release": "93a51075e83f",
+            "engine_release": "a98b43a5f384",
             "team_pool_digest": "0d103fb9fa87",
             "turn": 1,
             "leads": {
@@ -15457,7 +15457,7 @@
     "input_digest": "9446a684709d",
     "input_rows": 643,
     "input_generated": "2026-08-23T09:53:56.393Z",
-    "input_live_digest": "d2da36b3b912",
+    "input_live_digest": "9a3ef1400ffd",
     "pinned": true,
     "matches_live": false,
     "selects_from": 580,
@@ -15468,13 +15468,39 @@
     "team_pool_picked": 1968,
     "team_store_pinned_to": "data/team-pool-frozen"
   },
-  "baseline_comparability": null,
-  "engine_release": "93a51075e83f",
-  "engine_release_cut": "2026-08-26T17:36:04.125Z",
+  "baseline_comparability": {
+    "artifact": "C:/Users/willj/AppData/Local/Temp/claude/C--Users-willj-Projects-Pokemon-ABRA/6e93c397-51cb-4089-996b-51fc61c6e7c7/scratchpad/gd-before.json",
+    "baseline_release": "93a51075e83f",
+    "baseline_steering": {
+      "policy": "census-coverage-seeking/v1",
+      "rule": "at every decision the driver prefers the legal action reaching the least-exercised row of data/mechanics-census.json, ties broken toward the least-clicked entity (game_differential.js covWant/creditClick). The census therefore SELECTS THE SAMPLE this run measures.",
+      "input": "data/mechanics-census.json",
+      "input_read_from": "data/verification/census-pin-9446a684709d.json",
+      "input_digest": "9446a684709d",
+      "input_rows": 643,
+      "input_generated": "2026-08-23T09:53:56.393Z",
+      "input_live_digest": "d2da36b3b912",
+      "pinned": true,
+      "matches_live": false,
+      "selects_from": 580,
+      "unmeasurable": 63,
+      "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
+      "team_pool_digest": "0d103fb9fa87",
+      "team_pool_teams": 8778,
+      "team_pool_picked": 1968,
+      "team_store_pinned_to": "data/team-pool-frozen"
+    },
+    "baseline_pins": "8c7a4ccd36ac",
+    "pins": "8c7a4ccd36ac",
+    "ok": true,
+    "reasons": []
+  },
+  "engine_release": "a98b43a5f384",
+  "engine_release_cut": "2026-08-26T18:44:59.925Z",
   "engine_release_cuts": 3,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "6f211827835c",
+    "engine/medicham2-browser.js": "de3d1019ba22",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "a9de35b3808d",
     "engine/position_features.js": "4850adf1a2ab",

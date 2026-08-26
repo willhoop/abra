@@ -1,10 +1,10 @@
 {
-  "current": "93a51075e83f",
-  "cut": "2026-08-26T17:36:04.125Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "current": "a98b43a5f384",
+  "cut": "2026-08-26T18:44:59.925Z",
+  "why": "the Choice lock re-read only happened as a side effect of building a menu, so a handed-in action was bound by a Scarf that had been Knocked Off; and a SUPPRESSED item destroyed the lock where the authority suspends it",
   "cuts": 3,
-  "latest_cut": "2026-08-26T17:36:43.820Z",
-  "latest_why": "a lock rewrite declines on Struggle by MOVE ID, so Encore plus Disable empties the menu and the body Struggles",
-  "pointer_written": "2026-08-26T17:36:43.830Z",
+  "latest_cut": "2026-08-26T18:50:48.333Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-26T18:50:48.346Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

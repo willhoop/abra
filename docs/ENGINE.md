@@ -63,12 +63,12 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  743/746 probed mechanics live, 3 missing   (census 2026-08-26 13:51)
+  746/749 probed mechanics live, 3 missing   (census 2026-08-26 14:43)
   missing:
     ability refusesAllyDamage      Telepathy announces |-activate|ally|ability: Telepathy, not |-immune|
     move    statChangeInCode       Psych Up announces |-copyboost| on the copier
     ability punishesAttacker       Spicy Spray announces a bare |-immune| at the FIRE ATTACKER, and only when it is unstatused
-  0/6000 differential comparisons disagree with Showdown   (2026-08-26 13:56)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-26 14:44)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -79,16 +79,210 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 231e72dc0d42 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is d2da36b3b912 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 93645758e350 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 9a3ef1400ffd now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 279/296 probed, 17 unprobed
 ```
 
-_stamped 2026-08-26 14:20_
+_stamped 2026-08-26 15:05_
 
 <!-- /GENERATED -->
+
+## THE ITEM RE-READ HAPPENED ONLY AS A SIDE EFFECT OF BUILDING A MENU, AND A HANDED-IN ACTION BUILDS NONE. CENSUS 743/746 -> 746 LIVE / 749 PROBED / 3 MISSING. PINNED POOL PREDICTED TO MOVE AND MEASURED UNMOVED. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.144.0. Register rows: ROADMAP #460 and #461 CLOSED, #462 OPEN.
+Engine release cut for this batch: **`a98b43a5f384`**.
+
+Will's fixture: *"test when choice scarf is knocked off if we allow a mon to click other moves"*.
+
+### THE PLAIN ANSWER, BOTH HALVES
+
+**Half one — the menu. NO, we did not, on the road that matters.** Fixed here.
+**Half two — the ×1.5. YES, already correct.** Now probed, and the probe was shown red by a break that
+nothing else in this repository catches.
+**And a third case Will did not ask for and the same handler owns**, which was wrong in the opposite
+direction: a SUPPRESSED item destroyed the lock where the authority suspends it.
+
+### THE AUTHORITY, PLAYED RATHER THAN RECALLED
+
+`choicelock` (`data/conditions.ts:324`) is not overridden by Champions and has FOUR clauses across two
+handlers, not one:
+
+```js
+onDisableMove(pokemon) {
+  if (!pokemon.getItem().isChoice || !pokemon.hasMove(...)) { pokemon.removeVolatile(...); return; }  // DESTROY
+  if (pokemon.ignoringItem() || pokemon.volatiles['dynamax']) return;                                 // SUSPEND
+  ...
+}
+onBeforeMove(pokemon, target, move) {
+  if (!pokemon.getItem().isChoice) { pokemon.removeVolatile(...); return; }   // DESTROY, and NO hasMove clause
+  ...
+}
+```
+
+**Run 1, Knock Off,** one real `Battle` in `gen9championsvgc2026regmb`, the p1 request read straight off
+`activeRequest.active[0]`:
+
+| | menu | item | spe | volatiles |
+|---|---|---|---|---|
+| before the Knock Off | `struggle` (a lock plus a Disable) | choicescarf | **120** | choicelock/disable |
+| after the Knock Off | `swordsdance(DIS),knockoff,protect,fakeout(DIS)` | (none) | **80** | disable |
+
+**Run 2, Magic Room,** same board, eight turns:
+
+| turn | menu | item | spe | room | `volatiles.choicelock.move` |
+|---|---|---|---|---|---|
+| t2 | `swordsdance` alone | choicescarf | 120 | – | swordsdance |
+| t3–t6 | `swordsdance,knockoff,protect` | choicescarf | 80 | 4→1 | **swordsdance** |
+| t7 | `swordsdance` alone | choicescarf | 120 | – | **swordsdance** |
+
+The body is **re-locked into the move it clicked seven turns ago**, having spent the whole room clicking
+Knock Off. `ignoringItem()` is reachable two ways in Reg M-B, derived not recalled: Magic Room (31 legal
+carriers) and Klutz (Lopunny, Audino, Golurk). Embargo is `isNonstandard: 'Past'` and cannot.
+
+### THE DEFECT, AND THE UNWIRED-KNOB SIGNATURE SAID IT FIRST
+
+One board, every click handed in, the foe's turn-2 click the only difference:
+
+```
+SUPPRESSED   ["swordsdance" x8]                       spe [120,80,80,80,80,120,120,120]  room [0,4,3,2,1,0,0,0]
+LOST (KO)    ["swordsdance" x8]                       spe [120,80,80,80,80, 80, 80, 80]
+NO ITEM ctrl ["swordsdance","swordsdance","knockoff" x6]
+```
+
+**The knocked arm and the untouched arm are byte-identical.** Identical results across a varied knob
+mean the knob is unwired, and it was. The `NO ITEM` control is what says the handed-in click is
+buildable on this board at all, so a red is the lock rather than a broken fixture.
+
+`lockMenuMove` implemented the authority's re-read correctly and **the collect site in `mk()` never
+called it** — it read `mon._lock` raw. `chooseAction` builds a menu on the way past, and `lockMenuMove`
+clears a dead lock as a SIDE EFFECT of that build, so the chooser road was accidentally right. A
+caller-supplied action builds no menu, and that road is every rollout candidate, every scripted
+differential game and every MILTANK evaluation.
+
+### WHAT LANDED — A PREDICATE, AND THE SPLIT IS THE FIX RATHER THAN TIDYING
+
+`lockStillBinds` carries the item re-read alone; `lockMenuMove` keeps `hasMove` on top of it. Written as
+ONE function first and it **cost five census rows** — a lock naming a move outside the body's declared
+list stopped binding a handed-in click, which the authority does not do, because `onDisableMove` tests
+`hasMove` and `onBeforeMove` does not. The split restored them. That is the whole argument for reading
+the authority's two handlers as two handlers.
+
+The item is read `m.item || m._roomItem`, which is `getItem()` rather than the slot: `itemRoomHide`
+parks a suppressed item by emptying the slot, so the slot said LOST where the authority said IGNORED.
+
+`chooseAction`'s lock fallback moved to the same predicate in the same pass, and it is **required rather
+than cosmetic**: once a lock can be SUSPENDED without being cleared, a raw `me._lock` read there forces
+the locked move inside the room — the opposite of the authority.
+
+### EVERY NEW ROW WAS SHOWN RED, INCLUDING THE ONE THAT WAS ALREADY GREEN
+
+| knob / break | rows that go MISSING |
+|---|---|
+| `MEDI_LOCK_STALE_ON_HANDED_ACTION=1` | *a Knock Off frees a HANDED-IN action* **and** the suppression row (which hands its clicks in too) — and nothing else |
+| `MEDI_SUPPRESSED_ITEM_IS_LOST=1` | the suppression row **only** |
+| deliberate break: cache `speedMult` on the body and replay it once the slot empties | *the Choice Scarf x1.5 dies with the item* only |
+
+**The speed break is the one worth recording.** It is the exact stale-multiplier defect CLAUDE.md names,
+and **no other instrument in this repository saw it** — not `tests/test-engine-diff.js` at 6,000 rows,
+not the other 745 census rows. The engine was restored from a byte copy taken before the break and
+verified to carry zero occurrences of the marker.
+
+### THE NUMBERS, AND ONE PREDICTION WAS WRONG
+
+| quantity | before | after | predicted |
+|---|---|---|---|
+| census live | 743 | **746** | 746 |
+| census probed | 746 | **749** | 749 — three new rows |
+| census missing | 3 | **3** | 3 — the same three narration rows |
+| pinned pool, published config | 961 games / 15 diverged | **961 / 15** | **MOVE — and it did not** |
+| whole-game clause | 10 of 961 | **10 of 961** | fall |
+| board-material (`games_board_never_diverged`) | 957 of 961 | **957 of 961** | fall |
+| `tests/test-engine-diff.js --n 6000` | 0 of 6000 | **0 of 6000**, sixteen corners | unmoved |
+| roster items / abilities / moves | 0 / 0 | **0 DIFFER, 0 DID-NOT-FIRE** on all three | unmoved |
+
+**THE PREDICTION THAT THE POOL WOULD MOVE WAS WRONG AND IS RECORDED AS WRONG.** The reasoning was that
+the whole-game differential replays recorded human clicks — handed-in actions, the exact broken road —
+with Choice Scarf on 11,384 sheets. Every artifact key is identical between the two runs except the
+`engine_release` stamp inside one worked example: same `first_divergences`, same `classes`, same
+`end_state` across all three arms, same `families`, same `mid_void`.
+
+**THE FIRST TWO ATTEMPTS AT THAT MEASUREMENT WERE REFUSED BY THE ARTIFACT'S OWN GUARD, AND THE REFUSAL
+WAS RIGHT.** Run without `--census` and `--team-store` it reads 976 games / 45 diverged, which is not a
+worse answer but a different question: the live store had grown 8,778 → 11,493 distinct teams since the
+baseline, and the census pin defaulted to the freshly regenerated live census. `--baseline` caught both
+and exited before playing a game. The published configuration is
+`--census data/verification/census-pin-9446a684709d.json --team-store data/team-pool-frozen --end-state`.
+
+**AND THE ONE REMAINING TURN-1 BOARD-MATERIAL GAME IN THE POOL IS A MAGIC ROOM GAME** — *"Meowstic
+clicks Magic Room, and mega evolves"*, four items reading empty on our side against White Herb,
+Meowsticite, Focus Sash and Twisted Spoon. That is the standing hand-list item below, now with a name
+and a seed.
+
+### THE HAND LIST
+
+**Leaving it — it is closed:**
+- ~~**Does a Knock Off let the body click other moves** — Will's fixture~~ — **YES NOW; it was NO for a
+  handed-in action.** ROADMAP #460, LIVE.
+- ~~**Does the ×1.5 stop**~~ — **IT ALREADY DID.** Now probed and shown red on a break nothing else
+  catches. ROADMAP #460, LIVE.
+- ~~**A suppressed Choice item destroyed the lock**~~ — **FIXED**, ROADMAP #461, LIVE.
+
+**Still open, filed with its evidence:**
+- **`itemRoomForget` HAS NO CALLER AND A KNOCK OFF INSIDE MAGIC ROOM IS SWALLOWED** — the Scarf comes
+  back at room-end, spe 120 where the authority reads 80. ROADMAP #462, measured this pass, deliberately
+  not fixed: every strip site reads `m.item`, so seeing through the park is a refactor of a dozen sites.
+  It subsumes the older *"MAGIC ROOM PARKS THE ITEM BY EMPTYING THE SLOT"* line, which is the same
+  mechanism and is the sole remaining turn-1 board-material game in the pinned pool.
+- **THE `|-activate|move: Struggle` LINE IS NOT EMITTED HERE.** Board-correct, narration-open; no probe
+  fails on it yet.
+- **#456 Telepathy's `-activate`**, **#457 Psych Up's `-copyboost`**, **#458 Spicy Spray's `-immune`** —
+  all three narration with the board already correct, all three carried by the census as MISSING.
+- **THE PARTY MAP IS KEYED BY THE SPECIES A BODY IS SHOWING.** HELD, credit shift measured; MEASURE's if
+  the sample moves.
+- **A SELF-AIMED VOLATILE'S `-fail` IS OWED.** Imprison (487 uses), Magnet Rise, Aqua Ring, Ingrain.
+- **GASTRO ACID ANNOUNCES `-start|move: gastroacid` WHERE THE AUTHORITY WRITES `-endability`.**
+- **`p2.active[1].stall` medicham 0 / showdown 3** — needs the arming side.
+- **`p2.party.staraptor.hp` 160/87 AND `p2.party.incineroar.hp` 106/170** — not diagnosed.
+- **A TRANSFORMED BODY STILL FORECASTS HERE.** No probe fails on it yet.
+- **A CASTFORM RE-ENTERING UNDER A STANDING SKY WRITES NO `|-formechange|` HERE.**
+- **`engine/medicham2-browser.js` DECLARES `canMegaNow` TWICE** — ROADMAP #449.
+- **`tests/staged_board.js` IS STILL 24 OF 25** on `roar-drags-whoever-is-standing-there`, re-run this
+  pass and unchanged.
+- **`tests/test-board-browser.js` IS RED and is `board.js`'s** (#218).
+- **`tests/test-resolution-order.js` OOMs at the default heap** (#446).
+- **`engine/artifact_audit.js` is RED on `data/engine-data.js`** — not fixable by this division.
+- **THE PRIORS LEAK IS VISIBLE AGAIN** — a four-slot Incineroar reaching for `flareblitz` when the
+  chooser is free. ROADMAP #119/#295. This batch's rows hand in every click and so do not depend on it,
+  which is a second reason the helper is built that way.
+- **`.scratch_eng/`, `stash@{0}` AND THE PRE-MODIFIED `data/*.json` ARE ANOTHER SESSION'S.** Reported,
+  left, nothing executed in any of them.
+
+### OWED, NOT RUN
+
+- **`tests/test-mechanics.js` ran clean at the end** — 746 live, 3 missing, 749 probed, 0 hollow, 0
+  threw, 0 unarmed, 1 direct-call, exit 0, `run_ok: true`.
+- **`tests/test-engine-diff.js --n 6000` — RUN**, 0 of 6000 at all sixteen corners, exit 0. Owed because
+  this batch moves turn ORDER, and a stale speed multiplier reaching the damage path would show here.
+- **The three roster stages — RUN** on release `a98b43a5f384` with `--write`, all three stamped and all
+  three at 0 DIFFER / 0 DID-NOT-FIRE. **The first attempt passed `--kind` and the flag is `--stage`**,
+  so it ran the spine three times and printed three identical blocks; the identical-output signature is
+  what caught it, not the exit code.
+- **`engine/all_mechanics_fire.js --kind all --write` — RUN** on the same release, artifact stamped
+  `a98b43a5f384`, 1287 games, 0 threw. moves STATE 5 / ANNOUNCEMENT-ONLY 11, abilities STATE 2 / 3,
+  items STATE 1 / 1.
+- **`engine/game_differential.js` — RUN THREE TIMES, and only the third is published.** See the numbers
+  block above for why the first two were refused.
+- `tests/interaction_matrix.js` — **not re-run**; stamped 2026-08-11 and already stale before this pass.
+- `engine/wire_ladder.js` — **not re-run**; the release ladder stays WITHHELD, as it already was.
+- `tests/run-all.js` — **not run in full.** `tests/test-mechanics.js`, `tests/test-roadmap-register.js`,
+  `tests/test-encore-fail-silent.js`, `tests/test-volatile-duration.js`,
+  `tests/test-engine-consistency.js`, `tests/test-tag-wire.js` and `tests/staged_board.js` were run.
+- **`tests/test-fixture-legality.js` is red at HEAD** (#266), pre-existing, not this batch's.
+
+---
 
 ## THE HANDED DIAGNOSIS NAMED THE WRONG FUNCTION, AND THE REAL DEFECT WAS TWO LOCK REWRITES ASKING WHETHER AN ACTION WAS STRUGGLE BY ITS *KIND*. CENSUS 742/745 -> 743 LIVE / 746 PROBED / 3 MISSING. PINNED POOL MEASURED UNMOVED. 2026-08-26.
 

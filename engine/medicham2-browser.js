@@ -207,9 +207,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                             a shared total could not have told you the status half was dead.
    *   choiceLockDroppedWithItem the lock ending because the Choice item left (Knock Off, Trick). The
    *                             authority re-reads the item on every menu build; this engine kept the
-   *                             lock forever. A zero here is fine in a game with no Knock Off in it. */
+   *                             lock forever. A zero here is fine in a game with no Knock Off in it.
+   *   choiceLockSuspendedWhileIgnored
+   *                             the OTHER escape, and it is not the same escape: `ignoringItem()`
+   *                             (Magic Room, Klutz) frees the menu WITHOUT removing the volatile, so
+   *                             the body is re-locked into its ORIGINAL move when the suppression
+   *                             ends. Counted apart from the line above because the two have opposite
+   *                             lifetimes and a shared total could not tell you which one fired.
+   *   choiceLockRereadOnHandedAction
+   *                             a CALLER-SUPPLIED action re-read the item and found the lock gone.
+   *                             The re-read used to happen only as a side effect of building a menu,
+   *                             so this road -- every rollout candidate and every scripted game --
+   *                             was bound by a Scarf that had been Knocked Off turns earlier. */
   struggleFromEmptyMenu: 0, struggleFromDisabled: 0, choiceLockArmed: 0, choiceLockArmedOnStatus: 0,
-  choiceLockDroppedWithItem: 0,
+  choiceLockDroppedWithItem: 0, choiceLockSuspendedWhileIgnored: 0, choiceLockRereadOnHandedAction: 0,
   /* The two roads that are NOT the mechanic: the engine could not build the locked click, and the
    * chooser found no option at all. Both used to return `{kind:'struggle'}`, which matched no branch
    * in the dispatch loop and voided the whole turn. They are counted apart from `struggleFromEmptyMenu`
@@ -3575,6 +3586,16 @@ const GRAVITY_GROUNDS_EVERY_CHARGE=(typeof process!=='undefined'&&process.env&&p
  * NOTHING else -- the semi-invulnerability already ended at execution and still does -- so a knob run
  * turns exactly the one `chargeTurn` clock row red and leaves the invulnerability row green. */
 const CHARGE_WRAP_CLEARED_AT_EXECUTION=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CHARGE_WRAP_CLEARED_AT_EXECUTION==='1');
+/* 2026-08-26 -- MEDI_SUPPRESSED_ITEM_IS_LOST=1 puts `lockMenuMove` back on the raw SLOT, so an item
+ * parked by Magic Room or Klutz destroys the Choice lock instead of suspending it. That is the whole
+ * of the defect: a knob run turns exactly the `suppresses` census row red and leaves the Knock Off row
+ * green, because a Knock Off empties the slot AND the park. */
+const SUPPRESSED_ITEM_IS_LOST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUPPRESSED_ITEM_IS_LOST==='1');
+/* 2026-08-26 -- MEDI_LOCK_STALE_ON_HANDED_ACTION=1 restores the raw `mon._lock` read at the collect
+ * site, so a CALLER-SUPPLIED action is bound by a lock whose Choice item has already left. The chooser
+ * path is untouched by this knob and stays correct, which is exactly how the defect hid: the re-read
+ * was a SIDE EFFECT of building a menu that a handed-in action never builds. */
+const LOCK_STALE_ON_HANDED_ACTION=(typeof process!=='undefined'&&process.env&&process.env.MEDI_LOCK_STALE_ON_HANDED_ACTION==='1');
 function volRefusesRestart(vol){
   if(VOL_RESTART_BLIND){MEDFAILS.volRestartBlindRestored=1;return false;}
   const d=volRestartTable().get(vol);
@@ -11522,14 +11543,49 @@ function moveDisabledBy(me,id){
  * `if (!pokemon.getItem().isChoice || !pokemon.hasMove(this.effectState.move)) { removeVolatile }` --
  * so a Scarf that was Knocked Off, Tricked away or eaten stops locking THAT INSTANT. This engine kept
  * the lock forever, which is CLAUDE.md's PREFER OBSERVED OVER DECLARED failure with the sign
- * reversed: a constraint that outlives the thing imposing it. Counted when it fires. */
-function lockMenuMove(m){
+ * reversed: a constraint that outlives the thing imposing it. Counted when it fires.
+ *
+ * 2026-08-26 -- AND THERE ARE TWO ESCAPES, NOT ONE, AND THEY HAVE OPPOSITE LIFETIMES. The handler
+ * (data/conditions.ts:324, no Champions override) reads:
+ *
+ *     if (!pokemon.getItem().isChoice || !pokemon.hasMove(...)) { pokemon.removeVolatile(...); return; }
+ *     if (pokemon.ignoringItem() || pokemon.volatiles['dynamax']) { return; }
+ *
+ * The first DESTROYS the lock. The second SUSPENDS it -- it returns without disabling anything and
+ * leaves the volatile standing, so the body is free WHILE the item is ignored and is locked into its
+ * ORIGINAL move again the moment it stops being ignored. `getItem()` still answers with the Scarf on
+ * that path, because Magic Room and Klutz suppress an item's EFFECTS and never take it away.
+ *
+ * THIS ENGINE CANNOT TELL THEM APART FROM THE SLOT, and that is the same ambiguity `speedOnItemLoss`
+ * hit on 2026-08-25: `itemRoomHide` PARKS a suppressed item by emptying `m.item` into `_roomItem`, so
+ * the slot reads LOST where the authority reads IGNORED. `_roomItem` is the disambiguator and it is
+ * read here exactly as `effSpeed` reads it.
+ *
+ * MEASURED ON THE AUTHORITY, one board, eight turns, before this clause existed: t3-t6 under Magic
+ * Room the menu is free and `volatiles.choicelock.move` is still `swordsdance`; at t7 the room falls
+ * and the menu is `swordsdance` ALONE again. This engine dropped the lock at t3 and never restored
+ * it, then re-armed onto whatever the body clicked next -- the wrong move, permanently. */
+/* THE ITEM RE-READ ON ITS OWN, because the authority runs it in BOTH handlers and `hasMove` in only
+ * ONE of them. `onDisableMove` tests `!getItem().isChoice || !hasMove(...)`; `onBeforeMove` tests
+ * `!getItem().isChoice` and stops. So a lock naming a move the body does not carry still BINDS a
+ * handed-in click and still disables nothing on the menu -- two different answers from one field, and
+ * collapsing them cost five census rows the first time this was written as one function. */
+function lockStillBinds(m){
   if(!m||!m._lock) return null;
   if(m._lockT===Infinity){
-    if(!TAGS.has('item',m.item,'choiceLock')){ MEDSEEN.choiceLockDroppedWithItem++; m._lock=null; m._lockT=0; return null; }
+    /* `getItem()`, not the slot: a parked item is still HELD. */
+    const _held=SUPPRESSED_ITEM_IS_LOST?m.item:(m.item||m._roomItem||'');
+    if(!TAGS.has('item',_held,'choiceLock')){ MEDSEEN.choiceLockDroppedWithItem++; m._lock=null; m._lockT=0; return null; }
+    /* `ignoringItem()` -- free the menu, KEEP the volatile. */
+    if(!m.item&&m._roomItem){ MEDSEEN.choiceLockSuspendedWhileIgnored++; return null; }
   }
-  if(m.moves&&m.moves.length&&m.moves.indexOf(m._lock)<0) return null;   // `hasMove` -- the lock disables nothing
   return m._lock;
+}
+function lockMenuMove(m){
+  const lk=lockStillBinds(m);
+  if(!lk) return null;
+  if(m.moves&&m.moves.length&&m.moves.indexOf(lk)<0) return null;   // `hasMove` -- the lock disables nothing
+  return lk;
 }
 /* THE MENU: what the authority would offer this body right now. `moves` is the body's own list, so a
  * four-move sheet and a one-move probe body both answer correctly. */
@@ -11715,8 +11771,16 @@ function _chooseAction(me,foes,ally,field,side,rng){
    * cannot build at all. Showdown's body in that state has one button; ours now presses it. Note this
    * is NOT the empty-menu road -- `mustStruggle` already returned above if the locked slot was
    * disabled or empty -- so it is counted as a BUILD failure, which is what it is. */
-  if(me._lock){
-    const _la=lockedAction(me,me._lock,live,field,rng);
+  /* 2026-08-26 -- AND IT ASKS `lockMenuMove` RATHER THAN READING `_lock`, for the same reason the
+   * collect site now does. This read was correct only by accident: `mustStruggle` above builds a menu
+   * and `lockMenuMove` clears a dead lock as a SIDE EFFECT of that build, so the field happened to be
+   * null by the time this line ran. That stopped being enough the moment `lockMenuMove` learned to
+   * SUSPEND a lock without clearing it (`ignoringItem()` -- Magic Room, Klutz): the field is still set
+   * while the item is ignored, and a raw read would have forced the locked move inside the room, which
+   * is the opposite of the authority. */
+  const _lkSel=lockStillBinds(me);
+  if(_lkSel){
+    const _la=lockedAction(me,_lkSel,live,field,rng);
     if(_la)return _la;
     const _sa=struggleAction(me,live,field,rng,'lock');
     return _sa||{kind:'struggle'};
@@ -18265,11 +18329,33 @@ function battleTurn(S,rng,actsForA,actsForB){
        * This site tested `_a.kind!=='struggle'` nowhere at all and the execution site tested it by
        * KIND, which a real Struggle action (`kind:'attack'`, id `struggle`) does not answer to. Both now
        * ask `isStruggleAction`, whose header names what still walks past it. */
-      if(_a&&mon._lock&&!(mon._mtLock&&mon._mtLock.left>0)
+      /* 2026-08-26 -- WILL'S FIXTURE: "test when choice scarf is knocked off if we allow a mon to
+       * click other moves". THIS LINE READ `mon._lock` RAW AND THE ANSWER WAS NO.
+       *
+       * `lockMenuMove` is the file's one place that answers "which move does the lock leave on the
+       * menu", and it is where the authority's `if (!pokemon.getItem().isChoice) removeVolatile` is
+       * honoured. Reading the FIELD instead of calling it made the re-read a SIDE EFFECT of building
+       * a menu -- `chooseAction` builds one, a caller-supplied action does not -- so the chooser road
+       * was accidentally right and this road, which is every rollout candidate, every scripted
+       * differential game and every MILTANK evaluation, bound a body to a Scarf that had been Knocked
+       * Off turns earlier. Measured on one board, all clicks handed in: with the Scarf taken away on
+       * turn 2 the body still played Swords Dance on turns 3 and 4, byte-identical to the arm where
+       * the Scarf was never touched, while a body that had never HELD one played the handed-in Knock
+       * Off. Two arms agreeing across a varied knob is the unwired-knob signature, and it was.
+       *
+       * `lockMenuMove` also answers the OTHER escape now (`ignoringItem()` suspends rather than
+       * destroys), so calling it here is what makes a Magic Room free this road as well. */
+      /* THE FIELD IS READ FIRST because `lockMenuMove` CLEARS it on the destroy path -- reading it
+       * afterwards would report zero on exactly the case the counter exists to see. */
+      const _lkWas=mon._lock;
+      const _lkNow=LOCK_STALE_ON_HANDED_ACTION?mon._lock:lockStillBinds(mon);
+      if(!LOCK_STALE_ON_HANDED_ACTION&&_lkWas&&!_lkNow&&_a&&_a.kind!=='switch'&&_a.kind!=='pass')
+        MEDSEEN.choiceLockRereadOnHandedAction++;
+      if(_a&&_lkNow&&!(mon._mtLock&&mon._mtLock.left>0)
          &&_a.kind!=='switch'&&_a.kind!=='pass'
-         &&actionMoveId(_a)!==mon._lock){
+         &&actionMoveId(_a)!==_lkNow){
         if(!_declineStruggle(_a,'Collect')){
-          const _lk=lockedAction(mon,mon._lock,live(foes),field,rng);
+          const _lk=lockedAction(mon,_lkNow,live(foes),field,rng);
           if(_lk)_a=_lk;
         }
       }

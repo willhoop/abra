@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26T18:20:58.395Z",
+  "generated": "2026-08-26T18:43:20.350Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 746,
-  "live": 743,
+  "probed": 749,
+  "live": 746,
   "missing": 3,
-  "armed": 746,
+  "armed": 749,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3693,7 +3693,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 27.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5824,6 +5824,36 @@
       "label": "the Choice lock is re-read every turn: a different slot sealed still plays, and losing the item stops the Struggle",
       "live": true,
       "detail": "OVER-FIRE CONTROL — Scarf-locked into knockoff with SWORDS DANCE sealed instead (seal `swordsdance`, 2 turn(s) left — it must still be standing or this arm is asking nothing), turn 3 played [knockoff] (the authority offers bodyslam with the other three disabled and plays it; anything else here is a lock+disable rule firing on the wrong pair). REMOVAL — the same board with lock and seal on the SAME move played [struggle] on turn 3 for 2 recoil line(s), then, with the Scarf taken away, played [flareblitz] on turn 4 (the authority Tricks the Scarf off and plays amnesia; it must be neither struggle nor the sealed knockoff — NOTE: that click is NOT one of the four declared moves [knockoff,taunt,swordsdance,tailwind], the ROADMAP #119/#295 priors leak, not this mechanic). Full runs: [\"swordsdance\",\"knockoff\",\"knockoff\"] / [\"knockoff\",null,\"struggle\",\"flareblitz\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "choiceLock",
+      "label": "a Knock Off frees a HANDED-IN action, not only a chosen one",
+      "live": true,
+      "detail": "four turns, every click HANDED IN. Scarf locked into Swords Dance on turn 1; on turn 2 the foe clicks the knob. KNOCKED OFF -> [\"swordsdance\",\"swordsdance\",\"knockoff\",\"knockoff\"] (item now `-`); the identical board with the foe clicking Dragon Claw instead -> [\"swordsdance\",\"swordsdance\",\"swordsdance\",\"swordsdance\"] (item `choicescarf`); and a body that never held a Scarf -> [\"swordsdance\",\"swordsdance\",\"knockoff\",\"knockoff\"], which is what says the handed-in Knock Off is clickable on this board at all. The authority reads its p1 request as swordsdance/knockoff/protect the instant the item is gone. SAME-TURN BOUNDARY: turn 2 is [swordsdance] / [swordsdance] -- Knock Off resolves after the hit, so the action already committed for that turn stands",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "speedMult",
+      "label": "the Choice Scarf x1.5 dies with the item, on the turn after it leaves",
+      "live": true,
+      "detail": "Speed 100 behind a Scarf is 150 and the foe is 120, so the ORDER is the reading and it can only flip on the multiplier. Who moved first, per turn -- KNOCKED OFF [\"me\",\"me\",\"foe\"] at speeds [150,100,100]; the identical board with the foe clicking Dragon Claw instead [\"me\",\"me\",\"me\"] at speeds [150,150,150]. The authority reads spe 120 -> 80 across the same Knock Off (Incineroar, Champions SP, no spread)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "choiceLock",
+      "label": "a SUPPRESSED Choice item suspends the lock; only a LOST one destroys it",
+      "live": true,
+      "detail": "eight turns, every click handed in, the foe turn-2 click the only difference. MAGIC ROOM -> [\"swordsdance\",\"swordsdance\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\",\"swordsdance\",\"swordsdance\"] with the room at [0,4,3,2,1,0,0,0] and speeds [120,80,80,80,80,120,120,120]: the Knock Offs must be honoured while the room stands and the body must be dragged back to swordsdance the turn it falls, because the volatile was never removed. KNOCK OFF -> [\"swordsdance\",\"swordsdance\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\",\"knockoff\"] at speeds [120,80,80,80,80,80,80,80]: the item is really gone, so turn 7 must stay free. The authority reads exactly this pair",
       "hollow": false,
       "armed": true,
       "directCall": false

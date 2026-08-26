@@ -168,6 +168,12 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
 /* `hitOnRoll(` added 2026-08-06 with the accuracy family. It is declared HERE, deliberately, exactly
  * as the paragraph above requires: it stages a real board, spends a real setup turn and a real attack
  * turn through battleTurn, and reads the aimed foe's HP loss. */
+/* `koRun(` added 2026-08-26 with Will's Knock-Off-the-Choice-Scarf fixture, declared HERE and with its
+ * reason exactly as the paragraph above requires: it stages a real doubles board through `board()` ->
+ * `battleInit` and spends every one of its turns through `battleTurn`, handing in EVERY click on both
+ * sides. Handing them in is the whole point of the row -- the chooser road re-reads the item as a side
+ * effect of building a menu and a caller-supplied action builds none, so a helper that let the chooser
+ * pick could not have seen the defect. */
 /* `valuedAcc(` added 2026-08-06 with WIRE 131, declared HERE and with its reason, because it is the
  * one helper in this file that deliberately does NOT spend a turn. It stages the bodies through
  * `board()` -> `battleInit` — a real entry, which is what the ratchet's own name allows — and then
@@ -463,7 +469,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * it. Turn 1 IS the control arm: it must still land, or "no second start line" is satisfied by a move
  * that never worked at all.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -21245,6 +21251,163 @@ probe('item', 'choiceLock', 'the Choice lock is re-read every turn: a different 
                            + 'mechanic' : '; it is one of the four declared moves')
                  + '). Full runs: ' + JSON.stringify(elsewhere.turnMoves) + ' / '
                  + JSON.stringify(removed.turnMoves) };
+});
+
+/* ---- WILL'S FIXTURE, 2026-08-26: "test when choice scarf is knocked off if we allow a mon to click
+ * other moves" -- and it has TWO halves, because `choicescarf` carries `isChoice: true` AND an
+ * `onModifySpe` hook. A fixture that only checks the MENU passes an engine that still moves first.
+ *
+ * THE AUTHORITY, PLAYED RATHER THAN RECALLED (gen9championsvgc2026regmb, a real `Battle`, the p1
+ * request read straight off `activeRequest.active[0]`):
+ *
+ *   before the Knock Off   menu `struggle` (lock + a Disable)   item choicescarf   spe 120   vol choicelock/disable
+ *   after  the Knock Off   menu swordsdance(DIS),knockoff,       item (none)        spe  80   vol disable
+ *                          protect,fakeout(DIS)
+ *
+ * So the authority frees the menu AND drops the x1.5, and it does both at the request issued at the
+ * END of the turn the item left -- the action already chosen for that turn is not re-opened. All
+ * three of those are asserted below.
+ *
+ * `koRun` HANDS IN EVERY CLICK rather than letting the chooser pick, and that is the whole point of
+ * the row: this engine's re-read of the item lived as a SIDE EFFECT of building the menu
+ * (`lockMenuMove` nulls `_lock` when it is consulted), so the chooser path was accidentally right and
+ * the caller-supplied path -- which is every rollout candidate, every scripted differential game and
+ * every MILTANK evaluation -- read a lock whose Scarf had been gone for five turns. */
+const koRun = (o) => {
+  const B = board('incineroar', 'farigiraf', 'klefki', 'farigiraf');
+  /* A DECLARED FOUR-MOVE SET. The claim is about which of THESE four a caller may still hand in. */
+  B.me.moves = ['swordsdance', 'knockoff', 'protect', 'tailwind'];
+  B.f1.moves = ['magicroom', 'knockoff', 'protect', 'dragonclaw'];
+  /* Nothing may faint: a KO ends the sequence early and the arms would then differ because somebody
+   * died rather than because a lock lapsed. */
+  for (const b of [B.me, B.ally, B.f1, B.f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 60 }); b.curHP = b.st.hp; }
+  /* THE SPEEDS ARE CHOSEN SO THE ARM CAN ONLY PASS IF THE MULTIPLIER IS GONE. 100 x 1.5 = 150 is
+   * above the foe's 120 and the bare 100 is below it, so the ORDER flips on the item and on nothing
+   * else. A fixture whose foe sits outside that window cannot fail and is worse than none. */
+  if (o.speeds) { B.me.st = Object.assign({}, B.me.st, { sp: 100 });
+                  B.f1.st = Object.assign({}, B.f1.st, { sp: 120 }); }
+  B.me.item = o.item === undefined ? 'choicescarf' : o.item;
+  const trace = []; B.S._trace = trace;
+  const clicks = [], spe = [], first = [], room = [];
+  for (const t of o.turns) {
+    const mark = trace.length;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, t[0], B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, M.playerAction(B.f1, t[1], B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    const mine = trace.slice(mark).filter(l => /^\|move\|p1a/.test(l)).map(l => l.split('|')[3]);
+    const both = trace.slice(mark).filter(l => /^\|move\|p[12]a/.test(l));
+    clicks.push(mine[0] || null);
+    first.push(both.length ? (/^\|move\|p1a/.test(both[0]) ? 'me' : 'foe') : 'none');
+    spe.push(M.effSpeed(B.me, B.S.field));
+    room.push(B.S.field.magicRoom || 0);
+  }
+  return { clicks, spe, first, room, item: B.me.item || '-', lock: B.me._lock || '-' };
+};
+
+/* HALF ONE -- THE MENU, THROUGH A REAL KNOCK OFF AND THROUGH A HANDED-IN ACTION.
+ *
+ * TWO CONTROLS AND THEY DO DIFFERENT WORK. `bare2` is the body that never held a Scarf: it says the
+ * handed-in Knock Off is buildable and clickable on this board at all, so a red in the test arm is
+ * the LOCK and not a broken fixture. `kept` is the same Scarf holder whose item is left alone: it
+ * must stay bound, or the test arm is passing because nothing binds anything.
+ *
+ * THE FOE'S CLICK IS THE KNOB AND IT IS THE ONLY DIFFERENCE between `took` and `kept` -- one Knock
+ * Off against one Dragon Claw, same slot, same turn, same damage-dealing category. */
+probe('item', 'choiceLock', 'a Knock Off frees a HANDED-IN action, not only a chosen one', () => {
+  const script = (foeT2) => [['swordsdance', 'protect'], ['swordsdance', foeT2],
+                             ['knockoff', 'protect'], ['knockoff', 'protect']];
+  const took = koRun({ turns: script('knockoff') });
+  const kept = koRun({ turns: script('dragonclaw') });
+  const bare2 = koRun({ item: '', turns: script('dragonclaw') });
+  /* THE READING IS THE CLICK, never `_lock` -- that is the engine's own bookkeeping and a probe that
+   * reads it agrees with the implementation instead of with the game. */
+  const freed = took.clicks[2] === 'knockoff' && took.clicks[3] === 'knockoff';
+  const bound = kept.clicks[2] === 'swordsdance' && kept.clicks[3] === 'swordsdance';
+  const clickable = bare2.clicks[2] === 'knockoff';
+  /* AND THE SAME-TURN BOUNDARY: the Knock Off lands AFTER the hit, so the click already committed for
+   * that turn is not re-opened. Turn 2 is still the locked Swords Dance in BOTH arms. */
+  const sameTurn = took.clicks[1] === 'swordsdance' && kept.clicks[1] === 'swordsdance';
+  return { works: freed && bound && clickable && sameTurn,
+           arms: { control: kept.clicks[2], test: took.clicks[2] },
+           detail: 'four turns, every click HANDED IN. Scarf locked into Swords Dance on turn 1; on '
+                 + 'turn 2 the foe clicks the knob. KNOCKED OFF -> ' + JSON.stringify(took.clicks)
+                 + ' (item now `' + took.item + '`); the identical board with the foe clicking Dragon '
+                 + 'Claw instead -> ' + JSON.stringify(kept.clicks) + ' (item `' + kept.item + '`); '
+                 + 'and a body that never held a Scarf -> ' + JSON.stringify(bare2.clicks) + ', which '
+                 + 'is what says the handed-in Knock Off is clickable on this board at all. The '
+                 + 'authority reads its p1 request as swordsdance/knockoff/protect the instant the '
+                 + 'item is gone. SAME-TURN BOUNDARY: turn 2 is [' + took.clicks[1] + '] / ['
+                 + kept.clicks[1] + '] -- Knock Off resolves after the hit, so the action already '
+                 + 'committed for that turn stands' };
+});
+
+/* HALF TWO -- THE MULTIPLIER, AND IT IS A SEPARATE ROW BECAUSE IT IS A SEPARATE HANDLER.
+ * `choicescarf` carries `isChoice` AND `onModifySpe`; an engine can free the menu and still move
+ * first. The observable is TURN ORDER on a board where 100 < 120 < 150. */
+probe('item', 'speedMult', 'the Choice Scarf x1.5 dies with the item, on the turn after it leaves', () => {
+  const script = (foeT2) => [['swordsdance', 'dragonclaw'], ['swordsdance', foeT2],
+                             ['swordsdance', 'dragonclaw']];
+  const took = koRun({ speeds: true, turns: script('knockoff') });
+  const kept = koRun({ speeds: true, turns: script('dragonclaw') });
+  return { works: took.first[0] === 'me' && took.first[1] === 'me' && took.first[2] === 'foe'
+                  && kept.first[0] === 'me' && kept.first[1] === 'me' && kept.first[2] === 'me'
+                  && took.spe[2] === 100 && kept.spe[2] === 150,
+           arms: { control: kept.first.join(','), test: took.first.join(',') },
+           detail: 'Speed 100 behind a Scarf is 150 and the foe is 120, so the ORDER is the reading '
+                 + 'and it can only flip on the multiplier. Who moved first, per turn -- KNOCKED OFF '
+                 + JSON.stringify(took.first) + ' at speeds ' + JSON.stringify(took.spe) + '; the '
+                 + 'identical board with the foe clicking Dragon Claw instead ' + JSON.stringify(kept.first)
+                 + ' at speeds ' + JSON.stringify(kept.spe) + '. The authority reads spe 120 -> 80 '
+                 + 'across the same Knock Off (Incineroar, Champions SP, no spread)' };
+});
+
+/* AND THE THIRD CASE, WHICH IS NOT "THE ITEM LEFT" AT ALL: `Pokemon#ignoringItem()`.
+ *
+ * `choicelock` has TWO escapes and they are not the same escape (data/conditions.ts:324, no Champions
+ * override):
+ *     if (!pokemon.getItem().isChoice || !pokemon.hasMove(...)) { pokemon.removeVolatile(...); return; }
+ *     if (pokemon.ignoringItem() || pokemon.volatiles['dynamax']) { return; }
+ * The first DESTROYS the lock; the second SUSPENDS it, and `getItem()` still answers with the Scarf
+ * because Magic Room and Klutz suppress an item's EFFECTS without taking it away. Reg M-B reaches
+ * `ignoringItem` two ways -- Magic Room (31 legal carriers) and Klutz (Lopunny, Audino, Golurk);
+ * Embargo is `isNonstandard: Past` and cannot.
+ *
+ * MEASURED ON THE AUTHORITY BEFORE A LINE WAS TOUCHED, one board, eight turns:
+ *   t2    lock armed on swordsdance, menu `swordsdance` only,           spe 120
+ *   t3-t6 room up, menu swordsdance,knockoff,protect, VOLATILE RETAINED, spe 80, lockedInto swordsdance
+ *   t7    room down, menu `swordsdance` only again,                     spe 120, lockedInto swordsdance
+ * -- so the body is RE-LOCKED INTO THE MOVE IT CLICKED SEVEN TURNS AGO, even though it spent the room
+ * clicking Knock Off. That is the fact this row asserts, and it is the one an engine that reads the
+ * item SLOT cannot produce: this engine parks a suppressed item by emptying `m.item`, so the slot
+ * says LOST where the authority says IGNORED.
+ *
+ * THE CONTROL IS THE OTHER ESCAPE. Same board, same eight turns, the foe clicking Knock Off instead
+ * of Magic Room: the item is really gone, so the body must be free at t7 and must NOT be dragged
+ * back to Swords Dance. Suspend and destroy differ in exactly one place and this is it. */
+probe('item', 'choiceLock', 'a SUPPRESSED Choice item suspends the lock; only a LOST one destroys it', () => {
+  const script = (foeT2) => [['swordsdance', 'protect'], ['swordsdance', foeT2],
+                             ['knockoff', 'protect'], ['knockoff', 'protect'],
+                             ['knockoff', 'protect'], ['knockoff', 'protect'],
+                             ['knockoff', 'protect'], ['knockoff', 'protect']];
+  const hidden = koRun({ turns: script('magicroom') });
+  const gone = koRun({ turns: script('knockoff') });
+  /* THE ROOM MUST ACTUALLY HAVE RISEN AND FALLEN INSIDE THE SCRIPT, asserted rather than assumed: a
+   * room that never went up turns this into a second copy of the row above, and one that never came
+   * down never asks the question at all. */
+  const roomRanItsCourse = hidden.room[2] > 0 && hidden.room[6] === 0;
+  return { works: roomRanItsCourse
+                  && hidden.clicks[2] === 'knockoff' && hidden.clicks[5] === 'knockoff'
+                  && hidden.clicks[6] === 'swordsdance' && hidden.clicks[7] === 'swordsdance'
+                  && gone.clicks[6] === 'knockoff' && gone.clicks[7] === 'knockoff',
+           arms: { control: gone.clicks[6], test: hidden.clicks[6] },
+           detail: 'eight turns, every click handed in, the foe turn-2 click the only difference. '
+                 + 'MAGIC ROOM -> ' + JSON.stringify(hidden.clicks) + ' with the room at '
+                 + JSON.stringify(hidden.room) + ' and speeds ' + JSON.stringify(hidden.spe)
+                 + ': the Knock Offs must be honoured while the room stands and the body must be '
+                 + 'dragged back to swordsdance the turn it falls, because the volatile was never '
+                 + 'removed. KNOCK OFF -> ' + JSON.stringify(gone.clicks) + ' at speeds '
+                 + JSON.stringify(gone.spe) + ': the item is really gone, so turn 7 must stay free. '
+                 + 'The authority reads exactly this pair' };
 });
 
 const mbRun = (attAb, defAb, arm) => {
