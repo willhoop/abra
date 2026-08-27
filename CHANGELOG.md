@@ -10,6 +10,92 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.162.0] — 2026-08-27
+
+### Added
+- **THE TWO OPEN-SHEET STORES WERE NEVER JUDGED FOR LEGALITY, AND THEY ARE CLEAN.** MEASURE.
+  Full account: `docs/_reports/2026-08-27-bo3-unjudged.md`. Register: ROADMAP **#474 — CLOSED**.
+
+  `engine/validate_store.js` judged `data/games.ladder.jsonl` only while stamping digests for all
+  three stores, leaving **20,795 `bo3` games and 4,167 `ots` games** unexamined. That is the whole
+  open-sheet corpus — Will's standing scope — and `games.bo3.jsonl` is `fit_policy.js` `SCOPES.fit`,
+  **the corpus MAG is fitted on**. `data/quality-filter.json` named the gap in its own
+  `known_limitation` and nothing had closed it.
+
+  The tool now runs **two rulers over three stores in one pass**, never pooled, each rate against
+  its own named denominator. **REVEALED** judges `g.sets`, what the battle exposed, which is all a
+  closed-sheet game can offer. **DECLARED** judges `g.sheets`, the full six a Force-OTS room
+  publishes at team preview — the object a `TeamValidator` is built to grade. A game with no sheet
+  is SKIPPED by the declared ruler and counted, never handed to the other one.
+
+  **THE ANSWER IS ZERO.** `games.bo3.jsonl` flags **0 of 20,713**, `games.ots.jsonl` **0 of 4,167** —
+  no species, no item, no move, no ability. A species-and-item filter would remove **0 raw and 0
+  clean**, so there is no enrichment factor to quote against the ladder's 2.27x. **MAG's fitting
+  corpus does not move by one game**: `loadCorpus()` scope `fit` returns **13,711 clean bo3 games**
+  and the legality rule removes **0**. Nothing was refitted and no weight was touched.
+
+  **THE ILLUSION RATIO DOES NOT HOLD ON OPEN SHEETS, AND THE REASON IS NOT THE EXPECTED ONE.**
+  86.8% of ladder move-only rejections have an Illusion carrier on the same side (1,020 of 1,175);
+  on bo3 it is **9.05%** and on ots **0.0%**. Not because a declaration exposes the disguise —
+  because **90.5% of bo3's move class is a duplicated-move storage artefact** (see Fixed/Filed
+  below) and the remaining 19 of 19 are mega-forme keys whose BASE species is on the declared sheet.
+
+  **THE DECLARATION AUDITS THE REVEALED RULER FOR THE FIRST TIME.** On the 1,432 ladder games where
+  both rulers can run, species-or-declared-item flags are 40 and 40 with an intersection of 40 —
+  **zero disagreements in either direction**, a rule-of-three upper 95% bound of ~0.21% on the
+  class's false-positive rate. The item false-positive path (`needs to hold X to be in its Y forme`)
+  fires 18 times on the ladder REVEALED and **0 times** on the ladder DECLARED and on both
+  open-sheet stores, because a declared sheet always carries the item.
+
+  **51.9% of the ladder's species/item contamination lives in the 2.13% of it that publishes
+  sheets — a 24.4x concentration**, because custom-rules rooms publish sheets. Forced-OTS stores
+  carry no such self-selection.
+
+  `data/store-validation.json` gains `stores`, `rulers` and `known_limitations` at the top level,
+  `judged.games_with_revealed_sets`, and `split.item_flagged_ids` —**named by `engine/quality.js`'s
+  own shortfall message**, which does not read it, so no corpus moves. `node tests/test-quality.js`
+  is **32 passed / 0 failed** against the new verdict: 77 resolved + 0 forme-only = 77 expected,
+  clean ladder **18,859** unchanged, JS == Python, sha `48a0ddfb104e7338`.
+
+### Fixed
+- **A DENOMINATOR MOVED DURING THE REFACTOR AND WAS CAUGHT BEFORE PUBLICATION.** The rewrite
+  redefined `judged.games` from lines-parsed to games-with-a-revealed-set — **67,384 -> 66,780** —
+  which moved the published headline rate **1.858% -> 1.875% with no measurement behind it** and
+  would have put `data/store-validation.json` into disagreement with `data/quality-filter.json`'s
+  recorded `judged_games: 67384` about the size of the same store. The old meaning is restored
+  exactly; the new denominator is published beside it. **Every ladder figure is byte-identical** to
+  the 05:14:06.849Z artifact across sixteen compared keys, including every id list and `examples`.
+
+### Notes
+- **FILED, NOT FIXED — ROADMAP #473.** `g.sets` on an open-sheet game merges the SHEET's move
+  spelling with the LOG's without normalising, so **84,761 of 263,859 bo3 revealed sets (32.12%)
+  list the same move twice, in 97.96% of its games**, and 90,531 sets carry more than four moves.
+  The control is exact: of the ladder's 1,410 affected games, **1,410 of 1,410 carry a sheet and 0
+  do not**. The repair is in the reveal path in `engine/durable-ingest.js`, which is not MEASURE's,
+  and the store stays raw. Until it lands, no measurement may read `g.sets[x].moves` on an
+  open-sheet game as a moveset.
+- **SELFTEST 24 -> 43 ASSERTIONS, 0 FAILED, SHOWN RED FIRST.** The 19 new cases pin both rulers,
+  side attribution, the skip-not-fallback rule, an end-to-end flag and non-flag on a fixture DERIVED
+  from `Dex.forFormat` on every run, the Illusion screen **with a knob-cleared control** (adding
+  Zoroark to the same sheet flips the counter 0 -> 1), the line reader's trailing-line and
+  multi-byte paths, and that the declared-item pattern was READ from `data/quality-filter.json`
+  rather than typed a second time. Making the declared ruler fall back to revealed gives
+  **42 of 43 and exit 1**; restored, 43 of 43 and exit 0.
+- **CONFIRMED BY A SECOND RULER SHARING NO CODE** — a filtered `Dex.forFormat` walk with no
+  validator: 0 out-of-format declared items and 0 declared moves over 248,556 + 50,004 declared
+  sets. **Its four apparent species hits were its own false positive**: `florges-blue` and
+  `alcremie-salted-cream` are cosmetic formes that `species.all()` does not enumerate while
+  `species.get()` resolves them. Tool right, second ruler wrong, and the disagreement is what
+  surfaced it.
+- **STILL OWED, unchanged by this pass:** `engine/format_drift.js` has never existed, so no verdict
+  in this file separates a contaminated game from a stale rulebook — which costs least exactly
+  where the answer is zero; the ingest workflow never re-runs `validate_store.js`, so the verdict
+  decays hourly and **the cron is deliberately not wired here**; team-level clauses (Species Clause,
+  Item Clause) are still unasked because sets are validated one at a time so the classifier stays
+  comparable across rulers; and the mega-forme MOVE rows are still not in `OBSERVED` although the
+  post-mega ABILITY rows are.
+
+---
 ## [5.161.0] — 2026-08-27
 
 ### Fixed

@@ -15946,3 +15946,56 @@ untouched); the **20,795 `bo3` open-sheet games and 4,167 `ots` games that `vali
 judges** while stamping their digests, `bo3` being the one store where a FULL declared team could be
 validated; `engine/format_drift.js`, cited by `validate_store.js` and never written; and the fact
 that **no consumer reads `data/store-validation.json`** — still true after this batch.
+
+## 2026-08-27 — MEASURE — The open-sheet corpus was never judged. It is clean, and the move class was us
+
+`engine/validate_store.js` judged `games.ladder.jsonl` only while stamping digests for all three
+stores. **20,795 `bo3` and 4,167 `ots` games** were unjudged — the whole open-sheet corpus, and
+`bo3` is `fit_policy.js` `SCOPES.fit`, **the corpus MAG is fitted on**.
+
+It now runs **two rulers over three stores in one pass, never pooled**: REVEALED (`g.sets`) and
+DECLARED (`g.sheets`, the full six a Force-OTS room publishes). A game with no sheet is SKIPPED by
+the declared ruler and counted, never handed to the other one.
+
+**bo3 0 of 20,713. ots 0 of 4,167.** No species, no item, no move, no ability. A species-and-item
+filter removes **0 raw and 0 clean** — there is no enrichment factor to quote against the ladder's
+2.27x. **MAG's fitting corpus does not move by one game**: 13,711 clean bo3 games, 0 removed.
+Nothing refitted, no weight touched.
+
+**THE ILLUSION RATIO DOES NOT HOLD** — 86.8% on the ladder, **9.05% on bo3**, **0.0% on ots** — and
+not because a declaration exposes the disguise. **90.5% of bo3's move class is a duplicated-move
+artefact of our own reveal path**: `g.sets` merges the SHEET's move spelling with the LOG's without
+normalising, so `["FakeOut","LastResort","Fake Out","Last Resort"]` against a declared
+`["FakeOut","LastResort"]`. **32.12% of bo3 revealed sets repeat a move id, in 97.96% of games**;
+the control is exact — 1,410 of 1,410 affected ladder games carry a sheet, 0 do not. ROADMAP #473,
+filed not fixed: the repair is in `engine/durable-ingest.js` and the store stays raw.
+
+**THE DECLARATION AUDITS THE REVEALED RULER FOR THE FIRST TIME.** On the 1,432 ladder games where
+both can run: 40 and 40, intersection 40, **zero disagreements either way** — a ~0.21% upper bound
+on the species-and-item false-positive rate. The item forme-requirement false positive fires 18
+times on ladder REVEALED and **0** on ladder DECLARED and both open-sheet stores.
+
+**A DENOMINATOR MOVED AND WAS CAUGHT BEFORE PUBLICATION**: `judged.games` was redefined from
+lines-parsed to games-with-a-revealed-set (67,384 -> 66,780), moving the headline 1.858% -> 1.875%
+with nothing behind it. Restored; new denominator published beside it. **Every ladder figure is
+byte-identical** across sixteen compared keys. `tests/test-quality.js` **32/32** on the new verdict,
+clean ladder 18,859 unchanged.
+
+**INSTRUMENT CHECKED BEFORE ITS NUMBERS WERE BELIEVED.** Selftest **24 -> 43, 0 failed**, shown RED
+first (declared ruler falling back to revealed: 42/43, exit 1). Second ruler sharing no code
+confirms the zero — and **its own four species hits were ITS false positive**, cosmetic formes that
+`species.all()` does not enumerate.
+
+**NO GAME NUMBER MOVED** — no engine byte, no release, no census, no fixture; all three stores
+byte- and line-identical across the run (67,384 / 20,795 / 4,167).
+
+Full account: `docs/_reports/2026-08-27-bo3-unjudged.md`. CHANGELOG 5.162.0. Register rows:
+ROADMAP **#474 — CLOSED**, **#473 — FILED**.
+
+**OWED, NOT RUN:** whole-team clauses (Species Clause, Item Clause) on the 24,880 declared sheets —
+sets are validated one at a time so the classifier stays comparable across rulers; the mega-forme
+MOVE rows, still not in `OBSERVED` although the post-mega ABILITY rows are; the ingest cron, which
+still never re-runs this tool so the verdict decays hourly (**a scheduling decision, deliberately
+not wired here**); whether the duplicated move reaches MAG's features (SEARCH's, and downstream of
+#473); `engine/format_drift.js`, still never written; and the `docs/MEASURE.md` ledger row, which
+needs `status.js --write` and was out of scope for this pass.
