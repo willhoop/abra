@@ -48,10 +48,15 @@ const readJson = p => {
   try { return JSON.parse(fs.readFileSync(p, 'utf8')); }
   catch (e) {
     /* ONLY FOR A .json PATH, AND THE FIRST DRAFT GOT THIS WRONG IN THE DIRECTION THAT MATTERS. This
-     * helper is also pointed at `.js` BUNDLES (data/mag.js, data/mew.js, web/scoreboard.js) to ask
+     * helper is also pointed at `.js` BUNDLES (data/mag.js, data/mew.js, data/scoreboard.js) to ask
      * cheaply whether they happen to be JSON; those never parse, by design, and reporting them
      * printed six lines of pure noise on a clean run. A ratchet that flags code for doing what it
-     * asked is how a ratchet gets ignored — the fourth correction of that shape in this repository. */
+     * asked is how a ratchet gets ignored — the fourth correction of that shape in this repository.
+     * (That third bundle read `web/scoreboard.js` for 13 days — written 2026-08-14 in f545e35c,
+     * corrected 2026-08-27. It is `data/scoreboard.js`, which is the bundle the withheld-set clause
+     * below names; there is no web/scoreboard.js and there never has been. A one-word slip that
+     * still pointed
+     * a reader at a file that does not exist.) */
     if (e.code !== 'ENOENT' && /\.json$/i.test(p)) console.error(`  ${path.basename(p)} EXISTS AND `
       + 'COULD NOT BE READ (' + e.message + ') — the clause reading it will report NO ARTIFACT, '
       + 'which is not what happened.');

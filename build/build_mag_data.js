@@ -4,7 +4,8 @@
  *
  * WHY IT IS GENERATED AND NOT HAND-WRITTEN
  * ---------------------------------------
- * web/magnemite.html has to score a move exactly the way engine/board.js scores it, or the site
+ * The MAGNEMITE room — `roomMagnemite()` in web/index.html, NOT a page of its own — has to score a
+ * move exactly the way engine/board.js scores it, or the site
  * shows numbers the bot does not actually use — which is the drift this project keeps getting bitten
  * by (the site's clean-game count, ORIENTATION's figures, the hand-typed LOCK_AT). So the page is
  * given the SAME three things the engine reads, in the same form:
@@ -16,10 +17,21 @@
  *      weather / stallingMove). No move is named here either;
  *   3. per species, its types, and the behaviour clone's P(move | species).
  *
- * The page then re-implements `featuresFor` over that data. That is a second implementation and
- * therefore a drift risk in itself, which is why web/magnemite.html carries a self-check against a
- * fixture generated here: if the browser's scoring and the engine's scoring ever disagree on the
- * fixture, the page says so on screen rather than quietly showing wrong numbers.
+ * CORRECTED 2026-08-27 (MEASURE), AFTER 32 DAYS. This block said the page "re-implements
+ * `featuresFor` over that data", and that `web/magnemite.html carries a self-check against a fixture
+ * generated here`. BOTH HALVES WERE WRONG, and the second was the one that mattered:
+ * there is no web/magnemite.html and there never has been — zero commits in this repository's
+ * history have touched that path — so a reader asking whether the drift above is covered was told
+ * yes and pointed at nothing. Written 2026-07-26 in 4a7c82f1, caught by the comment census in
+ * tests/test-claim-truth.js.
+ *
+ * WHAT IS ACTUALLY TRUE. The room is `roomMagnemite()` inside web/index.html, and it no longer holds
+ * a second implementation at all: `magScore()` fetches engine/board.js live (MAGENG_FILES) and calls
+ * `B.featuresFor` directly. The self-check IS real and IS fed by the fixture built below — it is
+ * `magSelfCheck()` in web/index.html, and what it now detects is a VINTAGE mismatch rather than
+ * two scorers diverging: data/mag.js carries weights and a fixture scored at build time, board.js is
+ * fetched live, and a stale bundle beside a newer engine is the same drift in a new costume. On a
+ * mismatch the room prints SELF-CHECK FAILED above the numbers instead of showing them quietly.
  */
 'use strict';
 const fs = require('fs');

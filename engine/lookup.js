@@ -89,8 +89,18 @@ function resolve(value, what, key, opts, hint) {
   throw err;
 }
 
-/* What misses happened, declared and otherwise. tests/test-lookup-contract.js reads this, and any
- * long run can print it to find out what it is tolerating. */
+/* What misses happened, declared and otherwise.
+ *
+ * THIS SAID *"tests/test-lookup-contract.js reads this"* FOR 25 DAYS. It does not, because
+ * there is no tests/test-lookup-contract.js — that path has never existed in this repository's
+ * history and no commit has ever touched it. Written 2026-08-02 in ebe91bfa,
+ * lost for 42 minutes on 2026-08-06 when this file was overwritten, restored with it in 21edc99a,
+ * corrected 2026-08-27 (MEASURE). The sentence has no true version: `misses()` is exported and
+ * NOTHING IN engine/, tests/ OR build/ CALLS IT. It is a diagnostic with no reader, which is a
+ * weaker thing than the sentence claimed, and saying so is the point — a comment asserting a
+ * contract test is the same reassuring null as the contract test not existing, except that it also
+ * stops anyone writing one. Any long run CAN print it to find out what it is tolerating; today none
+ * does. */
 function misses() { return Object.assign(Object.create(null), MISSES); }
 function resetMisses() { for (const k of Object.keys(MISSES)) delete MISSES[k]; }
 

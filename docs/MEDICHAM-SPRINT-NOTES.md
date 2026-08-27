@@ -16140,3 +16140,52 @@ WITHHELD); `tests/run-all.js` in full; `tests/staged_board.js`; `tests/bench-med
 and `:2568-2571`), the sibling of #475 through the same block — `tests/test-state-differential.js`
 already plants it and no board in the pinned pool parts on it today, so it is a second change and is
 filed rather than smuggled in.
+
+## 2026-08-27 — MEASURE — Six comments pointed at files that have never existed. The worst stood 32 days.
+
+`tests/test-claim-truth.js`'s comment census: a comment naming a repo `.js`/`.py`/`.html` file is
+asserting that file exists. **8 of 2,805 such references named something absent. Six were MEASURE's
+and are corrected; two are ENGINE's and are filed.** Every accusation was checked against the real
+filesystem and against `git log --all -- <path>` before anything was edited — **all eight paths have
+zero commits in this repository's entire history**, so none of the eight was a file that used to be
+there.
+
+**A CORRECTION IS A REPOINT, NOT A DELETION, AND FOUR OF THE SIX HAD A TRUE VERSION SITTING NEARBY.**
+
+| file | age | what it said | what is true |
+|---|---|---|---|
+| `build/build_mag_data.js` | **32 d** | `web/magnemite.html` carries a self-check | the room is `roomMagnemite()`, the check is `magSelfCheck()`, both in `web/index.html` |
+| `engine/prior_player.js` | **34 d** | see `tests/test-policy-parity.js` | `setPurePriors()` in `engine/medicham2-browser.js` — real, **and with no caller** |
+| `engine/lookup.js` | **25 d** | `tests/test-lookup-contract.js` reads this | nothing reads it. **No true version** — retracted |
+| `engine/million_run.js` | 16 d | `engine/status_residual.js` asserts it | the `if (DUMP_STATUS)` block **in that same file** |
+| `engine/speed_vs_pokeenv.js` | 16 d | arm A lives in `engine/bench_pokeenv.py` | arm A is unwritten. **This one PRINTED at run time** |
+| `engine/quarantine.js` | 13 d | `web/scoreboard.js` | `data/scoreboard.js` |
+
+**THE 32-DAY ONE WAS WRONG TWICE AND ONLY ONE HALF WAS DETECTABLE.** It also said the page
+"re-implements `featuresFor`", which is what made a self-check necessary in its telling. The page
+stopped re-implementing anything — it fetches `engine/board.js` live — so the check now detects a
+BUNDLE-VS-ENGINE vintage mismatch, which is a different mechanism with the same name. **No instrument
+here can see that half**: mechanism prose is not a decidable claim, and the census only caught this
+sentence because the mechanism happened to be attached to a filename.
+
+**THE ONE THAT MISLED A PERSON TODAY, NOT JUST A READER.** `engine/speed_vs_pokeenv.js` printed
+*"run engine/bench_pokeenv.py, it merges into the same artifact"* on every run, and wrote *"three
+arms … merged in"* into `data/speed-vs-pokeenv.json`'s `what` field beside an `arms` array of two.
+Both are corrected; a false claim that reaches an artifact outlives the comment that produced it.
+
+**A COMMENT-ONLY EDIT IS NOT A FREE EDIT.** `data/quarantine-stamp.json` went UNSAFE on the spot —
+*"engine/quarantine.js was 34ef3b4177c0 … is ae573406caa0 now"* — because provenance compares CONTENT
+and cannot know a diff is cosmetic. Restamped with `node engine/quarantine.js --check`; citation
+ratchet intact at 3 sites, gate clean. The ~40 artifacts stamping `engine/lookup.js` were untouched:
+they are pinned to frozen releases and provenance reads them as photographs, exactly as designed.
+
+**NO ENGINE BYTE MOVED AND NO GAME WAS PLAYED — predicted before the pass and true after it.** The
+records half of the audit is unchanged at 280 claims / 252 checkable / 0 false. The check itself was
+edited in its header comment only; `--break` still goes RED on the real retracted
+`derive_protocol_events` sentence through the same extractor. `commentRefs` rose **2,805 → 2,822**
+because the corrections name files — a bigger denominator, not better coverage.
+
+**OWED, NOT RUN:** the two ENGINE-owned sentences (`engine/game_differential.js` → `tests/rate_runner.js`,
+`engine/medicham2-browser.js` → `tests/test-engine-contract.js`), both in `#480`; a check for the
+mechanism half of a claim, which nothing measures; `node engine/status.js --write`, which this pass
+was not permitted to run.

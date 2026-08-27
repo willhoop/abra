@@ -150,8 +150,17 @@ const SABOTAGE = process.env.MILLIONRUN_SABOTAGE || '';
  *
  * ITS OWN RED PROOF IS AN IDENTITY: summed over a key, the dumped rows must reproduce that key's
  * published `trials` and `fired` EXACTLY. If they do not, the dump is describing different trials
- * from the tally and nothing computed from it means anything. engine/status_residual.js asserts it
- * and refuses to report otherwise. */
+ * from the tally and nothing computed from it means anything.
+ *
+ * THE ASSERTION IS IN THIS FILE, AND FOR 16 DAYS THIS SENTENCE POINTED SOMEWHERE ELSE. It read
+ * *"engine/status_residual.js asserts it and refuses to report otherwise"*; there is no
+ * engine/status_residual.js and no commit in this repository has ever created one, so a reader
+ * looking for the guard found nothing and could reasonably conclude there was none. Written
+ * 2026-08-11 in 0067c4e8, corrected 2026-08-27 (MEASURE) after tests/test-claim-truth.js's comment
+ * census named it. THE GUARD IS REAL and is the `if (DUMP_STATUS)` block at the end of the free arm,
+ * below: it sums the dumped rows by key against that key's `n` and `k`, and on any mismatch it
+ * REFUSES TO WRITE THE FILE and exits non-zero rather than captioning it. It has been red once for
+ * real — the 6 leaked scald trials described below. */
 const DUMP_STATUS = argOf('--dump-status', null);
 const dumpRows = [];
 /* THE DUMP IS SEALED WHEN THE FREE ARM ENDS, AND THAT IS NOT A DETAIL — IT WAS A REAL CONTAMINATION.

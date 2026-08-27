@@ -38,7 +38,10 @@
  *   node engine/speed_vs_pokeenv.js --games 200          # arms B and C
  *   node engine/speed_vs_pokeenv.js --games 200 --json   # for the Python side to merge into
  *
- * Arm A lives in `engine/bench_pokeenv.py` because poke-env is Python. It writes the same shape.
+ * Arm A WOULD live in `engine/bench_pokeenv.py` because poke-env is Python, and would write the same
+ * shape. THAT FILE DOES NOT EXIST AND NEVER HAS — this line said it did, in the present tense, for 16
+ * days (written 2026-08-11 in ff5d2a65, corrected 2026-08-27 by MEASURE). See STATE below: arm A is
+ * unwritten, so only arms B and C run and the artifact carries two arms, not three.
  *
  *
  * ================= STATE: NOT YET RUNNABLE, AND EXACTLY WHY ========================================
@@ -265,8 +268,14 @@ function readiness() {
   const art = {
     generated: new Date().toISOString(), by: 'engine/speed_vs_pokeenv.js', format: FORMAT, games: GAMES,
     readiness: readiness(), forced: process.argv.includes('--anyway') || undefined,
-    what: 'Simulation cost, three arms, same teams and same random policy. Arm A (poke-env) is written '
-        + 'by engine/bench_pokeenv.py and merged in.',
+    /* THIS FIELD CLAIMED A THIRD ARM THAT DOES NOT EXIST, INTO THE ARTIFACT ITSELF, FOR 16 DAYS.
+     * It read "Arm A (poke-env) is written by engine/bench_pokeenv.py and merged in"; there is no
+     * such file and no commit has ever created one, so any reader of data/speed-vs-pokeenv.json was
+     * told a benchmark had three arms when the `arms` array beside it holds two. Corrected
+     * 2026-08-27 (MEASURE). It says what is here, and names arm A as OWED. */
+    what: 'Simulation cost, same teams and same random policy. TWO ARMS RAN: B (Showdown in-process) '
+        + 'and C (MEDICHAM). Arm A (poke-env, Python + websocket + a local Showdown server) is NOT '
+        + 'in this artifact — it is unwritten, so no C/A ratio may be quoted from this file.',
     the_honest_baseline: 'B is the baseline that matters. C/B answers "is our simulator faster than '
         + 'Showdown\'s simulator". C/A answers "is it faster than the harness the neighbours used", '
         + 'which is mostly websocket and process boundary. THE TWO MUST NEVER BE QUOTED AS ONE NUMBER.',
@@ -286,6 +295,9 @@ function readiness() {
   if (!B.error && !C.error && B.games_per_sec)
     console.log('\n    C/B = ' + (C.games_per_sec / B.games_per_sec).toFixed(2) + 'x'
               + '   <- the claim that matters; C/A is transport and is a different sentence');
-  console.log('\n  arm A (poke-env) is Python — run engine/bench_pokeenv.py, it merges into the same artifact');
+  /* PRINTED, SO A PERSON ACTS ON IT. This line told the operator to "run engine/bench_pokeenv.py"
+   * for 16 days; that file has never existed, so the instruction sent whoever followed it to a
+   * missing path. Corrected 2026-08-27 (MEASURE) — it now says arm A is OWED rather than available. */
+  console.log('\n  arm A (poke-env) DID NOT RUN — the Python side is unwritten, so C/A is not available');
   console.log('  wrote data/speed-vs-pokeenv.json');
 })();

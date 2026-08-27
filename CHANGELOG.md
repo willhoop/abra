@@ -10,6 +10,65 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.166.0] — 2026-08-27
+
+### Fixed
+- **SIX COMMENTS THAT NAMED A FILE THAT HAS NEVER EXISTED — CORRECTED, NOT DELETED. THE WORST HAD
+  STOOD 32 DAYS AND THE OLDEST 34.** MEASURE. Full account:
+  `docs/_reports/2026-08-27-false-claims.md`; register `#480`.
+
+  `tests/test-claim-truth.js`'s comment census reported **8 of 2,805** comment references to a repo
+  `.js`/`.py`/`.html` file naming something absent. Six sat in MEASURE-owned files and are corrected;
+  two sit in ENGINE's and are filed. Each accusation was checked against the real filesystem AND
+  against `git log --all -- <path>` first: **all eight paths have zero commits in this repository's
+  entire history.** Nothing was invented to justify a sentence.
+
+  - `build/build_mag_data.js` — **32 days** (`4a7c82f1`, 2026-07-26). Said *"web/magnemite.html
+    carries a self-check against a fixture generated here"*, so a reader asking whether the
+    engine/browser drift is covered was told yes and pointed at nothing. The mechanism is REAL: the
+    room is `roomMagnemite()` and the check is `magSelfCheck()`, both in `web/index.html`. The
+    sentence was wrong twice — the page no longer re-implements `featuresFor` at all, it fetches
+    `engine/board.js` live, so what the check now detects is a BUNDLE-VS-ENGINE vintage mismatch.
+  - `engine/prior_player.js` — **34 days** (`e5d5d05d`, 2026-07-24), the oldest. Said *"See
+    tests/test-policy-parity.js"*. The switch it describes is real — `setPurePriors()` in
+    `engine/medicham2-browser.js` — and **nothing in `engine/`, `tests/` or `build/` calls it**, so
+    the like-for-like comparison the paragraph describes has never been run. Now says so.
+  - `engine/lookup.js` — **25 days**, not the 21 first reported: written 2026-08-02 (`ebe91bfa`), lost
+    for 42 minutes on 2026-08-06 when the file was overwritten, restored with it (`21edc99a`). Said
+    *"tests/test-lookup-contract.js reads this"*. **No true version exists** — `misses()` is exported
+    and has no reader at all — so the claim is retracted and the absence of a reader is stated.
+  - `engine/million_run.js` — **16 days**. Said *"engine/status_residual.js asserts it"*. The identity
+    guard IS real and is the `if (DUMP_STATUS)` block **in that same file**, which refuses to write
+    the dump and exits non-zero on a mismatch. The sentence pointed away from a guard that was there.
+  - `engine/speed_vs_pokeenv.js` — **16 days**, and the only one that misled at RUN TIME: it printed
+    *"run engine/bench_pokeenv.py"* to the operator and wrote *"three arms … merged in"* into
+    `data/speed-vs-pokeenv.json`'s `what` field, beside an `arms` array holding two. Arm A is
+    unwritten; the comment, the printed line and the artifact field now all say so.
+  - `engine/quarantine.js` — **13 days**. `web/scoreboard.js` where `data/scoreboard.js` was meant.
+
+### Notes
+- **THE TWO REMAINING ARE ENGINE'S AND WERE NOT TOUCHED.** `engine/game_differential.js` names
+  `tests/rate_runner.js` (15 days; the instrument that derives its trials from statistical power is
+  `engine/million_run.js`) and `engine/medicham2-browser.js` names `tests/test-engine-contract.js`
+  (34 days; `tests/test-engine-consistency.js` is the file that holds the two engines together).
+  Both are recorded in `#480` with the file each sentence should name.
+- **THE CHECK WAS NOT WEAKENED.** `tests/test-claim-truth.js` changed in its header comment only —
+  no predicate, no window, no regex. `--break` still goes RED on the real retracted
+  `derive_protocol_events` sentence through the same extractor. Records half unchanged at **280
+  claims / 252 checkable / 0 false**; the comment census went **8 → 2**. Its scope is unchanged and
+  still honest: one claim class is decidable, quoted text is stripped by construction, and 46% of
+  record entries yield a checkable claim. **`commentRefs` rose 2,805 → 2,822** because the
+  corrections themselves name files — that is a bigger denominator, not better coverage.
+- **NO GAME NUMBER MOVED, AS PREDICTED.** No engine byte changed: the diff is comment-only in six of
+  seven files, and in `engine/speed_vs_pokeenv.js` it is two prose strings. No release was cut.
+- **ONE MEASURED SIDE EFFECT, FOUND AND REPAIRED.** A comment-only edit still moves a content digest,
+  and `engine/provenance.js` cannot know a diff is cosmetic: `data/quarantine-stamp.json` went UNSAFE
+  (*"engine/quarantine.js was 34ef3b4177c0 … is ae573406caa0 now"*). Restamped with
+  `node engine/quarantine.js --check`, which also reported the citation ratchet intact (3 sites) and
+  the gate clean. The ~40 artifacts stamping `engine/lookup.js` were unaffected — they are pinned to
+  frozen releases and provenance correctly reads them as photographs. Content-verified artifacts back
+  to 3; zero artifacts are content-unsafe from any of these six files.
+
 ## [5.165.0] — 2026-08-27
 
 ### Added

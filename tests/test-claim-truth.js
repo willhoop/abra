@@ -304,11 +304,19 @@ for (const [cmd, p] of markerNamedPaths)
  *
  * The records above are the structured half. The unstructured half is the comments, and one claim
  * in them is mechanically decidable: a comment that names a `.js` / `.py` / `.html` file inside
- * this repository is asserting that file exists. `engine/lookup.js` says a contract test "reads
- * this" and there is no tests/test-lookup-contract.js; `build/build_mag_data.js` describes a page
- * that carries a self-check and there is no web/magnemite.html, which has never existed in this
- * repository's history. That is the derive_protocol_events defect exactly — a claim that something
- * is checked, where nothing is.
+ * this repository is asserting that file exists. That is the derive_protocol_events defect exactly —
+ * a claim that something is checked, where nothing is.
+ *
+ * ITS FIRST RUN, 2026-08-26, FOUND EIGHT. Two examples, both since corrected and both kept here
+ * because the shape is the point rather than the instance: `engine/lookup.js` said a contract test
+ * "reads this" — the file it named was tests/test-lookup-contract.js, there is no such file and
+ * there never has been, and `misses()` in fact has no reader at all. `build/build_mag_data.js`
+ * described a page carrying a self-check against a fixture it generates, and named
+ * web/magnemite.html; that path has never existed in this repository's history, while the self-check
+ * is real and lives in `magSelfCheck()` in web/index.html. The worst of the eight had stood 32 days
+ * and the oldest 34. Six were corrected on 2026-08-27 by MEASURE and two were filed to ENGINE, whose
+ * files they sit in — see ROADMAP #480. The census is not a historical note: it re-derives on every
+ * run and reports whatever is true today.
  *
  * SOURCE FILES ONLY, DELIBERATELY. A `data/*.json` named in a comment may be legitimately absent —
  * gitignored, regenerable, or not yet built — so its absence is not evidence. A file under

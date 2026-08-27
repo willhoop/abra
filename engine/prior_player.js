@@ -17,8 +17,18 @@
  * This class ports the prior-sampling half of the policy. It deliberately does NOT port the two
  * damage-dependent heuristics ("take a guaranteed KO 85% of the time", "Protect when threatened and
  * unable to KO back") because those need a damage calculation the request object does not carry.
- * The matching comparison therefore runs OUR engine with those heuristics DISABLED, so both sides are
- * pure prior samplers. See tests/test-policy-parity.js.
+ * The matching comparison therefore has to run OUR engine with those heuristics DISABLED, so that
+ * both sides are pure prior samplers.
+ *
+ * THE SWITCH EXISTS; THE COMPARISON DOES NOT, AND THIS LINE NAMED A TEST FOR 34 DAYS. It said *"See
+ * tests/test-policy-parity.js"* — but there is no tests/test-policy-parity.js, that path has never
+ * existed in this repository's history, and it is the oldest of the eight false comment claims found
+ * by tests/test-claim-truth.js. Written 2026-07-24 in e5d5d05d, corrected 2026-08-27 by MEASURE.
+ * What is real is `setPurePriors()` in
+ * engine/medicham2-browser.js, which turns off the KO / Protect / Wide Guard heuristics and is
+ * documented there in the same terms; NOTHING IN engine/, tests/ OR build/ CALLS IT, so the like-for-
+ * like run this paragraph describes has never been made. Treat the paragraph as the DESIGN of a
+ * comparison that is owed, not as a description of one that happened.
  */
 'use strict';
 require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
