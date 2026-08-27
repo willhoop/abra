@@ -15607,3 +15607,41 @@ re-baseline needs: `docs/_reports/2026-08-26-party-key-decision.md`.
 **OWED, NOT RUN:** the re-baseline itself (`quarantine.js --stamp-whole-game` under this pin, after
 landing). The roster stages, `all_mechanics_fire.js` and `test-engine-diff.js` were not re-run and do
 not need to be — the simulator is byte-identical and the display-key board reproduces the artifact.
+
+---
+
+## 2026-08-27 — MEASURE — THE FIXTURE ROW MATCHER STOPPED READING POSITION, AND THE GATE IS RED
+
+`tests/test-fixture-legality.js` was green because its matcher was a **list of known-good shapes**.
+`engine/fixture_legality.js` now splits every array literal by DEPTH and asks the format what each
+literal is; the slot index is never consulted. **21 illegal sets in seven files became visible: 15 new
+verdict sentences and 15 new declarations, and the gate exits 1 at 2 FAILED.**
+
+**ALL 21 ARE REAL AND ALL 21 ARE PAIRING** — `X can't learn Y.` No illegal species, no illegal item,
+no `UNREACHABLE` entity; the twelve accused moves carry 4 to 102 legal carriers each. Checked before
+being believed: 371 of 411 sets ACCEPTED, all 16 accusations re-derived through `CS.canLearn`
+(16/16 false) beside 11 positive controls on the same bodies (11/11 true), **0 stray literals**.
+
+**NOTHING WAS REPAIRED AND NO ALLOWANCE WAS ADDED.** Every one is in a file MEASURE does not own and
+every repair is behavioural, which this batch may not verify — `probe_turn_order.js` picked Agility in
+its own words *"priority 0, harmless to the board"* on bodies chosen for their SPEED TIERS, so a move
+swap and a body swap both move the board. `origin` untouched at 41.
+
+**ONE INSTRUMENT FAILURE, CAUGHT BEFORE THE REPORT.** The first armed run was 3 FAILED, the third
+being clause 9's *"THE RATCHET NO LONGER DISCRIMINATES"* while it was naming all fifteen. Its negative
+control was `findings[0]`, which the new verdicts displaced. A control that only holds while clause 2
+is green is clause 2 wired to fire twice.
+
+**TWO THINGS FILED RATHER THAN GATED:** nine `isNonstandard: 'Past'` species named as bare literals
+(`tests/bench-medicham.js:45` pins a roster holding **Amoonguss**; `engine/playstyle.js`'s role priors
+name six bodies absent from `MC.mons`), and **`champions_sim.checkLegal` cannot validate any of the 76
+mega formes** — `legal 0, speciesClause 6, transformsInBattle 70`.
+
+**NO GAME NUMBER MOVED AND NONE COULD**: two files changed, neither in the 26 frozen `SOURCES`,
+nothing written under `data/`, no fixture edited.
+
+Full account: `docs/_reports/2026-08-27-invisible-fixtures.md`. CHANGELOG 5.155.0.
+
+**OWED, NOT RUN:** the 21 repairs (commands per file in the report), `fillerSets` skipping by
+`baseSpecies`, a gate over `engine/validate_damage.js`'s golden master, the nine bare literals, and
+the fact that this gate is not registered in `tests/run-all.js` so its red does not propagate.

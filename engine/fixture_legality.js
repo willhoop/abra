@@ -71,38 +71,66 @@
  * tests/test-mechanics.js — has no set to validate at the point the body is made, and this sweep says
  * so instead of guessing. Those are counted and printed as NOT STATICALLY PAIRED.
  *
- * THE FOUR SHAPES THIS SWEEP MATCHES, AND THE THREE THAT WALK PAST IT — MEASURED 2026-08-26
- * ------------------------------------------------------------------------------------------
- * Every previous version of this paragraph described the sweep's coverage in adjectives. What follows
- * is a count, taken on 2026-08-26 and written up in `docs/_reports/2026-08-26-fixture-legality.md`.
- * A number in a header goes stale, so read the shapes and re-run the measurement rather than quoting
- * these figures — they are dated evidence, not current state.
+ * POSITION IS NOT A RULE. THE ROW MATCHER ASKS THE FORMAT WHAT EACH LITERAL IS — ARMED 2026-08-27
+ * -----------------------------------------------------------------------------------------------
+ * Until 2026-08-27 this file matched a positional row with a REGEX that demanded species first and
+ * the moves array second: `['species', ['move', ...], 'ability', 'item']`. That is a LIST OF
+ * KNOWN-GOOD SHAPES, and a gate built as a list of shapes catches those shapes and not the class.
+ * It was added on 2026-08-14 after one ordering hid five illegal sets including a banned item; a
+ * SECOND ordering was then measured on 2026-08-26 and it was larger than the first —
+ * `['species', 'item', 'ability', ['move', ...]]`, moves LAST, written by `stage(rows)` in thirteen
+ * files, hiding **413 rows / 157 distinct sets, 124 of them invisible, 21 of those REJECTED**. Adding
+ * a fourth regex would have bought the third ordering and lost the fourth.
+ *
+ * So the row matcher no longer reads POSITION at all. A bracketed group is split into the literals at
+ * its OWN level and the literals inside a NESTED array, and every one of them is handed to `roleOf`,
+ * which asks the format — `dex.species.get(s).id === nrm(s)` and the same for abilities, items and
+ * moves. A group declares a SET when exactly one own-level literal names a SPECIES and the group
+ * carries at least one further component (an item, an ability, or a nested array). Any ordering of
+ * those four elements matches, including orderings nobody has written yet.
+ *
+ * MEASURED WHEN IT WAS ARMED, so the change is attributable: the two candidate readings of the nested
+ * array — every literal in it is a move (rule 2 as matcher (A) applies it) versus only the literals
+ * that self-name a move — produce IDENTICAL populations, verdicts and strays (448 groups, 177 distinct
+ * sets, 139 novel, 21 rejected, 16 verdicts, **0** strays). The first is used, because rule 2 must have
+ * one implementation and because a mistyped move name inside the array must still reach the validator
+ * rather than being quietly dropped.
  *
  * MATCHED:  (A) a top-level helper CALL whose arguments carry a self-naming species literal, moves
  *               taken from array literals only;
  *           (B) an object literal keyed `species:` and `moves:`;
- *           (C) a positional row `['species', ['move', ...], 'ability', 'item']` — species FIRST,
- *               moves array SECOND;
+ *           (C) a bracketed ROW in ANY order — one own-level species plus at least one of item,
+ *               ability, nested moves array. Roles are asked of the format, never of the slot index;
  *           (D) a body built by MUTATION (`b.moves = ...; b.ability = ...; b.item = ...`).
  *
- * WALKS PAST:
- *   1. A POSITIONAL ROW WHOSE MOVES ARRAY IS NOT IN SLOT 2. `stage(rows)` in thirteen files — twelve
- *      under tests/ and `engine/game_differential.js` itself — writes
- *      `['species', 'item', 'ability', ['move', ...]]` — moves LAST. Matcher (C)'s regex demands the
- *      array second, and the helper matcher hands every string inside any `[...]` to `moves`, so the
- *      species literal lands in the moves list and the call is filed as "no species literal". Measured
- *      repo-wide with a position-independent matcher: **413 rows / 157 distinct sets in 14 files, of
- *      which 124 distinct sets are invisible to this sweep today and 21 of those the validator
- *      REJECTS — 15 verdict sentences that are not on the baseline.** It is the SAME class as the one
- *      matcher (C) was added for and it is larger. NOT turned on in the pass that measured it, for the
- *      reason recorded beside (C): those 21 repairs change what their scenarios measure and belong to
- *      the divisions that own them. ROADMAP #266.
- *   2. A ROW WITH NO MOVES ARRAY AT ALL. `engine/validate_damage.js`'s golden master is
- *      `[att, ability, item, nature, stat, move, def, nature, {spread}, weather, defAb?, defItem?]` —
- *      two species and a move, all scalars. No matcher here can see it, and it is the file where
- *      Choice Band, Choice Specs and an Amoonguss were found by a human on 2026-08-25 rather than by
- *      this gate. Audited by hand on 2026-08-26: **36 rows, 0 problems** — clean today, still unseen.
- *   3. A LITERAL THAT MERELY NORMALISES TO AN ENTITY ID. Rule 1 says a literal counts only when it
+ * WHAT STILL WALKS PAST IT, SAID RATHER THAN IMPLIED. Dated evidence, 2026-08-27 — re-run the
+ * measurement rather than quoting these figures.
+ *   1. A BARE SPECIES LIST, with no item, ability or moves anywhere in the group. It is not skipped
+ *      out of caution; it was measured and it CANNOT be told apart from a codename list, because THIS
+ *      REPOSITORY NAMES ITS OWN MODELS, CLI FLAGS AND PLAYSTYLE ROLES AFTER POKEMON. Dropping the
+ *      component requirement matches 907 groups instead of 448 and accuses `['miltank', 'miltank2',
+ *      'no-raw', ...]` in `engine/mew_farm.js` (a `BOOL_FLAGS` list) and `inputs: ['magnemite']` in
+ *      `build/build_status.js` of naming species that do not exist in Gen 9. Both accusations are
+ *      false and neither is distinguishable from a real one by shape.
+ *      **THE REAL ONES IT ALSO FINDS ARE FILED RATHER THAN GATED**: `tests/bench-medicham.js:44`
+ *      pins a six-body ROSTER containing `amoonguss`, and `tests/test-choice-lock.js:56` benches
+ *      `['rillaboom', 'amoonguss']` — all three of those literals are `isNonstandard: 'Past'`.
+ *      ROADMAP #266.
+ *   2. A ROW WITH TWO SPECIES AND NO ARRAY — `engine/validate_damage.js`'s golden master,
+ *      `[att, ability, item, nature, stat, move, def, nature, {spread}, weather, defAb?, defItem?]`.
+ *      With two species in one group nothing can be attributed to either, and the ITEM is the half
+ *      that matters: this is the file where Choice Band, Choice Specs and an Amoonguss were found by
+ *      a HUMAN on 2026-08-25 rather than by this gate. Audited by hand 2026-08-26: 36 rows, 0
+ *      problems. Clean today, still unseen.
+ *   3. A MEGA FORME DECLARED AS A SET. `champions_sim.checkLegal` cannot validate one — measured
+ *      2026-08-27, **0 of the 76 legal mega formes pass**: 70 return *"…transforms in-battle with
+ *      <stone>, please fix its item"*, which is the AUTHORITY being right (a mega is declared as its
+ *      base plus the stone, never as the forme), and 6 return *"You are limited to one of each Pokémon
+ *      by Species Clause"*, which is `fillerSets` padding a Charizard-Mega-Y with a Charizard because
+ *      it skips the subject by `id` and not by `baseSpecies`. No fixture in this population declares
+ *      one today, so no guard is written for a case that does not occur — but the moment one does,
+ *      every verdict it produces will be the instrument. Filed, not coded.
+ *   4. A LITERAL THAT MERELY NORMALISES TO AN ENTITY ID. Rule 1 says a literal counts only when it
  *      "names itself", and `nrm()` strips punctuation from BOTH sides — so `'medicham='`, a fragment
  *      of a FAIL message, names itself. That is a FALSE POSITIVE rather than a blind spot, and until
  *      2026-08-26 it manufactured three phantom sets and five phantom stray literals. The proximate
@@ -182,6 +210,30 @@ function balanced(src, i, open, close) {
   return null;
 }
 const lineOf = (src, i) => src.slice(0, i).split('\n').length;
+
+/* SPLIT A BRACKETED GROUP BY DEPTH, WHICH IS THE ONE STRUCTURAL FACT THAT IS NOT A POSITION.
+ * `own` are the string literals at the group's own level; `nested` are the ones inside an array
+ * WITHIN it, which is rule 2's "moves come from array literals only" applied to a row instead of to
+ * a call. A nested object or a nested call contributes NEITHER — `{spread}` in a damage row holds
+ * stat keys, and a callback holds whatever it holds. Depth is read, order never is. */
+function partition(body) {
+  const own = [], nested = [];
+  let k = 1; const end = body.length - 1;
+  while (k < end) {
+    const c = body[k];
+    if (c === '[') { const a = balanced(body, k, '[', ']'); if (a) { for (const s of (a.match(STR) || [])) nested.push(s.slice(1, -1)); k += a.length; continue; } }
+    if (c === '{') { const a = balanced(body, k, '{', '}'); if (a) { k += a.length; continue; } }
+    if (c === '(') { const a = balanced(body, k, '(', ')'); if (a) { k += a.length; continue; } }
+    if (c === '`') { const a = balanced(body, k, '`', '`'); if (a) { k += a.length; continue; } }
+    if (c === '"' || c === "'") {
+      const q = c; let j = k + 1;
+      while (j < end && body[j] !== q) { if (body[j] === '\\') j++; j++; }
+      own.push(body.slice(k + 1, j)); k = j + 1; continue;
+    }
+    k++;
+  }
+  return { own, nested };
+}
 
 /* THE WINDOW A HELPER IS JUDGED ON IS ITS OWN DECLARATION, NOT THE 500 CHARACTERS AFTER IT.
  *
@@ -304,38 +356,43 @@ function scan(dex) {
       }
     }
 
-    /* (C) POSITIONAL-ARRAY ROWS — `['species', ['move', ...], 'ability', 'item']`.
+    /* (C) A BRACKETED ROW IN ANY ORDER. THE SLOT INDEX IS NEVER CONSULTED.
      *
-     * ADDED 2026-08-14 (ROADMAP #266) AFTER IT HID FIVE ILLEGAL SETS INCLUDING A BANNED ITEM. A set
-     * written as a row in a table is neither a helper CALL nor an object literal keyed `species:`, so
-     * both matchers above walked straight past `tests/test-protocol-trace.js`'s twelve-body pool —
-     * which drives 200 games — while this gate reported the tree clean. Put through the validator by
-     * hand it rejected five of the twelve: three unlearnable moves, and a Toxapex holding BLACK
-     * SLUDGE, an item that "does not exist in Gen 9".
+     * This replaced a regex on 2026-08-27. The regex demanded species-first / moves-array-second and
+     * therefore caught ONE ordering; a second ordering was measured hiding 124 sets and 21 illegal
+     * ones, which is the argument in the header: a gate written as a list of known-good shapes
+     * catches those shapes, not the class.
      *
-     * IT IS SAFE TO ADD IN THE SAME PASS AS THOSE REPAIRS PRECISELY BECAUSE THEY ARE DONE. Measured
-     * first, repaired, then the matcher turned on: the population grows by twelve declarations and the
-     * verdict count does not move at all, so nothing here is unattributable. Repo-wide this shape
-     * occurs in ONE file — measured, not assumed.
+     * EVERY array literal in the file is a candidate group. It declares a SET when
+     *   - exactly ONE of its own-level literals names a SPECIES (rule 1 — it must name itself), and
+     *   - the group carries at least one FURTHER component: an item, an ability, or a nested array.
+     * The component requirement is not caution, it is the measured line between a fixture row and a
+     * list of this project's own model names — see blind spot 1 in the header, where dropping it
+     * doubles the population and accuses a `BOOL_FLAGS` array of naming a species.
      *
-     * Conservative on purpose: the first literal must NAME ITSELF as a species (rule 1 above), the
-     * second element must be an ARRAY of string literals (rule 2 — moves come from arrays only), and
-     * the trailing scalars are taken in declaration order. */
-    const POSROW = /\[\s*(['"])([a-z0-9-]+)\1\s*,\s*\[([^\]]*)\]\s*,\s*(['"])([^'"]*)\4\s*(?:,\s*(['"])([^'"]*)\6\s*)?[,\s]*\]/gi;
-    let m4;
-    POSROW.lastIndex = 0;
-    while ((m4 = POSROW.exec(src))) {
-      const spName = m4[2];
-      const spRow = dex.species.get(spName);
-      if (!(spRow && spRow.exists && spRow.id === nrm(spName))) continue;
-      const mvs = (m4[3].match(STR) || []).map(x => x.slice(1, -1));
-      if (!mvs.length) continue;
-      const tail = [m4[5], m4[7]].filter(x => x !== undefined && x !== '');
-      const roles = tail.map(s => ({ s, r: roleOf(s) }));
-      sets.push({ file: rel, line: lineOf(src, m4.index), how: 'positional-row', species: spName,
-                  item: (roles.find(x => x.r === 'item') || {}).s || '',
-                  ability: (roles.find(x => x.r === 'ability') || {}).s || '',
-                  moves: mvs, unknown: roles.filter(x => x.r === 'unknown').map(x => x.s) });
+     * `exactly one` species, because a group naming two bodies cannot attribute an item or an ability
+     * to either — the same reason matcher (A) blanks them on a FILL/BENCH call. A nested array of
+     * rows has no own-level literal at all and is therefore not a group; its ROWS are. */
+    {
+      let k = 0;
+      while (k < src.length) {
+        if (src[k] !== '[') { k++; continue; }
+        const body = balanced(src, k, '[', ']');
+        if (!body) { k++; continue; }
+        const { own, nested } = partition(body);
+        const roles = own.map(s => ({ s, r: roleOf(s) }));
+        const species = roles.filter(x => x.r === 'species').map(x => x.s);
+        if (species.length === 1) {
+          const item = (roles.find(x => x.r === 'item') || {}).s || '';
+          const ability = (roles.find(x => x.r === 'ability') || {}).s || '';
+          if (item || ability || nested.length) {
+            sets.push({ file: rel, line: lineOf(src, k), how: 'row', species: species[0],
+                        item, ability, moves: nested.slice(),
+                        unknown: roles.filter(x => x.r === 'unknown').map(x => x.s) });
+          }
+        }
+        k++;                              /* still descend — a row may itself hold a row */
+      }
     }
 
     /* (B) bare object literals holding species: and moves: */

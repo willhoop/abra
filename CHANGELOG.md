@@ -10,6 +10,82 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.155.0] — 2026-08-27
+
+### Changed
+- **THE FIXTURE ROW MATCHER STOPPED READING POSITION, SO IT CATCHES THE CLASS INSTEAD OF A FOURTH
+  SHAPE — AND THE GATE IS NOW RED AT 2 FAILED, DELIBERATELY.** MEASURE, ROADMAP #266. Full account:
+  `docs/_reports/2026-08-27-invisible-fixtures.md`. `engine/fixture_legality.js` matched a positional
+  row with a regex demanding species FIRST and the moves array SECOND. That regex was added on
+  2026-08-14 after that one ordering hid five illegal sets including a banned item, and a SECOND
+  ordering — `['species','item','ability',['move',...]]`, moves LAST — was measured on 2026-08-26
+  hiding 124 more sets, 21 of them illegal. **A third regex buys the third ordering and loses the
+  fourth**, which is the argument `engine/read_text.js` and `engine/generated_audit.js` both make in
+  their own headers. The matcher now splits every array literal by DEPTH — own-level literals versus
+  literals inside a nested array — and hands each to `roleOf`, which asks the format. A group declares
+  a set when exactly one own-level literal names a species and the group carries a further component.
+  **Both known orderings proved from the live scan, same code path, opposite orders, both attributed
+  correctly.**
+- **THE COMPONENT REQUIREMENT IS A MEASURED LINE, NOT CAUTION.** Dropping it matches 907 groups
+  instead of 448 and accuses `engine/mew_farm.js`'s `BOOL_FLAGS` array and `build/build_status.js`'s
+  `inputs: ['magnemite']` of naming species that do not exist in Gen 9 — because **this repository
+  names its own models, CLI flags and playstyle roles after Pokémon**, and a bare species list cannot
+  be told from a codename list by shape.
+- **MEASURED WHEN ARMED, so the change is attributable.** The two readings of the nested array — every
+  literal in it is a move (rule 2 as matcher (A) applies it) versus only those that self-name a move —
+  give IDENTICAL populations, verdicts and strays. The first is used so rule 2 has one implementation.
+  Population 872 → **1308** declarations, 272 → **411** distinct sets, 15 → **40** rejected sets,
+  15 → **30** verdicts, strays **0 → 0**.
+- **`tests/test-fixture-legality.js` clause 9's negative control.** The first armed run was 3 FAILED,
+  the third being *"THE RATCHET NO LONGER DISCRIMINATES"* — while it was naming all fifteen new
+  verdicts by name. Its control was `r.findings[0]`, and the findings sort EXISTENCE-first then
+  alphabetically, so fifteen new verdicts displaced it. **A control arm that only holds while clause 2
+  is green is clause 2 wired to fire twice.** It now picks a verdict the baseline allows, and reports
+  the negative arm UNSTAGED rather than failing if the baseline ever empties.
+
+### Notes
+- **ALL 21 ARE REAL AND ALL 21 ARE PAIRING.** No illegal species, no illegal item, no `UNREACHABLE`
+  entity: the twelve accused moves carry between 4 and 102 legal carriers each, so every one is a
+  legal move on a body that cannot hold it. Verified before being believed — 371 of 411 sets ACCEPTED,
+  all 16 accusations re-derived through `CS.canLearn` (16/16 false) beside 11 positive controls on the
+  same bodies (11/11 true), `validatorThrew` 0, **0 stray literals**.
+- **ZERO REPAIRED, 21 FILED, NO BASELINE ALLOWANCE ADDED.** `origin` untouched at its closed 41. Every
+  one of the 21 is in a file MEASURE does not own and every repair is behavioural, which this batch
+  may not verify: `probe_turn_order.js` (13 sets) chose Agility in its own words *"priority 0,
+  harmless to the board"* on bodies picked for their SPEED TIERS; `probe_selfdestruct_winner.js` (2)
+  is decided by who empties first; `test-effect-credit.js` (1) needs a body that moves no stat by
+  itself; `test-encore-fail-silent.js` (1) phazes the format's only Suction Cups body;
+  `test-resolution-order.js` (3) stages Toxic and Final Gambit AS the subject, and Final Gambit has
+  only FOUR carriers, none with Basculegion's 195 HP; `engine/game_differential.js` (4 sites) is the
+  instrument that produces the differential.
+- **FILED, NOT GATED (a): nine `isNonstandard: 'Past'` species named as bare literals in three files.**
+  `tests/bench-medicham.js:45` pins a roster containing **Amoonguss**, `tests/test-choice-lock.js:56`
+  benches **Rillaboom + Amoonguss**, and `engine/playstyle.js`'s SUN/SAND/FAKEOUT role priors name
+  **Groudon, Gigalith, Rillaboom, Mienshao, Hitmontop, Purugly**. All seven distinct species are
+  `tier: 'Illegal'` and all seven are absent from `MC.mons` — `mcKey` throws by name on every one — so
+  six live role-prior entries can never match a real game. Whether the bench copes is NOT claimed: the
+  one probe attempted returned null for every body including the five legal ones, so it measured
+  nothing.
+- **FILED, NOT GATED (b): `champions_sim.checkLegal` cannot validate a single one of this format's 76
+  mega formes.** Measured: `legal 0, speciesClause 6, transformsInBattle 70`. The 70 are the AUTHORITY
+  being right — a mega is declared as its base plus the stone, never as the forme. The 6 are an
+  instrument defect: `fillerSets(dex, skipId)` filters padding by `id`, so a Charizard-Mega-Y subject
+  is padded with a Charizard. No fixture declares a mega today, so no guard was written for a case
+  that does not occur. **It is what blocks the remaining blind spot**: the multi-species variant that
+  would reach `engine/validate_damage.js`'s golden master — the file where a human, not this gate,
+  found Choice Band, Choice Specs and an Amoonguss on 2026-08-25 — adds exactly ONE extra verdict, and
+  that verdict is this artifact.
+- **NO GAME NUMBER MOVED AND NONE COULD.** Predicted before the run and confirmed: two files changed,
+  neither in `engine_release.js`'s 26 frozen `SOURCES`, nothing under `data/` written, no fixture
+  edited. Cost: the gate takes ~42s against ~1.5s, because the validator is asked about 411 sets
+  instead of 272.
+- **THE RED IS THE DELIVERABLE AND IT IS NOT FILED AS A KNOWN FAILURE.** It must not be baselined —
+  clause 7 correctly refuses `PRE-EXISTING` outside the closed origin set, and `DELIBERATE` would be
+  false since none is an isolation probe staging a pairing on purpose. `tests/run-all.js` does not
+  register this gate, so the red does not propagate there, which is itself owed to someone.
+
+---
+
 ## [5.154.0] — 2026-08-27
 
 ### Changed

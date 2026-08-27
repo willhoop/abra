@@ -216,12 +216,29 @@ else {
 {
   const planted = { key: FL.keyOf("Snorlax can't learn Made Up Move."), problem: "Snorlax can't learn Made Up Move." };
   const isNew = (k) => !allowed.has(k);
-  const realOne = r.findings[0];
-  if (isNew(planted.key) && realOne && !isNew(realOne.key)) {
-    ok('the ratchet still discriminates: a planted verdict reads NEW, a baselined one does not');
+  /* THE NEGATIVE CONTROL MUST BE A BASELINED VERDICT, AND `findings[0]` IS NOT ONE BY CONSTRUCTION.
+   * 2026-08-27: arming the position-independent row matcher put fifteen genuinely new verdicts into
+   * the population, and the findings are sorted EXISTENCE-first then alphabetically — so `findings[0]`
+   * became one of the NEW ones and this clause reported "THE RATCHET NO LONGER DISCRIMINATES" while
+   * the ratchet was discriminating perfectly, naming all fifteen. A control arm that only holds when
+   * clause 2 is green is not a control arm; it is clause 2 again, wired to fire twice. It now picks a
+   * verdict the baseline actually allows, which is the thing the clause claims to be testing. */
+  const realOne = r.findings.find(f => allowed.has(f.key));
+  if (!isNew(planted.key)) {
+    fail('THE RATCHET NO LONGER DISCRIMINATES — an invented verdict was NOT reported new. Every '
+      + 'green above is meaningless until this is fixed.');
+  } else if (!realOne) {
+    /* The negative arm needs a verdict the baseline allows AND the sweep still produces. When the
+     * baseline empties out there is none, and that is a clean tree rather than a broken ratchet —
+     * clause 3 is what fails if a baselined verdict has stopped being produced. Said, not passed
+     * over: a control that cannot be staged is reported as unstaged. */
+    ok('a planted verdict reads NEW. The negative arm was NOT staged — the sweep produces no verdict '
+      + 'the baseline allows, so there is nothing to check reads not-new');
+  } else if (isNew(realOne.key)) {
+    fail('THE RATCHET NO LONGER DISCRIMINATES — a baselined verdict was reported new. Every green '
+      + 'above is meaningless until this is fixed.');
   } else {
-    fail('THE RATCHET NO LONGER DISCRIMINATES — a planted verdict was not reported new, or a '
-      + 'baselined one was. Every green above is meaningless until this is fixed.');
+    ok('the ratchet still discriminates: a planted verdict reads NEW, a baselined one does not');
   }
 }
 
