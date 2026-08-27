@@ -325,6 +325,22 @@ and the wiring is missing, that is not a question for him. That is the work.**
 derived verdict**. A sentence somebody typed as a note was subtracting three live turn-order
 divergences from the gate and printing them as excused.
 
+**A GREP IS A CLAIM ABOUT A NAME, AND THE NAME MOVES.** `tests/test-middle-identity.js` was RED for
+days on a claim that searched `game_differential.js`'s SOURCE TEXT for `MID_BATTLE = this.battle`. A
+commit had moved that state into a shared holder, so the identifier survived **only in comments** —
+the capture never stopped happening, the grep stopped matching. The same run was printing `acc 99.4 /
+dmg 99.3 / crit 99.1` two screens below the failure.
+
+**It cost more than the fix.** TWO agents in one night reported it as "pre-existing, not my file, not
+touched", and the coordinator escalated it to Will as a live engine defect — the authority-side half of
+a mechanic — when engine health was in fact BETTER than reported. A red test nobody owns gets described
+rather than run.
+
+**So: a check that greps for an identifier is testing the identifier, not the behaviour.** Assert on what
+the code BUILT — the addresses, the counter, the exported value — never on the spelling of the line that
+builds it. And when a test goes red beside its own healthy numbers, suspect the check first: the fix here
+was one claim, and the diagnosis was three sessions late.
+
 **A GENERATED FILE DRIFTS FROM ITS SOURCE IN MINUTES, NOT DAYS.** `data/abra-tags.js` — frozen into
 every release — went stale against `data/tags.json` **38 minutes** after the previous drift was fixed,
 because a `tag_dex` run rewrote the source and nothing rebuilt the copy. Fourth instance of this class.
