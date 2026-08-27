@@ -375,16 +375,26 @@ else {
     const me = (fr.medicham && fr.medicham[side]) || [];
     say('    SHOWDOWN   pokemonLeft=' + (sd ? sd.pokemonLeft : '?') + '  teamSize=' + (sd ? sd.teamSize : '?')
         + '     (pokemonLeft is the number checkWin actually reads)');
+    /* THE SAME ANNOTATION ON BOTH HALVES — 2026-08-27, ROADMAP #344. It used to hang off the
+     * MEDICHAM rows only, against a showdown column that answered `where` from `p.isActive` rather
+     * than from membership of `side.active`. A corpse awaiting its replacement is in the slot in
+     * BOTH engines, so the old layout showed an alarm beside one engine and a clean row beside the
+     * other for behaviour they agree on, and that is what ROADMAP #344 was written from. Both
+     * columns now read membership; `isActive` is printed beside it because it is a real fact about
+     * the authority and has no counterpart here. A corpse in a slot is NORMAL — it is how both
+     * engines carry a body between its faint and its replacement — so the note says so. */
+    const slotNote = m => (m.fainted && m.where === 'active')
+      ? '   <- corpse in the slot, awaiting its replacement (both engines do this)' : '';
     for (const m of (sd ? sd.mons : [])) {
       say('      ' + String(m.name).padEnd(18) + ' hp ' + String(m.hp).padStart(4)
-          + '  ' + (m.fainted ? 'FAINTED' : 'alive  ') + '  ' + m.where);
+          + '  ' + (m.fainted ? 'FAINTED' : 'alive  ') + '  ' + String(m.where).padEnd(6)
+          + (m.isActive === undefined ? '' : ' isActive=' + (m.isActive ? 'yes' : 'no ')) + slotNote(m));
     }
     say('    MEDICHAM2  (this snapshot lists actives then bench; a fainted body it has DISCARDED');
     say('               does not appear at all, so a missing row is not evidence of anything)');
     for (const m of me) {
       say('      ' + String(m.name).padEnd(18) + ' hp ' + String(m.hp).padStart(4)
-          + '  ' + (m.fainted ? 'FAINTED' : 'alive  ') + '  ' + m.where
-          + ((m.fainted && m.where === 'active') ? '   <<< A FAINTED BODY IN AN ACTIVE SLOT' : ''));
+          + '  ' + (m.fainted ? 'FAINTED' : 'alive  ') + '  ' + String(m.where).padEnd(6) + slotNote(m));
     }
   }
   if (fr.showdown) say('');

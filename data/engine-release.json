@@ -2,9 +2,9 @@
   "current": "f6a3b35ed665",
   "cut": "2026-08-27T17:27:22.360Z",
   "why": "mega stat line recomputed from the spread, not carried as a truncation-lossy delta",
-  "cuts": 2,
-  "latest_cut": "2026-08-27T17:34:00.353Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-27T17:34:00.365Z",
+  "cuts": 3,
+  "latest_cut": "2026-08-27T18:04:45.376Z",
+  "latest_why": "ROADMAP #344 — corpse-in-slot audit; engine bytes unchanged",
+  "pointer_written": "2026-08-27T18:04:45.388Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

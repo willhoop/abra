@@ -3916,9 +3916,24 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
      * side of the very same dump — the two columns a reader compares by eye. `name` stays as the
      * display read it always was, beside `key`, because the whole point of this dump is to show a
      * rename when one has happened. */
+    /* `side.active.includes(p)`, NOT `p.isActive` — 2026-08-27, ROADMAP #344. The medicham half one
+     * block up answers `where` with MEMBERSHIP of the active array; this half used to answer it with
+     * a FLAG, and the two are not the same question for a corpse. `faintMessages` sets
+     * `pokemon.isActive = false` (sim/battle.ts:2563) and does NOT remove the body from
+     * `side.active` — the only writers of that slot in the whole simulator are `switchIn`
+     * (sim/battle-actions.ts:136), `swapPosition` (sim/battle.ts:1597-8) and the request mirror at
+     * :2690. So every corpse awaiting a replacement read `active` on the left of this dump and
+     * `bench` on the right, in BOTH engines' correct behaviour, and it was filed as a state
+     * divergence. `tests/probe_corpse_in_slot.js` measures both predicates and both halves.
+     *
+     * THE FLAG IS KEPT, BESIDE IT, rather than dropped: it is a real fact about the authority (it is
+     * what makes `toString()` print a bare side id, and what makes `findEventHandlers` collect
+     * nothing for an event aimed at a corpse), and the medicham half has no counterpart for it. What
+     * it must not do is masquerade as the answer to the question the other column is answering. */
     const sdSide = side => ({ pokemonLeft: side.pokemonLeft, teamSize: side.pokemon.length,
       mons: side.pokemon.map(p => ({ name: id(p.species.id), key: rosterKey(p), hp: p.hp, fainted: !!p.fainted,
-                                     where: p.isActive ? 'active' : 'bench' })) });
+                                     where: side.active.includes(p) ? 'active' : 'bench',
+                                     isActive: !!p.isActive })) });
     try {
       /* WIRE 160 — `battleResult` ITSELF, asked here rather than re-derived by the reader. Every
        * rollout and every H2H reads that one function, so a probe that recomputed "who won" off the

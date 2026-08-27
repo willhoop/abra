@@ -21,6 +21,42 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A FAINTED BODY IN AN ACTIVE SLOT WAS NEVER A STATE DIVERGENCE — THE AUTHORITY CLEARS A FLAG, NOT THE SLOT. **ROADMAP #344 REFUTED. BOARD-MATERIAL UNMOVED AT 9 OF 961, WHOLE-GAME UNMOVED AT 10 OF 961, CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING.**
+
+Release `f6a3b35ed665` — re-cut over an identical tree and it returned the SAME id, which is the proof
+that no simulator byte moved. Arm `middle`, `--games 1200` (yields 961), `--turns 12`,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+Register rows: ROADMAP **#344 — CLOSED**, **#495 — FILED**. CHANGELOG 5.182.0.
+Full account: `docs/_reports/2026-08-27-fainted-active-slot.md`.
+
+**THE PREMISE.** `faintMessages` sets `pokemon.isActive = false` (`sim/battle.ts:2563`) and does NOT
+touch `side.active` — the only writers of that slot are `switchIn` (`sim/battle-actions.ts:136`),
+`swapPosition` (`:1597-8`) and the request mirror at `:2690`. The corpse stays in the authority's slot
+exactly as it stays in ours.
+
+**THE EVIDENCE WAS AN INSTRUMENT.** `rosterSnapshot` answered `where` with membership on the medicham
+half and with the `isActive` FLAG on the showdown half, and `engine/replay_one.js` printed
+`<<< A FAINTED BODY IN AN ACTIVE SLOT` beside the medicham rows only. Both are fixed: both halves read
+membership, `isActive` is kept beside it as its own field, and the annotation is symmetric.
+
+**MEASURED** (`tests/probe_corpse_in_slot.js`, pinned pool, 129 pairs). `Battle#faintMessages` wrapped:
+**1,202 corpses still MEMBERS of `side.active`, 0 reading `isActive === true`, control 0 of 69,626
+off-field bodies in a slot.** Parity at 1,594 turn boundaries — 59 holding a corpse, 174 corpse-slots,
+**0 mismatches**, plant control **227 of 227**. Dump field shown RED first: **41 of 41 → 0 of 41**.
+
+**THE CONSEQUENCE HUNT.** `findEventHandlers` (`sim/battle.ts:1053-1067`) is the one `isActive` read a
+corpse reaches that an `hp`/`fainted` gate does not dominate. Recomputed on every corpse-targeted
+call: 13 event names reached a corpse, and exactly two suppress anything — **`ModifySpe` 211 calls /
+39 handlers** (choicescarf 24, tailwind 8, sandrush 3, par 2, swiftswim 1, chlorophyll 1), the channel
+the replacement batch already landed, and **`ModifyPriority` 4 calls / 2 handlers, both galewings**,
+filed as #495. Control: the same recompute on LIVE bodies returns handlers on 17 event names (267 of
+6,493 sampled). `--verify-inert`: every game's verdict identical with the wrappers disarmed.
+
+**NOTHING WAS EXPECTED TO MOVE AND NOTHING DID** — the pinned re-run reads 961 games, 15 raw diverged,
+board-material 9, whole-game 10, census 765/765/0, pin digest `44bd49403231`.
+
+---
+
 ## A MEGA'S STAT LINE WAS CARRIED ACROSS AS A DELTA — THE AUTHORITY RECOMPUTES IT FROM THE SET. **BOARD-MATERIAL 10 -> 9 OF 961 AND WHOLE-GAME 11 -> 10 OF 961, BOTH PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING.**
 
 Release `f6a3b35ed665`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,

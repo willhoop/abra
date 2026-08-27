@@ -10,6 +10,62 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.182.0] — 2026-08-27
+
+### Fixed
+- **A FAINTED BODY IN AN ACTIVE SLOT WAS NEVER A STATE DIVERGENCE — THE AUTHORITY CLEARS A FLAG, NOT
+  THE SLOT, AND THE DUMP WAS COMPARING OUR MEMBERSHIP AGAINST THEIR FLAG. ROADMAP `#344` REFUTED AND
+  CLOSED. BOARD-MATERIAL UNMOVED AT 9 OF 961, WHOLE-GAME UNMOVED AT 10 OF 961, CENSUS UNMOVED AT
+  765 LIVE / 765 PROBED / 0 MISSING — ALL THREE PREDICTED BEFORE THE RUN.** ENGINE.
+
+  `faintMessages` sets `pokemon.isActive = false` (`sim/battle.ts:2563`) and does **not** touch
+  `side.active`. The only writers of that slot in the whole simulator are `switchIn`
+  (`sim/battle-actions.ts:136`), `swapPosition` (`:1597-8`) and the request mirror at `:2690`. So the
+  corpse sits in the authority's slot exactly as it sits in ours.
+
+  `rosterSnapshot` asked two different questions — `acts.indexOf(m) >= 0` on the medicham half and
+  `p.isActive` on the showdown half — and `engine/replay_one.js` printed
+  `<<< A FAINTED BODY IN AN ACTIVE SLOT` beside the MEDICHAM rows only. An alarm on one engine and a
+  clean row on the other, for behaviour they agree on. Both halves now read MEMBERSHIP; `isActive` is
+  kept beside it as its own named field, because it is a real fact about the authority that has no
+  counterpart here; the annotation is symmetric and says a corpse in a slot is normal.
+
+  **MEASURED, NOT ARGUED** (`tests/probe_corpse_in_slot.js`, pinned pool, 129 pairs, release
+  `f6a3b35ed665`). `Battle#faintMessages` is wrapped and the authority's own object read the instant
+  it returns: **1,202 fainted bodies were still MEMBERS of `side.active`, 0 read `isActive === true`,
+  and the control is clean — 0 of 69,626 off-field bodies were members.** Parity between the engines
+  is exact: **1,594 turn boundaries, 59 holding a corpse (174 corpse-slots), 0 mismatches**, compared
+  by `rosterKey` through the one door with 0 fallbacks, and the planted-occupancy control fired
+  **227 of 227**. Shown RED first on the dump field itself: **41 of 41** fainted bodies read
+  `medicham where=active / showdown where=bench`, and **0 of 41** after.
+
+### Added
+- **THE CONSEQUENCE HUNT #344 ASKED FOR, RUN AS A MEASUREMENT.** `isActive` has exactly one read a
+  corpse can reach that an `hp`/`fainted` gate does not already dominate: `findEventHandlers`
+  (`sim/battle.ts:1053-1067`), which for a corpse target collects nothing — not its own handlers, not
+  any `onAlly`/`onAny`/`onFoe` on the field, and not the `instanceof Side` block below it. The probe
+  recomputes that block on every call whose target is a corpse. **Thirteen event names reach a corpse
+  and exactly two suppress anything: `ModifySpe` (211 calls, 39 handlers — choicescarf 24, tailwind 8,
+  sandrush 3, par 2, swiftswim 1, chlorophyll 1), which the same day's replacement batch already
+  landed, and `ModifyPriority` (4 calls, 2 handlers, both galewings), filed as ROADMAP `#495`.** Every
+  other row is 0, and the control is the SAME recompute run against live bodies — 267 of 6,493 sampled
+  reads non-zero over 17 event names — so a zero is a fact about the corpse rather than about the
+  recompute. `--verify-inert` replays every game with both wrappers disarmed and the verdicts are
+  identical, so the instrument did not move what it measured.
+
+### Notes
+- `engine/medicham2-browser.js` is byte-identical: the release re-cut to the **same id**
+  `f6a3b35ed665` over an identical tree, which is why nothing the differential compares could move.
+  Pinned re-run: `--games 1200`, arm `middle`, cap 12, `data/team-pool-frozen`, census pin
+  `9446a684709d`, `--state --end-state` — 961 games, 15 raw diverged, board-material 9, whole-game 10.
+- ROADMAP `#495` is an OBSERVATION with a measured numerator and an unmeasured consequence, not a
+  defect. A corpse's action is refused at execution in both engines, so a wrong priority on a dead
+  action is observable only if its queue position moves a live one, and nobody has measured whether
+  medicham2 re-prices a dead body's queued action at all. The owed fixture is named on the row.
+- Account: `docs/_reports/2026-08-27-fainted-active-slot.md`.
+
+---
+
 ## [5.181.0] — 2026-08-27
 
 ### Fixed

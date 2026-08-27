@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-27T17:40:17.195Z",
+  "generated": "2026-08-27T18:09:53.487Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 456,
+    "register_rows": 457,
     "open": 238,
-    "closed": 218,
+    "closed": 219,
     "open_asserting_breakage": 65,
     "measured_disagreements": 0,
     "unregistered": 0
@@ -1175,15 +1175,6 @@
       "full": "a failed roost leaves the user still flying on the authority and grounded here, and it is board-material — staged and deliberately not fixed 2026-08-22. found while landing #342's `null`-against-`false` classification and stated in that commit's own account, with no register row until now. we emit the `-fail ... heal` line correctly and then also the `-singleturn`; the authority emits neither, because `runmoveeffects` marks the target `false` and `selfdrops` skips false targets. the consequence is not the two lines: it is that the roost user's flying type is suppressed here on a turn the authority leaves it flying, so a ground move that should be refused connects, and every damage and speed read for that turn is taken against the wrong type. left undone on purpose — the rule in this repository is one family per pass, and the roost family wants its own hand list rather than a free ride inside the encore/yawn batch. what would decide it: stage a roost that fails (a user already at full hp) on both engines and assert (a) neither line is emitted and (b) a ground move into that user is refused on both. source `docs/card-review-2026-08-22.md` §e3 and commit `11bab14`. adjacent: #147 wired roost's grounding in the first place; #242 records that roost is residual order 25, announces nothing, and gives its type back twenty orders above the grassy terrain heal"
     },
     {
-      "n": 344,
-      "section": "Solving — DUSK, and the retrograde idea",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "A FAINTED BODY STAYS IN ONE OF OUR ACTIVE SLOTS WHERE SHOWDOWN CLEARS IT INSIDE `faintMessages` — OBSERVED 2026-08-22, C",
-      "full": "a fainted body stays in one of our active slots where showdown clears it inside `faintmessages` — observed 2026-08-22, confirmed as real state, consequence unmeasured. a dragonite read `fainted=true` together with `where=active`. showdown sets `pokemon.isactive = false` inside `faintmessages` (`sim/battle.ts:2563`); we leave the body in the active array until something replaces it. confirmed to be real state rather than a labelling artifact — `rostersnapshot` reads membership of the active array itself, not a flag. it is not the cause of card 25 (see #346, which was entirely the harness) and in the repaired game it produced zero divergent lines, so it is recorded as an observation and not asserted as a defect. it is nevertheless the same `faintmessages` region as #331 (the batching) and #315 (a fainted mega's forme), and `isactive = false` at `:2563` is what makes the authority's `tostring()` print a bare side id — so if #331 is fixed this may fall out with it. what would decide it: a boundary comparison asserting no body with `fainted=true` is a member of either active array at the moment the authority has already cleared it, plus a search for a read path (`bringin`, targeting, spread-move target selection) that would behave differently with a corpse in the slot. until one of those produces a consequence this row makes no claim about a mechanic. source `docs/card-review-2026-08-22.md` §e4"
-    },
-    {
       "n": 341,
       "section": "Solving — DUSK, and the retrograde idea",
       "closed": false,
@@ -2136,6 +2127,15 @@
       "uses": 0,
       "title": "EIGHT COMMENTS NAMED A SOURCE FILE THAT IS NOT THERE — SIX CORRECTED 2026-08-27 BY MEASURE, TWO OWED BY ENGINE. A commen",
       "full": "eight comments named a source file that is not there — six corrected 2026-08-27 by measure, two owed by engine. a comment naming a repo `.js`/`.py`/`.html` file asserts that file exists. of 2,822 such references in `engine/`, `tests/` and `build/`, eight named something absent and did not say so (a negation within 200 characters clears it). this row as first filed said \"not measure's to fix\" and that was wrong about six of the eight — they sat in files measure owns; the misrouting is recorded rather than edited away. corrected, each repointed at what is actually true rather than deleted: `build/build_mag_data.js` said *\"web/magnemite.html carries a self-check against a fixture generated here\"* — 32 days, the worst; no such page has ever existed, the room is `roommagnemite()` and the check is `magselfcheck()`, both in `web/index.html`, and it detects a bundle-vs-engine vintage mismatch rather than two scorers diverging (the page stopped re-implementing `featuresfor` and calls `board.js` live, so the sentence was wrong twice). `engine/prior_player.js` *\"see tests/test-policy-parity.js\"* — 34 days, the oldest; no such test, and `setpurepriors()` in `engine/medicham2-browser.js` is the real switch and has no caller, so the like-for-like comparison has never been run. `engine/lookup.js` *\"tests/test-lookup-contract.js reads this\"* — 25 days (first written 2026-08-02, not the 21 days first reported); no such test, and `misses()` has no reader at all. `engine/million_run.js` *\"engine/status_residual.js asserts it\"* — 16 days; the identity guard is real and is the `if (dump_status)` block in that same file, which refuses to write on a mismatch. `engine/speed_vs_pokeenv.js` *\"arm a lives in engine/bench_pokeenv.py\"* — 16 days, printed to the operator at run time and written into `data/speed-vs-pokeenv.json`'s `what` field as a third arm that does not exist; arm a is unwritten and both now say so. `engine/quarantine.js` named `web/scoreboard.js` where `data/scoreboard.js` was meant — 13 days. still open, both in engine's files: `engine/game_differential.js` names `tests/rate_runner.js` (15 days; the instrument that derives its trials from statistical power is `engine/million_run.js`) and `engine/medicham2-browser.js` names `tests/test-engine-contract.js` (34 days; `tests/test-engine-consistency.js` is the file that holds the two engines together). re-derived on every run of `node tests/test-claim-truth.js`, which reports 2 of 2,822, down from 8. no engine byte moved and no game was played. account: `docs/_reports/2026-08-27-false-claims.md`"
+    },
+    {
+      "n": 495,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "A CORPSE'S QUEUED ACTION IS RE-PRICED WITHOUT ITS PRIORITY ABILITY IN THE AUTHORITY, AND WHETHER WE DO THE SAME IS UNMEA",
+      "full": "a corpse's queued action is re-priced without its priority ability in the authority, and whether we do the same is unmeasured — found 2026-08-27 by engine while closing #344. `getactionspeed(action)` re-derives a move action's priority every time the queue is resolved: `priority = runevent('modifypriority', action.pokemon, target, move, priority)` (sim/battle.ts:2643). `findeventhandlers` opens `if (target instanceof pokemon && (target.isactive || source?.isactive))` (:1053), and `faintmessages` has already set `isactive = false` on a body that died earlier in the turn (:2563) — so for a corpse that whole block is skipped and the event collects no handlers at all. measured, not argued: `tests/probe_corpse_in_slot.js` recomputes the skipped block on every call whose target is a corpse, over the pinned pool (129 pairs, release `f6a3b35ed665`, census pin `9446a684709d`). of the 13 event names that reach a corpse, this is the second and last one that suppresses anything: `modifypriority`, 4 corpse-calls, 2 suppressed handlers, both `galewings` (the other is `modifyspe`, which the 2026-08-27 replacement batch already landed). the control is the same recompute on live bodies: 267 of 6,493 sampled reads non-zero over 17 event names, so the 0s elsewhere are facts about the corpse. what is not measured, and the row says so rather than guessing. the corpse's action is refused at execution in both engines (`runaction` checks `!action.pokemon.isactive` and `action.pokemon.fainted`, :2703-2704), so a wrong priority on a dead action can only be observed if that action's position moves a live one — `battle#speedsort` is a selection sort whose swaps are a function of the whole list, the same mechanism roadmap #221 and `residualshadowsort` already model for the residual walk. nobody has measured whether medicham2 re-prices a dead body's queued action at all. it is rare and it is ranked as such (will 2026-08-23 — the pinned pool ranks, the census and roster carry the tail): 4 calls in 129 pinned-pool games, 2 of them carrying a handler. instrument owed: a fixture staging a gale wings body that dies with a flying move still queued beside a live speed tie, asserting the two engines put the surviving actions in the same order — with the knob in the direction that restores the priority, so an identical result across it says the knob is unwired."
     },
     {
       "n": 52,

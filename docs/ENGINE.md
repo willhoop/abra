@@ -92,7 +92,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  765/765 probed mechanics live, 0 missing   (census 2026-08-27 13:31)
+  765/765 probed mechanics live, 0 missing   (census 2026-08-27 14:07)
   0/6000 differential comparisons disagree with Showdown   (2026-08-27 13:31)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -112,9 +112,87 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 13:45_
+_stamped 2026-08-27 14:13_
 
 <!-- /GENERATED -->
+
+## A FAINTED BODY IN AN ACTIVE SLOT WAS NEVER A STATE DIVERGENCE — THE AUTHORITY CLEARS A FLAG, NOT THE SLOT. **ROADMAP #344 REFUTED AND CLOSED. BOARD-MATERIAL UNMOVED AT 9 OF 961, WHOLE-GAME UNMOVED AT 10 OF 961, CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING — ALL THREE PREDICTED BEFORE THE RUN.** 2026-08-27.
+
+Release `f6a3b35ed665` — **re-cut over an identical tree and it came back with the same id**, which
+is the proof that no simulator byte moved rather than a claim that none did. Arm `middle`,
+`--games 1200` (yields 961), `--turns 12`, `--team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json`, `--state --end-state`.
+Register rows ROADMAP **#344 — CLOSED**, **#495 — FILED**. CHANGELOG 5.182.0.
+Full account: `docs/_reports/2026-08-27-fainted-active-slot.md`.
+
+**THE ROW SAID SHOWDOWN CLEARS THE BODY OUT OF THE SLOT. IT CLEARS A FLAG.** `faintMessages` sets
+`pokemon.isActive = false` (`sim/battle.ts:2563`) and does not touch `side.active`; the only writers
+of that slot in the whole simulator are `switchIn` (`sim/battle-actions.ts:136`), `swapPosition`
+(`:1597-8`) and the request mirror at `:2690`. So the corpse sits in the authority's active array
+exactly as it sits in ours.
+
+**THE EVIDENCE #344 RESTED ON WAS TWO DIFFERENT PREDICATES IN ONE TABLE.** `rosterSnapshot` answered
+`where` with `acts.indexOf(m) >= 0` on the medicham half and `p.isActive` on the showdown half, and
+`engine/replay_one.js` printed `<<< A FAINTED BODY IN AN ACTIVE SLOT` beside the MEDICHAM rows only —
+an alarm on one engine and a clean row on the other, for behaviour they agree on. The row's own
+rebuttal (*"`rosterSnapshot` reads membership of the active array itself, not a flag"*) is true of the
+left column and false of the right one.
+
+**MEASURED ON THE AUTHORITY'S OWN OBJECT** (`tests/probe_corpse_in_slot.js`, `Battle#faintMessages`
+wrapped and read the instant it returns, pinned pool, 129 pairs):
+
+| | |
+|---|---|
+| `faintMessages` calls | 18,933 |
+| fainted bodies STILL MEMBERS of `side.active` | **1,202** |
+| of those, reading `isActive === true` | **0** |
+| CONTROL — off-field bodies found in `side.active` | **0 of 69,626** |
+
+**PARITY BETWEEN THE ENGINES IS EXACT**: 1,594 turn boundaries, **59 of them holding a corpse (174
+corpse-slots), 0 mismatches**, compared by `rosterKey` through the one door with 0 fallbacks, and the
+planted-occupancy control fired **227 of 227**. On the dump field itself, shown RED first:
+**41 of 41** fainted bodies read `medicham where=active / showdown where=bench`, and **0 of 41** after
+both halves were made to read membership.
+
+**THE CONSEQUENCE, WHICH IS WHAT THE ROW ACTUALLY ASKED FOR.** `isActive` has exactly one read a
+corpse can reach that an `hp`/`fainted` gate does not already dominate: `findEventHandlers`
+(`sim/battle.ts:1053-1067`), which for a corpse target collects nothing — not its own handlers, not
+any `onAlly`/`onAny`/`onFoe` on the field, and not the `instanceof Side` block below it. That block
+was recomputed on every call whose target was a corpse. **Thirteen event names reached a corpse and
+exactly TWO suppress anything:**
+
+| event | corpse-calls | SUPPRESSED | live-reads | live-handlers | what |
+|---|---|---|---|---|---|
+| `ModifySpe` | 211 | **39** | 925 | 58 | choicescarf 24, tailwind 8, sandrush 3, par 2, swiftswim 1, chlorophyll 1 |
+| `ModifyPriority` | 4 | **2** | 39 | 2 | galewings 2 |
+| the other eleven | 1,244 | **0** | | | |
+
+`ModifySpe` is the channel the same day's replacement batch already landed. `ModifyPriority` is new
+and is ROADMAP **#495** — an observation with a measured numerator and an UNMEASURED consequence, not
+a defect. The `live-handlers` column is the control: the SAME recompute run against bodies that are
+genuinely on the field returns handlers (267 of 6,493 sampled reads, over 17 event names), so a zero
+above is a fact about the corpse rather than about the recompute. `--verify-inert` replays all 129
+games with both wrappers disarmed and every verdict is identical, so the instrument did not move what
+it was measuring.
+
+**WHAT CHANGED IS TWO INSTRUMENTS AND NOTHING ELSE.** `rosterSnapshot`'s showdown half now answers
+`where` with `side.active.includes(p)` and carries `isActive` beside it as its own named field;
+`replay_one.js` annotates both halves identically and says a corpse in a slot is normal.
+
+### THE HAND LIST
+
+**Leaves it:** #344's *"a search for a read path that would behave differently with a corpse in the
+slot"* — the read path is enumerated from the authority's own `isActive` sites and measured by
+`tests/probe_corpse_in_slot.js`, whose Part 3 table is the answer.
+
+**Joins it:**
+- **ROADMAP #495 — `ModifyPriority` on a corpse.** 4 calls and 2 suppressed `galewings` handlers in
+  129 pinned-pool games. A corpse's action is refused at execution in both engines, so a wrong
+  priority on a dead action is observable only if its queue position moves a LIVE one via
+  `speedSort`'s selection-sort swaps. **Nobody has measured whether medicham2 re-prices a dead body's
+  queued action at all**, and the row must not be called a defect until the owed fixture says so.
+- **The Part 3 table only covers events that actually occurred in 129 games.** A rarer event aimed at
+  a corpse would not appear in it. That tail belongs to the roster and the census, not to the pool.
 
 ## A MEGA'S STAT LINE WAS CARRIED ACROSS AS A DELTA, AND THE AUTHORITY RECOMPUTES IT FROM THE SET — THREE TRUNCATIONS WHERE THERE SHOULD BE ONE. **BOARD-MATERIAL 10 -> 9 OF 961 AND WHOLE-GAME 11 -> 10 OF 961, BOTH PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING.** 2026-08-27.
 
