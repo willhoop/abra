@@ -10,6 +10,87 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.159.0] — 2026-08-27
+
+### Changed
+- **THE CONTAMINATION NUMBER WAS TWENTY DAYS STALE AND IT WAS ALSO THE WRONG SHAPE.** OPS. Full
+  account: `docs/_reports/2026-08-27-contamination-refresh.md`. Refreshed against the current ladder
+  store: **1,252 of 67,384 games = 1.858%** carry at least one set the official `TeamValidator`
+  refuses, against 735 of 47,210 = 1.557% on 2026-08-07. The denominator grew **42.7%** and the rate
+  rose with it, so this is not the same measurement on a bigger sample.
+
+  **The headline is an UPPER BOUND and may not be used as a filter key**, which is why the refresh
+  alone would not have been enough. It lumps two unlike things together and the split is the
+  deliverable: **species 76 games (0.113%)** — the clean signal, a team from another regulation —
+  against **move-only 1,175 games (1.744%)**, of which **1,020 have a Zoroark line on the same
+  side**. A move-level legality contradiction is precisely how `engine/illusion.js` PROVES a
+  disguise, so a move-keyed filter would delete the detector along with the contamination.
+
+  **Species almost never travels alone — 73 of the 76 also trip a move or item rule**, which is the
+  whole-team shape Will described and the reason the species class is the right key.
+
+  **Costed, and nothing was filtered.** A species-keyed filter removes 76 raw games, and **49 of the
+  18,908 that survive `engine/quality.js` (0.259%)** — contamination is **enriched 2.3x** by the
+  existing filter, because bots do not play custom-rules rooms. Downstream it deletes **19 of 796
+  `meta-usage.json` threat rows** (0.016–0.018% of counted appearances), **69 of 339
+  `bring-priors.json` species keys** (0.095% of team-sides, max `n_team` 12), and **19 of 277
+  `sheet-usage.json` keys**. **The coverage gate does not move**: zero out-of-format ids fall inside
+  any of the four 99%-of-usage prefixes in `regulation-usage.json`, whose tightest prefix admits
+  nothing below 51 uses against a largest contaminated count of 14. Checked, not assumed.
+
+  **Two figures from the prior filing did not reproduce and are corrected here.** "11 of 796 threat
+  rows" pairs `views.ladder`'s numerator with all three lists' denominator; measured, it is **19 of
+  796**. "21 of 339" bring-prior keys is **69 of 339**, every one `isNonstandard: 'Past'`.
+
+  **The decision is Will's and this batch did not take it.** `data/quality-filter.json` and
+  `engine/quality.js` are untouched, and so is every artifact that inherits contamination.
+
+### Added
+- **`engine/validate_store.js` now reports the split, and `classify()` was not changed to do it.**
+  `reasonClass()` sorts a complaint into species / item / ability / move / other; `flagged_games`
+  still means exactly what it meant on 2026-08-07. The Illusion screen derives its carrier set from
+  the format — every legal species whose ability list contains Illusion — and independently
+  reproduces the list `engine/illusion.js` hard-codes, so no species name is typed.
+  **ORDER IS THE WHOLE TRICK**: *"Garchomp's item Choice Band does not exist in Gen 9."* and
+  *"Salamence does not exist in Gen 9."* share a tail, and the possessive forms must be tested first
+  or every banned item is counted as a banned species.
+- **Selftest 11 → 24 assertions, 0 failed, and SHOWN RED FIRST.** Hoisting the bare species test
+  above the possessive ones gives **21 passed, 2 failed, exit 1**, naming the banned item and the
+  banned ability as species. Every test string was taken from the 2026-08-07 artifact's `by_reason`
+  rather than invented.
+- **The `unreadable` counter is printed and written.** The file's header has said since it was
+  written that an unparseable line is a game nobody judged, and the counter was computed and
+  discarded. It reads **0** — which was not knowable before this run.
+
+### Fixed
+- **`reasonSubject` kept the possessive `'s`** — *"altaria's move Return does not exist in Gen 9."*
+  yielded the key `altarias`, which matches nothing, so the Illusion screen **failed open** to "no
+  carrier on that side" for every possessive complaint. A wired-knob check confirms the repair:
+  the same-side counter moved **30 → 31** on a 4,000-game sample.
+- **`validate_store.js` cited `engine/format_drift.js`, which has never existed.** The only two
+  references to that name in the repository were this comment and a report quoting it. The comment
+  now names the gap. Nothing distinguishes a contaminated game from an out-of-date rulebook.
+
+### Removed
+- **A stale `docs/OPS.md` backlog line that contradicted its own page.** It asked whether OTS ingest
+  had "moved to the ladder store". `engine/ingest_ots.js` is a manual importer, appears **nowhere in
+  `.github/workflows/`**, and **refuses** `--out data/games.ladder.jsonl` by name; the file was last
+  written 2026-08-21, not July; and the `<!-- GENERATED -->` block on the same page already read
+  *"FROZEN external import, complete; date is an import, not a heartbeat"*. Struck with the answer
+  written in, not deleted.
+
+### Notes
+- **No game number moved and none could.** No engine byte, no release, no census, no fixture.
+  `data/games.ladder.jsonl` was byte- and mtime-identical across the run (323,608,809 bytes,
+  2026-08-27 00:04:37). The exit code was not trusted on its own: `data/store-validation.json` went
+  123,725 → 170,128 bytes and its `generated` moved 2026-08-07T01:36:16Z → 2026-08-27T05:14:06Z.
+- **OWED:** `validate_store.js` judges the ladder store ONLY while stamping digests for all three,
+  so **20,795 `bo3` and 4,167 `ots` games are unjudged** — and `bo3` is the OPEN-SHEET store, the one
+  corpus where a full declared team could be validated rather than a partial revealed one. Scope was
+  not extended mid-batch because that changes what the headline means.
+- **OWED:** no consumer reads `data/store-validation.json`. That was true on 2026-08-07 and this
+  batch made the artifact current and richer without making anything read it.
+
 ## [5.158.0] — 2026-08-27
 
 ### Fixed

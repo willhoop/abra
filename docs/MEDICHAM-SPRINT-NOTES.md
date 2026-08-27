@@ -15820,3 +15820,53 @@ Full account: `docs/_reports/2026-08-27-invisible-fixtures.md`. CHANGELOG 5.155.
 **OWED, NOT RUN:** the 21 repairs (commands per file in the report), `fillerSets` skipping by
 `baseSpecies`, a gate over `engine/validate_damage.js`'s golden master, the nine bare literals, and
 the fact that this gate is not registered in `tests/run-all.js` so its red does not propagate.
+
+---
+
+## 2026-08-27 — The contamination number, refreshed and split (OPS)
+
+`data/store-validation.json` was stamped 2026-08-07 over 47,210 games — **two thirds of today's
+ladder store**. Refreshed: **1,252 of 67,384 = 1.858%**, against 735 of 47,210 = 1.557%. The
+denominator grew **42.7%** and the rate rose with it.
+
+**THE REFRESH ALONE WOULD HAVE BEEN THE WRONG DELIVERABLE.** That headline is an UPPER BOUND and
+cannot be a filter key. Split:
+
+- **species — 76 games, 0.113%.** The clean signal. **73 of the 76 also trip a move or item rule**,
+  which is the whole-team shape Will described: a team built under other rules breaks several rules
+  at once, not one.
+- **move-only — 1,175 games, 1.744%.** **1,020 of them have a Zoroark line on the same side.** A
+  move-level legality contradiction is exactly how `engine/illusion.js` PROVES a disguise — the
+  disguise copies the name and not the moveset. **A move-keyed filter deletes the detector.**
+
+**COSTED, NOT TAKEN.** A species-keyed filter removes 76 raw games and **49 of the 18,908 surviving
+`engine/quality.js` (0.259%)** — contamination is **enriched 2.3x** by the existing filter, because
+bots do not play custom-rules rooms, so the models read a corpus twice as contaminated as the store.
+It deletes 19 of 796 `meta-usage.json` threat rows, 69 of 339 `bring-priors.json` keys and 19 of 277
+`sheet-usage.json` keys, all carrying <0.1% of their artifact's weight. **The coverage gate does not
+move at all**: zero out-of-format ids fall inside any of the four 99%-of-usage prefixes — the
+tightest admits nothing below 51 uses, the largest contaminated id carries 14.
+
+**Two figures from the prior filing did not reproduce**: 19 of 796 threat rows, not 11 (11 was
+`views.ladder` alone against all three lists' denominator), and 69 of 339 bring-prior keys, not 21.
+
+**THE HEADLINE WAS CONFIRMED BY A SECOND RULER SHARING NO CODE WITH THE FIRST** — a Dex walk over
+`sets`/`six`/`brought`/`lead` returns the same **76** games. All 73 offending keys are
+`isNonstandard: 'Past'`; `tier` plays no part.
+
+**INSTRUMENT CHECKED BEFORE ITS NUMBERS WERE BELIEVED.** Selftest **11 → 24, 0 failed**, and shown
+RED first: hoisting the bare `does not exist in Gen 9` test above the possessive ones gives 21/2 and
+exit 1, reading a banned item and a banned ability as banned species. One real instrument bug found
+and fixed — `reasonSubject` kept the possessive `'s`, so the Illusion screen failed open on every
+possessive complaint; the counter moved **30 → 31** on a 4,000-game control.
+
+**NO GAME NUMBER MOVED AND NONE COULD** — no engine byte, no release, no census, no fixture; the
+store was byte- and mtime-identical across the run.
+
+Full account: `docs/_reports/2026-08-27-contamination-refresh.md`. CHANGELOG 5.159.0.
+
+**OWED, NOT RUN:** the filter decision itself (Will's — `quality-filter.json` and `quality.js`
+untouched); the **20,795 `bo3` open-sheet games and 4,167 `ots` games that `validate_store.js` never
+judges** while stamping their digests, `bo3` being the one store where a FULL declared team could be
+validated; `engine/format_drift.js`, cited by `validate_store.js` and never written; and the fact
+that **no consumer reads `data/store-validation.json`** — still true after this batch.

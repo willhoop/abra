@@ -1,100 +1,101 @@
 {
-  "generated": "2026-08-07T01:36:16.906Z",
+  "generated": "2026-08-27T05:14:06.849Z",
   "by": "engine/validate_store.js",
   "format": "gen9championsvgc2026regmb",
   "source_digests": {
-    "engine/validate_store.js": "aaf96f1255f9",
-    "data/games.ladder.jsonl": "3e9a42655015",
-    "data/games.bo3.jsonl": "5bdf6474131a",
+    "engine/validate_store.js": "35d039ca730f",
+    "data/games.ladder.jsonl": "5cbb8e98b7f3",
+    "data/games.bo3.jsonl": "d8e5dc14cbbd",
     "data/games.ots.jsonl": "cd21077a4578",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
   "judged": {
-    "games": 47210,
-    "revealed_sets": 410780,
-    "distinct": 63939,
-    "seconds": 17.9
+    "games": 67384,
+    "revealed_sets": 591457,
+    "distinct": 91254,
+    "seconds": 23,
+    "unreadable_lines": 0
   },
-  "flagged_games": 735,
+  "flagged_games": 1252,
   "by_reason": {
     "weavile (Weavile) can't learn Flamethrower.": 1,
-    "gholdengo (Gholdengo) can't learn Icy Wind.": 5,
-    "sinistchamasterpie (Sinistcha-Masterpiece) can't learn Flamethrower.": 1,
+    "gholdengo (Gholdengo) can't learn Icy Wind.": 8,
+    "sinistchamasterpie (Sinistcha-Masterpiece) can't learn Flamethrower.": 2,
     "heracross (Heracross) can't learn Nasty Plot.": 1,
-    "mausholdfour (Maushold-Four) can't learn Shadow Ball.": 1,
-    "hatterene (Hatterene) can't learn Parting Shot.": 9,
-    "hatterene (Hatterene) can't learn Taunt.": 9,
-    "whimsicott (Whimsicott) can't learn Icy Wind.": 10,
+    "mausholdfour (Maushold-Four) can't learn Shadow Ball.": 2,
+    "hatterene (Hatterene) can't learn Parting Shot.": 14,
+    "hatterene (Hatterene) can't learn Taunt.": 12,
+    "whimsicott (Whimsicott) can't learn Icy Wind.": 14,
     "tsareena (Tsareena) can't learn Dark Pulse.": 1,
     "chandelure (Chandelure) can't learn Bitter Malice.": 1,
     "chandeluremega (Chandelure-Mega) can't learn Hyper Voice.": 1,
     "gliscor (Gliscor) can't learn Icy Wind.": 1,
     "maushold (Maushold) can't learn Shadow Ball.": 1,
-    "dragonite (Dragonite) can't learn Shadow Ball.": 2,
-    "farigiraf (Farigiraf) can't learn Round.": 12,
+    "dragonite (Dragonite) can't learn Shadow Ball.": 3,
+    "farigiraf (Farigiraf) can't learn Round.": 18,
     "floetteeternal (Floette-Eternal) can't learn Hyper Voice.": 1,
     "vivillonpokeball (Vivillon-Pokeball) can't learn Hyper Voice.": 4,
     "vivillonpokeball (Vivillon-Pokeball) can't learn Flamethrower.": 1,
     "sneasler (Sneasler) can't learn Bitter Malice.": 3,
     "pangoro (Pangoro) can't learn Bitter Malice.": 1,
-    "whimsicott (Whimsicott) can't learn Bitter Malice.": 13,
+    "whimsicott (Whimsicott) can't learn Bitter Malice.": 19,
     "hatterene (Hatterene) can't learn Swagger.": 1,
     "garchomp (Garchomp) can't learn Sludge Bomb.": 1,
-    "hatterene (Hatterene) can't learn Toxic.": 2,
-    "hydreigon (Hydreigon) can't learn Icy Wind.": 6,
-    "malamar (Malamar) can't learn Will-O-Wisp.": 2,
-    "overqwil (Overqwil) can't learn Memento.": 9,
+    "hatterene (Hatterene) can't learn Toxic.": 5,
+    "hydreigon (Hydreigon) can't learn Icy Wind.": 9,
+    "malamar (Malamar) can't learn Will-O-Wisp.": 3,
+    "overqwil (Overqwil) can't learn Memento.": 13,
     "gengar (Gengar) can't learn Hyper Voice.": 1,
-    "whimsicott (Whimsicott) can't learn Hyper Voice.": 9,
-    "garchomp (Garchomp) can't learn Bitter Malice.": 4,
+    "whimsicott (Whimsicott) can't learn Hyper Voice.": 14,
+    "garchomp (Garchomp) can't learn Bitter Malice.": 5,
     "sinistcha (Sinistcha) can't learn Will-O-Wisp.": 1,
     "pyroar (Pyroar) can't learn Shadow Ball.": 2,
     "altaria's move Return does not exist in Gen 9.": 2,
     "altaria (Altaria) can't learn Return.": 2,
     "altariamega's move Return does not exist in Gen 9.": 1,
     "altariamega (Altaria-Mega) can't learn Return.": 1,
-    "revavroom (Revavroom) does not exist in Gen 9.": 2,
-    "revavroom's move Shift Gear does not exist in Gen 9.": 2,
+    "revavroom (Revavroom) does not exist in Gen 9.": 7,
+    "revavroom's move Shift Gear does not exist in Gen 9.": 6,
     "raichu (Raichu) can't learn Hex.": 1,
-    "clefablemega (Clefable-Mega) can't learn Parting Shot.": 6,
-    "farigiraf (Farigiraf) can't learn Bitter Malice.": 5,
+    "clefablemega (Clefable-Mega) can't learn Parting Shot.": 10,
+    "farigiraf (Farigiraf) can't learn Bitter Malice.": 13,
     "froslass (Froslass) can't learn Night Daze.": 1,
     "liepard (Liepard) can't learn Heat Wave.": 1,
-    "hatterene (Hatterene) can't learn Hypnosis.": 1,
+    "hatterene (Hatterene) can't learn Hypnosis.": 2,
     "glimmora (Glimmora) can't learn Burning Jealousy.": 1,
     "excadrill (Excadrill) can't learn Hyper Voice.": 3,
-    "charizard (Charizard) can't learn Hyper Voice.": 1,
+    "charizard (Charizard) can't learn Hyper Voice.": 2,
     "ampharos (Ampharos) can't learn Bitter Malice.": 1,
     "ampharos (Ampharos) can't learn Flamethrower.": 1,
     "archaludon (Archaludon) can't learn Bitter Malice.": 2,
-    "sylveon (Sylveon) can't learn Boomburst.": 8,
-    "hatterene (Hatterene) can't learn Yawn.": 1,
+    "sylveon (Sylveon) can't learn Boomburst.": 9,
+    "hatterene (Hatterene) can't learn Yawn.": 2,
     "staraptor (Staraptor) can't learn Flamethrower.": 3,
     "annihilape (Annihilape) can't learn Will-O-Wisp.": 1,
     "espeon (Espeon) can't learn Sleep Powder.": 2,
     "sylveon (Sylveon) can't learn Matcha Gotcha.": 1,
     "blastoise (Blastoise) can't learn Psychic.": 1,
-    "glimmora (Glimmora) can't learn Hyper Voice.": 2,
+    "glimmora (Glimmora) can't learn Hyper Voice.": 4,
     "hydreigon (Hydreigon) can't learn Bitter Malice.": 5,
     "hatterene (Hatterene) can't learn Stealth Rock.": 1,
-    "barbaracle (Barbaracle) can't learn Bitter Malice.": 3,
+    "barbaracle (Barbaracle) can't learn Bitter Malice.": 4,
     "barbaraclemega (Barbaracle-Mega) can't learn Hyper Voice.": 1,
     "sableyemega (Sableye-Mega) can't learn Toxic.": 1,
-    "hatterene (Hatterene) can't learn Encore.": 5,
-    "overqwil (Overqwil) can't learn Will-O-Wisp.": 4,
-    "hatterene (Hatterene) can't learn Simple Beam.": 5,
+    "hatterene (Hatterene) can't learn Encore.": 8,
+    "overqwil (Overqwil) can't learn Will-O-Wisp.": 8,
+    "hatterene (Hatterene) can't learn Simple Beam.": 8,
     "slowkinggalar's item Covert Cloak does not exist in Gen 9.": 1,
     "primarina's item Choice Specs does not exist in Gen 9.": 1,
-    "basculegion (Basculegion) can't learn Hyper Voice.": 1,
-    "farigiraf (Farigiraf) can't learn Icy Wind.": 3,
+    "basculegion (Basculegion) can't learn Hyper Voice.": 4,
+    "farigiraf (Farigiraf) can't learn Icy Wind.": 5,
     "venusaur (Venusaur) can't learn Hyper Voice.": 1,
     "gholdengo (Gholdengo) can't learn Hyper Voice.": 4,
-    "charizardmegay (Charizard-Mega-Y) can't learn Bitter Malice.": 2,
-    "charizard (Charizard) can't learn Shadow Ball.": 1,
-    "garchomp (Garchomp) can't learn Shadow Ball.": 5,
+    "charizardmegay (Charizard-Mega-Y) can't learn Bitter Malice.": 5,
+    "charizard (Charizard) can't learn Shadow Ball.": 3,
+    "garchomp (Garchomp) can't learn Shadow Ball.": 9,
     "decidueyehisui (Decidueye-Hisui) can't learn Shadow Ball.": 4,
-    "gardevoir (Gardevoir) can't learn Bitter Malice.": 4,
-    "aggron (Aggron) can't learn Bitter Malice.": 5,
+    "gardevoir (Gardevoir) can't learn Bitter Malice.": 5,
+    "aggron (Aggron) can't learn Bitter Malice.": 6,
     "volcarona (Volcarona) can't learn Icy Wind.": 1,
     "dragapult (Dragapult) can't learn Nasty Plot.": 1,
     "venusaur (Venusaur) can't learn Nasty Plot.": 1,
@@ -102,11 +103,11 @@
     "aerodactyl (Aerodactyl) can't learn Nasty Plot.": 1,
     "torkoal (Torkoal) can't learn Hyper Voice.": 2,
     "crabominable (Crabominable) can't learn Bitter Malice.": 1,
-    "toxapex (Toxapex) can't learn Shadow Ball.": 1,
+    "toxapex (Toxapex) can't learn Shadow Ball.": 2,
     "goodra (Goodra) can't learn Snarl.": 1,
-    "clefablemega (Clefable-Mega) can't learn Taunt.": 1,
-    "kingambit (Kingambit) can't learn Shadow Ball.": 4,
-    "espeon (Espeon) can't learn Encore.": 3,
+    "clefablemega (Clefable-Mega) can't learn Taunt.": 4,
+    "kingambit (Kingambit) can't learn Shadow Ball.": 6,
+    "espeon (Espeon) can't learn Encore.": 4,
     "espeon (Espeon) can't learn Stealth Rock.": 1,
     "falinks (Falinks) can't learn Psychic.": 2,
     "scovillain (Scovillain) can't learn Shadow Ball.": 1,
@@ -114,7 +115,7 @@
     "palafinhero (Palafin-Hero) can't learn Shadow Ball.": 1,
     "aegislash (Aegislash) can't learn Flamethrower.": 1,
     "floetteeternal (Floette-Eternal) can't learn Flamethrower.": 1,
-    "glimmora (Glimmora) can't learn Trick.": 8,
+    "glimmora (Glimmora) can't learn Trick.": 9,
     "samurotthisui (Samurott-Hisui) can't learn Bitter Malice.": 3,
     "sandaconda (Sandaconda) can't learn Icy Wind.": 2,
     "sableyemega (Sableye-Mega) can't learn Parting Shot.": 3,
@@ -122,13 +123,13 @@
     "talonflame (Talonflame) can't learn Bitter Malice.": 1,
     "scrafty (Scrafty) can't learn Bitter Malice.": 1,
     "sinistchamasterpie (Sinistcha-Masterpiece) can't learn Bitter Malice.": 3,
-    "arcaninehisui (Arcanine-Hisui) can't learn Bitter Malice.": 1,
+    "arcaninehisui (Arcanine-Hisui) can't learn Bitter Malice.": 2,
     "barbaracle (Barbaracle) can't learn Hyper Voice.": 2,
     "blaziken (Blaziken) can't learn Hyper Voice.": 2,
-    "sinistcha (Sinistcha) can't learn Taunt.": 1,
+    "sinistcha (Sinistcha) can't learn Taunt.": 2,
     "froslass (Froslass) can't learn Detect.": 1,
     "overqwil (Overqwil) can't learn Trick.": 1,
-    "malamar (Malamar) can't learn Memento.": 9,
+    "malamar (Malamar) can't learn Memento.": 12,
     "milotic (Milotic) can't learn Hyper Voice.": 1,
     "sableye (Sableye) can't learn Night Daze.": 1,
     "hydrapple (Hydrapple) can't learn Taunt.": 1,
@@ -147,19 +148,19 @@
     "floetteeternal (Floette-Eternal) can't learn Nasty Plot.": 1,
     "meganium (Meganium) can't learn Shadow Ball.": 2,
     "meganiummega (Meganium-Mega) can't learn Shadow Ball.": 1,
-    "tsareena (Tsareena) can't learn Shadow Ball.": 4,
+    "tsareena (Tsareena) can't learn Shadow Ball.": 9,
     "pelipper (Pelipper) can't learn Roar.": 1,
     "ceruledge (Ceruledge) can't learn Hyper Beam.": 1,
-    "raichu (Raichu) can't learn Icy Wind.": 2,
+    "raichu (Raichu) can't learn Icy Wind.": 3,
     "sinistchamasterpie (Sinistcha-Masterpiece) can't learn Focus Blast.": 1,
-    "raichu (Raichu) can't learn Hyper Voice.": 6,
-    "garchomp (Garchomp) can't learn Hyper Voice.": 6,
+    "raichu (Raichu) can't learn Hyper Voice.": 7,
+    "garchomp (Garchomp) can't learn Hyper Voice.": 8,
     "kingambit (Kingambit) can't learn Will-O-Wisp.": 3,
-    "barbaracle (Barbaracle) can't learn Flamethrower.": 2,
+    "barbaracle (Barbaracle) can't learn Flamethrower.": 4,
     "arcaninehisui (Arcanine-Hisui) can't learn Psychic.": 1,
     "farigiraf (Farigiraf) can't learn Night Daze.": 3,
     "kingambit (Kingambit) can't learn U-turn.": 1,
-    "garchomp (Garchomp) can't learn Focus Blast.": 4,
+    "garchomp (Garchomp) can't learn Focus Blast.": 5,
     "mawile (Mawile) can't learn Detect.": 1,
     "aggron (Aggron) can't learn Nasty Plot.": 1,
     "araquanid (Araquanid) can't learn Focus Blast.": 1,
@@ -171,41 +172,41 @@
     "staraptor (Staraptor) can't learn Psychic.": 1,
     "maushold (Maushold) can't learn Round.": 2,
     "dragapult (Dragapult) can't learn Hyper Voice.": 2,
-    "froslass (Froslass) can't learn Flamethrower.": 2,
+    "froslass (Froslass) can't learn Flamethrower.": 3,
     "clefablemega (Clefable-Mega) can't learn Simple Beam.": 1,
     "stunfisk (Stunfisk) can't learn Bitter Malice.": 1,
     "jolteon (Jolteon) can't learn Bullet Punch.": 1,
     "pinsir (Pinsir) can't learn Sludge Bomb.": 2,
-    "basculegion (Basculegion) can't learn Bitter Malice.": 3,
+    "basculegion (Basculegion) can't learn Bitter Malice.": 5,
     "mudsdale (Mudsdale) can't learn Shadow Ball.": 1,
-    "aerodactyl (Aerodactyl) can't learn Shadow Ball.": 2,
+    "aerodactyl (Aerodactyl) can't learn Shadow Ball.": 3,
     "orthworm (Orthworm) can't learn Bitter Malice.": 1,
-    "sneasler (Sneasler) can't learn Icy Wind.": 3,
-    "sceptile (Sceptile) can't learn Hyper Voice.": 1,
+    "sneasler (Sneasler) can't learn Icy Wind.": 4,
+    "sceptile (Sceptile) can't learn Hyper Voice.": 2,
     "scolipede (Scolipede) can't learn Shadow Ball.": 1,
     "umbreon (Umbreon) can't learn Fissure.": 1,
     "mrrime (Mr. Rime) can't learn Poltergeist.": 1,
     "chandelure (Chandelure) can't learn Hyper Voice.": 1,
-    "heliolisk (Heliolisk) can't learn Bitter Malice.": 3,
+    "heliolisk (Heliolisk) can't learn Bitter Malice.": 4,
     "decidueyehisui (Decidueye-Hisui) can't learn Icy Wind.": 1,
-    "sneasler (Sneasler) can't learn Hyper Voice.": 3,
+    "sneasler (Sneasler) can't learn Hyper Voice.": 4,
     "talonflame (Talonflame) can't learn Shadow Ball.": 1,
     "milotic (Milotic) can't learn Shadow Ball.": 2,
     "mudsdale (Mudsdale) can't learn Sludge Bomb.": 1,
     "lopunny (Lopunny) can't learn Nasty Plot.": 1,
     "banette (Banette) can't learn Flamethrower.": 1,
-    "whimsicott (Whimsicott) can't learn Nasty Plot.": 2,
+    "whimsicott (Whimsicott) can't learn Nasty Plot.": 4,
     "sableyemega (Sableye-Mega) can't learn Entrainment.": 1,
     "weavile (Weavile) can't learn Hyper Voice.": 1,
-    "pyroar (Pyroar) can't learn Bitter Malice.": 2,
-    "kingambit (Kingambit) can't learn Nasty Plot.": 4,
+    "pyroar (Pyroar) can't learn Bitter Malice.": 3,
+    "kingambit (Kingambit) can't learn Nasty Plot.": 5,
     "kangaskhanmega (Kangaskhan-Mega) can't learn Nasty Plot.": 1,
     "sneasler (Sneasler) can't learn Night Daze.": 1,
     "liepard (Liepard) can't learn Kowtow Cleave.": 1,
     "sylveon (Sylveon) can't learn Icy Wind.": 2,
-    "lucario (Lucario) can't learn Icy Wind.": 2,
+    "lucario (Lucario) can't learn Icy Wind.": 4,
     "camerupt (Camerupt) can't learn Icy Wind.": 3,
-    "talonflame (Talonflame) can't learn Nasty Plot.": 1,
+    "talonflame (Talonflame) can't learn Nasty Plot.": 3,
     "clefablemega (Clefable-Mega) can't learn Yawn.": 1,
     "sceptile (Sceptile) can't learn Bitter Malice.": 1,
     "ninetalesalola (Ninetales-Alola) can't learn Bitter Malice.": 1,
@@ -214,40 +215,40 @@
     "aurorus (Aurorus) can't learn Bitter Malice.": 1,
     "indeedee (Indeedee) does not exist in Gen 9.": 7,
     "indeedee (Indeedee)'s move Mystical Fire can't be transferred from Gen 8 to 9.": 4,
-    "smeargle (Smeargle) does not exist in Gen 9.": 4,
-    "amoonguss (Amoonguss) does not exist in Gen 9.": 4,
+    "smeargle (Smeargle) does not exist in Gen 9.": 6,
+    "amoonguss (Amoonguss) does not exist in Gen 9.": 8,
     "perrserker (Perrserker) does not exist in Gen 9.": 4,
     "persianalola (Persian-Alola) does not exist in Gen 9.": 4,
     "persianalola (Persian-Alola) can't learn Parting Shot.": 4,
     "whimsicott (Whimsicott) can't learn Snarl.": 1,
-    "lopunny (Lopunny) can't learn Bitter Malice.": 2,
+    "lopunny (Lopunny) can't learn Bitter Malice.": 8,
     "lycanrocdusk (Lycanroc-Dusk) can't learn Sludge Bomb.": 1,
     "blaziken (Blaziken) can't learn Shadow Ball.": 1,
     "liepard (Liepard) can't learn Last Respects.": 2,
     "hawlucha (Hawlucha) can't learn Hyper Voice.": 2,
     "golurk (Golurk) can't learn Nasty Plot.": 1,
     "sharpedo (Sharpedo) can't learn Sludge Bomb.": 1,
-    "sylveon (Sylveon) can't learn Will-O-Wisp.": 2,
-    "kingambit (Kingambit) can't learn Bitter Malice.": 5,
+    "sylveon (Sylveon) can't learn Will-O-Wisp.": 3,
+    "kingambit (Kingambit) can't learn Bitter Malice.": 8,
     "staraptor (Staraptor) can't learn Taunt.": 1,
     "farigiraf (Farigiraf) can't learn Snarl.": 2,
     "aerodactyl (Aerodactyl) can't learn Snarl.": 1,
     "starmie (Starmie) can't learn Taunt.": 1,
-    "lopunny (Lopunny) can't learn Will-O-Wisp.": 2,
-    "archaludon (Archaludon) can't learn Taunt.": 2,
+    "lopunny (Lopunny) can't learn Will-O-Wisp.": 3,
+    "archaludon (Archaludon) can't learn Taunt.": 3,
     "gallade (Gallade) can't learn Bitter Malice.": 1,
     "meowscarada (Meowscarada) can't learn Swords Dance.": 1,
     "aerodactylmega (Aerodactyl-Mega) can't learn Hyper Voice.": 1,
-    "garchomp (Garchomp) can't learn Trick.": 1,
-    "liepard (Liepard) can't learn Trick Room.": 3,
-    "garchomp (Garchomp) can't learn Taunt.": 3,
+    "garchomp (Garchomp) can't learn Trick.": 3,
+    "liepard (Liepard) can't learn Trick Room.": 5,
+    "garchomp (Garchomp) can't learn Taunt.": 6,
     "blaziken (Blaziken) can't learn Sludge Bomb.": 1,
-    "blastoise (Blastoise) can't learn Nasty Plot.": 1,
+    "blastoise (Blastoise) can't learn Nasty Plot.": 2,
     "mausholdfour (Maushold-Four) can't learn Icy Wind.": 1,
     "absolmega (Absol-Mega) can't learn Roar.": 1,
     "lycanrocdusk (Lycanroc-Dusk) can't learn Bitter Malice.": 1,
     "dragonitemega (Dragonite-Mega) can't learn Bitter Malice.": 1,
-    "sharpedo (Sharpedo) can't learn Focus Blast.": 1,
+    "sharpedo (Sharpedo) can't learn Focus Blast.": 2,
     "grimmsnarl (Grimmsnarl) can't learn Bitter Malice.": 1,
     "slowbrogalar (Slowbro-Galar) can't learn Bitter Malice.": 1,
     "whimsicott (Whimsicott) can't learn Night Daze.": 1,
@@ -260,10 +261,10 @@
     "sinistcha (Sinistcha) can't learn Snarl.": 1,
     "arcaninehisui (Arcanine-Hisui) can't learn Icy Wind.": 1,
     "glimmora (Glimmora) can't learn Round.": 1,
-    "salamence (Salamence) does not exist in Gen 9.": 7,
-    "riolu (Riolu) does not exist in Gen 9.": 5,
-    "riolu (Riolu)'s move Follow Me can't be transferred from Gen 7 to 9.": 5,
-    "ninetalesalola (Ninetales-Alola) can't learn Shadow Ball.": 2,
+    "salamence (Salamence) does not exist in Gen 9.": 12,
+    "riolu (Riolu) does not exist in Gen 9.": 9,
+    "riolu (Riolu)'s move Follow Me can't be transferred from Gen 7 to 9.": 9,
+    "ninetalesalola (Ninetales-Alola) can't learn Shadow Ball.": 3,
     "ceruledge (Ceruledge) can't learn Hyper Voice.": 1,
     "gholdengo (Gholdengo) can't learn Bitter Malice.": 4,
     "kleavor (Kleavor) can't learn Bitter Malice.": 1,
@@ -272,7 +273,7 @@
     "liepard (Liepard) can't learn Fly.": 1,
     "clefable (Clefable) can't learn Memento.": 1,
     "archaludon (Archaludon) can't learn Hyper Voice.": 1,
-    "grimmsnarl (Grimmsnarl) can't learn Hyper Voice.": 1,
+    "grimmsnarl (Grimmsnarl) can't learn Hyper Voice.": 2,
     "glimmora (Glimmora) can't learn Taunt.": 1,
     "malamar (Malamar) can't learn Snarl.": 1,
     "liepard (Liepard) can't learn Tailwind.": 1,
@@ -292,8 +293,8 @@
     "meowscarada (Meowscarada) can't learn Bitter Malice.": 1,
     "gengar (Gengar) can't learn Bitter Malice.": 1,
     "lucario (Lucario) can't learn Taunt.": 1,
-    "kangaskhan (Kangaskhan) can't learn Hyper Voice.": 2,
-    "kangaskhanmega (Kangaskhan-Mega) can't learn Hyper Voice.": 1,
+    "kangaskhan (Kangaskhan) can't learn Hyper Voice.": 3,
+    "kangaskhanmega (Kangaskhan-Mega) can't learn Hyper Voice.": 2,
     "klefki (Klefki) can't learn Will-O-Wisp.": 1,
     "diggersby (Diggersby) can't learn Will-O-Wisp.": 1,
     "slowbromega (Slowbro-Mega) can't learn Bitter Malice.": 1,
@@ -308,19 +309,19 @@
     "manectric (Manectric) can't learn Sludge Bomb.": 1,
     "umbreon (Umbreon) can't learn Bitter Malice.": 1,
     "greninja (Greninja) can't learn Sludge Bomb.": 1,
-    "greninja (Greninja) can't learn Shadow Ball.": 1,
+    "greninja (Greninja) can't learn Shadow Ball.": 3,
     "corviknight (Corviknight) can't learn Trick.": 2,
     "steelix (Steelix) can't learn Throat Chop.": 1,
     "ceruledge (Ceruledge) can't learn Psychic.": 2,
     "grimmsnarl (Grimmsnarl) can't learn Icy Wind.": 2,
-    "glimmora (Glimmora) can't learn Shadow Ball.": 7,
+    "glimmora (Glimmora) can't learn Shadow Ball.": 10,
     "aerodactyl (Aerodactyl) can't learn Bitter Malice.": 1,
-    "delphox (Delphox) can't learn Taunt.": 2,
+    "delphox (Delphox) can't learn Taunt.": 4,
     "milotic (Milotic) can't learn Trick.": 4,
     "delphox (Delphox) can't learn Icy Wind.": 1,
     "ninetalesalola (Ninetales-Alola) can't learn Hyper Voice.": 1,
-    "basculegion (Basculegion) can't learn Nasty Plot.": 1,
-    "hatterene (Hatterene) can't learn Will-O-Wisp.": 2,
+    "basculegion (Basculegion) can't learn Nasty Plot.": 4,
+    "hatterene (Hatterene) can't learn Will-O-Wisp.": 4,
     "charizard (Charizard) can't learn Taunt.": 1,
     "garchomp (Garchomp) can't learn Dark Pulse.": 1,
     "sinistcha (Sinistcha) can't learn Bitter Malice.": 3,
@@ -329,24 +330,24 @@
     "metagross (Metagross) can't learn Bitter Malice.": 2,
     "kingambit (Kingambit) can't learn Memento.": 1,
     "swampert (Swampert) can't learn Bitter Malice.": 1,
-    "aerodactyl (Aerodactyl) can't learn Psychic.": 1,
+    "aerodactyl (Aerodactyl) can't learn Psychic.": 2,
     "golurk (Golurk) can't learn Hyper Voice.": 1,
     "golurkmega (Golurk-Mega) can't learn Hyper Voice.": 1,
-    "blaziken (Blaziken) can't learn Icy Wind.": 1,
-    "swampert (Swampert) can't learn Flamethrower.": 1,
+    "blaziken (Blaziken) can't learn Icy Wind.": 2,
+    "swampert (Swampert) can't learn Flamethrower.": 2,
     "grimmsnarl (Grimmsnarl) can't learn Rain Dance.": 1,
     "garchomp (Garchomp) can't learn Icy Wind.": 1,
-    "starmie (Starmie) can't learn Snarl.": 1,
+    "starmie (Starmie) can't learn Snarl.": 2,
     "luxray (Luxray) can't learn Icy Wind.": 1,
     "slowbro (Slowbro) can't learn Taunt.": 1,
     "pikachu (Pikachu) can't learn Shadow Ball.": 1,
     "glimmoramega (Glimmora-Mega) can't learn Shadow Ball.": 2,
     "steelix (Steelix) can't learn Bitter Malice.": 1,
-    "tyranitar (Tyranitar) can't learn Detect.": 1,
+    "tyranitar (Tyranitar) can't learn Detect.": 3,
     "samurotthisui (Samurott-Hisui) can't learn Rock Slide.": 1,
-    "farigiraf (Farigiraf) can't learn Focus Blast.": 1,
-    "swampert (Swampert) can't learn Taunt.": 1,
-    "incineroar (Incineroar) can't learn Shadow Ball.": 3,
+    "farigiraf (Farigiraf) can't learn Focus Blast.": 2,
+    "swampert (Swampert) can't learn Taunt.": 2,
+    "incineroar (Incineroar) can't learn Shadow Ball.": 4,
     "ceruledge (Ceruledge) can't learn Icy Wind.": 1,
     "mimikyu (Mimikyu) can't learn Icy Wind.": 1,
     "swampert (Swampert) can't learn Hyper Voice.": 1,
@@ -357,10 +358,10 @@
     "jirachi (Jirachi) is tagged Mythical, which is banned by Flat Rules.": 5,
     "jirachi (Jirachi)'s move Follow Me can't be transferred from Gen 5 to 9.": 5,
     "greninja (Greninja) can't learn Flamethrower.": 1,
-    "scizor (Scizor) can't learn Shadow Ball.": 1,
+    "scizor (Scizor) can't learn Shadow Ball.": 3,
     "starmiemega (Starmie-Mega) can't learn Hyper Voice.": 1,
     "sneasler (Sneasler) can't learn Flamethrower.": 1,
-    "dragonite (Dragonite) can't learn Bitter Malice.": 1,
+    "dragonite (Dragonite) can't learn Bitter Malice.": 2,
     "archaludon (Archaludon) can't learn Sludge Bomb.": 1,
     "avalugg (Avalugg) can't learn Night Daze.": 1,
     "maushold (Maushold) can't learn Icy Wind.": 1,
@@ -375,23 +376,23 @@
     "gardevoir (Gardevoir) can't learn Flamethrower.": 1,
     "espeon (Espeon) can't learn Swagger.": 1,
     "hydrapple (Hydrapple) can't learn Hyper Voice.": 1,
-    "mamoswine (Mamoswine) can't learn Will-O-Wisp.": 1,
+    "mamoswine (Mamoswine) can't learn Will-O-Wisp.": 3,
     "lucario (Lucario) can't learn Will-O-Wisp.": 2,
     "glaceon (Glaceon) can't learn Spirit Break.": 1,
-    "spiritomb (Spiritomb) can't learn Hyper Voice.": 1,
+    "spiritomb (Spiritomb) can't learn Hyper Voice.": 2,
     "whimsicott (Whimsicott) can't learn Detect.": 1,
     "umbreon (Umbreon) can't learn Fake Out.": 1,
-    "blastoise (Blastoise) can't learn Sludge Bomb.": 1,
+    "blastoise (Blastoise) can't learn Sludge Bomb.": 2,
     "torkoal (Torkoal) can't learn Taunt.": 1,
-    "pelipper (Pelipper) can't learn Bitter Malice.": 1,
+    "pelipper (Pelipper) can't learn Bitter Malice.": 2,
     "charizard (Charizard) can't learn Burning Jealousy.": 1,
     "grimmsnarl (Grimmsnarl) can't learn Flamethrower.": 1,
-    "incineroar (Incineroar) can't learn Bitter Malice.": 1,
+    "incineroar (Incineroar) can't learn Bitter Malice.": 2,
     "annihilape (Annihilape) can't learn Snarl.": 2,
     "volcarona (Volcarona) can't learn Nasty Plot.": 1,
     "quaquaval (Quaquaval) can't learn Bitter Malice.": 1,
     "hydreigon (Hydreigon) can't learn Grass Knot.": 1,
-    "Kangaskhan has multiple copies of Fake Out.": 3,
+    "Kangaskhan has multiple copies of Fake Out.": 8,
     "hatterene (Hatterene) can't learn Sleep Powder.": 1,
     "heliolisk (Heliolisk) can't learn Flamethrower.": 1,
     "jumpluff (Jumpluff) does not exist in Gen 9.": 3,
@@ -400,30 +401,30 @@
     "sneasler (Sneasler) can't learn Will-O-Wisp.": 1,
     "froslassmega (Froslass-Mega) can't learn Hyper Voice.": 1,
     "floetteeternal (Floette-Eternal) can't learn Icy Wind.": 1,
-    "snorlax (Snorlax) can't learn Bitter Malice.": 1,
+    "snorlax (Snorlax) can't learn Bitter Malice.": 7,
     "kangaskhan (Kangaskhan) can't learn Nasty Plot.": 1,
     "dragalge (Dragalge) can't learn Night Daze.": 1,
     "lycanrocdusk (Lycanroc-Dusk) can't learn Shadow Ball.": 2,
     "kommoo (Kommo-o) can't learn Snarl.": 1,
     "oranguru (Oranguru) can't learn Night Daze.": 1,
-    "delphox (Delphox) can't learn Night Daze.": 1,
+    "delphox (Delphox) can't learn Night Daze.": 2,
     "starmie (Starmie) can't learn Nasty Plot.": 1,
     "kingambit (Kingambit) can't learn Flamethrower.": 1,
     "mausholdfour (Maushold-Four) can't learn Calm Mind.": 1,
     "drampa (Drampa) can't learn Bitter Malice.": 1,
-    "kingambit (Kingambit) can't learn Hyper Voice.": 1,
+    "kingambit (Kingambit) can't learn Hyper Voice.": 3,
     "sylveon (Sylveon) can't learn Flamethrower.": 1,
     "sinistcha (Sinistcha) can't learn Dark Pulse.": 2,
     "araquanid (Araquanid) can't learn Bitter Malice.": 1,
     "liepard (Liepard) can't learn Blaze Kick.": 1,
     "sinistchamasterpie (Sinistcha-Masterpiece) can't learn Hyper Voice.": 1,
-    "incineroar (Incineroar) can't learn Hyper Voice.": 1,
+    "incineroar (Incineroar) can't learn Hyper Voice.": 2,
     "delphox (Delphox) can't learn Sludge Bomb.": 1,
-    "hydreigon (Hydreigon) can't learn Shadow Ball.": 1,
+    "hydreigon (Hydreigon) can't learn Shadow Ball.": 2,
     "liepard (Liepard) can't learn Body Press.": 1,
     "gengar (Gengar) can't learn Snarl.": 1,
     "mamoswine (Mamoswine) can't learn Hyper Voice.": 1,
-    "basculegion (Basculegion) can't learn Night Daze.": 1,
+    "basculegion (Basculegion) can't learn Night Daze.": 2,
     "klefki (Klefki) can't learn Bitter Malice.": 1,
     "glimmora (Glimmora) can't learn Icy Wind.": 1,
     "typhlosion (Typhlosion) can't learn Nasty Plot.": 1,
@@ -435,13 +436,13 @@
     "lucariomega (Lucario-Mega) can't learn Bitter Malice.": 1,
     "vivillonpokeball (Vivillon-Pokeball) can't learn Bitter Malice.": 1,
     "froslass (Froslass) can't learn Hyper Voice.": 1,
-    "charizard (Charizard) can't learn Bitter Malice.": 2,
+    "charizard (Charizard) can't learn Bitter Malice.": 3,
     "aegislash (Aegislash) can't learn Focus Blast.": 1,
-    "magnezone (Magnezone) does not exist in Gen 9.": 3,
-    "walrein (Walrein) does not exist in Gen 9.": 3,
-    "walrein (Walrein)'s move Ice Beam can't be transferred from Gen 8 to 9.": 3,
-    "cradily (Cradily) does not exist in Gen 9.": 3,
-    "cradily (Cradily)'s move Energy Ball can't be transferred from Gen 8 to 9.": 3,
+    "magnezone (Magnezone) does not exist in Gen 9.": 6,
+    "walrein (Walrein) does not exist in Gen 9.": 6,
+    "walrein (Walrein)'s move Ice Beam can't be transferred from Gen 8 to 9.": 6,
+    "cradily (Cradily) does not exist in Gen 9.": 6,
+    "cradily (Cradily)'s move Energy Ball can't be transferred from Gen 8 to 9.": 6,
     "whimsicott (Whimsicott) can't learn Phantom Force.": 1,
     "kingambit (Kingambit) can't learn Psychic.": 1,
     "tsareena (Tsareena) can't learn Icy Wind.": 2,
@@ -452,18 +453,18 @@
     "sableye (Sableye) can't learn Bitter Malice.": 1,
     "bellibolt's move Gigavolt Havoc does not exist in Gen 9.": 1,
     "bellibolt (Bellibolt) can't learn Gigavolt Havoc.": 1,
-    "ironvaliant (Iron Valiant) does not exist in Gen 9.": 3,
-    "ironvaliant's item Booster Energy does not exist in Gen 9.": 3,
-    "ogerponwellspring needs to hold Wellspring Mask to be in its Wellspring forme.": 3,
-    "(It will revert to its Teal forme if you remove the item or give it a different item.)": 3,
-    "ogerponwellspring (Ogerpon-Wellspring) does not exist in Gen 9.": 3,
-    "salamencemega (Salamence-Mega) does not exist in Gen 9.": 2,
-    "salamencemega's item Salamencite does not exist in Gen 9.": 2,
-    "greattusk (Great Tusk) does not exist in Gen 9.": 3,
+    "ironvaliant (Iron Valiant) does not exist in Gen 9.": 8,
+    "ironvaliant's item Booster Energy does not exist in Gen 9.": 8,
+    "ogerponwellspring needs to hold Wellspring Mask to be in its Wellspring forme.": 5,
+    "(It will revert to its Teal forme if you remove the item or give it a different item.)": 9,
+    "ogerponwellspring (Ogerpon-Wellspring) does not exist in Gen 9.": 5,
+    "salamencemega (Salamence-Mega) does not exist in Gen 9.": 5,
+    "salamencemega's item Salamencite does not exist in Gen 9.": 5,
+    "greattusk (Great Tusk) does not exist in Gen 9.": 5,
     "greattusk's item Booster Energy does not exist in Gen 9.": 3,
-    "chienpao (Chien-Pao) does not exist in Gen 9.": 3,
-    "electrodehisui (Electrode-Hisui) does not exist in Gen 9.": 2,
-    "ogerponwellspring's move Ivy Cudgel does not exist in Gen 9.": 1,
+    "chienpao (Chien-Pao) does not exist in Gen 9.": 7,
+    "electrodehisui (Electrode-Hisui) does not exist in Gen 9.": 4,
+    "ogerponwellspring's move Ivy Cudgel does not exist in Gen 9.": 2,
     "nihilego (Nihilego) does not exist in Gen 9.": 1,
     "nihilego (Nihilego)'s move Sludge Bomb can't be transferred from Gen 8 to 9.": 1,
     "roserade (Roserade) can't learn Psychic.": 1,
@@ -471,11 +472,11 @@
     "rotomwash (Rotom-Wash) can't learn Hyper Beam.": 1,
     "ceruledge (Ceruledge) can't learn Focus Blast.": 3,
     "toxapex (Toxapex) can't learn Flamethrower.": 1,
-    "toxapex (Toxapex) can't learn Bitter Malice.": 1,
+    "toxapex (Toxapex) can't learn Bitter Malice.": 2,
     "mamoswine (Mamoswine) can't learn Nasty Plot.": 1,
-    "maushold (Maushold) can't learn Bitter Malice.": 1,
+    "maushold (Maushold) can't learn Bitter Malice.": 3,
     "charizard (Charizard) can't learn Sludge Bomb.": 1,
-    "charizard (Charizard) can't learn Nasty Plot.": 1,
+    "charizard (Charizard) can't learn Nasty Plot.": 2,
     "meowstic (Meowstic) can't learn Hyper Voice.": 1,
     "starmie (Starmie) can't learn Night Daze.": 1,
     "clefablemega (Clefable-Mega) can't learn Sleep Powder.": 1,
@@ -496,21 +497,518 @@
     "overqwil (Overqwil) can't learn Hyper Voice.": 1,
     "aggronmega (Aggron-Mega) can't learn Psychic.": 1,
     "charizard (Charizard) can't learn Snarl.": 1,
-    "crabominable (Crabominable) can't learn Shadow Ball.": 1,
+    "crabominable (Crabominable) can't learn Shadow Ball.": 2,
     "grimmsnarl (Grimmsnarl) can't learn Snarl.": 1,
     "venusaur (Venusaur) can't learn Comeuppance.": 1,
     "heliolisk (Heliolisk) can't learn Will-O-Wisp.": 1,
     "eelektross (Eelektross) can't learn Shadow Ball.": 1,
     "sinistchamasterpie (Sinistcha-Masterpiece) can't learn Icy Wind.": 1,
-    "delphox (Delphox) can't learn Bitter Malice.": 1,
+    "delphox (Delphox) can't learn Bitter Malice.": 2,
     "mamoswine (Mamoswine) can't learn Bitter Malice.": 1,
     "tinkaton (Tinkaton) can't learn Dark Pulse.": 1,
-    "lopunny (Lopunny) can't learn Icy Wind.": 1
+    "lopunny (Lopunny) can't learn Icy Wind.": 5,
+    "basculegion (Basculegion) can't learn Fling.": 1,
+    "victreebel (Victreebel) can't learn Night Daze.": 2,
+    "sableyemega (Sableye-Mega) can't learn Heal Pulse.": 2,
+    "kingambit (Kingambit) can't learn Snowscape.": 1,
+    "blastoise (Blastoise) can't learn Bitter Malice.": 1,
+    "lucariomega (Lucario-Mega) can't learn Hyper Voice.": 1,
+    "sharpedo (Sharpedo) can't learn Hyper Voice.": 2,
+    "mausholdfour (Maushold-Four) can't learn Trick.": 2,
+    "meganium (Meganium) can't learn Night Daze.": 1,
+    "porygon2 (Porygon2) does not exist in Gen 9.": 4,
+    "porygon2's item Eviolite does not exist in Gen 9.": 2,
+    "diancie (Diancie-Mega) is tagged Mythical, which is banned by Flat Rules.": 2,
+    "diancie's item Diancite does not exist in Gen 9.": 2,
+    "dianciemega (Diancie-Mega) is tagged Mythical, which is banned by Flat Rules.": 2,
+    "dianciemega's item Diancite does not exist in Gen 9.": 2,
+    "dianciemega's move Diamond Storm does not exist in Gen 9.": 2,
+    "omastar (Omastar) does not exist in Gen 9.": 4,
+    "omastar (Omastar)'s move Stealth Rock can't be transferred from Gen 8 to 9.": 2,
+    "duraludon (Duraludon) does not exist in Gen 9.": 4,
+    "genesect (Genesect) is tagged Mythical, which is banned by Flat Rules.": 2,
+    "genesect (Genesect)'s move U-turn can't be transferred from Gen 8 to 9.": 2,
+    "shedinja (Shedinja) does not exist in Gen 9.": 1,
+    "shedinja (Shedinja)'s move Swords Dance can't be transferred from Gen 4 to 9.": 1,
+    "floetteeternal (Floette-Eternal) can't learn Night Daze.": 1,
+    "meganium (Meganium) can't learn Roar.": 1,
+    "tornadus (Tornadus) does not exist in Gen 9.": 2,
+    "tornadus's move Bleakwind Storm does not exist in Gen 9.": 2,
+    "ogerponcornerstone needs to hold Cornerstone Mask to be in its Cornerstone forme.": 4,
+    "ogerponcornerstone (Ogerpon-Cornerstone) does not exist in Gen 9.": 4,
+    "ogerponcornerstone's move Ivy Cudgel does not exist in Gen 9.": 3,
+    "arctovish (Arctovish) does not exist in Gen 9.": 1,
+    "arctovish's move Fishious Rend does not exist in Gen 9.": 1,
+    "arctovish (Arctovish)'s move Fishious Rend can't be transferred from Gen 8 to 9.": 1,
+    "zeraora (Zeraora) is tagged Mythical, which is banned by Flat Rules.": 3,
+    "zeraora (Zeraora)'s move Fake Out can't be transferred from Gen 8 to 9.": 3,
+    "drampa's item Throat Spray does not exist in Gen 9.": 1,
+    "meowscarada (Meowscarada) can't learn Round.": 1,
+    "torracat (Torracat) does not exist in Gen 9.": 5,
+    "torracat (Torracat) can't learn Fake Out.": 3,
+    "sylveon's item Throat Spray does not exist in Gen 9.": 5,
+    "rillaboom (Rillaboom) does not exist in Gen 9.": 8,
+    "rillaboom (Rillaboom) can't learn Fake Out.": 5,
+    "tapukoko (Tapu Koko) does not exist in Gen 9.": 5,
+    "manectric (Manectric) can't learn Poltergeist.": 1,
+    "torracat's item Eviolite does not exist in Gen 9.": 1,
+    "tapukoko (Tapu Koko)'s move Thunderbolt can't be transferred from Gen 8 to 9.": 2,
+    "hatterene (Hatterene) can't learn Leech Seed.": 4,
+    "rotomwash (Rotom-Wash) can't learn Taunt.": 1,
+    "gholdengo (Gholdengo) can't learn Sludge Bomb.": 2,
+    "blaziken (Blaziken) can't learn Bitter Malice.": 2,
+    "venusaur (Venusaur) can't learn Shadow Ball.": 1,
+    "mausholdfour (Maushold-Four) can't learn Will-O-Wisp.": 2,
+    "kingambit (Kingambit) can't learn Imprison.": 1,
+    "sinistchamasterpie (Sinistcha-Masterpiece) can't learn Taunt.": 1,
+    "skarmorymega (Skarmory-Mega) can't learn Encore.": 1,
+    "morpeko (Morpeko) can't learn Hyper Voice.": 1,
+    "sinistcha (Sinistcha) can't learn Sludge Bomb.": 1,
+    "heliolisk (Heliolisk) can't learn Icy Wind.": 1,
+    "rotomheat (Rotom-Heat) can't learn Taunt.": 1,
+    "talonflame (Talonflame) can't learn Icy Wind.": 3,
+    "delphoxmega (Delphox-Mega) can't learn Bitter Malice.": 1,
+    "lucario (Lucario) can't learn Hyper Voice.": 1,
+    "liepard (Liepard) can't learn Waterfall.": 1,
+    "meowstic (Meowstic) can't learn Icy Wind.": 1,
+    "charizard (Charizard) can't learn Icy Wind.": 2,
+    "charizardmegay (Charizard-Mega-Y) can't learn Icy Wind.": 1,
+    "garchomp (Garchomp) can't learn Will-O-Wisp.": 1,
+    "audino (Audino) can't learn Taunt.": 1,
+    "snorlax (Snorlax) can't learn Will-O-Wisp.": 2,
+    "stoutland (Stoutland) does not exist in Gen 9.": 2,
+    "stoutland's move Return does not exist in Gen 9.": 2,
+    "stoutland (Stoutland)'s move Return can't be transferred from Gen 7 to 9.": 2,
+    "lokix (Lokix) does not exist in Gen 9.": 5,
+    "inteleon (Inteleon) does not exist in Gen 9.": 4,
+    "inteleon's move Snipe Shot does not exist in Gen 9.": 4,
+    "aerodactyl (Aerodactyl) can't learn Will-O-Wisp.": 1,
+    "bellibolt (Bellibolt) can't learn Bitter Malice.": 1,
+    "kleavor (Kleavor) can't learn Flamethrower.": 1,
+    "gliscor (Gliscor) can't learn Hyper Voice.": 1,
+    "excadrill (Excadrill) can't learn Nasty Plot.": 2,
+    "lopunny (Lopunny) can't learn Detect.": 1,
+    "lopunnymega (Lopunny-Mega) can't learn Bitter Malice.": 4,
+    "espeon (Espeon) can't learn Parting Shot.": 1,
+    "volcarona (Volcarona) can't learn Taunt.": 3,
+    "corviknight (Corviknight) can't learn Will-O-Wisp.": 1,
+    "heracross (Heracross) can't learn Will-O-Wisp.": 1,
+    "tapufini (Tapu Fini) does not exist in Gen 9.": 3,
+    "tapufini's item Misty Seed does not exist in Gen 9.": 3,
+    "tapufini's move Nature's Madness does not exist in Gen 9.": 1,
+    "tapufini (Tapu Fini)'s move Nature's Madness can't be transferred from Gen 8 to 9.": 1,
+    "bisharp (Bisharp) does not exist in Gen 9.": 3,
+    "bisharp's item Eviolite does not exist in Gen 9.": 1,
+    "bisharp (Bisharp)'s move Knock Off can't be transferred from Gen 7 to 9.": 1,
+    "ursalunabloodmoon (Ursaluna-Bloodmoon) does not exist in Gen 9.": 4,
+    "ursalunabloodmoon's item Throat Spray does not exist in Gen 9.": 4,
+    "cryogonal (Cryogonal) does not exist in Gen 9.": 3,
+    "poltchageist (Poltchageist) does not exist in Gen 9.": 2,
+    "poltchageist's item Eviolite does not exist in Gen 9.": 1,
+    "tyranitarmega (Tyranitar-Mega) can't learn Detect.": 1,
+    "revavroom's move Spin Out does not exist in Gen 9.": 2,
+    "ironthorns (Iron Thorns) does not exist in Gen 9.": 3,
+    "tapukoko (Tapu Koko)'s move Calm Mind can't be transferred from Gen 8 to 9.": 1,
+    "aegislash's item Clear Amulet does not exist in Gen 9.": 1,
+    "scizor (Scizor) can't learn Icy Wind.": 1,
+    "scizormega (Scizor-Mega) can't learn Icy Wind.": 1,
+    "swampert (Swampert) can't learn Shadow Ball.": 1,
+    "blastoise (Blastoise) can't learn Poltergeist.": 1,
+    "aromatisse (Aromatisse) can't learn Poltergeist.": 1,
+    "aromatisse (Aromatisse) can't learn Will-O-Wisp.": 1,
+    "staraptor (Staraptor) can't learn Hyper Voice.": 1,
+    "excadrill (Excadrill) can't learn Bitter Malice.": 1,
+    "conkeldurr (Conkeldurr) can't learn Snarl.": 1,
+    "conkeldurr (Conkeldurr) can't learn Hyper Voice.": 1,
+    "houndoom (Houndoom) can't learn Bitter Malice.": 1,
+    "gallade (Gallade) can't learn Sludge Bomb.": 1,
+    "sylveon (Sylveon) can't learn Aqua Jet.": 1,
+    "xatu (Xatu) does not exist in Gen 9.": 2,
+    "xatu's item Covert Cloak does not exist in Gen 9.": 2,
+    "xatu (Xatu)'s move Tailwind can't be transferred from Gen 8 to 9.": 2,
+    "duraludon's item Eviolite does not exist in Gen 9.": 2,
+    "milotic (Milotic) can't learn Focus Blast.": 1,
+    "skeledirge (Skeledirge) can't learn Bitter Malice.": 2,
+    "metagross (Metagross) can't learn Nasty Plot.": 1,
+    "floetteeternal (Floette-Eternal) can't learn Bitter Malice.": 2,
+    "orthworm (Orthworm) can't learn Shadow Ball.": 1,
+    "garchomp (Garchomp) can't learn Snarl.": 1,
+    "sableye (Sableye) can't learn Memento.": 3,
+    "blastoise (Blastoise) can't learn Will-O-Wisp.": 1,
+    "gengar (Gengar) can't learn Flamethrower.": 1,
+    "liepard (Liepard) can't learn Shell Smash.": 1,
+    "goodrahisui (Goodra-Hisui) can't learn Bitter Malice.": 1,
+    "goodrahisui (Goodra-Hisui) can't learn Grass Knot.": 1,
+    "rotomfrost (Rotom-Frost) can't learn Sludge Bomb.": 1,
+    "tsareena (Tsareena) can't learn Nasty Plot.": 6,
+    "heracross (Heracross) can't learn Bitter Malice.": 1,
+    "farigiraf (Farigiraf) can't learn Flamethrower.": 2,
+    "milotic (Milotic) can't learn Dark Pulse.": 2,
+    "gyarados (Gyarados) can't learn Will-O-Wisp.": 1,
+    "clefablemega (Clefable-Mega) can't learn Toxic.": 1,
+    "rotommow (Rotom-Mow) can't learn Bitter Malice.": 1,
+    "hydreigon (Hydreigon) can't learn Shadow Sneak.": 1,
+    "annihilape (Annihilape) can't learn Nasty Plot.": 1,
+    "liepard (Liepard) can't learn Air Cutter.": 1,
+    "basculegion (Basculegion) can't learn Taunt.": 2,
+    "politoed (Politoed) can't learn Detect.": 1,
+    "palafin (Palafin) can't learn Snarl.": 1,
+    "floetteeternal (Floette-Eternal) can't learn Shadow Ball.": 1,
+    "maushold (Maushold) can't learn Will-O-Wisp.": 6,
+    "clawitzer (Clawitzer) can't learn Memento.": 1,
+    "infernape (Infernape) can't learn Snarl.": 1,
+    "serperior (Serperior) can't learn Hyper Voice.": 1,
+    "liepard (Liepard) can't learn Iron Head.": 1,
+    "sylveon (Sylveon) can't learn Bitter Malice.": 1,
+    "golisopod (Golisopod) does not exist in Gen 9.": 3,
+    "golisopod (Golisopod)'s move First Impression can't be transferred from Gen 8 to 9.": 3,
+    "gothitelle (Gothitelle) does not exist in Gen 9.": 3,
+    "braviary (Braviary) does not exist in Gen 9.": 3,
+    "mandibuzz (Mandibuzz) does not exist in Gen 9.": 3,
+    "liepard (Liepard) can't learn Parting Shot.": 1,
+    "scrafty (Scrafty) can't learn Sticky Web.": 1,
+    "milotic (Milotic) can't learn Nasty Plot.": 1,
+    "hatterene (Hatterene) can't learn Extrasensory.": 1,
+    "Sneasler has multiple copies of Fake Out.": 2,
+    "Incineroar has multiple copies of Fake Out.": 2,
+    "Glimmora has multiple copies of Spiky Shield.": 1,
+    "Sinistcha has multiple copies of Rage Powder.": 1,
+    "sneasler (Sneasler) can't learn Round.": 1,
+    "archaludon (Archaludon) can't learn Focus Blast.": 1,
+    "salamence (Salamence-Mega) does not exist in Gen 9.": 4,
+    "salamence's item Salamencite does not exist in Gen 9.": 4,
+    "scolipede (Scolipede) can't learn Dark Pulse.": 1,
+    "vaporeon (Vaporeon) can't learn Sludge Bomb.": 1,
+    "vanilluxe (Vanilluxe) can't learn Shadow Ball.": 1,
+    "vileplume (Vileplume) can't learn Shadow Ball.": 1,
+    "dachsbun (Dachsbun) does not exist in Gen 9.": 1,
+    "raichualola (Raichu-Alola) can't learn U-turn.": 1,
+    "empoleon (Empoleon) can't learn Dark Pulse.": 1,
+    "glastrier (Glastrier) does not exist in Gen 9.": 1,
+    "urshifurapidstrike (Urshifu-Rapid-Strike) does not exist in Gen 9.": 1,
+    "urshifurapidstrike's move Surging Strikes does not exist in Gen 9.": 1,
+    "corviknight (Corviknight) can't learn Knock Off.": 1,
+    "lopunnymega (Lopunny-Mega) can't learn Will-O-Wisp.": 2,
+    "eelektross (Eelektross) can't learn Will-O-Wisp.": 1,
+    "archaludon (Archaludon) can't learn Poltergeist.": 1,
+    "kingambit (Kingambit) can't learn Extrasensory.": 1,
+    "swampert (Swampert) can't learn Poltergeist.": 1,
+    "basculegion (Basculegion) can't learn Psychic.": 1,
+    "meowscarada (Meowscarada) can't learn Poltergeist.": 1,
+    "maushold (Maushold) can't learn Flamethrower.": 1,
+    "gengar (Gengar) can't learn Night Daze.": 1,
+    "heracross (Heracross) can't learn Shadow Ball.": 2,
+    "greninja (Greninja) can't learn Snarl.": 1,
+    "kingambit (Kingambit) can't learn Icy Wind.": 4,
+    "taurospaldeaaqua (Tauros-Paldea-Aqua) can't learn Detect.": 2,
+    "vileplume (Vileplume) can't learn Focus Blast.": 1,
+    "weezinggalar (Weezing-Galar) does not exist in Gen 9.": 2,
+    "grafaiai (Grafaiai) does not exist in Gen 9.": 2,
+    "grafaiai's move Doodle does not exist in Gen 9.": 2,
+    "grafaiai (Grafaiai) can't learn Parting Shot.": 2,
+    "primarina (Primarina) can't learn Bitter Malice.": 1,
+    "aegislash (Aegislash) can't learn Hyper Voice.": 1,
+    "greninja (Greninja) can't learn Bitter Malice.": 1,
+    "gallade (Gallade) can't learn Night Daze.": 2,
+    "pikachu (Pikachu) can't learn Trick.": 2,
+    "dragonite (Dragonite) can't learn Dark Pulse.": 2,
+    "absolmega (Absol-Mega) can't learn Leech Seed.": 1,
+    "greninja (Greninja) can't learn Trick.": 1,
+    "aerodactyl (Aerodactyl) can't learn Icy Wind.": 1,
+    "toxicroak (Toxicroak) can't learn Snarl.": 1,
+    "clefablemega (Clefable-Mega) can't learn Leech Seed.": 1,
+    "aegislash (Aegislash) can't learn Night Daze.": 1,
+    "toxicroak (Toxicroak) can't learn Night Daze.": 1,
+    "crawdaunt (Crawdaunt) does not exist in Gen 9.": 3,
+    "crawdaunt (Crawdaunt) can't learn Aqua Jet.": 3,
+    "breloom (Breloom) does not exist in Gen 9.": 3,
+    "pelipper (Pelipper) can't learn Taunt.": 1,
+    "ceruledge (Ceruledge) can't learn Memento.": 1,
+    "landorustherian (Landorus-Therian) does not exist in Gen 9.": 5,
+    "slowkinggalar (Slowking-Galar) can't learn Scald.": 2,
+    "umbreon (Umbreon) can't learn Sweet Scent.": 1,
+    "sableyemega (Sableye-Mega) can't learn Stealth Rock.": 1,
+    "dragonite (Dragonite) can't learn Hyper Voice.": 2,
+    "staraptor (Staraptor) can't learn Nasty Plot.": 1,
+    "meowstic (Meowstic) can't learn Brick Break.": 1,
+    "excadrill (Excadrill) can't learn Taunt.": 1,
+    "orthworm (Orthworm) can't learn Nasty Plot.": 1,
+    "aerodactylmega (Aerodactyl-Mega) can't learn Nasty Plot.": 1,
+    "archaludon (Archaludon) can't learn Nasty Plot.": 2,
+    "toxapex (Toxapex) can't learn Will-O-Wisp.": 1,
+    "mausholdfour (Maushold-Four) can't learn Bitter Malice.": 3,
+    "meganium (Meganium) can't learn Snarl.": 1,
+    "tsareena (Tsareena) can't learn Will-O-Wisp.": 11,
+    "orthworm (Orthworm) can't learn Hyper Voice.": 1,
+    "morpeko (Morpeko) can't learn Shadow Ball.": 1,
+    "delphoxmega (Delphox-Mega) can't learn Snarl.": 1,
+    "liepard (Liepard) can't learn Icicle Crash.": 1,
+    "espathra (Espathra) can't learn Bitter Malice.": 1,
+    "whimsicott (Whimsicott) can't learn Trick.": 1,
+    "gholdengo (Gholdengo) can't learn Taunt.": 1,
+    "camerupt (Camerupt) can't learn Shadow Ball.": 1,
+    "emboar (Emboar) can't learn Swords Dance.": 1,
+    "chandelure (Chandelure) can't learn Icy Wind.": 1,
+    "gholdengo (Gholdengo) can't learn Encore.": 1,
+    "sharpedo (Sharpedo) can't learn Shadow Ball.": 1,
+    "toxapex (Toxapex) can't learn Snarl.": 3,
+    "decidueyehisui (Decidueye-Hisui) can't learn Bitter Malice.": 1,
+    "hatterene (Hatterene) can't learn Disable.": 1,
+    "dragapult (Dragapult) can't learn Bitter Malice.": 1,
+    "toxapex (Toxapex) can't learn Taunt.": 1,
+    "farigiraf (Farigiraf) can't learn Memento.": 1,
+    "slowbro (Slowbro) can't learn Hyper Voice.": 1,
+    "floetteeternal (Floette-Eternal) can't learn Sludge Bomb.": 1,
+    "gallade (Gallade) can't learn Extrasensory.": 1,
+    "banettemega (Banette-Mega) can't learn Toxic Spikes.": 1,
+    "staraptor (Staraptor) can't learn Will-O-Wisp.": 2,
+    "staraptormega (Staraptor-Mega) can't learn Hyper Voice.": 1,
+    "scizor (Scizor) can't learn Will-O-Wisp.": 1,
+    "corviknight (Corviknight) can't learn Shadow Ball.": 1,
+    "aegislash (Aegislash) can't learn Dark Pulse.": 1,
+    "corviknight (Corviknight) can't learn Icy Wind.": 1,
+    "clefablemega (Clefable-Mega) can't learn Will-O-Wisp.": 1,
+    "whimsicott (Whimsicott) can't learn Will-O-Wisp.": 1,
+    "tyranitar (Tyranitar) can't learn Hyper Voice.": 1,
+    "barraskewda (Barraskewda) does not exist in Gen 9.": 2,
+    "melmetal (Melmetal) is tagged Mythical, which is banned by Flat Rules.": 4,
+    "melmetal's move Double Iron Bash does not exist in Gen 9.": 1,
+    "melmetal (Melmetal)'s move Double Iron Bash can't be transferred from Gen 8 to 9.": 1,
+    "ironmoth (Iron Moth) does not exist in Gen 9.": 3,
+    "murkrow (Murkrow) does not exist in Gen 9.": 2,
+    "murkrow (Murkrow)'s move Detect can't be transferred from Gen 7 to 9.": 1,
+    "kilowattrel (Kilowattrel) does not exist in Gen 9.": 2,
+    "ragingbolt (Raging Bolt) does not exist in Gen 9.": 1,
+    "ragingbolt's item Booster Energy does not exist in Gen 9.": 1,
+    "melmetal (Melmetal)'s move High Horsepower can't be transferred from Gen 8 to 9.": 1,
+    "torterra (Torterra) can't learn Shadow Ball.": 2,
+    "meowscarada (Meowscarada) can't learn Hyper Voice.": 1,
+    "venusaur (Venusaur) can't learn Icy Wind.": 1,
+    "archaludon (Archaludon) can't learn U-turn.": 1,
+    "glaceon (Glaceon) can't learn Will-O-Wisp.": 1,
+    "liepard (Liepard) can't learn Dragon Claw.": 1,
+    "diggersby (Diggersby) can't learn Nasty Plot.": 3,
+    "tyranitar (Tyranitar) can't learn Psychic.": 1,
+    "clefable (Clefable) can't learn Nasty Plot.": 1,
+    "absolmega (Absol-Mega) can't learn Parting Shot.": 1,
+    "farigiraf (Farigiraf) can't learn Taunt.": 1,
+    "dugtrio (Dugtrio) does not exist in Gen 9.": 1,
+    "tapufini (Tapu Fini)'s move Dazzling Gleam can't be transferred from Gen 8 to 9.": 1,
+    "melmetal (Melmetal)'s move Protect can't be transferred from Gen 8 to 9.": 1,
+    "tapufini (Tapu Fini)'s move Iron Defense can't be transferred from Gen 8 to 9.": 1,
+    "lucario (Lucario) can't learn Bitter Malice.": 1,
+    "scraggy (Scraggy) does not exist in Gen 9.": 2,
+    "dracovish (Dracovish) does not exist in Gen 9.": 2,
+    "dracovish's move Fishious Rend does not exist in Gen 9.": 2,
+    "dracovish (Dracovish)'s move Protect can't be transferred from Gen 8 to 9.": 1,
+    "dracovish (Dracovish)'s move Fishious Rend can't be transferred from Gen 8 to 9.": 1,
+    "tapukoko's item Red Card does not exist in Gen 9.": 1,
+    "tapukoko (Tapu Koko)'s move Volt Switch can't be transferred from Gen 8 to 9.": 1,
+    "fluttermane (Flutter Mane) does not exist in Gen 9.": 2,
+    "zeraora's move Plasma Fists does not exist in Gen 9.": 2,
+    "zeraora's item Assault Vest does not exist in Gen 9.": 1,
+    "annihilape (Annihilape) can't learn Icy Wind.": 1,
+    "skarmory (Skarmory) can't learn Shadow Ball.": 1,
+    "skarmorymega (Skarmory-Mega) can't learn Hyper Voice.": 1,
+    "Kangaskhan has multiple copies of Last Resort.": 1,
+    "liepard (Liepard) can't learn Guillotine.": 1,
+    "clawitzer (Clawitzer) can't learn Bitter Malice.": 1,
+    "samurotthisui (Samurott-Hisui) can't learn Hyper Voice.": 1,
+    "rotomheat (Rotom-Heat) can't learn Focus Blast.": 1,
+    "heliolisk (Heliolisk) can't learn Psychic.": 1,
+    "butterfree (Butterfree) does not exist in Gen 9.": 2,
+    "butterfree (Butterfree)'s move Hurricane can't be transferred from Gen 8 to 9.": 2,
+    "kingdra (Kingdra) does not exist in Gen 9.": 2,
+    "azumarill (Azumarill) can't learn Night Daze.": 1,
+    "cofagrigus (Cofagrigus) can't learn Snarl.": 1
+  },
+  "split": {
+    "note": "by_class_games counts a game once per class it shows, so it oversums the headline; combos partitions the flagged games exactly.",
+    "by_class_games": {
+      "move": 1240,
+      "species": 76,
+      "item": 35
+    },
+    "by_class_sets": {
+      "move": 1359,
+      "species": 266,
+      "item": 72
+    },
+    "combos": {
+      "move": 1175,
+      "move+species": 39,
+      "item": 1,
+      "species": 3,
+      "item+move+species": 26,
+      "item+species": 8
+    },
+    "species_keyed_filter_would_remove": 76,
+    "move_only_games": 1175,
+    "move_only_with_illusion_carrier_same_side": 1020,
+    "move_only_with_no_illusion_carrier_in_game": 153,
+    "illusion_carriers_derived": [
+      "zoroark",
+      "zoroarkhisui"
+    ],
+    "species_offenders": {
+      "revavroom": 7,
+      "indeedee": 7,
+      "smeargle": 6,
+      "amoonguss": 8,
+      "perrserker": 4,
+      "persianalola": 4,
+      "salamence": 16,
+      "riolu": 9,
+      "indeedeef": 1,
+      "hariyama": 5,
+      "sigilyph": 5,
+      "jirachi": 5,
+      "jumpluff": 3,
+      "magnezone": 6,
+      "walrein": 6,
+      "cradily": 6,
+      "ironvaliant": 8,
+      "ogerponwellspring": 5,
+      "salamencemega": 5,
+      "greattusk": 5,
+      "chienpao": 7,
+      "electrodehisui": 4,
+      "nihilego": 1,
+      "porygon2": 4,
+      "diancie": 2,
+      "dianciemega": 2,
+      "omastar": 4,
+      "duraludon": 4,
+      "genesect": 2,
+      "shedinja": 1,
+      "tornadus": 2,
+      "ogerponcornerstone": 4,
+      "arctovish": 1,
+      "zeraora": 3,
+      "torracat": 5,
+      "rillaboom": 8,
+      "tapukoko": 5,
+      "stoutland": 2,
+      "lokix": 5,
+      "inteleon": 4,
+      "tapufini": 3,
+      "bisharp": 3,
+      "ursalunabloodmoon": 4,
+      "cryogonal": 3,
+      "poltchageist": 2,
+      "ironthorns": 3,
+      "xatu": 2,
+      "golisopod": 3,
+      "gothitelle": 3,
+      "braviary": 3,
+      "mandibuzz": 3,
+      "dachsbun": 1,
+      "glastrier": 1,
+      "urshifurapidstrike": 1,
+      "weezinggalar": 2,
+      "grafaiai": 2,
+      "crawdaunt": 3,
+      "breloom": 3,
+      "landorustherian": 5,
+      "barraskewda": 2,
+      "melmetal": 4,
+      "ironmoth": 3,
+      "murkrow": 2,
+      "kilowattrel": 2,
+      "ragingbolt": 1,
+      "dugtrio": 1,
+      "scraggy": 2,
+      "dracovish": 2,
+      "fluttermane": 2,
+      "butterfree": 2,
+      "kingdra": 2
+    },
+    "species_flagged_ids": [
+      "gen9championsvgc2026regmb-2653224685",
+      "gen9championsvgc2026regmb-2653223483",
+      "gen9championsvgc2026regmb-2655392621",
+      "gen9championsvgc2026regmb-2655391125",
+      "gen9championsvgc2026regmb-2655390952",
+      "gen9championsvgc2026regmb-2655390502",
+      "gen9championsvgc2026regmb-2655860561",
+      "gen9championsvgc2026regmb-2655858304",
+      "gen9championsvgc2026regmb-2656946022",
+      "gen9championsvgc2026regmb-2657817930",
+      "gen9championsvgc2026regmb-2657815476",
+      "gen9championsvgc2026regmb-2658966416",
+      "gen9championsvgc2026regmb-2658964164",
+      "gen9championsvgc2026regmb-2658962154",
+      "gen9championsvgc2026regmb-2659724010",
+      "gen9championsvgc2026regmb-2659719860",
+      "gen9championsvgc2026regmb-2659717418",
+      "gen9championsvgc2026regmb-2660019640",
+      "gen9championsvgc2026regmb-2660017489",
+      "gen9championsvgc2026regmb-2660014714",
+      "gen9championsvgc2026regmb-2660883559",
+      "gen9championsvgc2026regmb-2660886850",
+      "gen9championsvgc2026regmb-2660885283",
+      "gen9championsvgc2026regmb-2661474094",
+      "gen9championsvgc2026regmb-2661472747",
+      "gen9championsvgc2026regmb-2661470157",
+      "gen9championsvgc2026regmb-2661502313",
+      "gen9championsvgc2026regmb-2661499713",
+      "gen9championsvgc2026regmb-2661587532",
+      "gen9championsvgc2026regmb-2661583273",
+      "gen9championsvgc2026regmb-2661576069",
+      "gen9championsvgc2026regmb-2661572847",
+      "gen9championsvgc2026regmb-2661565224",
+      "gen9championsvgc2026regmb-2662405082",
+      "gen9championsvgc2026regmb-2662403265",
+      "gen9championsvgc2026regmb-2662497874",
+      "gen9championsvgc2026regmb-2662495670",
+      "gen9championsvgc2026regmb-2662492788",
+      "gen9championsvgc2026regmb-2662585848",
+      "gen9championsvgc2026regmb-2662584314",
+      "gen9championsvgc2026regmb-2663469426",
+      "gen9championsvgc2026regmb-2663467285",
+      "gen9championsvgc2026regmb-2664824112",
+      "gen9championsvgc2026regmb-2664823133",
+      "gen9championsvgc2026regmb-2664819732",
+      "gen9championsvgc2026regmb-2664988444",
+      "gen9championsvgc2026regmb-2664991978",
+      "gen9championsvgc2026regmb-2665049381",
+      "gen9championsvgc2026regmb-2665046463",
+      "gen9championsvgc2026regmb-2665002749",
+      "gen9championsvgc2026regmb-2665001365",
+      "gen9championsvgc2026regmb-2664995433",
+      "gen9championsvgc2026regmb-2664994079",
+      "gen9championsvgc2026regmb-2665903703",
+      "gen9championsvgc2026regmb-2665901833",
+      "gen9championsvgc2026regmb-2666349819",
+      "gen9championsvgc2026regmb-2666348737",
+      "gen9championsvgc2026regmb-2666346574",
+      "gen9championsvgc2026regmb-2666523888",
+      "gen9championsvgc2026regmb-2666519681",
+      "gen9championsvgc2026regmb-2666515662",
+      "gen9championsvgc2026regmb-2668604609",
+      "gen9championsvgc2026regmb-2668601712",
+      "gen9championsvgc2026regmb-2668599504",
+      "gen9championsvgc2026regmb-2668325840",
+      "gen9championsvgc2026regmb-2668323458",
+      "gen9championsvgc2026regmb-2668320543",
+      "gen9championsvgc2026regmb-2668320245",
+      "gen9championsvgc2026regmb-2670626255",
+      "gen9championsvgc2026regmb-2670623834",
+      "gen9championsvgc2026regmb-2670598995",
+      "gen9championsvgc2026regmb-2670596783",
+      "gen9championsvgc2026regmb-2670655403",
+      "gen9championsvgc2026regmb-2670653175",
+      "gen9championsvgc2026regmb-2671064220",
+      "gen9championsvgc2026regmb-2671061645"
+    ]
   },
   "examples": [
     {
       "id": "gen9championsvgc2026regmb-2653450644",
       "date": "2026-07-23 03:18",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "weavile (Weavile) can't learn Flamethrower.",
         "gholdengo (Gholdengo) can't learn Icy Wind."
@@ -519,6 +1017,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653439727",
       "date": "2026-07-23 02:50",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sinistchamasterpie (Sinistcha-Masterpiece) can't learn Flamethrower."
       ]
@@ -526,6 +1027,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653412433",
       "date": "2026-07-23 01:37",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "heracross (Heracross) can't learn Nasty Plot."
       ]
@@ -533,6 +1037,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653409689",
       "date": "2026-07-23 01:30",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "mausholdfour (Maushold-Four) can't learn Shadow Ball."
       ]
@@ -540,6 +1047,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653402275",
       "date": "2026-07-23 01:11",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Parting Shot."
       ]
@@ -547,6 +1057,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653389724",
       "date": "2026-07-23 00:37",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Taunt."
       ]
@@ -554,6 +1067,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653372519",
       "date": "2026-07-22 23:53",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Icy Wind."
       ]
@@ -561,6 +1077,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653371077",
       "date": "2026-07-22 23:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Taunt."
       ]
@@ -568,6 +1087,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653359804",
       "date": "2026-07-22 23:23",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "tsareena (Tsareena) can't learn Dark Pulse."
       ]
@@ -575,6 +1097,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653355913",
       "date": "2026-07-22 23:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "chandelure (Chandelure) can't learn Bitter Malice.",
         "chandeluremega (Chandelure-Mega) can't learn Hyper Voice."
@@ -583,6 +1108,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653352285",
       "date": "2026-07-22 22:56",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gliscor (Gliscor) can't learn Icy Wind."
       ]
@@ -590,6 +1118,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653347316",
       "date": "2026-07-22 22:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "maushold (Maushold) can't learn Shadow Ball."
       ]
@@ -597,6 +1128,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653350356",
       "date": "2026-07-22 22:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "dragonite (Dragonite) can't learn Shadow Ball."
       ]
@@ -604,6 +1138,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653348339",
       "date": "2026-07-22 22:49",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Round."
       ]
@@ -611,6 +1148,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653344227",
       "date": "2026-07-22 22:35",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "floetteeternal (Floette-Eternal) can't learn Hyper Voice."
       ]
@@ -618,6 +1158,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653330738",
       "date": "2026-07-22 22:02",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "vivillonpokeball (Vivillon-Pokeball) can't learn Hyper Voice."
       ]
@@ -625,6 +1168,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653329961",
       "date": "2026-07-22 21:59",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "vivillonpokeball (Vivillon-Pokeball) can't learn Flamethrower."
       ]
@@ -632,6 +1178,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653323375",
       "date": "2026-07-22 21:44",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sneasler (Sneasler) can't learn Bitter Malice."
       ]
@@ -639,6 +1188,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653312305",
       "date": "2026-07-22 21:15",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "pangoro (Pangoro) can't learn Bitter Malice."
       ]
@@ -646,6 +1198,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653310160",
       "date": "2026-07-22 21:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Bitter Malice."
       ]
@@ -653,6 +1208,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653307319",
       "date": "2026-07-22 21:05",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Swagger."
       ]
@@ -660,6 +1218,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653297106",
       "date": "2026-07-22 20:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Sludge Bomb."
       ]
@@ -667,6 +1228,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653294647",
       "date": "2026-07-22 20:45",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Toxic."
       ]
@@ -674,6 +1238,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653276521",
       "date": "2026-07-22 19:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hydreigon (Hydreigon) can't learn Icy Wind."
       ]
@@ -681,6 +1248,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653260242",
       "date": "2026-07-22 19:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "malamar (Malamar) can't learn Will-O-Wisp."
       ]
@@ -688,6 +1258,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653255556",
       "date": "2026-07-22 19:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Memento."
       ]
@@ -695,6 +1268,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653252316",
       "date": "2026-07-22 19:07",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gengar (Gengar) can't learn Hyper Voice."
       ]
@@ -702,6 +1278,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653248386",
       "date": "2026-07-22 18:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Taunt."
       ]
@@ -709,6 +1288,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653248130",
       "date": "2026-07-22 18:57",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Bitter Malice."
       ]
@@ -716,6 +1298,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653239850",
       "date": "2026-07-22 18:40",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Hyper Voice.",
         "garchomp (Garchomp) can't learn Bitter Malice."
@@ -724,6 +1309,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653236609",
       "date": "2026-07-22 18:37",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sinistcha (Sinistcha) can't learn Will-O-Wisp."
       ]
@@ -731,6 +1319,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653228416",
       "date": "2026-07-22 18:17",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "pyroar (Pyroar) can't learn Shadow Ball."
       ]
@@ -738,6 +1329,10 @@
     {
       "id": "gen9championsvgc2026regmb-2653224685",
       "date": "2026-07-22 18:10",
+      "classes": [
+        "move",
+        "species"
+      ],
       "reasons": [
         "altaria's move Return does not exist in Gen 9.",
         "altaria (Altaria) can't learn Return.",
@@ -750,6 +1345,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653221941",
       "date": "2026-07-22 18:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "raichu (Raichu) can't learn Hex."
       ]
@@ -757,6 +1355,10 @@
     {
       "id": "gen9championsvgc2026regmb-2653223483",
       "date": "2026-07-22 18:07",
+      "classes": [
+        "move",
+        "species"
+      ],
       "reasons": [
         "altaria's move Return does not exist in Gen 9.",
         "altaria (Altaria) can't learn Return.",
@@ -767,6 +1369,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653214873",
       "date": "2026-07-22 17:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "clefablemega (Clefable-Mega) can't learn Parting Shot."
       ]
@@ -774,6 +1379,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653202059",
       "date": "2026-07-22 17:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Bitter Malice."
       ]
@@ -781,6 +1389,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653196325",
       "date": "2026-07-22 17:10",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "froslass (Froslass) can't learn Night Daze."
       ]
@@ -788,6 +1399,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653189568",
       "date": "2026-07-22 16:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "liepard (Liepard) can't learn Heat Wave."
       ]
@@ -795,6 +1409,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653168554",
       "date": "2026-07-22 16:11",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Hypnosis."
       ]
@@ -802,6 +1419,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653116509",
       "date": "2026-07-22 14:14",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "glimmora (Glimmora) can't learn Burning Jealousy."
       ]
@@ -809,6 +1429,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653113105",
       "date": "2026-07-22 14:06",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "excadrill (Excadrill) can't learn Hyper Voice."
       ]
@@ -816,6 +1439,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653102167",
       "date": "2026-07-22 13:39",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "charizard (Charizard) can't learn Hyper Voice."
       ]
@@ -823,6 +1449,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653101704",
       "date": "2026-07-22 13:38",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "ampharos (Ampharos) can't learn Bitter Malice."
       ]
@@ -830,6 +1459,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653099704",
       "date": "2026-07-22 13:35",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "ampharos (Ampharos) can't learn Flamethrower."
       ]
@@ -837,6 +1469,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653100683",
       "date": "2026-07-22 13:35",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "archaludon (Archaludon) can't learn Bitter Malice."
       ]
@@ -844,6 +1479,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653097552",
       "date": "2026-07-22 13:27",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Icy Wind."
       ]
@@ -851,6 +1489,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653095602",
       "date": "2026-07-22 13:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Boomburst."
       ]
@@ -858,6 +1499,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653089958",
       "date": "2026-07-22 13:07",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Yawn."
       ]
@@ -865,6 +1509,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653089027",
       "date": "2026-07-22 13:05",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "staraptor (Staraptor) can't learn Flamethrower."
       ]
@@ -872,6 +1519,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653088426",
       "date": "2026-07-22 13:04",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "annihilape (Annihilape) can't learn Will-O-Wisp."
       ]
@@ -879,6 +1529,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653086800",
       "date": "2026-07-22 13:02",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "espeon (Espeon) can't learn Sleep Powder."
       ]
@@ -886,6 +1539,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653084854",
       "date": "2026-07-22 12:54",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Matcha Gotcha."
       ]
@@ -893,6 +1549,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653075302",
       "date": "2026-07-22 12:27",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Taunt."
       ]
@@ -900,6 +1559,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653798436",
       "date": "2026-07-23 20:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "blastoise (Blastoise) can't learn Psychic."
       ]
@@ -907,6 +1569,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653808421",
       "date": "2026-07-23 20:14",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "glimmora (Glimmora) can't learn Hyper Voice."
       ]
@@ -914,6 +1579,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653806985",
       "date": "2026-07-23 20:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hydreigon (Hydreigon) can't learn Bitter Malice."
       ]
@@ -921,6 +1589,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653801273",
       "date": "2026-07-23 19:59",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Boomburst."
       ]
@@ -928,6 +1599,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653797436",
       "date": "2026-07-23 19:48",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Stealth Rock."
       ]
@@ -935,6 +1609,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653793692",
       "date": "2026-07-23 19:40",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Hyper Voice."
       ]
@@ -942,6 +1619,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653859369",
       "date": "2026-07-23 22:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Toxic."
       ]
@@ -949,6 +1629,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653909165",
       "date": "2026-07-24 00:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "barbaracle (Barbaracle) can't learn Bitter Malice.",
         "barbaraclemega (Barbaracle-Mega) can't learn Hyper Voice."
@@ -957,6 +1640,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653921355",
       "date": "2026-07-24 00:57",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sableyemega (Sableye-Mega) can't learn Toxic."
       ]
@@ -964,6 +1650,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653903883",
       "date": "2026-07-24 00:27",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Encore."
       ]
@@ -971,6 +1660,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653900828",
       "date": "2026-07-23 23:59",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hydreigon (Hydreigon) can't learn Icy Wind."
       ]
@@ -978,6 +1670,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653899506",
       "date": "2026-07-23 23:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hydreigon (Hydreigon) can't learn Bitter Malice."
       ]
@@ -985,6 +1680,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653986767",
       "date": "2026-07-24 03:59",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Boomburst."
       ]
@@ -992,6 +1690,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653971893",
       "date": "2026-07-24 03:15",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Will-O-Wisp."
       ]
@@ -999,6 +1700,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653962622",
       "date": "2026-07-24 02:48",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Simple Beam."
       ]
@@ -1006,6 +1710,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653961506",
       "date": "2026-07-24 02:47",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Memento."
       ]
@@ -1013,6 +1720,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653959694",
       "date": "2026-07-24 02:43",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Simple Beam."
       ]
@@ -1020,6 +1730,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653958679",
       "date": "2026-07-24 02:40",
+      "classes": [
+        "item"
+      ],
       "reasons": [
         "slowkinggalar's item Covert Cloak does not exist in Gen 9.",
         "primarina's item Choice Specs does not exist in Gen 9."
@@ -1028,6 +1741,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653954555",
       "date": "2026-07-24 02:26",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "basculegion (Basculegion) can't learn Hyper Voice."
       ]
@@ -1035,6 +1751,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653953313",
       "date": "2026-07-24 02:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Icy Wind."
       ]
@@ -1042,6 +1761,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653952460",
       "date": "2026-07-24 02:19",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Bitter Malice."
       ]
@@ -1049,6 +1771,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653949983",
       "date": "2026-07-24 02:18",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "venusaur (Venusaur) can't learn Hyper Voice."
       ]
@@ -1056,6 +1781,9 @@
     {
       "id": "gen9championsvgc2026regmb-2653944674",
       "date": "2026-07-24 02:18",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gholdengo (Gholdengo) can't learn Hyper Voice."
       ]
@@ -1063,6 +1791,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654035148",
       "date": "2026-07-24 06:50",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "charizardmegay (Charizard-Mega-Y) can't learn Bitter Malice."
       ]
@@ -1070,6 +1801,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654015818",
       "date": "2026-07-24 05:38",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Round."
       ]
@@ -1077,6 +1811,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654015399",
       "date": "2026-07-24 05:33",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "charizard (Charizard) can't learn Shadow Ball."
       ]
@@ -1084,6 +1821,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654011989",
       "date": "2026-07-24 05:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Shadow Ball."
       ]
@@ -1091,6 +1831,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654010044",
       "date": "2026-07-24 05:19",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "decidueyehisui (Decidueye-Hisui) can't learn Shadow Ball."
       ]
@@ -1098,6 +1841,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654004585",
       "date": "2026-07-24 04:56",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gardevoir (Gardevoir) can't learn Bitter Malice."
       ]
@@ -1105,6 +1851,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654287522",
       "date": "2026-07-24 18:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aggron (Aggron) can't learn Bitter Malice."
       ]
@@ -1112,6 +1861,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654276862",
       "date": "2026-07-24 18:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "volcarona (Volcarona) can't learn Icy Wind."
       ]
@@ -1119,6 +1871,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654267672",
       "date": "2026-07-24 18:01",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Will-O-Wisp."
       ]
@@ -1126,6 +1881,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654249273",
       "date": "2026-07-24 17:19",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "dragapult (Dragapult) can't learn Nasty Plot."
       ]
@@ -1133,6 +1891,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654247209",
       "date": "2026-07-24 17:16",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "venusaur (Venusaur) can't learn Nasty Plot."
       ]
@@ -1140,6 +1901,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654247229",
       "date": "2026-07-24 17:14",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "vivillonpokeball (Vivillon-Pokeball) can't learn Hyper Voice."
       ]
@@ -1147,6 +1911,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654244910",
       "date": "2026-07-24 17:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "tinkaton (Tinkaton) can't learn Night Daze."
       ]
@@ -1154,6 +1921,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654245487",
       "date": "2026-07-24 17:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "vivillonpokeball (Vivillon-Pokeball) can't learn Hyper Voice."
       ]
@@ -1161,6 +1931,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654245145",
       "date": "2026-07-24 17:11",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aerodactyl (Aerodactyl) can't learn Nasty Plot."
       ]
@@ -1168,6 +1941,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654369566",
       "date": "2026-07-24 21:59",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "torkoal (Torkoal) can't learn Hyper Voice."
       ]
@@ -1175,6 +1951,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654366226",
       "date": "2026-07-24 21:51",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "crabominable (Crabominable) can't learn Bitter Malice."
       ]
@@ -1182,6 +1961,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654365126",
       "date": "2026-07-24 21:50",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "toxapex (Toxapex) can't learn Shadow Ball."
       ]
@@ -1189,6 +1971,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654353747",
       "date": "2026-07-24 21:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "goodra (Goodra) can't learn Snarl."
       ]
@@ -1196,6 +1981,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654327228",
       "date": "2026-07-24 20:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "clefablemega (Clefable-Mega) can't learn Taunt."
       ]
@@ -1203,6 +1991,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654330729",
       "date": "2026-07-24 20:23",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn Shadow Ball."
       ]
@@ -1210,6 +2001,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654304823",
       "date": "2026-07-24 19:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Boomburst."
       ]
@@ -1217,6 +2011,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654299250",
       "date": "2026-07-24 19:15",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "espeon (Espeon) can't learn Encore."
       ]
@@ -1224,6 +2021,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654290606",
       "date": "2026-07-24 19:11",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "espeon (Espeon) can't learn Stealth Rock."
       ]
@@ -1231,6 +2031,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654372483",
       "date": "2026-07-24 22:07",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "falinks (Falinks) can't learn Psychic."
       ]
@@ -1238,6 +2041,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654371590",
       "date": "2026-07-24 22:04",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "scovillain (Scovillain) can't learn Shadow Ball."
       ]
@@ -1245,6 +2051,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654370412",
       "date": "2026-07-24 22:03",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "palafin (Palafin) can't learn Shadow Ball.",
         "palafinhero (Palafin-Hero) can't learn Shadow Ball."
@@ -1253,6 +2062,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654427995",
       "date": "2026-07-25 00:42",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aegislash (Aegislash) can't learn Flamethrower."
       ]
@@ -1260,6 +2072,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654424910",
       "date": "2026-07-25 00:32",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "floetteeternal (Floette-Eternal) can't learn Flamethrower."
       ]
@@ -1267,6 +2082,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654414027",
       "date": "2026-07-25 00:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "glimmora (Glimmora) can't learn Trick."
       ]
@@ -1274,6 +2092,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654486575",
       "date": "2026-07-25 03:35",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Round."
       ]
@@ -1281,6 +2102,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654472290",
       "date": "2026-07-25 02:53",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "samurotthisui (Samurott-Hisui) can't learn Bitter Malice."
       ]
@@ -1288,6 +2112,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654490958",
       "date": "2026-07-25 03:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sandaconda (Sandaconda) can't learn Icy Wind."
       ]
@@ -1295,6 +2122,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654490415",
       "date": "2026-07-25 03:51",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "archaludon (Archaludon) can't learn Bitter Malice."
       ]
@@ -1302,6 +2132,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654490191",
       "date": "2026-07-25 03:45",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sableyemega (Sableye-Mega) can't learn Parting Shot."
       ]
@@ -1309,6 +2142,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654534561",
       "date": "2026-07-25 06:29",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "tinkaton (Tinkaton) can't learn Bitter Malice."
       ]
@@ -1316,6 +2152,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654534071",
       "date": "2026-07-25 06:26",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn Shadow Ball."
       ]
@@ -1323,6 +2162,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654532846",
       "date": "2026-07-25 06:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "charizardmegay (Charizard-Mega-Y) can't learn Bitter Malice."
       ]
@@ -1330,6 +2172,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654531895",
       "date": "2026-07-25 06:15",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "talonflame (Talonflame) can't learn Bitter Malice."
       ]
@@ -1337,6 +2182,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654528131",
       "date": "2026-07-25 06:01",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "scrafty (Scrafty) can't learn Bitter Malice."
       ]
@@ -1344,6 +2192,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654527034",
       "date": "2026-07-25 05:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Icy Wind."
       ]
@@ -1351,6 +2202,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654513517",
       "date": "2026-07-25 05:05",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sinistchamasterpie (Sinistcha-Masterpiece) can't learn Bitter Malice."
       ]
@@ -1358,6 +2212,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654561959",
       "date": "2026-07-25 08:27",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "arcaninehisui (Arcanine-Hisui) can't learn Bitter Malice."
       ]
@@ -1365,6 +2222,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654559642",
       "date": "2026-07-25 08:14",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "barbaracle (Barbaracle) can't learn Hyper Voice."
       ]
@@ -1372,6 +2232,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654591735",
       "date": "2026-07-25 10:36",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "blaziken (Blaziken) can't learn Hyper Voice."
       ]
@@ -1379,6 +2242,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654584523",
       "date": "2026-07-25 10:05",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sinistcha (Sinistcha) can't learn Taunt."
       ]
@@ -1386,6 +2252,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654614774",
       "date": "2026-07-25 12:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "froslass (Froslass) can't learn Detect."
       ]
@@ -1393,6 +2262,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654611118",
       "date": "2026-07-25 11:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Trick."
       ]
@@ -1400,6 +2272,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654597995",
       "date": "2026-07-25 11:01",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "malamar (Malamar) can't learn Memento."
       ]
@@ -1407,6 +2282,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654597820",
       "date": "2026-07-25 11:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Simple Beam."
       ]
@@ -1414,6 +2292,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654636607",
       "date": "2026-07-25 13:23",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "milotic (Milotic) can't learn Hyper Voice."
       ]
@@ -1421,6 +2302,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654629763",
       "date": "2026-07-25 13:01",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sableye (Sableye) can't learn Night Daze."
       ]
@@ -1428,6 +2312,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654627315",
       "date": "2026-07-25 12:53",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hydrapple (Hydrapple) can't learn Taunt."
       ]
@@ -1435,6 +2322,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654678751",
       "date": "2026-07-25 15:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "staraptor (Staraptor) can't learn Shadow Ball."
       ]
@@ -1442,6 +2332,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654672132",
       "date": "2026-07-25 15:07",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "oranguru (Oranguru) can't learn Bitter Malice."
       ]
@@ -1449,6 +2342,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654721811",
       "date": "2026-07-25 17:16",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aerodactyl (Aerodactyl) can't learn Hyper Voice."
       ]
@@ -1456,6 +2352,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654694475",
       "date": "2026-07-25 16:02",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Flamethrower."
       ]
@@ -1463,6 +2362,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654693099",
       "date": "2026-07-25 16:01",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Hyper Voice."
       ]
@@ -1470,6 +2372,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654615679",
       "date": "2026-07-25 12:14",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "crabominable (Crabominable) can't learn Calm Mind."
       ]
@@ -1477,6 +2382,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654688677",
       "date": "2026-07-25 15:50",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Memento."
       ]
@@ -1484,6 +2392,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654688149",
       "date": "2026-07-25 15:49",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "absol (Absol) can't learn Nasty Plot."
       ]
@@ -1491,6 +2402,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654685249",
       "date": "2026-07-25 15:41",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gourgeistsmall (Gourgeist-Small) can't learn Bitter Malice."
       ]
@@ -1498,6 +2412,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654682534",
       "date": "2026-07-25 15:35",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Memento."
       ]
@@ -1505,6 +2422,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654762810",
       "date": "2026-07-25 19:02",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "vaporeon (Vaporeon) can't learn Life Dew."
       ]
@@ -1512,6 +2432,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654763060",
       "date": "2026-07-25 18:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "blastoisemega (Blastoise-Mega) can't learn Memento."
       ]
@@ -1519,6 +2442,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654757894",
       "date": "2026-07-25 18:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Taunt."
       ]
@@ -1526,6 +2452,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654756221",
       "date": "2026-07-25 18:39",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "staraptor (Staraptor) can't learn Bitter Malice."
       ]
@@ -1533,6 +2462,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654746712",
       "date": "2026-07-25 18:15",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Encore."
       ]
@@ -1540,6 +2472,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654746196",
       "date": "2026-07-25 18:13",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "meganium (Meganium) can't learn Brick Break."
       ]
@@ -1547,6 +2482,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654744690",
       "date": "2026-07-25 18:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sableye (Sableye) can't learn Flamethrower."
       ]
@@ -1554,6 +2492,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654742480",
       "date": "2026-07-25 18:06",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "floetteeternal (Floette-Eternal) can't learn Nasty Plot."
       ]
@@ -1561,6 +2502,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654741858",
       "date": "2026-07-25 18:02",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "meganium (Meganium) can't learn Shadow Ball.",
         "meganiummega (Meganium-Mega) can't learn Shadow Ball."
@@ -1569,6 +2513,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654736304",
       "date": "2026-07-25 17:51",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "staraptor (Staraptor) can't learn Bitter Malice."
       ]
@@ -1576,6 +2523,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654789914",
       "date": "2026-07-25 20:08",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "tsareena (Tsareena) can't learn Shadow Ball."
       ]
@@ -1583,6 +2533,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654784700",
       "date": "2026-07-25 19:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "pelipper (Pelipper) can't learn Roar."
       ]
@@ -1590,6 +2543,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654831036",
       "date": "2026-07-25 21:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "ceruledge (Ceruledge) can't learn Hyper Beam."
       ]
@@ -1597,6 +2553,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654830936",
       "date": "2026-07-25 21:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "raichu (Raichu) can't learn Icy Wind."
       ]
@@ -1604,6 +2563,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654825911",
       "date": "2026-07-25 21:43",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Round."
       ]
@@ -1611,6 +2573,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654825576",
       "date": "2026-07-25 21:42",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sinistchamasterpie (Sinistcha-Masterpiece) can't learn Focus Blast."
       ]
@@ -1618,6 +2583,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654823311",
       "date": "2026-07-25 21:35",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sandaconda (Sandaconda) can't learn Icy Wind."
       ]
@@ -1625,6 +2593,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654813815",
       "date": "2026-07-25 21:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "falinks (Falinks) can't learn Psychic."
       ]
@@ -1632,6 +2603,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654813783",
       "date": "2026-07-25 21:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "raichu (Raichu) can't learn Hyper Voice."
       ]
@@ -1639,6 +2613,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654834252",
       "date": "2026-07-25 22:07",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Hyper Voice."
       ]
@@ -1646,6 +2623,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654855453",
       "date": "2026-07-25 23:06",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn Will-O-Wisp."
       ]
@@ -1653,6 +2633,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654855892",
       "date": "2026-07-25 23:06",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "barbaracle (Barbaracle) can't learn Flamethrower."
       ]
@@ -1660,6 +2643,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654849718",
       "date": "2026-07-25 22:50",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn Will-O-Wisp."
       ]
@@ -1667,6 +2653,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654846474",
       "date": "2026-07-25 22:40",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "tsareena (Tsareena) can't learn Shadow Ball."
       ]
@@ -1674,6 +2663,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654843527",
       "date": "2026-07-25 22:32",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "arcaninehisui (Arcanine-Hisui) can't learn Psychic."
       ]
@@ -1681,6 +2673,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654841076",
       "date": "2026-07-25 22:27",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Night Daze."
       ]
@@ -1688,6 +2683,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654837629",
       "date": "2026-07-25 22:17",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Hyper Voice."
       ]
@@ -1695,6 +2693,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654836051",
       "date": "2026-07-25 22:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn U-turn."
       ]
@@ -1702,6 +2703,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654836270",
       "date": "2026-07-25 22:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Focus Blast."
       ]
@@ -1709,6 +2713,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654835919",
       "date": "2026-07-25 22:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "mawile (Mawile) can't learn Detect."
       ]
@@ -1716,6 +2723,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654873946",
       "date": "2026-07-25 23:59",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aggron (Aggron) can't learn Nasty Plot."
       ]
@@ -1723,6 +2733,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654873145",
       "date": "2026-07-25 23:57",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "araquanid (Araquanid) can't learn Focus Blast."
       ]
@@ -1730,6 +2743,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654868565",
       "date": "2026-07-25 23:45",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "tsareena (Tsareena) can't learn Psychic."
       ]
@@ -1737,6 +2753,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654865943",
       "date": "2026-07-25 23:40",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "milotic (Milotic) can't learn Memento."
       ]
@@ -1744,6 +2763,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654966537",
       "date": "2026-07-26 04:44",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "heracross (Heracross) can't learn Icy Wind."
       ]
@@ -1751,6 +2773,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654966358",
       "date": "2026-07-26 04:43",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "swampert (Swampert) can't learn Will-O-Wisp."
       ]
@@ -1758,6 +2783,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654962730",
       "date": "2026-07-26 04:33",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Roar."
       ]
@@ -1765,6 +2793,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654962613",
       "date": "2026-07-26 04:30",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "barbaracle (Barbaracle) can't learn Hyper Voice."
       ]
@@ -1772,6 +2803,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654960034",
       "date": "2026-07-26 04:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Memento."
       ]
@@ -1779,6 +2813,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654956342",
       "date": "2026-07-26 04:10",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Round."
       ]
@@ -1786,6 +2823,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654954660",
       "date": "2026-07-26 04:04",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "staraptor (Staraptor) can't learn Psychic."
       ]
@@ -1793,6 +2833,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654953702",
       "date": "2026-07-26 04:01",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "maushold (Maushold) can't learn Round."
       ]
@@ -1800,6 +2843,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654947845",
       "date": "2026-07-26 03:42",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "dragapult (Dragapult) can't learn Hyper Voice."
       ]
@@ -1807,6 +2853,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654945308",
       "date": "2026-07-26 03:34",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "froslass (Froslass) can't learn Flamethrower."
       ]
@@ -1814,6 +2863,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654938221",
       "date": "2026-07-26 03:17",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "clefablemega (Clefable-Mega) can't learn Simple Beam."
       ]
@@ -1821,6 +2873,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654937209",
       "date": "2026-07-26 03:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Hyper Voice."
       ]
@@ -1828,6 +2883,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654927115",
       "date": "2026-07-26 02:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "stunfisk (Stunfisk) can't learn Bitter Malice."
       ]
@@ -1835,6 +2893,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654926407",
       "date": "2026-07-26 02:41",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "froslass (Froslass) can't learn Flamethrower."
       ]
@@ -1842,6 +2903,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654927515",
       "date": "2026-07-26 02:39",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "jolteon (Jolteon) can't learn Bullet Punch."
       ]
@@ -1849,6 +2913,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655001174",
       "date": "2026-07-26 07:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "pinsir (Pinsir) can't learn Sludge Bomb."
       ]
@@ -1856,6 +2923,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654984396",
       "date": "2026-07-26 05:50",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "basculegion (Basculegion) can't learn Bitter Malice."
       ]
@@ -1863,6 +2933,9 @@
     {
       "id": "gen9championsvgc2026regmb-2654976654",
       "date": "2026-07-26 05:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "mudsdale (Mudsdale) can't learn Shadow Ball."
       ]
@@ -1870,6 +2943,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655031782",
       "date": "2026-07-26 09:17",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aerodactyl (Aerodactyl) can't learn Shadow Ball."
       ]
@@ -1877,6 +2953,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655029810",
       "date": "2026-07-26 09:16",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Will-O-Wisp.",
         "malamar (Malamar) can't learn Memento."
@@ -1885,6 +2964,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655031316",
       "date": "2026-07-26 09:15",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aggron (Aggron) can't learn Bitter Malice."
       ]
@@ -1892,6 +2974,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655027145",
       "date": "2026-07-26 08:59",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "milotic (Milotic) can't learn Memento."
       ]
@@ -1899,6 +2984,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655060704",
       "date": "2026-07-26 11:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aggron (Aggron) can't learn Bitter Malice."
       ]
@@ -1906,6 +2994,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655060769",
       "date": "2026-07-26 11:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "orthworm (Orthworm) can't learn Bitter Malice."
       ]
@@ -1913,6 +3004,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655058842",
       "date": "2026-07-26 11:14",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sinistchamasterpie (Sinistcha-Masterpiece) can't learn Bitter Malice."
       ]
@@ -1920,6 +3014,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655056721",
       "date": "2026-07-26 11:03",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "staraptor (Staraptor) can't learn Flamethrower."
       ]
@@ -1927,6 +3024,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655054878",
       "date": "2026-07-26 10:57",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sneasler (Sneasler) can't learn Icy Wind."
       ]
@@ -1934,6 +3034,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655043342",
       "date": "2026-07-26 10:07",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sceptile (Sceptile) can't learn Hyper Voice."
       ]
@@ -1941,6 +3044,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655102252",
       "date": "2026-07-26 13:50",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "scolipede (Scolipede) can't learn Shadow Ball."
       ]
@@ -1948,6 +3054,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655096200",
       "date": "2026-07-26 13:29",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "umbreon (Umbreon) can't learn Fissure."
       ]
@@ -1955,6 +3064,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655146288",
       "date": "2026-07-26 15:56",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "mrrime (Mr. Rime) can't learn Poltergeist."
       ]
@@ -1962,6 +3074,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655143892",
       "date": "2026-07-26 15:49",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "chandelure (Chandelure) can't learn Hyper Voice."
       ]
@@ -1969,6 +3084,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655142618",
       "date": "2026-07-26 15:44",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Shadow Ball."
       ]
@@ -1976,6 +3094,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655135462",
       "date": "2026-07-26 15:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "heliolisk (Heliolisk) can't learn Bitter Malice."
       ]
@@ -1983,6 +3104,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655131137",
       "date": "2026-07-26 15:16",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "decidueyehisui (Decidueye-Hisui) can't learn Icy Wind."
       ]
@@ -1990,6 +3114,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655126195",
       "date": "2026-07-26 15:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sneasler (Sneasler) can't learn Hyper Voice."
       ]
@@ -1997,6 +3124,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655116005",
       "date": "2026-07-26 14:31",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "talonflame (Talonflame) can't learn Shadow Ball."
       ]
@@ -2004,6 +3134,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655173090",
       "date": "2026-07-26 17:04",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "milotic (Milotic) can't learn Shadow Ball."
       ]
@@ -2011,6 +3144,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655171383",
       "date": "2026-07-26 17:01",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "glimmora (Glimmora) can't learn Trick."
       ]
@@ -2018,6 +3154,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655165327",
       "date": "2026-07-26 16:44",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Bitter Malice."
       ]
@@ -2025,6 +3164,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655163876",
       "date": "2026-07-26 16:41",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "mudsdale (Mudsdale) can't learn Sludge Bomb."
       ]
@@ -2032,6 +3174,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655163059",
       "date": "2026-07-26 16:41",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "raichu (Raichu) can't learn Icy Wind."
       ]
@@ -2039,6 +3184,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655156603",
       "date": "2026-07-26 16:23",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "lopunny (Lopunny) can't learn Nasty Plot."
       ]
@@ -2046,6 +3194,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655152695",
       "date": "2026-07-26 16:11",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "banette (Banette) can't learn Flamethrower."
       ]
@@ -2053,6 +3204,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655152498",
       "date": "2026-07-26 16:10",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Nasty Plot."
       ]
@@ -2060,6 +3214,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655151412",
       "date": "2026-07-26 16:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sableyemega (Sableye-Mega) can't learn Entrainment."
       ]
@@ -2067,6 +3224,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655149912",
       "date": "2026-07-26 16:06",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "staraptor (Staraptor) can't learn Bitter Malice."
       ]
@@ -2074,6 +3234,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655215498",
       "date": "2026-07-26 18:51",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "weavile (Weavile) can't learn Hyper Voice."
       ]
@@ -2081,6 +3244,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655189810",
       "date": "2026-07-26 17:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "pyroar (Pyroar) can't learn Bitter Malice."
       ]
@@ -2088,6 +3254,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655187833",
       "date": "2026-07-26 17:43",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "milotic (Milotic) can't learn Shadow Ball."
       ]
@@ -2095,6 +3264,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655232508",
       "date": "2026-07-26 19:32",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "swampert (Swampert) can't learn Will-O-Wisp."
       ]
@@ -2102,6 +3274,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655229696",
       "date": "2026-07-26 19:24",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn Nasty Plot."
       ]
@@ -2109,6 +3284,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655229168",
       "date": "2026-07-26 19:23",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "swampert (Swampert) can't learn Will-O-Wisp."
       ]
@@ -2116,6 +3294,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655227165",
       "date": "2026-07-26 19:19",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kangaskhanmega (Kangaskhan-Mega) can't learn Nasty Plot."
       ]
@@ -2123,6 +3304,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655251957",
       "date": "2026-07-26 20:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sneasler (Sneasler) can't learn Night Daze."
       ]
@@ -2130,6 +3314,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655247181",
       "date": "2026-07-26 20:10",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Hyper Voice."
       ]
@@ -2137,6 +3324,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655246176",
       "date": "2026-07-26 20:05",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Shadow Ball."
       ]
@@ -2144,6 +3334,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655287951",
       "date": "2026-07-26 21:53",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn Nasty Plot."
       ]
@@ -2151,6 +3344,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655278895",
       "date": "2026-07-26 21:29",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "liepard (Liepard) can't learn Kowtow Cleave."
       ]
@@ -2158,6 +3354,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655275985",
       "date": "2026-07-26 21:28",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Icy Wind."
       ]
@@ -2165,6 +3364,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655276000",
       "date": "2026-07-26 21:27",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "espeon (Espeon) can't learn Encore."
       ]
@@ -2172,6 +3374,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655278120",
       "date": "2026-07-26 21:26",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Icy Wind."
       ]
@@ -2179,6 +3384,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655274203",
       "date": "2026-07-26 21:18",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "lucario (Lucario) can't learn Icy Wind."
       ]
@@ -2186,6 +3394,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655295745",
       "date": "2026-07-26 22:13",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "camerupt (Camerupt) can't learn Icy Wind."
       ]
@@ -2193,6 +3404,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655317947",
       "date": "2026-07-26 23:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "talonflame (Talonflame) can't learn Nasty Plot."
       ]
@@ -2200,6 +3414,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655311668",
       "date": "2026-07-26 22:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "raichu (Raichu) can't learn Hyper Voice."
       ]
@@ -2207,6 +3424,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655308664",
       "date": "2026-07-26 22:47",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "raichu (Raichu) can't learn Hyper Voice."
       ]
@@ -2214,6 +3434,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655305233",
       "date": "2026-07-26 22:41",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "clefablemega (Clefable-Mega) can't learn Yawn."
       ]
@@ -2221,6 +3444,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655298765",
       "date": "2026-07-26 22:20",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sceptile (Sceptile) can't learn Bitter Malice.",
         "ninetalesalola (Ninetales-Alola) can't learn Bitter Malice."
@@ -2229,6 +3455,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655336913",
       "date": "2026-07-27 00:05",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kangaskhan (Kangaskhan) can't learn Bitter Malice."
       ]
@@ -2236,6 +3465,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655335528",
       "date": "2026-07-27 00:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "swampert (Swampert) can't learn Snarl."
       ]
@@ -2243,6 +3475,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655333460",
       "date": "2026-07-26 23:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "swampert (Swampert) can't learn Snarl."
       ]
@@ -2250,6 +3485,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655332445",
       "date": "2026-07-26 23:52",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "basculegion (Basculegion) can't learn Bitter Malice."
       ]
@@ -2257,6 +3495,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655342977",
       "date": "2026-07-27 00:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "heliolisk (Heliolisk) can't learn Bitter Malice."
       ]
@@ -2264,6 +3505,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655420419",
       "date": "2026-07-27 04:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Hyper Voice."
       ]
@@ -2271,6 +3515,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655415926",
       "date": "2026-07-27 03:45",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Shadow Ball."
       ]
@@ -2278,6 +3525,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655413840",
       "date": "2026-07-27 03:40",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Boomburst."
       ]
@@ -2285,6 +3535,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655409208",
       "date": "2026-07-27 03:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aurorus (Aurorus) can't learn Bitter Malice."
       ]
@@ -2292,6 +3545,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655407715",
       "date": "2026-07-27 03:20",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "pinsir (Pinsir) can't learn Sludge Bomb."
       ]
@@ -2299,6 +3555,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655396567",
       "date": "2026-07-27 02:53",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Hyper Voice."
       ]
@@ -2306,6 +3565,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655394032",
       "date": "2026-07-27 02:44",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Memento."
       ]
@@ -2313,6 +3575,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655393895",
       "date": "2026-07-27 02:43",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Hyper Voice."
       ]
@@ -2320,6 +3585,10 @@
     {
       "id": "gen9championsvgc2026regmb-2655392621",
       "date": "2026-07-27 02:37",
+      "classes": [
+        "move",
+        "species"
+      ],
       "reasons": [
         "indeedee (Indeedee) does not exist in Gen 9.",
         "indeedee (Indeedee)'s move Mystical Fire can't be transferred from Gen 8 to 9.",
@@ -2333,6 +3602,10 @@
     {
       "id": "gen9championsvgc2026regmb-2655391125",
       "date": "2026-07-27 02:36",
+      "classes": [
+        "move",
+        "species"
+      ],
       "reasons": [
         "indeedee (Indeedee) does not exist in Gen 9.",
         "indeedee (Indeedee)'s move Mystical Fire can't be transferred from Gen 8 to 9.",
@@ -2346,6 +3619,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655390970",
       "date": "2026-07-27 02:33",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "malamar (Malamar) can't learn Memento."
       ]
@@ -2353,6 +3629,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655389605",
       "date": "2026-07-27 02:33",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gholdengo (Gholdengo) can't learn Hyper Voice.",
         "whimsicott (Whimsicott) can't learn Hyper Voice."
@@ -2361,6 +3640,10 @@
     {
       "id": "gen9championsvgc2026regmb-2655390952",
       "date": "2026-07-27 02:32",
+      "classes": [
+        "move",
+        "species"
+      ],
       "reasons": [
         "amoonguss (Amoonguss) does not exist in Gen 9.",
         "smeargle (Smeargle) does not exist in Gen 9.",
@@ -2374,6 +3657,10 @@
     {
       "id": "gen9championsvgc2026regmb-2655390502",
       "date": "2026-07-27 02:31",
+      "classes": [
+        "move",
+        "species"
+      ],
       "reasons": [
         "amoonguss (Amoonguss) does not exist in Gen 9.",
         "smeargle (Smeargle) does not exist in Gen 9.",
@@ -2387,6 +3674,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655387266",
       "date": "2026-07-27 02:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Snarl."
       ]
@@ -2394,6 +3684,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655385913",
       "date": "2026-07-27 02:20",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "lopunny (Lopunny) can't learn Bitter Malice."
       ]
@@ -2401,6 +3694,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655383341",
       "date": "2026-07-27 02:13",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Hyper Voice."
       ]
@@ -2408,6 +3704,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655478397",
       "date": "2026-07-27 07:36",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "blaziken (Blaziken) can't learn Hyper Voice."
       ]
@@ -2415,6 +3714,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655477426",
       "date": "2026-07-27 07:33",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "lycanrocdusk (Lycanroc-Dusk) can't learn Sludge Bomb."
       ]
@@ -2422,6 +3724,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655473761",
       "date": "2026-07-27 07:18",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "blaziken (Blaziken) can't learn Shadow Ball."
       ]
@@ -2429,6 +3734,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655470617",
       "date": "2026-07-27 07:07",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "liepard (Liepard) can't learn Last Respects."
       ]
@@ -2436,6 +3744,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655463596",
       "date": "2026-07-27 06:39",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hawlucha (Hawlucha) can't learn Hyper Voice."
       ]
@@ -2443,6 +3754,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655459597",
       "date": "2026-07-27 06:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "golurk (Golurk) can't learn Nasty Plot."
       ]
@@ -2450,6 +3764,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655458191",
       "date": "2026-07-27 06:14",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sharpedo (Sharpedo) can't learn Sludge Bomb."
       ]
@@ -2457,6 +3774,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655535583",
       "date": "2026-07-27 11:15",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Round."
       ]
@@ -2464,6 +3784,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655534932",
       "date": "2026-07-27 11:13",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn Will-O-Wisp."
       ]
@@ -2471,6 +3794,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655533959",
       "date": "2026-07-27 11:10",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Bitter Malice."
       ]
@@ -2478,6 +3804,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655532992",
       "date": "2026-07-27 11:06",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Will-O-Wisp."
       ]
@@ -2485,6 +3814,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655532377",
       "date": "2026-07-27 11:03",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn Bitter Malice."
       ]
@@ -2492,6 +3824,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655530779",
       "date": "2026-07-27 10:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Bitter Malice."
       ]
@@ -2499,6 +3834,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655530274",
       "date": "2026-07-27 10:57",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "staraptor (Staraptor) can't learn Taunt."
       ]
@@ -2506,6 +3844,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655529979",
       "date": "2026-07-27 10:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Snarl."
       ]
@@ -2513,6 +3854,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655529283",
       "date": "2026-07-27 10:52",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Will-O-Wisp."
       ]
@@ -2520,6 +3864,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655528553",
       "date": "2026-07-27 10:50",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Round."
       ]
@@ -2527,6 +3874,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655526613",
       "date": "2026-07-27 10:44",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aerodactyl (Aerodactyl) can't learn Snarl."
       ]
@@ -2534,6 +3884,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655523373",
       "date": "2026-07-27 10:32",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Parting Shot."
       ]
@@ -2541,6 +3894,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655523029",
       "date": "2026-07-27 10:29",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "starmie (Starmie) can't learn Taunt."
       ]
@@ -2548,6 +3904,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655619375",
       "date": "2026-07-27 15:05",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "lopunny (Lopunny) can't learn Will-O-Wisp."
       ]
@@ -2555,6 +3914,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655610701",
       "date": "2026-07-27 14:45",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "archaludon (Archaludon) can't learn Taunt."
       ]
@@ -2562,6 +3924,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655609553",
       "date": "2026-07-27 14:41",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "pyroar (Pyroar) can't learn Shadow Ball."
       ]
@@ -2569,6 +3934,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655603751",
       "date": "2026-07-27 14:28",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gallade (Gallade) can't learn Bitter Malice."
       ]
@@ -2576,6 +3944,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655677362",
       "date": "2026-07-27 17:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gholdengo (Gholdengo) can't learn Hyper Voice."
       ]
@@ -2583,6 +3954,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655676530",
       "date": "2026-07-27 17:08",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "archaludon (Archaludon) can't learn Taunt."
       ]
@@ -2590,6 +3964,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655661802",
       "date": "2026-07-27 16:36",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "tsareena (Tsareena) can't learn Psychic."
       ]
@@ -2597,6 +3974,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655656702",
       "date": "2026-07-27 16:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "meowscarada (Meowscarada) can't learn Swords Dance."
       ]
@@ -2604,6 +3984,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655652626",
       "date": "2026-07-27 16:17",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aerodactylmega (Aerodactyl-Mega) can't learn Hyper Voice."
       ]
@@ -2611,6 +3994,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655721660",
       "date": "2026-07-27 18:47",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Trick."
       ]
@@ -2618,6 +4004,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655699421",
       "date": "2026-07-27 17:59",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "liepard (Liepard) can't learn Trick Room."
       ]
@@ -2625,6 +4014,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655692335",
       "date": "2026-07-27 17:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "liepard (Liepard) can't learn Last Respects."
       ]
@@ -2632,6 +4024,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655773600",
       "date": "2026-07-27 20:35",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Taunt."
       ]
@@ -2639,6 +4034,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655766358",
       "date": "2026-07-27 20:20",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "blaziken (Blaziken) can't learn Sludge Bomb."
       ]
@@ -2646,6 +4044,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655766356",
       "date": "2026-07-27 20:17",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "blastoise (Blastoise) can't learn Nasty Plot."
       ]
@@ -2653,6 +4054,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655815623",
       "date": "2026-07-27 22:13",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "mausholdfour (Maushold-Four) can't learn Icy Wind."
       ]
@@ -2660,6 +4064,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655791297",
       "date": "2026-07-27 21:15",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "absolmega (Absol-Mega) can't learn Roar."
       ]
@@ -2667,6 +4074,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655456902",
       "date": "2026-07-27 06:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "lycanrocdusk (Lycanroc-Dusk) can't learn Bitter Malice."
       ]
@@ -2674,6 +4084,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655455094",
       "date": "2026-07-27 06:02",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "torkoal (Torkoal) can't learn Hyper Voice."
       ]
@@ -2681,6 +4094,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655452900",
       "date": "2026-07-27 05:54",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "dragonitemega (Dragonite-Mega) can't learn Bitter Malice."
       ]
@@ -2688,6 +4104,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655444714",
       "date": "2026-07-27 05:23",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sharpedo (Sharpedo) can't learn Focus Blast."
       ]
@@ -2695,6 +4114,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655443039",
       "date": "2026-07-27 05:18",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn Bitter Malice."
       ]
@@ -2702,6 +4124,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655442282",
       "date": "2026-07-27 05:13",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "maushold (Maushold) can't learn Round."
       ]
@@ -2709,6 +4134,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655438855",
       "date": "2026-07-27 05:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "grimmsnarl (Grimmsnarl) can't learn Bitter Malice."
       ]
@@ -2716,6 +4144,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655842468",
       "date": "2026-07-27 23:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Parting Shot."
       ]
@@ -2723,6 +4154,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655828827",
       "date": "2026-07-27 22:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "slowbrogalar (Slowbro-Galar) can't learn Bitter Malice."
       ]
@@ -2730,6 +4164,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655861927",
       "date": "2026-07-28 00:11",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Night Daze."
       ]
@@ -2737,6 +4174,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655859710",
       "date": "2026-07-28 00:06",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Boomburst."
       ]
@@ -2744,6 +4184,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655856029",
       "date": "2026-07-27 23:56",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Focus Blast."
       ]
@@ -2751,6 +4194,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655855245",
       "date": "2026-07-27 23:53",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Focus Blast."
       ]
@@ -2758,6 +4204,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655938074",
       "date": "2026-07-28 03:33",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Skitter Smack."
       ]
@@ -2765,6 +4214,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655937102",
       "date": "2026-07-28 03:30",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sinistcha (Sinistcha) can't learn Icy Wind."
       ]
@@ -2772,6 +4224,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655935796",
       "date": "2026-07-28 03:30",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "camerupt (Camerupt) can't learn Icy Wind."
       ]
@@ -2779,6 +4234,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655929732",
       "date": "2026-07-28 03:11",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Boomburst."
       ]
@@ -2786,6 +4244,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655922875",
       "date": "2026-07-28 02:54",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "camerupt (Camerupt) can't learn Psychic."
       ]
@@ -2793,6 +4254,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655922865",
       "date": "2026-07-28 02:52",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "torkoal (Torkoal) can't learn Nasty Plot."
       ]
@@ -2800,6 +4264,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655920912",
       "date": "2026-07-28 02:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "mawile (Mawile) can't learn Hyper Voice."
       ]
@@ -2807,6 +4274,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655905338",
       "date": "2026-07-28 02:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "tinkaton (Tinkaton) can't learn Flamethrower.",
         "hydreigon (Hydreigon) can't learn Icy Wind."
@@ -2815,6 +4285,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655876478",
       "date": "2026-07-28 00:52",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Bitter Malice."
       ]
@@ -2822,6 +4295,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655875733",
       "date": "2026-07-28 00:49",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sinistcha (Sinistcha) can't learn Snarl."
       ]
@@ -2829,6 +4305,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655875459",
       "date": "2026-07-28 00:48",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "arcaninehisui (Arcanine-Hisui) can't learn Icy Wind."
       ]
@@ -2836,6 +4315,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655870946",
       "date": "2026-07-28 00:36",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "glimmora (Glimmora) can't learn Round."
       ]
@@ -2843,6 +4325,10 @@
     {
       "id": "gen9championsvgc2026regmb-2655860561",
       "date": "2026-07-28 00:12",
+      "classes": [
+        "move",
+        "species"
+      ],
       "reasons": [
         "salamence (Salamence) does not exist in Gen 9.",
         "riolu (Riolu) does not exist in Gen 9.",
@@ -2852,6 +4338,10 @@
     {
       "id": "gen9championsvgc2026regmb-2655858304",
       "date": "2026-07-28 00:12",
+      "classes": [
+        "move",
+        "species"
+      ],
       "reasons": [
         "salamence (Salamence) does not exist in Gen 9.",
         "riolu (Riolu) does not exist in Gen 9.",
@@ -2861,6 +4351,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655992278",
       "date": "2026-07-28 06:39",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "ninetalesalola (Ninetales-Alola) can't learn Shadow Ball."
       ]
@@ -2868,6 +4361,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655990317",
       "date": "2026-07-28 06:30",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "ceruledge (Ceruledge) can't learn Hyper Voice."
       ]
@@ -2875,6 +4371,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655980710",
       "date": "2026-07-28 05:57",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Icy Wind."
       ]
@@ -2882,6 +4381,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655995479",
       "date": "2026-07-28 06:52",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gholdengo (Gholdengo) can't learn Bitter Malice."
       ]
@@ -2889,6 +4391,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655995483",
       "date": "2026-07-28 06:51",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kleavor (Kleavor) can't learn Bitter Malice."
       ]
@@ -2896,6 +4401,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655994265",
       "date": "2026-07-28 06:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "mausholdfour (Maushold-Four) can't learn Aqua Jet."
       ]
@@ -2903,6 +4411,9 @@
     {
       "id": "gen9championsvgc2026regmb-2655993554",
       "date": "2026-07-28 06:44",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sneasler (Sneasler) can't learn Bitter Malice."
       ]
@@ -2910,6 +4421,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656203899",
       "date": "2026-07-28 16:54",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "primarina (Primarina) can't learn Memento."
       ]
@@ -2917,6 +4431,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656174072",
       "date": "2026-07-28 15:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "liepard (Liepard) can't learn Fly."
       ]
@@ -2924,6 +4441,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656160013",
       "date": "2026-07-28 15:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "clefable (Clefable) can't learn Memento."
       ]
@@ -2931,6 +4451,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656153650",
       "date": "2026-07-28 15:11",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "archaludon (Archaludon) can't learn Hyper Voice."
       ]
@@ -2938,6 +4461,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656252512",
       "date": "2026-07-28 18:39",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "grimmsnarl (Grimmsnarl) can't learn Hyper Voice."
       ]
@@ -2945,6 +4471,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656246877",
       "date": "2026-07-28 18:28",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "glimmora (Glimmora) can't learn Taunt."
       ]
@@ -2952,6 +4481,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656241556",
       "date": "2026-07-28 18:14",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "tsareena (Tsareena) can't learn Shadow Ball."
       ]
@@ -2959,6 +4491,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656240369",
       "date": "2026-07-28 18:10",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "malamar (Malamar) can't learn Snarl."
       ]
@@ -2966,6 +4501,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656238277",
       "date": "2026-07-28 18:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Bitter Malice."
       ]
@@ -2973,6 +4511,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656232917",
       "date": "2026-07-28 17:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Bitter Malice."
       ]
@@ -2980,6 +4521,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656225860",
       "date": "2026-07-28 17:43",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "liepard (Liepard) can't learn Tailwind."
       ]
@@ -2987,6 +4531,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656220891",
       "date": "2026-07-28 17:37",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "eelektross (Eelektross) can't learn Bitter Malice."
       ]
@@ -2994,6 +4541,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656222972",
       "date": "2026-07-28 17:35",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "meganium (Meganium) can't learn Extrasensory.",
         "meganiummega (Meganium-Mega) can't learn Extrasensory."
@@ -3002,6 +4552,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656216505",
       "date": "2026-07-28 17:28",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Bitter Malice."
       ]
@@ -3009,6 +4562,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656212923",
       "date": "2026-07-28 17:19",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "staraptor (Staraptor) can't learn Flamethrower."
       ]
@@ -3016,6 +4572,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656380549",
       "date": "2026-07-28 23:30",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "ceruledge (Ceruledge) can't learn Trick."
       ]
@@ -3023,6 +4582,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656379756",
       "date": "2026-07-28 23:29",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "clefablemega (Clefable-Mega) can't learn Parting Shot."
       ]
@@ -3030,6 +4592,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656377545",
       "date": "2026-07-28 23:26",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "umbreon (Umbreon) can't learn Flamethrower."
       ]
@@ -3037,6 +4602,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656374190",
       "date": "2026-07-28 23:18",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "heliolisk (Heliolisk) can't learn Bitter Malice."
       ]
@@ -3044,6 +4612,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656373534",
       "date": "2026-07-28 23:13",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Hyper Voice."
       ]
@@ -3051,6 +4622,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656370095",
       "date": "2026-07-28 23:02",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "samurotthisui (Samurott-Hisui) can't learn Bitter Malice."
       ]
@@ -3058,6 +4632,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656368183",
       "date": "2026-07-28 22:57",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "raichu (Raichu) can't learn Bitter Malice."
       ]
@@ -3065,6 +4642,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656361564",
       "date": "2026-07-28 22:41",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Icy Wind."
       ]
@@ -3072,6 +4652,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656353900",
       "date": "2026-07-28 22:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "tinkaton (Tinkaton) can't learn Sucker Punch."
       ]
@@ -3079,6 +4662,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656345062",
       "date": "2026-07-28 22:01",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gyarados (Gyarados) can't learn Bitter Malice."
       ]
@@ -3086,6 +4672,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656409992",
       "date": "2026-07-29 00:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Icy Wind."
       ]
@@ -3093,6 +4682,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656401452",
       "date": "2026-07-29 00:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "raichu (Raichu) can't learn Taunt."
       ]
@@ -3100,6 +4692,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656399056",
       "date": "2026-07-29 00:18",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "corviknight (Corviknight) can't learn Sludge Bomb."
       ]
@@ -3107,6 +4702,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656385398",
       "date": "2026-07-28 23:41",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "vaporeon (Vaporeon) can't learn Fake Out."
       ]
@@ -3114,6 +4712,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656476626",
       "date": "2026-07-29 03:45",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gardevoir (Gardevoir) can't learn Sludge Bomb.",
         "gardevoirmega (Gardevoir-Mega) can't learn Sludge Bomb."
@@ -3122,6 +4723,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656476105",
       "date": "2026-07-29 03:43",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "camerupt (Camerupt) can't learn Icy Wind."
       ]
@@ -3129,6 +4733,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656474190",
       "date": "2026-07-29 03:37",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Parting Shot."
       ]
@@ -3136,6 +4743,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656470197",
       "date": "2026-07-29 03:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "barbaracle (Barbaracle) can't learn Bitter Malice."
       ]
@@ -3143,6 +4753,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656448926",
       "date": "2026-07-29 02:26",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "meowscarada (Meowscarada) can't learn Bitter Malice."
       ]
@@ -3150,6 +4763,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656443619",
       "date": "2026-07-29 02:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "tinkaton (Tinkaton) can't learn Sucker Punch."
       ]
@@ -3157,6 +4773,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656442414",
       "date": "2026-07-29 02:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gengar (Gengar) can't learn Bitter Malice."
       ]
@@ -3164,6 +4783,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656441305",
       "date": "2026-07-29 02:04",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "lucario (Lucario) can't learn Taunt."
       ]
@@ -3171,6 +4793,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656440248",
       "date": "2026-07-29 02:03",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kangaskhan (Kangaskhan) can't learn Hyper Voice.",
         "kangaskhanmega (Kangaskhan-Mega) can't learn Hyper Voice."
@@ -3179,6 +4804,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656740868",
       "date": "2026-07-29 17:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "klefki (Klefki) can't learn Will-O-Wisp."
       ]
@@ -3186,6 +4814,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656731558",
       "date": "2026-07-29 16:40",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sableyemega (Sableye-Mega) can't learn Parting Shot."
       ]
@@ -3193,6 +4824,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656688624",
       "date": "2026-07-29 15:08",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "diggersby (Diggersby) can't learn Will-O-Wisp."
       ]
@@ -3200,6 +4834,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656787851",
       "date": "2026-07-29 18:39",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aerodactyl (Aerodactyl) can't learn Shadow Ball."
       ]
@@ -3207,6 +4844,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656771319",
       "date": "2026-07-29 18:04",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "slowbromega (Slowbro-Mega) can't learn Bitter Malice."
       ]
@@ -3214,6 +4854,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656763160",
       "date": "2026-07-29 17:49",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Calm Mind."
       ]
@@ -3221,6 +4864,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656749428",
       "date": "2026-07-29 17:23",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gardevoir (Gardevoir) can't learn Snarl."
       ]
@@ -3228,6 +4874,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656745350",
       "date": "2026-07-29 17:23",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Poltergeist."
       ]
@@ -3235,6 +4884,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656799886",
       "date": "2026-07-29 19:03",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Taunt."
       ]
@@ -3242,6 +4894,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656878891",
       "date": "2026-07-29 22:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Focus Blast.",
         "whimsicott (Whimsicott) can't learn Focus Blast."
@@ -3250,6 +4905,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656877756",
       "date": "2026-07-29 21:56",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "staraptor (Staraptor) can't learn Bitter Malice."
       ]
@@ -3257,6 +4915,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656874156",
       "date": "2026-07-29 21:49",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Round."
       ]
@@ -3264,6 +4925,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656859297",
       "date": "2026-07-29 21:13",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "rhyperior (Rhyperior) can't learn Shadow Ball."
       ]
@@ -3271,6 +4935,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656856869",
       "date": "2026-07-29 21:08",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sableyemega (Sableye-Mega) can't learn Parting Shot."
       ]
@@ -3278,6 +4945,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656946022",
       "date": "2026-07-30 01:01",
+      "classes": [
+        "species"
+      ],
       "reasons": [
         "indeedeef (Indeedee-F) does not exist in Gen 9."
       ]
@@ -3285,6 +4955,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656945386",
       "date": "2026-07-30 00:52",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Dark Pulse."
       ]
@@ -3292,6 +4965,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656942791",
       "date": "2026-07-30 00:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "manectric (Manectric) can't learn Shadow Ball."
       ]
@@ -3299,6 +4975,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656940994",
       "date": "2026-07-30 00:42",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Bitter Malice."
       ]
@@ -3306,6 +4985,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656938870",
       "date": "2026-07-30 00:34",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "manectric (Manectric) can't learn Sludge Bomb."
       ]
@@ -3313,6 +4995,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656929785",
       "date": "2026-07-30 00:10",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hydreigon (Hydreigon) can't learn Icy Wind."
       ]
@@ -3320,6 +5005,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656927390",
       "date": "2026-07-30 00:04",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hydreigon (Hydreigon) can't learn Bitter Malice."
       ]
@@ -3327,6 +5015,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656925398",
       "date": "2026-07-30 00:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "umbreon (Umbreon) can't learn Bitter Malice."
       ]
@@ -3334,6 +5025,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656915519",
       "date": "2026-07-29 23:32",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sneasler (Sneasler) can't learn Hyper Voice."
       ]
@@ -3341,6 +5035,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656913365",
       "date": "2026-07-29 23:26",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "greninja (Greninja) can't learn Sludge Bomb."
       ]
@@ -3348,6 +5045,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656912586",
       "date": "2026-07-29 23:24",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "greninja (Greninja) can't learn Shadow Ball."
       ]
@@ -3355,6 +5055,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657000927",
       "date": "2026-07-30 03:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "raichu (Raichu) can't learn Hyper Voice."
       ]
@@ -3362,6 +5065,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656992989",
       "date": "2026-07-30 03:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "corviknight (Corviknight) can't learn Trick."
       ]
@@ -3369,6 +5075,9 @@
     {
       "id": "gen9championsvgc2026regmb-2656975484",
       "date": "2026-07-30 02:14",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "steelix (Steelix) can't learn Throat Chop."
       ]
@@ -3376,6 +5085,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657072101",
       "date": "2026-07-30 07:24",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sneasler (Sneasler) can't learn Hyper Voice."
       ]
@@ -3383,6 +5095,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657066115",
       "date": "2026-07-30 07:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "ceruledge (Ceruledge) can't learn Psychic."
       ]
@@ -3390,6 +5105,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657062591",
       "date": "2026-07-30 06:48",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "grimmsnarl (Grimmsnarl) can't learn Icy Wind."
       ]
@@ -3397,6 +5115,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657056881",
       "date": "2026-07-30 06:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "glimmora (Glimmora) can't learn Shadow Ball."
       ]
@@ -3404,6 +5125,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657056416",
       "date": "2026-07-30 06:22",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "glimmora (Glimmora) can't learn Trick."
       ]
@@ -3411,6 +5135,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657048704",
       "date": "2026-07-30 05:54",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hydreigon (Hydreigon) can't learn Bitter Malice."
       ]
@@ -3418,6 +5145,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657046489",
       "date": "2026-07-30 05:48",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aerodactyl (Aerodactyl) can't learn Bitter Malice."
       ]
@@ -3425,6 +5155,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657111354",
       "date": "2026-07-30 09:53",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Memento."
       ]
@@ -3432,6 +5165,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657090792",
       "date": "2026-07-30 08:36",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "delphox (Delphox) can't learn Taunt."
       ]
@@ -3439,6 +5175,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657165135",
       "date": "2026-07-30 12:54",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Round."
       ]
@@ -3446,6 +5185,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657144638",
       "date": "2026-07-30 11:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Bitter Malice."
       ]
@@ -3453,6 +5195,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657136963",
       "date": "2026-07-30 11:36",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "corviknight (Corviknight) can't learn Trick.",
         "milotic (Milotic) can't learn Trick."
@@ -3461,6 +5206,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657136103",
       "date": "2026-07-30 11:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "milotic (Milotic) can't learn Trick."
       ]
@@ -3468,6 +5216,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657129304",
       "date": "2026-07-30 11:02",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Icy Wind."
       ]
@@ -3475,6 +5226,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657238756",
       "date": "2026-07-30 15:52",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "milotic (Milotic) can't learn Trick."
       ]
@@ -3482,6 +5236,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657236533",
       "date": "2026-07-30 15:44",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gholdengo (Gholdengo) can't learn Icy Wind."
       ]
@@ -3489,6 +5246,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657234408",
       "date": "2026-07-30 15:41",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "milotic (Milotic) can't learn Trick."
       ]
@@ -3496,6 +5256,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657231912",
       "date": "2026-07-30 15:32",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "excadrill (Excadrill) can't learn Hyper Voice."
       ]
@@ -3503,6 +5266,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657224983",
       "date": "2026-07-30 15:16",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Icy Wind."
       ]
@@ -3510,6 +5276,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657223570",
       "date": "2026-07-30 15:13",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "delphox (Delphox) can't learn Icy Wind."
       ]
@@ -3517,6 +5286,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657206353",
       "date": "2026-07-30 14:37",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "ninetalesalola (Ninetales-Alola) can't learn Hyper Voice."
       ]
@@ -3524,6 +5296,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657205334",
       "date": "2026-07-30 14:33",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "basculegion (Basculegion) can't learn Nasty Plot."
       ]
@@ -3531,6 +5306,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657401035",
       "date": "2026-07-30 21:49",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Encore."
       ]
@@ -3538,6 +5316,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657399692",
       "date": "2026-07-30 21:43",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "glimmora (Glimmora) can't learn Shadow Ball."
       ]
@@ -3545,6 +5326,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657387137",
       "date": "2026-07-30 21:12",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Taunt."
       ]
@@ -3552,6 +5336,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657385116",
       "date": "2026-07-30 21:11",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Parting Shot."
       ]
@@ -3559,6 +5346,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657382104",
       "date": "2026-07-30 21:08",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Will-O-Wisp."
       ]
@@ -3566,6 +5356,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657373048",
       "date": "2026-07-30 20:41",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "charizard (Charizard) can't learn Taunt."
       ]
@@ -3573,6 +5366,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657368577",
       "date": "2026-07-30 20:30",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Taunt."
       ]
@@ -3580,6 +5376,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657473847",
       "date": "2026-07-31 00:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Dark Pulse.",
         "whimsicott (Whimsicott) can't learn Bitter Malice."
@@ -3588,6 +5387,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657468790",
       "date": "2026-07-31 00:43",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sinistcha (Sinistcha) can't learn Bitter Malice."
       ]
@@ -3595,6 +5397,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657466778",
       "date": "2026-07-31 00:42",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Bitter Malice."
       ]
@@ -3602,6 +5407,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657457914",
       "date": "2026-07-31 00:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "metagross (Metagross) can't learn Hyper Voice."
       ]
@@ -3609,6 +5417,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657453928",
       "date": "2026-07-31 00:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "milotic (Milotic) can't learn Roar."
       ]
@@ -3616,6 +5427,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657459540",
       "date": "2026-07-31 00:20",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gholdengo (Gholdengo) can't learn Icy Wind."
       ]
@@ -3623,6 +5437,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657458882",
       "date": "2026-07-31 00:19",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "grimmsnarl (Grimmsnarl) can't learn Icy Wind."
       ]
@@ -3630,6 +5447,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657458022",
       "date": "2026-07-31 00:15",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "metagross (Metagross) can't learn Bitter Malice."
       ]
@@ -3637,6 +5457,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657455623",
       "date": "2026-07-31 00:09",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sinistcha (Sinistcha) can't learn Icy Wind."
       ]
@@ -3644,6 +5467,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657454248",
       "date": "2026-07-31 00:06",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "decidueyehisui (Decidueye-Hisui) can't learn Shadow Ball."
       ]
@@ -3651,6 +5477,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657452689",
       "date": "2026-07-31 00:05",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn Memento.",
         "swampert (Swampert) can't learn Bitter Malice."
@@ -3659,6 +5488,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657448997",
       "date": "2026-07-30 23:52",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "aerodactyl (Aerodactyl) can't learn Psychic."
       ]
@@ -3666,6 +5498,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657444524",
       "date": "2026-07-30 23:40",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "golurk (Golurk) can't learn Hyper Voice.",
         "golurkmega (Golurk-Mega) can't learn Hyper Voice."
@@ -3674,6 +5509,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657439230",
       "date": "2026-07-30 23:29",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "malamar (Malamar) can't learn Memento."
       ]
@@ -3681,6 +5519,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657439286",
       "date": "2026-07-30 23:27",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "blaziken (Blaziken) can't learn Icy Wind."
       ]
@@ -3688,6 +5529,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657439975",
       "date": "2026-07-30 23:27",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "swampert (Swampert) can't learn Flamethrower."
       ]
@@ -3695,6 +5539,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657435771",
       "date": "2026-07-30 23:18",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "grimmsnarl (Grimmsnarl) can't learn Rain Dance."
       ]
@@ -3702,6 +5549,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657435438",
       "date": "2026-07-30 23:14",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "rhyperior (Rhyperior) can't learn Shadow Ball."
       ]
@@ -3709,6 +5559,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657435251",
       "date": "2026-07-30 23:14",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "delphox (Delphox) can't learn Taunt."
       ]
@@ -3716,6 +5569,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657585023",
       "date": "2026-07-31 06:46",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gholdengo (Gholdengo) can't learn Bitter Malice."
       ]
@@ -3723,6 +5579,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657567597",
       "date": "2026-07-31 05:37",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "raichu (Raichu) can't learn Hyper Voice."
       ]
@@ -3730,6 +5589,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657566545",
       "date": "2026-07-31 05:36",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "espeon (Espeon) can't learn Encore."
       ]
@@ -3737,6 +5599,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657564354",
       "date": "2026-07-31 05:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "overqwil (Overqwil) can't learn Memento."
       ]
@@ -3744,6 +5609,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657564093",
       "date": "2026-07-31 05:23",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Icy Wind."
       ]
@@ -3751,6 +5619,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657632985",
       "date": "2026-07-31 09:58",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "starmie (Starmie) can't learn Snarl."
       ]
@@ -3758,6 +5629,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657626490",
       "date": "2026-07-31 09:50",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "malamar (Malamar) can't learn Memento."
       ]
@@ -3765,6 +5639,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657625439",
       "date": "2026-07-31 09:28",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "malamar (Malamar) can't learn Memento."
       ]
@@ -3772,6 +5649,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657609900",
       "date": "2026-07-31 08:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "raichu (Raichu) can't learn Bitter Malice."
       ]
@@ -3779,6 +5659,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657600544",
       "date": "2026-07-31 07:49",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "luxray (Luxray) can't learn Icy Wind."
       ]
@@ -3786,6 +5669,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657598742",
       "date": "2026-07-31 07:41",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "slowbro (Slowbro) can't learn Taunt."
       ]
@@ -3793,6 +5679,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657680732",
       "date": "2026-07-31 12:39",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "pikachu (Pikachu) can't learn Shadow Ball."
       ]
@@ -3800,6 +5689,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657674559",
       "date": "2026-07-31 12:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "glimmoramega (Glimmora-Mega) can't learn Shadow Ball."
       ]
@@ -3807,6 +5699,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657673334",
       "date": "2026-07-31 12:17",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Parting Shot."
       ]
@@ -3814,6 +5709,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657665245",
       "date": "2026-07-31 11:52",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "steelix (Steelix) can't learn Bitter Malice.",
         "tyranitar (Tyranitar) can't learn Detect."
@@ -3822,6 +5720,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657659882",
       "date": "2026-07-31 11:34",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "samurotthisui (Samurott-Hisui) can't learn Rock Slide."
       ]
@@ -3829,6 +5730,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657652156",
       "date": "2026-07-31 11:08",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Focus Blast."
       ]
@@ -3836,6 +5740,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657649501",
       "date": "2026-07-31 10:59",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gholdengo (Gholdengo) can't learn Bitter Malice."
       ]
@@ -3843,6 +5750,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657648926",
       "date": "2026-07-31 10:56",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Round."
       ]
@@ -3850,6 +5760,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657743150",
       "date": "2026-07-31 15:16",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "swampert (Swampert) can't learn Taunt."
       ]
@@ -3857,6 +5770,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657736922",
       "date": "2026-07-31 14:59",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "gholdengo (Gholdengo) can't learn Icy Wind."
       ]
@@ -3864,6 +5780,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657736721",
       "date": "2026-07-31 14:57",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Night Daze."
       ]
@@ -3871,6 +5790,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657734887",
       "date": "2026-07-31 14:54",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "incineroar (Incineroar) can't learn Shadow Ball.",
         "ceruledge (Ceruledge) can't learn Icy Wind."
@@ -3879,6 +5801,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657731847",
       "date": "2026-07-31 14:51",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "malamar (Malamar) can't learn Memento."
       ]
@@ -3886,6 +5811,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657731723",
       "date": "2026-07-31 14:49",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "whimsicott (Whimsicott) can't learn Icy Wind."
       ]
@@ -3893,6 +5821,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657729634",
       "date": "2026-07-31 14:42",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "glimmora (Glimmora) can't learn Trick."
       ]
@@ -3900,6 +5831,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657727878",
       "date": "2026-07-31 14:38",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "mimikyu (Mimikyu) can't learn Icy Wind."
       ]
@@ -3907,6 +5841,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657719021",
       "date": "2026-07-31 14:18",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "swampert (Swampert) can't learn Hyper Voice."
       ]
@@ -3914,6 +5851,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657838789",
       "date": "2026-07-31 18:45",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "garchomp (Garchomp) can't learn Nasty Plot."
       ]
@@ -3921,6 +5861,10 @@
     {
       "id": "gen9championsvgc2026regmb-2657817930",
       "date": "2026-07-31 17:59",
+      "classes": [
+        "move",
+        "species"
+      ],
       "reasons": [
         "hariyama (Hariyama) does not exist in Gen 9.",
         "sigilyph (Sigilyph) does not exist in Gen 9.",
@@ -3932,6 +5876,10 @@
     {
       "id": "gen9championsvgc2026regmb-2657815476",
       "date": "2026-07-31 17:55",
+      "classes": [
+        "move",
+        "species"
+      ],
       "reasons": [
         "hariyama (Hariyama) does not exist in Gen 9.",
         "jirachi (Jirachi) is tagged Mythical, which is banned by Flat Rules.",
@@ -3943,6 +5891,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657847441",
       "date": "2026-07-31 19:02",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "liepard (Liepard) can't learn Trick Room."
       ]
@@ -3950,6 +5901,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657915309",
       "date": "2026-07-31 21:42",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "greninja (Greninja) can't learn Flamethrower."
       ]
@@ -3957,6 +5911,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657907765",
       "date": "2026-07-31 21:21",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "decidueyehisui (Decidueye-Hisui) can't learn Shadow Ball."
       ]
@@ -3964,6 +5921,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657903523",
       "date": "2026-07-31 21:13",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "farigiraf (Farigiraf) can't learn Icy Wind."
       ]
@@ -3971,6 +5931,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657894527",
       "date": "2026-07-31 20:50",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sinistcha (Sinistcha) can't learn Bitter Malice."
       ]
@@ -3978,6 +5941,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657879593",
       "date": "2026-07-31 20:15",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "scizor (Scizor) can't learn Shadow Ball."
       ]
@@ -3985,6 +5951,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657984756",
       "date": "2026-08-01 00:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sylveon (Sylveon) can't learn Boomburst."
       ]
@@ -3992,6 +5961,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657969388",
       "date": "2026-08-01 00:11",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "starmiemega (Starmie-Mega) can't learn Hyper Voice."
       ]
@@ -3999,6 +5971,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657965278",
       "date": "2026-07-31 23:57",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "sneasler (Sneasler) can't learn Flamethrower."
       ]
@@ -4006,6 +5981,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657965267",
       "date": "2026-07-31 23:56",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "kingambit (Kingambit) can't learn Shadow Ball."
       ]
@@ -4013,6 +5991,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657958135",
       "date": "2026-07-31 23:36",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "dragonite (Dragonite) can't learn Bitter Malice."
       ]
@@ -4020,6 +6001,9 @@
     {
       "id": "gen9championsvgc2026regmb-2657950836",
       "date": "2026-07-31 23:23",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "archaludon (Archaludon) can't learn Sludge Bomb."
       ]
@@ -4027,6 +6011,9 @@
     {
       "id": "gen9championsvgc2026regmb-2658044172",
       "date": "2026-08-01 03:55",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "avalugg (Avalugg) can't learn Night Daze."
       ]
@@ -4034,6 +6021,9 @@
     {
       "id": "gen9championsvgc2026regmb-2658033536",
       "date": "2026-08-01 03:20",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hatterene (Hatterene) can't learn Simple Beam."
       ]
@@ -4041,6 +6031,9 @@
     {
       "id": "gen9championsvgc2026regmb-2658020605",
       "date": "2026-08-01 02:42",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "maushold (Maushold) can't learn Icy Wind."
       ]
@@ -4048,6 +6041,9 @@
     {
       "id": "gen9championsvgc2026regmb-2658014515",
       "date": "2026-08-01 02:25",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "lopunny (Lopunny) can't learn Trick.",
         "hydreigon (Hydreigon) can't learn Bitter Malice."
@@ -4056,6 +6052,9 @@
     {
       "id": "gen9championsvgc2026regmb-2658005997",
       "date": "2026-08-01 02:00",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "hydreigon (Hydreigon) can't learn Icy Wind."
       ]
@@ -4063,6 +6062,9 @@
     {
       "id": "gen9championsvgc2026regmb-2658006552",
       "date": "2026-08-01 01:59",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "decidueyehisui (Decidueye-Hisui) can't learn Flamethrower."
       ]
@@ -4070,6 +6072,9 @@
     {
       "id": "gen9championsvgc2026regmb-2658005228",
       "date": "2026-08-01 01:56",
+      "classes": [
+        "move"
+      ],
       "reasons": [
         "talonflame (Talonflame) can't learn Dark Pulse.",
         "decidueyehisui (Decidueye-Hisui) can't learn Flamethrower."
