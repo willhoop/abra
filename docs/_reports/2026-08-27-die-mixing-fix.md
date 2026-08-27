@@ -38,6 +38,26 @@ other differential ran beside mine. **A different collision did occur and is rep
 
 ---
 
+
+> **CORRECTION, SAME DAY, AND IT STRENGTHENS THE RESULT.** The artifact committed in this pass is
+> **not the one my own run wrote.** The concurrent agent re-ran `game_differential.js` at 14:16:31Z
+> and again at 14:24:49Z against THEIR release `f9f3a61481cb` — my die fix **plus** their doll-blind
+> family — and it overwrote `data/game-differential.json` while I was staging. **I staged a file
+> another process had just rewritten, which is the torn-read hazard CLAUDE.md names, and it is
+> reported rather than quietly corrected.**
+>
+> It is not a contradiction, because the two runs agree exactly: **961 games, 19 raw, 12
+> board-material, pin digest `f646b0163bc0`**, on two different releases. That is an independent
+> corroboration I did not plan and could not have arranged — the doll-blind family moved neither
+> number, so the whole of 3 -> 14 and 1 -> 12 is the die. My measurement was taken on
+> `f9d6be635d34`; the committed artifact is stamped `f9f3a61481cb`. **Read the stamp, not this
+> paragraph.**
+>
+> The three roster stages were likewise re-run on `f9f3a61481cb` at 14:25 with **verdict
+> distributions identical to mine**, so the withholding noted below is already resolving. The
+> `OWED` item stands as written — it belongs to that batch, not this one.
+
+
 ## THE DEFECT
 
 `engine/medicham2-browser.js` `midEventHash` and `engine/game_differential.js` `midHash` were bare
