@@ -130,11 +130,15 @@ function play(arm) {
   const seen = [];
   const r = G.playGame(A, B, 'directed', 'switchback:' + arm.id, { script,
     onBoundary: (snap, t, S, battle) => {
+      /* IDENTITY-OK: this file's subject IS the stamp. It plants `_switchKey` in the redundancy-control
+       * arm and then READS it back to say whether it survived — going through `rosterKey` here would
+       * hide the very absence being measured behind the resolver's display-state fallback. */
       if (arm.restamp) for (const x of (S.benchA || [])) if (x && !x._switchKey)
         x._switchKey = String(x.name || '').toLowerCase().replace(/-.*$/, '');
       seen.push({ t,
         medi_active: (S.actA || []).map(x => (x ? String(x.name).toLowerCase() : '-')),
         medi_bench: (S.benchA || []).map(x => (x ? String(x.name).toLowerCase() : '-')),
+        /* IDENTITY-OK: the raw stamp is the SUBJECT here — a `null` is the finding, not a lookup to fix. */
         medi_stamp: (S.benchA || []).map(x => (x && x._switchKey) || null),
         sd_active: battle.sides[0].active.map(p => (p ? String(p.species.id) : '-')),
         sd_bench: battle.sides[0].pokemon.filter(p => !p.isActive).map(p => String(p.species.id)) });
@@ -188,7 +192,11 @@ const p0 = G0.buildPair([mk('Morpeko', 'Hunger Switch', ['Aura Wheel']),
                          mk('Espathra', 'Speed Boost', []), mk('Garchomp', 'Rough Skin', [])],
                         { hpBoost: 1 });
 const f0 = G0.freshBodies(p0);
+/* IDENTITY-OK: the RAW stamp on purpose, in both collections. The finding this pair of lines exists to
+ * report is `buildPair` stamping and `freshBodies` dropping — a `null` here is the measurement, and
+ * `rosterKey` would fill it in from the display name and report agreement. */
 const stampedByBuildPair = p0.map(x => (x && x.medi && x.medi._switchKey) || null);
+/* IDENTITY-OK: as above — `freshBodies` dropping the stamp is exactly what this line reports. */
 const stampedByFresh = f0.map(b => (b && b._switchKey) || null);
 /* INVERTED 2026-08-25 (CHANGELOG 5.131.3), AND THE OLD SENSE IS RECORDED RATHER THAN DELETED.
  *

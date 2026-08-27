@@ -7249,6 +7249,9 @@ const RULES = [
     if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
     const self = !aimsAtFoe(e);
     const user = self ? b0 : b0;      // both families here are clicked BY the subject body
+    /* IDENTITY-OK: `need.set` is the MOVE that sets the gate, not a Showdown body — `need.set.id` is
+     * clicked two lines down. A false positive of engine/identity_audit.js's derived chain scan, which
+     * matches `.set.name` on shape and cannot know what `set` is here. */
     return { arm, note: 'the gate is `' + need.v + '`, set by ' + need.set.name + ' on turns 1 and 2, '
         + 'and the move is clicked on turn 3 with two layers on it' + armNote(e),
       scenario: scaffold({ hpA: 4, hpB: 8,

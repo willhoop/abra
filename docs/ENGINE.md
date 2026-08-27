@@ -18,14 +18,15 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-roster-arm-pin.js`, `engine/mc_key.js`, `tests/test-mc-key.js`, `tests/test-mc-seal.js`,
 `tests/probe_room_unburden.js`, `tests/probe_trap_timing.js`,
 `tests/probe_spread_secondary_address.js`,
-`tests/probe_mid_cat_reload.js`, `tests/probe_party_key_collision.js`
+`tests/probe_mid_cat_reload.js`, `tests/probe_party_key_collision.js`, `engine/identity_audit.js`
 
 **Twenty instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
 "thirteen" until `test-bracket-regain.js` on 2026-08-21, "fourteen" until
 `test-encore-fail-silent.js` on 2026-08-22, "fifteen" until `test-immunity-gate.js` and
 `test-tag-params-derived.js`, "seventeen" until `test-resolution-order.js` and "eighteen" until
-`test-roster-arm-pin.js`, both on 2026-08-22, and "nineteen" until `test-mc-seal.js` on 2026-08-23.
+`test-roster-arm-pin.js`, both on 2026-08-22, "nineteen" until `test-mc-seal.js` on 2026-08-23, and
+"twenty" until `identity_audit.js` on 2026-08-26.
 A number typed in prose beside a table is exactly what
 CLAUDE.md records going stale three times over.)*
 
@@ -53,7 +54,8 @@ CLAUDE.md records going stale three times over.)*
 | `test-resolution-order.js` | does an event happen WHERE the authority puts it — four orderings, twelve staged arms judged by two protocol streams with no typed expectation, each arm played twice (clean, then under a NAMED surgical revert of exactly one fix), five reds that must part under their own revert and six controls that must NOT, plus seven engine counters at exact equality as per-arm deltas | anything whose consequence the reducer normalises away, and any ordering nobody staged: it is twelve boards, not a sweep. The multi-hit LOOP, by construction — the authority wraps the whole step list once per hit and this engine wraps it once per move, which is staged as a declared KNOWN-OPEN arm and never as a pass |
 
 | `probe_mid_cat_reload.js` | does the middle arm's category wrapper still reach THIS module after `staged_board.js` re-requires the driver — three loads of the SAME engine, two boards each, arm 2 differing from arm 1 by a trailing comment so no engine difference exists to be, each row asserting board identity AND that the Showdown draws carry `acc`/`crit`/`dmg`; red on demand in a child under `MEDI_MID_CAT_UNSHARED=1`, which must die at the SECOND load with the two first-load rows already green | whether either engine plays the game right — it compares the RULER against itself across a reload. And every OTHER module-scoped binding a reloaded driver inherits: it is one holder, not an audit |
-| `probe_party_key_collision.js` | can the board reader LOSE a body - one staged collision (a transform-on-entry carrier copying the species its own side also brings), read out of BOTH engines' party maps under BOTH keyings, the second in a child because the knob is read at module load; it ASSERTS the identity key (four rows in each engine, the same four, and the rename as a compared `species` leaf) and only MEASURES the display key, because asserting the current behaviour would pin the bug | whether either engine plays the game right - it compares two READERS of one board. And any rename that is not `transformsOnEntry`: the membership comes off `data/tags.json` and is printed, but the arm is ONE ability's carrier, not the seven |
+| `probe_party_key_collision.js` | can the board reader LOSE a body - one staged collision (a transform-on-entry carrier copying the species its own side also brings), read out of BOTH engines' party maps under BOTH keyings, the second in a child because the knob is read at module load; the PARENT is the shipped default (identity) and ASSERTS the fix — four rows in each engine, the same four, and the rename as a compared `species` leaf — while the CHILD is the `MEDI_PARTY_KEY_DISPLAY=1` control and only MEASURES, because asserting the old behaviour would pin the bug (it still reads 3 of 4, one body lost) | whether either engine plays the game right - it compares two READERS of one board. And any rename that is not `transformsOnEntry`: the membership comes off `data/tags.json` and is printed, but the arm is ONE ability's carrier, not the seven |
+| `identity_audit.js` | who answers "which roster body is this", and whether they went through the door — membership DERIVED from `stableKey`'s own source at run time (no list of fields, no list of known-bad spellings), HARD versus SOFT split derived from whether the door's branch announces itself with `say(...)`, every site reported as DOOR / STAMP / ROUTED / DECLARED / UNROUTED, and `--break` plants an unrouted read and fails unless the child goes red | every SOFT-chain site — `.name` and `.species.id` are display reads far more often than identity reads and no static rule separates them (1,301 lines in 164 files, counted and printed); an identity answered with NO chain read at all, e.g. by index into `sf.team`; anything outside `engine/ tests/ build/`; and a wrong `IDENTITY-OK:` declaration, which is why all of them are printed in full every run |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -83,9 +85,141 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 280/296 probed, 16 unprobed
 ```
 
-_stamped 2026-08-26 23:02_
+_stamped 2026-08-26 23:53_
 
 <!-- /GENERATED -->
+
+## THE PARTY KEY LANDED, AND THE SCOREBOARD RE-BASELINED. **WHOLE-GAME CLAUSE 13 OF 961, RAW 18, BOARD-MATERIAL 4 — THE FIRST MEASUREMENT UNDER THE CORRECTED COMPARATOR.** 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.153.0. Register row: ROADMAP **#465, closed**. No release cut
+and none owed. Full account: `docs/_reports/2026-08-26-rebaseline.md`.
+
+### THE DISCONTINUITY IS DECLARED, BECAUSE A DELTA ACROSS IT WOULD BE TWO INSTRUMENTS SUBTRACTED
+
+**THE COMPARATOR CHANGED HERE. NOTHING BEFORE COMPARES TO ANYTHING AFTER, AND THE NUMBER ROSE BECAUSE
+THE CORRECTED COMPARATOR SEES MORE.** `engine/board_state.js`'s `partyMap` keyed the party on the
+DISPLAYED species until this pass, so a transformed body overwrote the one it copied:
+`duplicate_species_in_party` read **20 on every pinned 961-game run and nothing acted on it**. The row
+that survived was decided by whichever body `sf.team` / `side.pokemon` happened to list last, so one
+engine's row described a transformed Ditto and the other's the real Garchomp it had copied.
+
+Fixing that changes which party rows EXIST, which changes the census-coverage credit, which changes
+which clicks the driver makes. Measured on 2026-08-26 and held for a day on exactly this: **109 of 961
+trajectories differ** across the two keyings, against a control of **0 of 961** between two identical
+display-key runs. The ordered game LIST is identical, 961 of 961 — and that criterion is necessary and
+NOT sufficient, because under `--games N` the scheduler takes a fixed prefix of `pairsCached(cfg)` and
+the list *cannot* move whatever the credit does.
+
+So the figures below are published as NEW, not as a delta, and the old ones are retired rather than
+compared to.
+
+| | the first figure under the corrected comparator |
+|---|---|
+| whole-game clause | **13 of 961 — 1.4%** (18 raw, less 5 declared Supreme Overlord, 0 cleared on decision impact) |
+| raw diverged | **18 of 961** |
+| board-material | **4 of 961** — 957 of 961 boards never parted (99.6%) |
+| narration-only | 13 causes, 14 games |
+| reader failures | **`{}`** — was `{"duplicate_species_in_party":20}` |
+| roster identities read from DISPLAY state | **0 / 0 / 0** |
+| census | 754 live / 754 probed / 0 missing — unmoved, and NOT regenerated here |
+| cards | 17 cards, 5 classes |
+
+Pins, all of them: release `6272fa445b73`, `--arm middle --turns 12 --games 1200`,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`
+(digest `9446a684709d`, 643 rows), team pool `0d103fb9fa87`.
+`data/whole-game-baseline.json` re-stamped at **18 of 961 = 1.9%**; no `--force` was needed or used.
+
+### THE NEW WORKLIST — four board-material causes, and two leaves that could not be written before
+
+```
+  turn 8   -damage field 3             recoil values differ  |-damage|p2a:incineroar|20/170par|[from]recoil
+  turn 4   ordering                    |-enditem|p2a|whiteherb  <>  |turn|5
+  turn 6   event missing               |-fail|p1b  <>  |upkeep
+  turn 2   -damage: a different body   |-damage|p2a|H/H  <>  |-damage|p2b|H/H
+```
+
+The last is the spread-target divergence #465's card named as **NOT** the party key, and it survived
+the re-key untouched exactly as predicted — which is why closing the key was never going to take
+board-material to zero.
+
+**`party.species` AND `party.types` ARE IN THE END-STATE WORKLIST FOR THE FIRST TIME.** A transform
+one engine is holding and the authority is not. Under the display key that row had no stable name to
+be reported under at all.
+
+### TWO THINGS BROKE ON THE RE-KEY, AND ONE OF THEM WAS SILENT
+
+A re-key touches identity everywhere — every plant, comparator and serialiser that stores a raw value.
+Both of these were found by looking for them rather than by the run failing.
+
+**THE SIX BENCH PLANTS BUILT THEIR EXPECTED PATH FROM `id(m.name)`.**
+`tests/test-state-differential.js` went **12 FAILS**: every bench plant `caught=true` at the right
+boundary and `localised=false`, because the row reads `p2.party.lopunny.item` and the plant wanted
+`lopunnymega`. Attributed to this batch rather than assumed, by re-running the identical test under
+`MEDI_PARTY_KEY_DISPLAY=1`, which was green. They build the path with `rosterKey(m)` now. This is the
+one instrument whose whole job is proving the comparator can see a bench leaf at all.
+
+**`isDuplicateOfActive` WOULD HAVE DOUBLE-COUNTED EVERY RENAMED BODY AND SAID NOTHING.** It matched a
+party diff's `body` — now the identity key — against `active_species`, the DISPLAYED name. The two
+agree for an ordinary body and stop agreeing for exactly the megas and the transforms, so a mega's
+party row would have been listed in the wire queue beside its own active row. Fixed by asking the
+question in one currency: `board_state.js`'s readers publish `active_keys` through the same
+`stableKey`, and the dedupe reads those. `compare()` walks a named list, so `active_keys` cannot become
+a compared leaf by accident.
+
+### IDENTITY IS ONE DOOR NOW, AND THE CHECK DERIVES ITS MEMBERSHIP
+
+**This is the FIFTH instance of the species-key class, and the previous four fixes were each A LIST OF
+KNOWN-BAD SPELLINGS.** A list cannot catch a form nobody thought of; two of the four got through a
+check that was already written. `engine/identity_audit.js` therefore contains no list of identity
+fields. It reads `stableKey`'s own source at run time, pulls out every property chain the door consults
+on its argument, and scans for those — so a field the door starts consulting tomorrow joins the audit
+with no edit here.
+
+The HARD/SOFT split is derived as well, from whether the door's own branch announces itself as a
+fallback by calling `say(...)`:
+
+```
+  HARD (enforced) : .set.species  .set.name  ._switchKey
+  SOFT (counted)  : .baseSpecies.id  .species.id  .name
+```
+
+**IT OVER-MATCHED ON ITS FIRST RUN, AND THAT RUN IS WHY IT DOES NOT NOW.** The soft test combined
+branch verdicts with AND instead of OR — `return id(x.name);` is its own occurrence, contains `return`
+on the matched line, and breaks the scan before it can see the `say(` one line above it — so every
+fallback chain landed in the ENFORCED set and the audit accused **1,282 sites**, nearly all of them
+ordinary `.name` display reads. Printed before it was wired, per the standing rule. With OR the
+population is 32: **2 DOOR, 4 STAMP, 13 DECLARED, 0 UNROUTED** — and it read **14 UNROUTED** before the
+fixes, which is how the last one was found.
+
+**`rosterSnapshot` WAS STILL ANSWERING THE IDENTITY QUESTION FOR ITSELF** — `key: m._switchKey || null`
+in the one dump whose entire job is saying which body each engine is holding when the game stops. The
+`|| null` was the silent half: an unstamped body reported `null` and NOTHING counted it. Both halves
+route through `rosterKey` now, so a missing stamp lands in `ROSTER_KEY_FALLBACK`, which every run
+prints and which must read 0/0/0. On 961 games it does.
+
+**What walks past the audit is in its own header rather than left to be discovered:** every SOFT-chain
+site (1,301 lines in 164 files); an identity answered with no chain read at all, e.g. by index into
+`sf.team`; any file outside `engine/ tests/ build/`; and a wrong `IDENTITY-OK:` declaration, which is
+why all thirteen are printed in full on every run. `--break` plants an unrouted read of a derived HARD
+chain, re-runs the scan in a child, and fails unless the child went red and named the planted file.
+
+### THE KNOB INVERTED, AND THE RETIRED ONE IS A LOUD NO-OP
+
+`MEDI_PARTY_KEY_DISPLAY=1` is now the positive control that restores the old, wrong keying so a probe
+can MEASURE the collision instead of asserting it — `tests/probe_party_key_collision.js`'s child arm
+still reads **3 of 4 party rows, one body lost**. The retired `MEDI_PARTY_KEY_IDENTITY` prints a notice
+naming the keying the process actually got; a retired knob that silently does nothing is how a run gets
+attributed to an arm it never took.
+
+### NO RELEASE WAS CUT AND NONE IS OWED
+
+`node engine/engine_release.js list` reads **`6272fa445b73 — 0 of 26 files have moved since`** after
+every edit in this batch. `board_state.js`, `game_differential.js` and `identity_audit.js` are the
+reader, the instrument and an audit, and not one of them is in `engine_release.js`'s `SOURCES`. The
+three roster stages, `all_mechanics_fire.js --kind all` and `tests/test-engine-diff.js` are therefore
+**not owed** — the simulator is byte-identical and nothing that plays a game moved.
+
+---
 
 ## A DERIVED TAG WITH 992 USES AND NO READER IN EITHER ENGINE. CENSUS 753 -> **754 LIVE / 754 PROBED / 0 MISSING**. PINNED POOL PREDICTED UNMOVED AND MEASURED UNMOVED. 2026-08-26.
 

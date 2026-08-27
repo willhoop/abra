@@ -750,28 +750,40 @@ function benchRow(b, onField, key) {
             * "it is carrying nothing". `walkBody` skips a null leaf and counts the skip. */
            vol: onField ? null : b.vol };
 }
-/* ---- ROADMAP #465 — `MEDI_PARTY_KEY_IDENTITY=1`: KEY THE PARTY ON THE BODY, NOT ON ITS NAME ------
+/* ---- ROADMAP #465 — THE PARTY IS KEYED ON THE BODY, NOT ON ITS NAME. LANDED 2026-08-26 ----------
  *
- * WHAT THE DISPLAY KEY COSTS, measured rather than argued: `duplicate_species_in_party` reads 20 on
- * every pinned 961-game run and nothing acts on it. A transformed body takes the NAME of the body it
+ * WHAT THE DISPLAY KEY COST, measured rather than argued: `duplicate_species_in_party` read 20 on
+ * every pinned 961-game run and nothing acted on it. A transformed body takes the NAME of the body it
  * copied, so two rows collide and the second overwrites the first — the survivor carrying whichever
- * body `sf.team`/`side.pokemon` happened to list last. On the pinned pool that is one of the two
- * remaining board-parted games: a Ditto that has copied a Garchomp (Life Orb, maxhp 123) lands on the
- * real Garchomp's row (Choice Scarf, maxhp 183) and the two engines then report a party leaf that
- * describes different Pokemon in each of them.
+ * body `sf.team`/`side.pokemon` happened to list last. On the pinned pool that was one of the two
+ * remaining board-parted games: a Ditto that had copied a Garchomp (Life Orb, maxhp 123) landed on
+ * the real Garchomp's row (Choice Scarf, maxhp 183) and the two engines then reported a party leaf
+ * that describes different Pokemon in each of them.
  *
- * THIS IS BEHIND A KNOB AND OFF BY DEFAULT BECAUSE THE RE-KEY MOVES THE MEASUREMENT, NOT ONLY THE
+ * IT WAS HELD BEHIND A KNOB FOR ONE DAY BECAUSE THE RE-KEY MOVES THE MEASUREMENT, NOT ONLY THE
  * ANSWER. `game_differential.js` credits census coverage off `BS.compare(prev, cur)` bucketed by
  * `BS.family(path)`, and the driver then steers every later click toward the least-credited row. A
  * transform reported as `party.MISSING-OR-EXTRA-MEMBER` and a transform reported as `party.species`
- * plus `party.maxhp` are different credit, so the knob has to be MEASURED against the sample before
- * it is allowed to decide a count. See docs/ENGINE.md for the arm that settled it.
+ * plus `party.maxhp` are different credit, so the sample moves: **109 of 961 trajectories differ**
+ * across the two keyings, against a control of 0 of 961 between two identical runs. That is why
+ * landing it came with a RE-BASELINE and not with a delta — `docs/ENGINE.md`, and #465's closing row.
  *
- * SPECIES BECOMES A COMPARED LEAF UNDER THE IDENTITY KEY, and it must: under the display key the
+ * THE KNOB IS NOW THE POSITIVE CONTROL AND IT RESTORES THE OLD, WRONG KEYING. `MEDI_PARTY_KEY_DISPLAY=1`
+ * puts the party back on the displayed species so a probe can MEASURE the collision rather than
+ * assert it. It is not a fallback and nothing selects it automatically: identity is what every
+ * unattended run gets. Setting the retired `MEDI_PARTY_KEY_IDENTITY` is a NO-OP and says so out loud
+ * — a retired knob that silently does nothing is how a run gets attributed to an arm it never took.
+ *
+ * SPECIES IS A COMPARED LEAF UNDER THE IDENTITY KEY, and it must be: under the display key the
  * species IS the key, so a body whose name changed in one engine and not the other was reported as a
  * missing member. Under the identity key the row survives the rename and the rename itself is the
  * finding. */
-const PARTY_KEY_IDENTITY = process.env.MEDI_PARTY_KEY_IDENTITY === '1';
+const PARTY_KEY_IDENTITY = process.env.MEDI_PARTY_KEY_DISPLAY !== '1';
+if (process.env.MEDI_PARTY_KEY_IDENTITY != null) {
+  console.log('  NOTE — MEDI_PARTY_KEY_IDENTITY is RETIRED and this process ignored it. The identity '
+    + 'key is the default since 2026-08-26; MEDI_PARTY_KEY_DISPLAY=1 is the control that restores the '
+    + 'old display keying. This run is keyed on ' + (PARTY_KEY_IDENTITY ? 'IDENTITY' : 'DISPLAY') + '.');
+}
 function partyMap(rows, fails) {
   const out = {};
   for (const r of rows) {
@@ -791,8 +803,9 @@ function partyMap(rows, fails) {
       fails.duplicate_species_in_party = (fails.duplicate_species_in_party || 0) + 1;
       fails.duplicate_species_first = fails.duplicate_species_first || r.species;
     }
-    out[k] = { /* `species` rides ONLY under the identity key — see the header. Absent otherwise, so a
-                * display-keyed board is byte-identical to what it was before this block existed. */
+    out[k] = { /* `species` rides ONLY under the identity key — see the header. Absent under the
+                * `MEDI_PARTY_KEY_DISPLAY=1` control, so that arm is byte-identical to the board this
+                * comparator produced before 2026-08-26 and the control is a real control. */
                ...(PARTY_KEY_IDENTITY ? { species: r.species } : {}),
                hp: r.hp, maxhp: r.maxhp, fainted: r.fainted, status: r.status,
                        types: r.types, item: r.item, status_counter: r.status_counter,
@@ -1051,6 +1064,13 @@ function readMedi(S, ctx) {
       return partyMap(((sf && sf.team) || []).map(
         m => benchRow(mediBody(m, id, ctx), on.has(m), stableKey(m, id, keyNote(ctx.fails)))), ctx.fails); })(),
     active: [0, 1].map(i => mediBody(act[i], id, ctx)),
+    /* WHICH PARTY ROWS ARE STANDING, BY THE SAME KEY THE PARTY IS KEYED ON. `compare()` never walks
+     * this — it walks a named list — so it cannot become a compared leaf. It exists because a reader
+     * that de-duplicates "this party row is a second view of an active body" has to ask the question
+     * in ONE currency: `game_differential.js` matched a party key against the DISPLAYED active species
+     * and that stopped being the same thing the moment ROADMAP #465 keyed the party on identity. A
+     * renamed body (a mega, a transform) would have had its party row counted twice. */
+    active_keys: [0, 1].map(i => (act[i] ? stableKey(act[i], id, keyNote(ctx.fails)) : null)),
     /* PP SITS BESIDE THE BODY AND NOT INSIDE IT, exactly as `screens.named` does, because it is the
      * one leaf an engine may be UNABLE TO EXPRESS. A release cut before ROADMAP #144 has no `_pp` and
      * no `ppSpentMap`, and folding an inexpressible field into the body would make every board of
@@ -1102,6 +1122,13 @@ function readShowdown(battle, ctx) {
       return partyMap((sd.pokemon || []).map(
         p => benchRow(sdBody(p, id, ctx), on.has(p), stableKey(p, id, keyNote(ctx.fails)))), ctx.fails); })(),
     active: [0, 1].map(i => sdBody((sd.active || [])[i], id, ctx)),
+    /* WHICH PARTY ROWS ARE STANDING, BY THE SAME KEY THE PARTY IS KEYED ON. `compare()` never walks
+     * this — it walks a named list — so it cannot become a compared leaf. It exists because a reader
+     * that de-duplicates "this party row is a second view of an active body" has to ask the question
+     * in ONE currency: `game_differential.js` matched a party key against the DISPLAYED active species
+     * and that stopped being the same thing the moment ROADMAP #465 keyed the party on identity. A
+     * renamed body (a mega, a transform) would have had its party row counted twice. */
+    active_keys: [0, 1].map(i => ((sd.active || [])[i] ? stableKey((sd.active || [])[i], id, keyNote(ctx.fails)) : null)),
     /* HELD ON BOTH SIDES OR NEITHER. A hold that only silenced OUR side would leave Showdown's map
      * walking against `null` and report every move as present-in-one-engine-only — a manufactured
      * divergence, which is worse than the thing being held. */

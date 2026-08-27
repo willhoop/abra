@@ -134,8 +134,16 @@ function stage(carrier) {
   return { battle, roster: battle.p2.pokemon, bodies, pairB };
 }
 
-/* The medicham2 body for `carrier`, moved into active slot 0 exactly as a pivot would leave it. */
+/* The medicham2 body for `carrier`, moved into active slot 0 exactly as a pivot would leave it.
+ *
+ * IDENTITY-OK: this file is the TEST OF the door (engine/board_state.js stableKey), and it locates its
+ * own fixture bodies WITHOUT calling the thing under test. Finding the carrier with `rosterKey` would
+ * make every arm below a tautology — the resolver asked to agree with itself — which is the named way
+ * a probe passes for the wrong reason. Same declaration for every `_switchKey`/`set.species` read in
+ * this file: engine/identity_audit.js prints them all on every run. */
 function slotZero(st, carrier) {
+  /* IDENTITY-OK: see this function's header — the test of the door does not use the door to build its
+   * own fixture. */
   const b = st.bodies.find(x => x && id(x._switchKey || x.name) === id(carrier));
   return b;
 }
@@ -145,12 +153,14 @@ for (const arm of ARMS) {
   const st = stage(arm.carrier);
   if (!st) { fail(arm.ability, 'the fixture would not build — buildPair returned null'); continue; }
   const body = slotZero(st, arm.carrier);
+  /* IDENTITY-OK: the fixture's own bodies, found without the resolver — see slotZero's declaration. */
   const other = st.bodies.find(x => x && x !== body && id(x._switchKey || x.name) === 'corviknight');
   if (!body || !other) { fail(arm.ability, 'the fixture has no ' + arm.carrier + ' body to rename'); continue; }
   /* THE EXPECTATION COMES FROM THE FIXTURE, NOT FROM THE RESOLVER. `stage()` puts the carrier third
    * in the team it packs and `side.pokemon` is that order, so `switch 3` is a fact about the
    * fixture. Computing it with the thing under test is how a probe passes for the wrong reason. */
   const want = 2;
+  /* IDENTITY-OK: `set.species` deliberately, for the reason the paragraph above gives. */
   if (id(st.roster[want].set.species) !== id(arm.carrier)) {
     fail(arm.ability, 'the fixture put ' + st.roster[want].set.species + ' third, not ' + arm.carrier); continue;
   }
@@ -221,12 +231,15 @@ for (const arm of ARMS) {
       fail('mega', 'the fixture never mega evolved (species ' + ttar.species.id + ') — the arm would prove nothing');
     } else {
       const bodies = G.freshBodies(pairB);
+      /* IDENTITY-OK: the fixture's own bodies, found without the resolver — see slotZero's declaration. */
       const body = bodies.find(x => x && id(x._switchKey) === 'tyranitar');
       const other = bodies.find(x => x && id(x._switchKey) === 'corviknight');
       const wasActive = ttar.isActive; ttar.isActive = false;   /* so it is a switch CANDIDATE */
       const r = G.mirrorForcedSwitch([true, false], [body, other], battle.p2.pokemon);
       ttar.isActive = wasActive;
       if (r.picks[0] !== 'switch 1' || r.cannot != null) {
+        /* IDENTITY-OK: all three spellings are PRINTED here on purpose — the failure message exists to
+         * say which of them the mega moved and which it did not. */
         fail('mega', 'after mega (species ' + ttar.species.id + ', baseSpecies ' + ttar.baseSpecies.id
           + ', set.species ' + ttar.set.species + ') the mirror answered "' + r.picks[0] + '"'
           + (r.cannot ? ' (' + r.cannot + ')' : '') + ' — wanted switch 1');
@@ -240,6 +253,7 @@ for (const arm of ARMS) {
 {
   const st = stage('Ditto');
   const body = slotZero(st, 'Ditto');
+  /* IDENTITY-OK: the fixture's own bodies, found without the resolver — see slotZero's declaration. */
   const other = st.bodies.find(x => x && x !== body && id(x._switchKey || x.name) === 'corviknight');
   body._switchKey = 'landorustherian'; body.name = 'landorustherian';
   const r = G.mirrorForcedSwitch([true, false], [body, other], st.roster);

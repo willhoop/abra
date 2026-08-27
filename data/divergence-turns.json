@@ -1,7 +1,7 @@
 {
   "what": "DIVERGING GAMES WITH THE LINES EITHER SIDE OF THE SPLIT. A debugging view, not a measurement. Both the RAW emitted line and the REDUCED line the comparator decides on are kept: the reduced form is what decided, the raw form is what has to be fixed.",
-  "generated": "2026-08-26T05:36:14.233Z",
-  "engine_release": "4174fe78d1ee",
+  "generated": "2026-08-27T03:43:57.489Z",
+  "engine_release": "6272fa445b73",
   "team_store_pinned_to": "data/team-pool-frozen",
   "closet": {
     "ability": "illusion",
@@ -512,62 +512,62 @@
     "why": "OUR shelf, not the format's: zoroark is isNonstandard:null and legal to bring. ROADMAP #160 — Illusion is in the closet because a body pretending to be another body makes every divergence it causes unreadable as a rule defect. Derived from the ABILITY so a carrier added next regulation is covered without an edit. THE RULE IS APPLIED TO THE SHEET AND THE BATTLE BRINGS ONLY THE FIRST 4 BUILDABLE BODIES, so a team whose carrier sits past that index is dropped for a body that never enters either engine (see carrier_sheet_slot). Narrowing the rule would CHANGE THE SAMPLE and therefore the headline rate, so it is declared here and owed, not done quietly.",
     "says": "43 team(s) dropped from the pool before pairing for carrying illusion (zoroark, zoroarkhisui)"
   },
-  "games": 21,
-  "of_diverged": 22,
-  "pool_considered": 21,
+  "games": 17,
+  "of_diverged": 18,
+  "pool_considered": 17,
   "arms_in_dump": {
     "shown": {
-      "middle": 21
+      "middle": 17
     },
     "diverged_in_arm": {
-      "middle": 22
+      "middle": 18
     }
   },
   "divergences": [
     {
       "arm": "middle",
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2654016071 vs gen9championsvgc2026regmbbo3-2654363031",
-      "agreed_lines": 71,
-      "cls": "ordering",
-      "cause": "ordering :: |upkeep <> |faint|p1b",
-      "end_reason": "both engines ended the battle",
-      "ended_showdown": true,
-      "ended_medicham": true,
+      "seed": "gen9championsvgc2026regmbbo3-2653843264 vs gen9championsvgc2026regmbbo3-2653816206",
+      "agreed_lines": 103,
+      "cls": "-damage field 3",
+      "cause": "-damage field 3 :: |-damage|p2a|H/Hpar|[from]recoil <> |-damage|p2a|H/Hpar|[from]recoil  [values differ: |-damage|p2a:incineroar|20/170par|[from]recoil vs |-damage|p2a:incineroar|19/170par|[from]recoil]",
+      "end_reason": "the turn cap (12)",
+      "ended_showdown": false,
+      "ended_medicham": false,
       "final_roster": {
-        "mediResult": 0,
+        "mediResult": 1,
         "medicham": {
           "p1": [
             {
-              "name": "archaludon",
-              "key": "archaludon",
-              "hp": 0,
-              "fainted": true,
-              "faintSeq": 428,
+              "name": "farigiraf",
+              "key": "farigiraf",
+              "hp": 116,
+              "fainted": false,
+              "faintSeq": null,
               "where": "active"
             },
             {
-              "name": "staraptor",
-              "key": "staraptor",
-              "hp": 0,
-              "fainted": true,
-              "faintSeq": 426,
+              "name": "metagross",
+              "key": "metagross",
+              "hp": 155,
+              "fainted": false,
+              "faintSeq": null,
               "where": "active"
             }
           ],
           "p2": [
             {
-              "name": "sneasler",
-              "key": "sneasler",
-              "hp": 0,
-              "fainted": true,
-              "faintSeq": 427,
+              "name": "incineroar",
+              "key": "incineroar",
+              "hp": 18,
+              "fainted": false,
+              "faintSeq": null,
               "where": "active"
             },
             {
-              "name": "ninetalesalola",
-              "key": "ninetalesalola",
-              "hp": 148,
+              "name": "whimsicott",
+              "key": "whimsicott",
+              "hp": 135,
               "fainted": false,
               "faintSeq": null,
               "where": "active"
@@ -576,29 +576,33 @@
         },
         "showdown": {
           "p1": {
-            "pokemonLeft": 0,
+            "pokemonLeft": 2,
             "teamSize": 4,
             "mons": [
               {
-                "name": "archaludon",
+                "name": "farigiraf",
+                "key": "farigiraf",
+                "hp": 116,
+                "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "metagross",
+                "key": "metagross",
+                "hp": 155,
+                "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "whimsicott",
+                "key": "whimsicott",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
-                "name": "staraptor",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "pelipper",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "glimmoramega",
+                "name": "staraptormega",
+                "key": "staraptor",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
@@ -606,175 +610,179 @@
             ]
           },
           "p2": {
-            "pokemonLeft": 1,
+            "pokemonLeft": 2,
             "teamSize": 4,
             "mons": [
               {
-                "name": "sneasler",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "ninetalesalola",
-                "hp": 148,
+                "name": "incineroar",
+                "key": "incineroar",
+                "hp": 19,
                 "fainted": false,
                 "where": "active"
               },
               {
-                "name": "incineroar",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
+                "name": "whimsicott",
+                "key": "whimsicott",
+                "hp": 135,
+                "fainted": false,
+                "where": "active"
               },
               {
-                "name": "gengarmega",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              }
-            ]
-          },
-          "winner": "B"
-        }
-      },
-      "at": {
-        "showdown_raw": "|upkeep",
-        "medicham_raw": "|faint|p1b: Glimmora",
-        "showdown": "|upkeep",
-        "medicham": "|faint|p1b:glimmora"
-      },
-      "before": [
-        "|upkeep",
-        "|turn|4",
-        "|switch|p2a:incineroar|incineroar,l50|170/170",
-        "|-unboost|p1a:archaludon|atk|1",
-        "|-unboost|p1b:glimmora|atk|1",
-        "|switch|p2b:ninetales|ninetalesalola,l50|148/148",
-        "|move|p1b:glimmora|sludgebomb",
-        "|-damage|p2a:incineroar|48/170",
-        "|-status|p2a:incineroar|psn",
-        "|move|p1a:archaludon|flashcannon",
-        "|-resisted|p2a:incineroar|1",
-        "|-damage|p2a:incineroar|9/170psn",
-        "|-weather|snowscape|[upkeep]",
-        "|-damage|p2a:incineroar|0fnt|[from]psn",
-        "|faint|p2a:incineroar",
-        "|-start|p1b:glimmora|perish0"
-      ],
-      "before_raw": [
-        "|upkeep",
-        "|turn|4",
-        "|switch|p2a: Incineroar|incineroar, L50|170/170",
-        "|-unboost|p1a: Archaludon|atk|1",
-        "|-unboost|p1b: Glimmora|atk|1",
-        "|switch|p2b: Ninetales|ninetales-alola, L50|148/148",
-        "|move|p1b: Glimmora|sludgebomb|p2a: Incineroar",
-        "|-damage|p2a: Incineroar|48/170",
-        "|-status|p2a: Incineroar|psn",
-        "|move|p1a: Archaludon|flashcannon|p2a: Incineroar",
-        "|-resisted|p2a: Incineroar|1",
-        "|-damage|p2a: Incineroar|9/170 psn",
-        "|-weather|snowscape|[upkeep]",
-        "|-damage|p2a: Incineroar|0 fnt|[from] psn",
-        "|faint|p2a: Incineroar",
-        "|-start|p1b: Glimmora|perish0"
-      ],
-      "after": {
-        "showdown": [
-          "|upkeep",
-          "|faint|p1b: Glimmora",
-          "|switch|p1b: Staraptor|Staraptor, L50|160/160",
-          "|switch|p2a: Gengar|Gengar-Mega, L50|1/135",
-          "|-unboost|p2a: Gengar|atk|1",
-          "|-unboost|p2b: Ninetales|atk|1",
-          "|turn|5"
-        ],
-        "medicham": [
-          "|faint|p1b: Glimmora",
-          "|upkeep",
-          "|switch|p1b: Staraptor|staraptor, L50|160/160",
-          "|switch|p2a: Gengar|gengar-mega, L50|1/135",
-          "|-unboost|p2a: Gengar|atk|1",
-          "|-unboost|p2b: Ninetales|atk|1"
-        ]
-      }
-    },
-    {
-      "arm": "middle",
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2654515998 vs gen9championsvgc2026regmbbo3-2654545512",
-      "agreed_lines": 80,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-immune|p1a <> |-damage|p1a|H/Hpsn",
-      "end_reason": "both engines ended the battle",
-      "ended_showdown": true,
-      "ended_medicham": true,
-      "final_roster": {
-        "mediResult": 0,
-        "medicham": {
-          "p1": [
-            {
-              "name": "aerodactyl",
-              "key": "aerodactyl",
-              "hp": 0,
-              "fainted": true,
-              "faintSeq": 452,
-              "where": "active"
-            },
-            {
-              "name": "raichumegay",
-              "key": "raichu",
-              "hp": 0,
-              "fainted": true,
-              "faintSeq": 453,
-              "where": "active"
-            }
-          ],
-          "p2": [
-            {
-              "name": "whimsicott",
-              "key": "whimsicott",
-              "hp": 0,
-              "fainted": true,
-              "faintSeq": 450,
-              "where": "active"
-            },
-            {
-              "name": "incineroar",
-              "key": "incineroar",
-              "hp": 74,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            }
-          ]
-        },
-        "showdown": {
-          "p1": {
-            "pokemonLeft": 0,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "aerodactyl",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "raichumegay",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "sylveon",
+                "name": "maushold",
+                "key": "maushold",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
                 "name": "sinistcha",
+                "key": "sinistcha",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              }
+            ]
+          },
+          "winner": null
+        }
+      },
+      "at": {
+        "showdown_raw": "|-damage|p2a: Incineroar|20/170 par|[from] Recoil",
+        "medicham_raw": "|-damage|p2a: Incineroar|19/170 par|[from] Recoil",
+        "showdown": "|-damage|p2a:incineroar|20/170par|[from]recoil",
+        "medicham": "|-damage|p2a:incineroar|19/170par|[from]recoil"
+      },
+      "before": [
+        "|move|p2b:whimsicott|encore",
+        "|-fail|p2b:whimsicott",
+        "|move|p2a:incineroar|partingshot",
+        "|-boost|p1a:staraptor|atk|1",
+        "|-boost|p1a:staraptor|spa|1",
+        "|move|p1b:metagross|psychicfangs",
+        "|-immune|p2a:incineroar",
+        "|upkeep",
+        "|turn|8",
+        "|switch|p1a:whimsicott|whimsicott,l50|135/135",
+        "|move|p2b:whimsicott|encore",
+        "|-fail|p2b:whimsicott",
+        "|move|p2a:incineroar|flareblitz",
+        "|-supereffective|p1a:whimsicott|1",
+        "|-enditem|p1a:whimsicott|focussash",
+        "|-damage|p1a:whimsicott|1/135"
+      ],
+      "before_raw": [
+        "|move|p2b: Whimsicott|encore||[still]",
+        "|-fail|p2b: Whimsicott",
+        "|move|p2a: Incineroar|partingshot|p1a: Staraptor",
+        "|-boost|p1a: Staraptor|atk|1",
+        "|-boost|p1a: Staraptor|spa|1",
+        "|move|p1b: Metagross|psychicfangs|p2a: Incineroar",
+        "|-immune|p2a: Incineroar",
+        "|upkeep",
+        "|turn|8",
+        "|switch|p1a: Whimsicott|whimsicott, L50|135/135",
+        "|move|p2b: Whimsicott|encore||[still]",
+        "|-fail|p2b: Whimsicott",
+        "|move|p2a: Incineroar|flareblitz|p1a: Whimsicott",
+        "|-supereffective|p1a: Whimsicott|1",
+        "|-enditem|p1a: Whimsicott|focussash",
+        "|-damage|p1a: Whimsicott|1/135"
+      ],
+      "after": {
+        "showdown": [
+          "|-damage|p2a: Incineroar|20/170 par|[from] Recoil",
+          "|move|p1b: Metagross|Psychic Fangs|p2a: Incineroar",
+          "|-immune|p2a: Incineroar",
+          "|upkeep",
+          "|turn|9"
+        ],
+        "medicham": [
+          "|-damage|p2a: Incineroar|19/170 par|[from] Recoil",
+          "|move|p1b: Metagross|psychicfangs|p2a: Incineroar",
+          "|-immune|p2a: Incineroar",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "arm": "middle",
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2654016071 vs gen9championsvgc2026regmbbo3-2654363031",
+      "agreed_lines": 76,
+      "cls": "ordering",
+      "cause": "ordering :: |-enditem|p2a|whiteherb <> |turn|5",
+      "end_reason": "both engines ended the battle",
+      "ended_showdown": true,
+      "ended_medicham": true,
+      "final_roster": {
+        "mediResult": 1,
+        "medicham": {
+          "p1": [
+            {
+              "name": "archaludon",
+              "key": "archaludon",
+              "hp": 165,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "staraptor",
+              "key": "staraptor",
+              "hp": 160,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            }
+          ],
+          "p2": [
+            {
+              "name": "incineroar",
+              "key": "incineroar",
+              "hp": 0,
+              "fainted": true,
+              "faintSeq": 418,
+              "where": "active"
+            },
+            {
+              "name": "sneasler",
+              "key": "sneasler",
+              "hp": 0,
+              "fainted": true,
+              "faintSeq": 420,
+              "where": "active"
+            }
+          ]
+        },
+        "showdown": {
+          "p1": {
+            "pokemonLeft": 2,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "archaludon",
+                "key": "archaludon",
+                "hp": 165,
+                "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "staraptor",
+                "key": "staraptor",
+                "hp": 160,
+                "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "pelipper",
+                "key": "pelipper",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "glimmoramega",
+                "key": "glimmora",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
@@ -782,29 +790,224 @@
             ]
           },
           "p2": {
-            "pokemonLeft": 1,
+            "pokemonLeft": 0,
             "teamSize": 4,
             "mons": [
               {
-                "name": "whimsicott",
+                "name": "incineroar",
+                "key": "incineroar",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
-                "name": "incineroar",
+                "name": "sneasler",
+                "key": "sneasler",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "ninetalesalola",
+                "key": "ninetalesalola",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "gengarmega",
+                "key": "gengar",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              }
+            ]
+          },
+          "winner": "A"
+        }
+      },
+      "at": {
+        "showdown_raw": "|-enditem|p2a: Sneasler|White Herb",
+        "medicham_raw": "|turn|5",
+        "showdown": "|-enditem|p2a:sneasler|whiteherb",
+        "medicham": "|turn|5"
+      },
+      "before": [
+        "|-unboost|p1b:glimmora|atk|1",
+        "|move|p1b:glimmora|sludgebomb",
+        "|-supereffective|p2a:ninetales|1",
+        "|-damage|p2a:ninetales|0fnt",
+        "|faint|p2a:ninetales",
+        "|move|p1a:archaludon|flashcannon",
+        "|-resisted|p2b:incineroar|1",
+        "|-damage|p2b:incineroar|131/170",
+        "|-weather|snowscape|[upkeep]",
+        "|-start|p1b:glimmora|perish0",
+        "|upkeep",
+        "|faint|p1b:glimmora",
+        "|switch|p2a:sneasler|sneasler,l50|155/155",
+        "|switch|p1b:staraptor|staraptor,l50|160/160",
+        "|-unboost|p2a:sneasler|atk|1",
+        "|-unboost|p2b:incineroar|atk|1"
+      ],
+      "before_raw": [
+        "|-unboost|p1b: Glimmora|atk|1",
+        "|move|p1b: Glimmora|sludgebomb|p2a: Ninetales",
+        "|-supereffective|p2a: Ninetales|1",
+        "|-damage|p2a: Ninetales|0 fnt",
+        "|faint|p2a: Ninetales",
+        "|move|p1a: Archaludon|flashcannon|p2b: Incineroar",
+        "|-resisted|p2b: Incineroar|1",
+        "|-damage|p2b: Incineroar|131/170",
+        "|-weather|snowscape|[upkeep]",
+        "|-start|p1b: Glimmora|perish0",
+        "|upkeep",
+        "|faint|p1b: Glimmora",
+        "|switch|p2a: Sneasler|sneasler, L50|155/155",
+        "|switch|p1b: Staraptor|staraptor, L50|160/160",
+        "|-unboost|p2a: Sneasler|atk|1",
+        "|-unboost|p2b: Incineroar|atk|1"
+      ],
+      "after": {
+        "showdown": [
+          "|-enditem|p2a: Sneasler|White Herb",
+          "|-clearnegativeboost|p2a: Sneasler|[silent]",
+          "|turn|5",
+          "|switch|p2a: Gengar|Gengar-Mega, L50|1/135",
+          "|move|p2b: Incineroar|Fake Out|p1a: Archaludon",
+          "|-resisted|p1a: Archaludon|1",
+          "|-damage|p1a: Archaludon|159/165",
+          "|-boost|p1a: Archaludon|def|1",
+          "|move|p1b: Staraptor|Close Combat|p2a: Gengar",
+          "|-immune|p2a: Gengar"
+        ],
+        "medicham": [
+          "|turn|5",
+          "|-enditem|p2a: Sneasler|whiteherb",
+          "|-clearnegativeboost|p2a: Sneasler|[silent]",
+          "|switch|p2a: Gengar|gengar-mega, L50|1/135",
+          "|move|p2b: Incineroar|fakeout|p1a: Archaludon",
+          "|-resisted|p1a: Archaludon|1",
+          "|-damage|p1a: Archaludon|159/165",
+          "|-boost|p1a: Archaludon|def|1|[from] ability: stamina",
+          "|move|p1b: Staraptor|closecombat|p2a: Gengar",
+          "|-immune|p2a: Gengar"
+        ]
+      }
+    },
+    {
+      "arm": "middle",
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2654316929 vs gen9championsvgc2026regmbbo3-2654486674",
+      "agreed_lines": 102,
+      "cls": "event missing from medicham2",
+      "cause": "event missing from medicham2 :: |-fail|p1b <> |upkeep",
+      "end_reason": "both engines ended the battle",
+      "ended_showdown": true,
+      "ended_medicham": true,
+      "final_roster": {
+        "mediResult": 0,
+        "medicham": {
+          "p1": [
+            {
+              "name": "beedrillmega",
+              "key": "beedrill",
+              "hp": 0,
+              "fainted": true,
+              "faintSeq": 431,
+              "where": "active"
+            },
+            {
+              "name": "ariados",
+              "key": "ariados",
+              "hp": 0,
+              "fainted": true,
+              "faintSeq": 432,
+              "where": "active"
+            }
+          ],
+          "p2": [
+            {
+              "name": "rotomheat",
+              "key": "rotomheat",
+              "hp": 74,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "sinistcha",
+              "key": "sinistcha",
+              "hp": 76,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            }
+          ]
+        },
+        "showdown": {
+          "p1": {
+            "pokemonLeft": 0,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "beedrillmega",
+                "key": "beedrill",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "ariados",
+                "key": "ariados",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "vivillon",
+                "key": "vivillon",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "ditto",
+                "key": "ditto",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              }
+            ]
+          },
+          "p2": {
+            "pokemonLeft": 2,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "rotomheat",
+                "key": "rotomheat",
                 "hp": 74,
                 "fainted": false,
                 "where": "active"
               },
               {
-                "name": "glimmora",
+                "name": "sinistcha",
+                "key": "sinistcha",
+                "hp": 76,
+                "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "metagrossmega",
+                "key": "metagross",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
-                "name": "pelipper",
+                "name": "primarina",
+                "key": "primarina",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
@@ -815,69 +1018,258 @@
         }
       },
       "at": {
-        "showdown_raw": "|-immune|p1a: Aerodactyl",
-        "medicham_raw": "|-damage|p1a: Aerodactyl|78/155 psn",
-        "showdown": "|-immune|p1a:aerodactyl",
-        "medicham": "|-damage|p1a:aerodactyl|78/155psn"
+        "showdown_raw": "|-fail|p1b: Ariados",
+        "medicham_raw": "|upkeep",
+        "showdown": "|-fail|p1b:ariados",
+        "medicham": "|upkeep"
       },
       "before": [
-        "|move|p1b:raichu|zapcannon",
-        "|-damage|p2a:glimmora|0fnt",
-        "|faint|p2a:glimmora",
-        "|-weather|raindance|[upkeep]",
-        "|-damage|p1b:raichu|84/135psn|[from]psn",
+        "|faint|p1b:ditto",
         "|upkeep",
-        "|switch|p1a:aerodactyl|aerodactyl,l50|128/155psn",
-        "|switch|p2a:whimsicott|whimsicott,l50|135/135",
-        "|turn|5",
-        "|move|p1a:aerodactyl|wideguard",
-        "|-singleturn|p1a:aerodactyl|wideguard",
-        "|move|p2b:pelipper|hurricane",
-        "|-resisted|p1a:aerodactyl|1",
-        "|-damage|p1a:aerodactyl|78/155psn",
-        "|-start|p1a:aerodactyl|confusion",
-        "|move|p2a:whimsicott|endeavor"
+        "|switch|p1a:beedrill|beedrillmega,l50|73/140",
+        "|switch|p1b:ariados|ariados,l50|125/145",
+        "|turn|7",
+        "|move|p1a:beedrill|drillrun",
+        "|-immune|p2a:rotom|[from]levitate",
+        "|move|p2a:rotom|electroweb",
+        "|-damage|p1a:beedrill|31/140",
+        "|-damage|p1b:ariados|79/145",
+        "|-unboost|p1a:beedrill|spe|1",
+        "|-unboost|p1b:ariados|spe|1",
+        "|move|p2b:sinistcha|shadowball",
+        "|-damage|p1a:beedrill|0fnt",
+        "|faint|p1a:beedrill",
+        "|move|p1b:ariados|stickyweb"
       ],
       "before_raw": [
-        "|move|p1b: Raichu|zapcannon|p2a: Glimmora",
-        "|-damage|p2a: Glimmora|0 fnt",
-        "|faint|p2a: Glimmora",
-        "|-weather|raindance|[upkeep]",
-        "|-damage|p1b: Raichu|84/135 psn|[from] psn",
+        "|faint|p1b: Ditto",
         "|upkeep",
-        "|switch|p1a: Aerodactyl|aerodactyl, L50|128/155 psn",
-        "|switch|p2a: Whimsicott|whimsicott, L50|135/135",
-        "|turn|5",
-        "|move|p1a: Aerodactyl|wideguard|p1a: Aerodactyl",
-        "|-singleturn|p1a: Aerodactyl|Wide Guard",
-        "|move|p2b: Pelipper|hurricane|p1a: Aerodactyl",
-        "|-resisted|p1a: Aerodactyl|1",
-        "|-damage|p1a: Aerodactyl|78/155 psn",
-        "|-start|p1a: Aerodactyl|confusion",
-        "|move|p2a: Whimsicott|endeavor|p1a: Aerodactyl"
+        "|switch|p1a: Beedrill|beedrill-mega, L50|73/140",
+        "|switch|p1b: Ariados|ariados, L50|125/145",
+        "|turn|7",
+        "|move|p1a: Beedrill|drillrun|p2a: Rotom",
+        "|-immune|p2a: Rotom|[from] ability: levitate",
+        "|move|p2a: Rotom|electroweb|p1b: Ariados",
+        "|-damage|p1a: Beedrill|31/140",
+        "|-damage|p1b: Ariados|79/145",
+        "|-unboost|p1a: Beedrill|spe|1",
+        "|-unboost|p1b: Ariados|spe|1",
+        "|move|p2b: Sinistcha|shadowball|p1a: Beedrill",
+        "|-damage|p1a: Beedrill|0 fnt",
+        "|faint|p1a: Beedrill",
+        "|move|p1b: Ariados|stickyweb|p1b: Ariados"
       ],
       "after": {
         "showdown": [
-          "|-immune|p1a: Aerodactyl",
-          "|move|p1b: Raichu|Zap Cannon|p2a: Whimsicott",
-          "|-resisted|p2a: Whimsicott|1",
-          "|-damage|p2a: Whimsicott|78/135",
-          "|-status|p2a: Whimsicott|par",
-          "|-weather|RainDance|[upkeep]",
-          "|-damage|p1a: Aerodactyl|59/155 psn|[from] psn",
-          "|-damage|p1b: Raichu|68/135 psn|[from] psn",
+          "|-fail|p1b: Ariados",
           "|upkeep",
-          "|turn|6"
+          "|turn|8"
         ],
         "medicham": [
-          "|-damage|p1a: Aerodactyl|78/155 psn",
-          "|move|p1b: Raichu|zapcannon|p2a: Whimsicott",
-          "|-resisted|p2a: Whimsicott|1",
-          "|-damage|p2a: Whimsicott|78/135",
-          "|-status|p2a: Whimsicott|par",
-          "|-weather|raindance|[upkeep]",
-          "|-damage|p1a: Aerodactyl|59/155 psn|[from] psn",
-          "|-damage|p1b: Raichu|68/135 psn|[from] psn",
+          "|upkeep"
+        ]
+      }
+    },
+    {
+      "arm": "middle",
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2655780718 vs gen9championsvgc2026regmbbo3-2655961808",
+      "agreed_lines": 132,
+      "cls": "extra event emitted by medicham2",
+      "cause": "extra event emitted by medicham2 :: |-enditem|p2a|sitrusberry|[eat] <> |-damage|p2a|H/H",
+      "end_reason": "the turn cap (12)",
+      "ended_showdown": false,
+      "ended_medicham": false,
+      "final_roster": {
+        "mediResult": 0,
+        "medicham": {
+          "p1": [
+            {
+              "name": "annihilape",
+              "key": "annihilape",
+              "hp": 130,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "dragonite",
+              "key": "dragonite",
+              "hp": 32,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "gholdengo",
+              "key": "gholdengo",
+              "hp": 136,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "bench"
+            }
+          ],
+          "p2": [
+            {
+              "name": "incineroar",
+              "key": "incineroar",
+              "hp": 92,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "farigiraf",
+              "key": "farigiraf",
+              "hp": 195,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "gardevoir",
+              "key": "gardevoir",
+              "hp": 143,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "bench"
+            }
+          ]
+        },
+        "showdown": {
+          "p1": {
+            "pokemonLeft": 3,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "annihilape",
+                "key": "annihilape",
+                "hp": 130,
+                "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "dragonite",
+                "key": "dragonite",
+                "hp": 32,
+                "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "maushold",
+                "key": "maushold",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "gholdengo",
+                "key": "gholdengo",
+                "hp": 136,
+                "fainted": false,
+                "where": "bench"
+              }
+            ]
+          },
+          "p2": {
+            "pokemonLeft": 3,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "incineroar",
+                "key": "incineroar",
+                "hp": 92,
+                "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "farigiraf",
+                "key": "farigiraf",
+                "hp": 195,
+                "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "primarina",
+                "key": "primarina",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "gardevoir",
+                "key": "gardevoir",
+                "hp": 143,
+                "fainted": false,
+                "where": "bench"
+              }
+            ]
+          },
+          "winner": null
+        }
+      },
+      "at": {
+        "showdown_raw": "|-enditem|p2a: Incineroar|Sitrus Berry|[eat]",
+        "medicham_raw": "|-damage|p2a: Incineroar|50/170",
+        "showdown": "|-enditem|p2a:incineroar|sitrusberry|[eat]",
+        "medicham": "|-damage|p2a:incineroar|50/170"
+      },
+      "before": [
+        "|move|p2b:farigiraf|trickroom",
+        "|-fieldend|trickroom",
+        "|upkeep",
+        "|turn|12",
+        "|switch|p1a:annihilape|annihilape,l50|119/185",
+        "|switch|p2a:incineroar|incineroar,l50|170/170",
+        "|-unboost|p1a:annihilape|atk|1",
+        "|-boost|p1a:annihilape|atk|2",
+        "|-fail|p1b:dragonite|unboost|attack|[from]innerfocus",
+        "|move|p2b:farigiraf|hypervoice",
+        "|-immune|p1a:annihilape",
+        "|-damage|p1b:dragonite|32/166",
+        "|move|p1b:dragonite|scaleshot",
+        "|-damage|p2a:incineroar|140/170",
+        "|-damage|p2a:incineroar|110/170",
+        "|-damage|p2a:incineroar|80/170"
+      ],
+      "before_raw": [
+        "|move|p2b: Farigiraf|trickroom|p2b: Farigiraf",
+        "|-fieldend|move: Trick Room",
+        "|upkeep",
+        "|turn|12",
+        "|switch|p1a: Annihilape|annihilape, L50|119/185",
+        "|switch|p2a: Incineroar|incineroar, L50|170/170",
+        "|-unboost|p1a: Annihilape|atk|1",
+        "|-boost|p1a: Annihilape|atk|2",
+        "|-fail|p1b: Dragonite|unboost|Attack|[from] ability: innerfocus|[of] p1b: Dragonite",
+        "|move|p2b: Farigiraf|hypervoice|p1b: Dragonite",
+        "|-immune|p1a: Annihilape",
+        "|-damage|p1b: Dragonite|32/166",
+        "|move|p1b: Dragonite|scaleshot|p2a: Incineroar",
+        "|-damage|p2a: Incineroar|140/170",
+        "|-damage|p2a: Incineroar|110/170",
+        "|-damage|p2a: Incineroar|80/170"
+      ],
+      "after": {
+        "showdown": [
+          "|-enditem|p2a: Incineroar|Sitrus Berry|[eat]",
+          "|-heal|p2a: Incineroar|122/170|[from] item: Sitrus Berry",
+          "|-damage|p2a: Incineroar|92/170",
+          "|-hitcount|p2a: Incineroar|4",
+          "|-unboost|p1b: Dragonite|def|1",
+          "|-boost|p1b: Dragonite|spe|1",
+          "|-heal|p1a: Annihilape|130/185|[from] item: Leftovers",
+          "|upkeep",
+          "|turn|13"
+        ],
+        "medicham": [
+          "|-damage|p2a: Incineroar|50/170",
+          "|-enditem|p2a: Incineroar|sitrusberry|[eat]",
+          "|-heal|p2a: Incineroar|92/170|[from] item: sitrusberry",
+          "|-hitcount|p2a: Incineroar|4",
+          "|-unboost|p1b: Dragonite|def|1",
+          "|-boost|p1b: Dragonite|spe|1",
+          "|-heal|p1a: Annihilape|130/185|[from] item: leftovers",
           "|upkeep"
         ]
       }
@@ -897,122 +1289,106 @@
         "medicham": {
           "p1": [
             {
-              "name": "mawilemega",
-              "key": "mawile",
+              "name": "charizard",
+              "key": "charizard",
               "hp": 8,
               "fainted": false,
               "faintSeq": null,
               "where": "active"
             },
             {
-              "name": "charizard",
-              "key": "charizard",
-              "hp": 153,
+              "name": "garchomp",
+              "key": "garchomp",
+              "hp": 147,
               "fainted": false,
               "faintSeq": null,
               "where": "active"
-            },
-            {
-              "name": "whimsicott",
-              "key": "whimsicott",
-              "hp": 135,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            },
-            {
-              "name": "garchomp",
-              "key": "garchomp",
-              "hp": 183,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
             }
           ],
           "p2": [
             {
-              "name": "incineroar",
-              "key": "incineroar",
-              "hp": 22,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "pinsirmega",
+              "name": "pinsir",
               "key": "pinsir",
-              "hp": 40,
-              "fainted": false,
-              "faintSeq": null,
+              "hp": 0,
+              "fainted": true,
+              "faintSeq": 476,
               "where": "active"
             },
             {
               "name": "pelipper",
               "key": "pelipper",
-              "hp": 69,
+              "hp": 71,
               "fainted": false,
               "faintSeq": null,
-              "where": "bench"
+              "where": "active"
             }
           ]
         },
         "showdown": {
           "p1": {
-            "pokemonLeft": 4,
+            "pokemonLeft": 2,
             "teamSize": 4,
             "mons": [
               {
-                "name": "mawilemega",
+                "name": "charizard",
+                "key": "charizard",
                 "hp": 8,
                 "fainted": false,
                 "where": "active"
               },
               {
-                "name": "charizard",
-                "hp": 153,
+                "name": "garchomp",
+                "key": "garchomp",
+                "hp": 147,
                 "fainted": false,
                 "where": "active"
               },
               {
-                "name": "whimsicott",
-                "hp": 135,
-                "fainted": false,
+                "name": "mawilemega",
+                "key": "mawile",
+                "hp": 0,
+                "fainted": true,
                 "where": "bench"
               },
               {
-                "name": "garchomp",
-                "hp": 183,
-                "fainted": false,
+                "name": "whimsicott",
+                "key": "whimsicott",
+                "hp": 0,
+                "fainted": true,
                 "where": "bench"
               }
             ]
           },
           "p2": {
-            "pokemonLeft": 3,
+            "pokemonLeft": 1,
             "teamSize": 4,
             "mons": [
               {
-                "name": "incineroar",
-                "hp": 22,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "pinsirmega",
-                "hp": 40,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "swampert",
+                "name": "pinsir",
+                "key": "pinsir",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
                 "name": "pelipper",
-                "hp": 69,
+                "key": "pelipper",
+                "hp": 71,
                 "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "swampert",
+                "key": "swampert",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "incineroar",
+                "key": "incineroar",
+                "hp": 0,
+                "fainted": true,
                 "where": "bench"
               }
             ]
@@ -1076,202 +1452,11 @@
     {
       "arm": "middle",
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2657641274 vs gen9championsvgc2026regmbbo3-2657728869",
-      "agreed_lines": 79,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |move|p2a|psychicfangs <> |cant|p2a|flinch",
-      "end_reason": "the turn cap (12)",
-      "ended_showdown": false,
-      "ended_medicham": false,
-      "final_roster": {
-        "mediResult": 1,
-        "medicham": {
-          "p1": [
-            {
-              "name": "hydreigon",
-              "key": "hydreigon",
-              "hp": 167,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "aerodactyl",
-              "key": "aerodactyl",
-              "hp": 155,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "incineroar",
-              "key": "incineroar",
-              "hp": 170,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            }
-          ],
-          "p2": [
-            {
-              "name": "metagrossmega",
-              "key": "metagross",
-              "hp": 120,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "staraptor",
-              "key": "staraptor",
-              "hp": 110,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "hydreigon",
-              "key": "hydreigon",
-              "hp": 167,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            }
-          ]
-        },
-        "showdown": {
-          "p1": {
-            "pokemonLeft": 3,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "hydreigon",
-                "hp": 167,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "aerodactyl",
-                "hp": 155,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "gardevoir",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "incineroar",
-                "hp": 170,
-                "fainted": false,
-                "where": "bench"
-              }
-            ]
-          },
-          "p2": {
-            "pokemonLeft": 3,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "metagrossmega",
-                "hp": 120,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "staraptor",
-                "hp": 110,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "volcarona",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "hydreigon",
-                "hp": 167,
-                "fainted": false,
-                "where": "bench"
-              }
-            ]
-          },
-          "winner": null
-        }
-      },
-      "at": {
-        "showdown_raw": "|move|p2a: Metagross|Psychic Fangs|p1a: Hydreigon",
-        "medicham_raw": "|cant|p2a: Metagross|flinch",
-        "showdown": "|move|p2a:metagross|psychicfangs",
-        "medicham": "|cant|p2a:metagross|flinch"
-      },
-      "before": [
-        "|-unboost|p2b:volcarona|atk|1",
-        "|switch|p2b:hydreigon|hydreigon,l50|167/167",
-        "|move|p1b:aerodactyl|protect",
-        "|-singleturn|p1b:aerodactyl|protect",
-        "|move|p2a:metagross|psychicfangs",
-        "|-immune|p1a:incineroar",
-        "|upkeep",
-        "|turn|8",
-        "|switch|p2b:volcarona|volcarona,l50|160/160",
-        "|switch|p1a:hydreigon|hydreigon,l50|167/167",
-        "|move|p1b:aerodactyl|rockslide",
-        "|-resisted|p2a:metagross|1",
-        "|-supereffective|p2b:volcarona|2",
-        "|-damage|p2a:metagross|140/155",
-        "|-damage|p2b:volcarona|0fnt",
-        "|faint|p2b:volcarona"
-      ],
-      "before_raw": [
-        "|-unboost|p2b: Volcarona|atk|1",
-        "|switch|p2b: Hydreigon|hydreigon, L50|167/167",
-        "|move|p1b: Aerodactyl|protect|p1b: Aerodactyl",
-        "|-singleturn|p1b: Aerodactyl|Protect",
-        "|move|p2a: Metagross|psychicfangs|p1a: Incineroar",
-        "|-immune|p1a: Incineroar",
-        "|upkeep",
-        "|turn|8",
-        "|switch|p2b: Volcarona|volcarona, L50|160/160",
-        "|switch|p1a: Hydreigon|hydreigon, L50|167/167",
-        "|move|p1b: Aerodactyl|rockslide|p2b: Volcarona",
-        "|-resisted|p2a: Metagross|1",
-        "|-supereffective|p2b: Volcarona|2",
-        "|-damage|p2a: Metagross|140/155",
-        "|-damage|p2b: Volcarona|0 fnt",
-        "|faint|p2b: Volcarona"
-      ],
-      "after": {
-        "showdown": [
-          "|move|p2a: Metagross|Psychic Fangs|p1a: Hydreigon",
-          "|-immune|p1a: Hydreigon",
-          "|upkeep",
-          "|switch|p2b: Staraptor|Staraptor, L50|160/160",
-          "|-unboost|p1a: Hydreigon|atk|1",
-          "|-unboost|p1b: Aerodactyl|atk|1",
-          "|turn|9"
-        ],
-        "medicham": [
-          "|cant|p2a: Metagross|flinch",
-          "|upkeep",
-          "|switch|p2b: Staraptor|staraptor, L50|160/160",
-          "|-unboost|p1a: Hydreigon|atk|1",
-          "|-unboost|p1b: Aerodactyl|atk|1"
-        ]
-      }
-    },
-    {
-      "arm": "middle",
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmb-2634782171 vs gen9championsvgc2026regmb-2635176997",
-      "agreed_lines": 47,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-activate|p2a|telepathy <> |-immune|p2a|[from]telepathy",
-      "end_reason": "the turn cap (12)",
+      "seed": "gen9championsvgc2026regmbbo3-2656492881 vs gen9championsvgc2026regmbbo3-2656780112",
+      "agreed_lines": 106,
+      "cls": "ordering",
+      "cause": "ordering :: |switch|p1b|garganacl,l50|H/H <> |-damage|p2a|H/H|[from]stealthrock",
+      "end_reason": "both engines ended the battle",
       "ended_showdown": true,
       "ended_medicham": true,
       "final_roster": {
@@ -1279,17 +1464,201 @@
         "medicham": {
           "p1": [
             {
-              "name": "whimsicott",
-              "key": "whimsicott",
+              "name": "glimmoramega",
+              "key": "glimmora",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 600,
+              "faintSeq": 494,
               "where": "active"
             },
             {
-              "name": "incineroar",
-              "key": "incineroar",
-              "hp": 116,
+              "name": "garganacl",
+              "key": "garganacl",
+              "hp": 175,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "tyranitar",
+              "key": "tyranitar",
+              "hp": 143,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "bench"
+            }
+          ],
+          "p2": [
+            {
+              "name": "venusaurmega",
+              "key": "venusaur",
+              "hp": 0,
+              "fainted": true,
+              "faintSeq": 495,
+              "where": "active"
+            },
+            {
+              "name": "aerodactyl",
+              "key": "aerodactyl",
+              "hp": 0,
+              "fainted": true,
+              "faintSeq": 493,
+              "where": "active"
+            }
+          ]
+        },
+        "showdown": {
+          "p1": {
+            "pokemonLeft": 2,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "glimmoramega",
+                "key": "glimmora",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "garganacl",
+                "key": "garganacl",
+                "hp": 175,
+                "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "kleavor",
+                "key": "kleavor",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "tyranitar",
+                "key": "tyranitar",
+                "hp": 143,
+                "fainted": false,
+                "where": "bench"
+              }
+            ]
+          },
+          "p2": {
+            "pokemonLeft": 0,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "venusaurmega",
+                "key": "venusaur",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "aerodactyl",
+                "key": "aerodactyl",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "milotic",
+                "key": "milotic",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              },
+              {
+                "name": "froslass",
+                "key": "froslass",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench"
+              }
+            ]
+          },
+          "winner": "A"
+        }
+      },
+      "at": {
+        "showdown_raw": "|switch|p1b: Garganacl|Garganacl, L50|175/175",
+        "medicham_raw": "|-damage|p2a: Venusaur|53/155|[from] Stealth Rock",
+        "showdown": "|switch|p1b:garganacl|garganacl,l50|175/175",
+        "medicham": "|-damage|p2a:venusaur|53/155|[from]stealthrock"
+      },
+      "before": [
+        "|switch|p2a:froslass|froslass,l50|17/145psn",
+        "|-damage|p2a:froslass|0fnt|[from]stealthrock",
+        "|faint|p2a:froslass",
+        "|switch|p1b:kleavor|kleavor,l50|41/145",
+        "|switch|p1a:glimmora|glimmoramega,l50|112/158",
+        "|move|p2b:aerodactyl|rockslide",
+        "|-crit|p1a:glimmora",
+        "|-supereffective|p1b:kleavor|1",
+        "|-damage|p1a:glimmora|40/158",
+        "|-damage|p1b:kleavor|0fnt",
+        "|faint|p1b:kleavor",
+        "|-weather|sandstorm|[upkeep]",
+        "|-damage|p2b:aerodactyl|17/155psn|[from]psn",
+        "|-sideend|p2:|tailwind",
+        "|upkeep",
+        "|switch|p2a:venusaur|venusaur,l50|72/155"
+      ],
+      "before_raw": [
+        "|switch|p2a: Froslass|froslass, L50|17/145 psn",
+        "|-damage|p2a: Froslass|0 fnt|[from] Stealth Rock",
+        "|faint|p2a: Froslass",
+        "|switch|p1b: Kleavor|kleavor, L50|41/145",
+        "|switch|p1a: Glimmora|glimmora-mega, L50|112/158",
+        "|move|p2b: Aerodactyl|rockslide|p1b: Kleavor",
+        "|-crit|p1a: Glimmora",
+        "|-supereffective|p1b: Kleavor|1",
+        "|-damage|p1a: Glimmora|40/158",
+        "|-damage|p1b: Kleavor|0 fnt",
+        "|faint|p1b: Kleavor",
+        "|-weather|sandstorm|[upkeep]",
+        "|-damage|p2b: Aerodactyl|17/155 psn|[from] psn",
+        "|-sideend|p2: |move: Tailwind",
+        "|upkeep",
+        "|switch|p2a: Venusaur|venusaur, L50|72/155"
+      ],
+      "after": {
+        "showdown": [
+          "|switch|p1b: Garganacl|Garganacl, L50|175/175",
+          "|-damage|p2a: Venusaur|53/155|[from] Stealth Rock",
+          "|turn|8"
+        ],
+        "medicham": [
+          "|-damage|p2a: Venusaur|53/155|[from] Stealth Rock",
+          "|switch|p1b: Garganacl|garganacl, L50|175/175"
+        ]
+      }
+    },
+    {
+      "arm": "middle",
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmbbo3-2659972415 vs gen9championsvgc2026regmbbo3-2660128597",
+      "agreed_lines": 113,
+      "cls": "ordering",
+      "cause": "ordering :: |switch|p1a|garchomp,l50|H/H <> |switch|p2b|blastoise,l50|H/H",
+      "end_reason": "both engines ended the battle",
+      "ended_showdown": true,
+      "ended_medicham": true,
+      "final_roster": {
+        "mediResult": 1,
+        "medicham": {
+          "p1": [
+            {
+              "name": "garchomp",
+              "key": "garchomp",
+              "hp": 76,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "pyroarmega",
+              "key": "pyroar",
+              "hp": 161,
               "fainted": false,
               "faintSeq": null,
               "where": "active"
@@ -1297,48 +1666,52 @@
           ],
           "p2": [
             {
-              "name": "gholdengo",
-              "key": "gholdengo",
+              "name": "sneasler",
+              "key": "sneasler",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 597,
+              "faintSeq": 543,
               "where": "active"
             },
             {
-              "name": "eelektrossmega",
-              "key": "eelektross",
+              "name": "blastoisemega",
+              "key": "blastoise",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 601,
+              "faintSeq": 545,
               "where": "active"
             }
           ]
         },
         "showdown": {
           "p1": {
-            "pokemonLeft": 1,
+            "pokemonLeft": 2,
             "teamSize": 4,
             "mons": [
               {
-                "name": "whimsicott",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "incineroar",
-                "hp": 116,
+                "name": "garchomp",
+                "key": "garchomp",
+                "hp": 76,
                 "fainted": false,
                 "where": "active"
               },
               {
-                "name": "metagrossmega",
+                "name": "pyroarmega",
+                "key": "pyroar",
+                "hp": 161,
+                "fainted": false,
+                "where": "active"
+              },
+              {
+                "name": "ninetales",
+                "key": "ninetales",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
-                "name": "eelektross",
+                "name": "talonflame",
+                "key": "talonflame",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
@@ -1350,25 +1723,29 @@
             "teamSize": 4,
             "mons": [
               {
-                "name": "gholdengo",
+                "name": "sneasler",
+                "key": "sneasler",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
-                "name": "eelektrossmega",
+                "name": "blastoisemega",
+                "key": "blastoise",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
-                "name": "torterra",
+                "name": "maushold",
+                "key": "maushold",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
-                "name": "oranguru",
+                "name": "garchomp",
+                "key": "garchomp",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
@@ -1379,248 +1756,56 @@
         }
       },
       "at": {
-        "showdown_raw": "|-activate|p2a: Oranguru|ability: Telepathy",
-        "medicham_raw": "|-immune|p2a: Oranguru|[from] ability: telepathy",
-        "showdown": "|-activate|p2a:oranguru|telepathy",
-        "medicham": "|-immune|p2a:oranguru|[from]telepathy"
+        "showdown_raw": "|switch|p1a: Garchomp|Garchomp, L50|76/183",
+        "medicham_raw": "|switch|p2b: Blastoise|blastoise, L50|82/154",
+        "showdown": "|switch|p1a:garchomp|garchomp,l50|76/183",
+        "medicham": "|switch|p2b:blastoise|blastoise,l50|82/154"
       },
       "before": [
-        "|switch|p2b:eelektross|eelektross,l50|160/160",
-        "|switch|p2a:torterra|torterra,l50|70/170",
-        "|move|p1a:metagross|psychicfangs",
-        "|-damage|p2a:torterra|0fnt",
-        "|faint|p2a:torterra",
         "|upkeep",
-        "|switch|p2a:gholdengo|gholdengo,l50|162/162",
-        "|turn|5",
-        "|switch|p2a:oranguru|oranguru,l50|98/165",
-        "|switch|p1b:whimsicott|whimsicott,l50|135/135",
-        "|detailschange|p2b:eelektross|eelektrossmega,l50",
-        "|-mega|p2b:eelektross|eelektross|eelektrossite",
-        "|move|p1a:metagross|psychicfangs",
-        "|-resisted|p2a:oranguru|1",
-        "|-damage|p2a:oranguru|26/165",
-        "|move|p2b:eelektross|discharge"
+        "|turn|10",
+        "|switch|p1a:talonflame|talonflame,l50|20/153",
+        "|switch|p2a:sneasler|sneasler,l50|13/155",
+        "|move|p2b:garchomp|brickbreak",
+        "|-resisted|p1a:talonflame|1",
+        "|-damage|p1a:talonflame|0fnt",
+        "|faint|p1a:talonflame",
+        "|move|p1b:pyroar|heatwave",
+        "|-resisted|p2b:garchomp|1",
+        "|-damage|p2a:sneasler|0fnt",
+        "|-damage|p2b:garchomp|0fnt",
+        "|faint|p2a:sneasler",
+        "|faint|p2b:garchomp",
+        "|-weather|none",
+        "|upkeep"
       ],
       "before_raw": [
-        "|switch|p2b: Eelektross|eelektross, L50|160/160",
-        "|switch|p2a: Torterra|torterra, L50|70/170",
-        "|move|p1a: Metagross|psychicfangs|p2a: Torterra",
-        "|-damage|p2a: Torterra|0 fnt",
-        "|faint|p2a: Torterra",
         "|upkeep",
-        "|switch|p2a: Gholdengo|gholdengo, L50|162/162",
-        "|turn|5",
-        "|switch|p2a: Oranguru|oranguru, L50|98/165",
-        "|switch|p1b: Whimsicott|whimsicott, L50|135/135",
-        "|detailschange|p2b: Eelektross|eelektross-mega, L50",
-        "|-mega|p2b: Eelektross|Eelektross|eelektrossite",
-        "|move|p1a: Metagross|psychicfangs|p2a: Oranguru",
-        "|-resisted|p2a: Oranguru|1",
-        "|-damage|p2a: Oranguru|26/165",
-        "|move|p2b: Eelektross|discharge|p1a: Metagross"
+        "|turn|10",
+        "|switch|p1a: Talonflame|talonflame, L50|20/153",
+        "|switch|p2a: Sneasler|sneasler, L50|13/155",
+        "|move|p2b: Garchomp|brickbreak|p1a: Talonflame",
+        "|-resisted|p1a: Talonflame|1",
+        "|-damage|p1a: Talonflame|0 fnt",
+        "|faint|p1a: Talonflame",
+        "|move|p1b: Pyroar|heatwave|p2b: Garchomp",
+        "|-resisted|p2b: Garchomp|1",
+        "|-damage|p2a: Sneasler|0 fnt",
+        "|-damage|p2b: Garchomp|0 fnt",
+        "|faint|p2a: Sneasler",
+        "|faint|p2b: Garchomp",
+        "|-weather|none",
+        "|upkeep"
       ],
       "after": {
         "showdown": [
-          "|-activate|p2a: Oranguru|ability: Telepathy",
-          "|-resisted|p1b: Whimsicott|1",
-          "|-damage|p1a: Metagross|109/155",
-          "|-damage|p1b: Whimsicott|108/135",
-          "|upkeep",
-          "|turn|6"
+          "|switch|p1a: Garchomp|Garchomp, L50|76/183",
+          "|switch|p2b: Blastoise|Blastoise, L50|82/154",
+          "|turn|11"
         ],
         "medicham": [
-          "|-immune|p2a: Oranguru|[from] ability: telepathy",
-          "|-resisted|p1b: Whimsicott|1",
-          "|-damage|p1a: Metagross|109/155",
-          "|-damage|p1b: Whimsicott|108/135",
-          "|upkeep"
-        ]
-      }
-    },
-    {
-      "arm": "middle",
-      "config": "omit-protect",
-      "seed": "gen9championsvgc2026regmbbo3-2654469023 vs gen9championsvgc2026regmbbo3-2654553264",
-      "agreed_lines": 103,
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |faint|p2b <> |-status|p2a|brn",
-      "end_reason": "the turn cap (12)",
-      "ended_showdown": false,
-      "ended_medicham": false,
-      "final_roster": {
-        "mediResult": 1,
-        "medicham": {
-          "p1": [
-            {
-              "name": "mawile",
-              "key": "mawile",
-              "hp": 95,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "sinistcha",
-              "key": "sinistcha",
-              "hp": 132,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "araquanid",
-              "key": "araquanid",
-              "hp": 52,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            }
-          ],
-          "p2": [
-            {
-              "name": "sinistcha",
-              "key": "sinistcha",
-              "hp": 104,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "incineroar",
-              "key": "incineroar",
-              "hp": 170,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            }
-          ]
-        },
-        "showdown": {
-          "p1": {
-            "pokemonLeft": 3,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "mawile",
-                "hp": 95,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "sinistcha",
-                "hp": 132,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "arcaninehisui",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "araquanid",
-                "hp": 52,
-                "fainted": false,
-                "where": "bench"
-              }
-            ]
-          },
-          "p2": {
-            "pokemonLeft": 2,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "sinistcha",
-                "hp": 104,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "incineroar",
-                "hp": 170,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "falinksmega",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "excadrill",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              }
-            ]
-          },
-          "winner": null
-        }
-      },
-      "at": {
-        "showdown_raw": "|faint|p2b: Falinks",
-        "medicham_raw": "|-status|p2a: Excadrill|brn",
-        "showdown": "|faint|p2b:falinks",
-        "medicham": "|-status|p2a:excadrill|brn"
-      },
-      "before": [
-        "|move|p1b:sinistcha|matchagotcha",
-        "|-resisted|p2a:sinistcha|1",
-        "|-damage|p2a:sinistcha|104/146",
-        "|-heal|p1b:sinistcha|146/146|[from]drain",
-        "|-damage|p2b:falinks|41/140",
-        "|-damage|p1b:sinistcha|132/146|[from]lifeorb",
-        "|move|p2b:falinks|noretreat",
-        "|-fail|p2b:falinks",
-        "|upkeep",
-        "|turn|9",
-        "|switch|p1a:araquanid|araquanid,l50|97/143",
-        "|switch|p2a:excadrill|excadrill,l50|107/185",
-        "|move|p1b:sinistcha|matchagotcha",
-        "|-damage|p2a:excadrill|21/185",
-        "|-heal|p1b:sinistcha|146/146|[from]drain",
-        "|-damage|p2b:falinks|0fnt"
-      ],
-      "before_raw": [
-        "|move|p1b: Sinistcha|matchagotcha|p2a: Sinistcha",
-        "|-resisted|p2a: Sinistcha|1",
-        "|-damage|p2a: Sinistcha|104/146",
-        "|-heal|p1b: Sinistcha|146/146|[from] drain|[of] p2a: Sinistcha",
-        "|-damage|p2b: Falinks|41/140",
-        "|-damage|p1b: Sinistcha|132/146|[from] item: Life Orb",
-        "|move|p2b: Falinks|noretreat|p2b: Falinks",
-        "|-fail|p2b: Falinks",
-        "|upkeep",
-        "|turn|9",
-        "|switch|p1a: Araquanid|araquanid, L50|97/143",
-        "|switch|p2a: Excadrill|excadrill, L50|107/185",
-        "|move|p1b: Sinistcha|matchagotcha|p2b: Falinks",
-        "|-damage|p2a: Excadrill|21/185",
-        "|-heal|p1b: Sinistcha|146/146|[from] drain|[of] p2a: Excadrill",
-        "|-damage|p2b: Falinks|0 fnt"
-      ],
-      "after": {
-        "showdown": [
-          "|faint|p2b: Falinks",
-          "|-damage|p1b: Sinistcha|132/146|[from] item: Life Orb",
-          "|upkeep",
-          "|switch|p2b: Incineroar|Incineroar, L50|170/170",
-          "|-unboost|p1a: Araquanid|atk|1",
-          "|-unboost|p1b: Sinistcha|atk|1",
-          "|turn|10"
-        ],
-        "medicham": [
-          "|-status|p2a: Excadrill|brn",
-          "|faint|p2b: Falinks",
-          "|-damage|p1b: Sinistcha|132/146|[from] item: Life Orb",
-          "|-damage|p2a: Excadrill|10/185 brn|[from] brn",
-          "|upkeep",
-          "|switch|p2b: Incineroar|incineroar, L50|170/170",
-          "|-unboost|p1a: Araquanid|atk|1",
-          "|-unboost|p1b: Sinistcha|atk|1"
+          "|switch|p2b: Blastoise|blastoise, L50|82/154",
+          "|switch|p1a: Garchomp|garchomp, L50|76/183"
         ]
       }
     },
@@ -1713,24 +1898,28 @@
             "mons": [
               {
                 "name": "meowscarada",
+                "key": "meowscarada",
                 "hp": 151,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "kingambit",
+                "key": "kingambit",
                 "hp": 175,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "sinistcha",
+                "key": "sinistcha",
                 "hp": 146,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "farigiraf",
+                "key": "farigiraf",
                 "hp": 195,
                 "fainted": false,
                 "where": "bench"
@@ -1743,24 +1932,28 @@
             "mons": [
               {
                 "name": "glimmora",
+                "key": "glimmora",
                 "hp": 158,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "garchomp",
+                "key": "garchomp",
                 "hp": 183,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "kingambit",
+                "key": "kingambit",
                 "hp": 175,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "dragapult",
+                "key": "dragapult",
                 "hp": 163,
                 "fainted": false,
                 "where": "bench"
@@ -1910,24 +2103,28 @@
             "mons": [
               {
                 "name": "gengar",
+                "key": "gengar",
                 "hp": 135,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "floetteeternal",
+                "key": "floetteeternal",
                 "hp": 149,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "kingambit",
+                "key": "kingambit",
                 "hp": 175,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "farigiraf",
+                "key": "farigiraf",
                 "hp": 195,
                 "fainted": false,
                 "where": "bench"
@@ -1940,24 +2137,28 @@
             "mons": [
               {
                 "name": "archaludon",
+                "key": "archaludon",
                 "hp": 165,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "mawile",
+                "key": "mawile",
                 "hp": 125,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "charizard",
+                "key": "charizard",
                 "hp": 153,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "pelipper",
+                "key": "pelipper",
                 "hp": 135,
                 "fainted": false,
                 "where": "bench"
@@ -2113,24 +2314,28 @@
             "mons": [
               {
                 "name": "starmie",
+                "key": "starmie",
                 "hp": 135,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "pelipper",
+                "key": "pelipper",
                 "hp": 135,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "sneasler",
+                "key": "sneasler",
                 "hp": 155,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "dragonite",
+                "key": "dragonite",
                 "hp": 166,
                 "fainted": false,
                 "where": "bench"
@@ -2143,24 +2348,28 @@
             "mons": [
               {
                 "name": "froslass",
+                "key": "froslass",
                 "hp": 145,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "sneasler",
+                "key": "sneasler",
                 "hp": 155,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "kingambit",
+                "key": "kingambit",
                 "hp": 175,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "arcaninehisui",
+                "key": "arcaninehisui",
                 "hp": 170,
                 "fainted": false,
                 "where": "bench"
@@ -2316,24 +2525,28 @@
             "mons": [
               {
                 "name": "froslass",
+                "key": "froslass",
                 "hp": 145,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "sinistcha",
+                "key": "sinistcha",
                 "hp": 146,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "kingambit",
+                "key": "kingambit",
                 "hp": 175,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "basculegion",
+                "key": "basculegion",
                 "hp": 195,
                 "fainted": false,
                 "where": "bench"
@@ -2346,24 +2559,28 @@
             "mons": [
               {
                 "name": "charizard",
+                "key": "charizard",
                 "hp": 153,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "sinistcha",
+                "key": "sinistcha",
                 "hp": 146,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "pelipper",
+                "key": "pelipper",
                 "hp": 135,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "primarina",
+                "key": "primarina",
                 "hp": 155,
                 "fainted": false,
                 "where": "bench"
@@ -2433,392 +2650,6 @@
     {
       "arm": "middle",
       "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmbbo3-2653957635 vs gen9championsvgc2026regmbbo3-2653951529",
-      "agreed_lines": 54,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-singleturn|p2a|protect <> |-fail|p2a",
-      "end_reason": "the turn cap (12)",
-      "ended_showdown": false,
-      "ended_medicham": false,
-      "final_roster": {
-        "mediResult": 0,
-        "medicham": {
-          "p1": [
-            {
-              "name": "overqwil",
-              "key": "overqwil",
-              "hp": 119,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "klefki",
-              "key": "klefki",
-              "hp": 132,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            }
-          ],
-          "p2": [
-            {
-              "name": "tyranitarmega",
-              "key": "tyranitar",
-              "hp": 175,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "houndstone",
-              "key": "houndstone",
-              "hp": 147,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "clefable",
-              "key": "clefable",
-              "hp": 170,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            },
-            {
-              "name": "farigiraf",
-              "key": "farigiraf",
-              "hp": 195,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            }
-          ]
-        },
-        "showdown": {
-          "p1": {
-            "pokemonLeft": 2,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "overqwil",
-                "hp": 119,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "klefki",
-                "hp": 132,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "meowstic",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "sableyemega",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              }
-            ]
-          },
-          "p2": {
-            "pokemonLeft": 4,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "tyranitarmega",
-                "hp": 175,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "houndstone",
-                "hp": 147,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "clefable",
-                "hp": 170,
-                "fainted": false,
-                "where": "bench"
-              },
-              {
-                "name": "farigiraf",
-                "hp": 195,
-                "fainted": false,
-                "where": "bench"
-              }
-            ]
-          },
-          "winner": null
-        }
-      },
-      "at": {
-        "showdown_raw": "|-singleturn|p2a: Clefable|Protect",
-        "medicham_raw": "|-fail|p2a: Clefable",
-        "showdown": "|-singleturn|p2a:clefable|protect",
-        "medicham": "|-fail|p2a:clefable"
-      },
-      "before": [
-        "|cant|p2a:clefable|slp",
-        "|move|p1b:klefki|psychup",
-        "|move|p2b:houndstone|phantomforce",
-        "|-prepare|p2b:houndstone|phantomforce",
-        "|move|p1a:sableye|psychup",
-        "|upkeep",
-        "|turn|5",
-        "|cant|p2a:clefable|slp",
-        "|move|p1b:klefki|psychup",
-        "|move|p2b:houndstone|phantomforce",
-        "|-damage|p1a:sableye|46/125",
-        "|move|p1a:sableye|psychup",
-        "|upkeep",
-        "|turn|6",
-        "|-curestatus|p2a:clefable|slp|[msg]",
-        "|move|p2a:clefable|protect"
-      ],
-      "before_raw": [
-        "|cant|p2a: Clefable|slp",
-        "|move|p1b: Klefki|psychup|p2a: Clefable",
-        "|move|p2b: Houndstone|phantomforce|p1a: Sableye",
-        "|-prepare|p2b: Houndstone|phantomforce",
-        "|move|p1a: Sableye|psychup|p2a: Clefable",
-        "|upkeep",
-        "|turn|5",
-        "|cant|p2a: Clefable|slp",
-        "|move|p1b: Klefki|psychup|p2a: Clefable",
-        "|move|p2b: Houndstone|phantomforce|p1a: Sableye",
-        "|-damage|p1a: Sableye|46/125",
-        "|move|p1a: Sableye|psychup|p2a: Clefable",
-        "|upkeep",
-        "|turn|6",
-        "|-curestatus|p2a: Clefable|slp|[msg]",
-        "|move|p2a: Clefable|protect||[still]"
-      ],
-      "after": {
-        "showdown": [
-          "|-singleturn|p2a: Clefable|Protect",
-          "|move|p1b: Klefki|Psych Up|p2a: Clefable",
-          "|move|p2b: Houndstone|Phantom Force||[still]",
-          "|-prepare|p2b: Houndstone|Phantom Force",
-          "|move|p1a: Sableye|Psych Up|p2a: Clefable",
-          "|upkeep",
-          "|turn|7"
-        ],
-        "medicham": [
-          "|-fail|p2a: Clefable",
-          "|move|p1b: Klefki|psychup|p2a: Clefable",
-          "|move|p2b: Houndstone|phantomforce|p1a: Sableye",
-          "|-prepare|p2b: Houndstone|phantomforce",
-          "|move|p1a: Sableye|psychup|p2a: Clefable",
-          "|upkeep"
-        ]
-      }
-    },
-    {
-      "arm": "middle",
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmbbo3-2655381344 vs gen9championsvgc2026regmbbo3-2655465484",
-      "agreed_lines": 69,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-supereffective|p1a|1 <> |move|p1a|gravity",
-      "end_reason": "the boards parted — medicham2's placement cannot be expressed to showdown (p1: slot 1 holds metagross, which showdown has but cannot switch in (fainted/active))",
-      "ended_showdown": false,
-      "ended_medicham": false,
-      "final_roster": {
-        "mediResult": 0,
-        "medicham": {
-          "p1": [
-            {
-              "name": "metagross",
-              "key": "metagross",
-              "hp": 23,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "medicham",
-              "key": "medicham",
-              "hp": 135,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "hawlucha",
-              "key": "hawlucha",
-              "hp": 153,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            }
-          ],
-          "p2": [
-            {
-              "name": "scovillainmega",
-              "key": "scovillain",
-              "hp": 140,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "dragapult",
-              "key": "dragapult",
-              "hp": 163,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "grimmsnarl",
-              "key": "grimmsnarl",
-              "hp": 170,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            },
-            {
-              "name": "sneasler",
-              "key": "sneasler",
-              "hp": 155,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            }
-          ]
-        },
-        "showdown": {
-          "p1": {
-            "pokemonLeft": 2,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "metagross",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "medicham",
-                "hp": 135,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "starmiemega",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "hawlucha",
-                "hp": 153,
-                "fainted": false,
-                "where": "bench"
-              }
-            ]
-          },
-          "p2": {
-            "pokemonLeft": 4,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "scovillainmega",
-                "hp": 140,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "dragapult",
-                "hp": 163,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "grimmsnarl",
-                "hp": 170,
-                "fainted": false,
-                "where": "bench"
-              },
-              {
-                "name": "sneasler",
-                "hp": 155,
-                "fainted": false,
-                "where": "bench"
-              }
-            ]
-          },
-          "winner": null
-        }
-      },
-      "at": {
-        "showdown_raw": "|-supereffective|p1a: Metagross|1",
-        "medicham_raw": "|move|p1a: Metagross|gravity|p1a: Metagross",
-        "showdown": "|-supereffective|p1a:metagross|1",
-        "medicham": "|move|p1a:metagross|gravity"
-      },
-      "before": [
-        "|-fieldend|gravity",
-        "|upkeep",
-        "|turn|6",
-        "|switch|p1b:hawlucha|hawlucha,l50|153/153",
-        "|move|p2a:scovillain|protect",
-        "|-fail|p2a:scovillain",
-        "|move|p2b:dragapult|phantomforce",
-        "|-prepare|p2b:dragapult|phantomforce",
-        "|move|p1a:metagross|gravity",
-        "|-fieldstart|gravity",
-        "|upkeep",
-        "|turn|7",
-        "|switch|p1b:medicham|medicham,l50|135/135",
-        "|move|p2a:scovillain|protect",
-        "|-singleturn|p2a:scovillain|protect",
-        "|move|p2b:dragapult|phantomforce"
-      ],
-      "before_raw": [
-        "|-fieldend|move: Gravity",
-        "|upkeep",
-        "|turn|6",
-        "|switch|p1b: Hawlucha|hawlucha, L50|153/153",
-        "|move|p2a: Scovillain|protect||[still]",
-        "|-fail|p2a: Scovillain",
-        "|move|p2b: Dragapult|phantomforce|p1a: Metagross",
-        "|-prepare|p2b: Dragapult|phantomforce",
-        "|move|p1a: Metagross|gravity|p1a: Metagross",
-        "|-fieldstart|move: Gravity|[of] p1a: Metagross",
-        "|upkeep",
-        "|turn|7",
-        "|switch|p1b: Medicham|medicham, L50|135/135",
-        "|move|p2a: Scovillain|protect|p2a: Scovillain",
-        "|-singleturn|p2a: Scovillain|Protect",
-        "|move|p2b: Dragapult|phantomforce|p2b: Dragapult"
-      ],
-      "after": {
-        "showdown": [
-          "|-supereffective|p1a: Metagross|1",
-          "|-damage|p1a: Metagross|0 fnt",
-          "|faint|p1a: Metagross",
-          "|upkeep"
-        ],
-        "medicham": [
-          "|move|p1a: Metagross|gravity|p1a: Metagross",
-          "|-fail|p1a: Metagross",
-          "|upkeep"
-        ]
-      }
-    },
-    {
-      "arm": "middle",
-      "config": "pair-protect-bust",
       "seed": "gen9championsvgc2026regmbbo3-2655608049 vs gen9championsvgc2026regmbbo3-2655559026",
       "agreed_lines": 130,
       "cls": "ordering",
@@ -2881,24 +2712,28 @@
             "mons": [
               {
                 "name": "rotomwash",
+                "key": "rotomwash",
                 "hp": 14,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "garchomp",
+                "key": "garchomp",
                 "hp": 147,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "eelektrossmega",
+                "key": "eelektross",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
                 "name": "metagross",
+                "key": "metagross",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
@@ -2911,24 +2746,28 @@
             "mons": [
               {
                 "name": "milotic",
+                "key": "milotic",
                 "hp": 85,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "houndstone",
+                "key": "houndstone",
                 "hp": 9,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "klefki",
+                "key": "klefki",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
                 "name": "tyranitarmega",
+                "key": "tyranitar",
                 "hp": 175,
                 "fainted": false,
                 "where": "bench"
@@ -3061,24 +2900,28 @@
             "mons": [
               {
                 "name": "whimsicott",
+                "key": "whimsicott",
                 "hp": 105,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "ceruledge",
+                "key": "ceruledge",
                 "hp": 150,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "gengarmega",
+                "key": "gengar",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
                 "name": "staraptor",
+                "key": "staraptor",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
@@ -3091,24 +2934,28 @@
             "mons": [
               {
                 "name": "incineroar",
+                "key": "incineroar",
                 "hp": 84,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "hydrapple",
+                "key": "hydrapple",
                 "hp": 181,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "lucariomega",
+                "key": "lucario",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
                 "name": "dragapult",
+                "key": "dragapult",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
@@ -3183,200 +3030,6 @@
     {
       "arm": "middle",
       "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmbbo3-2660202801 vs gen9championsvgc2026regmbbo3-2660335898",
-      "agreed_lines": 104,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p2b <> |-start|p1a|disable|protect",
-      "end_reason": "the turn cap (12)",
-      "ended_showdown": false,
-      "ended_medicham": false,
-      "final_roster": {
-        "mediResult": 1,
-        "medicham": {
-          "p1": [
-            {
-              "name": "gardevoirmega",
-              "key": "gardevoir",
-              "hp": 143,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "metagross",
-              "key": "metagross",
-              "hp": 155,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "whimsicott",
-              "key": "whimsicott",
-              "hp": 135,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            },
-            {
-              "name": "sableye",
-              "key": "sableye",
-              "hp": 125,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            }
-          ],
-          "p2": [
-            {
-              "name": "grimmsnarl",
-              "key": "grimmsnarl",
-              "hp": 170,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "gengarmega",
-              "key": "gengar",
-              "hp": 135,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            }
-          ]
-        },
-        "showdown": {
-          "p1": {
-            "pokemonLeft": 4,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "gardevoirmega",
-                "hp": 143,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "metagross",
-                "hp": 155,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "whimsicott",
-                "hp": 135,
-                "fainted": false,
-                "where": "bench"
-              },
-              {
-                "name": "sableye",
-                "hp": 125,
-                "fainted": false,
-                "where": "bench"
-              }
-            ]
-          },
-          "p2": {
-            "pokemonLeft": 2,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "grimmsnarl",
-                "hp": 170,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "gengarmega",
-                "hp": 135,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "venusaur",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "pelipper",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              }
-            ]
-          },
-          "winner": null
-        }
-      },
-      "at": {
-        "showdown_raw": "|-fail|p2b: Gengar",
-        "medicham_raw": "|-start|p1a: Gardevoir|Disable|protect",
-        "showdown": "|-fail|p2b:gengar",
-        "medicham": "|-start|p1a:gardevoir|disable|protect"
-      },
-      "before": [
-        "|turn|8",
-        "|move|p2b:gengar|protect",
-        "|-singleturn|p2b:gengar|protect",
-        "|move|p1a:gardevoir|protect",
-        "|-singleturn|p1a:gardevoir|protect",
-        "|move|p2a:grimmsnarl|partingshot",
-        "|-activate|p1a:gardevoir|protect",
-        "|move|p1b:metagross|psychicfangs",
-        "|-immune|p2a:grimmsnarl",
-        "|-weather|raindance|[upkeep]",
-        "|upkeep",
-        "|turn|9",
-        "|move|p2a:grimmsnarl|partingshot",
-        "|-unboost|p1a:gardevoir|atk|1",
-        "|-unboost|p1a:gardevoir|spa|1",
-        "|move|p2b:gengar|disable"
-      ],
-      "before_raw": [
-        "|turn|8",
-        "|move|p2b: Gengar|protect|p2b: Gengar",
-        "|-singleturn|p2b: Gengar|Protect",
-        "|move|p1a: Gardevoir|protect|p1a: Gardevoir",
-        "|-singleturn|p1a: Gardevoir|Protect",
-        "|move|p2a: Grimmsnarl|partingshot|p1a: Gardevoir",
-        "|-activate|p1a: Gardevoir|move: Protect",
-        "|move|p1b: Metagross|psychicfangs|p2a: Grimmsnarl",
-        "|-immune|p2a: Grimmsnarl",
-        "|-weather|raindance|[upkeep]",
-        "|upkeep",
-        "|turn|9",
-        "|move|p2a: Grimmsnarl|partingshot|p1a: Gardevoir",
-        "|-unboost|p1a: Gardevoir|atk|1",
-        "|-unboost|p1a: Gardevoir|spa|1",
-        "|move|p2b: Gengar|disable|p1a: Gardevoir"
-      ],
-      "after": {
-        "showdown": [
-          "|-fail|p2b: Gengar",
-          "|move|p1a: Gardevoir|Psyshock|p2a: Grimmsnarl",
-          "|-immune|p2a: Grimmsnarl",
-          "|move|p1b: Metagross|Psychic Fangs|p2a: Grimmsnarl",
-          "|-immune|p2a: Grimmsnarl",
-          "|-weather|none",
-          "|upkeep",
-          "|turn|10"
-        ],
-        "medicham": [
-          "|-start|p1a: Gardevoir|Disable|protect",
-          "|move|p1a: Gardevoir|psyshock|p2a: Grimmsnarl",
-          "|-immune|p2a: Grimmsnarl",
-          "|move|p1b: Metagross|psychicfangs|p2a: Grimmsnarl",
-          "|-immune|p2a: Grimmsnarl",
-          "|-weather|none",
-          "|upkeep"
-        ]
-      }
-    },
-    {
-      "arm": "middle",
-      "config": "pair-protect-bust",
       "seed": "gen9championsvgc2026regmbbo3-2660356793 vs gen9championsvgc2026regmbbo3-2660492912",
       "agreed_lines": 115,
       "cls": "unrelated event mismatch",
@@ -3427,7 +3080,7 @@
               "key": "sneasler",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 723,
+              "faintSeq": 732,
               "where": "active"
             },
             {
@@ -3435,7 +3088,7 @@
               "key": "raichu",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 724,
+              "faintSeq": 733,
               "where": "active"
             }
           ]
@@ -3447,24 +3100,28 @@
             "mons": [
               {
                 "name": "golurkmega",
+                "key": "golurk",
                 "hp": 86,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "whimsicott",
+                "key": "whimsicott",
                 "hp": 135,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "incineroar",
+                "key": "incineroar",
                 "hp": 170,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "taurospaldeaaqua",
+                "key": "taurospaldeaaqua",
                 "hp": 150,
                 "fainted": false,
                 "where": "bench"
@@ -3477,24 +3134,28 @@
             "mons": [
               {
                 "name": "sneasler",
+                "key": "sneasler",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
                 "name": "raichumegay",
+                "key": "raichu",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
                 "name": "primarina",
+                "key": "primarina",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
               },
               {
                 "name": "scovillain",
+                "key": "scovillain",
                 "hp": 0,
                 "fainted": true,
                 "where": "bench"
@@ -3562,401 +3223,6 @@
           "|-damage|p2a: Sneasler|0 fnt",
           "|faint|p2a: Sneasler",
           "|-damage|p1a: Golurk|106/164 psn|[from] psn",
-          "|upkeep"
-        ]
-      }
-    },
-    {
-      "arm": "middle",
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmbbo3-2655110187 vs gen9championsvgc2026regmbbo3-2655094906",
-      "agreed_lines": 17,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-immune|p1b <> |cant|p2a|flinch",
-      "end_reason": "the turn cap (12)",
-      "ended_showdown": false,
-      "ended_medicham": false,
-      "final_roster": {
-        "mediResult": 0,
-        "medicham": {
-          "p1": [
-            {
-              "name": "swampert",
-              "key": "swampert",
-              "hp": 175,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "politoed",
-              "key": "politoed",
-              "hp": 165,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "incineroar",
-              "key": "incineroar",
-              "hp": 170,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            }
-          ],
-          "p2": [
-            {
-              "name": "scovillainmega",
-              "key": "scovillain",
-              "hp": 99,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "sylveon",
-              "key": "sylveon",
-              "hp": 170,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "salazzle",
-              "key": "salazzle",
-              "hp": 143,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            },
-            {
-              "name": "aerodactyl",
-              "key": "aerodactyl",
-              "hp": 155,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            }
-          ]
-        },
-        "showdown": {
-          "p1": {
-            "pokemonLeft": 3,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "swampert",
-                "hp": 175,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "politoed",
-                "hp": 165,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "gengarmega",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench"
-              },
-              {
-                "name": "incineroar",
-                "hp": 170,
-                "fainted": false,
-                "where": "bench"
-              }
-            ]
-          },
-          "p2": {
-            "pokemonLeft": 4,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "scovillainmega",
-                "hp": 99,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "sylveon",
-                "hp": 170,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "salazzle",
-                "hp": 143,
-                "fainted": false,
-                "where": "bench"
-              },
-              {
-                "name": "aerodactyl",
-                "hp": 155,
-                "fainted": false,
-                "where": "bench"
-              }
-            ]
-          },
-          "winner": null
-        }
-      },
-      "at": {
-        "showdown_raw": "|-immune|p1b: Incineroar",
-        "medicham_raw": "|cant|p2a: Scovillain|flinch",
-        "showdown": "|-immune|p1b:incineroar",
-        "medicham": "|cant|p2a:scovillain|flinch"
-      },
-      "before": [
-        "|switch|p1b:incineroar|incineroar,l50|170/170",
-        "|switch|p2a:scovillain|scovillain,l50|140/140",
-        "|switch|p2b:aerodactyl|aerodactyl,l50|155/155",
-        "|-unboost|p2a:scovillain|atk|1",
-        "|-unboost|p2b:aerodactyl|atk|1",
-        "|turn|1",
-        "|switch|p2b:salazzle|salazzle,l50|143/143",
-        "|detailschange|p1a:gengar|gengarmega,l50",
-        "|-mega|p1a:gengar|gengar|gengarite",
-        "|detailschange|p2a:scovillain|scovillainmega,l50",
-        "|-mega|p2a:scovillain|scovillain|scovillainite",
-        "|move|p1a:gengar|protect",
-        "|-singleturn|p1a:gengar|protect",
-        "|move|p1b:incineroar|fakeout",
-        "|-crit|p2a:scovillain",
-        "|-damage|p2a:scovillain|99/140"
-      ],
-      "before_raw": [
-        "|switch|p1b: Incineroar|incineroar, L50|170/170",
-        "|switch|p2a: Scovillain|scovillain, L50|140/140",
-        "|switch|p2b: Aerodactyl|aerodactyl, L50|155/155",
-        "|-unboost|p2a: Scovillain|atk|1",
-        "|-unboost|p2b: Aerodactyl|atk|1",
-        "|turn|1",
-        "|switch|p2b: Salazzle|salazzle, L50|143/143",
-        "|detailschange|p1a: Gengar|gengar-mega, L50",
-        "|-mega|p1a: Gengar|Gengar|gengarite",
-        "|detailschange|p2a: Scovillain|scovillain-mega, L50",
-        "|-mega|p2a: Scovillain|Scovillain|scovillainite",
-        "|move|p1a: Gengar|protect|p1a: Gengar",
-        "|-singleturn|p1a: Gengar|Protect",
-        "|move|p1b: Incineroar|fakeout|p2a: Scovillain",
-        "|-crit|p2a: Scovillain",
-        "|-damage|p2a: Scovillain|99/140"
-      ],
-      "after": {
-        "showdown": [
-          "|-immune|p1b: Incineroar",
-          "|cant|p2a: Scovillain|flinch",
-          "|upkeep",
-          "|turn|2"
-        ],
-        "medicham": [
-          "|cant|p2a: Scovillain|flinch",
-          "|upkeep"
-        ]
-      }
-    },
-    {
-      "arm": "middle",
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmbbo3-2656847681 vs gen9championsvgc2026regmbbo3-2656808520",
-      "agreed_lines": 155,
-      "cls": "unrelated event mismatch",
-      "cause": "unrelated event mismatch :: |-fail|p1a <> |-start|p2a|torment",
-      "end_reason": "the turn cap (12)",
-      "ended_showdown": false,
-      "ended_medicham": false,
-      "final_roster": {
-        "mediResult": 0,
-        "medicham": {
-          "p1": [
-            {
-              "name": "krookodile",
-              "key": "krookodile",
-              "hp": 170,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "charizardmegay",
-              "key": "charizard",
-              "hp": 153,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "floetteeternal",
-              "key": "floetteeternal",
-              "hp": 149,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            },
-            {
-              "name": "scovillain",
-              "key": "scovillain",
-              "hp": 113,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            }
-          ],
-          "p2": [
-            {
-              "name": "kingambit",
-              "key": "kingambit",
-              "hp": 175,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "ninetalesalola",
-              "key": "ninetalesalola",
-              "hp": 148,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "gengarmega",
-              "key": "gengar",
-              "hp": 135,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            },
-            {
-              "name": "incineroar",
-              "key": "incineroar",
-              "hp": 170,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "bench"
-            }
-          ]
-        },
-        "showdown": {
-          "p1": {
-            "pokemonLeft": 4,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "krookodile",
-                "hp": 170,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "charizardmegay",
-                "hp": 153,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "floetteeternal",
-                "hp": 149,
-                "fainted": false,
-                "where": "bench"
-              },
-              {
-                "name": "scovillain",
-                "hp": 113,
-                "fainted": false,
-                "where": "bench"
-              }
-            ]
-          },
-          "p2": {
-            "pokemonLeft": 4,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "kingambit",
-                "hp": 175,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "ninetalesalola",
-                "hp": 148,
-                "fainted": false,
-                "where": "active"
-              },
-              {
-                "name": "gengarmega",
-                "hp": 135,
-                "fainted": false,
-                "where": "bench"
-              },
-              {
-                "name": "incineroar",
-                "hp": 170,
-                "fainted": false,
-                "where": "bench"
-              }
-            ]
-          },
-          "winner": null
-        }
-      },
-      "at": {
-        "showdown_raw": "|-fail|p1a: Krookodile",
-        "medicham_raw": "|-start|p2a: Kingambit|move: torment",
-        "showdown": "|-fail|p1a:krookodile",
-        "medicham": "|-start|p2a:kingambit|torment"
-      },
-      "before": [
-        "|-mega|p1b:charizard|charizard|charizarditey",
-        "|-weather|sunnyday|[from]drought",
-        "|move|p1b:charizard|protect",
-        "|-singleturn|p1b:charizard|protect",
-        "|move|p2a:kingambit|protect",
-        "|-fail|p2a:kingambit",
-        "|-weather|sunnyday|[upkeep]",
-        "|upkeep",
-        "|turn|12",
-        "|switch|p2b:ninetales|ninetalesalola,l50|148/148",
-        "|-weather|snowscape|[from]snowwarning",
-        "|move|p1b:charizard|protect",
-        "|-fail|p1b:charizard",
-        "|move|p2a:kingambit|suckerpunch",
-        "|-fail|p2a:kingambit",
-        "|move|p1a:krookodile|torment"
-      ],
-      "before_raw": [
-        "|-mega|p1b: Charizard|Charizard|charizarditey",
-        "|-weather|sunnyday|[from] ability: drought|[of] p1b: Charizard",
-        "|move|p1b: Charizard|protect|p1b: Charizard",
-        "|-singleturn|p1b: Charizard|Protect",
-        "|move|p2a: Kingambit|protect||[still]",
-        "|-fail|p2a: Kingambit",
-        "|-weather|sunnyday|[upkeep]",
-        "|upkeep",
-        "|turn|12",
-        "|switch|p2b: Ninetales|ninetales-alola, L50|148/148",
-        "|-weather|snowscape|[from] ability: snowwarning|[of] p2b: Ninetales",
-        "|move|p1b: Charizard|protect||[still]",
-        "|-fail|p1b: Charizard",
-        "|move|p2a: Kingambit|suckerpunch||[still]",
-        "|-fail|p2a: Kingambit",
-        "|move|p1a: Krookodile|torment|p2a: Kingambit"
-      ],
-      "after": {
-        "showdown": [
-          "|-fail|p1a: Krookodile",
-          "|-weather|Snowscape|[upkeep]",
-          "|upkeep",
-          "|turn|13"
-        ],
-        "medicham": [
-          "|-start|p2a: Kingambit|move: torment",
-          "|-weather|snowscape|[upkeep]",
           "|upkeep"
         ]
       }
@@ -4050,24 +3316,28 @@
             "mons": [
               {
                 "name": "aerodactylmega",
+                "key": "aerodactyl",
                 "hp": 155,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "charizard",
+                "key": "charizard",
                 "hp": 153,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "kingambit",
+                "key": "kingambit",
                 "hp": 175,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "farigiraf",
+                "key": "farigiraf",
                 "hp": 195,
                 "fainted": false,
                 "where": "bench"
@@ -4080,24 +3350,28 @@
             "mons": [
               {
                 "name": "blaziken",
+                "key": "blaziken",
                 "hp": 155,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "whimsicott",
+                "key": "whimsicott",
                 "hp": 135,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "volcarona",
+                "key": "volcarona",
                 "hp": 160,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "floetteeternal",
+                "key": "floetteeternal",
                 "hp": 149,
                 "fainted": false,
                 "where": "bench"
@@ -4252,24 +3526,28 @@
             "mons": [
               {
                 "name": "gengar",
+                "key": "gengar",
                 "hp": 135,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "kingambit",
+                "key": "kingambit",
                 "hp": 175,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "farigiraf",
+                "key": "farigiraf",
                 "hp": 195,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "floetteeternal",
+                "key": "floetteeternal",
                 "hp": 149,
                 "fainted": false,
                 "where": "bench"
@@ -4282,24 +3560,28 @@
             "mons": [
               {
                 "name": "noivern",
+                "key": "noivern",
                 "hp": 160,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "aegislash",
+                "key": "aegislash",
                 "hp": 135,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "rotomwash",
+                "key": "rotomwash",
                 "hp": 125,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "scizor",
+                "key": "scizor",
                 "hp": 145,
                 "fainted": false,
                 "where": "bench"
@@ -4453,24 +3735,28 @@
             "mons": [
               {
                 "name": "pidgeot",
+                "key": "pidgeot",
                 "hp": 158,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "whimsicott",
+                "key": "whimsicott",
                 "hp": 135,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "garchomp",
+                "key": "garchomp",
                 "hp": 183,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "ninetales",
+                "key": "ninetales",
                 "hp": 148,
                 "fainted": false,
                 "where": "bench"
@@ -4483,24 +3769,28 @@
             "mons": [
               {
                 "name": "kingambit",
+                "key": "kingambit",
                 "hp": 175,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "corviknight",
+                "key": "corviknight",
                 "hp": 173,
                 "fainted": false,
                 "where": "active"
               },
               {
                 "name": "scizor",
+                "key": "scizor",
                 "hp": 145,
                 "fainted": false,
                 "where": "bench"
               },
               {
                 "name": "garchomp",
+                "key": "garchomp",
                 "hp": 183,
                 "fainted": false,
                 "where": "bench"

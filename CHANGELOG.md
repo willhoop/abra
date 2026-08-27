@@ -10,6 +10,75 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.153.0] — 2026-08-26
+
+### Changed
+- **THE PARTY IS KEYED ON THE BODY NOW, NOT ON ITS NAME — AND THE SCOREBOARD RE-BASELINED WITH IT.**
+  ENGINE, ROADMAP #465. `engine/board_state.js`'s `partyMap` keyed the party by the DISPLAYED species,
+  so a transformed body overwrote the one it copied: `duplicate_species_in_party` read **20 on every
+  pinned 961-game run** and nothing acted on it. Identity keying is the default;
+  `MEDI_PARTY_KEY_DISPLAY=1` is the positive control that restores the old keying, and the retired
+  `MEDI_PARTY_KEY_IDENTITY` is a loud no-op. `reader_failures` on the pinned run is now **`{}`**.
+- **THE NUMBERS BELOW ARE THE FIRST MEASUREMENT UNDER THE CORRECTED COMPARATOR AND ARE NOT A DELTA.**
+  The re-key changes which party rows exist, which changes the census-coverage credit, which changes
+  which clicks the driver makes: **109 of 961 trajectories differ** across the two keyings against a
+  control of **0 of 961** between two identical runs. Nothing published before this compares to it.
+  Pinned at release `6272fa445b73`, `--arm middle --turns 12`, `--team-store data/team-pool-frozen`,
+  census `9446a684709d`:
+
+  ```
+    whole-game clause   13 of 961  1.4%   (18 raw, less 5 declared Supreme Overlord, 0 on decision impact)
+    raw diverged        18 of 961
+    board-material       4 of 961         (957 of 961 boards never parted)
+    narration-only      13 causes, 14 games
+    reader failures     {}                roster identities read from DISPLAY state 0/0/0
+  ```
+
+  `data/whole-game-baseline.json` re-stamped at 18 of 961 = 1.9% under this pin. No `--force`.
+- **`party.species` AND `party.types` ARE IN THE END-STATE WORKLIST FOR THE FIRST TIME** — a transform
+  one engine holds and the authority does not. Under the display key that row had no stable name to be
+  reported under at all, which is the point: the corrected comparator sees more, so the number rose.
+
+### Added
+- **`engine/identity_audit.js` — WHO ANSWERS "which roster body is this", AND WHETHER THEY WENT
+  THROUGH THE DOOR.** Registered in `tests/run-all.js` GATES. This is the fifth instance of the
+  species-key class and the previous four fixes were each a LIST OF KNOWN-BAD SPELLINGS, so this one
+  contains no list: it reads `stableKey`'s own source at run time and derives the property chains the
+  door consults. HARD (enforced: `.set.species`, `.set.name`, `._switchKey`) versus SOFT (counted:
+  `.baseSpecies.id`, `.species.id`, `.name`) is derived too, from whether the door's branch announces
+  itself with `say(...)`. **It over-matched on its first run — 1,282 accusations, nearly all ordinary
+  `.name` display reads — because the soft test combined branches with AND instead of OR.** Printed
+  before it was wired, per the standing rule. `--break` plants an unrouted read and fails unless the
+  child goes red.
+
+### Fixed
+- **THE SIX BENCH PLANTS BUILT THEIR EXPECTED PATH FROM THE DISPLAYED SPECIES, AND THE RE-KEY BROKE
+  THEM.** `tests/test-state-differential.js` went 12 FAILS: every bench plant `caught=true` at the
+  right boundary and `localised=false`, because the row reads `p2.party.lopunny.item` and the plant
+  wanted `lopunnymega`. Confirmed as this batch's rather than pre-existing by re-running under
+  `MEDI_PARTY_KEY_DISPLAY=1`, which was green. They build the path with `rosterKey(m)` now.
+- **`isDuplicateOfActive` WOULD HAVE DOUBLE-COUNTED EVERY RENAMED BODY, SILENTLY.** It matched a party
+  diff's key against `active_species`, the displayed name — the two agree for an ordinary body and stop
+  agreeing for exactly the megas and transforms, so a mega's party row would have been listed in the
+  wire queue beside its own active row. `board_state.js`'s readers publish `active_keys` through the
+  same `stableKey` and the dedupe reads those. `compare()` walks a named list, so it cannot become a
+  compared leaf.
+- **`rosterSnapshot` WAS THE LAST PRODUCTION SITE ANSWERING THE IDENTITY QUESTION FOR ITSELF** —
+  `key: m._switchKey || null`, in the one dump whose whole job is saying which body each engine holds
+  when the game stops. The `|| null` was the silent half: an unstamped body reported `null` and nothing
+  counted it. Both halves route through `rosterKey`, and a miss now lands in `ROSTER_KEY_FALLBACK`,
+  which must read 0/0/0. It does.
+
+### Notes
+- **No release was cut and none is owed.** `engine_release.js list` reads `6272fa445b73 — 0 of 26 files
+  have moved since` after every edit here; `board_state.js`, `game_differential.js` and
+  `identity_audit.js` are the reader, the instrument and an audit, and none is in `SOURCES`. The three
+  roster stages, `all_mechanics_fire.js` and `tests/test-engine-diff.js` are therefore NOT owed.
+- The census was not regenerated and stands at 754 live / 754 probed / 0 missing.
+- Full account: `docs/_reports/2026-08-26-rebaseline.md`.
+
+---
+
 ## [5.152.0] — 2026-08-26
 
 ### Changed

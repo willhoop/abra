@@ -190,7 +190,15 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * became a second reader, precisely so there would not be two implementations of one fact. A shared
    * fact with no standing check is how the two copies drift back apart. Measured 2026-08-23: exit 0.
    * It loads no simulator and writes nothing. */
-  'engine/divergence_shape.js'];
+  'engine/divergence_shape.js',
+  /* engine/identity_audit.js — WHO ANSWERS "which roster body is this". Registered on the day the
+   * FIFTH instance of the species-key class landed (ROADMAP #465, the party keyed on the displayed
+   * species). It is here rather than in NOT_A_CHECK for the reason engine/mc_key.js's header gives:
+   * every previous fix in this class was a list of known-bad spellings, and the next instance used a
+   * spelling that was not on the list. This one derives its membership from the resolver's own source
+   * at run time, so a field the door starts consulting tomorrow is audited with no edit. It costs
+   * about a second, it names its own hole in its header, and `--break` proves it can go red. */
+  'engine/identity_audit.js'];
 
 /* COVERAGE ASSERTION. Any file in tests/ or engine/ that reports its own pass/fail verdict is a
  * check, and a check that nothing runs is worse than no check — it reads as coverage in a review. If

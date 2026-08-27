@@ -24,12 +24,16 @@
  * other's describing the real Garchomp it had copied (183, Choice Scarf). Four leaves that read as
  * four rule disagreements and are ONE reader losing a body.
  *
- * WHAT THIS PROBE ASSERTS, AND WHAT IT REFUSES TO ASSERT. It asserts the FIX: under
- * `MEDI_PARTY_KEY_IDENTITY=1` both bodies survive as separate rows in BOTH engines, the identity of
+ * WHAT THIS PROBE ASSERTS, AND WHAT IT REFUSES TO ASSERT. It asserts the FIX, which since
+ * 2026-08-26 is the DEFAULT: both bodies survive as separate rows in BOTH engines, the identity of
  * every row comes off a stamp rather than off display state, and the rename itself becomes a compared
- * leaf. It does NOT assert that the display key collides — it MEASURES that and prints it. A test
- * that asserts the current behaviour is a test that pins the bug, which is a failure mode this
- * division has a written name for.
+ * leaf. It does NOT assert that the display key collides — it MEASURES that under the
+ * `MEDI_PARTY_KEY_DISPLAY=1` control and prints it. A test that asserts the old behaviour is a test
+ * that pins the bug, which is a failure mode this division has a written name for.
+ *
+ * THE ARMS SWAPPED WHEN THE RE-KEY LANDED. The PARENT is now the default identity keying and carries
+ * the assertions; the CHILD is the display control and only measures. Nothing else about the fixture
+ * changed, so a green parent here is the same claim it was before the flip.
  *
  * TWO PROCESSES, BECAUSE THE KNOB IS READ AT MODULE LOAD. `board_state.js` reads the env var once
  * when it is required, and `game_differential.js` holds its own reference to it, so flipping
@@ -48,7 +52,8 @@ const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('engine', 'showdown_path.js'));
 if (!process.env.SHOWDOWN_PATH) { console.log('NOT RUN — SHOWDOWN_PATH is unset. This is not a pass.'); process.exit(2); }
 
-const CHILD = process.env.MEDI_PARTY_KEY_IDENTITY === '1';
+/* THE CHILD IS THE DISPLAY CONTROL. The parent runs the shipped default, which is identity. */
+const CHILD = process.env.MEDI_PARTY_KEY_DISPLAY === '1';
 
 process.argv.push('--state');
 const G = require(D('engine', 'game_differential.js'));
@@ -100,9 +105,9 @@ if (FILLER.length < 2) { console.log('  NOT ENOUGH LEGAL FILLER — a claim abou
 console.log('  copier : ' + COPIER.name + '  ability ' + COPIER_ABILITY + '  maxhp base ' + COPIER.baseStats.hp);
 console.log('  copied : ' + COPIED.name + '  — stands OPPOSITE the copier AND sits on the copier\'s own bench,');
 console.log('           which is what makes the two rows collide once the copier takes its name');
-console.log('  keying this process: ' + (CHILD ? 'IDENTITY (MEDI_PARTY_KEY_IDENTITY=1)' : 'DISPLAY (the default)')
+console.log('  keying this process: ' + (CHILD ? 'DISPLAY (MEDI_PARTY_KEY_DISPLAY=1, the control)' : 'IDENTITY (the default)')
   + '   board_state reports PARTY_KEY_IDENTITY=' + BS.PARTY_KEY_IDENTITY);
-if (CHILD !== !!BS.PARTY_KEY_IDENTITY) {
+if (CHILD === !!BS.PARTY_KEY_IDENTITY) {
   console.log('  RED — the knob this process asked for is not the knob board_state.js is running.');
   process.exit(1);
 }
@@ -134,7 +139,7 @@ const a = G.buildPair(SHEET_COPIER_SIDE), b = G.buildPair(SHEET_FOE_SIDE);
 if (!a || !b) { console.log('  COULD NOT BUILD THE PAIR — a claim about the fixture.'); process.exit(2); }
 
 const seen = [];
-const r = G.playGame(a, b, 'directed', 'partykey/' + (CHILD ? 'identity' : 'display'), {
+const r = G.playGame(a, b, 'directed', 'partykey/' + (CHILD ? 'display' : 'identity'), {
   arm: G.ARM_BY_ID.get('middle'),
   script: [null, null, null],
   onBoundary: (snap, turnIdx, S, battle) => {
@@ -190,13 +195,13 @@ if (last.medi_display[0] !== norm(COPIED.name)) {
 }
 
 console.log('\n  === THE VERDICT ===');
-if (!CHILD) {
+if (CHILD) {
   /* MEASURED, NOT ASSERTED. See the header: asserting the collision would pin the bug. */
   const lost = 4 - last.medi_keys.length;
   console.log('  DISPLAY KEY — medicham2 holds ' + last.medi_keys.length + ' of 4 party rows'
     + (lost > 0 ? '  <- ' + lost + ' BODY LOST TO A COLLISION' : '  (no collision on this board)'));
   console.log('  DISPLAY KEY — showdown  holds ' + last.sd_keys.length + ' of 4 party rows');
-  console.log('  this arm asserts nothing about the collision; the child arm asserts the fix.');
+  console.log('  this arm asserts nothing about the collision; the PARENT arm, on the shipped default, asserts the fix.');
 } else {
   const need = (what, got, want) => {
     const ok = got === want;
@@ -226,13 +231,13 @@ if (!CHILD) {
    * Spawned rather than toggled, because the knob is read at module load. The parent FAILS if the
    * child does not answer: a silent child is indistinguishable from a passing one. */
   const { spawnSync } = require('child_process');
-  console.log('\n  --- re-running under MEDI_PARTY_KEY_IDENTITY=1, in a child ---');
+  console.log('\n  --- re-running under MEDI_PARTY_KEY_DISPLAY=1 (the control), in a child ---');
   const c = spawnSync(process.execPath, [__filename],
-    { env: { ...process.env, MEDI_PARTY_KEY_IDENTITY: '1' }, encoding: 'utf8' });
+    { env: { ...process.env, MEDI_PARTY_KEY_DISPLAY: '1' }, encoding: 'utf8' });
   process.stdout.write(String(c.stdout || '').split('\n').map(l => '  |' + l).join('\n'));
   if (c.stderr) process.stderr.write(String(c.stderr));
   if (c.status === null) { console.log('\n  RED — the child did not run at all.'); bad++; }
-  else if (c.status !== 0) { console.log('\n  RED — the identity arm failed (exit ' + c.status + ').'); bad++; }
+  else if (c.status !== 0) { console.log('\n  RED — the display-control arm failed (exit ' + c.status + ').'); bad++; }
 }
 
 console.log('\n' + (bad ? 'RED — ' + bad + ' assertion(s) failed' : 'green — every assertion held'));

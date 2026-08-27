@@ -21,6 +21,63 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE PARTY KEY LANDED AND THE SCOREBOARD RE-BASELINED. **WHOLE-GAME CLAUSE 13 OF 961, RAW 18, BOARD-MATERIAL 4 — FIRST MEASUREMENT UNDER THE CORRECTED COMPARATOR, NOT A DELTA.** 2026-08-26 (ENGINE).
+
+CHANGELOG 5.153.0. Full account: `docs/_reports/2026-08-26-rebaseline.md`.
+**No release cut and none owed — `6272fa445b73` reads `0 of 26 files have moved since` after every edit
+here. `board_state.js`, `game_differential.js` and `identity_audit.js` are the reader, the instrument
+and an audit; none is in `SOURCES`. The roster stages, `all_mechanics_fire.js` and
+`tests/test-engine-diff.js` are NOT owed.**
+
+**THE DISCONTINUITY IS THE POINT, SO IT IS LABELLED RATHER THAN EXPLAINED AWAY.** `partyMap` keyed the
+party on the DISPLAYED species, so `duplicate_species_in_party` read **20 on every pinned 961-game run**
+and one body was compared against the other engine's OTHER body. Fixing it changes which rows exist,
+which changes the census-coverage credit, which changes which clicks the driver makes: **109 of 961
+trajectories differ** across the keyings, against a control of **0 of 961** between two identical runs.
+Nothing measured before 2026-08-26 03:28 compares to anything after it.
+
+| | new figure |
+|---|---|
+| whole-game clause | **13 of 961 — 1.4%** (18 raw, less 5 declared Supreme Overlord) |
+| raw diverged | **18 of 961** |
+| board-material | **4 of 961** (957 of 961 boards never parted) |
+| narration-only | 13 causes, 14 games |
+| reader failures | **`{}`** — was `{"duplicate_species_in_party":20}` |
+| roster identities read from DISPLAY state | 0 / 0 / 0 |
+| census | 754 live / 754 probed / 0 missing — unmoved, not regenerated here |
+
+Pins: release `6272fa445b73`, `--arm middle --turns 12 --games 1200`,
+`--team-store data/team-pool-frozen`, census `9446a684709d` (643 rows), pool `0d103fb9fa87`.
+`data/whole-game-baseline.json` re-stamped at 18 of 961 = 1.9%; no `--force`.
+
+**THE NUMBER ROSE BECAUSE THE CORRECTED COMPARATOR SEES MORE.** `party.species` and `party.types` are
+in the end-state worklist for the first time — a transform one engine holds and the authority does
+not. Under the display key that row had no stable name to be reported under.
+
+**THE BOARD-MATERIAL WORKLIST, four causes:** a recoil `-damage` values-differ at turn 8; an ordering
+`|-enditem|p2a|whiteherb` before `|turn|5`; a `-fail|p1b` medicham2 never emits at turn 6; and
+`-damage: a different body` at turn 2 — the spread-target divergence #465's card named as NOT the party
+key, which survived the re-key untouched exactly as predicted.
+
+**TWO THINGS BROKE ON THE RE-KEY AND ONE OF THEM WAS SILENT.** The six BENCH PLANTS built their
+expected path from `id(m.name)`, so `tests/test-state-differential.js` went **12 FAILS** —
+`caught=true`, `localised=false`, row `p2.party.lopunny.item` against a plant wanting `lopunnymega`.
+Attributed to this batch rather than assumed, by re-running under `MEDI_PARTY_KEY_DISPLAY=1`, which was
+green. `isDuplicateOfActive` was the silent one: it matched a party key against the DISPLAYED active
+species, which stops being the same string for exactly the megas and transforms, so a renamed body's
+party row would have been listed in the wire queue twice. Both fixed; `board_state.js` now publishes
+`active_keys` so the dedupe asks the question in one currency.
+
+**IDENTITY IS ONE DOOR, AND THE CHECK DERIVES ITS MEMBERSHIP.** `engine/identity_audit.js`, registered
+in `run-all.js` GATES, reads `stableKey`'s own source at run time rather than carrying a list — the
+previous four fixes in this class were each a list of known-bad spellings and the next instance used a
+spelling that was not on it. It found `rosterSnapshot` still reading `m._switchKey || null` in the one
+dump that says which body each engine is holding when the game stops. **It over-matched on its first
+run at 1,282 accusations** (branch verdicts combined with AND instead of OR) and that was printed
+before it was wired.
+
+---
+
 ## `build_engine_data.js` READ ITS OWN OUTPUT AS A SOURCE. 1,350 VALUES DE-BLINDED, RESIDUE **2,072** AND RATCHETED, OUTPUT **BYTE-IDENTICAL**. NO VALUE CHANGED AND NONE COULD. 2026-08-26 (MEASURE).
 
 CHANGELOG 5.152.0. Full account: `docs/_reports/2026-08-26-builder-purity.md`.

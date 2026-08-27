@@ -3099,8 +3099,13 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
        * is a second view of a standing body from one about a body on the bench. The union is
        * deliberate — on a species divergence the two engines disagree about who is standing. */
       const act = {};
-      for (const s of ['p1', 'p2']) act[s] = [...new Set([...snap.medi.sides[s].active, ...snap.sd.sides[s].active]
-        .filter(Boolean).map(x => x.species))];
+      /* THE KEY, NOT THE DISPLAYED SPECIES — ROADMAP #465. `d.body` on a party diff is the party MAP's
+       * key, and since the party is keyed on identity the two stopped being the same string for any
+       * renamed body. Matching a key against a display name would have silently stopped de-duplicating
+       * exactly the megas and transforms, and a wire queue that lists one defect twice is a worse
+       * queue. `active_keys` comes off `board_state.js`'s readers, through the same `stableKey`. */
+      for (const s of ['p1', 'p2']) act[s] = [...new Set([...(snap.medi.sides[s].active_keys || []),
+        ...(snap.sd.sides[s].active_keys || [])].filter(Boolean))];
       earlyBoards[turnIdx] = { turn: turnIdx, identical: snap.identical,
                                leaves_compared: snap.leaves_compared, active_species: act,
                                diffs: snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap)) };
@@ -3774,15 +3779,26 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * the SAME question — every body, is it fainted, at what hp — and Showdown is additionally asked
    * `pokemonLeft`, which is the number `checkWin` actually reads (sim/battle.js:2133). */
   const rosterSnapshot = () => {
+    /* `rosterKey`, NOT `m._switchKey || null` — ROADMAP #465, 2026-08-26. This read was the one site
+     * `engine/identity_audit.js` found still answering the identity question for itself, and the
+     * `|| null` was the silent half: a body that never got stamped reported `key: null` here and
+     * NOTHING counted it, in the one dump whose whole job is to say which body each engine is
+     * holding when the game stops. Through the door a missing stamp lands in `ROSTER_KEY_FALLBACK`,
+     * which every run prints and which must read 0/0/0. */
     const mediSide = (acts, bench) => [...acts, ...bench].filter(Boolean).map(m =>
-      ({ name: id(m.name), key: m._switchKey || null, hp: m.curHP, fainted: !!m.fainted,
+      ({ name: id(m.name), key: rosterKey(m), hp: m.curHP, fainted: !!m.fainted,
          /* WIRE 160 — the ORDER, not just the fact. medicham2 stamps a monotone sequence at every
           * faint site because sim/battle.ts:2603 decides a mutual wipe by which body fainted LAST.
           * `null` on a live body is expected; `null` on a DEAD one means the stamp never ran. */
          faintSeq: (m._faintSeq == null ? null : m._faintSeq),
          where: acts.indexOf(m) >= 0 ? 'active' : 'bench' }));
+    /* THE AUTHORITY'S HALF GOES THROUGH THE SAME DOOR, and it has to: `p.species.id` is the DISPLAYED
+     * forme, so a transformed or disguised body was named one thing here and another on the medicham
+     * side of the very same dump — the two columns a reader compares by eye. `name` stays as the
+     * display read it always was, beside `key`, because the whole point of this dump is to show a
+     * rename when one has happened. */
     const sdSide = side => ({ pokemonLeft: side.pokemonLeft, teamSize: side.pokemon.length,
-      mons: side.pokemon.map(p => ({ name: id(p.species.id), hp: p.hp, fainted: !!p.fainted,
+      mons: side.pokemon.map(p => ({ name: id(p.species.id), key: rosterKey(p), hp: p.hp, fainted: !!p.fainted,
                                      where: p.isActive ? 'active' : 'bench' })) });
     try {
       /* WIRE 160 — `battleResult` ITSELF, asked here rather than re-derived by the reader. Every
@@ -4624,25 +4640,32 @@ const STATE_PLANTS = [
    * over 2,029 benched bodies before any of them was wired), and a leaf with no plant behind it is a
    * leaf nobody has ever seen catch anything — the same rule the volatile sweep above was held to.
    *
-   * EACH RETURNS ITS OWN PATH. The party is keyed by SPECIES, so the path is
-   * `p1.party.<species>.item` and the species is not knowable when this table is written. A static
-   * `party.` would be satisfied by ANY party difference, including the HP one two rows up, and the
-   * plant would prove nothing about the leaf it aimed at.
+   * EACH RETURNS ITS OWN PATH, AND IT IS BUILT WITH `rosterKey`, NOT WITH `id(m.name)`. The path is
+   * `p1.party.<key>.item` and the key is not knowable when this table is written. A static `party.`
+   * would be satisfied by ANY party difference, including the HP one two rows up, and the plant would
+   * prove nothing about the leaf it aimed at.
+   *
+   * THESE SIX WERE `id(m.name)` UNTIL 2026-08-26 AND THAT IS WHAT THE RE-KEY BROKE. ROADMAP #465 moved
+   * `partyMap` off the DISPLAYED species and onto the body's identity, and these plants kept naming the
+   * row by its display name — so a body whose name had moved (a mega, in the pair that caught it: the
+   * row reads `lopunny`, the plant expected `lopunnymega`) was CAUGHT at the right boundary and
+   * reported NOT LOCALISED. Twelve of them, in the one instrument whose job is proving the comparator
+   * can see a bench leaf at all. A plant that names a row is part of the keying and moves with it.
    *
    * EVERY ONE OF THESE IS SILENT IN THE PROTOCOL. Nothing on a bench emits a line; that is exactly
    * why the gap existed and exactly what a STATE comparison is for. */
   ['an ITEM on a BENCHED body that is not held', 'party.',
    S => { const m = benchedLivingEither(S, 'A'); if (!m) return false;
           m.item = m.item ? '' : 'leftovers';
-          return 'party.' + id(m.name) + '.item'; }],
+          return 'party.' + rosterKey(m) + '.item'; }],
   ['a STATUS on a BENCHED body that is not there', 'party.',
    S => { const m = benchedLivingEither(S, 'B'); if (!m) return false;
           m.status = m.status === 'brn' ? 'par' : 'brn';
-          return 'party.' + id(m.name) + '.status'; }],
+          return 'party.' + rosterKey(m) + '.status'; }],
   ['the TOXIC stage off by one on a BENCHED body', 'party.',
    S => { const m = benchedLivingEither(S, 'A'); if (!m) return false;
           m.status = 'tox'; m.toxTurns = (m.toxTurns || 0) + 3;
-          return 'party.' + id(m.name) + '.status_counter'; }],
+          return 'party.' + rosterKey(m) + '.status_counter'; }],
   /* THE TYPING PLANT WRITES A TYPE THE BODY DOES NOT HAVE, chosen from the two it cannot both be, so
    * a body that is already one of them still moves. This is the leaf ROADMAP #225 records as having
    * made the comparison unable to see the worst defect in the register — on the field. On the bench it
@@ -4651,11 +4674,11 @@ const STATE_PLANTS = [
    S => { const m = benchedLivingEither(S, 'B'); if (!m) return false;
           const has = (m.types || []).map(t => id(t));
           m.types = has.indexOf('ghost') >= 0 ? ['Normal'] : ['Ghost'];
-          return 'party.' + id(m.name) + '.types'; }],
+          return 'party.' + rosterKey(m) + '.types'; }],
   ['a STAT STAGE off by one on a BENCHED body', 'party.',
    S => { const m = benchedLivingEither(S, 'A'); if (!m) return false;
           m.boosts = m.boosts || {}; m.boosts.at = (m.boosts.at || 0) + 1;
-          return 'party.' + id(m.name) + '.boosts.atk'; }],
+          return 'party.' + rosterKey(m) + '.boosts.atk'; }],
   /* ROADMAP #307 -- THE SIXTH BENCH LEAF, wired the day the defect under it was fixed rather than the
    * day it was found. `board_state.js` refused this one on purpose while medicham2 kept a traced
    * ability across a switch; with the restore in, the leaf reads 0 of 3,280 benched comparisons and
@@ -4664,7 +4687,7 @@ const STATE_PLANTS = [
   ['an ABILITY on a BENCHED body that is not its own', 'party.',
    S => { const m = benchedLivingEither(S, 'B'); if (!m) return false;
           m.ability = id(m.ability) === 'levitate' ? 'sturdy' : 'levitate';
-          return 'party.' + id(m.name) + '.ability'; }],
+          return 'party.' + rosterKey(m) + '.ability'; }],
 ];
 
 function plantedStateProof(pairA, pairB) {
