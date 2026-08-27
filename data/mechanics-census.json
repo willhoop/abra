@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-27T15:45:20.706Z",
+  "generated": "2026-08-27T16:58:13.282Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 764,
-  "live": 764,
+  "probed": 765,
+  "live": 765,
   "missing": 0,
-  "armed": 764,
+  "armed": 765,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3703,7 +3703,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 28.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4994,6 +4994,16 @@
       "label": "a residual SPEED TIE is broken by the authority`s selection sort, and it picks the WINNER of a double wipe",
       "live": true,
       "detail": "[battleResult (1 = side A won, 0 = side B, 0.5 = neither), bodies fainted, faint order] — EXACT TIE at 91/91 [1,4,\"gengar(B) absol(A) primarina(B) primarina(A)\"] (want 1: the selection sort throws p1`s Primarina behind p2`s, so p1 faints LAST and wins); p1`s Primarina slowed to 88 [1,4,\"gengar(B) absol(A) primarina(B) primarina(A)\"] (want 1); p2`s slowed to 88 [0,4,\"gengar(B) absol(A) primarina(A) primarina(B)\"] (want 0). The two controls answer OPPOSITE winners, so the board is sensitive; before 2026-08-24 the tied arm read 0. Showdown answers A on this exact board. Knob: MEDI_RESIDUAL_STABLE_SORT=1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sideBuff",
+      "label": "two Tailwinds ending on one turn come out in the order the authority`s selection sort leaves them",
+      "live": true,
+      "detail": "both Tailwinds expire in one residual, Leftovers on all four. Fastest body on side A -> [p1,p2] (want p1,p2); fastest body on side B -> [p2,p1] (want p2,p1 — the selection sort throws side A`s Tailwind past side B`s while lifting B`s Leftovers to the front). Showdown answers exactly this on both arms, measured in tests/probe_residual_shadow.js. Knob: MEDI_RESIDUAL_SHADOW_OFF=1",
       "hollow": false,
       "armed": true,
       "directCall": false

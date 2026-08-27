@@ -18183,6 +18183,61 @@ probe('move', 'perishClock', 'a residual SPEED TIE is broken by the authority`s 
 });
 
 
+/* 2026-08-27 — AND THE OTHER HALF OF THE SAME SORT: A TIED *SIDE* CLOCK, WHICH THE BODY WALK COULD
+ * NOT PLACE AT ALL.
+ *
+ * The probe above resolves a tie between two BODIES, and `residualOrder`'s own header says what it
+ * cannot do: the authority's list holds every HANDLER, not every body, so a tied pair's final order
+ * depends on the swaps made while the OTHER handlers were placed. Two Tailwinds ending on one turn is
+ * exactly that case and it is two rows of `data/game-differential.json`.
+ *
+ * `residualExpireAt` now reads a REBUILT copy of the authority's list — see the header above it — and
+ * this is that rebuild's board. Both sides' Tailwind expires on the same residual; the knob is WHICH
+ * SIDE carries the fastest body, because that decides where the swap that lifts it to the front sends
+ * whatever stood at position 0.
+ *
+ * THE EXPECTATION IS MEASURED, NOT TYPED. `tests/probe_residual_shadow.js` plays this board in the
+ * OFFICIAL simulator on both arms and reads p1-then-p2 with the fastest body on p1, and p2-then-p1
+ * with it on p2 — four arms, with the authority's own `fieldEvent` list dumped beside the rebuilt one
+ * and matching 36/36 phases. Knob: MEDI_RESIDUAL_SHADOW_OFF=1, under which BOTH arms answer p1 first
+ * and this probe goes MISSING. */
+probe('move', 'sideBuff', 'two Tailwinds ending on one turn come out in the order the authority`s selection sort leaves them', () => {
+  const run = (fastSide) => {
+    /* Leftovers on all four is the load-bearing half: without something ABOVE order 26 in the list
+     * there is no placement to displace a Tailwind, and every arm answers p1 first for free. */
+    const a0 = bare('absol'), a1 = bare('milotic');
+    const b0 = bare('gengar'), b1 = bare('garchomp');
+    for (const m of [a0, a1, b0, b1]) m.item = 'leftovers';
+    /* explicit on BOTH arms, so the only thing that moves between them is which side holds the 200 */
+    a0.st = Object.assign({}, a0.st, { sp: 100 });
+    b0.st = Object.assign({}, b0.st, { sp: 100 });
+    a1.st = Object.assign({}, a1.st, { sp: fastSide === 'A' ? 200 : 50 });
+    b1.st = Object.assign({}, b1.st, { sp: fastSide === 'B' ? 200 : 50 });
+    const trace = [];
+    const S = M.battleInit([a0, a1], [b0, b1], { seeded: true, trace });
+    /* one turn left on both clocks, set directly so the expiry lands in ONE residual and the probe is
+     * about the ORDER rather than about Tailwind's duration */
+    S.field.twA = 1; S.field.twB = 1;
+    /* every body under full HP, so Leftovers actually has work to do on the arm as well as a row */
+    for (const m of [a0, a1, b0, b1]) m.curHP = Math.max(1, m.curHP - 20);
+    trace.length = 0;
+    M.battleTurn(S, rng5, new Map([[a0, { kind: 'pass' }], [a1, { kind: 'pass' }]]), PASS2(b0, b1));
+    return trace.filter(l => /^\|-sideend\|/.test(l))
+      .map(l => (/\|(p\d)/.exec(l) || [, '?'])[1]).join(',');
+  };
+  const fastA = run('A'), fastB = run('B');
+  return { works: fastA === 'p1,p2' && fastB === 'p2,p1',
+           /* the two arms answer OPPOSITE orders, so the knob under this probe is a wired one; before
+            * 2026-08-27 both read p1,p2 and the second was a live differential row */
+           arms: { control: fastA, test: fastB },
+           detail: 'both Tailwinds expire in one residual, Leftovers on all four. Fastest body on '
+                 + 'side A -> [' + fastA + '] (want p1,p2); fastest body on side B -> [' + fastB
+                 + '] (want p2,p1 — the selection sort throws side A`s Tailwind past side B`s while '
+                 + 'lifting B`s Leftovers to the front). Showdown answers exactly this on both arms, '
+                 + 'measured in tests/probe_residual_shadow.js. Knob: MEDI_RESIDUAL_SHADOW_OFF=1' };
+});
+
+
 /* 5. ROADMAP #81 WIRE 12 — THE LIFE ORB TOLL IS PAID BY A MOVE THAT LANDED, AND WIRE 10 STOPPED
  *    CHECKING. This is that rung's board regression, found by staging the path it altered.
  *

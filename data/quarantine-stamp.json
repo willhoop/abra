@@ -8,6 +8,9 @@
   "not_store_derived": "it records which artifacts are downstream of the simulator and where they are still cited. No game is counted anywhere in it, so the quality filter has no bearing.",
   "gate_open": false,
   "failing_clauses": [
+    "deliberate roster / items",
+    "deliberate roster / abilities",
+    "deliberate roster / moves",
     "whole-game differential / the same game on both engines",
     "mechanics / each one staged and compared against showdown",
     "no open, known engine defect"
@@ -79,5 +82,5 @@
     "web/build-status.js",
     "web/publish-rule.js"
   ],
-  "generated": "2026-08-27T07:36:32.800Z"
+  "generated": "2026-08-27T14:14:05.537Z"
 }

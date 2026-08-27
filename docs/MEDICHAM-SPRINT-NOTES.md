@@ -21,6 +21,56 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## BOTH SIDES' TAILWIND ENDING ON ONE TURN — THE ORDER IS DECIDED BY THE SWAPS MADE WHILE *OTHER* HANDLERS WERE PLACED. **WHOLE-GAME 13 -> 11 OF 961, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 10 OF 961. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS 764 -> 765 LIVE / 765 PROBED / 0 MISSING.**
+
+Release `6afa148cbeb1`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+Register row: ROADMAP **#493 — CLOSED**. CHANGELOG 5.180.0.
+Full account: `docs/_reports/2026-08-27-tailwind-tie.md`.
+
+**IT REVERSES NO PART OF THE TRACE FIX.** `engine/game_differential.js` was not touched, `DICE_MODEL`
+is still `split/v3` and `PIN_DIGEST` is still `44bd49403231`, read off the new artifact. That fix
+pinned the RANGE form of `pinRandom`; this one is `pinShuffle`, which was already a no-op in every
+shipped arm. Different door, no die moved, runs either side still comparable.
+
+**THE PREMISE WAS HALF RIGHT.** The two Tailwinds are a true tie — same order 26, same subOrder 5, no
+`speed` because the holder is a `Side`, and `effectOrder` is filled ONLY for `SwitchIn` and
+`RedirectTarget` (`sim/battle.ts:993-999`). But `pinShuffle` is a no-op under measurement, so the
+authority draws nothing and keeps its SELECTION SORT's permutation. The fix is not a draw; it is the
+swaps.
+
+**WHAT DECIDES IT.** `fieldEvent` builds ONE flat list — field handlers, then per side its side
+conditions and then each body's own (`sim/battle.ts:490-505`) — so p1's Tailwind sits near the head and
+p2's a whole side later. `speedSort` SWAPS: lifting the fastest Leftovers into position 0 sends
+whatever stood there to the index it came from, and with the fastest body on p2 that index is BEHIND
+p2's Tailwind. Dumped from the authority's real list.
+
+**THE FIX.** `engine/medicham2-browser.js` rebuilds the authority's list as a SHADOW above
+`residualExpireAt` — collection order, (order, subOrder, speed), membership from
+`data/residual-order.json`'s 90-row population with a presence reader per row, sorted by
+`Battle#speedSort`, ties off the SAME `tie` stream. **subOrder stays the FIRST sort key and the shadow
+rank is only ever the second**, so a wrong list can only reorder two clocks that already tie.
+
+**A CHAMPIONS OVERRIDE, FOUND BY THE INSTRUMENT.** Champions replaces `getActionSpeed` with a bare
+`-speed` under Trick Room (`data/mods/champions/scripts.ts:44-54`, *"Remove Trick Room underflow"*),
+not mainline's `10000 - speed`. Both agree among bodies, so every board arm was green either way —
+caught by holding the rebuilt list against the authority's, 5 of 36 phases wrong on the speed key,
+now 36/36. Under `-speed` a Side (0) outranks every body (negative) under Trick Room; unreachable
+today because no order holds both a per-body step and a side clock. Recorded, not fixed.
+
+**THE PROBE** `tests/probe_residual_shadow.js` — six arms, all derived and printed, refuses to pass if
+the collision is not staged or if the authority answers the same on all four knob settings. RED under
+`MEDI_RESIDUAL_SHADOW_OFF=1`. Census row `move/sideBuff`, MISSING under the same knob.
+
+**MUST NOT MOVE — DID NOT.** Damage 0 of 6000 at every one of the sixteen corners; roster
+139 / 129 / 475 with 0 DIFFER and 0 DID-NOT-FIRE.
+
+**OWED:** the list fidelity is 36 staged phases, not the pinned pool; seven artifact volatile rows have
+no reader in this engine (`magnetrise, beakblast, chillyreception, counter, electrify, focuspunch,
+mirrorcoat`); two shadow-list approximations are declared and unmeasured apart.
+
+---
+
 ## A MEGA THAT ARRIVES HOLDING TRACE COPIES *AND THEN RUNS* WHAT IT COPIED — THE COPY WAS IN ONE PLACE AND THE RUN IN ANOTHER. **BOARD-MATERIAL 11 -> 10 OF 961 AND WHOLE-GAME 14 -> 13 OF 961, BOTH PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS UNMOVED AT 764 LIVE / 764 PROBED / 0 MISSING.** 2026-08-27.
 
 Release `549cdbdd8060`, arm `middle`, `--games 1200` (yields 961), cap 12,

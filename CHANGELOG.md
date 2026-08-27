@@ -10,6 +10,95 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.180.0] — 2026-08-27
+
+### Fixed
+- **BOTH SIDES' TAILWIND ENDING ON ONE TURN CAME OUT IN THE WRONG ORDER, AND THE ORDER IS DECIDED BY
+  THE SWAPS MADE WHILE *OTHER* HANDLERS WERE BEING PLACED. WHOLE-GAME 13 -> 11 OF 961, PREDICTED
+  BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 10 OF 961. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS
+  764 -> 765 LIVE / 765 PROBED / 0 MISSING.** ENGINE, ROADMAP `#493`.
+
+  **THE BRIEF'S PREMISE WAS HALF RIGHT AND THE WRONG HALF DECIDED THE FIX.** The two Tailwinds ARE a
+  true tie: both carry `onSideResidualOrder: 26` and `onSideResidualSubOrder: 5`; the holder is a
+  `Side`, which has no `getStat`, so `resolvePriority` never sets `speed`; and `effectOrder` — the
+  creation counter that would separate them — is filled ONLY for `SwitchIn` and `RedirectTarget`
+  (`sim/battle.ts:993-999`, whose own TODO says exactly that). All five `comparePriority` keys match.
+  The conclusion drawn from that, *"the fix is to match a DRAW"*, is refuted by the differential arm's
+  own header: **`pinShuffle` is a NO-OP in every shipped arm**, so under measurement the authority
+  never re-orders a tied group and simply keeps whatever permutation its selection sort produced.
+  Nothing is drawn on either side.
+
+  **SO THIS REVERSES NO PART OF THE TRACE FIX LANDED EARLIER THE SAME DAY.** That one pinned the
+  RANGE form of `pinRandom` (the queue insertion index); this one is `pinShuffle`, a different door
+  that was already neutralised. No die was added, removed or re-pointed, `DICE_MODEL` is still
+  `split/v3`, and `PIN_DIGEST` is still `44bd49403231` — read off the new artifact, so runs either
+  side of this change still table together.
+
+  **WHAT ACTUALLY DECIDES IT, DUMPED FROM THE AUTHORITY RATHER THAN ARGUED.** `fieldEvent` builds ONE
+  flat list — field handlers, then for each side its side conditions and then each active body's own
+  handlers (`sim/battle.ts:490-505`) — so p1's Tailwind sits near the head of it and p2's a whole side
+  later. `speedSort` is a selection sort that SWAPS: pulling the fastest handler forward into position
+  0 sends whatever stood at position 0 to the index that handler came from. With the fastest body on
+  p2 that index is BEHIND p2's Tailwind, so p1's Tailwind is thrown past its own partner and the pair
+  comes out reversed. No comparator can produce that permutation.
+
+  **THE FIX.** `engine/medicham2-browser.js` rebuilds the authority's list as a SHADOW above
+  `residualExpireAt`: entries in the authority's collection order carrying only what `comparePriority`
+  reads, membership taken from `data/residual-order.json`'s 90-row POPULATION with a presence reader
+  attached to each row, sorted by `Battle#speedSort`, resolving a genuine tie off the SAME `tie`
+  stream `residualOrder` uses — the identity under a pinned die, a uniform permutation under real
+  dice. Built once per residual phase, at the moment the authority builds its own.
+
+  **BOUNDED BY CONSTRUCTION.** `residualExpireAt` still sorts its jobs by the published subOrder
+  FIRST and the shadow rank is only ever the second key, so a wrong shadow list can only re-order two
+  clocks that already tie — which is the thing that was wrong — and can never move a clock out of its
+  published stage.
+
+### Changed
+- **CHAMPIONS OVERRIDES `getActionSpeed`, AND THE TRICK ROOM TRANSFORM IS `-speed`, NOT MAINLINE'S
+  `10000 - speed`.** `data/mods/champions/scripts.ts:44-54`, commented *"Remove Trick Room
+  underflow"*, with the `trunc` gone as well. Both give the same ORDER among bodies, so all six board
+  arms of the new probe were green either way; it was caught only by holding the rebuilt list against
+  the authority's real one, where **5 of 36 phases** disagreed on the speed key (`-142` against
+  `9858`). Corrected, and the comparison went to **36/36**. **The difference is not cosmetic:** under
+  `-speed` every body is negative and a Side is 0, so under Trick Room in this format every side and
+  field clock runs ABOVE every body of the same order — the reverse of the normal case. Nothing reads
+  it today because orders 26 and 27 carry no per-body step at all in `data/residual-order.json`.
+  Recorded in the engine, deliberately NOT fixed.
+
+### Added
+- **`tests/probe_residual_shadow.js`** — six arms, every species and every partner DERIVED from
+  `Dex.forFormat('gen9championsvgc2026regmb')` and filtered, and printed. It refuses to pass if the
+  two Tailwinds do not end on ONE turn in both engines, and refuses to pass if the authority gives the
+  same answer on all four knob settings. It also dumps the authority's real `fieldEvent` list beside
+  the rebuilt one and compares them phase by phase, and drives the SHIPPED sort with a real die to
+  assert a genuine tie is still a coin (204/400 B-first) — the half a hardcoded side would fail.
+  Shown RED under `MEDI_RESIDUAL_SHADOW_OFF=1`, where `lefto-fast-p2` prints the pool's own row.
+
+  **ITS FIRST VERSION WAS WRONG BEFORE THE ENGINE WAS**, in this repo's signature shape: it read the
+  engine module off disk while `game_differential` played the FROZEN release's copy, so it reported
+  `0 residual phases` while every arm was green. The comment on that line records it. A second
+  fixture bug from the same run: `s.id` has no dash (`aerodactylmega`), so the obvious mega-forme
+  regex matched nothing and the first board carried a mega forme as a team member.
+- **Census row `move/sideBuff`** — *two Tailwinds ending on one turn come out in the order the
+  authority's selection sort leaves them*. Two arms whose knob is which side carries the fastest body;
+  they answer OPPOSITE orders. MISSING under `MEDI_RESIDUAL_SHADOW_OFF=1`, demonstrated before the row
+  was trusted. Census 764 -> **765 live / 765 probed / 0 missing**.
+
+### Notes
+- Measured on release **`6afa148cbeb1`**, arm `middle`, `--games 1200`, `--turns 12`,
+  `--team-store data/team-pool-frozen`,
+  `--census data/verification/census-pin-9446a684709d.json`, `--state --end-state`. Raw diverged
+  18 -> 16; **both Tailwind rows are gone from `first_divergences`**, grepped rather than assumed.
+- Must not move and did not: damage differential **0 of 6000** at every one of the sixteen corners;
+  roster **139 / 129 / 475** FIRED-AND-BOARDS-MATCH with **0 DIFFER and 0 DID-NOT-FIRE** in all three
+  stages; `all_mechanics_fire` 1,289 games, 0 threw.
+- **OWED:** the list fidelity is measured on 36 staged phases, not on the pinned pool. Seven artifact
+  volatile rows still have no reader in this engine and are printed on every probe run
+  (`magnetrise, beakblast, chillyreception, counter, electrify, focuspunch, mirrorcoat`); each is one
+  list entry the shadow cannot see. Two approximations are declared in the engine and were not
+  measured apart: volatile insertion order, and Tailwind's position among the side conditions.
+
 ## [5.179.0] — 2026-08-27
 
 ### Fixed

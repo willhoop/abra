@@ -1348,6 +1348,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      once per order group (speeds move during the walk), so a single turn with one tied pair raises
      this several times -- it is a count of tied GROUPS PLACED, never of turns. */
   residualTieResolved: 0, residualTieLargestGroup: 0,
+  /* 2026-08-27 -- the AUTHORITY'S residual handler list, rebuilt so a side clock that ties with the
+     other side's can be placed. `Built` counts residual phases that needed one at all (a board with
+     one side's Tailwind up cannot tie and never builds); `TieDecided` counts the classes it was asked
+     about; `TieReordered` is the receipt that it actually MOVED something -- a run with `Decided` high
+     and `Reordered` at zero is a list that agrees with the old insertion order everywhere, which is a
+     finding rather than a pass. See `residualShadowRank`. */
+  residualShadowBuilt: 0, residualShadowLargest: 0,
+  residualShadowTieDecided: 0, residualShadowTieReordered: 0,
   /* ROADMAP #262 -- the announcement-site event-address write actually MOVED the address, i.e. the
    * action was rewritten between the top of the action and `setActiveMove`'s counterpart. Zero over
    * 900 differential games; kept and counted rather than deleted, because "no probe can see it" and
@@ -2910,6 +2918,13 @@ const MEDFAILS = { encoreAction: 0,
      selection sort handed it. `residualStableSortRestored` is set on MEDI_RESIDUAL_STABLE_SORT=1, on
      the KNOB rather than on a tie that changed an answer, so a run with no tie still says it was on. */
   residualOrderTieNoDie: 0, residualStableSortRestored: 0,
+  /* 2026-08-27 -- the shadow residual list. `Unranked` is the one that matters: a tie class where one
+     side's clock is not IN the rebuilt list means the list missed an entry, and a missing entry shifts
+     every index after it -- so the answer would be arbitrary while looking derived. `Unread` names the
+     artifact volatile rows this engine has no presence reader for, computed at load. */
+  residualShadowUnranked: 0, residualShadowTieNoDie: 0, residualShadowOff: 0,
+  residualShadowUnread: '', residualShadowTableMissing: 0, residualShadowTableMissingWhy: '',
+  residualShadowVolTableWhy: '',
   /* 2026-08-12. The other half of the same approximation, one step later in the battle: two bodies
      replacing a faint on the same request whose DEPARTING speeds are equal. Showdown shuffles the
      instaswitch pair; this engine keeps side order and counts the event, because drawing a number
@@ -7091,12 +7106,309 @@ function residualTerrainKey(t){
   _RES_TERRAIN_KEY.set(tid,key);
   return key;
 }
+/* ---- 2026-08-27 -- WHEN BOTH SIDES' TAILWIND RUNS OUT ON THE SAME TURN, WHICH `-sideend` COMES
+ * FIRST IS DECIDED BY THE SWAPS MADE WHILE *OTHER* HANDLERS WERE BEING PLACED ---------------------
+ *
+ * THE PREMISE THIS WAS HANDED WITH WAS THAT THE TWO TAILWINDS ARE A TRUE TIE THAT `Battle#speedSort`
+ * BREAKS WITH `this.prng.shuffle` -- so that matching the authority meant matching a DRAW. Half of
+ * that is right and the half that decides the fix is not.
+ *
+ *   - THEY ARE A TRUE TIE. Both carry `onSideResidualOrder: 26, onSideResidualSubOrder: 5`; the
+ *     holder is a Side, which has no `getStat`, so `resolvePriority` leaves `speed` undefined; and
+ *     `effectOrder` -- the creation counter that WOULD separate them -- is filled ONLY for
+ *     `SwitchIn` and `RedirectTarget` (sim/battle.ts:993-999, whose own TODO says so). All five keys
+ *     of `comparePriority` therefore match exactly.
+ *   - AND NO DIE DECIDES IT HERE. `game_differential.js`'s `pinShuffle` is a NO-OP in every shipped
+ *     arm, so the authority NEVER re-orders a tied group under measurement and simply keeps whatever
+ *     permutation its selection sort produced. Nothing is drawn on either side; today's Trace fix
+ *     (the range form of `pinRandom`) is a different door and is untouched by this.
+ *
+ * SO THE ANSWER IS THE SELECTION SORT'S SWAPS, AND IT WAS MEASURED RATHER THAN ARGUED. Staged, four
+ * arms, both engines, with the authority's own residual list dumped beside them:
+ *
+ *     bare (nothing else in the walk)             SD p1,p2    us p1,p2
+ *     Leftovers on all four, fastest body on p1   SD p1,p2    us p1,p2
+ *     no Leftovers, fastest body on p2            SD p1,p2    us p1,p2
+ *     Leftovers on all four, fastest body on p2   SD p2,p1    us p1,p2   <- the two pool rows
+ *
+ * `fieldEvent` builds ONE flat list -- field handlers, then for each side its side conditions and
+ * then each active body's own handlers (sim/battle.ts:490-505) -- so p1's Tailwind sits near the
+ * HEAD of it and p2's sits a whole side later. `speedSort` is a selection sort that SWAPS: pulling
+ * the fastest Leftovers forward into position 0 sends whatever stood at position 0 to the index that
+ * Leftovers came from. When the fastest body is on p2, that index is BEHIND p2's Tailwind, so p1's
+ * Tailwind is thrown past its own partner and the pair comes out reversed. No comparator can produce
+ * that permutation, which is the same fact `tests/test-speed-tie.js` records for the move queue.
+ *
+ * THIS ENGINE'S WALK IS GROUP-MAJOR OVER BODIES AND HAS NO SUCH LIST -- that is `residualOrder`'s own
+ * declared limitation and the reason docs/_reports/2026-08-24-residual-order.md left these two rows
+ * standing. So the list is rebuilt here, as a SHADOW: entries in the authority's collection order,
+ * carrying only (order, subOrder, speed), sorted by the authority's own algorithm, and read for ONE
+ * thing -- the relative order of two side clocks that tie.
+ *
+ * THE BLAST RADIUS IS BOUNDED BY CONSTRUCTION, and that is deliberate. `residualExpireAt` still sorts
+ * its jobs by the published subOrder FIRST; the shadow rank is only ever the SECOND key. So a shadow
+ * list that is wrong can reorder two clocks that already tie -- which is the thing that is wrong
+ * today, where the insertion order always hands it to side A -- and can never move a clock out of its
+ * published stage. Nothing else in the walk reads it.
+ *
+ * MEMBERSHIP IS THE ARTIFACT'S, NOT A LIST WRITTEN HERE. `data/residual-order.json` is the POPULATION
+ * of walk participants -- 90 (effect, site) pairs, produced by CALLING `Battle#resolvePriority` -- and
+ * every entry below is one of its rows with a presence reader attached. A row this engine cannot read
+ * is collected into `MEDFAILS.residualShadowUnread` rather than quietly counted absent, because a
+ * missing entry shifts every index after it and would look exactly like a working list.
+ *
+ * TWO APPROXIMATIONS, DECLARED. (1) The authority walks `pokemon.volatiles` in INSERTION order and
+ * this engine keeps most of its volatiles in named fields, so the shadow emits them in the artifact's
+ * row order. Within a body that only matters when two of its volatiles straddle a rank boundary.
+ * (2) Tailwind is a field counter here and a side condition there, so it is emitted after the
+ * `sf.sc` keys rather than at its own insertion point. Both are measured by
+ * `tests/probe_residual_shadow.js`, which dumps the authority's real list beside this one.
+ *
+ * `MEDI_RESIDUAL_SHADOW_OFF=1` restores the old behaviour -- subOrder alone, side A first by
+ * insertion -- and stamps `MEDFAILS.residualShadowOff`, so a run under it cannot be read as clean. */
+const RESIDUAL_SHADOW_OFF=(typeof process!=='undefined'&&process.env
+                           &&process.env.MEDI_RESIDUAL_SHADOW_OFF==='1');
+if(RESIDUAL_SHADOW_OFF)MEDFAILS.residualShadowOff=1;
+/* Forces the list to be built on EVERY residual phase, whether or not two clocks tie, so the probe
+ * can compare it against the authority's on boards that have no tie in them at all. */
+const RESIDUAL_SHADOW_ALWAYS=(typeof process!=='undefined'&&process.env
+                              &&process.env.MEDI_RESIDUAL_SHADOW_ALWAYS==='1');
+const RESIDUAL_SHADOW_ROWS=(()=>{
+  const out={byKey:new Map(),weather:[],pseudoweather:[],terrain:[],side:[],volatile:[],
+             status:[],ability:[],item:[],slot:[],fieldActive:[]};
+  let rows=null;
+  try{ rows=require('../data/residual-order.json').rows; }
+  catch(e){ rows=null; MEDFAILS.residualShadowTableMissingWhy=String((e&&e.message)||e); }
+  if(!rows){ MEDFAILS.residualShadowTableMissing=1; return out; }
+  const SITE={'field@active':'fieldActive'};
+  for(const r of rows){
+    const site=SITE[r.site]||r.site;
+    if(!out[site])continue;
+    const row={id:r.id,site,order:r.order==null?null:r.order,sub:r.subOrder|0};
+    out[site].push(row); out.byKey.set(site+':'+r.id,row);
+  }
+  return out;
+})();
+const _shadowId=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+/* The three statuses the artifact carries, in BOTH spellings this engine uses for them. Sleep,
+ * freeze and paralysis are absent on purpose: they own no residual handler and no `duration`, so the
+ * authority never collects them -- which is the artifact's answer, not one written here. */
+const RESIDUAL_SHADOW_STATUS={psn:'psn',poison:'psn',tox:'tox',toxic:'tox',brn:'brn',burn:'brn'};
+/* Which volatile id the authority holds for the shield this body raised. Detect and Protect share the
+ * `protect` volatile; every other shield uses its own move id, and one that the artifact does not
+ * carry falls back to `protect` -- the authority's own default for the family. */
+function residualShadowShield(m){
+  if(!m||!m.protect)return '';
+  const mv=_shadowId(m._protectMove);
+  return (mv&&RESIDUAL_SHADOW_ROWS.byKey.has('volatile:'+mv))?mv:'protect';
+}
+/* PRESENCE, per artifact volatile row. The default is `m._vol[id] > 0`, which is where this engine
+ * keeps the per-body clocks the walk already spends; everything below is a member it keeps in a named
+ * field instead. Written as one table so `residualShadowUnread` can name what has neither. */
+const RESIDUAL_SHADOW_VOL={
+  leechseed:    m=>!!m._seededBy,
+  curse:        m=>!!m._ptDmg,
+  partiallytrapped: m=>!!m._trap,
+  healblock:    m=>(m._healBlock|0)>0,
+  throatchop:   m=>(m._noSound|0)>0,
+  yawn:         m=>m._yawn!=null,
+  perishsong:   m=>m._perish!=null,
+  roost:        m=>!!m._typeWas,
+  stall:        m=>(m.tookProtectTurns|0)>0,
+  flinch:       m=>!!m._flinch,
+  mustrecharge: m=>!!m._recharge,
+  lockedmove:   m=>!!m._mtLock,
+  uproar:       m=>!!(m._mtLock&&m._mtLock.vol==='uproar'),
+  allyswitch:   m=>(m._aswDur|0)>0,
+  helpinghand:  m=>!!m._helpingHand,
+  followme:     m=>_shadowId(m._redirect)==='followme',
+  ragepowder:   m=>_shadowId(m._redirect)==='ragepowder',
+  twoturnmove:  m=>!!m._charging,
+  fly:          m=>_shadowId(m._charging)==='fly',
+  dig:          m=>_shadowId(m._charging)==='dig',
+  dive:         m=>_shadowId(m._charging)==='dive',
+  bounce:       m=>_shadowId(m._charging)==='bounce',
+  phantomforce: m=>_shadowId(m._charging)==='phantomforce',
+  protect:      m=>residualShadowShield(m)==='protect',
+  spikyshield:  m=>residualShadowShield(m)==='spikyshield',
+  kingsshield:  m=>residualShadowShield(m)==='kingsshield',
+  banefulbunker:m=>residualShadowShield(m)==='banefulbunker',
+  endure:       m=>residualShadowShield(m)==='endure',
+};
+/* THE ROWS WITH NEITHER A NAMED READER NOR A `_vol` SLOT THIS ENGINE EVER WRITES. Derived at load and
+ * published rather than described -- a volatile that is really absent and a volatile this engine
+ * cannot see are the same number to the shadow list and must not be the same claim. */
+const RESIDUAL_SHADOW_VOL_UNREAD=(()=>{
+  const seen=new Set(Object.keys(RESIDUAL_SHADOW_VOL));
+  /* the `_vol` members this engine's OWN derived tables already name -- the generic `_vol[id] > 0`
+   * fallback is a real reader for each of these, so they are read rather than missed. */
+  const add=(xs)=>{ for(const x of (xs||[]))seen.add(Array.isArray(x)?x[0]:x); };
+  /* A TABLE THAT CANNOT BE READ IS NOT AN EMPTY TABLE. If either derived map throws, every one of its
+   * members drops into `unread` and the shadow list quietly stops seeing those volatiles -- which is
+   * indistinguishable from a board that has none of them. The reason is recorded, not swallowed. */
+  try{ add(perTurnHPVolatiles()); }
+  catch(e){ MEDFAILS.residualShadowVolTableWhy='perTurnHPVolatiles: '+String((e&&e.message)||e); }
+  try{ add(perTurnBoostVolatiles()); }
+  catch(e){ MEDFAILS.residualShadowVolTableWhy=(MEDFAILS.residualShadowVolTableWhy?MEDFAILS.residualShadowVolTableWhy+'; ':'')
+                                               +'perTurnBoostVolatiles: '+String((e&&e.message)||e); }
+  add(Object.keys(RESIDUAL_CLOCK_READER));
+  add(Object.keys(RESIDUAL_FOLLOWER_VOL));
+  const un=RESIDUAL_SHADOW_ROWS.volatile.map(r=>r.id).filter(id=>!seen.has(id));
+  if(un.length)MEDFAILS.residualShadowUnread=un.join(',');
+  return un;
+})();
+function residualShadowVolPresent(id,m){
+  const rd=RESIDUAL_SHADOW_VOL[id];
+  if(rd)return !!rd(m);
+  return !!(m._vol&&m._vol[id]>0);
+}
+/* THE LIST, IN THE AUTHORITY'S COLLECTION ORDER (sim/battle.ts:490-505). Each entry carries only what
+ * `comparePriority` reads: the order (`null` becomes the authority's own 4294967296 substitution),
+ * the subOrder, and the holder's speed -- 0 for a Side or the Field, which is what leaves every clock
+ * below every body of the same order. */
+function residualShadowBuild(field,sfA,sfB,actA,actB){
+  const R=RESIDUAL_SHADOW_ROWS, L=[];
+  const push=(key,row,spe)=>{ if(!row)return;
+    L.push({key,ord:row.order==null?4294967296:row.order,sub:row.sub|0,spe:spe|0}); };
+  /* (1) `findFieldEventHandlers(field,'onFieldResidual','duration')` -- pseudoweathers, the sky, the
+   * terrain. A SUPPRESSED sky is still in the list: suppression is read inside `runEvent`, not by the
+   * collector, so `field.wSup` is deliberately not consulted here. */
+  for(const r of R.pseudoweather){
+    const k=RESIDUAL_FOLLOWER_FIELD[r.id];
+    if(!k)continue;
+    if((field[k]|0)>0)push('pw:'+r.id,r,0);
+  }
+  { const w=weatherId(field.weather);
+    if(w)for(const r of R.weather)if(weatherId(r.id)===w)push('weather:'+r.id,r,0); }
+  { const tk=residualTerrainKey(field.terrain);
+    if(tk&&(field.terrainT|0)>0)push('terrain:'+tk,R.byKey.get('terrain:'+tk),0); }
+  /* (2)+(3) each side: its side conditions, then each of its actives in slot order. */
+  for(const [S,sf,act] of [['A',sfA,actA],['B',sfB,actB]]){
+    if(sf&&sf.sc)for(const id of Object.keys(sf.sc)){
+      if(!(sf.sc[id]>0))continue;
+      push('side:'+S+':'+id,R.byKey.get('side:'+id),0);
+    }
+    if(((S==='A'?field.twA:field.twB)|0)>0)push('side:'+S+':tailwind',R.byKey.get('side:tailwind'),0);
+    for(let si=0;si<(act||[]).length;si++){
+      const m=act[si];
+      if(!m)continue;
+      /* THE TRICK ROOM TRANSFORM IS THE AUTHORITY'S OWN AND IS APPLIED TO THE VALUE, NOT TO THE
+       * COMPARATOR. `comparePriority` sorts speed DESCENDING with no inversion of its own; the
+       * inversion lives in `Pokemon#getActionSpeed`, and CHAMPIONS OVERRIDES IT --
+       * `data/mods/champions/scripts.ts:44-54`, commented *"Remove Trick Room underflow"* -- from
+       * mainline's `10000 - speed` (sim/pokemon.ts:641-649) to a bare `-speed`, with the `trunc` gone
+       * as well. Both give the same ORDER among bodies, so this was invisible in the four-arm verdict
+       * and `tests/probe_residual_shadow.js` caught it only by holding the rebuilt list against the
+       * authority's real one: 5 of its 36 phases disagreed on the speed key, `-142` against `9858`.
+       *
+       * THE DIFFERENCE IS NOT COSMETIC, AND IT ONLY LOOKS THAT WAY BECAUSE OF A GAP IN THE TABLE.
+       * Under `-speed` every body is NEGATIVE and a Side or Field holder is 0, so under Trick Room in
+       * this format every side and field clock runs ABOVE every body of the same order -- the reverse
+       * of the normal case, and the reverse of what `residualExpireAt` does (it is called after each
+       * group's body pass). Nothing reads that today because orders 26 and 27 carry no per-body step
+       * at all in `data/residual-order.json`, so no group holds both. It is recorded rather than
+       * fixed: if a later regulation puts a body handler at 26 or 27 it becomes a live defect.
+       *
+       * Doing it this engine's usual way -- negating inside `compareTurnOrder` -- would be wrong under
+       * EITHER transform, because it flips the body-against-holder comparison too. */
+      const s0=effSpeed(m,field,S)|0;
+      const spe=(field&&field.tr>0)?-s0:s0;
+      const at=S+si;
+      const st=RESIDUAL_SHADOW_STATUS[_shadowId(m.status)];
+      if(st)push('status:'+st+'@'+at,R.byKey.get('status:'+st),spe);
+      for(const r of R.volatile)if(residualShadowVolPresent(r.id,m))push('vol:'+r.id+'@'+at,r,spe);
+      { const ab=_shadowId(m.ability); const r=R.byKey.get('ability:'+ab); if(r)push('ability:'+ab+'@'+at,r,spe); }
+      { const it=_shadowId(m.item);    const r=R.byKey.get('item:'+it);    if(r)push('item:'+it+'@'+at,r,spe); }
+      { const d=sf&&sf.slot&&sf.slot[si];
+        const id=(d&&d.due)?(d.when==='futureHit'?'futuremove':(d.when==='endOfNextTurn'?'wish':'')):'';
+        if(id)push('slot:'+id+'@'+at,R.byKey.get('slot:'+id),spe); }
+      /* `findFieldEventHandlers(field,'onResidual',undefined,active)` -- Grassy Terrain's heal is the
+       * one member, and it is collected per BODY and eleven orders above the terrain's own expiry. */
+      { const tk=residualTerrainKey(field.terrain);
+        const r=tk?R.byKey.get('fieldActive:'+tk):null;
+        if(r&&(field.terrainT|0)>0)push('fieldActive:'+tk+'@'+at,r,spe); }
+    }
+  }
+  return L;
+}
+/* `Battle#speedSort` (sim/battle.ts:428-458), over the shadow entries. It is the SAME algorithm
+ * `residualOrder` runs over bodies and for the same reason -- a selection sort's swaps produce
+ * permutations no ordinary sort can -- and it resolves a genuinely tied group off the SAME `tie`
+ * stream, which is the identity under a pinned die and a uniform permutation under real dice. */
+function residualShadowSort(list,rngOverride){
+  const cmp=(a,b)=>(a.ord-b.ord)||(b.spe-a.spe)||(a.sub-b.sub);
+  const _r=rngOverride||medTieRng();
+  const tie=it=>{ if(it._stie===undefined)it._stie=_r?_r():0; return it._stie; };
+  let sorted=0;
+  while(sorted+1<list.length){
+    let next=[sorted];
+    for(let i=sorted+1;i<list.length;i++){
+      const d=cmp(list[next[0]],list[i]);
+      if(d<0)continue;
+      if(d>0)next=[i]; else next.push(i);
+    }
+    for(let i=0;i<next.length;i++){
+      const idx=next[i];
+      if(idx!==sorted+i){const t=list[sorted+i];list[sorted+i]=list[idx];list[idx]=t;}
+    }
+    if(next.length>1){
+      const grp=list.slice(sorted,sorted+next.length);
+      grp.sort((x,y)=>tie(y)-tie(x));
+      for(let i=0;i<grp.length;i++)list[sorted+i]=grp[i];
+      if(!_r)MEDFAILS.residualShadowTieNoDie++;
+    }
+    sorted+=next.length;
+  }
+  return list;
+}
+/* Is there anything for the shadow to decide? Two clocks can only tie when BOTH sides carry the same
+ * one, so this is asked before the list is built and the whole pass costs nothing on a board that
+ * cannot produce a tie. */
+function residualShadowNeeded(field,sfA,sfB){
+  if(RESIDUAL_SHADOW_ALWAYS)return true;
+  if((field.twA|0)>0&&(field.twB|0)>0)return true;
+  if(sfA&&sfA.sc&&sfB&&sfB.sc)for(const id in sfA.sc)if(sfA.sc[id]>0&&sfB.sc[id]>0&&RESIDUAL_EXPIRY.has(id))return true;
+  return false;
+}
+let _RES_SHADOW_GEN=-1,_RES_SHADOW_RANK=null,_RES_SHADOW_LIST=null;
+/* BUILT ONCE PER RESIDUAL PHASE, memoised against the same generation counter `residualOrder` uses.
+ * The authority sorts its list ONCE at the top of `fieldEvent` and walks it; re-deriving per group
+ * would let one tied pair come out one way at order 26 and the other way at 27. */
+function residualShadowRank(field,sfA,sfB,actA,actB){
+  if(RESIDUAL_SHADOW_OFF)return null;
+  if(_RES_SHADOW_GEN===_RES_TIE_GEN)return _RES_SHADOW_RANK;
+  _RES_SHADOW_GEN=_RES_TIE_GEN; _RES_SHADOW_RANK=null; _RES_SHADOW_LIST=null;
+  if(!residualShadowNeeded(field,sfA,sfB))return null;
+  const list=residualShadowSort(residualShadowBuild(field,sfA,sfB,actA,actB));
+  const rank=new Map();
+  for(let i=0;i<list.length;i++)rank.set(list[i].key,i);
+  MEDSEEN.residualShadowBuilt++;
+  if(list.length>MEDSEEN.residualShadowLargest)MEDSEEN.residualShadowLargest=list.length;
+  _RES_SHADOW_RANK=rank; _RES_SHADOW_LIST=list;
+  if(RESIDUAL_SHADOW_ALWAYS&&_RES_SHADOW_LOG.length<400)
+    _RES_SHADOW_LOG.push(list.map(e=>({key:e.key,ord:e.ord,sub:e.sub,spe:e.spe})));
+  return rank;
+}
+/* THE LIST AS BUILT, for `tests/probe_residual_shadow.js` to hold against the authority's own. A copy,
+ * so a reader cannot mutate the buffer the next residual overwrites.
+ *
+ * THE PER-PHASE LOG IS KEPT ONLY UNDER `MEDI_RESIDUAL_SHADOW_ALWAYS=1`, because comparing this list
+ * against the authority's needs EVERY residual of a game and a live rollout needs none of them. It is
+ * capped, so a probe that forgets to reset cannot grow without bound. */
+const _RES_SHADOW_LOG=[];
+const residualShadowProbe=()=>({ list:_RES_SHADOW_LIST?_RES_SHADOW_LIST.map(e=>({key:e.key,ord:e.ord,sub:e.sub,spe:e.spe})):null,
+                                 log:_RES_SHADOW_LOG.map(l=>l.slice()),
+                                 always:!!RESIDUAL_SHADOW_ALWAYS,
+                                 off:!!RESIDUAL_SHADOW_OFF, unread:RESIDUAL_SHADOW_VOL_UNREAD.slice() });
+residualShadowProbe.reset=()=>{ _RES_SHADOW_LOG.length=0; };
 function residualExpireAt(order,field,sfA,sfB,actA,actB){
   if(!RESIDUAL_EXPIRY.size)return;
   const jobs=[];
   const at=(id)=>{const r=RESIDUAL_EXPIRY.get(id);
     return (r&&r.order===order&&RESIDUAL_EXPIRY_SITES.has(r.site))?r:null;};
-  const push=(id,fn)=>{const r=at(id);if(r)jobs.push({sub:r.sub|0,fn});};
+  /* THE KEY IS THE SHADOW LIST'S OWN, so a job and its entry in the authority's rebuilt list are the
+   * same string. A job with no key sorts as it always did -- by subOrder, stable, insertion order. */
+  const push=(id,fn,key)=>{const r=at(id);if(r)jobs.push({sub:r.sub|0,fn,key:key||''});};
   for(const sf of [sfA,sfB]){
     if(!sf||!sf.sc)continue;
     for(const _id of Object.keys(sf.sc)){
@@ -7108,23 +7420,23 @@ function residualExpireAt(order,field,sfA,sfB,actA,actB){
         MEDSEEN.residualExpiryTicked++;
         if(--sf.sc[_id]<=0){delete sf.sc[_id];MEDSEEN.residualExpiryEnded++;
           if(TR)TR.sendSide(sf.side==='A'?'p1':'p2',(_sb&&_sb.startsAs)||_id);}
-      });
+      },'side:'+sf.side+':'+_id);
     }
   }
   /* TAILWIND IS A FIELD COUNTER IN THIS ENGINE AND A SIDE CONDITION IN THE AUTHORITY, so it is two
    * jobs at one published subOrder rather than a member of the bag above. The representation is
    * ROADMAP #81 WIRE 8's and is left alone; what moves is WHEN it is spent. */
-  const tw=(k,who)=>push('tailwind',()=>{
+  const tw=(k,who,S)=>push('tailwind',()=>{
     if(!(field[k]>0))return;
     MEDSEEN.residualExpiryTicked++;
     if(--field[k]<=0){MEDSEEN.residualExpiryEnded++;if(TR)TR.sendSide(who,'Tailwind');}
-  });
-  tw('twA','p1'); tw('twB','p2');
+  },'side:'+S+':tailwind');
+  tw('twA','p1','A'); tw('twB','p2','B');
   const fieldClock=(id,k,name,after)=>push(id,()=>{
     if(!(field[k]>0))return;
     MEDSEEN.residualExpiryTicked++;
     if(--field[k]<=0){MEDSEEN.residualExpiryEnded++;if(TR)TR.fend(name);if(after)after();}
-  });
+  },'pw:'+id);
   fieldClock('trickroom','tr','Trick Room',null);
   fieldClock('gravity','gravity','Gravity',null);
   fieldClock('wonderroom','wonderRoom','Wonder Room',null);
@@ -7154,9 +7466,23 @@ function residualExpireAt(order,field,sfA,sfB,actA,actB){
     MEDSEEN.residualExpiryTicked++;
     if(--field.terrainT<=0){field.terrain='';MEDSEEN.residualExpiryEnded++;
       if(TR)TR.terrainEnd(_t0);syncFieldTypes(field,[...actA,...actB]);}
-  });
+  },'terrain:'+_tid);
   if(!jobs.length)return;
-  jobs.sort((a,b)=>a.sub-b.sub);
+  /* SUBORDER FIRST, ALWAYS. The published position decides the stage and the shadow rank only ever
+   * breaks a tie inside it -- see the header. `Array.prototype.sort` is stable, so a class the shadow
+   * cannot rank comes out in insertion order, which is exactly what this line did before. */
+  const _rank=residualShadowRank(field,sfA,sfB,actA,actB);
+  if(_rank){
+    const _r=k=>{const v=_rank.get(k);return v===undefined?-1:v;};
+    const _before=jobs.map(j=>j.key);
+    jobs.sort((a,b)=>(a.sub-b.sub)||(_r(a.key)-_r(b.key)));
+    for(let i=1;i<jobs.length;i++)if(jobs[i].sub===jobs[i-1].sub){
+      MEDSEEN.residualShadowTieDecided++;
+      if(_rank.get(jobs[i-1].key)===undefined||_rank.get(jobs[i].key)===undefined)
+        MEDFAILS.residualShadowUnranked++;
+    }
+    if(jobs.map(j=>j.key).join('|')!==_before.join('|'))MEDSEEN.residualShadowTieReordered++;
+  } else jobs.sort((a,b)=>a.sub-b.sub);
   for(const j of jobs)j.fn();
 }
 function effWeight(m){
@@ -30528,6 +30854,12 @@ function battleTurn(S,rng,actsForA,actsForB){
      * generation here is what makes those calls agree with each other about a tied pair -- see the
      * header of `residualOrder`. */
     _RES_TIE_GEN++;
+    /* 2026-08-27 -- AND THE AUTHORITY'S HANDLER LIST IS REBUILT HERE, for the same reason and at the
+     * same moment: `fieldEvent` collects and sorts ONCE at the top of the residual (sim/battle.ts:490)
+     * and everything below this line -- the weather chip, a faint, a Speed Boost -- happens after it.
+     * Built here rather than at the first tie so it reads the same state the authority read; it costs
+     * nothing on a board where no two clocks can tie, because `residualShadowNeeded` says so first. */
+    residualShadowRank(field,sfA,sfB,actA,actB);
     /* 2026-08-26 -- AND `stall`'S DURATION IS SPENT HERE, because THIS is where the residual opens.
      * Above every remaining `break _TURN` and below the two that skip the residual entirely, which is
      * the whole point: a turn that ended before this line never spends the clock, exactly as
@@ -33275,6 +33607,12 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
    * a comment's word for it. `residualFollowerRuns` is exported too so a probe drives THE predicate
    * and not a second copy of the rule. */
   residualFollowerReport, residualFollowerRuns,
+  /* 2026-08-27 -- the rebuilt authority residual list, for tests/probe_residual_shadow.js.
+     `residualShadowSortForTest` is the SHIPPED sort with a caller's die pushed in, so the probe can
+     assert a genuine tie is a coin without a second implementation of the algorithm to disagree
+     with. */
+  residualShadowProbe,
+  residualShadowSortForTest: (list, rng) => residualShadowSort(list, rng),
   /* The swallowed-failure counters. Zero is a CLAIM, not a pass — read it, do not assume it. */
   fails:MEDFAILS,
   /* Capabilities that FIRED. A zero here is the finding — see MEDSEEN's own comment. */

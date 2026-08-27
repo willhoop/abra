@@ -91,8 +91,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  764/764 probed mechanics live, 0 missing   (census 2026-08-27 11:45)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-27 11:47)
+  765/765 probed mechanics live, 0 missing   (census 2026-08-27 12:58)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-27 12:44)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -111,9 +111,171 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 12:05_
+_stamped 2026-08-27 12:59_
 
 <!-- /GENERATED -->
+
+## BOTH SIDES' TAILWIND ENDING ON ONE TURN — THE ORDER IS DECIDED BY THE SWAPS MADE WHILE *OTHER* HANDLERS WERE PLACED, AND “MATCH A DRAW” IS REFUTED. **WHOLE-GAME 13 -> 11 OF 961, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 10 OF 961. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS 764 -> 765 LIVE / 765 PROBED / 0 MISSING.** 2026-08-27.
+
+Release `6afa148cbeb1`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--state --end-state`. Full account: `docs/_reports/2026-08-27-tailwind-tie.md`.
+
+### THE FIRST QUESTION, ANSWERED FIRST: THIS REVERSES NO PART OF THE TRACE FIX
+
+Nothing in `engine/game_differential.js` was touched. `DICE_MODEL` is still `split/v3` and
+`PIN_DIGEST` is still `44bd49403231`, read off the new artifact rather than remembered. The Trace fix
+pinned the **range form** of `pinRandom` — the queue insertion index; Tailwind's order is decided by
+`pinShuffle`, which was **already a no-op in every shipped arm** and still is. Different door, no die
+added, removed or re-pointed, and no shared address consumed. Runs either side of this change table
+together.
+
+### THE PREMISE WAS HALF RIGHT, AND THE WRONG HALF DECIDED THE FIX
+
+The two Tailwinds **are** a true tie: both carry `onSideResidualOrder: 26` and
+`onSideResidualSubOrder: 5`; the holder is a `Side`, which has no `getStat`, so `resolvePriority`
+never sets `speed`; and `effectOrder` — the creation counter that *would* separate them — is filled
+**only** for `SwitchIn` and `RedirectTarget` (`sim/battle.ts:993-999`, whose own TODO says exactly
+that). All five keys of `comparePriority` match.
+
+The conclusion drawn from that — *"the fix is to match a DRAW, not to find an ordering rule"* — is
+refuted by the arm's own header. `pinShuffle` is a **no-op in every shipped arm**, so under
+measurement the authority never re-orders a tied group and keeps whatever permutation its **selection
+sort** produced. Nothing is drawn on either side. The answer is deterministic, and it is the swaps.
+
+### WHAT DECIDES IT, DUMPED FROM THE AUTHORITY RATHER THAN INFERRED
+
+`fieldEvent` builds ONE flat list — field handlers, then for each side its side conditions and then
+each active body's own handlers (`sim/battle.ts:490-505`). Captured on the staged board with the
+fastest body on p2:
+
+```
+[0] tailwind@p1   o=26 s=0 sub=5
+[1] leftovers@p1a o=5  s=238
+[2] protect@p1b   o=-  s=344
+[3] stall@p1b     o=-  s=344
+[4] leftovers@p1b o=5  s=344
+[5] tailwind@p2   o=26 s=0 sub=5
+...
+[9] leftovers@p2b o=5  s=344      <- the fastest, and it is BEHIND p2's Tailwind
+```
+
+Placing it swaps positions 0 and 9, so p1's Tailwind lands at 9 — **behind its own partner at 5** —
+and the group comes out `p2, p1`. No comparator can produce that permutation. It is the same fact
+`tests/test-speed-tie.js` records for the move queue, and it is `docs/_reports/2026-08-24-residual-order.md`
+§5's finding re-derived from the authority's real list.
+
+### THE FIX, AND WHY ITS BLAST RADIUS IS BOUNDED BY CONSTRUCTION
+
+`engine/medicham2-browser.js` rebuilds that list as a **shadow** above `residualExpireAt`: entries in
+the authority's collection order carrying only (order, subOrder, speed); membership taken from
+`data/residual-order.json`'s 90-row **population** with a presence reader attached to each row; sorted
+by `Battle#speedSort`; a genuine tie resolved off the **same `tie` stream** `residualOrder` uses — the
+identity under a pinned die, a uniform permutation under real dice. Built once per residual phase, at
+the moment the authority builds its own.
+
+`residualExpireAt` still sorts its jobs by the published **subOrder first**, and the shadow rank is
+only ever the second key. `Array.prototype.sort` is stable, so a class the shadow cannot rank comes
+out exactly as it did before. A wrong shadow list can only re-order two clocks that already tie —
+which is the thing that was wrong — and can never move a clock out of its published stage.
+
+### A CHAMPIONS OVERRIDE, FOUND BY THE INSTRUMENT AND NOT BY READING
+
+The first version used mainline's `10000 - speed` Trick Room transform (`sim/pokemon.ts:641-649`).
+**Champions replaces `getActionSpeed` with a bare `-speed`** — `data/mods/champions/scripts.ts:44-54`,
+commented *"Remove Trick Room underflow"*, with the `trunc` gone as well.
+
+Both agree on the order **among bodies**, so all six board arms were green either way. It was caught
+only by holding the rebuilt list against the authority's real one: **5 of 36 phases** disagreed on the
+speed key, `-142` against `9858`. Corrected, and the comparison went to **36/36**.
+
+**The difference is not cosmetic and only looks that way because of a gap in the table.** Under
+`-speed` every body is negative and a Side is 0, so under Trick Room in this format every side and
+field clock runs *above* every body of the same order — the reverse of the normal case, and the
+reverse of what `residualExpireAt` does. Nothing reads it today because orders 26 and 27 carry no
+per-body step at all in `data/residual-order.json`. Recorded in the engine, deliberately not fixed.
+
+### THE PROBE — `tests/probe_residual_shadow.js`
+
+Everything derived from `Dex.forFormat('gen9championsvgc2026regmb')`, filtered and printed: 271 legal
+species walked, 20 Tailwind learners, 70 Reflect users, 40 Trick Room users. Six arms. It **refuses to
+pass** if the two Tailwinds do not end on one turn in both engines, and **refuses to pass** if the
+authority gives the same answer on all four knob settings — it gives two. It dumps the authority's
+real `fieldEvent` list beside the rebuilt one and compares them phase by phase, and it drives the
+**shipped** sort with a real die to assert a genuine tie is still a coin (204/400 B-first), which is
+the half a hardcoded side would fail.
+
+Shown RED first under `MEDI_RESIDUAL_SHADOW_OFF=1`, where `lefto-fast-p2` prints the pool's own row:
+
+```
+DIFFERS lefto-fast-p2   sd [2,1]  me [1,2]
+```
+
+**Its first version was wrong before the engine was**, in this repo's signature shape: it read the
+engine module off disk while `game_differential` played the FROZEN release's copy, and reported
+`0 residual phases` while every arm was green. A second fixture bug from the same run: `s.id` has no
+dash (`aerodactylmega`), so the obvious mega-forme regex matched nothing and the first board carried a
+mega forme as a team member.
+
+Census row: `move/sideBuff — two Tailwinds ending on one turn come out in the order the authority's
+selection sort leaves them`, MISSING under the same knob.
+
+### WHICH SCOREBOARD THIS WAS EXPECTED TO MOVE, SAID BEFORE THE RUN
+
+**The pool** — the two rows are pool rows — and the lab as well, because a census row was added.
+Board-material was predicted **not** to move: a `-sideend` reorder writes no board leaf. Both held.
+
+```
+raw diverged              18 -> 16      both Tailwind rows gone from first_divergences, grepped
+whole-game                13 -> 11
+board-material            10 -> 10
+parted before protocol     4 ->  4
+pin digest                44bd49403231 -> 44bd49403231
+census               764/764/0 -> 765/765/0
+damage differential  0 of 6000 at every one of the sixteen corners, seed 20260804
+roster               139 / 129 / 475 FIRED-AND-BOARDS-MATCH, 0 DIFFER, 0 DID-NOT-FIRE
+```
+
+### THE HAND LIST
+
+**Leaves it:** the two Tailwind rows, now carried by `tests/probe_residual_shadow.js` and by the
+census row `move/sideBuff`.
+
+**Joins it:**
+- **SEVEN ARTIFACT VOLATILE ROWS HAVE NO PRESENCE READER IN THIS ENGINE** and are printed on every
+  probe run: `magnetrise, beakblast, chillyreception, counter, electrify, focuspunch, mirrorcoat`.
+  Each is one entry the shadow list cannot see, and a missing entry shifts every index after it.
+  `magnetrise@18` is already registered separately as a missing clock.
+- **TWO SHADOW-LIST APPROXIMATIONS ARE DECLARED AND UNMEASURED APART.** The authority walks
+  `pokemon.volatiles` in INSERTION order and the shadow emits them in the artifact's row order; and
+  Tailwind is a field counter here and a side condition there, so it is emitted after the `sf.sc`
+  keys rather than at its own insertion point. The `screens-both-sides` arm exercises the second and
+  agrees; neither has a probe of its own.
+- **CHAMPIONS' `-speed` PUTS A SIDE CLOCK ABOVE EVERY BODY OF THE SAME ORDER UNDER TRICK ROOM**, and
+  `residualExpireAt` runs its clocks after each group's body pass. Unreachable today — no residual
+  order holds both a per-body step and a side clock — so it is recorded and not fixed. No register row.
+
+**Standing and unchanged by this batch**, pointed at rather than re-listed: the second
+`pair-protect-bust` board-material game (turn 6, `p2.scovillain.hp` 64 vs 62), Champions moving White
+Herb's after-move trigger into the queue, `receiverSweep`/`traceSweep`'s deferred copies, Trick's
+message defect, `magnetrise@18`, a fainted mega's forme, the twelve dead tags and the four
+`test-tag-params-derived.js` prose-quantity rows.
+
+**Red and NOT mine, and not new:** `tests/staged_board.js` fails on one of 25 scenarios
+(`roar-drags-whoever-is-standing-there`, `SHORT`), registered with a named owner. The
+feature-semantics stamp gate at the top of `engine/status.js` is MEASURE's refit edge and predates
+this pass.
+
+### OWED, NOT RUN
+
+- **The list fidelity is 36 staged phases, not the pinned pool.** `game_differential` does not expose
+  the team pool as a list a probe can draw from, so the pool's own residual lists were never dumped
+  and compared. The evidence that the wider membership table holds is indirect: the run gained no
+  divergence, `MEDFAILS.residualShadowUnranked` was not raised, and the roster is clean. A pool-wide
+  list comparison is the honest next instrument.
+- **The seven unread volatile rows** have a counter and no probe.
+- **The Trick Room side-vs-body inversion** has no probe, because nothing can reach it.
+
 
 ## A MEGA THAT ARRIVES HOLDING TRACE COPIES *AND THEN RUNS* WHAT IT COPIED — THE COPY WAS IN ONE PLACE AND THE RUN IN ANOTHER. **BOARD-MATERIAL 11 -> 10 OF 961 AND WHOLE-GAME 14 -> 13 OF 961, BOTH PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS UNMOVED AT 764 LIVE / 764 PROBED / 0 MISSING.** 2026-08-27.
 
@@ -286,7 +448,7 @@ question — both now carried by `tests/probe_mega_trace_entry.js` and `tests/pr
 **Standing and unchanged by this batch**, pointed at rather than re-listed: the second
 `pair-protect-bust` board-material game (turn 6, `p2.scovillain.hp` 64 vs 62, a `-damage field 3`
 parting that does NOT share this root and was left alone — batches of one), Trick's message defect and
-the `trickitem` doll check behind it, `magnetrise@18`, a fainted mega's forme, the two Tailwind rows,
+the `trickitem` doll check behind it, `magnetrise@18`, a fainted mega's forme,
 the twelve dead tags and the four `test-tag-params-derived.js` prose-quantity rows.
 
 **Red and NOT mine:** `tests/staged_board.js` fails on one of 25 scenarios

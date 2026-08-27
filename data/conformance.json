@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-26T01:54:28.731Z",
+ "generated": "2026-08-27T03:13:37.175Z",
  "by": "engine/conformance.js",
- "files": 477,
+ "files": 483,
  "findings": [
   {
    "std": "S12",
@@ -852,9 +852,27 @@
   },
   {
    "std": "S13",
+   "file": "data/mc-declared-rows.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of build/build_engine_data.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
+   ]
+  },
+  {
+   "std": "S13",
    "file": "data/mc-key-baseline.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/mc-priors.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of build/build_engine_data.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
+   ]
   },
   {
    "std": "S13",
