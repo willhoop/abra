@@ -10,6 +10,90 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.185.0] — 2026-08-27
+
+### Fixed
+- **THREE SMALL STATE READS, LANDED ONE AT A TIME WITH A DIFFERENTIAL RUN BETWEEN EACH.
+  BOARD-MATERIAL 5 -> 2 OF 961 AND WHOLE-GAME 7 -> 6 OF 961. EVERY DELTA PREDICTED BEFORE ITS OWN
+  RUN AND ATTRIBUTED TO ITS OWN PATCH. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. DAMAGE
+  0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER EVERY PATCH. ROSTER 0/0 ACROSS ITEMS, ABILITIES AND
+  MOVES.** ENGINE. ROADMAP `#501`, `#502`, `#503` CLOSED; `#504` and `#505` FILED.
+  Batched in threes only in the brief — each was landed, measured and attributed alone, because A
+  changes which draws are pinned and could move B and C underneath.
+- **A — `#501`, THE INSTRUMENT AND NOT THE ENGINE.** `engine/game_differential.js`'s middle arm
+  pinned the range form of `random(m, n)` only under category `any`. `MIDW.cat` is `sec` for the
+  whole of `BattleActions#secondaries`, and a secondary applies its volatile through `moveHit` inside
+  that method — so a confusion arriving by a SECONDARY drew live while the same confusion arriving by
+  a STATUS move was pinned, and the differential compared medicham2's constant against an unpinned
+  random number and reported an ENGINE defect. **BOARD-MATERIAL 5 -> 4; WHOLE-GAME UNMOVED AT 7 AND
+  ITS TWELVE ROWS BYTE-IDENTICAL — A MOVED NO GAME NOBODY HAD DIAGNOSED.**
+- **B — `#502`, AN ADDRESS DEFECT AND NOT A RATE DEFECT.** `data/move-effects.js` is generated from
+  FIELDS and an authority secondary can be a CLOSURE, so Dire Claw arrives as an inert `{chance:30}`.
+  The generic secondary loop rolled that 30% at `nth 0` and applied nothing; the `proceduralStatus`
+  tag block rolled the SAME 30% again at `nth 1` — the address the authority spends on `this.sample`
+  — and the pick took `nth 2`, which the authority never reaches. The loop does not short-circuit, so
+  the marginal rate stayed exactly 30% and no rate check, census probe or seeded harness could see
+  it; two independent coins on a 30% event disagree 42% of the time. The inert row's roll is now
+  RECORDED and the `proceduralStatus`, `trapsTarget` and `removesPP` blocks — which ARE that row's
+  `onHit` — read it instead of drawing. **BOARD-MATERIAL 4 -> 3, WHOLE-GAME 7 -> 6, the one
+  diagnosed game and nothing else.**
+- **C — `#503`, A CORPSE WEARS ITS BASE TYPES.** `faintMessages()` calls `clearVolatile(false)` and
+  `clearVolatile` ends `setSpecies(this.baseSpecies)` — the same line of the same authority function
+  the switch-out restore is read from. The restore lived only in `switchOut`, and a faint does not go
+  through `switchOut`. **BOARD-MATERIAL 3 -> 2; WHOLE-GAME UNMOVED AT 6 AND ITS ELEVEN ROWS
+  BYTE-IDENTICAL.**
+
+### Changed
+- **`DICE_MODEL` `split/v3` -> `split/v4` AND `PIN_DIGEST` `44bd49403231` -> `48e1007ac14a`, MOVED BY
+  A AND JUSTIFIED RATHER THAN ASSUMED.** A widens a pin inside the INSTRUMENT: it changes the value
+  the authority receives AND stops those draws consuming a shared `sec` address, which shifts the
+  `nth` of every later draw at that address in the same turn — so it changes which games diverge and
+  a run before it is not a sample of the same instrument as a run after it. v3's own sentence already
+  read *"the RANGE form outside the damage machinery is pinned to m"*, which `acc` and `sec` are, so
+  the digest was tracking a SENTENCE rather than a behaviour; leaving `v3` in place would have left
+  two different behaviours sharing one digest, which is worse than the reset. Same precedent as
+  `#491`. `arms_comparable.js` will now refuse to table the 5-of-961 baseline against the 2-of-961
+  result, which is correct.
+
+### Added
+- **`mid_void.range_form_seen_by_cat` — THE RECEIPT THE RANGE PIN COULD NOT GIVE.** Every
+  two-argument `random` the middle arm sees is tallied by `cat|move|m..n` BEFORE the pin decision. The
+  old pair of counters could not see this case at all: a `sec` range draw incremented NEITHER
+  `range_form_pinned` NOR `range_form_live_draws` and fell straight past both, so the counter was
+  blind to the only category the predicate was missing. Measured over the 961-game pinned pool
+  **before** the predicate was widened: 409 two-argument draws — `any` 405, `sec` 4, `acc` 0, `dmg`
+  0, and all four `sec` draws are the confusion duration. That also settles an item the diagnosis
+  left owed — there is no two-argument `random` inside `getDamage` at all on this pool.
+- **A pin claim that drives `MIDW.cat` to `sec` explicitly.** The standing range-form claim runs at
+  the default `any` and therefore passed for the whole time the pin was missing the only category
+  that carries a duration.
+- **`MEDSEEN.secondaryRollReusedByTag`, `MEDSEEN.typesRestoredOnFaint`, and two LOUD MEDFAILS**
+  (`proceduralStatusNoRulebookRow`, `secondInertSecondaryRow`) so a fallback cannot look like the wire
+  working. Both read 0.
+- **`MEDI_TYPES_SURVIVE_FAINT=1`** — the before-arm for C, its own knob rather than a shared one,
+  because "the transform is undone" and "the type list is undone" are two of `clearVolatile`'s
+  statements and one knob would make the second unfallible.
+- **Five arms in `tests/probe_state_trio.js`**, plus the DERIVED inert-secondary population and the
+  DERIVED count of refusal reasons per cell (the file exits 2 rather than run a cell that qualifies
+  for more than one). `C-selfko` — a Soaked body that Mementos itself — is the arm that separates
+  `noteFaint` from `queueFaint`.
+
+### Notes
+- **THE LOCATED EDIT POINT FOR C WAS WRONG AND THE PROBE SAID SO.** The diagnosis put the type
+  restore in `queueFaint`. Measured there: `C-faint` still red, `C-selfko` still red, and
+  `MEDSEEN.typesRestoredOnFaint = 0` — it never fired once. `queueFaint` is not the shared faint
+  site; this engine's own `faintHousekeeping` header already records that the transform revert was
+  tried there and left its probe red because Memento's self-KO never reaches it. It is in `noteFaint`.
+- **FIVE FIXTURE FAULTS WERE CAUGHT BEFORE THEY WERE READ AS ENGINE RESULTS.** Four arms first
+  reported boards IDENTICAL with zero draws on either side — the foes were Protecting and nothing
+  staged — and the fixture derivation refused Garchomp for an ability slot it does not carry until it
+  was changed to read the DECLARED ability.
+- **NOT FIXED, AND SAID SO.** medicham2 still gives every confusion the MINIMUM duration. A pins both
+  engines to that minimum, so the pinned pool cannot see it; it is a counted, declared narrowing that
+  belongs to the lab — the roster and the census — not to the pool.
+
+---
+
 ## [5.184.0] — 2026-08-27
 
 ### Fixed

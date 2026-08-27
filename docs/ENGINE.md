@@ -29,7 +29,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_doll_blind_family.js`, `tests/probe_trace_target.js`,
 `tests/probe_mega_trace_entry.js`, `tests/probe_mega_spread_stat.js`,
 `tests/probe_trace_list.js`, `tests/probe_fractional_priority_draw.js`,
-`tests/probe_hp_pair.js`
+`tests/probe_hp_pair.js`,
+`tests/probe_state_trio.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -47,6 +48,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
+| `probe_state_trio.js` | three small state reads staged one at a time, each with a control that reaches the SAME mechanic through a DIFFERENT door: a confusion from a secondary against one from a status move, Dire Claw against Earthquake, and a faint against a voluntary switch / a U-turn pivot / a stay-in. Since 2026-08-27 it also carries the derived inert-secondary population, the derived count of REFUSAL REASONS for every status each cell must be able to take (it exits 2 rather than run a cell that qualifies for more than one), and `C-selfko` — a Soaked body that Mementos itself — which is the arm that separates `noteFaint` from `queueFaint` | **it asserts NOTHING and exits 0 whatever it finds** — it is read, not gated on; and any arm whose click is blocked, which is why the draw COUNT is printed beside every verdict (four arms reported IDENTICAL with zero draws before that was read) |
 | `probe_hp_pair.js` | is the CRIT die drawn once per HIT, as the authority draws it, or once per CLICK — `data/mods/champions/scripts.ts` overrides the hit loop (`:461`) and `spreadMoveHit` (`:361`) and overrides NEITHER `getSpreadDamage` NOR `getDamage`, so the die is mainline's inside the per-hit call (`sim/battle-actions.ts:1641`, `critMult[1] = 24`). Three rows over two engines handed ONE die — CRIT on draw 0, NO-CRIT after — asserting the COUNT of crit draws for the click AND the outcome (which arrivals crit, and their damage) so no row can pass by classifying; the hit count is the knob and it must move the authority 1 -> 2 -> 3. The single-hit CONTROL is DERIVED from the attacker's own learnset with `target === 'normal'`, no charge and no raised `critRatio` asserted per row, after two earlier controls failed as the probe rather than the engine (Rock Slide is a spread move; Meteor Beam charges) | whether the crit RATE is right — every row is `critRatio` 1 and the die is supplied, so it says nothing about Scope Lens, Shell Armor or a raised stage. The 2-5 family, deliberately: its count is itself a draw, so a row there would be testing two things. And the reaction pass, which is raised once per MOVE here and once per HIT in the authority — ROADMAP #500, and `test-resolution-order.js`'s declared KNOWN-OPEN arm |
 | `probe_trace_list.js` | do the two engines build the same Trace `possibleTargets` — MEMBERS and ORDER, read on both sides at the moment of the draw, over pinned-pool boards paired so a mirror-Trace board is common | whether either engine plays the game right; and any draw on a turn `Battle#getRandomTarget` touched, which is ROADMAP #478's address bucket and is REFUSED by name rather than absorbed |
 | `probe_fractional_priority_draw.js` | does Quick Claw's die get taken on the actions the authority runs the event for — SWITCH, a priority move, a normal move, and the same board with the item stripped | the claw's EFFECT, which is still gated on the move's printed priority where the authority gates on the relay var (ROADMAP #498); and Mycelium Might's early return, counted and never staged |
@@ -97,8 +99,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  765/765 probed mechanics live, 0 missing   (census 2026-08-27 15:41)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-27 15:41)
+  765/765 probed mechanics live, 0 missing   (census 2026-08-27 17:48)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-27 17:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -117,9 +119,126 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 16:04_
+_stamped 2026-08-27 17:52_
 
 <!-- /GENERATED -->
+
+## THREE SMALL STATE READS, LANDED ONE AT A TIME. **BOARD-MATERIAL 5 -> 2 OF 961 AND WHOLE-GAME 7 -> 6 OF 961. EACH DELTA PREDICTED BEFORE ITS OWN RUN AND ATTRIBUTED TO ITS OWN PATCH. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST `44bd49403231` -> `48e1007ac14a`, MOVED BY A ONCE.** 2026-08-27.
+
+Three separate defects with three separate roots, grouped only because all three are small state
+reads. Diagnosed by an agent that did not hold the simulator and could not test its edits; landed
+here **one at a time, with a differential run between each**, because A changes which draws are
+pinned and could therefore move B and C underneath.
+
+| # | patch | predicted | measured | attributed |
+|---|---|---|---|---|
+| **A** ROADMAP #501 | the middle arm's range-form pin covers `sec`, not only `any` | board-material 5 -> 4, whole-game unmoved | **5 -> 4**, whole-game **7 -> 7** | the one confusion game; the 12 whole-game rows came back **byte-identical** |
+| **B** ROADMAP #502 | one authority secondary row is one chance draw | board-material 4 -> 3, whole-game 7 -> 6 | **4 -> 3**, **7 -> 6** | the one Dire Claw game and nothing else |
+| **C** ROADMAP #503 | a corpse wears its base types | board-material 3 -> 2, whole-game unmoved | **3 -> 2**, whole-game **6 -> 6** | the one Protean game; the 11 whole-game rows came back byte-identical |
+
+**A MOVED NO GAME NOBODY HAD DIAGNOSED, AND THAT WAS THE THING TO CHECK.** A is the INSTRUMENT, so
+its blast radius had to be measured rather than argued. `game_differential.js` now tallies every
+two-argument `random` by `cat|move|m..n` **before** the pin decision and publishes it as
+`mid_void.range_form_seen_by_cat` — the receipt the old counters structurally could not give, because
+a category the predicate did not match incremented **neither** `range_form_pinned` nor
+`range_form_live_draws` and fell straight past both into `midDraw`. Over the 961-game pinned pool:
+
+```
+409 two-argument draws:  any 405   sec 4   acc 0   dmg 0
+    the 4 `sec` draws are all `hurricane|2..5` — the confusion duration, and nothing else
+```
+
+So the widened predicate newly swallows **four draws, all confusion**, and swallows nothing under
+`acc` because no `acc` range draw exists in this checkout. It also settles an item the diagnosis left
+owed: **there is no two-argument `random` inside `getDamage` at all on this pool**, so
+`MIDW.cat !== 'dmg'` and "pin everything" are the same predicate here. `dmg` stays excluded anyway,
+because the line above re-labels a two-argument random under `dmg` as `crit` and that mapping is a
+separate untested claim; excluding a category that measured zero costs nothing.
+
+**THE PIN DIGEST MOVED, AND IT HAD TO.** A widens a pin inside `game_differential.js`, which is the
+instrument the digest identifies. It changes the value the authority receives AND stops those draws
+consuming a shared `sec` address, which shifts the `nth` of every later draw at that address in the
+same turn — i.e. it changes which games diverge. `DICE_MODEL` goes `split/v3` -> `split/v4` in the
+same commit. **v3's own sentence already said "the RANGE form outside the damage machinery is pinned
+to m"**, which `acc` and `sec` are; the code said `cat === 'any'`. So the digest was tracking a
+sentence rather than a behaviour — the exact failure the v1 -> v2 note warns about, arriving from the
+other side — and leaving `v3` in place would have left two DIFFERENT behaviours sharing one digest.
+`arms_comparable.js` now refuses to table a pre-A run against a post-A one, which is correct: the
+5-of-961 baseline and the 2-of-961 result are two instruments. Same precedent as ROADMAP #491, which
+moved it `f646b0163bc0` -> `44bd49403231` for the same reason.
+
+**B IS AN ADDRESS DEFECT, NOT A RATE DEFECT, WHICH IS WHY NOTHING HAD EVER SEEN IT.**
+`data/move-effects.js` is generated from FIELDS and an authority secondary can be a CLOSURE, so Dire
+Claw arrives as an inert `{chance:30}` — the authority's row with its `onHit` stripped. The generic
+loop rolled that 30% and applied nothing (`nth 0`), then the `proceduralStatus` block rolled the same
+30% again (`nth 1` — the address the authority spends on `this.sample`) and the pick took `nth 2`,
+which the authority never reaches. The loop does not short-circuit, so the status was decided by the
+second draw alone and the marginal rate stayed exactly 30%: a rate check, a census probe and a seeded
+harness all pass. Two independent coins on a 30% event disagree `2 x 0.3 x 0.7 = 42%` of the time.
+
+**THE POPULATION IS DERIVED AND PRINTED BY THE PROBE, NEVER TYPED.** Nine legal moves carry an inert
+rulebook secondary row; none carries two. Only a row that is sub-100 **and** has a second drawing
+consumer can break:
+
+```
+ 20  triattack        proceduralStatus     BROKE
+ 30  direclaw         proceduralStatus     BROKE
+100  alluringvoice / burningjealousy / ceaselessedge / stoneaxe        -
+100  eeriespell       removesPP            one draw, lined up by accident
+100  spiritshackle    trapsTarget          one draw, lined up by accident
+100  throatchop       blocksSoundMoves     one draw, lined up by accident
+```
+
+The seven at 100% **still line up, measured rather than assumed**: `B-100a/b/c` stage the three whose
+tag block now reads the recorded roll, and each takes **exactly one `sec` draw on both sides** with
+identical boards. `tests/roster.js --stage moves` covers the other four at 0 FIRED-AND-BOARDS-DIFFER.
+`trapsTarget` and `removesPP` were given the same guard as `proceduralStatus` so all three tag blocks
+read ONE rule; at chance 100 the roll cannot fail, so nothing about them moves today.
+
+**C's LOCATED EDIT POINT WAS WRONG AND THE PROBE SAID SO.** The diagnosis put the type restore in
+`queueFaint`, beside the `_ttmWrap` clear that cites the same authority line. Run there, 2026-08-27:
+
+```
+C-faint    p1.party.meowscarada.types  medicham "ice"    showdown "dark/grass"       STILL RED
+C-selfko   p2.party.gallade.types      medicham "water"  showdown "fighting/psychic" STILL RED
+MEDSEEN.typesRestoredOnFaint = 0     -- it never fired once, on either road
+```
+
+`queueFaint` is not the shared site. This engine's own `faintHousekeeping` header already records
+that the transform revert was tried there and left its probe red **because Memento's self-KO never
+reaches it**. In `noteFaint` — after `faintHousekeeping`, so `imposterRevert` has put a transformed
+body back on its own name first — both arms read IDENTICAL and the counter reads 2. `C-selfko` is the
+arm that separates the two homes, and it is a control that can fail: under
+`MEDI_TYPES_SURVIVE_FAINT=1` it reproduces the same red. No Protean carrier in this format learns a
+self-KO move (derived: greninja, greninja-mega and meowscarada learn none of
+explosion/finalgambit/healingwish/memento/mistyexplosion/selfdestruct), so the conversion in that arm
+comes from **Soak** — the same `setType` through a different door.
+
+**FOUR FIXTURES CAUGHT AS PROBES BEFORE THEY WERE READ AS ENGINE RESULTS.** `B-tri`, `B-100a` and
+`B-100b` first reported boards IDENTICAL with **zero draws on either side** — the foes were
+Protecting and nothing staged. `C-selfko` first reported IDENTICAL because Memento hit
+`-activate|move: Protect` and its user therefore never fainted. All four were visible only because
+the arm prints its draw counts beside its verdict. A fifth was caught in the fixture derivation
+itself: walking all three ability SLOTS refused Garchomp for Sand Veil, which the fixture does not
+carry — the reason count now reads the DECLARED ability.
+
+**TWO NEIGHBOURS FILED, NOT FIXED — ROADMAP #504 and #505.** `clearVolatile` also does
+`this.ability = this.baseAbility` and reverts a non-permanent forme. `switchOut` handles both
+(`abRestoreOnLeave`, the `_formeTempBase` block); the faint path handles neither. They are two more
+statements from the same authority line, not this one, and neither has a failing probe — so they are
+registered rather than claimed. The forme one interacts with C and the interaction is stated: a body
+that faints inside a temporary forme has its types restored against **that forme's** row here and
+against its BASE species' in the authority.
+
+**WHAT THIS DOES NOT FIX, STATED.** medicham2 still gives every confusion the MINIMUM duration
+(`CONFUSION_TURNS_MIN = 2`, counted as `MEDSEEN.confusionMinDuration`). A pins both engines to that
+minimum, so the pinned pool cannot see it; against real dice confusion lasts 3.5 attempts and this
+engine gives it the floor, so a search under-values landing one. That belongs to the lab — the roster
+and the census — not to the pinned pool, and A is about the pool.
+
+**Files.** `engine/game_differential.js` (A: the predicate, the by-category receipt, a `sec` pin
+claim, `DICE_MODEL` v4), `engine/medicham2-browser.js` (B and C), `tests/probe_state_trio.js` (five
+new arms, the derived population, the derived refusal-reason count per cell).
 
 ## THE CRIT DIE IS ROLLED ONCE PER *HIT* BY THE AUTHORITY AND WAS ROLLED ONCE PER *CLICK* HERE — ARRIVAL 2 OF A VOLLEY INHERITED ARRIVAL 1'S CRIT. **BOARD-MATERIAL 7 -> 5 OF 961 AND WHOLE-GAME 9 -> 7 OF 961, BOTH PREDICTED BEFORE THE RUN. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING, PREDICTED. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE *AND* AFTER. PIN DIGEST UNMOVED AT `44bd49403231`.** 2026-08-27.
 

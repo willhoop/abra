@@ -1,14 +1,14 @@
 {
-  "generated": "2026-08-27T19:25:56.197Z",
+  "generated": "2026-08-27T21:54:18.142Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 460,
-    "open": 239,
-    "closed": 221,
-    "open_asserting_breakage": 65,
+    "register_rows": 467,
+    "open": 242,
+    "closed": 225,
+    "open_asserting_breakage": 66,
     "measured_disagreements": 0,
     "unregistered": 0
   },
@@ -2147,6 +2147,33 @@
       "full": "quick claw's effect is still gated on the move's printed priority and the authority gates it on the event's relay var — filed 2026-08-27 by engine while closing #497, counted rather than fixed. `data/items.ts` quickclaw is `if (priority <= 0 && this.randomchance(1, 5))`, and `priority` there is the first parameter of `onfractionalpriority`, which `runevent('fractionalpriority', action.pokemon, null, action.move, 0)` supplies as the relay var -- what an earlier handler in the same event returned, 0 on an ordinary claw holder. derived, not read: `tests/probe_fractional_priority_draw.js`'s highpri arm plays a priority-1 attack and the authority takes one `any` draw, against a noclaw control on the same board taking none. so the authority rolls and applies the claw above bracket 0. medicham2's `_fpok` refuses it there. #497 made the die agree on every move action; the outcome still does not, and `medfails.fracpriprioritygateunmodelled` is the size of the gap. two more clauses on the same line, also unmodelled and also counted: `quickclaw` returns before the roll when the move is status and the holder has mycelium might (`medfails.fracprimyceliumdrawunmodelled`), and the authority runs the ability handler (`onfractionalprioritypriority` -1) before the item's (-2) while this engine draws the item first -- under the relay reading that decides whether the claw rolls at all when a quick draw has already fired. not called a defect with a size until something measures it: the counters were added in the same commit and the population over the pinned pool was not read in that session. instrument owed: a fixture staging a claw holder clicking a priority-1 move where the nudge would change the order, with the knob in the direction that restores the refusal, so an identical result across it says the knob is unwired."
     },
     {
+      "n": 500,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": true,
+      "uses": 0,
+      "title": "THE REACTION PASS IS RAISED ONCE PER MOVE HERE AND ONCE PER HIT IN THE AUTHORITY, SO A PER-ARRIVAL CRIT NOW HAS TO BE CO",
+      "full": "the reaction pass is raised once per move here and once per hit in the authority, so a per-arrival crit now has to be collapsed into one boolean — filed 2026-08-27 by engine while closing #499, decided rather than bundled. with the crit drawn per arrival (#499), `r.crit` can no longer be the click's answer, and the reader that consumes it — `buffsholderonhit` via `condholds`'s `w.cond === 'crit'`, i.e. anger point — is raised by `_stepeffects` once per move while `spreadmovehit` raises the authority's per hit. #499 chose `_crits.some(boolean)`, and that choice is correct for every member of this family in this format and is not correct in general: it is exact wherever the reaction is idempotent (anger point maxes attack and cannot be maxed twice) and it is wrong the moment a reaction compounds across hits or reads state that changed between them. not an accusation that anything is wrong today — nothing in the format is known to break, and this row says so rather than implying otherwise. it is the same missing loop `tests/test-resolution-order.js` already stages as its one declared known-open arm (\"the authority wraps the whole step list once per hit and this engine wraps it once per move\"), so the two are one piece of work and should be closed together. what would decide it: an ability whose per-hit reaction is not idempotent, staged on a multi-hit volley in both engines with the crit die pinned to a single arrival, and the boost read as a magnitude rather than a presence — if no such member exists in this format, that is a derived finding to publish, not a reason to close the row silently. instrument owed: a probe over `buffsholderonhit`'s membership that separates idempotent reactions from compounding ones, printed before it is wired."
+    },
+    {
+      "n": 504,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "A CORPSE WEARS ITS BASE ABILITY AND THIS ENGINE LEAVES IT WEARING A TRACED ONE — FILED 2026-08-27 BY ENGINE WHILE CLOSIN",
+      "full": "a corpse wears its base ability and this engine leaves it wearing a traced one — filed 2026-08-27 by engine while closing #503, named rather than claimed. `clearvolatile` does `this.ability = this.baseability` (`sim/pokemon.ts:1528`) on the same call `#503`'s type restore is read from, and `faintmessages()` runs it. `switchout` already handles it (`abrestoreonleave`, whose own comment measured 3 of 2,029 benched comparisons — every one a gardevoir still wearing an ability it had traced); the faint path does not. there is no failing probe on this and that is why it is a row and not a fix. it would be found by a probe of exactly `#503`'s shape — a trace body that copies, dies, and is compared by `benchrow`. one ordering hazard is already known and must travel with the fix: the authority's `faint` event (`sim/battle.ts:2549`) fires above the clear, so a receiver inherits the ability the corpse was wearing, and `_abatfaint` is stamped in `notefaint` for exactly that reader — a restore placed carelessly would hand `receiversweep` the base ability and silently break a mechanic that works today. not an accusation that anything is wrong in the pool: the pinned pool's remaining board-material rows include `p2.party.gardevoir.ability medicham \"goodasgold\" showdown \"innerfocus\"`, which is a trace choice on a live body and belongs to #478's address class, not here."
+    },
+    {
+      "n": 505,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "A CORPSE REVERTS A NON-PERMANENT FORME IN THE AUTHORITY AND NOT HERE — FILED 2026-08-27 BY ENGINE WHILE CLOSING #503, AN",
+      "full": "a corpse reverts a non-permanent forme in the authority and not here — filed 2026-08-27 by engine while closing #503, and it interacts with #503 in a way that is stated rather than left to be found. `clearvolatile` ends `setspecies(this.basespecies)`, which reverts a forme as well as the type list; `switchout` handles it through the `_formetempbase` block and the faint path does not. a permanent forme is not affected and that is enforced by who stamps rather than by a list: only `formecycleresidual` writes `_formetempbase`, so a mega, disguise's busted forme and zero to hero all pass `ispermanent: true`, rewrite `basespecies`, and are not reverted by the authority either. the interaction with #503: a body that faints inside a temporary forme now has its types restored against that forme's row (`monrow(m.name)`) where the authority restores them against the base species'. that is strictly closer than the pre-#503 state of no restore at all, and it is not correct, and this row is where that is written down. no failing probe: hunger switch is the natural carrier and nothing stages it dying mid-cycle today."
+    },
+    {
       "n": 52,
       "section": "Deferred by decision — not dropped",
       "closed": false,
@@ -2170,7 +2197,7 @@
     {
       "artifact": "data/interaction-matrix.json",
       "generated": "2026-08-11T22:00:06.336Z",
-      "age_days": 15.9
+      "age_days": 16
     }
   ]
 }

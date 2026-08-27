@@ -743,6 +743,12 @@ let MID_DAMAGE_INDEX_FLIPS = 0;
 const MID_RANGE_LIVE = (typeof process !== 'undefined' && process.env
                         && process.env.MEDI_MID_RANGE_DRAWS === '1');
 let MID_RANGE_PINNED = 0, MID_RANGE_LIVE_DRAWS = 0;
+/* WHAT THE PREDICATE MATCHES, PRINTED — NOT ASSUMED. Every two-argument `random` the middle arm sees
+ * is tallied by `cat|move|m..n` BEFORE any pin decision, so widening the predicate can be judged
+ * against the population it newly swallows rather than against a hope. The pair of counters above
+ * cannot do this: a `sec` range draw incremented NEITHER of them (it fell past both into `midDraw`),
+ * so the receipt that exists to police this pin was blind to the only category it was missing. */
+const MID_RANGE_SEEN = new Map();
 
 /* ==================================================================================================
  * MIDDLE ARM — REAL DICE THAT BOTH ENGINES AGREE ON, ADDRESSED BY CATEGORY (ROADMAP #262)
@@ -1145,11 +1151,39 @@ function makeArm(spec) {
      * denominator IS a reliable discriminator, because the wrapper has already narrowed the caller. */
     if (spec.middle) {
       const cat = (MIDW.cat === 'dmg' && n !== undefined) ? 'crit' : MIDW.cat;
+      /* TALLIED BEFORE ANY DECISION — see MID_RANGE_SEEN. */
+      if (n !== undefined) {
+        const _b = this && this.activeMove !== undefined ? this : MIDW.battle;
+        const _mv = _b && _b.activeMove;
+        const _k = MIDW.cat + '|' + (_mv ? _mv.id : '-') + '|' + m + '..' + (n - 1);
+        MID_RANGE_SEEN.set(_k, (MID_RANGE_SEEN.get(_k) || 0) + 1);
+      }
       /* ROADMAP #491 — see MID_RANGE_LIVE. The range form outside the damage machinery is a tie or a
        * duration the other engine does not draw; it is pinned to `m` exactly as in the scalar arms,
-       * and it consumes NO shared address. */
-      if (n !== undefined && cat === 'any' && !MID_RANGE_LIVE) { MID_RANGE_PINNED++; return m; }
-      if (n !== undefined && cat === 'any') MID_RANGE_LIVE_DRAWS++;
+       * and it consumes NO shared address.
+       *
+       * ---- 2026-08-27, ROADMAP #501 — `cat === 'any'` WAS NARROWER THAN THE RULE IT IMPLEMENTS, AND
+       * THE MISSING HALF WAS ACCUSING THE ENGINE.
+       *
+       * The predicate above read `cat === 'any'`. `MIDW.cat` is `sec` for the whole of
+       * `BattleActions#secondaries`, and a secondary applies its volatile through `moveHit` INSIDE
+       * that method (sim/battle-actions.ts) — so a confusion arriving by a secondary took a LIVE
+       * `2 + floor(u * 4)` while the same confusion arriving by a status move was pinned to 2. The
+       * differential then compared medicham2's constant against an unpinned random number and
+       * reported an engine defect. It was the instrument.
+       *
+       * MEASURED BEFORE WIDENING, over the 961-game pinned pool (range_form_seen_by_cat): 409
+       * two-argument draws in total — 405 `any`, 4 `sec` (all `hurricane|2..5`, the confusion
+       * duration), ZERO `acc` and ZERO `dmg`. So the widened predicate newly swallows exactly four
+       * draws, all of them the confusion duration, and swallows nothing under `acc` because no
+       * `acc` range draw exists in this checkout. That also settles an open question from the
+       * diagnosis: there is no two-argument `random` inside `getDamage` at all on this pool.
+       *
+       * `dmg` STAYS EXCLUDED ANYWAY. Line 1153 re-labels a two-argument random under `dmg` as
+       * `crit`, and that mapping is a separate claim that nothing here tested; excluding a category
+       * that measured zero costs nothing and keeps the untested claim untouched. */
+      if (n !== undefined && MIDW.cat !== 'dmg' && !MID_RANGE_LIVE) { MID_RANGE_PINNED++; return m; }
+      if (n !== undefined && MIDW.cat !== 'dmg') MID_RANGE_LIVE_DRAWS++;
       const u = midDraw(cat === 'any' ? 'any' : cat, this);
       if (n === undefined) {
         if (m === undefined) return u;                       // random() -> float in [0,1)
@@ -1476,6 +1510,17 @@ function armClaims(a) {
       () => { const b = MID_CTX_SEEN.sd.length; const v = a.random(2, 5);
               const grew = MID_CTX_SEEN.sd.length - b;
               return MID_RANGE_LIVE ? (grew === 1) : (grew === 0 && v === 2); });
+    /* ROADMAP #501 — AND IT COVERS `sec`, WHICH THE CLAIM ABOVE CANNOT SEE. That claim runs with
+     * `MIDW.cat` at its default `any`, so it passed for the whole time the pin was missing the
+     * category that actually carries a confusion duration. This one drives the holder to `sec`
+     * explicitly and asserts the same two things there — no address consumed, and the bottom of the
+     * range returned — restoring the holder afterwards so no later claim inherits it. */
+    P('the RANGE form is pinned under `sec` too, not only `any`  [a confusion from a SECONDARY]',
+      () => { const prev = MIDW.cat; MIDW.cat = 'sec';
+              try { const b = MID_CTX_SEEN.sd.length; const v = a.random(2, 6);
+                    const grew = MID_CTX_SEEN.sd.length - b;
+                    return MID_RANGE_LIVE ? (grew === 1) : (grew === 0 && v === 2); }
+              finally { MIDW.cat = prev; } });
     return C;
   }
   if (a.top) {
@@ -1634,12 +1679,28 @@ const ARMS_RUN = ARM_IDS.map(id => ARM_BY_ID.get(id));
  * arms have always returned. That changes both the value the authority inserts with AND which `nth`
  * the next draw at that address takes, so it changes which games diverge: a run before it and a run
  * after it are two instruments, not two samples. */
-const DICE_MODEL = 'split/v3: acc+crit+sec+dmg on the corner, stall on its own seeded stream; '
+/* ---- 2026-08-27, ROADMAP #501 — v3 -> v4. THE RANGE PIN WAS ONLY HALF INSTALLED, AND THE STRING
+ * ABOVE ALREADY DESCRIBED THE WHOLE THING.
+ *
+ * v3's own sentence says the range form *"outside the damage machinery"* is pinned. The code said
+ * `cat === 'any'`, which is narrower: `acc` and `sec` are outside the damage machinery too, and
+ * `sec` is where a confusion duration is drawn. So the digest was tracking a SENTENCE rather than a
+ * behaviour — precisely the failure the v1 -> v2 note warns about, arriving from the other side.
+ *
+ * IT MOVES THE DIGEST AND IT MUST. Pinning four more draws changes the value the authority receives
+ * AND stops those draws consuming a shared `sec` address, which shifts the `nth` of every later
+ * draw at that address in the same turn. That changes which games diverge, so a run before and a run
+ * after are two instruments and `arms_comparable.js` has to refuse to table them together. Leaving
+ * `v3` in place would have left two DIFFERENT behaviours sharing one digest, which is worse than the
+ * reset. */
+const DICE_MODEL = 'split/v4: acc+crit+sec+dmg on the corner, stall on its own seeded stream; '
                  + 'the `middle` arm addresses every draw by event and hashes it FNV-1a + fmix32 '
                  + '(the finaliser landed 2026-08-27 — before it, the trailing `nth` field only '
                  + 'TRANSLATED the value and ten arrivals at one damage address shared 1.75 buckets '
                  + 'of a possible sixteen); the RANGE form random(m,n) outside the damage machinery '
-                 + 'is pinned to m and consumes no address, as in the scalar arms (2026-08-27)';
+                 + 'is pinned to m and consumes no address, as in the scalar arms — in EVERY category '
+                 + 'that is not `dmg`, which from 2026-08-27 includes `sec`, where a confusion '
+                 + 'duration is drawn (v3 pinned only `any` and left `sec` live)';
 const PIN_DIGEST = crypto.createHash('sha256').update(JSON.stringify(ARMS_RUN.map(a => ({
   id: a.id, corner: a.corner, damageIndex: a.damageIndex, tieToSecondBody: a.tieToSecondBody,
   sdShuffleReverses: a.sdShuffleReverses,
@@ -5635,7 +5696,8 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                    /* ROADMAP #491 — the range-form receipt. `pinned` must be non-zero on any run that
                     * met a queue tie; `live` must be 0 unless MEDI_MID_RANGE_DRAWS=1 is set. */
                    midRangeCounters: () => ({ pinned: MID_RANGE_PINNED, live: MID_RANGE_LIVE_DRAWS,
-                                              knob: MID_RANGE_LIVE }),
+                                              knob: MID_RANGE_LIVE,
+                                              seen: Object.fromEntries([...MID_RANGE_SEEN].sort((a, b) => b[1] - a[1])) }),
                    /* THE WRAPPER'S OWN RECEIPT. `adopted` is how many times this file was RELOADED
                     * into a process that had already installed the `BattleActions` patch; `enters` is
                     * how many times the patch has since told THIS holder which category is running. A
@@ -6498,6 +6560,10 @@ if (PRIMARY_ARM.middle) {
     range_form_pinned: MID_RANGE_PINNED,
     range_form_live_draws: MID_RANGE_LIVE_DRAWS,
     range_form_knob: MID_RANGE_LIVE,
+    /* THE POPULATION THE PIN PREDICATE IS DECIDING OVER, keyed `cat|move|m..n` and tallied before the
+     * decision. This is the receipt `range_form_pinned` could not give: a category the predicate does
+     * not match increments no counter at all, so widening it was previously unjudgeable. */
+    range_form_seen_by_cat: Object.fromEntries([...MID_RANGE_SEEN].sort((a, b) => b[1] - a[1])),
     sd_addresses_dropped_as_not_this_game: MID_SD_LOG_DROPPED,
   };
   console.log('  VOID (instrument desync): ' + voided + ' of ' + results.length

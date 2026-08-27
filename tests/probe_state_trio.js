@@ -90,6 +90,29 @@ const CHOMP  = ['garchomp', '', 'Rough Skin', ['Swords Dance', 'Protect', 'Earth
 const SNEAS  = ['sneasler', '', 'Unburden', ['Dire Claw', 'Protect', 'Swords Dance']];
 const DIGG   = ['diggersby', '', 'Huge Power', ['Protect', 'Earthquake', 'Swords Dance']];
 
+/* ROADMAP #502 — THE ROWS WHOSE SECOND CONSUMER THE FIX TOUCHED. Nine legal moves carry an INERT
+ * rulebook secondary row (a chance with no field, because `data/move-effects.js` cannot express the
+ * authority's `onHit`). Two are sub-100 and had a second consumer that drew again — Dire Claw, above,
+ * and TRI ATTACK. The other seven are 100%, spend exactly one `sec` draw, and therefore lined up by
+ * accident; three of them have a tag block that now reads the recorded roll instead of running
+ * unconditionally, and those three are staged here so "they still line up" is measured. The
+ * population is DERIVED and printed below, never typed. Carriers are derived too — Spirit Shackle and
+ * Eerie Spell each have exactly ONE legal carrier in this format. */
+const CLEFTRI = ['clefable', '', 'Unaware', ['Tri Attack', 'Protect']];
+const MACHAMP = ['machamp', '', 'No Guard', ['Throat Chop', 'Protect']];
+const DECID   = ['decidueye', '', 'Overgrow', ['Spirit Shackle', 'Protect']];
+const SKINGG  = ['slowkinggalar', '', 'Own Tempo', ['Eerie Spell', 'Protect']];
+
+/* ROADMAP #503 — THE ARM THAT SEPARATES `noteFaint` FROM `queueFaint`. The diagnosis located the type
+ * restore in `queueFaint`; this file's own engine records that the transform revert was tried there
+ * and stayed RED because MEMENTO'S SELF-KO NEVER REACHES IT. So a converted body has to die by a
+ * self-KO here. No Protean carrier in this format learns one (derived: greninja, greninja-mega and
+ * meowscarada learn none of explosion/finalgambit/healingwish/memento/mistyexplosion/selfdestruct),
+ * so the conversion comes from SOAK instead — the same `setType` the restore has to undo, through a
+ * different door, which is what a control means in this file. */
+const AZU     = ['azumarill', '', 'Thick Fat', ['Soak', 'Protect']];
+const GALL    = ['gallade', '', 'Steadfast', ['Memento', 'Protect', 'Swords Dance']];
+
 const MEOW   = ['meowscarada', '', 'Protean', ['Triple Axel', 'Knock Off', 'Protect', 'U-turn']];
 const SNOR   = ['snorlax', '', 'Thick Fat', ['Protect']];
 
@@ -143,6 +166,34 @@ const CASES = [
     A: [SNEAS, CLEF], B: [DIGG, CHOMP],
     script: [{ p1: [{ m: 'direclaw', t: 0 }, PROT], p2: [SD, SD] }],
     watch: 'status' },
+  { id: 'B', name: 'B-tri      Tri Attack — the OTHER sub-100 inert row (20%), same defect',
+    what: 'Champions `triattack` is `secondary: {chance: 20, onHit(){ this.sample([brn,par,frz]) }}`, '
+        + 'so the rulebook row arrives inert exactly as Dire Claw\'s does. One `sec` draw in the '
+        + 'authority; three in medicham2 before the fix.',
+    A: [CLEFTRI, CHOMP], B: [DIGG, SNEAS],
+    script: [{ p1: [{ m: 'triattack', t: 0 }, PROT], p2: [SD, SD] }],
+    watch: 'status' },
+  { id: 'B', name: 'B-100a     Throat Chop — a 100% inert row (blocksSoundMoves)',
+    what: 'A 100% inert row spends exactly ONE `sec` draw, which is exactly what the authority spends, '
+        + 'so these seven lined up by accident and MUST still line up. No Guard removes the accuracy '
+        + 'roll so the arm cannot end in a miss.',
+    A: [MACHAMP, CLEF], B: [DIGG, SNEAS],
+    script: [{ p1: [{ m: 'throatchop', t: 0 }, PROT], p2: [SD, SD] }],
+    watch: 'status' },
+  { id: 'B', name: 'B-100b     Spirit Shackle — a 100% inert row whose tag block now reads the roll',
+    what: 'The `trapsTarget` block gained `_inertSecRoll !== false`. At chance 100 the roll cannot '
+        + 'fail, so this must be unchanged. Garchomp is the target because a GHOST refuses the trap '
+        + 'and a NORMAL body is immune to the move itself — either would make a green arm meaningless.',
+    A: [DECID, CLEF], B: [CHOMP, SNEAS],
+    script: [{ p1: [{ m: 'spiritshackle', t: 0 }, PROT], p2: [SD, SD] }],
+    watch: 'vol.trapped' },
+  { id: 'B', name: 'B-100c     Eerie Spell — a 100% inert row whose tag block now reads the roll',
+    what: 'The `removesPP` block gained the same guard. The target must have a LAST MOVE for PP to be '
+        + 'taken from, so Garchomp clicks Swords Dance on turn 1 and eats the Spell on turn 2.',
+    A: [SKINGG, CLEF], B: [CHOMP, SNEAS],
+    script: [{ p1: [PROT, PROT],                          p2: [SD, SD] },
+             { p1: [{ m: 'eeriespell', t: 0 }, PROT],      p2: [SD, SD] }],
+    watch: 'pp' },
   { id: 'B', name: 'B-control  Earthquake — a move with no secondary at all',
     what: 'The same two bodies, the same turn, a click that takes no `sec` draw on either side. It '
         + 'pins that the counts below are Dire Claw\'s and not a standing offset.',
@@ -172,6 +223,22 @@ const CASES = [
              { p1: [{ m: 'knockoff', t: 0 }, PROT],    p2: [ID, SD] },
              { p1: [{ m: 'knockoff', t: 0 }, PROT],    p2: [ID, { m: 'earthquake' }] },
              { p1: [PROT, PROT],                      p2: [ID, SD] }],
+    watch: 'types' },
+  { id: 'C', name: 'C-selfko   SOAKED, then the body kills ITSELF (Memento) — the road queueFaint misses',
+    what: 'Azumarill Soaks Gallade to pure Water; Gallade then Mementos and faints. A self-KO does not '
+        + 'reach `queueFaint`, so this arm is RED under the located patch and green under the one in '
+        + '`noteFaint`. Turn 1 also proves the conversion really happened — if Soak did nothing, a '
+        + 'green here would mean nothing at all.',
+    A: [AZU, CLEF], B: [GALL, CHOMP], bench: ['snorlax', 'incineroar'],
+    /* NOT Protect on p1a for the Memento turn. The first version of this arm shielded Azumarill, the
+     * Memento hit `-activate|move: Protect`, its user therefore never fainted, and the arm reported
+     * IDENTICAL having staged nothing — the same green-that-proves-nothing C-faint already records.
+     * Azumarill Soaks the OTHER foe instead, which is a real click that shields nobody. And no
+     * voluntary switch afterwards: leaving on a switch would restore the types through `switchOut`
+     * and prove the wrong thing. */
+    script: [{ p1: [{ m: 'soak', t: 0 }, PROT], p2: [SD, SD] },
+             { p1: [{ m: 'soak', t: 1 }, PROT], p2: [{ m: 'memento', t: 0 }, SD] },
+             { p1: [PROT, PROT],                p2: [PROT, SD] }],
     watch: 'types' },
   { id: 'C', name: 'C-uturn    Protean, then a SELF-SWITCH (U-turn)',
     what: 'U-turn pivots the user out. If the pivot does not run the same `switchOut` the voluntary '
@@ -237,6 +304,71 @@ if (illegal) { console.log(NL + 'NOT RUN — ' + illegal + ' illegal fixture(s).
     + (par.exists ? '' : '   (par condition missing?!)'));
 }
 
+/* ---- ROADMAP #502 — AND THE SAME QUESTION FOR EVERY STATUS TRI ATTACK CAN PICK -------------------
+ * Dire Claw picks from {psn, par, slp} and Tri Attack from {brn, par, frz}. A cell that is immune to
+ * ONE of them is a cell whose green can be explained without the fix, so the type immunity behind
+ * each is derived from the format's own status conditions rather than recalled. */
+{
+  const IMMUNE_TYPE = {};   // DERIVED: which type each status cannot be inflicted on
+  for (const st of ['brn', 'par', 'frz', 'psn', 'tox', 'slp']) {
+    const c = dex.conditions.get(st);
+    IMMUNE_TYPE[st] = (c && c.effectType === 'Status') ? null : null;
+  }
+  /* The immunity lives on the TYPE chart's `damageTaken` in gen 9 (`Fire` -> brn, `Electric` -> par,
+   * `Ice` -> frz, `Poison`/`Steel` -> psn+tox), which is a table this dex exposes directly. */
+  const blockers = (st) => dex.types.all().filter(t => t.damageTaken && t.damageTaken[st] === 3).map(t => t.name);
+  /* THE DECLARED ABILITY, NOT THE SLOT LIST. The fixture names one ability and the body has that one;
+   * walking all three slots refused Garchomp for Sand Veil, which the fixture does not carry. That
+   * over-match is exactly the failure this file's own header warns about, caught here by printing. */
+  const cells = [[DIGG, ['brn', 'par', 'frz'], 'B-tri'], [DIGG, ['psn', 'par', 'slp'], 'B-arm'],
+                 [CHOMP, ['trapped'], 'B-100b/c']];
+  for (const [row, sts, arm] of cells) {
+    const sp = dex.species.get(row[0]);
+    const reasons = [];
+    {
+      const ab = dex.abilities.get(row[2]);
+      if (ab.onSetStatus || ab.onTryAddVolatile || ab.onImmunity) reasons.push('ability ' + ab.name);
+    }
+    for (const st of sts) {
+      if (st === 'trapped') { if (sp.types.includes('Ghost')) reasons.push('type Ghost refuses trapped'); continue; }
+      for (const t of blockers(st)) if (sp.types.includes(t)) reasons.push('type ' + t + ' refuses ' + st);
+    }
+    console.log(arm + ' fixture — refusal reasons for {' + sts.join(',') + '} on ' + sp.name
+      + ' (' + sp.types.join('/') + ', ability ' + row[2] + '): ' + (reasons.length ? reasons.join(' + ') : 'NONE')
+      + '   [no Safeguard, no Misty Terrain, no prior status in the script]');
+    if (reasons.length) { console.log('  *** REFUSING: this cell qualifies for ' + reasons.length
+      + ' reason(s) and cannot prove anything. Fix the fixture.'); process.exit(2); }
+  }
+}
+
+/* ---- ROADMAP #502 — THE INERT-ROW POPULATION, DERIVED AND PRINTED BEFORE THE ARMS ----------------
+ * Every legal move whose rulebook secondary row carries a chance and NO field. Only a row that is
+ * sub-100 AND has a second drawing consumer could break; the rest spend one draw each, which is what
+ * the authority spends, and must go on doing so. */
+{
+  require(D('data', 'move-effects.js'));
+  const EFF = (typeof globalThis !== 'undefined' && globalThis.MOVE_EFFECTS) || {};
+  const T = require(D('engine', 'tags.js'));
+  const rows = [];
+  for (const id of Object.keys(EFF)) {
+    if (!legal(dex.moves.get(id))) continue;
+    for (const s of (EFF[id].secondary || [])) {
+      if (s.status || s.volatile || s.targetBoosts || s.selfBoosts) continue;
+      const tg = ['proceduralStatus', 'trapsTarget', 'removesPP', 'blocksSoundMoves']
+        .filter(k => T.param && T.param('move', id, k));
+      rows.push({ id, chance: s.chance == null ? 100 : s.chance, tags: tg.join('+') || '-' });
+    }
+  }
+  rows.sort((a, b) => a.chance - b.chance || a.id.localeCompare(b.id));
+  const staged = new Set(CASES.flatMap(c => (c.script || []).flatMap(t =>
+    [].concat(t.p1 || [], t.p2 || []).map(x => x && x.m).filter(Boolean))));
+  console.log(NL + 'INERT RULEBOOK SECONDARY ROWS (derived from data/move-effects.js + the format):');
+  for (const r of rows) console.log('   ' + String(r.chance).padStart(4) + '  ' + r.id.padEnd(18)
+    + r.tags.padEnd(20) + (staged.has(r.id) ? 'STAGED HERE' : ''));
+  console.log('   ' + rows.length + ' rows; only a sub-100 row with a second drawing consumer can break: '
+    + rows.filter(r => r.chance < 100 && /proceduralStatus/.test(r.tags)).map(r => r.id + '@' + r.chance).join(', '));
+}
+
 /* ---- THE RUN ------------------------------------------------------------------------------------- */
 const stage = rows => rows.map(r => ({ species: r[0], item: r[1] || '', ability: r[2] || '', moves: r[3] }));
 const BENCH = (...n) => n.map(s => ({ species: s, item: '', ability: '', moves: ['Protect'] }));
@@ -284,9 +416,16 @@ const S = M.MEDSEEN, F = M.MEDFAILS;
 console.log(NL + '=================================================================');
 console.log('medicham2 counters over the whole file');
 for (const k of ['confusionSet', 'confusionMinDuration', 'confusionExpired', 'confusionSelfHit',
-                 'proceduralStatusApplied', 'proteanConverted', 'roostTypeRestored'])
+                 'proceduralStatusApplied', 'secondaryRollReusedByTag', 'secondaryEffectless',
+                 'proteanConverted', 'roostTypeRestored', 'typesRestoredOnSwitchOut',
+                 'typesRestoredOnFaint'])
   if (S[k] !== undefined) console.log('   MEDSEEN.' + k + ' = ' + S[k]);
 console.log('   MEDFAILS.confusionMistyUnmodelled = ' + (F.confusionMistyUnmodelled || 0));
+/* ROADMAP #502 — the LOUD half. Both must read 0: a non-zero `proceduralStatusNoRulebookRow` means a
+ * tag block had to take its own draw because no inert rulebook row was rolled, which is the old
+ * address wearing the new wire's name. */
+for (const k of ['proceduralStatusNoRulebookRow', 'secondInertSecondaryRow'])
+  console.log('   MEDFAILS.' + k + ' = ' + (F[k] || 0) + (F[k] ? '   *** MUST BE 0 — first: ' + (F[k + 'First'] || '?') : ''));
 const RC = G.midRangeCounters ? G.midRangeCounters() : null;
 if (RC) console.log('   range form: pinned ' + RC.pinned + '   live ' + RC.live + '   knob ' + RC.knob);
 console.log(NL + 'DIAGNOSTIC — no pass/fail verdict is asserted here.');

@@ -651,6 +651,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * effect-less secondary entry that matched no tag, so a fourteenth member of that family arriving
    * in the rulebook reads as an unhandled count rather than as silence. */
   soundLockApplied: 0, secondaryEffectless: 0,
+  /* ROADMAP #502 -- ONE AUTHORITY SECONDARY ROW IS ONE CHANCE DRAW, and this counts the rows where a
+   * SECOND consumer now reads the first draw's outcome instead of taking its own. `data/move-effects.js`
+   * cannot express an `onHit`, so nine legal moves carry an INERT secondary row (derived, not typed:
+   * triattack 20, direclaw 30, and seven at 100 -- alluringvoice, burningjealousy, ceaselessedge,
+   * eeriespell, spiritshackle, stoneaxe, throatchop). The generic loop rolled that row and applied
+   * nothing; the tag block below rolled the SAME chance again. Only the two sub-100 rows could show it,
+   * because at 100 both draws pass -- which is why no rate check, census probe or seeded harness ever
+   * saw it. A zero here on a run that clicked Dire Claw means this wire stopped firing. */
+  secondaryRollReusedByTag: 0,
   /* 2026-08-24 -- the other end of the same clock, counted separately because "the lock was never
      applied" and "the lock was applied and never expired" are two different defects that both read as
      a body that cannot use a sound move. It is also the emitter of the `-end` line, so a zero beside a
@@ -786,6 +795,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      the species' own types were restored, which is `clearVolatile`'s closing `setSpecies`. A zero
      after real games means the rebuild is not on the path. */
   typesRestoredOnSwitchOut: 0,
+  /* ROADMAP #503 -- THE SAME RESTORE ON THE OTHER ROAD. `clearVolatile` closes with
+     `setSpecies(this.baseSpecies)` (sim/pokemon.ts) and `faintMessages()` calls
+     `pokemon.clearVolatile(false)` (sim/battle.ts), so A CORPSE WEARS ITS BASE TYPES -- the same line
+     of the same authority function the switch-out restore above is read from. The restore lived only
+     in `switchOut`, and a faint does not go through `switchOut`, so a Protean body that died holding
+     a converted type list kept it on the bench for the rest of the game. A zero after real games
+     means either nobody converted a type or this is not on the path; the switch-out counter beside it
+     says which. */
+  typesRestoredOnFaint: 0,
   /* 2026-08-12 -- the aimed FOE had fainted earlier in the same turn and the move was re-aimed onto
      the surviving one, which is `getTarget`'s fall-through to `getRandomTarget`. `reaimNoLiveFoe` is
      the other half: nothing left to hit, so the move finds nobody. */
@@ -2921,6 +2939,16 @@ const MEDFAILS = { encoreAction: 0,
      the first offender named, because there are exactly two today (Iron Head, Toxic Thread) and a
      third arriving unannounced is the whole failure mode two rulebooks have. */
   rulebookChanceDrift: 0, rulebookChanceDriftFirst: '',
+  /* ROADMAP #502 -- THE LOUD HALF OF THE ONE-ROW-ONE-DRAW WIRE. `proceduralStatusNoRulebookRow` fires
+     when a move carries the tag and the generic loop rolled NO inert rulebook row for it, so there is
+     no recorded outcome to read and the block has to take its own draw -- which is the old, wrong
+     address. Both members have an inert row today (derived over the whole legal rulebook), so this
+     must read 0; a non-zero means `data/move-effects.js` and `data/tags.json` disagree about which
+     moves have a secondary, and the silent version of that is the defect this wire fixed.
+     `secondInertSecondaryRow` fires if a move ever carries TWO inert rows, which nothing does today --
+     one slot would then record the wrong one. */
+  proceduralStatusNoRulebookRow: 0, proceduralStatusNoRulebookRowFirst: '',
+  secondInertSecondaryRow: 0, secondInertSecondaryRowFirst: '',
   /* ROADMAP #187. THE OTHER HALF OF WIRE 89, AND THE HALF NO CHANCE COMPARISON COULD SEE. WIRE 89
      reconciles a secondary whose CHANCE differs between the two rulebooks. It cannot reconcile a
      secondary the format DELETED, because there is then no format-side chance to compare against and
@@ -18761,7 +18789,47 @@ function noteFaint(m){ if(!m)return; if(m._fEpoch!==_FAINT_EPOCH){m._fEpoch=_FAI
    * this engine's consumer and reads exactly this field. Stamped on every faint, not only a
    * transformed one, so the reader never has to ask which road it is on. */
   if(m._abAtFaint===undefined)m._abAtFaint=m.ability;
-  faintHousekeeping(m); }
+  faintHousekeeping(m);
+  /* ROADMAP #503 -- AND THE TYPE LIST DIES WITH THE BODY, on the SAME LINE of the same authority
+   * function the `_ttmWrap` clear in `queueFaint` already cites. `faintMessages()` runs
+   * `pokemon.clearVolatile(false)` (sim/battle.ts:2560) and `clearVolatile` ends
+   * `this.setSpecies(this.baseSpecies)` (sim/pokemon.ts:1565), which is `setType(species.types, true)`.
+   * The switch paths were already right -- a voluntary switch, a U-turn pivot and a stay-in all agree
+   * -- because the restore lives in `switchOut`, and A FAINT NEVER GOES THROUGH `switchOut`. On the
+   * pinned pool that is `p1.party.meowscarada.types  medicham "ice"  showdown "dark/grass"`: a Protean
+   * body converted to Ice, died, and wore Ice on the bench to the end of the game.
+   *
+   * IT IS IN `noteFaint` AND NOT IN `queueFaint`, WHICH IS WHERE THE DIAGNOSIS PUT IT, AND THAT WAS
+   * MEASURED RATHER THAN ARGUED. `queueFaint` is not the shared site -- this file's own
+   * `faintHousekeeping` header already records that the transform revert was tried there and left its
+   * probe RED because MEMENTO'S SELF-KO NEVER REACHES IT. Run with this block moved into `queueFaint`
+   * beside the `_ttmWrap` clear, 2026-08-27:
+   *
+   *     C-faint    p1.party.meowscarada.types  medicham "ice"    showdown "dark/grass"   STILL RED
+   *     C-selfko   p2.party.gallade.types      medicham "water"  showdown "fighting/psychic"  STILL RED
+   *     MEDSEEN.typesRestoredOnFaint = 0        -- it never fired ONCE, on either road
+   *
+   * So the located edit point would have fixed NEITHER arm while looking exactly like a fix that
+   * landed. In `noteFaint` the same two arms read IDENTICAL and the counter reads 2. `C-selfko` is
+   * the arm that separates the two homes and it is a control that can fail: under
+   * `MEDI_TYPES_SURVIVE_FAINT=1` it reproduces the same red.
+   *
+   * AFTER `faintHousekeeping`, WHICH IS LOAD-BEARING: that call runs `imposterRevert`, so a
+   * transformed body is back on its own name before this reads a row against it.
+   *
+   * `monRow(m.name)` AND NOT A STASHED BASE, which is the argument the `switchOut` block already
+   * makes: it reads the body's CURRENT name, so a mega that faints reads its MEGA row and nothing
+   * changes -- matching the authority, where a mega rewrote `baseSpecies` and `clearVolatile`
+   * therefore does not revert it.
+   *
+   * NOT CLAIMED HERE: `clearVolatile` also does `this.ability = this.baseAbility` and reverts a
+   * NON-PERMANENT forme, and neither is on this path. Both are filed as their own rows rather than
+   * folded in -- they are two more statements from the same authority line, not this one. */
+  if(TYPES_SURVIVE_FAINT){ MEDFAILS.typesSurviveFaintRestored=1; return; }
+  {const _row=monRow(m.name);
+   if(_row&&Array.isArray(_row.t)&&m.types&&m.types.join('/')!==_row.t.join('/')){
+     m.types=_row.t.slice(); MEDSEEN.typesRestoredOnFaint++;
+   }} }
 /* ---- THE FAINT QUEUE. 2026-08-23 ---------------------------------------------------------------
  *
  * THE AUTHORITY DOES NOT WRITE `|faint|` WHERE THE HP REACHES ZERO. `Pokemon#faint()`
@@ -18817,6 +18885,15 @@ if(RESIDUAL_DRAIN_ABOVE_UPKEEP)MEDFAILS.residualDrainAboveUpkeepRestored=1;
 const TRANSFORM_SURVIVES_FAINT=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_TRANSFORM_SURVIVES_FAINT==='1');
 if(TRANSFORM_SURVIVES_FAINT)MEDFAILS.transformSurvivesFaintRestored=1;
+/* 2026-08-27, ROADMAP #503 -- THE FOURTH KNOB ON THIS DOOR, and it is a different claim again from
+ * the three above. `MEDI_TYPES_SURVIVE_FAINT=1` restores the behaviour this engine held until today:
+ * a body that died holding a REWRITTEN type list (Protean, Soak, Burn Up, Reflect Type) kept it on
+ * the bench for the rest of the game. `switchOut` has always restored it; the faint path never did.
+ * Its own knob rather than a shared one, because "the transform is undone" and "the type list is
+ * undone" are two of `clearVolatile`'s statements and a single knob would make the second unfallible. */
+const TYPES_SURVIVE_FAINT=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_TYPES_SURVIVE_FAINT==='1');
+if(TYPES_SURVIVE_FAINT)MEDFAILS.typesSurviveFaintRestored=1;
 /* 2026-08-27 -- `MEDI_REFILL_NO_HERB=1` restores the state this engine held until today: a post-faint
  * REPLACEMENT's entry drop had no `onAnySwitchIn` pass after it, so a White Herb answered it a whole
  * turn late. See the call site inside `refill()`. */
@@ -29194,6 +29271,24 @@ function battleTurn(S,rng,actsForA,actsForB){
             return {chance:(p.chance==null?1:+p.chance)*100, volatile:p.volatile||undefined,
                     status:p.status||undefined, _fromAbility:true};
           })();
+          /* ROADMAP #502 -- THE OUTCOME OF THE INERT ROW'S CHANCE ROLL, CARRIED TO THE TAG BLOCKS.
+           *
+           * `data/move-effects.js` is generated from fields and an authority secondary can be a
+           * CLOSURE, so Dire Claw's row arrives here as an inert `{chance:30}` -- the authority's row
+           * with its `onHit` stripped. The generic loop below rolled that 30% and applied nothing,
+           * and then the `proceduralStatus` block rolled the SAME 30% a second time. Two independent
+           * coins on one event disagree 2*0.3*0.7 = 42% of the time.
+           *
+           * IT IS AN ADDRESS DEFECT, NOT A RATE DEFECT, WHICH IS WHY NOTHING COULD SEE IT. The loop
+           * does not short-circuit, so the status was decided by the second draw alone and the
+           * marginal rate stayed exactly 30%. What was wrong is WHICH VALUE: the second draw reads
+           * the number the authority spends on `this.sample`, and the authority's chance value is
+           * spent on nothing. A rate check, a census probe and a seeded harness all pass.
+           *
+           * The authority is `BattleActions#secondaries`: ONE `this.battle.random(100)` per row, and
+           * on a pass `moveHit` runs that row's `onHit`. So the tag blocks are that row's `onHit` and
+           * take no chance draw of their own. `null` means no inert row was rolled at all. */
+          let _inertSecRoll=null;
           const _secs=((fx&&fx.secondary)||[]).concat(_aos?[_aos]:[]);
           if(_secs.length&&!sheerForce){
             const _fsc=TAGS.param('move',a.move.id,'formatSecondaryCount');
@@ -29300,7 +29395,18 @@ function battleTurn(S,rng,actsForA,actsForB){
                * burn, Hurricane's confuse, Discharge's paralysis and Blizzard's freeze all showing up
                * in the `any` bucket instead. A non-split caller is bit-identical -- every stream
                * aliases the one function -- so no census probe and no seeded harness moves. */
-              if(_secDraw()*100>=(_fmt!=null?_fmt:_generic)) continue;
+              /* ROADMAP #502 -- THE OUTCOME IS RECORDED, NOT DISCARDED. `_inert` is the SAME predicate
+               * the effect-less branch at the bottom of this loop tests, written once here so the two
+               * cannot drift apart. The draw itself is unmoved: same call, same place in the
+               * sequence, so every row that is not inert is bit-identical to before. */
+              const _inert=!s.status&&!s.volatile&&!s.targetBoosts&&!s.selfBoosts;
+              const _passed=_secDraw()*100<(_fmt!=null?_fmt:_generic);
+              if(_inert){
+                if(_inertSecRoll!==null){ MEDFAILS.secondInertSecondaryRow++;
+                  if(!MEDFAILS.secondInertSecondaryRowFirst)MEDFAILS.secondInertSecondaryRowFirst=String(a.move.id); }
+                else _inertSecRoll=_passed;
+              }
+              if(!_passed) continue;
               _secFired(tg);   // ROADMAP #262 -- the authority's nested moveHit moves activeTarget here
               /* WIRE 133 -- the ATTACKER is passed so a side buff on the target's side can refuse
                  it. Showdown's Safeguard suppresses the `-activate` line for a SECONDARY (`!effect
@@ -29659,8 +29765,14 @@ function battleTurn(S,rng,actsForA,actsForB){
            *
            * `source.isActive` is honoured as the authority writes it -- a trapper that fainted to its
            * own hit (Life Orb, recoil, Rough Skin) traps nobody. */
+          /* ROADMAP #502 -- AND THIS BLOCK IS THAT ROW'S `onHit`, SO IT ONLY RUNS IF THE ROW FIRED.
+           * `_inertSecRoll !== false` and not `=== true`: a `null` means no inert row was rolled at
+           * all, and a block that has always run unconditionally must not start refusing on a move
+           * whose rulebook row is missing. Spirit Shackle's row is chance 100 (derived), so this
+           * cannot change today -- it is written so all three tag blocks read ONE rule rather than
+           * three, which is the CLAUDE.md fact-has-one-implementation rule applied here. */
           {const _tt=TAGS.param('move',a.move.id,'trapsTarget');
-           if(_tt&&_tt.viaSecondary&&_tt.volatile==='trapped'&&!suppressed
+           if(_tt&&_tt.viaSecondary&&_tt.volatile==='trapped'&&!suppressed&&_inertSecRoll!==false
               &&!tg.fainted&&tg.curHP>0&&!m.fainted&&m.curHP>0&&tg!==m){
              /* 2026-08-23 -- THE SAME REPEAT REFUSAL, AND HERE IT COSTS THE MOVE NOTHING. A
               * secondary's `onHit` return value is discarded by `moveHit`, so a Spirit Shackle into
@@ -29677,8 +29789,9 @@ function battleTurn(S,rng,actsForA,actsForB){
                else volAnnounceEmit(tg,_va);
              }
            }}
-          {const _rp=TAGS.param('move',a.move.id,'removesPP');
-           if(_rp&&+_rp.amount>0&&_rp.of==='targetLastMove'&&!suppressed&&!tg.fainted&&tg.curHP>0){
+          {const _rp=TAGS.param('move',a.move.id,'removesPP');   // ROADMAP #502 -- same one rule
+           if(_rp&&+_rp.amount>0&&_rp.of==='targetLastMove'&&!suppressed&&_inertSecRoll!==false
+              &&!tg.fainted&&tg.curHP>0){
              const _lm=tg._lastMove;
              const _took=_lm?ppDeduct(tg,_lm,+_rp.amount):0;
              /* ROADMAP #308 -- THE LINE CARRIES WHICH SLOT AND HOW MUCH, and it did not. The handler
@@ -29694,8 +29807,26 @@ function battleTurn(S,rng,actsForA,actsForB){
             * `secondaries: [{chance: 30, onHit(target) { const status = this.sample([...]) } }]`
             * (data/moves.ts:3641), so the authority takes its chance roll in `secondaries` and its
             * three-way pick inside the `onHit` that `secondaries` called -- both under the same
-            * category, chance first, pick second. Same two draws, same order, same names. */
-           if(_ps&&_ps.p&&Array.isArray(_ps.oneOf)&&_ps.oneOf.length&&!suppressed&&_secDraw()<+_ps.p){
+            * category, chance first, pick second. Same two draws, same order, same names.
+            *
+            * ---- ROADMAP #502 -- AND IT WAS THREE DRAWS HERE, NOT TWO. The comment above was right
+            * about the authority and wrong about this engine: `_secDraw()` here was the SECOND coin
+            * on the same 30%, because the generic loop had already rolled Dire Claw's inert rulebook
+            * row at `nth 0` and applied nothing. So this block's chance took `nth 1` -- the address
+            * the authority spends on `this.sample` -- and the pick took `nth 2`, which the authority
+            * never reaches. Now the chance is READ from that first roll, this block spends no draw of
+            * its own, and `_R.sec()` below lands on `nth 1` where the sample belongs. */
+           const _psFired=()=>{
+             if(_inertSecRoll!==null){ MEDSEEN.secondaryRollReusedByTag++; return _inertSecRoll; }
+             /* LOUD, NOT SILENT. Both members carry an inert rulebook row today, so this branch is
+              * unreachable; if the two rulebooks ever disagree it takes the old draw AND says so,
+              * rather than looking like the wire working. */
+             MEDFAILS.proceduralStatusNoRulebookRow++;
+             if(!MEDFAILS.proceduralStatusNoRulebookRowFirst)
+               MEDFAILS.proceduralStatusNoRulebookRowFirst=String(a.move.id);
+             return _secDraw()<+_ps.p;
+           };
+           if(_ps&&_ps.p&&Array.isArray(_ps.oneOf)&&_ps.oneOf.length&&!suppressed&&_psFired()){
              /* ROADMAP #262 -- THE CHANCE ROLL AND THE PICK ARE ADDRESSED DIFFERENTLY, and that is the
               * authority rather than an inconsistency: the chance is drawn in `secondaries` at the
               * carried `activeTarget`, and then `moveHit` -> `spreadMoveHit` -> `getSpreadDamage`

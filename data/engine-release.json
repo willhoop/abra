@@ -1,10 +1,10 @@
 {
-  "current": "bdac5f198274",
-  "cut": "2026-08-27T20:04:55.863Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 8,
-  "latest_cut": "2026-08-27T20:06:22.386Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-27T20:06:22.395Z",
+  "current": "29371cb9c6fe",
+  "cut": "2026-08-27T21:44:12.110Z",
+  "why": "ENGINE state-trio final: ROADMAP 501 pin widened, 502 one row one draw, 503 corpse wears base types",
+  "cuts": 2,
+  "latest_cut": "2026-08-27T21:45:20.205Z",
+  "latest_why": "idempotence check",
+  "pointer_written": "2026-08-27T21:45:20.216Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

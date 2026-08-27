@@ -21,6 +21,70 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THREE SMALL STATE READS, LANDED ONE AT A TIME. **BOARD-MATERIAL 5 -> 2 OF 961 AND WHOLE-GAME 7 -> 6 OF 961. EACH DELTA PREDICTED BEFORE ITS OWN RUN AND ATTRIBUTED TO ITS OWN PATCH. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. ROSTER 0/0 ON ALL THREE STAGES. PIN DIGEST `44bd49403231` -> `48e1007ac14a`, MOVED BY A ONCE.** 2026-08-27.
+
+Arm `middle`, `--games 1200` (yields 961), `--turns 12`, `--team-store data/team-pool-frozen`,
+census pin `9446a684709d`, `--state --end-state`. One release cut per patch and passed EXPLICITLY:
+baseline `bdac5f198274` (A is instrument-only, so the engine bytes did not move), B `aec34bbd081b`,
+C `e58426bcd8b0`.
+Register rows: ROADMAP **#501 / #502 / #503 — CLOSED**, **#504 / #505 — FILED**. CHANGELOG 5.185.0.
+Full account: `docs/_reports/2026-08-27-state-trio-landed.md`.
+Diagnosis this pass consumed: `docs/_reports/2026-08-27-state-trio.md`.
+
+| patch | predicted before the run | measured | attributed to |
+|---|---|---|---|
+| **A** #501 — the range pin covers `sec` | board-material 5 -> 4, whole-game unmoved | **5 -> 4**, whole-game **7 -> 7** | the one confusion game; the twelve whole-game rows came back BYTE-IDENTICAL |
+| **B** #502 — one secondary row, one draw | board-material 4 -> 3, whole-game 7 -> 6 | **4 -> 3**, **7 -> 6** | the one Dire Claw game, nothing else |
+| **C** #503 — a corpse wears base types | board-material 3 -> 2, whole-game unmoved | **3 -> 2**, whole-game **6 -> 6** | the one Protean game; the eleven whole-game rows byte-identical |
+
+**THE ORDER WAS LOAD-BEARING AND IT WAS HONOURED.** A changes WHICH DRAWS ARE PINNED, so it can move
+B and C underneath. It was landed alone, measured alone, and its whole-game row list diffed
+row-by-row against the baseline before B was started. **A MOVED NO GAME NOBODY HAD DIAGNOSED** — that
+was the specific thing to check and the answer is no.
+
+**THE BLAST RADIUS WAS MEASURED BEFORE THE PREDICATE WAS WIDENED.** `game_differential.js` now
+tallies every two-argument `random` by `cat|move|m..n` BEFORE the pin decision and publishes it as
+`mid_void.range_form_seen_by_cat`. The old counters were structurally blind to exactly this case: a
+`sec` range draw incremented NEITHER `range_form_pinned` NOR `range_form_live_draws` and fell past
+both into `midDraw`, so the receipt that exists to police this pin could not see the category it was
+missing. Over the 961-game pinned pool: **409 two-argument draws — `any` 405, `sec` 4, `acc` 0,
+`dmg` 0**, all four `sec` draws `hurricane|2..5`. The widened predicate newly swallows four draws,
+all confusion, and nothing under `acc`. It also settles an OWED item from the diagnosis: **there is no
+two-argument `random` inside `getDamage` at all on this pool.**
+
+**THE PIN DIGEST MOVED AND THAT WAS ARGUED, NOT ASSUMED.** A is a change to the dice contract inside
+the instrument the digest identifies. `DICE_MODEL` `split/v3` -> `split/v4` in the same commit. v3's
+own sentence already said *"the RANGE form outside the damage machinery is pinned to m"* — which
+`acc` and `sec` are — so the digest was tracking a SENTENCE rather than a behaviour, and leaving it
+would have left two different behaviours sharing one digest. Same precedent as #491.
+
+**THE LOCATED EDIT POINT FOR C WAS WRONG AND THE PROBE SAID SO.** The diagnosis put the type restore
+in `queueFaint`. Run there: `C-faint` STILL RED, `C-selfko` STILL RED, `MEDSEEN.typesRestoredOnFaint
+= 0` — it never fired once, on either road. This engine's own `faintHousekeeping` header already
+recorded why: `queueFaint` is not the shared site, because Memento's self-KO never reaches it. It is
+in `noteFaint`, after `faintHousekeeping` so `imposterRevert` has run first.
+
+**FIVE FIXTURE FAULTS, ALL CAUGHT BEFORE THEY WERE READ AS ENGINE RESULTS.** `B-tri`, `B-100a`,
+`B-100b` and `C-selfko` all first reported boards IDENTICAL having staged NOTHING — the foes were
+Protecting, or Memento hit `-activate|move: Protect` so its user never fainted. Visible only because
+the arm prints its draw count beside its verdict. The fifth was in the derivation: walking all three
+ability SLOTS refused Garchomp for Sand Veil, which the fixture does not carry, until the reason
+count was changed to read the DECLARED ability.
+
+**THE SEVEN 100% INERT ROWS STILL LINE UP, MEASURED.** The population is derived and printed by the
+probe: nine legal moves carry an inert rulebook secondary row, none carries two, and only a sub-100
+row with a second drawing consumer can break (`triattack@20`, `direclaw@30`). `B-100a/b/c` stage the
+three whose tag block gained the guard — one `sec` draw on both sides, identical boards — and
+`tests/roster.js --stage moves` covers the other four at 0 FIRED-AND-BOARDS-DIFFER.
+
+**FILED, NOT FIXED — #504 and #505.** The faint path is also missing `clearVolatile`'s ability
+restore and its non-permanent forme revert. Two more statements from the same authority line, neither
+with a failing probe, so both are register rows. #505 carries the interaction with #503 explicitly: a
+body that faints inside a temporary forme has its types restored against THAT FORME'S row here and
+against its BASE species' in the authority.
+
+---
+
 ## THE CRIT DIE IS ROLLED ONCE PER *HIT* BY THE AUTHORITY AND WAS ROLLED ONCE PER *CLICK* HERE — ARRIVAL 2 OF A VOLLEY INHERITED ARRIVAL 1'S CRIT. **BOARD-MATERIAL 7 -> 5 OF 961 AND WHOLE-GAME 9 -> 7 OF 961, BOTH PREDICTED BEFORE THE RUN. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING, PREDICTED. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE *AND* AFTER. PIN DIGEST UNMOVED AT `44bd49403231`.** 2026-08-27.
 
 Release `6ed5d6734c80`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,
