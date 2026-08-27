@@ -21,6 +21,38 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## SEVEN ACTION KINDS ASKED THE DOLL NOWHERE — ONE MISSING CALL TO ONE HELPER, THIRTEEN MOVES, ONE ANSWER. **THE SWEEP SAID NINE AND TWO OF THE NINE ARE NOT DEFECTS.** CENSUS 757 -> 764 LIVE / 764 PROBED / 0 MISSING. WHOLE-GAME UNMOVED AT 14 OF 961, BOARD-MATERIAL UNMOVED AT 12 OF 961. 2026-08-27.
+
+Release `f9f3a61481cb`, arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`, census
+pin `9446a684709d`, `--state --end-state`. ROADMAP **#490 — CLOSED**, CHANGELOG 5.177.0. Full account:
+`docs/_reports/2026-08-27-doll-blind-family.md`.
+
+**THE COUNT.** All 54 legal foe-aimed non-`bypasssub` Status moves re-classified through this engine's
+own `playerAction`: **nine kinds call `subBlocks` nowhere, seven of them are defects.** `transform` asks
+the doll through a bare `_tt._sub>0` that a grep cannot see and is already correct (played, both arms,
+neither parts); `trickitem` is blocked twice and is evidence for nothing. `#486`'s row says "eight" and
+lists nine — **neither figure is the defect count**, and only playing the cells separated them.
+
+**THE ROOT IS GENUINELY SHARED.** `substitute`'s `onTryPrimaryHit` does not know which move hit it: it
+asks `getDamage`, all thirteen are `basePower: 0` Status, `getDamage` returns undefined
+(`sim/battle-actions.ts:1620`), and every one takes `|-fail|` on the MOVER plus `[still]`. Measured on
+the authority one turn per move before anything changed — thirteen `|-fail|<mover>` lines against
+thirteen different medicham lines, and thirteen no-doll controls that hold.
+
+**THE INSERTION POINT IS NOT SHARED, AND ONE OF THE SEVEN WOULD HAVE BEEN SILENTLY WRONG.** The doll
+sits below the move's own `onTryHit` and above its `onHit`. Quash's `willMove` test is an `onHit`, so a
+check placed under this engine's `unresolved.has(t)` would never run on the turns the target has already
+moved — and every arm would still be green, because both roads end in a `-fail` on the mover.
+
+**THE POOL SITTING STILL IS MEASURED.** `subStatusFailedBelowAccuracy = 0` across all 961 pinned games —
+no status move of any kind met a standing doll, including the six sites that already had the check.
+Six of the seven tags are exercised by the sample; `guaranteesNextMove` is not, and `guardsplit`,
+`powersplit` and `lockon` do not occur in the frozen store at all.
+
+**THE BASELINE MOVED UNDER THIS BATCH AND IT WAS NOT THIS BATCH.** The brief's 3 / 1 is pre-`#489`;
+`arms_comparable.js` exits 1 on that pair and 0 on this batch's own knob-vs-clean pair, which reads
+19 raw / 12 board-material **both ways** on one release.
+
 ## THE DIE WAS TRANSLATING, NOT RE-DRAWING — BARE FNV-1a HAS NO DIFFUSION AFTER ITS LAST ROUND AND THE LAST FIELD OF EVERY ADDRESS IS `nth`. **WHOLE-GAME 3 -> 14 OF 961, BOARD-MATERIAL 1 -> 12 OF 961. THE RULER WAS RESET; PIN DIGEST `2efbc9ed1946` -> `f646b0163bc0`.** 2026-08-27.
 
 **THIS ROW IS NOT A DEFECT CLOSED, IT IS AN INSTRUMENT REPAIRED, AND THE TWO MUST NOT BE READ THE SAME

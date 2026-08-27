@@ -25,7 +25,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_random_target_address.js`,
 `tests/probe_spread_status_steps.js`, `tests/probe_multihit_update.js`,
 `tests/probe_noguard_invuln.js`, `tests/probe_endturn_clock_order.js`,
-`tests/probe_substitute_status_step.js`, `tests/probe_yawn_substitute.js`
+`tests/probe_substitute_status_step.js`, `tests/probe_yawn_substitute.js`,
+`tests/probe_doll_blind_family.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -37,7 +38,7 @@ this sentence — it was "twelve" until `test-damage-roll-support.js` was added 
 `probe_random_target_address.js` arrived, and "twenty-one" the same day when
 `probe_multihit_update.js` did, and again the same day when `probe_noguard_invuln.js` did.
 and again the same day when `probe_endturn_clock_order.js` did, and again the same day when
-`probe_substitute_status_step.js` did, and again the same day when `probe_yawn_substitute.js` did.
+`probe_substitute_status_step.js` did, and again the same day when `probe_yawn_substitute.js` did, and again the same day when `probe_doll_blind_family.js` did.
 A number typed in prose beside a
 table is exactly what CLAUDE.md records going stale three times over.)*
 
@@ -107,9 +108,115 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 10:23_
+_stamped 2026-08-27 10:39_
 
 <!-- /GENERATED -->
+
+## SEVEN ACTION KINDS ASKED THE DOLL NOWHERE — ONE MISSING CALL, THIRTEEN MOVES, ONE ANSWER. THE SWEEP SAID NINE AND **TWO OF THE NINE ARE NOT DEFECTS**. CENSUS 757 -> **764 LIVE / 764 PROBED / 0 MISSING**. WHOLE-GAME UNMOVED AT 14 OF 961, BOARD-MATERIAL UNMOVED AT 12 OF 961, AS PREDICTED. 2026-08-27.
+
+Release `f9f3a61481cb`, arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`, census
+pin `9446a684709d`, `--state --end-state`. Register row: ROADMAP **#490 — CLOSED**. CHANGELOG 5.177.0.
+Full account: [`docs/_reports/2026-08-27-doll-blind-family.md`](_reports/2026-08-27-doll-blind-family.md).
+
+### THE COUNT WAS DERIVED, NOT INHERITED — AND IT IS SEVEN
+
+`#486`'s row states *"eight further action kinds ask no doll"* and then lists **nine**. Neither number
+is the number of defects. All **54** legal Status moves that are foe-aimed and carry no `bypasssub`
+were re-classified through this engine's own `playerAction`, and each `a.kind===` branch was asked
+whether it calls `subBlocks(`. Nine fail that grep. **Two of the nine are not defects, and only PLAYING
+them could tell:**
+
+- **`transform` asks the doll through a bare `_tt._sub>0`**, which a grep for `subBlocks(` cannot see.
+  Both arms played; neither parts. It is carried in the probe as a control that must stay unparted.
+- **`trickitem` / Trick is blocked twice** — its no-doll control parts as well, on a separate message
+  defect. Reported below, deliberately not fixed, and **not counted as evidence**.
+
+**SEVEN KINDS, THIRTEEN MOVES:** `typechange` (4), `abilitywrite` (3), `statrewire` (2), `boostally`,
+`healdesc`, `lockon`, `reorder`.
+
+### THE ROOT IS SHARED BECAUSE THE DOLL DOES NOT KNOW WHAT HIT IT
+
+`substitute`'s `onTryPrimaryHit` asks `getDamage`; all thirteen are `basePower: 0` Status, so it returns
+**undefined** at `sim/battle-actions.ts:1620` and every one of them takes the same two lines —
+`|-fail|` on the MOVER and `[still]` on the mover's own `|move|` line. Champions overrides neither
+`substitute` in `moves.ts` nor anything in `conditions.ts` (no `substitute` key, no `onTryPrimaryHit`
+at all), so mainline's block is what this format plays. **Measured on the authority, one staged turn per
+move: thirteen `|-fail|<mover>` lines, thirteen holding no-doll controls, before a byte moved.**
+
+### THE INSERTION POINT IS NOT SHARED, AND QUASH IS WHY THAT MATTERS
+
+The doll sits BELOW the move's own `onTryHit` and ABOVE its `onHit`, so each branch's guards were sorted
+into those two groups by reading the format's own handlers. **Quash's `if (!this.queue.willMove(target))
+return false` is inside its `onHit`**, so a check written under this engine's `unresolved.has(t)` test
+would never run on the turns the target has already moved — most of them — and every arm would still
+have been green, because both roads end in a `-fail` on the mover. The two failures differ only in the
+`[still]`.
+
+The fix is one helper, `subRefusesStatus`, called at seven sites — one function rather than seven copies,
+because the answer is identical and a seventh copy is the facts-are-global breach CLAUDE.md names. It
+takes the SAME `subStatusRefuse` the six pre-existing sites take, so no second implementation of "what
+happened" was added. `MEDI_DOLL_BLIND_FAMILY=1` reverts all seven at once.
+
+### THE POOL SITTING STILL IS A MEASUREMENT HERE, NOT A SHRUG
+
+`subStatusFailedBelowAccuracy = 0` across the whole pinned run — **zero doll refusals of any status move
+in 961 games**, not this family's seven sites, not Yawn, not the six that already had the check. Six of
+the seven tags ARE exercised by the sample; `guaranteesNextMove` (Lock-On) is in `not_exercised`, and
+`guardsplit`, `powersplit` and `lockon` do not occur in the frozen store at all. What does not occur is
+one of them meeting a STANDING doll.
+
+**THE BRIEF'S BASELINE OF 3 / 1 IS PRE-`#489` AND MAY NOT BE COMPARED TO ANYTHING HERE.**
+`engine/arms_comparable.js` exits **1** on that pair (`pins:2efbc9ed1946` vs `pins:f646b0163bc0`) and
+exits **0** on this batch's own knob-vs-clean pair, which reads **19 raw / 12 board-material both ways**
+on release `f9f3a61481cb`. None of `#489`'s rise is this batch's.
+
+### THE PROBE
+
+`tests/probe_doll_blind_family.js` — **34 scored arms, 2 excluded. RED FIRST: 13 `PARTS CLEAN`, 47
+failing, exit 1. After: 0 failing, exit 0.** Thirteen reds, twelve no-doll controls, four **Infiltrator**
+over-fire controls (same species, one ability changed, doll STANDING and walked through), a
+`healpulse@dollbroken` control whose partner breaks the doll with a fixed-damage Seismic Toss so the
+target's HP is identical to the red arm's, plus `bypasssub`, the damaging road and both `transform` arms.
+Every scored arm printed `(none)` refusal reasons, derived six ways from the format and the artifacts.
+
+Seven census rows, one per kind, reading the BOARD instead of the stream, each with an Infiltrator
+over-fire arm. **Two of them were wrong in a comfortable direction first**: `boostsTarget` read Attack,
+which the no-doll control's own Swords Dance raises, so it would have read "landed" on a board where
+Decorate did nothing — it reads Special Attack now; and `reordersTurn` cannot be read off the target at
+all, so it reads the target's Atk boost after a slower partner's **Haze**, which targets no body and so
+cannot be absorbed by the doll.
+
+### THE HAND LIST
+
+**Leaves it:** *"the eight action kinds that ask no doll"*, which was standing at the wrong count.
+Seven were defects and are closed here; `transform` never was one; `trickitem` is blocked behind the
+message defect below and is carried as an explicit `excluded` pair in the probe rather than as prose.
+
+**Joins it:**
+- **TRICK WRITES A LINE THE AUTHORITY DOES NOT HAVE AND OMITS ONE IT DOES.** Reproduced here, not
+  inherited: we emit `|-activate|p2a: <mover>|move: trick` (lower-cased, and gen 9 has no such line)
+  and never `|-enditem|<target>|<item>|[silent]|[from] move: Trick`. **Both Trick arms part**, so its
+  doll cell is evidence for nothing until this is settled. `corrosivegas` and `switcheroo` ride the
+  same branch and are blocked behind it.
+- **`transform`'s doll check is a bare `_sub>0`, so an Infiltrator body would be refused where the
+  authority lets it through.** Unreachable in this format — Ditto is the only legal Transform user and
+  its abilities are Limber and Imposter — so it is recorded rather than changed.
+
+**Standing and unchanged by this batch**, pointed at rather than re-listed: `magnetrise@18`, a fainted
+mega's forme, Wide Guard before a step-0 `-miss`, the `[of] <source>` on `|-start|…|move: Yawn`,
+`MEDSEEN.allyVeilRefusedVolatile` incrementing while emitting nothing, the two Tailwind rows, the five
+new `board_parted_before_the_protocol_did` games, `probe_random_target_address.js`'s stale figures, the
+twelve dead tags and the four `test-tag-params-derived.js` prose-quantity rows.
+
+### OWED, NOT RUN
+
+- **TRICK'S MESSAGE DEFECT, then the `trickitem` doll check behind it.** The insertion point is already
+  derived: BELOW `immunityGateRefuses` (Sticky Hold's `onTryImmunity`, which the authority runs at
+  `hitStepTryImmunity`) and ABOVE the swap/remove, which is the `onHit`.
+- **Nothing in this batch is a strength claim and none is owed.** Damage did not move —
+  `test-engine-diff --n 300 --seed 20260804` reads 0 of 300 at all sixteen corners with a clean
+  interior — and no die starts or stops: five of the thirteen print `accuracy: true` and the other
+  eight draw in `hitStepAccuracy` on BOTH engines, three steps above the doll.
 
 ## THE MIDDLE ARM'S DIE WAS TRANSLATING, NOT RE-DRAWING — BARE FNV-1a HAS NO DIFFUSION AFTER ITS LAST ROUND, AND THE LAST FIELD OF EVERY ADDRESS IS `nth`. **WHOLE-GAME 3 -> 14 OF 961, BOARD-MATERIAL 1 -> 12 OF 961 — A RISE, PREDICTED BEFORE THE RUN, AND NOT A REGRESSION. THE PIN DIGEST MOVED `2efbc9ed1946` -> `f646b0163bc0` ON PURPOSE.** 2026-08-27.
 

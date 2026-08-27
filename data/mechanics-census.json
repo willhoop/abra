@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-27T13:20:14.441Z",
+  "generated": "2026-08-27T14:08:38.152Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 757,
-  "live": 757,
+  "probed": 764,
+  "live": 764,
   "missing": 0,
-  "armed": 757,
+  "armed": 764,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3703,7 +3703,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4234,6 +4234,76 @@
       "label": "a substitute refuses a Yawn, and Infiltrator drowses through it",
       "live": true,
       "detail": "[drowsed, doll left, status two turns on] -- after Swords Dance [true, 0, slp]; after Substitute [false, 45, -]; Infiltrator into the same doll [true, 45, slp]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "changesTargetType",
+      "label": "a substitute refuses a Trick-or-Treat, and Infiltrator writes the type through it",
+      "live": true,
+      "detail": "after Swords Dance [\"Dragon\",\"Ground\",\"Ghost\"] (doll 0); after Substitute [\"Dragon\",\"Ground\"] (doll 45); Infiltrator into the same doll [\"Dragon\",\"Ground\",\"Ghost\"] (doll 45)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "rewritesTargetAbility",
+      "label": "a substitute refuses a Simple Beam, and Infiltrator rewrites through it",
+      "live": true,
+      "detail": "after Swords Dance \"simple\" (doll 0); after Substitute \"roughskin\" (doll 45); Infiltrator into the same doll \"simple\" (doll 45)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "rewritesStoredStats",
+      "label": "a substitute refuses a Guard Split, and Infiltrator averages through it",
+      "live": true,
+      "detail": "the target started at Def 115 -- after Swords Dance 174 (doll 0); after Substitute 115 (doll 45); Infiltrator into the same doll 174 (doll 45)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "boostsTarget",
+      "label": "a substitute refuses a Decorate aimed across the field, and Infiltrator boosts through it",
+      "live": true,
+      "detail": "after Swords Dance 2 (doll 0); after Substitute 0 (doll 45); Infiltrator into the same doll 2 (doll 45)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healDescriptor",
+      "label": "a substitute refuses a Heal Pulse aimed across the field, and Infiltrator heals through it",
+      "live": true,
+      "detail": "the target was put at 91 HP before the click -- after Swords Dance 183 (doll 0); after Substitute 91 (doll 45); Infiltrator into the same doll 183 (doll 45)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "guaranteesNextMove",
+      "label": "a substitute refuses a Lock-On, and Infiltrator locks on through it",
+      "live": true,
+      "detail": "after Swords Dance 1 (doll 0); after Substitute 0 (doll 45); Infiltrator into the same doll 1 (doll 45)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "reordersTurn",
+      "label": "a substitute refuses a Quash, and Infiltrator sends the target last through it",
+      "live": true,
+      "detail": "the target Attack boost AFTER a Haze from a slower partner -- after Swords Dance 2 (doll 0); after Substitute 0 (doll 35); Infiltrator into the same doll 2 (doll 35)",
       "hollow": false,
       "armed": true,
       "directCall": false

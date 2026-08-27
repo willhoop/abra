@@ -10,6 +10,125 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.177.0] — 2026-08-27
+
+### Fixed
+- **SEVEN ACTION KINDS ASKED THE SUBSTITUTE NOWHERE — ONE MISSING CALL TO ONE HELPER, THIRTEEN MOVES,
+  ONE ANSWER. THE STRUCTURAL SWEEP SAID NINE AND TWO OF THE NINE ARE NOT DEFECTS. CENSUS 757 -> 764
+  LIVE / 764 PROBED / 0 MISSING. WHOLE-GAME UNMOVED AT 14 OF 961 AND BOARD-MATERIAL UNMOVED AT 12 OF
+  961, BOTH AS PREDICTED BEFORE THE RUN.** ENGINE, ROADMAP `#490`.
+
+  **THE COUNT IS DERIVED, AND THE CARD'S OWN FIGURE WAS WRONG TWICE.** `#486`'s row states *"eight
+  further action kinds ask no doll"* and then lists **nine**; neither number is the number of defects.
+  All **54** legal Status moves that are foe-aimed and carry no `bypasssub` were re-classified through
+  this engine's own `playerAction`, and each `a.kind===` branch was asked whether it calls `subBlocks(`.
+  Nine fail that grep, and **only playing the cells separated them**: `transform` consults the doll
+  through a bare `_tt._sub>0` that a grep for `subBlocks(` cannot see and is already correct (both arms
+  played, neither parts, carried as a control that must stay unparted), and `trickitem` / Trick is
+  **blocked twice** — its no-doll control parts as well — so its cell is evidence for nothing.
+  **SEVEN KINDS, THIRTEEN MOVES**: `typechange` (Trick-or-Treat, Forest's Curse, Magic Powder, Soak),
+  `abilitywrite` (Entrainment, Simple Beam, Worry Seed), `statrewire` (Guard Split, Power Split),
+  `boostally` (Decorate), `healdesc` (Heal Pulse), `lockon` (Lock-On), `reorder` (Quash).
+
+  **THE ROOT IS GENUINELY SHARED, WHICH IS WHY IT IS ONE BATCH.** The doll's handler does not know
+  which move hit it. `substitute`'s `onTryPrimaryHit` asks `getDamage`; all thirteen are
+  `basePower: 0` Status, so it returns **undefined** (`sim/battle-actions.ts:1620`) and every one takes
+  the identical two lines — `|-fail|` on the MOVER and `[still]` on the mover's own `|move|` line.
+  Champions overrides neither `substitute` in `moves.ts` nor anything in `conditions.ts` (grepped: no
+  `substitute` key, no `onTryPrimaryHit` at all), so mainline's block is what this format plays.
+  **Measured on the authority, one staged turn per move, before a byte moved** — thirteen
+  `|-fail|<mover>` lines against thirteen different medicham lines (`|-start|…|typeadd|Ghost`,
+  `|-boost|…|atk|2`, `|-heal|…|183/183`, `|-activate|…|move: quash`, and nine more), with thirteen
+  no-doll controls that hold.
+
+  **THE INSERTION POINT IS *NOT* SHARED, AND COPYING ONE WOULD HAVE BEEN WRONG.** The doll sits BELOW
+  the move's own `onTryHit` and ABOVE its `onHit`, so each branch's existing guards were sorted into
+  those two groups by reading the format's own handlers one move at a time. **Quash is the case that
+  justifies it**: its `if (!this.queue.willMove(target)) return false` lives in `onHit`, so a check
+  written under this engine's `unresolved.has(t)` test would never run on the turns the target has
+  already moved — most of them — and **every arm would still have been green**, because both roads end
+  in a `-fail` on the mover. They differ only in the `[still]`.
+
+  **THE FIX** is `engine/medicham2-browser.js` only: one helper, `subRefusesStatus`, called at seven
+  sites. One function rather than seven copies, because the answer is identical for all thirteen and a
+  seventh copy is the facts-are-global breach CLAUDE.md names; it takes the SAME `subStatusRefuse` the
+  six pre-existing sites take, so `MEDSEEN.subStatusFailedBelowAccuracy` covers this family too and no
+  second implementation of "what happened" was added. `MEDI_DOLL_BLIND_FAMILY=1` reverts all seven at
+  once — one knob, deliberately, because a per-branch knob would let a partial revert read as a pass.
+
+  **THE POOL SITTING STILL IS A MEASUREMENT AND NOT A SHRUG.** A preload reading the engine's own
+  globals across the whole pinned run reports `subStatusFailedBelowAccuracy = 0` — **zero doll refusals
+  of any status move in 961 games**, not this family's seven sites, not Yawn, not the six that already
+  had the check. Six of the seven tags ARE exercised by the sample and `guaranteesNextMove` (Lock-On) is
+  in `not_exercised`; `guardsplit`, `powersplit` and `lockon` do not occur in the frozen store at all.
+  So the fix is not exercised by the pinned pool and could not have moved either differential number.
+
+  **THE BASELINE MOVED UNDER THIS BATCH AND IT WAS NOT THIS BATCH.** The brief's stated 3 of 961 / 1 of
+  961 is pre-`#489`. `node engine/arms_comparable.js` **exits 1** on that pair (*"`mode` differs:
+  pins:2efbc9ed1946 vs pins:f646b0163bc0"*) and **exits 0** on this batch's own knob-vs-clean pair,
+  which reads **19 raw / 12 board-material both ways** on release `f9f3a61481cb`. None of `#489`'s
+  predicted rise is attributable here, and a concurrent agent's own commit `d988aadc` corroborates it
+  independently from the other side.
+
+  **THE PROBE** is `tests/probe_doll_blind_family.js` — **34 scored arms, 2 excluded. RED FIRST: 13
+  `PARTS CLEAN`, 47 failing, exit 1. After: 0 failing, exit 0.** Thirteen reds; twelve no-doll controls;
+  **four Infiltrator over-fire controls**, each the SAME SPECIES as its red arm with ONE ABILITY
+  CHANGED, where the doll is STANDING and must be walked through — a fix that made every status move
+  fail at a doll passes all thirteen reds and fails these four; a `healpulse@dollbroken` control whose
+  partner breaks the doll with a fixed-damage Seismic Toss so the target's HP is identical to the red
+  arm's, because Heal Pulse's `onHit` fails at full HP and a plain no-doll arm would have been blocked
+  for a **second reason**; plus `bypasssub`, the damaging road and both `transform` arms. The knob is
+  asserted to have REACHED the module the driver played — `MEDFAILS.dollBlindFamilyRestored` absent
+  clean and present on the knob, the two counters exact mirrors. Refusal reasons are derived six ways
+  from the format and the artifacts and refused above one; every scored arm printed `(none)`.
+
+  **AN INSTRUMENT FAULT, RECORDED BECAUSE IT KILLED THE FIRST RUN**: alternating the harness per arm —
+  what the six-arm Yawn probe does — is 68 module-graph reloads at 34 arms, and node dies with a FATAL
+  v8 allocation failure part-way through. Both loads are now played as whole passes, two loads total.
+
+  **AND TWO CENSUS ROWS WERE WRONG IN A COMFORTABLE DIRECTION FIRST.** `boostsTarget` originally read
+  **Attack**, which the no-doll control's own Swords Dance raises — so the control would have read
+  "landed" on a board where Decorate did nothing at all; it reads **Special Attack**, the stage only
+  Decorate can have moved. `reordersTurn` cannot be read off the target at all, because what Quash
+  changes is WHEN it moves; the observable is the target's Attack boost after a **Haze** from the
+  quasher's slower partner, which targets no body and so cannot be absorbed by the doll — every
+  damage-based observable would have let the doll swallow the measurement.
+
+  **DECLARED, NOT FIXED**: Trick writes `|-activate|p2a: <mover>|move: trick` — lower-cased, and gen 9
+  has no such line — and never `|-enditem|<target>|<item>|[silent]|[from] move: Trick`. Reproduced here
+  rather than inherited, with Leftovers on the mover so neither body is empty-handed. Both Trick arms
+  part, so its doll cell cannot be measured until this is settled; `corrosivegas` and `switcheroo` ride
+  the same branch and are blocked behind it.
+
+  **UNMOVED, AS PREDICTED**: whole-game **14 of 961** (19 raw, less 5 declared) before and after;
+  board-material **12 of 961**; mechanics clause **5 of 12**; three roster stages 139 / 129 / 475 with
+  0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE` in all three; `all_mechanics_fire --kind all`
+  summary identical (moves STATE 5 / ANNOUNCEMENT-ONLY 7, abilities 1 / 3, items 1 / 1);
+  `test-engine-diff --n 300 --seed 20260804` **0 of 300 at every one of the sixteen corners** with a
+  clean interior across all 14 indices, the publish guard refusing the shrink as designed.
+
+  **NO DIE STARTS OR STOPS**: five of the thirteen print `accuracy: true` and draw nothing; the other
+  eight print `100` and draw in `hitStepAccuracy` on BOTH engines whether or not the doll answers,
+  because the doll is consulted three steps further down inside `hitStepMoveHitLoop`; and `getDamage`
+  returns at the `basePower` test, above the crit `randomChance`.
+
+  VERIFIED BY: `SHOWDOWN_PATH=... node tests/probe_doll_blind_family.js` — 34 arms, 13 red proven,
+  21 controls held, 2 excluded, 0 failing, and every red shown `PARTS CLEAN` before the fix; seven new
+  census rows, one per kind, each with an Infiltrator over-fire arm;
+  `node --max-old-space-size=6144 tests/test-resolution-order.js` — 26 arms, 1 KNOWN-OPEN, 0 failing;
+  `tests/probe_yawn_substitute.js` 6 arms / 0 failing and `tests/probe_substitute_status_step.js`
+  12 arms / 0 failing, both still green beside it. Full account:
+  `docs/_reports/2026-08-27-doll-blind-family.md`.
+
+### Notes
+- **The brief for this batch said nothing else was running, and something was.** A second agent
+  (ROADMAP `#489`) was live throughout and committed three times during the session; it read
+  `data/game-differential.json` while this batch was writing it and reports the torn read in its own
+  commit message. Nothing was lost — the two runs agree exactly on two different releases, which is an
+  independent corroboration neither side arranged — but the first part of this batch was spent
+  attributing a rise that belonged to that change, and the only reason it was attributed rather than
+  published as a regression is that the revert-knob arm was run before anything was written down.
+
 ## [5.176.0] — 2026-08-27
 
 ### Fixed

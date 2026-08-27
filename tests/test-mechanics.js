@@ -475,8 +475,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * suppression ends, which is a fact carried across three turn boundaries and a re-sync that only the
  * turn loop runs. A direct call to the strip site would be green on an engine whose room sync hands
  * the item straight back, which is exactly the state the engine was in.
+ *
+ * `dollArms(` added 2026-08-27 with the doll-blind family, declared HERE and with its reason exactly
+ * as the paragraph above requires: it stages a real doubles board through `board()` -> `battleInit`
+ * and spends TWO real turns through `battleTurn` -- the setup turn that raises the Substitute and the
+ * turn that clicks the move -- handing in every click on both sides. Two turns is the whole point of
+ * the row: the doll has to be STANDING when the move resolves, and a direct call to a branch would be
+ * green on an engine that never asked about it, which is exactly the state seven branches were in.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -15446,6 +15453,136 @@ probe('move', 'delayedSleep', 'a substitute refuses a Yawn, and Infiltrator drow
                  + ctrl.drowse + ', ' + ctrl.sub + ', ' + ctrl.status + ']; after Substitute ['
                  + doll.drowse + ', ' + doll.sub + ', ' + doll.status + ']; Infiltrator into the same '
                  + 'doll [' + inf.drowse + ', ' + inf.sub + ', ' + inf.status + ']' };
+});
+
+/* 2026-08-27 -- AND THE SEVEN OTHER BRANCHES THAT NEVER ASKED THE DOLL EITHER. The Yawn row above was
+ * one of NINE action kinds whose `a.kind===` branch contained no `subBlocks` call: seven of them are
+ * real defects (thirteen legal moves), `transform` was a grep artefact -- it asks a bare `_sub>0` --
+ * and `trickitem` is blocked twice and is evidence for nothing. The authority answers all thirteen
+ * identically, because the doll's handler does not know which move hit it: `substitute`'s
+ * `onTryPrimaryHit` asks `getDamage`, every one is `basePower: 0` Status, `getDamage` returns
+ * undefined (sim/battle-actions.ts:1620), and the answer is `|-fail|<THE MOVER>` with `[still]`.
+ * The protocol half is proved against the official simulator by tests/probe_doll_blind_family.js;
+ * these seven rows are the census half and read the BOARD instead of the stream.
+ *
+ * THE THREE ARMS ARE THE SAME EVERYWHERE AND THE THIRD ONE IS THE POINT. `control` sets Swords Dance
+ * -- another self-targeting click on the same turn that leaves no doll -- so both arms spend the same
+ * number of turns; `test` sets a Substitute; and `over-fire` puts INFILTRATOR on the mover and
+ * requires the move to land THROUGH the standing doll, which is what separates "the doll refused it"
+ * from "this branch stopped working". The ability is assigned directly rather than by picking a
+ * different species, exactly as the Yawn row above does it, so the two arms differ in ONE field.
+ *
+ * Every body and click is learnset-legal in this format (checked against
+ * Dex.forFormat('gen9championsvgc2026regmb') while these were written, and asserted every run by
+ * tests/probe_doll_blind_family.js, which stages the identical movers): Gourgeist learns
+ * Trick-or-Treat, Malamar Simple Beam, Bastiodon Guard Split, Alcremie Decorate, Slowbro Heal Pulse,
+ * Dragapult Lock-On, Tinkaton Quash, Toxapex Haze, and Garchomp and Skarmory both learn Substitute
+ * and Swords Dance. */
+const dollArms = (moverSp, moveId, read, opts) => {
+  const run = (setupFoe, ab) => {
+    const B = board(moverSp, 'incineroar', (opts && opts.foe) || 'garchomp', 'incineroar');
+    if (opts && opts.stage) opts.stage(B);
+    if (ab) B.me.ability = ab;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, setupFoe, null, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    if (opts && opts.before) opts.before(B);
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { v: read(B), sub: B.f1._sub || 0 };
+  };
+  return { ctrl: run('swordsdance', null), doll: run('substitute', null),
+           inf: run('substitute', 'infiltrator') };
+};
+/* `works` is the same sentence for all seven: the control did it, the doll arm did NOT and the doll
+ * is still standing, and Infiltrator did it THROUGH the standing doll. */
+const dollWorks = (a, landed) => landed(a.ctrl.v) && a.ctrl.sub === 0
+  && !landed(a.doll.v) && a.doll.sub > 0
+  && landed(a.inf.v) && a.inf.sub > 0;
+const dollDetail = (a) => 'after Swords Dance ' + JSON.stringify(a.ctrl.v) + ' (doll ' + a.ctrl.sub
+  + '); after Substitute ' + JSON.stringify(a.doll.v) + ' (doll ' + a.doll.sub
+  + '); Infiltrator into the same doll ' + JSON.stringify(a.inf.v) + ' (doll ' + a.inf.sub + ')';
+
+probe('move', 'changesTargetType', 'a substitute refuses a Trick-or-Treat, and Infiltrator writes the type through it', () => {
+  const a = dollArms('gourgeist', 'trickortreat', B => B.f1.types.slice());
+  return { works: dollWorks(a, v => v.indexOf('Ghost') >= 0),
+           arms: { control: a.ctrl.v, test: a.doll.v }, detail: dollDetail(a) };
+});
+
+probe('move', 'rewritesTargetAbility', 'a substitute refuses a Simple Beam, and Infiltrator rewrites through it', () => {
+  const a = dollArms('malamar', 'simplebeam', B => B.f1.ability,
+    { stage: B => { B.f1.ability = 'roughskin'; } });
+  return { works: dollWorks(a, v => v === 'simple'),
+           arms: { control: a.ctrl.v, test: a.doll.v }, detail: dollDetail(a) };
+});
+
+probe('move', 'rewritesStoredStats', 'a substitute refuses a Guard Split, and Infiltrator averages through it', () => {
+  let base = null;
+  const a = dollArms('bastiodon', 'guardsplit', B => B.f1.st.df,
+    { before: B => { if (base === null) base = B.f1.st.df; } });
+  return { works: base !== null && dollWorks(a, v => v !== base),
+           arms: { control: a.ctrl.v, test: a.doll.v },
+           detail: 'the target started at Def ' + base + ' -- ' + dollDetail(a) };
+});
+
+/* THE STAGE READ IS SPECIAL ATTACK AND NOT ATTACK, AND THAT IS THE CONTROL RATHER THAN A DETAIL. The
+ * no-doll arm's setup click IS Swords Dance, which raises Attack by two on its own -- so an Attack
+ * read would have shown the control "landing" on a board where Decorate did nothing at all. Decorate
+ * raises both stages and Swords Dance raises one, so Special Attack is the stage only Decorate can
+ * have moved. */
+probe('move', 'boostsTarget', 'a substitute refuses a Decorate aimed across the field, and Infiltrator boosts through it', () => {
+  const a = dollArms('alcremie', 'decorate', B => B.f1.boosts.sa);
+  return { works: dollWorks(a, v => v > 0),
+           arms: { control: a.ctrl.v, test: a.doll.v }, detail: dollDetail(a) };
+});
+
+/* THE TARGET IS PUT AT HALF HP IN EVERY ARM, and it is not decoration: Heal Pulse's own `onHit` fails
+ * on a full-HP body, so a control that left it full would refuse for a SECOND reason and prove
+ * nothing about the doll. Set AFTER the setup turn, so the Substitute's own 25% is not the variable. */
+probe('move', 'healDescriptor', 'a substitute refuses a Heal Pulse aimed across the field, and Infiltrator heals through it', () => {
+  let half = null;
+  const a = dollArms('slowbro', 'healpulse', B => B.f1.curHP,
+    { before: B => { B.f1.curHP = Math.floor(B.f1.st.hp / 2); half = B.f1.curHP; } });
+  return { works: half !== null && dollWorks(a, v => v > half),
+           arms: { control: a.ctrl.v, test: a.doll.v },
+           detail: 'the target was put at ' + half + ' HP before the click -- ' + dollDetail(a) };
+});
+
+probe('move', 'guaranteesNextMove', 'a substitute refuses a Lock-On, and Infiltrator locks on through it', () => {
+  const a = dollArms('dragapult', 'lockon', B => (B.me._vol && B.me._vol.lockon) || 0);
+  return { works: dollWorks(a, v => v > 0),
+           arms: { control: a.ctrl.v, test: a.doll.v }, detail: dollDetail(a) };
+});
+
+/* QUASH IS THE ONE THAT CANNOT BE READ OFF THE TARGET, because what it changes is WHEN the target
+ * moves. The observable is a HAZE from the quasher's slower partner: Skarmory (70) outspeeds Toxapex
+ * (35), so an unquashed Swords Dance is raised and then wiped and the target ends at +0; a quashed
+ * one is sent below the Haze and SURVIVES at +2. Haze targets no body, so the doll cannot absorb the
+ * measurement -- which every damage-based observable here would have let it do.
+ *
+ * AND THE TARGET IS SKARMORY RATHER THAN GARCHOMP FOR A DERIVED REASON: Quash's own guard is
+ * `if (!this.queue.willMove(target)) return false`, inside its `onHit`, so a target that has already
+ * moved refuses it for a second reason. There is no legal Quash user faster than Garchomp -- 8 legal
+ * learners, top base Speed 97 -- so that cell would have been blocked twice. Tinkaton is 94 to
+ * Skarmory's 70. */
+probe('move', 'reordersTurn', 'a substitute refuses a Quash, and Infiltrator sends the target last through it', () => {
+  const run = (setupFoe, ab) => {
+    const B = board('tinkaton', 'toxapex', 'skarmory', 'incineroar');
+    if (ab) B.me.ability = ab;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, setupFoe, null, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'quash', B.f1, B.S.field)],
+               [B.ally, M.playerAction(B.ally, 'haze', null, B.S.field)]]),
+      new Map([[B.f1, M.playerAction(B.f1, 'swordsdance', null, B.S.field)],
+               [B.f2, { kind: 'pass' }]]));
+    return { v: B.f1.boosts.at, sub: B.f1._sub || 0 };
+  };
+  const a = { ctrl: run('swordsdance', null), doll: run('substitute', null),
+              inf: run('substitute', 'infiltrator') };
+  return { works: dollWorks(a, v => v > 0),
+           arms: { control: a.ctrl.v, test: a.doll.v },
+           detail: 'the target Attack boost AFTER a Haze from a slower partner -- ' + dollDetail(a) };
 });
 
 probe('ability', 'ignoresScreensAndSubs', 'Infiltrator hits the body behind a substitute', () => {

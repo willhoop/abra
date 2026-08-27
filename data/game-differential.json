@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-27T14:16:31.397Z",
+  "generated": "2026-08-27T14:24:49.654Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:f646b0163bc0/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -112,7 +112,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 143.8,
+  "elapsed_s": 193.9,
   "credit_turn_profile": {
     "rows_with_any_credit": 253,
     "credits_with_no_turn_index": 0,

@@ -514,6 +514,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      event is a second implementation of "what happened". This one counts only the knob's road, so it
      MUST read 0 on any shipping run and a probe can assert the exact mirror. */
   yawnDollIgnored: 0,
+  /* 2026-08-27 -- THE REST OF THE DOLL-BLIND FAMILY. Yawn was one branch of NINE that never called
+     `subBlocks`; seven more are real (typechange, abilitywrite, statrewire, boostally, healdesc,
+     lockon, reorder -- 13 moves), one was a grep artefact (`transform` asks a bare `_sub>0`) and one
+     is blocked twice (`trickitem`). The refusal itself is counted by `subStatusFailedBelowAccuracy`
+     above, because it is the SAME helper and the same road; this counts only the knob's road and so
+     MUST read 0 on any shipping run. Per REFUSED TARGET, so a probe can assert an exact delta. */
+  dollBlindFamilyIgnored: 0,
   /* 2026-08-24 -- CLICKS A SHIELD LET THROUGH BECAUSE THE MOVE CARRIES NO `flags.protect`. 111 legal
    * moves are in that set; the ones that actually meet a shield are the ally-facing family (Dragon
    * Cheer, Coaching, Helping Hand, Aromatic Mist) and the `all`-targeting one (Teatime, Perish Song,
@@ -3849,6 +3856,13 @@ if(SUB_STATUS_AT_TRYHIT)MEDFAILS.subStatusAtTryHitRestored=1;
  * the knob reached a module the run never loaded, which is a green run that staged nothing. */
 const YAWN_IGNORES_SUB=(typeof process!=='undefined'&&process.env&&process.env.MEDI_YAWN_IGNORES_SUB==='1');
 if(YAWN_IGNORES_SUB)MEDFAILS.yawnIgnoresSubRestored=1;
+/* 2026-08-27 -- MEDI_DOLL_BLIND_FAMILY=1 puts the OTHER SEVEN doll-blind branches back to walking
+ * past the doll. It is ONE knob for seven sites deliberately: they are one root -- a missing call to
+ * one helper -- and a knob per branch would let a partial revert look like a pass. Stamped at LOAD
+ * TIME for the reason the two knobs above are: a lazily-set stamp reads 0 on both loads when the knob
+ * reached a module the run never loaded, which is a green run that staged nothing. */
+const DOLL_BLIND_FAMILY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DOLL_BLIND_FAMILY==='1');
+if(DOLL_BLIND_FAMILY)MEDFAILS.dollBlindFamilyRestored=1;
 function volRefusesRestart(vol){
   if(VOL_RESTART_BLIND){MEDFAILS.volRestartBlindRestored=1;return false;}
   const d=volRestartTable().get(vol);
@@ -8446,6 +8460,36 @@ function subStatusRefuseOld(att,def,line){
   MEDSEEN.subStatusAtTryHitRestored++;
   if(line==null)return;              // the Leech Seed conjunct announced NOTHING; a revert keeps that
   if(TR)TR.act(def,'move: Substitute',line);
+}
+/* 2026-08-27 -- THE ONE ASK FOR THE SEVEN BRANCHES THAT NEVER MADE IT. See MEDI_DOLL_BLIND_FAMILY.
+ *
+ * `subBlocks` had eleven call sites after the yawn batch and SEVEN MORE action kinds needed one:
+ * typechange, abilitywrite, statrewire, boostally, healdesc, lockon and reorder -- thirteen legal
+ * moves. It is one root, and it is written as one function rather than seven copies because the
+ * answer is identical for all of them and CLAUDE.md's facts-are-global rule is what a seventh copy
+ * would break. The answer is identical because THE DOLL'S HANDLER DOES NOT KNOW WHICH MOVE HIT IT:
+ * `substitute`'s `onTryPrimaryHit` asks `getDamage`, every one of the thirteen is `basePower: 0`
+ * Status, `getDamage` returns undefined at sim/battle-actions.ts:1620, and the two lines that follow
+ * are the mover's `-fail` and `[still]` -- which is exactly what `subStatusRefuse` already writes at
+ * the six sites that had it. Measured on the authority, one staged turn per move, before any of this
+ * was written: thirteen `|-fail|<mover>` lines and thirteen holding no-doll controls.
+ *
+ * NINE KINDS FAIL THE GREP AND ONLY SEVEN ARE DEFECTS, WHICH IS WHY THE SWEEP WAS PLAYED AND NOT
+ * TRUSTED. `transform` consults the doll through a bare `_tt._sub>0` a few hundred lines up and is
+ * already right; `trickitem` is blocked twice (its no-doll control parts as well, on a separate
+ * `-activate|move: trick` / missing `-enditem` message defect) so its cell is evidence for nothing.
+ *
+ * WHERE IT IS CALLED FROM IS *NOT* UNIFORM AND MUST NOT BE. The doll sits BELOW the move's own
+ * `onTryHit` and ABOVE its `onHit`, so each branch's existing guards had to be sorted into those two
+ * groups first -- read out of the format's own handlers, one move at a time. Quash is the one that
+ * would have gone silently wrong: its `willMove` test is `onHit`, so a check placed under it never
+ * runs on the turns the target has already moved, which is most of them. */
+function subRefusesStatus(att,def,mvId){
+  if(!def||def.fainted||def.curHP<=0)return false;
+  if(!subBlocks(att,def,mvId))return false;
+  if(DOLL_BLIND_FAMILY){MEDSEEN.dollBlindFamilyIgnored++;return false;}
+  subStatusRefuse(att,def);
+  return true;
 }
 function subBlocks(att,def,mvId){
   if(!def||!(def._sub>0)||def===att)return false;
@@ -23332,6 +23376,16 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         const _blocked=_isFoe&&((shieldRefuses(_tgt,a.mv))
           ||moveClassBlocked(_tgt,a.mv,m)||powderBlocked(_tgt,a.mv));
+        /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. Decorate carries NO handler at
+         * all -- its whole effect is the `boosts` field spent in `runMoveEffects`, which is under
+         * `tryPrimaryHitEvent` -- so a doll answers before any stage moves. THE BODY ASKED ABOUT IS
+         * `who`, the one the boost lands on, and the `allies` arm is excluded on the SAME condition
+         * the refusal above uses: Howl reaches every body on the user's own side including the user,
+         * and a doll question aimed at that set would be a different mechanic nobody has measured.
+         * NOT gated on `_isFoe`: the authority's early return is `target === source`, so a partner's
+         * own Substitute refuses a Decorate aimed at it exactly as a foe's does. */
+        if(!_blocked&&who&&(moveFx(a.mv)||{}).target!=='allies'
+           &&subRefusesStatus(m,who,a.mv)){m._lastMove=a.mv;continue;}
         /* WIRE 146 -- `allies` MEANS THE USER TOO, AND THIS BRANCH COULD ONLY EVER MOVE ONE BODY.
          *
          * Howl's dex target is `allies`, which `Pokemon#getMoveTargets` resolves to
@@ -23577,6 +23631,13 @@ function battleTurn(S,rng,actsForA,actsForB){
            * handler. A pre-enrichment artifact carries neither flag, so the guards simply do not fire
            * and the branch behaves exactly as it did -- and THAT is counted, because a refusal that
            * silently stops happening looks identical to a target that never qualified. */
+          /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. It sits HERE and not two
+           * lines down: every one of the four members' own guard is an `onHit` (Trick-or-Treat's
+           * `hasType('Ghost')`, Soak's `getTypes().join()==='Water'`), which the authority runs BELOW
+           * `tryPrimaryHitEvent` -- so a doll answers first and `_tRefused` never gets asked. Above
+           * it sit the shield, the move-class immunity, the powder rule and Prankster, all of which
+           * are step 1 and 2 and stay where they are. */
+          if(subRefusesStatus(m,t,a.mv))continue;
           const _tRefused = (_ct.adds&&_ct.refuseIfHasType&&t.types.indexOf(_ty)>=0)
                          || (_ct.replaces&&_ct.refuseIfExactType&&t.types.length===1&&t.types[0]===_ty);
           if(_ct.refuseIfHasType===undefined&&_ct.refuseIfExactType===undefined){
@@ -23619,6 +23680,14 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
           const _ok=!_isFoe||!(shieldRefuses(t,a.mv));
+          /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. THIS IS THE ONE PLACEMENT
+           * THAT WOULD HAVE BEEN SILENTLY WRONG A LINE LOWER. Quash's `willMove(target)` test is
+           * inside its `onHit`, not its `onTryHit`, so the authority asks the doll FIRST and only
+           * then asks whether the target still has an action -- and a check written under
+           * `unresolved.has(t)` would never run on the turns the target has already moved, which is
+           * most of them. The two failures also print differently: this one carries `[still]` and the
+           * `mvFail` below does not. */
+          if(_ok&&subRefusesStatus(m,t,a.mv))continue;
           if(_ok&&unresolved.has(t)){
             const _entry=acts.find(x=>x.mon===t);
             if(_entry){_entry._order=(_ro.sends==='next')?TURN_ORDER.next:TURN_ORDER.last;
@@ -23761,6 +23830,13 @@ function battleTurn(S,rng,actsForA,actsForB){
             ||(a.refused||[]).indexOf(String(t.ability||''))>=0
             ||String(t.ability||'')===String(_want);
           if(_blocked){mvFail(m);}
+          /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. It is BELOW `_blocked` and
+           * not above it, and that is the authority's order rather than a convenience: every reason
+           * `_blocked` can be true is an `onTryHit` or higher -- Entrainment's `target.ability ===
+           * source.ability`, Simple Beam's `ability === 'simple'`, Worry Seed's `cantsuppress`, the
+           * shield, the move-class immunity -- and `tryPrimaryHitEvent` runs under all of them. The
+           * `setAbility` that follows is the `onHit`, which is under the doll. */
+          else if(subRefusesStatus(m,t,a.mv))continue;
           else{
             abRewrite(t,_want);          // ROADMAP #307 -- undone by leaving the field
             MEDSEEN.abilityRewritten++;
@@ -23847,6 +23923,11 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _ok=t&&t!==m&&m.st&&t.st&&(!_isFoe
           ||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m)));
         if(!_ok){mvFail(m);continue;}
+        /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. Guard Split and Power Split
+         * carry NO `onTryHit` at all -- their whole body is an `onHit` that averages two stat pairs --
+         * so there is nothing between the shield above and the doll, and the split below never runs
+         * against a substituted body. */
+        if(subRefusesStatus(m,t,a.mv))continue;
         for(const k of a.stats){
           const _k=SD2ENG[k]||k;
           if(m.st[_k]==null||t.st[_k]==null)continue;
@@ -24542,6 +24623,16 @@ function battleTurn(S,rng,actsForA,actsForB){
          * at `onTryHit` and says so. Lock-On is a Status move, so Good as Gold answers it. */
         {const _rf=tryHitRefusal(m,_gt,a.mv);
          if(_rf){announceTryHitRefusal(_rf,_gt);MEDSEEN.guaranteeRefused++;continue;}}
+        /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. It is written as its own
+         * statement rather than folded into the condition below because the two answers are NOT the
+         * same line: the `else` arm writes a bare `|-fail|` on the mover with no `[still]`, and the
+         * doll's answer is `-fail` PLUS `[still]`. The `refusesIfAlreadyUp` conjunct is repeated here
+         * on purpose -- it is Lock-On's own `onTryHit` (`if (source.volatiles['lockon']) return
+         * false`), which the authority runs ABOVE `tryPrimaryHitEvent`, so a user that is already
+         * locked on refuses before the doll is ever consulted. */
+        if(_gv&&_gt&&!_gt.fainted&&_gt.curHP>0
+           &&!(_gp.refusesIfAlreadyUp&&m._vol&&m._vol[_gv]>0)
+           &&subRefusesStatus(m,_gt,a.mv))continue;
         if(_gv&&_gt&&!_gt.fainted&&_gt.curHP>0
            &&!(_gp.refusesIfAlreadyUp&&m._vol&&m._vol[_gv]>0)){
           /* THE FALLBACK IS LOUD, because the artifact does not carry this number. `tag_dex` derives
@@ -24809,6 +24900,13 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_t!==m&&shieldRefuses(_t,a.mv)){
             if(TR)TR.act(_t,'move: Protect');
             mvFail(m);continue;}
+          /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. Below the shield, which is
+           * step 2, and ABOVE the two refusals underneath -- the same-status one and the full-HP one
+           * -- because both of those are the member's own `onHit` (Heal Pulse's `if (!success)
+           * this.add('-fail', target, 'heal')`, Rest's `onTry`). A self-aimed heal is exempt for
+           * free: `subBlocks` answers false when the target IS the user, which is the authority's own
+           * `target === source` early return. */
+          if(subRefusesStatus(m,_t,a.mv))continue;
           /* THE SAME STATUS IS A REFUSAL, AND IT IS `Pokemon#setStatus`'S OWN FIRST LINE
              (`if (this.status === status.id) return false`). Rest's `onTry` reads it as "fails if the
              user is already asleep", and an engine without it lets a sleeping body re-Rest for a free
