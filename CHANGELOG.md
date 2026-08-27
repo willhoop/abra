@@ -10,6 +10,80 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.169.0] — 2026-08-27
+
+### Fixed
+- **A FAINT REPLACEMENT IS ONE BATCHED ENTRY EVENT, AND THE ANNOUNCEMENT ORDER IS THE CORPSE'S *RAW*
+  SPEED — NO ITEM, NO ABILITY, NO TAILWIND, NO BOOSTS. WHOLE-GAME CLAUSE 9 OF 961 -> 6 OF 961.
+  BOARD-MATERIAL UNMOVED AT 1 OF 961; CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING.** ENGINE,
+  ROADMAP `#481` — closed. Release `6a845424c450`. Full account:
+  `docs/_reports/2026-08-27-replacement-entry.md`.
+
+  **THE ORDERING RULE, BECAUSE TWO READINGS OF IT HAVE ALREADY BEEN REFUTED HERE.** It is neither the
+  incoming body nor the outgoing body's *action* speed. `faintMessages()` runs
+  `pokemon.clearVolatile(false)` and then `pokemon.isActive = false` (`sim/battle.ts:2560-2562`)
+  **before** the switch request is issued (`:2907-2911`). The first zeroes the boosts. The second is
+  the one nobody had: `findEventHandlers` opens with
+  `if (target instanceof Pokemon && (target.isActive || source?.isActive)) { ...; target = target.side; }`
+  (`:1053-1067`), so for a corpse that guard is false, `target` is never promoted to the Side, and the
+  `instanceof Side` block below it never runs either. **`runEvent('ModifySpe', corpse)` collects ZERO
+  handlers** — item, ability, side condition and status all vanish together, and
+  `getStat('spe',false,false)` returns `storedStats.spe` untouched. Trick Room still inverts, because
+  `getActionSpeed` reads `field.getPseudoWeather('trickroom')` directly rather than through an event.
+  *"Behaves as if the two switch actions tie"* is what a modified-speed expectation looks like when the
+  authority has already dropped the modifier.
+
+  A VOLUNTARY switch is unaffected and must be: that body is still `isActive`, so its Scarf and its
+  Tailwind DO count. That is the `switch` action (order 103); this is `instaswitch` (order 3).
+
+  **THE BATCHING HALF.** `BattleActions#switchIn` writes the `|switch|` line and only QUEUES
+  `{choice:'runSwitch'}` (`sim/battle-actions.ts:155-158`); `runSwitch` drains every consecutive
+  `runSwitch` into one list and fires a SINGLE `fieldEvent('SwitchIn', switchersIn)` (`:172-186`).
+  Hazards are inside it (`stealthrock.condition.onSwitchIn` is a side condition, Healing Wish a slot
+  condition — `sim/battle.ts:494-505`), so neither can fire between two `|switch|` lines. medicham2
+  fired both at the placement, above `bringIn`'s `deferEntry` return: the 2026-08-12 batching moved the
+  ABILITIES and left these two behind. It is board-material by construction — the authority's own
+  comment at `:517` names *"Toxic Spikes being absorbed during a double switch"*.
+
+  ```
+  SHOWDOWN  |switch|p2a  |switch|p1a  |-damage|p2a|[from] Stealth Rock  |-damage|p1a|[from] Stealth Rock
+  MEDICHAM  |switch|p2a  |-damage|p2a|[from] Stealth Rock  |switch|p1a  |-damage|p1a|[from] Stealth Rock
+  ```
+
+  **THE FIX** is `engine/medicham2-browser.js` only: the Healing Wish and hazard blocks are lifted out
+  of `bringIn()` **byte-for-byte** into `applyEntryConditions()`, run inline for every caller that does
+  not defer and handed to `refill()`'s ordered walk for the one that does; and `_refills`' sort key
+  becomes `m.st.sp` instead of `effSpeed(...)`, with `compareTurnOrder` still the comparator so Trick
+  Room comes free.
+
+  | | before | after |
+  |---|---|---|
+  | whole-game clause (played, less declared) | **9 of 961** | **6 of 961** |
+  | raw diverged games / `ordering` class | 14 / 6 | **11 / 3** |
+  | board-material (`games - games_board_never_diverged`) | 1 of 961 | 1 of 961 |
+  | census | 754 / 754 / 0 | 754 / 754 / 0 |
+  | roster items / abilities / moves | 0 DIFFER, 0 DID-NOT-FIRE | 0 DIFFER, 0 DID-NOT-FIRE |
+  | damage, `--n 6000` at sixteen corners | 0 of 6000 | 0 of 6000 |
+
+  Predicted before the run: the pool moves, the census sits still, board-material does not fall and may
+  rise. All held; board-material did not rise, so these three samples really were narration-only —
+  which says nothing about the mechanism, only about the samples.
+
+  VERIFIED BY: `SHOWDOWN_PATH=... node tests/probe_replacement_entry.js` — two arms, two knobs, judged
+  by the two protocol streams with no typed expectation, shown RED on both arms first. Four fixture
+  assertions guard the verdict, and two of them are claims about the AUTHORITY: the doubler must move
+  the arriving bodies' entry order (so the rig is not inert) and must NOT move the announcement order
+  (which is the finding).
+
+### Notes
+- **NOT FIXED, NAMED.** The Zero to Hero `-activate`, the Supreme Overlord `-activate`/`-start` and the
+  Magic Room item park are still written at the placement, so on a double replacement they still land
+  between the two `|switch|` lines. And `_refills` still uses `Array.prototype.sort` where the authority
+  uses `speedSort` — the fifth and last speed-sort site WIRE 134 never reached, reachable only with
+  three-plus simultaneous replacements and a raw-speed tie. Both on `docs/ENGINE.md`'s hand list.
+- **`tests/test-middle-identity.js` is RED and is not this change** — its one failing clause is
+  ROADMAP #262's open authority half in `engine/game_differential.js`, a file this change does not touch.
+
 ## [5.168.0] — 2026-08-27
 
 ### Fixed

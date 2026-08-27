@@ -2860,6 +2860,16 @@ const MEDFAILS = { encoreAction: 0,
      instaswitch pair; this engine keeps side order and counts the event, because drawing a number
      here would move the RNG stream of every seeded run in the repo. */
   replaceOrderTie: 0,
+  /* 2026-08-27 -- MEDI_REPLACE_SPEED_MODIFIED=1 restores the pre-fix sort key for the announcement
+     order of a faint replacement: `effSpeed`, i.e. the corpse's speed WITH its boosts, its item, its
+     ability and its side's Tailwind. The authority drops all of them (see the `_refills` header), so
+     this knob is the old behaviour and exists to be shown RED on demand. Set on the KNOB, not on a
+     board it changed, so a run that met no modifier still says the knob was on. */
+  replaceSpeedModifiedRestored: 0,
+  /* 2026-08-27 -- MEDI_ENTRY_HAZARD_INLINE=1 restores the per-body hazard bite, above the
+     `deferEntry` return, so a hazard fires BETWEEN two simultaneous `|switch|` lines again. Same
+     reason, same shape. */
+  entryHazardInlineRestored: 0,
   /* ROADMAP #68. A trace emit asked for the slot of a body that is in neither active array. The line
      is still emitted, with `??` where the identifier goes, because a HOLE in the stream is worse than
      a wrong label -- a missing line reads to the differ as a missing MECHANIC. Must read 0. */
@@ -6691,6 +6701,15 @@ function entrySpeedSort(list,field){
 /* THE OLD STABLE SORT, ON A KNOB, so `tests/test-mechanics.js ability/entryOrderSelectionSort` can be
  * shown MISSING on demand without swapping a file. It is the pre-2026-08-24 line exactly. */
 const ENTRY_STABLE_SORT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ENTRY_STABLE_SORT==='1');
+/* 2026-08-27 -- THE TWO KNOBS THE FAINT-REPLACEMENT FIX HANGS ON, declared beside the other entry-pass
+ * knobs so there is one place to read them. `MEDI_ENTRY_HAZARD_INLINE=1` puts the hazard and the
+ * Healing Wish bite back at the placement, above `deferEntry`, so they interleave with the second
+ * body's `|switch|` again. `MEDI_REPLACE_SPEED_MODIFIED=1` puts the announcement sort back on
+ * `effSpeed` -- the corpse's speed WITH boosts, item, ability and Tailwind -- which is what this
+ * engine used and is not what the authority reads. Both are the pre-2026-08-27 lines exactly, so
+ * `tests/probe_replacement_entry.js` can be shown RED on demand without swapping a file. */
+const ENTRY_HAZARD_INLINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ENTRY_HAZARD_INLINE==='1');
+const REPLACE_SPEED_MODIFIED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REPLACE_SPEED_MODIFIED==='1');
 /* `all` is EVERY active body's record and `entrants` the subset whose handlers run. They must share
  * object identity; at a lead the two are the same array. Returns the entrants in resolution order. */
 function entryOrder(all,entrants,field){
@@ -16967,6 +16986,73 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
    * the item slot (see itemRoomSync), and a switch-in is the one path that can put an item on the
    * field after the room went down over an empty one. */
   if(field&&field.magicRoom>0)itemRoomHide(nx);
+  /* WIRE 141 -- BEFORE the entry-effect pass, because the transform REPLACES the ability and the
+   * replacement's own Start handler is what that pass runs. Doing it afterwards would fire Imposter's
+   * (nothing) instead of the copied body's. */
+  /* WIRE 160 -- TRACE, BEFORE the entry-effect pass and for the identical reason Imposter is: the
+   * copy REPLACES the ability, and the replacement's own Start handler is what that pass runs. A
+   * Trace that copied Intimidate after the pass would drop nothing. */
+  /* 2026-08-12 -- THE PASS CAN BE DEFERRED, AND ONLY ONE CALLER DOES IT. Showdown's `switchIn` emits
+   * the `|switch|` line and merely QUEUES `{choice:'runSwitch'}`; `runSwitch` drains every consecutive
+   * runSwitch into one list and fires a SINGLE speed-sorted `fieldEvent('SwitchIn', switchersIn)`
+   * (sim/battle-actions.ts:186). So when two bodies arrive together the LINES come out in one order
+   * and the HANDLERS run in another. `deferEntry`, when a caller passes an array, collects the entrant
+   * instead of running its pass and hands the ordering decision to that caller -- which is exactly
+   * `refill`, the only place in this engine where two bodies can arrive at the same instant off a
+   * faint. Every other caller passes nothing and is byte-for-byte unchanged. */
+  /* 2026-08-27 -- THE SIDE-CONDITION HALF OF THE ENTRY EVENT IS DEFERRED WITH THE REST OF IT, AND IT
+   * WAS THE HALF THAT WAS LEFT BEHIND. `applyEntryConditions` below carries the whole account. When a
+   * caller defers, the entrant is collected WITH ITS OWN SIDE FLAGS and the pass runs the two blocks
+   * in that caller's order -- which is what the authority's ONE `fieldEvent('SwitchIn', switchersIn)`
+   * does. Every caller that does NOT defer is byte-for-byte unchanged: both blocks still run right
+   * here and then the entry pass, in the same order they always did. */
+  if(deferEntry){
+    if(ENTRY_HAZARD_INLINE){MEDFAILS.entryHazardInlineRestored=1;applyEntryConditions(nx,sf,i,field);
+      deferEntry.push({nx,foes,act,i,sf:null});}
+    else deferEntry.push({nx,foes,act,i,sf});
+    return nx;
+  }
+  applyEntryConditions(nx,sf,i,field);
+  runEntryPass(nx,foes,act,i,field,null);
+  return nx;
+}
+
+/* 2026-08-27 -- THE SIDE AND SLOT CONDITIONS OF THE ENTRY EVENT, LIFTED OUT OF bringIn() UNCHANGED.
+ *
+ * THE AUTHORITY ANNOUNCES EVERY REPLACEMENT AND THEN RUNS ONE ENTRY EVENT, AND THE HAZARD IS INSIDE
+ * THAT EVENT RATHER THAN BESIDE IT. `BattleActions#switchIn` writes the `|switch|` line and merely
+ * QUEUES `{choice:'runSwitch'}` (sim/battle-actions.ts:155-158); `runSwitch` DRAINS every consecutive
+ * `runSwitch` off the queue head into one list and fires a SINGLE `fieldEvent('SwitchIn', switchersIn)`
+ * (:172-186). `stealthrock.condition.onSwitchIn` is a SIDE CONDITION handler, collected by
+ * `findSideEventHandlers(side,'onSwitchIn',undefined,active)`, and Healing Wish is a SLOT condition,
+ * collected by `findPokemonEventHandlers` -- both inside that one event (sim/battle.ts:494-505). SO
+ * NEITHER CAN FIRE BETWEEN TWO `|switch|` LINES.
+ *
+ * THIS ENGINE FIRED THEM AT THE PLACEMENT, ABOVE THE `deferEntry` RETURN. The 2026-08-12 batching
+ * moved the ABILITIES into refill()'s ordered walk and left these two behind, so a double replacement
+ * read `switch A / rocks A / switch B / rocks B` where the authority reads `switch A / switch B /
+ * rocks / rocks`. That is the pinned pool's card verbatim:
+ *     ordering :: |switch|p1b|garganacl,l50|H/H <> |-damage|p2a|H/H|[from]stealthrock
+ *
+ * IT IS BOARD-MATERIAL AND NOT NARRATION, WHICH IS WHY IT IS WORTH THE MOVE. The authority's own
+ * comment at sim/battle.ts:517 names the case -- *"effect may have been removed by a prior handler,
+ * i.e. Toxic Spikes being absorbed during a double switch"*. Two bodies arriving together share ONE
+ * sorted handler list, so WHICH of them absorbs the Toxic Spikes layer, and which of them is standing
+ * under the rocks at what HP, is decided by that list and not by the order the bodies were placed in.
+ *
+ * NOTHING ABOUT WHAT THEY DO MOVED; ONLY WHO DECIDES WHEN. The text below is byte-for-byte the text
+ * that stood in bringIn(), comments and all, and every caller that does not defer still runs it at
+ * exactly the same point in exactly the same order.
+ *
+ * WHAT DID NOT MOVE, NAMED RATHER THAN LEFT TO BE FOUND: the Zero to Hero `-activate`, the Supreme
+ * Overlord `-activate`/`-start` and the Magic Room item park are still written at the placement, so
+ * on a double replacement they still land between the two `|switch|` lines. The authority has all
+ * three inside the same `SwitchIn` event. No card in the pinned pool lands on them and no probe fails
+ * on them yet; they are on docs/ENGINE.md's hand list with this citation.
+ *
+ * Knob: MEDI_ENTRY_HAZARD_INLINE=1 restores the per-body bite, so
+ * `tests/probe_replacement_entry.js` can be shown RED on demand. */
+function applyEntryConditions(nx,sf,i,field){
   /* WIRE 154 -- HEALING WISH COLLECTS ON THE REPLACEMENT'S ENTRY, AND IT COLLECTS BEFORE THE HAZARDS.
    *
    * Read off a staged authority game rather than assumed, because the order is the whole difference
@@ -17056,28 +17142,19 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
     }
     if(nx.curHP<=0){nx.curHP=0;nx.fainted=true,noteFaint(nx);if(nx._sf)nx._sf.fainted++;if(TR)TR.faint(nx);}
   }
-  /* WIRE 141 -- BEFORE the entry-effect pass, because the transform REPLACES the ability and the
-   * replacement's own Start handler is what that pass runs. Doing it afterwards would fire Imposter's
-   * (nothing) instead of the copied body's. */
-  /* WIRE 160 -- TRACE, BEFORE the entry-effect pass and for the identical reason Imposter is: the
-   * copy REPLACES the ability, and the replacement's own Start handler is what that pass runs. A
-   * Trace that copied Intimidate after the pass would drop nothing. */
-  /* 2026-08-12 -- THE PASS CAN BE DEFERRED, AND ONLY ONE CALLER DOES IT. Showdown's `switchIn` emits
-   * the `|switch|` line and merely QUEUES `{choice:'runSwitch'}`; `runSwitch` drains every consecutive
-   * runSwitch into one list and fires a SINGLE speed-sorted `fieldEvent('SwitchIn', switchersIn)`
-   * (sim/battle-actions.ts:186). So when two bodies arrive together the LINES come out in one order
-   * and the HANDLERS run in another. `deferEntry`, when a caller passes an array, collects the entrant
-   * instead of running its pass and hands the ordering decision to that caller -- which is exactly
-   * `refill`, the only place in this engine where two bodies can arrive at the same instant off a
-   * faint. Every other caller passes nothing and is byte-for-byte unchanged. */
-  if(deferEntry){deferEntry.push({nx,foes,act,i});return nx;}
-  runEntryPass(nx,foes,act,i,field);
-  return nx;
 }
+
 /* THE FOUR CALLS THAT MAKE UP ONE BODY'S SWITCH-IN PASS, lifted out of bringIn() unchanged so that
  * `refill` can run them in a different ORDER from the one the bodies were placed in. Nothing about
  * WHAT they do moved; only who decides WHEN. */
-function runEntryPass(nx,foes,act,i,field){
+function runEntryPass(nx,foes,act,i,field,sf){
+  /* 2026-08-27 -- AND THE SIDE/SLOT CONDITIONS FIRST, WHEN THE CALLER DEFERRED THEM. `sf` is null for
+   * every caller that ran them at the placement, so those are unchanged; `refill` is the one caller
+   * that hands them over, because it is the one place two bodies arrive at the same instant. WITHIN a
+   * body the order is exactly what bringIn() had -- Healing Wish, then the hazard, then the ability --
+   * which is the authority's own effectOrder: a side condition laid earlier sorts ahead of an
+   * abilityState that `switchIn` re-inits on arrival (sim/battle.ts:994-999). */
+  if(sf)applyEntryConditions(nx,sf,i,field);
   /* WIRE 141 -- BEFORE the entry-effect pass, because the transform REPLACES the ability and the
    * replacement's own Start handler is what that pass runs. Doing it afterwards would fire Imposter's
    * (nothing) instead of the copied body's. */
@@ -31204,20 +31281,62 @@ function battleTurn(S,rng,actsForA,actsForB){
      * announcement would have dragged the entry pass with it and made a half that was accidentally
      * right into a half that was wrong, which is why both are here in one change.
      *
-     * ONE IMPLEMENTATION OF "WHO IS FASTER" -- `effSpeed` for the number and `compareTurnOrder` for
-     * the rule, the same pair `battleInit`'s lead pass uses. Trick Room comes free with it, and it is
-     * the authority's too: `getActionSpeed()` returns `10000 - speed` under Trick Room, so both of
-     * these orders invert together.
+     * ONE IMPLEMENTATION OF "WHO IS FASTER" -- `compareTurnOrder` for the rule, the same one
+     * `battleInit`'s lead pass uses. Trick Room comes free with it, and it is the authority's too:
+     * `getActionSpeed()` returns `10000 - speed` under Trick Room, so both of these orders invert
+     * together.
      *
      * A SPEED TIE IS A COIN FLIP IN SHOWDOWN (speedSort's Fischer-Yates) AND A STABLE ARRAY ORDER
      * HERE, exactly as `battleInit`'s lead pass, and for the same reason -- drawing a number here
-     * would move the RNG stream of every seeded run in the repo. Counted rather than silent. */
+     * would move the RNG stream of every seeded run in the repo. Counted rather than silent.
+     *
+     * ---- 2026-08-27 -- AND THE NUMBER IS THE CORPSE'S **RAW** SPEED. `effSpeed` WAS THE WRONG READ.
+     *
+     * THE PARAGRAPH ABOVE NAMED THE RIGHT BODY AND THE WRONG NUMBER, and that is why two separate
+     * passes "refuted" the departing-body rule on real boards: they measured a corpse carrying a
+     * Choice Scarf or standing under a Tailwind, saw the authority ignore it, and concluded the two
+     * switch actions must tie.
+     *
+     * THEY DO NOT TIE. `faintMessages()` runs `pokemon.clearVolatile(false)` and then
+     * `pokemon.isActive = false` (sim/battle.ts:2560-2562) BEFORE the switch request is ever issued
+     * (:2907-2911). Two consequences, and the second is the one nobody had:
+     *
+     *   1. `clearVolatile` ZEROES `pokemon.boosts`, so a +2 Speed corpse sorts at its base number.
+     *   2. `findEventHandlers` opens with
+     *          if (target instanceof Pokemon && (target.isActive || source?.isActive)) { ... ;
+     *              target = target.side; }
+     *      (sim/battle.ts:1053-1067). For a corpse that test is FALSE, `target` is never reassigned to
+     *      the Side, and the `target instanceof Side` block below it never runs either -- so
+     *      `runEvent('ModifySpe', corpse)` COLLECTS NO HANDLERS AT ALL. No item, no ability, no side
+     *      condition, no status. `getStat('spe',false,false)` returns `storedStats.spe` untouched.
+     *
+     * TRICK ROOM STILL INVERTS, because `getActionSpeed` reads
+     * `field.getPseudoWeather('trickroom')` directly rather than through an event -- which is why
+     * `compareTurnOrder` is still the comparator and only the KEY changed.
+     *
+     * MEASURED BEFORE A LINE OF THIS WAS WRITTEN (`tests/probe_replacement_entry.js`), one fixture
+     * played twice with the side-speed doubler as the only knob, over corpses at raw 30 and 35:
+     *     plain    showdown announces  p2a(35) then p1a(30)
+     *     doubled  showdown announces  p2a(35) then p1a(30)   <- 30 x2 = 60 and the order does NOT move
+     *     doubled  the ARRIVING bodies' entry order DOES move -- so the doubler reached the battle
+     * The second row is the finding and the third is its control: an instrument that saw nothing move
+     * anywhere would prove only that the rig was inert.
+     *
+     * THE VOLUNTARY SWITCH IS NOT AFFECTED AND MUST NOT BE. A body that chooses to switch is still
+     * `isActive` when `getActionSpeed` is called, so its Scarf and its Tailwind DO count; that is the
+     * `switch` action (order 103), not this one, and `effSpeed` is the right read there.
+     *
+     * Knob: MEDI_REPLACE_SPEED_MODIFIED=1 restores the `effSpeed` key exactly. */
     const _refills=[];
+    /* NO BOOSTS AND NO MODIFIERS -- `st.sp` is the built stat, which is `storedStats.spe`. Reading
+     * `statWithBoost` here would reintroduce half the bug on a corpse this engine has not cleared. */
+    const _corpseSpe=(m,side)=>REPLACE_SPEED_MODIFIED?effSpeed(m,field,side):(m&&m.st?m.st.sp:0);
+    if(REPLACE_SPEED_MODIFIED)MEDFAILS.replaceSpeedModifiedRestored=1;
     for(const _r of [{act:actA,bench:benchA,foes:actB,sf:sfA,side:'A'},
                      {act:actB,bench:benchB,foes:actA,sf:sfB,side:'B'}])
       for(let i=0;i<_r.act.length;i++)
         if(_r.act[i]&&_r.act[i].fainted)
-          _refills.push(Object.assign({i,spe:effSpeed(_r.act[i],field,_r.side)},_r));
+          _refills.push(Object.assign({i,spe:_corpseSpe(_r.act[i],_r.side)},_r));
     _refills.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field));
     for(let k=1;k<_refills.length;k++)
       if(_refills[k].spe===_refills[k-1].spe)MEDFAILS.replaceOrderTie++;
@@ -31259,7 +31378,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _order=entryOrder(_allActive,_arrived,field);
       for(let k=1;k<_order.length;k++)
         if(_order[k].spe===_order[k-1].spe)MEDFAILS.entryOrderTie++;
-      for(const e of _order)runEntryPass(e.nx,e.foes,e.act,e.i,field);
+      for(const e of _order)runEntryPass(e.nx,e.foes,e.act,e.i,field,e.sf);
       /* 2026-08-27 -- `onAnySwitchIn`, THE HERB'S FIRST TRIGGER, ON ITS FOURTH DOOR.
        *
        * ROADMAP #81 WIRE 11 wired all four of `whiteherb`'s handlers -- `onAnySwitchIn` (priority -2),

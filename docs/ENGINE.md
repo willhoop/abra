@@ -77,8 +77,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  754/754 probed mechanics live, 0 missing   (census 2026-08-27 04:24)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-27 02:09)
+  754/754 probed mechanics live, 0 missing   (census 2026-08-27 04:50)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-27 04:52)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -97,9 +97,142 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 04:28_
+_stamped 2026-08-27 05:10_
 
 <!-- /GENERATED -->
+
+## A FAINT REPLACEMENT IS ONE BATCHED ENTRY EVENT, AND THE ANNOUNCEMENT ORDER IS THE CORPSE'S **RAW** SPEED — NO ITEM, NO ABILITY, NO TAILWIND, NO BOOSTS. **WHOLE-GAME CLAUSE 9 OF 961 -> 6 OF 961.** BOARD-MATERIAL UNMOVED AT 1 OF 961. CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27.
+
+Release `6a845424c450` (cut for this change), arm `middle`, cap 12, 961 games,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--state --end-state`. One probe added: `tests/probe_replacement_entry.js`. Register row: ROADMAP
+**#481 — CLOSED**. CHANGELOG 5.169.0. Full account: `docs/_reports/2026-08-27-replacement-entry.md`.
+
+### WHICH ORDERING RULE IS TRUE — TWO EARLIER READINGS WERE REFUTED, AND SO IS THE OBVIOUS THIRD
+
+| reading | verdict |
+|---|---|
+| the INCOMING body | refuted, and correctly. `Side#chooseSwitch` builds `{choice:'instaswitch', pokemon: the FAINTED active, target: the bench body}` (`sim/side.ts:1007-1011`) and `getActionSpeed(action)` reads `action.pokemon` (`sim/battle.ts:2652-2657`). The arrival is never consulted. |
+| the OUTGOING body's ACTION SPEED | the right BODY, the wrong NUMBER — which is exactly why it failed on a real board. |
+| *"the two switch actions tie"* | the symptom, not the rule. It is what a modified-speed expectation looks like when the authority has already dropped the modifier. |
+
+**IT IS THE CORPSE'S RAW STORED SPEED.** `faintMessages()` runs `pokemon.clearVolatile(false)` and then
+`pokemon.isActive = false` (`sim/battle.ts:2560-2562`), both BEFORE the switch request is issued
+(`:2907-2911`). The first zeroes the boosts. The second is the half nobody had:
+
+```js
+if (target instanceof Pokemon && (target.isActive || source?.isActive)) {
+    handlers = this.findPokemonEventHandlers(target, `on${eventName}`);
+    ...
+    target = target.side;          // ONLY reassigned inside this block
+}
+...
+if (target instanceof Side) { /* side conditions — Tailwind lives here */ }
+```
+
+(`sim/battle.ts:1053-1067`.) For a corpse that guard is false, `target` is never promoted to the Side,
+and the `instanceof Side` block below it therefore never runs either. **`runEvent('ModifySpe', corpse)`
+collects ZERO handlers** — item, ability, side condition and status vanish together, and
+`getStat('spe',false,false)` returns `storedStats.spe` untouched. **Trick Room still inverts**, because
+`getActionSpeed` reads `field.getPseudoWeather('trickroom')` directly rather than through an event.
+
+A VOLUNTARY switch is unaffected and must be: that body is still `isActive`, so its Scarf and its
+Tailwind DO count. That is the `switch` action (order 103); this is `instaswitch` (order 3).
+
+**MEASURED BEFORE A LINE WAS WRITTEN.** One fixture played twice, the side-speed doubler the only knob,
+corpses at raw base Spe 30 (side A, which gets the doubler) and 35 (side B):
+
+| arm | showdown's `\|switch\|` order | showdown's ENTRY order |
+|---|---|---|
+| plain | p2a (35) then p1a (30) | p2a then p1a |
+| doubled — 30 x2 = 60 | **p2a then p1a, UNMOVED** | **p1a then p2a, MOVED** |
+
+The second column is the finding; the third is its control. Both are asserted in the probe, so a rig
+that was simply inert cannot read green.
+
+### THE BATCHING HALF
+
+`BattleActions#switchIn` writes the `|switch|` line and only QUEUES `{choice:'runSwitch'}`
+(`sim/battle-actions.ts:155-158`); `runSwitch` DRAINS every consecutive `runSwitch` into one list and
+fires a SINGLE `fieldEvent('SwitchIn', switchersIn)` (`:172-186`). Hazards are inside it
+(`stealthrock.condition.onSwitchIn` is a SIDE condition; Healing Wish is a SLOT condition —
+`sim/battle.ts:494-505`), so neither can fire between two `|switch|` lines. This engine fired both at
+the PLACEMENT, above `bringIn`'s `deferEntry` return: the 2026-08-12 batching moved the ABILITIES into
+`refill()`'s ordered walk and left these two behind.
+
+```
+SHOWDOWN  |switch|p2a  |switch|p1a  |-damage|p2a|[from] Stealth Rock  |-damage|p1a|[from] Stealth Rock
+MEDICHAM  |switch|p2a  |-damage|p2a|[from] Stealth Rock  |switch|p1a  |-damage|p1a|[from] Stealth Rock
+```
+
+**IT IS BOARD-MATERIAL BY CONSTRUCTION, NOT NARRATION** — the authority's own comment at
+`sim/battle.ts:517` names the case, *"effect may have been removed by a prior handler, i.e. Toxic
+Spikes being absorbed during a double switch"*. Two bodies arriving together share ONE sorted handler
+list, so which of them absorbs the layer, and which is standing under the rocks at what HP, is decided
+by that list rather than by the order the bodies were placed in.
+
+### WHICH SCOREBOARD IT SHOULD MOVE, SAID BEFORE THE RUN
+
+All three target cards are pinned-pool games, so the POOL was expected to move and the CENSUS to sit
+still. Board-material was predicted not to fall and was allowed to RISE — a rise would be the mechanism
+becoming visible, not a regression.
+
+| | before | after |
+|---|---|---|
+| **whole-game clause** (played, less declared) | **9 of 961** | **6 of 961** |
+| raw diverged games / `ordering` class | 14 / 6 | **11 / 3** |
+| board-material (`games - games_board_never_diverged`) | 1 of 961 | 1 of 961 |
+| census | 754 / 754 / 0 | 754 / 754 / 0 |
+| roster items / abilities / moves | 0 DIFFER, 0 DID-NOT-FIRE | 0 DIFFER, 0 DID-NOT-FIRE |
+| damage, `--n 6000` at sixteen corners | 0 of 6000 | **0 of 6000** |
+| mechanics clause | 5 of 12 | 5 of 12 |
+
+Every prediction held. Board-material did NOT rise, so these three samples really were narration-only —
+a fact about the samples, not about the mechanism.
+
+### THE THREE CARDS THAT CLOSED
+
+```
+ordering :: |switch|p1b|garganacl,l50|H/H <> |-damage|p2a|H/H|[from]stealthrock   (batching)
+ordering :: |switch|p1a|garchomp,l50|H/H  <> |switch|p2b|blastoise,l50|H/H        (ordering)
+ordering :: |switch|p1a|staraptor,l50|H/H <> |switch|p2a|incineroar,l50|H/H       (ordering)
+```
+
+The third is the one whose corpses are a Gengar holding a Gengarite against a Dragapult holding a
+**Choice Scarf** — exactly the modifier the authority drops, and the source of the earlier *"a faster
+body still moved second, no Trick Room"* reading.
+
+### THE HAND LIST
+
+**Opened by this batch, filed with its evidence:**
+- **Three emissions still land at the PLACEMENT**, so on a double replacement they still sit between
+  the two `|switch|` lines where the authority has them inside the same `SwitchIn` event: the Zero to
+  Hero `-activate`, the Supreme Overlord `-activate`/`-start`, and the Magic Room item park. No card in
+  the pinned pool lands on any of them and no probe fails on them.
+- **`_refills` still uses `Array.prototype.sort` where the authority uses `speedSort`.** That is the
+  FIFTH speed-sort site and the only one WIRE 134 never reached — the move queue, the entry pass, the
+  mega phase and the residual walk all have the selection sort. It can only differ with three or more
+  simultaneous replacements AND a raw-speed tie among them; `MEDFAILS.replaceOrderTie` already counts
+  the tie population. Left as a batch of one.
+
+**Standing, and NOT this batch's:** everything on the preceding section's list, unchanged, except that
+`tests/test-resolution-order.js` WAS run this batch and PASSES at `--max-old-space-size=6144` (its heap
+requirement is already handled in `tests/run-all.js:534`), and `tests/test-middle-identity.js` was run
+and is RED on ROADMAP #262's open authority half in `engine/game_differential.js` — a file this change
+does not touch and this division does not own.
+
+### OWED, NOT RUN
+
+Nothing owed for this batch. The **full 6,000-row** `tests/test-engine-diff.js` was re-run and reads
+**0 of 6000 at all sixteen corners**; all three roster stages and `all_mechanics_fire --kind all` were
+re-run with `--write` on release `6a845424c450`; the pinned 961-game differential was re-run with the
+census pin and the frozen team store; the census was regenerated.
+
+`tests/interaction_matrix.js`, `engine/wire_ladder.js` and `engine/tag_dex.js` were not run — all three
+are already WITHHELD by provenance for reasons that predate this change. `tests/run-all.js`,
+`tests/staged_board.js` and `tests/bench-medicham.js --record` were not run, as in the preceding batches.
+
+---
 
 ## SPREAD STATUS MOVES RAN THE WHOLE GAUNTLET PER TARGET; THE AUTHORITY RUNS EACH STEP ACROSS EVERY TARGET. **MECHANICS CLAUSE 8 OF 16 -> 5 OF 12.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 1 OF 961. 2026-08-27.
 

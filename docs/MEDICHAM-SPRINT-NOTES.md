@@ -21,6 +21,47 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A FAINT REPLACEMENT IS ONE BATCHED ENTRY EVENT, AND THE ORDER IS THE CORPSE'S **RAW** SPEED. **WHOLE-GAME CLAUSE 9 OF 961 -> 6 OF 961. BOARD-MATERIAL UNMOVED AT 1 OF 961. CENSUS UNMOVED AT 754 / 754 / 0.** 2026-08-27 (ENGINE).
+
+CHANGELOG 5.169.0. Register `#481` — **CLOSED**. Release `6a845424c450`. One probe added:
+`tests/probe_replacement_entry.js`. Full account: `docs/_reports/2026-08-27-replacement-entry.md`.
+
+**THE ORDERING RULE, SAID FIRST, BECAUSE TWO READINGS HAVE ALREADY BEEN REFUTED.** Not the incoming
+body, and not the outgoing body's *action* speed either. `faintMessages()` runs `clearVolatile(false)`
+and `isActive = false` (`sim/battle.ts:2560-2562`) before the switch request is issued (`:2907-2911`).
+`findEventHandlers` only walks a Pokemon and bubbles to its Side when `target.isActive`
+(`:1053-1067`) — so `runEvent('ModifySpe', corpse)` collects **ZERO** handlers and `getStat` returns
+`storedStats.spe` raw. No Scarf, no Tailwind, no ability, no paralysis, no boosts. **Trick Room still
+inverts**, because `getActionSpeed` reads the field directly. A VOLUNTARY switch is unaffected — that
+body is still active, and that is the `switch` action (order 103), not `instaswitch` (order 3).
+
+**THE BATCHING HALF.** `switchIn` only queues `{choice:'runSwitch'}`; `runSwitch` drains them all and
+fires ONE `fieldEvent('SwitchIn', switchersIn)` (`sim/battle-actions.ts:155-186`). Hazards (a side
+condition) and Healing Wish (a slot condition) are both inside that event, so neither can fire between
+two `|switch|` lines. This engine fired them at the placement, above `bringIn`'s `deferEntry` return —
+the 2026-08-12 batching moved the abilities and left these two behind.
+
+| | |
+|---|---|
+| whole-game clause, 961 pinned games | **9 -> 6** |
+| raw diverged games / `ordering` class | 14 -> **11** / 6 -> **3** |
+| board-material (`games - games_board_never_diverged`) | 1 -> **1** |
+| census | 754 / 754 / 0, unmoved |
+| roster items / abilities / moves | 0 DIFFER, 0 DID-NOT-FIRE, re-stamped on the new release |
+| damage, `--n 6000` at sixteen corners | **0 of 6000** |
+| mechanics clause | 5 of 12, unmoved |
+
+**THE PREDICTION WAS STATED BEFORE THE RUN**: the pool moves (all three cards are pinned-pool games),
+the census sits still, board-material does not fall and may rise. All held. It did not rise, so these
+three samples were narration-only — a fact about the samples, not about the mechanism.
+
+**NOT FIXED, NAMED**: the Zero to Hero and Supreme Overlord `-activate` lines and the Magic Room item
+park still sit at the placement; `_refills` still uses `Array.prototype.sort` where the authority uses
+`speedSort` — the fifth speed-sort site WIRE 134 never reached, reachable only at three-plus
+simultaneous replacements with a raw-speed tie.
+
+---
+
 ## SPREAD STATUS MOVES RAN THE GAUNTLET PER TARGET; THE AUTHORITY RUNS EACH STEP ACROSS EVERY TARGET. **MECHANICS CLAUSE 8 OF 16 -> 5 OF 12. CENSUS UNMOVED AT 754 / 754 / 0. BOARD-MATERIAL UNMOVED AT 1 OF 961.** 2026-08-27 (ENGINE).
 
 CHANGELOG 5.168.0. Register `#448` — **CLOSED**. Release `ee4e537b7255`. One probe added:

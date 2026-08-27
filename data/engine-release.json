@@ -1,10 +1,10 @@
 {
-  "current": "ee4e537b7255",
-  "cut": "2026-08-27T08:08:53.204Z",
-  "why": "ROADMAP #448 — spread status moves run each step across every target (the affect branch's half of WIRE 10)",
-  "cuts": 17,
-  "latest_cut": "2026-08-27T08:24:25.074Z",
+  "current": "6a845424c450",
+  "cut": "2026-08-27T08:54:18.977Z",
+  "why": "faint replacement: one batched entry event, and the corpse's RAW speed decides the announcement order",
+  "cuts": 7,
+  "latest_cut": "2026-08-27T09:03:58.668Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-27T08:24:25.083Z",
+  "pointer_written": "2026-08-27T09:03:58.680Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
