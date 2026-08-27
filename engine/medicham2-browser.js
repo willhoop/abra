@@ -1966,6 +1966,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * nothing else, so this counter is also the only evidence the Aegislash branch ever runs: it read
    * ZERO before the change by construction, because the engine had one shield behaviour. */
   shieldLetStatusThrough: 0,
+  /* 2026-08-27 -- EVERY TIME A SHIELD'S REFUSAL WAS ANNOUNCED THROUGH THE ONE FUNCTION THAT OWNS THE
+   * LINE (`shieldRefusalAnnounce`). Seven action kinds used to answer this with `mvFail`'s
+   * `|-fail|<mover>` or with nothing at all; the authority's whole answer is one `-activate` on the
+   * TARGET (`protect.condition.onTryHit`, data/moves.ts:13987-14000, which ends `return this.NOT_FAIL`
+   * so `hitStepTryHitEvent`'s `-fail` never fires). A zero on a run that staged a shielded Skill Swap,
+   * Soak, Spite, Quash, Entrainment, Worry Seed or Speed Swap means the road stopped being taken. */
+  shieldRefusalAnnounced: 0,
   /* ROADMAP #236 -- the accuracy roll was skipped because the STEP LIST exempts this move for a user
    * of this type. One member in this format: a Poison-type's Toxic. A zero on a run that staged one
    * means the tag stopped resolving, because the branch has no other way to be reached. */
@@ -2165,6 +2172,12 @@ const MEDFAILS = { encoreAction: 0,
                                          `duration: 2` expiry, so the counter rides through a turn its
                                          holder could not act and the next Protect is rolled at 1/3. */
   protectGateAboveRefusalsRestored: 0, protectStallNoLapseRestored: 0,
+  /* 2026-08-27 -- set at MODULE LOAD when MEDI_SHIELD_REFUSAL_UNANNOUNCED=1 puts the seven
+     unannounced shield refusals back, each in its OWN old shape (a `mvFail` where there was a
+     `mvFail`, silence where there was silence), so a deliberate restore arm and a broken engine can
+     never be read as the same thing. Stamped at load rather than at use because a probe has to be
+     able to prove the knob reached the module the driver played BEFORE it classifies an arm. */
+  shieldRefusalUnannouncedRestored: 0,
   /* 2026-08-26 -- and the two knobs of the OPPOSITE sign, the counter dropped too early.
        stallEagerClearRestored        MEDI_STALL_EAGER_CLEAR=1 puts back the four
                                       `tookProtectTurns = 0` writes the authority has no counterpart
@@ -5291,6 +5304,59 @@ function shieldRefuses(tgt, moveId){
   }
   if(!sh.blocksStatus){ MEDSEEN.shieldLetStatusThrough++; return false; }
   return true;
+}
+
+/* ================= 2026-08-27 -- WHAT A SHIELD SAYS, IN ONE PLACE BECAUSE IT IS ONE FACT =========
+ *
+ * `shieldRefuses` answers WHETHER, and thirteen callers read it. Until today they disagreed about
+ * WHAT TO SAY: ten wrote `|-activate|<target>|move: Protect`, three wrote `mvFail`'s
+ * `|-fail|<the MOVER>` (`statrewire`, `abilitywrite`, `abilitycopy`, `reorder`) and four wrote
+ * NOTHING AT ALL (`abilityswap`, `typechange`, `pploss`). Three answers for one fact, which is
+ * exactly the private-copy shape CLAUDE.md's FACTS-ARE-GLOBAL rule is about, and ROADMAP #241's own
+ * header filed it in writing: the Good-as-Gold hoist covers "the two refusals that answer at
+ * Showdown's onTryHit step, and leaves Protect ... where they are."
+ *
+ * THE AUTHORITY'S ANSWER, READ RATHER THAN RECALLED. `protect.condition.onTryHit`
+ * (data/moves.ts:13987-14000; Champions overrides `protect` at data/mods/champions/moves.ts:755 with
+ * `{inherit: true, pp: 5}` and changes nothing else):
+ *
+ *     onTryHit(target, source, move) {
+ *       if (this.checkMoveBypassesProtect(move, source, target)) return;
+ *       if (move.smartTarget) { move.smartTarget = false; }
+ *       else { this.add('-activate', target, 'move: Protect'); }
+ *       ... return this.NOT_FAIL;
+ *     }
+ *
+ * and `NOT_FAIL` is `''`, which is why NO `-fail` follows it — `hitStepTryHitEvent`
+ * (sim/battle-actions.ts:643-652) writes its `-fail` only when a result is STRICTLY `false`, and its
+ * second loop (`if (hitResults[i] !== this.battle.NOT_FAIL)`) is what stops `''` from being coerced
+ * into one. The target is then filtered out of `trySpreadMoveHit`'s array, the step loop breaks on
+ * `!targets.length`, and the move ends with `atLeastOneFailure` still false.
+ *
+ * THIS IS THE INVERSE OF THE SUBSTITUTE'S SENTENCE AND MUST NOT BE CONFUSED WITH IT. The doll
+ * answers `|-fail|` on the MOVER with `[still]` (`substitute.onTryPrimaryHit` -> `getDamage` is
+ * `undefined` for a Status move) -- see `subStatusRefuse`. Two shields, two opposite lines, because
+ * one returns `NOT_FAIL` at step 1 and the other returns `null` at step 7.
+ *
+ * WHAT THIS FUNCTION DELIBERATELY DOES NOT DO IS TOUCH `_mvRes`, and that is the same scope decision
+ * `mvFailSilent`'s header records. The authority ends a shielded move with `moveThisTurnResult` at
+ * **null** (`trySpreadMoveHit`: `if (!moveResult && !atLeastOneFailure) pokemon.moveThisTurnResult =
+ * null`), which is neither the `false` the three `mvFail` sites were writing nor the `true` the ten
+ * announcing sites leave standing. Removing the `mvFail` moves those three from `false` to `true`,
+ * which is the value every already-correct shield site has carried since WIRE 130 -- so this change
+ * makes the thirteen agree with each other, and the remaining gap to the authority's `null` is ONE
+ * question for ONE follow-up rather than a difference smeared across two shapes. It is measured with
+ * `engine/move_result_state.js` and reported, not guessed.
+ *
+ * MEDI_SHIELD_REFUSAL_UNANNOUNCED=1 puts the seven old answers back, EACH IN ITS OWN OLD SHAPE -- a
+ * `mvFail` where there was a `mvFail`, silence where there was silence. A revert that tidied them
+ * into one shape would not be a revert. */
+const SHIELD_REFUSAL_UNANNOUNCED=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_SHIELD_REFUSAL_UNANNOUNCED==='1');
+if(SHIELD_REFUSAL_UNANNOUNCED)MEDFAILS.shieldRefusalUnannouncedRestored=1;
+function shieldRefusalAnnounce(tgt){
+  MEDSEEN.shieldRefusalAnnounced++;
+  if(TR)TR.act(tgt,'move: Protect');
 }
 
 /* WIRE 149 -- THE CHOOSER CAN CLICK A SIDE GUARD, AND WHICH ONE IS DERIVED FROM THE SAME PARAM THE
@@ -24221,7 +24287,15 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _rp=TAGS.param('move',a.mv,'removesPP')||{};
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         {const _rf=tryHitRefusal(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
-        if(!t||shieldRefuses(t,a.mv)||moveClassBlocked(t,a.mv,m)||pranksterBlocked(m,t,a.mv)){continue;}
+        /* 2026-08-27 -- THE SHIELD IS PULLED OUT OF THIS CONJUNCTION BECAUSE IT IS THE ONE MEMBER OF
+         * IT THAT SAYS SOMETHING. A shielded Spite printed nothing at all; the authority prints
+         * `|-activate|<target>|move: Protect`. The other two conjuncts keep their silence, which is
+         * their own already-measured behaviour and not this row's question. */
+        if(t&&shieldRefuses(t,a.mv)){
+          if(!SHIELD_REFUSAL_UNANNOUNCED)shieldRefusalAnnounce(t);
+          continue;
+        }
+        if(!t||moveClassBlocked(t,a.mv,m)||pranksterBlocked(m,t,a.mv)){continue;}
         const _lm=t._lastMove;
         const _took=_lm?ppDeduct(t,_lm,+_rp.amount||0):0;
         if(_took>0){
@@ -24355,8 +24429,14 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* WIRE 241 -- Soak / Magic Powder / Trick-or-Treat / Forest's Curse into a Good as Gold wrote
          * no type and printed nothing; the authority prints the ability's own line. */
         {const _rf=tryHitRefusal(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
+        /* 2026-08-27 -- LIFTED OUT OF THE GUARD FOR THE REASON THE `pploss` ONE WAS: a shielded Soak
+         * (203 corpus uses, the busiest move in this whole family) printed NOTHING, and the shield is
+         * the one member of that conjunction the authority narrates. */
+        if(t&&shieldRefuses(t,a.mv)){
+          if(!SHIELD_REFUSAL_UNANNOUNCED)shieldRefusalAnnounce(t);
+          continue;
+        }
         if(t&&_ty
-           &&!(shieldRefuses(t,a.mv))
            &&!moveClassBlocked(t,a.mv,m)&&!powderBlocked(t,a.mv)&&!pranksterBlocked(m,t,a.mv)){
           /* ROADMAP #234 -- THE TWO HANDLERS DISAGREE ON PURPOSE AND THE TAG ALREADY SEPARATES THEM.
            * Forest's Curse and Trick-or-Treat write `add('-start', target, 'typeadd', TYPE,
@@ -24435,16 +24515,29 @@ function battleTurn(S,rng,actsForA,actsForB){
             const _rf=tryHitRefusal(m,t,a.mv);
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
-          const _ok=!_isFoe||!(shieldRefuses(t,a.mv));
+          /* 2026-08-27 -- AND THE SHIELD ANSWERS ON THE TARGET, ABOVE EVERYTHING BELOW IT. It used to
+           * fold into `_ok` and fall out of the shared `else mvFail(m)` at the foot of this branch,
+           * naming the MOVER. It has to be its own `continue` rather than a line added to that else,
+           * because Quash's OTHER failure -- the target has already acted -- shares that else and is
+           * a real `|-fail|<mover>` the authority does write; the two must not be collapsed. Quash is
+           * the only member of this family a shield can reach (After You carries no `protect` flag),
+           * and its `willMove` test lives in its `onHit`, six steps below `hitStepTryHitEvent`. */
+          if(_isFoe&&shieldRefuses(t,a.mv)){
+            if(SHIELD_REFUSAL_UNANNOUNCED)mvFail(m); else shieldRefusalAnnounce(t);
+            continue;
+          }
           /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. THIS IS THE ONE PLACEMENT
            * THAT WOULD HAVE BEEN SILENTLY WRONG A LINE LOWER. Quash's `willMove(target)` test is
            * inside its `onHit`, not its `onTryHit`, so the authority asks the doll FIRST and only
            * then asks whether the target still has an action -- and a check written under
            * `unresolved.has(t)` would never run on the turns the target has already moved, which is
            * most of them. The two failures also print differently: this one carries `[still]` and the
-           * `mvFail` below does not. */
-          if(_ok&&subRefusesStatus(m,t,a.mv))continue;
-          if(_ok&&unresolved.has(t)){
+           * `mvFail` below does not.
+           * (The `_ok &&` that used to guard these two lines was the shield term, which now answers
+           * and `continue`s above; leaving a variable that is true by construction would be the
+           * silent default this file's rules forbid.) */
+          if(subRefusesStatus(m,t,a.mv))continue;
+          if(unresolved.has(t)){
             const _entry=acts.find(x=>x.mon===t);
             if(_entry){_entry._order=(_ro.sends==='next')?TURN_ORDER.next:TURN_ORDER.last;
               if(TR)TR.act(t,'move: '+a.mv);}
@@ -24536,7 +24629,14 @@ function battleTurn(S,rng,actsForA,actsForB){
             const _rf=tryHitRefusal(m,t,a.mv);
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
-          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m));
+          /* 2026-08-27 -- THE SHIELD IS ITS OWN ANSWER AND LEAVES `_ok`. A shielded Skill Swap (198
+           * corpus uses, the busiest move behind any of these seven sites) swapped nothing and said
+           * NOTHING, because the whole rewrite hangs off `if(_ok)` with no else at all. */
+          if(_isFoe&&shieldRefuses(t,a.mv)){
+            if(!SHIELD_REFUSAL_UNANNOUNCED)shieldRefusalAnnounce(t);
+            continue;
+          }
+          const _ok=!_isFoe||!moveClassBlocked(t,a.mv,m);
           /* ROADMAP #307 -- BOTH ENDS remember. A swap is two rewrites and `clearVolatile` undoes
              whichever body leaves first, independently of the other. */
           if(_ok){const _ab=m.ability;abRewrite(m,t.ability);abRewrite(t,_ab);
@@ -24578,7 +24678,18 @@ function battleTurn(S,rng,actsForA,actsForB){
            * the artifact gives an `immunityGate` row, so the other two are untouched -- and that is a
            * shape read rather than a name, which is why it separates three moves nobody separated. */
           if(immunityGateRefuses(m,t,a.mv)){immunityGateAnnounce(t,a.mv);continue;}
-          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m));
+          /* 2026-08-27 -- ONE OF THE TWO ROWS THE PINNED POOL CARRIED. A shielded Entrainment printed
+           * `|-fail|p1a: Hawlucha` against the authority's `|-activate|p2a: Scovillain|move: Protect`
+           * -- the exact pair of species is in `data/game-differential.json` on release
+           * `ccb365985023`. It cannot stay inside `_blocked`: the OTHER reasons `_blocked` is true
+           * (the target already holds the ability, a `refusedAbilities` member) really do take the
+           * generic `|-fail|<mover>` out of `useMoveInner`, so folding them together was three
+           * different authority answers wearing one name. */
+          if(_isFoe&&shieldRefuses(t,a.mv)){
+            if(SHIELD_REFUSAL_UNANNOUNCED)mvFail(m); else shieldRefusalAnnounce(t);
+            continue;
+          }
+          const _ok=!_isFoe||!moveClassBlocked(t,a.mv,m);
           const _want=a.becomes==='the user\'s own ability'?m.ability:a.becomes;
           /* THE AUTHORITY FAILS RATHER THAN NO-OPS when the target already holds it, and Stomping
            * Tantrum reads that failure -- so it is a `mvFail`, not a silent skip. */
@@ -24640,7 +24751,17 @@ function battleTurn(S,rng,actsForA,actsForB){
             const _rf=tryHitRefusal(m,t,a.mv);
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
-          const _ok=!_isFoe||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m));
+          /* 2026-08-27 -- THE SAME LIFT AS ITS NEIGHBOURS, AND IT IS THE ONE THAT CANNOT FIRE TODAY.
+           * Role Play is the only member of this kind and it carries NO `protect` flag, so
+           * `shieldRefuses` already answers false for it and this branch is dead by construction --
+           * which is exactly why the probe uses it as the OVER-FIRE CONTROL rather than as an arm.
+           * It is wired anyway so the shield cannot mean two things in one file if a second member
+           * ever arrives; the counter is what would make that arrival visible. */
+          if(_isFoe&&shieldRefuses(t,a.mv)){
+            if(SHIELD_REFUSAL_UNANNOUNCED)mvFail(m); else shieldRefusalAnnounce(t);
+            continue;
+          }
+          const _ok=!_isFoe||!moveClassBlocked(t,a.mv,m);
           const _want=String(t.ability||'');
           const _flagRefuses=(who,flag)=>{
             if(!flag)return false;
@@ -24676,8 +24797,16 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _rf=tryHitRefusal(m,t,a.mv);
           if(_rf){announceTryHitRefusal(_rf,t);continue;}
         }
-        const _ok=t&&t!==m&&m.st&&t.st&&(!_isFoe
-          ||(!(shieldRefuses(t,a.mv))&&!moveClassBlocked(t,a.mv,m)));
+        /* 2026-08-27 -- THE OTHER ROW THE PINNED POOL CARRIED: a shielded Speed Swap printed
+         * `|-fail|p1b: Alakazam` where the authority printed `|-activate|p2b: Garchomp|move: Protect`
+         * (release `ccb365985023`). Lifted out of `_ok` for the reason the ability rewrite next door
+         * was: the other conjuncts of `_ok` -- a missing target, a self-aim, a body with no stored
+         * stats -- are not the same authority answer and must keep their `mvFail`. */
+        if(t&&t!==m&&_isFoe&&shieldRefuses(t,a.mv)){
+          if(SHIELD_REFUSAL_UNANNOUNCED)mvFail(m); else shieldRefusalAnnounce(t);
+          continue;
+        }
+        const _ok=t&&t!==m&&m.st&&t.st&&(!_isFoe||!moveClassBlocked(t,a.mv,m));
         if(!_ok){mvFail(m);continue;}
         /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. Guard Split and Power Split
          * carry NO `onTryHit` at all -- their whole body is an `onHit` that averages two stat pairs --

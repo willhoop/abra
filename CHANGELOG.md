@@ -10,6 +10,64 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.187.0] — 2026-08-27
+
+### Fixed
+- **A SHIELD'S REFUSAL IS `|-activate|<TARGET>|move: Protect` AND NOTHING ELSE, AND SEVEN ACTION
+  KINDS ANSWERED IT WITH `|-fail|<THE MOVER>` OR WITH SILENCE. WHOLE-GAME 6 -> 4 OF 961, PREDICTED
+  BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. CENSUS UNMOVED AT 765 LIVE /
+  765 PROBED / 0 MISSING. ROSTER 139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS. DAMAGE 0 OF 300
+  AT ALL SIXTEEN CORNERS. PIN DIGEST UNMOVED AT `ccb365985023`, `DICE_MODEL` v5.** ENGINE.
+  ROADMAP `#508` closed, `#509` filed. Release `5ed4753b7322`.
+  - **IT IS THE INVERSE OF THE SUBSTITUTE'S SENTENCE, NOT THE SAME ONE.** `5.174.0` landed *"the doll
+    answers `|-fail|` on the MOVER, never `-activate` on the target"*. A shield answers the other way
+    round, and two different lines of the authority decide it: `substitute.onTryPrimaryHit` gets
+    `undefined` out of `getDamage` for a Status move; `protect.condition.onTryHit`
+    (`data/moves.ts:13987-14000`) writes `add('-activate', target, 'move: Protect')` and returns
+    `this.NOT_FAIL`. `hitStepTryHitEvent` (`sim/battle-actions.ts:643-652`) writes its `-fail` only
+    on a STRICT `false`, and its second loop — `if (hitResults[i] !== this.battle.NOT_FAIL)` — is
+    what stops `''` being coerced into one. Champions overrides `protect` at
+    `data/mods/champions/moves.ts:755` with `{inherit: true, pp: 5}` and overrides nothing in `sim/`.
+  - **THREE ANSWERS FOR ONE FACT.** `shieldRefuses` has thirteen callers; ten announced. Of the seven
+    that did not, `statrewire`, `abilitywrite`, `abilitycopy` and `reorder` folded the shield into an
+    `_ok` and fell out of a shared `mvFail`, while `abilityswap`, `typechange` and `pploss` said
+    nothing at all. `shieldRefusalAnnounce` is now the one owner of the line.
+  - **ROADMAP #241 FILED THIS IN WRITING** when it hoisted the Good-as-Gold refusals — its header
+    says it *"leaves Protect, the move-class immunities and the powder rule where they are."* This is
+    the Protect half of that deferral.
+  - **THE TWO POOL ROWS WERE ONE ROOT SEEN FROM TWO SIDES.** `unrelated event mismatch ::
+    |-activate|p2b|protect <> |-fail|p1b` (Speed Swap) and `extra event emitted by medicham2 ::
+    |-activate|p2a|protect <> |-fail|p1a` (Entrainment). `classify()` calls ours *extra* when our head
+    line reappears inside its 10-line lookahead on the authority's stream, and in the Entrainment game
+    a second move met the same shield one line later. The `<>` is `showdown <> medicham`, so the
+    AUTHORITY printed the `-activate` and we printed the `-fail`.
+  - **964 CORPUS USES SIT BEHIND THE SEVEN SITES** — Quash 260, Soak 203, Skill Swap 198, Worry Seed
+    129, Entrainment 99, Simple Beam 19, Speed Swap 19, Trick-or-Treat 10, Spite 9, Magic Powder 9,
+    Eerie Spell 5, Forest's Curse 2, Power Split 2, Guard Split 0. Re-derived from `playerAction`'s
+    own routing predicates on every probe run, so a loose tag read cannot credit the batch with
+    Instruct or Reflect Type; `boostally` and `abilitycopy` print EMPTY, which is the derived reason
+    `boostally`'s own `shieldRefuses` call was left alone.
+  - Probe: `tests/probe_shield_refusal_line.js` — 13 arms, 8 red proven, 5 controls held, 0 failing.
+    `MEDI_SHIELD_REFUSAL_UNANNOUNCED=1` restores each of the seven in its OWN old shape (a `mvFail`
+    where there was a `mvFail`, silence where there was silence) and stamps
+    `MEDFAILS.shieldRefusalUnannouncedRestored` at module load.
+
+### Notes
+- **FILED, NOT FIXED — `#509`.** A shielded move ends with `moveThisTurnResult` at `null` in the
+  authority. `mvFail` was writing `false`, which fed Stomping Tantrum's doubler
+  (`data/moves.ts:18048`) a doubling the authority does not give; removing it leaves `true`, which is
+  what the ten already-correct shield sites have carried since WIRE 130. All thirteen now agree with
+  each other and the remaining gap to `null` is one question at one place. Measured rather than
+  argued: the `tantrum-after-shield` arm agrees with the authority over both turns and asserts
+  `powerDoubledAfterFailure = 0`, and `tantrum-after-real-fail` stages a genuine Entrainment failure
+  and asserts the same counter NON-ZERO, so the zero is a real zero and not a dead counter.
+- **`instruct` NEVER ASKS THE SHIELD AT ALL** and Instruct carries `flags.protect` on 277 corpus
+  uses — a Protecting body can be Instructed here and cannot there, which is a STATE divergence and
+  an extra action in the turn. It is a MISSING caller rather than a misplaced one, which is a
+  different change with a different control, and it is named in
+  `docs/_reports/2026-08-27-protect-refusal.md` rather than bundled. Same reasoning `yawn` was named
+  and left by `5.174.0`.
+
 ## [5.186.0] — 2026-08-27
 
 ### Fixed

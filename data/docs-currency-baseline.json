@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-23T08:27:53.154Z",
+  "generated": "2026-08-27T23:38:54.607Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.91.2",
+  "changelog_top_at_baseline": "5.187.0",
   "version_pins": {
     "docs/ABRA-deck-plain-english.md": {
       "version": "3.98.0",
@@ -269,17 +269,15 @@
       "docs/SUMMARY.md|8,713|data/quality-filter.json"
     ],
     "untraceable_by_doc": {
-      "docs/ABRA-technical-docs.md": 2,
+      "docs/ABRA-technical-docs.md": 1,
       "docs/ABRA-whitepaper.md": 10,
       "docs/ARCHITECTURE.md": 1,
       "docs/MODELS.md": 14,
       "docs/ROLE-FAMILY.md": 2,
-      "docs/SLOWKING-whitepaper.md": 7,
-      "docs/SUMMARY.md": 1
+      "docs/SLOWKING-whitepaper.md": 7
     },
     "untraceable_figures": [
       "docs/ABRA-technical-docs.md|-0.003647",
-      "docs/ABRA-technical-docs.md|0.5822",
       "docs/ABRA-whitepaper.md|1.0021",
       "docs/ABRA-whitepaper.md|1.0208",
       "docs/ABRA-whitepaper.md|2304.08272",
@@ -310,8 +308,7 @@
       "docs/SLOWKING-whitepaper.md|2301.04104",
       "docs/SLOWKING-whitepaper.md|2503.04094",
       "docs/SLOWKING-whitepaper.md|2504.04395",
-      "docs/SLOWKING-whitepaper.md|2506.10326",
-      "docs/SUMMARY.md|0.5822"
+      "docs/SLOWKING-whitepaper.md|2506.10326"
     ]
   },
   "reasons": {

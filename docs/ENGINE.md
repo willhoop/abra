@@ -30,7 +30,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_mega_trace_entry.js`, `tests/probe_mega_spread_stat.js`,
 `tests/probe_trace_list.js`, `tests/probe_fractional_priority_draw.js`,
 `tests/probe_hp_pair.js`,
-`tests/probe_state_trio.js`, `tests/probe_random_target_die.js`
+`tests/probe_state_trio.js`, `tests/probe_random_target_die.js`,
+`tests/probe_shield_refusal_line.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -100,7 +101,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  765/765 probed mechanics live, 0 missing   (census 2026-08-27 18:21)
+  765/765 probed mechanics live, 0 missing   (census 2026-08-27 19:17)
   0/6000 differential comparisons disagree with Showdown   (2026-08-27 18:20)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -120,9 +121,104 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 18:48_
+_stamped 2026-08-27 19:37_
 
 <!-- /GENERATED -->
+
+## A SHIELD'S REFUSAL IS `|-activate|<TARGET>|move: Protect` AND NOTHING ELSE — SEVEN ACTION KINDS ANSWERED IT WITH `|-fail|<THE MOVER>` OR WITH SILENCE, AND IT IS THE **INVERSE** OF THE SUBSTITUTE'S SENTENCE. **WHOLE-GAME 6 -> 4 OF 961, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. ROSTER 139 / 129 / 475 CLEAN. DAMAGE 0/300 AT ALL SIXTEEN CORNERS. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
+
+ROADMAP `#508` closed, `#509` filed. Release `5ed4753b7322`. CHANGELOG 5.187.0.
+Probe: `tests/probe_shield_refusal_line.js` — 13 arms, 8 red proven, 5 controls held, 0 failing.
+Report: `docs/_reports/2026-08-27-protect-refusal.md`.
+
+**THE DIRECTION IN THE BRIEF WAS BACKWARDS AND CHECKING IT WAS THE FIRST THING DONE.** `classify()`
+builds its cause as `cls + ' :: ' + gen(sdHead) + ' <> ' + gen(meHead)`
+(`engine/game_differential.js:4553`), so the LEFT of the `<>` is SHOWDOWN. Both pool rows read
+`|-activate|...|protect <> |-fail|...`: **the authority announced the shield and we named the mover.**
+
+**SO PROTECT'S REFUSAL IS NOT THE STATEMENT THE SUBSTITUTE BATCH LANDED THIS MORNING. IT IS ITS
+EXACT INVERSE, AND TWO DIFFERENT LINES OF THE AUTHORITY DECIDE THEM:**
+
+| | the handler | what reaches the wire |
+|---|---|---|
+| the doll | `substitute.onTryPrimaryHit` — `getDamage` is `undefined` for `basePower: 0` | `-fail` on the MOVER, plus `[still]` |
+| the shield | `protect.condition.onTryHit`, `data/moves.ts:13987-14000` | `-activate` on the TARGET with `move: Protect`, and nothing else |
+
+The shield's handler ends `return this.NOT_FAIL`, and `NOT_FAIL` is `''`. `hitStepTryHitEvent`
+(`sim/battle-actions.ts:643-652`) writes its `-fail` only when a result is **strictly `false`**, and
+its second loop — `if (hitResults[i] !== this.battle.NOT_FAIL) hitResults[i] = hitResults[i] || false;`
+— is precisely what stops `''` becoming one. `trySpreadMoveHit` then filters the target out of the
+array, breaks the step loop on `!targets.length` and returns false with `atLeastOneFailure` still
+false. **Champions overrides `protect`** at `data/mods/champions/moves.ts:755` — `{inherit: true,
+pp: 5}`, the PP and nothing else — and overrides no part of `sim/battle-actions.ts`.
+
+**THE ANSWER DOES NOT DEPEND ON THE MOVE'S CATEGORY, AND THAT WAS READ RATHER THAN ASSUMED.** The only
+two conditions on the line are `checkMoveBypassesProtect` (`sim/battle.ts:1300`, which is
+`move.flags['protect']` — already what `shieldRefuses` reads) and `move.smartTarget`, which has its own
+knob. A fix that printed `-fail` unconditionally would have been a new defect; one that printed
+`-activate` unconditionally breaks the Role Play control below.
+
+**THREE ANSWERS FOR ONE FACT, WHICH IS WHY IT SURVIVED.** `shieldRefuses` answers *whether*, and
+thirteen callers read it. Ten already announced. The other seven disagreed with each other:
+
+| kind | what it said | the members a shield can reach |
+|---|---|---|
+| `statrewire` | `mvFail(m)` — the MOVER's name | Speed Swap 19, Power Split 2, Guard Split 0 |
+| `abilitywrite` | `mvFail(m)` | Worry Seed 129, Entrainment 99, Simple Beam 19 |
+| `reorder` | `mvFail(m)` | Quash 260 — After You carries no `protect` flag |
+| `abilitycopy` | `mvFail(m)` | **none** — Role Play carries no `protect` flag |
+| `abilityswap` | nothing at all | Skill Swap 198 |
+| `typechange` | nothing at all | Soak 203, Trick-or-Treat 10, Magic Powder 9, Forest's Curse 2 |
+| `pploss` | nothing at all | Spite 9, Eerie Spell 5 |
+
+**964 corpus uses**, and membership is re-derived from `playerAction`'s OWN routing predicates on every
+probe run rather than from the routing tag: `reordersTurn` is carried by **Instruct** as well as Quash,
+`changesTargetType` by **Reflect Type** as well as Soak, and a loose read would have credited this
+batch with two mechanics it does not touch. `boostally` and `abilitycopy` are printed **EMPTY** — every
+member carries no `protect` flag — and that empty line is the derived reason `boostally`'s own
+`shieldRefuses` call was left alone rather than a judgement about it.
+
+**ROADMAP #241 SAW THIS AND FILED IT IN WRITING.** When it hoisted the Good-as-Gold refusals its header
+said the hoist covers *"the two refusals that answer at Showdown's onTryHit step, and leaves Protect,
+the move-class immunities and the powder rule where they are."* This is the Protect half of that
+deferral, closed.
+
+**THE TWO POOL ROWS WERE CLASSIFIED DIFFERENTLY AND ARE ONE ROOT SEEN FROM TWO SIDES.** `classify`
+calls ours *extra* when our head line reappears inside its 10-line lookahead on the authority's stream.
+In the Entrainment game a SECOND move met the same shield one line later, so our missing `-activate`
+turned up again and the lookahead matched it; in the Speed Swap game nothing followed, so the same
+defect fell through to `unrelated event mismatch`. One wire, two class names.
+
+**THE STATE HALF IS `#509`, AND IT IS MEASURED RATHER THAN ARGUED.** `mvFail(mon)` is
+`{mon._mvRes = false; TR.fail(mon)}` — ONE call writing a line **and** a field, which is why the class
+kept stalling. The authority ends a shielded move with `moveThisTurnResult` at **`null`**
+(`trySpreadMoveHit`: `if (!moveResult && !atLeastOneFailure) pokemon.moveThisTurnResult = null`, kept
+by `useMove` because `oldMoveResult !== pokemon.moveThisTurnResult`). We were writing `false`, which is
+what Stomping Tantrum's doubler reads on the following turn (`data/moves.ts:18048`). Removing the
+`mvFail` leaves `true` — the value the ten already-correct shield sites have carried since WIRE 130 —
+so all thirteen now agree with each other and the residual gap to `null` is ONE question at ONE place
+instead of a difference smeared across two shapes. Two arms measure it:
+
+- `tantrum-after-shield` plays the shielded Worry Seed and the same Venusaur's Stomping Tantrum the
+  turn after, agrees with the authority over both turns and asserts `powerDoubledAfterFailure = 0`;
+- `tantrum-after-real-fail` stages a **genuine** Entrainment failure (`target.ability ===
+  source.ability`, no shield anywhere) and asserts the same counter **non-zero**, so the zero next door
+  is a real zero and not a dead counter. It reads 2 on one doubling, because the counter sits inside
+  the base-power function and this engine evaluates that more than once per arrival — so the assertion
+  is `>= 1` there and EXACT ZERO on the arm where zero is the claim.
+
+**THE KNOB CANNOT SEPARATE THE LINE FROM THE STATE, AND THAT IS THE FINDING RATHER THAN A GAP** — they
+come out of the same call, so a knob that restored one without the other would not be a revert, and the
+reverted stream parts at turn 1 before turn 2 is ever reached.
+
+**FILED, NOT FIXED — AND THIS ONE IS BOARD-MATERIAL.** `instruct` **never asks the shield at all**, and
+Instruct carries `flags.protect` on 277 corpus uses. A Protecting body can be Instructed here and
+cannot there: that is a STATE divergence and an EXTRA ACTION in the turn, not a line. It is a MISSING
+caller rather than a misplaced one — every site this batch touched already CALLED `shieldRefuses` —
+so it is a different change with a different control. Same reasoning `yawn` was named and left by the
+substitute batch this morning.
+
+---
 
 ## THE RANDOM-TARGET DIE WAS ADDRESSED BEFORE THE AUTHORITY HAD A MOVE TO NAME IT WITH, AND SIX LOOKAHEAD DRAWS SAT IN FRONT OF IT. **BOARD-MATERIAL 2 -> 0 OF 961, PREDICTED BEFORE THE RUN. WHOLE-GAME UNMOVED AT 6 OF 961 — PREDICTED 5 AND IT DID NOT MOVE, ATTRIBUTED BELOW. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST `48e1007ac14a` -> `ccb365985023`, DICE_MODEL v4 -> v5, ON PURPOSE.** 2026-08-27.
 
