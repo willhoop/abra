@@ -433,6 +433,12 @@ by that pattern.
 
 **YOUR OWN COMMANDS CAN SUCCEED HAVING DONE NOTHING.** Twice: `cmd /c "…"` from Git Bash. The artifact
 kept its old timestamp both times and the stale number was nearly reported as a confirmation.
+**AN EIGHTH, AND ITS CAUSE IS MECHANICAL RATHER THAN A TYPO: A `.cmd` FILE WITH LF LINE
+ENDINGS OPENS AN INTERACTIVE PROMPT INSTEAD OF RUNNING.** `core.autocrlf` is on here and 510 of 1,753
+tracked files are CRLF, so a scratch `.cmd` written by a tool is LF and silently does nothing. The
+agent that hit it worked around it with an absolute-path CRLF `.cmd`. **Write scratch `.cmd` files
+with CRLF, or call the script directly.**
+
 **A SIXTH AND SEVENTH, BOTH HIT IN ONE PASS ON 2026-08-26.** The differential and the roster stages
 run WITHOUT `--write` print a full report, name every count, and **exit 0 while their artifact never
 moves** — a complete-looking measurement of nothing. And `cmd.exe /c "<path>"` from Git Bash opens an
