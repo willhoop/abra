@@ -10,6 +10,50 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.170.0] — 2026-08-27
+
+### Fixed
+- **A GREP IS A CLAIM ABOUT A NAME, AND THE NAME MOVED — `tests/test-middle-identity.js` EXITED 1 ON A
+  FILE THAT DOES THE THING IT CHECKED FOR. NO ENGINE BYTE MOVED; CENSUS UNMOVED AT 754 LIVE / 754
+  PROBED / 0 MISSING; BOARD-MATERIAL UNMOVED AT 1 OF 961.** ENGINE, ROADMAP `#262` — the authority
+  half closed. The red claim tested `game_differential.js`'s SOURCE TEXT for
+  `MID_BATTLE = this.battle`. Commit `ae6be2aa` moved the wrapper's state into a `globalThis`-shared
+  holder, so that a second module load could not silently write into a dead copy; the capture line
+  became `MIDW.battle = this.battle || null` and the old identifier survives in that file **only in
+  comments**. The capture never stopped happening — the grep stopped matching, and the same run was
+  already printing `acc 99.4% / dmg 99.3% / crit 99.1% / sec 98.1%` two screens below.
+
+  **THIS IS THE SECOND REPLACEMENT OF THE SAME CLAUSE, AND THE FIRST ONE'S ARGUMENT IS WHAT WENT
+  WRONG.** In 2026-08-13 the clause was replaced because it measured a re-implementation of the wiring
+  *inside the test*, on the reasoning that *"a source check on the actual bytes beats a perfect
+  measurement of a copy."* Right about the copy, wrong about the check: a grep is not a check on bytes,
+  it is a check on a **name**. It now reads the addresses the file actually built, via the existing
+  `GD.midAddresses()` / `GD.midResetAddresses()` export, cleared per game: **0 of 1,922 named-category
+  addresses degenerate, 0 draws with no battle in scope, and 99.1% identity over 1,913 events computed
+  from the differential's OWN strings** against 99.1% from the test's independent `Battle.prototype`
+  hook. Release `6a845424c450`, arm `middle`, 900 games.
+
+  **SHOWN RED FIRST, AND ONE ARM OF THE CONTROL HAD TO BE ESTABLISHED RATHER THAN ASSUMED.** Both
+  captures nulled: 446 of 446 degenerate, identity 0.0%, `no_battle` 0 → 601, two claims red, then
+  reverted. Breaking the wrapper alone does nothing — `playGame` also binds `MIDW.battle` at
+  prng-install and `BattleActions#battle` is the same object, so a control aimed only at the line the
+  claim names would have stayed green and proved nothing. Per-category identity is byte-identical
+  either side of the change. Full account: `docs/_reports/2026-08-27-middle-identity-red.md`.
+
+### Notes
+- **Two claims in that same file are VACUOUS, confirmed here and deliberately left unchanged.**
+  Tightening either moves the gate number, so it belongs in the same commit as the hash decision
+  ROADMAP `#478` is holding for Will. *"a different REPEAT INDEX is a different address"* asserts
+  difference where it means **independence** — the two values differ by exactly `1/256 = 0.003906`, and
+  the median gap across 400 turns is the same 0.003906 against ~0.333 for a uniform pair. *"uniform
+  enough to price a 90-accuracy move"* sweeps the failing axis and measures the **marginal** (0.9214),
+  which is exactly what a translation preserves; that axis has **lag-1 correlation 0.887** and **91
+  runs against an expected ~901**. When the hash decision lands, the first should become a
+  distributional claim over many bases and the second should carry a serial statistic beside the
+  marginal.
+
+---
+
 ## [5.169.0] — 2026-08-27
 
 ### Fixed

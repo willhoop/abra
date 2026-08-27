@@ -257,6 +257,10 @@ const tot = { sdB: 0, me: 0, both: 0, sdP: 0, bothP: 0 };
 const perCat = new Map();
 const unmatchedMe = new Map(), unmatchedSd = new Map();
 let repeats = 0, games = 0, threw = 0;
+const NAMED = ['acc', 'sec', 'dmg', 'crit'];
+/* THE DIFFERENTIAL'S OWN ADDRESSES, READ BACK OUT OF IT RATHER THAN RECOMPUTED HERE — `GD.midAddresses()`
+ * returns the strings `game_differential.js` actually built on this game. See the claims in section 2. */
+let gNamed = 0, gDegen = 0, gNoBattle = 0, namedMe = 0, namedBothG = 0;
 /* ---- `any` IS TWO POPULATIONS AND POOLING THEM MEASURES NOTHING --------------------------------
  *
  * `any` is the residual bucket — everything drawn outside `hitStepAccuracy`, `secondaries` and
@@ -281,10 +285,23 @@ outer:
 for (const cfg of CONFIGS) {
   for (const pr of pairings(cfg, [1, 3, 5, 7, 9, 11])) {
     NTH_BATTLE.clear(); NTH_PRNG.clear(); LOG_BATTLE = []; LOG_PRNG = [];
+    GD.midResetAddresses();
     try { GD.playGame(pr.a, pr.b, cfg, 'identity', { arm: ARM }); }
     catch (e) { threw++; continue; }
     const me = new Set(M.midEventLog());
     const sdB = new Set(LOG_BATTLE), sdP = new Set(LOG_PRNG);
+    /* THE REAL FILE'S OWN STRINGS. Its buffer is cleared per game above so this set is comparable
+     * with `me`, which `midEventDice` clears on each call. */
+    const A = GD.midAddresses(); const sdG = new Set(A.sd); gNoBattle += A.no_battle;
+    for (const x of sdG) {
+      const p = x.split('|');
+      if (!NAMED.includes(p[2] === 'any' ? 'any' : p[2])) continue;
+      gNamed++;
+      /* THE DEGENERATE SHAPE: `<seed>|0|<cat>|-|-|<nth>` (or `undefined` for the turn). It is what the
+       * address builder produces when the object in scope is the PRNG rather than the battle — turn,
+       * activeMove and activeTarget all absent — and it is a global SEQUENCE wearing an address. */
+      if (p[1] === '0' || p[1] === 'undefined' || p[3] === '-' || p[4] === '-') gDegen++;
+    }
     for (const x of me) {
       const c = catOf(x);
       if (!perCat.has(c)) perCat.set(c, { sd: 0, me: 0, both: 0 });
@@ -293,6 +310,7 @@ for (const cfg of CONFIGS) {
       if (sdB.has(x)) { perCat.get(c).both++; tot.both++; }
       else unmatchedMe.set(shape(x), (unmatchedMe.get(shape(x)) || 0) + 1);
       if (sdP.has(x)) tot.bothP++;
+      if (NAMED.includes(c)) { namedMe++; if (sdG.has(x)) namedBothG++; }
     }
     for (const x of sdB) {
       const c = catOf(x);
@@ -314,29 +332,43 @@ claim(SD_BYPASS === 0,
   'every authority draw was seen where the BATTLE is in scope (a bypass is an unaddressable draw)',
   SD_BYPASS + ' bypassed');
 const rateB = 100 * tot.both / Math.max(1, tot.me), rateP = 100 * tot.bothP / Math.max(1, tot.me);
+const rateG = 100 * namedBothG / Math.max(1, namedMe);
 console.log('     from the BATTLE (this file\'s hook)                   ' + rateB.toFixed(1) + '% of medicham2\'s events matched');
-console.log('     from the object `battle.prng.random` receives         ' + rateP.toFixed(1) + '% — this is what');
-console.log('       game_differential.js computes TODAY. `Battle#random` is `this.prng.random(m,n)`, so');
-console.log('       `this` there is the PRNG: turn, activeMove and activeTarget are all undefined and every');
-console.log('       address it builds is `<seed>|undefined|<cat>|-|-|<nth>`. THE ARM CANNOT BE WIRED UNTIL');
-console.log('       that side reads the battle. It is one capture in `midWrapShowdown` and it is not this');
-console.log('       division\'s file to edit.');
-/* RETIRED AND REPLACED 2026-08-13, BY ITS OWN INSTRUCTION.
+console.log('     from the object `battle.prng.random` receives         ' + rateP.toFixed(1) + '% — the PRE-FIX');
+console.log('       shape, kept as a control. `Battle#random` is `this.prng.random(m,n)`, so `this` there is');
+console.log('       the PRNG: turn, activeMove and activeTarget are all undefined and every address built');
+console.log('       from it is `<seed>|undefined|<cat>|-|-|<nth>`.');
+console.log('     from game_differential.js\'s OWN log, read back out    ' + rateG.toFixed(1)
+  + '% over ' + namedMe + ' named events');
+console.log('       ' + gDegen + ' of ' + gNamed + ' of its named-category addresses were degenerate,  '
+  + gNoBattle + ' draws made with no battle in scope');
+
+/* RETIRED AND REPLACED 2026-08-27 — THE SECOND TIME THIS CLAUSE HAS HAD TO BE REPLACED, AND FOR THE
+ * OPPOSITE REASON TO THE FIRST.
  *
- * The clause here asserted that game_differential.js computes a DEGENERATE address, and said in its
- * own text: `if this ever passes 5% somebody fixed it and this claim should be retired`. It was fixed
- * the same night -- `Battle#random` is `return this.prng.random(m,n)`, so `this` inside the installed
- * override is the PRNG and not the battle; the BattleActions wrapper now captures `this.battle`.
+ * 2026-08-13: the original clause asserted that game_differential.js computes a DEGENERATE address and
+ * would never have noticed the fix, because `rateP` measures a RE-IMPLEMENTATION of the wiring inside
+ * this file rather than the file itself. Its replacement read the real file's SOURCE TEXT for
+ * `MID_BATTLE = this.battle`, on the argument that a source check on the actual bytes beats a perfect
+ * measurement of a copy.
  *
- * BUT THE CLAUSE WOULD NEVER HAVE NOTICED, because `rateP` measures a RE-IMPLEMENTATION of that
- * wiring inside this file rather than the file itself. A check watching a copy of the thing it
- * guards is the failure this project has found four separate ways today, so the replacement READS
- * THE REAL FILE. A source check is coarse; a source check on the actual bytes beats a perfect
- * measurement of a copy. */
+ * IT PINNED A SPELLING, AND THE SPELLING MOVED. Commit `ae6be2aa` put the wrapper's state into a
+ * globalThis-shared holder so a second module load could not silently write into a dead copy —
+ * `MID_BATTLE` became `MIDW.battle`, the capture line became `MIDW.battle = this.battle || null`, and
+ * the identifier survives in that file only in COMMENTS. The clause went red on a file that does
+ * exactly the thing it was checking for, and stayed red across two sessions because "the source
+ * doesn't say X" reads like a real defect. A grep is a claim about a NAME; a name is the one thing in
+ * this repository nothing keeps in step.
+ *
+ * SO IT NOW READS THE ADDRESSES THE FILE ACTUALLY BUILT. `GD.midAddresses()` hands back the strings
+ * `midDraw` pushed on this game — the real bytes running, not a copy of them and not a grep for them —
+ * and a capture that is not happening cannot fake a turn number or a move id. Shown RED by replacing
+ * the capture with `MIDW.battle = null`: `1913 of 1913 degenerate` and the named identity 99.1% -> 0.0%. */
+claim(gNamed > 0 && gDegen === 0,
+  'game_differential.js CAPTURES the battle: the addresses IT built name a turn, a move and a target',
+  gDegen + ' of ' + gNamed + ' named-category addresses came back as `<seed>|0|<cat>|-|-|<nth>` — the '
+  + 'shape the builder produces when the object in scope is the PRNG and not the battle');
 const GD_SRC = require('fs').readFileSync(require('path').join(__dirname, '..', 'engine', 'game_differential.js'), 'utf8');
-claim(/MID_BATTLE\s*=\s*this\.battle/.test(GD_SRC),
-  'game_differential.js CAPTURES the battle in the BattleActions wrapper',
-  'the prng override cannot see the battle -- without this every address it builds is <seed>|undefined|<cat>|-|-|<nth>');
 claim(/midReset\(\);\s*midClearNth\(\)/.test(GD_SRC),
   'and CLEARS the repeat index per game',
   'turn is part of the address, so without this turn 1 of game 2 keeps counting from game 1 and every address after the first game is unreachable');
@@ -351,7 +383,6 @@ console.log('     of the AUTHORITY\'s events, medicham2 also asked:  '
 console.log('     addresses drawn more than once (nth > 0): ' + repeats
   + ' of ' + tot.me + ' — the population where a count difference can still hide');
 console.log('\n     cat        sd        me    shared    medicham2-matched');
-const NAMED = ['acc', 'sec', 'dmg', 'crit'];
 let nMe = 0, nBoth = 0;
 for (const [c, v] of [...perCat].sort((a, b) => b[1].sd - a[1].sd)) {
   console.log('     ' + c.padEnd(6) + String(v.sd).padStart(8) + String(v.me).padStart(10)
@@ -409,6 +440,14 @@ for (const c of NAMED) {
 claim(namedRate >= FLOOR_POOLED,
   'BACKSTOP: the four pooled agree on at least ' + FLOOR_POOLED + '% (the per-category floors above do the work)',
   'measured ' + namedRate.toFixed(1) + '% over ' + nMe + ' events');
+/* AND THE SAME BACKSTOP AGAINST THE DIFFERENTIAL'S OWN LOG. Every rate above is computed from this
+ * file's `Battle.prototype` hook, which is a re-implementation of the wiring it is judging; this one is
+ * computed from the strings `game_differential.js` built. The two should be the same number and the
+ * only way they part is the arm going unsynchronised, which is the failure the whole file exists for. */
+claim(rateG >= FLOOR_POOLED,
+  'and the ADDRESSES THE DIFFERENTIAL ITSELF BUILT clear the same floor (not this file\'s copy of them)',
+  'measured ' + rateG.toFixed(1) + '% over ' + namedMe + ' events, against '
+  + namedRate.toFixed(1) + '% from this file\'s hook');
 console.log('  --    `any*` (a move in scope) NOT FLOORED — ' + anyCat.both + ' of ' + anyCat.me
   + ' = ' + anyRate.toFixed(1) + '%. Too small and too fixture-dependent to hold a rate against');
 console.log('        (95.2% on one 126-game sample, 37.0% on a 900-game one, same engine). Its write site is');

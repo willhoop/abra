@@ -21,6 +21,104 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A GREP IS A CLAIM ABOUT A NAME, AND THE NAME MOVED — `tests/test-middle-identity.js` WAS RED ON A FILE THAT DOES THE THING IT CHECKED FOR. **NO ENGINE BYTE MOVED. CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 1 OF 961.** 2026-08-27.
+
+Release `6a845424c450` (already cut; no SOURCES file moved, so none was cut for this), arm `middle`,
+900 games — the file's own default, which it pushes into `argv` before `game_differential.js` reads it.
+No probe added: the fix is inside the failing test. Register row: ROADMAP **#262 — CLOSED** (the
+authority half). CHANGELOG 5.170.0. Full account: `docs/_reports/2026-08-27-middle-identity-red.md`.
+
+### WHICH SCOREBOARD IT SHOULD MOVE, SAID BEFORE THE RUN
+
+**None of them.** This is an instrument fix in a test file; `engine/` is untouched. The census, the
+whole-game clause, the board-material clause and the mechanics clause must all sit exactly still, and
+they do. The only thing that moves is `tests/test-middle-identity.js` exiting **1 → 0**.
+
+### THE FAILURE WAS THE CHECK, NOT THE CODE
+
+The red claim was `game_differential.js CAPTURES the battle in the BattleActions wrapper`, and it was
+a regex over that file's source text:
+
+```js
+claim(/MID_BATTLE\s*=\s*this\.battle/.test(GD_SRC), ...)
+```
+
+Commit `ae6be2aa` moved the wrapper's state into a `globalThis`-shared holder, so that a second module
+load could not silently write its category into a dead copy. `MID_BATTLE` became `MIDW.battle`, the
+capture line became `MIDW.battle = this.battle || null` (`engine/game_differential.js:1008`), and the
+old identifier survives in that file **only in comments**. The capture never stopped happening. The
+grep stopped matching.
+
+**IT WAS REPORTED TWICE AS "PRE-EXISTING, NOT MY FILE, NOT TOUCHED"**, which is the banned phrase in
+its ordinary costume — *"the source doesn't say X"* reads exactly like a real defect, and the same run
+was already printing `acc 99.4% / dmg 99.3% / crit 99.1% / sec 98.1%` two screens below, which is what
+a working capture looks like and cannot be produced without one.
+
+**THIS IS THE SECOND REPLACEMENT OF THE SAME CLAUSE.** The first (2026-08-13) was made because the
+clause measured a re-implementation of the wiring *inside the test* rather than the file — and its
+replacement, the grep, was chosen on the argument that *"a source check on the actual bytes beats a
+perfect measurement of a copy."* That argument was right about the copy and wrong about the check: a
+grep is not a check on bytes, it is a check on a **name**, and a name is the one thing in this
+repository nothing keeps in step. Same shape as the fourteen stale handoffs and the ban list of four.
+
+### IT NOW READS THE ADDRESSES THE FILE ACTUALLY BUILT
+
+`game_differential.js` already exports them — `midAddresses()` returns the strings `midDraw` pushed,
+`midResetAddresses()` clears the buffer. The test now clears per game (so the set is comparable with
+`midEventLog()`, which `midEventDice` clears per call) and asserts two things about the real output:
+
+| claim | measured, 900 games, release `6a845424c450` |
+|---|---|
+| its named-category addresses name a turn, a move and a target | **0 of 1,922 degenerate**, 0 draws with no battle in scope |
+| those same addresses clear the pooled floor of 90% | **99.1% over 1,913 events**, against 99.1% from the test's own independent `Battle.prototype` hook |
+
+A degenerate address is `<seed>|0|<cat>|-|-|<nth>` — turn 0, no move, no target, only the repeat index
+moving. That is a global SEQUENCE wearing an address, and it is precisely the object #262 replaced the
+sequence design to be rid of. A capture that is not happening cannot fake a turn number.
+
+### THE CONTROL COULD FAIL, AND ONE ARM OF IT HAD TO BE ESTABLISHED RATHER THAN ASSUMED
+
+Both captures replaced with `MIDW.battle = null`, run, reverted: **446 of 446 degenerate**, identity
+**0.0%**, both new claims RED, and `midAddresses().no_battle` went 0 → 601.
+
+**Breaking the wrapper alone does nothing**, and that is the arm that had to be measured rather than
+guessed: `playGame` also binds `MIDW.battle = MID_UNBOUND ? null : battle` at prng-install
+(`:3036`), and `BattleActions#battle` is the same object, so with the install binding live the
+wrapper's capture is redundant for the four named categories. A control that broke only the line the
+claim names would have stayed green and proved nothing. `--mid-unbound` is likewise not a control for
+this claim — it is the before-arm for the `any` bucket and leaves the named four addressed.
+
+Per-category identity is byte-identical either side of the change (`acc` 99.4 / `dmg` 99.3 / `crit`
+99.1 / `sec` 98.1 over 536 / 536 / 532 / 309 events), so nothing but the clause moved.
+
+### TWO VACUOUS CLAIMS IN THE SAME FILE, CONFIRMED AND DELIBERATELY LEFT ALONE
+
+Filed by MEASURE (`docs/_reports/2026-08-27-nth-mixing.md`), re-derived here, and **not changed** —
+tightening either moves the gate number, so it belongs in the same commit as the hash decision that
+ROADMAP `#478` is holding for Will.
+
+- *"a different REPEAT INDEX is a different address"* asserts `!==` where it means **independence**.
+  The two values differ by exactly **0.003906 = 1/256**, and the median gap across 400 turns is the
+  same 0.003906 against ~0.333 for a uniform pair. It passes now and passes after any conceivable fix.
+- *"uniform enough to price a 90-accuracy move"* sweeps `'acc|' + i` — the failing axis — and measures
+  the **marginal**: 0.9214, inside its ±3 points. The conditional structure on that axis is broken:
+  **lag-1 correlation 0.887**, and **91 runs against an expected ~901**.
+
+What they should assert instead, when the hash decision lands: the repeat claim should be a
+**distributional** one over many bases (the `nth`-to-`nth+1` gap spread across ≥500 addresses, floored
+away from a constant), and the uniformity claim should carry a **serial** statistic — the runs count or
+the lag-1 correlation — beside the marginal, because a marginal is exactly what a translation preserves.
+
+### THE HAND LIST
+
+Nothing left it and nothing joined it. No mechanic was involved.
+
+### OWED, NOT RUN
+
+Nothing. No engine byte moved, so no re-run is owed: the census, the three roster stages, the whole-game
+and board-material clauses and the 6,000-row damage differential are all untouched by a change confined
+to `tests/test-middle-identity.js`.
+
 ## A FAINT REPLACEMENT IS ONE BATCHED ENTRY EVENT, AND THE ORDER IS THE CORPSE'S **RAW** SPEED. **WHOLE-GAME CLAUSE 9 OF 961 -> 6 OF 961. BOARD-MATERIAL UNMOVED AT 1 OF 961. CENSUS UNMOVED AT 754 / 754 / 0.** 2026-08-27 (ENGINE).
 
 CHANGELOG 5.169.0. Register `#481` — **CLOSED**. Release `6a845424c450`. One probe added:
