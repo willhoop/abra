@@ -14,16 +14,16 @@ game rather than a re-run.
 OPS — the live bot and the store
   store: WITHHELD — engine/provenance.js calls data/live.js UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    older than its input kad-replays.js
-    (+2 more — node engine/provenance.js)
+    co-generated with archetypes.json by engine/refresh-site-data.NOARCH.py — ordering within one run is not staleness
+    (+3 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/refresh-site-data.NOARCH.py
   live-games/: 34 battles recorded
-  data/games.ladder.jsonl      last written 2026-08-27 03:01
-  data/games.bo3.jsonl         last written 2026-08-27 03:02  <- the Force-OTS format, collected hourly
+  data/games.ladder.jsonl      last written 2026-08-27 06:01
+  data/games.bo3.jsonl         last written 2026-08-27 06:02  <- the Force-OTS format, collected hourly
   data/games.ots.jsonl         last written 2026-08-21 22:35  <- FROZEN external import, complete; date is an import, not a heartbeat
 ```
 
-_stamped 2026-08-27 05:50_
+_stamped 2026-08-27 06:13_
 
 <!-- /GENERATED -->
 

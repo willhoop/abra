@@ -35,7 +35,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-26 18:47
 ```
 
-_stamped 2026-08-27 05:50_
+_stamped 2026-08-27 06:13_
 
 <!-- /GENERATED -->
 
@@ -52,6 +52,42 @@ that trigger.
 restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
+
+### THERE IS NOW A SPEED BASELINE, AND THE BOX IS PART OF IT — 2026-08-27
+
+Full account: `docs/_reports/2026-08-27-speed-baseline.md`. Will: *"i dont care about the old one i
+just want an honest baseline of how fast medicham can play a game out"* — so no prior figure is
+quoted or compared against; a number taken on a different engine is a different measurement.
+
+**One complete game: wall p50 7.4–9.7 ms, p90 10.6–14.1 ms, p99 14.4–19.1 ms, CPU 11.5–14.3 ms.**
+**Do not quote a max from it** — in all twelve repeat runs the slowest game WAS the cold first game.
+n = 2,831 games in the headline run, all played to natural completion by a side wipe, **zero** hitting
+the 200-turn safety cap. Turns p50 7, p90 10, max 21. Release `6a845424c450` (HEAD, 0 of 26 files
+moved), `--team-store data/team-pool-frozen`. Composable primitive: **~1.1 ms per turn**; the turn
+loop is 98.7% of a game and turn count explains 60% of the variance in its length.
+
+**The cap does not bind.** Only 4.4% of games reach turn 12 at all, so the whole-game differential's
+12-turn cap truncates 1 game in 23 and is a no-op on the rest.
+
+**Nobody is searching in that number.** It is `battleTurn(S, rng)` with no action arrays — medicham2's
+own greedy policy on both sides, the same call `battle()` and `previewLeaf` make. A MILTANK-driven
+game will run longer and cost proportionally more. Scale by your own turn count, never reuse 8 ms.
+
+**AND THE HEADLINE IS A RANGE FOR A MEASURED REASON, WHICH IS THIS DIVISION'S PROBLEM AND NOT AN
+ASIDE.** The within-run noise floor (LESSONS §9, one arm split by interleave) is **0.006–0.152 ms**.
+On that floor almost anything is significant. It is the wrong floor: **twelve byte-identical repeats
+drifted 8.04 → 9.74 ms p50, monotone, 140× that floor**, and an idle gap took it back to 7.82 before
+it began climbing again. `cpu/wall` held flat at 1.40–1.45 throughout and free RAM did not move, so
+it is neither contention nor memory — it is a laptop shedding boost clock.
+
+**So: on this box, any A/B whose arms run at different times, on a difference under ~20%, is measuring
+the thermal state of the laptop.** Interleave the arms or do not run the test. That binds MEASURE's
+own future work first.
+
+Also measured and worth carrying: **CPU per game is 1.4× wall** (V8 GC/compile threads), so six
+concurrent processes want ~11 of 16 cores at ~500 MB RSS each — the documented six-process cap is
+tighter than it looks. And `tools\lownode.cmd` (BelowNormal) cost **0.069 ms**, below the noise floor:
+free, exactly as its header claims.
 
 ### THE FIXTURE-LEGALITY GATE WAS RED AT FIVE AND THREE OF THE FIVE WERE THE GATE — 2026-08-26
 

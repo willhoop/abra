@@ -36,7 +36,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-08-27 05:50_
+_stamped 2026-08-27 06:13_
 
 <!-- /GENERATED -->
 
