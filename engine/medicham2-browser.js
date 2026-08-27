@@ -593,6 +593,24 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      a body that cannot use a sound move. It is also the emitter of the `-end` line, so a zero beside a
      non-zero `soundLockApplied` means the line is missing again. */
   soundLockEnded: 0,
+  /* 2026-08-27 -- a SECOND chop into a body already carrying the lock, refused rather than rewritten.
+     `Pokemon#addVolatile` (sim/pokemon.ts:1994-1997) refuses a volatile the body already holds when
+     its condition declares no `onRestart`, and `throatchop`'s does not. A zero here beside a
+     `soundLockApplied` above 1 means every re-click is still restarting the clock, which is what this
+     engine did until today: the authority's `-end` came a turn earlier than ours and the target was
+     silenced for a turn it should have had. */
+  soundLockRestartRefused: 0,
+  /* 2026-08-27 -- STEP 0, ANSWERED WHERE THE AUTHORITY ANSWERS IT: above the shield, which is step 1.
+     `invulnDecidedAboveShield` counts a target the pre-pass refused (and emitted the `-miss` for);
+     `invulnRowDropped` counts the row `_stepInvuln` then removed from the driver. They must move
+     TOGETHER -- a decision with no drop is a body that was announced missed and then hit, and a drop
+     with no decision is the pre-fix path running under the knob. */
+  invulnDecidedAboveShield: 0, invulnRowDropped: 0,
+  /* 2026-08-27 -- a hazard click refused because the side is already at that hazard's cap, and
+     therefore announced as a failure. A zero here on a run holding hazards means the `-fail` is
+     missing again -- which is what it was, on every re-laid Stealth Rock and Sticky Web in the pool,
+     while the SCREEN half of the identical rule had been wired since WIRE 8. */
+  hazardRecapRefused: 0,
   /* ROADMAP #161 -- Psychic Noise's heal block, applied by its ONE owner. A zero means the move is
    * back to landing 75 base power and nothing else, which is what WIRE 30 was written to fix. */
   healBlockApplied: 0,
@@ -1851,6 +1869,19 @@ const MEDFAILS = { encoreAction: 0,
      `volRestartBlindRestored` is the knob and must read 0 on any shipping run. */
   volRestartTableFailed: 0, volRestartTableFailedFirst: '',
   volRestartBlindRestored: 0,
+  /* 2026-08-27 -- a sound-lock carrier whose `volatileRestart` row the artifact does not hold, so the
+     re-application question could not be ASKED and the old rewrite was taken. Zero across this format
+     today (throatchop is the only `blocksSoundMoves` carrier and it has a row); the counter exists so
+     a carrier arriving without one reads as an unanswered question rather than as a working feature.
+     `soundLockRestartsRestored` is the knob and must read 0 on any shipping run. */
+  soundLockNoRestartRow: 0, soundLockNoRestartRowFirst: '',
+  soundLockRestartsRestored: 0,
+  /* 2026-08-27 -- the knob that puts the semi-invulnerability verdict back BELOW the shield. Must
+     read 0 on any shipping run. */
+  invulnBelowShieldRestored: 0,
+  /* 2026-08-27 -- the knob that puts the re-laid hazard's silence back. Must read 0 on any shipping
+     run. */
+  hazardRecapSilentRestored: 0,
   /* 2026-08-24 -- a move carrying BOTH costsUserHP and a declared boost table that did NOT dispatch to
      the `setup` branch, so the deferred payment would have had nowhere to land and it paid at the old
      (authority-wrong) position instead. Zero across this format today -- clangoroussoul is the only
@@ -3695,6 +3726,21 @@ const EMPTY_HAND_IS_THE_SLOT=(typeof process!=='undefined'&&process.env&&process
  * than two on purpose -- the pre-fix arm is the control the probe needs, and either half alone is a
  * shape the authority never has. A knob run turns exactly the punishesMinimize census row red. */
 const PUNISH_MINIMIZE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PUNISH_MINIMIZE_BLIND==='1');
+/* 2026-08-27 -- MEDI_SOUND_LOCK_RESTARTS=1 restores the pre-fix rewrite: a second Throat Chop into an
+ * already-silenced body writes the counter again instead of being refused. That is the whole of the
+ * defect and nothing else, so a knob run parts exactly on the `-end` line that the restarted clock
+ * swallows and leaves every other sound-lock row alone. See the `blocksSoundMoves` branch. */
+const SOUND_LOCK_RESTARTS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SOUND_LOCK_RESTARTS==='1');
+/* 2026-08-27 -- MEDI_INVULN_BELOW_SHIELD=1 restores the pre-fix STAGE order: the semi-invulnerability
+ * verdict is taken inside `_stepInvuln`, below the shield pre-pass, so a `-miss` is announced after a
+ * Protect `-activate` belonging to a different target. Exactly the one ordering and nothing else -- a
+ * knob run parts on that pair of lines and leaves every other invulnerability row alone. */
+const INVULN_BELOW_SHIELD=(typeof process!=='undefined'&&process.env&&process.env.MEDI_INVULN_BELOW_SHIELD==='1');
+/* 2026-08-27 -- MEDI_HAZARD_RECAP_SILENT=1 restores the pre-fix silence: a hazard clicked onto a side
+ * already at that hazard's cap lays nothing and says nothing, where the authority writes `|-fail|`.
+ * Exactly that and nothing else -- the layer arithmetic is `layHazard`'s and is untouched by the
+ * knob, so a knob run parts on the missing line and leaves every layer count identical. */
+const HAZARD_RECAP_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HAZARD_RECAP_SILENT==='1');
 function volRefusesRestart(vol){
   if(VOL_RESTART_BLIND){MEDFAILS.volRestartBlindRestored=1;return false;}
   const d=volRestartTable().get(vol);
@@ -22339,8 +22385,42 @@ function battleTurn(S,rng,actsForA,actsForB){
            AT THE CAP NOTHING IS ANNOUNCED, which is Showdown's own behaviour: `onSideRestart`
            returns false before it reaches `this.add('-sidestart', ...)`. `layHazard` returns whether
            a layer went down and does the emitting itself. */
-        if(_h&&_h.hazard&&_fsf)
-          layHazard(_fsf,_h.hazard,_h.maxLayers,m,it.side==='A'?'p2':'p1');
+        /* 2026-08-27 -- AND A LAYER THAT DID NOT GO DOWN IS A MOVE THAT FAILED, WHICH IS ANNOUNCED.
+         *
+         * `layHazard` has always RETURNED whether a layer went down and this call site threw the
+         * answer away, so a Sticky Web onto a side that already has one was silent where the
+         * authority writes `|-fail|`. `data/divergence-turns.json`, config `baseline` turn 7:
+         *     SHOWDOWN  |move|p1b: Ariados|stickyweb|p1b: Ariados   |-fail|p1b: Ariados
+         *     MEDICHAM  |move|p1b: Ariados|stickyweb|p1b: Ariados   (nothing)
+         *
+         * `Side#addSideCondition` (sim/side.ts) returns false for a condition already present whose
+         * condition declares no `onSideRestart`, and `moveHit` turns that false into the line
+         * (sim/battle-actions.ts:1240-1241 feeding :1303-1308 -- `didAnything === false` ->
+         * `add('-fail', source)`).
+         *
+         * THE SCREEN HALF OF THIS RULE WAS ALREADY WIRED. ROADMAP #81 WIRE 8 calls `mvFail` when a
+         * screen is already up, in the `screen` branch a few hundred lines down; the hazard branch is
+         * the half that was never done. One rule, two side-condition families, and only one of them
+         * had a consumer.
+         *
+         * IT IS THE CAP THAT DECIDES, NOT THE MOVE. `layHazard` refuses at `maxLayers` -- 1 for
+         * Stealth Rock and Sticky Web, 2 for Toxic Spikes, 3 for Spikes -- so a Spikes clicked a
+         * second time lays a second layer and announces nothing, and the fourth fails. The counter is
+         * asserted at both caps by tests/probe_hazard_recap_fail.js rather than argued about.
+         *
+         * THE CARD WAS HANDED OVER AS "a move with no legal target never prints its -fail" AND IT IS
+         * NOT THAT: Sticky Web's target is `foeSide`, which never reaches `useMoveInner`'s no-target
+         * return at all. The no-target shape was STAGED alongside this one and both engines already
+         * agree on it.
+         *
+         * MEDI_HAZARD_RECAP_SILENT=1 restores the silence. */
+        if(_h&&_h.hazard&&_fsf){
+          const _laid=layHazard(_fsf,_h.hazard,_h.maxLayers,m,it.side==='A'?'p2':'p1');
+          if(!_laid){
+            if(HAZARD_RECAP_SILENT)MEDFAILS.hazardRecapSilentRestored=1;
+            else {MEDSEEN.hazardRecapRefused++;mvFail(m);}
+          }
+        }
         m._lastMove=a.mv;continue;
       }
       /* WIRE 42 -- SUBSTITUTE, both halves. It FAILS outright below the threshold the tag names
@@ -25375,10 +25455,71 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * The blocked bodies are REMOVED from `targets`, so an emptied list is what the fail path
        * reads -- there is no second "was it blocked" flag to keep in step with this one. */
+      /* 2026-08-27 -- AND STEP 0 IS ANSWERED ABOVE IT, BECAUSE THE SHIELD IS STEP 1.
+       *
+       * `trySpreadMoveHit` names its own order (sim/battle-actions.ts:553-577) and runs STEP OUTSIDE,
+       * TARGET INSIDE, so every target's step-0 answer precedes every target's step-1 answer:
+       *
+       *     0  hitStepInvulnerabilityEvent   the `-miss` of a semi-invulnerable body
+       *     1  hitStepTryHitEvent            Protect, Wide Guard, the absorbing abilities
+       *
+       * WIRE 1 hoisted the shield above the DRIVER to get it above the accuracy roll, which was right,
+       * and it went one stage too far -- above step 0 as well. On the pinned pool that is one Earthquake
+       * into a Protecting Milotic and a Houndstone mid-Phantom Force, `pair-protect-bust` turn 10:
+       *
+       *     SHOWDOWN   |-miss|p1b: Garchomp|p2b: Houndstone   |-activate|p2a: Milotic|move: Protect
+       *     MEDICHAM   |-activate|p2a: Milotic|move: Protect  |-miss|p1b: Garchomp|p2b: Houndstone
+       *
+       * TWO PREVIOUS PASSES AIMED AT TARGET ORDERING AND COULD NOT MOVE IT. The two lines belong to
+       * two different TARGETS and two different STAGES; re-ordering the target walk cannot carry one
+       * past the other, because within one stage each target is answered exactly once.
+       *
+       * `targets` IS NOT FILTERED HERE AND THAT IS DELIBERATE. The verdict is recorded in a set and
+       * `_stepInvuln` -- still step 0 of `_STEPS`, still the only place a row is dropped -- reads it.
+       * Filtering would move the fully-invulnerable move onto the shield's `_mvRes = null` exit, and
+       * an invulnerable target is Showdown's `false` (`atLeastOneFailure`) where a shield is its
+       * NOT_FAIL. Two different results for `moveThisTurnResult`, which Stomping Tantrum reads.
+       *
+       * THE VERDICT IS COMPUTED ONCE, WHICH IS ALSO CLOSER TO THE AUTHORITY than computing it twice.
+       * Nothing between here and the driver can change `_invuln`, `_charging` or the lock-on that
+       * `guaranteedAgainst` reads.
+       *
+       * WHAT THIS DOES NOT FIX, SAID RATHER THAN LEFT TO BE FOUND: the WIDE GUARD block sits ABOVE
+       * this line and is also a step-1 handler, so a side guard still announces itself before a
+       * step-0 `-miss`. Moving it too would change which targets a side guard is asked about, which is
+       * a second change and is not made here.
+       *
+       * MEDI_INVULN_BELOW_SHIELD=1 restores the old stage order in one place -- the verdict is taken
+       * inside `_stepInvuln` again, below the shield -- and changes nothing else. */
+      const _invulnOut=new Set();
+      const _invulnDecide=(tg)=>{
+        if(!tg||tg.fainted)return false;
+        if(!tg._invuln)return false;
+        if(guaranteedAgainst(m,tg)){MEDSEEN.guaranteedThroughInvuln++;return false;}
+        const _si=tg._charging?TAGS.param('move',tg._charging,'semiInvulnerable'):null;
+        if(!_si){
+          MEDFAILS.invulnWithoutChargeSource++;
+          if(!MEDFAILS.invulnWithoutChargeSourceFirst)
+            MEDFAILS.invulnWithoutChargeSourceFirst=String(tg._charging||'(no _charging)');
+        }
+        const _pierce=(_si&&Array.isArray(_si.pierces))?_si.pierces:[];
+        if(_pierce.indexOf(a.move.id)>=0){ MEDSEEN.invulnPierced++; return false; }
+        return true;
+      };
+      if(!INVULN_BELOW_SHIELD){
+        for(const tg of targets) if(_invulnDecide(tg)){
+          _invulnOut.add(tg); _explicitFail=true; if(TR)TR.miss(m,tg);
+          MEDSEEN.invulnDecidedAboveShield++;
+        }
+      }
       if(targets.length){
         const _through=[];
         for(const tg of targets){
           if(!tg||tg.fainted){_through.push(tg);continue;}
+          /* STEP 0 ALREADY REFUSED THIS BODY, so step 1 is never asked about it -- the authority's
+             loop breaks out of the step list for a target the previous step dropped. Kept IN
+             `targets` so `_rows` still carries it and `_stepInvuln` is the one place it is dropped. */
+          if(_invulnOut.has(tg)){_through.push(tg);continue;}
           if(!(tg.protect&&!_thruProtect&&!_pierceP)){
             /* WIRE 158 -- COUNTED HERE AND ONLY HERE, because this is the site where a shield that
              * would otherwise have refused the move is actually walked through. A pierce ability on a
@@ -25690,6 +25831,13 @@ function battleTurn(S,rng,actsForA,actsForB){
        * in Showdown's list and fourth here, which is why the step list is data and the blocks below
        * are written in whatever order the file already had them. */
       const _stepInvuln=(R)=>{const tg=R.tg;
+        /* 2026-08-27 -- THE VERDICT WAS TAKEN ABOVE THE SHIELD (step 0 precedes step 1) and this is
+         * still the ONLY place a row is dropped for it. See `_invulnDecide` for why the answer moved
+         * and the emission with it. The body below is the pre-fix path and runs only under
+         * MEDI_INVULN_BELOW_SHIELD=1, so it is not dead code -- it is the knob's arm. */
+        if(_invulnOut.has(tg)){R.out=true;MEDSEEN.invulnRowDropped++;return;}
+        if(!INVULN_BELOW_SHIELD)return;
+        MEDFAILS.invulnBelowShieldRestored=1;
         /* OFF THE FIELD. A Pokemon in the charge turn of Fly, Dig, Dive, Bounce or Phantom Force
          * cannot be hit at all. Without this the charge is pure cost and those five become strictly
          * worse than reality -- the same one-directional error as the unmodelled charge, reversed. */
@@ -27705,9 +27853,48 @@ function battleTurn(S,rng,actsForA,actsForB){
                      THE `-start` FIELD 3 IS `Throat Chop`, NOT `move: Throat Chop`. Read off the
                      authority's own line above; `this.add('-start', target, 'Throat Chop', '[silent]')`
                      is the emitter and the `move:` prefix was this engine's invention. */
-                  const _n0=tg._noSound; tg._noSound=+_bs.turns;
-                  if(TR&&!(_n0>0))TR.vstart(tg,'Throat Chop','[silent]');
-                  MEDSEEN.soundLockApplied++;
+                  /* 2026-08-27 -- AND THE SECOND CHOP DOES NOT RESTART THE CLOCK. `_n0` was already
+                     read HERE, to suppress the duplicate `-start` line, and the counter was rewritten
+                     anyway -- so the engine knew the lock was up and restarted it regardless. On the
+                     pinned pool that is `|-end|p1a: Mawile|Throat Chop|[silent]` against our
+                     `|upkeep`: the authority's clock ran out on the turn of the second chop and ours
+                     did not, so the target lost a turn of sound moves that the real game gives back.
+
+                     THE RULE IS THE ONE ALREADY DERIVED, ASKED FROM A SECOND ROAD. `volRefusesRestart`
+                     reads `data/tags.json`'s `volatileRestart` table -- for throatchop,
+                     `{restart:false, duration:2}`, DERIVED from `dex.conditions.get(throatchop)
+                     .onRestart` -- and is consulted inside `applyMoveVolatile`, which only ever sees
+                     state that lives in `_vol`. The sound lock lives in `tg._noSound`, outside it, so
+                     Throat Chop walked past a reader that already held its answer. Writing a second
+                     `if (_n0 > 0) return;` here would have been a second implementation of one fact
+                     (CLAUDE.md); asking the same table is not.
+
+                     THE VOLATILE NAME IS NOT TYPED. It comes off the carrier's own `volatileRestart`
+                     row, so a second `blocksSoundMoves` move arriving with a DIFFERENT volatile — or
+                     with `onRestart` declared, which would make restarting correct — is answered by
+                     the artifact rather than by this line. A carrier with NO row cannot be asked at
+                     all: that takes the old rewrite AND is counted, because "the authority refuses
+                     this" and "nobody could tell" must not read alike.
+
+                     THE PARTIAL TRAP IS THE SAME SHAPE AND WAS ALREADY GUARDED -- `!tg._trap` sits on
+                     its own application below -- so this changes nothing there. Measured rather than
+                     assumed: tests/probe_sound_lock_restart.js stages the trap re-applied on two
+                     consecutive turns as arm E and it agrees in both arms of the knob. */
+                  const _n0=tg._noSound;
+                  let _refuse=false;
+                  if(_n0>0){
+                    const _vr=TAGS.param('move',a.move.id,'volatileRestart');
+                    const _vk=(_vr&&_vr.byVolatile)?Object.keys(_vr.byVolatile):[];
+                    if(!_vk.length){ MEDFAILS.soundLockNoRestartRow++;
+                      if(!MEDFAILS.soundLockNoRestartRowFirst)
+                        MEDFAILS.soundLockNoRestartRowFirst=String(a.move.id); }
+                    else if(_vk.every(v=>volRefusesRestart(v))) _refuse=true;
+                    if(_refuse&&SOUND_LOCK_RESTARTS){_refuse=false;MEDFAILS.soundLockRestartsRestored=1;}
+                  }
+                  if(_refuse) MEDSEEN.soundLockRestartRefused++;
+                  else { tg._noSound=+_bs.turns;
+                         if(TR&&!(_n0>0))TR.vstart(tg,'Throat Chop','[silent]');
+                         MEDSEEN.soundLockApplied++; }
                 } else MEDSEEN.secondaryEffectless++;
               }
             }

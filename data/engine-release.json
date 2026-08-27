@@ -1,10 +1,10 @@
 {
-  "current": "6272fa445b73",
-  "cut": "2026-08-27T02:31:30.485Z",
-  "why": "punishesMinimize: the six minimize-flagged moves cannot miss a minimized body and deal double to it (ROADMAP #466)",
-  "cuts": 34,
-  "latest_cut": "2026-08-27T02:48:15.097Z",
+  "current": "d03fb31456e2",
+  "cut": "2026-08-27T04:35:14.986Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 9,
+  "latest_cut": "2026-08-27T04:52:38.427Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-27T02:48:15.111Z",
+  "pointer_written": "2026-08-27T04:52:38.440Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

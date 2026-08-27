@@ -75,6 +75,47 @@ Listed in full in the report.
 
 ---
 
+## THREE LINES, THREE KNOBS, THREE PROBES - AND THE ONE FILED AS NARRATION WAS BOARD-MATERIAL. **WHOLE-GAME CLAUSE 13 -> 10 OF 961, RAW 18 -> 15, BOARD-MATERIAL 4 -> 3.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27 (ENGINE).
+
+CHANGELOG 5.156.0. Register rows: ROADMAP **#468, #469, #470 - all three closed**; **#415 reopened and
+re-closed** (its clock fix was right and never covered a SECOND chop). Release cut: **`d03fb31456e2`**.
+Full account: `docs/_reports/2026-08-27-three-lines.md`.
+
+| fix | knob | probe | the divergence it closes |
+|---|---|---|---|
+| the sound lock refuses a restart | `MEDI_SOUND_LOCK_RESTARTS=1` | `tests/probe_sound_lock_restart.js` | `\|-end\|p1a\|throatchop <> \|upkeep` |
+| step 0 is decided above the shield | `MEDI_INVULN_BELOW_SHIELD=1` | `tests/probe_protect_stage_order.js` | `\|-miss\|p1b\|p2b <> \|-activate\|p2a\|protect` |
+| a capped hazard announces its failure | `MEDI_HAZARD_RECAP_SILENT=1` | `tests/probe_hazard_recap_fail.js` | `\|-fail\|p1b <> \|upkeep` |
+
+**THE PREDICTION MISSED ONCE, IN THE GOOD DIRECTION, AND THE MISS IS NAMED.** Board-material was
+predicted UNMOVED at 4 because the hazard card is classed `event missing from medicham2`, which reads
+as narration. The cause that left the board-material worklist is exactly that card
+(`turn 6  |-fail|p1b <> |upkeep`); the other three causes are byte-identical to the list this batch
+inherited. One cause leaving, not a reshuffle.
+
+**TWO OF THE THREE HANDED DIAGNOSES WERE WRONG AND BOTH WERE SHOWN WRONG RATHER THAN ARGUED.** The
+Throat Chop card named `_trap` as the same defect - `!tg._trap` already guards its own application
+site, arm E stages the trap re-applied on two consecutive turns, and it agrees in BOTH arms of the
+knob, so `_trap` was left alone. The `-fail` card was handed over as *"a move with no legal target"* -
+Sticky Web's target is `foeSide`, which never reaches that return; both shapes were staged side by side
+and only the hazard one parted.
+
+**THE PROBES WERE WRONG BEFORE THE ENGINE WAS, SIX TIMES, AND EVERY ONE PRODUCED A GREEN ARM THAT HAD
+STAGED NOTHING** - a mega forme picked out of a learnset walk, a self-only sound move, a victim
+one-shot on turn 1, a victim shielding itself against the chop, a charger faster than the attacker (so
+the charge came down before the spread was thrown), and an ally raising the shield a control was
+counting. All six were found by reading the counters rather than by an arm going red. Listed in full in
+the report.
+
+**RUN AND GREEN**: `test-mechanics` (754/754/0, unmoved), `test-engine-diff --n 6000` (0 of 6000 at all
+sixteen corners), the three roster stages with `--write` on the new release (139 / 129 / 475, 0 DIFFER,
+0 DID-NOT-FIRE), `all_mechanics_fire --kind all --write` (1289 games, 0 threw), and sixteen further
+ENGINE gates. **NOT RUN, AND SAID SO**: the interaction matrix, `wire_ladder.js`, `run-all.js` in full,
+`staged_board.js`. **STILL OPEN**: the WIDE GUARD block is also a step-1 handler and still announces
+before a step-0 `-miss`; no probe fails on it yet.
+
+---
+
 ## A DIVERGENCE PROPOSED AS `INCOMPARABLE` IS A SHARED-STREAM ADDRESS BUG. **REFUSED. CLAUSE UNMOVED AT 13 OF 961, BOARD-MATERIAL 4 OF 961.** 2026-08-27 (MEASURE).
 
 CHANGELOG 5.154.0. ROADMAP **#467, open**. Full account: `docs/_reports/2026-08-27-incomparable.md`.

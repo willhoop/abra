@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-27T03:43:57.473Z",
+  "generated": "2026-08-27T04:48:35.761Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:2efbc9ed1946/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -43,7 +43,7 @@
       "damage_roll": "MINIMUM",
       "speed_tie": "to the EARLIER body",
       "games": 961,
-      "diverged": 18,
+      "diverged": 15,
       "threw": 0,
       "median_turns": 12,
       "end_reasons": {
@@ -61,13 +61,13 @@
       "classes": [
         {
           "cls": "ordering",
-          "games": 7,
-          "distinct_causes": 6
+          "games": 6,
+          "distinct_causes": 5
         },
         {
           "cls": "event missing from medicham2",
-          "games": 7,
-          "distinct_causes": 7
+          "games": 5,
+          "distinct_causes": 5
         },
         {
           "cls": "-damage field 3",
@@ -107,7 +107,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 98.2,
+  "elapsed_s": 230.3,
   "credit_turn_profile": {
     "rows_with_any_credit": 252,
     "credits_with_no_turn_index": 0,
@@ -771,11 +771,11 @@
     "rates": {
       "with_megas": {
         "games": 955,
-        "diverged": 17
+        "diverged": 14
       },
       "control_same_pairs_no_stones": {
         "games": 955,
-        "diverged": 16
+        "diverged": 14
       },
       "pairs_with_no_stone_at_all": {
         "games": 6,
@@ -783,16 +783,16 @@
       },
       "whole_control_arm": {
         "games": 961,
-        "diverged": 17,
+        "diverged": 15,
         "note": "every stone stripped — this is what the 2026-08-06 run measured"
       }
     },
     "pairing_broken": 0,
     "cost_of_the_megas": {
       "stone_carrying_pairs": 955,
-      "mega_arm_parted_earlier": 6,
-      "mega_arm_parted_later": 6,
-      "parted_at_the_same_line": 943,
+      "mega_arm_parted_earlier": 5,
+      "mega_arm_parted_later": 5,
+      "parted_at_the_same_line": 945,
       "first_divergence_is_a_mega_line": 0,
       "first_divergence_is_a_detailschange_line": 0,
       "on_a_mega_line": [],
@@ -817,7 +817,7 @@
       {
         "id": "ability-announcement",
         "why": "Showdown's `|-ability|` is a COSMETIC announcement that an ability activated (SIM-PROTOCOL). Every consequence of it is a separate line and is kept, so dropping the announcement cannot hide an ability that did not fire — its effect would still be missing.",
-        "lines_collapsed": 141678,
+        "lines_collapsed": 141696,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -847,7 +847,7 @@
       {
         "id": "source-tag",
         "why": "`[of] pXy` names the BODY behind an effect whose name is already carried by `[from]`. The two engines tag it inconsistently on -heal, -activate and -damage.",
-        "lines_collapsed": 89764,
+        "lines_collapsed": 89794,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -862,7 +862,7 @@
       {
         "id": "effect-namespace",
         "why": "Showdown writes an effect sometimes bare and sometimes namespaced — `|-sidestart|p1: A|Reflect` against this engine's `move: reflect`. The NAME is kept; only the namespace goes.",
-        "lines_collapsed": 193130,
+        "lines_collapsed": 193252,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -877,7 +877,7 @@
       {
         "id": "display-flags",
         "why": "`[silent]`, `[still]`, `[miss]` and `[spread]` are rendering hints. The state each one decorates is a separate event — `-miss` for a miss, `-prepare` for a charge, one `-damage` per body actually hit for a spread — and all of those are kept.",
-        "lines_collapsed": 147754,
+        "lines_collapsed": 147854,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -892,7 +892,7 @@
       {
         "id": "move-target-field",
         "why": "THE BIGGEST ONE, AND THE ONE THAT NEEDS THE ARGUMENT. A `|move|` line means \"this body used this move\". Showdown additionally names ONE nominal target plus `[spread]`; this engine names its own user on a spread move. WHO WAS ACTUALLY HIT is not in this field on either side — it is in the `-damage` / `-status` / `-unboost` / `-enditem` lines that follow, which are kept and compared body by body. A redirection bug is therefore caught one line later rather than not at all, and the `distinct` pair below is exactly that case.",
-        "lines_collapsed": 450589,
+        "lines_collapsed": 450877,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -907,7 +907,7 @@
       {
         "id": "switch-cause",
         "why": "a pivot switch is tagged `[from] U-turn` by Showdown; the pivot itself is the `|move|` line immediately before it, which is kept. The species and the HP on the switch line are kept.",
-        "lines_collapsed": 188,
+        "lines_collapsed": 190,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -920,7 +920,7 @@
         ]
       }
     ],
-    "total_lines_collapsed": 1030569
+    "total_lines_collapsed": 1031129
   },
   "entity_annotation": {
     "by": "engine/effect_kind.js",
@@ -1143,13 +1143,13 @@
     },
     "verdict": "the predicted DAMAGE bug does not reproduce — medicham2 prices both halves correctly because playerAction computes the range at CLICK time, before the item is stripped. What differs is the item DISPOSITION: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF."
   },
-  "diverged": 18,
+  "diverged": 15,
   "threw": 0,
   "mid_void": {
     "void_games": 1,
     "usable_games": 960,
-    "diverged_among_usable": 17,
-    "diverged_rate_over_usable": 0.0177,
+    "diverged_among_usable": 14,
+    "diverged_rate_over_usable": 0.0146,
     "mid_battle_bound_at_install": true,
     "empty_address_games_counted_void": false,
     "overlap_floor": 0.9,
@@ -1164,7 +1164,7 @@
     "by_reason_detail": {
       "shared-addresses-agree": {
         "games": 185,
-        "diverged": 10,
+        "diverged": 7,
         "median_turns": 12,
         "max_turns": 12
       },
@@ -1386,13 +1386,13 @@
       "by_protocol_class": [
         {
           "cls": "ordering",
-          "games": 7,
-          "board_identical_at_end_of_turn1": 7
+          "games": 6,
+          "board_identical_at_end_of_turn1": 6
         },
         {
           "cls": "event missing from medicham2",
-          "games": 7,
-          "board_identical_at_end_of_turn1": 7
+          "games": 5,
+          "board_identical_at_end_of_turn1": 5
         },
         {
           "cls": "-damage field 3",
@@ -1426,8 +1426,8 @@
     "games_board_never_diverged": 957,
     "game_agreement": 0.9958,
     "median_turn_of_first_board_divergence": 6,
-    "protocol_diverged_games": 18,
-    "protocol_diverged_board_never_did": 14,
+    "protocol_diverged_games": 15,
+    "protocol_diverged_board_never_did": 12,
     "protocol_diverged_board_held_longer": 0,
     "board_parted_before_the_protocol_did": 2,
     "families": [
@@ -1523,7 +1523,7 @@
         "config": "baseline",
         "seed": "gen9championsvgc2026regmbbo3-2654316929 vs gen9championsvgc2026regmbbo3-2654486674",
         "turn": 6,
-        "protocol_diverged_at_turn": 7,
+        "protocol_diverged_at_turn": null,
         "diffs": [
           {
             "path": "p1.party.ditto.species",
@@ -2460,37 +2460,26 @@
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
-        "protocol_parted": 18,
-        "protocol_never_parted": 943,
+        "protocol_parted": 15,
+        "protocol_never_parted": 946,
         "of_the_games_whose_protocol_parted": {
-          "SAME-END-STATE": 15,
-          "DIFFERENT-END-STATE": 3,
+          "SAME-END-STATE": 13,
+          "DIFFERENT-END-STATE": 2,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
         "of_the_games_whose_protocol_never_parted": {
-          "SAME-END-STATE": 943,
-          "DIFFERENT-END-STATE": 0,
+          "SAME-END-STATE": 945,
+          "DIFFERENT-END-STATE": 1,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
-        "wording_rate_of_all_parted_games": 0.8333,
-        "wording_rate_of_parted_games_with_a_comparable_end": 0.8333,
-        "parted_games_with_a_comparable_end": 18,
+        "wording_rate_of_all_parted_games": 0.8667,
+        "wording_rate_of_parted_games_with_a_comparable_end": 0.8667,
+        "parted_games_with_a_comparable_end": 15,
         "by_shape": [
-          {
-            "shape": "EMISSION",
-            "games": 6,
-            "verdicts": {
-              "SAME-END-STATE": 5,
-              "DIFFERENT-END-STATE": 1,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            }
-          },
           {
             "shape": "RULE",
             "games": 6,
@@ -2508,6 +2497,17 @@
             "verdicts": {
               "SAME-END-STATE": 4,
               "DIFFERENT-END-STATE": 1,
+              "ENDED-APART": 0,
+              "NO-COMPARABLE-BOARD": 0,
+              "THREW": 0
+            }
+          },
+          {
+            "shape": "EMISSION",
+            "games": 3,
+            "verdicts": {
+              "SAME-END-STATE": 3,
+              "DIFFERENT-END-STATE": 0,
               "ENDED-APART": 0,
               "NO-COMPARABLE-BOARD": 0,
               "THREW": 0
@@ -2591,49 +2591,7 @@
             ]
           },
           {
-            "cause": "event missing from medicham2 :: |-fail|p1b <> |upkeep",
-            "games": 1,
-            "board_parted": 1,
-            "board_never_parted": 0,
-            "verdicts": {
-              "SAME-END-STATE": 0,
-              "DIFFERENT-END-STATE": 1,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 0,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 1,
-            "materiality": "BOARD-MATERIAL",
-            "first_board_divergence_turns": [
-              6
-            ]
-          },
-          {
             "cause": "extra event emitted by medicham2 :: |-enditem|p2a|sitrusberry|[eat] <> |-damage|p2a|H/H",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-end|p1a|throatchop <> |upkeep",
             "games": 1,
             "board_parted": 0,
             "board_never_parted": 1,
@@ -2795,26 +2753,6 @@
             "first_board_divergence_turns": []
           },
           {
-            "cause": "ordering :: |-miss|p1b|p2b <> |-activate|p2a|protect",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
             "cause": "ordering :: |switch|p1a|staraptor,l50|H/H <> |switch|p2a|incineroar,l50|H/H",
             "games": 1,
             "board_parted": 0,
@@ -2876,16 +2814,16 @@
           }
         ],
         "by_cause_totals": {
-          "causes": 17,
-          "games": 18,
-          "BOARD_MATERIAL": 4,
-          "NARRATION_ONLY": 13,
+          "causes": 14,
+          "games": 15,
+          "BOARD_MATERIAL": 3,
+          "NARRATION_ONLY": 11,
           "UNKNOWN": 0,
-          "games_board_material": 4,
+          "games_board_material": 3,
           "games_board_material_same_turn": 2,
           "games_board_material_board_parted_later": 0,
-          "games_board_material_board_parted_earlier": 2,
-          "games_narration_only": 14,
+          "games_board_material_board_parted_earlier": 1,
+          "games_narration_only": 12,
           "games_unknown": 0,
           "by_cause_reconciles": true,
           "bounded_by": "NARRATION-ONLY is bounded by board_state.js NOT_COMPARED (published in this artifact as end_state_not_compared) and by the turn cap: a board that would part after the cap reads as narration here."
@@ -3075,8 +3013,8 @@
                     "leaves_compared": 184,
                     "differing_leaves": 2
                   },
-                  "shape": "EMISSION",
-                  "protocol_parted": true,
+                  "shape": "PROTOCOL-NEVER-PARTED",
+                  "protocol_parted": false,
                   "max_body_uses": 493
                 }
               ],
@@ -3148,7 +3086,7 @@
               }
             },
             {
-              "shape": "EMISSION",
+              "shape": "PROTOCOL-NEVER-PARTED",
               "games": 1,
               "by_band": {
                 "1": 0,
@@ -3326,7 +3264,7 @@
     },
     {
       "cls": "ordering",
-      "games": 7,
+      "games": 6,
       "causes": [
         {
           "cause": "ordering :: |-enditem|p2a|whiteherb <> |turn|5",
@@ -3398,23 +3336,6 @@
           "max_uses": null
         },
         {
-          "cause": "ordering :: |-miss|p1b|p2b <> |-activate|p2a|protect",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "protect",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 141728
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 141728
-        },
-        {
           "cause": "ordering :: |switch|p1a|staraptor,l50|H/H <> |switch|p2a|incineroar,l50|H/H",
           "n": 1,
           "mentions": [
@@ -3460,31 +3381,43 @@
       ]
     },
     {
-      "cls": "event missing from medicham2",
-      "games": 7,
+      "cls": "extra event emitted by medicham2",
+      "games": 1,
       "causes": [
         {
-          "cause": "event missing from medicham2 :: |-fail|p1b <> |upkeep",
-          "n": 1,
-          "mentions": []
-        },
-        {
-          "cause": "event missing from medicham2 :: |-end|p1a|throatchop <> |upkeep",
+          "cause": "extra event emitted by medicham2 :: |-enditem|p2a|sitrusberry|[eat] <> |-damage|p2a|H/H",
           "n": 1,
           "mentions": [
             {
-              "kind": "moves",
-              "id": "throatchop",
+              "kind": "items",
+              "id": "sitrusberry",
               "legal": true,
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 5285
+              "uses": 23133
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 5285
-        },
+          "max_uses": 23133
+        }
+      ]
+    },
+    {
+      "cls": "-damage: a different body",
+      "games": 1,
+      "causes": [
+        {
+          "cause": "-damage: a different body :: |-damage|p2a|H/H <> |-damage|p2b|H/H",
+          "n": 1,
+          "mentions": []
+        }
+      ]
+    },
+    {
+      "cls": "event missing from medicham2",
+      "games": 5,
+      "causes": [
         {
           "cause": "event missing from medicham2 :: |-end|p2b|fallenundefined <> |switch|p2b|garchomp,l50|H/H",
           "n": 1,
@@ -3573,40 +3506,6 @@
       ]
     },
     {
-      "cls": "extra event emitted by medicham2",
-      "games": 1,
-      "causes": [
-        {
-          "cause": "extra event emitted by medicham2 :: |-enditem|p2a|sitrusberry|[eat] <> |-damage|p2a|H/H",
-          "n": 1,
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "sitrusberry",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 23133
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 23133
-        }
-      ]
-    },
-    {
-      "cls": "-damage: a different body",
-      "games": 1,
-      "causes": [
-        {
-          "cause": "-damage: a different body :: |-damage|p2a|H/H <> |-damage|p2b|H/H",
-          "n": 1,
-          "mentions": []
-        }
-      ]
-    },
-    {
       "cls": "unrelated event mismatch",
       "games": 1,
       "causes": [
@@ -3660,25 +3559,6 @@
     },
     {
       "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2654316929 vs gen9championsvgc2026regmbbo3-2654486674",
-      "index": 102,
-      "agreed_lines": 102,
-      "turn": 7,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-fail|p1b <> |upkeep",
-      "showdown": "|-fail|p1b: Ariados",
-      "medicham": "|upkeep",
-      "showdown_before": [
-        "|-unboost|p1a: Beedrill|spe|1",
-        "|-unboost|p1b: Ariados|spe|1",
-        "|move|p2b: Sinistcha|Shadow Ball|p1a: Beedrill",
-        "|-damage|p1a: Beedrill|0 fnt",
-        "|faint|p1a: Beedrill",
-        "|move|p1b: Ariados|Sticky Web||[still]"
-      ]
-    },
-    {
-      "config": "baseline",
       "seed": "gen9championsvgc2026regmbbo3-2655780718 vs gen9championsvgc2026regmbbo3-2655961808",
       "index": 132,
       "agreed_lines": 132,
@@ -3694,25 +3574,6 @@
         "|-damage|p2a: Incineroar|140/170",
         "|-damage|p2a: Incineroar|110/170",
         "|-damage|p2a: Incineroar|80/170"
-      ]
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2656159439 vs gen9championsvgc2026regmbbo3-2656116859",
-      "index": 68,
-      "agreed_lines": 68,
-      "turn": 6,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-end|p1a|throatchop <> |upkeep",
-      "showdown": "|-end|p1a: Mawile|Throat Chop|[silent]",
-      "medicham": "|upkeep",
-      "showdown_before": [
-        "|move|p2b: Incineroar|Throat Chop|p1a: Mawile",
-        "|-resisted|p1a: Mawile|1",
-        "|-damage|p1a: Mawile|72/125",
-        "|move|p1a: Mawile|Brick Break|p2a: Pinsir",
-        "|-resisted|p2a: Pinsir|1",
-        "|-damage|p2a: Pinsir|67/140"
       ]
     },
     {
@@ -3846,25 +3707,6 @@
         "|turn|2",
         "|switch|p1a: Froslass|Froslass, L50|145/145",
         "|switch|p2b: Sinistcha|Sinistcha, L50|146/146"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmbbo3-2655608049 vs gen9championsvgc2026regmbbo3-2655559026",
-      "index": 130,
-      "agreed_lines": 130,
-      "turn": 10,
-      "cls": "ordering",
-      "cause": "ordering :: |-miss|p1b|p2b <> |-activate|p2a|protect",
-      "showdown": "|-miss|p1b: Garchomp|p2b: Houndstone",
-      "medicham": "|-activate|p2a: Milotic|move: Protect",
-      "showdown_before": [
-        "|turn|10",
-        "|move|p1a: Rotom|Protect||[still]",
-        "|-fail|p1a: Rotom",
-        "|move|p2a: Milotic|Protect|p2a: Milotic",
-        "|-singleturn|p2a: Milotic|Protect",
-        "|move|p1b: Garchomp|Earthquake|p2a: Milotic|[spread] "
       ]
     },
     {
@@ -13546,7 +13388,7 @@
     "input_digest": "9446a684709d",
     "input_rows": 643,
     "input_generated": "2026-08-23T09:53:56.393Z",
-    "input_live_digest": "2375bfdfd7d8",
+    "input_live_digest": "20324141201c",
     "pinned": true,
     "matches_live": false,
     "selects_from": 580,
@@ -13558,12 +13400,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "6272fa445b73",
-  "engine_release_cut": "2026-08-27T02:31:30.485Z",
-  "engine_release_cuts": 137,
+  "engine_release": "d03fb31456e2",
+  "engine_release_cut": "2026-08-27T04:35:14.986Z",
+  "engine_release_cuts": 8,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "51a95481d8f4",
+    "engine/medicham2-browser.js": "1717a7160844",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "a9de35b3808d",
     "engine/position_features.js": "4850adf1a2ab",

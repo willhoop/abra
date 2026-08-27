@@ -66,8 +66,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  754/754 probed mechanics live, 0 missing   (census 2026-08-26 22:40)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-26 22:30)
+  754/754 probed mechanics live, 0 missing   (census 2026-08-27 00:33)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-27 00:43)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -78,16 +78,159 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is cd1bbeb69c83 now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 2375bfdfd7d8 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is d8e5dc14cbbd now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 20324141201c now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 280/296 probed, 16 unprobed
 ```
 
-_stamped 2026-08-26 23:53_
+_stamped 2026-08-27 01:01_
 
 <!-- /GENERATED -->
+
+## THREE LINES, THREE KNOBS, THREE PROBES - AND THE ONE FILED AS NARRATION WAS BOARD-MATERIAL. **WHOLE-GAME CLAUSE 13 -> 10 OF 961, RAW 18 -> 15, BOARD-MATERIAL 4 -> 3.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27.
+
+Ledger section: this one. CHANGELOG 5.156.0. Register rows: ROADMAP **#468, #469, #470 - all three
+closed**, and **#415 reopened and re-closed**. Release cut: **`d03fb31456e2`**, named *"three lines:
+the sound lock refuses a restart, step 0 is decided above the shield, a capped hazard announces its
+failure"*. Full account: `docs/_reports/2026-08-27-three-lines.md`.
+
+### THE SCOREBOARD, AND WHICH QUANTITY EACH FIGURE IS
+
+Pinned identically to the run it replaces - release `d03fb31456e2`,
+`--arm middle --turns 12 --games 1200 --team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json --state --end-state --write`, team pool
+`0d103fb9fa87`. Same census pin and same pool as the 2026-08-26 rebaseline, so this IS a before/after
+and not two instruments subtracted.
+
+| quantity | before `6272fa445b73` | after `d03fb31456e2` | predicted |
+|---|---|---|---|
+| whole-game clause | 13 of 961 | **10 of 961** (15 raw, less 5 declared) | 10 - hit |
+| raw diverged | 18 of 961 | **15 of 961** | 15 - hit |
+| board-material | 4 of 961 | **3 of 961** | unmoved at 4 - **MISSED, in the good direction** |
+| boards never parted | 957/961 | 957/961 | unmoved |
+| census | 754 / 754 / 0 | **754 / 754 / 0** | unmoved - hit |
+| roster items / abilities / moves | 139 / 129 / 475 | **identical**, 0 DIFFER, 0 DID-NOT-FIRE | unmoved |
+| `test-engine-diff --n 6000` | 0 of 6000, 16 corners | **0 of 6000, 16 corners** | unmoved |
+
+**THE MISS IS NAMED AND ATTRIBUTED RATHER THAN EXPLAINED AWAY.** Board-material was predicted unmoved
+because the hazard card is classed `event missing from medicham2`, which reads as narration. The cause
+that left the worklist is exactly that card -
+
+```
+  turn 6   event missing from medicham2 :: |-fail|p1b  <>  |upkeep
+```
+
+- and the other three board-material causes are byte-identical to the ones this batch inherited (the
+recoil `-damage` field 3 at turn 8, the White Herb `-enditem` ordering at turn 4, the spread
+`-damage: a different body` at turn 2). One cause leaving, not a reshuffle.
+
+### THE THREE, EACH WITH ITS OWN KNOB AND ITS OWN PROBE
+
+| fix | knob | probe | the divergence it closes |
+|---|---|---|---|
+| the sound lock refuses a restart | `MEDI_SOUND_LOCK_RESTARTS=1` | `tests/probe_sound_lock_restart.js` | `\|-end\|p1a\|throatchop <> \|upkeep` |
+| step 0 is decided above the shield | `MEDI_INVULN_BELOW_SHIELD=1` | `tests/probe_protect_stage_order.js` | `\|-miss\|p1b\|p2b <> \|-activate\|p2a\|protect` |
+| a capped hazard announces its failure | `MEDI_HAZARD_RECAP_SILENT=1` | `tests/probe_hazard_recap_fail.js` | `\|-fail\|p1b <> \|upkeep` |
+
+**A SECOND THROAT CHOP RESTARTED OUR CLOCK, AND EVERY PIECE OF THE ANSWER ALREADY EXISTED.**
+`Pokemon#addVolatile` (sim/pokemon.ts:1994-1997) refuses a volatile a body already carries when its
+condition declares no `onRestart`; `throatchop`'s does not; the fact is DERIVED into `data/tags.json`
+as `volatileRestart.throatchop = {restart:false, duration:2}`; and a general reader -
+`volRefusesRestart` - has existed since 2026-08-26. Throat Chop walked past it because its state lives
+in `tg._noSound`, outside `_vol`. Worse, `_n0` was **already read at the application site**, to
+suppress the duplicate `-start` line, and the counter was rewritten anyway: the engine knew the lock
+was up and restarted it. The fix asks the same derived table from the second road rather than writing a
+second rule, and it reads the volatile NAME off the carrier's own row, so a second `blocksSoundMoves`
+move - or one that DOES declare `onRestart`, which would make restarting correct - is answered by the
+artifact and not by this line.
+
+**`_trap` WAS HANDED OVER AS THE SAME DEFECT AND IT IS NOT ONE.** `!tg._trap` already guards the
+partial trap's own application site. Measured, not assumed: arm E stages the trap re-applied on two
+consecutive turns and it agrees in BOTH arms of the knob. Nothing there was touched.
+
+**THE SHIELD IS STEP 1 AND SEMI-INVULNERABILITY IS STEP 0, AND TWO PREVIOUS PASSES AIMED AT THE WRONG
+THING.** `trySpreadMoveHit` names its order in its own comments (battle-actions.ts:553-577) and runs
+STEP OUTSIDE, TARGET INSIDE, so every target's step-0 answer precedes every target's step-1 answer.
+WIRE 1 hoisted the shield above the DRIVER to get it above the accuracy roll - right - and it went one
+stage further, above step 0 as well. **The two lines belong to two different TARGETS and two different
+STAGES, so re-ordering the target walk cannot carry one past the other**; that is why the card survived
+two passes at target ordering. `_stepTryHit`'s own header said *"a shielded body never reaches this
+loop now"*, which was the bug wearing the clothes of the fix.
+
+**`targets` IS NOT FILTERED BY THE NEW PRE-PASS AND THAT IS THE LOAD-BEARING PART.** The verdict goes
+into a set and `_stepInvuln` - still step 0 of `_STEPS`, still the only place a row is dropped - reads
+it. Filtering would have moved a fully-invulnerable move onto the shield's `_mvRes = null` exit, and an
+invulnerable target is Showdown's `false` (`atLeastOneFailure`) where a shield is its `NOT_FAIL`. Two
+different `moveThisTurnResult` values, which Stomping Tantrum reads next turn.
+
+**THE HANDED DIAGNOSIS ON THE THIRD CARD WAS WRONG, AND IT WAS SHOWN WRONG BEFORE A BYTE MOVED.** It
+was filed as *"a move with no legal target never prints its `-fail`"*. Sticky Web's target is
+`foeSide`, which takes the OTHER branch of that same `if` and never reaches `useMoveInner`'s no-target
+return at all. Both shapes were staged side by side: the hazard re-laid at its cap PARTS, the move
+whose ally target is absent AGREES. The real site is `moveHit` - `addSideCondition` returning false
+feeding `didAnything === false -> add('-fail', source)` - and **the SCREEN half of that identical rule
+had been wired since WIRE 8**. `layHazard` has always RETURNED whether a layer went down; its caller
+threw the answer away.
+
+### SIX FIXTURE ERRORS, EVERY ONE A GREEN ARM THAT HAD STAGED NOTHING
+
+Recorded because this is the failure this division keeps paying for, and because all six were found by
+reading the counters rather than by an arm going red.
+
+1. **`beedrillmega` picked as the Throat Chop carrier** - `Dex.forFormat` is not a legality filter,
+   arriving through a LEARNSET walk instead of through `.all()`.
+2. **The victim clicked a self-only sound move** that spends a third of its own HP.
+3. **The victim was chosen for SPEED and was one-shot on turn 1** - `soundLockApplied` read 0 in three
+   of five arms and all five were green.
+4. **The victim clicked Protect on the chop turns**, so every chop was blocked and `-activate` was the
+   only thing that ever happened.
+5. **The charger was FASTER than the attacker in the Protect fixture**, so the two-turn move came down
+   before the spread was thrown; and a two-turn shape needs the locked slot to answer a request whose
+   entry carries no `target` field, which Showdown rejects outright.
+6. **The attacker's own ALLY is a target of an `allAdjacent` move** and was raising the shield that arm
+   C was counting as "nobody shielding".
+
+**AND THE KNOB CHILD DID NOT INHERIT `-r ./tests/_live_release.js`**, so it refused at its own guard
+and printed nothing the parent's filter matched - which read as *"the knob is not wired to the fix"*
+when the knob had never been asked. All three probes pass the preload down now and print the child's
+whole output when no arm row parses.
+
+### THE HAND LIST
+
+**Leaving it - the census and the probes carry it now:**
+- ~~**A SECOND THROAT CHOP RESETS OUR CLOCK**~~ - **LANDED**, ROADMAP #468; #415 re-closed.
+- ~~**PROTECT IS ANSWERED IN A PRE-PASS ABOVE THE STEP DRIVER**~~ - **LANDED**, ROADMAP #469.
+- ~~**A MOVE WITH NO LEGAL TARGET NEVER PRINTS ITS `-fail`**~~ - **REFUTED AS FILED, AND THE REAL ONE
+  LANDED**, ROADMAP #470. The no-target shape is correct in both engines; a hazard at its cap was not.
+
+**Opened by this batch, filed with its evidence:**
+- **WIDE GUARD ANNOUNCES BEFORE A STEP-0 `-miss`.** The side-guard block sits above the shield and is
+  also a step-1 handler, so it carries the same stage error the shield had. Not moved here, because
+  moving it changes WHICH targets a side guard is asked about, which is a second change. **No probe
+  fails on it yet**, so it is filed rather than fixed.
+
+**Standing, and NOT this batch's** (carried unchanged from the section below):
+- **`data/tag-consumption.json` still lists 12 DEAD tags**, led by `inflictsBurn` (45,273 uses). Do not
+  read those as missing mechanics - ROADMAP #324; the one likely genuine absence is
+  `damageMultOnRepeat` (27 uses), #327.
+- **The four `test-tag-params-derived.js` prose-quantity rows** (`analytic`, `minus`, `plus`,
+  `reckless`) are still unreadable and still refused - 1 of 61 red, pre-existing.
+- **`tests/test-middle-identity.js`, `tests/test-web-status.js` and `tests/test-resolution-order.js`
+  are RED at HEAD**, named as such in this batch's brief, not run and not this batch's.
+- **`.scratch_*`, `stash@{0}` AND THE PRE-MODIFIED `data/*.json` ARE ANOTHER SESSION'S.** Reported,
+  left, nothing executed in any of them.
+
+### OWED, NOT RUN
+
+- `tests/interaction_matrix.js` - **not re-run**; stamped 2026-08-11 and already stale before this pass.
+- `engine/wire_ladder.js` - **not re-run**; the release ladder stays WITHHELD, as it already was.
+- `tests/run-all.js` - **not run in full.**
+- `tests/staged_board.js` - **not re-run this pass.**
+- The Wide Guard half of the stage-order fix, named above.
+
+---
 
 ## THE PARTY KEY LANDED, AND THE SCOREBOARD RE-BASELINED. **WHOLE-GAME CLAUSE 13 OF 961, RAW 18, BOARD-MATERIAL 4 — THE FIRST MEASUREMENT UNDER THE CORRECTED COMPARATOR.** 2026-08-26.
 
