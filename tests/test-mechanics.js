@@ -26788,6 +26788,70 @@ probe('move', 'substitute', 'a substitute that BREAKS writes `-end`, and only on
                  + `\`[damage]\` report is the authority's ELSE arm and means the doll is still up` };
 });
 
+/* 2026-08-27 -- A STATUS MOVE MEETS THE DOLL AT `onTryPrimaryHit`, WHICH IS THREE STEPS BELOW THE
+ * ACCURACY ROLL -- SO IT CAN MISS FIRST, AND WHEN IT DOES NOT IT FAILS ON THE MOVER.
+ *
+ *   sim/battle-actions.ts:550-577   moveSteps -- hitStepAccuracy is index 4,
+ *                                   hitStepMoveHitLoop is index 7
+ *   data/mods/champions/scripts.ts:342   the mod's own `// 0. check for substitute`, inside
+ *                                        spreadMoveHit, which hitStepMoveHitLoop calls
+ *   data/moves.ts, substitute.condition.onTryPrimaryHit:
+ *       let damage = this.actions.getDamage(source, target, move);
+ *       if (!damage && damage !== 0) { this.add('-fail', source); this.attrLastMove('[still]'); return null; }
+ *
+ * A Status move is basePower 0, so getDamage returns undefined (battle-actions.ts:1620) and the doll
+ * answers `|-fail|` ON THE MOVER. This engine asked the doll in the TryHit group -- above the die --
+ * and answered `|-activate|<target>|move: Substitute|[block]`, a line gen 9 does not have at all
+ * (`[block]` exists only in the gen1stadium and gen2 mods).
+ *
+ * THE TWO ARMS DIFFER IN THE DIE AND IN NOTHING ELSE: the same Thunder Wave at the same doll, once
+ * with a roll that misses and once with a roll that lands. Under the old order both printed the same
+ * substitute line, so the pair could not have been told apart. The two no-doll controls are the knob
+ * cleared explicitly -- they say the miss and the paralysis are the DIE's doing and not the doll's,
+ * and a fix that started failing every status move would pass the first pair and fail these. */
+probe('move', 'substitute', 'a status move meets the doll BELOW the accuracy roll -- it can miss first, and when it lands it `-fail`s the MOVER', () => {
+  const run = (rng, doll) => {
+    const me = bare('clefable'), ally = bare('milotic');
+    const f1 = bare('snorlax'), f2 = bare('garchomp');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    /* turn 1 puts the doll up -- or, in the control, spends the turn without one */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, doll ? 'substitute' : 'protect', f1, S.field)],
+               [f2, { kind: 'pass' }]]));
+    const sub0 = f1._sub || 0;
+    trace.length = 0;
+    M.battleTurn(S, rng,
+      new Map([[me, M.playerAction(me, 'thunderwave', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { sub0, left: f1._sub || 0, status: f1.status || '',
+             lines: trace.map(M.traceCanon).filter(l => /-miss|-fail|substitute|-status/i.test(l)) };
+  };
+  /* 0.99 * 100 > 90, so Thunder Wave misses; 0.0 lands it. Nothing else varies between the arms. */
+  const missed = run(() => 0.99, true), landed = run(() => 0.0, true);
+  const ctlMiss = run(() => 0.99, false), ctlLand = run(() => 0.0, false);
+  const j = JSON.stringify;
+  const noSub = a => !a.lines.some(l => /substitute/i.test(l));
+  const works = missed.sub0 > 0 && landed.sub0 > 0
+    /* it reached the DIE and lost there -- the doll was never consulted */
+    && missed.lines.some(l => /^\|-miss\|/.test(l)) && noSub(missed) && missed.status === ''
+    /* it passed the die and the doll failed it ON THE MOVER, with no line on the target */
+    && landed.lines.some(l => /^\|-fail\|p1a:clefable/.test(l)) && noSub(landed)
+    && landed.status === '' && landed.left === landed.sub0
+    /* and with no doll the same two rolls do the ordinary two things */
+    && ctlMiss.sub0 === 0 && ctlMiss.lines.some(l => /^\|-miss\|/.test(l)) && ctlMiss.status === ''
+    && ctlLand.sub0 === 0 && ctlLand.status === 'par';
+  return { works,
+           arms: { control: [ctlMiss.lines, ctlLand.lines, ctlLand.status],
+                   test: [missed.lines, landed.lines, landed.left] },
+           detail: `the same Thunder Wave at the same ${missed.sub0}-HP doll: rolling 0.99 gives `
+                 + `${j(missed.lines)} (status ${j(missed.status)}), rolling 0.00 gives `
+                 + `${j(landed.lines)} with the doll still on ${landed.left}. With NO doll the same `
+                 + `two rolls give ${j(ctlMiss.lines)} and status ${j(ctlLand.status)}. Before the `
+                 + `fix BOTH doll arms printed |-activate|...|move:substitute|[block] and neither `
+                 + `reached the die` };
+});
+
 /* 2026-08-23 -- SYRUP BOMB DIES WITH ITS SOURCE, AND A `[silent]` `-end` IS A LINE THAT EXISTS.
  *
  * Two halves of one rule and the first is the expensive one:

@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-27T11:59:57.460Z",
+  "generated": "2026-08-27T12:46:46.636Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 755,
-  "live": 755,
+  "probed": 756,
+  "live": 756,
   "missing": 0,
-  "armed": 755,
+  "armed": 756,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3703,7 +3703,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7124,6 +7124,16 @@
       "label": "a substitute that BREAKS writes `-end`, and only one that survives writes `-activate|[damage]`",
       "live": true,
       "detail": "the same 58-HP doll on the same Snorlax. BREAKS (Close Combat) [\"|-end|p2a:snorlax|substitute\"], doll left 0; SURVIVES (Bullet Punch) [\"|-activate|p2a:snorlax|move:substitute|[damage]\"], doll left 12. Before the fix the break printed BOTH lines — the `[damage]` report is the authority's ELSE arm and means the doll is still up",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "substitute",
+      "label": "a status move meets the doll BELOW the accuracy roll -- it can miss first, and when it lands it `-fail`s the MOVER",
+      "live": true,
+      "detail": "the same Thunder Wave at the same 58-HP doll: rolling 0.99 gives [\"|-miss|p1a:clefable|p2a:snorlax\"] (status \"\"), rolling 0.00 gives [\"|-fail|p1a:clefable\"] with the doll still on 58. With NO doll the same two rolls give [\"|-miss|p1a:clefable|p2a:snorlax\"] and status \"par\". Before the fix BOTH doll arms printed |-activate|...|move:substitute|[block] and neither reached the die",
       "hollow": false,
       "armed": true,
       "directCall": false

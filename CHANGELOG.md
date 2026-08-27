@@ -10,6 +10,91 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.174.0] — 2026-08-27
+
+### Fixed
+- **THE DOLL'S STATUS ROAD IS `onTryPrimaryHit` — THREE STEPS BELOW THE ACCURACY DIE — AND IT ANSWERS
+  `-fail` ON THE MOVER, NOT `-activate` ON THE TARGET. CENSUS 755 -> 756 LIVE / 756 PROBED / 0 MISSING.
+  WHOLE-GAME UNMOVED AT 3 OF 961 AND BOARD-MATERIAL UNMOVED AT 1 OF 961, BOTH AS PREDICTED.**
+  ENGINE, ROADMAP `#485`.
+
+  **THE CARD** was a stage-order claim filed by the spread-status batch — *"Substitute is asked ABOVE
+  accuracy in the `affect` branch and BELOW it in the authority"* — with an instruction to confirm it
+  before fixing it. **It is confirmed, and it was two-thirds of the defect.**
+
+  **THE MECHANISM.** `Battle.actions.trySpreadMoveHit` (`sim/battle-actions.ts:550-577`) declares
+  `moveSteps` as DATA; Champions overrides `spreadMoveHit` (`data/mods/champions/scripts.ts:315`) and
+  `hitStepMoveHitLoop` (`:428`) and **nothing above them**, so `hitStepAccuracy` is index **4** and
+  `hitStepMoveHitLoop` is index **7**. The mod's own `// 0. check for substitute` (`:342`) calls
+  mainline `tryPrimaryHitEvent` (`:1138`), which runs the `substitute` condition's `onTryPrimaryHit`
+  (`data/moves.ts`; Champions overrides neither `substitute` in `moves.ts` nor anything in
+  `conditions.ts` — both grepped). That handler does
+  `let damage = this.actions.getDamage(...); if (!damage && damage !== 0) { this.add('-fail', source);
+  this.attrLastMove('[still]'); return null; }` — and a Status move is `basePower: 0`, so `getDamage`
+  returns **undefined** (`:1620`). It cannot answer `-immune` on the way in either, because
+  `hitStepTypeImmunity` sets `move.ignoreImmunity = true` for every Status move (`:655-657`). So the
+  authority's answer is `|-fail|` on the MOVER with the `|move|` line's target blanked and `[still]`
+  appended. **This engine wrote `|-activate|<target>|move: Substitute|[block]`, which is not a gen 9
+  line at all** — `[block]` exists only in `data/mods/gen1stadium/moves.ts:234` and
+  `data/mods/gen2/moves.ts:690`, and even there it carries the move name.
+
+  **WHICH MOVES SHOW IT, DERIVED FROM THE FORMAT RATHER THAN LISTED.** Status, foe-aimed, no
+  `bypasssub`, printed accuracy under 100, filtered `x.exists && !x.isNonstandard && x.tier !==
+  'Illegal'`: **eleven** — `hypnosis@60`, `leechseed@90`, `poisonpowder@75`, `sleeppowder@75`,
+  `stringshot@95`, `stunspore@75`, `swagger@85`, `sweetkiss@75`, `thunderwave@90`, `toxic@90`,
+  `willowisp@85`. The LINE half is wider still: every sub-blocked status move at any accuracy.
+
+  **FIVE CALL SITES, ONE SENTENCE, AND THE FIFTH WAS FOUND WHILE CONFIRMING THE BRIEF.** `_asTryHit`
+  (`_ASTEPS` index 1, the `affect` branch) and the top of the `status` chain were both ABOVE the die;
+  `sharesHP` (Pain Split) and `trap` (Block / Mean Look) were at the right position and said the wrong
+  thing; and **Leech Seed's was a bare `&& !subBlocks(m,t,a.mv)` inside the `perTurnHP` guard — above
+  the roll AND silent**, so a Leech Seed at a substituted body printed no line whatsoever.
+
+  **THE FIX** is `engine/medicham2-browser.js` only. `subStatusRefuse(att,def)` is the single
+  implementation of the fact (`TR.attrStill(); TR.fail(att); att._mvRes = false`) and counts
+  `MEDSEEN.subStatusFailedBelowAccuracy`. The `affect` branch gains an `_asSub` STEP between
+  `_asAccuracy` and `_asEffects` — its own step rather than the first line of `_asEffects`, because the
+  authority runs it across every target before any of them reaches `getSpreadDamage`, which is the same
+  step-outside/target-inside rule the rest of `_ASTEPS` already obeys. The `status` chain's call moves
+  below the roll; `sharesHP` and `trap` change the line only; Leech Seed's conjunct becomes an explicit
+  `_lsDoll` asked after the roll.
+
+  **NOTHING IN THIS FORMAT KEYS ON "MISSED" — CHECKED, NOT INHERITED.** The one item consumer inside
+  `hitStepAccuracy` is Blunder Policy and `D.items.get('blunderpolicy').isNonstandard === 'Past'`, so
+  it is banned here; sweeping every legal item and ability for an accuracy handler returns
+  `brightpowder`, `widelens`, `zoomlens`, `compoundeyes`, `hustle`, `noguard`, `sandveil`, `snowcloak`,
+  `tangledfeet`, `victorystar`, `wonderskin`, all of which modify a number and none of which acts on a
+  miss. What DOES key on it is the die itself: the authority draws `acc` where this engine drew
+  nothing, and Wonder Skin's `this.random(2)` sits in that same step — a desynchroniser under any
+  live-dice arm, which is why this is not purely narration even though no board moved.
+
+  **DECLARED, NOT FIXED, AND IT IS BOARD-MATERIAL:** `yawn` calls `subBlocks` **nowhere**, so a Yawn at
+  a substituted body LANDS THE DROWSE here (`|-start|p1a|move: Yawn`) and fails outright there
+  (`|-fail|p2a`). That is a MISSING check rather than a misplaced one — every site this batch touched
+  already called `subBlocks` — so it is a separate change with a separate control and it is on the
+  ENGINE hand list with its staged evidence.
+
+  **MEASURED** on release `500a9312f041`, arm `middle`, 961 games, cap 12,
+  `--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`: the LAB moved
+  and the pinned pool sat still, exactly as predicted before the run. Census **755 -> 756 live / 756
+  probed / 0 missing**; whole-game **unmoved at 3 of 961** (8 raw, less 5 declared) with the SAME EIGHT
+  first-divergence strings before and after; board-material **unmoved at 1 of 961**; VOID unmoved at
+  1 of 961; three roster stages byte-identical (0 FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE across
+  items, abilities and moves); `all_mechanics_fire --kind all` the identical diverging set (moves 8+2
+  shelved, abilities 3+1, items 1+1) with identical board tallies; `test-engine-diff --n 300 --seed
+  20260804` **0 of 300 at all sixteen corners**, the publish guard refusing the shrink as designed, so
+  the published 6,000-row artifact stands untouched.
+
+  VERIFIED BY: `SHOWDOWN_PATH=... node tests/probe_substitute_status_step.js` — 12 arms, 7 red proven
+  across five call sites, 5 controls held, 0 failing, shown RED first on all seven; the census row
+  `move`/`substitute` — *"a status move meets the doll BELOW the accuracy roll — it can miss first, and
+  when it lands it `-fail`s the MOVER"*; and `tests/test-resolution-order.js` at
+  `--max-old-space-size=6144`, 26 arms, 1 KNOWN-OPEN, 0 failing.
+
+  Full account: `docs/_reports/2026-08-27-substitute-stage.md`.
+
+---
+
 ## [5.173.0] — 2026-08-27
 
 ### Fixed

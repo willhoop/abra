@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-27T12:15:38.324Z",
- "release": "6b7d032f6376",
+ "generated": "2026-08-27T12:54:07.577Z",
+ "release": "500a9312f041",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -54172,7 +54172,7 @@
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 11,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 4.7
+   "seconds": 4.8
   },
   "abilities": {
    "exist": 316,
@@ -54189,7 +54189,7 @@
    "diverged_including_shelved": 4,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 8.9
+   "seconds": 9.1
   },
   "then_what": {
    "rows": 64,
@@ -54948,8 +54948,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "6b7d032f6376",
-    "roster_generated": "2026-08-27T12:13:45.754Z",
+    "roster_release": "500a9312f041",
+    "roster_generated": "2026-08-27T12:53:00.373Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

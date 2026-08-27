@@ -24,7 +24,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_unburden_herb_paths.js`, `tests/probe_knockoff_megastone.js`,
 `tests/probe_random_target_address.js`,
 `tests/probe_spread_status_steps.js`, `tests/probe_multihit_update.js`,
-`tests/probe_noguard_invuln.js`, `tests/probe_endturn_clock_order.js`
+`tests/probe_noguard_invuln.js`, `tests/probe_endturn_clock_order.js`,
+`tests/probe_substitute_status_step.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -35,7 +36,8 @@ this sentence — it was "twelve" until `test-damage-roll-support.js` was added 
 "twenty" until `identity_audit.js` on 2026-08-26, and again on 2026-08-27 when
 `probe_random_target_address.js` arrived, and "twenty-one" the same day when
 `probe_multihit_update.js` did, and again the same day when `probe_noguard_invuln.js` did.
-and again the same day when `probe_endturn_clock_order.js` did. A number typed in prose beside a
+and again the same day when `probe_endturn_clock_order.js` did, and again the same day when
+`probe_substitute_status_step.js` did. A number typed in prose beside a
 table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
@@ -72,6 +74,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 | `probe_multihit_update.js` | does an `onUpdate` handler see EVERY intermediate HP of a volley — `eachEvent('Update')` is inside the authority's hit loop (`sim/battle-actions.ts:967`, kept verbatim by the Champions override at `data/mods/champions/scripts.ts:538`), so a pinch berry is eaten BETWEEN hits. The fixture is derived from the format and then SEARCHED by playing candidate boards, selected on the SHOWDOWN stream alone and printed, judged with no typed expectation on three quantities — the number of `-damage` lines before the eat, the LOWEST HP the body ever stood on, and the HP it ends the volley on — with a child on `MEDI_MULTIHIT_UPDATE_ONCE=1` that must move the eat AND must part from the authority | anything about the once-per-move wrap of the STEP LIST, which is unchanged and stays `test-resolution-order.js`'s KNOWN-OPEN arm; and the exact position of the intermediate pass, which it places below the PACKET where the authority places it below that hit's whole `spreadMoveHit` — it DERIVES and PRINTS that no multi-hit move in this format carries a target secondary, so the two coincide today, rather than asserting they always will |
 | `probe_noguard_invuln.js` | does No Guard's OTHER half reach the game — `onAnyInvulnerability` returns 0 (`data/abilities.ts`, no `noguard` row in the Champions override) and `trySpreadMoveHit` KEEPS a target whose step result is zero (`sim/battle-actions.ts:605`), so a No Guard move survives step 0 and is judged by the TYPE CHART at step 2 — five arms over two engines, one turn each, judged on the OUTCOME (immune / hit / miss / unboost) rather than on the wording, with the target's immunity-reason count DERIVED and printed per arm and the file REFUSING any target immune for more than one reason, plus `MEDSEEN.noGuardThroughInvuln` at exact equality and a `--red` arm on `MEDI_NOGUARD_INVULN_BLIND=1` where the three live arms must PART and the two controls must NOT | anything about the STAGE ORDER, which it does not test and which was never the defect — `_STEPS` already matches `moveSteps` and control D proves an ordinary immunity still reads `-immune`. And every other `onAny*` handler whose second half may be unwired: it is ONE ability, reached through `_neverMissAb`'s `never` flag, and a derived tag for `onAnyInvulnerability` is owed rather than done |
 | `probe_endturn_clock_order.js` | is a PER-BODY DURATION CLOCK a step of the residual walk — `Battle#fieldEvent` collects a bare `duration` with no handler at all (`getKey`, `sim/battle.ts:487`) and `resolvePriority` (`:950`) gives it the position `onResidualOrder` declares, so Taunt@15, Encore@16, Disable@17, Heal Block@20, Throat Chop@22 and Yawn@23 are ordinary steps. Seven arms over two engines with no typed expectation, four of them the defect on four DIFFERENT members (which is what makes it one root rather than four coincidences) and two the over-fire control, each played clean and again under `MEDI_ENDTURN_CLOCKS_AT_FOOT=1` — a knob that moves the POSITION and keeps every line, plus `MEDFAILS.endturnClocksAtFoot` asserted present on the knob load and ABSENT on the clean one, because the first draft's knob reached no module at all and read seven held controls | whether a clock's LENGTH is right (`test-volatile-duration.js` owns that; no turn count is typed here), and the three clocks it does not move — `perishsong@24`, `uproar@28` and `lockedmove` own an `onResidual` and a faint queue, and `perish-vs-speedboost` measures that gap as a KNOWN-OPEN arm every run rather than declaring it in prose. And `magnetrise@18`, which has no reader in this engine at all: a MISSING tick, not a misplaced one |
+| `probe_substitute_status_step.js` | is the DOLL asked where the authority asks it on the STATUS road, and does it answer what the authority answers — `moveSteps` puts `hitStepAccuracy` at index 4 and the doll at index 7 (`hitStepMoveHitLoop` -> the Champions mod's own `// 0. check for substitute`, `data/mods/champions/scripts.ts:342` -> `tryPrimaryHitEvent`), and `getDamage` returns `undefined` for a `basePower: 0` move so the handler writes `|-fail|` on the MOVER with `[still]`, never `-activate` on the target. Twelve arms over two engines, one turn each, no typed expectation: seven reds across FIVE call sites (`status`, `affect`, `sharesHP`, `trap` and Leech Seed's silent guard conjunct) that must part under `MEDI_SUB_STATUS_AT_TRYHIT=1`, five controls that must not, the affected move set DERIVED and printed every run (eleven), each arm's non-doll refusal-reason count derived and REFUSED above one, and per-arm refusal counts declared ASYMMETRICALLY — 0 clean and 1 on the knob wherever the die gets there first | whether the DOLL's own membership is right: `SUBPASS` is `test-engine-diff.js`'s conformance block and nothing here re-derives it. And `yawn`, which calls `subBlocks` NOWHERE — a missing check, not a misplaced one, staged in the report and left on the hand list |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -82,7 +85,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  755/755 probed mechanics live, 0 missing   (census 2026-08-27 07:59)
+  756/756 probed mechanics live, 0 missing   (census 2026-08-27 08:46)
   0/6000 differential comparisons disagree with Showdown   (2026-08-27 06:34)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -94,7 +97,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 963b46bae5f9 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c37b82b69701 now
     (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: WITHHELD — engine/provenance.js calls data/tags.json UNSAFE.
@@ -102,9 +105,157 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 08:22_
+_stamped 2026-08-27 09:04_
 
 <!-- /GENERATED -->
+
+## THE DOLL'S STATUS ROAD IS `onTryPrimaryHit` — THREE STEPS BELOW THE DIE — AND IT ANSWERS `-fail` ON THE MOVER, NOT `-activate` ON THE TARGET. CENSUS 755 -> **756 LIVE / 756 PROBED / 0 MISSING**. WHOLE-GAME UNMOVED AT 3 OF 961, BOARD-MATERIAL UNMOVED AT 1 OF 961, AS PREDICTED. 2026-08-27.
+
+Release `500a9312f041` (cut for this — `engine/medicham2-browser.js` is a SOURCES file and it moved),
+arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`, census pin `9446a684709d`.
+Register row: ROADMAP **#485 — CLOSED**. CHANGELOG 5.174.0.
+Probe: `tests/probe_substitute_status_step.js`. Full account:
+[`docs/_reports/2026-08-27-substitute-stage.md`](_reports/2026-08-27-substitute-stage.md).
+
+### WHICH SCOREBOARD IT SHOULD MOVE, SAID BEFORE THE RUN
+
+**The LAB moves and the pinned pool sits still.** No pool game stages a status move into a doll, so
+the census was expected to rise by the probe written for it and the whole-game and board-material
+clauses were expected not to move at all. All three held: census 755 -> 756, whole-game 3 of 961
+(8 raw, less 5 declared) before and after with the **same eight** first-divergence strings,
+board-material 1 of 961 before and after, VOID unmoved at 1 of 961. Both quantities read out of
+`data/game-differential.json`, never off stdout.
+
+### THE ANSWER FIRST: THE AFFECTED MOVE SET IS NOT EMPTY
+
+Status, foe-aimed, no `bypasssub`, printed accuracy under 100, filtered to the regulation — **eleven**
+legal moves, re-derived and printed by the probe on every run so the list cannot go stale in prose:
+
+```
+hypnosis@60  leechseed@90  poisonpowder@75  sleeppowder@75  stringshot@95  stunspore@75
+swagger@85   sweetkiss@75  thunderwave@90   toxic@90        willowisp@85
+```
+
+The **line** half is wider: it is every sub-blocked status move at any accuracy, which adds the
+thirteen 100%-accuracy ones (`block`, `yawn`, `painsplit`, `meanlook`, …).
+
+### WHERE THE AUTHORITY ASKS THE DOLL, AND WHAT IT SAYS
+
+`Battle.actions.trySpreadMoveHit` (`sim/battle-actions.ts:550-577`) declares `moveSteps` as DATA.
+Champions overrides `spreadMoveHit` (`data/mods/champions/scripts.ts:315`) and `hitStepMoveHitLoop`
+(`:428`) and **nothing above them** — the file has no `trySpreadMoveHit` and no `moveSteps` — so the
+mainline order stands: `hitStepAccuracy` is index **4** and `hitStepMoveHitLoop` is index **7**. The
+mod's own `// 0. check for substitute` (`:342`) calls mainline `tryPrimaryHitEvent` (`:1138`), which
+runs the `substitute` condition's `onTryPrimaryHit`. **Champions overrides neither `substitute` in
+`moves.ts` nor anything in `conditions.ts`** — both grepped, no match.
+
+```js
+let damage = this.actions.getDamage(source, target, move);
+if (!damage && damage !== 0) { this.add('-fail', source); this.attrLastMove('[still]'); return null; }
+```
+
+A Status move is `basePower: 0`, so `getDamage` returns **undefined** (`:1620`), and it cannot answer
+`-immune` on the way in because `hitStepTypeImmunity` sets `move.ignoreImmunity = true` for every
+Status move (`:655-657`). So the answer is `|-fail|` on **the mover**, with the `|move|` line's target
+blanked and `[still]` appended. Staged and read, not inferred:
+
+```
+SHOWDOWN   |move|p2a: Slowbro|Thunder Wave||[still]     |-fail|p2a: Slowbro
+MEDICHAM   |move|p2a: Slowbro|thunderwave|p1a: Alakazam |-activate|p1a: Alakazam|move: Substitute|[block]
+```
+
+**`|-activate|...|move: Substitute|[block]` IS NOT A GEN 9 LINE AT ALL.** `[block]` appears twice in
+the whole simulator — `data/mods/gen1stadium/moves.ts:234` and `data/mods/gen2/moves.ts:690` — and
+even there it carries the move name.
+
+### FIVE SITES, ONE SENTENCE — AND THE FIFTH WAS FOUND WHILE CONFIRMING THE BRIEF
+
+| site | branch | position | what it said |
+|---|---|---|---|
+| `_asTryHit`, `_ASTEPS` index 1 | `affect` | above the die | `-activate ...\|[damage]` |
+| top of the `status` chain | major status | above powder, Prankster **and** the die | `-activate ...\|[block]` |
+| `sharesHP` chain | Pain Split | already last (that branch has no die) | `-activate ...\|[block]` |
+| `trap` chain | Block / Mean Look | already last (that branch has no die) | `-activate ...\|[block]` |
+| the `perTurnHP` guard conjunct | **Leech Seed** | above the die | **nothing at all** |
+
+Leech Seed was a bare `&& !subBlocks(m,t,a.mv)` inside the guard, so a Leech Seed at a substituted
+body printed **no line whatsoever** where the authority prints `|-miss|` at 90% or `|-fail|` when it
+lands. It is in the eleven.
+
+### THE FIX
+
+`engine/medicham2-browser.js` only. `subStatusRefuse(att,def)` is the one implementation of the fact —
+`TR.attrStill(); TR.fail(att); att._mvRes = false` — and it counts `MEDSEEN.subStatusFailedBelowAccuracy`.
+The `affect` branch gains an `_asSub` STEP between `_asAccuracy` and `_asEffects`, its own step rather
+than the first line of `_asEffects` because the authority runs it across every target before any of
+them reaches `getSpreadDamage`; the `status` chain's call moves below the roll; `sharesHP` and `trap`
+change the line only, because neither branch has an accuracy step and both were already at the
+authority's position; Leech Seed's conjunct becomes an explicit `_lsDoll` asked after the roll.
+
+**THE DAMAGING ROAD IS UNTOUCHED AND TWO CONTROLS HOLD IT THERE.** `test-engine-diff --n 300 --seed
+20260804` reads **0 of 300 at all sixteen corners** and the publish guard refused the shrink as
+designed; the published 6,000-row artifact stands untouched.
+
+### AND NOTHING IN THIS FORMAT KEYS ON "MISSED" — CHECKED, NOT INHERITED FROM THE NO GUARD BATCH
+
+The one item consumer inside `hitStepAccuracy` is **Blunder Policy**, and
+`D.items.get('blunderpolicy').isNonstandard === 'Past'` — banned here. Swept every legal item and
+ability for an accuracy handler: `brightpowder`, `widelens`, `zoomlens`, `compoundeyes`, `hustle`,
+`noguard`, `sandveil`, `snowcloak`, `tangledfeet`, `victorystar`, `wonderskin`. All of them modify a
+number and none acts on a miss. **What does key on it is the DIE**: the authority draws `acc` where
+this engine drew nothing, and Wonder Skin's `this.random(2)` sits in the same step — a desynchroniser
+under any live-dice arm, which is why this is not purely narration even though no board moved.
+
+### THE PROBE — 12 ARMS, NO TYPED EXPECTATION, AND AN ASYMMETRIC COUNTER
+
+Both engines play the same script under the differential's own pin and the two protocol streams are
+compared; the pass is that they do not part. Seven red arms (`twave-miss`, `twave-hit`,
+`swagger-miss`, `painsplit`, `block-trap`, `leechseed-miss`, `leechseed-hit`) must AGREE clean and
+PART under `MEDI_SUB_STATUS_AT_TRYHIT=1`; five controls (`nodoll-miss`, `nodoll-hit`,
+`damage-doll-miss`, `damage-doll-hit`, `bypasssub`) must agree under both. **Shown red first** — all
+seven read `PARTS CLEAN` on exactly those shapes before the fix.
+
+**THE COUNTER ASSERTION IS ASYMMETRIC ON PURPOSE, AND THAT ASYMMETRY IS THE ORDERING CLAIM.** Three
+arms declare `refuseClean: 0, refuseKnob: 1`: under the top pin the die turns the move away at step 4,
+so on the fixed engine the doll is never reached and on the reverted one it answers first. An arm that
+expected one number for both loads would have to be wrong about one of them.
+`MEDFAILS.subStatusAtTryHitRestored` is asserted PRESENT on the knob load and ABSENT on the clean one
+before any arm is classified, because a knob that reaches nothing produces a green run that staged
+nothing.
+
+Every fixture is legality-checked against `Dex.forFormat` before any arm runs, and every arm prints
+its target's **refusal-reason count not counting the doll** and fails above one — `(none)` on all
+twelve, which is why the doll holder is a Psychic body with Inner Focus and not something carrying a
+second reason.
+
+### THE HAND LIST
+
+**Leaves it:** *"Substitute is asked ABOVE accuracy in the `affect` branch and BELOW it in the
+authority"*, filed by the spread-status batch. The probe carries it now.
+
+Joins it, named rather than left to be found:
+- **`yawn` NEVER ASKS THE DOLL AT ALL, AND IT IS BOARD-MATERIAL.** Its branch owns a separate refusal
+  chain and calls `subBlocks` nowhere, so a Yawn at a substituted body LANDS THE DROWSE here and fails
+  outright there — `|-start|p1a: Alakazam|move: Yawn` against `|-fail|p2a: Slowbro`. A MISSING check,
+  not a misplaced one: every site this batch touched already called `subBlocks`, and adding a caller
+  is a different change with a different control. Batches of one.
+- **`|-start|...|move: Yawn` carries `[of] <source>` in the authority and no `[of]` here.** Seen on
+  the same staged board.
+
+**Standing and unchanged by this batch**, pointed at rather than re-listed because a copied list is
+how one goes stale: `magnetrise@18` (the duration-clock batch's), and `corrosivegas`, a fainted mega's
+forme, Wide Guard before a step-0 `-miss`, `nth` in the address hash, the twelve dead tags and the four
+`test-tag-params-derived.js` prose-quantity rows (the spread-status batch's).
+
+### OWED, NOT RUN
+
+- The **full 6,000-row** `tests/test-engine-diff.js` — not re-run. The change is entirely inside the
+  status branches; the damage differential drives the damage function directly and never enters them,
+  and `--n 300 --seed 20260804` reads 0 of 300 at all sixteen corners.
+- `tests/interaction_matrix.js`, `engine/wire_ladder.js`, `engine/tag_dex.js` — not run; all three are
+  already WITHHELD by provenance for reasons that predate this change.
+- `tests/run-all.js`, `tests/staged_board.js`, `tests/bench-medicham.js --record`,
+  `tests/mutation_harness.js`, `engine/quarantine.js` — not run, as in the preceding batches.
 
 ## A PER-BODY DURATION CLOCK IS A STEP OF THE RESIDUAL WALK, AND SEVEN OF THEM WERE SPENT IN A BLOCK UNDERNEATH IT. **WHOLE-GAME CLAUSE 4 OF 961 -> 3 OF 961.** BOARD-MATERIAL UNMOVED AT 1 OF 961. CENSUS UNMOVED AT 755 LIVE / 755 PROBED / 0 MISSING. 2026-08-27.
 

@@ -499,6 +499,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      one of them too -- which is what lets a probe prove the knob reached the module the driver
      played instead of assuming an environment variable arrived somewhere. */
   spreadStatusStepOuter: 0, spreadStatusPerTargetRestored: 0,
+  /* 2026-08-27 -- WHICH ROAD A DOLL-REFUSED *STATUS* MOVE TOOK. `subStatusFailedBelowAccuracy` is the
+     authority's shape: the doll is `tryPrimaryHitEvent` inside `hitStepMoveHitLoop`, so it is asked
+     BELOW the accuracy die and it answers `|-fail|<mover>` with `[still]`.
+     `subStatusAtTryHitRestored` is the pre-fix shape -- asked in the TryHit group, above the die, and
+     answered on the TARGET with an `-activate` line gen 9 does not emit -- and is only reachable
+     under MEDI_SUB_STATUS_AT_TRYHIT=1, so it MUST read 0 on any shipping run. Both count PER REFUSED
+     TARGET, so a probe can assert an exact per-arm delta rather than "at least one". */
+  subStatusFailedBelowAccuracy: 0, subStatusAtTryHitRestored: 0,
   /* 2026-08-24 -- CLICKS A SHIELD LET THROUGH BECAUSE THE MOVE CARRIES NO `flags.protect`. 111 legal
    * moves are in that set; the ones that actually meet a shield are the ally-facing family (Dragon
    * Cheer, Coaching, Helping Hand, Aromatic Mist) and the `all`-targeting one (Teatime, Perish Song,
@@ -3818,6 +3826,15 @@ const HAZARD_RECAP_SILENT=(typeof process!=='undefined'&&process.env&&process.en
  * whose refusal the authority interleaves, and leaves every single-target status move alone. It must
  * read 0 on any shipping run; `MEDSEEN.spreadStatusPerTargetRestored` counts the moves that took it. */
 const SPREAD_STATUS_PER_TARGET=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SPREAD_STATUS_PER_TARGET==='1');
+/* 2026-08-27 -- MEDI_SUB_STATUS_AT_TRYHIT=1 puts the doll's STATUS road back where this engine used to
+ * ask it and back to the line it used to write. Both halves together, because they are one behaviour
+ * and a knob that reverted only one of them would leave every arm parted and prove nothing.
+ * It stamps MEDFAILS at LOAD TIME, not on first use: a probe has to be able to assert the stamp is
+ * PRESENT on the knob load and ABSENT on the clean one, and a lazily-set stamp reads 0 on both when
+ * the knob reached a module the run never loaded -- which has produced a green run staging nothing in
+ * this repository more than once. */
+const SUB_STATUS_AT_TRYHIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUB_STATUS_AT_TRYHIT==='1');
+if(SUB_STATUS_AT_TRYHIT)MEDFAILS.subStatusAtTryHitRestored=1;
 function volRefusesRestart(vol){
   if(VOL_RESTART_BLIND){MEDFAILS.volRestartBlindRestored=1;return false;}
   const d=volRestartTable().get(vol);
@@ -8378,6 +8395,44 @@ const SUBPASS=new Set(["round","snore","bugbuzz","uproar","snarl","alluringvoice
 /* Does the doll eat this? One implementation, asked by the damage path and by every status path, so
  * "a substitute is up" cannot mean two different things in one turn. Infiltrator comes from the
  * artifact's own `ignoresScreensAndSubs.ignoresSubstitute`, never from its name. */
+/* 2026-08-27 -- HOW THE DOLL ANSWERS A *STATUS* MOVE, IN ONE PLACE BECAUSE IT IS ONE FACT.
+ *
+ * The authority reaches the doll through `tryPrimaryHitEvent` (sim/battle-actions.ts:1138), called
+ * from the Champions mod's own `spreadMoveHit` at its `// 0. check for substitute`
+ * (data/mods/champions/scripts.ts:342), which is inside `hitStepMoveHitLoop` -- `moveSteps` index 7,
+ * three steps BELOW `hitStepAccuracy`. The substitute condition's `onTryPrimaryHit` then does:
+ *
+ *     let damage = this.actions.getDamage(source, target, move);
+ *     if (!damage && damage !== 0) { this.add('-fail', source); this.attrLastMove('[still]'); return null; }
+ *
+ * and a Status move has `basePower: 0`, so `getDamage` returns **undefined** (:1620,
+ * `if (!basePower) return basePower === 0 ? undefined : basePower;`). So the answer is `|-fail|` on
+ * THE MOVER with the `|move|` line's target blanked and `[still]` appended -- never an `-activate` on
+ * the target. `|-activate|...|move: Substitute|[block]` is not a gen 9 line at all: `[block]` exists
+ * in `data/mods/gen1stadium/moves.ts:234` and `data/mods/gen2/moves.ts:690` and nowhere else, and
+ * even there it carries the move name.
+ *
+ * THE DAMAGING ROAD IS NOT THIS FUNCTION and is unchanged: there `getDamage` returns a number, the
+ * doll takes it, and `-activate|[damage]` or `-end` is correct. See the absorb site near WIRE 130's
+ * damage half.
+ *
+ * IT IS NOT `mvFail`, DELIBERATELY. `mvFail` announces on the mover, which is right, but the
+ * authority writes the `[still]` FIRST via `attrLastMove` -- and every caller of this helper needs
+ * the counter as well, so a probe can prove the road was taken rather than infer it from a line. */
+function subStatusRefuse(att,def){
+  MEDSEEN.subStatusFailedBelowAccuracy++;
+  if(TR){TR.attrStill();TR.fail(att);}
+  if(att)att._mvRes=false;
+}
+/* The revert, kept beside the thing it reverts so the two cannot drift. Only reachable under
+ * MEDI_SUB_STATUS_AT_TRYHIT=1; `line` is the attribute the old site wrote, which was `[damage]` in the
+ * `affect` branch and `[block]` in the other three -- reproduced per site rather than unified,
+ * because a knob that "tidied" the old behaviour would not be a revert. */
+function subStatusRefuseOld(att,def,line){
+  MEDSEEN.subStatusAtTryHitRestored++;
+  if(line==null)return;              // the Leech Seed conjunct announced NOTHING; a revert keeps that
+  if(TR)TR.act(def,'move: Substitute',line);
+}
 function subBlocks(att,def,mvId){
   if(!def||!(def._sub>0)||def===att)return false;
   if(SUBPASS.has(String(mvId||'').toLowerCase().replace(/[^a-z0-9]/g,'')))return false;
@@ -22039,7 +22094,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            * by a Protect it goes straight through since the branch was written. Named here rather than
            * left inside a diff, and it is visible as its own row in this wire's blast-radius sweep. */
           if(shieldRefuses(_t,a.mv)){if(TR)TR.act(_t,'move: Protect');R.out=true;return;}
-          if(subBlocks(m,_t,a.mv)){if(TR)TR.act(_t,'move: Substitute','[damage]');R.out=true;return;}   // WIRE 130 -- the doll takes the status move
+          /* 2026-08-27 -- THE DOLL LEFT THIS STEP. It is `tryPrimaryHitEvent` inside
+           * `hitStepMoveHitLoop`, so it belongs at `_asSub` below the die; only the revert knob asks
+           * it here, and only so a probe has something to part against. See subStatusRefuse. */
+          if(SUB_STATUS_AT_TRYHIT&&subBlocks(m,_t,a.mv)){subStatusRefuseOld(m,_t,'[damage]');R.out=true;return;}
           /* GOOD AS GOLD REFUSES A STATUS MOVE OUTRIGHT. Gholdengo was taking Charm for -2, which
            * makes it a different Pokemon to the one people build around. The tag is derived from the
            * ability's own onTryHit -- and tightened after the first version caught Telepathy, which
@@ -22245,7 +22303,16 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* ---- THE STEP LIST, IN THE ORDER THIS BRANCH ALREADY ASKED, AND THE DRIVER UNDER IT ----
          * The array IS the order, exactly as `_STEPS` is for the damaging branch, so a gate added
          * later joins a list instead of being wedged into a chain of `continue`s. */
-        const _ASTEPS=[_asGone,_asTryHit,_asTypeImm,_asTryImm,_asAccuracy,_asEffects];
+        /* STEP 7's FIRST LINE -- `spreadMoveHit`'s `// 0. check for substitute`, which is INSIDE
+         * `hitStepMoveHitLoop` and therefore BELOW the die. It is its own step rather than the first
+         * line of `_asEffects` because the authority runs it across EVERY target before any of them
+         * reaches `getSpreadDamage` -- the same step-outside/target-inside rule the rest of this list
+         * obeys -- and folding it into the effects step would run it per body again. */
+        const _asSub=(R)=>{const _t=R.tg;
+          if(SUB_STATUS_AT_TRYHIT)return;                       // the revert asks it in _asTryHit
+          if(subBlocks(m,_t,a.mv)){subStatusRefuse(m,_t);R.out=true;return;}
+        };
+        const _ASTEPS=[_asGone,_asTryHit,_asTypeImm,_asTryImm,_asAccuracy,_asSub,_asEffects];
         if(SPREAD_STATUS_PER_TARGET){
           /* THE PRE-FIX NESTING, kept reachable so the fix can be SHOWN red rather than asserted.
              `break` and not `continue`: a row that is out has left the move, and under this nesting
@@ -22405,7 +22472,14 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;}
-        if(subBlocks(m,t,a.mv)){if(TR)TR.act(t,'move: Substitute','[block]');continue;}
+        /* 2026-08-27 -- THE LINE MOVED AND THE POSITION DID NOT NEED TO. This branch has no
+         * accuracy step, because every move that reaches it is printed 100% -- so it was
+         * already asking the doll where the authority asks it, and only the ANSWER was wrong.
+         * Left as its own call rather than hoisted with the other three: they sit beside
+         * different companion gates and collapsing them is a consolidation this is not. */
+        if(subBlocks(m,t,a.mv)){
+          if(SUB_STATUS_AT_TRYHIT)subStatusRefuseOld(m,t,'[block]');else subStatusRefuse(m,t);
+          continue;}
         {const _sh=TAGS.param('move',a.mv,'sharesHP')||{};
          const _over=+_sh.over||2, _min=+_sh.minimum||0;
          let _avg=Math.floor((t.curHP+m.curHP)/_over);
@@ -22541,7 +22615,14 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!t||t.fainted||(t===m&&!_bounced)){mvFail(m);continue;}
         if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
         {const _rf=tryHitRefusal(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}   // WIRE 241
-        if(subBlocks(m,t,a.mv)){if(TR)TR.act(t,'move: Substitute','[block]');continue;}
+        /* 2026-08-27 -- THE LINE MOVED AND THE POSITION DID NOT NEED TO. This branch has no
+         * accuracy step, because every move that reaches it is printed 100% -- so it was
+         * already asking the doll where the authority asks it, and only the ANSWER was wrong.
+         * Left as its own call rather than hoisted with the other three: they sit beside
+         * different companion gates and collapsing them is a consolidation this is not. */
+        if(subBlocks(m,t,a.mv)){
+          if(SUB_STATUS_AT_TRYHIT)subStatusRefuseOld(m,t,'[block]');else subStatusRefuse(m,t);
+          continue;}
         /* ROADMAP #241 -- A GHOST REFUSES THE TRAP SILENTLY AND THE MOVE THEN FAILS ON THE MOVER.
          * This line read `TR.imm(t)`, which is the shape every OTHER refusal above it has and is the
          * wrong one here. Read off the authority: Mean Look and Block are
@@ -24835,7 +24916,16 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _pt=TAGS.param('move',a.mv,'perTurnHP');
           if(_pt&&_pt.effect==='drain'&&_pt.on==='target'&&_pt.per&&!t._seededBy
              &&!(_pt.immuneType&&t.types.includes(_pt.immuneType))
-             &&!pranksterBlocked(m,t,a.mv)&&!subBlocks(m,t,a.mv)){
+             &&!pranksterBlocked(m,t,a.mv)){
+            /* 2026-08-27 -- THE DOLL LEFT THIS CONJUNCT, AND IT WAS THE SILENT ONE. It read
+             * `&&!subBlocks(m,t,a.mv)` right here -- above the roll and above every line -- so a
+             * Leech Seed at a substituted body printed NOTHING AT ALL, where the authority either
+             * misses at `hitStepAccuracy` (Leech Seed is 90%) or writes `|-fail|` on the mover at
+             * `tryPrimaryHitEvent`. Worse than the other four sites, which at least said something.
+             * The revert keeps the silence AND the position, because a revert that started
+             * announcing would not be one. */
+            const _lsDoll=subBlocks(m,t,a.mv);
+            if(SUB_STATUS_AT_TRYHIT&&_lsDoll){subStatusRefuseOld(m,t,null);m._lastMove=a.mv;continue;}
             const acc=hitChance(m,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
             /* ROADMAP #223 -- THE DRAIN GOES TO A SLOT, NOT TO THE SEEDER'S BODY, and the authority
              * says so in one line: `const target = this.getAtSlot(pokemon.volatiles['leechseed']
@@ -24845,6 +24935,8 @@ function battleTurn(S,rng,actsForA,actsForB){
             /* ROADMAP #264 -- the same draw rule as every other roll site. `!accMustRoll` short-
              * circuits BEFORE `_R.acc()`, so a test the authority does not roll consumes nothing. */
             if(!accMustRoll(acc)||_R.acc()*100<=acc){
+              /* THE DIE IS PASSED, SO THE DOLL IS FINALLY ASKED -- `moveSteps` index 7, below 4. */
+              if(_lsDoll){subStatusRefuse(m,t);m._lastMove=a.mv;continue;}
               /* 2026-08-25 -- A BOUNCED SEED BELONGS TO THE BOUNCER, exactly as a bounced trap does
                * (2026-08-24). `useMove(newMove, target, {target: source})` makes the reflected move's
                * USER the body that reflected it (data/abilities.ts:2436), so the drain is credited to
@@ -24869,7 +24961,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           continue;                                             // no major status to apply
         }
         m._lastMove=a.mv;
-        if(subBlocks(m,t,a.mv)){if(TR)TR.act(t,'move: Substitute','[block]');continue;}   // WIRE 130 -- the doll takes the status move
+        /* 2026-08-27 -- ONLY THE REVERT ASKS THE DOLL HERE. WIRE 130 put it at the top of this
+         * chain, which is the TryHit group -- three steps above the die. The authority's doll is
+         * `tryPrimaryHitEvent` inside `hitStepMoveHitLoop`, so it is asked at the FOOT of this
+         * chain, below powder, below Prankster and below the roll. See subStatusRefuse. */
+        if(SUB_STATUS_AT_TRYHIT&&subBlocks(m,t,a.mv)){subStatusRefuseOld(m,t,'[block]');continue;}
         if(powderBlocked(t,a.mv)){if(TR)TR.imm(t,powderImmuneAttr(t,m));continue;}     // Grass / Overcoat / Safety Goggles; #256
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;} // Prankster does not touch Dark types
         const acc=hitChance(m,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
@@ -24877,6 +24973,8 @@ function battleTurn(S,rng,actsForA,actsForB){
          * direction: a Poison-type's Toxic, a Lock-On'd status move and anything aimed past No Guard
          * all return Infinity here, and the authority takes no draw for those at all. */
         if(accMustRoll(acc)&&_R.acc()*100>acc){if(TR)TR.miss(m,t);continue;}          // status moves miss (T-Wave 90, W-o-W 85); ROADMAP #222
+        /* AND HERE IS WHERE IT ACTUALLY GOES -- `moveSteps` index 7, below index 4. */
+        if(!SUB_STATUS_AT_TRYHIT&&subBlocks(m,t,a.mv)){subStatusRefuse(m,t);continue;}
         /* WIRE 133 -- THE SOURCE TRAVELS WITH THE STATUS, and it has to: Safeguard refuses what the
          * OTHER SIDE writes and lets a self-inflicted status through, so a call that cannot say who
          * wrote it cannot be gated. This is the direct status-move path -- the one Safeguard exists
