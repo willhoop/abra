@@ -30,7 +30,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_mega_trace_entry.js`, `tests/probe_mega_spread_stat.js`,
 `tests/probe_trace_list.js`, `tests/probe_fractional_priority_draw.js`,
 `tests/probe_hp_pair.js`,
-`tests/probe_state_trio.js`
+`tests/probe_state_trio.js`, `tests/probe_random_target_die.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -42,7 +42,7 @@ this sentence — it was "twelve" until `test-damage-roll-support.js` was added 
 `probe_random_target_address.js` arrived, and "twenty-one" the same day when
 `probe_multihit_update.js` did, and again the same day when `probe_noguard_invuln.js` did.
 and again the same day when `probe_endturn_clock_order.js` did, and again the same day when
-`probe_substitute_status_step.js` did, and again the same day when `probe_yawn_substitute.js` did, and again the same day when `probe_doll_blind_family.js` did, and again the same day when `probe_trace_target.js` did, and again the same day when `probe_mega_trace_entry.js` did, and again the same day when `probe_mega_spread_stat.js` did, and again the same day when `probe_hp_pair.js` did.
+`probe_substitute_status_step.js` did, and again the same day when `probe_yawn_substitute.js` did, and again the same day when `probe_doll_blind_family.js` did, and again the same day when `probe_trace_target.js` did, and again the same day when `probe_mega_trace_entry.js` did, and again the same day when `probe_mega_spread_stat.js` did, and again the same day when `probe_hp_pair.js` did, and again the same day when `probe_random_target_die.js` did.
 A number typed in prose beside a
 table is exactly what CLAUDE.md records going stale three times over.)*
 
@@ -89,6 +89,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 | `probe_yawn_substitute.js` | did the yawn branch ask the doll AT ALL — it called `subBlocks` at none of its ten sites, so a Yawn at a substituted body wrote the drowse on the body BEHIND the doll and slept it two turns later, where the authority refuses the move at `tryPrimaryHitEvent` and answers `\|-fail\|<THE MOVER>` with `[still]` (`getDamage` returns `undefined` for `basePower: 0`, `sim/battle-actions.ts:1620`). Six arms over two engines, no typed expectation, each played clean and again under `MEDI_YAWN_IGNORES_SUB=1`: two reds that must part under the knob and four controls that must not, the BOARD consequence asserted as a count of `\|-status\|…\|slp` lines in the medicham stream (0 clean, 1 on the knob) under `--end-state` so the loop runs past the divergent line, the `MEDFAILS` load stamp asserted absent-clean and present-on-knob, and the target's non-doll refusal-reason count DERIVED — including the sleep-blocking ability set read off the format's own handlers — and REFUSED above one | whether the DOLL's own membership is right (`SUBPASS` is `test-engine-diff.js`'s conformance block and nothing here re-derives it), and the eight OTHER action kinds that ask no doll: it is ONE branch, not the sweep. The `[of] <source>` on `\|-start\|…\|move: Yawn` is invisible to it by construction — `game_differential.js` collapses that field under its `source-tag` equivalence |
 | `probe_trace_target.js` | when TWO foes are eligible, do the two engines pick the SAME one on a board where SOMETHING ELSE HAS ALREADY DRAWN at the same address — the authority Trace draw is `this.sample` (`data/abilities.ts:5110` -> `sim/battle.ts:355` -> `sim/prng.ts:132`, and `PRNG#random` advances even at length 1), and the collision is `BattleQueue#insertChoice`'s range-form tie (`sim/battle-queue.ts:395`) taking `nth 0` in the `turn|any|-|-` bucket. Everything derived from the filtered format dex and printed; the eligible-foe count DERIVED and any cell below two REFUSED, and `traceChoiceNoDie > 0` refused outright; the p1b ALLY is the knob and WHICH allies tie is MEASURED off `midRangeCounters()` rather than guessed — 3 TIE boards and 21 NO-TIE over-fire controls, and the file fails if either set is empty; no typed expectation, Showdown's own `|-ability|…|[from] ability: Trace` is the answer; a `MEDI_MID_RANGE_DRAWS=1` child whose numbers the PARENT judges (not its exit code — under the knob the child asserts the defect is PRESENT, so a working knob exits 0) | whether either engine plays the game right — it compares one ability name per board. Whether the value a shared address yields is the value the REAL game would yield: the middle arm's die is a hash and there is no ground truth for which foe, only the claim that both engines read the same one. And every OTHER range-form caller — `Battle.durationCallback` and a condition `onStart` were each measured drawing once in 60 games and are neutralised by the same change with no staged board of their own: named, not covered |
 | `probe_mega_trace_entry.js` | does a mega that arrives holding Trace copy AND THEN RUN what it copied — `setAbility` ends `singleEvent('Start', ability, ...)` (`sim/pokemon.ts:1946`) and a mega reaches it through `formeChange` with `isPermanent`, whose flag suppresses the `SetAbility` event and the `-ability` line and NOT the `Start` handler, so Trace's `onStart` -> `Update` -> `setAbility(copied)` -> the COPIED ability's `Start` all run inside the evolution. Six arms over two engines, one board each, no typed expectation: the quantity is a count of `\|-unboost\|p2*\|atk\|`, `\|-enditem\|…\|White Herb` and Trace-copy lines read out of BOTH streams, three reds and three OVER-FIRE controls (the mega's own Intimidate, a traceable ability with no `onStart`, and the ORDINARY switch-in Trace door that was already right), everything derived from the filtered format dex and printed, the entry-drop SHAPE read off the handler source rather than a name, a fixture audit that DERIVES `SOURCES` and per-foe `REASONS` and REFUSES any cell qualifying twice, and a `MEDI_MEGA_TRACE_LATE=1` child whose `MEDFAILS.megaTraceLate` stamp is asserted present-on-knob and absent-clean | the OTHER copiers, which have the identical gap and are not touched: `receiverSweep` counts it under `MEDFAILS.inheritedAbilityStartNotFired`, and `traceSweep`'s DEFERRED copies have no counter at all. WHICH foe Trace picks — every arm gives both foes the same ability on purpose, so the target die cannot decide any answer here; `probe_trace_target.js` owns that. And a mega-Trace onto a WEATHER setter, which nothing stages |
+| `probe_random_target_die.js` | when TWO foes are alive, do the two engines send a `randomNormal` move at the SAME body — `Battle#getTarget` gates its named-target branch off for `randomNormal` (`sim/battle.ts:2461`) and falls to `getRandomTarget` -> `Side#randomFoe` -> `sample`, so which foe an Outrage hits in a double is a DIE. Every legal `randomNormal` move except Struggle, a carrier derived from each learnset, swept over the two fields that actually MOVE the address — the ATTACKER SLOT and the TURN (the moves lock, so turns 2 and 3 re-roll) — because sweeping the ally or the foe pair would draw the identical value in every cell and agreeing would be free. No typed expectation: the answer is the `\|move\|` line's target ident out of BOTH streams. Living foes are counted PER MOVE LINE off both protocols and any cell under two is REFUSED; the authority's answers AND ours must each VARY across the sweep or the file reports that it never reached a die; an ordinary `normal`-target move NAMED at p2b is the over-fire control on every cell; and both engines' own receipts are asserted — authority draws inside `runMove` and lookahead draws both above zero, `randomTargetAmbiguous === randomTargetDrawn`, `MEDFAILS.tgtStreamMissing` at zero. `MEDI_TGT_ADDR_LEGACY=1` restores BOTH halves in a child (the engine's stream AND the authority's wrapper) and must reproduce the SAME parted cells by name | whether either engine plays the game right — it compares one target ident per move line. Whether the value a shared address yields is the value the REAL game would yield: the die is a hash and there is no ground truth for which foe, only the claim that both engines read the same one. And the other `getRandomTarget` callers — `useMoveInner`'s two retarget-after-`ModifyMove` sites and `sim/pokemon.ts:825`'s retarget-on-faint — which the address change reaches with no staged board of their own: named and counted by the driver, not covered |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -99,8 +100,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  765/765 probed mechanics live, 0 missing   (census 2026-08-27 17:48)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-27 17:49)
+  765/765 probed mechanics live, 0 missing   (census 2026-08-27 18:21)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-27 18:20)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -111,7 +112,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0d4ed17fb162 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is b0bc53b19867 now
     (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: WITHHELD — engine/provenance.js calls data/tags.json UNSAFE.
@@ -119,9 +120,194 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 17:52_
+_stamped 2026-08-27 18:48_
 
 <!-- /GENERATED -->
+
+## THE RANDOM-TARGET DIE WAS ADDRESSED BEFORE THE AUTHORITY HAD A MOVE TO NAME IT WITH, AND SIX LOOKAHEAD DRAWS SAT IN FRONT OF IT. **BOARD-MATERIAL 2 -> 0 OF 961, PREDICTED BEFORE THE RUN. WHOLE-GAME UNMOVED AT 6 OF 961 — PREDICTED 5 AND IT DID NOT MOVE, ATTRIBUTED BELOW. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST `48e1007ac14a` -> `ccb365985023`, DICE_MODEL v4 -> v5, ON PURPOSE.** 2026-08-27.
+
+**Board-material is zero for the first time**, and the deliberate roster is clean at 139 / 129 / 475
+with no `FIRED-AND-BOARDS-DIFFER` and no `DID-NOT-FIRE`. **The computed gate has NOT opened and is
+still 2 of 8**, because it scores the WHOLE-GAME rate and the mechanics tail, neither of which is
+board-material — see the last section of this entry, which is written so the two are not confused.
+
+### WHAT WAS WRONG
+
+`Battle#getTarget` gates its named-target branch OFF for `randomNormal` (`sim/battle.ts:2461`) and
+falls through to `getRandomTarget` (`:2487`) -> `Side#randomFoe` -> `Battle#sample` -> `random(len)`.
+**Which foe an Outrage hits in a double is a die**, and both engines roll it. They did not roll the
+same one, for two reasons that had to be fixed together.
+
+**(1) The address could not match, because the authority draws before it can name anything.**
+`BattleActions#runMove` calls `getTarget` on `sim/battle-actions.ts:223` and `setActiveMove` only on
+`:245`, so `battle.activeMove` and `battle.activeTarget` are both null at the draw and
+`game_differential.js` wrote `<seed>|<turn>|any|-|-|<nth>`. medicham2 writes `MID_MOVE`/`MID_TGT` at
+the top of the action and drew ~165 lines below, so its address read
+`<seed>|<turn>|any|outrage|<TARGET slot>|<nth>`. Two strings, two independent hash values.
+
+**(2) `nth` could not match either, and this is what killed the previously-proposed remedy.** Every
+authority draw in the blank bucket, attributed by stack on one staged Outrage board:
+
+```
+  [0] 20260813|1|any|-|-|0   Side.randomFoe <- getRandomTarget <- BattleQueue.resolveAction <- addChoice
+  [1] 20260813|1|any|-|-|1   ... <- Battle.getTarget <- Battle.getActionSpeed <- BattleQueue.resolveAction
+  [2] 20260813|1|any|-|-|2   ... <- Battle.getTarget <- Battle.getActionSpeed <- Battle.runAction
+  [3..5]                     ... the same getActionSpeed lookahead, three more times
+  [6] 20260813|1|any|-|-|6   ... <- Battle.getTarget <- BattleActions.runMove      <- THE REAL ONE
+  medicham2  20260813|1|any|outrage|p20|0                                          <- THE REAL ONE
+```
+
+**Six of the seven draws are a lookahead family medicham2 does not make at all** — one
+`BattleQueue#resolveAction` filling in a missing `targetLoc`, five `Battle#getActionSpeed` resolving
+a target purely to hand `ModifyPriority` one and then throwing it away. So blanking our fields would
+have shared a BASE and not an ADDRESS, which is exactly what ROADMAP #478's measurement said, and
+under the `fmix32` hash that landed the same morning its 99.3% projected down to **64.2% against a
+65.0% coin floor**. That option is dead and is not what landed.
+
+### THE FIX — A CATEGORY FOR THE DRAW, AND A SEPARATE BUCKET FOR THE LOOKAHEAD
+
+**Authority (`engine/game_differential.js`).** `midWrapBattle` wraps `Battle#getRandomTarget` and
+takes the address out of the METHOD'S OWN ARGUMENTS — the move and `pokemon.side.id +
+pokemon.position` — which are in scope at the call and do not care when `setActiveMove` runs. It
+throws if the method has moved, on the same policy as `midWrapShowdown`. `BattleActions#runMove` is
+wrapped to set a SCOPE flag (`MIDW.inRunMove`, restored not cleared, because Dancer and Instruct nest
+a `runMove` inside a `runMove` and the inner one is still deciding a real target). `midAddrCat()` is
+the one place that reads it: inside `runMove` the draw is `tgt` and is SHARED; outside it is `tgtla`,
+a bucket medicham2 never draws in, so the lookahead keeps a real address-keyed value and simply stops
+shifting everything else.
+
+**Engine (`engine/medicham2-browser.js`).** `RNG_STREAMS` gains `tgt` — safe by construction, since
+each stream's seed is the master mixed with the stream's own NAME. `midTargetDraw()` is the single
+address builder, and its three callers are the three the authority has: WIRE 144's re-roll
+(`runMove`'s own `getTarget`), the Encore override (`battle-actions.ts:233`, addressed with the
+ENCORED move id, not the clicked one), and the called-move aim (`useMoveInner:418`, addressed with
+the CALLED move id). **The attacker goes in the address and the target does not** — a draw cannot be
+addressed by the thing it chooses.
+
+**Three explicit non-silences, because each of them is the failure this repo is built around.**
+`mediRng` THROWS, naming the release, if a frozen engine has no `d.tgt` — the fallback would have
+aliased it back to `any` and re-opened the exact defect under a clean receipt. `MEDFAILS.tgtStreamMissing`
+counts the same thing at the engine end. And the three scalar arms get `tgt: scalar` NAMED
+explicitly beside `tie: scalar`, so the `tgt` LCG cannot leak into corners that have never had a live
+target die — which is why `PIN_DIGEST` moves for the middle arm and the two corners' published rates
+do not.
+
+### THE PROBE — RED FIRST, GREEN AFTER, AND THE SAME RED UNDER THE KNOB
+
+`tests/probe_random_target_die.js`. Every `randomNormal` move in the format except Struggle, each
+with a carrier derived from its learnset, swept over the two fields that actually MOVE the address —
+the attacker slot (p1a / p1b) and the turn (the moves lock, so turns 2 and 3 re-roll). Sweeping the
+ally or the foe pair would have proved nothing: neither is in the address, so every such cell draws
+the same value and agreeing is free. That is the control this file could most easily have got wrong.
+
+```
+  before   11 of 24 cells agree      13 sent the move at DIFFERENT bodies
+  after    30 of 30 cells agree
+  knob     11 of 24 cells agree      the SAME 13 cells, by name
+```
+
+The before-run's authority answered **p2b on turn 1 for every one of the five moves** and p2a on
+turns 2 and 3 — the fingerprint of an address with no move name in it. After, it varies per
+(move, slot, turn), and medicham2 follows.
+
+**`MEDI_TGT_ADDR_LEGACY=1` restores BOTH halves at once** — medicham2 goes back to the generic stream
+under the action's address AND `game_differential.js` installs neither wrapper. Restoring one half
+only would be a THIRD behaviour and not the red; the child asserts `tgtEnters === 0` on the authority
+side and `MEDFAILS.tgtAddrLegacyRestored === 1` on ours so that cannot pass unnoticed.
+
+**The receipts are asserted, not printed.** The clean run reads authority `getRandomTarget` calls 807,
+draws inside `runMove` 30, lookahead draws 177; medicham2 `randomTargetDrawn` 30 with
+`randomTargetAmbiguous` 30. A run with zero draws inside `runMove`, or zero lookahead draws, or a
+single cell where only one foe was alive, FAILS — an arm that takes no draw proves nothing about a
+draw, and a cell with one legal target has no choice to get wrong.
+
+### THE TWO BOARD-MATERIAL GAMES, AND WHY BOTH HALVES OF THE FIX WERE NEEDED
+
+They are not the same mechanism and the narrow fix would have closed only one.
+
+| game | what parted | which half closes it |
+|---|---|---|
+| `…2635122796 vs …2634861011` t2 | `p2.staraptor.hp` 81/160 and `p2.incineroar.hp` 170/107 — one Outrage, two different bodies | the **`tgt` category**: both engines now build `20260813\|2\|tgt\|outrage\|p1<pos>\|0` |
+| `…2655780718 vs …2655961808` t7 | `p2.gardevoir.ability` medicham `goodasgold` / showdown `innerfocus`, `protocol_diverged_at_turn: null` | the **`tgtla` evacuation**: Trace's own `sample` sat in the shared `any` bucket behind two `getRandomTarget` lookaheads on that turn, so the authority took `nth 2` and we took `nth 0` |
+
+`state.first_board_divergences` is now **empty** and `games_board_never_diverged` is **961 of 961**.
+
+### WHOLE-GAME DID NOT MOVE, AND THE PREDICTION SAID 5
+
+Predicted 6 -> 5 before the run. It is 6, and the reason is precise rather than a wash: the seed sets
+before and after are **identical** — no game closed and no game newly parted — and exactly one row
+changed its CAUSE.
+
+```
+  2635122796   before   -damage: a different body :: |-damage|p2b|H/H <> |-damage|p2a|H/H
+               after    -start field 4 :: |-start|p1b|confusion|[fatigue] <> |-start|p1b|confusion
+```
+
+The Outrage now lands on the same body in both engines; the game then runs on and parts a turn later
+because medicham2 omits the `[fatigue]` tag when the lock's own expiry confuses the user. **That is a
+narration divergence with no board leaf**, filed as ROADMAP #506 and deliberately not bundled — it is
+Will's separate narration gate, and fixing it here would have cost the attribution this section is
+built on. The other four `fallenundefined` games and the five declared ones are byte-identical.
+
+### THE BAR, STATED PRECISELY SO IT IS NOT OVERSTATED
+
+Will's condition is **board-material zero AND the deliberate roster clean across items, abilities and
+moves**. Both are measured true: board-material **0 of 961**, roster **139 / 129 / 475** with zero in
+both failure columns.
+
+**The gate `engine/quarantine.js` computes is still 2 of 8, and it is not scored on board-material at
+all.** It fails on the WHOLE-GAME rate (6 of 961, every one narration) and on the mechanics tail (5
+of 12, the obscure tail Will explicitly deprioritised on 2026-08-23). Re-cutting that gate to read
+board-material is Will's 2026-08-22 ruling not yet implemented in the instrument, and it moves a
+published number — so it is named here and left to MEASURE rather than taken unilaterally. **Do not
+read "board-material zero" as "quarantine lifted": the gate is read, not remembered.**
+
+### A PRE-EXISTING RED, FOUND AND REPAIRED, ATTRIBUTED APART FROM THE FIX
+
+`tests/probe_mid_cat_reload.js` was RED at `a888a663` on **all six arms including the first load**,
+before any byte of this change — confirmed by stashing both engine files and re-running. Its two-turn
+board rested on "the foes' second Protect fails and the damage lands on turn 2"; under the `fmix32`
+hash that landed earlier the same day the Protect that fails is CHIMECHO'S, and Chimecho is immune to
+Earthquake, so nothing was ever hit and there was no accuracy, crit or damage roll for the wrapper to
+categorise. A fixture that decayed under a die, not an engine that broke — and the file's own
+missing-category clause is what refused to score it. A third scripted turn restores it (a guard that
+has held twice holds a third time one time in nine) and the refusal clause is untouched, so the next
+die that strands this board reports itself. Green, 6 of 6, and its category set now reads
+`{acc,any,crit,dmg,tgt,tgtla}`.
+
+### THE HAND LIST
+
+**Leaves it:** ROADMAP **#478** in full — *"the last board-material game is an unshared die"* — is
+answered and carried by `tests/probe_random_target_die.js`. Also the standing question of whether
+blanking our address could work: it is measured dead and the row records why, so it should not be
+re-proposed.
+
+**Joins it:**
+- **ROADMAP #506 — `|-start|…|confusion` is missing `[fatigue]` when a lock expires.** It is the only
+  non-declared whole-game row left that is not `fallenundefined`. Narration, no board leaf, one game.
+- **ROADMAP #507 — Healer and Shed Skin draw unconditionally where the authority checks first.** Same
+  class as this fix (a draw one engine takes and the other does not, shifting a shared `nth`) and
+  filed rather than bundled: no board-material game names it, and the earlier stat-pick measurement
+  put both in the medicham-**+1** direction on a bucket-count asymmetry that was never replayed.
+- **`tgt` is NOT in the void check's `OUT` set.** The overlap floor is computed over
+  `{acc,crit,sec,dmg,stall}` and `tgt` is now arguably an outcome category. Adding it would change
+  which games void and therefore the headline; the identity rate of the new bucket at pool scale was
+  not measured here and is owed before anyone argues for it either way.
+- **`chooseAction`'s Encore branch and `lockedAction`'s status-lock aim** still draw from the generic
+  stream at COLLECTION time, where the authority has no counterpart draw at all. Neither fired on this
+  pool (the engine's own comment says the lock one "today never does"), so nothing is claimed — but
+  they are the two remaining target draws not on the `tgt` stream.
+- **The whole-game baseline is stamped under a two-generation-old pin** (`2efbc9ed1946` against this
+  run's `ccb365985023`), so `quarantine.js` withholds direction of travel and is right to. Re-stamping
+  is a decision about which pin is meant to be held and was not taken here.
+
+**Files.** `engine/game_differential.js` (`midWrapBattle`, the `runMove` scope wrapper, `midAddrCat`,
+the `tgt`/`tgtla` addressing in `midDraw`, `tgt: scalar` on the corners, the loud release check,
+`DICE_MODEL` v5), `engine/medicham2-browser.js` (`RNG_STREAMS` + `tgt`, `midTargetDraw` and its three
+callers, `MEDSEEN.randomTargetDrawn`/`randomTargetAmbiguous`, `MEDFAILS.tgtStreamMissing`/
+`tgtAddrLegacyRestored`), `tests/probe_random_target_die.js` (new),
+`tests/probe_mid_cat_reload.js` (the decayed fixture, repaired and attributed apart).
+
 
 ## THREE SMALL STATE READS, LANDED ONE AT A TIME. **BOARD-MATERIAL 5 -> 2 OF 961 AND WHOLE-GAME 7 -> 6 OF 961. EACH DELTA PREDICTED BEFORE ITS OWN RUN AND ATTRIBUTED TO ITS OWN PATCH. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST `44bd49403231` -> `48e1007ac14a`, MOVED BY A ONCE.** 2026-08-27.
 

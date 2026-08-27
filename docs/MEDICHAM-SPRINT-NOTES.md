@@ -21,6 +21,48 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE RANDOM-TARGET DIE WAS ADDRESSED BEFORE THE AUTHORITY HAD A MOVE TO NAME IT WITH. **BOARD-MATERIAL 2 -> 0 OF 961, PREDICTED. WHOLE-GAME UNMOVED AT 6 OF 961 — 5 PREDICTED, ATTRIBUTED. CENSUS UNMOVED AT 765/765/0. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS. PIN DIGEST `48e1007ac14a` -> `ccb365985023`, DICE_MODEL v4 -> v5, ON PURPOSE.** 2026-08-27.
+
+ROADMAP `#478` closed; `#506` and `#507` filed. Release `a4b2832e0a0f`. CHANGELOG 5.186.0.
+
+`Battle#getTarget` gates its named-target branch off for `randomNormal` and falls to `getRandomTarget`,
+so which foe an Outrage hits in a double is a die. `runMove` calls `getTarget` on
+`sim/battle-actions.ts:223` and `setActiveMove` on `:245`, so the authority drew with no active move and
+addressed it `<seed>|<turn>|any|-|-|<nth>` while medicham2 named the move and the TARGET slot. Worse,
+six of the seven blank-bucket draws on a staged Outrage board are a lookahead family
+(`BattleQueue#resolveAction` once, `Battle#getActionSpeed` five times) that medicham2 does not make at
+all, so the real draw sat at `nth 6` against our 0 — which is why blanking our fields, the option this
+row carried for two measurements, cannot work and is now recorded dead (64.2% against a 65.0% coin
+floor under the shipped hash).
+
+**Landed:** a dedicated `tgt` category on both sides, addressed from `getRandomTarget`'s OWN ARGUMENTS
+(the move and the ATTACKER slot), plus a `tgtla` bucket for every lookahead resolution so the deciding
+draw is `nth 0` on both sides. medicham2 gains a `tgt` stream and one builder, `midTargetDraw`, with the
+three callers the authority has.
+
+**Both board-material games close, by different halves.** `...2635122796` t2 (the Outrage) needs the
+`tgt` category; `...2655780718` t7 (`p2.gardevoir.ability` medicham `goodasgold` / showdown
+`innerfocus`, protocol never parted) is Trace's own `sample` behind two lookaheads and needs the
+`tgtla` evacuation. `first_board_divergences` is empty; `games_board_never_diverged` 961 of 961.
+
+**Whole-game did not move and 5 was predicted.** The seed sets are identical; `...2635122796` changed
+CAUSE to `-start field 4 :: |-start|p1b|confusion|[fatigue] <> |-start|p1b|confusion` — narration, no
+board leaf, filed as `#506` rather than bundled.
+
+**Probe:** `tests/probe_random_target_die.js`. 11 of 24 cells agreed before, 30 of 30 after,
+`MEDI_TGT_ADDR_LEGACY=1` (which restores BOTH halves) reproduces the same 13 cells by name.
+
+**Repaired apart from the fix:** `tests/probe_mid_cat_reload.js` was RED at `a888a663` on all six arms —
+confirmed by stash — because its two-turn board's surviving Protect belonged to a Levitate body immune
+to Earthquake, so no damage roll happened for the wrapper to categorise. A third scripted turn restores
+it; the refusal clause is untouched.
+
+**The bar:** board-material zero and the roster clean is Will's stated condition and both are measured
+true. `quarantine.js` is still 2 of 8 and has NO board-material clause — it scores whole-game and the
+mechanics tail. Re-cutting it is Will's 2026-08-22 ruling, unimplemented, and belongs to MEASURE.
+
+---
+
 ## THREE SMALL STATE READS, LANDED ONE AT A TIME. **BOARD-MATERIAL 5 -> 2 OF 961 AND WHOLE-GAME 7 -> 6 OF 961. EACH DELTA PREDICTED BEFORE ITS OWN RUN AND ATTRIBUTED TO ITS OWN PATCH. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. ROSTER 0/0 ON ALL THREE STAGES. PIN DIGEST `44bd49403231` -> `48e1007ac14a`, MOVED BY A ONCE.** 2026-08-27.
 
 Arm `middle`, `--games 1200` (yields 961), `--turns 12`, `--team-store data/team-pool-frozen`,

@@ -10,6 +10,89 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.186.0] — 2026-08-27
+
+### Fixed
+- **THE RANDOM-TARGET DIE GETS ITS OWN ADDRESS CATEGORY ON BOTH SIDES. BOARD-MATERIAL 2 -> 0 OF 961,
+  PREDICTED BEFORE THE RUN. WHOLE-GAME UNMOVED AT 6 OF 961 — 5 WAS PREDICTED AND IT DID NOT MOVE,
+  ATTRIBUTED BELOW. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. DAMAGE 0/6000 AT ALL SIXTEEN
+  CORNERS BEFORE AND AFTER. ROSTER 139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS. PIN DIGEST
+  `48e1007ac14a` -> `ccb365985023`, `DICE_MODEL` v4 -> v5, ON PURPOSE.** ENGINE. ROADMAP `#478`
+  CLOSED; `#506` and `#507` FILED.
+- **THE DEFECT.** `Battle#getTarget` gates its named-target branch off for `randomNormal`
+  (`sim/battle.ts:2461`) and falls to `getRandomTarget` -> `Side#randomFoe` -> `sample`, so which foe
+  an Outrage hits in a double is a DIE. `BattleActions#runMove` calls `getTarget` on
+  `sim/battle-actions.ts:223` and `setActiveMove` only on `:245`, so at draw time the authority has
+  neither an active move nor an active target and its address read `<seed>|<turn>|any|-|-|<nth>`;
+  medicham2 writes its fields at the top of the action and drew ~165 lines below, reading
+  `<seed>|<turn>|any|outrage|<TARGET slot>|<nth>`. Two strings, two independent dice.
+- **AND `nth` COULD NOT MATCH EITHER, WHICH IS WHY THE PREVIOUSLY-PROPOSED REMEDY IS DEAD.** Attributed
+  by real stack on one staged Outrage board, SIX of the seven blank-bucket draws are a lookahead family
+  medicham2 does not make at all — one `BattleQueue#resolveAction` filling a missing `targetLoc` and
+  five `Battle#getActionSpeed` resolving a target only to price `ModifyPriority` — so the authority's
+  real draw sat at `nth 6` and ours at 0. Blanking our fields would have shared a BASE and not an
+  ADDRESS; under the `fmix32` hash that landed the same morning its published 99.3% projects to 64.2%
+  against a 65.0% coin floor. It is recorded as dead so it is not re-proposed.
+- **THE FIX.** `engine/game_differential.js` gains `midWrapBattle`, which wraps
+  `Battle#getRandomTarget` and builds the address from THE METHOD'S OWN ARGUMENTS (the move, and
+  `pokemon.side.id + pokemon.position`) — in scope at the call, and independent of when
+  `setActiveMove` runs. `BattleActions#runMove` is wrapped to set a nested scope flag, so a draw inside
+  it is `tgt` and SHARED while every lookahead resolution is `tgtla`, a bucket medicham2 never draws
+  in. `engine/medicham2-browser.js` gains a `tgt` RNG stream and one address builder, `midTargetDraw`,
+  with the three callers the authority has: WIRE 144's re-roll, the Encore override
+  (`battle-actions.ts:233`, addressed with the ENCORED move id) and the called-move aim
+  (`useMoveInner:418`, the CALLED move id). The ATTACKER goes in the address and the target does not —
+  a draw cannot be addressed by the thing it chooses.
+- **BOTH BOARD-MATERIAL GAMES CLOSE, BY DIFFERENT HALVES, SO THE NARROW FIX WOULD NOT HAVE DONE IT.**
+  `...2635122796` t2 is the Outrage and needs the `tgt` category. `...2655780718` t7
+  (`p2.gardevoir.ability` medicham `goodasgold` / showdown `innerfocus`, `protocol_diverged_at_turn:
+  null`) is Trace's own `sample` sitting behind two `getRandomTarget` lookaheads in the shared `any`
+  bucket, and needs the `tgtla` evacuation. `state.first_board_divergences` is now EMPTY and
+  `games_board_never_diverged` is 961 of 961.
+- **WHOLE-GAME DID NOT MOVE AND 5 WAS PREDICTED.** The seed sets before and after are identical — no
+  game closed and none newly parted — and exactly one row changed its CAUSE: `...2635122796` went from
+  `-damage: a different body` to `-start field 4 :: |-start|p1b|confusion|[fatigue] <>
+  |-start|p1b|confusion`. The Outrage now lands on the same body and the game parts a turn later on a
+  narration tag with no board leaf, filed as `#506` and deliberately not bundled.
+- **`tests/probe_mid_cat_reload.js` WAS RED AT `a888a663` ON ALL SIX ARMS BEFORE ANY BYTE OF THIS
+  CHANGE, AND IS REPAIRED APART FROM IT.** Confirmed by stashing both engine files and re-running. Its
+  two-turn board rested on the foes' second Protect failing; under the `fmix32` hash the Protect that
+  fails is Chimecho's, and Chimecho is immune to Earthquake, so nothing was hit and there was no
+  accuracy, crit or damage roll for the wrapper to categorise. A fixture that decayed under a die, not
+  an engine that broke — and the file's own missing-category clause is what refused to score it. A
+  third scripted turn restores it; the refusal clause is untouched.
+
+### Added
+- `tests/probe_random_target_die.js` — every legal `randomNormal` move except Struggle, carriers derived
+  from each learnset, swept over the two fields that actually MOVE the address (the ATTACKER SLOT and
+  the TURN, since the moves lock and turns 2 and 3 re-roll). Sweeping the ally or the foe pair would
+  have drawn the identical value in every cell and agreeing would have been free. Living foes are
+  counted per move line off BOTH protocols and any cell under two is REFUSED; both engines' answers
+  must VARY across the sweep or the file reports it never reached a die; an ordinary `normal`-target
+  move named at p2b is the over-fire control on every cell; and both engines' receipts are asserted,
+  not printed. **11 of 24 cells agreed before, 30 of 30 after, and `MEDI_TGT_ADDR_LEGACY=1` — which
+  restores BOTH halves at once — reproduces the same 13 parted cells by name.**
+
+### Changed
+- `DICE_MODEL` is `split/v5` and `PIN_DIGEST` moves to `ccb365985023`. Taking ~177 lookahead draws per
+  30 target draws out of the shared `any` bucket re-shifts every remaining `any` `nth`, so a run before
+  and a run after are two instruments and `engine/arms_comparable.js` must refuse to table them
+  together. The three SCALAR arms are bit-identical: `tgt: scalar` is named explicitly beside
+  `tie: scalar` so the new LCG cannot leak into corners that have never had a live target die.
+
+### Notes
+- **THE BAR, NOT OVERSTATED.** Will's condition for lifting quarantine is board-material zero AND the
+  deliberate roster clean; both are measured true. **The gate `engine/quarantine.js` computes is still
+  2 of 8 and has NO board-material clause** — it fails on the whole-game rate (6 of 961, every one
+  narration) and on the mechanics tail (5 of 12, the obscure tail deprioritised on 2026-08-23).
+  Re-cutting that gate to read board-material is Will's 2026-08-22 ruling, not yet implemented, and it
+  moves a published number, so it is named and left to MEASURE. The gate is read, not remembered.
+- Release `a4b2832e0a0f`. Account: `docs/_reports/2026-08-27-target-address.md`.
+- **OWED, NOT RUN.** `tgt` is not in the void check's `OUT` set and its pool-scale identity rate was not
+  measured. The whole-game baseline is still stamped under `2efbc9ed1946`, two pin generations old, so
+  `quarantine.js` withholds direction of travel and is right to; re-stamping is a decision about which
+  pin is meant to be held and was not taken here.
+
 ## [5.185.0] — 2026-08-27
 
 ### Fixed

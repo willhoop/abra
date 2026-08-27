@@ -117,8 +117,32 @@ const PASS = { m: 'protect' };
 
 /* THE BOARD IS THE ONE THAT WAS LYING. Garchomp's Earthquake is `allAdjacent`, so it reaches its own
  * Clefable, the Levitate Chimecho (immune) and the Snorlax — a spread hit with an immune body in it,
- * which is what the divergence was mistaken for. Two turns, because the foes' second Protect fails
- * and the damage only lands on turn 2. */
+ * which is what the divergence was mistaken for. The damage only lands once a Protect FAILS, and
+ * which one fails is a live `randomChance(1, counter)` on this arm.
+ *
+ * ---- 2026-08-27 -- IT WAS TWO TURNS AND THAT STOPPED BEING ENOUGH, WHICH IS A FIXTURE THAT DECAYED
+ * UNDER A DIE RATHER THAN AN ENGINE THAT BROKE.
+ *
+ * Two turns rested on "the foes' second Protect fails and the damage lands on turn 2". Under the
+ * hash that ships from 2026-08-27 (ROADMAP #489, fmix32) the Protect that fails on turn 2 is
+ * CHIMECHO'S — and Chimecho is immune to Earthquake, so the move still reached nobody. MEASURED, the
+ * authority's own stream on the two-turn script:
+ *
+ *     |move|p2a: Chimecho|Protect||[still]   |-fail|p2a: Chimecho     <- its Protect DID fail
+ *     |-activate|p1b: Clefable|move: Protect                          <- and both other guards held
+ *     |-activate|p2b: Snorlax|move: Protect
+ *     |-immune|p2a: Chimecho|[from] ability: Levitate                 <- so NOTHING was hit
+ *
+ * With no body hit there is no accuracy roll, no crit and no damage roll, and this file's own
+ * assertion — "every load's showdown draws carry acc/crit/dmg" — went red on all SIX arms, first
+ * load included. That is the assertion working: it refused to score a wrapper claim on a board where
+ * the wrapper had nothing to categorise.
+ *
+ * A THIRD TURN RESTORES IT AND IT IS NOT A THRESHOLD MOVED TO GET A PASS. Showdown's stall counter
+ * triples the denominator per consecutive success (`randomChance(1, counter)`), so a guard that has
+ * held twice holds a third time one time in nine. The file still REFUSES rather than passes if no
+ * damage roll happens — the missing-category clause below is unchanged — so a future die that
+ * strands this board again reports itself instead of going quiet. */
 const SC = (mv) => ({
   id: 'mid-cat-reload-' + mv,
   A: [mon('garchomp', '', 'Rough Skin', [mv, 'Protect']), mon('clefable', '', 'Unaware', ['Protect'])]
@@ -126,6 +150,7 @@ const SC = (mv) => ({
   B: [mon('chimecho', '', 'Levitate', ['Protect']), mon('snorlax', '', 'Thick Fat', ['Protect'])]
        .concat(FILL('milotic', 'incineroar')),
   script: [
+    { p1: [{ m: mv, t: 0 }, PASS], p2: [PASS, PASS] },
     { p1: [{ m: mv, t: 0 }, PASS], p2: [PASS, PASS] },
     { p1: [{ m: mv, t: 0 }, PASS], p2: [PASS, PASS] },
   ] });

@@ -275,11 +275,32 @@ let MID_WRAP_CLASS = null;
  * instance doing the drawing reads what it wrote. `MEDI_MID_CAT_UNSHARED=1` restores the per-module
  * binding for `tests/probe_mid_cat_reload.js`'s red arm. */
 const MID_UNSHARED = !!process.env.MEDI_MID_CAT_UNSHARED;
+/* ROADMAP #478 -- ONE KNOB, BOTH HALVES. Restoring only the authority's side or only medicham2's
+ * would be a THIRD behaviour and not the red the probe has to reproduce, so this variable is read by
+ * `engine/medicham2-browser.js` under the same name and the two halves go back together. It is LOUD:
+ * the run prints the restored state beside the wrapper receipt. */
+const TGT_ADDR_LEGACY = process.env.MEDI_TGT_ADDR_LEGACY === '1';
 const MIDW = (() => {
   const K = '__abra_mid_wrapper_state__';
-  const fresh = () => ({ cat: 'any', att: '-', battle: null, adopted: 0, enters: 0 });
+  const fresh = () => ({ cat: 'any', att: '-', battle: null, adopted: 0, enters: 0,
+                         /* ROADMAP #478 -- the target draw's own fields. `tgtMove`/`tgtAtt` are the
+                          * ARGUMENTS of `Battle#getRandomTarget`, never `battle.activeMove`, which is
+                          * null at that instant. `inRunMove` separates the one draw that decides the
+                          * board from the lookahead family. */
+                         tgtMove: '-', tgtAtt: '-', inRunMove: false,
+                         tgtEnters: 0, tgtDrawsInMove: 0, tgtDrawsLookahead: 0, runMoveEnters: 0,
+                         tgtUnnameable: 0, tgtUnnameableFirst: '' });
   if (MID_UNSHARED) return fresh();
-  if (!globalThis[K]) globalThis[K] = fresh(); else globalThis[K].adopted++;
+  if (!globalThis[K]) globalThis[K] = fresh();
+  else {
+    globalThis[K].adopted++;
+    /* AN ADOPTED HOLDER WAS BUILT BY AN OLDER LOAD OF THIS FILE AND HAS NONE OF THE FIELDS ABOVE.
+     * Backfilled rather than left undefined, because `MIDW.inRunMove` reading `undefined` would send
+     * every target draw to the lookahead bucket and the arm would look installed while being wrong —
+     * the silent default this repository is built around. Only missing keys are written. */
+    const f = fresh();
+    for (const k of Object.keys(f)) if (!(k in globalThis[K])) globalThis[K][k] = f[k];
+  }
   return globalThis[K];
 })();
 /* WRAPPING HAPPENS ONCE, AT LOAD, AND ONLY MATTERS FOR THE MIDDLE ARM — the wrapper merely records
@@ -296,6 +317,11 @@ try {
   MID_WRAP_ERROR = e.message;
 }
 const { Dex, Teams, Battle } = CS.sim();
+/* ROADMAP #478 — installed here because this is the first line at which `Battle` exists. Same policy
+ * as `midWrapShowdown` above: it throws rather than falling back, because a wrapper that quietly
+ * failed to attach would leave every target draw in the shared `any` bucket and the arm would go on
+ * reporting the same rate while measuring the old thing. */
+try { midWrapBattle(Battle); } catch (e) { MID_WRAP_ERROR = (MID_WRAP_ERROR ? MID_WRAP_ERROR + '; ' : '') + e.message; }
 const dex = Dex.forFormat(CS.FORMAT);
 const N = require('./names.js');
 const SWARM = require('./diff_swarm.js');
@@ -798,7 +824,27 @@ const MID_RANGE_SEEN = new Map();
  * Both sides' streams come from `medicham2.rngStreams({seed})` — the SAME function, so the two cannot
  * drift apart in how a seed becomes a sequence. Re-implementing the LCG here would be a second source
  * for a fact the engine already owns, which is the rule this repository breaks most expensively. */
-const MID_CATS = ['acc', 'crit', 'sec', 'dmg', 'stall'];
+/* ---- 2026-08-27, ROADMAP #478 -- `tgt` JOINED THE LIST, AND IT IS A CATEGORY BECAUSE THE AUTHORITY
+ * DRAWS IT WHERE NOTHING CAN NAME IT.
+ *
+ * `Battle#getTarget` falls through to `getRandomTarget` for every `randomNormal` move and for every
+ * spread move with no chosen target (`sim/battle.ts:2461`, `:2487`), and `BattleActions#runMove`
+ * calls it on `:223` while `setActiveMove` is on `:245` — so at draw time `battle.activeMove` and
+ * `battle.activeTarget` are BOTH NULL and the address read `<seed>|<turn>|any|-|-|<nth>`. medicham2's
+ * counterpart draw sits ~165 lines below its own `MID_MOVE`/`MID_TGT` write and read
+ * `<seed>|<turn>|any|outrage|<target slot>|<nth>`. Two strings, two independent dice, two different
+ * bodies hit — measured on a staged Outrage board and on the pinned pool alike.
+ *
+ * IT CANNOT BE FIXED BY BLANKING OUR FIELDS, and that was the option on the table. The authority's
+ * real draw sat at `nth 6` on that staged board because SIX LOOKAHEAD DRAWS had already taken 0..5
+ * out of the shared bucket — one `BattleQueue#resolveAction` and five `Battle#getActionSpeed`, a
+ * family medicham2 does not make at all. Matching the base without matching `nth` is a coin.
+ *
+ * SO THE DRAW GETS ITS OWN CATEGORY ON BOTH SIDES, KEYED ON THE ARGUMENTS `getRandomTarget` IS
+ * HANDED — the move and the ATTACKER — which are in scope at the call and do not depend on when
+ * `setActiveMove` runs. The lookahead sites go to `tgtla`, a bucket medicham2 never draws in, so the
+ * one draw that decides the board is `nth 0` on both sides. See `midWrapBattle`. */
+const MID_CATS = ['acc', 'crit', 'sec', 'dmg', 'stall', 'tgt'];
 
 /* ==================================================================================================
  * EVENT-ADDRESSED DICE — WHY THE SEQUENCES HAD TO GO
@@ -1093,12 +1139,96 @@ function midWrapShowdown(BattleActions) {
   around('hitStepAccuracy', 'acc', 1);
   around('secondaries', 'sec', 1);
   around('getDamage', 'dmg', 0);      /* the crit roll lives in here too and is split out below */
+  /* ---- ROADMAP #478 -- `runMove` IS NOT A CATEGORY, IT IS A SCOPE ------------------------------
+   *
+   * It sets no `MIDW.cat` and changes no address on its own. What it answers is the ONE question the
+   * target draw cannot answer for itself: is this the draw that decides where the move lands, or is
+   * it one of the lookahead calls (`BattleQueue#resolveAction`, `Battle#getActionSpeed`) that resolve
+   * a target only to price a priority and then throw it away? medicham2 makes no lookahead draw at
+   * all, so leaving them in the same bucket is what put the real draw at `nth 6` while ours sat at 0.
+   *
+   * NESTED ON PURPOSE: `previous` is restored rather than cleared, because Dancer and Instruct reach
+   * `runMove` from inside a `runMove` and the inner one is still deciding a real target. */
+  if (!TGT_ADDR_LEGACY) {
+    const rm = BattleActions.prototype.runMove;
+    if (typeof rm !== 'function') throw new Error('MIDDLE ARM: BattleActions#runMove is not a function — '
+      + 'the authority moved and this wrapper is guessing. Fix the name rather than falling back.');
+    BattleActions.prototype.runMove = function (...a) {
+      const prev = MIDW.inRunMove;
+      MIDW.inRunMove = true; MIDW.runMoveEnters++;
+      try { return rm.apply(this, a); } finally { MIDW.inRunMove = prev; }
+    };
+  }
   BattleActions.__midWrapped = true;
   /* WHICH HOLDER THE INSTALLED WRAPPER ACTUALLY WRITES TO. The closure above captured `MIDW` of
    * whichever module load got here first, and every later load has to be able to ask whether that is
    * still the object it is reading. `MID_WRAP_ERROR === null` cannot answer it -- the wrapper attached
    * perfectly and wrote its answers into a dead module -- so the pin claim compares identities. */
   BattleActions.__midHolder = MIDW;
+}
+
+/* ---- ROADMAP #478 -- THE TARGET DRAW'S ADDRESS COMES FROM THE ARGUMENTS, NOT FROM THE BATTLE ----
+ *
+ * `Battle#getRandomTarget(pokemon, move)` is handed everything the address needs. That is the whole
+ * reason this wrapper can fix what blanking our fields could not: `battle.activeMove` is null here
+ * (`setActiveMove` is 22 lines below the `getTarget` call that reaches this), but the arguments are
+ * not, and they are the same two facts medicham2 has in scope at its own draw.
+ *
+ * THE ATTACKER GOES IN THE ADDRESS AND THE TARGET DOES NOT. The target is what is being drawn; a
+ * draw cannot be addressed by its own outcome. `pokemon.side.id + pokemon.position` is exactly the
+ * spelling `midEventSlot` produces on the other side — the same spelling the `acc`/`dmg` categories
+ * already agree on for their targets, so it is not a new convention.
+ *
+ * IT WRAPS THE METHOD RATHER THAN THE THREE CALLERS, because `Side#randomFoe` is reached from
+ * `getRandomTarget` alone in this checkout and a per-caller wrapper is three places for the fourth
+ * caller to be forgotten. It THROWS if the method has moved, for the reason `midWrapShowdown` does. */
+function midWrapBattle(Battle) {
+  if (!Battle || TGT_ADDR_LEGACY) return;
+  if (Battle.__midTgtWrapped) return;
+  const fn = Battle.prototype.getRandomTarget;
+  if (typeof fn !== 'function') throw new Error('MIDDLE ARM: Battle#getRandomTarget is not a function — '
+    + 'the authority moved and this wrapper is guessing. Fix the name rather than falling back.');
+  Battle.prototype.getRandomTarget = function (pokemon, move) {
+    const pc = MIDW.cat, pm = MIDW.tgtMove, pa = MIDW.tgtAtt;
+    MIDW.cat = 'tgt'; MIDW.tgtEnters++;
+    /* `move` arrives as a Move or as a name — `getRandomTarget`'s own first line resolves it the same
+     * way, so this is the authority's own normalisation and not a second one. */
+    let mid = '-';
+    try { mid = (move && move.id) ? move.id : (this.dex ? this.dex.moves.get(move).id : String(move)); }
+    catch (e) {
+      /* AN UNNAMEABLE MOVE HERE IS NOT COSMETIC — it collapses the address to `tgt|-|<att>` and puts
+       * this draw in a bucket with every other unnameable one, which is the whole defect wearing a new
+       * category. COUNTED AND NAMED, never swallowed; `midWrapState().tgtUnnameable` publishes it and
+       * the probe asserts it at zero. */
+      MIDW.tgtUnnameable++;
+      if (!MIDW.tgtUnnameableFirst) MIDW.tgtUnnameableFirst = String((e && e.message) || e);
+      mid = '-';
+    }
+    MIDW.tgtMove = mid || '-';
+    MIDW.tgtAtt = (pokemon && pokemon.side && pokemon.position != null)
+      ? (pokemon.side.id + pokemon.position) : '-';
+    try { return fn.call(this, pokemon, move); }
+    finally { MIDW.cat = pc; MIDW.tgtMove = pm; MIDW.tgtAtt = pa; }
+  };
+  Battle.__midTgtWrapped = true;
+}
+
+/* ---- ROADMAP #478 -- WHICH BUCKET A TARGET DRAW BELONGS IN, IN ONE PLACE ------------------------
+ *
+ * `random` and `chance` both had to answer it and two copies of one rule is what this repository
+ * breaks most expensively. `tgt` is the draw `runMove` takes to decide where the move actually lands
+ * and is SHARED with medicham2; `tgtla` is every lookahead resolution (`BattleQueue#resolveAction`,
+ * `Battle#getActionSpeed`, `beforeTurnMove`) and is a bucket medicham2 never draws in — it keeps a
+ * real, address-keyed value rather than being pinned, so the authority's own behaviour is unchanged;
+ * what changes is only that those draws stop shifting the `nth` of everything else.
+ *
+ * COUNTED, BOTH WAYS. A run in which `tgtDrawsInMove` is 0 has not exercised this at all, and a run
+ * where `tgtDrawsLookahead` is 0 has not removed anything from the shared bucket — both look exactly
+ * like a working fix from the rate alone. */
+function midAddrCat() {
+  if (MIDW.cat !== 'tgt') return MIDW.cat;
+  if (MIDW.inRunMove) { MIDW.tgtDrawsInMove++; return 'tgt'; }
+  MIDW.tgtDrawsLookahead++; return 'tgtla';
 }
 
 /* THE TWO CORNERS OF MEDICHAM2'S SINGLE SCALAR. */
@@ -1139,8 +1269,13 @@ function makeArm(spec) {
     const b = battle && battle.activeMove !== undefined ? battle : MIDW.battle;
     const mv = b && b.activeMove, tg = b && b.activeTarget;
     if (!b) MID_NO_BATTLE_DRAWS++;
+    /* ROADMAP #478 — the two target categories are addressed from the ARGUMENTS `getRandomTarget` was
+     * handed, because `activeMove`/`activeTarget` are both null at that instant. Everything else keeps
+     * reading the battle exactly as before. */
+    const isTgt = (cat === 'tgt' || cat === 'tgtla');
     const ctx = midCtx([MID_SEED, b ? b.turn : 0, cat,
-                        mv ? mv.id : '-', tg ? (tg.side.id + tg.position) : '-']);
+                        isTgt ? (MIDW.tgtMove || '-') : (mv ? mv.id : '-'),
+                        isTgt ? (MIDW.tgtAtt || '-') : (tg ? (tg.side.id + tg.position) : '-')]);
     MID_CTX_SEEN.sd.push(ctx);
     if (MID_CTX_ALL.sd.length < MID_CTX_ALL_CAP) MID_CTX_ALL.sd.push(ctx);
     return midValue(ctx);
@@ -1150,7 +1285,7 @@ function makeArm(spec) {
      * form with m === 16 is the damage roll and the two-argument form is the crit — the only place a
      * denominator IS a reliable discriminator, because the wrapper has already narrowed the caller. */
     if (spec.middle) {
-      const cat = (MIDW.cat === 'dmg' && n !== undefined) ? 'crit' : MIDW.cat;
+      const cat = (MIDW.cat === 'dmg' && n !== undefined) ? 'crit' : midAddrCat();
       /* TALLIED BEFORE ANY DECISION — see MID_RANGE_SEEN. */
       if (n !== undefined) {
         const _b = this && this.activeMove !== undefined ? this : MIDW.battle;
@@ -1233,7 +1368,7 @@ function makeArm(spec) {
    * uniform from a floor and loses resolution at small denominators. It draws the float directly. */
   const chance = (num, den) => {
     if (spec.middle) {
-      const cat = (MIDW.cat === 'dmg') ? 'crit' : MIDW.cat;
+      const cat = (MIDW.cat === 'dmg') ? 'crit' : midAddrCat();
       return midDraw(cat === 'any' ? 'any' : cat, this) < (num / den);
     }
     return random(den) < num;
@@ -1320,6 +1455,16 @@ function makeArm(spec) {
      * assumed absent; see the header. Counting wrappers only — the values are the engine's own. */
     if (spec.middle) {
       const d = M.midEventDice({ seed: spec.middleSeed });
+      /* ROADMAP #478 -- A RELEASE FROZEN BEFORE THE TARGET STREAM HAS NO `d.tgt`, AND THE FALLBACK
+       * BELOW WOULD SILENTLY ALIAS IT TO `any` — which is EXACTLY the defect being fixed, running
+       * again under a clean receipt. It throws instead, naming the release, on the same policy as the
+       * `rngStreams` check further down. */
+      if (typeof d.tgt !== 'function' && !TGT_ADDR_LEGACY) {
+        throw new Error('ROADMAP #478: the frozen engine in release ' + REL.id + ' predates the `tgt` '
+          + 'RNG stream (midEventDice returned no `tgt`), so the random-target draw would silently '
+          + 'alias to `any` and re-open the address split this arm exists to close. Cut a release from '
+          + 'a tree that has it, or run with MEDI_TGT_ADDR_LEGACY=1 to measure the old behaviour on purpose.');
+      }
       const wrap = (cat) => { const f = d[cat] || d.any;
         return () => { MID_DRAWS.me[cat] = (MID_DRAWS.me[cat] || 0) + 1; return f(); }; };
       const o = { split: true, seed: spec.middleSeed, any: wrap('any') };
@@ -1345,6 +1490,12 @@ function makeArm(spec) {
     }
     return Object.assign({}, streams, {
       any: scalar, acc: scalar, crit: scalar, sec: scalar, dmg: scalar, stall: scalar, split: false,
+      /* ROADMAP #478 — NAMED EXPLICITLY, for exactly the reason `tie` below is. `streams` now carries
+       * a `tgt` LCG, and letting it through would hand the three SCALAR arms a live random-target die
+       * they have never had: every run since 2026-08-07 resolved a random target off the constant
+       * corner. This line keeps those runs bit-identical, and it is why `PIN_DIGEST` moves for the
+       * middle arm and the corners' published rates do not. */
+      tgt: scalar,
       /* ROADMAP #290 — NAMED EXPLICITLY RATHER THAN INHERITED. `streams` now carries a `tie` LCG,
        * and letting it through would give the scalar arms a live tie coin that they have never had:
        * every run since 2026-08-07 resolved a tied group by the selection sort alone, because the
@@ -1693,7 +1844,24 @@ const ARMS_RUN = ARM_IDS.map(id => ARM_BY_ID.get(id));
  * after are two instruments and `arms_comparable.js` has to refuse to table them together. Leaving
  * `v3` in place would have left two DIFFERENT behaviours sharing one digest, which is worse than the
  * reset. */
-const DICE_MODEL = 'split/v4: acc+crit+sec+dmg on the corner, stall on its own seeded stream; '
+/* ---- v5, 2026-08-27, ROADMAP #478 -- AND IT MOVES THE DIGEST FOR THE SAME REASON v4 DID.
+ *
+ * Taking the `getRandomTarget` family out of the shared `any` bucket re-shifts the `nth` of every
+ * remaining `any` draw in the same turn — on one staged Outrage board that was SIX draws leaving a
+ * bucket of seven. A run before and a run after are two instruments, so `arms_comparable.js` has to
+ * refuse to table them together; leaving `v4` in place would have left two different behaviours
+ * sharing one digest, which is worse than the reset.
+ *
+ * THE DIGEST IDENTIFIES THE INSTRUMENT, NOT THE ENGINE. The medicham2 half of this change moves an
+ * address too, but an engine-only change does not move the digest — this one does because the
+ * ADDRESSING CONTRACT moved on both sides at once. */
+const DICE_MODEL = 'split/v5: acc+crit+sec+dmg on the corner, stall on its own seeded stream; '
+                 + 'the random-target draw (Battle#getRandomTarget) has its OWN address category on '
+                 + 'both sides from 2026-08-27, keyed on the move and the ATTACKER slot because the '
+                 + 'authority draws it before setActiveMove and has neither activeMove nor '
+                 + 'activeTarget in scope — `tgt` inside runMove is SHARED with medicham2, `tgtla` '
+                 + 'for the lookahead resolutions (resolveAction, getActionSpeed, beforeTurnMove) is '
+                 + 'a bucket medicham2 never draws in, so the deciding draw is nth 0 on both sides; '
                  + 'the `middle` arm addresses every draw by event and hashes it FNV-1a + fmix32 '
                  + '(the finaliser landed 2026-08-27 — before it, the trailing `nth` field only '
                  + 'TRANSLATED the value and ten arrivals at one damage address shared 1.75 buckets '
@@ -5704,8 +5872,18 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                     * reload with `adopted > 0` and `enters === 0` is the defect
                     * `tests/probe_mid_cat_reload.js` exists for, and it is readable rather than
                     * inferred from a percentage. */
+                   /* ROADMAP #478 — and the TARGET wrapper's receipt beside it. `tgtEnters` is every
+                    * `getRandomTarget` call the wrapper saw; `inMove`/`lookahead` are how those calls
+                    * split. A run with `inMove === 0` never exercised the shared target die, and a run
+                    * with `lookahead === 0` removed nothing from the `any` bucket — both read exactly
+                    * like a working fix from the divergence rate alone. `legacy` says the knob is on. */
                    midWrapState: () => ({ adopted: MIDW.adopted, enters: MIDW.enters,
-                                          shared: !MID_UNSHARED, installed: !MID_WRAP_ERROR }) };
+                                          shared: !MID_UNSHARED, installed: !MID_WRAP_ERROR,
+                                          runMoveEnters: MIDW.runMoveEnters, tgtEnters: MIDW.tgtEnters,
+                                          tgtInMove: MIDW.tgtDrawsInMove, tgtLookahead: MIDW.tgtDrawsLookahead,
+                                          tgtLegacy: TGT_ADDR_LEGACY,
+                                          tgtUnnameable: MIDW.tgtUnnameable,
+                                          tgtUnnameableFirst: MIDW.tgtUnnameableFirst }) };
 
 if (require.main !== module) return;
 

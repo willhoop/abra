@@ -1200,6 +1200,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * living foes, taken from the engine's own seeded stream. A zero after a game containing any of the
    * six means the die is not on the path and the target is whatever the click happened to name. */
   randomTargetRerolled: 0,
+  /* ---- 2026-08-27, ROADMAP #478 -- THE TARGET DRAW'S OWN RECEIPTS ------------------------------
+   * `randomTargetDrawn` is every draw taken on the `tgt` stream, whichever of the three call sites
+   * took it; `randomTargetAmbiguous` is the subset where MORE THAN ONE foe was alive, which is the
+   * only population that says anything about WHICH foe. A probe that scored a board with one living
+   * candidate would be reporting agreement about a choice that did not exist, so the two are counted
+   * apart rather than pooled. */
+  randomTargetDrawn: 0, randomTargetAmbiguous: 0,
   /* WIRE 144 -- a turn spent under a lock-in (Outrage, Thrash, Uproar...) where the action the caller
    * or the chooser supplied was REPLACED by the locked move. A zero after a game in which one of the
    * five landed means turn 2 was still a free choice. */
@@ -2487,6 +2494,15 @@ const MEDFAILS = { encoreAction: 0,
    * click time. Counted rather than swallowed: a silent fall-through here is a randomNormal move that
    * looks re-rolled and is not. */
   randomTargetUnbuilt: 0,
+  /* 2026-08-27, ROADMAP #478 -- the `tgt` stream was absent from the struct `battleTurn` was handed,
+   * so the target draw fell back on the generic stream and its address is the ACTION's, not the
+   * event's. Written rather than swallowed: that fallback IS the defect #478 closes, and a silent one
+   * would look exactly like a working fix. */
+  tgtStreamMissing: 0,
+  /* 2026-08-27, ROADMAP #478 -- `MEDI_TGT_ADDR_LEGACY=1` is set and the old, unshared address is
+   * being used on purpose. Same shape as `activeMoveStickyRestored`: the knob announces itself the
+   * moment it swallows something. */
+  tgtAddrLegacyRestored: 0,
   /* WIRE 144 -- the `locksIntoMove` tag was absent or carried no positive `turns`, so the lock was NOT
    * armed after the move landed. The tag is the only source of the number; inventing a duration here
    * would be a made-up count of forced turns, which is worse than no lock. */
@@ -19460,7 +19476,15 @@ function scriptedAimOf(m,mvId){
  * construction, which is what `tests/test-speed-tie.js` was red about. A named stream lets an
  * instrument neutralise the one draw it has neutralised on the other side WITHOUT touching the
  * four pin claims beside it, and leaves live play and every rollout flipping a real coin. */
-const RNG_STREAMS = ['acc', 'crit', 'sec', 'dmg', 'stall', 'tie'];
+/* `tgt` JOINED THE LIST 2026-08-27, ROADMAP #478, AND THE ARGUMENT IS THE ONE #222 AND #290 BOTH
+ * MADE. `Battle#getRandomTarget` is a draw the authority takes on `sim/battle-actions.ts:223`, TWENTY
+ * TWO LINES ABOVE `setActiveMove` — so its address can name no move and no target, while this engine
+ * drew from the generic stream under the ACTION's address and named both. Two spellings of one event
+ * are two independent dice, and which body an Outrage hits in a double is decided by exactly that
+ * die. A named stream lets an instrument address the one draw the way the authority can address it,
+ * without touching the six streams beside it, and leaves live play and every rollout drawing from
+ * whatever function the caller passed (`rngStreams` aliases every stream to it). */
+const RNG_STREAMS = ['acc', 'crit', 'sec', 'dmg', 'stall', 'tie', 'tgt'];
 function rngStreams(src) {
   /* ALREADY A STRUCT: pass it through, but fill any missing stream from `any` so a partial struct
    * degrades to today's behaviour rather than to undefined. */
@@ -19662,6 +19686,34 @@ function midEventDraw(cat, seed) {
  * one table, rather than at the draw site -- a rename hidden inside a call is exactly the thing that
  * makes two files disagree quietly. */
 const MID_ADDR_CAT = { stall: 'any' };
+/* ---- 2026-08-27, ROADMAP #478 -- ONE DRAW, ONE ADDRESS, THREE CALLERS --------------------------
+ *
+ * `getRandomTarget(pokemon, move)` is called by the authority from three places this engine models:
+ * `runMove`'s own target resolution (WIRE 144's re-roll), the Encore override on the line below it
+ * (`sim/battle-actions.ts:233`), and `useMoveInner`'s no-target resolution for a CALLED move
+ * (`:418`). All three are one rule, so they share one address builder rather than each writing
+ * `MID_MOVE`/`MID_TGT` by hand — three copies of a field convention is how two files come to
+ * disagree quietly.
+ *
+ * THE ATTACKER GOES IN THE TARGET FIELD AND THAT IS DELIBERATE. The address is positional
+ * (`seed|turn|cat|a|b`), the authority's `tgt` address puts `pokemon.side.id + pokemon.position` in
+ * `b`, and the TARGET cannot be in the address of the draw that chooses it. `game_differential.js`'s
+ * `midWrapBattle` builds the identical string from `getRandomTarget`'s own two arguments.
+ *
+ * IT SAVES AND RESTORES, exactly as the secondary-address block at the `_secAddrSlot` site does: the
+ * action's own `MID_MOVE`/`MID_TGT` are still wanted by every draw after this one. */
+const TGT_ADDR_LEGACY = (typeof process !== 'undefined' && process.env
+                         && process.env.MEDI_TGT_ADDR_LEGACY === '1');
+function midTargetDraw(_R, rng, mvId, attSlot, liveCount) {
+  MEDSEEN.randomTargetDrawn++;
+  if (liveCount > 1) MEDSEEN.randomTargetAmbiguous++;
+  if (TGT_ADDR_LEGACY) { MEDFAILS.tgtAddrLegacyRestored = 1; return (rng || Math.random)(); }
+  const f = _R && typeof _R.tgt === 'function' ? _R.tgt : null;
+  if (!f) { MEDFAILS.tgtStreamMissing++; return (rng || Math.random)(); }
+  const _m = MID_MOVE, _t = MID_TGT;
+  MID_MOVE = String(mvId || '-'); MID_TGT = attSlot || '-';
+  try { return f(); } finally { MID_MOVE = _m; MID_TGT = _t; }
+}
 function midEventDice(opt) {
   opt = opt || {};
   const seed = (opt.seed == null) ? MID_EVENT_SEED : opt.seed;
@@ -21269,7 +21321,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          &&actionMoveId(it.a)!==m._encoreMove&&!_declineStruggle(it.a,'Exec')){
         const _efoes=it.side==='A'?actB:actA, _elive=live(_efoes);
         if(_elive.length){
-          const _etgt=_elive[Math.floor(rng()*_elive.length)%_elive.length];
+          /* ROADMAP #478 -- ADDRESSED AS `getRandomTarget`, WITH THE ENCORED MOVE'S ID. The authority's
+         * counterpart is `target = this.battle.getRandomTarget(pokemon, baseMove)` on
+         * sim/battle-actions.ts:233, and `baseMove` there is the move Encore FORCED, not the one the
+         * player clicked — so the address names `m._encoreMove`. The original click took its own
+         * `getTarget` draw one line above under its OWN move id, which is a different address and
+         * cannot collide with this one. */
+        const _etgt=_elive[Math.floor(midTargetDraw(_R,rng,m._encoreMove,midEventSlot(m),_elive.length)*_elive.length)%_elive.length];
           let _eact=null;
           try{ _eact=playerAction(m,m._encoreMove,_etgt,field); }catch(e){ MEDFAILS.encoreAction++; }
           if(_eact&&_eact.kind!=='pass'){
@@ -21316,7 +21374,15 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(!_ovr&&it.a&&it.a.kind==='attack'&&it.a.move&&TAGS.has('move',it.a.move.id,'randomTarget')){
         const _rfoes=it.side==='A'?actB:actA, _rlive=live(_rfoes);
         if(_rlive.length){
-          const _rt=_rlive[Math.floor(rng()*_rlive.length)%_rlive.length];
+          /* ROADMAP #478 -- THE DRAW MOVED TO ITS OWN ADDRESS AND THE RULE DID NOT CHANGE. It is still
+           * a uniform pick over the LIVING foes from the engine's own seeded stream; what changed is
+           * that the address is now the one the AUTHORITY can build at the same instant — the move and
+           * the ATTACKER — rather than the action's move and TARGET slot, which the authority has not
+           * written yet (setActiveMove is 22 lines below its getTarget call). Before this line, the
+           * two engines addressed one event two ways and rolled two independent dice: on a staged
+           * Outrage board the authority sent it at p2b and this engine at p2a, and 13 of 24 swept
+           * cells parted. */
+          const _rt=_rlive[Math.floor(midTargetDraw(_R,rng,it.a.move.id,midEventSlot(m),_rlive.length)*_rlive.length)%_rlive.length];
           if(_rt!==it.a.target)MEDSEEN.randomTargetRerolled++;
           /* The action object is rebuilt rather than mutated in place: `move.d` and `move.acc` were
            * priced against the body playerAction picked, and leaving them would hit the new target with
@@ -23352,7 +23418,11 @@ function battleTurn(S,rng,actsForA,actsForB){
          * A move that needs no target still gets none -- `playerAction` ignores the aim for a spread or
          * self move, exactly as it did before. */
         const _clive=live(_cfoes);
-        const _caim=_clive.length?_clive[Math.floor(rng()*_clive.length)%_clive.length]:null;
+        /* ROADMAP #478 -- and the THIRD caller of `getRandomTarget` gets the same address. The
+         * authority reaches this one through `useMoveInner`'s `if (target === undefined) target =
+         * this.battle.getRandomTarget(pokemon, move)` (sim/battle-actions.ts:418), inside `runMove`,
+         * with `move` being the CALLED move — so the address names `_src` and this body's slot. */
+        const _caim=_clive.length?_clive[Math.floor(midTargetDraw(_R,rng,_src,midEventSlot(m),_clive.length)*_clive.length)%_clive.length]:null;
         if(_clive.length>1)MEDSEEN.calledMoveTargetDrawn++;
         const _sub2=playerAction(m,_src,_caim,field);
         if(!_sub2||_sub2.kind==='pass'){MEDFAILS.callMoveUnresolvable++;mvFail(m);continue;}
