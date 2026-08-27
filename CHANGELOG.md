@@ -10,6 +10,87 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.175.0] — 2026-08-27
+
+### Fixed
+- **`yawn` CALLED `subBlocks` NOWHERE — A MISSING CHECK, NOT A MISPLACED ONE, AND IT WAS
+  BOARD-MATERIAL. CENSUS 756 -> 757 LIVE / 757 PROBED / 0 MISSING. WHOLE-GAME UNMOVED AT 3 OF 961 AND
+  BOARD-MATERIAL UNMOVED AT 1 OF 961, BOTH AS PREDICTED.** ENGINE, ROADMAP `#486`.
+
+  **THE CARD** was filed an hour earlier by `#485`'s batch, which found it and deliberately did not
+  fix it — every site that batch touched already called `subBlocks`, and adding a caller is a
+  different change with a different control. It came with an instruction to CONFIRM it first.
+  **It is confirmed.** `grep subBlocks engine/medicham2-browser.js` named ten call sites and the
+  `a.kind==='yawn'` branch was not one of them, so a Yawn aimed at a substituted body wrote the
+  drowse onto the body BEHIND the doll and slept it two turns later.
+
+  **WHAT THE AUTHORITY PRINTS**, measured on one staged turn with both engines on the identical
+  script under the differential's own pin:
+
+  ```
+  showdown  |-fail|p2a: Slowbro
+  medicham  |-start|p1a: Alakazam|move: Yawn
+  ```
+
+  `|-fail|` on the **MOVER**, with the `|move|` line's target blanked and `[still]` appended. Not
+  `-activate`, not a line on the target, and not the `|-activate|…|move: Substitute|[block]` shape
+  `#485` deleted — which is why the fix reuses `subStatusRefuse`, the helper the other five status
+  sites already answer with, rather than writing a sixth line.
+
+  **THE MECHANISM.** Inside the Champions mod's own `spreadMoveHit`
+  (`data/mods/champions/scripts.ts`) the order is `singleEvent('TryHit', moveData, …)` at `:332` —
+  the MOVE's own handler — then `// 0. check for substitute` at `:343` calling `tryPrimaryHitEvent`,
+  then `runMoveEffects` at `:373` reaching `addVolatile`. The doll therefore sits between yawn's own
+  `onTryHit` (`data/moves.ts:21135`) and the apply. **Champions overrides neither the `substitute`
+  condition nor anything in `conditions.ts`** — both grepped; `data/mods/champions/conditions.ts` has
+  no `substitute` key and no `onTryPrimaryHit` at all — so mainline's handler is what this format
+  plays, and for a `basePower: 0` move `getDamage` returns **undefined**
+  (`sim/battle-actions.ts:1620`), giving `this.add('-fail', source); this.attrLastMove('[still]')`.
+
+  **THE CALL SITE** is placed where the authority asks: below `tryHitRefusal` and `shieldRefuses`
+  (the step-1 group), above the already-drowsing `-fail` and the apply. `canTakeStatus` staying below
+  it is not observable — a body that is both sleep-immune and substituted is refused by yawn's own
+  `onTryHit` there and by the doll here, and both write the identical line.
+
+  **NO DIE MOVES, SO SEEDED RUNS STAY COMPARABLE.** Yawn's printed accuracy is `true`, so
+  `hitStepAccuracy` takes no draw on either engine, and `getDamage` returns at the `basePower` test
+  ABOVE the crit `randomChance`. Both printed by the probe on every run. Corroborated:
+  `tests/test-engine-diff.js --n 300 --seed 20260804` is **0 of 300 at every one of the sixteen
+  corners**, with the publish guard refusing the shrink as designed. This is the half `#448`'s batch
+  could not say — there the authority drew `acc` where this engine drew nothing.
+
+### Added
+- **`tests/probe_yawn_substitute.js`** — six arms over two engines, no typed expectation, each played
+  clean and again under `MEDI_YAWN_IGNORES_SUB=1`. Two reds that must part under the knob and four
+  controls that must not (the doll cleared EXPLICITLY with a Calm Mind, its two-turn sleep partner,
+  a `bypasssub` arm and the damaging road). The BOARD consequence is asserted rather than argued: the
+  count of `|-status|…|slp` lines in the medicham stream is **0 clean and 1 on the knob**, read under
+  `--end-state` so the loop runs past the divergent line. The `MEDFAILS` load stamp is asserted absent
+  on the clean load and present under the knob, and the target's non-doll refusal-reason count is
+  DERIVED — including the sleep-blocking ability set, read off the format's own handlers — and the
+  arm FAILS above one.
+- **A census row**, `move`/`delayedSleep` *"a substitute refuses a Yawn, and Infiltrator drowses
+  through it"* — three turns, with an **Infiltrator** over-fire arm that must still drowse through the
+  doll, which is what separates "the doll refused it" from "Yawn stopped working".
+
+### Notes
+- **THE SWEEP `#485` OWED IS DONE AND REPORTED, AND ONLY YAWN WAS FIXED.** All **54** legal foe-aimed
+  non-`bypasssub` Status moves were classified through the engine's own `playerAction`, and **eight
+  further action kinds ask no doll**: `typechange`, `trickitem`, `abilitywrite`, `statrewire`,
+  `boostally`, `healdesc`, `lockon`, `reorder`, `transform`. Heal Pulse was corroborated BY PLAY with
+  a cleared control. **Trick was played and is NOT counted** — its no-doll control parts too (we write
+  `|-activate|…|move: trick` where the authority writes `|-enditem|…|[from] move: Trick`), and a cell
+  blocked for two reasons proves nothing about either. Batches of one.
+- **The pool sitting still is a fact about co-occurrence, not absence.** `data/game-differential.json`
+  credits `move:delayedSleep` at **2** effect events across the 961 games — Yawn is clicked and
+  connects there; what does not occur is a Yawn meeting a standing doll.
+- **One instrument fault, caught and named.** The probe's first draft declared the knob arm should
+  ignore 0 doll refusals, which is self-contradictory: a knob that ignored nothing reverted nothing.
+  The engine was right and the table was wrong.
+- Full account: `docs/_reports/2026-08-27-yawn-substitute.md`. Landed on release `01be9daf14ee`.
+
+---
+
 ## [5.174.0] — 2026-08-27
 
 ### Fixed

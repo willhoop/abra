@@ -21,6 +21,58 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## `yawn` ASKED THE DOLL NOWHERE — A MISSING CHECK, NOT A MISPLACED ONE. THE AUTHORITY PRINTS `|-fail|` ON THE MOVER. CENSUS 756 -> **757 LIVE / 757 PROBED / 0 MISSING**. WHOLE-GAME UNMOVED AT 3 OF 961, BOARD-MATERIAL UNMOVED AT 1 OF 961, AS PREDICTED. 2026-08-27.
+
+Release `01be9daf14ee` (cut for this — `engine/medicham2-browser.js` is a SOURCES file and it moved),
+arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`, census pin `9446a684709d`,
+`--state --end-state`. Register row: ROADMAP **#486 — CLOSED**. CHANGELOG 5.175.0.
+Probes: `tests/probe_yawn_substitute.js`, plus the census row `move`/`delayedSleep` *"a substitute
+refuses a Yawn, and Infiltrator drowses through it"*. Full account:
+[`docs/_reports/2026-08-27-yawn-substitute.md`](_reports/2026-08-27-yawn-substitute.md).
+
+### WHICH SCOREBOARD IT SHOULD MOVE, SAID BEFORE THE RUN
+
+**The lab moves and the pinned pool sits still.** Both held: census 756 -> 757; whole-game **3 of
+961** (8 raw, less 5 declared) before and after; board-material **1 of 961** before and after; VOID
+unmoved at 1 of 961; roster items/abilities/moves unmoved at 139/148, 129/202, 475/500. Both
+differential quantities read out of `data/game-differential.json`, never off stdout.
+
+**The pool sitting still is co-occurrence, not absence** — the artifact credits `move:delayedSleep` at
+**2** effect events across 961 games, so Yawn connects there; what does not occur is a Yawn meeting a
+standing doll.
+
+### THE ANSWER FIRST: WHAT THE AUTHORITY PRINTS
+
+```
+showdown  |-fail|p2a: Slowbro
+medicham  |-start|p1a: Alakazam|move: Yawn
+```
+
+`|-fail|` on the **MOVER**, `|move|` target blanked, `[still]` appended — the same answer
+`subStatusRefuse` already writes at the five sites `#485` fixed, so the fix reuses that helper rather
+than inventing a sixth line. `getDamage` returns `undefined` for a `basePower: 0` move
+(`sim/battle-actions.ts:1620`); the doll is reached from the Champions mod's own `// 0. check for
+substitute` (`data/mods/champions/scripts.ts:343`), which sits between yawn's own `onTryHit`
+(`:332`) and `addVolatile` (`:373`). Champions overrides neither the `substitute` condition nor
+anything in `conditions.ts` — both grepped.
+
+### NO DIE MOVES
+
+Yawn's printed accuracy is `true`, so `hitStepAccuracy` draws nothing; `getDamage` returns above the
+crit `randomChance`. `test-engine-diff --n 300 --seed 20260804` is **0 of 300 at all sixteen
+corners**, publish guard refusing the shrink as designed. Seeded runs stay comparable.
+
+### THE SWEEP `#485` OWED — EIGHT MORE KINDS ASK NO DOLL, ONE FIXED
+
+All **54** legal foe-aimed non-`bypasssub` Status moves classified through the engine's own
+`playerAction`. Still blind: `typechange` (4), `trickitem` (3), `abilitywrite` (3), `statrewire` (2),
+`boostally`, `healdesc`, `lockon`, `reorder`, `transform`. **Heal Pulse corroborated BY PLAY** with a
+cleared control that holds. **Trick played and NOT counted** — its no-doll control parts too (we write
+`|-activate|…|move: trick` where the authority writes `|-enditem|…|[from] move: Trick`), so its cell
+is blocked twice and proves nothing. Batches of one.
+
+---
+
 ## THE DOLL'S STATUS ROAD IS `onTryPrimaryHit` — THREE STEPS BELOW THE DIE — AND IT ANSWERS `-fail` ON THE MOVER, NOT `-activate` ON THE TARGET. CENSUS 755 -> **756 LIVE / 756 PROBED / 0 MISSING**. WHOLE-GAME UNMOVED AT 3 OF 961, BOARD-MATERIAL UNMOVED AT 1 OF 961, AS PREDICTED. 2026-08-27.
 
 Release `500a9312f041` (cut for this — `engine/medicham2-browser.js` is a SOURCES file and it moved),

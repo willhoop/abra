@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-27T12:46:46.636Z",
+  "generated": "2026-08-27T13:20:14.441Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 756,
-  "live": 756,
+  "probed": 757,
+  "live": 757,
   "missing": 0,
-  "armed": 756,
+  "armed": 757,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3703,7 +3703,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4224,6 +4224,16 @@
       "label": "the doll absorbs the hit, a sound move goes through it, and a second click fails free",
       "live": true,
       "detail": "Ice Beam into a Garchomp -- after Howl 183, after Substitute 0 (the doll cost 45); Hyper Voice (bypasssub) through the doll 45 with 45 doll left; Will-O-Wisp -- with a sub -, without brn; a SECOND Substitute costs 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "delayedSleep",
+      "label": "a substitute refuses a Yawn, and Infiltrator drowses through it",
+      "live": true,
+      "detail": "[drowsed, doll left, status two turns on] -- after Swords Dance [true, 0, slp]; after Substitute [false, 45, -]; Infiltrator into the same doll [true, 45, slp]",
       "hollow": false,
       "armed": true,
       "directCall": false

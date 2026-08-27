@@ -507,6 +507,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      under MEDI_SUB_STATUS_AT_TRYHIT=1, so it MUST read 0 on any shipping run. Both count PER REFUSED
      TARGET, so a probe can assert an exact per-arm delta rather than "at least one". */
   subStatusFailedBelowAccuracy: 0, subStatusAtTryHitRestored: 0,
+  /* 2026-08-27 -- YAWNS THAT WALKED PAST A DOLL. The `yawn` branch called `subBlocks` NOWHERE, so a
+     Yawn aimed at a substituted body wrote the drowse onto the body behind the doll and slept it two
+     turns later. The refusal itself is counted by `subStatusFailedBelowAccuracy` above, because it
+     takes the SAME helper and the same road as the other five sites -- a second counter for the same
+     event is a second implementation of "what happened". This one counts only the knob's road, so it
+     MUST read 0 on any shipping run and a probe can assert the exact mirror. */
+  yawnDollIgnored: 0,
   /* 2026-08-24 -- CLICKS A SHIELD LET THROUGH BECAUSE THE MOVE CARRIES NO `flags.protect`. 111 legal
    * moves are in that set; the ones that actually meet a shield are the ally-facing family (Dragon
    * Cheer, Coaching, Helping Hand, Aromatic Mist) and the `all`-targeting one (Teatime, Perish Song,
@@ -3835,6 +3842,13 @@ const SPREAD_STATUS_PER_TARGET=(typeof process!=='undefined'&&process.env&&proce
  * this repository more than once. */
 const SUB_STATUS_AT_TRYHIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUB_STATUS_AT_TRYHIT==='1');
 if(SUB_STATUS_AT_TRYHIT)MEDFAILS.subStatusAtTryHitRestored=1;
+/* 2026-08-27 -- MEDI_YAWN_IGNORES_SUB=1 puts the `yawn` branch back to walking PAST the doll, which is
+ * what it did: `subBlocks` had ten call sites and this branch was not one of them. It is a MISSING
+ * check rather than a misplaced one, so the revert is not a re-ordering -- it simply does not ask.
+ * Stamped at LOAD TIME for the reason the knob above is: a lazily-set stamp reads 0 on both loads when
+ * the knob reached a module the run never loaded, which is a green run that staged nothing. */
+const YAWN_IGNORES_SUB=(typeof process!=='undefined'&&process.env&&process.env.MEDI_YAWN_IGNORES_SUB==='1');
+if(YAWN_IGNORES_SUB)MEDFAILS.yawnIgnoresSubRestored=1;
 function volRefusesRestart(vol){
   if(VOL_RESTART_BLIND){MEDFAILS.volRestartBlindRestored=1;return false;}
   const d=volRestartTable().get(vol);
@@ -23942,6 +23956,31 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR)TR.act(t,'move: Protect');
           MEDSEEN.yawnShieldAnnounced++;
           m._lastMove=a.mv;continue;
+        }
+        /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. `subBlocks` had ten call sites
+         * in this file and `a.kind==='yawn'` was not one of them, so a Yawn aimed at a substituted
+         * body landed the drowse on the body BEHIND the doll and slept it two turns later, where the
+         * authority refuses the move outright. A MISSING check, not a misplaced one.
+         *
+         * IT SITS EXACTLY HERE BECAUSE THAT IS WHERE THE AUTHORITY ASKS IT. The Champions mod's own
+         * `spreadMoveHit` (data/mods/champions/scripts.ts) runs `singleEvent('TryHit', moveData, ...)`
+         * at :332 -- the MOVE's own handler -- then its `// 0. check for substitute` at :343 calls
+         * `tryPrimaryHitEvent`, and only then does `runMoveEffects` at :373 reach `addVolatile`. The
+         * step-1 group (`hitStepTryHitEvent`: Protect, Good as Gold, Magic Bounce) is above all of it.
+         * So: `tryHitRefusal` and `shieldRefuses` ABOVE this line, the already-drowsing `-fail` and the
+         * apply BELOW it. `canTakeStatus` staying below is not a discrepancy anything can observe --
+         * a body that is both sleep-immune and substituted gets `-fail` on the mover either way,
+         * because yawn's own `onTryHit` (data/moves.ts:21135) and the doll write the identical line.
+         *
+         * THE LINE IS THE SHARED HELPER, NOT A NEW ONE. The substitute condition's `onTryPrimaryHit`
+         * does `getDamage(source, target, move)`, which returns **undefined** for `basePower: 0`
+         * (sim/battle-actions.ts:1620), so it writes `|-fail|<THE MOVER>` with `attrLastMove('[still]')`
+         * -- byte for byte what the other five status sites already emit through `subStatusRefuse`.
+         * NO DIE MOVES: yawn's printed accuracy is `true`, so `hitStepAccuracy` draws nothing, and the
+         * basePower test in `getDamage` returns above the crit `randomChance`. */
+        if(t&&!t.fainted&&subBlocks(m,t,a.mv)){
+          if(YAWN_IGNORES_SUB)MEDSEEN.yawnDollIgnored++;
+          else{subStatusRefuse(m,t);m._lastMove=a.mv;continue;}
         }
         const _yBlocked=!t||_vv||t.fainted||t.protect||pranksterBlocked(m,t,a.mv);
         if(!_yBlocked&&t._yawn!=null){

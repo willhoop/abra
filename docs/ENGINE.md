@@ -25,7 +25,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_random_target_address.js`,
 `tests/probe_spread_status_steps.js`, `tests/probe_multihit_update.js`,
 `tests/probe_noguard_invuln.js`, `tests/probe_endturn_clock_order.js`,
-`tests/probe_substitute_status_step.js`
+`tests/probe_substitute_status_step.js`, `tests/probe_yawn_substitute.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -37,7 +37,8 @@ this sentence — it was "twelve" until `test-damage-roll-support.js` was added 
 `probe_random_target_address.js` arrived, and "twenty-one" the same day when
 `probe_multihit_update.js` did, and again the same day when `probe_noguard_invuln.js` did.
 and again the same day when `probe_endturn_clock_order.js` did, and again the same day when
-`probe_substitute_status_step.js` did. A number typed in prose beside a
+`probe_substitute_status_step.js` did, and again the same day when `probe_yawn_substitute.js` did.
+A number typed in prose beside a
 table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
@@ -74,7 +75,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 | `probe_multihit_update.js` | does an `onUpdate` handler see EVERY intermediate HP of a volley — `eachEvent('Update')` is inside the authority's hit loop (`sim/battle-actions.ts:967`, kept verbatim by the Champions override at `data/mods/champions/scripts.ts:538`), so a pinch berry is eaten BETWEEN hits. The fixture is derived from the format and then SEARCHED by playing candidate boards, selected on the SHOWDOWN stream alone and printed, judged with no typed expectation on three quantities — the number of `-damage` lines before the eat, the LOWEST HP the body ever stood on, and the HP it ends the volley on — with a child on `MEDI_MULTIHIT_UPDATE_ONCE=1` that must move the eat AND must part from the authority | anything about the once-per-move wrap of the STEP LIST, which is unchanged and stays `test-resolution-order.js`'s KNOWN-OPEN arm; and the exact position of the intermediate pass, which it places below the PACKET where the authority places it below that hit's whole `spreadMoveHit` — it DERIVES and PRINTS that no multi-hit move in this format carries a target secondary, so the two coincide today, rather than asserting they always will |
 | `probe_noguard_invuln.js` | does No Guard's OTHER half reach the game — `onAnyInvulnerability` returns 0 (`data/abilities.ts`, no `noguard` row in the Champions override) and `trySpreadMoveHit` KEEPS a target whose step result is zero (`sim/battle-actions.ts:605`), so a No Guard move survives step 0 and is judged by the TYPE CHART at step 2 — five arms over two engines, one turn each, judged on the OUTCOME (immune / hit / miss / unboost) rather than on the wording, with the target's immunity-reason count DERIVED and printed per arm and the file REFUSING any target immune for more than one reason, plus `MEDSEEN.noGuardThroughInvuln` at exact equality and a `--red` arm on `MEDI_NOGUARD_INVULN_BLIND=1` where the three live arms must PART and the two controls must NOT | anything about the STAGE ORDER, which it does not test and which was never the defect — `_STEPS` already matches `moveSteps` and control D proves an ordinary immunity still reads `-immune`. And every other `onAny*` handler whose second half may be unwired: it is ONE ability, reached through `_neverMissAb`'s `never` flag, and a derived tag for `onAnyInvulnerability` is owed rather than done |
 | `probe_endturn_clock_order.js` | is a PER-BODY DURATION CLOCK a step of the residual walk — `Battle#fieldEvent` collects a bare `duration` with no handler at all (`getKey`, `sim/battle.ts:487`) and `resolvePriority` (`:950`) gives it the position `onResidualOrder` declares, so Taunt@15, Encore@16, Disable@17, Heal Block@20, Throat Chop@22 and Yawn@23 are ordinary steps. Seven arms over two engines with no typed expectation, four of them the defect on four DIFFERENT members (which is what makes it one root rather than four coincidences) and two the over-fire control, each played clean and again under `MEDI_ENDTURN_CLOCKS_AT_FOOT=1` — a knob that moves the POSITION and keeps every line, plus `MEDFAILS.endturnClocksAtFoot` asserted present on the knob load and ABSENT on the clean one, because the first draft's knob reached no module at all and read seven held controls | whether a clock's LENGTH is right (`test-volatile-duration.js` owns that; no turn count is typed here), and the three clocks it does not move — `perishsong@24`, `uproar@28` and `lockedmove` own an `onResidual` and a faint queue, and `perish-vs-speedboost` measures that gap as a KNOWN-OPEN arm every run rather than declaring it in prose. And `magnetrise@18`, which has no reader in this engine at all: a MISSING tick, not a misplaced one |
-| `probe_substitute_status_step.js` | is the DOLL asked where the authority asks it on the STATUS road, and does it answer what the authority answers — `moveSteps` puts `hitStepAccuracy` at index 4 and the doll at index 7 (`hitStepMoveHitLoop` -> the Champions mod's own `// 0. check for substitute`, `data/mods/champions/scripts.ts:342` -> `tryPrimaryHitEvent`), and `getDamage` returns `undefined` for a `basePower: 0` move so the handler writes `|-fail|` on the MOVER with `[still]`, never `-activate` on the target. Twelve arms over two engines, one turn each, no typed expectation: seven reds across FIVE call sites (`status`, `affect`, `sharesHP`, `trap` and Leech Seed's silent guard conjunct) that must part under `MEDI_SUB_STATUS_AT_TRYHIT=1`, five controls that must not, the affected move set DERIVED and printed every run (eleven), each arm's non-doll refusal-reason count derived and REFUSED above one, and per-arm refusal counts declared ASYMMETRICALLY — 0 clean and 1 on the knob wherever the die gets there first | whether the DOLL's own membership is right: `SUBPASS` is `test-engine-diff.js`'s conformance block and nothing here re-derives it. And `yawn`, which calls `subBlocks` NOWHERE — a missing check, not a misplaced one, staged in the report and left on the hand list |
+| `probe_substitute_status_step.js` | is the DOLL asked where the authority asks it on the STATUS road, and does it answer what the authority answers — `moveSteps` puts `hitStepAccuracy` at index 4 and the doll at index 7 (`hitStepMoveHitLoop` -> the Champions mod's own `// 0. check for substitute`, `data/mods/champions/scripts.ts:342` -> `tryPrimaryHitEvent`), and `getDamage` returns `undefined` for a `basePower: 0` move so the handler writes `|-fail|` on the MOVER with `[still]`, never `-activate` on the target. Twelve arms over two engines, one turn each, no typed expectation: seven reds across FIVE call sites (`status`, `affect`, `sharesHP`, `trap` and Leech Seed's silent guard conjunct) that must part under `MEDI_SUB_STATUS_AT_TRYHIT=1`, five controls that must not, the affected move set DERIVED and printed every run (eleven), each arm's non-doll refusal-reason count derived and REFUSED above one, and per-arm refusal counts declared ASYMMETRICALLY — 0 clean and 1 on the knob wherever the die gets there first | whether the DOLL's own membership is right: `SUBPASS` is `test-engine-diff.js`'s conformance block and nothing here re-derives it. And `yawn`, which called `subBlocks` NOWHERE — a missing check rather than a misplaced one, and now `probe_yawn_substitute.js`'s |
+| `probe_yawn_substitute.js` | did the yawn branch ask the doll AT ALL — it called `subBlocks` at none of its ten sites, so a Yawn at a substituted body wrote the drowse on the body BEHIND the doll and slept it two turns later, where the authority refuses the move at `tryPrimaryHitEvent` and answers `\|-fail\|<THE MOVER>` with `[still]` (`getDamage` returns `undefined` for `basePower: 0`, `sim/battle-actions.ts:1620`). Six arms over two engines, no typed expectation, each played clean and again under `MEDI_YAWN_IGNORES_SUB=1`: two reds that must part under the knob and four controls that must not, the BOARD consequence asserted as a count of `\|-status\|…\|slp` lines in the medicham stream (0 clean, 1 on the knob) under `--end-state` so the loop runs past the divergent line, the `MEDFAILS` load stamp asserted absent-clean and present-on-knob, and the target's non-doll refusal-reason count DERIVED — including the sleep-blocking ability set read off the format's own handlers — and REFUSED above one | whether the DOLL's own membership is right (`SUBPASS` is `test-engine-diff.js`'s conformance block and nothing here re-derives it), and the eight OTHER action kinds that ask no doll: it is ONE branch, not the sweep. The `[of] <source>` on `\|-start\|…\|move: Yawn` is invisible to it by construction — `game_differential.js` collapses that field under its `source-tag` equivalence |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -85,7 +87,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  756/756 probed mechanics live, 0 missing   (census 2026-08-27 08:46)
+  757/757 probed mechanics live, 0 missing   (census 2026-08-27 09:20)
   0/6000 differential comparisons disagree with Showdown   (2026-08-27 06:34)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -105,9 +107,116 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 09:04_
+_stamped 2026-08-27 09:39_
 
 <!-- /GENERATED -->
+
+## `yawn` ASKED THE DOLL NOWHERE — A MISSING CHECK, NOT A MISPLACED ONE. THE AUTHORITY PRINTS `|-fail|` ON THE MOVER. CENSUS 756 -> **757 LIVE / 757 PROBED / 0 MISSING**. WHOLE-GAME UNMOVED AT 3 OF 961, BOARD-MATERIAL UNMOVED AT 1 OF 961, AS PREDICTED. 2026-08-27.
+
+Release `01be9daf14ee` (cut for this — `engine/medicham2-browser.js` is a SOURCES file and it moved),
+arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`, census pin `9446a684709d`,
+`--state --end-state`. Register row: ROADMAP **#486 — CLOSED**. CHANGELOG 5.175.0.
+Probes: `tests/probe_yawn_substitute.js` and the census row `move`/`delayedSleep` *"a substitute
+refuses a Yawn, and Infiltrator drowses through it"*. Full account:
+[`docs/_reports/2026-08-27-yawn-substitute.md`](_reports/2026-08-27-yawn-substitute.md).
+
+### THE ANSWER FIRST: WHAT THE AUTHORITY ACTUALLY PRINTS
+
+One staged turn, Alakazam behind a Substitute, Slowbro clicking Yawn at it, both engines on the
+identical script under the differential's own pin:
+
+```
+showdown  |-fail|p2a: Slowbro
+medicham  |-start|p1a: Alakazam|move: Yawn
+```
+
+`|-fail|` on the **MOVER**, with the `|move|` line's target blanked and `[still]` appended — the same
+two-part answer `subStatusRefuse` already writes at the five sites `#485` fixed. Not `-activate`, not
+a line on the target, and not the `|-activate|…|move: Substitute|[block]` shape that batch deleted.
+
+### WHICH SCOREBOARD IT SHOULD MOVE, SAID BEFORE THE RUN
+
+**The lab moves and the pinned pool sits still.** Both held: census 756 -> 757, whole-game 3 of 961
+(8 raw, less 5 declared) before and after, board-material 1 of 961 before and after, VOID unmoved at
+1 of 961, the three roster stages unmoved at 139/148, 129/202 and 475/500. Both differential
+quantities read out of `data/game-differential.json` (`arms[0].diverged` and
+`end_state[0].summary.verdicts`), never off stdout.
+
+**AND THE POOL SITTING STILL IS A FACT ABOUT CO-OCCURRENCE, NOT ABOUT ABSENCE — WHICH IS WORTH
+SAYING RATHER THAN SHRUGGING AT.** The artifact's coverage block credits `move:delayedSleep` at **2**
+effect events across the 961 games, so Yawn is clicked and connects there. What does not occur in the
+pool is a Yawn meeting a **standing doll**.
+
+### NO DIE MOVES, SO SEEDED RUNS STAY COMPARABLE
+
+Yawn's printed accuracy is `true`, so `hitStepAccuracy` takes no draw on either engine, and
+`getDamage` returns at the `basePower` test ABOVE the crit `randomChance`. Both facts are printed by
+the probe on every run rather than argued. Corroborated downstream: `test-engine-diff --n 300 --seed
+20260804` is **0 of 300 at every one of the sixteen corners**, and its publish guard refused the
+shrink as designed. This is the half `#448`'s batch could NOT say — there the authority drew `acc`
+where this engine drew nothing.
+
+### THE SWEEP `#485` OWED — EIGHT MORE ACTION KINDS ASK NO DOLL. REPORTED, ONE FIXED.
+
+Derived through the engine's OWN `playerAction` rather than by grepping names: all **54** legal
+Status moves that are foe-aimed and carry no `bypasssub`, classified, then each action kind asked
+structurally whether `subBlocks(` appears in its branch.
+
+| moves | kind | doll consulted? |
+|---:|---|---|
+| 23 / 10 / 2 / 1 / 1 | `affect`, `status`, `trapmove`, `sharehp`, **`yawn`** | yes |
+| 4 | `typechange` — trickortreat forestscurse magicpowder soak | **NO** |
+| 3 | `trickitem` — corrosivegas switcheroo trick | **NO** |
+| 3 | `abilitywrite` — entrainment simplebeam worryseed | **NO** |
+| 2 | `statrewire` — guardsplit powersplit | **NO** |
+| 1 each | `boostally` (decorate), `healdesc` (healpulse), `lockon`, `reorder` (quash), `transform` | **NO** |
+
+**One of them was corroborated by PLAYING it, so the table does not rest on a grep.** Heal Pulse into
+the same staged doll parts (`showdown |-fail|p2a: Slowbro` against `medicham |-heal|p1a:
+Alakazam|130/130`) and its no-doll control HOLDS, so that cell has exactly one cause.
+
+**Trick was played too and is NOT counted, because its cell is blocked twice.** Both its doll arm AND
+its no-doll control part: this engine writes `|-activate|p2a: Slowbro|move: trick` where the authority
+writes `|-enditem|p2a: Slowbro|Leftovers|[silent]|[from] move: Trick`. That is a separate,
+pre-existing defect and it must be settled before Trick's doll behaviour can be measured at all.
+
+The other seven are **structural only** and are filed rather than claimed: the check slices the source
+at each `a.kind===` and cannot see a doll consulted through a helper.
+
+### THE HAND LIST
+
+**Leaves it:** *"`yawn` NEVER ASKS THE DOLL AT ALL, AND IT IS BOARD-MATERIAL"*, filed by the
+substitute-stage batch an hour earlier. Confirmed before being fixed, exactly as the card asked:
+`probe_yawn_substitute.js` carries it now, and the census row `move`/`delayedSleep` carries the board
+half.
+
+**Stays on it, unchanged and NOT re-verified:** *"`|-start|…|move: Yawn` carries `[of] <source>` in
+the authority and no `[of]` here."* The `nodoll` arms of this batch agree clean, and that is **not**
+evidence either way — `game_differential.js` runs a `source-tag` equivalence that collapses exactly
+that field. It needs an instrument that does not.
+
+Joins it, named rather than left to be found:
+- **EIGHT ACTION KINDS ASK NO DOLL** — the table above. `healdesc` (Heal Pulse) is corroborated by
+  play with a cleared control; the other seven are structural leads. **One batch each, red first.**
+- **`trickitem` CARRIES ITS OWN DEFECT AND MUST BE SETTLED FIRST.** This engine writes
+  `|-activate|<target>|move: trick` where the authority writes `|-enditem|…|[from] move: Trick`. Its
+  doll cell is blocked for two reasons and proves nothing about either until that is fixed.
+- **THE VEIL FAMILY ANNOUNCES NOTHING HERE.** `allyRefusesVolatile` bumps
+  `MEDSEEN.allyVeilRefusedVolatile` and emits no line, where Sweet Veil's `onAllyTryAddVolatile`
+  writes `|-activate|…|ability: Sweet Veil`. Seen while placing this fix, not measured.
+
+**Standing and unchanged by this batch**, pointed at rather than re-listed because a copied list is
+how one goes stale: `magnetrise@18`, `corrosivegas`, a fainted mega's forme, Wide Guard before a
+step-0 `-miss`, `nth` in the address hash, the twelve dead tags and the four
+`test-tag-params-derived.js` prose-quantity rows.
+
+### OWED, NOT RUN
+
+- The **full 6,000-row** `tests/test-engine-diff.js` — not re-run, and not owed. Yawn deals no damage
+  and takes no draw; the `--n 300` verification run is 0 of 300 at all sixteen corners.
+- No fit, no self-play, no refit. Nothing here is a strength claim.
+- The eight kinds above, the Trick line, the `[of]` tag and the veil announcement — all filed, none
+  started. Exact commands are in the report's `## OWED, NOT RUN`.
 
 ## THE DOLL'S STATUS ROAD IS `onTryPrimaryHit` — THREE STEPS BELOW THE DIE — AND IT ANSWERS `-fail` ON THE MOVER, NOT `-activate` ON THE TARGET. CENSUS 755 -> **756 LIVE / 756 PROBED / 0 MISSING**. WHOLE-GAME UNMOVED AT 3 OF 961, BOARD-MATERIAL UNMOVED AT 1 OF 961, AS PREDICTED. 2026-08-27.
 

@@ -15405,6 +15405,49 @@ probe('move', 'substitute', 'the doll absorbs the hit, a sound move goes through
                  + `${wispNo.status}; a SECOND Substitute costs ${twice.dmg}` };
 });
 
+/* 2026-08-27 -- AND THE DOLL REFUSES A YAWN, WHICH THE YAWN BRANCH NEVER ASKED ABOUT AT ALL.
+ * `subBlocks` had ten call sites in medicham2-browser.js and `a.kind==='yawn'` was not one of them,
+ * so the drowse landed on the body BEHIND the doll and slept it two turns later. The authority
+ * refuses it at `tryPrimaryHitEvent`, reached from the Champions mod's own `// 0. check for
+ * substitute` (data/mods/champions/scripts.ts:343), and answers `|-fail|<THE MOVER>` with `[still]`
+ * because `getDamage` returns undefined for a `basePower: 0` move (sim/battle-actions.ts:1620).
+ * The protocol half is proved against the official simulator by tests/probe_yawn_substitute.js;
+ * this row is the census half and reads the BOARD instead of the stream.
+ *
+ * THREE TURNS, BECAUSE YAWN'S WHOLE CONTENT IS THAT THE SLEEP ARRIVES LATE: put the doll up, click
+ * the Yawn, then idle. Swords Dance is the control setup -- another self-targeting click on the same
+ * turn that leaves no doll -- so both arms spend the same number of turns, and INFILTRATOR is the
+ * over-fire arm: it must still drowse THROUGH the doll, which is what separates "the doll refused
+ * it" from "Yawn stopped working". Every body and every click here is learnset-legal in this format:
+ * Slowbro learns Yawn, Garchomp learns Substitute and Swords Dance. */
+probe('move', 'delayedSleep', 'a substitute refuses a Yawn, and Infiltrator drowses through it', () => {
+  const run = (setupFoe, ab) => {
+    const B = board('slowbro', 'incineroar', 'garchomp', 'incineroar');
+    if (ab) B.me.ability = ab;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, setupFoe, null, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'yawn', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    /* READ BEFORE THE THIRD TURN: "no drowse" and "a drowse that never paid out" are different bugs
+     * and the status two turns later cannot tell them apart. */
+    const drowse = B.f1._yawn != null;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    return { drowse, sub: B.f1._sub || 0, status: B.f1.status || '-' };
+  };
+  const ctrl = run('swordsdance', null);
+  const doll = run('substitute', null);
+  const inf = run('substitute', 'infiltrator');
+  return { works: ctrl.drowse && ctrl.status === 'slp' && ctrl.sub === 0
+                  && !doll.drowse && doll.status === '-' && doll.sub > 0
+                  && inf.drowse && inf.status === 'slp' && inf.sub > 0,
+           arms: { control: [ctrl.drowse, ctrl.status], test: [doll.drowse, doll.status] },
+           detail: '[drowsed, doll left, status two turns on] -- after Swords Dance ['
+                 + ctrl.drowse + ', ' + ctrl.sub + ', ' + ctrl.status + ']; after Substitute ['
+                 + doll.drowse + ', ' + doll.sub + ', ' + doll.status + ']; Infiltrator into the same '
+                 + 'doll [' + inf.drowse + ', ' + inf.sub + ', ' + inf.status + ']' };
+});
+
 probe('ability', 'ignoresScreensAndSubs', 'Infiltrator hits the body behind a substitute', () => {
   const blocked = twoTurn(SUBSPS, { setupFoe: 'substitute', move: 'icebeam' });
   const through = twoTurn(SUBSPS, { setupFoe: 'substitute', move: 'icebeam',
