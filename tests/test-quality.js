@@ -16,7 +16,15 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); c ? P++ : F
 console.log('== the config is the only place a threshold lives ==');
 const cfg = Q.config();
 ok(cfg.rules.min_turns.value === 3, `min_turns comes from the config (${cfg.rules.min_turns.value})`);
-ok(Object.keys(cfg.rules).length === 5, `four rules defined (${Object.keys(cfg.rules).join(', ')})`);
+ok(Object.keys(cfg.rules).length === 6, `six rules defined (${Object.keys(cfg.rules).join(', ')})`);
+/* THE ONE THING THIS RULE MUST NEVER DO. A move-level TeamValidator rejection is the Illusion
+ * signature — a disguised Zoroark reveals the moves of the body it is wearing, so "X can't learn Y"
+ * is produced by a LEGAL team as a matter of mechanics, on 1,175 games in this store. Keying on it
+ * would delete the corpus engine/illusion.js exists to study, and would do it silently. Pinned here
+ * so "completing" the rule fails a test instead of shrinking a corpus. */
+ok(!cfg.rules.exclude_illegal_teams.classes.includes('move'),
+  `the legality rule does NOT key on move-level rejections (keys: ${cfg.rules.exclude_illegal_teams.classes.join(', ')})`);
+ok(!!cfg.rules.exclude_illegal_teams.known_limitation, 'the legality rule records that it judges the ladder store only, and that no drift detector exists');
 ok(!!cfg.rules.exclude_bot_games.known_limitation, 'the bot rule records that detection is name-only');
 ok(!!cfg.rules.require_full_bring.known_limitation, 'the bring rule records that it conditions on game length');
 ok(!!cfg.rules.exclude_behavioural_bots.known_limitation, 'the behavioural rule records that it raises a floor, not a proof');
@@ -101,7 +109,16 @@ ok(f.after_bot_filter >= f.after_behavioural_bots, 'the behavioural rule cannot 
 ok(f.after_behavioural_bots >= f.after_forfeit_filter, 'removing forfeits cannot increase the count');
 ok(f.after_forfeit_filter >= f.after_min_turns, 'the turn floor cannot increase the count');
 ok(f.after_min_turns >= f.after_full_bring, 'requiring a full bring cannot increase the count');
-ok(f.clean === f.after_full_bring, 'the clean count equals the last stage');
+ok(f.after_full_bring >= f.after_legality, 'the legality rule cannot increase the count');
+ok(f.clean === f.after_legality, 'the clean count equals the last stage');
+/* THE FILTER MUST BE ABLE TO PROVE IT RAN. An absent verdict, or an id list the reader could only
+ * partly resolve, both leave a corpus that looks clean and is not — the project's signature failure.
+ * These assert the capability, not a count, so store growth does not make them stale. */
+ok(f.legality && f.legality.on && !f.legality.verdict_missing,
+  `the legality verdict was read (${f.legality && f.legality.verdict_generated})`);
+ok(f.legality.ids_resolved + f.legality.forme_only_skipped === f.legality.ids_expected,
+  `every flagged game id resolves: ${f.legality.ids_resolved} resolved + ${f.legality.forme_only_skipped} forme-only ` +
+  `= ${f.legality.ids_expected} expected (unresolved ${f.legality.ids_unresolved})`);
 ok(f.clean === jsGames.length, `loadGames returns exactly the clean set (${jsGames.length})`);
 
 console.log('== the recorded provenance matches what the code actually produces ==');
@@ -117,7 +134,7 @@ console.log('== the recorded provenance matches what the code actually produces 
  *   3. the clean SHARE has not moved much, which is what would change if the filter itself broke.
  * Growth is expected. A shifting selection rate is not. */
 const rec = cfg.provenance.funnel;
-const stages = ['collected', 'after_bot_filter', 'after_behavioural_bots', 'after_forfeit_filter', 'after_min_turns', 'after_full_bring'];
+const stages = ['collected', 'after_bot_filter', 'after_behavioural_bots', 'after_forfeit_filter', 'after_min_turns', 'after_full_bring', 'after_legality'];
 
 const mono = (o, label) => {
   const bad = [];
@@ -129,7 +146,11 @@ const mono = (o, label) => {
 mono(f, 'live');
 mono(rec, 'recorded');
 
-const shareNow = f.clean / f.collected, shareRec = rec.after_full_bring / rec.collected;
+/* Against the RECORDED last stage, whichever it is: a funnel recorded before exclude_illegal_teams
+ * existed ends at after_full_bring, and comparing today's clean share to that one would read a rule
+ * change as drift. */
+const shareNow = f.clean / f.collected;
+const shareRec = (rec.after_legality != null ? rec.after_legality : rec.after_full_bring) / rec.collected;
 const drift = Math.abs(shareNow - shareRec) * 100;
 ok(drift <= 3,
   `clean share is stable: ${(100 * shareNow).toFixed(1)}% now vs ${(100 * shareRec).toFixed(1)}% recorded ` +

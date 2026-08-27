@@ -13,10 +13,12 @@ tests/test-quality.js asserts both readers select the IDENTICAL set of game ids.
 """
 import json
 import os
+import re
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 STORE = os.path.join(_HERE, '..', 'data', 'games.ladder.jsonl')
 CONFIG = os.path.join(_HERE, '..', 'data', 'quality-filter.json')
+VALIDATION = os.path.join(_HERE, '..', 'data', 'store-validation.json')
 
 
 _CFG = None
@@ -100,6 +102,80 @@ def behavioural_bots(games, cfg=None):
             and len(teams_by[n]) <= r['max_distinct_teams']}
 
 
+_LEGAL = None
+
+
+def illegal_teams():
+    """Game ids whose revealed team Showdown's TeamValidator rejects on a SPECIES or ITEM reason.
+
+    ONE TEST DECIDES WHETHER A CLASS MAY BE KEYED: can a LEGAL team produce it? A species rejection
+    cannot be faked - Illusion changes what a body appears to be, not what body is in the replay. A
+    declared-item rejection cannot be faked either. A MOVE rejection is faked constantly: a disguised
+    Zoroark appears as another species carrying Zoroark's moves, so the validator writes "X can't
+    learn Y" - the same sentence a custom-rules game produces. 1,175 games are move-only rejections
+    and 1,020 have an Illusion carrier on the same side.
+
+    DO NOT 'COMPLETE' THIS BY ADDING move. It would delete the corpus engine/illusion.js studies, and
+    it would do it silently, because a smaller corpus looks exactly like a cleaner one.
+
+    Must stay selection-identical to illegalTeams() in engine/quality.js - tests/test-quality.js
+    compares the two implementations' chosen ids by hash."""
+    global _LEGAL
+    if _LEGAL is not None:
+        return _LEGAL
+    r = config()['rules'].get('exclude_illegal_teams')
+    out = {'on': bool(r and r.get('on')), 'ids': set(), 'source': 'data/store-validation.json',
+           'generated': None, 'judged_games': 0, 'classes': (r or {}).get('classes') or [],
+           'expected': 0, 'resolved': 0, 'unresolved': 0, 'forme_only_skipped': 0, 'missing': False}
+    if not out['on']:
+        _LEGAL = out
+        return out
+    try:
+        with open(VALIDATION, encoding='utf-8') as fh:
+            v = json.load(fh)
+    except Exception as e:                                   # noqa: BLE001 - reported, not swallowed
+        # A MISSING VERDICT IS A RULE THAT DID NOT RUN, and it must not look like a clean store.
+        import sys
+        out['missing'] = True
+        print("quality: exclude_illegal_teams is ON but %s would not read (%s); NO game is excluded "
+              "for legality. Run: node engine/validate_store.js --write" % (out['source'], e),
+              file=sys.stderr)
+        _LEGAL = out
+        return out
+    split = v.get('split') or {}
+    out['generated'] = v.get('generated')
+    out['judged_games'] = (v.get('judged') or {}).get('games') or 0
+    keyed = set(out['classes'])
+    pat = (r or {}).get('item_reason_pattern')
+    item_rx = re.compile(pat, re.I) if pat else None
+    if 'species' in keyed:
+        out['ids'].update(split.get('species_flagged_ids') or [])
+    for e in (v.get('examples') or []):
+        cls = e.get('classes') or []
+        if not any(c in keyed for c in cls):
+            continue
+        # Item-ONLY rows must clear the declared-item pattern; a pure forme-requirement row is our
+        # closed-sheet storage convention, not contamination.
+        if 'species' not in cls and 'item' in cls and item_rx \
+                and not any(item_rx.search(x) for x in (e.get('reasons') or [])):
+            out['forme_only_skipped'] += 1
+            continue
+        out['ids'].add(e.get('id'))
+    for combo, n in (split.get('combos') or {}).items():
+        if any(c in keyed for c in combo.split('+')):
+            out['expected'] += n
+    out['resolved'] = len(out['ids'])
+    out['unresolved'] = max(0, out['expected'] - out['resolved'] - out['forme_only_skipped'])
+    if out['unresolved']:
+        import sys
+        print("quality: exclude_illegal_teams resolved %d of %d flagged game ids (%d unresolved - "
+              "data/store-validation.json publishes species_flagged_ids but not item_flagged_ids, "
+              "and its examples list is capped at 500). The filter is UNDER-removing."
+              % (out['resolved'], out['expected'], out['unresolved']), file=sys.stderr)
+    _LEGAL = out
+    return out
+
+
 def had_action(g):
     """Did anything actually happen? One move or one switch is enough.
 
@@ -133,6 +209,9 @@ def reasons(g, cfg=None, bots=None):
         br = g.get('brought') or {}
         if len(br.get('p1') or []) != 4 or len(br.get('p2') or []) != 4:
             bad.append('partial_bring')
+    ill = r.get('exclude_illegal_teams')
+    if ill and ill.get('on') and g.get('id') in illegal_teams()['ids']:
+        bad.append('illegal_team')
     return bad
 
 
@@ -155,6 +234,10 @@ FUNNEL_STEPS = [
     ('after_forfeit_filter', 'forfeit_no_action'),
     ('after_min_turns', 'short'),
     ('after_full_bring', 'partial_bring'),
+    # LAST, ON PURPOSE - the steps are cumulative, so inserting a rule earlier would move the number
+    # printed against every step below it and break comparison with every funnel recorded before
+    # 2026-08-27. Mirrors FUNNEL_STEPS in engine/quality.js exactly.
+    ('after_legality', 'illegal_team'),
 ]
 
 
@@ -179,6 +262,17 @@ def funnel(path=None):
     orphan = sorted({x for rs in all_reasons for x in rs} - known)
     if orphan:
         out['unaccounted_reasons'] = orphan
+    # A filter that makes a number smaller has to say what it removed - count, rate and reason.
+    lg = illegal_teams()
+    out['legality'] = {
+        'on': lg['on'], 'source': lg['source'], 'verdict_generated': lg['generated'],
+        'verdict_judged_games': lg['judged_games'], 'classes': lg['classes'],
+        'ids_expected': lg['expected'], 'ids_resolved': lg['resolved'],
+        'ids_unresolved': lg['unresolved'], 'forme_only_skipped': lg['forme_only_skipped'],
+        'verdict_missing': lg['missing'],
+        'removed_from_clean': sum(1 for rs in all_reasons if rs == ['illegal_team']),
+        'flagged_anywhere': sum(1 for rs in all_reasons if 'illegal_team' in rs),
+    }
     return out
 
 
@@ -191,7 +285,8 @@ if __name__ == '__main__':
               ('after_behavioural_bots', 'after removing accounts that behave like bots'),
               ('after_forfeit_filter', 'after removing forfeits'),
               ('after_min_turns', 'after removing games under 3 turns'),
-              ('after_full_bring', 'after requiring all four brought to be revealed')]
+              ('after_full_bring', 'after requiring all four brought to be revealed'),
+              ('after_legality', 'after removing teams Showdown rejects (species/item)')]
     prev = total
     for key, label in labels:
         if key not in f:
@@ -202,3 +297,28 @@ if __name__ == '__main__':
               + (f"   -{drop}" if drop else ""))
         prev = n
     print(f"\n  USABLE: {f['clean']} of {total} ({100*f['clean']/total:.1f}%)")
+    lg = f.get('legality') or {}
+    print('\nLEGALITY EXCLUSION')
+    if not lg.get('on'):
+        print('  OFF - no game is excluded for legality.')
+    elif lg.get('verdict_missing'):
+        print(f"  NOT APPLIED - {lg['source']} would not read. "
+              f"Run: node engine/validate_store.js --write")
+    else:
+        print(f"  verdict      {lg['source']}  generated {lg['verdict_generated']}  "
+              f"({lg['verdict_judged_games']:,} games judged)")
+        print(f"  keyed on     {' | '.join(lg['classes'])}   - move-level rejections are NOT keyed "
+              f"(Illusion; see illegal_teams())")
+        extra = (f", {lg['forme_only_skipped']} skipped as forme-requirement only"
+                 if lg['forme_only_skipped'] else '')
+        extra += (f", {lg['ids_unresolved']} UNRESOLVED (under-removing)"
+                  if lg['ids_unresolved'] else '')
+        print(f"  ids          {lg['ids_resolved']} resolved of {lg['ids_expected']} flagged{extra}")
+        base = max(1, f.get('after_full_bring', 1))
+        print(f"  removed      {lg['removed_from_clean']} games that passed every other rule "
+              f"({100*lg['removed_from_clean']/base:.3f}% of the previously-clean corpus)")
+        print(f"  flagged      {lg['flagged_anywhere']} of {total:,} collected "
+              f"({100*lg['flagged_anywhere']/total:.3f}%) - the rest were already excluded by another rule")
+        if lg['verdict_judged_games'] and lg['verdict_judged_games'] < total:
+            print(f"  UNJUDGED     {total - lg['verdict_judged_games']:,} games arrived after the "
+                  f"verdict was generated and have not been checked at all.")

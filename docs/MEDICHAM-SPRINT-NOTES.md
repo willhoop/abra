@@ -21,6 +21,43 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE LEGALITY FILTER IS WIRED AND IT REMOVES 49 GAMES. **THE COVERAGE GATE'S DENOMINATOR MOVED THE EASY WAY, 508 → 502.** 2026-08-27 (MEASURE).
+
+CHANGELOG 5.160.0. Register row: ROADMAP **#471 — CLOSED**. Full account:
+`docs/_reports/2026-08-27-legality-filter.md`.
+
+`engine/validate_store.js` has always said *"quality.js decides what to do with it"* and `quality.js`
+had never read the file. `data/quality-filter.json` 1.2.0 → **1.3.0** adds `exclude_illegal_teams`,
+keyed on **species- or item-level** `TeamValidator` rejections, with `after_legality` as a new funnel
+stage so the exclusion is counted and printed. **Clean ladder corpus 18,908 → 18,859 (−0.259%).**
+
+| finding | number |
+|---|---|
+| species ∪ item flagged games | **77 of 67,384 (0.114%)** — 76 + 35 is *not* 111; 34 of the 35 item games also trip species |
+| what the item widening actually added | **one game** (Covert Cloak + Choice Specs) |
+| removed from the clean corpus | **49** — the other 28 were already excluded by another rule |
+| enrichment, clean vs raw | **2.27×** (0.114% raw → 0.259% clean). Bots do not play custom-rules rooms |
+| move-only rejections, deliberately KEPT | **1,175**, of which **1,020 have an Illusion carrier on the same side** |
+| coverage gate union-99% denominator | **508 → 502.** `thickfat` 37 → 16 clean uses, `magicbounce` 46 → 32; `unaware` and `owntempo` lose NOTHING and still fall out — a boundary effect |
+| provenance | **24 UNSAFE → 233.** The definition of a clean game changed; the rule is working |
+| rows that can no longer be derived | 19 of 796 `meta-usage` threats, 65 of 339 `bring-priors`, 18 of 277 `sheet-usage`; 335 → 270 distinct species |
+
+**MOVES ARE NOT KEYED AND THAT IS PINNED BY A TEST**, so "completing" the rule reddens
+`tests/test-quality.js` instead of silently deleting the Zoroark corpus. **The item class is narrowed
+by a pattern** because *"needs to hold Wellspring Mask…"* is our closed-sheet convention, not a team —
+all 18 such complaints are already species-flagged, so it costs zero games today.
+
+**A pre-existing red was fixed on the way past and it was not caused by this change**: the recorded
+provenance funnel was 2026-07-28 vintage, **10.8 points of drift against a 3-point tolerance**.
+Restamped; tolerance **not** widened. `node tests/test-quality.js` → **32 passed, 0 failed**, JS and
+Python selecting identically at sha `48a0ddfb104e7338`.
+
+**OWED:** `store-validation.json` publishes no `item_flagged_ids` (examples capped at 500 — detected,
+not assumed); the ingest never re-runs `validate_store.js`, so coverage decays every cron;
+`regulation_usage.js` caches on the corpus and not on the filter; the bo3 and OTS stores are unjudged.
+
+---
+
 ## NINE TYPED ILLEGAL LITERALS, AND THE BENCHMARK THEY LIVED IN HAS NEVER HAD SIX BODIES. **NO GAME NUMBER MOVED — PREDICTED, THEN CHECKED.** 2026-08-27 (MEASURE).
 
 CHANGELOG 5.158.0. Register rows: ROADMAP **#471 — the store legality filter, FILED NOT FIXED** and

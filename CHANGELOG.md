@@ -10,6 +10,80 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.160.0] — 2026-08-27
+
+### Added
+- **THE LEGALITY FILTER IS WIRED, AND IT REMOVES 49 GAMES — 18,908 → 18,859 CLEAN, −0.259%.** MEASURE.
+  Full account: `docs/_reports/2026-08-27-legality-filter.md`. ROADMAP **#471 closed**. Will:
+  *"lets continue to use showdowns validation feature. if somethings not valid then throw it out
+  right?"*, widened to *"but also items too for open team sheets, we know which choice items are
+  legal."*
+
+  `engine/validate_store.js` has said since it was written that *"IT MARKS, IT DOES NOT DELETE …
+  quality.js decides what to do with it."* **`quality.js` had never read the file.**
+  `data/quality-filter.json` 1.2.0 → **1.3.0** adds `exclude_illegal_teams`, `reasons()` reads it, and
+  `after_legality` is a new `FUNNEL_STEPS` stage so the exclusion is COUNTED and PRINTED.
+
+  **77 of 67,384 stored games (0.114%) carry a species- or item-level `TeamValidator` rejection**;
+  49 of them had survived every other rule. **76 + 35 is not the answer** — the classes overlap, 34 of
+  the 35 item games also trip species, so the deduplicated union is 77 and the item widening added
+  **exactly one game** (a team declaring Covert Cloak and Choice Specs). Source:
+  `data/store-validation.json` `generated 2026-08-27T05:14:06.849Z`, whose recorded store digest
+  `5cbb8e98b7f3` **equals the live store's content**, checked rather than assumed.
+
+  **MOVE-LEVEL REJECTIONS ARE NOT KEYED AND THAT IS THE RULE, NOT AN OVERSIGHT.** 1,175 games are
+  move-only and **1,020 have an Illusion carrier on the same side**: *"X can't learn Y"* is exactly how
+  `engine/illusion.js` PROVES a disguise, so a legal team produces it as a matter of mechanics. The
+  reason is written into the rule's own comment in all three files and **pinned by
+  `tests/test-quality.js`**, so "completing" the rule fails a test instead of deleting a corpus.
+
+  **The item class is narrowed by a pattern, because one of its three phrasings is a false-positive
+  path.** *"needs to hold Wellspring Mask to be in its Wellspring forme"* fires when a replay showed a
+  forme and never showed the item — our closed-sheet convention, not anybody's team. Measured: all 18
+  such complaints sit in games that are already species-flagged, so the narrowing removes zero games
+  today and exists so a legal Ogerpon game in a later regulation is not deleted silently.
+
+  **CONTAMINATION IS 2.27× DENSER IN THE CLEAN CORPUS THAN IN THE RAW STORE** — 0.114% against 0.259%
+  — because the bot and forfeit rules strip bot games and bots do not play custom-rules rooms. The
+  corpus the models read is dirtier than the store is.
+
+### Changed
+- **THE COVERAGE GATE'S DENOMINATOR MOVED THE EASY WAY: 508 → 502.** MEASURE. Four abilities
+  (`magicbounce`, `thickfat`, `unaware`, `owntempo`) and two items (`metalcoat`, `magnet`) fall out of
+  the union 99%-of-usage set. **None loses all usage** — `thickfat` goes 37 → 16 clean uses,
+  `magicbounce` 46 → 32, while `unaware` and `owntempo` lose nothing at all and fall out purely because
+  the cumulative boundary shifted. **A mechanics-coverage percentage computed after this change is not
+  comparable to one computed before it. The bar moved; that is not an improvement.** Measured through
+  `tests/regulation_usage.js`'s own `scan()`/`coverUnion()` with the rule toggled in memory — no
+  artifact was rewritten to produce it.
+- **PROVENANCE READS 233 UNSAFE AGAINST 24 THIS MORNING, AND THAT IS THE RULE WORKING.** MEASURE.
+  Provenance rule 1 is *"an artifact older than `data/quality-filter.json` was computed under different
+  rules about what counts"*, and the definition of a clean game genuinely changed. Each artifact clears
+  when its generator re-runs; `data/meta-usage.json`, `data/bring-priors.json` and
+  `data/move-priors.observed.json` are rewritten by the six-hourly ingest. **Nothing was hand-edited
+  and nothing should be** — the generator writes the name back. Rows that can no longer be derived at
+  all: **19 of 796 `meta-usage.json` threat rows, 65 of 339 `bring-priors.json` keys, 18 of 277
+  `sheet-usage.json` keys**, and **335 → 270 distinct species with any clean support**.
+- **`data/quality-filter.json`'s recorded provenance funnel was restamped, and the red it fixes was not
+  caused by this change.** MEASURE. `tests/test-quality.js` compares the live clean share against the
+  recorded one at a 3-point tolerance; it was **RED at 10.8 points** because the block was measured on
+  2026-07-28 at 20,688 games / 17.3% clean and the store is now 67,384 / 28.0%. The filter had not
+  moved — the number went stale and nothing re-derived it. Restamped, old block kept under
+  `superseded`, **tolerance not widened**: a tolerance that absorbs staleness stops being a check.
+
+### Notes
+- `engine/format_drift.js` **does not exist** and `validate_store.js` cites it as the thing that
+  separates a contaminated game from a stale rulebook. So this rule cannot tell those apart. Recorded
+  in the rule's own `known_limitation`, not only in the report.
+- `engine/validate_store.js` judges `data/games.ladder.jsonl` **only**, so the rule is a **no-op on
+  `games.bo3.jsonl` and `games.ots.jsonl`** — those corpora are unfiltered for legality, not clean.
+- `data/store-validation.json` publishes `species_flagged_ids` but **not** `item_flagged_ids`, so
+  item-only ids come from `examples`, which is capped at 500. The reader proves it resolved every
+  flagged id against `split.combos` and prints `UNRESOLVED (under-removing)` if it did not; today
+  **77 resolved of 77**. `tests/test-quality.js` fails on a shortfall.
+- The JS and Python readers still select identically: `same count: JS 18859, Python 18859`,
+  `identical selection (sha 48a0ddfb104e7338)`. `node tests/test-quality.js` → **32 passed, 0 failed**.
+
 ## [5.159.0] — 2026-08-27
 
 ### Changed
