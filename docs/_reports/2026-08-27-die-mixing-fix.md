@@ -293,6 +293,15 @@ row, and regenerating it would have broken the pin my own run was measured under
 
 ## OWED, NOT RUN
 
+- **THE PUSH IS OWED AND IS DELIBERATELY NOT DONE.** Two commits (`6ee4a666`, `d988aadc`) sit local.
+  `origin/main` is **one ahead** and that one commit is OPS's `ingest: new ladder games`, which
+  rewrites `data/games.ladder.jsonl.gz`, `data/meta-usage.json` and `data/bring-priors.json`. The
+  concurrent agent is **still running** — `data/all-mechanics-fire.json` was rewritten 37 seconds
+  before this was written — and `game_differential.js` draws its team pool **LIVE from that store**.
+  Rebasing would swap the store under a live measurement, which is the exact hazard CLAUDE.md records
+  as costing 7,100 games. **Push when the tree is quiet:** `git pull --rebase && git push`. No file
+  in that upstream commit overlaps anything committed here, so the rebase will be clean.
+
 - **RE-RUN THE ROSTER STAGES AND THE MECHANICS CLAUSE ON THE FINAL TREE.** They are withheld against
   `f9f3a61481cb` right now. This belongs to whoever closes the doll-blind batch, because a re-run
   started now would be superseded by their next edit. It is **not** a claim that anything is wrong —
