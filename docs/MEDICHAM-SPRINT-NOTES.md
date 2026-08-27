@@ -21,6 +21,144 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE CRIT DIE IS ROLLED ONCE PER *HIT* BY THE AUTHORITY AND WAS ROLLED ONCE PER *CLICK* HERE — ARRIVAL 2 OF A VOLLEY INHERITED ARRIVAL 1'S CRIT. **BOARD-MATERIAL 7 -> 5 OF 961 AND WHOLE-GAME 9 -> 7 OF 961, BOTH PREDICTED BEFORE THE RUN. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING, PREDICTED. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE *AND* AFTER. PIN DIGEST UNMOVED AT `44bd49403231`.** 2026-08-27.
+
+Release `6ed5d6734c80`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+Register rows: ROADMAP **#499 — CLOSED**, **#500 — FILED**. CHANGELOG 5.184.0.
+Full account: `docs/_reports/2026-08-27-crit-per-hit.md`.
+
+**THE ENGINE HAD ALREADY DECLARED THIS AND NOTHING PRINTED IT.** ROADMAP #322's header in
+`engine/medicham2-browser.js` read, in plain words:
+
+> *"The CRIT ITSELF is still one decision for the whole volley; the authority rolls it per hit too,
+> and that is a separate defect which this wire deliberately does not touch rather than bundle."*
+
+There was **no register row**. `open_work.js` prints unclosed register rows and the defects an
+instrument measures; a defect living only in a source comment is neither, so the only thing that could
+have surfaced it was somebody reading that line. That is the same shape as the fourteen stale handoffs
+one file over — prose carrying state — and it is why this pass wrote the row before it wrote the fix.
+
+**THE AUTHORITY, READ NOT RECALLED.** `data/mods/champions/scripts.ts` overrides the hit LOOP and
+`spreadMoveHit`, and overrides **neither `getSpreadDamage` nor `getDamage`** — so the loop is the
+mod's and the die is mainline's, inside the per-hit call:
+
+```
+data/mods/champions/scripts.ts:461   for (hit = 1; hit <= targetHits; hit++) {
+data/mods/champions/scripts.ts:518     [moveDamageThisHit, targetsCopy] = this.spreadMoveHit(...)
+data/mods/champions/scripts.ts:361       damage = this.getSpreadDamage(damage, targets, ...)
+sim/battle-actions.ts:1156                 const curDamage = this.getDamage(source, target, moveData);
+sim/battle-actions.ts:1637                   const moveHit = target.getMoveHitData(move);
+sim/battle-actions.ts:1641                   moveHit.crit = this.battle.randomChance(1, critMult[critRatio]);
+sim/battle-actions.ts:1633                 critMult = [0, 24, 8, 2, 1]        (the gen 9 branch)
+sim/dex-moves.ts:486                       this.critRatio = Number(data.critRatio) || 1   -> 1/24
+```
+
+**N hits spend N crit draws**, each re-writing `getMoveHitData(move).crit`, which `modifyDamage`
+reads at `scripts.ts:220` and announces at `:285`.
+
+**THE KNOB IS THE HIT COUNT AND IT WAS PINNED AT 1.** Both engines handed the same die — CRIT on
+draw 0, NO-CRIT on every draw after — `tests/probe_hp_pair.js`:
+
+```
+                              BEFORE                                AFTER
+CONTROL Psychic Fangs   authority [85*]        ours [85*]          ours [85*]        draws 1 / 1
+Dual Wingbeat x2        authority [60* 40]     ours [60* 60*]      ours [60* 40]     draws 2 / 2
+Triple Axel x3          authority [36* 45 67]  ours [36* 67* 100*] ours [36* 45 67]  draws 3 / 3
+```
+
+The authority moved **1 -> 2 -> 3** with the hit count and this engine did not move at all. Identical
+output across a varied knob is the unwired signature, and the OUTCOME is asserted beside the count so
+no row can pass by classifying.
+
+**THE FIX — THREE COORDINATED EDITS IN THE DAMAGE STEP.**
+
+1. **The plain packet bands are snapshotted before the crit re-price replaces them.** Both of
+   `dmgRange`'s paths blow `hit.packets` away and rebuild it. That was harmless while a click was
+   crit or was not; with a decision per arrival, both sets must be in hand at once.
+2. **`_R.crit()` is drawn once per ARRIVAL**, sized by the plain packet list. A click dmgRange handed
+   no packets for is one arrival and takes exactly one draw — byte-identical to every run before this.
+3. **One resolved list `_pkSel` replaces every downstream read of `_hitCtx.packets`** — the arrival
+   index loop, the greedy fallback and `_multiPk` itself. That field holds whichever price ran LAST,
+   which is exactly the confusion a per-arrival decision removes; and the two prices can genuinely
+   disagree about whether a click splits at all, because dmgRange's flat path only splits a band that
+   divides by the hit count and a crit band is a different pair of numbers. Both directions are
+   handled and the unaddressable one is **counted** rather than collapsed silently as it was before.
+
+`_price()` consumes no die, so pricing twice is free.
+
+**THE ONE JUDGEMENT CALL, DECIDED RATHER THAN SILENTLY PICKED.** `R.crit`'s downstream reader is
+`buffsHolderOnHit` (Anger Point) through `condHolds`'s `w.cond === 'crit'`, and `_stepEffects` is
+wrapped once per MOVE here where the authority raises the reaction per HIT — so a single boolean has
+to stand in for a vector. Two candidates:
+
+| candidate | what it says | verdict |
+|---|---|---|
+| `_crits.some(Boolean)` | any arrival crit | **CHOSEN** |
+| `_crits[_crits.length-1]` | what `getMoveHitData(move).crit` holds after the volley | rejected |
+
+Anger Point maxes Attack on a crit and **cannot be maxed twice**, so the authority's per-hit pass has
+the observable outcome "+6 iff at least one hit crit" — which is `some`, exactly. The last-hit reading
+would take a Dual Wingbeat that crit on hit 1 and refuse the boost outright, turning a fix into a new
+defect on the one ability that reads this flag. It is **not coerced**: `R.crit` stays `undefined` when
+the damage step never ran, which `condHolds` refuses and counts, and `!!` would turn "nobody knows"
+into a confident `false`. The per-HIT reaction pass is filed as **#500**, not bundled — `some` is right
+for every member of this family in this format and it is not right in general.
+
+**THE COUNTERS, AND ONE OF THEM CORRECTED A SENTENCE I HAD TYPED.**
+
+```
+MEDSEEN.perArrivalCritDecision      5   arrivals that carried their own decision (staged fixture)
+MEDFAILS.critPerArrivalUnsplit      0   a multi-hit click with no packet list
+MEDFAILS.critPerArrivalUnaddressed  0   the two prices disagree about whether the click splits
+MEDFAILS.critOncePerClickRestored   0   the knob (1 under MEDI_CRIT_ONCE_PER_CLICK=1)
+```
+
+The first draft of `critPerArrivalUnsplit`'s comment said *"expected non-zero — it is the 2-5
+family"*, reasoning from dmgRange's own header that the 2-5 family is priced as one packet. That is
+true of a PRICE and false of a TURN: a real turn has already drawn the count and hands it down, so a
+staged Bullet Seed splits into three arrivals, spends three crit dice and reads the counter at **zero**.
+The wrong sentence is left in the source with the correction beside it, because it was typed rather
+than measured.
+
+**THE KNOB IS A RESTORE AND IT WAS PROVEN TO BE ONE.** `MEDI_CRIT_ONCE_PER_CLICK=1` returns the probe
+to the identical 8 failures with the identical numbers — not merely red, but the same red.
+
+**THE PIN DIGEST WAS DELIBERATELY NOT MOVED, AND THAT IS AN ARGUMENT.** `DICE_MODEL` and `PIN_DIGEST`
+describe the INSTRUMENT — which corner, which damage index, the `midHash` finaliser, the range form —
+and every version they carry (#222, #489, #491) was a change inside `engine/game_differential.js`.
+This change is in the ENGINE and is the same shape as #322's per-arrival `dmg` draw, which moved no
+digest. Moving it would falsely declare an instrument reset and make `arms_comparable.js` refuse the
+very before/after comparison this section reports.
+
+**WHAT DID NOT MOVE, MEASURED RATHER THAN ASSUMED.**
+
+```
+test-engine-diff --n 6000    0/6000 at EVERY one of the sixteen corners, before AND after
+                             (blind by construction: 134 multi-hit rows skipped, and at a pinned
+                              corner every crit draw returns the same value)
+census                       765 live / 765 probed / 0 missing
+roster items / abilities / moves   139/148, 129/202, 475/500 — byte-identical, 0 DIFFER, 0 DID-NOT-FIRE
+all_mechanics_fire --kind all      identical diverging set and identical board tallies
+team pool digest             0d103fb9fa87 — identical to the previous run, so it is one sample
+```
+
+**THE FIVE BOARD-MATERIAL GAMES THAT REMAIN**, and none of them is this: a confusion counter (t3), a
+Gardevoir ability (t7), a Meowscarada type change (t12), a Diggersby status (t6), and the
+`-damage: a different body` random-target address game (t2, ROADMAP #478).
+
+### OWED, NOT RUN
+
+```bash
+# a POOL-SCALE reading of the three new counters — game_differential.js surfaces no MEDSEEN, so
+# perArrivalCritDecision has only ever been read on a staged board
+# not re-run on this release by this pass
+node tests/interaction_matrix.js
+node tests/mutation_harness.js
+node engine/quarantine.js
+node engine/wire_ladder.js      # data/wire-ladder.json is UNSAFE and its figure is withheld
+```
+
 ## TRACE'S CANDIDATE LIST IS NOT WRONG AND NEVER WAS — 139 OF 139 DRAWS IDENTICAL IN MEMBERS *AND* ORDER. THE TWO SPURIOUS DICE BEHIND IT ARE. **BOARD-MATERIAL 9 -> 7 OF 961 AND WHOLE-GAME 10 -> 9 OF 961. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS. ROSTER 139/129/475 CLEAN. PIN DIGEST UNMOVED AT `44bd49403231`.**
 
 Release `9dc79a4d459b`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,

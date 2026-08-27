@@ -10,6 +10,88 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.184.0] — 2026-08-27
+
+### Fixed
+- **THE CRIT DIE IS ROLLED ONCE PER *HIT* BY THE AUTHORITY AND WAS ROLLED ONCE PER *CLICK* HERE, SO
+  ARRIVAL 2 OF A VOLLEY INHERITED ARRIVAL 1'S CRIT. BOARD-MATERIAL 7 -> 5 OF 961 AND WHOLE-GAME
+  9 -> 7 OF 961, BOTH PREDICTED BEFORE THE RUN. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING.
+  DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST UNMOVED AT `44bd49403231`.**
+  ENGINE. ROADMAP `#499` CLOSED, `#500` FILED.
+
+  **The engine had already declared this defect in its own source and nothing printed it.** ROADMAP
+  `#322`'s header read *"The CRIT ITSELF is still one decision for the whole volley; the authority
+  rolls it per hit too, and that is a separate defect which this wire deliberately does not touch
+  rather than bundle."* There was no register row, so `open_work.js` could not list it. The row is
+  now `#499`.
+
+  **The authority, read rather than recalled.** `data/mods/champions/scripts.ts` overrides the hit
+  LOOP (`:461` -> `:518 spreadMoveHit`) and `spreadMoveHit` itself (`:361 getSpreadDamage`), and
+  overrides NEITHER `getSpreadDamage` NOR `getDamage` — so the crit die is mainline's and it sits
+  inside the per-hit call: `sim/battle-actions.ts:1156 getDamage` -> `:1641
+  randomChance(1, critMult[critRatio])`, with `critMult[1] = 24` at `:1633` and `critRatio`
+  defaulting to 1 at `sim/dex-moves.ts:486`. N hits spend N crit draws.
+
+  **The knob is the hit count and it was pinned at 1.** Under a die that says CRIT on draw 0 and
+  NO-CRIT after, the authority moved 1 -> 2 -> 3 with the hit count and this engine did not move at
+  all — the unwired signature. Dual Wingbeat x2 read `[60* 40]` there and `[60* 60*]` here; Triple
+  Axel x3 read `[36* 45 67]` there and `[36* 67* 100*]` here; the derived single-hit control agreed
+  at `[85*]` in both.
+
+  **The fix** is three coordinated edits inside the damage step of the battle loop: the non-crit
+  packet bands are snapshotted before `_price(true)` replaces them; `_R.crit()` is drawn once per
+  ARRIVAL instead of once per click; and one resolved list `_pkSel` — built out of BOTH prices,
+  arrival by arrival — replaces every downstream read of `_hitCtx.packets`, which after a mixed
+  volley holds whichever price ran last. `_price()` consumes no die, so pricing twice is free. A
+  single-packet click takes exactly one draw and is byte-identical to every run before this.
+
+  **One judgement call, decided rather than bundled.** `R.crit` feeds `buffsHolderOnHit` (Anger
+  Point) through `condHolds`, and `_stepEffects` is wrapped once per MOVE here where the authority
+  raises the reaction per HIT — so a single boolean has to stand in for a vector.
+  `_crits.some(Boolean)` was chosen: Anger Point maxes Attack on a crit and cannot be maxed twice,
+  so the authority's observable outcome for a volley is "+6 iff at least one hit crit". The
+  alternative — the last hit's value, which is what `getMoveHitData(move).crit` holds after the
+  volley — would refuse the boost on a Dual Wingbeat that crit on hit 1 and turn a fix into a new
+  defect. The per-HIT reaction pass is filed as `#500`, not bundled.
+
+  **The knob is a restore and it was proven to be one.** `MEDI_CRIT_ONCE_PER_CLICK=1` puts the probe
+  back to the identical 8 failures with the identical numbers, and stamps
+  `MEDFAILS.critOncePerClickRestored`.
+
+  **Unmoved, measured rather than assumed.** `test-engine-diff --n 6000` reads 0/6000 on every one
+  of the sixteen corners before AND after — it is blind to this by construction, since 134 multi-hit
+  rows are skipped and at a pinned corner every crit draw returns the same value, so per-arrival and
+  per-click coincide. The three roster stages are byte-identical (139/148, 129/202, 475/500; 0
+  FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE) and `all_mechanics_fire --kind all` reports the identical
+  diverging set and identical board tallies.
+
+  **The pin digest was deliberately NOT moved, and that is an argument rather than an omission.**
+  `DICE_MODEL` and `PIN_DIGEST` describe the INSTRUMENT — which corner, which damage index, the
+  `midHash` finaliser, the range form — and every version they carry (`#222`, `#489`, `#491`) was a
+  change inside `engine/game_differential.js`. This change is in the ENGINE and is the same shape as
+  `#322`'s per-arrival `dmg` draw, which moved no digest. Moving it would falsely declare an
+  instrument reset and make `arms_comparable.js` refuse the very before/after comparison this entry
+  reports.
+
+### Added
+- `MEDSEEN.perArrivalCritDecision` — arrivals that carried their own crit decision (read 5 across the
+  staged fixture; zero on a run with any multi-hit damaging move means the wire is silently gone).
+- `MEDFAILS.critPerArrivalUnsplit` / `critPerArrivalUnaddressed` — the two shapes this engine cannot
+  address per arrival, counted instead of collapsed silently as they were before. Both read 0 across
+  the staged fixture.
+- `MEDI_CRIT_ONCE_PER_CLICK=1` — the restore knob, same shape as `MEDI_MULTIHIT_ONE_INDEX`.
+- `tests/probe_hp_pair.js` — the failing measurement, written by the diagnosing pass and landed here.
+
+### Notes
+- Measured on engine release `6ed5d6734c80`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,
+  `--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+  `--state --end-state`. The pinned team pool digest `0d103fb9fa87` is identical to the previous run's,
+  so the before/after is the same sample.
+- The gate is still 3 of 8 clauses failing. Five board-material games remain and none of them is this.
+- Full account: `docs/_reports/2026-08-27-crit-per-hit.md`.
+
+---
+
 ## [5.183.0] — 2026-08-27
 
 ### Fixed

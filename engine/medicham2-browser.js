@@ -126,6 +126,21 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * band never reached the loop and the shared index is silently back. Its partner is
    * MEDFAILS.packetBandMissing. */
   perArrivalDamageIndex: 0,
+  /* ROADMAP #499 -- THE CRIT IS ROLLED PER HIT, AND THE NOUN IS AGAIN AN ARRIVAL.
+   *
+   * `data/mods/champions/scripts.ts` overrides the hit LOOP (:461) and `spreadMoveHit` (:361) and
+   * overrides NEITHER `getSpreadDamage` NOR `getDamage`, so the crit die is mainline's and it sits
+   * INSIDE the per-hit call: `sim/battle-actions.ts:1641` `randomChance(1, critMult[critRatio])`,
+   * `critMult[1] = 24` at :1633, `critRatio` defaulting to 1 at `sim/dex-moves.ts:486`. N hits spend
+   * N crit draws, each re-writing `getMoveHitData(move).crit`.
+   *
+   * This counts ARRIVALS that carried THEIR OWN crit decision, for ROADMAP #322's reason one field
+   * over: a count of DRAWS would rise on a loop that drew N times and then handed arrival 2 arrival
+   * 1's boolean anyway. Zero on a run containing any multi-hit damaging move means the per-arrival
+   * crit never reached the loop and the one-per-click boolean is silently back. Its partners are
+   * MEDFAILS.critPerArrivalUnsplit (the click this could not address) and
+   * MEDFAILS.critOncePerClickRestored (the knob). */
+  perArrivalCritDecision: 0,
   /* ROADMAP #289 -- a CLAMPED stat change announced with magnitude 0, the line Showdown writes and
    * this engine could not. Zero on a run containing an Intimidate into a -6 body means the emitter
    * is unwired again. */
@@ -2236,6 +2251,30 @@ const MEDFAILS = { encoreAction: 0,
    * split back on purpose, so a deliberate restore arm and a broken engine can never be read as the
    * same thing. Same shape as damageSpanDrawRestored. */
   multiHitOneIndexRestored: 0,
+  /* ROADMAP #499 -- A MULTI-HIT CLICK WHOSE ARRIVALS THIS ENGINE CANNOT ADDRESS SEPARATELY, so the
+   * whole volley took ONE crit decision where the authority took N: `hits` says more than one and
+   * dmgRange handed back no packet list to hang the decisions on. It is a flat volley whose band does
+   * not divide by the hit count (`_flat.min % _n === 0 && _flat.max % _n === 0`, dmgRange's flat path).
+   *
+   * THE FIRST DRAFT OF THIS COMMENT SAID "EXPECTED NON-ZERO -- IT IS THE 2-5 FAMILY", AND THAT IS
+   * WRONG; IT IS LEFT HERE BECAUSE IT WAS TYPED RATHER THAN MEASURED. dmgRange's own header says the
+   * 2-5 family is priced as ONE packet, which is true of a PRICE -- a real turn has already drawn the
+   * count and hands it down, so a staged Bullet Seed splits into three arrivals, spends three crit
+   * dice and reads this counter at ZERO. The remainder this counts is narrower than the sentence
+   * claimed and was 0 across the whole staged fixture. Non-zero is still a real gap, not a knob and
+   * not a regression: it is the pre-existing shape, now measured instead of assumed. */
+  critPerArrivalUnsplit: 0, critPerArrivalUnsplitFirst: '',
+  /* ROADMAP #499 -- THE OTHER HALF, AND IT IS THE ONE NEVER EXPECTED. The plain price and the crit
+   * price disagreed about whether this click HAS packets at all -- dmgRange's flat path only splits a
+   * band that divides by the hit count, and a crit band is a different pair of numbers, so the two
+   * can genuinely differ. The arrivals then cannot be addressed and the volley collapses to one
+   * packet, which is what happened SILENTLY before this wire. Non-zero means a real multi-hit crit is
+   * being priced as one lump; it is a defect with a name rather than a plausible number. */
+  critPerArrivalUnaddressed: 0, critPerArrivalUnaddressedFirst: '',
+  /* ROADMAP #499 -- set to 1 for the whole run when MEDI_CRIT_ONCE_PER_CLICK=1 puts the one-decision-
+   * per-volley crit back on purpose, so a deliberate restore arm and a broken engine can never be
+   * read as the same thing. Same shape as multiHitOneIndexRestored. */
+  critOncePerClickRestored: 0,
   /* ROADMAP #323 -- set to 1 for the whole run when MEDI_SLEEP_WAKE_COIN=1 puts the wake-site coin
    * back on purpose, so a deliberate restore arm and a broken engine can never be read as the same
    * thing. Same shape as damageSpanDrawRestored and multiHitOneIndexRestored. */
@@ -11128,6 +11167,12 @@ const DAMAGE_SPAN_DRAW_RESTORED=(typeof process!=='undefined'&&process.env&&proc
  * `MEDFAILS.multiHitOneIndexRestored`. Same shape as MEDI_DAMAGE_SPAN_DRAW and MEDI_RESIDUAL_COLLAPSE:
  * a switch that silently makes the engine wrong is the silent default this repo keeps paying for. */
 const MULTIHIT_ONE_INDEX_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MULTIHIT_ONE_INDEX==='1');
+/* ROADMAP #499 -- THE SAME SWITCH, ONE DIE OVER. `MEDI_CRIT_ONCE_PER_CLICK=1` puts the single
+ * per-click crit decision back at runtime, so the defect stays reachable for a paired measurement
+ * without swapping a file, and any run carrying it also carries a non-zero
+ * `MEDFAILS.critOncePerClickRestored`. It pins the draw count to ONE and reuses that boolean for
+ * every arrival, which is byte-for-byte what the engine did before this wire. */
+const CRIT_ONCE_PER_CLICK_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CRIT_ONCE_PER_CLICK==='1');
 function damageRollIndex(u){
   const i=DAMAGE_ROLL_SIDES-1-Math.floor(u*DAMAGE_ROLL_SIDES);
   return i<0?0:(i>DAMAGE_ROLL_SIDES-1?DAMAGE_ROLL_SIDES-1:i);
@@ -27542,6 +27587,21 @@ function battleTurn(S,rng,actsForA,actsForB){
         })();
         const _price=(isCrit)=>dmgRange(m,tg,mv,field,_spreadHit,isCrit,_hitCtx);
         let d=_price(false);
+        /* ROADMAP #499 -- THE PLAIN BANDS, KEPT, BECAUSE THE CRIT RE-PRICE REPLACES THEM.
+         *
+         * `_price(true)` runs `dmgRange` again on the SAME hit context, and both of its paths blow
+         * `hit.packets` away and rebuild it (`hit.packets=null` at the flat path's head, `hit.packets=[]`
+         * at the per-hit loop's). Until this wire that was harmless, because every arrival took the
+         * crit decision anyway; now that arrival 1 may crit while arrival 2 does not, BOTH sets have to
+         * be in hand at the same time. The copy is explicit rather than a surviving reference: the
+         * bands inside are already fresh per price call, but relying on that is relying on an
+         * implementation detail of a function this block does not own.
+         *
+         * A PRICE PAYS NOTHING FOR THIS. `wantPackets` is only set by a real turn, so `_hitCtx.packets`
+         * is null for winProb2, board.js and every rollout leaf, and the expression short-circuits. */
+        const _pkPlain=Array.isArray(_hitCtx.packets)&&_hitCtx.packets.length>1
+          ?_hitCtx.packets.map(p=>({min:p.min,max:p.max,band:Array.isArray(p.band)?p.band.slice():null}))
+          :null;
         /* ROADMAP #304 -- THE AUTHORITY'S DAMAGE DIE IS AN INDEX INTO SIXTEEN, NOT A POSITION IN A SPAN.
          *
          *     sim/battle.ts:2390   randomizer(d) { return tr(tr(d * (100 - this.random(16))) / 100); }
@@ -27599,8 +27659,76 @@ function battleTurn(S,rng,actsForA,actsForB){
          * that have nothing to do with crits.
          * A rate of exactly 1 is skipped because dmgRange has ALREADY applied that 1.5 to the range;
          * multiplying again here would price Flower Trick at 2.25x. */
-        {const _cc=critChance(a.move.id,m,suppressedAbility(m,tg),tg),_cr=_R.crit();   // WIRE 128 -- one owner; ROADMAP #222 -- its own die
-         if(_cc>0&&_cc<1&&_cr<_cc){
+        /* ==== ROADMAP #499 -- ONE CRIT DECISION PER ARRIVAL, WHICH IS WHAT THE AUTHORITY DRAWS =====
+         *
+         * ROADMAP #322 landed the per-arrival damage INDEX and its header said, in plain words, what
+         * it was leaving behind: *"The CRIT ITSELF is still one decision for the whole volley; the
+         * authority rolls it per hit too, and that is a separate defect which this wire deliberately
+         * does not touch rather than bundle."* This is that defect. It was carried in a comment with
+         * no register row, so nothing ever printed it as open work.
+         *
+         * THE AUTHORITY, READ RATHER THAN RECALLED. `data/mods/champions/scripts.ts` overrides the
+         * hit LOOP (:461 `for (hit = 1; hit <= targetHits; hit++)` -> :518 `spreadMoveHit`) and
+         * `spreadMoveHit` itself (:361 `getSpreadDamage`), and it overrides NEITHER `getSpreadDamage`
+         * NOR `getDamage` -- so the crit die is MAINLINE's and it sits inside the per-hit call:
+         *
+         *     sim/battle-actions.ts:1156   const curDamage = this.getDamage(source, target, moveData);
+         *     sim/battle-actions.ts:1637     const moveHit = target.getMoveHitData(move);
+         *     sim/battle-actions.ts:1638     moveHit.crit = move.willCrit || false;
+         *     sim/battle-actions.ts:1639-42  if (move.willCrit === undefined)
+         *                                      if (critRatio) moveHit.crit = randomChance(1, critMult[critRatio]);
+         *     sim/battle-actions.ts:1633     critMult = [0, 24, 8, 2, 1]        (the gen 9 branch)
+         *     sim/dex-moves.ts:486           this.critRatio = Number(data.critRatio) || 1   -> 1/24
+         *
+         * So an N-hit volley spends N crit draws, each re-writing `getMoveHitData(move).crit`, which
+         * `modifyDamage` reads at data/mods/champions/scripts.ts:220 and announces at :285. Measured
+         * against it under a die that says CRIT on draw 0 and NO-CRIT after (tests/probe_hp_pair.js):
+         * Dual Wingbeat x2 `[60* 40]` there and `[60* 60*]` here, Triple Axel x3 `[36* 45 67]` there
+         * and `[36* 67* 100*]` here, the single-hit control agreeing at `[85*]` in both.
+         *
+         * THE DRAW COUNT IS THE KNOB AND IT WAS PINNED AT 1. That is the unwired signature: the
+         * authority moved 1 -> 2 -> 3 with the hit count and this engine did not move at all.
+         *
+         * WHAT IS PRICED, AND WHY IT IS FREE. `_price()` consumes no die, so both bands can be in
+         * hand at once: `_pkPlain` was snapshotted above and `_pkCrit` is taken here, ONCE, only when
+         * some arrival actually crit. A volley with no crit pays exactly what it paid before.
+         *
+         * WIRE 35's ORIGINAL SENTENCE STILL GOVERNS EACH DRAW. The rng is consumed UNCONDITIONALLY --
+         * a Shell Armor arm and a plain arm must draw the same stream, or every later roll in the
+         * turn shifts for a reason that has nothing to do with crits. That is now true N times over
+         * rather than once. And a rate of exactly 1 is still skipped, because dmgRange has ALREADY
+         * folded that 1.5 into the range; re-pricing would put Flower Trick at 2.25x.
+         *
+         * NOT BUNDLED, NAMED SO IT IS NOT REDISCOVERED: the arrival loop computes all N packets
+         * before the `tg.curHP<=0` break, so on a KO'd volley this engine draws more `crit` (and more
+         * `dmg`, which is pre-existing) than the authority does. Under an EVENT-ADDRESSED die a draw
+         * only one engine makes is harmless by construction -- game_differential.js's middle-arm
+         * header states exactly that -- and under a pinned corner every draw returns the same value.
+         * ========================================================================================= */
+        let _crits=null,_pkCrit=null,_pkSel=null,_reprice=false;
+        {const _cc=critChance(a.move.id,m,suppressedAbility(m,tg),tg);   // WIRE 128 -- one owner; ROADMAP #222 -- its own die
+         /* THE ARRIVAL COUNT COMES OFF THE PLAIN PACKETS, which is the only place this engine knows
+          * how many arrivals there are before it prices them. A click dmgRange handed no packets for
+          * is one arrival and takes exactly one draw, byte-identical to every run before this. */
+         if(CRIT_ONCE_PER_CLICK_RESTORED)MEDFAILS.critOncePerClickRestored=1;
+         const _nArr=(_pkPlain&&!CRIT_ONCE_PER_CLICK_RESTORED)?_pkPlain.length:1;
+         _crits=[];
+         for(let i=0;i<_nArr;i++){
+           const _cri=_R.crit();
+           _crits.push((_cc>=1)||(_cc>0&&_cc<1&&_cri<_cc));
+         }
+         if(CRIT_ONCE_PER_CLICK_RESTORED&&_pkPlain)while(_crits.length<_pkPlain.length)_crits.push(_crits[0]);
+         if(_nArr>1)MEDSEEN.perArrivalCritDecision+=_nArr;
+         /* THE LOUD REMAINDER. A multi-hit click this engine could not hand back real packets for --
+          * the 2-5 family, priced as one packet, and any flat volley whose band does not divide by
+          * the hit count -- still takes ONE decision where the authority takes N. Counted rather than
+          * left to look like the fix working. */
+         else if(!CRIT_ONCE_PER_CLICK_RESTORED&&_hitCtx&&+_hitCtx.hits>1){
+           MEDFAILS.critPerArrivalUnsplit++;
+           if(!MEDFAILS.critPerArrivalUnsplitFirst)MEDFAILS.critPerArrivalUnsplitFirst=String(a.move.id);
+         }
+         if(_cc>0&&_cc<1&&_crits.some(Boolean)){
+           _reprice=true;
            /* ROADMAP #81 WIRE 11 -- AND THE ROLLED CRIT IS RE-PRICED, not merely multiplied. A crit
             * ignores the attacker's negative offensive stages, the defender's positive defensive
             * stages and screens, and none of those is expressible as a multiplier on a number that
@@ -27623,9 +27751,24 @@ function battleTurn(S,rng,actsForA,actsForB){
             * sixteen is an index into sixteen whatever the range underneath it does. The clamped
             * interpolation stays as the loud fallback's arithmetic and nothing else. */
            const _cb=(_hitCtx.rolls&&_hitCtx.rolls.length===DAMAGE_ROLL_SIDES)?_hitCtx.rolls:null;
-           _rmin=_dc.min;                                       // ROADMAP #322 -- the range now in force
-           if(_cb&&_band){dmg=_cb[_idx];_roll=dmg-_dc.min;}
-           else dmg=_dc.min+Math.min(_roll,Math.max(0,_dc.max-_dc.min));
+           /* ROADMAP #499 -- THE CRIT'S PACKETS, SNAPSHOTTED BESIDE THE PLAIN ONES. The arrival loop
+            * below now picks between the two per arrival, so it can no longer read `_hitCtx.packets`
+            * -- that field holds whichever price ran LAST, which is exactly the confusion this wire
+            * removes. Taken unconditionally with the re-price, because `some(Boolean)` is what got
+            * us here and which arrival crit is the loop's business, not this branch's. */
+           _pkCrit=Array.isArray(_hitCtx.packets)&&_hitCtx.packets.length>1
+             ?_hitCtx.packets.map(p=>({min:p.min,max:p.max,band:Array.isArray(p.band)?p.band.slice():null}))
+             :null;
+           /* ROADMAP #499 -- AND THE SUMMED NUMBER IS ARRIVAL 0's, EXACTLY AS IT ALWAYS WAS. `dmg`,
+            * `_roll` and `_rmin` describe ONE range, so they can only speak for one arrival; the
+            * arrival loop overwrites all three the moment it can address the packets separately, and
+            * where it cannot (a single-packet click, or the loud `packetBandMissing` fallback) the
+            * first arrival's decision is the one this click has always carried. */
+           if(_crits[0]){
+             _rmin=_dc.min;                                     // ROADMAP #322 -- the range now in force
+             if(_cb&&_band){dmg=_cb[_idx];_roll=dmg-_dc.min;}
+             else dmg=_dc.min+Math.min(_roll,Math.max(0,_dc.max-_dc.min));
+           }
          }
          /* ROADMAP #68 -- THE EFFECTIVENESS AND THE CRIT, IN SHOWDOWN'S OWN ORDER: effectiveness,
           * then crit, then damage (data/mods/champions/scripts.ts:270-284, and confirmed line for
@@ -27641,7 +27784,39 @@ function battleTurn(S,rng,actsForA,actsForB){
           * downstream could see: the flag lived for the length of this block and then went out of
           * scope. Same expression the trace emits, so the reaction and the `|-crit|` line cannot
           * disagree about whether it happened. */
-         R.crit=(_cc>=1)||(_cc>0&&_cc<1&&_cr<_cc);
+         /* ROADMAP #499 -- `R.crit` IS "DID THIS CLICK CRIT AT ALL", AND THAT IS A DECISION RATHER
+          * THAN A DETAIL. IT WAS MADE HERE, DELIBERATELY, AND HERE IS WHY.
+          *
+          * The one downstream reader is `buffsHolderOnHit` (Anger Point) through `condHolds`'s
+          * `w.cond === 'crit'` branch, and this engine wraps `_stepEffects` ONCE PER MOVE while the
+          * authority raises the reaction inside `spreadMoveHit`, once per HIT. So a single boolean
+          * has to stand in for a vector, and there were two candidates:
+          *
+          *   `_crits.some(Boolean)`  -- fires the reaction if ANY arrival crit.
+          *   `_crits[_crits.length-1]` -- what `getMoveHitData(move).crit` actually holds after the
+          *                                volley, i.e. the LAST hit's value.
+          *
+          * `some` IS CHOSEN AND IT IS NOT THE LAZY ONE. Anger Point maxes Attack on a crit and cannot
+          * be maxed twice, so for the authority's per-hit pass the OBSERVABLE outcome of a volley is
+          * "+6 iff at least one hit crit" -- which is `some`, exactly. The last-hit reading would
+          * take a Dual Wingbeat that crit on hit 1 and refuse the boost outright, turning a fix into
+          * a new defect on the one ability that reads this flag.
+          *
+          * NOT COERCED, for ROADMAP #101's reason unchanged: `R.crit` is undefined when the damage
+          * step never ran, `condHolds` REFUSES a non-boolean and counts it, and `!!` would turn
+          * "nobody knows" into a confident `false`. `_crits` is null on exactly that path, so the
+          * expression yields undefined rather than `false`.
+          *
+          * WHAT THIS DOES NOT DO, FILED RATHER THAN BUNDLED (ROADMAP #500): raise the reaction pass
+          * per HIT. That is a change to where `_stepEffects` is wrapped, it is the same missing loop
+          * `test-resolution-order.js` already stages as a declared KNOWN-OPEN arm, and it would need
+          * its own probe on an ability whose reaction is not idempotent. `some` is right for every
+          * member of this family in this format and it is not right in general. */
+         R.crit=_crits?_crits.some(Boolean):undefined;
+         /* AND THE VECTOR ITSELF, FOR THE STEP THAT EMITS ONE LINE PER ARRIVAL. The apply step is a
+          * separate closure -- `_crits` is not in its scope -- so it travels on the row beside `R.pk`,
+          * the same way the packets do. */
+         R.crits=_crits;
          /* ROADMAP #151 -- THE TWO ANNOUNCEMENTS, AND WHICH STEP OWNS THEM.
           *
           * `R.effShow` is 0 for the fixed-damage family: `getDamage`'s four early returns are above
@@ -27654,7 +27829,46 @@ function battleTurn(S,rng,actsForA,actsForB){
           * step-outside/target-inside order this loop already has. A MULTI-PACKET click is the other
           * shape: `spreadMoveHit` runs once per HIT, so the three lines repeat per arrival, and they
           * are handed to the apply step to emit beside the damage they belong to. */
-         const _multiPk=Array.isArray(_hitCtx.packets)&&_hitCtx.packets.length>1;
+         /* ==== ROADMAP #499 -- ONE PACKET LIST, RESOLVED HERE, READ EVERYWHERE BELOW ===============
+          *
+          * `_hitCtx.packets` holds whichever price ran LAST, and until this wire that was a safe thing
+          * to read because a click was crit or it was not. With a decision per arrival it is not: the
+          * arrivals that crit take their damage off `_pkCrit`'s bands and the ones that did not take
+          * it off `_pkPlain`'s, and there is no single field that carries both. So the list is built
+          * ONCE here and everything downstream -- the per-arrival index loop, the greedy fallback, and
+          * `_multiPk` itself -- reads `_pkSel` and never `_hitCtx.packets` again.
+          *
+          * THE TWO PRICES CAN DISAGREE ABOUT WHETHER THERE ARE PACKETS AT ALL, which is why this is
+          * five branches rather than a ternary. dmgRange's flat path only splits when the band divides
+          * by the hit count (`_flat.min % _n === 0 && _flat.max % _n === 0`), and a crit band is a
+          * different pair of numbers -- so a plain price can split where a crit price cannot, and the
+          * reverse. Both directions are handled and the one that cannot be addressed is COUNTED, not
+          * smeared: before this wire it collapsed silently into a one-packet volley. */
+         if(!_reprice)_pkSel=_pkPlain;                      /* no crit, or `_cc>=1` where the plain price already carries it */
+         else if(_pkPlain&&_pkCrit&&_pkPlain.length===_pkCrit.length)
+           _pkSel=_pkPlain.map((p,i)=>_crits[i]?_pkCrit[i]:p);   /* the mixed volley -- the whole point of this wire */
+         else if(!_pkPlain&&_pkCrit)_pkSel=_pkCrit;         /* only the crit price split; `_crits` is length 1 and true */
+         else if(!_pkPlain&&!_pkCrit)_pkSel=null;           /* a single-packet click -- the summed path already holds it */
+         else{                                              /* the prices disagree: cannot address the arrivals */
+           _pkSel=null;
+           MEDFAILS.critPerArrivalUnaddressed++;
+           if(!MEDFAILS.critPerArrivalUnaddressedFirst)MEDFAILS.critPerArrivalUnaddressedFirst=String(a.move.id);
+         }
+         /* AND `_multiPk` IS NOW EXACTLY "WILL THE APPLY STEP EMIT PER ARRIVAL". It used to be read
+          * off `_hitCtx.packets`, which after the change above can be the CRIT price's answer while
+          * the arrivals come from the plain one -- two lines emitted or none, off a field that had
+          * stopped meaning what the name said. */
+         /* AND THE VECTOR IS PADDED TO THE LIST IT NOW DESCRIBES. Reachable on exactly one branch --
+          * only the crit price split, so `_crits` is length 1 and every arrival carries that one
+          * decision. Without this the apply step reads `undefined` for arrival 2 and DROPS a `|-crit|`
+          * line the whole volley earned, which is the same defect this wire closes wearing the other
+          * sign. Under `MEDI_CRIT_ONCE_PER_CLICK=1` the same padding is what makes the knob a restore
+          * rather than a third behaviour. */
+         if(_pkSel&&_crits&&_crits.length<_pkSel.length){
+           const _c0=_crits[0];
+           while(_crits.length<_pkSel.length)_crits.push(_c0);
+         }
+         const _multiPk=!!(_pkSel&&_pkSel.length>1);
          R.effShow=damageIsComputed(a.move.id)?d.eff:0;
          if(TR&&!_multiPk){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}}
         /* ==== ROADMAP #322 -- ONE INDEX PER ARRIVAL, WHICH IS WHAT THE AUTHORITY DRAWS ============
@@ -27665,9 +27879,11 @@ function battleTurn(S,rng,actsForA,actsForB){
          * arrival 2 -- which cannot be produced by any single base under the authority's scheme.
          *
          * IT SITS AFTER THE CRIT BRANCH ON PURPOSE. `_price(true)` refills `_hitCtx.packets`, so the
-         * bands read below are the crit's own when a crit was rolled. The CRIT ITSELF is still one
-         * decision for the whole volley; the authority rolls it per hit too, and that is a separate
-         * defect which this wire deliberately does not touch rather than bundle.
+         * bands read below are the crit's own when a crit was rolled. **ROADMAP #499 CLOSED THE HALF
+         * THIS PARAGRAPH USED TO DECLARE OPEN** -- it read *"The CRIT ITSELF is still one decision for
+         * the whole volley; the authority rolls it per hit too, and that is a separate defect which
+         * this wire deliberately does not touch rather than bundle."* The crit is now a decision per
+         * arrival and the list read below is `_pkSel`, resolved above out of BOTH prices.
          *
          * ARRIVAL 0 SPENDS `_u`, THE DIE ALREADY DRAWN. The extra draws are arrivals 1..N-1, so the
          * first `dmg` address of a click is unchanged and a single-hit move takes exactly the draws
@@ -27676,7 +27892,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * why both corner arms of the differential are blind to this and only the interior moves. */
         let _pkArr=null;
         {
-          const _pks=_hitCtx.packets;
+          const _pks=_pkSel;                                // ROADMAP #499 -- resolved above, per arrival
           const _multi=Array.isArray(_pks)&&_pks.length>1;
           const _banded=_multi&&_pks.every(p=>p&&Array.isArray(p.band)&&p.band.length===DAMAGE_ROLL_SIDES);
           if(_multi&&MULTIHIT_ONE_INDEX_RESTORED)MEDFAILS.multiHitOneIndexRestored=1;
@@ -27760,11 +27976,11 @@ function battleTurn(S,rng,actsForA,actsForB){
          * range-versus-sample divergence `dmgRange`'s own header already declares for the summed
          * form, unchanged by making the packets visible. */
         if(_pkArr){R.pk=_pkArr;if(R.first==null)R.first=_pkArr[0];}
-        else if(Array.isArray(_hitCtx.packets)&&_hitCtx.packets.length>1){
-          const _pk=_hitCtx.packets.map(p=>p.min);
+        else if(Array.isArray(_pkSel)&&_pkSel.length>1){    // ROADMAP #499 -- `_pkSel`, never `_hitCtx.packets`
+          const _pk=_pkSel.map(p=>p.min);
           let _left=dmg-_pk.reduce((x,y)=>x+y,0);
           for(let i=0;i<_pk.length&&_left>0;i++){
-            const _span=Math.max(0,_hitCtx.packets[i].max-_hitCtx.packets[i].min);
+            const _span=Math.max(0,_pkSel[i].max-_pkSel[i].min);
             const _take=Math.min(_span,_left);_pk[i]+=_take;_left-=_take;
           }
           if(_left!==0){
@@ -28196,7 +28412,15 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_packets){
           for(let i=0;i<_packets.length;i++){
             if(tg.curHP<=0)break;
-            if(TR){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}
+            /* ROADMAP #499 -- THIS ARRIVAL'S OWN CRIT, NOT THE CLICK'S. `spreadMoveHit` runs once per
+             * hit and `getDamage` rolls the crit inside it, so the `|-crit|` line belongs to ONE
+             * arrival; this loop re-emitted a single boolean before every arrival of the volley, which
+             * is how a Dual Wingbeat printed two `|-crit|` lines where the authority printed one.
+             * `R.crits` is the vector the price step drew; the `||` is not a fallback with a silent
+             * default hiding in it -- `R.crits` is null on exactly the paths where `R.crit` is
+             * undefined too, and a single-packet click never reaches this loop. */
+            const _cI=R.crits?!!R.crits[i]:!!R.crit;
+            if(TR){TR.eff(tg,R.effShow);if(_cI)TR.crit(tg);}
             tg.curHP-=_packets[i];_landed++;MEDSEEN.multiHitPacketsDealt++;
             if(TR)TR.dmg(tg);
             /* ================= 2026-08-27 -- THE UPDATE EVENT IS RAISED PER HIT ====================

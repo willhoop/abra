@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-27T19:18:03.438Z",
- "release": "9dc79a4d459b",
+ "generated": "2026-08-27T19:51:01.909Z",
+ "release": "6ed5d6734c80",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -54172,7 +54172,7 @@
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 11,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 5
+   "seconds": 6.3
   },
   "abilities": {
    "exist": 316,
@@ -54189,7 +54189,7 @@
    "diverged_including_shelved": 4,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 9.7
+   "seconds": 79.4
   },
   "then_what": {
    "rows": 64,
@@ -54215,7 +54215,7 @@
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 4.7
+   "seconds": 17.7
   },
   "board_state": {
    "rows": 15,
@@ -54948,8 +54948,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "9dc79a4d459b",
-    "roster_generated": "2026-08-27T19:17:29.236Z",
+    "roster_release": "6ed5d6734c80",
+    "roster_generated": "2026-08-27T19:49:55.638Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."
