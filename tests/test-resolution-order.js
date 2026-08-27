@@ -5,6 +5,21 @@
  *   SHOWDOWN_PATH=... node tests/test-resolution-order.js --release <id>    a named snapshot
  *   SHOWDOWN_PATH=... node tests/test-resolution-order.js --only a4-red
  *
+ * ABRA-HEAP: 6144
+ *
+ * ================= IT NEEDS MORE HEAP THAN NODE GIVES BY DEFAULT, AND THAT IS DECLARED ==========
+ *
+ * Run bare, this dies: exit 134, `Reached heap limit Allocation failed`. It is not a leak and it is
+ * not fixed by running fewer arms — each of the 26 arms below OPENS A FROZEN RELEASE, and a release
+ * is a COPY of the engine rather than a checksum (CLAUDE.md), so the snapshots accumulate inside one
+ * process by design. It passes clean at `--max-old-space-size=6144`.
+ *
+ * Until 2026-08-27 `tests/run-all.js` had no way to know that, so it recorded the SIGABRT as
+ * `FAIL tests/test-resolution-order.js (exit 134)` — a memory ceiling filed as a broken resolution
+ * order, which is a crash read as a verdict. The line above is the declaration the runner now reads
+ * out of this header; it is written HERE and not in a table inside the runner because the cost is a
+ * fact about this check, and it moves when this check gains an arm. ROADMAP #446.
+ *
  * ================= IT IS NOT ONE TABLE, AND SAYING SO IS HALF THE ANSWER ========================
  *
  * The four defects were handed over as "one derivation". They are THREE tables on the authority's

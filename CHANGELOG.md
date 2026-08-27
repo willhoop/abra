@@ -10,6 +10,119 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.157.0] — 2026-08-27
+
+### Fixed
+- **AN INSTRUMENT THAT DIED ON MEMORY WAS FILED AS AN INSTRUMENT THAT FOUND A DEFECT.** MEASURE,
+  ROADMAP #446 (the runner half; the leak half stays open). Full account:
+  `docs/_reports/2026-08-27-unrun-gate.md`. `tests/test-resolution-order.js` opens one frozen release
+  per arm and there are 26 of them, so it exits **134** with `Reached heap limit` at node's default
+  ceiling. Every gate in this repo is read as an exit code, so the suite recorded that as
+  `FAIL tests/test-resolution-order.js (exit 134)` — a memory ceiling wearing the costume of a broken
+  resolution order. A check now DECLARES `ABRA-HEAP: <MB>` in its own header and `tests/run-all.js`
+  derives it, passing `--max-old-space-size` **before** the script path. **It is derived from the
+  child, not tabled in the runner**, for the reason the hand-typed CI job list was replaced: a table
+  of costs goes stale, and here the staleness surfaces as exit 134 on a machine nobody is watching.
+  **An OOM still FAILS** — it is annotated `OUT OF HEAP` and never downgraded to a SKIP, because a
+  crash filed as "did not run" is the same laundering as a crash filed as a verdict.
+- **A GATE WENT INVISIBLE BY BEING IMPROVED, AND THE HONEST-LOOKING FIX WAS TO DELETE THE EVIDENCE.**
+  MEASURE. The coverage assertion reported `tests/probe_red_demo.js — the file still exists but no
+  longer trips the detector` and invited its removal as a stale name. It was not stale: the file had
+  changed its exit idiom to `process.exit(CODE)` after announcing `ABRA-EXIT <n>`, which matches
+  neither the bare literal nor the ternary clause. `looksLikeACheck` is WIDENED (never narrowed) to
+  see a computed exit held in a variable, keeping the announce requirement. **Measured on this tree
+  before being written: the clause adds exactly two files**, and the second is the return —
+  `engine/derive_protocol_events.js`, a real two-gate conformance check (INVENTED / UNDECLARED
+  protocol events, `process.exit(bad)`) that nothing has ever run and no list had ever named. It is
+  entered in `PENDING_WIRE` with today's blocker: its verdict is a function of
+  `engine/medicham2-browser.js`'s `TRACE_EVENTS`, which an ENGINE agent held modified all pass.
+
+### Notes
+- **`tests/test-fixture-legality.js` WAS ALREADY REGISTERED, AND THE BRIEF THAT SENT THIS PASS SAID IT
+  WAS NOT.** Recorded because the correction is the finding: `tests/run-all.js` DERIVES the tests/ half
+  of its run list by globbing `test-*.js`, so the file was picked up the moment it landed and its red
+  has been propagating since. Measured, not assumed — `--list` prints `RUN tests/test-fixture-legality.js`
+  and the file exits 1 standalone (`FIXTURE LEGALITY: 2 FAILED`, 15 illegal sets and 15 illegal
+  declarations). The half of the run list that IS hand-maintained is the 21 engine-side `GATES` and the
+  two by-name exemption tables, and the assertion that audits them is **red today at 18 unaccounted-for
+  checks** — four in `engine/`, fourteen probes in `tests/`, three of them created during this pass.
+  Those are not classified here: an entry in that table is a written judgement about a file, and half
+  of these were still being written by the division that owns them.
+
+## [5.156.0] — 2026-08-27
+
+### Fixed
+- **A SECOND THROAT CHOP RESTARTED OUR CLOCK, AND EVERY PIECE OF THE ANSWER WAS ALREADY IN THE TREE.**
+  ENGINE, ROADMAP #468; #415 reopened and re-closed. Full account:
+  `docs/_reports/2026-08-27-three-lines.md`. `Pokemon#addVolatile` (sim/pokemon.ts:1994-1997) refuses a
+  volatile a body already carries when its condition declares no `onRestart`. `throatchop`'s does not,
+  the fact is DERIVED into `data/tags.json` as `volatileRestart.throatchop = {restart:false,
+  duration:2}`, and a general reader for that rule - `volRefusesRestart` - has existed since
+  2026-08-26. Throat Chop walked past it because its state lives in `tg._noSound`, outside `_vol`.
+  `_n0` was already read at the application site to suppress the duplicate `-start` line, so the engine
+  knew the lock was standing and rewrote the counter anyway: the authority's `-end` came a turn earlier
+  than ours and the target was silenced for a turn the real game gives back. The fix asks the same
+  derived table from the second road rather than writing a second rule, and takes the volatile NAME off
+  the carrier's own row. A carrier with no row takes the old rewrite AND is counted
+  (`MEDFAILS.soundLockNoRestartRow`). **`_trap` was handed over as the same defect and is not one** -
+  `!tg._trap` already guards the partial trap, measured as arm E rather than assumed.
+  Knob `MEDI_SOUND_LOCK_RESTARTS=1`; probe `tests/probe_sound_lock_restart.js`, five arms.
+- **PROTECT WAS ANSWERED IN A PRE-PASS ABOVE THE STEP DRIVER, SO STEP 1 RAN BEFORE STEP 0.** ENGINE,
+  ROADMAP #469. `trySpreadMoveHit` names its order in its own comments (sim/battle-actions.ts:553-577)
+  and runs step outside, target inside, so every target's step-0 answer precedes every target's step-1
+  answer. WIRE 1 hoisted the shield above the driver to get it above the ACCURACY roll, which was
+  right, and it went one stage further. **Two earlier passes aimed at target ordering and could not
+  move it**: the two lines belong to two different targets and two different stages. The new step-0
+  pre-pass records its verdict in a set and does NOT filter `targets` - `_stepInvuln` is still the only
+  place a row is dropped, because filtering would move a fully-invulnerable move onto the shield's
+  `_mvRes = null` exit and an invulnerable target is Showdown's `false` where a shield is its
+  `NOT_FAIL`. Knob `MEDI_INVULN_BELOW_SHIELD=1`; probe `tests/probe_protect_stage_order.js`, four arms.
+- **A HAZARD CLICKED ONTO A SIDE ALREADY AT ITS CAP FAILED IN SILENCE.** ENGINE, ROADMAP #470.
+  `Side#addSideCondition` returns false for a condition already present with no `onSideRestart`, and
+  `moveHit` turns that false into `add('-fail', source)` (sim/battle-actions.ts:1240 feeding
+  :1303-1308). **The screen half of that identical rule had been wired since WIRE 8**; `layHazard` has
+  always returned whether a layer went down and its caller threw the answer away. Knob
+  `MEDI_HAZARD_RECAP_SILENT=1`; probe `tests/probe_hazard_recap_fail.js`, five arms including a
+  below-the-cap over-fire control and a screen arm that must agree in both arms of the knob.
+
+### Changed
+- **THE PINNED POOL MOVED ON ALL THREE COUNTS AND ONE PREDICTION MISSED, IN THE GOOD DIRECTION.**
+  Release `d03fb31456e2`, `--arm middle --turns 12 --games 1200 --team-store data/team-pool-frozen
+  --census data/verification/census-pin-9446a684709d.json --state --end-state --write`, team pool
+  `0d103fb9fa87` - the same census pin and the same pool as the 2026-08-26 rebaseline, so this is a
+  before/after and not two instruments subtracted. Whole-game clause **13 -> 10 of 961**, raw
+  **18 -> 15**, board-material **4 -> 3**. Board-material was predicted UNMOVED; the cause that left is
+  exactly the hazard card (`turn 6  |-fail|p1b <> |upkeep`), which is classed `event missing from
+  medicham2` and reads as narration and is not. The other three board-material causes are byte-identical
+  to the list this batch inherited.
+
+### Notes
+- **THE HANDED DIAGNOSIS WAS WRONG ON TWO OF THE THREE CARDS, AND BOTH WERE SHOWN WRONG RATHER THAN
+  ARGUED.** The Throat Chop card named `_trap` as the same defect; the third card was filed as *"a move
+  with no legal target never prints its `-fail`"* when Sticky Web's target is `foeSide`, which never
+  reaches that return. Both alternatives were STAGED before a byte moved.
+- **THE PROBES WERE WRONG BEFORE THE ENGINE WAS, SIX TIMES, AND EVERY ONE PRODUCED A GREEN ARM THAT HAD
+  STAGED NOTHING** - a mega forme picked out of a learnset walk, a self-only sound move, a victim
+  one-shot on turn 1, a victim shielding itself against the chop, a charger faster than the attacker,
+  and an ally raising the shield a control was counting. All six were found by reading the counters, not
+  by an arm going red. A seventh was an instrument error of a different kind: the knob CHILD did not
+  inherit `-r ./tests/_live_release.js` and so refused at its own guard, which read as *"the knob is not
+  wired"* when the knob had never been asked.
+- **RUN AND GREEN**: `tests/test-mechanics.js` (754 live / 754 probed / 0 missing, unmoved),
+  `tests/test-engine-diff.js --n 6000` (0 of 6000 at all sixteen corners), the three roster stages with
+  `--write` on `d03fb31456e2` (139 / 129 / 475, 0 DIFFER, 0 DID-NOT-FIRE, all unmoved),
+  `engine/all_mechanics_fire.js --kind all --write` (1289 games, 0 threw), plus
+  `test-engine-consistency`, `test-volatile-duration`, `test-game-diff`, `test-end-state`,
+  `test-coverage-stop`, `test-protocol-trace`, `test-encore-fail-silent`, `test-immunity-gate`,
+  `test-tag-params-derived`, `test-mc-seal`, `test-bracket-regain`, `test-roster-arm-pin`,
+  `test-damage-roll-support`, `test-charge`, `test-entry-effects`, `test-dead-volatile`.
+- **NOT RUN, AND SAID SO**: `tests/interaction_matrix.js`, `engine/wire_ladder.js`,
+  `tests/run-all.js` in full, `tests/staged_board.js`. `tests/test-middle-identity.js`,
+  `tests/test-web-status.js` and `tests/test-resolution-order.js` are red at HEAD and are not this
+  batch's.
+- **STILL OPEN, FILED WITH ITS EVIDENCE**: the WIDE GUARD block sits above the shield and is also a
+  step-1 handler, so a side guard still announces before a step-0 `-miss`. No probe fails on it yet.
+
 ## [5.155.0] — 2026-08-27
 
 ### Changed

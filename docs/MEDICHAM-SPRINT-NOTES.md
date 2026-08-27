@@ -21,6 +21,60 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A CRASH WAS BEING FILED AS A VERDICT, AND A GATE WENT INVISIBLE BY BEING IMPROVED. **NO GAME NUMBER MOVED — NONE WAS MEASURED.** 2026-08-27 (MEASURE).
+
+CHANGELOG 5.157.0. Register rows: ROADMAP **#446 — the RUNNER half closed, the per-arm snapshot leak
+still open**. Full account: `docs/_reports/2026-08-27-unrun-gate.md`.
+
+| change | where | what it stops |
+|---|---|---|
+| a check declares `ABRA-HEAP: <MB>` and the runner honours it | `tests/run-all.js` `plan()`, declaration in `tests/test-resolution-order.js` | exit 134 on a memory ceiling read as a broken resolution order |
+| an OOM is annotated `OUT OF HEAP` and still FAILS | `tests/run-all.js` run loop | the opposite laundering — a crash downgraded to a SKIP |
+| `looksLikeACheck` sees `process.exit(<var>)` + an announce | `tests/run-all.js` | a gate disappearing from the coverage scan because it improved its exit idiom |
+
+**NOTHING HERE PLAYED A GAME AND NOTHING HERE MEASURED ONE.** The whole-game clause, the census and the
+board-material worklist are untouched by construction: no file under `engine/` or `data/` was edited.
+The 26 arms / 1 known-open / 0 failing line for `test-resolution-order.js` is **ENGINE's measurement of
+2026-08-26 and is not re-taken here** — the file plays games and ENGINE held the play layer all pass.
+
+**THE BRIEF'S FIRST PREMISE WAS FALSE AND THAT IS THE FINDING.** `tests/test-fixture-legality.js` was
+said to be unregistered, so its red would not propagate. It is registered, because the tests/ half of
+the run list is DERIVED by glob rather than typed — `--list` prints `RUN tests/test-fixture-legality.js`
+and the file exits 1 standalone. What IS hand-maintained is the engine-side `GATES` array and the two
+exemption tables, and **the assertion auditing them is red at 18 unaccounted-for checks today**, three
+of which were created by another division during this pass. — AND THE ONE FILED AS NARRATION WAS BOARD-MATERIAL. **WHOLE-GAME CLAUSE 13 -> 10 OF 961, RAW 18 -> 15, BOARD-MATERIAL 4 -> 3.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27 (ENGINE).
+
+CHANGELOG 5.156.0. Register rows: ROADMAP **#468, #469, #470 — all three closed**; **#415 reopened and
+re-closed** (its clock fix was right and did not cover a SECOND chop). Release cut: **`d03fb31456e2`**.
+Full account: `docs/_reports/2026-08-27-three-lines.md`.
+
+| fix | knob | probe | the divergence it closes |
+|---|---|---|---|
+| the sound lock refuses a restart | `MEDI_SOUND_LOCK_RESTARTS=1` | `tests/probe_sound_lock_restart.js` | `\|-end\|p1a\|throatchop <> \|upkeep` |
+| step 0 is decided above the shield | `MEDI_INVULN_BELOW_SHIELD=1` | `tests/probe_protect_stage_order.js` | `\|-miss\|p1b\|p2b <> \|-activate\|p2a\|protect` |
+| a capped hazard announces its failure | `MEDI_HAZARD_RECAP_SILENT=1` | `tests/probe_hazard_recap_fail.js` | `\|-fail\|p1b <> \|upkeep` |
+
+**THE PREDICTION MISSED ONCE, IN THE GOOD DIRECTION, AND THE MISS IS NAMED.** Board-material was
+predicted UNMOVED at 4 because the hazard card is classed `event missing from medicham2`, which reads
+as narration. The cause that left the board-material worklist is exactly that card
+(`turn 6  |-fail|p1b <> |upkeep`); the other three causes are byte-identical to the list this batch
+inherited. One cause leaving, not a reshuffle.
+
+**TWO OF THE THREE HANDED DIAGNOSES WERE WRONG AND BOTH WERE SHOWN WRONG RATHER THAN ARGUED.** The
+Throat Chop card was handed over with `_trap` named as the same defect — `!tg._trap` already guards its
+own application site, arm E of the sound-lock probe stages the trap re-applied on two consecutive turns
+and it agrees in BOTH arms of the knob, so `_trap` was left alone. The `-fail` card was handed over as
+*"a move with no legal target"* — Sticky Web's target is `foeSide`, which never reaches that return;
+both shapes were staged side by side and only the hazard one parted.
+
+**THE PROBES WERE WRONG BEFORE THE ENGINE WAS, SIX TIMES, AND EVERY ONE PRODUCED A GREEN ARM THAT HAD
+STAGED NOTHING** — a mega forme picked out of a learnset walk, a self-only sound move, a victim
+one-shot on turn 1, a victim shielding itself against the chop, a charger faster than the attacker (so
+the charge came down before the spread), and an ally raising the shield the control was counting.
+Listed in full in the report.
+
+---
+
 ## A DIVERGENCE PROPOSED AS `INCOMPARABLE` IS A SHARED-STREAM ADDRESS BUG. **REFUSED. CLAUSE UNMOVED AT 13 OF 961, BOARD-MATERIAL 4 OF 961.** 2026-08-27 (MEASURE).
 
 CHANGELOG 5.154.0. ROADMAP **#467, open**. Full account: `docs/_reports/2026-08-27-incomparable.md`.

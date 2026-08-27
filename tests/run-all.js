@@ -249,7 +249,24 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
  *
  * SHOWN RED FIRST, on this tree, before being trusted — the tests/test-lownode.js discipline. The old
  * predicate does NOT flag tests/staged_board.js; this one does. */
+/* WIDENED A THIRD TIME, 2026-08-27, AND THE STALE-EXEMPTION CLAUSE IS WHAT FOUND THE HOLE. The
+ * assertion reported `tests/probe_red_demo.js — the file still exists but no longer trips the
+ * detector`, and the tempting read is that a stale name should simply be deleted. It was not stale.
+ * The file had changed its EXIT IDIOM: it now computes a status into a variable and ends
+ * `process.exit(CODE)` (line 4725), having declared `ABRA-EXIT <n>` on stderr first. That matches
+ * neither the bare literal nor the ternary, so a gate this runner had been watching for days went
+ * invisible by being IMPROVED. Deleting the exemption would have recorded the disappearance as
+ * housekeeping — the exact laundering the by-name lists exist to stop.
+ *
+ * A COMPUTED EXIT HELD IN A VARIABLE IS THE SAME VERDICT AS A COMPUTED EXIT WRITTEN INLINE. The
+ * announce requirement is kept, for the reason the bare-literal clause keeps it: `process.exit(rc)`
+ * on its own would sweep in ordinary error plumbing. MEASURED ON THIS TREE BEFORE BEING WRITTEN,
+ * over both directories: this clause adds exactly TWO files and no others —
+ * `tests/probe_red_demo.js`, whose exemption stops being stale, and `engine/derive_protocol_events.js`,
+ * a real two-gate conformance check (`process.exit(bad)`, line 390) that NOTHING has ever run and
+ * that no list here has ever named. That second one is the whole return on the widening. */
 const COMPUTED_EXIT = /process\.exit\(\s*[^;\n]*\?\s*1\s*:\s*0\s*\)/;
+const IDENT_EXIT = /process\.exit\(\s*[A-Za-z_$][A-Za-z0-9_$]*\s*\)/;
 const looksLikeACheck = src => /\d+ passed, \$\{?F?\}? ?failed|passed, .*failed/.test(src) ||
   /console\.log\('  ok   '/.test(src) ||
   /* A GATE, detected by what it DOES rather than how it prints: it exits non-zero AND announces a
@@ -257,7 +274,8 @@ const looksLikeACheck = src => /\d+ passed, \$\{?F?\}? ?failed|passed, .*failed/
    * error handling, and widening to that made this assertion cry wolf, which is the same defect it
    * exists to prevent. Both clauses are required. */
   (/process\.exit\(\s*1\s*\)/.test(src) && /REGRESSION|FAIL/.test(src)) ||
-  COMPUTED_EXIT.test(src);
+  COMPUTED_EXIT.test(src) ||
+  (IDENT_EXIT.test(src) && /REGRESSION|FAIL/.test(src));
 
 /* ===================== THE TWO BY-NAME LISTS ====================================================
  *
@@ -334,6 +352,7 @@ const PENDING_WIRE = {
   'tests/staged_board.js': 'RED on ONE of 25 scenarios, and it is NOT the defect this entry used to name. 2026-08-25: the species-NAME-keyed mirror in engine/game_differential.js is fixed and gated by tests/test-roster-identity.js (discovered, runs), which takes 24 of 25 scenarios clean — imposter-copies-the-body-opposite and hungerswitch-flips-every-turn now play their full scripts. roar-drags-whoever-is-standing-there was filed with those two and MEASURING IT SAID OTHERWISE: its refusal message is byte-identical before and after the fix ("slot 1 holds corviknight, which showdown HAS but cannot switch in"), never "does not have under that name". Nothing in it is ever renamed. It is a TEMPORAL defect in the same mirror — medicham2 resolves a whole turn at once while Showdown PAUSES mid-turn at U-turn\'s switch request, so the mirror is handed the end-of-turn occupant (Corviknight, put back by the Roar that runs later) instead of the body medicham2 sent in at the request (Snorlax). ENGINE owns it; it needs its own batch and its own probe, because the fix is a switch-in JOURNAL and the naive source (medicham2\'s own |switch| lines) is display state again under Illusion.',
   'tests/staged_status_counters.js': 'RED for a reason no engine fix can reach. Its BEFORE arm is release 6155acc0fb26, which is STRANDED: the snapshot will not load ("M.midEventDice is not a function") on all 11 scenarios, so every scenario reads "release THREW / live IDENTICAL => FIXED" while its own two controls print "SO THE RED ABOVE IS NOT EVIDENCE". LESSONS §12 — a stranded baseline is a figure to WITHHOLD and re-measure, never to resurrect. It needs re-pinning to a release that `engine_release.js compat` says can still serve it, and its plant anchor re-aimed (it reports the anchor matched 0 times).',
 
+  'engine/derive_protocol_events.js': 'A REAL CHECK, AND NOTHING HAS EVER RUN IT — found 2026-08-27 by the detector widening above, not by anybody reading the tree. It is TWO gates (INVENTED: a name in medicham2\'s TRACE_EVENTS that Showdown never emits; UNDECLARED: an event Showdown emits that medicham2 neither emits nor gives a reason for), it plays no game, and it is read-only unless given --write, so the artifact objection that blocks format_audit.js does not apply. The blocker is narrower and it is TODAY\'S: its verdict is a function of engine/medicham2-browser.js\'s TRACE_EVENTS, which an ENGINE agent held modified through this entire pass. Measuring it here would have photographed a moving subject, and reading those bytes at all is the hazard CLAUDE.md names. It exits 2 without SHOWDOWN_PATH, which this runner treats as SKIP, so wiring it is safe on a bare checkout. Measure it on a settled tree, then move it into GATES.',
   'engine/feature_fixture.js': 'THE REFIT GATE — it compares a weight file\'s feature hashes against the code, which is the one thing standing between a moved damage table and a silently invalid MAG. It is RED TODAY BY DESIGN: docs/MEASURE.md records `feature_fixture --check` FAILING on fixture identity AND on the damage table, i.e. REFIT OWED, and the refit is gated behind MEDICHAM rather than behind compute. Wiring it now ships a red. Wire it in the same pass the refit lands — and heed the file\'s own warning that a RESTAMP answers the fixture gate while SILENCING the table gate, so the table verdict has to be settled first or the evidence is written over.',
   'engine/format_audit.js': 'A REAL CONFORMANCE CHECK — does every constant in our generated move tables equal the format\'s? Two blockers. It WRITES data/format-audit.json on every run, so wiring it makes the suite rewrite an artifact its own children may be reading; and its verdict was not measured when it was found, because a MEASURE agent may not write into data/ beside a live ENGINE agent. Settle the write question, measure it on a settled tree, then wire.',
   'engine/register_reality.js': 'A REAL CHECK — the register is an artifact and this is the only thing that compares it to reality. Same two blockers: it WRITES its artifact unconditionally, and the pass that found it was instructed not to touch docs/ROADMAP.md, which it reads. Unmeasured, deliberately.',
@@ -449,14 +468,39 @@ function plan(rel) {
                    * that reads the real tree and can catch a real leak. Both directions matter, so the
                    * gate runs the selftest itself rather than this list naming the file twice. */
                   'engine/quarantine.js': ['--check'] };
-  return { cmd: rel.endsWith('.py') ? PY : process.execPath, args: [D(rel), ...(EXTRA[rel] || [])] };
+  /* THE HEAP IS DECLARED BY THE CHECK, NOT LISTED BY THE RUNNER. ROADMAP #446.
+   *
+   * tests/test-resolution-order.js dies at node's default heap — exit 134, `Reached heap limit
+   * Allocation failed`. It opens ONE FROZEN RELEASE PER ARM and there are 26 of them, so the
+   * snapshots accumulate in one process; that is a property of the check, not a defect in it. What
+   * the runner did with that was the defect: SIGABRT is a non-zero status, so the loop below filed a
+   * memory ceiling as `FAIL tests/test-resolution-order.js (exit 134)` — a red that reads exactly
+   * like a broken resolution order and is not one. A crash recorded as a verdict is the same class
+   * as a skip recorded as a pass, and this file's opening comment is about that class.
+   *
+   * IT IS DERIVED FROM THE CHILD'S OWN SOURCE and deliberately not a second hand-kept table beside
+   * EXTRA. `EXTRA` carries an argument that changes what a check ASKS (--strict, --check); a heap is
+   * a fact about what the check COSTS TO RUN, which only the check knows and which changes when the
+   * check changes. A table here would go stale the way the CI job list did — and the staleness would
+   * surface as exit 134 on a machine nobody was watching. A new check that needs headroom writes
+   * `ABRA-HEAP: <MB>` in its own header and this runner honours it with no edit.
+   *
+   * Node requires the flag BEFORE the script path; after it, it is passed to the script as argv and
+   * silently does nothing — one more entry in the list of ways a command reports success having
+   * changed nothing. --list prints the honoured value so the derivation can be seen to have fired
+   * rather than assumed. */
+  const heap = rel.endsWith('.py') ? null : (src.match(/ABRA-HEAP:\s*(\d+)/) || [])[1];
+  const node = heap ? ['--max-old-space-size=' + heap] : [];
+  return { cmd: rel.endsWith('.py') ? PY : process.execPath,
+           args: [...node, D(rel), ...(EXTRA[rel] || [])], heap: heap ? Number(heap) : null };
 }
 
 if (LIST_ONLY) {
   console.log(`DISCOVERED ${all.length} checks (${testFiles.length} in tests/, ${GATES.length} engine gates)\n`);
   for (const rel of all) {
     const p = plan(rel);
-    console.log(`  ${p.skip ? 'SKIP' : 'RUN '}  ${rel}${p.skip ? '   — ' + p.skip : ''}`);
+    console.log(`  ${p.skip ? 'SKIP' : 'RUN '}  ${rel}${p.skip ? '   — ' + p.skip : ''}` +
+      (p.heap ? `   [ABRA-HEAP ${p.heap} MB — --max-old-space-size=${p.heap}]` : ''));
   }
   reportCoverage();
   process.exit(0);   /* --list is an inventory, not a verdict. --coverage is the verdict. */
@@ -505,8 +549,20 @@ for (const rel of all) {
     console.log(`  SKIP  ${rel}  — ${why}`);
   }
   else {
-    fail.push([rel, r.status, ((r.stdout || '') + (r.stderr || '')).trim().split('\n').slice(-14)]);
-    console.log(`  FAIL  ${rel}  (exit ${r.status}, ${secs}s)`);
+    const out = (r.stdout || '') + (r.stderr || '');
+    /* AN OUT-OF-MEMORY DEATH IS A RESOURCE VERDICT, NOT A CHECK VERDICT, AND IT STILL FAILS. It is
+     * annotated rather than downgraded: turning it into a SKIP would hide a check that never ran,
+     * which is the thing this file exists to make impossible. What the annotation buys is that the
+     * next reader is not sent hunting for a mechanics defect that the exit code never claimed —
+     * ROADMAP #446 was exactly that, `exit 134` filed as a red resolution order. The fix is named
+     * in the line, because a diagnosis nobody can act on is a caption. */
+    const oom = /Reached heap limit|JavaScript heap out of memory|FATAL ERROR:.*Allocation failed/.test(out);
+    const tail = out.trim().split('\n').slice(-14);
+    if (oom && !p.heap) tail.push('    ^ RAN OUT OF HEAP. This is a memory ceiling, not a verdict about the game. ' +
+      'Declare `ABRA-HEAP: <MB>` in this file\'s header and run-all will honour it.');
+    fail.push([rel, r.status, tail]);
+    console.log(`  FAIL  ${rel}  (exit ${r.status}, ${secs}s)` +
+      (oom ? `  — OUT OF HEAP${p.heap ? ` even at the declared ${p.heap} MB` : ', and no ABRA-HEAP is declared'}` : ''));
   }
 }
 
