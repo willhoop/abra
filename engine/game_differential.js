@@ -698,6 +698,51 @@ const DAMAGE_ROLL_SIDES = 16;
 const midDamageIndex = (u) => DAMAGE_ROLL_SIDES - 1 - Math.floor(u * DAMAGE_ROLL_SIDES);
 /* how many draws took the inversion — a fix that stops firing looks exactly like one that works */
 let MID_DAMAGE_INDEX_FLIPS = 0;
+/* ---- 2026-08-27 — THE RANGE FORM IS A DIE THE OTHER ENGINE DOES NOT ROLL, AND IT WAS EATING A
+ * SHARED ADDRESS. ROADMAP #491 -------------------------------------------------------------------
+ *
+ * `makeArm`'s comment on the scalar arms already says what the range form IS: *"the sleep duration, a
+ * multi-hit count and a QUEUE INSERTION INDEX, and it is NOT the speed-tie resolver"* — and in all
+ * three scalar arms it is pinned (`return m`) and consumes nothing. The middle arm did not pin it, so
+ * `battle.random(firstIndex, lastIndex + 1)` at `sim/battle-queue.ts:395` drew a value from the
+ * SHARED `any` address space.
+ *
+ * MEASURED, ONE STAGED BOARD, both engines' turn-0 draws printed side by side
+ * (`tests/probe_trace_target.js`, Gardevoir + Incineroar into Gengar + Swampert):
+ *
+ *     authority   20260813|0|any|-|-|0     BattleQueue.insertChoice   <- a queue tie
+ *                 20260813|0|any|-|-|1     Trace's this.sample
+ *     this engine 20260813|0|any|-|-|0     Trace's die                 <- the SAME event, nth 0
+ *
+ * So the two engines addressed ONE event with two different `nth` and read two independent values:
+ * Showdown traced Cursed Body off p2a, medicham2 traced Torrent off p2b. That is a board-material
+ * divergence at turn 0 with NO protocol line pointing at it, and it is the `pair-redirect-priority`
+ * row of `data/game-differential.json`'s `state.first_board_divergences`.
+ *
+ * THE DEFECT IS OLDER THAN THE RUN THAT FOUND IT, AND THE HASH FINALISER MADE IT VISIBLE. Under the
+ * bare FNV-1a of before 2026-08-27, `...|0` and `...|1` were 0.429382539 and 0.425476195 — a circular
+ * shift, not a re-draw — so `floor(u * 2)` was 0 either way and the two engines agreed BY ACCIDENT.
+ * Under the finalised hash they are 0.653086479 and 0.486125964 and part. Newly VISIBLE, not newly
+ * broken.
+ *
+ * THE FIX IS THE ARM'S OWN RULE, APPLIED IN THE PLACE IT WAS MISSED. `pinShuffle` is already a no-op
+ * in every shipped arm and medicham2's tie coin is already `() => 0` here, both for the stated reason
+ * that *"what is removed is a die the authority does not roll"*. The queue insertion index is the same
+ * tie through a different door and the same argument applies in mirror: the AUTHORITY rolls a die
+ * medicham2 does not, so it is pinned to `m` — `firstIndex`, the order-preserving insertion point,
+ * which is exactly what the three scalar arms have always returned.
+ *
+ * NARROWED TO THE `any` CATEGORY so the damage machinery is untouched: inside `getDamage` the only
+ * draws are `randomChance` (the crit) and the one-argument `randomizer`, verified by reading
+ * `sim/battle-actions.ts`, and `MIDW.cat` there is `dmg`/`crit` rather than `any`.
+ *
+ * `MEDI_MID_RANGE_DRAWS=1` RESTORES THE OLD BEHAVIOUR so the defect can be shown RED rather than
+ * asserted — the same shape as `--mid-damage-uninverted` and `--mid-carry-nth`. Both counters are
+ * published in the artifact, because a fix that silently stops firing looks exactly like one that
+ * works. */
+const MID_RANGE_LIVE = (typeof process !== 'undefined' && process.env
+                        && process.env.MEDI_MID_RANGE_DRAWS === '1');
+let MID_RANGE_PINNED = 0, MID_RANGE_LIVE_DRAWS = 0;
 
 /* ==================================================================================================
  * MIDDLE ARM — REAL DICE THAT BOTH ENGINES AGREE ON, ADDRESSED BY CATEGORY (ROADMAP #262)
@@ -1100,6 +1145,11 @@ function makeArm(spec) {
      * denominator IS a reliable discriminator, because the wrapper has already narrowed the caller. */
     if (spec.middle) {
       const cat = (MIDW.cat === 'dmg' && n !== undefined) ? 'crit' : MIDW.cat;
+      /* ROADMAP #491 — see MID_RANGE_LIVE. The range form outside the damage machinery is a tie or a
+       * duration the other engine does not draw; it is pinned to `m` exactly as in the scalar arms,
+       * and it consumes NO shared address. */
+      if (n !== undefined && cat === 'any' && !MID_RANGE_LIVE) { MID_RANGE_PINNED++; return m; }
+      if (n !== undefined && cat === 'any') MID_RANGE_LIVE_DRAWS++;
       const u = midDraw(cat === 'any' ? 'any' : cat, this);
       if (n === undefined) {
         if (m === undefined) return u;                       // random() -> float in [0,1)
@@ -1416,6 +1466,16 @@ function armClaims(a) {
      * only one of them was being asked. */
     P('...and the installed wrapper writes into THIS module load’s holder',
       () => MID_WRAP_ERROR === null && !!MID_WRAP_CLASS && MID_WRAP_CLASS.__midHolder === MIDW);
+    /* ROADMAP #491 — THE RANGE FORM TAKES NO SHARED ADDRESS, AND THE KNOB GIVES IT ONE BACK. Asserted
+     * in BOTH directions so a claim that is true because the code is dead cannot pass: on the clean
+     * arm the address log must not grow, and under `MEDI_MID_RANGE_DRAWS=1` it must grow by exactly
+     * one. This is the pin behind the Trace turn-0 divergence — a queue insertion tie was taking
+     * `nth = 0` in the `turn|any|-|-` bucket and pushing Trace's own draw to `nth = 1`, which
+     * medicham2 has no way to reach. */
+    P('the RANGE form consumes NO shared address in this arm  [MEDI_MID_RANGE_DRAWS=1 restores it]',
+      () => { const b = MID_CTX_SEEN.sd.length; const v = a.random(2, 5);
+              const grew = MID_CTX_SEEN.sd.length - b;
+              return MID_RANGE_LIVE ? (grew === 1) : (grew === 0 && v === 2); });
     return C;
   }
   if (a.top) {
@@ -1566,11 +1626,20 @@ const ARMS_RUN = ARM_IDS.map(id => ARM_BY_ID.get(id));
  *
  * THE VERSION IS PART OF THE STRING BECAUSE THE PROSE IS NOT ENOUGH. Editing the description without
  * moving `v1 -> v2` would leave the digest tracking a sentence rather than a behaviour. */
-const DICE_MODEL = 'split/v2: acc+crit+sec+dmg on the corner, stall on its own seeded stream; '
+/* ---- 2026-08-27, ROADMAP #491 — v2 -> v3. THE RANGE FORM STOPPED DRAWING, SO THE GAMES MOVED.
+ *
+ * `random(m, n)` outside the damage machinery is a queue insertion tie or a duration — dice medicham2
+ * does not roll — and in the middle arm it was consuming a SHARED `any` address, pushing every later
+ * draw of that turn onto a different `nth`. It is now pinned to `m`, which is what the three scalar
+ * arms have always returned. That changes both the value the authority inserts with AND which `nth`
+ * the next draw at that address takes, so it changes which games diverge: a run before it and a run
+ * after it are two instruments, not two samples. */
+const DICE_MODEL = 'split/v3: acc+crit+sec+dmg on the corner, stall on its own seeded stream; '
                  + 'the `middle` arm addresses every draw by event and hashes it FNV-1a + fmix32 '
                  + '(the finaliser landed 2026-08-27 — before it, the trailing `nth` field only '
                  + 'TRANSLATED the value and ten arrivals at one damage address shared 1.75 buckets '
-                 + 'of a possible sixteen)';
+                 + 'of a possible sixteen); the RANGE form random(m,n) outside the damage machinery '
+                 + 'is pinned to m and consumes no address, as in the scalar arms (2026-08-27)';
 const PIN_DIGEST = crypto.createHash('sha256').update(JSON.stringify(ARMS_RUN.map(a => ({
   id: a.id, corner: a.corner, damageIndex: a.damageIndex, tieToSecondBody: a.tieToSecondBody,
   sdShuffleReverses: a.sdShuffleReverses,
@@ -5534,6 +5603,10 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                    /* the damage-roll mapping and the arms it is derived from, for tests/test-middle-damage-roll.js */
                    midDamageIndex, DAMAGE_ROLL_SIDES, CORNER_TOP, CORNER_BOTTOM,
                    midDamageFlips: () => MID_DAMAGE_INDEX_FLIPS,
+                   /* ROADMAP #491 — the range-form receipt. `pinned` must be non-zero on any run that
+                    * met a queue tie; `live` must be 0 unless MEDI_MID_RANGE_DRAWS=1 is set. */
+                   midRangeCounters: () => ({ pinned: MID_RANGE_PINNED, live: MID_RANGE_LIVE_DRAWS,
+                                              knob: MID_RANGE_LIVE }),
                    /* THE WRAPPER'S OWN RECEIPT. `adopted` is how many times this file was RELOADED
                     * into a process that had already installed the `BattleActions` patch; `enters` is
                     * how many times the patch has since told THIS holder which category is running. A
@@ -6391,6 +6464,11 @@ if (PRIMARY_ARM.middle) {
       return Object.fromEntries(Object.entries(r).sort((a, b) => b[1] - a[1])); })(),
     no_battle_draws: MID_NO_BATTLE_DRAWS,
     damage_roll_index_inversions: MID_DAMAGE_INDEX_FLIPS,
+    /* ROADMAP #491 — range-form draws (queue insertion ties, durations) neutralised rather than
+     * consuming a shared address. `range_form_live_draws` is 0 unless MEDI_MID_RANGE_DRAWS=1. */
+    range_form_pinned: MID_RANGE_PINNED,
+    range_form_live_draws: MID_RANGE_LIVE_DRAWS,
+    range_form_knob: MID_RANGE_LIVE,
     sd_addresses_dropped_as_not_this_game: MID_SD_LOG_DROPPED,
   };
   console.log('  VOID (instrument desync): ' + voided + ' of ' + results.length

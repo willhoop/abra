@@ -21,6 +21,169 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A QUEUE INSERTION TIE WAS EATING TRACE'S ADDRESS — THE MIDDLE ARM LET THE RANGE FORM DRAW WHERE ALL THREE SCALAR ARMS PIN IT. **BOARD-MATERIAL 12 -> 11 OF 961, PREDICTED BEFORE THE RUN. WHOLE-GAME UNMOVED AT 14 OF 961. PIN DIGEST `f646b0163bc0` -> `44bd49403231`.** 2026-08-27.
+
+Release `f9f3a61481cb`, arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`, census
+pin `9446a684709d`, `--state --end-state`. Register row: ROADMAP **#491 — CLOSED**. CHANGELOG 5.178.0.
+Full account: `docs/_reports/2026-08-27-trace-target.md`.
+
+**THE AUTHORITY'S TRACE CONSUMES A RANDOM DRAW, AND IT DRAWS EVEN WITH ONE CANDIDATE.**
+`data/mods/champions/abilities.ts` is 100 lines and carries no `trace` entry — grepped
+case-insensitively over the WHOLE file, not a head read — so Champions inherits mainline
+`data/abilities.ts:5110`:
+
+```js
+const possibleTargets = pokemon.adjacentFoes().filter(
+  t => !t.getAbility().flags['notrace'] && t.ability !== 'noability');
+if (!possibleTargets.length) return;
+const target = this.sample(possibleTargets);          // <- THE DRAW
+```
+
+`Battle#sample` (`sim/battle.ts:355`) -> `PRNG#sample` (`sim/prng.ts:132`) -> `PRNG#random` (`:91`),
+which calls `this.rng.next()` **unconditionally**. A uniform index into the ELIGIBLE list, never into
+the slots.
+
+**IT IS TRACE AND NOT A MIS-KEYED PARTY, AND THAT WAS ESTABLISHED RATHER THAN ASSUMED.** The
+alternative was named in the brief and would have had a completely different fix.
+
+1. **The shape of the diff.** `ability` moved on both `p1.party.gardevoir` and `p1.active[0]` and
+   **nothing else did**. A body read under the wrong key drags `species`, `hp` and `maxhp` with it.
+2. **The sheets.** `cursedbody` is on exactly one body on the board, p2's Gengar. But `torrent` is on
+   p2's Swampert **AND on p1's own Blastoise** — which is precisely why clause 1 is load-bearing and
+   why "it got its own bench body's ability" could not be dismissed on the name alone.
+3. **The game, replayed.** Rebuilt through `pairsFor('pair-redirect-priority')`, matched on the tag:
+   `|-ability|p1a: Gardevoir|Cursed Body|…|[of] p2a: Gengar` against
+   `|-ability|p1a: Gardevoir|torrent|…`, with `traceAmbiguousChoice = 1`, `traceChoiceDie = 1`,
+   `traceChoiceNoDie = 0` — two eligible foes, and our die read.
+
+**THE MECHANISM — ONE EVENT, TWO ADDRESSES.** Wrapping `Battle.prototype.{random,randomChance,sample}`
+and capturing a stack for every draw with `this.turn === 0` on that game gives exactly two:
+
+```
+[0] random(2,4)      BattleQueue.insertChoice   <- BattleActions.switchIn   (a queue TIE)
+[1] sample([len 2])  Battle.onUpdate            <- data/abilities.js:5079   (Trace)
+```
+
+`G.midAddresses()` on the same game:
+
+```
+authority   20260813|0|any|-|-|0     the queue tie
+            20260813|0|any|-|-|1     Trace
+medicham    20260813|0|any|-|-|0     Trace         <- the SAME event, a different nth
+```
+
+`BattleQueue#insertChoice` (`sim/battle-queue.ts:395`) is
+`firstIndex === lastIndex ? firstIndex : this.battle.random(firstIndex, lastIndex + 1)` — the RANGE
+form, drawn **only** when the four lead-in `runSwitch` actions tie in `comparePriority`. medicham2
+models no such queue and takes no such draw, so its Trace sat at `nth 0` while the authority's sat at
+`nth 1`. **The arithmetic closes it with nothing left over:** `u(nth 0) = 0.653086479 -> eligible[1]
+= Swampert -> torrent`; `u(nth 1) = 0.486125964 -> eligible[0] = Gengar -> cursedbody`. That is the
+observed pair, on both sides.
+
+**NEWLY VISIBLE, NOT NEWLY BROKEN — AND THE FIGURE SAYS SO.** Under the bare FNV-1a `midHash` used
+until #489 landed the same morning, the two addresses are 0.429382539 and 0.425476195: the old hash
+TRANSLATED rather than re-drew on a change to the trailing field, so `floor(u * 2)` was 0 both ways
+and **the two engines agreed by accident**. A 2-way choice only flips inside a window of that width
+around 0.5. The defect is as old as the arm.
+
+**NOT A SHARED ROOT WITH THE OTHER ELEVEN, AND THAT IS MEASURED — WHICH IS WHY IT WAS NOT ESCALATED
+FOR A DECISION.** Every authority draw tagged with its call site over **183 games** (all seven
+configs, arm `middle`), asking per game whether an `insertChoice` draw precedes another draw at the
+**same base address** `turn|move|target`:
+
+```
+games 183   games with a POISONED bucket: 1
+   pair-redirect-priority :: ...2654427821 vs ...2654364770   base=0|-|-   after=[Battle.onUpdate]
+```
+
+The wider draw-site census over 60 games finds **three** range-form callers —
+`BattleQueue.insertChoice` (9), `Battle.durationCallback` (1), a condition `onStart` (1) — all three
+dice medicham2 does not roll (it takes durations at the authority's minimum,
+`MEDSEEN.confusionMinDuration`).
+
+**THE FIX IS THE ARM'S OWN RULE, APPLIED IN THE PLACE IT WAS MISSED.** Four lines in `makeArm`'s
+`pinRandom` in `engine/game_differential.js`:
+
+```js
+if (n !== undefined && cat === 'any' && !MID_RANGE_LIVE) { MID_RANGE_PINNED++; return m; }
+```
+
+The three scalar arms have always returned `m` for the range form and the file's own header says what
+it is — *"the sleep duration, a multi-hit count and a queue insertion index"*. The middle arm was the
+only one letting it consume a shared address. **This is the same argument the arm already makes
+twice, with the sides swapped:** `pinShuffle` is a no-op in every shipped arm and medicham2's tie coin
+is `() => 0` here, both because *"what is removed is a die the authority does not roll"* — and that
+was written about OUR engine rolling one the authority does not. The queue insertion index is the same
+tie through a different door.
+
+**Narrowed to `cat === 'any'` so the damage machinery is untouched**: inside `getDamage` the only
+draws are `randomChance` (the crit) and the one-argument `randomizer` — read in
+`sim/battle-actions.ts`, not assumed — where `MIDW.cat` is `dmg`/`crit`.
+`MEDI_MID_RANGE_DRAWS=1` restores the draw; `range_form_pinned` / `range_form_live_draws` /
+`range_form_knob` ride in the artifact. **`DICE_MODEL` is bumped `split/v2` -> `split/v3` so
+`PIN_DIGEST` MOVES**, because pinning the insertion index changes queue order in tied games and a run
+either side of it is a different instrument, not another sample.
+
+**`tests/probe_trace_choice.js` WAS GREEN ON THE `middle` ARM THE WHOLE TIME.** Its fixture never
+staged the collision, which is a fixture verdict and not evidence — and it is the reason
+`tests/probe_trace_target.js` exists rather than a fourth arm being bolted onto it. The new file:
+
+- derives everything from `Dex.forFormat('gen9championsvgc2026regmb')` filtered
+  (`exists && !isNonstandard && tier !== 'Illegal'`) and **prints it** — the carrier, the two foes,
+  the `notrace` membership;
+- **derives the eligible-foe count and REFUSES a cell below two**, and refuses outright on
+  `traceChoiceNoDie > 0`, because a one-candidate board has no choice to get wrong;
+- makes the p1b ALLY the knob and **MEASURES which allies tie**, off `midRangeCounters()`, never
+  guessing — 3 TIE boards and 21 NO-TIE controls out of 24 staged, and it fails if either set is
+  empty;
+- types no expectation: Showdown's own `|-ability|…|[from] ability: Trace` is the answer.
+
+```
+clean   pinned=4 live=0   authority TIE [pressure]     NO-TIE [pressure]   TIE 3/3 agree, NO-TIE 21/21
+knob    pinned=0 live=4   authority TIE [snowwarning]  NO-TIE [pressure]   TIE 0/2 agree, NO-TIE 22/22
+```
+
+The AUTHORITY's own answer moves across the knob, which is what says the fixture reached the die at
+all; ours does not, which is the defect; 22 of 22 controls hold, so the knob is not over-firing.
+**The parent judges the child on NUMBERS, not on its exit code** — the first draft had that inverted,
+since under the knob the child's own clauses assert the defect is PRESENT and a working knob makes it
+exit 0. A pin claim was added beside it, asserted in both directions so it cannot pass by being dead.
+
+**AN INSTRUMENT FAULT THAT NEARLY PUBLISHED A 30x REGRESSION, RECORDED BECAUSE IT IS WHY THE NUMBER IS
+TRUSTWORTHY.** The first re-run took `--release 6272fa445b73` from a stale scratch `.cmd` left in the
+tree and reported **diverged 19 -> 366, board-material 12 -> 370, void 1 -> 31**. The baseline
+artifact records `engine_release: f9f3a61481cb`. Two different simulators, one of them not the one the
+baseline was measured on. **Read the release id out of the artifact you are comparing against, never
+off a leftover command.**
+
+**THE ROW SET WAS DIFFED, NOT COUNTED:**
+
+```
+GONE:  pair-redirect-priority | t0 | p1.party.gardevoir.ability, p1.active[0].ability
+NEW:   (none)
+```
+
+Board never diverged 949 -> **950**; `board_parted_before_the_protocol_did` 5 -> **4**; median turn of
+first board divergence unmoved at 5. **Whole-game unmoved at 14 of 961 and that is correct rather than
+disappointing** — this row carried `protocol_diverged_at_turn: null`, so it was never in the
+protocol-based count. `range_form_pinned` 405, `range_form_live_draws` 0.
+
+**UNMOVED, CHECKED RATHER THAN ASSUMED:** census **764 live / 764 probed / 0 missing**; three roster
+stages on the same release with byte-identical verdict distributions (items 139, abilities 129, moves
+475 `FIRED-AND-BOARDS-MATCH`, **0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`** in all three);
+`all_mechanics_fire --kind all --write` identical (moves 8, abilities 3, items 1); the damage gate
+`0 of 6000` at all sixteen corners, which the branch structurally cannot reach — it lives inside
+`if (spec.middle)` and excludes `dmg`/`crit`. `test-middle-identity`, `test-middle-draw-scope`,
+`test-middle-damage-roll`, `test-middle-stall-address`, `test-roster-arm-pin`,
+`test-damage-roll-support`, `test-end-state`, `test-game-diff`, `test-coverage-stop`,
+`test-volatile-duration` and `probe_trace_choice` all exit 0.
+
+**OWED, NOT RUN.** The other two range-form callers — `Battle.durationCallback` and a condition
+`onStart` — are neutralised by the same change with **no staged board of their own**; they are now
+pinned to the authority's minimum, which is what the scalar arms already do and what medicham2 already
+takes, but that is an argument rather than a measurement. And the `any` bucket is still a catch-all:
+`Side.randomFoe` (221 draws in 60 games) and `Battle.onResidual` (36) share it, so the `nth` collision
+class is **smaller, not gone**.
 ## SEVEN ACTION KINDS ASKED THE DOLL NOWHERE — ONE MISSING CALL TO ONE HELPER, THIRTEEN MOVES, ONE ANSWER. **THE SWEEP SAID NINE AND TWO OF THE NINE ARE NOT DEFECTS.** CENSUS 757 -> 764 LIVE / 764 PROBED / 0 MISSING. WHOLE-GAME UNMOVED AT 14 OF 961, BOARD-MATERIAL UNMOVED AT 12 OF 961. 2026-08-27.
 
 Release `f9f3a61481cb`, arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`, census

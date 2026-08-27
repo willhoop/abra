@@ -1,7 +1,7 @@
 {
-  "generated": "2026-08-27T14:24:49.654Z",
+  "generated": "2026-08-27T15:09:23.156Z",
   "by": "engine/game_differential.js",
-  "mode": "A/middle/pins:f646b0163bc0/credit:observed-effect/v1/nature:real",
+  "mode": "A/middle/pins:44bd49403231/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
   "pins": {
     "why": "ONE PIN IS ONE CORNER. Every published number before 2026-08-07 describes `top-tie-in-order` and nothing else: max damage, every sub-100 move missing, and every speed tie resolving to input order in both engines BY CONSTRUCTION.",
@@ -9,7 +9,7 @@
       "middle"
     ],
     "primary": "middle",
-    "digest": "f646b0163bc0",
+    "digest": "44bd49403231",
     "arms": [
       {
         "id": "middle",
@@ -28,12 +28,13 @@
           "middle: and to price a 30% secondary  [2,000 contexts, +/- 5 points]",
           "middle: a certainty is still a certainty: 100 accuracy always hits, 0 never does",
           "middle: the category wrapper ATTACHED — an unattached one silently buckets every roll as ANY",
-          "middle: ...and the installed wrapper writes into THIS module load’s holder"
+          "middle: ...and the installed wrapper writes into THIS module load’s holder",
+          "middle: the RANGE form consumes NO shared address in this arm  [MEDI_MID_RANGE_DRAWS=1 restores it]"
         ]
       }
     ],
     "medicham2_has_one_scalar_die": "RETRACTED 2026-08-11 (ROADMAP #222) and kept because it is what the sentence cost. It read: \"accuracy, the crit, every secondary, the stall counter and the damage roll all read the same rng(), so there are TWO corners and not four independent knobs.\" True when written, and it described a COUPLING THE AUTHORITY DOES NOT HAVE -- Showdown draws each separately. Pinning the scalar high therefore did not mean \"every sub-100 move misses\", it meant that AND no secondary AND no crit AND max damage AND every consecutive Protect fails, welded into one event the real game cannot reach. It cost 41 games of apparent Protect defect that were zero. medicham2 now takes five named streams; this arm frees the stall counter and holds the other four on the corner, which is what its claims actually assert.",
-    "dice_model": "split/v2: acc+crit+sec+dmg on the corner, stall on its own seeded stream; the `middle` arm addresses every draw by event and hashes it FNV-1a + fmix32 (the finaliser landed 2026-08-27 — before it, the trailing `nth` field only TRANSLATED the value and ten arrivals at one damage address shared 1.75 buckets of a possible sixteen)"
+    "dice_model": "split/v3: acc+crit+sec+dmg on the corner, stall on its own seeded stream; the `middle` arm addresses every draw by event and hashes it FNV-1a + fmix32 (the finaliser landed 2026-08-27 — before it, the trailing `nth` field only TRANSLATED the value and ten arrivals at one damage address shared 1.75 buckets of a possible sixteen); the RANGE form random(m,n) outside the damage machinery is pinned to m and consumes no address, as in the scalar arms (2026-08-27)"
   },
   "arms": [
     {
@@ -112,7 +113,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 193.9,
+  "elapsed_s": 93.4,
   "credit_turn_profile": {
     "rows_with_any_credit": 253,
     "credits_with_no_turn_index": 0,
@@ -1154,11 +1155,11 @@
     "empty_address_games_counted_void": false,
     "overlap_floor": 0.9,
     "by_reason": {
-      "no-addresses:neither-drew": 486,
+      "no-addresses:neither-drew": 591,
       "shared-addresses-agree": 185,
-      "no-outcome-addresses:neither-drew": 158,
-      "no-addresses:me-empty": 111,
-      "no-addresses:sd-empty": 20,
+      "no-outcome-addresses:neither-drew": 156,
+      "no-addresses:sd-empty": 22,
+      "no-addresses:me-empty": 6,
       "low-identity": 1
     },
     "by_reason_detail": {
@@ -1169,20 +1170,20 @@
         "max_turns": 12
       },
       "no-outcome-addresses:neither-drew": {
-        "games": 158,
-        "diverged": 2,
-        "median_turns": 12,
-        "max_turns": 12
-      },
-      "no-addresses:me-empty": {
-        "games": 111,
+        "games": 156,
         "diverged": 2,
         "median_turns": 12,
         "max_turns": 12
       },
       "no-addresses:neither-drew": {
-        "games": 486,
-        "diverged": 5,
+        "games": 591,
+        "diverged": 7,
+        "median_turns": 12,
+        "max_turns": 12
+      },
+      "no-addresses:me-empty": {
+        "games": 6,
+        "diverged": 0,
         "median_turns": 12,
         "max_turns": 12
       },
@@ -1193,7 +1194,7 @@
         "max_turns": 12
       },
       "no-addresses:sd-empty": {
-        "games": 20,
+        "games": 22,
         "diverged": 0,
         "median_turns": 12,
         "max_turns": 12
@@ -1218,8 +1219,8 @@
       "target differs  (dmg|outrage)": 1
     },
     "one_sided_game_shapes": {
-      "any -  [medicham2 only, the other drew nothing]": 130,
-      "any -  [authority only, the other drew nothing]": 120,
+      "any -  [medicham2 only, the other drew nothing]": 141,
+      "any -  [authority only, the other drew nothing]": 7,
       "acc quash  [authority only, the other drew nothing]": 4,
       "acc entrainment  [authority only, the other drew nothing]": 1,
       "acc soak  [authority only, the other drew nothing]": 1,
@@ -1230,7 +1231,10 @@
     },
     "no_battle_draws": 1000,
     "damage_roll_index_inversions": 3281,
-    "sd_addresses_dropped_as_not_this_game": 14481
+    "range_form_pinned": 405,
+    "range_form_live_draws": 0,
+    "range_form_knob": false,
+    "sd_addresses_dropped_as_not_this_game": 14308
   },
   "state": {
     "turn1_boards_identical": 961,
@@ -1265,105 +1269,105 @@
       {
         "turn": 1,
         "reached": 961,
-        "identical": 960,
-        "rate_given_it_reached_this_turn": 0.999,
-        "rate_of_all_games": 0.999
+        "identical": 961,
+        "rate_given_it_reached_this_turn": 1,
+        "rate_of_all_games": 1
       },
       {
         "turn": 2,
+        "reached": 961,
+        "identical": 958,
+        "rate_given_it_reached_this_turn": 0.9969,
+        "rate_of_all_games": 0.9969
+      },
+      {
+        "turn": 3,
         "reached": 961,
         "identical": 957,
         "rate_given_it_reached_this_turn": 0.9958,
         "rate_of_all_games": 0.9958
       },
       {
-        "turn": 3,
-        "reached": 961,
-        "identical": 956,
-        "rate_given_it_reached_this_turn": 0.9948,
-        "rate_of_all_games": 0.9948
-      },
-      {
         "turn": 4,
         "reached": 961,
-        "identical": 956,
-        "rate_given_it_reached_this_turn": 0.9948,
-        "rate_of_all_games": 0.9948
+        "identical": 957,
+        "rate_given_it_reached_this_turn": 0.9958,
+        "rate_of_all_games": 0.9958
       },
       {
         "turn": 5,
         "reached": 961,
-        "identical": 954,
-        "rate_given_it_reached_this_turn": 0.9927,
-        "rate_of_all_games": 0.9927
+        "identical": 955,
+        "rate_given_it_reached_this_turn": 0.9938,
+        "rate_of_all_games": 0.9938
       },
       {
         "turn": 6,
         "reached": 961,
-        "identical": 952,
-        "rate_given_it_reached_this_turn": 0.9906,
-        "rate_of_all_games": 0.9906
+        "identical": 953,
+        "rate_given_it_reached_this_turn": 0.9917,
+        "rate_of_all_games": 0.9917
       },
       {
         "turn": 7,
         "reached": 960,
-        "identical": 950,
-        "rate_given_it_reached_this_turn": 0.9896,
-        "rate_of_all_games": 0.9886
+        "identical": 951,
+        "rate_given_it_reached_this_turn": 0.9906,
+        "rate_of_all_games": 0.9896
       },
       {
         "turn": 8,
         "reached": 957,
-        "identical": 947,
-        "rate_given_it_reached_this_turn": 0.9896,
-        "rate_of_all_games": 0.9854
+        "identical": 948,
+        "rate_given_it_reached_this_turn": 0.9906,
+        "rate_of_all_games": 0.9865
       },
       {
         "turn": 9,
         "reached": 956,
-        "identical": 946,
-        "rate_given_it_reached_this_turn": 0.9895,
-        "rate_of_all_games": 0.9844
+        "identical": 947,
+        "rate_given_it_reached_this_turn": 0.9906,
+        "rate_of_all_games": 0.9854
       },
       {
         "turn": 10,
         "reached": 952,
-        "identical": 941,
-        "rate_given_it_reached_this_turn": 0.9884,
-        "rate_of_all_games": 0.9792
+        "identical": 942,
+        "rate_given_it_reached_this_turn": 0.9895,
+        "rate_of_all_games": 0.9802
       },
       {
         "turn": 11,
         "reached": 949,
-        "identical": 939,
-        "rate_given_it_reached_this_turn": 0.9895,
-        "rate_of_all_games": 0.9771
+        "identical": 940,
+        "rate_given_it_reached_this_turn": 0.9905,
+        "rate_of_all_games": 0.9781
       },
       {
         "turn": 12,
         "reached": 944,
-        "identical": 934,
-        "rate_given_it_reached_this_turn": 0.9894,
-        "rate_of_all_games": 0.9719
+        "identical": 935,
+        "rate_given_it_reached_this_turn": 0.9905,
+        "rate_of_all_games": 0.9729
       }
     ],
     "agreement_by_turn_cross_check": [
       {
         "turn": 1,
         "from_kept_boards": 961,
-        "from_the_counters": 960,
-        "agree": false
+        "from_the_counters": 961,
+        "agree": true
       },
       {
         "turn": 2,
         "from_kept_boards": 958,
-        "from_the_counters": 957,
-        "agree": false
+        "from_the_counters": 958,
+        "agree": true
       },
       {
         "turn": 3,
         "from_kept_boards": 959,
-        "from_the_counters": 956,
+        "from_the_counters": 957,
         "agree": false
       }
     ],
@@ -1421,16 +1425,16 @@
       "display_name_lookups_that_missed": 2
     },
     "turn_boundaries_compared": 12445,
-    "turn_boundaries_identical": 12398,
-    "turn_boundary_agreement": 0.9962,
+    "turn_boundaries_identical": 12399,
+    "turn_boundary_agreement": 0.9963,
     "games": 961,
-    "games_board_never_diverged": 949,
-    "game_agreement": 0.9875,
+    "games_board_never_diverged": 950,
+    "game_agreement": 0.9886,
     "median_turn_of_first_board_divergence": 5,
     "protocol_diverged_games": 19,
     "protocol_diverged_board_never_did": 12,
     "protocol_diverged_board_held_longer": 0,
-    "board_parted_before_the_protocol_did": 5,
+    "board_parted_before_the_protocol_did": 4,
     "families": [
       {
         "family": "party.hp",
@@ -1444,13 +1448,13 @@
       },
       {
         "family": "party.ability",
-        "differing_leaves": 4,
-        "games": 3
+        "differing_leaves": 3,
+        "games": 2
       },
       {
         "family": "active[].ability",
-        "differing_leaves": 4,
-        "games": 3
+        "differing_leaves": 3,
+        "games": 2
       },
       {
         "family": "party.boosts.atk",
@@ -1759,24 +1763,6 @@
             "path": "p2.active[0].hp",
             "medicham": 64,
             "showdown": 62
-          }
-        ]
-      },
-      {
-        "config": "pair-redirect-priority",
-        "seed": "gen9championsvgc2026regmbbo3-2654427821 vs gen9championsvgc2026regmbbo3-2654364770",
-        "turn": 0,
-        "protocol_diverged_at_turn": null,
-        "diffs": [
-          {
-            "path": "p1.party.gardevoir.ability",
-            "medicham": "torrent",
-            "showdown": "cursedbody"
-          },
-          {
-            "path": "p1.active[0].ability",
-            "medicham": "torrent",
-            "showdown": "cursedbody"
           }
         ]
       }
@@ -3698,6 +3684,7 @@
     "middle: a certainty is still a certainty: 100 accuracy always hits, 0 never does",
     "middle: the category wrapper ATTACHED — an unattached one silently buckets every roll as ANY",
     "middle: ...and the installed wrapper writes into THIS module load’s holder",
+    "middle: the RANGE form consumes NO shared address in this arm  [MEDI_MID_RANGE_DRAWS=1 restores it]",
     "top-tie-first: a 100-accuracy move HITS  [medicham2 skips the check at acc >= 100]",
     "top-tie-first: a 90-accuracy move MISSES  [medicham2: 99.99 > 90 -> miss]",
     "top-tie-first: a 1-in-24 crit does NOT happen  [medicham2: 0.9999 < 1/24 is false]",
@@ -13949,7 +13936,7 @@
     "input_digest": "9446a684709d",
     "input_rows": 643,
     "input_generated": "2026-08-23T09:53:56.393Z",
-    "input_live_digest": "639f5a525127",
+    "input_live_digest": "b2284843e61f",
     "pinned": true,
     "matches_live": false,
     "selects_from": 580,
@@ -13963,7 +13950,7 @@
   "baseline_comparability": null,
   "engine_release": "f9f3a61481cb",
   "engine_release_cut": "2026-08-27T14:09:27.272Z",
-  "engine_release_cuts": 1,
+  "engine_release_cuts": 23,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
     "engine/medicham2-browser.js": "b3b5e87cef1f",

@@ -10,6 +10,96 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.178.0] — 2026-08-27
+
+### Fixed
+- **A QUEUE INSERTION TIE WAS EATING TRACE'S ADDRESS. THE MIDDLE ARM LET THE RANGE FORM DRAW WHERE
+  ALL THREE SCALAR ARMS PIN IT, SO THE AUTHORITY'S TRACE SAT AT `nth 1` AND OURS AT `nth 0` — ONE
+  EVENT, TWO ADDRESSES, TWO INDEPENDENT VALUES. BOARD-MATERIAL 12 -> 11 OF 961, PREDICTED BEFORE THE
+  RUN. WHOLE-GAME UNMOVED AT 14 OF 961. PIN DIGEST `f646b0163bc0` -> `44bd49403231`.**
+  ENGINE, ROADMAP `#491`.
+
+  **THE AUTHORITY'S TRACE DRAWS, AND IT DRAWS EVEN WITH ONE CANDIDATE.**
+  `data/mods/champions/abilities.ts` is 100 lines and carries no `trace` entry — grepped
+  case-insensitively over the whole file — so Champions inherits mainline `data/abilities.ts:5110`,
+  whose `onUpdate` ends `const target = this.sample(possibleTargets)`. `Battle#sample`
+  (`sim/battle.ts:355`) -> `PRNG#sample` (`sim/prng.ts:132`) -> `PRNG#random` (`:91`), which calls
+  `this.rng.next()` unconditionally. It is a uniform index into the ELIGIBLE list, not into the slots.
+
+  **IT IS TRACE AND NOT A MIS-KEYED PARTY, ESTABLISHED THREE WAYS** — the alternative was named in the
+  brief and is refuted rather than assumed away. (1) The diff moves `ability` on both
+  `p1.party.gardevoir` and `p1.active[0]` and **nothing else**; a body read under the wrong key would
+  drag `species` and `hp` with it. (2) `cursedbody` is on exactly one body on the board, p2's Gengar —
+  though `torrent` is on p2's Swampert AND p1's own Blastoise, which is why (1) is load-bearing.
+  (3) The pair was rebuilt through `pairsFor` and replayed: `|-ability|p1a: Gardevoir|Cursed Body|…
+  |[of] p2a: Gengar` against `|-ability|p1a: Gardevoir|torrent|…`, with `traceAmbiguousChoice = 1`,
+  `traceChoiceDie = 1`, `traceChoiceNoDie = 0` — two eligible foes and the die read on our side.
+
+  **THE MECHANISM, MEASURED FROM BOTH SIDES.** Wrapping `Battle.prototype.{random,randomChance,sample}`
+  and capturing a stack for every `turn === 0` draw on that game gives exactly two: `random(2,4)` from
+  `BattleQueue.insertChoice` (`sim/battle-queue.ts:395`, the RANGE form, drawn only when the four
+  lead-in `runSwitch` actions tie in `comparePriority`) and then Trace's `sample`. `midAddresses()`:
+  authority `20260813|0|any|-|-|0` then `|1`; medicham2 `|0` for Trace. The arithmetic closes it with
+  nothing left over — `u(|0) = 0.653086479 -> eligible[1] = Swampert -> torrent`,
+  `u(|1) = 0.486125964 -> eligible[0] = Gengar -> cursedbody`, which is the observed pair.
+
+  **NEWLY VISIBLE, NOT NEWLY BROKEN.** Under the bare FNV-1a `midHash` used until `#489` landed this
+  morning the same two addresses are 0.429382539 and 0.425476195 — the old hash TRANSLATED rather than
+  re-drew on a change to the trailing field — so `floor(u * 2)` was 0 both ways and the two engines
+  agreed **by accident**. The defect is as old as the arm.
+
+  **NOT A SHARED ROOT WITH THE OTHER ELEVEN — MEASURED.** Every authority draw was tagged with its
+  call site over **183 games** (seven configs, arm `middle`) and asked whether an `insertChoice` draw
+  precedes another draw at the same base address: **1 game, and it is this one.** The wider census over
+  60 games finds three range-form callers — `BattleQueue.insertChoice` (9), `Battle.durationCallback`
+  (1), a condition `onStart` (1) — all three dice medicham2 does not roll.
+
+  **THE FIX IS THE ARM'S OWN RULE, APPLIED WHERE IT WAS MISSED**, four lines in `makeArm`'s
+  `pinRandom`: the range form outside the damage machinery returns `m` and consumes no shared address.
+  `pinShuffle` is already a no-op in every shipped arm and medicham2's tie coin is already `() => 0`
+  here, both because *"what is removed is a die the authority does not roll"* — the queue insertion
+  index is the same tie through a different door with the sides swapped. Narrowed to `cat === 'any'`
+  so the damage machinery is untouched: `getDamage`'s only draws are `randomChance` (crit) and the
+  one-argument `randomizer`, read in `sim/battle-actions.ts` rather than assumed.
+  `MEDI_MID_RANGE_DRAWS=1` restores the draw; `range_form_pinned` / `range_form_live_draws` /
+  `range_form_knob` ride in the artifact. **`DICE_MODEL` bumped `split/v2` -> `split/v3` so
+  `PIN_DIGEST` MOVES**, because pinning the insertion index changes queue order in tied games and a
+  run either side of it is a different instrument.
+
+  **`tests/probe_trace_choice.js` WAS GREEN ON THE `middle` ARM THE WHOLE TIME** — its fixture never
+  staged the collision, which is a fixture verdict and not evidence. `tests/probe_trace_target.js`
+  stages it: everything derived from the filtered format dex and printed, **eligible foes derived and
+  REFUSED below two** (and `traceChoiceNoDie > 0` refused outright), the p1b ALLY as the knob with
+  **which allies tie MEASURED off `midRangeCounters()` rather than guessed** — 3 TIE boards and 21
+  NO-TIE controls out of 24, and the file fails if either set is empty. Clean: 3/3 tie and 21/21
+  control boards agree, `pinned=4 live=0`. Under the knob: `pinned=0 live=4`, **0/2 tie boards agree**,
+  22/22 controls hold, and the AUTHORITY's own answer moves `pressure -> snowwarning` across the tie,
+  which is what says the fixture reached the die at all. **The parent judges the child on NUMBERS, not
+  on its exit code** — the first draft had that inverted, since under the knob the child's clauses
+  assert the defect is PRESENT and a working knob makes it exit 0.
+
+  **AN INSTRUMENT FAULT THAT NEARLY PUBLISHED A 30x REGRESSION, RECORDED BECAUSE IT IS WHY THE NUMBER
+  IS TRUSTWORTHY.** The first re-run took `--release 6272fa445b73` off a stale scratch `.cmd` in the
+  tree and reported diverged 19 -> 366 and board-material 12 -> 370. The baseline artifact records
+  `engine_release: f9f3a61481cb`. **Two different simulators.** Read the release id out of the
+  artifact you are comparing against, never off a leftover command.
+
+  **MEASURED** on release `f9f3a61481cb`, arm `middle`, 961 games, cap 12,
+  `--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`:
+  board-material **12 -> 11 of 961** with the row set DIFFED rather than counted (exactly one row gone,
+  `pair-redirect-priority | t0 | p1.party.gardevoir.ability`, and none new); `board_never_diverged`
+  949 -> 950; `board_parted_before_the_protocol_did` 5 -> 4; whole-game **unmoved at 14 of 961** (19
+  raw less 5 declared, and correctly so — this row carried `protocol_diverged_at_turn: null` and was
+  never in the protocol count); raw 19, threw 0, void 1, all unchanged; `range_form_pinned` 405,
+  `range_form_live_draws` 0. **UNMOVED**: census **764 live / 764 probed / 0 missing**; three roster
+  stages 139 / 129 / 475 with 0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`; `all_mechanics_fire
+  --kind all` identical (moves 8, abilities 3, items 1); the damage gate `0 of 6000` at all sixteen
+  corners, which the branch cannot reach — it is inside `if (spec.middle)` and excludes `dmg`/`crit`.
+  VERIFIED BY: `SHOWDOWN_PATH=... node tests/probe_trace_target.js`. Full account
+  `docs/_reports/2026-08-27-trace-target.md`.
+
+---
+
 ## [5.177.0] — 2026-08-27
 
 ### Fixed
