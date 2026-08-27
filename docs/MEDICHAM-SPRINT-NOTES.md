@@ -17705,3 +17705,45 @@ as open work when its own arithmetic said `6 = 11 - 5`.
 The three emissions still landing at the placement (Zero to Hero `-activate`, Supreme Overlord
 `-activate`/`-start`, Magic Room's item park) are #481's residue and a DIFFERENT root — left on the
 hand list, batches of one.
+
+---
+
+## FOUR DIAGNOSES IN PARALLEL, NO ENGINE BYTE TOUCHED — 2026-08-27
+
+Every remaining board-material game was diagnosed **four agents wide**, running beside a fifth that
+held the simulator and the game slot. The split that made it safe was by RESOURCE, not by courtesy:
+the four were forbidden `engine/`, forbidden `game_differential.js` / the roster stages /
+`all_mechanics_fire` / `quarantine` / `status.js`, and each wrote to exactly one report and one probe
+carrying its own name. **No two could reach the same byte.** Each returned a patch it did not apply,
+and the patches landed serially through the one agent that held the slot.
+
+| diagnosis | root | games |
+|---|---|---|
+| `hp-pair` | crit rolled ONCE PER CLICK, re-emitted before every arrival; the authority rolls per hit (`sim/battle-actions.ts:1641`). Triple Axel: authority `[36* 45 67]`, ours `[36* 67* 100*]` | 2 |
+| `target-swap` | the "second" random-target game **IS** #478 — one game, not two | 1 |
+| `stat-pick` | Moody's handler matches every clause; the **address** does not. 57 `Side.randomFoe` draws the authority takes in the shared bucket and we never do | 1 |
+| `state-trio` | confusion = **the instrument**; Dire Claw rolls its own 30% **twice**; types revert on the **faint** path, not the switch path | 3 |
+
+**FIVE OF THE SEVEN WERE ONE CLASS: A DIE ONE ENGINE SPENDS AND THE OTHER DOES NOT.** Not five bugs —
+one bug wearing five costumes. Trace skipping a draw on a one-element list (the authority's `sample`
+draws unconditionally), Quick Claw rolling on switch actions where the queue only rolls on moves,
+Dire Claw rolling its secondary twice, Healer and Shed Skin drawing where the authority checks status
+first, and `randomFoe` draws we never take at all.
+
+**THE MARGINAL RATE IS WHY NOTHING CAUGHT THEM.** Dire Claw's doubled roll leaves the rate at exactly
+30%, so no rate check, no census probe and no seeded harness can see it — but two independent coins on
+a 30% event disagree 42% of the time. This is the `NON-ZERO IS NOT A STRONG ENOUGH BAR` rule at the
+level of a distribution rather than a counter.
+
+**THREE BRIEF PREMISES WERE REFUTED AND EACH REFUTATION WAS THE FINDING:** Trace's candidate lists are
+identical across 139 draws (same members, same order — it was never the list); the type revert is the
+faint path, not the switch path; and the `-damage: a different body` game is not a second instance.
+
+**THE INSTRUMENT ACCUSED THE ENGINE FOR THE FOURTH TIME TONIGHT.** The confusion counter is a pin that
+applies to one draw category only, so a confusion applied by a **secondary** draws live and is compared
+against an unpinned number. Control: a confusion from a status move agrees exactly; from a secondary it
+reads 2/4/4/4 against our constant 2. **Suspect the instrument before the engine.**
+
+**OWED, NOT RUN:** the four located patches for confusion, Dire Claw, the faint-path type restore and
+the #478 address alignment. Healer and Shed Skin are filed with no game attached. The per-HIT reaction
+pass for an ability that responds to a crit is #500, deliberately not bundled.
