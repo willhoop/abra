@@ -10,6 +10,77 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.150.0] — 2026-08-26
+
+### Fixed
+- **A DERIVED TAG WITH 992 CORPUS USES HAD NO READER ANYWHERE, AND BOTH OF ITS RULES WERE MISSING.**
+  ROADMAP #466, ENGINE. `punishesMinimize` sat in `data/tags.json` carrying the two things Minimize
+  costs you, and the literal appeared in **neither** `engine/medicham2-browser.js` **nor**
+  `engine/board.js`; `tests/test-tag-consumed.js` had been reporting it `STILL DEAD` rather than
+  `REGRESSED`. This is the Destiny Bond shape one level up — there the volatile was written and never
+  read, here the FACT was derived and never asked for.
+- **THE MECHANIC IS REACHABLE, SO THIS IS AN IMPLEMENTATION AND NOT A DECLARATION.** Filtered by
+  CARRIER rather than by legality: **six** legal moves carry `flags.minimize` (Body Slam, Dragon Rush,
+  Flying Press, Heat Crash, Heavy Slam, Supercell Slam — exactly the tag's six examples) and **seven**
+  legal species learn Minimize (Starmie, Qwilfish, Chandelure, Sandaconda, Overqwil and the
+  Starmie/Chandelure megas). Not the Neutralizing Gas shape, which has none.
+- **THE AUTHORITY IS MAINLINE AND CHAMPIONS DOES NOT OVERRIDE IT** — `data/moves.ts:11920-11945`,
+  `minimize.condition`; `grep minimize data/mods/champions/moves.ts` is empty. `onAccuracy` is the
+  `Accuracy` event, the LAST step of `hitStepAccuracy` (`sim/battle-actions.ts:729-735`), which throws
+  the stage arithmetic away — so Minimize's own +2 evasion cannot claw the guarantee back.
+  `onSourceModifyDamage` is the ModifyDamage relay (`:1826`), the same chain as Life Orb and the
+  resist berries, so the x2 truncates once with them instead of being a second `Math.floor`.
+- **MEASURED ON THE OFFICIAL SIMULATOR BEFORE AN ENGINE LINE WAS WRITTEN**, with the volatile applied
+  directly so the evasion stage is out of frame: Body Slam **52 → 104**, Heavy Slam **49 → 98**, Ice
+  Beam **78 → 78**; and `hitStepAccuracy` at +6 evasion with every roll forced to FAIL returns `true`
+  for Body Slam with the volatile up and `false` for Ice Beam beside it.
+
+### Added
+- One census probe, `move|punishesMinimize`, **watched fail first** on the exact staging it ships with:
+  before, Body Slam MISSED a minimized body at roll 0.85 and dealt 15 where it should deal 30. Both
+  halves are asserted because the tag's own `halves` param exists to stop a consumer landing one and
+  skipping the other. The two moves are never differenced against each other — the never-miss arm holds
+  the PRINTED ACCURACY equal and the doubling arm compares each move against ITSELF across the
+  Minimize/Protect knob.
+- `MEDI_PUNISH_MINIMIZE_BLIND=1` — one knob, both halves off, which is the state the engine shipped in
+  until today. A knob run turns exactly this census row red: **753 live / 1 missing / 754 probed**, and
+  nothing else moved.
+- `MEDSEEN.punishMinimizeNeverMiss` and `MEDSEEN.punishMinimizeDamage`, kept apart on purpose. Both read
+  4 on the probe run and 0 under the knob, so the path is REACHED and not merely present. A run where
+  the first is non-zero and the second is zero names a one-sided implementation instead of letting the
+  mechanic quietly stop happening.
+
+### Notes
+- Engine release **`6272fa445b73`** — *punishesMinimize: the six minimize-flagged moves cannot miss a
+  minimized body and deal double to it*.
+- **Census 753 → 754 live of 754 probed, 0 missing.** Hollow 0, unarmed 0, threw 0, directCall 1 — every
+  ratchet held.
+- **`tests/test-tag-consumed.js` is GREEN.** `dead` 13 → 12, `dead_floor` 13 → 12. The tag's status is
+  **`UNREACHED`, not `LIVE`, and that is honest**: the sweep drives `dmgRange` over plain built bodies
+  and never puts a minimized one on the field, so the consumer's volatile gate is never crossed.
+  Reordering the gate to ask the tag before the volatile would turn the label green by making the TEST
+  pass rather than the mechanic right, and would put a lookup on a hot pure read for a body that is
+  almost never there.
+- **THE PREDICTION WAS WRITTEN BEFORE THE RUNS AND HELD ON EVERY LINE.** The 6,000-row differential was
+  **owed by this batch** because this moves damage, and it stayed at zero: 0/6000 at the midpoint and
+  0/6000 at each of the sixteen arms. The pinned pool was predicted NOT to move — Minimize is 32 of
+  198,840 sheet entries and needs a carrier that CLICKS it and a flagged move aimed at it in the same
+  game — and it did not: whole-game **8 of 961 (raw 13)** and board-material **2 of 961** are both
+  unchanged, as is the mechanics clause at 8 of 16. Roster identical, count for count, on all three
+  stages: `FIRED-AND-BOARDS-DIFFER` 0 and `DID-NOT-FIRE` 0.
+- **`all_mechanics_fire --kind all` moved exactly one row of 739 and it is not this batch's**: `psychup`,
+  `medicham_resolved false → true`, which is ROADMAP #457 from the previous session finally reaching an
+  artifact still stamped at release `667278050dcf`. `resolution_disagreements` 12 → 11 for the same
+  reason, and it is attributed rather than claimed.
+- **THE PROBE WAS WRONG BEFORE THE ENGINE WAS, AGAIN.** The first carrier walk returned ZERO legal
+  carriers for every one of the six moves and for Minimize, which would have produced a DECLARATION —
+  the comfortable answer — off a broken instrument. `D.learnsets` is `undefined` on a `Dex.forFormat`
+  handle and a `try/catch { continue }` swallowed the throw for all 345 species. The working accessor is
+  `D.species.getLearnsetData(id)`.
+- Full account: `docs/_reports/2026-08-26-dead-tag.md`.
+
+---
+
 ## [5.149.0] — 2026-08-26
 
 ### Fixed

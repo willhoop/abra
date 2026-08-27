@@ -14650,6 +14650,57 @@ probe('ability', 'writesAccuracy', 'No Guard makes an 80% move land on a losing 
                  + `${attacker}; No Guard on the TARGET ${defender}` };
 });
 
+/* ROADMAP #466 — A DERIVED TAG WITH 992 CORPUS USES AND NO READER ANYWHERE.
+ *
+ * `punishesMinimize` sat in data/tags.json carrying BOTH of Minimize's punishments and the literal
+ * appeared in neither medicham2-browser.js nor board.js; `tests/test-tag-consumed.js` reported it
+ * `STILL DEAD`. Six legal moves carry the flag — Body Slam, Dragon Rush, Flying Press, Heat Crash,
+ * Heavy Slam, Supercell Slam — and the format holds seven legal Minimize carriers (Starmie, Qwilfish,
+ * Chandelure, Sandaconda, Overqwil and the Starmie/Chandelure megas), so the mechanic is REACHABLE and
+ * this is an implementation rather than a declaration.
+ *
+ * THE AUTHORITY IS MAINLINE, UNOVERRIDDEN — `data/moves.ts:11930-11943`, and `minimize` does not
+ * appear anywhere in `data/mods/champions/moves.ts`. Both halves live on the TARGET's volatile and
+ * both key off the ATTACKING move's flag:
+ *     onAccuracy(...)          { if (move.flags['minimize']) return true; }
+ *     onSourceModifyDamage(...){ if (move.flags['minimize']) return this.chainModify(2); }
+ *
+ * MEASURED ON THE OFFICIAL SIMULATOR FIRST, with the volatile applied directly so the +2 evasion is
+ * not in frame and the doubling is isolated (Snorlax into a Sandaconda, `moveHit`, roll pinned):
+ *     Body Slam    52 -> 104      Heavy Slam   49 -> 98      Ice Beam   78 -> 78
+ * and `hitStepAccuracy` at +6 evasion with every roll forced to FAIL returns `true` for Body Slam
+ * with the volatile up and `false` for Ice Beam beside it.
+ *
+ * BOTH HALVES ARE ASSERTED, because the tag's own `halves` param exists to stop a consumer landing one
+ * and skipping the other, and a probe that asked only about damage would be green on an engine that
+ * can still miss. ICE BEAM IS THE CLEARED CONTROL ON BOTH ARMS AND IT IS NOT A LOOKALIKE — it is a
+ * different type and category, and it does not have to be one, because the never-miss arm holds the
+ * PRINTED ACCURACY equal (both 100) and the doubling arm compares each move against ITSELF across the
+ * Minimize/Protect knob. The two moves are never differenced against each other, which is the trap
+ * the `weightBased` and `needsUntrackedState` corrections above were both caught in. Protect is the
+ * control setup click for the
+ * reason the accuracyMod probe above gives: a setup turn is spent on both arms or on neither. */
+probe('move', 'punishesMinimize', 'Body Slam cannot miss a minimized body and hits it for double', () => {
+  /* ROLL 0.85 — Minimize is +2 evasion, so a printed-100 move is a 60% move and 0.85 misses it. Ice
+     Beam MUST miss here or the never-miss arm is proving nothing. */
+  const iceMin = hitOnRoll(ACCSPS, 0.85, 'icebeam', { setupFoe: 'minimize' });
+  const slamMin = hitOnRoll(ACCSPS, 0.85, 'bodyslam', { setupFoe: 'minimize' });
+  /* ROLL 0.50 — under 60, so NOTHING misses on either arm and the only thing left to move the number
+     is the multiplier. Each move against itself across the knob. */
+  const slamPro = hitOnRoll(ACCSPS, 0.50, 'bodyslam', { setupFoe: 'protect' });
+  const slamDbl = hitOnRoll(ACCSPS, 0.50, 'bodyslam', { setupFoe: 'minimize' });
+  const icePro = hitOnRoll(ACCSPS, 0.50, 'icebeam', { setupFoe: 'protect' });
+  const iceDbl = hitOnRoll(ACCSPS, 0.50, 'icebeam', { setupFoe: 'minimize' });
+  return { works: iceMin === 0 && slamMin > 0
+                  && slamPro > 0 && slamDbl === slamPro * 2
+                  && icePro > 0 && iceDbl === icePro,
+           arms: { control: [iceMin, icePro, iceDbl], test: [slamMin, slamPro, slamDbl] },
+           detail: `at roll 0.85 into a MINIMIZED Garchomp — Ice Beam ${iceMin} (missed, +2 evasion), `
+                 + `Body Slam ${slamMin} (landed anyway); at roll 0.50 Body Slam ${slamPro} after `
+                 + `Protect vs ${slamDbl} after Minimize (x${slamPro ? (slamDbl / slamPro) : 0}), `
+                 + `Ice Beam ${icePro} vs ${iceDbl} (unflagged, so unmoved)` };
+});
+
 /* ==================================================================================================
  * ROADMAP #264 — A PRINTED-100 MOVE CAN MISS, AND THE PROOF HAS TO BE A RATE
  * ==================================================================================================

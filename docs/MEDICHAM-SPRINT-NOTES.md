@@ -21,6 +21,45 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A DERIVED TAG WITH 992 USES AND NO READER IN EITHER ENGINE. CENSUS 753/753 -> **754 LIVE / 754 PROBED / 0 MISSING**. WHOLE-GAME UNMOVED AT 8 OF 961 (RAW 13), BOARD-MATERIAL UNMOVED AT 2, MECHANICS CLAUSE UNMOVED AT 8 OF 16, DIFFERENTIAL STILL 0 OF 6000 AT ALL SIXTEEN ARMS. 2026-08-26 (ENGINE).
+
+Release **`6272fa445b73`**. ROADMAP **#466 CLOSED**. CHANGELOG 5.150.0. Full account:
+`docs/_reports/2026-08-26-dead-tag.md`; ledger section in `docs/ENGINE.md`.
+
+`punishesMinimize` carried BOTH of Minimize's punishments and the literal appeared in neither
+`medicham2-browser.js` nor `board.js`. `tests/test-tag-consumed.js` had been saying `STILL DEAD`.
+
+| half | authority | this engine | now |
+|---|---|---|---|
+| never misses | `onAccuracy` returns `true` — the LAST step of `hitStepAccuracy`, which throws the stage arithmetic away | rolled, and the +2 evasion Minimize itself grants made it miss | a guarantee in `hitChance`, in the No Guard / Lock-On / Toxic cluster |
+| doubles | `onSourceModifyDamage` -> `chainModify(2)` — the ModifyDamage relay | single damage | a member of the SAME `MODMUL` chain as Life Orb, so it truncates once |
+
+**IMPLEMENTED, NOT DECLARED, AND THE CARRIER EVIDENCE IS WHY.** Six legal moves carry the flag; **seven**
+legal species learn Minimize (Starmie, Qwilfish, Chandelure, Sandaconda, Overqwil + two megas). A tag
+with zero carriers would have been a declaration; this one is not that shape.
+
+**THE PREDICTION WAS WRITTEN FIRST AND HELD ON EVERY LINE.** The lab moved (census +1, the tag left the
+DEAD list, `dead_floor` 13 -> 12). The pinned pool did NOT, exactly as predicted — Minimize is 32 of
+198,840 sheet entries and needs a body that CLICKS it plus a flagged move aimed at it in the same game.
+The 6,000-row differential was **owed by this batch** because this moves damage, and it stayed at zero
+at the midpoint and at all sixteen arms.
+
+**ONE KNOB, BOTH HALVES** — `MEDI_PUNISH_MINIMIZE_BLIND=1` reds exactly this census row (753 live, 1
+missing) and nothing else, and returns every probe number to its pre-fix value. Two counters kept apart
+(`punishMinimizeNeverMiss`, `punishMinimizeDamage`), 4 and 4 clean, 0 and 0 under the knob — REACHED,
+not present.
+
+**MY PROBE WAS WRONG BEFORE THE ENGINE WAS, AGAIN.** The first carrier walk reported ZERO legal carriers
+for all six moves AND for Minimize — which would have produced a DECLARATION off a broken instrument.
+`D.learnsets` is `undefined` on a `Dex.forFormat` handle and a `try/catch { continue }` ate the throw
+for every species. `D.species.getLearnsetData(id)` is the accessor.
+
+**NOT MINE, ATTRIBUTED RATHER THAN CLAIMED:** `all_mechanics_fire` moved one row of 739 — `psychup`,
+`medicham_resolved false -> true` — because HEAD's artifact was still stamped at release
+`667278050dcf`. That is #457 from the previous session landing in an artifact, not this batch.
+
+---
+
 ## THREE NARRATION LINES, THREE KNOBS, AND THE CENSUS HAS NO MISSING ROW FOR THE FIRST TIME. CENSUS 750/753/3 -> 753 LIVE / 753 PROBED / **0 MISSING**. WHOLE-GAME CLAUSE 10 -> 8 OF 961 (RAW 15 -> 13), BOARD-MATERIAL UNMOVED AT 1, MECHANICS CLAUSE UNMOVED AT 8 OF 16. 2026-08-26 (ENGINE).
 
 Release **`2c343e3ffaaa`**. ROADMAP **#456, #457, #458 all closed.** Full account: `docs/ENGINE.md`,

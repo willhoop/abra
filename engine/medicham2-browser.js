@@ -1344,6 +1344,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      target -- a negative evasion stage is left alone, because the ability ignores evasion rather
      than helping it. */
   evasionIgnored: 0,
+  /* ROADMAP #466 -- the two halves of `punishesMinimize`, counted SEPARATELY because the tag's own
+     `halves` param exists to make a one-sided implementation visible. `...NeverMiss` bumps when one of
+     the six flagged moves is guaranteed against a minimized body; `...Damage` bumps when the same
+     move's damage is doubled against one. A run in which the first is non-zero and the second is zero
+     means the accuracy guarantee is live and the doubling has come unwired -- which is exactly the
+     failure the tag was written to be able to name. Both are zero on any run where nobody clicks
+     Minimize, which is most of them: Minimize is 32 of 198,840 corpus sheet entries and the format
+     holds seven legal carriers of it (Starmie, Qwilfish, Chandelure, Sandaconda, Overqwil and the
+     Starmie/Chandelure megas), so a game corpus should show these almost never and the staged census
+     probe every time. */
+  punishMinimizeNeverMiss: 0,
+  punishMinimizeDamage: 0,
   /* An OHKO move priced through the branch that refuses every accuracy modifier. Zero means the
      branch is unreachable and Gravity is still boosting Fissure — which is exactly the state this
      was added to end, so a zero here is a FAILURE and not an absence of Fissures. 141 corpus uses
@@ -3677,6 +3689,12 @@ const ROOM_ITEM_SURVIVES_LOSS=(typeof process!=='undefined'&&process.env&&proces
  * item is merely PARKED reads as empty-handed and the move doubles. The authority asks `pokemon.item`,
  * which a Magic Room does not empty. A knob run turns exactly the Acrobatics census row red. */
 const EMPTY_HAND_IS_THE_SLOT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EMPTY_HAND_IS_THE_SLOT==='1');
+/* ROADMAP #466, 2026-08-26 -- MEDI_PUNISH_MINIMIZE_BLIND=1 PUTS THE DEAD TAG BACK. Both halves of
+ * `punishesMinimize` off at once: a minimize-flagged move can miss a minimized body again and deals
+ * single damage to it. That is the state this engine shipped in until today, and it is one knob rather
+ * than two on purpose -- the pre-fix arm is the control the probe needs, and either half alone is a
+ * shape the authority never has. A knob run turns exactly the punishesMinimize census row red. */
+const PUNISH_MINIMIZE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PUNISH_MINIMIZE_BLIND==='1');
 function volRefusesRestart(vol){
   if(VOL_RESTART_BLIND){MEDFAILS.volRestartBlindRestored=1;return false;}
   const d=volRestartTable().get(vol);
@@ -8129,6 +8147,35 @@ function hitChance(att,def,id,field,ctx){
       MEDSEEN.neverMissFromUserType++; return Infinity;
     }
   }
+  /* ROADMAP #466 -- A MINIMIZED BODY CANNOT BE MISSED BY THE SIX MOVES THAT PUNISH IT.
+   *
+   * `punishesMinimize` was a DERIVED TAG WITH NO READER ANYWHERE -- 992 corpus uses across Body Slam,
+   * Dragon Rush, Flying Press, Heat Crash, Heavy Slam and Supercell Slam, and the literal did not
+   * appear in medicham2 or board.js. `tests/test-tag-consumed.js` called it `STILL DEAD`. This is the
+   * first of its two halves; the second is in the ModifyDamage chain in `dmgRange`, and the tag names
+   * them both in `halves` precisely so a consumer cannot land one and quietly skip the other.
+   *
+   * THE AUTHORITY IS MAINLINE AND CHAMPIONS DOES NOT OVERRIDE IT -- `data/moves.ts:11930-11943`
+   * (`minimize.condition`), and `grep minimize data/mods/champions/moves.ts` is EMPTY:
+   *     onAccuracy(accuracy, target, source, move) { if (move.flags['minimize']) return true; }
+   * The flag is on the ATTACKING move and the handler lives on the TARGET's volatile, which is why
+   * this reads the move's tag and the defender's `_vol`.
+   *
+   * IT SITS HERE, ABOVE THE STAGE ARITHMETIC AND ABOVE THE OHKO BRANCH, FOR THE TOXIC BLOCK'S REASON.
+   * The handler returns a BOOLEAN, so the +2 evasion Minimize itself just granted cannot claw any of
+   * it back -- `hitStepAccuracy` computes the stages and then `accuracy = runEvent('Accuracy', ...)`
+   * throws the result away (sim/battle-actions.ts:729-735). And the authority's Accuracy event is
+   * written BELOW `if (move.ohko)` and overwrites it, while OUR ohko branch RETURNS -- so a clause
+   * placed under it could never run and the precedence would be silently inverted. That precedence is
+   * unobservable today and is stated rather than assumed: the format's minimize-flagged set is exactly
+   * the six moves above (derived over the legal move list) and not one of them is an OHKO move.
+   *
+   * THE VOLATILE IS ASKED FIRST because `dmgRange` and this function are hot pure reads and a
+   * minimized body is almost never on the field; the tag lookup only happens once one is. */
+  if(!PUNISH_MINIMIZE_BLIND&&def&&def._vol&&def._vol.minimize>0){
+    const _pm=TAGS.param('move',id,'punishesMinimize');
+    if(_pm&&_pm.neverMisses){MEDSEEN.punishMinimizeNeverMiss++;return Infinity;}
+  }
   if(raw===true)return Infinity;
   let acc=+raw;
   if(!(acc>0))return Infinity;
@@ -10057,6 +10104,25 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * declares the SAME pair of moves under `onSourceBasePower` and is applied in the base-power relay
    * instead -- see invulnDamageMult, which is the one reader of both. */
   {const _id=invulnDamageMult(def,mv.id,'damage'); if(_id!==1)MODMUL(_id);}
+  /* ROADMAP #466 -- AND THE SAME SIX MOVES DEAL DOUBLE TO THE BODY THAT MINIMIZED. The other half of
+   * `punishesMinimize`; the never-miss half is in `hitChance` and the tag's `halves` names both so
+   * that landing one and not the other is a visible omission rather than a silent one.
+   *
+   * `data/moves.ts:11933-11937`, unoverridden by Champions:
+   *     onSourceModifyDamage(damage, source, target, move) {
+   *       if (move.flags['minimize']) { return this.chainModify(2); } }
+   * `onSourceModifyDamage` is the ModifyDamage relay (`runEvent('ModifyDamage', ...)`,
+   * sim/battle-actions.ts:1826), so it is a MEMBER OF THIS CHAIN and not a step after it -- the same
+   * argument the Life Orb, resist-berry and Friend Guard comments above make. Spending it as its own
+   * `Math.floor(d*2)` would truncate twice where the authority truncates once. It sits beside
+   * `invulnDamageMult` because that is the other defender-side `onSourceModifyDamage` member.
+   *
+   * THE 2 IS READ OUT OF THE TAG, never typed: `tag_dex` regexes it off the handler's own
+   * `chainModify(2)`, so a regulation that moves it to 1.5 arrives here without an edit. */
+  if(!PUNISH_MINIMIZE_BLIND&&def&&def._vol&&def._vol.minimize>0){
+    const _pm=TAGS.param('move',mv.id,'punishesMinimize');
+    if(_pm&&+_pm.mult>0&&+_pm.mult!==1){MODMUL(+_pm.mult);MEDSEEN.punishMinimizeDamage++;}
+  }
   /* ROADMAP #92 -- SNIPER IS `onModifyDamage`, SO IT IS A MEMBER OF *THIS* CHAIN. It used to be
    * folded into the crit's plain `Math.floor(base*1.5*critMult)` in two places, which is neither the
    * right stage nor a modifier at all -- the crit is one of the two steps the authority's own source

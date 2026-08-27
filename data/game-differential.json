@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-26T22:56:40.571Z",
+  "generated": "2026-08-27T02:34:46.010Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:2efbc9ed1946/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -97,7 +97,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 93.6,
+  "elapsed_s": 89.3,
   "credit_turn_profile": {
     "rows_with_any_credit": 252,
     "credits_with_no_turn_index": 0,
@@ -13050,7 +13050,7 @@
     "input_digest": "9446a684709d",
     "input_rows": 643,
     "input_generated": "2026-08-23T09:53:56.393Z",
-    "input_live_digest": "a4fb81a04f5a",
+    "input_live_digest": "0cf15f7b35dd",
     "pinned": true,
     "matches_live": false,
     "selects_from": 580,
@@ -13062,12 +13062,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "2c343e3ffaaa",
-  "engine_release_cut": "2026-08-26T22:51:47.216Z",
+  "engine_release": "6272fa445b73",
+  "engine_release_cut": "2026-08-27T02:31:30.485Z",
   "engine_release_cuts": 2,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "1337ff095e92",
+    "engine/medicham2-browser.js": "51a95481d8f4",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "a9de35b3808d",
     "engine/position_features.js": "4850adf1a2ab",

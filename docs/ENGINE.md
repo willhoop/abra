@@ -64,8 +64,8 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  753/753 probed mechanics live, 0 missing   (census 2026-08-26 19:08)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-26 16:35)
+  754/754 probed mechanics live, 0 missing   (census 2026-08-26 22:40)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-26 22:30)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -76,16 +76,174 @@ ENGINE — does the simulator do what Pokémon does
         6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
         2 threw      not scored — the harness could not stage it
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 4b6a6d0a025b now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 56638f4f8443 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is cd1bbeb69c83 now
+    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 2375bfdfd7d8 now
     (+6 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 279/296 probed, 17 unprobed
+  tag coverage: 280/296 probed, 16 unprobed
 ```
 
-_stamped 2026-08-26 19:10_
+_stamped 2026-08-26 23:02_
 
 <!-- /GENERATED -->
+
+## A DERIVED TAG WITH 992 USES AND NO READER IN EITHER ENGINE. CENSUS 753 -> **754 LIVE / 754 PROBED / 0 MISSING**. PINNED POOL PREDICTED UNMOVED AND MEASURED UNMOVED. 2026-08-26.
+
+Ledger section: this one. CHANGELOG 5.150.0. Register row: ROADMAP **#466, closed**. Release cut:
+**`6272fa445b73`**, named `punishesMinimize: the six minimize-flagged moves cannot miss a minimized
+body and deal double to it`. Full account: `docs/_reports/2026-08-26-dead-tag.md`.
+
+### THE SHAPE, BECAUSE IT IS ONE THIS FILE HAS SEEN BEFORE
+
+**Destiny Bond wrote a volatile and no line ever read it.** This is that one level up: a **derived
+tag** — the FACT itself, read off the authority's own handler by `tag_dex.js` — with no consumer
+anywhere. `punishesMinimize` carried both of Minimize's punishments and the literal appeared in
+neither `engine/medicham2-browser.js` nor `engine/board.js`. `tests/test-tag-consumed.js` had been
+saying so, in the decisive reading (`ASKED = 0` **and** not named in source), for as long as the tag
+has existed: `STILL DEAD`, not `REGRESSED`.
+
+| half | the authority | this engine | now |
+|---|---|---|---|
+| **never misses** | `onAccuracy` returns `true` — the `Accuracy` event, the LAST step of `hitStepAccuracy`, which computes the stages and then throws them away | rolled, and the +2 evasion **Minimize itself grants** made a printed-100 move a 60% one | a guarantee in `hitChance`, in the No Guard / Lock-On / Toxic cluster |
+| **doubles** | `onSourceModifyDamage` -> `chainModify(2)` — the ModifyDamage relay | single damage | a member of the SAME `MODMUL` chain as Life Orb, so it truncates once with it |
+
+### IMPLEMENT OR DECLARE — THE ANSWER IS CARRIERS, NOT LEGALITY
+
+Neutralizing Gas is the standing example of a tag that reads legal and cannot occur. This is not that.
+Derived over the format with `x.exists && !x.isNonstandard && x.tier !== 'Illegal'`, walking each
+species' learnset plus its prevo / `changesFrom` chain:
+
+```
+legal moves carrying flags.minimize   6   bodyslam dragonrush flyingpress heatcrash heavyslam supercellslam
+legal species that learn Minimize     7   Starmie, Starmie-Mega, Qwilfish, Chandelure, Chandelure-Mega,
+                                          Sandaconda, Overqwil
+carriers of Body Slam               204   (Heavy Slam 40, Dragon Rush 24, Heat Crash 18,
+                                           Supercell Slam 11, Flying Press 2)
+```
+
+Seven is not zero. Rare — Minimize is **32 of 198,840** corpus sheet entries — and rarity is a
+prediction about WHICH SCOREBOARD MOVES, never a reason to declare a mechanic unreachable.
+
+**AND THE FIRST CARRIER WALK RETURNED ZERO FOR ALL SEVEN ROWS.** `D.learnsets` is `undefined` on a
+`Dex.forFormat` handle; the `try { … } catch { continue }` around `D.learnsets.getByID` threw on every
+one of the 345 species and skipped them all. A zero-carrier reading would have produced a
+DECLARATION — the comfortable answer — off a broken instrument, which is the sixteenth-ish time the
+probe has been wrong before the engine was. `D.species.getLearnsetData(id)` is the accessor.
+
+### THE AUTHORITY, AND WHY EACH CLAUSE SITS WHERE IT SITS
+
+Mainline `data/moves.ts:11920-11945`, `minimize.condition`, and **Champions does not override it** —
+`grep -n minimize data/mods/champions/moves.ts` is empty. The flag is on the ATTACKING move and both
+handlers live on the TARGET's volatile, which is why the code reads the move's tag and the defender's
+`_vol`.
+
+- The never-miss clause is **above the stage arithmetic** because the handler returns a BOOLEAN and
+  `accuracy = runEvent('Accuracy', …)` (`sim/battle-actions.ts:729-735`) discards everything below it.
+- It is **above the OHKO branch** on the Toxic block's own argument: the authority writes
+  `accuracy = true` BELOW `if (move.ohko)` and overwrites it, while our OHKO branch RETURNS, so a
+  clause placed under it could never run and the precedence would be silently inverted. That
+  precedence is unobservable today and is **stated rather than assumed** — none of the six flagged
+  moves is an OHKO move.
+- The doubling is **inside the chain, not after it**, beside `invulnDamageMult` — the other
+  defender-side `onSourceModifyDamage` member. Spending it as its own `Math.floor(d*2)` would truncate
+  twice where the authority truncates once, which is the 40%-wrong class of error that whole block
+  exists to have fixed.
+- **The 2 is read out of the tag**, never typed: `tag_dex` regexes it off `chainModify(2)`.
+
+### MEASURED ON THE OFFICIAL SIMULATOR BEFORE AN ENGINE LINE WAS WRITTEN
+
+The volatile is applied directly, so the +2 evasion is out of frame and the doubling is isolated:
+
+```
+moveHit, roll pinned, Snorlax into Sandaconda        plain -> minimized
+  Body Slam                                            52  ->  104
+  Heavy Slam                                           49  ->   98
+  Ice Beam    (unflagged control)                      78  ->   78
+
+hitStepAccuracy, +6 evasion, EVERY ROLL FORCED TO FAIL
+  Body Slam   volatile absent false    volatile present true
+  Ice Beam    volatile absent false    volatile present false     <- the cleared control
+```
+
+### THE PROBE WAS WATCHED FAIL, ON THE STAGING IT SHIPS WITH
+
+```
+                                        BEFORE            AFTER        KNOB ARMED
+ACC roll .85  icebeam   into minimize        0                 0                0
+ACC roll .85  bodyslam  into minimize        0  <- WRONG      32                0
+DMG roll .50  bodyslam  protect / minimize  15 / 15           15 / 30       15 / 15
+DMG roll .50  icebeam   protect / minimize 480 / 480         480 / 480     480 / 480
+```
+
+**THE TWO MOVES ARE NEVER DIFFERENCED AGAINST EACH OTHER**, which is the trap the `weightBased` and
+`needsUntrackedState` corrections were both caught in. The never-miss arm holds the PRINTED ACCURACY
+equal (both 100) and the doubling arm compares each move against ITSELF across the Minimize/Protect
+knob. Protect is the control setup click for the accuracyMod probe's reason: a setup turn is spent on
+both arms or on neither.
+
+**REACHED, NOT PRESENT.** `MEDSEEN.punishMinimizeNeverMiss` and `MEDSEEN.punishMinimizeDamage` are kept
+apart on purpose, because the tag's own `halves` param exists to make a one-sided implementation
+visible: 4 and 4 on the probe run, 0 and 0 under `MEDI_PUNISH_MINIMIZE_BLIND=1`. This engine has
+shipped a function declared twice and a function with no caller; a counter delta against a
+knob-cleared control is the only thing that distinguishes the two.
+
+### THE PREDICTION, WRITTEN BEFORE THE RUNS
+
+| instrument | predicted | measured |
+|---|---|---|
+| census (the lab) | moves +1 | 753 -> **754 live / 754 probed / 0 missing** |
+| `test-tag-consumed.js` | RED -> GREEN | GREEN; `dead` 13 -> 12, `dead_floor` 13 -> 12 |
+| `test-engine-diff --n 6000` — **OWED, because this moves damage** | stays 0 | 0/6000 midpoint, 0/6000 at every one of the sixteen arms |
+| pinned pool, whole-game | **does not move** | 8 of 961 (raw 13), unmoved |
+| pinned pool, board-material | does not move | 2 of 961 (959 clean), unmoved |
+| mechanics clause | unmoved | 8 of 16 |
+| roster, three stages | identical | items 139, abilities 129, moves 475; DIFFER 0, DID-NOT-FIRE 0 |
+
+The pool holds no game in which somebody clicks Minimize and is then hit by one of the six. That is a
+fact about the metagame, not a hole in the pool — the lab carries the obscure tail by design.
+
+**THE TAG'S NEW STATUS IS `UNREACHED`, NOT `LIVE`, AND THAT IS THE HONEST LABEL.**
+`test-tag-consumed.js`'s sweep drives `dmgRange` over plain built bodies and never puts a minimized one
+on the field, so the consumer's volatile gate is never crossed. `UNREACHED` means *named in source,
+this sweep never ran that path* — a gap in the sweep, which that file says on every run. Making it read
+`LIVE` would mean asking the tag BEFORE the volatile: a lookup on a hot pure read for a body that is
+almost never there, in exchange for a label. That is making the test pass rather than the mechanic
+right, and the census probe is what proves the read changes behaviour.
+
+### NOT MINE, ATTRIBUTED RATHER THAN CLAIMED
+
+`all_mechanics_fire --kind all --write` moved **exactly one row of 739**: `psychup`,
+`medicham_resolved false -> true`, and `resolution_disagreements` 12 -> 11. HEAD's artifact was still
+stamped at release `667278050dcf`, so that is ROADMAP #457 from the previous session finally reaching
+an artifact — not this batch. Checked row by row rather than inferred from the summary.
+
+### THE GATES
+
+| gate | verdict |
+|---|---|
+| `tests/test-mechanics.js` | **754/754 live, 0 missing, 0 hollow, 0 unarmed, 0 threw**, directCall 1 (the ratcheted `alwaysCrit` row) |
+| `tests/test-tag-consumed.js` | **GREEN** — `no tag is DEAD outside the ratchet floor (12 accepted)` |
+| `tests/test-engine-diff.js --n 6000` | 6000 compared, **0 disagreed**, and 0 at each of the sixteen arms |
+| roster, all three stages, release `6272fa445b73` | `FIRED-AND-BOARDS-DIFFER` 0, `DID-NOT-FIRE` 0 — identical to the previous release |
+| `engine/all_mechanics_fire.js --kind all` | 1,289 games, 0 threw, 0 sheets unassembled |
+| whole-game differential, `--games 1200 --arm middle --turns 12`, frozen pool, census pin `9446a684709d` | 8 of 961 (raw 13), board-material 2 of 961 — both unmoved |
+
+### THE HAND LIST
+
+**Leaving it — the census carries it now:**
+- ~~**`punishesMinimize` (992 uses) DEAD outside the ratchet floor**~~ — **LANDED as ROADMAP #466.**
+  Both halves, one knob, a probe watched fail first. The lab moved; the pool did not, as predicted.
+
+**Standing, and NOT this batch's:**
+- **`data/tag-consumption.json` still lists 12 DEAD tags**, led by `inflictsBurn` (45,273 uses, 15
+  carriers), `lowersTarget` (18,023), `inflictsPoison` (13,205), `inflictsFreeze` (12,822),
+  `inflictsParalysis` (12,646). **Do not read those as missing mechanics.** Burn, poison and paralysis
+  are demonstrably live and probed; the tags are DEAD in that file's own narrow sense — the engine
+  substitutes its own number instead of reading the tag's — which is the 119-value class-B/C vein
+  already filed as ROADMAP #324. The one likely to be a genuine absence is `damageMultOnRepeat` (item
+  Metronome, **27** uses), filed LOW at #327.
+- **The four `test-tag-params-derived.js` prose-quantity rows** (`analytic`, `minus`, `plus`,
+  `reckless`) are still unreadable and still refused — 1 of 61 red, pre-existing, and not touched here.
 
 ## THREE LINES, THREE KNOBS, AND TWO OF THEM CLOSED A DIVERGENCE IN A REAL LADDER GAME. CENSUS 750 -> **753 LIVE / 753 PROBED / 0 MISSING**. WHOLE-GAME DIVERGED 15 -> 13 OF 961, BOARD-MATERIAL UNMOVED AT 1. 2026-08-26.
 
@@ -307,12 +465,14 @@ self-play run, which is not this division's to make.
 - ~~**#458 Spicy Spray's `-immune`**~~ — **LANDED.** Closed a whole-game divergence, red-armed.
 
 **Arriving on it — found by this pass, NOT fixed by it:**
-- **`tests/test-tag-consumed.js` IS RED**, on `punishesMinimize` (992 uses, 6 carriers: Body Slam,
+- ~~**`tests/test-tag-consumed.js` IS RED**, on `punishesMinimize` (992 uses, 6 carriers: Body Slam,
   Dragon Rush, Flying Press and three more) being DEAD outside the ratchet floor. **It is red at HEAD
   too** — the string does not appear in `engine/medicham2-browser.js` or `engine/board.js` in either
   tree, and the test's own diagnosis says `STILL DEAD` rather than `REGRESSED`. Not folded into this
   batch: it is a mechanic (never miss a minimised target, double into it), it has no failing probe
-  yet, and landing it here would cost this batch its attribution. **Next.**
+  yet, and landing it here would cost this batch its attribution. **Next.**~~ — **LANDED 2026-08-26 as
+  ROADMAP #466**, both halves, release `6272fa445b73`. The census carries it now (row
+  `move|punishesMinimize`); the test is GREEN with `dead_floor` 13 -> 12.
 - **`data/provenance-stamp.json` went `verified: 5 -> 4`** during this session. Expected fallout of
   `data/tags.json` moving — a stamped artifact whose SOURCE changed stops being content-verified,
   which is the stamp doing its job. The VOID ratchet (the one that may not grow) is unchanged at 1.
