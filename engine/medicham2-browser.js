@@ -1515,6 +1515,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                                 this is the ONLY non-zero one of the pair is a wire that never
    *                                 fires wearing the shape of one that does. */
   inMoveUpdateRan: 0, inMoveUpdateSkippedNoTarget: 0,
+  /* 2026-08-27 -- THE OTHER n-1 IN-MOVE UPDATE PASSES, raised BETWEEN the packets of a volley
+   * (sim/battle-actions.ts:967 is inside the hit loop; the Champions override keeps it at
+   * data/mods/champions/scripts.ts:538). `inMoveUpdateRan` counts the LAST hit's pass and has been
+   * non-zero since 2026-08-23, so it could never have told anybody this half was missing. A zero here
+   * on a corpus that contains a multi-hit click means the between-hit road is unwired; the two
+   * counters are kept apart for exactly the reason `inMoveUpdateRan` and
+   * `inMoveUpdateSkippedNoTarget` are. */
+  multiHitUpdateBetweenHits: 0,
   /* 2026-08-23 -- the two `onAfterHit` field families, counted at their new home so "the step is in
    * the list" and "the step does anything" cannot be confused. Both must be non-zero on any corpus
    * that contains a Stone Axe / Ceaseless Edge and a Rapid Spin / Mortal Spin. */
@@ -1940,6 +1948,10 @@ const MEDFAILS = { encoreAction: 0,
      back out on purpose, so a deliberate restore arm and an unwired pass can never be read as the
      same thing. Same shape as orbStaleRangeRestored. */
   inMoveUpdateSuppressed: 0,
+  /* 2026-08-27 -- set for the whole run when MEDI_MULTIHIT_UPDATE_ONCE=1 puts the Update event back
+     to once per MOVE on purpose, so a deliberate restore arm and an unwired between-hit pass can
+     never be read as the same thing. Same shape as inMoveUpdateSuppressed. */
+  multiHitUpdateOnceRestored: 0,
   /* 2026-08-23 -- set for the whole run when MEDI_HAZARD_BELOW_FAINT=1 relocates the two `onAfterHit`
      field families back below the step list on purpose. Same shape as inMoveUpdateSuppressed. */
   hazardBelowFaintRestored: 0,
@@ -10925,6 +10937,13 @@ const STRUGGLE_KIND_ONLY=(typeof process!=='undefined'&&process.env&&process.env
  * restore a call that no longer happens. Any run carrying it also carries a non-zero
  * `MEDFAILS.inMoveUpdateSuppressed`. Same shape as MEDI_SUCKER_QUEUE_BLIND above. */
 const NO_INMOVE_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_INMOVE_UPDATE==='1');
+/* 2026-08-27 -- MEDI_MULTIHIT_UPDATE_ONCE=1 PUTS THE UPDATE EVENT BACK TO ONCE PER MOVE, i.e. a
+ * multi-hit volley raises it only after its LAST packet, the way this engine ran until today. It
+ * exists so the mid-volley pinch berry can be shown MISSING on demand without swapping a file. ONE
+ * knob rather than one per handler, for MEDI_NO_INMOVE_UPDATE's reason: the pass is one event and a
+ * knob per handler could not restore a call that no longer happens. Any run carrying it also carries
+ * a non-zero `MEDFAILS.multiHitUpdateOnceRestored`. Same shape as MEDI_NO_INMOVE_UPDATE above. */
+const MULTIHIT_UPDATE_ONCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MULTIHIT_UPDATE_ONCE==='1');
 /* 2026-08-23 -- MEDI_HAZARD_BELOW_FAINT=1 PUTS THE TWO `onAfterHit` FIELD FAMILIES BACK BELOW THE STEP
  * LIST, where Stone Axe's `-sidestart` and Rapid Spin's `-sideend` were written UNDER a `|faint|` the
  * authority writes them over. It RELOCATES rather than deletes -- the step becomes a no-op and the old
@@ -27140,6 +27159,50 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(TR){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}
             tg.curHP-=_packets[i];_landed++;MEDSEEN.multiHitPacketsDealt++;
             if(TR)TR.dmg(tg);
+            /* ================= 2026-08-27 -- THE UPDATE EVENT IS RAISED PER HIT ====================
+             *
+             * `eachEvent('Update')` sits INSIDE the authority's hit loop, one statement below the
+             * damage accounting (sim/battle-actions.ts:967, and the Champions override keeps it
+             * verbatim at data/mods/champions/scripts.ts:538 -- the whole loop is overridden at :428
+             * and only the `-hitcount` clause differs). So an `onUpdate` handler sees EVERY
+             * intermediate HP of a volley, not just the last one.
+             *
+             * `_stepUpdate` below is that pass for the LAST hit and its own header already declared
+             * this half missing: *"the pass is per HIT in the authority and this engine wraps the step
+             * list once per MOVE, so a multi-hit move gets one pass rather than n"*. The other n-1
+             * passes are these.
+             *
+             * WHAT IT COST, read out of the 2026-08-27 pinned differential rather than reasoned. A
+             * four-hit Scale Shot into a 170 HP Incineroar holding a Sitrus, both streams aligned:
+             *
+             *     SHOWDOWN  -damage 80/170  -enditem Sitrus  -heal 122/170  -damage 92/170
+             *     MEDICHAM  -damage 80/170  -damage  50/170  -enditem Sitrus  -heal 92/170
+             *
+             * Both ate it and both ended on 92, which is why this survived every board comparison --
+             * but this engine spent a hit standing on 50 HP, an HP the authority never reaches. On a
+             * volley whose remaining packets exceed the post-berry pool the authority's body LIVES and
+             * this one FAINTS, off the same wire. It is a state defect that the observed game happened
+             * to round away.
+             *
+             * IT IS `_updateEvent` AND NOT `_updateAll`, for `_stepUpdate`'s reason: the White Herb
+             * sweep rides on `onAnyAfterMove`, which the authority raises in `useMove` a level ABOVE
+             * the hit loop, so it must not fire between two hits of one move.
+             *
+             * NOT ON THE LAST PACKET, because `_stepUpdate` is the last packet's pass. Running it here
+             * too would be idempotent (every handler in the pass consumes the thing it fires on) and
+             * would still be a second copy of one position, which is the shape this file has a rule
+             * about.
+             *
+             * DECLARED REMAINDER: the authority raises this below that hit's WHOLE `spreadMoveHit` --
+             * its secondaries and `onAfterHit` included -- and this engine raises it below the PACKET,
+             * with those steps still wrapped once per move. NO multi-hit move in this format carries a
+             * target secondary, so the two positions coincide today; `tests/probe_multihit_update.js`
+             * derives that list on every run rather than trusting this sentence, and the step list's
+             * once-per-move wrap remains tests/test-resolution-order.js's KNOWN-OPEN arm. */
+            if(i<_packets.length-1){
+              if(MULTIHIT_UPDATE_ONCE)MEDFAILS.multiHitUpdateOnceRestored=1;
+              else{_updateEvent();MEDSEEN.multiHitUpdateBetweenHits++;}
+            }
           }
           /* 2026-08-22 -- COUNTED HERE, ANNOUNCED IN `_stepHitCount`. Only this loop knows how many
            * arrivals actually landed before the volley stopped at a KO, so the NUMBER stays here; the

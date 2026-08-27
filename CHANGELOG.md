@@ -10,6 +10,72 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.171.0] — 2026-08-27
+
+### Fixed
+- **`eachEvent('Update')` IS INSIDE THE HIT LOOP, SO A PINCH BERRY IS EATEN BETWEEN THE HITS OF A
+  VOLLEY AND NOT AFTER IT. WHOLE-GAME CLAUSE 6 OF 961 -> 5 OF 961; BOARD-MATERIAL UNMOVED AT 1 OF 961;
+  CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING.** ENGINE, ROADMAP `#482`.
+
+  **THE DIRECTION FIRST, BECAUSE THE CAUSE STRING NAMES THE CLASS AND NOT THE DIRECTION.** The
+  artifact reads `extra event emitted by medicham2 :: |-enditem|p2a|sitrusberry|[eat] <>
+  |-damage|p2a|H/H`. Read out of `data/divergence-turns.json` card 3 — a four-hit Scale Shot into a
+  170 HP Incineroar holding a Sitrus — **the authority ate the berry between hit 3 and hit 4, at
+  80/170, and healed to 122 before the fourth hit landed; this engine ate it after the whole volley,
+  at 50/170.** Both engines ate it and both ended the turn on 92/170. The `extra event` is our fourth
+  `-damage` line, which has no counterpart because the authority's fourth reads `92/170` — it lands on
+  a body that has already healed.
+
+  **IT IS NOT NARRATION, AND THE OBSERVED GAME IS THE BENIGN CORNER OF IT.** The engine spent two hits
+  standing on an HP the authority never reaches. Where the remaining packets total more than the
+  post-berry pool, the authority's body LIVES and this one FAINTS, off the same wire.
+
+  **THE AUTHORITY'S POSITION WAS READ, NOT RECALLED.** `hitStepMoveHitLoop` raises the Update event
+  once per HIT, one statement below the damage accounting and inside the loop
+  (`sim/battle-actions.ts:967`); Champions overrides the whole loop
+  (`data/mods/champions/scripts.ts:428`) and keeps that line verbatim at `:538`. Champions does **not**
+  override the berry — `grep -c sitrus data/mods/champions/items.ts` is `0` — so `sitrusberry` is
+  mainline `data/items.ts:5740`: `onUpdate` at `hp <= maxhp / 2`, `onEat: this.heal(baseMaxhp / 4)`.
+
+  **THE ENGINE HAD ALREADY DECLARED THIS HALF MISSING, AND THE DECLARATION IS WHAT CLOSES.**
+  `_stepUpdate`'s header reads *"the pass is per HIT in the authority and this engine wraps the step
+  list once per MOVE, so a multi-hit move gets one pass rather than n"*. `_stepUpdate` is the LAST
+  hit's pass; the other n-1 did not exist. `MEDSEEN.inMoveUpdateRan` has been non-zero since
+  2026-08-23, so no counter in the engine could have said so — the new
+  `MEDSEEN.multiHitUpdateBetweenHits` is kept apart for exactly that reason. The fix is
+  `engine/medicham2-browser.js` only: `_updateEvent()` between the packets, on every packet but the
+  last.
+
+  **SHOWN RED FIRST, AND THE SAMPLE PROVEN IDENTICAL RATHER THAN ASSUMED.** The probe's fixture is
+  searched and selected on the SHOWDOWN stream alone; before the fix it read the eat after 5 hits
+  against the authority's 3, with the body standing on 10 HP against the authority's 45. Whole-game
+  raw `11 -> 10` on release `f3383ff4aa29`, arm `middle`, 961 games, `--turns 12`, team store
+  `data/team-pool-frozen`, census pin `9446a684709d`: same 961 games, same 12,450 turn boundaries,
+  same steering digest, same pin digest `2efbc9ed1946`, same 252 rows credited, same end-reason split,
+  **exactly one first-divergence gone and none arrived.** Three roster stages
+  `0 FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE`; damage `0 of 6000` at all sixteen corners; mechanics
+  clause unmoved at 5 of 12. Full account: `docs/_reports/2026-08-27-sitrus-timing.md`.
+
+### Added
+- `tests/probe_multihit_update.js` — the twenty-first ENGINE instrument. It asks whether an `onUpdate`
+  handler sees every intermediate HP of a volley, judged by two protocol streams with no typed
+  expectation, with the control a child on `MEDI_MULTIHIT_UPDATE_ONCE=1` that must move the eat AND
+  must part from the authority.
+
+### Notes
+- **`tests/test-resolution-order.js` OOMs at node's default heap and PASSES with
+  `--max-old-space-size=6144`. That is ROADMAP `#446`, open since 2026-08-26 — a second observation,
+  not a new finding.** Re-proved not to be this change's doing the same way #446 proved it was not the
+  previous batch's: it fails identically under `MEDI_MULTIHIT_UPDATE_ONCE=1`, which restores the
+  previous behaviour exactly. Its `a1-multihit-frequency` arm is still correctly KNOWN-OPEN — the step
+  list is still wrapped once per move, so Toxic Debris still interleaves wrongly.
+- **The declared remainder of this fix, stated rather than left to be found.** The authority raises
+  the pass below that hit's whole `spreadMoveHit`, secondaries and `onAfterHit` included; this engine
+  raises it below the PACKET. No multi-hit move in this format carries a target secondary — derived on
+  every probe run, printed, never recalled — so the two positions coincide today.
+
+---
+
 ## [5.170.0] — 2026-08-27
 
 ### Fixed
