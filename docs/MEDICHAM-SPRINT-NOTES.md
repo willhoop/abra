@@ -21,6 +21,45 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## FOUR ITEM-LOSS FIXTURES STAGED, ALL FOUR ALREADY CORRECT, AND THE FOURTH'S PREMISE WAS FALSE. **CENSUS UNMOVED AT 754 / 754 / 0. NO ENGINE BYTE MOVED.** 2026-08-27 (ENGINE).
+
+CHANGELOG 5.165.0. Full account: `docs/_reports/2026-08-27-item-loss-fixtures.md`. Three new probes:
+`tests/probe_poltergeist_use_time.js`, `tests/probe_unburden_herb_paths.js`,
+`tests/probe_knockoff_megastone.js` — each shown RED on a known-bad before being believed.
+
+| fixture | verdict |
+|---|---|
+| Poltergeist held / empty / **stripped earlier in the same turn** | **CORRECT** — damage 90 / 0 / 85, `-fail` and no `-activate` on both engines |
+| Unburden via Close Combat + White Herb (`onAnyAfterMove`) | **CORRECT** — both stages back to 0 for ONE consumption, order flips on turn 2 |
+| Unburden via Intimidate + White Herb (`onAnySwitchIn`, priority -2) | **CORRECT** — live on TURN ONE with no move spent; the `refill()` pass holds |
+| Knock Off into a mega stone, un-evolved and evolved | **CORRECT** — no strip, no boost, six arms |
+
+**The fourth fixture's premise is false and a static re-implementation of the guard agreed with it.**
+Of the 75 legal stones, 73 read `source.baseSpecies.baseSpecies` and **2 carry a stronger guard** that
+reads `baseSpecies.NAME` against the megaStone map's values as well as its keys — the two whose base has
+more than one forme. Evaluated rather than paraphrased: **0 stones are removable after mega evolution**,
+and both engines refuse everywhere. The paraphrase had declared one removable and reported a divergence
+that does not exist.
+
+**Two instrument faults caught before they were reported as engine defects.** `hpBoost` cannot be used
+in an arm that mega evolves — Showdown's `formeChange` calls `updateMaxHp()` and drops the multiplier,
+so the authority's body went `1320 -> 165` at the mega while ours stayed at 1320 and both mega arms
+reported a four-leaf board divergence that was the rig. And the attacker's own Swords Dance turned the
+control arm into a KO, so every read after it was of a replacement while every clause stayed green.
+
+**The `--red` arm failed first, in this project's own signature shape.** `require('engine/tags.js')`
+reaches a different module instance from the one `game_differential.js` uses through `REL.require`, so
+the strip changed nothing and the run reported *0 of 4 broke*. Through `G.REL.require` it is 4 of 4.
+
+**Not filed, declared:** the authority's `|-ability|` announcement is absent from this engine on every
+arm; `game_differential.js`'s EQUIV list already carries `ability-announcement` as cosmetic with a red
+demonstration both ways, so the probe applies the same drop and prints the per-arm count.
+
+**Owed:** no census row was added for any of the four, so 754 / 754 understates coverage by four
+fixtures. Adding them regenerates the census and changes which scenarios every steered run plays.
+
+---
+
 ## THE LISTS AUDITED THEIR MEMBERSHIP AND NOTHING AUDITED THE CLAIMS INSIDE THEM. **280 CLAIMS, 252 CHECKABLE, 0 FALSE IN THE RECORDS AND 8 FALSE IN THE COMMENTS.** 2026-08-27 (MEASURE).
 
 CHANGELOG 5.164.0. Full account: `docs/_reports/2026-08-27-claims-audit.md`. New instrument:

@@ -20,7 +20,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_spread_secondary_address.js`,
 `tests/probe_mid_cat_reload.js`, `tests/probe_party_key_collision.js`, `engine/identity_audit.js`,
 `tests/probe_transform_faint_revert.js`, `tests/probe_refill_entry_herb.js`,
-`tests/probe_recoil_after_clamp.js`
+`tests/probe_recoil_after_clamp.js`, `tests/probe_poltergeist_use_time.js`,
+`tests/probe_unburden_herb_paths.js`, `tests/probe_knockoff_megastone.js`
 
 **Twenty instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -58,6 +59,9 @@ CLAUDE.md records going stale three times over.)*
 | `probe_mid_cat_reload.js` | does the middle arm's category wrapper still reach THIS module after `staged_board.js` re-requires the driver — three loads of the SAME engine, two boards each, arm 2 differing from arm 1 by a trailing comment so no engine difference exists to be, each row asserting board identity AND that the Showdown draws carry `acc`/`crit`/`dmg`; red on demand in a child under `MEDI_MID_CAT_UNSHARED=1`, which must die at the SECOND load with the two first-load rows already green | whether either engine plays the game right — it compares the RULER against itself across a reload. And every OTHER module-scoped binding a reloaded driver inherits: it is one holder, not an audit |
 | `probe_party_key_collision.js` | can the board reader LOSE a body - one staged collision (a transform-on-entry carrier copying the species its own side also brings), read out of BOTH engines' party maps under BOTH keyings, the second in a child because the knob is read at module load; the PARENT is the shipped default (identity) and ASSERTS the fix — four rows in each engine, the same four, and the rename as a compared `species` leaf — while the CHILD is the `MEDI_PARTY_KEY_DISPLAY=1` control and only MEASURES, because asserting the old behaviour would pin the bug (it still reads 3 of 4, one body lost) | whether either engine plays the game right - it compares two READERS of one board. And any rename that is not `transformsOnEntry`: the membership comes off `data/tags.json` and is printed, but the arm is ONE ability's carrier, not the seven |
 | `identity_audit.js` | who answers "which roster body is this", and whether they went through the door — membership DERIVED from `stableKey`'s own source at run time (no list of fields, no list of known-bad spellings), HARD versus SOFT split derived from whether the door's branch announces itself with `say(...)`, every site reported as DOOR / STAMP / ROUTED / DECLARED / UNROUTED, and `--break` plants an unrouted read and fails unless the child goes red | every SOFT-chain site — `.name` and `.species.id` are display reads far more often than identity reads and no static rule separates them (1,301 lines in 164 files, counted and printed); an identity answered with NO chain read at all, e.g. by index into `sf.team`; anything outside `engine/ tests/ build/`; and a wrong `IDENTITY-OK:` declaration, which is why all of them are printed in full every run |
+| `probe_poltergeist_use_time.js` | does the item check read the slot at USE TIME — three arms on one board, the item removed by a faster ally EARLIER IN THE SAME TURN, with the strip's precedence read off the AUTHORITY's own `\|move\|` order and the damage moving 90 / 85 / 0 across the knob | whether the announcement itself is right (`probe_poltergeist_item_line.js` owns that), and any other move that reads a target's item — it is ONE move, not the tag |
+| `probe_unburden_herb_paths.js` | does ONE herb come through TWO doors and hand over a SPEED TIER — the after-move door and the switch-in door, three arms each, both stat stages asserted back at zero for a SINGLE consumption, and the proc read as a turn ORDER between two bodies whose Speeds are DERIVED to straddle the doubling (the file refuses to run outside that window). `--red` strips the tag through the DRIVER's tags module and requires 4 of 4 clauses to break | the other two doors (`onAnyAfterMega`, `onResidual`), which nothing here stages; and any Speed consequence the `\|move\|` order cannot show — it compares who acted first, never a stat |
+| `probe_knockoff_megastone.js` | can a mega stone be knocked off, un-evolved or evolved — six arms, the handler EVALUATED per stone rather than paraphrased (73 carry one guard and 2 carry a stronger one, and the paraphrase invented a divergence that does not exist), plus a FOREIGN-stone arm that moves the damage 72 -> 106 on the same body so the refusal is shown keyed on the PAIRING and not on the class | the boost in ISOLATION on a MEGA forme, permanently — mega evolution requires holding the matching stone, so "this mega forme holding an ordinary item" is a board the game cannot produce, and the file declares that rather than comparing across formes; and the `\|-ability\|` announcement, dropped under `game_differential.js`'s own `ability-announcement` equivalence and printed per arm |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -91,6 +95,77 @@ ENGINE — does the simulator do what Pokémon does
 _stamped 2026-08-27 02:28_
 
 <!-- /GENERATED -->
+
+## FOUR ITEM-LOSS FIXTURES WILL ASKED FOR BY NAME, ALL STAGED, ALL FOUR ALREADY CORRECT — AND THE FOURTH ONE'S PREMISE WAS FALSE. CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. NO ENGINE BYTE MOVED. 2026-08-27.
+
+Release `7f7de860723b`, arm `middle`. Full account: `docs/_reports/2026-08-27-item-loss-fixtures.md`.
+Three probe files added, each shown RED on a known-bad before being believed. Nothing was fixed, so no
+release was cut, the census was not regenerated, and the pinned pool was predicted unmoved and is
+unmoved by construction.
+
+| fixture | verdict |
+|---|---|
+| Poltergeist with an item, without one, and **with the item removed earlier in the same turn** | **CORRECT** |
+| Unburden via Close Combat + White Herb — the `onAnyAfterMove` door | **CORRECT** |
+| Unburden via Intimidate + White Herb — the `onAnySwitchIn` door | **CORRECT**; the 2026-08-27 `refill()` pass holds |
+| Knock Off into a mega stone, un-evolved and evolved | **CORRECT**, and see below |
+
+**THE FOURTH FIXTURE'S PREMISE IS FALSE, AND A STATIC RE-IMPLEMENTATION OF THE GUARD AGREED WITH IT.**
+The brief expected a stone to become removable once its holder megas, because the guard reads
+`source.baseSpecies.baseSpecies` and `formeChange(..., isPermanent)` rewrites that field. Re-implementing
+the guard as `!!item.megaStone[megaForme.baseSpecies]` says exactly that — **one stone of 75** — and it
+is wrong, because **the stones do not all carry the same handler.** Walked and EVALUATED over the
+format rather than paraphrased:
+
+```
+DISTINCT onTakeItem handlers among the 75 legal stones : 2
+  x73   return !item.megaStone?.[source.baseSpecies.baseSpecies];
+  x2    return !item.megaStone || !item.megaStone[source.baseSpecies.name] &&
+                                  !Object.values(item.megaStone).includes(source.baseSpecies.name);
+stones the handler lets go while UN-EVOLVED : 0
+stones the handler lets go AFTER MEGA       : 0
+```
+
+The two exceptions are exactly the stones whose base has more than one forme; their guard reads
+`baseSpecies.NAME` and checks the map's VALUES as well as its keys, so a mega forme's own name matches.
+**No stone in this regulation is removable after mega evolution**, both engines refuse everywhere, and
+there is nothing to file. `tests/probe_knockoff_megastone.js` now CALLS each handler with a minimal
+holder and prints both classes, because a paraphrase of a handler is a value typed from memory wearing
+a receipt.
+
+**THE REFUSAL IS SHOWN KEYED ON THE PAIRING, NOT ON THE CLASS.** A sixth arm puts a stone on a body it
+does not belong to: same species, same forme as the control, and the damage moves **72 -> 106** while
+the item comes off in both engines. Without it, an engine that simply refused every stone would pass
+every other clause in the file.
+
+**TWO INSTRUMENT FAULTS WERE CAUGHT BEFORE THEY WERE REPORTED AS ENGINE DEFECTS.**
+- **`hpBoost` cannot be used in an arm that mega evolves.** Showdown's `formeChange` calls
+  `updateMaxHp()` and recomputes from the species, dropping the harness multiplier: at x8 the
+  authority's body went `1320 -> 165` the instant it evolved while ours stayed at 1320, and BOTH mega
+  arms reported a four-leaf board divergence that was entirely the rig — exactly `maxhp`, exactly the
+  factor 8, on both mega arms and neither un-evolved one.
+- **The attacker's own Swords Dance turned the control arm into a KO.** The subject fainted, a
+  replacement came in, and every read after it was of a different body while every clause stayed green.
+
+**AND THE `--red` ARM ITSELF FAILED FIRST, IN THE WAY THIS PROJECT IS NAMED AFTER.** Stripping a tag
+with `require('engine/tags.js')` reaches a DIFFERENT module instance from the one the driver uses —
+`game_differential.js` loads through `REL.require` out of the frozen tree — so the strip changed
+nothing and the run reported *0 of 4 clauses broke*. Through `G.REL.require('engine/tags.js')` it is
+4 of 4. The same clause also read the AUTHORITY's turn order where it meant OURS, which is reading the
+control and calling it the arm. Both are recorded in the file rather than quietly fixed.
+
+**ONE NARRATION DIFFERENCE, DECLARED AND NOT FILED.** The authority writes `|-ability|` when an ability
+announces itself and this engine writes none, on every arm. `game_differential.js`'s EQUIV list carries
+`ability-announcement` as cosmetic with a red demonstration in both directions, so the probe applies
+the same drop and PRINTS the per-arm count. A probe stricter than the instrument it feeds would report
+a defect nothing else in the repository agrees is one.
+
+**WHAT IS OWED.** No census row was added for any of the four, so `754 / 754` understates coverage by
+four fixtures; adding them regenerates `data/mechanics-census.json` and changes which scenarios every
+steered run plays, which is a separate pass. The mega arms carry **no isolated boost control** and the
+file declares that rather than faking one — mega evolution requires holding the matching stone, so
+"this mega forme holding an ordinary item" is a board the game cannot produce.
+
 
 ## THREE DOORS THE HOUSEKEEPING NEVER REACHED. **BOARD-MATERIAL 4 -> 1 OF 961.** WHOLE-GAME CLAUSE 10 -> 9, RAW 15 -> 14. CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27.
 

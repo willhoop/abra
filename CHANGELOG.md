@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.165.0] — 2026-08-27
+
+### Added
+- **FOUR ITEM-LOSS FIXTURES STAGED BY NAME, ALL FOUR ALREADY CORRECT — AND THE FOURTH ONE'S PREMISE
+  WAS FALSE.** ENGINE. Full account: `docs/_reports/2026-08-27-item-loss-fixtures.md`. Three new
+  probes, each shown RED on a known-bad before being believed: `tests/probe_poltergeist_use_time.js`,
+  `tests/probe_unburden_herb_paths.js`, `tests/probe_knockoff_megastone.js`.
+
+  Poltergeist reads the target's slot at USE TIME — an item removed by a faster ally EARLIER IN THE
+  SAME TURN refuses the move (damage 90 held / 85 stripped / 0 empty, `-fail` and no `-activate` on
+  both engines). White Herb clears EVERY negative stage for ONE consumption and comes through BOTH
+  doors: `onAnyAfterMove` after Close Combat, and `onAnySwitchIn` (priority -2) after an entry drop,
+  where Unburden is live on TURN ONE with no move spent. The proc is read as a TURN ORDER between two
+  bodies whose Speeds are derived to straddle the doubling, because Speed is not a board leaf.
+
+  **Boards identical at every boundary on every arm of all three files.** Census unmoved at
+  **754 live / 754 probed / 0 missing**; no engine byte moved, so no release was cut and the pinned
+  pool was predicted unmoved and is unmoved by construction.
+
+### Fixed
+- Nothing in the simulator. This pass staged and did not fix, deliberately — four fixtures plus fixes
+  in one pass destroys attribution.
+
+### Notes
+- **THE MEGA-STONE PREMISE WAS FALSE AND A STATIC RE-IMPLEMENTATION OF THE GUARD AGREED WITH IT.**
+  The expectation was that a stone becomes removable once its holder megas, because the guard reads
+  `source.baseSpecies.baseSpecies` and `formeChange(..., isPermanent)` rewrites that field. Of the 75
+  legal stones **73 carry that guard and 2 carry a stronger one** — the two whose base has more than
+  one forme — which reads `baseSpecies.NAME` against the megaStone map's VALUES as well as its keys.
+  Evaluated rather than paraphrased: **0 stones are removable after mega evolution**, and both engines
+  refuse everywhere. The paraphrase declared one removable and reported a divergence that does not
+  exist. The probe now CALLS each handler and prints both classes.
+- **Two instrument faults were caught before they were reported as engine defects.** `hpBoost` cannot
+  be used in an arm that mega evolves: Showdown's `formeChange` calls `updateMaxHp()` and drops the
+  harness multiplier, so at x8 the authority's body went `1320 -> 165` at the mega while ours stayed
+  at 1320 and BOTH mega arms reported a four-leaf board divergence that was entirely the rig. And the
+  attacker's own Swords Dance turned the control arm into a KO, so every read after it was of a
+  replacement while every clause stayed green.
+- **The `--red` arm failed first, in this project's signature shape.** `require('engine/tags.js')`
+  reaches a different module instance from the one `game_differential.js` uses through `REL.require`,
+  so stripping the tag changed nothing and the run reported *0 of 4 clauses broke*. Through
+  `G.REL.require('engine/tags.js')` it is 4 of 4. The same clause also read the AUTHORITY's turn order
+  where it meant OURS — reading the control and calling it the arm.
+- **One narration difference, declared and not filed.** The authority writes `|-ability|` when an
+  ability announces itself; this engine writes none, on every arm. `engine/game_differential.js`'s
+  EQUIV list already carries `ability-announcement` as cosmetic with a red demonstration in both
+  directions, so the probe applies the same drop and prints the per-arm count rather than reporting a
+  defect nothing else in the repository agrees is one.
+- **Owed:** no census row was added for any of the four, so 754 / 754 understates coverage by four
+  fixtures. Adding them regenerates `data/mechanics-census.json` and changes which scenarios every
+  steered run plays, which is a separate pass.
+
 ## [5.164.0] — 2026-08-27
 
 ### Added
