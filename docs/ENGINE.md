@@ -22,7 +22,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_transform_faint_revert.js`, `tests/probe_refill_entry_herb.js`,
 `tests/probe_recoil_after_clamp.js`, `tests/probe_poltergeist_use_time.js`,
 `tests/probe_unburden_herb_paths.js`, `tests/probe_knockoff_megastone.js`,
-`tests/probe_random_target_address.js`
+`tests/probe_random_target_address.js`,
+`tests/probe_spread_status_steps.js`
 
 **Twenty instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -64,6 +65,7 @@ CLAUDE.md records going stale three times over.)*
 | `probe_poltergeist_use_time.js` | does the item check read the slot at USE TIME — three arms on one board, the item removed by a faster ally EARLIER IN THE SAME TURN, with the strip's precedence read off the AUTHORITY's own `\|move\|` order and the damage moving 90 / 85 / 0 across the knob | whether the announcement itself is right (`probe_poltergeist_item_line.js` owns that), and any other move that reads a target's item — it is ONE move, not the tag |
 | `probe_unburden_herb_paths.js` | does ONE herb come through TWO doors and hand over a SPEED TIER — the after-move door and the switch-in door, three arms each, both stat stages asserted back at zero for a SINGLE consumption, and the proc read as a turn ORDER between two bodies whose Speeds are DERIVED to straddle the doubling (the file refuses to run outside that window). `--red` strips the tag through the DRIVER's tags module and requires 4 of 4 clauses to break | the other two doors (`onAnyAfterMega`, `onResidual`), which nothing here stages; and any Speed consequence the `\|move\|` order cannot show — it compares who acted first, never a stat |
 | `probe_knockoff_megastone.js` | can a mega stone be knocked off, un-evolved or evolved — six arms, the handler EVALUATED per stone rather than paraphrased (73 carry one guard and 2 carry a stronger one, and the paraphrase invented a divergence that does not exist), plus a FOREIGN-stone arm that moves the damage 72 -> 106 on the same body so the refusal is shown keyed on the PAIRING and not on the class | the boost in ISOLATION on a MEGA forme, permanently — mega evolution requires holding the matching stone, so "this mega forme holding an ordinary item" is a board the game cannot produce, and the file declares that rather than comparing across formes; and the `\|-ability\|` announcement, dropped under `game_differential.js`'s own `ability-announcement` equivalence and printed per arm |
+| `probe_spread_status_steps.js` | does a spread STATUS move run each STEP across every target the way `trySpreadMoveHit`'s `moveSteps` does — six arms, no typed expectation, both engines on one pinned corner, each played clean and again under `MEDI_SPREAD_STATUS_PER_TARGET=1`; three reds that must part under the knob, three controls that must not, and the nesting counters asserted as an EXACT per-game delta off `globalThis.MEDSEEN` so a knob that reached a module the driver never loaded fails the arm whatever the streams say | anything outside the `kind==='affect'` branch: `corrosivegas` arrives as `trickitem` and is named rather than covered, and the SUBSTITUTE step sits above accuracy here and below it in the authority — both declared, neither staged. And the step BOUNDARIES themselves, which it inherits rather than checks: it compares the two engines' streams, never this branch's step list against `moveSteps` |
 | `probe_random_target_address.js` | can the `randomNormal` target die be SHARED by blanking our address — every authority draw in the blank `any` bucket tagged with its REAL stack, the `nth` its runMove target draw carries, the proposal's pick rate against a coin floor, a wrong-turn negative control, and `--focus` for one named game so "would this reach board-material zero" is answered against the game the artifact records | whether either engine plays the game right — it compares ADDRESSES and the picks they imply, never a board. And it measures the proposal WITHOUT it being landed, so it says nothing about what a whole-game re-run would report |
 
 **Its one number:** mechanics live. **It must never go down.**
@@ -75,7 +77,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  754/754 probed mechanics live, 0 missing   (census 2026-08-27 03:13)
+  754/754 probed mechanics live, 0 missing   (census 2026-08-27 04:24)
   0/6000 differential comparisons disagree with Showdown   (2026-08-27 02:09)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -95,9 +97,136 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 03:52_
+_stamped 2026-08-27 04:28_
 
 <!-- /GENERATED -->
+
+## SPREAD STATUS MOVES RAN THE WHOLE GAUNTLET PER TARGET; THE AUTHORITY RUNS EACH STEP ACROSS EVERY TARGET. **MECHANICS CLAUSE 8 OF 16 -> 5 OF 12.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 1 OF 961. 2026-08-27.
+
+Release `ee4e537b7255` (cut for this change), arm `middle`, cap 12, 961 games,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--state --end-state`. One probe added: `tests/probe_spread_status_steps.js`. Register row: ROADMAP
+**#448 — CLOSED**. CHANGELOG 5.168.0. Full account: `docs/_reports/2026-08-27-spread-status.md`.
+
+### THE DEFECT WAS ONE BRANCH OF A CONVERSION THAT WAS DONE ONCE AND NOT FINISHED
+
+`Battle.actions.trySpreadMoveHit` (`sim/battle-actions.ts:550-577`) declares `moveSteps` as **data**
+and runs each STEP across the whole target array before the next step begins — which is why a Protect
+refusal always precedes any target's effect. ROADMAP #81 WIRE 10 gave the DAMAGING branch that shape
+(`for (const _step of _STEPS) for (const R of _rows)`, step outside and target inside). **The
+`a.kind === 'affect'` branch was never converted**, and its own header said so in as many words:
+*"EVERY TARGET RUNS THE WHOLE GAUNTLET ON ITS OWN"*.
+
+```
+SHOWDOWN  |-activate|p2b: Charizard|move: Protect  then  |-unboost|p2a: Feraligatr|spe|2
+MEDICHAM  |-unboost|p2a: Feraligatr|spe|2          then  |-activate|p2b: Charizard|move: Protect
+```
+
+### WHICH SCOREBOARD IT SHOULD MOVE, SAID BEFORE THE RUN
+
+**#448 was measured on 2026-08-26 as announcement-only with ZERO games in the pinned pool**, so the
+LAB was expected to move and the POOL to sit still. Both held.
+
+| | before | after |
+|---|---|---|
+| **mechanics clause** | **8 of 16** | **5 of 12** |
+| diverging MOVE rows, `all_mechanics_fire --kind all` | 14 | **10** |
+| whole-game clause (played, less declared) | 9 of 961 | 9 of 961 |
+| board-material (`games - games_board_never_diverged`) | 1 of 961 | 1 of 961 |
+| census | 754 / 754 / 0 | 754 / 754 / 0 |
+| roster items / abilities / moves | 0 DIFFER, 0 DID-NOT-FIRE | 0 DIFFER, 0 DID-NOT-FIRE |
+
+`cottonspore`, `stringshot`, `sweetscent` and `teeterdance` all read NO-DIVERGENCE. Three of the four
+were above the clause's reach anchor, which is the whole of the 8 -> 5.
+
+### IT IS A TRANSPOSITION, AND THAT IS AN ASSERTION WITH TWO CONTROL ARMS UNDER IT
+
+The per-target sequence is byte-for-byte the sequence this branch already ran, cut at the authority's
+own step boundaries into six closures over a row `{tg, out}` — `_asGone`, `_asTryHit`, `_asTypeImm`,
+`_asTryImm`, `_asAccuracy`, `_asEffects` — driven by `for (const _step of _ASTEPS) for (const R of
+_aRows)`. Twelve `continue`s became `R.out = true; return;` (that body's pass ends and every later
+step skips the row — the authority's `targets[i] = false`); six inner effect-loop `continue`s were
+deliberately left alone, and every substitution was anchored by line and asserted to match exactly
+once. **At one target the two orders are the same permutation** — arithmetic, and the reason every
+single-target status move in the format is untouched.
+
+**AND THE ADDRESSES DO NOT MOVE.** `MID_TGT` is stamped once per ACTION for this branch, not per
+target, and the middle arm's `nth` counters are per CATEGORY — so every target's accuracy draw still
+precedes every later target's, and so does every secondary draw. A transposition that moved a die
+would not be one.
+
+### THE KNOB IS MEASURED, NOT TRUSTED — AND THAT CLAUSE CAUGHT THIS BATCH'S INSTRUMENT FAILURE
+
+`MEDI_SPREAD_STATUS_PER_TARGET=1` restores the old nesting. Six arms, no typed expectation, both
+engines on the `bottom-tie-first` corner, each played clean and under the knob:
+
+| arm | kind | clean | knob |
+|---|---|---|---|
+| `cottonspore-red` (`allAdjacentFoes`, foe B behind Protect) | red | agrees | **parts** |
+| `stringshot-red` (the same at 95%, so `hitStepAccuracy` is a live step) | red | agrees | **parts** |
+| `teeterdance-red` (`allAdjacent` — my own partner FIRST, then the foes) | red | agrees | **parts** |
+| `cottonspore-nobody-shields` (same board, one click different) | control | agrees | agrees |
+| `single-target-into-the-shield` (Eerie Impulse at the Protecting body) | control | agrees | agrees |
+| `single-target-unshielded` (Eerie Impulse at the body that is not) | control | agrees | agrees |
+
+**Shown red first.** Before the fix all three red arms read `PARTS CLEAN` on exactly the divergence
+the census records, and all three controls held — so the probe separates the mechanism from the
+fixture.
+
+Every arm asserts `spreadStatusStepOuter` / `spreadStatusPerTargetRestored` as an exact per-game delta
+off `globalThis.MEDSEEN`, the object the bytes the driver actually ran increment, and reads
+`clean 1/0, knob 0/1` on all six. A knob read by a module the driver never loaded changes nothing and
+produces a green run that staged nothing. **It fired**: the counters were first declared inside
+`MEDFAILS` instead of `MEDSEEN`, so `MEDSEEN.spreadStatusStepOuter++` produced `NaN` — all six
+protocol verdicts were ALREADY correct at that point and the run still failed.
+
+### TWO THINGS NOT DONE, NAMED HERE RATHER THAN LEFT IN A DIFF
+
+- **CORROSIVE GAS IS THE FIFTH ROW OF THE GROUP AND IS NOT CLOSED.** `playerAction` classifies it
+  `trickitem`, so it never arrives in the `affect` branch at all — the engine's own header already
+  said so. 1 click in 64,846 stored games, REACH-excluded from the clause, so it moved the count
+  neither way. It needs its own change at its own site.
+- **SUBSTITUTE STAYS IN THE TryHit GROUP**, where this branch has always asked it, and not in the hit
+  loop where the authority asks it (`onTryPrimaryHit`, *below* accuracy). A second divergence about a
+  different step; nothing measures it today, and moving it inside a change whose whole claim is that
+  it is a transposition would have made that claim false.
+
+### THE HAND LIST
+
+**Opened by this batch, filed with its evidence:**
+- **`corrosivegas` — the same sentence at the `trickitem` site.** Above. No probe fails on it yet.
+- **Substitute is asked ABOVE accuracy in the `affect` branch and BELOW it in the authority.** A
+  status move that misses a Substituted body announces `-activate Substitute` here and `-miss` there.
+  Nothing measures it.
+
+**Standing, and NOT this batch's:**
+- **A FAINTED MEGA DOES NOT REGRESS ITS FORME** (`sim/battle.ts:2554-2557`, `:2568-2571`). No board in
+  the pinned pool parts on it today.
+- **WIDE GUARD ANNOUNCES BEFORE A STEP-0 `-miss`.** No probe fails on it yet.
+- **`nth` DOES NOT MIX IN THE ADDRESS HASH.** Owner is whoever re-baselines the arm.
+- **`data/tag-consumption.json` still lists 12 DEAD tags**, led by `inflictsBurn` (45,273 uses) —
+  ROADMAP #324; the one likely genuine absence is `damageMultOnRepeat` (27 uses), #327.
+- **The four `test-tag-params-derived.js` prose-quantity rows** (`analytic`, `minus`, `plus`,
+  `reckless`) are still unreadable and still refused — 1 of 61 red, pre-existing.
+- **`tests/test-middle-identity.js`, `tests/test-web-status.js` and `tests/test-resolution-order.js`
+  were named RED at HEAD in an earlier brief**; not run and not this batch's.
+- **`.scratch_eng/`, `.scratch_eng_diffrun.cmd` and `stash@{0}` ARE ANOTHER SESSION'S**, as are the
+  sixteen `data/*.json` files that were already modified before this batch started. Reported, left,
+  nothing executed and nothing staged.
+
+### OWED, NOT RUN
+
+- The **full 6,000-row** `tests/test-engine-diff.js` — not re-run. The change is entirely inside the
+  status-move branch of `battleTurn`; the damage differential drives the damage function directly and
+  never enters it. `--n 300 --seed 20260804` was run as a confirmation and reads **0 of 300 at all
+  sixteen corners**; the publish guard refused the shrink, as designed, and wrote
+  `data/verification/engine-diff.n300.json`. The published 6,000-row artifact stands untouched.
+- `tests/interaction_matrix.js`, `engine/wire_ladder.js`, `engine/tag_dex.js` — not run; all three are
+  already WITHHELD by provenance for reasons that predate this change.
+- `tests/run-all.js`, `tests/staged_board.js`, `tests/bench-medicham.js --record` — not run, as in the
+  preceding batches.
+
+---
 
 ## THE LAST BOARD-MATERIAL GAME WAS RULED A FIX AND THE COLLISION PROOF CAME BACK THE OTHER WAY. **BOARD-MATERIAL UNMOVED AT 1 OF 961 — NOTHING WAS LANDED.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. NO ENGINE BYTE MOVED. 2026-08-27.
 

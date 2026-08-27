@@ -1,55 +1,14 @@
 {
-  "generated": "2026-08-23T04:30:31.209Z",
+  "generated": "2026-08-27T08:19:30.799Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
   "seed": 20260804,
   "requested": 300,
   "compared": 300,
-  "agreed": 296,
-  "disagreed": 4,
-  "worst": [
-    {
-      "att": "machamp",
-      "mv": "knockoff",
-      "def": "mimikyubusted",
-      "showdown": "50-59",
-      "medicham": "0-0",
-      "rel": 1,
-      "uses": 5269,
-      "suspect": false
-    },
-    {
-      "att": "castformsnowy",
-      "mv": "blizzard",
-      "def": "primarina",
-      "showdown": "12-15",
-      "medicham": "18-22",
-      "rel": 0.48148148148148145,
-      "uses": 4828,
-      "suspect": false
-    },
-    {
-      "att": "medichammega",
-      "mv": "bulletpunch",
-      "def": "mimikyubusted",
-      "showdown": "102-120",
-      "medicham": "0-0",
-      "rel": 1,
-      "uses": 1427,
-      "suspect": false
-    },
-    {
-      "att": "kangaskhanmega",
-      "mv": "doubleedge",
-      "def": "malamarmega",
-      "showdown": "121-144",
-      "medicham": "151-161",
-      "rel": 0.17735849056603772,
-      "uses": 607,
-      "suspect": false
-    }
-  ],
+  "agreed": 300,
+  "disagreed": 0,
+  "worst": [],
   "plant": null,
   "arms": [
     {
@@ -57,790 +16,144 @@
       "what": "Showdown damage roll index 0 (MAXIMUM) against MEDICHAM's `max`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 297,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "59",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "15",
-          "medicham": "22",
-          "rel": 0.4666666666666667,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "120",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "bottom",
       "what": "Showdown damage roll index 15 (MINIMUM) against MEDICHAM's `min`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "50",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "102",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "121",
-          "medicham": "151",
-          "rel": 0.24793388429752067,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx01",
       "what": "Showdown damage roll index 1 (roll 99%) against MEDICHAM's own `rolls[1]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "58",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "118",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "142",
-          "medicham": "161",
-          "rel": 0.13380281690140844,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx02",
       "what": "Showdown damage roll index 2 (roll 98%) against MEDICHAM's own `rolls[2]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "57",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "116",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "141",
-          "medicham": "161",
-          "rel": 0.14184397163120568,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx03",
       "what": "Showdown damage roll index 3 (roll 97%) against MEDICHAM's own `rolls[3]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "57",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "116",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "139",
-          "medicham": "161",
-          "rel": 0.15827338129496402,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx04",
       "what": "Showdown damage roll index 4 (roll 96%) against MEDICHAM's own `rolls[4]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "56",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "114",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "138",
-          "medicham": "161",
-          "rel": 0.16666666666666666,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx05",
       "what": "Showdown damage roll index 5 (roll 95%) against MEDICHAM's own `rolls[5]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "56",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "114",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "136",
-          "medicham": "161",
-          "rel": 0.18382352941176472,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx06",
       "what": "Showdown damage roll index 6 (roll 94%) against MEDICHAM's own `rolls[6]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "55",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "14",
-          "medicham": "21",
-          "rel": 0.5,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "112",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "135",
-          "medicham": "161",
-          "rel": 0.1925925925925926,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx07",
       "what": "Showdown damage roll index 7 (roll 93%) against MEDICHAM's own `rolls[7]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "54",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "13",
-          "medicham": "20",
-          "rel": 0.5384615384615384,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "110",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "133",
-          "medicham": "161",
-          "rel": 0.21052631578947367,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx08",
       "what": "Showdown damage roll index 8 (roll 92%) against MEDICHAM's own `rolls[8]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "54",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "13",
-          "medicham": "20",
-          "rel": 0.5384615384615384,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "110",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "132",
-          "medicham": "161",
-          "rel": 0.2196969696969697,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx09",
       "what": "Showdown damage roll index 9 (roll 91%) against MEDICHAM's own `rolls[9]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "53",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "13",
-          "medicham": "20",
-          "rel": 0.5384615384615384,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "108",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "130",
-          "medicham": "161",
-          "rel": 0.23846153846153847,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx10",
       "what": "Showdown damage roll index 10 (roll 90%) against MEDICHAM's own `rolls[10]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "53",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "13",
-          "medicham": "20",
-          "rel": 0.5384615384615384,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "108",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "129",
-          "medicham": "160",
-          "rel": 0.24031007751937986,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx11",
       "what": "Showdown damage roll index 11 (roll 89%) against MEDICHAM's own `rolls[11]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "52",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "106",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "127",
-          "medicham": "158",
-          "rel": 0.2440944881889764,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx12",
       "what": "Showdown damage roll index 12 (roll 88%) against MEDICHAM's own `rolls[12]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "51",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "104",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "126",
-          "medicham": "157",
-          "rel": 0.24603174603174602,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx13",
       "what": "Showdown damage roll index 13 (roll 87%) against MEDICHAM's own `rolls[13]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "51",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "13",
-          "medicham": "19",
-          "rel": 0.46153846153846156,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "104",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "124",
-          "medicham": "154",
-          "rel": 0.24193548387096775,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx14",
       "what": "Showdown damage roll index 14 (roll 86%) against MEDICHAM's own `rolls[14]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 300,
-      "agreed": 296,
-      "disagreed": 4,
-      "worst": [
-        {
-          "att": "machamp",
-          "mv": "knockoff",
-          "def": "mimikyubusted",
-          "showdown": "50",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 5269,
-          "suspect": false
-        },
-        {
-          "att": "castformsnowy",
-          "mv": "blizzard",
-          "def": "primarina",
-          "showdown": "12",
-          "medicham": "18",
-          "rel": 0.5,
-          "uses": 4828,
-          "suspect": false
-        },
-        {
-          "att": "medichammega",
-          "mv": "bulletpunch",
-          "def": "mimikyubusted",
-          "showdown": "102",
-          "medicham": "0",
-          "rel": 1,
-          "uses": 1427,
-          "suspect": false
-        },
-        {
-          "att": "kangaskhanmega",
-          "mv": "doubleedge",
-          "def": "malamarmega",
-          "showdown": "123",
-          "medicham": "153",
-          "rel": 0.24390243902439024,
-          "uses": 607,
-          "suspect": false
-        }
-      ]
+      "agreed": 300,
+      "disagreed": 0,
+      "worst": []
     }
   ],
   "band_missing": 0,
@@ -857,6 +170,22 @@
     "tripleaxel": 1,
     "dualwingbeat": 1
   },
+  "weather_forme_resolved": 3,
+  "weather_forme_by": {
+    "castformsnowy -> castform  (forecast, empty sky)": 3
+  },
+  "weather_forme_why": "This file's field is an empty sky by construction, and a Forecast body cannot stand in one -- Showdown reverts Castform-Snowy to Castform at switch-in and MEDICHAM's battleInit runs the same reconciliation (Normal in no sky, Ice behind an Abomasnow, Fire behind a Torkoal). The harness alone skipped it, because it calls buildMon and dmgRange with no field between them. Resolved on the SPECIES KEY via the ability's own revertsTo; the type map is never restated here.",
+  "ref_forme_changed": 0,
+  "ref_forme_by": {},
+  "ref_forme_first": null,
+  "skipped_ability_multihit": 1,
+  "skipped_ability_multihit_abilities": {
+    "parentalbond": 1
+  },
+  "skipped_ability_multihit_moves": {
+    "doubleedge": 1
+  },
+  "skipped_ability_multihit_why": "MEDICHAM's dmgRange prices the WHOLE click (both Parental Bond packets, summed) and one battle.actions.moveHit call is ONE packet. That is the same mismatch the multi-hit MOVES are skipped for, arriving through the attacker's ability instead of the move. Membership is DERIVED from the hitsTwice tag and the authority's own onPrepareHit handler decides per move. tests/test-mechanics.js is the only remaining guard on the mechanic.",
   "dropped_by_exception": 0,
   "dropped_where": {},
   "pool": {
@@ -876,7 +205,7 @@
     ],
     "megas": 76
   },
-  "pool_why": "A species with no MC.mons row can never be drawn, so it is invisible to `compared`. Resolved through engine/mc_key.js, the one doorway; a raw buildMon(id.toLowerCase()) dropped every hyphenated forme and all 76 megas in silence.",
+  "pool_why": "A species with no MC.mons row can never be drawn, so it is invisible to `compared`. Resolved through engine/mc_key.js, the one doorway; a raw flattened lookup dropped every hyphenated forme and all 76 megas in silence.",
   "controls": "both leads are really sent out on the Showdown side, so MEDICHAM is given the same switch-in (Intimidate, weather setters) through the engine's own applyEntryEffects/applyIntimidate; and the defender ability's onTryHit is asked directly, because Showdown's moveHit entry point does not run it.",
   "touched": {
     "intimidate": 11,

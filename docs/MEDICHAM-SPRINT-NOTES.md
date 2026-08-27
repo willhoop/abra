@@ -21,6 +21,47 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## SPREAD STATUS MOVES RAN THE GAUNTLET PER TARGET; THE AUTHORITY RUNS EACH STEP ACROSS EVERY TARGET. **MECHANICS CLAUSE 8 OF 16 -> 5 OF 12. CENSUS UNMOVED AT 754 / 754 / 0. BOARD-MATERIAL UNMOVED AT 1 OF 961.** 2026-08-27 (ENGINE).
+
+CHANGELOG 5.168.0. Register `#448` — **CLOSED**. Release `ee4e537b7255`. One probe added:
+`tests/probe_spread_status_steps.js`. Full account: `docs/_reports/2026-08-27-spread-status.md`.
+
+`trySpreadMoveHit` (`sim/battle-actions.ts:550-577`) declares `moveSteps` as DATA and runs each STEP
+across the whole target array before the next begins. The DAMAGING branch has been that shape since
+ROADMAP #81 WIRE 10; **the `a.kind==='affect'` branch was never converted**, so a Protect on the
+second foe was announced AFTER the first foe's effect landed.
+
+| | |
+|---|---|
+| diverging MOVE rows, `all_mechanics_fire --kind all` | **14 -> 10** (`cottonspore`, `stringshot`, `sweetscent`, `teeterdance` closed) |
+| mechanics clause (counted, above the reach anchor) | **8 of 16 -> 5 of 12** |
+| whole-game clause, 961 pinned games | 9 -> **9** (predicted unmoved) |
+| board-material (`games - games_board_never_diverged`) | 1 -> **1** |
+| census | 754 / 754 / 0, unmoved |
+| roster items / abilities / moves | 0 DIFFER, 0 DID-NOT-FIRE, re-stamped on the new release |
+| damage, `--n 300` at sixteen corners | 0 of 300 |
+
+**THE PREDICTION WAS STATED BEFORE THE RUN.** #448 was measured on 2026-08-26 as announcement-only
+with ZERO games in the pinned pool, so the lab was expected to move and the pool to sit still. Both
+held. Nobody in the frozen 961 clicks Cotton Spore; that is a fact about the metagame, not a hole.
+
+**IT IS A TRANSPOSITION AND NOTHING ELSE.** The per-target sequence is byte-for-byte what this branch
+already ran, cut at the authority's own step boundaries into six closures over `{tg, out}`. Twelve
+`continue`s became `R.out=true;return;`; six inner-loop `continue`s were left alone. At one target the
+two orders are the same permutation — both single-target control arms hold under the knob.
+
+**TWO THINGS NOT DONE, NAMED.** `corrosivegas` is the fifth row of the group and arrives as
+`trickitem`, never in this branch — 1 click in 64,846 games, REACH-excluded, still open. And
+SUBSTITUTE stays in the TryHit group where this branch has always asked it, not below accuracy where
+the authority asks it: a second divergence at a different step, unmeasured today.
+
+**THE KNOB IS MEASURED, NOT TRUSTED.** `MEDI_SPREAD_STATUS_PER_TARGET=1` restores the old nesting, and
+every arm asserts `spreadStatusStepOuter`/`spreadStatusPerTargetRestored` as an exact per-game delta
+off `globalThis.MEDSEEN`. That clause caught this batch's one instrument failure: the counters were
+first declared in `MEDFAILS` and read `NaN` while all six protocol verdicts were already correct.
+
+---
+
 ## THE LAST BOARD-MATERIAL GAME WAS RULED A FIX; THE COLLISION PROOF REFUSED IT. **BOARD-MATERIAL UNMOVED AT 1 OF 961. CENSUS UNMOVED AT 754 / 754 / 0. NO ENGINE BYTE MOVED.** 2026-08-27 (ENGINE).
 
 CHANGELOG 5.167.0. Register `#478`, amended and left OPEN as a DECISION. Full account:

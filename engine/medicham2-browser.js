@@ -491,6 +491,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * Clanging Scales and Scale Shot; a zero with either of them clicked means the `via` derivation is
    * not reaching the engine and every one of those clicks paid at `selfDrops`' position instead. */
   selfBoostPaidAfterLoop: 0,
+  /* ROADMAP #448, 2026-08-27 -- WHICH NESTING THE `kind==='affect'` BRANCH TOOK, one per move that
+     reached its target list. `spreadStatusStepOuter` is the authority's shape (step outside, target
+     inside, `trySpreadMoveHit`'s `moveSteps`); `spreadStatusPerTargetRestored` is the pre-fix shape
+     and is only reachable under MEDI_SPREAD_STATUS_PER_TARGET=1, so it MUST read 0 on any shipping
+     run. They are counted on the KNOB rather than on a spread, so a single-target status move bumps
+     one of them too -- which is what lets a probe prove the knob reached the module the driver
+     played instead of assuming an environment variable arrived somewhere. */
+  spreadStatusStepOuter: 0, spreadStatusPerTargetRestored: 0,
   /* 2026-08-24 -- CLICKS A SHIELD LET THROUGH BECAUSE THE MOVE CARRIES NO `flags.protect`. 111 legal
    * moves are in that set; the ones that actually meet a shield are the ally-facing family (Dragon
    * Cheer, Coaching, Helping Hand, Aromatic Mist) and the `all`-targeting one (Teatime, Perish Song,
@@ -3759,6 +3767,13 @@ const INVULN_BELOW_SHIELD=(typeof process!=='undefined'&&process.env&&process.en
  * Exactly that and nothing else -- the layer arithmetic is `layHazard`'s and is untouched by the
  * knob, so a knob run parts on the missing line and leaves every layer count identical. */
 const HAZARD_RECAP_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HAZARD_RECAP_SILENT==='1');
+/* ROADMAP #448, 2026-08-27 -- MEDI_SPREAD_STATUS_PER_TARGET=1 restores the pre-fix NESTING in the
+ * `kind==='affect'` branch: target outside, step inside, so one body runs the whole gauntlet before
+ * the next body is looked at. That is one loop and nothing else -- every gate, its order and its
+ * announcement are identical under the knob -- so a knob run parts exactly on a spread status move
+ * whose refusal the authority interleaves, and leaves every single-target status move alone. It must
+ * read 0 on any shipping run; `MEDSEEN.spreadStatusPerTargetRestored` counts the moves that took it. */
+const SPREAD_STATUS_PER_TARGET=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SPREAD_STATUS_PER_TARGET==='1');
 function volRefusesRestart(vol){
   if(VOL_RESTART_BLIND){MEDFAILS.volRestartBlindRestored=1;return false;}
   const d=volRestartTable().get(vol);
@@ -21671,11 +21686,57 @@ function battleTurn(S,rng,actsForA,actsForB){
            the failencore card were invisible to it. These three now hold the authority's `didAnything`
            for the volatile payload -- applied, `false` (announce), `null` (say nothing). */
         let _volApplied=false, _volFail=0, _volSilent=0;
-        for(const _t of _tl){
+        /* ===== ROADMAP #448, 2026-08-27 -- STEP OUTSIDE, TARGET INSIDE. WIRE 10's OTHER HALF ======
+         *
+         * `Battle.actions.trySpreadMoveHit` (sim/battle-actions.ts:550-577) declares `moveSteps` as
+         * DATA and then runs each STEP across the WHOLE target array before the next step begins.
+         * The DAMAGING branch has been shaped that way since ROADMAP #81 WIRE 10 -- `for (const
+         * _step of _STEPS) for (const R of _rows)`. THIS branch, where every spread STATUS move in
+         * the format lands, was never converted and still ran the whole gauntlet per body, so a
+         * Protect on the SECOND foe was announced AFTER the first foe's effect had landed:
+         *
+         *     SHOWDOWN  |-activate|p2b: Charizard|move: Protect  then  |-unboost|p2a: Feraligatr|spe|2
+         *     MEDICHAM  |-unboost|p2a: Feraligatr|spe|2          then  |-activate|p2b: Charizard|move: Protect
+         *
+         * FOUR CENSUS ROWS, ONE SENTENCE: cottonspore, stringshot and sweetscent part on
+         * `-unboost before -activate`; teeterdance on `-start before -activate`. CORROSIVE GAS IS
+         * THE FIFTH AND IS NOT FIXED HERE -- `playerAction` classifies it `trickitem`, so it never
+         * arrives in this branch at all (the header above already says so). It is the same sentence
+         * at a different site and it is a separate change; naming it is cheaper than letting it be
+         * rediscovered as a spread move this loop appears to cover and does not.
+         *
+         * NOT ONE GATE IS REMOVED, REORDERED OR REWRITTEN. The six steps below are, in order, the
+         * exact sequence of lines this branch already ran; the only thing that changed is which
+         * loop is on the outside. Each former `continue` is now `R.out = true; return;` -- it ends
+         * THIS BODY's pass and every later step skips the row, which is what `targets[i] = false`
+         * does in the authority.
+         *
+         * AT ONE TARGET THE TWO ORDERS ARE THE SAME PERMUTATION. That is arithmetic, not a hope,
+         * and it is why every single-target status move in the format is untouched: both
+         * single-target arms of tests/probe_spread_status_steps.js hold under the knob.
+         *
+         * SUBSTITUTE STAYS IN THE TryHit GROUP, where this branch has always asked it, and NOT in
+         * the hit loop where the authority asks it (`onTryPrimaryHit`, below accuracy). That is a
+         * SECOND divergence about a DIFFERENT step, nothing measures it today, and moving it inside
+         * a change whose whole claim is that it is a transposition would make that claim false.
+         * Stated here rather than left in a diff.
+         *
+         * THE ADDRESSES DO NOT MOVE. `MID_TGT` is stamped once per ACTION for this branch (the
+         * `midEventSlot(reaimToSlot(...))` line at the top of the action), not per target, so both
+         * nestings ask the middle arm the same `seed|turn|cat|move|target` and the `nth` counters
+         * are per CATEGORY: every target's accuracy draw still precedes every later target's, and
+         * so does every secondary draw. A transposition that moved a die would not be one.
+         */
+        const _aRows=_tl.map(_t=>({tg:_t,out:false}));
+        /* STEP 0 -- a body that has left or died since the list was built. */
+        const _asGone=(R)=>{const _t=R.tg;
           /* A body that has left or died since the list was built. Nothing in this branch can faint a
              TARGET today -- Memento kills its user -- so this is a guard rather than a live path, and
              it costs one comparison to be right if that ever stops being true. */
-          if(!_t||_t.fainted||_t.curHP<=0) continue;
+          if(!_t||_t.fainted||_t.curHP<=0) R.out=true;return;
+        };
+        /* STEP 1 -- `hitStepTryHitEvent`: Protect, the doll, Good as Gold, the absorbers. */
+        const _asTryHit=(R)=>{const _t=R.tg;
           /* WIRE 151 -- THE `ignoresProtect` GUARD, WHICH THIS BRANCH ALONE DID NOT ASK.
            * This line read a bare `if(_t.protect)`. Four other sites in this file already write the
            * pair (`_t.protect && !TAGS.has('move',a.mv,'ignoresProtect')`) and `guardRefusalOf` reads
@@ -21685,32 +21746,44 @@ function battleTurn(S,rng,actsForA,actsForB){
            * TEARFULL LOOK reaches this same branch (statChange + ignoresProtect) and has been blocked
            * by a Protect it goes straight through since the branch was written. Named here rather than
            * left inside a diff, and it is visible as its own row in this wire's blast-radius sweep. */
-          if(shieldRefuses(_t,a.mv)){if(TR)TR.act(_t,'move: Protect');continue;}
-          if(subBlocks(m,_t,a.mv)){if(TR)TR.act(_t,'move: Substitute','[damage]');continue;}   // WIRE 130 -- the doll takes the status move
+          if(shieldRefuses(_t,a.mv)){if(TR)TR.act(_t,'move: Protect');R.out=true;return;}
+          if(subBlocks(m,_t,a.mv)){if(TR)TR.act(_t,'move: Substitute','[damage]');R.out=true;return;}   // WIRE 130 -- the doll takes the status move
           /* GOOD AS GOLD REFUSES A STATUS MOVE OUTRIGHT. Gholdengo was taking Charm for -2, which
            * makes it a different Pokemon to the one people build around. The tag is derived from the
            * ability's own onTryHit -- and tightened after the first version caught Telepathy, which
            * tests category !== 'Status' and blocks an ALLY'S DAMAGE, and Wonder Guard, which tests
            * for Status and then bare-returns to ALLOW it. */
-          if(TAGS.has('ability',_t.ability,'refusesStatusMoves')&&_t!==m){if(TR)TR.imm(_t,'[from] ability: '+_t.ability);continue;}
+          if(TAGS.has('ability',_t.ability,'refusesStatusMoves')&&_t!==m){if(TR)TR.imm(_t,'[from] ability: '+_t.ability);R.out=true;return;}
           /* 2026-08-25 -- AND THE ABSORBING ABILITIES ANSWER AT THIS SAME STEP. `tryHitRefusal` now
            * carries them for the twenty-one branches that call it; this branch keeps its own inline
            * chain of onTryHit gates, so it asks the shared reader directly rather than growing a
            * second copy of the rule. See MEDI_STATUS_ABSORB_BLIND. */
-          {const _abs=absorbRefusal(m,_t,a.mv);if(_abs){announceTryHitRefusal(_abs,_t);continue;}}
-          if(moveClassBlocked(_t,a.mv,m)){if(TR)TR.imm(_t,moveClassImmuneAttr(_t,m));continue;}   // WIRE 66 / #256
-          if(powderBlocked(_t,a.mv)){if(TR)TR.imm(_t,powderImmuneAttr(_t,m));continue;}           // #256
+          {const _abs=absorbRefusal(m,_t,a.mv);if(_abs){announceTryHitRefusal(_abs,_t);R.out=true;return;}}
+        };
+        /* STEP 2 -- `hitStepTypeImmunity`, and the move-class door beside it. */
+        const _asTypeImm=(R)=>{const _t=R.tg;
+          if(moveClassBlocked(_t,a.mv,m)){if(TR)TR.imm(_t,moveClassImmuneAttr(_t,m));R.out=true;return;}   // WIRE 66 / #256
+        };
+        /* STEP 3 -- `hitStepTryImmunity`: powder, the move's own onTryImmunity, Prankster. */
+        const _asTryImm=(R)=>{const _t=R.tg;
+          if(powderBlocked(_t,a.mv)){if(TR)TR.imm(_t,powderImmuneAttr(_t,m));R.out=true;return;}           // #256
           /* 2026-08-26 -- THE MOVE'S OWN onTryImmunity, and it sits BETWEEN powder and Prankster
            * because that is the order inside `hitStepTryImmunity` (battle-actions.ts:669-679). This is
            * Attract's door: the gender clause lived inside `applyAttract`, below the accuracy roll and
            * silent, so a same-gender click printed nothing where the authority prints `|-immune|`. */
-          if(immunityGateRefuses(m,_t,a.mv)){immunityGateAnnounce(_t,a.mv);continue;}
-          if(pranksterBlocked(m,_t,a.mv)){if(TR)TR.imm(_t);continue;}
+          if(immunityGateRefuses(m,_t,a.mv)){immunityGateAnnounce(_t,a.mv);R.out=true;return;}
+          if(pranksterBlocked(m,_t,a.mv)){if(TR)TR.imm(_t);R.out=true;return;}
+        };
+        /* STEP 4 -- `hitStepAccuracy`, thrown PER TARGET. */
+        const _asAccuracy=(R)=>{const _t=R.tg;
           /* WIRE 129 -- hitChance, not moveAccuracy: a Minimize'd target dodges a Will-O-Wisp exactly
            * as it dodges an Ice Beam, and No Guard lands one exactly as it lands a Stone Edge. */
           const _acc=hitChance(m,_t,a.mv,field,{targetAlreadyMoved:!unresolved.has(_t)});
           /* ROADMAP #264 -- accMustRoll, not `_acc<100`. See the function for the authority's line. */
-          if(accMustRoll(_acc)&&_R.acc()*100>_acc){if(TR)TR.miss(m,_t);continue;}   // ROADMAP #222
+          if(accMustRoll(_acc)&&_R.acc()*100>_acc){if(TR)TR.miss(m,_t);R.out=true;return;}   // ROADMAP #222
+        };
+        /* STEP 7 -- `hitStepMoveHitLoop`: everything the move actually does. */
+        const _asEffects=(R)=>{const _t=R.tg;
           /* ROADMAP #102 -- STRENGTH SAP'S HEAL, WHICH WIRE 79 FILED AS UNREACHABLE AND NO LONGER IS.
            *
            * The note left here said "the heal scales off the TARGET's Attack and no artifact this engine
@@ -21737,7 +21810,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                if(!MEDFAILS.healFromStatUnreadableFirst)
                  MEDFAILS.healFromStatUnreadableFirst=String(a.mv)+'/'+String(_hs.fromTargetStat);
              }
-             else if(_t.boosts[_k]<=-6){mvFail(m);continue;}
+             else if(_t.boosts[_k]<=-6){mvFail(m);R.out=true;return;}
              else _sapHeal=statWithBoost(_t,_k);
            }}
           /* Stat changes. Contrary flips them and Clear Body refuses drops, both already modelled for
@@ -21801,7 +21874,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * with no stages, or Acupressure with every stat at the cap, FAILS in the authority and must
            * fail here, or the move becomes strictly better than the one in the game. `_landed` is
            * incremented below this line, so the `continue` leaves it alone. */
-          if(a.op&&!applyStatOp(m,_t,a.op,a.mv,rng)){mvFail(m);continue;}
+          if(a.op&&!applyStatOp(m,_t,a.op,a.mv,rng)){mvFail(m);R.out=true;return;}
           /* ROADMAP #102 -- and the sap is paid, after the drop and out of the amount read before it. */
           if(_sapHeal!=null&&!m.fainted&&!healBlocked(m)){
             const _sh0=m.curHP;
@@ -21876,6 +21949,20 @@ function battleTurn(S,rng,actsForA,actsForB){
             }
           }
           _landed++;
+        };
+        /* ---- THE STEP LIST, IN THE ORDER THIS BRANCH ALREADY ASKED, AND THE DRIVER UNDER IT ----
+         * The array IS the order, exactly as `_STEPS` is for the damaging branch, so a gate added
+         * later joins a list instead of being wedged into a chain of `continue`s. */
+        const _ASTEPS=[_asGone,_asTryHit,_asTypeImm,_asTryImm,_asAccuracy,_asEffects];
+        if(SPREAD_STATUS_PER_TARGET){
+          /* THE PRE-FIX NESTING, kept reachable so the fix can be SHOWN red rather than asserted.
+             `break` and not `continue`: a row that is out has left the move, and under this nesting
+             leaving the move is leaving the step list. MUST read 0 on any shipping run. */
+          MEDSEEN.spreadStatusPerTargetRestored++;
+          for(const R of _aRows){for(const _step of _ASTEPS){if(R.out)break;_step(R);}}
+        }else{
+          MEDSEEN.spreadStatusStepOuter++;
+          for(const _step of _ASTEPS)for(const R of _aRows){if(R.out)continue;_step(R);}
         }
         /* ROADMAP #72, THE OTHER HALF -- DEFOG. It arrives here as `affect` because playerAction
          * classifies it on its evasion drop, and the sweep is the rest of the same `onHit`. Gated on

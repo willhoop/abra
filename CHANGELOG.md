@@ -10,6 +10,62 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.168.0] — 2026-08-27
+
+### Fixed
+- **SPREAD STATUS MOVES RAN THE WHOLE GAUNTLET PER TARGET WHERE THE AUTHORITY RUNS EACH STEP ACROSS
+  EVERY TARGET. MECHANICS CLAUSE 8 OF 16 -> 5 OF 12. CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0
+  MISSING; BOARD-MATERIAL UNMOVED AT 1 OF 961.** ENGINE, ROADMAP `#448` — closed. Release
+  `ee4e537b7255`. Full account: `docs/_reports/2026-08-27-spread-status.md`.
+
+  `Battle.actions.trySpreadMoveHit` (`sim/battle-actions.ts:550-577`) declares `moveSteps` as **data**
+  and runs each STEP across the whole target array before the next step begins. medicham2's DAMAGING
+  branch has been shaped that way since ROADMAP #81 WIRE 10 — `for (const _step of _STEPS) for (const
+  R of _rows)`. **The `a.kind === 'affect'` branch was never converted**, so a Protect on the second
+  foe was announced after the first foe's effect had already landed:
+
+  ```
+  SHOWDOWN  |-activate|p2b: Charizard|move: Protect  then  |-unboost|p2a: Feraligatr|spe|2
+  MEDICHAM  |-unboost|p2a: Feraligatr|spe|2          then  |-activate|p2b: Charizard|move: Protect
+  ```
+
+  Four census rows closed at once — `cottonspore`, `stringshot`, `sweetscent`, `teeterdance` — three
+  of which were above the clause's reach anchor. The loop was **transposed and nothing else**: the
+  per-target sequence is byte-for-byte the sequence this branch already ran, cut at the authority's
+  own step boundaries into six closures over a row `{tg, out}` and driven by `for (step) for (row)`.
+  Twelve `continue`s became `R.out = true; return;`; six inner-loop `continue`s were deliberately left
+  alone. At one target the two orders are the same permutation, which is why every single-target
+  status move is untouched.
+
+### Notes
+- **CORROSIVE GAS IS THE FIFTH ROW OF THE SAME GROUP AND IS NOT FIXED.** `playerAction` classifies it
+  `trickitem`, so it never arrives in the `affect` branch at all — the engine's own header already
+  said so. 1 click in 64,846 stored games, REACH-excluded from the clause. Named rather than left to
+  be rediscovered as a spread move the new loop appears to cover and does not.
+- **SUBSTITUTE STAYS IN THE TryHit GROUP**, where this branch has always asked it, and not in the hit
+  loop where the authority asks it (`onTryPrimaryHit`, below accuracy). A second divergence about a
+  different step; nothing measures it today, and moving it would have made "this is a transposition"
+  false.
+- **THE PINNED POOL WAS PREDICTED UNMOVED AND IS UNMOVED.** `#448` was measured on 2026-08-26 as
+  announcement-only with zero games in the pinned pool. Whole-game 9 of 961 before and after; board
+  never diverged 960/961 before and after. The pool is not a hole here — nobody in the frozen 961
+  clicks Cotton Spore.
+- **`tests/probe_spread_status_steps.js` (new)** — six arms, no typed expectation, both engines on the
+  `bottom-tie-first` corner, each arm played clean and under `MEDI_SPREAD_STATUS_PER_TARGET=1`. Three
+  red arms (Cotton Spore, String Shot, Teeter Dance) **were shown red before the fix** and now agree
+  clean and part under the knob; three controls (the same board with nobody shielding, and both halves
+  of a single-target Eerie Impulse) hold under both. Every arm asserts the engine counters as an exact
+  per-game delta, so a knob that reached a module the driver never loaded fails the arm whatever the
+  streams say — which caught this batch's one instrument failure (the counters were first declared in
+  `MEDFAILS` instead of `MEDSEEN` and read `NaN` while all six protocol verdicts were already right).
+- Re-run on the new release: the three roster stages (0 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE;
+  139 / 129 / 475), `all_mechanics_fire.js --kind all --write` (1,289 games, 0 threw, diverging moves
+  14 -> 10), the pinned whole-game differential (961 games), and `test-engine-diff.js --n 300`
+  (0 of 300 at all sixteen corners — a confirmation, not a republication; the 6,000-row artifact
+  stands).
+
+---
+
 ## [5.167.0] — 2026-08-27
 
 ### Notes

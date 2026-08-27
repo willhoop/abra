@@ -1,10 +1,10 @@
 {
-  "current": "7f7de860723b",
-  "cut": "2026-08-27T06:11:10.674Z",
-  "why": "three doors the housekeeping never reached: a transform reverts on a faint, a post-faint replacement's entry drop gets the herb pass, and recoil is a share of what was DEALT",
-  "cuts": 22,
-  "latest_cut": "2026-08-27T06:31:58.885Z",
+  "current": "ee4e537b7255",
+  "cut": "2026-08-27T08:08:53.204Z",
+  "why": "ROADMAP #448 — spread status moves run each step across every target (the affect branch's half of WIRE 10)",
+  "cuts": 17,
+  "latest_cut": "2026-08-27T08:24:25.074Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-27T06:31:58.894Z",
+  "pointer_written": "2026-08-27T08:24:25.083Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
