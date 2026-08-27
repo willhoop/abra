@@ -32,7 +32,33 @@ const dex = Dex.forFormat(CS.FORMAT);
  *
  * So the lists are AUDITED against the usage table at load, and anything that cannot appear is
  * reported rather than left to rot. This does not decide the roles -- that is still a judgement, and
- * it is Will's -- it only refuses to keep members that can never fire. */
+ * it is Will's -- it only refuses to keep members that can never fire.
+ *
+ * THE AUDIT DROPPED THEM AT RUN TIME AND LEFT THEM TYPED IN THE SOURCE, WHICH IS HALF A FIX.
+ * 2026-08-27: six of the names below were `isNonstandard: 'Past'` -- groudon (SUN), gigalith (SAND),
+ * rillaboom, mienshao, hitmontop and purugly (FAKEOUT). CLAUDE.md's cardinal rule is about NAMING,
+ * "every example, every illustration and every derived result", so a name this format does not
+ * contain is a defect wherever it is written, including in a list that is filtered before it is used.
+ * They are removed. MEASURED, and it is why this is safe to do in a pass that runs nothing: none of
+ * the six has a usage row at all, so none was ever in LIVE, and the resolved sets are byte-identical
+ * before and after -- SUN {torkoal, ninetales, charizard}, SAND {tyranitar, hippowdon},
+ * FAKEOUT {incineroar, meowscarada}. No team's label moves. The only artifact field that moves is
+ * `dead_list_entries`, 7 -> 1, at the next regeneration.
+ *
+ * They were all TYPED, not DERIVED, and the distinction decides the fix. A literal in this file was
+ * written by a human; replacing it repairs it for good. A value that arrives from the STORE cannot be
+ * repaired by editing anything, because the next regeneration puts it back -- and the store does carry
+ * these names: 76 of 88,179 games (0.09%) name at least one species this regulation does not contain,
+ * 71 distinct, including rillaboom (9 games) and amoonguss (8). Those are custom-rule games still
+ * tagged reg-mb. `data/quality-filter.json` has no legality rule, so they are CLEAN by every check
+ * this project applies, and they reach data/meta-usage.json, data/bring-priors.json and
+ * data/sheet-usage.json. That is a filter that belongs in engine/quality.js, not here. ROADMAP #471.
+ *
+ * AND THE FILTER MUST ASK ABOUT CARRIERS, NOT ABOUT `isNonstandard`. `LIVE` collapses to BASE forms,
+ * and Floette-Mega and Floette-Eternal are LEGAL formes whose base, Floette, is `Past`/`Illegal`. So
+ * `LIVE` contains `floette` today -- correctly -- and a naive legality filter would delete the single
+ * largest usage row in the table (316,361 raw). A name is only outside this regulation when NO legal
+ * forme collapses onto it. */
 const USAGE = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'smogon-priors.json'), 'utf8')).species || {};
 /* COLLAPSED TO BASE FORMS, because that is the vocabulary the STORE speaks and the audit is
  * worthless in any other one. A first version of this filter kept every name with usage > 0, which
@@ -51,17 +77,44 @@ for (const [k, v] of Object.entries(USAGE)) {
   LIVE.add(idn((S && S.exists && S.baseSpecies) ? S.baseSpecies : k));
 }
 const DEAD_ENTRIES = [];
+/* WHY a member is dead, because "dead by illegality" and "dead by usage" are different bugs with
+ * different fixes and the report pooled them. A name outside the regulation must be deleted from the
+ * source; a legal name with no usage is a judgement about the metagame and is Will's to keep or drop.
+ * Asked of the format, never of a list. A base form counts as inside the regulation when any legal
+ * forme collapses onto it -- see the Floette note above. */
+const LEGAL_BASES = new Set();
+for (const S of dex.species.all()) {                    /* .all() is the NATIONAL dex — filtered */
+  if (!S.exists || S.isNonstandard || S.tier === 'Illegal') continue;
+  LEGAL_BASES.add(idn(S.baseSpecies || S.name));
+}
+/* THE ROW DECIDES, NOT THE WALK. Cosmetic formes (Florges-White, Alcremie-Salted-Cream) are LEGAL and
+ * are not in `dex.species.all()` — they hang off the base — so a set built from that walk calls them
+ * illegal. `dex.species.get` resolves them to a row that carries its own legality. The walk is still
+ * needed for the other direction: Floette is Past while Floette-Eternal and Floette-Mega are legal, so
+ * a legal forme collapsing onto an illegal BASE name keeps that base name inside the regulation. */
+const inRegulation = (m) => {
+  const S = dex.species.get(m);
+  if (!S || !S.exists) return false;
+  if (!S.isNonstandard && S.tier !== 'Illegal') return true;
+  return LEGAL_BASES.has(S.id);
+};
+const whyDead = (m) => {
+  const S = dex.species.get(m);
+  if (!inRegulation(m)) return 'NOT IN THIS REGULATION — delete it from the source, the audit only hides it';
+  if (S.id !== idn(S.baseSpecies || S.name)) return 'a forme name, and the store writes base forms';
+  return 'no usage in the table';
+};
 function roleSet(name, members) {
   const live = members.filter(m => LIVE.has(m));
-  for (const m of members) if (!LIVE.has(m)) DEAD_ENTRIES.push(`${name}:${m}`);
+  for (const m of members) if (!LIVE.has(m)) DEAD_ENTRIES.push(`${name}:${m} (${whyDead(m)})`);
   return new Set(live);
 }
 
 // species role priors (Reg M-B relevant). A species can carry more than one signal.
 const RAIN = roleSet('RAIN', ['pelipper', 'politoed']);
 // Charizard in Reg M-B is overwhelmingly Mega-Y (Drought) → a sun setter. (Rare Charizardite-X exists.)
-const SUN = roleSet('SUN', ['torkoal', 'groudon', 'ninetales', 'charizard']);
-const SAND = roleSet('SAND', ['tyranitar', 'hippowdon', 'gigalith', 'tyranitarmega']);
+const SUN = roleSet('SUN', ['torkoal', 'ninetales', 'charizard']);
+const SAND = roleSet('SAND', ['tyranitar', 'hippowdon', 'tyranitarmega']);
 /* No SNOW and no TAILWIND set. Snow is a deleted class (2 games) and Tailwind is now decided by the
  * move, so both lists became unreachable. They are removed rather than left defined-but-unused --
  * an unused role list is indistinguishable from a live one that never happens to match, which is the
@@ -92,7 +145,7 @@ const TRAPPER = (() => {
   }
   return out;
 })();
-const FAKEOUT = roleSet('FAKEOUT', ['incineroar', 'rillaboom', 'meowscarada', 'mienshao', 'hitmontop', 'purugly']);
+const FAKEOUT = roleSet('FAKEOUT', ['incineroar', 'meowscarada']);
 
 /* SETUP MOVES ARE DERIVED, NOT TYPED (S13). A setup move is one that raises the USER's own stats,
  * which is `move.boosts` on a self-targeted move or `move.self.boosts` -- a dex DATA field, exactly

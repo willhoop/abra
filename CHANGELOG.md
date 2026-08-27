@@ -10,6 +10,94 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.158.0] — 2026-08-27
+
+### Fixed
+- **NINE TYPED ILLEGAL SPECIES LITERALS WERE ONE FINDING WEARING TWO SHAPES, AND ONLY ONE SHAPE IS
+  FIXED BY EDITING THE VALUE.** MEASURE, ROADMAP #471 and #472. Full account:
+  `docs/_reports/2026-08-27-typed-literals.md`. Will named the distinction that decides the repair —
+  *"some of the games in the store sneak in forbidden pokemon cause they played a game using custom
+  rules and its still tagged reg mb"*. Derived rather than taken from the brief, the population is
+  **ten literals at nine sites**, and **all ten are TYPED**: a derived value never reaches a source
+  literal, which is true by construction rather than by luck. Evidence beyond the files' own say-so —
+  `data/smogon-priors.json` has **no usage row at all** for any of the six role priors, so the store
+  cannot have emitted them. Twenty other literals that look identical are this project's own model
+  names, CLI flags, planted breaks and a `Floette-Eternal` base name: reported, not touched.
+- **THE CANONICAL SPEED BENCHMARK HAS NEVER HAD SIX BODIES, AND ITS STORED NUMBER WAS INVALID THE DAY
+  IT WAS RECORDED.** `tests/bench-medicham.js` pinned a roster containing `amoonguss`, which
+  `data/engine-data.js` has **never carried** — zero key hits across every commit that touched the file
+  back to 2026-07-23, including the one from the day the benchmark was written. At the baseline commit
+  `buildMon` returned `null` silently, and every game draws all six roster indices exactly once, so
+  **all 120 games ran with a null body on one side**; `turns: 450` against a 120x12 cap is the
+  fingerprint. **`data/medicham-bench.json`'s 0.4614 ms/turn is WITHDRAWN** — it timed five bodies and
+  a hole, and that is a separate and stronger claim than "this repair invalidated it". Today `monKey`
+  throws, so the file cannot run at all: the benchmark ROADMAP #76/#61 exists to provide has been dead
+  and silent.
+
+### Changed
+- **The benchmark's status slot is now `toxapex`, derived rather than picked, and what it measures has
+  changed.** Ranking every legal, MC-carried, `buildMon`-safe body (318) by Status moves in the set
+  `buildMon` gives it, keeping those that retain a damaging move, and taking the highest team-rate body
+  in the sub-56 Speed tier Amoonguss occupied: 3.63% of teams / 1,554 games, Regenerator + Leftovers,
+  Infestation / Toxic / Wide Guard / Baneful Bunker. `checkLegal` legal, as are the other five. **Turn
+  count will rise and ms/turn moves in an unknown direction** — a sixth living body does work a null
+  did not. **The re-record is OWED**: this batch may not play a game, so until it runs there is NO
+  speed baseline for MEDICHAM and no optimization may claim a delta.
+- **The baseline already carried the roster and nothing compared it.** The header has said since the
+  file was written that changing the list invalidates every stored number; that was PROSE, so the one
+  time the list had to change the comparison would have gone on subtracting a number taken on a
+  different fixture. It now REFUSES rather than annotating. `mk()` also throws on a null body instead
+  of playing a hole — which matters for `--vs <relId>`, where a frozen engine can still return one.
+- **`engine/playstyle.js` loses six illegal role-prior names and no team's label moves.** groudon
+  (SUN), gigalith (SAND), rillaboom, mienshao, hitmontop, purugly (FAKEOUT), all `isNonstandard:
+  'Past'`, none with a legal forme collapsing onto it (checked by family). The resolved sets are
+  identical before and after — SUN {torkoal, ninetales, charizard}, SAND {tyranitar, hippowdon},
+  FAKEOUT {incineroar, meowscarada} — because the audit already dropped all six. Only
+  `dead_list_entries` moves, **7 to 1**, at the next regeneration. The audit now says WHICH KIND of
+  dead a member is: pooling "outside the regulation" with "no usage" is how a typed illegal name
+  survived an audit built to catch it.
+
+### Added
+- **`engine/fixture_legality.js` now says which KIND of illegal name it has found.** `findings` and
+  `pairs` carry `origin: 'TYPED'` with the repair line, because every matcher keys on a source literal
+  and a derived value cannot enter that population; the CLI prints `notStaticallyPairedDerived`
+  (**192 of 520**). `derivedScan()` / `--derived` answers the other question — which GENERATED artifact
+  carries a name this regulation does not contain — with the opposite instruction attached: do not
+  edit the artifact, the generator writes it back. Not wired into the gate, deliberately: the gate is
+  a ratchet on the TYPED population and an unratcheted second population would be a new failure surface
+  with no baseline.
+- **The derived contamination is measured, not asserted.** **76 of 88,179 stored games (0.09%) name at
+  least one species outside this regulation, 71 distinct** — salamence 18, revavroom 9, riolu 9,
+  tapukoko 9, rillaboom 9, amoonguss 8. `data/quality-filter.json` holds five rules and **none is about
+  legality**, so every one of those games is CLEAN by every check this project applies, and they reach
+  **17 generated artifacts**: `bring-priors` 69 distinct, `sheet-usage` 19, `xatu` 15, **`meta-usage`
+  11 — the file CHOMP reads**. Filed with an exact location and NOT implemented: one new rule in
+  `data/quality-filter.json` read by `reasons()` in `engine/quality.js`, upstream of every reader.
+
+### Notes
+- **THE PREDICATE IS ABOUT CARRIERS, NOT `isNonstandard`, AND THE INSTRUMENT GOT THAT WRONG FIRST.**
+  `derivedScan`'s first version asked a set built from `dex.species.all()` filtered to the regulation.
+  **Cosmetic formes are not in that walk** — they hang off the base — so it accused four LEGAL bodies
+  (`florgeswhite`, `florgesblue`, `alcremiesaltedcream`, `furfroudandy`, all `tier: 'UU'`) across seven
+  artifacts. Caught by its own control pass before publication. Corrected: 20 artifacts to **17**,
+  `bring-priors` 77 to 69, `xatu` 22 to 15, `meta-usage` 15 to **11**. Two negative controls now ship
+  with the scan and print every run: `floette` (legal formes collapse onto an illegal base — a bare
+  legality filter would delete the largest usage row in the table, 316,361 raw) and `florgeswhite`.
+- **NO GAME NUMBER MOVED, PREDICTED BEFORE THE RUN AND CHECKED AFTER.** The sweep is byte-identical at
+  428 files / 1308 declarations / 411 distinct sets / 40 rejected / 30 verdicts / 30 pairs / 1
+  UNREACHABLE / 520 unpaired, and `tests/test-fixture-legality.js` is **2 FAILED before and after** with
+  the same 15 verdicts and 15 pairs. **That red is correct, it is the position-independent row matcher
+  armed on 2026-08-27, it is not this batch's, and no allowance was added.** Both repaired lists are
+  BARE SPECIES LISTS, which blind-spot 1 excludes from the population by measurement, so neither repair
+  could have moved a sweep number. No engine byte, no census, no differential, no release.
+- **Three typed literals were left in place**: `tests/test-charge.js:145` (`rillaboom`) and
+  `tests/test-choice-lock.js:56` (`rillaboom`, `amoonguss`). Live bodies in fixtures MEASURE does not
+  own; repairing them changes what those scenarios measure.
+- **Not diagnosed**: `data/battle-formes.json` (89), `data/mega-dex-official.json` (53) and
+  `data/mega-decision.json` (37) are the three largest contaminated artifacts and predate the store
+  story — they may be a mega-dex build walking the National Dex rather than store contamination, which
+  is a different defect with a different filter.
+
 ## [5.157.0] — 2026-08-27
 
 ### Fixed

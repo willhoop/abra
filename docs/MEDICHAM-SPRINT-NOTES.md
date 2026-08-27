@@ -21,6 +21,74 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## NINE TYPED ILLEGAL LITERALS, AND THE BENCHMARK THEY LIVED IN HAS NEVER HAD SIX BODIES. **NO GAME NUMBER MOVED — PREDICTED, THEN CHECKED.** 2026-08-27 (MEASURE).
+
+CHANGELOG 5.158.0. Register rows: ROADMAP **#471 — the store legality filter, FILED NOT FIXED** and
+**#472 — the benchmark repaired, the re-record OWED**. Full account:
+`docs/_reports/2026-08-27-typed-literals.md`.
+
+**ALL TEN ARE TYPED. ZERO ARE DERIVED.** The brief's nine was a site count; derived rather than
+assumed, the population is **ten literals at nine sites**. Three lines of evidence, because Will is
+right that the two kinds look identical in a file: (a) structurally, a derived value has no source
+literal, so this whole population is TYPED by construction; (b) `data/smogon-priors.json` carries **no
+usage row at all** for any of the six role priors, so the store cannot have emitted them; (c) both
+files say so, checked rather than believed. **The coordinator's "the role priors look derived" is
+REFUTED** — and refuting it was worth the time, because the pathway it pointed at exists somewhere
+else and is much bigger.
+
+| change | where | what it stops |
+|---|---|---|
+| the sixth roster slot is `toxapex`, derived by Status-move count x usage x speed tier | `tests/bench-medicham.js:45` | an `isNonstandard: 'Past'` body the damage table has NEVER carried |
+| `mk()` throws on a null body | `tests/bench-medicham.js` `play()` | 120 games timed with a hole on one side, silently |
+| the comparison REFUSES when `base.roster !== ROSTER` | `tests/bench-medicham.js` | a delta subtracted from a number taken on a different fixture |
+| six illegal role-prior names removed; the audit says WHICH KIND of dead | `engine/playstyle.js` | "outside the regulation" pooled with "no usage", which is how the six survived an audit built to catch them |
+| `origin: 'TYPED'` on every finding, `notStaticallyPairedDerived` printed | `engine/fixture_legality.js` | a report sending someone to edit a value a regeneration puts back |
+| `derivedScan()` / `--derived` over `data/*.json`, two negative controls | `engine/fixture_legality.js` | the DERIVED half having no instrument at all |
+
+**THE BENCHMARK WAS ALREADY DEAD AND THE LITERAL WAS THE SMALLER HALF.** `amoonguss` has **never** been
+in `data/engine-data.js` — zero key hits on every commit that touched the file back to 2026-07-23,
+including `9a060821` on the day the benchmark was written. At the baseline commit `5884fd23`,
+`buildMon` was `const m = monRow(name); if(!m) return null;`, and every game draws all six roster
+indices exactly once, so **all 120 games ran with a null body on one side**; `turns: 450` against a
+120x12 cap is the fingerprint. **`data/medicham-bench.json`'s 0.4614 ms/turn is WITHDRAWN — it was
+invalid the day it was recorded, not because this list changed.** Today `monKey` throws
+(`engine/lookup.js`, armed 2026-08-02) so the file cannot run at all: the canonical speed benchmark
+has been dead, loudly, and nothing said so.
+
+**THE DERIVED HALF IS REAL, IS MEASURED, AND IS FILED WITH AN EXACT LOCATION.** **76 of 88,179 stored
+games (0.09%) name at least one species outside this regulation, 71 distinct** — salamence 18,
+revavroom 9, riolu 9, tapukoko 9, rillaboom 9, amoonguss 8. `data/quality-filter.json` holds five
+rules and **none is about legality**, so every one is CLEAN by every check this project applies, and
+they reach **17 generated artifacts** including `data/meta-usage.json` (11), the file CHOMP reads. The
+filter belongs in ONE place — a new rule in `data/quality-filter.json` read by `reasons()` in
+`engine/quality.js`, upstream of every reader — and it is filed, not written.
+
+**AND THE INSTRUMENT WAS WRONG FIRST, CAUGHT BY ITS OWN CONTROL.** `derivedScan`'s first predicate
+asked a set built from `dex.species.all()` filtered to the regulation; **cosmetic formes are not in
+that walk**, so it accused four LEGAL bodies (`florgeswhite`, `florgesblue`, `alcremiesaltedcream`,
+`furfroudandy`, all tier UU) across seven artifacts. Corrected before publication: 20 artifacts to 17,
+`meta-usage` 15 to 11. Two negative controls now print every run — `floette`, whose legal formes
+collapse onto an illegal base and whose deletion would cost the largest usage row in the table
+(316,361 raw), and `florgeswhite`.
+
+**NO GAME NUMBER MOVED AND NONE COULD.** The sweep is byte-identical at 428 files / 1308 declarations /
+411 distinct sets / 40 rejected / 30 verdicts / 30 pairs / 1 UNREACHABLE / 520 unpaired, and
+`tests/test-fixture-legality.js` is **2 FAILED before and after** with the same 15 verdicts and 15
+pairs. **That red is correct, it is the row matcher armed earlier today, it is not this batch's, and
+no allowance was added.** Both repaired lists are BARE SPECIES LISTS, which blind-spot 1 excludes from
+the sweep's population by measurement — predicted before the run. No engine byte, no census, no
+differential, no release, no store read.
+
+**OWED, NOT RUN:** `node tests/bench-medicham.js --record` on a quiet machine (this batch may not play
+a game, so **there is currently NO speed baseline for MEDICHAM**); the `engine/quality.js` legality
+rule and its cost; `engine/playstyle.js` not re-run, so `dead_list_entries` 7 to 1 is predicted and
+unverified; three typed literals left in `tests/test-charge.js` and `tests/test-choice-lock.js`, which
+MEASURE does not own; and `data/battle-formes.json` (89), `data/mega-dex-official.json` (53) and
+`data/mega-decision.json` (37) undiagnosed — they predate the store story and may be a different
+defect entirely.
+
+---
+
 ## A CRASH WAS BEING FILED AS A VERDICT, AND A GATE WENT INVISIBLE BY BEING IMPROVED. **NO GAME NUMBER MOVED — NONE WAS MEASURED.** 2026-08-27 (MEASURE).
 
 CHANGELOG 5.157.0. Register rows: ROADMAP **#446 — the RUNNER half closed, the per-arm snapshot leak

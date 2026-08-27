@@ -137,6 +137,37 @@
  *      cause (a helper window that ran past the end of the helper) is fixed below; the looseness in
  *      rule 1 is not, and it will produce the same shape again the moment a real set-builder is called
  *      with a debug string.
+ *
+ * TYPED OR DERIVED — TWO KINDS OF ILLEGAL NAME, AND ONLY ONE OF THEM IS FIXED BY EDITING THE VALUE
+ * ------------------------------------------------------------------------------------------------
+ * Will, 2026-08-27: *"some of the games in the store sneak in forbidden pokemon cause they played a
+ * game using custom rules and its still tagged reg mb"*. In a file the two look identical, and the
+ * repair is opposite:
+ *
+ *   TYPED    a human wrote the name into source. Replacing it repairs it for good.
+ *   DERIVED  the name arrived at run time from the store or from an artifact built on the store.
+ *            **Editing the value fixes nothing** — the next regeneration puts it back. It needs a
+ *            filter at the point of DERIVATION, and a filter applied after the name is already in the
+ *            artifact is in the wrong place.
+ *
+ * THIS SWEEP'S ENTIRE POPULATION IS TYPED, AND THAT IS TRUE BY CONSTRUCTION RATHER THAN BY LUCK.
+ * Every matcher here keys on a STRING LITERAL in the source; a derived value has no literal, so it
+ * cannot enter this population at all. So `findings` and `pairs` are stamped `origin: 'TYPED'` and the
+ * repair line says "replace it". The DERIVED half is the construction sites this sweep already counts
+ * and declines to guess about — `notStaticallyPaired`, whose reasons literally read "the body is
+ * DERIVED" — and `derivedScan()` below, which asks the separate question those sites inherit: does a
+ * data/ artifact carry a species this regulation does not contain?
+ *
+ * MEASURED 2026-08-27, so the DERIVED half is not hypothetical: 76 of 88,179 stored games (0.09%)
+ * name at least one species outside this regulation, 71 distinct, and `data/quality-filter.json`
+ * carries no legality rule — so every one of them is CLEAN by the project's own definition and reaches
+ * data/meta-usage.json (11 distinct), data/bring-priors.json (69) and data/sheet-usage.json (19).
+ *
+ * AND THE DERIVED PREDICATE IS ABOUT CARRIERS, NOT ABOUT `isNonstandard`. Artifacts collapse to BASE
+ * forms. Floette-Mega and Floette-Eternal are LEGAL and their base, Floette, is `Past`/`Illegal`, so a
+ * naive check accuses `floette` and a naive filter would delete the largest usage row in the table.
+ * A name is outside the regulation only when NO legal forme collapses onto it. `derivedScan()` asks it
+ * that way and Floette is its live negative control.
  */
 'use strict';
 const fs = require('fs');
@@ -459,6 +490,11 @@ function sweep() {
       for (const site of s.sites) f.sites.add(site);
     }
   }
+  /* ORIGIN IS STAMPED, NOT INFERRED BY THE READER. Every matcher above keys on a string literal in
+   * the source, so anything that reaches this point was written by a human and is repaired by editing
+   * it. Saying so on the row is the whole point: a report that does not distinguish the two sends
+   * somebody to edit a value that a regeneration will put straight back. */
+  for (const f of findings.values()) { f.origin = 'TYPED'; f.repair = 'a string literal in source — replace it'; }
   const out = [...findings.values()].map(f => ({ ...f, sites: [...f.sites].sort() }))
     .sort((a, b) => (a.kind === b.kind ? a.key.localeCompare(b.key) : (a.kind === 'EXISTENCE' ? -1 : 1)));
 
@@ -512,7 +548,7 @@ function sweep() {
         }
       }
     }
-    for (const p of pairs) p.sites = [...p.sites].sort();
+    for (const p of pairs) { p.sites = [...p.sites].sort(); p.origin = 'TYPED'; }
     pairs.sort((a, b) => (a.cls === b.cls ? a.key.localeCompare(b.key) : (a.cls === 'UNREACHABLE' ? -1 : 1)));
   }
 
@@ -542,18 +578,120 @@ function sweep() {
     declarations: sets.length,
     distinctSets: distinct.length,
     rejectedSets: rejected,
+    origin: 'TYPED',
+    originWhy: 'every matcher in this sweep keys on a STRING LITERAL in source, so a DERIVED value '
+      + 'cannot enter this population. Findings here are repaired by editing the literal. For the '
+      + 'DERIVED half see notStaticallyPaired and derivedScan().',
     findings: out,
     pairs,
     unreachable: pairs.filter(p => p.cls === 'UNREACHABLE'),
     byFile,
     notStaticallyPaired: unpaired.length,
+    notStaticallyPairedDerived: unpaired.filter(u => /DERIVED/.test(u.why || '')).length,
   };
 }
 
-module.exports = { sweep, scan, keyOf };
+/* ---- THE DERIVED HALF -------------------------------------------------------------------------
+ *
+ * A separate question from the sweep above, asked of the artifacts rather than of the source: does a
+ * generated file carry a species this regulation does not contain? If it does, no edit to that file
+ * is a repair — the generator will write it back — so this reports the ARTIFACT and leaves the value
+ * alone, which is the opposite instruction from the one the TYPED findings carry.
+ *
+ * THE PREDICATE IS CARRIER-AWARE AND HAS A LIVE NEGATIVE CONTROL. Artifacts collapse formes to base
+ * names, and a legal forme can have an illegal base: Floette-Eternal and Floette-Mega are legal, and
+ * `floette` is `Past`/`Illegal`. Asking `isNonstandard` alone accuses it. So a name is outside the
+ * regulation only when NO legal forme in the format collapses onto it, and `floette` must NOT appear
+ * in this report — if it ever does, the predicate has regressed, not the artifact.
+ *
+ * NOT called by sweep() and not read by the gate. It walks data/ and costs seconds; the gate is a
+ * ratchet on the TYPED population and adding an unratcheted second population to it would be a new
+ * failure surface with no baseline. Printed for a human, on request. */
+function derivedScan(opts) {
+  const o = opts || {};
+  const dex = CS.sim().Dex.forFormat(CS.FORMAT);
+  /* THE FIRST VERSION OF THIS PREDICATE ACCUSED FOUR LEGAL BODIES AND WAS CAUGHT BY ITS OWN CONTROL
+   * PASS, 2026-08-27. It asked whether the name was in a set built by walking `dex.species.all()`.
+   * COSMETIC FORMES ARE NOT IN THAT WALK — they hang off the base as `cosmeticFormes` — so
+   * `florgeswhite`, `florgesblue`, `alcremiesaltedcream` and `furfroudandy`, every one of them
+   * `isNonstandard: null`, `tier: 'UU'`, were reported as outside the regulation in seven artifacts.
+   * Asking the ROW ITSELF answers all four, because `dex.species.get` resolves a cosmetic forme to a
+   * row that carries its own legality. Same class as CLAUDE.md's `.all()` warning, in the other
+   * direction: the filtered walk is right for enumerating and wrong for deciding one name. */
+  const legalBase = new Set();
+  for (const S of dex.species.all()) {                   /* .all() is the NATIONAL dex — filtered */
+    if (!S.exists || S.isNonstandard || S.tier === 'Illegal') continue;
+    legalBase.add(nrm(S.baseSpecies || S.name));
+  }
+  const outside = (s) => {
+    const S = dex.species.get(s);
+    if (!S || !S.exists || S.id !== nrm(s)) return false;   /* rule 1: it must name itself */
+    if (!S.isNonstandard && S.tier !== 'Illegal') return false;          /* legal in its own right */
+    return !legalBase.has(S.id);   /* …or a legal forme collapses onto this base name (Floette) */
+  };
+  const dir = path.join(ROOT, 'data');
+  const cap = o.maxBytes || 60e6;
+  const rows = [], skipped = [];
+  let files = 0;
+  for (const f of fs.readdirSync(dir)) {
+    if (!f.endsWith('.json')) continue;
+    const p = path.join(dir, f);
+    let st, j;
+    try { st = fs.statSync(p); } catch (e) { skipped.push(f + ' (unstattable)'); continue; }
+    if (st.size > cap) { skipped.push(f + ' (' + (st.size / 1e6).toFixed(0) + ' MB, over the cap — NOT scanned)'); continue; }
+    try { j = JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { skipped.push(f + ' (unparseable)'); continue; }
+    files++;
+    const hits = new Map();
+    const walk = (v) => {
+      if (v === null || v === undefined) return;
+      if (typeof v === 'string') { if (outside(v)) hits.set(nrm(v), (hits.get(nrm(v)) || 0) + 1); return; }
+      if (Array.isArray(v)) { for (const x of v) walk(x); return; }
+      if (typeof v === 'object') {
+        for (const k of Object.keys(v)) { if (outside(k)) hits.set(nrm(k), (hits.get(nrm(k)) || 0) + 1); walk(v[k]); }
+      }
+    };
+    walk(j);
+    if (hits.size) {
+      rows.push({ artifact: 'data/' + f, mtime: st.mtime.toISOString().slice(0, 16),
+                  distinct: hits.size,
+                  species: [...hits.entries()].sort((a, b) => b[1] - a[1]).map(x => x[0]) });
+    }
+  }
+  rows.sort((a, b) => b.distinct - a.distinct);
+  return {
+    origin: 'DERIVED',
+    repair: 'do NOT edit the artifact — the generator writes the name back. The filter belongs where '
+      + 'the game is admitted, not where the name lands.',
+    filesScanned: files, skipped, artifacts: rows,
+    controls: [
+      { name: 'floette', why: 'Floette-Eternal and Floette-Mega are legal and their base is '
+        + 'Past/Illegal. If "floette" appears above, the predicate has regressed to a bare '
+        + 'isNonstandard check and would delete the largest usage row in the table.' },
+      { name: 'florgeswhite', why: 'a COSMETIC forme — legal (tier UU), and absent from '
+        + 'dex.species.all(). If it appears above, the predicate is asking a filtered walk instead '
+        + 'of asking the row, which is how four legal bodies were accused across seven artifacts.' },
+    ],
+  };
+}
+
+module.exports = { sweep, scan, keyOf, derivedScan };
 
 /* ---- CLI --------------------------------------------------------------------------------------- */
 if (require.main === module) {
+  if (process.argv.includes('--derived')) {
+    const d = derivedScan();
+    if (process.argv.includes('--json')) { console.log(JSON.stringify(d, null, 2)); process.exit(0); }
+    console.log('DERIVED ILLEGAL SPECIES — names this regulation does not contain, sitting in a GENERATED artifact\n');
+    console.log('  ' + d.filesScanned + ' data/*.json parsed');
+    for (const s of d.skipped) console.log('  SKIPPED — ' + s);
+    console.log('\n  ' + d.repair + '\n');
+    for (const a of d.artifacts) {
+      console.log('  ' + String(a.distinct).padStart(3) + '  ' + a.artifact.padEnd(38) + ' (' + a.mtime + ')');
+      console.log('       ' + a.species.slice(0, 14).join(', ') + (a.species.length > 14 ? ', …' : ''));
+    }
+    for (const c of d.controls) console.log('\n  negative control: "' + c.name + '" must NOT appear above. ' + c.why);
+    process.exit(0);
+  }
   const r = sweep();
   if (process.argv.includes('--json')) { console.log(JSON.stringify(r, null, 2)); process.exit(0); }
   console.log(`FIXTURE LEGALITY — every declared set through TeamValidator (${r.format})\n`);
@@ -562,7 +700,10 @@ if (require.main === module) {
   console.log(`  ${r.rejectedSets} distinct sets REJECTED, producing ${r.findings.length} distinct verdicts`);
   console.log(`  ${r.pairs.length} distinct illegal DECLARATIONS behind those verdicts `
     + `(${r.unreachable.length} of them UNREACHABLE — no legal carrier anywhere in the regulation)`);
-  console.log(`  ${r.notStaticallyPaired} construction sites carry no literal set and are NOT in this population\n`);
+  console.log(`  ${r.notStaticallyPaired} construction sites carry no literal set and are NOT in this population `
+    + `(${r.notStaticallyPairedDerived} of them build the body from a DERIVED value)`);
+  console.log(`\n  ORIGIN: every verdict below is ${r.origin}. ${r.originWhy}`);
+  console.log('  For the DERIVED half: node engine/fixture_legality.js --derived\n');
   console.log('DECLARATIONS BY FILE');
   for (const k of Object.keys(r.byFile).sort((a, b) => r.byFile[b] - r.byFile[a])) {
     console.log(`  ${String(r.byFile[k]).padStart(4)}  ${k}`);

@@ -41,8 +41,36 @@ const BASELINE = D('data', 'medicham-bench.json');
 /* THE FIXTURE IS PINNED AND MUST NOT DRIFT. Six species chosen to exercise different paths — a
  * physical attacker, a dragon, a fast frail body, a slow bulky one, a Psychic with an ability that
  * refuses priority, and a status-heavy body. Changing this list invalidates every stored number, so
- * if it ever changes, the baseline must be re-recorded and the change said out loud. */
-const ROSTER = ['incineroar', 'garchomp', 'dragapult', 'torterra', 'farigiraf', 'amoonguss'];
+ * if it ever changes, the baseline must be re-recorded and the change said out loud.
+ *
+ * SAID OUT LOUD, 2026-08-27. THE SIXTH SLOT HELD A SPECIES THAT IS NOT IN THIS REGULATION AND THAT
+ * THE DAMAGE TABLE HAS NEVER CARRIED, so this fixture has never once had six bodies.
+ *
+ *   - `amoonguss` is `isNonstandard: 'Past'`, `tier: 'Illegal'` in gen9championsvgc2026regmb. It was
+ *     a TYPED literal: a human wrote it here, and CLAUDE.md's cardinal rule forbids naming it.
+ *   - `data/engine-data.js` has never held a key for it — checked on every commit that touched the
+ *     file back to 2026-07-23, zero hits, including `9a060821` on the day this benchmark was written.
+ *   - At the baseline commit (`5884fd23`, 2026-08-10) `buildMon` was `const m = monRow(name); if (!m)
+ *     return null;`, so the sixth slot was silently `null`. Every game draws all six indices exactly
+ *     once, so ALL 120 games ran with a null body on one side. `turns: 450` against a 120 x 12 cap is
+ *     the fingerprint of it. **The stored 0.4614 ms/turn was measured on five bodies and a hole, and
+ *     was invalid the day it was recorded — not because this list changed.**
+ *   - Today `monKey` throws (`engine/lookup.js`, armed 2026-08-02), so the file cannot run at all.
+ *     The canonical speed benchmark has been dead, loudly, and nothing said so.
+ *
+ * THE REPLACEMENT IS DERIVED, NOT PICKED. The slot's job in the list above is "a status-heavy body".
+ * Ranking every legal, MC-carried, buildMon-safe species by how many Status-category moves its built
+ * set actually holds, keeping those that retain a damaging move (Amoonguss's real set is three status
+ * and one attack, not four status), and taking the highest team-rate body in the sub-56 Speed tier —
+ * the tier Amoonguss occupied at base 30, and the one farigiraf's Trick Room acts on — gives TOXAPEX:
+ * 3.63% of teams / 1,554 games, base Speed 35, Regenerator + Leftovers, Infestation / Toxic / Wide
+ * Guard / Baneful Bunker. Validated through `champions_sim.checkLegal`: legal, as are the other five.
+ *
+ * WHAT THIS CHANGES ABOUT WHAT IS MEASURED, STATED BEFORE THE RE-RECORD. Turn COUNT will rise — a
+ * sixth living body plays instead of a hole — and ms/turn moves with it in an unknown direction:
+ * Toxapex adds real damage, status and side-condition work per turn that the null contributed
+ * nothing to. The old number is not a comparand for the new one in either direction. */
+const ROSTER = ['incineroar', 'garchomp', 'dragapult', 'torterra', 'farigiraf', 'toxapex'];
 const GAMES = 120;
 const TURN_CAP = 12;
 const REPS = 5;
@@ -59,7 +87,18 @@ function loadEngine(relId) {
 
 function play(M) {
   const rng = lcg(20260810);
-  const mk = sp => M.buildMon(sp, {});
+  /* A BODY THAT DID NOT BUILD IS NOT A BODY, AND A SILENT NULL IS WHAT COST THE FIRST BASELINE.
+   * `buildMon` returned null for an absent species at the commit that recorded 0.4614 ms/turn, so a
+   * hole rode into all 120 games and the timing was taken on five bodies. It throws today, but only
+   * for the live tree — `--vs <relId>` loads a FROZEN engine whose buildMon may still return null,
+   * which is exactly the run where a quiet hole would look like an optimization. */
+  const mk = sp => {
+    const m = M.buildMon(sp, {});
+    if (!m) throw new Error('bench-medicham: buildMon("' + sp + '") returned null, so this fixture '
+      + 'has ' + (ROSTER.length - 1) + ' bodies and not ' + ROSTER.length + '. Every number below '
+      + 'would be timed on a hole. Fix the roster or the engine; do not record.');
+    return m;
+  };
   let turns = 0;
   for (let g = 0; g < GAMES; g++) {
     const a = [mk(ROSTER[g % 6]), mk(ROSTER[(g + 1) % 6]), mk(ROSTER[(g + 2) % 6])];
@@ -146,6 +185,23 @@ if (RECORD) {
 
 if (!base) {
   console.log('\n  NO BASELINE STORED. Run quiet, then: node tests/bench-medicham.js --record');
+  process.exit(0);
+}
+
+/* THE BASELINE ALREADY CARRIED THE ROSTER AND NOTHING COMPARED IT. The header has said since this
+ * file was written that changing the list invalidates every stored number; that was PROSE, so the
+ * one time the list had to change, the comparison would have gone on subtracting a number taken on a
+ * different fixture and reported a percentage. Same shape as every stale artifact in this repo: the
+ * warning is written, the number is read. This refuses instead of annotating. */
+const sameRoster = Array.isArray(base.roster)
+  && base.roster.length === ROSTER.length
+  && base.roster.every((s, i) => s === ROSTER[i]);
+if (!sameRoster) {
+  console.log('\n  NO COMPARISON. The stored baseline was taken on a DIFFERENT fixture, so the two');
+  console.log('  numbers are not comparands and a delta between them would be meaningless.');
+  console.log('    baseline roster  ' + JSON.stringify(base.roster || null));
+  console.log('    this roster      ' + JSON.stringify(ROSTER));
+  console.log('  Re-record on a quiet machine: node tests/bench-medicham.js --record');
   process.exit(0);
 }
 
