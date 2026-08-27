@@ -21,6 +21,45 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE GATE NOBODY HAD RUN HAD BEEN RUNNING FOR THREE WEEKS, AND IT PASSES. **COVERAGE 18 UNACCOUNTED → 0, NONE OF THE 18 DEAD.** 2026-08-27 (MEASURE).
+
+CHANGELOG 5.161.0. Full account: `docs/_reports/2026-08-27-never-run.md`. Register row: **OWED** —
+see the report; `docs/ROADMAP.md` is not this pass's to write and `engine/register_reality.js`, which
+validates it, was forbidden to this pass.
+
+**The claim was one day old and refutable by grep.** `tests/run-all.js` said
+`engine/derive_protocol_events.js` is *"A REAL CHECK, AND NOTHING HAS EVER RUN IT"*.
+`tests/test-protocol-trace.js` PART 7 has spawned it since **2026-08-06** (`38c0e2b9`) and fails on any
+non-zero exit, and that file is discovered by the glob. The reason is corrected in place; the entry
+stays unwired on the `probe_red_demo.js` precedent — it already has a runner.
+
+**Run anyway, on a settled tree**, with `engine/medicham2-browser.js` verified byte-identical to `HEAD`
+before *and* after:
+
+| the derivation's verdict | number |
+|---|---|
+| distinct Showdown events, from 17 files (`sim/` + `data/mods/champions/`) | **91** |
+| medicham2 emits | **44** |
+| declared not-emitted, each with a written reason | **50** |
+| partial shapes, each with a written reason | **10** |
+| **INVENTED / UNDECLARED** | **0 / 0 — BOTH GATES PASS**, exit 0, nothing written |
+
+`data/protocol-events.json` agrees exactly (91 / 44 / 50 / 10, both gate arrays empty). **Both gates
+were shown RED first**, in memory and touching no file: a phantom name pushed onto `TRACE_EVENTS`
+trips `INVENTED`; splicing `-crit` out trips `UNDECLARED`. A gate never shown red may be asking nothing.
+
+**The 18 unaccounted-for checks, classified — 0 dead.** 2 wired in (`generated_audit.js --no-rebuild`,
+`move_result_state.js --selftest`); 1 already had a runner (`orient.js` — **added to `GATES` and taken
+back out**, because `tests/test-orient.js` already runs it and asks strictly more); 8 probes that play
+games but carry a `VERIFIED BY` marker the register executes; **6 probes that play games and have no
+runner anywhere**; 1 (`preflight.js`) correctly standalone forever, since its subject is the
+configuration of a run about to be launched and its own header says checking a different configuration
+is the bug.
+
+**The most load-bearing measurement in the pass:** `node engine/move_result_state.js` **without**
+`--selftest` exits **0 having printed nothing**. That is why `GATES` cannot be derived — the argument
+is the question — and it is the registered-no-op hazard in its purest form.
+
 ## THE LEGALITY FILTER IS WIRED AND IT REMOVES 49 GAMES. **THE COVERAGE GATE'S DENOMINATOR MOVED THE EASY WAY, 508 → 502.** 2026-08-27 (MEASURE).
 
 CHANGELOG 5.160.0. Register row: ROADMAP **#471 — CLOSED**. Full account:

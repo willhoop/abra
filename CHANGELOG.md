@@ -10,6 +10,81 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.161.0] — 2026-08-27
+
+### Fixed
+- **THE "NEVER-RUN" GATE HAS BEEN RUN SINCE 2026-08-06, AND THE NOTE SAYING OTHERWISE WAS ONE DAY
+  OLD.** MEASURE. Full account: `docs/_reports/2026-08-27-never-run.md`.
+
+  `tests/run-all.js` carried, in `PENDING_WIRE`, the claim that `engine/derive_protocol_events.js` is
+  *"A REAL CHECK, AND NOTHING HAS EVER RUN IT"*. **It is refutable by grep.** `tests/test-protocol-trace.js`
+  PART 7 has spawned it since commit `38c0e2b9` (2026-08-06) and calls `fail()` on any non-zero exit,
+  and `test-protocol-trace.js` is discovered by the `tests/test-*.js` glob. PART 7's own header states
+  the arrangement — *"spawned from here instead of hand-registered, so it cannot fall off a list"* —
+  which is precisely what the entry said had never happened. The reason is **corrected in place**, not
+  deleted, and the entry stays in `PENDING_WIRE` on the `probe_red_demo.js` precedent: it already has a
+  runner, so a `GATES` entry would buy a second execution of one command and a second place for one
+  verdict to be decided.
+
+- **AND IT WAS RUN ANYWAY, ON A SETTLED TREE, BECAUSE A CLAIM ABOUT A GATE IS NOT A MEASUREMENT OF IT.**
+  `engine/medicham2-browser.js` was verified byte-identical to `HEAD` **before and after** the run.
+  **91 distinct Showdown events, 44 emitted, 50 declared with a written reason, 10 partial shapes,
+  BOTH GATES PASS, exit 0**, nothing written (it is read-only without `--write`).
+  `data/protocol-events.json` agrees exactly — 91 / 44 / 50 / 10, both gate arrays empty.
+
+  **Both gates were shown RED first, in memory, with no file touched**: pushing a phantom name onto
+  `TRACE_EVENTS` trips `INVENTED` (exit 1); splicing out an emitted one trips `UNDECLARED` (exit 1,
+  naming `-crit` and its three call sites). A green from a gate that has never been shown red is a
+  green from a gate that may be asking nothing.
+
+### Added
+- **THE COVERAGE ASSERTION IS GREEN — 18 UNACCOUNTED-FOR CHECKS → 0, AND NONE OF THE 18 WAS DEAD.**
+  Every one was classified by reading its own header, and the mechanism is named in plain words rather
+  than by filename. Two were wired in as gates; the rest were named with a blocker.
+
+  | classification | count |
+  |---|---|
+  | wired into `GATES` this pass | **2** — `generated_audit.js --no-rebuild`, `move_result_state.js --selftest` |
+  | already has a runner, named so | **1** — `orient.js` |
+  | real check, plays a game, **has** a `VERIFIED BY` runner | **8** probes |
+  | real check, plays a game, **no runner anywhere** | **6** probes |
+  | real check, correctly standalone **forever** | **1** — `preflight.js` |
+  | dead | **0** |
+
+  **`engine/orient.js` was added to `GATES` and then taken back out in the same pass.**
+  `tests/test-orient.js` is discovered and already `execFileSync`s it as its first arm, and asks
+  strictly more than a bare run does (every section present by name, every `ORIENT_BREAK` knob going
+  red and naming its section, no findings leaking into the IN FLIGHT block, the enumeration summing).
+  Registering it would have run it twice and asked less.
+
+- **THE ARGUMENT IS WHY `GATES` CANNOT BE DERIVED, AND ONE OF THE TWO PROVES IT IN THE WORST
+  DIRECTION.** `node engine/move_result_state.js` **without** `--selftest` exits **0 having printed
+  nothing at all** — measured. Bare, it is a library; a `GATES` entry that lost its argument would
+  report a clean pass while asking no question, which is the registered no-op `run-all.js` rates worse
+  than an unregistered check. With `--selftest`: **18 passed, 0 failed**, milliseconds, no filesystem,
+  no dex, no game. `generated_audit.js` needs `--no-rebuild` in the other direction — bare it re-runs
+  every builder, which would have the suite rewrite artifacts its own children are reading.
+
+- **`--list` NOW PRINTS THE `EXTRA` ARGUMENT**, for the reason it already prints the honoured
+  `ABRA-HEAP` value: so the binding can be **seen** to have fired rather than assumed. An `EXTRA` key
+  that silently fails to match its file is the same class of defect as the backslash-vs-forward-slash
+  exemption the file already guards against.
+
+### Changed
+- **`PENDING_WIRE`'s header no longer types a count.** It read *"THE SIXTEEN tests/ ENTRIES"*; fourteen
+  more were classified into it. It also now records a second condition it never had: some entries are
+  cited in a `VERIFIED BY:` marker that `engine/register_reality.js` executes, and some are cited
+  nowhere — with the sting stated, that `register_reality.js` is **itself** in the list, so a probe
+  whose only runner is the register is covered by something the suite does not run either.
+
+### Notes
+- **The hand-maintained half is not the defect; its unaudited PROSE is.** The lists already audit their
+  own **membership** (`staleExemption` fails by name). Nothing audits the **claims inside the reasons**,
+  and that is exactly where the false one sat. A derived replacement for `GATES` is **argued against**
+  in the report and deliberately not built: the argument changes what a gate ASKS and cannot be derived.
+- **The full suite was NOT run** — it plays games and ENGINE holds the play layer. Every entry was
+  verified by running it alone. The suite total is **unverified by this pass** and is carried as OWED.
+
 ## [5.160.0] — 2026-08-27
 
 ### Added
