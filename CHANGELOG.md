@@ -10,6 +10,63 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.152.0] — 2026-08-26
+
+### Changed
+- **`build/build_engine_data.js` READ ITS OWN OUTPUT AS A SOURCE, AND 1,350 OF THOSE VALUES NOW HAVE
+  A REAL ONE.** MEASURE. The builder carried `MC.priors`, all 500 `moves` rows, the 15 species rows
+  champ-model no longer holds, and the file's own wrapper straight off the copy of
+  `data/engine-data.js` it was about to overwrite — so every check that asked *"does this artifact
+  match its sources?"* compared them **to themselves** and passed. That is the mechanism by which 67
+  mega rows sat at `ab: null` / `mv: []` for seven weeks with every check green. Relocated to
+  `data/mc-priors.json` (230 rows, declared HAND-AUTHORED), `data/mc-declared-rows.json` (15 rows),
+  `data/engine-data.template.txt` (the wrapper) and `champ-model.MOVES` (all 500 `t`/`c`, same keys,
+  same order, zero disagreements). **A pure relocation: not one value changed.** Proved by shadow —
+  the builder's candidate bytes are `5e2a246a…` before the change and `5e2a246a…` after it, 201,305
+  bytes, identical to the byte including key order. Full account:
+  `docs/_reports/2026-08-26-builder-purity.md`.
+- **THE RESIDUE IS A MEASURED NUMBER NOW, NOT AN ADJECTIVE — 2,072.** `--purity` builds the identical
+  MC twice, once with the previous artifact and once with it hidden, and diffs the two candidates.
+  Three of the four sections of `MC` are pure (`moves` 500, `C` 18, `priors` 230) and all 323 species
+  rows survive with the artifact deleted. What is left is `st, mv, item, ab, nature, sp, set_source,
+  base, mega, mv_provenance` on 307 rows, every one of them owned by a LATER generator that edits the
+  artifact in place. Ratcheted in `data/engine-data-purity.json`: the count may fall and may never
+  rise. Shown RED on a deliberate break (`RATCHET BROKEN: 2071 -> 2072`) before being trusted.
+- **`data/engine-data.js` WAS NOT REGENERATED, DELIBERATELY.** It stands at `c73da1d2…`. Regenerating
+  it today would ADD `floette-eternal-mega` and MOVE five rows, in a file that is in
+  `engine_release.js` SOURCES and therefore frozen into every future release. That is a value change
+  and a decision, not a chore.
+
+### Fixed
+- **A REPAIR THAT WAS CONDITIONED ON THE DAMAGE IT REPAIRS.** `build/rebuild_sets_from_sheets.js`
+  guarded its dex-primary ability fallback on `mon.ab` being truthy, so it could only fire on a row
+  that already carried an ability — and never on the `ab: null` a from-scratch build produces. The
+  pipeline would have deleted both the impossible value **and its own correction**, leaving null,
+  which reads downstream as *"this Pokemon has no ability"*. Now fires on absent OR illegal, and the
+  `set_source` note names which case it was. Measured: **0 value changes against the live artifact**
+  (0 illegal abilities, 0 null abilities, before and after) and **113 rows repaired on a from-scratch
+  build, where the old guard could reach at most 15 and left 113 at null.**
+- **`--check` COULD NOT SEE KEY ORDER, AND THE ARTIFACT IS OUT OF ORDER.** Every comparison in it ran
+  over PARSED objects, so a section whose rows are identical but re-ordered reported *"0 rows differ"*
+  beside a byte comparison that said drift — a diff that named nothing. A clause was added and it
+  fires today: `castform-snowy/rainy/sunny` sit at indices 35–37 and `morpeko-hangry` at 182,
+  `mimikyu-busted` at 200, where the sources emit them at the end. Every `--check` run before today,
+  and the previous shadow report's green control, missed this.
+- **`base power taken from the format: 0 row(s) CORRECTED` WAS NEVER TRUE.** It is **12** — the
+  artifact was agreeing with the copy of itself it had just been handed. The 12 are champ-model's
+  generic gen-9 base powers against the Champions format's: `infernalparade, firstimpression,
+  bonerush, nightdaze, mountaingale, spiritshackle, beakblast, firelash, tropkick, gravapple,
+  appleacid, psyshieldbash`.
+
+### Notes
+- **Conformance S13 gained two findings and both are TRUE.** `data/mc-priors.json` and
+  `data/mc-declared-rows.json` are flagged *"no generator writes it"* — which is exactly what they
+  are. S13 could not see them before, because they were hiding inside a file that HAS a generator.
+  The right answer is a generator for `MC.priors`, which is MAG's work and moves the modal click on
+  114 of 230 species; not an exemption list. Nothing was added to any baseline.
+- `node engine/status.js --write` was NOT run for this change — it was outside this pass's scope, so
+  the generated blocks are not restamped for it.
+
 ## [5.151.0] — 2026-08-26
 
 ### Fixed

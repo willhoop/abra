@@ -1,0 +1,513 @@
+{
+ "_file": "data/mc-declared-rows.json",
+ "_what": "Species rows that data/engine-data.js carries and CHOMP/engine/champ-model.js does not. build/build_engine_data.js used to preserve them by reading them back out of the artifact it was about to overwrite, so they were compared to themselves and could never be shown wrong.",
+ "_why_they_exist": "Every one is a forme that is ENTERED MID-BATTLE rather than brought: a weather forme, a busted disguise, a hangry mode, a battle-only blade forme, a mega or a size forme. The pinned pool records what players BROUGHT and therefore reports 0 appearances for all of them — that is the wrong instrument, not evidence they are unused.",
+ "_board_material": "FIVE of these carry a TYPE their base forme does not, and the builder RE-DERIVES that list from the dex and prints it on every run, so this sentence cannot rot unchecked. Three are the Castform weather formes (sunny Fire, rainy Water, snowy Ice, against castform Normal) and they have NO generator at all — lose them and a sun Castform reads Normal, changing STAB and every effectiveness term. The other two are feraligatr-mega (Water/Dragon) and barbaracle-mega (Rock/Fighting), which engine/merge_mega_into_engine.js re-adds from data/mega-dex-official.json.",
+ "_partial_generator": "engine/merge_mega_into_engine.js re-adds the mega and size formes from data/mega-dex-official.json. It does NOT re-add castform-sunny/rainy/snowy, morpeko-hangry or mimikyu-busted; those five have no generator at all.",
+ "_known_defect": "castform-sunny/rainy/snowy carry ab \"Forecast\" capitalised where every other row in the artifact is lower-case normalised. Recorded, NOT fixed here — this relocation changes no value. Fixing it is a value change and carries its own re-run.",
+ "_rule": "Key order is load-bearing; these rows are appended to the artifact in this order.",
+ "_relocated": "2026-08-26, by MEASURE, from data/engine-data.js. See docs/_reports/2026-08-26-builder-purity.md.",
+ "count": 15,
+ "rows": {
+  "castform-snowy": {
+   "t": [
+    "Ice"
+   ],
+   "bs": {
+    "hp": 70,
+    "atk": 70,
+    "def": 70,
+    "spa": 70,
+    "spd": 70,
+    "spe": 70
+   },
+   "st": {
+    "hp": 147,
+    "at": 134,
+    "df": 90,
+    "sa": 81,
+    "sd": 90,
+    "sp": 122
+   },
+   "mv": [
+    "facade",
+    "avalanche",
+    "thief",
+    "protect"
+   ],
+   "item": null,
+   "ab": "Forecast",
+   "wt": 0.8,
+   "base": "castform"
+  },
+  "castform-rainy": {
+   "t": [
+    "Water"
+   ],
+   "bs": {
+    "hp": 70,
+    "atk": 70,
+    "def": 70,
+    "spa": 70,
+    "spd": 70,
+    "spe": 70
+   },
+   "st": {
+    "hp": 147,
+    "at": 134,
+    "df": 90,
+    "sa": 81,
+    "sd": 90,
+    "sp": 122
+   },
+   "mv": [
+    "facade",
+    "avalanche",
+    "thief",
+    "protect"
+   ],
+   "item": null,
+   "ab": "Forecast",
+   "wt": 0.8,
+   "base": "castform"
+  },
+  "castform-sunny": {
+   "t": [
+    "Fire"
+   ],
+   "bs": {
+    "hp": 70,
+    "atk": 70,
+    "def": 70,
+    "spa": 70,
+    "spd": 70,
+    "spe": 70
+   },
+   "st": {
+    "hp": 147,
+    "at": 134,
+    "df": 90,
+    "sa": 81,
+    "sd": 90,
+    "sp": 122
+   },
+   "mv": [
+    "facade",
+    "avalanche",
+    "thief",
+    "protect"
+   ],
+   "item": null,
+   "ab": "Forecast",
+   "wt": 0.8,
+   "base": "castform"
+  },
+  "morpeko-hangry": {
+   "t": [
+    "Electric",
+    "Dark"
+   ],
+   "bs": {
+    "hp": 58,
+    "atk": 95,
+    "def": 58,
+    "spa": 70,
+    "spd": 58,
+    "spe": 97
+   },
+   "st": {
+    "hp": 133,
+    "at": 165,
+    "df": 78,
+    "sa": 81,
+    "sd": 78,
+    "sp": 156
+   },
+   "mv": [
+    "fakeout",
+    "knockoff",
+    "aurawheel",
+    "protect"
+   ],
+   "item": null,
+   "ab": "Hunger Switch",
+   "wt": 3,
+   "base": "morpeko"
+  },
+  "mimikyu-busted": {
+   "t": [
+    "Ghost",
+    "Fairy"
+   ],
+   "bs": {
+    "hp": 55,
+    "atk": 90,
+    "def": 80,
+    "spa": 50,
+    "spd": 105,
+    "spe": 96
+   },
+   "st": {
+    "hp": 130,
+    "at": 176,
+    "df": 100,
+    "sa": 63,
+    "sd": 125,
+    "sp": 141
+   },
+   "mv": [
+    "playrough",
+    "shadowsneak",
+    "swordsdance",
+    "protect"
+   ],
+   "item": null,
+   "ab": "Disguise",
+   "wt": 0.7,
+   "base": "mimikyu"
+  },
+  "victreebel-mega": {
+   "t": [
+    "Grass",
+    "Poison"
+   ],
+   "bs": {
+    "hp": 80,
+    "atk": 125,
+    "def": 85,
+    "spa": 135,
+    "spd": 95,
+    "spe": 70
+   },
+   "st": {
+    "hp": 155,
+    "at": 145,
+    "df": 105,
+    "sa": 205,
+    "sd": 115,
+    "sp": 122
+   },
+   "mv": [
+    "energyball",
+    "sleeppowder",
+    "sludgebomb",
+    "strengthsap"
+   ],
+   "item": "Victreebelite",
+   "ab": "Innards Out",
+   "base": "victreebel",
+   "mega": true,
+   "mv_provenance": {
+    "source": "sheet",
+    "observations": 29,
+    "modal_n": 7,
+    "distinct_sets": 8
+   }
+  },
+  "feraligatr-mega": {
+   "t": [
+    "Water",
+    "Dragon"
+   ],
+   "bs": {
+    "hp": 85,
+    "atk": 160,
+    "def": 125,
+    "spa": 89,
+    "spd": 93,
+    "spe": 78
+   },
+   "st": {
+    "hp": 160,
+    "at": 233,
+    "df": 145,
+    "sa": 109,
+    "sd": 113,
+    "sp": 130
+   },
+   "mv": [
+    "aquajet",
+    "doubleedge",
+    "liquidation",
+    "protect"
+   ],
+   "item": "Feraligite",
+   "ab": "Dragonize",
+   "base": "feraligatr",
+   "mega": true,
+   "mv_provenance": {
+    "source": "sheet",
+    "observations": 54,
+    "modal_n": 10,
+    "distinct_sets": 17
+   }
+  },
+  "skarmory-mega": {
+   "t": [
+    "Steel",
+    "Flying"
+   ],
+   "bs": {
+    "hp": 65,
+    "atk": 140,
+    "def": 110,
+    "spa": 40,
+    "spd": 100,
+    "spe": 110
+   },
+   "st": {
+    "hp": 140,
+    "at": 211,
+    "df": 130,
+    "sa": 60,
+    "sd": 120,
+    "sp": 162
+   },
+   "mv": [
+    "bravebird",
+    "ironhead",
+    "protect",
+    "swordsdance"
+   ],
+   "item": "Skarmorite",
+   "ab": "Stalwart",
+   "base": "skarmory",
+   "mega": true,
+   "mv_provenance": {
+    "source": "sheet",
+    "observations": 51,
+    "modal_n": 12,
+    "distinct_sets": 17
+   }
+  },
+  "barbaracle-mega": {
+   "t": [
+    "Rock",
+    "Fighting"
+   ],
+   "bs": {
+    "hp": 72,
+    "atk": 140,
+    "def": 130,
+    "spa": 64,
+    "spd": 106,
+    "spe": 88
+   },
+   "st": {
+    "hp": 147,
+    "at": 211,
+    "df": 150,
+    "sa": 84,
+    "sd": 126,
+    "sp": 140
+   },
+   "mv": [
+    "closecombat",
+    "protect",
+    "rockslide",
+    "shellsmash"
+   ],
+   "item": "Barbaracite",
+   "ab": "Tough Claws",
+   "base": "barbaracle",
+   "mega": true,
+   "mv_provenance": {
+    "source": "sheet",
+    "observations": 20,
+    "modal_n": 16,
+    "distinct_sets": 4
+   }
+  },
+  "falinks-mega": {
+   "t": [
+    "Fighting"
+   ],
+   "bs": {
+    "hp": 65,
+    "atk": 135,
+    "def": 135,
+    "spa": 70,
+    "spd": 65,
+    "spe": 100
+   },
+   "st": {
+    "hp": 140,
+    "at": 205,
+    "df": 155,
+    "sa": 90,
+    "sd": 85,
+    "sp": 152
+   },
+   "mv": [
+    "closecombat",
+    "noretreat",
+    "protect",
+    "rockslide"
+   ],
+   "item": "Falinksite",
+   "ab": "Defiant",
+   "base": "falinks",
+   "mega": true,
+   "mv_provenance": {
+    "source": "sheet",
+    "observations": 127,
+    "modal_n": 70,
+    "distinct_sets": 13
+   }
+  },
+  "aegislash-blade": {
+   "t": [
+    "Steel",
+    "Ghost"
+   ],
+   "bs": {
+    "hp": 60,
+    "atk": 140,
+    "def": 50,
+    "spa": 140,
+    "spd": 50,
+    "spe": 60
+   },
+   "st": {
+    "hp": 135,
+    "at": 211,
+    "df": 70,
+    "sa": 160,
+    "sd": 70,
+    "sp": 112
+   },
+   "mv": [
+    "ironhead",
+    "poltergeist",
+    "shadowsneak",
+    "kingsshield"
+   ],
+   "item": null,
+   "ab": "Stance Change",
+   "base": "aegislash"
+  },
+  "gourgeist-small": {
+   "t": [
+    "Ghost",
+    "Grass"
+   ],
+   "bs": {
+    "hp": 55,
+    "atk": 85,
+    "def": 122,
+    "spa": 58,
+    "spd": 75,
+    "spe": 99
+   },
+   "st": {
+    "hp": 130,
+    "at": 150,
+    "df": 142,
+    "sa": 78,
+    "sd": 95,
+    "sp": 151
+   },
+   "mv": [
+    "explosion",
+    "poltergeist",
+    "thief",
+    "protect"
+   ],
+   "item": null,
+   "ab": "Pickup",
+   "base": "gourgeist"
+  },
+  "gourgeist-large": {
+   "t": [
+    "Ghost",
+    "Grass"
+   ],
+   "bs": {
+    "hp": 75,
+    "atk": 95,
+    "def": 122,
+    "spa": 58,
+    "spd": 75,
+    "spe": 69
+   },
+   "st": {
+    "hp": 150,
+    "at": 161,
+    "df": 142,
+    "sa": 78,
+    "sd": 95,
+    "sp": 121
+   },
+   "mv": [
+    "explosion",
+    "poltergeist",
+    "thief",
+    "protect"
+   ],
+   "item": null,
+   "ab": "Pickup",
+   "base": "gourgeist"
+  },
+  "gourgeist-super": {
+   "t": [
+    "Ghost",
+    "Grass"
+   ],
+   "bs": {
+    "hp": 85,
+    "atk": 100,
+    "def": 122,
+    "spa": 58,
+    "spd": 75,
+    "spe": 54
+   },
+   "st": {
+    "hp": 160,
+    "at": 167,
+    "df": 142,
+    "sa": 78,
+    "sd": 95,
+    "sp": 106
+   },
+   "mv": [
+    "explosion",
+    "poltergeist",
+    "thief",
+    "protect"
+   ],
+   "item": null,
+   "ab": "Pickup",
+   "base": "gourgeist"
+  },
+  "palafin-hero": {
+   "t": [
+    "Water"
+   ],
+   "bs": {
+    "hp": 100,
+    "atk": 160,
+    "def": 97,
+    "spa": 106,
+    "spd": 87,
+    "spe": 100
+   },
+   "st": {
+    "hp": 175,
+    "at": 233,
+    "df": 117,
+    "sa": 126,
+    "sd": 107,
+    "sp": 152
+   },
+   "mv": [
+    "wavecrash",
+    "jetpunch",
+    "closecombat",
+    "protect"
+   ],
+   "item": null,
+   "ab": "Zero to Hero",
+   "base": "palafin"
+  }
+ }
+}

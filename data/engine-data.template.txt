@@ -1,0 +1,23 @@
+/* engine-data.template.txt — the WRAPPER of data/engine-data.js, with an empty payload.
+ *
+ * build/build_engine_data.js used to obtain this wrapper by reading data/engine-data.js — the file
+ * it was about to overwrite. That made a from-scratch build impossible and made the builder unable
+ * to run at all if its own output was missing. The wrapper lives here instead, so the builder reads
+ * no part of its own output for STRUCTURE.
+ *
+ * The block comment above is replaced wholesale by the builder's date stamp, so do not put anything
+ * here that must survive into the artifact. Everything BELOW the MC line is copied verbatim.
+ *
+ * .txt, NOT .js, DELIBERATELY: this file executes root.MC = MC on globalThis. A copy of it with a
+ * .js extension is one careless require away from replacing the live damage table in a running
+ * process with an empty one.
+ */
+(function(root){
+const MC = {};
+
+/* ===== MEDICHAM in the browser (no server) ===== */
+function mcBuild(n){return n.map(x=>{const m=MC.mons[x];return m?{k:x,t:m.t,st:m.st,mv:m.mv,item:m.item,ab:m.ab}:null;}).filter(Boolean);}
+function mcEff(t,dt){let e=1;const r=MC.C[t];if(!r)return 1;for(const d of dt)if(r[d]!=null)e*=r[d];return e;}
+root.MC=MC; root.mcEff=mcEff;
+if(typeof module!=='undefined'&&module.exports)module.exports={MC,mcEff};
+})(typeof globalThis!=='undefined'?globalThis:this);

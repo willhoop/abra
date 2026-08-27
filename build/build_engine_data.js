@@ -21,6 +21,9 @@
  *   node build/build_engine_data.js            overwrites data/engine-data.js
  *   node build/build_engine_data.js --check    writes NOTHING; exits non-zero if the artifact on
  *                                              disk is not what this script would write today
+ *   node build/build_engine_data.js --purity   writes NOTHING; builds twice, once WITH the previous
+ *                                              artifact and once with it hidden, and reports every
+ *                                              value that still comes off this builder's own output
  *
  * Never hand-edit data/engine-data.js.
  *
@@ -45,36 +48,65 @@
  *
  * ══ WHAT SHAPE THIS MATCHES — AND WHAT WALKS PAST IT ════════════════════════════════════════════
  *
- * READ THIS BEFORE BELIEVING A GREEN RUN. This builder is NOT a pure transform: it reads the
- * artifact it is about to overwrite and CARRIES most of it through (`...old`, `prior.moves`,
- * `prior.priors`, and the `preserved` rows). So the check divides cleanly in two, and only one half
- * is provable:
+ * READ THIS BEFORE BELIEVING A GREEN RUN. This builder reads the artifact it is about to overwrite
+ * and carries part of it through, so the check divides in two and only one half is provable. A field
+ * that came off the previous copy is compared TO ITSELF and passes no matter what it holds — which
+ * is not a theory: that is exactly how 67 mega rows sat at `ab: null` / `mv: []` for seven weeks
+ * with every check green.
  *
- *   PROVABLE — the fields this builder OWNS, recomputed from a source outside the artifact:
+ *   PROVABLE — recomputed from a source outside the artifact:
  *     mons[k].t, mons[k].bs   from CHOMP/engine/champ-model.js
  *     mons[k].wt              from the Champions dex (species.weighthg)
- *     moves[k].bp, .rc, .self from the Champions dex
+ *     moves — ALL 500 ROWS    t and c from champ-model's MOVES table; bp, rc, self from the dex
  *     moves added by the tags.json ∩ dex backfill
  *     MC.C (the type chart)   from champ-model
- *     the KEY SET of mons     champ-model's keys ∪ the preserved rows
+ *     MC.priors               from data/mc-priors.json
+ *     the rows champ-model does not carry, in full, from data/mc-declared-rows.json
+ *     the wrapper / mcEff / export block from data/engine-data.template.txt
+ *     the KEY SET and the KEY ORDER of mons and moves
  *
- *   NOT PROVABLE — the fields this builder COPIES OFF THE ARTIFACT. They compare equal to
- *   themselves by construction and always will:
- *     mons[k].st, .mv, .item, .ab, .nature, .sp, .set_source, .mv_provenance
- *     moves[k].t and .c on any pre-existing row
- *     MC.priors, and every `preserved` row in full
+ *   NOT PROVABLE — still copied off the artifact, on the rows champ-model DOES carry:
+ *     mons[k].st, .mv, .item, .ab, .nature, .sp, .set_source, .base, .mega, .mv_provenance
  *
- * THAT SECOND LIST IS WHERE THE 2026-07-30 BUG LIVED. `ab`, `mv` and `item` are exactly the three
- * fields this check cannot compare. So it is NOT sufficient on its own, and the ROW CENSUS below —
- * printed on every run, in both modes — is the compensating instrument: it counts the null/empty
- * shape of that failure directly and DECLARES the expected ones with a DERIVED reason.
+ * ══ WHY THAT SECOND LIST IS STILL HERE, AND WHAT WOULD EMPTY IT (2026-08-26) ════════════════════
+ *
+ * Those fields are not this builder's. data/engine-data.js is written by THREE generators in
+ * sequence, each editing the file IN PLACE:
+ *
+ *   1. this file                            t, bs, wt, moves, C, the key set
+ *   2. build/rebuild_sets_from_sheets.js    mv, item, ab, nature, sp, st, set_source
+ *                                           from data/species-sets.json (open team sheets)
+ *   3. engine/merge_mega_into_engine.js     base, mega, mv_provenance, the mega rows
+ *                                           from data/mega-dex-official.json + the sheet store
+ *
+ * Stage 1 carries stages 2 and 3 through so that re-running it does not DELETE their output — the
+ * 2026-08-09 fix, and it is correct. The cost is that stage 1 cannot prove those fields, because its
+ * only copy of them is the file it is checking.
+ *
+ * THE ONE CHANGE THAT WOULD CLOSE IT: stages 2 and 3 must write their own layer file under data/
+ * instead of editing the artifact in place, and stage 1 must merge the layers. Then a wipe of
+ * engine-data.js is caught, because the layers still hold the values. That is a pipeline change and
+ * it is NOT free — re-deriving stage 3 from today's sheet store moves 14 mega movesets and all 76
+ * mv_provenance blocks, so it carries a measured value change. It is written up in
+ * docs/_reports/2026-08-26-builder-purity.md and it is not done here.
+ *
+ * `--purity` MEASURES the residue rather than asserting it away: it builds once with the previous
+ * artifact and once without, diffs the two candidates field by field, and ratchets the count in
+ * data/engine-data-purity.json. The number may fall and may never rise. Do not replace it with a
+ * sentence in this header; a sentence is what went stale for seven weeks last time.
+ *
+ * The ROW CENSUS below is the other compensating instrument: it counts the null/empty shape of the
+ * 2026-07-30 failure directly, on every run, in both modes, and DECLARES the expected ones with a
+ * DERIVED reason.
  *
  * Four more things get through, named so nobody has to rediscover them:
  *
  *  1. A SECOND ARTIFACT WRITTEN BY THIS BUILDER would NOT be caught. This builder writes exactly
  *     one file, so the question is moot here — but the check is written against OUT, not against a
  *     scan of what was written, so if a second output were added it would need its own clause. This
- *     is the instance-not-class hazard engine/read_text.js spends its header on.
+ *     is the instance-not-class hazard engine/read_text.js spends its header on. It is the plainest
+ *     hole left: `--check` proves one named path, so anything this builder wrote anywhere ELSE is
+ *     unproven by construction and would go unnoticed for as long as nobody read the code.
  *  2. THE SAME ARTIFACT WRITTEN BY A DIFFERENT PATH **IS** CAUGHT, and that is the useful half: the
  *     check asks whether the BYTES ON DISK equal what this builder would produce, so a hand-edit, a
  *     merge, a later script or a stale checkout all read as drift regardless of who wrote them.
@@ -106,6 +138,7 @@ const fs = require('fs'), path = require('path');
 const { normalise } = require(path.join(__dirname, '..', 'engine', 'read_text.js'));
 const M = require(path.join(__dirname, '..', '..', 'CHOMP', 'engine', 'champ-model.js'));
 const CHECK = process.argv.includes('--check');
+const PURITY = process.argv.includes('--purity');
 /* The dex, for the facts the engine owns and CHOMP's model does not carry — currently weight. */
 let DEX = null;
 try {
@@ -117,7 +150,7 @@ try {
  * artifact — the candidate bytes would then be compared against themselves in every field the dex
  * owns, and the run would report agreement it never tested. A build may degrade that way (it
  * preserves what it cannot recompute, which is correct); a MEASUREMENT may not. */
-if (CHECK && !DEX) {
+if ((CHECK || PURITY) && !DEX) {
   console.error('build_engine_data --check: NO VERDICT. The Champions dex did not load, so every');
   console.error('  dex-owned field (wt, bp, rc, self) would fall back to the artifact\'s own stored');
   console.error('  value and compare equal to itself. That is not a pass, it is a check asking');
@@ -125,18 +158,105 @@ if (CHECK && !DEX) {
   process.exit(2);
 }
 const OUT = path.join(__dirname, '..', 'data', 'engine-data.js');
+const DATA = (...p) => path.join(__dirname, '..', 'data', ...p);
 
-// keep whatever move/item/ability priors the previous file carried - those are ABRA's, not the
-// engine's - but rebuild everything the engine owns.
-let prior = {};
-try {
-  const t = fs.readFileSync(OUT, 'utf8');
-  prior = JSON.parse(t.match(/const MC = (\{[\s\S]*?\});/)[1]);
-} catch (e) { /* first run */ }
+/* ── THE SOURCES THAT USED TO BE THE OUTPUT (2026-08-26) ─────────────────────────────────────────
+ * Three blocks of this artifact had no upstream anywhere in the repository — the 230 opponent-model
+ * priors, the species rows champ-model no longer carries, and the file's own wrapper. All three were
+ * read back out of data/engine-data.js, so every check that asked "does the artifact match its
+ * sources?" compared them TO THEMSELVES and passed. They are declared files now. The values were
+ * RELOCATED, not regenerated: not one of them changed in the move, and the candidate bytes this
+ * builder produces are identical either side of the change. */
+const TEMPLATE_F = DATA('engine-data.template.txt');
+const PRIORS_F   = DATA('mc-priors.json');
+const DECLARED_F = DATA('mc-declared-rows.json');
+const RATCHET_F  = DATA('engine-data-purity.json');
 
-const mons = {};
-for (const [key, m] of Object.entries(M.MONS)) {
-  const old = (prior.mons || {})[key] || {};
+/* A MISSING SOURCE IS A REFUSAL, NOT A DEFAULT. `|| {}` here would delete 230 priors or 15 species
+ * rows and report success — which is the exact failure shape this whole file is written about. The
+ * declared `count` is checked against the rows actually present for the same reason: a file that is
+ * half-written parses fine. */
+function readSource(f, key) {
+  let j;
+  try { j = JSON.parse(fs.readFileSync(f, 'utf8')); }
+  catch (e) {
+    console.error(`build_engine_data: cannot read data/${path.basename(f)} — ${e.message}`);
+    console.error('  Refusing to build. That file is a SOURCE; an empty default would silently');
+    console.error('  delete every row it holds and the build would still report success.');
+    process.exit(2);
+  }
+  const v = j[key];
+  if (!v || typeof v !== 'object') {
+    console.error(`build_engine_data: data/${path.basename(f)} has no "${key}" object.`); process.exit(2);
+  }
+  if (j.count != null && j.count !== Object.keys(v).length) {
+    console.error(`build_engine_data: data/${path.basename(f)} declares count ${j.count} and holds `
+      + `${Object.keys(v).length} rows.`); process.exit(2);
+  }
+  return v;
+}
+const SRC_PRIORS   = readSource(PRIORS_F, 'priors');
+const SRC_DECLARED = readSource(DECLARED_F, 'rows');
+const TEMPLATE = (() => {
+  try { return fs.readFileSync(TEMPLATE_F, 'utf8'); }
+  catch (e) {
+    console.error(`build_engine_data: cannot read data/${path.basename(TEMPLATE_F)} — ${e.message}`);
+    console.error('  That file carries the wrapper, mcEff and the export block. Without it this');
+    console.error('  builder would have to read them back off its own output, which is the thing');
+    console.error('  it stopped doing on 2026-08-26. Refusing to build.');
+    process.exit(2);
+  }
+})();
+
+/* The previous artifact, or null. It is an input for the fields stages 2 and 3 own (see the header)
+ * and for nothing else. `--purity` runs the identical build with this forced to null, so the size of
+ * that dependency is a measured number rather than a claim. */
+/* ABSENT AND UNREADABLE ARE NOT THE SAME ANSWER, and returning null for both would be this repo's
+ * signature failure: a corrupt artifact would read as "there is no previous artifact", the build
+ * would quietly drop 2,072 carried values and report success. ENOENT is the only quiet case. */
+function readPrior() {
+  let t;
+  try { t = fs.readFileSync(OUT, 'utf8'); }
+  catch (e) {
+    if (e.code === 'ENOENT') return null;                      // first run, or --purity's blind arm
+    console.error(`build_engine_data: data/engine-data.js exists and could not be read — ${e.message}`);
+    console.error('  Refusing to build: continuing would silently delete every field the later');
+    console.error('  generators wrote into it.');
+    process.exit(2);
+  }
+  const m = t.match(/const MC = (\{[\s\S]*?\});/);
+  if (!m) {
+    console.error('build_engine_data: data/engine-data.js has no parseable MC object.');
+    console.error('  Refusing to build. An empty `prior` here reads as "first run" and would delete');
+    console.error('  every set and mega field the later generators wrote.');
+    process.exit(2);
+  }
+  try { return JSON.parse(m[1]); }
+  catch (e) {
+    console.error(`build_engine_data: the MC object in data/engine-data.js does not parse — ${e.message}`);
+    process.exit(2);
+  }
+}
+
+/* THE FIELDS THIS BUILDER OWNS. Anything else arriving on a row came off the previous artifact and
+ * is counted as CARRIED, by field name, so the residue is a number and not an adjective. */
+const OWNED = new Set(['t', 'bs', 'wt']);
+
+/* THE USER'S OWN BOOST, FROM WHICHEVER FIELD SHOWDOWN PUT IT IN. Never guess between them: a move
+ * that carries both would be a real upstream oddity, so it is reported rather than silently merged. */
+function selfBoostsOf(d) {
+  const a = d.self && d.self.boosts, b = d.selfBoost && d.selfBoost.boosts;
+  if (a && b) console.warn(`  ${d.id}: carries BOTH self.boosts and selfBoost.boosts — using self.boosts`);
+  return a || b || null;
+}
+
+function buildMC(prior, quiet) {
+  const say = m => { if (!quiet) console.log(m); };
+  const carriedBy = {};
+  const mons = {};
+  for (const [key, m] of Object.entries(M.MONS)) {
+    const old = (prior && prior.mons && prior.mons[key]) || {};
+    for (const f of Object.keys(old)) if (!OWNED.has(f)) carriedBy[f] = (carriedBy[f] || 0) + 1;
   /* EVERY FIELD THIS BUILDER DOES NOT OWN IS CARRIED THROUGH (2026-08-09). It used to construct a
    * fresh literal, so a regeneration DELETED `nature`, `sp` and `set_source` from all 318 rows —
    * fields written by a LATER builder (engine/derive_sets.js, build/rebuild_sets_from_sheets.js).
@@ -145,8 +265,11 @@ for (const [key, m] of Object.entries(M.MONS)) {
    * this pass came to fix. Same shape as the mega-ability hole CLAUDE.md records — "a later
    * wholesale regeneration left the nulls in place" — and it would have been invisible, because a
    * missing `set_source` reads downstream as "assumed" rather than as "deleted". The spread comes
-   * FIRST so the fields below still win; this builder remains authoritative for its own. */
-  mons[key] = {
+   * FIRST so the fields below still win; this builder remains authoritative for its own.
+   *
+   * THIS IS THE WHOLE OF THE REMAINING SELF-READ, AND IT IS COUNTED ABOVE. See the header for the
+   * one change that would remove it and what that change costs. */
+    mons[key] = {
     ...old,
     t: m.t,
     bs: m.bs,                       // BASE stats — the source, so consumers can recompute
@@ -171,12 +294,12 @@ for (const [key, m] of Object.entries(M.MONS)) {
     })(),
   };
   // if there was no stored line, derive a neutral one so nothing breaks
-  if (!mons[key].st) {
+    if (!mons[key].st) {
     const S = b => Math.floor(Math.floor((2 * b + 31) * 50 / 100) + 5);
     mons[key].st = { hp: Math.floor((2 * m.bs.hp + 31) * 50 / 100) + 60, at: S(m.bs.atk),
                      df: S(m.bs.def), sa: S(m.bs.spa), sd: S(m.bs.spd), sp: S(m.bs.spe) };
   }
-}
+  }
 
 /* ROWS THE ARTIFACT HAS AND CHAMP-MODEL DOES NOT — KEPT, AND SAID OUT LOUD (2026-08-09).
  *
@@ -191,19 +314,33 @@ for (const [key, m] of Object.entries(M.MONS)) {
  * regeneration left the nulls in place". A generator that silently narrows its own output is a
  * landmine for whoever runs it next, and it was found by asking what a regeneration WOULD do before
  * running one. Preserved rather than dropped, and printed with the count, because a preserved row is
- * a divergence between two sources that somebody should eventually reconcile — not a fact. */
-/* THE USER'S OWN BOOST, FROM WHICHEVER FIELD SHOWDOWN PUT IT IN. Never guess between them: a move
- * that carries both would be a real upstream oddity, so it is reported rather than silently merged. */
-function selfBoostsOf(d) {
-  const a = d.self && d.self.boosts, b = d.selfBoost && d.selfBoost.boosts;
-  if (a && b) console.warn(`  ${d.id}: carries BOTH self.boosts and selfBoost.boosts — using self.boosts`);
-  return a || b || null;
-}
+ * a divergence between two sources that somebody should eventually reconcile — not a fact.
+ *
+ * THEY COME FROM data/mc-declared-rows.json NOW, NOT FROM THE ARTIFACT (2026-08-26). Reading them
+ * back off the output meant a check could never see them go missing, and three of them —
+ * castform-sunny/rainy/snowy — carry a TYPE their base forme does not, which is board-material: lose
+ * them and a sun Castform reads Normal instead of Fire, changing STAB and every effectiveness term.
+ * engine/merge_mega_into_engine.js re-adds the mega and size formes from data/mega-dex-official.json;
+ * the three Castform rows, morpeko-hangry and mimikyu-busted have NO generator at all. */
+  const declaredKeys = Object.keys(SRC_DECLARED).filter(k => !(k in mons));
+  for (const k of declaredKeys) mons[k] = SRC_DECLARED[k];
+  /* A row the ARTIFACT holds that neither champ-model nor the declared file knows would be DELETED
+   * by this build. That silent narrowing is exactly what the 2026-08-09 note above is about, so it
+   * is preserved AND named — the fix is to add it to data/mc-declared-rows.json, not to leave the
+   * build quietly depending on its own output to keep the row alive. */
+  const undeclared = prior ? Object.keys(prior.mons || {}).filter(k => !(k in mons)) : [];
+  for (const k of undeclared) {
+    mons[k] = prior.mons[k];
+    for (const f of Object.keys(mons[k])) if (!OWNED.has(f)) carriedBy[f] = (carriedBy[f] || 0) + 1;
+  }
+  if (undeclared.length) {
+    console.warn(`  UNDECLARED ROWS: ${undeclared.length} row(s) exist only in data/engine-data.js — `
+      + `${undeclared.join(', ')}`);
+    console.warn('    They survive only because this build read its own output. Add them to '
+      + 'data/mc-declared-rows.json with a reason.');
+  }
 
-const preserved = Object.keys(prior.mons || {}).filter(k => !(k in mons));
-for (const k of preserved) mons[k] = prior.mons[k];
-
-/* MOVES: keep the stored t/c (champ-model's own compact table) but ENRICH from the dex with the
+/* MOVES: t and c come from champ-model's own compact MOVES table and are ENRICHED from the dex with
  * self-cost facts the rollout previously kept as hand-typed name lists (Will: every click needs a
  * cost, priced into decisions — a cost table someone typed is a cost table someone forgot to type):
  *   rc    recoil as [numerator, denominator] of damage dealt — m.recoil is a plain dex field,
@@ -240,12 +377,24 @@ for (const k of preserved) mons[k] = prior.mons[k];
  * memory." Guarded by check D of engine/artifact_audit.js, which is a registered gate and fails on
  * any NEW divergence. The dex is authoritative only for rows it KNOWS; for anything else the stored
  * value is kept and counted, because a silent fallback to 0 would delete a move rather than mis-price
- * it. */
-const moves = {};
-let bpFixed = 0, bpNoDex = 0;
-const bpFixedList = [];
-for (const [key, mv] of Object.entries(prior.moves || {})) {
-  moves[key] = mv;
+ * it.
+ *
+ * THE ROWS THEMSELVES USED TO BE READ OFF THE ARTIFACT, AND THEY DID NOT HAVE TO BE (2026-08-26).
+ * `t` and `c` were carried from the previous output, so 500 rows were compared to themselves.
+ * champ-model.MOVES holds the same 500 keys IN THE SAME ORDER with identical `t` and `c` — measured,
+ * key for key — so the whole table is now built from it and the self-read is gone. The `c` mapping is
+ * champ-model's Physical/Special/Status against the artifact's P/S, and it agrees on all 500.
+ *
+ * The visible consequence: this run reports base power CORRECTED on 12 rows rather than 0. Those 12
+ * are champ-model's generic gen-9 base powers against the Champions format's, the same 12 named
+ * above. Zero was never true — it was the artifact agreeing with the copy of itself it had just been
+ * handed. */
+  const moves = {};
+  let bpFixed = 0, bpNoDex = 0;
+  const bpFixedList = [];
+  for (const [key, base] of Object.entries(M.MOVES)) {
+    const mv = { t: base.t, c: base.c === 'Physical' ? 'P' : 'S', bp: base.bp || 0 };
+    moves[key] = mv;
   try {
     const d = DEX && DEX.moves.get(key);
     if (d && d.exists) {
@@ -259,14 +408,14 @@ for (const [key, mv] of Object.entries(prior.moves || {})) {
       else if (mv.self) delete mv.self;
     } else { bpNoDex++; }
   } catch (e) { bpNoDex++; /* keep whatever was stored */ }
-}
+  }
 /* MOVES THE TABLE NEVER HAD. champ-model's compact table skipped every bp-0 callback move, so Low
  * Kick (2,055 sheet uses) and Grass Knot were UNLOOKUPABLE -- not weak, absent. Any move the tag
  * artifact knows (i.e. the format actually plays) and the table lacks is added from the dex, so a
  * used move can never again be missing by construction. */
+  let added = 0;
 try {
   const tagMoves = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'tags.json'), 'utf8')).moves || {};
-  let added = 0;
   for (const key of Object.keys(tagMoves)) {
     if (moves[key]) continue;
     const d = DEX && DEX.moves.get(key);
@@ -277,27 +426,27 @@ try {
     if (_sb2) moves[key].self = _sb2;
     added++;
   }
-  if (added) console.log(`  moves added from the artifact+dex (were unlookupable): ${added}`);
+  if (added) say(`  moves added from tags.json ∩ dex (champ-model's table lacks them): ${added}`);
 } catch (e) { console.warn('  could not backfill artifact moves:', e.message); }
 
-const MC = {
-  mons,
-  moves,
-  C: M.C,
-  priors: prior.priors || {},
-};
+  const MC = { mons, moves, C: M.C, priors: SRC_PRIORS };
+  return { MC, carriedBy, declaredKeys, undeclared, bpFixed, bpFixedList, bpNoDex, added };
+}
 
-// Surgical replacement: swap ONLY the MC object inside the existing file, preserving its wrapper,
-// its mcEff helper and its export block. Rewriting the whole file previously dropped those and broke
-// every consumer - a generator must not quietly change a module's public surface.
-const src = fs.readFileSync(OUT, 'utf8');
-const m = src.match(/const MC = \{[\s\S]*?\};/);
-if (!m) { console.error('could not locate the MC object in ' + OUT); process.exit(1); }
-const stamp = `/* engine-data.js — the Champions mon/move/type-chart data.
+/* RENDER. Swap ONLY the MC object into the WRAPPER, preserving mcEff and the export block. Rewriting
+ * the whole file previously dropped those and broke every consumer — a generator must not quietly
+ * change a module's public surface. The wrapper is data/engine-data.template.txt, not the artifact:
+ * reading it off the output made a from-scratch build impossible and made the builder unable to run
+ * at all when its own output was absent. */
+function render(MC, date) {
+  const src = TEMPLATE;
+  const m = src.match(/const MC = \{[\s\S]*?\};/);
+  if (!m) { console.error('could not locate the MC object in ' + TEMPLATE_F); process.exit(1); }
+  const stamp = `/* engine-data.js — the Champions mon/move/type-chart data.
  * GENERATED for the MC object by ABRA/build/build_engine_data.js from CHOMP/engine/champ-model.js.
  * Carries BOTH base stats (bs) and the level-50 line (st) so consumers can RECOMPUTE, not just copy.
- * Last generated: ${new Date().toISOString().slice(0, 10)}. Do not hand-edit the MC object. */\n`;
-let out = src.replace(m[0], 'const MC = ' + JSON.stringify(MC) + ';');
+ * Last generated: ${date}. Do not hand-edit the MC object. */\n`;
+  let out = src.replace(m[0], 'const MC = ' + JSON.stringify(MC) + ';');
 /* THE HEADER STAMP DID NOT MATCH ON THIS MACHINE AND NOBODY KNEW (2026-08-09). The pattern ended
  * `\*\/\n`; the checked-in file has CRLF endings, so it ended `*\/\r\n` and the replace matched
  * NOTHING. "Last generated: 2026-07-24" therefore survived every regeneration since — the artifact
@@ -316,14 +465,20 @@ let out = src.replace(m[0], 'const MC = ' + JSON.stringify(MC) + ';');
  * Found by running `--check` against the builder's OWN freshly-stamped output as a green control,
  * which is exactly the case a same-day re-run produces. Test the PATTERN, which is the condition the
  * message actually describes. */
-const HEADER = /^\/\*[\s\S]*?\*\/\r?\n/;
-const stamped = out.replace(HEADER, src.includes('\r\n') ? stamp.replace(/\n/g, '\r\n') : stamp);
-if (!HEADER.test(src)) {
-  console.error('could not replace the header stamp in ' + OUT + ' — the file does not open with a ' +
-    'block comment, so the "Last generated" date would silently stay stale. ' +
-    (CHECK ? 'The stamp step is BROKEN.' : 'Refusing to write.'));
-  process.exit(1);
+  const HEADER = /^\/\*[\s\S]*?\*\/\r?\n/;
+  const stamped = out.replace(HEADER, src.includes('\r\n') ? stamp.replace(/\n/g, '\r\n') : stamp);
+  if (!HEADER.test(src)) {
+    console.error('could not replace the header stamp in ' + TEMPLATE_F + ' — the template does not '
+      + 'open with a block comment, so the "Last generated" date would silently stay stale. '
+      + (CHECK ? 'The stamp step is BROKEN.' : 'Refusing to write.'));
+    process.exit(1);
+  }
+  return stamped;
 }
+/* The date is passed in rather than taken inside `render`, so `--purity` can render two candidates
+ * that differ ONLY in payload. A midnight rollover between two renders would otherwise read as
+ * drift. */
+const TODAY = new Date().toISOString().slice(0, 10);
 
 /* ── THE ROW CENSUS ──────────────────────────────────────────────────────────────────────────────
  * The 2026-07-30 failure had a SHAPE — `ab: null`, `mv: []`, `item: null` on rows that should carry
@@ -401,23 +556,130 @@ function printCensus(rows, what) {
   console.log(`    UNEXPLAINED rows in total: ${open}` + (open ? '  <- these are the ones to look at' : ''));
 }
 
+/* ── PURITY ──────────────────────────────────────────────────────────────────────────────────────
+ * PROVE IT, DO NOT CLAIM IT. Build the identical MC twice — once with the previous artifact and once
+ * with it hidden — and diff the two candidates. Whatever differs is a value that exists only inside
+ * this builder's own output and cannot be checked against anything.
+ *
+ * The count is RATCHETED in data/engine-data-purity.json rather than asserted at zero, because zero
+ * is not reachable from inside this file: the fields still carried belong to two LATER generators
+ * that edit the artifact in place (see the header). A gate that is permanently red gets called "one
+ * of the known failures" and then gets ignored, which is the failure mode this repository is named
+ * after. A ratchet that may only fall does not. */
+function purityReport(A, B) {
+  const S = JSON.stringify;
+  const rows = [];
+  for (const top of ['mons', 'moves', 'C', 'priors']) {
+    const a = A.MC[top] || {}, b = B.MC[top] || {};
+    const ka = Object.keys(a), kb = Object.keys(b);
+    const onlyA = ka.filter(k => !(k in b));
+    const orderSame = S(ka.filter(k => k in b)) === S(kb.filter(k => k in a));
+    const fields = {};
+    let diffRows = 0;
+    for (const k of ka) {
+      if (!(k in b)) continue;
+      if (S(a[k]) === S(b[k])) continue;
+      diffRows++;
+      const x = a[k] || {}, y = b[k] || {};
+      if (x && typeof x === 'object' && !Array.isArray(x)) {
+        for (const f of new Set([...Object.keys(x), ...Object.keys(y)])) {
+          if (S(x[f]) !== S(y[f])) fields[f] = (fields[f] || 0) + 1;
+        }
+      } else fields['(whole row)'] = (fields['(whole row)'] || 0) + 1;
+    }
+    rows.push({ top, lostRows: onlyA, diffRows, fields, orderSame });
+  }
+  return rows;
+}
+
+if (PURITY) {
+  const A = buildMC(readPrior(), true);
+  const B = buildMC(null, true);
+  const bytesA = render(A.MC, TODAY), bytesB = render(B.MC, TODAY);
+  const identical = normalise(bytesA) === normalise(bytesB);
+  console.log('build_engine_data --purity — the same build, with and without its own previous output\n');
+  console.log(`  with the artifact   : ${Buffer.byteLength(bytesA)} bytes`);
+  console.log(`  with it hidden      : ${Buffer.byteLength(bytesB)} bytes`);
+  console.log(`  IDENTICAL           : ${identical ? 'YES — this builder is a pure function of upstream' : 'NO'}\n`);
+  let carried = 0;
+  for (const r of purityReport(A, B)) {
+    const lost = r.lostRows.length;
+    if (!lost && !r.diffRows && r.orderSame) { console.log(`  ${r.top}: pure (${Object.keys(A.MC[r.top]).length} rows)`); continue; }
+    console.log(`  ${r.top}: ${r.diffRows} row(s) differ, ${lost} row(s) exist only with the artifact`
+      + (r.orderSame ? '' : ', AND THE KEY ORDER DIFFERS'));
+    if (lost) console.log(`     lost without the artifact: ${r.lostRows.slice(0, 20).join(', ')}`);
+    for (const [f, n] of Object.entries(r.fields).sort((x, y) => y[1] - x[1])) {
+      console.log(`     ${f}: ${n} value(s)`);
+      carried += n;
+    }
+    carried += lost * 8;
+  }
+  console.log(`\n  CARRIED FIELD VALUES (by field, over rows that survive): `
+    + Object.entries(A.carriedBy).sort((x, y) => y[1] - x[1]).map(([f, n]) => `${f} ${n}`).join(', '));
+  const total = Object.values(A.carriedBy).reduce((s, n) => s + n, 0);
+  console.log(`  TOTAL CARRIED VALUES: ${total}`);
+  console.log('  Owner: build/rebuild_sets_from_sheets.js (mv,item,ab,nature,sp,st,set_source) and');
+  console.log('         engine/merge_mega_into_engine.js (base,mega,mv_provenance). Both edit');
+  console.log('         data/engine-data.js IN PLACE, which is why this builder must carry them.');
+  let prev = null;
+  try { prev = JSON.parse(fs.readFileSync(RATCHET_F, 'utf8')); } catch (e) { /* first run */ }
+  const body = { note: 'GENERATED RATCHET — do not hand-edit. Written by build/build_engine_data.js --purity.',
+    rule: 'carried_values may FALL and may never RISE. It is the number of values data/engine-data.js '
+        + 'holds that come off its own previous copy, so nothing can compare them to a source. Zero is '
+        + 'reached when build/rebuild_sets_from_sheets.js and engine/merge_mega_into_engine.js write '
+        + 'their own layer files instead of editing the artifact in place.',
+    generated: new Date().toISOString(), carried_values: total, carried_by_field: A.carriedBy,
+    undeclared_rows: A.undeclared, pure_sections: purityReport(A, B).filter(r => !r.lostRows.length && !r.diffRows && r.orderSame).map(r => r.top) };
+  if (prev && total > prev.carried_values) {
+    console.error(`\n  RATCHET BROKEN: ${prev.carried_values} -> ${total}. This builder now reads MORE of`);
+    console.error('  its own output than it did. Give the new fields a source under data/ instead.');
+    process.exit(1);
+  }
+  if (!process.argv.includes('--no-write-ratchet')) {
+    fs.writeFileSync(RATCHET_F, JSON.stringify(body, null, 1) + '\n');
+    console.log(`\n  ratchet: ${prev ? prev.carried_values + ' -> ' : ''}${total}  (data/engine-data-purity.json)`);
+  }
+  process.exit(0);
+}
+
 if (CHECK) {
-  /* --check. Nothing below writes. The candidate is `out` rather than `stamped`, because the header
-   * carries the RUN DATE and is rewritten on every build by design — comparing it would make this
-   * check permanently red for a reason that is not drift, which is how a gate becomes "one of the
-   * known failures". The stamp step is still exercised above, so a stamp that could not land is a
-   * failure here too; it is just not the same failure as drift.
+  /* --check. Nothing below writes. The RUN DATE is normalised out on both sides — it is rewritten on
+   * every build by design, and comparing it would make this check permanently red for a reason that
+   * is not drift, which is how a gate becomes "one of the known failures". The stamp step is still
+   * exercised, so a stamp that could not land is a failure here too; it is just not the same failure
+   * as drift.
    *
-   * `normalise` on both sides is belt-and-braces: `out` is `src` with one JSON substitution, so it
-   * already carries the file's own line endings. See the EOL section in the header. */
-  const disk = normalise(src), want = normalise(out);
+   * IT COMPARES THE STAMPED CANDIDATE NOW, NOT THE UNSTAMPED ONE. The wrapper used to come off the
+   * artifact itself, so the header matched by construction and could not be checked. It comes from
+   * data/engine-data.template.txt now, so the artifact's own header shape is compared too — a hand
+   * edit to the first four lines is drift and reads as drift.
+   *
+   * `normalise` on both sides is belt-and-braces against the CRLF trap. See the EOL section in the
+   * header. */
+  const prior = readPrior();
+  if (!prior) {
+    console.error('build_engine_data --check: NO VERDICT. data/engine-data.js is absent or its MC');
+    console.error('  object does not parse, so there is nothing on disk to compare. Run the builder.');
+    process.exit(2);
+  }
+  const built = buildMC(prior);
+  const MC = built.MC;
+  const src = fs.readFileSync(OUT, 'utf8');
+  const undate = s => normalise(s).replace(/Last generated: \d{4}-\d{2}-\d{2}/, '<DATE>');
+  const disk = undate(src), want = undate(render(MC, TODAY));
   /* The census in check mode is taken over `prior.mons` — the rows ON DISK — and NOT over the
    * candidate. The artifact is what every engine release froze and what the rollout actually reads;
    * censusing the candidate would describe a file that does not exist yet. */
   printCensus(prior.mons || {}, 'THE ARTIFACT ON DISK — the bytes every release froze');
-  console.log(`  sources: CHOMP/engine/champ-model.js (${Object.keys(M.MONS).length} rows), the Champions dex, data/tags.json`);
+  console.log(`  sources: CHOMP/engine/champ-model.js (${Object.keys(M.MONS).length} mons, `
+    + `${Object.keys(M.MOVES).length} moves), the Champions dex, data/tags.json, data/mc-priors.json `
+    + `(${Object.keys(SRC_PRIORS).length}), data/mc-declared-rows.json (${Object.keys(SRC_DECLARED).length}), `
+    + 'data/engine-data.template.txt');
   const stampedDate = (src.match(/Last generated: (\d{4}-\d{2}-\d{2})/) || [])[1] || 'UNSTAMPED';
   console.log(`  header stamp on disk: ${stampedDate} (excluded from the verdict — rewritten every build)`);
+  const carriedTotal = Object.values(built.carriedBy).reduce((s, n) => s + n, 0);
+  console.log(`  NOT PROVEN BY THIS CHECK: ${carriedTotal} field values carried off the artifact `
+    + 'itself. Run --purity for the breakdown.');
 
   if (disk === want) {
     console.log('data/engine-data.js is exactly what its sources would produce today.');
@@ -447,6 +709,23 @@ if (CHECK) {
         }
       } else { console.error(`  ${top}: differs`); }
     }
+    /* KEY ORDER, WHICH THIS CHECK COULD NOT SEE UNTIL 2026-08-26. Every comparison above is over
+     * PARSED objects, so a section whose rows are identical but re-ordered reported "0 rows differ"
+     * while the byte comparison said drift — a diff that named nothing, which is worse than none.
+     * The order is load-bearing here: this artifact is frozen into every engine release, so a
+     * reordered key set is a byte change in all of them. Measured on the day this clause was added:
+     * five rows (castform-snowy/rainy/sunny at 35-37, morpeko-hangry at 182, mimikyu-busted at 200)
+     * sit mid-file in the artifact and at the end in the candidate, because champ-model dropped them
+     * after the artifact was last built. */
+    for (const top of ['mons', 'moves', 'C', 'priors']) {
+      const a = Object.keys(had[top] || {}), b = Object.keys(MC[top] || {});
+      const common = k => a.includes(k) && b.includes(k);
+      const ao = a.filter(common), bo = b.filter(common);
+      if (S(ao) === S(bo)) continue;
+      const i = ao.findIndex((k, j) => k !== bo[j]);
+      console.error(`  ${top}: KEY ORDER differs from index ${i} — artifact has "${ao[i]}", the `
+        + `sources produce "${bo[i]}". Same rows, different order; the bytes are not the same.`);
+    }
     /* Bytes outside the MC object — a hand-edit to the wrapper, mcEff or the export block. It is a
      * separate failure from a payload drift and would otherwise be reported as neither. */
     const strip = s => s.replace(/const MC = \{[\s\S]*?\};/, '<PAYLOAD>').replace(/Last generated: \d{4}-\d{2}-\d{2}/, '<DATE>');
@@ -458,16 +737,34 @@ if (CHECK) {
   process.exit(1);
 }
 
-fs.writeFileSync(OUT, stamped);
+const built = buildMC(readPrior());
+const MC = built.MC, mons = MC.mons;
+fs.writeFileSync(OUT, render(MC, TODAY));
 
 printCensus(mons, 'what was just written');
 console.log(`build_engine_data — ${Object.keys(mons).length} species written`);
 console.log(`  base stats present: ${Object.values(mons).filter(m => m.bs).length}`);
-console.log(`  species kept that champ-model no longer carries: ${preserved.length}` +
-  (preserved.length ? ` -> ${preserved.join(', ')}` : ''));
-console.log(`  moves preserved: ${Object.keys(MC.moves).length} | type chart: ${Object.keys(MC.C).length}`);
-console.log(`  base power taken from the format: ${bpFixed} row(s) CORRECTED` +
-  (bpFixed ? ` -> ${bpFixedList.join(', ')}` : '') +
-  (bpNoDex ? ` | ${bpNoDex} row(s) the dex does not know, stored value kept` : ''));
+console.log(`  rows from data/mc-declared-rows.json (champ-model does not carry them): ${built.declaredKeys.length}` +
+  (built.declaredKeys.length ? ` -> ${built.declaredKeys.join(', ')}` : ''));
+/* DERIVED, NOT TYPED. The declared file says three of these carry a type their base forme does not;
+ * that claim is re-checked here against the dex and the artifact's own base row on every run, so it
+ * cannot rot inside a JSON header the way the ban list of four did. */
+if (DEX) {
+  const material = built.declaredKeys.filter(k => {
+    const base = DEX.species.get(k).baseSpecies;
+    const bk = base && Object.keys(mons).find(x => DEX.species.get(x).name === base);
+    return bk && mons[bk] && JSON.stringify(mons[bk].t) !== JSON.stringify(mons[k].t);
+  });
+  console.log(`    of those, BOARD-MATERIAL (type differs from the base forme's): ${material.length}`
+    + (material.length ? ` -> ${material.map(k => `${k} ${JSON.stringify(mons[k].t)}`).join(', ')}` : ''));
+}
+console.log(`  moves built from champ-model.MOVES + the dex: ${Object.keys(MC.moves).length}`
+  + (built.added ? ` (${built.added} added from tags.json ∩ dex)` : '')
+  + ` | type chart: ${Object.keys(MC.C).length} | priors from data/mc-priors.json: ${Object.keys(MC.priors).length}`);
+console.log(`  base power taken from the format: ${built.bpFixed} row(s) CORRECTED` +
+  (built.bpFixed ? ` -> ${built.bpFixedList.join(', ')}` : '') +
+  (built.bpNoDex ? ` | ${built.bpNoDex} row(s) the dex does not know, stored value kept` : ''));
 console.log(`  weights present: ${Object.values(mons).filter(m => m.wt != null).length}`);
-console.log('  wrapper, mcEff and exports left untouched');
+console.log(`  field values carried off the previous artifact: `
+  + Object.values(built.carriedBy).reduce((s, n) => s + n, 0) + '  (run --purity for the breakdown)');
+console.log('  wrapper, mcEff and exports taken from data/engine-data.template.txt');

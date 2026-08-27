@@ -123,9 +123,26 @@ for (const [name, mon] of Object.entries(MC.mons)) {
      * unobserved is the inheritance habit in miniature.
      *
      * So: if the stored ability is illegal, fall back to the species' PRIMARY ability from the dex.
-     * That is derived and legal, and it is marked assumed so nobody mistakes it for observed. */
+     * That is derived and legal, and it is marked assumed so nobody mistakes it for observed.
+     *
+     * ══ THE REPAIR USED TO BE CONDITIONED ON THE VALUE IT REPAIRS (fixed 2026-08-26) ═════════════
+     *
+     * The guard read `if (sp0 && sp0.exists && mon.ab)`, so it could only fire on a row that ALREADY
+     * carried an ability. That made the whole repair a function of build/build_engine_data.js having
+     * read its own previous output: with `ab: null` on the row — which is what a from-scratch build
+     * produces, and what all 67 mega rows carried for seven weeks in 2026 — the branch was skipped
+     * and the row was left at null. The pipeline would therefore have deleted BOTH the impossible
+     * value AND its own correction on 34 rows, and null is worse than either: `ab: null` reads
+     * downstream as "this Pokemon has no ability" rather than as "we do not know it".
+     *
+     * A repair that only works when the damage is already present is not a repair, it is an edit.
+     * `mon.ab` being ABSENT is the same defect as `mon.ab` being ILLEGAL — neither is a usable
+     * ability — so both take the dex primary, and the note says which case it was rather than
+     * asserting the one that happens to be commoner. This changes NO value in the artifact as it
+     * stands: measured 2026-08-26, this file reports 0 illegal abilities against the live
+     * data/engine-data.js, and 0 rows there carry a null ability. */
     const sp0 = DEX.species.get(name);
-    if (sp0 && sp0.exists && mon.ab) {
+    if (sp0 && sp0.exists) {
       const legal = new Set(Object.values(sp0.abilities || {}).map(a => norm(a)));
       for (const k of Object.keys(MEGA_FORMS)) {
         if (!k.startsWith(norm(name)) || !/mega/.test(k)) continue;
@@ -133,13 +150,16 @@ for (const [name, mon] of Object.entries(MC.mons)) {
         if (f && f.ability) legal.add(norm(f.ability));
         for (const a of Object.values((f && f.all_abilities) || {})) legal.add(norm(a));
       }
-      if (legal.size && !legal.has(norm(mon.ab))) {
+      const absent = !mon.ab;
+      if (legal.size && (absent || !legal.has(norm(mon.ab)))) {
         const primary = norm(sp0.abilities && sp0.abilities['0']);
         if (primary) {
-          abilityFixed.push(`${name}: ${mon.ab} -> ${primary}`);
+          abilityFixed.push(`${name}: ${absent ? '(none stored)' : mon.ab} -> ${primary}`);
           mon.ab = primary;
           mon.set_source = { observed: [], assumed: ['ab', 'mv', 'item', 'sp'],
-                             note: 'under 10 sheets; ability replaced with the dex primary because the stored one was impossible' };
+                             note: absent
+                               ? 'under 10 sheets; ability set to the dex primary because none was stored'
+                               : 'under 10 sheets; ability replaced with the dex primary because the stored one was impossible' };
         }
       }
     }

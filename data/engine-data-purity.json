@@ -1,0 +1,24 @@
+{
+ "note": "GENERATED RATCHET — do not hand-edit. Written by build/build_engine_data.js --purity.",
+ "rule": "carried_values may FALL and may never RISE. It is the number of values data/engine-data.js holds that come off its own previous copy, so nothing can compare them to a source. Zero is reached when build/rebuild_sets_from_sheets.js and engine/merge_mega_into_engine.js write their own layer files instead of editing the artifact in place.",
+ "generated": "2026-08-27T03:20:48.545Z",
+ "carried_values": 2072,
+ "carried_by_field": {
+  "st": 307,
+  "mv": 307,
+  "item": 307,
+  "ab": 307,
+  "nature": 195,
+  "sp": 195,
+  "set_source": 229,
+  "base": 75,
+  "mega": 75,
+  "mv_provenance": 75
+ },
+ "undeclared_rows": [],
+ "pure_sections": [
+  "moves",
+  "C",
+  "priors"
+ ]
+}

@@ -21,6 +21,51 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## `build_engine_data.js` READ ITS OWN OUTPUT AS A SOURCE. 1,350 VALUES DE-BLINDED, RESIDUE **2,072** AND RATCHETED, OUTPUT **BYTE-IDENTICAL**. NO VALUE CHANGED AND NONE COULD. 2026-08-26 (MEASURE).
+
+CHANGELOG 5.152.0. Full account: `docs/_reports/2026-08-26-builder-purity.md`.
+**No release cut — nothing in this batch plays a game, and `data/engine-data.js` was not written.**
+
+| what was compared to itself | where it lives now | values |
+|---|---|---|
+| `MC.priors` — the rollout's opponent model | `data/mc-priors.json`, declared HAND-AUTHORED, no generator and says so | 230 |
+| all 500 `moves` rows' `t` and `c` | `champ-model.MOVES` — same 500 keys, same order, **zero** disagreements | 1,000 |
+| the 15 rows champ-model no longer carries | `data/mc-declared-rows.json` | 120 |
+| the wrapper, `mcEff`, the export block | `data/engine-data.template.txt` | structural |
+
+**BYTE-IDENTICAL, PROVED BY SHADOW BEFORE ANYTHING WAS BELIEVED.** The builder's candidate is
+`5e2a246a…` before the change and `5e2a246a…` after it — 201,305 bytes, every value, every key and
+every key ORDER. `data/engine-data.js` itself stands untouched at `c73da1d2…`, re-hashed after every
+step: regenerating it would ADD `floette-eternal-mega` and MOVE five rows in a file frozen into every
+engine release.
+
+**THE RESIDUE IS 2,072 AND IT IS MEASURED, NOT ASSERTED.** `--purity` builds the identical MC twice,
+with and without the previous artifact, and diffs the candidates. `moves`, `C` and `priors` are pure;
+all 323 species rows survive with the artifact deleted. What is left is `st/mv/item/ab/nature/sp/
+set_source/base/mega/mv_provenance` on 307 rows, all owned by two LATER generators that edit the
+artifact IN PLACE. Ratcheted in `data/engine-data-purity.json` — may fall, may never rise — and shown
+RED on a deliberate break (`RATCHET BROKEN: 2071 -> 2072`) first. Zero needs those two generators to
+write layer files, which re-derives 14 mega movesets and 76 `mv_provenance` blocks off today's store:
+a value change, costed and NOT paid here.
+
+**A REPAIR CONDITIONED ON THE DAMAGE IT REPAIRS.** `rebuild_sets_from_sheets.js` gated its dex-primary
+ability fallback on `mon.ab` being truthy, so it could never fire on the `ab: null` a from-scratch
+build produces — the pipeline would have deleted the impossible value AND its own correction.
+Measured: **0 changes against the live artifact**, **113 rows repaired on a from-scratch build where
+the old guard reaches at most 15 and leaves 113 at null.**
+
+**TWO THINGS THE INSTRUMENTS WERE HIDING.** `--check` compared PARSED objects, so it could not see key
+ORDER — five rows are out of order in the artifact and every run before today said "0 rows differ"
+beside a byte comparison that said drift. And `base power taken from the format: 0 row(s) CORRECTED`
+was the artifact agreeing with the copy of itself it had just been handed; the true number is **12**.
+
+**S13 GAINED TWO FINDINGS AND BOTH ARE TRUE.** `mc-priors.json` and `mc-declared-rows.json` are
+"no generator writes it" — which is what they are. S13 could not see them while they hid inside a file
+that HAS a generator. A generator for `MC.priors` is MAG's work and moves the modal click on 114 of
+230 species. Nothing was baselined.
+
+---
+
 ## THE FIXTURE-LEGALITY GATE WAS RED AT FIVE AND THREE OF THE FIVE WERE THE GATE. 5 FAILED -> **ALL GREEN**, BASELINE **22 -> 15 VERDICTS / 23 -> 15 PAIRS**, NO ALLOWANCE ADDED. NO GAME NUMBER MOVED AND NONE COULD. 2026-08-26 (MEASURE).
 
 ROADMAP **#266 UPDATED**. CHANGELOG 5.151.0. Full account:
