@@ -86,29 +86,113 @@ claim(M.midEventValue('20260813|1|acc|icebeam|p20|0') !== M.midEventValue('20260
   'a different TURN is a different address');
 claim(M.midEventValue('20260813|1|acc|icebeam|p20|0') !== M.midEventValue('20260813|1|acc|icebeam|p21|0'),
   'a different TARGET SLOT is a different address');
+/* ---- THE REPEAT INDEX: INDEPENDENCE, NOT DIFFERENCE. 2026-08-27, ROADMAP #489 -------------------
+ *
+ * THIS CLAIM USED TO READ `midEventValue(…|0) !== midEventValue(…|1)` AND IT WAS VACUOUS. The two
+ * values differ by exactly 1/256 = 0.003906, so `!==` is true and the claim passed — while asserting
+ * DIFFERENCE where the arm needs INDEPENDENCE. FNV-1a's last round is `h = imul(h ^ c, P)` with
+ * nothing after it, so changing only the final character TRANSLATES the hash:
+ *
+ *     v(nth=d) - v(nth=0)  =  ((A XOR c_d) - (A XOR c_0)) * 16777619  mod 2^32  / 2^32
+ *
+ * and for a one-digit index `c_d` differs from `c_0` in the low four bits only, bounding the whole
+ * shift at 15 * 16777619 / 2^32 = 0.0586. MEASURED over 3,000 real-shaped addresses on the old hash:
+ * max circular shift 0.0351571, MEAN 0.01607 against 0.25 for independent draws. N indexed draws at
+ * one address carried N/10 independent values.
+ *
+ * The consequence is DAMAGE, not accuracy. `_R.dmg()` is floored into 16 buckets, so a translation
+ * that small leaves consecutive arrivals in the SAME bucket: 89.5% against 6.25% independent, and a
+ * ten-hit address yielded 1.75 distinct indices instead of 7.56. It is also every residual coin —
+ * `clearActiveMove` collapses those to `seed|turn|any|-|-`, so two same-turn residual 1/2 coins
+ * landed the same way 99.1% of the time.
+ *
+ * So the claim is now the QUANTITY, with the `!==` kept as its floor. Both blocks were shown RED on
+ * release `01be9daf14ee` (pre-fix) and green after. */
 claim(M.midEventValue('20260813|1|acc|icebeam|p20|0') !== M.midEventValue('20260813|1|acc|icebeam|p20|1'),
   'a different REPEAT INDEX is a different address');
+{
+  const circ = (a, b) => { const d = Math.abs(a - b); return Math.min(d, 1 - d); };
+  let mx = 0, sum = 0, n = 0;
+  for (let b = 0; b < 3000; b++) {
+    const base = '20260813|' + (b % 20 + 1) + '|acc|move' + b + '|p' + (b % 2) + (b % 2);
+    const v0 = M.midEventValue(base + '|0');
+    for (let d = 1; d < 10; d++) { const c = circ(M.midEventValue(base + '|' + d), v0); if (c > mx) mx = c; sum += c; n++; }
+  }
+  const mean = sum / n;
+  claim(mx > 0.40 && Math.abs(mean - 0.25) < 0.03,
+    'a different REPEAT INDEX is an INDEPENDENT value, not a translation of it  '
+    + '[3,000 addresses x nth 1..9, circular distance]',
+    'max shift ' + mx.toFixed(7) + ' (independent -> ~0.5, want > 0.40), '
+    + 'mean ' + mean.toFixed(5) + ' (independent -> 0.25, want +/- 0.03)');
+}
+{ /* AND THE CONSEQUENCE THE ARM ACTUALLY SPENDS: the 16-bucket damage index. A translation smaller
+   * than a bucket leaves every repeat in the bucket its predecessor was in. */
+  let tot = 0;
+  for (let b = 0; b < 2000; b++) {
+    const base = '20260813|' + (b % 20 + 1) + '|dmg|multi' + b + '|p20';
+    const s = new Set();
+    for (let d = 0; d < 10; d++) s.add(Math.floor(M.midEventValue(base + '|' + d) * 16));
+    tot += s.size;
+  }
+  const avg = tot / 2000;
+  claim(avg > 7.0,
+    'ten arrivals at ONE damage address land in ten independently-drawn buckets  '
+    + '[2,000 addresses, floor(v*16)]',
+    avg.toFixed(2) + ' distinct indices (independent -> 7.56, want > 7.0)');
+}
 {
   let bad = 0;
   for (let i = 0; i < 5000; i++) { const v = M.midEventValue('x' + i); if (!(v >= 0 && v < 1)) bad++; }
   claim(bad === 0, 'every value lands inside [0,1)  [5,000 addresses]', bad + ' outside');
 }
-{ /* uniform enough to PRICE a move. A constant passes every claim above and fails this one. */
-  let hit = 0; for (let i = 0; i < 5000; i++) if (M.midEventValue('acc|' + i) < 0.9) hit++;
-  claim(Math.abs(hit / 5000 - 0.9) < 0.03,
+{ /* ---- THE SWEEP MEASURED THE MARGINAL AND THE MARGINAL WAS NEVER THE BROKEN THING ---------------
+   *
+   * This block used to hold ONLY the hit rate, and it read 0.9214 on a die whose conditional
+   * structure was destroyed: `'acc|' + i` varies the TRAILING DIGIT, which is precisely the axis the
+   * un-finalised hash cannot mix, so the sweep was walking a near-arithmetic sequence and averaging
+   * it. Measured on the old hash: lag-1 autocorrelation **0.8873** and **91** runs above/below 0.9
+   * against ~901 expected — a die that is uniform in aggregate and almost perfectly predictable one
+   * step at a time. A marginal cannot see that, so both are asserted now.
+   *
+   * A constant fails the hit rate. A translation passes the hit rate and fails the two below. */
+  const N = 5000, xs = [];
+  for (let i = 0; i < N; i++) xs.push(M.midEventValue('acc|' + i));
+  const hit = xs.filter(v => v < 0.9).length;
+  claim(Math.abs(hit / N - 0.9) < 0.03,
     'uniform enough to price a 90-accuracy move  [5,000 addresses, +/- 3 points]',
-    'hit rate ' + (hit / 5000).toFixed(4));
+    'hit rate ' + (hit / N).toFixed(4));
+  const mean = xs.reduce((a, b) => a + b, 0) / N;
+  let num = 0, den = 0;
+  for (let i = 0; i < N; i++) { den += (xs[i] - mean) ** 2; if (i) num += (xs[i] - mean) * (xs[i - 1] - mean); }
+  const rho = num / den;
+  claim(Math.abs(rho) < 0.05,
+    'consecutive draws down the SAME axis are uncorrelated  [lag-1 autocorrelation, 5,000 addresses]',
+    'rho = ' + rho.toFixed(4) + ' (independent -> ~0, want |rho| < 0.05)');
+  let runs = 1;
+  for (let i = 1; i < N; i++) if ((xs[i] < 0.9) !== (xs[i - 1] < 0.9)) runs++;
+  /* Wald-Wolfowitz: E[runs] = 1 + 2*N*p*(1-p), sd ~ sqrt(4*N*p^2*(1-p)^2) = 2*N^0.5*p*(1-p). */
+  const p = 0.9, exp = 1 + 2 * N * p * (1 - p), sd = 2 * Math.sqrt(N) * p * (1 - p);
+  claim(Math.abs(runs - exp) < 4 * sd,
+    'the 90-accuracy outcome CLUSTERS no more than chance  [runs test on the same 5,000]',
+    runs + ' runs, expected ' + exp.toFixed(0) + ' +/- ' + (4 * sd).toFixed(0));
 }
 { /* THE INDEPENDENT RE-IMPLEMENTATION. The engine and the differential each own twelve lines of
    * FNV-1a on purpose (the engine may not require its own instrument), so a third copy here is the
    * only thing that can catch one of them drifting. Constants read off the two files, not recalled. */
   const fnv = (s) => { let h = 0x811c9dc5 >>> 0;
     for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193) >>> 0;
+    /* THE FINALISER IS PART OF THE HASH SINCE 2026-08-27 (ROADMAP #489) AND THIS COPY CARRIES IT.
+     * Bare FNV-1a's last round has no diffusion after it, so the address's TRAILING field — `nth` —
+     * only translated the value: max circular shift 0.0351571, and 1.75 distinct damage buckets from
+     * a ten-hit address instead of 7.56. Constants read off the two files, not recalled. */
+    h = (h ^ (h >>> 16)) >>> 0; h = Math.imul(h, 0x85ebca6b) >>> 0;
+    h = (h ^ (h >>> 13)) >>> 0; h = Math.imul(h, 0xc2b2ae35) >>> 0;
+    h = (h ^ (h >>> 16)) >>> 0;
     return (h >>> 0) / 4294967296; };
   let bad = 0;
   for (let i = 0; i < 2000; i++) { const s = '20260813|3|dmg|earthpower|p10|' + i;
     if (fnv(s) !== M.midEventValue(s)) bad++; }
-  claim(bad === 0, 'FNV-1a, re-implemented here from the two constants rather than called',
+  claim(bad === 0, 'FNV-1a + fmix32, re-implemented here from the constants rather than called',
     bad + ' of 2000 disagree');
 }
 

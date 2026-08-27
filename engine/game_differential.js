@@ -781,11 +781,30 @@ const MID_CATS = ['acc', 'crit', 'sec', 'dmg', 'stall'];
  * different wrong answer rather than a right one. Both engines must count repeats the same way, and
  * that is the sharpest remaining risk in this design — it is asserted, not assumed. */
 const MID_SEED = 20260813;
-/* FNV-1a. Chosen because it is short enough to reimplement identically on the other side without a
- * shared module, which matters: medicham2 must not require this file. */
+/* ---- FNV-1a, **FINALISED**. 2026-08-27, ROADMAP #489 --------------------------------------------
+ *
+ * Chosen because it is short enough to reimplement identically on the other side without a shared
+ * module, which matters: medicham2 must not require this file. THE BODY BELOW IS BYTE-IDENTICAL TO
+ * `midEventHash` IN `engine/medicham2-browser.js` AND MUST STAY THAT WAY — this is one fact about the
+ * instrument with two copies, exactly the shape CLAUDE.md forbids letting drift, and the two halves
+ * addressing the same event must return the same number or the arm is not an arm.
+ *
+ * THE FINALISER IS NOT COSMETIC. Bare FNV-1a's last round is `h = imul(h ^ c, P)` with no diffusion
+ * after it, so changing only the FINAL character of the address translates the value instead of
+ * re-drawing it — and the final field of every address here is `nth`, the repeat index. Measured over
+ * 3,000 real-shaped addresses before the fix: max circular shift 0.0351571 against ~0.5, so N indexed
+ * draws at one address carried N/10 independent values. In the 16-bucket damage index that meant 89.5%
+ * of consecutive arrivals sharing a bucket (6.25% independent) and 1.75 distinct indices from a
+ * ten-hit address (7.56 independent). The full account is in medicham2's copy of this comment.
+ *
+ * IT MOVES `PIN_DIGEST`, and that is the point — see `DICE_MODEL`. A run before this and a run after
+ * it played different games, and `engine/arms_comparable.js` must refuse to table them together. */
 function midHash(str) {
   let h = 0x811c9dc5 >>> 0;
   for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 0x01000193) >>> 0; }
+  h = (h ^ (h >>> 16)) >>> 0; h = Math.imul(h, 0x85ebca6b) >>> 0;
+  h = (h ^ (h >>> 13)) >>> 0; h = Math.imul(h, 0xc2b2ae35) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
   return h >>> 0;
 }
 function midValue(ctx) { return midHash(ctx) / 4294967296; }
@@ -1531,14 +1550,31 @@ const ARMS_RUN = ARM_IDS.map(id => ARM_BY_ID.get(id));
  * alters which games diverge — so `dice` and `stall_seed` are folded into the digest and
  * `engine/arms_comparable.js` will now REFUSE a pre-split run against a post-split one rather than
  * silently tabling them together. A number that quietly spans the reset is worse than no number. */
-const DICE_MODEL = 'split/v1: acc+crit+sec+dmg on the corner, stall on its own seeded stream';
+/* ---- 2026-08-27, ROADMAP #489 — `dice` IS IN THE DIGEST NOW, AND THIS IS THE CASE THE OLD COMMENT
+ * SAID WOULD REQUIRE IT.
+ *
+ * It used to read: *"`dice` is DELIBERATELY NOT IN THE DIGEST. The split was measured, made the
+ * instrument worse, and was reverted to the corner — so this arm's behaviour is bit-identical to
+ * every run since 2026-08-07 and those runs stay comparable. Had the split been kept, this line would
+ * have to include it."* That was true when written and it is not true now: `midHash` gained a
+ * finalisation step today, which changes the VALUE of every address in the `middle` arm, which changes
+ * which games diverge. A run before it and a run after it are two instruments, not two samples.
+ *
+ * So the model string rides in the digest and `engine/arms_comparable.js` — which already compares
+ * `mode`, and `mode` carries `pins:<digest>` — REFUSES to table a pre-fix run against a post-fix one.
+ * A number that quietly spans a reset is worse than no number.
+ *
+ * THE VERSION IS PART OF THE STRING BECAUSE THE PROSE IS NOT ENOUGH. Editing the description without
+ * moving `v1 -> v2` would leave the digest tracking a sentence rather than a behaviour. */
+const DICE_MODEL = 'split/v2: acc+crit+sec+dmg on the corner, stall on its own seeded stream; '
+                 + 'the `middle` arm addresses every draw by event and hashes it FNV-1a + fmix32 '
+                 + '(the finaliser landed 2026-08-27 — before it, the trailing `nth` field only '
+                 + 'TRANSLATED the value and ten arrivals at one damage address shared 1.75 buckets '
+                 + 'of a possible sixteen)';
 const PIN_DIGEST = crypto.createHash('sha256').update(JSON.stringify(ARMS_RUN.map(a => ({
   id: a.id, corner: a.corner, damageIndex: a.damageIndex, tieToSecondBody: a.tieToSecondBody,
   sdShuffleReverses: a.sdShuffleReverses,
-  /* `dice` is DELIBERATELY NOT IN THE DIGEST. The split was measured, made the instrument worse, and
-   * was reverted to the corner — so this arm's behaviour is bit-identical to every run since
-   * 2026-08-07 and those runs stay comparable. Had the split been kept, this line would have to
-   * include it: see DICE_MODEL. */
+  dice: DICE_MODEL,
   claims: PIN_CLAIMS_BY_ARM.get(a.id).map(([w]) => w),
 })))).digest('hex').slice(0, 12);
 const PINS = {

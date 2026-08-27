@@ -21,6 +21,55 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE DIE WAS TRANSLATING, NOT RE-DRAWING — BARE FNV-1a HAS NO DIFFUSION AFTER ITS LAST ROUND AND THE LAST FIELD OF EVERY ADDRESS IS `nth`. **WHOLE-GAME 3 -> 14 OF 961, BOARD-MATERIAL 1 -> 12 OF 961. THE RULER WAS RESET; PIN DIGEST `2efbc9ed1946` -> `f646b0163bc0`.** 2026-08-27.
+
+**THIS ROW IS NOT A DEFECT CLOSED, IT IS AN INSTRUMENT REPAIRED, AND THE TWO MUST NOT BE READ THE SAME
+WAY.** Every whole-game and board-material figure in the rows below this one was measured with a die
+that drew N/10 independent values from N indexed draws. **They are not wrong — they are measurements
+of a narrower slice of outcome space than anybody thought they covered**, and the count they report is
+a floor, never a total.
+
+Will ruled it directly, over two alternatives, knowing it re-baselines the differential. Release
+`f9d6be635d34`, arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`, census pin
+`9446a684709d`, `--state --end-state`, run twice with identical results. ROADMAP **#489 — CLOSED**,
+CHANGELOG 5.176.0. Full account: `docs/_reports/2026-08-27-die-mixing-fix.md`.
+
+**THE ARITHMETIC.** `midEventHash` and `midHash` ended on `h = Math.imul(h ^ c, 0x01000193)` with
+nothing after it, so changing only the FINAL character translates the value instead of re-drawing it:
+`v(nth=d) - v(nth=0) = ((A XOR c_d) - (A XOR c_0)) * 16777619 mod 2^32 / 2^32`. A one-digit index
+differs in the low four bits only, bounding the shift at 0.0586. **Two-digit indices mix fine, which is
+why nothing caught it.**
+
+| quantity | bare FNV-1a | + fmix32 | independent |
+|---|---|---|---|
+| max circular shift, `v(nth=d)` vs `v(nth=0)` | **0.0351571** | 0.4999829 | ~0.5 |
+| consecutive arrivals sharing a 16-bucket damage index | **89.5%** | 6.2% | 6.25% |
+| distinct damage indices from a ten-hit address | **1.75** | 7.60 | 7.56 |
+| two same-turn residual half-coins landing the same way | **99.1%** | 48.5% | 50% |
+| lag-1 autocorrelation down one address axis | **0.8873** | -0.0024 | ~0 |
+| **marginal hit rate on that sweep** | **0.9214** | 0.8992 | 0.9 |
+
+**THE LAST ROW IS THE LESSON.** The marginal was always fine, and the assertion that was watching this
+axis measured only the marginal. A die can be uniform in aggregate and almost perfectly predictable one
+step at a time.
+
+**THE PREDICTION WAS WRITTEN FIRST AND IS PUBLISHED AS WRITTEN.** Whole-game 3 -> 3..15 (**14,
+inside**), board-material 1 -> 1..8 (**12, OUTSIDE AND ABOVE**). I priced the die as re-sampling the
+games that already diverged; it does more. `board_parted_before_the_protocol_did` went **0 -> 5** —
+five games whose boards part with no protocol line ever disagreeing, which the old die could not reach
+at all. **Those five are UNDIAGNOSED and are the sharpest thing this batch produced.**
+
+**UNMOVED**: `test-engine-diff --n 6000` 0 of 6000 at all sixteen corners; three roster stages
+byte-identical; `all_mechanics_fire` the identical diverging set. **IMPROVED**: address identity
+44.4% -> 54.0% and 72.8% -> 78.0%, `acc` 99.5 -> 99.8%, `sec` 98.2 -> 99.1%.
+
+**THE TAILWIND ROWS ARE NOW UNBLOCKED.** Both carry `onSideResidualOrder: 26` /
+`onSideResidualSubOrder: 5` and `Battle#speedSort` breaks the tie with `this.prng.shuffle(...)`, so
+matching them means matching a random draw — which depends on this die. Will ruled they be fixed
+properly rather than declared. Next batch.
+
+---
+
 ## `yawn` ASKED THE DOLL NOWHERE — A MISSING CHECK, NOT A MISPLACED ONE. THE AUTHORITY PRINTS `|-fail|` ON THE MOVER. CENSUS 756 -> **757 LIVE / 757 PROBED / 0 MISSING**. WHOLE-GAME UNMOVED AT 3 OF 961, BOARD-MATERIAL UNMOVED AT 1 OF 961, AS PREDICTED. 2026-08-27.
 
 Release `01be9daf14ee` (cut for this — `engine/medicham2-browser.js` is a SOURCES file and it moved),

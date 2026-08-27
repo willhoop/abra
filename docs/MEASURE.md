@@ -15,29 +15,63 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 213 unsafe, 2 void (declared), 8 possibly stale, 14 ok, 0 missing
+  provenance: 212 unsafe, 2 void (declared), 7 possibly stale, 16 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 3 of 8 gate clauses fail (whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 6 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-08-27 09:15
+    moved after the fit: engine/medicham2-browser.js  2026-08-27 10:00
     moved after the fit: engine/board.js  2026-08-23 15:27
     moved after the fit: data/engine-data.js  2026-08-22 01:46
     moved after the fit: data/abra-tags.js  2026-08-26 18:47
 ```
 
-_stamped 2026-08-27 09:39_
+_stamped 2026-08-27 10:23_
 
 <!-- /GENERATED -->
+
+## THE WHOLE-GAME AND BOARD-MATERIAL BASELINES WERE RESET ON PURPOSE ON 2026-08-27. **DO NOT SUBTRACT ACROSS IT.**
+
+ENGINE fixed the `middle` arm's die (ROADMAP **#489**, CHANGELOG 5.176.0): bare FNV-1a has no
+diffusion after its last round and the last field of every address is `nth`, so an indexed draw only
+TRANSLATED the previous value — max circular shift **0.0351571** against ~0.5, and **1.75** distinct
+damage buckets from a ten-hit address instead of 7.56.
+
+| | before (`01be9daf14ee`, pins `2efbc9ed1946`) | after (`f9d6be635d34`, pins `f646b0163bc0`) |
+|---|---|---|
+| whole-game, counted | 3 of 961 (8 raw, less 5 declared) | **14** of 961 (19 raw, less 5 declared) |
+| board-material | 1 of 961 | **12** of 961 |
+
+**THE RISE IS THE INSTRUMENT SEEING WHAT IT WAS BLIND TO, NOT A REGRESSION**, and it was predicted
+before the run. Attribution was checked rather than assumed: the two frozen releases differ in exactly
+one SOURCES file and its only executable difference is the three finaliser lines.
+
+**MEASURE'S PART IS THE REFUSAL, AND IT IS ALREADY WIRED.** `DICE_MODEL` now rides in `PIN_DIGEST`
+(`engine/game_differential.js`), which `engine/arms_comparable.js` compares through `mode`. The gate
+prints, unprompted:
+
+> DIRECTION OF TRAVEL WITHHELD — the baseline was stamped under `A/middle/pins:2efbc9ed1946/...` and
+> this run is `A/middle/pins:f646b0163bc0/...`. One pin is one corner: those are two instruments, and
+> subtracting one rate from the other invents a trend.
+
+Without that, a pre-fix run and a post-fix run would have been tabled together as comparable and
+3 -> 14 would have entered the record as an engine regression. **A number that quietly spans a reset
+is worse than no number.**
+
+**RE-STAMP DELIBERATELY OR NOT AT ALL.** `node engine/quarantine.js --stamp-whole-game` moves the
+baseline to this pin. It has NOT been run here: whether `f646b0163bc0` is the pin to hold going
+forward is a MEASURE judgement, not an ENGINE one, and the withheld direction-of-travel line is the
+correct state until somebody makes that call.
+
 
 ## Why the refit lives here, not in ENGINE or SEARCH
 

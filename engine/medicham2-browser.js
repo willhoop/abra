@@ -18838,10 +18838,46 @@ function rngStreams(src) {
  * one address still line up on entry 0 and part after it. The address makes the collision small and
  * visible; it does not abolish it. See docs/MEDICHAM-SPRINT-NOTES.md for the measured size. */
 const MID_EVENT_SEED = 20260813;
-/* FNV-1a, 32-bit. Chosen because it is short enough to reimplement identically on the other side. */
+/* ---- FNV-1a, 32-bit, **FINALISED**. 2026-08-27, ROADMAP #489 -------------------------------------
+ *
+ * IT WAS BARE FNV-1a UNTIL TODAY AND THE TRAILING FIELD OF EVERY ADDRESS IS THE REPEAT INDEX, WHICH
+ * IS THE ONE PLACE BARE FNV-1a CANNOT MIX.
+ *
+ * The loop's last round is `h = imul(h ^ c, P)` with nothing after it, so changing only the final
+ * character does not diffuse — it TRANSLATES:
+ *
+ *     v(nth=d) - v(nth=0)  =  ((A XOR c_d) - (A XOR c_0)) * 16777619  mod 2^32  / 2^32
+ *
+ * For a ONE-DIGIT index `c_d` and `c_0` differ in the low four bits only, so the whole shift is
+ * bounded by 15 * 16777619 / 2^32 = 0.0586. MEASURED over 3,000 real-shaped addresses: max circular
+ * shift **0.0351571**, mean **0.01607** against 0.25 for independent draws. **N indexed draws at one
+ * address carried N/10 independent values.** Two-digit indices mix fine, which is why nothing caught
+ * it — the failure is in the small-`nth` population, which is nearly all of it.
+ *
+ * THE HEADLINE IS DAMAGE, NOT ACCURACY. `_R.dmg()` is floored into 16 buckets and a translation that
+ * small does not leave the bucket: **86-90% of consecutive arrivals at one damage address shared a
+ * bucket against 6.25% independent**, and a ten-hit address yielded **1.75** distinct indices instead
+ * of 7.56. It is also every residual coin — `midClearActiveMove` collapses those to
+ * `seed|turn|any|-|-`, so two same-turn residual 1/2 coins landed the same way 99.1% of the time
+ * rather than 50%.
+ *
+ * THE FIX IS A FINALISER, NOT A RESHUFFLED STRING. Mixing `nth` in somewhere other than the tail
+ * would fix `nth` and leave every other trailing character — the target slot's digit, a move id's
+ * last letter — exactly as weak. `fmix32` (murmur3's finalisation step) diffuses the whole word once
+ * at the end, so no field of the address is privileged by its position. Same measurements after:
+ * max shift 0.49998, mean 0.25091, 6.2% bucket sharing, 7.60 distinct indices, residual coins 48.5%.
+ *
+ * STILL SHORT ENOUGH TO REIMPLEMENT IDENTICALLY ON THE OTHER SIDE, which is the reason FNV-1a was
+ * chosen and the reason this stays five lines. `engine/game_differential.js`'s `midHash` carries a
+ * BYTE-IDENTICAL body — CLAUDE.md: one implementation of a fact, never two that agree today — and
+ * `tests/test-middle-identity.js` holds a THIRD, hand-written from the constants, as the only thing
+ * that can catch one of the two drifting. */
 function midEventHash(str) {
   let h = 0x811c9dc5 >>> 0;
   for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 0x01000193) >>> 0; }
+  h = (h ^ (h >>> 16)) >>> 0; h = Math.imul(h, 0x85ebca6b) >>> 0;
+  h = (h ^ (h >>> 13)) >>> 0; h = Math.imul(h, 0xc2b2ae35) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
   return h >>> 0;
 }
 function midEventValue(ctx) { return midEventHash(ctx) / 4294967296; }

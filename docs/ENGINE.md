@@ -87,8 +87,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  757/757 probed mechanics live, 0 missing   (census 2026-08-27 09:20)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-27 06:34)
+  764/764 probed mechanics live, 0 missing   (census 2026-08-27 10:08)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-27 10:00)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -107,9 +107,125 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 09:39_
+_stamped 2026-08-27 10:23_
 
 <!-- /GENERATED -->
+
+## THE MIDDLE ARM'S DIE WAS TRANSLATING, NOT RE-DRAWING — BARE FNV-1a HAS NO DIFFUSION AFTER ITS LAST ROUND, AND THE LAST FIELD OF EVERY ADDRESS IS `nth`. **WHOLE-GAME 3 -> 14 OF 961, BOARD-MATERIAL 1 -> 12 OF 961 — A RISE, PREDICTED BEFORE THE RUN, AND NOT A REGRESSION. THE PIN DIGEST MOVED `2efbc9ed1946` -> `f646b0163bc0` ON PURPOSE.** 2026-08-27.
+
+Will ruled this directly, over two alternatives, knowing it re-baselines the differential.
+
+Release `f9d6be635d34`, arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`, census
+pin `9446a684709d`, `--state --end-state`, **run twice with identical results**. Register row: ROADMAP
+**#489 — CLOSED**. CHANGELOG 5.176.0. Full account:
+`docs/_reports/2026-08-27-die-mixing-fix.md`.
+
+**THE MECHANISM.** `midEventHash` here and `midHash` in `engine/game_differential.js` ended on
+`h = Math.imul(h ^ c, 0x01000193)` with nothing after it. Changing only the FINAL character of the
+address therefore does not diffuse the word — it TRANSLATES it:
+
+```
+v(nth=d) − v(nth=0)  =  ((A XOR c_d) − (A XOR c_0)) · 16777619  mod 2^32  / 2^32
+```
+
+For a ONE-DIGIT index the two characters differ in the low four bits only, bounding the whole shift at
+`15 · 16777619 / 2^32 = 0.0586`. **Two-digit indices mix fine, which is why nothing caught it** — the
+failure lives in the small-`nth` population, which is nearly all of it.
+
+| quantity | bare FNV-1a | + fmix32 | independent |
+|---|---|---|---|
+| max circular shift, `v(nth=d)` vs `v(nth=0)` | **0.0351571** | 0.4999829 | ~0.5 |
+| mean circular shift | **0.01607** | 0.25091 | 0.25 |
+| consecutive arrivals sharing a 16-bucket damage index | **89.5%** | 6.2% | 6.25% |
+| distinct damage indices from a ten-hit address | **1.75** | 7.60 | 7.56 |
+| two same-turn residual half-coins landing the same way | **99.1%** | 48.5% | 50% |
+| lag-1 autocorrelation down one address axis | **0.8873** | −0.0024 | ~0 |
+| runs above/below 0.9 on that sweep | **91** | 901 | ~901 |
+| **marginal hit rate on that sweep** | **0.9214** | 0.8992 | 0.9 |
+
+**THE LAST ROW IS THE POINT OF THE TABLE AND IT IS THE LESSON, NOT THE FIX.** The marginal was always
+fine. A die can be uniform in aggregate and almost perfectly predictable one step at a time, and only
+the conditional structure can tell you — which is exactly what the old assertion at
+`tests/test-middle-identity.js:97` measured, on exactly the axis that was broken.
+
+**THE HEADLINE IS DAMAGE, NOT ACCURACY.** `_R.dmg()` floors into sixteen buckets and a translation
+smaller than a bucket cannot leave it, so a ten-hit move drew 1.75 distinct indices where it should
+draw 7.56.
+
+**THE FIX IS A FINALISER, NOT A RESHUFFLED STRING, AND THE CHOICE IS LOAD-BEARING.** Mixing `nth` in
+somewhere other than the tail would fix `nth` and leave every OTHER trailing character — the target
+slot's digit, a move id's last letter — exactly as weak. `fmix32` diffuses the whole word once at the
+end, so no field of the address is privileged by its position. The two bodies are **asserted**
+byte-identical rather than assumed, and a THIRD hand-written copy inside `test-middle-identity.js` —
+the only thing that can catch one of the two drifting — moved in the same pass. **No STRING changed,
+so no ADDRESS changed**: the arm's identity claim is untouched by construction and the VALUES are what
+moved.
+
+**`DICE_MODEL` IS IN `PIN_DIGEST` NOW, AND IT IS ALREADY DOING ITS JOB.** The gate prints, unprompted:
+*"DIRECTION OF TRAVEL WITHHELD — the baseline was stamped under `pins:2efbc9ed1946` and this run is
+`pins:f646b0163bc0`. One pin is one corner: those are two instruments, and subtracting one rate from
+the other invents a trend."* Without that refusal `engine/arms_comparable.js` would have tabled the
+pre-fix run against the post-fix one, and 3 -> 14 would have been published as an engine regression
+rather than a reset of the ruler.
+
+**PREDICTED BEFORE THE RUN AND PUBLISHED AS WRITTEN.** Whole-game 3 -> 3..15 (**14, inside**);
+board-material 1 -> 1..8 (**12, OUTSIDE AND ABOVE**). The under-estimate is instructive rather than
+embarrassing: I priced the die as re-sampling the games that already diverged, and it does more —
+`board_parted_before_the_protocol_did` went **0 -> 5**, five games whose boards part with no protocol
+line ever disagreeing. Those are boards the old die could not reach at all.
+
+**UNMOVED, AS PREDICTED:** `test-engine-diff --n 6000` **0 of 6000 at every one of the sixteen
+corners**; the three roster stages byte-identical in verdict distribution; `all_mechanics_fire --kind
+all` the identical diverging set. **IMPROVED:** of medicham2's events the authority also asked
+44.4% -> **54.0%**, of the authority's medicham2 also asked 72.8% -> **78.0%**, `acc` 99.5 -> 99.8%,
+`sec` 98.2 -> 99.1%.
+
+**ATTRIBUTION CHECKED, NOT ASSUMED.** Releases `01be9daf14ee` and `f9d6be635d34` differ in exactly one
+SOURCES file and the only executable difference between the two frozen copies is the three finaliser
+lines.
+
+### THE HAND LIST
+
+**Leaves it:** *"`nth` in the address hash"*, which had stood on the standing list unquantified.
+`tests/test-middle-identity.js` carries it now as four assertions — circular shift, the 16-bucket
+damage consequence, lag-1 autocorrelation and a runs test — all four shown **RED on release
+`01be9daf14ee` (exit 1) and GREEN on `f9d6be635d34` (exit 0)**.
+
+**Joins it:**
+- **THE FIVE NEW `board_parted_before_the_protocol_did` GAMES ARE UNDIAGNOSED.** They are the clearest
+  thing the corrected die exposed and nothing here says what they are.
+  `data/divergence-turns.json` was re-baselined for exactly this.
+- **`tests/probe_random_target_address.js`'s PUBLISHED FIGURES ARE STALE.** It reads `midEventValue`
+  directly, so every number it has printed was computed under the translating hash — **including its
+  own `single`/`twoDig` shift measurements, which were measuring the defect itself**. Re-run before
+  quoting. The row is Will's to re-ask after this lands; the staleness is stated here so nobody quotes
+  it in the meantime.
+
+**Stays on it, and now unblocked:** the **two Tailwind rows**. Both carry `onSideResidualOrder: 26` /
+`onSideResidualSubOrder: 5`, and `Battle#speedSort` (`sim/battle.ts:429-458`) breaks the tie with
+`this.prng.shuffle(...)` — so matching Tailwind means matching a random draw, which is why it waited
+for this die. Will ruled these are to be **fixed properly rather than declared**. Next batch.
+
+**Standing and unchanged by this batch**, pointed at rather than re-listed because a copied list is
+how one goes stale: `magnetrise@18`, `corrosivegas`, a fainted mega's forme, Wide Guard before a
+step-0 `-miss`, the eight action kinds that ask no doll, the twelve dead tags and the four
+`test-tag-params-derived.js` prose-quantity rows.
+
+### OWED, NOT RUN
+
+- **THE ROSTER STAGES AND THE MECHANICS CLAUSE ARE WITHHELD AGAINST `f9f3a61481cb`.** A concurrent
+  agent was writing `engine/medicham2-browser.js` and the census throughout this batch: the census
+  moved **757 -> 764** at 10:08:38 (the doll-blind family, **not this change**) and `f9f3a61481cb` was
+  cut at 10:09:27. **Every figure above is intact** — both differential runs finished before the
+  census moved, both were census-pinned, and every run read a frozen release rather than the tree —
+  but the artifacts are stamped `f9d6be635d34` while the tree is `f9f3a61481cb`, so
+  `engine/quarantine.js` correctly WITHHOLDS those clauses. **The re-run belongs to whoever closes the
+  doll-blind batch**; starting one now would measure bytes still being written. It is not a claim that
+  anything is wrong: every stage read 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on `f9d6be635d34`.
+- **NO CENSUS ROW MOVED BY THIS CHANGE** and the census was deliberately NOT regenerated here —
+  doing so would have broken the pin this run was measured under.
+- **NO STRENGTH CLAIM.** ENGINE cannot measure one. Landing the mechanic is the result.
+
 
 ## `yawn` ASKED THE DOLL NOWHERE — A MISSING CHECK, NOT A MISPLACED ONE. THE AUTHORITY PRINTS `|-fail|` ON THE MOVER. CENSUS 756 -> **757 LIVE / 757 PROBED / 0 MISSING**. WHOLE-GAME UNMOVED AT 3 OF 961, BOARD-MATERIAL UNMOVED AT 1 OF 961, AS PREDICTED. 2026-08-27.
 

@@ -10,6 +10,110 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.176.0] — 2026-08-27
+
+### Fixed
+- **THE MIDDLE ARM'S DIE WAS TRANSLATING, NOT RE-DRAWING. BARE FNV-1a HAS NO DIFFUSION AFTER ITS LAST
+  ROUND, AND THE LAST FIELD OF EVERY ADDRESS IS `nth`. WHOLE-GAME 3 -> 14 OF 961 AND BOARD-MATERIAL
+  1 -> 12 OF 961 — A RISE, PREDICTED BEFORE THE RUN, AND NOT A REGRESSION.** ENGINE, ROADMAP `#489`.
+  Will ruled this directly, over two alternatives, knowing it re-baselines the differential.
+
+  **THE MECHANISM.** `midEventHash` (`engine/medicham2-browser.js`) and `midHash`
+  (`engine/game_differential.js`) ended on `h = Math.imul(h ^ c, 0x01000193)` with nothing after it,
+  so changing only the FINAL character of the address does not diffuse the word — it TRANSLATES it:
+
+  ```
+  v(nth=d) − v(nth=0)  =  ((A XOR c_d) − (A XOR c_0)) · 16777619  mod 2^32  / 2^32
+  ```
+
+  For a ONE-DIGIT index `c_d` and `c_0` differ in the low four bits only, bounding the whole shift at
+  `15 · 16777619 / 2^32 = 0.0586`. Two-digit indices mix fine, which is why nothing caught it: the
+  failure lives in the small-`nth` population, which is nearly all of it.
+
+  **MEASURED**, an independently written probe over 3,000 real-shaped addresses, reproducing MEASURE's
+  figure exactly:
+
+  | quantity | bare FNV-1a | + fmix32 | independent |
+  |---|---|---|---|
+  | max circular shift, `v(nth=d)` vs `v(nth=0)` | **0.0351571** | 0.4999829 | ~0.5 |
+  | mean circular shift | **0.01607** | 0.25091 | 0.25 |
+  | consecutive arrivals sharing a 16-bucket damage index | **89.5%** | 6.2% | 6.25% |
+  | distinct damage indices from a ten-hit address | **1.75** | 7.60 | 7.56 |
+  | two same-turn residual half-coins landing the same way | **99.1%** | 48.5% | 50% |
+  | lag-1 autocorrelation down one address axis | **0.8873** | −0.0024 | ~0 |
+  | runs above/below 0.9 on that sweep | **91** | 901 | ~901 |
+  | marginal hit rate on that sweep | 0.9214 | 0.8992 | 0.9 |
+
+  **THE HEADLINE IS DAMAGE, NOT ACCURACY.** `_R.dmg()` floors into sixteen buckets and a translation
+  smaller than a bucket cannot leave it. The last row is the point of the table: **the marginal was
+  always fine.** A die can be uniform in aggregate and almost perfectly predictable one step at a
+  time, and only the conditional structure can tell you.
+
+  **THE FIX IS A FINALISER, NOT A RESHUFFLED STRING, AND THE CHOICE IS LOAD-BEARING.** Mixing `nth`
+  in somewhere other than the tail would fix `nth` and leave every OTHER trailing character — the
+  target slot's digit, a move id's last letter — exactly as weak. `fmix32` (murmur3's finalisation
+  step) diffuses the whole word once at the end, so no field of the address is privileged by its
+  position. **The two bodies are ASSERTED byte-identical, not assumed**, and a THIRD hand-written copy
+  in `tests/test-middle-identity.js` — the only thing that can catch one of the two drifting — moved
+  in the same pass. No STRING changed, so no ADDRESS changed and the arm's identity claim is untouched
+  by construction; the VALUES at those addresses are what moved.
+
+### Changed
+- **`DICE_MODEL` IS IN `PIN_DIGEST` NOW, AND THIS IS THE CASE THE OLD COMMENT SAID WOULD REQUIRE IT.**
+  It read *"`dice` is DELIBERATELY NOT IN THE DIGEST … Had the split been kept, this line would have
+  to include it."* True when written; not true now. The model string is bumped `split/v1 -> split/v2`
+  with the version INSIDE the digested string, so editing the prose cannot leave the digest tracking
+  a sentence rather than a behaviour. **It is already working**: the gate now prints, unprompted,
+  *"DIRECTION OF TRAVEL WITHHELD — the baseline was stamped under `pins:2efbc9ed1946` and this run is
+  `pins:f646b0163bc0`. One pin is one corner: those are two instruments."* Without that refusal
+  `engine/arms_comparable.js` would have tabled a pre-fix run against a post-fix one, and 3 -> 14
+  would have been published as an engine regression rather than a reset of the ruler.
+- **TWO VACUOUS ASSERTIONS IN `tests/test-middle-identity.js`, REPLACED.** The first asserted
+  `midEventValue(A|0) !== midEventValue(A|1)` — true at a gap of exactly 1/256 = 0.003906 — so it
+  asserted DIFFERENCE where the arm needs INDEPENDENCE. The second swept the repeat index, which is
+  the FAILING axis, and measured the MARGINAL. Both are kept as floors and joined by the quantity:
+  circular shift, the 16-bucket damage consequence, lag-1 autocorrelation and a Wald-Wolfowitz runs
+  test. **Shown RED on release `01be9daf14ee` (exit 1, four claims) and GREEN on `f9d6be635d34`
+  (exit 0).**
+
+### Notes
+- **RE-BASELINED**: `data/game-differential.json` and `data/divergence-turns.json` on release
+  `f9d6be635d34`, arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`, census pin
+  `9446a684709d`, `--state --end-state`. Run **twice** with identical results, so the corrected die is
+  shown deterministic rather than assumed to be.
+- **PREDICTED AND PUBLISHED AS WRITTEN.** Whole-game 3 -> 3..15 (**14, inside**); board-material
+  1 -> 1..8 (**12, OUTSIDE and ABOVE**). The under-estimate is instructive: I priced the die as
+  re-sampling the games that already diverged, and it does more — `board_parted_before_the_protocol_did`
+  went **0 -> 5**, five games whose boards part with no protocol line ever disagreeing. Those are
+  boards the old die could not reach at all, not re-rolls of boards it could.
+- **UNMOVED, AS PREDICTED**: `test-engine-diff --n 6000` **0 of 6000 at every one of the sixteen
+  corners**; the three roster stages byte-identical in verdict distribution (0 FIRED-AND-BOARDS-DIFFER,
+  0 DID-NOT-FIRE); `all_mechanics_fire --kind all` the identical diverging set.
+  **IMPROVED**: of medicham2's events the authority also asked 44.4% -> **54.0%**, of the authority's
+  medicham2 also asked 72.8% -> **78.0%**, `acc` 99.5 -> 99.8%, `sec` 98.2 -> 99.1%.
+- **ATTRIBUTION CHECKED, NOT ASSUMED.** Releases `01be9daf14ee` and `f9d6be635d34` differ in exactly
+  one SOURCES file, and the only executable difference between the two frozen copies is the three
+  finaliser lines.
+- **SCOPE**: `midEventDice` has exactly ONE non-test caller, `game_differential.js:1219`. No refit, no
+  leaf calibration, no weights, no rollout, no census, no roster.
+  `tests/probe_random_target_address.js` reads `midEventValue` directly and **every figure it has
+  published was computed under the translating hash, including its own shift measurements** — stale,
+  flagged, not touched. Will re-asks that row after this lands.
+- **A CONCURRENT AGENT WAS WRITING `engine/medicham2-browser.js` AND THE CENSUS THROUGHOUT THIS BATCH,
+  AND THAT IS REPORTED RATHER THAN PAPERED OVER.** The census moved **757 -> 764** at 10:08:38 (the
+  doll-blind family, not this change) and release `f9f3a61481cb` was cut at 10:09:27. Both differential
+  runs finished BEFORE the census moved, both were pinned to
+  `data/verification/census-pin-9446a684709d.json`, and every run read a frozen release rather than
+  the tree — so the figures above are intact and stamped to `f9d6be635d34` alone. **The consequence is
+  owed, not hidden**: `engine/quarantine.js` now correctly WITHHOLDS the three roster clauses and the
+  mechanics clause as *"measured against a different engine"*, and they must be re-run on the final
+  tree by whoever closes that batch. Re-running now would measure bytes still being written.
+- **NO CENSUS ROW MOVED BY THIS CHANGE.** It touches no mechanic. The census was not regenerated here,
+  because doing so would have broken the pin this run was measured under.
+- **NOT TOUCHED**: Tailwind — a genuine `speedSort` tie (`sim/battle.ts:429-458`) whose match depends
+  on THIS die, which is why it waited; the random-target row; every declared row including Supreme
+  Overlord's `fallenundefined`; the doll-blind family; `web/`; `app/`; `data/engine-data.js`.
+
 ## [5.175.0] — 2026-08-27
 
 ### Fixed
