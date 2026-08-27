@@ -572,6 +572,24 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #95 -- a transformed body restored to itself on the way out. A zero beside a non-zero
    * `transformedOnEntry` is a Ditto that is somebody else for the rest of the battle. */
   transformReverted: 0,
+  /* 2026-08-27 -- THE OTHER DOOR ONTO THE SAME `clearVolatile(false)` CALL: a transformed body
+   * restored to itself because it DIED, not because it left. Counted APART from `transformReverted`
+   * because the two are different call sites of the authority's one function and a merged counter
+   * could not say which of the two roads is cold -- which is exactly the state this engine was in,
+   * with the switch-out road hot since ROADMAP #95 and the faint road never wired at all. */
+  transformRevertedOnFaint: 0,
+  /* 2026-08-27 -- White Herb's `onAnySwitchIn` firing for a POST-FAINT REPLACEMENT's entry drop, which
+   * is the one of its four triggers that had no door. Counted apart from the other three because a
+   * merged number could not say which door is cold -- and three of them were hot for a fortnight while
+   * this one had never fired. A zero on a run containing a replacement Intimidate into a herb holder
+   * means this pass is not on the path. */
+  refillHerbPass: 0,
+  /* 2026-08-27 -- a hit whose damage an `onDamage` survival clamp rewrote UNDER the number this engine
+   * had already banked as "dealt". `move.totalDamage` is the authority's post-handler value
+   * (battle-actions.ts:965), and the recoil, the drain and `_dealtEach` are all shares OF it. A zero
+   * on a run containing a lethal hit into a Focus Sash or an Endure means this re-read is not on the
+   * path and every such toll is one point high. */
+  dealtReReadAfterClamp: 0,
   /* ROADMAP #139 -- Rough Skin, Weak Armor and every other `onDamagingHit` reactor firing TWICE off
    * one bonded click, which is the reaction half of "two separate hits". */
   parentalBondReactedTwice: 0,
@@ -16579,7 +16597,13 @@ function receiverSweep(bodies){
     for(const dead of (act||[])){
       if(!dead||dead===m||!dead.fainted)continue;
       if(dead._receiverTaken)continue;
-      const ab=String(dead.ability||'');
+      /* 2026-08-27 -- THE ABILITY THE CORPSE WAS WEARING, WHICH IS NOT ALWAYS THE ONE IT IS HOLDING.
+       * `runEvent('Faint')` fires ABOVE `clearVolatile(false)` (sim/battle.ts:2549 vs :2560), so a
+       * Receiver inherits from a transformed body the ability it COPIED, not `imposter`. Since
+       * 2026-08-27 this engine reverts a transformed corpse at the drain, so the copied ability is
+       * gone by the time this sweep runs; `_abAtFaint` is the stamp taken at the transition. The
+       * fallback is the ordinary case and every faint stamps, so it is never a silent guess. */
+      const ab=String(dead._abAtFaint||dead.ability||'');
       /* `ability.id === 'noability'` is the authority's other refusal; this engine writes an absent
        * ability as `''` or `'none'`, and both are the same statement. */
       if(!ab||ab==='none'){dead._receiverTaken=true;MEDSEEN.inheritFoundNothing++;continue;}
@@ -17751,7 +17775,20 @@ function oneMegaPerSide(team){
  * `MEDFAILS.doubleWipeNoFaintOrder` and still returns 0.5 -- a silent 0.5 here is
  * indistinguishable from the bug this wire removed. */
 let _FAINT_SEQ=0, _FAINT_EPOCH=0;
-function noteFaint(m){ if(!m)return; if(m._fEpoch!==_FAINT_EPOCH){m._fEpoch=_FAINT_EPOCH;m._faintSeq=++_FAINT_SEQ;} }
+/* 2026-08-27 -- AND IT IS THE ONE DOOR EVERY FAINT ALREADY GOES THROUGH, WHICH `queueFaint` IS NOT.
+ * `queueFaint` owns the LINE for the handful of sites that were converted to it; the other twenty-odd
+ * still flip `fainted` inline. What all of them share, without exception, is this call -- so a piece of
+ * housekeeping the authority does on EVERY corpse belongs here and nowhere else. Placing it in
+ * `queueFaint` was tried first and the probe stayed red: Memento's self-KO (line ~21876) is one of the
+ * inline sites and never reaches that road. */
+function noteFaint(m){ if(!m)return; if(m._fEpoch!==_FAINT_EPOCH){m._fEpoch=_FAINT_EPOCH;m._faintSeq=++_FAINT_SEQ;}
+  /* WHAT THE AUTHORITY'S `Faint` EVENT SEES, captured before the line below puts it back to base.
+   * `runEvent('Faint')` is sim/battle.ts:2549 and `clearVolatile` is :2560, so a Faint consumer reads
+   * the ability the body was WEARING -- for a transformed body, the copied one. `receiverSweep` is
+   * this engine's consumer and reads exactly this field. Stamped on every faint, not only a
+   * transformed one, so the reader never has to ask which road it is on. */
+  if(m._abAtFaint===undefined)m._abAtFaint=m.ability;
+  faintHousekeeping(m); }
 /* ---- THE FAINT QUEUE. 2026-08-23 ---------------------------------------------------------------
  *
  * THE AUTHORITY DOES NOT WRITE `|faint|` WHERE THE HP REACHES ZERO. `Pokemon#faint()`
@@ -17800,7 +17837,61 @@ const FAINT_INLINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_
 const RESIDUAL_DRAIN_ABOVE_UPKEEP=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_RESIDUAL_DRAIN_ABOVE_UPKEEP==='1');
 if(RESIDUAL_DRAIN_ABOVE_UPKEEP)MEDFAILS.residualDrainAboveUpkeepRestored=1;
+/* 2026-08-27 -- THE THIRD KNOB ON THIS DOOR, AND IT IS THE `clearVolatile` HALF RATHER THAN THE LINE.
+ * `MEDI_TRANSFORM_SURVIVES_FAINT=1` restores the behaviour this engine had until today: a Ditto that
+ * copied a body and then DIED stayed that body on the bench for the rest of the game. See
+ * `faintHousekeeping` for the authority's two lines. */
+const TRANSFORM_SURVIVES_FAINT=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_TRANSFORM_SURVIVES_FAINT==='1');
+if(TRANSFORM_SURVIVES_FAINT)MEDFAILS.transformSurvivesFaintRestored=1;
+/* 2026-08-27 -- `MEDI_REFILL_NO_HERB=1` restores the state this engine held until today: a post-faint
+ * REPLACEMENT's entry drop had no `onAnySwitchIn` pass after it, so a White Herb answered it a whole
+ * turn late. See the call site inside `refill()`. */
+const REFILL_NO_HERB=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_REFILL_NO_HERB==='1');
+if(REFILL_NO_HERB)MEDFAILS.refillNoHerbRestored=1;
+/* 2026-08-27 -- `MEDI_DEALT_BEFORE_CLAMP=1` restores the state this engine held until today: `dealt`
+ * banked BEFORE Endure and the sash family rewrote `dmg`, so every recoil and every drain off a hit
+ * something survived was `leavesHP` points too generous. See `_reDealt` inside the hit loop. */
+const DEALT_BEFORE_CLAMP=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_DEALT_BEFORE_CLAMP==='1');
+if(DEALT_BEFORE_CLAMP)MEDFAILS.dealtBeforeClampRestored=1;
 let _FAINTQ=[];
+/* 2026-08-27 -- A CORPSE IS ITSELF AGAIN, AND IT IS THE SAME AUTHORITY CALL `queueFaint`'s `_ttmWrap`
+ * LINE ALREADY CITES.
+ *
+ *     sim/battle.ts:2560     faintMessages() -> pokemon.clearVolatile(false)   on the corpse
+ *     sim/pokemon.ts:1566    clearVolatile() ends with this.setSpecies(this.baseSpecies)
+ *
+ * So `clearVolatile` has TWO doors -- a body that LEAVES (sim/pokemon.ts:1253, the switch-out road
+ * ROADMAP #95 wired) and a body that DIES -- and this engine had only the first. `imposterRevert` is
+ * called rather than re-implemented, per CLAUDE.md's facts-are-global rule: what a revert RESTORES is
+ * one function, and only the trigger is new.
+ *
+ * IT HANGS OFF `noteFaint`, WHICH IS THE ONLY CALL ALL TWENTY-ODD FAINT SITES ACTUALLY SHARE.
+ * `queueFaint` was the first choice -- it is where the `_ttmWrap` clear lives, citing this same
+ * `clearVolatile(false)` call -- and the probe stayed RED, because Memento's self-KO never reaches it.
+ * That is measured rather than reasoned: the arm read `chandelure` in both the default and the control
+ * with the code in place, which is the "identical output means the knob is unwired" shape pointing at
+ * the FIX rather than at the knob.
+ *
+ * THE NARRATION DOES NOT MOVE, and that is checkable rather than claimed: the `|faint|` line is built
+ * by `identName`, which reads `m._ident` and falls back to `m.name` only when a body was never stamped
+ * -- so the line says `Ditto` whether or not the species underneath it has already gone back.
+ *
+ * ONE HANDLER LEGITIMATELY READS THE COPIED BODY, SO IT IS ANSWERED RATHER THAN ACCEPTED.
+ * `receiverSweep` reads `dead.ability`, and the authority's `Faint` event (:2549) fires ABOVE the
+ * clear -- so a Receiver inherits the ability the corpse was WEARING, which for a transformed body is
+ * the copied one. A bare revert would hand it `imposter` instead, whose own `refusesCopy.noreceiver`
+ * then REFUSES the inherit: a mechanic that works today would have silently stopped. `_abAtFaint` is
+ * stamped one line above this call and read there, so the ordering is expressed rather than lost. */
+function faintHousekeeping(m){
+  if(!m||!m._transformed)return false;
+  if(TRANSFORM_SURVIVES_FAINT)return false;
+  if(!imposterRevert(m))return false;
+  MEDSEEN.transformRevertedOnFaint++;
+  return true;
+}
 /* IS A `|faint|` STILL OWED? The authority's `this.ended` is set inside a DRAIN and never at the
  * state transition, so a caller asking "has the battle ended at this line" has to know whether the
  * queue is empty as well as whether a side is out of bodies. One reader, so the two places that ask
@@ -26524,8 +26615,38 @@ function battleTurn(S,rng,actsForA,actsForB){
         dealt+=Math.min(dmg,tg.curHP);
         /* CAPTURED ONCE, BEFORE THE PACKET LOOP MOVES `tg.curHP`, so the per-row drain below is paid
            the identical number `_dealtEach` carries. */
-        const _rowDealt=Math.min(dmg,tg.curHP);
+        let _rowDealt=Math.min(dmg,tg.curHP);
         _dealtEach.push(_rowDealt);                   /* ROADMAP #339 -- the same number, kept apart */
+        /* 2026-08-27 -- AND IT IS RE-READ WHEN AN `onDamage` HANDLER CLAMPS THE NUMBER UNDER IT.
+         *
+         * The capture above is two hundred lines ABOVE the handlers that rewrite `dmg`, and the
+         * authority reads it two hundred lines BELOW them:
+         *
+         *     move.totalDamage += damage[i];        battle-actions.ts:965
+         *
+         * where `damage[i]` is whatever `spreadDamage` RETURNED -- i.e. after every `onDamage` handler
+         * has had its say. Two of those handlers are survival clamps that mean "this body lives on
+         * `leavesHP`", so on a lethal hit the authority's number is `curHP - leavesHP` and this
+         * engine's was `curHP`. One point, and it is not narration: it is the input to the RECOIL, to
+         * the drain and to `_dealtEach`. Measured on the pinned pool as `|-damage|p2a: Incineroar|
+         * 20/170|[from] Recoil` against our `19/170` -- a full-HP Focus Sash eating a Flare Blitz.
+         *
+         * IT IS DELIBERATELY NOT CALLED FROM THE DISGUISE ABSORB, and that is the authority too rather
+         * than a scope decision: Disguise's `onDamage` RETURNS 0, so `damage[i]` is 0 and the busted
+         * forme's chip is a SEPARATE `damage()` call the recoil never sees. `dmg` is already 0 at the
+         * capture on that road and re-reading it after `dmg = _abs.chip` would newly charge recoil on
+         * a hit the authority charges nothing for.
+         *
+         * ONE HELPER, TWO CALLERS, because "how much did this actually deal" is one fact. */
+        const _reDealt=(nd)=>{
+          if(DEALT_BEFORE_CLAMP){MEDFAILS.dealtBeforeClampRestored=1;return;}
+          const v=Math.max(0,Math.min(nd,tg.curHP));
+          if(v===_rowDealt)return;
+          dealt+=v-_rowDealt;
+          _dealtEach[_dealtEach.length-1]=v;
+          _rowDealt=v;
+          MEDSEEN.dealtReReadAfterClamp++;
+        };
         /* WIRE 42 -- THE SUBSTITUTE EATS THE HIT, and the whole hit ends here.
            WHAT THAT SKIPS IS STATED RATHER THAN DISCOVERED: no item is knocked off, no resist berry
            is spent, no contact punish is paid and no secondary lands. Three of those four are the
@@ -26758,7 +26879,8 @@ function battleTurn(S,rng,actsForA,actsForB){
         {const _sv1=tg._vol&&oneTurnSurvivalVolatiles();
          if(_sv1)for(const [_v,_p] of _sv1){
            if(!tg._vol[_v]||_p.onlyFrom!=='move')continue;
-           if(dmg>=tg.curHP){dmg=tg.curHP-(+_p.leavesHP||1);MEDSEEN.enduredLethalHit++;if(TR)TR.act(tg,'move: '+_v);}
+           if(dmg>=tg.curHP){dmg=tg.curHP-(+_p.leavesHP||1);MEDSEEN.enduredLethalHit++;if(TR)TR.act(tg,'move: '+_v);
+             _reDealt(dmg);}   /* 2026-08-27 -- what the authority's `damage[i]` now holds. See `_reDealt`. */
          }}
         const _arrive=(R.first!=null?R.first:dmg);
         /* ROADMAP #216 -- THE FULL-HP TEST WAS THE OUTER GATE, WHICH IS WHY FOCUS BAND COULD NEVER FIRE.
@@ -26795,6 +26917,9 @@ function battleTurn(S,rng,actsForA,actsForB){
              * click was still owed is added back on top -- which is what kills it. */
             const _rest=Math.max(0,dmg-_arrive);
             dmg=tg.curHP-(_sv.leavesHP||1)+_rest;
+            /* 2026-08-27 -- what the authority's `damage[i]` now holds, and therefore what the recoil,
+             * the drain and `_dealtEach` are a share OF. See `_reDealt`. */
+            _reDealt(dmg);
             MEDSEEN.sashAnsweredOnePacket++;
             if(_sv.chance!=null)MEDSEEN.chanceSurvivalFired++;
             /* Showdown emits the `|-enditem|` BEFORE the `|-damage|` that the Sash survived -- read
@@ -31048,6 +31173,26 @@ function battleTurn(S,rng,actsForA,actsForB){
       for(let k=1;k<_order.length;k++)
         if(_order[k].spe===_order[k-1].spe)MEDFAILS.entryOrderTie++;
       for(const e of _order)runEntryPass(e.nx,e.foes,e.act,e.i,field);
+      /* 2026-08-27 -- `onAnySwitchIn`, THE HERB'S FIRST TRIGGER, ON ITS FOURTH DOOR.
+       *
+       * ROADMAP #81 WIRE 11 wired all four of `whiteherb`'s handlers -- `onAnySwitchIn` (priority -2),
+       * `onAnyAfterMega`, `onAnyAfterMove` and `onResidual` -- as `restoreStatsAll` at the LEAD pass,
+       * at the mega, inside `_updateAll` (the top of every action and once after the last), and
+       * `restoreStatsUpdate` at the residual walk. NONE OF THOSE REACHES A REPLACEMENT: the switch
+       * request that fills a dead body's slot is issued BELOW the residual and BELOW the last action
+       * (sim/battle.ts:2909), so an Intimidate that arrives here had no herb pass after it at all and
+       * the item came off a whole turn late -- after `|turn|N+1`, which is where the pinned pool's
+       * `|-enditem|p2a|whiteherb <> |turn|5` card comes from.
+       *
+       * AFTER THE WHOLE WALK, NOT PER ENTRANT, which is the same reason the LEAD site gives: priority
+       * -2 means every entry ability has already had its say, so a herb spent against the first
+       * Intimidate is not gone before the second one arrives. Both bodies of a double replacement are
+       * on the field by this line.
+       *
+       * IT IS `restoreStatsAll` AND NOT A SECOND COPY OF THE RULE -- what the herb DOES has one
+       * implementation and only the trigger is new (CLAUDE.md, facts are global). */
+      if(REFILL_NO_HERB)MEDFAILS.refillHerbPassSkipped=(MEDFAILS.refillHerbPassSkipped||0)+1;
+      else MEDSEEN.refillHerbPass+=restoreStatsAll(actA,actB);
     };
     /* `|upkeep|` CLOSES the residual and the faint replacements follow it -- Showdown's own order,
      * where the switch request resolves between `|upkeep|` and the next `|turn|`. */

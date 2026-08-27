@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-27T02:31:59.167Z",
+ "generated": "2026-08-27T04:51:55.227Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "6272fa445b73",
+ "engine_release": "d03fb31456e2",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -311,11 +311,11 @@
      "FIRED-AND-BOARDS-MATCH"
     ],
     "leaves": [
-     "p2.party.ditto  Imposter with=null/without=[object Object]   Limber with=[object Object]/without=null",
+     "p2.party.ditto.ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure",
      "p2.active[0].ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure",
-     "p2.party.ditto  Imposter with=null/without=[object Object]   Limber with=[object Object]/without=null",
+     "p2.party.ditto.ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure",
      "p2.active[0].ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure",
-     "p2.party.ditto  Imposter with=null/without=[object Object]   Limber with=[object Object]/without=null",
+     "p2.party.ditto.ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure",
      "p2.active[0].ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure"
     ]
    },
@@ -4013,7 +4013,7 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -4049,19 +4049,19 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.eelektrossmega.hp",
+     "path": "p2.party.eelektross.hp",
      "with": 160,
      "without": 140
     },
     {
      "turn": 2,
-     "path": "p2.party.eelektrossmega.boosts.accuracy",
+     "path": "p2.party.eelektross.boosts.accuracy",
      "with": 0,
      "without": -1
     },
     {
      "turn": 2,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -4109,19 +4109,19 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.eelektrossmega.hp",
+     "path": "p2.party.eelektross.hp",
      "with": 160,
      "without": 140
     },
     {
      "turn": 3,
-     "path": "p2.party.eelektrossmega.boosts.accuracy",
+     "path": "p2.party.eelektross.boosts.accuracy",
      "with": 0,
      "without": -1
     },
     {
      "turn": 3,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -4169,19 +4169,19 @@
     },
     {
      "turn": 4,
-     "path": "p2.party.eelektrossmega.hp",
+     "path": "p2.party.eelektross.hp",
      "with": 140,
      "without": 120
     },
     {
      "turn": 4,
-     "path": "p2.party.eelektrossmega.boosts.accuracy",
+     "path": "p2.party.eelektross.boosts.accuracy",
      "with": -1,
      "without": -2
     },
     {
      "turn": 4,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -4229,19 +4229,19 @@
     },
     {
      "turn": 5,
-     "path": "p2.party.eelektrossmega.hp",
+     "path": "p2.party.eelektross.hp",
      "with": 140,
      "without": 120
     },
     {
      "turn": 5,
-     "path": "p2.party.eelektrossmega.boosts.accuracy",
+     "path": "p2.party.eelektross.boosts.accuracy",
      "with": -1,
      "without": -2
     },
     {
      "turn": 5,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -4289,19 +4289,19 @@
     },
     {
      "turn": 6,
-     "path": "p2.party.eelektrossmega.hp",
+     "path": "p2.party.eelektross.hp",
      "with": 140,
      "without": 120
     },
     {
      "turn": 6,
-     "path": "p2.party.eelektrossmega.boosts.accuracy",
+     "path": "p2.party.eelektross.boosts.accuracy",
      "with": -1,
      "without": -2
     },
     {
      "turn": 6,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -4349,19 +4349,19 @@
     },
     {
      "turn": 7,
-     "path": "p2.party.eelektrossmega.hp",
+     "path": "p2.party.eelektross.hp",
      "with": 140,
      "without": 120
     },
     {
      "turn": 7,
-     "path": "p2.party.eelektrossmega.boosts.accuracy",
+     "path": "p2.party.eelektross.boosts.accuracy",
      "with": -1,
      "without": -2
     },
     {
      "turn": 7,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -4409,19 +4409,19 @@
     },
     {
      "turn": 8,
-     "path": "p2.party.eelektrossmega.hp",
+     "path": "p2.party.eelektross.hp",
      "with": 124,
      "without": 104
     },
     {
      "turn": 8,
-     "path": "p2.party.eelektrossmega.boosts.accuracy",
+     "path": "p2.party.eelektross.boosts.accuracy",
      "with": -2,
      "without": -3
     },
     {
      "turn": 8,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -4469,19 +4469,19 @@
     },
     {
      "turn": 9,
-     "path": "p2.party.eelektrossmega.hp",
+     "path": "p2.party.eelektross.hp",
      "with": 124,
      "without": 104
     },
     {
      "turn": 9,
-     "path": "p2.party.eelektrossmega.boosts.accuracy",
+     "path": "p2.party.eelektross.boosts.accuracy",
      "with": -2,
      "without": -3
     },
     {
      "turn": 9,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -4529,19 +4529,19 @@
     },
     {
      "turn": 10,
-     "path": "p2.party.eelektrossmega.hp",
+     "path": "p2.party.eelektross.hp",
      "with": 84,
      "without": 64
     },
     {
      "turn": 10,
-     "path": "p2.party.eelektrossmega.boosts.accuracy",
+     "path": "p2.party.eelektross.boosts.accuracy",
      "with": -2,
      "without": -3
     },
     {
      "turn": 10,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -4589,19 +4589,19 @@
     },
     {
      "turn": 11,
-     "path": "p2.party.eelektrossmega.hp",
+     "path": "p2.party.eelektross.hp",
      "with": 64,
      "without": 44
     },
     {
      "turn": 11,
-     "path": "p2.party.eelektrossmega.boosts.accuracy",
+     "path": "p2.party.eelektross.boosts.accuracy",
      "with": -3,
      "without": -4
     },
     {
      "turn": 11,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -4649,19 +4649,19 @@
     },
     {
      "turn": 12,
-     "path": "p2.party.eelektrossmega.hp",
+     "path": "p2.party.eelektross.hp",
      "with": 64,
      "without": 44
     },
     {
      "turn": 12,
-     "path": "p2.party.eelektrossmega.boosts.accuracy",
+     "path": "p2.party.eelektross.boosts.accuracy",
      "with": -3,
      "without": -4
     },
     {
      "turn": 12,
-     "path": "p2.party.eelektrossmega.ability",
+     "path": "p2.party.eelektross.ability",
      "with": "eelevate",
      "without": "shellarmor"
     },
@@ -5082,7 +5082,7 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.pyroarmega.ability",
+     "path": "p2.party.pyroar.ability",
      "with": "firemane",
      "without": "shellarmor"
     },
@@ -5130,7 +5130,7 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.pyroarmega.ability",
+     "path": "p2.party.pyroar.ability",
      "with": "firemane",
      "without": "shellarmor"
     },
@@ -5178,7 +5178,7 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.pyroarmega.ability",
+     "path": "p2.party.pyroar.ability",
      "with": "firemane",
      "without": "shellarmor"
     },
@@ -5226,7 +5226,7 @@
     },
     {
      "turn": 4,
-     "path": "p2.party.pyroarmega.ability",
+     "path": "p2.party.pyroar.ability",
      "with": "firemane",
      "without": "shellarmor"
     },
@@ -7596,55 +7596,21 @@
    "sd_delta": [
     {
      "turn": 0,
-     "path": "p2.party.weavile",
-     "with": {
-      "hp": 123,
-      "maxhp": 123,
-      "fainted": false,
-      "status": "",
-      "types": "dark/ice",
-      "item": "",
-      "status_counter": 0,
-      "stall": null,
-      "boosts": {
-       "atk": 0,
-       "def": 0,
-       "spa": 0,
-       "spd": 0,
-       "spe": 0,
-       "accuracy": 0,
-       "evasion": 0
-      },
-      "ability": "pressure",
-      "vol": null
-     },
-     "without": null
+     "path": "p2.party.ditto.species",
+     "with": "weavile",
+     "without": "ditto"
     },
     {
      "turn": 0,
-     "path": "p2.party.ditto",
-     "with": null,
-     "without": {
-      "hp": 123,
-      "maxhp": 123,
-      "fainted": false,
-      "status": "",
-      "types": "normal",
-      "item": "",
-      "status_counter": 0,
-      "stall": null,
-      "boosts": {
-       "atk": 0,
-       "def": 0,
-       "spa": 0,
-       "spd": 0,
-       "spe": 0,
-       "accuracy": 0,
-       "evasion": 0
-      },
-      "ability": "limber",
-      "vol": null
-     }
+     "path": "p2.party.ditto.types",
+     "with": "dark/ice",
+     "without": "normal"
+    },
+    {
+     "turn": 0,
+     "path": "p2.party.ditto.ability",
+     "with": "pressure",
+     "without": "limber"
     },
     {
      "turn": 0,
@@ -7672,55 +7638,21 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.weavile",
-     "with": {
-      "hp": 123,
-      "maxhp": 123,
-      "fainted": false,
-      "status": "",
-      "types": "dark/ice",
-      "item": "",
-      "status_counter": 0,
-      "stall": null,
-      "boosts": {
-       "atk": 0,
-       "def": 0,
-       "spa": 0,
-       "spd": 0,
-       "spe": 0,
-       "accuracy": 0,
-       "evasion": 0
-      },
-      "ability": "pressure",
-      "vol": null
-     },
-     "without": null
+     "path": "p2.party.ditto.species",
+     "with": "weavile",
+     "without": "ditto"
     },
     {
      "turn": 2,
-     "path": "p2.party.ditto",
-     "with": null,
-     "without": {
-      "hp": 123,
-      "maxhp": 123,
-      "fainted": false,
-      "status": "",
-      "types": "normal",
-      "item": "",
-      "status_counter": 0,
-      "stall": null,
-      "boosts": {
-       "atk": 0,
-       "def": 0,
-       "spa": 0,
-       "spd": 0,
-       "spe": 0,
-       "accuracy": 0,
-       "evasion": 0
-      },
-      "ability": "limber",
-      "vol": null
-     }
+     "path": "p2.party.ditto.types",
+     "with": "dark/ice",
+     "without": "normal"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.ditto.ability",
+     "with": "pressure",
+     "without": "limber"
     },
     {
      "turn": 2,
@@ -7748,55 +7680,21 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.weavile",
-     "with": {
-      "hp": 123,
-      "maxhp": 123,
-      "fainted": false,
-      "status": "",
-      "types": "dark/ice",
-      "item": "",
-      "status_counter": 0,
-      "stall": null,
-      "boosts": {
-       "atk": 0,
-       "def": 0,
-       "spa": 0,
-       "spd": 0,
-       "spe": 0,
-       "accuracy": 0,
-       "evasion": 0
-      },
-      "ability": "pressure",
-      "vol": null
-     },
-     "without": null
+     "path": "p2.party.ditto.species",
+     "with": "weavile",
+     "without": "ditto"
     },
     {
      "turn": 3,
-     "path": "p2.party.ditto",
-     "with": null,
-     "without": {
-      "hp": 123,
-      "maxhp": 123,
-      "fainted": false,
-      "status": "",
-      "types": "normal",
-      "item": "",
-      "status_counter": 0,
-      "stall": null,
-      "boosts": {
-       "atk": 0,
-       "def": 0,
-       "spa": 0,
-       "spd": 0,
-       "spe": 0,
-       "accuracy": 0,
-       "evasion": 0
-      },
-      "ability": "limber",
-      "vol": null
-     }
+     "path": "p2.party.ditto.types",
+     "with": "dark/ice",
+     "without": "normal"
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.ditto.ability",
+     "with": "pressure",
+     "without": "limber"
     },
     {
      "turn": 3,
@@ -7962,7 +7860,7 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.victreebelmega.ability",
+     "path": "p2.party.victreebel.ability",
      "with": "innardsout",
      "without": "shellarmor"
     },
@@ -7998,7 +7896,7 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.victreebelmega.ability",
+     "path": "p2.party.victreebel.ability",
      "with": "innardsout",
      "without": "shellarmor"
     },
@@ -8034,7 +7932,7 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.victreebelmega.ability",
+     "path": "p2.party.victreebel.ability",
      "with": "innardsout",
      "without": "shellarmor"
     },
@@ -8070,7 +7968,7 @@
     },
     {
      "turn": 4,
-     "path": "p2.party.victreebelmega.ability",
+     "path": "p2.party.victreebel.ability",
      "with": "innardsout",
      "without": "shellarmor"
     },
@@ -9890,29 +9788,21 @@
    "sd_delta": [
     {
      "turn": 0,
-     "path": "p2.party.ditto",
-     "with": {
-      "hp": 492,
-      "maxhp": 492,
-      "fainted": false,
-      "status": "",
-      "types": "normal",
-      "item": "",
-      "status_counter": 0,
-      "stall": null,
-      "boosts": {
-       "atk": 0,
-       "def": 0,
-       "spa": 0,
-       "spd": 0,
-       "spe": 0,
-       "accuracy": 0,
-       "evasion": 0
-      },
-      "ability": "limber",
-      "vol": null
-     },
-     "without": null
+     "path": "p2.party.ditto.species",
+     "with": "ditto",
+     "without": "corviknight"
+    },
+    {
+     "turn": 0,
+     "path": "p2.party.ditto.types",
+     "with": "normal",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 0,
+     "path": "p2.party.ditto.ability",
+     "with": "limber",
+     "without": "pressure"
     },
     {
      "turn": 0,
@@ -9940,29 +9830,27 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.ditto",
-     "with": {
-      "hp": 492,
-      "maxhp": 492,
-      "fainted": false,
-      "status": "",
-      "types": "normal",
-      "item": "",
-      "status_counter": 0,
-      "stall": null,
-      "boosts": {
-       "atk": 0,
-       "def": 0,
-       "spa": 0,
-       "spd": 0,
-       "spe": 0,
-       "accuracy": 0,
-       "evasion": 0
-      },
-      "ability": "limber",
-      "vol": null
-     },
-     "without": null
+     "path": "p2.party.ditto.species",
+     "with": "ditto",
+     "without": "corviknight"
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.ditto.status",
+     "with": "",
+     "without": "par"
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.ditto.types",
+     "with": "normal",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.ditto.ability",
+     "with": "limber",
+     "without": "pressure"
     },
     {
      "turn": 1,
@@ -10008,29 +9896,27 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.ditto",
-     "with": {
-      "hp": 492,
-      "maxhp": 492,
-      "fainted": false,
-      "status": "",
-      "types": "normal",
-      "item": "",
-      "status_counter": 0,
-      "stall": null,
-      "boosts": {
-       "atk": 0,
-       "def": 0,
-       "spa": 0,
-       "spd": 0,
-       "spe": 0,
-       "accuracy": 0,
-       "evasion": 0
-      },
-      "ability": "limber",
-      "vol": null
-     },
-     "without": null
+     "path": "p2.party.ditto.species",
+     "with": "ditto",
+     "without": "corviknight"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.ditto.status",
+     "with": "",
+     "without": "par"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.ditto.types",
+     "with": "normal",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.ditto.ability",
+     "with": "limber",
+     "without": "pressure"
     },
     {
      "turn": 2,
@@ -10076,29 +9962,27 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.ditto",
-     "with": {
-      "hp": 492,
-      "maxhp": 492,
-      "fainted": false,
-      "status": "",
-      "types": "normal",
-      "item": "",
-      "status_counter": 0,
-      "stall": null,
-      "boosts": {
-       "atk": 0,
-       "def": 0,
-       "spa": 0,
-       "spd": 0,
-       "spe": 0,
-       "accuracy": 0,
-       "evasion": 0
-      },
-      "ability": "limber",
-      "vol": null
-     },
-     "without": null
+     "path": "p2.party.ditto.species",
+     "with": "ditto",
+     "without": "corviknight"
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.ditto.status",
+     "with": "",
+     "without": "par"
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.ditto.types",
+     "with": "normal",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.ditto.ability",
+     "with": "limber",
+     "without": "pressure"
     },
     {
      "turn": 3,
@@ -10944,7 +10828,7 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.meganiummega.ability",
+     "path": "p2.party.meganium.ability",
      "with": "megasol",
      "without": "shellarmor"
     },
@@ -10992,7 +10876,7 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.meganiummega.ability",
+     "path": "p2.party.meganium.ability",
      "with": "megasol",
      "without": "shellarmor"
     },
@@ -11040,7 +10924,7 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.meganiummega.ability",
+     "path": "p2.party.meganium.ability",
      "with": "megasol",
      "without": "shellarmor"
     },
@@ -13203,7 +13087,7 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.kangaskhanmega.ability",
+     "path": "p2.party.kangaskhan.ability",
      "with": "parentalbond",
      "without": "shellarmor"
     },
@@ -13251,7 +13135,7 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.kangaskhanmega.ability",
+     "path": "p2.party.kangaskhan.ability",
      "with": "parentalbond",
      "without": "shellarmor"
     },
@@ -13353,7 +13237,7 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.kangaskhanmega.ability",
+     "path": "p2.party.kangaskhan.ability",
      "with": "parentalbond",
      "without": "shellarmor"
     },
@@ -13449,7 +13333,7 @@
     },
     {
      "turn": 4,
-     "path": "p2.party.kangaskhanmega.ability",
+     "path": "p2.party.kangaskhan.ability",
      "with": "parentalbond",
      "without": "shellarmor"
     },
@@ -13676,7 +13560,7 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.excadrillmega.ability",
+     "path": "p2.party.excadrill.ability",
      "with": "piercingdrill",
      "without": "shellarmor"
     },
@@ -13724,7 +13608,7 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.excadrillmega.ability",
+     "path": "p2.party.excadrill.ability",
      "with": "piercingdrill",
      "without": "shellarmor"
     },
@@ -13772,7 +13656,7 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.excadrillmega.ability",
+     "path": "p2.party.excadrill.ability",
      "with": "piercingdrill",
      "without": "shellarmor"
     },
@@ -13820,7 +13704,7 @@
     },
     {
      "turn": 4,
-     "path": "p2.party.excadrillmega.ability",
+     "path": "p2.party.excadrill.ability",
      "with": "piercingdrill",
      "without": "shellarmor"
     },
@@ -18533,7 +18417,7 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.scovillainmega.ability",
+     "path": "p2.party.scovillain.ability",
      "with": "spicyspray",
      "without": "shellarmor"
     },
@@ -18593,7 +18477,7 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.scovillainmega.ability",
+     "path": "p2.party.scovillain.ability",
      "with": "spicyspray",
      "without": "shellarmor"
     },
@@ -18653,19 +18537,19 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.scovillainmega.hp",
+     "path": "p2.party.scovillain.hp",
      "with": 8,
      "without": 0
     },
     {
      "turn": 3,
-     "path": "p2.party.scovillainmega.fainted",
+     "path": "p2.party.scovillain.fainted",
      "with": false,
      "without": true
     },
     {
      "turn": 3,
-     "path": "p2.party.scovillainmega.status",
+     "path": "p2.party.scovillain.status",
      "with": "",
      "without": "fnt"
     },
@@ -18773,19 +18657,19 @@
     },
     {
      "turn": 4,
-     "path": "p2.party.scovillainmega.hp",
+     "path": "p2.party.scovillain.hp",
      "with": 8,
      "without": 0
     },
     {
      "turn": 4,
-     "path": "p2.party.scovillainmega.fainted",
+     "path": "p2.party.scovillain.fainted",
      "with": false,
      "without": true
     },
     {
      "turn": 4,
-     "path": "p2.party.scovillainmega.status",
+     "path": "p2.party.scovillain.status",
      "with": "",
      "without": "fnt"
     },
@@ -21948,7 +21832,7 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.golurkmega.ability",
+     "path": "p2.party.golurk.ability",
      "with": "unseenfist",
      "without": "shellarmor"
     },
@@ -21996,7 +21880,7 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.golurkmega.ability",
+     "path": "p2.party.golurk.ability",
      "with": "unseenfist",
      "without": "shellarmor"
     },
@@ -22044,7 +21928,7 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.golurkmega.ability",
+     "path": "p2.party.golurk.ability",
      "with": "unseenfist",
      "without": "shellarmor"
     },
@@ -22092,7 +21976,7 @@
     },
     {
      "turn": 4,
-     "path": "p2.party.golurkmega.ability",
+     "path": "p2.party.golurk.ability",
      "with": "unseenfist",
      "without": "shellarmor"
     },

@@ -18,7 +18,9 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/test-roster-arm-pin.js`, `engine/mc_key.js`, `tests/test-mc-key.js`, `tests/test-mc-seal.js`,
 `tests/probe_room_unburden.js`, `tests/probe_trap_timing.js`,
 `tests/probe_spread_secondary_address.js`,
-`tests/probe_mid_cat_reload.js`, `tests/probe_party_key_collision.js`, `engine/identity_audit.js`
+`tests/probe_mid_cat_reload.js`, `tests/probe_party_key_collision.js`, `engine/identity_audit.js`,
+`tests/probe_transform_faint_revert.js`, `tests/probe_refill_entry_herb.js`,
+`tests/probe_recoil_after_clamp.js`
 
 **Twenty instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -66,28 +68,209 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  754/754 probed mechanics live, 0 missing   (census 2026-08-27 00:33)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-27 00:43)
+  754/754 probed mechanics live, 0 missing   (census 2026-08-27 02:08)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-27 02:09)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1642/1642 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-08-11 18:00)
-    2250 of 7103 theoretical pairs staged — agreement is a claim about the 2250 that ran, not about the 7103
-      489 inert      not scored — the reference engine behaves identically with and without the reactor
-      111 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
-        6 ko-timing  not scored — a damage-magnitude question — tests/test-engine-diff.js owns it
-        2 threw      not scored — the harness could not stage it
+  interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    older than its input engine-data.js
+    (+1 more — node engine/provenance.js)
+    it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is d8e5dc14cbbd now
-    COMPUTED FROM DIFFERENT CONTENT — data/mechanics-census.json was 3d914acf9978 at read time, is 20324141201c now
-    (+6 more — node engine/provenance.js)
+    (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 280/296 probed, 16 unprobed
+  tag coverage: WITHHELD — engine/provenance.js calls data/tags.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 01:01_
+_stamped 2026-08-27 02:28_
 
 <!-- /GENERATED -->
+
+## THREE DOORS THE HOUSEKEEPING NEVER REACHED. **BOARD-MATERIAL 4 -> 1 OF 961.** WHOLE-GAME CLAUSE 10 -> 9, RAW 15 -> 14. CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27.
+
+Ledger section: this one. CHANGELOG 5.163.0. Register rows: ROADMAP **#475, #476, #477 - all three
+closed**, and **#478 filed as NOT A DEFECT**. Release cut: **`7f7de860723b`**, named *"three doors the
+housekeeping never reached: a transform reverts on a faint, a post-faint replacement's entry drop gets
+the herb pass, and recoil is a share of what was DEALT"*. Full account:
+`docs/_reports/2026-08-27-last-four.md`.
+
+### THE SCOREBOARD, AND WHICH QUANTITY EACH FIGURE IS
+
+Pinned identically to the run it replaces - `--arm middle --turns 12 --games 1200
+--team-store data/team-pool-frozen --census data/verification/census-pin-9446a684709d.json
+--state --end-state --write`.
+
+| quantity | before `d03fb31456e2` | after `7f7de860723b` | predicted |
+|---|---|---|---|
+| **board-material** (`games - games_board_never_diverged`) | 4 of 961 | **1 of 961** | 1 - **hit** |
+| boards never parted | 957/961 | **960/961** | - |
+| whole-game clause | 10 of 961 | **9 of 961** (14 raw, less 5 declared) | 8 - **MISSED BY ONE** |
+| raw diverged | 15 of 961 | **14 of 961** | 13 - missed by one |
+| the per-CAUSE board-material table | 3 causes / 3 games | **1 cause / 1 game** | not predicted - a DIFFERENT quantity |
+| census | 754 / 754 / 0 | **754 / 754 / 0 - unmoved**, 0 rows changed status | unmoved - hit |
+| roster items / abilities / moves | 139 / 129 / 475 | **identical**, 0 DIFFER, 0 DID-NOT-FIRE | unmoved - hit |
+| `all_mechanics_fire --kind all` | 20 diverging rows | **20, the SAME 20** | unmoved - hit |
+| `test-engine-diff --n 6000` | 0 of 6000, 16 corners | **0 of 6000, 16 corners** | unmoved - hit |
+
+**THE HEADLINE IS `games - games_board_never_diverged`, READ OUT OF THE ARTIFACT.** The per-CAUSE
+table beside it is keyed on each game's PROTOCOL first-divergence, so a game leaves it when its
+protocol divergence closes whether or not any board improved - the mistake retracted on 2026-08-27
+(#470). Here the two happen to move together, which is a coincidence of this batch and not a property.
+
+### THE MISS, NAMED: TWO CAUSES CLOSED AND ONE NEW ONE ARRIVED
+
+```
+LEFT      -damage field 3 :: |-damage|p2a|H/H par|[from]recoil   [20/170 vs 19/170]
+LEFT      ordering        :: |-enditem|p2a|whiteherb  <>  |turn|5
+ARRIVED   ordering        :: |-end|p1a|disable  <>  |-start|p1b|perish1
+```
+
+Expected in kind, not predicted in number: a fix changes what happens after the divergence point,
+which changes the coverage credit, which changes later clicks. The game LIST is identical (961 of 961,
+fixed by the pool prefix), so this is the same sample playing different turns. The new cause is
+**narration-only by MEASUREMENT and not by judgement** - board-material is 1 and that one game is the
+`-damage: a different body` game, not this one.
+
+### THE SAMPLE IS THE SAME SAMPLE, AND IT WAS CHECKED RATHER THAN ASSUMED
+
+`engine/quality.js` and `data/quality-filter.json` are both `engine_release.js` SOURCES and both moved
+under MEASURE while this ran, so the cut froze **three** changed files and not one. That is the
+in-frame hazard CLAUDE.md names, and it is answered with a measurement:
+
+```
+pins.digest        2efbc9ed1946  ==  2efbc9ed1946
+team_pool_digest   0d103fb9fa87  ==  0d103fb9fa87   (8778 teams, 1968 picked)
+census pin         9446a684709d  ==  9446a684709d   (643 rows)
+games                       961  ==  961
+```
+
+The quality filter SELECTS the corpus and the pool digest is what it produces. Identical digest,
+identical teams, identical count - so the third file being in frame did not move the sample.
+
+### THE THREE, EACH WITH ITS OWN KNOB AND ITS OWN PROBE
+
+| fix | knob | probe | the divergence it closes |
+|---|---|---|---|
+| a transform reverts on a faint | `MEDI_TRANSFORM_SURVIVES_FAINT=1` | `tests/probe_transform_faint_revert.js` | `p1.party.ditto.species` / `.types` (the UNCAUSED one) |
+| a replacement's entry drop gets the herb pass | `MEDI_REFILL_NO_HERB=1` | `tests/probe_refill_entry_herb.js` | `\|-enditem\|p2a\|whiteherb <> \|turn\|5` |
+| recoil is a share of what was DEALT | `MEDI_DEALT_BEFORE_CLAMP=1` | `tests/probe_recoil_after_clamp.js` | `\|-damage\|p2a\|20/170 <> 19/170 [from]recoil` |
+
+**`clearVolatile` HAS TWO DOORS AND THIS ENGINE HAD ONE.** `imposterRevert()` has been called from the
+switch-OUT path since ROADMAP #95/#139; `faintMessages()` calls the identical function on the corpse
+(sim/battle.ts:2560 -> sim/pokemon.ts:1566, `setSpecies(this.baseSpecies)`). A Ditto that copied a
+Metagross and then DIED stayed a Metagross on the bench. It is board-material by the comparator's own
+design: `board_state.js` holds `boosts`, `pp`, `ability`, `vol`, `status_counter` and `stall` on a
+corpse and deliberately does not hold `species`, `maxhp` and `types`.
+
+**IT WAS PUT ON `queueFaint` FIRST AND THE PROBE STAYED RED.** That is where the `_ttmWrap` clear
+lives, citing this same call, and it looked like the shared door. It is not - only a handful of sites
+were converted to it, and **Memento's self-KO is one of the twenty-odd that still flip `fainted`
+inline**. `noteFaint` is the one call every faint site makes. Found by the arm reading `chandelure` in
+BOTH the default and the control: the identical-output-across-a-varied-knob shape, pointing at the FIX
+rather than at the knob.
+
+**ONE HANDLER LEGITIMATELY READS THE COPIED BODY AND IT IS ANSWERED RATHER THAN ACCEPTED.**
+`receiverSweep` reads `dead.ability`, and `runEvent('Faint')` (:2549) fires ABOVE the clear (:2560), so
+a Receiver inherits the ability a transformed corpse was WEARING. A bare revert hands it `imposter`,
+whose own `refusesCopy.noreceiver` then REFUSES the inherit - a mechanic that works today would have
+silently stopped. `_abAtFaint` is stamped in `noteFaint` and read by the sweep.
+
+**THE HERB HAD FOUR TRIGGERS WIRED AND ONLY THREE DOORS.** ROADMAP #81 WIRE 11 wired
+`onAnySwitchIn` / `onAnyAfterMega` / `onAnyAfterMove` / `onResidual` at the lead pass, the mega,
+`_updateAll` and the residual walk. **None of them reaches `refill()`** - a post-faint replacement's
+switch request is issued below the residual and below the last action (sim/battle.ts:2909). It is not
+an announcement either: `unburden.onAfterUseItem` doubles Speed the instant the item is spent, so the
+herb coming off is a SPEED TIER CHANGE, and Sneasler's own usage item IS a White Herb.
+
+**RECOIL'S ARITHMETIC WAS ALREADY RIGHT AND ITS INPUT WAS WRONG.** WIRE 4 fixed the FORMULA on that
+exact line. What it never touched is where `dealt` is READ: banked `Math.min(dmg, tg.curHP)` about 270
+lines ABOVE the handlers that rewrite `dmg`, where the authority reads `move.totalDamage += damage[i]`
+(battle-actions.ts:965) BELOW them - `damage[i]` being what `spreadDamage` RETURNED. So every recoil,
+drain and `_dealtEach` row was `leavesHP` too generous on a hit something SURVIVED. **It is
+deliberately not re-read from the Disguise absorb**, and that is the authority rather than a scope
+call: Disguise's `onDamage` RETURNS 0, so `damage[i]` is 0 and the busted forme's chip is a separate
+`damage()` the recoil never sees. `tests/test-engine-diff.js` **could never have seen this** - 0 of
+6000 at all sixteen corners before and after, because it asks about the HIT and never about what the
+hit COSTS.
+
+### THE FOURTH IS AN UNSHARED DIE AND THE INSTRUMENT ALREADY SAYS SO
+
+The harness sends Showdown a `randomNormal` click with **no target**, correctly - and
+`Battle#getTarget` then ignores any targetLoc it was given (`if (move.target !== 'randomNormal' && ...`)
+and falls through to `getRandomTarget`. Each engine draws from its OWN PRNG and the arm's shared
+streams are `acc / crit / sec / dmg / stall`: there is no sixth category for a target draw. The same
+run reports `VOID (instrument desync): 1 of 961`, `low-identity: 1`, and every unshared address shape
+in the artifact is `outrage`. Filed as ROADMAP **#478, NOT A DEFECT** - fixing it is a sixth arm
+category in `engine/game_differential.js`, which is the instrument, not the play layer, and changes
+every published rate.
+
+### SEVEN FIXTURE ERRORS IN THREE PROBES, EVERY ONE FOUND BY READING A COUNTER
+
+1. **`finalgambit` chosen as the "zero-damage" self-KO** - it reads `basePower: 0` and deals the
+   user's whole HP bar. Filtered on the `fixedDamage` tag, never on the number.
+2. **A `null` script slot** - Showdown REFUSES a pass from a body that can act. The game threw.
+3. **The derived "self-targeting status move" was PROTECT** - its own target is `self`, so a bare walk
+   hands the victim a shield against the thing under test. Filtered on `stallingMove`.
+4. **...and then it was BATON PASS** - self-targeting, and it takes the body OFF THE FIELD, ending the
+   fixture a turn early. Filtered on `selfSwitch`.
+5. **The herb holder clicked a self-BOOST move**, raising the very stat the drop then lowered, so the
+   stage never went negative and the herb had nothing to answer. Green, staging nothing.
+6. **The measured boundary index was TYPED and off by one** - `onBoundary` fires for the board BEFORE
+   turn 1 as well, so the probe accused a fixture in which the arm HAD happened. It FINDS the boundary
+   now, by looking for the carrier on the field.
+7. **The fix itself was placed on the wrong door** - see `queueFaint` above.
+
+Not one was caught by an arm going red. All seven came from the probes' own "the arm must have
+happened" assertions and from reading printed counters.
+
+### THE HAND LIST
+
+**Leaving it - the census and the probes carry it now:**
+- ~~**THE DITTO TRANSFORM PAIR** (`p1.party.ditto.species` / `.types`, the UNCAUSED board parting)~~ -
+  **LANDED**, ROADMAP #475. Both halves were one game and one defect.
+- ~~**THE WHITE HERB ORDERING CARD**~~ - **LANDED**, ROADMAP #476.
+- ~~**THE RECOIL OFF-BY-ONE**~~ - **LANDED**, ROADMAP #477.
+- ~~**THE SPREAD `-damage: a different body` CARD**~~ - **REFUTED AS A DEFECT**, ROADMAP #478. It is an
+  unshared random-target die and the instrument already calls the game VOID.
+
+**Opened by this batch, filed with its evidence:**
+- **A FAINTED MEGA DOES NOT REGRESS ITS FORME.** `sim/battle.ts:2554-2557` and `:2568-2571` set
+  `baseSpecies` off the SET and call `updateMaxHp()` on a fainted mega; this engine does not. It is the
+  SIBLING of #475 through the same `faintMessages` block, `tests/test-state-differential.js` already
+  plants it, and **no board in the pinned pool parts on it today** - so it is a second change and is
+  filed rather than smuggled in.
+
+**Standing, and NOT this batch's:**
+- **WIDE GUARD ANNOUNCES BEFORE A STEP-0 `-miss`.** The side-guard block sits above the shield and is
+  also a step-1 handler. Moving it changes WHICH targets a side guard is asked about. **No probe fails
+  on it yet**, so it is filed rather than fixed. (Carried unchanged from 2026-08-27's first batch.)
+- **`data/tag-consumption.json` still lists 12 DEAD tags**, led by `inflictsBurn` (45,273 uses). Do not
+  read those as missing mechanics - ROADMAP #324; the one likely genuine absence is
+  `damageMultOnRepeat` (27 uses), #327.
+- **The four `test-tag-params-derived.js` prose-quantity rows** (`analytic`, `minus`, `plus`,
+  `reckless`) are still unreadable and still refused - 1 of 61 red, pre-existing.
+- **`tests/test-middle-identity.js`, `tests/test-web-status.js` and `tests/test-resolution-order.js`
+  were named RED at HEAD in this batch's brief**; not run and not this batch's.
+- **`.scratch_*`, `stash@{0}` AND THE PRE-MODIFIED `data/*.json` ARE ANOTHER SESSION'S.** Reported,
+  left, nothing executed in any of them.
+
+### OWED, NOT RUN
+
+- `tests/interaction_matrix.js` - **not re-run**; stamped 2026-08-11 and already stale before this pass.
+- `engine/wire_ladder.js` - **not re-run**; the release ladder stays WITHHELD, as it already was.
+- `tests/run-all.js` - **not run in full.**
+- `tests/staged_board.js` - **not re-run this pass.**
+- `tests/bench-medicham.js --record` - **not run** (ROADMAP #472; this batch may not play a bench).
+- The Wide Guard half of the stage-order fix, and the fainted-mega forme regression, both named above.
+- ROADMAP #478 - the sixth arm category, which is `game_differential.js` and not ENGINE's file.
+
+---
 
 ## THREE LINES, THREE KNOBS, THREE PROBES. **WHOLE-GAME CLAUSE 13 -> 10 OF 961, RAW 18 -> 15, BOARD-MATERIAL UNMOVED AT 4.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27.
 

@@ -10,6 +10,198 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.164.0] — 2026-08-27
+
+### Added
+- **THE LISTS AUDITED THEIR MEMBERSHIP AND NOTHING AUDITED THE CLAIMS INSIDE THEM — 282 CLAIMS
+  EXTRACTED, 254 CHECKABLE, 0 FALSE IN THE RECORDS AND 8 FALSE IN THE COMMENTS.** MEASURE.
+  Full account: `docs/_reports/2026-08-27-claims-audit.md`. New instrument:
+  `tests/test-claim-truth.js`, auto-discovered by the `tests/test-*.js` glob, so no list was edited.
+
+  `tests/run-all.js` already asserts that every name in `NOT_A_CHECK` / `PENDING_WIRE` still names a
+  file that exists and still trips the detector. That is MEMBERSHIP. The paragraph beside the key
+  asserts things about this tree — *"NOTHING HAS EVER RUN IT"*, *"it HAS a runner"*, *"it WRITES
+  data/format-audit.json"* — and nothing tested one. That is where the false claim of 2026-08-26 sat.
+
+  **The record set is DERIVED, not typed:** any top-level `const UPPER_NAME = { ... }` in `engine/`,
+  `tests/` or `build/` whose keys are all repo-relative paths and one of whose values is a long
+  string. That found **five** records and 175 entries, not the two the pass was dispatched about —
+  `NOT_A_CHECK` and `PENDING_WIRE`, plus `DECLARED` in `tests/test-effective-identity.js`, `HOLDERS`
+  in `tests/test-mc-key.js` and `NOT_A_MODEL` in `tests/test-stadium-roster.js`. A sixth invented
+  tomorrow joins by existing. `docs/ROADMAP.md`'s `VERIFIED BY:` markers are the other record shape;
+  `engine/register_reality.js` RUNS those instruments, and what it never asserted is that the marker
+  names something that resolves at all — **all 44 do**.
+
+  Nine claim kinds are decided mechanically: a named path exists, something executes the subject,
+  nothing executes it, a `VERIFIED BY` marker is or is not there, a named test matches the glob, a
+  named artifact is written, a sha resolves, a refusal names its flag and exit code. **EXECUTES is
+  derived** — a file under `engine/`, `tests/`, `build/`, `tools/` or `.github/` naming the subject
+  within 250 characters of a spawn/exec/require, comments stripped first. `tests/run-all.js` is
+  excluded as a candidate executor and asked properly instead, because it would otherwise credit
+  itself as the runner of every file it merely EXEMPTS.
+
+  **SHOWN RED FIRST, on the real retracted sentence.** `--break` feeds three synthetic entries
+  through the SAME `extract()` the audit uses rather than a copy of its predicates, the first being
+  `engine/derive_protocol_events.js` + *"NOTHING HAS EVER RUN IT"* verbatim. 7 of 9 planted claims
+  go red across five kinds; one plant is deliberately TRUE so the check cannot pass by calling
+  everything false. `--break` was itself observed exiting 1 before it exited 0.
+
+### Fixed
+- Nothing. **A false claim is a finding, not a thing to quietly correct**, and seven of the eight sit
+  in files this pass did not own.
+
+### Notes
+- **EIGHT FALSE CLAIMS, ALL IN COMMENT PROSE.** A comment naming a repo `.js` / `.py` / `.html` file
+  is asserting that file exists. Over **2,792 such references** in `engine/`, `tests/` and `build/`,
+  eight name something absent and do not say so. Worst: `build/build_mag_data.js` has asserted for
+  **32 days** that *"web/magnemite.html carries a self-check … the page says so on screen rather than
+  quietly showing wrong numbers"* — `web/magnemite.html` has never existed in this repository's
+  history. The mechanism is real and lives in `web/index.html`; the file named is not. Also
+  `engine/million_run.js` (*"engine/status_residual.js asserts it"*, 16 days),
+  `engine/medicham2-browser.js` (`tests/test-engine-contract.js`, 34 days, the oldest),
+  `engine/lookup.js`, `engine/speed_vs_pokeenv.js` (which PRINTS *"run engine/bench_pokeenv.py"* at
+  run time), `engine/game_differential.js`, `engine/prior_player.js`, `engine/quarantine.js`.
+- **The comment census REPORTS and does not GATE, and that is a decision with a reason.** Every name
+  sits in a file this division does not own and one is being edited live. A check that goes red on
+  something its owner cannot fix becomes *"one of the two known failures"* — the phrase CLAUDE.md
+  bans. The names are filed in the register; the printed census points at it.
+- **WHAT WALKS PAST IT, stated rather than glossed:** free prose in a header or a `docs/` page (the
+  large majority); **any claim inside quotation marks**, which are stripped because the corrected
+  entry quotes the false claim it retracts; 13 dated measurements, which can only be decided by
+  re-running something that plays a game; 15 mechanism claims about the game itself; paths in URLs or
+  in the Showdown checkout; and `data/*.json` names, whose absence is not evidence because they are
+  gitignored or regenerable. **80 of 175 record entries (46%) yield a checkable claim; 95 do not.**
+- **A REGEX TRAP THAT NEARLY PRODUCED A FICTITIOUS FINDING.** A path pattern ending in a MANDATORY
+  `\.(?:js|py|json|…)` truncates `data/tags.json` to `data/tags.js`, because JS alternation is
+  leftmost-FIRST and not leftmost-longest. A first pass reported **186 missing paths**; the true
+  number is 31, and all 155 phantoms looked exactly like findings. The extension group must be
+  optional so the greedy body consumes the token first.
+- **`node tests/run-all.js --coverage` exits 1 today** on three unaccounted checks —
+  `tests/probe_recoil_after_clamp.js`, `tests/probe_refill_entry_herb.js`,
+  `tests/probe_transform_faint_revert.js`. All three are **untracked ENGINE work from this session**.
+  Left red and reported rather than classified: writing a `PENDING_WIRE` blocker this division has
+  not measured would commit the exact defect under audit.
+- No game was played and no game number moved.
+
+## [5.163.0] — 2026-08-27
+
+### Fixed
+- **THREE DOORS THE HOUSEKEEPING NEVER REACHED — BOARD-MATERIAL 4 → 1 OF 961.** ENGINE.
+  Full account: `docs/_reports/2026-08-27-last-four.md`. Register: ROADMAP **#475, #476, #477 —
+  CLOSED**; **#478 — FILED, NOT A DEFECT**. Release cut: **`7f7de860723b`**.
+
+  The four remaining board-parted games in the pinned pool were read one at a time with
+  `engine/replay_one.js` rather than grouped by the comparator's class name. **Three were engine
+  defects and are fixed, each with its own knob and its own probe. The fourth is not a defect.**
+
+  **`clearVolatile` HAS TWO DOORS AND THIS ENGINE HAD ONE.** `imposterRevert()` has been called from
+  the switch-OUT path since ROADMAP #95/#139; `faintMessages()` calls the identical function on the
+  corpse (`sim/battle.ts:2560` → `sim/pokemon.ts:1566`, `setSpecies(this.baseSpecies)`). A Ditto that
+  copied a Metagross and then **DIED** stayed a Metagross on the bench for the rest of the game — the
+  UNCAUSED board parting, `protocol_diverged_at_turn: null`, the hardest shape to diagnose because the
+  usual entry point is gone. It is board-material by the comparator's own design: `board_state.js`
+  holds `boosts`, `pp`, `ability`, `vol`, `status_counter` and `stall` on a corpse and deliberately
+  does not hold `species`, `maxhp` and `types`. **The fix was put on `queueFaint` first and the probe
+  stayed red** — only a handful of the twenty-odd faint sites go through it, and Memento's self-KO is
+  one that does not. `noteFaint` is the one call all of them share. `receiverSweep` legitimately reads
+  a corpse's ability and the authority's `Faint` event fires ABOVE the clear, so `_abAtFaint` is
+  stamped at the transition rather than letting a working Receiver silently stop.
+  Knob `MEDI_TRANSFORM_SURVIVES_FAINT=1`; counter `MEDSEEN.transformRevertedOnFaint`.
+
+  **WHITE HERB HAD FOUR TRIGGERS WIRED AND ONLY THREE DOORS.** ROADMAP #81 WIRE 11 wired
+  `onAnySwitchIn` / `onAnyAfterMega` / `onAnyAfterMove` / `onResidual` at the lead pass, the mega,
+  `_updateAll` and the residual walk. **None reaches `refill()`** — a post-faint replacement's switch
+  request is issued below the residual and below the last action (`sim/battle.ts:2909`), so an
+  Intimidate arriving there had no herb pass after it and the item came off a whole turn late. It is
+  not an announcement: `unburden.onAfterUseItem` doubles Speed the instant the item is spent, so the
+  herb coming off is a **speed tier change**, and Sneasler's own usage item IS a White Herb.
+  Knob `MEDI_REFILL_NO_HERB=1`; counter `MEDSEEN.refillHerbPass`.
+
+  **RECOIL WAS A SHARE OF WHAT WAS ROLLED, NOT OF WHAT WAS DEALT.** ROADMAP #81 WIRE 4 fixed the
+  FORMULA on that exact line; what it never touched is where `dealt` is READ. This engine banked
+  `Math.min(dmg, tg.curHP)` about 270 lines ABOVE the handlers that rewrite `dmg`, where the authority
+  reads `move.totalDamage += damage[i]` (`battle-actions.ts:965`) BELOW them — `damage[i]` being what
+  `spreadDamage` RETURNED, i.e. after every `onDamage`. So every recoil, drain and `_dealtEach` row was
+  `leavesHP` points too generous on a hit something SURVIVED: a Flare Blitz into a full-HP Focus Sash
+  charged 33% of 135 where the authority charges 33% of 134. **It is deliberately not re-read from the
+  Disguise absorb** — Disguise's `onDamage` RETURNS 0, so the busted forme's chip is a separate
+  `damage()` call the recoil never sees. Knob `MEDI_DEALT_BEFORE_CLAMP=1`; counter
+  `MEDSEEN.dealtReReadAfterClamp`. `tests/test-engine-diff.js` **could never have seen this**: 0 of
+  6000 at all sixteen corners before and after, because it asks about the HIT and never about what the
+  hit COSTS.
+
+### Changed
+- **THE SCOREBOARD, PINNED IDENTICALLY TO THE RUN IT REPLACES.** `--arm middle --turns 12 --games 1200
+  --team-store data/team-pool-frozen --census data/verification/census-pin-9446a684709d.json --state
+  --end-state --write`.
+
+  | quantity | before `d03fb31456e2` | after `7f7de860723b` | predicted |
+  |---|---|---|---|
+  | **board-material** (`games - games_board_never_diverged`) | 4 of 961 | **1 of 961** | 1 — hit |
+  | boards never parted | 957/961 | **960/961** | — |
+  | whole-game clause | 10 of 961 | **9 of 961** (14 raw, less 5 declared) | 8 — **missed by one** |
+  | raw diverged | 15 of 961 | **14 of 961** | 13 — missed by one |
+  | per-CAUSE board-material table | 3 causes / 3 games | **1 cause / 1 game** | a DIFFERENT quantity |
+  | census | 754 / 754 / 0 | **754 / 754 / 0**, 0 rows changed status | unmoved — hit |
+  | roster items / abilities / moves | 139 / 129 / 475 | **identical**, 0 DIFFER, 0 DID-NOT-FIRE | unmoved — hit |
+  | `all_mechanics_fire --kind all` | 20 diverging rows | **the SAME 20** | unmoved — hit |
+  | `test-engine-diff --n 6000` | 0 of 6000, 16 corners | **0 of 6000, 16 corners** | unmoved — hit |
+
+  **THE MISS IS NAMED RATHER THAN ROUNDED.** Two causes closed (`-damage field 3` recoil, and
+  `ordering :: |-enditem|whiteherb <> |turn|5`) and **one new one arrived**
+  (`ordering :: |-end|disable <> |-start|perish1`). A fix changes what happens after the divergence
+  point, which changes the coverage credit, which changes later clicks — the same 961 games playing
+  different turns. The new cause is narration-only **by measurement**, not by judgement: board-material
+  is 1 and that one game is a different game.
+
+  **THE HEADLINE IS `games - games_board_never_diverged`, READ OUT OF THE ARTIFACT.** The per-CAUSE
+  table beside it is keyed on each game's PROTOCOL first-divergence and drops a game when its protocol
+  divergence closes, board or no board — the distinction retracted into ROADMAP #470 the same week.
+
+### Added
+- **`tests/probe_transform_faint_revert.js`, `tests/probe_refill_entry_herb.js`,
+  `tests/probe_recoil_after_clamp.js`** — one per fix, each RED at HEAD before the fix landed, each
+  with a knob child that must MOVE the outcome (an identical result across a varied knob means the knob
+  is unwired) and with "the arm must have happened" assertions read out of `board_state.js`'s own rows.
+  Every fixture is derived from `data/tags.json` and the format, never typed: the transform carrier and
+  its `diagonal` param, the zero-damage `userFaints` killer, the `restoresStats` item, the repeatable
+  negative `onSwitchInDrop`, the deterministic `survivesFromFull` item, and — for the recoil probe — a
+  SEARCH over the format for a triple where the one-point difference actually crosses `Math.round`.
+
+### Notes
+- **THE LAST BOARD-PARTED GAME IS AN UNSHARED DIE, NOT A RULE (ROADMAP #478).** A `randomNormal` click
+  carries no target, and `Battle#getTarget` ignores any targetLoc it is given for that family and falls
+  through to `getRandomTarget`. Each engine draws from its own PRNG, and the arm's shared streams are
+  `acc / crit / sec / dmg / stall` — there is no sixth category for a target draw. Neither engine is
+  wrong. The same run already reports `VOID (instrument desync): 1 of 961`, `low-identity: 1`, and every
+  unshared address shape in the artifact is `outrage`. Fixing it means a sixth arm category in
+  `engine/game_differential.js`, which is the instrument and not the play layer, and changes every
+  published rate. **Filed for Will, not fixed here.**
+- **THE SAMPLE WAS PROVEN IDENTICAL, NOT ASSUMED.** `engine/quality.js` and `data/quality-filter.json`
+  are `engine_release.js` SOURCES and both had moved under MEASURE, so the cut froze three changed files
+  rather than one. `pins.digest 2efbc9ed1946`, `team_pool_digest 0d103fb9fa87` (8778 teams, 1968
+  picked), census pin `9446a684709d` (643 rows) and 961 games are identical either side — the quality
+  filter SELECTS the corpus and the pool digest is what it produces, so the third file being in frame
+  did not move the sample.
+- **SEVEN FIXTURE ERRORS IN THREE PROBES, EVERY ONE FOUND BY READING A COUNTER RATHER THAN BY AN ARM
+  GOING RED**: Final Gambit chosen as a "zero-damage" self-KO (it reads `basePower: 0` and deals the
+  user's whole HP bar); a `null` script slot, which Showdown refuses outright from a body that can act;
+  the derived self-targeting hold move coming out as PROTECT (its own target is `self`), and then as
+  BATON PASS (`selfSwitch`); the herb holder clicking a self-BOOST move that raised the stat the drop
+  then lowered; a TYPED boundary index off by one, because `onBoundary` also fires for the board before
+  turn 1; and the fix itself placed on `queueFaint`, which is not the shared faint door.
+- **FILED, NOT FIXED: a fainted MEGA does not regress its forme.** `sim/battle.ts:2554-2557` and
+  `:2568-2571` set `baseSpecies` off the SET and call `updateMaxHp()` on a fainted mega. It is the
+  sibling of #475 through the same `faintMessages` block, `tests/test-state-differential.js` already
+  plants it, and no board in the pinned pool parts on it today — a second change, filed rather than
+  smuggled in.
+- **OWED, NOT RUN:** `tests/interaction_matrix.js`; `engine/wire_ladder.js` (the release ladder stays
+  WITHHELD, as it already was); `tests/run-all.js` in full; `tests/staged_board.js`;
+  `tests/bench-medicham.js --record` (ROADMAP #472); the Wide Guard half of ROADMAP #469, still with no
+  probe against it.
+
+---
+
 ## [5.162.0] — 2026-08-27
 
 ### Added

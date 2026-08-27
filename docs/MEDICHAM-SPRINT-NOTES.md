@@ -21,6 +21,54 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE LISTS AUDITED THEIR MEMBERSHIP AND NOTHING AUDITED THE CLAIMS INSIDE THEM. **282 CLAIMS, 254 CHECKABLE, 0 FALSE IN THE RECORDS AND 8 FALSE IN THE COMMENTS.** 2026-08-27 (MEASURE).
+
+CHANGELOG 5.164.0. Full account: `docs/_reports/2026-08-27-claims-audit.md`. New instrument:
+`tests/test-claim-truth.js` — auto-discovered by the `tests/test-*.js` glob, so no list was edited.
+
+**The record set is derived, not typed.** Any top-level `const UPPER_NAME = { ... }` in `engine/`,
+`tests/` or `build/` whose keys are all repo-relative paths and one of whose values is a long string.
+That is **five** records and 175 entries, not the two this pass was dispatched about: `NOT_A_CHECK`
+and `PENDING_WIRE` in `tests/run-all.js`, plus `DECLARED` in `tests/test-effective-identity.js`,
+`HOLDERS` in `tests/test-mc-key.js`, `NOT_A_MODEL` in `tests/test-stadium-roster.js`. Plus
+`docs/ROADMAP.md`'s 122 `VERIFIED BY:` markers — **all 44 files they name exist**, which
+`engine/register_reality.js` runs but never asserted.
+
+| | |
+|---|---|
+| claims extracted | **282** |
+| mechanically checkable | **254** |
+| FALSE inside a record | **0** |
+| not checkable (13 dated measurements, 15 mechanism) | 28 |
+| record entries yielding at least one checkable claim | **80 of 175 (46%)** |
+| comment references to a repo source file | **2,792** |
+| **FALSE in comment prose** | **8** |
+
+**Shown red first on the real retracted sentence.** `--break` feeds three synthetic entries through
+the SAME `extract()` the audit uses — not a copy of its predicates — the first being
+`engine/derive_protocol_events.js` + *"NOTHING HAS EVER RUN IT"* verbatim. 7 of 9 planted claims go
+red across five kinds; one plant is deliberately TRUE so the check cannot pass by calling everything
+false, and `--break` was observed exiting 1 before it exited 0.
+
+**The worst of the eight, in plain words:** `build/build_mag_data.js` has asserted for **32 days**
+that *"web/magnemite.html carries a self-check against a fixture generated here: if the browser's
+scoring and the engine's scoring ever disagree on the fixture, the page says so on screen rather than
+quietly showing wrong numbers."* **`web/magnemite.html` has never existed in this repository's
+history.** The mechanism is real and lives in `web/index.html`; the file named is not. A reader
+asking whether that drift is covered is told yes and pointed at nothing.
+
+**The comment census reports and does not gate.** Every name sits in a file this division does not
+own, one of them being edited live. A red nobody can clear becomes *"one of the two known failures"*.
+
+**`node tests/run-all.js --coverage` exits 1 today** on `tests/probe_recoil_after_clamp.js`,
+`tests/probe_refill_entry_herb.js` and `tests/probe_transform_faint_revert.js` — all three untracked
+ENGINE work from this session. **ENGINE to classify or wire.** Not classified here: writing a blocker
+this division has not measured would commit the exact defect under audit.
+
+No game was played and no game number moved.
+
+---
+
 ## THE GATE NOBODY HAD RUN HAD BEEN RUNNING FOR THREE WEEKS, AND IT PASSES. **COVERAGE 18 UNACCOUNTED → 0, NONE OF THE 18 DEAD.** 2026-08-27 (MEASURE).
 
 CHANGELOG 5.161.0. Full account: `docs/_reports/2026-08-27-never-run.md`. Register row: **OWED** —
@@ -15999,3 +16047,57 @@ still never re-runs this tool so the verdict decays hourly (**a scheduling decis
 not wired here**); whether the duplicated move reaches MAG's features (SEARCH's, and downstream of
 #473); `engine/format_drift.js`, still never written; and the `docs/MEASURE.md` ledger row, which
 needs `status.js --write` and was out of scope for this pass.
+
+---
+
+## THREE DOORS THE HOUSEKEEPING NEVER REACHED. **BOARD-MATERIAL 4 -> 1 OF 961.** 2026-08-27 (ENGINE).
+
+CHANGELOG 5.163.0. Register rows: ROADMAP **#475, #476, #477 — CLOSED**; **#478 — FILED, NOT A
+DEFECT**. Release cut: **`7f7de860723b`**. Full account: `docs/_reports/2026-08-27-last-four.md`.
+
+**The four remaining board-parted games were read one at a time with `engine/replay_one.js`.** Three
+were engine defects and are fixed; the fourth is not a defect.
+
+| quantity | before `d03fb31456e2` | after `7f7de860723b` | predicted |
+|---|---|---|---|
+| **board-material** (`games - games_board_never_diverged`) | 4 of 961 | **1 of 961** | 1 — **hit** |
+| whole-game clause | 10 of 961 | **9 of 961** (14 raw, less 5 declared) | 8 — **missed by one** |
+| raw diverged | 15 of 961 | **14 of 961** | 13 — missed by one |
+| census | 754 / 754 / 0 | **754 / 754 / 0**, 0 rows changed status | unmoved — hit |
+| roster items / abilities / moves | 139 / 129 / 475 | **identical**, 0 DIFFER, 0 DID-NOT-FIRE | unmoved — hit |
+| `all_mechanics_fire --kind all` | 20 diverging rows | **the SAME 20** | unmoved — hit |
+| `test-engine-diff --n 6000` | 0 of 6000, 16 corners | **0 of 6000, 16 corners** | unmoved — hit |
+
+**THE MISS IS NAMED: two causes closed and one new one arrived** — `-damage field 3` (recoil) and
+`ordering :: |-enditem|whiteherb <> |turn|5` both LEFT, and `ordering :: |-end|disable <>
+|-start|perish1` ARRIVED. A fix changes what happens after the divergence point, which changes the
+coverage credit, which changes later clicks. Same 961 games, different turns. The new cause is
+narration-only **by measurement** — board-material is 1 and that one game is a different game.
+
+**THREE FIXES, THREE KNOBS, THREE PROBES:**
+- `clearVolatile` has TWO doors and this engine had one — a transform now reverts on a FAINT, not only
+  on a switch-out. `MEDI_TRANSFORM_SURVIVES_FAINT=1` / `tests/probe_transform_faint_revert.js`.
+  It was put on `queueFaint` first and the probe stayed red: only a handful of the twenty-odd faint
+  sites go through it. `noteFaint` is the shared door.
+- White Herb's four triggers had three doors — a post-faint REPLACEMENT's entry drop got no
+  `onAnySwitchIn` pass. `MEDI_REFILL_NO_HERB=1` / `tests/probe_refill_entry_herb.js`.
+- Recoil was a share of what was ROLLED, not of what was DEALT — `dealt` was banked ~270 lines above
+  the `onDamage` survival clamps. `MEDI_DEALT_BEFORE_CLAMP=1` / `tests/probe_recoil_after_clamp.js`.
+  Invisible to `test-engine-diff` by construction: it asks about the HIT, never about what it COSTS.
+
+**THE FOURTH IS AN UNSHARED DIE.** A `randomNormal` click carries no target and Showdown ignores any
+targetLoc it is given, drawing from its own PRNG; the arm shares `acc / crit / sec / dmg / stall` and
+has no sixth category. The same run reports `VOID (instrument desync): 1 of 961` and every unshared
+address shape is `outrage`. Filed as #478 — a `game_differential.js` change, not the play layer's.
+
+**THE SAMPLE WAS PROVEN IDENTICAL, NOT ASSUMED.** `engine/quality.js` and `data/quality-filter.json`
+are SOURCES and had moved under MEASURE, so the cut froze three changed files. `pins.digest
+2efbc9ed1946`, `team_pool_digest 0d103fb9fa87` (8778 / 1968), census pin `9446a684709d`, 961 games —
+all identical either side, so the filter being in frame did not move the sample.
+
+**OWED, NOT RUN:** `tests/interaction_matrix.js`; `engine/wire_ladder.js` (the release ladder stays
+WITHHELD); `tests/run-all.js` in full; `tests/staged_board.js`; `tests/bench-medicham.js --record`
+(#472); the Wide Guard half of #469; **a fainted MEGA's forme regression** (`sim/battle.ts:2554-2557`
+and `:2568-2571`), the sibling of #475 through the same block — `tests/test-state-differential.js`
+already plants it and no board in the pinned pool parts on it today, so it is a second change and is
+filed rather than smuggled in.
