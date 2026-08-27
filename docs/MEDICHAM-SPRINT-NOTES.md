@@ -21,6 +21,53 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A MULTI-HIT VOLLEY THAT LANDED EXACTLY ONE ARRIVAL NEVER ANNOUNCED `|-hitcount|TARGET|1`. **WHOLE-GAME 4 -> 3 OF 961 AND RAW DIVERGED 9 -> 8, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
+
+ROADMAP `#510` closed; `#511` filed. Release `ffd74ed20b75`. CHANGELOG 5.188.0.
+Probe `tests/probe_upkeep_lines.js --only hitcount` — 2 arms, RED before (exit 1), GREEN after (exit 0).
+
+**THE AUTHORITY RETURNS ABOVE THE LINE ONLY WHEN NOTHING LANDED.** `data/mods/champions/scripts.ts`
+overrides the whole hit loop and closes it with `if (hit === 1) return damage.fill(false);` then
+`if (move.multihit && typeof move.smartTarget !== 'boolean' && !(move.hit === 1 && parentalbond))
+this.battle.add('-hitcount', targets[0], hit - 1);`. `hit` is one HIGHER than the arrivals, so one
+arrival prints `|-hitcount|TARGET|1`.
+
+**THE ARRIVAL COUNTER ONLY EXISTED ON THE PACKET ROAD, AND THAT ROAD NEEDS TWO PACKETS.**
+`_stepApply` builds `_packets = (R.pk && R.pk.length > 1 && dmg === R.dmg) ? R.pk : null` and
+increments `_landed` inside it. A volley whose second per-hit accuracy roll missed resolved to one
+arrival, took the `else`, never wrote `R.hitLanded`, and `_stepHitCount` returned at its first line.
+
+**THE COUNT WAS NEVER WRONG — ONLY THE ANNOUNCEMENT, WHICH IS WHY NO BOARD SAW IT.**
+`_arrivals = _packets ? _landed : 1` already gave Rage Fist its `+1` off this same road, and the HP
+subtraction is `tg.curHP -= dmg` with the full drawn total.
+
+**THE MEASUREMENT.** Release `ffd74ed20b75`, arm `middle`, `--games 1200` (yields 961), cap 12,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+
+| | before (`5ed4753b7322`) | after (`ffd74ed20b75`) |
+|---|---|---|
+| raw diverged | 9 | **8** |
+| declared (`fallenundefined`) | 5 | 5 |
+| **whole-game** | **4 of 961** | **3 of 961** |
+| board never diverged | 961 | 961 |
+| **board-material** | **0 of 961** | **0 of 961** |
+| threw / void | 0 / 0 | 0 / 0 |
+| damage | 0/6000 at all sixteen corners | 0/6000 at all sixteen corners |
+| pin digest | `ccb365985023` | `ccb365985023` |
+| team pool | `0d103fb9fa87`, 8778 / 1968 picked | identical |
+| census pin | `9446a684709d`, 643 rows | identical |
+
+The pool row `|-hitcount|p2a: Azumarill|1 <> |upkeep` (turn 3) is gone and nothing new appeared.
+
+**THE SECOND PRODUCER IS STILL LIVE AND IS COUNTED RATHER THAN PAPERED OVER — ROADMAP `#511`.**
+When `R.pk.length > 1` but `dmg !== R.dmg` (a Focus Sash, an Endure, a busted Disguise) the volley
+collapses to one packet, `_landed` stays 0 and no count is announced, though the authority landed
+2+ arrivals. The guard writes `1` only when `R.pk` holds fewer than two packets; the collapse road
+bumps `MEDFAILS.hitCountDroppedOnCollapse`, declared with its reason. No fixture stages it yet, so
+its reach is unknown and is not claimed.
+
+---
+
 ## A SHIELD'S REFUSAL IS `|-activate|<TARGET>|move: Protect` AND NOTHING ELSE, AND SEVEN ACTION KINDS ANSWERED IT WITH `|-fail|<THE MOVER>` OR WITH SILENCE. **WHOLE-GAME 6 -> 4 OF 961, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. CENSUS UNMOVED AT 765/765/0. ROSTER 139/129/475 CLEAN. DAMAGE 0/300 AT ALL SIXTEEN CORNERS. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
 
 ROADMAP `#508` closed; `#509` filed. Release `5ed4753b7322`. CHANGELOG 5.187.0.

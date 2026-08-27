@@ -1997,6 +1997,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* 2026-08-27 -- THE SECOND, STILL-OPEN PRODUCER OF A MISSING `|-hitcount|`. A volley priced as 2+
+     packets whose total was rewritten before application (a Focus Sash, an Endure, a busted Disguise)
+     collapses to one packet, so `_landed` stays 0 and no count is announced — while the authority
+     landed 2+ arrivals and prints the real number. The single-arrival fix beside it deliberately does
+     NOT write a `1` here, because that would be an invented count. A non-zero reading is that defect
+     happening, not an error; it has no fixture yet. See docs/_reports/2026-08-27-narration-three.md. */
+  hitCountDroppedOnCollapse: 0,
   /* 2026-08-26 -- the three ways `immunityGateRefuses` can be handed a row it cannot evaluate, kept
      apart because they mean different things. `PassUnknown` is a NEW condition shape in the artifact
      and is the one that matters: the gate returns "not refused", i.e. exactly the behaviour this
@@ -28751,7 +28758,33 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(R.hitcount&&_landed>0)R.hitLanded=_landed;
         }else{ tg.curHP-=dmg;
           /* ROADMAP #308 -- `_chipFrom` is the formeOnHit chip's attribution and is consumed once. */
-          if(TR){const _cf=tg._chipFrom;tg._chipFrom=null;TR.dmg(tg,_cf||undefined);} }
+          if(TR){const _cf=tg._chipFrom;tg._chipFrom=null;TR.dmg(tg,_cf||undefined);}
+          /* 2026-08-27 -- THE SINGLE-ARRIVAL VOLLEY STILL GETS ITS LINE.
+           *
+           *     if (hit === 1) return damage.fill(false);                  scripts.ts:538
+           *     ...
+           *     if (move.multihit && typeof move.smartTarget !== 'boolean' && ...)
+           *       this.battle.add('-hitcount', targets[0], hit - 1);       scripts.ts:547-549
+           *
+           * `hit` is one HIGHER than the arrivals, so the authority returns above the line only when
+           * NOTHING landed. One arrival prints `|-hitcount|TARGET|1`. `_landed` above exists only on
+           * the packet road and that road needs `R.pk.length > 1`, so a volley whose second per-hit
+           * accuracy roll missed never wrote `R.hitLanded` and `_stepHitCount` returned at its first
+           * line — measured on the pinned pool as `|-hitcount|p2a: Azumarill|1 <> |upkeep`, and in
+           * the lab by tests/probe_upkeep_lines.js --only hitcount.
+           *
+           * The COUNT was never wrong: `_arrivals = _packets ? _landed : 1` below already gives
+           * Rage Fist its +1 off this same road. Only the announcement was owed.
+           *
+           * THE GUARD LEAVES THE COLLAPSE ROAD ALONE, DELIBERATELY. When `R.pk.length > 1` but the
+           * total was rewritten between pricing and application (a Focus Sash, an Endure, a busted
+           * Disguise), `_packets` is null here too and the authority DID land 2+ arrivals — writing
+           * `1` would be an invented number. That road is a second, still-open producer of the same
+           * missing line and it is COUNTED rather than papered over. */
+          if(R.hitcount){
+            if(R.pk&&R.pk.length>1)MEDFAILS.hitCountDroppedOnCollapse=(MEDFAILS.hitCountDroppedOnCollapse|0)+1;
+            else R.hitLanded=1;
+          } }
         /* 2026-08-24 -- THE DRAIN HEAL, IMMEDIATELY BELOW THIS TARGET'S `-damage` LINE, which is
            where sim/battle.ts:2168 sits inside `spreadDamage`'s own loop. See `_payDrainRow`. */
         _payDrainRow(_rowDealt,tg);

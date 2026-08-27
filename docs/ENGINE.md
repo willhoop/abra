@@ -31,7 +31,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_trace_list.js`, `tests/probe_fractional_priority_draw.js`,
 `tests/probe_hp_pair.js`,
 `tests/probe_state_trio.js`, `tests/probe_random_target_die.js`,
-`tests/probe_shield_refusal_line.js`
+`tests/probe_shield_refusal_line.js`, `tests/probe_upkeep_lines.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -124,6 +124,75 @@ ENGINE — does the simulator do what Pokémon does
 _stamped 2026-08-27 19:37_
 
 <!-- /GENERATED -->
+
+## A MULTI-HIT VOLLEY THAT LANDED EXACTLY ONE ARRIVAL NEVER ANNOUNCED `|-hitcount|TARGET|1` — THE COUNT WAS ALWAYS RIGHT AND ONLY THE LINE WAS OWED. **WHOLE-GAME 4 -> 3 OF 961 AND RAW DIVERGED 9 -> 8, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
+
+ROADMAP `#510` closed, `#511` filed. Release `ffd74ed20b75`. CHANGELOG 5.188.0.
+Probe `tests/probe_upkeep_lines.js --only hitcount` — RED (exit 1) before, GREEN (exit 0) after.
+
+**THE AUTHORITY'S CONDITION IS "DID ANYTHING LAND", NOT "DID MORE THAN ONE THING LAND".** Champions
+overrides the entire hit loop (`data/mods/champions/scripts.ts`, whose own comment is *"Parental Bond
+shouldn't announce hit count if it only hits once"*) and closes it with:
+
+```
+if (hit === 1) return damage.fill(false);
+...
+if (move.multihit && typeof move.smartTarget !== 'boolean' &&
+    !(move.hit === 1 && move.multihitType === 'parentalbond'))
+    this.battle.add('-hitcount', targets[0], hit - 1);
+```
+
+`hit` is one HIGHER than the number of arrivals, so the early return fires only when NOTHING landed.
+A multiaccuracy volley whose second roll missed leaves `hit === 2` and prints `|-hitcount|TARGET|1`.
+
+**THIS ENGINE COUNTED ARRIVALS ON ONE ROAD AND THAT ROAD NEEDS TWO PACKETS.** `_stepApply` builds
+`_packets = (R.pk && R.pk.length > 1 && dmg === R.dmg) ? R.pk : null` and increments `_landed` inside
+it; a single-arrival volley takes the `else`, `R.hitLanded` is never written, and `_stepHitCount`
+returns at its first line. The drawn count itself was already correct — `rollHitsOf` implements the
+per-hit break at `if (rnd() >= _p) { n = h - 1; MEDSEEN.multiHitAccuracyStopped++; break; }`.
+
+**IT WAS INVISIBLE TO EVERY BOARD COMPARISON FOR A REASON, AND THAT REASON WAS CHECKED RATHER THAN
+INHERITED.** `-hitcount` writes no state in either engine, the HP subtraction is `tg.curHP -= dmg`
+with the full drawn total, and the OTHER reader of "how many arrivals landed" is a separate,
+already-correct expression on the same road: `const _arrivals = _packets ? _landed : 1`, which is
+what gives Rage Fist its `+1`. The fix sits beside it so the two readers stay one fact.
+
+**THE CONTROL COULD HAVE FAILED AND IS THE EVIDENCE THE INSTRUMENT WAS WIRED.** The bottom-corner
+arm, where every sub-100 roll hits, agreed on twelve matched `-hitcount` lines before AND after the
+change. The TEST arm parted at reduced index 37 before and now agrees with the authority across a
+whole game of volleys — `1 x3  10 x4  3 x1  4 x1  7 x1  8 x1` on both streams, three of them the
+single-arrival case this row is about. Running the probe against the PRE-PATCH release
+`5ed4753b7322` reproduces the SAME red at the SAME index, not a third behaviour.
+
+**THE PROBE USED TO PIN THE BUG.** Its `A TEST` expectation read `PARTS` while the defect was being
+diagnosed, and the file printed its verdict and exited 0 whatever it found. Both are fixed here: the
+expectation is the AUTHORITY's behaviour and the file carries an exit code. Run it per-arm — the
+whole-file run is red on the PERISH arm's five incidental parts, which are other rows' open defects.
+
+**THE MEASUREMENT.** Release `ffd74ed20b75`, arm `middle`, `--games 1200` (yields 961), cap 12,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+
+| | before (`5ed4753b7322`) | after (`ffd74ed20b75`) |
+|---|---|---|
+| raw diverged | 9 | **8** |
+| declared (`fallenundefined`) | 5 | 5 |
+| **whole-game** | **4 of 961** | **3 of 961** |
+| board never diverged | 961 | 961 |
+| **board-material** | **0 of 961** | **0 of 961** |
+| threw / void | 0 / 0 | 0 / 0 |
+| damage | 0/6000, all sixteen corners | 0/6000, all sixteen corners |
+| pin digest | `ccb365985023` | `ccb365985023` |
+| team pool corpus / picked | `0d103fb9fa87`, 8778 / 1968 | identical |
+| census pin | `9446a684709d`, 643 rows | identical |
+
+**THE SECOND PRODUCER OF THE SAME SYMPTOM IS STILL LIVE, AND SAYING SO IS PART OF THE FIX** —
+ROADMAP `#511`. When `R.pk.length > 1` but the total was rewritten between pricing and application
+(a Focus Sash, an Endure, a busted Disguise) the volley collapses to one packet, `_landed` stays 0
+and nothing is announced, while the authority landed 2+ arrivals and prints the real count. Writing
+`1` there would be an invented number, so the guard is `if (R.pk && R.pk.length > 1)` -> count it at
+`MEDFAILS.hitCountDroppedOnCollapse`, `else` -> `R.hitLanded = 1`. No fixture stages a collapsing
+volley yet, so the reach of that row is unknown and is not claimed.
+
 
 ## A SHIELD'S REFUSAL IS `|-activate|<TARGET>|move: Protect` AND NOTHING ELSE — SEVEN ACTION KINDS ANSWERED IT WITH `|-fail|<THE MOVER>` OR WITH SILENCE, AND IT IS THE **INVERSE** OF THE SUBSTITUTE'S SENTENCE. **WHOLE-GAME 6 -> 4 OF 961, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. ROSTER 139 / 129 / 475 CLEAN. DAMAGE 0/300 AT ALL SIXTEEN CORNERS. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
 

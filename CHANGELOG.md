@@ -10,6 +10,42 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.188.0] — 2026-08-27
+
+### Fixed
+- **A MULTI-HIT VOLLEY THAT LANDED EXACTLY ONE ARRIVAL NEVER ANNOUNCED `|-hitcount|TARGET|1`.
+  WHOLE-GAME 4 -> 3 OF 961 AND RAW DIVERGED 9 -> 8, PREDICTED BEFORE THE RUN. BOARD-MATERIAL
+  UNMOVED AT 0 OF 961, ALSO PREDICTED. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS. PIN DIGEST UNMOVED AT
+  `ccb365985023`, `DICE_MODEL` v5.** ENGINE. ROADMAP `#510` closed, `#511` filed. Release
+  `ffd74ed20b75`.
+  - `data/mods/champions/scripts.ts` closes the hit loop with `if (hit === 1) return
+    damage.fill(false);` and then `if (move.multihit && typeof move.smartTarget !== 'boolean' &&
+    !(move.hit === 1 && parentalbond)) this.battle.add('-hitcount', targets[0], hit - 1);`. `hit` is
+    one HIGHER than the number of arrivals, so the authority returns above the line only when
+    NOTHING landed — one arrival prints `|-hitcount|TARGET|1`.
+  - This engine counted arrivals only on the PACKET road: `_stepApply`'s `_packets = (R.pk &&
+    R.pk.length > 1 && dmg === R.dmg) ? R.pk : null`. A volley whose second per-hit accuracy roll
+    missed resolved to one arrival, never entered that road, never wrote `R.hitLanded`, and
+    `_stepHitCount` returned at its first line.
+  - **THE COUNT WAS NEVER WRONG, ONLY THE ANNOUNCEMENT**, which is why no board ever saw it:
+    `_arrivals = _packets ? _landed : 1` already gave Rage Fist its `+1` off the same road and the
+    HP subtraction is the full drawn total.
+  - Probe `tests/probe_upkeep_lines.js --only hitcount`. Its `A TEST` expectation read `PARTS` while
+    the defect was being diagnosed — a probe that PINS THE BUG — and is now `AGREES`, with an exit
+    code added so `&& GREEN` around it means something. RED at reduced index 37 before, GREEN after,
+    the two streams matching on `1 x3  10 x4  3 x1  4 x1  7 x1  8 x1`; the bottom-corner control
+    agreed on twelve matched lines before AND after, so the counter was demonstrably wired.
+
+### Notes
+- **THE SECOND PRODUCER OF THE SAME MISSING LINE IS LEFT OPEN AND COUNTED, NOT PAPERED OVER**
+  (ROADMAP `#511`). When `R.pk.length > 1` but the total was rewritten between pricing and
+  application — a Focus Sash, an Endure, a busted Disguise — the volley collapses to one packet and
+  the authority still landed 2+ arrivals. Writing `1` there would be an invented number, so the fix
+  is guarded on `R.pk` and the road bumps `MEDFAILS.hitCountDroppedOnCollapse`. No fixture stages it
+  yet; its reach is unknown and is not claimed.
+
+---
+
 ## [5.187.0] — 2026-08-27
 
 ### Fixed
