@@ -101,8 +101,14 @@ const BENCH_P2 = [['pinsir', 'Swords Dance'], ['banette', 'Swords Dance']];
 const p1Team = item => [mon(HOLDER, 'Pressure', [HOLDER_IDLE], item),
                         mon('clefable', 'Magic Guard', [IDLE]),
                         ...BENCH_P1.map(([s, m]) => mon(s, '', [m]))];
+/* p2's partner clicks RECOVER, written out rather than derived from IDLE. It was
+ * `[IDLE === 'Calm Mind' ? 'Recover' : IDLE]`, a branch that can never be taken — IDLE is the
+ * constant 'Calm Mind' six lines up — and the branch nobody takes still TYPED Calm Mind next to a
+ * Milotic, which the format says cannot learn it (TeamValidator, tests/test-fixture-legality.js).
+ * The script below already hard-codes 'Recover' for this slot, so the ternary was not even the
+ * abstraction it looked like. Milotic / Recover is asserted through BENCH_P1 in the claims block. */
 const p2Team = click => [mon(CLICKER, 'Synchronize', [IDLE, click]),
-                         mon('milotic', '', [IDLE === 'Calm Mind' ? 'Recover' : IDLE]),
+                         mon('milotic', '', ['Recover']),
                          ...BENCH_P2.map(([s, m]) => mon(s, '', [m]))];
 
 const script = click => [

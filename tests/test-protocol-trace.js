@@ -434,7 +434,11 @@ const SCENARIOS = [
    * before the click. */
   ['Psych Up: the one line that names the body copied FROM as well as the copier',
     () => [mon('clefable', ['moonblast', 'protect', 'helpinghand', 'psychup'], 'unaware', ''),
-           mon('incineroar', ['fakeout', 'protect', 'knockoff', 'flareblitz'], 'intimidate', ''),
+           /* DARKEST LARIAT, not Knock Off: `champions_sim.canLearn('Incineroar','Knock Off')` is
+            * FALSE in this format. The slot never clicks its third move — its whole script is
+            * Protect — so this was a declaration defect and the repair moves no board. Darkest
+            * Lariat is the same job (Incineroar's own Dark physical attack) and canLearn says yes. */
+           mon('incineroar', ['fakeout', 'protect', 'darkestlariat', 'flareblitz'], 'intimidate', ''),
            mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
     () => [mon('garchomp', ['swordsdance', 'dragonclaw', 'protect', 'rockslide'], 'roughskin', ''),
            mon('milotic', ['scald', 'recover', 'protect', 'icywind'], 'marvelscale', ''),

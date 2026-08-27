@@ -70,6 +70,45 @@
  * A fixture that builds a body through `buildMon(key)` and assigns the click LATER — which is most of
  * tests/test-mechanics.js — has no set to validate at the point the body is made, and this sweep says
  * so instead of guessing. Those are counted and printed as NOT STATICALLY PAIRED.
+ *
+ * THE FOUR SHAPES THIS SWEEP MATCHES, AND THE THREE THAT WALK PAST IT — MEASURED 2026-08-26
+ * ------------------------------------------------------------------------------------------
+ * Every previous version of this paragraph described the sweep's coverage in adjectives. What follows
+ * is a count, taken on 2026-08-26 and written up in `docs/_reports/2026-08-26-fixture-legality.md`.
+ * A number in a header goes stale, so read the shapes and re-run the measurement rather than quoting
+ * these figures — they are dated evidence, not current state.
+ *
+ * MATCHED:  (A) a top-level helper CALL whose arguments carry a self-naming species literal, moves
+ *               taken from array literals only;
+ *           (B) an object literal keyed `species:` and `moves:`;
+ *           (C) a positional row `['species', ['move', ...], 'ability', 'item']` — species FIRST,
+ *               moves array SECOND;
+ *           (D) a body built by MUTATION (`b.moves = ...; b.ability = ...; b.item = ...`).
+ *
+ * WALKS PAST:
+ *   1. A POSITIONAL ROW WHOSE MOVES ARRAY IS NOT IN SLOT 2. `stage(rows)` in thirteen files — twelve
+ *      under tests/ and `engine/game_differential.js` itself — writes
+ *      `['species', 'item', 'ability', ['move', ...]]` — moves LAST. Matcher (C)'s regex demands the
+ *      array second, and the helper matcher hands every string inside any `[...]` to `moves`, so the
+ *      species literal lands in the moves list and the call is filed as "no species literal". Measured
+ *      repo-wide with a position-independent matcher: **413 rows / 157 distinct sets in 14 files, of
+ *      which 124 distinct sets are invisible to this sweep today and 21 of those the validator
+ *      REJECTS — 15 verdict sentences that are not on the baseline.** It is the SAME class as the one
+ *      matcher (C) was added for and it is larger. NOT turned on in the pass that measured it, for the
+ *      reason recorded beside (C): those 21 repairs change what their scenarios measure and belong to
+ *      the divisions that own them. ROADMAP #266.
+ *   2. A ROW WITH NO MOVES ARRAY AT ALL. `engine/validate_damage.js`'s golden master is
+ *      `[att, ability, item, nature, stat, move, def, nature, {spread}, weather, defAb?, defItem?]` —
+ *      two species and a move, all scalars. No matcher here can see it, and it is the file where
+ *      Choice Band, Choice Specs and an Amoonguss were found by a human on 2026-08-25 rather than by
+ *      this gate. Audited by hand on 2026-08-26: **36 rows, 0 problems** — clean today, still unseen.
+ *   3. A LITERAL THAT MERELY NORMALISES TO AN ENTITY ID. Rule 1 says a literal counts only when it
+ *      "names itself", and `nrm()` strips punctuation from BOTH sides — so `'medicham='`, a fragment
+ *      of a FAIL message, names itself. That is a FALSE POSITIVE rather than a blind spot, and until
+ *      2026-08-26 it manufactured three phantom sets and five phantom stray literals. The proximate
+ *      cause (a helper window that ran past the end of the helper) is fixed below; the looseness in
+ *      rule 1 is not, and it will produce the same shape again the moment a real set-builder is called
+ *      with a debug string.
  */
 'use strict';
 const fs = require('fs');
@@ -143,6 +182,32 @@ function balanced(src, i, open, close) {
   return null;
 }
 const lineOf = (src, i) => src.slice(0, i).split('\n').length;
+
+/* THE WINDOW A HELPER IS JUDGED ON IS ITS OWN DECLARATION, NOT THE 500 CHARACTERS AFTER IT.
+ *
+ * ROADMAP #266, 2026-08-26. It was a flat `src.slice(at, at + 500)`, so the window ran off the end of
+ * the declaration and into whatever came next. Both files that pair
+ *
+ *     const ok    = (cond, label, extra) => { ... };
+ *     const stage = rows => rows.map(r => ({ species: r[0], ..., moves: r[3] }));
+ *
+ * therefore had `ok` registered as a SET-BUILDER on `stage`'s evidence — and every `ok(...)`
+ * assertion in the file was then scanned as a set declaration. That is how `'medicham='`, a fragment
+ * of a FAIL message, was read as the species Medicham and three prose fragments beside it were
+ * reported as string literals naming nothing in this format. Five of the check's failures were the
+ * check.
+ *
+ * The window now stops at the next top-level declaration (column 0 only — rule 3's argument, that a
+ * regex can see exactly one scope, is unchanged). A helper's own evidence cannot lie past that point,
+ * because that point is where the helper ends. It only ever SHRINKS the window, so nothing that was
+ * genuinely matching can start matching more; measured repo-wide it removes 3 declarations and 0
+ * distinct sets, verdicts and pairs unmoved. */
+const NEXT_TOP_DECL = /^(?:const|let|var|function|class|async|export|module\b)/gm;
+function declBody(src, at) {
+  NEXT_TOP_DECL.lastIndex = at + 1;
+  const n = NEXT_TOP_DECL.exec(src);
+  return src.slice(at, Math.min(at + 500, n ? n.index : src.length));
+}
 const STR = /(['"])((?:[^'"\\]|\\.)*)\1/g;
 const strings = s => (s.match(STR) || []).map(x => x.slice(1, -1));
 
@@ -189,7 +254,7 @@ function scan(dex) {
       while ((m = re.exec(src))) {
         const name = m[1];
         if (helpers.has(name)) continue;
-        const body = src.slice(m.index, m.index + 500);
+        const body = declBody(src, m.index);
         if (!/=>|function/.test(body.slice(0, 80))) continue;
         const byLiteral = /\bspecies\s*[:,}]/.test(body) && /\bmoves\s*[:,}]/.test(body);
         const byMutation = /\.moves\s*=/.test(body) && /\.ability\s*=/.test(body) && /\.item\s*=/.test(body);

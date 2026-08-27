@@ -10,6 +10,63 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.151.0] — 2026-08-26
+
+### Fixed
+- **THE FIXTURE-LEGALITY GATE WAS RED AT FIVE, AND THREE OF THE FIVE WERE THE GATE ACCUSING ITS OWN
+  FAIL MESSAGES.** ROADMAP #266, MEASURE. `node tests/test-fixture-legality.js` exits **0** again,
+  5 FAILED → ALL GREEN, with **no baseline allowance added**. Full account:
+  `docs/_reports/2026-08-26-fixture-legality.md`.
+- **A HELPER WAS BEING JUDGED ON THE DECLARATION BELOW IT.** `engine/fixture_legality.js` decided
+  whether a top-level `const` was a set-BUILDER by reading `src.slice(at, at + 500)` — a flat window
+  that runs off the end of the declaration. Two files pair `const ok = (cond, label, extra) => {...}`
+  with `const stage = rows => rows.map(r => ({ species: r[0], ..., moves: r[3] }))`, so `ok`'s window
+  swallowed `stage`'s body and **every assertion in both files was scanned as a set declaration** —
+  which is how `'medicham='`, a fragment of a FAIL message, was read as the species Medicham. The
+  window now stops at the next top-level declaration; it can only ever SHRINK. Measured: **875 → 872
+  declarations and the full set diff is exactly the three phantom rows**, five stray literals → 0.
+- **`Incineroar can't learn Knock Off.`** — `tests/test-protocol-trace.js:437`, introduced by
+  `3050904d` **the same night**, in a scenario whose own comment derives the two moves it is ABOUT and
+  not the partner's set. Repaired to **Darkest Lariat** (`CS.canLearn` true; Incineroar's own Dark
+  physical attack, so the row keeps its job) on a slot whose entire script is Protect.
+- **`Milotic can't learn Calm Mind.`** — `tests/probe_mental_herb_order.js:105` wrote
+  `[IDLE === 'Calm Mind' ? 'Recover' : IDLE]` against a constant `IDLE = 'Calm Mind'`. The branch can
+  never be taken, so nothing illegal was ever played — **and the name was still typed next to a body
+  that cannot carry it**, which is the rule. Replaced with the literal `['Recover']`, deliberately a
+  LITERAL so the set stays inside the sweep's population.
+- **EIGHT STALE BASELINE ALLOWANCES REMOVED — 22 → 15 verdicts, 23 → 15 pairs.** All eight named
+  `tests/staged_board.js` and all eight were repaired by ENGINE in `24fe4c5c`. Proved a repair and not
+  a scanner that stopped looking: `git show 24fe4c5c^` declares all eight and HEAD declares none, and
+  the file is still the sweep's largest contributor at **204 declarations**. `origin` untouched at 41.
+
+### Changed
+- **`engine/fixture_legality.js`'s header now states the four shapes it MATCHES and the three that WALK
+  PAST**, with the measurement rather than adjectives. **The largest hole is the same class matcher (C)
+  was added for**: a positional row whose moves array is not in slot 2 — `stage(rows)` in thirteen
+  files writes `['species', 'item', 'ability', [moves]]`, moves LAST. A position-independent matcher
+  finds **413 rows / 157 distinct sets, of which 124 are invisible to the gate today and 21 the
+  validator REJECTS — 15 verdict sentences not on the baseline.**
+- **THE MATCHER WAS MEASURED AND NOT ARMED, ON PURPOSE.** Arming it turns the gate red by fifteen
+  verdicts in files this batch does not own, and clause 7 rightly refuses to let them be laundered as
+  `PRE-EXISTING`. Those repairs are not renames — `probe_turn_order.js` stages Agility and Tailwind
+  *because it is about speed brackets*, `probe_selfdestruct_winner.js` stages Explosion *because it is
+  about self-destruct* — so a legal replacement means a different body and a different board. Same
+  order matcher (C) followed: measure, repair, then arm. Filed to #266 with the counts.
+- **`engine/validate_damage.js`'s golden master is a THIRD shape nothing here can see** — two species
+  and a move, all scalars, no array. It is where Choice Band, Choice Specs and an Amoonguss were found
+  on 2026-08-25 **by a human rather than by this gate**. Audited by hand: **36 rows, 0 problems** today.
+  Clean, and still unseen.
+- **Rule 1 is looser than its own sentence and was NOT tightened.** "A literal is an entity only if it
+  NAMES ITSELF" is implemented as `id === nrm(s)`, stripping punctuation from both sides, so
+  `'medicham='` names itself. The proximate cause is fixed; a second narrowing heuristic on top would
+  be enumerating known-bad forms. Named in the header as a shape that will recur.
+
+### Notes
+- **This batch moves no game number, predicted before the run and unchanged after**: no engine byte, no
+  census, no differential, no release, no artifact a game writes. Both fixture edits are on slots that
+  never click the changed move. **Neither file was re-run — this batch may not play a game — and that
+  is recorded as OWED in the report rather than implied.**
+
 ## [5.150.0] — 2026-08-26
 
 ### Fixed

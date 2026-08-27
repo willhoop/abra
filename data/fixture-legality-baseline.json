@@ -1,5 +1,5 @@
 {
-  "stamped": "2026-08-15T03:51:56.994Z",
+  "stamped": "2026-08-27T02:59:51.591Z",
   "what": "Distinct verdicts that Showdown's TeamValidator returns for a SET declared by a fixture in this repo. engine/fixture_legality.js sweeps every declaration; tests/test-fixture-legality.js reports these and FAILS on a verdict that is not listed here.",
   "why": "The clause was added 2026-08-13 and every one of these predates it. Repairing forty fixtures in the pass that ADDS the check makes both unattributable — the same reasoning already recorded in data/fixture-learnset-baseline.json, of which this is the superset. The list may only SHRINK, and the gate asserts that: a baselined verdict that stops being produced must be REMOVED, or the next illegal set hides under a stale allowance.",
   "key": "the validator's own sentence, lowercased and whitespace-collapsed. Keyed on the SENTENCE and not on file:line, so the same illegal declaration moved to a new scenario is the same defect and cannot be re-introduced as new.",
@@ -7,7 +7,7 @@
     "DELIBERATE": "the fixture stages an impossible pairing ON PURPOSE and says why — an isolation probe stamping one named control ability on every body, for instance. Legitimate; forcing a per-species legal control is the Fluffy/Sand Rush failure.",
     "PRE-EXISTING": "a real defect, held because repairing it changes what its scenario measures."
   },
-  "count": 22,
+  "count": 15,
   "shrank_from": 41,
   "origin": {
     "what": "THE CLOSED HISTORICAL SET. Every verdict that existed when this check was added on 2026-08-13, repaired or not. It is HISTORY and may never grow: a PRE-EXISTING entry is by definition one that predates the check, so a sentence that is not in here cannot be baselined as PRE-EXISTING and must be repaired or declared DELIBERATE with a reason. This is what stops \"lock in a fix\" and \"launder a new offender\" from being the same edit.",
@@ -56,7 +56,7 @@
       "whimsicott can't learn stealth rock."
     ]
   },
-  "pairCount": 23,
+  "pairCount": 15,
   "pairOrigin": {
     "what": "TeamValidator reports ONE problem per Pokemon, so counting its sentences UNDER-COUNTS the illegal declarations behind them. Every declared move is also put to checkCanLearn. Measured 2026-08-14 BEFORE this batch: 34 illegal declarations behind 32 verdict sentences.",
     "count": 34,
@@ -162,6 +162,46 @@
       "problem": "Toxapex can't learn Scald.",
       "was": "PRE-EXISTING",
       "fixed": "REPAIRED 2026-08-14 across five sites. WATER PULSE, which Toxapex can learn. Four of the five are benched bodies that never click; the fifth is the Pain Split scenario, where the damage is what hurts the user before the split -- 60 base power instead of 80, and the split is still visible because the new user is frailer on the special side. tests/test-protocol-trace.js."
+    },
+    {
+      "problem": "Clefable can't learn Trick Room.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED in commit 24fe4c5c (2026-08-19), by ENGINE rather than by this batch. All eight of these sat in tests/staged_board.js and that commit re-aimed every one onto a move the body can learn -- Iron Defense / Chilly Reception / Tickle / Amnesia / Focus Energy in place of Swords Dance, U-turn, Charm, Ally Switch and Trick Room. REMOVED FROM THE BASELINE 2026-08-26 (ROADMAP #266) because clause 3 and clause 5 were both red on them: an allowance nobody produces any more is a door the next illegal set walks through. PROVED A REPAIR AND NOT A SCANNER THAT STOPPED LOOKING -- tests/staged_board.js is still the largest single contributor to the sweep at 204 declarations, and `git show 24fe4c5c^:tests/staged_board.js` still declares all eight while HEAD declares none."
+    },
+    {
+      "problem": "Corviknight can't learn Ally Switch.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED in commit 24fe4c5c (2026-08-19), by ENGINE rather than by this batch. All eight of these sat in tests/staged_board.js and that commit re-aimed every one onto a move the body can learn -- Iron Defense / Chilly Reception / Tickle / Amnesia / Focus Energy in place of Swords Dance, U-turn, Charm, Ally Switch and Trick Room. REMOVED FROM THE BASELINE 2026-08-26 (ROADMAP #266) because clause 3 and clause 5 were both red on them: an allowance nobody produces any more is a door the next illegal set walks through. PROVED A REPAIR AND NOT A SCANNER THAT STOPPED LOOKING -- tests/staged_board.js is still the largest single contributor to the sweep at 204 declarations, and `git show 24fe4c5c^:tests/staged_board.js` still declares all eight while HEAD declares none."
+    },
+    {
+      "problem": "Corviknight can't learn Swords Dance.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED in commit 24fe4c5c (2026-08-19), by ENGINE rather than by this batch. All eight of these sat in tests/staged_board.js and that commit re-aimed every one onto a move the body can learn -- Iron Defense / Chilly Reception / Tickle / Amnesia / Focus Energy in place of Swords Dance, U-turn, Charm, Ally Switch and Trick Room. REMOVED FROM THE BASELINE 2026-08-26 (ROADMAP #266) because clause 3 and clause 5 were both red on them: an allowance nobody produces any more is a door the next illegal set walks through. PROVED A REPAIR AND NOT A SCANNER THAT STOPPED LOOKING -- tests/staged_board.js is still the largest single contributor to the sweep at 204 declarations, and `git show 24fe4c5c^:tests/staged_board.js` still declares all eight while HEAD declares none."
+    },
+    {
+      "problem": "Kangaskhan can't learn Swords Dance.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED in commit 24fe4c5c (2026-08-19), by ENGINE rather than by this batch. All eight of these sat in tests/staged_board.js and that commit re-aimed every one onto a move the body can learn -- Iron Defense / Chilly Reception / Tickle / Amnesia / Focus Energy in place of Swords Dance, U-turn, Charm, Ally Switch and Trick Room. REMOVED FROM THE BASELINE 2026-08-26 (ROADMAP #266) because clause 3 and clause 5 were both red on them: an allowance nobody produces any more is a door the next illegal set walks through. PROVED A REPAIR AND NOT A SCANNER THAT STOPPED LOOKING -- tests/staged_board.js is still the largest single contributor to the sweep at 204 declarations, and `git show 24fe4c5c^:tests/staged_board.js` still declares all eight while HEAD declares none."
+    },
+    {
+      "problem": "Milotic can't learn Charm.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED in commit 24fe4c5c (2026-08-19), by ENGINE rather than by this batch. All eight of these sat in tests/staged_board.js and that commit re-aimed every one onto a move the body can learn -- Iron Defense / Chilly Reception / Tickle / Amnesia / Focus Energy in place of Swords Dance, U-turn, Charm, Ally Switch and Trick Room. REMOVED FROM THE BASELINE 2026-08-26 (ROADMAP #266) because clause 3 and clause 5 were both red on them: an allowance nobody produces any more is a door the next illegal set walks through. PROVED A REPAIR AND NOT A SCANNER THAT STOPPED LOOKING -- tests/staged_board.js is still the largest single contributor to the sweep at 204 declarations, and `git show 24fe4c5c^:tests/staged_board.js` still declares all eight while HEAD declares none."
+    },
+    {
+      "problem": "Staraptor can't learn Swords Dance.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED in commit 24fe4c5c (2026-08-19), by ENGINE rather than by this batch. All eight of these sat in tests/staged_board.js and that commit re-aimed every one onto a move the body can learn -- Iron Defense / Chilly Reception / Tickle / Amnesia / Focus Energy in place of Swords Dance, U-turn, Charm, Ally Switch and Trick Room. REMOVED FROM THE BASELINE 2026-08-26 (ROADMAP #266) because clause 3 and clause 5 were both red on them: an allowance nobody produces any more is a door the next illegal set walks through. PROVED A REPAIR AND NOT A SCANNER THAT STOPPED LOOKING -- tests/staged_board.js is still the largest single contributor to the sweep at 204 declarations, and `git show 24fe4c5c^:tests/staged_board.js` still declares all eight while HEAD declares none."
+    },
+    {
+      "problem": "Toxapex can't learn U-turn.",
+      "was": "PRE-EXISTING",
+      "fixed": "REPAIRED in commit 24fe4c5c (2026-08-19), by ENGINE rather than by this batch. All eight of these sat in tests/staged_board.js and that commit re-aimed every one onto a move the body can learn -- Iron Defense / Chilly Reception / Tickle / Amnesia / Focus Energy in place of Swords Dance, U-turn, Charm, Ally Switch and Trick Room. REMOVED FROM THE BASELINE 2026-08-26 (ROADMAP #266) because clause 3 and clause 5 were both red on them: an allowance nobody produces any more is a door the next illegal set walks through. PROVED A REPAIR AND NOT A SCANNER THAT STOPPED LOOKING -- tests/staged_board.js is still the largest single contributor to the sweep at 204 declarations, and `git show 24fe4c5c^:tests/staged_board.js` still declares all eight while HEAD declares none."
+    },
+    {
+      "problem": "Toxapex can't learn Swords Dance.",
+      "was": "PAIR-ONLY (no verdict sentence -- validateTeam stopped at U-turn on the same body)",
+      "fixed": "REPAIRED in commit 24fe4c5c (2026-08-19), by ENGINE rather than by this batch. All eight of these sat in tests/staged_board.js and that commit re-aimed every one onto a move the body can learn -- Iron Defense / Chilly Reception / Tickle / Amnesia / Focus Energy in place of Swords Dance, U-turn, Charm, Ally Switch and Trick Room. REMOVED FROM THE BASELINE 2026-08-26 (ROADMAP #266) because clause 3 and clause 5 were both red on them: an allowance nobody produces any more is a door the next illegal set walks through. PROVED A REPAIR AND NOT A SCANNER THAT STOPPED LOOKING -- tests/staged_board.js is still the largest single contributor to the sweep at 204 declarations, and `git show 24fe4c5c^:tests/staged_board.js` still declares all eight while HEAD declares none."
     }
   ],
   "verdicts": [
@@ -173,36 +213,6 @@
       "why": "PRE-EXISTING. Agility is the carried boost the test is about; a legal replacement has to boost the same stat on the same body, which is a fixture redesign rather than a rename.",
       "sites": [
         "tests/test-switch-carry.js:80"
-      ]
-    },
-    {
-      "problem": "Clefable can't learn Trick Room.",
-      "kind": "PRE-EXISTING",
-      "cls": "PAIRING",
-      "carriers": 61,
-      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
-      "sites": [
-        "tests/staged_board.js:271"
-      ]
-    },
-    {
-      "problem": "Corviknight can't learn Ally Switch.",
-      "kind": "PRE-EXISTING",
-      "cls": "PAIRING",
-      "carriers": 30,
-      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
-      "sites": [
-        "tests/staged_board.js:584"
-      ]
-    },
-    {
-      "problem": "Corviknight can't learn Swords Dance.",
-      "kind": "PRE-EXISTING",
-      "cls": "PAIRING",
-      "carriers": 102,
-      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
-      "sites": [
-        "tests/staged_board.js:679"
       ]
     },
     {
@@ -244,26 +254,6 @@
       "sites": [
         "tests/staged_board.js:559",
         "tests/staged_status_counters.js:379"
-      ]
-    },
-    {
-      "problem": "Kangaskhan can't learn Swords Dance.",
-      "kind": "PRE-EXISTING",
-      "cls": "PAIRING",
-      "carriers": 102,
-      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
-      "sites": [
-        "tests/staged_board.js:609"
-      ]
-    },
-    {
-      "problem": "Milotic can't learn Charm.",
-      "kind": "PRE-EXISTING",
-      "cls": "PAIRING",
-      "carriers": 87,
-      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
-      "sites": [
-        "tests/staged_board.js:554"
       ]
     },
     {
@@ -364,16 +354,6 @@
       ]
     },
     {
-      "problem": "Staraptor can't learn Swords Dance.",
-      "kind": "PRE-EXISTING",
-      "cls": "PAIRING",
-      "carriers": 102,
-      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
-      "sites": [
-        "tests/staged_board.js:678"
-      ]
-    },
-    {
       "problem": "Tinkaton can't learn Iron Defense.",
       "kind": "PRE-EXISTING",
       "cls": "PAIRING",
@@ -381,16 +361,6 @@
       "why": "PRE-EXISTING. The status-counter staging batch. Seven of these are already on data/fixture-learnset-baseline.json, which the turn-1 clause in tests/staged_board.js reads; this baseline is the superset and neither may grow.",
       "sites": [
         "tests/staged_status_counters.js:503"
-      ]
-    },
-    {
-      "problem": "Toxapex can't learn U-turn.",
-      "kind": "PRE-EXISTING",
-      "cls": "PAIRING",
-      "carriers": 71,
-      "why": "PRE-EXISTING. A staged-board scenario in the whole-game differential. Repairing it changes what the scenario measures — the body was chosen for its typing, bulk or speed and a legal replacement moves the board — so these are their own batch, not this one. tests/staged_board.js is not MEASURE's file; filed to the owner of the differential.",
-      "sites": [
-        "tests/staged_board.js:468"
       ]
     },
     {
@@ -428,36 +398,6 @@
       "carriers": 95,
       "sites": [
         "tests/test-switch-carry.js:80"
-      ]
-    },
-    {
-      "problem": "Clefable can't learn Trick Room.",
-      "cls": "PAIRING",
-      "kind": "move",
-      "entity": "Trick Room",
-      "carriers": 61,
-      "sites": [
-        "tests/staged_board.js:271"
-      ]
-    },
-    {
-      "problem": "Corviknight can't learn Ally Switch.",
-      "cls": "PAIRING",
-      "kind": "move",
-      "entity": "Ally Switch",
-      "carriers": 30,
-      "sites": [
-        "tests/staged_board.js:584"
-      ]
-    },
-    {
-      "problem": "Corviknight can't learn Swords Dance.",
-      "cls": "PAIRING",
-      "kind": "move",
-      "entity": "Swords Dance",
-      "carriers": 102,
-      "sites": [
-        "tests/staged_board.js:679"
       ]
     },
     {
@@ -499,26 +439,6 @@
       "sites": [
         "tests/staged_board.js:559",
         "tests/staged_status_counters.js:379"
-      ]
-    },
-    {
-      "problem": "Kangaskhan can't learn Swords Dance.",
-      "cls": "PAIRING",
-      "kind": "move",
-      "entity": "Swords Dance",
-      "carriers": 102,
-      "sites": [
-        "tests/staged_board.js:609"
-      ]
-    },
-    {
-      "problem": "Milotic can't learn Charm.",
-      "cls": "PAIRING",
-      "kind": "move",
-      "entity": "Charm",
-      "carriers": 87,
-      "sites": [
-        "tests/staged_board.js:554"
       ]
     },
     {
@@ -608,16 +528,6 @@
       ]
     },
     {
-      "problem": "Staraptor can't learn Swords Dance.",
-      "cls": "PAIRING",
-      "kind": "move",
-      "entity": "Swords Dance",
-      "carriers": 102,
-      "sites": [
-        "tests/staged_board.js:678"
-      ]
-    },
-    {
       "problem": "Tinkaton can't learn Iron Defense.",
       "cls": "PAIRING",
       "kind": "move",
@@ -625,26 +535,6 @@
       "carriers": 105,
       "sites": [
         "tests/staged_status_counters.js:503"
-      ]
-    },
-    {
-      "problem": "Toxapex can't learn Swords Dance.",
-      "cls": "PAIRING",
-      "kind": "move",
-      "entity": "Swords Dance",
-      "carriers": 102,
-      "sites": [
-        "tests/staged_board.js:468"
-      ]
-    },
-    {
-      "problem": "Toxapex can't learn U-turn.",
-      "cls": "PAIRING",
-      "kind": "move",
-      "entity": "U-turn",
-      "carriers": 71,
-      "sites": [
-        "tests/staged_board.js:468"
       ]
     },
     {

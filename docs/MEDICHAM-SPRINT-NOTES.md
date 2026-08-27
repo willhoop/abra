@@ -21,6 +21,36 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE FIXTURE-LEGALITY GATE WAS RED AT FIVE AND THREE OF THE FIVE WERE THE GATE. 5 FAILED -> **ALL GREEN**, BASELINE **22 -> 15 VERDICTS / 23 -> 15 PAIRS**, NO ALLOWANCE ADDED. NO GAME NUMBER MOVED AND NONE COULD. 2026-08-26 (MEASURE).
+
+ROADMAP **#266 UPDATED**. CHANGELOG 5.151.0. Full account:
+`docs/_reports/2026-08-26-fixture-legality.md`. **No release cut — nothing in this batch plays a game.**
+
+| the five | what it actually was |
+|---|---|
+| `Incineroar can't learn Knock Off.` | **REAL**, `tests/test-protocol-trace.js:437`, introduced by `3050904d` the same night. Repaired to **Darkest Lariat** — `canLearn` true, same job, and the slot's whole script is Protect |
+| `Milotic can't learn Calm Mind.` | **REAL as a typed name, inert at runtime.** `[IDLE === 'Calm Mind' ? 'Recover' : IDLE]` against a constant `IDLE = 'Calm Mind'` — a branch that can never be taken, still typing the name |
+| 7 stale verdicts + 8 stale pairs | **REAL.** All in `tests/staged_board.js`, all repaired by ENGINE in `24fe4c5c`. Removed with evidence: `24fe4c5c^` declares eight, HEAD declares none, and the file still contributes **204 declarations** |
+| 5 "literals that name nothing" | **THE INSTRUMENT.** Three FAIL-message fragments and two padding strings |
+
+**THE INSTRUMENT DEFECT IS THE ROW.** Helper detection judged a `const` on `src.slice(at, at + 500)`,
+a window that runs off the end of the declaration. Both files pair `const ok = (cond, label, extra)`
+with `const stage = rows => rows.map(r => ({ species: r[0], ..., moves: r[3] }))`, so `ok` inherited
+`stage`'s evidence and **every assertion in both files became a set declaration** — which is how
+`'medicham='` was read as the species Medicham. Window now stops at the next top-level declaration.
+Measured: **875 -> 872 declarations, the full set diff is exactly the three phantom rows**, strays 5 -> 0.
+
+**AND THE ANSWER TO "DOES IT CATCH THE CLASS" IS NO — THREE SHAPES WALK PAST, MEASURED NOT GUESSED.**
+(1) a positional row whose moves array is not in slot 2 (`stage(rows)` in **thirteen** files writes
+moves LAST): **413 rows / 157 distinct sets, 124 invisible today, 21 REJECTED by the validator, 15
+verdict sentences not on the baseline**; (2) `engine/validate_damage.js`'s golden master — two species
+and a move, all scalars, no array — **36 rows, 0 problems today**, and it is where Choice Band, Choice
+Specs and an Amoonguss were found *by a human* on 2026-08-25; (3) rule 1's normalisation, which lets a
+punctuated fragment "name itself". **(1) was measured and NOT armed**: arming it reds the gate by
+fifteen verdicts in files this batch does not own, and those repairs move boards —
+`probe_turn_order.js` stages Agility *because it is about speed brackets*. Same order matcher (C)
+followed: measure, repair, then arm.
+
 ## A DERIVED TAG WITH 992 USES AND NO READER IN EITHER ENGINE. CENSUS 753/753 -> **754 LIVE / 754 PROBED / 0 MISSING**. WHOLE-GAME UNMOVED AT 8 OF 961 (RAW 13), BOARD-MATERIAL UNMOVED AT 2, MECHANICS CLAUSE UNMOVED AT 8 OF 16, DIFFERENTIAL STILL 0 OF 6000 AT ALL SIXTEEN ARMS. 2026-08-26 (ENGINE).
 
 Release **`6272fa445b73`**. ROADMAP **#466 CLOSED**. CHANGELOG 5.150.0. Full account:

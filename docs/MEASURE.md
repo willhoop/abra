@@ -53,6 +53,38 @@ restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
 
+### THE FIXTURE-LEGALITY GATE WAS RED AT FIVE AND THREE OF THE FIVE WERE THE GATE — 2026-08-26
+
+Full account: `docs/_reports/2026-08-26-fixture-legality.md`. ROADMAP #266. CHANGELOG 5.151.0.
+
+5 FAILED → **ALL GREEN**, baseline **22 → 15 verdicts / 23 → 15 pairs**, no allowance added.
+**Two real illegal entities** (`Incineroar can't learn Knock Off.`, one commit old; `Milotic can't
+learn Calm Mind.`, a ternary branch that can never be taken and typed the name anyway) and **eight
+stale allowances** that ENGINE had already repaired in `24fe4c5c` — proved a repair rather than a
+scanner that stopped looking, since `24fe4c5c^` declares all eight, HEAD declares none, and the file is
+still the sweep's largest contributor at 204 declarations.
+
+**The other three failures were the ruler.** Helper detection judged a top-level `const` on a flat
+500-character window that ran off the end of the declaration, so `const ok = (cond, label, extra)`
+inherited the `const stage = rows => rows.map(...)` beneath it and **every assertion in two files was
+scanned as a set declaration** — `'medicham='` read as the species Medicham. Fixed at the window;
+measured at **875 → 872 declarations, diff exactly the three phantom rows**, strays 5 → 0.
+
+**AND THE CHECK DOES NOT CATCH THE CLASS, WITH A COUNT.** Three shapes walk past it. The largest is a
+positional row whose moves array is not in slot 2 — `stage(rows)` in thirteen files writes moves
+LAST — hiding **124 distinct sets, 21 of them illegal, 15 verdict sentences not on the baseline**.
+It was measured and **deliberately not armed**: those repairs change what their scenarios measure and
+belong to the divisions that own them, which is the same order matcher (C) followed. Second is
+`engine/validate_damage.js`'s golden master (two species and a move, all scalars, no array) — the
+file where a human, not this gate, found Choice Band, Choice Specs and an Amoonguss on 2026-08-25;
+audited by hand at **36 rows, 0 problems**, clean and still unseen. Third is rule 1's normalisation,
+which lets a punctuated fragment "name itself".
+
+**No game number moved and none could** — no engine byte, no census, no differential, no release.
+Neither edited fixture was re-run; this batch may not play a game, so that is a PREDICTION and is
+recorded as OWED in the report.
+
+
 ### CLOSED. ONE DECLARED LIST, ONE READER — THE MECHANICS CLAUSE COUNTED A ROW THE WHOLE-GAME CLAUSE HAD ALREADY DECLARED — 2026-08-26
 
 Full account: `docs/_reports/2026-08-26-declared-list.md`. ROADMAP #464. CHANGELOG 5.147.0.
