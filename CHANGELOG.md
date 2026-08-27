@@ -49,6 +49,41 @@ silently rewritten; what changed and why is stated.
   Those are not classified here: an entry in that table is a written judgement about a file, and half
   of these were still being written by the division that owns them.
 
+## [5.156.1] — 2026-08-27
+
+### Fixed
+- **RETRACTED: "BOARD-MATERIAL 4 -> 3" IN 5.156.0 WAS TWO QUANTITIES SUBTRACTED, AND THE PREDICTION
+  ACTUALLY HELD.** ENGINE, correcting its own figure the same day; caught by the coordinator diffing
+  `data/game-differential.json` against the report rather than by any gate. Full account:
+  `docs/_reports/2026-08-27-three-lines.md`.
+  **`games - games_board_never_diverged` is 4 -> 4, UNMOVED**, on two budget-matched artifacts —
+  identical `pins.digest 2efbc9ed1946`, 961 games, arm `middle`, the same census pin `9446a684709d` and
+  the same team pool `0d103fb9fa87`. Matched by SEED rather than by turn, the turn-6 board entry is the
+  SAME game with the SAME two leaves (`p1.party.ditto.species`, `p1.party.ditto.types`); only
+  `protocol_diverged_at_turn` moved, `7 -> null`.
+- **THE 3 WAS THE PER-CAUSE TABLE, WHICH IS A BREAKDOWN OF THE PROTOCOL-PARTED SET.**
+  `BOARD-MATERIAL n causes, n games` is keyed on a game's PROTOCOL first-divergence cause, so a game
+  leaves it when its protocol divergence closes **whether or not any board improved**. The two
+  populations reconcile exactly: before, 4 board-parted games = 4 carrying a cause + 0 without; after,
+  4 board-parted = 3 carrying a cause + 1 without. **Quote
+  `games - games_board_never_diverged`** — it is what `game_differential.js` prints as its headline and
+  the only one of the two that `engine/wire_ladder.js` consumes.
+- **ROADMAP #470 IS RECLASSIFIED TO NARRATION-ONLY FOR THE BOARD, AS ORIGINALLY FILED.** The board
+  divergence in that game was and remains a transform one engine holds and the authority does not — the
+  `party.species` / `party.types` pair the 2026-08-26 rebaseline put in the end-state worklist for the
+  first time. It has nothing to do with the hazard. **The fix removed the cause line and left the board
+  parting**, which is a worse place for that entry to sit than before: a board that parts with nothing
+  in the narration pointing at it. The board-material worklist is unchanged at four.
+
+### Notes
+- **NOTHING WAS RE-RUN TO MAKE THE NUMBERS AGREE.** The before-artifact was read out of git
+  (`git show 4ba3f3a7^:data/game-differential.json`) and both `pins` blocks were compared first, because
+  two artifacts of this instrument are not comparable unless the requested budget matches.
+- **NO ENGINE BYTE MOVED.** `engine/medicham2-browser.js` is untouched by this version; release
+  `d03fb31456e2` still describes the tree and no re-cut is owed. The three fixes, their knobs, their
+  probes, the census at 754/754/0, the 0-of-6000 damage differential and the three roster stages all
+  stand exactly as 5.156.0 reported them.
+
 ## [5.156.0] — 2026-08-27
 
 ### Fixed
@@ -91,10 +126,10 @@ silently rewritten; what changed and why is stated.
   --census data/verification/census-pin-9446a684709d.json --state --end-state --write`, team pool
   `0d103fb9fa87` - the same census pin and the same pool as the 2026-08-26 rebaseline, so this is a
   before/after and not two instruments subtracted. Whole-game clause **13 -> 10 of 961**, raw
-  **18 -> 15**, board-material **4 -> 3**. Board-material was predicted UNMOVED; the cause that left is
+  **18 -> 15**. ~~board-material **4 -> 3**. Board-material was predicted UNMOVED; the cause that left is
   exactly the hazard card (`turn 6  |-fail|p1b <> |upkeep`), which is classed `event missing from
-  medicham2` and reads as narration and is not. The other three board-material causes are byte-identical
-  to the list this batch inherited.
+  medicham2` and reads as narration and is not.~~ **THAT SENTENCE IS RETRACTED IN 5.156.1 BELOW.
+  Board-material is UNMOVED at 4 and the prediction held**; the 3 was a different quantity.
 
 ### Notes
 - **THE HANDED DIAGNOSIS WAS WRONG ON TWO OF THE THREE CARDS, AND BOTH WERE SHOWN WRONG RATHER THAN

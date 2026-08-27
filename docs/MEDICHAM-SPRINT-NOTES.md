@@ -42,9 +42,13 @@ said to be unregistered, so its red would not propagate. It is registered, becau
 the run list is DERIVED by glob rather than typed — `--list` prints `RUN tests/test-fixture-legality.js`
 and the file exits 1 standalone. What IS hand-maintained is the engine-side `GATES` array and the two
 exemption tables, and **the assertion auditing them is red at 18 unaccounted-for checks today**, three
-of which were created by another division during this pass. — AND THE ONE FILED AS NARRATION WAS BOARD-MATERIAL. **WHOLE-GAME CLAUSE 13 -> 10 OF 961, RAW 18 -> 15, BOARD-MATERIAL 4 -> 3.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27 (ENGINE).
+of which were created by another division during this pass.
 
-CHANGELOG 5.156.0. Register rows: ROADMAP **#468, #469, #470 — all three closed**; **#415 reopened and
+---
+
+## THREE LINES, THREE KNOBS, THREE PROBES. **WHOLE-GAME CLAUSE 13 -> 10 OF 961, RAW 18 -> 15, BOARD-MATERIAL UNMOVED AT 4.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27 (ENGINE).
+
+CHANGELOG 5.156.0, corrected by 5.156.1. Register rows: ROADMAP **#468, #469, #470 — all three closed**; **#415 reopened and
 re-closed** (its clock fix was right and did not cover a SECOND chop). Release cut: **`d03fb31456e2`**.
 Full account: `docs/_reports/2026-08-27-three-lines.md`.
 
@@ -54,11 +58,19 @@ Full account: `docs/_reports/2026-08-27-three-lines.md`.
 | step 0 is decided above the shield | `MEDI_INVULN_BELOW_SHIELD=1` | `tests/probe_protect_stage_order.js` | `\|-miss\|p1b\|p2b <> \|-activate\|p2a\|protect` |
 | a capped hazard announces its failure | `MEDI_HAZARD_RECAP_SILENT=1` | `tests/probe_hazard_recap_fail.js` | `\|-fail\|p1b <> \|upkeep` |
 
-**THE PREDICTION MISSED ONCE, IN THE GOOD DIRECTION, AND THE MISS IS NAMED.** Board-material was
-predicted UNMOVED at 4 because the hazard card is classed `event missing from medicham2`, which reads
-as narration. The cause that left the board-material worklist is exactly that card
-(`turn 6  |-fail|p1b <> |upkeep`); the other three causes are byte-identical to the list this batch
-inherited. One cause leaving, not a reshuffle.
+**RETRACTED THE SAME DAY, AND THE PREDICTION ACTUALLY HELD.** This row first said board-material moved
+4 -> 3 and that the cause which left was the hazard card. **Both halves are withdrawn.**
+`games - games_board_never_diverged` is **4 -> 4, UNMOVED**, on two budget-matched artifacts (identical
+`pins.digest 2efbc9ed1946`, 961 games, same arm, same census pin, same team pool). The turn-6 entry
+never left: matched by SEED (`...654486674`) it is the same game with the same two leaves
+(`p1.party.ditto.species`, `p1.party.ditto.types`), and only `protocol_diverged_at_turn` moved,
+`7 -> null`. The **3** was the stdout line `BOARD-MATERIAL 3 causes, 3 games`, a per-cause table keyed
+on a game's PROTOCOL first-divergence cause — so the game left the TABLE when its protocol divergence
+closed, while its board went on parting. **Quote `games - games_board_never_diverged`**; the per-cause
+count falls when a protocol divergence closes whether or not a board improved. **Fix #3 is therefore
+narration-only for the board, as originally filed**, and the board-material worklist is unchanged at
+four with its fourth entry now carrying no cause line at all. Caught by the coordinator diffing the
+artifact against the report.
 
 **TWO OF THE THREE HANDED DIAGNOSES WERE WRONG AND BOTH WERE SHOWN WRONG RATHER THAN ARGUED.** The
 Throat Chop card was handed over with `_trap` named as the same defect — `!tg._trap` already guards its
@@ -75,7 +87,7 @@ Listed in full in the report.
 
 ---
 
-## THREE LINES, THREE KNOBS, THREE PROBES - AND THE ONE FILED AS NARRATION WAS BOARD-MATERIAL. **WHOLE-GAME CLAUSE 13 -> 10 OF 961, RAW 18 -> 15, BOARD-MATERIAL 4 -> 3.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27 (ENGINE).
+## THREE LINES, THREE KNOBS, THREE PROBES. **WHOLE-GAME CLAUSE 13 -> 10 OF 961, RAW 18 -> 15, BOARD-MATERIAL UNMOVED AT 4.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27 (ENGINE).
 
 CHANGELOG 5.156.0. Register rows: ROADMAP **#468, #469, #470 - all three closed**; **#415 reopened and
 re-closed** (its clock fix was right and never covered a SECOND chop). Release cut: **`d03fb31456e2`**.

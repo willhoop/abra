@@ -89,7 +89,7 @@ _stamped 2026-08-27 01:01_
 
 <!-- /GENERATED -->
 
-## THREE LINES, THREE KNOBS, THREE PROBES - AND THE ONE FILED AS NARRATION WAS BOARD-MATERIAL. **WHOLE-GAME CLAUSE 13 -> 10 OF 961, RAW 18 -> 15, BOARD-MATERIAL 4 -> 3.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27.
+## THREE LINES, THREE KNOBS, THREE PROBES. **WHOLE-GAME CLAUSE 13 -> 10 OF 961, RAW 18 -> 15, BOARD-MATERIAL UNMOVED AT 4.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27.
 
 Ledger section: this one. CHANGELOG 5.156.0. Register rows: ROADMAP **#468, #469, #470 - all three
 closed**, and **#415 reopened and re-closed**. Release cut: **`d03fb31456e2`**, named *"three lines:
@@ -108,23 +108,62 @@ and not two instruments subtracted.
 |---|---|---|---|
 | whole-game clause | 13 of 961 | **10 of 961** (15 raw, less 5 declared) | 10 - hit |
 | raw diverged | 18 of 961 | **15 of 961** | 15 - hit |
-| board-material | 4 of 961 | **3 of 961** | unmoved at 4 - **MISSED, in the good direction** |
+| board-material (`games - games_board_never_diverged`) | 4 of 961 | **4 of 961 - UNMOVED** | unmoved at 4 - **hit** |
+| the per-CAUSE board-material table | 4 causes / 4 games | **3 causes / 3 games** | not predicted; a DIFFERENT quantity - see below |
 | boards never parted | 957/961 | 957/961 | unmoved |
 | census | 754 / 754 / 0 | **754 / 754 / 0** | unmoved - hit |
 | roster items / abilities / moves | 139 / 129 / 475 | **identical**, 0 DIFFER, 0 DID-NOT-FIRE | unmoved |
 | `test-engine-diff --n 6000` | 0 of 6000, 16 corners | **0 of 6000, 16 corners** | unmoved |
 
-**THE MISS IS NAMED AND ATTRIBUTED RATHER THAN EXPLAINED AWAY.** Board-material was predicted unmoved
-because the hazard card is classed `event missing from medicham2`, which reads as narration. The cause
-that left the worklist is exactly that card -
+### RETRACTED THE SAME DAY: "BOARD-MATERIAL 4 -> 3" WAS TWO QUANTITIES SUBTRACTED
+
+**THIS SECTION FIRST SAID board-material moved 4 -> 3 and that the cause which left was the hazard
+card, "classed `event missing from medicham2`, which reads as narration and is not". BOTH HALVES ARE
+WITHDRAWN.** The prediction held; the explanation described a movement that did not happen. Caught by
+the coordinator reading `data/game-differential.json` against the report, which is the check this file
+keeps saying a published figure needs.
+
+The two artifacts are budget-matched — identical `pins.digest 2efbc9ed1946`, 961 games, arm `middle`,
+the same census pin and the same team pool — so this is a real before/after:
 
 ```
-  turn 6   event missing from medicham2 :: |-fail|p1b  <>  |upkeep
+  games                                  961 ->  961
+  games_board_never_diverged             957 ->  957      <- UNMOVED
+  derived: games - never                   4 ->    4      <- UNMOVED. The prediction held.
+  protocol_diverged_games                 18 ->   15
+  protocol_diverged_board_never_did       14 ->   12
+  board_parted_before_the_protocol_did     2 ->    2
 ```
 
-- and the other three board-material causes are byte-identical to the ones this batch inherited (the
-recoil `-damage` field 3 at turn 8, the White Herb `-enditem` ordering at turn 4, the spread
-`-damage: a different body` at turn 2). One cause leaving, not a reshuffle.
+**THE TURN-6 ENTRY NEVER LEFT. IT IS THE SAME GAME WITH THE SAME LEAVES**, matched by SEED rather than
+by turn — which is how the mistake survived a reading of the printed worklist:
+
+```
+  seed ...654486674
+     before  turn 6  protocol_diverged_at_turn 7     leaves: p1.party.ditto.species, p1.party.ditto.types
+     after   turn 6  protocol_diverged_at_turn null  leaves: p1.party.ditto.species, p1.party.ditto.types
+```
+
+**WHICH NUMBER WAS THE 3.** The stdout line `BOARD-MATERIAL 3 causes, 3 games`, from the per-cause
+table. **That table is keyed on a game's PROTOCOL first-divergence cause**, so a game appears in it only
+while its protocol parts. The hazard fix removed the protocol divergence from that game entirely, so the
+game dropped out of the cause table **while its board went on parting**. The populations reconcile
+exactly: before, 4 board-parted = 4 with a cause + 0 without; after, 4 board-parted = 3 with a cause +
+1 without.
+
+**THE FIGURE TO QUOTE IS `games - games_board_never_diverged`** — what `game_differential.js` prints as
+its headline (*"GAMES whose board NEVER diverged 957/961"*) and the only one of the two that
+`engine/wire_ladder.js` consumes. The per-cause count is a breakdown of the protocol-parted set and
+**falls when a protocol divergence closes whether or not any board improved.**
+
+**AND THE HAZARD FIX (ROADMAP #470) IS RECLASSIFIED: THE `-fail` IS NARRATION-ONLY FOR THE BOARD, AS ORIGINALLY FILED.**
+The board divergence in that game was, and remains, a transform one engine holds and the authority does
+not — the `party.species` / `party.types` pair the 2026-08-26 rebaseline put in the end-state worklist
+"for the first time". It has nothing to do with the hazard. **The fix made it visible as an UNCAUSED
+board parting rather than closing it**, which is a worse place for it to sit than before: a board that
+parts with nothing in the narration pointing at it.
+
+**THE BOARD-MATERIAL WORKLIST IS UNCHANGED AT FOUR**, and its fourth entry now has no cause line.
 
 ### THE THREE, EACH WITH ITS OWN KNOB AND ITS OWN PROBE
 
