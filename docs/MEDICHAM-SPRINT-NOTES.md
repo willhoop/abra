@@ -21,6 +21,69 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A MEGA THAT ARRIVES HOLDING TRACE COPIES *AND THEN RUNS* WHAT IT COPIED — THE COPY WAS IN ONE PLACE AND THE RUN IN ANOTHER. **BOARD-MATERIAL 11 -> 10 OF 961 AND WHOLE-GAME 14 -> 13 OF 961, BOTH PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS UNMOVED AT 764 LIVE / 764 PROBED / 0 MISSING.** 2026-08-27.
+
+Release `549cdbdd8060`, arm `middle`, `--games 1200` (yields 961), cap 12,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+Register row: ROADMAP **#492 — CLOSED**. CHANGELOG 5.179.0.
+Full account: `docs/_reports/2026-08-27-whiteherb-drop.md`.
+
+**WHAT LOWERED ATTACK ON BOTH BODIES.** `Pokemon#setAbility` ends
+`singleEvent('Start', ability, ...)` (`sim/pokemon.ts:1946`), so every ability write runs the NEW
+ability's `Start`. A mega evolution reaches it through `formeChange` with `isPermanent`, and
+`isFromFormeChange` suppresses the `SetAbility` event and the `-ability` announcement, **not** the
+`Start` handler. Trace (`data/abilities.ts:5110`; `data/mods/champions/abilities.ts` is 100 lines and
+carries no `trace` row, grepped case-insensitively over the WHOLE file, so Champions inherits
+mainline) is `onStart` -> `singleEvent('Update')` -> `onUpdate` -> `setAbility(copied, target)` ->
+**the copied ability's `Start`**. A mega forme whose ability is Trace therefore copies an Intimidate
+off a foe and drops BOTH foes, inside the evolution, before anything else that turn.
+
+**IT IS NOT THE FOE'S OWN INTIMIDATE, AND THAT WAS DERIVED RATHER THAN ASSUMED.** In
+`pair-protect-bust`, seed `...-2657559916 vs ...-2657524920` turn 10, an Incineroar's own Intimidate
+fires six lines earlier and both engines agree on it; the diverging drop is the mega's traced COPY of
+it, fired back at p2. `Meowstic-M-Mega` abilities, derived: `{"0":"Trace"}`. The `|-ability|` lines
+are invisible in the divergence card because `game_differential.js` drops them under its own
+`ability-announcement` equivalence — `data/divergence-turns.json` holds **zero** `-ability` lines of
+any kind — which is why the drop reads as source-less there and is not.
+
+**WHERE IT WAS.** `megaEvolveNow` wrote the mega's ability and called `applyEntryEffects` +
+`applyEntryDrops` with the body holding `trace`, which drops nothing; the copy landed LATER at a
+`traceSweep` boundary, where no entry effect runs. Both ORDINARY Trace doors already do it in the
+right order — `traceCopy(...)` then `applyEntryEffects(...)` — and `traceCopy`'s own header has
+claimed that ordering since it was written. The mega door was simply not one of those callers. **The
+fix is one call**, in that same order, behind `MEDI_MEGA_TRACE_LATE=1`.
+
+**THE PROBE:** `tests/probe_mega_trace_entry.js`. Six arms over two engines, no typed expectation, the
+quantity read out of both streams. Three reds (A, B, F) and three over-fire controls (C the mega's own
+Intimidate, D a traced ability with no `onStart`, **E the ordinary switch-in door, which was measured
+CORRECT before this pass** — a fix that moved it would be doing the copy twice). A fixture audit
+DERIVES `SOURCES` and per-foe `REASONS` and refuses any cell qualifying twice. Under the knob the
+three reds part and the three controls hold, with `MEDFAILS.megaTraceLate` asserted present-on-knob
+and absent-clean.
+
+**WILL'S WHITE HERB QUESTIONS.** It clears **every** negative stage in one consumption, positives
+untouched, both engines — Champions overrides the item at `data/mods/champions/items.ts:1023` with
+`inherit: true` plus a rewritten `onAnyAfterMove`, and the clearing body is mainline `data/items.ts`,
+which loops the whole boost table and applies it with one `setBoost`. It clears an Intimidate (at
+`onAnySwitchIn` priority −2 and, as of this batch, at `onAnyAfterMega`) and it **does** fire the
+item-loss consequences: the spend goes through `useItem()`, which raises `AfterUseItem`, so Unburden's
+`onModifySpe -> chainModify(2)` volatile lands and `passItemFromAlly` gives Symbiosis its turn last.
+
+**MEASURED:** raw diverged 19 -> 18; whole-game **14 -> 13 of 961**; `board_never_diverged` 950 -> 951;
+board-material **11 -> 10 of 961**; `board_parted_before_the_protocol_did` unmoved at 4; threw 0. Both
+row sets DIFFED — exactly one game gone from each, the right one, nothing new. **UNMOVED:** census 764
+live / 764 probed / 0 missing; the damage gate 0 of 6000 at all sixteen corners, re-run in full because
+an attack-stage change reaches damage; the pin digest, because no die changed. **The three roster
+stages are now clean** — 139 / 129 / 475 with 0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`.
+
+**OWED:** `receiverSweep` and `traceSweep`'s deferred copies have the identical gap and were not
+touched; nothing stages a mega-Trace onto a weather setter; and, found while reading and deliberately
+not fixed, **Champions moves White Herb's after-move trigger into the queue** —
+`data/mods/champions/items.ts:1023` replaces `onAnyAfterMove` with an `insertChoice` of a `WhiteHerb`
+event at `order: 99`, *"before switches"* — where this engine fires that pass inline. A
+Champions-specific timing difference, no probe, no row.
+
+
 ## A QUEUE INSERTION TIE WAS EATING TRACE'S ADDRESS — THE MIDDLE ARM LET THE RANGE FORM DRAW WHERE ALL THREE SCALAR ARMS PIN IT. **BOARD-MATERIAL 12 -> 11 OF 961, PREDICTED BEFORE THE RUN. WHOLE-GAME UNMOVED AT 14 OF 961. PIN DIGEST `f646b0163bc0` -> `44bd49403231`.** 2026-08-27.
 
 Release `f9f3a61481cb`, arm `middle`, 961 games, cap 12, `--team-store data/team-pool-frozen`, census

@@ -963,6 +963,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                        DEFAULT WOULD LOOK EXACTLY LIKE THE DIE WORKING, so it is counted apart. */
   traceCopied: 0, traceFoundNothing: 0, traceAmbiguousChoice: 0,
   traceRetryCopied: 0, traceChoiceDie: 0, traceChoiceNoDie: 0,
+  /* 2026-08-27 -- a copy made by the MEGA door, where the copied ability's entry effect then runs.
+   * Counted apart from `traceCopied` because "Trace copied something" and "the evolution itself
+   * copied it, in time for the drop" are different facts, and only the second is the new wire. A zero
+   * on a run whose scenarios mega into a Trace forme means this door is dead again. */
+  megaTraceCopied: 0,
   /* ROADMAP #92 -- CONFUSION, which did not exist in this engine at all until this pass, so every
    * one of these was structurally zero and there was nothing to notice. Each is a different event and
    * a zero on each says a different thing:
@@ -6309,6 +6314,14 @@ const residualExpiryDeferred = () => [...RESIDUAL_EXPIRY.entries()]
 const ENDTURN_CLOCKS_AT_FOOT = (typeof process !== 'undefined' && process.env
   && process.env.MEDI_ENDTURN_CLOCKS_AT_FOOT === '1');
 if (ENDTURN_CLOCKS_AT_FOOT) MEDFAILS.endturnClocksAtFoot = 1;
+/* 2026-08-27 -- `MEDI_MEGA_TRACE_LATE=1` puts the mega door's Trace copy back where it was: out of
+ * `megaEvolveNow` entirely, left to the next `traceSweep` boundary, where the copied ability's entry
+ * effect never runs. It reverts ONE call so a probe can attribute a parting to that call rather than
+ * to Trace, and it stamps `MEDFAILS.megaTraceLate` so a run under it can never be read as a clean
+ * one -- the receipt exists because a knob that reaches no module reads as a row of held controls. */
+const MEGA_TRACE_LATE = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_MEGA_TRACE_LATE === '1');
+if (MEGA_TRACE_LATE) MEDFAILS.megaTraceLate = 1;
 /* `volDuration` = spend it through `m._vol[id]` and `endDurationVolatile`, which is what the foot
  * loop over `durationVolatiles()` did; the other three are this engine's own named fields. */
 const RESIDUAL_CLOCK_READER = { taunt: 'volDuration', encore: 'volDuration', disable: 'volDuration',
@@ -15985,6 +15998,38 @@ function megaEvolveNow(S,m,auto){
    * discarded here rather than restored over the mega on the next pivot. */
   m.ability=ab; m.baseAbility=ab; m._preAb=undefined;
   const own=sd==='B'?S.actB:S.actA, foes=sd==='B'?S.actA:S.actB;
+  /* 2026-08-27 -- A MEGA THAT ARRIVES HOLDING TRACE COPIES *AND THEN RUNS* WHAT IT COPIED, HERE.
+   *
+   * `Pokemon#setAbility` ends `singleEvent('Start', ability, ...)` (`sim/pokemon.ts:1946`), and a mega
+   * evolution reaches it through `formeChange` with `isPermanent` -- the flag suppresses the
+   * `SetAbility` event and the `-ability` announcement, NOT the Start handler, which is the same
+   * reading the header above already relies on for Mega Manectric's Intimidate. So the mega forme's
+   * Trace runs its own `onStart` -> `singleEvent('Update')` -> `setAbility(copied, target)` ->
+   * the COPIED ability's `Start`, all inside the evolution (`data/abilities.ts:5110`;
+   * `data/mods/champions/abilities.ts` is 100 lines and carries no `trace` row, grepped over the
+   * WHOLE file, so Champions inherits mainline).
+   *
+   * THE COPY WAS HAPPENING AND THE RUN WAS NOT, AND THE TWO WERE IN DIFFERENT PLACES. This door wrote
+   * the mega's ability and then called `applyEntryEffects` + `applyEntryDrops` with the body holding
+   * `trace`, which drops nothing; the copy landed LATER, at a `traceSweep` boundary, where no entry
+   * effect runs at all. Both ORDINARY Trace doors already do it in this order -- `traceCopy(...)` then
+   * `applyEntryEffects(...)`, at the refill and at the lead pass -- so this is the third caller of an
+   * existing pair, not a new mechanism, and `traceCopy`'s own header has claimed the ordering since it
+   * was written ("the caller runs applyEntryEffects immediately after this").
+   *
+   * FOUND IN A REAL GAME: `pair-protect-bust`, seed ...-2657559916, turn 10. A Meowstic megas into a
+   * Trace forme opposite an Incineroar and a Rampardos, copies Intimidate and drops BOTH; the
+   * Incineroar's White Herb then spends itself clearing its own drop. This engine dropped neither and
+   * the herb never fired. One board-material game of 961; `tests/probe_mega_trace_entry.js`.
+   *
+   * `abRewrite` STAMPS `_preAb` WITH `trace`, WHICH IS CORRECT AND NOT AN ACCIDENT OF ORDER. The
+   * permanent formeChange wrote `baseAbility = trace` two lines up (`sim/pokemon.ts:1495`), and
+   * `clearVolatile` restores FROM that field -- so a mega-Trace body that pivots comes back holding
+   * Trace, not the ability it copied, which is what this leaves behind.
+   *
+   * `MEDI_MEGA_TRACE_LATE=1` reverts exactly this call and nothing else: the sweep still lands the
+   * copy afterwards, so the knob reproduces the engine as it was rather than removing Trace. */
+  if(!MEGA_TRACE_LATE&&traceCopy(m,_live(foes)))MEDSEEN.megaTraceCopied++;
   applyEntryEffects(m,S.field,own.find(x=>x&&x!==m));
   applyEntryDrops(m,_live(foes));
   /* ROADMAP #81 WIRE 11 -- `onAnyAfterMega`, White Herb's third trigger and the one that only exists

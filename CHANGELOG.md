@@ -10,6 +10,107 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.179.0] — 2026-08-27
+
+### Fixed
+- **A MEGA THAT ARRIVES HOLDING TRACE COPIES *AND THEN RUNS* WHAT IT COPIED, AND THIS ENGINE DID THE
+  COPY IN ONE PLACE AND THE RUN IN ANOTHER. BOARD-MATERIAL 11 -> 10 OF 961 AND WHOLE-GAME 14 -> 13 OF
+  961, BOTH PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `44bd49403231`.** ENGINE, ROADMAP `#492`.
+
+  **WHAT LOWERED ATTACK ON BOTH BODIES, CITED.** `Pokemon#setAbility` ends
+  `singleEvent('Start', ability, ...)` (`sim/pokemon.ts:1946`), so every ability write runs the NEW
+  ability's `Start`. A mega evolution reaches it through `formeChange` with `isPermanent`, and the
+  `isFromFormeChange` flag suppresses the `SetAbility` event and the `-ability` announcement, NOT the
+  `Start` handler. Trace (`data/abilities.ts:5110`; `data/mods/champions/abilities.ts` is 100 lines
+  and carries no `trace` row, grepped case-insensitively over the WHOLE file, so Champions inherits
+  mainline) is `onStart` -> `singleEvent('Update')` -> `onUpdate` -> `setAbility(copied, target)` ->
+  **the copied ability's `Start`**. So a mega forme whose ability is Trace copies an Intimidate off a
+  foe and drops BOTH foes, inside the evolution, before anything else on that turn.
+
+  **THE SOURCE WAS DERIVED, NOT ASSUMED, AND IT IS NOT THE FOE'S OWN INTIMIDATE.** The brief named the
+  herb correctly and left the drop's source open. In the recorded game (`pair-protect-bust`, seed
+  `...-2657559916 vs ...-2657524920`, turn 10) an Incineroar's own Intimidate fires six lines earlier
+  and BOTH ENGINES AGREE ON IT; the diverging drop is the mega's traced copy of it, fired back at p2.
+  `Meowstic-M-Mega` abilities, derived from the format: `{"0":"Trace"}`. The `|-ability|` lines are
+  absent from the divergence card because `game_differential.js` drops them under its own
+  `ability-announcement` equivalence — `data/divergence-turns.json` contains ZERO `-ability` lines of
+  any kind — which is why the drop reads as source-less there and is not.
+
+  **ESTABLISHED FROM REPLAYED STREAMS.** The recorded game cannot be replayed in isolation (the
+  driver's choice state accumulates across games in a config and `midClearNth` is not exported), so
+  the mechanism was staged directly with everything derived from the format: Alakazam + Alakazite ->
+  Alakazam-Mega `{"0":"Trace"}` opposite two Intimidate carriers, every click a Protect. The authority
+  wrote `|-ability|…|Intimidate|Trace|[from] ability: Trace|[of] p2b`, then
+  `|-ability|…|Intimidate|boost`, then two `|-unboost|…|atk|1`. Medicham2 wrote the copy line and
+  **nothing else**.
+
+  **WHERE IT WAS.** `megaEvolveNow` wrote the mega's ability and called `applyEntryEffects` +
+  `applyEntryDrops` with the body holding `trace`, which drops nothing; the copy landed LATER at a
+  `traceSweep` boundary, where no entry effect runs at all. Both ORDINARY Trace doors already do it in
+  the right order — `traceCopy(...)` then `applyEntryEffects(...)`, at the refill and at the lead pass
+  — and `traceCopy`'s own header has claimed that ordering since it was written: *"THE COPIED
+  ABILITY'S ENTRY EFFECT IS RUN, because the caller runs `applyEntryEffects` immediately after this …
+  A Trace that copied Intimidate and did not drop Attack would be a second, quieter bug."* The mega
+  door was simply not one of those callers. **THE FIX IS ONE CALL** in that same order.
+  `abRewrite` stamping `_preAb = 'trace'` is correct rather than an accident of ordering: the
+  permanent formeChange wrote `baseAbility = trace` (`sim/pokemon.ts:1495`) and `clearVolatile`
+  restores FROM that field, so a mega-Trace body that pivots comes back holding Trace.
+
+  **THE PROBE — `tests/probe_mega_trace_entry.js`.** Six arms over two engines, one board each, NO
+  typed expectation: the quantity is a count of `|-unboost|p2*|atk|`, `|-enditem|…|White Herb` and
+  Trace-copy lines read out of BOTH streams, and an arm passes when the two engines agree. The
+  entry-drop SHAPE is read off the handler source (`onStart` calling `boost({atk:-1`), never off a
+  name; the herb is the `restoresStats` tag and the file refuses to run unless that tag matches
+  exactly one item. **THE FIXTURE AUDIT REFUSES A CELL THAT QUALIFIES TWICE**: `SOURCES` (how many
+  things on the board could lower a p2 Attack this turn — refused at anything but 1 where a drop is
+  expected, 0 where it is not) and `REASONS` (per foe, how many things could stop the drop STICKING —
+  an ability with `onTryBoost`/`onChangeBoost`/`onAfterEachBoost`, or an item tagged `restoresStats`
+  — REFUSED above 1). Before: A `2/0`, B `2/0` and `1/0` herb spends, F `2/0` and `2/0`. After: every
+  arm equal. `MEDI_MEGA_TRACE_LATE=1` reverts exactly the one call — the sweep still lands the copy,
+  so the knob reproduces the engine as it was rather than removing Trace — and in the child A, B and
+  F part while C, D and E hold. The knob's arrival is asserted through `MEDFAILS.megaTraceLate`,
+  PRESENT on the child and ABSENT on the parent. **ARM E IS THE ONE THAT MATTERS**: the ordinary
+  switch-in Trace door was measured CORRECT before this pass, so a fix that moved it would be doing
+  the copy twice.
+
+  **WILL'S TWO WHITE HERB QUESTIONS, ANSWERED AND CITED.** *Does it clear all the drops or one?*
+  **All of them, in one consumption, positives untouched, both engines.** Champions overrides the item
+  (`data/mods/champions/items.ts:1023`) but only with `inherit: true` plus a rewritten
+  `onAnyAfterMove`; the clearing body is mainline `data/items.ts`, whose `onStart` loops the whole
+  boost table and whose `onUse` applies it with one `setBoost`. So a Close Combat's Def AND SpD both
+  come back on the one herb. This engine matches — `restoreStatsUpdate` loops `m.boosts` and zeroes
+  every negative one. *Does it clear an Intimidate and proc Unburden?* **Yes to both.** The drop is
+  cleared at the `onAnySwitchIn` (priority −2) door and — as of this pass — at `onAnyAfterMega`, which
+  is the door this game needed. The spend goes through `useItem()`, which raises `AfterUseItem`;
+  Unburden's `onAfterUseItem` adds a volatile that is `onModifySpe -> chainModify(2)`, and here
+  `restoreStatsUpdate` sets `m.item = ''` while `effSpeed` reads `_hadItem && !m.item`, so the tier
+  moves in the same instant. `passItemFromAlly` is called last, so Symbiosis answers in the
+  authority's order. `tests/probe_unburden_herb_paths.js` is green on this release.
+
+  **MEASURED**, arm `middle`, `--games 1200` (yields 961), cap 12, `--team-store data/team-pool-frozen`,
+  census pin `9446a684709d`, `--state --end-state`, release `f9f3a61481cb` -> `549cdbdd8060`:
+  raw diverged **19 -> 18**, whole-game **14 -> 13 of 961**, `board_never_diverged` **950 -> 951**,
+  board-material **11 -> 10 of 961**, `board_parted_before_the_protocol_did` unmoved at 4, threw 0.
+  **BOTH ROW SETS WERE DIFFED RATHER THAN COUNTED** — whole-game GONE
+  `pair-protect-bust | t10 | ...-2657559916`, NEW none, the other 18 identical and in order;
+  board-material GONE the same game's `p2.party.rampardos.boosts.atk` + `p2.party.incineroar.item`
+  row, NEW none. **UNMOVED**: census **764 live / 764 probed / 0 missing**; the damage gate **0 of
+  6000 at all sixteen corners** (seed 20260804), re-run in full because an attack-stage change reaches
+  damage; the pin digest, because no die changed. **THE THREE ROSTER STAGES ARE NOW CLEAN** — items
+  139, abilities 129, moves 475 FIRED-AND-BOARDS-MATCH with **0 FIRED-AND-BOARDS-DIFFER and 0
+  DID-NOT-FIRE in all three**; the brief expected 2 and 5 and those had already been fixed earlier the
+  same day, with the roster simply not re-run under the current tree.
+
+  **OWED**: `receiverSweep` has the identical gap under `MEDFAILS.inheritedAbilityStartNotFired`, and
+  `traceSweep`'s DEFERRED copies still run no entry effect — one door was fixed, not the class. And a
+  new thing found while reading and deliberately not fixed: **Champions moves White Herb's after-move
+  trigger into the queue**, `data/mods/champions/items.ts:1023` replacing `onAnyAfterMove` with an
+  `insertChoice` of a `WhiteHerb` event at `order: 99`, *"before switches"*; this engine fires that
+  pass inline. A Champions-specific TIMING difference, no probe, no register row, a different defect.
+  Full account: `docs/_reports/2026-08-27-whiteherb-drop.md`.
+
+---
+
 ## [5.178.0] — 2026-08-27
 
 ### Fixed

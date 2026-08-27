@@ -26,7 +26,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_spread_status_steps.js`, `tests/probe_multihit_update.js`,
 `tests/probe_noguard_invuln.js`, `tests/probe_endturn_clock_order.js`,
 `tests/probe_substitute_status_step.js`, `tests/probe_yawn_substitute.js`,
-`tests/probe_doll_blind_family.js`, `tests/probe_trace_target.js`
+`tests/probe_doll_blind_family.js`, `tests/probe_trace_target.js`,
+`tests/probe_mega_trace_entry.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -38,7 +39,7 @@ this sentence — it was "twelve" until `test-damage-roll-support.js` was added 
 `probe_random_target_address.js` arrived, and "twenty-one" the same day when
 `probe_multihit_update.js` did, and again the same day when `probe_noguard_invuln.js` did.
 and again the same day when `probe_endturn_clock_order.js` did, and again the same day when
-`probe_substitute_status_step.js` did, and again the same day when `probe_yawn_substitute.js` did, and again the same day when `probe_doll_blind_family.js` did, and again the same day when `probe_trace_target.js` did.
+`probe_substitute_status_step.js` did, and again the same day when `probe_yawn_substitute.js` did, and again the same day when `probe_doll_blind_family.js` did, and again the same day when `probe_trace_target.js` did, and again the same day when `probe_mega_trace_entry.js` did.
 A number typed in prose beside a
 table is exactly what CLAUDE.md records going stale three times over.)*
 
@@ -79,6 +80,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 | `probe_substitute_status_step.js` | is the DOLL asked where the authority asks it on the STATUS road, and does it answer what the authority answers — `moveSteps` puts `hitStepAccuracy` at index 4 and the doll at index 7 (`hitStepMoveHitLoop` -> the Champions mod's own `// 0. check for substitute`, `data/mods/champions/scripts.ts:342` -> `tryPrimaryHitEvent`), and `getDamage` returns `undefined` for a `basePower: 0` move so the handler writes `|-fail|` on the MOVER with `[still]`, never `-activate` on the target. Twelve arms over two engines, one turn each, no typed expectation: seven reds across FIVE call sites (`status`, `affect`, `sharesHP`, `trap` and Leech Seed's silent guard conjunct) that must part under `MEDI_SUB_STATUS_AT_TRYHIT=1`, five controls that must not, the affected move set DERIVED and printed every run (eleven), each arm's non-doll refusal-reason count derived and REFUSED above one, and per-arm refusal counts declared ASYMMETRICALLY — 0 clean and 1 on the knob wherever the die gets there first | whether the DOLL's own membership is right: `SUBPASS` is `test-engine-diff.js`'s conformance block and nothing here re-derives it. And `yawn`, which called `subBlocks` NOWHERE — a missing check rather than a misplaced one, and now `probe_yawn_substitute.js`'s |
 | `probe_yawn_substitute.js` | did the yawn branch ask the doll AT ALL — it called `subBlocks` at none of its ten sites, so a Yawn at a substituted body wrote the drowse on the body BEHIND the doll and slept it two turns later, where the authority refuses the move at `tryPrimaryHitEvent` and answers `\|-fail\|<THE MOVER>` with `[still]` (`getDamage` returns `undefined` for `basePower: 0`, `sim/battle-actions.ts:1620`). Six arms over two engines, no typed expectation, each played clean and again under `MEDI_YAWN_IGNORES_SUB=1`: two reds that must part under the knob and four controls that must not, the BOARD consequence asserted as a count of `\|-status\|…\|slp` lines in the medicham stream (0 clean, 1 on the knob) under `--end-state` so the loop runs past the divergent line, the `MEDFAILS` load stamp asserted absent-clean and present-on-knob, and the target's non-doll refusal-reason count DERIVED — including the sleep-blocking ability set read off the format's own handlers — and REFUSED above one | whether the DOLL's own membership is right (`SUBPASS` is `test-engine-diff.js`'s conformance block and nothing here re-derives it), and the eight OTHER action kinds that ask no doll: it is ONE branch, not the sweep. The `[of] <source>` on `\|-start\|…\|move: Yawn` is invisible to it by construction — `game_differential.js` collapses that field under its `source-tag` equivalence |
 | `probe_trace_target.js` | when TWO foes are eligible, do the two engines pick the SAME one on a board where SOMETHING ELSE HAS ALREADY DRAWN at the same address — the authority Trace draw is `this.sample` (`data/abilities.ts:5110` -> `sim/battle.ts:355` -> `sim/prng.ts:132`, and `PRNG#random` advances even at length 1), and the collision is `BattleQueue#insertChoice`'s range-form tie (`sim/battle-queue.ts:395`) taking `nth 0` in the `turn|any|-|-` bucket. Everything derived from the filtered format dex and printed; the eligible-foe count DERIVED and any cell below two REFUSED, and `traceChoiceNoDie > 0` refused outright; the p1b ALLY is the knob and WHICH allies tie is MEASURED off `midRangeCounters()` rather than guessed — 3 TIE boards and 21 NO-TIE over-fire controls, and the file fails if either set is empty; no typed expectation, Showdown's own `|-ability|…|[from] ability: Trace` is the answer; a `MEDI_MID_RANGE_DRAWS=1` child whose numbers the PARENT judges (not its exit code — under the knob the child asserts the defect is PRESENT, so a working knob exits 0) | whether either engine plays the game right — it compares one ability name per board. Whether the value a shared address yields is the value the REAL game would yield: the middle arm's die is a hash and there is no ground truth for which foe, only the claim that both engines read the same one. And every OTHER range-form caller — `Battle.durationCallback` and a condition `onStart` were each measured drawing once in 60 games and are neutralised by the same change with no staged board of their own: named, not covered |
+| `probe_mega_trace_entry.js` | does a mega that arrives holding Trace copy AND THEN RUN what it copied — `setAbility` ends `singleEvent('Start', ability, ...)` (`sim/pokemon.ts:1946`) and a mega reaches it through `formeChange` with `isPermanent`, whose flag suppresses the `SetAbility` event and the `-ability` line and NOT the `Start` handler, so Trace's `onStart` -> `Update` -> `setAbility(copied)` -> the COPIED ability's `Start` all run inside the evolution. Six arms over two engines, one board each, no typed expectation: the quantity is a count of `\|-unboost\|p2*\|atk\|`, `\|-enditem\|…\|White Herb` and Trace-copy lines read out of BOTH streams, three reds and three OVER-FIRE controls (the mega's own Intimidate, a traceable ability with no `onStart`, and the ORDINARY switch-in Trace door that was already right), everything derived from the filtered format dex and printed, the entry-drop SHAPE read off the handler source rather than a name, a fixture audit that DERIVES `SOURCES` and per-foe `REASONS` and REFUSES any cell qualifying twice, and a `MEDI_MEGA_TRACE_LATE=1` child whose `MEDFAILS.megaTraceLate` stamp is asserted present-on-knob and absent-clean | the OTHER copiers, which have the identical gap and are not touched: `receiverSweep` counts it under `MEDFAILS.inheritedAbilityStartNotFired`, and `traceSweep`'s DEFERRED copies have no counter at all. WHICH foe Trace picks — every arm gives both foes the same ability on purpose, so the target die cannot decide any answer here; `probe_trace_target.js` owns that. And a mega-Trace onto a WEATHER setter, which nothing stages |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -89,8 +91,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  764/764 probed mechanics live, 0 missing   (census 2026-08-27 11:02)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-27 10:00)
+  764/764 probed mechanics live, 0 missing   (census 2026-08-27 11:45)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-27 11:47)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -101,7 +103,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c37b82b69701 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is cc56692401a9 now
     (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: WITHHELD — engine/provenance.js calls data/tags.json UNSAFE.
@@ -109,9 +111,200 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 11:22_
+_stamped 2026-08-27 12:05_
 
 <!-- /GENERATED -->
+
+## A MEGA THAT ARRIVES HOLDING TRACE COPIES *AND THEN RUNS* WHAT IT COPIED — THE COPY WAS IN ONE PLACE AND THE RUN IN ANOTHER. **BOARD-MATERIAL 11 -> 10 OF 961 AND WHOLE-GAME 14 -> 13 OF 961, BOTH PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS UNMOVED AT 764 LIVE / 764 PROBED / 0 MISSING.** 2026-08-27.
+
+Release `549cdbdd8060`, arm `middle`, `--games 1200` (yields 961), cap 12,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+Register row: ROADMAP **#492 — CLOSED**. CHANGELOG 5.179.0.
+Full account: `docs/_reports/2026-08-27-whiteherb-drop.md`.
+
+**WHAT LOWERED ATTACK ON BOTH BODIES, CITED RATHER THAN PARAPHRASED.** `Pokemon#setAbility` ends
+
+```js
+sim/pokemon.ts:1946
+  if (ability.id && this.battle.gen > 3 &&
+      (!isTransform || oldAbility.id !== ability.id || this.battle.gen <= 4)) {
+    this.battle.singleEvent('Start', ability, this.abilityState, this, source);
+  }
+```
+
+so EVERY ability write runs the NEW ability's `Start`. A mega evolution reaches it through
+`formeChange` with `isPermanent`; the `isFromFormeChange` flag suppresses the `SetAbility` event and
+the `-ability` announcement, **not** the `Start` handler — the same reading `megaEvolveNow`'s own
+header already relies on for Mega Manectric's Intimidate. Trace (`data/abilities.ts:5110`;
+`data/mods/champions/abilities.ts` is 100 lines and carries no `trace` row, grepped
+case-insensitively over the WHOLE file, so Champions inherits mainline) is `onStart` ->
+`singleEvent('Update')` -> `onUpdate` -> `setAbility(copied, target)` -> **the copied ability's
+`Start`**. A mega forme whose ability is Trace therefore copies an Intimidate off a foe and drops
+BOTH foes, inside the evolution, before anything else that turn.
+
+**THE SOURCE WAS DERIVED AND IT IS NOT THE FOE'S OWN INTIMIDATE.** The brief named the herb correctly
+and left the drop's source open, which was right. In `pair-protect-bust`, seed
+`...-2657559916 vs ...-2657524920` turn 10, an Incineroar's own Intimidate fires six lines earlier and
+**both engines agree on it**; the diverging drop is the mega's traced COPY of it, fired back at p2.
+`Meowstic-M-Mega` abilities, derived from the format: `{"0":"Trace"}`.
+
+**AND THE CARD CANNOT SHOW YOU THAT**, which is worth recording because it is why the drop reads as
+source-less. `game_differential.js` drops `|-ability|` under its own `ability-announcement`
+equivalence: `data/divergence-turns.json` contains **zero** `-ability` lines of any kind, so both the
+Trace copy line and Intimidate's own `|boost|` line are invisible in the divergence context.
+
+**ESTABLISHED FROM REPLAYED STREAMS, NOT FROM THE CARD.** The recorded game cannot be replayed in
+isolation — the driver's choice state accumulates across games within a config and `midClearNth` is
+not exported — so the mechanism was staged directly with everything derived from the format:
+
+```
+SHOWDOWN                                                    MEDICHAM (before)
+|-mega|p1a: Alakazam|Alakazam|Alakazite                    |-mega|p1a: Alakazam|Alakazam|alakazite
+|-ability|p1a: Alakazam|Intimidate|Trace|[from] ability:   |-ability|p1a: Alakazam|intimidate|[from] ability: trace
+    Trace|[of] p2b: Arcanine                               |move|p1a: Alakazam|protect|p1a: Alakazam
+|-ability|p1a: Alakazam|Intimidate|boost
+|-unboost|p2a: Arbok|atk|1
+|-unboost|p2b: Arcanine|atk|1
+```
+
+**The copy happened. The run did not.**
+
+**WHERE IT WAS, AND WHY IT IS ONE CALL AND NOT A NEW MECHANISM.** `megaEvolveNow` wrote the mega's
+ability and called `applyEntryEffects` + `applyEntryDrops` with the body holding `trace`, which drops
+nothing; the copy landed LATER at a `traceSweep` boundary, where no entry effect runs at all. Both
+ORDINARY Trace doors already do it in the right order — `traceCopy(...)` then `applyEntryEffects(...)`,
+at the refill and at the lead pass — and `traceCopy`'s own header has claimed that ordering since it
+was written: *"THE COPIED ABILITY'S ENTRY EFFECT IS RUN, because the caller runs `applyEntryEffects`
+immediately after this … A Trace that copied Intimidate and did not drop Attack would be a second,
+quieter bug."* The mega door was simply not one of those callers.
+
+`abRewrite` stamping `_preAb = 'trace'` is correct rather than an accident of ordering: the permanent
+formeChange wrote `baseAbility = trace` (`sim/pokemon.ts:1495`) and `clearVolatile` restores FROM that
+field, so a mega-Trace body that pivots comes back holding Trace and not what it copied.
+
+**THE FIXTURE AUDIT REFUSES A CELL THAT QUALIFIES TWICE, AND IT IS DERIVED.** `SOURCES` is how many
+things on the board could lower a p2 Attack on the staged turn — refused at anything but 1 where a
+drop is expected and 0 where it is not. `REASONS` is, per foe, how many things could stop the drop
+STICKING (an ability with `onTryBoost`/`onChangeBoost`/`onAfterEachBoost`, or an item tagged
+`restoresStats`) — **refused above 1**. Arms B and F put the herb there on purpose and read exactly 1.
+
+```
+A mega-Trace copies the drop, no items    SOURCES 1 [the ability Trace copies]       Arbok=0  Arcanine=0
+B one foe holds the herb (the real game)  SOURCES 1 [the ability Trace copies]       Arbok=0  Arcanine=1(herb)
+C control - the mega's OWN ability drops  SOURCES 1 [the mega forme's own ability]   Arbok=0  Arcanine=0
+D control - traced onto no onStart        SOURCES 0 [none]                           Abomasnow=0  Absol=0
+E control - the ORDINARY switch-in door   SOURCES 1 [the ability the entrant Traces] Arbok=0  Arcanine=0
+F BOTH foes hold the herb                 SOURCES 1 [the ability Trace copies]       Arbok=1(herb)  Arcanine=1(herb)
+```
+
+| arm | | before — sd / me | after — sd / me |
+|---|---|---|---|
+| A | p2 atk unboosts | 2 / **0** | 2 / 2 |
+| B | p2 atk unboosts, herb spends | 2 / **0**, 1 / **0** | 2 / 2, 1 / 1 |
+| C | p2 atk unboosts | 2 / 2 | 2 / 2 |
+| D | p2 atk unboosts | 0 / 0 | 0 / 0 |
+| E | p2 atk unboosts | 2 / 2 | 2 / 2 |
+| F | p2 atk unboosts, herb spends | 2 / **0**, 2 / **0** | 2 / 2, 2 / 2 |
+
+**ARM E IS THE ONE THAT MATTERS.** The ordinary switch-in Trace door was measured CORRECT before this
+pass, so a fix that moved it would be doing the copy twice. `MEDI_MEGA_TRACE_LATE=1` reverts exactly
+the one call — the sweep still lands the copy afterwards, so the knob reproduces the ENGINE AS IT WAS
+rather than removing Trace — and in the child A, B and F part while C, D and E hold. The knob's
+arrival is asserted through `MEDFAILS.megaTraceLate`, PRESENT on the child and ABSENT on the parent.
+
+### WILL'S TWO WHITE HERB QUESTIONS, ANSWERED AND CITED
+
+*"make sure the white herb undoes both def and spec def drops after a close combat"* — **it clears
+EVERY negative stage in one consumption, positives untouched, both engines.** Champions overrides the
+item at `data/mods/champions/items.ts:1023` but only with `inherit: true` plus a rewritten
+`onAnyAfterMove`; the clearing body is mainline `data/items.ts`, whose `onStart` loops the whole boost
+table into `effectState.boosts` and whose `onUse` applies it with one `setBoost`. So a Close Combat's
+Def AND SpD both come back on the one herb. This engine matches — `restoreStatsUpdate` is
+`for(const k in m.boosts)if(m.boosts[k]<0)m.boosts[k]=0;`.
+
+*"it would also clear an intim for example and proc unburden."* — **both true, both wired.** The drop
+is cleared at the `onAnySwitchIn` (priority −2) door and, as of this batch, at `onAnyAfterMega`, which
+is the door this game needed. The spend goes out through `useItem()`, which raises `AfterUseItem`;
+Unburden's `onAfterUseItem` adds a volatile that is `onModifySpe -> chainModify(2)`. Here
+`restoreStatsUpdate` sets `m.item = ''` and `effSpeed` reads `_hadItem && !m.item`, so the speed tier
+moves in the same instant — an Intimidate makes the body it just weakened move FIRST — and
+`passItemFromAlly` is called LAST so Symbiosis answers in the authority's own order.
+`tests/probe_unburden_herb_paths.js` measures the two doors and is green on this release; arms B and F
+measure the spend itself, 1 of 1 and 2 of 2 against the authority.
+
+### THE MEASUREMENT — LIKE FOR LIKE
+
+| | before (`f9f3a61481cb`) | after (`549cdbdd8060`) |
+|---|---|---|
+| pin digest | `44bd49403231` | `44bd49403231` (unmoved — no die changed) |
+| games | 961 | 961 |
+| raw diverged | 19 | **18** |
+| threw | 0 | 0 |
+| whole-game (raw less 5 declared) | **14 of 961** | **13 of 961** |
+| board never diverged | 950 | **951** |
+| **board-material** | **11 of 961** | **10 of 961** |
+| board parted before the protocol did | 4 | 4 |
+
+**Both row sets were DIFFED, not just counted:**
+
+```
+whole-game       GONE:  pair-protect-bust | t10 | event missing from medicham2 | ...-2657559916
+                 NEW:   (none)   — the other 18 rows identical, in order
+board-material   GONE:  pair-protect-bust | t10 | p2.party.rampardos.boosts.atk, p2.party.incineroar.item
+                 NEW:   (none)
+```
+
+**UNMOVED, and checked rather than assumed:** census 764 live / 764 probed / 0 missing; the damage
+gate **0 of 6000 at all sixteen corners** (seed 20260804), re-run in full because an attack-stage
+change reaches damage. **THE THREE ROSTER STAGES ARE NOW CLEAN** — items 139, abilities 129, moves 475
+FIRED-AND-BOARDS-MATCH with **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE in all three**. The brief
+expected 2 and 5; those had been fixed earlier the same day and the roster had simply not been re-run
+under the current tree, its artifacts still stamped `f9f3a61481cb`.
+
+**WHICH SCOREBOARD THIS WAS EXPECTED TO MOVE, SAID BEFORE THE RUN: both.** A mega into a Trace forme
+is not common, but the pinned pool contains one and it is a board-material game.
+
+### THE HAND LIST
+
+**Leaves it:** the turn-10 `pair-protect-bust` board-material game, and the White Herb behaviour
+question — both now carried by `tests/probe_mega_trace_entry.js` and `tests/probe_unburden_herb_paths.js`.
+
+**Joins it:**
+- **CHAMPIONS MOVES WHITE HERB'S AFTER-MOVE TRIGGER INTO THE QUEUE AND THIS ENGINE FIRES IT INLINE.**
+  `data/mods/champions/items.ts:1023` replaces `onAnyAfterMove` with an `insertChoice` of a
+  `WhiteHerb` event at `order: 99` — explicitly *"before switches"*, with the comment *"Desync:
+  proceed from Parting Shot's point of view"*. Found while reading for this batch, deliberately not
+  fixed: it is a Champions-specific TIMING difference and a different defect. No probe, no row.
+- **`receiverSweep` AND `traceSweep`'S DEFERRED COPIES STILL RUN NO ENTRY EFFECT.** One door was
+  fixed, not the class. Receiver counts it under `MEDFAILS.inheritedAbilityStartNotFired`; the
+  deferred Trace path has no counter at all. Skill Swap, Entrainment and Role Play write through
+  `abRewrite` the same way.
+- **NOTHING STAGES A MEGA-TRACE ONTO A WEATHER SETTER.** `applyEntryEffects` now runs for the copied
+  ability, so a traced Drought would set sun on the evolution — correct by the authority's reading and
+  unmeasured. Arm D covers only the no-`onStart` case.
+
+**Standing and unchanged by this batch**, pointed at rather than re-listed: the second
+`pair-protect-bust` board-material game (turn 6, `p2.scovillain.hp` 64 vs 62, a `-damage field 3`
+parting that does NOT share this root and was left alone — batches of one), Trick's message defect and
+the `trickitem` doll check behind it, `magnetrise@18`, a fainted mega's forme, the two Tailwind rows,
+the twelve dead tags and the four `test-tag-params-derived.js` prose-quantity rows.
+
+**Red and NOT mine:** `tests/staged_board.js` fails on one of 25 scenarios
+(`roar-drags-whoever-is-standing-there`, `SHORT`). Its output is **byte-identical** with and without
+`MEDI_MEGA_TRACE_LATE=1`, so nothing here touched it; it is already registered with a named owner and
+a named root (a temporal defect in the forced-switch mirror) and needs its own batch. The
+feature-semantics stamp gate at the top of `engine/status.js` is also failing — the fixture changed
+(scenarios 10 -> 12) and the damage table was regenerated (318 -> 322 species) — which is MEASURE's
+refit edge and predates this pass.
+
+### OWED, NOT RUN
+
+- **The Champions `onAnyAfterMove` White Herb queue entry** has no probe, no register row and no
+  measurement. It should get all three before anybody assumes the after-move door is right.
+- **`receiverSweep` and the deferred `traceSweep` copies** were not changed and not measured beyond
+  the existing counters.
+- **The second `pair-protect-bust` board-material game** was left untouched on purpose.
+
 
 ## A QUEUE INSERTION TIE WAS EATING TRACE'S ADDRESS — THE MIDDLE ARM LET THE RANGE FORM DRAW WHERE ALL THREE SCALAR ARMS PIN IT. **BOARD-MATERIAL 12 -> 11 OF 961, PREDICTED BEFORE THE RUN. WHOLE-GAME UNMOVED AT 14 OF 961. PIN DIGEST `f646b0163bc0` -> `44bd49403231`.** 2026-08-27.
 
