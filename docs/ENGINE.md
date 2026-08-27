@@ -24,7 +24,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_unburden_herb_paths.js`, `tests/probe_knockoff_megastone.js`,
 `tests/probe_random_target_address.js`,
 `tests/probe_spread_status_steps.js`, `tests/probe_multihit_update.js`,
-`tests/probe_noguard_invuln.js`
+`tests/probe_noguard_invuln.js`, `tests/probe_endturn_clock_order.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -35,8 +35,8 @@ this sentence — it was "twelve" until `test-damage-roll-support.js` was added 
 "twenty" until `identity_audit.js` on 2026-08-26, and again on 2026-08-27 when
 `probe_random_target_address.js` arrived, and "twenty-one" the same day when
 `probe_multihit_update.js` did, and again the same day when `probe_noguard_invuln.js` did.
-A number typed in prose beside a table is exactly what
-CLAUDE.md records going stale three times over.)*
+and again the same day when `probe_endturn_clock_order.js` did. A number typed in prose beside a
+table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
@@ -71,6 +71,7 @@ CLAUDE.md records going stale three times over.)*
 | `probe_random_target_address.js` | can the `randomNormal` target die be SHARED by blanking our address — every authority draw in the blank `any` bucket tagged with its REAL stack, the `nth` its runMove target draw carries, the proposal's pick rate against a coin floor, a wrong-turn negative control, and `--focus` for one named game so "would this reach board-material zero" is answered against the game the artifact records | whether either engine plays the game right — it compares ADDRESSES and the picks they imply, never a board. And it measures the proposal WITHOUT it being landed, so it says nothing about what a whole-game re-run would report |
 | `probe_multihit_update.js` | does an `onUpdate` handler see EVERY intermediate HP of a volley — `eachEvent('Update')` is inside the authority's hit loop (`sim/battle-actions.ts:967`, kept verbatim by the Champions override at `data/mods/champions/scripts.ts:538`), so a pinch berry is eaten BETWEEN hits. The fixture is derived from the format and then SEARCHED by playing candidate boards, selected on the SHOWDOWN stream alone and printed, judged with no typed expectation on three quantities — the number of `-damage` lines before the eat, the LOWEST HP the body ever stood on, and the HP it ends the volley on — with a child on `MEDI_MULTIHIT_UPDATE_ONCE=1` that must move the eat AND must part from the authority | anything about the once-per-move wrap of the STEP LIST, which is unchanged and stays `test-resolution-order.js`'s KNOWN-OPEN arm; and the exact position of the intermediate pass, which it places below the PACKET where the authority places it below that hit's whole `spreadMoveHit` — it DERIVES and PRINTS that no multi-hit move in this format carries a target secondary, so the two coincide today, rather than asserting they always will |
 | `probe_noguard_invuln.js` | does No Guard's OTHER half reach the game — `onAnyInvulnerability` returns 0 (`data/abilities.ts`, no `noguard` row in the Champions override) and `trySpreadMoveHit` KEEPS a target whose step result is zero (`sim/battle-actions.ts:605`), so a No Guard move survives step 0 and is judged by the TYPE CHART at step 2 — five arms over two engines, one turn each, judged on the OUTCOME (immune / hit / miss / unboost) rather than on the wording, with the target's immunity-reason count DERIVED and printed per arm and the file REFUSING any target immune for more than one reason, plus `MEDSEEN.noGuardThroughInvuln` at exact equality and a `--red` arm on `MEDI_NOGUARD_INVULN_BLIND=1` where the three live arms must PART and the two controls must NOT | anything about the STAGE ORDER, which it does not test and which was never the defect — `_STEPS` already matches `moveSteps` and control D proves an ordinary immunity still reads `-immune`. And every other `onAny*` handler whose second half may be unwired: it is ONE ability, reached through `_neverMissAb`'s `never` flag, and a derived tag for `onAnyInvulnerability` is owed rather than done |
+| `probe_endturn_clock_order.js` | is a PER-BODY DURATION CLOCK a step of the residual walk — `Battle#fieldEvent` collects a bare `duration` with no handler at all (`getKey`, `sim/battle.ts:487`) and `resolvePriority` (`:950`) gives it the position `onResidualOrder` declares, so Taunt@15, Encore@16, Disable@17, Heal Block@20, Throat Chop@22 and Yawn@23 are ordinary steps. Seven arms over two engines with no typed expectation, four of them the defect on four DIFFERENT members (which is what makes it one root rather than four coincidences) and two the over-fire control, each played clean and again under `MEDI_ENDTURN_CLOCKS_AT_FOOT=1` — a knob that moves the POSITION and keeps every line, plus `MEDFAILS.endturnClocksAtFoot` asserted present on the knob load and ABSENT on the clean one, because the first draft's knob reached no module at all and read seven held controls | whether a clock's LENGTH is right (`test-volatile-duration.js` owns that; no turn count is typed here), and the three clocks it does not move — `perishsong@24`, `uproar@28` and `lockedmove` own an `onResidual` and a faint queue, and `perish-vs-speedboost` measures that gap as a KNOWN-OPEN arm every run rather than declaring it in prose. And `magnetrise@18`, which has no reader in this engine at all: a MISSING tick, not a misplaced one |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -81,7 +82,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  755/755 probed mechanics live, 0 missing   (census 2026-08-27 07:15)
+  755/755 probed mechanics live, 0 missing   (census 2026-08-27 07:59)
   0/6000 differential comparisons disagree with Showdown   (2026-08-27 06:34)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -101,9 +102,127 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 07:32_
+_stamped 2026-08-27 08:22_
 
 <!-- /GENERATED -->
+
+## A PER-BODY DURATION CLOCK IS A STEP OF THE RESIDUAL WALK, AND SEVEN OF THEM WERE SPENT IN A BLOCK UNDERNEATH IT. **WHOLE-GAME CLAUSE 4 OF 961 -> 3 OF 961.** BOARD-MATERIAL UNMOVED AT 1 OF 961. CENSUS UNMOVED AT 755 LIVE / 755 PROBED / 0 MISSING. 2026-08-27.
+
+Release `6b7d032f6376` (cut for this — `engine/medicham2-browser.js` is a SOURCES file and it moved),
+arm `middle`, 961 games, `--turns 12`, `--team-store data/team-pool-frozen`, census pin
+`9446a684709d`. Register row: ROADMAP **#484 — CLOSED**. CHANGELOG 5.173.0.
+Probe: `tests/probe_endturn_clock_order.js`. Full account: `docs/_reports/2026-08-27-endturn-clocks.md`.
+
+### WHICH SCOREBOARD IT SHOULD MOVE, SAID BEFORE THE RUN
+
+**The pinned pool by one game, the LAB by nothing, and board-material not at all.** A `-end`, a
+`-boost` and a `-start|perishN` all move zero HP, so there was no room for a board to move and a
+board-material RISE would have been the signal to stop and report. The census does not move either:
+this is a POSITION, and the instrument that can see a position is a two-engine probe, not a
+self-probe. All three predictions held.
+
+### THE CARD, AND THE HYPOTHESIS IT CAME WITH
+
+```
+showdown : |-end|p1a: Archaludon|Disable
+medicham2: |-start|p1b: Staraptor|perish1
+```
+
+The brief arrived with a hypothesis — that this singleton and the six clocks
+`residualExpiryDeferred()` already named were one root — and an instruction to TEST it rather than
+assume it. **It is confirmed, and the confirmation is a probe rather than an argument.**
+
+`disable.condition` declares `onResidualOrder: 17` and **no `onResidual` at all**
+(`data/moves.ts:3649`); `perishsong.condition` declares `onResidualOrder: 24` and does own one
+(`:13236`). Champions overrides neither — `data/mods/champions/moves.ts` carries no `disable` and no
+`perishsong` row, and `data/mods/champions/conditions.ts` names neither — so the mainline blocks are
+what this format plays.
+
+**A BARE DURATION IS AN ORDINARY STEP OF THE WALK, AND THAT IS THE WHOLE MECHANISM.**
+`Battle#fieldEvent` (`sim/battle.ts:484-566`) sets `getKey = 'duration'` for the residual (`:487-489`)
+and every collector then admits an effect on `callback !== undefined || state[getKey]` (`:1097-1128`).
+`resolvePriority` (`:950`) fills `handler.order` from `effect['onResidualOrder']` **whether or not the
+callback exists**, and `comparePriority` (`:404-411`) sorts ORDER first with speed only third. The
+walk body spends the slot at `:514-524` and `continue`s past the drain when it reaches zero.
+
+So Disable is in the walk at 17, purely to expire. This engine ran **every** per-body clock in a
+body-major block below the whole walk — Perish Song and Yawn in one loop, Taunt/Encore/Disable in a
+second loop below that — so the order between two clocks was the order this file happened to write
+them in.
+
+### HOW ONE ROOT WAS ESTABLISHED RATHER THAN ASSERTED
+
+`tests/probe_endturn_clock_order.js` stages one board per member and plays BOTH engines over it with
+no typed expectation. Four DIFFERENT members part on the SAME shape:
+
+| arm | verdict | what parted |
+|---|---|---|
+| `disable-vs-perish` | RED PROVEN | `-end … Disable` against `-start … perish1` — **the card rebuilt** |
+| `disable-vs-speedboost` | RED PROVEN | `-end … Disable` against `-boost … spe 1` |
+| `taunt-vs-speedboost` | RED PROVEN | `-end … move: Taunt` against `-boost … spe 1` |
+| `yawn-vs-speedboost` | RED PROVEN | `-end … move: Yawn` against `-boost … spe 1` |
+| `speedboost-alone` | CONTROL HELD | nothing of the family on the board |
+| `leechseed-vs-speedboost` | CONTROL HELD | order 8, a member the walk already placed correctly |
+| `perish-vs-speedboost` | KNOWN-OPEN | perishsong@24 still ticks at the foot — DECLARED, measured every run |
+
+One fix turns all four green and neither control moves. **If the six had been a second root, three of
+those four would still be red.**
+
+### THE FIX
+
+`engine/medicham2-browser.js` only. `RESIDUAL_CLOCK_ORDER` reads each member's `{order, subOrder}` off
+`data/residual-order.json` (which CALLS `Battle#resolvePriority`, so the numbers are the authority's
+own and **not one order is typed in the engine**); `RESIDUAL_GROUPS` gains one pushed step per member;
+`RESIDUAL_CLOCKS_AT` says which clocks a group spends; `residualClockTick` runs them, its branch
+bodies being the exact lines that stood in the foot block. Placed: `taunt@15, encore@16, disable@17,
+healblock@20, throatchop@22, yawn@23` — every one ABOVE this walk's own 25 (roost), 26/27 (the side
+and field expiries), 28 (Speed Boost, Moody, Harvest) and 29 (White Herb, Zen Mode) groups, which is
+what the three `*-vs-speedboost` arms measure. `M.residualExpiryDeferred()` falls from **six rows to
+one**.
+
+### DECLARED, NOT FIXED, AND NAMED RATHER THAN LEFT TO BE FOUND
+
+- **`magnetrise@18` HAS NO READER IN THIS ENGINE AT ALL.** It is the one row left in
+  `residualExpiryDeferred()` and it is a **missing tick, not a misplaced one**: `durationVolatiles()`
+  is keyed off `sealsMoves` and Magnet Rise does not carry it, so nothing counts that clock down and
+  the volatile does not end on its own. Inventing a decrement for a field whose representation had not
+  been verified would have been a guess. `M.residualClockPlacement().unread` prints it every run.
+- **`perishsong@24`, `uproar@28` and `lockedmove` still tick at the foot.** They own `onResidual`
+  handlers, a faint at zero and a drain position that is Will's card 8 (`RESIDUAL_AFTER_PERISH`,
+  `residualFollowerRuns`). A second change with a second set of consequences, and not this one.
+
+### THE INSTRUMENT FAULT THIS RUN PRODUCED, RECORDED BECAUSE IT ALMOST PASSED
+
+The probe's first knob run reported `residualClockInWalk` **identical across the knob on all seven
+arms** — CLAUDE.md's *"an unwired knob gives identical output"* arriving exactly on cue.
+`game_differential.js` with no `--release` **cuts a release and loads the engine out of
+`data/releases/<id>/engine/medicham2-browser.js`**, so dropping `require.cache` for
+`engine/medicham2-browser.js` dropped nothing that was in use. Fixed by dropping every cached module
+whose filename is this engine whatever directory it came from, and by asserting
+`MEDFAILS.endturnClocksAtFoot` present on the knob load and ABSENT on the clean one before any arm is
+classified. Two fixture faults the same session, same shape: a Disable arm whose target held a Protect
+(priority +4 blocks a priority-0 Disable, `volDurationTicked` read 0 and the arm agreed while staging
+nothing), and `Defense Curl`, which is not in this format and which the probe's own legality gate
+refused rather than skipped.
+
+### RE-RUN OWED
+
+Nothing downstream. Three roster stages re-run on `6b7d032f6376` with **byte-identical verdict
+vectors** (items 0/0, abilities 0/0, moves 0/0); `all_mechanics_fire --kind all --write` re-run with
+the **identical 16-row diverging SET** — zero cleared, zero newly diverging;
+`test-engine-diff --n 6000` unmoved at 0/6000 with all fifteen other corners at 0/6000, because a
+placement change moves no damage roll.
+
+### THE HAND LIST
+
+**Leaves it: the six per-body volatile clocks spent below the whole walk.** Five are steps of the walk
+now and `probe_endturn_clock_order.js` carries them.
+
+Joins it, named rather than missed:
+- **`magnetrise` has no clock reader at all**, so the volatile never ends on its own. A missing tick,
+  not an ordering one. Printed by `M.residualClockPlacement().unread`.
+- **`perishsong@24`, `uproar@28` and `lockedmove` are still spent below the walk.** Staged and
+  measured every run by the `perish-vs-speedboost` KNOWN-OPEN arm.
 
 ## NO GUARD SEES THROUGH A VANISH — HALF THE ABILITY WAS WIRED, AND THE AUTHORITY ANSWERS WITH THE IMMUNITY TWO STEPS BELOW. **WHOLE-GAME CLAUSE 5 OF 961 -> 4 OF 961.** CENSUS 754 -> **755 LIVE / 755 PROBED / 0 MISSING**. BOARD-MATERIAL UNMOVED AT 1 OF 961. 2026-08-27.
 
@@ -15713,7 +15832,11 @@ Both #242 items leave it — the census carries them now (`doublesSideSpeed` at 
 `typeRemovedForTurn` at order 25). **Added, because this pass measured it and did not fix it: six
 per-body volatile clocks are still spent below the whole walk instead of at their declared orders** —
 `taunt@15, disable@17, magnetrise@18, healblock@20, throatchop@22, yawn@23`. That list is not typed:
-`M.residualExpiryDeferred()` derives it from `data/residual-order.json` and prints it. The same block
+`M.residualExpiryDeferred()` derives it from `data/residual-order.json` and prints it.
+*(CLOSED 2026-08-27 by ROADMAP #484 — five of the six are steps of the walk now and the list
+prints one row, `magnetrise@18`, which turned out to be a MISSING tick rather than a misplaced
+one. This paragraph is dated evidence and is left standing rather than edited out; read
+`M.residualClockPlacement()`, not this sentence.)* The same block
 also holds Encore (16), Perish Song (24), Uproar (28) and `lockedmove`, which are `condition:` rows
 rather than `expiry:` rows and therefore cannot appear in that list however wrong their position is —
 said out loud so the printed list is not read as the whole gap.

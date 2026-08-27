@@ -1500,6 +1500,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   volSealNoLastMove     Encore or Disable refused against a target that has never moved. THE
    *                         DISABLE HALF OF THIS HAD NEVER FIRED AT ALL, and it is the whole of the
    *                         `showdown=0 ours=4` turn-1 row. */
+  /* 2026-08-27 -- residualClockInWalk: a per-body duration clock spent INSIDE the residual walk at
+   * its own published order rather than in the foot-of-turn block. Zero with a Taunt, a Disable or
+   * a Yawn on the board means the steps never reached the walk; it is the receipt
+   * tests/probe_endturn_clock_order.js reads to prove its knob moved the position and not the
+   * mechanic. */
+  residualClockInWalk: 0,
   volDurationApplied: 0, volDurationTicked: 0, volDurationExpired: 0,
   volDurationFromBoostTag: 0, perTurnVolatileBoost: 0, perTurnVolatileBoostEnded: 0,
   /* 2026-08-23 -- the volatile ended because its SOURCE LEFT THE FIELD, which is a different exit
@@ -6215,8 +6221,83 @@ const RESIDUAL_EXPIRY = (() => {
  * move, and it is exported so a caller can read it instead of taking this comment's word. */
 const RESIDUAL_EXPIRY_SITES = new Set(['side', 'pseudoweather', 'terrain']);
 const residualExpiryDeferred = () => [...RESIDUAL_EXPIRY.entries()]
-  .filter(([id, r]) => !RESIDUAL_EXPIRY_SITES.has(r.site) && id !== 'roost' && r.order != null)
+  .filter(([id, r]) => !RESIDUAL_EXPIRY_SITES.has(r.site) && id !== 'roost' && r.order != null
+                       && !RESIDUAL_CLOCK_ORDER.has(id))
   .map(([id, r]) => id + '@' + r.order).sort();
+/* ---- 2026-08-27 -- THE PER-BODY CLOCKS JOIN THE WALK, AT THE ORDER THE ARTIFACT PUBLISHES --------
+ *
+ * The comment two blocks up said six clocks "still tick in the block UNDERNEATH the walk -- a
+ * position no effect in this format declares". This is that sentence being spent. The whole-game
+ * differential's one remaining actionable first-divergence was the visible half of it:
+ *
+ *     showdown   |-end|p1a: Archaludon|Disable          disable.condition   onResidualOrder: 17
+ *     medicham2  |-start|p1b: Staraptor|perish1         perishsong.condition onResidualOrder: 24
+ *
+ * -- two clocks in ONE block below the walk, spent in the order this file happened to write them
+ * rather than in the order `comparePriority` sorts them. Neither row is overridden by Champions
+ * (`data/mods/champions/moves.ts` carries no `disable` and no `perishsong`, and
+ * `data/mods/champions/conditions.ts` names neither), so the mainline blocks at data/moves.ts:3649
+ * and :13236 are what this format plays.
+ *
+ * THE SINGLETON AND THE SIX ARE ONE ROOT AND THAT WAS TESTED RATHER THAN ASSUMED. Both engines were
+ * played over one staged board per member in tests/probe_endturn_clock_order.js: Disable-against-a
+ * -perish-counter, Disable-against-Speed-Boost, Taunt-against-Speed-Boost and Yawn-against-Speed
+ * -Boost all part on the SAME shape (this engine writing the clock's `-end` below a step the
+ * authority puts below IT), and both controls hold. So the card is one instance of the family, not a
+ * defect of its own.
+ *
+ * WHAT MOVES AND WHAT DOES NOT. `RESIDUAL_CLOCK_READER` names the members this engine has a reader
+ * for; every other volatile-site expiry the artifact publishes is reported as UNREAD by
+ * `residualClockPlacement()` rather than dropped, because a clock nobody spends is a volatile that
+ * never ends -- which is exactly what `magnetrise@18` still is here, and it is a MISSING TICK rather
+ * than a misplaced one, so it is not this change. `perishsong@24`, `uproar@28` and `lockedmove` stay
+ * at the foot: they own an `onResidual`, a faint at zero and a drain position that is Will's card 8
+ * (`RESIDUAL_AFTER_PERISH`), so moving them is a second change with a second set of consequences.
+ * `probe_endturn_clock_order.js` stages `perish-vs-speedboost` as a KNOWN-OPEN arm so that gap
+ * carries a running measurement instead of a sentence.
+ *
+ * THE POSITION IS A KNOB AND THE KNOB IS LOUD. `MEDI_ENDTURN_CLOCKS_AT_FOOT=1` takes the steps back
+ * out of the walk and puts the ticks back in the foot block -- the same decrements, the same
+ * volatiles ending, the same lines, only somewhere else -- so a probe can attribute a parting to the
+ * POSITION rather than to the mechanic. It stamps `MEDFAILS.endturnClocksAtFoot`, so a run under it
+ * can never be mistaken for a clean one. */
+const ENDTURN_CLOCKS_AT_FOOT = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_ENDTURN_CLOCKS_AT_FOOT === '1');
+if (ENDTURN_CLOCKS_AT_FOOT) MEDFAILS.endturnClocksAtFoot = 1;
+/* `volDuration` = spend it through `m._vol[id]` and `endDurationVolatile`, which is what the foot
+ * loop over `durationVolatiles()` did; the other three are this engine's own named fields. */
+const RESIDUAL_CLOCK_READER = { taunt: 'volDuration', encore: 'volDuration', disable: 'volDuration',
+                                healblock: 'healBlock', throatchop: 'soundLock', yawn: 'yawn' };
+/* id -> {order, sub}, read off the SAME artifact `RESIDUAL_EXPIRY` reads, including the rows that
+ * are not `expiry:` (Encore owns an `onResidual`, so it is a `condition:` row and cannot appear in
+ * `RESIDUAL_EXPIRY` at all -- it ticked in the very same foot loop and is the seventh member). */
+const RESIDUAL_CLOCK_ORDER = (() => {
+  const out = new Map();
+  if (ENDTURN_CLOCKS_AT_FOOT) return out;
+  let rows = null;
+  try { rows = require('../data/residual-order.json').rows; }
+  catch (e) { rows = null; MEDFAILS.residualClockTableMissingWhy = String((e && e.message) || e); }
+  if (!rows) { MEDFAILS.residualClockTableMissing = 1; return out; }
+  for (const r of rows) {
+    if (r.site !== 'volatile' || r.order == null || !RESIDUAL_CLOCK_READER[r.id]) continue;
+    out.set(r.id, { order: r.order, sub: r.subOrder });
+  }
+  const unplaced = Object.keys(RESIDUAL_CLOCK_READER).filter(id => !out.has(id));
+  if (unplaced.length) MEDFAILS.residualClockUnplaced = unplaced.join(',');
+  return out;
+})();
+/* WHAT THIS PASS PLACED AND WHAT IT COULD NOT, PRINTED FROM THE ARTIFACT RATHER THAN DESCRIBED —
+ * the same rule `residualExpiryDeferred` above is written on, and for the same reason: a list of
+ * names beside a count is prose, and prose goes stale. `unread` is the honest half. */
+const residualClockPlacement = () => {
+  const placed = [], unread = [];
+  for (const [id, r] of RESIDUAL_EXPIRY) {
+    if (r.site !== 'volatile' || id === 'roost' || r.order == null) continue;
+    (RESIDUAL_CLOCK_ORDER.has(id) ? placed : unread).push(id + '@' + r.order);
+  }
+  for (const [id, r] of RESIDUAL_CLOCK_ORDER) if (!RESIDUAL_EXPIRY.has(id)) placed.push(id + '@' + r.order);
+  return { placed: placed.sort(), unread: unread.sort(), atFoot: !!ENDTURN_CLOCKS_AT_FOOT };
+};
 /* 2026-08-26 -- WHO FOLLOWS A PERISH DEATH IN THE WALK, AND WHY THAT DECIDES WHERE `|faint|` LANDS.
  *
  * `perishsong.condition.onEnd` is `add('-start', target, 'perish0'); target.faint()`, and
@@ -6379,11 +6460,24 @@ const RESIDUAL_GROUPS = (() => {
      * read TWENTY ORDERS ABOVE it by the Grassy Terrain heal (order 5, grounded bodies only). */
     { step: 'expRoost',   id: 'roost',            ns: 'expiry'    },
   ];
+  /* 2026-08-27 -- AND THE PER-BODY DURATION CLOCKS, one step each, at the order the artifact gives
+   * them. They are pushed rather than written into the literal above because the SET is derived (see
+   * `RESIDUAL_CLOCK_ORDER`): a member with no reader in this engine never reaches here, and under
+   * `MEDI_ENDTURN_CLOCKS_AT_FOOT=1` the map is empty and this loop adds nothing at all. The step name
+   * carries the artifact id so the walk can dispatch on it without a second table. */
+  for (const [id] of RESIDUAL_CLOCK_ORDER) MAP.push({ step: 'clk:' + id, id, ns: null, clock: id });
   let rows = null;
   try { rows = require('../data/residual-order.json').rows; } catch (e) { rows = null; }
   const key = (ns, id) => ns + ':' + id;
   const idx = new Map((rows || []).map(r => [key(r.ns, r.id), r]));
   const placed = MAP.map(m => {
+    /* A CLOCK STEP CARRIES ITS OWN PLACEMENT, taken from the same artifact one block up. It is not
+     * looked up by (ns, id) because `RESIDUAL_CLOCK_ORDER` has already resolved the row — Encore's is
+     * a `condition:` row and the six others are `expiry:` rows, so one `ns` could not fetch both. */
+    if (m.clock) {
+      const c = RESIDUAL_CLOCK_ORDER.get(m.clock);
+      return { ...m, order: c ? c.order : null, sub: c ? c.sub : 0, found: !!c };
+    }
     const r = idx.get(key(m.ns, m.id));
     return { ...m, order: r ? r.order : null, sub: r ? r.subOrder : 0, found: !!r };
   });
@@ -6431,6 +6525,47 @@ const RESIDUAL_GROUPS = (() => {
 })();
 /* Does this group contain this step? The walk asks per body, so it is a hot path — precomputed. */
 const RESIDUAL_HAS = RESIDUAL_GROUPS.map(g => new Set(g.steps));
+/* Which per-body duration clocks this group spends. Empty on every group under
+ * `MEDI_ENDTURN_CLOCKS_AT_FOOT=1`, and empty on almost every group otherwise — precomputed because
+ * the walk asks it once per group per body. */
+const RESIDUAL_CLOCKS_AT = RESIDUAL_GROUPS.map(g => g.steps.filter(s => s.startsWith('clk:'))
+  .map(s => s.slice(4)));
+/* ONE CLOCK, ONE RESIDUAL. The bodies of these branches are the lines that stood in the foot-of-turn
+ * block; nothing about what they DO has changed and that is the point — the knob has to isolate the
+ * position or the probe beside it proves nothing. A fainted holder never reaches here: the walk's own
+ * body loop `continue`s on `fainted`, which is `residualEvent`'s own first line. */
+function residualClockTick(m, id) {
+  const how = RESIDUAL_CLOCK_READER[id];
+  if (!how || !m) return;
+  if (how === 'volDuration') {
+    if (!(m._vol && m._vol[id] > 0)) return;
+    MEDSEEN.residualClockInWalk++; MEDSEEN.volDurationTicked++;
+    if (--m._vol[id] <= 0) { MEDSEEN.volDurationExpired++; endDurationVolatile(m, id); }
+    return;
+  }
+  if (how === 'healBlock') {
+    /* Heal Block is applied as `turns + 1` because this tick fires on the application turn too — the
+     * same convention as Encore's lock. It announces nothing when it lapses in this engine. */
+    if (!(m._healBlock > 0)) return;
+    MEDSEEN.residualClockInWalk++; m._healBlock--;
+    return;
+  }
+  if (how === 'soundLock') {
+    if (!(m._noSound > 0)) return;
+    MEDSEEN.residualClockInWalk++;
+    if (--m._noSound <= 0) { MEDSEEN.soundLockEnded++; if (TR) TR.vend(m, 'Throat Chop', '[silent]'); }
+    return;
+  }
+  if (how === 'yawn') {
+    if (m._yawn == null) return;
+    MEDSEEN.residualClockInWalk++; m._yawn--;
+    if (m._yawn <= 0) {
+      m._yawn = null; if (TR) TR.vend(m, 'move: Yawn');
+      /* only if the target is still statusless — anything that landed in between takes precedence. */
+      if (!m.status) applyStatus(m, 'slp');
+    }
+  }
+}
 /* WHERE THE `onUpdate` BERRY CHECK USED TO SIT — immediately after Leftovers, which is the `leftovers`
  * step. Derived rather than typed, because the whole point of the counter beside it is to say how often
  * a berry is now eaten SOMEWHERE ELSE, and a hard-coded index would go on claiming that after the
@@ -31029,6 +31164,14 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(_G.has('expRoost')&&m._typeWas){
         m.types=m._typeWas; m._typeWas=null; MEDSEEN.roostTypeRestored++;
       }
+      /* 2026-08-27 -- THE PER-BODY DURATION CLOCKS OF THIS GROUP. Taunt@15, Encore@16, Disable@17,
+       * Heal Block@20, Throat Chop@22 and Yawn@23 are steps of the walk in the authority — every one
+       * of them is collected on its `duration` alone (`getKey`, sim/battle.ts:487) at the position
+       * `resolvePriority` reads off `onResidualOrder`, and every one of them ticked BELOW the whole
+       * walk here. Orders 15-23 all sit above this walk's own 25, 26, 27, 28 and 29 groups, so this
+       * moves them above roost, the side and field expiries, Speed Boost, Moody, Harvest, White Herb
+       * and Zen Mode as well as above each other. */
+      for(const _cid of RESIDUAL_CLOCKS_AT[_gi]) residualClockTick(m,_cid);
       /* ---- THE CLOSE OF EVERY GROUP, and it is a close rather than an end-of-walk for two reasons.
        *
        * THE FAINT. Showdown runs `faintMessages()` after every handler, so a body the burn kills at
@@ -31209,10 +31352,15 @@ function battleTurn(S,rng,actsForA,actsForB){
          over-fire control the probe holds at 1. */
       if(x._perish!=null){x._perish--;MEDSEEN.perishTicked++;if(TR)TR.vstart(x,'perish'+x._perish);
         if(x._perish<=0){MEDSEEN.perishKO++;queueFaint(x,'perish');}}
-      if(x._yawn!=null){x._yawn--;if(x._yawn<=0){x._yawn=null;if(TR)TR.vend(x,'move: Yawn');if(!x.status)applyStatus(x,'slp');}}
+      /* 2026-08-27 -- YAWN, HEAL BLOCK AND THE THROAT CHOP SILENCE ARE STEPS OF THE WALK NOW
+         (`residualClockTick`, at orders 23, 20 and 22). These three lines are what they were and
+         run ONLY under `MEDI_ENDTURN_CLOCKS_AT_FOOT=1`, which is the position knob the probe
+         beside them attributes with -- a knob that DELETED the mechanic instead of moving it
+         would make every red arm part for the wrong reason. */
+      if(ENDTURN_CLOCKS_AT_FOOT&&x._yawn!=null){x._yawn--;if(x._yawn<=0){x._yawn=null;if(TR)TR.vend(x,'move: Yawn');if(!x.status)applyStatus(x,'slp');}}
       /* Heal Block ticks with the other clocks. It is applied as `turns + 1` because this tick fires
        * on the application turn too — the same convention as Encore's lock two blocks down. */
-      if(x._healBlock>0)x._healBlock--;
+      if(ENDTURN_CLOCKS_AT_FOOT&&x._healBlock>0)x._healBlock--;
       /* WIRE 45 / WIRE 44 -- the Throat Chop silence and the Gigaton Hammer lockout tick here with
          every other clock in this engine, for the reason the Disable comment gives: a duration that
          only counts down on turns the engine happens to be CHOOSING lasts forever in a rollout driven
@@ -31227,7 +31375,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          THE POSITION IS STILL THE DECLARED ONE. `residualExpiryDeferred()` already names
          `throatchop@22` -- this clock ticks in the foot-of-turn block rather than at residual order
          22 -- and that gap is unchanged here. What was missing was the line, not its neighbourhood. */
-      if(x._noSound>0&&--x._noSound<=0){MEDSEEN.soundLockEnded++;if(TR)TR.vend(x,'Throat Chop','[silent]');}
+      if(ENDTURN_CLOCKS_AT_FOOT&&x._noSound>0&&--x._noSound<=0){MEDSEEN.soundLockEnded++;if(TR)TR.vend(x,'Throat Chop','[silent]');}
       if(x._noRepeatT>0&&--x._noRepeatT<=0)x._noRepeat=null;
       /* WIRE 144 -- THE LOCK-IN CLOCK, AND THE THREE LINES BELOW ARE SHOWDOWN'S RESIDUAL IN ITS OWN
        * ORDER. `Battle#residualEvent` decrements the effect's duration FIRST and calls `end` if it
@@ -31344,6 +31492,13 @@ function battleTurn(S,rng,actsForA,actsForB){
        * later regulation is ticked without an edit here. A FAINTED holder is skipped, which is
        * `residualEvent`'s own first line (`if (handler.effectHolder.fainted) continue`). */
       if(m&&m._vol&&!m.fainted)for(const _dv of durationVolatiles().keys()){
+        /* 2026-08-27 -- A MEMBER THIS WALK NOW PLACES IS ALREADY SPENT, at its own order, by
+           `residualClockTick`. The loop keeps iterating `durationVolatiles()` rather than being
+           deleted, because that set is DERIVED off `sealsMoves`: a fourth sealer arriving in a
+           later regulation has no reader in `RESIDUAL_CLOCK_READER`, is reported UNREAD by
+           `residualClockPlacement()`, and still ticks here exactly as it did -- rather than
+           silently never ticking at all, which is what pruning this loop to a list would cause. */
+        if(RESIDUAL_CLOCK_ORDER.has(_dv))continue;
         if(!(m._vol[_dv]>0))continue;
         MEDSEEN.volDurationTicked++;
         if(--m._vol[_dv]<=0){MEDSEEN.volDurationExpired++;endDurationVolatile(m,_dv);}
@@ -32794,6 +32949,10 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
    * `residualExpiryDeferred()` says which of it is still spent at a position the format does not
    * declare. A gap that is printed is open work; a gap that is only true is a silent default. */
   RESIDUAL_EXPIRY, residualExpiryDeferred,
+  /* 2026-08-27 -- and WHICH per-body clocks this walk placed against which it could not read at
+   * all. `unread` is the half that matters: a clock with no reader here never ends, which is a
+   * MISSING TICK rather than a misplaced one and is a different defect. */
+  residualClockPlacement, RESIDUAL_CLOCK_ORDER,
   /* 2026-08-26 -- WHO CAN PAY A QUEUED PERISH DEATH, and the reader that asks it. Exported for the
    * reason `residualExpiryDeferred` is: the three families are DERIVED from the artifact and the
    * fourth (`unmapped`) is the loud hole, so a caller reads what actually matched rather than taking

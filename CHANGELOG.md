@@ -10,6 +10,99 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.173.0] — 2026-08-27
+
+### Fixed
+- **A PER-BODY DURATION CLOCK IS A STEP OF THE RESIDUAL WALK, AND THIS ENGINE SPENT SEVEN OF THEM IN
+  A BLOCK UNDERNEATH IT. WHOLE-GAME CLAUSE 4 OF 961 -> 3 OF 961; BOARD-MATERIAL UNMOVED AT 1 OF 961;
+  CENSUS UNMOVED AT 755 LIVE / 755 PROBED / 0 MISSING.** ENGINE, ROADMAP `#484`.
+
+  **THE CARD.** `data/game-differential.json` on release `e5957689f94f` held one remaining actionable
+  first-divergence with cause `ordering`:
+
+  ```
+  showdown : |-end|p1a: Archaludon|Disable
+  medicham2: |-start|p1b: Staraptor|perish1
+  ```
+
+  **THE HYPOTHESIS WAS THAT THIS SINGLETON AND THE SIX CLOCKS `residualExpiryDeferred()` ALREADY
+  NAMED WERE ONE ROOT, AND IT WAS TESTED RATHER THAN ASSUMED. IT IS CONFIRMED.**
+
+  **A BARE DURATION IS AN ORDINARY STEP OF THE WALK.** `Battle#fieldEvent` (`sim/battle.ts:484-566`)
+  sets `getKey = 'duration'` for the residual (`:487-489`), and every collector then admits an effect
+  on `callback !== undefined || state[getKey]` (`:1097-1128`) — so an effect with a live duration and
+  NO residual handler is in the walk. `resolvePriority` (`:950`) fills `handler.order` from
+  `effect['onResidualOrder']` **whether or not the callback exists**, and `comparePriority`
+  (`:404-411`) sorts ORDER first with speed only third. The walk body spends the slot at `:514-524`.
+
+  `disable.condition` declares `onResidualOrder: 17` and no `onResidual` at all (`data/moves.ts:3649`);
+  `perishsong.condition` declares `onResidualOrder: 24` and does own one (`:13236`). **Champions
+  overrides neither** — `data/mods/champions/moves.ts` carries no `disable` and no `perishsong` row,
+  and `data/mods/champions/conditions.ts` names neither — so the mainline blocks are what this format
+  plays, and 17 < 24. This engine ran every per-body clock in a body-major block BELOW the whole walk
+  (Perish Song and Yawn in one loop, Taunt/Encore/Disable in a second loop below that), so the order
+  between two clocks was the order this file happened to write them in.
+
+  **ONE ROOT WAS ESTABLISHED, NOT ASSERTED.** `tests/probe_endturn_clock_order.js` stages one board
+  per member and plays BOTH engines over it with no typed expectation. Four DIFFERENT members part on
+  the same shape — `disable-vs-perish` (the card rebuilt), `disable-vs-speedboost`,
+  `taunt-vs-speedboost`, `yawn-vs-speedboost` — one fix turns all four green, and the two controls
+  (`speedboost-alone`, and `leechseed-vs-speedboost` at order 8, which the walk already placed
+  correctly) never move under the same knob. If the six had been a second root, three of those four
+  would still be red.
+
+  **THE FIX** is `engine/medicham2-browser.js` only. `RESIDUAL_CLOCK_ORDER` reads each member's
+  `{order, subOrder}` off `data/residual-order.json`, which CALLS `Battle#resolvePriority` — so the
+  numbers are the authority's own and not one order is typed in the engine. `RESIDUAL_GROUPS` gains
+  one pushed step per member, `RESIDUAL_CLOCKS_AT` says which clocks a group spends, and
+  `residualClockTick` runs them with branch bodies that are the exact lines that stood in the foot
+  block. Placed: `taunt@15, encore@16, disable@17, healblock@20, throatchop@22, yawn@23` — all above
+  this walk's own 25 (roost), 26/27 (side and field expiries), 28 (Speed Boost, Moody, Harvest) and 29
+  (White Herb, Zen Mode) groups. `M.residualExpiryDeferred()` falls from six rows to one.
+
+  **DECLARED, NOT FIXED, AND NAMED RATHER THAN LEFT TO BE FOUND.** `magnetrise@18` is the one row left
+  and it has **no reader in this engine at all** — `durationVolatiles()` is keyed off `sealsMoves`,
+  Magnet Rise does not carry it, and nothing counts that clock down. That is a MISSING tick, not a
+  misplaced one, and inventing a decrement for a field whose representation had not been verified
+  would have been a guess; `M.residualClockPlacement().unread` prints it every run. `perishsong@24`,
+  `uproar@28` and `lockedmove` still tick at the foot: they own `onResidual` handlers, a faint at zero
+  and a drain position that is Will's card 8 (`RESIDUAL_AFTER_PERISH`, `residualFollowerRuns`), and
+  `perish-vs-speedboost` is staged as a KNOWN-OPEN arm so that gap carries a running measurement.
+
+  **THE INSTRUMENT FAULT THIS RUN PRODUCED, RECORDED BECAUSE IT ALMOST PASSED.** The probe's first
+  knob run reported `residualClockInWalk` identical across the knob on all seven arms — an unwired
+  knob giving identical output, exactly as CLAUDE.md describes. `game_differential.js` with no
+  `--release` CUTS a release and loads the engine out of
+  `data/releases/<id>/engine/medicham2-browser.js`, so dropping `require.cache` for
+  `engine/medicham2-browser.js` dropped nothing that was in use. It now drops every cached module
+  whose filename is this engine whatever directory it came from, and asserts
+  `MEDFAILS.endturnClocksAtFoot` present on the knob load and ABSENT on the clean one before any arm
+  is classified. Two fixture faults the same session: a Disable arm whose target held a Protect
+  (priority +4 blocks a priority-0 Disable — `volDurationTicked` read 0 and the arm agreed while
+  staging nothing), and `Defense Curl`, which is not in this format and which the probe's own
+  legality gate refused rather than skipped.
+
+  **MEASURED** on release `6b7d032f6376`, arm `middle`, 961 games, `--turns 12`,
+  `--team-store data/team-pool-frozen`, census pin `9446a684709d`: whole-game **4 of 961 -> 3 of 961**
+  (raw 9 -> 8, less 5 declared), the Disable/perish1 first-divergence gone and none arrived;
+  board-material **unmoved at 1 of 961** (961 - 960) as predicted, since a `-end`, a `-boost` and a
+  `-start|perishN` all move zero HP; census **unmoved at 755 live / 755 probed / 0 missing**, because
+  this is a POSITION and the instrument that can see one is a two-engine probe rather than a
+  self-probe; three roster stages re-run with byte-identical verdict vectors (items 0/0, abilities
+  0/0, moves 0/0); `all_mechanics_fire --kind all` re-run with the identical 16-row diverging SET,
+  zero cleared and zero newly diverging; `test-engine-diff --n 6000` unmoved at 0/6000 with all
+  fifteen other corners at 0/6000, because a placement change moves no damage roll.
+
+  **VERIFIED BY:** `SHOWDOWN_PATH=... node tests/probe_endturn_clock_order.js` — 7 arms, 1 KNOWN-OPEN,
+  0 failing. Full account: `docs/_reports/2026-08-27-endturn-clocks.md`.
+
+### Changed
+- `docs/ENGINE.md` — the six-deferred-clocks hand-list item retires; the entry names what replaced it
+  and what is still open. The 2026-08-13 paragraph that first measured the gap is left standing as
+  dated evidence with a pointer to `M.residualClockPlacement()`.
+
+---
+
 ## [5.172.0] — 2026-08-27
 
 ### Fixed

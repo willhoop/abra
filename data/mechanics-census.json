@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-27T11:15:45.225Z",
+  "generated": "2026-08-27T11:59:57.460Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
@@ -3703,7 +3703,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 26.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6753,7 +6753,7 @@
       "tag": "passiveHeal",
       "label": "Leftovers heals at order 5 and the burn chips at order 10 — a full-HP burned holder still loses the tick",
       "live": true,
-      "detail": "Snorlax at full HP (235) holding Leftovers, one passing turn. NOT burned 235 (the heal has nothing to do); BURNED 221 = 235 - 14. Under a body-major walk the chip runs first and Leftovers restores the identical 1/16 after it, so the burned arm reads 235 and the status is free. The two orders differ ONLY at the top and bottom of the bar, which is why no damage differential can see this. The walk itself is counted on the same turn: 15 groups entered (of 15) and 76 step slots (of 76 = every step on all four living bodies) — a zero on either is the loop not running, not a mechanic being absent",
+      "detail": "Snorlax at full HP (235) holding Leftovers, one passing turn. NOT burned 235 (the heal has nothing to do); BURNED 221 = 235 - 14. Under a body-major walk the chip runs first and Leftovers restores the identical 1/16 after it, so the burned arm reads 235 and the status is free. The two orders differ ONLY at the top and bottom of the bar, which is why no damage differential can see this. The walk itself is counted on the same turn: 21 groups entered (of 21) and 100 step slots (of 100 = every step on all four living bodies) — a zero on either is the loop not running, not a mechanic being absent",
       "hollow": false,
       "armed": true,
       "directCall": false
