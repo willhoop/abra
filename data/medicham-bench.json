@@ -16,5 +16,7 @@
   "calibration_spin_ms": 16,
   "node": "v24.15.0",
   "cpus": 16,
-  "note": "Best-of-N on a pinned fixture. NOT a correctness test — pair every optimization with the 500-move whole-board digest sweep and tests/test-damage-stages.js."
+  "note": "Best-of-N on a pinned fixture. NOT a correctness test — pair every optimization with the 500-move whole-board digest sweep and tests/test-damage-stages.js.",
+  "void": true,
+  "void_reason": "WITHDRAWN 2026-08-27. This benchmark timed FIVE BODIES AND A HOLE. Its roster named amoonguss, which is not in this regulation and has NEVER been a key in data/engine-data.js — zero hits on every commit back to 2026-07-23, including the day this file was recorded. buildMon returned null SILENTLY at that commit, and every game draws all six roster indices exactly once, so all 120 games ran with a null body on one side. The fingerprint is in this file: turns 450 against a 120x12 cap. The ms_per_turn below is not a measurement of this engine and must not be quoted or compared against. Today monKey THROWS on that name, so the benchmark cannot run at all until it is re-recorded. There is currently NO speed baseline for MEDICHAM."
 }
