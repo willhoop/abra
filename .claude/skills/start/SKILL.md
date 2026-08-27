@@ -349,6 +349,19 @@ in one run.**
 Wave defect because both aimed it at a body blocked by type *and* by status. The sweep that replaced
 them records **how many reasons each cell is immune for** and refuses any cell with more than one.
 
+**TWO CORRECTLY-COMPUTED NUMBERS ARE PRINTED SIDE BY SIDE AND ONLY ONE IS PUBLISHED. THIS COST THREE
+RECONCILES IN ONE SESSION.** The headline is `games - games_board_never_diverged` — the figure
+`game_differential.js` prints and the only one `wire_ladder.js` consumes. Beside it sits a PER-CAUSE
+table keyed on each game's protocol first-divergence cause. **A fix that closes a protocol divergence
+drops a game out of the CAUSE TABLE while its board goes on parting** — so the per-cause count falls
+when nothing improved. Neither number is wrong and no gate can catch it: both are correct, printed
+together, and only one is the published quantity. **Say which quantity you are quoting, every time,
+and read the headline out of the artifact rather than off stdout.**
+
+*(The consequence is worse than a misquote: a game whose protocol divergence closes while its board
+still parts is left UNCAUSED — a board that differs with nothing in the narration pointing at it. One
+of the four board-material games is in that state now, put there by a correct fix.)*
+
 **`--games` IS A PAIR BUDGET, NOT A GAME COUNT.** `--games 1200` yields 961 played. An agent read a
 different budget's output as a catastrophe before catching it; the coordinator twice briefed figures
 from two different budgets side by side.
