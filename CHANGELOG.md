@@ -10,6 +10,79 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.183.0] — 2026-08-27
+
+### Fixed
+- **TRACE'S CANDIDATE LIST IS NOT WRONG AND NEVER WAS — 139 OF 139 DRAWS IDENTICAL IN MEMBERS *AND*
+  ORDER. THE TWO SPURIOUS DICE BEHIND IT ARE. BOARD-MATERIAL 9 -> 7 OF 961 AND WHOLE-GAME 10 -> 9 OF
+  961; CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING; DAMAGE 0/6000 AT ALL SIXTEEN CORNERS;
+  ROSTER 139/129/475 CLEAN.** ENGINE. ROADMAP `#496` and `#497` CLOSED, `#498` FILED.
+
+  The brief's hypothesis was that a wrong Trace copy meant a differently-built `possibleTargets`.
+  `tests/probe_trace_list.js` reads BOTH engines' lists at the moment of the draw — the medicham half
+  through a new door (`traceListSink`) that hands out the array `traceCopy` actually built, never a
+  re-derivation — and over 60 pinned-pool boards reports **139 joined draws, 139 identical lists, 0
+  membership differences, 0 order differences**. Refuted.
+
+  What was wrong is that this engine consumed a die at addresses where the authority consumes none,
+  twice, and under the middle arm's `seed|turn|cat|move|target|nth` addressing that pushes every later
+  `any` draw of the turn onto the next `nth`.
+
+  **`#496` — a one-element Trace list still costs a draw.** `PRNG#sample` (`sim/prng.ts:132`) is
+  `items[this.random(items.length)]` and `PRNG#random` (`:91`) calls `this.rng.next()` unconditionally.
+  The guard here was `if (eligible.length > 1)`, which is right about the index and wrong about the
+  address. Measured: the authority sampled a one-element list **9 times** against this engine's **57
+  dice for 66 copies**, and 4 of 57 two-candidate cells drew a different index — every one on a board
+  with a Trace body on both sides. `MEDI_TRACE_SOLO_NODRAW=1` restores the skip.
+
+  **`#497` — Quick Claw rolled on actions the authority never runs the event for.** Found by
+  instrumenting the real `omit-spread` divergence: a claw holder switching on turn 2 took
+  `20260813|2|any|-|-|0`, so the two Trace copies behind it read `|1|` and `|2|` against the
+  authority's `|0|` and `|1|`, and the first read 0.047 instead of 0.508. The second Gardevoir then
+  traced the first — which by then held the wrongly copied ability — which is why both bodies on
+  opposite sides read the same wrong ability. `sim/battle-queue.ts:249` runs FractionalPriority inside
+  the MOVE branch of `resolveAction` only. Nothing about the order moves: `_itHit` still carries
+  `_fpOk` exactly as it did. `MEDI_FRACPRI_UNGATED_DRAW=1` restores the ungated draw.
+
+### Changed
+- **THE `priority <= 0` IN QUICK CLAW'S HANDLER IS NOT THE MOVE'S PRIORITY, AND BOTH THE OLD COMMENT
+  AND THIS SESSION'S FIRST FIX READ IT THAT WAY.** `runEvent('FractionalPriority', action.pokemon,
+  null, action.move, 0)` supplies the trailing `0` as the RELAY VAR, and `onFractionalPriority`'s first
+  parameter is the relay — what an earlier handler returned. The probe's HIGHPRI arm caught it: the
+  authority takes a draw on a priority-1 move, against a no-claw control on the same board taking none.
+  The draw gate is now "is this a move action" and nothing else. The EFFECT gate is untouched and the
+  gap is now COUNTED (`MEDFAILS.fracPriPriorityGateUnmodelled`), not approximated — ROADMAP `#498`.
+
+### Added
+- `tests/probe_trace_list.js` — compares the two `possibleTargets` element by element, refuses by name
+  every draw on a turn `Battle#getRandomTarget` touched (ROADMAP `#478`, a foreign defect in the same
+  address bucket), and carries a red arm.
+- `tests/probe_fractional_priority_draw.js` — four arms derived from the format: SWITCH, HIGHPRI,
+  NORMAL (the over-fire control) and NOCLAW (the attribution control).
+- `MEDSEEN.fracPriItemDie`, `MEDFAILS.fracPriPriorityGateUnmodelled`,
+  `MEDFAILS.fracPriMyceliumDrawUnmodelled` — receipts and declared gaps for the claw.
+
+### Notes
+- **`PIN_DIGEST` and `DICE_MODEL` deliberately did not move.** They identify the INSTRUMENT; this
+  change is in the ENGINE, which is identified by the release id, and `engine/arms_comparable.js`
+  explicitly expects that id to differ between a before-arm and an after-arm. Moving the pin would have
+  made the before/after incomparable in exactly the way the rule exists to prevent.
+- **One prediction held and one did not.** Board-material 9 -> 7 was predicted before the run. Whole-game
+  was predicted NOT to move — both target rows carry `protocol_diverged_at_turn: null` — and it moved
+  10 -> 9. Stated because it was wrong, not explained away.
+- **Two board-material rows closed and only one was diagnosed.** The `omit-weather` Scovillain boosts
+  row also went; whether it shared the root or merely re-rolled into agreement is NOT established.
+- **The remaining Gardevoir row belongs to ROADMAP `#478`, not to Trace**, and that row now carries the
+  measurement: two `Side.randomFoe` draws land ahead of Trace's in `|7|any|-|-`, so the authority's
+  Trace takes `nth = 2` and ours takes `nth = 0`.
+- **The first control this session built was wrong, and the wrong number was a finding.** Replaying each
+  board hooked-then-unhooked in one process reported *23 of 40 perturbed by the hooks*; that was the
+  driver's `COV_CREDIT` steering, which every game mutates. The control is now a child process replaying
+  the identical sweep from fresh module state and reads 0 of 60.
+- Release `9dc79a4d459b`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,
+  `--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+  `--state --end-state`. Full account: `docs/_reports/2026-08-27-trace-list-order.md`.
+
 ## [5.182.0] — 2026-08-27
 
 ### Fixed

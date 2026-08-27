@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-27T18:06:30.748Z",
+  "generated": "2026-08-27T19:14:15.678Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:44bd49403231/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -44,7 +44,7 @@
       "damage_roll": "MINIMUM",
       "speed_tie": "to the EARLIER body",
       "games": 961,
-      "diverged": 15,
+      "diverged": 14,
       "threw": 0,
       "median_turns": 12,
       "end_reasons": {
@@ -57,7 +57,7 @@
       "credit_events": {
         "effect": 217265,
         "negative": 452,
-        "click": 338884
+        "click": 338898
       },
       "classes": [
         {
@@ -79,11 +79,6 @@
           "cls": "-damage: a different body",
           "games": 1,
           "distinct_causes": 1
-        },
-        {
-          "cls": "-boost field 3",
-          "games": 1,
-          "distinct_causes": 1
         }
       ]
     }
@@ -103,7 +98,7 @@
   },
   "games": 961,
   "turns_cap": 12,
-  "elapsed_s": 88.7,
+  "elapsed_s": 94.4,
   "credit_turn_profile": {
     "rows_with_any_credit": 253,
     "credits_with_no_turn_index": 0,
@@ -171,7 +166,7 @@
       "4": 25134,
       "5": 25546,
       "6": 24154,
-      "7": 25051,
+      "7": 25058,
       "8": 24445,
       "9": 24829,
       "10": 25365,
@@ -753,11 +748,11 @@
     "rates": {
       "with_megas": {
         "games": 955,
-        "diverged": 14
+        "diverged": 13
       },
       "control_same_pairs_no_stones": {
         "games": 955,
-        "diverged": 15
+        "diverged": 14
       },
       "pairs_with_no_stone_at_all": {
         "games": 6,
@@ -765,7 +760,7 @@
       },
       "whole_control_arm": {
         "games": 961,
-        "diverged": 16,
+        "diverged": 15,
         "note": "every stone stripped — this is what the 2026-08-06 run measured"
       }
     },
@@ -799,7 +794,7 @@
       {
         "id": "ability-announcement",
         "why": "Showdown's `|-ability|` is a COSMETIC announcement that an ability activated (SIM-PROTOCOL). Every consequence of it is a separate line and is kept, so dropping the announcement cannot hide an ability that did not fire — its effect would still be missing.",
-        "lines_collapsed": 141806,
+        "lines_collapsed": 141818,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -814,7 +809,7 @@
       {
         "id": "stat-attribution",
         "why": "a stat line's meaning is (body, stat, direction, amount). `[from] ability: X` and `[of] Y` say WHICH effect moved it, which the two engines tag inconsistently; the four fields that decide the board are kept.",
-        "lines_collapsed": 7518,
+        "lines_collapsed": 7542,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -902,7 +897,7 @@
         ]
       }
     ],
-    "total_lines_collapsed": 1030115
+    "total_lines_collapsed": 1030151
   },
   "entity_annotation": {
     "by": "engine/effect_kind.js",
@@ -1134,21 +1129,21 @@
     },
     "verdict": "the predicted DAMAGE bug does not reproduce — medicham2 prices both halves correctly because playerAction computes the range at CLICK time, before the item is stripped. What differs is the item DISPOSITION: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF."
   },
-  "diverged": 15,
+  "diverged": 14,
   "threw": 0,
   "mid_void": {
     "void_games": 1,
     "usable_games": 960,
-    "diverged_among_usable": 14,
-    "diverged_rate_over_usable": 0.0146,
+    "diverged_among_usable": 13,
+    "diverged_rate_over_usable": 0.0135,
     "mid_battle_bound_at_install": true,
     "empty_address_games_counted_void": false,
     "overlap_floor": 0.9,
     "by_reason": {
-      "no-addresses:neither-drew": 591,
+      "no-addresses:neither-drew": 604,
       "shared-addresses-agree": 185,
       "no-outcome-addresses:neither-drew": 156,
-      "no-addresses:sd-empty": 22,
+      "no-addresses:sd-empty": 9,
       "no-addresses:me-empty": 6,
       "low-identity": 1
     },
@@ -1161,12 +1156,12 @@
       },
       "no-outcome-addresses:neither-drew": {
         "games": 156,
-        "diverged": 1,
+        "diverged": 0,
         "median_turns": 12,
         "max_turns": 12
       },
       "no-addresses:neither-drew": {
-        "games": 591,
+        "games": 604,
         "diverged": 5,
         "median_turns": 12,
         "max_turns": 12
@@ -1184,7 +1179,7 @@
         "max_turns": 12
       },
       "no-addresses:sd-empty": {
-        "games": 22,
+        "games": 9,
         "diverged": 0,
         "median_turns": 12,
         "max_turns": 12
@@ -1209,7 +1204,7 @@
       "target differs  (dmg|outrage)": 1
     },
     "one_sided_game_shapes": {
-      "any -  [medicham2 only, the other drew nothing]": 141,
+      "any -  [medicham2 only, the other drew nothing]": 58,
       "any -  [authority only, the other drew nothing]": 7,
       "acc quash  [authority only, the other drew nothing]": 4,
       "acc entrainment  [authority only, the other drew nothing]": 1,
@@ -1242,9 +1237,9 @@
         "turn": 2,
         "games": 961,
         "reached": 961,
-        "identical": 958,
-        "rate_of_all_games": 0.9969,
-        "rate_of_games_that_reached_it": 0.9969
+        "identical": 960,
+        "rate_of_all_games": 0.999,
+        "rate_of_games_that_reached_it": 0.999
       },
       {
         "turn": 3,
@@ -1266,79 +1261,79 @@
       {
         "turn": 2,
         "reached": 961,
-        "identical": 958,
-        "rate_given_it_reached_this_turn": 0.9969,
-        "rate_of_all_games": 0.9969
+        "identical": 960,
+        "rate_given_it_reached_this_turn": 0.999,
+        "rate_of_all_games": 0.999
       },
       {
         "turn": 3,
         "reached": 961,
-        "identical": 957,
-        "rate_given_it_reached_this_turn": 0.9958,
-        "rate_of_all_games": 0.9958
+        "identical": 959,
+        "rate_given_it_reached_this_turn": 0.9979,
+        "rate_of_all_games": 0.9979
       },
       {
         "turn": 4,
         "reached": 961,
+        "identical": 959,
+        "rate_given_it_reached_this_turn": 0.9979,
+        "rate_of_all_games": 0.9979
+      },
+      {
+        "turn": 5,
+        "reached": 961,
         "identical": 957,
         "rate_given_it_reached_this_turn": 0.9958,
         "rate_of_all_games": 0.9958
       },
       {
-        "turn": 5,
-        "reached": 961,
-        "identical": 955,
-        "rate_given_it_reached_this_turn": 0.9938,
-        "rate_of_all_games": 0.9938
-      },
-      {
         "turn": 6,
         "reached": 961,
-        "identical": 954,
-        "rate_given_it_reached_this_turn": 0.9927,
-        "rate_of_all_games": 0.9927
+        "identical": 956,
+        "rate_given_it_reached_this_turn": 0.9948,
+        "rate_of_all_games": 0.9948
       },
       {
         "turn": 7,
         "reached": 960,
-        "identical": 952,
-        "rate_given_it_reached_this_turn": 0.9917,
-        "rate_of_all_games": 0.9906
+        "identical": 954,
+        "rate_given_it_reached_this_turn": 0.9938,
+        "rate_of_all_games": 0.9927
       },
       {
         "turn": 8,
         "reached": 957,
-        "identical": 949,
-        "rate_given_it_reached_this_turn": 0.9916,
-        "rate_of_all_games": 0.9875
+        "identical": 951,
+        "rate_given_it_reached_this_turn": 0.9937,
+        "rate_of_all_games": 0.9896
       },
       {
         "turn": 9,
         "reached": 956,
-        "identical": 948,
-        "rate_given_it_reached_this_turn": 0.9916,
-        "rate_of_all_games": 0.9865
+        "identical": 950,
+        "rate_given_it_reached_this_turn": 0.9937,
+        "rate_of_all_games": 0.9886
       },
       {
         "turn": 10,
         "reached": 952,
-        "identical": 944,
-        "rate_given_it_reached_this_turn": 0.9916,
-        "rate_of_all_games": 0.9823
+        "identical": 946,
+        "rate_given_it_reached_this_turn": 0.9937,
+        "rate_of_all_games": 0.9844
       },
       {
         "turn": 11,
         "reached": 949,
-        "identical": 942,
-        "rate_given_it_reached_this_turn": 0.9926,
-        "rate_of_all_games": 0.9802
+        "identical": 944,
+        "rate_given_it_reached_this_turn": 0.9947,
+        "rate_of_all_games": 0.9823
       },
       {
         "turn": 12,
         "reached": 944,
-        "identical": 937,
-        "rate_given_it_reached_this_turn": 0.9926,
-        "rate_of_all_games": 0.975
+        "identical": 939,
+        "rate_given_it_reached_this_turn": 0.9947,
+        "rate_of_all_games": 0.9771
       }
     ],
     "agreement_by_turn_cross_check": [
@@ -1350,15 +1345,15 @@
       },
       {
         "turn": 2,
-        "from_kept_boards": 958,
-        "from_the_counters": 958,
+        "from_kept_boards": 960,
+        "from_the_counters": 960,
         "agree": true
       },
       {
         "turn": 3,
         "from_kept_boards": 959,
-        "from_the_counters": 957,
-        "agree": false
+        "from_the_counters": 959,
+        "agree": true
       }
     ],
     "turn1": {
@@ -1393,11 +1388,6 @@
           "cls": "-damage: a different body",
           "games": 1,
           "board_identical_at_end_of_turn1": 1
-        },
-        {
-          "cls": "-boost field 3",
-          "games": 1,
-          "board_identical_at_end_of_turn1": 1
         }
       ],
       "cases": [],
@@ -1405,16 +1395,16 @@
       "display_name_lookups_that_missed": 2
     },
     "turn_boundaries_compared": 12445,
-    "turn_boundaries_identical": 12406,
-    "turn_boundary_agreement": 0.9969,
+    "turn_boundaries_identical": 12416,
+    "turn_boundary_agreement": 0.9977,
     "games": 961,
-    "games_board_never_diverged": 952,
-    "game_agreement": 0.9906,
+    "games_board_never_diverged": 954,
+    "game_agreement": 0.9927,
     "median_turn_of_first_board_divergence": 5,
-    "protocol_diverged_games": 15,
+    "protocol_diverged_games": 14,
     "protocol_diverged_board_never_did": 10,
     "protocol_diverged_board_held_longer": 0,
-    "board_parted_before_the_protocol_did": 4,
+    "board_parted_before_the_protocol_did": 3,
     "families": [
       {
         "family": "party.hp",
@@ -1427,17 +1417,17 @@
         "games": 3
       },
       {
+        "family": "active[].vol.confusion",
+        "differing_leaves": 1,
+        "games": 1
+      },
+      {
         "family": "party.ability",
-        "differing_leaves": 3,
-        "games": 2
+        "differing_leaves": 1,
+        "games": 1
       },
       {
         "family": "active[].ability",
-        "differing_leaves": 3,
-        "games": 2
-      },
-      {
-        "family": "active[].vol.confusion",
         "differing_leaves": 1,
         "games": 1
       },
@@ -1458,36 +1448,6 @@
       },
       {
         "family": "active[].status",
-        "differing_leaves": 1,
-        "games": 1
-      },
-      {
-        "family": "party.boosts.atk",
-        "differing_leaves": 1,
-        "games": 1
-      },
-      {
-        "family": "party.boosts.def",
-        "differing_leaves": 1,
-        "games": 1
-      },
-      {
-        "family": "party.boosts.spa",
-        "differing_leaves": 1,
-        "games": 1
-      },
-      {
-        "family": "active[].boosts.atk",
-        "differing_leaves": 1,
-        "games": 1
-      },
-      {
-        "family": "active[].boosts.def",
-        "differing_leaves": 1,
-        "games": 1
-      },
-      {
-        "family": "active[].boosts.spa",
         "differing_leaves": 1,
         "games": 1
       }
@@ -1621,72 +1581,6 @@
             "path": "p2.active[1].hp",
             "medicham": 170,
             "showdown": 107
-          }
-        ]
-      },
-      {
-        "config": "omit-weather",
-        "seed": "gen9championsvgc2026regmbbo3-2655236347 vs gen9championsvgc2026regmbbo3-2655333483",
-        "turn": 2,
-        "protocol_diverged_at_turn": 2,
-        "diffs": [
-          {
-            "path": "p2.party.scovillain.boosts.atk",
-            "medicham": 2,
-            "showdown": -1
-          },
-          {
-            "path": "p2.party.scovillain.boosts.def",
-            "medicham": -1,
-            "showdown": 0
-          },
-          {
-            "path": "p2.party.scovillain.boosts.spa",
-            "medicham": 0,
-            "showdown": 2
-          },
-          {
-            "path": "p2.active[0].boosts.atk",
-            "medicham": 2,
-            "showdown": -1
-          },
-          {
-            "path": "p2.active[0].boosts.def",
-            "medicham": -1,
-            "showdown": 0
-          },
-          {
-            "path": "p2.active[0].boosts.spa",
-            "medicham": 0,
-            "showdown": 2
-          }
-        ]
-      },
-      {
-        "config": "omit-spread",
-        "seed": "gen9championsvgc2026regmbbo3-2661369558 vs gen9championsvgc2026regmbbo3-2661472594",
-        "turn": 2,
-        "protocol_diverged_at_turn": null,
-        "diffs": [
-          {
-            "path": "p1.party.gardevoir.ability",
-            "medicham": "regenerator",
-            "showdown": "levitate"
-          },
-          {
-            "path": "p1.active[0].ability",
-            "medicham": "regenerator",
-            "showdown": "levitate"
-          },
-          {
-            "path": "p2.party.gardevoir.ability",
-            "medicham": "regenerator",
-            "showdown": "levitate"
-          },
-          {
-            "path": "p2.active[1].ability",
-            "medicham": "regenerator",
-            "showdown": "levitate"
           }
         ]
       }
@@ -2582,31 +2476,31 @@
       "summary": {
         "games": 961,
         "verdicts": {
-          "SAME-END-STATE": 956,
-          "DIFFERENT-END-STATE": 5,
-          "ENDED-APART": 0,
-          "NO-COMPARABLE-BOARD": 0,
-          "THREW": 0
-        },
-        "protocol_parted": 15,
-        "protocol_never_parted": 946,
-        "of_the_games_whose_protocol_parted": {
-          "SAME-END-STATE": 12,
+          "SAME-END-STATE": 958,
           "DIFFERENT-END-STATE": 3,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
-        "of_the_games_whose_protocol_never_parted": {
-          "SAME-END-STATE": 944,
+        "protocol_parted": 14,
+        "protocol_never_parted": 947,
+        "of_the_games_whose_protocol_parted": {
+          "SAME-END-STATE": 12,
           "DIFFERENT-END-STATE": 2,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
-        "wording_rate_of_all_parted_games": 0.8,
-        "wording_rate_of_parted_games_with_a_comparable_end": 0.8,
-        "parted_games_with_a_comparable_end": 15,
+        "of_the_games_whose_protocol_never_parted": {
+          "SAME-END-STATE": 946,
+          "DIFFERENT-END-STATE": 1,
+          "ENDED-APART": 0,
+          "NO-COMPARABLE-BOARD": 0,
+          "THREW": 0
+        },
+        "wording_rate_of_all_parted_games": 0.8571,
+        "wording_rate_of_parted_games_with_a_comparable_end": 0.8571,
+        "parted_games_with_a_comparable_end": 14,
         "by_shape": [
           {
             "shape": "RULE",
@@ -2632,17 +2526,6 @@
           },
           {
             "shape": "ORDERING",
-            "games": 1,
-            "verdicts": {
-              "SAME-END-STATE": 0,
-              "DIFFERENT-END-STATE": 1,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            }
-          },
-          {
-            "shape": "FIELD",
             "games": 1,
             "verdicts": {
               "SAME-END-STATE": 0,
@@ -2822,28 +2705,6 @@
             "first_board_divergence_turns": []
           },
           {
-            "cause": "-boost field 3 :: |-boost|p2a|spa|2 <> |-boost|p2a|atk|2",
-            "games": 1,
-            "board_parted": 1,
-            "board_never_parted": 0,
-            "verdicts": {
-              "SAME-END-STATE": 0,
-              "DIFFERENT-END-STATE": 1,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 0,
-            "unknown_games": 0,
-            "board_parted_same_turn": 1,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "BOARD-MATERIAL",
-            "first_board_divergence_turns": [
-              2
-            ]
-          },
-          {
             "cause": "event missing from medicham2 :: |-end|p1b|fallenundefined <> |switch|p1b|floetteeternal,l50|H/H",
             "games": 1,
             "board_parted": 0,
@@ -2945,13 +2806,13 @@
           }
         ],
         "by_cause_totals": {
-          "causes": 14,
-          "games": 15,
-          "BOARD_MATERIAL": 4,
+          "causes": 13,
+          "games": 14,
+          "BOARD_MATERIAL": 3,
           "NARRATION_ONLY": 10,
           "UNKNOWN": 0,
-          "games_board_material": 5,
-          "games_board_material_same_turn": 5,
+          "games_board_material": 4,
+          "games_board_material_same_turn": 4,
           "games_board_material_board_parted_later": 0,
           "games_board_material_board_parted_earlier": 0,
           "games_narration_only": 10,
@@ -2975,38 +2836,6 @@
           {
             "family": "active[].hp",
             "games": 1
-          },
-          {
-            "family": "party.boosts.atk",
-            "games": 1
-          },
-          {
-            "family": "party.boosts.spd",
-            "games": 1
-          },
-          {
-            "family": "party.boosts.spe",
-            "games": 1
-          },
-          {
-            "family": "active[].boosts.atk",
-            "games": 1
-          },
-          {
-            "family": "active[].boosts.spd",
-            "games": 1
-          },
-          {
-            "family": "active[].boosts.spe",
-            "games": 1
-          },
-          {
-            "family": "party.ability",
-            "games": 1
-          },
-          {
-            "family": "active[].ability",
-            "games": 1
           }
         ],
         "end_reasons": [
@@ -3022,7 +2851,7 @@
         "severity": {
           "what": "HOW BAD each DIFFERENT-END-STATE game is, ordered by what it means for the game rather than by how many leaves parted. Rungs and their definitions: engine/end_state_severity.js.",
           "scope": "DIFFERENT-END-STATE games only. ENDED-APART has no comparable final board and is a THIRD answer — it is counted beside this ladder and never inside it.",
-          "games_banded": 5,
+          "games_banded": 3,
           "hp_threshold_fraction_of_max_hp": 0.219178,
           "bands": [
             {
@@ -3123,70 +2952,18 @@
               "band": 4,
               "band_id": "DIFFERENT-IDENTITY-ON-A-LIVE-BODY",
               "what": "the species, the typing or the ability of a body still standing",
-              "games": 1,
-              "bodies": [
-                {
-                  "body": "gardevoir",
-                  "games": 1,
-                  "corpus_teams": 1501
-                }
-              ],
-              "examples": [
-                {
-                  "band": 4,
-                  "band_id": "DIFFERENT-IDENTITY-ON-A-LIVE-BODY",
-                  "why": "2 identity difference(s) on a body still standing",
-                  "evidence": [
-                    {
-                      "side": "p1",
-                      "body": "gardevoir",
-                      "what": "differs in ability",
-                      "us": "regenerator",
-                      "sd": "levitate",
-                      "body_known_to_the_party": true
-                    },
-                    {
-                      "side": "p2",
-                      "body": "gardevoir",
-                      "what": "differs in ability",
-                      "us": "sharpness",
-                      "sd": "levitate",
-                      "body_known_to_the_party": true
-                    }
-                  ],
-                  "evidence_total": 2,
-                  "bodies": [
-                    "gardevoir"
-                  ],
-                  "game": {
-                    "config": "omit-spread",
-                    "seed": "gen9championsvgc2026regmbbo3-2661369558 vs gen9championsvgc2026regmbbo3-2661472594",
-                    "arm": "middle",
-                    "turns": 12,
-                    "end_reason": "the turn cap (12)",
-                    "board_turn": 12,
-                    "leaves_compared": 404,
-                    "differing_leaves": 4
-                  },
-                  "shape": "PROTOCOL-NEVER-PARTED",
-                  "protocol_parted": false,
-                  "max_body_uses": 1501
-                }
-              ],
+              "games": 0,
+              "bodies": [],
+              "examples": [],
               "examples_capped_at": 25,
-              "examples_total": 1
+              "examples_total": 0
             },
             {
               "band": 5,
               "band_id": "OTHER-STATE-DIFFERENCE",
               "what": "a status, an item, a hazard, a screen, the weather, PP or a volatile",
-              "games": 2,
+              "games": 1,
               "bodies": [
-                {
-                  "body": "scovillain",
-                  "games": 1,
-                  "corpus_teams": 1758
-                },
                 {
                   "body": "meowscarada",
                   "games": 1,
@@ -3194,51 +2971,6 @@
                 }
               ],
               "examples": [
-                {
-                  "band": 5,
-                  "band_id": "OTHER-STATE-DIFFERENCE",
-                  "why": "3 non-HP, non-boost leaf/leaves differ",
-                  "evidence": [
-                    {
-                      "side": "p2",
-                      "body": "scovillain",
-                      "what": "differs in party.boosts.atk",
-                      "us": 2,
-                      "sd": -1
-                    },
-                    {
-                      "side": "p2",
-                      "body": "scovillain",
-                      "what": "differs in party.boosts.spd",
-                      "us": 0,
-                      "sd": 2
-                    },
-                    {
-                      "side": "p2",
-                      "body": "scovillain",
-                      "what": "differs in party.boosts.spe",
-                      "us": -1,
-                      "sd": 0
-                    }
-                  ],
-                  "evidence_total": 3,
-                  "bodies": [
-                    "scovillain"
-                  ],
-                  "game": {
-                    "config": "omit-weather",
-                    "seed": "gen9championsvgc2026regmbbo3-2655236347 vs gen9championsvgc2026regmbbo3-2655333483",
-                    "arm": "middle",
-                    "turns": 12,
-                    "end_reason": "the turn cap (12)",
-                    "board_turn": 12,
-                    "leaves_compared": 404,
-                    "differing_leaves": 6
-                  },
-                  "shape": "FIELD",
-                  "protocol_parted": true,
-                  "max_body_uses": 1758
-                },
                 {
                   "band": 5,
                   "band_id": "OTHER-STATE-DIFFERENCE",
@@ -3279,7 +3011,7 @@
                 }
               ],
               "examples_capped_at": 25,
-              "examples_total": 2
+              "examples_total": 1
             },
             {
               "band": 6,
@@ -3334,18 +3066,6 @@
           "different_winner_also_different_bodies_alive": 0,
           "by_shape_and_band": [
             {
-              "shape": "PROTOCOL-NEVER-PARTED",
-              "games": 2,
-              "by_band": {
-                "1": 0,
-                "2": 0,
-                "3": 0,
-                "4": 1,
-                "5": 1,
-                "6": 0
-              }
-            },
-            {
               "shape": "ORDERING",
               "games": 1,
               "by_band": {
@@ -3358,7 +3078,7 @@
               }
             },
             {
-              "shape": "FIELD",
+              "shape": "PROTOCOL-NEVER-PARTED",
               "games": 1,
               "by_band": {
                 "1": 0,
@@ -3389,7 +3109,7 @@
             "<=2 typical hits": 0,
             "<=4 typical hits": 1,
             "> 4 typical hits": 0,
-            "no HP leaf differs": 3
+            "no HP leaf differs": 1
           },
           "hp_gap_note": "A MISSING DAMAGE MULTIPLIER IS A FRACTION OF A HIT. A lost x1.33 on a hit worth 40% of a health bar is about a quarter of a hit, so it lands in the bottom band unless it flips a knockout — in which case it is band 2. This histogram is where that mass is visible; \"small\" in band 6 does not mean harmless."
         },
@@ -3717,17 +3437,6 @@
           "mentions": []
         }
       ]
-    },
-    {
-      "cls": "-boost field 3",
-      "games": 1,
-      "causes": [
-        {
-          "cause": "-boost field 3 :: |-boost|p2a|spa|2 <> |-boost|p2a|atk|2",
-          "n": 1,
-          "mentions": []
-        }
-      ]
     }
   ],
   "order_probe": [],
@@ -3901,25 +3610,6 @@
         "|switch|p2a: Glimmora|Glimmora, L50|158/158",
         "|switch|p1b: Kingambit|Kingambit, L50|175/175",
         "|switch|p1a: Meowscarada|Meowscarada, L50|151/151"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmbbo3-2655236347 vs gen9championsvgc2026regmbbo3-2655333483",
-      "index": 15,
-      "agreed_lines": 15,
-      "turn": 2,
-      "cls": "-boost field 3",
-      "cause": "-boost field 3 :: |-boost|p2a|spa|2 <> |-boost|p2a|atk|2",
-      "showdown": "|-boost|p2a: Scovillain|spa|2",
-      "medicham": "|-boost|p2a: Scovillain|atk|2|[from] ability: moody",
-      "showdown_before": [
-        "|upkeep",
-        "|turn|2",
-        "|switch|p1a: Lycanroc|Lycanroc-Dusk, L50|150/150",
-        "|switch|p1b: Froslass|Froslass, L50|145/145",
-        "|switch|p2b: Farigiraf|Farigiraf, L50|195/195",
-        "|switch|p2a: Scovillain|Scovillain, L50|140/140"
       ]
     },
     {
@@ -4423,11 +4113,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 13614,
+        "credit": 13620,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 26790
+          "click": 26802
         },
         "attempts": 54
       },
@@ -4684,11 +4374,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 13614,
+        "credit": 13620,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 26790
+          "click": 26802
         },
         "attempts": 54
       },
@@ -6681,11 +6371,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 667,
+        "credit": 668,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 895
+          "click": 897
         },
         "attempts": 0
       },
@@ -7268,11 +6958,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 13614,
+        "credit": 13620,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 26790
+          "click": 26802
         },
         "attempts": 54
       },
@@ -7283,11 +6973,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 13614,
+        "credit": 13620,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 26790
+          "click": 26802
         },
         "attempts": 54
       },
@@ -12536,11 +12226,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 13614,
+        "credit": 13620,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 26790
+          "click": 26802
         },
         "attempts": 54
       },
@@ -12612,11 +12302,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 13614,
+        "credit": 13620,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 26790
+          "click": 26802
         },
         "attempts": 54
       },
@@ -13594,7 +13284,7 @@
     "input_digest": "9446a684709d",
     "input_rows": 643,
     "input_generated": "2026-08-23T09:53:56.393Z",
-    "input_live_digest": "6776ba5ec5ea",
+    "input_live_digest": "2149cbdf6a92",
     "pinned": true,
     "matches_live": false,
     "selects_from": 580,
@@ -13606,12 +13296,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "f6a3b35ed665",
-  "engine_release_cut": "2026-08-27T17:27:22.360Z",
-  "engine_release_cuts": 3,
+  "engine_release": "9dc79a4d459b",
+  "engine_release_cut": "2026-08-27T19:08:14.628Z",
+  "engine_release_cuts": 13,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "2cb90d39cc7b",
+    "engine/medicham2-browser.js": "f4901cea9a1b",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "a9de35b3808d",
     "engine/position_features.js": "4850adf1a2ab",

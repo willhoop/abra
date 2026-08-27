@@ -21,6 +21,65 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## TRACE'S CANDIDATE LIST IS NOT WRONG AND NEVER WAS — 139 OF 139 DRAWS IDENTICAL IN MEMBERS *AND* ORDER. THE TWO SPURIOUS DICE BEHIND IT ARE. **BOARD-MATERIAL 9 -> 7 OF 961 AND WHOLE-GAME 10 -> 9 OF 961. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS. ROSTER 139/129/475 CLEAN. PIN DIGEST UNMOVED AT `44bd49403231`.**
+
+Release `9dc79a4d459b`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+Register rows: ROADMAP **#496 — CLOSED**, **#497 — CLOSED**, **#498 — FILED**; **#478** gains its
+second confirmed board-material game. CHANGELOG 5.183.0.
+Full account: `docs/_reports/2026-08-27-trace-list-order.md`.
+
+**THE BRIEF'S HYPOTHESIS WAS THE LIST AND IT IS REFUTED.** `tests/probe_trace_list.js` reads BOTH
+engines' `possibleTargets` at the moment of the draw — the medicham half through a new door
+(`traceListSink`) that hands out the array `traceCopy` actually built, never a re-derivation; the
+authority half wraps `Battle#sample` and claims the call only when `battle.effect.id === 'trace'`.
+Over 60 pinned-pool boards: **139 joined draws, 139 identical lists, 0 MEMBERSHIP differences, 0 ORDER
+differences.** Trace has never picked from a different set of foes, and never from the same set in a
+different order. Every wrong copy is an ADDRESS.
+
+**TWO SPURIOUS DICE, BOTH THE SAME SHAPE.** This engine consumed a die where the authority consumes
+none, and under `seed|turn|cat|move|target|nth` that pushes every later `any` draw of the turn onto
+the next `nth`.
+
+*#496 — a one-element Trace list still costs a draw.* `PRNG#sample` (`sim/prng.ts:132`) is
+`items[this.random(items.length)]`; `PRNG#random` (`:91`) calls `this.rng.next()` unconditionally. The
+guard was `if (eligible.length > 1)` — right about the index, wrong about the address. Measured: the
+authority sampled a one-element list **9 times** against **57 dice for 66 copies** here, and 4 of 57
+two-candidate cells drew a different index, every one on a mirror-Trace board. Knob
+`MEDI_TRACE_SOLO_NODRAW=1`.
+
+*#497 — Quick Claw rolled on actions the authority never runs the event for.* Found by instrumenting
+the real divergence, not by reasoning: `omit-spread` turn 2, a claw holder SWITCHING took
+`20260813|2|any|-|-|0`, so the two Trace copies behind it read `|1|` and `|2|` against the authority's
+`|0|` and `|1|`, and the first read 0.047 instead of 0.508. The second Gardevoir then traced the first
+— which by then held the wrongly copied ability — which is why two bodies on opposite sides read the
+same wrong ability. `sim/battle-queue.ts:249` runs FractionalPriority inside the MOVE branch of
+`resolveAction` only. Knob `MEDI_FRACPRI_UNGATED_DRAW=1`.
+
+**A CORRECTION THAT HAD TO BE MEASURED.** The deferral comment in the source — and this session's
+first fix — read `if (priority <= 0 && this.randomChance(1,5))` as the MOVE's priority. It is the
+event's RELAY VAR (`runEvent(..., 0)`). The probe's HIGHPRI arm caught it: the authority draws on a
+priority-1 move, against a no-claw control on the same board drawing none. The EFFECT gate is left
+alone and the gap is COUNTED — `MEDFAILS.fracPriPriorityGateUnmodelled`, ROADMAP #498.
+
+**THE FIRST CONTROL WAS WRONG AND THE WRONG NUMBER WAS A FINDING.** Replaying each board
+hooked-then-unhooked in one process reported *23 of 40 perturbed by the hooks*. That was the driver's
+`COV_CREDIT` steering, which every game mutates. The control is now a child process replaying the
+identical sweep from fresh module state: **0 of 60**.
+
+**ONE PREDICTION HELD AND ONE DID NOT.** Board-material 9 -> 7 was predicted. Whole-game was predicted
+NOT to move (both target rows carry `protocol_diverged_at_turn: null`) and it moved 10 -> 9. Recorded
+because it was wrong. Two board-material rows closed and only one was diagnosed — the `omit-weather`
+Scovillain row also went and its root is NOT established.
+
+**THE REMAINING GARDEVOIR ROW IS #478, NOT TRACE.** On turn 7 two
+`Side.randomFoe <- Battle.getRandomTarget` draws land in `|7|any|-|-` ahead of Trace's, so the
+authority's Trace takes `nth = 2` and ours takes `nth = 0`; on turns 1, 3, 5 and 9 they fall after and
+the engines agree, which is why one Gardevoir copies correctly four times and wrongly twice in one
+game. `probe_trace_list.js` refuses every draw on a turn `getRandomTarget` touched, by name.
+
+---
+
 ## A FAINTED BODY IN AN ACTIVE SLOT WAS NEVER A STATE DIVERGENCE — THE AUTHORITY CLEARS A FLAG, NOT THE SLOT. **ROADMAP #344 REFUTED. BOARD-MATERIAL UNMOVED AT 9 OF 961, WHOLE-GAME UNMOVED AT 10 OF 961, CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING.**
 
 Release `f6a3b35ed665` — re-cut over an identical tree and it returned the SAME id, which is the proof

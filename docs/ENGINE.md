@@ -27,7 +27,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_noguard_invuln.js`, `tests/probe_endturn_clock_order.js`,
 `tests/probe_substitute_status_step.js`, `tests/probe_yawn_substitute.js`,
 `tests/probe_doll_blind_family.js`, `tests/probe_trace_target.js`,
-`tests/probe_mega_trace_entry.js`, `tests/probe_mega_spread_stat.js`
+`tests/probe_mega_trace_entry.js`, `tests/probe_mega_spread_stat.js`,
+`tests/probe_trace_list.js`, `tests/probe_fractional_priority_draw.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -45,6 +46,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
+| `probe_trace_list.js` | do the two engines build the same Trace `possibleTargets` — MEMBERS and ORDER, read on both sides at the moment of the draw, over pinned-pool boards paired so a mirror-Trace board is common | whether either engine plays the game right; and any draw on a turn `Battle#getRandomTarget` touched, which is ROADMAP #478's address bucket and is REFUSED by name rather than absorbed |
+| `probe_fractional_priority_draw.js` | does Quick Claw's die get taken on the actions the authority runs the event for — SWITCH, a priority move, a normal move, and the same board with the item stripped | the claw's EFFECT, which is still gated on the move's printed priority where the authority gates on the relay var (ROADMAP #498); and Mycelium Might's early return, counted and never staged |
 | `test-mechanics.js` | is ONE mechanic live | tag x tag; and whether a LIVE verdict rests on a probe that asserts rather than proves |
 | `probe_mega_spread_stat.js` | does a MEGA EVOLUTION land on the stat line `setSpecies` recomputes from the set — all 75 stageable stones x both lead slots, driven through the real `megaEvolveNow` | anything that is not a forme change; and a stone-holder that never LEADS, because only a lead can be told to evolve, so the SP ladder's slot-2 and slot-3 spreads are not swept |
 | `test-engine-diff.js` | is ONE HIT's damage right | every turn counter — and the INTERIOR of the damage roll, by construction: it compares index 0 against `d.max` and index 15 against `d.min`, the two points where an index and a span coincide (ROADMAP #304) |
@@ -92,7 +95,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  765/765 probed mechanics live, 0 missing   (census 2026-08-27 14:07)
+  765/765 probed mechanics live, 0 missing   (census 2026-08-27 15:12)
   0/6000 differential comparisons disagree with Showdown   (2026-08-27 13:31)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -104,7 +107,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is cc56692401a9 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0d4ed17fb162 now
     (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: WITHHELD — engine/provenance.js calls data/tags.json UNSAFE.
@@ -112,9 +115,109 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 14:13_
+_stamped 2026-08-27 15:25_
 
 <!-- /GENERATED -->
+
+## TRACE'S CANDIDATE LIST IS NOT WRONG AND NEVER WAS — 139 OF 139 DRAWS IDENTICAL IN MEMBERS *AND* ORDER. THE TWO SPURIOUS DICE BEHIND IT ARE. **BOARD-MATERIAL 9 -> 7 OF 961, PREDICTED; WHOLE-GAME 10 -> 9 OF 961, NOT PREDICTED. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. PIN DIGEST UNMOVED AT `44bd49403231`.** 2026-08-27.
+
+Release `9dc79a4d459b`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--state --end-state`. Register rows ROADMAP **#496 — CLOSED**, **#497 — CLOSED**, **#498 — FILED**;
+**#478** gains its second confirmed board-material game. CHANGELOG 5.183.0.
+Full account: `docs/_reports/2026-08-27-trace-list-order.md`.
+
+**THE HYPOTHESIS WAS THE LIST. IT IS REFUTED, AND THAT IS THE HEADLINE.**
+
+```
+THE LISTS, ELEMENT BY ELEMENT — 139 joined draw(s)
+  identical list (same members, same order)   139
+  MEMBERSHIP differs                          0
+  ORDER differs, same members                 0
+```
+
+`tests/probe_trace_list.js` reads BOTH engines' `possibleTargets` at the moment of the draw. The
+medicham half goes through a new door — `traceListSink`, which hands out the array `traceCopy` actually
+built — rather than rebuilding the list from the board, because a probe that rebuilt it would be
+testing its own copy of the rule. The authority half wraps `Battle#sample` and claims the call only
+when `battle.effect.id === 'trace'`.
+
+**THE FIRST CONTROL WAS WRONG AND THE WRONG NUMBER WAS A FINDING.** Playing each board twice in one
+process — hooked, then unhooked — reported *23 of 40 boards perturbed by the hooks*. That was the
+driver's coverage steering: `COV_CREDIT` is module state every game mutates, so replaying the same pair
+a moment later is a different game whether or not anything is hooked. The control is now a **child
+process** replaying the identical sweep in the identical order from fresh module state, and it reads
+**0 of 60**.
+
+### TWO SPURIOUS DICE, ONE SHAPE
+
+Both are *this engine consumed a die at an address where the authority consumes none*. Under the middle
+arm both engines key on `seed|turn|cat|move|target|nth`, and `nth` is a per-address repeat counter — so
+one extra draw puts every later `any` draw of that turn on the wrong index.
+
+**ROADMAP #496 — a one-element list still costs a draw.** `PRNG#sample` (`sim/prng.ts:132`) is
+`items[this.random(items.length)]` and `PRNG#random` (`:91`) calls `this.rng.next()` **unconditionally**.
+The guard here was `if (eligible.length > 1)` — correct about the index, which cannot move at length 1,
+and wrong about the address. Measured before the fix: the authority sampled a one-element list **9
+times** against this engine's **57 dice for 66 copies**, and 4 of 57 two-candidate cells drew a
+different index — every one on a board with a Trace body on **both** sides, the only shape where a
+skipped draw and a real choice share an address. Knob `MEDI_TRACE_SOLO_NODRAW=1`.
+
+**ROADMAP #497 — Quick Claw rolled on actions the authority never runs the event for.** This one was
+found by instrumenting the divergence rather than reasoning about it. `omit-spread`, turn 2, medicham's
+own address log:
+
+```
+20260813|2|any|-|-|0   <- battleTurn, the fractionalPriority loop, on a SWITCH action
+20260813|2|any|-|-|1   <- traceCopy      (the authority's took |0|,  u = 0.508)
+20260813|2|any|-|-|2   <- traceCopy      (the authority's took |1|,  u = 0.047)
+```
+
+The first Gardevoir read 0.047 instead of 0.508 and indexed the other foe. The **second** Gardevoir then
+traced the first — which by then held the wrongly copied ability — which is why both bodies, on opposite
+sides, read the same wrong ability, and why it looked like a Trace defect firing twice. One root, two
+symptoms. `sim/battle-queue.ts:249` runs the FractionalPriority event inside the MOVE branch of
+`resolveAction`; the `['switch','instaswitch']` branch beside it never reaches the line. Knob
+`MEDI_FRACPRI_UNGATED_DRAW=1`.
+
+**A CORRECTION THAT HAD TO BE MEASURED, NOT READ.** The source's own deferral comment — and this
+agent's first version of the fix — read `if (priority <= 0 && this.randomChance(1, 5))` in
+`data/items.ts` as the MOVE's priority. It is the event's **relay var**:
+`runEvent('FractionalPriority', action.pokemon, null, action.move, 0)`, and `onFractionalPriority`'s
+first parameter is what an earlier handler returned. The probe's HIGHPRI arm is what caught it — the
+authority takes a draw on a priority-1 move, against a NOCLAW control on the same board taking none. So
+the draw gate is "is this a move action" and nothing else. The EFFECT gate is untouched and its gap is
+now **counted** (`MEDFAILS.fracPriPriorityGateUnmodelled`), which is ROADMAP #498.
+
+### THE ONE TARGET ROW THAT DID NOT CLOSE, AND WHOSE IT IS
+
+`baseline t7 p2.gardevoir.ability medicham goodasgold / showdown innerfocus` is **ROADMAP #478**, not
+Trace. On turn 7 two `Side.randomFoe <- Battle.getRandomTarget` draws land in `|7|any|-|-` ahead of
+Trace's, so the authority's Trace takes `nth = 2` and ours takes `nth = 0`; on turns 1, 3, 5 and 9 they
+fall *after* Trace and the two engines agree — which is why the same Gardevoir copies correctly four
+times and wrongly twice in one game. `probe_trace_list.js` refuses every draw on a turn
+`getRandomTarget` touched, by name, and prints the refused population (14 of 153) rather than absorbing
+it.
+
+### THE HAND LIST
+
+**Leaves it:** *"Trace is still picking a different foe"* as a LIST question — it is answered, refuted,
+and carried by `tests/probe_trace_list.js`. Also *"the fractionalPriority die is drawn where it always
+was; moving it is a separate change with its own probe"*, which was a standing deferral in the
+simulator's own source since ROADMAP #197.
+
+**Joins it:**
+- **ROADMAP #498 — the claw's EFFECT gate.** The die now agrees with the authority on every move
+  action; `_fpOk` still refuses the nudge above bracket 0 where the authority applies it. Counted, not
+  sized: the population over the pinned pool was not read.
+- **Mycelium Might's early return, and the claw's relay ORDER.** Both counted, neither staged. The
+  authority runs the ability handler (-1) before the item's (-2) and this engine draws the item first,
+  which under the relay reading decides whether the claw rolls at all after a Quick Draw has fired.
+- **The `omit-weather` Scovillain boosts row closed and nobody knows why.** It was not on this brief and
+  was not diagnosed; the claw fix moved that game's dice. If it comes back under a later dice change
+  there is no record of what it was.
+- **Whole-game moved when it was predicted not to.** Which of the 15 raw divergences became 14 is in the
+  artifact and was not attributed here.
 
 ## A FAINTED BODY IN AN ACTIVE SLOT WAS NEVER A STATE DIVERGENCE — THE AUTHORITY CLEARS A FLAG, NOT THE SLOT. **ROADMAP #344 REFUTED AND CLOSED. BOARD-MATERIAL UNMOVED AT 9 OF 961, WHOLE-GAME UNMOVED AT 10 OF 961, CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING — ALL THREE PREDICTED BEFORE THE RUN.** 2026-08-27.
 

@@ -958,11 +958,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *
    *   traceRetryCopied     a copy that landed on a LATER sweep, not at switch-in -- the authority's
    *                        `seek` flag is never cleared, so a Trace that found nothing keeps trying
-   *   traceChoiceDie       eligible.length > 1 AND a die was available: the choice was drawn
-   *   traceChoiceNoDie     eligible.length > 1 and NO die was in scope, so slot 0 was taken. A SILENT
-   *                        DEFAULT WOULD LOOK EXACTLY LIKE THE DIE WORKING, so it is counted apart. */
+   *   traceChoiceDie       a die was available and the index was drawn
+   *   traceChoiceNoDie     NO die was in scope, so slot 0 was taken. A SILENT DEFAULT WOULD LOOK
+   *                        EXACTLY LIKE THE DIE WORKING, so it is counted apart.
+   *
+   * 2026-08-27 -- THOSE TWO USED TO BE GATED ON `eligible.length > 1` AND ARE NOT ANY MORE. The
+   * authority draws at length 1 as well (`PRNG#random` has no short circuit), and skipping it left
+   * this engine one `nth` behind at a shared address. `traceAmbiguousChoice` still counts only the
+   * boards where the answer was genuinely in doubt, so `traceChoiceDie - traceAmbiguousChoice` is now
+   * the forced-but-still-drawn population. See the block in `traceCopy`. */
   traceCopied: 0, traceFoundNothing: 0, traceAmbiguousChoice: 0,
   traceRetryCopied: 0, traceChoiceDie: 0, traceChoiceNoDie: 0,
+  /* 2026-08-27 -- HOW MANY TIMES THE QUICK CLAW DIE WAS ACTUALLY TAKEN. The die is now gated on the
+   * authority's two conditions (a MOVE action, priority <= 0) rather than rolled and then discarded,
+   * and a gate that silently swallowed every roll would look exactly like a working one from the
+   * outside -- the claw is a 20% chance, so "the order did not change" is the common case either way.
+   * `tests/probe_fractional_priority_draw.js` reads this as its own receipt. */
+  fracPriItemDie: 0,
   /* 2026-08-27 -- a copy made by the MEGA door, where the copied ability's entry effect then runs.
    * Counted apart from `traceCopied` because "Trace copied something" and "the evolution itself
    * copied it, in time for the drop" are different facts, and only the second is the new wire. A zero
@@ -2287,6 +2299,18 @@ const MEDFAILS = { encoreAction: 0,
    * tag_dex could not read a `return <number>` out of; the ITEM derivation states only a chance by
    * construction and is deliberately not counted here. */
   fractionalPriorityNoBracket: 0, fractionalPriorityNoBracketFirst: null,
+  /* 2026-08-27 -- the THIRD condition on Quick Claw's die, which this engine does not model: the
+   * authority returns before rolling when the move is Status and the holder has Mycelium Might
+   * (data/items.ts quickclaw, first line of the handler). The other two conditions ARE modelled --
+   * see the fractionalPriority loop in battleTurn -- and this one is counted rather than approximated,
+   * so the population is visible. A zero means no board reached it. */
+  fracPriMyceliumDrawUnmodelled: 0,
+  /* 2026-08-27 -- the claw's EFFECT gate, which the DRAW no longer shares. `_fpOk` refuses the nudge
+   * on a move whose printed priority is above 0; the authority's `priority <= 0` is a test on the
+   * event's RELAY VAR (`runEvent(..., 0)`), not on the move, so it rolls and applies there too. The
+   * die now agrees with the authority on every move action; the OUTCOME still does not, and this is
+   * the size of that gap. Non-zero is a real defect and it is a different line from the draw. */
+  fracPriPriorityGateUnmodelled: 0,
   /* 2026-08-17 -- an `announce` record naming an event `TRACE.announced` has no emitter for. The four
    * carriers this format admits use `-activate` and `-ability` and nothing else; a fifth shape would
    * be SILENT rather than approximated, so it is counted and named instead of guessed at. */
@@ -17257,6 +17281,27 @@ function medRng(){ return MED_RNG; }
  * at both writers, including to null, for the reason above. */
 let MED_TIE_RNG=null;
 function medTieRng(){ return MED_TIE_RNG; }
+/* 2026-08-27 -- THE ELIGIBLE LIST, READABLE FROM OUTSIDE, BECAUSE A PROBE THAT RE-DERIVES IT IS
+ * TESTING ITS OWN COPY. The authority's Trace picks `this.sample(possibleTargets)`, so a wrong answer
+ * is either a wrong DIE or a wrong LIST, and those are different bugs with different fixes. Nothing in
+ * the protocol carries the list -- the `|-ability|` line names only the winner -- so an instrument that
+ * wants to compare membership and ORDER against `pokemon.adjacentFoes().filter(...)` has to be handed
+ * the array this function actually built.
+ *
+ * IT IS NULL BY DEFAULT AND IT IS NOT A FALLBACK: with no sink installed this is one falsy test per
+ * copy and the engine behaves identically, which `tests/probe_trace_list.js` asserts by playing the
+ * same board with and without one. Same shape as `midEventLog` next door. */
+let TRACE_LIST_SINK=null;
+function traceListSink(fn){ const prev=TRACE_LIST_SINK; TRACE_LIST_SINK=(typeof fn==='function')?fn:null; return prev; }
+/* 2026-08-27 -- the red arm for the length-1 draw. See the block inside `traceCopy`. */
+const TRACE_SOLO_NODRAW = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_TRACE_SOLO_NODRAW === '1');
+if (TRACE_SOLO_NODRAW) MEDFAILS.traceSoloNoDrawRestored = 1;
+/* 2026-08-27 -- the red arm for Quick Claw's ungated die. See the fractionalPriority loop in
+ * `battleTurn`. Stamped so a run under it can never be read as a clean one. */
+const FRACPRI_UNGATED_DRAW = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_FRACPRI_UNGATED_DRAW === '1');
+if (FRACPRI_UNGATED_DRAW) MEDFAILS.fracPriUngatedDrawRestored = 1;
 function traceCopy(m,foes){
   if(!m||m.fainted||m.curHP<=0)return false;
   const p=TAGS.param('ability',m.ability,'copiesFoeAbility');
@@ -17273,7 +17318,11 @@ function traceCopy(m,foes){
     if(_rc&&_rc.notrace)continue;
     eligible.push(t);
   }
-  if(!eligible.length){MEDSEEN.traceFoundNothing++;return false;}
+  if(!eligible.length){
+    /* AN EMPTY LIST IS A LIST, and it is the half a copied-ability comparison cannot see: if the
+     * authority found one foe here and we found none, the divergence is membership and not the die. */
+    if(TRACE_LIST_SINK)TRACE_LIST_SINK({holder:m,offered:(foes||[]).slice(),eligible:[],index:-1,chosen:null});
+    MEDSEEN.traceFoundNothing++;return false;}
   /* THE CHOICE IS A DIE, AND IT IS THE AUTHORITY'S OWN INDEX. `this.sample(possibleTargets)` is
    * `PRNG#sample`, which is `items[this.random(items.length)]` -- a UNIFORM INDEX INTO THE ELIGIBLE
    * LIST, not into the slots. `tests/probe_trace_choice.js` proves both halves of that on a staged
@@ -17287,15 +17336,45 @@ function traceCopy(m,foes){
    * an rng (battleInit without `opts.rng`, and every rollout that predates it), and that path keeps
    * the old fixed index -- counted apart, because a fallback that looks like the feature working is
    * this repo's signature failure. */
+  /* ---- 2026-08-27 -- A ONE-ELEMENT LIST STILL COSTS A DRAW, AND SKIPPING IT MOVED THE NEXT ONE ----
+   *
+   * The guard here used to be `if (eligible.length > 1)`: with one candidate the answer is forced, so
+   * why roll? Because THE AUTHORITY ROLLS. `this.sample(possibleTargets)` is `PRNG#sample`
+   * (`sim/prng.ts:132`) = `items[this.random(items.length)]`, and `PRNG#random` (`:91`) calls
+   * `this.rng.next()` UNCONDITIONALLY -- there is no length-1 short circuit anywhere on that path.
+   *
+   * IT CANNOT CHANGE WHICH BODY IS PICKED ON EITHER SIDE (index 0 is the only index at length 1) AND
+   * IT CHANGES EVERY LATER DRAW IN THE TURN. Under the differential's event-addressed dice both
+   * engines key on `seed|turn|cat|move|target|nth`, where `nth` is a per-address repeat counter, and a
+   * Trace draw at a lead-in carries the bare `…|0|any|-|-` address that every other non-move draw of
+   * the lead-in also carries. An engine that skips one draw is one `nth` behind for the rest of that
+   * address -- so the NEXT Trace on the field reads the previous one's value.
+   *
+   * MEASURED BEFORE IT WAS WRITTEN (`tests/probe_trace_list.js`, 40 pinned-pool boards, both engines'
+   * `possibleTargets` read at the moment of the draw): the two lists agreed on 66 of 66 draws, MEMBERS
+   * AND ORDER, with zero membership and zero order differences -- so this was never a list bug. The
+   * authority sampled a ONE-ELEMENT list 9 times; this engine took 57 dice for 66 copies. Four of 57
+   * two-candidate cells then drew a different index, every one of them on a board with a Trace body on
+   * BOTH sides, which is the only shape where a skipped draw and a real choice share one address.
+   *
+   * `MEDI_TRACE_SOLO_NODRAW=1` restores the skip so the defect can be shown RED rather than asserted,
+   * and it stamps `MEDFAILS.traceSoloNoDrawRestored` so a run under it cannot be read as a clean one --
+   * the same shape as MEDI_MEGA_TRACE_LATE and MEDI_ACTIVE_MOVE_STICKY. */
   if(eligible.length>1)MEDSEEN.traceAmbiguousChoice++;
   let _ti=0;
-  if(eligible.length>1){
+  if(eligible.length>1||!TRACE_SOLO_NODRAW){
     const _r=medRng();
     if(_r){ _ti=Math.floor(_r()*eligible.length); if(_ti>=eligible.length)_ti=eligible.length-1;
             MEDSEEN.traceChoiceDie++; }
     else MEDSEEN.traceChoiceNoDie++;
   }
   const t=eligible[_ti];
+  /* 2026-08-27 -- the LIST, handed out raw (see `traceListSink`). Raw bodies rather than names because
+   * naming them here would be a second copy of `ident()`, and two spellings of "which body is this" is
+   * the facts-are-global breach CLAUDE.md forbids. `offered` is what the caller passed in, so a probe
+   * can tell a MEMBERSHIP difference (our filter dropped one) from an ARRIVAL difference (the caller
+   * never offered it). */
+  if(TRACE_LIST_SINK)TRACE_LIST_SINK({holder:m,offered:(foes||[]).slice(),eligible:eligible.slice(),index:_ti,chosen:t});
   abRewrite(m,String(t.ability));          // ROADMAP #307 -- the copy is undone by leaving the field
   MEDSEEN.traceCopied++;
   /* Showdown writes `|-ability|HOLDER|Intimidate|[from] ability: Trace|[of] FOE`. This trace sink
@@ -19888,9 +19967,59 @@ function battleTurn(S,rng,actsForA,actsForB){
          SWITCH, against a `|switch|` line on the authority's side. */
       const _fpMid=actionMoveId(it.a);
       const _fpOk=!!_fp&&!!_fpMid&&actionPriority(it,field)<=0;
-      const _itHit=!!(_fp&&_fp.chance&&rng()<+_fp.chance)&&_fpOk;
+      /* ---- 2026-08-27 -- THE DIE IS NOW TAKEN ON THE ACTIONS THE AUTHORITY TAKES IT ON, AND THE
+       * PARAGRAPH ABOVE SAID THIS WOULD NEED ITS OWN PROBE. It has one:
+       * `tests/probe_fractional_priority_draw.js`.
+       *
+       * THE CONDITION IS "IS THIS A MOVE ACTION", AND NOTHING ELSE. `sim/battle-queue.ts:249` runs the
+       * FractionalPriority event inside the MOVE branch of `resolveAction`; the `['switch',
+       * 'instaswitch']` branch beside it never reaches the line, so a SWITCH reaches no handler at all
+       * and no die is drawn.
+       *
+       * THE `priority <= 0` IN QUICK CLAW'S HANDLER IS NOT THE MOVE'S PRIORITY, AND READING IT AS THE
+       * MOVE'S PRIORITY IS WHAT THIS COMMENT SAID FOR MOST OF A DAY. The call is
+       * `runEvent('FractionalPriority', action.pokemon, null, action.move, 0)` -- the trailing `0` is
+       * the RELAY VAR, and `onFractionalPriority(priority, ...)` receives the relay, i.e. whatever an
+       * EARLIER handler in the same event returned. On an ordinary claw holder it is 0, so the test
+       * passes and THE AUTHORITY ROLLS ON A PRIORITY MOVE TOO. Measured, not inferred: this file's
+       * HIGHPRI arm plays a priority-1 attack and the authority takes one `any` draw, against a
+       * no-claw control on the same board that takes none.
+       *
+       * WHAT CHANGES IS THE DRAW AND NOT THE OUTCOME. `_itHit` still carries `_fpOk` exactly as it
+       * did, so no board's order moves; what stops happening is a die being CONSUMED on a switch,
+       * where the authority consumes none. That matters because the middle arm addresses both engines'
+       * draws as `seed|turn|cat|move|target|nth` and `nth` is a per-address repeat counter: a spurious
+       * draw pushes every later `any` draw of that turn onto the next index. MEASURED on the game it
+       * was found in -- a claw holder switching on turn 2 took `20260813|2|any|-|-|0`, so the two
+       * Trace copies behind it read `|1` and `|2` while the authority's read `|0` and `|1`, and the
+       * first one drew 0.047 instead of 0.508 and indexed the other foe.
+       *
+       * TWO CONDITIONS THIS ENGINE STILL DOES NOT MODEL, COUNTED RATHER THAN IGNORED, because a
+       * silent approximation is indistinguishable from a working feature:
+       *   fracPriPriorityGateUnmodelled  `_fpOk` refuses the claw above bracket 0 and the authority
+       *                                  does not. The DIE now agrees; the EFFECT does not, and that
+       *                                  is a separate defect on a separate line.
+       *   fracPriMyceliumDrawUnmodelled  quickclaw returns before the roll when the move is Status and
+       *                                  the holder has Mycelium Might. Expressed as a TAG SHAPE -- an
+       *                                  ability carrying `fractionalPriority` with `onlyStatus` --
+       *                                  and not a name, but only counted.
+       *
+       * `MEDI_FRACPRI_UNGATED_DRAW=1` restores the ungated draw for the red arm. */
+      const _fpDraws=!!_fp&&!!_fp.chance&&!!_fpMid;
+      let _itHit=false;
+      if(FRACPRI_UNGATED_DRAW){
+        if(_fp&&_fp.chance)MEDSEEN.fracPriItemDie++;
+        _itHit=!!(_fp&&_fp.chance&&rng()<+_fp.chance)&&_fpOk;
+      }else if(_fpDraws){
+        MEDSEEN.fracPriItemDie++;
+        _itHit=(rng()<+_fp.chance)&&_fpOk;
+      }
+      if(_fpDraws&&!_fpOk)MEDFAILS.fracPriPriorityGateUnmodelled++;
       let _q=_itHit?1:0;
       const _fa=TAGS.param('ability',it.mon.ability,'fractionalPriority');
+      /* THE UNMODELLED MYCELIUM CONDITION, COUNTED. A zero here means no board this run reached it. */
+      if(_fpDraws&&_fa&&_fa.onlyStatus&&TAGS.has('move',_fpMid,'statusCategory'))
+        MEDFAILS.fracPriMyceliumDrawUnmodelled++;
       let _abHit=false;
       if(_fa){
         const _mid=actionMoveId(it.a);
@@ -33543,6 +33672,8 @@ root.compareTurnOrder=compareTurnOrder; root.turnOrderKey=turnOrderKey; root.sor
 /* ROADMAP #68 -- the trace's two readers. On the root as well as in module.exports for the same
    reason compareTurnOrder is: the browser reaches this engine through the global object. */
 root.traceCounts=traceCounts; root.traceCanon=traceCanon; root.TRACE_EVENTS=TRACE_EVENTS;
+/* 2026-08-27 -- the Trace eligible-list door. See `traceListSink` for why the list and not the winner. */
+root.traceListSink=traceListSink;
 root.punishExposure=punishExposure; root.clickFragility=clickFragility;
 root.battleInit=battleInit; root.battleTurn=battleTurn; root.rngStreams=rngStreams; root.RNG_STREAMS=RNG_STREAMS; root.battleOver=battleOver; root.battleResult=battleResult; root.playerAction=playerAction;
 /* ROADMAP #262 -- the event-addressed dice and the log of what they were asked. On the root as well as
@@ -33576,6 +33707,8 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
   CODE_OF_STATUS,
   /* WIRE 157 -- the counters, by reference. See the root export above for why. */
   MEDSEEN,MEDFAILS,
+  /* 2026-08-27 -- the Trace eligible-list door; see `traceListSink`. */
+  traceListSink,
   /* WIRE 129 -- exported for the ACCURACY-MODIFIER CONFORMANCE block in tests/test-engine-diff.js,
    * which re-derives the whole table out of the live format dex. A table nobody checks is the literal
    * it replaced; this is the only thing that makes it different in kind. */
