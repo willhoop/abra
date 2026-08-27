@@ -23,9 +23,10 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_recoil_after_clamp.js`, `tests/probe_poltergeist_use_time.js`,
 `tests/probe_unburden_herb_paths.js`, `tests/probe_knockoff_megastone.js`,
 `tests/probe_random_target_address.js`,
-`tests/probe_spread_status_steps.js`, `tests/probe_multihit_update.js`
+`tests/probe_spread_status_steps.js`, `tests/probe_multihit_update.js`,
+`tests/probe_noguard_invuln.js`
 
-**Twenty-one instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
+**Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
 "thirteen" until `test-bracket-regain.js` on 2026-08-21, "fourteen" until
 `test-encore-fail-silent.js` on 2026-08-22, "fifteen" until `test-immunity-gate.js` and
@@ -33,7 +34,7 @@ this sentence — it was "twelve" until `test-damage-roll-support.js` was added 
 `test-roster-arm-pin.js`, both on 2026-08-22, "nineteen" until `test-mc-seal.js` on 2026-08-23, and
 "twenty" until `identity_audit.js` on 2026-08-26, and again on 2026-08-27 when
 `probe_random_target_address.js` arrived, and "twenty-one" the same day when
-`probe_multihit_update.js` did.
+`probe_multihit_update.js` did, and again the same day when `probe_noguard_invuln.js` did.
 A number typed in prose beside a table is exactly what
 CLAUDE.md records going stale three times over.)*
 
@@ -69,6 +70,7 @@ CLAUDE.md records going stale three times over.)*
 | `probe_spread_status_steps.js` | does a spread STATUS move run each STEP across every target the way `trySpreadMoveHit`'s `moveSteps` does — six arms, no typed expectation, both engines on one pinned corner, each played clean and again under `MEDI_SPREAD_STATUS_PER_TARGET=1`; three reds that must part under the knob, three controls that must not, and the nesting counters asserted as an EXACT per-game delta off `globalThis.MEDSEEN` so a knob that reached a module the driver never loaded fails the arm whatever the streams say | anything outside the `kind==='affect'` branch: `corrosivegas` arrives as `trickitem` and is named rather than covered, and the SUBSTITUTE step sits above accuracy here and below it in the authority — both declared, neither staged. And the step BOUNDARIES themselves, which it inherits rather than checks: it compares the two engines' streams, never this branch's step list against `moveSteps` |
 | `probe_random_target_address.js` | can the `randomNormal` target die be SHARED by blanking our address — every authority draw in the blank `any` bucket tagged with its REAL stack, the `nth` its runMove target draw carries, the proposal's pick rate against a coin floor, a wrong-turn negative control, and `--focus` for one named game so "would this reach board-material zero" is answered against the game the artifact records | whether either engine plays the game right — it compares ADDRESSES and the picks they imply, never a board. And it measures the proposal WITHOUT it being landed, so it says nothing about what a whole-game re-run would report |
 | `probe_multihit_update.js` | does an `onUpdate` handler see EVERY intermediate HP of a volley — `eachEvent('Update')` is inside the authority's hit loop (`sim/battle-actions.ts:967`, kept verbatim by the Champions override at `data/mods/champions/scripts.ts:538`), so a pinch berry is eaten BETWEEN hits. The fixture is derived from the format and then SEARCHED by playing candidate boards, selected on the SHOWDOWN stream alone and printed, judged with no typed expectation on three quantities — the number of `-damage` lines before the eat, the LOWEST HP the body ever stood on, and the HP it ends the volley on — with a child on `MEDI_MULTIHIT_UPDATE_ONCE=1` that must move the eat AND must part from the authority | anything about the once-per-move wrap of the STEP LIST, which is unchanged and stays `test-resolution-order.js`'s KNOWN-OPEN arm; and the exact position of the intermediate pass, which it places below the PACKET where the authority places it below that hit's whole `spreadMoveHit` — it DERIVES and PRINTS that no multi-hit move in this format carries a target secondary, so the two coincide today, rather than asserting they always will |
+| `probe_noguard_invuln.js` | does No Guard's OTHER half reach the game — `onAnyInvulnerability` returns 0 (`data/abilities.ts`, no `noguard` row in the Champions override) and `trySpreadMoveHit` KEEPS a target whose step result is zero (`sim/battle-actions.ts:605`), so a No Guard move survives step 0 and is judged by the TYPE CHART at step 2 — five arms over two engines, one turn each, judged on the OUTCOME (immune / hit / miss / unboost) rather than on the wording, with the target's immunity-reason count DERIVED and printed per arm and the file REFUSING any target immune for more than one reason, plus `MEDSEEN.noGuardThroughInvuln` at exact equality and a `--red` arm on `MEDI_NOGUARD_INVULN_BLIND=1` where the three live arms must PART and the two controls must NOT | anything about the STAGE ORDER, which it does not test and which was never the defect — `_STEPS` already matches `moveSteps` and control D proves an ordinary immunity still reads `-immune`. And every other `onAny*` handler whose second half may be unwired: it is ONE ability, reached through `_neverMissAb`'s `never` flag, and a derived tag for `onAnyInvulnerability` is owed rather than done |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -79,7 +81,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  754/754 probed mechanics live, 0 missing   (census 2026-08-27 06:33)
+  755/755 probed mechanics live, 0 missing   (census 2026-08-27 07:15)
   0/6000 differential comparisons disagree with Showdown   (2026-08-27 06:34)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -99,9 +101,155 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 06:49_
+_stamped 2026-08-27 07:32_
 
 <!-- /GENERATED -->
+
+## NO GUARD SEES THROUGH A VANISH — HALF THE ABILITY WAS WIRED, AND THE AUTHORITY ANSWERS WITH THE IMMUNITY TWO STEPS BELOW. **WHOLE-GAME CLAUSE 5 OF 961 -> 4 OF 961.** CENSUS 754 -> **755 LIVE / 755 PROBED / 0 MISSING**. BOARD-MATERIAL UNMOVED AT 1 OF 961. 2026-08-27.
+
+Release `e5957689f94f` (cut for this — `engine/medicham2-browser.js` is a SOURCES file and it moved),
+arm `middle`, 961 games, `--turns 12`, `--team-store data/team-pool-frozen`, census pin
+`9446a684709d`. Register row: ROADMAP **#483 — CLOSED**. CHANGELOG 5.172.0.
+Probe: `tests/probe_noguard_invuln.js`. Full account: `docs/_reports/2026-08-27-immune-vs-miss.md`.
+
+### WHICH SCOREBOARD IT SHOULD MOVE, SAID BEFORE THE RUN
+
+**The pinned pool by one game, the LAB by one row, and board-material not at all.** An immunity and a
+miss both deal zero, so there was no room for a board to move and a board-material RISE would have
+been the signal to stop and report. No Guard is 117 uses and this is the pool's only game of its
+shape. All three predictions held.
+
+### THE DIRECTION, READ OFF `classify()`
+
+```
+unrelated event mismatch :: |-immune|p1a <> |-miss|p2b|p1a
+showdown : |-immune|p1a: Golurk
+medicham2: |-miss|p2b: Raichu|p1a: Golurk
+```
+
+`game_differential.js:4190` builds the cause as `ga <> gb` with `ga = gen(sdHead)` and
+`sdHead = d.sdAfter[0]`, so the LEFT field is the authority. **The authority declares an immunity and
+this engine declared a miss.**
+
+### THE PREMISE WAS THAT ACCURACY RAN ABOVE IMMUNITY. IT IS REFUTED
+
+`moveSteps` — `sim/battle-actions.ts:556-568`, mainline `sim/`, and Champions overrides none of it
+(`hitStep`, `trySpreadMoveHit` and `moveSteps` all grep to nothing in
+`data/mods/champions/scripts.ts`; the mod's overrides start at `hitStepMoveHitLoop`, index 7):
+
+```
+556  hitStepInvulnerabilityEvent   0
+559  hitStepTryHitEvent            1
+562  hitStepTypeImmunity           2   <- THE TYPE CHART
+565  hitStepTryImmunity            3
+568  hitStepAccuracy               4   <- THE DIE
+```
+
+The only reorderings below it are `gen <= 6` and `gen === 4`. **Immunity is two steps above accuracy,
+and medicham2 already had that order** — `_STEPS` is
+`[_stepInvuln, _stepTryHit, _stepTypeImm, _stepTryImm, _stepAccuracy, …]`, and a staged Zap Cannon
+into a STANDING Golurk printed `|-immune|` in both engines before anything moved.
+
+### THE DEFECT IS ONE STEP FURTHER UP: HALF AN ABILITY
+
+`data/abilities.ts` (no `noguard` row in the Champions override) gives No Guard **two** handlers off
+one guard clause naming either end of the move:
+
+```js
+onAnyInvulnerabilityPriority: 1,
+onAnyInvulnerability(target, source, move) { … return 0; },
+onAnyAccuracy(accuracy, target, source, move) { … return true; },
+```
+
+and `trySpreadMoveHit` KEEPS a target whose step result is zero —
+`targets.filter((val, i) => hitResults[i] || hitResults[i] === 0)`, `:605`. `0` is falsy and is not
+`false`, so no `-miss` is written and the row reaches step 2, where the type chart refuses it.
+
+**This engine wired the `onAnyAccuracy` half only.** `_neverMissAb` had exactly one caller,
+`hitChance`; `_invulnDecide` consulted Lock-On and the charging move's own `pierces` list, and
+Phantom Force declares an EMPTY `pierces`.
+
+**THE GAME**: p1's Golurk (Ground/Ghost, Golurkite, mid-Phantom-Force) and p2's Raichu holding a
+Raichunite Y — **Raichu-Mega-Y's ability is No Guard**. The Dire Claw one line above it is a
+100-accuracy move MISSING, which only step 0 can do. Reproduced from the two pinned sheets before a
+byte moved.
+
+**THE FILE HAD ALREADY WRITTEN THIS BUG DOWN, ABOUT LOCK-ON**, at `medicham2-browser.js:3949`:
+*"One predicate, called by the accuracy path and by the semi-invulnerability step, because the
+authority's condition answers both questions off the same two clauses … Two copies of that pair is how
+one of the two halves ends up wired and the other does not."*
+
+### THE FIX
+
+`engine/medicham2-browser.js` only. `noGuardThroughInvuln(att, def)` built on the SAME `_neverMissAb`
+`hitChance` calls, at **three** sites that all already asked `guaranteedAgainst` and none of which
+asked this: `_invulnDecide` (the shipped path), `_stepInvuln` (the `MEDI_INVULN_BELOW_SHIELD` arm, so
+that knob still changes only the STAGE), and the `kind!=='attack'` branch — **the one that hides**, and
+which a fix aimed at the damaging path alone would have left blind. It is placed LAST in that branch's
+condition chain so Lock-On, Helping Hand and a Poison-type's Toxic short-circuit ahead of it and the
+counter means *bodies carried*, never *times asked*.
+
+Knob `MEDI_NOGUARD_INVULN_BLIND=1`; `MEDSEEN.noGuardThroughInvuln` and
+`MEDFAILS.noGuardInvulnBlindRestored`, the second set only where the knob CHANGED the answer.
+
+### NOTHING KEYS ON "MISSED" AGAINST "FAILED" IN THIS FORMAT, AND THAT IS DERIVED
+
+`hitStepAccuracy` is the only step that distinguishes them and its only consumer is **Blunder Policy**
+(`:745`), whose `isNonstandard` is `'Past'` — banned here. `atLeastOneFailure` is set identically by
+all three refusing steps, so `moveThisTurnResult` is `false` either way and Stomping Tantrum doubles
+either way.
+
+### THE PROBE, AND THE TWO TIMES IT WAS WRONG BEFORE THE ENGINE WAS
+
+`tests/probe_noguard_invuln.js` — Machamp (No Guard, 55 Spe) swinging at a Dragapult (142 Spe) that
+vanished on the same turn. **The immunity-reason count is DERIVED and printed per arm and the file
+refuses a target immune for more than one reason** — `["type:Ghost"]`, one.
+
+```
+                                             authority  clean   --red
+A  vanished + Fighting   No Guard              immune   immune   miss    PARTS
+B  vanished + Ice        No Guard              hit      hit      miss    PARTS
+F  vanished + ScaryFace  No Guard              unboost  unboost  miss    PARTS
+C  vanished + Fighting   Steadfast  [control]  miss     miss     miss    HOLDS
+D  STANDING  + Fighting  No Guard   [control]  immune   immune   immune  HOLDS
+```
+
+Arm B carries no immunity at all, so it says the fix is *No Guard sees through the vanish* rather than
+*an immune body reports sooner*. Arm C is the control a blanket "stop dropping invulnerable rows" fix
+would fail. `MEDSEEN.noGuardThroughInvuln` asserted at exactly **3** clean and **0** under the knob.
+
+**THE PROBE'S OWN TWO FAULTS, BOTH ON THE SAME FIELD NAME**: the Scary Face arm first read
+`f1.boosts.spe`, but this engine's boost keys are its own (`SD2ENG:5320` maps `spe -> sp`), so it
+printed `0` against `0` — which reads exactly like an unwired gate; then the trace assertion read
+`|sp|` where the PROTOCOL writes `|spe|`. Both are recorded in the probe.
+
+### THE NUMBERS, IDENTICAL SAMPLE PROVEN RATHER THAN ASSUMED
+
+Same 961 games, same census steering digest `9446a684709d` over 643 rows, same team pool digest
+`0d103fb9fa87` (8,778 teams, 1,968 picked), same pin digest `2efbc9ed1946`, same 12,450 turn
+boundaries compared and 12,439 identical, `threw` 0 both. **Exactly one first-divergence removed —
+`pair-protect-bust | …2660356793 vs …2660492912` — and none arrived.**
+
+Whole-game clause **5 -> 4 of 961** (raw 10 -> 9). Board-material **unmoved at 1 of 961**. Census
+**754 -> 755 live / 755 probed / 0 missing**. Three roster stages re-run on the new release:
+**0 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE** on items, abilities and moves. Mechanics clause unmoved
+at 5 of 12 — and it is NOT a strict before/after, because the census gained a row and the census
+steers `all_mechanics_fire.js`; it happens to land on the same five.
+
+### A SECOND, DIFFERENT DEFECT — DECLARED, NOT TOUCHED
+
+**Substitute above accuracy is not this bug.** This one was a MISSING HANDLER with the stage order
+already right. Substitute is a genuine STAGE-ORDER defect in the opposite direction and only on the
+STATUS road: the authority answers the doll in `tryPrimaryHitEvent` (`:1138`) <- `spreadMoveHit`
+(`:1057`) <- `hitStepMoveHitLoop` (`:947`), **`moveSteps` index 7, three steps BELOW accuracy**, and
+Champions keeps that nesting (`scripts.ts:315`, `:346`, `:518`). medicham2 asks `subBlocks` inside
+`_asTryHit`, `_ASTEPS` index **1**. The damaging road is already right (`_stepApply`, `_STEPS` index
+8). It stays declared on `probe_spread_status_steps.js`'s ledger row and unstaged.
+
+Also owed and not done: a derived tag for `onAnyInvulnerability`, which would be more precise than
+reusing `writesAccuracy`'s `never` flag and costs a `data/tags.json` regeneration of its own.
+
+---
 
 ## `eachEvent('Update')` IS INSIDE THE HIT LOOP, SO A PINCH BERRY IS EATEN BETWEEN THE HITS OF A VOLLEY AND NOT AFTER IT. **WHOLE-GAME CLAUSE 6 OF 961 -> 5 OF 961.** BOARD-MATERIAL UNMOVED AT 1 OF 961. CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. 2026-08-27.
 
@@ -6910,9 +7058,12 @@ Joins it, scoped and stopped rather than half-landed:
   (`singleEvent('Eat', item, …, source, …)`) and writes `[from] stealeat|[move] Bug Bite`; this engine
   removes it and writes `[from] move: bugbite`. Only the over-fire is closed. It is now the visible first
   divergence of the berry-holder control arm, which is where a probe should start;
-- **two NEW SURFACES that Moody was hiding**: `|-immune|p1a <> |-miss|p2b|p1a` (an immunity the authority
-  sees and we answer with a miss) and `|switch|p1a|krookodile <> |detailschange|p1b|charizardmegay`
-  (mega against switch ordering).
+- **two NEW SURFACES that Moody was hiding**: ~~`|-immune|p1a <> |-miss|p2b|p1a` (an immunity the
+  authority sees and we answer with a miss)~~ — **CLOSED 2026-08-27, ROADMAP #483.** It was not an
+  ordering defect: `_STEPS` already matches `moveSteps`. It was No Guard's `onAnyInvulnerability`
+  half, unwired, dropping the row at step 0 before the immunity two steps below could answer. It has
+  a probe (`tests/probe_noguard_invuln.js`) and a census row, so it leaves this list. Still open:
+  `|switch|p1a|krookodile <> |detailschange|p1b|charizardmegay` (mega against switch ordering).
 
 Stays on it, unchanged: **`AfterMoveSecondary` above `|-hitcount|`**, **the three spread-status rows are
 ONE mechanism**, **`supremeoverlord` is a clause-consistency question**, **`data/abra-tags.js` can go

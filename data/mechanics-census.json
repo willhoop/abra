@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-27T10:51:15.772Z",
+  "generated": "2026-08-27T11:15:45.225Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 754,
-  "live": 754,
+  "probed": 755,
+  "live": 755,
   "missing": 0,
-  "armed": 754,
+  "armed": 755,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3703,7 +3703,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 26.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7174,6 +7174,16 @@
       "label": "a STATUS move misses a semi-invulnerable body — and Helping Hand and a Poison-type's Toxic still reach it",
       "live": true,
       "detail": "a Dragapult charging Phantom Force, hit with a status move on the SAME turn — Decorate missed=true `[miss]` on the move line=true landed=false; CONTROL, the identical click with no charge: missed=false landed=true. Charm missed=true, Will-O-Wisp missed=true. THE TWO EXEMPTIONS: Helping Hand onto a charging PARTNER missed=false (must be false), a Poison-type Gengar's Toxic missed=false (must be false). Before the wire every status move landed on a body that was not on the field",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "writesAccuracy",
+      "label": "No Guard reaches a semi-invulnerable body, and the IMMUNITY below it is what answers",
+      "live": true,
+      "detail": "a Machamp swinging at a Dragapult mid-Phantom-Force. ICE PUNCH (no immunity in play): No Guard dealt 132 missed=false, CONTROL dealt 0 missed=true. CLOSE COMBAT (Ghost refuses Fighting, one reason): No Guard immune=true missed=false dmg=0 — the authority answers with the IMMUNITY, not the miss; CONTROL missed=true immune=false. SCARY FACE (the non-attack call site): No Guard spe -2 -unboost=true missed=false, CONTROL spe 0 -unboost=false missed=true",
       "hollow": false,
       "armed": true,
       "directCall": false

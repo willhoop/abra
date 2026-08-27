@@ -1,10 +1,10 @@
 {
-  "current": "f3383ff4aa29",
-  "cut": "2026-08-27T10:35:12.746Z",
-  "why": "eachEvent('Update') between the packets of a multi-hit volley — a pinch berry is eaten mid-volley, not after it",
-  "cuts": 13,
-  "latest_cut": "2026-08-27T10:51:26.191Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-27T10:51:26.201Z",
+  "current": "e5957689f94f",
+  "cut": "2026-08-27T11:16:27.088Z",
+  "why": "No Guard sees through a semi-invulnerable body: the onAnyInvulnerability half of the ability, wired at all three call sites",
+  "cuts": 1,
+  "latest_cut": "2026-08-27T11:16:27.088Z",
+  "latest_why": "No Guard sees through a semi-invulnerable body: the onAnyInvulnerability half of the ability, wired at all three call sites",
+  "pointer_written": "2026-08-27T11:16:27.100Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

@@ -1806,6 +1806,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                            rarer than guaranteedHit; equal counts over a mixed sample would mean
    *                            the two consumers are really one. */
   guaranteeApplied: 0, guaranteeRefused: 0, guaranteedHit: 0, guaranteedThroughInvuln: 0,
+  /* 2026-08-27 -- NO GUARD'S OTHER HALF. `noGuardThroughInvuln` counts bodies carried through step 0
+     because one end of the move refuses to miss. It is deliberately NOT folded into
+     `guaranteedThroughInvuln` above: Lock-On is the ATTACKER's volatile naming ONE defender, No Guard
+     is an ABILITY on either end covering every move, and one total could not say which of the two is
+     dead. A zero on a sample containing a No Guard body means this wire never ran. */
+  noGuardThroughInvuln: 0,
   /* ROADMAP #175 -- MIMICRY. `terrainRetyped` counts every type REWRITE, in both directions, so a
    * body that becomes Electric and later becomes Ground/Steel again scores two. `terrainTypeKept` is
    * the opposite branch and must stay ZERO in this regulation: the only carrier's artifact row says
@@ -1913,6 +1919,10 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-27 -- the knob that puts the semi-invulnerability verdict back BELOW the shield. Must
      read 0 on any shipping run. */
   invulnBelowShieldRestored: 0,
+  /* 2026-08-27 -- the knob that makes No Guard blind to a vanish again (the half of the ability that
+     was never wired). Set only where the knob CHANGED the answer, so it cannot read 1 off an arm
+     that carries no No Guard. Must read 0 on any shipping run. */
+  noGuardInvulnBlindRestored: 0,
   /* 2026-08-27 -- the knob that puts the re-laid hazard's silence back. Must read 0 on any shipping
      run. */
   hazardRecapSilentRestored: 0,
@@ -3784,6 +3794,12 @@ const SOUND_LOCK_RESTARTS=(typeof process!=='undefined'&&process.env&&process.en
  * Protect `-activate` belonging to a different target. Exactly the one ordering and nothing else -- a
  * knob run parts on that pair of lines and leaves every other invulnerability row alone. */
 const INVULN_BELOW_SHIELD=(typeof process!=='undefined'&&process.env&&process.env.MEDI_INVULN_BELOW_SHIELD==='1');
+/* 2026-08-27 -- MEDI_NOGUARD_INVULN_BLIND=1 restores the pre-fix half-wiring: No Guard writes the
+ * accuracy and does NOT see through a vanish, so a move it cannot miss with is still dropped at step
+ * 0 with a `-miss`. Exactly that and nothing else -- the accuracy half (`_neverMissAb` in
+ * `hitChance`) is untouched by the knob, so a knob run parts only on semi-invulnerable turns.
+ * See `noGuardThroughInvuln`. */
+const NOGUARD_INVULN_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NOGUARD_INVULN_BLIND==='1');
 /* 2026-08-27 -- MEDI_HAZARD_RECAP_SILENT=1 restores the pre-fix silence: a hazard clicked onto a side
  * already at that hazard's cap lays nothing and says nothing, where the authority writes `|-fail|`.
  * Exactly that and nothing else -- the layer arithmetic is `layHazard`'s and is untouched by the
@@ -7659,6 +7675,45 @@ const _neverMissAb=(mon)=>{
   const r=accModRow('ability',mon.ability);
   return !!(r&&r.never);
 };
+/* ---- 2026-08-27 -- THE OTHER HALF OF NO GUARD: IT SEES THROUGH A VANISH ------------------------
+ *
+ * `data/abilities.ts` (mainline; `data/mods/champions/abilities.ts` carries no `noguard` row, so
+ * this is the Champions rule too) declares TWO handlers off one clause:
+ *
+ *     onAnyInvulnerabilityPriority: 1,
+ *     onAnyInvulnerability(target, source, move) {
+ *       if (move && (source === this.effectState.target || target === this.effectState.target)) return 0;
+ *     },
+ *     onAnyAccuracy(accuracy, target, source, move) { ... return true; },
+ *
+ * and `trySpreadMoveHit` KEEPS a target whose step result is zero -- `targets.filter((val, i) =>
+ * hitResults[i] || hitResults[i] === 0)`, sim/battle-actions.ts:605. So a No Guard move goes through
+ * `hitStepInvulnerabilityEvent` (step 0) and is judged by everything below it: the type chart at step
+ * 2 refuses a Zap Cannon into a Ground body and the authority prints `|-immune|`, NOT `|-miss|`.
+ *
+ * ONLY THE ACCURACY HALF WAS WIRED HERE, and the cost is a whole-game divergence in
+ * `data/game-differential.json`: `|-immune|p1a: Golurk` against `|-miss|p2b: Raichu|p1a: Golurk`, a
+ * Raichu-Mega-Y (No Guard) clicking Zap Cannon at a Golurk mid-Phantom-Force. The engine reported a
+ * MISS for a move that cannot miss, because the row never survived step 0 to be told it was immune.
+ *
+ * IT IS THE SAME PREDICATE `hitChance` CALLS, not a second reading of the tag, and the file already
+ * says why one line above `guaranteedAgainst`: *"Two copies of that pair is how one of the two halves
+ * ends up wired and the other does not."* That is precisely what had happened to No Guard.
+ *
+ * BOTH ENDS, because `onAnyAccuracy`/`onAnyInvulnerability` do not care which end of the move the
+ * carrier is on -- a No Guard body's own move gets through a vanish, and so does anything aimed at a
+ * No Guard body that has itself vanished. An attacker-only version is the half a hand-rolled fix
+ * ships, and it is the half `hitChance` above already refused to ship.
+ *
+ * THE COUNTER IS INCREMENTED ONLY WHERE THE ANSWER CHANGED. Callers ask this AFTER establishing that
+ * the target really is `_invuln` and after the exemptions that would have let the move through
+ * anyway, so the reading is "bodies this wire carried", never "times it was asked". */
+function noGuardThroughInvuln(att,def){
+  if(!_neverMissAb(att)&&!_neverMissAb(def))return false;
+  if(NOGUARD_INVULN_BLIND){MEDFAILS.noGuardInvulnBlindRestored=1;return false;}
+  MEDSEEN.noGuardThroughInvuln++;
+  return true;
+}
 /* THE ONE PLACE A CONDITION ON A MODIFIER IS EVALUATED. Each `when` is a real gate in the reference
  * engine, and getting one wrong is invisible -- Sand Veil outside sand is a 20% evasion bonus that
  * never appears in a log. */
@@ -21162,9 +21217,15 @@ function battleTurn(S,rng,actsForA,actsForB){
          * special-cased for them. */
         if(_mid&&a.kind!=='attack'){
           const _iv=reaimToSlot(a.target,it,actA,actB,_mid,true);
+          /* 2026-08-27 -- `noGuardThroughInvuln` IS LAST IN THIS CHAIN AND THAT IS DELIBERATE. It
+             counts the bodies it carried, so every clause that would have let the move through
+             anyway -- Lock-On, Helping Hand, a Poison-type's Toxic -- must short-circuit ahead of it
+             or the count stops meaning "this wire did something". Same predicate as the attack step
+             list and as `hitChance`, per the one-implementation rule. */
           if(_iv&&_iv!==m&&_iv._invuln&&!guaranteedAgainst(m,_iv)
              &&_mid!=='helpinghand'
-             &&!(_mid==='toxic'&&(m.types||[]).indexOf('Poison')>=0)){
+             &&!(_mid==='toxic'&&(m.types||[]).indexOf('Poison')>=0)
+             &&!noGuardThroughInvuln(m,_iv)){
             const _ivP=_iv._charging?TAGS.param('move',_iv._charging,'semiInvulnerable'):null;
             const _ivPierce=(_ivP&&Array.isArray(_ivP.pierces))?_ivP.pierces:[];
             if(_ivPierce.indexOf(_mid)<0){
@@ -25770,6 +25831,11 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!tg||tg.fainted)return false;
         if(!tg._invuln)return false;
         if(guaranteedAgainst(m,tg)){MEDSEEN.guaranteedThroughInvuln++;return false;}
+        /* 2026-08-27 -- AND NO GUARD SEES THROUGH IT TOO, on either end of the move. Asked ABOVE the
+           pierce list for the same reason Lock-On is: `onAnyInvulnerabilityPriority: 1` is a hard
+           bypass, not a seventh entry in the charging move's own list -- Phantom Force declares an
+           EMPTY `pierces` and a No Guard move still reaches the body. See noGuardThroughInvuln. */
+        if(noGuardThroughInvuln(m,tg))return false;
         const _si=tg._charging?TAGS.param('move',tg._charging,'semiInvulnerable'):null;
         if(!_si){
           MEDFAILS.invulnWithoutChargeSource++;
@@ -26124,6 +26190,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          * list is a fact about the DEFENDER's charge; merging them would make one list answer two
          * questions. */
         if(guaranteedAgainst(m,tg)){MEDSEEN.guaranteedThroughInvuln++;return;}
+        /* 2026-08-27 -- and No Guard, on the knob's arm too, so MEDI_INVULN_BELOW_SHIELD=1 changes
+           the STAGE and nothing else. Two knobs that each silently changed a second thing would make
+           either one unattributable. */
+        if(noGuardThroughInvuln(m,tg))return;
         /* ROADMAP #123 -- AND SOME MOVES GET THROUGH. This branch was `_invuln -> miss`, full stop, so
          * Earthquake MISSED a digging body where the authority hits it for DOUBLE. The counter-play to
          * a semi-invulnerable turn was impossible rather than free -- the opposite sign to the defect

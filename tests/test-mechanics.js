@@ -27149,6 +27149,80 @@ probe('move', 'semiInvulnerable', 'a STATUS move misses a semi-invulnerable body
                  + `move landed on a body that was not on the field` };
 });
 
+/* 2026-08-27 -- NO GUARD SEES THROUGH THE VANISH, AND ONLY HALF OF THE ABILITY WAS WIRED.
+ *
+ * `data/abilities.ts` (mainline; `data/mods/champions/abilities.ts` carries no `noguard` row) gives
+ * No Guard TWO handlers off one clause -- `onAnyAccuracy` returning true AND `onAnyInvulnerability`
+ * returning 0 -- and `trySpreadMoveHit` KEEPS a target whose step result is zero
+ * (`targets.filter((val, i) => hitResults[i] || hitResults[i] === 0)`, sim/battle-actions.ts:605).
+ * So the move survives step 0 and is judged by everything below it.
+ *
+ * THIS ENGINE WIRED THE ACCURACY HALF ONLY, and the cost is a whole-game divergence in
+ * data/game-differential.json -- `|-immune|p1a: Golurk` against `|-miss|p2b: Raichu|p1a: Golurk`, a
+ * Raichu-Mega-Y clicking Zap Cannon into a Golurk mid-Phantom-Force. **THE AUTHORITY ANSWERS WITH
+ * THE IMMUNITY TWO STEPS FURTHER DOWN**, because `hitStepTypeImmunity` is index 2 and
+ * `hitStepAccuracy` is index 4 (sim/battle-actions.ts:562 and :568), so the CLOSE COMBAT arm below is
+ * the load-bearing one: an engine that merely stopped emitting `-miss` would say nothing at all.
+ *
+ * THREE ARMS BECAUSE THERE ARE THREE CALL SITES, and one of them hides: the attack step list
+ * (`_stepInvuln`), its knob arm, and the branch that refuses non-attack kinds. A fix applied to the
+ * damaging path alone leaves Scary Face missing.
+ *
+ * THE CONTROL IS THE SAME CLICK WITH THE ABILITY CLEARED -- `bare()` leaves it at 'none' -- so all
+ * three controls MUST miss. A change that simply stopped dropping semi-invulnerable rows passes
+ * every test arm here and fails all three controls. */
+probe('ability', 'writesAccuracy', 'No Guard reaches a semi-invulnerable body, and the IMMUNITY below it is what answers', () => {
+  /* Dragapult is 142 and Machamp is 55, so on a shared turn the charge resolves FIRST and the click
+     lands into a body that is already off the field. Same fixture shape as the status probe above. */
+  const run = (ab, mv) => {
+    const me = bare('machamp'), ally = bare('whimsicott');
+    const f1 = bare('dragapult'), f2 = bare('garchomp');
+    me.ability = ab;
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    trace.length = 0;
+    /* `sp`, NOT `spe`. This engine's boost keys are its own (`SD2ENG` at medicham2-browser.js:5320
+       maps spe -> sp), and the first version of this probe read `boosts.spe` -- undefined on both
+       arms, so the Scary Face row printed `0` against `0` and read exactly like an unwired gate. The
+       trace line is asserted BESIDE the board number for that reason. */
+    const before = f1.curHP, spe0 = (f1.boosts && f1.boosts.sp) || 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'phantomforce', ally, S.field)], [f2, { kind: 'pass' }]]));
+    const lines = trace.map(M.traceCanon);
+    return { missed: lines.some(l => /^\|-miss\|/.test(l)),
+             immune: lines.some(l => /^\|-immune\|/.test(l)),
+             /* THE PROTOCOL NAME IS `spe` AND THE INTERNAL KEY IS `sp` — the two are not the same
+                string and this probe got each of them wrong once. */
+             unboost: lines.some(l => /^\|-unboost\|.*\|spe\|/.test(l)),
+             dmg: before - f1.curHP,
+             dropped: ((f1.boosts && f1.boosts.sp) || 0) - spe0 };
+  };
+  /* Ice Punch is 2x on Dragon/Ghost and carries no immunity anywhere -- the BYPASS with nothing else
+     in it. Close Combat is refused by Ghost for exactly ONE reason (Dragon does not refuse Fighting
+     and the body carries no ability or item that does). Scary Face is the non-attack path. */
+  const ipT = run('noguard', 'icepunch'), ipC = run('none', 'icepunch');
+  const ccT = run('noguard', 'closecombat'), ccC = run('none', 'closecombat');
+  const sfT = run('noguard', 'scaryface'), sfC = run('none', 'scaryface');
+  const works = ipT.dmg > 0 && !ipT.missed && ipC.dmg === 0 && ipC.missed
+             && ccT.immune && !ccT.missed && ccT.dmg === 0 && ccC.missed && !ccC.immune
+             && sfT.dropped < 0 && sfT.unboost && !sfT.missed
+             && sfC.dropped === 0 && !sfC.unboost && sfC.missed;
+  return { works,
+           arms: { control: [String(ipC.dmg), String(ipC.missed), String(ccC.missed),
+                             String(ccC.immune), String(sfC.dropped), String(sfC.missed)],
+                   test:    [String(ipT.dmg), String(ipT.missed), String(ccT.missed),
+                             String(ccT.immune), String(sfT.dropped), String(sfT.missed)] },
+           detail: `a Machamp swinging at a Dragapult mid-Phantom-Force. ICE PUNCH (no immunity in `
+                 + `play): No Guard dealt ${ipT.dmg} missed=${ipT.missed}, CONTROL dealt ${ipC.dmg} `
+                 + `missed=${ipC.missed}. CLOSE COMBAT (Ghost refuses Fighting, one reason): No Guard `
+                 + `immune=${ccT.immune} missed=${ccT.missed} dmg=${ccT.dmg} — the authority answers `
+                 + `with the IMMUNITY, not the miss; CONTROL missed=${ccC.missed} immune=${ccC.immune}. `
+                 + `SCARY FACE (the non-attack call site): No Guard spe ${sfT.dropped} `
+                 + `-unboost=${sfT.unboost} missed=${sfT.missed}, CONTROL spe ${sfC.dropped} `
+                 + `-unboost=${sfC.unboost} missed=${sfC.missed}` };
+});
+
 /* ================================================================================================
  * THE IN-MOVE UPDATE PASS — `eachEvent('Update')` AT sim/battle-actions.ts:967, WHICH THIS ENGINE
  * DID NOT HAVE AT ALL. 2026-08-23.

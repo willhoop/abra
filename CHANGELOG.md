@@ -10,6 +10,93 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.172.0] — 2026-08-27
+
+### Fixed
+- **NO GUARD SEES THROUGH A VANISH, AND ONLY HALF THE ABILITY WAS WIRED — SO THE AUTHORITY ANSWERED
+  WITH THE IMMUNITY TWO STEPS BELOW WHERE THIS ENGINE ANSWERED WITH A MISS. WHOLE-GAME CLAUSE 5 OF
+  961 -> 4 OF 961; CENSUS 754 -> 755 LIVE / 755 PROBED / 0 MISSING; BOARD-MATERIAL UNMOVED AT 1 OF
+  961.** ENGINE, ROADMAP `#483`.
+
+  **THE DIRECTION FIRST, READ OFF `classify()` RATHER THAN OFF THE CLASS NAME.** The artifact reads
+  `unrelated event mismatch :: |-immune|p1a <> |-miss|p2b|p1a`. `game_differential.js:4190` builds the
+  cause as `ga <> gb` with `ga = gen(sdHead)` and `sdHead = d.sdAfter[0]`, so the LEFT field is the
+  authority: **it declares an IMMUNITY and this engine declared a MISS**, on
+  `|-immune|p1a: Golurk` against `|-miss|p2b: Raichu|p1a: Golurk`.
+
+  **THE PREMISE THAT THIS WAS AN ORDERING DEFECT IS REFUTED, AND THE REFUTATION IS THE FINDING.**
+  `moveSteps` (`sim/battle-actions.ts:556-568`; Champions overrides none of it — `hitStep`,
+  `trySpreadMoveHit` and `moveSteps` all grep to nothing in `data/mods/champions/scripts.ts`) runs
+  invulnerability 0, TryHit 1, **type immunity 2**, TryImmunity 3, **accuracy 4**, with the only
+  reorderings gated on `gen <= 6` and `gen === 4`. medicham2's `_STEPS` already had that order, and a
+  staged Zap Cannon into a STANDING Golurk printed `|-immune|` in both engines before anything moved.
+
+  **THE DEFECT IS ONE STEP FURTHER UP.** `data/abilities.ts` — mainline, and the Champions override
+  carries no `noguard` row — gives No Guard TWO handlers off one guard clause naming either end of the
+  move: `onAnyAccuracy` returning `true` **and `onAnyInvulnerability` returning `0`**. `trySpreadMoveHit`
+  KEEPS a target whose step result is zero (`:605`, `hitResults[i] || hitResults[i] === 0`), so the move
+  survives step 0 and is judged by the type chart at step 2. This engine wired the accuracy half only:
+  `_neverMissAb` had exactly one caller, `hitChance`, while `_invulnDecide` consulted Lock-On and the
+  charging move's own `pierces` list — and Phantom Force declares an EMPTY `pierces`. The game is p1's
+  Golurk (Ground/Ghost, Golurkite) mid-Phantom-Force against p2's Raichu holding a Raichunite Y, whose
+  mega forme's ability is **No Guard**; the Dire Claw one line above it is a 100-accuracy move MISSING,
+  which only step 0 can do.
+
+  **THE FILE HAD ALREADY WRITTEN THIS BUG DOWN, ABOUT LOCK-ON** (`medicham2-browser.js:3949`): *"One
+  predicate, called by the accuracy path and by the semi-invulnerability step … Two copies of that pair
+  is how one of the two halves ends up wired and the other does not."* So the fix calls **the same
+  predicate** rather than adding a second reading of the tag: `noGuardThroughInvuln(att, def)` over
+  `_neverMissAb`, at THREE call sites that all already asked `guaranteedAgainst` and none of which
+  asked this — `_invulnDecide`, `_stepInvuln`'s `MEDI_INVULN_BELOW_SHIELD` arm, and the
+  `kind !== 'attack'` branch, which is the one that hides and which a fix aimed at the damaging path
+  alone would have left blind.
+
+  **NOTHING IN THIS FORMAT KEYS ON "MISSED" AGAINST "FAILED", AND THAT IS DERIVED RATHER THAN
+  ASSUMED.** The only step that distinguishes them is `hitStepAccuracy` and its only consumer is
+  Blunder Policy (`:745`), whose `isNonstandard` is `'Past'` — banned in Reg M-B.
+  `atLeastOneFailure` is set identically by all three refusing steps, so `moveThisTurnResult` is
+  `false` either way and Stomping Tantrum doubles either way.
+
+  **MEASURED, IDENTICAL SAMPLE PROVEN FIELD BY FIELD** — same 961 games, same census steering digest
+  `9446a684709d` over 643 rows, same team pool digest `0d103fb9fa87` (8,778 teams, 1,968 picked), same
+  pin digest `2efbc9ed1946`, same 12,450 turn boundaries compared and 12,439 identical, `threw` 0 both,
+  **exactly one first-divergence removed (`pair-protect-bust | …2660356793 vs …2660492912`) and none
+  arrived**. Whole-game clause **5 of 961 -> 4 of 961** (raw 10 -> 9, the `unrelated event mismatch`
+  class 1 game -> 0); board-material **unmoved at 1 of 961**, as predicted before the run, because an
+  immunity and a miss both deal zero; census **754 -> 755 live / 755 probed / 0 missing**; three roster
+  stages re-run on the new release at **0 FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE**; mechanics clause
+  unmoved at 5 of 12 — which is NOT a strict before/after, since the census gained a row and the census
+  steers `all_mechanics_fire.js`.
+
+  **VERIFIED BY** `tests/probe_noguard_invuln.js` — five arms over two engines, one turn each, with the
+  target's immunity-reason count DERIVED and printed per arm and the file refusing any target immune
+  for more than one reason (`["type:Ghost"]`, one). Shown RED first on the three live arms with both
+  controls holding, and re-run under `MEDI_NOGUARD_INVULN_BLIND=1` where the live arms must PART and
+  the controls must NOT. Plus a census row, `ability|writesAccuracy` — *"No Guard reaches a
+  semi-invulnerable body, and the IMMUNITY below it is what answers"* — which goes MISSING under the
+  knob and moves no other row.
+
+  Full account: `docs/_reports/2026-08-27-immune-vs-miss.md`.
+
+### Notes
+- **A SECOND, DIFFERENT DEFECT IS DECLARED AND NOT TOUCHED: SUBSTITUTE SITS ABOVE ACCURACY ON THE
+  STATUS ROAD.** It is the opposite shape to the one fixed above — that one was a MISSING HANDLER with
+  the stage order already right; this one is a genuine STAGE-ORDER defect. The authority answers the
+  doll in `tryPrimaryHitEvent` (`sim/battle-actions.ts:1138`) <- `spreadMoveHit` (`:1057`) <-
+  `hitStepMoveHitLoop` (`:947`) — **`moveSteps` index 7, three steps BELOW accuracy** — and Champions
+  keeps that nesting (`scripts.ts:315`, `:346`, `:518`). medicham2 asks `subBlocks` inside `_asTryHit`,
+  `_ASTEPS` index **1**. The damaging road is already correct (`_stepApply`, `_STEPS` index 8). It
+  remains declared on `probe_spread_status_steps.js`'s ledger row and unstaged.
+- **A DERIVED TAG FOR `onAnyInvulnerability` IS OWED.** Reusing `writesAccuracy`'s `never` flag is a
+  faithful proxy today (No Guard is its only carrier, printed before wiring) but it is not the fact
+  itself. Deriving it costs a `data/tags.json` regeneration and belongs in its own batch.
+- The 6,000-row damage differential was **not** re-run: no damage code moved, and the shipped `PASS`
+  clause is stated as an artifact that predates the edit rather than quoted as fresh.
+- **COMMITTED LOCALLY AND NOT PUSHED.** Another session holds a dirty tree and is ahead of `origin`;
+  `push` is rejected and rebase/merge/stash were refused by the permission layer.
+
+---
+
 ## [5.171.0] — 2026-08-27
 
 ### Fixed
