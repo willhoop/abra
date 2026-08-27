@@ -13,8 +13,8 @@ silently rewritten; what changed and why is stated.
 ## [5.164.0] — 2026-08-27
 
 ### Added
-- **THE LISTS AUDITED THEIR MEMBERSHIP AND NOTHING AUDITED THE CLAIMS INSIDE THEM — 282 CLAIMS
-  EXTRACTED, 254 CHECKABLE, 0 FALSE IN THE RECORDS AND 8 FALSE IN THE COMMENTS.** MEASURE.
+- **THE LISTS AUDITED THEIR MEMBERSHIP AND NOTHING AUDITED THE CLAIMS INSIDE THEM — 280 CLAIMS
+  EXTRACTED, 252 CHECKABLE, 0 FALSE IN THE RECORDS AND 8 FALSE IN THE COMMENTS.** MEASURE.
   Full account: `docs/_reports/2026-08-27-claims-audit.md`. New instrument:
   `tests/test-claim-truth.js`, auto-discovered by the `tests/test-*.js` glob, so no list was edited.
 
@@ -81,6 +81,10 @@ silently rewritten; what changed and why is stated.
   `tests/probe_transform_faint_revert.js`. All three are **untracked ENGINE work from this session**.
   Left red and reported rather than classified: writing a `PENDING_WIRE` blocker this division has
   not measured would commit the exact defect under audit.
+- **THE ROADMAP HALF OF THE COUNT IS A MOVING READ AND IS LABELLED AS ONE.** ENGINE appended to
+  `docs/ROADMAP.md` throughout this pass; three successive runs read 119, 122 and 124 `VERIFIED BY`
+  markers. **The five-code-record half — 170 claims — did not move.** The 280 above is the settled
+  read at the end of the pass and its marker component must not be quoted to the unit.
 - No game was played and no game number moved.
 
 ## [5.163.0] — 2026-08-27

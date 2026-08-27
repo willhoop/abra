@@ -21,7 +21,7 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
-## THE LISTS AUDITED THEIR MEMBERSHIP AND NOTHING AUDITED THE CLAIMS INSIDE THEM. **282 CLAIMS, 254 CHECKABLE, 0 FALSE IN THE RECORDS AND 8 FALSE IN THE COMMENTS.** 2026-08-27 (MEASURE).
+## THE LISTS AUDITED THEIR MEMBERSHIP AND NOTHING AUDITED THE CLAIMS INSIDE THEM. **280 CLAIMS, 252 CHECKABLE, 0 FALSE IN THE RECORDS AND 8 FALSE IN THE COMMENTS.** 2026-08-27 (MEASURE).
 
 CHANGELOG 5.164.0. Full account: `docs/_reports/2026-08-27-claims-audit.md`. New instrument:
 `tests/test-claim-truth.js` — auto-discovered by the `tests/test-*.js` glob, so no list was edited.
@@ -36,8 +36,8 @@ and `PENDING_WIRE` in `tests/run-all.js`, plus `DECLARED` in `tests/test-effecti
 
 | | |
 |---|---|
-| claims extracted | **282** |
-| mechanically checkable | **254** |
+| claims extracted | **280** — 170 from the five code records, ~110 from the `VERIFIED BY` markers |
+| mechanically checkable | **252** |
 | FALSE inside a record | **0** |
 | not checkable (13 dated measurements, 15 mechanism) | 28 |
 | record entries yielding at least one checkable claim | **80 of 175 (46%)** |
