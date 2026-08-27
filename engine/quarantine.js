@@ -1256,6 +1256,76 @@ function causeEvidence(j) {
  * the withdrawal note below, where it is still true and no longer load-bearing. */
 
 const DECLARED_DIVERGENCE = [
+  /* ~~`Outrage's random re-target`~~ — PROPOSED 2026-08-27 AS `INCOMPARABLE`, **REFUSED THE SAME HOUR
+   * BEFORE IT WAS EVER WRITTEN AS A ROW, BECAUSE ITS MECHANISM IS THE MOODY MECHANISM AND THAT ONE
+   * WAS MEASURED FALSE TWO DAYS AGO.** Left here as a comment on this file's own standing rule — a
+   * closet that silently loses rows teaches nobody, and a refusal nobody can find gets re-proposed.
+   *
+   * WHAT WAS PROPOSED, AND IT IS PLAUSIBLE, WHICH IS THE PROBLEM. One of the 18 raw whole-game
+   * divergences on release `6272fa445b73` is `-damage: a different body :: |-damage|p2a|H/H <>
+   * |-damage|p2b|H/H` (`...2635122796 vs ...2634861011`, turn 2). The authority's line before it is
+   * `|move|p1b: Garchomp|Outrage|p2a: Staraptor` and medicham2 hit p2b instead. Outrage is
+   * `randomNormal` (DERIVED: `Dex.forFormat('gen9championsvgc2026regmb').moves.get('outrage').target`),
+   * so which foe it hits in a double IS a draw. The differential had ALREADY VOIDED that game —
+   * `mid_void.by_reason.low-identity: 1`, `by_reason_detail['low-identity'] = {games: 1, diverged: 1}`,
+   * and every unshared address in the run is an `outrage` one (`unshared_address_field`:
+   * `target differs (acc|outrage)`, `(crit|outrage)`, `(dmg|outrage)`, one each). The accounting closes
+   * exactly: 18 raw - 5 declared = 13 = 12 usable + 1 void, against `usable_games 960` /
+   * `diverged_among_usable 17`. All of that is TRUE and none of it makes the divergence incomparable.
+   *
+   * WHY IT IS NOT INCOMPARABLE. The bar in the header above is that the authority draws at an address
+   * THIS HARNESS DOES NOT SHARE. It shares this one. Traced, not assumed:
+   *
+   *   authority   sim/battle.ts:2461 gates the named-target branch OFF for `randomNormal` and falls to
+   *               :2484 `getRandomTarget` -> sim/side.ts:367 `randomFoe()` -> `battle.sample(actives)`
+   *               -> sim/prng.ts:136 `const index = this.random(items.length)`. `this` is the PRNG and
+   *               `battle.prng.random` IS REPLACED — engine/game_differential.js:3009 — so the draw
+   *               goes through `pinRandom` -> `midDraw('any')` -> `midCtx([MID_SEED, turn, cat, move,
+   *               target])` at :1072, hashed by `midValue` at :791 off `MID_SEED = 20260813` at :783.
+   *   medicham2   WIRE 144 at engine/medicham2-browser.js:20043 draws `rng()` — the GENERIC `any`
+   *               stream — and indexes `_rlive[Math.floor(rng()*_rlive.length)]` at :20046, addressed
+   *               by `midEventBase` at :18411 off `MID_EVENT_SEED = 20260813` at :18333, the same
+   *               constant and the same FNV-1a.
+   *
+   * ONE STREAM, ONE SEED, ONE HASH, AND EVEN THE INDEX MAPPING MATCHES: `pinRandom(2)` returns
+   * `Math.floor(u*2)` and medicham2 computes `Math.floor(u*2)`, over lists in the same slot order
+   * (`side.foes()` is `foe.allies()`, alive-filtered in position order; `live(actB)` likewise). **If
+   * the two addresses matched, the two engines would pick the same body deterministically.**
+   *
+   * SO WHAT ACTUALLY DIVERGES IS THE ADDRESS, AND IT IS OURS. Showdown resolves the target on the
+   * FIRST working line of `runMove` — sim/battle-actions.ts:223 `getTarget(...)` — which is ABOVE
+   * `setActiveMove` at :245, with `battle.activeMove` and `battle.activeTarget` still nulled by the
+   * previous action's `clearActiveMove()` at sim/battle.ts:2828. Its address is therefore
+   * `20260813|<turn>|any|-|-|<nth>`. medicham2 writes `MID_MOVE` / `MID_TGT` at :19878-19880, above
+   * the WIRE 144 draw at :20043, so its address is `20260813|<turn>|any|outrage|<named slot>|<nth>`.
+   *
+   *     authority     20260813|2|any|-|-|0
+   *     this engine   20260813|2|any|outrage|p20|0
+   *
+   * That is BYTE FOR BYTE the diagram in the Moody note sixty lines below, which is the same diagram
+   * in `medicham2-browser.js:18349`. `midClearActiveMove()` was added at :19800 to fix exactly this
+   * class and it runs BEFORE the write at :19878, so it does not reach a draw taken after it. The
+   * repair is to address the `randomTarget` re-roll where the authority takes it — with the move and
+   * target fields still cleared — not to exempt it.
+   *
+   * WHY THE ARM DID NOT CATCH IT AND WHY THAT IS NOT A LICENCE. `engine/game_differential.js:919`
+   * `const OUT = new Set(['acc','crit','sec','dmg','stall'])` keeps the `any` bucket out of the
+   * identity computation, and `midWrapShowdown` names a category only inside `hitStepAccuracy`,
+   * `secondaries` and `getDamage` (:1023-1025), so this draw is `any` by construction. **Excluded
+   * from the CHECK is not the same claim as unshared.** The check declining to look is why the two
+   * engines' target picks were never compared directly; what surfaced instead is the CONSEQUENCE —
+   * every downstream `acc`/`crit`/`dmg` address carrying a different `target` field, which is what
+   * dropped the overlap under `MID_OVERLAP_FLOOR` and voided the game.
+   *
+   * WHAT WOULD FALSIFY THIS REFUSAL, stated so it is testable rather than argued: print both engines'
+   * `any` address logs for this seed pair at turn 2. If the authority's Outrage target draw carries a
+   * move or target field medicham2 cannot construct — or if the two lists of living foes are ordered
+   * differently — then there is genuinely no shared address and the row may be written. Today the two
+   * addresses differ only in fields THIS ENGINE fills in and the authority has deliberately emptied.
+   *
+   * FILED, NOT DECLARED: ROADMAP #467. The game stays UNDECLARED and holds the gate shut, which is the
+   * safe direction and the correct one — it is board-material (`DIFFERENT-END-STATE`, board parts at
+   * turn 2) and it is one of only four board-material games in the run. */
   /* ~~`Moody's stat pick`~~ — DECLARED 2026-08-23 AS `INCOMPARABLE`, **WITHDRAWN 2026-08-25 BECAUSE
    * ITS MECHANISM WAS REFUTED BY MEASUREMENT.** Left as a comment, like the speed-tie and drag rows
    * below and above, because a closet that silently loses rows teaches nobody.

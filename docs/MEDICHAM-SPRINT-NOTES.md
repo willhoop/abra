@@ -21,6 +21,67 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A DIVERGENCE PROPOSED AS `INCOMPARABLE` IS A SHARED-STREAM ADDRESS BUG. **REFUSED. CLAUSE UNMOVED AT 13 OF 961, BOARD-MATERIAL 4 OF 961.** 2026-08-27 (MEASURE).
+
+CHANGELOG 5.154.0. ROADMAP **#467, open**. Full account: `docs/_reports/2026-08-27-incomparable.md`.
+**No code changed except a comment.** `git diff engine/medicham2-browser.js` empty,
+`data/game-differential.json` unmodified against HEAD, no release cut and none owed.
+
+**THE ACCOUNTING IN THE PROPOSAL WAS RIGHT AND ITS MECHANISM WAS NOT.** The arm really had voided the
+game — `mid_void.by_reason['low-identity'] = 1`, `diverged 1`, `usable_games 960`,
+`diverged_among_usable 17`, and every unshared address in the run is an `outrage` one — so
+**18 raw − 5 declared = 13 = 12 usable + 1 void** closes exactly. What does not follow is
+`INCOMPARABLE`. `engine/game_differential.js:919` keeps `any` out of the identity CHECK; **excluded
+from the check is not the same claim as unshared.**
+
+**THE TARGET DRAW IS ON A STREAM BOTH ENGINES SHARE.** The authority runs `sim/battle.ts:2461` →
+`:2484 getRandomTarget` → `sim/side.ts:367 randomFoe()` → `sim/prng.ts:136 this.random(...)`, and
+`battle.prng.random` is replaced at `game_differential.js:3009`; medicham2 draws the generic `any`
+stream at `medicham2-browser.js:20046`. Same seed constant `20260813`, same FNV-1a, same
+`Math.floor(u*2)` over foe lists in the same slot order — **if the addresses matched, both engines
+would pick the same body deterministically.** They do not match because Showdown resolves the target at
+`battle-actions.ts:223`, ABOVE `setActiveMove` at `:245`, with both fields nulled by
+`battle.ts:2828 clearActiveMove()`:
+
+```
+  authority     20260813|2|any|-|-|0
+  this engine   20260813|2|any|outrage|p20|0
+```
+
+**Byte for byte the Moody diagram**, whose declaration was withdrawn on 2026-08-25 for this exact
+reason. `midClearActiveMove()` at `:19800` already fixes this class; it runs before the address write
+at `:19878`, so it cannot reach the WIRE 144 draw at `:20043`. The repair is ENGINE's.
+
+**PRICED, SO THE REFUSAL IS A DECISION AND NOT A NO-OP.** The anchored matcher takes **exactly one
+game** — the stop-condition held. Declaring would have moved the clause **13 → 12** and board-material
+**4 → 3**, on the only turn-2 `DIFFERENT-END-STATE` game in the run. *(The read-only pass said "2 → 1";
+that was the pre-re-baseline scale. Re-derived under the corrected comparator: 4 → 3.)*
+
+**AND A VOIDED GAME IS COUNTED AS A DISAGREEMENT — THE SECOND FINDING, AND THE ONE-LINE FIX IS WRONG.**
+`wholeGameClause` reads `j.diverged` over `j.games`, publishing 13 where the arm's own accounting
+supports 12. Reading `diverged_among_usable` instead does not repair it: `declaredGames` is accumulated
+by CAUSE ATTRIBUTION over `classes[].causes[].n`, which still counts the void game, so the moment a void
+game's cause is itself declared the clause double-subtracts — **17 − 6 = 11 where the truth is 12, off
+by one in the direction that makes the gate look greener.** The artifact records a COUNT of void games
+and never WHICH CAUSE diverged on one. The repair is a `void_n` field in `engine/game_differential.js`.
+Filed, not patched.
+
+**Correction to the row below.** #465's note calls this game "a genuine spread-target divergence". It is
+not a spread move: Outrage is `randomNormal` (DERIVED from the format) and the divergence is its
+execution-time re-target, drawn once.
+
+| | reading |
+|---|---|
+| whole-game clause, before and after | **13 of 961** — `--whole-game` output byte-identical at 1,810 bytes, exit 1 both times |
+| board-material, before and after | **4 of 961** |
+| `quarantine.js --selftest` | **109 passed, 0 failed** |
+| open-defect clause | unchanged verdict; its DEBT bucket 55 → 56 rows with #467 |
+
+**OWED, NOT RUN:** the engine repair and its `MEDI_*` control knob (ENGINE); the `void_n` field and the
+clause change that consumes it; a direct print of both `any` address logs for
+`...2635122796 vs ...2634861011` at turn 2 — the mechanism is traced from source on both sides and from
+the artifact's void counters, and is **not** confirmed by reading the two strings.
+
 ## THE PARTY KEY LANDED AND THE SCOREBOARD RE-BASELINED. **WHOLE-GAME CLAUSE 13 OF 961, RAW 18, BOARD-MATERIAL 4 — FIRST MEASUREMENT UNDER THE CORRECTED COMPARATOR, NOT A DELTA.** 2026-08-26 (ENGINE).
 
 CHANGELOG 5.153.0. Full account: `docs/_reports/2026-08-26-rebaseline.md`.

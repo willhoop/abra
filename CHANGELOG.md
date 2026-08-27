@@ -10,6 +10,54 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.154.0] — 2026-08-27
+
+### Changed
+- **A DIVERGENCE PROPOSED AS `INCOMPARABLE` WAS REFUSED: IT IS A SHARED-STREAM ADDRESS BUG, AND THE
+  MECHANISM IS THE MOODY MECHANISM.** MEASURE, ROADMAP #467. The proposal's accounting was correct —
+  `engine/game_differential.js` really had voided the game (`mid_void.by_reason['low-identity'] = 1`,
+  `diverged 1`, `usable_games 960`, `diverged_among_usable 17`, every unshared address an `outrage`
+  one), so **18 raw − 5 declared = 13 = 12 usable + 1 void** closes exactly. The conclusion does not
+  follow. `game_differential.js:919` keeps the `any` bucket out of the identity CHECK; **excluded from
+  the check is not the same claim as unshared.**
+- **THE AUTHORITY'S TARGET DRAW IS ON A STREAM BOTH ENGINES SHARE.** Showdown runs
+  `sim/battle.ts:2461` → `:2484 getRandomTarget` → `sim/side.ts:367 randomFoe()` →
+  `sim/prng.ts:136 this.random(items.length)`, and `battle.prng.random` is replaced at
+  `engine/game_differential.js:3009`; `engine/medicham2-browser.js:20046` draws the generic `any`
+  stream. Same seed constant `20260813`, same FNV-1a, same `Math.floor(u*2)` over foe lists in the same
+  slot order — **if the addresses matched, both engines would pick the same body deterministically.**
+  They do not, because Showdown resolves the target at `sim/battle-actions.ts:223`, ABOVE
+  `setActiveMove` at `:245`, with both fields nulled by `sim/battle.ts:2828 clearActiveMove()`:
+  `20260813|2|any|-|-|0` against this engine's `20260813|2|any|outrage|p20|0`. That is byte for byte
+  the diagram behind the Moody withdrawal of 2026-08-25, and the fifth plausible "nothing to fix here"
+  in five days. Landed as a **refusal comment** in `DECLARED_DIVERGENCE`, in the shape of the withdrawn
+  Moody, speed-tie and drag rows — no row, no subtraction, and the falsifying test is written down.
+- **A VOIDED GAME REACHES THE WHOLE-GAME CLAUSE, AND THE ONE-LINE FIX IS WRONG.** `wholeGameClause`
+  reads `j.diverged` over `j.games`, publishing 13 where the arm's own accounting supports 12. Reading
+  `mid_void.diverged_among_usable` instead does not repair it: `declaredGames` is accumulated by CAUSE
+  ATTRIBUTION over `classes[].causes[].n`, which still counts the void game, so the moment a void game's
+  cause is itself declared the clause double-subtracts — **17 − 6 = 11 where the truth is 12, off by one
+  in the direction that makes the gate look greener.** `data/game-differential.json` records a COUNT of
+  void games and never WHICH CAUSE diverged on one; the repair is a `void_n` field beside `n` in
+  `engine/game_differential.js`. **Filed with evidence, not patched** — MEASURE did not own that file in
+  this batch.
+
+### Notes
+- **NOTHING MEASURED MOVED, AND THAT IS THE RESULT.** `quarantine.js --whole-game` is byte-identical
+  before and after (1,810 bytes, exit 1 both times): **13 of 961 = 1.4%**, 18 raw less 5 declared.
+  Board-material **4 of 961**. `--selftest` **109 passed, 0 failed**.
+  `git diff engine/medicham2-browser.js` empty; `data/game-differential.json` unmodified against HEAD;
+  no release cut and none owed. The open-defect clause keeps its verdict; its DEBT bucket grows 55 → 56
+  with #467.
+- **THE REFUSAL WAS PRICED SO IT IS A DECISION AND NOT A CONVENIENCE.** The anchored matcher takes
+  **exactly one game** — the game the arm voided, and no more. Declaring would have moved the clause
+  **13 → 12** and board-material **4 → 3**. A loosely written matcher ("a different body") would also
+  have subtracted two Illusion rows from the *mechanics* clause, which reads the same list.
+- **A number in `docs/MEDICHAM-SPRINT-NOTES.md` is corrected, not rewritten.** #465's row calls this
+  game "a genuine spread-target divergence". Outrage is `randomNormal` (DERIVED from the format), not a
+  spread move, and the divergence is its execution-time re-target, drawn once.
+- Full account: `docs/_reports/2026-08-27-incomparable.md`.
+
 ## [5.153.0] — 2026-08-26
 
 ### Changed
