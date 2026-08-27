@@ -968,6 +968,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * copied it, in time for the drop" are different facts, and only the second is the new wire. A zero
    * on a run whose scenarios mega into a Trace forme means this door is dead again. */
   megaTraceCopied: 0,
+  /* 2026-08-27 -- the mega stat swap RECOMPUTED the line from the body's own spread, the way
+   * `setSpecies` does, instead of carrying a truncation-lossy delta across. A zero on a run whose
+   * bodies were built with a spread means `_sp` never reached the body and every mega in that run
+   * silently took the old delta -- which is a one-point stat error on any stat the nature moves. */
+  megaStatFromSpread: 0,
   /* ROADMAP #92 -- CONFUSION, which did not exist in this engine at all until this pass, so every
    * one of these was structurally zero and there was nothing to notice. Each is a different event and
    * a zero on each says a different thing:
@@ -2630,6 +2635,14 @@ const MEDFAILS = { encoreAction: 0,
   /* ROADMAP #31 -- the mega row carries no base stats, so the forme swap could not move the stat
    * block and the body megas with its BASE numbers. Loud, because that is a mega in name only. */
   megaNoBaseStats: 0, megaNoBaseStatsFirst: '',
+  /* 2026-08-27 -- the mega stat swap fell back to the ADDITIVE DELTA because the body carries no
+   * `_sp`. Correct for a `buildMon` body (no spread, no nature, so the delta is exact) and a defect
+   * for a body a harness built from a spread, which is why it is counted rather than assumed.
+   * `megaStatSpreadStale` is the narrower half: the body HAS a spread and its current stat line is
+   * not the one that spread builds, so something rewrote `st` after the build and a recompute would
+   * throw that away. */
+  megaStatDeltaFallback: 0, megaStatDeltaFallbackFirst: '',
+  megaStatSpreadStale: 0, megaStatSpreadStaleFirst: '',
   /* WIRE 124 -- a move whose accuracy NEITHER data/move-effects.js NOR the ACC_FIX correction list
    * knows. It falls back to 100, which is indistinguishable from a never-miss move, and that
    * indistinguishability is the whole bug this wire fixed: for 78 moves the fallback WAS the answer.
@@ -6337,6 +6350,15 @@ if (ENDTURN_CLOCKS_AT_FOOT) MEDFAILS.endturnClocksAtFoot = 1;
 const MEGA_TRACE_LATE = (typeof process !== 'undefined' && process.env
   && process.env.MEDI_MEGA_TRACE_LATE === '1');
 if (MEGA_TRACE_LATE) MEDFAILS.megaTraceLate = 1;
+/* 2026-08-27 -- `MEDI_MEGA_STAT_DELTA=1` puts the mega stat swap back on the ADDITIVE DELTA between
+ * two natured anchors (`megaL50 + (st - baseL50)`), which is what it was until today. The delta is
+ * algebraically exact and arithmetically is not: each anchor is truncated by the nature multiply
+ * separately, so the fractions do not cancel and the mega lands one point off. It reverts exactly
+ * the recompute in `megaEvolveNow` and nothing else, and it stamps `MEDFAILS.megaStatDelta` so a run
+ * under it can never be read as a clean one. See tests/probe_mega_spread_stat.js. */
+const MEGA_STAT_DELTA = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_MEGA_STAT_DELTA === '1');
+if (MEGA_STAT_DELTA) MEDFAILS.megaStatDelta = 1;
 /* `volDuration` = spend it through `m._vol[id]` and `endDurationVolatile`, which is what the foot
  * loop over `durationVolatiles()` did; the other three are this engine's own named fields. */
 const RESIDUAL_CLOCK_READER = { taunt: 'volDuration', encore: 'volDuration', disable: 'volDuration',
@@ -16289,8 +16311,50 @@ function megaEvolveNow(S,m,auto){
      * RECOMPUTES storedStats from the SET, nature included, so it is always right and we are always
      * the one that drifts. A body with no `_nature` is neutral and this is byte-identical to before. */
     const b=l50(baseRow.bs,null,m._nature), g=l50(megRow.bs,null,m._nature);
-    const st={hp:g.hp+(m.st.hp-b.hp),at:g.at+(m.st.at-b.at),df:g.df+(m.st.df-b.df),
-              sa:g.sa+(m.st.sa-b.sa),sd:g.sd+(m.st.sd-b.sd),sp:g.sp+(m.st.sp-b.sp)};
+    /* ---- 2026-08-27 -- AND THE DELTA IS NOT ENOUGH ONCE THE BODY CARRIES A SPREAD ----------------
+     *
+     * THE ANCHORS CARRY THE NATURE (above) AND THE INVESTMENT DOES NOT, so the swap was
+     * `tr(mul*(Bm+20)) + tr(mul*(Bb+S+20)) - tr(mul*(Bb+20))`. Algebraically that IS
+     * `tr(mul*(Bm+S+20))` -- the three multiplies cancel exactly -- and arithmetically it is not,
+     * because each `tr()` throws away its own fraction and the three fractions do not sum to zero.
+     * Golurk-Mega, Adamant, 32 Atk points: 196 + (193 - 158) = 231 where the exact line is
+     * tr(211 * 1.1) = 232. One point of Attack, doubled to two HP by STAB, and it is the whole of
+     * `pair-protect-bust` seed ...-2660356793 turn 6 (62/140 against 64/140).
+     *
+     * THE AUTHORITY HAS NO DELTA AT ALL. `formeChange` -> `setSpecies` -> `spreadModify(baseStats,
+     * this.set)` (sim/pokemon.ts:1295,1404) recomputes the WHOLE line from the SET, and Champions'
+     * `statModify` (data/mods/champions/scripts.ts:10-38) applies the nature ONCE, to one sum. So the
+     * right shape here is a recompute, not a better delta.
+     *
+     * IT NEEDS THE SPREAD, AND ONLY A BODY THAT WAS BUILT FROM ONE HAS IT. `_sp` is stamped by
+     * whatever built the stat line (engine/game_differential.js's freshBodies); a body out of
+     * `buildMon` has no spread and no nature, where the delta composes EXACTLY because `natureStat`
+     * is the identity -- which is why this was invisible for the fifteen days the differential built
+     * every body Serious.
+     *
+     * THE RECOMPUTE IS GATED ON REPRODUCING THE CURRENT LINE. If `l50(base, _sp, _nature)` is not
+     * what the body is standing there with, something has rewritten `st` since it was built (a
+     * transform, a staged fixture) and recomputing would DISCARD that. The delta is kept for those
+     * and COUNTED, because a fallback nobody counts is the silent default this project keeps paying
+     * for. `megaStatFromSpread` is the other half: a zero there means the stamp never arrived. */
+    let st=null;
+    if(!MEGA_STAT_DELTA&&m._sp){
+      const chk=l50(baseRow.bs,m._sp,m._nature);
+      const same=['hp','at','df','sa','sd','sp'].every(k=>chk[k]===m.st[k]);
+      if(same){ st=l50(megRow.bs,m._sp,m._nature); MEDSEEN.megaStatFromSpread++; }
+      else{
+        MEDFAILS.megaStatSpreadStale++;
+        if(!MEDFAILS.megaStatSpreadStaleFirst)MEDFAILS.megaStatSpreadStaleFirst=String(m.name||'?');
+      }
+    }
+    if(!st){
+      if(!MEGA_STAT_DELTA){
+        MEDFAILS.megaStatDeltaFallback++;
+        if(!MEDFAILS.megaStatDeltaFallbackFirst)MEDFAILS.megaStatDeltaFallbackFirst=String(m.name||'?');
+      }
+      st={hp:g.hp+(m.st.hp-b.hp),at:g.at+(m.st.at-b.at),df:g.df+(m.st.df-b.df),
+          sa:g.sa+(m.st.sa-b.sa),sd:g.sd+(m.st.sd-b.sd),sp:g.sp+(m.st.sp-b.sp)};
+    }
     const dHP=st.hp-m.st.hp;
     m.st=st; m.curHP=Math.max(1,Math.min(st.hp,m.curHP+dHP));
   }else{

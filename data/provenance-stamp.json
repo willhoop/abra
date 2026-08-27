@@ -439,6 +439,7 @@
     "_r220-dump-post.json",
     "_r220-dump-pre.json",
     "_scratch-jobs3.json",
+    "_scratch-scovillain-dump.json",
     "all-mechanics-fire.boardstate.json",
     "artifact-accessors.json",
     "battle-formes.json",
@@ -951,5 +952,5 @@
       ]
     }
   ],
-  "generated": "2026-08-27T16:59:03.600Z"
+  "generated": "2026-08-27T17:45:24.465Z"
 }

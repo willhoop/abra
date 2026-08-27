@@ -10,6 +10,79 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.181.0] — 2026-08-27
+
+### Fixed
+- **A MEGA'S STAT LINE WAS CARRIED ACROSS AS A DELTA AND THE AUTHORITY RECOMPUTES IT FROM THE SET —
+  THREE TRUNCATIONS WHERE THERE SHOULD BE ONE. BOARD-MATERIAL 10 -> 9 OF 961 AND WHOLE-GAME 11 -> 10
+  OF 961, BOTH PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS UNMOVED AT
+  765 LIVE / 765 PROBED / 0 MISSING.** ENGINE, ROADMAP `#494`.
+
+  **WHAT REMOVED THE HP, ESTABLISHED FROM THE REPLAYED STREAMS BEFORE ANYTHING WAS TOUCHED.** The
+  brief's guess was a residual or an item chip. It is neither. `pair-protect-bust` seed
+  `...-2660356793`, turn 6: a Golurk that mega evolved on turn 1 lands Phantom Force through a
+  Protect it BREAKS, into a Scovillain that Moody had put to +2 Defence on the charge turn. The
+  Scovillain entered at `140/140` on turn 4 and took nothing before this hit, so the two engines
+  dealt **78 and 76** with the same shared damage roll — a ONE-POINT disagreement about
+  Golurk-Mega's Attack, doubled by the x1.5 STAB.
+
+  **THE ARITHMETIC, BOTH SIDES, CITED.** The authority recomputes the WHOLE line the instant the
+  forme changes: `formeChange` -> `setSpecies` -> `spreadModify(this.species.baseStats, this.set)`
+  (`sim/pokemon.ts:1295`, `:1404`), which spends Champions' own `statModify`
+  (`data/mods/champions/scripts.ts:10-38` — Reg M-B carries `adjustlevel`, not `levelclausemod`, so
+  the else-branch is `stat + evs + 20` and the nature multiply is `tr(tr(stat * 110, 16) / 100)`
+  AFTERWARDS). That is `tr((159 + 32 + 20) * 1.1) = 232`. `megaEvolveNow` carried the investment
+  across as an ADDITIVE DELTA between two natured anchors —
+  `tr(179*1.1) + (tr(176*1.1) - tr(144*1.1)) = 196 + (193 - 158) = **231**`.
+
+  **THE DELTA IS ALGEBRAICALLY EXACT AND ARITHMETICALLY IS NOT, WHICH IS WHY IT SURVIVED EVERY CHECK
+  THIS REPO OWNS.** Without truncation `1.1(Bm+20) + 1.1(Bb+S+20) - 1.1(Bb+20)` really is
+  `1.1(Bm+S+20)`; the error is purely the three separate `tr()`s, which lose 0.9, 0.6 and 0.4 and do
+  not cancel. Under a NEUTRAL nature `natureStat` is the identity and the delta composes perfectly —
+  and `game_differential.js` built every body `Serious` until 2026-08-12. `freshBodies`' own comment
+  still said the swap "come[s] out at a delta of exactly zero and land[s] on Showdown's recomputed
+  numbers": true when it was written, false the day the sheet's nature and the SP spread arrived
+  together. It is corrected in place with the reason.
+
+  **WHY THE DAMAGE DIFFERENTIAL COULD NOT SEE IT.** `tests/test-engine-diff.js` states in its own
+  words that "both engines therefore start from an empty field and **zero boosts**", and it compares
+  a BUILT body, never one that mega evolved mid-turn. 0 of 6000 at sixteen corners is a claim about
+  an unboosted, unevolved attacker and says nothing about either half of this.
+
+  **THE FIX.** `megaEvolveNow` recomputes from `(the mega's base stats, the body's spread, its
+  nature)`, the same question `setSpecies` asks. It is GATED on that spread reproducing the line the
+  body is currently standing with, so a body whose `st` was rewritten after the build (a transform, a
+  staged fixture) keeps the delta rather than having it discarded — and both arms are COUNTED
+  (`MEDSEEN.megaStatFromSpread`, `MEDFAILS.megaStatDeltaFallback`, `MEDFAILS.megaStatSpreadStale`),
+  because a fallback nobody counts is the silent default this project keeps paying for.
+  `engine/game_differential.js`'s `freshBodies` stamps `_sp` beside the `_nature` it already stamped;
+  a `buildMon` body carries neither and takes the delta, where it is exact.
+
+### Added
+- `tests/probe_mega_spread_stat.js` — drives the REAL `megaEvolveNow` through `battleInit` +
+  `battleTurn` (never a second copy of the swap) for **all 75** mega stones in the format whose base
+  forme `data/engine-data.js` carries, at **both lead slots** of the SP ladder, and compares the
+  resulting line against the authority's own `statModify` over the same declared set. **Shown RED
+  first at 8 of 150** — Golurk `at 232 vs 231`, Delphox `sa 232 vs 231`, Lucario `sa 172 vs 173`,
+  Drampa `sa 190 vs 191`. **The control is the NATURE and it can fail:** the same sweep under
+  `Serious` is clean at 150/150, so the instrument can pass and the knob is real; a dirty control
+  makes the probe refuse to report ARM 1 as a finding. `MEDI_MEGA_STAT_DELTA=1` restores the old
+  delta and puts the same 8 back.
+
+### Notes
+- **MEASURED, all on release `f6a3b35ed665`, same pins.** Raw diverged 16 -> 15 with **exactly one
+  row removed and none added**; board-material `961 - 952 = 9`; whole-game 15 raw less 5 declared =
+  10. Pin digest `44bd49403231`, census pin `9446a684709d` and team-pool digest `0d103fb9fa87` all
+  unmoved, coverage block identical — so this is a before/after of one sample and not two samples.
+- Damage differential re-run in full: **0 of 6000 at all sixteen corners**, unchanged.
+- Deliberate roster re-run: items 139/148, abilities 129/202, moves 475/500, **0
+  FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE** on all three.
+- Census regenerated: **765 live / 765 probed / 0 missing** — it did not go down.
+- Gate: **3 of 8 clauses fail** (whole-game differential, mechanics 5 of 12, one open register row
+  naming a red instrument). The other five pass.
+
+---
+
 ## [5.180.0] — 2026-08-27
 
 ### Fixed

@@ -27,7 +27,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_noguard_invuln.js`, `tests/probe_endturn_clock_order.js`,
 `tests/probe_substitute_status_step.js`, `tests/probe_yawn_substitute.js`,
 `tests/probe_doll_blind_family.js`, `tests/probe_trace_target.js`,
-`tests/probe_mega_trace_entry.js`
+`tests/probe_mega_trace_entry.js`, `tests/probe_mega_spread_stat.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -39,13 +39,14 @@ this sentence — it was "twelve" until `test-damage-roll-support.js` was added 
 `probe_random_target_address.js` arrived, and "twenty-one" the same day when
 `probe_multihit_update.js` did, and again the same day when `probe_noguard_invuln.js` did.
 and again the same day when `probe_endturn_clock_order.js` did, and again the same day when
-`probe_substitute_status_step.js` did, and again the same day when `probe_yawn_substitute.js` did, and again the same day when `probe_doll_blind_family.js` did, and again the same day when `probe_trace_target.js` did, and again the same day when `probe_mega_trace_entry.js` did.
+`probe_substitute_status_step.js` did, and again the same day when `probe_yawn_substitute.js` did, and again the same day when `probe_doll_blind_family.js` did, and again the same day when `probe_trace_target.js` did, and again the same day when `probe_mega_trace_entry.js` did, and again the same day when `probe_mega_spread_stat.js` did.
 A number typed in prose beside a
 table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
 | `test-mechanics.js` | is ONE mechanic live | tag x tag; and whether a LIVE verdict rests on a probe that asserts rather than proves |
+| `probe_mega_spread_stat.js` | does a MEGA EVOLUTION land on the stat line `setSpecies` recomputes from the set — all 75 stageable stones x both lead slots, driven through the real `megaEvolveNow` | anything that is not a forme change; and a stone-holder that never LEADS, because only a lead can be told to evolve, so the SP ladder's slot-2 and slot-3 spreads are not swept |
 | `test-engine-diff.js` | is ONE HIT's damage right | every turn counter — and the INTERIOR of the damage roll, by construction: it compares index 0 against `d.max` and index 15 against `d.min`, the two points where an index and a span coincide (ROADMAP #304) |
 | `test-damage-roll-support.js` | can the battle loop emit the authority's damage VALUES, and the same one for the same die — nine staged hits, support and per-index pairing, endpoints asserted first as the control | anything multi-hit (declared out of scope: the authority draws a randomizer per hit and this engine spends one index across a summed range), and whether the FORMULA under the band is right — `test-damage-stages.js` owns that |
 | `test-game-diff.js` | do the two engines hold the same STATE after every turn | damage magnitude |
@@ -91,8 +92,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  765/765 probed mechanics live, 0 missing   (census 2026-08-27 12:58)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-27 12:44)
+  765/765 probed mechanics live, 0 missing   (census 2026-08-27 13:31)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-27 13:31)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -111,9 +112,106 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 12:59_
+_stamped 2026-08-27 13:45_
 
 <!-- /GENERATED -->
+
+## A MEGA'S STAT LINE WAS CARRIED ACROSS AS A DELTA, AND THE AUTHORITY RECOMPUTES IT FROM THE SET — THREE TRUNCATIONS WHERE THERE SHOULD BE ONE. **BOARD-MATERIAL 10 -> 9 OF 961 AND WHOLE-GAME 11 -> 10 OF 961, BOTH PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING.** 2026-08-27.
+
+Release `f6a3b35ed665`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,
+`--team-store data/team-pool-frozen`, `--census data/verification/census-pin-9446a684709d.json`,
+`--state --end-state`. Register row ROADMAP **#494 — CLOSED**. CHANGELOG 5.181.0.
+Full account: `docs/_reports/2026-08-27-scovillain-hp.md`.
+
+**THE BRIEF'S GUESS WAS A RESIDUAL AND IT IS NOT ONE.** Two HP does look like a chip. It is not:
+
+```
+pair-protect-bust   seed ...-2660356793 vs ...-2660492912   turn 6
+  |switch|p2a: Scovillain|scovillain, L50|140/140          <- enters FULL on turn 4, takes nothing
+  |-boost|p2a: Scovillain|def|2|[from] ability: moody       <- turn 5, on Golurk's charge turn
+  |move|p1a: Golurk|phantomforce|p2a: Scovillain
+  |-activate|p2a: Scovillain|move: Phantom Force|[broken]
+  |-damage|p2a: Scovillain|62/140      showdown   -> 78 dealt
+  |-damage|p2a: Scovillain|64/140      medicham2  -> 76 dealt
+```
+
+Same shared damage roll, same +2 Defence stage, same base power. The gap is **one point of
+Golurk-Mega's ATTACK**, doubled by the x1.5 STAB. The Golurk mega evolved on turn 1 and megas are
+where these two engines stop asking the same question.
+
+**THE ARITHMETIC, BOTH SIDES.** Showdown has no delta at all — the forme change recomputes the whole
+line from the SET:
+
+```
+formeChange()  if (!this.setSpecies(species, effect, true)) return false;      sim/pokemon.ts:1295
+setSpecies()   const stats = this.battle.spreadModify(this.species.baseStats, this.set);
+               ... this.storedStats[statName] = stats[statName];               sim/pokemon.ts:1404
+statModify()   stat = stat + evs + 20;                                         (else-branch: Reg M-B
+               if (nature.plus === statName) stat = tr(tr(stat * 110, 16)/100);  carries adjustlevel,
+                                            data/mods/champions/scripts.ts:10-38  not levelclausemod)
+```
+
+`tr((159 + 32 + 20) * 1.1) = tr(232.1) = **232**`. `megaEvolveNow` instead carried the investment
+across as an additive delta between two natured anchors:
+
+```
+tr(179 * 1.1) + ( tr(176 * 1.1) - tr(144 * 1.1) )  =  196 + (193 - 158)  =  **231**
+   196.9              193.6            158.4
+```
+
+**THE DELTA IS ALGEBRAICALLY EXACT AND ARITHMETICALLY IS NOT, AND THAT IS THE WHOLE DEFECT.** Without
+truncation `1.1(Bm+20) + 1.1(Bb+S+20) - 1.1(Bb+20)` really is `1.1(Bm+S+20)` — the multiplies cancel.
+The error is purely the three separate `tr()`s: 0.9, 0.6 and 0.4 are each thrown away and the losses
+do not sum to zero.
+
+**IT IS EXACT UNDER A NEUTRAL NATURE, WHICH IS WHY IT SURVIVED FIFTEEN DAYS.** `natureStat` is the
+identity when the nature is neutral, and `game_differential.js` built every body `Serious` until
+2026-08-12. `freshBodies`' own comment still asserted that the swap *"come[s] out at a delta of
+exactly zero and land[s] on Showdown's recomputed numbers"* — true when written, false the day the
+sheet's nature and the SP spread arrived together. Corrected in place, dated, with the reason.
+
+**AND `tests/test-nature-differential.js` PART 4 ASKS EXACTLY THIS QUESTION AND WAS GREEN.** It stages
+ONE stone, selected for a SPEED trap, and that body's deltas happen to compose. One witness is not a
+sweep — which is the whole reason the new probe is a sweep.
+
+**WHY 0/6000 AT SIXTEEN CORNERS SAID NOTHING ABOUT IT.** `tests/test-engine-diff.js` says in its own
+words that both engines "start from an empty field and **zero boosts**", and it compares a body as
+BUILT — it never mega evolves one mid-turn. Both halves of this defect are outside its question.
+Re-run in full after the fix: still 0 of 6000 at all sixteen corners.
+
+**THE FIX.** `megaEvolveNow` recomputes from `(the mega's base stats, the body's spread, its nature)`
+— the same question `setSpecies` asks. It is GATED on that spread reproducing the line the body is
+currently standing with, so a body whose `st` was rewritten after the build keeps the delta instead of
+having it discarded, and BOTH arms carry a receipt: `MEDSEEN.megaStatFromSpread`,
+`MEDFAILS.megaStatDeltaFallback`, `MEDFAILS.megaStatSpreadStale`. A `buildMon` body carries no spread
+and no nature and takes the delta, where it is exact. `engine/game_differential.js`'s `freshBodies`
+stamps `_sp` beside the `_nature` it already stamped — one field, inert to anything that does not read
+it.
+
+**THE PROBE.** `tests/probe_mega_spread_stat.js` drives the REAL `megaEvolveNow` through
+`battleInit` + `battleTurn` — never a second copy of the swap — for all **75** mega stones in the
+format whose base forme `data/engine-data.js` carries, at **both lead slots** of the SP ladder, and
+compares against the authority's own `statModify` over the same declared set.
+
+- **RED FIRST at 8 of 150:** Golurk `at 232 vs 231`, Delphox `sa 232 vs 231`, Lucario `sa 172 vs 173`,
+  Drampa `sa 190 vs 191` — two of them in the engine's favour and two against, which is what a
+  truncation looks like and what a systematic sign error does not.
+- **THE CONTROL IS THE NATURE AND IT CAN FAIL:** the same sweep under `Serious` is clean at 150/150.
+  A dirty control makes the probe refuse to report ARM 1 as a finding rather than claiming one.
+- `MEDI_MEGA_STAT_DELTA=1` restores the old delta and puts the same 8 back, stamping
+  `MEDFAILS.megaStatDelta` so a run under it can never be read as clean.
+
+**WHAT THIS PROBE STRUCTURALLY CANNOT SEE, SAID OUT LOUD.** Only a LEAD can be told to evolve, so the
+sweep covers the SP ladder's slot-0 and slot-1 spreads and not slot-2 or slot-3. A stone-holder that
+switches in and megas later is on a spread this instrument does not stage; the arithmetic is the same
+and the membership of the biting set may not be.
+
+**MEASURED.** Raw diverged 16 -> 15, with **exactly one row removed and none added** — checked row by
+row against the previous artifact. Board-material `961 - 952 = 9`. Whole-game 15 raw less 5 declared =
+10. Pin digest `44bd49403231`, census pin `9446a684709d`, team-pool digest `0d103fb9fa87` and the
+coverage block all unmoved, so this is a before/after of ONE sample. Damage 0/6000 at all sixteen
+corners. Roster items 139/148, abilities 129/202, moves 475/500, with 0 FIRED-AND-BOARDS-DIFFER and 0
+DID-NOT-FIRE on all three. Census 765 live / 765 probed / 0 missing. Gate 3 of 8 clauses failing.
 
 ## BOTH SIDES' TAILWIND ENDING ON ONE TURN — THE ORDER IS DECIDED BY THE SWAPS MADE WHILE *OTHER* HANDLERS WERE PLACED, AND “MATCH A DRAW” IS REFUTED. **WHOLE-GAME 13 -> 11 OF 961, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 10 OF 961. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS 764 -> 765 LIVE / 765 PROBED / 0 MISSING.** 2026-08-27.
 

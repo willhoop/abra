@@ -21,6 +21,61 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A MEGA'S STAT LINE WAS CARRIED ACROSS AS A DELTA — THE AUTHORITY RECOMPUTES IT FROM THE SET. **BOARD-MATERIAL 10 -> 9 OF 961 AND WHOLE-GAME 11 -> 10 OF 961, BOTH PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING.**
+
+Release `f6a3b35ed665`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+Register row: ROADMAP **#494 — CLOSED**. CHANGELOG 5.181.0.
+Full account: `docs/_reports/2026-08-27-scovillain-hp.md`.
+
+**WHAT REMOVED THE HP — AND IT IS NOT A RESIDUAL.** The brief guessed a field fraction, an item chip
+or a rounding rule on a residual. Replayed in full (`--dump-games` with the lead-in widened for the
+diagnosis and then reverted): `pair-protect-bust` seed `...-2660356793`, turn 6. Scovillain entered at
+`140/140` on turn 4 and took nothing before this hit. A Golurk that mega evolved on turn 1 lands
+Phantom Force through a Protect it BREAKS, into a Scovillain that Moody had put to **+2 Defence** on
+the charge turn. The two engines dealt **78 and 76** — `62/140` against `64/140` — with the same
+shared damage roll.
+
+**THE ARITHMETIC.** The authority recomputes the whole line the instant the forme changes:
+`formeChange` -> `setSpecies` -> `spreadModify(this.species.baseStats, this.set)`
+(`sim/pokemon.ts:1295`, `:1404`), spending Champions' `statModify`
+(`data/mods/champions/scripts.ts:10-38`; Reg M-B carries `adjustlevel`, not `levelclausemod`, so the
+else-branch is `stat + evs + 20` and the nature multiply `tr(tr(stat*110,16)/100)` lands AFTER the
+addition) — `tr((159 + 32 + 20) * 1.1) = 232`. `megaEvolveNow` carried the investment as an ADDITIVE
+DELTA between two natured anchors — `tr(179*1.1) + (tr(176*1.1) - tr(144*1.1)) = 196 + 35 = **231**`.
+One point of Attack, doubled to two HP by the x1.5 STAB.
+
+**THE DELTA IS ALGEBRAICALLY EXACT AND ARITHMETICALLY IS NOT.** `1.1(Bm+20) + 1.1(Bb+S+20) -
+1.1(Bb+20)` really is `1.1(Bm+S+20)`; the error is purely the three separate `tr()`s, losing 0.9, 0.6
+and 0.4. Under a NEUTRAL nature `natureStat` is the identity and the delta composes perfectly, which
+is why nothing saw this: the differential built every body `Serious` until 2026-08-12, and
+`freshBodies`' own comment still claimed the swap *"come[s] out at a delta of exactly zero"*. That
+comment is corrected in place, with the date and the reason.
+
+**WHY 0/6000 AT SIXTEEN CORNERS SAID NOTHING.** `tests/test-engine-diff.js` states in its own words
+that both engines "start from an empty field and **zero boosts**", and it never mega evolves a body
+mid-turn. It is a claim about an unboosted, unevolved attacker — both halves of this were outside it.
+
+**THE FIX.** `megaEvolveNow` recomputes from `(mega base stats, the body's spread, its nature)`, GATED
+on that spread reproducing the line the body is standing with — so a body whose `st` was rewritten
+since the build keeps the delta rather than having it discarded, and both arms are counted
+(`MEDSEEN.megaStatFromSpread`, `MEDFAILS.megaStatDeltaFallback`, `MEDFAILS.megaStatSpreadStale`).
+`engine/game_differential.js`'s `freshBodies` stamps `_sp` beside the `_nature` it already stamped.
+
+**THE PROBE** `tests/probe_mega_spread_stat.js` drives the REAL `megaEvolveNow` through
+`battleInit`+`battleTurn` for all 75 stageable stones x both lead slots, against the authority's own
+`statModify`. **RED FIRST at 8 of 150** — Golurk `at 232 vs 231`, Delphox `sa 232 vs 231`, Lucario
+`sa 172 vs 173`, Drampa `sa 190 vs 191`. **The control is the NATURE and it can fail:** the same sweep
+under `Serious` is clean at 150/150, and a dirty control makes the probe refuse to report ARM 1 as a
+finding. `MEDI_MEGA_STAT_DELTA=1` puts the same 8 back.
+
+**MEASURED.** Raw 16 -> 15 with **exactly one row removed and none added**; board-material
+`961 - 952 = 9`; whole-game 15 raw less 5 declared = 10. Pin digest, census pin, team-pool digest
+(`0d103fb9fa87`) and coverage block all unmoved — one sample, not two. Damage 0/6000 at all sixteen
+corners. Roster 139/129/475 with 0 DIFFER and 0 DID-NOT-FIRE. Gate 3 of 8 clauses failing.
+
+---
+
 ## BOTH SIDES' TAILWIND ENDING ON ONE TURN — THE ORDER IS DECIDED BY THE SWAPS MADE WHILE *OTHER* HANDLERS WERE PLACED. **WHOLE-GAME 13 -> 11 OF 961, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 10 OF 961. PIN DIGEST UNMOVED AT `44bd49403231`. CENSUS 764 -> 765 LIVE / 765 PROBED / 0 MISSING.**
 
 Release `6afa148cbeb1`, arm `middle`, `--games 1200` (yields 961), `--turns 12`,

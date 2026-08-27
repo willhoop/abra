@@ -2639,6 +2639,20 @@ function freshBodies(pair) {
      * (mul - 1) x (mega - base) on exactly the stat the nature moved, mid-turn, with no seam left to
      * re-align in. tests/test-nature-differential.js PART 4 is that case, staged. */
     if (x.spec.bs) { b._nature = x.spec.nature || 'Serious'; b.st = spreadL50(x.spec.bs, x.spec.sp || null, b._nature); b.curHP = b.st.hp; }
+    /* 2026-08-27 — AND THE SPREAD ITSELF, because the MEGA has to recompute rather than carry a delta.
+     *
+     * The comment above claimed medicham2's swap "come[s] out at a delta of exactly zero and land[s]
+     * on Showdown's recomputed numbers". That was true while every body was Serious and stopped being
+     * true the day the nature and the spread arrived together: `megaL50 + (st - baseL50)` truncates
+     * the nature multiply THREE times where `statModify` truncates it once, so the mega landed one
+     * point off on any stat the nature moves — 8 of 150 (mega x lead slot) lines, and two HP of
+     * Phantom Force in `pair-protect-bust` seed ...-2660356793. `setSpecies` recomputes from the SET
+     * (sim/pokemon.ts:1404); this is the field that lets medicham2 ask the same question.
+     *
+     * THE SPREAD IS THE SPEC'S, NOT A SECOND RESOLUTION OF IT — the same object `spreadL50` was just
+     * handed, for the reason the nature is resolved once in buildPair. See
+     * tests/probe_mega_spread_stat.js. */
+    if (x.spec.bs) b._sp = x.spec.sp || null;
     /* THE PROTOCOL IDENTIFIER IS SHOWDOWN'S NICKNAME, AND SHOWDOWN DEFAULTS IT TO `baseSpecies`.
      *
      * A set whose name equals its species is renamed to the BASE species when the battle loads it, so
