@@ -77,7 +77,7 @@ CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  754/754 probed mechanics live, 0 missing   (census 2026-08-27 04:50)
+  754/754 probed mechanics live, 0 missing   (census 2026-08-27 05:47)
   0/6000 differential comparisons disagree with Showdown   (2026-08-27 04:52)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
@@ -97,9 +97,89 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 05:28_
+_stamped 2026-08-27 05:50_
 
 <!-- /GENERATED -->
+
+## THE FIVE-GAME `fallenundefined` FAMILY IS THE AUTHORITY'S OWN TYPO, IT IS ALREADY DECLARED, AND ASKING FOR IT BACK WOULD PUT THE CENSUS DOWN. **NO ENGINE BYTE MOVED. CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. WHOLE-GAME UNMOVED AT 6 OF 961. BOARD-MATERIAL UNMOVED AT 1 OF 961.** 2026-08-27.
+
+Release `6a845424c450` (already cut; nothing moved, so none was cut for this). No probe added, because
+none can fail here — a probe demanding this line is a probe demanding a regression. Register row:
+ROADMAP **#321 — CLOSED**. Full account: `docs/_reports/2026-08-27-fallen-end-event.md`.
+
+### WHICH SCOREBOARD IT SHOULD MOVE, SAID BEFORE THE RUN
+
+**None of them, and that turned out to be the finding rather than the caveat.** The five rows are the
+five DECLARED rows; they are subtracted from the whole-game clause and from the mechanics clause by one
+shared reader, so no work on them can lower either number.
+
+### WHY THE AUTHORITY PRINTS `undefined` — THE COUNTER IS NEVER ASSIGNED, NOT CLEARED
+
+`supremeoverlord` is **not** overridden in `/data/mods/champions/`, so Champions inherits mainline
+`data/abilities.ts` verbatim. `:4724` guards `onStart` on `pokemon.side.totalFainted`; `:4728` is the
+only assignment to `effectState.fallen` and sits **inside** that guard; `:4732`'s `onEnd` carries no
+guard at all and fires from `sim/battle-actions.ts:103` on switch-out (before the replacement's
+`|switch|`) and `sim/battle.ts:2553` on faint. The template therefore interpolates a property that was
+never written, and JavaScript stringifies it.
+
+The two rival readings are both refuted, and neither by plausibility. **Cleared-first** dies on the code
+(`abilityState` is fresh from `initEffectState`, `sim/pokemon.ts:423` and `:1930`; nothing deletes
+`.fallen`; `clearVolatile` deletes only `started`, `sim/pokemon.ts:1562`, and runs at
+`battle-actions.ts:117` — *after* the End event) and on measurement (below). **A truncated capture** dies
+on the artifact: the recorded line is `|-end|p2b: Kingambit|fallenundefined|[silent]`, so the argument
+*after* the token is present and the token is one word.
+
+Measured in the official simulator, five arms on one staged board, carrier derived from the format by
+ability id and `side.totalFainted` written straight into the field line 4724 reads:
+
+```
+0 fallen   entry (nothing)                    exit |-end|...|fallenundefined|[silent]   hasOwnProperty false
+1 fallen   -activate + -start fallen1         exit |-end|...|fallen1|[silent]           present, value 1
+2 fallen   -activate + -start fallen2         exit |-end|...|fallen2|[silent]           present, value 2
+3 fallen   -activate + -start fallen3         exit |-end|...|fallen3|[silent]           present, value 3
+3 fallen, CONTROL ability   nothing on entry, nothing on exit
+```
+
+**The control could have failed and that is the point.** Under the cleared-counter reading the 1/2/3
+arms would print `fallenundefined` too; they print the counter. And the same body at 3 fallen with one
+ability changed emits nothing at either moment, so the `-end` is attributable to the ability rather than
+to the switch.
+
+### THE COST OF LEAVING #321 OPEN WAS A WHOLE BRIEF
+
+#321 was filed 2026-08-21 asking for the line to be mirrored, and its `VERIFIED BY` demanded the
+`-end/fallen` group be **absent** from the divergence report — a demand for the typo. Three things landed
+after it and settled it the other way: Will's 2026-08-22 board-material ruling with narration as its own
+separate gate; the `AUTHORITY-WRONG` declaration in `engine/quarantine.js`, which since #464 has one
+reader shared by both clauses; and three census probes on 2026-08-26 emitting `-activate`,
+`-start fallenN` and `-end fallenN` at counts 1/2/3, on switch-out and on faint, with silence asserted at
+0 (`tests/test-mechanics.js:15773` — `ends(zero).length === 0`).
+
+Nothing closed the row. `open_work.js` went on printing it, without a `DEFECT` marker and with a
+`VERIFIED BY` that had inverted, and a brief was written straight off `data/game-differential.json`'s raw
+`diverged: 11` naming these five as *"the single largest remaining cause"*. **The brief's own arithmetic
+already held the answer — `6 = 11 - 5`.** Same shape as the fourteen stale handoffs: a sentence kept past
+the thing it described, then acted on.
+
+### WHAT DID NOT MOVE, NAMED RATHER THAN LEFT TO BE FOUND
+
+- **The three emissions that still land at the placement** — Zero to Hero's `-activate`, Supreme
+  Overlord's `-activate`/`-start`, and the Magic Room item park — are **not** this root. They are the
+  residue of #481's batched `fieldEvent('SwitchIn', ...)`, an entry-phase ordering question, and they stay
+  on the hand list. Batches of one.
+- **The two Tailwind `-sideend` rows are NOT declared**, though a brief said they were. They are live
+  `ordering` causes in the artifact.
+
+### THE HAND LIST
+
+Nothing left it: no probe was written, because none could fail. Nothing joined it either — the three
+emissions still landing at the placement were already put there by #481 this morning and are unchanged.
+
+### OWED, NOT RUN
+
+Nothing. No engine byte moved, so the census, the three roster stages, the whole-game and board-material
+clauses and the 6,000-row damage differential are all untouched. `node tests/test-mechanics.js` was not
+re-run and could not have moved; the figures above are read from the artifacts `status.js` reads.
 
 ## A GREP IS A CLAIM ABOUT A NAME, AND THE NAME MOVED — `tests/test-middle-identity.js` WAS RED ON A FILE THAT DOES THE THING IT CHECKED FOR. **NO ENGINE BYTE MOVED. CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 1 OF 961.** 2026-08-27.
 

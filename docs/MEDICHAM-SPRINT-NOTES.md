@@ -16413,3 +16413,37 @@ because the corrections name files — a bigger denominator, not better coverage
 `engine/medicham2-browser.js` → `tests/test-engine-contract.js`), both in `#480`; a check for the
 mechanism half of a claim, which nothing measures; `node engine/status.js --write`, which this pass
 was not permitted to run.
+
+## 2026-08-27 — ENGINE — The five `fallenundefined` games were the five DECLARED games. **NOTHING MOVED, AND THAT IS THE FINDING.**
+
+Census 754 live / 754 probed / 0 missing. Whole-game 6 of 961. Board-material 1 of 961. **No engine
+byte moved; no probe was written, because none could fail.** Register: ROADMAP **#321 — CLOSED**.
+Full account `docs/_reports/2026-08-27-fallen-end-event.md`.
+
+**WHY THE AUTHORITY PRINTS `undefined`, WHICH WAS THE ASSIGNED QUESTION.** The counter is **never
+assigned**, not cleared, and nothing is dropped by our capture. `supremeoverlord` is not overridden in
+`/data/mods/champions/`, so mainline applies: `data/abilities.ts:4724` guards `onStart` on
+`pokemon.side.totalFainted`, `:4728` is the ONLY assignment to `effectState.fallen` and sits inside
+that guard, and `:4732`'s `onEnd` has no guard and fires from `sim/battle-actions.ts:103` (switch-out)
+and `sim/battle.ts:2553` (faint). Cleared-first dies on the code (`abilityState` is fresh from
+`initEffectState`, `sim/pokemon.ts:423`/`:1930`; `clearVolatile` deletes only `started`, `:1562`, and
+runs at `battle-actions.ts:117` — after the End event) and on measurement: five arms in the official
+simulator read `hasOwnProperty('fallen') === false` at 0 fallen and `true`/1,2,3 at 1/2/3, with the
+exit lines `fallenundefined` / `fallen1` / `fallen2` / `fallen3`. Under the cleared reading the last
+three would all print `fallenundefined`. A Defiant control on the same body at 3 fallen emits nothing.
+
+**THE FIVE ROWS ARE ALREADY SUBTRACTED FROM BOTH CLAUSES.** `engine/quarantine.js` declares the cause
+`AUTHORITY-WRONG` and since #464 one reader serves both, so `status.js` prints `11 raw, less 5
+declared` and `DECLARED — 1 diverging mechanic(s)`. Emitting the line cannot lower 6 of 961, could
+raise it, and would put `tests/test-mechanics.js:15773` red — the census going DOWN.
+
+**WHAT ACTUALLY NEEDED FIXING WAS THE REGISTER.** #321 sat open since 2026-08-21 with a `VERIFIED BY`
+demanding the `-end/fallen` group be ABSENT from the divergence report — a demand for the typo — after
+Will's board-material ruling, the declaration and three census probes had all settled it the other
+way. `open_work.js` kept printing it and a whole brief was written off it, quoting raw `diverged: 11`
+as open work when its own arithmetic said `6 = 11 - 5`.
+
+**OWED, NOT RUN:** nothing. No SOURCES file moved, no release was cut, no artifact was invalidated.
+The three emissions still landing at the placement (Zero to Hero `-activate`, Supreme Overlord
+`-activate`/`-start`, Magic Room's item park) are #481's residue and a DIFFERENT root — left on the
+hand list, batches of one.
