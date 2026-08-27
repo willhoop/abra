@@ -21,6 +21,50 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE LAST BOARD-MATERIAL GAME WAS RULED A FIX; THE COLLISION PROOF REFUSED IT. **BOARD-MATERIAL UNMOVED AT 1 OF 961. CENSUS UNMOVED AT 754 / 754 / 0. NO ENGINE BYTE MOVED.** 2026-08-27 (ENGINE).
+
+CHANGELOG 5.167.0. Register `#478`, amended and left OPEN as a DECISION. Full account:
+`docs/_reports/2026-08-27-random-target-address.md`. One probe added:
+`tests/probe_random_target_address.js`, release `7f7de860723b`, arm middle, 961 games, pinned pool
+and census.
+
+Will ruled **option B, fix the address**, on the assumption that blanking our `randomNormal` target
+address would not collide. The landing was conditioned on proving that. **It does collide.**
+
+| measured, 961 games | |
+|---|---|
+| authority draws / of them in the blank `any` bucket | 9,839 / **1,332** |
+| DISTINCT call sites drawing in that bucket | **11** |
+| the `runMove` target draw's share | **137 — 10%** |
+| base addresses drawn more than once | **291 of 668 (43.6%), deepest 12** |
+| the `nth` the authority's target draw carries | **1..11, NEVER 0** |
+| blanked-at-0 picks the authority's body | **136 of 137 — 99.3%** (coin floor 65.0%) |
+| NEGATIVE CONTROL, wrong turn | 46.7% — on the floor, so the probe can see a miss |
+
+**The four biggest contributors to the bucket are draws this engine does not make at all** —
+`getActionSpeed` (380, `sim/battle.ts:2641`, every move action every turn), `addChoice` (203),
+`insertChoice` (164), the residual `fieldEvent` sample (274). So the two engines would share a BASE
+and not an ADDRESS.
+
+**It would have worked anyway, and the reason is a weak hash rather than a shared die.** FNV-1a ends
+`h = (h ^ c) * 0x01000193`, so the trailing index TRANSLATES the value modulo 1: swept over 2,000
+bases, one digit moves it at most **0.0352**, two digits **0.4999**. One draw flipped —
+`baseline ...bo3-2654515998 vs -2654545512`, `nth=10`.
+
+**What landing would have done, measured**: `--focus 2635122796` shows the board-material game's only
+random-target draw is on turn 2, the turn the board parts, and blanked-at-0 **agrees** with the
+authority. Board-material 1 -> 0 was live, and ~48 wrong picks would have become 1. **The trade is
+Will's call.**
+
+**Filed, larger than the row**: `nth` does not mix ANYWHERE in the arm, so a multi-hit move's per-hit
+accuracy rolls are one die read three times with a nudge — identically in both engines, which is why
+no instrument has noticed. Fixing it re-baselines every published rate.
+
+**Instrument note**: the probe's first control clause re-hashed the authority's own address string and
+was 100% by construction. Recorded in the file, not quietly swapped.
+
+---
+
 ## FOUR ITEM-LOSS FIXTURES STAGED, ALL FOUR ALREADY CORRECT, AND THE FOURTH'S PREMISE WAS FALSE. **CENSUS UNMOVED AT 754 / 754 / 0. NO ENGINE BYTE MOVED.** 2026-08-27 (ENGINE).
 
 CHANGELOG 5.165.0. Full account: `docs/_reports/2026-08-27-item-loss-fixtures.md`. Three new probes:

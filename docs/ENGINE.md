@@ -21,7 +21,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_mid_cat_reload.js`, `tests/probe_party_key_collision.js`, `engine/identity_audit.js`,
 `tests/probe_transform_faint_revert.js`, `tests/probe_refill_entry_herb.js`,
 `tests/probe_recoil_after_clamp.js`, `tests/probe_poltergeist_use_time.js`,
-`tests/probe_unburden_herb_paths.js`, `tests/probe_knockoff_megastone.js`
+`tests/probe_unburden_herb_paths.js`, `tests/probe_knockoff_megastone.js`,
+`tests/probe_random_target_address.js`
 
 **Twenty instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -29,7 +30,8 @@ this sentence — it was "twelve" until `test-damage-roll-support.js` was added 
 `test-encore-fail-silent.js` on 2026-08-22, "fifteen" until `test-immunity-gate.js` and
 `test-tag-params-derived.js`, "seventeen" until `test-resolution-order.js` and "eighteen" until
 `test-roster-arm-pin.js`, both on 2026-08-22, "nineteen" until `test-mc-seal.js` on 2026-08-23, and
-"twenty" until `identity_audit.js` on 2026-08-26.
+"twenty" until `identity_audit.js` on 2026-08-26, and again on 2026-08-27 when
+`probe_random_target_address.js` arrived.
 A number typed in prose beside a table is exactly what
 CLAUDE.md records going stale three times over.)*
 
@@ -62,6 +64,7 @@ CLAUDE.md records going stale three times over.)*
 | `probe_poltergeist_use_time.js` | does the item check read the slot at USE TIME — three arms on one board, the item removed by a faster ally EARLIER IN THE SAME TURN, with the strip's precedence read off the AUTHORITY's own `\|move\|` order and the damage moving 90 / 85 / 0 across the knob | whether the announcement itself is right (`probe_poltergeist_item_line.js` owns that), and any other move that reads a target's item — it is ONE move, not the tag |
 | `probe_unburden_herb_paths.js` | does ONE herb come through TWO doors and hand over a SPEED TIER — the after-move door and the switch-in door, three arms each, both stat stages asserted back at zero for a SINGLE consumption, and the proc read as a turn ORDER between two bodies whose Speeds are DERIVED to straddle the doubling (the file refuses to run outside that window). `--red` strips the tag through the DRIVER's tags module and requires 4 of 4 clauses to break | the other two doors (`onAnyAfterMega`, `onResidual`), which nothing here stages; and any Speed consequence the `\|move\|` order cannot show — it compares who acted first, never a stat |
 | `probe_knockoff_megastone.js` | can a mega stone be knocked off, un-evolved or evolved — six arms, the handler EVALUATED per stone rather than paraphrased (73 carry one guard and 2 carry a stronger one, and the paraphrase invented a divergence that does not exist), plus a FOREIGN-stone arm that moves the damage 72 -> 106 on the same body so the refusal is shown keyed on the PAIRING and not on the class | the boost in ISOLATION on a MEGA forme, permanently — mega evolution requires holding the matching stone, so "this mega forme holding an ordinary item" is a board the game cannot produce, and the file declares that rather than comparing across formes; and the `\|-ability\|` announcement, dropped under `game_differential.js`'s own `ability-announcement` equivalence and printed per arm |
+| `probe_random_target_address.js` | can the `randomNormal` target die be SHARED by blanking our address — every authority draw in the blank `any` bucket tagged with its REAL stack, the `nth` its runMove target draw carries, the proposal's pick rate against a coin floor, a wrong-turn negative control, and `--focus` for one named game so "would this reach board-material zero" is answered against the game the artifact records | whether either engine plays the game right — it compares ADDRESSES and the picks they imply, never a board. And it measures the proposal WITHOUT it being landed, so it says nothing about what a whole-game re-run would report |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -92,9 +95,139 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-08-27 03:17_
+_stamped 2026-08-27 03:52_
 
 <!-- /GENERATED -->
+
+## THE LAST BOARD-MATERIAL GAME WAS RULED A FIX AND THE COLLISION PROOF CAME BACK THE OTHER WAY. **BOARD-MATERIAL UNMOVED AT 1 OF 961 — NOTHING WAS LANDED.** CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. NO ENGINE BYTE MOVED. 2026-08-27.
+
+Release `7f7de860723b`, arm `middle`, cap 12, 961 games, `--team-store data/team-pool-frozen`,
+`--census data/verification/census-pin-9446a684709d.json`. One probe added:
+`tests/probe_random_target_address.js`. Register row: ROADMAP **#478, amended with its measurement and
+left OPEN as a DECISION** rather than closed. Full account:
+`docs/_reports/2026-08-27-random-target-address.md`.
+
+**THE RULING WAS OPTION B — FIX THE ADDRESS — CONDITIONED ON A COLLISION PROOF, AND THE PROOF FAILED.**
+The standing instruction was *"prove there is no collision before you land anything… if a collision
+exists, STOP and report — the ruling was made on the assumption it does not."* It exists, it is
+measured, and it bites once in the pinned population. So no engine byte moved, no release was cut, and
+the census could not have changed.
+
+### THE PREMISE, AND WHY IT IS 99.3% TRUE RATHER THAN TRUE
+
+> If the addresses matched, both engines would draw the same value and pick the same body.
+
+An address is `seed|turn|cat|move|target|nth`. Blanking our move and target matches the first five
+fields. **It cannot match `nth`, and `nth` is a counter over everything else in the same bucket.**
+
+| what was measured, 961 games | |
+|---|---|
+| authority draws, of which in the blank `any` bucket | 9,839 / **1,332** |
+| DISTINCT call sites drawing in that bucket | **11** |
+| the `runMove` target draw's share of it | **137 — 10%** |
+| base addresses drawn MORE THAN ONCE | **291 of 668 (43.6%), deepest 12** |
+| the `nth` the authority's target draw carries | **1..11, NEVER 0** |
+| our own blank bucket | 603 draws, 429 bases, deepest 3 |
+| blanked-at-0 picks the authority's body | **136 of 137 — 99.3%** |
+| a coin over the same candidates (the floor) | 65.0% |
+| NEGATIVE CONTROL, addressed to the wrong turn | 46.7% — on the floor, so the probe can see a miss |
+
+**THE BUCKET IS ELEVEN EVENTS, NOT ONE, AND THE BIGGEST IS NOT THE ONE BEING FIXED.**
+`Battle#getActionSpeed` calls `getTarget` on **every move action, every turn**, purely to hand
+`ModifyPriority` a target (`sim/battle.ts:2641`) — and a `randomNormal` move falls through to
+`getRandomTarget` there exactly as it does in `runMove`. That is **380** draws. `BattleQueue.addChoice`
+does it again at choice commit (**203**), `insertChoice` samples on a switch (**164**), and the
+residual `fieldEvent` samples (**274**). **None of those four is a draw this engine makes at all**, so
+there is no `nth` it can pick that lands on the authority's event. The two engines would share a BASE
+and not an ADDRESS.
+
+**IT WOULD HAVE WORKED ANYWAY, AND THE REASON IS A WEAKNESS IN THE HASH RATHER THAN A SHARED DIE.**
+FNV-1a ends `h = (h ^ c) * 0x01000193`, so the trailing index **translates** the value modulo 1 instead
+of mixing it. Swept over 2,000 bases: a one-digit index moves the value by at most **0.0352**; a
+two-digit index reaches **0.4999**. On the 137 real draws the circular step from `nth=0` to the
+authority's `nth` is at most 0.1622 and the closest any multi-candidate value came to a boundary was
+0.0129 — so **one draw flipped**, and it is the one where `nth` reached two digits:
+
+```
+baseline   ...bo3-2654515998 vs ...bo3-2654545512
+  20260813|5|any|-|-|10   candidates 2   authority picks 0, blanked-at-0 picks 1
+```
+
+**That is the collision, in a real game, on the pinned pool.** A hash that mixed `nth` properly would
+turn the 99.3% into a coin. Correctness resting on a weak die is not a safety argument, and it is
+exactly the kind of dependency that breaks silently when somebody later improves the hash.
+
+### WHAT LANDING IT WOULD HAVE DONE — MEASURED, NOT GUESSED
+
+The one board-material game is `baseline / …bo3-2635122796 vs -2634861011`, turn 2, four leaves
+(`p2.party.staraptor.hp` 160/87, `p2.party.incineroar.hp` 106/170 and the two actives), read out of
+`data/game-differential.json` `state.first_board_divergences`. `--focus 2635122796` prints every
+random-target draw in it:
+
+```
+AGREES   20260813|2|any|-|-|3   candidates 2   authority 0  blanked-at-0 0
+```
+
+**One draw, on the turn the board parts, and blanking it agrees with the authority.** So the fix would
+very probably have taken board-material **1 → 0**, turning ~48 wrong target picks into 1. **That is a
+large improvement and it is still not what the brief authorised** — the authorisation was conditional,
+the condition failed, and trading a 1-in-137 shared-die error for board-material zero is Will's call
+rather than this division's.
+
+### THE SECOND FINDING, WHICH IS LARGER THAN THIS ROW AND IS FILED
+
+**`nth` translates rather than mixes, everywhere in the middle arm — not just in the blank bucket.**
+`midEventValue` / `midHash` are implemented independently in `engine/medicham2-browser.js` and
+`engine/game_differential.js` (and a third time inside `tests/test-middle-identity.js`, which asserts
+all three agree). So a three-hit move's per-hit accuracy rolls, or a move with two secondaries, are
+drawn at `…|acc|<move>|<slot>|0`, `|1`, `|2` — values within 0.035 of each other, modulo 1. Under this
+arm those are **not three independent dice; they are one die read three times with a nudge.** Both
+engines do it identically, so it costs nothing in AGREEMENT, which is precisely why no instrument has
+noticed — `test-middle-identity.js` prints the `nth>0` population as *"where a count difference can
+still hide"* without knowing the values there barely differ. Fixing it moves `midHash` in **both**
+files and re-values every address in the arm, so it re-baselines every published rate. **Filed, not
+touched.**
+
+### THE HAND LIST
+
+**Leaving it — the probe carries it now:**
+- ~~**THE SPREAD `-damage: a different body` CARD**~~ — the instrument question is settled: it is a
+  BASE-shared, ADDRESS-unshared die, and `tests/probe_random_target_address.js` measures exactly what
+  the proposed fix would and would not achieve. ROADMAP #478 stays open as a **decision**, not as an
+  undiagnosed divergence.
+
+**Opened by this batch, filed with its evidence:**
+- **`nth` DOES NOT MIX IN THE ADDRESS HASH.** Section above. Owner is whoever re-baselines the arm.
+- **`tools/lownode.cmd` CANNOT BE CALLED FROM GIT BASH'S `cmd.exe /c "…"`.** `start` opens a bare
+  interactive shell, runs nothing and **exits 0**. `tests/test-lownode.js` is GREEN and correct — it
+  invokes the wrapper as `execFileSync('cmd.exe', ['/c', WRAP, …])`, which works. A caller-side shell
+  quirk rather than a repo defect, recorded because it is the exact "reports success having done
+  nothing" shape. Every run in this batch went through a node `spawnSync` shim.
+
+**Standing, and NOT this batch's:**
+- **A FAINTED MEGA DOES NOT REGRESS ITS FORME** (`sim/battle.ts:2554-2557`, `:2568-2571`). Carried
+  unchanged from this morning's batch; no board in the pinned pool parts on it today.
+- **WIDE GUARD ANNOUNCES BEFORE A STEP-0 `-miss`.** No probe fails on it yet.
+- **`data/tag-consumption.json` still lists 12 DEAD tags**, led by `inflictsBurn` (45,273 uses) —
+  ROADMAP #324; the one likely genuine absence is `damageMultOnRepeat` (27 uses), #327.
+- **The four `test-tag-params-derived.js` prose-quantity rows** (`analytic`, `minus`, `plus`,
+  `reckless`) are still unreadable and still refused — 1 of 61 red, pre-existing.
+- **`tests/test-middle-identity.js`, `tests/test-web-status.js` and `tests/test-resolution-order.js`
+  were named RED at HEAD in an earlier brief**; not run and not this batch's.
+- **`.scratch_*`, `stash@{0}` AND THE PRE-MODIFIED `data/*.json` ARE ANOTHER SESSION'S.** Reported,
+  left, nothing executed in any of them.
+
+### OWED, NOT RUN
+
+- **The landing itself**, pending the decision above.
+- `tests/test-engine-diff.js` — **not re-run**; no damage code was touched and no engine byte moved, so
+  0 of 6000 at sixteen corners stands from 2026-08-27 02:09.
+- `tests/test-mechanics.js` — **not re-run**; nothing was fixed, so the census cannot have moved.
+- The three roster stages and `all_mechanics_fire.js --kind all` — **not re-run**; no release was cut.
+- `tests/interaction_matrix.js`, `engine/wire_ladder.js`, `tests/run-all.js`, `tests/staged_board.js`,
+  `tests/bench-medicham.js --record` — **not run**, as in the preceding batches.
+
+---
 
 ## FOUR ITEM-LOSS FIXTURES WILL ASKED FOR BY NAME, ALL STAGED, ALL FOUR ALREADY CORRECT — AND THE FOURTH ONE'S PREMISE WAS FALSE. CENSUS UNMOVED AT 754 LIVE / 754 PROBED / 0 MISSING. NO ENGINE BYTE MOVED. 2026-08-27.
 

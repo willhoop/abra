@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.167.0] — 2026-08-27
+
+### Notes
+- **THE LAST BOARD-MATERIAL GAME WAS RULED A FIX AND THE COLLISION PROOF CAME BACK THE OTHER WAY.
+  BOARD-MATERIAL UNMOVED AT 1 OF 961. NO ENGINE BYTE MOVED, NO RELEASE CUT, CENSUS UNMOVED AT
+  754 / 754 / 0.** ENGINE. Full account:
+  `docs/_reports/2026-08-27-random-target-address.md`; register `#478`, amended and left OPEN as a
+  DECISION rather than closed.
+
+  Will ruled option **B — fix the address** — over declaring the game incomparable, on the stated
+  assumption that blanking our `randomNormal` target address would not collide with anything else in
+  the authority's blank `any` bucket. `tests/probe_random_target_address.js` (new) enumerates that
+  bucket over the pinned 961 games on release `7f7de860723b` and the assumption does not hold.
+
+  - **The bucket is ELEVEN call sites, not one**, read off the real stack rather than paraphrased.
+    Of 1,332 blank-bucket draws only **137 (10%)** are the `runMove` target draw the fix is about.
+    The largest is `Battle#getActionSpeed` (380), which calls `getTarget` on every move action every
+    turn just to hand `ModifyPriority` a target (`sim/battle.ts:2641`); then `BattleQueue.addChoice`
+    (203), `insertChoice` (164) and the residual `fieldEvent` sample (274). **None of those four is a
+    draw this engine makes at all.**
+  - **291 of 668 base addresses (43.6%) carry more than one draw, deepest 12**, and the authority's
+    target draw sits at `nth` **1..11 and never 0** while ours would be near 0. The two engines would
+    share a BASE and not an ADDRESS.
+  - **It would have worked anyway — 136 of 137 (99.3%) against a 65.0% coin floor — and that is a
+    weakness in the hash rather than a shared die.** FNV-1a ends `h = (h ^ c) * 0x01000193`, so the
+    trailing index TRANSLATES the value modulo 1 instead of mixing it: swept over 2,000 bases a
+    one-digit index moves it by at most 0.0352 and a two-digit index by 0.4999. **One draw flipped**
+    — `baseline …bo3-2654515998 vs -2654545512`, `nth=10`.
+  - **What landing would have done, measured**: `--focus 2635122796` shows the only random-target draw
+    in the board-material game is on turn 2, the turn the board parts, and blanked-at-0 **agrees** with
+    the authority. The fix would very probably have taken board-material 1 → 0 and turned ~48 wrong
+    target picks into 1. **The trade is Will's call, not ENGINE's**, and it is put as one question in
+    the report rather than taken.
+
+- **SECOND FINDING, FILED AND NOT TOUCHED: `nth` DOES NOT MIX IN THE MIDDLE ARM'S ADDRESS HASH.** It
+  translates. So a multi-hit move's per-hit accuracy rolls, and a two-secondary move's draws, are one
+  die read twice with a nudge — in BOTH engines identically, which is why no instrument has noticed
+  (it costs nothing in agreement). Fixing it moves `midHash` in `engine/medicham2-browser.js` AND
+  `engine/game_differential.js` and re-baselines every published rate.
+
+- **`tools/lownode.cmd` cannot be invoked from Git Bash's `cmd.exe /c "…"`** — `start` opens a bare
+  interactive shell, runs nothing, and exits 0. `tests/test-lownode.js` is GREEN and correct: it calls
+  the wrapper as `execFileSync('cmd.exe', ['/c', WRAP, …])`, which works. A caller-side shell quirk,
+  not a repo defect, recorded because it is the exact "reports success having done nothing" shape.
+
+### Added
+- `tests/probe_random_target_address.js` — eight clauses over the pinned pool, including a real
+  negative control. Its FIRST control was 100% by construction (it re-hashed the authority's own
+  address string) and is recorded in the file rather than quietly replaced.
+
+---
+
 ## [5.166.0] — 2026-08-27
 
 ### Fixed
