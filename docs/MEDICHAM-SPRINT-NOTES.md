@@ -21,6 +21,86 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE CLOSET IS A GATE EXEMPTION NOW, ON WILL'S RULING — AND IT SHIPS EMPTY, SO **NO CLAUSE MOVED: 5 OF 8 PASS BEFORE AND AFTER ON THE SAME ARTIFACTS.** 2026-08-27.
+
+ROADMAP `#508`. MEASURE. **No engine byte touched** — `engine/quarantine.js` only. Read the gate
+against release `f3d423e19e88` (961 games, generated 2026-08-28T03:29Z) at 23:47 EDT, before ENGINE
+cut `ccd5c7f5a5d7` at 23:50; the clause count is quoted from that pinned pair and from nothing else.
+
+### THE RULING, AND WHAT IT COST TO NOT HAVE IT
+
+Will, 2026-08-26: *"no if i put things into the closet it should not be gated — like illusion"*.
+2026-08-27: *"things in the closet shouldnt block a gate if we know why they fail and choose to
+accept it."*
+
+He closeted Tailwind's expiry order on 2026-08-24. It went in as `DEFERRED`, which `declaredMatch`
+refuses to subtract **by design** — a deferred row asserts something IS wrong. ROADMAP `#355`
+recorded the refusal in its own cell: *"it stays UNDECLARED, red, and named on every run."* The
+instruction was written down, correctly, and had no effect for two days.
+
+### `CLOSETED` — THE THIRD KIND, AND THE ONLY ONE THAT ADMITS A DEFECT
+
+`INCOMPARABLE` and `AUTHORITY-WRONG` both claim there is nothing to fix. `CLOSETED` claims there IS,
+and that the owner ruled it does not matter. It is subtracted by both the whole-game clause and the
+mechanics clause through the one shared door.
+
+**IT CANNOT BE OPENED BY TYPING A SENTENCE.** `closetFault` refuses a row missing any of nine fields:
+
+| field | what it pins |
+|---|---|
+| `closet.by` / `.on` / `.ruling` / `.authority` | the owner, dated, in his own quoted words, with the register row |
+| `evidence.instrument` / `.release` / `.on` / `.says` | what MEASURED the no-board-effect claim, on which frozen release |
+| `falsifiedBy` | the observation that would make the entry wrong |
+
+A refused row is NOT subtracted and is named through the same sink as an unknown kind, so a
+half-written exemption holds the gate SHUT. **This is deliberately the inverse of `NOT A DEFECT`**,
+which is a regex over a register cell anybody can type into by accident.
+
+**EXCLUDED IS NOT INVISIBLE.** `declaredRegisterLine` prints every declared row on every run, matched
+or not, with the owner, the ruling and the falsifier — and names a row that **MATCHED NOTHING** as a
+claim that may have quietly become false. The old printer showed only rows that fired.
+
+**A CLOSET ENTRY IS RE-CHECKED.** `closetEvidenceStale` compares the entry's evidence release against
+the release of the artifact it is excusing and prints `EVIDENCE NOT RE-CHECKED` naming both. It still
+subtracts — the owner ruled, and staleness is a warning about the measurement under the ruling, not
+a reversal of it. A run with no release reports nothing and never reports the evidence fresh.
+
+### THE CLOSET SHIPS EMPTY, AND THAT IS MEASURED
+
+`#493` FIXED the Tailwind expiry order on 2026-08-27 (the residual handler-LIST shadow). The current
+differential holds **six** causes and **none** is a `-sideend`/`tailwind` pair — checked by walking
+`classes[].causes[]`, not by reading a headline. Writing the row would have registered a permanent
+exemption for a divergence that no longer occurs. `#355` closed with that evidence; the refusal sits
+as a comment in `DECLARED_DIVERGENCE`, because a closet that silently loses rows teaches nobody.
+
+### SHOWN RED ON FIVE DELIBERATE BREAKS
+
+Selftest **148 passed / 0 failed**. Each break was applied, run, and reverted:
+
+| break | red |
+|---|---|
+| `closetFault` never faults | 22 |
+| `CLOSETED` removed from `DECLARED_KINDS` | 16 |
+| `declaredRegisterLine` prints nothing | 3 |
+| `closetEvidenceStale` never reports | 2 |
+| `notADefectSuppresses` collapses to "the phrase is present" | 1 |
+
+### SECOND, SEPARATE, DISPLAY-ONLY FIX: THE RECEIPT OVERSTATED ITSELF 8x
+
+`DEFECT` matches **inside** the phrase `NOT A DEFECT`, so the open-defect clause reported every
+row carrying the phrase as excused whether or not it made any breakage claim. Measured over all 432
+register rows (205 open): **8 carry it in the status cell, and exactly 1 — `#252`, through the prose
+fallback matching `IS DEAD` inside a metaphor — would have counted without it.**
+`notADefectSuppresses` splits the two and the receipt prints both numbers.
+
+**NO VERDICT MOVES.** The open set, the red set and the clause pass/fail are byte-identical. It is a
+display correction, and the audit trail of an escape hatch is the only reason the receipt exists.
+
+The nine excused rows in `docs/_reports/2026-08-27-open-defect-clause.md` are now **eight**: `#344`
+was refuted and closed the same night. The list was re-derived, not inherited.
+
+---
+
 ## SAND FORCE'S BASE-POWER BOOST WAS ABSENT ON ALL THREE OF ITS TYPES — THE TAG NAMED ONE, AND NOTHING SPENT EVEN THAT. **CENSUS 765 -> 766 LIVE / 766 PROBED / 0 MISSING. MECHANICS CLAUSE 5 OF 12 -> 4 OF 11. WHOLE-GAME UNMOVED AT 1 OF 961, BOARD-MATERIAL UNMOVED AT 0 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS — ALL THREE PREDICTED BEFORE THE RUN. ROSTER 139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
 
 ROADMAP `#515`. Releases `fb73f82ea1ed` then `f3d423e19e88`, re-cut over the settled tree.

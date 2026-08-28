@@ -10,6 +10,70 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.194.0] — 2026-08-27
+
+### Added
+- **A CLOSETED ROW NOW LEAVES THE GATE, ON WILL'S RULING — ROADMAP `#508`.** Will, 2026-08-26:
+  *"no if i put things into the closet it should not be gated — like illusion"*, and 2026-08-27:
+  *"things in the closet shouldnt block a gate if we know why they fail and choose to accept it."*
+  - **THE COST OF NOT HAVING IT IS ON THE RECORD.** He closeted Tailwind's expiry order on
+    2026-08-24 and it went in as `DEFERRED`, which `declaredMatch` refuses to subtract by design.
+    ROADMAP `#355` recorded the refusal in its own cell — *"it stays UNDECLARED, red, and named on
+    every run"* — so the instruction was written down and had no effect for two days.
+  - **`CLOSETED` IS THE THIRD `DECLARED_KINDS` ENTRY AND THE ONLY ONE THAT ADMITS A DEFECT EXISTS.**
+    `INCOMPARABLE` and `AUTHORITY-WRONG` both claim there is nothing to fix. This one claims there
+    is, and that the owner has ruled it does not matter.
+  - **IT CANNOT BE OPENED BY TYPING A SENTENCE, WHICH IS THE WHOLE DESIGN.** `closetFault` refuses a
+    row missing any of nine fields: `closet.by/.on/.ruling/.authority` — the owner, dated, in his
+    own quoted words, with the register row carrying the account — `evidence.instrument/.release/
+    .on/.says`, naming what MEASURED the no-board-effect claim and on which frozen release, and
+    `falsifiedBy`. A refused row is NOT subtracted and is named through the same sink as a row typed
+    with an unknown kind. **This is deliberately the opposite of the `NOT A DEFECT` regex**, which
+    tests a phrase against a register cell that anybody can type into by accident.
+  - **EXCLUDED IS NOT INVISIBLE.** `declaredRegisterLine` prints every declared row on every run,
+    matched or not, with the owner, the ruling and the falsifier — and names any row that
+    **MATCHED NOTHING** as a claim that may have quietly become false. The old printer showed only
+    rows that fired, so a stale exemption was invisible.
+  - **A CLOSET ENTRY IS A CLAIM AND IS RE-CHECKED.** `closetEvidenceStale` compares the entry's
+    evidence release against the release the artifact under judgement was measured on, and prints
+    `EVIDENCE NOT RE-CHECKED` naming both. It **still subtracts** — the owner ruled, and staleness
+    is a warning about the measurement under the ruling, not a reversal of it. A run carrying no
+    release reports nothing and never reports the evidence fresh.
+  - **THE SHIPPING CLOSET IS EMPTY, AND THAT IS MEASURED RATHER THAN ASSUMED.** ROADMAP `#493` FIXED
+    the Tailwind expiry order on 2026-08-27; `data/game-differential.json` on release `f3d423e19e88`
+    (961 games) holds six causes and none is a `-sideend`/`tailwind` pair, checked by walking
+    `classes[].causes[]`. Writing the row would have registered a permanent exemption for a
+    divergence that no longer occurs. `#355` closed with that evidence; the refusal is recorded as a
+    comment in `DECLARED_DIVERGENCE`, because a closet that silently loses rows teaches nobody.
+  - **NO CLAUSE MOVED. 5 of 8 PASS before and after**, measured on the same artifacts (release
+    `f3d423e19e88`, 23:47 EDT), whole-game `1 of 961` either way. **Any improvement here would have
+    been a rule change and not an engine change; there is no improvement to report.**
+  - Selftest 148 passed / 0 failed, with five deliberate breaks shown RED: the schema check
+    disabled (22 red), the staleness check disabled (2), the register printer silenced (3),
+    `notADefectSuppresses` collapsed (1), and `CLOSETED` removed from `DECLARED_KINDS` (16).
+
+### Fixed
+- **THE OPEN-DEFECT RECEIPT OVERSTATED ITS OWN REACH 8x — DISPLAY ONLY, NO VERDICT MOVES.**
+  `roadmapRowSaysBroken` returns early on `/NOT A DEFECT/i` in a row's status cell and records the
+  row for the receipt. But `DEFECT` **matches inside the phrase `NOT A DEFECT` itself**, so
+  every row carrying the phrase was reported as excused whether or not it made any breakage claim.
+  - Measured over all 432 register rows (205 open) on 2026-08-27: **8 rows carry the phrase in the
+    cell and exactly 1 — `#252`, through the prose fallback matching `IS DEAD` inside the metaphor
+    "a Farigiraf is dead only while that Farigiraf is still there" — would have counted without
+    it.** The other seven are self-cancelling.
+  - `notADefectSuppresses` strips every occurrence of the phrase and re-tests, and the receipt now
+    prints both numbers and marks the suppressing rows by name. **The open set, the red set and the
+    clause verdict are byte-identical before and after.** It is reported as a display correction
+    because the audit trail of an escape hatch is the only reason it is printed at all.
+  - `BREAKAGE_PROSE` is now one constant with two readers rather than one regex written out twice.
+  - The nine excused rows named in `docs/_reports/2026-08-27-open-defect-clause.md` are now **eight**:
+    `#344` was refuted and closed the same night. The list was re-derived, not inherited.
+
+### Notes
+- No engine byte was touched. `engine/medicham2-browser.js` was held by another agent throughout.
+
+---
+
 ## [5.193.0] — 2026-08-27
 
 ### Fixed

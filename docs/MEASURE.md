@@ -87,6 +87,53 @@ restamp. There is no version of this where the shortcut is fine.
 
 ## Open — in priority order
 
+### THE CLOSET IS A GATE EXEMPTION NOW, AND IT SHIPS EMPTY — 2026-08-27
+
+Will's ruling, 2026-08-26: *"no if i put things into the closet it should not be gated — like
+illusion"*, and 2026-08-27: *"things in the closet shouldnt block a gate if we know why they fail and
+choose to accept it."* Implemented as a third `DECLARED_KINDS` entry, `CLOSETED`, in
+`engine/quarantine.js`. ROADMAP `#508`. Full account:
+`docs/_reports/2026-08-27-closet-gating.md`.
+
+**THE GATE DID NOT MOVE AND IT MUST NOT BE REPORTED AS THOUGH IT HAD. 5 of 8 clauses PASS before and
+after**, measured on the same artifacts (release `f3d423e19e88`, 961 games, read at 23:47 EDT);
+whole-game `1 of 961` either way. A gate that improves because the rules changed is not an engine
+improvement, and this one did not even improve.
+
+**THE ONE ROW THIS KIND WAS BUILT FOR WAS NOT WRITTEN.** Will closeted Tailwind's expiry order on
+2026-08-24; `#493` FIXED it on 2026-08-27. The current differential holds six causes and none is a
+`-sideend`/`tailwind` pair, so a declaration would have registered a permanent exemption for a
+divergence that no longer occurs. `#355` is closed with that evidence and the refusal is recorded as
+a comment where the row would have gone.
+
+**WHAT THE DOOR ASKS, AND WHY IT IS A SCHEMA AND NOT A SENTENCE.** Nine fields, refused at
+`declaredMatch` if any is missing: the owner, the date, his own quoted words and the register row;
+the instrument, release, date and finding of the measurement behind the no-board-effect claim; and
+what would make the entry wrong. This is the deliberate inverse of `NOT A DEFECT`, which is a regex
+over a register cell — *"a sentence somebody typed as a note"* is the failure mode this division was
+sent to avoid reproducing.
+
+**AND IT IS RE-CHECKED.** Four declarations in this project have been refuted — speed ties,
+Tailwind's coin, Moody, and a fainted body in an active slot — and the die fix of 2026-08-27 voided
+every measurement taken before it. `closetEvidenceStale` compares the entry's evidence release
+against the release of the artifact it is excusing and prints `EVIDENCE NOT RE-CHECKED` naming both.
+It still subtracts; the owner ruled. An unstamped run reports nothing and never reports it fresh.
+
+**THE RECEIPT ON THE OTHER DOOR OVERSTATED ITSELF 8x, AND THAT IS FIXED AS A DISPLAY BUG.**
+`DEFECT` matches inside the phrase `NOT A DEFECT`, so the open-defect clause reported every row
+carrying the phrase as excused. Measured over 432 register rows (205 open): **8 carry it, exactly 1
+(`#252`) would have counted without it.** No verdict moves — the open set, the red set and the clause
+pass/fail are byte-identical. The nine rows named in
+`docs/_reports/2026-08-27-open-defect-clause.md` are now **eight**; `#344` was refuted and closed the
+same night, and the list was re-derived rather than inherited.
+
+**OWED.** `#336` (the sleep draw ADDRESS, never checked) is still excused by the phrase and is the
+one of the eight worth re-opening: it claims nothing and carries a `WHAT WOULD DECIDE IT`, but *"the
+distribution is right and whether the draw is addressed identically has never been checked"* is the
+exact shape of the four refuted declarations. It is not suppressing anything today — the receipt now
+proves that — so it does not hold the gate.
+
+
 ### THERE IS NOW A SPEED BASELINE, AND THE BOX IS PART OF IT — 2026-08-27
 
 Full account: `docs/_reports/2026-08-27-speed-baseline.md`. Will: *"i dont care about the old one i

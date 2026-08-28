@@ -724,6 +724,10 @@ function classifyMechanics(j, curId, inject) {
    * cause under the whole-game clause's heading. See `declaredMatch`. */
   const declaredThrew = [];
   const EV = mechanicsCauseEvidence(j);
+  /* SAME CONTEXT, SAME DOOR — a CLOSETED row's evidence must be aged against THIS artifact's release
+   * too, or one clause would report the exemption fresh while the other reported it stale. */
+  const MECHCTX = { release: (j && (j.release || j.engine_release)) || null,
+                    generated: (j && j.generated) || null };
   let rowsSeen = 0; const rowsMissing = [];
   for (const kind of ['moves', 'abilities', 'items']) {
     const list = Array.isArray(j && j.rows && j.rows[kind]) ? j.rows[kind] : null;
@@ -745,9 +749,12 @@ function classifyMechanics(j, curId, inject) {
        * MEASURED on the 2026-08-26 artifact before this was wired: no row below the reach shelf
        * matches any declaration, so putting this first moves nothing today. It is first for the
        * reason above, not for the count. */
-      const dec = declaredMatch(r.divergence && r.divergence.cause, EV, declaredThrew);
+      const dec = declaredMatch(r.divergence && r.divergence.cause, EV, declaredThrew, MECHCTX);
       if (dec) {
         declaredHits.push({ ...row, kind_declared: dec.kind, name: dec.name, why: dec.why,
+                            closet: dec.closet || null, evidence: dec.evidence || null,
+                            falsifiedBy: dec.falsifiedBy || null,
+                            evidence_stale: dec.evidence_stale || null,
                             cause: String((r.divergence && r.divergence.cause) || '') });
         continue;
       }
@@ -865,7 +872,11 @@ function mechanicsClause() {
           return NL + '    ' + DECLARED_KINDS[kind] + '  [' + rows.length + ' mechanic(s)]'
             + rows.map((r) => NL + '      ' + r.key + '  ' + r.name
                 + NL + '        cause: ' + r.cause
-                + NL + '        ' + r.why).join('');
+                + NL + '        ' + r.why
+                + (r.closet ? NL + '        CLOSETED BY ' + r.closet.by + ' ' + r.closet.on
+                    + ' (' + r.closet.authority + '): "' + r.closet.ruling + '"' : '')
+                + (r.falsifiedBy ? NL + '        WOULD BE WRONG IF: ' + r.falsifiedBy : '')
+                + (r.evidence_stale ? NL + '        ' + r.evidence_stale : '')).join('');
         }).join('')
     : `none — no diverging mechanic's cause is covered by a declaration, so all ${rowsSeen} are `
       + `judged on reach and decision impact alone.`);
@@ -1100,18 +1111,50 @@ function roadmapRowStatusCell(l) {
 /* Rows whose cell exercises the override, filled by `roadmapRowSaysBroken` and printed by the clause.
  * Module-level rather than returned, so a caller cannot use the detector and skip the receipt. */
 const NOT_A_DEFECT = [];
+/* ONE PROSE VOCABULARY, ONE PLACE. It was written out twice — inline in the detector and quoted in
+ * the comment above — and this now has a second reader (`notADefectSuppresses`), which is exactly the
+ * point at which this repository's own rule applies: two copies of one fact disagree eventually and
+ * the disagreement is invisible because both keep working. */
+const BREAKAGE_PROSE = /NEVER FIRED|NEVER FIRES|NOT IMPLEMENTED|DOES NOT WORK|DOES NOT ARM|DOES NOT FIRE|UNIMPLEMENTED|silent no-op|IS ABSENT|is not implemented|does not exist|never records|never record|resolve[sd]? to `\{kind:'pass'\}`|HAS NEVER FIRED|IS DEAD/i;
+/* ================================================================================================
+ * THE RECEIPT OVERSTATED ITS OWN REACH BY 8x — MEASURED 2026-08-27, AND IT IS A DISPLAY BUG.
+ * ================================================================================================
+ * The clause prints *"N open row(s) declare NOT A DEFECT in their status cell and are excused from
+ * this clause"*, and a reader takes that as N rows the override is holding out of the gate. It is
+ * not. `\bDEFECT\b` MATCHES INSIDE THE PHRASE `NOT A DEFECT` ITSELF, so the early return fires on
+ * every row carrying the phrase — including rows whose only `DEFECT` token is the one inside it, and
+ * which would therefore never have counted as broken on their own merits.
+ *
+ * MEASURED over all 432 register rows (205 open) on 2026-08-27: EIGHT rows carry the phrase in the
+ * cell and exactly ONE — #252 — would have counted without it, through the prose fallback matching
+ * `IS DEAD` inside a metaphor. The other seven are self-cancelling.
+ *
+ * NO VERDICT MOVES. `roadmapRowSaysBroken` returns `false` for all eight before and after; the open
+ * set, the red set and the clause's pass/fail are byte-identical. What changes is that the receipt
+ * says which of the two things it is doing. That distinction matters because the audit trail of an
+ * ESCAPE HATCH is the whole reason it is printed: a door reported as being used eight times when it
+ * is used once is a door nobody can reason about, which is the same failure as a caption nobody
+ * reads. It is reported here as a DISPLAY correction and not as an improvement to the gate. */
+function notADefectSuppresses(l, cell) {
+  /* strip EVERY occurrence of the phrase, then ask whether an independent claim survives */
+  const stripped = String(cell).replace(/NOT A DEFECT/ig, '');
+  return /\bDEFECT\b/.test(stripped) || BREAKAGE_PROSE.test(l.slice(0, 600));
+}
 function roadmapRowSaysBroken(l) {
   const cell = roadmapRowStatusCell(l);
   if (/\bNOT A DEFECT\b/i.test(cell)) {
     const n = (l.match(/^\|\s*#(\d+)/) || [, '?'])[1];
-    if (!NOT_A_DEFECT.some(r => r.n === n)) NOT_A_DEFECT.push({ n, cell: cell.trim().slice(0, 90) });
+    if (!NOT_A_DEFECT.some(r => r.n === n)) {
+      NOT_A_DEFECT.push({ n, cell: cell.trim().slice(0, 90),
+                          suppresses: notADefectSuppresses(l, cell) });
+    }
     return false;
   }
   if (/\bDEFECT\b/.test(cell)) return true;
   /* THE HEAD, NOT THE ROW — see REPAIR 1 above. The 600 is `roadmapRowIsClosed`'s number, deliberately
    * the same one: two detectors reading the same table must not disagree about where a row's claim
    * stops and its history starts. */
-  return /NEVER FIRED|NEVER FIRES|NOT IMPLEMENTED|DOES NOT WORK|DOES NOT ARM|DOES NOT FIRE|UNIMPLEMENTED|silent no-op|IS ABSENT|is not implemented|does not exist|never records|never record|resolve[sd]? to `\{kind:'pass'\}`|HAS NEVER FIRED|IS DEAD/i.test(l.slice(0, 600));
+  return BREAKAGE_PROSE.test(l.slice(0, 600));
 }
 
 /* ---- THE WHOLE-GAME CLAUSE — WILL, 2026-08-12: "add the whole game comparison to the medicham its
@@ -1216,9 +1259,51 @@ function roadmapRowSaysBroken(l) {
  * that every matcher answered. */
 const MATCHER_THREW = [];
 
-/* THE ONLY TWO KINDS THAT MAY BE SUBTRACTED, AND THEIR HEADINGS. A `kind` outside this table is not
+/* THE ONLY KINDS THAT MAY BE SUBTRACTED, AND THEIR HEADINGS. A `kind` outside this table is not
  * declared — see the loop in `wholeGameClause`. Keeping the headings HERE, beside the rows, is what
- * makes "which claim is this row making" answerable without reading the printer. */
+ * makes "which claim is this row making" answerable without reading the printer.
+ *
+ * ================================================================================================
+ * THE THIRD KIND — `CLOSETED` — WILL'S RULING, 2026-08-26, AND IT IS THE ONE THAT ADMITS A DEFECT
+ * ================================================================================================
+ * Will, 2026-08-26: *"no if i put things into the closet it should not be gated — like illusion"*,
+ * and 2026-08-27: *"things in the closet shouldnt block a gate if we know why they fail and choose
+ * to accept it."*
+ *
+ * THE COST OF NOT HAVING IT IS ON THE RECORD. He closeted Tailwind's expiry order on 2026-08-24
+ * (*"put it into the closet with that note and move on"*). There was nowhere honest to put it: the
+ * two kinds above both assert THERE IS NO DEFECT, and this is a real, deterministic, reproducible
+ * divergence that we have chosen not to fix. So it went in as `DEFERRED`, which the guard three
+ * hundred lines below deliberately refuses to subtract, and ROADMAP #355 says so in its own words —
+ * *"it stays UNDECLARED, red, and named on every run"*. **The instruction was recorded and had no
+ * effect for two days.** That is the fourteen-stale-handoffs shape with the owner's own ruling
+ * inside it.
+ *
+ * THE DIFFERENCE FROM `DEFERRED` IS THE OWNER AND THE MEASUREMENT, NOT THE MOOD. `DEFERRED` is what
+ * an agent writes when it ran out of time or judged the fix expensive — and *"a declaration whose
+ * reason is cost is a defect wearing a label"* is this file's own receipt (the spread-accuracy row
+ * at `medicham2-browser.js:17440`, which hid the largest real defect in the engine). `CLOSETED`
+ * requires four things a sentence cannot supply, checked by `closetFault` below and refused at the
+ * door if any is missing:
+ *
+ *   closet.by / .on / .ruling / .authority   the OWNER, dated, in his own quoted words, with the
+ *                                            register row that carries the account
+ *   evidence.instrument / .release / .on     WHAT MEASURED the no-board-effect claim, on which
+ *                        / .says             frozen release, when, and what it reported
+ *   falsifiedBy                              the observation that would make this entry WRONG
+ *   match                                    a matcher narrow enough to name this pair and nothing else
+ *
+ * WHY A STRUCTURED REASON AND NOT A PROSE ONE. `roadmapRowSaysBroken` tests `/NOT A DEFECT/i`
+ * against a register cell, and a phrase anybody can type into a cell is not a ruling. This kind is
+ * the same door built the other way round: it cannot be opened by writing a sentence, only by
+ * filling in fields that name a person, a date, an instrument and a falsifier.
+ *
+ * AND IT IS RE-CHECKED, BECAUSE FOUR DECLARATIONS IN THIS PROJECT HAVE BEEN REFUTED — speed ties,
+ * Tailwind's own coin, Moody, and a fainted body in an active slot. `evidence.release` is compared
+ * against the release the artifact was measured on, on every run, and a mismatch PRINTS. An entry
+ * that matched nothing prints too, marked, because a declaration that matches nothing is a claim
+ * that has quietly become false — the discipline `tests/roster.js` already applies to its own.
+ * ============================================================================================== */
 const DECLARED_KINDS = {
   INCOMPARABLE:
     'DECLARED / IMPOSSIBLE TO COMPARE — the authority makes a RANDOM DRAW at an address this harness '
@@ -1227,7 +1312,51 @@ const DECLARED_KINDS = {
   'AUTHORITY-WRONG':
     'DECLARED / THE AUTHORITY IS WRONG — matching it here would make this engine LESS correct, so '
     + 'these do not count:',
+  CLOSETED:
+    'CLOSETED BY THE OWNER — a REAL, reproducible divergence that the owner has ruled does not matter, '
+    + 'on a MEASURED claim that no board state moves. THIS IS A DEFECT WE HAVE CHOSEN NOT TO FIX, NOT '
+    + 'AN ABSENCE OF ONE, and it does not vote:',
 };
+
+/* THE FOUR FIELDS A `CLOSETED` ROW MUST CARRY, AND THE ONLY PLACE THEY ARE SPELLED.
+ *
+ * Returns `null` when the row is well formed, or a sentence naming the FIRST fault. A row with a
+ * fault is NOT subtracted and is named on the run, exactly like a row typed with an unknown kind —
+ * so an entry somebody half-wrote holds the gate shut rather than opening it, which is the safe
+ * direction and the one this file errs in everywhere else. */
+const CLOSET_REQUIRED = {
+  'closet.by': (d) => d.closet && d.closet.by,
+  'closet.on': (d) => d.closet && /^20\d\d-\d\d-\d\d$/.test(String(d.closet.on || '')),
+  'closet.ruling': (d) => d.closet && String(d.closet.ruling || '').length >= 20,
+  'closet.authority': (d) => d.closet && d.closet.authority,
+  'evidence.instrument': (d) => d.evidence && d.evidence.instrument,
+  'evidence.release': (d) => d.evidence && d.evidence.release,
+  'evidence.on': (d) => d.evidence && /^20\d\d-\d\d-\d\d$/.test(String(d.evidence.on || '')),
+  'evidence.says': (d) => d.evidence && String(d.evidence.says || '').length >= 20,
+  'falsifiedBy': (d) => String(d.falsifiedBy || '').length >= 20,
+};
+function closetFault(d) {
+  for (const k of Object.keys(CLOSET_REQUIRED)) {
+    if (!CLOSET_REQUIRED[k](d)) {
+      return 'closeted row `' + String(d && d.name) + '` is missing or malformed `' + k + '` — a '
+           + 'closet entry is a RULING WITH A MECHANISM, not a sentence. NOT subtracted.';
+    }
+  }
+  return null;
+}
+/* IS THIS ENTRY'S EVIDENCE OLDER THAN THE ARTIFACT IT IS EXCUSING? Returns null or a sentence.
+ * `ctx.release` is the release the artifact under judgement was measured on. A closet entry rests
+ * on a measurement taken on ONE release; when the artifact has moved to another, the claim has not
+ * been re-checked against the bytes it is now excusing. It still subtracts — the owner ruled — but
+ * it says so on every run, at the point of use, in the same block as the subtraction. */
+function closetEvidenceStale(d, ctx) {
+  if (!ctx || !ctx.release || !d.evidence || !d.evidence.release) return null;
+  if (ctx.release === d.evidence.release) return null;
+  return 'EVIDENCE NOT RE-CHECKED — the no-board-effect claim was measured on release `'
+       + d.evidence.release + '` (' + d.evidence.on + ') and this artifact was measured on release `'
+       + ctx.release + '`. The ruling stands; the measurement under it has not been repeated against '
+       + 'these bytes.';
+}
 
 /* ---- THE EVIDENCE A MATCHER IS ALLOWED TO SEE ----------------------------------------------------
  *
@@ -1423,6 +1552,28 @@ const DECLARED_DIVERGENCE = [
        + "`[silent]` line players never see. The ABILITY is correct — onBasePower is guarded and the "
        + "multiplier table is right. Reproducing a typo is not correctness.",
   },
+  /* ~~`Tailwind's expiry order` — THE ROW THE `CLOSETED` KIND WAS BUILT FOR, AND IT IS NOT WRITTEN,
+   * BECAUSE THE DEFECT WAS FIXED BEFORE THE DOOR WAS FINISHED.~~
+   *
+   * Will closeted it on 2026-08-24 (*"tailwind coming out in the wrong order doesnt matter, put it into
+   * the closet with that note and move on"*) and it went in as `DEFERRED`, which this list refuses to
+   * subtract by design — so the instruction had no effect for two days and ROADMAP #355 recorded the
+   * refusal in its own cell. `CLOSETED` above is the door that instruction needed. **It opens onto an
+   * empty room.**
+   *
+   * MEASURED BEFORE WRITING THE ROW, WHICH IS THE ONLY REASON IT WAS NOT WRITTEN. ROADMAP #493 closed
+   * on 2026-08-27: ENGINE rebuilt the authority's residual handler LIST as a shadow, whole-game went
+   * 13 -> 11 of 961, and `data/game-differential.json` on release `f3d423e19e88` holds SIX causes, none
+   * of them a `-sideend` / `tailwind` pair. The cause this entry would match does not occur. Writing it
+   * would have registered a permanent exemption for a divergence that no longer exists — a declaration
+   * that matches nothing, which is the claim `tests/roster.js` calls "quietly become false" and which
+   * the register printer below now names on every run for exactly this reason.
+   *
+   * SO THE CLOSET SHIPS EMPTY AND PRINTS EMPTY. That is the honest state, not a gap: the gate's clause
+   * count is unchanged by this kind existing, and any later reader looking for the Tailwind exemption
+   * finds this comment instead of an exemption. Left here rather than deleted, because a closet that
+   * silently loses rows teaches nobody — and because the next person to closet something needs to see
+   * that the FIRST question is whether the divergence is still there. */
   /* ~~`drag: a different body` — declared 2026-08-18 as "not a rule, a bench index".~~ **WITHDRAWN THE
    * SAME DAY, ON WILL'S BAR.** The reasoning was sound about MECHANISM and wrong about CONSEQUENCE:
    * `sim/battle.ts` getRandomSwitchable takes `this.sample(canSwitchIn)` over `side.pokemon` order, the
@@ -1485,7 +1636,11 @@ const DECLARED_DIVERGENCE = [
  * selftest push/pops — and `classifyMechanics` passes its own. A shared accumulator would have put a
  * mechanics cause under the whole-game clause's heading, which is a smaller version of exactly the
  * bug this function is closing. */
-function declaredMatch(cause, ev, threw) {
+/* `ctx` CARRIES THE ARTIFACT'S OWN RELEASE so a `CLOSETED` row can be told when its evidence has not
+ * been re-checked against the bytes it is excusing. Optional: a caller that passes nothing gets the
+ * old behaviour for the two kinds that make no measured claim, and a CLOSETED row simply cannot be
+ * reported stale — it is never reported FRESH by default, which is the safe direction. */
+function declaredMatch(cause, ev, threw, ctx) {
   const c = String(cause || '');
   const d = DECLARED_DIVERGENCE.find((x) => {
     try { return x.match(c, ev(c)); }
@@ -1501,15 +1656,71 @@ function declaredMatch(cause, ev, threw) {
   });
   if (!d) return null;
   if (!DECLARED_KINDS[d.kind]) {
-    /* A ROW WHOSE KIND IS NOT ONE OF THE TWO IS NOT DECLARED. This is the guard that stops a
+    /* A ROW WHOSE KIND IS NOT IN THE TABLE IS NOT DECLARED. This is the guard that stops a
      * DEFERRED row — "a real defect we chose not to fix yet" — from being subtracted and opening
-     * the gate. It is counted as UNDECLARED and named, exactly like a matcher that threw. */
+     * the gate. It is counted as UNDECLARED and named, exactly like a matcher that threw.
+     *
+     * `CLOSETED` DOES NOT WEAKEN IT AND THE DIFFERENCE IS NOT COSMETIC. `DEFERRED` is an AGENT
+     * saying it did not get to something; `CLOSETED` is the OWNER ruling, dated and quoted, on a
+     * measured no-board-effect claim, with a falsifier. The guard below is what makes that a real
+     * distinction rather than a rename: a `CLOSETED` row that cannot produce those fields is
+     * refused here exactly as a `DEFERRED` row is. */
     threw.push({ cause: c,
       error: 'declared row `' + d.name + '` carries kind `' + String(d.kind) + '`, which is not '
            + 'one of ' + Object.keys(DECLARED_KINDS).join(' / ') + ' — NOT subtracted' });
     return null;
   }
+  if (d.kind === 'CLOSETED') {
+    /* THE SCHEMA IS CHECKED AT THE DOOR, NOT AT THE PRINTER. A half-written closet row must hold the
+     * gate SHUT, because the alternative is an exemption that exists because somebody started typing
+     * one. Named on the run through the same sink as an unknown kind, so it cannot go quiet. */
+    const fault = closetFault(d);
+    if (fault) { threw.push({ cause: c, error: fault }); return null; }
+    const stale = closetEvidenceStale(d, ctx);
+    /* A COPY, NEVER THE LIST'S OWN OBJECT — the staleness verdict is per-artifact and writing it back
+     * onto the shared row would leak one clause's context into the other's. */
+    return stale ? { ...d, evidence_stale: stale } : d;
+  }
   return d;
+}
+
+/* THE WHOLE REGISTER, PRINTED ON EVERY RUN, MATCHED OR NOT — CONSTRAINT 2 OF WILL'S RULING.
+ *
+ * *"A GATE, NOT A BACKLOG"* is his own wording about the narration gate, and the reason is the
+ * fourteen stale handoffs: a deferred thing that stops being printed has been hidden rather than
+ * accepted. `declaredLine` in `wholeGameClause` prints only rows that MATCHED, so a declaration
+ * covering nothing was invisible — and an exemption that matches nothing is the shape
+ * `tests/roster.js` already calls a claim that has quietly become false.
+ *
+ * So every row is listed with the games it took THIS RUN, including zero. `hits` is the clause's own
+ * per-name tally. */
+function declaredRegisterLine(hits, ctx) {
+  const NL = String.fromCharCode(10);
+  const by = new Map();
+  for (const h of (hits || [])) by.set(h.name, (by.get(h.name) || 0) + (h.n || 0));
+  const rows = DECLARED_DIVERGENCE.map((d) => {
+    const n = by.get(d.name) || 0;
+    const fault = d.kind === 'CLOSETED' ? closetFault(d) : null;
+    const stale = d.kind === 'CLOSETED' && !fault ? closetEvidenceStale(d, ctx) : null;
+    let s = '    ' + String(n).padStart(4) + '  [' + String(d.kind) + '] ' + d.name;
+    if (n === 0) {
+      s += NL + '           MATCHED NOTHING IN THIS RUN — a declaration that covers no cause is a '
+        + 'claim that has quietly become false. Withdraw it or show the cause it excuses.';
+    }
+    if (fault) s += NL + '           REFUSED: ' + fault;
+    if (stale) s += NL + '           ' + stale;
+    if (d.kind === 'CLOSETED' && d.closet) {
+      s += NL + '           CLOSETED BY ' + d.closet.by + ' ' + d.closet.on + ' (' + d.closet.authority
+        + '): "' + d.closet.ruling + '"'
+        + NL + '           WOULD BE WRONG IF: ' + d.falsifiedBy;
+    }
+    return s;
+  });
+  return NL + '  THE DECLARED REGISTER — every row that MAY subtract, printed whether or not it did ['
+    + DECLARED_DIVERGENCE.length + ' row(s); CLOSETED: '
+    + DECLARED_DIVERGENCE.filter((d) => d.kind === 'CLOSETED').length + ']:'
+    + (rows.length ? NL + rows.join(NL)
+       : NL + '    (none — nothing in this repository is exempt from the whole-game comparison)');
 }
 
 /* THE MECHANICS ARTIFACT'S EVIDENCE, ADAPTED HONESTLY AND NOT WIDENED.
@@ -1714,17 +1925,25 @@ function wholeGameClause(artifact, wgDecisionImpact) {
   const impactHits = [];
   let impactGames = 0;
   const EV = causeEvidence(j);
+  /* THE ARTIFACT'S OWN RELEASE, HANDED TO THE DOOR. A `CLOSETED` row rests on a measurement taken on
+   * one release; this is what lets the run say when that measurement has not been repeated against
+   * the bytes it is now excusing. Four declarations in this project have been refuted — a closet
+   * that cannot notice its own evidence ageing is a trap, not an exemption. */
+  const WGCTX = { release: j.engine_release || j.release || null, generated: j.generated || null };
   for (const c of (Array.isArray(j.classes) ? j.classes : [])) {
     for (const k of (c.causes || [])) {
       /* THE SHARED DOOR — see `declaredMatch`. The matching rule, the throw handling and the
        * `DECLARED_KINDS` whitelist used to live inline here and were therefore this clause's alone,
        * which is how the mechanics clause came to count a row this one had already declared. */
-      const d = declaredMatch(k.cause, EV, MATCHER_THREW);
+      const d = declaredMatch(k.cause, EV, MATCHER_THREW, WGCTX);
       if (d) {
         declaredGames += (k.n || 0);
         const row = declaredHits.find((r) => r.name === d.name);
         if (row) row.n += (k.n || 0);
-        else declaredHits.push({ kind: d.kind, name: d.name, why: d.why, n: (k.n || 0) });
+        else declaredHits.push({ kind: d.kind, name: d.name, why: d.why, n: (k.n || 0),
+                                 closet: d.closet || null, evidence: d.evidence || null,
+                                 falsifiedBy: d.falsifiedBy || null,
+                                 evidence_stale: d.evidence_stale || null });
         continue;
       }
       const imp = DI.clear('cause:' + String(k.cause || ''));
@@ -1790,9 +2009,18 @@ function wholeGameClause(artifact, wgDecisionImpact) {
         return _NL + "  " + DECLARED_KINDS[kind] + "  [" + n + " game(s), " + rows.length + " row(s)]"
           + _NL
           + rows.map((r) => "    " + String(r.n).padStart(4) + "  " + r.name + _NL
-              + "           " + r.why).join(_NL);
+              + "           " + r.why
+              + (r.closet ? _NL + "           CLOSETED BY " + r.closet.by + " " + r.closet.on
+                  + " (" + r.closet.authority + '): "' + r.closet.ruling + '"' : "")
+              + (r.evidence ? _NL + "           EVIDENCE: " + r.evidence.instrument + " on release `"
+                  + r.evidence.release + "` (" + r.evidence.on + ") — " + r.evidence.says : "")
+              + (r.falsifiedBy ? _NL + "           WOULD BE WRONG IF: " + r.falsifiedBy : "")
+              + (r.evidence_stale ? _NL + "           " + r.evidence_stale : "")).join(_NL);
       }).join("")
     : "";
+  /* AND THE WHOLE REGISTER BENEATH IT, MATCHED OR NOT — see `declaredRegisterLine`. `declaredLine`
+   * above prints only what fired, which is what made a stale exemption invisible. */
+  const registerLine = declaredRegisterLine(declaredHits, WGCTX);
   const impactLine = _NL + "  DECISION IMPACT — " + (impactHits.length
     ? impactGames + " game(s) across " + impactHits.length + " cause(s) cleared by a paired argmax run: "
       + impactHits.map((r) => r.key.slice(6) + " (0 flips in " + r.paired + ", 95% upper bound "
@@ -1816,6 +2044,15 @@ function wholeGameClause(artifact, wgDecisionImpact) {
       return o;
     }, {}),
     declared_matcher_threw: MATCHER_THREW,
+    /* THE REGISTER AS DATA, so status.js and any later reader can see an exemption that matched
+     * nothing without parsing the sentence above it. */
+    declared_register: DECLARED_DIVERGENCE.map((d) => ({
+      kind: d.kind, name: d.name,
+      n: declaredHits.filter((r) => r.name === d.name).reduce((a, r) => a + r.n, 0),
+      closet: d.closet || null, evidence: d.evidence || null, falsified_by: d.falsifiedBy || null,
+      refused: d.kind === 'CLOSETED' ? closetFault(d) : null,
+      evidence_stale: d.kind === 'CLOSETED' ? closetEvidenceStale(d, WGCTX) : null,
+    })),
     /* the exclusion, carried as DATA as well as prose so status.js and any later reader can see it
      * without parsing a sentence. `null` means the artifact declared none — see closetLine. */
     sample_exclusions: j.closet || null,
@@ -1824,14 +2061,14 @@ function wholeGameClause(artifact, wgDecisionImpact) {
         + (declaredGames || impactGames ? ` (${div} raw, ${declaredGames} declared, ${impactGames}`
           + ` cleared on decision impact)` : '')
         + `. Mode A pins every die on both sides, so this is the real bar and it has been met.`
-        + declaredLine + impactLine + matcherLine + closetLine
+        + declaredLine + registerLine + impactLine + matcherLine + closetLine
       : `${undeclared} of ${games} = ${(100 * undeclared / games).toFixed(1)}% DIVERGE — the two engines`
         + ` disagree about ${undeclared} games`
         + (declaredGames || impactGames ? ` (${div} raw, less ${declaredGames} declared and`
           + ` ${impactGames} cleared on decision impact)` : '')
         + `. Mode A pins every die on both sides, so each one is a RULE they disagree about, not noise.`
-        + ` This clause fails until that is zero.` + declaredLine + impactLine + matcherLine
-        + closetLine
+        + ` This clause fails until that is zero.` + declaredLine + registerLine + impactLine
+        + matcherLine + closetLine
         + (!comparable
              ? `  DIRECTION OF TRAVEL WITHHELD — the baseline was stamped under \`${baseMode}\` and this`
                + ` run is \`${runMode}\`. One pin is one corner: those are two instruments, and`
@@ -2041,9 +2278,18 @@ function openDefectClause() {
       + "calls those STALE ROW and they are not evidence of a live defect: "
       + staleRows.map(function (r) { return "#" + r.n; }).join(", ") + "."
     : "";
+  /* THE RECEIPT SAYS WHICH ROWS THE DOOR ACTUALLY MOVED — see `notADefectSuppresses`. Both numbers
+   * are printed: the rows USING the phrase (the audit trail of the escape hatch) and the rows it is
+   * genuinely holding out of the gate, which is the number a reader thought they were being told. */
+  const suppressing = excused.filter(r => r.suppresses);
   const receipt = `  ${excused.length} open row(s) declare NOT A DEFECT in their status cell and are `
-    + `excused from this clause` + (excused.length
-      ? ': ' + excused.map(r => '#' + r.n + ' [' + r.cell + ']').join('; ') : '.');
+    + `excused from this clause, of which ${suppressing.length} would otherwise have counted as `
+    + `broken` + (suppressing.length ? ' (' + suppressing.map(r => '#' + r.n).join(', ') + ')' : '')
+    + ` — the rest carry no breakage claim but the phrase's own \`DEFECT\` token, so the override `
+    + `only cancels itself on them`
+    + (excused.length
+      ? ': ' + excused.map(r => '#' + r.n + (r.suppresses ? ' SUPPRESSES' : '')
+          + ' [' + r.cell + ']').join('; ') : '.');
   return {
     name: 'no open, known engine defect', ok: withRed.length === 0, open, excused, withRed, debt,
     staleRows, unrunnable, verdicts_read: RR.rows.length, verdicts_generated: RR.generated || null,
@@ -2926,6 +3172,45 @@ if (require.main === module) {
     ok('the clause reports the override list on every run, at zero as well as at seven',
       / open row\(s\) declare NOT A DEFECT in their status cell/.test(openDefectClause().why),
       openDefectClause().why.slice(-160));
+    /* -- THE RECEIPT MUST SAY WHICH ROWS THE DOOR ACTUALLY MOVED -- 2026-08-27 -----------------
+     *
+     * `\bDEFECT\b` matches INSIDE the phrase `NOT A DEFECT`, so every row carrying the phrase used
+     * to be reported as excused whether or not it made any breakage claim of its own. Measured on
+     * the live register: 8 rows carry it, exactly ONE (#252, through the prose metaphor `IS DEAD`)
+     * would have counted without it. NO VERDICT MOVES; the receipt stops overstating its reach 8x.
+     *
+     * The three cases below are the audit's own controls, and case A is the RED one: if the
+     * suppression flag ever collapses to "the phrase is present", A and C stop disagreeing. */
+    ok('RED — a cell whose ONLY defect token is the phrase itself is recorded as NOT suppressing: '
+      + 'the override cancels its own phrase and nothing else',
+      (() => { const l = row(9001, 'X.**', 'NOT A DEFECT — register hygiene, nothing about the game');
+               roadmapRowSaysBroken(l);
+               const r = NOT_A_DEFECT.find(x => x.n === '9001');
+               return r && r.suppresses === false; })(), NOT_A_DEFECT.slice(-1));
+    ok('a cell carrying an INDEPENDENT `DEFECT` token outside the phrase IS recorded as suppressing',
+      (() => { const l = row(9002, 'X.**', 'open — engine DEFECT; the narration half is NOT A DEFECT');
+               roadmapRowSaysBroken(l);
+               const r = NOT_A_DEFECT.find(x => x.n === '9002');
+               return r && r.suppresses === true; })(), NOT_A_DEFECT.slice(-1));
+    ok('a PROSE breakage claim in the head is recorded as suppressing too — #252 is exactly this',
+      (() => { const l = row(9003, 'THE ABILITY NEVER FIRES.**', 'NOT A DEFECT — cosmetic');
+               roadmapRowSaysBroken(l);
+               const r = NOT_A_DEFECT.find(x => x.n === '9003');
+               return r && r.suppresses === true; })(), NOT_A_DEFECT.slice(-1));
+    ok('...and all three still return the SAME verdict as before, so this is a DISPLAY correction '
+      + 'and not a change to what the gate decides',
+      roadmapRowSaysBroken(row(9004, 'THE ABILITY NEVER FIRES.**', 'NOT A DEFECT — cosmetic')) === false
+      && roadmapRowSaysBroken(row(9005, 'X.**', 'NOT A DEFECT — hygiene')) === false);
+    /* THE SYNTHETIC ROWS ARE SPLICED BACK OUT before the receipt is read. `NOT_A_DEFECT` is module
+     * level by design — a caller cannot use the detector and skip the receipt — so a selftest that
+     * left its fixtures in would inflate the very number the next assertion reads. */
+    for (const n of ['9001', '9002', '9003', '9004', '9005']) {
+      const i = NOT_A_DEFECT.findIndex(x => x.n === n);
+      if (i >= 0) NOT_A_DEFECT.splice(i, 1);
+    }
+    ok('the receipt prints BOTH numbers — the rows using the door and the rows it actually moved',
+      /of which \d+ would otherwise have counted as broken/.test(openDefectClause().why),
+      openDefectClause().why.slice(0, 300));
 
     /* -- THE TWO FILTERS, RED AND GREEN, ON SYNTHETIC INPUT -----------------------------------
      *
@@ -3253,6 +3538,155 @@ if (require.main === module) {
       } finally {
         DECLARED_DIVERGENCE.pop();
         MATCHER_THREW.length = before;
+      }
+
+      /* == THE CLOSET — WILL'S RULING, 2026-08-26/27 ============================================
+       *
+       * *"no if i put things into the closet it should not be gated — like illusion"*, and
+       * *"things in the closet shouldnt block a gate if we know why they fail and choose to accept
+       * it."* `CLOSETED` is the kind that does that, and it is the ONLY kind here that admits a
+       * defect exists — so the whole weight of these assertions is on the DOOR rather than on the
+       * subtraction. Every one of them is a way of getting into the closet that must FAIL.
+       *
+       * DRIVEN THROUGH THE SHIPPING `wholeGameClause`, on synthetic rows pushed and popped, for the
+       * same reason as the two blocks above: a selftest that restates the rule proves nothing about
+       * the rule that ships, and the shipping list holds NO closeted row today (see the withdrawn
+       * Tailwind comment in `DECLARED_DIVERGENCE`), so without push/pop this whole block would be
+       * testing an empty list.
+       *
+       * A COMPLETE ROW, USED AS THE POSITIVE CASE AND THEN BROKEN ONE FIELD AT A TIME. */
+      {
+        const CAUSE = 'anything at all :: |x <> |y';
+        const ROWS = [{ showdown: '|x', medicham: '|y' }];
+        const FULL = () => ({
+          kind: 'CLOSETED', name: 'a synthetic closeted divergence', match: () => true,
+          why: 'selftest only — never shipped',
+          closet: { by: 'Will', on: '2026-08-26', authority: 'ROADMAP #000',
+                    ruling: 'selftest ruling long enough to be a sentence somebody said' },
+          evidence: { instrument: 'engine/game_differential.js', release: 'REL-A', on: '2026-08-26',
+                      says: 'zero board leaves written across the run' },
+          falsifiedBy: 'any run in which this cause writes a board leaf on either side',
+        });
+        const push = (mut) => {
+          const d = FULL(); if (mut) mut(d); DECLARED_DIVERGENCE.push(d); return d;
+        };
+        /* -- POSITIVE: a complete closet row DOES leave the gate, which is the whole ruling ---- */
+        {
+          const before = MATCHER_THREW.length;
+          push();
+          try {
+            const r = dec(CAUSE, ROWS);
+            ok('a COMPLETE closeted row is subtracted and the clause OPENS — Will, 2026-08-26: '
+              + '"if i put things into the closet it should not be gated"',
+              r.declared === 1 && r.declared_by_kind.CLOSETED === 1 && r.undeclared === 0
+              && r.ok === true, r.declared_by_kind);
+            ok('...under its OWN heading, which says it IS a defect, never summed with the two '
+              + 'kinds that say there is none',
+              /CLOSETED BY THE OWNER/.test(r.why) && r.declared_by_kind['AUTHORITY-WRONG'] === 0
+              && r.declared_by_kind.INCOMPARABLE === 0, r.declared_by_kind);
+            ok('...and it is NOT INVISIBLE: the owner, the date, the register row, his own words '
+              + 'and the falsifier all print at the point of subtraction',
+              /CLOSETED BY Will 2026-08-26 \(ROADMAP #000\)/.test(r.why)
+              && /WOULD BE WRONG IF: any run in which this cause writes a board leaf/.test(r.why),
+              r.why);
+          } finally { DECLARED_DIVERGENCE.pop(); MATCHER_THREW.length = before; }
+        }
+        /* -- THE DOOR: every missing field must REFUSE, and the row must be NAMED ---------------
+         * This is the assertion that separates `CLOSETED` from `DEFERRED`. If any of these passes,
+         * the closet has become a sentence anybody can type — which is the `NOT A DEFECT` regex
+         * failure rebuilt on the other side of the file. */
+        for (const [field, mut] of [
+          ['closet',             (d) => { delete d.closet; }],
+          ['closet.by',          (d) => { delete d.closet.by; }],
+          ['closet.on',          (d) => { d.closet.on = 'last tuesday'; }],
+          ['closet.ruling',      (d) => { d.closet.ruling = 'nah'; }],
+          ['closet.authority',   (d) => { delete d.closet.authority; }],
+          ['evidence',           (d) => { delete d.evidence; }],
+          ['evidence.instrument',(d) => { delete d.evidence.instrument; }],
+          ['evidence.release',   (d) => { delete d.evidence.release; }],
+          ['evidence.on',        (d) => { d.evidence.on = ''; }],
+          ['evidence.says',      (d) => { d.evidence.says = 'fine'; }],
+          ['falsifiedBy',        (d) => { delete d.falsifiedBy; }],
+        ]) {
+          const before = MATCHER_THREW.length;
+          push(mut);
+          try {
+            const r = dec(CAUSE, ROWS);
+            ok('RED — a closeted row missing `' + field + '` is REFUSED at the door and holds the '
+              + 'gate SHUT: a closet entry is a ruling with a mechanism, not a phrase',
+              r.declared === 0 && r.undeclared === 1 && r.ok === false, r.declared_by_kind);
+            ok('...and the refusal is NAMED on the run rather than going quiet (' + field + ')',
+              MATCHER_THREW.length > before
+              && /is missing or malformed/.test(MATCHER_THREW[MATCHER_THREW.length - 1].error),
+              MATCHER_THREW[MATCHER_THREW.length - 1]);
+          } finally { DECLARED_DIVERGENCE.pop(); MATCHER_THREW.length = before; }
+        }
+        /* -- A CLOSET ENTRY IS A CLAIM AND MUST BE RE-CHECKED ----------------------------------
+         * Four declarations in this project have been refuted — speed ties, Tailwind's coin, Moody,
+         * and a fainted body in an active slot — and tonight's die fix voided every measurement
+         * taken before it. An exemption resting on evidence from another release must SAY SO.
+         *
+         * IT IS ASSERTED THROUGH `declaredMatch` AND THE PRINTER, NOT THROUGH THE CLAUSE, AND THAT
+         * IS FORCED RATHER THAN CHOSEN. `wholeGameClause` refuses outright (#298) any artifact whose
+         * release differs from the tree's, so an injected artifact can only ever carry the CURRENT
+         * release or none at all — there is no way to hand the clause a second release to compare
+         * against. The comparison a closeted row actually makes is therefore "my evidence's release
+         * against the release this run measured", which is exactly what these two calls exercise. */
+        {
+          const before = MATCHER_THREW.length;
+          const d = push();
+          try {
+            const same = declaredMatch(CAUSE, () => ({ firsts: [], probes: [] }), MATCHER_THREW,
+                                       { release: 'REL-A' });
+            ok('a closet row whose evidence was measured on THIS run\'s release is subtracted with '
+              + 'no staleness reported', !!same && !same.evidence_stale, same && same.evidence_stale);
+            const stale = declaredMatch(CAUSE, () => ({ firsts: [], probes: [] }), MATCHER_THREW,
+                                        { release: 'REL-B' });
+            ok('RED — the same closet row against a run measured on ANOTHER release SAYS its '
+              + 'evidence has not been re-checked, naming both releases',
+              !!stale && /EVIDENCE NOT RE-CHECKED/.test(String(stale.evidence_stale))
+              && /REL-A/.test(String(stale.evidence_stale))
+              && /REL-B/.test(String(stale.evidence_stale)), stale && stale.evidence_stale);
+            ok('...and it STILL SUBTRACTS, because the owner ruled and staleness is a warning about '
+              + 'the measurement under the ruling, not a reversal of it',
+              !!stale && stale.kind === 'CLOSETED', stale && stale.kind);
+            ok('...and the staleness sentence REACHES THE PRINTED REGISTER, which is the only place '
+              + 'a reader would ever see it',
+              /EVIDENCE NOT RE-CHECKED/.test(declaredRegisterLine([{ name: d.name, n: 1 }],
+                { release: 'REL-B' })),
+              declaredRegisterLine([{ name: d.name, n: 1 }], { release: 'REL-B' }));
+            ok('RED — a run that carries NO release at all cannot report the evidence FRESH: an '
+              + 'unstamped artifact is an absence of evidence, never a clean bill',
+              !/re-checked/i.test(declaredRegisterLine([{ name: d.name, n: 1 }], { release: null }))
+              && !/FRESH/.test(declaredRegisterLine([{ name: d.name, n: 1 }], { release: null })),
+              declaredRegisterLine([{ name: d.name, n: 1 }], { release: null }));
+          } finally { DECLARED_DIVERGENCE.pop(); MATCHER_THREW.length = before; }
+        }
+        /* -- EXCLUDED IS NOT INVISIBLE, AND A DECLARATION THAT MATCHES NOTHING SAYS SO ----------
+         * Will's own bar for the narration gate was *"a GATE, not a backlog"*. `declaredLine`
+         * prints only rows that FIRED, so a stale exemption covering nothing was invisible — which
+         * is how the withdrawn Tailwind row would have sat here forever after #493 fixed it. */
+        {
+          const before = MATCHER_THREW.length;
+          DECLARED_DIVERGENCE.push({ ...FULL(), match: () => false });
+          try {
+            const r = dec(CAUSE, ROWS);
+            ok('RED — a declared row that MATCHED NOTHING is printed anyway and named as a claim '
+              + 'that may have quietly become false',
+              /THE DECLARED REGISTER/.test(r.why) && /MATCHED NOTHING IN THIS RUN/.test(r.why), r.why);
+            ok('...and it subtracts nothing, so an unused exemption cannot open a gate',
+              r.declared === 0 && r.undeclared === 1 && r.ok === false, r.declared_by_kind);
+          } finally { DECLARED_DIVERGENCE.pop(); MATCHER_THREW.length = before; }
+        }
+        ok('the register prints on EVERY run including when the shipping list holds no closeted row '
+          + 'at all — a closet that goes quiet has been hidden, not accepted',
+          /THE DECLARED REGISTER/.test(dec(CAUSE, ROWS).why)
+          && /CLOSETED: 0/.test(dec(CAUSE, ROWS).why), dec(CAUSE, ROWS).why.slice(0, 200));
+        ok('THE SHIPPING CLOSET IS EMPTY TODAY, and that is measured rather than assumed: ROADMAP '
+          + '#493 FIXED the Tailwind expiry order on 2026-08-27, so the one row this kind was built '
+          + 'for would have matched nothing',
+          DECLARED_DIVERGENCE.filter((d) => d.kind === 'CLOSETED').length === 0,
+          DECLARED_DIVERGENCE.map((d) => d.kind));
       }
 
       /* -- ONE DECLARED LIST, TWO CLAUSES — 2026-08-26 -------------------------------------------
