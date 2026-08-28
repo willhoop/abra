@@ -23,7 +23,7 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ## SAND FORCE'S BASE-POWER BOOST WAS ABSENT ON ALL THREE OF ITS TYPES — THE TAG NAMED ONE, AND NOTHING SPENT EVEN THAT. **CENSUS 765 -> 766 LIVE / 766 PROBED / 0 MISSING. MECHANICS CLAUSE 5 OF 12 -> 4 OF 11. WHOLE-GAME UNMOVED AT 1 OF 961, BOARD-MATERIAL UNMOVED AT 0 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS — ALL THREE PREDICTED BEFORE THE RUN. ROSTER 139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
 
-ROADMAP `#515`. Release `fb73f82ea1ed`.
+ROADMAP `#515`. Releases `fb73f82ea1ed` then `f3d423e19e88`, re-cut over the settled tree.
 
 ### THE AUTHORITY, READ RATHER THAN RECALLED
 
@@ -229,6 +229,25 @@ field in its failure message, so a member that ever names more is visible rather
 **AND IT LEFT BEHIND A POSITIVE CONTROL WORTH HAVING.** With the reader fixed, `firemane / Burn Up`
 reads **ok — fires at FULL HP and both engines agree**: a two-engine confirmation that the list
 reshape did not break the single-type members it also touched.
+
+### THE RE-CUT, AND THE ORDERING MISTAKE THAT FORCED IT
+
+**REBUILDING `data/abra-tags.js` AFTER CUTTING THE RELEASE MOVED THE TREE DIGEST**, and the bundle is
+one of the 26 frozen SOURCES. `status.js` then reported four clauses as *MEASURED AGAINST A DIFFERENT
+ENGINE* and WITHHELD every count in them. That is the guard working as designed; the right response is
+a re-run, never an annotation.
+
+A second release was cut over the SETTLED tree (`f3d423e19e88`) and all four instruments re-run. The
+only byte difference between the two releases is the browser bundle, which node never reads — so the
+prediction was that every figure comes back identical, which makes the re-run an IDENTITY CHECK as
+well as a repair. It did: **961 games / 6 raw / 0 threw, board never diverged 961, whole-game 1 of
+961, board-material 0 of 961, the same six first-divergences in the same order, roster 139 / 129 /
+475 with 0 in both failure columns, `all_mechanics_fire` 1289 games and 0 threw with `ability:sandforce`
+FIRED / NO-DIVERGENCE, and the gate back at 5 of 8 clauses PASS.**
+
+**THE LESSON IS AN ORDER, NOT A FLAG.** Every generated bundle that is a frozen source must be rebuilt
+BEFORE the cut. Nothing warned at the time; the digest comparison caught it two hours later, which is
+exactly why it exists.
 
 ### OWED, NOT RUN
 

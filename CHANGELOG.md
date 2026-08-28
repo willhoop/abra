@@ -71,7 +71,7 @@ silently rewritten; what changed and why is stated.
   **UNMOVED**: damage **0/6000 at all sixteen corners**, whole-game **1 of 961** (6 raw less 5
   declared, the same six first-divergences), board-material **0 of 961**, roster **139 / 129 / 475
   with 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE**, gate **5 of 8 clauses PASS**, pin digest
-  `ccb365985023`, DICE_MODEL v5. Release `fb73f82ea1ed`.
+  `ccb365985023`, DICE_MODEL v5. Releases `fb73f82ea1ed` then `f3d423e19e88` — see below.
 - **THE PREDICTION THAT MISSED, AND IT IS A FINDING.** The mechanics clause was predicted at
   *4 of 12* and read **4 of 11** — the numerator was right and the DENOMINATOR moved too, because it
   counts every diverging mechanic including the declared one and Sand Force was in it.
@@ -97,6 +97,15 @@ silently rewritten; what changed and why is stated.
   repair leaves a positive control worth having, since `firemane / Burn Up` now reads *fires at FULL
   HP and both engines agree*, which is a two-engine confirmation that the reshape did not break the
   ten single-type members.
+- **THE RELEASE HAD TO BE RE-CUT, AND THE MISTAKE IS AN ORDER RATHER THAN A FLAG.** `data/abra-tags.js`
+  is one of the 26 frozen SOURCES, and rebuilding it AFTER the cut moved the tree digest — so
+  `status.js` reported four clauses as *MEASURED AGAINST A DIFFERENT ENGINE* and WITHHELD every count
+  in them. The guard working as designed. A second release (`f3d423e19e88`) was cut over the settled
+  tree and all four instruments re-run; since the only byte difference is a bundle node never reads,
+  the re-run doubles as an IDENTITY CHECK, and it held: **961 games / 6 raw / 0 threw, board never
+  diverged 961, the same six first-divergences in the same order, roster 139 / 129 / 475 clean,
+  `all_mechanics_fire` 1289 games with `ability:sandforce` FIRED / NO-DIVERGENCE, gate back at 5 of 8
+  PASS.** Rebuild every generated frozen source BEFORE the cut.
 - **THE WHOLE SUITE WAS DIFFED BY NAME AGAINST CLEAN HEAD, AND THE COMPARISON IS A BOUND RATHER THAN
   A PROOF.** `tests/run-all.js`: **27 failing checks in the working tree against 39 in a `git worktree`
   at HEAD.** All 16 HEAD-only failures are worktree artefacts (no `data/releases/`, no untracked

@@ -1,6 +1,7 @@
 # Sand Force — the tag named one type of three, and nothing spent even that
 
-ENGINE, 2026-08-27. ROADMAP `#515` filed and closed. Release `fb73f82ea1ed`. CHANGELOG 5.193.0.
+ENGINE, 2026-08-27. ROADMAP `#515` filed and closed. Releases `fb73f82ea1ed` then
+`f3d423e19e88` (re-cut over the settled tree — see the last section). CHANGELOG 5.193.0.
 
 ## LEAD — the two things asked for, first
 
@@ -220,6 +221,34 @@ and freshly-stamped mtimes, which is enough to fail `test-engine-release`, `test
 
 None of the four touches damage, tags or the census. The targeted per-test comparisons above are the
 stronger evidence; this table is what bounds the rest.
+
+## THE RE-CUT, AND THE ORDERING MISTAKE THAT FORCED IT
+
+**REBUILDING `data/abra-tags.js` AFTER CUTTING THE RELEASE MOVED THE TREE DIGEST**, and the bundle is
+one of the 26 frozen SOURCES. `status.js` then reported four clauses as *MEASURED AGAINST A DIFFERENT
+ENGINE — this artifact ran on release `fb73f82ea1ed` and the tree is `f3d423e19e88`* and WITHHELD every
+count in them. That is the guard working exactly as designed, and the right response is a re-run rather
+than an annotation.
+
+**A SECOND RELEASE WAS CUT OVER THE SETTLED TREE (`f3d423e19e88`) AND ALL FOUR INSTRUMENTS RE-RUN.**
+The only byte difference between the two releases is the browser bundle, which node never reads — so
+the prediction was that every figure comes back identical, and the re-run is therefore also an
+IDENTITY CHECK rather than a repeat.
+
+| | `fb73f82ea1ed` | `f3d423e19e88` |
+|---|---|---|
+| games / raw diverged / threw | 961 / 6 / 0 | **identical** |
+| board never diverged | 961 | **identical** |
+| whole-game, board-material | 1 of 961, 0 of 961 | **identical** |
+| the six first-divergences | `\|upkeep <> \|faint\|p2b` + five `fallenundefined` | **identical, same order** |
+| roster items / abilities / moves | 139 / 129 / 475, 0 DIFFER, 0 DID-NOT-FIRE | **identical** |
+| `all_mechanics_fire` | 1289 games, 0 threw; moves STATE 5, abilities ANN-ONLY 3, items STATE 1 | **identical** |
+| `ability:sandforce` | FIRED, NO-DIVERGENCE | **identical** |
+| gate | 5 of 8 clauses PASS | **5 of 8 PASS** |
+
+**THE LESSON IS AN ORDER, NOT A FLAG.** Every generated bundle that is a frozen source must be rebuilt
+BEFORE the cut, not after. Nothing warned at the time; the gate caught it two hours later, which is
+the whole reason the digest comparison exists.
 
 ## OWED, NOT RUN
 
