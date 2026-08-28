@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-27T03:13:37.175Z",
+ "generated": "2026-08-28T02:57:33.037Z",
  "by": "engine/conformance.js",
- "files": 483,
+ "files": 524,
  "findings": [
   {
    "std": "S12",
@@ -251,7 +251,7 @@
   {
    "std": "S12",
    "file": "engine/medicham2-browser.js",
-   "what": "names 15 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:tailwind, move:fakeout, ...",
+   "what": "names 17 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:tailwind, move:fakeout, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "ability:intimidate",
@@ -263,7 +263,9 @@
     "move:blizzard",
     "move:detect",
     "move:earthquake",
+    "move:endure",
     "move:fakeout",
+    "move:followme",
     "move:helpinghand",
     "move:protect",
     "move:ragepowder",
@@ -573,7 +575,19 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_fatigue_tag.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_lifeorb_toll.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_mega_trace_entry.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -585,13 +599,43 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_sand_force.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_stat_pick.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_target_swap.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_trace_choice.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
   {
    "std": "S12",
+   "file": "tests/probe_trace_target.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_trap_timing.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_upkeep_lines.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -1234,6 +1278,15 @@
   {
    "std": "S13",
    "file": "data/_scratch-jobs3.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_scratch-scovillain-dump.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie",
    "detail": [

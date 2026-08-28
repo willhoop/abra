@@ -137,3 +137,20 @@ data/team-pool-frozen/*.jsonl
 # data/divergence-turns.json in one command, and stale the moment the differential re-runs.
 # It landed in the repo root because engine/divergence_cards.js defaults --out here.
 divergences.html
+
+# ---- AGENT SCRATCH (2026-08-28) -----------------------------------------------------------------
+# Every division agent writes working files under a `.scratch*` prefix at the repo root — console
+# transcripts of a run, one-off dispatch stubs, and the odd probe harness. They accumulated to 28
+# untracked entries by 2026-08-28 and were then a standing hazard TWICE OVER: `git add -A` was
+# sweeping other agents' staged files into five commits in one night, and an untracked file is
+# UNRECOVERABLE, so every tidy-up had to weigh deleting somebody's evidence against a dirty
+# `git status`. Ignoring the prefix removes both: the tree reads clean and nothing has to be deleted
+# to make it read clean.
+#
+# NOTHING HERE IS AN ARTIFACT. A run that is going to be cited writes a stamped file under data/ and
+# a report under docs/_reports/. If a scratch harness turns out to be worth keeping, move it to
+# tools/ and track it deliberately — do not un-ignore this.
+.scratch*
+
+# The same convention inside data/: a hand-made dump used to read one run, never cited.
+data/_scratch-*
