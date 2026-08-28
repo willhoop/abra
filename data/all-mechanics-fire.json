@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-28T03:31:21.395Z",
- "release": "f3d423e19e88",
+ "generated": "2026-08-28T05:56:07.248Z",
+ "release": "aea838766e7f",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -21778,61 +21778,22 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 12,
-     "cls": "-damage field 3",
-     "detail": "-damage[3] 861/960 vs 872/960",
-     "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:feraligatr|861/960 vs |-damage|p2a:feraligatr|872/960]",
-     "showdown": "|-damage|p2a: Feraligatr|861/960",
-     "medicham": "|-damage|p2a: Feraligatr|872/960",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
-     "verdict": "STATE",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
-     "boundaries_agreed": 1,
+     "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
-     "state_parted_on_turn": 1,
-     "diffs": [
-      {
-       "path": "p2.party.feraligatr.hp",
-       "side": "p2",
-       "slot": "",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "party.hp",
-       "us": 752,
-       "sd": 741,
-       "bucket": "off-by-4-or-more",
-       "family": "party.hp"
-      },
-      {
-       "path": "p2.active[0].hp",
-       "side": "p2",
-       "slot": "p2a",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "hp",
-       "us": 752,
-       "sd": 741,
-       "bucket": "off-by-4-or-more",
-       "family": "active[].hp",
-       "maxhp": 960
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
       "leaves_compared_min": 402,
       "leaves_compared_max": 402,
@@ -22572,34 +22533,21 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 12,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-start",
-     "cause": "extra event emitted by medicham2 :: |move|p2a|agility <> |-start|p2a|smackdown",
-     "showdown": "|move|p2a: Feraligatr|Agility|p2a: Feraligatr",
-     "medicham": "|-start|p2a: Feraligatr|move: smackdown",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [
       "volatile:smackdown"
      ],
-     "core_leaf_unchecked": true,
+     "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -54127,13 +54075,13 @@
    "attempted": 496,
    "tried": 500,
    "resolved": 495,
-   "diverged": 8,
-   "diverged_including_shelved": 10,
+   "diverged": 6,
+   "diverged_including_shelved": 8,
    "shelved_by_owner": 3,
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 11,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 33.3
+   "seconds": 14.5
   },
   "abilities": {
    "exist": 316,
@@ -54150,7 +54098,7 @@
    "diverged_including_shelved": 3,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 38.9
+   "seconds": 10.5
   },
   "then_what": {
    "rows": 64,
@@ -54176,7 +54124,7 @@
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 13.5
+   "seconds": 4.9
   },
   "board_state": {
    "rows": 15,
@@ -54402,9 +54350,9 @@
   "boards": {
    "moves": {
     "tally": {
-     "NO-DIVERGENCE": 484,
-     "STATE": 5,
-     "ANNOUNCEMENT-ONLY": 7
+     "NO-DIVERGENCE": 486,
+     "STATE": 4,
+     "ANNOUNCEMENT-ONLY": 6
     },
     "rows": 496,
     "core_leaf_unchecked_rows": [
@@ -54413,20 +54361,13 @@
       "leaves": [
        "volatile:gastroacid"
       ]
-     },
-     {
-      "id": "smackdown",
-      "leaves": [
-       "volatile:smackdown"
-      ]
      }
     ],
     "state_rows": [
      "axekick",
      "clearsmog",
      "healbell",
-     "reflecttype",
-     "shellsidearm"
+     "reflecttype"
     ],
     "not_asked_rows": [],
     "silent_state_rows": [
@@ -54906,8 +54847,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "f3d423e19e88",
-    "roster_generated": "2026-08-28T03:29:58.981Z",
+    "roster_release": "aea838766e7f",
+    "roster_generated": "2026-08-28T05:38:32.877Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

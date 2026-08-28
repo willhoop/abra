@@ -308,6 +308,32 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * game where Last Resort was clicked on turn one means the precondition is not being asked and the
    * move is a free 140 BP again. */
   lastResortRefused: 0,
+  /* ROADMAP #514 -- a move refused because a LATCHED fact about its own user is false: Belch with no
+   * berry eaten. A zero in a game where Belch was clicked on turn one means the gate is gone and the
+   * move is a free 120 BP again, which is what this engine did until 2026-08-27. Its loud twin is
+   * `MEDFAILS.userLatchUnwritten` — a tag naming a latch this file has no writer for. */
+  userLatchRefused: 0,
+  /* ROADMAP #517 -- Smack Down's airborne gate. `volStartGateRefused` is the volatile NOT starting on
+   * a body with no lift reason, which is the defect; `volStartGateApplied` is it starting on one that
+   * has one, and both must be non-zero over a staged sweep or the gate is a blanket refusal wearing a
+   * fix's name. `volStartGateDeletedVolatile` is the Magnet Rise the authority EATS and this engine
+   * left standing; `volStartGateGroundedCharge` is the committed Bounce it cancels. */
+  /* ROADMAP #518 -- Shell Side Arm. `categoryPicked` is the move resolving PHYSICAL, which is the
+   * whole mechanic; `categoryPickedLeftAlone` is it staying Special, and BOTH must be reachable or
+   * the wire is a constant wearing a fix's name. `categoryPickTieDrawn` is the coin the authority
+   * spends only on an exact tie -- drawing it on a non-tie would desynchronise the middle arm, so a
+   * reading far above `categoryPicked` is a defect and not a curiosity. `contactFlagPerUse` is the
+   * flag the same branch sets, reaching the 17 contact abilities and the four punishing shields. */
+  categoryPicked: 0, categoryPickedLeftAlone: 0, categoryPickTieDrawn: 0,
+  categoryPickNoTarget: 0, contactFlagPerUse: 0,
+  volStartGateRefused: 0, volStartGateApplied: 0,
+  /* the `-start` LABEL taken off the gate's own parse of the handler, because `volatileAnnounce`
+   * cannot read a guarded onStart. A zero here on a turn Smack Down landed means the fallback is
+   * gone and the line is back to `move: smackdown`. */
+  volAnnounceFromStartGate: 0,
+  volStartGateDeletedVolatile: 0, volStartGateGroundedCharge: 0,
+  /* the non-Gravity half of `_queueCancel` -- see MEDSEEN.gravityCancelledQueuedMove, its twin. */
+  queueCancelledByVolatileGate: 0,
   /* ROADMAP #141 -- a defender ability actually SUPPRESSED by a Mold Breaker-class attacker. It is
    * counted rather than assumed because the fix that added the `breakable` gate could equally have
    * turned the mechanic OFF everywhere, and a zero here would be indistinguishable from the gate
@@ -2016,6 +2042,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* ROADMAP #514 -- this module's own source could not be read, so LATCH_FIELDS_WRITTEN is empty and
+     NO user-latch gate is enforced. That is the pre-change behaviour and it is announced rather than
+     assumed: a silent empty set and a correctly-empty one produce the identical board. */
+  latchSourceUnreadable: 0, latchSourceUnreadableWhy: '',
+  /* ROADMAP #514 -- `failsWithoutUserLatch` named a latch field this file has no writer for, so the
+     gate was SKIPPED rather than refusing the move for ever off an `undefined`. A silent default here
+     is indistinguishable from a working gate, which is why it is a failure counter and not a comment.
+     `userLatchUnwrittenFirst` names the move and the field, so the fix is one write site. */
+  userLatchUnwritten: 0, userLatchUnwrittenFirst: '',
+  /* ROADMAP #517 -- MEDI_VOL_START_GATE_BLIND=1 is armed, so the airborne gate is off. */
+  volStartGateBlindRestored: 0,
+  /* ROADMAP #518 -- MEDI_NO_CATEGORY_PICK=1 is armed, so Shell Side Arm is always Special again. */
+  categoryPickBlindRestored: 0,
   /* 2026-08-27 -- THE SECOND, STILL-OPEN PRODUCER OF A MISSING `|-hitcount|`. A volley priced as 2+
      packets whose total was rewritten before application (a Focus Sash, an Endure, a busted Disguise)
      collapses to one packet, so `_landed` stays 0 and no count is announced — while the authority
@@ -6022,11 +6061,11 @@ const healBlocked=m=>!!(m&&m._healBlock>0);
  * exactly one of them -- `contact`, through the shared `mvMakesContact`. A member arriving with any
  * other flag is COUNTED and refused rather than silently treated as unconditional, because the silent
  * version would let a Pickpocket-shaped ability steal off a move it never touches. */
-function stealFlagOK(p,mvId,att){
+function stealFlagOK(p,mvId,att,use){
   if(!p||!p.onlyMoveFlag)return true;
   /* ROADMAP #175 -- the ATTACKER goes through, so a Long Reach body's move is not contact here
    * either. Pickpocket off a Decidueye must fail for the same reason Rough Skin does not toll it. */
-  if(String(p.onlyMoveFlag)==='contact')return mvMakesContact(mvId,att);
+  if(String(p.onlyMoveFlag)==='contact')return mvMakesContact(mvId,att,use);
   MEDFAILS.stealFlagUnmodelled++;
   if(!MEDFAILS.stealFlagUnmodelledFirst)MEDFAILS.stealFlagUnmodelledFirst=String(p.onlyMoveFlag);
   return false;
@@ -8127,10 +8166,17 @@ const _contactCache=Object.create(null);
  * `flag` IS READ, NOT ASSUMED. A member that deletes some other flag is refused and COUNTED rather
  * than being treated as a contact-remover, because guessing here would hand a body an immunity to
  * Rough Skin it does not have. Legal carrier DERIVED: Decidueye, the only one in Reg M-B. */
-function mvMakesContact(id,att){
+function mvMakesContact(id,att,use){
   if(!id) return false;
   const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
-  const base=(k in _contactCache)?_contactCache[k]:(_contactCache[k]=TAGS.has('move',k,'contact'));
+  let base=(k in _contactCache)?_contactCache[k]:(_contactCache[k]=TAGS.has('move',k,'contact'));
+  /* ROADMAP #518, 2026-08-27 -- A PER-USE FLAG, WHICH THE CACHE STRUCTURALLY CANNOT HOLD.
+   * Shell Side Arm's `onModifyMove` sets `move.flags.contact = 1` in the same branch that makes it
+   * Physical, so contact is a fact about THIS USE and `_contactCache` is keyed on the move id alone.
+   * `use` is the per-use move view the commit site hangs on the action; when no caller passes one,
+   * this is exactly the function it was. It is applied ABOVE `removesOwnMoveFlag` on purpose --
+   * Long Reach takes the flag off a move that has it, however it came by it. */
+  if(!base&&use&&use.flagUse==='contact'){ base=true; MEDSEEN.contactFlagPerUse++; }
   if(!base||!att) return base;
   const _rf=TAGS.param('ability',att.ability,'removesOwnMoveFlag');
   if(!_rf) return base;
@@ -10614,7 +10660,7 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
       const _bc=TAGS.param('ability',attAb,'boostsMoveClass');
       if(_bc&&_bc.mult&&mv.id){
         const _f=_bc.boostsFlag;
-        const _has=_f==='contact'?mvMakesContact(mv.id)
+        const _has=_f==='contact'?mvMakesContact(mv.id,null,mv)
                  :_f==='sound'?TAGS.has('move',mv.id,'sound')
                  :(()=>{const c=TAGS.param('move',mv.id,'moveClass');return !!(c&&c.classes&&c.classes.indexOf(_f)>=0);})();
         if(_has)BPCH(exact4096(attAb,_bc.mult));
@@ -11984,6 +12030,72 @@ const BOUNCE_UNDONE_BY_REAIM=(typeof process!=='undefined'&&process.env&&process
  *     Flash Fire     Will-O-Wisp                                        authority refuses
  * this engine slept, paralysed and burned every one of them. */
 const STATUS_ABSORB_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STATUS_ABSORB_BLIND==='1');
+/* 2026-08-27 -- MEDI_STATUS_SHIELD_BLIND=1 PUTS THE BARE `t.protect` BACK IN THE `status` BRANCH,
+ * which is what this engine asked until today.
+ *
+ * THE AUTHORITY. `checkMoveBypassesProtect` (sim/battle.ts:1300-1302) reads
+ *     if ((move.category !== 'Status' || blockStatus) && move.flags['protect'] && ...) return false;
+ * and each shield's own `condition.onTryHit` decides `blockStatus` for itself: King's Shield returns
+ * EARLY on a Status move, so a status move walks through it and lands. `tag_dex` reads that off the
+ * condition into `shieldsUser.blocksStatus` -- 5 legal shields, exactly one `false`, printed by
+ * tests/probe_status_blocksstatus.js on every run -- and `shieldRefuses` has consulted it since
+ * ROADMAP #238. THE `status` BRANCH NEVER CALLED IT: it asked `if(t.protect)`, which is blind to the
+ * distinction, so a Glare or a Thunder Wave into a King's Shield printed `|-activate|move: Protect`
+ * where the authority prints `|-status|par`. Board-material -- the status leaf itself.
+ *
+ * THE SWAP CHANGES ONE THING AND THAT WAS MEASURED FIRST. `shieldRefuses` also exempts
+ * `noProtectFlag` moves; ZERO of the 11 legal moves that reach `kind:'status'` carry it (derived and
+ * printed by the probe), so on this family `blocksStatus` is the only difference between the two
+ * questions. A fixture that qualifies for two reasons proves nothing, and neither does a patch.
+ *
+ * THE ANNOUNCEMENT IS UNCHANGED -- `shieldRefusalAnnounce` is `TR.act(t,'move: Protect')`, the same
+ * line this site already wrote, plus the counter the other thirteen shield sites carry. */
+const STATUS_SHIELD_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STATUS_SHIELD_BLIND==='1');
+if(STATUS_SHIELD_BLIND)MEDFAILS.statusShieldBlindRestored=1;
+/* ROADMAP #514, 2026-08-27 -- WHICH `_<latch>` FIELDS DOES THIS FILE ACTUALLY WRITE TRUE.
+ *
+ * `failsWithoutUserLatch` names a field on the AUTHORITY's Pokemon (`ateBerry`) and the reader joins
+ * it to this engine's `_ateBerry` by convention. If a later regulation adds a second member whose
+ * latch this file does not keep, `!m[_fld]` on an `undefined` would refuse that move on every click,
+ * for ever, and look exactly like a gate that works -- the silent-default shape this project has paid
+ * for repeatedly. So the set is DERIVED FROM THIS MODULE'S OWN SOURCE, the same self-reading trick
+ * `board_state.js`'s `_srcKeys` uses: it cannot go stale against a rename the way a hand list would.
+ *
+ * AN EMPTY SET IS THE SAFE DIRECTION AND IT IS STILL LOUD. In a browser there is no `__filename`, so
+ * the set is empty, every member counts `MEDFAILS.userLatchUnwritten` and NO move is refused -- the
+ * pre-change behaviour, announced rather than assumed. A run that means to enforce the gate reads
+ * that counter at zero; the differential and every probe do. */
+/* ROADMAP #517, 2026-08-27 -- MEDI_VOL_START_GATE_BLIND=1 TAKES THE AIRBORNE GATE BACK OUT, which
+ * for a MISSING gate means no gate at all: Smack Down's volatile is written onto any body again, a
+ * standing Magnet Rise survives it, and a committed Bounce still executes. A revert that tidied the
+ * site into something else would not be a revert. Any run carrying it also carries a non-zero
+ * `MEDFAILS.volStartGateBlindRestored`. */
+const VOL_START_GATE_BLIND=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_VOL_START_GATE_BLIND==='1');
+/* ROADMAP #518, 2026-08-27 -- MEDI_NO_CATEGORY_PICK=1 PUTS THE CATEGORY CHOICE BACK TO UNWIRED,
+ * which for Shell Side Arm means ALWAYS SPECIAL and no tie coin -- exactly what this engine did until
+ * today. It reverts the DECISION, so the per-use view is never built and all 21 `mv.c` readers, the
+ * contact flag and the two screens go back with it in one piece. Any run carrying it also carries a
+ * non-zero `MEDFAILS.categoryPickBlindRestored`. */
+const NO_CATEGORY_PICK=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_NO_CATEGORY_PICK==='1');
+const LATCH_FIELDS_WRITTEN=(function(){
+  const S=new Set();
+  try{
+    if(typeof require==='function'&&typeof __filename==='string'){
+      const src=require('fs').readFileSync(__filename,'utf8');
+      const re=/\._([A-Za-z_$][\w$]*)\s*=\s*(?:true|1)\b/g;
+      let g; while((g=re.exec(src)))S.add('_'+g[1]);
+    }
+  }catch(e){
+    /* AN UNREADABLE SOURCE IS THE EMPTY SET ABOVE, WHICH REFUSES NOTHING -- the pre-change
+     * behaviour. It is COUNTED rather than merely commented, because "no latch is enforced" and
+     * "the source could not be read" produce the identical board and only one of them is a bug. */
+    MEDFAILS.latchSourceUnreadable=1;
+    MEDFAILS.latchSourceUnreadableWhy=String((e&&e.message)||e);
+  }
+  return S;
+})();
 /* 2026-08-24 -- MEDI_NO_CONDPOWER_LINE=1 TAKES FICKLE BEAM'S `|-activate|move: Fickle Beam` BACK OUT,
  * so the double still lands and says nothing, as this engine did until today. Any run carrying it also
  * carries a non-zero `MEDFAILS.condPowerLineSuppressed`. Same shape as MEDI_SWITCH_CAUSE_BLIND. */
@@ -15586,7 +15698,22 @@ function volAnnounce(mvId,vol){
   if(!mvId||!vol)return null;
   const _t=TAGS.param('move',mvId,'volatileAnnounce');
   const _a=_t&&_t.byVolatile&&_t.byVolatile[vol];
-  if(!_a){MEDSEEN.volAnnounceUntabled++;return null;}
+  if(!_a){
+    /* ROADMAP #517, 2026-08-27 -- THE SECOND PLACE A `-start` LABEL CAN BE READ FROM, and it exists
+     * because THIS derivation cannot reach one. `volatileAnnounce` is built from
+     * `dex.conditions.get(vol)` and refuses a GUARDED, multi-statement `onStart` -- so `smackdown`,
+     * whose `onStart` is an eight-clause airborne gate, is not among its 49 members and fell to the
+     * caller's `'move: ' + vol` default. Authority `|-start|p2a: X|Smack Down`; ours
+     * `|-start|p2a: x|move: smackdown`. `volatileStartGate` PARSES that same handler for the gate, so
+     * it already holds `this.add("-start", pokemon, "<label>")` verbatim and the label costs nothing.
+     * Widening `volatileAnnounce` to read guarded handlers is the bigger job and is still owed; this
+     * closes the one member that has a gate, and it announces itself rather than defaulting. */
+    const _sg=VOL_START_GATE_BLIND?null:TAGS.param('move',mvId,'volatileStartGate');
+    if(_sg&&_sg.volatile===vol&&_sg.startLine){
+      MEDSEEN.volAnnounceFromStartGate++;
+      return {event:'-start',desc:_sg.startLine};
+    }
+    MEDSEEN.volAnnounceUntabled++;return null;}
   if(_a.event==null){MEDSEEN.volAnnounceSilent++;return {silent:true};}
   /* THE AUTHORITY ANNOUNCES AN EVENT THIS ENGINE DOES NOT CLAIM. Destiny Bond's `-singlemove` is the
    * only member today and data/protocol-events.json already declares it un-emitted WITH ITS REASON, so
@@ -16134,6 +16261,66 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
      Garchomp Substitute, three lines out where the authority writes two. Skipping by the
      DECLARED volatile name is the same read the encore and disable branches two lines above
      already make: the tag supplies the effect, the name says which handler owns it. */
+  /* ROADMAP #517, 2026-08-27 -- THE VOLATILE'S OWN `onStart` IS A GATE, AND THE CLAUSES ARE ORDERED.
+   *
+   * Smack Down arrived here through the #147 primary-volatile loop and fell straight through to the
+   * generic write, so it applied in 8 of 8 staged cells where the authority applies it in 4.
+   *
+   * "AIRBORNE" IS FIVE ORDERED CLAUSES, NOT `isGrounded()`, and the difference is measured rather
+   * than argued: a body holding an IRON BALL and up on MAGNET RISE reads `isGrounded() === true`,
+   * and the authority applies Smack Down to it anyway and eats the Magnet Rise, because the last two
+   * clauses put `applies` back to TRUE after the negator cleared it. `isGrounded` also knows nothing
+   * about a body mid-Bounce. Writing this as `if(isGrounded(who))refuse` would have been a NEW
+   * defect wearing the fixed one's name. Every clause and its ORDER comes off `volatileStartGate`,
+   * which `tag_dex` parses per `if`-clause for exactly this reason -- `volatiles["ingrain"]` and
+   * `volatiles["magnetrise"]` are identical syntax with opposite meanings.
+   *
+   * THREE BOARD-MATERIAL CONSEQUENCES, ALL ON `magnetrise`, WHICH board_state.js DOES COMPARE:
+   *   1. the phantom volatile refuses a LATER Magnet Rise (magnetrise.onTry reads `smackdown`);
+   *   2. the authority DELETES a standing Magnet Rise and this engine left it up;
+   *   3. the authority CANCELS a committed Bounce and this engine executed it -- an extra attack.
+   *
+   * `VOLRES.SILENT`, NOT `VOLRES.FAIL`. `onStart` returning false does not fail Smack Down: it is a
+   * damaging move that has already dealt its damage, and no `-fail` appears in any refusal cell in
+   * the authority. Getting that wrong would trade one narration defect for another.
+   *
+   * THE CANCEL REUSES `_queueCancel`, WHICH GRAVITY ALREADY OWNS. Both are the authority's own
+   * `this.queue.cancelMove(pokemon)`; one flag, two producers, one consumer above the kind dispatch.
+   * `opts.alreadyMoved` is not consulted -- a body that has already acted simply never reads the flag,
+   * and it is cleared for every body at the top of the next turn.
+   *
+   * MEDI_VOL_START_GATE_BLIND=1 puts the site back in its own old shape, which for a missing gate is
+   * NO GATE AT ALL, so the probe has a revert control that reproduces the same red. */
+  if(!VOL_START_GATE_BLIND){
+    const _sg=TAGS.param('move',mvId,'volatileStartGate');
+    if(_sg&&_sg.volatile===vol){
+      const _g=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      const _v=who._vol||{};
+      let _ap=false;
+      if((who.types||[]).some(t=>(_sg.liftTypes||[]).indexOf(t)>=0))_ap=true;
+      if((_sg.liftAbilities||[]).indexOf(_g(who.ability))>=0)_ap=true;
+      if((_sg.negatorItems||[]).indexOf(_g(who.item))>=0)_ap=false;
+      if((_sg.negatorVolatiles||[]).some(x=>_v[x]>0))_ap=false;
+      const _fl=field||fieldOfBody(who);
+      if(_fl&&(_sg.negatorPseudo||[]).indexOf('gravity')>=0&&_fl.gravity>0)_ap=false;
+      /* THE CHARGE CLAUSE. `_charging` is this engine's `volatiles['fly'|'bounce']`; the authority's
+       * `removeVolatile` returns true only when there WAS one, which is what the id test is. */
+      if(who._charging&&(_sg.consumesVolatiles||[]).indexOf(String(who._charging))>=0){
+        _ap=true;
+        who._charging=null;who._invuln=false;
+        /* `pokemon.removeVolatile("twoturnmove")`, on the authority's own line inside this clause --
+         * `_ttmWrap` is that wrapper here. Grounding the charge and leaving the clock standing would
+         * report a lock the body no longer has; Gravity's site makes the identical pairing. */
+        if((_sg.alsoRemoves||[]).indexOf('twoturnmove')>=0)who._ttmWrap=null;
+        if(_sg.cancelsQueuedMove)who._queueCancel='volatilestartgate';
+        MEDSEEN.volStartGateGroundedCharge++;
+      }
+      for(const _d of (_sg.deletesVolatiles||[])) if(_v[_d]>0){ _ap=true; delete _v[_d];
+        MEDSEEN.volStartGateDeletedVolatile++; }
+      if(!_ap){ MEDSEEN.volStartGateRefused++; return volRefuse(opts,VOLRES.SILENT,'notairborne'); }
+      MEDSEEN.volStartGateApplied++;
+    }
+  } else if(TAGS.param('move',mvId,'volatileStartGate'))MEDFAILS.volStartGateBlindRestored=1;
   if(vol==='substitute') return false;
   /* ROADMAP #147 -- `partiallytrapped` IS OWNED TOO, by the `partialTrap` block in the attack path,
    * which holds the chip fraction, the duration and the TRAPPER identity in `_trap` rather than in
@@ -20640,8 +20827,14 @@ function battleTurn(S,rng,actsForA,actsForB){
       it.mon._stallFresh=false;
       /* 2026-08-26 -- AND THE GRAVITY CANCEL IS A ONE-TURN FLAG, cleared here for the same reason:
        * `this.queue.cancelMove(pokemon)` deletes an action from THIS turn's queue and nothing else, so
-       * a flag that survived to the next turn would silence a body Gravity had already finished with. */
-      it.mon._gravCancel=false;
+       * a flag that survived to the next turn would silence a body Gravity had already finished with.
+       *
+       * 2026-08-27 -- RENAMED `_gravCancel` -> `_queueCancel` AND IT NOW CARRIES ITS CAUSE. Smack Down
+       * cancels a committed two-turn move by the identical authority call (`this.queue.cancelMove`,
+       * inside its own `condition.onStart`), so "this action was deleted from the queue" is ONE FACT
+       * with two producers. A second flag would have been a second copy of it, which is the shape
+       * CLAUDE.md's FACTS-ARE-GLOBAL rule forbids. */
+      it.mon._queueCancel=null;
       if(it.a.kind==='protect'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
         /* DEFERRED. `_preWillAct` is the answer the TOP-OF-TURN order would have given, recorded only
          * so `MEDSEEN.shieldGateOrderChanged` can say how often the two disagree -- a fix whose
@@ -22046,7 +22239,10 @@ function battleTurn(S,rng,actsForA,actsForB){
        * ABOVE THE KIND DISPATCH for the reason the Throat Chop silence below it is: the cancel is not
        * about the KIND of action the body had queued. Only a body Gravity actually grounded carries
        * the flag, and it is cleared at the top of every turn. */
-      if(m._gravCancel){m._gravCancel=false;MEDSEEN.gravityCancelledQueuedMove++;continue;}
+      if(m._queueCancel){const _qc=m._queueCancel;m._queueCancel=null;
+        if(_qc==='gravity')MEDSEEN.gravityCancelledQueuedMove++;
+        else MEDSEEN.queueCancelledByVolatileGate++;
+        continue;}
       /* WIRE 77 -- THE THROAT CHOP SILENCE APPLIES TO EVERY KIND OF ACTION, not only to a damaging
          one. WIRE 45 put the gate inside the attack branch and WIRE 26's menu filter put it in
          chooseAction, and both are one CLASS of action: ROAR is a sound move that resolves down the
@@ -22420,6 +22616,75 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_mid){ const _mt=midEventSlot(reaimToSlot(a.target,it,actA,actB,_mid,true)||m);
                   if(_mid!==MID_MOVE||_mt!==MID_TGT)MEDSEEN.midAddrMovedAtAnnounce++;
                   MID_MOVE=_mid; MID_TGT=_mt; }
+        /* ROADMAP #518, 2026-08-27 -- THE MOVE THAT DECIDES ITS OWN CATEGORY, AND IT NEVER DECIDED.
+         *
+         * `onModifyMove` (data/moves.ts:16224; Champions has no `shellsidearm` key, only a learnset
+         * row, so mainline is what it runs) compares the DAMAGE each category would do -- the
+         * target's defences are half the rule and the base power is the handler's literal 90, not
+         * `move.basePower` -- and on an exact tie it FLIPS A COIN. This engine always resolved
+         * Special: probed at authority Physical 61 against our Special 43.
+         *
+         * IT SITS THREE LINES BELOW THE COMMIT FOR THE SAME REASON THE AUTHORITY'S DOES.
+         * `useMoveInner` calls `setActiveMove(move, pokemon, target)` at battle-actions.ts:428 and
+         * `singleEvent('ModifyMove', ...)` at :431, so at the instant of the draw `battle.activeMove`
+         * and `battle.activeTarget` are both populated and the address is nameable. `MID_MOVE` and
+         * `MID_TGT` are written on the line above, so the same address is nameable HERE and nowhere
+         * earlier. `rng` is the generic `any` stream -- no new stream, no DICE_MODEL change -- and
+         * both pinned corners were checked in both directions before this was written.
+         *
+         * THE `||` SHORT-CIRCUITS, SO A NON-TIE TAKES ZERO DRAWS. Verified by printing every
+         * `randomChance` of the authority's use: non-tie `100/100 1/24`, tie `1/2 100/100 1/24` with
+         * the coin FIRST. Drawing unconditionally would desynchronise the middle arm on every click.
+         *
+         * `getStat(x, false, true)` -- STAGES COUNT, MODIFIERS DO NOT. So a burn, Life Orb, Huge
+         * Power and the Ruin abilities are invisible to the CHOICE and fully visible to the DAMAGE,
+         * which is the only way the tie is ever board-material: `tie-by-floor+burn` reads 30 against
+         * 61, a 2x swing decided by a coin.
+         *
+         * AND IT IS A PER-USE VIEW, NEVER A MUTATION. `a.move.mv` is the shared `MC.moves[id]` row
+         * and `mv.c` is read at 21 sites; writing `c` onto it would make every later click of Shell
+         * Side Arm by anybody Physical. A shallow clone hung on the ACTION reaches all 21 through the
+         * single `const mv=a.move.mv` the attack branch already takes, so Reflect, Counter, Weak
+         * Armor and the 17 contact punishes move with the damage instead of being left behind. A fix
+         * that touched only the damage line would have been a new defect wearing a green probe.
+         *
+         * MEDI_NO_CATEGORY_PICK=1 puts the site back to unwired -- always Special, no draw. */
+        if(_mid&&!NO_CATEGORY_PICK){
+          const _pcm=a.move&&a.move.mv;
+          const _pc=_pcm?TAGS.param('move',_mid,'picksCategory'):null;
+          if(_pc&&_pc.tieDraw){
+            const _ct=reaimToSlot(a.target,it,actA,actB,_mid,true);
+            /* `if (!target) return;` is the handler's own first line. */
+            if(!_ct)MEDSEEN.categoryPickNoTarget++;
+            else{
+              const _S2E={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp'};
+              /* `getStat(stat, unboosted=false, unmodified=true)`: `Math.floor(stat * boostMul(stage))`
+               * and nothing else. Wonder Room swaps the STORED stat and keeps the ORIGINAL stat's
+               * stage (sim/pokemon.ts:604-612) -- the same quirk dmgRange already mirrors, so it is
+               * spelled the same way here rather than a second time differently. */
+              const _gs=(b,s)=>{const k=_S2E[s];if(!k)return 0;
+                let v=b.st[k];
+                const _f=field||fieldOfBody(b);
+                if(_f&&_f.wonderRoom>0&&(k==='df'||k==='sd'))v=b.st[k==='df'?'sd':'df'];
+                return _pc.usesBoosts?Math.floor(v*boostMul((b.boosts||{})[k])):v;};
+              const _K=Math.floor(2*(m.level||50)/5+2)*(+_pc.basePowerUsed||0);
+              const _ch=(A,D)=>D>0?Math.floor(Math.floor(Math.floor(_K*A)/D)/50):0;
+              const _P=_ch(_gs(m,_pc.offensive[0]),_gs(_ct,_pc.defensive[0]));
+              const _S=_ch(_gs(m,_pc.offensive[1]),_gs(_ct,_pc.defensive[1]));
+              let _flip=_P>_S;
+              if(!_flip&&_P===_S){ _flip=rng()<(+_pc.tieDraw.num/+_pc.tieDraw.den);
+                                   MEDSEEN.categoryPickTieDrawn++; }
+              if(_flip){
+                a.move.mv=Object.assign({},_pcm,{c:_pc.becomes==='Physical'?'P':'S',
+                  /* the flag the handler sets in the SAME branch. `mvMakesContact` reads it off the
+                   * per-use view because its cache is keyed on the move id and cannot express it. */
+                  flagUse:_pc.alsoSetsFlag||null});
+                MEDSEEN.categoryPicked++;
+              } else MEDSEEN.categoryPickedLeftAlone++;
+            }
+          }
+        } else if(_mid&&NO_CATEGORY_PICK&&a.move&&a.move.mv&&TAGS.param('move',_mid,'picksCategory'))
+          MEDFAILS.categoryPickBlindRestored=1;
         /* 2026-08-23 -- STEP 0 FOR EVERY KIND THAT IS NOT AN ATTACK: A SEMI-INVULNERABLE BODY IS NOT
          * THERE TO BE AIMED AT, WHATEVER THE MOVE IS.
          *
@@ -24234,7 +24499,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                * grounded the charge and left the clock standing would report a lock this body no
                * longer has. */
               _b._charging=null;_b._invuln=false;_b._ttmWrap=null;_ap=true;MEDSEEN.gravityGroundedCharge++;
-              if(_gc.cancelsTheQueuedMove&&!GRAVITY_GROUNDS_EVERY_CHARGE)_b._gravCancel=true;
+              if(_gc.cancelsTheQueuedMove&&!GRAVITY_GROUNDS_EVERY_CHARGE)_b._queueCancel='gravity';
             } else MEDSEEN.gravityChargeLeftStanding++;
           }
           if(!GRAVITY_GROUNDS_EVERY_CHARGE)for(const _v of _gc.volatiles||[]){
@@ -26042,7 +26307,11 @@ function battleTurn(S,rng,actsForA,actsForB){
          * effect branches use. `statusReaimedToSlot` is subsumed by `MEDSEEN.reaimedToSlot`. */
         if(BOUNCE_UNDONE_BY_REAIM)t=reaimToSlot(t,it,actA,actB,a.mv);
         if(!t||t.fainted){mvFail(m);continue;}
-        if(t.protect){if(TR)TR.act(t,'move: Protect');continue;}
+        /* 2026-08-27 -- ASK THE SHARED READER, NOT THE BARE FLAG. See MEDI_STATUS_SHIELD_BLIND:
+         * `shieldRefuses` is where `shieldsUser.blocksStatus` is read, and this branch was the one
+         * `t.protect` site left in the file. King's Shield does not block a status move. */
+        if(STATUS_SHIELD_BLIND){if(t.protect){if(TR)TR.act(t,'move: Protect');continue;}}
+        else if(shieldRefuses(t,a.mv)){shieldRefusalAnnounce(t);continue;}
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}   // Good as Gold
         /* 2026-08-25 -- AND THE ABSORBING ABILITIES ANSWER AT THIS SAME STEP, which this branch has
          * never asked. Sap Sipper slept, Volt Absorb was paralysed and Flash Fire burned. See
@@ -26522,6 +26791,48 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_st&&_st.requires&&!(m.types||[]).includes(_st.requires)){
           MEDSEEN.ownTypeAlreadySpent++;
           m._lastMove=a.move.id;{if(TR)TR.attrStill();mvFail(m);}continue;
+        }
+      }
+      /* ROADMAP #514, 2026-08-27 -- A LATCHED FACT ABOUT THE USER, AND NOTHING READ IT.
+       *
+       *     onTry(source) { return source.ateBerry; }                       data/moves.ts:1209
+       *
+       * Belch's whole cost is that precondition, and `_ateBerry` -- which `consumeBerry` writes at
+       * :8668 and the Fling target write at :30090 -- was read in exactly ONE other place in this
+       * file (Harvest, :32532). So a 120 BP Poison move was free from turn one. Measured against the
+       * authority with the knob turned by a REAL berry eat, never a plant: never ate -> the authority
+       * deals 0 and we dealt 103; ate a Sitrus -> 70 and 103. Identical output across a varied knob
+       * is the unwired-knob signature, and 103 HP is board-material.
+       *
+       * IT IS A USE-TIME FAILURE AND NOT A MENU DISABLE, WHICH IS THE HALF THE FIRST DIAGNOSIS HAD
+       * BACKWARDS. Champions DELETES mainline's `onDisableMove` (data/mods/champions/moves.ts:54),
+       * so the authority OFFERS the click -- `"disabled":false` on the request -- and answers
+       * `|move|...|Belch||[still]` then `|-fail|`. Touching `moveDisabledBy` would make our menu
+       * disagree with Showdown's and emit nothing where the authority emits two lines: a NEW
+       * divergence traded for an old one. `gatesSelection` carries the format's own answer to that
+       * question so a regulation that restores the handler re-arms the menu with no edit here.
+       *
+       * THE ENGINE FIELD IS DERIVED FROM THE AUTHORITY'S OWN NAME. This file's convention is
+       * `_<Pokemon field>` and its own header says so (:8596, "_ateBerry -- it was a berry and it was
+       * EATEN. `Pokemon#ateBerry`"), so the join is `'_' + tag.field` rather than a second map.
+       *
+       * AND A TAG NAMING A LATCH THIS ENGINE HAS NO WRITER FOR IS LOUD. A bare `!m[_fld]` on an
+       * unwritten field refuses the move FOR EVER and looks exactly like a working gate -- the silent
+       * default this project keeps paying for. `LATCH_FIELDS_WRITTEN` is derived from this module's
+       * OWN SOURCE at load, so the check cannot go stale against a rename, and a field that is not in
+       * it counts `MEDFAILS.userLatchUnwritten` and leaves the move alone. */
+      {
+        const _ul=TAGS.param('move',a.move.id,'failsWithoutUserLatch');
+        if(_ul&&_ul.field){
+          const _fld='_'+_ul.field;
+          if(!LATCH_FIELDS_WRITTEN.has(_fld)){
+            MEDFAILS.userLatchUnwritten++;
+            if(!MEDFAILS.userLatchUnwrittenFirst)MEDFAILS.userLatchUnwrittenFirst=a.move.id+':'+_fld;
+          }
+          else if(!m[_fld]){
+            MEDSEEN.userLatchRefused++;
+            m._lastMove=a.move.id;{if(TR)TR.attrStill();mvFail(m);}continue;
+          }
         }
       }
       if(m._preTurn&&m._preTurn.id===a.move.id){
@@ -27324,7 +27635,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * DECLARED unobservable rather than claimed as a fix; it exists so the first contact member
            * of the family does not write a `-damage` and a second `|faint|` the authority never
            * writes. The status and boost punishes one line down already carried it. */
-          if(_pc&&_pc.onContact&&mvMakesContact(a.move.id,m)&&!m.fainted){
+          if(_pc&&_pc.onContact&&mvMakesContact(a.move.id,m,a.move.mv)&&!m.fainted){
             if(_pc.fraction){m.curHP-=Math.floor(m.st.hp/(+_pc.fraction));
               if(TR)TR.dmg(m,'[from] move: '+tg._protectMove,tg);
               if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}
@@ -29123,7 +29434,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * not it survives, because both happen DURING the hit. */
         if(tg._preTurn&&tg._preTurn.id&&!(tg._preTurn.p.foesOnly&&tg._sf===m._sf)){
           const _ps=tg._preTurn.p;
-          const _tr=_ps.trigger==='contact'?mvMakesContact(a.move.id,m)
+          const _tr=_ps.trigger==='contact'?mvMakesContact(a.move.id,m,a.move.mv)
                    :_ps.trigger==='physical'?mv.c==='P'
                    :/* damaging */ mv.c==='P'||mv.c==='S';
           if(_tr){
@@ -29134,7 +29445,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         const _pun=TAGS.param('ability',tg.ability,'punishesAttacker');
         if(_pun&&!_pun.requiresForme){
-          const _trig=_pun.trigger==='contact'?mvMakesContact(a.move.id,m)
+          const _trig=_pun.trigger==='contact'?mvMakesContact(a.move.id,m,a.move.mv)
                      :_pun.trigger==='physical'?mv.c==='P'
                      :_pun.trigger==='special'?mv.c==='S'
                      :true;
@@ -29325,7 +29636,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * was typing the list here. `becomes` comes out of the tag, so no ability name is written. */
         {
           const _rw=TAGS.param('ability',tg.ability,'rewritesAbilityOnContact');
-          if(_rw&&_rw.trigger==='contact'&&mvMakesContact(a.move.id,m)&&!m.fainted&&m.ability!==tg.ability){
+          if(_rw&&_rw.trigger==='contact'&&mvMakesContact(a.move.id,m,a.move.mv)&&!m.fainted&&m.ability!==tg.ability){
             if(_rw.mode==='infect'&&_rw.becomes){m.ability=String(_rw.becomes);
               if(TR){TR.act(tg,'ability: '+tg.ability);TR.ab(m,m.ability,'[from] ability: '+tg.ability);}}
             else if(_rw.mode==='swap'){const _t=m.ability;m.ability=tg.ability;tg.ability=_t;
@@ -29380,7 +29691,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* ROADMAP #308 -- MOVED OUT OF THE PER-HIT LOOP. See `_hpThresholdBoost` below the loop. */
           const _st=TAGS.param('ability',tg.ability,'stealsItem');
           if(_st&&_st.takesFrom==='attacker'&&m!==tg
-             &&stealFlagOK(_st,a.move.id,m)
+             &&stealFlagOK(_st,a.move.id,m,a.move.mv)
              &&(!_st.requiresEmptyHand||!itemOn(tg))
              &&itemOn(m)&&!itemRefusesTake(m)){
             /* ROADMAP #462 -- the doors. `source.item` in the handler is the identity read. */
@@ -30233,7 +30544,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              and 0/40 into Shield Dust. Named here, beside the effect, rather than inside a gate that
              also refuses Will-O-Wisp. */
           {const _pt=TAGS.param('ability',m.ability,'poisonsOnMyContact');
-           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn',m,ATTR.ability(m.ability,m));}
+           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m,a.move.mv))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn',m,ATTR.ability(m.ability,m));}
           /* WIRE 30 -- blocksHealing. Psychic Noise is a DAMAGING move whose whole point is the two
            * turns of Heal Block it leaves behind, and the engine landed the 75 base power and none of
            * the effect. It is the counter to the entire healing family, so it lands in the same pass
@@ -31426,7 +31737,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _mg=TAGS.param('ability',m.ability,'stealsItem');
         if(_mg&&_mg.takesFrom==='target'&&_reached>0&&!itemOn(m)
            &&(!_mg.excludesStatus||a.move.mv.c==='P'||a.move.mv.c==='S')
-           &&stealFlagOK(_mg,a.move.id,m)){
+           &&stealFlagOK(_mg,a.move.id,m,a.move.mv)){
           if(a.move.id==='fling'){MEDFAILS.stealFromFlingUnmodelled++;}
           else{
             const _cand=_rows.filter(R=>!R.out&&R.tg&&R.tg!==m&&itemOn(R.tg)&&!itemRefusesTake(R.tg))

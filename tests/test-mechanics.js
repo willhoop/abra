@@ -8896,6 +8896,46 @@ probe('move', 'shieldsUser', "King's Shield lets Encore through and Protect on t
                  + 'King\'s Shield arm proves nothing)' };
 });
 
+/* ================= 2026-08-27 -- THE SAME RULE ON THE *OTHER* ROAD, WHICH NEVER ASKED ============
+ *
+ * The probe above rides the `affect` branch (Encore), which has called `shieldRefuses` since #238.
+ * A move that inflicts a plain STATUS takes a different road -- `a.kind === 'status'` -- and that
+ * branch asked a bare `if(t.protect)`, the one such read left in the simulator. It is blind to
+ * `blocksStatus`, so Glare, Thunder Wave, Will-O-Wisp, Toxic, Spore and the other six members of
+ * that kind were ALL refused by a King's Shield that refuses none of them.
+ *
+ * MEASURED ON THE OFFICIAL SIMULATOR FIRST (tests/probe_status_blocksstatus.js, which derives the
+ * whole shield family and the whole `status` kind on every run), Serperior's Glare into Aegislash:
+ *     King's Shield  ->  |-status|p2a: Aegislash|par
+ *     Protect        ->  |-activate|p2a: Aegislash|move: Protect
+ * and this engine printed `|-activate|...|move: Protect` under BOTH. Board-material: the status leaf.
+ *
+ * ONE KNOB. Same body, same click, same board; only the shield moves. Glare because its accuracy is
+ * 100 -- a 90-accuracy cast staged against a live-seeded authority is a coin, and a coin that lands
+ * the comfortable way is how a probe lies. The third arm raises no shield at all, because without an
+ * arm where the status plainly LANDS a King's-Shield arm reading "no status" cannot be told from a
+ * Glare this engine cannot cast. */
+probe('move', 'shieldsUser', "King's Shield does not block a plain STATUS move and Protect does", () => {
+  const run = (shield) => {
+    const B = board('serperior', 'snorlax', 'aegislash', 'garchomp');
+    const trace = []; B.S._trace = trace;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'glare', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, shield ? { kind: 'protect', mv: shield } : { kind: 'pass' }],
+               [B.f2, { kind: 'pass' }]]));
+    return { status: B.f1.status || '',
+             line: (trace.find(l => /\|-(status|activate)\|/i.test(l)) || '(none)') };
+  };
+  const pro = run('protect'), ks = run('kingsshield'), open = run(null);
+  return { works: ks.status === 'par' && pro.status === '' && open.status === 'par'
+                  && /-activate/.test(pro.line) && /-status/.test(ks.line),
+           arms: { control: pro.status || 'none', test: ks.status || 'none' },
+           detail: 'Aegislash, same body every arm — Protect: status ' + (pro.status || 'none') + ', '
+                 + pro.line + '   |   King\'s Shield: status ' + (ks.status || 'none') + ', ' + ks.line
+                 + '   |   no shield: status ' + (open.status || 'none') + ' (must be par, or the '
+                 + 'King\'s Shield arm proves nothing)' };
+});
+
 /* AND THE OTHER TWO PUNISHING SHIELDS MUST NOT MOVE, which is the over-match half. `blocksStatus` is
  * parsed out of an argument list; a parser that read every shield as three-argument would leave the
  * bug in place, and one that read every shield as FOUR would open all five. Neither is visible from
@@ -24332,6 +24372,213 @@ probe('move', 'failsUnlessOtherMovesUsed', 'Last Resort is refused until EVERY o
            detail: `[HP off the target] nothing else clicked ${r[0]} (refused)  |  one of two others `
                  + `clicked ${r[1]} (still refused — an engine that unlocked on ANY other click `
                  + `passes here)  |  both clicked ${r[2]} (it finally lands)` };
+});
+
+/* ================= ROADMAP #514 — BELCH WAS NOT GATED ON HAVING EATEN A BERRY ====================
+ *
+ *     onTry(source) { return source.ateBerry; }                              data/moves.ts:1209
+ *
+ * `_ateBerry` is written in `consumeBerry` and, until 2026-08-27, was read in exactly ONE other place
+ * in the simulator (Harvest). Nothing on the move path asked, so a 120 BP Poison move was free from
+ * turn one. Measured against the authority with the knob turned by a REAL berry eat: never ate → the
+ * authority deals 0 and this engine dealt 103; ate a Sitrus → 70 and 103. Identical output across a
+ * varied knob is the unwired-knob signature, and 103 HP is board-material.
+ *
+ * THE GATE IS AT USE TIME AND NOT AT PICK TIME, WHICH IS THE HALF THE FIRST DIAGNOSIS HAD BACKWARDS.
+ * Champions DELETES mainline's `onDisableMove` (`data/mods/champions/moves.ts:54`), so the authority
+ * OFFERS the click — `"disabled":false` on the request — and answers `|move|…|Belch||[still]` then
+ * `|-fail|`. A fix in the move-selection filter would have been a NEW divergence.
+ *
+ * THE BERRY IS REALLY EATEN IN THE TEST ARM, NEVER PLANTED. A planted `_ateBerry` would test the
+ * reader and say nothing about the writer, and the roster row for this move was green for TWO reasons
+ * at once precisely because its fixture fed the body a berry first: the authority's gate was OPEN and
+ * ours was ABSENT, so the boards agreed for different reasons. Here the only knob is the ITEM. */
+probe('move', 'failsWithoutUserLatch', 'Belch is refused until its user has actually eaten a berry', () => {
+  const run = (item) => {
+    const B = board('salazzle', 'snorlax', 'garchomp', 'milotic');
+    /* THE BELCHER MUST SURVIVE TURN ONE. The first draft put it at 55% of its real HP and the foe's
+     * Dragon Claw KILLED it, so the berry was never reached and BOTH arms read 0 — a green control
+     * arm and a red test arm for a reason that had nothing to do with the gate. It sits just above
+     * half of an unfaintable pool instead, so the hit crosses the threshold and nothing dies. */
+    unfaintable(B.me); unfaintable(B.f1);
+    B.me.item = item; B.me.curHP = Math.floor(B.me.st.hp * 0.52);
+    /* turn 1 — the foe hits the belcher. With a Sitrus on board that is a REAL eat. */
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, { kind: 'pass' }], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, M.playerAction(B.f1, 'dragonclaw', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    const ate = !!B.me._ateBerry;
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'belch', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { ate, dmg: before - B.f1.curHP, item: B.me.item };
+  };
+  const dry = run(''), fed = run('sitrusberry');
+  return { works: dry.ate === false && dry.dmg === 0 && fed.ate === true && fed.dmg > 0,
+           arms: { control: dry.dmg, test: fed.dmg },
+           detail: 'the same Salazzle, the same two turns, only the ITEM varies — no berry: ateBerry '
+                 + dry.ate + ', Belch dealt ' + dry.dmg + ' (must be 0)  |  Sitrus: ateBerry '
+                 + fed.ate + ' (a real eat — the item went from sitrusberry to "' + fed.item
+                 + '"), Belch dealt ' + fed.dmg + ' (must be > 0, or the control arm is only saying '
+                 + 'that this engine cannot cast Belch at all)' };
+});
+
+/* ================= ROADMAP #518 — SHELL SIDE ARM NEVER CHOSE ITS CATEGORY =======================
+ *
+ * `onModifyMove` (data/moves.ts:16224; `data/mods/champions/` carries no `shellsidearm` key, only a
+ * learnset row, so mainline is what Champions runs) compares the DAMAGE each category would do and
+ * flips a coin on an exact tie. This engine always resolved Special: probed at authority Physical 61
+ * against our Special 43.
+ *
+ * IT IS NOT A STAT COMPARISON — THE TARGET'S DEFENCES ARE HALF THE RULE, which is what the first two
+ * arms below vary and the ONLY thing they vary. The attacker is untouched between them; a rule
+ * written as `atk vs spa` gives the same answer on both and fails neither.
+ *
+ * `getStat(x, unboosted=false, unmodified=true)` MEANS STAGES COUNT AND MODIFIERS DO NOT, so a burn
+ * is invisible to the CHOICE and halves the DAMAGE of the Physical branch only. That is the only way
+ * an exact tie is ever board-material, and it is the fourth arm: the same board, the same tie, and a
+ * coin worth 13 HP against 27.
+ *
+ * MEDI_NO_CATEGORY_PICK=1 shows both rows RED. */
+probe('move', 'picksCategory', 'Shell Side Arm goes Physical or Special on the TARGET\'S defences, not on its own stats', () => {
+  const run = (df, sd) => {
+    const B = board('slowbrogalar', 'snorlax', 'garchomp', 'milotic');
+    unfaintable(B.f1);
+    B.f1.st = { ...B.f1.st, df, sd };
+    const b0 = { ...M.MEDSEEN };
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'shellsidearm', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { dmg: before - B.f1.curHP,
+             cat: ((M.MEDSEEN.categoryPicked || 0) - (b0.categoryPicked || 0)) ? 'P' : 'S',
+             decided: ((M.MEDSEEN.categoryPicked || 0) - (b0.categoryPicked || 0))
+                    + ((M.MEDSEEN.categoryPickedLeftAlone || 0) - (b0.categoryPickedLeftAlone || 0)),
+             coins: (M.MEDSEEN.categoryPickTieDrawn || 0) - (b0.categoryPickTieDrawn || 0) };
+  };
+  /* the SAME attacker both arms; only the defender's Def/SpD split moves. */
+  const physical = run(60, 200), special = run(200, 60);
+  return { works: physical.cat === 'P' && special.cat === 'S'
+                  && physical.decided === 1 && special.decided === 1
+                  && physical.coins === 0 && special.coins === 0,
+           arms: { control: special.cat, test: physical.cat },
+           detail: 'the same Slowbro-Galar, only the TARGET\'S defences move — Def 60 / SpD 200 -> '
+                 + physical.cat + ', ' + physical.dmg + ' HP  |  Def 200 / SpD 60 -> ' + special.cat
+                 + ', ' + special.dmg + ' HP. A rule written on the attacker\'s own atk-vs-spa gives '
+                 + 'the SAME answer on both. Decisions taken ' + physical.decided + '/'
+                 + special.decided + ' (must be 1 each, or the wire never ran); tie coins '
+                 + physical.coins + '/' + special.coins + ' (must be 0 — the authority\'s `||` '
+                 + 'short-circuits, so a non-tie takes NO draw)' };
+});
+
+probe('move', 'picksCategory', 'the exact tie is a coin, and a burn makes that coin worth 14 HP', () => {
+  const run = (u) => {
+    const B = board('slowbrogalar', 'snorlax', 'garchomp', 'milotic');
+    unfaintable(B.me); unfaintable(B.f1);
+    /* THE TIE IS BUILT, NOT FOUND: equal offences on the attacker and equal defences on the target.
+     * The BURN is what makes it observable — invisible to `getStat(_, _, unmodified=true)` and so to
+     * the choice, and it halves the Physical branch's damage and nothing else. */
+    B.me.st = { ...B.me.st, sa: B.me.st.at };
+    B.me.status = 'brn';
+    B.f1.st = { ...B.f1.st, df: 120, sd: 120 };
+    const b0 = { ...M.MEDSEEN };
+    const before = B.f1.curHP;
+    const S = { any: () => u, acc: () => 0, crit: () => 0.999, sec: () => 0.999,
+                dmg: () => 0.999, stall: () => 0.999, tie: () => 0, split: true, seed: null };
+    M.battleTurn(B.S, S,
+      new Map([[B.me, M.playerAction(B.me, 'shellsidearm', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { dmg: before - B.f1.curHP,
+             cat: ((M.MEDSEEN.categoryPicked || 0) - (b0.categoryPicked || 0)) ? 'P' : 'S',
+             coins: (M.MEDSEEN.categoryPickTieDrawn || 0) - (b0.categoryPickTieDrawn || 0) };
+  };
+  const heads = run(0), tails = run(0.999);
+  return { works: heads.cat === 'P' && tails.cat === 'S' && heads.coins === 1 && tails.coins === 1
+                  && heads.dmg > 0 && heads.dmg < tails.dmg,
+           arms: { control: tails.dmg, test: heads.dmg },
+           detail: 'one board, one exact tie, the coin forced both ways — heads ' + heads.cat + ' for '
+                 + heads.dmg + ' HP  |  tails ' + tails.cat + ' for ' + tails.dmg + ' HP. Exactly one '
+                 + 'coin was drawn each time (' + heads.coins + '/' + tails.coins + '). The damage '
+                 + 'gap IS the burn: it cannot move the choice and it halves the Physical branch, so '
+                 + 'an engine that always answered Special reads the tails number on both' };
+});
+
+/* ================= ROADMAP #517 — SMACK DOWN APPLIED ITS VOLATILE TO A GROUNDED BODY ============
+ *
+ * Its `condition.onStart` (data/moves.ts:16960; `grep -rn smackdown data/mods/champions/` returns
+ * LEARNSETS ONLY) is an airborne GATE, and this engine had none: the volatile arrived through the
+ * #147 primary-volatile loop and fell to the generic write, so it applied in 8 of 8 staged cells
+ * where the authority applies it in 4.
+ *
+ * "AIRBORNE" IS FIVE ORDERED CLAUSES AND IT IS NOT `isGrounded()`. Measured counterexample: a body
+ * holding an IRON BALL and up on MAGNET RISE reads `isGrounded() === true`, and the authority applies
+ * Smack Down anyway and eats the Magnet Rise — the last two clauses put `applies` back to TRUE after
+ * the negator cleared it. A gate written as `if (isGrounded) refuse` would be a NEW defect.
+ *
+ * THREE PROBES BECAUSE IT IS THREE OUTCOMES, and two of them were invisible to the first. The gate
+ * alone is the refusal; the CONSUME and the CANCEL are separate authority statements inside the same
+ * handler, each with its own board leaf, and an engine could pass the first while failing both.
+ *
+ * MEDI_VOL_START_GATE_BLIND=1 shows all three RED on demand. */
+probe('move', 'volatileStartGate', 'Smack Down refuses a grounded body, lands on a Flying one, and an Iron Ball takes the lift away', () => {
+  const run = (tgtSp, item) => {
+    const B = board('tyranitar', 'snorlax', tgtSp, 'garchomp');
+    unfaintable(B.f1);
+    B.f1.item = item || '';
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'smackdown', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return !!(B.f1._vol && B.f1._vol.smackdown);
+  };
+  const grounded = run('snorlax', ''), flying = run('corviknight', ''), ball = run('corviknight', 'ironball');
+  return { works: grounded === false && flying === true && ball === false,
+           arms: { control: [flying, ball], test: grounded },
+           detail: 'the volatile after one Smack Down — a plainly grounded Snorlax ' + grounded
+                 + ' (must be false: that is the defect)  |  a FLYING Corviknight ' + flying
+                 + ' (must be true, or the first arm is only saying this engine cannot cast Smack '
+                 + 'Down)  |  the SAME Corviknight holding an Iron Ball ' + ball + ' (must be false — '
+                 + 'the negator clause, and the arm that separates the gate from "it never applies")' };
+});
+
+probe('move', 'volatileStartGate', 'Smack Down EATS a standing Magnet Rise, and that is what makes it apply', () => {
+  const run = (pre) => {
+    const B = board('tyranitar', 'snorlax', 'forretress', 'garchomp');
+    unfaintable(B.f1);
+    if (pre) (B.f1._vol = B.f1._vol || {}).magnetrise = 5;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'smackdown', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { mag: !!(B.f1._vol && B.f1._vol.magnetrise), sd: !!(B.f1._vol && B.f1._vol.smackdown) };
+  };
+  const off = run(false), on = run(true);
+  return { works: off.sd === false && on.sd === true && on.mag === false,
+           arms: { control: [off.sd, off.mag], test: [on.sd, on.mag] },
+           detail: 'the same Forretress, only MAGNET RISE varies — without it: smackdown ' + off.sd
+                 + ' (refused, it is a plainly grounded Steel/Bug)  |  with it: smackdown ' + on.sd
+                 + ' and magnetrise ' + on.mag + ' (the lift is what let the volatile on AND it was '
+                 + 'EATEN in the same clause — an engine that only added the gate leaves this true)' };
+});
+
+probe('move', 'volatileStartGate', 'Smack Down CANCELS a committed Bounce, so the attack never lands', () => {
+  const run = (smack) => {
+    const B = board('tyranitar', 'snorlax', 'azumarill', 'garchomp');
+    unfaintable(B.me); unfaintable(B.f1);
+    /* turn 1 — Azumarill commits. Its ability is blanked by `bare`, so `bounce` is its only lift. */
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, 'bounce', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    const before = B.me.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, smack ? M.playerAction(B.me, 'smackdown', B.f1, B.S.field) : { kind: 'pass' }],
+               [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, M.playerAction(B.f1, 'bounce', B.me, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    return before - B.me.curHP;
+  };
+  const free = run(false), smacked = run(true);
+  return { works: free > 0 && smacked === 0, arms: { control: free, test: smacked },
+           detail: 'HP the Bouncing body took off Tyranitar on the RELEASE turn — nobody interferes '
+                 + free + ' (must be > 0, or the control arm is only saying Bounce does not work '
+                 + 'here)  |  Smack Down lands first ' + smacked + ' (must be 0: `queue.cancelMove` '
+                 + 'deletes the action, so the committed attack never executes)' };
 });
 
 /* ROADMAP #210 — THE TRANSFORM *MOVE*, which fell through the classifier to `{kind:'pass'}`.

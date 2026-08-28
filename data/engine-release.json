@@ -1,10 +1,10 @@
 {
-  "current": "f3d423e19e88",
-  "cut": "2026-08-28T02:28:44.736Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 55,
-  "latest_cut": "2026-08-28T03:25:50.440Z",
-  "latest_why": "Sand Force pass, settled tree: the browser tag bundle was rebuilt after the first cut, so fb73f82ea1ed named bytes the tree no longer has",
-  "pointer_written": "2026-08-28T03:25:50.453Z",
+  "current": "aea838766e7f",
+  "cut": "2026-08-28T05:33:16.022Z",
+  "why": "four state fixes, settled tree after the silent-catch gate",
+  "cuts": 1,
+  "latest_cut": "2026-08-28T05:33:16.022Z",
+  "latest_why": "four state fixes, settled tree after the silent-catch gate",
+  "pointer_written": "2026-08-28T05:33:16.035Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

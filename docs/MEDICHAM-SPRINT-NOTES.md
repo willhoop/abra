@@ -21,6 +21,93 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## FOUR STATE FIXES, LANDED ONE AT A TIME WITH A MEASUREMENT AND AN ATTRIBUTION BETWEEN EACH. **CENSUS 766 -> 773 LIVE / 773 PROBED / 0 MISSING. GATE 5 OF 8 PASS -> 6 OF 8. MECHANICS CLAUSE 4 OF 11 -> 2 OF 9. BOARD-MATERIAL 0 OF 961 AFTER EVERY ONE OF THE FOUR, WHOLE-GAME UNMOVED AT 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS AFTER EACH PATCH — ALL PREDICTED BEFORE THE RUNS. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-28.
+
+ROADMAP `#519`, `#514` (closed), `#517`, `#518`. Releases `ccd5c7f5a5d7` -> `cff226e4eef5` ->
+`ee6db42728f7` -> `d29f6677bc76` -> `aea838766e7f` (the settle). CHANGELOG 5.195.0.
+Account: `docs/_reports/2026-08-27-four-state-fixes.md`; the closing verification is
+`docs/_reports/2026-08-28-four-state-landed.md`.
+
+**THE FIFTH RELEASE IS THE SETTLE, AND IT EXISTS BECAUSE A BYTE MOVED AFTER THE FOURTH CUT.**
+`#514`'s `LATCH_FIELDS_WRITTEN` fell back through a silent `catch(e){/* comment */}`; the
+silent-catch gate is right that a comment is not a counter, so it counts
+`MEDFAILS.latchSourceUnreadable` now. That is one hunk in one file — **derived from the two release
+manifests, not remembered** — and under node the branch cannot fire at all. Every instrument was
+re-run on `aea838766e7f` and **not one count in any artifact moved**: census 773 / 773 / 0,
+board-material 0 of 961, whole-game 6 raw / 1 of 961, damage 0/6000 at all sixteen corners, roster
+139 / 129 / 475 with zero in both failure columns, reds 18/18, 29/29, 35/35, `all_mechanics_fire`
+identical in every summary count, gate 6 of 8.
+
+### THE COMMAND BLOCK, EXACTLY AS RUN
+
+```bash
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown
+
+# the red first, unpiped, one probe per patch
+node tests/probe_status_blocksstatus.js                       # exit 1 -> exit 0
+node tests/probe_two_gates.js                                 # exit 1 -> exit 0
+node tests/probe_shell_side_arm.js                            # exit 1 -> exit 0
+
+# the revert knobs. each reproduces the SAME red, never a third behaviour
+MEDI_STATUS_SHIELD_BLIND=1     node tests/probe_status_blocksstatus.js
+MEDI_VOL_START_GATE_BLIND=1    node tests/probe_two_gates.js
+MEDI_NO_CATEGORY_PICK=1        node tests/probe_shell_side_arm.js
+MEDI_VOL_START_GATE_BLIND=1    node tests/test-mechanics.js    # 3 rows MISSING
+MEDI_NO_CATEGORY_PICK=1        node tests/test-mechanics.js    # 2 rows MISSING
+
+# REBUILD EVERY GENERATED FROZEN SOURCE BEFORE THE CUT, NOT AFTER
+node engine/tag_dex.js && node build/build_tags_js.js
+node engine/engine_release.js cut "<why>"
+
+node tests/test-mechanics.js
+node engine/game_differential.js --games 1200 --turns 12 --arm middle --release <id> \
+     --team-store data/team-pool-frozen \
+     --census data/verification/census-pin-9446a684709d.json --state --end-state --write
+node --max-old-space-size=6144 tests/roster.js --stage items     --release <id> --reds --write
+node --max-old-space-size=6144 tests/roster.js --stage abilities --release <id> --reds --write
+node --max-old-space-size=6144 tests/roster.js --stage moves     --release <id> --reds --write
+node engine/all_mechanics_fire.js --kind all --release <id> --write
+node tests/test-engine-diff.js --n 6000 --seed 20260804
+node engine/status.js
+```
+
+`tests/roster.js --stage moves` ran out of heap ONCE at the default and completed cleanly at 6144.
+
+### THE FOUR, WITH THE NUMBER THAT MATTERS BESIDE EACH
+
+| # | patch | census | clause that moved | board-material |
+|---|---|---|---|---|
+| 1 | the `status` road asks `shieldRefuses` (`#519`) | 766 -> **767** | none | **0 of 961** |
+| 2 | Belch gated on the berry latch (`#514`) | 767 -> **768** | roster moves FAIL -> PASS; gate -> **6 of 8** | **0 of 961** |
+| 3 | Smack Down's airborne gate (`#517`) | 768 -> **771** | mechanics **4 of 11 -> 3 of 10** | **0 of 961** |
+| 4 | Shell Side Arm's category (`#518`) | 771 -> **773** | mechanics **3 of 10 -> 2 of 9** | **0 of 961** |
+
+### WHAT TO CARRY FORWARD
+
+- **PREDICT THE DENOMINATOR TOO.** The mechanics clause went 4 of 11 -> 3 of 10 -> 2 of 9: a fixed
+  mechanic leaves the diverging set, so both halves move. Predicting only the numerator reads as a
+  miss when it is the expected shape.
+- **A PROBE CAN BE UNABLE TO SEE ITS OWN MECHANIC.** `probe_shell_side_arm.js` called `dmgRange`
+  directly and ran unchanged after the fix landed, printing the identical red. If a probe stays red
+  on a patch you have reason to believe landed, ask whether it takes an ACTION before you re-open the
+  engine.
+- **A WHITESPACE-ONLY REWRITE CAN DISARM A BREAK TEST.** Converting `medicham2-browser.js` from CRLF
+  to LF stopped two `roster.js --reds` anchors matching, and the only column that said so was
+  `--reds`. Check line endings after any scripted edit — **and not with Git Bash's `grep -c $'\r'`,
+  which reports 0 on a file carrying 34,902 CR bytes.** Count the bytes in node.
+- **A "BEHAVIOUR-NEUTRAL" BYTE CHANGE STILL COSTS A CUT AND A RE-RUN.** The silent-catch fix to
+  `LATCH_FIELDS_WRITTEN` moved the engine after the fourth release; the re-run is not ceremony, it
+  is the only thing that turns "neutral" from a claim into a measurement. Derive the delta from the
+  two release manifests — one file, one hunk — rather than recalling what you edited.
+- **PRINT WHAT THE TAG MATCHED, AND PRINT IT AGAIN AFTER YOU FIX THE REGEX.** `picksCategory`'s flag
+  read returned `null` on the first run because the dist writes `move.flags.contact = 1` in DOT
+  notation, not brackets — the opposite of what the handed report said.
+- **SPLIT A HANDLER PER CLAUSE WHEN THE CLAUSES DISAGREE.** Smack Down reads `volatiles["ingrain"]`
+  and `volatiles["magnetrise"]` with identical syntax and opposite meanings; only the statement each
+  sits in tells them apart.
+
+---
+
 ## THE CLOSET IS A GATE EXEMPTION NOW, ON WILL'S RULING — AND IT SHIPS EMPTY, SO **NO CLAUSE MOVED: 5 OF 8 PASS BEFORE AND AFTER ON THE SAME ARTIFACTS.** 2026-08-27.
 
 ROADMAP `#508`. MEASURE. **No engine byte touched** — `engine/quarantine.js` only. Read the gate

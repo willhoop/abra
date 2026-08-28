@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-28T02:46:00.712Z",
+  "generated": "2026-08-28T05:33:45.734Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 766,
-  "live": 766,
+  "probed": 773,
+  "live": 773,
   "missing": 0,
-  "armed": 766,
+  "armed": 773,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -2311,6 +2311,16 @@
     {
       "kind": "move",
       "tag": "shieldsUser",
+      "label": "King's Shield does not block a plain STATUS move and Protect does",
+      "live": true,
+      "detail": "Aegislash, same body every arm — Protect: status none, |-activate|p2a: aegislash|move: Protect   |   King's Shield: status par, |-status|p2a: aegislash|par   |   no shield: status par (must be par, or the King's Shield arm proves nothing)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "shieldsUser",
       "label": "Spiky Shield and Baneful Bunker refuse Encore exactly as Protect does",
       "live": true,
       "detail": "encore turns — Chesnaught Spiky Shield 0 / its own Protect 0   |   Toxapex Baneful Bunker 0 / its own Protect 0   |   Aegislash King's Shield 3 (the only one that may be non-zero)",
@@ -3713,7 +3723,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 28.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6584,6 +6594,66 @@
       "label": "Last Resort is refused until EVERY other slot has been used",
       "live": true,
       "detail": "[HP off the target] nothing else clicked 0 (refused)  |  one of two others clicked 0 (still refused — an engine that unlocked on ANY other click passes here)  |  both clicked 136 (it finally lands)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "failsWithoutUserLatch",
+      "label": "Belch is refused until its user has actually eaten a berry",
+      "live": true,
+      "detail": "the same Salazzle, the same two turns, only the ITEM varies — no berry: ateBerry false, Belch dealt 0 (must be 0)  |  Sitrus: ateBerry true (a real eat — the item went from sitrusberry to \"\"), Belch dealt 64 (must be > 0, or the control arm is only saying that this engine cannot cast Belch at all)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "picksCategory",
+      "label": "Shell Side Arm goes Physical or Special on the TARGET'S defences, not on its own stats",
+      "live": true,
+      "detail": "the same Slowbro-Galar, only the TARGET'S defences move — Def 60 / SpD 200 -> P, 50 HP  |  Def 200 / SpD 60 -> S, 87 HP. A rule written on the attacker's own atk-vs-spa gives the SAME answer on both. Decisions taken 1/1 (must be 1 each, or the wire never ran); tie coins 0/0 (must be 0 — the authority's `||` short-circuits, so a non-tie takes NO draw)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "picksCategory",
+      "label": "the exact tie is a coin, and a burn makes that coin worth 14 HP",
+      "live": true,
+      "detail": "one board, one exact tie, the coin forced both ways — heads P for 13 HP  |  tails S for 27 HP. Exactly one coin was drawn each time (1/1). The damage gap IS the burn: it cannot move the choice and it halves the Physical branch, so an engine that always answered Special reads the tails number on both",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "volatileStartGate",
+      "label": "Smack Down refuses a grounded body, lands on a Flying one, and an Iron Ball takes the lift away",
+      "live": true,
+      "detail": "the volatile after one Smack Down — a plainly grounded Snorlax false (must be false: that is the defect)  |  a FLYING Corviknight true (must be true, or the first arm is only saying this engine cannot cast Smack Down)  |  the SAME Corviknight holding an Iron Ball false (must be false — the negator clause, and the arm that separates the gate from \"it never applies\")",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "volatileStartGate",
+      "label": "Smack Down EATS a standing Magnet Rise, and that is what makes it apply",
+      "live": true,
+      "detail": "the same Forretress, only MAGNET RISE varies — without it: smackdown false (refused, it is a plainly grounded Steel/Bug)  |  with it: smackdown true and magnetrise false (the lift is what let the volatile on AND it was EATEN in the same clause — an engine that only added the gate leaves this true)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "volatileStartGate",
+      "label": "Smack Down CANCELS a committed Bounce, so the attack never lands",
+      "live": true,
+      "detail": "HP the Bouncing body took off Tyranitar on the RELEASE turn — nobody interferes 18 (must be > 0, or the control arm is only saying Bounce does not work here)  |  Smack Down lands first 0 (must be 0: `queue.cancelMove` deletes the action, so the committed attack never executes)",
       "hollow": false,
       "armed": true,
       "directCall": false

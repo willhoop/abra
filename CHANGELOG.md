@@ -10,6 +10,132 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.195.0] — 2026-08-28
+
+### Fixed
+- **FOUR STATE FIXES, LANDED ONE AT A TIME WITH A MEASUREMENT AND AN ATTRIBUTION BETWEEN EACH —
+  ROADMAP `#519`, `#514` (closed), `#517`, `#518`.** Census **766 → 773 live / 773 probed / 0
+  missing**. Gate clauses **5 of 8 PASS → 6 of 8**. Mechanics clause **4 of 11 → 2 of 9**.
+  Board-material **0 of 961 after every one of the four**; whole-game unmoved at **1 of 961** (6 raw,
+  less 5 declared); damage **0/6000 at all sixteen corners** after each patch; roster
+  **139 / 129 / 475** with zero in both failure columns and red demonstrations **18/18, 29/29,
+  34/35 → 35/35 CAUGHT**. `PIN_DIGEST ccb365985023` and `DICE_MODEL v5` unmoved — none of the four
+  adds a stream or an address category. Releases `ccd5c7f5a5d7` → `cff226e4eef5` → `ee6db42728f7` →
+  `d29f6677bc76`, one per landed patch, each passed explicitly to every instrument.
+  - **PREDICTED BEFORE EACH RUN.** All four are LAB mechanics under Will's 2026-08-23 ranking — the
+    frozen pool holds **0** Smack Down, **3** Belch and **24** Shell Side Arm across 17,381 games,
+    and King's Shield lives on one species. The census and the roster were predicted to move and the
+    pinned pool to sit still, and that is what every one of the four did.
+  - **`#519` — THE `status` ROAD ASKED A BARE `t.protect` AND NEVER ASKED `blocksStatus`.**
+    `checkMoveBypassesProtect` (`sim/battle.ts:1300`) is
+    `(move.category !== 'Status' || blockStatus) && move.flags['protect']`, and each shield's own
+    `onTryHit` decides `blockStatus`: King's Shield returns early on a Status move and lets it land.
+    `shieldRefuses` has read `shieldsUser.blocksStatus` since `#238`; this branch was the one site
+    that never called it, so a Thunder Wave or a Glare into a King's Shield was refused here and
+    paralyses there — **board-material, the status leaf itself**. **ONE REASON, DERIVED**: the swap
+    also exempts `noProtectFlag` moves, and the probe enumerates the `kind:'status'` family through
+    the engine's own `playerAction` — **11 legal members, ZERO with `noProtectFlag`**.
+    `tests/probe_status_blocksstatus.js` (Glare, chosen for accuracy 100 so no cell is decided by a
+    die; two controls — the same body under Protect, and the same body with no shield — both hold),
+    `MEDI_STATUS_SHIELD_BLIND=1` reproduces the same red.
+  - **`#514` CLOSED — BELCH IS GATED ON THE BERRY LATCH, AND THE GATE IS AT USE TIME.** Champions
+    DELETES mainline's `onDisableMove` (`data/mods/champions/moves.ts:54`), so the authority OFFERS
+    the click (`"disabled":false`) and fails the USE — **a fix in the move-selection filter would
+    have been a NEW divergence**, and the probe asserts the menu stays open on both engines so no
+    later fix can pass by greying the button out. Measured with the knob turned by a REAL berry eat:
+    never ate → the authority deals 0 and this engine dealt **103**; ate a Sitrus → 70 and 103.
+    Identical damage across a varied knob is the unwired-knob signature. New derived tag
+    `failsWithoutUserLatch`, shape `onTry(source){return source.<latch>;}` — **1 legal member and 1
+    in the WHOLE dex**, printed before wiring. `gatesSelection` carries the format's own answer, so a
+    regulation that restores the handler re-arms the menu with no engine edit. **The silent default
+    was refused explicitly**: `LATCH_FIELDS_WRITTEN` is derived from medicham2's own source at load,
+    and a tag naming a latch this file has no writer for counts `MEDFAILS.userLatchUnwritten` and
+    leaves the move alone rather than refusing it for ever off an `undefined`. **This is what took
+    the roster's moves stage FAIL → PASS**: it was the single NOT CAUGHT red demonstration.
+  - **`#517` — SMACK DOWN APPLIED ITS VOLATILE TO A GROUNDED BODY, 8 OF 8 CELLS AGAINST THE
+    AUTHORITY'S 4.** *"Airborne" is FIVE ORDERED CLAUSES and it is not `isGrounded()`* — a body
+    holding an Iron Ball AND up on Magnet Rise reads `isGrounded() === true` and the authority
+    applies Smack Down anyway, because the last two clauses put `applies` back to true after the
+    negator cleared it. New tag `volatileStartGate`, and **the derivation splits the handler per
+    `if`-clause rather than regexing it**: `volatiles["ingrain"]` (a negator) and
+    `volatiles["magnetrise"]` (a lift that is then eaten) are identical syntax with opposite
+    meanings, and a lazy `/if\s*\(([\s\S]*?)\)/` cannot even find the condition. **12 moves dex-wide
+    have an `onStart` that can `return false`; the shape selects exactly ONE legal move.** Three
+    board arms all closed on `magnetrise`, which `board_state.js` DOES compare: a later Magnet Rise
+    refused here and landing there, a standing Magnet Rise the authority deletes and we left up, and
+    a committed Bounce the authority cancels and we executed. The cancel reuses Gravity's flag,
+    **renamed `_gravCancel` → `_queueCancel` and now carrying its cause** — both are the authority's
+    own `queue.cancelMove`, so it is one fact with two producers rather than a second copy. The
+    `-start` label is closed off the same parse (`startLine`), because `volatileAnnounce` cannot read
+    a guarded multi-statement `onStart` and fell back to `move: smackdown`.
+    `MEDI_VOL_START_GATE_BLIND=1` reproduces all five assertions red.
+  - **`#518` — SHELL SIDE ARM NEVER CHOSE ITS CATEGORY.** `onModifyMove` (`data/moves.ts:16224`;
+    Champions carries no `shellsidearm` key, only a learnset row) compares the DAMAGE each category
+    would do — the TARGET's defences are half the rule and the base power is the handler's literal
+    `90` — and flips a coin on an exact tie. **The `||` short-circuits, so a non-tie takes ZERO
+    draws**: the authority's sequence is `100/100 1/24` on a non-tie and `1/2 100/100 1/24` on a tie,
+    coin first. New tag `picksCategory`; **five moves dex-wide reassign their category and four are
+    `isNonstandard: 'Past'` here, so the legal membership is ONE.** The fix is a **PER-USE VIEW,
+    never a mutation**: `mv.c` is read at 21 sites off the shared `MC.moves[id]` row, so a shallow
+    clone is hung on the ACTION and reaches all 21 through the single `const mv=a.move.mv` the attack
+    branch already takes — Reflect, Counter, Weak Armor and the 17 contact punishes move with the
+    damage instead of being left behind. `mvMakesContact` gained a third input for the per-use
+    contact flag, since its cache is keyed on the move id and structurally cannot express one.
+    `rng()` off the generic `any` stream at the address the commit site has just written, three lines
+    below it exactly as the authority's `singleEvent('ModifyMove')` sits three lines below its
+    `setActiveMove`. `MEDI_NO_CATEGORY_PICK=1` reproduces the same red.
+
+### Changed
+- **`tests/probe_shell_side_arm.js` NOW PLAYS A REAL TURN, AND ITS OLD SHAPE COULD NEVER HAVE SEEN
+  THE FIX.** Its medicham arm called `dmgRange` directly with the shared move row, so it measured the
+  damage FORMULA while the authority's choice happens inside `useMoveInner` and ours at the matching
+  commit site — it ran unchanged after the fix landed and printed the identical red.
+  `tests/test-mechanics.js` states the same rule in as many words: *"a direct dmgRange tests the
+  FORMULA. This tests the PATH."* It also compared ONE medicham answer against BOTH forced authority
+  arms, which on a tie is unsatisfiable by a correct engine as well as a broken one — the
+  `tie-trivial-CONTROL` row read DIVERGES for that reason and not for a defect. Now forced
+  heads-to-heads, with a new assertion that the decision HAPPENED (`decided === 1`) and that our coin
+  count matches the authority's.
+- **`tests/probe_two_gates.js`'s `-start` comparison is aimed at Smack Down's own line.** It took the
+  first `|-start|p2a` of the turn, and on the Levitate cell that was the TARGET's idle click — it
+  reported *"authority Charge / ours move: charge"* against Smack Down. A real divergence in a
+  different mechanic, filed against the wrong one.
+
+### Notes
+- **`engine/board_state.js` neither compares `volatile:smackdown` nor declares it uncomparable — an
+  UNLISTED omission, and this pass did NOT add it to either list.** That is not ENGINE's call to make
+  quietly; the probe lands its board claim on `magnetrise` instead, which IS compared and which
+  parted three ways. It is now safe to wire, because the gate has landed.
+- **CHARGE'S `-start` PAYLOAD DIVERGES** — authority `Charge`, ours `move: charge`. `charge` is
+  deliberately refused by the `volatileAnnounce` deriver (only one of its two branches carries the
+  argument), so it is a pre-existing declared gap and belongs to the narration batch.
+- **A whitespace-only rewrite silently disarmed two live break tests.** Two Python edits converted
+  `engine/medicham2-browser.js` from CRLF to LF; `tests/roster.js`'s red demonstrations embed `\r\n`
+  inside their anchors, so `move/boosts-self` and `move/needs-a-stat-stage-to-act-on` reported NOT
+  CAUGHT. Restoring CRLF and re-cutting returned 35/35 with the patch in place. Only the `--reds`
+  column could see it.
+- `tests/roster.js --stage moves` ran out of heap once at the default and completed cleanly at
+  `--max-old-space-size=6144`, like `tests/test-resolution-order.js`.
+- **THE TREE SETTLED AT A FIFTH RELEASE, `aea838766e7f`, AND THE CLAIM "BEHAVIOUR-NEUTRAL" WAS
+  CHECKED RATHER THAN ASSERTED.** The engine moved once after `d29f6677bc76` was cut, so a release
+  was cut over the settled tree (`0 of 26 files have moved since`) and every instrument re-run
+  against it. **The delta was derived from the two release manifests, not remembered**: one file,
+  one hunk — `#514`'s `LATCH_FIELDS_WRITTEN` fell back through a SILENT `catch(e){/* comment */}`,
+  and the silent-catch gate is right that a comment is not a counter, so it now writes
+  `MEDFAILS.latchSourceUnreadable` / `latchSourceUnreadableWhy`. Under node the branch cannot fire
+  (`__filename` is always a string), so nothing could move — and **not one count in any artifact
+  did**: census **773 / 773 / 0**, board-material **0 of 961**, whole-game **6 raw / 1 of 961**,
+  damage **0/6000 at all sixteen corners**, roster **139 / 129 / 475** with zero in both failure
+  columns, red demonstrations **18/18, 29/29, 35/35**, `all_mechanics_fire --kind all` identical in
+  every summary count (1,289 games, 0 threw), gate **6 of 8**.
+- **THE CRLF DIAGNOSIS ABOVE IS CORRECT AND THE OBVIOUS WAY TO CHECK IT IS NOT.** Git Bash's
+  `grep -c $'\r'` reports **0** carriage returns in `engine/medicham2-browser.js`; counting the
+  bytes reports **34,902**, and both `--reds` anchors that embed `\r\n` match. The restore landed
+  before `d29f6677bc76` was cut, so the moves stage already read 35/35 there. A line-ending question
+  asked through a text-mode tool gets a confident wrong answer.
+
+---
+
 ## [5.194.0] — 2026-08-27
 
 ### Added

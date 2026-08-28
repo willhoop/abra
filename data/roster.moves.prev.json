@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-28T02:12:15.751Z",
+ "generated": "2026-08-28T05:13:48.127Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "fb73f82ea1ed",
+ "engine_release": "d29f6677bc76",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -250,9 +250,19 @@
   },
   {
    "rule": "move/needs-a-berry-already-eaten",
-   "ok": false,
+   "ok": true,
    "why": "a threshold berry restores nothing when it is eaten",
-   "moved": null
+   "moved": {
+    "member": "belch",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "move/drain",

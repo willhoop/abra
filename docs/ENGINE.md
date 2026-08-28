@@ -102,8 +102,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  766/766 probed mechanics live, 0 missing   (census 2026-08-27 22:46)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-27 22:09)
+  773/773 probed mechanics live, 0 missing   (census 2026-08-28 01:33)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-28 01:53)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -117,12 +117,139 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f6c7a6d3aaf8 now
     (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 280/296 probed, 16 unprobed
+  tag coverage: 283/299 probed, 16 unprobed
 ```
 
-_stamped 2026-08-27 23:37_
+_stamped 2026-08-28 02:03_
 
 <!-- /GENERATED -->
+
+## FOUR STATE FIXES, LANDED ONE AT A TIME WITH A MEASUREMENT BETWEEN EACH. **CENSUS 766 -> 773 LIVE / 773 PROBED / 0 MISSING. GATE 5 OF 8 PASS -> 6 OF 8. MECHANICS CLAUSE 4 OF 11 -> 2 OF 9. BOARD-MATERIAL 0 OF 961 AFTER EVERY ONE OF THE FOUR, WHOLE-GAME UNMOVED AT 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS AFTER EACH PATCH — ALL PREDICTED BEFORE THE RUNS. ROSTER 139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS, REDS 18/18, 29/29, 34/35 -> 35/35 CAUGHT. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-28.
+
+ROADMAP `#519`, `#514` (closed), `#517`, `#518`. Releases `ccd5c7f5a5d7` -> `cff226e4eef5` ->
+`ee6db42728f7` -> `d29f6677bc76`, one per landed patch, each passed explicitly to every instrument.
+CHANGELOG 5.195.0. Account: `docs/_reports/2026-08-27-four-state-fixes.md` and, for the closing
+verification, `docs/_reports/2026-08-28-four-state-landed.md`.
+
+**THE TREE SETTLED AT `aea838766e7f`, AND "BEHAVIOUR-NEUTRAL" WAS CHECKED RATHER THAN ASSERTED.**
+The engine moved once more after `d29f6677bc76` was cut, so a fifth release was cut over the settled
+tree — `0 of 26 files have moved since` — and every instrument was re-run against it. **The delta is
+one file and one hunk, derived from the two manifests rather than remembered**: `#514`'s
+`LATCH_FIELDS_WRITTEN` fell back through a SILENT `catch(e){/* comment */}`, and the silent-catch gate
+is right that a comment is not a counter, so it now writes `MEDFAILS.latchSourceUnreadable` and
+`latchSourceUnreadableWhy`. Under node the branch cannot fire — `__filename` is always a string — so
+the claim was that nothing could move, and nothing did.
+
+| instrument, re-run on `aea838766e7f` | reads | on `d29f6677bc76` |
+|---|---|---|
+| census (`tests/test-mechanics.js`) | **773 live / 773 probed / 0 missing** | 773 / 773 / 0 |
+| whole-game differential, board-material | **0 of 961** (`state.games_board_never_diverged` 961) | 0 of 961 |
+| whole-game differential, raw / clause | **6 raw, 1 of 961 after 5 declared** | 6 / 1 |
+| damage (`test-engine-diff --n 6000 --seed 20260804`) | **0/6000 at all sixteen corners** | 0/6000 |
+| roster items / abilities / moves | **139 / 129 / 475**, zero in both failure columns | 139 / 129 / 475 |
+| roster red demonstrations | **18/18, 29/29, 35/35 CAUGHT** | 18/18, 29/29, 35/35 |
+| `all_mechanics_fire --kind all` | every summary count identical, 1,289 games, 0 threw | identical |
+| gate | **6 of 8 PASS**, mechanics clause **2 of 9** | 6 of 8, 2 of 9 |
+
+**NOT ONE COUNT MOVED IN ANY ARTIFACT**, which is what a behaviour-neutral byte change has to look
+like before it may be written down. The CRLF restore below landed BEFORE `d29f6677bc76` was cut, so
+the moves stage already read 35/35 there; this pass did not re-earn that row, it confirmed it twice.
+The line endings were re-derived rather than trusted — `engine/medicham2-browser.js` carries **34,902
+CR bytes** and the two `--reds` anchors that embed `\r\n` both match. (Git Bash's `grep -c $'\r'`
+reports **0** on that same file. It is doing text-mode translation, and a line-ending question asked
+through it gets a confident wrong answer; count the bytes.)
+
+**FOUR MEASUREMENTS, FOUR ATTRIBUTIONS, AND THE THIRD NUMBER NEVER MOVED.**
+
+| # | patch | census | clause that moved | board-material |
+|---|---|---|---|---|
+| 1 | the `status` road asks `shieldRefuses`, not a bare `t.protect` (`#519`) | 766 -> **767** | none | **0 of 961** |
+| 2 | Belch gated on the berry latch (`#514`, closed) | 767 -> **768** | roster moves FAIL -> PASS; gate -> **6 of 8** | **0 of 961** |
+| 3 | Smack Down's airborne gate, consume, cancel and `-start` label (`#517`) | 768 -> **771** | mechanics **4 of 11 -> 3 of 10** | **0 of 961** |
+| 4 | Shell Side Arm picks its category (`#518`) | 771 -> **773** | mechanics **3 of 10 -> 2 of 9** | **0 of 961** |
+
+**THE POOL WAS PREDICTED TO SIT STILL BEFORE EACH RUN, NOT EXPLAINED AFTERWARDS.** All four are LAB
+mechanics under Will's 2026-08-23 ranking, counted directly in `data/team-pool-frozen` (17,381 games):
+Smack Down **0**, Belch **3**, Shell Side Arm **24**, and King's Shield lives on the one species that
+learns it. The denominator moving with the numerator on the mechanics clause was predicted too — a
+fixed mechanic leaves the diverging set, so 4 of 11 -> 3 of 10 -> 2 of 9 is the expected shape.
+
+**THE DIAGNOSES WERE EVIDENCE AND TWO OF THEM WERE WRONG WHERE IT MATTERED.** The Shell Side Arm
+report said the compiled dist spells handlers with double quotes; it writes `move.flags.contact = 1`
+in DOT notation, so the first regex returned `alsoSetsFlag: null` and the entire contact half went
+missing SILENTLY. Its probe, meanwhile, could never have observed the fix at all — see below. The
+Smack Down report proposed a `negatorVolatiles` clause it flagged as unshippable, and it was right:
+`volatiles["ingrain"]` and `volatiles["magnetrise"]` are identical syntax with opposite meanings.
+
+**AND ONE PROBE COULD NOT SEE ITS OWN MECHANIC.** `tests/probe_shell_side_arm.js` called
+`MEDI.dmgRange(a, d, MC.moves[MOVE], ...)` directly with the SHARED move row. The authority's category
+choice happens inside `useMoveInner`; this engine's happens at the matching commit site in the battle
+loop and hangs a per-use view on the ACTION. A probe that never takes an action can observe neither —
+it ran unchanged after the fix landed and printed the identical red. `tests/test-mechanics.js` already
+states the rule in as many words: *"a direct dmgRange tests the FORMULA. This tests the PATH"*. It also
+asked ONE medicham answer to match BOTH forced authority arms, which on a tie is unsatisfiable by a
+correct engine as well as a broken one, so `tie-trivial-CONTROL` read DIVERGES for a reason that was
+never a defect. Rewritten to play a real turn, forced heads-to-heads, with a new assertion that the
+decision HAPPENED at all and that our coin count matches the authority's.
+
+**A PER-USE VIEW, NEVER A MUTATION, BECAUSE `mv.c` IS READ AT 21 SITES.** `a.move.mv` is the shared
+`MC.moves[id]` row; writing `c` onto it would make every later Shell Side Arm by anybody Physical. A
+shallow clone hung on the action reaches all 21 through the single `const mv=a.move.mv` the attack
+branch already takes, so Reflect, Counter, Weak Armor and the 17 contact punishes move WITH the damage.
+`mvMakesContact` gained a third input for the per-use contact flag — its cache is keyed on the move id
+and structurally cannot hold one.
+
+**ONE FLAG, TWO PRODUCERS.** `_gravCancel` is renamed `_queueCancel` and carries its cause: Gravity and
+Smack Down both make the authority's own `this.queue.cancelMove(pokemon)` call, so "this action was
+deleted from the queue" is one fact rather than two copies of one.
+
+**A WHITESPACE-ONLY REWRITE SILENTLY DISARMED TWO LIVE BREAK TESTS.** Two Python edits converted
+`engine/medicham2-browser.js` from CRLF to LF; `tests/roster.js`'s red demonstrations embed `\r\n`
+inside their anchor strings, so `move/boosts-self` and `move/needs-a-stat-stage-to-act-on` reported NOT
+CAUGHT. It was not the patch — restoring CRLF and re-cutting returned 35/35 with the patch in place.
+Only the `--reds` column could see it, which is the whole argument for `#513`.
+
+**DECLARED, NOT RESOLVED.** `engine/board_state.js` neither compares `volatile:smackdown` nor declares
+it uncomparable — an UNLISTED omission, which its own header says reads exactly like agreement. **This
+pass did NOT add it to either list**; that is not ENGINE's call to take quietly. The probe lands its
+board claim on `magnetrise` instead, which IS compared and which parted three ways. It is now safe to
+wire, because the gate has landed.
+
+### THE HAND LIST
+
+Covers the 2026-08-28 four-state pass and nothing else.
+
+**Leaves it:** **ROADMAP `#514`** — *"nothing gates Belch on having eaten a berry"* — is closed, and it
+was the last NOT CAUGHT red demonstration, so the roster's moves stage went FAIL -> PASS and the gate
+went 5 of 8 -> 6 of 8. It is carried by `tests/probe_two_gates.js` and by the census row
+`move / failsWithoutUserLatch`, whose test arm eats a REAL Sitrus rather than planting the latch.
+**Also leaves it:** the King's Shield status road (`#519`), Smack Down's airborne gate (`#517`) and
+Shell Side Arm's category (`#518`), each with its own census row, its own knob and its own probe.
+
+**Joins it:**
+- **CHARGE'S `-start` PAYLOAD DIVERGES** — authority `Charge`, ours `move: charge`. Found while
+  re-aiming `probe_two_gates.js`'s `-start` comparison, which was grabbing the FIRST `-start` of the
+  turn (the target's idle click) and filing it against Smack Down. `charge` is DELIBERATELY refused by
+  the `volatileAnnounce` deriver — only one of its two branches carries the argument — so this is a
+  pre-existing declared gap and belongs to the narration batch, not to a state pass.
+- **`volatileAnnounce` STILL CANNOT READ A GUARDED MULTI-STATEMENT `onStart`.** 49 members; the
+  `volatileStartGate.startLine` fallback covers the one member that has a gate and nothing else. The
+  next guarded `onStart` to arrive is covered only if it also carries a gate.
+- **SIX NEW COUNTERS HAVE ONLY EVER BEEN READ ON A STAGED BOARD.** `categoryPicked`,
+  `categoryPickTieDrawn`, `contactFlagPerUse`, `volStartGateRefused`, `volStartGateApplied` and
+  `userLatchRefused` — `game_differential.js` surfaces no MEDSEEN, so the pool-scale reach of all four
+  fixes is unknown.
+- **THE PER-USE CONTACT FLAG HAS NO FIXTURE.** It is wired and counted and reaches the 17 legal contact
+  abilities and the four punishing shields; the Shell Side Arm probe's defender punishes nothing, so
+  nothing has staged a Physical Shell Side Arm into a Rough Skin or a Spiky Shield.
+- **`tests/roster.js --stage moves` NEEDS `--max-old-space-size=6144`**, like
+  `tests/test-resolution-order.js`. It ran out of heap once at the default mid-session.
+- **ROADMAP `#516`, `#511`, `#507`, the partial trap's `!source.activeTurns` clause** are carried over
+  unchanged from the previous batch; nothing here touched them.
+- **The whole-game baseline is still stamped under a two-generation-old pin**, so `quarantine.js`
+  withholds direction of travel and is right to.
+
+---
 
 ## THE THIRTY DORMANT RED DEMONSTRATIONS, CLASSIFIED BEFORE ANYTHING WAS TOUCHED. **23 MISWRITTEN DEMONSTRATION / 7 WRONG RULE / 1 THE ENGINE REALLY DOES NOT REACT. 30 -> 1, WITH EVERY ARTIFACT COLUMN UNMOVED — 0/0 IN BOTH FAILURE COLUMNS, 139 / 129 / 475 MATCH, CENSUS 765/765/0, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, WHOLE-GAME 1 OF 961, BOARD-MATERIAL 0 OF 961, PIN `ccb365985023` DICE_MODEL v5.** 2026-08-27.
 

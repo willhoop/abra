@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-25",
- "by": "tests/test-no-silent-failure.js --accept engine/artifact_audit.js#3314d002d506",
+ "generated": "2026-08-28",
+ "by": "tests/test-no-silent-failure.js --accept tests/probe_status_blocksstatus.js#9e2899d055ab",
  "note": "GENERATED. Never hand-edit. `entries` is the ratchet floor: the silent catch blocks that existed when it was set. `--update` is MONOTONE — it writes min(baseline, current) per key, so it locks in FIXES and structurally cannot launder a new offender into the floor (ROADMAP #258). `accepted` is separate and is the ONLY door in: one block at a time, named by <file>#<hash of the catch body>, each carrying the reason a person wrote after reading that block. An accepted block that is EDITED hashes differently and fails again.",
  "count": 201,
  "entries": {
@@ -171,7 +171,7 @@
   "tests/test-tag-wire.js#db2eeaf2f910": 1,
   "tests/test-wiring.js#da39a3ee5e6b": 1
  },
- "acceptedCount": 65,
+ "acceptedCount": 69,
  "accepted": {
   "engine/orient.js#604a40a7c4d6": {
    "at": "2026-08-23",
@@ -728,6 +728,34 @@
     494
    ],
    "body": "flag('GAP', `data/${f} names builder ${builder}, which cannot be read "
+  },
+  "tests/probe_status_blocksstatus.js#5309f87c9953": {
+   "at": "2026-08-28",
+   "why": "NOT SILENT — it counts. The block calls note('playerAction', ...), which increments REFUSED.playerAction and records the first message; line 342 PRINTS 'refusals swallowed by nothing — playerAction N, canTakeStatus N' on every run, and both walks it guards enumerate EVERY legal move, so a shrinking population is the one thing the probe's own headline claim ('the ONLY difference the swap makes on this family is blocksStatus, 11 members, 0 noProtectFlag') depends on. Measured 0 and 0 on the green run. Two sites share this hash because the two walks ask playerAction the same way.",
+   "count": 2,
+   "lines": [
+    148,
+    185
+   ],
+   "body": "note('playerAction', m.id, e); continue;"
+  },
+  "tests/probe_status_blocksstatus.js#4127fb7e0da8": {
+   "at": "2026-08-28",
+   "why": "NOT SILENT, AND THE 'MANUFACTURED' false IS THE CORRECT ANSWER. note('canTakeStatus', ...) increments REFUSED.canTakeStatus and line 342 prints it; the value it sets is can=false, which makes the loop SKIP that status and try the next one rather than cast a status the target might be immune to. Choosing a cast the engine could not price would be the defect; refusing it is the safe direction, and the run prints which cast was CHOSEN plus 'TARGET can take <status> : true' beside it. Measured 0 on the green run.",
+   "count": 1,
+   "lines": [
+    209
+   ],
+   "body": "note('canTakeStatus', c.mv.id, e); can = false;"
+  },
+  "tests/probe_status_blocksstatus.js#9e2899d055ab": {
+   "at": "2026-08-28",
+   "why": "NOT SILENT — it counts. note('canTakeStatus', MV.id, e) increments REFUSED.canTakeStatus, printed at line 342. This is otherReasons(), which DERIVES how many reasons other than the shield each cell carries and refuses any cell above one; leaving 'can' false adds 'target:immune-to-<status>' to that list, so a refusal here makes the probe MORE conservative — it disqualifies the fixture rather than passing it. Measured 0 on the green run.",
+   "count": 1,
+   "lines": [
+    232
+   ],
+   "body": "note('canTakeStatus', MV.id, e);"
   }
  }
 }

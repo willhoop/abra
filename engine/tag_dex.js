@@ -1010,6 +1010,42 @@ const userTypeRequirement = (m) => {
 const selfBoostVia = (m) => (m.self && m.self.boosts) ? 'self'
   : (m.selfBoost && m.selfBoost.boosts) ? 'selfBoost'
   : ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') && m.boosts) ? 'boosts' : null;
+/* 2026-08-27 -- SPLIT A HANDLER BODY INTO ITS `if` CLAUSES, MATCHING PARENS AND BRACES.
+ *
+ * A lazy regex cannot do this and the difference is not academic. Smack Down's `onStart` reads
+ * `pokemon.volatiles["ingrain"]` in a clause whose body is `applies = false` and
+ * `pokemon.volatiles["magnetrise"]` in a clause whose body is `applies = true; delete ...` — two
+ * clauses with IDENTICAL syntax and OPPOSITE meanings. A regex over the whole source cannot tell
+ * them apart, and a derivation that got it backwards would ground a Magnet-Risen body by refusing
+ * to touch it: a new defect wearing the fixed one's name.
+ *
+ * It also cannot be done with `/if\s*\(([\s\S]*?)\)/`, because
+ * `if (p.hasType("Flying") || p.hasAbility(["levitate","eelevate"]))` closes three parens before the
+ * one that ends the condition. So the parens are counted and the body is taken as a brace-matched
+ * block or as everything up to the next `;`. */
+function ifClauses(src) {
+  const out = [];
+  for (let i = 0; i < src.length; i++) {
+    if (src[i] !== 'i' || src[i + 1] !== 'f') continue;
+    if (i > 0 && /[\w$.]/.test(src[i - 1])) continue;
+    if (!/^if\s*\(/.test(src.slice(i, i + 8))) continue;
+    const j = src.indexOf('(', i); if (j < 0) break;
+    let d = 0, k = j;
+    for (; k < src.length; k++) { if (src[k] === '(') d++; else if (src[k] === ')') { d--; if (!d) break; } }
+    let b = k + 1; while (b < src.length && /\s/.test(src[b])) b++;
+    let body;
+    if (src[b] === '{') {
+      let e = b, dd = 0;
+      for (; e < src.length; e++) { if (src[e] === '{') dd++; else if (src[e] === '}') { dd--; if (!dd) break; } }
+      body = src.slice(b + 1, e); i = e;
+    } else {
+      const e = src.indexOf(';', b);
+      body = src.slice(b, e < 0 ? src.length : e + 1); i = e < 0 ? src.length : e;
+    }
+    out.push({ cond: src.slice(j + 1, k), body });
+  }
+  return out;
+}
 const MOVE_TAGS = [
   /* ROADMAP #144 -- HOW MANY TIMES THIS MOVE CAN BE CLICKED, and until 2026-08-11 the engine had no
    * such number at all: zero mentions of PP in medicham2-browser.js and no `pp` field on a built
@@ -1912,6 +1948,184 @@ const MOVE_TAGS = [
       const min = /moveSlots\.length\s*<\s*(\d+)/.exec(s);
       return { minSlots: min ? +min[1] : 2,
                mustKnowItself: new RegExp('moveSlot\\.id\\s*===?\\s*[\'"]' + m.id + '[\'"]').test(s) };
+    } },
+  /* 2026-08-27 -- THE MOVE DECIDES ITS OWN CATEGORY, AND THE DECISION IS A DAMAGE COMPARISON.
+   *
+   * ROADMAP #518. Shell Side Arm's `onModifyMove` (data/moves.ts:16224; `data/mods/champions/` has no
+   * `shellsidearm` key — the only hit is `learnsets.ts:1361` — so mainline is what Champions runs):
+   *
+   *     const physical = floor(floor(floor(floor(2*level/5+2) * 90 * atk) / def) / 50);
+   *     const special  = floor(floor(floor(floor(2*level/5+2) * 90 * spa) / spd) / 50);
+   *     if (physical > special || (physical === special && this.randomChance(1, 2))) {
+   *       move.category = 'Physical'; move.flags.contact = 1; }
+   *
+   * IT IS NOT A STAT COMPARISON. The TARGET's defences are half the rule, and the base power used is
+   * the handler's literal `90`, not `move.basePower`. `getStat(stat, false, true)` means stat STAGES
+   * count and Modify events (burn, Life Orb, Huge Power, the Ruin abilities) do NOT.
+   *
+   * THE TIE DRAWS AND THE NON-TIE DOES NOT — the `||` short-circuits. Measured by printing every
+   * `randomChance` of the use: a non-tie reads `100/100 1/24`, a tie reads `1/2 100/100 1/24` with
+   * the coin FIRST, before accuracy.
+   *
+   * OVER-MATCH CHECKED AND IT IS A POPULATION OF ONE BY THE REGULATION. Five moves dex-wide reassign
+   * `move.category` inside `onModifyMove`; four of them are `isNonstandard: 'Past'` here. So the
+   * membership is 1 legal / 5 unfiltered — exactly the size at which a hardcoded id is tempting and
+   * still wrong. `stats.length !== 4` returns null rather than guessing, so a move that reassigns its
+   * category by a different rule shows up as UNWIRED instead of being handed this arithmetic. */
+  { tag: 'picksCategory',
+    param: 'the move decides physical or special from the DAMAGE each would do, and how a tie breaks',
+    probe: 'picksCategory',
+    why: 'Shell Side Arm is the only legal move that reassigns its own category. The flip moves the '
+       + 'attacking stat, the defending stat, the contact flag, 17 contact abilities, four shields, '
+       + 'both screens, both mirror moves and Weak Armor — and on a tie it draws a die the authority '
+       + 'spends and this engine did not. Probed red at authority Physical 61 vs our Special 43',
+    of: m => {
+      const src = String(m.onModifyMove || '');
+      const becomes = (src.match(/move\.category\s*=\s*["'](\w+)["']/) || [])[1];
+      if (!becomes) return null;
+      const stats = [...src.matchAll(/getStat\(\s*["'](\w+)["']\s*,\s*(\w+)\s*,\s*(\w+)\s*\)/g)];
+      if (stats.length !== 4) return null;             /* not this shape; refuse, never guess */
+      const bp = +(src.match(/\*\s*(\d+)\s*\*\s*\w+\)/) || [])[1] || 0;
+      const coin = src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+      /* BOTH SPELLINGS, AND THE FIRST VERSION HAD THE WRONG ONE. The compiled dist writes
+       * `move.flags.contact = 1` in DOT notation, not `move.flags["contact"]` — a bracket-only regex
+       * returned null and the whole contact half went missing SILENTLY, which is the failure this
+       * file's own rules are about. Printed before it was believed. */
+      const fm = src.match(/move\.flags(?:\[\s*["'](\w+)["']\s*\]|\.(\w+))\s*=\s*1/);
+      const flag = fm ? (fm[1] || fm[2]) : null;
+      return { becomes,
+               comparesBy: 'damage',
+               basePowerUsed: bp,                      /* the HANDLER's literal, not m.basePower */
+               offensive: [stats[0][1], stats[1][1]],  /* atk, spa */
+               defensive: [stats[2][1], stats[3][1]],  /* def, spd */
+               usesBoosts: stats[0][2] === 'false',    /* getStat(_, unboosted=false, _) */
+               usesModifiers: stats[0][3] === 'false', /* getStat(_, _, unmodified=true) -> false */
+               tieDraw: coin ? { num: +coin[1], den: +coin[2] } : null,
+               alsoSetsFlag: flag };
+    } },
+  /* 2026-08-27 -- THE VOLATILE REFUSES TO START UNLESS THE BODY IS AIRBORNE, AND "AIRBORNE" HERE IS
+   * FIVE ORDERED CLAUSES RATHER THAN `isGrounded()`.
+   *
+   * ROADMAP #517. Smack Down's `condition.onStart` (data/moves.ts:16960; `grep -rn smackdown
+   * data/mods/champions/` returns LEARNSETS ONLY, so mainline's entry is what Champions runs):
+   *
+   *     let applies = false;
+   *     if (p.hasType("Flying") || p.hasAbility(["levitate","eelevate"])) applies = true;
+   *     if (p.hasItem("ironball") || p.volatiles["ingrain"] || field.getPseudoWeather("gravity")) applies = false;
+   *     if (p.removeVolatile("fly") || p.removeVolatile("bounce")) { applies = true; queue.cancelMove(p);
+   *                                                                 p.removeVolatile("twoturnmove"); }
+   *     if (p.volatiles["magnetrise"])  { applies = true; delete p.volatiles["magnetrise"]; }
+   *     if (p.volatiles["telekinesis"]) { applies = true; delete p.volatiles["telekinesis"]; }
+   *     if (!applies) return false;
+   *     this.add("-start", p, "Smack Down");
+   *
+   * THE ORDER IS THE MECHANIC AND `!isGrounded()` IS A DIFFERENT RULE. Measured counterexample: a body
+   * holding an IRON BALL and up on MAGNET RISE reads `isGrounded() === true`, and the authority
+   * applies Smack Down to it anyway and eats the Magnet Rise — because the last two clauses put
+   * `applies` back to true AFTER the negator cleared it. A gate written as `if (isGrounded) refuse`
+   * would be wrong on that cell, and wrong on a body mid-Bounce, which `isGrounded` knows nothing
+   * about. That prediction was written down first and the authority contradicted it.
+   *
+   * WHICH IS WHY THE PARAMS ARE PARSED PER CLAUSE. `ingrain` and `magnetrise` are read with identical
+   * syntax and mean opposite things; `ifClauses` above classifies each clause by what its BODY does
+   * to `applies`, so the two can never be merged into one list.
+   *
+   * OVER-MATCH CHECKED AND PRINTED BEFORE WIRING. Over the whole dex, 12 moves have a
+   * `condition.onStart` that can `return false`; the shape here — a `volatileStatus`, an `applies`
+   * accumulator and a `return false` — selects **exactly ONE legal move, `smackdown`**, and one
+   * dex-wide. The other eleven (encore, disable, attract, focusenergy, dragoncheer, gastroacid,
+   * roost, torment, and three that are `isNonstandard: 'Past'`) are refused by shape, and five of
+   * them already have named owners in `applyMoveVolatile`.
+   *
+   * `startLine` CLOSES THE NARRATION HALF FOR FREE and belongs here rather than in `volatileAnnounce`:
+   * that derivation cannot read a guarded multi-statement `onStart`, so `smackdown` is not among its
+   * 49 members and the engine fell back to `'move: ' + vol` — authority `|-start|p2a: X|Smack Down`
+   * against ours `|-start|p2a: x|move: smackdown`. The next guarded `onStart` to arrive is covered. */
+  { tag: 'volatileStartGate',
+    param: 'the volatile REFUSES to start unless the body is airborne, and the ORDERED clause list '
+         + 'that decides it — lifts, negators, charges it cancels and volatiles it deletes',
+    probe: 'volatileStartGate',
+    why: 'Smack Down applied its volatile in 8 of 8 staged cells and the authority applies it in 4. '
+       + 'The phantom volatile then refuses a later Magnet Rise, leaves a Magnet Rise standing that '
+       + 'the authority deletes, and lets a committed Bounce execute that the authority cancels',
+    of: m => {
+      const src = String((m.condition && m.condition.onStart) || '');
+      if (!m.volatileStatus || !/\bapplies\b/.test(src) || !/return\s+false/.test(src)) return null;
+      const grab = (s, re) => [...s.matchAll(re)].map(x => x[1]);
+      /* `volatile` IS CARRIED so the reader can route on it. `applyMoveVolatile` is called with a
+       * volatile name AND a move id, and a move may install more than one volatile over its life;
+       * routing on the move id alone would apply an airborne gate to whatever else it wrote. */
+      const g = { volatile: m.volatileStatus,
+                  liftTypes: [], liftAbilities: [], negatorItems: [], negatorVolatiles: [],
+                  negatorPseudo: [], consumesVolatiles: [], deletesVolatiles: [], alsoRemoves: [],
+                  cancelsQueuedMove: false, startLine: null };
+      for (const c of ifClauses(src)) {
+        const T = /\bapplies\s*=\s*true\b/.test(c.body);
+        const F = /\bapplies\s*=\s*false\b/.test(c.body);
+        const rem = grab(c.cond, /removeVolatile\(\s*["'](\w+)["']/g);
+        if (T && rem.length) {                    /* the CHARGE clause — it also cancels the action */
+          g.consumesVolatiles.push(...rem);
+          if (/queue\.cancelMove/.test(c.body)) g.cancelsQueuedMove = true;
+          g.alsoRemoves.push(...grab(c.body, /removeVolatile\(\s*["'](\w+)["']/g));
+          continue;
+        }
+        if (T) {
+          g.liftTypes.push(...grab(c.cond, /hasType\(\s*["'](\w+)["']/g));
+          for (const a of [...c.cond.matchAll(/hasAbility\(\s*\[([^\]]*)\]/g)])
+            g.liftAbilities.push(...(a[1].match(/["'](\w+)["']/g) || []).map(t => t.replace(/["']/g, '')));
+          g.liftAbilities.push(...grab(c.cond, /hasAbility\(\s*["'](\w+)["']/g));
+          g.deletesVolatiles.push(...grab(c.body, /delete\s+\w+\.volatiles\[\s*["'](\w+)["']\s*\]/g));
+          continue;
+        }
+        if (F) {
+          g.negatorItems.push(...grab(c.cond, /hasItem\(\s*["'](\w+)["']/g));
+          g.negatorVolatiles.push(...grab(c.cond, /\.volatiles\[\s*["'](\w+)["']\s*\]/g));
+          g.negatorPseudo.push(...grab(c.cond, /getPseudoWeather\(\s*["'](\w+)["']/gi).map(x => x.toLowerCase()));
+        }
+      }
+      const sl = /this\.add\(\s*["']-start["']\s*,\s*\w+\s*,\s*["']([^"']+)["']/.exec(src);
+      g.startLine = sl ? sl[1] : null;
+      return g;
+    } },
+  /* 2026-08-27 -- A LATCHED FACT ABOUT THE USER, ASKED AT USE TIME AND NOT AT PICK TIME.
+   *
+   * ROADMAP #514. Belch reads `onTry(source) { return source.ateBerry; }` (data/moves.ts:1209) and
+   * this engine read the latch NOWHERE on the move path, so a 120 BP Poison move was free on turn
+   * one. Measured against the authority: never ate a berry -> damage 0/103, ate a Sitrus -> 70/103.
+   * Identical damage across the varied knob is the unwired-knob signature.
+   *
+   * `gatesSelection` IS THE HALF THE FIRST DIAGNOSIS GOT WRONG, AND IT IS DERIVED RATHER THAN TYPED.
+   * Mainline ALSO carries `onDisableMove(pokemon) { if (!pokemon.ateBerry) pokemon.disableMove('belch'); }`
+   * -- so in mainline the button is greyed out. **Champions DELETES it**:
+   * `data/mods/champions/moves.ts:54  onDisableMove: undefined`, verified on the live format object
+   * (`typeof D.moves.get('belch').onDisableMove === 'undefined'`). The authority therefore OFFERS the
+   * click (`"disabled":false` on the request) and fails the USE with `|move|...|Belch||[still]` then
+   * `|-fail|`. A fix in the move-selection filter would be a NEW divergence -- our menu would
+   * disagree with Showdown's -- which is exactly why the format is asked instead of remembered. A
+   * regulation that restores `onDisableMove` re-arms the menu gate with no engine edit.
+   *
+   * OVER-MATCH CHECKED BEFORE WIRING, and it is the tightest population in the file: the shape
+   * `onTry(source){return source.<latch>;}` -- a bare boolean read of a persistent user latch and
+   * nothing else -- matches **1 legal move and 1 move in the WHOLE dex**, so the legality filter is
+   * not hiding anything behind it. The wider neighbourhood (15 `onTry` bodies that read only
+   * `source`) is already owned: `firstTurnOnly`, `failsUnlessOtherMovesUsed`, `spendsVolatile`,
+   * `needsTargetToAttack`, `forcesBerryEat`. Belch was the one gap. */
+  { tag: 'failsWithoutUserLatch',
+    param: 'the move FAILS at USE time unless a latched fact about its own user is true',
+    /* THE TAG NAME, because `consumedBy` greps the engines for this string — the same convention
+     * `failsUnlessOtherMovesUsed` uses. A prose probe reads NOT READ for ever, which is a false
+     * negative on the exact question this column exists to answer. */
+    probe: 'failsWithoutUserLatch',
+    why: 'Belch. Champions DELETES mainline\'s onDisableMove (data/mods/champions/moves.ts:54), so '
+       + 'the click is OFFERED and the move fails — a fix in the menu filter would be a NEW '
+       + 'divergence. Nothing in this engine read the latch: 103 damage where the authority deals 0',
+    of: m => {
+      const g = /^\s*onTry\s*\(\s*source\s*\)\s*\{\s*return\s+source\.([A-Za-z_$][\w$]*)\s*;?\s*\}\s*$/
+                  .exec(String(m.onTry || '').replace(/\r/g, ''));
+      if (!g) return null;
+      return { field: g[1],
+               /* THE MOD'S OWN ANSWER TO "IS THE BUTTON GONE TOO", NEVER ASSUMED. */
+               gatesSelection: typeof m.onDisableMove === 'function' };
     } },
   { tag: 'spendsOwnType', param: 'the move needs a type on its USER and burns it off on the way out', probe: 'spendsOwnType',
     why: 'Burn Up (46 uses) resolved off a user that no longer had a Fire type to spend, and never '
