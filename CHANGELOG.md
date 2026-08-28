@@ -10,6 +10,40 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.189.0] — 2026-08-27
+
+### Fixed
+- **A PARTIAL TRAP THAT ENDED BECAUSE ITS SOURCE LEFT THE FIELD CLEARED THE VOLATILE AND NEVER WROTE
+  ITS `-end`. WHOLE-GAME 3 -> 2 OF 961 AND RAW DIVERGED 8 -> 7, PREDICTED BEFORE THE RUN.
+  BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS. PIN
+  DIGEST UNMOVED AT `ccb365985023`, `DICE_MODEL` v5.** ENGINE. ROADMAP `#512` closed. Release
+  `718392c70ef8`.
+  - `partiallytrapped.onResidual` (`data/conditions.ts:236-241`) takes the state and the line on two
+    consecutive statements — `delete pokemon.volatiles['partiallytrapped'];` then `this.add('-end',
+    pokemon, this.effectState.sourceEffect, '[partiallytrapped]', '[silent]');`. It is a `delete`,
+    not a `removeVolatile`, so `onEnd` never fires and that inline line is the only one written.
+    **Champions does not override the condition** — `data/mods/champions/conditions.ts` is 57 lines
+    and holds only `par`, `slp` and `frz`, read in full.
+  - This engine's source-gone branch did `m._trap = null` with no trace call, while the
+    duration-expiry branch four lines below already emitted the correct line. One mechanic, two
+    exits, one announcement.
+  - `[silent]` costs nothing here: the differential strips `[silent] [still] [miss] [spread] [anim]`
+    before comparing, so the same three-argument `TR.vend` the expiry branch already uses is exact
+    and the two branches stay one announcement.
+  - Probe `tests/probe_upkeep_lines.js --only trap` stages EVERY `partialTrap` move with a legal
+    carrier rather than one chosen by hand: **7 of 7 red, 7 of 7 green**, each arm printing the
+    authority's own staging receipt (`|-activate|TARGET|move: NAME`) so an AGREES with nothing staged
+    cannot read as a pass, and each control — the same board with the trapper staying in — agreeing
+    before and after.
+
+### Notes
+- **A DECLARED REMAINDER, STATED RATHER THAN FOLDED IN.** The authority's source-gone predicate is
+  `!source.isActive || source.hp <= 0 || !source.activeTurns`. `!source.activeTurns` — a trapper that
+  entered the field THIS turn — has no counterpart in this engine, so Showdown ends the trap in a
+  case where this engine does not. It is a different fixture and is not measured here.
+
+---
+
 ## [5.188.0] — 2026-08-27
 
 ### Fixed

@@ -125,6 +125,70 @@ _stamped 2026-08-27 19:37_
 
 <!-- /GENERATED -->
 
+## A PARTIAL TRAP THAT ENDED BECAUSE ITS SOURCE LEFT THE FIELD CLEARED THE VOLATILE AND NEVER WROTE ITS `-end` — ONE MECHANIC WITH TWO EXITS AND ONE ANNOUNCEMENT. **WHOLE-GAME 3 -> 2 OF 961 AND RAW DIVERGED 8 -> 7, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
+
+ROADMAP `#512` closed. Release `718392c70ef8`. CHANGELOG 5.189.0.
+Probe `tests/probe_upkeep_lines.js --only trap` — 7 of 7 RED (exit 1) before, 7 of 7 GREEN (exit 0) after.
+
+**THE AUTHORITY TAKES THE STATE AND THE LINE ON TWO CONSECUTIVE STATEMENTS.** `data/conditions.ts`,
+`partiallytrapped.onResidual`, read whole:
+
+```
+if (source && (!source.isActive || source.hp <= 0 || !source.activeTurns) && !gmaxEffect) {
+    delete pokemon.volatiles['partiallytrapped'];
+    this.add('-end', pokemon, this.effectState.sourceEffect, '[partiallytrapped]', '[silent]');
+    return;
+}
+```
+
+It is a `delete` and **not** a `removeVolatile`, so `onEnd` never fires — that inline line is the
+only one written. **Champions does not override the condition**: `data/mods/champions/conditions.ts`
+is 57 lines and holds `par`, `slp`, `frz` and nothing else, read in full rather than sampled.
+
+**THIS ENGINE TOOK THE STATE AND LEFT THE LINE OWED.** The source-gone branch was `m._trap = null`
+with no trace call; the duration-expiry branch four lines below already emitted the right line. The
+state was never wrong, at the right residual order (13), which is why switch legality and every HP
+line either side of it agreed and no board comparison ever had anything to say.
+
+**`[silent]` COSTS NOTHING AND THAT WAS CHECKED, NOT ASSUMED.** The differential strips
+`[silent] [still] [miss] [spread] [anim]` before comparing, so the SAME three-argument `TR.vend` the
+expiry branch uses is exact — which is the point: the two exits of one mechanic now share one
+announcement instead of one having its own.
+
+**EVERY MEMBER WAS STAGED, NOT ONE CHOSEN BY HAND.** The pool row names Infestation and the mechanism
+is the condition, so a single move would leave open whether the other six behave differently. All
+seven `partialTrap` moves of this format with a legal carrier were staged — bind, firespin,
+infestation, sandtomb, snaptrap, whirlpool, wrap — and all seven parted before and agree after.
+
+**THE CONTROL COULD HAVE FAILED, AND THE STAGING RECEIPT IS WHY AN `AGREES` MEANS SOMETHING.** Each
+arm prints the authority's own `|-activate|TARGET|move: NAME`, so an arm where the trap never landed
+reports NOT-STAGED instead of passing. The control moves exactly one knob — the trapper stays in
+instead of switching out — and agrees before AND after, with no `-end` in either stream, so the fix
+did not start writing the line unconditionally.
+
+**THE MEASUREMENT.** Release `718392c70ef8`, arm `middle`, `--games 1200` (yields 961), cap 12,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+
+| | before (`ffd74ed20b75`) | after (`718392c70ef8`) |
+|---|---|---|
+| raw diverged | 8 | **7** |
+| declared (`fallenundefined`) | 5 | 5 |
+| **whole-game** | **3 of 961** | **2 of 961** |
+| board never diverged | 961 | 961 |
+| **board-material** | **0 of 961** | **0 of 961** |
+| threw / void | 0 / 0 | 0 / 0 |
+| damage | 0/6000, all sixteen corners | 0/6000, all sixteen corners |
+| pin digest | `ccb365985023` | `ccb365985023` |
+| team pool corpus / picked | `0d103fb9fa87`, 8778 / 1968 | identical |
+| census pin | `9446a684709d`, 643 rows | identical |
+
+**A DECLARED REMAINDER, STATED RATHER THAN FOLDED IN.** The authority's predicate is
+`!source.isActive || source.hp <= 0 || !source.activeTurns`; this engine's is `fainted || curHP <= 0
+|| not-on-the-field`. **`!source.activeTurns` has no counterpart here** — a trapper that entered the
+field THIS turn ends the trap in Showdown and does not here. It is a different fixture and was not
+measured in this pass.
+
+
 ## A MULTI-HIT VOLLEY THAT LANDED EXACTLY ONE ARRIVAL NEVER ANNOUNCED `|-hitcount|TARGET|1` — THE COUNT WAS ALWAYS RIGHT AND ONLY THE LINE WAS OWED. **WHOLE-GAME 4 -> 3 OF 961 AND RAW DIVERGED 9 -> 8, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
 
 ROADMAP `#510` closed, `#511` filed. Release `ffd74ed20b75`. CHANGELOG 5.188.0.

@@ -233,7 +233,9 @@ function armTrap() {
     const leave = { p1: [{ sw: F[3].id }, { m: 'agility' }], p2: [{ m: 'agility' }, { m: 'agility' }] };
     if (!ran++) console.log('  idle bodies ' + F.map(s => s.name + '/' + s.baseStats.spe).join(' '));
     const arms = [
-      ['A TEST     ' + MV + ' — trapper LEAVES next turn', [land, leave, base, base], 'PARTS'],
+      /* AGREES, not PARTS — see the hitcount arm's note. The expectation is the authority's
+       * behaviour, so this file is RED until the source-gone branch announces its `-end`. */
+      ['A TEST     ' + MV + ' — trapper LEAVES next turn', [land, leave, base, base], 'AGREES'],
       ['B CONTROL  ' + MV + ' — trapper stays in', [land, base, base, base], 'AGREES'],
     ];
     for (const [name, script, expect] of arms) {

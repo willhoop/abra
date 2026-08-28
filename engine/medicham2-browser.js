@@ -371,6 +371,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * from each other. Salt Cure chipping and Aqua Ring healing are one map and two consumers, and a
    * zero on either is a whole family of residual doing nothing. */
   perTurnVolatileChip: 0, perTurnVolatileHeal: 0,
+  /* 2026-08-27 -- A PARTIAL TRAP ENDED BECAUSE ITS SOURCE LEFT THE FIELD, i.e. the branch that now
+   * ANNOUNCES its `-end` as well as clearing the volatile. A zero on a run that staged a trapper
+   * switching out means the source-gone predicate has stopped being reached and the announcement is
+   * silently back where it was; the duration-expiry branch beside it has its own line and would keep
+   * passing on its own. */
+  trapEndedSourceGone: 0,
   /* ROADMAP #221 -- THE EFFECT-MAJOR RESIDUAL WALK, AND A ZERO ON EITHER IS A FAILURE RATHER THAN AN
    * ABSENCE. `residualGroupsWalked` counts the outer pass -- one per order-group per turn, so any turn
    * at all makes it non-zero; a zero means the restructured loop is not running and every end-of-turn
@@ -32415,7 +32421,29 @@ function battleTurn(S,rng,actsForA,actsForB){
          * the trap before this tick chips, which is Showdown's own onUpdate rule. A trap whose
          * source is unknown (set by a caller outside the battle loop) keeps the old behaviour. */
         const _by=m._trap.by;
-        if(_by&&(_by.fainted||_by.curHP<=0||(actA.indexOf(_by)<0&&actB.indexOf(_by)<0))){m._trap=null;}
+        /* 2026-08-27 -- AND IT ANNOUNCES. `partiallytrapped.onResidual` (data/conditions.ts:236-241,
+         * NOT overridden by Champions -- data/mods/champions/conditions.ts holds only par/slp/frz)
+         * takes the state and the line on the same two statements:
+         *
+         *     delete pokemon.volatiles['partiallytrapped'];
+         *     this.add('-end', pokemon, this.effectState.sourceEffect, '[partiallytrapped]', '[silent]');
+         *
+         * It is a `delete` and not a `removeVolatile`, so `onEnd` does NOT fire and this inline line
+         * is the only one written. This engine took the state and left the line owed -- measured on
+         * the pinned pool as `|-end|p2a: Metagross|Infestation|[partiallytrapped]|[silent] <> |upkeep`
+         * and in the lab on all seven partialTrap moves of this format.
+         *
+         * `[silent]` costs nothing: the differential strips `[silent] [still] [miss] [spread] [anim]`
+         * before comparing, so the SAME three-argument `TR.vend` the duration-expiry branch four
+         * lines below already uses is exact, and the two branches stay one announcement.
+         *
+         * DECLARED REMAINDER, NOT FIXED HERE: the authority's predicate is `!source.isActive ||
+         * source.hp <= 0 || !source.activeTurns`, and `!source.activeTurns` -- a trapper that entered
+         * the field THIS turn -- has no counterpart below. It needs its own fixture. */
+        if(_by&&(_by.fainted||_by.curHP<=0||(actA.indexOf(_by)<0&&actB.indexOf(_by)<0))){
+          const _tmv=m._trap.mv;m._trap=null;MEDSEEN.trapEndedSourceGone++;
+          if(TR)TR.vend(m,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');
+        }
         else{
           /* ROADMAP #175 -- the CHIP is refused and the CLOCK still runs. `partiallytrapped`'s
            * onResidual damages and its `duration` is decremented by the volatile machinery either
