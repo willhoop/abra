@@ -7449,6 +7449,32 @@ const ABILITY_TAGS = [
    * (chainModify 2 for a berry), `onChangeBoost` (every stat step x2) and `onEatItem`, plus the
    * resist-berry halving that `damageReduce` already carries. The three multiplied fields are read
    * separately so a consumer applies it where the authority applies it. */
+  /* 2026-08-28 -- THE ABILITY THAT SAYS SOMETHING WHEN ITS HOLDER EATS A BERRY.
+   *
+   * This is a SEPARATE tag from `doublesBerryEffect` on purpose, and the purpose is not tidiness.
+   * Ripen's announcement lives on `onTryEatItem`, which is a different hook from the two that do the
+   * doubling (`onTryHeal`, `onChangeBoost`) -- so it fires for a berry whose effect Ripen does NOT
+   * double, and it fires BEFORE the eat. Hanging the field on `doublesBerryEffect` would have worked
+   * today, because Ripen is the only member of both, and would have silently missed the first ability
+   * that announces on eat without doubling anything. That is the silent-default shape this repo keeps
+   * paying for.
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED. Three legal abilities carry `onTryEatItem`:
+   *     angershell  -> (none)     berserk  -> (none)     ripen  -> "ability: Ripen"
+   * The other two carry the hook for their own bookkeeping and write no `-activate` in it, which is
+   * exactly why the predicate reads the handler's OWN `this.add` rather than the presence of the
+   * hook. One member, and the two near-misses are the evidence that it does not over-match. */
+  { tag: 'announcesBerryEat', param: 'the holder announces this ability just BEFORE it eats a berry',
+    probe: 'announcesBerryEat',
+    why: 'Ripen writes `this.add(\'-activate\', pokemon, \'ability: Ripen\')` from onTryEatItem, '
+       + 'unconditionally and above the -enditem. all_mechanics_fire filed the missing line under '
+       + '`move:recycle`, because the row is named for the move that staged the board rather than for '
+       + 'the ability that owns the line',
+    of: a => {
+      const src = String(a.onTryEatItem || '').replace(/\s+/g, ' ');
+      const m = src.match(/this\.add\(\s*['"`]-activate['"`]\s*,\s*[A-Za-z_.]+\s*,\s*['"`](ability:\s*[^'"`]+)['"`]\s*\)/);
+      return m ? { announcesAs: m[1] } : null;
+    } },
   { tag: 'doublesBerryEffect', param: 'every berry effect this holder gets is doubled', probe: 'doublesBerryEffect',
     why: 'Ripen. `damageReduce` caught the resist-berry half only, so a Sitrus under Ripen healed 1/4 '
        + 'and reads as covered -- a mechanic modelled at half strength is harder to find than one that '

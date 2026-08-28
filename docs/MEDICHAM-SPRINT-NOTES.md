@@ -21,6 +21,75 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## RIPEN NEVER ANNOUNCED ITSELF ON A BERRY EAT, AND THE ROW WAS FILED UNDER `move:recycle`. 2026-08-28. CHANGELOG 5.200.0.
+
+**CENSUS 777 -> 778 LIVE / 778 PROBED / 0 MISSING. DIVERGING MECHANICS 6 -> 5, MOVES 5 -> 4.
+BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL
+SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35. ALL PREDICTED BEFORE THE
+RUN.** Release `559142efed16`, cut over a settled tree (`0 of 26 files have moved since`).
+
+**THE ROW IS NAMED FOR THE WRONG THING, AND THAT IS THE FIRST FINDING.** `all_mechanics_fire`'s
+`move:recycle` row reported
+
+```
+event missing from medicham2 :: |-activate|p1a|ripen <> |-enditem|p1a|sitrusberry|[eat]
+```
+
+and the missing line is **RIPEN'S**, not Recycle's. A row is named for the move that staged the
+board, not for the entity that owns the line — worth writing down, because chasing Recycle here
+would have found nothing wrong with Recycle.
+
+**THE AUTHORITY** (`data/abilities.ts`, `ripen`; no `ripen` key in
+`data/mods/champions/abilities.ts`, so Champions inherits it):
+
+```js
+onTryEatItemPriority: -1,
+onTryEatItem(item, pokemon) {
+  this.add('-activate', pokemon, 'ability: Ripen');
+},
+```
+
+**Unconditional, and on a DIFFERENT hook from the doubling** (`onTryHeal`, `onChangeBoost`) — so it
+fires for a berry whose effect Ripen does not double, and it lands **above** the `-enditem`.
+
+**IT GOT ITS OWN TAG RATHER THAN A PARAM ON `doublesBerryEffect`, AND THE REASON IS NOT TIDINESS.**
+Hanging the field there would have worked today, because Ripen is the only member of both, and would
+have silently missed the first ability that announces on eat without doubling anything — the
+silent-default shape this repo keeps paying for.
+
+**MEMBERSHIP PRINTED BEFORE IT WAS WIRED.** Three legal abilities carry `onTryEatItem`:
+
+```
+angershell  -> (none)      berserk  -> (none)      ripen  -> "ability: Ripen"
+```
+
+Exactly one writes an `-activate` in it. The other two carry the hook for their own bookkeeping,
+which is precisely why the predicate reads the handler's OWN `this.add` rather than the presence of
+the hook. The regeneration moved **exactly one row** — `ripen`, gaining the tag.
+
+**WHERE IT IS EMITTED.** At the top of `consumeBerry`, the one consumption site. Every caller already
+runs `consumeBerry(...)` and only then writes `TR.enditem(m,_it,'[eat]')`, so the authority's line
+order falls out of the existing call shape rather than needing a new hook. It also sits above Cheek
+Pouch and Cud Chew in that function, which are `onEatItem` and therefore genuinely later.
+
+**THE PROBE.** New census row `ability / announcesBerryEat`. It asserts the ORDER, not just the
+presence — presence alone would be satisfied by a line written after the eat. The control blanks the
+ability on the same board: the berry is still eaten and the `-enditem` is still written, so the knob
+is the ability and not the eat. `MEDI_NO_BERRY_EAT_ANNOUNCE=1` reproduces the SAME red and leaves
+`doublesBerryEffect` and `healsOnBerryEaten` LIVE.
+
+**WHICH SCOREBOARD, SAID BEFORE THE RUN.** Lab moves, pool sits still. Ripen has **2 legal carriers**
+(Flapple, Appletun) and **0 uses** in the store — squarely the obscure tail. The pool did not move
+and that is not a disappointment.
+
+**AND MY PROBE WAS WRONG FIRST, FOR THE FIFTH TIME TONIGHT** and in the same shape as three of the
+other four: the line slice kept the BODY field, so every anchored regex failed — including the
+control clause, which would have made the red uninformative even though the headline verdict was
+right. Corrected to event-plus-payload with the body dropped, then re-verified still red for the
+RIGHT reason (`-activate` at index -1, `-enditem` at 0) before the fix went in.
+
+---
+
 ## THE LEPPA BERRY'S ACTIVATION WAS TWO FIELDS SHORT — NO SLOT NAME AND NO `[consumed]`. 2026-08-28. CHANGELOG 5.199.0.
 
 **CENSUS 776 -> 777 LIVE / 777 PROBED / 0 MISSING. DIVERGING MECHANICS 7 -> 6, ITEMS 1 -> 0 —

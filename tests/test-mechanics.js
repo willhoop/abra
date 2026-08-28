@@ -23426,11 +23426,22 @@ const berryRun = (ability, item, turns, weather, rngv, holderSp) => {
   if (weather) { B.S.field.weather = weather; B.S.field.weatherT = 20; }
   B.f1.curHP = Math.floor(B.f1.st.hp * 0.45);          // already under the Sitrus line
   const log = [];
+  /* THE HOLDER'S OWN LINES, added 2026-08-28. Every probe on this helper until now read HP and the
+   * item slot, so none of them could see an announcement that the authority writes and this engine
+   * does not. Kept as a raw list on the eater's slot so the ORDER is readable, not just the presence. */
+  const trace = []; B.S._trace = trace;
   for (let t = 0; t < turns; t++) {
     M.battleTurn(B.S, rng, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
     log.push({ hp: B.f1.curHP, item: B.f1.item });
   }
-  return { max: B.f1.st.hp, log, last: log[log.length - 1] };
+  return { max: B.f1.st.hp, log, last: log[log.length - 1],
+           /* EVENT + PAYLOAD, with the BODY dropped. The filter above already pins the slot, so the
+            * body field is a constant that only makes the assertions harder to write correctly --
+            * the first cut kept it and every anchored regex silently failed to match, which reads
+            * exactly like the line being absent. Fields: [1] is the event, [2] is the body, [3+] is
+            * the payload. */
+           eatLines: trace.filter(l => /^\|(-activate|-enditem)\|p2a/.test(l))
+                          .map(l => { const p = l.split('|'); return [p[1], ...p.slice(3)].join('|'); }) };
 };
 
 probe('ability', 'healsOnBerryEaten', 'Cheek Pouch heals a third on TOP of the berry', () => {
@@ -23442,6 +23453,50 @@ probe('ability', 'healsOnBerryEaten', 'Cheek Pouch heals a third on TOP of the b
            detail: 'a 170 HP Incineroar starting at 76: no ability ' + control + ' (the Sitrus quarter), '
                  + 'Cheek Pouch ' + test + '. CONTROL, the same ability with NO berry: ' + noItem
                  + ' — so the heal is the BERRY firing and not the ability healing on its own' };
+});
+
+/* 2026-08-28 -- AND RIPEN *ANNOUNCES ITSELF* ON EVERY BERRY IT EATS, WHICH IS A DIFFERENT HOOK FROM
+ * THE DOUBLING AND WAS ABSENT.
+ *
+ * `all_mechanics_fire`'s `move:recycle` row reported
+ *     event missing from medicham2 :: |-activate|p1a|ripen <> |-enditem|p1a|sitrusberry|[eat]
+ * and the missing line is RIPEN'S, not Recycle's -- the row is named for the move that staged the
+ * board, which is exactly the kind of misattribution a probe has to be written past.
+ *
+ * THE AUTHORITY (data/abilities.ts, `ripen`; no `ripen` key in data/mods/champions/abilities.ts):
+ *
+ *     onTryEatItemPriority: -1,
+ *     onTryEatItem(item, pokemon) {
+ *       this.add('-activate', pokemon, 'ability: Ripen');
+ *     },
+ *
+ * UNCONDITIONAL, and on `onTryEatItem` rather than on the doubling hooks -- so it fires for a berry
+ * whose effect Ripen does NOT double, and it lands BEFORE the `-enditem`. That ordering is the whole
+ * assertion here: presence alone would be satisfied by a line written after the eat.
+ *
+ * MEMBERSHIP WAS PRINTED BEFORE THE TAG WAS WIRED, because a new derived tag over-matches every time.
+ * Three legal abilities carry `onTryEatItem` -- `angershell`, `berserk` and `ripen` -- and exactly
+ * ONE writes an `-activate` in it. The other two carry the hook for their own bookkeeping and
+ * correctly derive nothing, which is why the tag is derived from the HANDLER's `this.add` and not
+ * from the presence of the hook. */
+probe('ability', 'announcesBerryEat', 'Ripen announces itself BEFORE the berry it is about to eat', () => {
+  const on = berryRun('ripen', 'sitrusberry', 2, null, null, 'appletun');
+  const off = berryRun('none', 'sitrusberry', 2, null, null, 'appletun');
+  const RIPEN = /^-activate\|ability: ripen$/i, EAT = /^-enditem\|sitrusberry\|\[eat\]$/i;
+  const iA = on.eatLines.findIndex(l => RIPEN.test(l));
+  const iE = on.eatLines.findIndex(l => EAT.test(l));
+  return { works: iA >= 0 && iE >= 0 && iA < iE
+                  && !off.eatLines.some(l => RIPEN.test(l))
+                  /* THE CONTROL MUST STILL EAT. Without this the control arm would be satisfied by a
+                   * board where nothing happened at all, which is the classic vacuous green. */
+                  && off.eatLines.some(l => EAT.test(l)),
+           arms: { control: off.eatLines.join(' ; '), test: on.eatLines.join(' ; ') },
+           detail: 'An APPLETUN holding a Sitrus under RIPEN announces "' + on.eatLines.join(' ; ')
+                 + '"; the authority writes `this.add(\'-activate\', pokemon, \'ability: Ripen\')` from '
+                 + '`onTryEatItem`, so the line sits ABOVE the -enditem (index ' + iA + ' against ' + iE
+                 + '). CONTROL, the same body eating the same berry with the ability blanked, announces "'
+                 + off.eatLines.join(' ; ') + '" — the berry is still eaten, so the knob is the ability '
+                 + 'and not the eat' };
 });
 
 probe('ability', 'doublesBerryEffect', 'Ripen doubles the berry heal, not just the resist halving', () => {

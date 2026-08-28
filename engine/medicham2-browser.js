@@ -1937,6 +1937,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   harvestRestored           a spent berry came back.
    *   pickupTook                an item was taken off a body that spent one this turn. */
   berryConsumed: 0, cheekPouchHealed: 0, ripenDoubled: 0, gluttonyRaisedThreshold: 0,
+  /* 2026-08-28 -- bumped once per berry eaten by a holder whose ability carries `announcesBerryEat`.
+     A capability that cannot prove it ran is assumed broken, and this one has ONE legal member
+     (Ripen, 2 carriers, 0 uses in the store), so a run with no Appletun or Flapple in it reads 0
+     legitimately -- read it beside the staged probe, never on its own. */
+  berryEatAnnounced: 0,
   cudChewArmed: 0, cudChewReEaten: 0, harvestRestored: 0, pickupTook: 0,
   /* ROADMAP #175 -- THE NEXT-MOVE GUARANTEE, FOUR COUNTERS, because the mechanic has four separable
    * halves and a single total could not tell you which one is dead.
@@ -2069,6 +2074,9 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-28 -- MEDI_LEPPA_LINE_BARE=1 is armed, so the PP berry announces three fields again.
      MUST READ 0 on any shipping run. */
   leppaLineBareRestored: 0,
+  /* 2026-08-28 -- MEDI_NO_BERRY_EAT_ANNOUNCE=1 is armed, so a Ripen holder eats in silence.
+     MUST READ 0 on any shipping run. */
+  berryEatAnnounceBlindRestored: 0,
   /* 2026-08-27 -- THE SECOND, STILL-OPEN PRODUCER OF A MISSING `|-hitcount|`. A volley priced as 2+
      packets whose total was rewritten before application (a Focus Sash, an Endure, a busted Disguise)
      collapses to one packet, so `_landed` stays 0 and no count is announced — while the authority
@@ -8740,6 +8748,23 @@ function passItemFromAlly(spender){
 }
 function consumeBerry(m,itemId){
   if(!m)return;
+  /* 2026-08-28 -- THE HOLDER'S ABILITY ANNOUNCES ITSELF BEFORE THE EAT. `announcesBerryEat` is
+   * derived from the ability's own `onTryEatItem` handler, whose whole body for the one legal member
+   * is `this.add('-activate', pokemon, 'ability: Ripen')` -- unconditional, and on a DIFFERENT hook
+   * from the doubling, so it fires even for a berry whose effect is not doubled.
+   *
+   * IT SITS AT THE TOP OF THIS FUNCTION BECAUSE THAT IS WHAT PUTS IT ABOVE THE `-enditem`. Every
+   * caller runs `consumeBerry(...)` and only then writes `TR.enditem(m,_it,'[eat]')`, so the line
+   * order falls out of the existing call shape rather than needing a new hook -- the authority runs
+   * `onTryEatItem` before the item leaves the slot. It is also above Cheek Pouch and Cud Chew below,
+   * which are `onEatItem` and therefore genuinely later.
+   *
+   * `all_mechanics_fire` filed this under `move:recycle`, because a row is named for the move that
+   * staged the board and not for the ability that owns the missing line. */
+  if(!NO_BERRY_EAT_ANNOUNCE){
+    const _abe=TAGS.param('ability',m.ability,'announcesBerryEat');
+    if(_abe&&_abe.announcesAs){ if(TR)TR.act(m,_abe.announcesAs); MEDSEEN.berryEatAnnounced++; }
+  } else MEDFAILS.berryEatAnnounceBlindRestored=1;
   m._lastItem=String(itemId||'');
   m._ateBerry=true;
   m._usedItemThisTurn=true;
@@ -12140,6 +12165,12 @@ const SWAP_LINES_BLIND=(typeof process!=='undefined'&&process.env
  * `MEDFAILS.leppaLineBareRestored`. */
 const LEPPA_LINE_BARE=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_LEPPA_LINE_BARE==='1');
+/* 2026-08-28 -- MEDI_NO_BERRY_EAT_ANNOUNCE=1 TAKES THE `announcesBerryEat` LINE BACK OUT, so a Ripen
+ * holder eats in silence exactly as it did until today. Reproduces the SAME red, not a third
+ * behaviour: the berry is still eaten and the `-enditem` is still written, only the ability's own
+ * announcement goes. Any run carrying it also carries `MEDFAILS.berryEatAnnounceBlindRestored`. */
+const NO_BERRY_EAT_ANNOUNCE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_NO_BERRY_EAT_ANNOUNCE==='1');
 const LATCH_FIELDS_WRITTEN=(function(){
   const S=new Set();
   try{
