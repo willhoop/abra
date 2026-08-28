@@ -236,7 +236,7 @@ for (const n of carriersOf(CHOP)) {
     CHOP2 = { id: sp.id, spe: sp.baseStats.spe, ability: Object.values(sp.abilities)[0] };
 }
 console.log('  second chopper: ' + (CHOP2 ? CHOP2.id + ' (spe ' + CHOP2.spe + ')' : 'NONE'));
-if (!CHOP2) { console.log('  COULD-NOT-STAGE — need two distinct legal choppers.'); process.exit(0); }
+if (!CHOP2) { console.log('  COULD-NOT-STAGE — need two distinct legal choppers.'); /* A REFUSAL IS NOT A PASS — ROADMAP #524. This printed COULD-NOT-STAGE and exited 0, which engine/register_reality.js reads as VERDICT-GREEN and a CLOSED row reads as CONFIRMED: a claim about the FIXTURE published as a clean bill of health for the MECHANIC. Exit 2 with a declaration instead, the tests/probe_red_demo.js arrangement. */ console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); }
 
 const CHOPNAME = DEX.moves.get(CHOP).name, SOUNDNAME = DEX.moves.get(VICTIM_SOUND).name;
 /* p2b MUST NOT PROTECT EITHER — arm C aims the second chop at it, and a shielded body is a chop that
@@ -250,7 +250,7 @@ for (const sp of DEX.species.all().filter(buildable)) {
   VICT2 = { id: sp.id, bulk, ability: Object.values(sp.abilities)[0] };
 }
 console.log('  second victim : ' + (VICT2 ? VICT2.id + ' (bulk ' + VICT2.bulk + ')' : 'NONE'));
-if (!VICT2) { console.log('  COULD-NOT-STAGE — no second body that can click the inert move.'); process.exit(0); }
+if (!VICT2) { console.log('  COULD-NOT-STAGE — no second body that can click the inert move.'); /* A REFUSAL IS NOT A PASS — ROADMAP #524. This printed COULD-NOT-STAGE and exited 0, which engine/register_reality.js reads as VERDICT-GREEN and a CLOSED row reads as CONFIRMED: a claim about the FIXTURE published as a clean bill of health for the MECHANIC. Exit 2 with a declaration instead, the tests/probe_red_demo.js arrangement. */ console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); }
 
 function sides() {
   const p1 = [ mon(CHOPPER.id, '', CHOPPER.ability, [CHOPNAME, 'Protect']),

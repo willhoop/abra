@@ -79,7 +79,17 @@ if (!process.env.SHOWDOWN_PATH) {
 }
 const NL = String.fromCharCode(10);
 const argv = process.argv.slice(2);
-const flag = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d; };
+/* `--cells 60` AND `--cells=60` BOTH, and the second spelling is what makes this row runnable —
+ * 2026-08-28. `engine/register_reality.js`'s SAFE marker grammar admits flags and REFUSES a bare
+ * value, deliberately: widening it for bare values would also admit `tests/roster.js --stage moves`
+ * and `engine/game_differential.js --team-store …`, multi-minute runs that rewrite artifacts other
+ * readers hold. So the marker is spelled with `=` and the parser learns the spelling, rather than the
+ * gate learning to accept everything. */
+const flag = (n, d) => {
+  const eq = argv.find(a => a.startsWith(n + '='));
+  if (eq) return eq.slice(n.length + 1);
+  const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d;
+};
 const CELLS = Math.max(1, +flag('--cells', 300));
 const STORE = flag('--team-store', 'data/team-pool-frozen');
 const NO_HOOKS = argv.includes('--no-hooks');   // the control child; see the header
@@ -237,7 +247,15 @@ console.log(NL + 'PLAYED ' + played + ' board(s) (' + PAIRS.length + ' offered, 
 let bad = 0;
 {
   const { spawnSync } = require('child_process');
-  const cp = spawnSync(process.execPath, [__filename, ...argv, '--no-hooks'],
+  /* THE CHILD INHERITS THE PARENT NODE FLAGS — 2026-08-28. Without this, a parent started with
+   * `-r ./tests/_live_release.js` was redirected and its child was NOT: the child re-required
+   * engine/game_differential.js with no --release, which CUTS A REAL RELEASE at require time and
+   * REPOINTS data/engine-release.json under whatever else is measuring. Measured, not argued: a
+   * redirected cut was shown NOT to touch data/engine-release.json, so every real cut seen during
+   * a preloaded run came from here. process.execArgv is node OWN record of how this process was
+   * started, so this reads the fact rather than re-deriving it. tests/probe_hazard_recap_fail.js
+   * already did this by hand; this is the same fix at the four sites that did not. */
+  const cp = spawnSync(process.execPath, [...process.execArgv, __filename, ...argv, '--no-hooks'],
     { env: { ...process.env }, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   const line = String(cp.stdout || '').split(NL).find(l => l.startsWith('CONTROL-DIGESTS '));
   if (!line) {
@@ -386,7 +404,15 @@ console.log('KNOB-VERDICT knob=' + (process.env.MEDI_TRACE_SOLO_NODRAW === '1' ?
 if (process.env.MEDI_TRACE_SOLO_NODRAW !== '1') {
   const { spawnSync } = require('child_process');
   console.log(NL + '--- THE RED ARM (MEDI_TRACE_SOLO_NODRAW=1, a child; the knob is read at module load) ---');
-  const cp = spawnSync(process.execPath, [__filename, ...argv],
+  /* THE CHILD INHERITS THE PARENT NODE FLAGS — 2026-08-28. Without this, a parent started with
+   * `-r ./tests/_live_release.js` was redirected and its child was NOT: the child re-required
+   * engine/game_differential.js with no --release, which CUTS A REAL RELEASE at require time and
+   * REPOINTS data/engine-release.json under whatever else is measuring. Measured, not argued: a
+   * redirected cut was shown NOT to touch data/engine-release.json, so every real cut seen during
+   * a preloaded run came from here. process.execArgv is node OWN record of how this process was
+   * started, so this reads the fact rather than re-deriving it. tests/probe_hazard_recap_fail.js
+   * already did this by hand; this is the same fix at the four sites that did not. */
+  const cp = spawnSync(process.execPath, [...process.execArgv, __filename, ...argv],
     { env: { ...process.env, MEDI_TRACE_SOLO_NODRAW: '1' }, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   const out = String(cp.stdout || '') + String(cp.stderr || '');
   const vline = out.split(NL).find(l => l.startsWith('KNOB-VERDICT'));

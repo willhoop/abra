@@ -136,7 +136,7 @@ for (const sm of spreadMoves) {
   }
   if (PICK) break;
 }
-if (!PICK) { console.log('  COULD-NOT-STAGE — no (spread move, charge move) pair with legal carriers.'); process.exit(0); }
+if (!PICK) { console.log('  COULD-NOT-STAGE — no (spread move, charge move) pair with legal carriers.'); /* A REFUSAL IS NOT A PASS — ROADMAP #524. This printed COULD-NOT-STAGE and exited 0, which engine/register_reality.js reads as VERDICT-GREEN and a CLOSED row reads as CONFIRMED: a claim about the FIXTURE published as a clean bill of health for the MECHANIC. Exit 2 with a declaration instead, the tests/probe_red_demo.js arrangement. */ console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); }
 
 /* The SHIELDED body: any buildable body that learns Protect AND the inert move, distinct from the
  * other two. It needs the inert click for arm C, where it must NOT raise a shield — a `pass` is not a
@@ -164,7 +164,7 @@ console.log('  spread move   : ' + PICK.spread + '  by ' + PICK.atk.id + ' (spe 
 console.log('  charge move   : ' + PICK.charge + '  by ' + PICK.chg.id + ' (spe ' + PICK.chg.spe + ')'
   + '   pierces=' + JSON.stringify(TAGS.moves[PICK.charge].params.semiInvulnerable.pierces || []));
 console.log('  shielded body : ' + (SHIELD ? SHIELD.id : 'NONE') + '   ally: ' + (ALLY ? ALLY.id : 'NONE'));
-if (!SHIELD || !ALLY) { console.log('  COULD-NOT-STAGE — need two more Protect-capable bodies.'); process.exit(0); }
+if (!SHIELD || !ALLY) { console.log('  COULD-NOT-STAGE — need two more Protect-capable bodies.'); /* A REFUSAL IS NOT A PASS — ROADMAP #524. This printed COULD-NOT-STAGE and exited 0, which engine/register_reality.js reads as VERDICT-GREEN and a CLOSED row reads as CONFIRMED: a claim about the FIXTURE published as a clean bill of health for the MECHANIC. Exit 2 with a declaration instead, the tests/probe_red_demo.js arrangement. */ console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); }
 
 const mon = (species, item, ability, moves) => ({ species, item, ability, moves });
 const SPREADNAME = DEX.moves.get(PICK.spread).name, CHARGENAME = DEX.moves.get(PICK.charge).name;

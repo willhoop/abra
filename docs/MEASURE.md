@@ -39,6 +39,66 @@ _stamped 2026-08-28 04:47_
 
 <!-- /GENERATED -->
 
+## A CHECK THAT READS GREEN WITHOUT RUNNING IS WORSE THAN ONE THAT READS RED. 2026-08-28, CHANGELOG 5.201.0.
+
+ROADMAP `#521`, `#522`, `#523`, `#524`, `#525`. **This division builds the rulers, and tonight the
+ruler was the thing that was wrong — for the sixth time in a day.**
+
+**THE HEADLINE IS A NEGATIVE RESULT AND IT IS STILL THE ANSWER.** Three probes were counted as
+ACCOUNTED FOR by `tests/run-all.js`, in prose that asserted `engine/register_reality.js` ran their
+markers. It could not: `SAFE` required a marker to begin `node <script>` and permitted flags only, and
+all three begin `node -r ./tests/_live_release.js`. Run at last, **all three are GREEN**, each with a
+knob-cleared control that moves the arm it names. There was no hidden defect. The accounting was wrong
+and the engine was not — which is worth exactly as much as a finding, because it is the difference
+between a ruler that is trusted and one that is trusted correctly.
+
+**THE DECISION THAT MATTERED WAS WHICH SIDE OF THE FENCE TO EDIT, AND IT WAS MEASURED RATHER THAN
+ARGUED.** `tests/_live_release.js` is load-bearing: `engine/game_differential.js:196` CUTS A REAL
+RELEASE at require time when no `--release` is given, repointing `data/engine-release.json` under
+whatever else is measuring. All three probes detect the preload themselves and refuse with exit 2
+without it. Rewriting the markers to satisfy the old regex would have bought three refusals and one
+moved release pointer per pass. So the REGEX moved.
+
+**AND IT MOVED NARROWLY, WHICH IS THE PART TO KEEP.** `SAFE` still refuses BARE VALUES. That is not
+laziness: widening it would silently admit `tests/roster.js --stage moves`,
+`engine/all_mechanics_fire.js --kind abilities` and two `game_differential.js --team-store` markers —
+multi-minute game-playing runs, three of which REWRITE artifacts other readers hold. A gate that runs
+those on every pass is a gate that rewrites the corpus it is auditing. `probe_trace_list.js` learned
+the `--cells=60` spelling instead; the parser moved, not the gate.
+
+**THE PREFIX WAS NOT DECORATIVE ON ALL FOURTEEN, AND THE ONE EXCEPTION IS THE POINT.** The brief said
+thirteen were one deletion from running and warned that one probe running with the variable empty is
+evidence for that probe. Checked one at a time: `tests/probe_endturn_clock_order.js` never required
+`engine/showdown_path.js`, so it asked the raw variable and exited 2 with `NOT RUN` under exactly the
+environment thirteen siblings ran to completion in. Worse, a literal paste of its marker sets the
+variable to the three characters `...`, which `showdown_path.js` HONOURS by design — so the
+documentation was not merely useless, it was a working way to break the probe.
+
+**A REFUSAL IS STILL PUBLISHED AS A PASS, AND THE WORSE HALF IS AT EXIT ZERO — NOT EXIT 2.** The
+source report ranked the `ABRA-EXIT` gap by counting exit-2 paths. Exit 2 is UNDECLARED, which
+`register_reality.js` reads as NOT A VERDICT and counts as BAD: noisy, but honest. The unmeasured half
+is the staging refusal spelled `process.exit(0)` — 12 paths in 4 of 74 `tests/probe_*.js` — which the
+register reads as VERDICT-GREEN and a CLOSED row reads as CONFIRMED. **A COULD-NOT-STAGE is a claim
+about the FIXTURE, never about the mechanic**, and at exit 0 that claim is published as a clean bill of
+health. Five converted and shown red by forcing the guard; the rest are filed, not swept.
+
+**#496 IS A PREMATURE CLOSE AND IT IS FILED AS OBSERVED, NOT AS A REGRESSION.** `probe_trace_list.js`
+exits 1 on the live tree, reproduced **3 of 3** with byte-identical counters across two different pool
+digests. The row closed on a PINNED sample (`44bd49403231`) and this run drew a LIVE pool while
+`engine/medicham2-browser.js` was being edited — so the corpus stamps do not match and the claim stops
+at OBSERVED. Naming that boundary is this division's job; attributing it is not.
+
+**ONE THING WENT WRONG AND IT IS RECORDED RATHER THAN TIDIED AWAY.** `data/engine-release.json` was
+found holding an automatic `game differential mode A` cut, I judged it my own leakage and reverted it
+to HEAD, then put it back ~90 seconds later. It has since been superseded by ENGINE's deliberate cut
+`0415c53255a9` ("the absorb answers arrival one…"), so the net effect is zero. **The rule the error
+breaks is the one this division enforces on everyone else: a measuring agent does not write a file it
+does not own, and on a moving tree it cannot attribute one either.** The correct action was to report
+the drift and leave it.
+
+**OWED, NOT RUN.** `node engine/status.js --write` — this pass was denied the game slot, so every
+`<!-- GENERATED -->` block in the ledgers is stamped one pass behind.
+
 ## A SUBTRACTION THE GATE MAKES MUST NAME WHAT IT SUBTRACTED. 2026-08-28, CHANGELOG 5.196.0.
 
 ROADMAP `#520`. **This is a REPORTING change and it moves no clause.** Measured rather than argued:

@@ -292,7 +292,15 @@ if (!KNOB_ON && !RED_CHILD) {
   const { spawnSync } = require('child_process');
   console.log(NL + '--- THE RED ARM (MEDI_MID_RANGE_DRAWS=1, a child process — the knob is read at'
     + ' module load, so it cannot be turned on in this one) ---');
-  const cp = spawnSync(process.execPath, [__filename, '--red'],
+  /* THE CHILD INHERITS THE PARENT NODE FLAGS — 2026-08-28. Without this, a parent started with
+   * `-r ./tests/_live_release.js` was redirected and its child was NOT: the child re-required
+   * engine/game_differential.js with no --release, which CUTS A REAL RELEASE at require time and
+   * REPOINTS data/engine-release.json under whatever else is measuring. Measured, not argued: a
+   * redirected cut was shown NOT to touch data/engine-release.json, so every real cut seen during
+   * a preloaded run came from here. process.execArgv is node OWN record of how this process was
+   * started, so this reads the fact rather than re-deriving it. tests/probe_hazard_recap_fail.js
+   * already did this by hand; this is the same fix at the four sites that did not. */
+  const cp = spawnSync(process.execPath, [...process.execArgv, __filename, '--red'],
     { env: { ...process.env, MEDI_MID_RANGE_DRAWS: '1' }, encoding: 'utf8' });
   const out = String(cp.stdout || '') + String(cp.stderr || '');
   console.log(out.split(NL).filter(l => /^(  TIE  |RANGE-FORM|AUTHORITY|BOARDS|KNOB-VERDICT|  FAIL)/.test(l))

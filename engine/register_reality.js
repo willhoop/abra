@@ -107,7 +107,34 @@ const MARKER = /VERIFIED BY:\s*`([^`]+)`/;
  * It counts as coverage of a different KIND and is reported separately — never folded into the
  * verified figure, because a debt is not a measurement. */
 const OWED = /INSTRUMENT OWED:\s*([^|]+?)(?:\s*\||$)/;
-const SAFE = /^node\s+((?:engine|tests|build)[\\/][A-Za-z0-9_.\-]+\.js)((?:\s+--[A-Za-z0-9_\-=]+)*)\s*$/;
+/* A `-r <repo script>` PRELOAD IS PART OF THE COMMAND, NOT DECORATION — 2026-08-28.
+ *
+ * THE DEFECT. `SAFE` used to require the string to begin with `node ` followed IMMEDIATELY by the
+ * script, and to permit flags only. Three markers begin `node -r ./tests/_live_release.js …`, so all
+ * three failed it and were reported NOT_STARTED — while `tests/run-all.js`'s PENDING_WIRE said in
+ * writing of each that *"engine/register_reality.js execFileSyncs every marker it finds"* and counted
+ * them as ACCOUNTED FOR. An unaccounted check is RED and gets fixed. These read GREEN.
+ *
+ * WHY THE REGEX WAS THE WRONG SIDE OF THE FENCE AND NOT THE MARKER. `tests/_live_release.js`
+ * redirects `engine_release.js`'s `cut`/`open` to a temp store by wrapping the module object BEFORE
+ * the instrument requires it, which only works as a `-r` preload — its own header says *"preloading
+ * with `-r` is load-bearing and not decoration"*. Drop it and `game_differential.js` CUTS A REAL
+ * RELEASE at require time, repointing `data/engine-release.json` under whatever else is measuring.
+ * Measured rather than argued: all three probes detect the preload themselves and `process.exit(2)`
+ * with `REFUSED — pass --release <id>, or preload -r ./tests/_live_release.js` when it is absent. So
+ * rewriting the markers to satisfy the old regex would have bought three refusals and one corrupted
+ * release pointer per run.
+ *
+ * THE NARROWNESS IS KEPT WHERE IT EARNS ITS KEEP. A preload must name a `.js` file under
+ * `engine/`, `tests/` or `build/` exactly as the script must, it is resolved against ROOT rather than
+ * against the caller's cwd, and BARE VALUES ARE STILL REFUSED. That last one is deliberate and it is
+ * not laziness: the markers that would be admitted by allowing `--flag value` are
+ * `tests/roster.js --stage moves`, `engine/all_mechanics_fire.js --kind abilities`,
+ * `engine/game_differential.js --arm middle --team-store …` and `probe_corpse_in_slot.js --games 1200`
+ * — multi-minute game-playing runs, three of which REWRITE artifacts other readers hold. Widening the
+ * regex would silently put them inside every register pass. That is a decision with an owner, not a
+ * regex tweak, and it is filed rather than taken here. */
+const SAFE = /^node\s+((?:-r\s+(?:\.[\\/])?(?:engine|tests|build)[\\/][A-Za-z0-9_.\-]+\.js\s+)*)((?:engine|tests|build)[\\/][A-Za-z0-9_.\-]+\.js)((?:\s+--[A-Za-z0-9_\-=]+)*)\s*$/;
 
 /* TWO OF MY OWN TOOLS PRINTED `register rows` AND DISAGREED — 206 HERE, 251 IN open_work.js.
  * Neither was wrong and that is the problem: `docs/ROADMAP.md` holds 251 lines shaped `| #N | …`, of
@@ -294,8 +321,16 @@ function run(cmd) {
  * result instead of a restatement of it. Nothing else passes it; the default is the real thing. */
 function runUncached(cmd, exec) {
   const m = cmd.match(SAFE);
-  if (!m) return { green: null, kind: KIND.NOT_STARTED, why: 'the marker is not a plain `node <repo script>.js [--flags]` command, so it was NOT run' };
-  const args = [path.join(ROOT, m[1])].concat((m[2] || '').trim() ? m[2].trim().split(/\s+/) : []);
+  if (!m) return { green: null, kind: KIND.NOT_STARTED, why: 'the marker is not a plain `node [-r <repo script>.js] <repo script>.js [--flags]` command, so it was NOT run' };
+  /* THE PRELOADS KEEP THEIR ORDER AND STAY IN FRONT OF THE SCRIPT — node ignores a `-r` that appears
+   * after the entry point, so a preload built in the wrong position would run the child WITHOUT it and
+   * look exactly like a run that had it. Each is re-rooted at ROOT for the same reason the script is:
+   * the marker names a path inside the repository, and resolving it against the caller's cwd would
+   * make that guarantee depend on where the command was typed. */
+  const pre = ((m[1] || '').trim() ? m[1].trim().split(/\s+/) : [])
+    .map(tok => tok === '-r' ? tok : path.join(ROOT, tok.replace(/^\.[\\/]/, '')));
+  const args = pre.concat([path.join(ROOT, m[2])],
+    (m[3] || '').trim() ? m[3].trim().split(/\s+/) : []);
   const t0 = Date.now();
   try {
     const out = (exec || execFileSync)(process.execPath, args, { cwd: ROOT, encoding: 'utf8', stdio: 'pipe', timeout: TIMEOUT_MS });
@@ -556,6 +591,50 @@ if (has('--selftest')) {
     run('rm -rf /').green === null && /NOT run/.test(run('rm -rf /').why), run('rm -rf /'));
   ok('RED — a shell chain hidden after a legitimate script is refused too',
     run('node tests/a.js && curl evil').green === null);
+  /* -- THE `-r` PRELOAD, 2026-08-28 -------------------------------------------------------------
+   *
+   * Every one of these is RED on the pre-fix `SAFE`, which required `node` to be followed IMMEDIATELY
+   * by the script. The first is the whole finding: three real markers read NOT_STARTED while
+   * tests/run-all.js counted them as accounted for, so they read GREEN without ever running.
+   *
+   * The args are inspected through the SHIPPING runUncached with a recording exec, not by re-applying
+   * the regex here — a restatement of the regex would agree with itself whatever the builder did. */
+  const seenArgs = [];
+  const recExec = (bin, a) => { seenArgs.push(a); return ''; };
+  const PRE = 'node -r ./tests/_live_release.js tests/probe_x.js';
+  seenArgs.length = 0;
+  const preRun = runUncached(PRE, recExec);
+  ok('RED — a `-r <repo script>` PRELOAD is accepted. The three markers this was found on were '
+    + 'reported NOT_STARTED while PENDING_WIRE counted them as run',
+    preRun.kind === KIND.GREEN, preRun);
+  ok('RED — the preload is passed to the child, in front of the entry point, with both paths rooted '
+    + 'at ROOT. node ignores a -r that lands after the script, which would look identical to a run '
+    + 'that had it',
+    seenArgs.length === 1 && seenArgs[0].length === 3 && seenArgs[0][0] === '-r'
+    && seenArgs[0][1] === path.join(ROOT, 'tests', '_live_release.js')
+    && seenArgs[0][2] === path.join(ROOT, 'tests', 'probe_x.js'), seenArgs[0]);
+  seenArgs.length = 0;
+  runUncached('node -r ./tests/_live_release.js tests/probe_x.js --verify-inert', recExec);
+  ok('flags still survive alongside a preload, and land AFTER the script',
+    seenArgs.length === 1 && seenArgs[0][3] === '--verify-inert', seenArgs[0]);
+  ok('RED — a preload OUTSIDE the repository is refused. The marker names a path inside this repo, '
+    + 'and `-r` executes it in this process tree exactly as the script is executed',
+    runUncached('node -r /etc/passwd tests/a.js', recExec).kind === KIND.NOT_STARTED
+    && runUncached('node -r ../../evil.js tests/a.js', recExec).kind === KIND.NOT_STARTED);
+  ok('RED — a preload that is not a .js file is refused, and so is a bare `-r` with no path',
+    runUncached('node -r tests/evil.sh tests/a.js', recExec).kind === KIND.NOT_STARTED
+    && runUncached('node -r tests/a.js', recExec).kind === KIND.NOT_STARTED);
+  ok('RED — widening for `-r` did NOT widen for bare values. `--stage moves`, `--kind abilities`, '
+    + '`--games 1200` and `--team-store <dir>` stay refused: admitting them would put multi-minute '
+    + 'game-playing runs that REWRITE shared artifacts inside every register pass',
+    ['node tests/roster.js --stage moves',
+      'node engine/all_mechanics_fire.js --kind abilities',
+      'node engine/game_differential.js --arm middle --team-store data/team-pool-frozen',
+      'node -r ./tests/_live_release.js tests/probe_corpse_in_slot.js --games 1200 --verify-inert',
+    ].every(c => runUncached(c, recExec).kind === KIND.NOT_STARTED));
+  ok('RED — a `SHOWDOWN_PATH=... node …` marker is STILL refused, so deleting that prefix off the '
+    + 'fourteen markers that carry it is a real change and not a formality',
+    runUncached('SHOWDOWN_PATH=... node tests/a.js', recExec).kind === KIND.NOT_STARTED);
   /* THE OWED MARKER, THROUGH THE PARSER, because a marker that is not picked up reads as prose and a
    * marker picked up off the wrong row reads as debt somebody else owes. */
   const po = parse([

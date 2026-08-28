@@ -91,8 +91,21 @@ const GD_PATH = D('engine', 'game_differential.js');
 const argv = process.argv.slice(2);
 const ONLY = (() => { const i = argv.indexOf('--only'); return i >= 0 ? argv[i + 1] : null; })();
 
+/* THE CANONICAL PATH, AND THIS FILE WAS THE ONE THAT DID NOT CALL IT — 2026-08-28.
+ *
+ * Requiring `engine/showdown_path.js` RESOLVES the checkout and SETS `process.env.SHOWDOWN_PATH` as a
+ * side effect, which is the whole reason that module exists: twenty files each asked the raw env var,
+ * and asking it is what produced the polite skip that CLAUDE.md opens with. This file asked the raw
+ * variable and every other probe in its family requires the module first. Measured with the shell
+ * variable EMPTY: it exited 2 with "NOT RUN — SHOWDOWN_PATH is not set" while thirteen sibling probes
+ * ran to completion under the identical environment.
+ *
+ * The guard below is KEPT rather than deleted. `showdown_path.js` returns null when there is genuinely
+ * no checkout, and a probe that compares two engines must refuse rather than measure one. */
+require(D('engine', 'showdown_path.js'));
 if (!process.env.SHOWDOWN_PATH) {
   console.log('NOT RUN — SHOWDOWN_PATH is not set. This probe compares two engines and cannot run on one.');
+  console.log('ABRA-EXIT 2 CANNOT-ANSWER');
   process.exit(2);
 }
 

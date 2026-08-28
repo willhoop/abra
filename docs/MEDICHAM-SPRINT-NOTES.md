@@ -21,6 +21,103 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE ABSORB ANSWERS ARRIVAL ONE: A MULTI-HIT VOLLEY INTO AN INTACT DISGUISE DEALT ONLY THE CHIP. 2026-08-28. CHANGELOG 5.202.0.
+
+**CENSUS 778 -> 779 LIVE / 779 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 0 OF 961,
+WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475
+WITH REDS 18/18, 29/29, 35/35, `all_mechanics_fire` THE SAME 5 DIVERGING MECHANICS WITH ZERO ROWS
+CHANGING VERDICT, PIN DIGEST UNMOVED AT `ccb365985023` — ALL PREDICTED BEFORE THE RUN.** Release
+`0415c53255a9`, arm `middle`, cap 12, `--games 1200` (yields 961), `--team-store
+data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`. Gate 7 of 8 PASS,
+unchanged; the whole-game clause is still the only failure and still the same unreproducible faint row.
+
+**THE HEADLINE IS THE STAGED HP.** Heracross Bullet Seed into a fresh Mimikyu — the authority ends
+**58/130** and this engine ended **114/130**. Fifty-six HP, 43% of the body's maximum, in the
+defender's favour, with `|-hitcount|` reading **1** against **5** and **2** `-damage` lines against
+**6**. Both engines now print the same nine lines in the same order and land on 58/130.
+
+**AN INTACT DISGUISE ABSORBS ARRIVAL ONE. IT DOES NOT ABSORB THE CLICK.** The two facts are in two
+different handlers and this engine had folded them into one:
+
+    disguise.onDamage  returns 0  ->  the MOVE deals nothing on arrival 1, and `spreadDamage` still
+                                      emits a `-damage` at UNCHANGED HP
+    disguise.onUpdate  the forme change and the `baseMaxhp/8` chip
+
+and `eachEvent('Update')` is raised **INSIDE** the hit loop — `data/mods/champions/scripts.ts:538`,
+the Champions override of `hitStepMoveHitLoop`, which calls `spreadMoveHit` per hit at `:517` and
+writes `-hitcount` as `hit - 1` at `:547`. So hits 2..N land on Mimikyu-Busted at full damage.
+Champions overrides neither handler; both were read whole this session, not recalled.
+
+**TWO EDIT SITES, AND THE FIRST ONE IS ASKED A LEVEL UP FROM WHERE IT USED TO BE.**
+
+`dmgRangeOneHit`'s `if(formeOnHitAbsorbs(def)) return {min:0,max:0,eff}` is right for a click with
+one arrival and wrong for a volley. It is now gated on an eleventh parameter `absBypass`, and the
+absorb question is asked by `dmgRange` instead — because **on the FLAT road the callee is handed the
+whole hit count in one call (`hitsOverride = _plan.total`) and cannot see an arrival boundary at
+all.** `dmgRange` sets the bypass when `_plan.total > 1`, zeroes `hit.packets[0]` (min, max **and**
+its sixteen-entry band, so the per-arrival index road reads 0 for arrival 0), and returns `(n-1)/n`
+of the price.
+
+The apply step set `dmg = _abs.chip` **above** the packet loop, which left the loop nothing to deal.
+The bust is now a closure fired at the **between-arrival Update seam** — the one that landed
+2026-08-27 for the pinch berry — which is precisely where the authority raises `disguise.onUpdate`,
+and above `_updateEvent()` in that seam because Showdown collects a body's `onUpdate` handlers
+ability-first. The `-activate` stays above the loop, since the authority writes it from `onDamage`
+before arrival 1's `-damage`; arrival 1's own zero-damage line at unchanged HP is emitted by the
+packet loop like every other arrival.
+
+**ONE ANSWER FOR BOTH READERS, DELIBERATELY.** The returned RANGE moved as well as the applied
+damage. `dmgRange` is what `board.js`, `winProb2` and every rollout leaf ask; a price of 0 beside a
+turn that deals four fifths would be two answers to one question, which is the facts-are-global
+breach CLAUDE.md has a rule about. The `maxhp/8` chip stays out of the price for the reason the
+existing header already gives — it is the ABILITY's damage, not the move's.
+
+**`damage 0/6000 AT SIXTEEN CORNERS` IS NOT EVIDENCE THIS PATCH IS SAFE AND IS NOT OFFERED AS ANY.**
+`data/engine-diff.json` carries `skipped_multihit: 134` across **all fourteen** multi-hit moves in
+this format (`dualwingbeat 48, rockblast 25, pinmissile 13, tripleaxel 13, bulletseed 11,
+populationbomb 7, twinbeam 5, iciclespear 5, watershuriken 3, scaleshot 2, dragondarts 2`) plus
+`skipped_ability_multihit: 17` for Parental Bond, and its harness calls `battle.actions.moveHit`
+ONCE rather than `hitStepMoveHitLoop`. It has never applied a volley. It was re-run in full because
+a price change reaches damage, and all it says is that nothing else moved.
+
+**THE PROBE IS THE INSTRUMENT, AND IT WAS RED UNPIPED BEFORE IT WAS GREEN.**
+`tests/probe_volley_collapse.js` exits 1 with **6 comparisons parted** on the pre-fix tree and 0
+after. `MEDI_FORMEONHIT_CLICK_WIDE=1` reproduces the **SAME** red rather than a third behaviour —
+6 comparisons, `-damage` 6 vs 2, `-hitcount` 5 vs 1, HP 58 vs 114, byte-identical — and the census
+row was shown red under that knob (`hitcount 1, 2 damage lines, lost 130`) before it was shown green
+(`hitcount 3, 4 damage lines, lost 176`).
+
+**BOTH CONTROLS HELD IN EVERY RUN AND ONE OF THEM CAUGHT MY FIRST FIX.** CONTROL A is the same
+volley into a body carrying **zero** clamp reasons; CONTROL B is a **one-arrival** click into the
+same Mimikyu. The first version of the patch extracted the bust into a closure and carried
+`if(TR)TR.dmg(tg)` inside it, so the single-arrival road printed the zero-damage line twice —
+**CONTROL B parted at 2 against 3**, which is the entire reason that control exists.
+
+**AND THE CENSUS PROBE WAS WRONG TOO, IN THE COMFORTABLE DIRECTION.** It asserted
+`plain.lost > dis.lost`, inherited from the sibling Disguise probe where the absorbed arm loses only
+the chip. With the body made `unfaintable` (max HP ×8) the chip outweighs five arrivals, so the
+absorbed arm correctly loses MORE — 176 against a control 69 — and the probe went red on a correct
+engine. The control now asserts that no absorb happened on it at all; the SIZE of the difference is
+pinned by an expectation built out of the control and never typed.
+
+**THE REMAINDER IS COUNTED.** Four new `MEDFAILS` rows, apart because they are four different
+repairs: `formeAbsorbArrivalsUnaddressed` (a band that will not divide by its arrival count),
+`formeAbsorbPerHitPlan` (**not fixed** — Parental Bond, Beat Up and Triple Axel price each arrival
+in its own call, and nothing in this regulation can stage it red: Triple Axel is 90% accurate and
+Parental Bond needs a mega stone the pair builder does not hand out; a fix nothing can show
+red-then-green is not a fix), `formeAbsorbCollapsedWithClamp` (a SECOND clamp rewrote the total, so
+the vector is dropped — the bust's two lines and its chip are still paid, in the authority's order),
+`formeAbsorbPendingUnspent` (not expected at all). Two `MEDSEEN` rows,
+`formeAbsorbArrivalOnly` and `formeAbsorbBustBetweenArrivals`, are the price side and the apply
+side of one fact and should move together.
+
+**WHICH SCOREBOARD, SAID BEFORE THE RUN.** Lab moves, pool sits still. The frozen pool holds 120
+Mimikyu teams of 11,921 and an 87-team stride expects **0.88** of them, so board-material was
+predicted unmoved and measured unmoved — and that is not a disappointment. The mechanic is real; the
+961-pair sample is simply not where it lives.
+
+---
+
 ## RIPEN NEVER ANNOUNCED ITSELF ON A BERRY EAT, AND THE ROW WAS FILED UNDER `move:recycle`. 2026-08-28. CHANGELOG 5.200.0.
 
 **CENSUS 777 -> 778 LIVE / 778 PROBED / 0 MISSING. DIVERGING MECHANICS 6 -> 5, MOVES 5 -> 4.
@@ -19076,3 +19173,58 @@ reads 2/4/4/4 against our constant 2. **Suspect the instrument before the engine
 **OWED, NOT RUN:** the four located patches for confusion, Dire Claw, the faint-path type restore and
 the #478 address alignment. Healer and Shed Skin are filed with no game attached. The per-HIT reaction
 pass for an ability that responds to a crit is #500, deliberately not bundled.
+
+---
+
+## 2026-08-28 — MEASURE. THREE CHECKS READ GREEN WITHOUT EVER RUNNING, AND ALL THREE ARE GREEN.
+
+**THE HEADLINE IS THAT THERE WAS NO HIDDEN DEFECT IN THE THREE.** `tests/run-all.js` `PENDING_WIRE`
+stated in writing that `engine/register_reality.js` execFileSyncs their markers. It did not:
+`SAFE` required the marker to begin `node <script>` and permitted flags only, and all three markers
+begin `node -r ./tests/_live_release.js`. Run for the first time by anything but their author:
+
+| probe | exit | arms | the knob that clears it |
+|---|---|---|---|
+| `probe_hazard_recap_fail` | **0 GREEN** | 5 AGREE | `MEDI_HAZARD_RECAP_SILENT=1` parts A and D |
+| `probe_protect_stage_order` | **0 GREEN** | 4 AGREE | `MEDI_INVULN_BELOW_SHIELD=1` parts A |
+| `probe_sound_lock_restart` | **0 GREEN** | 5 AGREE | `MEDI_SOUND_LOCK_RESTARTS=1` parts A |
+
+**THE REGEX WAS THE WRONG SIDE OF THE FENCE, NOT THE MARKERS.** `tests/_live_release.js` is
+load-bearing: without it `engine/game_differential.js:196` cuts a REAL release at require time and
+repoints `data/engine-release.json`. All three probes detect its absence and refuse with exit 2.
+Rewriting the markers to satisfy the old regex would have bought three refusals and a moved pointer
+per pass. `SAFE` now admits a `-r <repo script>.js` preload and still refuses bare values.
+
+**AND THE SAME CLASS WAS WIDER THAN THE BRIEF SAID: 26 DISTINCT MARKERS FAILED `SAFE`, NOT 18.**
+Seventeen were rewritten and the remaining six are refused on purpose — `tests/roster.js --stage
+moves`, `all_mechanics_fire.js --kind abilities`, two `game_differential.js --team-store` markers,
+`probe_corpse_in_slot.js --games 1200`, and `#330`, whose marker names a JSON file rather than a
+command. Admitting bare values would put multi-minute runs that rewrite shared artifacts inside every
+register pass.
+
+**THE `SHOWDOWN_PATH=...` PREFIX IS DECORATIVE ON 13 OF 14 AND THE FOURTEENTH IS A REAL SKIP.**
+`tests/probe_endturn_clock_order.js` never required `engine/showdown_path.js`, so it asked the raw
+env var and exited 2 with `NOT RUN` while thirteen siblings ran to completion under the identical
+empty environment. With the canonical require it runs: exit 0, 7 arms, 1 KNOWN-OPEN, 0 failing.
+A literal paste of the marker would have set the variable to the three characters `...`, which
+`showdown_path.js` honours by design — worse than useless.
+
+**A RED-ARM CHILD WAS ESCAPING THE RELEASE REDIRECT.** Five probes spawned their knob child with no
+node flags, so the child re-required `game_differential.js` unpinned and cut into the real store.
+Measured, not argued: a redirected `ER.cut` leaves `data/engine-release.json` byte- and mtime-identical,
+so any real cut during a preloaded run came from a child. Fixed with `process.execArgv`.
+
+**#496 IS A PREMATURE CLOSE.** `probe_trace_list.js` exits 1 on the live tree — *"1 draw(s) the
+authority took and this engine did not"* — reproduced **3 of 3** with byte-identical counters across
+two different pool digests (`f807cbc40299`, `ba8828cde207`). It is NOT the sample #496 closed on
+(pin `44bd49403231`) and the simulator moved under the run, so it is filed OBSERVED, not attributed.
+ROADMAP #523; ENGINE owns it.
+
+**A REFUSAL IS PUBLISHED AS A PASS, AND THE WORSE HALF IS AT EXIT ZERO.** 4 of 74 `probe_*.js` carry
+12 `COULD-NOT-STAGE` paths that `process.exit(0)`, which the register reads as VERDICT-GREEN. Five of
+them converted to a declared `ABRA-EXIT 2 CANNOT-ANSWER`; shown red by forcing the fixture guard
+(exit 2, declaration printed) and shown inert on the staged path (all three still exit 0). ROADMAP #524.
+
+**OWED, NOT RUN:** `node engine/status.js --write` (this pass was forbidden the game slot);
+`probe_trap_timing.js`'s two exit-0 refusals; the roster and `all_mechanics_fire` markers; and
+`tests/test-middle-identity.js:39`, which hard-codes `C:/Users/willj/...` instead of the canonical module.

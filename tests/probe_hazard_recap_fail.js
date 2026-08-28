@@ -129,7 +129,7 @@ for (const s of screens) { const c = pickLayer([{ id: s, p: { hazard: s, maxLaye
 console.log('  cap-1 hazard  : ' + (H1 ? H1.move + '  by ' + H1.body : 'NONE'));
 console.log('  multi hazard  : ' + (HN ? HN.move + ' (cap ' + HN.cap + ')  by ' + HN.body : 'NONE'));
 console.log('  screen (E)    : ' + (SCR ? SCR.move + '  by ' + SCR.body : 'NONE'));
-if (!H1 || !HN) { console.log('  COULD-NOT-STAGE — no legal carrier for one of the two hazards.'); process.exit(0); }
+if (!H1 || !HN) { console.log('  COULD-NOT-STAGE — no legal carrier for one of the two hazards.'); /* A REFUSAL IS NOT A PASS — ROADMAP #524. This printed COULD-NOT-STAGE and exited 0, which engine/register_reality.js reads as VERDICT-GREEN and a CLOSED row reads as CONFIRMED: a claim about the FIXTURE published as a clean bill of health for the MECHANIC. Exit 2 with a declaration instead, the tests/probe_red_demo.js arrangement. */ console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); }
 
 const mon = (species, item, ability, moves) => ({ species, item, ability, moves });
 const FILLERS = ['clefable', 'milotic', 'garchomp', 'corviknight', 'toxapex', 'snorlax', 'umbreon'];
