@@ -9479,6 +9479,58 @@ probe('ability', 'damageBoost', 'Water Bubble raises a WATER move and nothing el
                  + `(must not move -- the tag names a type and a wire that ignored it would boost both)` };
 });
 
+/* SAND FORCE — THE TAG NAMED ONE TYPE OF THREE, AND NOTHING SPENT IT ANYWAY. 2026-08-27.
+ *
+ * `data/mods/champions/abilities.ts` has NO `sandforce` key, so mainline governs
+ * (`data/abilities.ts:3946`): `onBasePower` returns `chainModify([5325,4096])` when the field is a
+ * sandstorm AND the move is Rock, Ground or Steel.
+ *
+ * TWO DEFECTS, EACH HIDING THE OTHER. `tag_dex` read the type with a `match` that has no /g flag, so
+ * `data/tags.json` carried `onType: "Rock"` — the FIRST of three. And all three `damageBoost`
+ * consumers in `dmgRange` required `!_db.inWeather`, which Sand Force's `inWeather: ["sand"]` fails,
+ * so the boost was absent on ALL THREE types rather than on the two the artifact had lost. Fixing
+ * either alone changes nothing, which is why the Rock arm below is asserted to MOVE and is not the
+ * control the tag bug on its own would suggest.
+ *
+ * THE CONTROLS ARE THE TWO CLAUSES OF THE HANDLER. A Bug move off the same body in the same sand
+ * (the type gate) and a Ground move in a CLEAR sky (the weather gate) must both read IDENTICAL — a
+ * wire that ignored either would boost where the authority does not, and without them three rising
+ * numbers say nothing about what the boost is conditioned on.
+ *
+ * ONE REASON PER CELL. The reading is the aimed body's HP loss over a real turn, so the sandstorm
+ * RESIDUAL is the one thing that could move it for a reason other than the ability — it is additive
+ * in both readings and dilutes the ratio. Every target is Rock, Ground or Steel and takes no chip.
+ * The Rock arm needs its OWN target because nothing that is chip-immune is also neutral to Rock
+ * unless it pairs the type with Flying. The standalone `tests/probe_sand_force.js` derives all of
+ * that from the authority's type chart and refuses any cell that qualifies twice; it also asks the
+ * sandstorm-immunity half apart, which was already correct before this pass. */
+probe('ability', 'damageBoost', 'Sand Force boosts all THREE of its types, and only in sand', () => {
+  const hit = (ab, mv, w, tgt) => turnDamageBig(['excadrill', 'incineroar', tgt, tgt],
+    (B) => { B.me.ability = ab; B.S.field.weather = w; }, mv);
+  const pair = (mv, w, tgt) => [hit('none', mv, w, tgt), hit('sandforce', mv, w, tgt)];
+  const ground = pair('drillrun', 'sand', 'garchomp');
+  const steel = pair('ironhead', 'sand', 'garchomp');
+  const rock = pair('rocktomb', 'sand', 'corviknight');
+  const wrongType = pair('xscissor', 'sand', 'garchomp');
+  const clearSky = pair('drillrun', '', 'garchomp');
+  /* a band around [5325,4096] = 1.3, tight enough to exclude 1.0 and 1.5 and loose enough for the
+   * one truncation the base-power relay applies. */
+  const near13 = (p) => p[0] >= 20 && p[1] >= Math.floor(p[0] * 1.3 * 0.94)
+                                   && p[1] <= Math.ceil(p[0] * 1.3 * 1.06);
+  return { works: near13(ground) && near13(steel) && near13(rock)
+                  && wrongType[0] === wrongType[1] && wrongType[0] > 0
+                  && clearSky[0] === clearSky[1] && clearSky[0] > 0,
+           arms: { control: [wrongType, clearSky], test: [ground, steel, rock] },
+           detail: `[HP off an unfaintable target, only the ability varies] Excadrill in SAND — `
+                 + `Drill Run (Ground) ${ground.join(' -> ')}; Iron Head (Steel) ${steel.join(' -> ')}; `
+                 + `Rock Tomb (Rock, into a chip-immune Corviknight) ${rock.join(' -> ')} — all three `
+                 + `must be ~x1.3; the artifact used to name ROCK alone and nothing spent even that. `
+                 + `CONTROL X-Scissor `
+                 + `(Bug) in the same sand ${wrongType.join(' -> ')} (must be IDENTICAL — the type `
+                 + `gate); CONTROL Drill Run in a CLEAR sky ${clearSky.join(' -> ')} (must be `
+                 + `IDENTICAL — the weather gate, and without it nothing here tests the sky)` };
+});
+
 /* HUSTLE'S 1.5x ATTACK WAS NEVER SPENT, AND THE TWO CONTROLS ARE THE TWO WAYS TO FIX IT WRONG.
  * 2026-08-24.
  *

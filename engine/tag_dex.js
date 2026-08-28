@@ -7855,7 +7855,28 @@ const ABILITY_TAGS = [
       /* Will, on Fire Mane: the boost is type-gated and the tag never said which type -- so Fire
        * Mane and Huge Power carried the same shape while one applies to a single type and the
        * other to everything. Same defect as Swift Swim not naming rain. */
-      const ty = (src.match(/move\.type\s*===?\s*"(\w+)"/) || [])[1] || null;
+      /* 2026-08-27 -- AND THEN IT NAMED ONE TYPE WHERE THE HANDLER NAMES THREE.
+       *
+       * `match` without /g returns the FIRST capture and stops. Sand Force's handler is
+       * `if (move.type === 'Rock' || move.type === 'Ground' || move.type === 'Steel')`
+       * (data/abilities.ts:3950, and `data/mods/champions/abilities.ts` has NO sandforce key --
+       * grepped, so mainline governs), and the artifact carried `onType: "Rock"`. Ground and Steel
+       * were not in the tag at all, which is a ~1.3x missing from two thirds of the ability.
+       *
+       * IT IS A LIST NOW, ALWAYS, EVEN WHEN IT HOLDS ONE. A field that is sometimes a string and
+       * sometimes an array is the silent-default shape: a reader doing `p.onType === moveType` keeps
+       * working for ten members and returns false for the eleventh, which is exactly the bug being
+       * fixed wearing a consumer's clothes. Every reader is an `includes`.
+       *
+       * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every non-Past ability the format defines
+       * (316 walked). Handlers whose `onBasePower`/`onModifyAtk`/`onModifySpA` tests `move.type`:
+       *   ONE type  [10]: blaze, dragonsmaw, firemane, overgrow, rockypayload, steelworker,
+       *                   swarm, torrent, transistor, waterbubble
+       *   MULTI     [1] : sandforce [Rock, Ground, Steel]
+       * So this widens exactly one ability and cannot over-match: the other ten produce a
+       * single-element list holding the same string the scalar held. */
+      const tys = [...new Set([...src.matchAll(/move\.type\s*===?\s*["'](\w+)["']/g)].map(m => m[1]))];
+      const ty = tys.length ? tys : null;
       /* WIRE 157 -- RECKLESS'S CONDITION IS ABOUT THE MOVE, NOT ABOUT THE BODY, AND `onlyWhen` COULD
        * ONLY EVER SAY THINGS ABOUT THE BODY.
        *

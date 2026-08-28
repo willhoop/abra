@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-28T01:24:42.332Z",
+  "generated": "2026-08-28T02:46:00.712Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 765,
-  "live": 765,
+  "probed": 766,
+  "live": 766,
   "missing": 0,
-  "armed": 765,
+  "armed": 766,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -2481,6 +2481,16 @@
     {
       "kind": "ability",
       "tag": "damageBoost",
+      "label": "Sand Force boosts all THREE of its types, and only in sand",
+      "live": true,
+      "detail": "[HP off an unfaintable target, only the ability varies] Excadrill in SAND — Drill Run (Ground) 97 -> 126; Iron Head (Steel) 97 -> 126; Rock Tomb (Rock, into a chip-immune Corviknight) 45 -> 58 — all three must be ~x1.3; the artifact used to name ROCK alone and nothing spent even that. CONTROL X-Scissor (Bug) in the same sand 65 -> 65 (must be IDENTICAL — the type gate); CONTROL Drill Run in a CLEAR sky 97 -> 97 (must be IDENTICAL — the weather gate, and without it nothing here tests the sky)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "damageBoost",
       "label": "Hustle spends its 1.5x Attack — and neither control is paid twice",
       "live": true,
       "detail": "Grav Apple off one Flapple, only the ability varies — no ability 87, HUSTLE 130 (must be ~1.5x = 131); CONTROL GUTS on a healthy body 87 (must be exactly 87 — its artifact condition is null and a careless widening pays it always); CONTROL HUGE POWER 174 (must be ~2x = 174 and NOT 4x = 348, which is what a widening that double-pays the named line reads)",
@@ -3703,7 +3713,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.3% (format 20, generic 30), control Rock Slide 26.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 28.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

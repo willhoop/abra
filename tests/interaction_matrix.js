@@ -830,7 +830,11 @@ function typesReactedTo(cls) {
     for (const t of (p.halvesTypeDamage.basePowerTypes || [])) add(t, 'halvesTypeDamage');
   }
   if (p.resistBerry) add(p.resistBerry.onType, 'resistBerry');
-  if (p.damageBoost) add(p.damageBoost.onType, 'damageBoost');
+  /* `damageBoost.onType` IS A LIST FROM 2026-08-27 — Sand Force's handler names three types and the
+   * artifact used to carry the first one only. Passing the array straight to `add` would key the map
+   * on "Rock,Ground,Steel" and hand the matrix an ARRAY where every other reactor has a string, so it
+   * is spread. The ten single-type members produce exactly the entry the scalar produced. */
+  if (p.damageBoost) for (const t of (p.damageBoost.onType || [])) add(t, 'damageBoost');
   if (p.damageMultType) add(p.damageMultType.type, 'damageMultType');
   /* THE -ATE ABILITIES REACT TO A TYPE THE PARAM NAMES IN PROSE. Pixilate, Refrigerate, Galvanize,
    * Aerilate and Dragonize all read `converts: "Normal moves"`, so the carrier is a NORMAL move. Read

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-26T22:53:19.085Z",
+  "generated": "2026-08-28T02:25:36.566Z",
   "by": "tests/walk_tags.js",
   "design": "The tag list says WHAT to exercise; Showdown says what should happen. No hand-written expectations, because seven control failures were written by hand in one session.",
   "checked": 40,
@@ -13,7 +13,7 @@
     {
       "tag": "pp",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -22,7 +22,7 @@
     {
       "tag": "targetClass",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -31,7 +31,7 @@
     {
       "tag": "formatSecondaryCount",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -40,7 +40,7 @@
     {
       "tag": "priority",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -49,7 +49,7 @@
     {
       "tag": "neverMisses",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -58,7 +58,7 @@
     {
       "tag": "noProtectFlag",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -67,7 +67,7 @@
     {
       "tag": "stalling",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -76,7 +76,7 @@
     {
       "tag": "stallCounterChecks",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -85,7 +85,7 @@
     {
       "tag": "shieldsUser",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -94,7 +94,7 @@
     {
       "tag": "failsIfMovesLast",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -103,7 +103,7 @@
     {
       "tag": "statusCategory",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -112,7 +112,7 @@
     {
       "tag": "statusInflict",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -121,7 +121,7 @@
     {
       "tag": "callRefusalFlags",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -130,7 +130,7 @@
     {
       "tag": "volatileAnnounce",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -139,7 +139,7 @@
     {
       "tag": "volatileRestart",
       "id": "protect",
-      "uses": 141728,
+      "uses": 145559,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -148,7 +148,7 @@
     {
       "tag": "flingable",
       "id": "focussash",
-      "uses": 26340,
+      "uses": 27081,
       "sec": "items",
       "kind": "item",
       "verdict": "DIVERGE",
@@ -157,7 +157,7 @@
     {
       "tag": "survivesFromFull",
       "id": "focussash",
-      "uses": 26340,
+      "uses": 27081,
       "sec": "items",
       "kind": "item",
       "verdict": "DIVERGE",
@@ -166,7 +166,7 @@
     {
       "tag": "contact",
       "id": "fakeout",
-      "uses": 26065,
+      "uses": 26830,
       "sec": "moves",
       "kind": "move",
       "verdict": "AGREE",
@@ -175,7 +175,7 @@
     {
       "tag": "firstTurnOnly",
       "id": "fakeout",
-      "uses": 26065,
+      "uses": 26830,
       "sec": "moves",
       "kind": "move",
       "verdict": "AGREE",
@@ -184,7 +184,7 @@
     {
       "tag": "flinches",
       "id": "fakeout",
-      "uses": 26065,
+      "uses": 26830,
       "sec": "moves",
       "kind": "move",
       "verdict": "AGREE",
@@ -193,7 +193,7 @@
     {
       "tag": "spreadFoes",
       "id": "rockslide",
-      "uses": 23332,
+      "uses": 23951,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -202,7 +202,7 @@
     {
       "tag": "isBerry",
       "id": "sitrusberry",
-      "uses": 23133,
+      "uses": 23741,
       "sec": "items",
       "kind": "item",
       "verdict": "AGREE",
@@ -211,7 +211,7 @@
     {
       "tag": "healsAtThreshold",
       "id": "sitrusberry",
-      "uses": 23133,
+      "uses": 23741,
       "sec": "items",
       "kind": "item",
       "verdict": "AGREE",
@@ -220,7 +220,7 @@
     {
       "tag": "damageMultAll",
       "id": "lifeorb",
-      "uses": 22330,
+      "uses": 22914,
       "sec": "items",
       "kind": "item",
       "verdict": "DIVERGE",
@@ -229,7 +229,7 @@
     {
       "tag": "moveClass",
       "id": "tailwind",
-      "uses": 22315,
+      "uses": 22884,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -238,7 +238,7 @@
     {
       "tag": "doublesSideSpeed",
       "id": "tailwind",
-      "uses": 22315,
+      "uses": 22884,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -247,7 +247,7 @@
     {
       "tag": "onSwitchInDrop",
       "id": "intimidate",
-      "uses": 19735,
+      "uses": 20252,
       "sec": "abilities",
       "kind": "ability",
       "verdict": "DIVERGE",
@@ -256,7 +256,7 @@
     {
       "tag": "statChange",
       "id": "closecombat",
-      "uses": 19277,
+      "uses": 19796,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -265,7 +265,7 @@
     {
       "tag": "lowersUser",
       "id": "closecombat",
-      "uses": 19277,
+      "uses": 19796,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -274,7 +274,7 @@
     {
       "tag": "inflictsBurn",
       "id": "heatwave",
-      "uses": 14901,
+      "uses": 15352,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -283,7 +283,7 @@
     {
       "tag": "needsTargetToAttack",
       "id": "suckerpunch",
-      "uses": 14859,
+      "uses": 15257,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -292,7 +292,7 @@
     {
       "tag": "failsIfTargetNotAttacking",
       "id": "suckerpunch",
-      "uses": 14859,
+      "uses": 15257,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -301,7 +301,7 @@
     {
       "tag": "reversesSpeed",
       "id": "trickroom",
-      "uses": 14240,
+      "uses": 14637,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -310,7 +310,7 @@
     {
       "tag": "boostsWhenLowered",
       "id": "defiant",
-      "uses": 14060,
+      "uses": 14447,
       "sec": "abilities",
       "kind": "ability",
       "verdict": "DIVERGE",
@@ -319,7 +319,7 @@
     {
       "tag": "secondaryStatEffect",
       "id": "moonblast",
-      "uses": 14046,
+      "uses": 14443,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -328,7 +328,7 @@
     {
       "tag": "weatherScaled",
       "id": "weatherball",
-      "uses": 14037,
+      "uses": 14442,
       "sec": "moves",
       "kind": "move",
       "verdict": "AGREE",
@@ -337,7 +337,7 @@
     {
       "tag": "thawsUser",
       "id": "flareblitz",
-      "uses": 13522,
+      "uses": 13885,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -346,7 +346,7 @@
     {
       "tag": "recoil",
       "id": "flareblitz",
-      "uses": 13522,
+      "uses": 13885,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -355,7 +355,7 @@
     {
       "tag": "spreadAll",
       "id": "earthquake",
-      "uses": 13429,
+      "uses": 13712,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -364,7 +364,7 @@
     {
       "tag": "sound",
       "id": "partingshot",
-      "uses": 13269,
+      "uses": 13642,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",

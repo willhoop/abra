@@ -10,6 +10,9 @@
  *
  *     blaze  {"mult":1.5,"onType":"Fire","inWeather":null,"onlyWhen":"only below 1/3 HP"}
  *
+ * (That line is quoted as it stood and is not rewritten: `onType` is a LIST from 2026-08-27, so the
+ * artifact reads `["Fire"]` today. Sand Force's handler names three types and the scalar held one.)
+ *
  * — and `medicham2-browser.js` gated on `!_db.onlyWhen`, which is the correct thing to do with a
  * condition you cannot evaluate (ROADMAP #92: a guessed threshold is the boolean-in-a-fraction's-
  * clothing defect, and failing closed beats inventing one). The refusal was right. The defect was
@@ -274,8 +277,15 @@ ok('all five 0-use members are still in the ungated set',
      .every(x => ALWAYS.some(a => a[0] === x)),
    'ungated set is: ' + ALWAYS.map(a => a[0]).join(', '));
 for (const [id, p] of ALWAYS) {
-  const mv = hitOfType(p.onType, 'Special');
-  if (!mv) { ok(id + ' — a delivery move exists', false, 'none of type ' + p.onType); continue; }
+  /* `damageBoost.onType` IS A LIST FROM 2026-08-27 (Sand Force's handler names three types and the
+   * artifact held one). Passing the ARRAY to `hitOfType` looked up a move of type "Fire" spelled as
+   * an array and found none, so this control failed for a reason that had nothing to do with the
+   * member — 1 of 61 FAILED became 2 of 61 and the extra one was this line. Every member of the
+   * UNGATED set names exactly one type; the first is asked for, and a member that somehow named more
+   * would be visible in the label rather than silently reduced. */
+  const wantType = Array.isArray(p.onType) ? p.onType[0] : p.onType;
+  const mv = wantType && hitOfType(wantType, 'Special');
+  if (!mv) { ok(id + ' — a delivery move exists', false, 'none of type ' + JSON.stringify(p.onType)); continue; }
   const base = { att: BODY_DIV3, def: DEFENDER, move: mv.name, roll: 0 };
   const ctl = row('', base);
   const test = row('', Object.assign({}, base, { attAb: id }));

@@ -1071,6 +1071,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * (Reckless), folded into the base-power chain. Counted apart from `damageBoostStat` because the
    * two are different stages and a zero in one says nothing about the other. */
   damageBoostMoveCond: 0,
+  /* 2026-08-27 -- the WEATHER-GATED `damageBoost` members, folded into the same base-power chain.
+   * Sand Force is the whole of the shape today. Counted apart from the two above because all three
+   * `damageBoost` consumers in `dmgRange` used to require `!inWeather`, so this branch is the first
+   * thing that has ever spent one — a zero on a board with a sandstorm and a Rock, Ground or Steel
+   * click says the branch is unwired, which is exactly what could not be told apart before.
+   * `...First` records the first ability/type/sky it paid, so a non-zero is readable rather than
+   * merely non-zero. */
+  damageBoostWeather: 0, damageBoostWeatherFirst: '',
   helpingHandBP: 0, friendGuardChain: 0, critInRange: 0,
   /* ROADMAP #103 -- a REAL TURN priced a multi-hit move off a ROLLED count instead of the 3.1
    * expectation. A zero here with multi-hit moves being clicked means the battle loop stopped handing
@@ -2928,6 +2936,13 @@ const MEDFAILS = { encoreAction: 0,
    * than unreadable in it. The counter exists so that the next condition kind added upstream cannot
    * be silently dropped on the floor here. */
   damageBoostUnknownCond: 0, damageBoostUnknownCondFirst: '',
+  /* 2026-08-27 -- A `damageBoost.onType` THAT IS NOT A LIST. The artifact carried a SCALAR until
+   * Sand Force showed what that costs (its handler names three types and the tag held one), and the
+   * field is a list now, always, even when it holds one member. A scalar reaching a consumer means
+   * this engine is running against an artifact older than itself, so it is refused and COUNTED
+   * rather than coerced -- coercing it would resurrect the exact bug, silently, on whichever
+   * ability names more than one type. */
+  damageBoostScalarType: 0, damageBoostScalarTypeFirst: '',
   /* WIRE 91 -- a `speedCond` carrier whose condition is NOT in its params (`inWeather: []`): Quick
      Feet (a status condition), Surge Surfer (a terrain), Slow Start (a turn clock). Applying the bare
      multiplier would be Quick Feet x1.5 forever, so they are refused and counted. The enrichment
@@ -5828,13 +5843,46 @@ const mdChain=(v,chain)=>chain===CH_ONE?v:_tr4096((_tr4096(v*chain)+2047)/4096);
  * Anything not named falls through to the tag's own value, which is exact for 1.2, 1.1, 1.5, 2 and
  * 0.75.
  *
- * ONLY THE MEMBERS THIS ENGINE ACTUALLY SPENDS ARE LISTED. Analytic and Sand Force are also
- * `[5325,4096]` and are NOT here, because nothing reads them -- their `damageBoost` carries a
- * condition the tag states as prose, so they are not wired at all. An entry for an unwired ability
- * would pass the check above and cover nothing, which is a hand list pretending to be a fix. */
+ * ONLY THE MEMBERS THIS ENGINE ACTUALLY SPENDS ARE LISTED. The paragraph that stood here said
+ * "Analytic and Sand Force are also `[5325,4096]` and are NOT here, because nothing reads them" --
+ * true when written, and its premise has expired TWICE. It is corrected rather than deleted:
+ *
+ *   SAND FORCE is spent from 2026-08-27 (the weather-gated basePower branch in `dmgRange`), so it
+ *   joins the table with this pass. Without the entry the tag's float 1.3 truncates to
+ *   `tr(1.3*4096) = 5324` -- one 4096th BELOW the authority's literal -- which is a wrong number
+ *   introduced by fixing a different one.
+ *
+ *   ANALYTIC is spent too, and has been since its `allOtherActivesHaveMoved` condition became
+ *   readable, through the SAME `exact4096` call at the basePower site. It is `[5325,4096]` in
+ *   `data/abilities.ts` and it is NOT in this table, so it is currently paid at 5324/4096. That is a
+ *   REAL one-4096th defect and it is DECLARED HERE rather than fixed in this pass, because it moves
+ *   a damage number that this pass did not predict and could not then attribute. It is a one-line
+ *   fix with its own prediction, and it is written into the report and the register as owed. */
 const CH_EXACT = { toughclaws:[5325,4096], sheerforce:[5325,4096], punkrock:[5325,4096],
-                   transistor:[5325,4096] };
+                   transistor:[5325,4096], sandforce:[5325,4096] };
 const exact4096=(id,m)=>CH_EXACT[id]||m;
+/* 2026-08-27 -- ONE READER OF `damageBoost.onType`, BECAUSE IT IS A LIST NOW AND A SCALAR MUST NOT
+ * BE COERCED INTO ONE.
+ *
+ * The artifact used to carry a single type string, derived by a `match` with no /g flag. Sand Force's
+ * handler names THREE (`move.type === 'Rock' || 'Ground' || 'Steel'`, data/abilities.ts:3950) and the
+ * tag held the first, so two thirds of the ability was absent from the artifact. `tag_dex` now emits
+ * a LIST, always, even for the ten members that name one type.
+ *
+ * A SCALAR IS REFUSED AND COUNTED, NEVER WRAPPED. Wrapping it would make an engine running against a
+ * pre-2026-08-27 artifact look like it works -- correct on the ten single-type abilities and silently
+ * wrong on the one that needed the fix, which is the original bug reappearing inside its own repair.
+ * Returns TRUE / FALSE / NULL on the same three-way convention as `condHolds`, and NULL is not FALSE. */
+const dbTypeHits=(p,mvT)=>{
+  if(!p||p.onType==null)return false;
+  if(!Array.isArray(p.onType)){
+    MEDFAILS.damageBoostScalarType++;
+    if(!MEDFAILS.damageBoostScalarTypeFirst)
+      MEDFAILS.damageBoostScalarTypeFirst=JSON.stringify(p.onType);
+    return null;
+  }
+  return p.onType.indexOf(mvT)>=0;
+};
 /* ROADMAP #112 -- `onlyWhen`, EVALUATED. ONE READER OF THE CONDITION, FOR EVERY TAG THAT CARRIES ONE.
  *
  * Returns TRUE (the condition holds, or there is none), FALSE (it does not), or NULL (this engine
@@ -10411,7 +10459,7 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
           MEDFAILS.damageBoostUnknownCondFirst=String(attAb)+'/'+JSON.stringify(_db.onlyWhen);}
       else if(_aw){ACH(exact4096(attAb,+_db.mult));MEDSEEN.allyGatedBoost++;}
     }
-    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&_db.onType===mvT
+    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&dbTypeHits(_db,mvT)===true
        &&_rec&&_rec.tags&&_rec.tags.length===1){
       const _dbw=condHolds(_db.onlyWhen,att);
       if(_dbw===null){MEDFAILS.damageBoostUnknownCond++;
@@ -10700,6 +10748,52 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
           if(!MEDFAILS.damageBoostUnknownCondFirst)
             MEDFAILS.damageBoostUnknownCondFirst=String(attAb)+'/'+JSON.stringify(_dbm.onlyWhen);}
         else if(_dw){BPCH(exact4096(attAb,+_dbm.mult));MEDSEEN.damageBoostMoveCond++;}
+      }
+    }
+    /* 2026-08-27 -- THE WEATHER-GATED `damageBoost`, WHICH NOTHING HAS EVER SPENT.
+     *
+     * ALL THREE `damageBoost` CONSUMERS IN THIS FUNCTION REQUIRE `!_db.inWeather`. That clause was
+     * written when the family was narrowed (ROADMAP #92) and it has been refusing Sand Force's
+     * `inWeather: ["sand"]` ever since — so the boost was absent on ALL THREE of its types, not
+     * merely on the two the artifact's scalar `onType` had lost. Two defects holding each other up
+     * again: the artifact could not say Ground and Steel, and nothing would have read them if it had.
+     *
+     * IT IS A BASE-POWER CHAIN MEMBER. `sandforce.onBasePowerPriority` is 21 and its handler is
+     * `this.chainModify([5325, 4096])` (data/abilities.ts:3946-3954; `data/mods/champions/abilities.ts`
+     * has NO sandforce key, grepped, so mainline governs). It folds into the SAME relay as Technician,
+     * the type items, Charge and the terrains and truncates once with them — spending it as a stat
+     * multiplier or on the final damage is the 40%-wrong class of error the rest of this block exists
+     * to have fixed. `exact4096` carries the [5325,4096] literal, which the tag's float 1.3 would
+     * otherwise truncate one 4096th low.
+     *
+     * THE SKY IS ALREADY THE EFFECTIVE ONE. `field` is shadowed at the top of dmgRange through
+     * `effWeatherOf`, so Cloud Nine, Air Lock and a private sky reach this without a gate of its own —
+     * and the authority agrees, because its handler asks `this.field.isWeather('sandstorm')`, which is
+     * false under suppression.
+     *
+     * `tags.length === 1` IS NOT ASKED, AND THAT IS THE HUSTLE RULE RATHER THAN A RELAXATION. The
+     * guard's real question is "does anything else this FUNCTION spends already pay it". Sand Force's
+     * only other tag is `weatherChipImmune`, which is spent in the RESIDUAL and cannot reach a damage
+     * stage. What it is guarded against instead is a double-pay from the four hard-coded stat lines,
+     * via the same `STAT_MULT_BY_NAME` check the untyped branch uses.
+     *
+     * MEMBERSHIP, PRINTED OVER THE ARTIFACT BEFORE A LINE WAS WIRED. The shape is "a multiplier, an
+     * `onType` LIST, an `inWeather` LIST, stage basePower, no condition":
+     *     sandforce   [Rock, Ground, Steel] in [sand]   x1.3      <- the only member
+     * and the only OTHER weather-gated `damageBoost` in the artifact is Solar Power, which is
+     * `attackStat` with no type and is already spent under its own sharper tag — this branch cannot
+     * reach it. A second weather-gated member arriving later is served by the shape, not by an edit.
+     *
+     * A SCALAR `onType` FAILS CLOSED AND COUNTS, through `dbTypeHits`. */
+    {
+      const _dbw=TAGS.param('ability',attAb,'damageBoost');
+      if(_dbw&&_dbw.mult&&_dbw.stage==='basePower'&&_dbw.onType&&!_dbw.onlyWhen
+         &&Array.isArray(_dbw.inWeather)&&_dbw.inWeather.length&&!STAT_MULT_BY_NAME.has(attAb)){
+        const _wnow=field&&field.weather;
+        const _skyOK=!!_wnow&&_dbw.inWeather.some(x=>weatherId(x)===_wnow||x===_wnow);
+        const _tyOK=dbTypeHits(_dbw,mvT);
+        if(_skyOK&&_tyOK===true){BPCH(exact4096(attAb,+_dbw.mult));MEDSEEN.damageBoostWeather++;
+          if(!MEDSEEN.damageBoostWeatherFirst)MEDSEEN.damageBoostWeatherFirst=String(attAb)+'/'+mvT+'/'+_wnow;}
       }
     }
     /* ROADMAP #212 -- RIVALRY, BOTH BRANCHES AND THE GENDERLESS ONE.

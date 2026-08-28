@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-28T00:26:44.087Z",
+ "generated": "2026-08-28T01:08:25.648Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "engine_release": "345f4193d440",
@@ -13,8 +13,8 @@
   "COULD-NOT-STAGE": 141
  },
  "arms_played": {
-  "top-tie-first": 549,
-  "bottom-tie-first": 21
+  "top-tie-first": 550,
+  "bottom-tie-first": 24
  },
  "scope": {
   "total": 316,
@@ -188,6 +188,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.boosts.atk",
      "boosts.atk"
@@ -203,6 +204,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -218,6 +220,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -233,6 +236,7 @@
     "verdict": "CONTROL-NOT-QUIET",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -241,8 +245,19 @@
   },
   {
    "rule": "ability/stat-drop-reaction",
-   "ok": false,
-   "why": "the anchor matched 2 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const p=TAGS.param('ability',ab,'preventsStatDrop');"
+   "ok": true,
+   "why": "the boost-refusal path is removed, so an ability that should block a drop lets it through",
+   "moved": {
+    "member": "bigpecks",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.def",
+     "boosts.def"
+    ]
+   }
   },
   {
    "rule": "ability/pinch-offense",
@@ -253,6 +268,7 @@
     "verdict": "CONTROL-NOT-QUIET",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -261,8 +277,19 @@
   },
   {
    "rule": "ability/absorbs-a-type",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const _imm=TAGS.param('ability',suppressedAbility(att,def),'typeImmunity');"
+   "ok": true,
+   "why": "the type/flag immunity is dropped, so the absorbed hit lands as ordinary damage",
+   "moved": {
+    "member": "dryskin",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "ability/weather-speed",
@@ -273,6 +300,7 @@
     "verdict": "CONTROL-NOT-QUIET",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.boosts.atk",
      "party.boosts.spa",
@@ -290,6 +318,7 @@
     "verdict": "CONTROL-NOT-QUIET",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.boosts.spe",
      "boosts.spe"
@@ -305,6 +334,7 @@
     "verdict": "CONTROL-NOT-QUIET",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -320,6 +350,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "party.boosts.accuracy",
@@ -330,9 +361,19 @@
   },
   {
    "rule": "ability/damage-taken-scoped",
-   "ok": false,
+   "ok": true,
    "why": "the scoped damage reduction is dropped",
-   "moved": null
+   "moved": {
+    "member": "heatproof",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "ability/unconditional-stat-multiplier",
@@ -343,6 +384,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -351,14 +393,37 @@
   },
   {
    "rule": "ability/weather-residual",
-   "ok": false,
+   "ok": true,
    "why": "the residual weather effect is skipped",
-   "moved": null
+   "moved": {
+    "member": "icebody",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "ability/refuses-one-status",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: function canTakeStatus(t,st,ignoreTypeImmunity){"
+   "ok": true,
+   "why": "the status refusal is skipped, so the named status lands on the carrier anyway",
+   "moved": {
+    "member": "immunity",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.status",
+     "hp",
+     "status"
+    ]
+   }
   },
   {
    "rule": "ability/base-power-scoped",
@@ -369,6 +434,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -384,6 +450,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.boosts.spa",
      "party.hp",
@@ -401,6 +468,7 @@
     "verdict": "CONTROL-NOT-QUIET",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -416,6 +484,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp",
@@ -432,6 +501,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "party.boosts.accuracy",
@@ -449,6 +519,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp"
     ]
@@ -456,8 +527,19 @@
   },
   {
    "rule": "ability/pierces-protect",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const p=TAGS.param('ability',m.ability,'piercesProtect');"
+   "ok": true,
+   "why": "the pierce is skipped, so the shield refuses the contact click like any other",
+   "moved": {
+    "member": "piercingdrill",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "ability/priority-mod",
@@ -468,6 +550,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.boosts.atk",
      "party.boosts.spa",
@@ -485,6 +568,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -500,6 +584,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -515,6 +600,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.boosts.spa",
      "party.boosts.spd",
@@ -530,8 +616,26 @@
   },
   {
    "rule": "ability/survives-from-full",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg"
+   "ok": true,
+   "why": "the survive-from-full floor is dropped",
+   "moved": {
+    "member": "sturdy",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "party.status",
+     "species",
+     "hp",
+     "types",
+     "ability",
+     "vol.focusenergy",
+     "pp.focusenergy"
+    ]
+   }
   },
   {
    "rule": "ability/refuses-a-forced-switch",
@@ -542,13 +646,27 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": []
    }
   },
   {
    "rule": "ability/blocks-foe-berry",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: if(foes&&foes.some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'"
+   "ok": true,
+   "why": "the berry block is skipped, so the foe eats it anyway",
+   "moved": {
+    "member": "unnerve",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.item",
+     "hp",
+     "item"
+    ]
+   }
   }
  ],
  "mirror": {

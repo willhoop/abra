@@ -21,6 +21,227 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## SAND FORCE'S BASE-POWER BOOST WAS ABSENT ON ALL THREE OF ITS TYPES — THE TAG NAMED ONE, AND NOTHING SPENT EVEN THAT. **CENSUS 765 -> 766 LIVE / 766 PROBED / 0 MISSING. MECHANICS CLAUSE 5 OF 12 -> 4 OF 11. WHOLE-GAME UNMOVED AT 1 OF 961, BOARD-MATERIAL UNMOVED AT 0 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS — ALL THREE PREDICTED BEFORE THE RUN. ROSTER 139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
+
+ROADMAP `#515`. Release `fb73f82ea1ed`.
+
+### THE AUTHORITY, READ RATHER THAN RECALLED
+
+`data/mods/champions/abilities.ts` has **no `sandforce` key** — grepped, not assumed — so mainline
+governs. `data/abilities.ts:3946-3960`:
+
+```js
+sandforce: {
+  onBasePowerPriority: 21,
+  onBasePower(basePower, attacker, defender, move) {
+    if (this.field.isWeather('sandstorm')) {
+      if (move.type === 'Rock' || move.type === 'Ground' || move.type === 'Steel') {
+        return this.chainModify([5325, 4096]);
+      }
+    }
+  },
+  onImmunity(type, pokemon) { if (type === 'sandstorm') return false; },
+```
+
+Two halves. A base-power chain member on **three** types while a sandstorm is up, and a refusal of the
+sandstorm residual.
+
+### THE ANSWER FIRST: THE IMMUNITY HALF WAS ALREADY CORRECT
+
+It is asked APART rather than assumed, because "both halves work" and "one half works and the other is
+unreachable" print the same on a single-number probe. The residual reads `weatherChipImmune.weathers`
+out of the artifact and Sand Force carries `{chipImmune: true, weathers: ["sand"]}`; staged, the
+control loses **10** (a sixteenth of 160) and the holder loses **0**.
+
+**AND ITS HOLDER IS NOT A SAND FORCE CARRIER, DELIBERATELY.** All four legal carriers — Excadrill,
+Hippowdon, Garchomp-Mega, Steelix-Mega, derived over the regulation — are Rock, Ground or Steel and
+are therefore sand-immune BY TYPE. Staging one of them here would be the two-reasons failure exactly:
+the arm reads 0 whether or not the ability does anything.
+
+### WHAT WAS WRONG — TWO DEFECTS, AND EACH KEPT THE OTHER INVISIBLE
+
+**THE ARTIFACT.** `tag_dex.js` read the type with a `match` carrying no `/g` flag — one capture, the
+first — so `data/tags.json` held `onType: "Rock"`. Ground and Steel were not in the artifact at all.
+
+**THE ENGINE, AND IT IS THE BIGGER HALF.** All three `damageBoost` consumers in `dmgRange` require
+`!_db.inWeather`, a clause written when the family was narrowed (ROADMAP #92). Sand Force carries
+`inWeather: ["sand"]`, so **nothing spent the boost on ANY type, including Rock.**
+
+Fixing either half alone changes nothing. That is why the probe asserts the **Rock arm MOVES** rather
+than using it as the control the tag bug on its own would suggest — a Rock-only fixture would have
+proved nothing here.
+
+### MEMBERSHIP PRINTED BEFORE IT WAS WIRED
+
+Over the **316 legal abilities** the format defines, handlers whose
+`onBasePower`/`onModifyAtk`/`onModifySpA` test `move.type`:
+
+| | members |
+|---|---|
+| ONE type | blaze, dragonsmaw, firemane, overgrow, rockypayload, steelworker, swarm, torrent, transistor, waterbubble (10) |
+| MULTI | **sandforce [Rock, Ground, Steel]** (1) |
+
+In the ARTIFACT the set is seven — the four with no legal carrier are not derived — and Sand Force is
+still the sole multi-type member. So `onType` becoming a list widens **one** ability and cannot
+over-match: every other member produces a one-element list holding the string the scalar held.
+
+The NEW consumer's own shape — a multiplier, an `onType` list, an `inWeather` list, stage `basePower`,
+no condition — matches exactly **one** ability. The only other weather-gated `damageBoost` in the
+artifact is Solar Power, which is `attackStat` with no type and is already spent under a sharper tag;
+this branch cannot reach it.
+
+### THE FIX
+
+1. `tag_dex.js` — `onType` is a **list**, always, even when it holds one. Read with `matchAll` and
+   de-duplicated.
+2. `medicham2-browser.js` — `dbTypeHits(p, mvT)`, ONE reader of the field, returning TRUE / FALSE /
+   NULL on `condHolds`'s three-way convention. The two existing type-comparing sites call it.
+3. `medicham2-browser.js` — a new base-power consumer for the weather-gated shape, folded into the
+   same `BPCH` relay as Technician, the type items, Charge and the terrains, so it truncates once with
+   them. The sky is the shadowed `field.weather`, which `dmgRange` has already put through
+   `effWeatherOf` — Cloud Nine and Air Lock reach it without a gate of its own, and the authority
+   agrees because `isWeather` is false under suppression.
+4. `CH_EXACT` gains `sandforce: [5325,4096]`. The tag's float 1.3 truncates to `tr(1.3*4096) = 5324`,
+   one 4096th BELOW the authority's literal — a wrong number introduced by fixing a different one.
+
+**A SCALAR IS REFUSED, NEVER WRAPPED.** Coercing one would make an engine running against a
+pre-2026-08-27 artifact look like it works: correct on the ten single-type abilities and silently
+wrong on the one that needed the fix. `MEDFAILS.damageBoostScalarType` counts it; measured at **2**
+under the restore knob and **0** on the shipped artifact.
+
+**`tags.length === 1` IS NOT ASKED, AND THAT IS THE HUSTLE RULE.** The guard's real question is
+whether anything else THIS FUNCTION spends already pays it. Sand Force's only other tag is
+`weatherChipImmune`, spent in the residual, which cannot reach a damage stage. The double-pay it IS
+guarded against is the four hard-coded stat lines, via the same `STAT_MULT_BY_NAME` check.
+
+### THE PROBE — `tests/probe_sand_force.js`, RED FIRST AND THE SAME RED UNDER THE KNOB
+
+Five damage arms plus the immunity half. Every arm is one Excadrill, one single-target move, ability
+set explicitly on BOTH readings.
+
+| arm | staging | shipped | `--restore` |
+|---|---|---|---|
+| ground | Drill Run, sand | 97 -> **126** (x1.299) | 97 -> 97 |
+| steel | Iron Head, sand | 97 -> **126** (x1.299) | 97 -> 97 |
+| rock | Rock Tomb, sand | 45 -> **58** (x1.289) | 45 -> 45 |
+| CONTROL wrong-type | X-Scissor, sand | 65 -> 65 | 65 -> 65 |
+| CONTROL no-weather | Drill Run, clear sky | 97 -> 97 | 97 -> 97 |
+
+The `--restore` knob puts the pre-fix **scalar** back and reproduces the **identical six failures**,
+not a third behaviour.
+
+**ONE REASON PER CELL, DERIVED AND PRINTED, AND IT CAUGHT ITS OWN FIRST FIXTURE.** The reading is the
+aimed body's HP loss over a whole turn, so the sandstorm residual is the one contaminant: it is
+additive in both readings, which leaves `on - off` alone and DILUTES `on / off`, breaking the
+[5325,4096] band. Every target is chip-immune by type, read from the authority's own
+`dex.getImmunity('sandstorm', types)`. The first staging fired a Rock move at the Garchomp the other
+arms use — and Rock is 0.5 into Ground, so the control read 24. **No body is chip-immune AND neutral
+to Rock unless it pairs the type with Flying**, so the Rock arm gets its own target.
+
+### WHICH SCOREBOARD IT SHOULD MOVE, SAID BEFORE THE RUN
+
+| figure | before | predicted | measured |
+|---|---|---|---|
+| census live / probed / missing | 765 / 765 / 0 | 766 / 766 / 0 | **766 / 766 / 0** |
+| damage, sixteen corners | 0/6000 | 0/6000 | **0/6000** |
+| whole-game | 1 of 961 (6 raw − 5 declared) | 1 of 961 | **1 of 961 (6 raw − 5 declared)** |
+| board-material | 0 of 961 | 0 of 961 | **0 of 961** |
+| mechanics clause | 5 of 12 | 4 of 12 | **4 of 11** |
+| roster items / abilities / moves | 139 / 129 / 475, 0/0 | identical | **identical** |
+| gate | 5 of 8 PASS | 5 of 8 | **5 of 8** |
+| pin digest / DICE_MODEL | `ccb365985023` / v5 | unmoved | **unmoved** |
+| `CH_EXACT` overrides, wrong | 4, 0 | 5, 0 | **5, 0** |
+
+**DAMAGE COULD NOT MOVE AND THAT WAS DERIVED, NOT HOPED.** `tests/test-engine-diff.js` builds its
+field as `{weather: '', terrain: '', ...}` and its own artifact says so — *"this file's field is an
+empty sky by construction"*. The new branch requires a non-empty matching sky.
+
+**THE POOL SITTING STILL WAS ALSO DERIVED.** Before the fix Sand Force gave no boost in any sky, so
+had it fired inside the 961 sampled games it would ALREADY have been a divergence — and it was not
+among the 6 raw. The frozen pool holds **19 games of 17,381 mentioning Sand Force, 9 of them with
+sand.** The same six first-divergences came back, in the same shapes.
+
+**THE PREDICTION THAT MISSED IS A FINDING.** The mechanics clause was predicted at *4 of 12* and read
+**4 of 11**: the numerator was right, and the DENOMINATOR moved too, because it counts every diverging
+mechanic including the declared one and Sand Force was in it.
+
+### THE NO-OP REGENERATION, RUN FIRST TO SEPARATE THE RESHAPE FROM THE STORE
+
+`data/tags.json` also carries usage counts read live off the store, so a regeneration moves leaves
+that have nothing to do with the change.
+
+| | leaves moved | of which a mechanic parameter |
+|---|---|---|
+| no-op regeneration (no code change) | 1,082 | **0** |
+| the real regeneration, against that baseline | **16** | **16** |
+
+The 16 are `damageBoost.onType` on seven abilities, and only `sandforce` gained types.
+
+### THE PROOF THAT THE BRANCH RUNS, BECAUSE A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN
+
+`MEDSEEN.damageBoostWeather` reads **2** on a staged sandstorm Drill Run (`...First =
+sandforce/Ground/sand`) and does not move on either negative arm — the same click in a clear sky, and
+the same sand with the ability cleared.
+
+### DECLARED, NOT FIXED, AND NAMED RATHER THAN LEFT TO BE FOUND
+
+**ANALYTIC IS PAID AT 5324/4096 — ROADMAP `#516`, OPEN.** `CH_EXACT`'s comment said Analytic was
+absent *"because nothing reads them"*; true when written, and expired — Analytic is spent through the
+same `exact4096` call at the basePower site since ROADMAP #213 made its condition readable, and its
+handler is `chainModify([5325, 4096])`. `tests/test-damage-stages.js` cannot see this: it fails on a
+table that DISAGREES with the dex, never on a spent member MISSING from it. Left out of this pass
+because it moves a damage number this pass did not predict and could not then attribute. Carriers in
+Reg M-B: Starmie, Watchog.
+
+### TWO PRE-EXISTING REDS, SAID PLAINLY RATHER THAN FILED
+
+- `tests/probe_red_demo.js` exits **2** with four COULD-NOT-BE-APPLIED patches — Protect's last
+  action, the mega stone and Knock Off, and two Electro Shot charge rows. Every hunk this pass touched
+  is in the `damageBoost` / `CH_EXACT` / counter region; none of the four is in it. They belong to the
+  earlier batches that moved those lines. The ROADMAP #112 patch this pass DID have to re-aim now
+  reads OK on both arms.
+- `tests/test-pinch-family.js` reports **1 of 61 FAILED** on its positive control — the same failure,
+  by name, that clean HEAD reports ("all five 0-use members are still in the ungated set"; the set is
+  `firemane` alone, because four have no legal carrier and are not derived). The gated/ungated
+  membership is **byte-identical before and after** this change.
+
+### THE READER I BROKE, CAUGHT BY DIFFING AGAINST CLEAN HEAD
+
+The reshape has one more reader than the first sweep found, and the sweep missed it because the grep
+was truncated at 30 lines. `tests/test-pinch-family.js:280` passed the artifact's `onType` straight to
+`hitOfType(type, category)`, so with an array it looked for a move whose type is spelled `["Fire"]`,
+found none, and failed a control for a reason with nothing to do with the member.
+
+**IT WAS FOUND BY MEASUREMENT, NOT BY READING.** Every test failing in the working tree was re-run in
+a `git worktree` at clean HEAD and the failure sets diffed BY NAME:
+
+| test | HEAD | working tree, before | after |
+|---|---|---|---|
+| `tests/test-fixture-legality.js` | exit 1 | exit 1, identical set | unchanged |
+| `tests/test-game-differential.js` | exit 1, 5 failures | exit 1, 4 — a strict SUBSET | unchanged |
+| `tests/probe_red_demo.js` | exit 2, same four patches by name | exit 2, same four | unchanged |
+| `tests/test-pinch-family.js` | exit 1, **1** of 61 | exit 1, **2** of 61 | **1 of 61, identical to HEAD** |
+| `tests/test-forced-switch.js` | exit 0 | exit 0 standalone; FAILED once inside `run-all.js` and did not reproduce | reported, not chased |
+
+Only one of the five moved, and it was mine. The fixed line reads the first type and prints the whole
+field in its failure message, so a member that ever names more is visible rather than silently reduced.
+
+**AND IT LEFT BEHIND A POSITIVE CONTROL WORTH HAVING.** With the reader fixed, `firemane / Burn Up`
+reads **ok — fires at FULL HP and both engines agree**: a two-engine confirmation that the list
+reshape did not break the single-type members it also touched.
+
+### OWED, NOT RUN
+
+```
+# ROADMAP #516 — analytic into CH_EXACT, with its own before/after on the damage figure
+# a POOL-SCALE reading of MEDSEEN.damageBoostWeather — game_differential.js surfaces no MEDSEEN,
+#   so the counter has only ever been read on a staged board
+# the census pin was NOT re-cut; this run steered from data/verification/census-pin-9446a684709d.json,
+#   the same pin the previous batch used, so the two runs are comparable
+```
+
+---
+
 ## THE ROSTER'S RED DEMONSTRATIONS HAD NEVER BEEN WRITTEN INTO THE ARTIFACT, SO A GATE CLAUSE THAT READS THEM HAD NOTHING TO FAIL ON. **ITEMS 7, ABILITIES 8, MOVES 15 RED DEMONSTRATIONS DO NOT BEHAVE AS THEIR RULE PREDICTS — AND THE SAME 30, BY NAME, ON THE PRE-SESSION RELEASE. INSTRUMENT, NOT ENGINE.** 2026-08-27.
 
 ROADMAP `#513` filed. Release `345f4193d440`. CHANGELOG 5.191.0.

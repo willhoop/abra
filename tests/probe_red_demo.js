@@ -4375,8 +4375,8 @@ demo('ROADMAP #112  Blaze — the artifact half: onlyWhen back to the PROSE it u
   () => PINCH(M));
 
 demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any condition at all',
-  [["    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&_db.onType===mvT",
-    "    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&!_db.onlyWhen&&_db.onType===mvT"]],
+  [["    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&dbTypeHits(_db,mvT)===true",
+    "    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&!_db.onlyWhen&&dbTypeHits(_db,mvT)===true"]],
   (E) => PINCH(E));
 
 /* AND THE POSITIVE CONTROL, ON THE SAME REVERSAL. The five 0-use members are what the consumer
@@ -4402,8 +4402,8 @@ demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any co
   /* GUARDED 2026-08-14: this control assigns `transistor` to a Pikachu, and NO legal species in this
    * regulation carries Transistor in any slot. It was counted as a FAIL for exactly that reason. */
   if (!skipUnreachableAbility('ROADMAP #112  Transistor (0 uses) is the POSITIVE CONTROL and fires on BOTH builds', 'transistor')) {
-    const reverted = revertedEngine([["    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&_db.onType===mvT",
-      "    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&!_db.onlyWhen&&_db.onType===mvT"]]);
+    const reverted = revertedEngine([["    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&dbTypeHits(_db,mvT)===true",
+      "    if(_db&&_db.mult&&_db.onType&&!_db.inWeather&&!_db.onlyWhen&&dbTypeHits(_db,mvT)===true"]]);
     ran++;
     const a = trans(M), b = trans(reverted);
     const ok = a && b;

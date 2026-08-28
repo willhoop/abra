@@ -10,6 +10,115 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.193.0] — 2026-08-27
+
+### Fixed
+- **SAND FORCE'S BASE-POWER BOOST WAS ABSENT ON ALL THREE OF ITS TYPES — ROADMAP `#515` closed.**
+  `data/mods/champions/abilities.ts` has no `sandforce` key (grepped, not assumed), so mainline
+  governs: `onBasePower` returns `chainModify([5325, 4096])` when the field is a sandstorm **and**
+  the move is Rock, Ground or Steel (`data/abilities.ts:3946-3954`).
+  - **TWO DEFECTS HOLDING EACH OTHER UP, AND THE SECOND IS THE BIGGER ONE.** `tag_dex.js` read the
+    type with a `match` carrying no `/g` flag, so `data/tags.json` held `onType: "Rock"` — the FIRST
+    of three, with Ground and Steel absent from the artifact entirely. And all three `damageBoost`
+    consumers in `dmgRange` require `!_db.inWeather`, which `inWeather: ["sand"]` fails, so
+    **nothing spent the boost on ANY type, including Rock.** Fixing either half alone changes
+    nothing — which is why the probe asserts the Rock arm MOVES rather than using it as a control.
+  - **`onType` IS A LIST NOW, ALWAYS, AND A SCALAR IS REFUSED RATHER THAN WRAPPED.** A field that is
+    sometimes a string and sometimes an array is the silent-default shape: a reader doing
+    `p.onType === moveType` keeps working for ten members and returns false for the eleventh, which
+    is this bug wearing a consumer's clothes. `MEDFAILS.damageBoostScalarType` counts a scalar and
+    the boost fails closed; shown at **2** under the restore knob and **0** on the shipped artifact.
+  - **MEMBERSHIP PRINTED BEFORE WIRING, over the 316 legal abilities the format defines** (docs/LESSONS §4):
+    ten type-gated damage handlers name ONE type (blaze, dragonsmaw, firemane, overgrow, rockypayload,
+    steelworker, swarm, torrent, transistor, waterbubble) and exactly one names more — **sandforce
+    [Rock, Ground, Steel]**. The new consumer's own shape (`basePower`, a type list, a weather list,
+    no condition) matches **one** ability; the only other weather-gated `damageBoost` is Solar Power,
+    which is `attackStat` with no type and is already spent under a sharper tag.
+  - **`sandforce` JOINS `CH_EXACT`.** The tag's float 1.3 truncates to `tr(1.3*4096) = 5324`, one
+    4096th below the authority's literal — a wrong number introduced by fixing a different one.
+    `tests/test-damage-stages.js` re-derives all five overrides from the live dex: **0 wrong**.
+  - **THE SANDSTORM-IMMUNITY HALF WAS ALREADY CORRECT**, and is asked apart rather than assumed. The
+    residual reads `weatherChipImmune.weathers` out of the artifact. The probe's holder is a body
+    that is NOT sand-immune by type, because every real Sand Force carrier is Rock, Ground or Steel
+    and would read 0 whether or not the ability did anything — the two-reasons failure.
+
+### Added
+- `tests/probe_sand_force.js` — five damage arms plus the immunity half, each cell's reason count
+  derived from the authority's own type chart and refused if it exceeds one. **It caught its own
+  first fixture**: a Rock move fired at a Ground body is 0.5, so the arm qualified twice. A
+  `--restore` knob puts the pre-fix scalar back and reproduces the **identical** red (97/97, 97/97,
+  45/45), not a third behaviour.
+- Census row `ability/damageBoost` — *"Sand Force boosts all THREE of its types, and only in sand"*.
+  Its two controls are the two clauses of the handler: a Bug move in the same sand, and a Ground
+  move in a clear sky.
+- `MEDSEEN.damageBoostWeather` / `...First` — the first counter this engine has ever had for a
+  weather-gated damage boost. Reads **2** on a staged sandstorm hit and does not move on either
+  negative arm.
+
+### Changed
+- `data/tags.json` regenerated. A **no-op regeneration was run first** to separate the reshape from
+  the store's own churn: **1,082 leaves moved and ZERO were a mechanic parameter** — every one a
+  usage count, a usage-sorted linkage ordering or a tag-summary row. The real regeneration then
+  moved **16 leaves, all of them `damageBoost.onType`, on 7 abilities, with only `sandforce` gaining
+  types.**
+- `tests/interaction_matrix.js` spreads the `damageBoost` type list instead of keying the map on it.
+- `tests/probe_red_demo.js` — the ROADMAP #112 source patch re-aimed at the rewritten consumer line.
+
+### Notes
+- **MEASURED, EACH PREDICTED BEFORE ITS RUN.** Census **765 -> 766 live / 766 probed / 0 missing**.
+  `all_mechanics_fire` `ability:sandforce` **FIRED+diverged / board STATE -> FIRED / board
+  NO-DIVERGENCE**; abilities diverged **3 -> 2**; the mechanics clause **5 of 12 -> 4 of 11**.
+  **UNMOVED**: damage **0/6000 at all sixteen corners**, whole-game **1 of 961** (6 raw less 5
+  declared, the same six first-divergences), board-material **0 of 961**, roster **139 / 129 / 475
+  with 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE**, gate **5 of 8 clauses PASS**, pin digest
+  `ccb365985023`, DICE_MODEL v5. Release `fb73f82ea1ed`.
+- **THE PREDICTION THAT MISSED, AND IT IS A FINDING.** The mechanics clause was predicted at
+  *4 of 12* and read **4 of 11** — the numerator was right and the DENOMINATOR moved too, because it
+  counts every diverging mechanic including the declared one and Sand Force was in it.
+- **THE POOL SITTING STILL WAS PREDICTED FROM THE ARTIFACT, not explained afterwards.** Before the
+  fix Sand Force gave no boost in any sky, so had it fired inside the 961 sampled games it would
+  already have been a divergence — and it was not among the 6 raw. The frozen pool holds **19 games
+  of 17,381 mentioning Sand Force, 9 of them with sand**, which is Will's 2026-08-23 ranking working
+  as intended: the lab moves, the pool does not.
+- **ANALYTIC IS PAID ONE 4096TH LOW AND IS FILED, NOT FIXED — ROADMAP `#516`, OPEN.** It is spent
+  through the same `exact4096` call and is missing from `CH_EXACT`; `test-damage-stages.js` cannot
+  see it, because that gate fails on a table that DISAGREES with the dex, never on a spent member
+  MISSING from it. Left out of this pass because it moves a damage number this pass did not predict
+  and could not then attribute.
+- **THE READER THIS PASS BROKE AND FIXED, FOUND BY DIFFING AGAINST CLEAN HEAD.** The scalar-to-list
+  reshape had one more reader than the first sweep caught — the sweep's grep was truncated at 30
+  lines. `tests/test-pinch-family.js:280` passed the artifact's `onType` straight to `hitOfType`, so
+  with an array it looked for a move of type `["Fire"]`, found none, and failed a control for a reason
+  unrelated to the member. **Every test failing in the working tree was re-run in a `git worktree` at
+  clean HEAD and the failure sets diffed BY NAME**: `test-fixture-legality` identical,
+  `test-game-differential` a strict SUBSET of HEAD's (4 against 5), `probe_red_demo` the same four
+  patch names, `test-forced-switch` green standalone in both. **Only `test-pinch-family` moved — 1 of
+  61 at HEAD against 2 here — and it was mine.** Fixed, and back to 1 of 61 identical to HEAD; the
+  repair leaves a positive control worth having, since `firemane / Burn Up` now reads *fires at FULL
+  HP and both engines agree*, which is a two-engine confirmation that the reshape did not break the
+  ten single-type members.
+- **THE WHOLE SUITE WAS DIFFED BY NAME AGAINST CLEAN HEAD, AND THE COMPARISON IS A BOUND RATHER THAN
+  A PROOF.** `tests/run-all.js`: **27 failing checks in the working tree against 39 in a `git worktree`
+  at HEAD.** All 16 HEAD-only failures are worktree artefacts (no `data/releases/`, no untracked
+  probes, fresh mtimes). The four working-tree-only failures were each opened and attributed:
+  `test-no-silent-failure` (4 new catches, all in another agent's untracked `probe_berserk_switcheroo.js`),
+  `test-set-realism` (exit 134, out of heap), `test-workflow-paths` (a tracked `.gz` store is stale —
+  OPS) and `engine/validate_selfplay` (89 duplicate ids in the self-play store — OPS). None touches
+  damage, tags or the census.
+- **TWO PRE-EXISTING REDS, NEITHER INTRODUCED HERE AND NEITHER FILED AWAY.** `tests/probe_red_demo.js`
+  exits **2** with four COULD-NOT-BE-APPLIED patches (Protect's last action, the mega stone and Knock
+  Off, and two Electro Shot charge rows) — all outside the hunks this pass touched, all belonging to
+  earlier batches that moved those lines, and all present by name at HEAD.
+  `tests/test-pinch-family.js` reports **1 of 61 FAILED** on the ungated positive control, the same
+  failure HEAD reports; the gated/ungated membership is **byte-identical before and after this
+  change**.
+- **`data/abra-tags.js` REBUILT.** Regenerating `data/tags.json` drifts the browser bundle, which is
+  the exact failure `build/build_tags_js.js` exists to prevent (its own header records the two times
+  it drifted, the second into a commit). Node reads `data/tags.json` and only the browser reads the
+  bundle, so no measurement here stood on the stale bytes; `--check` now reports the two identical.
+
+---
+
 ## [5.192.0] — 2026-08-27
 
 ### Fixed
