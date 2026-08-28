@@ -1472,6 +1472,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* WIRE 136 -- a forme change performed as a RENAME because the target forme has no row and the
    * artifact states it is identical to the base in stats and types. Mimikyu-Busted is the one. */
   formeRenamedNoRow: 0,
+  /* 2026-08-28 -- an intact `formeOnHit` carrier met a MULTI-ARRIVAL click and the absorb was
+     priced against arrival 1 ALONE (`formeAbsorbArrivalOnly`), then busted between arrival 1 and
+     arrival 2 (`formeAbsorbBustBetweenArrivals`). The two are the price side and the apply side of
+     one fact and should move together on any volley this engine can address; a gap between them is
+     a volley that priced per arrival and then collapsed, which MEDFAILS names. */
+  formeAbsorbArrivalOnly: 0, formeAbsorbBustBetweenArrivals: 0,
   /* WIRE 137 -- a status move whose named target had left the field and was re-aimed at the body now
    * standing in that slot. A move targets a SLOT; this counts how often that actually bites.
    * WIRE 139 SUBSUMED IT: the status branch now asks the shared `reaimToSlot`, which counts every
@@ -2690,6 +2696,18 @@ const MEDFAILS = { encoreAction: 0,
    * body on the board with the wrong stats, so it is refused and counted. Fixing it means a row in
    * `data/engine-data.js`, which is downstream of this division. */
   formeOnHitNoRow: 0, formeOnHitNoRowFirst: '',
+  /* 2026-08-28 -- THE FOUR ROADS WHERE THE ABSORB STILL CANNOT ANSWER PER ARRIVAL, counted apart
+     because they are four different repairs and one total could not tell them apart.
+       ...ArrivalsUnaddressed  a flat volley whose band does not divide by its arrival count
+       ...PerHitPlan           Parental Bond / Beat Up / Triple Axel, priced one call per hit
+       ...CollapsedWithClamp   a second clamp rewrote the total, so the packet vector was dropped
+       ...PendingUnspent       the deferred bust never reached a seam -- not expected at all */
+  formeAbsorbArrivalsUnaddressed: 0, formeAbsorbArrivalsUnaddressedFirst: '',
+  formeAbsorbPerHitPlan: 0, formeAbsorbPerHitPlanFirst: '',
+  formeAbsorbCollapsedWithClamp: 0, formeAbsorbPendingUnspent: 0,
+  /* 2026-08-28 -- set whenever MEDI_FORMEONHIT_CLICK_WIDE=1 puts the whole-click absorb back on
+     purpose, so a deliberate restore arm and a broken engine can never be read as the same thing. */
+  formeOnHitClickWideRestored: 0,
   /* 2026-08-23 -- set whenever MEDI_FORMEONHIT_SPECIES_BLIND=1 puts the flag-only Disguise gate back on
      purpose, so a deliberate restore arm and a broken engine can never be read as the same thing. */
   formeOnHitSpeciesBlindRestored: 0,
@@ -9854,7 +9872,7 @@ function formeMoveType(moveId,att){
   if(ft.otherwise){MEDSEEN.formeTypedMoveDefault++;return ft.otherwise;}
   return null;
 }
-function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,perHit){
+function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,perHit,absBypass){
   stampMoveIds();
   if(!mv||!hasPower(mv))return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
   /* Shadowed once, at the top, so every weather read BELOW this line -- weatherScaled, Weather Ball's
@@ -11389,7 +11407,20 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * ABILITY's damage and belongs to the loop, which still applies it. A hypothetical price therefore
    * understates a click into a fresh Mimikyu by `maxhp/8` — stated here rather than hidden, and it is
    * a far smaller error than the full 120 it replaces. */
-  if(formeOnHitAbsorbs(def)){
+  /* 2026-08-28 -- AND IT ANSWERS FOR **ARRIVAL ONE**, WHICH IS WHY `absBypass` EXISTS.
+   *
+   * The paragraph above is right about a click with one arrival and wrong about a volley. The
+   * authority busts the disguise in `disguise.onUpdate`, raised by `eachEvent('Update')` INSIDE
+   * the hit loop (data/mods/champions/scripts.ts:538), so hits 2..N land on Mimikyu-Busted at
+   * FULL damage. Priced as zero for the whole click, a five-hit Bullet Seed left the body 56 HP
+   * -- 43% of its maximum -- better off than the authority does (measured, 58/130 there and
+   * 114/130 here, tests/probe_volley_collapse.js).
+   *
+   * `dmgRange` sets `absBypass` when the plan has more than one arrival and then zeroes packet 0
+   * itself, because on the FLAT road this function is handed the whole count and cannot see an
+   * arrival boundary. Unset everywhere else, so a single-arrival click is byte-for-byte what it
+   * was and CONTROL B of that probe pins it. */
+  if(!absBypass&&formeOnHitAbsorbs(def)){
     if(hit&&Array.isArray(hit.rolls)){hit.rolls.length=0;for(let i=0;i<16;i++)hit.rolls.push(0);}
     if(hit&&Array.isArray(hit.rollsUnit)){hit.rollsUnit.length=0;for(let i=0;i<16;i++)hit.rollsUnit.push(0);}
     return {min:0,max:0,eff};
@@ -11507,6 +11538,12 @@ const MULTIHIT_ONE_INDEX_RESTORED=(typeof process!=='undefined'&&process.env&&pr
  * `MEDFAILS.critOncePerClickRestored`. It pins the draw count to ONE and reuses that boolean for
  * every arrival, which is byte-for-byte what the engine did before this wire. */
 const CRIT_ONCE_PER_CLICK_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CRIT_ONCE_PER_CLICK==='1');
+/* 2026-08-28 -- THE SAME SWITCH FOR THE ABSORB. `MEDI_FORMEONHIT_CLICK_WIDE=1` puts back the
+ * whole-click zero, so a five-hit Bullet Seed into a fresh Mimikyu costs the maxhp/8 chip and
+ * nothing else and `|-hitcount|` reads 1. It is the ONE expression the fix turns on, so the restore
+ * reproduces the SAME red rather than a third behaviour, and any run carrying it also carries a
+ * non-zero `MEDFAILS.formeOnHitClickWideRestored`. */
+const FORMEONHIT_CLICK_WIDE_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FORMEONHIT_CLICK_WIDE==='1');
 function damageRollIndex(u){
   const i=DAMAGE_ROLL_SIDES-1-Math.floor(u*DAMAGE_ROLL_SIDES);
   return i<0?0:(i>DAMAGE_ROLL_SIDES-1?DAMAGE_ROLL_SIDES-1:i);
@@ -11523,7 +11560,14 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
      * price (winProb2, board.js, every rollout leaf) passes no `packets` field and therefore pays
      * nothing for this. */
     if(hit&&hit.wantPackets&&!Array.isArray(hit.rollsUnit)&&Array.isArray(hit.rolls))hit.rollsUnit=[];
-    const _flat=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,1,_plan.total);
+    /* ==== 2026-08-28 -- ONE ARRIVAL OF A VOLLEY IS ABSORBED, NOT THE VOLLEY ====================
+     * `formeOnHitAbsorbs` is asked HERE rather than inside `dmgRangeOneHit` because only this
+     * level knows the arrival count: the flat road prices all N in one call with `hitsOverride`,
+     * so the callee cannot tell arrival 1 from arrival 4. Asked once, read twice (the bypass and
+     * the range below), so the two cannot disagree about whether the disguise is intact. */
+    const _absMulti=!!(_plan.total>1.0000001&&formeOnHitAbsorbs(def)&&!FORMEONHIT_CLICK_WIDE_RESTORED);
+    if(FORMEONHIT_CLICK_WIDE_RESTORED&&_plan.total>1.0000001&&formeOnHitAbsorbs(def))MEDFAILS.formeOnHitClickWideRestored=1;
+    const _flat=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,1,_plan.total,null,_absMulti);
     if(hit&&hit.wantPackets){
       const _n=Math.round(_plan.total);
       if(_n>1&&Math.abs(_plan.total-_n)<1e-9&&_flat.max>0&&_flat.min%_n===0&&_flat.max%_n===0){
@@ -11535,11 +11579,51 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
          * already read it. */
         const _ub=(Array.isArray(hit.rollsUnit)&&hit.rollsUnit.length===DAMAGE_ROLL_SIDES)?hit.rollsUnit:null;
         for(let i=0;i<_n;i++)hit.packets.push({min:_flat.min/_n,max:_flat.max/_n,band:_ub?_ub.slice():null});
+        /* AND ARRIVAL 0 IS THE ONE THE DISGUISE EATS. Its band is zeroed rather than dropped, so
+         * the apply loop still walks N arrivals, still emits arrival 1's zero-damage `-damage`
+         * line at unchanged HP, and still reports `-hitcount` N -- all three of which the
+         * authority does. */
+        if(_absMulti){
+          hit.packets[0]={min:0,max:0,band:_ub?new Array(DAMAGE_ROLL_SIDES).fill(0):null};
+          MEDSEEN.formeAbsorbArrivalOnly++;
+        }
+      }else if(_absMulti){
+        /* THE LOUD REMAINDER. A flat volley whose band does not divide by its arrival count cannot
+         * be addressed per arrival at all, so the range below is still (n-1)/n but the apply step
+         * collapses it to one subtraction and the bust is paid there. Counted rather than left
+         * looking like the fix working. */
+        MEDFAILS.formeAbsorbArrivalsUnaddressed++;
+        if(!MEDFAILS.formeAbsorbArrivalsUnaddressedFirst)
+          MEDFAILS.formeAbsorbArrivalsUnaddressedFirst=String((mv&&mv.id)||'?')+' x'+_plan.total;
       }
+    }
+    if(_absMulti){
+      /* ONE ANSWER FOR BOTH READERS. A price that said 0 while the turn dealt four fifths would be
+       * two answers to one question, which is the facts-are-global breach this file has a rule
+       * about -- and `dmgRange` is what board.js, winProb2 and every rollout leaf ask. Exact on the
+       * packet road (the band divides by the count there by construction) and a floor on the price
+       * road, where `_plan.total` is `expectedHitsOf`'s fraction and no arrival is real.
+       * STILL UNDERSTATED BY THE CHIP, unchanged and for the reason the header above gives: the
+       * `maxhp/8` belongs to the ABILITY and not to the move. */
+      const _keep=(_plan.total-1)/_plan.total;
+      if(hit&&Array.isArray(hit.rolls))for(let i=0;i<hit.rolls.length;i++)hit.rolls[i]=Math.floor(hit.rolls[i]*_keep);
+      return {min:Math.floor(_flat.min*_keep),max:Math.floor(_flat.max*_keep),eff:_flat.eff};
     }
     return _flat;
   }
   MEDSEEN.perHitDamageLoop++;
+  /* 2026-08-28 -- THE PER-HIT PLAN CARRIES THE SAME DEFECT AND IS DELIBERATELY LEFT OPEN.
+   * Parental Bond, Beat Up and Triple Axel price each arrival in its own call, so the absorb
+   * branch below zeroes EVERY arrival rather than the first. It is not fixed in this pass because
+   * nothing in this regulation can stage it red: Triple Axel is 90% accurate (the volley stops on
+   * a miss) and Parental Bond needs a mega stone the differential's pair builder does not hand
+   * out. A fix nothing can show red-then-green is not a fix. Counted so it is a number.
+   * Non-zero here with `formeAbsorbArrivalOnly` at zero means the whole absorb road moved to the
+   * per-hit plan and this fix stopped covering it. */
+  if(_plan.n>1&&formeOnHitAbsorbs(def)){
+    MEDFAILS.formeAbsorbPerHitPlan++;
+    if(!MEDFAILS.formeAbsorbPerHitPlanFirst)MEDFAILS.formeAbsorbPerHitPlanFirst=String((mv&&mv.id)||'?');
+  }
   if(hit&&hit.wantPackets)hit.packets=[];
   const _wantRolls=!!(hit&&Array.isArray(hit.rolls));
   const _acc=_wantRolls?new Array(16).fill(0):null;
@@ -29081,6 +29165,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * nothing else -- which is fortunate, because `data/engine-data.js` has NO mimikyu-busted row
          * and that file belongs downstream of this division. A member with `sameStats:false` (Ice
          * Face, 0 uses) would need the row and is COUNTED rather than renamed wrongly. */
+        /* 2026-08-28 -- AND ON A VOLLEY THE BUST DOES NOT HAPPEN HERE. `eachEvent('Update')` is
+         * inside the authority's hit loop, so `disguise.onUpdate` -- the forme change AND the
+         * `baseMaxhp/8` chip -- lands BETWEEN arrival 1 and arrival 2. This carries it to that
+         * seam. Null on every other road, including a single-arrival click, which still does the
+         * whole thing in one straight line below. */
+        let _absPending=null;
         {
           /* THE GUARD CANNOT READ `dmg` ANY MORE, AND THAT IS THE WHOLE CARE IN THIS CHANGE.
            * `dmg` comes from `dmgRange` (`_price()` above), and `dmgRange` now correctly returns 0
@@ -29093,36 +29183,52 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_abs&&mv&&(mv.bp>0)&&d&&d.eff>0){
             const _fh=_abs.fh;
             tg._disguiseBusted=true;
-            dmg=_abs.chip;
-            if(TR)TR.act(tg,'ability: '+tg.ability);
-            /* ROADMAP #308 -- THE ZERO-DAMAGE LINE, WHICH THE AUTHORITY WRITES AND THIS ENGINE DID NOT.
-             * `onDamage` RETURNS 0 rather than cancelling the event, so `spreadDamage` still emits a
-             * `-damage` with the health UNCHANGED. Measured, Corviknight's Iron Head into an intact
-             * Mimikyu at the pinned commit:
-             *     |-activate|p1a: Mimikyu|ability: Disguise
-             *     |-damage|p1a: Mimikyu|134/134            <- this line
-             *     |detailschange|p1a: Mimikyu|Mimikyu-Busted, L50, M
-             *     |-damage|p1a: Mimikyu|118/134|[from] pokemon: Mimikyu-Busted
-             * Emitted BEFORE the chip is applied, which is why it reads full HP. */
-            if(TR)TR.dmg(tg);
-            /* AND THE CHIP NAMES THE NEW FORME AS ITS SOURCE -- `this.damage(pokemon.baseMaxhp / 8,
-             * pokemon, pokemon, this.dex.species.get(speciesid))`, so the `[from]` is `pokemon: <the
-             * busted forme>` and not the ability. Carried on the body because the damage is applied by
-             * the shared line below, which is the one writer of that event. */
-            tg._chipFrom='[from] pokemon: '+String(_fh.becomes).toLowerCase().replace(/[^a-z0-9]/g,'-');
-            const _key=pasteKey(_fh.becomes);
-            if(monRow(_key))formeSwap(tg,_fh.becomes,'formeOnHit');
-            else if(_fh.sameStats&&_fh.sameTypes){
+            /* THE BUST, AS A CLOSURE, BECAUSE IT NOW HAS TWO PLACES TO HAPPEN. Identical body on
+             * both roads -- one implementation, so a volley and a single hit cannot come to rename
+             * the forme differently. */
+            const _bust=()=>{
+              /* AND THE CHIP NAMES THE NEW FORME AS ITS SOURCE -- `this.damage(pokemon.baseMaxhp / 8,
+               * pokemon, pokemon, this.dex.species.get(speciesid))`, so the `[from]` is `pokemon: <the
+               * busted forme>` and not the ability. Carried on the body because the damage is applied by
+               * whichever road paid the chip -- the seam inside the packet loop, or the shared line
+               * below -- and both consume `_chipFrom` exactly once. */
+              tg._chipFrom='[from] pokemon: '+String(_fh.becomes).toLowerCase().replace(/[^a-z0-9]/g,'-');
+              const _key=pasteKey(_fh.becomes);
+              if(monRow(_key))formeSwap(tg,_fh.becomes,'formeOnHit');
+              else if(_fh.sameStats&&_fh.sameTypes){
               /* THE RENAME WITHOUT A ROW, and it is allowed ONLY because the artifact states the two
                * formes are identical in every respect this engine models. It is still counted, because
                * a rename this engine cannot verify against a row is a claim, and a claim that carries
                * traffic should be readable. */
-              tg.name=_key||String(_fh.becomes).toLowerCase().replace(/[^a-z0-9]/g,'-');
-              MEDSEEN.formeRenamedNoRow++;
-              if(TR)TR.detailschange(tg);
-            } else {
-              MEDFAILS.formeOnHitNoRow++;
-              if(!MEDFAILS.formeOnHitNoRowFirst)MEDFAILS.formeOnHitNoRowFirst=tg.ability+' -> '+_fh.becomes;
+                tg.name=_key||String(_fh.becomes).toLowerCase().replace(/[^a-z0-9]/g,'-');
+                MEDSEEN.formeRenamedNoRow++;
+                if(TR)TR.detailschange(tg);
+              } else {
+                MEDFAILS.formeOnHitNoRow++;
+                if(!MEDFAILS.formeOnHitNoRowFirst)MEDFAILS.formeOnHitNoRowFirst=tg.ability+' -> '+_fh.becomes;
+              }
+            };
+            /* WHICH ROAD, ASKED OF THE PRICE AND NOT GUESSED. `dmgRange` zeroes packet 0 exactly
+             * when it could address the arrivals; `R.pk[0] === 0` on a multi-packet click is that
+             * decision, read back. A single-arrival click has no `R.pk` at all and takes the
+             * straight line, which is what CONTROL B of tests/probe_volley_collapse.js pins. */
+            const _perArrival=Array.isArray(R.pk)&&R.pk.length>1&&R.pk[0]===0;
+            if(TR)TR.act(tg,'ability: '+tg.ability);
+            if(_perArrival)_absPending={chip:_abs.chip,bust:_bust};
+            else{
+              /* ROADMAP #308 -- THE ZERO-DAMAGE LINE, WHICH THE AUTHORITY WRITES AND THIS ENGINE DID NOT.
+               * `onDamage` RETURNS 0 rather than cancelling the event, so `spreadDamage` still emits a
+               * `-damage` with the health UNCHANGED. Measured, Corviknight's Iron Head into an intact
+               * Mimikyu at the pinned commit:
+               *     |-activate|p1a: Mimikyu|ability: Disguise
+               *     |-damage|p1a: Mimikyu|134/134            <- this line
+               *     |detailschange|p1a: Mimikyu|Mimikyu-Busted, L50, M
+               *     |-damage|p1a: Mimikyu|118/134|[from] pokemon: Mimikyu-Busted
+               * Emitted BEFORE the chip is applied, which is why it reads full HP.
+               * 2026-08-28 -- IT IS ARRIVAL ONE'S OWN `-damage` AND THEREFORE LIVES ON THIS ROAD ONLY.
+               * On the volley road the packet loop emits it for arrival 0 like every other arrival,
+               * and emitting it here as well printed the line twice. */
+              dmg=_abs.chip;if(TR)TR.dmg(tg);_bust();
             }
           }
         }
@@ -29310,6 +29416,23 @@ function battleTurn(S,rng,actsForA,actsForB){
              * derives that list on every run rather than trusting this sentence, and the step list's
              * once-per-move wrap remains tests/test-resolution-order.js's KNOWN-OPEN arm. */
             if(i<_packets.length-1){
+              /* 2026-08-28 -- AND THE DISGUISE BUSTS IN THIS SAME PASS, ABOVE THE BERRY.
+               * `disguise.onUpdate` is an `onUpdate` handler like the pinch berry beside it, and
+               * Showdown collects a body's handlers ABILITY FIRST (`findPokemonEventHandlers`
+               * pushes ability, then item, then status, then volatiles), so the forme change and
+               * its chip precede a Sitrus in the one pass. Measured against the authority,
+               * Heracross Bullet Seed into a fresh Mimikyu:
+               *     |-activate|ability: Disguise | -damage 130/130 | detailschange Mimikyu-Busted
+               *     | -damage 114/130 [from] pokemon: Mimikyu-Busted | 100 | 86 | 72 | 58
+               *     | -hitcount 5
+               * Ours ended that board on 114/130 and the authority on 58/130 -- 56 HP. */
+              if(_absPending){
+                const _p=_absPending;_absPending=null;
+                _p.bust();
+                tg.curHP-=_p.chip;
+                if(TR){const _cf=tg._chipFrom;tg._chipFrom=null;TR.dmg(tg,_cf||undefined);}
+                MEDSEEN.formeAbsorbBustBetweenArrivals++;
+              }
               if(MULTIHIT_UPDATE_ONCE)MEDFAILS.multiHitUpdateOnceRestored=1;
               else{_updateEvent();MEDSEEN.multiHitUpdateBetweenHits++;}
             }
@@ -29319,7 +29442,29 @@ function battleTurn(S,rng,actsForA,actsForB){
            * authority writes the line below `faintMessages` (battle-actions.ts:976-978) and so does
            * this engine now. */
           if(R.hitcount&&_landed>0)R.hitLanded=_landed;
-        }else{ tg.curHP-=dmg;
+          /* NOT EXPECTED AND THEREFORE COUNTED. Arrival 0 deals zero under the absorb, so it
+           * cannot KO and the loop cannot break before the first seam. Non-zero means the packet
+           * vector arrived shorter than the price said, and a body would be left renamed with no
+           * `detailschange` and no chip -- silent, and exactly the shape this file has a rule
+           * about. */
+          if(_absPending){MEDFAILS.formeAbsorbPendingUnspent++;_absPending=null;}
+        }else{
+          /* 2026-08-28 -- THE ARRIVALS COULD NOT BE ADDRESSED AFTER ALL, AND THE BUST IS STILL
+           * OWED. Reachable when a SECOND clamp -- an Endure, a Focus Sash, a Sturdy -- rewrote the
+           * total below the absorb block, which nulls `_packets` at the gate above. The two lines
+           * and the chip are paid here in the authority's order; the remaining arrivals then land
+           * as ONE subtraction, which is the pre-existing collapse (MEDSEEN.multiHitPacketsCollapsed)
+           * and not a new one. COUNTED, because on this road the clamp was also asked against a
+           * total that had not yet lost the chip. */
+          if(_absPending){
+            const _p=_absPending;_absPending=null;
+            if(TR)TR.dmg(tg);
+            _p.bust();
+            tg.curHP-=_p.chip;
+            if(TR){const _cf=tg._chipFrom;tg._chipFrom=null;TR.dmg(tg,_cf||undefined);}
+            MEDFAILS.formeAbsorbCollapsedWithClamp++;
+          }
+          tg.curHP-=dmg;
           /* ROADMAP #308 -- `_chipFrom` is the formeOnHit chip's attribution and is consumed once. */
           if(TR){const _cf=tg._chipFrom;tg._chipFrom=null;TR.dmg(tg,_cf||undefined);}
           /* 2026-08-27 -- THE SINGLE-ARRIVAL VOLLEY STILL GETS ITS LINE.

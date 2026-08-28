@@ -116,6 +116,20 @@ Mimikyu teams of 11,921 and an 87-team stride expects **0.88** of them, so board
 predicted unmoved and measured unmoved — and that is not a disappointment. The mechanic is real; the
 961-pair sample is simply not where it lives.
 
+**LANDED IN THIS COMMIT, AND THE SECTION ABOVE WAS NOT.** The prose was swept into another
+division's commit `a099d6c1` at 05:26 while this batch was still measuring — a shared sprint file
+carries whatever is on disk, which is the same hazard from the other direction. What lands here is
+the ENGINE change itself (`engine/medicham2-browser.js`, `tests/test-mechanics.js`,
+`tests/probe_volley_collapse.js`), release `0415c53255a9`, and two register rows: **#526 closed**,
+**#511 UPDATED AND STILL OPEN** for its Focus Sash and Endure roads.
+
+**AND ONE ROW FILED THAT IS NOT THIS BATCH: #527.** `tests/probe_upkeep_lines.js` is red at **6 of
+49 arms**, and it was shown red on the PREVIOUS release `559142efed16` — the same six arms by name —
+before it was reported, so it is pre-existing and unattributed rather than a regression. The perish
+lines agree; the parting is an entry stat drop naming a different body, and three of the six arms
+expected NOT-STAGED and got PARTS, which is a claim about the fixture. Registered rather than
+narrated, and deliberately not called a known failure.
+
 ---
 
 ## RIPEN NEVER ANNOUNCED ITSELF ON A BERRY EAT, AND THE ROW WAS FILED UNDER `move:recycle`. 2026-08-28. CHANGELOG 5.200.0.

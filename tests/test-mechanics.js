@@ -9878,6 +9878,78 @@ probe('ability', 'flattensTypeMatchup', 'the hit a Disguise eats is NEUTRAL, and
                  + `ability: [${plain[0].eff}] then [${plain[1].eff}]. Body Slam, a Normal move into a `
                  + `Ghost body: [${immune[0].eff}] with Disguise, [${immuneControl[0].eff}] without` };
 });
+/* THE ABSORB ANSWERS ARRIVAL ONE. A VOLLEY HAS FIVE, AND FOUR OF THEM NEVER HAPPENED HERE.
+ *
+ * `dmgRange` returned `{min:0,max:0}` for the WHOLE CLICK against an intact Disguise, and the apply
+ * step then substituted the `maxhp/8` chip once. So a Bullet Seed into a fresh Mimikyu cost the chip
+ * and nothing else. The authority busts the disguise in `disguise.onUpdate`, raised by
+ * `eachEvent('Update')` INSIDE the hit loop (data/mods/champions/scripts.ts:538), so hits 2..N land
+ * on Mimikyu-Busted at full damage. Measured against Showdown on a staged board before the fix
+ * (tests/probe_volley_collapse.js): the authority left the body on 58/130 and this engine on
+ * 114/130 -- 56 HP, 43% of its maximum, in the defender's favour, and `|-hitcount|` read 1 where the
+ * authority read 5.
+ *
+ * THE EXPECTED NUMBER IS BUILT OUT OF THE CONTROL, NEVER TYPED. The control is the same body with
+ * the ability blanked, taking the same volley from the same attacker on the same turn, so one
+ * arrival is worth `control.lost / control.hits` and the test arm must lose exactly that many
+ * arrivals less one, plus the chip. A hard number here would go stale the first time a stat, a
+ * nature or the roll pin moved.
+ *
+ * IT IS AN OUTCOME TEST AND NOT A CLASSIFICATION. Before the fix the arm read `lost === eighth`
+ * exactly; after it, `lost === eighth + (hits-1)*perArrival`. Those differ by 56 on this board, so
+ * a knob that did nothing could not produce both. The `-hitcount` value is asserted beside the HP
+ * because the count and the damage came apart in the same defect and agreeing on one of the two is
+ * not agreeing. */
+probe('ability', 'formeOnHit', 'a MULTI-HIT volley into an intact Disguise loses arrival ONE and lands the rest', () => {
+  const run = (ability) => {
+    const me = bare('heracross'), ally = bare('snorlax');
+    const f1 = bare('mimikyu'), f2 = bare('milotic');
+    f1.ability = ability;
+    unfaintable(f1);
+    me.moves = ['bulletseed', 'protect'];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const trace = []; S._trace = trace;
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'bulletseed', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const hc = trace.find(l => /^\|-hitcount\|p2a/.test(l));
+    return { lines: trace.filter(l => /^\|(-activate|-damage|detailschange|-hitcount)\|p2a/.test(l)).join(' '),
+             dmgLines: trace.filter(l => /^\|-damage\|p2a/.test(l)).length,
+             hits: hc ? +hc.split('|')[3] : null,
+             lost: before - f1.curHP, eighth: Math.floor(f1.st.hp / 8), name: f1.name, max: f1.st.hp };
+  };
+  const dis = run('disguise'), plain = run('none');
+  /* THE TWO ARMS MUST HAVE ROLLED THE SAME VOLLEY, or the arithmetic below compares two different
+   * clicks. Asserted rather than assumed -- the hit count is a draw. */
+  const sameVolley = dis.hits != null && plain.hits != null && dis.hits === plain.hits && plain.hits > 1;
+  const perArrival = sameVolley ? plain.lost / plain.hits : null;
+  const want = sameVolley && Number.isInteger(perArrival)
+    ? dis.eighth + perArrival * (dis.hits - 1) : null;
+  const zeroLine = '-damage|p2a: mimikyu|' + dis.max + '/' + dis.max;
+  return { works: sameVolley && want != null && dis.lost === want
+                  && dis.name === 'mimikyu-busted'
+                  && dis.dmgLines === plain.dmgLines + 1        // the chip's own line, and no other extra
+                  && dis.lines.indexOf(zeroLine) >= 0
+                  && dis.lines.indexOf(zeroLine) < dis.lines.indexOf('detailschange')
+                  && /-damage\|p2a: mimikyu\|\d+\/\d+\|\[from\] pokemon: mimikyu-busted/.test(dis.lines)
+                  /* THE CONTROL IS NOT "IT LOST LESS". With the body made unfaintable the maxhp/8
+                   * chip outweighs every arrival, so the absorbed arm loses MORE in total -- the
+                   * first draft asserted the opposite and went red on a correct engine (176 against
+                   * a control 69). What the control has to say is that NO absorb happened on it at
+                   * all: no activate line, no forme change, and one damage line fewer than the arm
+                   * that busted. The SIZE of the difference is already pinned by `want`. */
+                  && !/-activate/.test(plain.lines) && !/detailschange/.test(plain.lines),
+           arms: { control: [plain.hits, plain.lost, plain.dmgLines],
+                   test: [dis.hits, dis.lost, dis.dmgLines] },
+           detail: 'Bullet Seed into an intact DISGUISE: hitcount ' + dis.hits + ', ' + dis.dmgLines
+                 + ' damage lines, lost ' + dis.lost + '. CONTROL, the same body with no ability: '
+                 + 'hitcount ' + plain.hits + ', ' + plain.dmgLines + ' damage lines, lost '
+                 + plain.lost + ' -- so one arrival is worth ' + perArrival + ' and the absorbed '
+                 + 'click must cost the maxhp/8 chip (' + dis.eighth + ') plus ' + (dis.hits - 1)
+                 + ' arrivals = ' + want + '. Before the fix it cost the chip ALONE (' + dis.eighth
+                 + ') and announced |-hitcount|1. Lines: "' + dis.lines + '"' };
+});
 
 probe('ability', 'untagged', 'Marvel Scale raises Defense while statused', () => {
   /* `untagged` is a BUCKET, not a mechanic -- 45 abilities carry it, worth 2,129 clicks between

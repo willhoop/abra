@@ -102,8 +102,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  778/778 probed mechanics live, 0 missing   (census 2026-08-28 04:31)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-28 04:34)
+  779/779 probed mechanics live, 0 missing   (census 2026-08-28 05:15)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-28 05:18)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -120,9 +120,135 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 284/300 probed, 16 unprobed
 ```
 
-_stamped 2026-08-28 04:47_
+_stamped 2026-08-28 05:30_
 
 <!-- /GENERATED -->
+
+## A MULTI-HIT VOLLEY INTO AN INTACT DISGUISE DEALT ONLY THE BUSTED-FORME CHIP — ARRIVALS 2..N NEVER HAPPENED, AND ON THE STAGED BOARD THAT IS **56 HP**. **CENSUS 778 -> 779 LIVE / 779 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35, PIN DIGEST UNMOVED AT `ccb365985023` — ALL PREDICTED.** 2026-08-28.
+
+CHANGELOG 5.202.0. Release `0415c53255a9`. ROADMAP #526. Full account
+`docs/_reports/2026-08-28-disguise-volley.md`.
+
+**CENSUS 778 -> 779 LIVE / 779 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 0 OF 961,
+WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475
+WITH REDS 18/18, 29/29, 35/35, `all_mechanics_fire` THE SAME 5 DIVERGING MECHANICS WITH ZERO ROWS
+CHANGING VERDICT, PIN DIGEST UNMOVED AT `ccb365985023` — ALL PREDICTED BEFORE THE RUN.** Release
+`0415c53255a9`, arm `middle`, cap 12, `--games 1200` (yields 961), `--team-store
+data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`. Gate 7 of 8 PASS,
+unchanged; the whole-game clause is still the only failure and still the same unreproducible faint row.
+
+**THE HEADLINE IS THE STAGED HP.** Heracross Bullet Seed into a fresh Mimikyu — the authority ends
+**58/130** and this engine ended **114/130**. Fifty-six HP, 43% of the body's maximum, in the
+defender's favour, with `|-hitcount|` reading **1** against **5** and **2** `-damage` lines against
+**6**. Both engines now print the same nine lines in the same order and land on 58/130.
+
+**AN INTACT DISGUISE ABSORBS ARRIVAL ONE. IT DOES NOT ABSORB THE CLICK.** The two facts are in two
+different handlers and this engine had folded them into one:
+
+    disguise.onDamage  returns 0  ->  the MOVE deals nothing on arrival 1, and `spreadDamage` still
+                                      emits a `-damage` at UNCHANGED HP
+    disguise.onUpdate  the forme change and the `baseMaxhp/8` chip
+
+and `eachEvent('Update')` is raised **INSIDE** the hit loop — `data/mods/champions/scripts.ts:538`,
+the Champions override of `hitStepMoveHitLoop`, which calls `spreadMoveHit` per hit at `:517` and
+writes `-hitcount` as `hit - 1` at `:547`. So hits 2..N land on Mimikyu-Busted at full damage.
+Champions overrides neither handler; both were read whole this session, not recalled.
+
+**TWO EDIT SITES, AND THE FIRST ONE IS ASKED A LEVEL UP FROM WHERE IT USED TO BE.**
+
+`dmgRangeOneHit`'s `if(formeOnHitAbsorbs(def)) return {min:0,max:0,eff}` is right for a click with
+one arrival and wrong for a volley. It is now gated on an eleventh parameter `absBypass`, and the
+absorb question is asked by `dmgRange` instead — because **on the FLAT road the callee is handed the
+whole hit count in one call (`hitsOverride = _plan.total`) and cannot see an arrival boundary at
+all.** `dmgRange` sets the bypass when `_plan.total > 1`, zeroes `hit.packets[0]` (min, max **and**
+its sixteen-entry band, so the per-arrival index road reads 0 for arrival 0), and returns `(n-1)/n`
+of the price.
+
+The apply step set `dmg = _abs.chip` **above** the packet loop, which left the loop nothing to deal.
+The bust is now a closure fired at the **between-arrival Update seam** — the one that landed
+2026-08-27 for the pinch berry — which is precisely where the authority raises `disguise.onUpdate`,
+and above `_updateEvent()` in that seam because Showdown collects a body's `onUpdate` handlers
+ability-first. The `-activate` stays above the loop, since the authority writes it from `onDamage`
+before arrival 1's `-damage`; arrival 1's own zero-damage line at unchanged HP is emitted by the
+packet loop like every other arrival.
+
+**ONE ANSWER FOR BOTH READERS, DELIBERATELY.** The returned RANGE moved as well as the applied
+damage. `dmgRange` is what `board.js`, `winProb2` and every rollout leaf ask; a price of 0 beside a
+turn that deals four fifths would be two answers to one question, which is the facts-are-global
+breach CLAUDE.md has a rule about. The `maxhp/8` chip stays out of the price for the reason the
+existing header already gives — it is the ABILITY's damage, not the move's.
+
+**`damage 0/6000 AT SIXTEEN CORNERS` IS NOT EVIDENCE THIS PATCH IS SAFE AND IS NOT OFFERED AS ANY.**
+`data/engine-diff.json` carries `skipped_multihit: 134` across **all fourteen** multi-hit moves in
+this format (`dualwingbeat 48, rockblast 25, pinmissile 13, tripleaxel 13, bulletseed 11,
+populationbomb 7, twinbeam 5, iciclespear 5, watershuriken 3, scaleshot 2, dragondarts 2`) plus
+`skipped_ability_multihit: 17` for Parental Bond, and its harness calls `battle.actions.moveHit`
+ONCE rather than `hitStepMoveHitLoop`. It has never applied a volley. It was re-run in full because
+a price change reaches damage, and all it says is that nothing else moved.
+
+**THE PROBE IS THE INSTRUMENT, AND IT WAS RED UNPIPED BEFORE IT WAS GREEN.**
+`tests/probe_volley_collapse.js` exits 1 with **6 comparisons parted** on the pre-fix tree and 0
+after. `MEDI_FORMEONHIT_CLICK_WIDE=1` reproduces the **SAME** red rather than a third behaviour —
+6 comparisons, `-damage` 6 vs 2, `-hitcount` 5 vs 1, HP 58 vs 114, byte-identical — and the census
+row was shown red under that knob (`hitcount 1, 2 damage lines, lost 130`) before it was shown green
+(`hitcount 3, 4 damage lines, lost 176`).
+
+**BOTH CONTROLS HELD IN EVERY RUN AND ONE OF THEM CAUGHT MY FIRST FIX.** CONTROL A is the same
+volley into a body carrying **zero** clamp reasons; CONTROL B is a **one-arrival** click into the
+same Mimikyu. The first version of the patch extracted the bust into a closure and carried
+`if(TR)TR.dmg(tg)` inside it, so the single-arrival road printed the zero-damage line twice —
+**CONTROL B parted at 2 against 3**, which is the entire reason that control exists.
+
+**AND THE CENSUS PROBE WAS WRONG TOO, IN THE COMFORTABLE DIRECTION.** It asserted
+`plain.lost > dis.lost`, inherited from the sibling Disguise probe where the absorbed arm loses only
+the chip. With the body made `unfaintable` (max HP ×8) the chip outweighs five arrivals, so the
+absorbed arm correctly loses MORE — 176 against a control 69 — and the probe went red on a correct
+engine. The control now asserts that no absorb happened on it at all; the SIZE of the difference is
+pinned by an expectation built out of the control and never typed.
+
+**THE REMAINDER IS COUNTED.** Four new `MEDFAILS` rows, apart because they are four different
+repairs: `formeAbsorbArrivalsUnaddressed` (a band that will not divide by its arrival count),
+`formeAbsorbPerHitPlan` (**not fixed** — Parental Bond, Beat Up and Triple Axel price each arrival
+in its own call, and nothing in this regulation can stage it red: Triple Axel is 90% accurate and
+Parental Bond needs a mega stone the pair builder does not hand out; a fix nothing can show
+red-then-green is not a fix), `formeAbsorbCollapsedWithClamp` (a SECOND clamp rewrote the total, so
+the vector is dropped — the bust's two lines and its chip are still paid, in the authority's order),
+`formeAbsorbPendingUnspent` (not expected at all). Two `MEDSEEN` rows,
+`formeAbsorbArrivalOnly` and `formeAbsorbBustBetweenArrivals`, are the price side and the apply
+side of one fact and should move together.
+
+**WHICH SCOREBOARD, SAID BEFORE THE RUN.** Lab moves, pool sits still. The frozen pool holds 120
+Mimikyu teams of 11,921 and an 87-team stride expects **0.88** of them, so board-material was
+predicted unmoved and measured unmoved — and that is not a disappointment. The mechanic is real; the
+961-pair sample is simply not where it lives.
+
+### THE HAND LIST
+
+Covers this patch and nothing else.
+
+**Leaves it:** nothing — this defect had no hand-list row; it was ROADMAP #511's diagnosis, and the
+census now carries it as `ability / formeOnHit / a MULTI-HIT volley into an intact Disguise loses
+arrival ONE and lands the rest`.
+
+**Joins it:**
+- **THE SURVIVE-AT-1 CLAMP IS THE OTHER HALF AND IT IS DECLARED, NOT FIXED** (ROADMAP #511, patch A).
+  Endure, Focus Sash, Focus Band and Sturdy rewrite `dmg` below the price, so `dmg !== R.dmg` at the
+  packet gate and the vector is discarded. **HP-NEUTRAL** — 1/198 on both sides — and it costs five
+  `-damage` lines, five effectiveness lines, the hit count, the between-arrival Update pass and
+  `_timesAttacked`. Three named rows of `tests/probe_volley_collapse.js` are DECLARED open on it; a
+  declared row that turns GREEN fails the file.
+- **`MEDFAILS.formeAbsorbPerHitPlan` HAS NO FIXTURE IN THIS REGULATION.** Parental Bond, Beat Up and
+  Triple Axel price each arrival in its own call and the absorb still zeroes every one. Derived from
+  the code, never staged: Triple Axel is 90% accurate and Parental Bond needs a mega stone the
+  differential's pair builder does not hand out.
+- **FOCUS BAND'S MISSING CHANCES**, unchanged by this pass and still asserted from two source reads
+  rather than from a board — `onlyFromFullHP: false`, so the authority rolls its 10% on EVERY lethal
+  arrival while this engine rolls once.
+- **THE FOUR NEW `MEDFAILS` ROWS READ 0 IN ANY RUN WITHOUT A MIMIKYU**, which is legitimate and is
+  exactly the shape that hides a broken capability. Read them beside the staged probe, never alone.
+- Everything on the hand lists below is carried forward unchanged.
+
+---
 
 ## RIPEN NEVER ANNOUNCED ITSELF WHEN ITS HOLDER ATE A BERRY — AND THE DIVERGENCE WAS FILED UNDER `move:recycle`, WHICH IS NOT WHERE THE LINE LIVES. **CENSUS 777 -> 778 LIVE / 778 PROBED / 0 MISSING. DIVERGING MECHANICS 6 -> 5, MOVES 5 -> 4. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35 — ALL PREDICTED.** 2026-08-28.
 
