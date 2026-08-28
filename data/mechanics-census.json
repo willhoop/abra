@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-28T05:33:45.734Z",
+  "generated": "2026-08-28T06:35:18.138Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 773,
-  "live": 773,
+  "probed": 774,
+  "live": 774,
   "missing": 0,
-  "armed": 773,
+  "armed": 774,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3723,7 +3723,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6474,6 +6474,16 @@
       "label": "Berserk pays ONCE for a multi-hit move that crosses half",
       "live": true,
       "detail": "[hits landed, SpA stage, -boost lines on the carrier] — SCALE SHOT into a BERSERK Drampa [3,1,1]; CONTROL, the same volley into the same body with the ability blanked, [3,0,0]. A single-hit Dragon Claw on the same crossing still reads 1, so the fix did not turn the ability off. The lines are \"|-ability|p1a: drampa|berserk|boost |-boost|p1a: drampa|spa|1\" — the authority writes -ability then a BARE -boost, and this engine used to write 3 boosts each carrying [from] ability: berserk",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsAtHPThreshold",
+      "label": "Berserk announces BELOW the hit count, not above it",
+      "live": true,
+      "detail": "SCALE SHOT (3 arrivals) into a BERSERK Drampa announces \"-hitcount -ability -boost\"; the authority writes -hitcount (scripts.ts:550) four statements above afterMoveSecondaryEvent (:577), which is where the boost lives. CONTROL, the same volley with the ability blanked, announces \"-hitcount\" — the count is unconditional, the pair below it is the ability",
       "hollow": false,
       "armed": true,
       "directCall": false

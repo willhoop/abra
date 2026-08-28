@@ -124,6 +124,126 @@ _stamped 2026-08-28 02:03_
 
 <!-- /GENERATED -->
 
+## BERSERK ANNOUNCED ITS BOOST SEVEN STEPS TOO EARLY — THE AUTHORITY WRITES IT *BELOW* `-hitcount` AND THIS ENGINE WROTE IT ABOVE. **CENSUS 773 -> 774 LIVE / 774 PROBED / 0 MISSING. DIVERGING MECHANICS 9 -> 8, ABILITIES 2 -> 1. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35 — ALL PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `ccb365985023`.** 2026-08-28.
+
+CHANGELOG 5.197.0. Release `b035aa665740`, cut over a settled tree (`0 of 26 files have moved
+since`) and passed explicitly to every instrument: arm `middle`, cap 12, seed 20260804,
+`--games 1200` (yields 961), `--team-store data/team-pool-frozen`, census pin `9446a684709d`,
+`--state --end-state`.
+
+### THE AUTHORITY, READ RATHER THAN RECALLED
+
+Champions **does** override the containing function — `hitStepMoveHitLoop`,
+`data/mods/champions/scripts.ts:428` — and inside it:
+
+```
+scripts.ts:547   this.battle.faintMessages(false, false, !pokemon.hp);
+         :550     if (move.multihit && ...) this.battle.add('-hitcount', targets[0], hit - 1);
+         :554   if (move.totalDamage) this.applyRecoilDamage(...);
+         :575   this.battle.eachEvent('Update');
+         :577   this.afterMoveSecondaryEvent(targetsCopy.filter(...), pokemon, move);
+```
+
+Champions **also** overrides Berserk (`data/mods/champions/abilities.ts:8-13`) but only its
+`onDamage` bookkeeping line; the boost is inherited from `data/abilities.ts:420-428`, on
+`onAfterMoveSecondary`. So the authority's `-hitcount` sits **four statements above** the boost.
+Mainline agrees (`sim/battle-actions.ts:978` then `:1005`), so this is not a Champions quirk.
+
+### WHAT WAS WRONG — A CALL SITE, NOT A RULE
+
+`_hpThresholdBoost` was called from the close of `_damagingHit`, which `_stepDamagingHit` runs as
+**step 12 of 19**. `_stepHitCount` is **step 19, the last**. That is the whole of it:
+
+```
+showdown    -hitcount@14   -ability@15   -boost@16     HITCOUNT FIRST
+medicham2   -ability@13    -boost@14     -hitcount@15  BOOST FIRST
+```
+
+The boost VALUE was already right — both engines held `+1` at the boundary, and both existing
+Berserk probes were green throughout. Only the position of the announcement was wrong.
+
+### THE FIX
+
+The closure is handed to the row as `R._hpt` and executed by a new `_stepHpThresholdBoost` appended
+below `_stepHitCount`. **This is the shape `_stepHitCount` itself already uses**: `_stepApply` keeps
+COUNTING the arrivals, because only it knows how many packets landed, and only the ANNOUNCEMENT
+moved.
+
+**The old justification for the position was stale, and it is rewritten rather than deleted.** The
+call-site comment read *"which is why the call sits here, at the close of the damage step, rather
+than at the foot of the action"* — a real constraint about Scale Shot's self-drop when it was
+written, and no longer binding: `selfBoost` moved below the whole step list on 2026-08-24, and Scale
+Shot's self-drop is a `selfBoost` (`data/moves.ts:15774`, field at `:15784`), so **any** position
+inside `_STEPS` satisfies it. The comment now says what the position IS.
+
+**DECLARED REMAINDER, so it is not inherited silently.** The authority runs `applyRecoilDamage`
+(`:554`) and a second `eachEvent('Update')` (`:575`) BETWEEN the count and the boost. This engine
+pays recoil below the whole step list and has no second Update pass (`_updateEvent`'s own header
+already declares that omission). Neither reads a stat stage, so neither can move a compared leaf
+here — but this change does not close them and does not claim to.
+
+### THE PROBE — RED FIRST, GREEN AFTER, AND THE SAME RED UNDER THE KNOB
+
+New census row, `ability / boostsAtHPThreshold`: *"Berserk announces BELOW the hit count, not above
+it"*.
+
+**The two existing Berserk probes could not have caught this, and that is measured rather than
+asserted.** `berserkRun` returned a `lines` field filtered on `/drampa\|(spa|sa)|-ability\|p1a/`,
+which drops `-hitcount` entirely — an ordering claim about two lines cannot be read off a stream
+carrying one of them. A new `order` field reads the token sequence off the real staged `battleTurn`.
+
+| arm | reads |
+|---|---|
+| at `5a12034f` (RED) | `-ability -boost -hitcount` |
+| after the fix (GREEN) | `-hitcount -ability -boost` |
+| `MEDI_HP_THRESHOLD_BOOST_EARLY=1` | `-ability -boost -hitcount` — the **same** red, not a third behaviour |
+| control, ability blanked | `-hitcount` alone |
+
+The control is the ability itself: the volley still lands and still announces its count, so the
+count is shown to be unconditional and the pair below it is shown to be the ability. Under the knob
+the other two Berserk probes stay LIVE, so the knob reverts the position and nothing else.
+
+### WHICH SCOREBOARD IT SHOULD MOVE, SAID BEFORE THE RUN
+
+**Lab moves, pool sits still.** `boostsAtHPThreshold` has exactly **one** legal member in this format
+(`berserk`) and exactly **two** carriers (`Drampa`, `Drampa-Mega`). Its only effect is `{spa:+1}`, a
+POSITIVE stage, and nothing between step 12 and step 20 reads a stat stage. The frozen pool holds a
+Drampa at all in 231 of 17,381 games, and this needs a Drampa **plus** a multi-hit crossing half
+**plus** survival.
+
+Measured: the pool did not move, and `all_mechanics_fire` now reports `ability/berserk` as
+`NO-DIVERGENCE` with 4 of 4 boundaries agreed and 369–402 leaves compared.
+
+### FILED, NOT FIXED — A QUOTE-STYLE BUG IN `takesTargetItem`'s OWN DERIVER
+
+Found while printing the membership for the `announcesAs` work below, and deliberately left alone
+because folding it in would move two moves' params under a patch about an announcement name.
+`tag_dex.js` tests `eats` with `/eatItem|singleEvent\('Eat'/` — **single quotes only** — but
+`String(m.onHit)` is the COMPILED dist body, which uses double quotes. So **Bug Bite and Pluck both
+read `consumesAndGainsEffect:false, removes:true`** when the authority eats the berry and gains its
+effect. `stuffcheeks` reads `true` only because it happens to match `eatItem` instead. Bug Bite is
+105 uses. **Owed, not run.**
+
+### THE HAND LIST
+
+Covers this patch and nothing else.
+
+**Leaves it:** nothing — this is a new row rather than a carried one.
+
+**Joins it:**
+- **BUG BITE AND PLUCK ARE MIS-DERIVED BY `takesTargetItem`** (the quote-style bug above). Two moves'
+  `consumesAndGainsEffect` / `removes` params are wrong; nothing has measured what reads them.
+- **THE AUTHORITY'S RECOIL AND ITS SECOND `Update` PASS STILL SIT IN THE WRONG PLACE RELATIVE TO
+  `-hitcount`** — declared above, not closed. Neither reads a stat stage, so neither is visible on
+  this row; a mechanic that reads one WOULD see it.
+- **`MEDSEEN.hpThresholdBoosted` HAS NO POOL-SCALE READING.** `game_differential.js` surfaces no
+  `MEDSEEN`, so how often this step runs inside a real game is unknown.
+- **ROADMAP `#511` — the Endure volley collapse — still stands and this did not touch it.** An Endure
+  board must NOT be used as a Berserk ordering fixture: it qualifies for at least two reasons and
+  would prove nothing about either. Another agent is diagnosing the collapse.
+
+---
+
 ## FOUR STATE FIXES, LANDED ONE AT A TIME WITH A MEASUREMENT BETWEEN EACH. **CENSUS 766 -> 773 LIVE / 773 PROBED / 0 MISSING. GATE 5 OF 8 PASS -> 6 OF 8. MECHANICS CLAUSE 4 OF 11 -> 2 OF 9. BOARD-MATERIAL 0 OF 961 AFTER EVERY ONE OF THE FOUR, WHOLE-GAME UNMOVED AT 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS AFTER EACH PATCH — ALL PREDICTED BEFORE THE RUNS. ROSTER 139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS, REDS 18/18, 29/29, 34/35 -> 35/35 CAUGHT. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-28.
 
 ROADMAP `#519`, `#514` (closed), `#517`, `#518`. Releases `ccd5c7f5a5d7` -> `cff226e4eef5` ->

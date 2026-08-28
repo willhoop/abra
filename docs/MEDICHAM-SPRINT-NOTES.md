@@ -21,6 +21,144 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## BERSERK'S BOOST WAS ANNOUNCED ABOVE THE HIT COUNT AND THE AUTHORITY WRITES IT BELOW. 2026-08-28. CHANGELOG 5.197.0.
+
+**CENSUS 773 -> 774 LIVE / 774 PROBED / 0 MISSING. DIVERGING MECHANICS 9 -> 8, ABILITIES 2 -> 1.
+BOARD-MATERIAL UNMOVED AT 0 OF 961. WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961. DAMAGE 0/6000 AT ALL
+SIXTEEN CORNERS. ROSTER 139 / 129 / 475, ZERO IN BOTH FAILURE COLUMNS, REDS 18/18, 29/29, 35/35.
+EVERY ONE OF THOSE PREDICTED BEFORE THE RUN.** Release `b035aa665740`, cut over a settled tree
+(`0 of 26 files have moved since`).
+
+**THE DEFECT.** `_hpThresholdBoost` was called from the close of `_damagingHit` — **step 12 of 19** —
+while `_stepHitCount` is **step 19**. So the engine wrote the pair above the count and the authority
+writes it below:
+
+```
+showdown    -hitcount@14   -ability@15   -boost@16
+medicham2   -ability@13    -boost@14     -hitcount@15
+```
+
+**THE AUTHORITY.** Champions overrides `hitStepMoveHitLoop` (`data/mods/champions/scripts.ts:428`);
+`-hitcount` is `:550` and `afterMoveSecondaryEvent` is `:577`, four statements below. Champions
+overrides Berserk (`data/mods/champions/abilities.ts:8-13`) but ONLY the `onDamage` bookkeeping line —
+the boost is inherited from `data/abilities.ts:420-428` on `onAfterMoveSecondary`. Mainline agrees
+(`sim/battle-actions.ts:978`, `:1005`), so it is not a Champions quirk.
+
+**THE FIX.** The closure is handed to the row (`R._hpt`) and executed by a new `_stepHpThresholdBoost`
+appended below `_stepHitCount`. This is the shape `_stepHitCount` itself already uses: `_stepApply`
+keeps COUNTING the arrivals and only the ANNOUNCEMENT moved.
+
+**THE STALE JUSTIFICATION IS REWRITTEN, NOT DELETED.** The call-site comment claimed the position was
+required to sit above Scale Shot's self-drop. That stopped binding on 2026-08-24 when `selfBoost`
+moved below the whole step list; Scale Shot's self-drop is a `selfBoost` (`data/moves.ts:15774`, field
+at `:15784`), so any position inside `_STEPS` satisfies it. The comment now says what the position IS.
+
+**DECLARED REMAINDER.** The authority runs `applyRecoilDamage` (`:554`) and a second
+`eachEvent('Update')` (`:575`) between the count and the boost. This engine pays recoil below the whole
+step list and has no second Update pass. Neither reads a stat stage, so neither can move a compared
+leaf here — but this does not close them and does not claim to.
+
+**THE PROBE, RED FIRST, SAME RED UNDER THE KNOB.** New census row `ability / boostsAtHPThreshold` —
+*"Berserk announces BELOW the hit count, not above it"*. The two existing Berserk probes could not see
+this: `berserkRun`'s `lines` filter drops `-hitcount` entirely, so an ordering claim was unreadable
+from what they returned. A new `order` field reads the token sequence off the real staged
+`battleTurn`. Red at `5a12034f`: `-ability -boost -hitcount`. Green after: `-hitcount -ability -boost`.
+`MEDI_HP_THRESHOLD_BOOST_EARLY=1` reproduces the SAME red and leaves the other two probes LIVE.
+Control arm blanks the ability and reads `-hitcount` alone — the count is unconditional, the pair
+below it is the ability.
+
+**WHICH SCOREBOARD, SAID BEFORE THE RUN.** Lab moves, pool sits still. One legal member
+(`berserk`), two carriers (`Drampa`, `Drampa-Mega`); the frozen pool holds a Drampa at all in 231 of
+17,381 games and this needs a Drampa PLUS a multi-hit crossing half PLUS survival. The pool did not
+move and that is not a disappointment.
+
+---
+
+## THE CLOSET'S FIRST TWO ENTRIES WERE REFUSED — THEY WERE ALREADY IN IT. 2026-08-28. CHANGELOG 5.196.0.
+
+ROADMAP `#520`; `#160` re-ruled and appended, not rewritten. **NO CLAUSE MOVED, AND THE IMPROVEMENT IS A
+RULE CHANGE — a reporting one — NOT AN ENGINE CHANGE.** Nothing about the simulator was touched.
+
+**WHAT WAS ASKED.** Will: *"we put illusion and zoroark into the closet cause its too ahrd to deal
+with"*, and *"bitter malice and night daze are only learned by zoroark i believe, which we put in the
+closet"* — so write those two as the `CLOSETED` kind's first entries.
+
+**WHY BOTH WERE REFUSED.** The ruling is right and it was already implemented, on 2026-08-13, in a place
+nothing printed. Both rows already carry `deferred = ILLUSION_SHELF` from `all_mechanics_fire.js`,
+derived from `GD.CLOSET_SPECIES` off the ABILITY rather than a name list. Three independent reasons a
+`CLOSETED` row would have matched nothing:
+
+| what already subtracts them | evidence |
+|---|---|
+| the artifact's own summary | `moves.diverged 6` against `diverged_including_shelved 8`; both rows carry `counts_against_the_gate: false` |
+| `classifyMechanics` | skips a `deferred` row **before** it asks `declaredMatch`, so a declaration could not be reached even if it matched |
+| `game_differential.js` | drops every Illusion-carrying team from the pool before pairing — **43 teams** — so the whole-game clause holds ZERO zoroark causes (its six are five `fallenundefined` and one faint) |
+
+A row would have been a permanent exemption that fires on nothing — exactly the claim this file's own
+register printer names on every run as having quietly become false. The refusal is written into
+`DECLARED_DIVERGENCE` as a comment beside the Outrage, Moody, speed-tie, Tailwind and drag refusals.
+
+**THE PREMISE WAS VERIFIED AND MY FIRST DERIVATION OF IT WAS WRONG.** A hand-walked prevo/`baseSpecies`
+chain reported Zoroark-Hisui as a Night Daze learner. `TeamValidator` over the **347** legal species of
+`gen9championsvgc2026regmb`, filtered `exists && !isNonstandard && tier !== 'Illegal'`, refuses it:
+
+```
+Bitter Malice  ->  Zoroark-Hisui    1 legal learner
+Night Daze     ->  Zoroark          1 legal learner
+```
+
+Both carriers hold `{"0":"Illusion"}` — one ability, no second slot — and are the **only** two legal
+Illusion carriers in the regulation. So neither move can be staged on a body without Illusion: there is
+no fixture in which these rows could have parted for another reason.
+
+**THE NO-BOARD-EFFECT CLAIM WAS EARNED, NOT ASSERTED.** Release `aea838766e7f`, both rows:
+`board.verdict ANNOUNCEMENT-ONLY`, `boundaries 4 / boundaries_agreed 4`, `boards_after_the_parting 4`,
+`state_parted_on_turn null`, `diffs []`, **402 leaves compared each side**, `uncomparable_leaves []`,
+`core_leaf_unchecked false`. The last two matter most: they are the qualifier that would have voided
+the verdict. And the two `|switch|` lines carry the SAME HP under DIFFERENT names —
+`|switch|p1a: Blastoise|Blastoise, L50|780/780` against `|switch|p1a: Zoroark|zoroark-hisui, L50|780/780`
+— which is Illusion's signature and not a coincidence of cause string. Will's cost ruling is permission
+to stop working on it; it is not evidence about what the engine does, and it was not used as any.
+
+**WHAT WAS ACTUALLY MISSING, AND IS NOW FIXED.** The mechanics clause printed `4 shelved by the owner`
+and stopped there, while the DECLARED register beside it printed every row that MAY subtract whether or
+not it did. A fifth shelf entry could have appeared and nothing would have named it. `SHELVED BY THE
+OWNER` now names each row with carrier, cause, board verdict and dated ruling, publishes
+`owner_shelved` / `owner_shelved_summary` / `owner_shelved_rows`, prints at zero as well as at four, and
+compares the derived rows against the artifact's own summary instead of assuming they agree.
+
+**AND NAMING IT IMMEDIATELY FOUND SOMETHING THE INTEGER WAS HIDING.** Rendered on `aea838766e7f`:
+
+| row | carrier | board verdict |
+|---|---|---|
+| `move:bittermalice` | zoroarkhisui | ANNOUNCEMENT-ONLY |
+| `move:nightdaze` | zoroark | ANNOUNCEMENT-ONLY |
+| `ability:forewarn` | musharna | ANNOUNCEMENT-ONLY |
+| `item:metronome` | corviknight | **STATE — 859/960 against 868/960** |
+
+Will's Metronome ruling is explicitly cost-based and it stands. But **the shelf is not uniformly a
+no-board-effect shelf**, and the bare integer said nothing about that.
+
+**NEUTRALITY MEASURED RATHER THAN ARGUED.** `HEAD:engine/quarantine.js` and the working copy were
+compiled in one process against the SAME on-disk artifacts: identical verdicts and identical counts on
+all eight clauses. **Gate counts are deliberately not quoted here as a before/after** — the 2 of 8
+failing measured at 02:27 on `aea838766e7f` is real, and the tree moved to `b035aa665740` under this
+session while another division worked. Subtracting one from the other would invent a trend.
+
+**SIX SELFTEST ASSERTIONS, 148 -> 154, EACH SHOWN RED ON A DELIBERATE BREAK:**
+
+| break | result |
+|---|---|
+| drop the `ownerShelved.push` collector | 2 FAIL |
+| drop `shelvedLine` from the printed `why` | 3 FAIL |
+| drop the rows-vs-summary comparison | 1 FAIL |
+| move the `deferred` skip **below** `declaredMatch` | **5 FAIL**, including the pre-existing `#291` assertion |
+
+`mechanicsClause` gained the `inject` door the file already uses twice. The first version of the printer
+assertion read the live artifact and went RED mid-session when another division cut `b035aa665740`; a
+signal another agent can flip is noise, and noise is how a red test becomes a "known failure".
+
+---
 ## TWO DIAGNOSIS PROBES RESCUED FROM UNTRACKED, AND **NEITHER IS LANDED GREEN**. 2026-08-28.
 
 `tests/probe_berserk_switcheroo.js` and `tests/probe_instruct_shield.js` were written on 2026-08-27 by

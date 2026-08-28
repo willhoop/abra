@@ -2055,6 +2055,8 @@ const MEDFAILS = { encoreAction: 0,
   volStartGateBlindRestored: 0,
   /* ROADMAP #518 -- MEDI_NO_CATEGORY_PICK=1 is armed, so Shell Side Arm is always Special again. */
   categoryPickBlindRestored: 0,
+  /* 2026-08-28 -- MEDI_HP_THRESHOLD_BOOST_EARLY=1 is armed, so Berserk announces above `-hitcount`. */
+  hpThresholdBoostEarlyRestored: 0,
   /* 2026-08-27 -- THE SECOND, STILL-OPEN PRODUCER OF A MISSING `|-hitcount|`. A volley priced as 2+
      packets whose total was rewritten before application (a Focus Sash, an Endure, a busted Disguise)
      collapses to one packet, so `_landed` stays 0 and no count is announced — while the authority
@@ -12079,6 +12081,13 @@ const VOL_START_GATE_BLIND=(typeof process!=='undefined'&&process.env
  * non-zero `MEDFAILS.categoryPickBlindRestored`. */
 const NO_CATEGORY_PICK=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_NO_CATEGORY_PICK==='1');
+/* 2026-08-28 -- MEDI_HP_THRESHOLD_BOOST_EARLY=1 CALLS `_hpThresholdBoost` BACK FROM THE CLOSE OF
+ * `_damagingHit` (step 12 of 19) instead of handing it to `_stepHpThresholdBoost` (step 20), which is
+ * exactly where the call was until today and therefore reproduces the SAME red -- Berserk's
+ * `-ability`/`-boost` pair ABOVE `-hitcount`, not a third behaviour. Any run carrying it also carries
+ * a non-zero `MEDFAILS.hpThresholdBoostEarlyRestored`. */
+const HP_THRESHOLD_BOOST_EARLY=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_HP_THRESHOLD_BOOST_EARLY==='1');
 const LATCH_FIELDS_WRITTEN=(function(){
   const S=new Set();
   try{
@@ -29722,9 +29731,27 @@ function battleTurn(S,rng,actsForA,actsForB){
          *     |-ability|p1a: Drampa|Berserk|boost
          *     |-boost|p1a: Drampa|spa|1
          *     |-unboost|p2a: Feraligatr|def|1   |-boost|p2a: Feraligatr|spe|1
-         * ONE boost, after the hit count, and BEFORE the attacker's own Scale Shot self-drops -- which
-         * is why the call sits here, at the close of the damage step, rather than at the foot of the
-         * action.
+         * ONE boost, AFTER the hit count, and BEFORE the attacker's own Scale Shot self-drops.
+         *
+         * 2026-08-28 -- WHERE THE CALL SITS, AND WHY THE OLD JUSTIFICATION FOR ITS POSITION IS DEAD.
+         * This comment used to read "which is why the call sits here, at the close of the damage step,
+         * rather than at the foot of the action", and the call really was made from the bottom of
+         * `_damagingHit` -- STEP 12 of 19. `_stepHitCount` is step 19, so the engine announced the
+         * boost ABOVE the count, the exact inverse of the authority's stream quoted above:
+         *     showdown    -hitcount@14   -ability@15   -boost@16
+         *     medicham2   -ability@13    -boost@14     -hitcount@15
+         * The Scale Shot constraint that justified the old position no longer binds ANY position
+         * inside `_STEPS`: `selfBoost` moved below the whole step list on 2026-08-24 (the
+         * `_sb2=selfBoostVia(a.move.id)` block), and Scale Shot's self-drop is a `selfBoost`
+         * (data/moves.ts:15774, field at :15784). So the closure is now handed to the row as
+         * `R._hpt` and run by `_stepHpThresholdBoost`, which is appended BELOW `_stepHitCount` --
+         * matching `afterMoveSecondaryEvent` (scripts.ts:577) sitting below `-hitcount` (:550).
+         *
+         * DECLARED REMAINDER, so it is not inherited silently: the authority runs `applyRecoilDamage`
+         * (:554) and a second `eachEvent('Update')` (:575) BETWEEN the count and the boost. This
+         * engine pays recoil below the whole step list and has no second Update pass (`_updateEvent`'s
+         * own header declares that omission). Neither reads a stat stage, so neither can move a
+         * compared leaf here -- but this move does not close them and does not claim to.
          *
          * THE TWO LINES ARE THE AUTHORITY'S AND THEY ARE NOT WHAT THIS ENGINE WROTE. `Battle#boost`
          * (sim/battle.ts:2058-2064) emits `-ability|TARGET|NAME|boost` FIRST for an Ability-caused
@@ -29750,7 +29777,8 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
           MEDSEEN.hpThresholdBoosted++;
         }
-        _hpThresholdBoost();
+        if(HP_THRESHOLD_BOOST_EARLY){MEDFAILS.hpThresholdBoostEarlyRestored=1;_hpThresholdBoost();}
+        else R._hpt=_hpThresholdBoost;   /* run by `_stepHpThresholdBoost`, below `_stepHitCount` */
         }   /* end _damagingHit */
         /* ROADMAP #81 WIRE 7 -- KNOCK OFF STRIPS THE ITEM *AFTER* THE DAMAGE. ROADMAP #80 filed this
          * and only half of it was closed: #80's DAMAGE claim was retracted (both engines price the
@@ -30846,6 +30874,13 @@ function battleTurn(S,rng,actsForA,actsForB){
        * fire on it -- but it IS observable against a secondary on the same body (Icy Wind's Speed drop
        * into Stamina). Measured and named rather than assumed absent. */
       const _stepDamagingHit=(R)=>{ if(!R._dh)return; const _f=R._dh; R._dh=null; _f(); };
+      /* 2026-08-28 -- STEP 20, BELOW `_stepHitCount`. `boostsAtHPThreshold` is Showdown's
+       * `onAfterMoveSecondary` (data/abilities.ts:420-428, inherited by Champions), which
+       * `hitStepMoveHitLoop` runs at data/mods/champions/scripts.ts:577 -- four statements BELOW the
+       * `-hitcount` emit at :550. The closure is built inside `_damagingHit` because only there are
+       * `tg` and the move's total `dmg` in hand; only its EXECUTION moved, exactly as `_stepHitCount`
+       * took over the count's announcement while `_stepApply` kept counting it. */
+      const _stepHpThresholdBoost=(R)=>{ if(!R._hpt)return; const _f=R._hpt; R._hpt=null; _f(); };
       /* STEP 7e, THE SECOND HALF -- `buffsHolderOnHit` (Stamina, Weak Armor, Justified, Anger
        * Point, Electromorphosis) IS AN `onDamagingHit` HANDLER AND IT RAN TWO STEPS EARLY. 2026-08-22.
        *
@@ -31285,7 +31320,10 @@ function battleTurn(S,rng,actsForA,actsForB){
                      * The line used to be emitted inside `_stepApply`'s packet loop; the loop still
                      * COUNTS there (`R.hitLanded`) because only it knows how many packets landed
                      * before the volley stopped, and only the ANNOUNCEMENT moved. */
-                    _stepHitCount];
+                    _stepHitCount,
+                    /* 2026-08-28 -- and the HP-threshold boost BELOW the count, scripts.ts:577
+                     * against :550. See `_stepHpThresholdBoost`. */
+                    _stepHpThresholdBoost];
       /* ROADMAP #262 -- THE PER-TARGET HALF OF THE ADDRESS, IN THE ONE PLACE THE TARGET CHANGES.
        * `hitStepAccuracy` and `getSpreadDamage` both open with `this.battle.activeTarget = target`
        * inside their per-target loop, so the authority's address moves target by target within a

@@ -719,7 +719,7 @@ function classifyMechanics(j, curId, inject) {
   const U = (inject && inject.U) || usageIndex();
   const DI = (inject && inject.DI) || decisionImpact(curId);
   const SH = reachShelf(U);       /* one anchor, one rate, a threshold per population — #295 */
-  const counted = [], belowShelf = [], unknown = [], excused = [], declaredHits = [];
+  const counted = [], belowShelf = [], unknown = [], excused = [], declaredHits = [], ownerShelved = [];
   /* THIS CLAUSE'S OWN THROW SINK. Not `MATCHER_THREW`: a shared accumulator would print a mechanics
    * cause under the whole-game clause's heading. See `declaredMatch`. */
   const declaredThrew = [];
@@ -733,7 +733,32 @@ function classifyMechanics(j, curId, inject) {
     const list = Array.isArray(j && j.rows && j.rows[kind]) ? j.rows[kind] : null;
     if (!list) { rowsMissing.push(kind); continue; }
     for (const r of list) {
-      if (!r || !r.diverged || r.deferred) continue;   /* `deferred` is the owner's closet — #291 */
+      if (!r || !r.diverged) continue;
+      /* ---- THE OWNER'S CLOSET, AND IT IS COLLECTED ON THE WAY PAST RATHER THAN DROPPED — #291/#520
+       * `deferred` is the shelf `all_mechanics_fire.js` stamps onto a row: `tests/roster.js DEFERRED`
+       * by entity id, or the ILLUSION shelf derived from `GD.CLOSET_SPECIES`. It has always skipped
+       * the row and it still does — the ruling is Will's and it does not vote.
+       *
+       * WHAT CHANGED IS THAT IT USED TO SKIP SILENTLY AND THE CLAUSE PRINTED A BARE INTEGER. This
+       * file's own standard, stated three times above, is that **a filter may only ever SUBTRACT
+       * from a number a reader can still see** — and the DECLARED register prints every row that may
+       * subtract, with its ruling, whether or not it fired. The owner's shelf was subtracting with
+       * strictly less accountability than a declaration, so a fifth entry could have appeared and
+       * nothing would have named it. That is the invisible-exception failure the roster's own header
+       * exists to prevent, sitting inside the guard written to stop it.
+       *
+       * THE SKIP IS DELIBERATELY BEFORE `declaredMatch` AND MUST STAY THERE. A shelf DERIVED from
+       * the ability beats a matcher TYPED against a cause string; asking the declared list first
+       * would let a hand-written row claim credit for a subtraction the derivation already made. */
+      if (r.deferred) {
+        ownerShelved.push({ kind, id: r.id, key: SINGULAR[kind] + ':' + nid(r.id),
+                            carrier: r.carrier || null,
+                            by: r.deferred.by || null, on: r.deferred.on || null,
+                            why: String(r.deferred.why || ''),
+                            cause: String((r.divergence && r.divergence.cause) || ''),
+                            board_verdict: (r.board && r.board.verdict) || null });
+        continue;
+      }
       rowsSeen++;
       const key = SINGULAR[kind] + ':' + nid(r.id);
       const reach = reachOf(U, kind, r.id);
@@ -766,18 +791,29 @@ function classifyMechanics(j, curId, inject) {
     }
   }
   return { U, DI, SH, counted, belowShelf, unknown, excused, declared: declaredHits,
-           declaredThrew, rowsSeen, rowsMissing };
+           ownerShelved, declaredThrew, rowsSeen, rowsMissing };
 }
 
-function mechanicsClause() {
+/* `inject` IS THE SELFTEST'S DOOR AND EVERY SHIPPING CALLER LEAVES IT UNDEFINED — the same door, for
+ * the same reason, as `wholeGameClause`'s and `classifyMechanics`'s extra arguments: a parameter is
+ * visible in the caller where a flag is not.
+ *
+ * IT EXISTS BECAUSE A SELFTEST THAT READS A LIVE ARTIFACT IS NOT A SELFTEST. The first version of
+ * the printer assertion below drove this function off disk, and it went RED mid-session for a reason
+ * that had nothing to do with the code: another division cut a release, `data/engine-release.json`
+ * moved from `aea838766e7f` to `b035aa665740`, and the clause correctly took its
+ * MEASURED-AGAINST-A-DIFFERENT-ENGINE early return. A signal another agent can flip is noise, and
+ * this repository's history says a test that goes red for a reason nobody owns gets filed as a known
+ * failure. So the fixture is handed in. */
+function mechanicsClause(inject) {
   const NAME = 'mechanics / each one staged and compared against showdown';
-  const j = readJson(D('data', 'all-mechanics-fire.json'));
+  const j = (inject && inject.j) || readJson(D('data', 'all-mechanics-fire.json'));
   if (!j) {
     return { name: NAME, ok: false, missing: true,
       why: 'NO ARTIFACT — data/all-mechanics-fire.json is absent. A clause that cannot be computed '
          + 'FAILS. Run: SHOWDOWN_PATH=... node engine/all_mechanics_fire.js --kind all --write' };
   }
-  const cur = readJson(D('data', 'engine-release.json'));
+  const cur = (inject && inject.cur) || readJson(D('data', 'engine-release.json'));
   const curId = cur && (cur.id || cur.release || cur.current);
   const ranOn = j.release || j.engine_release || null;
   const s = j.summary || {};
@@ -808,8 +844,8 @@ function mechanicsClause() {
    * The count above is the artifact's own summary and it stays printed, because the two filters may
    * only ever SUBTRACT from a number a reader can still see. What decides the clause is the set of
    * diverging entities that somebody plays and that no paired run has cleared. */
-  const C = classifyMechanics(j, curId);
-  const { U, DI, counted, belowShelf, unknown, excused, declared, declaredThrew,
+  const C = classifyMechanics(j, curId, inject);
+  const { U, DI, counted, belowShelf, unknown, excused, declared, ownerShelved, declaredThrew,
           rowsSeen, rowsMissing } = C;
 
   /* A DERIVED SET IS NOT A FACT UNTIL SOMETHING COMPARES IT TO ITS SOURCE. If the per-entity rows and
@@ -880,6 +916,29 @@ function mechanicsClause() {
         }).join('')
     : `none — no diverging mechanic's cause is covered by a declaration, so all ${rowsSeen} are `
       + `judged on reach and decision impact alone.`);
+  /* ---- WHAT THE OWNER'S CLOSET SUBTRACTED, BY NAME — #520 ---------------------------------------
+   * PRINTED AT ZERO AS WELL, for the same reason the DECLARED register is: a shelf that gets quieter
+   * without saying what it stopped counting is indistinguishable from a mechanic that never came up.
+   * `tail` above carries the INTEGER and it stays; this line carries the ROWS, so the subtraction and
+   * the accountability for it arrive together.
+   *
+   * AND THE TWO NUMBERS ARE COMPARED RATHER THAN ASSUMED EQUAL. The integer comes from the
+   * artifact's own `shelved_by_owner_diverging` summary and the rows come from walking `rows[*]`; a
+   * derived set is not a fact until something compares it to its source. A mismatch PRINTS and does
+   * not move the clause — this batch is a reporting change and may not move a count. */
+  const shelvedLine = NL + '  SHELVED BY THE OWNER — ' + (ownerShelved.length
+    ? `${ownerShelved.length} diverging mechanic(s) the owner closeted. Still staged, still played, `
+      + `still carrying their divergence in the artifact; they do not vote:`
+      + ownerShelved.map((r) => NL + '    ' + r.key
+          + (r.carrier ? '  (staged on ' + r.carrier + ')' : '')
+          + (r.board_verdict ? '  board: ' + r.board_verdict : '')
+          + NL + '      cause: ' + (r.cause || '(none recorded)')
+          + NL + '      CLOSETED BY ' + (r.by || 'UNNAMED') + ' ' + (r.on || 'UNDATED') + ': ' + r.why).join('')
+      + (ownerShelved.length !== shelved
+          ? NL + '    THE ROWS AND THE SUMMARY DISAGREE — ' + ownerShelved.length + ' shelved row(s) '
+            + 'against a summary of ' + shelved + '. One of the two is describing a different '
+            + 'population; neither is authoritative until they agree.' : '')
+    : `none — no diverging mechanic is on the owner's shelf, so nothing is subtracted here.`);
   /* ROADMAP #258, CARRIED ACROSS. A matcher that throws pushes its row into the UNDECLARED pile and
    * INFLATES the count above, so the line sits beside the number it would distort — and is this
    * clause's own list, never the whole-game clause's. */
@@ -898,6 +957,15 @@ function mechanicsClause() {
       o[kind] = declared.filter((r) => r.kind_declared === kind).length; return o; }, {}),
     declared_rows: declared.map((r) => ({ key: r.key, kind: r.kind_declared, name: r.name })),
     declared_matcher_threw: declaredThrew,
+    /* THE OWNER'S SHELF AS DATA — #520. Named `owner_shelved` and NOT folded into `shelved` above,
+     * which is the REACH shelf and answers a different question ("nobody plays it" vs "the owner
+     * ruled"). Two subtractions under one key would be unreadable in exactly the way this batch is
+     * fixing. `owner_shelved_summary` is the artifact's own integer, carried beside the derived rows
+     * so a reader can see the two agree rather than take it on trust. */
+    owner_shelved: ownerShelved.length,
+    owner_shelved_summary: shelved,
+    owner_shelved_rows: ownerShelved.map((r) => ({ key: r.key, carrier: r.carrier, by: r.by, on: r.on,
+                                                   cause: r.cause, board_verdict: r.board_verdict })),
     why: (counted.length === 0
       ? `every mechanic anybody plays agrees with the authority: ${div} diverge, ${declared.length} are `
         + `declared, ${belowShelf.length} are below the reach shelf and ${excused.length} were cleared `
@@ -905,7 +973,8 @@ function mechanicsClause() {
       : `${counted.length} of ${div} DIVERGING MECHANICS ARE PLAYED AND UNCLEARED — each is a rule, not `
         + `a sampling artefact, since the teams are built from the mechanic list. Worst: `
         + show(counted.slice()).split(', ').slice(0, 6).join(', ')) + tail
-      + declaredLine + declaredThrewLine + reachLine + unknownLine + impactLine + driftLine };
+      + declaredLine + shelvedLine + declaredThrewLine + reachLine + unknownLine + impactLine
+      + driftLine };
 }
 
 function coverageClause() {
@@ -1574,6 +1643,81 @@ const DECLARED_DIVERGENCE = [
    * finds this comment instead of an exemption. Left here rather than deleted, because a closet that
    * silently loses rows teaches nobody — and because the next person to closet something needs to see
    * that the FIRST question is whether the divergence is still there. */
+  /* ~~`Bitter Malice` and `Night Daze` — proposed 2026-08-28 as the closet's first two entries.~~
+   * **REFUSED, AND THE REFUSAL IS THE FINDING: BOTH ROWS ARE ALREADY SHELVED BY A MECHANISM THAT
+   * DERIVES, AND A SECOND EXEMPTION WOULD HAVE MATCHED NOTHING.**
+   *
+   * WILL'S RULING IS REAL AND IT IS NOT WHAT WAS MISSING. 2026-08-28: *"we put illusion and zoroark
+   * into the closet cause its too ahrd to deal with"*, and *"bitter malice and night daze are only
+   * learned by zoroark i believe, which we put in the closet"*, against the earlier general rule
+   * *"things in the closet shouldnt block a gate if we know why they fail and choose to accept it"*.
+   * ROADMAP #160 (Will, 2026-08-11) already declares Illusion closet material. Every word of that is
+   * right. What it asks for was built nine days before it was asked for, and asking this list for it
+   * a second time would have produced a permanent exemption that fires on nothing.
+   *
+   * THE PREMISE, DERIVED RATHER THAN ACCEPTED — and the first derivation of it was WRONG, which is
+   * why this paragraph cites the validator. Walking prevo/`baseSpecies` chains by hand reported
+   * Zoroark-Hisui as a Night Daze learner (it inherits nothing of the kind). The authority on move
+   * legality is `TeamValidator`, run over all 347 legal species of
+   * `gen9championsvgc2026regmb` filtered `exists && !isNonstandard && tier !== 'Illegal'`:
+   *
+   *     Bitter Malice  ->  Zoroark-Hisui   1 legal learner
+   *     Night Daze     ->  Zoroark         1 legal learner
+   *
+   * and both carriers hold `{"0":"Illusion"}` — ONE ability, no second slot — and are the ONLY two
+   * legal Illusion carriers in the regulation. So the harness cannot stage either move on a body
+   * without Illusion. That is stronger than "the carrier happens to have Illusion": there is no
+   * fixture in which these rows could have parted for any other reason.
+   *
+   * THE DIVERGENCE IS ILLUSION, MEASURED AND NOT INFERRED FROM THE CAUSE STRING. On release
+   * `aea838766e7f` (`data/all-mechanics-fire.json`, generated 2026-08-28T05:56:07Z) both rows part at
+   * index 0 on `switch: a different body`, and the two lines carry the SAME HP under DIFFERENT NAMES:
+   *
+   *     showdown   |switch|p1a: Blastoise|Blastoise, L50|780/780
+   *     medicham2  |switch|p1a: Zoroark|zoroark-hisui, L50|780/780
+   *
+   * A disguise name over the true body's HP is Illusion's signature and nothing else's — a genuinely
+   * different body would carry a different maximum.
+   *
+   * AND THE NO-BOARD-EFFECT CLAIM IS EARNED, WHICH IS THE FIELD THAT MAY NOT BE FUDGED. Both rows:
+   * `board.verdict = ANNOUNCEMENT-ONLY`, `boundaries 4 / boundaries_agreed 4`,
+   * `boards_after_the_parting 4`, `state_parted_on_turn null`, `diffs []`, 402 leaves compared on each
+   * side, `uncomparable_leaves []` and `core_leaf_unchecked false` — so the verdict is not resting on
+   * a leaf nobody looked at, which is the qualifier that would have voided it. That verdict is
+   * defended by a state plant with a control (`all_mechanics_fire.js`, plant 6), so it is a
+   * comparison shown to catch a silent state difference rather than one assumed to.
+   *
+   * SO WHY REFUSE. Because the subtraction already happens, twice over, and neither path reaches this
+   * list:
+   *   - `all_mechanics_fire.js` stamps `deferred = ILLUSION_SHELF` on any row whose carrier is in
+   *     `GD.CLOSET_SPECIES` — derived from the ABILITY, not from a name list — so both rows already
+   *     carry `counts_against_the_gate: false` and are already out of `summary[kind].diverged`
+   *     (`diverged 6` against `diverged_including_shelved 8`);
+   *   - `classifyMechanics` skips a `deferred` row BEFORE it asks `declaredMatch`, so a CLOSETED row
+   *     written here could not be consulted even if it matched;
+   *   - and `game_differential.js` drops every team carrying a legal Illusion body from the pool
+   *     before pairing (43 teams this run), so the whole-game clause holds ZERO zoroark causes — its
+   *     six are five `fallenundefined` and one faint.
+   * Measured before and after on release `aea838766e7f`: GATE CLOSED, 2 of 8 clauses fail, whole-game
+   * 1 of 961, mechanics 2 of 9 — IDENTICAL. A row here would have moved nothing and would have joined
+   * the register as a declaration that matches nothing, which this file's own printer names on every
+   * run because such a claim has quietly become false.
+   *
+   * WHAT WAS ACTUALLY MISSING, AND IS NOW FIXED, IS THE ACCOUNTABILITY AND NOT THE EXEMPTION. The
+   * mechanics clause printed the owner's shelf as the bare integer `4 shelved by the owner` — no
+   * names, no ruling, no falsifier — while the DECLARED register beside it printed every row that
+   * MAY subtract whether or not it did. A fifth shelf entry could have appeared and nothing would
+   * have said so. `SHELVED BY THE OWNER` now names each row, its carrier, its cause, its board
+   * verdict and the dated ruling, and compares the derived count against the artifact's own summary.
+   *
+   * FALSIFIED BY — write it so a later run can check it rather than argue it: **a divergence on
+   * `bittermalice` or `nightdaze` that Illusion does not explain.** Concretely, any of — the row
+   * parting at an index other than the opening `switch` line; the two `|switch|` lines disagreeing on
+   * HP as well as on name; `board.verdict` moving off `ANNOUNCEMENT-ONLY`, or holding it with
+   * `core_leaf_unchecked true` or a non-empty `uncomparable_leaves`; `TeamValidator` admitting a
+   * legal learner whose ability set is not `{"0":"Illusion"}`; or `GD.CLOSET_SPECIES` ceasing to
+   * contain the staged carrier. Any one of those means the shelf is covering a move defect and both
+   * rows must come off it. */
   /* ~~`drag: a different body` — declared 2026-08-18 as "not a rule, a bench index".~~ **WITHDRAWN THE
    * SAME DAY, ON WILL'S BAR.** The reasoning was sound about MECHANISM and wrong about CONSEQUENCE:
    * `sim/battle.ts` getRandomSwitchable takes `this.sample(canSwitchIn)` over `side.pokemon` order, the
@@ -3286,7 +3430,10 @@ if (require.main === module) {
     const EDGE = { rows: { moves: [
       { id: 'atexactly', diverged: true },
       { id: 'onebelow', diverged: true },
-      { id: 'closeted', diverged: true, deferred: { by: 'Will' } }] } };
+      { id: 'closeted', diverged: true, carrier: 'zoroark',
+        deferred: { by: 'Will', on: '2026-08-28', why: 'ROADMAP #160 — Illusion is in the closet.' },
+        divergence: { cause: 'switch: a different body :: |switch|p1a|blastoise <> |switch|p1a|zoroark' },
+        board: { verdict: 'ANNOUNCEMENT-ONLY' } }] } };
     const EDGEU = { ...UIDX, moves: new Map([['atexactly', REACH_SHELF_CLICKS], ['onebelow', REACH_SHELF_CLICKS - 1],
                                              ['closeted', 9999]]) };
     const EDGEC = classifyMechanics(EDGE, null, { U: EDGEU, DI: decisionImpact('nothing-on-disk') });
@@ -3296,6 +3443,95 @@ if (require.main === module) {
       { counted: EDGEC.counted.map(r => r.id), belowShelf: EDGEC.belowShelf.map(r => r.id) });
     ok('a row the OWNER closeted is in neither column, however heavily it is played',
       EDGEC.rowsSeen === 2 && !EDGEC.counted.concat(EDGEC.belowShelf).some(r => r.id === 'closeted'));
+    /* -- THE OWNER'S SHELF IS SUBTRACTED **AND NAMED** — #520 -------------------------------------
+     * The assertion one line up has always held; what it did NOT hold is that anyone can see WHICH
+     * row was subtracted or on whose ruling. The clause printed `4 shelved by the owner` and stopped
+     * there, which is the bare-integer version of the invisible exception this file's DECLARED
+     * register was built to avoid. Shown RED before being trusted: drop the `ownerShelved.push`
+     * block in `classifyMechanics` and this fails with an empty list. */
+    ok('RED — a row the owner shelved is COLLECTED with its ruling, not silently dropped',
+      EDGEC.ownerShelved.length === 1 && EDGEC.ownerShelved[0].key === 'move:closeted'
+      && EDGEC.ownerShelved[0].by === 'Will' && EDGEC.ownerShelved[0].on === '2026-08-28'
+      && /ROADMAP #160/.test(EDGEC.ownerShelved[0].why)
+      && EDGEC.ownerShelved[0].carrier === 'zoroark'
+      && EDGEC.ownerShelved[0].board_verdict === 'ANNOUNCEMENT-ONLY'
+      && /switch: a different body/.test(EDGEC.ownerShelved[0].cause), EDGEC.ownerShelved);
+    /* -- THE DERIVATION BEATS THE MATCHER, AND THE ORDER IS THE CLAIM -----------------------------
+     * A shelf DERIVED from the ability (`GD.CLOSET_SPECIES`) and a declaration TYPED against a cause
+     * string can both cover one row. The skip must stay ABOVE `declaredMatch` so the derived shelf
+     * takes it — otherwise a hand-written row collects credit for a subtraction it did not make, and
+     * the register would report a CLOSETED hit that fires only because the shelf was already there.
+     * This is the assertion that refused Bitter Malice and Night Daze as closet entries on
+     * 2026-08-28: a declaration for either could never have been reached. Shown RED by moving the
+     * `r.deferred` skip below the `declaredMatch` call — `declared` then holds the row. */
+    const CLASH = { rows: { moves: [{ id: 'clash', diverged: true,
+      deferred: { by: 'Will', on: '2026-08-28', why: 'the owner shelved it' },
+      divergence: { cause: 'event missing from medicham2 :: |-end|p1a|fallenundefined <> |switch|p1a|x' } }] } };
+    const CLASHC = classifyMechanics(CLASH, null,
+      { U: { ...UIDX, moves: new Map([['clash', 9999]]) }, DI: decisionImpact('nothing-on-disk') });
+    ok('RED — when the owner\'s shelf and a live declaration both cover a row, the SHELF takes it and '
+     + 'the declared register does NOT claim the subtraction',
+      CLASHC.ownerShelved.length === 1 && CLASHC.declared.length === 0 && CLASHC.rowsSeen === 0,
+      { shelved: CLASHC.ownerShelved.map(r => r.key), declared: CLASHC.declared.map(r => r.key) });
+    /* AND THE PRINTER RENDERS IT, because a field nobody prints is a field nobody reads. Driven on a
+     * HANDED-IN artifact through `mechanicsClause`'s own `inject` door, never off disk — see the note
+     * on that door for the release cut that made the disk version go red on somebody else's work. The
+     * fixture carries ONE counted row beside the shelved one, so the clause still has to decide
+     * something and the shelf is not the only thing in it. */
+    {
+      const FIX = { release: 'rel-fixture', generated: '2026-08-28T00:00:00.000Z',
+        summary: { moves: { diverged: 1, shelved_by_owner_diverging: 1 } },
+        rows: { moves: [
+          { id: 'atexactly', diverged: true },
+          { id: 'shelfrow', diverged: true, carrier: 'zoroark',
+            deferred: { by: 'Will', on: '2026-08-28',
+                        why: 'ROADMAP #160 — we put illusion and zoroark into the closet.' },
+            divergence: { cause: 'switch: a different body :: |switch|p1a|blastoise <> |switch|p1a|zoroark' },
+            board: { verdict: 'ANNOUNCEMENT-ONLY' } }],
+          /* THE OTHER TWO KINDS ARE PRESENT AND EMPTY, NEVER ABSENT. An artifact with no `rows` for a
+           * kind takes the clause's REACH FILTER CANNOT BE APPLIED branch — correctly, since an
+           * older artifact must not read as "nothing to filter" — and a fixture that trips it would
+           * be testing that branch instead of the printer. */
+          abilities: [], items: [] } };
+      const FIXU = { ...UIDX, moves: new Map([['atexactly', REACH_SHELF_CLICKS], ['shelfrow', 9999]]) };
+      const MC = mechanicsClause({ j: FIX, cur: { id: 'rel-fixture' }, U: FIXU,
+                                   DI: decisionImpact('nothing-on-disk') });
+      ok('RED — the mechanics clause NAMES what the owner shelved, with the carrier, the cause, the '
+       + 'board verdict and the dated ruling, instead of a bare integer',
+        /SHELVED BY THE OWNER/.test(MC.why || '')
+        && /move:shelfrow/.test(MC.why) && /staged on zoroark/.test(MC.why)
+        && /ANNOUNCEMENT-ONLY/.test(MC.why) && /CLOSETED BY Will 2026-08-28/.test(MC.why)
+        && /switch: a different body/.test(MC.why)
+        && MC.owner_shelved === 1 && MC.owner_shelved_summary === 1
+        && MC.owner_shelved_rows.length === 1 && MC.owner_shelved_rows[0].key === 'move:shelfrow',
+        { owner_shelved: MC.owner_shelved, summary: MC.owner_shelved_summary });
+      /* THE SHELVED ROW STILL DOES NOT VOTE, AND THE COUNTED ONE STILL DOES. Naming a subtraction
+       * must not become making it — the whole refusal this batch is built on is that the exemption
+       * already existed and only its accountability was missing. */
+      ok('RED — naming the shelf does not change the verdict: the shelved row is out of the count and '
+       + 'the played one is still in it',
+        MC.counted === 1 && MC.ok === false && MC.diverged === 1,
+        { counted: MC.counted, ok: MC.ok, diverged: MC.diverged });
+      /* PRINTED AT ZERO TOO — the DECLARED register's own standard, one block up. A subtraction that
+       * goes silent when it stops firing is indistinguishable from a mechanic that never came up. */
+      const NONE = mechanicsClause({ j: { release: 'rel-fixture', summary: { moves: { diverged: 1 } },
+                                          rows: { moves: [{ id: 'atexactly', diverged: true }],
+                                                  abilities: [], items: [] } },
+        cur: { id: 'rel-fixture' }, U: FIXU, DI: decisionImpact('nothing-on-disk') });
+      ok('RED — with nothing on the owner shelf the line still prints, and says so',
+        /SHELVED BY THE OWNER — none/.test(NONE.why || '') && NONE.owner_shelved === 0,
+        String(NONE.why || '').slice(0, 160));
+      /* AND THE TWO COUNTS ARE COMPARED RATHER THAN ASSUMED EQUAL. A derived set is not a fact until
+       * something compares it to its source. It does NOT fail on a mismatch — this batch is a
+       * reporting change and may not move a count — but it says so at the point of subtraction. */
+      const SKEW = mechanicsClause({ j: { ...FIX, summary: { moves: { diverged: 1, shelved_by_owner_diverging: 4 } } },
+        cur: { id: 'rel-fixture' }, U: FIXU, DI: decisionImpact('nothing-on-disk') });
+      ok('RED — when the shelved ROWS and the artifact SUMMARY disagree, the clause says so out loud '
+       + 'and still does not move the verdict',
+        /THE ROWS AND THE SUMMARY DISAGREE — 1 shelved row\(s\) against a summary of 4/.test(SKEW.why || '')
+        && SKEW.counted === 1 && SKEW.ok === false,
+        String(SKEW.why || '').slice(0, 240));
+    }
 
     /* -- ROADMAP #290's GATE, RED AND GREEN, ON SYNTHETIC ARTIFACTS ---------------------------
      *

@@ -23786,6 +23786,14 @@ const berserkRun = (ab, place, mv) => {
   return { spa: B.me.boosts.sa, hp0, hp: B.me.curHP, half: B.me.st.hp / 2, dmg: hp0 - B.me.curHP,
            hits: (trace.filter(l => /^\|-damage\|p1a/.test(l))).length,
            boosts: (trace.filter(l => /^\|-boost\|p1a: drampa\|sa|^\|-boost\|p1a: drampa\|spa/.test(l))).length,
+           /* THE ORDER OF THE THREE ANNOUNCEMENTS, kept apart from `lines` because `lines` filters
+            * `-hitcount` out and an ordering claim cannot be read off a stream that drops one of the
+            * two lines it is about. Tokens only — a raw stream would carry damage numbers that differ
+            * per arm and make the arms look different for a reason that is not the mechanic. */
+           order: trace.map(l => /^\|-hitcount\|/.test(l) ? '-hitcount'
+                              : /^\|-ability\|p1a[^|]*\|berserk/.test(l) ? '-ability'
+                              : /^\|-boost\|p1a[^|]*\|(spa|sa)\|/.test(l) ? '-boost' : null)
+                       .filter(Boolean),
            lines: trace.filter(l => /drampa\|(spa|sa)|-ability\|p1a/.test(l)).join(' ') };
 };
 probe('ability', 'boostsAtHPThreshold', 'Berserk fires on the hit that CROSSES half, and only then', () => {
@@ -23844,6 +23852,48 @@ probe('ability', 'boostsAtHPThreshold', 'Berserk pays ONCE for a multi-hit move 
                  + single.spa + ', so the fix did not turn the ability off. The lines are "' + on.lines
                  + '" — the authority writes -ability then a BARE -boost, and this engine used to '
                  + 'write ' + on.hits + ' boosts each carrying [from] ability: berserk' };
+});
+
+/* THE THIRD BERSERK CLAIM: **WHERE** THE PAIR OF LINES SITS. The two probes above pin that the boost
+ * happens and that it happens ONCE; neither can see that it was announced ABOVE `-hitcount`, because
+ * `berserkRun`'s `lines` filter drops `-hitcount` entirely.
+ *
+ * THE AUTHORITY'S ORDER, READ NOT RECALLED. Champions overrides the containing function —
+ * `hitStepMoveHitLoop`, data/mods/champions/scripts.ts:428 — and inside it:
+ *     scripts.ts:547   this.battle.faintMessages(false, false, !pokemon.hp);
+ *              :550     if (move.multihit && ...) this.battle.add('-hitcount', targets[0], hit - 1);
+ *              :554   if (move.totalDamage) this.applyRecoilDamage(...);
+ *              :575   this.battle.eachEvent('Update');
+ *              :577   this.afterMoveSecondaryEvent(targetsCopy.filter(...), pokemon, move);
+ * Champions overrides Berserk too (data/mods/champions/abilities.ts:8-13) but ONLY the `onDamage`
+ * bookkeeping line; the boost is inherited from data/abilities.ts:420-428 on `onAfterMoveSecondary`.
+ * So `-hitcount` sits four statements ABOVE the boost. Mainline agrees (sim/battle-actions.ts:978
+ * then :1005), so it is not a Champions quirk.
+ *
+ * OBSERVED BEFORE THE FIX, at HEAD 5a12034f, on a real staged turn:
+ *     showdown    -hitcount@14   -ability@15   -boost@16
+ *     medicham2   -ability@13    -boost@14     -hitcount@15
+ * `_hpThresholdBoost` was called at the close of `_damagingHit`, which is step 12 of 19; the
+ * `-hitcount` emit is step 19. That is the whole of it.
+ *
+ * THE ARMS ARE THE ABILITY ITSELF. Control blanks it: the volley still lands and still announces its
+ * count, so the control reads ['-hitcount'] and the test reads ['-hitcount','-ability','-boost'].
+ * A control that merely re-ran the same board would move nothing and prove nothing. */
+probe('ability', 'boostsAtHPThreshold', 'Berserk announces BELOW the hit count, not above it', () => {
+  const gauge = berserkRun('none', null, 'scaleshot');
+  const halfHP = Math.floor(gauge.half);
+  const atLine = halfHP + Math.max(1, Math.floor(gauge.dmg / 2));
+  const off = berserkRun('none', atLine, 'scaleshot');
+  const on = berserkRun('berserk', atLine, 'scaleshot');
+  const iH = on.order.indexOf('-hitcount'), iA = on.order.indexOf('-ability'), iB = on.order.indexOf('-boost');
+  return { works: on.hits >= 2 && iH === 0 && iA === 1 && iB === 2 && on.order.length === 3
+                  && off.order.join(',') === '-hitcount',
+           arms: { control: off.order.join(','), test: on.order.join(',') },
+           detail: 'SCALE SHOT (' + on.hits + ' arrivals) into a BERSERK Drampa announces "'
+                 + on.order.join(' ') + '"; the authority writes -hitcount (scripts.ts:550) four '
+                 + 'statements above afterMoveSecondaryEvent (:577), which is where the boost lives. '
+                 + 'CONTROL, the same volley with the ability blanked, announces "' + off.order.join(' ')
+                 + '" — the count is unconditional, the pair below it is the ability' };
 });
 
 /* ROADMAP #175 -- SKILL LINK. `multihitAlwaysMax {takesIndex:1, removesMultiaccuracy:true}`.

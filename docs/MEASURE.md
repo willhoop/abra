@@ -39,6 +39,53 @@ _stamped 2026-08-28 02:03_
 
 <!-- /GENERATED -->
 
+## A SUBTRACTION THE GATE MAKES MUST NAME WHAT IT SUBTRACTED. 2026-08-28, CHANGELOG 5.196.0.
+
+ROADMAP `#520`. **This is a REPORTING change and it moves no clause.** Measured rather than argued:
+`HEAD:engine/quarantine.js` and the working copy were compiled in ONE process against the SAME
+on-disk artifacts and returned identical verdicts and identical counts on all eight clauses.
+
+**THE RULE THIS ENFORCES IS ALREADY THIS DIVISION'S, AND THE GUARD WAS BREAKING IT.** A filter may
+only ever subtract from a number a reader can still see. The DECLARED register prints every row that
+MAY subtract, with its ruling, whether or not it fired — and the owner's closet, sitting one line
+away in the same clause, printed the integer `4 shelved by the owner` and nothing else. No names, no
+dates, no rulings. A fifth entry could have appeared and nothing would have said so.
+
+`SHELVED BY THE OWNER` now names each row with its carrier, its cause, its board verdict and the
+dated ruling; publishes `owner_shelved` / `owner_shelved_summary` / `owner_shelved_rows`; prints at
+zero as well as at four; and **compares the derived rows against the artifact's own summary** rather
+than assuming they agree — a derived set is not a fact until something compares it to its source.
+
+**NAMING IT FOUND SOMETHING ON THE FIRST RENDER.** Of the four shelved rows on release
+`aea838766e7f`, three are `ANNOUNCEMENT-ONLY` and **`item:metronome` is `board_verdict: STATE`** —
+859/960 against 868/960, a board that genuinely parted. Will's Metronome ruling is explicitly
+cost-based and stands; the point is that **the shelf is not uniformly a no-board-effect shelf**, and
+until this run nothing said which of its rows were which.
+
+**THE COMPANION FINDING IS A REFUSAL.** Bitter Malice and Night Daze were proposed as the `CLOSETED`
+kind's first two entries and were refused: both already carry `deferred = ILLUSION_SHELF`, derived
+from `GD.CLOSET_SPECIES` off the ABILITY rather than a name list, and `classifyMechanics` skips a
+`deferred` row **before** it asks `declaredMatch` — so a declaration could not have been reached even
+if it matched. `game_differential.js` additionally drops all 43 Illusion-carrying teams from the pool,
+so the whole-game clause holds zero zoroark causes. Writing the rows would have registered a permanent
+exemption that fires on nothing.
+
+**TWO METHOD NOTES THIS DIVISION SHOULD KEEP.**
+
+1. **A SELFTEST THAT READS A LIVE ARTIFACT IS NOT A SELFTEST.** The first version of the printer
+   assertion drove `mechanicsClause()` off disk and went RED mid-session for a reason that had nothing
+   to do with the code: another division cut a release, `data/engine-release.json` moved
+   `aea838766e7f` -> `b035aa665740`, and the clause correctly took its
+   MEASURED-AGAINST-A-DIFFERENT-ENGINE early return. A green/red signal another agent can flip is
+   noise, and noise is precisely how a red test becomes "one of the two known failures".
+   `mechanicsClause` gained the `inject` door the file already uses twice.
+2. **THE HAND-WALKED DERIVATION WAS WRONG AND THE VALIDATOR WAS RIGHT.** Walking prevo/`baseSpecies`
+   chains reported Zoroark-Hisui as a Night Daze learner. `TeamValidator` over the 347 legal species
+   of the format refuses it — **Bitter Malice -> Zoroark-Hisui, Night Daze -> Zoroark, one legal
+   learner each.** When a legality question has an authority, ask the authority; a chain walk is a
+   reimplementation of one, and this repo names its own casualty for that.
+
+---
 ## THE WHOLE-GAME AND BOARD-MATERIAL BASELINES WERE RESET ON PURPOSE ON 2026-08-27. **DO NOT SUBTRACT ACROSS IT.**
 
 ENGINE fixed the `middle` arm's die (ROADMAP **#489**, CHANGELOG 5.176.0): bare FNV-1a has no

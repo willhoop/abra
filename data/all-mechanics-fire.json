@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-28T05:56:07.248Z",
- "release": "aea838766e7f",
+ "generated": "2026-08-28T07:34:37.130Z",
+ "release": "b035aa665740",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -29722,31 +29722,18 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 16,
-     "cls": "ordering",
-     "detail": "-boost before -hitcount",
-     "cause": "ordering :: |-hitcount|p1a|2 <> |-boost|p1a|spa|1",
-     "showdown": "|-hitcount|p1a: Drampa|2",
-     "medicham": "|-boost|p1a: Drampa|spa|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 4,
      "boundaries_agreed": 4,
      "last_boundary_turn": 3,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 3,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "THREW",
@@ -54081,7 +54068,7 @@
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 11,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 14.5
+   "seconds": 5.6
   },
   "abilities": {
    "exist": 316,
@@ -54094,11 +54081,11 @@
    "control_not_quiet": 108,
    "cannot_fire_in_this_fixture": 38,
    "did_not_fire_unexplained": 20,
-   "diverged": 2,
-   "diverged_including_shelved": 3,
+   "diverged": 1,
+   "diverged_including_shelved": 2,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 10.5
+   "seconds": 10.2
   },
   "then_what": {
    "rows": 64,
@@ -54124,7 +54111,7 @@
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 4.9
+   "seconds": 4.8
   },
   "board_state": {
    "rows": 15,
@@ -54389,8 +54376,8 @@
    },
    "abilities": {
     "tally": {
-     "NO-DIVERGENCE": 167,
-     "ANNOUNCEMENT-ONLY": 3
+     "NO-DIVERGENCE": 168,
+     "ANNOUNCEMENT-ONLY": 2
     },
     "rows": 170,
     "core_leaf_unchecked_rows": [],
