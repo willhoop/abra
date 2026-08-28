@@ -1,6 +1,76 @@
 # ABRA — Project Summary
 
-**Version 3.98.0 · 2026-08-10 · Will Hooper**
+**Version 5.205.0 · 2026-08-28 · Will Hooper**
+
+**5.205.0 — THE MEDICHAM SPRINT IS PAUSED, THE DOCUMENTS ARE UNFROZEN, AND FIVE OF THE EIGHT GATE
+CLAUSES ARE BLANK RATHER THAN GREEN.** The living-docs rule was deferred by the owner on 2026-08-10
+for the duration of the simulator-correctness sprint; each fix wrote one row to a running log instead.
+Will paused the sprint on 2026-08-28 and this pass discharges the debt: the log held 274 rows, the
+changelog carries 233 releases from the same stretch, and `docs/_reports/` carries 189 dated accounts.
+The log is deleted, which is what re-arms the full rule.
+
+**THE THROUGH-LINE: THE INSTRUMENT WAS THE DEFECT AT LEAST SIX TIMES, AND THE LARGEST FIX OF THE
+SPRINT RAISED THE DEFECT COUNT.** Of thirty accusations against the engine on one night, twenty-three
+were a miswritten demonstration, seven were a wrong rule, and exactly one was the engine. Eighteen
+expired "shown red" certificates were being published as a broken simulator. The roster's red
+demonstrations had never been written into its artifact, so a gate clause that reads them had nothing
+to fail on. **Suspect the instrument before the engine** was earned here rather than assumed.
+
+**THE EVENT DIE WAS THE BIG ONE, AND IT IS WHY EVERY EARLIER FIGURE IS VOID RATHER THAN STALE.**
+`midEventHash`/`midHash` ended on a bare FNV-1a round with no finalising mix, and the last field of
+every draw address is the arrival index — so a one-digit index change translated the hash instead of
+re-drawing it. Consecutive arrivals shared a 16-bucket damage index 89.5% of the time against a
+correct 6.25%; lag-1 autocorrelation down that axis was 0.8873 against ~0. **The marginal hit rate was
+0.9214 against a target of 0.9 — always fine, and the only thing anything was watching.** The two
+engines had been agreeing over a narrow slice of outcome space. Fixing it moved the whole-game
+differential from 3 to 14 games and board-material from 1 to 12: an instrument repaired, not a
+regression. Every figure in this document measured before 2026-08-27 that passed through that die is
+retained as dated history and **may not be cited as current.**
+
+**WHAT IS QUOTABLE TODAY**
+
+| question | artifact | answer |
+|---|---|---|
+| every mechanic staged and live | `data/mechanics-census.json` | **780 probed, 780 live, 0 missing**; 780 armed, 0 unarmed |
+| damage against the authority | `data/engine-diff.json` | **6000 compared, 6000 agreed, 0 disagreed**, and 0 at each of the sixteen band indices separately |
+| is the gate open | `data/quarantine-stamp.json` | **no** — `gate_open` false, five clauses failing |
+| the three roster stages | — | **WITHHELD** |
+| whole-game differential | — | **WITHHELD** |
+| staged-mechanics comparison | — | **WITHHELD** |
+
+**THE THREE THINGS THAT TABLE MUST NOT BE READ AS SAYING.**
+
+1. **The damage result is narrow.** Its own `scope` field says damage only — no items, no abilities,
+   no turn order, no status duration, no switching. It records `skipped_multihit` 134 and
+   `skipped_ability_multihit` 17, because the harness calls the authority's single-hit entry point and
+   not the volley loop. **It has never applied a multi-hit move**, and the four multi-hit defects
+   fixed this month were invisible to it by construction.
+2. **The census is a laboratory, not the metagame.** One staged scenario per mechanic, regardless of
+   usage. It answers *is this correct*; the pinned pool answers *does this matter*, and the pinned
+   pool's scoreboard is one of the withheld ones.
+3. **"The boards match" means 33 leaves of 80.** `tests/probe_uncompared_leaves.js` derives, over 500
+   moves, 201 abilities and 148 items, every leaf a legal mechanic writes: **33 compared, 4 declared
+   uncompared, 43 in neither list**, and 25 of those 43 can be standing on the board at the turn
+   boundary. An unlisted omission reads exactly like agreement. This is the largest caveat in the
+   document set.
+
+**WHY FIVE CLAUSES ARE BLANK, AND WHY THAT IS NOT SOFTENED.** Each of the five artifacts was measured
+against engine release `5f3f7141227c`; the tree now hashes to a different release, so those counts
+describe a program that is not the one on disk. The cause is measured and is not an engine change:
+exactly one of the twenty-six frozen sources moved, `data/tags.json`, whose release copy is
+byte-identical to the tree after newline normalisation and deep-equal when parsed — a checkout under
+`core.autocrlf = true` rewrote a generated LF file as CRLF. `docs/ENGINE.md` records the same event on
+2026-08-26. **It still counts.** The numbers are withheld rather than printed with a caveat, because
+this project has already paid for the caveat version, and the only remedy is a re-run.
+
+**QUARANTINE HAS NOT LIFTED, AND BOTH HALVES OF THAT ARE TRUE.** The computed condition is not met, so
+everything downstream of the simulator stays withheld. Will's narrower bar of 2026-08-22 —
+board-material zero plus a clean roster, with narration as a separate gate afterwards — was met by the
+last measurements before the stranding. **Nobody has re-cut the gate to test that narrower bar**, so
+the gate still computes the wider condition and still reads shut. This document does not resolve the
+two; it records both. And a withheld figure does not become true when the engine becomes correct — it
+becomes **re-runnable**.
+
 
 **3.98.0 — QUICK GUARD BLOCKED NOTHING, AND THE TWO GUARDS CARRY BYTE-IDENTICAL TAGS.** Staged on the
 frozen release, a +1 priority attack: Armor Tail, Dazzling, Queenly Majesty and Psychic Terrain all
@@ -571,7 +641,7 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 
 | Model | What it is | Status | Headline result |
 |---|---|---|---|
-| **MEDICHAM** | Hand-written doubles battle simulator. **Its justification is now falsifiable (ADR-003, 3.62.2): it exists so per-turn re-solving is affordable, so the engine work is justified if and only if search pays — gated by ROADMAP #62.** The speed ratio that originally justified it is corrected in the section above | **Being replaced; the MEDICHAM gate is open against it** | **EVERY COUNT IN THIS CELL WAS SUPERSEDED AND IS NOW CUT (2026-08-22).** It stated a mechanics census, an interaction-matrix agreement and coverage fraction, a damage-differential ratio, a scenario count, a win-probability gap against the official engine, a two-rulebook collision ratchet, a DEAD-tag ratchet and a mutation-tier count. Every one of those instruments has been re-run since the cell was written and every artifact now reads something else. This is a CURRENT-STATE table, so a figure in it that is a release old reads as a claim about tonight — which is the failure the whole document set exists to prevent. State is printed, not typed: run **`node engine/status.js`** for the gate, the census, the differentials and the withheld set, and **`node engine/quarantine.js`** for the full derivation. ADR-001 stands: MEDICHAM becomes a lookup over precomputed tables. The win-probability gap against the official Champions engine is additionally QUARANTINED — it is a rollout figure — so it is withheld rather than restated. |
+| **MEDICHAM** | Hand-written doubles battle simulator. **Its justification is now falsifiable (ADR-003, 3.62.2): it exists so per-turn re-solving is affordable, so the engine work is justified if and only if search pays — gated by ROADMAP #62.** The speed ratio that originally justified it is corrected in the section above | **Correctness sprint PAUSED 2026-08-28 by the owner; the MEDICHAM gate is still shut against it, with five of its eight clauses WITHHELD rather than failing** | **EVERY COUNT IN THIS CELL WAS SUPERSEDED AND IS NOW CUT (2026-08-22).** It stated a mechanics census, an interaction-matrix agreement and coverage fraction, a damage-differential ratio, a scenario count, a win-probability gap against the official engine, a two-rulebook collision ratchet, a DEAD-tag ratchet and a mutation-tier count. Every one of those instruments has been re-run since the cell was written and every artifact now reads something else. This is a CURRENT-STATE table, so a figure in it that is a release old reads as a claim about tonight — which is the failure the whole document set exists to prevent. State is printed, not typed: run **`node engine/status.js`** for the gate, the census, the differentials and the withheld set, and **`node engine/quarantine.js`** for the full derivation. ADR-001 stands: MEDICHAM becomes a lookup over precomputed tables. The win-probability gap against the official Champions engine is additionally QUARANTINED — it is a rollout figure — so it is withheld rather than restated. |
 | **GURU** | Meta matchup matrix from real outcomes | ⚠️ **No decisive cells that survive multiplicity** | `data/guru-matchups.json`, 2026-07-31, **5,265 clean games / 12 archetypes / 144 cells**. **6 directed = 3 distinct** matchups clear a 95% test one at a time, and **ZERO survive FDR at q=0.05 or Bonferroni** — 66 pairs, 3.3 expected by chance, 3 observed, smallest exact p 6.1e-3 against a BH threshold of 7.6e-4. Predictive test **0.7124** vs a coin 0.6931 over 1,053 held-out games — **worse than a coin**. Descriptive structure only. (This row read *1,124 clean games, 11 archetypes, 0.735* until 2026-08-04, from a superseded run; the verdict is unchanged.) |
 | **XATU** | Opponent set + next-move belief | ✅ Built | Top-1 36% / top-3 72% on held-out human moves (beats its baselines) |
 | **PORY** | Mid-game win-probability value net | ⚠️ **Contribution unclear** | Log-loss **0.6236** 95% CI [0.6070, 0.6387] vs coin 0.6931 and vs the material heuristic 0.6428 (regenerated 2026-08-05 on 5,883 clean games; the previously published 0.567 predated the current quality filter) — but its features ARE the material state, and it **loses to a two-feature baseline** (alive_diff+hp_diff 0.5822 vs PORY 0.5840, same estimator). Report the gain over MATERIAL, not over a coin. See engine/pory_baseline.py |

@@ -15,16 +15,16 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / the same game on both engines)
+    MEDICHAM is not correct — 5 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / the same game on both engines)
+    MEDICHAM is not correct — 5 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 196 unsafe, 2 void (declared), 22 possibly stale, 17 ok, 0 missing
+  provenance: 197 unsafe, 2 void (declared), 16 possibly stale, 22 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / the same game on both engines)
+    MEDICHAM is not correct — 5 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-05 00:00
@@ -35,9 +35,75 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-28 04:30
 ```
 
-_stamped 2026-08-28 06:13_
+_stamped 2026-08-28 14:54_
 
 <!-- /GENERATED -->
+
+## THE DOCUMENTS ARE UNFROZEN AND FIVE GATE CLAUSES WENT BLANK BETWEEN 09:58Z AND 10:06Z. THE CAUSE IS A LINE ENDING. 2026-08-28, CHANGELOG 5.205.0.
+
+Will paused MEDICHAM development and asked for the docs to be unfrozen. The living-docs deferral of
+2026-08-10 is discharged: 274 sprint rows folded into the white paper, the deck, the technical docs,
+SUMMARY, MODELS and DAMAGE-STAGES; all six restamped to 5.205.0; the six `MEDICHAM SPRINT PAUSE`
+version pins retired from `data/docs-currency-baseline.json`; `docs/MEDICHAM-SPRINT-NOTES.md` deleted,
+which is what re-arms the full rule in `engine/docs_scan.js` and `.githooks/pre-commit`.
+
+**THIS DIVISION'S FINDING IS NOT THE DOCUMENTS. It is that the gate read 7 of 8 clauses PASS a few
+hours ago and reads 5 of 8 now, with NO ENGINE BYTE CHANGED.** The three deliberate-roster stages, the
+whole-game differential and the staged-mechanics comparison all record engine release `5f3f7141227c`
+and were written at 09:56–09:58Z. The tree now hashes to a different release, so `engine/status.js`
+correctly calls every count in them *"an answer about other bytes"* and withholds it.
+
+**MEASURED, NOT ASSUMED — AND THE DISCRIMINATOR IS THE STRONGEST ONE AVAILABLE.** Exactly ONE of the
+twenty-six frozen sources moved: `data/tags.json`, mtime 10:06Z. The release keeps a COPY rather than
+a checksum, so the two files can be compared directly:
+
+```
+data/releases/5f3f7141227c/data/tags.json   799,498 bytes
+data/tags.json                              842,110 bytes
+raw equal?                 false
+CRLF-normalised equal?     true
+JSON deep-equal?           true
+```
+
+A checkout under `core.autocrlf = true` rewrote a generator's LF output as CRLF between the runs and
+now. `tag_dex.js` writes LF; git hands back CRLF; the sha256 moves and the content does not.
+
+**THIS IS THE SECOND OCCURRENCE AND IT IS ALREADY IN THE RECORD.** `docs/ENGINE.md` documents the
+identical event on 2026-08-26 — *"the reason is a line ending, which is worth writing down because it
+will happen again to whoever next regenerates `data/tags.json`"* — where the remedy was to cut the
+release over the bytes a checkout actually produces. It happened again. **The hazard is standing, not
+closed:** `git diff` currently warns *"LF will be replaced by CRLF the next time Git touches it"* on
+every one of the living documents as well, so any tracked LF file that a generator writes is one
+checkout away from stranding whatever measured against it.
+
+**WHAT THIS DIVISION DID NOT DO, DELIBERATELY.** It did not restore the file to LF to make the gate
+read 7 of 8. Editing an input so a ruler prints the wanted number is the failure this division exists
+to prevent, and it would have produced a release id that no checkout reproduces. **The five clauses
+are WITHHELD and a re-run is OWED.** No rate, no diverged count and no roster column from those five
+artifacts was written into any document this pass — checked afterwards against
+`data/quarantine-stamp.json`'s `citation_sites` ratchet, which is unmoved at three entries.
+
+**WHAT WAS PUBLISHED, WITH ITS BOUNDS STATED IN ALL SIX DOCUMENTS.**
+
+| figure | artifact | bound written beside it |
+|---|---|---|
+| 780 probed / 780 live / 0 missing | `data/mechanics-census.json` | a LAB — one staged scenario per mechanic, usage-blind; answers *is this correct*, never *does this matter* |
+| 6000 compared / 6000 agreed / 0 disagreed, and 0 at each of the sixteen band indices | `data/engine-diff.json` | its own `scope` is damage only — no items, no abilities, no turn order, no status duration, no switching — and `skipped_multihit` 134 with `skipped_ability_multihit` 17 means **it has never applied a multi-hit move** |
+| 1696/1696 exact, 0 at the wrong stage | `tests/test-damage-stages.js`, re-run green this pass | the stage chain only; the crit die and the event die are the battle loop's |
+| 33 compared / 4 declared / 43 in neither list, 25 live at the boundary | `tests/probe_uncompared_leaves.js` over 500 moves, 201 abilities, 148 items | **"the boards match" is a claim about 33 leaves of 80** — recorded as the largest caveat in the document set |
+
+**AND THE VOID RULING IS STATED IN ALL SIX RATHER THAN CAPTIONED.** Every figure that passed through
+the event die before 2026-08-27 is VOID, not stale — two engines agreed over a narrower slice of
+outcome space than the comparison claimed, so an agreement is not evidence of one. The old paragraphs
+stay in place as dated history, under one governing sentence in each document that none of them may be
+cited as current. The alternative — a per-figure asterisk — is the thing CLAUDE.md already forbids.
+
+**OWED AND NOT RUN THIS PASS:** the three roster stages, `engine/game_differential.js` and
+`engine/all_mechanics_fire.js` (a re-run is the only thing that lifts the stranding); the MAG refit,
+which `engine/status.js` still reports OWED with `feature_fixture --check` failing on both the fixture
+identity and the damage table; and the standing item — `data/winrate-backtest.json`, leaf calibration,
+which stays QUARANTINED and unmeasured behind the gate.
+
 
 ## A CHECK THAT READS GREEN WITHOUT RUNNING IS WORSE THAN ONE THAT READS RED. 2026-08-28, CHANGELOG 5.201.0.
 

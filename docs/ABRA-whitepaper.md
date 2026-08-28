@@ -1,6 +1,121 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 3.98.0 · Last updated 2026-08-10**
+**Version 5.205.0 · Last updated 2026-08-28**
+
+**5.205.0 — THE MEDICHAM SPRINT IS PAUSED AND THE DOCUMENTS ARE UNFROZEN. THE GATE IS NOT OPEN, AND
+FIVE OF ITS EIGHT CLAUSES ARE WITHHELD RATHER THAN REPORTED.**
+
+On 2026-08-10 the living-docs rule was deferred by the owner for the duration of the MEDICHAM
+correctness sprint: each fix wrote one row to a running log and the batch was to be written up when
+the gate closed. Will paused the sprint on 2026-08-28 and this pass discharges the debt. The log held
+274 rows; `CHANGELOG.md` carries 233 releases between 3.99.1 and 5.204.0, every one of them a sprint
+row; `docs/_reports/` carries 189 dated accounts. **The per-release detail lives there and is not
+restated here.** The log file is deleted and the full living-docs rule is re-armed, which is what
+deleting it means.
+
+**THE THROUGH-LINE IS NOT A LIST OF FIXES. It is that the INSTRUMENT was the defect at least six
+times, and that the largest single event of the sprint RAISED the visible defect count rather than
+lowering it.** Named, each with a report: the deliberate roster's red demonstrations had never been
+written into its artifact, so a gate clause that reads them had nothing to fail on; of thirty
+accusations then classified, twenty-three were a miswritten demonstration, seven were a wrong rule
+and exactly one was the engine failing to react; eighteen expired "shown red" certificates were being
+published as a broken simulator; three board-material games attributed to a spread secondary were the
+ruler; a golden-master check was dead from its second load and had been read as a spread-immunity
+damage defect; a grep-based identity check was red on a file that does the thing it checked for. The
+project's own rule — *suspect the instrument before the engine* — was earned, not assumed.
+
+**THE EVENT DIE WAS TRANSLATING RATHER THAN RE-DRAWING, AND THAT IS WHY TWO ENGINES HAD BEEN AGREEING
+BY ACCIDENT.** `midEventHash` and `midHash` ended on `h = Math.imul(h ^ c, 0x01000193)` with no
+finalising mix, and the last field of every draw address is the arrival index `nth`. Changing only
+the final character therefore TRANSLATES the hash instead of re-drawing it:
+
+`v(nth=d) − v(nth=0) = (((A ⊕ c_d) − (A ⊕ c_0)) · P mod 2³²) / 2³²`, with `P = 0x01000193` the FNV-1a
+prime from the source line above — a constant of the hash, not a measurement.
+
+A one-digit index differs in its low four bits only, which bounds the shift. Two-digit indices mix
+correctly, which is why nothing caught it for weeks.
+
+| quantity | bare FNV-1a | with a finalising mix | independent |
+|---|---|---|---|
+| max circular shift, `v(nth=d)` against `v(nth=0)` | 0.0351571 | 0.4999829 | ~0.5 |
+| consecutive arrivals sharing a 16-bucket damage index | 89.5% | 6.2% | 6.25% |
+| distinct damage indices from a ten-hit address | 1.75 | 7.60 | 7.56 |
+| two same-turn residual half-coins landing the same way | 99.1% | 48.5% | 50% |
+| lag-1 autocorrelation down one address axis | 0.8873 | −0.0024 | ~0 |
+| marginal hit rate on that sweep | 0.9214 | 0.8992 | 0.9 |
+
+**The last row is the lesson, and it is a general one about rulers. The marginal was always fine, and
+the assertion watching this axis measured only the marginal.** A die can be uniform in aggregate and
+almost perfectly predictable one step at a time. Fixing it moved the whole-game differential from 3
+to 14 games and the board-material subset from 1 to 12 — an instrument repaired, not a regression
+introduced. The prediction was written before the run and published as written: whole-game 3 to
+between 3 and 15 (14, inside), board-material 1 to between 1 and 8 (12, **outside and above**).
+
+**EVERY FIGURE IN THIS PROJECT THAT WAS MEASURED BEFORE 2026-08-27 AND PASSED THROUGH THAT DIE IS
+VOID, NOT STALE.** Void means the two engines were compared over a narrower slice of outcome space
+than the comparison claimed to cover, so an agreement is not evidence of agreement. Every such figure
+that appears in the sections below is retained as DATED HISTORY, in this project's standing practice
+of never silently rewriting a prior conclusion — and **none of them may be cited as current.** The
+current state of any of them is what `node engine/status.js` prints today, and where that prints
+nothing, nothing is known.
+
+**WHAT THE GATE SAYS TODAY, AND WHY MOST OF IT IS BLANK.** `engine/quarantine.js` computes the
+MEDICHAM gate from artifacts. Read from `data/quarantine-stamp.json`: `gate_open` is **false**, with
+five failing clauses — the three deliberate-roster stages, the whole-game differential, and the
+staged-mechanics comparison. Those five are **WITHHELD, not annotated**: each artifact was measured
+against engine release `5f3f7141227c` and the tree now hashes to a different release, so every count
+in them describes a simulator that is not the one on disk. A figure printed beside a warning is the
+failure this project has already paid for, so no rate, no diverged count and no roster column is
+reproduced here.
+
+**The cause of that stranding is measured and is not an engine change.** Exactly one of the
+twenty-six frozen sources moved: `data/tags.json`, whose stored copy inside the release is
+byte-identical to the working tree after newline normalisation and deep-equal when both are parsed as
+JSON. A checkout under `core.autocrlf = true` rewrote a generated LF file as CRLF between the
+measurement and now. `docs/ENGINE.md` records the identical event on 2026-08-26. **This does not make
+the withheld numbers quotable.** The remedy is a re-run over the bytes a checkout actually produces,
+and until that run exists the clauses say nothing.
+
+**WHAT IS NOT WITHHELD, AND EXACTLY HOW FAR IT REACHES.**
+
+- **The behavioural census.** Read from `data/mechanics-census.json`: **780 probed, 780 live, 0
+  missing**, 780 armed and 0 unarmed, 0 threw and 0 hollow. This is a lab: one deliberately staged
+  scenario per mechanic, regardless of whether anybody plays it. It answers *is this correct*. It
+  does not answer *does this matter*, which is the pinned pool's question.
+- **The damage differential.** Read from `data/engine-diff.json`: 6000 compared, 6000 agreed, 0
+  disagreed, and 0 disagreements at the midpoint and at each of the sixteen indices of the damage
+  band separately, never pooled. **THIS FIGURE IS NARROWER THAN IT LOOKS AND MUST NOT BE QUOTED AS A
+  GENERAL AGREEMENT.** The artifact's own `scope` field limits it to *"damage only, no items or
+  abilities"*; turn order, status duration and switching are not attempted. It also records
+  `skipped_multihit` at 134 and `skipped_ability_multihit` at 17: the harness calls the authority's
+  single-hit entry point rather than the volley loop, so **it has never applied a multi-hit move**,
+  and the four multi-hit defects fixed during this sprint were invisible to it by construction.
+
+**THE BOARD COMPARISON READS 33 OF 80 LEAVES, AND THAT IS THE SINGLE MOST IMPORTANT CAVEAT IN THIS
+DOCUMENT.** "The boards match" is a claim about the leaves the comparison actually reads.
+`tests/probe_uncompared_leaves.js` derives, over 500 legal moves, 201 abilities with a legal carrier
+and 148 legal items, every leaf a legal mechanic can write: 80 distinct leaves, of which **33 are
+compared, 4 are explicitly declared uncompared, and 43 are in NEITHER list.** Twenty-five of those 43
+can be standing on the board at the turn boundary where the comparison is taken. `board_state.js`
+states the consequence in its own words — *an unlisted omission reads exactly like agreement* — and
+twice in one night a mechanic's verdict proved unearned for exactly this reason. Any sentence in this
+paper of the form "the boards agree" is bounded by that 33.
+
+**QUARANTINE HAS NOT LIFTED, AND THE TWO FACTS UNDER THAT SENTENCE ARE BOTH TRUE.** The computed
+condition — the differential clean and the roster clean across items, abilities and moves — is not
+met, so every artifact downstream of the simulator stays withheld. Will's own bar, ruled on
+2026-08-22, is narrower: board-material zero with narration as a separate gate afterwards, plus a
+clean roster. The last measurements taken before the stranding met that narrower bar. **These two
+facts are not resolved here, and this paper does not resolve them:** the ruling that would re-cut the
+gate to test board-material rather than whole-game divergence was never implemented, so the gate
+still computes the wider condition and still reads shut.
+
+**EVERY FIGURE DOWNSTREAM OF THE SIMULATOR IS RE-RUNNABLE, NOT TRUE.** A quarantined number does not
+become correct when MEDICHAM becomes correct. It becomes eligible to be measured again. That applies
+without exception to leaf calibration, the rollout rungs R1 to R4, the exploitability results, the
+MAG and joint weight vectors, and every head-to-head in the sections below. The re-run list is
+ROADMAP #57 and the refit is owed, gated on the engine rather than on compute.
+
 
 **3.98.0 — FIVE OF SIX SOURCES OF PRIORITY REFUSAL WERE CORRECT; THE SIXTH TOLD ITSELF APART BY NAME.**
 A +1 priority attack was staged against each source in turn on the frozen release. Armor Tail, Dazzling,

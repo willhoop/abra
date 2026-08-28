@@ -4,18 +4,6 @@
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
   "changelog_top_at_baseline": "5.187.0",
   "version_pins": {
-    "docs/ABRA-deck-plain-english.md": {
-      "version": "3.98.0",
-      "reason": "MEDICHAM SPRINT PAUSE — Will, 2026-08-10: \"WE PUT A PAUSE ON DOCS UNTIL MEDICHAM IS FUNCTIONAL, RATHER JUST HAVE NOTES TO A RUNNING LIST THAT WE CAN REFER TO WHEN FINALLY UPDATING THE DOCS.\" The living-docs pass is DEFERRED BY THE OWNER, on the record, for the duration of the gate sprint. The debt is not silent: every owed correction is written to docs/MEDICHAM-SPRINT-NOTES.md in the same pass as the code, and .githooks/pre-commit BLOCKS any commit touching engine/ or tests/ that does not also touch that file. THIS PIN IS THE DEFERRAL MADE CHECKABLE, not a licence — bumping these headers without bringing the content current would turn the version into another asserted number, which is the failure the rule exists to stop. Deleting docs/MEDICHAM-SPRINT-NOTES.md ends the sprint and RE-ARMS the full rule; these pins must be retired in that same pass."
-    },
-    "docs/ABRA-technical-docs.md": {
-      "version": "3.98.0",
-      "reason": "MEDICHAM SPRINT PAUSE — Will, 2026-08-10: \"WE PUT A PAUSE ON DOCS UNTIL MEDICHAM IS FUNCTIONAL, RATHER JUST HAVE NOTES TO A RUNNING LIST THAT WE CAN REFER TO WHEN FINALLY UPDATING THE DOCS.\" The living-docs pass is DEFERRED BY THE OWNER, on the record, for the duration of the gate sprint. The debt is not silent: every owed correction is written to docs/MEDICHAM-SPRINT-NOTES.md in the same pass as the code, and .githooks/pre-commit BLOCKS any commit touching engine/ or tests/ that does not also touch that file. THIS PIN IS THE DEFERRAL MADE CHECKABLE, not a licence — bumping these headers without bringing the content current would turn the version into another asserted number, which is the failure the rule exists to stop. Deleting docs/MEDICHAM-SPRINT-NOTES.md ends the sprint and RE-ARMS the full rule; these pins must be retired in that same pass."
-    },
-    "docs/ABRA-whitepaper.md": {
-      "version": "3.98.0",
-      "reason": "MEDICHAM SPRINT PAUSE — Will, 2026-08-10: \"WE PUT A PAUSE ON DOCS UNTIL MEDICHAM IS FUNCTIONAL, RATHER JUST HAVE NOTES TO A RUNNING LIST THAT WE CAN REFER TO WHEN FINALLY UPDATING THE DOCS.\" The living-docs pass is DEFERRED BY THE OWNER, on the record, for the duration of the gate sprint. The debt is not silent: every owed correction is written to docs/MEDICHAM-SPRINT-NOTES.md in the same pass as the code, and .githooks/pre-commit BLOCKS any commit touching engine/ or tests/ that does not also touch that file. THIS PIN IS THE DEFERRAL MADE CHECKABLE, not a licence — bumping these headers without bringing the content current would turn the version into another asserted number, which is the failure the rule exists to stop. Deleting docs/MEDICHAM-SPRINT-NOTES.md ends the sprint and RE-ARMS the full rule; these pins must be retired in that same pass."
-    },
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
       "reason": "AN ADR IS A DATED DECISION, NOT A LIVING DOCUMENT. It records that Showdown is the authority and MEDICHAM the runtime, decided and ACCEPTED at 3.50.0. Nothing in 3.51.0 revisits that decision — GARY, DUSK and the search reordering all sit downstream of it and none of them changes which engine is authoritative. Bumping the stamp would assert a review that did not happen. Unpin only when the decision itself is amended or superseded."
@@ -39,10 +27,6 @@
     "docs/COVERAGE-PLAN-REVIEW.md": {
       "version": "3.40.0",
       "reason": "DEBT — carries the project version and sits one release behind (3.40.0 vs 3.41.0). Written by the routing session at 3.40.0 and not revisited since."
-    },
-    "docs/DAMAGE-STAGES.md": {
-      "version": "3.98.0",
-      "reason": "MEDICHAM SPRINT PAUSE — Will, 2026-08-10: \"WE PUT A PAUSE ON DOCS UNTIL MEDICHAM IS FUNCTIONAL, RATHER JUST HAVE NOTES TO A RUNNING LIST THAT WE CAN REFER TO WHEN FINALLY UPDATING THE DOCS.\" The living-docs pass is DEFERRED BY THE OWNER, on the record, for the duration of the gate sprint. The debt is not silent: every owed correction is written to docs/MEDICHAM-SPRINT-NOTES.md in the same pass as the code, and .githooks/pre-commit BLOCKS any commit touching engine/ or tests/ that does not also touch that file. THIS PIN IS THE DEFERRAL MADE CHECKABLE, not a licence — bumping these headers without bringing the content current would turn the version into another asserted number, which is the failure the rule exists to stop. Deleting docs/MEDICHAM-SPRINT-NOTES.md ends the sprint and RE-ARMS the full rule; these pins must be retired in that same pass."
     },
     "docs/ENGINE-COVERAGE-PLAN.md": {
       "version": "3.40.0",
@@ -68,10 +52,6 @@
       "version": "1.0",
       "reason": "OWN VERSION LINE — a per-model paper on its own 1.x line, as SLOWKING-whitepaper.md is."
     },
-    "docs/MODELS.md": {
-      "version": "3.98.0",
-      "reason": "MEDICHAM SPRINT PAUSE — Will, 2026-08-10: \"WE PUT A PAUSE ON DOCS UNTIL MEDICHAM IS FUNCTIONAL, RATHER JUST HAVE NOTES TO A RUNNING LIST THAT WE CAN REFER TO WHEN FINALLY UPDATING THE DOCS.\" The living-docs pass is DEFERRED BY THE OWNER, on the record, for the duration of the gate sprint. The debt is not silent: every owed correction is written to docs/MEDICHAM-SPRINT-NOTES.md in the same pass as the code, and .githooks/pre-commit BLOCKS any commit touching engine/ or tests/ that does not also touch that file. THIS PIN IS THE DEFERRAL MADE CHECKABLE, not a licence — bumping these headers without bringing the content current would turn the version into another asserted number, which is the failure the rule exists to stop. Deleting docs/MEDICHAM-SPRINT-NOTES.md ends the sprint and RE-ARMS the full rule; these pins must be retired in that same pass."
-    },
     "docs/PRIOR-ART.md": {
       "version": "3.71.0",
       "reason": "A LITERATURE SURVEY. It moves when a paper is added or a claim about one is corrected. ROADMAP #92 is an internal correctness fix against Showdown and cites no external work."
@@ -87,10 +67,6 @@
     "docs/SLOWKING-whitepaper.md": {
       "version": "1.0",
       "reason": "OWN VERSION LINE — a per-model paper on its own 1.x line."
-    },
-    "docs/SUMMARY.md": {
-      "version": "3.98.0",
-      "reason": "MEDICHAM SPRINT PAUSE — Will, 2026-08-10: \"WE PUT A PAUSE ON DOCS UNTIL MEDICHAM IS FUNCTIONAL, RATHER JUST HAVE NOTES TO A RUNNING LIST THAT WE CAN REFER TO WHEN FINALLY UPDATING THE DOCS.\" The living-docs pass is DEFERRED BY THE OWNER, on the record, for the duration of the gate sprint. The debt is not silent: every owed correction is written to docs/MEDICHAM-SPRINT-NOTES.md in the same pass as the code, and .githooks/pre-commit BLOCKS any commit touching engine/ or tests/ that does not also touch that file. THIS PIN IS THE DEFERRAL MADE CHECKABLE, not a licence — bumping these headers without bringing the content current would turn the version into another asserted number, which is the failure the rule exists to stop. Deleting docs/MEDICHAM-SPRINT-NOTES.md ends the sprint and RE-ARMS the full rule; these pins must be retired in that same pass."
     },
     "docs/TAG-COVERAGE.md": {
       "version": "3.40.0",

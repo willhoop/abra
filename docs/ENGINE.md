@@ -114,15 +114,34 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is e2d7ba56d516 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 4360da6a8788 now
     (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 284/300 probed, 16 unprobed
 ```
 
-_stamped 2026-08-28 06:13_
+_stamped 2026-08-28 14:54_
 
 <!-- /GENERATED -->
+
+## THE CRLF STRANDING RECURRED, AND FIVE CLAUSES WENT BLANK WITH NO ENGINE BYTE CHANGED. 2026-08-28, CHANGELOG 5.205.0.
+
+The section dated 2026-08-26 above predicted this: *"the reason is a line ending, which is worth
+writing down because it will happen again to whoever next regenerates `data/tags.json`."* It happened
+again, between 09:58Z and 10:06Z, and it took the gate from 7 of 8 clauses PASS to 5 of 8.
+
+MEASURE measured the discriminator and it is unambiguous: **exactly one of the twenty-six frozen
+sources moved**, and the release's own COPY of it is byte-identical to the tree after newline
+normalisation and deep-equal when both are parsed as JSON. A checkout under `core.autocrlf = true`
+rewrote `tag_dex.js`'s LF output as CRLF. Nothing about the simulator changed.
+
+**THE FIGURES ARE STILL WITHHELD AND THAT IS CORRECT.** The three roster stages, the whole-game
+differential and the staged-mechanics comparison all stamp release `5f3f7141227c`, which is no longer
+the tree. The remedy is ENGINE's and it is the one this ledger already wrote down — **cut the release
+over the bytes a checkout actually produces, then re-run** — not restoring the file to LF, which
+yields an id no checkout reproduces. The re-run is OWED; the full account is in `docs/MEASURE.md`
+under the same date.
+
 
 ## A RAMPAGE THAT REACHED NOBODY ARMED THE LOCK ANYWAY, AND IT COST THE USER TWO TURNS AND ITS FATIGUE. **CENSUS 779 -> 780 LIVE / 780 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35, PIN DIGEST UNMOVED AT `ccb365985023` — ALL PREDICTED.** 2026-08-28.
 

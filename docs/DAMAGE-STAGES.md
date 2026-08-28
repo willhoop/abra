@@ -1,6 +1,32 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 3.98.0 — 2026-08-10.**
+**Version: 5.205.0 — 2026-08-28.**
+
+**5.205.0 — THE SPRINT IS PAUSED AND THIS FILE IS RE-READ, NOT REWRITTEN: NO STAGE MOVED.** The
+living-docs deferral that ran from 2026-08-10 is over. Across the whole sprint the stage ORDER inside
+one hit is unchanged, and `tests/test-damage-stages.js` re-reads **1696/1696 exact, 0 at the wrong
+stage**, across all sixteen rolls and both crit states, with 5 re-derived `CH_EXACT` overrides and 0
+wrong. The population moved (this file previously recorded 1728 cells); the verdict did not.
+
+**WHAT CHANGED IS OUTSIDE THIS CHAIN, AND BOTH ITEMS BELONG TO THE BATTLE LOOP.** The crit is now
+drawn **once per hit** rather than once per click, which is what the authority does — its loop is the
+Champions mod's and its die is mainline's, inside the per-hit `getDamage` call, and neither
+`getSpreadDamage` nor `getDamage` is overridden by the mod. Arrival 2 of a volley no longer inherits
+arrival 1's crit. Separately, the event die itself gained a finalising mix; before that, consecutive
+arrivals shared a 16-bucket damage index 89.5% of the time against a correct 6.25%. **Neither touches
+the stage order this document describes**, and both are why a damage figure measured before
+2026-08-27 is void rather than stale.
+
+**THE DIFFERENTIAL THAT CHECKS THIS CHAIN HAS NEVER APPLIED A MULTI-HIT MOVE, AND THAT MUST BE SAID
+WHEREVER ITS FIGURE APPEARS.** Read from `data/engine-diff.json`: 6000 compared, 6000 agreed, 0
+disagreed, and 0 at each of the sixteen band indices separately. Its own `scope` field limits it to
+damage only — no items, no abilities, no turn order, no status duration, no switching — and it records
+`skipped_multihit` 134 and `skipped_ability_multihit` 17, because the harness calls the authority's
+single-hit entry point rather than the volley loop. The multi-hit defects corrected during this sprint
+were invisible to it by construction. **The interior of a multi-hit range remains a single draw across
+the summed endpoints** rather than N independent ones; that is unchanged by this pass and is still the
+battle loop's question rather than this chain's.
+
 
 **3.98.0 — NO STAGE MOVED AND NOTHING IN THIS FILE CHANGED.** ROADMAP #126 wired Quick Guard onto the
 priority-refusal gate. That gate sits in the TURN LOOP, above the action-kind dispatch, and never reaches

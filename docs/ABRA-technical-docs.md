@@ -1,6 +1,87 @@
 # ABRA — Technical Documentation
 
-**Version 3.98.0 · Last updated 2026-08-10**
+**Version 5.205.0 · Last updated 2026-08-28**
+
+**5.205.0 — END THE SPRINT. DELETE THE LOG. READ THE GATE, DO NOT REMEMBER IT.**
+The MEDICHAM sprint started on 2026-08-10. The owner stopped it on 2026-08-28.
+During the sprint, each change wrote one row to a running log. The full document pass was deferred.
+The log had 274 rows. The changelog has 233 releases for the same period. The reports folder has 189 accounts.
+This pass writes up the sprint. Then it deletes the log. The deletion re-arms the full document rule.
+Do not read a number from the log. The log is deleted. Read a number from an artifact.
+
+**THE MEASUREMENT TOOL WAS THE DEFECT SIX TIMES OR MORE.**
+Examine the instrument before you change the engine. This is the order of work.
+One night the tool made 30 accusations. 23 accusations were an incorrect test. 7 accusations were an incorrect rule.
+1 accusation was a true engine defect. Do not repair 30 items. Repair the tool first.
+A red demonstration that is not written to its artifact cannot fail a gate. Write the demonstration to the artifact.
+An expired certificate is not a defect. Give each certificate a date. Refuse an expired certificate.
+
+**PUT A FINALISING MIX AT THE END OF A HASH THAT ADDRESSES A DIE.**
+The functions `midEventHash` and `midHash` ended with `h = Math.imul(h ^ c, 0x01000193)`.
+There was no operation after the last round. FNV-1a has no diffusion after its last round.
+The last field of a draw address is the arrival index `nth`. The index has one digit for a usual move.
+A one-digit change is a change of four low bits. The hash value moves. The hash value does not re-draw.
+The maximum circular shift was 0.0351571. The correct value is near 0.5.
+Two arrivals in sequence shared a damage bucket 89.5% of the time. The correct value is 6.25%.
+The lag-1 autocorrelation was 0.8873. The correct value is near 0.
+The marginal hit rate was 0.9214. The target was 0.9. **The marginal rate was always correct.**
+Do not test a die on its marginal rate only. Test the die one step at a time.
+Add `fmix32` after the last round. The whole-game difference count went from 3 games to 14 games.
+This is a repair of the instrument. This is not a new defect.
+
+**A FIGURE FROM BEFORE 2026-08-27 IS VOID. IT IS NOT STALE.**
+A void figure is not evidence. The comparison behind it covered a small part of the outcome space.
+Do not cite a void figure. Do not put a warning beside a void figure. Withhold the figure.
+Old paragraphs stay in this document. They are a dated record. They are not a current result.
+Run `node engine/status.js` for a current figure. An empty field means that no artifact knows the answer.
+
+**THE GATE IS SHUT. FIVE CLAUSES OF EIGHT GIVE NO ANSWER.**
+Read `data/quarantine-stamp.json`. The field `gate_open` is false.
+The five clauses are the three roster stages, the whole-game differential, and the staged mechanics comparison.
+Each of the five artifacts records engine release `5f3f7141227c`. The tree has a different release now.
+An artifact that records a different release describes a different program. Withhold every count in it.
+Do not print a count with a caution beside it. A reader takes the count and leaves the caution.
+Run the measurement again. This is the only remedy.
+
+**A CHECKOUT CAN CHANGE A RELEASE IDENTIFIER WITHOUT A CHANGE TO THE ENGINE.**
+One source of 26 moved. The source is `data/tags.json`.
+The copy in the release and the copy in the tree are equal after newline normalisation.
+Both parse to the same object. The content is the same. The digest is not the same.
+This repository sets `core.autocrlf` to true. A generator writes LF. A checkout writes CRLF.
+Cut the release over the bytes that a checkout gives. Do not cut over the bytes that a generator gives.
+This event is recorded for 2026-08-26 in `docs/ENGINE.md`. It has occurred two times.
+
+**THE CENSUS IS COMPLETE. THE CENSUS IS A LABORATORY.**
+Read `data/mechanics-census.json`. There are 780 probed, 780 live and 0 missing. There are 780 armed and 0 unarmed.
+The census stages one scenario for each mechanic. Usage has no effect on the census.
+The census answers the question "is this correct". It does not answer the question "does this matter".
+Use the pinned team pool for the second question. The two instruments are not equivalent.
+
+**THE DAMAGE COMPARISON AGREES. THE SCOPE IS SMALL. STATE THE SCOPE.**
+Read `data/engine-diff.json`. There are 6000 compared, 6000 agreed and 0 disagreed.
+The result is 0 disagreements at the midpoint. The result is 0 disagreements at each of the 16 band indices.
+The field `scope` says damage only. There are no items and no abilities in this comparison.
+Turn order, status duration and switching are not in this comparison.
+The field `skipped_multihit` is 134. The field `skipped_ability_multihit` is 17.
+The tool calls the single-hit entry point. The tool does not call the volley loop.
+**The tool has never applied a multi-hit move.** Do not quote this result as a general agreement.
+
+**"THE BOARDS AGREE" MEANS 33 LEAVES OF 80.**
+Run `tests/probe_uncompared_leaves.js`. It reads 500 moves, 201 abilities and 148 items.
+The mechanics write 80 different leaves. The comparison reads 33 leaves. The comparison declares 4 leaves.
+43 leaves are in no list. 25 of the 43 can be on the board at the turn boundary.
+A leaf that is not read looks the same as a leaf that agrees. Add a leaf to one list or the other.
+
+**THE QUARANTINE IS NOT LIFTED. TWO FACTS ARE TRUE AT THE SAME TIME.**
+The computed condition is not met. The gate is shut. Every artifact below the simulator stays withheld.
+The owner set a narrower bar on 2026-08-22. The bar is zero board-material differences and a clean roster.
+The last measurements met the narrower bar. Nobody has changed the gate to test the narrower bar.
+Do not resolve this in a document. Change the gate, or leave the gate shut.
+
+**A WITHHELD FIGURE BECOMES RE-RUNNABLE. IT DOES NOT BECOME TRUE.**
+This applies to leaf calibration, to the rollout rungs, to the exploitability results and to the weights.
+The weight fit is owed. The engine controls it. Compute does not control it.
+
 
 **3.98.0 — READ THE TAG PARAMETER. DO NOT MATCH THE MOVE NAME.**
 The moves Quick Guard and Wide Guard have the same four tags.

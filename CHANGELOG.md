@@ -10,6 +10,67 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.205.0] — 2026-08-28
+
+### Changed
+- **THE MEDICHAM SPRINT IS PAUSED, THE DOCUMENTS ARE UNFROZEN, AND THE FULL LIVING-DOCS RULE IS
+  RE-ARMED.** Will, 2026-08-28: *"lets put a pause on medicham development then. please unfreeze the
+  docs, update the docs, and clean it all up."*
+
+  The living-docs pass was deferred by the owner on 2026-08-10 for the duration of the correctness
+  sprint; each fix wrote one row to `docs/MEDICHAM-SPRINT-NOTES.md` instead. That log held **274
+  rows**, this file carries **233 releases** between 3.99.1 and 5.204.0 covering the same stretch, and
+  `docs/_reports/` carries **189** dated accounts. The sprint content is folded into
+  `docs/ABRA-whitepaper.md`, `docs/ABRA-deck-plain-english.md`, `docs/ABRA-technical-docs.md`,
+  `docs/SUMMARY.md`, `docs/MODELS.md` and `docs/DAMAGE-STAGES.md`, all six restamped to this version.
+  **The log file is then DELETED**, which is what re-arms the rule: `engine/docs_scan.js` exempts it
+  from the figure clauses only while it exists, and `.githooks/pre-commit` substitutes a sprint row for
+  the full pass only while it exists. The six `MEDICHAM SPRINT PAUSE` version pins are retired from
+  `data/docs-currency-baseline.json` in the same pass, as their own reason text required.
+
+### Fixed
+- **THE DOCUMENTS NOW STATE THE FOUR THINGS THE SPRINT'S NUMBERS DO NOT SAY.** Each was written into
+  all six documents rather than left to a reader:
+  1. `data/engine-diff.json`'s 6000/6000/0 is **damage only** by its own `scope` field — no items, no
+     abilities, no turn order, no status duration, no switching — and it records `skipped_multihit`
+     134 with `skipped_ability_multihit` 17, so **it has never applied a multi-hit move.** Four
+     multi-hit defects were fixed during the sprint and it could not have seen one of them.
+  2. **"The boards match" means 33 leaves of 80.** `tests/probe_uncompared_leaves.js`, derived over
+     500 legal moves, 201 abilities with a legal carrier and 148 legal items: 33 compared, 4 declared
+     uncompared, **43 in neither list**, 25 of which can stand on the board at the turn boundary.
+  3. **Quarantine has not lifted.** `data/quarantine-stamp.json` reads `gate_open` false. The owner's
+     narrower bar of 2026-08-22 — board-material zero plus a clean roster — was met by the last
+     measurements, but the gate was never re-cut to test it. Both facts are stated; neither is
+     resolved in a document.
+  4. **Every downstream figure is re-runnable, not true** — in those words, for leaf calibration, the
+     rollout rungs, the exploitability results and the weights.
+
+### Notes
+- **FIVE GATE CLAUSES ARE WITHHELD, NOT REPORTED, AND THE CAUSE IS A LINE ENDING RATHER THAN AN
+  ENGINE CHANGE.** The three deliberate-roster stages, the whole-game differential and the
+  staged-mechanics comparison each record engine release `5f3f7141227c`; the tree now hashes to a
+  different release, so every count in them describes other bytes. Measured, not assumed: **exactly
+  one of the twenty-six frozen sources moved**, `data/tags.json`, whose copy inside
+  `data/releases/5f3f7141227c/data/` is byte-identical to the working tree after newline
+  normalisation and deep-equal when both are parsed. A checkout under `core.autocrlf = true` rewrote
+  a generated LF file as CRLF between the 09:56–09:58Z runs and 10:06Z. `docs/ENGINE.md` records the
+  identical event on 2026-08-26, where the remedy was to cut the release over the bytes a checkout
+  produces. **It still counts**, so no rate, diverged count or roster column from those five
+  artifacts is written into any document — a caption is not a quarantine. A re-run is OWED.
+- **QUOTABLE, AND WRITTEN DOWN WITH ITS BOUNDS:** `data/mechanics-census.json` — 780 probed, 780
+  live, 0 missing, 780 armed, 0 unarmed, 0 threw, 0 hollow. `tests/test-damage-stages.js` re-read
+  green at 1696/1696 exact, 0 at the wrong stage, with 5 re-derived `CH_EXACT` overrides and 0 wrong.
+- **THE SPRINT'S THROUGH-LINE, RECORDED IN ALL SIX DOCUMENTS.** The instrument was the defect at
+  least six times — thirty accusations against the engine classified out as twenty-three miswritten
+  demonstrations, seven wrong rules and **one** real failure to react; eighteen expired "shown red"
+  certificates published as a broken simulator; the roster's red demonstrations never written into
+  its artifact. And the largest single event, the event-die finalising mix, **raised** the visible
+  defect count — whole-game 3 → 14 games, board-material 1 → 12 — because the two engines had been
+  agreeing over a narrower slice of outcome space than the comparison claimed. The marginal hit rate
+  was 0.9214 against a target of 0.9 throughout, and it was the only quantity anything was watching.
+
+---
+
 ## [5.204.0] — 2026-08-28
 
 ### Fixed

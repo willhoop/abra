@@ -12,8 +12,7 @@
     "deliberate roster / abilities",
     "deliberate roster / moves",
     "whole-game differential / the same game on both engines",
-    "mechanics / each one staged and compared against showdown",
-    "no open, known engine defect"
+    "mechanics / each one staged and compared against showdown"
   ],
   "quarantined": [
     "ab-batch-effect.json",
@@ -82,5 +81,5 @@
     "web/build-status.js",
     "web/publish-rule.js"
   ],
-  "generated": "2026-08-27T14:14:05.537Z"
+  "generated": "2026-08-28T03:01:26.529Z"
 }

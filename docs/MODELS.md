@@ -1,6 +1,69 @@
 # ABRA — the model family (living reference)
 
-**Version 3.98.0 · Last updated 2026-08-10.**
+**Version 5.205.0 · Last updated 2026-08-28.**
+
+**5.205.0 — MEDICHAM: THE SPRINT IS PAUSED AFTER 274 RECORDED FIXES, AND THE GATE STILL READS SHUT
+WITH FIVE OF EIGHT CLAUSES WITHHELD.** The living-docs deferral that ran from 2026-08-10 is over and
+its debt is discharged here. The sprint log held 274 rows, `CHANGELOG.md` carries the 233 releases
+between 3.99.1 and 5.204.0, and `docs/_reports/` carries 189 dated accounts; the per-fix detail lives
+there and is not restated. Deleting the log re-arms the full rule, which is the point of deleting it.
+
+**WHAT THE SPRINT ACTUALLY ESTABLISHED ABOUT THIS MODEL.** Not a list of mechanics. Two things:
+
+- **The instrument was the defect at least six times.** Thirty accusations against the engine on one
+  night classified out as twenty-three miswritten demonstrations, seven wrong rules, and **one** real
+  failure to react. Eighteen expired "shown red" certificates were being published as a broken
+  simulator. The deliberate roster's red demonstrations had never been written into its artifact, so a
+  gate clause that reads them had nothing to fail on. Three board-material games blamed on a spread
+  secondary were the ruler. A golden-master check was dead from its second load and had been read as a
+  spread-immunity damage defect.
+- **The event die was translating rather than re-drawing, so MEDICHAM and the authority had been
+  agreeing partly by accident.** `midEventHash`/`midHash` ended on a bare FNV-1a round; the last field
+  of every draw address is the arrival index, so a one-digit change moved the value instead of
+  re-drawing it. Consecutive arrivals shared a 16-bucket damage index 89.5% of the time (correct:
+  6.25%), lag-1 autocorrelation down that axis was 0.8873 (correct: ~0), and the **marginal hit rate
+  was 0.9214 against 0.9 — the one quantity anything was watching, and it was always fine.** Repairing
+  it took the whole-game differential from 3 to 14 games and board-material from 1 to 12. **That is an
+  instrument repaired, not a model regressed**, and it is why every MEDICHAM comparison measured
+  before 2026-08-27 is VOID rather than stale: the comparison covered a narrower slice of outcome
+  space than it claimed.
+
+**MEDICHAM'S OWN NUMBERS, TODAY.** Read from `data/mechanics-census.json`: **780 probed, 780 live, 0
+missing**, 780 armed and 0 unarmed, 0 threw and 0 hollow. Read from `data/engine-diff.json`: **6000
+compared, 6000 agreed, 0 disagreed**, and 0 at the midpoint and at each of the sixteen damage-band
+indices taken separately. **The second of those is much narrower than it reads.** Its own `scope`
+field is *damage only, no items or abilities*; turn order, status duration and switching are not
+attempted; and `skipped_multihit` 134 with `skipped_ability_multihit` 17 means the harness calls the
+authority's single-hit entry point rather than the volley loop — **it has never applied a multi-hit
+move.** Four multi-hit defects were fixed during this sprint and this instrument could not have seen
+one of them.
+
+**WITHHELD, NOT ANNOTATED: THE THREE ROSTER STAGES, THE WHOLE-GAME DIFFERENTIAL, THE STAGED-MECHANICS
+COMPARISON.** `data/quarantine-stamp.json` reads `gate_open` false on those five clauses. Each of the
+five artifacts records engine release `5f3f7141227c` and the tree hashes to a different release, so
+every count in them is about other bytes. Measured, not assumed: exactly one of the twenty-six frozen
+sources moved — `data/tags.json`, whose release copy is byte-identical to the tree after newline
+normalisation and deep-equal when parsed — because a checkout under `core.autocrlf = true` rewrote a
+generated LF file as CRLF. The same event is on the record for 2026-08-26 in `docs/ENGINE.md`. It
+still counts; a re-run is the only remedy, and until it exists no rate, diverged count or roster
+column from those artifacts appears in this ledger.
+
+**"THE BOARDS MATCH" IS A CLAIM ABOUT 33 LEAVES OF 80, AND EVERY MEDICHAM VERDICT BELOW INHERITS THAT
+BOUND.** `tests/probe_uncompared_leaves.js` derives, over 500 legal moves, 201 abilities with a legal
+carrier and 148 legal items, every leaf a mechanic can write: **33 compared, 4 declared uncompared, 43
+in neither list**, 25 of the 43 able to stand on the board at the turn boundary. `board_state.js` says
+it in its own words — an unlisted omission reads exactly like agreement — and two mechanics' verdicts
+proved unearned for exactly this reason in one night.
+
+**STATUS OF EVERY MODEL DOWNSTREAM: UNCHANGED, AND STILL QUARANTINED.** The gate's computed condition
+is not met. Will's narrower bar of 2026-08-22 (board-material zero plus a clean roster, narration as
+its own gate afterwards) was met by the last measurements before the stranding, but **the gate was
+never re-cut to test that bar**, so it computes the wider condition and reads shut. Both facts stand;
+neither is resolved here. MAG's weights and the joint weights remain fitted through a MEDICHAM that
+has since changed, the refit stays OWED and gated on the engine rather than on compute, and every leaf
+calibration, rollout rung, head-to-head and exploitability figure in this ledger is **re-runnable, not
+true.**
+
 
 **3.98.0 — MEDICHAM: QUICK GUARD WAS THE ONLY BROKEN SOURCE OF PRIORITY REFUSAL.** Armor Tail, Dazzling,
 Queenly Majesty and Psychic Terrain all refuse a +1 move; Wide Guard correctly does not; Quick Guard did

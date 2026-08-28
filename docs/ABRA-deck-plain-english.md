@@ -1,6 +1,79 @@
 # ABRA — the plain-English deck
 
-**Version 3.98.0 · 2026-08-10 · Will Hooper**
+**Version 5.205.0 · 2026-08-28 · Will Hooper**
+
+**5.205.0 — WE PAUSED THE BIG SIMULATOR PUSH. HERE IS WHAT WE FIXED, AND — MORE IMPORTANTLY — WHAT WE
+STILL CANNOT TELL YOU.**
+
+For eighteen days we stopped updating these documents on purpose, so that fixing the simulator did not
+have to stop every hour to write about itself. Instead every fix wrote one line to a running log. That
+log had 274 lines in it when we stopped. The changelog has 233 releases from the same stretch, and
+there are 189 dated write-ups in the reports folder. The log is now deleted and the normal
+write-it-up-as-you-go rule is switched back on, which is the whole point of deleting it.
+
+**THE MOST USEFUL THING WE LEARNED IS NOT ANY ONE FIX. It is that the thing doing the measuring was
+wrong at least six times.** Six separate occasions where we thought we had found a broken simulator
+and had actually found a broken ruler. One night we had thirty accusations against the engine; when
+we checked them properly, twenty-three were the test being written wrong, seven were the rule being
+written wrong, and exactly **one** was the game actually being simulated wrong. Another time,
+eighteen out-of-date certificates were being published as though they were a broken simulator. If you
+take one thing from this page: **before you believe the scoreboard, check the scoreboard.**
+
+**AND THE BIGGEST FIX MADE THE PROBLEM LOOK WORSE, WHICH IS EXACTLY WHAT IT SHOULD HAVE DONE.**
+Deep inside the simulator is a dice roller. It is not real randomness — it is deliberately repeatable,
+so that we can play the same game twice and compare. The way it turned a situation into a number had a
+flaw: if two events differed only in "which hit of the move is this", it did not really roll again. It
+nudged the previous answer slightly. Two hits in a row landed in the same damage bucket **89.5%** of
+the time, when the honest number is about **6%**. The roller looked perfectly fair if you averaged it
+over a whole run, and was almost completely predictable one step at a time.
+
+Because of that, our simulator and the real game had been agreeing partly by luck. They were only ever
+being compared across a thin slice of the things that can happen. We fixed the roller and the number of
+games where the two disagree went from **3 to 14**. Nothing got worse. We could finally see.
+
+**SO: EVERY NUMBER IN THIS DECK THAT WAS MEASURED BEFORE 27 AUGUST 2026 IS DEAD, NOT MERELY OLD.**
+Not "a bit out of date" — genuinely not evidence of anything, because the comparison behind it was
+narrower than it claimed. We leave the old paragraphs in place, because this project does not quietly
+delete things it used to believe, but **none of them is a current result.** If you want to know where
+something stands today, run `node engine/status.js`. If that prints nothing for it, we do not know.
+
+**WHAT WE CAN TELL YOU TODAY**
+
+- **Every mechanic we have thought to test is tested, and they all fire.** 780 checks, 780 of them
+  live, none missing. That is a laboratory result: we stage each thing deliberately, one at a time.
+  It tells you *is this right*. It does not tell you *does this come up in real games* — that is a
+  different scoreboard, and it is the one that is currently blank.
+- **Damage is exact.** Six thousand comparisons against the real game, zero disagreements, and zero
+  at each of the sixteen points of the damage range checked separately rather than lumped together.
+  **But read the small print, because it is genuinely small:** that test covers damage only — no
+  items, no abilities, no turn order, no switching — and it has **never once tested a move that hits
+  more than once.** It skips all of those. Four multi-hit bugs were found and fixed this month and
+  this test could not have seen any of them.
+
+**WHAT WE ARE REFUSING TO TELL YOU, AND WHY THAT IS THE HONEST ANSWER**
+
+Five of the eight boxes on our "is the simulator right yet" scorecard are **blank**. Not failing —
+blank. The measurements behind them were taken against a slightly different copy of the engine than
+the one now on disk, so those numbers describe a program that is not the one we are running. We could
+print them with a warning attached. We are not going to, because we have done that before and people
+quoted the number and skipped the warning — including us.
+
+For the record, the difference is not a real change to the game. One data file got rewritten by a
+routine housekeeping step with different invisible end-of-line characters. Same content, different
+fingerprint. It still counts, and the only cure is to run the comparison again.
+
+**"THE BOARDS MATCH" MEANS 33 THINGS OUT OF 80.** When we say our simulator's game state agrees with
+the real one, we are comparing 33 kinds of state. There are 80 kinds that a legal move, ability or
+item can create. Four more are openly declared as not compared. That leaves **43 that are in neither
+list** — not compared, and not admitted to be uncompared — and 25 of those can be sitting on the board
+at the exact moment we take the comparison. A thing you forgot to compare looks precisely like a thing
+that agreed. This is the biggest caveat on the page.
+
+**AND THE FREEZE IS STILL ON.** Everything that reads the simulator — how good our position-scorer is,
+the search results, the head-to-heads, the trained weights — remains withheld. The rule we hold
+ourselves to is: those numbers do not become true when the simulator becomes correct. They become
+**re-runnable**. Somebody has to run them again.
+
 
 **3.98.0 — QUICK GUARD IS SUPPOSED TO STOP FAST MOVES. OURS STOPPED NOTHING AT ALL.** Some moves always
 go first — Fake Out, Bullet Punch, Aqua Jet. Quick Guard is the answer to them: it protects your whole
