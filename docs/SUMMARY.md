@@ -1,6 +1,49 @@
 # ABRA — Project Summary
 
-**Version 5.205.0 · 2026-08-28 · Will Hooper**
+**Version 5.206.0 · 2026-08-28 · Will Hooper**
+
+**5.206.0 — THE FIVE BLANK CLAUSES WERE A LINE ENDING, THEY PRINT AGAIN, AND EVERY ONE OF THEM
+REPRODUCED ITS PREVIOUS NUMBER EXACTLY. GATE 7 OF 8 PASS.** The 5.205.0 block below is retained as
+dated history and its "WHAT IS QUOTABLE TODAY" table is SUPERSEDED by this one; the five WITHHELD
+rows in it are withheld no longer.
+
+| question | artifact | answer |
+|---|---|---|
+| every mechanic staged and live | `data/mechanics-census.json` | **780 probed, 780 live, 0 missing** |
+| damage against the authority | `data/engine-diff.json` | **6000 compared, 0 disagreed**, and 0 at each of the sixteen band indices separately |
+| is the gate open | `data/quarantine-stamp.json` | **no** — `gate_open` false, **one** clause failing |
+| the three roster stages | `data/roster.{items,abilities,moves}.json` | **139 / 129 / 475 tested, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three**; red demonstrations 18 / 29 / 35 |
+| whole-game differential | `data/game-differential.json` | **1 of 961** (6 raw, less 5 declared); **board-material 0 of 961** |
+| staged-mechanics comparison | `data/all-mechanics-fire.json` | 5 diverge, 1 declared, 4 below the reach shelf — **0 counted** |
+
+**THE CAUSE WAS NOT AN ENGINE CHANGE AND THE REMEDY WAS NOT A HAND EDIT.** `core.autocrlf = true`
+rewrites any file git considers text to CRLF on checkout, so a frozen source whose generator writes LF
+has two byte-forms and the release id follows whichever wrote it last. The file that moved was the tag
+artifact written by `engine/tag_dex.js`.
+
+Measured here: its committed blob is **byte-identical** to release `5f3f7141227c`'s own snapshot —
+both hash to `576a4bbe91af` — and the working copy was that same blob after translation, hashing to
+`a32ee545cf67`. Restoring it is therefore git handing back what the generator wrote, not somebody
+editing an input until a ruler agreed. The tree re-cuts to `5f3f7141227c`, the id those five artifacts
+already stamp. The byte and carriage-return counts are recorded in
+`docs/_reports/2026-08-28-crlf-recurrence.md`.
+
+**IT IS FIXED AT THE SOURCE, AND THE FIX WAS SHOWN RED FIRST.** `.gitattributes` now pins seventeen of
+the twenty-six frozen sources with `text eol=lf`. Before the entry, writing the committed blob and then
+`git checkout HEAD -- data/tags.json` took the digest `576a4bbe91af -> a32ee545cf67` with nothing
+edited; after it, the same sequence returns `576a4bbe91af`. Removing the one line again fails
+`tests/test-engine-release.js` by name. **Nine sources are deliberately not pinned** — they are CRLF in
+the working tree today, and flattening them would rewrite every release id and break `tests/roster.js`,
+whose red demonstrations match `\r\n` against the simulator's source. That is filed, not done.
+
+**NOTHING MOVED, WHICH IS THE RESULT.** The three roster stages, the staged-mechanics comparison and the
+whole-game differential were all re-run against release `5f3f7141227c`, census pin `9446a684709d`, arm
+`middle`, cap 12, `--games 1200` (yields 961), `--team-store data/team-pool-frozen`, `--state
+--end-state`. `data/all-mechanics-fire.json` differs from its predecessor in three wall-clock
+`seconds` fields and one timestamp; `data/game-differential.json` differs in one field, the count of
+recorded cuts of the same release. `data/provenance-stamp.json` recovered from 1 content-verified
+artifact to 3 with `mtime_only` unchanged at 175 — the same event, the same way back.
+
 
 **5.205.0 — THE MEDICHAM SPRINT IS PAUSED, THE DOCUMENTS ARE UNFROZEN, AND FIVE OF THE EIGHT GATE
 CLAUSES ARE BLANK RATHER THAN GREEN.** The living-docs rule was deferred by the owner on 2026-08-10

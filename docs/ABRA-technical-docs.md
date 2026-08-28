@@ -1,6 +1,58 @@
 # ABRA — Technical Documentation
 
-**Version 5.205.0 · Last updated 2026-08-28**
+**Version 5.206.0 · Last updated 2026-08-28**
+
+**5.206.0 — DO NOT LET GIT TRANSLATE A LINE ENDING IN A FROZEN SOURCE.**
+The block for 5.205.0 is below. It says that five of the eight gate clauses are withheld.
+That statement is out of date. It is kept as a record. Read this block for the current state.
+
+**THE FAULT.**
+The setting `core.autocrlf` is `true` on this machine.
+Git changes a line ending to CRLF when it writes a text file to the disk.
+A frozen source has one form from its generator and one form from git.
+The release identifier is the hash of the bytes of 26 frozen sources.
+The identifier changes when the line endings change. The program does not change.
+This fault occurred on 2026-08-26. It occurred again on 2026-08-28 between 09:58Z and 10:06Z.
+The gate went from 7 clauses correct to 3 clauses correct. No engine byte changed.
+
+**THE EVIDENCE.**
+The file that moved is the tag artifact. `engine/tag_dex.js` writes it.
+The committed blob of that file has the hash `576a4bbe91af`. It has 0 CR bytes.
+The release `5f3f7141227c` holds a copy of the same file. The two are equal byte for byte.
+The file on the disk had the hash `a32ee545cf67`. It had one more byte for each line.
+The two are equal after you replace CRLF with LF. The two are equal as parsed JSON.
+The byte counts are in `docs/_reports/2026-08-28-crlf-recurrence.md`.
+
+**THE CORRECTION.**
+Ask git for the stored version of the file. Do not edit the file by hand.
+An edit by hand gives an identifier that a checkout cannot make again.
+Cut the release again. The identifier is `5f3f7141227c`. This is the identifier the five artifacts hold.
+
+**THE PREVENTION.**
+Add `text eol=lf` to `.gitattributes` for each frozen source that has LF bytes on the disk.
+This setting has a higher priority than `core.autocrlf`.
+17 of the 26 frozen sources have this setting. The other 9 have CRLF bytes on the disk today.
+Do not pin those 9. A change to those 9 moves every release identifier.
+A change to those 9 also breaks `tests/roster.js`. Its red demonstrations look for `\r\n` in the simulator source.
+Record the 9 as owed work.
+
+**THE PROOF.**
+Write the committed blob to the disk. Then do `git checkout HEAD -- data/tags.json`.
+Before the setting: the hash went from `576a4bbe91af` to `a32ee545cf67`. Nothing was edited.
+After the setting: the hash stays `576a4bbe91af`.
+`tests/test-engine-release.js` makes this a permanent test.
+The rule is: a frozen source with LF bytes on the disk must have the `eol=lf` setting.
+The rule reads each file. The rule does not use a list of exceptions.
+Remove one line from `.gitattributes` and the test fails and names the file.
+
+**THE RESULT.**
+Run the five instruments again. Compare each result with the previous result.
+Roster: 139, 129 and 475 tested. 0 disagreements. 0 failures to fire. Red demonstrations 18, 29 and 35.
+Whole game: 1 of 961. Board material: 0 of 961. Staged mechanics: 0 counted.
+`data/all-mechanics-fire.json` differs in 3 time fields and 1 timestamp.
+`data/game-differential.json` differs in 1 field. The field is the count of cuts of the same release.
+Gate: 7 of 8 clauses correct. 1 clause fails. The quarantine stays closed.
+
 
 **5.205.0 — END THE SPRINT. DELETE THE LOG. READ THE GATE, DO NOT REMEMBER IT.**
 The MEDICHAM sprint started on 2026-08-10. The owner stopped it on 2026-08-28.

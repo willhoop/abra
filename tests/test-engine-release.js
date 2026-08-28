@@ -366,5 +366,70 @@ console.log('\n  -- the require closure of SOURCES (ROADMAP #153)');
      `and refused ${REL.CUT_COUNTERS.closure_refusals} of them, which is the expected steady state`);
 }
 
+/* ---- 10. A LINE ENDING IS NOT A CODE CHANGE, AND IT MOVED THE RELEASE ID TWICE ------------------
+ *
+ * `core.autocrlf = true` on the working machine rewrites any file git considers text to CRLF at
+ * checkout. A frozen SOURCE whose generator writes LF therefore has TWO byte-forms — the one its
+ * generator produced and the one git hands back — and the release id follows whichever touched the
+ * file last. Nothing about the simulator changes; the digest moves anyway.
+ *
+ * 2026-08-26: `data/tags.json` went 794,538 -> 836,962 bytes on a rebase and the engine was re-cut
+ * under a new id. 2026-08-28, 09:58Z -> 10:06Z: the same file, the same way, and the MEDICHAM gate
+ * fell from 7 of 8 clauses PASS to 5 of 8 because the roster, whole-game and staged-mechanics
+ * artifacts all stamp a release the tree no longer was. `docs/ENGINE.md` predicted the second
+ * occurrence in those words and prose did not stop it, which is why this is a check.
+ *
+ * `.gitattributes` now pins the checked-out bytes with `eol=lf`. THE INVARIANT IS NOT "every source
+ * is pinned" — nine are CRLF in the working tree today and pinning those would rewrite them and
+ * break `tests/roster.js`, whose red demonstrations match `\r\n` against the simulator's source.
+ * It is: A SOURCE WHOSE WORKING-TREE BYTES ARE LF MUST NOT BE TRANSLATABLE. That is derived from
+ * the file rather than from a hand-typed exception list, and a 27th source added LF with no
+ * attribute fails it by name — SOURCES has already grown four times.
+ *
+ * SHOWN RED, not merely green: the same predicate is asked about a source that is deliberately NOT
+ * covered and must answer no. A checker that says yes to everything is the silent default. */
+console.log('\n  -- generated sources are not subject to EOL translation (CRLF stranding, 2026-08-26 and -28)');
+{
+  const cp = require('child_process');
+  let attrs = null;
+  try {
+    attrs = cp.execSync('git check-attr eol -- ' + REL.SOURCES.join(' '),
+                        { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (e) { attrs = null; console.log('  (git check-attr could not run: ' + e.message.split('\n')[0] + ')'); }
+  /* A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN — no silent skip if git is absent. The
+   * catch prints AND fails the assertion below; a bare `attrs = null` would have made "git is not
+   * installed" indistinguishable from "the attributes are fine", which is this repository's
+   * signature bug wearing a two-word body. */
+  ok(attrs !== null, 'git check-attr answered (without it this clause asserts nothing)');
+
+  if (attrs !== null) {
+    const eolOf = f => {
+      const line = attrs.split('\n').find(l => l.startsWith(f + ': eol: '));
+      return line ? line.slice((f + ': eol: ').length).trim() : 'unspecified';
+    };
+    const hasCR = f => fs.readFileSync(D(f)).includes(13);
+    const lfSources = REL.SOURCES.filter(f => !hasCR(f));
+    const unpinned = lfSources.filter(f => eolOf(f) !== 'lf');
+
+    ok(lfSources.length >= 10,
+       `the scan read ${lfSources.length} of ${REL.SOURCES.length} sources as LF in the working tree`);
+    ok(unpinned.length === 0,
+       'every frozen source whose working-tree bytes are LF is pinned to LF by .gitattributes'
+       + (unpinned.length ? ': UNPINNED ' + unpinned.join(', ')
+                          + ' — a checkout will rewrite these and move the release id with no code change'
+                          : ''));
+
+    /* THE KNOB IS CLEARED. Same predicate, two sources, two answers — so a green above is the
+     * attribute file doing work rather than the query returning `lf` for everything. */
+    const covered   = REL.SOURCES.find(f => eolOf(f) === 'lf');
+    const uncovered = REL.SOURCES.find(f => eolOf(f) !== 'lf');
+    ok(!!covered && !!uncovered,
+       `RED PROOF — the same query separates ${covered || '(none)'} (pinned) from `
+       + `${uncovered || '(none)'} (not pinned, and CRLF on disk, so the invariant excuses it)`);
+    ok(!uncovered || hasCR(uncovered),
+       'and every source it leaves unpinned is one the invariant excuses, not one it missed');
+  }
+}
+
 console.log(`\nENGINE RELEASE TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

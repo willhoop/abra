@@ -183,7 +183,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 1,
+  "verified": 4,
   "graph_files": [
     "_dmg-inverted.json",
     "_pair-pilot.json",
@@ -952,5 +952,5 @@
       ]
     }
   ],
-  "generated": "2026-08-28T18:54:17.794Z"
+  "generated": "2026-08-28T19:46:33.922Z"
 }

@@ -1,6 +1,16 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.205.0 — 2026-08-28.**
+**Version: 5.206.0 — 2026-08-28.**
+
+**5.206.0 — RE-READ AGAIN AFTER THE CRLF PASS: NOTHING IN THIS CHAIN IS TOUCHED, AND THAT IS ASSERTED
+RATHER THAN ASSUMED.** The 5.206.0 release restored five withheld gate clauses that had gone blank on a
+line ending, pinned seventeen frozen sources to LF in `.gitattributes`, and re-ran the roster, the
+whole-game differential and the staged-mechanics comparison on release `5f3f7141227c`. **No damage
+stage, no ordering, no rounding rule and no override was changed by any of it.** The damage
+differential was not re-run because it was never stranded — its gate clause passed throughout — and it
+still reads 0 disagreements of 6000 at each of the sixteen band indices, with the same standing scope
+limit: damage only, and it has never applied a multi-hit move. The stage table below stands unedited.
+
 
 **5.205.0 — THE SPRINT IS PAUSED AND THIS FILE IS RE-READ, NOT REWRITTEN: NO STAGE MOVED.** The
 living-docs deferral that ran from 2026-08-10 is over. Across the whole sprint the stage ORDER inside

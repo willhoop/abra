@@ -10,6 +10,93 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.206.0] — 2026-08-28
+
+### Fixed
+- **THE CRLF STRANDING IS FIXED AT THE SOURCE, NOT WORKED AROUND. GATE 5 OF 8 CLAUSES FAILING → 1 OF
+  8, WITH NO ENGINE BYTE CHANGED IN EITHER DIRECTION.** `core.autocrlf = true` rewrites any file git
+  treats as text to CRLF on checkout, so a frozen source whose generator emits LF has two byte-forms
+  and the release id follows whichever wrote it last. It blanked the gate on 2026-08-26 and again on
+  2026-08-28 between 09:58Z and 10:06Z. `.gitattributes` now carries `text eol=lf` for **17 of the 26
+  frozen SOURCES** — every one whose working-tree bytes are already LF, so the entry moved no byte
+  when it was added.
+  - **SHOWN RED FIRST, UNPIPED, WITH THE KNOB CLEARED.** Writing `git cat-file blob HEAD:data/tags.json`
+    to disk and then `git checkout HEAD -- data/tags.json`, nothing edited, took the digest
+    `576a4bbe91af → a32ee545cf67` and exited 1. With the attribute it returns `576a4bbe91af` and exits
+    0. The same probe run afterwards on `engine/tags.js` — a frozen source deliberately left unpinned —
+    is still RED at `63effec9d5cd → 145a3cc9ce2f`, so the green is the attribute file doing work.
+  - **`tests/test-engine-release.js` §10 MAKES IT A CHECK RATHER THAN A COMMENT**, because the ledger
+    predicted the second occurrence in prose and prose did not stop it. The invariant is *a frozen
+    source whose working-tree bytes are LF must not be translatable* — derived per file, never a typed
+    exception list — so a 27th SOURCE added LF without an attribute fails by name. SOURCES has grown
+    four times. Demonstrated red on removing one line: `FAIL … UNPINNED data/tags.json`, 70 passed,
+    1 failed, exit 1.
+  - **THE RESTORATION WAS GIT'S, NOT A HAND EDIT, AND THAT DISTINCTION IS THE WHOLE ARGUMENT.** The
+    committed blob of `data/tags.json` is `576a4bbe91af`, 799,584 bytes, **zero CR**, and byte-identical
+    to release `5f3f7141227c`'s own snapshot of that file; the working copy was that blob after
+    translation, 842,196 bytes with 42,612 CR. `docs/ENGINE.md` had refused a restoration on the
+    grounds that it *"yields an id no checkout reproduces"*. Removing the translation dissolves the
+    objection instead of arguing with it — the checkout now reproduces those bytes exactly.
+  - **NINE SOURCES ARE DELIBERATELY NOT PINNED AND ARE FILED, NOT HIDDEN**:
+    `medicham2-browser.js`, `rollout_leaf.js`, `position_features.js`, `engine/tags.js`, `mc_key.js`,
+    `set_priors.js`, `smogon_priors.js`, `data/quality-filter.json`, `data/engine-data.js`. They are
+    CRLF in the working tree today; pinning them would rewrite every release id and break
+    `tests/roster.js`, whose red demonstrations match `\r\n` against the simulator's source — recorded
+    breaking exactly that way on 2026-08-25. The release digest is therefore still machine-dependent
+    for those nine.
+  - **NO `merge=union` WAS ADDED, RESTORED OR RESEMBLED.** `eol` is unrelated to conflict resolution;
+    the standing prohibition at the top of `.gitattributes` (CHANGELOG 3.1.2) is untouched and is
+    restated in the new block.
+
+### Changed
+- **EVERY WITHHELD INSTRUMENT WAS RE-RUN AND EVERY ONE REPRODUCED ITS PREVIOUS FIGURE EXACTLY.**
+  Release `5f3f7141227c`, arm `middle`, cap 12, `--games 1200` (yields 961),
+  `--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`; all three
+  roster stages with `--reds --write`; `all_mechanics_fire.js --kind all --write`.
+  - roster **139 / 129 / 475** tested, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three, red
+    demonstrations **18 / 29 / 35** — every count identical to the artifact it replaced.
+  - whole-game **1 of 961** (6 raw, less 5 declared), **board-material 0 of 961**;
+    `data/game-differential.json` differs from its predecessor in **exactly one field**,
+    `engine_release_cuts` 5 → 6, this pass's appended cut event.
+  - staged mechanics: 5 diverge, 1 declared, 4 below the reach shelf, **0 counted**;
+    `data/all-mechanics-fire.json` differs in three wall-clock `seconds` fields and one embedded
+    timestamp.
+  - unaffected and restated for context: damage **0/6000 at all sixteen band indices** (SCOPE: damage
+    only — `skipped_multihit` 134, `skipped_ability_multihit` 17; it has never applied a multi-hit
+    move), census **780 probed / 780 live / 0 missing**.
+  - **NO STRENGTH CLAIM IS MADE.** The gate recovered; nothing about the game changed. Quarantine has
+    not lifted — the whole-game clause still fails on the same unreproducible faint row.
+
+### Notes
+- **THE TWO ADJACENT STAMPS WERE DIAGNOSED, NOT ASSUMED.** `data/provenance-stamp.json` falling from
+  3 content-verified artifacts to 1 with `mtime_only` unchanged at 175 **is** this event —
+  `verified` counts artifacts whose stamped digests match the LIVE tree and two of them stamped the LF
+  digest of `data/tags.json` — and it recovered to 3 on the re-cut. `data/quarantine-stamp.json`
+  losing `no open, known engine defect` is **NOT** this event and is **not a loss**: the clause left
+  the `failing_clauses` list between 2026-08-27T14:14Z and 2026-08-28T03:01Z, which is a clause that
+  started passing. That stamp is written only under `--check`, which is why it sat at five failing
+  clauses while the gate itself read one; `node engine/quarantine.js --check` now records the single
+  failure.
+- **SHOULD THE RELEASE COMPARATOR NORMALISE NEWLINES? NO, AND THE EVIDENCE IS IN THIS REPOSITORY.**
+  `tests/roster.js` matches `\r\n` against `engine/medicham2-browser.js`, and a line-ending flatten on
+  2026-08-25 took its red demonstrations from 35/35 to a failure. A newline difference in a frozen
+  source is therefore already observable to an instrument here. A normalising comparator would call
+  two trees equal while one fails a gate the other passes, and `REL.require` would serve bytes the
+  digest no longer describes. Normalising is a way of not noticing; the fix belongs where the bytes
+  move.
+- **TWO PRE-EXISTING OOMs, CONFIRMED AT HEAD BEFORE THIS PASS TOUCHED EITHER FILE.**
+  `tests/test-engine-release.js` needs ~5 GB (`REL.compat()` walks all 486 releases in §8) and
+  `tests/roster.js --stage moves --reds` needs ~6 GB. Neither is registered in `tests/run-all.js` or
+  the pre-commit hook, so nothing was silently red. With the heap raised the release test reports
+  **71 passed, 0 failed**.
+- `data/tags.json` embeds `new Date().toISOString()`, so regenerating it always yields a new release
+  id even when every tag is identical. That is why it was restored from the committed blob rather
+  than regenerated: a regeneration is a new id, not an identity check.
+- Full account: `docs/_reports/2026-08-28-crlf-recurrence.md`.
+
+---
+
+
 ## [5.205.0] — 2026-08-28
 
 ### Changed

@@ -1,6 +1,39 @@
 # ABRA — the plain-English deck
 
-**Version 5.205.0 · 2026-08-28 · Will Hooper**
+**Version 5.206.0 · 2026-08-28 · Will Hooper**
+
+**5.206.0 — THE FIVE BLANK BOXES ARE FILLED IN, AND EVERY ONE OF THEM CAME BACK WITH THE SAME NUMBER
+IT HAD BEFORE.**
+
+The 5.205.0 page below still describes the day the boxes went blank. It is left as it was written.
+What it says about *five blank boxes* is now out of date, and here is why.
+
+**What was actually wrong.** Nothing about the game. One data file that the project generates was
+saved by a routine git step with different invisible end-of-line characters — same content, same
+meaning, more bytes. The project identifies "which exact copy of the simulator did we measure?" by the
+bytes, so a file that gained invisible characters looked like a different simulator. Five measurements
+were taken against the old copy, so the project refused to show them.
+
+**What we did.** We put the file back the way the program that generates it writes it — by asking git
+for the version it already had stored, not by editing it — and then we ran all five measurements
+again from scratch. Then we stopped it happening a third time: git is now told, in writing, never to
+translate line endings on those files. We proved that instruction works by making the fault happen on
+purpose first, watching it fail, adding the line, and watching it stop.
+
+**What the five measurements say.**
+
+- The three "every item / every ability / every move, staged one at a time" sweeps: **139, 129 and
+  475 tested, with nothing disagreeing and nothing failing to happen** on any of them.
+- Whole real games played side by side against the official engine: **1 game out of 961 differs**, and
+  **zero** of them differ in a way that would change a decision.
+- Every mechanic staged and compared: **nothing counted against us.**
+
+**The honest part.** Re-running produced numbers identical to the ones we had withheld — the game
+files differ only in how many seconds each run took. That is a good outcome and it is also a small
+one: it means the withholding was correct and cost us nothing but time. **The scorecard is still not
+clean.** One box of eight is still red, it is the same one it was, and the simulator is still not
+signed off.
+
 
 **5.205.0 — WE PAUSED THE BIG SIMULATOR PUSH. HERE IS WHAT WE FIXED, AND — MORE IMPORTANTLY — WHAT WE
 STILL CANNOT TELL YOU.**

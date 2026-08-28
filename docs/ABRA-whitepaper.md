@@ -1,6 +1,58 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.205.0 · Last updated 2026-08-28**
+**Version 5.206.0 · Last updated 2026-08-28**
+
+**5.206.0 — THE FIVE WITHHELD CLAUSES WERE A LINE ENDING. THEY ARE RESTORED AT 7 OF 8 PASS, AND EVERY
+ONE OF THEM REPRODUCED ITS PREVIOUS NUMBER EXACTLY.** The 5.205.0 block below is dated history and its
+withholding is SUPERSEDED, not rewritten.
+
+**WHAT THE FIVE ARTIFACTS SAY, NOW THAT THEY MAY BE QUOTED.** Re-run against engine release
+`5f3f7141227c`, census pin `9446a684709d`, arm `middle`, turn cap 12, `--games 1200` (yielding 961
+paired games), `--team-store data/team-pool-frozen`, `--state --end-state`:
+
+| clause | reading |
+|---|---|
+| deliberate roster — items / abilities / moves | **139 / 129 / 475 tested**, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three; red demonstrations **18 / 29 / 35** |
+| whole-game differential | **1 of 961** (6 raw, less 5 declared); **board-material 0 of 961** |
+| staged mechanics | 5 diverge, 1 declared, 4 below the reach shelf — **0 counted** |
+| damage differential (unaffected, restated for context) | **0 of 6000 at each of the sixteen band indices** |
+| census (unaffected, restated for context) | **780 probed, 780 live, 0 missing** |
+
+One clause of eight still fails: the whole-game differential, at the same single unreproducible faint
+row it held before the stranding. **Quarantine has not lifted.**
+
+**THE MECHANISM, MEASURED RATHER THAN INFERRED.** `core.autocrlf = true` rewrites any file git treats
+as text to CRLF at checkout, so a frozen source whose generator emits LF has two byte-forms and the
+release id follows whichever wrote it last. The file that moved was the tag artifact written by
+`engine/tag_dex.js`.
+
+Its committed blob hashes to `576a4bbe91af` and is **byte-identical to release `5f3f7141227c`'s own
+snapshot of it**; the working copy was that same blob after translation, larger by exactly one byte
+per line and hashing to `a32ee545cf67`. Restoring it is git handing back what the generator wrote —
+not an input edited until a ruler agreed, which is the distinction that made the restoration
+admissible. The tree then re-cuts to `5f3f7141227c`, the id those artifacts already carry. The byte
+and carriage-return counts are in `docs/_reports/2026-08-28-crlf-recurrence.md`.
+
+**THE IDENTITY CHECK IS THE RESULT, NOT A FORMALITY.** Re-running was owed because a withheld figure
+becomes re-runnable rather than true. Both heavy artifacts came back essentially unchanged:
+`data/all-mechanics-fire.json` differs from its predecessor in three wall-clock `seconds` fields and
+one embedded timestamp, and `data/game-differential.json` differs in exactly one field —
+`engine_release_cuts`, 5 -> 6, because this pass appended a cut event to the same release.
+`engine/provenance.js` recovered independently, from 1 content-verified artifact to 3, with
+`mtime_only` unchanged at 175.
+
+**AND IT CANNOT RECUR ON SEVENTEEN OF THE TWENTY-SIX FROZEN SOURCES.** `.gitattributes` pins them with
+`text eol=lf`, which overrides `core.autocrlf`, and the entry moved no byte when it was added because
+all seventeen were already LF in both the index and the working tree. It was shown RED first: writing
+the committed blob and then `git checkout HEAD -- data/tags.json` took the digest
+`576a4bbe91af -> a32ee545cf67` with nothing edited, and returns `576a4bbe91af` afterwards.
+`tests/test-engine-release.js` now asserts the invariant — *a frozen source whose working-tree bytes
+are LF must not be translatable* — which is derived per file rather than from a typed exception list,
+so a twenty-seventh source added LF without an attribute fails by name. **Nine sources are deliberately
+excluded** because they are CRLF in the working tree today; pinning them would rewrite every release id
+and break `tests/roster.js`, whose red demonstrations match `\r\n` against the simulator's own source.
+That is filed as owed work, not done quietly.
+
 
 **5.205.0 — THE MEDICHAM SPRINT IS PAUSED AND THE DOCUMENTS ARE UNFROZEN. THE GATE IS NOT OPEN, AND
 FIVE OF ITS EIGHT CLAUSES ARE WITHHELD RATHER THAN REPORTED.**

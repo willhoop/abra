@@ -43,3 +43,52 @@ data/games.bo3.jsonl              merge=jsonl-store
 data/games.ots.jsonl              merge=jsonl-store
 data/games.ladder.raw-logs.jsonl  merge=jsonl-store
 data/games.bo3.raw-logs.jsonl     merge=jsonl-store
+
+# ── A LINE ENDING BLANKED THE GATE TWICE IN THREE DAYS. THESE FILES ARE NOT TRANSLATED. ──────────
+#
+# `engine/engine_release.js` freezes 26 files as "the engine" and identifies a release by the
+# sha256 of their BYTES. `core.autocrlf` is `true` on the working machine, so any file git considers
+# text is rewritten to CRLF on checkout. That makes the release id depend on whether git last
+# touched the file or its generator did — not on anything about the simulator.
+#
+# It has fired twice. 2026-08-26: `data/tags.json` went 794,538 -> 836,962 bytes on a rebase and the
+# engine was re-cut under a new id with no code change. 2026-08-28 09:58Z->10:06Z: the same file,
+# the same way, and the gate fell from 7 of 8 clauses PASS to 5 of 8 because the roster, whole-game
+# and staged-mechanics artifacts all stamp a release the tree no longer is. Measured on that tree:
+# the release's own copy and the working copy were raw-unequal, CRLF-normalised EQUAL and JSON
+# deep-equal. `docs/ENGINE.md` predicted the second occurrence in writing and prose did not stop it.
+#
+# `eol=lf` pins the CHECKED-OUT bytes to LF and overrides core.autocrlf, so a checkout now
+# reproduces exactly what the generator wrote. Every one of these blobs is already LF in the index
+# and already LF in the working tree, so adding the attribute moves no byte today; it removes the
+# translation that would move them tomorrow. Demonstrated RED before it was added: writing the
+# committed blob and then `git checkout HEAD -- data/tags.json` took the digest 576a4bbe91af ->
+# a32ee545cf67 with nothing edited.
+#
+# THIS IS NOT A MERGE ATTRIBUTE AND MUST NOT BECOME ONE. See the block at the top of this file:
+# `merge=union` duplicated the store four times and is permanently banned. `eol` is unrelated to
+# conflict resolution and changes no merge behaviour.
+#
+# The list is the frozen SOURCES set, so read it against `engine/engine_release.js`. Nine sources
+# are deliberately ABSENT — medicham2-browser.js, rollout_leaf.js, position_features.js,
+# engine/tags.js, mc_key.js, set_priors.js, smogon_priors.js, data/quality-filter.json and
+# data/engine-data.js are CRLF in the working tree today. Pinning those to LF would rewrite them,
+# move every release id, and break `tests/roster.js`, whose red demonstrations match `\r\n` against
+# the simulator's source. That is a separate, larger job and it is filed, not done here.
+engine/board.js                  text eol=lf
+engine/champions_sim.js          text eol=lf
+engine/lookup.js                 text eol=lf
+engine/quality.js                text eol=lf
+engine/showdown_path.js          text eol=lf
+engine/pp.js                     text eol=lf
+data/tags.json                   text eol=lf
+data/abra-tags.js                text eol=lf
+data/residual-order.json         text eol=lf
+data/switchin-order.json         text eol=lf
+data/move-effects.js             text eol=lf
+data/ability-blocks.json         text eol=lf
+data/smogon-priors.json          text eol=lf
+data/move-priors.json            text eol=lf
+data/regulations.json            text eol=lf
+data/policy-weights.json         text eol=lf
+data/policy-weights-joint.json   text eol=lf

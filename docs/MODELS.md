@@ -1,6 +1,33 @@
 # ABRA — the model family (living reference)
 
-**Version 5.205.0 · Last updated 2026-08-28.**
+**Version 5.206.0 · Last updated 2026-08-28.**
+
+**5.206.0 — MEDICHAM: THE FIVE WITHHELD CLAUSES WERE A LINE ENDING. THEY PRINT AGAIN AT 7 OF 8 PASS,
+AND EVERY RE-RUN REPRODUCED ITS PREVIOUS NUMBER EXACTLY.** The 5.205.0 block below is dated history;
+its claim that five of eight clauses are withheld is SUPERSEDED. **No engine byte changed in either
+direction** — not when the clauses went blank on 2026-08-28 between 09:58Z and 10:06Z, and not when
+they came back.
+
+- **What the gate reads now.** Roster **139 / 129 / 475** tested with 0 FIRED-AND-BOARDS-DIFFER and 0
+  DID-NOT-FIRE on all three, red demonstrations **18 / 29 / 35**; whole-game differential **1 of 961**
+  (6 raw, less 5 declared) with **board-material 0 of 961**; staged mechanics 5 diverging, 1 declared,
+  4 below the reach shelf, **0 counted**; damage **0/6000 at all sixteen band indices**; census
+  **780 probed / 780 live / 0 missing**. The single remaining failure is the whole-game clause and it
+  is the same unreproducible faint row it was before the stranding.
+- **What moved between the two runs of each instrument.** `data/all-mechanics-fire.json`: three
+  wall-clock `seconds` fields and one embedded timestamp. `data/game-differential.json`: one field,
+  `engine_release_cuts`, 5 -> 6, because this pass appended a cut event to the same release. Nothing
+  else. That is the strongest identity statement available and it is why the diagnosis is not a
+  hypothesis.
+- **Why the re-run was owed at all.** The five artifacts stamp release `5f3f7141227c` and the tree had
+  drifted to `9d5f49299dd9` — the whole of that drift being the tag artifact gaining a carriage return
+  per line at a checkout. `engine/provenance.js` saw the same event from the other side: content-verified
+  artifacts fell 3 -> 1 while `mtime_only` sat unchanged at 175, and both recovered on the re-cut.
+- **It cannot recur on seventeen of the twenty-six frozen sources.** `.gitattributes` pins them with
+  `text eol=lf`; `tests/test-engine-release.js` asserts that any frozen source whose working-tree bytes
+  are LF is pinned, so a twenty-seventh source added LF with no attribute fails by name. Shown RED on
+  the removal of a single line before it was trusted.
+
 
 **5.205.0 — MEDICHAM: THE SPRINT IS PAUSED AFTER 274 RECORDED FIXES, AND THE GATE STILL READS SHUT
 WITH FIVE OF EIGHT CLAUSES WITHHELD.** The living-docs deferral that ran from 2026-08-10 is over and

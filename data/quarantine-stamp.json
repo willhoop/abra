@@ -1,18 +1,14 @@
 {
   "note": "RATCHET. citation_sites may SHRINK and may never grow while the MEDICHAM quarantine is closed. A new entry means a withheld figure was just published somewhere.",
   "source_digests": {
-    "engine/quarantine.js": "ae573406caa0",
+    "engine/quarantine.js": "f65964a26fc3",
     "engine/provenance.js": "58ccb92d8075",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
   "not_store_derived": "it records which artifacts are downstream of the simulator and where they are still cited. No game is counted anywhere in it, so the quality filter has no bearing.",
   "gate_open": false,
   "failing_clauses": [
-    "deliberate roster / items",
-    "deliberate roster / abilities",
-    "deliberate roster / moves",
-    "whole-game differential / the same game on both engines",
-    "mechanics / each one staged and compared against showdown"
+    "whole-game differential / the same game on both engines"
   ],
   "quarantined": [
     "ab-batch-effect.json",
@@ -81,5 +77,5 @@
     "web/build-status.js",
     "web/publish-rule.js"
   ],
-  "generated": "2026-08-28T03:01:26.529Z"
+  "generated": "2026-08-28T19:33:52.337Z"
 }

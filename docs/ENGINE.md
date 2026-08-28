@@ -114,15 +114,118 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 4360da6a8788 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0ab740463a2e now
     (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 284/300 probed, 16 unprobed
 ```
 
-_stamped 2026-08-28 14:54_
+_stamped 2026-08-28 15:46_
 
 <!-- /GENERATED -->
+
+## THE THIRD OCCURRENCE IS NOW IMPOSSIBLE ON SEVENTEEN OF THE TWENTY-SIX FROZEN SOURCES, AND THE RE-RUN MOVED NOTHING. **GATE 5 OF 8 FAILING -> 1 OF 8. ROSTER 139 / 129 / 475 WITH REDS 18/29/35, WHOLE-GAME 1 OF 961 (6 RAW LESS 5 DECLARED), BOARD-MATERIAL 0 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, CENSUS 780/780/0 — EVERY ONE OF THEM IDENTICAL TO THE ARTIFACT IT REPLACED.** 2026-08-28, CHANGELOG 5.206.0.
+
+Release `5f3f7141227c`, the id those five artifacts already stamped. Full account
+`docs/_reports/2026-08-28-crlf-recurrence.md`.
+
+**THE SECTION BELOW SAID THE REMEDY WAS TO CUT OVER THE BYTES A CHECKOUT PRODUCES AND NOT TO RESTORE
+THE FILE, AND ITS REASONING WAS RIGHT WHILE ITS PREMISE HELD.** The stated objection to restoring
+`data/tags.json` was that it *"yields an id no checkout reproduces"* — an input edited so a ruler
+prints the wanted number. That objection is dissolved by removing the translation rather than by
+arguing with it: with `text eol=lf` in `.gitattributes`, a checkout reproduces the restored bytes
+exactly, so the restoration is git handing back what `engine/tag_dex.js` wrote. Measured, not
+asserted: `git cat-file blob HEAD:data/tags.json` is `576a4bbe91af`, 799,584 bytes, **zero CR**, and it
+is byte-identical to release `5f3f7141227c`'s own snapshot of that file. The working copy was that
+blob after translation — 842,196 bytes, 42,612 CR.
+
+**RED FIRST, UNPIPED, WITH THE KNOB CLEARED.** Write the committed blob to disk, then
+`git checkout HEAD -- data/tags.json`, nothing edited:
+
+```
+before .gitattributes   576a4bbe91af  ->  a32ee545cf67   exit 1   RED
+after                   576a4bbe91af  ->  576a4bbe91af   exit 0   GREEN
+control, same run       engine/tags.js 63effec9d5cd -> 145a3cc9ce2f   exit 1   still RED
+```
+
+The control is a frozen source deliberately left unpinned, run **after** the attribute block existed,
+so the green above is the attribute doing work and not a query that answers `lf` to everything.
+
+**WHICH SEVENTEEN, AND WHY NOT THE OTHER NINE.** Derived, never typed: every frozen SOURCE whose
+working-tree bytes contain no CR is pinned. All twenty-six blobs in HEAD are LF, so LF is the
+canonical form repo-wide; the nine that are CRLF on disk are that way because a checkout already
+translated them, and a checkout reproduces them idempotently. Pinning those nine would rewrite them,
+move every release id, and break `tests/roster.js`, whose red demonstrations match `\r\n` against the
+simulator's source — this ledger records that exact breakage on 2026-08-25. **`data/engine-data.js` is
+among the nine and is additionally out of ENGINE's hands.** The nine are: `medicham2-browser.js`,
+`rollout_leaf.js`, `position_features.js`, `engine/tags.js`, `mc_key.js`, `set_priors.js`,
+`smogon_priors.js`, `data/quality-filter.json`, `data/engine-data.js`.
+
+**THE INVARIANT IS A CHECK, BECAUSE THIS LEDGER ALREADY PROVED THAT PROSE IS NOT ONE.** The section
+below predicted the recurrence in writing and the recurrence happened anyway.
+`tests/test-engine-release.js` §10 now asserts *a frozen source whose working-tree bytes are LF must
+not be translatable* — a predicate over each file, not a typed exception list, so the twenty-seventh
+SOURCE added LF with no attribute fails by name. SOURCES has grown four times. Shown RED on removing
+the single `data/tags.json` line: `FAIL ... UNPINNED data/tags.json`, 70 passed 1 failed, exit 1.
+
+**THE RE-RUN IS AN IDENTITY RESULT AND THAT IS WHAT IT WAS FOR.** Arm `middle`, cap 12, `--games 1200`
+(yields 961), `--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`,
+all three roster stages `--reds --write`, `all_mechanics_fire.js --kind all --write`.
+`data/game-differential.json` differs from its predecessor in **one field** — `engine_release_cuts`,
+5 -> 6, this pass's appended cut event. `data/all-mechanics-fire.json` differs in three wall-clock
+`seconds` fields and one embedded `roster_generated` timestamp. Nothing else in either file.
+
+**TWO ADJACENT ARTIFACTS, DIAGNOSED RATHER THAN ASSUMED.** `data/provenance-stamp.json` fell from 3
+content-verified artifacts to 1 with `mtime_only` unchanged at 175 — **the same event**: `verified`
+counts artifacts whose stamped digests match the LIVE tree, and two of them stamped the LF digest of
+`data/tags.json`. It recovered to 3 on the re-cut. `data/quarantine-stamp.json` losing the clause
+`no open, known engine defect` is **NOT this event and is not a loss**: the clause left the
+`failing_clauses` list between 2026-08-27T14:14Z and 2026-08-28T03:01Z, which is a clause that started
+passing. The stamp is only written under `--check`, which is why it sat at five failing clauses while
+the gate read one; `node engine/quarantine.js --check` now records the single failure.
+
+**WHETHER THE RELEASE COMPARATOR SHOULD NORMALISE NEWLINES — NO, AND THERE IS EVIDENCE RATHER THAN A
+PREFERENCE.** `tests/roster.js` matches `\r\n` against `engine/medicham2-browser.js`, and on 2026-08-25
+a line-ending flatten took its red demonstrations from 35/35 to a failure. So a newline difference in a
+frozen source is **already observable to an instrument in this repository**. A comparator that
+normalised would call those two trees equal while one of them fails a gate the other passes, and
+`REL.require` would serve bytes the digest no longer describes. Normalising is not a fix; it is a way
+of not noticing. The fix belongs where the bytes move.
+
+
+### WHICH SCOREBOARD, SAID BEFORE THE RUN
+
+Neither. This pass changed no game rule, so **both** scoreboards were predicted to sit exactly still,
+and the prediction is the whole test — a moved figure here would have meant the restoration was not a
+restoration. Pool: board-material 0 of 961 and whole-game 6 raw / 1 net, before and after. Lab: census
+780/780/0, roster 139 / 129 / 475, reds 18/29/35, all unmoved. What moved is the GATE, from 5 clauses
+failing to 1, and that is a reporting recovery rather than a correctness gain. **No strength claim is
+made and none can be made from here.**
+
+### THE HAND LIST
+
+Covers this pass and nothing else. **Development is paused by the owner**, so no mechanic was opened,
+and the standing filed items (Heal Bell, Reflect Type, Forewarn's die, Gastro Acid, Instruct, the
+5324/4096 multiplier, Healer / Shed Skin, Corrosive Gas, the single-quote tag derivation, the 43
+uncompared leaves, the unreproducible faint row) stay filed and are not restated here.
+
+**Leaves it:** *"the re-run is OWED"*, from the section below. It is run, on release `5f3f7141227c`,
+and every figure reproduced.
+
+**Joins it:**
+- **NINE FROZEN SOURCES ARE STILL TRANSLATABLE**, listed in the section above. Pinning them is a
+  byte-moving refit that invalidates every release id and needs `tests/roster.js` to stop matching
+  `\r\n` against the simulator's source first; `data/engine-data.js` is among them and is not ENGINE's
+  file. The release digest is therefore still **machine-dependent** for those nine — a clone with
+  `core.autocrlf=false` hashes a different tree from this one.
+- **`tests/test-engine-release.js` NEEDS ~5 GB OF HEAP AND OOMs AT THE DEFAULT.** Pre-existing and
+  confirmed at HEAD before this pass touched the file: `REL.compat()` walks all **486** releases in
+  §8. It is not registered in `tests/run-all.js` or the pre-commit hook, so nothing was silently red;
+  it was run here with `--max-old-space-size=5120` and reports **71 passed, 0 failed**.
+  `tests/roster.js --stage moves --reds` OOMed the same way and needed 6 GB.
+- **`data/tags.json` EMBEDS `new Date().toISOString()`**, so regenerating it always yields a new
+  release id even when every tag is identical. That is why the file was restored from the committed
+  blob rather than regenerated: a regeneration is not an identity check, it is a new id.
 
 ## THE CRLF STRANDING RECURRED, AND FIVE CLAUSES WENT BLANK WITH NO ENGINE BYTE CHANGED. 2026-08-28, CHANGELOG 5.205.0.
 
