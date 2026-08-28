@@ -21,6 +21,43 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A RAMPAGE THAT REACHED NOBODY ARMED THE LOCK ANYWAY. 2026-08-28. CHANGELOG 5.204.0.
+
+Release `5f3f7141227c`. ROADMAP #523 closed, #496 explicitly re-closed, #527 diagnosed, #529 filed.
+Account `docs/_reports/2026-08-28-two-reds.md`.
+
+**CENSUS 779 -> 780 LIVE / 780 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME
+UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH ZERO IN
+BOTH FAILURE COLUMNS AND REDS 18/18, 29/29, 35/35, `all_mechanics_fire` THE SAME 5 DIVERGING MECHANICS
+WITH NO ROW CHANGING VERDICT, PIN DIGEST UNMOVED AT `ccb365985023`, GATE 7 OF 8 PASS — ALL PREDICTED
+BEFORE THE RUN.**
+
+- **The defect.** `outrage` is `self: { volatileStatus: 'lockedmove' }` and `self` is applied by
+  `selfDrops`, called from `spreadMoveHit` — step 7 of `trySpreadMoveHit`'s `moveSteps`, whose loop
+  breaks at `if (!targets.length) break` once every target is filtered false. An immunity, a total miss
+  or a shield therefore leave the user FREE. This engine armed `_mtLock` with no gate; the recharge rider
+  one block up has carried `_reached > 0` since WIRE 43. One added branch, plus
+  `MEDSEEN.lockSkippedNoTarget`.
+- **Only the arming is gated.** The same block runs Uproar's wake sweep (`onTryHit`, step 1, above the
+  type immunity) and the `expiresAtMove` fatigue (`AfterMove`, which runs whatever the move returned).
+  The POSITION is untouched and is a separate open defect — it moves Uproar's `|-start|` and nothing else.
+- **#496 is not reopened.** `probe_trace_list.js` was red, and its own numbers clear #496:
+  `meDie == meCopied` at 669 with `sdLen1=16`, and the restore knob still parts 8 draws. The one failing
+  clause was a Trace draw on a board this engine never reached, because the authority's Garchomp had
+  Outraged into an immune Clefable and was free to switch out.
+- **The old Uproar census row was pinning the bug.** Its fixture aimed a Normal move at a Ghost
+  (seeded 0.1 draws foe 0, and foe 0 was Gengar), so the volatile could never have applied. Measured in
+  the official simulator: an Uproar into a Ghost writes NO `|-start|...|Uproar`, into a Garchomp it does.
+  Fixture corrected and the arm now reads the damage.
+- **#527 is three families, not one, and none is a regression** — identical six arms by name on the
+  pre-patch release. Four are the declared perish@24 vs `uproar`/`speedboost`/`moody`@28 /
+  `hungerswitch`@29 residual gap; two are an undiagnosed replacement-entry ordering question.
+- **#529 filed:** `tag_dex.js`'s `takesTargetItem` mis-derives Bug Bite and Pluck (single-quote regex
+  against a double-quoted dist body). Fix measured at exactly two rows and behaviour-neutral, NOT landed:
+  a bare regeneration of `data/tags.json` already yields a 703-line live-store usage diff.
+
+---
+
 ## THE ABSORB ANSWERS ARRIVAL ONE: A MULTI-HIT VOLLEY INTO AN INTACT DISGUISE DEALT ONLY THE CHIP. 2026-08-28. CHANGELOG 5.202.0.
 
 **CENSUS 778 -> 779 LIVE / 779 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 0 OF 961,

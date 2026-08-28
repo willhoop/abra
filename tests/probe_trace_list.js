@@ -302,6 +302,7 @@ function joinByHolder(recs) {
 let cmp = 0, memberDiff = 0, orderDiff = 0, idxDiff = 0, sameList = 0, onlySd = 0, onlyMe = 0;
 let choiceCells = 0, choiceDiff = 0, rtRefused = 0, rtRefusedIdxDiff = 0;
 const examples = [];
+const unpaired = [];
 for (const c of cells) {
   const A = joinByHolder(c.sd), B = joinByHolder(c.me);
   const keys = new Set([...A.keys(), ...B.keys()]);
@@ -310,8 +311,8 @@ for (const c of cells) {
     const n = Math.max(as.length, bs.length);
     for (let i = 0; i < n; i++) {
       const a = as[i], b = bs[i];
-      if (!a) { onlyMe++; continue; }
-      if (!b) { onlySd++; continue; }
+      if (!a) { onlyMe++; unpaired.push('  medicham-only  ' + c.tag.slice(0,46) + '  holder ' + k + '  occ ' + i + '  turn ' + b.turn + '  divTurn ' + c.divTurn + '  turns ' + c.turns + '  list [' + b.list.join('  ') + ']'); continue; }
+      if (!b) { onlySd++; unpaired.push('  showdown-only  ' + c.tag.slice(0,46) + '  holder ' + k + '  occ ' + i + '  turn ' + a.turn + '  divTurn ' + c.divTurn + '  turns ' + c.turns + '  list [' + a.list.join('  ') + ']  idx ' + a.index + ' -> ' + a.chosen); continue; }
       /* AFTER THE STREAMS PART, TWO BOARDS ARE TWO BOARDS. Refuse the comparison rather than count it. */
       if (c.divTurn !== null && c.divTurn !== undefined && a.turn > c.divTurn) continue;
       cmp++;
@@ -377,6 +378,7 @@ if (SD_SAMPLED_LEN1 > 0 && M.MEDSEEN.traceChoiceDie < M.MEDSEEN.traceCopied) {
     + ' one `nth` apart.');
 }
 if (examples.length) console.log(NL + 'FIRST DIVERGENT DRAWS:' + NL + examples.join(NL));
+if (unpaired.length) console.log(NL + 'DRAWS ONE ENGINE TOOK ALONE:' + NL + unpaired.join(NL));
 
 if (memberDiff) { console.log(NL + '  FAIL — ' + memberDiff + ' draw(s) built a list with different MEMBERS.'); bad++; }
 if (orderDiff) { console.log('  FAIL — ' + orderDiff + ' draw(s) built the same members in a different ORDER.'); bad++; }

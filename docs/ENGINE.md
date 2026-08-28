@@ -102,8 +102,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  779/779 probed mechanics live, 0 missing   (census 2026-08-28 05:15)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-28 05:18)
+  780/780 probed mechanics live, 0 missing   (census 2026-08-28 05:51)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-28 06:01)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -114,15 +114,120 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 84e99429dc06 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is e2d7ba56d516 now
     (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 284/300 probed, 16 unprobed
 ```
 
-_stamped 2026-08-28 05:30_
+_stamped 2026-08-28 06:13_
 
 <!-- /GENERATED -->
+
+## A RAMPAGE THAT REACHED NOBODY ARMED THE LOCK ANYWAY, AND IT COST THE USER TWO TURNS AND ITS FATIGUE. **CENSUS 779 -> 780 LIVE / 780 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35, PIN DIGEST UNMOVED AT `ccb365985023` — ALL PREDICTED.** 2026-08-28.
+
+CHANGELOG 5.204.0. Release `5f3f7141227c`. ROADMAP #523 closed, #496 explicitly re-closed,
+#527 diagnosed, #529 filed. Full account `docs/_reports/2026-08-28-two-reds.md`.
+
+Arm `middle`, cap 12, `--games 1200` (yields 961), `--team-store data/team-pool-frozen`,
+census pin `9446a684709d`, `--state --end-state`. Gate 7 of 8 PASS, unchanged; the whole-game
+clause is still the only failure and still the same unreproducible faint row.
+
+**#496 IS NOT REOPENED, AND THE PROBE THAT ACCUSED IT WAS RIGHT ABOUT SOMETHING ELSE.**
+`tests/probe_trace_list.js` was genuinely red on the settled tree. Its own numbers clear #496 in
+the same breath: `meDie == meCopied` at 669 with `sdLen1=16` — this engine takes the length-1 draw
+the authority takes, which is exactly what #496 landed — and the restore knob
+`MEDI_TRACE_SOLO_NODRAW=1` still parts 8 draws, so the clause is still asked. **None of the three
+hypotheses is correct**: the fix was not incomplete, no later change reopened it, and the probe is
+not wrong.
+
+**THE FAILING CLAUSE WAS A BARE COUNT THAT NAMED NOTHING**, which is why the cause took a replay to
+find. It now prints the unpaired draws. One cell:
+
+```
+showdown-only  ...bo3-2654113235 vs ...  holder p2[1]  occ 0  turn 3  divTurn null  turns 3
+               list [p1[0]:farigiraf:armortail  p1[1]:clefable:magicguard]  idx 0 -> farigiraf
+```
+
+and the replay says why:
+
+```
+SHOWDOWN  |turn|3  |switch|p2a: Venusaur  |switch|p1b: Clefable
+          |switch|p2b: Gardevoir  |-ability|p2b: Gardevoir|Armor Tail|Trace|[of] p1a: Farigiraf
+MEDICHAM  |turn|3  |switch|p2a: Venusaur  |switch|p1b: Clefable
+          |switch|p1a: Umbreon  |move|p2b: Garchomp|outrage  ...  |-start|...|confusion|[fatigue]
+```
+
+In the authority that Garchomp had Outraged into an immune Clefable on turn 2, was **free** on turn
+3, switched out, and the body that replaced it held Trace. Here it was still locked.
+
+**THE AUTHORITY, READ WHOLE.** `outrage` is `self: { volatileStatus: 'lockedmove' }`
+(`data/moves.ts:13085`; `uproar` carries the same field with `'uproar'`). `self` is applied by
+`Battle.actions.selfDrops` (`sim/battle-actions.ts:1317-1335`), called from `spreadMoveHit` at
+`:1096` — the Champions override keeps that line verbatim at
+`data/mods/champions/scripts.ts:385`. `spreadMoveHit` is **step 7** of `trySpreadMoveHit`'s
+`moveSteps`, and that loop breaks at `if (!targets.length) break` (`:606-609`) the moment every
+target has been filtered false. So a Fairy body answering at `hitStepTypeImmunity` — and equally a
+total miss or a shield — leaves the user FREE. The recharge rider one block up has carried
+`_reached > 0` since WIRE 43. The lock never got the same gate.
+
+**ONLY THE ARMING IS GATED, AND THAT IS DELIBERATE.** The enclosing block also runs Uproar's wake
+sweep — `uproar.onTryHit` is step 1, ABOVE the type immunity, so it cures sleepers even on a board
+the move cannot reach — and the `expiresAtMove` fatigue, which hangs off `AfterMove` and runs
+whatever the move returned. Gating the whole block would silently take both.
+
+**AND THE EXISTING UPROAR CENSUS ROW WAS PINNING THE BUG.** `Uproar wakes every sleeper and refuses`
+`sleep while it runs` aimed a **Normal** move at a **Ghost** body: `randomNormal` with a seeded 0.1
+draws foe 0, and foe 0 was Gengar. The `uproar` volatile could never have been applied, so the
+sleep refusal it asserted is behaviour Showdown does not have; it read LIVE only because this engine
+armed the lock unconditionally. **Measured in the official simulator rather than argued**, two staged
+boards with the foes clicking inert setup moves so the Uproar resolves: into a Ghost pair the
+authority writes **no** `|-start|...|Uproar` at all, into Garchomp/Clefable it writes it. Foe 0 is now
+the Water body, and the arm reads `hit` off the damage so a fixture that stops connecting FAILS.
+
+**`damage 0/6000` IS NOT GENERAL EVIDENCE AND IS NOT OFFERED AS ANY.** `data/engine-diff.json` carries
+`skipped_multihit: 134` and its harness calls `moveHit` once rather than the volley loop — it has
+never applied a multi-hit move. Re-run only to say nothing else moved.
+
+**WHICH SCOREBOARD, SAID BEFORE THE RUN.** Rampages are not rare, but a refused one needs an immunity,
+a total miss or a shield on the sole target, so the pool *could* have moved. It did not: board-material
+was already 0 and stayed 0, whole-game stayed at 6 raw. The lab moved — census 779 -> 780, and
+`probe_trace_list.js` red -> green.
+
+### THE HAND LIST
+
+Covers this patch and nothing else.
+
+**Leaves it:** the two red probes the batch was dispatched on. `probe_trace_list.js` is green and the
+census now carries the mechanic as `move / locksIntoMove / a rampage that reached NOBODY arms no lock,`
+`and pays no fatigue`. `probe_upkeep_lines.js` is still red at the same 6 arms but is no longer
+undiagnosed — see #527 and the row below.
+
+**Joins it:**
+- **THE LOCK'S ARMING POSITION IS STILL WRONG AND IS NOT FIXED.** The authority arms the rider inside the
+  hit loop; this site is below the step list. It moves exactly one line, Uproar's `|-start|<user>|Uproar`
+  (`lockedmove` announces nothing), and it was left standing so the gate fix stayed attributable.
+- **FOUR OF #527'S SIX ARMS ARE THE PERISH-VERSUS-RESIDUAL GAP, ALREADY DECLARED.** `perishsong`'s
+  condition is `onResidualOrder: 24`; `uproar` is 28, `speedboost` 28, `moody` 28,
+  `hungerswitch` 29, Champions overriding none. The authority runs perish first and this engine runs
+  them above it — the same gap `probe_endturn_clock_order.js` carries as its KNOWN-OPEN
+  `perish-vs-speedboost` arm. A second instrument seeing it, not new information.
+- **THE OTHER TWO #527 ARMS ARE UNDIAGNOSED AND ARE NOT UPKEEP LINES.** `A TEST bare board` and
+  `C follower item whiteherb` part at the same index on the same pair — a replacement-entry
+  `-unboost` naming a different body after a perish wipe, with the whole perish block agreeing above it.
+- **`tag_dex.js` MIS-DERIVES BUG BITE AND PLUCK, AND THE FIX IS BLOCKED ON A MOVING STORE** (#529). The
+  `eats` test accepts single quotes only against a double-quoted dist body. The fix moves exactly two
+  rows and is behaviour-neutral, but regenerating `data/tags.json` with NO source change already yields
+  a 703-line usage diff (`sheet_entries` 215,760 -> 216,060), so it would ride a live-store refresh into a
+  frozen source. Restored to HEAD; needs its own pass with the store pinned.
+- **THE EAT HALF OF BUG BITE AND PLUCK IS BIGGER THAN THE TAG HALF AND STILL HAS NO PROBE.** The strip
+  site's own header has said so since it was written. 105 uses, and a Sitrus Berry eaten by the attacker
+  is board-material.
+- **`MEDSEEN.lockSkippedNoTarget` READS 0 IN ANY RUN WITH NO REFUSED RAMPAGE**, which is legitimate and is
+  exactly the shape that hides a broken capability. Read it beside the staged probe, never alone.
+- Everything on the hand lists below is carried forward unchanged.
+
+---
 
 ## A MULTI-HIT VOLLEY INTO AN INTACT DISGUISE DEALT ONLY THE BUSTED-FORME CHIP — ARRIVALS 2..N NEVER HAPPENED, AND ON THE STAGED BOARD THAT IS **56 HP**. **CENSUS 778 -> 779 LIVE / 779 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35, PIN DIGEST UNMOVED AT `ccb365985023` — ALL PREDICTED.** 2026-08-28.
 

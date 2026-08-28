@@ -10,6 +10,86 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.204.0] — 2026-08-28
+
+### Fixed
+- **A RAMPAGE THAT REACHED NOBODY ARMED THE LOCK ANYWAY — AN OUTRAGE INTO A FAIRY COST THE USER
+  ITS NEXT TWO TURNS AND ITS FATIGUE CONFUSION, AND IT WAS FOUND IN A REAL LADDER GAME.**
+  ROADMAP #523 closed, #496 explicitly re-closed. Full account
+  `docs/_reports/2026-08-28-two-reds.md`.
+
+  **CENSUS 779 -> 780 LIVE / 780 PROBED / 0 MISSING. BOARD-MATERIAL UNMOVED AT 0 OF 961,
+  WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER
+  139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS AND REDS 18/18, 29/29, 35/35,
+  `all_mechanics_fire` THE SAME 5 DIVERGING MECHANICS WITH NO ROW CHANGING VERDICT, PIN DIGEST
+  UNMOVED AT `ccb365985023`, GATE 7 OF 8 PASS — ALL PREDICTED BEFORE THE RUN.** Release
+  `5f3f7141227c`, arm `middle`, cap 12, `--games 1200` (yields 961),
+  `--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+
+  **#496 IS NOT REOPENED.** `tests/probe_trace_list.js` was genuinely red on the settled tree and
+  the red was not a Trace defect. Its own numbers say the #496 fix is intact and load-bearing:
+  `meDie == meCopied` at 669 with `sdLen1=16`, and the restore knob `MEDI_TRACE_SOLO_NODRAW=1`
+  still parts 8 draws. The single failing clause was one Trace draw the authority took on a board
+  this engine never reached — the authority's Garchomp had Outraged into an immune Clefable, was
+  free on turn 3, switched out, and the body that replaced it held Trace.
+
+  **THE AUTHORITY, READ WHOLE.** `outrage` is `self: { volatileStatus: 'lockedmove' }`
+  (`data/moves.ts:13085`; `uproar` carries the same field). `self` is applied by
+  `Battle.actions.selfDrops` (`sim/battle-actions.ts:1317-1335`), called from `spreadMoveHit` at
+  `:1096` — kept verbatim by the Champions override at `data/mods/champions/scripts.ts:385`.
+  `spreadMoveHit` is step 7 of `trySpreadMoveHit`'s `moveSteps` and that loop breaks at
+  `if (!targets.length) break` (`:606-609`) once every target is filtered false, so an immunity, a
+  total miss or a shield all leave the user FREE. The recharge rider one block up has carried
+  `_reached > 0` since WIRE 43; the lock never got the same gate.
+
+  **ONLY THE ARMING IS GATED.** The enclosing block also runs Uproar's wake sweep — which is
+  `uproar.onTryHit`, step 1, ABOVE the type immunity — and the `expiresAtMove` fatigue, which hangs
+  off `AfterMove` and runs whatever the move returned. Gating the whole block would silently take
+  both. The POSITION is untouched and is named as a separate open defect.
+
+- **AND THE EXISTING UPROAR CENSUS ROW WAS PINNING THE BUG.** `Uproar wakes every sleeper and
+  refuses sleep while it runs` aimed a Normal move at a **Ghost** body (seeded 0.1 draws foe 0, and
+  foe 0 was Gengar), so the `uproar` volatile could never have been applied and the sleep refusal
+  it asserted is behaviour Showdown does not have. It read LIVE only because this engine armed the
+  lock unconditionally. Measured in the official simulator on two staged boards: an Uproar into a
+  Ghost writes NO `|-start|…|Uproar` at all, and the same Uproar into a Garchomp writes it. Foe 0
+  is now the Water body, and the arm reads the damage so a fixture that stops connecting fails
+  rather than passing quietly.
+
+### Added
+- **`MEDSEEN.lockSkippedNoTarget`** — the lock's half of the recharge rider's rule. Non-zero is a
+  real refused Outrage or Uproar; a zero beside a live rampage means the clause never fires and the
+  old unconditional arming is back.
+- **Census row** `move / locksIntoMove / a rampage that reached NOBODY arms no lock, and pays no
+  fatigue`, shown MISSING before the fix and LIVE after, with the immunity read off the
+  `|-immune|` line rather than assumed and a control arm that still locks.
+- **`tests/probe_trace_list.js` now prints the draws one engine took alone**, with the cell, the
+  holder, the turn, the game's `divTurn` and the list. The failing clause was a bare count and
+  named nothing, which is why the cause took a replay to find.
+
+### Notes
+- **#527 IS SIX ARMS IN THREE FAMILIES AND IS NOT A REGRESSION.** The same six by name on
+  `5f3f7141227c` and on the pre-patch `0415c53255a9`. Four of them — `hungerswitch`, `moody`,
+  `speedboost` and `volatile:uproar` — are one already-declared root: `perishsong`'s condition is
+  `onResidualOrder: 24` and those handlers are 28/28/28/29, Champions overriding none, so the
+  authority runs perish first and this engine runs them above it. That is
+  `probe_endturn_clock_order.js`'s standing KNOWN-OPEN `perish-vs-speedboost` arm seen from a
+  second instrument. The other two arms are a different root entirely and are not upkeep lines: a
+  replacement-entry `-unboost` naming a different body after a perish wipe.
+- **`tag_dex.js`'s `takesTargetItem` MIS-DERIVES BUG BITE AND PLUCK — CONFIRMED, MEASURED, NOT
+  LANDED.** The `eats` test accepts `singleEvent('Eat'` with single quotes only and runs against
+  the compiled dist body, which uses double quotes. Derived over every legal member, the fix moves
+  **exactly two rows** and is engine-behaviour-neutral. It was not landed because regenerating
+  `data/tags.json` with NO source change already yields a 703-line diff — all of it usage counts
+  read from the live store OPS is appending to (`sheet_entries` 215,760 -> 216,060) — so the
+  two-row change would ride in on a usage refresh of a frozen source and would not be attributable.
+  `data/tags.json` was restored to HEAD.
+- **`damage 0/6000` IS NOT GENERAL EVIDENCE.** `data/engine-diff.json` carries
+  `skipped_multihit: 134` and calls `moveHit` once rather than the volley loop; it has never
+  applied a multi-hit move. Re-run only to say nothing else moved.
+
+---
+
 ## [5.203.0] — 2026-08-28
 
 ### Added

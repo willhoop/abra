@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-28T09:15:37.690Z",
- "release": "0415c53255a9",
+ "generated": "2026-08-28T09:58:51.114Z",
+ "release": "5f3f7141227c",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -54029,7 +54029,7 @@
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 11,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 6.2
+   "seconds": 4.6
   },
   "abilities": {
    "exist": 316,
@@ -54046,7 +54046,7 @@
    "diverged_including_shelved": 2,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 11.1
+   "seconds": 8.8
   },
   "then_what": {
    "rows": 64,
@@ -54072,7 +54072,7 @@
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 5.6
+   "seconds": 4.3
   },
   "board_state": {
    "rows": 15,
@@ -54374,7 +54374,7 @@
    },
    "not_compared": [
     "ability trapping (Shadow Tag / Arena Trap / Magnet Pull)",
-    "item DISPOSITION (eaten vs knocked off vs used)",
+    "item DISPOSITION (eaten vs knocked off vs used) — `lastItem` / `ateBerry`",
     "yawn, attract, curse (the Ghost form) and heal block",
     "the TRAPPER mark a move trap leaves on its source (Showdown `volatiles.trapper`)",
     "the DURATIONS on magnet rise and syrup bomb, and WHICH move a charge is committed to"
@@ -54794,8 +54794,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "0415c53255a9",
-    "roster_generated": "2026-08-28T09:13:03.771Z",
+    "roster_release": "5f3f7141227c",
+    "roster_generated": "2026-08-28T09:56:57.667Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."
@@ -54808,24 +54808,40 @@
    "field": "ability trapping (Shadow Tag / Arena Trap / Magnet Pull)",
    "why": "medicham2 STORES no trapped flag — it evaluates the tag against the foes on the field at the moment a switch is attempted (the `preventsSwitch` branch in battleTurn). Showdown stores `pokemon.trapped`, computed when the request is built. A comparator would have to reimplement medicham2's rule to have anything to compare, and would then be checking its own belief against the authority rather than checking two engines. MOVE trapping IS compared — both engines hold it as state (medicham2 `_trap.turns`, Showdown `volatiles.partiallytrapped.duration`) — and it is the half that carries a counter and chip damage.",
    "measured_by": "tests/roster.js (switchVerdict) — a REFUSAL comparison, not a board comparison",
-   "population": "Shadow Tag only. Arena Trap and Magnet Pull have no legal carrier in this format; the roster says so per-entity rather than this file asserting it."
+   "population": "Shadow Tag only. Arena Trap and Magnet Pull have no legal carrier in this format; the roster says so per-entity rather than this file asserting it.",
+   "leaves": []
   },
   {
-   "field": "item DISPOSITION (eaten vs knocked off vs used)",
-   "why": "medicham2 has no `lastItem` and no `ateBerry`: once an item is gone the body records only that it is gone. The current item IS compared, which is the fact that changes damage and speed. The disposition is already a published finding (data/game-differential.json knock_off_roadmap_80: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF) and Harvest, Recycle, Belch, Cud Chew and Unburden are what read it."
+   "field": "item DISPOSITION (eaten vs knocked off vs used) — `lastItem` / `ateBerry`",
+   "why": "BOTH ENGINES HOLD IT AND NOTHING COMPARES IT. medicham2 writes `_lastItem` and `_ateBerry` in `consumeBerry` (medicham2-browser.js:8786-8787) and does not clear them at the turn reset (:20425); Showdown writes `lastItem`/`ateBerry` in `eatItem` (sim/pokemon.ts:1805-1809) and `lastItem` in `useItem` (:1846). THE TWO WRITE SITES LINE UP: `takeItem` (sim/pokemon.ts:1856-1870, the Knock Off / Thief / Trick path) writes NEITHER field, which is the same narrowing medicham2 makes deliberately, so wiring this would NOT part every knocked-off item. The current item IS compared, which is the fact that changes damage and speed.",
+   "status": "CANDIDATE — comparable, not compared. The reason it was left out no longer exists.",
+   "cost": "it would part exactly the boards where the two engines disagree about eaten-vs-taken, which is a PUBLISHED finding rather than a hypothesis (data/game-differential.json knock_off_roadmap_80: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF). So the expected effect is NOT zero and it must be measured before it is landed.",
+   "wrong_if": "a path in either engine writes the field on a REMOVAL rather than on a consumption — then the two shapes diverge on bookkeeping and the leaf would manufacture divergences. Falsified by a staged Knock Off with both fields printed side by side.",
+   "read_by": "Harvest, Recycle, Belch, Cud Chew and Unburden.",
+   "leaves": []
   },
   {
    "field": "yawn, attract, curse (the Ghost form) and heal block",
    "why": "NOT A JUDGEMENT ABOUT THE ENGINES — a claim about the FIXTURE, which is a different thing (Will has taught this twice). tests/probe_volatile_leaves.js staged each with a legal carrier and NEITHER engine produced the volatile: Yawn and Psychic Noise were aimed at a body whose ability or status refused them, Attract needs opposite genders that the staged pair did not have, and Curse writes no volatile at all on a non-Ghost user. medicham2 demonstrably HOLDS yawn (`_yawn`, `_vol.yawn`), attract (`_vol.attract`) and healblock (`_vol.healblock`), so the leaf is almost certainly comparable — it is left out because wiring a leaf whose two shapes have never been SEEN is how a comparator starts manufacturing divergences.",
-   "next": "give probe_volatile_leaves.js a fixture that actually lands each one, then wire it"
+   "next": "give probe_volatile_leaves.js a fixture that actually lands each one, then wire it",
+   "leaves": [
+    "volatile:yawn",
+    "volatile:attract",
+    "volatile:curse",
+    "volatile:healblock"
+   ]
   },
   {
    "field": "the TRAPPER mark a move trap leaves on its source (Showdown `volatiles.trapper`)",
-   "why": "one fact, two shapes: medicham2 stores the trapper inside the VICTIM own `_trapHard` record and has no field on the source at all. The victim half (`trapped`) IS compared and is the half a switch decision reads."
+   "why": "one fact, two shapes: medicham2 stores the trapper inside the VICTIM own `_trapHard` record and has no field on the source at all. The victim half (`trapped`) IS compared and is the half a switch decision reads.",
+   "leaves": [
+    "volatile:trapper"
+   ]
   },
   {
    "field": "the DURATIONS on magnet rise and syrup bomb, and WHICH move a charge is committed to",
-   "why": "the presence of all three IS compared. Showdown carries a clock on magnetrise and syrupbomb and medicham2 writes a bare 1, so comparing the numbers would part every board carrying one on the READER'S representation rather than on a rule. The missing clock is a real gap in medicham2 and is stated here rather than absorbed into a `!!`. Likewise the two-turn lock: medicham2 names the move in `_charging` and Showdown in a separate volatile keyed by the move id, and a mismatch there would be a reader question."
+   "why": "the presence of all three IS compared. Showdown carries a clock on magnetrise and syrupbomb and medicham2 writes a bare 1, so comparing the numbers would part every board carrying one on the READER'S representation rather than on a rule. The missing clock is a real gap in medicham2 and is stated here rather than absorbed into a `!!`. Likewise the two-turn lock: medicham2 names the move in `_charging` and Showdown in a separate volatile keyed by the move id, and a mismatch there would be a reader question.",
+   "leaves": []
   }
  ]
 }

@@ -726,6 +726,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * happening; a zero beside a live Hyper Beam means the new clause never fires and the old
    * unconditional behaviour is back. */
   rechargeSkippedNoTarget: 0,
+  /* 2026-08-28 -- THE LOCK'S HALF OF THE SAME RULE. A rampage whose every target was filtered out
+   * above step 7 never reaches `selfDrops`, so it arms no `lockedmove`. Non-zero is a real refused
+   * Outrage/Uproar; a zero beside a live rampage means the clause never fires and the old
+   * unconditional arming is back. */
+  lockSkippedNoTarget: 0,
   /* ROADMAP #139 -- Parental Bond, at BOTH of its moments, because "the plan was built" and "the
    * second packet took the quarter" are two facts and only the pair says the ability works. A plan
    * built with a second packet that never takes the modifier is a x2 Kangaskhan. */
@@ -32289,6 +32294,32 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _lk=TAGS.param('move',a.move.id,'locksIntoMove'), _lt=_lk&&+_lk.turns;
         if(!(_lt>0)){ MEDFAILS.lockShapeMissing++;
           if(!MEDFAILS.lockShapeMissingFirst)MEDFAILS.lockShapeMissingFirst=String(a.move.id); }
+        /* 2026-08-28 -- A RAMPAGE THAT REACHED NOBODY ARMS NOTHING, and it is the recharge rider's
+         * own gate rather than an analogy to it. The lock is `self: { volatileStatus: 'lockedmove' }`
+         * on the move (data/moves.ts:13085, and `uproar` carries the same field), `self` is applied by
+         * `Battle.actions.selfDrops` (sim/battle-actions.ts:1317-1335), and `selfDrops` is called from
+         * `spreadMoveHit` at :1096 -- the Champions override keeps that line verbatim at
+         * data/mods/champions/scripts.ts:385. `spreadMoveHit` is step 7 of `trySpreadMoveHit`'s
+         * `moveSteps`, and that loop breaks at `if (!targets.length) break` (:606-609) as soon as every
+         * target has been filtered false -- so a Fairy body answering an Outrage at step 2
+         * (`hitStepTypeImmunity`) leaves the user FREE next turn, and so does a total miss or a shield.
+         * `selfDrops` then opens `if (target === false) continue` for good measure.
+         *
+         * BOARD-MATERIAL, AND FOUND IN A REAL LADDER GAME RATHER THAN ON A STAGED BOARD.
+         * `tests/probe_trace_list.js` reported ONE Trace draw the authority took and this engine did
+         * not: the authority's Garchomp had Outraged into an immune Clefable on turn 2, was free on
+         * turn 3, switched out, and the body that replaced it held Trace. Here it was still locked and
+         * Outraged again.
+         *
+         * ONLY THE ARMING IS GATED. The enclosing block also runs Uproar's wake sweep -- which is
+         * `uproar.onTryHit`, step 1, ABOVE the type immunity -- and the `expiresAtMove` fatigue, which
+         * hangs off `AfterMove` and runs whatever the move returned. Gating the whole block would
+         * silently take both. And the POSITION is untouched: the authority arms this inside the hit
+         * loop and this site is below the step list, which matters for Uproar's `|-start|...|Uproar`
+         * alone (`lockedmove` announces nothing). That ordering is a SEPARATE, unmeasured defect. */
+        else if(!(m._mtLock&&m._mtLock.move===a.move.id)&&!(_reached>0)){
+          MEDSEEN.lockSkippedNoTarget++;
+        }
         else if(!(m._mtLock&&m._mtLock.move===a.move.id)){
           m._mtLock={move:a.move.id,left:_lt,confuse:!!_lk.confuseOnEnd,vol:_lk.volatile||null,
                      blockSleep:!!_lk.blocksSleep};

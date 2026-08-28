@@ -19228,7 +19228,9 @@ probe('move', 'sealsMoves', 'the encored move\'s target is RE-ROLLED, not aimed 
 const lockRun = (first, r, turns, opt) => {
   opt = opt || {};
   const me = bare('goodra-hisui'), ally = bare('incineroar'), benched = bare('milotic');
-  const f1 = bare('torterra'), f2 = bare('garchomp');
+  /* THE FOE PAIR IS AN ARGUMENT SO THAT ONE OF THEM CAN BE MADE TO REFUSE THE MOVE OUTRIGHT — see the
+   * `reached NOBODY` probe below. Left alone it is the pair every other arm on this helper uses. */
+  const f1 = bare((opt.foes && opt.foes[0]) || 'torterra'), f2 = bare((opt.foes && opt.foes[1]) || 'garchomp');
   const S = M.battleInit(opt.bench ? [me, ally, benched] : [me, ally], [f1, f2], { seeded: true });
   /* EVERY BODY THAT CAN BE HIT IS MADE UNFAINTABLE. A KO empties a slot, and an emptied slot changes
    * what a uniform draw over the LIVING foes can return — a different mechanic riding along inside the
@@ -19252,6 +19254,9 @@ const lockRun = (first, r, turns, opt) => {
     const mv = (trace.find(l => l.startsWith('|move|p1a')) || '').split('|');
     out.push({ used: mv[3] || 'NONE', at: (mv[4] || 'NONE').split(':')[0],
                d1: b1 - f1.curHP, d2: b2 - f2.curHP,
+               /* READ OFF THE WIRE, NOT ASSUMED: how many bodies answered this click with an immunity.
+                * A fixture that stopped being immune would show 0 here and fail rather than pass. */
+               imm: trace.filter(l => l.startsWith('|-immune|')).length,
                slot0: (S.actA[0] && S.actA[0].name) || 'EMPTY',
                conf: (me._vol && me._vol.confusion) || 0 });
   }
@@ -19363,6 +19368,46 @@ probe('move', 'locksIntoMove', 'the LENGTH and the fatigue are per-move, from th
                  + `user by turn 4 (${control[3].used} / ${test[3].used})` };
 });
 
+/* THE LOCK IS A `self:` RIDER, AND A RIDER IS PAID INSIDE THE HIT LOOP — SO A RAMPAGE THAT REACHED
+ * NOBODY ARMS NOTHING.
+ *
+ *     outrage: { ..., self: { volatileStatus: 'lockedmove' }, target: 'randomNormal' }   data/moves.ts:13085
+ *
+ * and `self` is applied by `Battle.actions.selfDrops`, which is called from `spreadMoveHit`
+ * (`sim/battle-actions.ts:1096`, kept verbatim by the Champions override at
+ * `data/mods/champions/scripts.ts:385`). `spreadMoveHit` is reached only through step 7 of
+ * `trySpreadMoveHit`'s `moveSteps` list, and that loop breaks out early — `if (!targets.length) break`
+ * (`sim/battle-actions.ts:606-609`) — the moment every target has been filtered false. A Fairy body
+ * answers Outrage at step 2 (`hitStepTypeImmunity`), so the loop breaks four steps ABOVE `selfDrops`
+ * and the user is FREE on the next turn. `selfDrops` itself opens `if (target === false) continue`.
+ *
+ * THIS ENGINE ARMED IT UNCONDITIONALLY. The block that arms `_mtLock` sat below the step list with no
+ * gate at all, so an Outrage that every foe was immune to still cost the user its next two turns AND
+ * its fatigue confusion — the recharge rider one line above it has carried `_reached > 0` since WIRE
+ * 43 and the lock never got the same gate. It is board-material and was caught in a real ladder game:
+ * `probe_trace_list.js` reported one Trace draw the authority took and this engine did not, because in
+ * the authority the locked body was free to switch out and the body that came in was a Trace holder.
+ *
+ * THE CONTROL IS THE SAME CLICK ON THE SAME BOARD WITH THE IMMUNITY CLEARED. Without it, "no lock when
+ * the move is refused" and "no lock at all" read exactly the same, and the immunity is read off the
+ * `|-immune|` line rather than assumed, so a fixture that stopped being immune fails instead of
+ * passing quietly. */
+probe('move', 'locksIntoMove', 'a rampage that reached NOBODY arms no lock, and pays no fatigue', () => {
+  const control = lockRun('outrage', 0.1, 2);
+  const test = lockRun('outrage', 0.1, 2, { foes: ['clefable', 'sylveon'] });
+  return { works: control[0].imm === 0 && control[1].used === 'outrage' && control[1].conf === 2
+                  && test[0].imm === 1 && test[0].d1 === 0 && test[0].d2 === 0
+                  && test[1].used === 'dragonclaw' && test[1].conf === 0,
+           arms: { control: [control[1].used, control[1].conf],
+                   test: [test[1].used, test[1].conf] },
+           detail: `turn 2 clicked Dragon Claw in both arms. Against a foe pair that can be hit the `
+                 + `Outrage locked — turn 2 played ${control[1].used} and left confusion `
+                 + `${control[1].conf}. Against a Fairy pair the turn-1 Outrage drew `
+                 + `${test[0].imm} |-immune| line for ${test[0].d1 + test[0].d2} damage, and turn 2 `
+                 + `played ${test[1].used} with confusion ${test[1].conf} (a lock here is the defect: `
+                 + `the self rider is four steps below the break)` };
+});
+
 /* AND IT IS A HARDER LOCK THAN THE CHOICE ONE. `Pokemon#getMoveRequestData` sets `this.trapped = true`
  * the moment `getLockedMove()` answers, so the request carries one move and no switch. A Choice item
  * narrows the moves and leaves the switch legal — being stuck on a bad move is a reason to leave —
@@ -19389,9 +19434,22 @@ probe('move', 'locksIntoMove', 'a locked body is TRAPPED — the switch is refus
  * user 20, so the Uproar lands FIRST and the Spore is thrown into a field that is already refusing
  * sleep. With the speeds the other way round the Spore lands first, the Uproar user never gets to move
  * at all, and the probe would measure the staging instead of the mechanic. */
+/* THE UPROAR HAS TO CONNECT, AND UNTIL 2026-08-28 IT DID NOT. This fixture aimed a Normal move at a
+ * GHOST body — `randomNormal` with a seeded 0.1 draws foe 0, and foe 0 was Gengar — so the authority
+ * broke out of `moveSteps` at `hitStepTypeImmunity` and never reached `selfDrops`, which is the ONLY
+ * thing that applies `uproar`'s `self: { volatileStatus: 'uproar' }`. No volatile means no
+ * `onAnySetStatus`, so THE SLEEP THIS PROBE ASSERTED AS REFUSED IS NOT REFUSED IN SHOWDOWN. The probe
+ * read LIVE anyway because this engine armed the lock unconditionally; it was pinning the bug.
+ * Measured in the official simulator on this exact shape: an Uproar into a Ghost writes NO
+ * `|-start|…|Uproar` at all, and the same Uproar into a Garchomp writes it. Foe 0 is now the Water
+ * body and the Ghost is foe 1, and `hit` is read off the damage so a fixture that stops connecting
+ * FAILS rather than passing quietly.
+ *
+ * THE WAKE SWEEP IS NOT AFFECTED BY THAT and is a different claim: `uproar.onTryHit` is step 1 of
+ * `moveSteps`, ABOVE the type immunity, so it cures sleepers even on the board this used to stage. */
 const uproarSleep = (first) => {
   const me = bare('goodra-hisui'), ally = bare('incineroar');
-  const f1 = bare('gengar'), f2 = bare('milotic');
+  const f1 = bare('milotic'), f2 = bare('gengar');
   const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
   unfaintable(me); unfaintable(ally); unfaintable(f1); unfaintable(f2);
   me.st = Object.assign({}, me.st, { sp: 200 });
@@ -19399,21 +19457,23 @@ const uproarSleep = (first) => {
   /* The PARTNER is put to sleep before the turn, so the wake sweep has something to find on the
    * Uproar user's OWN side — which is the half a "wakes the opponent" reading would miss. */
   M.applyStatus(ally, 'slp');
+  const b1 = f1.curHP;
   M.battleTurn(S, () => 0.1,
     new Map([[me, M.playerAction(me, first, null, S.field)], [ally, { kind: 'pass' }]]),
     new Map([[f1, M.playerAction(f1, 'spore', me, S.field)], [f2, { kind: 'pass' }]]));
-  return { ally: ally.status || 'none', me: me.status || 'none' };
+  return { ally: ally.status || 'none', me: me.status || 'none', hit: b1 - f1.curHP };
 };
 
 probe('move', 'locksIntoMove', 'Uproar wakes every sleeper and refuses sleep while it runs', () => {
   const control = uproarSleep('dragonclaw'), test = uproarSleep('uproar');
   return { works: control.ally === 'slp' && control.me === 'slp'
-                  && test.ally === 'none' && test.me === 'none',
+                  && test.ally === 'none' && test.me === 'none' && test.hit > 0,
            arms: { control: [control.ally, control.me], test: [test.ally, test.me] },
            detail: `an already-sleeping PARTNER and a Spore thrown at the user on the same turn — with `
                  + `a Dragon Claw in the slot the partner stayed ${control.ally} and the user became `
                  + `${control.me}; with an Uproar there the partner woke (${test.ally}) and the Spore `
-                 + `was refused (${test.me})` };
+                 + `was refused (${test.me}). The Uproar dealt ${test.hit} — it has to CONNECT for the `
+                 + `refusal to exist at all, because the volatile is a self rider paid by selfDrops` };
 });
 
 /* ================= WIRE 145 — A LOCK INTO A STATUS MOVE ==========================================

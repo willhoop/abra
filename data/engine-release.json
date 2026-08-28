@@ -1,10 +1,10 @@
 {
-  "current": "0415c53255a9",
-  "cut": "2026-08-28T09:08:52.563Z",
-  "why": "the absorb answers arrival one: a multi-hit volley into an intact Disguise lands arrivals 2..N on the busted body",
-  "cuts": 10,
-  "latest_cut": "2026-08-28T09:15:35.864Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-28T09:15:35.879Z",
+  "current": "5f3f7141227c",
+  "cut": "2026-08-28T09:51:36.770Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 5,
+  "latest_cut": "2026-08-28T09:53:06.905Z",
+  "latest_why": "ROADMAP #523 -- a rampage that reached nobody arms no lock (self rider is inside the hit loop)",
+  "pointer_written": "2026-08-28T09:53:06.918Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
