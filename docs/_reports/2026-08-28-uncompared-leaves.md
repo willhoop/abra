@@ -251,3 +251,7 @@ rather than a consumption. Falsified by a staged Knock Off with both fields prin
 - **`volatile:trapper`** is declared in `NOT_COMPARED` and is written by no legal mechanic's entry
   (Showdown adds it internally), so it does not appear in the 80. That is correct and is noted so the
   count of declared rows and the count of declared leaves are not confused for each other.
+- **`engine/all_mechanics_fire.js` WAS NOT RUN.** This agent was forbidden the game slot, so the
+  delegation rests on two things and not on a live run: `node --check`, and an equivalence test over
+  all 964 entities against the pre-move implementation lifted from `git show HEAD:` (81 non-empty
+  answers, 0 disagreements). The next run of that instrument is the first live exercise of the call.
