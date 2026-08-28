@@ -117,6 +117,16 @@ It noticed, on two paths:
 So this is a leaf that is genuinely compared, not a leaf that reads agreement because nothing looks at
 it — which is the only basis on which an `ANNOUNCEMENT-ONLY` verdict on that row means anything.
 
+**ATTRIBUTED AFTER THE FACT, AND THE ATTRIBUTION IS THE POINT OF THE CAVEAT BELOW.** The ordering
+defect is gone because ENGINE fixed it, in `d31e736d` *"Berserk announced its boost seven steps
+early; the authority writes it below the hit count"* (CHANGELOG 5.197.0, census 773 -> 774,
+diverging abilities 2 -> 1). That commit landed AFTER my probe run — the fix was sitting
+uncommitted in `engine/medicham2-browser.js`, which `git status` showed dirty at the time. So the
+probe measured a fix that was not yet in any commit, which is exactly the hazard the caveat below
+describes, arriving in its benign form: the answer happens to be right and the run still cannot be
+cited. **This is a coincidence of timing, not a confirmation of `d31e736d`** — that fix has its own
+measurement in its own commit, and this run is not a second one.
+
 **The exit code was left alone.** Rewriting it to 0 would be authoring a verdict inside a rescue. The
 honest state is: landed red, red for a reason that is good news, and not registered anywhere as a
 passing gate.
