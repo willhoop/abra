@@ -10,6 +10,59 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.203.0] — 2026-08-28
+
+### Added
+- **43 OF THE 80 LEAVES A LEGAL MECHANIC CAN WRITE ARE IN NEITHER THE COMPARED SET NOR
+  `NOT_COMPARED` — MEASURED, AND THE COMPARATOR DELIBERATELY NOT WIDENED.** ROADMAP #528.
+  Full account `docs/_reports/2026-08-28-uncompared-leaves.md`.
+
+  A leaf in neither place reads as AGREEMENT: the board agrees on it by not looking, and an
+  ANNOUNCEMENT-ONLY verdict on a mechanic whose whole effect IS that leaf is an unasked question
+  wearing a clean row's clothes. `all_mechanics_fire.js` has answered this per STAGED ROW since
+  2026-08-19 and never as a class. Derived over the whole regulation — 500 legal moves, 201
+  abilities carried by a legal species, 148 items, 964 entities, none sampled — **COMPARED 33,
+  DECLARED 4, NEITHER 43**. Of the 43, **25 have no declared clock or a clock of 2+ turns and are
+  on the board at the boundary; 18 are `duration: 1` and are ended by `residualEvent`
+  (`sim/battle.ts:1097-1115`) before it.** That column is EVIDENCE, not proof.
+
+  Both of the night's unearned verdicts are confirmed in the hole: `volatile:smackdown`, and
+  `volatile:gastroacid` — which has no `_vol` slot or named reader on our side either, so that row
+  is blocked on the instrument AND possibly on the engine, two findings that must not be merged.
+
+  `tests/probe_uncompared_leaves.js` is new and prints it; shown RED by splicing `taunt` out of the
+  compared set (43 → 44, with the leaf named). It is a PROBE and not a gate on purpose — a gate
+  registered at 43 would be red the day it was written.
+
+### Fixed
+- **A DECLARATION WAS JUSTIFIED BY A FALSE STATEMENT.** `board_state.js`'s `NOT_COMPARED` claimed
+  medicham2 *"has no `lastItem` and no `ateBerry`"*. It has held both since ROADMAP #128 —
+  written in `consumeBerry` (`engine/medicham2-browser.js:8786-8787`) and deliberately not cleared
+  at the turn reset (`:20425`). Corrected in place with the record of what it said. The authority's
+  write sites also LINE UP with ours (`eatItem` `sim/pokemon.ts:1805-1809`, `useItem` `:1846`, and
+  `takeItem` `:1856-1870` writes NEITHER), so the row is now labelled CANDIDATE with its cost
+  rather than presented as a justified omission.
+
+### Changed
+- **The declared half of the comparison is machine-readable.** `NOT_COMPARED` is prose, and a prose
+  match credited `volatile:counter` to a row about the STATUS counter and `volatile:unburden` to a
+  row that only names Unburden as a READER — two false clearances of seven. Every row now carries a
+  `leaves: [...]` array, `[]` where it declares none, which is itself an answer.
+- **`writtenLeaves` / `uncomparableLeavesOf` moved from `engine/all_mechanics_fire.js` into
+  `engine/board_state.js`** — one implementation, two callers, beside the compared and declared sets
+  it reconciles. Proved behaviour-identical over all 964 entities (81 non-empty answers, **0
+  disagreements**) against the pre-move code lifted from `git show HEAD:` before it landed.
+
+### Notes
+- **No board leaf changed, so no divergence count can have moved** — board-material 0 of 961 is
+  untouched by construction. Every widening is a PROPOSAL with its cost stated, in §4 of the report;
+  none was landed.
+- **OWED:** `node engine/status.js --write` (this pass was forbidden the game slot and the status
+  tool); the staged boundary read that would turn the `duration: 1` column from evidence into proof;
+  a before/after divergence count for every proposal.
+
+---
+
 ## [5.202.0] — 2026-08-28
 
 ### Fixed

@@ -19242,3 +19242,38 @@ them converted to a declared `ABRA-EXIT 2 CANNOT-ANSWER`; shown red by forcing t
 **OWED, NOT RUN:** `node engine/status.js --write` (this pass was forbidden the game slot);
 `probe_trap_timing.js`'s two exit-0 refusals; the roster and `all_mechanics_fire` markers; and
 `tests/test-middle-identity.js:39`, which hard-codes `C:/Users/willj/...` instead of the canonical module.
+
+**43 OF THE 80 LEAVES A LEGAL MECHANIC CAN WRITE ARE IN NEITHER LIST — NOT COMPARED, NOT DECLARED.**
+Compared 33, declared 4, hole 43, over 500 legal moves / 201 abilities with a legal carrier / 148
+items. `all_mechanics_fire.js` has answered this per STAGED ROW since 2026-08-19 and never as a class.
+25 of the 43 have no declared clock or a clock of 2+ turns, so they are on the board at the boundary;
+18 are `duration: 1` and are ended by `residualEvent` (`sim/battle.ts:1097-1115`) before it. Both of
+tonight's unearned verdicts are confirmed in the hole: `volatile:smackdown` and `volatile:gastroacid`.
+`tests/probe_uncompared_leaves.js` prints it; shown RED by splicing `taunt` out of the compared set
+(43 -> 44, and the leaf named). ROADMAP #528, full account `docs/_reports/2026-08-28-uncompared-leaves.md`.
+
+**A DECLARATION WAS JUSTIFIED BY A FALSE STATEMENT.** `board_state.js`'s `NOT_COMPARED` said medicham2
+*"has no `lastItem` and no `ateBerry`"*. It has both, since ROADMAP #128 — written in `consumeBerry`
+(`medicham2-browser.js:8786-8787`) and deliberately not cleared at the turn reset (`:20425`). Corrected
+in place with the record of what it said. The two engines' write sites also LINE UP — `takeItem`
+(`sim/pokemon.ts:1856-1870`) writes neither field, the same narrowing this engine makes on purpose — so
+the row is now labelled CANDIDATE with its cost, not a justified omission.
+
+**THE DECLARED HALF WAS PROSE AND COULD NOT BE CHECKED.** A prose match credited `volatile:counter` to a
+row about the STATUS counter and `volatile:unburden` to a row that only names Unburden as a reader: two
+false clearances of seven. Every `NOT_COMPARED` row now carries a machine-readable `leaves` array.
+`writtenLeaves`/`uncomparableLeavesOf` moved from `all_mechanics_fire.js` into `board_state.js` — one
+implementation, two callers — proved identical over 964 entities (81 non-empty answers, 0 disagreements)
+against the pre-move code lifted from `git show HEAD:` before the move landed.
+
+**THE COMPARATOR WAS NOT WIDENED AND NO BOARD LEAF CHANGED**, so no divergence count can have moved.
+The proposals are ranked in the report: the three pseudo-weathers first (`gravity`, `magicroom`,
+`wonderroom`, all `duration: 5`, all named in medicham2's own `RESIDUAL_FOLLOWER_FIELD` — and Magic
+Room's clock, which decides when ROADMAP #462's four parked items come back, is compared by nothing),
+then the four with a reader already keyed under the authority's name in `RESIDUAL_SHADOW_VOL`
+(`lockedmove` is a second read of a field `mediBody` already opens for Uproar), then the three slot
+conditions, which are a new class and a keying decision rather than a reader.
+
+**OWED, NOT RUN:** `node engine/status.js --write` (this pass was forbidden the game slot); the staged
+boundary read that would turn the `duration: 1` column from evidence into proof; a before/after
+divergence count for every proposal.

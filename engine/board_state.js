@@ -81,13 +81,41 @@ const NOT_COMPARED = [
      * Shadow Tag is the whole of ability trapping here. */
     measured_by: 'tests/roster.js (switchVerdict) — a REFUSAL comparison, not a board comparison',
     population: 'Shadow Tag only. Arena Trap and Magnet Pull have no legal carrier in this format; '
-              + 'the roster says so per-entity rather than this file asserting it.' },
-  { field: 'item DISPOSITION (eaten vs knocked off vs used)',
-    why: 'medicham2 has no `lastItem` and no `ateBerry`: once an item is gone the body records only '
-       + 'that it is gone. The current item IS compared, which is the fact that changes damage and '
-       + 'speed. The disposition is already a published finding (data/game-differential.json '
-       + 'knock_off_roadmap_80: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF) '
-       + 'and Harvest, Recycle, Belch, Cud Chew and Unburden are what read it.' },
+              + 'the roster says so per-entity rather than this file asserting it.',
+    /* NO LEAF IN THE AUTHORITY'S VOCABULARY: Showdown holds this as `pokemon.trapped`, a boolean
+     * recomputed when a request is built, and not as a volatile / side / slot / pseudo condition. */
+    leaves: [] },
+  /* ---- THE REASON ON THIS ROW WAS FALSE, AND IT IS CORRECTED HERE RATHER THAN DELETED (2026-08-28).
+   * It read: *"medicham2 has no `lastItem` and no `ateBerry`: once an item is gone the body records
+   * only that it is gone."* THE ENGINE HAS HELD BOTH SINCE ROADMAP #128. `consumeBerry` writes
+   * `m._lastItem` and `m._ateBerry` on the same two lines (engine/medicham2-browser.js:8786-8787),
+   * the per-turn reset deliberately does NOT clear them (:20425, "Harvest and Cud Chew are about what
+   * the body spent, not about when"), and a berry-gated move's fix landed on that exact latch tonight.
+   * The declaration outlived what it described, which is this repository's most expensive recurring
+   * failure and the one `NOT_COMPARED` exists to prevent — so the row now says what is true today and
+   * what would make the NEW reason wrong.
+   *
+   * A DECLARATION IS ONLY AS GOOD AS ITS MECHANISM. The mechanism is gone, so this is no longer a
+   * justified omission: it is a CANDIDATE that has not been wired. It stays listed — an unlisted
+   * omission reads as agreement — with the honest label. */
+  { field: 'item DISPOSITION (eaten vs knocked off vs used) — `lastItem` / `ateBerry`',
+    why: 'BOTH ENGINES HOLD IT AND NOTHING COMPARES IT. medicham2 writes `_lastItem` and `_ateBerry` '
+       + 'in `consumeBerry` (medicham2-browser.js:8786-8787) and does not clear them at the turn reset '
+       + '(:20425); Showdown writes `lastItem`/`ateBerry` in `eatItem` (sim/pokemon.ts:1805-1809) and '
+       + '`lastItem` in `useItem` (:1846). THE TWO WRITE SITES LINE UP: `takeItem` (sim/pokemon.ts:'
+       + '1856-1870, the Knock Off / Thief / Trick path) writes NEITHER field, which is the same '
+       + 'narrowing medicham2 makes deliberately, so wiring this would NOT part every knocked-off item. '
+       + 'The current item IS compared, which is the fact that changes damage and speed.',
+    status: 'CANDIDATE — comparable, not compared. The reason it was left out no longer exists.',
+    cost: 'it would part exactly the boards where the two engines disagree about eaten-vs-taken, which '
+        + 'is a PUBLISHED finding rather than a hypothesis (data/game-differential.json '
+        + 'knock_off_roadmap_80: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF). '
+        + 'So the expected effect is NOT zero and it must be measured before it is landed.',
+    wrong_if: 'a path in either engine writes the field on a REMOVAL rather than on a consumption — '
+        + 'then the two shapes diverge on bookkeeping and the leaf would manufacture divergences. '
+        + 'Falsified by a staged Knock Off with both fields printed side by side.',
+    read_by: 'Harvest, Recycle, Belch, Cud Chew and Unburden.',
+    leaves: [] },
   /* PP WAS HERE AND IS NOW COMPARED. The entry read "medicham2 does not track PP at all", which was
    * true when it was written and stopped being true at ROADMAP #144 — the engine has held a full `_pp`
    * map, `ppMax`/`ppLeft`/`ppDeduct` and four counters since. The declaration outlived what it
@@ -108,7 +136,8 @@ const NOT_COMPARED = [
        + 'yawn (`_yawn`, `_vol.yawn`), attract (`_vol.attract`) and healblock (`_vol.healblock`), so '
        + 'the leaf is almost certainly comparable — it is left out because wiring a leaf whose two '
        + 'shapes have never been SEEN is how a comparator starts manufacturing divergences.',
-    next: 'give probe_volatile_leaves.js a fixture that actually lands each one, then wire it' },
+    next: 'give probe_volatile_leaves.js a fixture that actually lands each one, then wire it',
+    leaves: ['volatile:yawn', 'volatile:attract', 'volatile:curse', 'volatile:healblock'] },
   /* ROADMAP #308 -- THE SOURCE HALF OF A MOVE TRAP, and it is an omission rather than an oversight.
    * Showdown puts `trapped` on the victim AND `trapper` on whoever laid it; medicham2 keeps the
    * trapper INSIDE the victim's own `_trapHard` record and writes nothing on the source at all. The
@@ -118,7 +147,8 @@ const NOT_COMPARED = [
   { field: 'the TRAPPER mark a move trap leaves on its source (Showdown `volatiles.trapper`)',
     why: 'one fact, two shapes: medicham2 stores the trapper inside the VICTIM own `_trapHard` record '
        + 'and has no field on the source at all. The victim half (`trapped`) IS compared and is the '
-       + 'half a switch decision reads.' },
+       + 'half a switch decision reads.',
+    leaves: ['volatile:trapper'] },
   /* ---- DESTINY BOND IS COMPARED NOW (2026-08-25), AND THE ROW BELOW IS THE RECORD OF WHY IT WAS
    * NOT. It is corrected here rather than deleted. It read:
    *
@@ -152,7 +182,10 @@ const NOT_COMPARED = [
        + 'on the READER\'S representation rather than on a rule. The missing clock is a real gap in '
        + 'medicham2 and is stated here rather than absorbed into a `!!`. Likewise the two-turn lock: '
        + 'medicham2 names the move in `_charging` and Showdown in a separate volatile keyed by the '
-       + 'move id, and a mismatch there would be a reader question.' },
+       + 'move id, and a mismatch there would be a reader question.',
+    /* THIS IS A NARROWING, NOT AN OMISSION: all three leaves ARE compared, as presence. The row
+     * declares the PART of each that is not, which is why it names no leaf of its own. */
+    leaves: [] },
   /* ---- THE BENCH SWEEP OF 2026-08-18. Same treatment as the volatile sweep above: the candidates
    * that were NOT wired are named with the reason, because "we looked and did not add it" and "we
    * never looked" are different sentences and only one of them is honest. */
@@ -1543,7 +1576,86 @@ if (!SD_VOLATILE_KEYS.length || !SD_SIDE_KEYS.length) {
     + 'Every caller asking "is this leaf compared?" would get a wrong answer. Not a pass.');
 }
 
+/* ---- WHICH LEAVES A MECHANIC WRITES, AND WHETHER THIS FILE READS THEM --------------------------
+ *
+ * MOVED HERE FROM `all_mechanics_fire.js` ON 2026-08-28 AND NOT COPIED. It lived beside the one
+ * caller that asked, and a second caller now needs the same answer: `tests/probe_uncompared_leaves.js`
+ * enumerates the WHOLE class rather than the rows one run happened to stage. Two implementations of
+ * "which leaf does this mechanic write" would agree the day they were written and rot after — the
+ * two-copies-of-one-fact breach CLAUDE.md names — and this file is where the answer belongs, because
+ * it owns both halves of the comparison: `SD_VOLATILE_KEYS` (what is read) and `NOT_COMPARED` (what is
+ * declared). The caller keeps the dex lookup; nothing here requires a simulator.
+ *
+ * THE ORIGINAL HEADER, WHICH IS THE RECORD OF WHY THE WALK IS SHAPED THIS WAY:
+ *
+ * THE RULE THIS EXISTS FOR: **a leaf you cannot compare reads as agreement.** An ANNOUNCEMENT-ONLY
+ * verdict is a claim that the boards are identical IN THE FIELDS WE LOOK AT, and it is worth very
+ * little without the list of fields we do not — especially when the field we do not look at IS THE
+ * MECHANIC. Measured on the first run of that instrument: Fairy Lock's entire effect is a `fairylock`
+ * pseudo-weather, Uproar's is an `uproar` volatile and Spirit Shackle's is a `trapped` volatile, and
+ * this file read none of the three — nor did any of them appear in `NOT_COMPARED`, which only ever
+ * listed the omissions somebody thought to write down.
+ *
+ * DERIVED FROM THE AUTHORITY'S OWN ENTRY, NEVER FROM A LIST HERE. The entry is walked recursively —
+ * `volatileStatus`, `sideCondition`, `slotCondition`, `pseudoWeather` at any depth, plus every
+ * function anywhere in it stringified and scanned for `addVolatile` / `addSideCondition` /
+ * `addPseudoWeather`. A shallow version of this walk missed three rows outright (Spirit Shackle's
+ * trap is inside `secondaries[0].onHit`; Beak Blast's and Focus Punch's own volatiles come from a
+ * `priorityChargeCallback`), and a derivation that UNDER-reports blind spots is worse than none.
+ *
+ * AND IT OVER-MATCHED FIRST, WHICH IS WHY THE FALSY GUARD IS THERE AND SAID OUT LOUD. Every dex entry
+ * carries `volatileStatus: undefined` as a real key, so the first walk reported `volatile:undefined`
+ * on twelve of twenty-one rows. docs/ENGINE.md: a new derived predicate over-matches; print what it
+ * matched before wiring it. */
+const _lnorm = (v) => String(v).toLowerCase().replace(/[^a-z0-9]/g, '');
+function writtenLeaves(entry) {
+  const acc = { volatile: new Set(), side: new Set(), slot: new Set(), pseudo: new Set(), src: [] };
+  const seen = new Set();
+  (function walk(e, depth) {
+    if (!e || depth > 4) return;
+    if (typeof e === 'function') { acc.src.push(String(e)); return; }
+    if (typeof e !== 'object') return;
+    if (seen.has(e)) return; seen.add(e);
+    for (const [k, v] of Object.entries(e)) {
+      if (v === undefined || v === null || v === false || v === '') continue;   // the over-match guard
+      if (k === 'volatileStatus') acc.volatile.add(_lnorm(v));
+      else if (k === 'sideCondition') acc.side.add(_lnorm(v));
+      else if (k === 'slotCondition') acc.slot.add(_lnorm(v));
+      else if (k === 'pseudoWeather') acc.pseudo.add(_lnorm(v));
+      walk(v, depth + 1);
+    }
+  })(entry, 0);
+  const src = acc.src.join('\n');
+  for (const m of src.matchAll(/addVolatile\(\s*['"]([a-z0-9]+)['"]/gi)) acc.volatile.add(_lnorm(m[1]));
+  for (const m of src.matchAll(/addSideCondition\(\s*['"]([a-z0-9]+)['"]/gi)) acc.side.add(_lnorm(m[1]));
+  for (const m of src.matchAll(/addSlotCondition\(\s*[^,]+,\s*['"]([a-z0-9]+)['"]/gi)) acc.slot.add(_lnorm(m[1]));
+  for (const m of src.matchAll(/addPseudoWeather\(\s*['"]([a-z0-9]+)['"]/gi)) acc.pseudo.add(_lnorm(m[1]));
+  return acc;
+}
+/* THE LEAVES THIS ENTRY WRITES THAT THIS FILE DOES NOT READ. Unchanged from the version that lived in
+ * `all_mechanics_fire.js`, INCLUDING the fact that it says nothing about `NOT_COMPARED`: a declared
+ * leaf is still an unread one, and a verdict that rests on it is still unasked. The two questions are
+ * answered separately — `DECLARED_LEAVES` below is the second. */
+function uncomparableLeavesOf(entry) {
+  if (!entry || !entry.exists) return [];
+  const w = writtenLeaves(entry);
+  const out = [];
+  const V = new Set(SD_VOLATILE_KEYS), S = new Set(SD_SIDE_KEYS), P = new Set(SD_PSEUDO_KEYS);
+  for (const v of w.volatile) if (!V.has(v)) out.push('volatile:' + v);
+  for (const v of w.side) if (!S.has(v)) out.push('sideCondition:' + v);
+  for (const v of w.pseudo) if (!P.has(v)) out.push('pseudoWeather:' + v);
+  for (const v of w.slot) out.push('slotCondition:' + v);   // this file reads no slot condition
+  return out.sort();
+}
+/* THE DECLARED HALF, MACHINE-READABLE SINCE 2026-08-28. `NOT_COMPARED` is prose, and prose cannot be
+ * checked: an enumerator asking "is this leaf declared?" had to string-match the paragraphs, which
+ * credited `volatile:counter` to a row about the STATUS counter and `volatile:unburden` to a row that
+ * merely names Unburden as a READER. Two false clearances out of seven. Each row now carries the
+ * leaves it actually declares — `[]` where it declares none, which is itself an answer. */
+const DECLARED_LEAVES = new Set(NOT_COMPARED.reduce((a, r) => a.concat(r.leaves || []), []));
+
 module.exports = { readMedi, readShowdown, compare, snapshot, family, mappingProof, locate, bucket,
+                   writtenLeaves, uncomparableLeavesOf, DECLARED_LEAVES,
                    stableKey, PARTY_KEY_IDENTITY,
                    explain, MAPPINGS, NOT_COMPARED, PHYSICAL_SCREENS, SPECIAL_SCREENS,
                    SD_VOLATILE_KEYS, SD_SIDE_KEYS, SD_PSEUDO_KEYS,

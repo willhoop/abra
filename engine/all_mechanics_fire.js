@@ -1075,65 +1075,17 @@ function playScenario(spec) {
  * `divTurn`, and a verdict rests on there being at least one. */
 /* ---- WHICH LEAVES THIS ROW COULD WRITE THAT THE BOARD DOES NOT READ (2026-08-19) ----------------
  *
- * THE RULE THIS EXISTS FOR: **a leaf you cannot compare reads as agreement.** An ANNOUNCEMENT-ONLY
- * verdict is a claim that the boards are identical IN THE FIELDS WE LOOK AT, and it is worth very
- * little without the list of fields we do not — especially when the field we do not look at IS THE
- * MECHANIC. Measured on the first run of this instrument: Fairy Lock's entire effect is a `fairylock`
- * pseudo-weather, Uproar's is an `uproar` volatile and Spirit Shackle's is a `trapped` volatile, and
- * `board_state.js` reads none of the three — nor did any of them appear in its `NOT_COMPARED`, which
- * only ever listed the omissions somebody thought to write down.
+ * THE WALK MOVED TO `board_state.js` ON 2026-08-28 AND IS CALLED, NOT COPIED. It answers a question
+ * about the COMPARATOR — which leaves does the board read — so it belongs beside `SD_VOLATILE_KEYS`
+ * and `NOT_COMPARED`, and a second caller now asks it (`tests/probe_uncompared_leaves.js`, which
+ * enumerates the WHOLE class rather than the rows one run happened to stage). The header that records
+ * why the walk is shaped as it is moved with it. Only the DEX LOOKUP stays here, because only this
+ * file holds a dex.
  *
- * DERIVED FROM THE AUTHORITY'S OWN ENTRY, NEVER FROM A LIST HERE. The entry is walked recursively —
- * `volatileStatus`, `sideCondition`, `slotCondition`, `pseudoWeather` at any depth, plus every
- * function anywhere in it stringified and scanned for `addVolatile` / `addSideCondition` /
- * `addPseudoWeather`. A shallow version of this walk missed three rows outright (Spirit Shackle's
- * trap is inside `secondaries[0].onHit`; Beak Blast's and Focus Punch's own volatiles come from a
- * `priorityChargeCallback`), and a derivation that UNDER-reports blind spots is worse than none.
- *
- * AND IT OVER-MATCHED FIRST, WHICH IS WHY THE FALSY GUARD IS THERE AND SAID OUT LOUD. Every dex entry
- * carries `volatileStatus: undefined` as a real key, so the first walk reported `volatile:undefined`
- * on twelve of twenty-one rows. docs/ENGINE.md: a new derived predicate over-matches; print what it
- * matched before wiring it.
- *
- * THE COMPARED SETS COME FROM `board_state.js`'s OWN READERS and are not restated here — see
- * `SD_VOLATILE_KEYS` there. A second copy would agree the day it was written and rot after. */
-const _lnorm = (v) => String(v).toLowerCase().replace(/[^a-z0-9]/g, '');
-function writtenLeaves(entry) {
-  const acc = { volatile: new Set(), side: new Set(), slot: new Set(), pseudo: new Set(), src: [] };
-  const seen = new Set();
-  (function walk(e, depth) {
-    if (!e || depth > 4) return;
-    if (typeof e === 'function') { acc.src.push(String(e)); return; }
-    if (typeof e !== 'object') return;
-    if (seen.has(e)) return; seen.add(e);
-    for (const [k, v] of Object.entries(e)) {
-      if (v === undefined || v === null || v === false || v === '') continue;   // the over-match guard
-      if (k === 'volatileStatus') acc.volatile.add(_lnorm(v));
-      else if (k === 'sideCondition') acc.side.add(_lnorm(v));
-      else if (k === 'slotCondition') acc.slot.add(_lnorm(v));
-      else if (k === 'pseudoWeather') acc.pseudo.add(_lnorm(v));
-      walk(v, depth + 1);
-    }
-  })(entry, 0);
-  const src = acc.src.join('\n');
-  for (const m of src.matchAll(/addVolatile\(\s*['"]([a-z0-9]+)['"]/gi)) acc.volatile.add(_lnorm(m[1]));
-  for (const m of src.matchAll(/addSideCondition\(\s*['"]([a-z0-9]+)['"]/gi)) acc.side.add(_lnorm(m[1]));
-  for (const m of src.matchAll(/addSlotCondition\(\s*[^,]+,\s*['"]([a-z0-9]+)['"]/gi)) acc.slot.add(_lnorm(m[1]));
-  for (const m of src.matchAll(/addPseudoWeather\(\s*['"]([a-z0-9]+)['"]/gi)) acc.pseudo.add(_lnorm(m[1]));
-  return acc;
-}
-const _VOL_OK = new Set(BS.SD_VOLATILE_KEYS), _SIDE_OK = new Set(BS.SD_SIDE_KEYS),
-      _PSEUDO_OK = new Set(BS.SD_PSEUDO_KEYS);
+ * THE RULE IT EXISTS FOR IS UNCHANGED: **a leaf you cannot compare reads as agreement.** */
 function uncomparableLeaves(kind, key) {
   const e = kind === 'move' ? dex.moves.get(key) : (kind === 'ability' ? dex.abilities.get(key) : dex.items.get(key));
-  if (!e || !e.exists) return [];
-  const w = writtenLeaves(e);
-  const out = [];
-  for (const v of w.volatile) if (!_VOL_OK.has(v)) out.push('volatile:' + v);
-  for (const v of w.side) if (!_SIDE_OK.has(v)) out.push('sideCondition:' + v);
-  for (const v of w.pseudo) if (!_PSEUDO_OK.has(v)) out.push('pseudoWeather:' + v);
-  for (const v of w.slot) out.push('slotCondition:' + v);   // board_state.js reads no slot condition
-  return out.sort();
+  return BS.uncomparableLeavesOf(e);
 }
 
 function boardVerdict(r, kind, key) {
