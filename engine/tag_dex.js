@@ -2302,7 +2302,34 @@ const MOVE_TAGS = [
       const swaps = /setItem\(.*takeItem|myItem|yourItem/.test(src);
       const takes = /takeItem\(/.test(src);
       if (!eats && !swaps && !takes) return null;
-      return { consumesAndGainsEffect: eats, swaps, removes: takes && !eats };
+      /* 2026-08-28 -- WHAT THE `-activate` LINE CALLS ITSELF, READ OUT OF THE HANDLER RATHER THAN
+       * TYPED. Switcheroo's own onHit writes `this.add('-activate', source, 'move: Trick', ...)`
+       * (data/moves.ts:18666) -- it announces TRICK, not its own name -- and Trick's handler is the
+       * identical statement at :19887. Champions overrides neither move (no `switcheroo:`/`trick:`
+       * key in data/mods/champions/moves.ts). Hard-coding the string 'Trick' into the engine would
+       * be typing a Pokemon value; this reads it off the authority every run, so a later rename
+       * arrives here without an edit.
+       *
+       * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, because a new derived param over-matches every time.
+       * All 9 legal members of this tag, with what they derive:
+       *     switcheroo  Status    -> "Trick"        trick  Status    -> "Trick"
+       *     covet       Physical  -> none           thief  Physical  -> none
+       *     bugbite / pluck / knockoff / corrosivegas / stuffcheeks -> none
+       * Exactly the two that DO write the line get a value, and covet/thief -- which also carry
+       * `swaps` -- correctly get none, because their handlers write no `-activate` at all. The
+       * field is absent rather than empty when nothing matched, so a reader can tell "this move
+       * announces nothing" from "this move announces its own name".
+       *
+       * THE QUOTE STYLE IS DELIBERATE AND IT MATTERS. `String(m.onHit)` is the COMPILED dist body,
+       * which uses double quotes; the `eats` test one line above only accepts `singleEvent('Eat'`
+       * and therefore does NOT see Bug Bite or Pluck. That is a real pre-existing defect in this
+       * deriver -- both read `consumesAndGainsEffect:false, removes:true` when the authority eats
+       * the berry and gains its effect -- and it is deliberately NOT fixed here, because it would
+       * move two moves' params under a patch about an announcement name. Filed, not folded in. */
+      const ann = src.match(/this\.add\(\s*['"`]-activate['"`]\s*,\s*[A-Za-z_.]+\s*,\s*['"`]move:\s*([^'"`]+)['"`]/);
+      const out = { consumesAndGainsEffect: eats, swaps, removes: takes && !eats };
+      if (ann) out.announcesAs = ann[1];
+      return out;
     } },
   /* Will: "if user is holding iron ball, the variable power heavy slam and low kick would be
    * different right, same with the float stone."

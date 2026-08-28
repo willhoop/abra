@@ -1,10 +1,10 @@
 {
-  "current": "b035aa665740",
-  "cut": "2026-08-28T06:35:25.640Z",
-  "why": "berserk: the HP-threshold boost announces below -hitcount",
+  "current": "f440e4759f4e",
+  "cut": "2026-08-28T07:59:53.670Z",
+  "why": "switcheroo: the -activate names Trick (derived), and the empty-handed side gets its [silent] -enditem (re-cut after a CRLF restore)",
   "cuts": 1,
-  "latest_cut": "2026-08-28T06:35:25.640Z",
-  "latest_why": "berserk: the HP-threshold boost announces below -hitcount",
-  "pointer_written": "2026-08-28T06:35:25.654Z",
+  "latest_cut": "2026-08-28T07:59:53.670Z",
+  "latest_why": "switcheroo: the -activate names Trick (derived), and the empty-handed side gets its [silent] -enditem (re-cut after a CRLF restore)",
+  "pointer_written": "2026-08-28T07:59:53.682Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

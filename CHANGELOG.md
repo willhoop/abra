@@ -10,6 +10,65 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.198.0] — 2026-08-28
+
+### Fixed
+- **SWITCHEROO NAMED ITSELF WHERE THE AUTHORITY NAMES *TRICK*, AND NEITHER SWAP MOVE WROTE THE
+  `[silent]` `-enditem` FOR THE SIDE THAT HANDED OVER NOTHING. CENSUS 774 -> 776 LIVE / 776 PROBED /
+  0 MISSING. DIVERGING MECHANICS 8 -> 7, MOVES 6 -> 5 — `move:switcheroo` AND `move:trick` BOTH NOW
+  READ `NO-DIVERGENCE`. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961,
+  DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35 — all
+  predicted before the run.** Release `f440e4759f4e`, cut over a settled tree (`0 of 26 files have
+  moved since`).
+  - **THE AUTHORITY, BYTE FOR BYTE.** Champions overrides NEITHER move (no `switcheroo:`/`trick:` key
+    in `data/mods/champions/moves.ts`), and the two handlers are the same five statements —
+    `data/moves.ts:18666` for Switcheroo and `:19887` for Trick both write
+    `this.add('-activate', source, 'move: Trick', ...)`. **Switcheroo announces TRICK.** Only the
+    `[from]` on the item lines carries the clicker's own name.
+  - **THE NAME IS DERIVED, NEVER TYPED.** `tag_dex.js` now reads `announcesAs` off the handler's own
+    `this.add('-activate', ...)` source onto the `takesTargetItem` tag. **Membership printed before
+    it was wired**: of the 9 legal members, exactly `switcheroo` and `trick` derive a value and the
+    other seven derive none — including `covet` and `thief`, which also carry `swaps` but whose
+    handlers write no `-activate` at all. The regeneration moved exactly **2 `params` rows**; the
+    other 365 changed rows were `uses` counts moving because the store grew under the run, which is
+    the instrument and not the change. `MEDFAILS.swapActivateNameUnderived` counts a missing
+    derivation rather than falling back silently.
+  - **THE `[silent]` `-enditem` IS THE BIGGER HALF AND IT WAS MISSING FOR BOTH MOVES.**
+    `display-flags` drops the FLAG, not the LINE, so the omission survives reduction and parts the
+    streams. `TR.enditem` gained a fifth field because the two decorations must be SEPARATE fields:
+    folding them into `'[silent][from] move: X'` would be dropped whole by `display-flags`, taking
+    the attribution with it. `TR.act` gained an `of` MON (not a string) for the `[of]`, because
+    `ident` is scoped to the trace closure — the same reason `cant` and `enditem` already take one.
+    **The `[of]` moves no counter** (the differ's `source-tag` rule strips it) and is there to match
+    the authority byte for byte; said so nobody credits it.
+  - **BOTH-SLOTS-EMPTY IS NOT CLOSED AND IS NOT CLAIMED.** The authority returns false out of the
+    handler (`!yourItem && !myItem`) and fails the move. Our new guards are on the item VALUES, so
+    neither `-enditem` fires in that case — unchanged behaviour, and the remaining `-activate`
+    difference is filed rather than folded in.
+  - **THE PROBES — TWO NEW CENSUS ROWS, RED FIRST, SAME RED UNDER `MEDI_SWAP_LINES_BLIND=1`.** The
+    second stages **both** moves, because Switcheroo is on 19 sheets and Trick on 522 and a probe
+    that tested only the move whose name is on the other defect would leave the 522-sheet member
+    untested. The first needs a word about its arms, because the two arms **agreeing** is the claim —
+    normally the signature of an unwired knob. It is defeated by asserting a second field in the same
+    stream: `[from] move: X` keeps the clicked move's own name and therefore **differs** across the
+    identical two arms. Under the knob `trickSwapsItems` stays LIVE, so the knob reverts the
+    announcement and not the swap.
+
+### Fixed (instrument, not engine)
+- **A CRLF FLATTENING OF `engine/medicham2-browser.js` TOOK THE MOVES ROSTER FROM 35/35 TO 33/35, AND
+  IT WAS THE EDITOR RATHER THAN THE ENGINE.** `tests/roster.js` plants two of its red demonstrations
+  against anchors that hard-code `
+` (`roster.js:6812` and `:7726`). A Python edit that read with
+  universal newlines and wrote with `newline=''` silently converted the whole file to LF, so those
+  two anchors matched **zero** times and reported *"an unapplied plant reads exactly like a
+  comparator that found nothing"* — which is the check working exactly as designed. `core.autocrlf`
+  is `true` here, so the committed blob was never affected and the content was verified **identical
+  modulo line endings** before and after the restore. The release was **re-cut** (`8a168b0d750d` ->
+  `f440e4759f4e`) and every instrument re-run, because a release that has drifted cannot carry an
+  attribution.
+
+---
+
 ## [5.197.0] — 2026-08-28
 
 ### Fixed

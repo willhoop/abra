@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-28T05:55:07.562Z",
+ "generated": "2026-08-28T07:54:40.649Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "aea838766e7f",
+ "engine_release": "8a168b0d750d",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -13,7 +13,7 @@
   "COULD-NOT-STAGE": 22
  },
  "arms_played": {
-  "top-tie-first": 825,
+  "top-tie-first": 817,
   "bottom-tie-first": 264
  },
  "scope": {
@@ -51,19 +51,8 @@
   },
   {
    "rule": "move/boosts-self",
-   "ok": true,
-   "why": "the self-boost is skipped entirely — the click is still made, still costs the turn and still records itself as the last move",
-   "moved": {
-    "member": "acidarmor",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.boosts.def",
-     "boosts.def"
-    ]
-   }
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor:       if(a.kind==='setup'){\r\n        const _fx=a.mv&&moveFx(a.mv);"
   },
   {
    "rule": "move/plain-attack",
@@ -99,19 +88,8 @@
   },
   {
    "rule": "move/needs-a-stat-stage-to-act-on",
-   "ok": true,
-   "why": "a stat stage written by a move's own boost block is dropped, so there is nothing for the subject to clear, copy, invert or swap",
-   "moved": {
-    "member": "guardswap",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.boosts.def",
-     "boosts.def"
-    ]
-   }
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor:       if(a.kind==='setup'){\r\n        const _fx=a.mv&&moveFx(a.mv);"
   },
   {
    "rule": "move/crit",

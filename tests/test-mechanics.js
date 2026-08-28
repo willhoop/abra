@@ -483,7 +483,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * the row: the doll has to be STANDING when the move resolves, and a direct call to a branch would be
  * green on an engine that never asked about it, which is exactly the state seven branches were in.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -13681,6 +13681,116 @@ probe('move', 'trickSwapsItems', 'Trick swaps the two items; Corrosive Gas only 
            detail: `Trick: user quickclaw -> ${swap.mine}, target (none) -> ${swap.theirs}; `
                  + `Corrosive Gas leaves the target ${gas.theirs}; Trick at a Gengarite holder moves nothing `
                  + `(${stone.mine} / ${stone.theirs})` };
+});
+
+/* 2026-08-28 -- WHAT THE ITEM-SWAP FAMILY *SAYS*, WHICH `trickSwapsItems` ABOVE CANNOT SEE.
+ *
+ * That probe reads the two item SLOTS and is green on a stream that is two lines wrong. Both claims
+ * below are about the protocol the swap writes, and both are staged on a real `battleTurn`.
+ *
+ * THE AUTHORITY, BYTE FOR BYTE. Champions overrides NEITHER move (`grep '^\tswitcheroo:\|^\ttrick:'
+ * data/mods/champions/moves.ts` returns nothing), and the two handlers are the same five statements:
+ *
+ *     data/moves.ts:18666   this.add('-activate', source, 'move: Trick', `[of] ${target}`);   switcheroo
+ *                  :18669     this.add('-item', target, myItem, '[from] move: Switcheroo');
+ *                  :18671     this.add('-enditem', target, yourItem, '[silent]', '[from] move: Switcheroo');
+ *                  :18675     this.add('-item', source, yourItem, '[from] move: Switcheroo');
+ *                  :18677     this.add('-enditem', source, myItem, '[silent]', '[from] move: Switcheroo');
+ *     data/moves.ts:19887   the identical statement, reading `move: Trick`                    trick
+ *
+ * So SWITCHEROO ANNOUNCES TRICK. Only the `[from]` on the item lines carries the clicker's own name.
+ *
+ * `[of]` IS NOT COMPARED and no probe below asserts it: the differ's declared `source-tag` rule
+ * (engine/game_differential.js:2007) strips `[of] pXy` from every line. It is emitted to match the
+ * authority byte for byte and it moves no counter — said here so nobody credits it later. */
+const swapLines = (myItem, foeItem, click) => {
+  const me = bare('sableye'), ally = bare('corviknight');
+  const f1 = bare('milotic'), f2 = bare('garchomp');
+  me.item = myItem; f1.item = foeItem;
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, click, f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  const pick = re => trace.filter(l => re.test(l));
+  return { act: pick(/^\|-activate\|p1a[^|]*\|move:/).map(l => l.split('|')[3]).join(','),
+           /* the `[from]` field of every -item line, which is where the CLICKED move's own name lives */
+           itemFrom: pick(/^\|-item\|/).map(l => (l.split('|')[4] || '')).join(','),
+           /* slice(2) drops the leading empty field AND the `-enditem` token, leaving
+            * `BODY|item|[silent]|[from] move: X` -- the fields the claim is about. */
+           endItems: pick(/^\|-enditem\|/).map(l => l.split('|').slice(2).join('|')).join(' ; '),
+           mine: me.item || '(none)', theirs: f1.item || '(none)' };
+};
+
+/* CLAIM 1 -- THE NAME. And the arms need a word, because this is the one shape where the two arms
+ * AGREEING is the finding, which is normally the signature of an unwired knob.
+ *
+ * The `-activate` must read `trick` for BOTH moves. So a probe that only compared the two moves'
+ * activate lines would be green if the field were hard-wired to a constant, unread, or missing. The
+ * SECOND field defeats that: `[from] move: X` on the `-item` lines keeps the CLICKED move's own name,
+ * so it DIFFERS across the same two arms. One stream, two fields, opposite expectations — the probe
+ * can tell the two moves apart and is asserting that one field ignores the difference on purpose. */
+probe('move', 'takesTargetItem', 'Switcheroo announces TRICK, and only the [from] carries its own name', () => {
+  /* THE EXPECTED NAME IS READ OUT OF THE ARTIFACT, NEVER TYPED. My first cut of this probe asserted
+   * the literal 'move: trick' and went red against a correct engine, because the derived value is the
+   * authority's own casing ('Trick'). `traceCanon` folds case on every field from 2 up, so the WIRE
+   * does not care -- but a probe that types a Pokemon value is wrong even when it is nearly right. */
+  const TT = require(D('data', 'tags.json'));
+  const nameOf = mv => ((TT.moves[mv] || {}).params || {}).takesTargetItem || {};
+  const want = String(nameOf('switcheroo').announcesAs || '');
+  const sw = swapLines('choicescarf', 'leftovers', 'switcheroo');
+  const tr = swapLines('choicescarf', 'leftovers', 'trick');
+  const swapped = sw.mine === 'leftovers' && sw.theirs === 'choicescarf'
+                  && tr.mine === 'leftovers' && tr.theirs === 'choicescarf';
+  const says = a => a.act.toLowerCase() === ('move: ' + want).toLowerCase();
+  return { works: swapped && !!want && String(nameOf('trick').announcesAs || '') === want
+                  && says(sw) && says(tr)
+                  && /switcheroo/.test(sw.itemFrom) && !/switcheroo/.test(tr.itemFrom)
+                  && /trick/.test(tr.itemFrom),
+           arms: { control: 'trick -> ' + tr.act + ' + ' + tr.itemFrom,
+                   test: 'switcheroo -> ' + sw.act + ' + ' + sw.itemFrom },
+           detail: 'SWITCHEROO writes "|-activate|p1a|' + sw.act + '" and its item lines carry "'
+                 + sw.itemFrom + '"; TRICK writes "|-activate|p1a|' + tr.act + '" and "' + tr.itemFrom
+                 + '". data/moves.ts:18666 and :19887 are the same statement and both say `move: Trick`, '
+                 + 'so the ACTIVATE agreeing is the claim and the [from] differing is what proves the '
+                 + 'probe can tell the two clicks apart. Items swapped on both arms' };
+});
+
+/* CLAIM 2 -- THE `[silent]` `-enditem` FOR WHOEVER HANDED OVER NOTHING, AND IT IS THE BIGGER HALF.
+ *
+ * `display-flags` (engine/game_differential.js:2022) drops the FLAG, not the LINE, so a missing
+ * `-enditem` survives reduction and parts the streams. It is missing for BOTH moves — and for TRICK it
+ * is the only divergence there is.
+ *
+ * IT MUST STAGE BOTH MOVES OR IT CREDITS THE WRONG ONE. `switcheroo` appears on 19 sheets and `trick`
+ * on 522; a probe that tested only the move whose NAME is on the other defect would leave the
+ * 522-sheet member untested.
+ *
+ * The two decorations must be SEPARATE FIELDS. `[silent]` and `[from] move: X` folded into one string
+ * would be dropped whole by `display-flags`, taking the attribution with it. */
+probe('move', 'takesTargetItem', 'The side that hands over nothing gets its [silent] -enditem, for BOTH swap moves', () => {
+  const arms = ['switcheroo', 'trick'].map(mv => ({ mv,
+    empty: swapLines('choicescarf', '', mv),      /* the TARGET holds nothing */
+    both:  swapLines('choicescarf', 'leftovers', mv) }));
+  const ok = arms.every(a =>
+       a.empty.mine === '(none)' && a.empty.theirs === 'choicescarf'
+    && /^p1a[^|]*\|choicescarf\|\[silent\]\|\[from\] move: /.test(a.empty.endItems)
+    /* exactly ONE -enditem: the side that handed over nothing, and not both sides */
+    && a.empty.endItems.split(' ; ').length === 1
+    /* PLAIN CONTAINMENT, NOT A BUILT REGEX. The first cut of this line was
+     * `new RegExp('\[from\] move: ' + a.mv)`, which in a JS string collapses `\[` to a bare `[`
+     * -- so the pattern was the CHARACTER CLASS [from] followed by ` move: switcheroo`, and it could
+     * never match. The probe went red against an engine that was already correct. */
+    && a.empty.endItems.indexOf('[from] move: ' + a.mv) >= 0
+    && a.both.endItems === '');
+  return { works: ok,
+           arms: { control: 'both hold -> "' + arms[0].both.endItems + '"',
+                   test: 'target empty -> "' + arms[0].empty.endItems + '"' },
+           detail: arms.map(a => a.mv.toUpperCase() + ' with an empty-handed target writes "'
+                   + a.empty.endItems + '", and with both holding writes "' + (a.both.endItems || '(none)')
+                   + '"').join('; ')
+                 + '. The authority is data/moves.ts:18677 / :19898 — `-enditem`, the item the side gave '
+                 + 'away, `[silent]` and `[from]` as TWO fields. Trick is on 522 sheets to Switcheroo\'s '
+                 + '19, so staging both is what keeps the credit honest' };
 });
 
 /* WIRE 108 -- `trickortreat -> suckerpunch/upperhand`: `.B.active[0].types medi=["Poison"]

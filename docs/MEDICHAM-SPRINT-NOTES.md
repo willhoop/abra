@@ -21,6 +21,76 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## SWITCHEROO NAMED ITSELF WHERE THE AUTHORITY NAMES TRICK, AND NEITHER SWAP MOVE WROTE THE `[silent]` `-enditem`. 2026-08-28. CHANGELOG 5.198.0.
+
+**CENSUS 774 -> 776 LIVE / 776 PROBED / 0 MISSING. DIVERGING MECHANICS 8 -> 7, MOVES 6 -> 5 —
+`move:switcheroo` AND `move:trick` BOTH READ `NO-DIVERGENCE`. BOARD-MATERIAL UNMOVED AT 0 OF 961,
+WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 /
+475 WITH REDS 18/18, 29/29, 35/35. ALL PREDICTED BEFORE THE RUN.** Release `f440e4759f4e`, re-cut
+from `8a168b0d750d` after a CRLF restore, over a settled tree.
+
+**TWO DEFECTS IN ONE BLOCK, AND THEY WERE NOT ONE FIX.** The `_ti.swaps` arm of `kind:'trickitem'`
+had `TR.act(m,'move: '+a.mv)` — the CLICKED move's id, right for Trick by coincidence and wrong for
+Switcheroo — and two `if(itemOn(...))` guards with no `else`, so the authority's `[silent]`
+`-enditem` was never written for **either** move.
+
+**THE AUTHORITY.** `data/moves.ts:18666` (switcheroo) and `:19887` (trick) are the same statement and
+both write `'move: Trick'`. Champions overrides neither move (no `switcheroo:`/`trick:` key in
+`data/mods/champions/moves.ts`). Only the `[from]` on the item lines carries the clicker's own name.
+
+**DERIVED, NOT TYPED.** `announcesAs` is read off the handler's own `this.add('-activate', ...)`
+source onto `takesTargetItem`. Membership printed first: of 9 legal members, exactly the two Status
+swappers derive a value; `covet` and `thief` carry `swaps` but write no `-activate` and correctly
+derive none. The regeneration moved exactly **2 `params` rows** — the other 365 changed rows were
+`uses` counts moving because the store grew under the run, which is the instrument and not the change.
+
+**TWO SIGNATURE CHANGES, EACH WITH A REASON THAT IS NOT CONVENIENCE.** `TR.enditem` took a fifth
+field because `[silent]` and `[from]` must be SEPARATE fields — `display-flags` drops a field
+matching `^\[silent\]`, so folding them into one string would drop the attribution with the flag.
+`TR.act` took an `of` MON rather than a string because `ident` is scoped to the trace closure, the
+same reason `cant` and `enditem` already take one. The `[of]` **moves no counter** (the differ's
+`source-tag` rule strips it) and is there to match the authority byte for byte.
+
+**WHAT IS NOT CLOSED.** Both slots empty: the authority returns false out of the handler and fails
+the move; our guards are on the item values so neither `-enditem` fires, which is unchanged
+behaviour. The remaining `-activate` difference in that case is filed, not folded in.
+
+**THE PROBES.** Two census rows, red first, and `MEDI_SWAP_LINES_BLIND=1` reproduces the SAME two
+reds while leaving `trickSwapsItems` LIVE. The `-enditem` probe stages BOTH moves — Switcheroo is 19
+sheets and Trick is 522, so testing only the named one would credit the fix on the wrong member.
+
+**THE ARMS OF THE NAME PROBE NEED A WORD**, because the two arms AGREEING is the claim, which is
+normally the signature of an unwired knob. It is defeated inside the same stream: `[from] move: X`
+keeps the clicked move's own name and therefore DIFFERS across the identical two arms. One stream,
+two fields, opposite expectations.
+
+### MY PROBE WAS WRONG THREE TIMES BEFORE THE ENGINE WAS WRONG ONCE
+
+Recorded because the pattern is the lesson, not the bug. Every one of the three failed toward a
+comfortable answer — a red against an engine that was already correct.
+
+1. It asserted the literal `'move: trick'` and went red against an already-correct engine: the
+   derived value is the authority's own casing, `Trick`. Fixed by reading the expected name out of
+   `data/tags.json` instead of typing it.
+2. It sliced the trace line one field short, so the `-enditem` shape never matched.
+3. `new RegExp('\[from\] move: ' + mv)` in a JS string collapses `\[` to a bare `[`, so the pattern
+   was the CHARACTER CLASS `[from]` followed by ` move: switcheroo` and could never match. Replaced
+   with plain string containment, which has no escaping hazard.
+
+### AND ONE INSTRUMENT FAILURE THAT WAS MINE
+
+`tests/roster.js` plants two red demonstrations against anchors that hard-code `\r\n`
+(`roster.js:6812`, `:7726`). A Python edit that read with universal newlines and wrote with
+`newline=''` flattened `engine/medicham2-browser.js` to LF, so both anchors matched **zero** times
+and the moves stage read **33/35**. The roster said so precisely — *"an unapplied plant reads exactly
+like a comparator that found nothing"* — which is the check working as designed. `core.autocrlf` is
+`true` here, so the committed blob was never affected; content was verified identical modulo line
+endings before and after the restore. **The release was re-cut (`8a168b0d750d` -> `f440e4759f4e`) and
+every instrument re-run**, because a release that has drifted cannot carry an attribution.
+
+
+---
+
 ## BERSERK'S BOOST WAS ANNOUNCED ABOVE THE HIT COUNT AND THE AUTHORITY WRITES IT BELOW. 2026-08-28. CHANGELOG 5.197.0.
 
 **CENSUS 773 -> 774 LIVE / 774 PROBED / 0 MISSING. DIVERGING MECHANICS 9 -> 8, ABILITIES 2 -> 1.

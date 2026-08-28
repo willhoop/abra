@@ -124,6 +124,110 @@ _stamped 2026-08-28 02:03_
 
 <!-- /GENERATED -->
 
+## SWITCHEROO NAMED ITSELF WHERE THE AUTHORITY NAMES *TRICK*, AND NEITHER SWAP MOVE WROTE THE `[silent]` `-enditem` FOR THE EMPTY-HANDED SIDE. **CENSUS 774 -> 776 LIVE / 776 PROBED / 0 MISSING. DIVERGING MECHANICS 8 -> 7, MOVES 6 -> 5 — `switcheroo` AND `trick` BOTH `NO-DIVERGENCE`. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35 — ALL PREDICTED BEFORE THE RUN.** 2026-08-28.
+
+CHANGELOG 5.198.0. Release `f440e4759f4e` (re-cut from `8a168b0d750d` after a CRLF restore), cut
+over a settled tree (`0 of 26 files have moved since`), arm `middle`, cap 12, seed 20260804,
+`--games 1200` (yields 961), `--team-store data/team-pool-frozen`, census pin `9446a684709d`,
+`--state --end-state`.
+
+**TWO DEFECTS IN ONE BLOCK, AND THEY WERE NOT ONE FIX.** The `_ti.swaps` arm of `kind:'trickitem'`
+had `TR.act(m,'move: '+a.mv)` — the CLICKED move's id, right for Trick by coincidence and wrong for
+Switcheroo — and two `if(itemOn(...))` guards with no `else`, so the authority's `[silent]`
+`-enditem` was never written for **either** move.
+
+**THE AUTHORITY.** `data/moves.ts:18666` (switcheroo) and `:19887` (trick) are the same statement and
+both write `'move: Trick'`. Champions overrides neither move (no `switcheroo:`/`trick:` key in
+`data/mods/champions/moves.ts`). Only the `[from]` on the item lines carries the clicker's own name.
+
+**DERIVED, NOT TYPED.** `announcesAs` is read off the handler's own `this.add('-activate', ...)`
+source onto `takesTargetItem`. Membership printed first: of 9 legal members, exactly the two Status
+swappers derive a value; `covet` and `thief` carry `swaps` but write no `-activate` and correctly
+derive none. The regeneration moved exactly **2 `params` rows** — the other 365 changed rows were
+`uses` counts moving because the store grew under the run, which is the instrument and not the change.
+
+**TWO SIGNATURE CHANGES, EACH WITH A REASON THAT IS NOT CONVENIENCE.** `TR.enditem` took a fifth
+field because `[silent]` and `[from]` must be SEPARATE fields — `display-flags` drops a field
+matching `^\[silent\]`, so folding them into one string would drop the attribution with the flag.
+`TR.act` took an `of` MON rather than a string because `ident` is scoped to the trace closure, the
+same reason `cant` and `enditem` already take one. The `[of]` **moves no counter** (the differ's
+`source-tag` rule strips it) and is there to match the authority byte for byte.
+
+**WHAT IS NOT CLOSED.** Both slots empty: the authority returns false out of the handler and fails
+the move; our guards are on the item values so neither `-enditem` fires, which is unchanged
+behaviour. The remaining `-activate` difference in that case is filed, not folded in.
+
+**THE PROBES.** Two census rows, red first, and `MEDI_SWAP_LINES_BLIND=1` reproduces the SAME two
+reds while leaving `trickSwapsItems` LIVE. The `-enditem` probe stages BOTH moves — Switcheroo is 19
+sheets and Trick is 522, so testing only the named one would credit the fix on the wrong member.
+
+**THE ARMS OF THE NAME PROBE NEED A WORD**, because the two arms AGREEING is the claim, which is
+normally the signature of an unwired knob. It is defeated inside the same stream: `[from] move: X`
+keeps the clicked move's own name and therefore DIFFERS across the identical two arms. One stream,
+two fields, opposite expectations.
+
+### MY PROBE WAS WRONG THREE TIMES BEFORE THE ENGINE WAS WRONG ONCE
+
+Recorded because the pattern is the lesson, not the bug. Every one of the three failed toward a
+comfortable answer — a red against an engine that was already correct.
+
+1. It asserted the literal `'move: trick'` and went red against an already-correct engine: the
+   derived value is the authority's own casing, `Trick`. Fixed by reading the expected name out of
+   `data/tags.json` instead of typing it.
+2. It sliced the trace line one field short, so the `-enditem` shape never matched.
+3. `new RegExp('\[from\] move: ' + mv)` in a JS string collapses `\[` to a bare `[`, so the pattern
+   was the CHARACTER CLASS `[from]` followed by ` move: switcheroo` and could never match. Replaced
+   with plain string containment, which has no escaping hazard.
+
+### AND ONE INSTRUMENT FAILURE THAT WAS MINE
+
+`tests/roster.js` plants two red demonstrations against anchors that hard-code `\r\n`
+(`roster.js:6812`, `:7726`). A Python edit that read with universal newlines and wrote with
+`newline=''` flattened `engine/medicham2-browser.js` to LF, so both anchors matched **zero** times
+and the moves stage read **33/35**. The roster said so precisely — *"an unapplied plant reads exactly
+like a comparator that found nothing"* — which is the check working as designed. `core.autocrlf` is
+`true` here, so the committed blob was never affected; content was verified identical modulo line
+endings before and after the restore. **The release was re-cut (`8a168b0d750d` -> `f440e4759f4e`) and
+every instrument re-run**, because a release that has drifted cannot carry an attribution.
+
+
+### THE HAND LIST
+
+Covers this patch and nothing else.
+
+**Leaves it:** nothing carried in from the Berserk pass was touched here.
+
+**Joins it:**
+- **FOREWARN IS NOT A FREE NARRATION FIX — IT NEEDS A DIE.** Its `onStart` ends
+  `this.sample(warnMoves)` (`data/abilities.ts`, no Champions override), and `PRNG#sample` calls
+  `this.random(items.length)` **unconditionally, even for a one-element array** (`sim/prng.ts`). So
+  emitting `|-activate|BODY|ability: Forewarn|MOVE|[of] TARGET` requires matching a draw, not just
+  adding a line. Diagnosed, not attempted.
+- **HEAL BELL IS UNIMPLEMENTED, NOT MIS-ANNOUNCED.** It carries no cure tag at all — its tags are
+  `pp`, `targetClass`, `sound`, `neverMisses`, `noProtectFlag`, `statusCategory`,
+  `formatSecondaryCount`, none of which cures anything — and its row's board verdict is **STATE**
+  (5 boundaries, 4 agreed). It is a BUILD needing a new derived tag plus the Soundproof / Good as
+  Gold immunity announcements, and it is **board-material**.
+- **GASTRO ACID'S VERDICT MAY NOT BE TRUSTED.** Its row carries
+  `uncomparable_leaves: ["volatile:gastroacid"]` and `core_leaf_unchecked: true`, so
+  ANNOUNCEMENT-ONLY is not earned on it. The leaf must be wired into `board_state.js` or explicitly
+  declared before any verdict is quoted. **Checked before trusting, as instructed, and it did not
+  survive the check.**
+- **RECYCLE'S ROW IS RIPEN'S ANNOUNCEMENT, NOT RECYCLE'S.** The missing line is
+  `|-activate|BODY|ability: Ripen`, which the authority writes from `onTryEatItem` on **every** berry
+  eat by a Ripen holder — a different hook from the doubling, so it fires even for a berry whose
+  effect is not doubled. 2 legal carriers (Flapple, Appletun), `uses: 0`. `consumeBerry` is the one
+  consumption site and already runs before every caller's `TR.enditem`, so the line order falls out.
+- **THE `takesTargetItem` QUOTE-STYLE BUG** carried over from the Berserk pass, still unfixed: `eats`
+  is tested with single quotes only against a compiled dist body that uses double quotes, so Bug Bite
+  and Pluck are mis-derived.
+- **`MEDFAILS.swapActivateNameUnderived` AND `swapLinesBlindRestored` HAVE ONLY BEEN READ ON A STAGED
+  BOARD.** `game_differential.js` surfaces no `MEDFAILS`, so their pool-scale reading is unknown.
+- **PYTHON EDITS ON THIS REPO MUST PRESERVE CRLF.** Read *and* write with `newline=''`, or two roster
+  anchors stop matching and the moves stage silently drops two red demonstrations.
+
+---
+
 ## BERSERK ANNOUNCED ITS BOOST SEVEN STEPS TOO EARLY — THE AUTHORITY WRITES IT *BELOW* `-hitcount` AND THIS ENGINE WROTE IT ABOVE. **CENSUS 773 -> 774 LIVE / 774 PROBED / 0 MISSING. DIVERGING MECHANICS 9 -> 8, ABILITIES 2 -> 1. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35 — ALL PREDICTED BEFORE THE RUN. PIN DIGEST UNMOVED AT `ccb365985023`.** 2026-08-28.
 
 CHANGELOG 5.197.0. Release `b035aa665740`, cut over a settled tree (`0 of 26 files have moved

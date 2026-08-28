@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-28T06:35:18.138Z",
+  "generated": "2026-08-28T07:49:29.218Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 774,
-  "live": 774,
+  "probed": 776,
+  "live": 776,
   "missing": 0,
-  "armed": 774,
+  "armed": 776,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3723,7 +3723,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 25.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3764,6 +3764,26 @@
       "label": "Trick swaps the two items; Corrosive Gas only deletes; a mega stone does not move",
       "live": true,
       "detail": "Trick: user quickclaw -> (none), target (none) -> quickclaw; Corrosive Gas leaves the target (none); Trick at a Gengarite holder moves nothing (quickclaw / gengarite)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "takesTargetItem",
+      "label": "Switcheroo announces TRICK, and only the [from] carries its own name",
+      "live": true,
+      "detail": "SWITCHEROO writes \"|-activate|p1a|move: Trick\" and its item lines carry \"[from] move: switcheroo,[from] move: switcheroo\"; TRICK writes \"|-activate|p1a|move: Trick\" and \"[from] move: trick,[from] move: trick\". data/moves.ts:18666 and :19887 are the same statement and both say `move: Trick`, so the ACTIVATE agreeing is the claim and the [from] differing is what proves the probe can tell the two clicks apart. Items swapped on both arms",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "takesTargetItem",
+      "label": "The side that hands over nothing gets its [silent] -enditem, for BOTH swap moves",
+      "live": true,
+      "detail": "SWITCHEROO with an empty-handed target writes \"p1a: sableye|choicescarf|[silent]|[from] move: switcheroo\", and with both holding writes \"(none)\"; TRICK with an empty-handed target writes \"p1a: sableye|choicescarf|[silent]|[from] move: trick\", and with both holding writes \"(none)\". The authority is data/moves.ts:18677 / :19898 — `-enditem`, the item the side gave away, `[silent]` and `[from]` as TWO fields. Trick is on 522 sheets to Switcheroo's 19, so staging both is what keeps the credit honest",
       "hollow": false,
       "armed": true,
       "directCall": false

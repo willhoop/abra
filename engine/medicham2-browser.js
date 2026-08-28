@@ -2057,6 +2057,15 @@ const MEDFAILS = { encoreAction: 0,
   categoryPickBlindRestored: 0,
   /* 2026-08-28 -- MEDI_HP_THRESHOLD_BOOST_EARLY=1 is armed, so Berserk announces above `-hitcount`. */
   hpThresholdBoostEarlyRestored: 0,
+  /* 2026-08-28 -- THE ITEM-SWAP `-activate` FELL BACK TO THE CLICKED MOVE'S OWN NAME because
+     `takesTargetItem.announcesAs` was absent. The authority makes BOTH swap moves announce `Trick`
+     (data/moves.ts:18666 and :19887), so a non-zero reading means tag_dex stopped deriving the field
+     and Switcheroo has gone back to naming itself -- which is the exact defect the field was added to
+     close. A silent default here would look identical to a working deriver. MUST READ 0. */
+  swapActivateNameUnderived: 0, swapActivateNameUnderivedFirst: '',
+  /* 2026-08-28 -- MEDI_SWAP_LINES_BLIND=1 is armed, so Switcheroo names itself and the empty-handed
+     side gets no `-enditem`. MUST READ 0 on any shipping run. */
+  swapLinesBlindRestored: 0,
   /* 2026-08-27 -- THE SECOND, STILL-OPEN PRODUCER OF A MISSING `|-hitcount|`. A volley priced as 2+
      packets whose total was rewritten before application (a Focus Sash, an Endure, a busted Disguise)
      collapses to one packet, so `_landed` stays 0 and no count is announced — while the authority
@@ -3310,7 +3319,14 @@ const TRACE=(function(){
     /* `extra2` exists for ONE authority line shape and is named rather than smuggled: Spite's
      * `this.add('-activate', target, 'move: Spite', move.name, ppDeducted)` carries TWO trailing
      * fields. push() drops empties, so every existing two-field caller is unaffected. */
-    act(m,eff,extra,extra2){ this.push(['-activate',ident(m),eff,extra,extra2]); },
+    /* `of` is a MON, appended last and rendered `[of] <ident>`, added 2026-08-28 for the item-swap
+     * family: `this.add('-activate', source, 'move: Trick', `[of] ${target}`)` (data/moves.ts:18666,
+     * :19887). It takes the body rather than a string because `ident` is scoped to this closure, the
+     * same reason `cant` and `enditem` already take one. The single caller passes neither `extra` nor
+     * `extra2`, and push() drops empties, so the field lands in the authority's own position. `[of]`
+     * is stripped by the differ's declared `source-tag` rule (game_differential.js:2007), so this
+     * MOVES NO COUNTER and is here to match the authority byte for byte -- said so nobody credits it. */
+    act(m,eff,extra,extra2,of){ this.push(['-activate',ident(m),eff,extra,extra2,of?'[of] '+ident(of):'']); },
     /* THE ANNOUNCEMENT A HANDLER MAKES ABOUT ITSELF, OFF THE ARTIFACT'S `announce` RECORD.
      *
      * Two tag families have carriers that announce in DIFFERENT SHAPES -- `survivesFromFull` is
@@ -3509,7 +3525,16 @@ const TRACE=(function(){
     vend(m,eff,tag){ this.push(['-end',ident(m),eff,tag]); },
     /* --- items and abilities --- */
     item(m,it,from){ this.push(['-item',ident(m),it,from]); },
-    enditem(m,it,tag,of){ this.push(['-enditem',ident(m),it,tag,of?'[of] '+ident(of):'']); },
+    /* `extra` is a FIFTH field, added 2026-08-28 for the item-swap family's `[silent]` line, and it
+     * exists because the two decorations must be SEPARATE FIELDS rather than one concatenated string.
+     * The authority writes
+     *     this.add('-enditem', target, yourItem, '[silent]', '[from] move: Switcheroo')
+     * (data/moves.ts:18671 for switcheroo, :19892 for trick) -- four arguments, two of them tags. The
+     * differ's `display-flags` rule drops a FIELD matching /^\[silent\]/, so folding the two into
+     * `'[silent][from] move: switcheroo'` would drop the `[from]` along with the flag and quietly
+     * lose the attribution. push() drops empty fields, so every existing four-argument caller is
+     * unaffected -- the same shape `act`'s `extra2` and `prep`'s `extra` already use. */
+    enditem(m,it,tag,of,extra){ this.push(['-enditem',ident(m),it,tag,of?'[of] '+ident(of):'',extra]); },
     ab(m,a,extra){ this.push(['-ability',ident(m),a,extra]); },
     /* `|-transform|USER|TARGET` -- sim/pokemon.ts:1352, with the :1350 variant appending
      * `[from] <effect.fullname>` when something other than the move caused the copy. There is no
@@ -12088,6 +12113,13 @@ const NO_CATEGORY_PICK=(typeof process!=='undefined'&&process.env
  * a non-zero `MEDFAILS.hpThresholdBoostEarlyRestored`. */
 const HP_THRESHOLD_BOOST_EARLY=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_HP_THRESHOLD_BOOST_EARLY==='1');
+/* 2026-08-28 -- MEDI_SWAP_LINES_BLIND=1 PUTS THE ITEM-SWAP ANNOUNCEMENT BACK TO WHAT IT WAS: the
+ * `-activate` names the CLICKED move (so Switcheroo names itself), there is no `[of]`, and the side
+ * that handed over nothing gets NO `-enditem` at all. It reverts both statements together because
+ * they are one block and one revert, and it reproduces the SAME two reds rather than a third
+ * behaviour. Any run carrying it also carries a non-zero `MEDFAILS.swapLinesBlindRestored`. */
+const SWAP_LINES_BLIND=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_SWAP_LINES_BLIND==='1');
 const LATCH_FIELDS_WRITTEN=(function(){
   const S=new Set();
   try{
@@ -24798,9 +24830,47 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_ti.swaps){const _mi=itemLose(m),_yours=itemLose(t);
             if(_yours)itemGive(m,_yours);
             if(_mi)itemGive(t,_mi);
-            if(TR){TR.act(m,'move: '+a.mv);
+            /* 2026-08-28 -- THE `-activate` NAMES WHAT THE HANDLER ANNOUNCES, WHICH IS NOT THE
+             * CLICKED MOVE. Switcheroo's own onHit writes
+             *     this.add('-activate', source, 'move: Trick', `[of] ${target}`)   data/moves.ts:18666
+             * and Trick's is the identical statement at :19887. **Switcheroo announces TRICK.**
+             * Champions overrides neither move (no `switcheroo:`/`trick:` key in
+             * data/mods/champions/moves.ts). Only the `[from]` on the item lines below carries the
+             * clicker's own name, which is why `a.mv` is still used for those and not here.
+             *
+             * IT IS READ OFF THE ARTIFACT, NEVER TYPED. `announcesAs` is derived by tag_dex from the
+             * handler's own `this.add('-activate', ...)` source, so a rename upstream arrives here
+             * with no edit. Membership was printed before it was wired: of the 9 legal members of
+             * `takesTargetItem`, exactly `switcheroo` and `trick` derive a value ("Trick") and the
+             * other seven derive none -- including `covet` and `thief`, which also carry `swaps` but
+             * whose handlers write no `-activate` at all. The fallback is COUNTED rather than silent,
+             * because a silent default here looks exactly like a working deriver. */
+            if(TR&&SWAP_LINES_BLIND){MEDFAILS.swapLinesBlindRestored=1;
+                   TR.act(m,'move: '+a.mv);
                    if(itemOn(t))TR.item(t,itemOn(t),'[from] move: '+a.mv);
-                   if(itemOn(m))TR.item(m,itemOn(m),'[from] move: '+a.mv);}}
+                   if(itemOn(m))TR.item(m,itemOn(m),'[from] move: '+a.mv);}
+            else if(TR){let _an=_ti.announcesAs;
+                   if(!_an){MEDFAILS.swapActivateNameUnderived++;
+                            if(!MEDFAILS.swapActivateNameUnderivedFirst)MEDFAILS.swapActivateNameUnderivedFirst=a.mv;
+                            _an=a.mv;}
+                   TR.act(m,'move: '+_an,null,null,t);
+                   /* THE AUTHORITY'S OWN IF/ELSE, data/moves.ts:18668-18678. The side that RECEIVED
+                    * something gets `-item`; the side that received NOTHING gets a `[silent]`
+                    * `-enditem` naming the item it just handed away. The branch is taken on the value
+                    * that was TAKEN (`_mi` is the authority's `myItem`, `_yours` its `yourItem`),
+                    * which is the condition the authority uses -- while the `-item` lines keep
+                    * reading `itemOn` after the gives, exactly as before, so a give that was refused
+                    * still announces nothing rather than announcing a swap that did not happen.
+                    *
+                    * BOTH SLOTS EMPTY IS NOT HANDLED HERE AND IS NOT CLAIMED: the authority returns
+                    * false out of the handler (`!yourItem && !myItem`, :18656) and fails the move. Our
+                    * guards below are on the item VALUES, so neither `-enditem` fires in that case --
+                    * unchanged behaviour, and the remaining `-activate` difference is a separate
+                    * defect that is filed rather than folded in here. */
+                   if(itemOn(t))TR.item(t,itemOn(t),'[from] move: '+a.mv);
+                   else if(_yours)TR.enditem(t,_yours,'[silent]',null,'[from] move: '+a.mv);
+                   if(itemOn(m))TR.item(m,itemOn(m),'[from] move: '+a.mv);
+                   else if(_mi)TR.enditem(m,_mi,'[silent]',null,'[from] move: '+a.mv);}}
           else if(_ti.removes){const _lost=itemLose(t);
             if(TR&&_lost)TR.enditem(t,_lost,'[from] move: '+a.mv,m);
             /* THE EMPTY-HANDED TARGET IS ANNOUNCED, and it is the handler's own line rather than the
