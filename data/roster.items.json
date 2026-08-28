@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-27T23:24:07.690Z",
+ "generated": "2026-08-28T00:26:24.340Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "5ed4753b7322",
+ "engine_release": "345f4193d440",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -13,7 +13,7 @@
   "COULD-NOT-STAGE": 8
  },
  "arms_played": {
-  "top-tie-first": 280
+  "top-tie-first": 306
  },
  "scope": {
   "total": 148,
@@ -31,7 +31,225 @@
   "could_not_stage_in_scope": 8,
   "attributed_by_second_control": []
  },
- "reds": [],
+ "reds": [
+  {
+   "rule": "item/mega-stone",
+   "ok": true,
+   "why": "the mega transformation is skipped — the choice is still made and still accepted, so only the FORME goes missing",
+   "moved": {
+    "member": "abomasite",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.species",
+     "species"
+    ]
+   }
+  },
+  {
+   "rule": "item/resist-berry",
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: if(_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1))MODMUL((_rb.mult|"
+  },
+  {
+   "rule": "item/drain-scaled",
+   "ok": false,
+   "declared": true,
+   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Big Root (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+  },
+  {
+   "rule": "item/type-scoped-power",
+   "ok": true,
+   "why": "the type-scoped item multiplier is dropped entirely",
+   "moved": {
+    "member": "blackbelt",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/accuracy-scaled",
+   "ok": true,
+   "why": "the accuracy modifier row is dropped, so every holder reads as untabled",
+   "moved": {
+    "member": "brightpowder",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/status-cure",
+   "ok": true,
+   "why": "the status cure is skipped — the berry is still held",
+   "moved": {
+    "member": "cheriberry",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.status",
+     "party.item",
+     "status",
+     "item"
+    ]
+   }
+  },
+  {
+   "rule": "item/speed-scaled",
+   "ok": true,
+   "why": "the item speed multiplier is dropped from the speed used to order the turn",
+   "moved": {
+    "member": "choicescarf",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "party.status",
+     "hp",
+     "fainted",
+     "status",
+     "species",
+     "maxhp",
+     "item",
+     "types",
+     "ability",
+     "pp.xscissor"
+    ]
+   }
+  },
+  {
+   "rule": "item/extends-a-duration",
+   "ok": true,
+   "why": "the duration extension is dropped and the base length is written instead",
+   "moved": {
+    "member": "damprock",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "field.weather_turns"
+    ]
+   }
+  },
+  {
+   "rule": "item/super-effective-power",
+   "ok": true,
+   "why": "the super-effective damage multiplier is dropped",
+   "moved": {
+    "member": "expertbelt",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/hp-floor",
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg"
+  },
+  {
+   "rule": "item/residual-heal",
+   "ok": true,
+   "why": "the passive heal is skipped — the item is still held and still on the board",
+   "moved": {
+    "member": "leftovers",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/all-damage-and-cost",
+   "ok": true,
+   "why": "the flat damage multiplier is dropped; the self-cost is left alone, so a break that moves only the target's HP is the localisation",
+   "moved": {
+    "member": "lifeorb",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/species-locked-stat",
+   "ok": false,
+   "declared": true,
+   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Light Ball (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+  },
+  {
+   "rule": "item/cures-a-volatile",
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const _mh=TAGS.param('item',_who.item,'curesVolatile');"
+  },
+  {
+   "rule": "item/category-scoped-power",
+   "ok": true,
+   "why": "the category-scoped base-power multiplier is dropped (it is a hardcoded NAME check in the simulator, not a tag read — see the rule comment)",
+   "moved": {
+    "member": "muscleband",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/heals-at-threshold",
+   "ok": false,
+   "why": "the threshold heal is skipped",
+   "moved": null
+  },
+  {
+   "rule": "item/heal-on-attack",
+   "ok": false,
+   "declared": true,
+   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Shell Bell (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+  },
+  {
+   "rule": "item/restores-lowered-stats",
+   "ok": true,
+   "why": "the stat restoration is skipped",
+   "moved": {
+    "member": "whiteherb",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.item",
+     "party.boosts.atk",
+     "item",
+     "boosts.atk"
+    ]
+   }
+  }
+ ],
  "mirror": {
   "pairs": 0,
   "same_numbers_swapped": []

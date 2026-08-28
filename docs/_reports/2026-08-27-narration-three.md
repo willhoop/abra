@@ -181,6 +181,31 @@ expected to sit still and did.
 
 ---
 
+## THE ONE THING THAT WENT THE OTHER WAY — ROADMAP #513, FILED
+
+Re-writing the three roster artifacts under the session's final release (so the gate would stop
+reading a roster measured against a different engine) required `--write`, and the command block in
+`docs/MEDICHAM-SPRINT-NOTES.md` also names `--reds`. **Every roster artifact on disk carried
+`reds: []`** — the runs that wrote them had not passed the flag — so `quarantine.js`'s
+*"N red demonstration(s) did not behave as their rule predicted"* sub-clause has been dormant.
+
+Passing it populates the block and turns three PASSing clauses FAIL: **items 7, abilities 8, moves
+15** of 18 / 29 / 35 red demonstrations do not behave as their rule predicts.
+
+**IT IS NOT THIS SESSION'S PATCHES.** `--reds` re-run against the PRE-SESSION release
+`5ed4753b7322` returns **7 / 8 / 15 with a byte-identical list of rule names** in all three stages.
+
+**THE CONDITION CLAUDE.md NAMES IS STILL CLEAN** — 0 `FIRED-AND-BOARDS-DIFFER`, 0 `DID-NOT-FIRE`
+across 139 / 129 / 475 tested, before and after. The gate is stricter than the written sentence.
+
+**NOT LAUNDERED.** Re-running without `--reds` would restore three green clauses by deleting the
+answer, and was rejected on those grounds.
+
+**`6 of 8 PASS` AND `3 of 8 PASS` ARE NOT A BEFORE AND AN AFTER** — they are computed over artifacts
+with and without a `reds` block, which is two instruments, not a movement.
+
+---
+
 ## OWED, NOT RUN
 
 - **ROADMAP #511 — the collapse road.** A multi-hit into a Focus Sash, an Endure or a busted Disguise

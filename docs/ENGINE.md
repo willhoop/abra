@@ -126,6 +126,43 @@ _stamped 2026-08-27 19:37_
 
 <!-- /GENERATED -->
 
+## THE ROSTER'S RED DEMONSTRATIONS HAD NEVER BEEN WRITTEN INTO THE ARTIFACT, SO A GATE CLAUSE THAT READS THEM HAD NOTHING TO FAIL ON. **ITEMS 7, ABILITIES 8, MOVES 15 RED DEMONSTRATIONS DO NOT BEHAVE AS THEIR RULE PREDICTS — AND THE SAME 30, BY NAME, ON THE PRE-SESSION RELEASE. INSTRUMENT, NOT ENGINE.** 2026-08-27.
+
+ROADMAP `#513` filed. Release `345f4193d440`. CHANGELOG 5.191.0.
+
+**HOW IT SURFACED.** The three roster stages were re-run and re-written under the session's final
+release so the quarantine gate would stop reading artifacts measured against a different engine. The
+command block in this file names `--reds`; every artifact on disk carried `reds: []`, so the runs
+that wrote them had not passed it. Passing it populates the block and turns three PASSing clauses
+FAIL on a sub-clause that has been dormant since it was written.
+
+**IT IS NOT THIS SESSION'S THREE PATCHES, AND THAT IS MEASURED.** `--reds` re-run against the
+PRE-SESSION release `5ed4753b7322` returns **7 / 8 / 15 with a byte-identical list of rule names** in
+all three stages. Nothing in the hit-count, partial-trap or fatigue patches moved a single one.
+
+**THE VERDICT COLUMNS THE QUARANTINE CONDITION NAMES ARE STILL CLEAN.** CLAUDE.md's lift condition is
+*"the deliberate roster shows no `FIRED-AND-BOARDS-DIFFER` and no `DID-NOT-FIRE` across items,
+abilities and moves"*, and that reads **0 and 0 across 139 / 129 / 475 tested**, before and after.
+The gate is STRICTER than the written condition. That gap is the finding.
+
+**THREE SHAPES, ALL INSTRUMENT-SIDE.**
+
+| shape | n | what it means |
+|---|---|---|
+| the anchor matched 0 or 2 times, not exactly once | 15 | an unapplied plant reads exactly like a comparator that found nothing — the demonstration proves nothing either way |
+| the declaration is FALSE | 7 | the rule says the simulator has no implementation of the family and a member is `FIRED-AND-BOARDS-MATCH`: Big Root, Light Ball, Shell Bell, Healing Wish, Rest, Spit Up, Wish |
+| the plant fired and moved no row | 8 | e.g. `ability/damage-taken-scoped`, `ability/weather-residual`, `move/variable-power`, `move/multihit` |
+
+**NOT LAUNDERED, AND THE ALTERNATIVE WAS CONSIDERED.** Re-running without `--reds` would restore
+three green clauses by deleting the answer. A gate does not become satisfied because the question
+stopped being asked, and *"a caption is not a quarantine"* cuts the same way in the opposite
+direction. The honest artifact is what is published.
+
+**A BEFORE/AFTER ON THE CLAUSE COUNT IS NOT AVAILABLE AND MUST NOT BE QUOTED AS ONE.** `6 of 8 PASS`
+was computed over artifacts carrying no reds; `3 of 8 PASS` is computed over artifacts that carry
+them. Those are two different instruments, exactly like a mechanics count taken either side of a
+census regeneration.
+
 ## A LOCK'S FATIGUE CONFUSION WAS MISSING ITS `[fatigue]` TAG *AND* SAT AT THE WRONG POSITION IN THE TURN — THE AUTHORITY FATIGUES INSIDE THE MOVE, NOT AT THE RESIDUAL. **WHOLE-GAME 2 -> 1 OF 961 AND RAW DIVERGED 7 -> 6, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. ROSTER 139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
 
 ROADMAP `#506` closed. Release `345f4193d440`. CHANGELOG 5.190.0.

@@ -10,6 +10,33 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.191.0] — 2026-08-27
+
+### Changed
+- The three `data/roster.{items,abilities,moves}.json` artifacts re-run and re-written under release
+  `345f4193d440`, so the quarantine gate stops reading a roster measured against a different engine.
+  **0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE` across 139 / 129 / 475 tested, unmoved.**
+
+### Notes
+- **THE ROSTER'S RED DEMONSTRATIONS HAD NEVER BEEN WRITTEN INTO THE ARTIFACT, SO A GATE CLAUSE THAT
+  READS THEM HAD NOTHING TO FAIL ON.** ROADMAP `#513` filed. Every artifact on disk carried
+  `reds: []`; the runs that wrote them had not passed `--reds`, despite the command block in
+  `docs/MEDICHAM-SPRINT-NOTES.md` naming it. Passing it populates the block and turns three PASSing
+  clauses FAIL: **items 7, abilities 8, moves 15 red demonstrations do not behave as their rule
+  predicts.**
+  - **NOT THIS SESSION'S PATCHES, MEASURED RATHER THAN ASSERTED.** `--reds` re-run against the
+    pre-session release `5ed4753b7322` returns 7 / 8 / 15 with a **byte-identical list of rule
+    names** in all three stages.
+  - **THE CONDITION CLAUDE.md ACTUALLY NAMES IS STILL CLEAN** — no `FIRED-AND-BOARDS-DIFFER`, no
+    `DID-NOT-FIRE`. The gate is stricter than the written condition, and that gap is the finding.
+  - **NOT LAUNDERED.** Re-running without `--reds` would restore three green clauses by deleting the
+    answer. A gate does not become satisfied because the question stopped being asked.
+  - **`6 of 8 PASS` AND `3 of 8 PASS` ARE NOT A BEFORE AND AN AFTER.** They are computed over
+    artifacts with and without a `reds` block — two different instruments, and quoting the pair as a
+    movement would be the census-regeneration error in a new costume.
+
+---
+
 ## [5.190.0] — 2026-08-27
 
 ### Fixed

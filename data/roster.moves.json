@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-27T23:24:33.816Z",
+ "generated": "2026-08-28T00:27:12.971Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "5ed4753b7322",
+ "engine_release": "345f4193d440",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -13,8 +13,8 @@
   "COULD-NOT-STAGE": 22
  },
  "arms_played": {
-  "top-tie-first": 741,
-  "bottom-tie-first": 246
+  "top-tie-first": 883,
+  "bottom-tie-first": 288
  },
  "scope": {
   "total": 500,
@@ -32,7 +32,418 @@
   "could_not_stage_in_scope": 22,
   "attributed_by_second_control": []
  },
- "reds": [],
+ "reds": [
+  {
+   "rule": "move/priority",
+   "ok": true,
+   "why": "every move resolves in bracket 0, so a priority click no longer outruns a faster foe",
+   "moved": {
+    "member": "accelerock",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "move/boosts-self",
+   "ok": false,
+   "why": "the anchor matched 2 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: if(a.kind==='setup'){"
+  },
+  {
+   "rule": "move/plain-attack",
+   "ok": true,
+   "why": "every damage roll is halved",
+   "moved": {
+    "member": "axekick",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": true,
+    "was": "DEFERRED-BY-OWNER",
+    "fields": [
+     "vol.confusion",
+     "party.hp",
+     "hp",
+     "vol.focusenergy",
+     "pp.focusenergy"
+    ]
+   }
+  },
+  {
+   "rule": "move/variable-power",
+   "ok": false,
+   "why": "every damage roll is halved",
+   "moved": null
+  },
+  {
+   "rule": "move/needs-a-stat-stage-to-act-on",
+   "ok": false,
+   "why": "a stat stage written by a move's own boost block is dropped, so there is nothing for the subject to clear, copy, invert or swap",
+   "moved": null
+  },
+  {
+   "rule": "move/crit",
+   "ok": true,
+   "why": "a critical hit stops being worth x1.5 — it still lands, still ignores the defender's positive stages and still ignores screens",
+   "moved": {
+    "member": "aircutter",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "move/needs-the-user-off-full-hp",
+   "ok": true,
+   "why": "a residual volatile takes HP off its victim and returns NOTHING to the body it is supposed to heal — the only residual heal path in this engine",
+   "moved": {
+    "member": "leechseed",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "move/self-boosts-after",
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const sdrop=connected?a.move.mv.self:null;"
+  },
+  {
+   "rule": "move/volatile",
+   "ok": true,
+   "why": "the move-sealing volatiles (Taunt, Encore, Disable) land with the bare 1-turn fallback instead of the duration the artifact carries — the counter is what this family is compared on",
+   "moved": {
+    "member": "disable",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "vol.disable"
+    ]
+   }
+  },
+  {
+   "rule": "move/needs-the-sky-it-names",
+   "ok": true,
+   "why": "a weather set by a move is never written to the field",
+   "moved": {
+    "member": "auroraveil",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "screens.physical",
+     "screens.special",
+     "screens.named.auroraveil"
+    ]
+   }
+  },
+  {
+   "rule": "move/boosts-target",
+   "ok": true,
+   "why": "the target's stat stage is left where it was — the move still resolves, still announces and still spends the turn",
+   "moved": {
+    "member": "babydolleyes",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.boosts.atk",
+     "boosts.atk"
+    ]
+   }
+  },
+  {
+   "rule": "move/protect-family",
+   "ok": true,
+   "why": "the shield is never raised — the click still resolves and still spends the turn",
+   "moved": {
+    "member": "banefulbunker",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "party.status",
+     "species",
+     "hp",
+     "maxhp",
+     "types",
+     "ability",
+     "stall",
+     "pp.banefulbunker"
+    ]
+   }
+  },
+  {
+   "rule": "move/self-switch",
+   "ok": false,
+   "why": "a move-driven switch is never classified as one, so the user stays on the field",
+   "moved": null
+  },
+  {
+   "rule": "move/needs-a-berry-already-eaten",
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: m.curHP=Math.min(m.st.hp,m.curHP+_amt);m.item='';"
+  },
+  {
+   "rule": "move/drain",
+   "ok": false,
+   "why": "the drain heal is skipped and the damage is left alone, so a break that moves ONLY the user's HP is the localisation",
+   "moved": null
+  },
+  {
+   "rule": "move/recharge",
+   "ok": false,
+   "why": "every damage roll is halved, so the hit this rule DOES stage moves",
+   "moved": null
+  },
+  {
+   "rule": "move/multihit",
+   "ok": false,
+   "why": "a multi-hit move lands exactly ONE hit — which is the defect this family was written against",
+   "moved": null
+  },
+  {
+   "rule": "move/charge",
+   "ok": true,
+   "why": "the wind-up is skipped — the move resolves on the turn it is clicked",
+   "moved": {
+    "member": "bounce",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "vol.charging",
+     "party.hp",
+     "party.status",
+     "hp",
+     "status",
+     "vol.focusenergy",
+     "pp.focusenergy"
+    ]
+   }
+  },
+  {
+   "rule": "move/recoil",
+   "ok": true,
+   "why": "the recoil is never paid — the damage still lands",
+   "moved": {
+    "member": "bravebird",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "move/force-switch",
+   "ok": true,
+   "why": "the phaze never removes anybody — the move still resolves and still spends the turn",
+   "moved": {
+    "member": "roar",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "species",
+     "hp",
+     "maxhp",
+     "types",
+     "ability",
+     "vol.focusenergy",
+     "pp.focusenergy"
+    ]
+   }
+  },
+  {
+   "rule": "move/fixed-damage",
+   "ok": false,
+   "why": "the fixed-damage branch is skipped — the click still resolves and still spends the turn",
+   "moved": null
+  },
+  {
+   "rule": "move/terrain-setter",
+   "ok": true,
+   "why": "the terrain is never written to the field",
+   "moved": {
+    "member": "electricterrain",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "field.terrain",
+     "field.terrain_turns"
+    ]
+   }
+  },
+  {
+   "rule": "move/needs-the-terrain-it-names",
+   "ok": true,
+   "why": "a terrain set by a move is never written to the field",
+   "moved": {
+    "member": "steelroller",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "move/pseudo-weather",
+   "ok": true,
+   "why": "the room is never set — the click still resolves and still spends the turn",
+   "moved": {
+    "member": "trickroom",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "field.trickroom_turns"
+    ]
+   }
+  },
+  {
+   "rule": "move/ohko",
+   "ok": true,
+   "why": "an OHKO deals 1 point instead of the target's whole HP, so the body survives",
+   "moved": {
+    "member": "fissure",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "party.status",
+     "hp",
+     "fainted",
+     "status"
+    ]
+   }
+  },
+  {
+   "rule": "move/status-inflict",
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: function applyStatus(t,st,src){"
+  },
+  {
+   "rule": "move/the-user-faints-and-the-replacement-arrives-restored",
+   "ok": false,
+   "declared": true,
+   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Healing Wish (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+  },
+  {
+   "rule": "move/heals-a-body-that-was-damaged-first",
+   "ok": true,
+   "why": "the heal is skipped — the click still resolves and still spends the turn",
+   "moved": {
+    "member": "lifedew",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "move/side-condition",
+   "ok": true,
+   "why": "a screen is never raised — the click still resolves and still spends the turn",
+   "moved": {
+    "member": "lightscreen",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "screens.special",
+     "screens.named.lightscreen"
+    ]
+   }
+  },
+  {
+   "rule": "move/weather-setter",
+   "ok": true,
+   "why": "the weather is never written to the field — the click still resolves and still spends the turn",
+   "moved": {
+    "member": "raindance",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "field.weather",
+     "field.weather_turns"
+    ]
+   }
+  },
+  {
+   "rule": "move/heal",
+   "ok": true,
+   "why": "the heal is skipped — the click still resolves and still spends the turn",
+   "moved": {
+    "member": "recover",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "move/full-heal-that-also-writes-a-status-onto-its-user",
+   "ok": false,
+   "declared": true,
+   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Rest (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+  },
+  {
+   "rule": "move/needs-a-volatile-set-first",
+   "ok": false,
+   "declared": true,
+   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Spit Up (FIRED-AND-BOARDS-MATCH), Swallow (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+  },
+  {
+   "rule": "move/type-changing",
+   "ok": true,
+   "why": "the weather-driven TYPE conversion is dropped from the damage path; the base-power doubling on the same line is left alone",
+   "moved": {
+    "member": "weatherball",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "move/heals-the-slot-a-turn-later-across-a-switch",
+   "ok": false,
+   "declared": true,
+   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Wish (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+  }
+ ],
  "mirror": {
   "pairs": 0,
   "same_numbers_swapped": []
