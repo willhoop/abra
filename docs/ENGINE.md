@@ -102,8 +102,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  765/765 probed mechanics live, 0 missing   (census 2026-08-27 19:17)
-  0/6000 differential comparisons disagree with Showdown   (2026-08-27 18:20)
+  765/765 probed mechanics live, 0 missing   (census 2026-08-27 20:18)
+  0/6000 differential comparisons disagree with Showdown   (2026-08-27 20:15)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
@@ -117,12 +117,10 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is b0bc53b19867 now
     (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: WITHHELD — engine/provenance.js calls data/tags.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    it becomes quotable again when this is re-run: node engine/tag_dex.js
+  tag coverage: 280/296 probed, 16 unprobed
 ```
 
-_stamped 2026-08-27 19:37_
+_stamped 2026-08-27 20:32_
 
 <!-- /GENERATED -->
 
@@ -162,6 +160,40 @@ direction. The honest artifact is what is published.
 was computed over artifacts carrying no reds; `3 of 8 PASS` is computed over artifacts that carry
 them. Those are two different instruments, exactly like a mechanics count taken either side of a
 census regeneration.
+
+### THE HAND LIST
+
+Covers the whole of the 2026-08-27 narration batch — the hit-count line, the partial-trap `-end`,
+and the `[fatigue]` tag and its position.
+
+**Leaves it:** **ROADMAP #506** — *"`|-start|…|confusion` is missing `[fatigue]` when a lock
+expires"* — is closed and carried by `tests/probe_fatigue_tag.js`, which also found and closed the
+half the row did not name (the line's POSITION in the turn). The two `<> |upkeep` rows that were open
+against the pool leave with it, carried by `tests/probe_upkeep_lines.js --only hitcount` and
+`--only trap`.
+
+**Joins it:**
+- **ROADMAP #511 — a multi-hit volley whose total is rewritten before application drops its
+  `-hitcount` entirely.** The second producer of the symptom #510 closed, deliberately not papered
+  over with an invented `1`. Counted at `MEDFAILS.hitCountDroppedOnCollapse`; no fixture stages a
+  collapsing volley, so its reach is unknown. A fourth arm of `probe_upkeep_lines.js` staging a
+  multi-hit into a Focus Sash would close it.
+- **ROADMAP #513 — the roster's red demonstrations had never been written into the artifact.** Items
+  7, abilities 8, moves 15 of 18 / 29 / 35 do not behave as their rule predicts, in three
+  instrument-side shapes: an anchor matching 0 or 2 times rather than once, a declaration that is
+  FALSE (Big Root, Light Ball, Shell Bell, Healing Wish, Rest, Spit Up, Wish), and a plant that fired
+  and moved no row. The FALSE DECLARATIONS are the cheapest and are pure register hygiene.
+- **The partial trap's `!source.activeTurns` clause.** Showdown ends the trap when the trapper
+  entered the field THIS turn; this engine has no counterpart. Its own fixture: trap lands, trapper
+  switches out, trapper switches back in on the turn of the next residual.
+- **A locked move that MISSED still fatigues at the residual here.** The authority raises `AfterMove`
+  on a miss, so its lock expires at move time there. The state agrees; only the position differs, and
+  it was not measured.
+- **ROADMAP #507 — Healer and Shed Skin draw unconditionally where the authority checks first.**
+  Carried over unchanged from the previous batch; nothing in this one touched it.
+- **The whole-game baseline is still stamped under a two-generation-old pin** (`2efbc9ed1946` against
+  this run's `ccb365985023`), so `quarantine.js` withholds direction of travel and is right to.
+  Re-stamping is a decision about which pin is meant to be held and was not taken here either.
 
 ## A LOCK'S FATIGUE CONFUSION WAS MISSING ITS `[fatigue]` TAG *AND* SAT AT THE WRONG POSITION IN THE TURN — THE AUTHORITY FATIGUES INSIDE THE MOVE, NOT AT THE RESIDUAL. **WHOLE-GAME 2 -> 1 OF 961 AND RAW DIVERGED 7 -> 6, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. ROSTER 139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
 
