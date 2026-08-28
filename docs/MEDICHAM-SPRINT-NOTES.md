@@ -21,6 +21,69 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## TWO DIAGNOSIS PROBES RESCUED FROM UNTRACKED, AND **NEITHER IS LANDED GREEN**. 2026-08-28.
+
+`tests/probe_berserk_switcheroo.js` and `tests/probe_instruct_shield.js` were written on 2026-08-27 by
+diagnosis agents and left uncommitted because their subjects were out of scope for the batch that
+would have carried them. Untracked is unrecoverable, so they are landed as-is. **Neither is registered
+as a gate** — `tests/run-all.js` globs `tests/test-*.js` and probes are not discovered, so landing
+them adds two rows to the `--coverage` unaccounted list rather than two passing checks. That is the
+correct state for a probe whose subject is still open.
+
+**EXIT CODES, MEASURED UNPIPED** (a `| tail` returns TAIL's code, which briefly made a red probe look
+green earlier in the same night):
+
+| probe | exit | why |
+|---|---|---|
+| `tests/probe_instruct_shield.js --release aea838766e7f` | **1 — RED, subject unfixed** | 5 arms staged, 3 failing. The three shield arms part; **both controls held.** |
+| `tests/probe_berserk_switcheroo.js` | **1 — RED, but NOT for its subject** | see below |
+
+**THE INSTRUCT RESULT IS THE ONE THE PROBE WAS WRITTEN FOR AND IT STILL READS.** Against release
+`aea838766e7f`, Protect / Spiky Shield / Baneful Bunker each part at the same reduced line — the
+authority writes `|-activate|<target>|move: Protect` and this engine writes
+`|-singleturn|<target>|move: Instruct|[of] <mover>` and then **runs a second click**
+(`MEDSEEN.instructRepeat = 1` on all three). The `instruct` branch calls `shieldRefuses` nowhere. The
+two controls are what stop that being read as "Instruct is dead here": the King's Shield arm
+(`shieldsUser.blocksStatus=false`, the only member of the family with `failinstruct`) HELD, and the
+cleared-shield arm HELD with `instructRepeat = 1`. So a patch that refused every Instruct would fail
+this file.
+
+**THE BERSERK HALF IS RED BECAUSE ITS DEFECT IS GONE, AND THAT IS A FINDING RATHER THAN A FAILURE.**
+Section A sets `RC = 1` on the branch `THE DRIVER RECORDED NO DIVERGENCE — nothing to attribute`. On
+the live tree it now records none: both engines print **HITCOUNT FIRST**
+(`|-hitcount| -> |-ability|berserk|boost -> |-boost|spa|1`), which is the ordering
+`data/all-mechanics-fire.json`'s `ability/berserk` row was opened against. **The comparability plant
+passed** — the carrier's live `boosts.sa` was corrupted +3 at the boundary and `board_state.js` caught
+it on two paths (`party.boosts.spa`, `active[].boosts.spa`), so this is a leaf that IS compared rather
+than a leaf that reads agreement because nobody looks at it. The probe's exit code was left alone:
+rewriting it to exit 0 would be authoring a verdict inside a rescue.
+
+**FOUR GENUINELY SILENT CATCH BLOCKS WERE FIXED, NOT ACCEPTED BY HASH.** All four were
+`catch (e) { continue; }` inside the two hpBoost retry loops at the foot of the Berserk half. Each one
+could turn a thrown harness into the words **`COULD NOT STAGE -- a claim about the fixture`** — and a
+COULD-NOT-STAGE verdict is a claim about the fixture, never about the mechanic, so the silence would
+have laundered a broken harness into a fact about the format. Every skip now records its reason
+(`buildPair THREW`, `playGame THREW`, `returned null`, `reported err`) and prints it, and the verdict
+line reads `COULD NOT STAGE -- AND THE HARNESS THREW (see above). This is NOT a claim about the
+fixture.` when any reason was a throw. On this run nothing threw, both arms staged, and the skip list
+printed empty. `node tests/test-no-silent-failure.js --only <both files>` exits **0** with no
+acceptance recorded.
+
+**FIXTURE LEGALITY WAS DERIVED, NOT ASSERTED.** The Berserk half walks the format filtered
+(`exists && !isNonstandard && tier !== 'Illegal'`) and every body, move and item it names came out of
+that walk. The Instruct probe names species keys inline but checks each one against the format before
+staging and exits 2 on any illegal fixture; it staged 5 arms, so all of them are legal here. It also
+prints the derived population — **Oranguru is the only legal Instruct user in this regulation.**
+
+**HOW THE BERSERK PROBE WAS RUN, AND THE CAVEAT THAT COMES WITH IT.** It has no `--release` flag and
+cuts one at require time, so it was run bare and `tests/_live_release.js` redirected the cut to the OS
+temp store; `data/releases/` and `data/engine-release.json` were untouched. That means it froze the
+**live working tree**, which had another agent's in-flight `engine/medicham2-browser.js` in it. It is
+a diagnostic and not a measurement, and its release id exists only in a temp directory — **no figure
+from that run may be published.**
+
+---
+
 ## FOUR STATE FIXES, LANDED ONE AT A TIME WITH A MEASUREMENT AND AN ATTRIBUTION BETWEEN EACH. **CENSUS 766 -> 773 LIVE / 773 PROBED / 0 MISSING. GATE 5 OF 8 PASS -> 6 OF 8. MECHANICS CLAUSE 4 OF 11 -> 2 OF 9. BOARD-MATERIAL 0 OF 961 AFTER EVERY ONE OF THE FOUR, WHOLE-GAME UNMOVED AT 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS AFTER EACH PATCH — ALL PREDICTED BEFORE THE RUNS. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-28.
 
 ROADMAP `#519`, `#514` (closed), `#517`, `#518`. Releases `ccd5c7f5a5d7` -> `cff226e4eef5` ->
