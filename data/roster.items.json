@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-28T00:26:24.340Z",
+ "generated": "2026-08-28T01:06:23.556Z",
  "by": "tests/roster.js",
  "stage": "items",
  "engine_release": "345f4193d440",
@@ -13,7 +13,7 @@
   "COULD-NOT-STAGE": 8
  },
  "arms_played": {
-  "top-tie-first": 306
+  "top-tie-first": 316
  },
  "scope": {
   "total": 148,
@@ -41,6 +41,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.species",
      "species"
@@ -49,14 +50,35 @@
   },
   {
    "rule": "item/resist-berry",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: if(_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1))MODMUL((_rb.mult|"
+   "ok": true,
+   "why": "the resist berry stops halving anything — it is still held, still read, and the multiplier is dropped",
+   "moved": {
+    "member": "babiriberry",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "item/drain-scaled",
-   "ok": false,
-   "declared": true,
-   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Big Root (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+   "ok": true,
+   "why": "the item stops scaling the drain heal — the damage and the drain both still happen",
+   "moved": {
+    "member": "bigroot",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "item/type-scoped-power",
@@ -67,6 +89,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -82,6 +105,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -97,6 +121,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.status",
      "party.item",
@@ -114,6 +139,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "party.fainted",
@@ -139,6 +165,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "field.weather_turns"
     ]
@@ -153,6 +180,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -161,8 +189,28 @@
   },
   {
    "rule": "item/hp-floor",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg"
+   "ok": true,
+   "why": "the HP floor stops holding the body up — the item is still held and still read",
+   "moved": {
+    "member": "focussash",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "party.status",
+     "species",
+     "hp",
+     "maxhp",
+     "types",
+     "ability",
+     "vol.focusenergy",
+     "pp.focusenergy",
+     "pp.flashcannon"
+    ]
+   }
   },
   {
    "rule": "item/residual-heal",
@@ -173,6 +221,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -188,6 +237,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -196,14 +246,38 @@
   },
   {
    "rule": "item/species-locked-stat",
-   "ok": false,
-   "declared": true,
-   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Light Ball (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+   "ok": true,
+   "why": "the species-locked stat multiplier is dropped — the item is still held and still read",
+   "moved": {
+    "member": "lightball",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "item/cures-a-volatile",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const _mh=TAGS.param('item',_who.item,'curesVolatile');"
+   "ok": true,
+   "why": "the volatile cure is skipped",
+   "moved": {
+    "member": "mentalherb",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.item",
+     "item",
+     "vol.taunt",
+     "vol.focusenergy",
+     "pp.focusenergy"
+    ]
+   }
   },
   {
    "rule": "item/category-scoped-power",
@@ -214,6 +288,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -222,15 +297,37 @@
   },
   {
    "rule": "item/heals-at-threshold",
-   "ok": false,
+   "ok": true,
    "why": "the threshold heal is skipped",
-   "moved": null
+   "moved": {
+    "member": "oranberry",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.item",
+     "hp",
+     "item"
+    ]
+   }
   },
   {
    "rule": "item/heal-on-attack",
-   "ok": false,
-   "declared": true,
-   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Shell Bell (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+   "ok": true,
+   "why": "the after-attack heal is dropped — the attack still lands for the same damage",
+   "moved": {
+    "member": "shellbell",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "item/restores-lowered-stats",
@@ -241,6 +338,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.item",
      "party.boosts.atk",
@@ -8140,12 +8238,12 @@
    "name": "Oran Berry",
    "rule": "item/heals-at-threshold",
    "reads": "onUpdate + shortDesc \"when at 1/2 max HP or less\"",
-   "note": "Dragon Claw takes beedrill to 10% in one blow, twice",
+   "note": "Seed Bomb takes diggersby to 35% in one blow, twice",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "beedrill",
+   "carrier": "diggersby",
    "deferred": null,
    "out_of_scope": null,
    "declared_untestable": false,
@@ -8154,9 +8252,21 @@
    "sd_delta": [
     {
      "turn": 0,
-     "path": "p2.party.beedrill.item",
+     "path": "p2.party.diggersby.item",
      "with": "oranberry",
      "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.diggersby.hp",
+     "with": 42,
+     "without": 32
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 42,
+     "without": 32
     }
    ],
    "diffs": []
@@ -10227,12 +10337,12 @@
    "name": "Sitrus Berry",
    "rule": "item/heals-at-threshold",
    "reads": "onUpdate + shortDesc \"when at 1/2 max HP or less\"",
-   "note": "Dragon Claw takes beedrill to 10% in one blow, twice",
+   "note": "Seed Bomb takes diggersby to 35% in one blow, twice",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "beedrill",
+   "carrier": "diggersby",
    "deferred": null,
    "out_of_scope": null,
    "declared_untestable": false,
@@ -10241,9 +10351,21 @@
    "sd_delta": [
     {
      "turn": 0,
-     "path": "p2.party.beedrill.item",
+     "path": "p2.party.diggersby.item",
      "with": "sitrusberry",
      "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.diggersby.hp",
+     "with": 72,
+     "without": 32
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 72,
+     "without": 32
     }
    ],
    "diffs": []

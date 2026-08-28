@@ -32,7 +32,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_hp_pair.js`,
 `tests/probe_state_trio.js`, `tests/probe_random_target_die.js`,
 `tests/probe_shield_refusal_line.js`, `tests/probe_upkeep_lines.js`,
-`tests/probe_fatigue_tag.js`
+`tests/probe_fatigue_tag.js`, `tests/probe_reds_plant_reaches.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -114,15 +114,84 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is b0bc53b19867 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is f6c7a6d3aaf8 now
     (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 280/296 probed, 16 unprobed
 ```
 
-_stamped 2026-08-27 20:32_
+_stamped 2026-08-27 21:23_
 
 <!-- /GENERATED -->
+
+## THE THIRTY DORMANT RED DEMONSTRATIONS, CLASSIFIED BEFORE ANYTHING WAS TOUCHED. **23 MISWRITTEN DEMONSTRATION / 7 WRONG RULE / 1 THE ENGINE REALLY DOES NOT REACT. 30 -> 1, WITH EVERY ARTIFACT COLUMN UNMOVED — 0/0 IN BOTH FAILURE COLUMNS, 139 / 129 / 475 MATCH, CENSUS 765/765/0, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, WHOLE-GAME 1 OF 961, BOARD-MATERIAL 0 OF 961, PIN `ccb365985023` DICE_MODEL v5.** 2026-08-27.
+
+ROADMAP `#513` closed, `#514` filed. Release `345f4193d440` — **`0 of 26 files have moved since`; no
+engine file was touched by this pass.** CHANGELOG 5.192.0.
+
+**THE THIRD NUMBER IS THE ONE THAT MATTERS AND IT IS 1.** Everything else was the instrument, which is
+what the four instrument faults found earlier the same day already predicted. That is not a
+disappointment: a net whose thirty accusations are twenty-nine instrument faults is a net that has
+never been inspected, and inspecting it is what makes the thirtieth legible.
+
+**`--reds` CANNOT CLASSIFY ITS OWN FAILURES, SO THE CLASSIFICATION NEEDED A SECOND INSTRUMENT.**
+`--reds` measures a VERDICT FLIP, and a verdict runs through the control arm, the delta subtraction
+and the usage shelf — any of which can cancel a plant that is perfectly live.
+`tests/probe_reds_plant_reaches.js` asks the narrower question the same way `healStagingWorks()`
+already did for one rule: apply the plant to the frozen release, compare **our own board against our
+own**. Showdown is not in it. It printed REACHES and NO REACH on the same run before any of it was
+believed, which is the only reason its zeroes mean anything.
+
+**THE 23 THAT WERE THE DEMONSTRATION.** Thirteen anchors had never matched: a renamed parameter
+(`_who` -> `who`), a hoisted local (`suppressedAbility(att,def)` -> `_sa`), two functions that gained
+arguments (`canTakeStatus`, `applyStatus`), an `&&` clause inserted mid-line
+(`berryRefusedByFoeNew`), a line split in two (`survivesFromFull` -> `_svIt` + `_sv`), an inline
+`foes.some(...)` extracted into a function, a `consumeBerry` refactor — and **two that matched
+TWICE**, which is not planted either. Ten more applied and demonstrated nothing:
+
+| rule(s) | what the plant hit | why the board did not move |
+|---|---|---|
+| `move/plain-attack`, `move/variable-power`, `move/recharge` | the `{min,max}` return of `dmgRangeOneHit` | that is the PRICE. The battle loop applies `hit.rolls`, the sixteen-entry band written two lines above the return. **Counted inside the plant: the line ran 4 times on Acrobatics and moved 0 leaves; halving the band moves 4.** |
+| `move/multihit` | the same return's `_hits>1` early exit | the band already carries the multiplier; the count a played game uses is the ROLLED one in `hitPlanOf` |
+| `move/drain` | `const _dr=…'drain'` | that copy lives inside `if(DRAIN_LUMP_ROUND)`, dead by default since the drain moved to a per-target payment on 2026-08-24 |
+| `ability/weather-residual` | `boostsEachTurn` | the wrong tag entirely — every member is `weatherResidualHP` |
+| `ability/damage-taken-scoped` | the base-power route of `halvesTypeDamage` | two routes, one tag; every halving member uses the attacker-stat route |
+| `move/fixed-damage`, `move/needs-a-stat-stage-to-act-on` | `a.kind==='fixeddmg'`, a boost-write site | **counted at ZERO executions** on every member, Super Fang included |
+| `move/self-switch` | the pivot classifier | it reached — the loop refused to score it. The body stands where the script expects an empty slot, the game ends a turn early, and `runEntry` calls that COULD-NOT-STAGE |
+
+**AND ONE WAS STAGING NOTHING AT ALL, WHICH IS THE MOST EXPENSIVE OF THE THIRTY.**
+`item/heals-at-threshold` chose its fixture by MAXIMISING a predicted damage fraction — closest to 90%
+of the holder's HP. `maxRoll` is a prediction off `flatL50` spreads and the fixture is built by
+`buildPair`; they disagreed by enough that **the staging hit KILLED the holder, in both engines**. The
+berry never fired, and Oran and Sitrus were both credited `FIRED-AND-BOARDS-MATCH` on **one leaf** —
+`p2.party.<holder>.item` at boundary 0, the item being written on the board and nothing else. Two
+vacuous greens, found by the demonstration and by nothing else. The picker aims at the MIDDLE of its
+band now, and the rule carries a precondition read off SHOWDOWN's board: the holder alive in its slot
+AND the berry eaten.
+
+**THE 7 THAT WERE THE RULE.** Seven `noBreak` declarations claimed the simulator has no implementation
+of the family. All seven had gone stale under the engine, and **the declaration's own check is what
+said so** — it fails the moment a member fires. Big Root (`healMultBySource`), Light Ball
+(`statMult.onlySpecies`), Shell Bell (`healFromDamageDealt`), Rest, Wish and Healing Wish (all
+`healDescriptor`), Spit Up / Swallow (`spendsVolatile`). Each has a real anchor now, each shown to
+move our own board first: 4, 2, 4, 12, 4, SHORT and 8 leaves.
+
+**A PLANT THAT MAKES THE FIXTURE UNPLAYABLE IS A DEMONSTRATION, AND THE LOOP NOW SCORES IT — NARROWLY.**
+Only when the member is GREEN against the clean source, and printed as its own outcome with the
+reason, because COULD-NOT-STAGE is also what a broken harness returns. Two rules read NOT CAUGHT for
+this reason alone.
+
+**THE ONE THAT IS THE ENGINE IS `#514`, AND IT IS OBSCURE TAIL.** Nothing gates Belch on having eaten
+a berry: `_ateBerry` is written in `consumeBerry` and read in exactly ONE place in the file (Harvest),
+and planting `m._ateBerry=false` moves ZERO board leaves on Belch's own fixture. Belch is legal here
+and has zero corpus uses, so by Will's 2026-08-23 ranking the lab should move and the pinned pool
+should not. **Not declared undemonstrable** — the rule aims its break at `_ateBerry` and reads NOT
+CAUGHT, so the instrument states the gap on every run rather than a sentence somebody has to remember.
+
+**Gate clauses 3 of 8 PASS -> 5 of 8 PASS.** Items and abilities open; moves stays FAIL on `#514`
+alone — one true red instead of fifteen instrument faults.
+
+---
 
 ## THE ROSTER'S RED DEMONSTRATIONS HAD NEVER BEEN WRITTEN INTO THE ARTIFACT, SO A GATE CLAUSE THAT READS THEM HAD NOTHING TO FAIL ON. **ITEMS 7, ABILITIES 8, MOVES 15 RED DEMONSTRATIONS DO NOT BEHAVE AS THEIR RULE PREDICTS — AND THE SAME 30, BY NAME, ON THE PRE-SESSION RELEASE. INSTRUMENT, NOT ENGINE.** 2026-08-27.
 
@@ -166,7 +235,9 @@ census regeneration.
 Covers the whole of the 2026-08-27 narration batch — the hit-count line, the partial-trap `-end`,
 and the `[fatigue]` tag and its position.
 
-**Leaves it:** **ROADMAP #506** — *"`|-start|…|confusion` is missing `[fatigue]` when a lock
+**Leaves it:** **ROADMAP #513** — *"the roster's red demonstrations had never been written into the
+artifact"* — is closed: 30 -> 1, all three stages re-run with `--reds --write`, and the classification
+is carried by `tests/probe_reds_plant_reaches.js`. **ROADMAP #506** — *"`|-start|…|confusion` is missing `[fatigue]` when a lock
 expires"* — is closed and carried by `tests/probe_fatigue_tag.js`, which also found and closed the
 half the row did not name (the line's POSITION in the turn). The two `<> |upkeep` rows that were open
 against the pool leave with it, carried by `tests/probe_upkeep_lines.js --only hitcount` and
@@ -178,11 +249,12 @@ against the pool leave with it, carried by `tests/probe_upkeep_lines.js --only h
   over with an invented `1`. Counted at `MEDFAILS.hitCountDroppedOnCollapse`; no fixture stages a
   collapsing volley, so its reach is unknown. A fourth arm of `probe_upkeep_lines.js` staging a
   multi-hit into a Focus Sash would close it.
-- **ROADMAP #513 — the roster's red demonstrations had never been written into the artifact.** Items
-  7, abilities 8, moves 15 of 18 / 29 / 35 do not behave as their rule predicts, in three
-  instrument-side shapes: an anchor matching 0 or 2 times rather than once, a declaration that is
-  FALSE (Big Root, Light Ball, Shell Bell, Healing Wish, Rest, Spit Up, Wish), and a plant that fired
-  and moved no row. The FALSE DECLARATIONS are the cheapest and are pure register hygiene.
+- **ROADMAP #514 — nothing in medicham2 gates Belch on having eaten a berry.** The one bucket-3
+  finding of #513 and the only red demonstration still standing. `_ateBerry` is written in
+  `consumeBerry` and read in exactly one place (Harvest); the tag artifact carries no gate for Belch
+  either, so the fix is a `tag_dex` derivation plus a reader and it moves `data/tags.json` — which
+  moves the release, which is why it is not in this pass. Carried by `tests/roster.js`'s
+  `move/needs-a-berry-already-eaten`, which reads NOT CAUGHT until it is closed.
 - **The partial trap's `!source.activeTurns` clause.** Showdown ends the trap when the trapper
   entered the field THIS turn; this engine has no counterpart. Its own fixture: trap lands, trapper
   switches out, trapper switches back in on the turn of the next residual.

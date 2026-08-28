@@ -5,6 +5,27 @@
  *   SHOWDOWN_PATH=... node tests/roster.js --stage items
  *   SHOWDOWN_PATH=... node tests/roster.js --stage items --reds
  *   SHOWDOWN_PATH=... node tests/roster.js --stage items --only chopleberry
+ *   SHOWDOWN_PATH=... node tests/roster.js --rule item/resist-berry --stage items --reds
+ *
+ * ---- THE ONE THAT HAD NEVER BEEN RUN, AND SAY IT WITH THE ARTIFACT (ROADMAP #513, 2026-08-27) ----
+ *
+ *   for st in items abilities moves; do
+ *     SHOWDOWN_PATH=... node --max-old-space-size=6144 tests/roster.js \
+ *       --stage $st --reds --write --release <id>
+ *   done
+ *
+ * `--reds` IS NOT DEFAULT AND `--write` WITHOUT IT SILENTLY STAMPS `reds: []`. Every roster artifact
+ * on disk carried an empty `reds` array until 2026-08-27, because the driver that writes them does
+ * not pass the flag — so the whole safety net had never once been asked whether it could say
+ * anything other than "fine". It could not: THIRTY of the eighty-two rules failed their own red
+ * demonstration the first time it was run, seven of them because a `noBreak` declaration had gone
+ * stale and twenty-three because the plant no longer broke anything. NONE of the thirty was an
+ * engine regression: the run that found them reported the identical list of rule names against the
+ * pre-session release `5ed4753b7322`. A flag nobody knows to pass is the same bug one level up, which is why the
+ * command is written HERE, in the file it runs, rather than in a session note.
+ *
+ * `--reds` costs a second run of up to twelve members per rule and roughly triples the wall clock;
+ * that is why it is a flag. It is not optional for a run whose artifact is going to be trusted.
  *   SHOWDOWN_PATH=... node tests/roster.js --rules            (the shape rules and what each matches)
  *   SHOWDOWN_PATH=... node tests/roster.js --selftest         (the instrument, before any entity)
  *
@@ -660,9 +681,20 @@ const HALVER = (() => {
     for (const t of Object.keys(DELIVERY)) for (const mv of [DELIVERY[t].physical, DELIVERY[t].special]) {
       if (!mv) continue;
       const d = maxRoll(att, mv, s);
-      if (d < hp * 0.55 || d > hp * 0.9) continue;
-      if (!best || d / hp > best.frac) best = { species: s.id, ability: carrierAbility(s), move: mv,
-                                                frac: d / hp, hp };
+      if (d < hp * 0.55 || d > hp * 0.8) continue;
+      /* THE MIDDLE OF THE BAND, NOT THE TOP OF IT (2026-08-27). This maximised the fraction, so it
+       * picked the hit that came closest to killing — and `maxRoll` is a PREDICTION off `flatL50`
+       * spreads while the fixture is built by `buildPair`. Measured: the chosen pair (Dragon Claw
+       * into the Beedrill this picked at "10% left") KILLED the holder in both engines on turn 1, so
+       * the berry never fired and both members of `item/heals-at-threshold` were credited
+       * FIRED-AND-BOARDS-MATCH on a single leaf — `p2.party.<holder>.item` at boundary 0, the item
+       * simply being written on the board. A vacuous green, which is what the red demonstration for
+       * this rule was reporting when it said NOT CAUGHT. The precondition on the rule now refuses
+       * such a row outright; this picks a fixture with margin on BOTH sides so there is usually a row
+       * to have. */
+      const f = d / hp, aim = 0.65;
+      if (!best || Math.abs(f - aim) < Math.abs(best.frac - aim))
+        best = { species: s.id, ability: carrierAbility(s), move: mv, frac: f, hp };
     }
   }
   return best;
@@ -3683,8 +3715,11 @@ const RULES = [
      + 'BOARD as the positive rather than a turn later when the berry is already eaten.',
   break: { why: 'the resist berry stops halving anything — it is still held, still read, and the '
               + 'multiplier is dropped',
-    patch: [['if(_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1))MODMUL((_rb.mult||0.5));',
-             'if(false&&_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1))MODMUL((_rb.mult||0.5));']] },
+    /* RE-AIMED 2026-08-27. The anchor was written before `berryRefusedByFoeNew(def)` was added to
+     * this condition, so it matched ZERO times and the plant was never applied — the rule read NOT
+     * CAUGHT for a reason that was about this file. */
+    patch: [['if(_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1)&&!berryRefusedByFoeNew(def))MODMUL((_rb.mult||0.5));',
+             'if(false&&_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1)&&!berryRefusedByFoeNew(def))MODMUL((_rb.mult||0.5));']] },
   match(e) {
     if (!(e.isBerry && e.onSourceModifyDamage)) return null;
     const T = e.naturalGift && e.naturalGift.type;
@@ -3880,8 +3915,11 @@ const RULES = [
      + 'this class has. Turn 3 is the third negative: the survivor is on 1 HP with the item spent and '
      + 'must not be saved twice.',
   break: { why: 'the HP floor stops holding the body up — the item is still held and still read',
-    patch: [["const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull');",
-             "const _sv=null&&(TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull'));"]] },
+    /* RE-AIMED 2026-08-27. The single `_sv` line was split into `_svIt` and `_sv`, so the anchor
+     * matched zero times. The ITEM half is what this rule stages, so the item lookup is the one
+     * dropped and the ability half is left standing. */
+    patch: [["const _svIt=TAGS.param('item',tg.item,'survivesFromFull');",
+             "const _svIt=null&&TAGS.param('item',tg.item,'survivesFromFull');"]] },
   match(e) {
     if (!e.onDamage || !/HP is full/i.test(e.shortDesc || '')) return null;
     if (!KILLABLE) return cannot('no legal body in the format can be killed from full by one derived '
@@ -3948,6 +3986,17 @@ const RULES = [
       + 'killed — by a single derived delivery move, so the threshold cannot be crossed in one blow');
     return { note: HALVER.move.name + ' takes ' + HALVER.species + ' to '
         + Math.round((1 - HALVER.frac) * 100) + '% in one blow, twice',
+      /* THE RECEIPT THIS ROW DID NOT HAVE, ADDED 2026-08-27. `maxRoll` is a PREDICTION and the
+       * fixture is built by `buildPair`; the two disagreed by enough that the staging hit KILLED the
+       * holder outright, so the berry never fired and both members were still credited
+       * FIRED-AND-BOARDS-MATCH — on the single leaf `p2.party.<holder>.item` at boundary 0, which is
+       * the item being written on the board and nothing else. Read off SHOWDOWN'S board: the holder
+       * must still be standing in its slot, and the authority must have EATEN the berry. A fixture
+       * that cannot show both is COULD-NOT-STAGE with that as its reason, never a pass. */
+      precondition: { turn: 1, why: 'the holder alive in its slot AND the berry eaten by the authority',
+        ok: b => { const a = (((((b.sd || {}).sides || {}).p2 || {}).active) || [])[0];
+                   return !!(a && !a.fainted && a.hp > 0 && idOf(a.species) === idOf(HALVER.species)
+                             && !a.item); } },
       scenario: scaffold({
         a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [HALVER.move.id]),
         b0: mon(HALVER.species, e.id, HALVER.ability, [INERT]),
@@ -4009,11 +4058,14 @@ const RULES = [
   why: 'the holder is chipped so a heal has somewhere to go, then clicks a 100-accuracy DRAIN move — '
      + 'the only delivery that produces a heal proportional to damage dealt. THE PARTNER IS THE '
      + 'NEGATIVE and drains on the same turn holding nothing.',
-  noBreak: 'THERE IS NOTHING IN THE SIMULATOR TO BREAK. `data/tags.json` gives the only member of '
-         + 'this family (Big Root) the single tag `flingable`, and no code path scales a drain heal '
-         + 'off a held item. The DID-NOT-FIRE verdict is the evidence; an invented anchor would not '
-         + 'be, and the declaration is checked — if any member of this rule ever FIRES, the run says '
-         + 'the claim is false and an anchor is owed.',
+  /* THE DECLARATION WAS TRUE AND STOPPED BEING TRUE, AND THE RUN IS WHAT SAID SO (2026-08-27).
+   * `noBreak` claimed Big Root carried only `flingable` and that no code path scaled a drain heal off
+   * an item. The artifact now gives it `healMultBySource {mult: 1.2998…, from: [drain, leechseed,
+   * ingrain, aquaring, strengthsap]}` and `_drBR` reads it inside the per-target drain payment. The
+   * member came back FIRED-AND-BOARDS-MATCH, the declaration's own check called it false, and this is
+   * the anchor it asked for. Measured: 4 leaves of ours on Big Root's own fixture. */
+  break: { why: 'the item stops scaling the drain heal — the damage and the drain both still happen',
+    patch: [["const _drBR=TAGS.param('item',m.item,'healMultBySource');", 'const _drBR=null;']] },
   match(e) {
     if (!e.onTryHeal || !/drain/i.test(e.shortDesc || '')) return null;
     if (!DRAIN_MOVE) return cannot('no 100-accuracy single-target draining move exists in this format');
@@ -4173,8 +4225,10 @@ const RULES = [
      + 'before the boundary. THE PARTNER IS THE NEGATIVE and is taunted on the same turn holding '
      + 'nothing, so it must still be counting down on every later board.',
   break: { why: 'the volatile cure is skipped',
-    patch: [["const _mh=TAGS.param('item',_who.item,'curesVolatile');",
-             "const _mh=null&&TAGS.param('item',_who.item,'curesVolatile');"]] },
+    /* RE-AIMED 2026-08-27 — the parameter was renamed `_who` -> `who` and the anchor matched zero
+     * times. A grep for a renamed identifier is the commonest instrument fault in this batch. */
+    patch: [["const _mh=TAGS.param('item',who.item,'curesVolatile');",
+             "const _mh=null&&TAGS.param('item',who.item,'curesVolatile');"]] },
   match(e) {
     if (!e.onUpdate || !/Taunt/.test(e.shortDesc || '')) return null;
     const t = dex.moves.get('taunt');
@@ -4236,11 +4290,10 @@ const RULES = [
   reads: 'onAfterMoveSecondarySelf without a damage modifier',
   why: 'the holder is chipped first so that a heal has somewhere to go, then attacks. THE PARTNER IS '
      + 'THE NEGATIVE: chipped by the same move and attacking on the same turn, holding nothing.',
-  noBreak: 'THERE IS NOTHING IN THE SIMULATOR TO BREAK. `data/tags.json` gives the only member of '
-         + 'this family (Shell Bell) the single tag `flingable`, and no code path reads a heal off a '
-         + 'held item after an attack. An anchor here would have to be invented, and a break that '
-         + 'cannot be aimed at real code is not a demonstration. The DID-NOT-FIRE verdict is the '
-         + 'evidence, and it is stronger than a plant.',
+  /* SAME STORY AGAIN, 2026-08-27. Shell Bell carries `healFromDamageDealt {div: 8, basis:
+   * totalDamage}` and `_sb` reads it after the attack. Measured: 4 leaves of ours. */
+  break: { why: 'the after-attack heal is dropped — the attack still lands for the same damage',
+    patch: [["const _sb=TAGS.param('item',m.item,'healFromDamageDealt');", 'const _sb=null;']] },
   match(e) {
     if (!e.onAfterMoveSecondarySelf || e.onModifyDamage) return null;
     const bag = dex.species.get(CAST.BAG().species);
@@ -4261,10 +4314,11 @@ const RULES = [
   reads: 'itemUser + onModifyAtk / onModifySpA',
   why: 'the item names the only body it works on, so that body holds it and clicks. THE NEGATIVE IS '
      + 'THE PARTNER, which is a DIFFERENT species holding the same item and must gain nothing.',
-  noBreak: 'THERE IS NOTHING IN THE SIMULATOR TO BREAK. `data/tags.json` gives the only member of '
-         + 'this family (Light Ball) the single tag `flingable`, and no code path multiplies a stat '
-         + 'for a named species. Same argument as the heal-on-attack rule: the DID-NOT-FIRE verdict '
-         + 'is the evidence and an invented anchor would not be.',
+  /* SAME STORY AS `item/drain-scaled` AND SAME DATE. Light Ball carries `statMult {mult: 2, stats:
+   * [atk, spa], onlySpecies: Pikachu}` now, and the engine reads it in the stat chain with the base
+   * species compared the way the authority compares it. Measured: 2 leaves of ours. */
+  break: { why: 'the species-locked stat multiplier is dropped — the item is still held and still read',
+    patch: [["const p=TAGS.param('item',body.item,'statMult');", 'const p=null;']] },
   match(e) {
     if (!(e.itemUser && e.itemUser.length && (e.onModifyAtk || e.onModifySpA))) return null;
     const sp = dex.species.get(idOf(e.itemUser[0]));
@@ -4828,8 +4882,12 @@ const RULES = [
      + 'unless the ability under test is Mirror Armor, whose whole content is moving them.',
   break: { why: 'the boost-refusal path is removed, so an ability that should block a drop lets it '
               + 'through',
-    patch: [["const p=TAGS.param('ability',ab,'preventsStatDrop');",
-             "const p=null&&TAGS.param('ability',ab,'preventsStatDrop');"]] },
+    /* RE-AIMED 2026-08-27. The old anchor matched TWICE — the ally refusal and the body's own — and
+     * an anchor that matches twice is never planted at all. The body's OWN refusal is the one every
+     * self-protecting member of this rule goes through; the ally arm is a second site and is left
+     * standing deliberately, so a flip here is attributable to this one. */
+    patch: [['function ownStatDropRefusal(target,engStat,effectName,isSecondary,src,amount){',
+             'function ownStatDropRefusal(target,engStat,effectName,isSecondary,src,amount){if(1)return null;']] },
   match(e) {
     if (!hasHandler(e, 'onTryBoost', 'onAfterEachBoost', 'onChangeBoost')) return null;
     const keys = ['onTryBoost', 'onAfterEachBoost', 'onChangeBoost'];
@@ -4943,8 +5001,10 @@ const RULES = [
      + 'TURN 3, a neutral click of a type the ability does NOT name, which must land in both arms — '
      + 'an engine that made the body immune to everything parts there.',
   break: { why: 'the type/flag immunity is dropped, so the absorbed hit lands as ordinary damage',
-    patch: [["const _imm=TAGS.param('ability',suppressedAbility(att,def),'typeImmunity');",
-             "const _imm=null&&TAGS.param('ability',suppressedAbility(att,def),'typeImmunity');"]] },
+    /* RE-AIMED 2026-08-27 — `suppressedAbility(att,def)` was hoisted into a local `_sa`, so the
+     * anchor matched zero times. */
+    patch: [["const _imm=TAGS.param('ability',_sa,'typeImmunity');",
+             "const _imm=null&&TAGS.param('ability',_sa,'typeImmunity');"]] },
   match(e) {
     if (!hasHandler(e, 'onTryHit', 'onAllyTryHitSide', 'onTryHitPriority')) return null;
     const keys = ['onTryHit', 'onAllyTryHitSide'];
@@ -5117,8 +5177,10 @@ const RULES = [
      + '     THE NEGATIVE IS TURN 2, on which the same lethal click is thrown again at a body that is '
      + 'no longer at full HP: the floor may not save it twice.',
   break: { why: 'the survive-from-full floor is dropped',
-    patch: [["const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull');",
-             "const _sv=TAGS.param('item',tg.item,'survivesFromFull')||(null&&TAGS.param('ability',tg.ability,'survivesFromFull'));"]] },
+    /* RE-AIMED 2026-08-27 — the line was split into `_svIt` and `_sv`. The ABILITY half is the one
+     * this rule stages, so the item lookup is left standing. */
+    patch: [["const _sv=_svIt||TAGS.param('ability',tg.ability,'survivesFromFull');",
+             "const _sv=_svIt||(null&&TAGS.param('ability',tg.ability,'survivesFromFull'));"]] },
   match(e) {
     if (!hasHandler(e, 'onDamage', 'onTryHit')) return null;
     const src = handlerSrc(e, ['onDamage', 'onTryHit']);
@@ -5305,8 +5367,11 @@ const RULES = [
      + '     THE NEGATIVE IS TURN 2, an unscoped neutral click at the same body, which must be worth '
      + 'the same in both arms.',
   break: { why: 'the scoped damage reduction is dropped',
-    patch: [["const _htd=TAGS.param('ability',defAb,'halvesTypeDamage');",
-             "const _htd=null&&TAGS.param('ability',defAb,'halvesTypeDamage');"]] },
+    /* RE-AIMED 2026-08-27. `halvesTypeDamage` is read in TWO places with two different fields — the
+     * attacker's stat (`_htdA`, every halving member) and the attacker's BASE POWER (`_htd`, whose
+     * only carrier is Dry Skin). The plant was on the base-power route, so no member of this rule
+     * reached it. Measured: 0 leaves before; after, Heatproof 6 and Purifying Salt 6. */
+    patch: [["const _htdA=TAGS.param('ability',defAb,'halvesTypeDamage');", 'const _htdA=null;']] },
   match(e) {
     if (!hasHandler(e, 'onSourceModifyDamage', 'onSourceModifyAtk', 'onSourceModifySpA')) return null;
     const keys = ['onSourceModifyDamage', 'onSourceModifyAtk', 'onSourceModifySpA'];
@@ -5497,8 +5562,11 @@ const RULES = [
      + '     THE NEGATIVE IS THE PARTNER, standing on the same board under the same sky with no such '
      + 'ability: its HP must not move for this reason in either arm.',
   break: { why: 'the residual weather effect is skipped',
-    patch: [["{const _be=TAGS.param('ability',m.ability,'boostsEachTurn');",
-             "{const _be=null&&TAGS.param('ability',m.ability,'boostsEachTurn');"]] },
+    /* RE-AIMED 2026-08-27. The plant named `boostsEachTurn` — the per-turn STAT family — and every
+     * member of this rule (Ice Body, Rain Dish, Solar Power) is `weatherResidualHP`. A plant on the
+     * wrong tag applies cleanly and demonstrates nothing. Measured: 0 leaves before, 6 on all three
+     * members after. */
+    patch: [["const _wr=TAGS.param('ability',m.ability,'weatherResidualHP');", 'const _wr=null;']] },
   match(e) {
     if (typeof e.onWeather !== 'function') return null;
     const W = weatherNamed(e, ['onWeather']);
@@ -5751,8 +5819,11 @@ const RULES = [
      + 'FIRED-AND-BOARDS-MATCH and Oran Berry does not, which is exactly why the berry is chosen by '
      + 'shape and the caveat is printed rather than assumed away.',
   break: { why: 'the berry block is skipped, so the foe eats it anyway',
-    patch: [["if(foes&&foes.some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksBerries')))return;",
-             "if(false&&foes&&foes.some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksBerries')))return;"]] },
+    /* RE-AIMED 2026-08-27. The inline `foes.some(...)` was extracted into `berryRefusedByFoe`, so the
+     * anchor matched zero times; the refusal itself is the anchor now, which covers all three sites
+     * that route through it rather than the one that used to be inline. */
+    patch: [["if(TAGS.param('ability',x.ability,'blocksBerries')){MEDSEEN.berryRefusedByUnnerve++;return true;}",
+             "if(false&&TAGS.param('ability',x.ability,'blocksBerries')){MEDSEEN.berryRefusedByUnnerve++;return true;}"]] },
   match(e) {
     if (typeof e.onFoeTryEatItem !== 'function') return null;
     const berry = dex.items.all().filter(i => i.exists && !i.isNonstandard && i.isBerry && i.onUpdate
@@ -5994,8 +6065,10 @@ const RULES = [
      + 'the carrier throws a CONTACT click into it: with the ability the damage is non-zero, without '
      + 'it the damage is exactly 0.',
   break: { why: 'the pierce is skipped, so the shield refuses the contact click like any other',
-    patch: [["const p=TAGS.param('ability',m.ability,'piercesProtect');",
-             "const p=null&&TAGS.param('ability',m.ability,'piercesProtect');"]] },
+    /* RE-AIMED 2026-08-27 — the parameter is `attacker` now and the line carries spaces; the old
+     * anchor matched zero times. */
+    patch: [["const p = TAGS.param('ability', attacker.ability, 'piercesProtect');",
+             "const p = null && TAGS.param('ability', attacker.ability, 'piercesProtect');"]] },
   match(e) {
     if (typeof e.onHitProtect !== 'function') return null;
     const C = carrierFor(e);
@@ -6078,8 +6151,10 @@ const RULES = [
      + 'freezing move at all. The carrier is chosen so that neither its typing nor the click\'s typing '
      + 'can refuse the status for a reason that is not the ability.',
   break: { why: 'the status refusal is skipped, so the named status lands on the carrier anyway',
-    patch: [['function canTakeStatus(t,st,ignoreTypeImmunity){',
-             'function canTakeStatus(t,st,ignoreTypeImmunity){ if(t&&!t.fainted&&!t.status)return true;']] },
+    /* RE-AIMED 2026-08-27 — `canTakeStatus` gained two parameters (`src`, `why`), so the anchor
+     * matched zero times. */
+    patch: [['function canTakeStatus(t,st,ignoreTypeImmunity,src,why){',
+             'function canTakeStatus(t,st,ignoreTypeImmunity,src,why){ if(t&&!t.fainted&&!t.status)return true;']] },
   match(e) {
     const src = ['onSetStatus', 'onTrySetStatus', 'onImmunity', 'onUpdate']
       .filter(k => typeof e[k] === 'function').map(k => String(e[k])).join('\n');
@@ -6730,7 +6805,12 @@ const RULES = [
      + 'second time and the row would read like an engine finding.',
   break: { why: 'a stat stage written by a move\'s own boost block is dropped, so there is nothing for '
               + 'the subject to clear, copy, invert or swap',
-    patch: [['m.boosts[_s]=clamp(m.boosts[_s]+_bo[k]*_sg,-6,6);', 'm.boosts[_s]=m.boosts[_s];']] },
+    /* RE-AIMED 2026-08-27. The old anchor was a boost site this fixture never enters — counted
+     * directly, 0 executions on Acupressure, Belly Drum, Guard Swap and Strength Sap. The stage the
+     * subject acts on is written by the SETUP branch, so that is what is dropped. Measured: 0 leaves
+     * before; after, 14-30 on all five members tried. */
+    patch: [["      if(a.kind==='setup'){\r\n        const _fx=a.mv&&moveFx(a.mv);",
+             "      if(a.kind==='setup'){m._lastMove=a.mv||m._lastMove;continue;}\r\n      if(a.kind==='setup'){\r\n        const _fx=a.mv&&moveFx(a.mv);"]] },
   match(e) {
     if (!readsExistingBoosts(e)) return null;
     const set = boostSetterFor(e);
@@ -6773,7 +6853,28 @@ const RULES = [
    * `lastItem` and no `ateBerry` at all, so there is no memory-of-consumption line to break; what CAN
    * be broken is the consumption itself, which is the event that puts a berry in the past tense. */
   break: { why: 'a threshold berry restores nothing when it is eaten',
-    patch: [['m.curHP=Math.min(m.st.hp,m.curHP+_amt);m.item=\'\';', 'm.item=\'\';']] },
+    /* RE-AIMED TWICE ON 2026-08-27, AND THE SECOND AIM IS A FINDING RATHER THAN A TIDY-UP.
+     *
+     * The old anchor (`m.curHP=...;m.item='';`) matched ZERO times — the bare `m.item=''` became
+     * `consumeBerry(m,_it)` at ROADMAP #128 — so nothing was ever planted. Re-aimed at the berry's
+     * HEAL, it planted and STILL moved nothing, for a reason worth writing down: the chip and the
+     * berry are in the SHARED setup, so the subject arm and the control arm lose the same ten HP and
+     * `runEntry` subtracts the difference as the fixture's rather than the entity's. A plant on a
+     * MOVE rule has to break something the SUBJECT CLICK does.
+     *
+     * So the anchor is now the FACT this rule is named for — `_ateBerry`, the memory of consumption
+     * that the gate would read. IT MOVES NOTHING, AND THAT IS THE MEASUREMENT: `_ateBerry` is written
+     * in `consumeBerry` and read in exactly ONE place in medicham2 (Harvest). NOTHING GATES BELCH ON
+     * IT. The move fires here whatever the body has eaten, while the authority's `onTry(source) {
+     * return source.ateBerry; }` refuses it outright — and the tag artifact carries no gate for Belch
+     * either, so there is nothing to read even if a reader existed.
+     *
+     * THE GREEN ABOVE THIS ROW IS THEREFORE VACUOUS. Belch reads FIRED-AND-BOARDS-MATCH because the
+     * fixture feeds the body a berry first, so the gate is open in the authority and absent here and
+     * the two boards agree for different reasons. A NOT CAUGHT here is the instrument working: it is
+     * the one place in this file where the break cannot be aimed because the mechanism is not
+     * written. Filed, not declared — an anchor is owed once the tag exists. */
+    patch: [['  m._ateBerry=true;', '  m._ateBerry=false;']] },
   match(e) {
     if (!needsAnEatenBerry(e)) return null;
     if (!HALF_HP_BERRY) return cannot('no legal berry in this format eats itself at half HP, so a '
@@ -6940,14 +7041,14 @@ const RULES = [
      + '     THE CHIP IS DEEPER THAN EITHER CANDIDATE AMOUNT, deliberately: a heal that overshoots the '
      + 'maximum is clamped to it, and a clamped heal is the one case where the right answer and the '
      + 'wrong answer are the same number.',
-  /* NOTHING TO BREAK, DECLARED AND CHECKED. medicham2's own heal header names Wish among the members
-   * that "arrive here with nothing but `true`" and are counted into `MEDFAILS.healProcedural` — there
-   * is no delayed slot heal in this simulator to aim an anchor at, and the member coming back
-   * DID-NOT-FIRE against the clean source is what proves it. `--reds` fails this declaration the
-   * moment any member of the rule fires. */
-  noBreak: 'medicham2 writes no delayed SLOT heal at all — `healParam` returns null for Wish and the '
-     + 'click is counted into MEDFAILS.healProcedural — so there is no line to break: the member reads '
-     + 'DID-NOT-FIRE against the clean source, which is what proves the absence.',
+  /* AND IT FAILED IT, 2026-08-27. The slot condition is written now — booked at click time with the
+   * WISHER's max HP, paid to whoever stands in the slot a turn later — so there is a line to aim at
+   * and the declaration is gone. The break stops the booking: the click still resolves and still
+   * spends the turn, and nothing arrives a turn later. Measured: 4 leaves of ours, the recipient at
+   * 108 clean against 38 planted. */
+  break: { why: 'the slot condition is never booked, so nothing arrives a turn later',
+    patch: [['_sc[_slot]={mv:a.mv,when:_hd.when,',
+             'if(1){mvFail(m);continue;}_sc[_slot]={mv:a.mv,when:_hd.when,']] },
   match(e) {
     if (!healsTheSlotLater(e)) return null;
     const arm = armFor(e);
@@ -7039,9 +7140,15 @@ const RULES = [
   /* NOTHING TO BREAK, DECLARED AND CHECKED — medicham2's heal header names Rest among the members that
    * "arrive here with nothing but `true`", so `healParam` returns null and the click is counted into
    * MEDFAILS.healProcedural rather than healing anything. `--reds` fails the declaration if it fires. */
-  noBreak: 'medicham2 resolves no procedural full heal: `healParam` returns null for Rest and the click '
-     + 'is counted into MEDFAILS.healProcedural, so there is no heal line to aim an anchor at. The '
-     + 'member reading DID-NOT-FIRE against the clean source is what proves the absence.',
+  /* THE DECLARATION ABOVE WAS TRUE AND IS NOT ANY MORE, AND THE RUN IS WHAT SAID SO (2026-08-27).
+   * Rest resolves through `healDescriptor` now: the status is written FIRST and the HP after, which
+   * is the handler's own order. The member came back FIRED-AND-BOARDS-MATCH and `--reds` called the
+   * declaration false, exactly as it was built to. The break drops the SLEEP half and leaves the heal
+   * alone, because the sleep is what this rule exists to separate from a plain full heal. Measured:
+   * 12 leaves of ours on Rest's own fixture, `status` "slp" -> "". */
+  break: { why: 'the full heal still happens and the user is no longer put to sleep by it',
+    patch: [['if(_hd.setsStatus&&_hd.setsStatus.status){',
+             'if(false&&_hd.setsStatus&&_hd.setsStatus.status){']] },
   match(e) {
     if (!healsAndStatusesTheUser(e)) return null;
     const arm = armFor(e);
@@ -7102,7 +7209,16 @@ const RULES = [
      + 'the replacement is picked by MEDICHAM2 and mirrored onto Showdown (game_differential.js line '
      + '1970) — no script can name it. So the row does not assume it got the body it damaged: a '
      + 'precondition reads Showdown\'s own board and REFUSES with the species it actually got.',
-  noBreak: 'medicham2 writes no healing-wish slot condition: `healParam` returns null for it and the '
+  /* THE DECLARATION IS RETIRED, 2026-08-27, AND ITS OWN CHECK IS WHAT RETIRED IT. The user DOES
+   * faint here now (`healDescriptor.userFaints`) and the entrant is restored, so the 2026-08-10
+   * measurement quoted below no longer describes this engine. The break stops the user fainting;
+   * the replacement therefore never arrives and the fixture cannot finish its script, which is the
+   * engine reacting as loudly as it can and is scored as a demonstration rather than as a staging
+   * failure. Measured: the member plays clean and returns SHORT planted. */
+  break: { why: 'the user no longer faints, so no replacement arrives to be restored',
+    patch: [['if(_hd.userFaints){m.curHP=0;m.fainted=true,noteFaint(m);MEDSEEN.healDescriptorFaint++;',
+             'if(false&&_hd.userFaints){m.curHP=0;m.fainted=true,noteFaint(m);MEDSEEN.healDescriptorFaint++;']] },
+  retiredDeclaration: 'medicham2 writes no healing-wish slot condition: `healParam` returns null for it and the '
      + 'click is counted into MEDFAILS.healProcedural, so there is no restore-the-entrant line to aim '
      + 'an anchor at. MEASURED 2026-08-10 and worth stating precisely, because it is broader than the '
      + 'heal: the subject and control boards are identical in THIS engine on every leaf, so the user '
@@ -7236,8 +7352,14 @@ const RULES = [
    * source: the gate volatile is not written in this simulator at all, so there is no line to aim at
    * and the ABSENCE is the finding. The declaration is not taken on trust — `--reds` fails it the
    * moment any member of this rule fires, exactly as a stale DECLARED divergence is failed. */
-  noBreak: 'medicham2 writes no `stockpile`-shaped gate volatile at all, so there is no line to break: '
-     + 'every member of this rule reads DID-NOT-FIRE against the clean source, which is what proves it.',
+  /* THE DECLARATION IS FALSE AS OF 2026-08-27 AND THE RUN SAID SO. `stockpile` is written and
+   * `spendsVolatile` is read by both members, so the gate volatile exists. The break stops the
+   * SPENDING of it — the click still resolves and still spends the turn. Measured: 8 leaves of ours
+   * on Swallow (its boosts survive the click instead of being handed back). Spit Up moves 0 through
+   * this anchor and Swallow moves 8, which is why the loop tries every green member rather than the
+   * first. */
+  break: { why: 'the gate volatile is never spent, so the move that reads it acts on a stale count',
+    patch: [["{const _spv=TAGS.param('move',a.mv,'spendsVolatile');", '{const _spv=null;']] },
   match(e) {
     const need = volatileRequiredBy(e).map(v => ({ v, set: volatileSetter(v) })).find(x => x.set);
     if (!volatileRequiredBy(e).length) return null;
@@ -7431,7 +7553,15 @@ const RULES = [
      + 'and not a control. Staged as a single-turn hit with that said out loud, rather than staged '
      + 'wrongly and reported as agreeing.',
   break: { why: 'every damage roll is halved, so the hit this rule DOES stage moves',
-    patch: [['return {min:roll(85),max:roll(100),eff};',
+    /* RE-AIMED 2026-08-27. THE OLD PLANT RAN AND CHANGED NOTHING, which is the equivalent-mutant
+     * failure and the reason this rule read NOT CAUGHT: it halved the `{min,max}` RETURN of
+     * `dmgRangeOneHit`, and the battle loop does not apply that. It applies `hit.rolls`, the
+     * sixteen-entry band written as an out-parameter two lines above the return. Measured with a
+     * counter inside the plant: the patched line executed 4 times on Acrobatics and moved 0 leaves;
+     * halving the BAND moves 4. Both are halved here so the break means what its `why` says. */
+    patch: [['for(let i=0;i<16;i++){const v=roll(100-i);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}',
+             'for(let i=0;i<16;i++){const v=Math.floor(roll(100-i)*0.5);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}'],
+            ['return {min:roll(85),max:roll(100),eff};',
              'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff};']] },
   match(e) {
     if (!(e.self && e.self.volatileStatus === 'mustrecharge')) return null;
@@ -7479,8 +7609,12 @@ const RULES = [
      + 'single 25-BP hit). THE PARTNER IS THE NEGATIVE and is never aimed at.',
   break: { why: 'a multi-hit move lands exactly ONE hit — which is the defect this family was written '
               + 'against',
-    patch: [['if(_hits>1)return {min:Math.floor(roll(85)*_hits),max:Math.floor(roll(100)*_hits),eff};',
-             'if(false&&_hits>1)return {min:Math.floor(roll(85)*_hits),max:Math.floor(roll(100)*_hits),eff};']] },
+    /* RE-AIMED 2026-08-27. The old plant dropped `dmgRangeOneHit`'s `_hits>1` early return — the
+     * PRICE — and the band written above it already carries the multiplier, so the board never moved.
+     * The count a played game uses is the ROLLED one in `hitPlanOf`, and pinning it to 1 is literally
+     * the sentence this break claims. Measured: 0 leaves before, 4 after, on Bone Rush. */
+    patch: [['if(rolled>0)return {n:rolled,w:new Array(rolled).fill(1),total:rolled,perHitPower};',
+             'if(rolled>0)return {n:1,w:[1],total:1,perHitPower};']] },
   match(e) {
     if (!e.multihit) return null;
     const arm = armFor(e);
@@ -7586,7 +7720,11 @@ const RULES = [
      + 'a boost that leaked across the side is visible on the SAME board as the boost that landed.',
   break: { why: 'the self-boost is skipped entirely — the click is still made, still costs the turn '
               + 'and still records itself as the last move',
-    patch: [["if(a.kind==='setup'){", "if(a.kind==='setup'){m._lastMove=a.mv||m._lastMove;continue;}if(a.kind==='setup'){"]] },
+    /* RE-AIMED 2026-08-27. `if(a.kind==='setup'){` matches TWICE — the HP-cost site and the boost
+     * site — and an anchor that matches twice is never planted. The following line is carried into
+     * the anchor so it names the BOOST site only. */
+    patch: [["      if(a.kind==='setup'){\r\n        const _fx=a.mv&&moveFx(a.mv);",
+             "      if(a.kind==='setup'){m._lastMove=a.mv||m._lastMove;continue;}\r\n      if(a.kind==='setup'){\r\n        const _fx=a.mv&&moveFx(a.mv);"]] },
   match(e) {
     if (!e.boosts || e.target !== 'self') return null;
     const arm = armFor(e);
@@ -7645,7 +7783,8 @@ const RULES = [
    * shared writer instead, which is where BOTH doors end up. */
   break: { why: 'no status is ever written to any body — the move still resolves, still announces and '
               + 'still spends the turn',
-    patch: [['function applyStatus(t,st,src){', 'function applyStatus(t,st,src){if(1)return false;']] },
+    /* RE-AIMED 2026-08-27 — `applyStatus` gained `eff` and `why`; the anchor matched zero times. */
+    patch: [['function applyStatus(t,st,src,eff,why){', 'function applyStatus(t,st,src,eff,why){if(1)return false;']] },
   match(e) {
     if (!e.status) return null;
     /* A SELF-INFLICTED STATUS FALLS THROUGH RATHER THAN REFUSING. Rest carries `status: 'slp'` AND a
@@ -7731,7 +7870,9 @@ const RULES = [
      + 'THE NEGATIVE IS THE SECOND SLOT: the partner throws a plain move of the same category and must '
      + 'end at 0, which catches a self-drop applied to the side rather than to the body.',
   break: { why: 'the self stat change is never applied — the damage still lands',
-    patch: [['const sdrop=connected?a.move.mv.self:null;', 'const sdrop=null;']] },
+    /* RE-AIMED 2026-08-27 — the line grew the SELFBOOST_IN_LOOP guard; the anchor matched zero times. */
+    patch: [["const sdrop=(connected&&(SELFBOOST_IN_LOOP||_sbVia!=='selfBoost'))?(a.move.mv&&a.move.mv.self):null;",
+             'const sdrop=null;']] },
   match(e) {
     if (!(e.self && e.self.boosts) || !(e.basePower > 0)) return null;
     const arm = armFor(e);
@@ -7876,7 +8017,11 @@ const RULES = [
      + 'attack. THE PARTNER IS THE NEGATIVE and throws a plain move of the same type, gaining nothing.',
   break: { why: 'the drain heal is skipped and the damage is left alone, so a break that moves ONLY '
               + 'the user\'s HP is the localisation',
-    patch: [["const _dr=TAGS.param('move',a.move.id,'drain');", "const _dr=null;"]] },
+    /* RE-AIMED 2026-08-27. THE ANCHOR WAS INSIDE DEAD CODE. The drain moved to a per-target payment
+     * (`_payDrainRow`) on 2026-08-24 and the old lump-sum block survives only under
+     * `MEDI_DRAIN_LUMP_ROUND=1`, so the plant applied to a branch that does not run by default and
+     * the rule read NOT CAUGHT. Measured: 0 leaves before, 4 after, on Bitter Blade. */
+    patch: [["const _drTag=TAGS.param('move',a.move.id,'drain');", 'const _drTag=null;']] },
   match(e) {
     if (!e.drain || !(e.basePower > 0)) return null;
     const arm = armFor(e);
@@ -7942,7 +8087,11 @@ const RULES = [
      + 'staging that supplied only one would report the other as inert. The user answers on the next '
      + 'turn, so the retaliation family has something to retaliate against.',
   break: { why: 'the fixed-damage branch is skipped — the click still resolves and still spends the turn',
-    patch: [["if(a.kind==='fixeddmg'){", "if(a.kind==='fixeddmg'){m._lastMove=a.mv;continue;}if(a.kind==='fixeddmg'){"]] },
+    /* RE-AIMED 2026-08-27. `a.kind==='fixeddmg'` IS NEVER ENTERED by any member of this rule —
+     * counted directly with a counter in the branch, 0 on all nine including Super Fang. Fixed damage
+     * is computed inside `dmgRangeOneHit` from the `fixedDamage` tag, so that is the anchor.
+     * Measured: 0 leaves before, 4 after, on Comeuppance/Counter/Endeavor. */
+    patch: [["const _fd=mv.id?TAGS.param('move',mv.id,'fixedDamage'):null;", 'const _fd=null;']] },
   match(e) {
     if (!(e.damage || e.damageCallback)) return null;
     const arm = armFor(e);
@@ -8096,7 +8245,15 @@ const RULES = [
      + 'whose formula is flat there will agree here and could still be wrong elsewhere, which is the '
      + 'honest limit of a single staged board.',
   break: { why: 'every damage roll is halved',
-    patch: [['return {min:roll(85),max:roll(100),eff};',
+    /* RE-AIMED 2026-08-27. THE OLD PLANT RAN AND CHANGED NOTHING, which is the equivalent-mutant
+     * failure and the reason this rule read NOT CAUGHT: it halved the `{min,max}` RETURN of
+     * `dmgRangeOneHit`, and the battle loop does not apply that. It applies `hit.rolls`, the
+     * sixteen-entry band written as an out-parameter two lines above the return. Measured with a
+     * counter inside the plant: the patched line executed 4 times on Acrobatics and moved 0 leaves;
+     * halving the BAND moves 4. Both are halved here so the break means what its `why` says. */
+    patch: [['for(let i=0;i<16;i++){const v=roll(100-i);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}',
+             'for(let i=0;i<16;i++){const v=Math.floor(roll(100-i)*0.5);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}'],
+            ['return {min:roll(85),max:roll(100),eff};',
              'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff};']] },
   match(e) {
     if (!e.basePowerCallback) return null;
@@ -8235,7 +8392,15 @@ const RULES = [
      + 'either engine on the primary arm and always fires on the bottom one, so the SECONDARY is a '
      + 'property of the arm and not of this staging.',
   break: { why: 'every damage roll is halved',
-    patch: [['return {min:roll(85),max:roll(100),eff};',
+    /* RE-AIMED 2026-08-27. THE OLD PLANT RAN AND CHANGED NOTHING, which is the equivalent-mutant
+     * failure and the reason this rule read NOT CAUGHT: it halved the `{min,max}` RETURN of
+     * `dmgRangeOneHit`, and the battle loop does not apply that. It applies `hit.rolls`, the
+     * sixteen-entry band written as an out-parameter two lines above the return. Measured with a
+     * counter inside the plant: the patched line executed 4 times on Acrobatics and moved 0 leaves;
+     * halving the BAND moves 4. Both are halved here so the break means what its `why` says. */
+    patch: [['for(let i=0;i<16;i++){const v=roll(100-i);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}',
+             'for(let i=0;i<16;i++){const v=Math.floor(roll(100-i)*0.5);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}'],
+            ['return {min:roll(85),max:roll(100),eff};',
              'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff};']] },
   match(e) {
     if (!(e.basePower > 0)) return null;
@@ -9068,11 +9233,26 @@ function main() {
         /* CONTROL-NOT-QUIET COUNTS AS "THE BOARD MOVED" HERE AND NOWHERE ELSE. The red demonstration
          * asks whether the PLANT changes a board, which is a question about the simulator; the quiet
          * gate exists to stop a delta being ATTRIBUTED to an entity, which is a different question. */
+        /* A PLANT THAT MAKES THE FIXTURE UNPLAYABLE HAS DEMONSTRATED ITSELF, AND SCORING IT AS
+         * "COULD-NOT-STAGE" IS WHY `move/self-switch` READ NOT CAUGHT (2026-08-27). Its break stops a
+         * pivot being classified as one; the body then stands where the script expects an empty slot,
+         * the game ends a turn early and `play()` returns SHORT. That is the engine reacting as loudly
+         * as it can, and the old set discarded it.
+         *
+         * NARROW ON PURPOSE, because COULD-NOT-STAGE is also what a broken harness returns:
+         *   - the member must have been GREEN against the clean source, so the fixture demonstrably
+         *     plays without the plant, and
+         *   - it is recorded as its own outcome with the reason printed, never folded into a DIFFER.
+         * Measured with the plant applied and the clean arm beside it: Chilly Reception and Parting
+         * Shot both play clean and both return SHORT planted. */
+        const brokeTheFixture = br.verdict === 'COULD-NOT-STAGE'
+          && member.verdict === 'FIRED-AND-BOARDS-MATCH';
         if (br.verdict === 'FIRED-AND-BOARDS-DIFFER' || br.verdict === 'DID-NOT-FIRE'
-            || br.verdict === 'CONTROL-NOT-QUIET') {
+            || br.verdict === 'CONTROL-NOT-QUIET' || brokeTheFixture) {
           moved = { member: member.id, verdict: br.verdict,
                     weak: member.verdict !== 'FIRED-AND-BOARDS-MATCH',
                     was: member.verdict,
+                    unplayable: brokeTheFixture ? String(br.why || '').replace(/\s+/g, ' ').slice(0, 140) : null,
                     fields: [...new Set((br.subject_diffs || []).map(d => d.field))] };
           break;
         }
@@ -9187,6 +9367,9 @@ function main() {
       + row.rule
       + (row.moved ? '   via ' + row.moved.member + ' -> ' + row.moved.verdict + ' on '
                      + row.moved.fields.join(', ')
+                     + (row.moved.unplayable ? '\n        THE PLANT MADE THE FIXTURE UNPLAYABLE, which '
+                         + 'is a reaction and not a staging failure — the same member plays clean: '
+                         + row.moved.unplayable : '')
                      + (row.moved.weak ? '\n        WEAK — ' + row.moved.member + ' was ALREADY '
                          + row.moved.was + ' against the clean source, so the flip is not '
                          + 'attributable to the plant and this rule is NOT shown to express its own '

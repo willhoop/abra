@@ -2,9 +2,9 @@
   "current": "345f4193d440",
   "cut": "2026-08-28T00:11:47.009Z",
   "why": "a lock's fatigue is announced [fatigue] and at onAfterMove, not at the residual",
-  "cuts": 1,
-  "latest_cut": "2026-08-28T00:11:47.009Z",
-  "latest_why": "a lock's fatigue is announced [fatigue] and at onAfterMove, not at the residual",
-  "pointer_written": "2026-08-28T00:11:47.022Z",
+  "cuts": 2,
+  "latest_cut": "2026-08-28T00:38:45.320Z",
+  "latest_why": "dormant reds classification — roster --reds bucket audit",
+  "pointer_written": "2026-08-28T00:38:45.333Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

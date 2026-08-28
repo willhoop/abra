@@ -60,6 +60,87 @@ census regeneration.
 
 ---
 
+## THE THIRTY, CLASSIFIED AND THEN CLOSED — **23 MISWRITTEN DEMONSTRATION / 7 WRONG RULE / 1 THE ENGINE REALLY DOES NOT REACT.** 30 -> 1. 2026-08-27.
+
+ROADMAP `#513` closed, `#514` filed. Release `345f4193d440`, `0 of 26 files have moved since` — **no
+engine file was touched by this pass.** CHANGELOG 5.192.0.
+
+**THE CLASSIFICATION NEEDED ITS OWN INSTRUMENT, AND THAT IS THE WHOLE LESSON.** `--reds` measures a
+VERDICT FLIP, which runs through the control arm, the delta subtraction and the usage shelf. Any of
+those can cancel a plant that is perfectly live, so a NOT CAUGHT has three different causes and the
+loop cannot tell them apart. `tests/probe_reds_plant_reaches.js` asks the narrower question — apply
+the plant to the frozen release, compare **our own board against our own** — the same shape
+`healStagingWorks()` already used for one rule. Showdown is not in it, so nothing can cancel it. It
+returned REACHES and NO REACH on the same run before any of this was believed.
+
+### The 23 that were the demonstration
+
+**Thirteen anchors had never matched at all.** A renamed parameter (`_who` -> `who`), a hoisted local
+(`suppressedAbility(att,def)` -> `_sa`), two functions that gained arguments (`canTakeStatus`,
+`applyStatus`), an `&&` clause inserted mid-line (`berryRefusedByFoeNew`), a line split in two
+(`survivesFromFull` -> `_svIt` + `_sv`), an inline `foes.some(...)` extracted into a function, a
+`consumeBerry` refactor — and **two that matched TWICE**, which is not planted either.
+
+**Ten applied and demonstrated nothing, and the reasons are engine facts worth keeping:**
+
+| rule(s) | what the plant hit | why the board did not move |
+|---|---|---|
+| `move/plain-attack`, `move/variable-power`, `move/recharge` | the `{min,max}` return of `dmgRangeOneHit` | that is the PRICE. The battle loop applies `hit.rolls`, the sixteen-entry band written two lines above the return. **Counted inside the plant: the line ran 4 times on Acrobatics and moved 0 leaves; halving the band moves 4.** |
+| `move/multihit` | the same return's `_hits>1` early exit | the band already carries the multiplier. The count a played game uses is the ROLLED one in `hitPlanOf`. |
+| `move/drain` | `const _dr=…'drain'` | that copy lives inside `if(DRAIN_LUMP_ROUND)`, dead by default since the drain moved to a per-target payment on 2026-08-24. The live read is `_drTag`. |
+| `ability/weather-residual` | `boostsEachTurn` | the wrong tag entirely — every member is `weatherResidualHP`. |
+| `ability/damage-taken-scoped` | the base-power route of `halvesTypeDamage` | two routes, one tag. Every halving member uses the attacker-stat route (`_htdA`); the base-power route's only carrier is Dry Skin. |
+| `move/fixed-damage`, `move/needs-a-stat-stage-to-act-on` | `a.kind==='fixeddmg'`, a boost-write site | **counted at ZERO executions** on every member, Super Fang included. |
+| `move/self-switch` | the pivot classifier | it reached. The loop refused to score it: the body stands where the script expects an empty slot, the game ends a turn early, `play()` returns SHORT and `runEntry` calls that COULD-NOT-STAGE. |
+
+**AND ONE WAS STAGING NOTHING AT ALL, WHICH IS THE MOST EXPENSIVE OF THE THIRTY.**
+`item/heals-at-threshold` chose its fixture by MAXIMISING a predicted damage fraction — closest to
+90% of the holder's HP. `maxRoll` is a prediction off `flatL50` spreads and the fixture is built by
+`buildPair`; they disagreed by enough that **the staging hit KILLED the holder, in both engines.** So
+the berry never fired, and Oran and Sitrus were both credited `FIRED-AND-BOARDS-MATCH` on **one leaf**
+— `p2.party.<holder>.item` at boundary 0, which is the item being written on the board and nothing
+else. Two vacuous greens, and the red demonstration is what found them. The picker now aims at the
+MIDDLE of its band, and the rule carries a precondition read off SHOWDOWN's board: the holder alive in
+its slot AND the berry eaten. A fixture that cannot show both is COULD-NOT-STAGE, never a pass.
+
+### The 7 that were the rule
+
+Seven `noBreak` declarations said the simulator has no implementation of the family. **All seven had
+gone stale under the engine**, and the declaration's own check is what said so — it fails the moment a
+member FIRES, and every one of them had a member reading `FIRED-AND-BOARDS-MATCH`. Big Root
+(`healMultBySource`), Light Ball (`statMult.onlySpecies`), Shell Bell (`healFromDamageDealt`), Rest,
+Wish and Healing Wish (all `healDescriptor`), Spit Up / Swallow (`spendsVolatile`). Each now has a
+real anchor, each shown to move our own board first: 4, 2, 4, 12, 4, SHORT and 8 leaves.
+
+### The 1 that is the engine — ROADMAP `#514`
+
+**Nothing in medicham2 gates Belch on having eaten a berry.** `_ateBerry` is written in
+`consumeBerry` and read in **exactly one place in the file** (Harvest); planting `m._ateBerry=false`
+moves **zero** board leaves on Belch's own fixture. The authority refuses the click outright
+(`onTry(source) { return source.ateBerry; }`); we resolve it as an ordinary damaging move. The roster
+row is green because the fixture feeds the body a berry first, so the gate is open in the authority
+and ABSENT here and the two boards agree for different reasons — the exact class of vacuous green this
+whole net exists to find.
+
+`data/tags.json` gives Belch `pp / targetClass / formatSecondaryCount / callRefusalFlags` and no gate,
+so the fix is a `tag_dex` derivation plus a reader, and regenerating the tags moves the release. Not
+done inside this measurement, and **not declared undemonstrable**: the rule aims its break at
+`_ateBerry` and reads NOT CAUGHT, so the instrument says it out loud on every run.
+
+### What did not move
+
+`--reds` reads **18/18, 29/29, 34/35 CAUGHT**, no WEAK rows. Every artifact column is identical to the
+run before it: 0 / 0 in the two failure columns, **139 / 129 / 475** `FIRED-AND-BOARDS-MATCH`, 8 / 141
+/ 22 `COULD-NOT-STAGE`. Census **765/765 live, 0 missing**. Damage **0/6000 at all sixteen corners**.
+Whole-game **1 of 961**, `BOARD_MATERIAL` **0 of 961**. Gate clauses **3 of 8 PASS -> 5 of 8 PASS**;
+the moves clause stays FAIL on `#514` alone.
+
+**AND THE COMMAND IS NOW IN THE FILE IT RUNS.** The `--reds --write` loop is in the header of
+`tests/roster.js`, with the reason. It was in THIS document and that was not enough — a flag nobody
+knows to pass is the same bug one level up.
+
+---
+
 ## A LOCK'S FATIGUE CONFUSION WAS MISSING ITS `[fatigue]` TAG *AND* SAT AT THE WRONG POSITION IN THE TURN — THE AUTHORITY FATIGUES INSIDE THE MOVE, NOT AT THE RESIDUAL. **WHOLE-GAME 2 -> 1 OF 961 AND RAW DIVERGED 7 -> 6, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. ROSTER 139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
 
 ROADMAP `#506` closed. Release `345f4193d440`. CHANGELOG 5.190.0.

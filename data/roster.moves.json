@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-28T00:27:12.971Z",
+ "generated": "2026-08-28T01:12:41.447Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "engine_release": "345f4193d440",
@@ -13,8 +13,8 @@
   "COULD-NOT-STAGE": 22
  },
  "arms_played": {
-  "top-tie-first": 883,
-  "bottom-tie-first": 288
+  "top-tie-first": 825,
+  "bottom-tie-first": 264
  },
  "scope": {
   "total": 500,
@@ -42,6 +42,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -50,38 +51,67 @@
   },
   {
    "rule": "move/boosts-self",
-   "ok": false,
-   "why": "the anchor matched 2 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: if(a.kind==='setup'){"
+   "ok": true,
+   "why": "the self-boost is skipped entirely — the click is still made, still costs the turn and still records itself as the last move",
+   "moved": {
+    "member": "acidarmor",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.def",
+     "boosts.def"
+    ]
+   }
   },
   {
    "rule": "move/plain-attack",
    "ok": true,
    "why": "every damage roll is halved",
    "moved": {
-    "member": "axekick",
+    "member": "acidspray",
     "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": true,
-    "was": "DEFERRED-BY-OWNER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
-     "vol.confusion",
      "party.hp",
-     "hp",
-     "vol.focusenergy",
-     "pp.focusenergy"
+     "hp"
     ]
    }
   },
   {
    "rule": "move/variable-power",
-   "ok": false,
+   "ok": true,
    "why": "every damage roll is halved",
-   "moved": null
+   "moved": {
+    "member": "acrobatics",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "move/needs-a-stat-stage-to-act-on",
-   "ok": false,
+   "ok": true,
    "why": "a stat stage written by a move's own boost block is dropped, so there is nothing for the subject to clear, copy, invert or swap",
-   "moved": null
+   "moved": {
+    "member": "guardswap",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.def",
+     "boosts.def"
+    ]
+   }
   },
   {
    "rule": "move/crit",
@@ -92,6 +122,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -107,6 +138,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -115,8 +147,21 @@
   },
   {
    "rule": "move/self-boosts-after",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const sdrop=connected?a.move.mv.self:null;"
+   "ok": true,
+   "why": "the self stat change is never applied — the damage still lands",
+   "moved": {
+    "member": "armorcannon",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.def",
+     "party.boosts.spd",
+     "boosts.def",
+     "boosts.spd"
+    ]
+   }
   },
   {
    "rule": "move/volatile",
@@ -127,6 +172,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "vol.disable"
     ]
@@ -141,6 +187,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "screens.physical",
      "screens.special",
@@ -157,6 +204,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.boosts.atk",
      "boosts.atk"
@@ -172,6 +220,7 @@
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "party.fainted",
@@ -188,32 +237,70 @@
   },
   {
    "rule": "move/self-switch",
-   "ok": false,
+   "ok": true,
    "why": "a move-driven switch is never classified as one, so the user stays on the field",
-   "moved": null
+   "moved": {
+    "member": "chillyreception",
+    "verdict": "COULD-NOT-STAGE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": "the SUBJECT arm did not run: SHORT — the script declares 2 turn(s) and 1 were played",
+    "fields": []
+   }
   },
   {
    "rule": "move/needs-a-berry-already-eaten",
    "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: m.curHP=Math.min(m.st.hp,m.curHP+_amt);m.item='';"
+   "why": "a threshold berry restores nothing when it is eaten",
+   "moved": null
   },
   {
    "rule": "move/drain",
-   "ok": false,
+   "ok": true,
    "why": "the drain heal is skipped and the damage is left alone, so a break that moves ONLY the user's HP is the localisation",
-   "moved": null
+   "moved": {
+    "member": "bitterblade",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "move/recharge",
-   "ok": false,
+   "ok": true,
    "why": "every damage roll is halved, so the hit this rule DOES stage moves",
-   "moved": null
+   "moved": {
+    "member": "blastburn",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "move/multihit",
-   "ok": false,
+   "ok": true,
    "why": "a multi-hit move lands exactly ONE hit — which is the defect this family was written against",
-   "moved": null
+   "moved": {
+    "member": "bonerush",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "move/charge",
@@ -224,6 +311,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "vol.charging",
      "party.hp",
@@ -244,6 +332,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -259,6 +348,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "species",
      "hp",
@@ -272,9 +362,19 @@
   },
   {
    "rule": "move/fixed-damage",
-   "ok": false,
+   "ok": true,
    "why": "the fixed-damage branch is skipped — the click still resolves and still spends the turn",
-   "moved": null
+   "moved": {
+    "member": "comeuppance",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "move/terrain-setter",
@@ -285,6 +385,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "field.terrain",
      "field.terrain_turns"
@@ -300,6 +401,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -315,6 +417,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "field.trickroom_turns"
     ]
@@ -329,6 +432,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "party.fainted",
@@ -341,14 +445,32 @@
   },
   {
    "rule": "move/status-inflict",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: function applyStatus(t,st,src){"
+   "ok": true,
+   "why": "no status is ever written to any body — the move still resolves, still announces and still spends the turn",
+   "moved": {
+    "member": "glare",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.status",
+     "status"
+    ]
+   }
   },
   {
    "rule": "move/the-user-faints-and-the-replacement-arrives-restored",
-   "ok": false,
-   "declared": true,
-   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Healing Wish (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+   "ok": true,
+   "why": "the user no longer faints, so no replacement arrives to be restored",
+   "moved": {
+    "member": "healingwish",
+    "verdict": "COULD-NOT-STAGE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": "the SUBJECT arm did not run: SHORT — the script declares 4 turn(s) and 3 were played",
+    "fields": []
+   }
   },
   {
    "rule": "move/heals-a-body-that-was-damaged-first",
@@ -359,6 +481,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -374,6 +497,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "screens.special",
      "screens.named.lightscreen"
@@ -389,6 +513,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "field.weather",
      "field.weather_turns"
@@ -404,6 +529,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -412,15 +538,40 @@
   },
   {
    "rule": "move/full-heal-that-also-writes-a-status-onto-its-user",
-   "ok": false,
-   "declared": true,
-   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Rest (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+   "ok": true,
+   "why": "the full heal still happens and the user is no longer put to sleep by it",
+   "moved": {
+    "member": "rest",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.status",
+     "status",
+     "party.status_counter",
+     "status_counter",
+     "pp.focusenergy"
+    ]
+   }
   },
   {
    "rule": "move/needs-a-volatile-set-first",
-   "ok": false,
-   "declared": true,
-   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Spit Up (FIRED-AND-BOARDS-MATCH), Swallow (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+   "ok": true,
+   "why": "the gate volatile is never spent, so the move that reads it acts on a stale count",
+   "moved": {
+    "member": "swallow",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.def",
+     "party.boosts.spd",
+     "boosts.def",
+     "boosts.spd"
+    ]
+   }
   },
   {
    "rule": "move/type-changing",
@@ -431,6 +582,7 @@
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
     "fields": [
      "party.hp",
      "hp"
@@ -439,9 +591,19 @@
   },
   {
    "rule": "move/heals-the-slot-a-turn-later-across-a-switch",
-   "ok": false,
-   "declared": true,
-   "why": "THE DECLARATION IS FALSE — it says the simulator has no implementation of this family, and Wish (FIRED-AND-BOARDS-MATCH) says otherwise. An anchor is owed."
+   "ok": true,
+   "why": "the slot condition is never booked, so nothing arrives a turn later",
+   "moved": {
+    "member": "wish",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   }
  ],
  "mirror": {

@@ -1,8 +1,8 @@
 {
- "generated": "2026-08-27T23:24:16.841Z",
+ "generated": "2026-08-28T00:26:44.087Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "5ed4753b7322",
+ "engine_release": "345f4193d440",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -13,8 +13,8 @@
   "COULD-NOT-STAGE": 141
  },
  "arms_played": {
-  "top-tie-first": 444,
-  "bottom-tie-first": 19
+  "top-tie-first": 549,
+  "bottom-tie-first": 21
  },
  "scope": {
   "total": 316,
@@ -178,7 +178,379 @@
    "weakarmor"
   ]
  },
- "reds": [],
+ "reds": [
+  {
+   "rule": "ability/entry",
+   "ok": true,
+   "why": "the entry stat drop is skipped — the ability is still on the body and still named. It is aimed at one MEMBER of the family, so a rule that catches it has proved the entry path is live rather than that every entry ability is",
+   "moved": {
+    "member": "intimidate",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.boosts.atk",
+     "boosts.atk"
+    ]
+   }
+  },
+  {
+   "rule": "ability/blocks-priority",
+   "ok": true,
+   "why": "the priority block is skipped, so the shielded side takes the fast move",
+   "moved": {
+    "member": "armortail",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/aids-its-ally",
+   "ok": true,
+   "why": "the ally damage reduction is dropped",
+   "moved": {
+    "member": "friendguard",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/refuses-a-crit",
+   "ok": true,
+   "why": "the crit refusal is skipped, so the armoured body takes the crit like anything else",
+   "moved": {
+    "member": "battlearmor",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/stat-drop-reaction",
+   "ok": false,
+   "why": "the anchor matched 2 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const p=TAGS.param('ability',ab,'preventsStatDrop');"
+  },
+  {
+   "rule": "ability/pinch-offense",
+   "ok": true,
+   "why": "the pinch multiplier is dropped — the ability is still on the body and still named, and the HP gate is still crossed",
+   "moved": {
+    "member": "blaze",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/absorbs-a-type",
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const _imm=TAGS.param('ability',suppressedAbility(att,def),'typeImmunity');"
+  },
+  {
+   "rule": "ability/weather-speed",
+   "ok": true,
+   "why": "the weather Speed multiplier is dropped, so the carrier never outruns anybody",
+   "moved": {
+    "member": "chlorophyll",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.boosts.atk",
+     "party.boosts.spa",
+     "boosts.atk",
+     "boosts.spa"
+    ]
+   }
+  },
+  {
+   "rule": "ability/residual",
+   "ok": true,
+   "why": "THE ENTRY GATE IS REMOVED and the per-turn effect fires unconditionally — which is the exact defect this family was written against, and it can only be caught by a staging that has a mid-turn entrant in it",
+   "moved": {
+    "member": "speedboost",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.boosts.spe",
+     "boosts.spe"
+    ]
+   }
+  },
+  {
+   "rule": "ability/entry-aids-ally",
+   "ok": true,
+   "why": "the entry heal is skipped — the carrier still switches in and is still named",
+   "moved": {
+    "member": "hospitality",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/ground-immunity",
+   "ok": true,
+   "why": "the airborne-ability set is emptied, so the carrier is grounded and arm A lands",
+   "moved": {
+    "member": "eelevate",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "party.boosts.accuracy",
+     "hp",
+     "boosts.accuracy"
+    ]
+   }
+  },
+  {
+   "rule": "ability/damage-taken-scoped",
+   "ok": false,
+   "why": "the scoped damage reduction is dropped",
+   "moved": null
+  },
+  {
+   "rule": "ability/unconditional-stat-multiplier",
+   "ok": true,
+   "why": "the doubled attacking stat is dropped — the ability is still on the body and still named, and the click is still inside its category",
+   "moved": {
+    "member": "hugepower",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/weather-residual",
+   "ok": false,
+   "why": "the residual weather effect is skipped",
+   "moved": null
+  },
+  {
+   "rule": "ability/refuses-one-status",
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: function canTakeStatus(t,st,ignoreTypeImmunity){"
+  },
+  {
+   "rule": "ability/base-power-scoped",
+   "ok": true,
+   "why": "the scoped base-power multiplier is dropped",
+   "moved": {
+    "member": "ironfist",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/redirects-a-type",
+   "ok": true,
+   "why": "the redirection is skipped, so the drawn move stays on its original target",
+   "moved": {
+    "member": "lightningrod",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.boosts.spa",
+     "party.hp",
+     "boosts.spa",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/type-conversion",
+   "ok": true,
+   "why": "the type rewrite is skipped, so the move keeps its printed type",
+   "moved": {
+    "member": "liquidvoice",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/private-sky",
+   "ok": true,
+   "why": "the private sky is switched off, so Weather Ball stays Normal and Solar Beam charges",
+   "moved": {
+    "member": "megasol",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp",
+     "vol.charging"
+    ]
+   }
+  },
+  {
+   "rule": "ability/ignores-abilities",
+   "ok": true,
+   "why": "the suppression is skipped, so the target keeps its ability and the click is refused",
+   "moved": {
+    "member": "moldbreaker",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "party.boosts.accuracy",
+     "hp",
+     "boosts.accuracy"
+    ]
+   }
+  },
+  {
+   "rule": "ability/switch-out",
+   "ok": true,
+   "why": "the switch-out heal is skipped",
+   "moved": {
+    "member": "regenerator",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/pierces-protect",
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const p=TAGS.param('ability',m.ability,'piercesProtect');"
+  },
+  {
+   "rule": "ability/priority-mod",
+   "ok": true,
+   "why": "the priority shift is dropped, so the carrier moves in plain speed order",
+   "moved": {
+    "member": "prankster",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.boosts.atk",
+     "party.boosts.spa",
+     "boosts.atk",
+     "boosts.spa"
+    ]
+   }
+  },
+  {
+   "rule": "ability/no-recoil",
+   "ok": true,
+   "why": "the recoil exemption is dropped, so the holder pays the recoil anyway",
+   "moved": {
+    "member": "rockhead",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/weather-evasion",
+   "ok": true,
+   "why": "the evasion stage is ignored when accuracy is computed",
+   "moved": {
+    "member": "sandveil",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/deletes-secondaries",
+   "ok": true,
+   "why": "the secondary filter is skipped, so the 100% flinch and the 100% drop both land",
+   "moved": {
+    "member": "shielddust",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": [
+     "party.boosts.spa",
+     "party.boosts.spd",
+     "party.boosts.spe",
+     "boosts.spa",
+     "boosts.spd",
+     "boosts.spe",
+     "pp.quiverdance",
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/survives-from-full",
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg"
+  },
+  {
+   "rule": "ability/refuses-a-forced-switch",
+   "ok": true,
+   "why": "the drag-out refusal is skipped, so the carrier is thrown out like anything else (UNEXERCISED IF THE TAG IS ABSENT — see the verdict text)",
+   "moved": {
+    "member": "suctioncups",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "fields": []
+   }
+  },
+  {
+   "rule": "ability/blocks-foe-berry",
+   "ok": false,
+   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: if(foes&&foes.some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'"
+  }
+ ],
  "mirror": {
   "pairs": 26,
   "same_numbers_swapped": [
