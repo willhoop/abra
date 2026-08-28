@@ -325,6 +325,33 @@ and the wiring is missing, that is not a question for him. That is the work.**
 derived verdict**. A sentence somebody typed as a note was subtracting three live turn-order
 divergences from the gate and printing them as excused.
 
+**SIX AGENTS CONFIRMED A CONSTRAINT I INVENTED, BECAUSE I HAD WRITTEN IT INTO THEIR BRIEFS.** I claimed
+the hourly OPS ingest would swap the team pool under a running measurement, made it the stated reason for
+holding a push, and put that sentence in every brief. Each agent dutifully repeated it back in its report
+-- "origin/main is the OPS ingest that rewrites the live team-pool store" -- and six independent-looking
+confirmations made it look settled. **Every measurement pins `--team-store data/team-pool-frozen`. The
+ingest cannot touch it.** Will ended it in five words: *"WE FROZE THE TEAM POOL REMEMBER"*.
+
+**A CLAIM YOU PUT IN A BRIEF COMES BACK AS EVIDENCE.** This is not an agent failure -- they were told it as
+fact and had no reason to test it. It is the coordinator manufacturing corroboration, and it is invisible
+precisely because the reports agree. **State a constraint as a question when you have not measured it**
+("verify whether X blocks this"), never as a premise, and treat a claim echoed by N agents as ONE source.
+
+**A PROBE THAT READS A FIELD WHICH DOES NOT EXIST PRINTS A CLEAN ALL-CLEAR.** Three times in one night I
+wrote a one-line `node -e` over an artifact, guessed a key name wrong, and got a uniform answer: every
+divergence row printed `LIVE` because `d.declared` is not a field; every roster red printed `NOT CAUGHT: 0`
+because the flag is `ok`, not `caught`. **The uniformity IS the tell** -- real data is rarely unanimous.
+One of those sent a whole batch after five rows that were already declared, and the agent had to refute my
+arithmetic using numbers that were in my own brief. **Print the SHAPE first (`Object.keys(rows[0])`), then
+the query.**
+
+**A RED PROBE IS EVIDENCE ABOUT ITS ASSERTIONS, NOT ABOUT ITS FILENAME.** `probe_trace_list.js` exited 1 on
+a settled tree, so I reported that the row it is named after had been closed prematurely. It had not. Its
+own counters cleared that row in the same run, and the failing clause was **a bare count naming nothing** --
+the real defect was a rampage that reached no target and armed its lock anyway. **A probe covering N claims
+that reports "1 mismatch" without naming the cell will be misread as its headline defect.** Make failing
+clauses name the cell; until they do, do not attribute a red to the probe's title.
+
 **A GREP IS A CLAIM ABOUT A NAME, AND THE NAME MOVES.** `tests/test-middle-identity.js` was RED for
 days on a claim that searched `game_differential.js`'s SOURCE TEXT for `MID_BATTLE = this.battle`. A
 commit had moved that state into a shared holder, so the identifier survived **only in comments** —
@@ -538,6 +565,49 @@ that is the difference between coverage and the appearance of it.
 ---
 
 ## 8. SOURCES THAT EXIST AND ARE NOT OBVIOUS
+**WHAT A GATE FIGURE EXCLUDES IS A FIELD IN ITS OWN ARTIFACT, AND IT IS NOT IN THE HEADLINE.**
+`data/engine-diff.json` carries `skipped_multihit` and `skipped_ability_multihit` beside its pass count.
+The damage differential reads `0 of 6000` and **has never applied a multi-hit move** -- it skips all
+fourteen and calls `moveHit` once rather than the volley loop. I quoted that figure as general evidence of
+damage correctness for a whole session before an agent read the field. **Before citing any instrument's
+headline, print its scope fields.**
+
+*Which question: "what does this number NOT cover?"*
+
+**HOW MANY LEAVES THE BOARD COMPARATOR ACTUALLY LOOKS AT.** `node tests/probe_uncompared_leaves.js` prints
+it, derived over the whole regulation. **Compared 33, declared uncomparable 4, in NEITHER list 43** of 80
+leaves the mechanics write. A leaf in neither list is a hole the gate cannot see: the boards agree on it by
+not looking, and an ANNOUNCEMENT-ONLY verdict on a mechanic whose whole effect IS that leaf is unearned.
+**"board-material 0" is a statement about 33 leaves, not 80.**
+
+*Which question: "is this mechanic's verdict earned, or is its leaf simply uncompared?"*
+
+**THE ROSTER'S RED DEMONSTRATIONS NEED A FLAG, AND IT HAD NEVER BEEN PASSED.** `tests/roster.js --reds
+--write` populates the arm that proves each rule COULD fail. Every roster artifact carried `reds: []` until
+2026-08-28. Switched on, thirty demonstrations did not behave as their own rule predicted -- 23 miswritten,
+7 wrong rule, **1 a real engine defect the net would have missed**. The command is now in `roster.js`'s
+header. **A check that needs a flag nobody knows to pass is the same bug one level up.**
+
+*Which question: "does this suite actually prove it can fail, or only that it ran?"*
+
+**A `COULD-NOT-STAGE` PATH THAT EXITS ZERO READS AS AGREEMENT.** Twelve such paths across four probes exited
+`0`, which `register_reality.js` records as VERDICT-GREEN and a closed row as CONFIRMED. Separately its
+`SAFE` regex rejects a `-r <preload>.js` marker, so three probes were *accounted for* on a runner that never
+ran them -- **an unaccounted check shows red; those showed green.** Both fixed 2026-08-28.
+
+*Which question: "did this check pass, or did it decline to answer?"*
+
+**GENERATED SOURCES FROZEN INTO RELEASES ARE PINNED IN `.gitattributes` WITH `text eol=lf`, AND NINE ARE
+NOT.** Under `core.autocrlf=true` a checkout rewrites a generated artifact's endings, the release digest
+moves, and `status.js` withholds clauses that are not failing -- the gate read 7 of 8, then 5 of 8, with no
+engine change. Happened twice in three days. 17 sources are pinned and `tests/test-engine-release.js` §10
+ratchets it per file; **the other nine leave the release digest machine-dependent.** Never normalise the
+comparator to hide it -- a test here matches `
+` against source, so the difference is already
+observable to an instrument.
+
+*Which question: "did the engine change, or did a byte that is not code?"*
+
 
 Everything below was discovered the expensive way. **Each entry says what QUESTION it answers, never
 what the answer is** — an answer written here rots like the fourteen handoffs. Verify before citing:
