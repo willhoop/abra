@@ -22483,6 +22483,9 @@ const leppaRun = (item, turns) => {
   }
   return { clicks: trace.filter(l => /^\|move\|p1a/.test(l)).length,
            noPP: trace.filter(l => /nopp/.test(l)).length,
+           /* THE BERRY'S OWN ANNOUNCEMENT, kept whole. The probe above reads only the SLOT, so it is
+            * green on a line that is two fields short of the authority's. */
+           act: trace.filter(l => /^\|-activate\|p1a[^|]*\|item:/.test(l)).join(' ; '),
            left: B.me._pp ? B.me._pp.protect : null, item: B.me.item };
 };
 
@@ -22503,6 +22506,56 @@ probe('item', 'restoresPP', 'Leppa Berry puts a spent move back on the menu', ()
                  + '. CONTROL no item ' + none.clicks + ' clicks and ' + none.noPP + ' |cant|nopp; '
                  + 'CONTROL Sitrus Berry ' + sitrus.clicks + ' and ' + sitrus.noPP + ' — a berry that '
                  + 'is HELD and does not restore PP, so the knob is the item\'s tag and not the slot' };
+});
+
+/* 2026-08-28 -- AND WHAT THAT BERRY *SAYS*, WHICH THE PROBE ABOVE CANNOT SEE BECAUSE IT READS THE
+ * SLOT AND THE CLICK COUNT AND NOTHING ELSE.
+ *
+ * THE AUTHORITY, READ WHOLE (data/items.ts:3348-3372, `leppaberry`; no Champions override -- there is
+ * no `leppaberry` key in data/mods/champions/items.ts):
+ *
+ *     onEat(pokemon) {
+ *       const moveSlot = pokemon.moveSlots.find(move => move.pp === 0) ||
+ *         pokemon.moveSlots.find(move => move.pp < move.maxpp);
+ *       if (!moveSlot) return;
+ *       const addedPP = pokemon.hasAbility('ripen') ? 20 : 10;
+ *       moveSlot.pp = Math.min(moveSlot.pp + addedPP, moveSlot.maxpp);
+ *       this.add('-activate', pokemon, 'item: Leppa Berry', moveSlot.move, '[consumed]');
+ *     }
+ *
+ * FOUR ARGUMENTS, so FIVE fields on the wire. This engine wrote the first three and stopped:
+ *     showdown   |-activate|p1a: Corviknight|item: Leppa Berry|Rain Dance|[consumed]
+ *     medicham2  |-activate|p1a: Corviknight|item: leppaberry
+ * The two missing fields are WHICH MOVE got the PP and the `[consumed]` marker. `traceCanon` folds
+ * case and spacing on every field from 2 up, so `Leppa Berry`/`leppaberry` and `Rain Dance`/`raindance`
+ * are already the same string to the differ -- the divergence is the ABSENCE, not the spelling.
+ *
+ * THE ARMS ARE THE MOVE SLOT ITSELF, and that is the point: the third field is not a constant, it
+ * NAMES the slot the berry chose. A probe asserting only "there are five fields" would pass on a
+ * hard-wired label. So the test arm is the real board, where the restored slot is the move that ran
+ * out, and the control arm is the SAME board holding a Sitrus -- a berry, held, eaten through the
+ * same `onUpdate` pass, which announces no `-activate` of this shape at all. */
+probe('item', 'restoresPP', 'The Leppa activation names the slot it refilled and marks it [consumed]', () => {
+  const leppa = leppaRun('leppaberry', 9);
+  const sitrus = leppaRun('sitrusberry', 9);
+  /* The move that ran out is the one the body actually clicked, read off the run rather than typed. */
+  /* A TRACE LINE OPENS WITH `|`, so split() yields a LEADING EMPTY FIELD and the authority's five
+   * wire fields land at indices 1..5, not 0..4. Getting this wrong is what made the first cut of this
+   * probe red against an engine that was already emitting the correct line -- the same off-by-one
+   * that cost a cycle on the swap probe an hour earlier. Indices are named rather than counted. */
+  const f = leppa.act.split('|');
+  const [, ev, who, item, slot, consumed] = f;
+  return { works: leppa.act !== '' && sitrus.act === ''
+                  && f.length === 6 && f[0] === '' && ev === '-activate' && /^p1a/.test(who)
+                  && /^item: leppaberry$/i.test(item)
+                  && /^protect$/i.test(slot) && consumed === '[consumed]',
+           arms: { control: 'sitrus -> "' + sitrus.act + '"', test: 'leppa -> "' + leppa.act + '"' },
+           detail: 'A LEPPA that refills Protect announces "' + leppa.act + '" — five fields, the '
+                 + 'third naming the slot it chose and the fourth the authority\'s `[consumed]` '
+                 + '(data/items.ts:3348 onEat, `this.add(\'-activate\', pokemon, \'item: Leppa Berry\', '
+                 + 'moveSlot.move, \'[consumed]\')`). CONTROL, the same body and the same nine turns '
+                 + 'holding a SITRUS, announces "' + (sitrus.act || '(nothing of this shape)') + '" — so '
+                 + 'the line is this berry\'s, not any berry\'s' };
 });
 
 /* ROADMAP #308 — THE THREE ROWS THAT LEFT A BERRY WHERE THE AUTHORITY HAD TAKEN IT.

@@ -21,6 +21,69 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## THE LEPPA BERRY'S ACTIVATION WAS TWO FIELDS SHORT — NO SLOT NAME AND NO `[consumed]`. 2026-08-28. CHANGELOG 5.199.0.
+
+**CENSUS 776 -> 777 LIVE / 777 PROBED / 0 MISSING. DIVERGING MECHANICS 7 -> 6, ITEMS 1 -> 0 —
+`item:leppaberry` READS `NO-DIVERGENCE` AND THE ITEMS STAGE IS NOW CLEAN. BOARD-MATERIAL UNMOVED AT
+0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER
+139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35. ALL PREDICTED BEFORE THE RUN.** Release
+`25971e1db478`, cut over a settled tree (`0 of 26 files have moved since`).
+
+**THE AUTHORITY, READ WHOLE.** `data/items.ts:3348-3372`, `leppaberry.onEat` — and there is no
+`leppaberry` key in `data/mods/champions/items.ts`, so Champions inherits it:
+
+```js
+onEat(pokemon) {
+  const moveSlot = pokemon.moveSlots.find(move => move.pp === 0) ||
+    pokemon.moveSlots.find(move => move.pp < move.maxpp);
+  if (!moveSlot) return;
+  const addedPP = pokemon.hasAbility('ripen') ? 20 : 10;
+  moveSlot.pp = Math.min(moveSlot.pp + addedPP, moveSlot.maxpp);
+  this.add('-activate', pokemon, 'item: Leppa Berry', moveSlot.move, '[consumed]');
+}
+```
+
+**FOUR ARGUMENTS, SO FIVE FIELDS ON THE WIRE. This engine wrote the first three and stopped:**
+
+```
+showdown    |-activate|p1a: Corviknight|item: Leppa Berry|Rain Dance|[consumed]
+medicham2   |-activate|p1a: Corviknight|item: leppaberry
+```
+
+**THE DIVERGENCE IS THE ABSENCE, NOT THE SPELLING** — and that is worth stating, because the obvious
+reading of the row is that `leppaberry` should be `Leppa Berry`. It should not: `traceCanon` folds
+case and spacing on every field from 2 up, so `Leppa Berry`/`leppaberry` and `Rain Dance`/`raindance`
+are already the same string to the differ. What parted the stream is the two fields that were not
+written at all.
+
+**THE FIX IS ONE LINE, AND THE SLOT NAME IS DERIVED RATHER THAN RE-GUESSED.** `pick` is the slot the
+restore already chose by the handler's own rule (an empty slot first, else the first below max), so
+the third field comes out of the same decision that moved the PP.
+
+**THE PROBE.** New census row `item / restoresPP` — *"The Leppa activation names the slot it refilled
+and marks it `[consumed]`"*. The existing `restoresPP` probe reads the SLOT and the click count and
+nothing else, so it was green on a line two fields short. `MEDI_LEPPA_LINE_BARE=1` reproduces the
+SAME red — three fields, no slot, no `[consumed]` — and leaves the PP-restore probe LIVE, so the knob
+reverts the announcement and not the mechanic.
+
+**THE ARMS ARE THE MOVE SLOT ITSELF.** The third field is not a constant; it NAMES the slot the berry
+chose, so a probe asserting only "there are five fields" would pass on a hard-wired label. The control
+is the same body over the same nine turns holding a **Sitrus** — a berry, held, eaten through the same
+`onUpdate` pass — which announces nothing of this shape at all. So the line is proven to be this
+berry's, not any berry's.
+
+**WHICH SCOREBOARD, SAID BEFORE THE RUN.** Lab moves, pool sits still. Leppa Berry is **1 team in
+13,116 open-sheet games** and **1 use** in the store. The pool did not move and that is not a
+disappointment.
+
+**AND MY PROBE WAS WRONG ONCE MORE FIRST**, the same shape as on the swap patch: a trace line opens
+with `|`, so `split('|')` yields a LEADING EMPTY FIELD and the authority's five wire fields land at
+indices 1..5. The first cut asserted `f.length === 5` and went red against an engine that was already
+emitting the correct line. The indices are now destructured and named rather than counted.
+
+
+---
+
 ## SWITCHEROO NAMED ITSELF WHERE THE AUTHORITY NAMES TRICK, AND NEITHER SWAP MOVE WROTE THE `[silent]` `-enditem`. 2026-08-28. CHANGELOG 5.198.0.
 
 **CENSUS 774 -> 776 LIVE / 776 PROBED / 0 MISSING. DIVERGING MECHANICS 8 -> 7, MOVES 6 -> 5 —

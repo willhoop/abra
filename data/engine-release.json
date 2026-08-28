@@ -1,10 +1,10 @@
 {
-  "current": "f440e4759f4e",
-  "cut": "2026-08-28T07:59:53.670Z",
-  "why": "switcheroo: the -activate names Trick (derived), and the empty-handed side gets its [silent] -enditem (re-cut after a CRLF restore)",
+  "current": "25971e1db478",
+  "cut": "2026-08-28T08:15:50.000Z",
+  "why": "leppa berry: the -activate names the slot it refilled and marks it [consumed]",
   "cuts": 1,
-  "latest_cut": "2026-08-28T07:59:53.670Z",
-  "latest_why": "switcheroo: the -activate names Trick (derived), and the empty-handed side gets its [silent] -enditem (re-cut after a CRLF restore)",
-  "pointer_written": "2026-08-28T07:59:53.682Z",
+  "latest_cut": "2026-08-28T08:15:50.000Z",
+  "latest_why": "leppa berry: the -activate names the slot it refilled and marks it [consumed]",
+  "pointer_written": "2026-08-28T08:15:50.012Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

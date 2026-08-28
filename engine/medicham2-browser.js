@@ -2066,6 +2066,9 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-28 -- MEDI_SWAP_LINES_BLIND=1 is armed, so Switcheroo names itself and the empty-handed
      side gets no `-enditem`. MUST READ 0 on any shipping run. */
   swapLinesBlindRestored: 0,
+  /* 2026-08-28 -- MEDI_LEPPA_LINE_BARE=1 is armed, so the PP berry announces three fields again.
+     MUST READ 0 on any shipping run. */
+  leppaLineBareRestored: 0,
   /* 2026-08-27 -- THE SECOND, STILL-OPEN PRODUCER OF A MISSING `|-hitcount|`. A volley priced as 2+
      packets whose total was rewritten before application (a Focus Sash, an Endure, a busted Disguise)
      collapses to one packet, so `_landed` stays 0 and no count is announced — while the authority
@@ -9014,7 +9017,18 @@ function berryPPUpdate(m,foes){
   m._pp[String(pick).toLowerCase().replace(/[^a-z0-9]/g,'')]=Math.min(mx,ppLeft(m,pick)+amt);
   consumeBerry(m,_it);           // ROADMAP #128 -- the one consumption site
   MEDSEEN.ppRestoredByItem++;
-  if(TR){TR.enditem(m,_it,'[eat]');TR.act(m,'item: '+_it);}
+  /* 2026-08-28 -- THE LINE CARRIES THE SLOT IT REFILLED AND THE AUTHORITY'S `[consumed]`.
+   * `onEat` closes with FOUR arguments, so FIVE fields on the wire (data/items.ts:3348-3372;
+   * no `leppaberry` key in data/mods/champions/items.ts, so Champions inherits it):
+   *     this.add('-activate', pokemon, 'item: Leppa Berry', moveSlot.move, '[consumed]');
+   * This engine wrote the first three and stopped, which parted the stream on the ABSENCE rather
+   * than on a spelling -- `traceCanon` already folds `Leppa Berry`/`leppaberry` and
+   * `Rain Dance`/`raindance` to the same string. `pick` is the slot chosen above by the handler's own
+   * rule (an empty slot first, else the first below max), so the third field is DERIVED from the same
+   * decision the PP restore used rather than re-guessed here. */
+  if(TR){TR.enditem(m,_it,'[eat]');
+         if(LEPPA_LINE_BARE){MEDFAILS.leppaLineBareRestored=1;TR.act(m,'item: '+_it);}
+         else TR.act(m,'item: '+_it,pick,'[consumed]');}
 }
 /* ---- 2026-08-22 -- `eachEvent('Update')`, WHICH IS WHERE AN `onUpdate` BERRY IS ACTUALLY EATEN ----
  *
@@ -12120,6 +12134,12 @@ const HP_THRESHOLD_BOOST_EARLY=(typeof process!=='undefined'&&process.env
  * behaviour. Any run carrying it also carries a non-zero `MEDFAILS.swapLinesBlindRestored`. */
 const SWAP_LINES_BLIND=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_SWAP_LINES_BLIND==='1');
+/* 2026-08-28 -- MEDI_LEPPA_LINE_BARE=1 PUTS THE PP-BERRY'S `-activate` BACK TO THREE FIELDS, with no
+ * slot name and no `[consumed]` -- exactly what it wrote until today, so it reproduces the SAME red
+ * rather than a third behaviour. Any run carrying it also carries a non-zero
+ * `MEDFAILS.leppaLineBareRestored`. */
+const LEPPA_LINE_BARE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_LEPPA_LINE_BARE==='1');
 const LATCH_FIELDS_WRITTEN=(function(){
   const S=new Set();
   try{

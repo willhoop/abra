@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-28T08:03:02.898Z",
- "release": "f440e4759f4e",
+ "generated": "2026-08-28T08:18:52.218Z",
+ "release": "25971e1db478",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -49765,31 +49765,18 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 34,
-     "cls": "-activate field 4",
-     "detail": "-activate[4] raindance vs undefined",
-     "cause": "-activate field 4 :: |-activate|p1a|leppaberry|raindance|[consumed] <> |-activate|p1a|leppaberry",
-     "showdown": "|-activate|p1a: Corviknight|item: Leppa Berry|Rain Dance|[consumed]",
-     "medicham": "|-activate|p1a: Corviknight|item: leppaberry",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 6,
      "boundaries_agreed": 6,
      "last_boundary_turn": 5,
-     "protocol_parted_on_turn": 3,
-     "boards_after_the_parting": 3,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -54072,7 +54059,7 @@
    "diverged_including_shelved": 2,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 9
+   "seconds": 9.1
   },
   "then_what": {
    "rows": 64,
@@ -54092,8 +54079,8 @@
    "out_of_scope": 75,
    "cannot_fire_in_this_fixture": 9,
    "did_not_fire_unexplained": 0,
-   "diverged": 1,
-   "diverged_including_shelved": 2,
+   "diverged": 0,
+   "diverged_including_shelved": 1,
    "shelved_by_owner": 1,
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
@@ -54382,8 +54369,7 @@
    },
    "items": {
     "tally": {
-     "NO-DIVERGENCE": 71,
-     "ANNOUNCEMENT-ONLY": 1,
+     "NO-DIVERGENCE": 72,
      "STATE": 1
     },
     "rows": 73,
@@ -54821,8 +54807,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "8a168b0d750d",
-    "roster_generated": "2026-08-28T07:53:43.191Z",
+    "roster_release": "f440e4759f4e",
+    "roster_generated": "2026-08-28T08:03:34.176Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

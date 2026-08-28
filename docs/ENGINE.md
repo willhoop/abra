@@ -124,6 +124,85 @@ _stamped 2026-08-28 02:03_
 
 <!-- /GENERATED -->
 
+## THE LEPPA BERRY'S ACTIVATION WAS TWO FIELDS SHORT — IT NAMED NEITHER THE SLOT IT REFILLED NOR THE AUTHORITY'S `[consumed]`. **CENSUS 776 -> 777 LIVE / 777 PROBED / 0 MISSING. DIVERGING MECHANICS 7 -> 6, ITEMS 1 -> 0 AND THE ITEMS STAGE IS CLEAN. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35 — ALL PREDICTED.** 2026-08-28.
+
+CHANGELOG 5.199.0. Release `25971e1db478`, cut over a settled tree, arm `middle`, cap 12, seed
+20260804, `--games 1200` (yields 961), `--team-store data/team-pool-frozen`, census pin
+`9446a684709d`, `--state --end-state`.
+
+**THE AUTHORITY, READ WHOLE.** `data/items.ts:3348-3372`, `leppaberry.onEat` — and there is no
+`leppaberry` key in `data/mods/champions/items.ts`, so Champions inherits it:
+
+```js
+onEat(pokemon) {
+  const moveSlot = pokemon.moveSlots.find(move => move.pp === 0) ||
+    pokemon.moveSlots.find(move => move.pp < move.maxpp);
+  if (!moveSlot) return;
+  const addedPP = pokemon.hasAbility('ripen') ? 20 : 10;
+  moveSlot.pp = Math.min(moveSlot.pp + addedPP, moveSlot.maxpp);
+  this.add('-activate', pokemon, 'item: Leppa Berry', moveSlot.move, '[consumed]');
+}
+```
+
+**FOUR ARGUMENTS, SO FIVE FIELDS ON THE WIRE. This engine wrote the first three and stopped:**
+
+```
+showdown    |-activate|p1a: Corviknight|item: Leppa Berry|Rain Dance|[consumed]
+medicham2   |-activate|p1a: Corviknight|item: leppaberry
+```
+
+**THE DIVERGENCE IS THE ABSENCE, NOT THE SPELLING** — and that is worth stating, because the obvious
+reading of the row is that `leppaberry` should be `Leppa Berry`. It should not: `traceCanon` folds
+case and spacing on every field from 2 up, so `Leppa Berry`/`leppaberry` and `Rain Dance`/`raindance`
+are already the same string to the differ. What parted the stream is the two fields that were not
+written at all.
+
+**THE FIX IS ONE LINE, AND THE SLOT NAME IS DERIVED RATHER THAN RE-GUESSED.** `pick` is the slot the
+restore already chose by the handler's own rule (an empty slot first, else the first below max), so
+the third field comes out of the same decision that moved the PP.
+
+**THE PROBE.** New census row `item / restoresPP` — *"The Leppa activation names the slot it refilled
+and marks it `[consumed]`"*. The existing `restoresPP` probe reads the SLOT and the click count and
+nothing else, so it was green on a line two fields short. `MEDI_LEPPA_LINE_BARE=1` reproduces the
+SAME red — three fields, no slot, no `[consumed]` — and leaves the PP-restore probe LIVE, so the knob
+reverts the announcement and not the mechanic.
+
+**THE ARMS ARE THE MOVE SLOT ITSELF.** The third field is not a constant; it NAMES the slot the berry
+chose, so a probe asserting only "there are five fields" would pass on a hard-wired label. The control
+is the same body over the same nine turns holding a **Sitrus** — a berry, held, eaten through the same
+`onUpdate` pass — which announces nothing of this shape at all. So the line is proven to be this
+berry's, not any berry's.
+
+**WHICH SCOREBOARD, SAID BEFORE THE RUN.** Lab moves, pool sits still. Leppa Berry is **1 team in
+13,116 open-sheet games** and **1 use** in the store. The pool did not move and that is not a
+disappointment.
+
+**AND MY PROBE WAS WRONG ONCE MORE FIRST**, the same shape as on the swap patch: a trace line opens
+with `|`, so `split('|')` yields a LEADING EMPTY FIELD and the authority's five wire fields land at
+indices 1..5. The first cut asserted `f.length === 5` and went red against an engine that was already
+emitting the correct line. The indices are now destructured and named rather than counted.
+
+
+### THE HAND LIST
+
+Covers this patch and nothing else.
+
+**Leaves it:** nothing — the items stage of `all_mechanics_fire` is now clean at **0 diverging**, so
+the whole `items` column leaves the open list.
+
+**Joins it:**
+- **`item:metronome` IS THE ONLY ITEM ROW LEFT AND IT IS SHELVED BY THE OWNER, NOT CLEAN.** With
+  `leppaberry` closed, `items diverged 0 / diverged_including_shelved 1` — the one remaining row is
+  Will's cost-based Metronome shelf, whose board verdict is **STATE**. The zero is real and it is
+  not the whole story.
+- **`MEDFAILS.leppaLineBareRestored` HAS ONLY BEEN READ ON A STAGED BOARD**, like every other counter
+  added this session.
+- Everything on the Switcheroo hand list above is carried forward unchanged: Forewarn's die, Heal
+  Bell's missing build, Gastro Acid's uncomparable leaf, Ripen's announcement, the `takesTargetItem`
+  quote-style bug, and the CRLF rule for Python edits.
+
+---
+
 ## SWITCHEROO NAMED ITSELF WHERE THE AUTHORITY NAMES *TRICK*, AND NEITHER SWAP MOVE WROTE THE `[silent]` `-enditem` FOR THE EMPTY-HANDED SIDE. **CENSUS 774 -> 776 LIVE / 776 PROBED / 0 MISSING. DIVERGING MECHANICS 8 -> 7, MOVES 6 -> 5 — `switcheroo` AND `trick` BOTH `NO-DIVERGENCE`. BOARD-MATERIAL UNMOVED AT 0 OF 961, WHOLE-GAME UNMOVED AT 6 RAW / 1 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 139 / 129 / 475 WITH REDS 18/18, 29/29, 35/35 — ALL PREDICTED BEFORE THE RUN.** 2026-08-28.
 
 CHANGELOG 5.198.0. Release `f440e4759f4e` (re-cut from `8a168b0d750d` after a CRLF restore), cut
