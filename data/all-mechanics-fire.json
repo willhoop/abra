@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-27T23:24:59.448Z",
- "release": "5ed4753b7322",
+ "generated": "2026-08-28T00:17:42.710Z",
+ "release": "345f4193d440",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -54172,7 +54172,7 @@
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 11,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 5.9
+   "seconds": 11.4
   },
   "abilities": {
    "exist": 316,
@@ -54189,7 +54189,7 @@
    "diverged_including_shelved": 4,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 13
+   "seconds": 8.7
   },
   "then_what": {
    "rows": 64,
@@ -54215,7 +54215,7 @@
    "shelved_by_owner_diverging": 1,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 40.3
+   "seconds": 4.4
   },
   "board_state": {
    "rows": 15,

@@ -10,6 +10,57 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.190.0] — 2026-08-27
+
+### Fixed
+- **A LOCK'S FATIGUE CONFUSION WAS MISSING ITS `[fatigue]` TAG *AND* SAT AT THE WRONG POSITION IN
+  THE TURN — THE AUTHORITY FATIGUES INSIDE THE MOVE, NOT AT THE RESIDUAL. WHOLE-GAME 2 -> 1 OF 961
+  AND RAW DIVERGED 7 -> 6, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO
+  PREDICTED. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. ROSTER 139 / 129 / 475 WITH ZERO
+  IN BOTH FAILURE COLUMNS. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS. PIN DIGEST UNMOVED AT
+  `ccb365985023`, `DICE_MODEL` v5.** ENGINE. ROADMAP `#506` closed. Release `345f4193d440`.
+  - **THE FIELD.** `data/conditions.ts:161-173`, `confusion.onStart`: `[fatigue]` is written only
+    when `sourceEffect.id === 'lockedmove'`. `lockedmove.onEnd` passes no arguments and
+    `Pokemon#addVolatile` fills them from the running event (`sim/pokemon.ts:1983-1985`), where
+    `battle.effect` IS the lockedmove condition. Champions overrides neither condition —
+    `data/mods/champions/conditions.ts` is 57 lines holding `par`, `slp` and `frz`, read in full.
+  - **THE POSITION, WHICH WAS NOT IN THE ROW AS FILED.** `lockedmove.onAfterMove` is
+    `if (this.effectState.duration === 1) pokemon.removeVolatile('lockedmove')`, and `removeVolatile`
+    runs `onEnd`. So a body that MOVED on its last locked turn is confused inside the move,
+    immediately below its own `-damage` (authority index 6 of 13); this engine modelled only the
+    residual road and wrote the line at the foot of the turn (index 11 of 13). The residual road is
+    still correct and still reached — a body PREVENTED from moving (a flinch, a full paralysis)
+    fatigues there — and WIRE 144's header, which claimed the residual was the position for every
+    expiry, is corrected in the same pass.
+  - **THE DISCRIMINATOR IS A HANDLER, NOT A NAME.** New derived tag param `expiresAtMove` in
+    `engine/tag_dex.js`'s `lockShape`, read off the condition's own `onAfterMove` and PRINTED over
+    the whole format before it was wired: true for outrage, petaldance, ragingfury and thrash; false
+    for uproar and for all six `mustrecharge` moves. Exactly the four, no over-match.
+  - **UPROAR MUST NOT MOVE AND IT DID NOT, MEASURED RATHER THAN ARGUED.**
+    `probe_upkeep_lines.js --only perish` carries a four-turn `D clock volatile:uproar` arm that
+    reaches the residual, and its whole output is byte-identical across the patch — including its
+    pre-existing part at reduced index 63, which is a different open row.
+  - Probe `tests/probe_fatigue_tag.js`: red with 3 failing clauses (turn-2 narration, the line's
+    fields, the line's position — reported separately because they are two patches), green on every
+    clause after, boards identical at every boundary on both arms, and a cleared control across which
+    the AUTHORITY's own confusion volatile moves `1` -> `null`.
+
+### Changed
+- `data/tags.json` and `data/abra-tags.js` regenerated. **The regeneration moved more than the new
+  param and that is said here rather than left in the diff:** `tag_dex.js` reads the LIVE game store
+  for usage counts and the store has moved since the artifact was written. A no-op regeneration was
+  run FIRST, before the `lockShape` edit, to separate the two — it moved ~600 leaves, every one a
+  usage count or a linkage total and not one a mechanic parameter. Against that baseline the edit
+  adds exactly five leaves and nothing else.
+
+### Notes
+- **DECLARED REMAINDER.** The new block sits below the same "the move actually resolved" guard as
+  the lock-arming site, and the authority raises `AfterMove` even for a locked move that MISSED — so
+  a missed last-turn Outrage still fatigues at the residual here. Same state, different position,
+  unmeasured.
+
+---
+
 ## [5.189.0] — 2026-08-27
 
 ### Fixed

@@ -831,6 +831,22 @@ function lockShape(m) {
      * calls cureStatus on anything asleep; the condition's onAnySetStatus returns null for slp. */
     wakesSleepers: /status\s*===\s*['"]slp['"][\s\S]*cureStatus\(/.test(String(m.onTryHit || '')),
     blocksSleep: /status\.id\s*===\s*['"]slp['"]/.test(String(c.onAnySetStatus || '')),
+    /* 2026-08-27 -- WHERE THE LOCK EXPIRES, AND IT IS NOT ALWAYS THE RESIDUAL.
+     *
+     * `lockedmove.onAfterMove` is `if (this.effectState.duration === 1) pokemon.removeVolatile(
+     * 'lockedmove')`, and `removeVolatile` runs `onEnd`, which is the fatigue confusion. So a body
+     * that MOVED on its last locked turn is confused inside the move, immediately below its own
+     * `-damage`; only a body that was PREVENTED from moving (flinch, full paralysis) reaches the
+     * residual with the volatile still on it and is confused there. This engine modelled the second
+     * road only, so the line was written at the foot of the turn.
+     *
+     * IT IS THE CONDITION'S OWN HANDLER AND NOT A NAME, and the difference is load-bearing:
+     * `uproar.condition` has `duration: 3`, an `onResidual` and an `onEnd` that writes `-end`, and NO
+     * `onAfterMove` — its expiry genuinely IS the residual, so a name-blind fix would move it and be
+     * wrong. Printed over the whole format before this line was written: `onAfterMove` is true for
+     * outrage, petaldance, ragingfury and thrash, and false for uproar and for all six `mustrecharge`
+     * moves — which is exactly the four, with no over-match. */
+    expiresAtMove: !!c.onAfterMove,
   };
 }
 

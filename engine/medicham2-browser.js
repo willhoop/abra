@@ -1221,6 +1221,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * follows it; the two are counted apart because Uproar expires and never confuses, so one number
    * could not say whether the confusion half was wired. */
   lockExpired: 0, lockExpiredConfused: 0,
+  /* 2026-08-27 -- of those, the ones that expired at `onAfterMove` rather than at the residual, i.e.
+   * the body MOVED on its last locked turn. A zero on a run in which an Outrage ran its full length is
+   * the new road silently not being taken and the `[fatigue]` line going back to the foot of the turn;
+   * `lockExpired - lockExpiredAtMove` is the flinch/full-paralysis road, which is still real. */
+  lockExpiredAtMove: 0,
   /* WIRE 144 -- the lock was broken EARLY by sleep, which is the one path on which Showdown's own
    * `onResidual` deletes the volatile and bypasses the fatigue. */
   lockBrokenBySleep: 0,
@@ -15339,7 +15344,24 @@ function itemCuresVolatile(m,vol){
  * its handler is a bare `return null` -- so nothing is emitted there either. Getting this wrong would
  * put a line in our stream the authority never writes, which is the protocol differential's business
  * and is invisible to the board. */
-function applyConfusion(t,src,field,viaSecondary){
+/* `viaFatigue` says the confusion came from a LOCK-IN RUN ENDING, and it exists because the
+ * authority's `confusion.onStart` writes a different line for it. data/conditions.ts:161-173,
+ * three branches and one tag:
+ *
+ *     if (sourceEffect?.id === 'lockedmove')        this.add('-start', target, 'confusion', '[fatigue]');
+ *     else if (sourceEffect?.effectType === 'Ability') ... '[from] ability: ' ...
+ *     else                                          this.add('-start', target, 'confusion');
+ *
+ * `lockedmove.onEnd` passes no arguments, and `Pokemon#addVolatile` fills them from the running
+ * event (`sim/pokemon.ts:1983-1985`), where `battle.effect` IS the lockedmove condition -- which is
+ * also why `source` stays null and defaults to the target, and therefore why SAFEGUARD cannot refuse
+ * this confusion (`safeguard.onTryAddVolatile` ends `&& target !== source`). This engine gets that
+ * right by shape rather than by luck: `sideBuffRefuses(t, src, ...)` returns null on a null `src`
+ * and the fatigue call site passes null.
+ *
+ * THE FOUR EXISTING CALLERS ARE BYTE-IDENTICAL ACROSS THIS CHANGE: `TR.push` filters
+ * `x != null && x !== ''`, so the empty string adds no field. */
+function applyConfusion(t,src,field,viaSecondary,viaFatigue){
   if(!t||t.fainted||t.curHP<=0)return false;
   if(t._vol&&t._vol.confusion>0){MEDSEEN.confusionAlreadyOn++;return false;}
   {const _rv=TAGS.param('ability',t.ability,'refusesVolatile');
@@ -15353,7 +15375,7 @@ function applyConfusion(t,src,field,viaSecondary){
   if(field&&field.terrain==='misty'){MEDFAILS.confusionMistyUnmodelled++;}
   (t._vol=t._vol||{}).confusion=CONFUSION_TURNS_MIN;
   MEDSEEN.confusionSet++;MEDSEEN.confusionMinDuration++;
-  if(TR)TR.vstart(t,'confusion');
+  if(TR)TR.vstart(t,'confusion',viaFatigue?'[fatigue]':'');
   /* THE BERRY IS AN `onUpdate` AND FIRES BEFORE THE BODY EVER ACTS, which is why it is here and not
    * only in the update pass: a Lum holder confused by a move it was aimed at must lose the volatile
    * inside the same turn, not at the next boundary. The update pass calls the same reader, so a
@@ -31578,6 +31600,46 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_b&&!_b.fainted&&_b.status==='slp'){_b.status='';_b.slpTurns=0;_b.slpTime=0;
             MEDSEEN.uproarWokeSleeper++; if(TR)TR.cure(_b,'slp',ATTR.cured(false).from);}
         }
+        /* 2026-08-27 -- THE LOCK EXPIRES AT `onAfterMove` FOR A BODY THAT MOVED, AND WIRE 144'S
+         * RESIDUAL IS ONLY THE OTHER HALF.
+         *
+         *     lockedmove.onAfterMove(pokemon) {
+         *       if (this.effectState.duration === 1) pokemon.removeVolatile('lockedmove');
+         *     }                                                      data/conditions.ts
+         *
+         * and `removeVolatile` runs `onEnd`, which is the fatigue confusion. Traced over a two-turn
+         * run: `onStart` sets `trueDuration = 2` and `duration = 2`; turn 1's residual takes
+         * `duration` to 1 and `trueDuration` to 1; on turn 2 `onRestart` declines to re-arm
+         * (`trueDuration >= 2` is false), so `onAfterMove` sees `duration === 1` and confuses AT MOVE
+         * TIME -- immediately below that attack's own `-damage`, not at the foot of the turn.
+         *
+         * WIRE 144'S BLOCK BELOW IS STILL RIGHT AND IS STILL REACHED. A body PREVENTED from moving on
+         * its last locked turn (a flinch, a full paralysis) never runs `onAfterMove`; `residualEvent`
+         * then takes its duration to 0 and calls `handler.end`, and the fatigue lands at the residual,
+         * which is exactly where that block puts it. Two roads, two positions, one authority.
+         *
+         * UPROAR MUST NOT MOVE AND A NAME-BLIND FIX WOULD MOVE IT. `uproar.condition` has `duration:
+         * 3`, an `onResidual` and an `onEnd` that writes `-end`, and NO `onAfterMove` -- its expiry
+         * genuinely IS the residual. The gate is the condition's own handler, carried as the derived
+         * tag param `expiresAtMove` (engine/tag_dex.js `lockShape`), which was printed over the whole
+         * format before it was wired: true for outrage, petaldance, ragingfury and thrash, false for
+         * uproar and for all six `mustrecharge` moves.
+         *
+         * `left` IS THE FORCED TURNS STILL OWED INCLUDING THIS ONE and is ticked at the residual, so
+         * `left <= 1` is exactly "this was the last one". Clearing `_mtLock` here also frees the menu
+         * a residual earlier, which is what the authority does -- and `refreshSleepBlock` is recomputed
+         * for the same reason the arming site recomputes it, so Uproar's field-wide sleep refusal
+         * cannot go stale off this line. (It cannot change here either: Uproar is excluded above.)
+         *
+         * DECLARED REMAINDER, NOT FIXED HERE: this block sits below the same "the move actually
+         * resolved" guard as the arming site, and the authority raises `AfterMove` even for a locked
+         * move that MISSED. A missed last-turn Outrage therefore still fatigues at the residual here.
+         * The state is the same either way; only the position differs, and it is unmeasured. */
+        if(_lk&&_lk.expiresAtMove&&m._mtLock&&m._mtLock.move===a.move.id&&m._mtLock.left<=1){
+          const _lc=m._mtLock; m._mtLock=null; MEDSEEN.lockExpired++; MEDSEEN.lockExpiredAtMove++;
+          refreshSleepBlock(actA,actB,sfA,sfB);
+          if(_lc.confuse){ MEDSEEN.lockExpiredConfused++; applyConfusion(m,null,field,false,true); }
+        }
       }
       /* WIRE 44 -- ARM THE LOCKOUT. `lockoutTurns + 1` for the end-of-turn tick that fires on this
          turn too, the same convention Encore, Heal Block and Yawn already use. */
@@ -32853,16 +32915,19 @@ function battleTurn(S,rng,actsForA,actsForB){
        *              A `delete` and not `removeVolatile`, so onEnd never runs and there is NO confusion:
        *              the comment in the authority reads "don't lock, and bypass confusion for calming".
        *
-       * IT TICKS FOR A BODY THAT NEVER MOVED, which is the point of putting it here rather than at the
-       * move site: Showdown's residual runs whatever the body did, so an Outrage user that was flinched
-       * or fully paralysed on its last locked turn still fatigues. */
+       * IT TICKS FOR A BODY THAT NEVER MOVED, AND THAT IS NOW THE WHOLE OF WHAT IT IS FOR. Corrected
+       * 2026-08-27: this said the residual was the position for EVERY expiry, and it is the position
+       * only for a body PREVENTED from moving on its last locked turn (a flinch, a full paralysis). A
+       * body that MOVED expires inside `lockedmove.onAfterMove`, immediately below its own `-damage`
+       * -- see the block at the lock-arming site, gated on the derived `expiresAtMove`. `uproar` has
+       * no `onAfterMove`, so its expiry really is here and nothing about it changed. */
       if(x._mtLock&&x._mtLock.left>0){
         x._mtLock.left--;
         if(x._mtLock.left<=0){
           const _lc=x._mtLock;
           x._mtLock=null; MEDSEEN.lockExpired++;
           if(TR&&_lc.vol==='uproar')TR.vend(x,'Uproar');
-          if(_lc.confuse){ MEDSEEN.lockExpiredConfused++; applyConfusion(x,null,field,false); }
+          if(_lc.confuse){ MEDSEEN.lockExpiredConfused++; applyConfusion(x,null,field,false,true); }
         } else if(x.status==='slp'){
           if(TR&&x._mtLock.vol==='uproar')TR.vend(x,'Uproar');
           x._mtLock=null; MEDSEEN.lockBrokenBySleep++;

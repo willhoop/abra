@@ -21,6 +21,112 @@ paragraphs, and this file is deleted. If the sprint is abandoned, the rows still
 
 ---
 
+## A LOCK'S FATIGUE CONFUSION WAS MISSING ITS `[fatigue]` TAG *AND* SAT AT THE WRONG POSITION IN THE TURN — THE AUTHORITY FATIGUES INSIDE THE MOVE, NOT AT THE RESIDUAL. **WHOLE-GAME 2 -> 1 OF 961 AND RAW DIVERGED 7 -> 6, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. ROSTER 139 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
+
+ROADMAP `#506` closed. Release `345f4193d440`. CHANGELOG 5.190.0.
+Probe `tests/probe_fatigue_tag.js` — RED, exit 1, 3 failing clauses; GREEN, all clauses, after.
+
+**TWO DEFECTS ON ONE LINE, AND THE SECOND WAS NOT IN THE ROW AS FILED.** `#506` said the tag was
+missing. It was, and the line was also written at the foot of the turn:
+
+```
+turn 2  authority  [ 6 of 13]  |-start|p1a|confusion|[fatigue]   <- right after the Outrage's -damage
+turn 2  ours       [11 of 13]  |-start|p1a|confusion             <- after every other body had acted
+```
+
+The probe pulls the line out ALONE with its index for exactly this reason: a missing field and a
+misplaced line are two defects with two patches, and a sequence diff reports them as one red.
+
+**THE FIELD.** `data/conditions.ts:161-173`, `confusion.onStart`, three branches and one tag —
+`[fatigue]` is written only when `sourceEffect.id === 'lockedmove'`. `lockedmove.onEnd` passes no
+arguments and `Pokemon#addVolatile` fills them from the running event (`sim/pokemon.ts:1983-1985`),
+where `battle.effect` IS the lockedmove condition. That is also why `source` stays null and defaults
+to the target, and therefore why **Safeguard cannot refuse this confusion**
+(`safeguard.onTryAddVolatile` ends `&& target !== source`) — which this engine already gets right by
+shape rather than by luck: `sideBuffRefuses(t, src, ...)` returns null on a null `src` and the
+fatigue call site passes null. **Champions overrides neither condition**:
+`data/mods/champions/conditions.ts` is 57 lines holding `par`, `slp` and `frz`, read in full.
+
+**THE POSITION.** `lockedmove.onAfterMove` is `if (this.effectState.duration === 1)
+pokemon.removeVolatile('lockedmove')`, and `removeVolatile` runs `onEnd`, which is the fatigue.
+Traced over a two-turn run: `onStart` sets `trueDuration = 2` and `duration = 2`; turn 1's residual
+takes `duration` to 1 and `trueDuration` to 1; on turn 2 `onRestart` declines to re-arm
+(`trueDuration >= 2` is false), so `onAfterMove` sees `duration === 1` and confuses at move time.
+**The residual road is still real and still correct** — a body PREVENTED from moving on its last
+locked turn (a flinch, a full paralysis) never runs `onAfterMove` and is fatigued at the residual,
+which is exactly where WIRE 144 puts it. Two roads, two positions, one authority; this engine had
+only the second, and WIRE 144's header — which claimed the residual was the position for every
+expiry — is corrected in the same pass rather than left to contradict the code beside it.
+
+**THE DISCRIMINATOR IS A HANDLER, NOT A NAME, AND IT WAS PRINTED BEFORE IT WAS WIRED.** The gate is
+the condition's own `onAfterMove`, carried as a new derived tag param `expiresAtMove`
+(`engine/tag_dex.js`, `lockShape`). Over the whole format:
+
+```
+move            volatile        onAfterMove   expiresAtMove
+outrage         lockedmove      TRUE          true
+petaldance      lockedmove      TRUE          true
+ragingfury      lockedmove      TRUE          true
+thrash          lockedmove      TRUE          true
+uproar          uproar          false         false
+blastburn / frenzyplant / gigaimpact / hydrocannon / hyperbeam / rockwrecker
+                mustrecharge    false         (not a lock -- no tag at all)
+```
+
+Exactly the four. **UPROAR MUST NOT MOVE AND A NAME-BLIND FIX WOULD HAVE MOVED IT**: its condition
+has `duration: 3`, an `onResidual` and an `onEnd` that writes `-end`, and no `onAfterMove` — its
+expiry genuinely IS the residual.
+
+**AND THAT WAS MEASURED RATHER THAN ARGUED.** `probe_upkeep_lines.js --only perish` carries a
+`D clock volatile:uproar` arm — a four-turn fixture that reaches the residual, unlike the one-turn
+roster and all-mechanics-fire stagings, which cannot see this at all. Its whole output is
+**byte-identical across the patch**, including the pre-existing part at reduced index 63 (an Uproar
+residual line emitted between two `perish0` lines, which is a different open row and is not made
+worse here). An arm that parts in exactly the same place before and after is an arm that could have
+moved and did not.
+
+**THE CONTROL COULD HAVE FAILED.** The same Goodra with the same ability clicks Outrage on the arm
+and Dragon Claw on the control, and the AUTHORITY's own confusion volatile moves across that knob —
+`1` on the arm, `null` on the control — asserted before any narration is read. The cell qualifies for
+exactly ONE reason and the probe derives and prints it: `confusion sources in this cast, DERIVED from
+the format: 1  [move:outrage (via lockedmove.onEnd)]`, and it refuses to run if the answer is not 1.
+
+**THE MEASUREMENT.** Release `345f4193d440`, arm `middle`, `--games 1200` (yields 961), cap 12,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`, `--state --end-state`.
+
+| | before (`718392c70ef8`) | after (`345f4193d440`) |
+|---|---|---|
+| raw diverged | 7 | **6** |
+| declared (`fallenundefined`) | 5 | 5 |
+| **whole-game** | **2 of 961** | **1 of 961** |
+| board never diverged | 961 | 961 |
+| **board-material** | **0 of 961** | **0 of 961** |
+| threw / void | 0 / 0 | 0 / 0 |
+| damage | 0/6000, all sixteen corners | 0/6000, all sixteen corners |
+| pin digest | `ccb365985023` | `ccb365985023` |
+| team pool corpus / picked | `0d103fb9fa87`, 8778 / 1968 | identical |
+| census pin | `9446a684709d`, 643 rows | identical |
+| roster items / abilities / moves | 139 / 129 / 475, 0 DIFFER, 0 DID-NOT-FIRE | identical |
+| all-mechanics-fire | moves 8 / abilities 3 diverged, 1289 games, 0 threw | identical |
+
+The one non-declared whole-game row left is `|upkeep <> |faint|p2b`, which is **NOT REPRODUCED** in
+the lab across 33 staged arms and was deliberately not touched.
+
+**`data/tags.json` AND `data/abra-tags.js` WERE REGENERATED, AND THAT MOVED MORE THAN THE NEW PARAM
+— SAID HERE RATHER THAN LEFT IN THE DIFF.** `tag_dex.js` reads the LIVE game store for its usage
+counts, and the store has been appended to since the artifact was last written. A no-op regeneration
+was run FIRST, before the `lockShape` edit, to separate the two: it moved ~600 leaves, **every one of
+them a usage count or a linkage total, and not one a mechanic parameter**. Against that baseline the
+edit adds exactly five leaves — `expiresAtMove` on outrage, petaldance, ragingfury, thrash and
+uproar — and nothing else.
+
+**DECLARED REMAINDER, NOT FIXED HERE.** The new block sits below the same "the move actually
+resolved" guard as the lock-arming site, and the authority raises `AfterMove` even for a locked move
+that MISSED. A missed last-turn Outrage therefore still fatigues at the residual in this engine. The
+state is the same either way; only the position differs, and it is unmeasured.
+
+---
+
 ## A PARTIAL TRAP THAT ENDED BECAUSE ITS SOURCE LEFT THE FIELD CLEARED THE VOLATILE AND NEVER WROTE ITS `-end` — ONE MECHANIC WITH TWO EXITS AND ONE ANNOUNCEMENT. **WHOLE-GAME 3 -> 2 OF 961 AND RAW DIVERGED 8 -> 7, PREDICTED BEFORE THE RUN. BOARD-MATERIAL UNMOVED AT 0 OF 961, ALSO PREDICTED. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST UNMOVED AT `ccb365985023`, DICE_MODEL v5.** 2026-08-27.
 
 ROADMAP `#512` closed. Release `718392c70ef8`. CHANGELOG 5.189.0.
