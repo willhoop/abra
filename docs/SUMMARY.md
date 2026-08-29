@@ -1,6 +1,59 @@
 # ABRA — Project Summary
 
-**Version 5.206.0 · 2026-08-28 · Will Hooper**
+**Version 5.208.0 · 2026-08-28 · Will Hooper**
+
+**5.208.0 — THE METRONOME ITEM IS WIRED AND ALL FIVE GATE CLAUSES ARE RE-RUN ON THE RELEASE THAT
+WIRING PRODUCED. GATE 8 OF 8 PASS, OPEN.** The 5.207.0 block below is retained as dated history; its
+counts were measured on engine release `5f3f7141227c` and are SUPERSEDED by this one. **An engine byte
+did move this time** — WIRE 158 gave `damageMultOnRepeat` its first consumer — so these are new
+measurements and not a restatement.
+
+| question | artifact | answer |
+|---|---|---|
+| the three roster stages | `data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json` | **140 / 129 / 475 tested**, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three; red demonstrations 18 / 29 / 35, all caught |
+| what moved in that triple | the items stage only | `item:metronome` went `DEFERRED-BY-OWNER` → `FIRED-AND-BOARDS-MATCH`, taking that column 1 → **0** |
+| the same game on both engines | `data/game-differential.json` | **961 paired games, 6 raw divergences, 6 declared, 0 undeclared**; 12,445 turn boundaries compared, 12,445 identical |
+| is that the same sample as before | the same artifact | **yes, proven not assumed** — same 643-row census pin, same frozen pool (**1,968 of 8,778** teams), same six first divergences in the same order |
+| every mechanic staged and live | `data/mechanics-census.json` | **782 probed, 782 live, 0 missing**; 782 armed, 0 unarmed, 0 threw, 0 hollow |
+| staged mechanics, each one compared | `data/all-mechanics-fire.json` | **1,289 games, 0 threw**; items `shelved_by_owner` 1 → **0**, owner closet 7 → 6 ids |
+| damage against the authority | `data/engine-diff.json` | **6000 compared, 0 disagreed**, and 0 at each of the sixteen band indices separately — not re-run this pass, nothing that feeds it changed |
+
+**WHAT THE OPEN GATE IS NOT.** 72 of 250 artifacts moved from WITHHELD to RE-RUNNABLE — the count is
+`engine/quarantine.js`'s own print, recorded in `docs/_reports/2026-08-28-gate-rerun.md` — and **not one
+was re-run**. RE-RUNNABLE is not true; it is permission to measure. ROADMAP #57 is the list, ROADMAP
+#440 stays open and still says `DEFECT`, and the seven MEASURE/SEARCH figures that used to read
+QUARANTINED now read WITHHELD on `engine/provenance.js` calling their artifact UNSAFE — a different
+and weaker withholding, and still a withholding.
+
+**ONE STALE STAMP, REPORTED RATHER THAN TIDIED.** `data/quarantine-stamp.json` is stamped 15:33 and
+says `gate_open` false; the five re-runs finished after 20:25, and the gate reading above is the run
+of `engine/quarantine.js` recorded in `docs/_reports/2026-08-28-gate-rerun.md`, corroborated by
+`engine/status.js` printing no quarantine banner (it prints one only when the gate is shut).
+
+**5.207.0 — THE LAST OPEN GATE CLAUSE IS CLOSED BY A DECLARATION AND NOT BY A FIX. GATE
+8 OF 8 PASS, OPEN.** The 5.206.0 block below is retained as dated history; its "GATE 7 OF 8" reading is
+SUPERSEDED by this one. **No engine byte moved in this pass and no artifact was regenerated** — the
+before and after runs read the same `data/game-differential.json` and differ only in whether the
+declaration exists.
+
+| question | artifact | answer |
+|---|---|---|
+| the same game on both engines | `data/game-differential.json` | **6 raw divergences of 961 games, 6 declared, 0 undeclared** |
+| — of which the authority's own typo | `fallenundefined`, AUTHORITY-WRONG | 5 |
+| — of which closeted by the owner | the perish drain's position, CLOSETED | **1** |
+| did any board differ | `state` in the same artifact | **no — 12,445 turn boundaries compared, 12,445 identical; 961 of 961 games never board-diverged** |
+| is the deciding leaf actually compared | `engine/board_state.js:866 / :1034 / :769 / :843` | **yes — `fainted`, `hp`, `maxhp`, `status`**, so this is not one of ROADMAP #528's 43 unread leaves |
+| is the defect fixed | ROADMAP #440 | **no. It stays open and still says `DEFECT`** |
+
+**WHAT THE CLOSET COSTS TO OPEN.** A `CLOSETED` row must name the owner, the date, the ruling in his
+own words, the register row that carries the account, the instrument that measured the no-board-effect
+claim, the frozen release it was measured on, what it reported, and the observation that would prove
+the entry wrong. `closetFault` refuses the row at the door if any of those is missing, and eleven
+selftest arms prove each missing field holds the gate shut. **A phrase anybody can type is not a
+ruling.**
+
+**AND THE GATE OPENING IS NOT A RESULT.** 61 downstream artifacts stop being WITHHELD and start
+printing as RE-RUNNABLE. They are not current, and none was re-run here (ROADMAP #57).
 
 **5.206.0 — THE FIVE BLANK CLAUSES WERE A LINE ENDING, THEY PRINT AGAIN, AND EVERY ONE OF THEM
 REPRODUCED ITS PREVIOUS NUMBER EXACTLY. GATE 7 OF 8 PASS.** The 5.205.0 block below is retained as
@@ -9,7 +62,7 @@ rows in it are withheld no longer.
 
 | question | artifact | answer |
 |---|---|---|
-| every mechanic staged and live | `data/mechanics-census.json` | **780 probed, 780 live, 0 missing** |
+| every mechanic staged and live | `data/mechanics-census.json` | **780 probed, 780 live, 0 missing** — PRIOR reading, superseded at 5.208.0 by 782 / 782 / 0 |
 | damage against the authority | `data/engine-diff.json` | **6000 compared, 0 disagreed**, and 0 at each of the sixteen band indices separately |
 | is the gate open | `data/quarantine-stamp.json` | **no** — `gate_open` false, **one** clause failing |
 | the three roster stages | `data/roster.{items,abilities,moves}.json` | **139 / 129 / 475 tested, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three**; red demonstrations 18 / 29 / 35 |
@@ -74,7 +127,7 @@ retained as dated history and **may not be cited as current.**
 
 | question | artifact | answer |
 |---|---|---|
-| every mechanic staged and live | `data/mechanics-census.json` | **780 probed, 780 live, 0 missing**; 780 armed, 0 unarmed |
+| every mechanic staged and live | `data/mechanics-census.json` | **780 probed, 780 live, 0 missing**; 780 armed, 0 unarmed — PRIOR reading, superseded at 5.208.0 by 782 / 782 / 0 |
 | damage against the authority | `data/engine-diff.json` | **6000 compared, 6000 agreed, 0 disagreed**, and 0 at each of the sixteen band indices separately |
 | is the gate open | `data/quarantine-stamp.json` | **no** — `gate_open` false, five clauses failing |
 | the three roster stages | — | **WITHHELD** |

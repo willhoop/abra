@@ -1,0 +1,478 @@
+{
+  "generated": "2026-08-28T22:58:35.473Z",
+  "by": "engine/bench_speed.js",
+  "what": "THROUGHPUT ONLY. How fast MEDICHAM plays, for rollout budgeting. Makes no accuracy claim; the simulator is under quarantine for correctness and this file does not lift it.",
+  "engine_release": "5f3f7141227c",
+  "team_store_pinned_to": "data/team-pool-frozen",
+  "node": "v24.15.0",
+  "cores": 16,
+  "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+  "census": {
+    "switchRate": 0.0998,
+    "maxTurns": 14,
+    "generated": "2026-08-11T01:29:29.102Z",
+    "digest": "b599f8d581b5",
+    "read_from": "data/rollout-switch-census.json (LIVE — it is not one of the release SOURCES)"
+  },
+  "reps": 3,
+  "load_ms": {
+    "release_open": 18.1985,
+    "engine_data": 10.1273,
+    "medicham": 44.2515,
+    "board": 5.7267,
+    "rollout_leaf": 1.3634,
+    "dex": 354.73,
+    "total_to_engine_ready": 435.2144,
+    "bare_node_start": 50.7,
+    "team_pool": 109.2398,
+    "game_differential_require": 480.0212
+  },
+  "team_pool_teams": 8778,
+  "pairs_built": 40,
+  "boards_built": 1,
+  "build_failures": {
+    "pair": 0,
+    "board": 0
+  },
+  "leaf_config": {
+    "n": 5,
+    "explore": 1,
+    "foePolicy": "uniform",
+    "source": "engine/miltank.js DEFAULTS (n=200, explore=1.0, foePolicy=uniform, turns=census)"
+  },
+  "arms": {
+    "playout_cap_20": {
+      "fastest_of": 3,
+      "fastest": {
+        "cap": 20,
+        "playouts": 1000,
+        "turns": 10612,
+        "ms": 23579.57,
+        "sim_ms": 23430.54,
+        "sim_playouts_per_sec": 42.7,
+        "sim_ms_per_playout": 23.4305,
+        "sim_turns_per_sec": 453,
+        "sim_ms_per_turn": 2.2079,
+        "build_ms": 143.97,
+        "build_ms_per_playout": 0.144,
+        "playouts_per_sec": 42.4,
+        "ms_per_playout": 23.5796,
+        "turns_per_sec": 450,
+        "ms_per_turn": 2.222,
+        "truncated_pct": 3.8,
+        "reached_a_result_pct": 96.2,
+        "turn_distribution": {
+          "n": 1000,
+          "mean": 10.61,
+          "min": 2,
+          "p25": 8,
+          "p50": 10,
+          "p75": 13,
+          "p90": 16,
+          "p99": 20,
+          "max": 20
+        }
+      },
+      "reps": [
+        {
+          "cap": 20,
+          "playouts": 1000,
+          "turns": 10612,
+          "ms": 23579.57,
+          "sim_ms": 23430.54,
+          "sim_playouts_per_sec": 42.7,
+          "sim_ms_per_playout": 23.4305,
+          "sim_turns_per_sec": 453,
+          "sim_ms_per_turn": 2.2079,
+          "build_ms": 143.97,
+          "build_ms_per_playout": 0.144,
+          "playouts_per_sec": 42.4,
+          "ms_per_playout": 23.5796,
+          "turns_per_sec": 450,
+          "ms_per_turn": 2.222,
+          "truncated_pct": 3.8,
+          "reached_a_result_pct": 96.2,
+          "turn_distribution": {
+            "n": 1000,
+            "mean": 10.61,
+            "min": 2,
+            "p25": 8,
+            "p50": 10,
+            "p75": 13,
+            "p90": 16,
+            "p99": 20,
+            "max": 20
+          }
+        },
+        {
+          "cap": 20,
+          "playouts": 1000,
+          "turns": 10612,
+          "ms": 42426.55,
+          "sim_ms": 42121.63,
+          "sim_playouts_per_sec": 23.7,
+          "sim_ms_per_playout": 42.1216,
+          "sim_turns_per_sec": 252,
+          "sim_ms_per_turn": 3.9692,
+          "build_ms": 292.31,
+          "build_ms_per_playout": 0.2923,
+          "playouts_per_sec": 23.6,
+          "ms_per_playout": 42.4265,
+          "turns_per_sec": 250,
+          "ms_per_turn": 3.998,
+          "truncated_pct": 3.8,
+          "reached_a_result_pct": 96.2,
+          "turn_distribution": {
+            "n": 1000,
+            "mean": 10.61,
+            "min": 2,
+            "p25": 8,
+            "p50": 10,
+            "p75": 13,
+            "p90": 16,
+            "p99": 20,
+            "max": 20
+          }
+        },
+        {
+          "cap": 20,
+          "playouts": 1000,
+          "turns": 10612,
+          "ms": 50768.19,
+          "sim_ms": 50414.19,
+          "sim_playouts_per_sec": 19.8,
+          "sim_ms_per_playout": 50.4142,
+          "sim_turns_per_sec": 210,
+          "sim_ms_per_turn": 4.7507,
+          "build_ms": 341.65,
+          "build_ms_per_playout": 0.3416,
+          "playouts_per_sec": 19.7,
+          "ms_per_playout": 50.7682,
+          "turns_per_sec": 209,
+          "ms_per_turn": 4.784,
+          "truncated_pct": 3.8,
+          "reached_a_result_pct": 96.2,
+          "turn_distribution": {
+            "n": 1000,
+            "mean": 10.61,
+            "min": 2,
+            "p25": 8,
+            "p50": 10,
+            "p75": 13,
+            "p90": 16,
+            "p99": 20,
+            "max": 20
+          }
+        }
+      ],
+      "sim_playouts_per_sec_spread": {
+        "fastest": 42.7,
+        "slowest": 19.8,
+        "spread_pct": 115.7,
+        "all": [
+          42.7,
+          23.7,
+          19.8
+        ]
+      },
+      "sim_ms_per_turn_spread": {
+        "fastest": 2.2079,
+        "slowest": 4.7507,
+        "spread_pct": 115.2,
+        "all": [
+          2.2079,
+          3.9692,
+          4.7507
+        ]
+      }
+    },
+    "playout_cap_60": {
+      "fastest_of": 3,
+      "fastest": {
+        "cap": 60,
+        "playouts": 1000,
+        "turns": 10748,
+        "ms": 6792.05,
+        "sim_ms": 6733.24,
+        "sim_playouts_per_sec": 148.5,
+        "sim_ms_per_playout": 6.7332,
+        "sim_turns_per_sec": 1596,
+        "sim_ms_per_turn": 0.6265,
+        "build_ms": 56.57,
+        "build_ms_per_playout": 0.0566,
+        "playouts_per_sec": 147.2,
+        "ms_per_playout": 6.792,
+        "turns_per_sec": 1582,
+        "ms_per_turn": 0.6319,
+        "truncated_pct": 0.1,
+        "reached_a_result_pct": 99.9,
+        "turn_distribution": {
+          "n": 1000,
+          "mean": 10.75,
+          "min": 2,
+          "p25": 8,
+          "p50": 10,
+          "p75": 13,
+          "p90": 16,
+          "p99": 23,
+          "max": 60
+        }
+      },
+      "reps": [
+        {
+          "cap": 60,
+          "playouts": 1000,
+          "turns": 10748,
+          "ms": 23813.96,
+          "sim_ms": 23638.17,
+          "sim_playouts_per_sec": 42.3,
+          "sim_ms_per_playout": 23.6382,
+          "sim_turns_per_sec": 455,
+          "sim_ms_per_turn": 2.1993,
+          "build_ms": 169.86,
+          "build_ms_per_playout": 0.1699,
+          "playouts_per_sec": 42,
+          "ms_per_playout": 23.814,
+          "turns_per_sec": 451,
+          "ms_per_turn": 2.2157,
+          "truncated_pct": 0.1,
+          "reached_a_result_pct": 99.9,
+          "turn_distribution": {
+            "n": 1000,
+            "mean": 10.75,
+            "min": 2,
+            "p25": 8,
+            "p50": 10,
+            "p75": 13,
+            "p90": 16,
+            "p99": 23,
+            "max": 60
+          }
+        },
+        {
+          "cap": 60,
+          "playouts": 1000,
+          "turns": 10748,
+          "ms": 6792.05,
+          "sim_ms": 6733.24,
+          "sim_playouts_per_sec": 148.5,
+          "sim_ms_per_playout": 6.7332,
+          "sim_turns_per_sec": 1596,
+          "sim_ms_per_turn": 0.6265,
+          "build_ms": 56.57,
+          "build_ms_per_playout": 0.0566,
+          "playouts_per_sec": 147.2,
+          "ms_per_playout": 6.792,
+          "turns_per_sec": 1582,
+          "ms_per_turn": 0.6319,
+          "truncated_pct": 0.1,
+          "reached_a_result_pct": 99.9,
+          "turn_distribution": {
+            "n": 1000,
+            "mean": 10.75,
+            "min": 2,
+            "p25": 8,
+            "p50": 10,
+            "p75": 13,
+            "p90": 16,
+            "p99": 23,
+            "max": 60
+          }
+        },
+        {
+          "cap": 60,
+          "playouts": 1000,
+          "turns": 10748,
+          "ms": 6807.6,
+          "sim_ms": 6748.94,
+          "sim_playouts_per_sec": 148.2,
+          "sim_ms_per_playout": 6.7489,
+          "sim_turns_per_sec": 1593,
+          "sim_ms_per_turn": 0.6279,
+          "build_ms": 56.39,
+          "build_ms_per_playout": 0.0564,
+          "playouts_per_sec": 146.9,
+          "ms_per_playout": 6.8076,
+          "turns_per_sec": 1579,
+          "ms_per_turn": 0.6334,
+          "truncated_pct": 0.1,
+          "reached_a_result_pct": 99.9,
+          "turn_distribution": {
+            "n": 1000,
+            "mean": 10.75,
+            "min": 2,
+            "p25": 8,
+            "p50": 10,
+            "p75": 13,
+            "p90": 16,
+            "p99": 23,
+            "max": 60
+          }
+        }
+      ],
+      "sim_playouts_per_sec_spread": {
+        "fastest": 148.5,
+        "slowest": 42.3,
+        "spread_pct": 251.1,
+        "all": [
+          42.3,
+          148.5,
+          148.2
+        ]
+      },
+      "sim_ms_per_turn_spread": {
+        "fastest": 0.6265,
+        "slowest": 2.1993,
+        "spread_pct": 251,
+        "all": [
+          2.1993,
+          0.6265,
+          0.6279
+        ]
+      }
+    },
+    "leaf_cap_14": {
+      "fastest_of": 3,
+      "fastest": {
+        "cap": 14,
+        "n_per_call": 5,
+        "leaf_calls": 1,
+        "unbuildable_boards": 0,
+        "playouts": 5,
+        "turns": 52,
+        "ms": 35.52,
+        "ms_per_leaf_call": 35.52,
+        "leaf_calls_per_sec": 28.15,
+        "ms_per_playout": 7.1042,
+        "playouts_per_sec": 140.8,
+        "ms_per_turn": 0.6831,
+        "mean_turns_per_playout": 10.4,
+        "truncated": 2,
+        "truncated_pct": 40,
+        "mean_turns_per_call": [
+          10.4
+        ]
+      },
+      "reps": [
+        {
+          "cap": 14,
+          "n_per_call": 5,
+          "leaf_calls": 1,
+          "unbuildable_boards": 0,
+          "playouts": 5,
+          "turns": 52,
+          "ms": 35.52,
+          "ms_per_leaf_call": 35.52,
+          "leaf_calls_per_sec": 28.15,
+          "ms_per_playout": 7.1042,
+          "playouts_per_sec": 140.8,
+          "ms_per_turn": 0.6831,
+          "mean_turns_per_playout": 10.4,
+          "truncated": 2,
+          "truncated_pct": 40,
+          "mean_turns_per_call": [
+            10.4
+          ]
+        },
+        {
+          "cap": 14,
+          "n_per_call": 5,
+          "leaf_calls": 1,
+          "unbuildable_boards": 0,
+          "playouts": 5,
+          "turns": 52,
+          "ms": 36.66,
+          "ms_per_leaf_call": 36.66,
+          "leaf_calls_per_sec": 27.28,
+          "ms_per_playout": 7.3311,
+          "playouts_per_sec": 136.4,
+          "ms_per_turn": 0.7049,
+          "mean_turns_per_playout": 10.4,
+          "truncated": 2,
+          "truncated_pct": 40,
+          "mean_turns_per_call": [
+            10.4
+          ]
+        },
+        {
+          "cap": 14,
+          "n_per_call": 5,
+          "leaf_calls": 1,
+          "unbuildable_boards": 0,
+          "playouts": 5,
+          "turns": 52,
+          "ms": 36,
+          "ms_per_leaf_call": 36,
+          "leaf_calls_per_sec": 27.78,
+          "ms_per_playout": 7.2,
+          "playouts_per_sec": 138.9,
+          "ms_per_turn": 0.6923,
+          "mean_turns_per_playout": 10.4,
+          "truncated": 2,
+          "truncated_pct": 40,
+          "mean_turns_per_call": [
+            10.4
+          ]
+        }
+      ],
+      "playouts_per_sec_spread": {
+        "fastest": 140.8,
+        "slowest": 136.4,
+        "spread_pct": 3.2,
+        "all": [
+          140.8,
+          136.4,
+          138.9
+        ]
+      },
+      "ms_per_leaf_call_spread": {
+        "fastest": 35.52,
+        "slowest": 36.66,
+        "spread_pct": 3.2,
+        "all": [
+          35.52,
+          36.66,
+          36
+        ]
+      }
+    }
+  },
+  "warmup_ms": 1282,
+  "thinking_budget": [
+    {
+      "budget_ms": 1000,
+      "playouts": 141,
+      "leaf_calls_at_n200": 0.7,
+      "cap": 14,
+      "single_process": true
+    },
+    {
+      "budget_ms": 3000,
+      "playouts": 422,
+      "leaf_calls_at_n200": 2.1,
+      "cap": 14,
+      "single_process": true
+    },
+    {
+      "budget_ms": 5000,
+      "playouts": 704,
+      "leaf_calls_at_n200": 3.5,
+      "cap": 14,
+      "single_process": true
+    },
+    {
+      "budget_ms": 15000,
+      "playouts": 2112,
+      "leaf_calls_at_n200": 10.6,
+      "cap": 14,
+      "single_process": true
+    },
+    {
+      "budget_ms": 20000,
+      "playouts": 2816,
+      "leaf_calls_at_n200": 14.1,
+      "cap": 14,
+      "single_process": true
+    }
+  ]
+}

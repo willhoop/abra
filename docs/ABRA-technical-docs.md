@@ -1,6 +1,98 @@
 # ABRA — Technical Documentation
 
-**Version 5.206.0 · Last updated 2026-08-28**
+**Version 5.208.0 · Last updated 2026-08-28**
+
+**5.208.0 — WIRE THE METRONOME ITEM. THEN MEASURE THE FIVE CLAUSES AGAIN.**
+The block for 5.207.0 is below. Its counts come from engine release `5f3f7141227c`.
+Those counts are out of date. They are kept as a record. Read this block for the current state.
+
+**WHAT CHANGED IN THE SIMULATOR.**
+The Metronome item now has a consumer.
+The tag `damageMultOnRepeat` was correct before this change. No code read it.
+The item makes a move stronger each time the holder uses the same move.
+The multiplier ladder is read from the tag. It is not typed into the code.
+
+**THE STATE.**
+The gate has eight clauses. All eight clauses pass. The gate is open.
+Five clauses were measured again on engine release `4e5c7b3400de`.
+Read `data/roster.items.json`. There are 140 tested of 148 in scope.
+Read `data/roster.abilities.json`. There are 129 tested of 202 in scope.
+Read `data/roster.moves.json`. There are 475 tested of 500 in scope.
+Each of the three has 0 disagreements and 0 failures to fire.
+Red demonstrations are 18, 29 and 35. Each one was caught.
+Read `data/game-differential.json`. There are 961 games and 6 differences.
+All 6 are declared. 0 are undeclared. There are 12,445 turn boundaries compared and 12,445 identical.
+Read `data/mechanics-census.json`. There are 782 probed, 782 live and 0 missing.
+Read `data/all-mechanics-fire.json`. There are 1,289 games played and 0 that threw.
+
+**WHAT MOVED, AND WHERE.**
+The items stage moved. The row for `item:metronome` was `DEFERRED-BY-OWNER`. It is now
+`FIRED-AND-BOARDS-MATCH`.
+The census moved by two rows. One row is the climb. One row is the reset.
+The reset row is the important one. A counter that counts turns passes the first row and fails the
+second.
+The whole-game comparison did not move. This was predicted before the run.
+The pinned team pool holds 19 teams with this item out of 26,232.
+
+**HOW TO COMPARE TWO RUNS OF THE WHOLE-GAME COMPARISON.**
+The whole-game comparison is steered by the census. The census selects the sample.
+Pin the census to the file the earlier run used. Do not use the live census.
+Pin the team store to `data/team-pool-frozen`.
+Then prove the two samples are the same. Compare the game count, the first-divergence list and the
+coverage block.
+The staged-mechanics comparison does not read the census. It does not need this pin.
+
+**WHAT THIS DOES NOT DO.**
+It does not make a withheld result true.
+72 of 250 artifacts changed from WITHHELD to RE-RUNNABLE. That count is printed by
+`engine/quarantine.js` and is recorded in `docs/_reports/2026-08-28-gate-rerun.md`.
+No artifact was run again.
+ROADMAP #440 stays open.
+
+**5.207.0 — DECLARE A DIVERGENCE WITH A MECHANISM, NOT WITH A SENTENCE.**
+The block for 5.206.0 is below. It says that seven of the eight gate clauses pass.
+That statement is out of date. It is kept as a record. Read this block for the current state.
+
+**THE STATE.**
+The gate has eight clauses.
+All eight clauses pass.
+The whole-game comparison finds 6 differences in 961 games.
+All 6 are declared. 0 are undeclared.
+
+**THE ONE NEW DECLARATION.**
+One game differs at turn 11.
+A Pokemon dies from Perish Song.
+The official simulator writes `|upkeep` first and the faint message second.
+This simulator writes the faint message first and `|upkeep` second.
+The board is the same in both simulators.
+This is a difference in a message. It is not a difference in the game.
+
+**HOW THE PROOF IS MADE.**
+Compare the board at the end of every turn.
+The run compares 12,445 turn boundaries. All 12,445 are identical.
+The board includes `fainted`, `hp`, `maxhp` and `status` for each Pokemon.
+Read these fields in `engine/board_state.js` at lines 866, 1034, 769 and 843.
+Do not accept a "no difference" result for a field that the comparison does not read.
+ROADMAP #528 shows that 43 of 80 possible fields are not read.
+The fields used here ARE read.
+
+**HOW TO DECLARE A DIVERGENCE.**
+Add a row to `DECLARED_DIVERGENCE` in `engine/quarantine.js`.
+Set `kind` to `CLOSETED`.
+Give the row these fields:
+`closet.by`, `closet.on`, `closet.ruling`, `closet.authority`.
+Give the row these fields also:
+`evidence.instrument`, `evidence.release`, `evidence.on`, `evidence.says`.
+Give the row a `falsifiedBy` field.
+Give the row a `match` function. Make the function as narrow as possible.
+The function `closetFault` refuses the row if a field is missing.
+A refused row does not open the gate.
+
+**WHAT THIS DOES NOT DO.**
+It does not repair the defect.
+ROADMAP #440 stays open.
+It does not make a withheld result true.
+Re-run each downstream result before you use it.
 
 **5.206.0 — DO NOT LET GIT TRANSLATE A LINE ENDING IN A FROZEN SOURCE.**
 The block for 5.205.0 is below. It says that five of the eight gate clauses are withheld.
@@ -45,7 +137,7 @@ The rule is: a frozen source with LF bytes on the disk must have the `eol=lf` se
 The rule reads each file. The rule does not use a list of exceptions.
 Remove one line from `.gitattributes` and the test fails and names the file.
 
-**THE RESULT.**
+**THE RESULT. THESE COUNTS ARE PRIOR. THEY ARE SUPERSEDED BY THE 5.208.0 BLOCK ABOVE.**
 Run the five instruments again. Compare each result with the previous result.
 Roster: 139, 129 and 475 tested. 0 disagreements. 0 failures to fire. Red demonstrations 18, 29 and 35.
 Whole game: 1 of 961. Board material: 0 of 961. Staged mechanics: 0 counted.
@@ -103,7 +195,8 @@ This repository sets `core.autocrlf` to true. A generator writes LF. A checkout 
 Cut the release over the bytes that a checkout gives. Do not cut over the bytes that a generator gives.
 This event is recorded for 2026-08-26 in `docs/ENGINE.md`. It has occurred two times.
 
-**THE CENSUS IS COMPLETE. THE CENSUS IS A LABORATORY.**
+**THE CENSUS IS COMPLETE. THE CENSUS IS A LABORATORY. THE COUNT BELOW IS PRIOR AND IS SUPERSEDED BY
+THE 5.208.0 BLOCK ABOVE.**
 Read `data/mechanics-census.json`. There are 780 probed, 780 live and 0 missing. There are 780 armed and 0 unarmed.
 The census stages one scenario for each mechanic. Usage has no effect on the census.
 The census answers the question "is this correct". It does not answer the question "does this matter".

@@ -104,6 +104,17 @@ const say = s => out.push(s);
  * growing its own opinion about what is downstream of the simulator is how `buildMon("Scizor")`
  * returned null — a hand-rolled second version of something that already exists. */
 const QUARANTINE = require('./quarantine.js');
+/* ---- COVERAGE — WHAT EVERY VERDICT BELOW DOES NOT COVER ---------------------------------------
+ * 2026-08-28. Four surprises in one day, all the same shape: the gate printed a VERDICT with no
+ * COVERAGE, and in every case the scope was already recorded somewhere nobody reads — a field beside
+ * the pass count, a probe nobody runs, a clause tail, a per-row note. `0 of 6000` had never run a
+ * multi-hit volley; "the boards match" was 33 of 80 leaves.
+ *
+ * The derivation lives in engine/coverage.js and NOT here, for the reason this file states about the
+ * quarantine two lines above: this file is a REPORTER. It grows no opinion of its own about what a
+ * number excludes, and the leaf split comes from `tests/probe_uncompared_leaves.js` itself rather
+ * than from a second copy of the same walk. */
+const COVERAGE = require('./coverage.js');
 const QS = (() => {
   try { return QUARANTINE.state(); }
   catch (e) { NOTES.push('engine/quarantine.js could not compute the gate, so NOTHING is withheld: '
@@ -419,6 +430,23 @@ function engine() {
   if (qc) sayUnsafe('census', qc);
   else if (c) {
     say(`  ${c.live}/${c.probed} probed mechanics live, ${c.missing} missing   (census ${day(new Date(c.generated))})`);
+    /* WHAT `780/780` DOES NOT COVER, IN THE SAME BREATH. The census probes what somebody thought to
+     * probe: a tag with no probe row is not a clean tag, it is an unasked question, and the two read
+     * identically on the line above. `all-mechanics-fire.json` answers the other half — how many
+     * mechanics have never fired in the harness at all — and that number lived in a clause tail. */
+    {
+      const tc = COVERAGE.tagCoverage();
+      const F = j('all-mechanics-fire.json');
+      const nf = F && F.summary ? ['abilities', 'items']
+        .reduce((n, k) => n + (+((F.summary[k] || {}).did_not_fire) || 0), 0) : null;
+      const age = COVERAGE.artifactAge('all-mechanics-fire.json');
+      for (const s of COVERAGE.wrap('the census probes what somebody thought to probe: '
+        + (tc && tc.probed != null ? `${tc.probed} of ${tc.unique} tags carry a probe, ${tc.unprobed.length} carry none`
+                                   : 'tag coverage NOT DERIVED')
+        + (nf == null ? '' : `; ${nf} mechanics have never fired in the staged harness`
+            + (age ? ` (all-mechanics-fire.json, ${COVERAGE.humanAge(age.ageMs)})` : ''))
+        + '.  node engine/coverage.js', 4)) say(s);
+    }
     const dead = c.results.filter(r => !r.live);
     if (dead.length) {
       say('  missing:');
@@ -439,6 +467,25 @@ function engine() {
     say(`    seed ${d.seed == null ? 'NOT RECORDED — this residual is one draw and cannot be reproduced' : d.seed}`
       + `, requested ${d.requested == null ? '?' : d.requested}`
       + (skipped ? `, ${skipped} not comparable (multihit ${d.skipped_multihit || 0}, non-finite ${d.skipped_non_finite || 0}, threw ${d.dropped_by_exception || 0})` : ''));
+    /* `skipped_multihit` IS NOT A ROUNDING ERROR ON THE LINE ABOVE — IT IS A WHOLE FAMILY OF MOVES
+     * THIS INSTRUMENT HAS NEVER RUN. The count of skipped ROWS reads like sampling noise; the count
+     * of skipped MOVES says the volley loop has never been compared once. Derived through the same
+     * door tests/test-engine-diff.js uses to build the skip set — the `multiHit` tag — so the two
+     * cannot part. */
+    {
+      const T = j('tags.json');
+      const mh = T && T.moves ? Object.keys(T.moves)
+        .filter(id => (T.moves[id].tags || []).indexOf('multiHit') >= 0) : null;
+      if (mh) {
+        const drawn = Object.keys(d.skipped_multihit_moves || {});
+        for (const s of COVERAGE.wrap(`the skip is a FAMILY, not a rounding error: ${mh.length} of `
+          + `${Object.keys(T.moves).length} legal moves carry the multiHit tag and are skipped by `
+          + `construction, so the volley loop has never been damage-compared. ${drawn.length} were drawn `
+          + `and skipped; ${mh.length - drawn.length} were never drawn at all`
+          + (mh.length - drawn.length ? ' (' + mh.filter(x => drawn.indexOf(x) < 0).join(', ') + ')' : '')
+          + '.', 4)) say(s);
+      }
+    }
     for (const w of (d.worst || []).slice(0, 6)) {
       say(`    ${w.att} ${w.mv} -> ${w.def}: showdown ${w.showdown}, medicham ${w.medicham}  (${w.uses} uses)`);
     }
@@ -540,10 +587,19 @@ function engine() {
 
   if (qt) sayUnsafe('tag coverage', qt);
   else if (c && t) {
-    const names = [...new Set(t.tags.map(x => x.tag || x.name || x.id))];
-    const probed = new Set(c.results.map(r => r.tag));
-    const un = names.filter(n => !probed.has(n));
-    say(`  tag coverage: ${names.length - un.length}/${names.length} probed, ${un.length} unprobed`);
+    /* ONE PRODUCER. This line used to compute the split itself and engine/coverage.js computed the
+     * same split for its COVERAGE block — two implementations of one fact, which is the breach that
+     * had the closed-row detector disagreeing with itself on 24 of 292 rows in both directions. The
+     * arithmetic lives in coverage.js; the GATING (is tags.json safe to read at all) stays here,
+     * because that is a provenance question and not a coverage one. */
+    const tc = COVERAGE.tagCoverage();
+    if (!tc || tc.probed == null) say('  tag coverage: NOT DERIVED (engine/coverage.js could not read the tags or the census)');
+    else {
+      say(`  tag coverage: ${tc.probed}/${tc.unique} probed, ${tc.unprobed.length} unprobed`
+        + `;  ${tc.withConsumer}/${tc.unique} have an engine consumer, ${tc.unique - tc.withConsumer} have none`);
+      say('    a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and');
+      say('    medicham2-browser.js for the probe, so this is measured rather than declared.');
+    }
   }
 }
 
@@ -1145,6 +1201,7 @@ console.log('');
 if (QS && !QS.ok) {
   console.log('QUARANTINE — MEDICHAM IS NOT CORRECT, SO EVERY FIGURE DOWNSTREAM OF IT IS WITHHELD');
   console.log(`  ${QS.set.size} artifacts are downstream and are not printed below. The gate is computed, not set:`);
+  const scopeCache = {};
   for (const c of QS.gate.clauses) {
     /* THE WHOLE CLAUSE, NOT A PREFIX. A 150-character slice cut the roster clauses off at "A missing
      * stage is a FAILI", which loses the sentence that says why an absent artifact is not a pass —
@@ -1157,8 +1214,27 @@ if (QS && !QS.ok) {
       else line += w + ' ';
     }
     console.log(line.replace(/\s+$/, ''));
+    /* THE SCOPE GOES UNDER THE VERDICT, NOT IN A SEPARATE TOOL. Every "N of M" this clause prints
+     * carries what M excludes, read out of the clause's OWN artifact — matched to it by the
+     * `generated` stamp the clause already records, so no clause-to-file table exists to go stale.
+     * A clause whose artifact cannot be identified prints nothing rather than guessing. */
+    try { for (const s of COVERAGE.clauseLines(c, scopeCache, Math.min(head.length, 42))) console.log(s); }
+    catch (e) { NOTES.push('engine/coverage.js could not scope the clause "' + c.name + '": '
+                         + String((e && e.message) || e).split('\n')[0]); }
   }
   console.log('  Full derivation and the withheld set: node engine/quarantine.js');
+  console.log('');
+}
+/* ---- THE FINISH LINE, AS COUNTS ---------------------------------------------------------------
+ * "Is MEDICHAM done" answered as a measurement rather than a judgement, and printed whether the gate
+ * is open or shut — an OPEN gate with a comparator reading 33 of 80 leaves is exactly the state this
+ * block exists to make visible. It sits OUTSIDE the section blocks, like the quarantine banner above
+ * it, so `--write` never stamps it into a division ledger. */
+try { console.log(COVERAGE.lines().join('\n')); console.log(''); }
+catch (e) {
+  console.log('COVERAGE — NOT DERIVED. engine/coverage.js would not run: '
+            + String((e && e.message) || e).split('\n')[0]);
+  console.log('  Read this as UNKNOWN, not as full coverage.');
   console.log('');
 }
 /* ---- THE SECOND GATE, REPORTED AT ZERO AS WELL AS AT SEVEN — ROADMAP #108 ---------------------

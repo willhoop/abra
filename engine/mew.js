@@ -814,7 +814,24 @@ async function main() {
         POL.jointDecided += s.jointDecided || 0; POL.jointFellBack += s.jointFellBack || 0; POL.jointUsed += s.jointUsed || 0;
         POL.sheetEntries += s.sheetEntries || 0; POL.megaChosen += s.megaChosen || 0;
       }
-      const rec = extract(`selfplay-${SEED0}-${i}`, startedAt, log);
+      /* THE RUN STAMP IS PART OF THE ID, AND LEAVING IT OUT PUT 89 COLLIDING RECORDS IN THE STORE.
+       * Found 2026-08-28 by MEASURE, chasing engine/validate_selfplay.js's `FAIL no duplicate ids (89)`.
+       *
+       * This was `selfplay-${SEED0}-${i}`, and `--seed` DEFAULTS TO 1 (see SEED0 above). So every
+       * default-flag run writes selfplay-1-0, selfplay-1-1, ... over the ids the previous one wrote,
+       * and the store is APPEND-ONLY: a batch on 2026-08-07 23:24 and a batch on 2026-08-19 23:51
+       * both landed in data/games.selfplay.jsonl carrying the same 89 ids.
+       *
+       * THEY ARE NOT DUPLICATES OF EACH OTHER — every one of the 89 pairs differs in bytes, turn
+       * count and often winner, so a deduplicator would silently DESTROY 89 real games rather than
+       * remove redundancy. The id was asserting an identity the content does not have: `seed` only
+       * seeds the battle (SEED0 + gi), so the same (seed, index) does not reproduce the same game
+       * across engine versions twelve days apart.
+       *
+       * `startedAt` is this run's unix second and is already the record's uploadtime, so the id now
+       * says WHICH RUN as well as which seed and index. Nothing parses the structure of this string
+       * — it is only ever compared for equality — so widening it is safe. */
+      const rec = extract(`selfplay-${SEED0}-${startedAt}-${i}`, startedAt, log);
       if (!rec || (rec.six.p1 || []).length < 4 || (rec.six.p2 || []).length < 4) { failed++; continue; }
       /* Provenance on every record. A self-play game that ever loses its label becomes
        * indistinguishable from a real one, and that is unrecoverable. */

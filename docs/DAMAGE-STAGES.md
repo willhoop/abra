@@ -1,6 +1,44 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.206.0 — 2026-08-28.**
+**Version: 5.208.0 — 2026-08-28.**
+
+**5.208.0 — THIS CHAIN GAINED A MEMBER. STAGE 13 NOW CARRIES THE METRONOME ITEM, AND THE STAGE IS
+DERIVED FROM THE AUTHORITY RATHER THAN CHOSEN.** The two blocks below both begin *"nothing in this
+chain is touched"*; that is no longer true and the change is recorded here rather than by editing
+them.
+
+WIRE 158 gave the tag `damageMultOnRepeat` its first consumer. The placement is read off the
+authority, not argued: `data/items.ts:4022` is `onModifyDamage(damage, source, target, move)`
+returning `this.chainModify([dmgMod[numConsecutive], 4096])`, and `data/mods/champions/items.ts`
+carries **no** `metronome` key at all — checked against the mod file, not recalled — so mainline's
+handler is this format's handler unchanged. `data/mods/champions/scripts.ts:293` spends that event as
+`runEvent('ModifyDamage', pokemon, target, move, baseDamage)` with `pokemon` the ATTACKER, which is
+why the member reads the ATTACKER's item and sits beside Life Orb rather than beside the resist
+berries — those are `onSourceModifyDamage` on the defender. Row 13 of the stage table is updated in
+place.
+
+**THE ORDER INSIDE THE CHAIN CANNOT MATTER FOR THIS MEMBER, AND THAT IS A PROPERTY RATHER THAN A
+HOPE.** The ladder is stored in 4096ths, so every step divided by 4096 is a dyadic rational,
+`_sdTrunc(m*4096)` returns the step unchanged and `ch4096` introduces no rounding of its own — the
+same property this file already records for x1.5 and x2. Nothing in the engine types a step: the
+array and its denominator are read from the tag, an unreadable ladder applies nothing and is counted,
+and the per-body consecutive-use counter is written at the authority's own `onTryMovePriority: -2`
+position, below the PP deduction and above the shield gate.
+
+**THE DAMAGE DIFFERENTIAL WAS NOT RE-RUN AND THAT IS A GAP, NOT A CLEARANCE.** It still reads 0
+disagreements of 6000 at each of the sixteen band indices, measured before this member existed. Its
+declared scope is damage only, and it has never applied a multi-hit move. The evidence for the new
+member is two dedicated probes instead: a ladder probe pricing rungs 0 to 6, with rung 0 byte-identical
+to a body holding no item, and a six-turn game probe comparing 394 leaves at each of 7 boundaries. Both
+were shown red first under `MEDI_NO_METRONOME_LADDER=1`.
+
+**5.207.0 — RE-READ AFTER THE CLOSET PASS: NOTHING IN THIS CHAIN IS TOUCHED, AND THAT IS
+ASSERTED RATHER THAN ASSUMED.** The 5.207.0 release closed the last open gate clause by DECLARING one
+divergence — a Perish Song faint announced above `|upkeep|` instead of below it — through a
+`kind: 'CLOSETED'` row in `engine/quarantine.js`. **No engine byte moved and no artifact was
+regenerated.** The damage differential was not re-run because nothing that feeds it changed; it still
+reads 0 disagreements of 6000 at each of the sixteen band indices, with the same standing scope limit:
+damage only, and it has never applied a multi-hit move. The stage table below stands unedited.
 
 **5.206.0 — RE-READ AGAIN AFTER THE CRLF PASS: NOTHING IN THIS CHAIN IS TOUCHED, AND THAT IS ASSERTED
 RATHER THAN ASSUMED.** The 5.206.0 release restored five withheld gate clauses that had gone blank on a
@@ -464,7 +502,7 @@ applies a multiplier, and the difference between them is where every finding in 
 | 10 | **STAB** (+ `ModifySTAB` for Adaptability) | `:1789-1792` | `modify` | `:2391-2392`, applied at `:2529` `md4096(d, stab)` | **SAME STAGE.** Adaptability x2 via `stabBoost` agrees (132 vs 132) |
 | 11 | **type effectiveness**, clamped -6..6, `x2` per step up / `tr(/2)` per step down | `:1796-1812` | literal | `:2530` `Math.floor(d*eff)` | **SAME.** `floor(d/4) === floor(floor(d/2)/2)` for every integer, so the single floor is the reference. No clamp in ours, but no move reaches +-7 steps |
 | 12 | **burn x0.5**, physical, not Guts, not Facade | `:1816-1820` | `modify` | `:2405-2406`, applied at `:2531` `md4096(d, burn)` | **SAME STAGE.** Measured burn arm 8/160 (5.0%) against a control of 4.6% — inside the control's own residual |
-| 13 | **ModifyDamage chain** — the final item/ability chain | `:1826` | chainModify, spent once | `:2418-2419` `mod` / `MODMUL`, spent at `:2533` `mdChain` | **SAME STAGE AND GENUINELY A CHAIN.** Life Orb, Expert Belt, resist berries, Multiscale/Filter/Solid Rock/Prism Armor/Ice Scales/Punk Rock-defensive, Tinted Lens, Neuroforce, screens. Measured at the control's residual — see §4 |
+| 13 | **ModifyDamage chain** — the final item/ability chain | `:1826` | chainModify, spent once | `:2418-2419` `mod` / `MODMUL`, spent at `:2533` `mdChain` | **SAME STAGE AND GENUINELY A CHAIN.** Life Orb, **Metronome** (added at 5.208.0, WIRE 158 — attacker-side, `onModifyDamage`), Expert Belt, resist berries, Multiscale/Filter/Solid Rock/Prism Armor/Ice Scales/Punk Rock-defensive, Tinted Lens, Neuroforce, screens. Measured at the control's residual — see §4 |
 | 13b | **Friend Guard** (`onAnyModifyDamage`) | `:1826`, same chain | chainModify, **in the same chain** | `:5892-5898`, `md4096` on the already-spent number | **RIGHT STAGE, WRONG CHAIN** — see §3 |
 | 14 | **bypassProtect x0.25** | `:1830` | `modify`, after the chain is spent | `:5931` `md4096(dmg, 0.25)` | SAME — a separate spend is correct here |
 | 15 | **minimum 1** | `:1838` | `return 1` | absent | ABSENT, **and never observed**: 600 random (attacker, move, defender) draws produced 0 rows where Showdown floored to 1 and we returned 0. Recorded, not ranked |

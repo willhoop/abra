@@ -6050,6 +6050,75 @@ probe('item', 'damageMultAll', 'Life Orb is 5324/4096 rounded half up, not a flo
                  + `index-7 value; a float x1.3 was MEASURED at 102)` };
 });
 
+/* ================= WIRE 158 -- THE METRONOME ITEM, ROADMAP #312 AND #327 ==========================
+ *
+ * Both rows say the same thing about this item: the tag `damageMultOnRepeat` is derived and correct
+ * and NOTHING READS IT. `grep` for a consumer in `medicham2-browser.js` returned nothing, so a
+ * Metronome holder dealt its first-use damage for ever.
+ *
+ * THIS PROBE SPENDS FOUR REAL TURNS ON ONE BOARD, which is the only way to see the mechanic at all:
+ * the multiplier is a function of a per-body counter that only the TURN LOOP writes, so a
+ * `dmgRange` comparison -- however careful -- tests the consumer and says nothing about whether the
+ * counter is ever advanced. That was the whole defect.
+ *
+ * THE CONTROL IS THE SAME BOARD WITH NO ITEM, and it is the arm that makes this falsifiable: four
+ * identical clicks into an unfaintable body must deal the IDENTICAL number four times. If the
+ * control climbs, something other than the item is moving and the test arm proves nothing. */
+probe('item', 'damageMultOnRepeat', 'the Metronome item makes damage CLIMB over consecutive uses of one move', () => {
+  const four = (item) => {
+    const B = board('corviknight', 'garchomp', 'aggron', 'garchomp');
+    B.me.item = item; B.f1.item = ''; unfaintable(B.f1);
+    const out = [];
+    for (let t = 0; t < 4; t++) {
+      const before = B.f1.curHP;
+      M.battleTurn(B.S, rng5,
+        new Map([[B.me, M.playerAction(B.me, 'aerialace', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+        PASS2(B.f1, B.f2));
+      out.push(before - B.f1.curHP);
+    }
+    return out;
+  };
+  const control = four(''), test = four('metronome');
+  const flat = control.every(x => x === control[0]) && control[0] > 0;
+  const climbs = test[1] > test[0] && test[2] > test[1] && test[3] > test[2];
+  /* RUNG 0 IS THE IDENTITY STEP, so the FIRST hit must match the control exactly. An engine that
+   * boosted from the first use would climb and would still be wrong, and only this clause sees it. */
+  const firstIsBare = test[0] === control[0];
+  return { works: flat && climbs && firstIsBare,
+           arms: { control: control.join(','), test: test.join(',') },
+           detail: 'Aerial Ace into Aggron, four consecutive clicks -- no item [' + control.join(', ')
+                 + '] (must be four identical numbers), Metronome [' + test.join(', ')
+                 + '] (must climb, and its FIRST value must equal the control: steps4096[0] is 4096)' };
+});
+
+/* THE SECOND HALF OF THE SAME TAG, AND IT IS THE ONE A LADDER-THAT-ONLY-CLIMBS FAILS. The authority's
+ * handler is not "boost more each turn" -- it is `if (this.effectState.lastMove === move.id &&
+ * pokemon.moveLastTurnResult) numConsecutive++ ... else numConsecutive = 0` (data/items.ts:4010-4020).
+ * CHANGING THE MOVE ZEROES THE COUNTER, and the turn AFTER that starts again from the identity step.
+ * A consumer wired to a bare turn counter would pass the probe above and fail here. */
+probe('item', 'damageMultOnRepeat', 'the Metronome counter RESETS when the holder changes move', () => {
+  const B = board('corviknight', 'garchomp', 'aggron', 'garchomp');
+  B.me.item = 'metronome'; B.f1.item = ''; unfaintable(B.f1);
+  const hit = (mv) => {
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return before - B.f1.curHP;
+  };
+  /* Aerial Ace twice (rung 0 then rung 1), then ASSURANCE breaks the chain, then Aerial Ace again --
+   * which must be back at rung 0 and equal to its own first value. Both moves are 60 BP and neither
+   * misses on this board, so the interruption is the only thing that changes. */
+  const a1 = hit('aerialace'), a2 = hit('aerialace');
+  hit('assurance');
+  const a3 = hit('aerialace');
+  return { works: a2 > a1 && a3 === a1 && a1 > 0,
+           arms: { climbed: a1 + '->' + a2, after_the_break: a3 },
+           detail: 'Aerial Ace ' + a1 + ' then ' + a2 + ' (the ladder climbed), Assurance in between, '
+                 + 'then Aerial Ace ' + a3 + ' -- which must be back at ' + a1
+                 + '. A counter that only ever increments reads ' + a3 + ' > ' + a2 + ' here' };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). THE SECOND ARM IS THE ONE THAT MATTERS. An
  * item that raised every move would pass a probe that only looked at Crunch, and would be a worse bug
  * than doing nothing. Four real turns now, same board, same target, only the item moves. */

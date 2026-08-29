@@ -10,6 +10,209 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.208.0] — 2026-08-28
+
+### Added
+- **WIRE 158 — THE METRONOME ITEM. ITS TAG HAS BEEN COMPLETE AND CORRECT SINCE 2026-08-10 AND NOTHING
+  READ IT; ROADMAP #312 AND #327 BOTH CARRIED IT AS "grep FINDS NO CONSUMER". CENSUS 780 → 782 LIVE /
+  782 PROBED / 0 MISSING. THE ROSTER ROW WENT `DEFERRED-BY-OWNER` — WITH REAL DIFFS, 949 AGAINST 952 —
+  TO `FIRED-AND-BOARDS-MATCH`.** `damageMultOnRepeat`'s ladder `[4096, 4915, 5734, 6553, 7372, 8192]`
+  is read off the tag and never typed; the per-body consecutive-use counter is written at the
+  authority's own `onTryMovePriority: -2` position (below the PP deduction, above the shield gate,
+  which is where `useMoveInner` puts it); the multiplier joins the final `ModifyDamage` chain beside
+  Life Orb, because `data/mods/champions/scripts.ts:293` runs that event with the ATTACKER as its
+  relay target. `data/mods/champions/items.ts` has no `metronome` key, so mainline's handler is the
+  format's unchanged.
+  - **ALL SIX RUNGS, IN TWO INSTRUMENTS, RED FIRST.** `tests/probe_metronome_ladder.js` prices rungs
+    0..6 at `6-7, 7-8, 8-10, 10-11, 11-13, 12-14, 12-14` — moving at every declared step, flat above
+    the cap, and **rung 0 byte-identical to a body holding no item**, which is where an off-by-one
+    rung would show. `tests/probe_metronome_game.js` plays six turns against Showdown: **394 leaves
+    compared at each of 7 boundaries, all identical**. Under `MEDI_NO_METRONOME_LADDER=1` the first
+    goes flat at `7` seven times and the second parts from boundary 2 onward by **1, 3, 7, 13, 19 HP**.
+  - **TWO CENSUS ROWS, AND THE SECOND IS THE ONE THAT MATTERS.** The climb, and *"the counter RESETS
+    when the holder changes move"* — a consumer wired to a bare turn counter passes the first and
+    fails the second. Both shown MISSING under the knob (`780 live, 2 missing`) before the artifact
+    was restored by a clean re-run.
+  - **#312's GROUPING IS ONE SENTENCE NARROWER THAN IT READS.** The row pairs **Hustle** with **Sand
+    Force** — base power plus type plus weather. Metronome shares neither stage nor condition, so it
+    was landed alone and is attributable alone, as Sand Force was on 2026-08-27.
+- `tests/probe_multihit_corners.js` — measures the multi-hit count at both pinned corners in **both**
+  engines.
+- **`engine/coverage.js` — EVERY GATE NUMBER NOW PRINTS WHAT IT DOES NOT COVER, DERIVED FROM THE
+  ARTIFACTS RATHER THAN FROM A LIST.** `engine/status.js` gained a `COVERAGE` block that reads it, so
+  a clean verdict and its width arrive together. The scope was already recorded in every case that
+  surprised somebody on 2026-08-28 — `skipped_multihit` sits in the same object as `0 of 6000`, and
+  the census's `782 probed / 782 live` sits beside 67 mechanics that have never fired in the staged
+  harness — and it was the READING that was missing, not the measurement. Three derivations, none of
+  them given an artifact list: a KEY vocabulary (`skipped_*`, `*_dropped`, `out_of_scope`,
+  `could_not_stage*`, `unreachable`, `refused`, `threw`, `not_compared` and ~25 more), an ARITHMETIC
+  RESIDUAL for an exclusion that has no name at all (any object carrying both a population key and an
+  accounted key reports the difference), and DECLARED RANGES out of `data/tags.json` (`multiHit`,
+  8 moves, is today the whole class). **What it cannot catch is stated in its own header**: an
+  exclusion named outside the vocabulary, which is why it also prints every numeric field the
+  vocabulary did NOT match. It parses no prose — the multi-hit pin lived in a per-row `note` and that
+  `note` had been wrong for nine days.
+
+### Changed
+- **THE OWNER SHELF FOR `item:metronome` IS OUT OF `tests/roster.js`'s `DEFERRED` MAP.** Commented out
+  rather than deleted, as `minus` above it is. The reversal has **no artifact anywhere in this
+  repository** — no commit, no report, no ROADMAP edit — and the shelf comment says so rather than
+  manufacturing a citation. **A prediction was published in that comment and then falsified**: it said
+  the roster/items clause would go 0 → 1 and reopen the gate at 6 of 8. With the fix in, the shelf
+  comes out at no cost, and the correction is written in place with the reason.
+- **`data/roster.moves.json` HAD BEEN PUBLISHING A FALSE SENTENCE ON ALL FOURTEEN `move/multihit` ROWS
+  FOR NINE DAYS, AND NO ENGINE BYTE MOVED TO FIX IT.** Every row read *"THE PIN LANDS ON 2 HIT(S) …
+  the only count either engine can be asked about here"*, built from `e.multihit[0]` — typed, never
+  measured. A `[2,5]` move never touches the pinned RANGE form: the authority draws it with
+  `battle.sample` of a twenty-entry table, which is a one-argument `random(20)`, which the arms answer
+  `top ? 19 : 0`. **MEASURED, both engines, one turn per corner: Icicle Spear reads authority 5 /
+  medicham2 5 at the top corner and 2 / 2 at the bottom.** So `bulletseed`, `iciclespear` and
+  `watershuriken` were being compared at FIVE while the artifact said two. The note is now derived
+  from the arm and from which of the two draws the move takes.
+
+### Notes
+- **THE MULTI-HIT COVERAGE BOUND, STATED EXACTLY.** The pinned arms compare **2 and 5**. The six
+  fixed-count moves (`doublehit`/`dragondarts`/`dualwingbeat`/`twinbeam` at 2, `tripleaxel` at 3,
+  `populationbomb` at 10) are fully covered at their only count. **Counts 3 and 4 are compared by
+  nothing** — they are the interior of the sample table and no corner selects them. The recommended
+  guard is NOT to stage them: both engines read the same twenty-element table at the same index, so an
+  unselected index cannot disagree unless a table changes, and the cheap check is to assert
+  `MULTIHIT_2_5` element-for-element against the authority's own array.
+- **THE DAMAGE DIFFERENTIAL'S MULTI-HIT SKIP IS A DECLARED EXCLUSION AND IS CORRECT.**
+  `tests/test-engine-diff.js:780`, with its reason written out, counted per move, carried into the
+  artifact as `skipped_multihit`, **and already printed in `engine/status.js`'s ENGINE headline**
+  (`134 not comparable (multihit 134, non-finite 0, threw 0)`). The 134 are extra draws, not part of
+  the 6000 denominator. Running the volley loop would mean entering at `trySpreadMoveHit` — two LEVELS
+  up, not two lines — which drags per-hit accuracy into a file whose declared scope is damage only.
+- **THE GATE READS 3 OF 8 AND NOT ONE OF THE FIVE IS A DIVERGENCE.** Roster items/abilities/moves,
+  whole-game and mechanics are all WITHHELD as *"measured against a different engine"*: their
+  artifacts ran on release `5f3f7141227c` and the tree is `4e5c7b3400de`. The re-runs are owed and are
+  listed with their expected values in `docs/_reports/2026-08-28-metronome-item.md`.
+  `node engine/status.js --write` was deliberately NOT run — it would stamp a transient 3 of 8 into
+  five ledgers another agent is holding uncommitted.
+- **AND THEN THE FIVE RE-RUNS WERE DONE, LATER THE SAME NIGHT, SO THE NOTE ABOVE IS SUPERSEDED WITHIN
+  ITS OWN VERSION: THE GATE READS 8 OF 8 AND IS OPEN.** All five clauses were re-run on release
+  `4e5c7b3400de` and every artifact's `generated` stamp moved. Read from the artifacts:
+  `data/roster.items.json` **140 of 148 in scope tested**, `DEFERRED-BY-OWNER` **0**;
+  `data/roster.abilities.json` **129 of 202**; `data/roster.moves.json` **475 of 500**; all three at
+  0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`. `data/game-differential.json` **961 games, 6 raw
+  divergences, 6 declared, 0 undeclared**, with 12,445 turn boundaries compared and 12,445 identical.
+  `data/all-mechanics-fire.json` **1,289 games, 0 threw**, items `shelved_by_owner` 1 → **0** and the
+  closet id list 7 → **6**. `data/mechanics-census.json` **782 probed, 782 live, 0 missing**.
+  **The sample is proven identical rather than assumed** — the differential was pinned to the same
+  643-row census (`data/verification/census-pin-9446a684709d.json`) and the same frozen pool
+  (`0d103fb9fa87`, 1,968 of 8,778 teams), and it returns the same 961 games, the same 6 first
+  divergences in the same order and the same coverage block as the run before it. Full account:
+  `docs/_reports/2026-08-28-gate-rerun.md`.
+- **THE OPEN GATE MAKES NOTHING DOWNSTREAM TRUE.** 72 of 250 artifacts moved from WITHHELD to
+  RE-RUNNABLE (that count is `engine/quarantine.js`'s own print, recorded in
+  `docs/_reports/2026-08-28-gate-rerun.md`; the gate plays games and was not re-run to confirm it
+  here). None was re-run. The seven MEASURE/SEARCH figures that read *"QUARANTINED"* now read
+  *"WITHHELD — `engine/provenance.js` calls the artifact UNSAFE"*, which is a different and weaker
+  withholding, and they stay withheld. ROADMAP #57 is the re-run list.
+- **`data/quarantine-stamp.json` IS OLDER THAN THE FIVE ARTIFACTS AND IS NOT THE GATE READING.** It is
+  stamped 2026-08-28 15:33 with `gate_open false`; the re-runs finished after 20:25. The reading above
+  is the run of `engine/quarantine.js` recorded in the report, corroborated independently by
+  `engine/status.js` printing no quarantine banner at all — it prints one only when the gate is shut.
+  A stale stamp beside a live gate is exactly the shape this project keeps paying for, and it is
+  recorded rather than tidied away.
+- **A RELEASE WAS CUT OVER AN UNCOMMITTED MID-SESSION ENGINE EDIT.** `4e5c7b3400de` was first cut at
+  `2026-08-28T23:35:19Z` under an unrelated `why`, and its frozen `medicham2-browser.js` is
+  byte-identical to the live file **including WIRE 158**. Convenient here and not safe: it is the
+  photograph rule broken from the other side, and it is recorded rather than enjoyed.
+- **ROADMAP #530 FILED, NOT FIXED — a frozen release does not freeze `data/rollout-switch-census.json`,
+  so a release-pinned leaf CANNOT SWITCH.** Measured side by side in one process: pinned
+  `{switchRate: 0, maxTurns: 0, ok: false}` against the live tree's `{switchRate: 0.0998,
+  maxTurns: 14, ok: true}`. The fallback is **not** silent — `rollout_leaf.js` writes an explicit
+  stderr sentence, so this is a loud degradation nobody was reading. Blast radius on published figures
+  is **zero today**: all three release-pinned leaf artifacts predate the census file's own
+  `2026-08-11` generation and are already WITHHELD. Not landed because `engine/engine_release.js` is
+  MEASURE's file and because `data/releases/` holds **487** directories, none of which contains the
+  file; the `compat` sweep that would decide the stranding **OOM-killed** on this box.
+
+## [5.207.0] — 2026-08-28
+
+### Changed
+- **THE LAST OPEN MEDICHAM GATE CLAUSE IS CLOSED BY A DECLARATION, NOT BY A FIX. GATE 7 OF 8 → 8 OF
+  8, OPEN. THE WHOLE-GAME CLAUSE GOES FAIL → PASS AT 6 RAW / 6 DECLARED / 0 UNDECLARED, AND THE
+  CLOSET SHIPS ITS FIRST ROW EVER: `CLOSETED: 0 → 1`. NO ENGINE BYTE MOVED AND NO ARTIFACT WAS
+  REGENERATED — THE TWO RUNS DIFFER ONLY IN WHETHER THE DECLARATION EXISTS.** Will authorised
+  closing the clause by declaring the remaining divergence, with a note saying we could not make it
+  work. **The declaration is a MECHANISM and not prose in a register cell**, which is the failure
+  this repository has already paid for once: his Tailwind ruling of 2026-08-24 was recorded as a
+  `DEFERRED` row that `DECLARED_DIVERGENCE` refuses to subtract by design, and it therefore had no
+  effect for two days.
+  - **WHAT DIVERGES.** One game of 961 in `data/game-differential.json` (release `5f3f7141227c`,
+    generated 2026-08-28T19:30:53Z): `baseline / gen9championsvgc2026regmbbo3-2654016071 vs
+    ...-2654363031`, turn 11, index 171, cause `event missing from medicham2 :: |upkeep <>
+    |faint|p2b`. A residual in which Perish Song reaches `perish0` owes a faint; the authority writes
+    `|upkeep` and then the faint, and this engine writes the faint and then `|upkeep`. Both positions
+    are the authority's — `fieldEvent`'s duration-expiry branch `continue`s past `faintMessages()` at
+    `sim/battle.ts:565`, so the drain point is a function of the handler list, and when nothing
+    survives the walk the deaths fall to `runAction`'s tail at `:2832`, eighteen lines below the
+    `|upkeep|` at `:2814`.
+  - **IT IS NARRATION AND THE RECEIPT IS A COMPARED LEAF, NOT AN ABSENT ONE.** ROADMAP #528 measured
+    that 43 of the 80 leaves a legal mechanic can write are in neither the compared set nor
+    `NOT_COMPARED`, so "no board differs" can mean "nobody looked". Here it does not: `fainted`, with
+    `hp`/`maxhp`/`status`, is compared on the active bodies (`board_state.js:866`), the party
+    (`:1034`) and the bench (`:769`, `:843`). The run reports **12,445 turn boundaries compared and
+    12,445 identical**, `games_board_never_diverged` **961 of 961**,
+    `protocol_diverged_board_never_did` **6 of 6**, `first_board_divergences` empty. The body is dead
+    in both engines at the boundary at the same HP.
+  - **IT WAS TRIED TWICE.** ROADMAP #440 filed it 2026-08-24 as blocked on a residual handler list
+    this engine did not have. The 2026-08-26 pass built that list — `residualFollowerRuns`, derived
+    from `data/residual-order.json` by calling `Battle#resolvePriority`, with three over-fire controls
+    and the `MEDI_RESIDUAL_DRAIN_ABOVE_UPKEEP=1` knob — and moved this same seed pair from turn 4 to
+    turn 11. What remains is the predicate answering TRUE on one board where the authority's walk
+    answers false. **Which follower is UNDIAGNOSED and is recorded as undiagnosed**;
+    `MEDFAILS.residualFollowerUnmapped` is empty, so the predicate is wrong rather than blind.
+
+### Added
+- **`engine/quarantine.js` — the first shipping `CLOSETED` row.** The kind was built 2026-08-26 on
+  Will's ruling *"things in the closet shouldnt block a gate if we know why they fail and choose to
+  accept it"* and had never carried one: the Tailwind divergence it was built for was fixed by #493
+  before the door was finished. **No third kind was invented and `DEFERRED` is still refused.** The
+  row carries `closet.by/.on/.ruling/.authority`, `evidence.instrument/.release/.on/.says` and
+  `falsifiedBy`; `closetFault` refuses it at the door if any is missing, and eleven selftest arms
+  already prove each missing field holds the gate SHUT.
+  - **The matcher is narrowed by EVIDENCE, not by the string.** `|upkeep <> |faint|pXY` alone would
+    cover every residual faint in the game — leech seed, poison, sandstorm, curse, salt cure — so it
+    additionally requires a `perish0` line in `showdown_before` on *every* first-divergence row
+    carrying the cause, and **declines when the evidence is absent**. That is also why it cannot reach
+    `data/all-mechanics-fire.json`, whose evidence adapter carries no `showdown_before`.
+  - The classifier's class prefix is deliberately not pinned: #440 filed this cause as `ordering ::`
+    and it reads `event missing from medicham2 ::` today. Pinning a label would make the exemption
+    evaporate on a rename rather than on a fix.
+  - `evidence.release` equals the artifact's release, so `closetEvidenceStale` prints nothing today
+    and will print **EVIDENCE NOT RE-CHECKED** at the point of subtraction the moment the artifact
+    moves.
+
+### Fixed
+- **Two `quarantine.js` selftest arms pinned a fact about the LIST instead of a property of it, and
+  would have gone red on the day the closet stopped being empty.** `/CLOSETED: 0/` became
+  `/CLOSETED: \d+/` — the assertion was never about the zero, it is that the register prints the
+  closet's size on every run. `the shipping closet is empty today` became **every `CLOSETED` row on
+  the shipping list passes `closetFault`**, checked through the same function the door uses rather
+  than a second copy of the schema. A fact about a list written down is the ban-list-of-four shape;
+  a property of the list is not. Selftest **154 passed, 0 failed**.
+
+### Notes
+- **THE GATE OPENING CHANGES WHAT THE GATE ASKS. IT DOES NOT MAKE ANY WITHHELD NUMBER TRUE.**
+  `quarantine.js` now withholds nothing, and the 60 downstream artifacts it was withholding print
+  instead as *"61 of 238 … now RE-RUNNABLE. They are NOT withheld and they are NOT current — every
+  one was measured under an engine that has since changed, so each must be re-run before it is
+  quoted"*. That is CLAUDE.md's own rule — a quarantined number becomes re-runnable, never true. The
+  re-run list is ROADMAP #57 and **none of it was run here**.
+- **ROADMAP #440 stays OPEN and still says `DEFECT` in its status cell.** It is not marked
+  `NOT A DEFECT` — that phrase is executable at `engine/quarantine.js:1040` and would be the wrong
+  ruling. The closet excuses the divergence from the whole-game clause and from nothing else; #440 is
+  unchanged in the open-defect clause's `INSTRUMENT UNRUNNABLE` bucket.
+- No game was played by this pass: a timing measurement was live on the simulator. The census, the
+  roster stages and `all_mechanics_fire.js` were therefore not re-run, and are not owed — no engine
+  byte moved, so they describe the same bytes.
+
+---
+
 ## [5.206.0] — 2026-08-28
 
 ### Fixed

@@ -1,6 +1,65 @@
 # ABRA — the plain-English deck
 
-**Version 5.206.0 · 2026-08-28 · Will Hooper**
+**Version 5.208.0 · 2026-08-28 · Will Hooper**
+
+**5.208.0 — ONE MORE ITEM NOW WORKS, AND WE CHECKED EVERYTHING AGAIN AFTERWARDS.**
+
+The 5.207.0 page below describes the day we accepted the last disagreement. It is left as it was
+written, and the numbers on it are from the older copy of the simulator.
+
+**What we fixed.** An item called Metronome makes an attack hit harder every time you use the same
+attack twice in a row, up to a limit. We had worked out exactly how that ladder behaves nearly three
+weeks ago, written it down correctly, and then never connected it to anything. The simulator was
+ignoring a rule it already knew. It does not any more.
+
+**Why we re-checked everything.** Changing the simulator means every earlier comparison was made
+against a different program. So all five comparisons were run again from scratch, on the new copy.
+That is the rule here: a result belongs to the exact version of the code it was measured on.
+
+**What the re-run says.** Every item, ability and move staged one at a time: **140, 129 and 475
+tested, nothing disagreeing and nothing failing to happen**. Whole real games played side by side
+against the official engine: **961 games, 6 differences, all six already declared and explained**, and
+every one of the 12,445 end-of-turn boards identical. The full sweep of game mechanics: **782 checked,
+782 working, none missing** — two more than before, because the fix added two new things to check.
+
+**The scorecard is now clean: eight boxes of eight.** That is the first time all eight have been
+green.
+
+**What that does not mean.** About seventy older results stopped being held back — but they are not
+suddenly true. They were measured on an older simulator, and every one still has to be run again
+before anyone quotes it. Not one of them was re-run. And the one message-ordering fault we accepted
+last time is still on the list as a fault we chose not to fix.
+
+**One honest note.** Metronome is a rare item — nineteen teams out of twenty-six thousand in our
+frozen sample carry it. We said before the run that the real-games comparison would not move, and it
+did not. The staged laboratory saw the fix; the real-games sample correctly saw nothing. That is one
+instrument confirming it, not two.
+
+**5.207.0 — THE LAST DISAGREEMENT IS ACCEPTED ON PURPOSE, AND IT IS WRITTEN DOWN IN A WAY
+THE CHECK CAN READ.**
+
+The 5.206.0 page below still describes the day the five boxes went blank. It is left as it was written.
+
+**Where we got to.** We play 961 real games through our simulator and through the official one, with
+every dice roll forced to match, and compare them line by line. Six games came out different. Five are
+a typo in the *official* simulator — it prints the word `fallenundefined` on a line nobody ever sees —
+and copying a typo is not being correct. The sixth is one game where a Pokémon dies to Perish Song and
+we announce the death one line earlier than the official simulator does.
+
+**Nothing about the board is different.** We checked the thing that would show it: every Pokémon's HP
+and whether it is fainted, at the end of every turn, in 12,445 turn boundaries. All 12,445 match. The
+Gengar is dead in both, at the same HP. Only the *position of the message* differs.
+
+**Will's call: accept it and move on.** So it goes in the closet. The important part is that the closet
+is a mechanism and not a sentence: the entry has to name who ruled it, on what date, in what words,
+what instrument measured the "no board effect" claim, which frozen version of the engine that
+measurement was taken on, and exactly what observation would prove the entry wrong. If any of those is
+missing the check refuses the entry and the gate stays shut. **We have not called it fixed and we have
+not called it harmless — we have called it a defect we chose not to fix, which is what it is.**
+
+**One thing this does not mean.** The gate opening releases about sixty older results that were being
+held back. Those results are not suddenly true. They were measured on an older engine and every one
+still has to be re-run before anybody quotes it.
 
 **5.206.0 — THE FIVE BLANK BOXES ARE FILLED IN, AND EVERY ONE OF THEM CAME BACK WITH THE SAME NUMBER
 IT HAD BEFORE.**

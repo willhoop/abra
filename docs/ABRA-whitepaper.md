@@ -1,6 +1,82 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.206.0 · Last updated 2026-08-28**
+**Version 5.208.0 · Last updated 2026-08-28**
+
+**5.208.0 — THE METRONOME ITEM IS WIRED, AND THE FIVE GATE CLAUSES ARE RE-MEASURED ON THE RELEASE
+THAT WIRING PRODUCED. GATE 8 OF 8, OPEN. THE CLOSETED DEFECT IS STILL A DEFECT.** The 5.207.0 block
+below is dated history: its counts were taken on engine release `5f3f7141227c` and are superseded, not
+rewritten. Unlike the two passes before it, **an engine byte did move** — WIRE 158 gave the
+`damageMultOnRepeat` tag its first consumer, five days short of three weeks after the tag was derived
+correctly and left unread — so what follows is a fresh measurement rather than a reproduction.
+
+**THE FIVE CLAUSES, RE-RUN ON RELEASE `4e5c7b3400de`**, each serialised through
+`tools/lownode.cmd`, with the differential pinned to census `9446a684709d`, arm `middle`, turn cap 12
+and `--team-store data/team-pool-frozen`:
+
+| clause | reading |
+|---|---|
+| deliberate roster — items / abilities / moves | **140 / 129 / 475 tested** (of 148, 202 and 500 in scope), 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three; red demonstrations **18 / 29 / 35**, all caught |
+| what moved in that triple | the items stage alone: `item:metronome` went `DEFERRED-BY-OWNER` → `FIRED-AND-BOARDS-MATCH`, so the tested count rose by one and the deferred column fell to **0** |
+| whole-game differential | **961 paired games, 6 raw divergences, 6 declared, 0 undeclared**; 12,445 turn boundaries compared and 12,445 identical |
+| staged mechanics | items `shelved_by_owner` 1 → **0**, the owner closet 7 → 6 ids; **1,289 games played, 0 threw** |
+| census | **782 probed, 782 live, 0 missing** — two rows added by WIRE 158: the climb, and the reset when the holder changes move |
+| damage differential (not re-run; nothing that feeds it changed) | **0 of 6000 at each of the sixteen band indices** |
+
+**THE SAMPLE IS PROVEN IDENTICAL RATHER THAN ASSUMED, AND THE TWO INSTRUMENTS NEED DIFFERENT
+ARGUMENTS.** The whole-game differential is census-STEERED — the census selects which scenarios the
+driver seeks — so a run taken after the census gained two rows would not be a before/after at all. It
+was therefore pinned to the same 643-row census file the previous run read, and to the same frozen
+pool (digest `0d103fb9fa87`, **1,968 of 8,778** teams picked); it returns the same game count, the
+same six first divergences in the same order, and the same coverage block. The staged-mechanics
+harness reads no census at all — it iterates the format's own entities — so its delta is readable
+without a pin. Metronome is 19 of 26,232 teams in that pool, which is why the pool was predicted to
+sit still before the run rather than explained afterwards.
+
+**AND THE OPEN GATE MAKES NOTHING DOWNSTREAM TRUE.** 72 of 250 artifacts moved from WITHHELD to
+RE-RUNNABLE — `engine/quarantine.js`'s own print, recorded in
+`docs/_reports/2026-08-28-gate-rerun.md` and not independently re-derived here — and not one was
+re-run. RE-RUNNABLE is permission to measure, not a result. ROADMAP #440
+stays open and still says `DEFECT`; the closeted Perish Song faint is recorded as a defect we chose
+not to fix. Full account: `docs/_reports/2026-08-28-gate-rerun.md`.
+
+**5.207.0 — THE LAST OPEN GATE CLAUSE IS CLOSED BY A DECLARATION AND NOT BY A FIX. GATE 8 OF
+8, OPEN. THE DEFECT IS STILL A DEFECT.** The 5.206.0 block below is dated history and stands as
+written.
+
+`data/game-differential.json` (engine release `5f3f7141227c`, 961 paired games, arm `middle`, pins
+`ccb365985023`, `--team-store data/team-pool-frozen`, turn cap 12) holds **6 raw divergences**. Five
+are the Supreme Overlord `fallenundefined` family, declared `AUTHORITY-WRONG` since 2026-08-18 —
+`data/abilities.ts` does not guard the ability's `onEnd` on `side.totalFainted`, so the template
+emits the literal string `fallenundefined` on a `[silent]` line players never see. The sixth is one
+game at turn 11 in which a Perish Song death's `|faint|` is written **above** `|upkeep|` and the
+authority writes it **below**: a message-emission point, not a different game. Both positions are the
+authority's own — `fieldEvent`'s duration-expiry branch `continue`s past `faintMessages()`
+(`sim/battle.ts:565`), so the drain point is a function of the residual handler list, and when nothing
+survives the walk the queue is paid at `runAction`'s tail (`:2832`), eighteen lines below the
+`|upkeep|` written at `:2814`.
+
+**THE NO-BOARD-EFFECT CLAIM IS MEASURED, AND IT RESTS ON A LEAF THAT WAS COMPARED RATHER THAN ONE
+NOBODY LOOKED AT.** 12,445 turn boundaries compared and 12,445 identical;
+`state.games_board_never_diverged` 961 of 961; `protocol_diverged_board_never_did` 6 of 6;
+`state.first_board_divergences` empty. `fainted`, with `hp`, `maxhp` and `status`, is in the compared
+set on the active bodies (`engine/board_state.js:866`), the party (`:1034`) and the bench (`:769`,
+`:843`), and `statusOf` maps a corpse to `fnt` on both sides so that a body dead in one engine and
+alive in the other cannot hide. That qualifier is load-bearing: ROADMAP #528 measured **43 of the 80
+leaves a legal mechanic can write to be in neither the compared set nor the declared-uncompared list**,
+so an unqualified "no board differs" can mean "nobody looked".
+
+Will ruled the divergence into the closet on 2026-08-28. It is subtracted from the clause by a
+`kind: 'CLOSETED'` row in `engine/quarantine.js` — the first that kind has ever carried — holding the
+owner, the date, the ruling, the measuring instrument, the release the measurement was taken on, and a
+four-part falsifier; `closetFault` refuses the row at the door if any field is missing, and the matcher
+requires a `perish0` line in the divergence's own `showdown_before` so it cannot spread to another
+residual drain. **It is recorded as a defect we chose not to fix, never as an absence of one.** ROADMAP
+#440 stays open and still says `DEFECT`; which surviving handler the engine's predicate believes in on
+that board is **undiagnosed**, and is recorded as undiagnosed.
+
+**THE GATE OPENING DOES NOT MAKE ANY WITHHELD NUMBER TRUE.** 61 downstream artifacts now print as
+RE-RUNNABLE rather than WITHHELD. Every one of them was measured under an engine that has since
+changed, so each must be re-run before it is quoted (ROADMAP #57). None was re-run in this pass.
 
 **5.206.0 — THE FIVE WITHHELD CLAUSES WERE A LINE ENDING. THEY ARE RESTORED AT 7 OF 8 PASS, AND EVERY
 ONE OF THEM REPRODUCED ITS PREVIOUS NUMBER EXACTLY.** The 5.205.0 block below is dated history and its
@@ -130,7 +206,8 @@ and until that run exists the clauses say nothing.
 
 **WHAT IS NOT WITHHELD, AND EXACTLY HOW FAR IT REACHES.**
 
-- **The behavioural census.** Read from `data/mechanics-census.json`: **780 probed, 780 live, 0
+- **The behavioural census — this reading is PRIOR and is superseded at 5.208.0 above by 782 / 782 /
+  0; it is left as it was written.** Read from `data/mechanics-census.json`: **780 probed, 780 live, 0
   missing**, 780 armed and 0 unarmed, 0 threw and 0 hollow. This is a lab: one deliberately staged
   scenario per mechanic, regardless of whether anybody plays it. It answers *is this correct*. It
   does not answer *does this matter*, which is the pinned pool's question.

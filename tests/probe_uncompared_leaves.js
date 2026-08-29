@@ -29,6 +29,14 @@
  *
  *   node tests/probe_uncompared_leaves.js            the split, and the hole
  *   node tests/probe_uncompared_leaves.js --json     the same as an object
+ *   require(...).derive()                           the same numbers, for a reporter
+ *
+ * THE `derive()` EXPORT EXISTS SO THE GATE'S COVERAGE LINE IS NOT A SECOND COPY OF THIS (2026-08-28).
+ * `engine/status.js` prints "leaves compared / leaves comparable" and it calls THIS function to get
+ * it. The alternative — status.js recomputing the split from `board_state.js` directly — is exactly
+ * the two-producers-of-one-fact breach that made the closed-row detector disagree with itself on 24
+ * of 292 rows in both directions. The CLI below is a renderer over `derive()` and holds no arithmetic
+ * of its own, so the printed split and the reported split cannot part.
  */
 'use strict';
 const path = require('path');
@@ -36,102 +44,130 @@ const fs = require('fs');
 const D = (...p) => path.join(__dirname, '..', ...p);
 const BS = require(D('engine', 'board_state.js'));
 const CS = require(D('engine', 'champions_sim.js'));
-const { Dex } = CS.sim();
-const dex = Dex.forFormat(CS.FORMAT);
+
+/* THE WHOLE DERIVATION, INSIDE A FUNCTION AND NOT AT LOAD. A reporter that requires this file must
+ * not pay for the dex walk unless it asks, and — the reason that matters today — `medicham2-browser.js`
+ * is read here while ENGINE is editing it. A read that throws must fail the CALLER'S coverage line,
+ * not the require that preceded it. */
+function derive() {
+  const { Dex } = CS.sim();
+  const dex = Dex.forFormat(CS.FORMAT);
+
+  /* ---- THE POPULATION, FILTERED EVERY TIME ----------------------------------------------------
+   * `.all()` is the National Dex wearing the format's name (CLAUDE.md). Moves and items are filtered on
+   * `isNonstandard`; ABILITIES ARE FILTERED ON A CARRIER, because an ability no legal species has cannot
+   * write a leaf in this format however legal the ability object looks. Unfiltered, the ability walk
+   * reports 316 abilities and adds five leaves that nothing in this regulation can produce. */
+  const legalSp = x => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
+  const legal = x => x && x.exists && !x.isNonstandard;
+  const CARRIED = new Set();
+  for (const s of dex.species.all().filter(legalSp))
+    for (const k of Object.keys(s.abilities || {})) CARRIED.add(dex.abilities.get(s.abilities[k]).id);
+  const POP = { move: dex.moves.all().filter(legal),
+                ability: dex.abilities.all().filter(x => legal(x) && CARRIED.has(x.id)),
+                item: dex.items.all().filter(legal) };
+
+  /* ---- EVERY LEAF, AND WHO WRITES IT ---------------------------------------------------------- */
+  const leaves = new Map();
+  for (const kind of ['move', 'ability', 'item']) for (const e of POP[kind]) {
+    const w = BS.writtenLeaves(e);
+    const add = (klass, set) => { for (const v of set) {
+      const key = klass + ':' + v;
+      if (!leaves.has(key)) leaves.set(key, { key, klass, name: v, writers: [] });
+      leaves.get(key).writers.push(kind + ':' + e.id); } };
+    add('volatile', w.volatile); add('sideCondition', w.side);
+    add('slotCondition', w.slot); add('pseudoWeather', w.pseudo);
+  }
+  const COMPARED = new Set(BS.SD_VOLATILE_KEYS.map(k => 'volatile:' + k)
+    .concat(BS.SD_SIDE_KEYS.map(k => 'sideCondition:' + k))
+    .concat(BS.SD_PSEUDO_KEYS.map(k => 'pseudoWeather:' + k)));
+
+  /* ---- WHAT THE AUTHORITY DECLARES ABOUT A CONDITION'S LIFETIME -------------------------------
+   * `duration: 1` is decremented by `residualEvent` and ENDED there (sim/battle.ts:1097-1115, whose
+   * handler carries `end: pokemon.removeVolatile`), so it cannot be standing at the boundary this
+   * comparator takes — which is after the whole residual phase.
+   *
+   * THIS IS EVIDENCE AND NOT PROOF, AND THE DIFFERENCE IS THE POINT. A DECLARED duration is what the
+   * entry says; a condition with no declared clock may still be removed inside the turn by its own move
+   * (Sparkling Aria's is), and one with a clock may have it rewritten in `onStart`. The falsifier is a
+   * staged boundary read of both engines, which is what `tests/probe_volatile_leaves.js` does one leaf
+   * at a time. Nothing here should be wired on this column alone. */
+  function lifetime(name) {
+    const c = dex.conditions.getByID(name);
+    const resolved = !!(c && Object.keys(c).length > 2);
+    const d = c && c.duration;
+    return { resolved, duration: d == null ? null : d,
+             gone_at_the_boundary: d === 1,
+             residual: !!(c && typeof c.onResidual === 'function') };
+  }
+  /* ---- AND WHETHER OUR ENGINE HOLDS ANYTHING UNDER THAT NAME ----------------------------------
+   * STRUCTURAL, NOT A NAME GREP: `_vol.<name>` is the one table medicham2 keys by the authority's own
+   * spelling, so a hit here means the two engines can be asked the same question. A MISS IS NOT
+   * EVIDENCE OF ABSENCE — this engine keeps `partiallytrapped` in `_trap`, the hard trap in `_trapHard`
+   * and the rampage lock in `_mtLock`, none of which this test can see. It is printed to rank the cheap
+   * wirings first, never to conclude that a mechanic is missing. */
+  const MEDI_SRC = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
+  const MEDI_VOL = new Set([...MEDI_SRC.matchAll(/_vol\.([A-Za-z_][A-Za-z0-9_]*)/g)].map(m => m[1].toLowerCase()));
+
+  const rows = [...leaves.values()].map(r => ({ ...r,
+    compared: COMPARED.has(r.key),
+    declared: BS.DECLARED_LEAVES.has(r.key),
+    life: lifetime(r.name),
+    ours_vol: MEDI_VOL.has(r.name) }));
+  rows.sort((a, b) => (b.writers.length - a.writers.length) || a.key.localeCompare(b.key));
+  const hole = rows.filter(r => !r.compared && !r.declared);
+
+  /* A DERIVATION THAT READS NOTHING WOULD REPORT A HOLE OF ZERO — the most comfortable possible answer
+   * and a completely silent one. Asserted rather than assumed, exactly as board_state.js asserts its
+   * own key derivation at load. It THROWS rather than exiting, because a library that calls
+   * process.exit takes its caller's report down with it. */
+  if (!rows.length || !COMPARED.size) {
+    const e = new Error('NOT RUN — the leaf derivation read NOTHING. A hole of 0 here would be a '
+      + 'silent default, not a clean bill.');
+    e.leafDerivationEmpty = true;
+    throw e;
+  }
+
+  return { population: { move: POP.move.length, ability: POP.ability.length, item: POP.item.length },
+           rows, hole,
+           compared: rows.filter(r => r.compared).length,
+           declared: rows.filter(r => r.declared).length,
+           total: rows.length,
+           /* the honest widening target: the hole minus the leaves the authority ends in the
+            * residual, which cannot be standing when this comparator reads a turn boundary */
+           standing_at_the_boundary: hole.filter(r => !r.life.gone_at_the_boundary).length,
+           dead_leaves: [...COMPARED].filter(k => !leaves.has(k)).length };
+}
+module.exports = { derive };
+if (require.main !== module) return;
+
 const JSONOUT = process.argv.includes('--json');
-
-/* ---- THE POPULATION, FILTERED EVERY TIME ------------------------------------------------------
- * `.all()` is the National Dex wearing the format's name (CLAUDE.md). Moves and items are filtered on
- * `isNonstandard`; ABILITIES ARE FILTERED ON A CARRIER, because an ability no legal species has cannot
- * write a leaf in this format however legal the ability object looks. Unfiltered, the ability walk
- * reports 316 abilities and adds five leaves that nothing in this regulation can produce. */
-const legalSp = x => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const legal = x => x && x.exists && !x.isNonstandard;
-const CARRIED = new Set();
-for (const s of dex.species.all().filter(legalSp))
-  for (const k of Object.keys(s.abilities || {})) CARRIED.add(dex.abilities.get(s.abilities[k]).id);
-const POP = { move: dex.moves.all().filter(legal),
-              ability: dex.abilities.all().filter(x => legal(x) && CARRIED.has(x.id)),
-              item: dex.items.all().filter(legal) };
-
-/* ---- EVERY LEAF, AND WHO WRITES IT ------------------------------------------------------------ */
-const leaves = new Map();
-for (const kind of ['move', 'ability', 'item']) for (const e of POP[kind]) {
-  const w = BS.writtenLeaves(e);
-  const add = (klass, set) => { for (const v of set) {
-    const key = klass + ':' + v;
-    if (!leaves.has(key)) leaves.set(key, { key, klass, name: v, writers: [] });
-    leaves.get(key).writers.push(kind + ':' + e.id); } };
-  add('volatile', w.volatile); add('sideCondition', w.side);
-  add('slotCondition', w.slot); add('pseudoWeather', w.pseudo);
+let R;
+try { R = derive(); }
+catch (e) {
+  if (e && e.leafDerivationEmpty) { console.error(e.message); process.exit(2); }
+  throw e;
 }
-const COMPARED = new Set(BS.SD_VOLATILE_KEYS.map(k => 'volatile:' + k)
-  .concat(BS.SD_SIDE_KEYS.map(k => 'sideCondition:' + k))
-  .concat(BS.SD_PSEUDO_KEYS.map(k => 'pseudoWeather:' + k)));
+const { population: POPN, rows, hole } = R;
 
-/* ---- WHAT THE AUTHORITY DECLARES ABOUT A CONDITION'S LIFETIME ---------------------------------
- * `duration: 1` is decremented by `residualEvent` and ENDED there (sim/battle.ts:1097-1115, whose
- * handler carries `end: pokemon.removeVolatile`), so it cannot be standing at the boundary this
- * comparator takes — which is after the whole residual phase.
- *
- * THIS IS EVIDENCE AND NOT PROOF, AND THE DIFFERENCE IS THE POINT. A DECLARED duration is what the
- * entry says; a condition with no declared clock may still be removed inside the turn by its own move
- * (Sparkling Aria's is), and one with a clock may have it rewritten in `onStart`. The falsifier is a
- * staged boundary read of both engines, which is what `tests/probe_volatile_leaves.js` does one leaf
- * at a time. Nothing here should be wired on this column alone. */
-function lifetime(name) {
-  const c = dex.conditions.getByID(name);
-  const resolved = !!(c && Object.keys(c).length > 2);
-  const d = c && c.duration;
-  return { resolved, duration: d == null ? null : d,
-           gone_at_the_boundary: d === 1,
-           residual: !!(c && typeof c.onResidual === 'function') };
-}
-/* ---- AND WHETHER OUR ENGINE HOLDS ANYTHING UNDER THAT NAME ------------------------------------
- * STRUCTURAL, NOT A NAME GREP: `_vol.<name>` is the one table medicham2 keys by the authority's own
- * spelling, so a hit here means the two engines can be asked the same question. A MISS IS NOT
- * EVIDENCE OF ABSENCE — this engine keeps `partiallytrapped` in `_trap`, the hard trap in `_trapHard`
- * and the rampage lock in `_mtLock`, none of which this test can see. It is printed to rank the cheap
- * wirings first, never to conclude that a mechanic is missing. */
-const MEDI_SRC = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
-const MEDI_VOL = new Set([...MEDI_SRC.matchAll(/_vol\.([A-Za-z_][A-Za-z0-9_]*)/g)].map(m => m[1].toLowerCase()));
-
-const rows = [...leaves.values()].map(r => ({ ...r,
-  compared: COMPARED.has(r.key),
-  declared: BS.DECLARED_LEAVES.has(r.key),
-  life: lifetime(r.name),
-  ours_vol: MEDI_VOL.has(r.name) }));
-rows.sort((a, b) => (b.writers.length - a.writers.length) || a.key.localeCompare(b.key));
-const hole = rows.filter(r => !r.compared && !r.declared);
-
-/* A DERIVATION THAT READS NOTHING WOULD REPORT A HOLE OF ZERO — the most comfortable possible answer
- * and a completely silent one. Asserted rather than assumed, exactly as board_state.js asserts its
- * own key derivation at load. */
-if (!rows.length || !COMPARED.size) {
-  console.error('NOT RUN — the leaf derivation read NOTHING. A hole of 0 here would be a silent '
-    + 'default, not a clean bill.');
-  process.exit(2);
-}
-
-if (JSONOUT) { console.log(JSON.stringify({ population: { move: POP.move.length,
-  ability: POP.ability.length, item: POP.item.length }, rows }, null, 1)); process.exit(0); }
+if (JSONOUT) { console.log(JSON.stringify({ population: POPN, rows }, null, 1)); process.exit(0); }
 
 const pad = (s, n) => String(s).padEnd(n);
-console.log('  POPULATION  ' + POP.move.length + ' moves, ' + POP.ability.length
-  + ' abilities carried by a legal species, ' + POP.item.length + ' items');
-console.log('  LEAVES THEY WRITE   ' + rows.length
-  + '      COMPARED ' + rows.filter(r => r.compared).length
-  + '   DECLARED ' + rows.filter(r => r.declared).length
+console.log('  POPULATION  ' + POPN.move + ' moves, ' + POPN.ability
+  + ' abilities carried by a legal species, ' + POPN.item + ' items');
+console.log('  LEAVES THEY WRITE   ' + R.total
+  + '      COMPARED ' + R.compared
+  + '   DECLARED ' + R.declared
   + '   NEITHER ' + hole.length);
 console.log('');
 console.log('  A LEAF IN NEITHER LIST IS A HOLE THE GATE CANNOT SEE: the board agrees on it by not');
 console.log('  looking, and an ANNOUNCEMENT-ONLY verdict on a mechanic whose whole effect IS that leaf');
 console.log('  is an unasked question wearing a clean row\'s clothes.');
 console.log('');
-const boundary = hole.filter(r => !r.life.gone_at_the_boundary);
+const boundary = R.standing_at_the_boundary;
 console.log('  Of the ' + hole.length + ', the authority declares a duration of 1 on '
-  + (hole.length - boundary.length) + ' — those are ended in the residual (sim/battle.ts:1097-1115)');
-console.log('  and cannot be standing at this comparator\'s boundary. The other ' + boundary.length
+  + (hole.length - boundary) + ' — those are ended in the residual (sim/battle.ts:1097-1115)');
+console.log('  and cannot be standing at this comparator\'s boundary. The other ' + boundary
   + ' have no declared');
 console.log('  clock or a clock of 2+ turns, so they ARE on the board when it is read.');
 console.log('');
@@ -147,4 +183,4 @@ console.log('  DECLARED, with the row that declares each (board_state.js NOT_COM
 for (const r of rows.filter(x => x.declared)) console.log('    ' + r.key);
 console.log('');
 console.log('  Every key the comparator reads is written by at least one legal mechanic: '
-  + [...COMPARED].filter(k => !leaves.has(k)).length + ' dead leaves.');
+  + R.dead_leaves + ' dead leaves.');

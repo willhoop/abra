@@ -1621,14 +1621,131 @@ const DECLARED_DIVERGENCE = [
        + "`[silent]` line players never see. The ABILITY is correct — onBasePower is guarded and the "
        + "multiplier table is right. Reproducing a typo is not correctness.",
   },
+  /* ================================================================================================
+   * THE PERISH DRAIN'S POSITION — THE CLOSET'S FIRST SHIPPING ROW, 2026-08-28.
+   * ================================================================================================
+   * The comment below this one said *"the closet ships empty and prints empty"* and that was true for
+   * two days. It is not true any more, and the entry underneath is the reason. Read that comment for
+   * the discipline it teaches — THE FIRST QUESTION IS WHETHER THE DIVERGENCE IS STILL THERE — because
+   * this row was written only after asking it: the cause is live in `data/game-differential.json`
+   * generated 2026-08-28T19:30:53Z on release `5f3f7141227c`, one game of 961, and the matcher below
+   * was run against that artifact before it was wired.
+   *
+   * WHAT DIVERGES, IN ONE SENTENCE. A residual in which Perish Song's counter reaches `perish0` owes a
+   * faint; the authority writes `|upkeep` and then the faint, and this engine writes the faint and then
+   * `|upkeep`. The row in the artifact:
+   *
+   *     config    baseline
+   *     seed      gen9championsvgc2026regmbbo3-2654016071 vs gen9championsvgc2026regmbbo3-2654363031
+   *     turn      11        index 171        agreed_lines 171
+   *     showdown  |upkeep
+   *     medicham  |faint|p2b: Gengar
+   *     before    |-start|p2b: Gengar|perish0   |-start|p1b: Staraptor|perish0   |-start|p1a: Glimmora|perish0
+   *
+   * IT IS NARRATION AND NOT STATE, AND THE RECEIPT IS A COMPARED LEAF RATHER THAN AN ABSENT ONE. That
+   * qualifier is the whole of the claim: ROADMAP #528 measured that 43 of the 80 leaves a legal
+   * mechanic can write are in NEITHER the compared set nor `NOT_COMPARED`, so "no board differs" can
+   * mean "nobody looked". Here somebody looked. `fainted` — with `hp`, `maxhp` and `status` — is read
+   * off both engines for the ACTIVE bodies (`board_state.js:866`), for the PARTY (`:1034`) and for the
+   * benched group (`:769`, `:843`), and `statusOf` maps a corpse to `fnt` in both engines precisely so
+   * that a body dead on one side and alive on the other cannot hide. On this run: 12,445 turn
+   * boundaries compared and 12,445 identical, `games_board_never_diverged` 961 of 961,
+   * `protocol_diverged_games` 6 and `protocol_diverged_board_never_did` 6. Gengar is dead in both
+   * engines at the boundary, at the same HP, and the difference is WHERE THE LINE IS PRINTED.
+   *
+   * IT WAS TRIED, TWICE, AND THE SECOND ATTEMPT IS WHY THIS IS ONE GAME AND NOT A FAMILY. ROADMAP #440
+   * filed it on 2026-08-24 as BLOCKED on the residual handler list this engine did not have. The
+   * 2026-08-26 card-8 pass built that list: `residualFollowerRuns` (medicham2-browser.js:6838) derives
+   * the 58 rows that sort after `perishsong@24.2` from `data/residual-order.json` by CALLING
+   * `Battle#resolvePriority`, splits them 18 always-expires / 14 handlers / 26 clocks, and answers
+   * whether anything survives the walk — with three over-fire controls (Protect, Tailwind, Pickup) and
+   * a knob, `MEDI_RESIDUAL_DRAIN_ABOVE_UPKEEP=1`, that puts the old unconditional drain back. The bare
+   * arm went green and THIS SAME SEED PAIR moved from turn 4 to turn 11, which is where it now sits.
+   *
+   * WHAT IS LEFT IS THE PREDICATE DISAGREEING ON ONE BOARD, AND IT IS NOT BLIND — `MEDFAILS`
+   * `.residualFollowerUnmapped` is empty on this build, so every clocks row has a reader. On this board
+   * the authority's walk ends with nothing surviving and ours believes something does. WHICH follower
+   * is UNDIAGNOSED: naming it needs the game replayed with both handler lists printed, which is a run
+   * this pass was not permitted to start. That is stated rather than guessed at, because a plausible
+   * reason typed beside a citation reads exactly like a measured one — this file's own receipt, four
+   * declarations refuted.
+   *
+   * SO IT IS `CLOSETED` AND NOT `AUTHORITY-WRONG` AND NOT `INCOMPARABLE`. The authority is right; the
+   * draw is shared; we are wrong and we have chosen not to fix it. That is the one thing this kind is
+   * for and the only kind that admits it.
+   *
+   * THE MATCHER IS NARROWED BY EVIDENCE, NOT BY THE STRING. `|upkeep <> |faint|pXY` on its own would
+   * cover every residual faint in the game — leech seed, poison, sandstorm, curse, salt cure. It is
+   * therefore required to be a PERISH drain, read off `showdown_before` on every first-divergence row
+   * carrying the cause, and it DECLINES when the evidence is absent (the safe direction, and the reason
+   * it cannot reach `data/all-mechanics-fire.json`, whose evidence adapter carries no
+   * `showdown_before` at all). The class prefix is deliberately NOT pinned: this cause was filed as
+   * `ordering ::` in #440 and the classifier calls it `event missing from medicham2 ::` today, and
+   * pinning a classifier's label would make the exemption evaporate on a rename rather than on a fix. */
+  {
+    kind: 'CLOSETED',
+    name: 'the perish drain sits above `|upkeep|` when the authority puts it below',
+    match: (c, ev) => {
+      if (!/ :: \|upkeep <> \|faint\|p[12][ab]$/.test(String(c || ''))) return false;
+      const rows = (ev && ev.firsts) || [];
+      /* NO EVIDENCE IS A DECLINE, NEVER A MATCH — `causeEvidence`'s own contract. */
+      if (!rows.length) return false;
+      return rows.every((r) => Array.isArray(r.showdown_before)
+        && r.showdown_before.some((l) => /^\|-start\|p[12][ab][^|]*\|perish0$/.test(String(l))));
+    },
+    why: 'A REAL DEFECT, OURS, AND THE POSITION OF A LINE RATHER THAN THE STATE OF A BOARD. '
+       + "`perishsong.condition.onEnd` is `add('-start', target, 'perish0'); target.faint()`, and "
+       + '`Pokemon#faint()` only QUEUES — the line is written by a `faintMessages()`. `fieldEvent`\'s '
+       + 'duration-expiry branch `continue`s past the one at sim/battle.ts:565, so the deaths are paid '
+       + 'by the next handler that does not itself expire, and when none does they fall to the tail of '
+       + '`runAction` at :2832, EIGHTEEN LINES BELOW the `|upkeep|` written at :2814. This engine\'s '
+       + '`residualFollowerRuns` decides the same question from a derived handler list and answers '
+       + "TRUE on this one board where the authority's walk answers false. One game of 961, turn 11.",
+    closet: {
+      by: 'Will',
+      on: '2026-08-28',
+      authority: 'ROADMAP #440',
+      ruling: 'STANDING RULE, 2026-08-27, verbatim: "things in the closet shouldnt block a gate if we '
+            + 'know why they fail and choose to accept it." APPLIED TO THIS ROW 2026-08-28 — Will '
+            + 'authorised closing the last open MEDICHAM gate clause by declaring this divergence, '
+            + 'with a note saying we could not make it work. THE 2026-08-28 AUTHORISATION IS RELAYED '
+            + 'THROUGH THE COORDINATOR AND IS RECORDED AS RELAYED, NOT DRESSED AS A QUOTATION; the '
+            + 'sentence in quotation marks is the 2026-08-27 standing rule and nothing else is quoted.',
+    },
+    evidence: {
+      instrument: 'engine/game_differential.js (arm middle, pins ccb365985023, --team-store '
+                + 'data/team-pool-frozen, cap 12, 961 games), comparing boards through '
+                + 'engine/board_state.js',
+      release: '5f3f7141227c',
+      on: '2026-08-28',
+      says: '12,445 turn boundaries compared and 12,445 IDENTICAL; games_board_never_diverged 961 of '
+          + '961; protocol_diverged_games 6 and protocol_diverged_board_never_did 6; '
+          + 'first_board_divergences []. The leaf a real faint difference would move is COMPARED and '
+          + 'agreed — `fainted` with `hp`/`maxhp`/`status` on the active bodies (board_state.js:866), '
+          + 'the party (:1034) and the bench (:769, :843) — so this is a leaf that was looked at, not '
+          + "one of ROADMAP #528's 43 leaves in neither list.",
+    },
+    falsifiedBy:
+      'ANY of: (a) the pair appearing on a first-divergence row whose `showdown_before` carries no '
+    + '`perish0`, which would mean the exemption has spread to a different residual drain; (b) the '
+    + 'board claim failing — `state.games_board_never_diverged` below `state.games`, or '
+    + '`protocol_diverged_board_never_did` below `protocol_diverged_games`, or a non-empty '
+    + '`state.first_board_divergences`; (c) `MEDFAILS.residualFollowerUnmapped` becoming non-empty, '
+    + 'which would mean the predicate is BLIND to a follower rather than merely wrong about one board, '
+    + 'and makes this a bigger claim than one game; (d) the cause reaching more than the single game '
+    + 'measured here. Any one of those and this row comes out and #440 goes back on the gate.',
+  },
   /* ~~`Tailwind's expiry order` — THE ROW THE `CLOSETED` KIND WAS BUILT FOR, AND IT IS NOT WRITTEN,
    * BECAUSE THE DEFECT WAS FIXED BEFORE THE DOOR WAS FINISHED.~~
    *
    * Will closeted it on 2026-08-24 (*"tailwind coming out in the wrong order doesnt matter, put it into
    * the closet with that note and move on"*) and it went in as `DEFERRED`, which this list refuses to
    * subtract by design — so the instruction had no effect for two days and ROADMAP #355 recorded the
-   * refusal in its own cell. `CLOSETED` above is the door that instruction needed. **It opens onto an
-   * empty room.**
+   * refusal in its own cell. `CLOSETED` above is the door that instruction needed. **It opened onto an
+   * empty room until 2026-08-28** — see the perish-drain row directly above, which is the first thing
+   * ever to ship through it. The rest of this comment is dated 2026-08-27 and is left standing as
+   * written, because a dated finding is not rewritten in place; read "SHIPS EMPTY" below as "shipped
+   * empty on 2026-08-27, for the reason given, and that reason still holds for TAILWIND".
    *
    * MEASURED BEFORE WRITING THE ROW, WHICH IS THE ONLY REASON IT WAS NOT WRITTEN. ROADMAP #493 closed
    * on 2026-08-27: ENGINE rebuilt the authority's residual handler LIST as a shadow, whole-game went
@@ -3914,15 +4031,31 @@ if (require.main === module) {
               r.declared === 0 && r.undeclared === 1 && r.ok === false, r.declared_by_kind);
           } finally { DECLARED_DIVERGENCE.pop(); MATCHER_THREW.length = before; }
         }
-        ok('the register prints on EVERY run including when the shipping list holds no closeted row '
-          + 'at all — a closet that goes quiet has been hidden, not accepted',
+        /* THE COUNT IS PRINTED, NOT PINNED — CHANGED 2026-08-28 WHEN THE CLOSET STOPPED BEING EMPTY.
+         * This read `/CLOSETED: 0/` and the assertion it was making was never about the ZERO: it is
+         * that the register prints the closet's size on every run, at zero as loudly as at seven,
+         * because a closet that goes quiet has been hidden rather than accepted. Pinning the literal
+         * made the ratchet fail the moment the first row shipped, which would have read as a broken
+         * gate and is the "a green test can be asking nothing" shape pointed the other way. */
+        ok('the register prints its closeted count on EVERY run, whatever that count is — a closet '
+          + 'that goes quiet has been hidden, not accepted',
           /THE DECLARED REGISTER/.test(dec(CAUSE, ROWS).why)
-          && /CLOSETED: 0/.test(dec(CAUSE, ROWS).why), dec(CAUSE, ROWS).why.slice(0, 200));
-        ok('THE SHIPPING CLOSET IS EMPTY TODAY, and that is measured rather than assumed: ROADMAP '
-          + '#493 FIXED the Tailwind expiry order on 2026-08-27, so the one row this kind was built '
-          + 'for would have matched nothing',
-          DECLARED_DIVERGENCE.filter((d) => d.kind === 'CLOSETED').length === 0,
-          DECLARED_DIVERGENCE.map((d) => d.kind));
+          && /CLOSETED: \d+/.test(dec(CAUSE, ROWS).why), dec(CAUSE, ROWS).why.slice(0, 200));
+        /* AND THE SHIPPING ROWS ARE SCHEMA-CHECKED HERE, WHICH IS THE RATCHET THAT DOES NOT ROT.
+         * The assertion this replaces was `the shipping closet is empty today` — true on 2026-08-27,
+         * false on 2026-08-28, and a fact about a LIST is exactly the thing this repository has been
+         * burned by writing down (the ban list of four, the fourteen handoffs). What is worth
+         * ratcheting is not the SIZE of the closet but that nothing gets into it half-written:
+         * `closetFault` is the door, and a row that cannot answer it must be REFUSED rather than
+         * silently subtracted. Asserted over whatever the list holds, so it survives the next row. */
+        {
+          const shipped = DECLARED_DIVERGENCE.filter((d) => d.kind === 'CLOSETED');
+          const faults = shipped.map((d) => closetFault(d)).filter(Boolean);
+          ok('every CLOSETED row on the SHIPPING list carries its owner, its date, its ruling, its '
+            + 'authority, its measured evidence and its falsifier — ' + shipped.length + ' row(s), '
+            + 'checked by the same `closetFault` the door uses, not by a second copy of the schema',
+            faults.length === 0, faults);
+        }
       }
 
       /* -- ONE DECLARED LIST, TWO CLAUSES — 2026-08-26 -------------------------------------------

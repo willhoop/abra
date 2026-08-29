@@ -1,0 +1,2909 @@
+{
+  "generated": "2026-08-28T23:20:17.328Z",
+  "by": "engine/bench_speed_consolidate.js",
+  "what": "MEDICHAM THROUGHPUT, consolidated across every timed run. RANGES, not points — see warm_state_effect. A TIMING artifact only: it makes NO claim about whether the simulator is correct, MEDICHAM is under quarantine for accuracy, and nothing here lifts it.",
+  "not_an_accuracy_claim": true,
+  "quotes_no_quarantined_artifact": "data/rollout-cost.json (R2 leaf cost) was NOT read. Every figure here was measured on 2026-08-28 by engine/bench_speed.js. A fresh timing run is a new number, not a resurrection of a withheld one.",
+  "report": "docs/_reports/2026-08-28-medicham-speed.md",
+  "engine_release": [
+    "5f3f7141227c"
+  ],
+  "team_store_pinned_to": [
+    "data/team-pool-frozen"
+  ],
+  "census": {
+    "switchRate": 0.0998,
+    "maxTurns": 14,
+    "generated": "2026-08-11T01:29:29.102Z",
+    "digest": "b599f8d581b5",
+    "read_from": "data/rollout-switch-census.json (LIVE — it is not one of the release SOURCES)"
+  },
+  "source_runs": [
+    {
+      "file": "data/_bench-belownormal.json",
+      "generated": "2026-08-28T20:37:33.226Z",
+      "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+      "reps": 3,
+      "cap_order": "6,10,12,14,20,60",
+      "leaf_n": 200,
+      "pairs": 40,
+      "boards": 24
+    },
+    {
+      "file": "data/_bench-normal.json",
+      "generated": "2026-08-28T21:16:44.588Z",
+      "priority": "NORMAL",
+      "reps": 5,
+      "cap_order": "6,10,12,14,20,60",
+      "leaf_n": 200,
+      "pairs": 40,
+      "boards": 24
+    },
+    {
+      "file": "data/_bench-repeat.json",
+      "generated": "2026-08-28T21:30:10.551Z",
+      "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+      "reps": 10,
+      "cap_order": "60",
+      "leaf_n": 20,
+      "pairs": 40,
+      "boards": 4
+    },
+    {
+      "file": "data/_bench-headline.json",
+      "generated": "2026-08-28T21:32:00.387Z",
+      "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+      "reps": 8,
+      "cap_order": "14",
+      "leaf_n": 200,
+      "pairs": 40,
+      "boards": 24
+    },
+    {
+      "file": "data/_bench-headline2.json",
+      "generated": "2026-08-28T21:41:22.856Z",
+      "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+      "reps": 6,
+      "cap_order": "14,60",
+      "leaf_n": 200,
+      "pairs": 40,
+      "boards": 24
+    },
+    {
+      "file": "data/_bench-scaling.json",
+      "generated": "2026-08-28T21:50:16.236Z",
+      "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+      "reps": 2,
+      "cap_order": "14",
+      "leaf_n": 5,
+      "pairs": 8,
+      "boards": 1
+    },
+    {
+      "file": "data/_bench-reverse.json",
+      "generated": "2026-08-28T22:55:45.684Z",
+      "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+      "reps": 3,
+      "cap_order": "60,20,14,12,10,6",
+      "leaf_n": 5,
+      "pairs": 40,
+      "boards": 1
+    },
+    {
+      "file": "data/_bench-order-6-60.json",
+      "generated": "2026-08-28T22:58:00.461Z",
+      "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+      "reps": 3,
+      "cap_order": "6,60",
+      "leaf_n": 5,
+      "pairs": 40,
+      "boards": 1
+    },
+    {
+      "file": "data/_bench-order-20-60.json",
+      "generated": "2026-08-28T22:58:35.473Z",
+      "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+      "reps": 3,
+      "cap_order": "20,60",
+      "leaf_n": 5,
+      "pairs": 40,
+      "boards": 1
+    },
+    {
+      "file": "data/_bench-order-12-60.json",
+      "generated": "2026-08-28T23:01:12.741Z",
+      "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+      "reps": 3,
+      "cap_order": "12,60",
+      "leaf_n": 5,
+      "pairs": 40,
+      "boards": 1
+    },
+    {
+      "file": "data/_bench-scaling-interleaved.json",
+      "generated": "2026-08-28T23:02:37.430Z",
+      "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+      "reps": 1,
+      "cap_order": "14",
+      "leaf_n": 5,
+      "pairs": 8,
+      "boards": 1
+    }
+  ],
+  "headline": {
+    "unit_note": "ms per TURN is the figure that generalises. A rollout is truncated at a depth, not played to a result, so every per-GAME and per-PLAYOUT figure is a claim about ONE turn cap and is unreadable without it. Name the cap every time.",
+    "whole_game": "playout.sim_playouts_per_sec[\"60\"] — cap 60 reaches a real result in 99.9% of games",
+    "shipped_leaf": "leaf.ms_per_leaf_call[\"14\"] and leaf.playouts_per_sec[\"14\"] — rolloutWinProb n=200, explore=1.0, foePolicy=uniform, maxTurns=14, the engine/miltank.js DEFAULTS",
+    "plan_against": "the LOW end of each range. The high end needs a process whose first timed work is the work being measured, which a live search cannot arrange."
+  },
+  "warm_state_effect": {
+    "what": "THE BETWEEN-RUN SPREAD IS PROCESS WARM STATE. It is much larger than the within-run noise floor, and conflating the two was the first version of this measurement's mistake.",
+    "within_run_noise_floor_pct": 2.5,
+    "within_run_evidence": "data/_bench-repeat.json, cap 60, 10 reps in ONE process: reps 3-9 span 171.7 to 176.1 playouts/sec. Reps 1-2 are tier-up and rep 10 is a collapse. That 2.5% band describes REPS WITHIN ONE ARM and NOTHING ELSE. It was quoted as though it described the spread between runs, which it does not — the between-run spread is 8% to 28% on the same quantity.",
+    "between_run_spread_pct": "see spread_pct on each range: 2.3 to 28 for arms that reached steady state, and up to 342 for arms that did not",
+    "cause_1_tier_up": {
+      "what": "V8 tiers the playout loop up over roughly the first 4,000 playouts (~40,000 turns), a 5.6x effect.",
+      "evidence": "The first timed arm of a fresh process, rep by rep of 1,000 playouts, runs at 2.89 / 1.78 / 1.67 / 1.58 / 0.68 / 0.51 ms per turn. Reproduced in two independent runs, always on whichever cap ran FIRST and never on a later one.",
+      "consequence": "The harness now runs a discarded warm-up and so do the scaling children. It is NOT LARGE ENOUGH: it plays ~36 playouts, against the ~4,000 the curve needs. Arms that ran few reps therefore published a partly-cold number — cap 20 as the first arm of a 3-rep run reads 42.7 playouts/sec against 188.7 as a later arm."
+    },
+    "cause_2_sporadic_collapse": {
+      "what": "Individual legs collapse to between a third and a seventh of the steady-state rate, on an otherwise idle machine, with no reproducible trigger.",
+      "evidence": "Rep 10 of the 10-rep steady-state probe fell to 65.5 from a 172-176 band. In the warmed interleaved scaling arm the two 1-worker legs read 191.6 and 26.2 — the SAME configuration, 7.3x apart — while the two 2-worker legs agreed to 2%.",
+      "consequence": "NO SINGLE LEG OF THIS INSTRUMENT IS TRUSTWORTHY. Every figure here is fastest-of-N, and any conclusion drawn from one leg per condition is void — which is exactly how the retracted \"MEDICHAM does not scale\" claim was produced."
+    },
+    "what_is_NOT_the_cause": {
+      "priority": "NOT PRIORITY. The only like-for-like comparison is data/_bench-belownormal.json (BelowNormal) against data/_bench-normal.json (NORMAL): same cap set, same order, same instrument. They read 170.3 vs 170.9 at cap 14 and 158.5 vs 151.5 at cap 60 — under 5%, with the sign flipping between caps. So BelowNormal costs nothing detectable at a bound of about 5%. An earlier claim of \"0.4% apart\" quoted only the cap-14 half and was too tight; and comparing a BelowNormal run against a DIFFERENT cap set is not a priority comparison at all.",
+      "the_cap": "NOT THE CAP, AND NOT ARM POSITION ALONE. Running the same six caps in DESCENDING order (data/_bench-reverse.json) made EVERY cap faster than the ascending run, including cap 6 which moved from first to last: 240.1 -> 283.4. Cap 60 moved from last to first: 151.5 -> 190.1. Three further runs put cap 60 second behind caps 6, 12 and 20 and read 165.7, 173.1 and 148.5, with no monotone relation to the preceding cap.",
+      "contention": "NOT CONTENTION. The fastest and the slowest legs both ran on a box with 6+ GB free and under 10% background CPU."
+    },
+    "residual_unattributed": "PART OF THE SPREAD IS NOT ATTRIBUTED AND THIS SAYS SO RATHER THAN INVENTING A MECHANISM. Two runs with cap 6 as the FIRST arm read 94.3 and 240.1 playouts/sec — 2.5x apart at the same arm position with 3 and 5 reps. No threshold on reps, playouts or turns separated the arms that reached steady state from the ones that did not; two candidate heuristics were tried against the data and both were contradicted by it.",
+    "what_to_trust": "THE LEAF ARM. All four leaf measurements ran 4,800 playouts, comfortably past tier-up, and they agree to 11% (1,144 to 1,270 ms per leaf call at cap 14). That is the number the rollout budget is actually written against, and it is the best-conditioned figure in this artifact. The playout arms at caps 10-60 agree to 8-28%. Anything with a spread above 30% contains an arm that never warmed and should be read off `all` rather than off the range.",
+    "instrument_consequence": "MEASURE ONE CAP PER PROCESS, AS THE FIRST TIMED ARM, WITH AT LEAST 6 REPS, AND REPEAT EVERY CONDITION AT LEAST TWICE IN INTERLEAVED ORDER. The multi-cap sweeps published first violated all three."
+  },
+  "playout": {
+    "what": "runPlayout on freshly built 4v4 bodies from the pinned pool, explore=1.0, foePolicy uniform, switchRate 0.0998. SIMULATION TIME ONLY — body construction is the separate build_ms_per_playout line.",
+    "sim_playouts_per_sec": {
+      "6": {
+        "n_runs": 4,
+        "low": 94.3,
+        "low_from": {
+          "value": 94.3,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "high": 283.4,
+        "high_from": {
+          "value": 283.4,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 6,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "spread_pct": 200.5,
+        "all": [
+          {
+            "value": 94.3,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 240.1,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 260,
+            "file": "data/_bench-order-6-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 283.4,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "10": {
+        "n_runs": 3,
+        "low": 199.6,
+        "low_from": {
+          "value": 199.6,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "high": 204.2,
+        "high_from": {
+          "value": 204.2,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 2.3,
+        "all": [
+          {
+            "value": 199.6,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 200.8,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 204.2,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          }
+        ]
+      },
+      "12": {
+        "n_runs": 4,
+        "low": 179.6,
+        "low_from": {
+          "value": 179.6,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 3,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "high": 194.2,
+        "high_from": {
+          "value": 194.2,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 4,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "spread_pct": 8.1,
+        "all": [
+          {
+            "value": 179.6,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 183.9,
+            "file": "data/_bench-order-12-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "12,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 187.2,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 194.2,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "14": {
+        "n_runs": 5,
+        "low": 170.3,
+        "low_from": {
+          "value": 170.3,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 4,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "high": 193.4,
+        "high_from": {
+          "value": 193.4,
+          "file": "data/_bench-headline2.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 6,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 2,
+          "cap_order": "14,60"
+        },
+        "spread_pct": 13.6,
+        "all": [
+          {
+            "value": 170.3,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 170.9,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 192.9,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 193.2,
+            "file": "data/_bench-headline.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "14",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 8
+          },
+          {
+            "value": 193.4,
+            "file": "data/_bench-headline2.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          }
+        ]
+      },
+      "20": {
+        "n_runs": 4,
+        "low": 42.7,
+        "low_from": {
+          "value": 42.7,
+          "file": "data/_bench-order-20-60.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 2,
+          "cap_order": "20,60"
+        },
+        "high": 188.7,
+        "high_from": {
+          "value": 188.7,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "spread_pct": 341.9,
+        "all": [
+          {
+            "value": 42.7,
+            "file": "data/_bench-order-20-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 160,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 168.6,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 188.7,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "60": {
+        "n_runs": 8,
+        "low": 148.5,
+        "low_from": {
+          "value": 148.5,
+          "file": "data/_bench-order-20-60.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 2,
+          "cap_order": "20,60"
+        },
+        "high": 190.1,
+        "high_from": {
+          "value": 190.1,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "spread_pct": 28,
+        "all": [
+          {
+            "value": 148.5,
+            "file": "data/_bench-order-20-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 151.5,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 158.5,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 165.7,
+            "file": "data/_bench-order-6-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 173.1,
+            "file": "data/_bench-order-12-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "12,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 176.1,
+            "file": "data/_bench-repeat.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 10
+          },
+          {
+            "value": 180.6,
+            "file": "data/_bench-headline2.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          },
+          {
+            "value": 190.1,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      }
+    },
+    "sim_ms_per_playout": {
+      "6": {
+        "n_runs": 4,
+        "low": 3.529,
+        "low_from": {
+          "value": 3.529,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 6,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 10.6099,
+        "high_from": {
+          "value": 10.6099,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 200.6,
+        "all": [
+          {
+            "value": 3.529,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 3.8456,
+            "file": "data/_bench-order-6-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 4.1651,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 10.6099,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          }
+        ]
+      },
+      "10": {
+        "n_runs": 3,
+        "low": 4.8982,
+        "low_from": {
+          "value": 4.8982,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "high": 5.0088,
+        "high_from": {
+          "value": 5.0088,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 2.3,
+        "all": [
+          {
+            "value": 4.8982,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 4.9808,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 5.0088,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "12": {
+        "n_runs": 4,
+        "low": 5.1486,
+        "low_from": {
+          "value": 5.1486,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 4,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 5.5693,
+        "high_from": {
+          "value": 5.5693,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 3,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 8.2,
+        "all": [
+          {
+            "value": 5.1486,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 5.3424,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 5.4379,
+            "file": "data/_bench-order-12-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "12,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 5.5693,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          }
+        ]
+      },
+      "14": {
+        "n_runs": 5,
+        "low": 5.1716,
+        "low_from": {
+          "value": 5.1716,
+          "file": "data/_bench-headline2.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 6,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 2,
+          "cap_order": "14,60"
+        },
+        "high": 5.8724,
+        "high_from": {
+          "value": 5.8724,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 4,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 13.6,
+        "all": [
+          {
+            "value": 5.1716,
+            "file": "data/_bench-headline2.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          },
+          {
+            "value": 5.1764,
+            "file": "data/_bench-headline.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "14",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 8
+          },
+          {
+            "value": 5.1843,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 5.8519,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 5.8724,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "20": {
+        "n_runs": 4,
+        "low": 5.3008,
+        "low_from": {
+          "value": 5.3008,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 23.4305,
+        "high_from": {
+          "value": 23.4305,
+          "file": "data/_bench-order-20-60.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 2,
+          "cap_order": "20,60"
+        },
+        "spread_pct": 342,
+        "all": [
+          {
+            "value": 5.3008,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 5.9296,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 6.2518,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 23.4305,
+            "file": "data/_bench-order-20-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "60": {
+        "n_runs": 8,
+        "low": 5.2594,
+        "low_from": {
+          "value": 5.2594,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 6.7332,
+        "high_from": {
+          "value": 6.7332,
+          "file": "data/_bench-order-20-60.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 2,
+          "cap_order": "20,60"
+        },
+        "spread_pct": 28,
+        "all": [
+          {
+            "value": 5.2594,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 5.5376,
+            "file": "data/_bench-headline2.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          },
+          {
+            "value": 5.6789,
+            "file": "data/_bench-repeat.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 10
+          },
+          {
+            "value": 5.7778,
+            "file": "data/_bench-order-12-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "12,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 6.0363,
+            "file": "data/_bench-order-6-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 6.3105,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 6.6026,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 6.7332,
+            "file": "data/_bench-order-20-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      }
+    },
+    "sim_ms_per_turn": {
+      "6": {
+        "n_runs": 4,
+        "low": 0.5957,
+        "low_from": {
+          "value": 0.5957,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 6,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 1.791,
+        "high_from": {
+          "value": 1.791,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 200.7,
+        "all": [
+          {
+            "value": 0.5957,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.6492,
+            "file": "data/_bench-order-6-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.7031,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 1.791,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          }
+        ]
+      },
+      "10": {
+        "n_runs": 3,
+        "low": 0.5569,
+        "low_from": {
+          "value": 0.5569,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "high": 0.5695,
+        "high_from": {
+          "value": 0.5695,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 2.3,
+        "all": [
+          {
+            "value": 0.5569,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 0.5663,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.5695,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "12": {
+        "n_runs": 4,
+        "low": 0.536,
+        "low_from": {
+          "value": 0.536,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 4,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 0.5798,
+        "high_from": {
+          "value": 0.5798,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 3,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 8.2,
+        "all": [
+          {
+            "value": 0.536,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.5562,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.5662,
+            "file": "data/_bench-order-12-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "12,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.5798,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          }
+        ]
+      },
+      "14": {
+        "n_runs": 5,
+        "low": 0.5121,
+        "low_from": {
+          "value": 0.5121,
+          "file": "data/_bench-headline2.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 6,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 2,
+          "cap_order": "14,60"
+        },
+        "high": 0.5815,
+        "high_from": {
+          "value": 0.5815,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 4,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 13.6,
+        "all": [
+          {
+            "value": 0.5121,
+            "file": "data/_bench-headline2.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          },
+          {
+            "value": 0.5126,
+            "file": "data/_bench-headline.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "14",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 8
+          },
+          {
+            "value": 0.5134,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.5795,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 0.5815,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "20": {
+        "n_runs": 4,
+        "low": 0.4995,
+        "low_from": {
+          "value": 0.4995,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 2.2079,
+        "high_from": {
+          "value": 2.2079,
+          "file": "data/_bench-order-20-60.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 2,
+          "cap_order": "20,60"
+        },
+        "spread_pct": 342,
+        "all": [
+          {
+            "value": 0.4995,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.5588,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.5891,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 2.2079,
+            "file": "data/_bench-order-20-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "60": {
+        "n_runs": 8,
+        "low": 0.4893,
+        "low_from": {
+          "value": 0.4893,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 0.6265,
+        "high_from": {
+          "value": 0.6265,
+          "file": "data/_bench-order-20-60.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 2,
+          "cap_order": "20,60"
+        },
+        "spread_pct": 28,
+        "all": [
+          {
+            "value": 0.4893,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.5152,
+            "file": "data/_bench-headline2.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          },
+          {
+            "value": 0.5284,
+            "file": "data/_bench-repeat.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 10
+          },
+          {
+            "value": 0.5376,
+            "file": "data/_bench-order-12-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "12,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.5616,
+            "file": "data/_bench-order-6-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.5871,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.6143,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 0.6265,
+            "file": "data/_bench-order-20-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      }
+    },
+    "build_ms_per_playout": {
+      "6": {
+        "n_runs": 4,
+        "low": 0.0382,
+        "low_from": {
+          "value": 0.0382,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 6,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 0.1188,
+        "high_from": {
+          "value": 0.1188,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 211,
+        "all": [
+          {
+            "value": 0.0382,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0452,
+            "file": "data/_bench-order-6-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0501,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.1188,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          }
+        ]
+      },
+      "10": {
+        "n_runs": 3,
+        "low": 0.0404,
+        "low_from": {
+          "value": 0.0404,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "high": 0.0421,
+        "high_from": {
+          "value": 0.0421,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 4.2,
+        "all": [
+          {
+            "value": 0.0404,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.041,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0421,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          }
+        ]
+      },
+      "12": {
+        "n_runs": 4,
+        "low": 0.04,
+        "low_from": {
+          "value": 0.04,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 4,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 0.0443,
+        "high_from": {
+          "value": 0.0443,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 1000,
+          "arm_position": 3,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 10.7,
+        "all": [
+          {
+            "value": 0.04,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0432,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0442,
+            "file": "data/_bench-order-12-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "12,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0443,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          }
+        ]
+      },
+      "14": {
+        "n_runs": 5,
+        "low": 0.0385,
+        "low_from": {
+          "value": 0.0385,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 3,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 0.045,
+        "high_from": {
+          "value": 0.045,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 4,
+          "arms_in_run": 6,
+          "cap_order": "6,10,12,14,20,60"
+        },
+        "spread_pct": 16.9,
+        "all": [
+          {
+            "value": 0.0385,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 3,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0411,
+            "file": "data/_bench-headline.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "14",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 8
+          },
+          {
+            "value": 0.0426,
+            "file": "data/_bench-headline2.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          },
+          {
+            "value": 0.0446,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 0.045,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 4,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "20": {
+        "n_runs": 4,
+        "low": 0.0387,
+        "low_from": {
+          "value": 0.0387,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 0.144,
+        "high_from": {
+          "value": 0.144,
+          "file": "data/_bench-order-20-60.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 2,
+          "cap_order": "20,60"
+        },
+        "spread_pct": 272.1,
+        "all": [
+          {
+            "value": 0.0387,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0421,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0456,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 5,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 0.144,
+            "file": "data/_bench-order-20-60.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "60": {
+        "n_runs": 8,
+        "low": 0.0375,
+        "low_from": {
+          "value": 0.0375,
+          "file": "data/_bench-reverse.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 1,
+          "arms_in_run": 6,
+          "cap_order": "60,20,14,12,10,6"
+        },
+        "high": 0.0566,
+        "high_from": {
+          "value": 0.0566,
+          "file": "data/_bench-order-20-60.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 1000,
+          "arm_position": 2,
+          "arms_in_run": 2,
+          "cap_order": "20,60"
+        },
+        "spread_pct": 50.9,
+        "all": [
+          {
+            "value": 0.0375,
+            "file": "data/_bench-reverse.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "60,20,14,12,10,6",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0398,
+            "file": "data/_bench-repeat.json",
+            "playouts": 1000,
+            "arm_position": 1,
+            "cap_order": "60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 10
+          },
+          {
+            "value": 0.0426,
+            "file": "data/_bench-headline2.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          },
+          {
+            "value": 0.0427,
+            "file": "data/_bench-order-12-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "12,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0456,
+            "file": "data/_bench-order-6-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "6,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0466,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0.0484,
+            "file": "data/_bench-normal.json",
+            "playouts": 1000,
+            "arm_position": 6,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 0.0566,
+            "file": "data/_bench-order-20-60.json",
+            "playouts": 1000,
+            "arm_position": 2,
+            "cap_order": "20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      }
+    },
+    "turn_shape": {
+      "6": {
+        "mean": 5.92,
+        "p50": 6,
+        "p90": 6,
+        "p99": 6,
+        "max": 6,
+        "truncated_pct": 94.2,
+        "note": "deterministic in the seeds and the pool, so identical across runs"
+      },
+      "10": {
+        "mean": 8.79,
+        "p50": 10,
+        "p90": 10,
+        "p99": 10,
+        "max": 10,
+        "truncated_pct": 55.5,
+        "note": "deterministic in the seeds and the pool, so identical across runs"
+      },
+      "12": {
+        "mean": 9.61,
+        "p50": 10,
+        "p90": 12,
+        "p99": 12,
+        "max": 12,
+        "truncated_pct": 35.9,
+        "note": "deterministic in the seeds and the pool, so identical across runs"
+      },
+      "14": {
+        "mean": 10.1,
+        "p50": 10,
+        "p90": 14,
+        "p99": 14,
+        "max": 14,
+        "truncated_pct": 20.9,
+        "note": "deterministic in the seeds and the pool, so identical across runs"
+      },
+      "20": {
+        "mean": 10.61,
+        "p50": 10,
+        "p90": 16,
+        "p99": 20,
+        "max": 20,
+        "truncated_pct": 3.8,
+        "note": "deterministic in the seeds and the pool, so identical across runs"
+      },
+      "60": {
+        "mean": 10.75,
+        "p50": 10,
+        "p90": 16,
+        "p99": 23,
+        "max": 60,
+        "truncated_pct": 0.1,
+        "note": "deterministic in the seeds and the pool, so identical across runs"
+      }
+    }
+  },
+  "leaf": {
+    "what": "rolloutWinProb — the call engine/miltank.js actually makes. Each of the n samples pays buildSide TWICE (fresh bodies every sample, because MEDICHAM mutates what it is handed) and then runPlayout. Measured on TURN-0 boards, four live bodies a side at full HP, which is the MOST EXPENSIVE leaf there is; a mid-game leaf is cheaper by an unmeasured amount.",
+    "ms_per_leaf_call": {
+      "14": {
+        "n_runs": 4,
+        "low": 1144.47,
+        "low_from": {
+          "value": 1144.47,
+          "file": "data/_bench-headline.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 8,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "14",
+          "leaf_n": 200
+        },
+        "high": 1269.75,
+        "high_from": {
+          "value": 1269.75,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "spread_pct": 10.9,
+        "all": [
+          {
+            "value": 1144.47,
+            "file": "data/_bench-headline.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "14",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 8
+          },
+          {
+            "value": 1146.04,
+            "file": "data/_bench-headline2.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          },
+          {
+            "value": 1183.86,
+            "file": "data/_bench-normal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 1269.75,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "60": {
+        "n_runs": 2,
+        "low": 1196.82,
+        "low_from": {
+          "value": 1196.82,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "high": 1446.86,
+        "high_from": {
+          "value": 1446.86,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "spread_pct": 20.9,
+        "all": [
+          {
+            "value": 1196.82,
+            "file": "data/_bench-normal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 1446.86,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      }
+    },
+    "playouts_per_sec": {
+      "14": {
+        "n_runs": 4,
+        "low": 157.5,
+        "low_from": {
+          "value": 157.5,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "high": 174.8,
+        "high_from": {
+          "value": 174.8,
+          "file": "data/_bench-headline.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 8,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "14",
+          "leaf_n": 200
+        },
+        "spread_pct": 11,
+        "all": [
+          {
+            "value": 157.5,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 168.9,
+            "file": "data/_bench-normal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 174.5,
+            "file": "data/_bench-headline2.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          },
+          {
+            "value": 174.8,
+            "file": "data/_bench-headline.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "14",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 8
+          }
+        ]
+      },
+      "60": {
+        "n_runs": 2,
+        "low": 138.2,
+        "low_from": {
+          "value": 138.2,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "high": 167.1,
+        "high_from": {
+          "value": 167.1,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "spread_pct": 20.9,
+        "all": [
+          {
+            "value": 138.2,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 167.1,
+            "file": "data/_bench-normal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          }
+        ]
+      }
+    },
+    "ms_per_turn": {
+      "14": {
+        "n_runs": 4,
+        "low": 0.6068,
+        "low_from": {
+          "value": 0.6068,
+          "file": "data/_bench-headline.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 8,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "14",
+          "leaf_n": 200
+        },
+        "high": 0.6733,
+        "high_from": {
+          "value": 0.6733,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "spread_pct": 11,
+        "all": [
+          {
+            "value": 0.6068,
+            "file": "data/_bench-headline.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "14",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 8
+          },
+          {
+            "value": 0.6077,
+            "file": "data/_bench-headline2.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          },
+          {
+            "value": 0.6277,
+            "file": "data/_bench-normal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 0.6733,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      },
+      "60": {
+        "n_runs": 2,
+        "low": 0.6119,
+        "low_from": {
+          "value": 0.6119,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "high": 0.7397,
+        "high_from": {
+          "value": 0.7397,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "spread_pct": 20.9,
+        "all": [
+          {
+            "value": 0.6119,
+            "file": "data/_bench-normal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 0.7397,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          }
+        ]
+      }
+    },
+    "truncated_pct": {
+      "14": {
+        "n_runs": 4,
+        "low": 13.8,
+        "low_from": {
+          "value": 13.8,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "high": 13.8,
+        "high_from": {
+          "value": 13.8,
+          "file": "data/_bench-headline2.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 6,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "14,60",
+          "leaf_n": 200
+        },
+        "spread_pct": 0,
+        "all": [
+          {
+            "value": 13.8,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 13.8,
+            "file": "data/_bench-normal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          },
+          {
+            "value": 13.8,
+            "file": "data/_bench-headline.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "14",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 8
+          },
+          {
+            "value": 13.8,
+            "file": "data/_bench-headline2.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "14,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 6
+          }
+        ]
+      },
+      "60": {
+        "n_runs": 2,
+        "low": 0,
+        "low_from": {
+          "value": 0,
+          "file": "data/_bench-belownormal.json",
+          "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+          "reps": 3,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "high": 0,
+        "high_from": {
+          "value": 0,
+          "file": "data/_bench-normal.json",
+          "priority": "NORMAL",
+          "reps": 5,
+          "playouts": 4800,
+          "arm_position": null,
+          "arms_in_run": null,
+          "cap_order": "6,10,12,14,20,60",
+          "leaf_n": 200
+        },
+        "spread_pct": null,
+        "all": [
+          {
+            "value": 0,
+            "file": "data/_bench-belownormal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+            "reps": 3
+          },
+          {
+            "value": 0,
+            "file": "data/_bench-normal.json",
+            "playouts": 4800,
+            "arm_position": null,
+            "cap_order": "6,10,12,14,20,60",
+            "priority": "NORMAL",
+            "reps": 5
+          }
+        ]
+      }
+    }
+  },
+  "comparability": {
+    "min_playouts_to_enter_a_range": 1000,
+    "why": "Several runs set a trivial playout or leaf arm (16 or 5 samples) because a DIFFERENT arm was the point of that run. Pooling those into a range is not conservative, it is wrong: with them in, cap 14 read a 380% spread and the leaf a 3,696% spread, every bottom endpoint being a 16-sample arm that never left the interpreter.",
+    "excluded_arms": [
+      {
+        "key": "data/_bench-scaling.json playout_cap_14",
+        "file": "data/_bench-scaling.json",
+        "arm": "playout_cap_14",
+        "playouts": 16,
+        "why": "sample below 1000 playouts — a probe arm from a run whose point was a different arm, not a comparable measurement"
+      },
+      {
+        "key": "data/_bench-scaling-interleaved.json playout_cap_14",
+        "file": "data/_bench-scaling-interleaved.json",
+        "arm": "playout_cap_14",
+        "playouts": 16,
+        "why": "sample below 1000 playouts — a probe arm from a run whose point was a different arm, not a comparable measurement"
+      },
+      {
+        "key": "data/_bench-repeat.json leaf_cap_60",
+        "file": "data/_bench-repeat.json",
+        "arm": "leaf_cap_60",
+        "playouts": 80,
+        "why": "sample below 1000 playouts — a probe arm from a run whose point was a different arm, not a comparable measurement"
+      },
+      {
+        "key": "data/_bench-scaling.json leaf_cap_14",
+        "file": "data/_bench-scaling.json",
+        "arm": "leaf_cap_14",
+        "playouts": 5,
+        "why": "sample below 1000 playouts — a probe arm from a run whose point was a different arm, not a comparable measurement"
+      },
+      {
+        "key": "data/_bench-reverse.json leaf_cap_14",
+        "file": "data/_bench-reverse.json",
+        "arm": "leaf_cap_14",
+        "playouts": 5,
+        "why": "sample below 1000 playouts — a probe arm from a run whose point was a different arm, not a comparable measurement"
+      },
+      {
+        "key": "data/_bench-order-6-60.json leaf_cap_14",
+        "file": "data/_bench-order-6-60.json",
+        "arm": "leaf_cap_14",
+        "playouts": 5,
+        "why": "sample below 1000 playouts — a probe arm from a run whose point was a different arm, not a comparable measurement"
+      },
+      {
+        "key": "data/_bench-order-20-60.json leaf_cap_14",
+        "file": "data/_bench-order-20-60.json",
+        "arm": "leaf_cap_14",
+        "playouts": 5,
+        "why": "sample below 1000 playouts — a probe arm from a run whose point was a different arm, not a comparable measurement"
+      },
+      {
+        "key": "data/_bench-order-12-60.json leaf_cap_14",
+        "file": "data/_bench-order-12-60.json",
+        "arm": "leaf_cap_14",
+        "playouts": 5,
+        "why": "sample below 1000 playouts — a probe arm from a run whose point was a different arm, not a comparable measurement"
+      },
+      {
+        "key": "data/_bench-scaling-interleaved.json leaf_cap_14",
+        "file": "data/_bench-scaling-interleaved.json",
+        "arm": "leaf_cap_14",
+        "playouts": 5,
+        "why": "sample below 1000 playouts — a probe arm from a run whose point was a different arm, not a comparable measurement"
+      }
+    ]
+  },
+  "fixed_cost_ms": {
+    "what": "Paid ONCE per process and amortised over every playout after it. A per-game figure that folds this in is useless for rollout budgeting, so it is kept apart. game_differential_require is HARNESS cost: a rollout engine driving rolloutWinProb off a live Board never pays it.",
+    "warm_and_cold": {
+      "bare_node_start": {
+        "warmest": 47.5,
+        "coldest": 475.6,
+        "n_runs": 11
+      },
+      "release_open": {
+        "warmest": 16,
+        "coldest": 64.8,
+        "n_runs": 11
+      },
+      "engine_data": {
+        "warmest": 8.9,
+        "coldest": 33.6,
+        "n_runs": 11
+      },
+      "medicham": {
+        "warmest": 38.9,
+        "coldest": 173.4,
+        "n_runs": 11
+      },
+      "board": {
+        "warmest": 4.6,
+        "coldest": 20.4,
+        "n_runs": 11
+      },
+      "rollout_leaf": {
+        "warmest": 1.3,
+        "coldest": 5.2,
+        "n_runs": 11
+      },
+      "dex": {
+        "warmest": 309.9,
+        "coldest": 2938.2,
+        "n_runs": 11
+      },
+      "total_to_engine_ready": {
+        "warmest": 383.7,
+        "coldest": 3242.5,
+        "n_runs": 11
+      },
+      "team_pool": {
+        "warmest": 97.2,
+        "coldest": 987.8,
+        "n_runs": 11
+      },
+      "game_differential_require": {
+        "warmest": 429,
+        "coldest": 7660.5,
+        "n_runs": 11
+      }
+    },
+    "worker_rss_mb": {
+      "engine_ready": 132,
+      "of_which_showdown_dex": 71,
+      "abra_own_engine": 22,
+      "plus_team_pool_harness_only": 197,
+      "warmed_worker_mid_run": 385,
+      "measured_by": "process.memoryUsage().rss phase by phase, and Get-Process for the mid-run figure"
+    }
+  },
+  "process_scaling": {
+    "what": "Independent child processes, each playing playouts at cap 14. `warmed` says whether the child ran discarded playouts before its timed section; `interleaved` says whether worker counts were repeated out of order so machine drift cannot alias onto worker count.",
+    "verdict": "MEDICHAM SCALES ACROSS PROCESSES, SUB-LINEARLY. Best leg per worker count on the warmed interleaved arm: 1w 191.6, 2w 276.7 (1.44x), 4w 449.7 (2.35x) aggregate playouts/sec. AN EARLIER CLAIM THAT IT DOES NOT SCALE AT ALL IS RETRACTED — see the arm carrying impossible_rows.",
+    "confidence": "LOW. Legs of the same configuration disagree by up to 7.3x, the box was not idle, and no worker count above 4 has a trustworthy point. Plan against ONE worker and treat extra workers as upside rather than as budget.",
+    "why_warming_and_interleaving_decide_the_answer": "A cold MEDICHAM process is up to 5.6x slower than a warm one for roughly its first 4,000 playouts, so an unwarmed arm measures tier-up. And this instrument suffers sporadic 1.5x to 7x collapses of individual legs, so one leg per worker count cannot be told apart from a real effect. Both guards are needed; the first arm published had neither.",
+    "machine": "AMD Ryzen 7 7735HS, 8 physical cores / 16 threads, 14.3 GB. NOT idle: Brave held roughly 1.4 to 2.9 cores throughout. Under multi-worker load the package ran at 86-95% of its 3.2 GHz nominal against a 4.75 GHz single-thread boost.",
+    "worker_cpu_check": "During the 6-worker leg each worker received 1.17 cores over a 15-second sample, 9.36 cores busy of 8 physical. The workers were not starved of scheduler time.",
+    "control": {
+      "what": "Does this machine scale independent node processes at all? Two throwaway workloads with tiny working sets, same spawn driver, same machine, minutes after the warmed arm.",
+      "cpu_bound_speedup": {
+        "1": 1,
+        "2": 1.97,
+        "4": 3.69,
+        "6": 5.21,
+        "8": 6.61
+      },
+      "alloc_bound_speedup": {
+        "1": 1,
+        "2": 1.88,
+        "4": 3.67,
+        "6": 4.88,
+        "8": 5.58
+      },
+      "conclusion": "The machine scales near-linearly for a workload that fits in cache. MEDICHAM at 2.35x on 4 workers is well short of the control at 3.69x, which is consistent with a 385 MB working set against a 16 MB L3 — a HYPOTHESIS, not a measurement.",
+      "scripts": "session scratchpad only — cpuctl.js, allocctl.js, ctl_driver.js. Throwaway microbenchmarks, deliberately not added to the tree."
+    },
+    "arms": [
+      {
+        "file": "data/_bench-belownormal.json",
+        "warmed": false,
+        "interleaved": false,
+        "rows": [
+          {
+            "workers": 1,
+            "wall_ms": 38251,
+            "aggregate_playouts_per_sec_excluding_startup": 108.5,
+            "aggregate_playouts_per_sec_including_startup": 104.6,
+            "per_worker_playouts_per_sec": 108.5,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              58.3
+            ]
+          },
+          {
+            "workers": 2,
+            "wall_ms": 49912,
+            "aggregate_playouts_per_sec_excluding_startup": 164.8,
+            "aggregate_playouts_per_sec_including_startup": 160.3,
+            "per_worker_playouts_per_sec": 82.4,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              22.7,
+              22.6
+            ]
+          },
+          {
+            "workers": 4,
+            "wall_ms": 54851,
+            "aggregate_playouts_per_sec_excluding_startup": 300.8,
+            "aggregate_playouts_per_sec_including_startup": 291.7,
+            "per_worker_playouts_per_sec": 75.2,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              22.2,
+              22.2,
+              22.2,
+              22.1
+            ]
+          },
+          {
+            "workers": 8,
+            "wall_ms": 243005,
+            "aggregate_playouts_per_sec_excluding_startup": 133.5,
+            "aggregate_playouts_per_sec_including_startup": 131.7,
+            "per_worker_playouts_per_sec": 16.7,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              16.7,
+              16.7,
+              16.7,
+              16.7,
+              16.7,
+              16.7,
+              16.7,
+              16.6
+            ]
+          },
+          {
+            "workers": 12,
+            "wall_ms": 293903,
+            "aggregate_playouts_per_sec_excluding_startup": 167.4,
+            "aggregate_playouts_per_sec_including_startup": 163.3,
+            "per_worker_playouts_per_sec": 14,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              11.5,
+              11.5,
+              11.5,
+              11.5,
+              11.4,
+              11.5,
+              11.4,
+              11.4,
+              11.4,
+              11.4,
+              11.4,
+              11.4
+            ]
+          }
+        ],
+        "best_leg_per_worker_count": {
+          "1": {
+            "legs": 1,
+            "best": 108.5,
+            "worst": 108.5,
+            "leg_spread_x": 1
+          },
+          "2": {
+            "legs": 1,
+            "best": 164.8,
+            "worst": 164.8,
+            "leg_spread_x": 1
+          },
+          "4": {
+            "legs": 1,
+            "best": 300.8,
+            "worst": 300.8,
+            "leg_spread_x": 1
+          },
+          "8": {
+            "legs": 1,
+            "best": 133.5,
+            "worst": 133.5,
+            "leg_spread_x": 1
+          },
+          "12": {
+            "legs": 1,
+            "best": 167.4,
+            "worst": 167.4,
+            "leg_spread_x": 1
+          }
+        },
+        "speedup_vs_1_worker": {
+          "1": 1,
+          "2": 1.52,
+          "4": 2.77,
+          "8": 1.23,
+          "12": 1.54
+        },
+        "impossible_rows": null,
+        "quotable_for_absolute_rates": false,
+        "quotable_for_the_scaling_ratio": "with care",
+        "caveat": "THE CHILDREN WERE NOT WARMED, so every absolute rate here is depressed by V8 tier-up: its 1-worker point reads 108.5 playouts/sec against 191.6 for a warmed child. Its RATIO (1w -> 4w = 2.77x) nevertheless agrees with the warmed interleaved arm (2.35x), which is worth saying out loud because this arm was dismissed outright at first and it was not the one that was wrong. Retained rather than deleted: it carries the only 8- and 12-worker points, and deleting a measurement to tidy a story is worse than labelling it."
+      },
+      {
+        "file": "data/_bench-scaling.json",
+        "warmed": true,
+        "interleaved": false,
+        "rows": [
+          {
+            "workers": 1,
+            "wall_ms": 63236,
+            "aggregate_playouts_per_sec_excluding_startup": 167.1,
+            "aggregate_playouts_per_sec_including_startup": 94.9,
+            "per_worker_playouts_per_sec": 167.1,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              111.6
+            ]
+          },
+          {
+            "workers": 2,
+            "wall_ms": 115091,
+            "aggregate_playouts_per_sec_excluding_startup": 172.7,
+            "aggregate_playouts_per_sec_including_startup": 104.3,
+            "per_worker_playouts_per_sec": 86.3,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              59,
+              59.1
+            ]
+          },
+          {
+            "workers": 4,
+            "wall_ms": 282536,
+            "aggregate_playouts_per_sec_excluding_startup": 143.2,
+            "aggregate_playouts_per_sec_including_startup": 84.9,
+            "per_worker_playouts_per_sec": 35.8,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              20.5,
+              20.5,
+              20.4,
+              20.4
+            ]
+          },
+          {
+            "workers": 6,
+            "wall_ms": 472902,
+            "aggregate_playouts_per_sec_excluding_startup": 144.3,
+            "aggregate_playouts_per_sec_including_startup": 76.1,
+            "per_worker_playouts_per_sec": 24.1,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              24.1,
+              24,
+              24.1,
+              24,
+              24,
+              24.1
+            ]
+          },
+          {
+            "workers": 8,
+            "wall_ms": 428987,
+            "aggregate_playouts_per_sec_excluding_startup": 219.2,
+            "aggregate_playouts_per_sec_including_startup": 111.9,
+            "per_worker_playouts_per_sec": 27.4,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              27.5,
+              27.5,
+              27.5,
+              27.4,
+              27.4,
+              27.3,
+              27.3,
+              27.3
+            ]
+          }
+        ],
+        "best_leg_per_worker_count": {
+          "1": {
+            "legs": 1,
+            "best": 167.1,
+            "worst": 167.1,
+            "leg_spread_x": 1
+          },
+          "2": {
+            "legs": 1,
+            "best": 172.7,
+            "worst": 172.7,
+            "leg_spread_x": 1
+          },
+          "4": {
+            "legs": 1,
+            "best": 143.2,
+            "worst": 143.2,
+            "leg_spread_x": 1
+          },
+          "6": {
+            "legs": 1,
+            "best": 144.3,
+            "worst": 144.3,
+            "leg_spread_x": 1
+          },
+          "8": {
+            "legs": 1,
+            "best": 219.2,
+            "worst": 219.2,
+            "leg_spread_x": 1
+          }
+        },
+        "speedup_vs_1_worker": {
+          "1": 1,
+          "2": 1.03,
+          "4": 0.86,
+          "6": 0.86,
+          "8": 1.31
+        },
+        "impossible_rows": [
+          "4w aggregate 143.2 < 1w aggregate 167.1",
+          "6w aggregate 144.3 < 1w aggregate 167.1"
+        ],
+        "quotable_for_absolute_rates": false,
+        "quotable_for_the_scaling_ratio": false,
+        "caveat": "WARMED BUT ONE LEG PER WORKER COUNT, so a sporadic collapse cannot be told apart from a real effect — and impossible_rows shows it collapsed. THIS IS THE ARM THAT PRODUCED THE RETRACTED \"MEDICHAM DOES NOT SCALE\" CLAIM. Do not quote it for scaling."
+      },
+      {
+        "file": "data/_bench-scaling-interleaved.json",
+        "warmed": true,
+        "interleaved": true,
+        "rows": [
+          {
+            "workers": 1,
+            "wall_ms": 143226,
+            "aggregate_playouts_per_sec_excluding_startup": 191.6,
+            "aggregate_playouts_per_sec_including_startup": 20.9,
+            "per_worker_playouts_per_sec": 191.6,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              191.6
+            ]
+          },
+          {
+            "workers": 2,
+            "wall_ms": 50676,
+            "aggregate_playouts_per_sec_excluding_startup": 276.7,
+            "aggregate_playouts_per_sec_including_startup": 118.4,
+            "per_worker_playouts_per_sec": 138.3,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              138.2,
+              138.5
+            ]
+          },
+          {
+            "workers": 4,
+            "wall_ms": 181589,
+            "aggregate_playouts_per_sec_excluding_startup": 449.7,
+            "aggregate_playouts_per_sec_including_startup": 66.1,
+            "per_worker_playouts_per_sec": 112.4,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              113.7,
+              113,
+              111.8,
+              111.2
+            ]
+          },
+          {
+            "workers": 1,
+            "wall_ms": 147683,
+            "aggregate_playouts_per_sec_excluding_startup": 26.2,
+            "aggregate_playouts_per_sec_including_startup": 20.3,
+            "per_worker_playouts_per_sec": 26.2,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              26.2
+            ]
+          },
+          {
+            "workers": 2,
+            "wall_ms": 55522,
+            "aggregate_playouts_per_sec_excluding_startup": 271.2,
+            "aggregate_playouts_per_sec_including_startup": 108.1,
+            "per_worker_playouts_per_sec": 135.6,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              136.2,
+              135
+            ]
+          },
+          {
+            "workers": 4,
+            "wall_ms": 216191,
+            "aggregate_playouts_per_sec_excluding_startup": 288.8,
+            "aggregate_playouts_per_sec_including_startup": 55.5,
+            "per_worker_playouts_per_sec": 72.2,
+            "errors": 0,
+            "children_playouts_per_sec": [
+              73.4,
+              71.8,
+              71.1,
+              72.5
+            ]
+          }
+        ],
+        "best_leg_per_worker_count": {
+          "1": {
+            "legs": 2,
+            "best": 191.6,
+            "worst": 26.2,
+            "leg_spread_x": 7.31
+          },
+          "2": {
+            "legs": 2,
+            "best": 276.7,
+            "worst": 271.2,
+            "leg_spread_x": 1.02
+          },
+          "4": {
+            "legs": 2,
+            "best": 449.7,
+            "worst": 288.8,
+            "leg_spread_x": 1.56
+          }
+        },
+        "speedup_vs_1_worker": {
+          "1": 1,
+          "2": 1.44,
+          "4": 2.35
+        },
+        "impossible_rows": null,
+        "quotable_for_absolute_rates": true,
+        "quotable_for_the_scaling_ratio": true,
+        "caveat": "WARMED AND INTERLEAVED — worker counts repeated out of order, so a drift in machine conditions cannot alias onto worker count. Compare the repeated rows to each other: 2 workers repeats to within 2% while 1 worker differs 7.3x between its two legs. That is the sporadic collapse this instrument suffers, and it is why a single leg is worthless here. Still measured on a machine that was NOT idle."
+      }
+    ]
+  },
+  "what_this_does_not_cover": [
+    "ACCURACY. MEDICHAM is quarantined for correctness and speed says nothing about it.",
+    "Any per-game figure is a claim about ONE turn cap. Name the cap or do not quote the number.",
+    "The playouts run about 45% longer than real games: mean 10.75 turns here against a human non-forfeit mean of 7.11 (ladder) and 7.74 (bo3) in data/rollout-switch-census.json, 42,818 games. A uniform-random player is less lethal, so a real game costs fewer turns.",
+    "The leaf figures are TURN-0 boards, four live bodies a side. That is the worst case; a mid-game leaf is cheaper by an amount nobody has measured.",
+    "Mechanics coverage is whatever the pinned pool brings. This is the usage-weighted pool, not the census roster, so rare and expensive mechanics are under-weighted, and game_differential drops every Zoroark/Zorua team before pairing, so no Illusion is in the timed sample.",
+    "It is the cost of the LEAF, not of a MILTANK decision. A real decision also pays board construction, feature extraction, MAG scoring and candidate enumeration.",
+    "One machine, and not an idle one. Nothing transfers to a different box without re-measuring.",
+    "The pool is bo3 + ots only. data/games.ladder.jsonl is not in data/team-pool-frozen."
+  ]
+}

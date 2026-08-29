@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-28T19:28:07.603Z",
- "release": "5f3f7141227c",
+ "generated": "2026-08-29T00:25:05.190Z",
+ "release": "4e5c7b3400de",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -230,7 +230,6 @@
    "battlebond",
    "stall",
    "pickup",
-   "metronome",
    "anticipation",
    "forewarn"
   ]
@@ -50555,69 +50554,30 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 27,
-     "cls": "-damage field 3",
-     "detail": "-damage[3] 859/960 vs 868/960",
-     "cause": "-damage field 3 :: |-damage|p2a|H/H <> |-damage|p2a|H/H  [values differ: |-damage|p2a:feraligatr|859/960 vs |-damage|p2a:feraligatr|868/960]",
-     "showdown": "|-damage|p2a: Feraligatr|859/960",
-     "medicham": "|-damage|p2a: Feraligatr|868/960",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "STATE",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [
       "volatile:metronome"
      ],
      "core_leaf_unchecked": false,
-     "boundaries": 3,
-     "boundaries_agreed": 2,
-     "last_boundary_turn": 2,
-     "protocol_parted_on_turn": 2,
-     "boards_after_the_parting": 1,
-     "state_parted_on_turn": 2,
-     "diffs": [
-      {
-       "path": "p2.party.feraligatr.hp",
-       "side": "p2",
-       "slot": "",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "party.hp",
-       "us": 868,
-       "sd": 859,
-       "bucket": "off-by-4-or-more",
-       "family": "party.hp"
-      },
-      {
-       "path": "p2.active[0].hp",
-       "side": "p2",
-       "slot": "p2a",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "hp",
-       "us": 868,
-       "sd": 859,
-       "bucket": "off-by-4-or-more",
-       "family": "active[].hp",
-       "maxhp": 960
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "boundaries": 4,
+     "boundaries_agreed": 4,
+     "last_boundary_turn": 3,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
-      "leaves_compared_min": 402,
+      "leaves_compared_min": 401,
       "leaves_compared_max": 402,
       "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 12,
-      "pp_slots_occupied": 12,
-      "pp_slots_compared": 12,
+      "party_vol_on_field_skipped": 16,
+      "pp_slots_occupied": 16,
+      "pp_slots_compared": 16,
       "screens_named_comparable": true
      }
     },
@@ -50654,13 +50614,7 @@
      "clauses": [],
      "stubbed": false
     },
-    "verdict_refined": "FIRED",
-    "deferred": {
-     "by": "Will",
-     "on": "2026-08-10",
-     "why": "The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. Its tag is derived and correct (`damageMultOnRepeat`, the full 4096ths ladder off the condition); what is missing is the CONSUMER, which needs a per-body consecutive-use counter threaded through the turn loop and read inside dmgRange — a change that touches every move's damage path for the smallest row in the whole queue. Will: \"metronome is a joke dont worry about that just put it into a quarantined closet we can re examine once the project is successful.\""
-    },
-    "counts_against_the_gate": false
+    "verdict_refined": "FIRED"
    },
    {
     "kind": "item",
@@ -54029,7 +53983,7 @@
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 11,
    "cannot_fire_in_this_fixture": 1,
-   "seconds": 4.8
+   "seconds": 6.1
   },
   "abilities": {
    "exist": 316,
@@ -54046,7 +54000,7 @@
    "diverged_including_shelved": 2,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 9.4
+   "seconds": 11
   },
   "then_what": {
    "rows": 64,
@@ -54067,12 +54021,12 @@
    "cannot_fire_in_this_fixture": 9,
    "did_not_fire_unexplained": 0,
    "diverged": 0,
-   "diverged_including_shelved": 1,
-   "shelved_by_owner": 1,
-   "shelved_by_owner_diverging": 1,
+   "diverged_including_shelved": 0,
+   "shelved_by_owner": 0,
+   "shelved_by_owner_diverging": 0,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 4.4
+   "seconds": 5.2
   },
   "board_state": {
    "rows": 15,
@@ -54356,14 +54310,11 @@
    },
    "items": {
     "tally": {
-     "NO-DIVERGENCE": 72,
-     "STATE": 1
+     "NO-DIVERGENCE": 73
     },
     "rows": 73,
     "core_leaf_unchecked_rows": [],
-    "state_rows": [
-     "metronome"
-    ],
+    "state_rows": [],
     "not_asked_rows": [],
     "silent_state_rows": [],
     "rows_with_a_held_leaf": [
@@ -54690,15 +54641,14 @@
   "items": {
    "available": true,
    "file": "data/roster.items.json",
-   "roster_fired": 139,
+   "roster_fired": 140,
    "here_fired": 64,
-   "both": 56,
+   "both": 57,
    "only_here": [
     "aspearberry",
     "focusband",
     "kingsrock",
     "leppaberry",
-    "metronome",
     "quickclaw",
     "rawstberry",
     "shedshell"
@@ -54794,8 +54744,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "5f3f7141227c",
-    "roster_generated": "2026-08-28T19:24:11.088Z",
+    "roster_release": "4e5c7b3400de",
+    "roster_generated": "2026-08-29T00:13:33.890Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

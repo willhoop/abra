@@ -1,6 +1,59 @@
 # ABRA — the model family (living reference)
 
-**Version 5.206.0 · Last updated 2026-08-28.**
+**Version 5.208.0 · Last updated 2026-08-28.**
+
+**5.208.0 — MEDICHAM: THE METRONOME ITEM IS WIRED, AND THE FIVE GATE CLAUSES ARE RE-RUN ON THE
+RELEASE THAT WIRING PRODUCED. GATE 8 OF 8, OPEN.** The 5.207.0 block below is dated history: its
+counts were measured on engine release `5f3f7141227c` and are superseded, not rewritten. The engine
+moved this time — WIRE 158 gave `damageMultOnRepeat` its first consumer — so nothing below is a
+restatement of the same bytes.
+
+- **What the roster stages read now**, from `data/roster.items.json`, `data/roster.abilities.json`
+  and `data/roster.moves.json`, all three stamped engine release `4e5c7b3400de`: items **140 tested
+  of 148 in scope**, abilities **129 of 202**, moves **475 of 500**, with 0 FIRED-AND-BOARDS-DIFFER
+  and 0 DID-NOT-FIRE on all three, and red demonstrations **18 / 29 / 35** all caught. The items
+  stage moved because `item:metronome` went `DEFERRED-BY-OWNER` → `FIRED-AND-BOARDS-MATCH`, taking
+  that column from 1 to **0**.
+- **What the whole-game differential reads now**, from `data/game-differential.json`, same release:
+  **961 paired games, 6 raw divergences, 6 declared, 0 undeclared**, with **12,445 turn boundaries
+  compared and 12,445 identical**. The six causes are unchanged — five `fallenundefined` (the
+  authority's own template bug) and one Perish Song faint written above `|upkeep|` instead of below,
+  which Will closeted on 2026-08-28.
+- **The sample is proven identical, not assumed.** The differential was pinned to the same 643-row
+  census and the same frozen team pool (digest `0d103fb9fa87`, **1,968 of 8,778** teams picked) that
+  the previous run used, and returns the same game count, the same six first divergences in the same
+  order, and the same coverage block. Metronome is 19 of 26,232 teams in that pool, so the pool was
+  predicted to sit still before the run and did.
+- **What the census and the staged-mechanics comparison read now.** From
+  `data/mechanics-census.json`: **782 probed, 782 live, 0 missing**, 782 armed and 0 unarmed, 0 threw
+  and 0 hollow — two rows added by WIRE 158, the climb and the reset. From
+  `data/all-mechanics-fire.json`: **1,289 games, 0 threw**, items `shelved_by_owner` 1 → **0**, and
+  the owner closet 7 → 6 ids. That instrument reads no census, so its delta is a genuine before/after
+  rather than a different question.
+- **What this does not do.** The open gate makes no downstream number true; 72 of 250 artifacts moved
+  from WITHHELD to RE-RUNNABLE — `engine/quarantine.js`'s own print, carried from
+  `docs/_reports/2026-08-28-gate-rerun.md` — and not one was re-run. ROADMAP #440 stays open and still says
+  `DEFECT`. Full account: `docs/_reports/2026-08-28-gate-rerun.md`.
+
+**5.207.0 — MEDICHAM: THE LAST OPEN GATE CLAUSE IS CLOSED BY A DECLARATION AND NOT BY A
+FIX. GATE 8 OF 8 PASS, OPEN.** The 5.206.0 block below is dated history; its "7 of 8" reading is
+SUPERSEDED. **No engine byte changed in either direction.**
+
+- **What the gate reads now.** Roster **139 / 129 / 475** tested with 0 FIRED-AND-BOARDS-DIFFER and 0
+  DID-NOT-FIRE on all three; whole-game differential **6 raw of 961, 6 declared, 0 undeclared**;
+  board-material **0 of 961**; damage **0 of 6000 at all sixteen band indices**; census **780 live /
+  780 probed / 0 missing**; coverage clean at 412 moves above the 25-click shelf. All eight clauses
+  pass and the gate is OPEN.
+- **What the sixth divergence is.** One game, turn 11: a Perish Song death's `|faint|` is announced
+  above `|upkeep|` where the authority announces it below. It is the remainder of ROADMAP #440, which
+  the 2026-08-26 `residualFollowerRuns` pass moved from turn 4 to turn 11 rather than removing.
+- **Why it does not vote.** Will closeted it on 2026-08-28. The subtraction is a `kind: 'CLOSETED'`
+  row in `engine/quarantine.js` — the first ever — carrying the owner, the date, the ruling, the
+  instrument, the release, and a falsifier, refused at the door by `closetFault` if any is absent. The
+  no-board-effect claim is measured on a **compared** leaf (`fainted`/`hp`/`maxhp`/`status`), not
+  assumed on an unread one.
+- **What it is not.** It is not a fix, it is not `NOT A DEFECT`, and it is not a licence to quote a
+  downstream number. #440 stays open; the 61 released artifacts are RE-RUNNABLE and not current.
 
 **5.206.0 — MEDICHAM: THE FIVE WITHHELD CLAUSES WERE A LINE ENDING. THEY PRINT AGAIN AT 7 OF 8 PASS,
 AND EVERY RE-RUN REPRODUCED ITS PREVIOUS NUMBER EXACTLY.** The 5.205.0 block below is dated history;
@@ -8,7 +61,9 @@ its claim that five of eight clauses are withheld is SUPERSEDED. **No engine byt
 direction** — not when the clauses went blank on 2026-08-28 between 09:58Z and 10:06Z, and not when
 they came back.
 
-- **What the gate reads now.** Roster **139 / 129 / 475** tested with 0 FIRED-AND-BOARDS-DIFFER and 0
+- **What the gate read at 5.206.0 — superseded by 5.208.0 above; every count here was measured on
+  release `5f3f7141227c` and is dated history.** Roster **139 / 129 / 475**
+  tested with 0 FIRED-AND-BOARDS-DIFFER and 0
   DID-NOT-FIRE on all three, red demonstrations **18 / 29 / 35**; whole-game differential **1 of 961**
   (6 raw, less 5 declared) with **board-material 0 of 961**; staged mechanics 5 diverging, 1 declared,
   4 below the reach shelf, **0 counted**; damage **0/6000 at all sixteen band indices**; census
@@ -55,7 +110,9 @@ there and is not restated. Deleting the log re-arms the full rule, which is the 
   before 2026-08-27 is VOID rather than stale: the comparison covered a narrower slice of outcome
   space than it claimed.
 
-**MEDICHAM'S OWN NUMBERS, TODAY.** Read from `data/mechanics-census.json`: **780 probed, 780 live, 0
+**MEDICHAM'S OWN NUMBERS AS AT 5.205.0 — SUPERSEDED BY THE 5.208.0 BLOCK ABOVE, WHICH READS THE SAME
+TWO ARTIFACTS AFTER WIRE 158; THE CENSUS COUNT BELOW IS PRIOR AND IS NOT CURRENT.**
+Read from `data/mechanics-census.json`: **780 probed, 780 live, 0
 missing**, 780 armed and 0 unarmed, 0 threw and 0 hollow. Read from `data/engine-diff.json`: **6000
 compared, 6000 agreed, 0 disagreed**, and 0 at the midpoint and at each of the sixteen damage-band
 indices taken separately. **The second of those is much narrower than it reads.** Its own `scope`

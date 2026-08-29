@@ -1260,16 +1260,46 @@ const DEFERRED = {
        + '(Toxapex, 5.0%) are equally rare ABILITIES on common BODIES and are built, because you face '
        + 'them without bringing them. Underlying verdict: COULD-NOT-STAGE.',
   },
-  metronome: {
-    by: 'Will', on: '2026-08-10',
-    why: 'The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. '
-       + 'Its tag is derived and correct (`damageMultOnRepeat`, the full 4096ths ladder off the '
-       + 'condition); what is missing is the CONSUMER, which needs a per-body consecutive-use counter '
-       + 'threaded through the turn loop and read inside dmgRange — a change that touches every move\'s '
-       + 'damage path for the smallest row in the whole queue. Will: "metronome is a joke dont worry '
-       + 'about that just put it into a quarantined closet we can re examine once the project is '
-       + 'successful."',
-  },
+  /* ~~metronome (the ITEM), shelved 2026-08-10 on cost.~~ **OFF THE SHELF, 2026-08-28.** Will took it
+   * out by name. The original ruling was: "metronome is a joke dont worry about that just put it into
+   * a quarantined closet we can re examine once the project is successful" (2026-08-10), and the shelf
+   * reason recorded under it was that `damageMultOnRepeat` is derived and correct while the CONSUMER —
+   * a per-body consecutive-use counter threaded through the turn loop and read inside `dmgRange` — does
+   * not exist. **THE CONSUMER NOW EXISTS — WIRE 158, the same day** — so this entry is not an owner
+   * overriding a live defect, it is a shelf whose subject was fixed underneath it.
+   *
+   * THE ORDER OF EVENTS MATTERS AND IS RECORDED HONESTLY, BECAUSE THE FIRST VERSION OF THIS COMMENT
+   * GOT IT WRONG. The shelf was taken out FIRST, on Will's word relayed to ENGINE on 2026-08-28, with
+   * a prediction written here that the roster/items clause would go 0 -> 1 and REOPEN the gate at
+   * 6 of 8. Then Will ruled that the item be implemented and it was, and the prediction is now false.
+   * It is corrected rather than deleted: a prediction that was published and then falsified is worth
+   * more in the record than a comment that only ever agreed with the outcome.
+   *
+   * THE RECEIPT FOR THE RULING IS THE OWNER'S WORD AND NOTHING ELSE, SAID PLAINLY. This repository
+   * holds NO artifact of the reversal — no commit, no report, no ROADMAP edit; the newest documents
+   * (`docs/_reports/2026-08-28-closet-illusion.md`, CHANGELOG 5.204.0) still say the cost-based ruling
+   * "stands", and they are what is now stale. Manufacturing a citation would be worse than the gap.
+   *
+   * WHAT IT ACTUALLY COSTS, MEASURED RATHER THAN PREDICTED. `SHOWDOWN_PATH=... node tests/roster.js
+   * --stage items --only metronome --reds --release 4e5c7b3400de` reads **FIRED-AND-BOARDS-MATCH,
+   * 1 of 1 tested, 0 DIFFER, 0 DEFERRED-BY-OWNER** — the row that held `hp`/`party.hp` 949 against
+   * 952 on turns 2 and 3 is clean. So the shelf comes out at NO cost to the gate, which is the
+   * outcome nobody was entitled to assume: the row is NOT below the reach shelf either
+   * (`reachOf(items, metronome)` is 19 teams in 13,116 open-sheet games = 14.49 per 10k against the
+   * shelf's 3.86, so `below('items', 19)` is FALSE and it could not have been excused that way).
+   *
+   * ROADMAP #312 GROUPED THIS WITH HUSTLE AND SAND FORCE AND THE GROUPING IS ONE SENTENCE NARROWER
+   * THAN IT READS. The row's own words are *"Hustle is diagnosed and deliberately unfixed because it
+   * needs the SAME consumer Sand Force does — base-power stage plus type plus weather"*. Metronome is
+   * a THIRD bullet and shares neither stage nor condition: it is a final-`ModifyDamage` chain member
+   * keyed on a per-body consecutive-use counter. It was therefore landed ALONE and is attributable
+   * alone, exactly as Sand Force was on 2026-08-27.
+   *
+   * Left as a comment rather than deleted, exactly as `minus` above is: a closet that silently loses
+   * rows teaches nobody, and this one was reversed rather than misfiled. `metronome` names an item AND
+   * a move, and this map is keyed by BARE ID — but the MOVE Metronome is `isNonstandard: 'Past'` in
+   * this format (checked against `Dex.forFormat`, not recalled), so removing the key today can only
+   * reach the item. If the move is ever un-banned that collision is live again. */
   /* ROADMAP #138, 2026-08-10. Will: "ANTICIPATION AND FOREWARN LETS PUT INTO THE QUARANTINE CLOSET NO
    * ONE USES THEM."
    *
@@ -7602,11 +7632,22 @@ const RULES = [
 
 { id: 'move/multihit', kind: 'move',
   reads: 'multihit',
-  why: 'THE PIN DECIDES THE HIT COUNT AND THE REPORT SAYS SO. `random(m,n)` is pinned to `m` in EVERY '
-     + 'arm, so a 2-5 range lands on TWO hits and a 3-hit move on three — the DISTRIBUTION is not '
-     + 'under test and cannot be from a pinned die. What IS under test is that the damage is the sum '
-     + 'of that many hits rather than of one, which is the defect WIRE 20 fixed (Rock Blast was a '
-     + 'single 25-BP hit). THE PARTNER IS THE NEGATIVE and is never aimed at.',
+  why: 'THE PIN DECIDES THE HIT COUNT AND THE REPORT SAYS SO — AND FOR NINE DAYS IT SAID THE WRONG '
+     + 'NUMBER. This sentence read "`random(m,n)` is pinned to `m` in EVERY arm, so a 2-5 range lands '
+     + 'on TWO hits", and the note printed into every artifact row said the same. It is FALSE for the '
+     + '`[2,5]` family, because that family does not go through the range form at all: '
+     + '`data/mods/champions/scripts.ts:441` draws it with `this.battle.sample([2 x7, 3 x7, 4 x3, '
+     + '5 x3])`, `PRNG#sample` is `this.random(items.length)` — the ONE-argument form — and the arms '
+     + 'answer that with `top ? m-1 : 0`. So the AUTHORITY takes index 19 on the top arm and index 0 '
+     + 'on the bottom, and medicham2 samples the identical twenty-element table with its own corner. '
+     + 'MEASURED, both engines, one staged turn per corner (`tests/probe_multihit_corners.js`): Icicle '
+     + 'Spear reads authority 5 / medicham2 5 at the TOP corner and 2 / 2 at the BOTTOM. The old note '
+     + 'was TYPED from `e.multihit[0]` and was never a reading of anything. What IS under test is that '
+     + 'the damage is the sum of that many hits rather than of one, which is the defect WIRE 20 fixed '
+     + '(Rock Blast was a single 25-BP hit). THE DISTRIBUTION is still not under test and cannot be '
+     + 'from a pinned die — but the two counts the corners DO reach are the ENDS of the range, 2 and '
+     + '5, and THREE and FOUR are the interior of the sample table and are reached by no pinned arm. '
+     + 'THE PARTNER IS THE NEGATIVE and is never aimed at.',
   break: { why: 'a multi-hit move lands exactly ONE hit — which is the defect this family was written '
               + 'against',
     /* RE-AIMED 2026-08-27. The old plant dropped `dmgRangeOneHit`'s `_hits>1` early return — the
@@ -7620,10 +7661,29 @@ const RULES = [
     const arm = armFor(e);
     const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
     if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
-    const n = Array.isArray(e.multihit) ? e.multihit[0] : e.multihit;
+    /* THE COUNT THE PIN ACTUALLY LANDS ON, DERIVED FROM THE ARM AND FROM THE AUTHORITY'S OWN DRAW
+     * RATHER THAN FROM `e.multihit[0]`. Two draws, not one:
+     *   - a `[2,5]` move is `battle.sample(<20 entries>)`, a ONE-argument `random(20)`, which the arms
+     *     answer `top ? 19 : 0` — index 19 of [2 x7, 3 x7, 4 x3, 5 x3] is FIVE and index 0 is TWO;
+     *   - every OTHER range is `random(lo, hi+1)`, the RANGE form, which every arm pins to `lo`.
+     * A fixed count is itself and does not depend on the arm. Measured at both corners in
+     * `tests/probe_multihit_corners.js` before this line was written. */
+    const _mh = e.multihit;
+    const _isRange = Array.isArray(_mh) && _mh.length === 2 && +_mh[0] !== +_mh[1];
+    const _sampled = _isRange && +_mh[0] === 2 && +_mh[1] === 5;
+    const n = !_isRange ? (Array.isArray(_mh) ? +_mh[0] : +_mh)
+            : _sampled ? (arm === BOTTOM_ARM ? 2 : 5)
+            : +_mh[0];
+    const _why = !_isRange ? 'the move has ONE declared count, so the arm cannot change it'
+               : _sampled ? 'the AUTHORITY draws this family with `battle.sample` of a twenty-entry '
+                          + 'table — a one-argument `random(20)` — which this arm answers with index '
+                          + (arm === BOTTOM_ARM ? '0' : '19')
+               : 'a range the authority draws with the `random(lo, hi+1)` RANGE form, which every arm '
+                 + 'pins to `lo`';
     return { arm, note: 'multihit ' + JSON.stringify(e.multihit) + ' — THE PIN LANDS ON ' + n
-        + ' HIT(S), which is the bottom corner of the range and the only count either engine can be '
-        + 'asked about here' + armNote(e),
+        + ' HIT(S) ON THIS ARM (' + _why + '). The DISTRIBUTION is not under test and cannot be from a '
+        + 'pinned die; the two corners between them reach the two ENDS of a [2,5] range and never its '
+        + 'interior' + armNote(e),
       scenario: scaffold({ hpA: 4, hpB: 8,
         a0: { ...CLICKER(arm), moves: [e.id] },
         b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },

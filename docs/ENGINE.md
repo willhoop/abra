@@ -102,9 +102,14 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  780/780 probed mechanics live, 0 missing   (census 2026-08-28 05:51)
+  782/782 probed mechanics live, 0 missing   (census 2026-08-28 19:49)
+    the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
+    never fired in the staged harness (all-mechanics-fire.json, 46 min old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-28 06:01)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
+    the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
+    construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
+    all (bonerush, doublehit, tailslap).
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
@@ -114,15 +119,315 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0ab740463a2e now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 411ea8d51aae now
     (+7 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 284/300 probed, 16 unprobed
+  tag coverage: 285/300 probed, 15 unprobed;  268/300 have an engine consumer, 32 have none
+    a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and
+    medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-28 15:46_
+_stamped 2026-08-28 21:11_
 
 <!-- /GENERATED -->
+
+## THE FIVE CLAUSES THAT READ "MEASURED AGAINST A DIFFERENT ENGINE" WERE RE-RUN ON `4e5c7b3400de`. **THE GATE IS 8 OF 8 AND OPEN.** TEN PREDICTED VALUES, TEN HITS, ZERO MISSES. 2026-08-29.
+
+This SUPERSEDES the `GATE 8 OF 8 -> 3 OF 8` headline in the section below, which was true when it was
+written and is dated evidence, so it is left standing rather than edited in place.
+
+Nothing was fixed in this pass and no engine file was touched — it is a measurement. Full account,
+including the sample-identity proof and the three things filed rather than repaired:
+`docs/_reports/2026-08-28-gate-rerun.md`.
+
+| clause | before | after |
+|---|---|---|
+| deliberate roster / items | WITHHELD, artifact on `5f3f7141227c` | **PASS** — 140 of 148 tested, `DEFERRED-BY-OWNER` 1 -> **0** |
+| deliberate roster / abilities | WITHHELD | **PASS** — 129 of 202, unmoved |
+| deliberate roster / moves | WITHHELD | **PASS** — 475 of 500, unmoved |
+| whole-game differential | WITHHELD | **PASS** — 961 games, 6 raw / 6 declared / **0** that count |
+| mechanics staged vs showdown | WITHHELD | **PASS** — items `diverged_including_shelved` 1 -> **0** |
+
+**THE `--write` TRAP WAS NOT WHAT HAPPENED, AND THE DISTINCTION IS WORTH KEEPING.** `data/roster.items.json`
+was four hours older than the census run and still read `DEFERRED-BY-OWNER`. The green verdict HAD been
+produced — but by `--only metronome`, a ONE-ENTITY run, which cannot write a stage artifact even with
+`--write`. So a stage-level claim (the tested count, the `DEFERRED` count, the scope block) was made from
+a run that could not report one. The full stage now reproduces it exactly.
+
+**`item:metronome` IS GENUINELY GREEN IN A WRITTEN ARTIFACT.** `data/roster.items.json`, generated
+`2026-08-29T00:13:33.890Z` on release `4e5c7b3400de`: verdict `FIRED-AND-BOARDS-MATCH`, rule
+`item/held-and-nothing-more`, **no `deferred` block**. The run printed what it replaced, and the old bytes
+are at `data/roster.items.prev.json`.
+
+**THE POOL DID NOT MOVE AND THAT WAS PREDICTED BEFORE THE RUN.** Metronome is 19 of 26,232 teams, so the
+whole-game differential was expected to sit still and did: 961 games, 6 divergences, coverage 563/580,
+pool digest `0d103fb9fa87`, census digest `9446a684709d`, mode digest `ccb365985023`, and an **identical
+first-divergence list** against `git show HEAD:data/game-differential.json`. That is the two-scoreboards
+rule working as written — the LAB saw the fix, the POOL correctly saw nothing.
+
+**A CORRECTION TO THE CENSUS CAVEAT.** `engine/all_mechanics_fire.js` does not read the census at all
+(`grep -c mechanics-census` returns **0**), so the 780 -> 782 regeneration cannot have changed which
+scenarios it plays, and `games_played` is 1,289 either side. `engine/game_differential.js` IS
+census-steered and was pinned to the same 643-row `census-pin-9446a684709d.json` the last published run
+used. **Neither delta is uncomparable on census grounds** — the opposite of where that caveat usually
+lands, and the reason it was measured rather than recited.
+
+**`--games` IS A PAIR BUDGET.** `--games 1200` played **961 games**
+(`game_differential.js:5979`, `perConfig = floor(GAMES / live.length)`). Both numbers are stated or the
+artifact is not comparable with the run before it.
+
+**WHAT LIFTING THE GATE DOES NOT DO.** The seven MEASURE/SEARCH figures stop reading `QUARANTINED` and
+start reading `WITHHELD — provenance calls it UNSAFE`. That is a weaker withholding, not a release: 72
+of 250 artifacts are now **RE-RUNNABLE**, which per CLAUDE.md means re-runnable and NOT true. Nothing
+downstream may be quoted off this pass. ROADMAP #57 is the queue.
+
+`node engine/status.js --write` is OWED and was deliberately not run: `engine/status.js` itself changed
+content mid-batch under a live MEASURE agent, and stamping five ledgers from a printer somebody is
+editing is the one write this repository can least afford. `engine/quarantine.js` — the gate LOGIC — did
+NOT change across the batch; the 8-of-8 reading comes from it, not from `status.js`.
+
+## THE METRONOME ITEM HAD A COMPLETE TAG AND NO CONSUMER FOR EIGHTEEN DAYS, AND THE SHELF OVER IT WAS TAKEN OUT ONE HOUR BEFORE THE FIX LANDED. **CENSUS 780 -> 782 LIVE / 782 PROBED / 0 MISSING. THE ROSTER ROW `DEFERRED-BY-OWNER` (949 AGAINST 952) -> `FIRED-AND-BOARDS-MATCH`. GATE 8 OF 8 -> 3 OF 8, AND NOT ONE OF THE FIVE IS A DIVERGENCE — ALL FIVE ARE WITHHELD ON A RELEASE MISMATCH.** 2026-08-28.
+
+WIRE 158. `damageMultOnRepeat`'s ladder is read off the tag, the per-body consecutive-use counter is
+written at the authority's own `onTryMovePriority: -2` position, and all six rungs agree with Showdown
+in a played six-turn game. ROADMAP #312 and #327 both carried this as *"the tag is complete and grep
+finds NO CONSUMER"*. Full account `docs/_reports/2026-08-28-metronome-item.md`.
+
+**#312 GROUPED IT WITH HUSTLE AND SAND FORCE AND THE GROUPING IS ONE SENTENCE NARROWER THAN IT READS.**
+The row's own words pair **Hustle** with **Sand Force** — base-power stage plus type plus weather.
+Metronome is a third bullet and shares neither stage nor condition: it is a final-`ModifyDamage` chain
+member keyed on a counter. Landed alone, attributable alone, as Sand Force was on 2026-08-27.
+
+**AND A SECOND PASS ANSWERED A DIFFERENT QUESTION: WHICH MULTI-HIT COUNTS ANYTHING ACTUALLY COMPARES.**
+The answer is **2 and 5**, not 2 alone, and the roster had been publishing a false note on all fourteen
+rows for nine days. `docs/_reports/2026-08-28-multihit-coverage.md`.
+
+### THE TWO THINGS THAT WERE MEASURED RATHER THAN ARGUED
+
+- **The Metronome ladder, rung by rung, and flat under its knob.** `tests/probe_metronome_ladder.js`
+  prices rungs 0..6: `6-7, 7-8, 8-10, 10-11, 11-13, 12-14, 12-14` — moving at every one of the five
+  steps the tag declares, flat above the cap, and **rung 0 byte-identical to a body holding no item**,
+  which is where an off-by-one rung would show. Under `MEDI_NO_METRONOME_LADDER=1` every rung reads
+  `7`, seven times, which is exactly what an unwired consumer produces.
+- **The multi-hit count at both corners, in BOTH engines.** `tests/probe_multihit_corners.js` stages
+  one turn per corner and reads the authority's `|-hitcount|` against medicham2's
+  `MEDSEEN.multiHitPacketsDealt`: **top 5/5, bottom 2/2**. The corner moves the count `2 -> 5`, so
+  neither reading is a constant.
+
+### THE INSTRUMENT WAS LYING, AGAIN, AND IT WAS A TYPED SENTENCE
+
+Every `move/multihit` row in `data/roster.moves.json` said *"THE PIN LANDS ON 2 HIT(S), which is the
+bottom corner of the range and the only count either engine can be asked about here."* It was built
+from `e.multihit[0]` — the move's declared minimum — and it was **wrong for `bulletseed`,
+`iciclespear` and `watershuriken`**, the three `[2,5]` rows staged on the top arm, where both engines
+are really compared at FIVE. A `[2,5]` move never touches the pinned RANGE form: the authority draws it
+with `battle.sample` of a twenty-entry table, which is a one-argument `random(20)`, which the arms
+answer `top ? 19 : 0`. The note is now derived from the arm and from which draw the move takes. **No
+engine byte moved for that half.**
+
+### WHICH SCOREBOARD, SAID BEFORE THE RUN
+
+Metronome is **19 of 26,232 teams**. It is ABOVE the reach shelf (14.49 per 10k against 3.86, so
+`below('items', 19)` is FALSE) and it is nowhere near common. **Expect the LAB to move and the POOL to
+sit still**: the census +2 and the roster row flipping are the evidence; the whole-game differential
+should read the same 6 raw / 1 of 961 it read before, and if it moves, something else did it.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"METRONOME (the item) has a complete tag and no consumer at all"*~~ — **it has both halves and two
+  census rows**, one for the climb and one for the RESET on a changed move, which is the row a
+  ladder-that-only-climbs fails. Both shown MISSING under the knob (`780 live, 2 missing`) before the
+  artifact was restored at `782 live, 0 missing`.
+- ~~*"the 3-, 4- and 5-hit outcomes of a `[2,5]` move are compared by nothing"*~~ — **half of that is
+  refuted and the half that stands is now bounded.** 5 is compared on three moves and by Skill Link;
+  2 is compared on five; **3 and 4 are compared by nothing**, and that is the whole remaining gap.
+
+**Joins it:**
+- **HIT COUNTS 3 AND 4 ARE REACHED BY NO PINNED ARM.** The cheap honest guard is NOT to stage them: the
+  two engines read the same twenty-element table at the same index, so an unselected index cannot
+  disagree unless a table changes. **Assert `MULTIHIT_2_5` element-for-element against the authority's
+  own array** in `tests/test-engine-consistency.js`, which already owns "the FACTS agree". Not written.
+- **THE DAMAGE DIFFERENTIAL'S MULTI-HIT SKIP IS CORRECT AND SHOULD STAY.** Running the volley loop
+  means entering at `trySpreadMoveHit` — two LEVELS up, not two lines — which drags per-hit accuracy
+  into a file whose declared scope is damage only. Filed as a decision, not as a gap.
+- **ROADMAP #509 IS NEWLY OBSERVABLE.** The Metronome item is the only consumer of `moveLastTurnResult`
+  as a TRUTHY test; Stomping Tantrum and Temper Flare read `=== false`. If `_mvResLast` is wrong
+  anywhere, this item is now where it shows.
+
+### OWED, NOT RUN
+
+The five withheld clauses need their artifacts re-run on `4e5c7b3400de` — the exact commands, with
+their expected values stated first, are the `## OWED, NOT RUN` block of
+`docs/_reports/2026-08-28-metronome-item.md`. `node engine/status.js --write` is deliberately LAST and
+was not run this pass: it would stamp a transient `3 of 8` into five ledgers that another agent is
+holding uncommitted.
+
+**AND A RELEASE WAS CUT OVER AN UNCOMMITTED MID-SESSION ENGINE EDIT.** `4e5c7b3400de` was first cut at
+`23:35:19Z` under `why: "game differential mode A — the comparison driver, ROADMAP #68 step two"`, and
+its frozen `medicham2-browser.js` is byte-identical to the live file **including WIRE 158**. Convenient
+here, and not safe: it is the photograph rule broken from the other side.
+
+## THE LAST OPEN CLAUSE IS CLOSED BY A DECLARATION AND NOT BY A FIX, AND THE DECLARATION IS A MECHANISM. **GATE 7 OF 8 -> 8 OF 8, OPEN. WHOLE-GAME FAIL -> PASS: 6 RAW, 6 DECLARED, 0 UNDECLARED. `CLOSETED: 0 -> 1`. NO ENGINE BYTE MOVED, CENSUS UNMOVED AT 780/780/0, AND THE DEFECT IS STILL A DEFECT.** 2026-08-28, CHANGELOG 5.207.0.
+
+Will authorised closing the last open MEDICHAM gate clause by DECLARING the one remaining divergence,
+with a note saying we could not make it work. **The declaration is wired, not written.** Full account
+`docs/_reports/2026-08-28-closet-last-clause.md`.
+
+### WHAT ACTUALLY DIVERGES — READ OUT OF THE ARTIFACT, NOT TAKEN ON TRUST
+
+`data/game-differential.json`, generated 2026-08-28T19:30:53Z on release `5f3f7141227c`, arm `middle`,
+pins `ccb365985023`, `--team-store data/team-pool-frozen`, cap 12, 961 games. Six raw divergences: five
+are the Supreme Overlord `fallenundefined` AUTHORITY-WRONG family, already declared. The sixth:
+
+```
+config    baseline
+seed      gen9championsvgc2026regmbbo3-2654016071 vs gen9championsvgc2026regmbbo3-2654363031
+turn      11        index 171        agreed_lines 171
+cause     event missing from medicham2 :: |upkeep <> |faint|p2b
+showdown  |upkeep
+medicham  |faint|p2b: Gengar
+before    |-start|p2b: Gengar|perish0   |-start|p1b: Staraptor|perish0   |-start|p1a: Glimmora|perish0
+```
+
+**IT IS A FAINT EMISSION POINT, NOT A DIFFERENT GAME, AND THE CLASS NAME IS MISLEADING.** The
+classifier calls it *"event missing from medicham2"* and the authority is the side that is missing a
+line at index 171 — it writes `|upkeep` where we write the faint. `perishsong.condition.onEnd` is
+`add('-start', target, 'perish0'); target.faint()`, `Pokemon#faint()` only QUEUES, and the `|faint|`
+line comes from a `faintMessages()`. `fieldEvent`'s duration-expiry branch `continue`s past the one at
+`sim/battle.ts:565`, so the deaths are paid by the next handler that does not itself expire; when none
+does they fall to the tail of `runAction` at `:2832`, **eighteen lines below** the `|upkeep|` at
+`:2814`. Both positions are the authority. It is a function of the handler list.
+
+### THE NO-BOARD-EFFECT CLAIM IS EARNED ON A LEAF THAT WAS LOOKED AT, WHICH IS THE PART THAT MAY NOT BE FUDGED
+
+ROADMAP #528 measured that **43 of the 80 leaves a legal mechanic can write are in NEITHER the compared
+set nor `NOT_COMPARED`**, so "no board differs" can mean "nobody looked", and a declaration resting on
+that is unearned. This one does not.
+
+- `fainted`, with `hp`, `maxhp` and `status`, is read off BOTH engines for the active bodies
+  (`board_state.js:866`), for the party (`:1034`) and for the benched group (`:769`, `:843`);
+  `statusOf` maps a corpse to `fnt` on both sides *precisely* so that a body dead in one engine and
+  alive in the other cannot hide inside a status mismatch.
+- On this run: **12,445 turn boundaries compared, 12,445 identical**;
+  `state.games_board_never_diverged` **961 of 961**; `protocol_diverged_games` 6 and
+  `protocol_diverged_board_never_did` **6**; `state.first_board_divergences` **empty**;
+  `state.turn1.by_protocol_class` records the six protocol-parted games as
+  `board_identical_at_end_of_turn1: 6`.
+
+So Gengar is dead in both engines at the boundary, at the same HP. **The leaf was compared and it
+agreed.** That is a different sentence from "no board differs" and it is the only one that earns a
+closet row.
+
+### IT WAS TRIED TWICE, AND THE SECOND ATTEMPT IS WHY THIS IS ONE GAME AND NOT A FAMILY
+
+ROADMAP #440 filed it on 2026-08-24 as **BLOCKED** — *"the position is a function of the handler list,
+and this engine has no handler list"*. The 2026-08-26 card-8 pass built the list:
+`residualFollowerRuns` (`medicham2-browser.js:6838`) derives the 58 rows that sort after
+`perishsong@24.2` out of `data/residual-order.json` by CALLING `Battle#resolvePriority`, splits them 18
+always-expires / 14 handlers / 26 clocks, and answers whether anything survives the walk. It shipped
+with three over-fire controls measured in the official simulator (Protect, Tailwind, Pickup) and a knob,
+`MEDI_RESIDUAL_DRAIN_ABOVE_UPKEEP=1`. **The bare arm went green and THIS SAME SEED PAIR moved from turn
+4 to turn 11**, where it now sits.
+
+**WHAT IS LEFT IS UNDIAGNOSED AND IS SAID SO RATHER THAN GUESSED AT.** The predicate is not blind —
+`MEDFAILS.residualFollowerUnmapped` is EMPTY on this build, so every clocks row has a reader. On this
+one board the authority's walk ends with nothing surviving and ours believes something does. Naming
+which follower needs the game replayed with both handler lists printed, and **that run was not
+permitted in this pass** — a timing measurement was running on the simulator. It is in OWED, NOT RUN
+below with the exact command.
+
+### THE MECHANISM, BECAUSE A DECISION RECORDED AS PROSE IS A DECISION THE GATE GOES ON ASKING ABOUT
+
+`engine/quarantine.js` already had the door: `DECLARED_KINDS.CLOSETED`, built 2026-08-26 on Will's
+ruling *"things in the closet shouldnt block a gate if we know why they fail and choose to accept it"*,
+and it **had never carried a shipping row** — the Tailwind divergence it was built for was fixed by
+#493 before the door was finished. This is its first. No third kind was invented; `DEFERRED` is still
+refused and the selftest still asserts it.
+
+- The row is `kind: 'CLOSETED'` and carries `closet.by/.on/.ruling/.authority`,
+  `evidence.instrument/.release/.on/.says` and `falsifiedBy`. `closetFault` refuses it at the door if
+  any is missing — **eleven selftest arms already prove each missing field holds the gate SHUT.**
+- **The matcher is narrowed by EVIDENCE, not by the string.** `|upkeep <> |faint|pXY` alone would cover
+  every residual faint in the game — leech seed, poison, sandstorm, curse, salt cure. It additionally
+  requires a `perish0` line in `showdown_before` on *every* first-divergence row carrying the cause, and
+  **declines when the evidence is absent**. That is also why it cannot reach the mechanics clause:
+  `mechanicsCauseEvidence` carries no `showdown_before` at all.
+- The class prefix is deliberately NOT pinned. #440 filed this as `ordering ::`; the classifier calls
+  it `event missing from medicham2 ::` today. Pinning a classifier's label would make the exemption
+  evaporate on a rename rather than on a fix.
+- `evidence.release` is `5f3f7141227c`, which is the release the artifact was measured on, so
+  `closetEvidenceStale` prints nothing. The moment the artifact moves to another release the run says
+  **EVIDENCE NOT RE-CHECKED** at the point of subtraction.
+
+**AND THE STATUS CELL DOES NOT SAY `NOT A DEFECT`.** That phrase is executable —
+`engine/quarantine.js:1040` treats it as a ruling that overrides the derived verdict — and it would be
+the wrong ruling here. #440 stays **open**, still carries `DEFECT` in its cell, and still counts in the
+open-defect clause's register (it is in the seven `INSTRUMENT UNRUNNABLE` rows, unchanged by this pass).
+The closet excuses it from the *whole-game* clause and from nothing else.
+
+### THE NUMBERS, BEFORE AND AFTER, ON ONE UNCHANGED ARTIFACT
+
+Both runs read the same `data/game-differential.json`; **no engine byte moved and no artifact was
+regenerated**, so the two runs differ only in whether the declaration exists.
+
+| | before | after |
+|---|---|---|
+| gate | **CLOSED — 1 of 8 clauses fail** | **OPEN — 8 of 8** |
+| whole-game clause | FAIL, 1 of 961 = 0.1% DIVERGE (6 raw, 5 declared) | PASS, **0 undeclared** (6 raw, 6 declared) |
+| `THE DECLARED REGISTER` | 1 row, `CLOSETED: 0` | 2 rows, **`CLOSETED: 1`** |
+| quarantine selftest | not run before this pass | **154 passed, 0 failed** |
+| withheld artifacts | 60 of 237 WITHHELD | **0 withheld — the same set now prints as `61 of 238 ... now RE-RUNNABLE. They are NOT withheld and they are NOT current`** |
+| census | 780 live / 780 probed / 0 missing | unmoved |
+| roster / damage | 139 / 129 / 475, damage 0/6000 at all sixteen corners | unmoved |
+
+**SHOWN RED FIRST, AND THE RED IS THE BEFORE-RUN ITSELF.** With the row absent the clause reads
+*"1 of 961 = 0.1% DIVERGE ... This clause fails until that is zero"* and the gate reads CLOSED. Remove
+the row and it returns there; there is no second knob because the declaration IS the knob.
+
+**THE CONSEQUENCE MEASURE MUST READ BEFORE QUOTING ANYTHING.** The gate opening means
+`engine/quarantine.js` now withholds **nothing** — 60 artifacts that were being withheld are released
+by this change alone. **That is a change in what the gate ASKS, not evidence that any of those numbers
+became true.** CLAUDE.md's own words: a quarantined number does not become true when MEDICHAM becomes
+correct, it becomes *re-runnable*. The re-run list is ROADMAP #57 and none of it was run here. **And the SECOND guard did not move**:
+`status.js` gates every downstream figure on the quarantine AND on `engine/provenance.js`, and after
+this pass it still prints **9 figures WITHHELD** — R1, R2, R3, R4, leaf calibration, the
+engine-correctness -> leaf contrast, click censoring, the interaction matrix and the release ladder —
+because their artifacts are UNSAFE on CONTENT. Opening this gate released none of them. It also means
+`status.js` now prints NOTHING about the MEDICHAM gate at all (`engine/status.js:1145` prints the
+banner only when the gate is shut) — observed, reported, not changed.
+
+### THE HAND LIST
+
+Covers this pass and nothing else.
+
+**Leaves it:**
+- ~~*"the unreproducible faint row"*, carried in the standing filed items above~~ — **it is a wired
+  declaration now.** Not a probe: the gate carries it as a `CLOSETED` row with an owner, a dated ruling,
+  a measured no-board-effect claim on a named release, and a four-part falsifier that a later run can
+  check rather than argue.
+
+**Joins it:**
+- **THE FOLLOWER OUR PREDICATE BELIEVES IN ON THIS BOARD IS STILL UNNAMED.** `residualFollowerRuns`
+  answers TRUE where the authority's walk answers false, on `baseline / ...-2654016071 vs
+  ...-2654363031` at turn 11. Diagnosing it means replaying that one pair with both handler lists
+  printed. Until somebody does, the closet row is honest and the defect is undiagnosed.
+- **THE CLOSET IS NOW A THING THAT CAN GROW, AND THE FIRST QUESTION FOR THE NEXT ROW IS STILL WHETHER
+  THE DIVERGENCE IS STILL THERE.** The Tailwind comment in `DECLARED_DIVERGENCE` teaches exactly that
+  and is left standing; the sentence *"it opens onto an empty room"* is amended in place with the date
+  it stopped being true, not deleted.
+
+### OWED, NOT RUN
+
+- **The diagnosis run.** `SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node
+  engine/game_differential.js --arm middle --team-store data/team-pool-frozen --release 5f3f7141227c
+  --games 1200` — the pass was forbidden from playing a game (a timing measurement was live on the
+  simulator), so nothing was re-measured and nothing needed to be: the artifact under judgement is the
+  one already on disk.
+- `tests/test-mechanics.js`, `tests/roster.js`, `engine/all_mechanics_fire.js` — **not run and not
+  owed**: no engine byte moved, so the census and the roster describe the same bytes they did before.
+- `engine/register_reality.js` — not re-run. `data/register-reality.json` is stamped 2026-08-27 and
+  #440's verdict there is `INSTRUMENT UNRUNNABLE`, which this pass did not change.
 
 ## THE THIRD OCCURRENCE IS NOW IMPOSSIBLE ON SEVENTEEN OF THE TWENTY-SIX FROZEN SOURCES, AND THE RE-RUN MOVED NOTHING. **GATE 5 OF 8 FAILING -> 1 OF 8. ROSTER 139 / 129 / 475 WITH REDS 18/29/35, WHOLE-GAME 1 OF 961 (6 RAW LESS 5 DECLARED), BOARD-MATERIAL 0 OF 961, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, CENSUS 780/780/0 — EVERY ONE OF THEM IDENTICAL TO THE ARTIFACT IT REPLACED.** 2026-08-28, CHANGELOG 5.206.0.
 

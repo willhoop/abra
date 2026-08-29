@@ -25,7 +25,28 @@ const PAGES=+(process.env.PAGES||25), CONC=+(process.env.CONC||16);  // was 2 (~
 const STORE=process.argv[2]||'games.jsonl';
 const RAW=process.env.RAW||(STORE.replace(/\.jsonl$/,'')+'.raw-logs.jsonl');
 const MODE=process.env.MODE||'fetch'; // fetch | reparse | backfill
-const get=u=>new Promise(r=>{const q=https.get(u,x=>{let d='';x.on('data',c=>d+=c);x.on('end',()=>r(d));});q.on('error',()=>r(''));q.setTimeout(12000,()=>{q.destroy();r('');});});
+/* `x.setEncoding('utf8')` IS LOAD-BEARING AND ITS ABSENCE CORRUPTED THE STORE. Found 2026-08-28 by
+ * MEASURE, chasing engine/sanity_check.py's `the winner is always one of the two players (2 bad)`.
+ *
+ * This read `let d=''; x.on('data', c => d += c)`. `c` is a Buffer and `d` is a string, so `+=`
+ * calls Buffer#toString('utf8') on EACH CHUNK SEPARATELY. A multi-byte UTF-8 character that
+ * straddles a chunk boundary is therefore decoded as two partial sequences and comes back as
+ * U+FFFD replacement characters — silently, with a 200 and a well-formed log. Reproduced exactly:
+ *   Buffer.from([0xE2,0x80])+Buffer.from([0x99])  -> '��'   ("It’sJustKen" -> "It??sJustKen")
+ *   '塔' split 1/2                                 -> '���'
+ * both of which are byte-for-byte what the two bad store rows contain.
+ *
+ * MEASURED BLAST RADIUS at the time of the fix: 2 rows of data/games.ladder.jsonl (the `winner`
+ * field, ids ...-2662690089 of 2026-08-10 and ...-2672145722 of 2026-08-28) and 194 archived raw
+ * logs across the ladder and bo3 stores, 496 replacement characters over 204 protocol lines. EVERY
+ * ONE lands inside a NICKNAME or a chat/join/leave username — never a species, move, item or number,
+ * because those are ASCII. It is not harmless even so: extract() keys `nick[side+nickname] ->
+ * species` for damage attribution, and the corruption hits one occurrence of a nickname and not the
+ * others, so the lookup misses on that line.
+ *
+ * setEncoding routes the stream through StringDecoder, which holds an incomplete sequence back until
+ * the next chunk completes it. Do not "optimise" this back to a bare concatenation. */
+const get=u=>new Promise(r=>{const q=https.get(u,x=>{let d='';x.setEncoding('utf8');x.on('data',c=>d+=c);x.on('end',()=>r(d));});q.on('error',()=>r(''));q.setTimeout(12000,()=>{q.destroy();r('');});});
 const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const isBot=n=>/^pcrlbot|bot\d|^[a-z]+bot$/i.test(n||'');
 

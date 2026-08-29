@@ -1548,6 +1548,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      probe every time. */
   punishMinimizeNeverMiss: 0,
   punishMinimizeDamage: 0,
+  /* WIRE 158 -- THE METRONOME ITEM'S CONSECUTIVE-USE LADDER, IN THREE COUNTERS BECAUSE THE COUNTER
+     AND THE MULTIPLIER ARE TWO SEPARATE WIRES AND EITHER CAN BE DEAD ALONE.
+
+     metroCounterAdvanced   the turn-loop write took the `numConsecutive++` branch — the holder
+                            repeated a move whose previous use returned a truthy result.
+     metroCounterReset      the same write took the `else` branch and zeroed the counter. This one is
+                            the CONTROL: a run where `Advanced` is non-zero and `Reset` is zero means
+                            nothing ever breaks the chain, which is a ladder that only climbs.
+     metroLadderApplied     `dmgRange` actually multiplied by a step ABOVE 4096/4096. It is counted
+                            separately from `Advanced` because the first use of a repeated move sits
+                            at index 0 and is x1 by design, so a consumer that read the ladder and
+                            always landed on rung 0 would look identical to no consumer at all — the
+                            unwired-knob shape this project's own memory names. A run with a
+                            Metronome holder attacking twice in a row MUST show all three non-zero. */
+  metroCounterAdvanced: 0,
+  metroCounterReset: 0,
+  metroLadderApplied: 0,
   /* An OHKO move priced through the branch that refuses every accuracy modifier. Zero means the
      branch is unreachable and Gravity is still boosting Fissure — which is exactly the state this
      was added to end, so a zero here is a FAILURE and not an absence of Fissures. 141 corpus uses
@@ -2088,6 +2105,16 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-28 -- MEDI_NO_BERRY_EAT_ANNOUNCE=1 is armed, so a Ripen holder eats in silence.
      MUST READ 0 on any shipping run. */
   berryEatAnnounceBlindRestored: 0,
+  /* WIRE 158, 2026-08-28 -- MEDI_NO_METRONOME_LADDER=1 is armed, so the Metronome ITEM is inert
+     again: the counter is never advanced and `dmgRange` never reads the ladder. This is the exact
+     pre-WIRE-158 engine and it is what the roster row's red demonstration runs against.
+     MUST READ 0 on any shipping run. */
+  metronomeLadderBlindRestored: 0,
+  /* WIRE 158 -- the holder carries `damageMultOnRepeat` and the artifact's `steps4096` is missing,
+     empty, or does not start at the identity 4096. The consumer then applies NOTHING rather than
+     guessing a ladder, because an invented step is a damage number nobody can trace. A non-zero
+     reading means tag_dex stopped deriving the ladder and the item has gone quiet. */
+  metroLadderUnreadable: 0, metroLadderUnreadableFirst: '',
   /* 2026-08-27 -- THE SECOND, STILL-OPEN PRODUCER OF A MISSING `|-hitcount|`. A volley priced as 2+
      packets whose total was rewritten before application (a Focus Sash, an Endure, a busted Disguise)
      collapses to one packet, so `_landed` stays 0 and no count is announced — while the authority
@@ -11332,6 +11359,49 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * engine said 43. It cannot be derived from (att, def) -- the ally is not in this function's
    * arguments -- so it arrives on `hit` and folds in here, where it belongs. */
   if(hit&&hit.allyDamageMult&&+hit.allyDamageMult!==1){MODMUL(+hit.allyDamageMult);MEDSEEN.friendGuardChain++;}
+  /* WIRE 158 -- THE METRONOME ITEM, AND IT IS A MEMBER OF *THIS* CHAIN AND NOT A BASE-POWER STEP.
+   *
+   * `data/items.ts:4022` is `onModifyDamage(damage, source, target, move)` returning
+   * `this.chainModify([dmgMod[numConsecutive], 4096])`, and `data/mods/champions/items.ts` carries NO
+   * metronome key at all -- checked against the mod file, not recalled -- so mainline's handler is
+   * the format's handler unchanged. `data/mods/champions/scripts.ts:293` spends that event as
+   * `runEvent('ModifyDamage', pokemon, target, move, baseDamage)` with `pokemon` the ATTACKER, which
+   * is why this reads the ATTACKER'S item and sits beside Life Orb rather than beside the resist
+   * berries -- those are `onSourceModifyDamage` on the defender.
+   *
+   * ROADMAP #312 SAID `grep FINDS NO CONSUMER`, AND IT ALSO GROUPED THIS ROW WITH HUSTLE AND SAND
+   * FORCE. That grouping is one sentence narrower than it reads: the row's own words are *"Hustle is
+   * diagnosed and deliberately unfixed because it needs the SAME consumer Sand Force does -- base-power
+   * stage plus type plus weather"*. Metronome shares NEITHER stage NOR condition with those two -- it
+   * is a final-damage modifier keyed on a per-body consecutive-use counter -- so it is landed alone
+   * and is attributable alone. Sand Force landed 2026-08-27 on its own for the same reason.
+   *
+   * THE LADDER IS READ OFF THE TAG AND THE INDEX IS CAPPED BY THE TAG'S OWN `cap`. Nothing here types
+   * 4915 or "x1.2 per use": `steps4096` is the authority's array and the steps are NOT evenly spaced,
+   * so a summary would be a second and wrong implementation of the same fact. `denom` is the tag's
+   * too. An unreadable ladder applies NOTHING and is counted -- an invented step is a damage number
+   * with no source, which is the one thing this file may not produce.
+   *
+   * EXACT IN 4096THS, SO THE CHAIN ORDER CANNOT MATTER HERE. Every step divided by 4096 is a dyadic
+   * rational, so `_sdTrunc(m*4096)` returns the step back unchanged and `ch4096` introduces no
+   * rounding of its own -- the same property the chain header records for x1.5 and x2. */
+  if(!NO_METRONOME_LADDER){
+    const _mr=TAGS.param('item',att.item,'damageMultOnRepeat');
+    if(_mr){
+      const _st=Array.isArray(_mr.steps4096)?_mr.steps4096:null;
+      const _dn=+_mr.denom||0;
+      if(!_st||!_st.length||!_dn||+_st[0]!==_dn){
+        MEDFAILS.metroLadderUnreadable++;
+        if(!MEDFAILS.metroLadderUnreadableFirst)
+          MEDFAILS.metroLadderUnreadableFirst=String(att.item)+' '+JSON.stringify(_mr.steps4096)+'/'+_mr.denom;
+      }else{
+        const _cap=Number.isFinite(+_mr.cap)?+_mr.cap:_st.length-1;
+        const _i=Math.max(0,Math.min(_cap,_st.length-1,(att._metroN|0)));
+        const _step=+_st[_i];
+        if(_step>0&&_step!==_dn){MODMUL(_step/_dn);MEDSEEN.metroLadderApplied++;}
+      }
+    }
+  }
   /* THE ROLL, IN SHOWDOWN'S ORDER AND SHOWDOWN'S ARITHMETIC (WIRE 4).
    * `modifyDamage` (sim/battle-actions.ts:1724): randomizer, STAB (modify), type chart (a literal
    * x2 / tr(/2) per step and NOT a modifier), burn (modify 0.5), then the ModifyDamage chain.
@@ -12367,6 +12437,13 @@ const NO_COPYBOOST_LINE=(typeof process!=='undefined'&&process.env&&process.env.
  * "Spicy Spray announces a bare |-immune| at the FIRE ATTACKER..." and touches no board. Any run
  * carrying it also carries a non-zero `MEDFAILS.attackerImmuneLineBlindRestored`. */
 const NO_ATTACKER_IMMUNE_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_ATTACKER_IMMUNE_LINE==='1');
+/* WIRE 158, 2026-08-28 -- MEDI_NO_METRONOME_LADDER=1 PUTS THE INERT METRONOME ITEM BACK, and it is
+ * the WHOLE mechanic rather than half of it: the turn loop stops advancing the consecutive-use
+ * counter AND `dmgRange` stops reading the ladder. Both, because either one alone would leave a
+ * half-live engine that is neither the before-state nor the after-state, and a red demonstration has
+ * to run against the engine that actually shipped. Any run carrying it also carries a non-zero
+ * `MEDFAILS.metronomeLadderBlindRestored`. Same shape as MEDI_NO_ATTACKER_IMMUNE_LINE above. */
+const NO_METRONOME_LADDER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_METRONOME_LADDER==='1');
 /* 2026-08-23 -- MEDI_VOL_START_ARG_BLIND=1 PUTS THE GENERIC VOLATILE START LINE BACK for the one
  * volatile whose field 4 is computed: `-start|BODY|move: disable` instead of
  * `-start|BODY|Disable|<the sealed move>`. It exists so `tests/probe_volatile_start_field.js` can be
@@ -19018,6 +19095,14 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
      `Pokemon.clearVolatile` does (sim/pokemon.ts:1551). Without this a Stomping Tantrum user could
      pivot out, come back three turns later and still be doubling off a flinch it took before it left. */
   out._mvRes=undefined; out._mvResLast=undefined;
+  /* WIRE 158 -- AND THE METRONOME LADDER LEAVES WITH THE BODY, because the counter is not a field on
+     the Pokemon at all in the authority: it is `effectState` on a VOLATILE the item adds in its own
+     `onStart` (data/items.ts:3995-3997), and `Pokemon#clearVolatile` empties the table. A body that
+     pivots out and comes back re-enters, re-adds the volatile, and its `onStart` writes
+     `lastMove = ''` and `numConsecutive = 0` again. Without this line a Metronome holder could bank a
+     five-rung ladder, switch out for three turns and come back still doubling -- the same shape as the
+     Rage Fist and Stomping Tantrum lines above it, and the reason those two are neighbours. */
+  out._metroLast=null; out._metroN=0;
   /* ROADMAP #357 -- AND THE TIMES-HIT LEDGER LEAVES WITH THE BODY, WHICH IS THE CHAMPIONS-SPECIFIC
    * HALF OF RAGE FIST AND THE ONLY PART OF IT THE MOD WROTE ITSELF. Mainline never resets
    * `timesAttacked`; `data/mods/champions/scripts.ts:169` adds `this.timesAttacked = 0;` to
@@ -22631,6 +22716,67 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_ex>0) ppDeduct(m,_ppId,_ex);
         }
       }
+      /* ================= WIRE 158 -- THE METRONOME ITEM'S CONSECUTIVE-USE COUNTER ==================
+       *
+       * ROADMAP #312 and #327 both say the same thing about this item: the tag `damageMultOnRepeat` is
+       * derived and correct and NOTHING READS IT. The multiplier's consumer is in `dmgRange`; this is
+       * the state it reads, and the state is the harder half.
+       *
+       * THE POSITION IS THE MECHANIC, exactly as the `|move|` line below it is. The authority hangs
+       * this on the item's own volatile at `onTryMovePriority: -2` (data/items.ts:4001-4021), and
+       * `onTryMove` runs inside `useMoveInner` -- BELOW `runMove`'s BeforeMove refusals and BELOW
+       * `deductPP`, which is why it sits here and not at the top of the action, and ABOVE
+       * `trySpreadMoveHit`'s `singleEvent('PrepareHit')`, which is why it sits above the shield gate
+       * immediately below. The consequences of that placement are the whole behaviour and each one was
+       * read off the source rather than guessed:
+       *   - a body that is asleep, paralysed, flinched, recharging, Taunted or out of PP never reaches
+       *     `useMoveInner` at all, so its counter is NOT TOUCHED -- not advanced and not reset;
+       *   - a move that MISSES, is refused by an immunity, or is stopped by a Protect DOES reach it,
+       *     because accuracy and Protect are both resolved further down. The chain therefore survives
+       *     a Protect on the turn it happens and is broken on the NEXT one, through
+       *     `moveLastTurnResult`.
+       *
+       * `moveLastTurnResult` IS A TRUTHY TEST HERE AND `=== false` IN STOMPING TANTRUM, AND THE
+       * DIFFERENCE IS THE WHOLE OF ROADMAP #509. That row records that `true` and `null` after a
+       * shielded move are indistinguishable in this repository *because only the Metronome item can
+       * tell them apart*. They are no longer indistinguishable: `_mvResLast === null` (a recharge, a
+       * Protect that was refused, a fresh switch-in) now RESETS this counter where `true` advances it,
+       * so #509 becomes observable on any board with a Metronome holder. Nothing about the split was
+       * changed here -- this consumer reads `_mvResLast` exactly as the field is already written, and
+       * if the field is wrong somewhere then this item is where it will now show.
+       *
+       * A CALLED MOVE IS SKIPPED ENTIRELY, NOT RESET -- `if (move.callsMove) return;` is the second
+       * line of the handler and it returns BEFORE `lastMove` is rewritten, so a Sleep Talk leaves the
+       * chain exactly as it found it and the move it calls updates the chain in its own right. Matched
+       * on the TAG (`callsAnotherMove`), never on a name: membership derived against the format is
+       * `copycat, sleeptalk` -- the move Metronome, Assist, Me First, Mirror Move and Nature Power are
+       * all `isNonstandard: 'Past'` here -- and a move added next regulation arrives with no edit.
+       *
+       * THE ITEM CHECK IS THE AUTHORITY'S FIRST LINE. `if (!pokemon.hasItem('metronome')) {
+       * pokemon.removeVolatile('metronome'); return; }` -- a Knock Off or a Trick takes the ladder AND
+       * the counter with it, and a Metronome acquired mid-battle starts from zero because the item's
+       * `onStart` re-adds a volatile whose `onStart` zeroes both fields. Clearing the two fields is
+       * that, expressed as state. */
+      if(!NO_METRONOME_LADDER){
+        const _mvId=actionMoveId(a);
+        if(_mvId){
+          if(!TAGS.param('item',m.item,'damageMultOnRepeat')){ m._metroLast=null; m._metroN=0; }
+          else if(!TAGS.has('move',_mvId,'callsAnotherMove')){
+            if(m._metroLast===_mvId&&m._mvResLast){ m._metroN=(m._metroN|0)+1; MEDSEEN.metroCounterAdvanced++; }
+            /* THE TWO-TURN BRANCH, and `_charging` is this engine's `twoturnmove`: it is set on the
+             * wind-up and read on the RELEASE turn, which is the turn the authority's volatile is
+             * present for when this handler runs. The authority sets 1 rather than 0 on a DIFFERENT
+             * move id, which is not a typo in its source and is not simplified away here. */
+            else if(m._charging){
+              if(m._metroLast!==_mvId){ m._metroN=1; MEDSEEN.metroCounterAdvanced++; }
+              else { m._metroN=(m._metroN|0)+1; MEDSEEN.metroCounterAdvanced++; }
+            }
+            else { m._metroN=0; MEDSEEN.metroCounterReset++; }
+            m._metroLast=_mvId;
+          }
+        }
+      }
+      else MEDFAILS.metronomeLadderBlindRestored=1;
       /* 2026-08-26 -- THE SHIELD FAMILY'S GATE, AND IT IS BELOW THE `BeforeMove` REFUSALS AND BELOW
        * THE PP DEDUCTION BECAUSE `onPrepareHit` IS.
        *

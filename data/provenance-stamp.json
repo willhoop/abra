@@ -1,9 +1,21 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 175,
+  "mtime_only": 188,
   "mtime_only_files": [
+    "_bench-belownormal.json",
+    "_bench-headline.json",
+    "_bench-headline2.json",
+    "_bench-normal.json",
+    "_bench-order-12-60.json",
+    "_bench-order-20-60.json",
+    "_bench-order-6-60.json",
+    "_bench-repeat.json",
+    "_bench-reverse.json",
+    "_bench-scaling-interleaved.json",
+    "_bench-scaling.json",
     "_r220-census-pin.json",
+    "_scratch-bench-smoke.json",
     "ab-batch-effect.json",
     "ability-blocks.json",
     "abra-meta.js",
@@ -69,6 +81,7 @@
     "mechanics-surface.json",
     "medicham-bench.json",
     "medicham-coverage.json",
+    "medicham-speed.json",
     "mega-dex-official.json",
     "mega-dex.json",
     "mega-formes.js",
@@ -183,8 +196,19 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 4,
+  "verified": 3,
   "graph_files": [
+    "_bench-belownormal.json",
+    "_bench-headline.json",
+    "_bench-headline2.json",
+    "_bench-normal.json",
+    "_bench-order-12-60.json",
+    "_bench-order-20-60.json",
+    "_bench-order-6-60.json",
+    "_bench-repeat.json",
+    "_bench-reverse.json",
+    "_bench-scaling-interleaved.json",
+    "_bench-scaling.json",
     "_dmg-inverted.json",
     "_pair-pilot.json",
     "_r220-census-pin.json",
@@ -192,6 +216,7 @@
     "_r220-gd-pre.json",
     "_r220-void-pair-POST.json",
     "_r220-void-pair-PRE.json",
+    "_scratch-bench-smoke.json",
     "_turncap-cap12.json",
     "_turncap-cap16.json",
     "_turncap-cap30.json",
@@ -287,6 +312,7 @@
     "medicham-bench.json",
     "medicham-coverage.json",
     "medicham-represented-clicks.json",
+    "medicham-speed.json",
     "mega-decision.json",
     "mega-dex-official.json",
     "mega-dex.json",
@@ -950,7 +976,74 @@
       "files": [
         "engine-data-purity.json"
       ]
+    },
+    {
+      "when": "2026-08-28T20:43:35.117Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 DECLARED BY THE ARTIFACT",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 237,
+      "graph_after": 238,
+      "files": [
+        "_scratch-bench-smoke.json"
+      ]
+    },
+    {
+      "when": "2026-08-28T22:50:08.972Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 5 DECLARED BY THE ARTIFACT, 1 path variable",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 238,
+      "graph_after": 244,
+      "files": [
+        "_bench-headline.json",
+        "_bench-headline2.json",
+        "_bench-normal.json",
+        "_bench-repeat.json",
+        "_bench-scaling.json",
+        "medicham-speed.json"
+      ]
+    },
+    {
+      "when": "2026-08-28T23:01:17.351Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 2 DECLARED BY THE ARTIFACT",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 244,
+      "graph_after": 246,
+      "files": [
+        "_bench-order-6-60.json",
+        "_bench-reverse.json"
+      ]
+    },
+    {
+      "when": "2026-08-28T23:02:15.395Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 DECLARED BY THE ARTIFACT",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 246,
+      "graph_after": 247,
+      "files": [
+        "_bench-order-20-60.json"
+      ]
+    },
+    {
+      "when": "2026-08-28T23:09:09.299Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 DECLARED BY THE ARTIFACT",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 247,
+      "graph_after": 248,
+      "files": [
+        "_bench-order-12-60.json"
+      ]
+    },
+    {
+      "when": "2026-08-28T23:34:43.344Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 path variable, 1 DECLARED BY THE ARTIFACT",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 248,
+      "graph_after": 250,
+      "files": [
+        "_bench-belownormal.json",
+        "_bench-scaling-interleaved.json"
+      ]
     }
   ],
-  "generated": "2026-08-28T19:46:33.922Z"
+  "generated": "2026-08-29T01:26:48.903Z"
 }

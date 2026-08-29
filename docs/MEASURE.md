@@ -13,26 +13,177 @@ it does not compete on them.
 
 ```
 MEASURE — can we believe a number
-  leaf calibration: QUARANTINED — the figure is withheld, not annotated.
-    data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / the same game on both engines)
-    it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
-  engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
-    data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / the same game on both engines)
-    it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 188 unsafe, 2 void (declared), 24 possibly stale, 23 ok, 0 missing
-  click censoring: QUARANTINED — the figure is withheld, not annotated.
-    data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / the same game on both engines)
-    it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
-  the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
-  refit edge: CLEAN — no engine input is newer than the weights
+  leaf calibration: WITHHELD — engine/provenance.js calls data/winrate-backtest.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    older than its input engine-data.js
+    (+2 more — node engine/provenance.js)
+    it becomes quotable again when this is re-run: node engine/backtest_winrate.js
+  engine correctness -> leaf: WITHHELD — engine/provenance.js calls data/leaf-engine-contrast.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    older than its input engine-data.js
+    (+9 more — node engine/provenance.js)
+    it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
+  provenance: 190 unsafe, 2 void (declared), 24 possibly stale, 34 ok, 0 missing
+  click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is a963537c91e8 now
+    (+5 more — node engine/provenance.js)
+    it becomes quotable again when this is re-run: node engine/click_census.js
+  REFIT OWED — weights fitted 2026-08-28 15:46
+    feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
+    moved after the fit: engine/medicham2-browser.js  2026-08-28 19:17
 ```
 
-_stamped 2026-08-28 15:46_
+_stamped 2026-08-28 21:11_
 
 <!-- /GENERATED -->
+
+## REPUBLISHING AN ARTIFACT BREAKS EVERY DATED DOCUMENT THAT QUOTED IT, AND THE FIX IS A LABEL, NOT A NEW NUMBER. 2026-08-28.
+
+`tests/test-docs-current.js` went red on two clauses after WIRE 158 landed: six version headers stale
+at the previous CHANGELOG top, and the cited-artifact clause up from its baseline of 65 to 71. Both
+are today's work and both are now green at **23 passed, 0 failed**, with the mismatch count back DOWN
+to 65 and **no entry added to `data/docs-currency-baseline.json`**.
+
+**THE SIX NEW MISMATCHES WERE ALL IN DATED-HISTORY BLOCKS, AND NOT ONE OF THEM WAS A WRONG CLAIM.**
+The census went 780 → 782 and the roster's items stage 139 → 140, so `data/mechanics-census.json` and
+`data/all-mechanics-fire.json` stopped containing values that four documents correctly recorded as
+what those files SAID on an earlier release. Rewriting the figures would have falsified the record;
+`engine/docs_scan.js` already provides the right answer, which is that a block *about* a superseded
+reading is skipped (`QUALIFIED`). So each of those blocks now says so in its own words, and the
+current numbers live in a new version block above them.
+
+**THIS IS A TREADMILL THE FILE ALREADY DIAGNOSED FOR ONE CLAUSE AND NOT THE OTHER.**
+`docs_scan.js`'s `changelogHas()` exists because *"the moment an artifact is republished, every figure
+it used to hold becomes 'in no artifact'"* — a gate that fires no matter what anyone does. That escape
+covers the census clause 3b(c) and does NOT cover the cited-artifact clause 3b(b), which has only the
+`QUALIFIED` prose test. Every future engine change that moves a headline count will therefore re-open
+3b(b) against the blocks that recorded the old one. Labelling is the correct action each time; it is
+worth knowing it is structural rather than carelessness.
+
+**A DEDUPLICATION IN THE CLAUSE HIDES HALF THE WORK.** Its key is `doc|figure|cites`, so two rows in
+`docs/SUMMARY.md` quoting 780 against the same artifact are ONE entry. Fixing the reported line left
+the clause red until the second, unreported line was found by grep. Read the count, then grep the
+document — the printed list is a set, not a census.
+
+## THE GATE NOW PRINTS ITS OWN COVERAGE, AND TWO OF THE FOUR EXAMPLES THAT PROMPTED IT WERE OVERSTATED. 2026-08-28.
+
+Every unpleasant surprise of 2026-08-28 had one shape: **a verdict printed without its coverage**,
+where the number was correct and quietly narrower than it read, and **the scope was already recorded
+somewhere nobody looks** — in a field beside the pass count, in a probe nobody runs, in a clause tail,
+in a per-row `note`. That is a REPORTING defect, not an engine defect, and it is why finishing
+MEDICHAM has felt endless: the verdict is read, the scope is not, and the next person to look
+somewhere new produces another surprise.
+
+**`engine/coverage.js` is the fix, and `engine/status.js` is its only shipping caller.** Every gate
+clause now prints, under its verdict, the AGE of the artifact it was drawn from and what that
+artifact's own denominator EXCLUDES; and a `COVERAGE` block states the finish line as a set of counts
+so *"is MEDICHAM done"* is one command rather than a judgement. Read the numbers from
+`node engine/status.js`; none is repeated here, because a figure typed into prose is the fourteen
+stale handoffs in a new costume.
+
+**THE FINDING THIS DIVISION SHOULD KEEP IS THAT TWO OF THE FOUR MOTIVATING EXAMPLES DID NOT SURVIVE
+BEING CHECKED.** They were given to me as fact and I checked each against the artifact before wiring
+it, which is the only reason the coverage lines are not themselves wrong:
+
+- **"the roster compares multi-hit moves only ever at 2 hits" — REFUTED.** `tests/roster.js`'s own
+  `move/multihit` `why` block already records (2026-08-27) that this sentence was FALSE for nine days.
+  A `[2,5]` move never reaches the pinned range form: `data/mods/champions/scripts.ts:441` draws it
+  with `battle.sample` over a twenty-entry table, `PRNG#sample` is the one-argument `random(n)`, and
+  the arms answer that `top ? n-1 : 0` — so the two arms reach the two ENDS and the INTERIOR is what
+  nothing reaches. **The per-row `note` in `data/roster.moves.json` still prints the refuted
+  sentence**, typed from `e.multihit[0]`; that is an open reporting defect owned by whoever holds
+  `tests/roster.js`, and it is exactly how the wrong claim reached me.
+- **"the damage differential's multi-hit skip is a hidden field" — OVERSTATED.** The raw skip COUNT
+  was already on the differential line in `status.js`. What was genuinely missing is that the skip is
+  a whole FAMILY of moves the volley loop has never run once — derived through the same door the
+  instrument uses to build its skip set, the `multiHit` tag, so the two cannot part.
+
+**THE COVERAGE NUMBER MUST NOT BE THE NEXT INCOMPLETE VERDICT, SO THE MECHANISM IS JUDGED ON WHETHER
+IT FINDS A FIELD NOBODY TOLD IT ABOUT.** Three mechanisms, in decreasing generality: a NAME VOCABULARY
+that reports any non-zero `skipped_*` / `*_dropped` / `did_not_fire` / `unreachable`-shaped field in
+any artifact, with no list of artifacts or fields; an ARITHMETIC RESIDUAL that catches an exclusion
+with **no name at all**, by comparing a population-shaped key to an accounted-shaped key in the same
+object; and DECLARED RANGES, which reports any tag param carrying `range: [lo,hi]` with `hi > lo`.
+Each was shown behaving on a deliberate break before being trusted, **including the negative control
+that proves the stated limitation is real**: an exclusion named `volleysNotRun` is MISSED, because the
+vocabulary cannot match a word nobody used. There is no mechanical defence against that; the partial
+answer is that `node engine/coverage.js --audit` prints the unmatched field names so a reader auditing
+a new instrument sees what exists rather than only what a regex recognised.
+
+**One producer per fact, enforced by import rather than by care.** The leaf split comes from
+`tests/probe_uncompared_leaves.js` — which now exports `derive()` and whose CLI is a renderer over it,
+proved byte-identical before and after — and the tag split moved out of `status.js` into
+`coverage.js`, because two implementations of one fact is the breach that had the closed-row detector
+disagreeing with itself on 24 of 292 rows in both directions.
+
+**And the gate now prints how old each artifact is.** A stage run *without* `--write` prints a
+complete report and exits 0 while its artifact never moves; `data/roster.items.json` published a
+`DEFERRED-BY-OWNER` row that had been fixed hours earlier because of exactly that. The age is read
+from the artifact's own `generated` stamp and never from its mtime — *"newer than its source"* is no
+evidence at all — and the mtime is read for one purpose only: to say out loud when a file changed in
+the last minute, because a torn read is a plausible, well-formed, completely fictitious answer rather
+than an error.
+
+Full account: `docs/_reports/2026-08-28-gate-coverage.md`.
+
+## MEDICHAM SPEED: THE LEAF COSTS 1.14–1.27 s AT n=200, AND I PUBLISHED TWO WRONG CLAIMS BEFORE THAT ONE. 2026-08-28.
+
+Will asked how fast we can play games on MEDICHAM, for rollout budgeting. **Timing only — this makes
+no accuracy claim and does not touch the quarantine.** `data/rollout-cost.json` (R2 leaf cost) was not
+read; every figure was measured fresh under release `5f3f7141227c` with the pool pinned to
+`data/team-pool-frozen`.
+
+**The answer.** `rolloutWinProb` at the shipped `miltank.js` DEFAULTS — n=200, explore=1.0, uniform,
+maxTurns 14 — costs **1,144–1,270 ms per leaf call**, i.e. **157.5–174.8 playouts/sec**, so
+`budgetMs: 20000` buys **16–17 leaf calls per decision on one core**. At `truncation_curve`'s K⁴ cells
+that funds K=2 and not K=3. Whole games to a result (cap 60) run at **148.5–190.1/sec**; the figure
+that generalises is **0.49–0.63 ms per TURN**, flat from cap 10 to cap 60. Full account:
+`docs/_reports/2026-08-28-medicham-speed.md`; artifact `data/medicham-speed.json`, derived from eleven
+run files by `engine/bench_speed_consolidate.js`.
+
+**THE FINDING THIS DIVISION SHOULD KEEP IS NOT THE NUMBER. It is that I got two things wrong first, in
+the two shapes this repository keeps paying for.**
+
+**1. The artifact and the report disagreed, and only a reader comparing them could have noticed.**
+`engine/bench_speed.js` writes one file per run, so the published `data/medicham-speed.json` held ONE
+run while the report quoted the best of several. It reported a 14% slower engine and the *opposite*
+scaling conclusion. Caught in review, not by a gate. The artifact is now DERIVED from every run file
+and carries RANGES with each endpoint attributed to its file and conditions, so the two cannot drift
+again. **One run cannot carry a range, and the range is the honest answer here.**
+
+**2. "MEDICHAM does not scale across processes" was wrong, and the evidence for it was arithmetically
+impossible.** `data/_bench-scaling.json` reads 1w 167.1 → **4w 143.2** → **6w 144.3** aggregate
+playouts/sec. Four processes cannot do less total work than one. Those were collapsed legs and I read
+them as a finding. Re-measured warmed AND with worker counts **interleaved** (`1,2,4,1,2,4`), it scales
+sub-linearly: **1.44x at 2 workers, 2.35x at 4** — while the two 1-worker legs of that same run differ
+by **7.3x**. The consolidator now detects an impossible row mechanically. Confidence stays LOW; plan
+against one worker.
+
+**The instrument has a noise problem and it is now characterised rather than assumed.**
+
+- **Within one arm, steady state, 2.5%** — reps 3–9 of a 10-rep probe. **I quoted that as though it
+  described the spread between RUNS. It does not**; between-run spread is 8–28% for arms that reached
+  steady state and up to 342% for arms that did not.
+- **V8 tier-up is 5.6x over ~4,000 playouts.** The harness warm-up plays ~36. A short run publishes a
+  partly-cold number: cap 20 as a first arm read 42.7/sec against 188.7 elsewhere.
+- **Sporadic collapses to a third or a seventh**, on an idle box, no reproducible trigger. Every figure
+  is fastest-of-N because of this.
+- **Priority is not it.** Like-for-like BelowNormal vs NORMAL: 170.3 vs 170.9 (cap 14), 158.5 vs 151.5
+  (cap 60) — **under 5%, sign flipping.** An earlier "0.4%" quoted only the cap-14 half and was too
+  tight. `tools\lownode.cmd` costs nothing detectable at a ~5% bound.
+- **Part of the spread is unattributed and says so.** Two runs with cap 6 as the first arm read 94.3 and
+  240.1. Two candidate heuristics were tried against the data and both were contradicted.
+
+**Rule for anyone timing this engine: one cap per process, as the first timed arm, at least 6 reps, and
+every condition repeated at least twice in interleaved order.** The sweeps published first violated all
+three.
+
+**One thing worth carrying to ENGINE, not acted on here.** A release does not freeze
+`data/rollout-switch-census.json` — `rollout_leaf.census()` resolves it under `data/releases/<id>/data/`
+and does not find it, so a release-pinned leaf silently falls back to **switchRate 0, horizon 0 and
+cannot switch at all**. That is `engine_release.js requireClosure`'s declared `fs.readFileSync` gap. The
+bench passes the census explicitly; nothing else does.
 
 ## THE DOCUMENTS ARE UNFROZEN AND FIVE GATE CLAUSES WENT BLANK BETWEEN 09:58Z AND 10:06Z. THE CAUSE IS A LINE ENDING. 2026-08-28, CHANGELOG 5.205.0.
 

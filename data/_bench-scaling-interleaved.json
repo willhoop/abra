@@ -1,0 +1,497 @@
+{
+  "generated": "2026-08-28T23:02:37.430Z",
+  "by": "engine/bench_speed.js",
+  "what": "THROUGHPUT ONLY. How fast MEDICHAM plays, for rollout budgeting. Makes no accuracy claim; the simulator is under quarantine for correctness and this file does not lift it.",
+  "engine_release": "5f3f7141227c",
+  "team_store_pinned_to": "data/team-pool-frozen",
+  "node": "v24.15.0",
+  "cores": 16,
+  "priority": "as launched (BelowNormal if via tools/lownode.cmd)",
+  "census": {
+    "switchRate": 0.0998,
+    "maxTurns": 14,
+    "generated": "2026-08-11T01:29:29.102Z",
+    "digest": "b599f8d581b5",
+    "read_from": "data/rollout-switch-census.json (LIVE — it is not one of the release SOURCES)"
+  },
+  "reps": 1,
+  "load_ms": {
+    "release_open": 17.4717,
+    "engine_data": 10.3267,
+    "medicham": 44.8668,
+    "board": 4.9759,
+    "rollout_leaf": 1.3539,
+    "dex": 364.0998,
+    "total_to_engine_ready": 443.9003,
+    "bare_node_start": 52,
+    "team_pool": 109.4467,
+    "game_differential_require": 485.4643
+  },
+  "team_pool_teams": 8778,
+  "pairs_built": 8,
+  "boards_built": 1,
+  "build_failures": {
+    "pair": 0,
+    "board": 0
+  },
+  "leaf_config": {
+    "n": 5,
+    "explore": 1,
+    "foePolicy": "uniform",
+    "source": "engine/miltank.js DEFAULTS (n=200, explore=1.0, foePolicy=uniform, turns=census)"
+  },
+  "arms": {
+    "playout_cap_14": {
+      "fastest_of": 1,
+      "fastest": {
+        "cap": 14,
+        "playouts": 16,
+        "turns": 147,
+        "ms": 125.74,
+        "sim_ms": 124.74,
+        "sim_playouts_per_sec": 128.3,
+        "sim_ms_per_playout": 7.7963,
+        "sim_turns_per_sec": 1178,
+        "sim_ms_per_turn": 0.8486,
+        "build_ms": 0.96,
+        "build_ms_per_playout": 0.0598,
+        "playouts_per_sec": 127.2,
+        "ms_per_playout": 7.8587,
+        "turns_per_sec": 1169,
+        "ms_per_turn": 0.8554,
+        "truncated_pct": 6.3,
+        "reached_a_result_pct": 93.8,
+        "turn_distribution": {
+          "n": 16,
+          "mean": 9.19,
+          "min": 5,
+          "p25": 8,
+          "p50": 9,
+          "p75": 10,
+          "p90": 11,
+          "p99": 14,
+          "max": 14
+        }
+      },
+      "reps": [
+        {
+          "cap": 14,
+          "playouts": 16,
+          "turns": 147,
+          "ms": 125.74,
+          "sim_ms": 124.74,
+          "sim_playouts_per_sec": 128.3,
+          "sim_ms_per_playout": 7.7963,
+          "sim_turns_per_sec": 1178,
+          "sim_ms_per_turn": 0.8486,
+          "build_ms": 0.96,
+          "build_ms_per_playout": 0.0598,
+          "playouts_per_sec": 127.2,
+          "ms_per_playout": 7.8587,
+          "turns_per_sec": 1169,
+          "ms_per_turn": 0.8554,
+          "truncated_pct": 6.3,
+          "reached_a_result_pct": 93.8,
+          "turn_distribution": {
+            "n": 16,
+            "mean": 9.19,
+            "min": 5,
+            "p25": 8,
+            "p50": 9,
+            "p75": 10,
+            "p90": 11,
+            "p99": 14,
+            "max": 14
+          }
+        }
+      ],
+      "sim_playouts_per_sec_spread": {
+        "fastest": 128.3,
+        "slowest": 128.3,
+        "spread_pct": 0,
+        "all": [
+          128.3
+        ]
+      },
+      "sim_ms_per_turn_spread": {
+        "fastest": 0.8486,
+        "slowest": 0.8486,
+        "spread_pct": 0,
+        "all": [
+          0.8486
+        ]
+      }
+    },
+    "leaf_cap_14": {
+      "fastest_of": 1,
+      "fastest": {
+        "cap": 14,
+        "n_per_call": 5,
+        "leaf_calls": 1,
+        "unbuildable_boards": 0,
+        "playouts": 5,
+        "turns": 52,
+        "ms": 42.79,
+        "ms_per_leaf_call": 42.79,
+        "leaf_calls_per_sec": 23.37,
+        "ms_per_playout": 8.5575,
+        "playouts_per_sec": 116.9,
+        "ms_per_turn": 0.8228,
+        "mean_turns_per_playout": 10.4,
+        "truncated": 2,
+        "truncated_pct": 40,
+        "mean_turns_per_call": [
+          10.4
+        ]
+      },
+      "reps": [
+        {
+          "cap": 14,
+          "n_per_call": 5,
+          "leaf_calls": 1,
+          "unbuildable_boards": 0,
+          "playouts": 5,
+          "turns": 52,
+          "ms": 42.79,
+          "ms_per_leaf_call": 42.79,
+          "leaf_calls_per_sec": 23.37,
+          "ms_per_playout": 8.5575,
+          "playouts_per_sec": 116.9,
+          "ms_per_turn": 0.8228,
+          "mean_turns_per_playout": 10.4,
+          "truncated": 2,
+          "truncated_pct": 40,
+          "mean_turns_per_call": [
+            10.4
+          ]
+        }
+      ],
+      "playouts_per_sec_spread": {
+        "fastest": 116.9,
+        "slowest": 116.9,
+        "spread_pct": 0,
+        "all": [
+          116.9
+        ]
+      },
+      "ms_per_leaf_call_spread": {
+        "fastest": 42.79,
+        "slowest": 42.79,
+        "spread_pct": 0,
+        "all": [
+          42.79
+        ]
+      }
+    },
+    "scaling": [
+      {
+        "workers": 1,
+        "wall_ms": 143226,
+        "playouts": 3000,
+        "aggregate_playouts_per_sec_including_startup": 20.9,
+        "aggregate_playouts_per_sec_excluding_startup": 191.6,
+        "per_worker_playouts_per_sec": 191.6,
+        "scaling_efficiency_vs_1": 1,
+        "errors": 0,
+        "legs": [
+          {
+            "wall_ms": 143226.0283,
+            "rs": [
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 15660.44,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 191.6,
+                "sim_playouts_per_sec": 193.1,
+                "sim_ms_per_turn": 0.4904,
+                "turns_per_sec": 2023
+              }
+            ],
+            "workers": 1
+          }
+        ]
+      },
+      {
+        "workers": 2,
+        "wall_ms": 50676,
+        "playouts": 6000,
+        "aggregate_playouts_per_sec_including_startup": 118.4,
+        "aggregate_playouts_per_sec_excluding_startup": 276.7,
+        "per_worker_playouts_per_sec": 138.3,
+        "scaling_efficiency_vs_1": 0.722,
+        "errors": 0,
+        "legs": [
+          {
+            "wall_ms": 50676.1011,
+            "rs": [
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 21712.39,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 138.2,
+                "sim_playouts_per_sec": 139.3,
+                "sim_ms_per_turn": 0.6798,
+                "turns_per_sec": 1459
+              },
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 21657.93,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 138.5,
+                "sim_playouts_per_sec": 139.6,
+                "sim_ms_per_turn": 0.6781,
+                "turns_per_sec": 1463
+              }
+            ],
+            "workers": 2
+          }
+        ]
+      },
+      {
+        "workers": 4,
+        "wall_ms": 181589,
+        "playouts": 12000,
+        "aggregate_playouts_per_sec_including_startup": 66.1,
+        "aggregate_playouts_per_sec_excluding_startup": 449.7,
+        "per_worker_playouts_per_sec": 112.4,
+        "scaling_efficiency_vs_1": 0.587,
+        "errors": 0,
+        "legs": [
+          {
+            "wall_ms": 181588.5983,
+            "rs": [
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 26390.24,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 113.7,
+                "sim_playouts_per_sec": 114.7,
+                "sim_ms_per_turn": 0.8258,
+                "turns_per_sec": 1201
+              },
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 26543.34,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 113,
+                "sim_playouts_per_sec": 114,
+                "sim_ms_per_turn": 0.8306,
+                "turns_per_sec": 1194
+              },
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 26823.41,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 111.8,
+                "sim_playouts_per_sec": 112.8,
+                "sim_ms_per_turn": 0.8394,
+                "turns_per_sec": 1181
+              },
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 26969.07,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 111.2,
+                "sim_playouts_per_sec": 112.2,
+                "sim_ms_per_turn": 0.8442,
+                "turns_per_sec": 1175
+              }
+            ],
+            "workers": 4
+          }
+        ]
+      },
+      {
+        "workers": 1,
+        "wall_ms": 147683,
+        "playouts": 3000,
+        "aggregate_playouts_per_sec_including_startup": 20.3,
+        "aggregate_playouts_per_sec_excluding_startup": 26.2,
+        "per_worker_playouts_per_sec": 26.2,
+        "scaling_efficiency_vs_1": 0.137,
+        "errors": 0,
+        "legs": [
+          {
+            "wall_ms": 147682.6327,
+            "rs": [
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 114672.42,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 26.2,
+                "sim_playouts_per_sec": 26.3,
+                "sim_ms_per_turn": 3.5953,
+                "turns_per_sec": 276
+              }
+            ],
+            "workers": 1
+          }
+        ]
+      },
+      {
+        "workers": 2,
+        "wall_ms": 55522,
+        "playouts": 6000,
+        "aggregate_playouts_per_sec_including_startup": 108.1,
+        "aggregate_playouts_per_sec_excluding_startup": 271.2,
+        "per_worker_playouts_per_sec": 135.6,
+        "scaling_efficiency_vs_1": 0.708,
+        "errors": 0,
+        "legs": [
+          {
+            "wall_ms": 55522.4622,
+            "rs": [
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 22031.02,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 136.2,
+                "sim_playouts_per_sec": 137.3,
+                "sim_ms_per_turn": 0.6896,
+                "turns_per_sec": 1438
+              },
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 22214.78,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 135,
+                "sim_playouts_per_sec": 136.2,
+                "sim_ms_per_turn": 0.6954,
+                "turns_per_sec": 1426
+              }
+            ],
+            "workers": 2
+          }
+        ]
+      },
+      {
+        "workers": 4,
+        "wall_ms": 216191,
+        "playouts": 12000,
+        "aggregate_playouts_per_sec_including_startup": 55.5,
+        "aggregate_playouts_per_sec_excluding_startup": 288.8,
+        "per_worker_playouts_per_sec": 72.2,
+        "scaling_efficiency_vs_1": 0.377,
+        "errors": 0,
+        "legs": [
+          {
+            "wall_ms": 216190.8606,
+            "rs": [
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 40879.74,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 73.4,
+                "sim_playouts_per_sec": 74,
+                "sim_ms_per_turn": 1.2799,
+                "turns_per_sec": 775
+              },
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 41774.7,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 71.8,
+                "sim_playouts_per_sec": 72.4,
+                "sim_ms_per_turn": 1.308,
+                "turns_per_sec": 758
+              },
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 42216.05,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 71.1,
+                "sim_playouts_per_sec": 71.6,
+                "sim_ms_per_turn": 1.3219,
+                "turns_per_sec": 751
+              },
+              {
+                "playouts": 3000,
+                "turns": 31685,
+                "ms": 41404.66,
+                "cap": 14,
+                "warmed": 4000,
+                "playouts_per_sec": 72.5,
+                "sim_playouts_per_sec": 73,
+                "sim_ms_per_turn": 1.2965,
+                "turns_per_sec": 765
+              }
+            ],
+            "workers": 4
+          }
+        ]
+      }
+    ]
+  },
+  "warmup_ms": 1158,
+  "seeding_overhead": {
+    "cap": 14,
+    "ms_per_playout_leaf": 8.5575,
+    "ms_per_playout_bare": 7.7963,
+    "ms_per_playout_seeding": 0.7612,
+    "pct_of_leaf": 8.9,
+    "what": "buildSide x2 + field/side-state seeding, paid once per SAMPLE. Fixed in the horizon: it does not shrink when the cap does, so it dominates a short rollout."
+  },
+  "thinking_budget": [
+    {
+      "budget_ms": 1000,
+      "playouts": 117,
+      "leaf_calls_at_n200": 0.6,
+      "cap": 14,
+      "single_process": true
+    },
+    {
+      "budget_ms": 3000,
+      "playouts": 351,
+      "leaf_calls_at_n200": 1.8,
+      "cap": 14,
+      "single_process": true
+    },
+    {
+      "budget_ms": 5000,
+      "playouts": 585,
+      "leaf_calls_at_n200": 2.9,
+      "cap": 14,
+      "single_process": true
+    },
+    {
+      "budget_ms": 15000,
+      "playouts": 1754,
+      "leaf_calls_at_n200": 8.8,
+      "cap": 14,
+      "single_process": true
+    },
+    {
+      "budget_ms": 20000,
+      "playouts": 2338,
+      "leaf_calls_at_n200": 11.7,
+      "cap": 14,
+      "single_process": true
+    }
+  ]
+}
