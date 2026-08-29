@@ -1,6 +1,13 @@
 # ABRA — the model family (living reference)
 
-**Version 5.212.0 · Last updated 2026-08-29.**
+**Version 5.213.0 · Last updated 2026-08-29.**
+
+**5.213.0 — NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON GAINED A WEIGHT THAT
+FOLLOWS THE FORME.** `medicham2` stamped a body's weight once, at build time, and never rewrote it, so
+Low Kick, Grass Knot, Heavy Slam and Heat Crash were priced off the pre-mega body. The
+`empirical-click/v1` arm falls from **117 to 114 games whose board diverged of 961** and the census
+rises from **784 to 786 live**. Every quarantined model figure in this ledger stays quarantined; this
+is one more reason a pre-quarantine number may not be quoted.
 
 **5.212.0 — NO MODEL CHANGED. ONE OF THE TWO DRIVER-ARM FIGURES THIS LEDGER QUOTES DID.**
 `empirical-click/v1` now reaches **48.4%** of its games and finds **117** whose board diverged, up from

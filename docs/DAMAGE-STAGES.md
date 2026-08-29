@@ -1,6 +1,18 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.212.0 — 2026-08-29.**
+**Version: 5.213.0 — 2026-08-29.**
+
+**5.213.0 — THE GRASS KNOT AND HEAVY SLAM ROWS THE STANZA BELOW CALLED "THE SHARPEST OPEN
+DAMAGE QUESTION IN THIS DOCUMENT" ARE CLOSED, AND NO STAGE MOVED.** Neither was a stage and neither
+was a roll: base power is computed ABOVE the stage table, and this engine held the body's weight as a
+build-time constant while the authority rewrites it at every forme change (`Pokemon#setSpecies`,
+`sim/pokemon.ts:1402`). A mega evolution was therefore priced off the body that left the field
+— Grass Knot into a Staraptor-Mega read the base forme's 24.9 kg (bracket `>=10`, BP 40)
+where the authority read 50 kg (bracket `>=50`, BP 80), and Heavy Slam by a Steelix-Mega read a
+400/120 ratio (BP 80) where the authority read 740/120 (BP 120). Predicted damage ratios 0.500 and
+0.667 against observed 0.478 and 0.677. **The remaining two weight cards ARE roll residue** (Low Kick
+0.947, Heat Crash 1.126) and are correctly not a stage question either. The 6,000-comparison damage
+differential is unmoved at 0 disagreements at both endpoints, seed 20260804. Full account: `docs/_reports/2026-08-29-weight-base-power.md`.
 
 **5.212.0 — NO DAMAGE STAGE MOVED, AND THE POPULATION THE `-damage field 3` CARDS WERE COUNTED IN
 DID.** The whole-game differential's forced-switch mirror was stopping 42 of 961 empirical-arm games

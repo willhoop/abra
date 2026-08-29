@@ -1524,6 +1524,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #213 -- a weight actually modified by Heavy Metal or Light Metal (`modifiesWeight`).
      Zero unless a weight-reading move meets one of the three carriers in this format. */
   weightModified: 0,
+  /* 2026-08-29 -- a weight READ OFF THE FORME STANDING ON THE FIELD that differs from the one the
+     body was BUILT with. Non-zero exactly when a mega evolution, a forme swap or a transform has
+     moved the body's species since `buildMon` stamped `wt`. Zero on a board with no forme change. */
+  weightFollowedForme: 0,
   /* ROADMAP #213 -- a status refused by a WEATHER-gated immunity (`statusImmune.inWeather`; Leaf
      Guard is the only member). Zero unless the sun is up over one of its three carriers. */
   statusRefusedByWeather: 0,
@@ -2090,6 +2094,21 @@ const MEDFAILS = { encoreAction: 0,
      NO user-latch gate is enforced. That is the pre-change behaviour and it is announced rather than
      assumed: a silent empty set and a correctly-empty one produce the identical board. */
   latchSourceUnreadable: 0, latchSourceUnreadableWhy: '',
+  /* 2026-08-29 -- THE FORME STANDING ON THE FIELD HAS A ROW IN data/engine-data.js AND THAT ROW
+     CARRIES NO `wt`. Ten rows are in that state today (victreebel-mega, feraligatr-mega,
+     skarmory-mega, barbaracle-mega, falinks-mega, aegislash-blade, the three Gourgeist sizes and
+     palafin-hero), so a weight-read move against one of them is priced off a FALLBACK weight -- the
+     base forme's row where there is one, and the build-time stamp otherwise. Both are wrong numbers
+     and neither may be silent, which is why this is a MEDFAILS and not a MEDSEEN. Fixing it is a
+     write to data/engine-data.js, which ENGINE does not own. */
+  weightRowNoValue: 0, weightRowNoValueFirst: '',
+  /* 2026-08-29 -- the forme standing on the field has NO ROW AT ALL (the `formeRenamedNoRow` family:
+     Morpeko-Hangry, Mimikyu-Busted and the other same-stats/same-types renames). The build-time
+     stamp is used, which is right whenever the two formes really do weigh the same and is a claim
+     this engine cannot check -- so it is counted. */
+  weightNoRow: 0, weightNoRowFirst: '',
+  /* 2026-08-29 -- `MEDI_WEIGHT_STATIC=1` is loaded: the weight is the build-time stamp again. */
+  weightStaticRestored: 0,
   /* ROADMAP #514 -- `failsWithoutUserLatch` named a latch field this file has no writer for, so the
      gate was SKIPPED rather than refusing the move for ever off an `undefined`. A silent default here
      is indistinguishable from a working gate, which is why it is a failure counter and not a comment.
@@ -6542,7 +6561,59 @@ function abilityRefusesItemLoss(m,by){
  * Scizor would round differently from the authority's 1180 hg.
  *
  * A body with no weight row returns null unchanged, so a caller that already guards on `m.wt` keeps
- * exactly its old behaviour. */
+ * exactly its old behaviour.
+ *
+ * ---- 2026-08-29 -- AND THE FIRST SENTENCE OF THAT HEADER WAS FALSE. WEIGHT IS NOT A CONSTANT. -----
+ *
+ * `m.wt` is stamped by `buildMon` off the row it built from and NOTHING ever rewrote it. The
+ * authority rewrites it on every identity change, in the one function every identity change goes
+ * through: `Pokemon#setSpecies` is `this.weighthg = species.weighthg` (sim/pokemon.ts:1402), and
+ * `formeChange` -> `setSpecies` (Champions' override, data/mods/champions/scripts.ts:57-60) is the
+ * door a MEGA EVOLUTION, a Stance Change and a Palafin flip all use. `transformInto` writes it too
+ * (`this.weighthg = pokemon.weighthg`, :1298) and `clearVolatile`'s closing `setSpecies(baseSpecies)`
+ * (:176 of the same override) puts it back.
+ *
+ * SO A MEGA WAS PRICED OFF THE BODY THAT LEFT THE FIELD, and it is board-material in real games:
+ *   Grass Knot into a Staraptor that megaed this turn -- 50 kg (bracket >=50, BP 80) read as the base
+ *   forme's 24.9 kg (bracket >=10, BP 40). The authority dealt 23; we dealt 11.
+ *   Heavy Slam by a Steelix-Mega into a Kingambit -- 740/120 = 6.17 (BP 120) read as 400/120 = 3.33
+ *   (BP 80). The authority dealt 62; we dealt 42.
+ * Both from `data/verification/divergence-turns.empirical.json` (cards 28 and 10), and both are
+ * bracket steps rather than roll residue -- a pair of rolls off one base cannot part by more than
+ * 0.85..1.177x and these part by 0.478 and 0.677.
+ *
+ * IT IS WRITTEN AT THE DOOR, WHERE THE AUTHORITY WRITES IT, AND NOT AT THE READER. Reading the row
+ * for the forme standing there would be one line and would be WRONG: `m.wt` is a real per-body field
+ * in the authority too (`this.weighthg`), a caller is entitled to set it, and the census already has
+ * a probe that does exactly that -- `weightBased` puts 5 kg and then 400 kg on one Garchomp so that
+ * weight is the only thing moving. A reader that went behind that field would silently discard the
+ * override and turn a working probe green-for-the-wrong-reason. So every door that changes the
+ * body's SPECIES calls `weightFollowsForme`, exactly as every authority door goes through
+ * `setSpecies`: `megaEvolveNow`, `formeSwap`, the Forecast rename and its switch-out revert,
+ * `revertMegas`, and the two `formeRenamedNoRow` branches. Transform is the one door that already
+ * kept `wt` in step (`m.wt=t.wt`) and is left alone.
+ *
+ * `MEDI_WEIGHT_STATIC=1` makes every one of those doors leave the stamp where it was, which is the
+ * engine as it stood before this change and is how the census row is shown red. */
+function weightFollowsForme(m){
+  if(!m||!m.name)return;
+  if(WEIGHT_STATIC){ MEDFAILS.weightStaticRestored=1; return; }
+  const row=monRow(m.name);
+  if(row&&row.wt){
+    if(m.wt!==row.wt){ m.wt=row.wt; MEDSEEN.weightFollowedForme++; }
+    return;
+  }
+  /* THE STAMP IS NOW KNOWN STALE AND THERE IS NOTHING TO REPLACE IT WITH. Both outcomes are counted,
+     because a silent one does not look like a missing feature -- it looks like a weight move that
+     works, priced off the body that left the field. */
+  if(row){
+    MEDFAILS.weightRowNoValue++;
+    if(!MEDFAILS.weightRowNoValueFirst)MEDFAILS.weightRowNoValueFirst=String(m.name);
+  }else{
+    MEDFAILS.weightNoRow++;
+    if(!MEDFAILS.weightNoRowFirst)MEDFAILS.weightNoRowFirst=String(m.name);
+  }
+}
 /* ---- ROADMAP #218 -- THE ORDER THE END-OF-TURN RESIDUALS RUN IN, ASKED ONCE ---------------------
  *
  * Showdown resolves BOTH end-of-turn passes in speed order. The weather chip is
@@ -6726,6 +6797,12 @@ const residualExpiryDeferred = () => [...RESIDUAL_EXPIRY.entries()]
 const ENDTURN_CLOCKS_AT_FOOT = (typeof process !== 'undefined' && process.env
   && process.env.MEDI_ENDTURN_CLOCKS_AT_FOOT === '1');
 if (ENDTURN_CLOCKS_AT_FOOT) MEDFAILS.endturnClocksAtFoot = 1;
+/* 2026-08-29 -- `MEDI_WEIGHT_STATIC=1` reads the weight back off the BUILD-TIME stamp, which is what
+ * this engine did until the forme fix in `speciesWeight` above. It reverts ONE read, so a probe can
+ * attribute a parting to the weight and not to the mega's stat line, and it stamps
+ * `MEDFAILS.weightStaticRestored` on the first read so a run under it cannot be read as a clean one. */
+const WEIGHT_STATIC = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_WEIGHT_STATIC === '1');
 /* 2026-08-27 -- `MEDI_MEGA_TRACE_LATE=1` puts the mega door's Trace copy back where it was: out of
  * `megaEvolveNow` entirely, left to the next `traceSweep` boundary, where the copied ability's entry
  * effect never runs. It reverts ONE call so a probe can attribute a parting to that call rather than
@@ -10076,8 +10153,15 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
      * reason this is `effWeight` rather than a multiplier written into each branch: Low Kick reads the
      * TARGET's weight off a bracket table and Heat Crash reads the RATIO of both, so a second copy of
      * "how heavy is this body" would have to be kept in step forever. Same shape as `effSpeed`. */
-    if(_vp.kind==='targetWeightKg'&&def.wt){const _w=effWeight(def);for(const _b of _vp.brackets){if(_w>=_b[0]){mvBP=_b[1];break;}}}
-    else if(_vp.kind==='weightRatio'&&att.wt&&def.wt){const _r=effWeight(att)/effWeight(def);for(const _b of _vp.brackets){if(_r>=_b[0]){mvBP=_b[1];break;}}}
+    /* 2026-08-29 -- THE GUARD ASKS `effWeight`, NOT THE BUILD-TIME STAMP. It used to read `def.wt`
+     * and `att.wt` directly, which is the same field the fix above stopped trusting: a body whose
+     * CURRENT forme has a weight and whose build-time stamp is null would have been skipped here and
+     * priced at base power 0 -- the `hasPower` gate admits the move and this branch is the only thing
+     * that gives it a number. */
+    if(_vp.kind==='targetWeightKg'){const _w=effWeight(def);
+      if(_w)for(const _b of _vp.brackets){if(_w>=_b[0]){mvBP=_b[1];break;}}}
+    else if(_vp.kind==='weightRatio'){const _wa=effWeight(att),_wd=effWeight(def);
+      if(_wa&&_wd){const _r=_wa/_wd;for(const _b of _vp.brackets){if(_r>=_b[0]){mvBP=_b[1];break;}}}}
     else if(_vp.kind==='userHPFrac'&&att.st&&att.curHP!=null)mvBP=Math.max(1,Math.floor(mvBP*att.curHP/att.st.hp));
     else if(_vp.kind==='targetStatused'&&def.status)mvBP=mvBP*_vp.mult;
     /* ROADMAP #462 -- `itemOn`, NOT THE SLOT. The authority's callback is
@@ -17219,6 +17303,11 @@ function megaEvolveNow(S,m,auto){
    * residue. */
   const apparent=m._ident||megaIntoTable().rev[key]||m.name;
   m.name=key;
+  /* 2026-08-29 -- and the WEIGHT follows the forme, for the same reason the types and `_bsAtk` two
+     lines down do: Low Kick and Grass Knot read the target's, Heavy Slam and Heat Crash read the
+     ratio of both, and the authority rewrites `weighthg` inside the `setSpecies` this door is the
+     engine's copy of. See weightFollowsForme's header. */
+  weightFollowsForme(m);
   if(megRow&&megRow.t&&megRow.t.length)m.types=megRow.t.slice();
   if(megRow&&megRow.bs&&megRow.bs.atk)m._bsAtk=megRow.bs.atk;                 // WIRE 83, Beat Up
   if(TR){TR.detailschange(m);TR.mega(m,apparent,m.item);}
@@ -17515,6 +17604,8 @@ function formeSwap(mon,becomes,why){
   const frac=mon.curHP/mon.st.hp;
   const sameHP=_st.hp===mon.st.hp;
   mon.name=nu.name; mon.types=nu.types; mon.st=_st;
+  /* 2026-08-29 -- and so does the WEIGHT, on the same rule and for the same reason. */
+  weightFollowsForme(mon);
   /* WIRE 83's field follows the species standing on the field, for the same reason the stats do:
    * Beat Up asks the BASE Attack of the body throwing the punch. */
   {const _nr=monRow(key); if(_nr&&_nr.bs&&_nr.bs.atk)mon._bsAtk=_nr.bs.atk;}
@@ -17816,7 +17907,7 @@ function syncWeatherFormes(field,bodies){
      * before 2026-08-26, which is how the census row above it is shown red on demand. */
     if(forme&&!FORECAST_NAME_BLIND){
       const nk=pasteKey(forme);
-      if(nk){ if(m.name!==nk){ m.name=nk; MEDSEEN.weatherRenamed++; } }
+      if(nk){ if(m.name!==nk){ m.name=nk; weightFollowsForme(m); MEDSEEN.weatherRenamed++; } }
       else { MEDFAILS.formeWeatherNoRow++;
              if(!MEDFAILS.formeWeatherNoRowFirst)MEDFAILS.formeWeatherNoRowFirst=String(forme); }
     } else MEDFAILS.formeWeatherNameUnchanged++;
@@ -19047,7 +19138,7 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
      if((out.types||[]).join('/')!==fw.revertsToTypes.join('/')){
        out.types=fw.revertsToTypes.slice(); MEDSEEN.weatherFormeReverted++; }
      const bk=fw.revertsTo?pasteKey(fw.revertsTo):null;
-     if(bk&&out.name!==bk&&!FORECAST_NAME_BLIND)out.name=bk;
+     if(bk&&out.name!==bk&&!FORECAST_NAME_BLIND){out.name=bk; weightFollowsForme(out);}
    }}
   /* THE STATE ADDED BY WIRES 42-54 LEAVES WITH THE BODY, and each of these is a volatile in the real
      game: the substitute is gone, Throat Chop's silence ends, the Gigaton Hammer lockout ends, the
@@ -19412,7 +19503,7 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * however many `extra event emitted by medicham2` ones, which is not a fix. */
   if(out._formeTempBase!=null&&out.name!==out._formeTempBase){
     if(out._formeTempHow==='swap')formeSwap(out,out._formeTempBaseName||out._formeTempBase,'switchOutFormeRevert');
-    else out.name=out._formeTempBase;
+    else { out.name=out._formeTempBase; weightFollowsForme(out); }
     MEDSEEN.formeTempReverted++;
   }
   {const _row=monRow(out.name);
@@ -19501,6 +19592,7 @@ function oneMegaPerSide(team){
     if(!b) continue;
     const frac=(m.st&&m.st.hp)?m.curHP/m.st.hp:1;
     m.name=b.name; m.types=b.types; m.st=b.st; m.ability=b.ability;
+    weightFollowsForme(m);
     m.curHP=Math.max(1,Math.round(b.st.hp*frac));
   }
   return team;
@@ -29455,6 +29547,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                * a rename this engine cannot verify against a row is a claim, and a claim that carries
                * traffic should be readable. */
                 tg.name=_key||String(_fh.becomes).toLowerCase().replace(/[^a-z0-9]/g,'-');
+                weightFollowsForme(tg);
                 MEDSEEN.formeRenamedNoRow++;
                 if(TR)TR.detailschange(tg);
               } else {
@@ -33015,6 +33108,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             * the flip IS a rename and rebuilding is the wrong operation even where a row exists. */
            if(_fc.sameStats&&_fc.sameTypes){
              m.name=_to;
+             weightFollowsForme(m);
              MEDSEEN.formeRenamedNoRow++;
              MEDSEEN.formeCycled++;
              /* the RENAME branch of the same temporary flip -- see formeSwap's note. */

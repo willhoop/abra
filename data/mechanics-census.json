@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T06:00:48.145Z",
+  "generated": "2026-08-29T06:34:30.442Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 784,
-  "live": 784,
+  "probed": 786,
+  "live": 786,
   "missing": 0,
-  "armed": 784,
+  "armed": 786,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -914,6 +914,26 @@
       "label": "Grass Knot scales with target weight",
       "live": true,
       "detail": "same Garchomp, only its weight moves -- 5 kg takes 22, 400 kg takes 133",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "variablePower",
+      "label": "a MEGA EVOLUTION moves the TARGET weight the brackets are read from",
+      "live": true,
+      "detail": "the weight move / fixed-power control ratio, before and after the TARGET megas — Pidgeot 39.5->50.5 kg (>=25 to >=50) steps 32.0%; Sableye 11->161 kg (>=10 to >=100) steps 152.3%; Steelix 400->740 kg CROSSES NO BRACKET and must not step, -4.1%. Raw [weight,control] damage: Pidgeot 79,99,99,94, Sableye 39,87,69,61, Steelix 138,86,120,78",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "variablePower",
+      "label": "a MEGA EVOLUTION moves the USER weight the Heavy Slam ratio is read from",
+      "live": true,
+      "detail": "Heavy Slam / Iron Head ratio, before and after the USER megas from 400 to 740 kg — into a Tyranitar (ratio 1.98 to 3.66, BP 40 to 80) steps 94.1%; into a Kingambit (3.33 to 6.17, BP 80 to 120) steps 51.4%; into a Whimsicott the ratio is already in the TOP bracket both times, so it must not step, -1.6%. Raw [hs,ih] before and after: Tyranitar 68,132,158,158, Kingambit 30,30,56,37, Whimsicott 240,158,296,198",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3753,7 +3773,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 27.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

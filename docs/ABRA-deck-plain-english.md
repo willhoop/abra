@@ -1,6 +1,23 @@
 # ABRA — the plain-English deck
 
-**Version 5.212.0 · 2026-08-29 · Will Hooper**
+**Version 5.213.0 · 2026-08-29 · Will Hooper**
+
+**5.213.0 — OUR SIMULATOR FORGOT THAT A POKEMON GETS HEAVIER WHEN IT MEGA-EVOLVES.**
+
+Four moves in this format hit harder the heavier something is. Our simulator wrote down how much each
+Pokemon weighed when the battle was set up, and then never changed it. The real game does change it
+— a Pokemon that mega-evolves is a different Pokemon, with a different weight. So we
+were still using the old weight, and those four moves came out at the wrong power.
+
+The clearest example: Grass Knot into a Staraptor that had just mega-evolved. The real game deals 23.
+We dealt 11 — less than half — because we were still weighing the
+Pokemon it used to be. Two Pokemon of that weight fall into two different power brackets, and we were
+reading the wrong one.
+
+We fixed it in the same place the real game does: whenever a Pokemon changes into a different form,
+its weight changes with it. Games where our simulator and the official one end up with a different
+board fell from 117 to 114 out of 961, and our test suite went from 784 to 786 checked mechanics with
+none missing.
 
 **5.212.0 — WE WERE MARKING GAMES AS "THE TWO ENGINES DISAGREED" WHEN THE ONLY DISAGREEMENT WAS OUR
 OWN TEST RIG.**

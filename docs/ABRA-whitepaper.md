@@ -1,6 +1,22 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.212.0 · Last updated 2026-08-29**
+**Version 5.213.0 · Last updated 2026-08-29**
+
+**5.213.0 — A BODY'S MASS WAS A BUILD-TIME CONSTANT, AND FOUR MOVES IN THIS FORMAT
+COMPUTE THEIR BASE POWER FROM IT.** Two moves read the target's mass off a bracket table and two read
+the ratio of user to target; the reference simulator recomputes the field on every identity change,
+in the single function all of them pass through (`Pokemon#setSpecies`, `sim/pokemon.ts:1402`, reached
+by the Champions `formeChange` override). `medicham2` stamped the field once, when the body was built,
+so a mega evolution left it holding the base forme's mass. The defect is a BRACKET STEP rather than a
+rounding error and is separable from a damage roll on that ground alone: two rolls of one base power
+can differ by at most a factor of 1.177, and the two hand-verified cases differ by 0.478 and 0.677,
+each matching the predicted bracket ratio (0.500 and 0.667) to within one roll. The correction is
+applied at the seven doors that change a body's species rather than at the reader, because the
+per-body field is legitimately writable by a caller and one of this project's own probes writes it.
+On identical pins — same driver policy, same team pool, same census pin, same turn cap
+— the count of games whose board diverges falls from **117 to 114 of 961**, and the
+mechanics census rises from **784 to 786 live probes with none missing**. The 6,000-comparison damage
+differential is unchanged at zero disagreements at both ends of the roll.
 
 **5.212.0 — A HARNESS STOP WAS COUNTING AS A DIVERGED BOARD, AND THE EMPIRICAL ARM'S DENOMINATOR
 MOVES FROM 135 TO 117.** No engine behaviour changed and no result about the simulator is retracted;

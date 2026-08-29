@@ -1,6 +1,23 @@
 # ABRA — Technical Documentation
 
-**Version 5.212.0 · Last updated 2026-08-29**
+**Version 5.213.0 · Last updated 2026-08-29**
+
+**5.213.0 — A BODY'S WEIGHT FOLLOWS ITS SPECIES.**
+`engine/medicham2-browser.js` keeps the weight of each body in the field `wt`. Before this change,
+`buildMon` set `wt` one time and no other function changed it.
+- Four moves in this format read a weight. Low Kick and Grass Knot read the weight of the target.
+  Heavy Slam and Heat Crash read the ratio of the weight of the user to the weight of the target.
+- The reference simulator sets the weight again each time the species of a body changes. It does this
+  in `Pokemon#setSpecies` (`sim/pokemon.ts`, line 1402).
+- A mega evolution changes the species. `medicham2` did not set the weight again, so it used the
+  weight of the base form.
+- The function `weightFollowsForme` now sets the weight again. Seven functions call it. These are the
+  functions that change the species of a body.
+- If the data row for the new form has no weight, the engine uses the weight of the base form and
+  increases the counter `MEDFAILS.weightRowNoValue`. If there is no data row, the engine keeps the
+  weight it has and increases the counter `MEDFAILS.weightNoRow`.
+- Set `MEDI_WEIGHT_STATIC=1` to get the previous behaviour. The engine then sets the counter
+  `MEDFAILS.weightStaticRestored`.
 
 **5.212.0 — THE FORCED-SWITCH MIRROR READS THE ORDERED OCCUPANCY OF A SLOT.**
 `engine/game_differential.js` gives the reference simulator the replacement that `medicham2` chose.

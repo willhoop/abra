@@ -10,6 +10,78 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.213.0] — 2026-08-29
+
+### Fixed
+- **WEIGHT WAS A BUILD-TIME CONSTANT, SO A MEGA EVOLUTION WAS PRICED OFF THE BODY THAT LEFT THE
+  FIELD — CARD B1, BOTH WEIGHT FAMILIES.** Four legal moves in Reg M-B read a weight, derived
+  from the format rather than named: **Low Kick (8,484 corpus uses)** and **Grass Knot (607)** off the
+  TARGET's weight, **Heavy Slam (526)** and **Heat Crash (16)** off the RATIO of user to target.
+  `data/mods/champions/moves.ts` carries no `basePowerCallback` at all, so all four inherit mainline.
+  The brackets, the `variablePower` tag payload and both `effWeight` call sites were **already
+  correct**; `buildMon` stamps `m.wt` once and no forme door ever rewrote it. The authority rewrites
+  it at every identity change, in the one function they all go through — `Pokemon#setSpecies`
+  (`sim/pokemon.ts:1402`), reached by Champions' own `formeChange` override
+  (`data/mods/champions/scripts.ts:57-60`) and by `clearVolatile` (`:176`).
+  - **Both cards the review verified by hand close on the arithmetic.** Grass Knot into a
+    Staraptor that megaed that turn: 50 kg is bracket `>=50` (BP 80) and we read the base forme's
+    24.9 kg, bracket `>=10` (BP 40) — predicted ratio 0.500, observed 0.478 (11 against 23).
+    Heavy Slam by a Steelix-Mega into a Kingambit: 740/120 = 6.17 (BP 120) read as 400/120 = 3.33
+    (BP 80) — predicted 0.667, observed 0.677 (42 against 62). Both outside the 0.85-1.177 band
+    two rolls of one base can span, so neither is roll residue. The other two weight cards in the
+    same dump (Low Kick 0.947, Heat Crash 1.126) ARE roll residue and were left alone.
+  - **Fixed at the door, not at the reader, and the discarded first attempt is the reason.** Reading
+    `monRow(m.name).wt` inside `effWeight` is one line and is wrong: `m.wt` is a real per-body field
+    in the authority too and a caller is entitled to set it — the census probe `weightBased` puts
+    5 kg and then 400 kg on ONE Garchomp so that weight is the only thing moving, and a reader that
+    went behind the field would have discarded the override and turned a working probe green for the
+    wrong reason. `weightFollowsForme(m)` is now called at all seven species doors: `megaEvolveNow`,
+    `formeSwap`, the Forecast rename and its switch-out revert, `revertMegas`, and the two
+    `formeRenamedNoRow` branches. Transform already kept `wt` in step and is untouched.
+  - **The fallback is loud.** `MEDFAILS.weightRowNoValue` (the forme has a row and the row has no
+    `wt`) and `MEDFAILS.weightNoRow` (no row at all) both count and name the first offender;
+    `MEDSEEN.weightFollowedForme` counts the fix firing. **`MEDI_WEIGHT_STATIC=1` restores the
+    defect** at every door and stamps `MEDFAILS.weightStaticRestored`.
+
+### Added
+- **Two census probes, `move:variablePower`, in `tests/test-mechanics.js`** — *a MEGA EVOLUTION
+  moves the TARGET weight the brackets are read from* and *… the USER weight the Heavy Slam ratio
+  is read from*. The observable is a RATIO against a fixed-power control move of the same type and
+  category (Low Kick vs Brick Break, Grass Knot vs Energy Ball, Heavy Slam vs Iron Head), because a
+  mega also moves Defence, Attack and sometimes the types — raw damage steps on an engine that
+  reads no weight at all, and the ratio cancels every multiplier the mega touched. **Two rungs each
+  plus a non-crossing control**, since both families are step functions: Pidgeot 39.5 -> 50.5 kg
+  (+32.0%), Sableye 11 -> 161 kg (+152.3%), **Steelix 400 -> 740 kg crossing no bracket, -4.1%, the
+  control**; Steelix into Tyranitar (+94.1%), into Kingambit (+51.4%), **into Whimsicott, already in
+  the top bracket, -1.6%, the control**. Shown RED first under `MEDI_WEIGHT_STATIC=1`, where the
+  census reads 784 live / 2 missing and the four crossing arms collapse onto the controls.
+
+### Changed
+- **`docs/ENGINE.md`** carries the pass and the corrected hand-list entry for the ten `wt: null` rows
+  in `data/engine-data.js`. "Uncomputable rather than wrong" was too kind: the reader now falls back
+  to the base forme and **6 of the 10 land in a DIFFERENT Low Kick bracket from that fallback**
+  (`victreebel-mega` 125.5 vs 15.5, `feraligatr-mega` 108.8 vs 88.8, `skarmory-mega` 40.4 vs 50.5,
+  `barbaracle-mega` 100 vs 96, `gourgeist-small` 9.5 vs 12.5, `gourgeist-super` 39 vs 12.5).
+  `data/engine-data.js` is not ENGINE's to edit; it is reported, not fixed.
+- **`data/engine-diff.json` republished at the identical result.** `tests/test-engine-diff.js` has no
+  `--out` flag, so the 6000-comparison re-run at seed 20260804 overwrote it; `compared 6000`,
+  `agreed 6000`, `disagreed 0` at both endpoints are byte-identical to the previous version and only
+  `generated` moved.
+
+### Notes
+- **Census 784 -> 786 live / 786 probed / 0 missing**, 0 threw, 0 hollow, 0 unarmed, directCall
+  unmoved at 1. **Empirical whole-game board-material 117 -> 114 of 961**, protocol-diverged 233 ->
+  231, `-damage field 3` first-divergence games 20 -> 17, end-state verdicts unmoved at
+  875/81/3/0/2. Pins identical on both runs (`--games 1200`, `--arm middle`, `--turns 12`,
+  `--steering empirical`, `--team-store data/team-pool-frozen`, census pin `9446a684709d`); engine
+  release `e129bca605e3` -> **`b39a5c87fe2d`**, cut for this pass, and `engine/arms_comparable.js`
+  reads COMPARABLE. **Both scoreboards were predicted to move before the run and both did.**
+- **The five Moonblast cards in the same B1 row are NOT this cause, and that was established before
+  anything was changed.** Moonblast carries no weight shape at all. Its ratios read 1.324, 0.776,
+  0.760, 1.330 and 0.902 — four outside the roll band and pointing in both directions, which is a
+  stale stat STAGE rather than a base-power error. Not separated, not fixed, not claimed.
+- Full account: `docs/_reports/2026-08-29-weight-base-power.md`.
+
 ## [5.212.0] — 2026-08-29
 
 ### Fixed

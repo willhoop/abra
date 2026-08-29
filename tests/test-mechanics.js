@@ -482,8 +482,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * turn that clicks the move -- handing in every click on both sides. Two turns is the whole point of
  * the row: the doll has to be STANDING when the move resolves, and a direct call to a branch would be
  * green on an engine that never asked about it, which is exactly the state seven branches were in.
+ *
+ * `megaWtTarget(` added 2026-08-29 with the mega-weight family, declared HERE and with its reason on
+ * the same rule. It stages a real doubles board through `board()` -> `battleInit` and spends a real
+ * turn through `battleTurn`, FOUR times per arm — the weight move and a fixed-power control move, each
+ * with and without the target's mega stone — and it has to: the mechanic is a field the MEGA PHASE
+ * rewrites part-way through the turn, so a probe that priced the move before the turn started would
+ * read the un-evolved body every time, which is exactly what the engine was doing.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -4394,6 +4401,131 @@ probe('move', 'weightBased', 'Grass Knot scales with target weight', () => {
   return { works: test > control && control > 0,
            arms: { control, test },
            detail: `same Garchomp, only its weight moves -- 5 kg takes ${control}, 400 kg takes ${test}` };
+});
+
+/* ---- 2026-08-29 -- WEIGHT IS NOT A CONSTANT, AND THIS ENGINE HELD IT AS ONE ---------------------
+ *
+ * The probe above overrides `wt` on a body that never changes forme, so it can prove the brackets
+ * are READ and can say nothing at all about whether the number they are read from is still the right
+ * one. `buildMon` stamps `wt` once; the authority rewrites `weighthg` on every identity change,
+ * inside the one function they all go through (`Pokemon#setSpecies`, sim/pokemon.ts:1402, reached by
+ * Champions' own `formeChange` override at data/mods/champions/scripts.ts:57-60). So a MEGA
+ * EVOLUTION was priced off the body that left the field, in both weight families, in real games:
+ *   Grass Knot into a Staraptor that megaed that turn -- authority 23, this engine 11
+ *   Heavy Slam by a Steelix-Mega into a Kingambit  -- authority 62, this engine 42
+ * (`data/verification/divergence-turns.empirical.json`, cards 28 and 10; ratios 0.478 and 0.677, both
+ * outside the 0.85..1.177 band two rolls of one base can span, so neither is roll residue.)
+ *
+ * THE OBSERVABLE IS A RATIO AGAINST A FIXED-POWER MOVE, AND THAT IS THE WHOLE CARE IN IT. A mega
+ * evolution changes the Defence, the Attack and sometimes the types, so "damage before vs damage
+ * after" cannot attribute a step to the weight -- it moves on an engine that reads no weight at all.
+ * Each arm therefore fires TWO moves at the same board: the weight-read one, and a fixed-base-power
+ * one of the SAME type and category (Low Kick vs Brick Break; Grass Knot vs Energy Ball; Heavy Slam
+ * vs Iron Head). Every multiplier the mega moved -- stat, STAB, type effectiveness -- is common to
+ * both and cancels in the ratio, so what is left is the base power and nothing else.
+ *
+ * TWO RUNGS EACH, BECAUSE BOTH FAMILIES ARE STEP FUNCTIONS and a fixture pinned inside one bracket
+ * proves almost nothing. Every weight below is the artifact's own (`MC.mons[...].wt`) and every
+ * bracket is the tag's own (`variablePower.brackets`); nothing here is typed from memory:
+ *   Pidgeot   39.5 -> 50.5 kg   bracket >=25 -> >=50    BP  60 -> 80    (one step)
+ *   Sableye   11   -> 161  kg   bracket >=10 -> >=100   BP  40 -> 100   (three steps)
+ *   Steelix   400  -> 740  kg   bracket >=200 both      BP 120 -> 120   THE CONTROL
+ * The control is what separates this from "a mega deals more damage": it megas, it gains weight, and
+ * it does not cross a bracket, so its ratio must NOT step. It reads -4.2% today -- that residue is
+ * the +2 and the two floors in the damage formula, not the weight -- against +32% and +152% on the
+ * two rungs, so the thresholds (a crossing must move the ratio by >20%, the control by <8%) sit in
+ * open ground rather than being tuned to the measurement.
+ *
+ * SHOWN RED FIRST: `MEDI_WEIGHT_STATIC=1` leaves the build-time stamp alone at every forme door and
+ * this probe goes red, reading 0.0% / +2.5% / -4.2% -- the two rungs collapse onto the control. */
+const megaWtTarget = (atkSp, moves, wMove, cMove, defSp, stone) => {
+  const fire = (mv, evolve) => {
+    const { me, ally, f1, f2, S } = board(atkSp, 'farigiraf', defSp, 'milotic');
+    me.moves = moves.slice();
+    if (evolve) f1.item = stone;
+    unfaintable(f1);
+    const trace = []; S._trace = trace;
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      /* the foe does NOTHING and still evolves: `mega` on the action is the authority's own request,
+         and a click would put a second effect on the board this probe would then have to control */
+      new Map([[f1, { kind: 'pass', mega: !!evolve }], [f2, { kind: 'pass' }]]));
+    return { d: before - f1.curHP, forme: f1.name, wt: f1.wt,
+             mega: trace.some(l => /^\|-mega\|/.test(l)) };
+  };
+  const w0 = fire(wMove, false), c0 = fire(cMove, false);
+  const w1 = fire(wMove, true), c1 = fire(cMove, true);
+  return { r0: w0.d / c0.d, r1: w1.d / c1.d, mega: w1.mega && c1.mega,
+           forme: w1.forme, wt0: w0.wt, wt1: w1.wt, d: [w0.d, c0.d, w1.d, c1.d] };
+};
+const stepPct = (a) => 100 * (a.r1 / a.r0 - 1);
+probe('move', 'variablePower', 'a MEGA EVOLUTION moves the TARGET weight the brackets are read from', () => {
+  const one = megaWtTarget('machamp', ['lowkick', 'brickbreak', 'protect', 'closecombat'],
+    'lowkick', 'brickbreak', 'pidgeot', 'pidgeotite');
+  const three = megaWtTarget('venusaur', ['grassknot', 'energyball', 'protect', 'sludgebomb'],
+    'grassknot', 'energyball', 'sableye', 'sablenite');
+  const flat = megaWtTarget('machamp', ['lowkick', 'brickbreak', 'protect', 'closecombat'],
+    'lowkick', 'brickbreak', 'steelix', 'steelixite');
+  const ok = (a) => a.mega && a.wt1 > a.wt0 && a.r0 > 0 && a.r1 > 0;
+  const pct = (a) => stepPct(a).toFixed(1) + '%';
+  return { works: ok(one) && ok(three) && ok(flat)
+                  && one.forme === 'pidgeot-mega' && three.forme === 'sableye-mega'
+                  && flat.forme === 'steelix-mega'
+                  && stepPct(one) > 20 && stepPct(three) > 20
+                  && Math.abs(stepPct(flat)) < 8,
+           arms: { control: pct(flat), test: [pct(one), pct(three)].join(' / ') },
+           detail: 'the weight move / fixed-power control ratio, before and after the TARGET megas — '
+                 + `Pidgeot ${one.wt0}->${one.wt1} kg (>=25 to >=50) steps ${pct(one)}; `
+                 + `Sableye ${three.wt0}->${three.wt1} kg (>=10 to >=100) steps ${pct(three)}; `
+                 + `Steelix ${flat.wt0}->${flat.wt1} kg CROSSES NO BRACKET and must not step, ${pct(flat)}. `
+                 + `Raw [weight,control] damage: Pidgeot ${one.d}, Sableye ${three.d}, Steelix ${flat.d}` };
+});
+
+/* THE OTHER FAMILY, AND IT IS NOT THE SAME FORMULA — one keys on the TARGET's weight off a bracket
+ * table, this one on the RATIO of user to target, so an engine could be right about one and wrong
+ * about the other. Here the USER megas and the target is fixed, and the same fixed-power control
+ * (Iron Head, same type and category as Heavy Slam) cancels the mega's Attack:
+ *   Steelix 400 -> 740 kg into a Tyranitar (202 kg)   1.98 -> 3.66   BP 40 -> 80   (two steps)
+ *   the same into a Kingambit (120 kg)                3.33 -> 6.17   BP 80 -> 120  (two steps)
+ *   the same into a Whimsicott (6.6 kg)               60.6 -> 112    BP 120 both   THE CONTROL
+ * The control target is deliberately the LIGHTEST of the three: both ratios sit in the top bracket,
+ * so the user really does double its weight and the base power really cannot move. */
+probe('move', 'variablePower', 'a MEGA EVOLUTION moves the USER weight the Heavy Slam ratio is read from', () => {
+  const run = (defSp, evolve) => {
+    const fire = (mv) => {
+      const { me, ally, f1, f2, S } = board('steelix', 'farigiraf', defSp, 'milotic');
+      me.moves = ['heavyslam', 'ironhead', 'protect', 'earthquake'];
+      if (evolve) me.item = 'steelixite';
+      unfaintable(f1);
+      const trace = []; S._trace = trace;
+      const before = f1.curHP;
+      M.battleTurn(S, rng5,
+        new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+        PASS2(f1, f2));
+      return { d: before - f1.curHP, forme: me.name, wt: me.wt,
+               mega: trace.some(l => /^\|-mega\|/.test(l)) };
+    };
+    const w = fire('heavyslam'), c = fire('ironhead');
+    return { r: w.d / c.d, forme: w.forme, wt: w.wt, mega: w.mega && c.mega, d: [w.d, c.d] };
+  };
+  const arm = (defSp) => {
+    const a = run(defSp, false), b = run(defSp, true);
+    return { r0: a.r, r1: b.r, mega: b.mega, forme: b.forme, wt0: a.wt, wt1: b.wt, d: a.d.concat(b.d) };
+  };
+  const two = arm('tyranitar'), one = arm('kingambit'), flat = arm('whimsicott');
+  const ok = (a) => a.mega && a.forme === 'steelix-mega' && a.wt1 > a.wt0 && a.r0 > 0 && a.r1 > 0;
+  const pct = (a) => stepPct(a).toFixed(1) + '%';
+  return { works: ok(two) && ok(one) && ok(flat)
+                  && stepPct(two) > 20 && stepPct(one) > 20
+                  && Math.abs(stepPct(flat)) < 8,
+           arms: { control: pct(flat), test: [pct(two), pct(one)].join(' / ') },
+           detail: 'Heavy Slam / Iron Head ratio, before and after the USER megas from '
+                 + `${two.wt0} to ${two.wt1} kg — into a Tyranitar (ratio 1.98 to 3.66, BP 40 to 80) `
+                 + `steps ${pct(two)}; into a Kingambit (3.33 to 6.17, BP 80 to 120) steps ${pct(one)}; `
+                 + `into a Whimsicott the ratio is already in the TOP bracket both times, so it must `
+                 + `not step, ${pct(flat)}. Raw [hs,ih] before and after: Tyranitar ${two.d}, `
+                 + `Kingambit ${one.d}, Whimsicott ${flat.d}` };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Two identical bodies but for the stat that

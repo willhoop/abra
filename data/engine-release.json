@@ -1,10 +1,10 @@
 {
-  "current": "87d277c2fe6c",
-  "cut": "2026-08-29T04:02:21.928Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 16,
-  "latest_cut": "2026-08-29T06:02:10.006Z",
+  "current": "b39a5c87fe2d",
+  "cut": "2026-08-29T06:38:44.077Z",
+  "why": "weight follows the forme at every species door (mega/forme swap/forecast/revert) -- B1 weight-based base power",
+  "cuts": 4,
+  "latest_cut": "2026-08-29T06:53:40.250Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-29T06:02:10.037Z",
+  "pointer_written": "2026-08-29T06:53:40.262Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

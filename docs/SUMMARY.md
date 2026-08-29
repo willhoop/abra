@@ -1,6 +1,15 @@
 # ABRA — Project Summary
 
-**Version 5.212.0 · 2026-08-29 · Will Hooper**
+**Version 5.213.0 · 2026-08-29 · Will Hooper**
+
+**5.213.0 — A MEGA EVOLUTION WAS PRICED OFF THE BODY THAT LEFT THE FIELD.** Four moves in
+this format scale on weight, and the simulator held weight as a value stamped when the body was built
+— so when a Pokemon mega-evolved, its weight did not change, and the authority's does.
+Fixed where the authority writes it: at every door that changes a body's species. On identical pins
+the empirical driver arm goes from **117 games whose board diverged to 114 of 961**, and the
+mechanics census goes from **784 to 786 live probes with 0 missing**. Both scoreboards were predicted to
+move before the run and both did. The five Moonblast cards filed in the same group are a DIFFERENT
+cause and are untouched.
 
 **5.212.0 — THE FORCED-SWITCH MIRROR WAS THE HARNESS, AND THE EMPIRICAL ARM'S DENOMINATOR MOVED.**
 `M.battleTurn()` plays a whole turn atomically while Showdown stops dead at a pivot and asks who comes
