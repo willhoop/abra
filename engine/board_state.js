@@ -995,6 +995,32 @@ function mediBody(m, id, ctx) {
        *
        * PRESENCE, NOT A CLOCK: Showdown's condition carries no duration and neither does this. */
       destinybond: (vol.destinybond ? 1 : 0),
+      /* ---- 2026-08-29 — THE CHOICE LOCK. The largest COMPARABLE leaf in the hole this comparator
+       * had: 9,488 games of the frozen pool carry it, nearly twice the next one
+       * (`docs/_reports/2026-08-28-leaf-name-map.md` §5). It is decision-changing rather than
+       * cosmetic — get it wrong and the engine believes a body has moves it does not have.
+       *
+       * IT IS THE MOVE, NOT A FLAG. The authority stores `this.effectState.move = move.id` on the
+       * `choicelock` condition, and WHICH move the body is bound to is the whole mechanic; a
+       * presence bit would report agreement between two engines locked into different moves.
+       *
+       * `_lock` CARRIES TWO LOCKS HERE AND `_lockT` TELLS THEM APART — `Infinity` is the Choice item,
+       * a finite count is Encore (medicham2-browser.js `lockStillBinds`). Encore has its own
+       * `vol.encore` leaf two dozen lines up, so reading the bare `_lock` would double-count every
+       * Encore as a Choice lock. This is the one discriminator and it is read, not assumed.
+       *
+       * THE RAW FIELD, DELIBERATELY, ON BOTH SIDES. `lockStillBinds` is the engine's own reader and
+       * it MUTATES (it destroys a lock whose item has gone); calling it from a comparator would make
+       * the act of measuring change the board. The authority's suspension case — Magic Room or Klutz,
+       * where `choicelock` STANDS while the item is ignored and the menu is free — is held the same
+       * way on both sides, so the raw pair is the right comparison there and not a collapse.
+       *
+       * WHAT THIS WILL PART ON IF IT PARTS, PREDICTED BEFORE THE RUN RATHER THAN EXPLAINED AFTER: the
+       * authority destroys the volatile inside `onDisableMove`, which runs when it builds a request;
+       * this engine destroys it inside `lockStillBinds`, which runs when something asks the menu. If
+       * those two moments straddle a turn boundary, a Knocked-Off Scarf leaves a lock standing on one
+       * side and not the other. That is an engine finding to FILE, not a reason to narrow the leaf. */
+      choicelock: (m._lockT === Infinity && m._lock) ? id(m._lock) : '',
     },
     /* ---- THE STALL COUNTER BEHIND CONSECUTIVE PROTECT. 2026-08-25. -------------------------------
      *
@@ -1073,6 +1099,12 @@ function sdBody(p, id, ctx) {
       /* THE AUTHORITY'S SIDE OF DESTINY BOND. `data/moves.ts` destinybond.condition carries no
        * duration, so presence is the whole of it and nothing is being collapsed. */
       destinybond: v.destinybond ? 1 : 0,
+      /* 2026-08-29 — THE AUTHORITY'S SIDE OF THE CHOICE LOCK. `data/conditions.ts` `choicelock`
+       * stores `this.effectState.move = move.id` in `onStart`, and both `onBeforeMove` and
+       * `onDisableMove` read it back — so the MOVE is the state and the volatile's presence alone is
+       * not. Encore is a separate volatile here and is compared on its own leaf, which is why no
+       * discriminator is needed on this side and one is needed on medicham2's. */
+      choicelock: v.choicelock ? id((v.choicelock.move) || '') : '',
     },
     /* THE AUTHORITY'S SIDE OF THE STALL COUNTER: the raw denominator off its own volatile, with NO
      * volatile reading 0. Gated on the same capability as medicham2's so both sides are `null`

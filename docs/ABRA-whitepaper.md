@@ -1,5 +1,55 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
+**Version 5.210.0 · Last updated 2026-08-29**
+
+**5.210.0 — THE PORY TWO-FEATURE PAIR IS WITHDRAWN: ITS GENERATOR WRITES NO ARTIFACT.**
+`engine/pory_baseline.py` prints a five-arm table and saves nothing, so the material-baseline
+pair it published on 2026-07-25 never had a source to check it against, and it was scored
+before that script had a clean-data filter at all. On the clean corpus the comparison is a
+TIE rather than a loss, measured PAIRED and clustered by game in `data/pory-eval.json`. The
+withdrawn pair stays in `docs/REVIEW-2026-07-25.md`, the review that measured it. This document does not quote the pair and is
+unchanged apart from this note.
+
+**5.209.0 — FLASH FIRE ABSORBED THE HIT AND BINNED THE GIFT, AND THE BOARD COMPARATOR IS ONE
+LEAF WIDER. GATE 8 OF 8, OPEN.** The 5.208.0 block below is dated history — its counts were taken on
+engine release `4e5c7b3400de` and are superseded, not rewritten. An engine byte moved, so these are
+fresh measurements on release `e129bca605e3`.
+
+`absorbGift` priced a Fire hit at zero, counted the volatile it could not model
+(`MEDFAILS.absorbGiftUnmodelled`) and threw it away, so a Flash Fire body ate the move correctly and
+then hit no harder for it — board material through DAMAGE. The value lived on a handler the tag
+derivation never opened: the absorb is `onTryHit`, the payoff is the ability's
+`condition.onModifyAtk` / `onModifySpA`. `tag_dex.js` now derives `typeImmunity.gain.volatileBoost`
+and the engine reads all five of its fields; nothing is named. **316 legal abilities were scanned and
+exactly one matches**, printed on every run so a second member arrives named.
+
+**The authority was played, not recalled.** One real `gen9championsvgc2026regmb` `Battle` with
+medicham2's own built stats written onto its Pokemon, the damage roll pinned, and ONE knob — the TYPE
+of the move that hit the Flash Fire body on turn 1. At roll 8 the turn-2 Flamethrower deals **91**
+after a Body Slam and **136** after a Fire Punch (x1.4945); rolls 0 and 15 read 100/148 and 84/126,
+and two Fire Punches read `-start` then `-immune` in that order.
+
+| clause | reading on `e129bca605e3` |
+|---|---|
+| census | **784 probed, 784 live, 0 missing** (782 → 784; both new rows shown RED first under `MEDI_ABSORB_GIFT_VOLATILE_BLIND=1`) |
+| board leaves compared | **34 of 80** (33 → 34; `volatile:choicelock`, 9,488 pool games, the largest comparable leaf in the hole) |
+| whole-game differential | **961 paired games, 6 raw, 6 declared, 0 undeclared**; 12,445 turn boundaries compared and 12,445 identical |
+| deliberate roster | **140 / 129 / 475 tested**, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three |
+| damage differential | **0 of 6000** at each of the sixteen band indices |
+| gate | **8 of 8 PASS, OPEN** |
+
+**Which scoreboard was stated before the runs, and both halves held for different reasons.** The lab
+moved and the pool did not. Flash Fire is 1,177 of 17,381 pool games by SHEET PRESENCE but only 365
+of 8,778 deduped teams (4.16%), and the absorb never happened in any of the 961 games — had it, the
+pre-fix `-immune` would have parted from the authority's `-start` right there. `choicelock` WAS
+reached and agreed. Before either run was believed, the new leaf was proved non-vacuous on a staged
+board with the item as the only knob: no item → `""`/`""`, Choice Scarf →
+`"dragonclaw"`/`"dragonclaw"`, both engines through the same reader.
+
+**Filed, not fixed:** the two engines destroy a dead Choice lock at different moments — the authority
+inside `onDisableMove` (request-building time), this engine inside `lockStillBinds` (menu-asking
+time). Predicted before the run and not observed in 961 games, which is not the same as absent.
+
 **Version 5.208.0 · Last updated 2026-08-28**
 
 **5.208.0 — THE METRONOME ITEM IS WIRED, AND THE FIVE GATE CLAUSES ARE RE-MEASURED ON THE RELEASE

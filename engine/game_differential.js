@@ -65,6 +65,34 @@ const VERBOSE = has('--verbose');
  *                       run either way, and finding out afterwards costs the conclusion too. */
 const CENSUS_PIN = flag('--census', null);
 const BASELINE = flag('--baseline', null);
+/* ---- `--steering <coverage|empirical>` — WHICH DRIVER PICKS THE ACTIONS (2026-08-29) -------------
+ *
+ * `coverage` (the default, and every published number) is `census-coverage-seeking/v1`: click
+ * whatever reaches the least-exercised census row. It exercises mechanics rather than trying to win,
+ * so THE GAMES DO NOT END — 944 of 961 (98.2%) are cut off by the 12-turn cap and 17 reach a natural
+ * result. Severity band 1 (DIFFERENT-WINNER) has therefore never once been reachable.
+ *
+ * `empirical` is `empirical-click/v1`: draw the action from `data/move-priors.json`, P(move|species)
+ * over real recorded human clicks, with a voluntary switch at the rate measured off the raw replay
+ * logs. See engine/empirical_driver.js.
+ *
+ * IT IS A SECOND ARM, NOT A REPLACEMENT, AND THE DEFAULT DOES NOT MOVE. 48 legal moves are clicked
+ * ZERO times in 21,726 real games; the empirical driver cannot reach that tail by construction and
+ * the coverage arm is what does. Will, 2026-08-29: *"thats why we have both."*
+ *
+ * NAMED BY ID, NEVER BY OMISSION. An unrecognised value REFUSES rather than falling back to the
+ * default — a run silently taken on the other arm and then tabled against this one is exactly the
+ * mistake `engine/arms_comparable.js` exists to catch after the fact, and it is cheaper to catch at
+ * second zero. The two policies are also refused against each other by steering.comparable, so an
+ * empirical artifact can never be diffed against a coverage one: it is a RE-BASELINE, not a delta. */
+const STEER_MODE = flag('--steering', 'coverage');
+if (STEER_MODE !== 'coverage' && STEER_MODE !== 'empirical') {
+  console.error('--steering must name an arm by id: `coverage` (census-coverage-seeking/v1, the '
+    + 'default and every published number) or `empirical` (empirical-click/v1, sampled from '
+    + 'data/move-priors.json). Got "' + STEER_MODE + '".');
+  process.exit(2);
+}
+const EMPIRICAL = STEER_MODE === 'empirical';
 /* `--state` — THE STATE DIFFERENTIAL (Will, 2026-08-07). Compare the BOARD at every turn boundary, not
  * the narration. See engine/board_state.js for what is read and why the boundary is where it is.
  *
@@ -2099,7 +2127,47 @@ function equivProof() {
  * before-arm read 51 games / 50 causes and a re-run of the identical frozen release over a
  * byte-identical store read 46 / 45. See engine/steering.js's header for why the fix is a DECLARED,
  * PINNABLE, DIGESTED policy rather than another entry in the release manifest. */
-const STEER = STEERING.resolve({ censusPath: CENSUS_PIN });
+/* ---- THE EMPIRICAL ARM'S OWN SELECTOR, LOADED BEFORE THE STEERING BLOCK IS BUILT -----------------
+ *
+ * `data/move-priors.json` IS READ OUT OF THE RELEASE, not off the live tree, and that is not
+ * fastidiousness: it is one of `engine_release.js`'s frozen SOURCES, so the behaviour table is part
+ * of the engine being measured. `node engine/policy.js --promote` moves it, and a run that read the
+ * live copy while claiming a release would be a photograph of something else. The digest comes from
+ * the release manifest, which `open()` has already verified byte-for-byte.
+ *
+ * `data/rollout-switch-census.json` IS NOT IN SOURCES and is read live. The asymmetry is stated
+ * rather than hidden: the switch RATE is a fact about human play, derived from the raw replay logs
+ * by `engine/rollout_switch_census.js`, upstream of MEDICHAM and not part of the engine. It is
+ * digested into the steering block so two arms can still be shown to have used the same number.
+ *
+ * NOTHING IS LOADED UNDER THE COVERAGE ARM. A default run does not touch either file, so this arm
+ * cannot change what the coverage arm plays. */
+const EMP = EMPIRICAL ? require('./empirical_driver.js') : null;
+let EMP_PRIORS = null, EMP_SWITCH = null, EMP_C = null, EMP_INPUTS = null;
+if (EMPIRICAL) {
+  const relDigest = (REL.manifest.files || {})['data/move-priors.json'] || null;
+  if (!relDigest) {
+    throw new Error('release ' + REL.id + ' does not carry data/move-priors.json, so the empirical '
+      + 'arm has no behaviour table to draw from. That release predates the table being a frozen '
+      + 'SOURCE; cut a release from a tree that has it, or run --steering coverage.');
+  }
+  EMP_PRIORS = EMP.loadPriors(REL.read('data/move-priors.json'),
+                              'release ' + REL.id + ' / data/move-priors.json');
+  const swPath = D('data', 'rollout-switch-census.json');
+  EMP_SWITCH = EMP.switchRateFrom(fs.readFileSync(swPath, 'utf8'), 'data/rollout-switch-census.json');
+  EMP_C = EMP.counters();
+  EMP_INPUTS = [
+    { file: 'data/move-priors.json', read_from: 'release ' + REL.id, digest: relDigest,
+      generated: EMP_PRIORS.generated, rows: EMP_PRIORS.species,
+      what: 'P(move | species) over real recorded ladder clicks — the action distribution' },
+    { file: 'data/rollout-switch-census.json', read_from: 'live tree (not an engine SOURCE)',
+      digest: ER.sha12(swPath), generated: EMP_SWITCH.generated,
+      rows: EMP_SWITCH.games,
+      what: 'the conditional voluntary-switch rate, ' + EMP_SWITCH.pct + '% of decisions taken with a '
+          + 'live bench, measured off the raw logs of both human stores' },
+  ];
+}
+const STEER = STEERING.resolve({ censusPath: CENSUS_PIN, mode: STEER_MODE, driverInputs: EMP_INPUTS });
 const CENSUS = STEER.census;
 const SECTION = { item: 'items', move: 'moves', ability: 'abilities' };
 const COV_TARGETS = [];      // { key, kind, tag, label, entities:Set }
@@ -2321,6 +2389,10 @@ STEER_STAMP.credit = 'observed-effect/v1 — a row is exercised when a board lea
  * selection policy, which is how four before/after pairs came to rest on a moving sample. */
 console.log('\n  THE SELECTION POLICY — what decides which games this run plays:');
 console.log('    ' + STEER_STAMP.policy + '   ' + (STEER_STAMP.pinned ? 'PINNED to ' + STEER_STAMP.input_read_from : 'live ' + STEER_STAMP.input));
+console.log('    the census ' + STEER_STAMP.census_role);
+for (const x of (STEER_STAMP.driver_inputs || []))
+  console.log('    selector: ' + x.file + ' @ ' + x.digest + '   ' + x.read_from
+    + '   ' + x.rows + ' rows, generated ' + x.generated);
 console.log('    digest ' + STEER_STAMP.input_digest + '  ' + STEER_STAMP.input_rows + ' rows, generated ' + STEER_STAMP.input_generated);
 console.log('    ' + (STEER_STAMP.matches_live === null ? 'UNKNOWN whether it matches the live census'
   : STEER_STAMP.matches_live ? 'identical to the live census' : 'DIFFERENT from the live census (' + STEER_STAMP.input_live_digest + ')'));
@@ -3231,6 +3303,13 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * every existing caller — the planted proofs, the directed scenarios, the Knock Off halves — keeps
    * running under exactly the pin it was written against. */
   const ARM = opts.arm || PRIMARY_ARM;
+  /* THE EMPIRICAL DRIVER'S ADDRESS SPACE, RESET ON THE GAME BOUNDARY. `opts.driverSeed` is passed
+   * explicitly by every PAIRED call site (the stone control, the planted proofs) so both halves of a
+   * pair ask the same questions; without it the tag differs and the pair is two different games.
+   * Unused under the coverage arm, and set unconditionally so the two arms cannot differ in when it
+   * is cleared. */
+  DRIVER_GAME_SEED = String(opts.driverSeed != null ? opts.driverSeed : (cfgId + '|' + seedTag));
+  DRV_NTH.clear();
   const armRng = ARM.mediRng();          // a FRESH sequence per game; see makeArm
   /* ---- THE AUTHORITY'S HALF OF THE MIDDLE ARM IS RESET HERE, BESIDE MEDICHAM2'S ------------------
    *
@@ -4379,6 +4458,110 @@ function mirrorForcedSwitch(forceSwitch, mine, roster) {
   return out;
 }
 
+/* ---- THE TWO SELECTION RULES ---------------------------------------------------------------------
+ *
+ * `chooseAction` builds the CANDIDATE SET — legality, targets, the ban and prefer axes, the claimed
+ * bench. Everything above this point is identical under both arms and must stay that way: the whole
+ * value of a second driver is that it changes ONLY which of the same legal actions gets picked, so a
+ * divergence is still a RULE and not a difference in what the two runs were allowed to do.
+ *
+ * `coveragePick` is the rule that has always been here, moved out of the body unchanged.
+ * `empiricalPick` is `empirical-click/v1`. See engine/empirical_driver.js. */
+function coveragePick(pool) {
+  const s = pool.slice().sort((a, b) => (b.prefer - a.prefer) || (a.want - b.want) || (a.clicks - b.clicks)
+                   || String(a.move || a.switchTo).localeCompare(String(b.move || b.switchTo)));
+  return s[0];
+}
+
+/* ---- THE EMPIRICAL DRIVER'S RANDOMNESS IS AN ADDRESS, NOT A STREAM -------------------------------
+ *
+ * Same construction as the middle arm's dice and for the same reason. A stateful stream would have to
+ * be added to `driverSnap`/`driverRestore` or the planted-comparator proofs would silently become a
+ * DIFFERENT GAME from their clean arm — which is the exact failure the header above `driverSnap`
+ * records, one layer down. An address is stateless: the clean arm and the plant arm draw the same
+ * value at the same decision because they ask the same question.
+ *
+ * `driverSeed` IS PASSED EXPLICITLY BY EVERY PAIRED CALL SITE. The stone control is played as
+ * `pr.tag + ' [stones removed]'`, so deriving the seed from the tag alone would hand the two halves
+ * of a paired measurement different sequences and `PAIRING_BROKEN` would fire on every pair.
+ *
+ * `DRV_REPEATS` must read 0. Two decisions sharing an address get the same variate, which is a
+ * different wrong answer rather than a right one — the same argument `midCtx`'s `nth` makes. The
+ * index is there so a repeat is CORRECT rather than merely counted, and the counter is there because
+ * a repeat means `battle.turn` did not mean what this assumed. */
+let DRIVER_GAME_SEED = '';
+const DRV_NTH = new Map();
+let DRV_REPEATS = 0;
+function drv(battle, side, i, kind) {
+  const base = 'drv|' + DRIVER_GAME_SEED + '|' + (battle ? battle.turn : 0) + '|'
+             + (side && side.id) + '|' + i + '|' + kind;
+  const n = DRV_NTH.get(base) || 0;
+  DRV_NTH.set(base, n + 1);
+  if (n) DRV_REPEATS++;
+  return midValue(base + '|' + n);
+}
+
+function empiricalPick(pool, battle, side, i, p, act) {
+  const C = EMP_C;
+  C.decisions++;
+  /* THE `prefer` AXIS STAYS A HARD NARROWING, exactly as it is the FIRST sort key under the coverage
+   * rule. The pair-* configurations exist to STAGE an interaction (protect against a protect-buster,
+   * a redirect against priority); softening it into a weight would quietly stop those configurations
+   * staging anything while still reporting their games, and the sample would move for a reason that
+   * is not the driver. Within the preferred set the draw is still the empirical one. */
+  let use = pool;
+  const pref = pool.filter(c => c.prefer);
+  if (pref.length) { if (pref.length < pool.length) C.prefer_narrowed++; use = pref; }
+  const moves = use.filter(c => c.move);
+  const switches = use.filter(c => c.switchTo != null);
+
+  /* ---- LEAVING. The priors carry no switch model, so the RATE comes from the store and the CHOICE
+   * of body does not come from anywhere — see engine/empirical_driver.js's header. Uniform over the
+   * legal bench, declared and counted, never presented as a behaviour claim. */
+  if (!switches.length) {
+    if (act.trapped || act.maybeTrapped) C.trapped++; else C.no_bench++;
+  } else if (!moves.length) {
+    /* No legal click at all: leaving is not a decision here, it is the only action. Counted apart
+     * from a chosen switch so the realised switch rate is not inflated by forced ones. */
+    C.no_move_candidates++;
+    const u = drv(battle, side, i, 'sb');
+    return switches[Math.min(switches.length - 1, Math.floor(u * switches.length))];
+  } else {
+    C.switch_reached_the_draw++;
+    if (drv(battle, side, i, 'sw') < EMP_SWITCH.rate) {
+      C.switch_offered++;
+      const u = drv(battle, side, i, 'sb');
+      return switches[Math.min(switches.length - 1, Math.floor(u * switches.length))];
+    }
+  }
+  if (!moves.length) return coveragePick(pool);
+
+  /* ---- CLICKING. */
+  const sp = p && p.species;
+  const spId = sp && sp.id;
+  const baseId = sp && sp.baseSpecies ? id(sp.baseSpecies) : null;
+  const row = EMP.rowFor(EMP_PRIORS, C, spId, baseId);
+  /* NO ROW IS A REAL STATE AND IT FALLS BACK TO A NAMED POLICY, NOT TO A SHRUG. `rowFor` has already
+   * counted it and kept the first species name. The fallback is the COVERAGE rule — the other arm's
+   * declared policy — rather than a uniform draw, because a uniform draw wearing an empirical label
+   * is indistinguishable from the driver working. If `no_prior_row` is not small, the arm is partly
+   * the other arm and the number must be read that way. */
+  if (!row) return coveragePick(moves);
+  const lead = battle && battle.turn === 1;
+  const d = EMP.drawMove(row, moves.map(c => c.move), lead, drv(battle, side, i, 'mv'));
+  if (!d) return coveragePick(moves);
+  if (!d.informed) C.uninformed_draw++;
+  C.move_from_prior++;
+  if (lead && row.lead && row.lead.size) C.lead_table_used++;
+  const hit = moves.find(c => c.move === d.id);
+  /* `drawMove` only ever returns an id it was handed, so this cannot miss. Asserted rather than
+   * `|| moves[0]`-ed: a silent substitution here would be the driver quietly clicking something the
+   * distribution did not choose. */
+  if (!hit) throw new Error('empirical driver: drawMove returned ' + d.id + ' which is not among the '
+    + moves.length + ' legal candidates it was given — the sampler and the candidate list disagree.');
+  return hit;
+}
+
 function chooseAction(battle, side, i, act, axis, claimed) {
   claimed = claimed || new Set();
   const p = side.active[i];
@@ -4476,10 +4659,9 @@ function chooseAction(battle, side, i, act, axis, claimed) {
      * a silent default here looks exactly like a working omission. */
     BAN_FALLBACKS++;
     pool = cands;
-  }
-  pool.sort((a, b) => (b.prefer - a.prefer) || (a.want - b.want) || (a.clicks - b.clicks)
-                   || String(a.move || a.switchTo).localeCompare(String(b.move || b.switchTo)));
-  const pick = pool[0];
+  } else if (EMPIRICAL && allowed.length < cands.length) EMP_C.ban_narrowed++;
+  const pick = EMPIRICAL ? empiricalPick(pool, battle, side, i, p, act)
+                         : coveragePick(pool);
   /* THE CENSUS ROW IS NOT TOUCHED HERE ANY MORE (ROADMAP #91). This used to call `creditClick`, which
    * marked the row exercised on the strength of the click alone. Both the credit AND the attempt are
    * now recorded at the turn boundary by `creditTurn`, where the board is — and where a SCRIPTED game,
@@ -4679,7 +4861,8 @@ function withFrozenDriver(fn) {
   finally { driverRestore(s); }
 }
 function plantedProof(pairA, pairB) {
-  const clean = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'proof/clean'));
+  const clean = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'proof/clean',
+                                                { driverSeed: 'proof' }));
   /* THE NO-DIVERGENCE BRANCH READ `clean.lines` AND THAT IS THE WRONG UNIT. 2026-08-12. `k` is an
    * index into the REDUCED stream -- `plantsFor`'s `at()` maps it through `reduce().rawIdx` -- and
    * `lines` is `trace.length`, the RAW medicham count. The compared region is shorter at both ends:
@@ -4701,7 +4884,8 @@ function plantedProof(pairA, pairB) {
   /* The FIELD plant gets its OWN aim, because not every line can carry it. See bendableBefore. */
   const fieldK = bendableBefore(clean.mediTrace, k);
   return plantsFor(k, fieldK).map(([what, expectAt, plant, st]) => {
-    const r = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'proof/' + what.slice(0, 12), { plant }));
+    const r = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'proof/' + what.slice(0, 12),
+                                              { plant, driverSeed: 'proof' }));
     return { what, caught: !!r.div, at: r.div ? r.div.index : null, expected_at: expectAt,
              earlier_than_clean: !!r.div && r.div.index < k,
              /* CARRIED ONTO THE ROW so a plant that was never placed names itself instead of arriving
@@ -5057,7 +5241,8 @@ function plantedStateProof(pairA, pairB) {
   /* THE CLEAN ARM FIRST, and every plant is judged against it. Its LAST AGREEING boundary is where the
    * plants go: a board both engines produced identically, so a difference there is the plant and
    * nothing else. Same construction as the protocol proof's agreeing prefix, one dimension over. */
-  const clean = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'stateproof/clean'));
+  const clean = withFrozenDriver(() => playGame(pairA, pairB, 'baseline', 'stateproof/clean',
+                                                { driverSeed: 'stateproof' }));
   const lastAgreeing = clean.stateDiv ? clean.stateDiv.turn - 1 : clean.boundaries - 1;
   const cleanRow = { what: 'the CLEAN arm of the same game', boundaries: clean.boundaries,
                      boundaries_agreed: clean.boundariesAgreed,
@@ -5115,7 +5300,7 @@ function plantedStateProof(pairA, pairB) {
           if (!truthy) return;
           const after = BS.readMedi(S2, BS_CTX);
           moved = BS.compare(before, Object.assign({}, after, { engine: 'showdown' }), null).length > 0;
-        } }));
+        }, driverSeed: 'stateproof' }));
       flipped = PLANT_SIDE_FLIP; boundary = b; tried.push(b);
       applied = truthy && moved;
       if (applied) break;
@@ -5993,10 +6178,11 @@ if (!has('--proof')) {
     let c = null;
     if (isPrimary) {
       const s0 = driverSnap();
-      c = playGame(pr.aN, pr.bN, cfgId, pr.tag + ' [stones removed]', { arm });
+      c = playGame(pr.aN, pr.bN, cfgId, pr.tag + ' [stones removed]',
+                   { arm, driverSeed: cfgId + '|' + pr.tag });
       driverRestore(s0);
     }
-    const r = playGame(pr.a, pr.b, cfgId, pr.tag, { arm });
+    const r = playGame(pr.a, pr.b, cfgId, pr.tag, { arm, driverSeed: cfgId + '|' + pr.tag });
     r.stones = pr.stones;
     if (c) {
       c.stones = 0;
@@ -6557,7 +6743,7 @@ const END_STATE_BY_ARM = ARM_RUNS.map(a => {
   return { arm: a.arm.id, summary: s, ruler };
 });
 
-console.log('\nWHOLE-GAME DIFFERENTIAL — MODE A (pinned, tolerance zero)   ' + REL.id);
+console.log('\nWHOLE-GAME DIFFERENTIAL — MODE A (pinned, tolerance zero)   ' + REL.id + '   driver: ' + STEER_MODE);
 console.log('  ' + results.length + ' games in the primary arm, ' + ARM_RUNS.length + ' arm(s), '
   + elapsed + 's, showdown ' + (CS.actualCommit() || 'UNKNOWN').slice(0, 12));
 console.log('  tags.json in the release matches the live tree: ' + (TAGS_MATCH ? 'yes' : 'NO — the coverage sets and the engine were frozen from different bytes'));
@@ -7629,6 +7815,44 @@ console.log('    clicks by AIM: ' + AIM.foe + ' at a foe, ' + AIM.ally + ' at an
   + AIM.miss + ' named a slot with NO BODY in it' + (AIM.miss ? '  <-- MUST READ 0' : ' (must read 0)'));
 console.log('    ' + BAN_FALLBACKS + ' clicks where the configuration had banned every legal action (fell through, counted).');
 console.log('    ' + FORCED_FIRST_SLOT + ' requests this driver could build no candidate for (a recharge or a lock) — answered `move 1`, counted.');
+/* ---- THE EMPIRICAL ARM'S RECEIPTS. PRINTED INCLUDING THE ZEROS ----------------------------------
+ * "A capability that cannot prove it ran is assumed broken." Every state this driver can be in has a
+ * counter and every counter is printed, because the two that matter most — a species with no prior
+ * row, and a row that had nothing to say about the moves this body is carrying — both produce a
+ * perfectly plausible game and would otherwise be invisible. `rollout_leaf.js` announces its own
+ * fallback on stderr and nobody was reading the line. */
+if (EMPIRICAL) {
+  const C = EMP_C, d = C.decisions || 1;
+  const pc = n => (100 * n / d).toFixed(1) + '%';
+  console.log('');
+  console.log('  THE EMPIRICAL DRIVER  (empirical-click/v1)');
+  console.log('    behaviour table: ' + EMP_PRIORS.from + '   ' + EMP_PRIORS.species
+    + ' species profiled, generated ' + EMP_PRIORS.generated + ', ' + EMP_PRIORS.acts + ' recorded acts');
+  console.log('    switch rate:     ' + EMP_SWITCH.pct + '% of decisions taken with a live bench, from '
+    + EMP_SWITCH.from + ' (' + EMP_SWITCH.games + ' finished games, generated ' + EMP_SWITCH.generated + ')');
+  console.log('    ' + C.decisions + ' decisions reached this driver'
+    + (C.decisions ? '' : '   <-- ZERO. THE ARM DID NOT RUN.'));
+  console.log('    ' + C.move_from_prior + ' (' + pc(C.move_from_prior) + ') moves drawn from the species distribution, '
+    + C.lead_table_used + ' of them from the turn-1 lead table');
+  console.log('    ' + C.no_prior_row + ' (' + pc(C.no_prior_row) + ') decisions on an UNPROFILED species — fell back to the coverage rule'
+    + (C.no_prior_row ? '   first: ' + C.first_no_prior_row : ''));
+  console.log('    ' + C.row_via_base_forme + ' resolved only through the base forme (castformsunny -> castform and similar)');
+  console.log('    ' + C.uninformed_draw + ' (' + pc(C.uninformed_draw) + ') draws where the row held NONE of the legal moves this body is carrying'
+    + ' (every weight the 0.02 floor — an empirical label on a uniform draw)');
+  console.log('    switching: ' + C.switch_reached_the_draw + ' decisions with a live bench, '
+    + C.switch_offered + ' chose to leave ('
+    + (C.switch_reached_the_draw ? (100 * C.switch_offered / C.switch_reached_the_draw).toFixed(2) : '0.00')
+    + '% realised against ' + EMP_SWITCH.pct + '% measured); '
+    + C.no_bench + ' had nowhere to go, ' + C.trapped + ' were trapped, '
+    + C.no_move_candidates + ' had no legal click at all and HAD to leave');
+  console.log('    ' + C.prefer_narrowed + ' decisions narrowed by a pair-* prefer axis, '
+    + C.ban_narrowed + ' narrowed by an omit-* ban');
+  console.log('    ' + DRV_REPEATS + ' repeated driver addresses'
+    + (DRV_REPEATS ? '  <-- indexed, but battle.turn did not separate two decisions as assumed' : ' (must read 0)'));
+  console.log('    WHAT THIS DRIVER DOES NOT MODEL, so it is not read as behaviour: the TARGET (the '
+    + 'existing rule is unchanged — first live foe) and WHICH body a switch goes to (uniform over the '
+    + 'legal bench). data/move-priors.json carries neither.');
+}
 /* PRINTED BECAUSE A REFUSAL EMITS NO PROTOCOL LINE. It is invisible in BOTH streams by construction,
  * so the only place it can ever be seen is a counter — and until 2026-08-22 the forced-switch path
  * discarded `battle.choose`'s return value and there was no counter either. The noun is one
@@ -8009,6 +8233,19 @@ if (WRITE) {
         + 'ROADMAP #68 is narrowed by the nature and is not closed.',
       teams_unbuildable: TEAMS_UNBUILDABLE, sets_unbuildable: MONS_UNBUILDABLE,
       ban_fallbacks: BAN_FALLBACKS, forced_first_slot: FORCED_FIRST_SLOT,
+      /* THE ARM IS IN THE ARTIFACT AS WELL AS IN `steering.policy`, so a file cannot be mistaken for
+       * the other arm's by anything that reads only the driver block. `null` under coverage — an
+       * absent block is the honest answer there, not a zeroed one. */
+      steering_mode: STEER_MODE,
+      empirical: EMPIRICAL ? Object.assign({}, EMP_C, {
+        driver_address_repeats: DRV_REPEATS,
+        switch_rate_measured_pct: EMP_SWITCH.pct,
+        switch_rate_realised_pct: EMP_C.switch_reached_the_draw
+          ? +(100 * EMP_C.switch_offered / EMP_C.switch_reached_the_draw).toFixed(3) : null,
+        priors_species: EMP_PRIORS.species, priors_generated: EMP_PRIORS.generated,
+        not_modelled: ['the TARGET of a move (the existing first-live-foe rule is unchanged)',
+                       'WHICH body a voluntary switch goes to (uniform over the legal bench)'],
+      }) : null,
       /* 2026-08-22 — THE HARNESS ANSWERING THE AUTHORITY. `choices_refused` counts `battle.choose()`
        * calls Showdown returned false for and MUST READ 0: a refusal emits no protocol line, so a run
        * with a non-zero here published divergences the instrument invented. `forced_switch_slots_*`

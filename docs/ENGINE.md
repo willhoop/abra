@@ -102,10 +102,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  782/782 probed mechanics live, 0 missing   (census 2026-08-28 19:49)
+  784/784 probed mechanics live, 0 missing   (census 2026-08-28 22:47)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 46 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-08-28 06:01)
+    never fired in the staged harness (all-mechanics-fire.json, 53 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-08-28 22:51)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -119,17 +119,123 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 411ea8d51aae now
-    (+7 more — node engine/provenance.js)
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 130afedfe772 now
+    (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 285/300 probed, 15 unprobed;  268/300 have an engine consumer, 32 have none
+  tag coverage: 285/300 probed, 15 unprobed;  269/300 have an engine consumer, 31 have none
     a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-28 21:11_
+_stamped 2026-08-29 00:10_
 
 <!-- /GENERATED -->
+
+## FLASH FIRE ABSORBED THE HIT AND BINNED THE GIFT — ROADMAP #432's ONE STATED REMAINDER IS FIXED, AND THE COMPARATOR IS ONE LEAF WIDER. **CENSUS 782 -> 784 LIVE / 784 PROBED / 0 MISSING. BOARD LEAVES COMPARED 33 -> 34. GATE 8 OF 8, OPEN. WHOLE-GAME UNMOVED AT 961 GAMES / 6 RAW / 6 DECLARED / 0 THAT COUNT, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 140 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS — ALL PREDICTED.** 2026-08-29, CHANGELOG 5.209.0.
+
+Two things, landed in order and measured between them, on release **`e129bca605e3`**. Full account:
+`docs/_reports/2026-08-29-phase2-flashfire-choicelock.md`.
+
+### PART A — THE GIFT
+
+`absorbGift` priced a Fire hit at zero, incremented `MEDFAILS.absorbGiftUnmodelled` and **threw the
+volatile away**. So a Flash Fire body ate the move correctly and then hit no harder for it — board
+material through DAMAGE — and, because the authority's `-immune` is that gift's ELSE, it announced an
+immunity on the FIRST absorb where the authority announces `-start`.
+
+**THE VALUE LIVED ON A HANDLER THE TAG DERIVATION NEVER OPENED.** The absorb is `onTryHit`; the payoff
+is the ability's `condition.onModifyAtk` / `onModifySpA`. `tag_dex.js` now derives
+`typeImmunity.gain.volatileBoost` — `{stats, moveType, mult, announce, endsWithAbility}` — and the
+engine reads all five. **Nothing is named**: the volatile comes off `gain.volatile`, the `-start`
+label off the condition's own string (so a two-word ability is spelled the authority's way rather than
+composed from an id), and the multiplier is spent in the `_aCh` stat relay beside Guts and Huge Power,
+which is the stage the authority spends it at.
+
+**THE MATCHED SET WAS PRINTED BEFORE IT WAS WIRED AND IS PRINTED ON EVERY RUN.** 316 legal abilities
+scanned, **exactly one** carries a typeImmunity whose gain is a volatile:
+`flashfire  vol=flashfire  atk+spa x1.5 on Fire moves; announce "ability: Flash Fire";
+endsWithAbility true`. A `REFUSED` line prints beside it for any ability whose condition exists and
+cannot be read whole — a half-read multiplier is a wrong number wearing a derivation.
+
+**THE AUTHORITY WAS PLAYED, NOT RECALLED.** One real Champions `Battle`, medicham2's own built stats
+written onto its Pokemon, roll pinned, ONE knob — the TYPE of the move that hit the Flash Fire body on
+turn 1:
+
+| roll | t1 Body Slam (Normal) | t1 Fire Punch (absorbed) | ratio |
+|---|---|---|---|
+| 0 | 100 | 148 | 1.4800 |
+| 8 | **91** | **136** | **1.4945** |
+| 15 | 84 | 126 | 1.5000 |
+
+and two Fire Punches read `-start` then `-immune`, in that order. This engine now reads 93 -> 138 on
+its own mid-roll (the same +45) and emits the same two lines.
+
+### PART B — THE COMPARATOR IS ONE LEAF WIDER
+
+`volatile:choicelock` is the largest COMPARABLE leaf in the hole — **9,488 pool games**, nearly twice
+the next one — and it is decision-changing: wrong here and the engine believes a body has moves it
+does not have. It is now compared as **the MOVE**, not as a presence bit, on both sides.
+
+`_lock` carries two locks here and `_lockT` tells them apart: `Infinity` is the Choice item, a finite
+count is Encore, which has its own leaf. **The raw field on both sides, deliberately** — the engine's
+own reader `lockStillBinds` MUTATES, so calling it from a comparator would make measuring change the
+board.
+
+`tests/probe_uncompared_leaves.js`: **COMPARED 33 -> 34, NEITHER 43 -> 42.**
+
+### WHICH SCOREBOARD, SAID BEFORE THE RUNS
+
+Predicted: the LAB moves on both parts and the POOL moves on neither. **Both held, and the reason the
+pool sat still is different in the two halves and is worth keeping apart.**
+
+- **Flash Fire — the sample never reached the mechanic.** 1,177 games of 17,381 (6.77%) declare a
+  Flash Fire body and 902 (5.19%) also give the foe a Fire move, but the corpus carries it on only
+  **365 of 8,778 deduped teams (4.16%)**, and the body must additionally be BROUGHT and be hit by a
+  Fire move inside twelve turns. It was not, in any of the 961 games: the baseline's six divergences
+  are five `fallenundefined` rows and one faint order, and **had an absorb happened, the pre-fix
+  engine's `-immune` would have parted from the authority's `-start` right there.** The pool's silence
+  is a fact about the sample, not about the fix.
+- **`choicelock` — the leaf WAS reached and it agreed.** Choice Scarf bodies stood on the field
+  (`item=choicescarf` appears in the run's own speed table) and `item:choiceLock` is NOT in
+  `coverage.not_exercised`. 12,445 turn boundaries compared, 12,445 identical, with the new leaf in
+  the set.
+
+**AND THE LEAF WAS PROVED NON-VACUOUS BEFORE THE RUN WAS BELIEVED.** Identical output across a varied
+knob is the unwired signature, so both sides were read on a staged board with the item as the only
+knob: no item -> `""`/`""`, Choice Scarf -> `"dragonclaw"`/`"dragonclaw"`. Both engines, same reader.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"STATED, NOT FIXED: Flash Fire's gift is a VOLATILE this engine does not grant"*~~ (the paragraph
+  under ROADMAP #432, and the WIRE 11 header that had said it since it was written) — **granted,
+  announced, paid, and ended with the ability, under two census rows shown RED first.** Under
+  `MEDI_ABSORB_GIFT_VOLATILE_BLIND=1` both read MISSING with the defect printed in their own detail:
+  `142/235` on BOTH damage arms and `-immune` on the first absorb.
+- ~~*"`volatile:choicelock` is read by nothing"*~~ — compared, and agreeing across 12,445 boundaries.
+
+**Joins it:**
+- **THE TWO ENGINES DESTROY A DEAD CHOICE LOCK AT DIFFERENT MOMENTS, AND NOTHING HAS STAGED IT.** The
+  authority drops the volatile inside `onDisableMove`, which runs when it builds a request; this
+  engine drops it inside `lockStillBinds`, which runs when something asks the menu. If those straddle
+  a turn boundary a Knocked-Off Scarf leaves a lock standing on one side only. **Predicted before the
+  run and NOT observed in 961 games** — which is not the same as absent, because no game in the sample
+  staged a Knock Off onto a locked body at a boundary. Owed: a staged probe, not a wider comparator.
+- **A `gain.volatile` WHOSE PAYOFF CANNOT BE DERIVED IS STILL GRANTED, AND THE EFFECT IS COUNTED.**
+  `MEDFAILS.absorbGiftUnmodelled` no longer means "the gift was binned"; it means "the gift landed and
+  this engine cannot price it". Zero today, because the one member is fully derived. The counter's
+  MEANING changed and its name did not.
+- **`data/tags.json` REGENERATES AGAINST A MOVING STORE.** Re-running `tag_dex.js` to publish one new
+  param rewrote 1,502 lines, every one of them a usage count off a store OPS had appended to.
+  Measured before it was accepted: **params byte-identical on all 849 entities except `flashfire`,
+  linkage MEMBERSHIP identical on all 16 keys, one usage-tiebreak reorder (`magnet`/`habanberry` in
+  `linkage.moveType.items`) and one `used:false -> true` correction.** Behaviourally inert, and it
+  should not have to be re-proved by hand next time.
+
+### OWED, NOT RUN
+
+The exact commands, with their expected values stated first, are the `## OWED, NOT RUN` block of
+`docs/_reports/2026-08-29-phase2-flashfire-choicelock.md`.
 
 ## THE FIVE CLAUSES THAT READ "MEASURED AGAINST A DIFFERENT ENGINE" WERE RE-RUN ON `4e5c7b3400de`. **THE GATE IS 8 OF 8 AND OPEN.** TEN PREDICTED VALUES, TEN HITS, ZERO MISSES. 2026-08-29.
 
@@ -11625,6 +11731,10 @@ the line fails there. **STATED, NOT FIXED:** Flash Fire's gift is a VOLATILE thi
 (the WIRE 11 header has said so since it was written), so it keeps announcing `-immune` on every Fire
 hit where the authority announces it only on the second. `MEDFAILS.absorbGiftUnmodelled` counts it;
 behaviour is unchanged and now loud.
+
+*(**SUPERSEDED 2026-08-29** — the gift is granted, announced and paid; see the top section of
+this file. The paragraph above is dated evidence from 2026-08-24 and is left standing rather than
+edited in place.)*
 
 **THE MAGIC BOUNCE ANNOUNCEMENT IS OPT-IN AND THE DEFAULT IS SILENT.** `bounceOff` is asked six times
 and one caller is not a resolution at all — `statusMoveTargets` is consulted by the Protean pre-check

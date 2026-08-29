@@ -1,5 +1,37 @@
 # ABRA — the plain-English deck
 
+**Version 5.210.0 · 2026-08-29 · Will Hooper**
+
+**5.210.0 — WE PULLED A NUMBER THAT HAD NOTHING BEHIND IT.**
+
+A comparison we had been quoting for a month said our win-probability model was BEATEN by a
+two-number rule of thumb. The script that produced it prints its answer to the screen and saves
+nothing, so there was no file anyone could open to check it — and it was run before we started
+throwing out bot and forfeit games, so it was scored on the wrong pile. Run properly, the model
+and the rule of thumb TIE. The old comparison is withdrawn and left in the review that made it,
+not deleted. This page never quoted it.
+
+**5.209.0 — AN ABILITY THAT EATS FIRE WAS NOT GETTING ANYTHING FOR IT.**
+
+The 5.208.0 page below is left as it was written; its numbers come from the older copy of the
+simulator.
+
+**What we fixed.** Flash Fire lets a Pokemon swallow a Fire attack whole and then throw Fire attacks
+of its own about half again as hard for the rest of the battle. Our simulator got the swallowing
+right and then quietly threw the reward away, so the Pokemon hit exactly as softly as before. It
+also said "it had no effect" the first time it ate a Fire move, where the real game only says that
+the SECOND time — the first time it says "Flash Fire started". Both halves are the same one line in
+the real game, so one change fixed both.
+
+**How we checked.** We played the real game, on the same Pokemon, with one thing changed: whether
+the attack that came in on turn one was a Fire attack. The follow-up attack dealt 91 damage when it
+was not and 136 when it was. Ours now does the same thing for the same reason.
+
+**And we made the checker look at one more thing.** When a Pokemon holds a Choice item it is locked
+into the move it used first. Our board comparison was not looking at that lock at all, which means
+it could not have caught us getting it wrong. It looks now — at WHICH move, not just at whether
+there is a lock — and across 12,445 checkpoints of 961 games the two simulators agreed every time.
+
 **Version 5.208.0 · 2026-08-28 · Will Hooper**
 
 **5.208.0 — ONE MORE ITEM NOW WORKS, AND WE CHECKED EVERYTHING AGAIN AFTERWARDS.**

@@ -13,30 +13,139 @@ it does not compete on them.
 
 ```
 MEASURE — can we believe a number
-  leaf calibration: WITHHELD — engine/provenance.js calls data/winrate-backtest.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    older than its input engine-data.js
-    (+2 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/backtest_winrate.js
-  engine correctness -> leaf: WITHHELD — engine/provenance.js calls data/leaf-engine-contrast.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    older than its input engine-data.js
-    (+9 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 190 unsafe, 2 void (declared), 24 possibly stale, 34 ok, 0 missing
-  click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is a963537c91e8 now
-    (+5 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/click_census.js
+  leaf calibration: QUARANTINED — the figure is withheld, not annotated.
+    data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 5 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
+  engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
+    data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 5 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
+  provenance: 189 unsafe, 2 void (declared), 22 possibly stale, 37 ok, 0 missing
+  click censoring: QUARANTINED — the figure is withheld, not annotated.
+    data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 5 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
+  the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-08-28 19:17
+    moved after the fit: engine/medicham2-browser.js  2026-08-28 22:43
+    moved after the fit: data/abra-tags.js  2026-08-28 22:51
 ```
 
-_stamped 2026-08-28 21:11_
+_stamped 2026-08-29 00:10_
 
 <!-- /GENERATED -->
+
+## THE WHOLE-GAME DIFFERENTIAL'S CLEAN SHEET IS A CLAIM ABOUT GAMES THAT DO NOT END. 2026-08-29.
+
+**Built: a second driver arm, `empirical-click/v1`, beside `census-coverage-seeking/v1`.** Selected by
+id (`--steering coverage|empirical`), default unchanged. It draws the action from
+`data/move-priors.json` — P(move | species) over real recorded ladder clicks, with the turn-1 `lead`
+table on turn one — and takes a voluntary switch at the **9.98%** conditional rate measured off the raw
+logs of both human stores (`data/rollout-switch-census.json`, 58,639 finished games). Everything else is
+unchanged: same swarm teams, same Mode A pinned dice on both sides, same comparators, same census credit
+rule, same target rule. Only the action selection moved, which is what keeps every divergence a RULE.
+
+**THE MEASUREMENT.** Two legs, one session, one binary, release `e129bca605e3`, census pin
+`9446a684709d`, `--team-store data/team-pool-frozen`, `--games 1200` -> 961 games, arm `middle`, cap 12,
+both diverted to `data/verification/`. The published artifact was not written.
+
+| | coverage-seeker (control) | empirical-click |
+|---|---|---|
+| both engines ended the battle | **17 (1.8%)** | **459 (47.8%)** |
+| cut off by the turn cap (12) | 944 (98.2%) | 454 (47.2%) |
+| protocol parted | 6 | 248 |
+| **board-material causes / games** | **0 / 0** | **114 / 128** |
+| DIFFERENT-END-STATE | 0 | 99 |
+| band 1 DIFFERENT-WINNER | not reachable | **0 of 459 resolved games** |
+| elapsed | 102.8 s | 252.9 s |
+
+**THE CAP WAS NEVER THE BINDING TERM. THE DRIVER WAS** — 1.8% -> 47.8% at an identical cap, release,
+census pin and byte-identical team pool (`0d103fb9fa87`). The control leg reproduces the published
+headline exactly, which is the proof the default arm did not move.
+
+**AND THE CLEAN SHEET DOES NOT SURVIVE A DRIVER THAT PLAYS THE GAME.** `0` board-material becomes `128`
+on the same 961 games, and the two cause sets are **disjoint** — not one of the control's 6 appears among
+the empirical arm's 225. This is a RE-BASELINE, not a regression: `arms_comparable.js` refuses the pair
+on `policy`, correctly, and the 128 live in a population — turns 5-12 of games that resolve, forced
+switches, post-KO replacement, endings — that the coverage arm has never once visited. **The quarantine
+clause reads board-material zero on games that do not end.** That is now measured rather than assumed.
+
+**BAND 1 IS REACHABLE FOR THE FIRST TIME AND READS ZERO.** Of the 99 games whose final boards differ,
+none disagree about who won. It is a result on one sample, not a proof about the winner rule: ROADMAP
+#362's simultaneous-double-wipe defect is rare and 459 resolved games may simply not contain one.
+
+**RECEIPTS, PRINTED INCLUDING THE ZEROS.** 77,611 decisions; **0 on an unprofiled species** (derived, not
+lucky — 336 of the format's 347 legal species hit a prior row on `species.id` and the other 11 resolve
+through the base forme); 11 base-forme resolutions; 1,820 (2.3%) draws where the table held none of the
+body's legal moves; realised switch rate **9.675%** against 9.98% measured; **0 repeated driver
+addresses**. `ban_narrowed` reads 0 and that is correct — `diff_swarm.js` already selects `omit-*` teams
+by a predicate that excludes the feature, so the driver's ban has nothing left to remove.
+
+**THE SAMPLER IS DUPLICATED AND THE DUPLICATION IS PINNED BY A TEST.** `rollout_leaf.pickByPrior` could
+not be called: that file requires a LIVE medicham2 and board.js at module load, and the differential
+reads a frozen release. `tests/test-empirical-driver.js` runs 720 draws of the same rows through both
+implementations and asserts they agree — 720/720 — so the day they diverge is a red test rather than a
+silent second opinion. `engine/rollout_leaf.js` gained an EXPORT only; no require edge, no SOURCES
+change, no release stranded.
+
+**LIMITS, STAMPED IN THE ARTIFACT UNDER `not_modelled`.** The priors carry no target model (the existing
+first-live-foe rule is unchanged against a real 23.4% double-target rate) and no model of WHICH body a
+switch sends (uniform over the legal bench). **42 of 961 games (4.4%) stop on an unmirrorable forced
+switch** after the boards had already parted, so 47.8% is a lower bound.
+
+Full account, cause tables and the commands owed: `docs/_reports/2026-08-29-empirical-driver-arm.md`.
+
+## A FIGURE WHOSE GENERATOR PRINTS AND DOES NOT SAVE HAS NO SOURCE, AND THE ONLY HONEST FIX IS TO WITHDRAW IT. 2026-08-29.
+
+`tests/test-docs-current.js` read **22 passed, 1 failed** on clause 3b(c) — the census of figures with
+no artifact behind them anywhere — naming ONE surviving figure in two living documents: the PORY
+two-feature material baseline that `engine/pory_baseline.py` published on 2026-07-25. It is now
+**23 passed, 0 failed**, census **37 → 35**, with `data/docs-currency-baseline.json` untouched and both
+ratchets where they were (3b(a) at 8, 3b(b) at 65). **The figure was withdrawn, not sourced.**
+
+**THE GATE WAS RIGHT, AND THE THREE REASONS ARE INDEPENDENT.**
+- **The generator writes nothing.** `engine/pory_baseline.py` holds no `json.dump`, no `open(..., 'w')`
+  and no `write(`; it prints a five-arm table to stdout and exits. There was never a file to check the
+  documents against. An independent walk of **5,288 JSON files under `data/`** finds nothing that
+  rounds to the value at any scale — and its companion number in the same parenthetical passes the
+  census only by **coincidental collision** with an unrelated usage share in `data/meta-usage.json` and
+  `data/bring-bias.json`. That is the ENGINE agent's hypothesis confirmed in the half of the pair that
+  is still standing: a figure can sit "traceable" for a month on an accident.
+- **It was scored on the wrong population.** `git show e39329de:engine/pory_baseline.py` — the version
+  that produced the table — has **no clean-data filter**. One landed on 2026-07-30, five days later,
+  and the script's own comment says the unfiltered archive is mostly bots, forfeits and stubs, so
+  *"the comparison that is supposed to keep this project honest is itself measuring the wrong
+  population."* The clean corpus moves every arm by more than the gap the pair was reporting.
+- **The CLAIM is superseded, not just the sourcing.** Both documents said PORY **LOSES** to the
+  two-feature baseline. `data/pory-eval.json` answers the same question on the clean corpus with PORY's
+  own shipped estimator, **paired and clustered by game** instead of two unpaired point estimates: both
+  arms at **0.623623**, difference **+0.000001** (positive = PORY worse), 95% CI
+  **[−0.000026, +0.000029]** over **1,177** held-out games of 5,883. That is a **TIE**, which
+  `docs/MODELS.md` and this file have recorded since 2026-08-04. The two corrected documents were the
+  last places carrying the stronger claim.
+
+**RE-SOURCING WAS AVAILABLE AND WOULD HAVE BEEN THE WRONG ANSWER.** `pory_baseline.py` could be given a
+`json.dump` in ten minutes and the raw archive is on disk. It would not have rescued this figure: the
+corpus and the filter both moved, so a re-run produces a DIFFERENT number, and writing the published
+one into an artifact to satisfy a gate is typing rather than measuring — the `1.256 / 1.544` P1 class
+one section down, arriving through a different door. **Sourcing a figure means finding what measured
+it, not making a file that contains it.**
+
+**AND THE CHANGELOG ROUTE WAS REFUSED ON PURPOSE.** `changelogHas()` makes any figure written into
+`CHANGELOG.md` traceable everywhere, so one line would have turned the clause green with nothing
+measured. `engine/docs_scan.js` warns about that loop in its own header; the ENGINE agent declined it
+and so does this pass. The withdrawn numerals appear in neither the changelog entry nor either
+corrected document — only in `docs/REVIEW-2026-07-25.md`, which measured them and now carries a
+SUPERSEDED note saying what moved underneath it.
+
+**PORY IS NOT QUARANTINED AND THAT WAS CHECKED, NOT ASSUMED.** `engine/pory.py` imports
+`json, os, math, random, numpy` and reads `data/games.ladder.raw-logs.jsonl`; it never loads the
+simulator and reads no rollout. **PORY — the logistic value net — is a different model from PORYGON2,
+the nearest-neighbour value function**, and PORYGON2 is the name on the quarantine list. Had it been
+the same model the fix would have been to WITHHOLD the figure rather than correct it, which is a
+different action; the two are easy to confuse by name alone.
 
 ## REPUBLISHING AN ARTIFACT BREAKS EVERY DATED DOCUMENT THAT QUOTED IT, AND THE FIX IS A LABEL, NOT A NEW NUMBER. 2026-08-28.
 

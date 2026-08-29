@@ -1,14 +1,14 @@
 {
- "generated": "2026-08-28T19:24:11.088Z",
+ "generated": "2026-08-29T00:13:33.890Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "5f3f7141227c",
+ "engine_release": "4e5c7b3400de",
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
-  "DEFERRED-BY-OWNER": 1,
-  "FIRED-AND-BOARDS-MATCH": 139,
+  "DEFERRED-BY-OWNER": 0,
+  "FIRED-AND-BOARDS-MATCH": 140,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 8
  },
@@ -20,11 +20,11 @@
   "out_of_scope": 0,
   "out_of_scope_by": {},
   "in_scope": 148,
-  "tested": 139,
-  "matched": 139,
+  "tested": 140,
+  "matched": 140,
   "differ": 0,
   "silent": 0,
-  "deferred": 1,
+  "deferred": 0,
   "unattributable": 0,
   "unattributable_ids": [],
   "declared_untestable": [],
@@ -7790,16 +7790,12 @@
    "rule": "item/held-and-nothing-more",
    "reads": "nothing matched above — this is the residue",
    "note": "generic: held, attacking, attacked, over three turns",
-   "verdict": "DEFERRED-BY-OWNER",
-   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. Its tag is derived and correct (`damageMultOnRepeat`, the full 4096ths ladder off the condition); what is missing is the CONSUMER, which needs a per-body consecutive-use counter threaded through the turn loop and read inside dmgRange — a change that touches every move's damage path for the smallest row in the whole queue. Will: \"metronome is a joke dont worry about that just put it into a quarantined closet we can re examine once the project is successful.\" (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: FIRED-AND-BOARDS-DIFFER.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "kangaskhan",
-   "deferred": {
-    "by": "Will",
-    "on": "2026-08-10",
-    "why": "The Metronome ITEM (19 uses) climbs a damage ladder over consecutive uses of one move. Its tag is derived and correct (`damageMultOnRepeat`, the full 4096ths ladder off the condition); what is missing is the CONSUMER, which needs a per-body consecutive-use counter threaded through the turn loop and read inside dmgRange — a change that touches every move's damage path for the smallest row in the whole queue. Will: \"metronome is a joke dont worry about that just put it into a quarantined closet we can re examine once the project is successful.\""
-   },
+   "deferred": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
@@ -7854,44 +7850,7 @@
      "without": ""
     }
    ],
-   "diffs": [
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 949,
-     "ours": 952,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 949,
-     "ours": 952,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 949,
-     "ours": 952,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 3,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 949,
-     "ours": 952,
-     "bucket": "off-by-2-or-3"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "item",

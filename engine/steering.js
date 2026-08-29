@@ -68,11 +68,61 @@ const POLICY_RULE =
   + 'data/mechanics-census.json, ties broken toward the least-clicked entity (game_differential.js '
   + 'covWant/creditClick). The census therefore SELECTS THE SAMPLE this run measures.';
 
+/* ---- THE SECOND ARM, 2026-08-29 -----------------------------------------------------------------
+ *
+ * A SECOND POLICY, NOT A REPLACEMENT, AND IT IS SELECTED BY ID.
+ *
+ * The coverage-seeker exercises mechanics rather than trying to win, so 944 of 961 games (98.2%) are
+ * cut off by the turn cap and 17 end naturally — the differential has never compared a game's ENDING.
+ * The empirical arm samples `data/move-priors.json` (P(move | species) over real ladder clicks)
+ * instead, so the games are played the way people play them and can reach a result.
+ *
+ * IT DOES NOT REPLACE THE COVERAGE-SEEKER AND THAT IS MEASURED, NOT DEFERENCE. 48 legal moves are
+ * clicked ZERO times in 21,726 real games and 187 fewer than 20 times, while the census and the
+ * deliberate roster stage 500 moves / 202 abilities / 148 items regardless of usage. An empirical
+ * driver cannot reach that tail by construction. Will, 2026-08-29: *"we play real games from showdown
+ * tho"*, *"but we want to also test individual mechanics as well to make sure they work"*, *"thats
+ * why we have both."*
+ *
+ * ASK FOR AN ARM BY ID. `--steering coverage|empirical`, defaulting to `coverage`, which is the arm
+ * every published number was taken on. Asking by omission is what once produced 162 false
+ * accusations in this repository.
+ *
+ * THE CENSUS IS STILL RESOLVED AND STILL DIGESTED UNDER THIS POLICY, and it is not decoration: the
+ * credit rule keeps running, so coverage is still MEASURED. It simply no longer SELECTS. Both facts
+ * are in the block below so a reader can tell which job the census was doing. */
+const POLICY_EMPIRICAL = 'empirical-click/v1';
+const POLICY_EMPIRICAL_RULE =
+  'at every decision the driver draws the action from real recorded human play: P(move | species) '
+  + 'from data/move-priors.json (its turn-1 `lead` table on turn one), with a voluntary switch drawn '
+  + 'at the conditional rate measured in data/rollout-switch-census.json. Legality still comes from '
+  + 'Showdown\'s own request and the configuration ban/prefer axes still narrow the pool first. The '
+  + 'census is still CREDITED and no longer SELECTS; the behaviour tables select the sample.';
+
 /* Resolve the steering input for one run.
- *   opts.censusPath  an explicit file to pin to (the `--census` flag). Default: the live census.
+ *   opts.censusPath    an explicit file to pin to (the `--census` flag). Default: the live census.
+ *   opts.mode          'coverage' (default) or 'empirical'.
+ *   opts.driverInputs  REQUIRED under 'empirical'. An array of already-digested behaviour tables,
+ *                      `[{ file, read_from, digest, generated, rows }]`. The CALLER computes these
+ *                      because it is the one holding the engine-release handle, and "which copy of
+ *                      the behaviour table did this run use" is a provenance question that belongs
+ *                      where the bytes were read. An empty list under 'empirical' is a REFUSAL for
+ *                      the same reason an unreadable census is: a run with no declared selector is a
+ *                      run with no steering that looks like a run.
  * Returns a block that goes straight into the artifact and is what arms_comparable.js compares. */
 function resolve(opts) {
   opts = opts || {};
+  const mode = opts.mode || 'coverage';
+  if (mode !== 'coverage' && mode !== 'empirical') {
+    throw new Error('steering: unknown mode "' + mode + '". The arms are `coverage` ('
+      + POLICY + ') and `empirical` (' + POLICY_EMPIRICAL + '), and one must be named by id.');
+  }
+  const driverInputs = opts.driverInputs || null;
+  if (mode === 'empirical' && (!Array.isArray(driverInputs) || !driverInputs.length)) {
+    throw new Error('steering: mode `empirical` was asked for with no driverInputs. The behaviour '
+      + 'tables ARE the selector under this policy; a block that does not name and digest them '
+      + 'cannot be compared with any other run, and arms_comparable.js would have nothing to refuse.');
+  }
   const pinned = !!opts.censusPath;
   const src = pinned ? path.resolve(opts.censusPath) : LIVE_CENSUS;
 
@@ -106,8 +156,14 @@ function resolve(opts) {
     + ') — matches_live reads UNKNOWN, not false'); }
 
   return {
-    policy: POLICY,
-    rule: POLICY_RULE,
+    policy: mode === 'empirical' ? POLICY_EMPIRICAL : POLICY,
+    rule: mode === 'empirical' ? POLICY_EMPIRICAL_RULE : POLICY_RULE,
+    /* WHAT JOB THE CENSUS IS DOING IN THIS RUN, said out loud rather than inferred from `policy`.
+     * Under the empirical arm it is measured and not consulted; a reader who sees a census digest
+     * beside a 1.8%-vs-64% completion claim should not have to work out which. */
+    census_role: mode === 'empirical' ? 'CREDITED ONLY — it measures coverage and does not select'
+                                      : 'SELECTS THE SAMPLE — covWant reads it at every decision',
+    driver_inputs: driverInputs || null,
     input: 'data/mechanics-census.json',
     input_read_from: pinned ? path.relative(ROOT, src).replace(/\\/g, '/') : 'data/mechanics-census.json',
     input_digest: digest,
@@ -137,6 +193,25 @@ function comparable(a, b) {
     bad.push('the selection POLICY differs: ' + a.policy + ' vs ' + b.policy
       + ' — the scoring rule itself moved, so identical inputs would still select different samples');
   }
+  /* THE EMPIRICAL ARM'S OWN SELECTOR. Under `empirical-click/v1` the behaviour tables decide which
+   * games get played, exactly as the census does under the coverage policy — so two arms handed
+   * different `move-priors.json` or `rollout-switch-census.json` bytes are not a before/after, and
+   * `data/move-priors.json` moves whenever somebody runs `node engine/policy.js --promote`.
+   * Compared by DIGEST LIST so an added or removed table is a difference too. Reached only when both
+   * arms already agree on `policy`, which the clause above enforces. */
+  const digestsOf = s => (s.driver_inputs || []).map(x => (x && x.file) + '@' + (x && x.digest)).sort().join(', ');
+  if (a.policy === POLICY_EMPIRICAL) {
+    const da = digestsOf(a), db = digestsOf(b);
+    if (!da || !db) {
+      bad.push('an `empirical-click/v1` arm records no `driver_inputs`, so the tables that SELECTED '
+        + 'its sample cannot be shown equal. That block is what the census digest is under the '
+        + 'coverage policy.');
+    } else if (da !== db) {
+      bad.push('the BEHAVIOUR TABLES differ: ' + da + ' vs ' + db + '. Under empirical-click/v1 these '
+        + 'select the sample, so the two arms played different games for a reason unrelated to the '
+        + 'change under test.');
+    }
+  }
   if (a.input_digest !== b.input_digest) {
     bad.push('the steering INPUT differs: ' + a.input + ' is ' + a.input_digest + ' in the before-arm and '
       + b.input_digest + ' in the after-arm (' + a.input_rows + ' vs ' + b.input_rows + ' rows, generated '
@@ -162,4 +237,5 @@ function comparable(a, b) {
   return { ok: !bad.length, reasons: bad };
 }
 
-module.exports = { resolve, comparable, POLICY, POLICY_RULE, LIVE_CENSUS };
+module.exports = { resolve, comparable, POLICY, POLICY_RULE,
+                   POLICY_EMPIRICAL, POLICY_EMPIRICAL_RULE, LIVE_CENSUS };

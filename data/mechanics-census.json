@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T01:19:46.512Z",
+  "generated": "2026-08-29T02:47:46.690Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 782,
-  "live": 782,
+  "probed": 784,
+  "live": 784,
   "missing": 0,
-  "armed": 782,
+  "armed": 784,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3753,7 +3753,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7834,6 +7834,26 @@
       "label": "Encore then Disable leaves no legal move: the engine must Struggle",
       "live": true,
       "detail": "turn 4, with the engine choosing — ENCORE + DISABLE played [struggle] (the authority Struggles: |-activate|move: Struggle then |move|Struggle); DISABLE ALONE played [rockslide] (three slots survive, so anything but Struggle and anything but the SEALED bodyslam is right, and this is what says the Struggle came from the conjunction — NOTE: that click is NOT one of the four declared moves [bodyslam,amnesia,crunch,icebeam], which is the ROADMAP #119/#295 priors leak and not this mechanic); ENCORE ALONE played [bodyslam] (locked but functional). Full run, encore+disable: [\"bodyslam\",\"bodyslam\",null,\"struggle\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "typeImmunity",
+      "label": "Flash Fire's absorbed gift is a volatile, and it multiplies the holder's own Fire moves",
+      "live": true,
+      "detail": "[the absorb line and the turn-2 Flamethrower, one real board, two turns] — CONTROL, turn 1 BODY SLAM into the Flash Fire Armarouge (Normal, nothing to absorb): [\"|-damage|p2a:snorlax|142/235\"], so the Flamethrower deals 93. TEST, the identical board with turn 1 FIRE PUNCH: [\"|-start|p1a:armarouge|ability:flashfire\",\"|-damage|p2a:snorlax|97/235\"], so it deals 138. The AUTHORITY on these same bodies with the roll pinned to index 8 reads 91 then 136 (x1.4945); rolls 0 and 15 read 100/148 and 84/126. Equal numbers across the two arms is the defect: the gift was counted and binned",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "typeImmunity",
+      "label": "a Flash Fire body announces `-start` on the first Fire hit and `-immune` only on the second",
+      "live": true,
+      "detail": "[every line the struck body emitted across TWO Fire Punches] — FLASH FIRE [\"|-start|p1a:armarouge|ability:flashfire\",\"|-immune|p1a:armarouge|[from]ability:flashfire\"]; CONTROL, the same Armarouge carrying WEAK ARMOR (its other legal ability) taking the identical two hits, [\"-damage\",\"-damage\"]. The authority writes -start then -immune, in that order, because the -immune is inside `if (!target.addVolatile(\"flashfire\"))` — the gift's else, never its companion",
       "hollow": false,
       "armed": true,
       "directCall": false

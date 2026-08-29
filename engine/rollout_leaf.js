@@ -1497,4 +1497,20 @@ module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, sideFallen, bu
                     * gate can assert `checked > 0` (it ran at all) and `mismatch === 0` (the claim),
                     * and `fallenTruth` so a caller outside the leaf can ask the same question of the
                     * same source rather than re-deriving it from a list somebody else pruned. */
-                   FALLEN_GUARD, fallenTruth, checkFallenSeeded };
+                   FALLEN_GUARD, fallenTruth, checkFallenSeeded,
+                   /* 2026-08-29, the empirical-click arm of the whole-game differential. EXPORT ONLY
+                    * — no line of this file's behaviour changes, and no require edge is added, so
+                    * `engine_release.js` SOURCES is untouched and no existing release is stranded.
+                    *
+                    * `engine/empirical_driver.js` DUPLICATES this draw, and it has to: requiring this
+                    * file from `game_differential.js` would pull a LIVE medicham2 and board.js into a
+                    * process whose whole purpose is to read a frozen release, and lifting the sampler
+                    * into a shared module would add a require edge to a frozen SOURCE and strand
+                    * every release cut before today (LESSONS §12 — that reached 168 of 200 once).
+                    *
+                    * So the duplication is pinned by a TEST rather than by a promise:
+                    * `tests/test-empirical-driver.js` runs the same rows through both implementations
+                    * across a sweep of u and FAILS the day they disagree. Two producers of one fact
+                    * is this repo's most-repeated failure; the only safe version of it is one that
+                    * goes red. This export is what makes that check possible at all. */
+                   pickByPrior, movePriorFor };

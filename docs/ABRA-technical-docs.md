@@ -1,5 +1,45 @@
 # ABRA — Technical Documentation
 
+**Version 5.210.0 · Last updated 2026-08-29**
+
+**5.210.0 — THE PORY TWO-FEATURE PAIR IS WITHDRAWN: ITS GENERATOR WRITES NO ARTIFACT.**
+`engine/pory_baseline.py` prints a five-arm table and saves nothing, so the material-baseline
+pair it published on 2026-07-25 never had a source to check it against, and it was scored
+before that script had a clean-data filter at all. On the clean corpus the comparison is a
+TIE rather than a loss, measured PAIRED and clustered by game in `data/pory-eval.json`. The
+withdrawn pair stays in `docs/REVIEW-2026-07-25.md`, the review that measured it. This document quoted the pair in its value-network
+section and no longer does.
+
+**5.209.0 — GRANT FLASH FIRE'S VOLATILE. COMPARE THE CHOICE LOCK.**
+The block for 5.208.0 is below. Its counts come from engine release `4e5c7b3400de`.
+Those counts are out of date. They are kept as a record. Read this block for the current state.
+
+**WHAT CHANGED IN THE SIMULATOR.**
+Flash Fire now grants the volatile it absorbs the hit for.
+The volatile multiplies the holder's Fire moves by 1.5 at the attacking-stat stage.
+The multiplier, the boosted type, the announcement text and the end condition are all derived.
+They are derived by `engine/tag_dex.js` into `typeImmunity.gain.volatileBoost`.
+No name is written into the engine.
+The `-immune` line is the gift's else. It now appears on the second Fire hit only.
+The volatile is removed when the ability that granted it is removed.
+
+**WHAT CHANGED IN THE COMPARATOR.**
+`engine/board_state.js` now compares `volatile:choicelock`.
+It compares the MOVE the body is locked into, not the presence of a lock.
+The compared-leaf count is 34 of 80. It was 33.
+
+**HOW TO REPRODUCE.**
+Run `node tests/test-mechanics.js`. The census must read 784 live, 784 probed, 0 missing.
+Set `MEDI_ABSORB_GIFT_VOLATILE_BLIND=1` and run it again. Two rows must read MISSING.
+Run `node tests/probe_uncompared_leaves.js`. It must read COMPARED 34, NEITHER 42.
+Run `node engine/quarantine.js`. The gate must read OPEN, 8 of 8.
+
+**WHAT IS STILL OPEN.**
+The two engines remove a dead Choice lock at different moments.
+The authority removes it when it builds a request.
+This engine removes it when something asks for the menu.
+No game in the 961-game sample staged the difference. No probe exists for it.
+
 **Version 5.208.0 · Last updated 2026-08-28**
 
 **5.208.0 — WIRE THE METRONOME ITEM. THEN MEASURE THE FIVE CLAUSES AGAIN.**
@@ -12,7 +52,8 @@ The tag `damageMultOnRepeat` was correct before this change. No code read it.
 The item makes a move stronger each time the holder uses the same move.
 The multiplier ladder is read from the tag. It is not typed into the code.
 
-**THE STATE.**
+**THE STATE. THESE COUNTS ARE SUPERSEDED BY THE 5.209.0 BLOCK ABOVE.**
+The census below reads 782. The artifact now reads 784.
 The gate has eight clauses. All eight clauses pass. The gate is open.
 Five clauses were measured again on engine release `4e5c7b3400de`.
 Read `data/roster.items.json`. There are 140 tested of 148 in scope.
@@ -1241,11 +1282,24 @@ faster AND Trick Room is not up" — and the output layer weighs the detectors. 
 function on a bounded domain, so the network is strictly **more expressive** than the linear model.
 
 **Strictly more expressive is a claim about representation, not about learning.** Extra capacity spent
-on features that contain no interactions buys nothing and costs variance. `engine/pory_baseline.py`
-already established the relevant fact: PORY's six material features are **beaten by two of them**
-(`alive_diff + hp_diff` at 0.5822 vs PORY's 0.5840). If the features carry no more signal, a network
-fitted to them lands in the same place — and reporting otherwise would be measuring the estimator
-rather than the game.
+on features that contain no interactions buys nothing and costs variance. The relevant fact is that
+PORY's five material features carry two degrees of freedom, and against a logistic on
+`alive_diff + hp_diff` alone — same gradient descent, same standardisation, same split — PORY **ties**:
+0.623623 to 0.623623, a paired difference of +0.000001 (positive = PORY worse), 95% CI
+[−0.000026, +0.000029] clustered by game over 1,177 held-out games, containing zero. If the features
+carry no more signal, a network fitted to them lands in the same place — and reporting otherwise would
+be measuring the estimator rather than the game.
+
+**WITHDRAWN: the pair this paragraph quoted for the same claim.** It read *"PORY's six material
+features are beaten by two of them"* with a two-number comparison attributed to
+`engine/pory_baseline.py`. Both halves are wrong to state as current fact. That script **prints its
+table and writes no artifact**, so the figures never had a source to check them against — the same
+P1 class as the PORY coefficients `docs/MEASURE.md` corrects. It also scored every arm on the **unfiltered raw
+archive**, most of which is bots, forfeits and stubs; its clean-data filter landed five days after the
+figures were published, and the clean corpus moves every arm by more than the gap between them. And
+the claim itself is superseded: on the current corpus the comparison is a **tie**, not a loss, which
+is what the numbers above report and what `docs/MODELS.md` has recorded since. The withdrawn pair is
+left standing in `docs/REVIEW-2026-07-25.md`, the review that measured it, and is not restated here.
 
 This is the lesson the game-playing literature learned repeatedly. **TD-Gammon** (Tesauro 1994) needed
 hand-designed board features, not checker counts. **AlphaGo Zero / AlphaZero** (Silver et al. 2017,

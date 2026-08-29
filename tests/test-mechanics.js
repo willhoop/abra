@@ -30006,6 +30006,103 @@ probe('move', 'sealsMoves',
                  + JSON.stringify(both.turnMoves) };
 });
 
+/* ================= 2026-08-29 — FLASH FIRE'S GIFT IS A VOLATILE, AND IT WAS BINNED ===============
+ *
+ * ROADMAP #432 closed the `-immune`-is-the-gift's-ELSE family and left ONE member stated rather than
+ * fixed: *"Flash Fire's gift is a VOLATILE this engine does not grant"*. `absorbGift` priced the hit
+ * at zero, incremented `MEDFAILS.absorbGiftUnmodelled` and threw the gift away — so a Flash Fire body
+ * ate the Fire move correctly and then hit no harder for it. That is board-material through DAMAGE,
+ * not narration, and it is the only genuine absence among the 43 board leaves nothing compares
+ * (`docs/_reports/2026-08-28-leaf-name-map.md`): 1,177 games of the frozen pool.
+ *
+ * THE AUTHORITY WAS PLAYED, NOT RECALLED. One real `gen9championsvgc2026regmb` `Battle`, the same two
+ * turns, the same bodies (medicham2's own built stats written onto the authority's Pokemon so the two
+ * answers are about the MECHANIC and not about two stat systems), damage roll pinned to index 8, ONE
+ * knob — the TYPE of the move that hit the Flash Fire body on turn 1:
+ *
+ *     t1 Body Slam  (Normal, not absorbed)  ->  t2 Flamethrower dealt  91
+ *     t1 Fire Punch (Fire,   absorbed)      ->  t2 Flamethrower dealt 136       ratio 1.4945
+ *     rolls 0 and 15 as well: 100 -> 148 (1.4800) and 84 -> 126 (1.5000)
+ *
+ * and the absorb turn read `|-start|p1a: Armarouge|ability: Flash Fire` with NO `-immune`. The ratio
+ * is not exactly 1.5 because the multiplier is a STAT stage — `condition.onModifyAtk` /
+ * `onModifySpA` returning `this.chainModify(1.5)` — which passes through the damage formula's
+ * truncations, which is also why the engine pays it in the `_aCh` relay beside Guts and Huge Power
+ * rather than in the final damage chain.
+ *
+ * THE CONTROL IS THE SAME BODY, THE SAME ABILITY AND THE SAME TWO CLICKS with the incoming move's
+ * TYPE varied, so "Armarouge hits hard" cannot pass it and neither can an engine that boosted every
+ * Fire move a Flash Fire body ever clicks. Both arms are printed: identical numbers across a varied
+ * knob is the unwired signature this file exists to catch, and it is exactly what this read before
+ * the fix (`|-damage|p2a:snorlax|142/235` on BOTH arms, and `-immune` on the absorb).
+ *
+ * KNOB: MEDI_ABSORB_GIFT_VOLATILE_BLIND=1 restores the bin and turns this row and the one below it
+ * red together. */
+probe('ability', 'typeImmunity', "Flash Fire's absorbed gift is a volatile, and it multiplies the holder's own Fire moves", () => {
+  const arm = (foeT1) => attrRun(['armarouge', 'clefable', 'snorlax', 'milotic'],
+      (B) => { B.me.ability = 'flashfire'; },
+      [null, { mv: 'flamethrower' }], [{ mv: foeT1 }, null], 2)
+    .map(M.traceCanon)
+    .filter(l => /^\|(-damage\|p2a:snorlax|-start\|p1a:armarouge|-immune\|p1a:armarouge)/.test(l));
+  const control = arm('bodyslam');     /* Normal — nothing to absorb, no volatile */
+  const test = arm('firepunch');       /* Fire   — absorbed, and the gift lands   */
+  const left = (a) => { const l = a.find(x => x.startsWith('|-damage|p2a:snorlax|')); return l ? l.split('|')[3] : null; };
+  const dealt = (a) => { const s = left(a); if (!s) return null; const p = s.split('/'); return (+p[1]) - (+p[0]); };
+  return { works: JSON.stringify(control) === '["|-damage|p2a:snorlax|142/235"]'
+                  && JSON.stringify(test) === '["|-start|p1a:armarouge|ability:flashfire",'
+                                            + '"|-damage|p2a:snorlax|97/235"]'
+                  && dealt(test) > dealt(control),
+           arms: { control, test },
+           detail: `[the absorb line and the turn-2 Flamethrower, one real board, two turns] — `
+                 + `CONTROL, turn 1 BODY SLAM into the Flash Fire Armarouge (Normal, nothing to `
+                 + `absorb): ${JSON.stringify(control)}, so the Flamethrower deals ${dealt(control)}. `
+                 + `TEST, the identical board with turn 1 FIRE PUNCH: ${JSON.stringify(test)}, so it `
+                 + `deals ${dealt(test)}. The AUTHORITY on these same bodies with the roll pinned to `
+                 + `index 8 reads 91 then 136 (x1.4945); rolls 0 and 15 read 100/148 and 84/126. `
+                 + `Equal numbers across the two arms is the defect: the gift was counted and binned` };
+});
+
+/* ================= 2026-08-29 — AND THE SECOND FIRE HIT IS WHERE `-immune` BELONGS ===============
+ *
+ * The other half of the same line, and it is why the fix is not "grant the volatile" alone:
+ *
+ *     if (!target.addVolatile("flashfire")) this.add('-immune', target, '[from] ability: Flash Fire');
+ *
+ * `addVolatile` returns FALSE when the volatile is already up, so the `-immune` is the gift's ELSE.
+ * With the gift binned there was nothing for the else to test and this engine announced `-immune` on
+ * EVERY Fire hit, including the first — ROADMAP #432 says exactly that and counted it.
+ *
+ * PLAYED AGAINST THE AUTHORITY, two Fire Punches into one Armarouge, same board:
+ *
+ *     |move|p2a: Snorlax|Fire Punch|p1a: Armarouge     |-start|p1a: Armarouge|ability: Flash Fire
+ *     |move|p2a: Snorlax|Fire Punch|p1a: Armarouge     |-immune|p1a: Armarouge|[from] ability: Flash Fire
+ *
+ * THE CONTROL IS ARMAROUGE'S OTHER LEGAL ABILITY — `species.get('armarouge').abilities` is
+ * `{0: Flash Fire, 1: Weak Armor}` — so it is the same body taking the identical two Fire Punches
+ * with one thing varied, and it must announce NEITHER line and take the damage instead. An engine
+ * that emitted `-start` unconditionally fails there; one that emitted `-immune` twice fails the test
+ * arm; one that emitted neither fails both. */
+probe('ability', 'typeImmunity', 'a Flash Fire body announces `-start` on the first Fire hit and `-immune` only on the second', () => {
+  const arm = (ab) => attrRun(['armarouge', 'clefable', 'snorlax', 'milotic'],
+      (B) => { B.me.ability = ab; },
+      [null, null], [{ mv: 'firepunch' }, { mv: 'firepunch' }], 2)
+    .map(M.traceCanon).filter(l => /^\|(-start|-immune|-damage)\|p1a:armarouge/.test(l));
+  const test = arm('flashfire');
+  const control = arm('weakarmor');
+  const shape = (a) => a.map(l => l.split('|')[1]);
+  return { works: JSON.stringify(test) === '["|-start|p1a:armarouge|ability:flashfire",'
+                                         + '"|-immune|p1a:armarouge|[from]ability:flashfire"]'
+                  && JSON.stringify(shape(control)) === '["-damage","-damage"]',
+           arms: { control: shape(control), test: shape(test) },
+           detail: `[every line the struck body emitted across TWO Fire Punches] — FLASH FIRE `
+                 + `${JSON.stringify(test)}; CONTROL, the same Armarouge carrying WEAK ARMOR (its `
+                 + `other legal ability) taking the identical two hits, ${JSON.stringify(shape(control))}. `
+                 + `The authority writes -start then -immune, in that order, because the -immune is `
+                 + `inside ` + '`if (!target.addVolatile("flashfire"))`' + ` — the gift's else, never `
+                 + `its companion` };
+});
+
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');

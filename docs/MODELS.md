@@ -1,5 +1,35 @@
 # ABRA — the model family (living reference)
 
+**Version 5.210.0 · Last updated 2026-08-29.**
+
+**5.210.0 — THE PORY TWO-FEATURE PAIR IS WITHDRAWN: ITS GENERATOR WRITES NO ARTIFACT.**
+`engine/pory_baseline.py` prints a five-arm table and saves nothing, so the material-baseline
+pair it published on 2026-07-25 never had a source to check it against, and it was scored
+before that script had a clean-data filter at all. On the clean corpus the comparison is a
+TIE rather than a loss, measured PAIRED and clustered by game in `data/pory-eval.json`. The
+withdrawn pair stays in `docs/REVIEW-2026-07-25.md`, the review that measured it. This document never quoted the pair — it has recorded
+the tie since 2026-08-04 — and is unchanged apart from this note.
+
+**5.209.0 — MEDICHAM: FLASH FIRE'S GIFT IS GRANTED, ANNOUNCED AND PAID, AND THE BOARD COMPARATOR
+READS `volatile:choicelock`. GATE 8 OF 8, OPEN.** The 5.208.0 block below is dated history: its
+counts were measured on engine release `4e5c7b3400de` and are superseded, not rewritten. The engine
+moved, so nothing here is a restatement of the same bytes.
+
+- **The census reads 784 probed / 784 live / 0 missing**, up from 782. Two rows, both shown RED first
+  under `MEDI_ABSORB_GIFT_VOLATILE_BLIND=1`: the damage arms read an identical `142/235` on both
+  sides of the knob (the unwired signature) and the `-immune` landed on the first absorb.
+- **The board comparator reads 34 of 80 leaves**, up from 33. `volatile:choicelock` is compared as
+  the MOVE, on both sides, through the raw field rather than either engine's own reader —
+  `lockStillBinds` mutates, and a comparator that calls it would make measuring change the board.
+- **The three roster stages read 140 / 129 / 475 tested**, 0 FIRED-AND-BOARDS-DIFFER and 0
+  DID-NOT-FIRE, all stamped engine release `e129bca605e3`.
+- **The whole-game differential reads 961 games, 6 raw, 6 declared, 0 undeclared**, with 12,445 turn
+  boundaries compared and 12,445 identical — unmoved from the baseline on `4e5c7b3400de`, which was
+  re-run under identical flags first and reproduced the published artifact exactly.
+- **Open and filed, not claimed:** the authority destroys a dead Choice lock inside `onDisableMove`
+  and this engine inside `lockStillBinds`. Predicted before the run; not observed in 961 games; no
+  probe stages it yet.
+
 **Version 5.208.0 · Last updated 2026-08-28.**
 
 **5.208.0 — MEDICHAM: THE METRONOME ITEM IS WIRED, AND THE FIVE GATE CLAUSES ARE RE-RUN ON THE
@@ -8,7 +38,9 @@ counts were measured on engine release `5f3f7141227c` and are superseded, not re
 moved this time — WIRE 158 gave `damageMultOnRepeat` its first consumer — so nothing below is a
 restatement of the same bytes.
 
-- **What the roster stages read now**, from `data/roster.items.json`, `data/roster.abilities.json`
+- **What the roster stages read at 5.208.0 — superseded by the 5.209.0 block above, which reads the
+  same three counts on release `e129bca605e3`** (the census figure in this block, 782, is superseded
+  by 784): from `data/roster.items.json`, `data/roster.abilities.json`
   and `data/roster.moves.json`, all three stamped engine release `4e5c7b3400de`: items **140 tested
   of 148 in scope**, abilities **129 of 202**, moves **475 of 500**, with 0 FIRED-AND-BOARDS-DIFFER
   and 0 DID-NOT-FIRE on all three, and red demonstrations **18 / 29 / 35** all caught. The items

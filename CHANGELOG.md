@@ -10,6 +10,136 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.210.0] — 2026-08-29
+
+### Changed
+- **THE PORY TWO-FEATURE PAIR IS WITHDRAWN. IT NEVER HAD AN ARTIFACT, AND ITS DIRECTION WAS WRONG.**
+  `tests/test-docs-current.js` was **22 passed / 1 failed** on clause 3b(c) — *"census: figures with no
+  artifact behind them anywhere"* — naming one figure in two living documents: the two-feature material
+  baseline `engine/pory_baseline.py` published on 2026-07-25 and quoted ever since in `docs/SUMMARY.md`
+  and `docs/ABRA-technical-docs.md` as *"PORY LOSES to a two-feature baseline"*. **The gate was right and
+  the figure is retracted rather than sourced.** Census **37 → 35**; SUMMARY leaves the census entirely
+  (1 → 0) and the technical docs return to their baseline (2 → 1). No baseline entry was added — the
+  ratchet came down by fixing the figure, which is the only direction it may move.
+  - **THE GENERATOR WRITES NO ARTIFACT, VERIFIED RATHER THAN ASSUMED.** `engine/pory_baseline.py` has
+    no `json.dump`, no `open(..., 'w')` and no `write(` anywhere in it: it prints a five-arm table to
+    stdout and exits. So the pair was never checkable, and an independent walk of **5,288 JSON files
+    under `data/`** finds nothing that rounds to it at any scale. Its companion number passes the census
+    only by **coincidental collision** with an unrelated usage share in `data/meta-usage.json` and
+    `data/bring-bias.json` — the same accident the ENGINE agent suspected, caught live in the surviving
+    half of the pair.
+  - **IT WAS ALSO MEASURED ON THE WRONG POPULATION.** `git show e39329de:engine/pory_baseline.py` — the
+    version that produced the table — has **no clean-data filter**; the filter landed on 2026-07-30,
+    five days after publication. Every arm was scored on the raw archive, which the script's own later
+    comment describes as mostly bots, forfeits and stubs.
+  - **AND THE CLAIM IS SUPERSEDED, NOT MERELY UNSOURCED.** The same question is already answered on the
+    clean corpus by PORY's own shipped estimator, **paired and clustered by game** instead of two
+    unpaired point estimates: `data/pory-eval.json` reports PORY and the `alive_diff + hp_diff` logistic
+    both at **0.623623**, a paired difference of **+0.000001** (positive = PORY worse), 95% CI
+    **[−0.000026, +0.000029]** over **1,177** held-out games of a 5,883-game corpus. **That is a TIE, not
+    a loss** — which is what `docs/MODELS.md` and `docs/MEASURE.md` have said since 2026-08-04, so the two
+    corrected documents were the last places carrying the stronger claim.
+  - **RETRACTED IN PLACE, NOT DELETED.** `docs/REVIEW-2026-07-25.md` keeps the five-arm table it measured
+    and gains a SUPERSEDED note saying what moved underneath it and that the direction of its headline
+    does not survive; its actual argument — PORY's extra features contribute nothing, publish the gain
+    over MATERIAL rather than over a coin — is affirmed, because that part was right. Neither corrected
+    document restates the withdrawn numerals, and they are **not** written into this entry either:
+    `engine/docs_scan.js` treats a figure recorded in the CHANGELOG as traceable, so publishing them here
+    would have made the gate accept them everywhere. That is the loop the file warns about in its own
+    header, and it is not how a figure gets a source.
+  - **PORY IS NOT QUARANTINE-ADJACENT HERE, CHECKED RATHER THAN ASSUMED.** `engine/pory.py` imports
+    `json, os, math, random, numpy` and reads `data/games.ladder.raw-logs.jsonl`; it never loads the
+    simulator and reads no rollout. PORY (the logistic value net) is a different model from PORYGON2 (the
+    nearest-neighbour value function), which is the name on the quarantine list. So the fix is a source,
+    not a withholding.
+
+## [5.209.0] — 2026-08-29
+
+### Added
+- **FLASH FIRE ABSORBED THE FIRE MOVE AND THREW THE GIFT AWAY — ROADMAP #432's ONE STATED REMAINDER.
+  CENSUS 782 → 784 LIVE / 784 PROBED / 0 MISSING.** `absorbGift` priced the hit at zero, incremented
+  `MEDFAILS.absorbGiftUnmodelled` and binned the volatile, so a Flash Fire body ate the move correctly
+  and then hit no harder for it — board material through DAMAGE — and, because the authority's
+  `-immune` sits inside `if (!target.addVolatile("flashfire"))`, it announced an immunity on the FIRST
+  absorb where the authority announces `-start`. Both halves are one line's else and both are fixed by
+  one change.
+  - **THE VALUE LIVED ON A HANDLER THE TAG DERIVATION NEVER OPENED.** The absorb is `onTryHit`; the
+    payoff is the ability's `condition.onModifyAtk` / `onModifySpA` returning `this.chainModify(1.5)`.
+    `engine/tag_dex.js` now derives `typeImmunity.gain.volatileBoost` —
+    `{stats, moveType, mult, announce, endsWithAbility}` — and the engine reads all five. Nothing is
+    named: the volatile comes off `gain.volatile`, the `-start` label off the condition's own string,
+    and the multiplier is spent in the `_aCh` STAT relay beside Guts and Huge Power, which is the
+    stage the authority spends it at rather than the final damage chain.
+  - **THE MATCHED SET WAS PRINTED BEFORE IT WAS WIRED AND PRINTS ON EVERY RUN.** 316 legal abilities
+    scanned, **exactly one** carries a typeImmunity whose gain is a volatile —
+    `flashfire  vol=flashfire  atk+spa x1.5 on Fire moves; announce "ability: Flash Fire";
+    endsWithAbility true` — with a `REFUSED` line beside it for any ability whose condition exists and
+    cannot be read whole, because a half-read multiplier is a wrong number wearing a derivation.
+  - **THE AUTHORITY WAS PLAYED, NOT RECALLED.** One real `gen9championsvgc2026regmb` `Battle`,
+    medicham2's own built stats written onto its Pokemon, roll pinned, ONE knob — the TYPE of the move
+    that hit the Flash Fire body on turn 1. Roll 8: Body Slam → the turn-2 Flamethrower deals **91**,
+    Fire Punch → **136** (x1.4945); rolls 0 and 15 read 100/148 and 84/126. Two Fire Punches read
+    `-start` then `-immune`, in that order. Champions overrides `flashfire` in none of its eight files.
+  - **TWO CENSUS ROWS, SHOWN RED FIRST UNDER ONE KNOB.** `MEDI_ABSORB_GIFT_VOLATILE_BLIND=1` restores
+    the bin and both read MISSING with the defect printed in their own detail: `|-damage|p2a:snorlax|142/235`
+    on **both** damage arms (identical output across a varied knob is the unwired signature) and
+    `-immune` on the first absorb. Clean, they read `142/235` against `97/235` and `-start` then
+    `-immune`. Controls: the same Armarouge with WEAK ARMOR, its other legal ability, must announce
+    neither line and take the damage.
+  - **AND THE GIFT ENDS WITH THE ABILITY.** `flashfire.onEnd` is `pokemon.removeVolatile("flashfire")`,
+    which the authority fires on every ability rewrite; `abRewrite` now takes it, gated on the tag's
+    own `endsWithAbility`. The switch-out road already empties `_vol` wholesale, and Baton Pass carries
+    an explicit list that does not include it, so `noCopy` is satisfied by construction.
+- **THE BOARD COMPARATOR READS `volatile:choicelock` — 33 → 34 LEAVES, AND IT IS THE MOVE, NOT A
+  PRESENCE BIT.** The largest COMPARABLE leaf in the hole (**9,488 pool games**, nearly twice the next
+  one) and decision-changing: wrong here and the engine believes a body has moves it does not have.
+  The authority stores `effectState.move`; `_lock` carries two locks here and `_lockT === Infinity`
+  tells the Choice item from Encore, which has its own leaf. **The raw field on both sides,
+  deliberately** — the engine's own reader `lockStillBinds` MUTATES, so calling it from a comparator
+  would make measuring change the board. `tests/probe_uncompared_leaves.js`: COMPARED 33 → 34,
+  NEITHER 43 → 42.
+
+### Changed
+- `data/tags.json` and `data/abra-tags.js` regenerated. The one intended change is `flashfire`'s
+  `typeImmunity.gain.volatileBoost`; the other 1,502 diff lines are usage counts off a store OPS had
+  appended to. **Measured before it was accepted:** params byte-identical on all 849 entities except
+  `flashfire`, linkage MEMBERSHIP identical on all 16 keys, one usage-tiebreak reorder
+  (`magnet`/`habanberry` in `linkage.moveType.items`) and one `used:false → true` correction.
+- `MEDFAILS.absorbGiftUnmodelled` keeps its name and changes its MEANING: it no longer counts a gift
+  that was binned, it counts a gift that LANDED and whose effect this engine cannot price. Zero today.
+- New counters `MEDSEEN.absorbGiftVolatile / absorbGiftVolatileRepeat / absorbGiftVolatilePaid /
+  absorbGiftVolatileEnded`, so the grant, the authority's already-up else, the damage spend and the
+  ability-end removal each have to prove they ran.
+
+### Notes
+- **Measured on release `e129bca605e3`, pinned three ways** — `--release e129bca605e3`,
+  `--census data/verification/census-pin-9446a684709d.json`, `--team-store data/team-pool-frozen`,
+  `--arm middle --games 1200 --turns 12 --state --end-state`. The baseline on `4e5c7b3400de` was
+  re-run under the identical flags first and reproduced the published artifact **exactly** — 961
+  games, 6 diverged, pool digest `0d103fb9fa87`, 1,968 teams picked.
+- **GATE 8 OF 8, OPEN.** It read 4 of 8 in between, and none of the four was a divergence: the three
+  roster stages and `all-mechanics-fire.json` were WITHHELD on a release mismatch and were re-run.
+  Whole-game 961 games / 6 raw / 6 declared / **0 that count**, damage 0/6000 at all sixteen corners,
+  roster 140 / 129 / 475 with zero in both failure columns, 12,445 turn boundaries all identical.
+- **WHICH SCOREBOARD, SAID BEFORE THE RUNS: the lab moves and the pool does not — and the reason
+  differs between the two halves.** Flash Fire is 1,177 of 17,381 pool games by SHEET PRESENCE but
+  only **365 of 8,778 deduped teams (4.16%)**, and the absorb never happened in any of the 961 games —
+  had it, the pre-fix `-immune` would have parted from the authority's `-start` right there, and the
+  six baseline divergences are five `fallenundefined` rows and one faint order. **`choicelock` WAS
+  reached and agreed**: Choice Scarf bodies stood on the field and `item:choiceLock` is not in
+  `coverage.not_exercised`. Before the run was believed the leaf was proved non-vacuous on a staged
+  board with the item as the only knob — no item → `""`/`""`, Choice Scarf →
+  `"dragonclaw"`/`"dragonclaw"`, both engines through the same reader.
+- **FILED, NOT FIXED: the two engines destroy a dead Choice lock at different moments.** The authority
+  drops the volatile inside `onDisableMove` (request-building time); this engine drops it inside
+  `lockStillBinds` (menu-asking time). If those straddle a turn boundary, a Knocked-Off Scarf leaves a
+  lock standing on one side only. Predicted before the run and **not observed** in 961 games, which is
+  not the same as absent — no game in the sample staged it. A staged probe is owed; the comparator is
+  not narrowed.
+- Report: `docs/_reports/2026-08-29-phase2-flashfire-choicelock.md`.
+
+---
+
 ## [5.208.0] — 2026-08-28
 
 ### Added

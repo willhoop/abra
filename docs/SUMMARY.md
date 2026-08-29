@@ -1,5 +1,32 @@
 # ABRA — Project Summary
 
+**Version 5.210.0 · 2026-08-29 · Will Hooper**
+
+**5.210.0 — THE PORY TWO-FEATURE PAIR IS WITHDRAWN: ITS GENERATOR WRITES NO ARTIFACT.**
+`engine/pory_baseline.py` prints a five-arm table and saves nothing, so the material-baseline
+pair it published on 2026-07-25 never had a source to check it against, and it was scored
+before that script had a clean-data filter at all. On the clean corpus the comparison is a
+TIE rather than a loss, measured PAIRED and clustered by game in `data/pory-eval.json`. The
+withdrawn pair stays in `docs/REVIEW-2026-07-25.md`, the review that measured it. The PORY row quoted the pair and no longer does.
+
+**5.209.0 — FLASH FIRE'S ABSORBED GIFT IS GRANTED AND PAID, AND THE BOARD COMPARATOR READS ONE MORE
+LEAF. GATE 8 OF 8 PASS, OPEN.** The 5.208.0 block below is retained as dated history; its counts were
+measured on engine release `4e5c7b3400de` and are SUPERSEDED by this one. An engine byte moved, so
+these are new measurements on release `e129bca605e3`.
+
+| question | artifact | answer |
+|---|---|---|
+| every mechanic staged and live | `data/mechanics-census.json` | **784 probed, 784 live, 0 missing** (the 782 of 5.208.0 is superseded) |
+| how much of the board is compared | `tests/probe_uncompared_leaves.js` | **34 of 80 leaves** (33 → 34), 4 declared uncomparable, 42 read by nothing |
+| the three roster stages | `data/roster.{items,abilities,moves}.json` | **140 / 129 / 475 tested**, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three |
+| whole-game differential | `data/game-differential.json` | **961 paired games, 6 raw, 6 declared, 0 undeclared**; 12,445 turn boundaries compared, 12,445 identical |
+| damage differential | `data/engine-diff.json` | **0 of 6000** at each of the sixteen band indices |
+| the gate | `engine/quarantine.js` | **8 of 8 PASS, OPEN** |
+
+Which scoreboard was stated before the runs: the lab moves, the pool does not. Both held. Flash Fire
+is 1,177 of 17,381 pool games by sheet presence but 365 of 8,778 deduped teams, and the absorb never
+happened in any of the 961 games; `choicelock` WAS reached and agreed everywhere.
+
 **Version 5.208.0 · 2026-08-28 · Will Hooper**
 
 **5.208.0 — THE METRONOME ITEM IS WIRED AND ALL FIVE GATE CLAUSES ARE RE-RUN ON THE RELEASE THAT
@@ -14,7 +41,7 @@ measurements and not a restatement.
 | what moved in that triple | the items stage only | `item:metronome` went `DEFERRED-BY-OWNER` → `FIRED-AND-BOARDS-MATCH`, taking that column 1 → **0** |
 | the same game on both engines | `data/game-differential.json` | **961 paired games, 6 raw divergences, 6 declared, 0 undeclared**; 12,445 turn boundaries compared, 12,445 identical |
 | is that the same sample as before | the same artifact | **yes, proven not assumed** — same 643-row census pin, same frozen pool (**1,968 of 8,778** teams), same six first divergences in the same order |
-| every mechanic staged and live | `data/mechanics-census.json` | **782 probed, 782 live, 0 missing**; 782 armed, 0 unarmed, 0 threw, 0 hollow |
+| every mechanic staged and live | `data/mechanics-census.json` | **782 probed, 782 live, 0 missing**; 782 armed, 0 unarmed, 0 threw, 0 hollow — PRIOR reading, superseded at 5.209.0 by 784 / 784 / 0 |
 | staged mechanics, each one compared | `data/all-mechanics-fire.json` | **1,289 games, 0 threw**; items `shelved_by_owner` 1 → **0**, owner closet 7 → 6 ids |
 | damage against the authority | `data/engine-diff.json` | **6000 compared, 0 disagreed**, and 0 at each of the sixteen band indices separately — not re-run this pass, nothing that feeds it changed |
 
@@ -740,7 +767,7 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 | **MEDICHAM** | Hand-written doubles battle simulator. **Its justification is now falsifiable (ADR-003, 3.62.2): it exists so per-turn re-solving is affordable, so the engine work is justified if and only if search pays — gated by ROADMAP #62.** The speed ratio that originally justified it is corrected in the section above | **Correctness sprint PAUSED 2026-08-28 by the owner; the MEDICHAM gate is still shut against it, with five of its eight clauses WITHHELD rather than failing** | **EVERY COUNT IN THIS CELL WAS SUPERSEDED AND IS NOW CUT (2026-08-22).** It stated a mechanics census, an interaction-matrix agreement and coverage fraction, a damage-differential ratio, a scenario count, a win-probability gap against the official engine, a two-rulebook collision ratchet, a DEAD-tag ratchet and a mutation-tier count. Every one of those instruments has been re-run since the cell was written and every artifact now reads something else. This is a CURRENT-STATE table, so a figure in it that is a release old reads as a claim about tonight — which is the failure the whole document set exists to prevent. State is printed, not typed: run **`node engine/status.js`** for the gate, the census, the differentials and the withheld set, and **`node engine/quarantine.js`** for the full derivation. ADR-001 stands: MEDICHAM becomes a lookup over precomputed tables. The win-probability gap against the official Champions engine is additionally QUARANTINED — it is a rollout figure — so it is withheld rather than restated. |
 | **GURU** | Meta matchup matrix from real outcomes | ⚠️ **No decisive cells that survive multiplicity** | `data/guru-matchups.json`, 2026-07-31, **5,265 clean games / 12 archetypes / 144 cells**. **6 directed = 3 distinct** matchups clear a 95% test one at a time, and **ZERO survive FDR at q=0.05 or Bonferroni** — 66 pairs, 3.3 expected by chance, 3 observed, smallest exact p 6.1e-3 against a BH threshold of 7.6e-4. Predictive test **0.7124** vs a coin 0.6931 over 1,053 held-out games — **worse than a coin**. Descriptive structure only. (This row read *1,124 clean games, 11 archetypes, 0.735* until 2026-08-04, from a superseded run; the verdict is unchanged.) |
 | **XATU** | Opponent set + next-move belief | ✅ Built | Top-1 36% / top-3 72% on held-out human moves (beats its baselines) |
-| **PORY** | Mid-game win-probability value net | ⚠️ **Contribution unclear** | Log-loss **0.6236** 95% CI [0.6070, 0.6387] vs coin 0.6931 and vs the material heuristic 0.6428 (regenerated 2026-08-05 on 5,883 clean games; the previously published 0.567 predated the current quality filter) — but its features ARE the material state, and it **loses to a two-feature baseline** (alive_diff+hp_diff 0.5822 vs PORY 0.5840, same estimator). Report the gain over MATERIAL, not over a coin. See engine/pory_baseline.py |
+| **PORY** | Mid-game win-probability value net | ⚠️ **Contribution unclear** | Log-loss **0.6236** 95% CI [0.6070, 0.6387] vs coin 0.6931 and vs the material heuristic 0.6428 (regenerated 2026-08-05 on 5,883 clean games; the previously published 0.567 predated the current quality filter) — but its features ARE the material state, and against a logistic on `alive_diff + hp_diff` alone — same estimator, same standardisation, same split — it **ties**: 0.623623 to 0.623623, a paired difference of +0.000001 (positive = PORY worse), 95% CI [−0.000026, +0.000029] clustered by game over 1,177 held-out games, containing zero. **WITHDRAWN: this cell used to state that PORY LOSES to that baseline, on a two-number pair from `engine/pory_baseline.py`. That script prints its table and writes no artifact, so the pair never had a source; it scored every arm on the unfiltered raw archive, its clean-data filter having landed five days after publication; and on the clean corpus the result is the tie above, not a loss. The withdrawn pair stays in `docs/REVIEW-2026-07-25.md`, which measured it, and is not restated here.** Report the gain over MATERIAL, not over a coin. |
 | **CHOMP** | Bring-4 / lead-2 team-preview engine | ✅ Ships (standalone) | Exact-damage picker; **CHOMP-EV proof: brings tie a coin (honest null)** |
 | **SLOWKING** | Team-preview Nash (mixed strategy) — **and, since ADR-003 (3.62.2), the shape of the whole agent rather than the preview solver**: equilibrium mixing plus continual re-solving is the answer poker reached for exactly this class of game | ✅ Built | Equilibrium ≪ exploitable than uniform; playstyle cycle is **suggestive on small samples** |
 | **KADABRA** | Replay coach | ✅ Works offline | Per-turn "you're at X%" from PORY |

@@ -101,6 +101,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * having nowhere to land (the authority writes the `-immune`). Both non-zero means the branch is
    * really a branch; either at zero would mean the knob is unwired. */
   absorbGiftLanded: 0, absorbImmuneAnnounced: 0,
+  /* 2026-08-29 -- the VOLATILE gift, which used to be the one shape of `gain` this engine binned.
+   *   absorbGiftVolatile        a volatile the absorber did NOT already hold, granted and announced.
+   *   absorbGiftVolatileRepeat  it was already up, so `addVolatile` returns false and the authority's
+   *                             `-immune` is written instead. Both non-zero means the branch is really
+   *                             a branch; `absorbGiftVolatile` at zero means the grant is unwired.
+   *   absorbGiftVolatilePaid    the damage chain actually spent the multiplier. A grant nothing reads
+   *                             is the whole defect being fixed here, in a quieter costume.
+   *   absorbGiftVolatileEnded   the volatile taken off a body whose ability was rewritten away from
+   *                             the one that granted it (the authority's `onEnd`). */
+  absorbGiftVolatile: 0, absorbGiftVolatileRepeat: 0, absorbGiftVolatilePaid: 0,
+  absorbGiftVolatileEnded: 0,
   /* 2026-08-24 -- a bounced status move that wrote the authority's second `|move|` line. Zero would
    * mean the announcement never reaches a real resolution, which is what it looked like before. */
   bounceAnnounced: 0,
@@ -4119,6 +4130,13 @@ const ROOM_ITEM_SURVIVES_LOSS=(typeof process!=='undefined'&&process.env&&proces
  * item is merely PARKED reads as empty-handed and the move doubles. The authority asks `pokemon.item`,
  * which a Magic Room does not empty. A knob run turns exactly the Acrobatics census row red. */
 const EMPTY_HAND_IS_THE_SLOT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EMPTY_HAND_IS_THE_SLOT==='1');
+/* 2026-08-29 -- MEDI_ABSORB_GIFT_VOLATILE_BLIND=1 PUTS THE DROPPED GIFT BACK IN THE BIN. `absorbGift`
+ * priced the hit at zero, counted the volatile it could not model (`MEDFAILS.absorbGiftUnmodelled`)
+ * and threw it away, so a Flash Fire body ate a Fire move and hit no harder for it -- AND, because the
+ * authority's `-immune` is that gift's ELSE, announced an immunity on the FIRST absorb where the
+ * authority announces `-start`. One knob restores both halves at once, which is what makes the two
+ * census rows below fail together under it and neither of them fail on its own. */
+const ABSORB_GIFT_VOLATILE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ABSORB_GIFT_VOLATILE_BLIND==='1');
 /* ROADMAP #466, 2026-08-26 -- MEDI_PUNISH_MINIMIZE_BLIND=1 PUTS THE DEAD TAG BACK. Both halves of
  * `punishesMinimize` off at once: a minimize-flagged move can miss a minimized body again and deals
  * single damage to it. That is the state this engine shipped in until today, and it is one knob rather
@@ -10562,6 +10580,32 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
     if(_htdA&&_htdA.types&&_htdA.types.indexOf(mvT)>=0&&_htdA.attackerStatMult)ACH(_htdA.attackerStatMult);
   }
   if(att.ability==='waterbubble'&&mvT==='Water')ACH(2);
+  /* 2026-08-29 -- AND THE ABSORBED GIFT IS SPENT HERE, WHICH IS WHERE THE AUTHORITY SPENDS IT.
+   *
+   * Flash Fire's payoff is the condition's `onModifyAtk`/`onModifySpA` returning `this.chainModify(1.5)`
+   * -- a STAT stage, folded into the same `ModifyAtk` relay as Guts and Huge Power, not a final damage
+   * multiplier. Putting it two hundred lines below in MODMUL would truncate in a different place; see
+   * the Thick Fat/Heatproof note above, where exactly that mistake was measured at 73% disagreement.
+   *
+   * FOUR THINGS ARE READ, NONE OF THEM NAMED. The ABILITY carries the tag (`attAb` is `att.ability`,
+   * which is the authority's own `attacker.hasAbility("flashfire")` -- a body that lost the ability
+   * stops being paid even if the volatile were still sitting there); the VOLATILE must be standing;
+   * the boosted TYPE is the condition's, compared against `mvT` (the EFFECTIVE type, so a Normalized
+   * Fire move stops qualifying and a Pixilate'd one never starts); and the STAT must be the one this
+   * move actually uses, so a Flash Fire body's physical Fire move is boosted through `atk` and its
+   * special one through `spa` -- the authority has both handlers and paying the wrong one would be a
+   * silent no-op on half the moves.
+   *
+   * `_S2E` is the same stat map the `statMult` block above uses. */
+  {
+    const _tiA=TAGS.param('ability',attAb,'typeImmunity');
+    const _vg=_tiA&&_tiA.gain&&_tiA.gain.volatile?_tiA.gain:null;
+    const _vb=_vg&&_vg.volatileBoost;
+    if(_vb&&+_vb.mult&&_vb.moveType===mvT&&att._vol&&att._vol[_vg.volatile]>0
+       &&Array.isArray(_vb.stats)&&_vb.stats.some(s=>_S2E[s]===_aKey)){
+      ACH(+_vb.mult);MEDSEEN.absorbGiftVolatilePaid++;
+    }
+  }
   /* ROADMAP #92 -- THE STAT-STAGE HALF OF `damageBoost`, AND THE MEMBERSHIP WAS PRINTED FIRST.
    *
    * 44 abilities carry `damageBoost` and NOTHING read it. It cannot be wired as a class, and that is
@@ -14832,12 +14876,57 @@ function absorbGift(tg,_ab){
         if(tg.boosts[_s]!==_b0)_gift=true;
         if(TR)TR.bst(tg,_s,tg.boosts[_s]-_b0,'[from] ability: '+tg.ability);}
     }
-    /* FLASH FIRE'S GIFT IS A VOLATILE AND THIS ENGINE DOES NOT GRANT IT -- unchanged and COUNTED,
-       exactly as the attack branch counted it before this was hoisted. */
+    /* 2026-08-29 -- ~~FLASH FIRE'S GIFT IS A VOLATILE AND THIS ENGINE DOES NOT GRANT IT~~ IT DOES NOW.
+     *
+     * THE AUTHORITY, read whole off the format rather than recalled -- `Dex.forFormat('gen9champions
+     * vgc2026regmb').abilities.get('flashfire')`, and Champions overrides NOTHING here (no `flashfire`
+     * in any of the eight files under data/mods/champions/):
+     *
+     *     onTryHit(target, source, move) {
+     *       if (target !== source && move.type === "Fire") {
+     *         move.accuracy = true;
+     *         if (!target.addVolatile("flashfire")) this.add('-immune', target, '[from] ability: Flash Fire');
+     *         return null;
+     *       } }
+     *     onEnd(pokemon) { pokemon.removeVolatile("flashfire"); }
+     *     condition: { noCopy: true,
+     *       onStart(target) { this.add('-start', target, 'ability: Flash Fire'); },
+     *       onModifyAtk / onModifySpA: if (move.type === "Fire" && attacker.hasAbility("flashfire"))
+     *                                    return this.chainModify(1.5); }
+     *
+     * NOTHING IS NAMED HERE. The volatile comes off the tag's `gain.volatile`, its `-start` label off
+     * `gain.volatileBoost.announce` (the condition's own string, so a two-word ability is spelled the
+     * authority's way rather than composed from an id), and the multiplier is spent in `dmgRangeOneHit`
+     * off `gain.volatileBoost.mult`. 316 legal abilities were scanned before this was wired and exactly
+     * ONE carries a typeImmunity whose gain is a volatile; `tag_dex.js` prints that set on every run.
+     *
+     * `addVolatile` RETURNS FALSE WHEN IT IS ALREADY UP, which is the whole reason this sits inside the
+     * gift branch: the `-immune` is this line's ELSE, so the FIRST Fire hit on a Flash Fire body writes
+     * `-start` and the SECOND writes `-immune`. This engine wrote `-immune` on both.
+     *
+     * IT DOES NOT NEED THE ELSE OF ITS OWN BRANCH: a volatile whose payoff `tag_dex` could not read
+     * whole is still GRANTED (the authority grants it either way) and the unmodelled EFFECT is what is
+     * counted, so the remainder stays loud instead of the grant going missing with it. */
     if(!_h&&!_ab.gain.boosts&&_ab.gain.volatile){
-      MEDFAILS.absorbGiftUnmodelled++;
-      if(!MEDFAILS.absorbGiftUnmodelledFirst)
-        MEDFAILS.absorbGiftUnmodelledFirst=String(tg.ability)+'/'+String(_ab.gain.volatile);
+      const _vn=String(_ab.gain.volatile),_vb=_ab.gain.volatileBoost||null;
+      if(ABSORB_GIFT_VOLATILE_BLIND){
+        MEDFAILS.absorbGiftUnmodelled++;
+        if(!MEDFAILS.absorbGiftUnmodelledFirst)
+          MEDFAILS.absorbGiftUnmodelledFirst=String(tg.ability)+'/'+_vn;
+      }else{
+        const _v=(tg._vol=tg._vol||{});
+        if(_v[_vn]>0){ MEDSEEN.absorbGiftVolatileRepeat++; }      /* addVolatile returns false */
+        else{
+          _v[_vn]=1;_gift=true;MEDSEEN.absorbGiftVolatile++;
+          if(TR)TR.vstart(tg,(_vb&&_vb.announce)||('ability: '+tg.ability));
+        }
+        /* LOUD, NOT SILENT: the grant landed and its VALUE is unknown to this engine. */
+        if(!_vb||!_vb.mult){
+          MEDFAILS.absorbGiftUnmodelled++;
+          if(!MEDFAILS.absorbGiftUnmodelledFirst)
+            MEDFAILS.absorbGiftUnmodelledFirst=String(tg.ability)+'/'+_vn+' (granted, effect not derived)';
+        }
+      }
     }
   }
   return _gift;
@@ -17973,6 +18062,20 @@ function imposterCopy(m,foes,slot){
  * the body to what it entered with, which is the authority's single `baseAbility` and not a stack. */
 function abRewrite(m,ab){
   if(!m)return;
+  /* 2026-08-29 -- AND AN ABSORBED GIFT ENDS WITH THE ABILITY THAT GRANTED IT. Flash Fire's
+   * `onEnd(pokemon){ pokemon.removeVolatile("flashfire") }` is the ABILITY's End, which the authority
+   * fires on every rewrite (`setAbility` -> `singleEvent('End', oldAbility, ...)`, sim/pokemon.ts) as
+   * well as on the way off the field -- the switch-out road already empties `_vol` wholesale.
+   * Read off the tag's own `endsWithAbility`, so an ability whose condition does NOT remove itself
+   * would keep it. `m.ability` is still the OUTGOING one on this line, which is the whole point of
+   * doing it here rather than after the assignment. */
+  {const _ti=TAGS.param('ability',m.ability,'typeImmunity');
+   const _g=_ti&&_ti.gain;
+   if(_g&&_g.volatile&&_g.volatileBoost&&_g.volatileBoost.endsWithAbility
+      &&m._vol&&m._vol[_g.volatile]>0&&String(m.ability)!==String(ab)){
+     delete m._vol[_g.volatile];MEDSEEN.absorbGiftVolatileEnded++;
+     if(TR)TR.vend(m,(_g.volatileBoost.announce)||('ability: '+m.ability),'[silent]');
+   }}
   if(m._preAb===undefined)m._preAb=m.ability;
   m.ability=ab;
 }

@@ -7672,7 +7672,55 @@ const ABILITY_TAGS = [
             const kv = part.split(':').map(x => x.trim());
             if (kv.length === 2 && /^-?\d+$/.test(kv[1])) gain.boosts[kv[0].replace(/["']/g, '')] = +kv[1]; } }
           const vol = src.match(/addVolatile\(\s*["'](\w+)["']/);
-          if (vol) gain.volatile = vol[1];
+          if (vol) {
+            gain.volatile = vol[1];
+            /* 2026-08-29 -- AND WHAT THE VOLATILE IS *WORTH*. `gain.volatile` was a NAME with no value
+             * attached, so the engine could only count the gift and bin it
+             * (`MEDFAILS.absorbGiftUnmodelled`, medicham2-browser.js) -- a Flash Fire body absorbed the
+             * hit correctly and then hit no harder for it, which is board-material through damage.
+             *
+             * THE VALUE LIVES ON THE ABILITY'S OWN `condition`, WHICH THIS PREDICATE NEVER OPENED. The
+             * absorb is `onTryHit`; the payoff is the condition's `onModifyAtk`/`onModifySpA`, and the
+             * two are different handlers on the same object:
+             *
+             *     onModifyAtk(atk, attacker, defender, move) {
+             *       if (move.type === "Fire" && attacker.hasAbility("flashfire")) return this.chainModify(1.5);
+             *     }
+             *
+             * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over every legal ability in Reg M-B: 316 legal
+             * abilities scanned, 1 carries a typeImmunity whose gain is a volatile, and it is
+             * `flashfire` (stats atk+spa, boosted type Fire, chainModify 1.5 in both handlers,
+             * `onEnd` removes it). Nothing else is caught -- printed again on every run below the
+             * coverage block, so a second member arrives named rather than silently sharing this rule.
+             *
+             * IT REFUSES ANYTHING IT CANNOT READ WHOLE. `one()` demands ONE distinct type and ONE
+             * distinct multiplier across as many handlers as there are stats -- a condition that
+             * boosted two types, or Atk by 1.5 and SpA by 2, derives NOTHING rather than half of
+             * itself, because a half-read multiplier is a wrong number wearing a derivation. */
+            const c = a.condition || {};
+            const parts = [], stats = [];
+            if (c.onModifyAtk) { parts.push(String(c.onModifyAtk)); stats.push('atk'); }
+            if (c.onModifySpA) { parts.push(String(c.onModifySpA)); stats.push('spa'); }
+            const csrc = parts.join(' ');
+            const one = (xs) => (xs.length === stats.length && xs.length && xs.every(x => x === xs[0])) ? xs[0] : null;
+            const bTy = one([...csrc.matchAll(/move\.type\s*===\s*["'](\w+)["']/g)].map(m => m[1]));
+            const bMu = one([...csrc.matchAll(/chainModify\(\s*([\d.]+)\s*\)/g)].map(m => +m[1]));
+            /* The `-start` line is the CONDITION'S OWN `onStart` string, not a name this file builds:
+             * `this.add('-start', target, 'ability: Flash Fire')`. An engine that composed the label
+             * from the ability id would spell a two-word ability wrong and nothing would catch it. */
+            const ann = (String(c.onStart || '')
+              .match(/this\.add\(\s*["']-start["']\s*,\s*\w+\s*,\s*["']([^"']+)["']/) || [])[1] || null;
+            if (stats.length && bTy && bMu) {
+              gain.volatileBoost = { stats, moveType: bTy, mult: bMu, announce: ann,
+                                     endsWithAbility: /removeVolatile/.test(String(a.onEnd || '')) };
+              VOLATILE_GIFT_MEMBERS.push(norm(a.name) + '  vol=' + vol[1] + '  ' + stats.join('+')
+                + ' x' + bMu + ' on ' + bTy + ' moves; announce ' + JSON.stringify(ann)
+                + '; endsWithAbility ' + gain.volatileBoost.endsWithAbility);
+            } else if (stats.length || ann) {
+              VOLATILE_GIFT_REFUSED.push(norm(a.name) + '  vol=' + vol[1]
+                + '  stats=' + JSON.stringify(stats) + ' type=' + String(bTy) + ' mult=' + String(bMu));
+            }
+          }
           return { immune: true, type: ty[1], via: 'onTryHit',
                    gain: Object.keys(gain).length ? gain : null };
         }
@@ -9235,6 +9283,13 @@ try {
    The total-loss case (a tag that matched NOTHING) is already caught by the emptyTags check; this is
    the PARTIAL case — one entity quietly losing one tag — which nothing saw. */
 const PREDICATE_THREW = [];
+/* 2026-08-29 -- THE MATCHED SET FOR `typeImmunity.gain.volatileBoost`, PRINTED ON EVERY RUN.
+ * LESSONS §4: a new derived rule over-matches, and the two ways this project has caught that are (a)
+ * print what it matched before wiring it and (b) keep printing it, so a member that arrives later
+ * arrives NAMED. `REFUSED` is the other half and matters more: an ability whose condition exists but
+ * could not be read whole derives NOTHING, and a silent nothing is indistinguishable from an ability
+ * that has no payoff. */
+const VOLATILE_GIFT_MEMBERS = [], VOLATILE_GIFT_REFUSED = [];
 function noteThrow(kind, tag, o, why) {
   PREDICATE_THREW.push({ kind, tag, entity: (o && (o.name || o.id)) || '?',
                          why: String(why).split('\n')[0] });
@@ -9634,6 +9689,13 @@ const NG = Math.max(1, U.entries);
 nUntagged += flagUntagged('move(s)',     moves.entries, U.move,    NG);
 nUntagged += flagUntagged('ability/ies', abils.entries, U.ability, NG);
 nUntagged += flagUntagged('item(s)',     items.entries, U.item,    NG);
+
+console.log('');
+console.log('ABSORB GIFTS THAT ARE A VOLATILE -- what `typeImmunity.gain.volatileBoost` matched, printed');
+console.log('so a second member arrives named rather than silently inheriting Flash Fire\'s rule:');
+if (!VOLATILE_GIFT_MEMBERS.length) console.log('  (none -- the derivation matched nothing at all)');
+for (const r of VOLATILE_GIFT_MEMBERS) console.log('  DERIVED  ' + r);
+for (const r of VOLATILE_GIFT_REFUSED) console.log('  REFUSED  ' + r + '  -- condition present, not readable whole');
 
 if (PREDICATE_THREW.length) {
   console.error('');

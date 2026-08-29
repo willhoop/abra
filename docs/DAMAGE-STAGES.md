@@ -1,5 +1,26 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
+**Version: 5.210.0 — 2026-08-29.**
+
+**5.210.0 — THE PORY TWO-FEATURE PAIR IS WITHDRAWN: ITS GENERATOR WRITES NO ARTIFACT.**
+`engine/pory_baseline.py` prints a five-arm table and saves nothing, so the material-baseline
+pair it published on 2026-07-25 never had a source to check it against, and it was scored
+before that script had a clean-data filter at all. On the clean corpus the comparison is a
+TIE rather than a loss, measured PAIRED and clustered by game in `data/pory-eval.json`. The
+withdrawn pair stays in `docs/REVIEW-2026-07-25.md`, the review that measured it. This document does not quote the pair and is
+unchanged apart from this note.
+
+**5.209.0 — STAGE 3 GAINED A MEMBER: FLASH FIRE'S ABSORBED VOLATILE.** The blocks below are dated
+history and are not rewritten. The placement is read off the authority rather than argued:
+`flashfire.condition.onModifyAtk` / `onModifySpA` return `this.chainModify(1.5)` when the move is
+Fire and the attacker still has the ability, and `data/mods/champions/abilities.ts` has no
+`flashfire` key, so mainline's handler is the format's unchanged. It therefore folds into the `_aCh`
+relay beside Guts, Huge Power, Solar Power, Orichalcum Pulse and Hadron Engine and is spent once —
+NOT into the final ModifyDamage chain, which is the mistake §2 already measured for Thick Fat
+and for Water Bubble — the disagreement rates are in that section and are not restated here. The
+multiplier, the boosted type and the stats are read from `typeImmunity.gain.volatileBoost` in
+`data/tags.json`; no number is typed.
+
 **Version: 5.208.0 — 2026-08-28.**
 
 **5.208.0 — THIS CHAIN GAINED A MEMBER. STAGE 13 NOW CARRIES THE METRONOME ITEM, AND THE STAGE IS
@@ -491,7 +512,7 @@ applies a multiplier, and the difference between them is where every finding in 
 |---|---|---|---|---|---|
 | 1 | **BasePower chain** — items, abilities, terrain, Helping Hand, Charge, auras, the move's own `onBasePower` | `battle-actions.ts:1650` `runEvent('BasePower')`, then `clampIntRange(bp,1)` at `:1653` | chainModify, spent once | scattered: `:1985` (-ate), `:1991` (weatherScaled), `:1997`, `:2008-2112` (variablePower), `:2121-2137` (conditionalPower) | **PARTLY SAME STAGE** — the move-side members are here and correct; every ITEM and ABILITY member is not (see §2) |
 | 2 | **Tera 60-BP floor** | `:1660-1667` | assignment | absent | ABSENT — no Tera in this engine at all; out of scope, stated |
-| 3 | **stat modifiers** `ModifyAtk/SpA/Def/SpD` | `:1708-1709` | chainModify, spent once | `:2192-2245` through `md4096` | **SAME STAGE** for Choice items, Guts, Solar Power, Orichalcum, Hadron, the four Ruin abilities, sand/snow defence. **WRONG STAGE** for Thick Fat / Heatproof / Purifying Salt / Water Bubble (see §2) |
+| 3 | **stat modifiers** `ModifyAtk/SpA/Def/SpD` | `:1708-1709` | chainModify, spent once | `:2192-2245` through `md4096` | **SAME STAGE** for Choice items, Guts, Solar Power, Orichalcum, Hadron, the four Ruin abilities, sand/snow defence, **Flash Fire's absorbed volatile** (added at 5.209.0). **WRONG STAGE** for Thick Fat / Heatproof / Purifying Salt / Water Bubble (see §2) |
 | 4 | **base damage** `tr(tr(tr(tr(2L/5+2)*bp*A)/D)/50)` | `:1718` | integer | `:2246` `Math.floor(Math.floor(22*mvBP*A/D)/50)+2` | **SAME** — at L50 `2L/5+2 = 22`, and `22*bp*A` is already an integer so the extra `tr` is a no-op |
 | 5 | **+2** | `:1731` | addition | folded into `:2246` | SAME |
 | 6 | **spread x0.75** | `:1737` | `modify` | `:2247` `md4096(base, 0.75)` | **SAME STAGE, SAME ARITHMETIC.** Measured: spread arm 13/282 disagree, control 13/282 — the same rows. Spread adds zero error |
