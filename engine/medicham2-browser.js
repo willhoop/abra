@@ -1040,6 +1040,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * `actionMoveId` is. Kept apart from `redirectedNonAttack` so this branch can prove it ran
    * rather than hiding inside a number that was already non-zero. */
   redirectedPivotStatus: 0,
+  /* 2026-08-29 -- AND THE NEAR HALF, WHICH NO SITE COULD REACH. `onAnyRedirectTarget` is asked of
+     EVERY active body, so a partner's Lightning Rod pulls its own side's Electric click; both draw
+     sites were handed `it.side==='A'?actB:actA` and nothing else. Counted apart from the two above
+     because it is a different AXIS rather than a different action kind, and because a zero after real
+     games says the axis has come unwired again -- which is a state this repository cannot otherwise
+     tell from "no rod was on the field". */
+  redirectedToAlly: 0,
+  /* 2026-08-29 -- A ONE-TURN SIDE GUARD REFUSED ITS OWN SIDE'S SPREAD MOVE. `sideGuardBlocked` above
+     counts the far half and is non-zero already, so a partner shielded from its own quake would have
+     hidden inside it. Same reason `redirectedPivotStatus` is kept apart from `redirectedNonAttack`. */
+  allyGuardBlocked: 0,
   /* WIRE 160 -- TRACE. `traceCopied` is the mechanic; `traceFoundNothing` is a legitimate board (every
    * foe carries an untraceable ability); `traceAmbiguousChoice` is THE HONEST SIZE OF WHAT IS GUESSED.
    *
@@ -2158,6 +2169,21 @@ const MEDFAILS = { encoreAction: 0,
      click that WOULD have been drawn and was not, so the number is the defect's own size.
      MUST READ 0 on any shipping run. */
   pivotSkipsRedirectRestored: 0,
+  /* 2026-08-29 -- MEDI_REDIRECT_FOE_ONLY=1 is armed, so `redirectDrawnTo` is offered the foe array
+     alone and an `onAnyRedirectTarget` holder on the USER'S OWN SIDE is never a candidate. Bumped
+     once per draw that WOULD have gone to a partner and did not, so the number is the defect's own
+     size. MUST READ 0 on any shipping run. */
+  redirectFoeOnlyRestored: 0,
+  /* THE LOUD HALF OF THE NEW PARAMETER. `redirectDrawnTo` gained an `allies` axis and both of its
+     callers pass it; a THIRD caller that forgets would silently reproduce card C2 forever, which is
+     exactly the silent-default shape this file keeps paying for. Bumped once per call that arrives
+     with `allies === undefined`, and the first such call names its move. */
+  redirectAllyAxisMissing: 0, redirectAllyAxisMissingFirst: '',
+  /* 2026-08-29 -- MEDI_GUARD_FOE_SIDE_ONLY=1 is armed, so the attack branch asks only the FOE side's
+     guard map and a body's own Wide Guard does nothing about its own partner's spread move (card C3).
+     Bumped once per partner that WOULD have been shielded and was not. MUST READ 0 on any shipping
+     run. */
+  guardFoeSideOnlyRestored: 0,
   /* 2026-08-29 -- MEDI_NO_DAMAGE_TAKEN_TOLL=1 is armed, so the `punishesAttacker` consumer spends
      only `fraction` again and a toll whose amount is THE DAMAGE THIS MOVE DEALT finds no branch.
      That is the exact pre-fix engine, in which Innards Out derived onto the wrong tag entirely and
@@ -12603,6 +12629,19 @@ const NO_METRONOME_LADDER=(typeof process!=='undefined'&&process.env&&process.en
  * also carries a non-zero `MEDFAILS.pivotSkipsRedirectRestored`. Same shape as
  * MEDI_NO_METRONOME_LADDER above. */
 const PIVOT_SKIPS_REDIRECT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PIVOT_SKIPS_REDIRECT==='1');
+/* 2026-08-29 -- MEDI_REDIRECT_FOE_ONLY=1 TAKES THE ALLY AXIS BACK OUT of `redirectDrawnTo`: the rod
+ * family is offered the FOE array again and nothing else, which is the shipped engine that let an
+ * Electric click walk past its own partner's Lightning Rod in card C2's two games. It is the whole
+ * clause -- the ally candidates are never assembled, so no draw, no `-activate` and no absorb -- and
+ * the counter below is the exact count of draws the defect ate. Any run carrying it also carries a
+ * non-zero `MEDFAILS.redirectFoeOnlyRestored`. Same shape as MEDI_PIVOT_SKIPS_REDIRECT above. */
+const REDIRECT_FOE_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REDIRECT_FOE_ONLY==='1');
+/* 2026-08-29 -- MEDI_GUARD_FOE_SIDE_ONLY=1 PUTS THE FOE-SIDE-ONLY GUARD READ BACK: the attack branch
+ * asks only `it.side==='A'?field.sgB:field.sgA` again, so a body's own Wide Guard does nothing about
+ * its own partner's spread move -- card C3. The ally is appended to `targets` unguarded exactly as it
+ * was before this pass. Any run carrying it also carries a non-zero
+ * `MEDFAILS.guardFoeSideOnlyRestored`. */
+const GUARD_FOE_SIDE_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_GUARD_FOE_SIDE_ONLY==='1');
 /* 2026-08-29 -- MEDI_NO_DAMAGE_TAKEN_TOLL=1 PUTS THE UNPAID INNARDS OUT BACK: the `punishesAttacker`
  * consumer goes back to spending only `fraction`, so a punish whose amount is THE DAMAGE THIS MOVE
  * DEALT finds no branch and is skipped in silence -- which is precisely the engine that shipped, and
@@ -20267,9 +20306,42 @@ function reaimToSlot(t,it,actA,actB,mvId,quiet){
  * The authority breaks a tie between two ABILITY holders on `abilityState.effectOrder` -- which body
  * entered first -- and that is NOT modelled here. It needs two rods of the same type on one side at
  * identical Speed, which the differential has never produced. */
-function redirectDrawnTo(user,aimed,foes,mvObj,mvId,field,scripted){
+/* 2026-08-29 -- CARD C2. `onFoe` AND `onAny` ARE TWO DIFFERENT AUDIENCES, AND THIS FUNCTION WAS ONLY
+ * EVER SHOWN ONE OF THEM.
+ *
+ * Both callers handed `it.side==='A'?actB:actA` -- the FOE array -- so every candidate this function
+ * has ever considered stood on the far side. That is exactly right for Follow Me and Rage Powder,
+ * whose handlers are `onFoeRedirectTarget` and can only be collected from the event target's foes.
+ * It is wrong for the rod family: `lightningrod.onAnyRedirectTarget` (data/abilities.ts, no Champions
+ * override -- grepped, not recalled) is collected from EVERY active body, the user's own partner
+ * included, and its own gate is
+ *     const redirectTarget = ['randomNormal','adjacentFoe'].includes(move.target) ? 'normal' : move.target;
+ *     if (this.validTarget(this.effectState.target, source, redirectTarget)) ...
+ * `validTargetLoc` (sim/battle.ts:2395) answers `normal`/`randomNormal`/`scripted` with `isAdjacent`
+ * ALONE -- adjacency, not side -- and `any` with `!isSelf`. In doubles a partner is adjacent and is
+ * not the user, so every one of the five aim classes in `REDIRECTABLE_AIM` admits it. THE USER'S OWN
+ * SLOT IS NOT ADJACENT TO ITSELF (`Math.abs(targetLoc - sourceLoc) === 1` is 0 for self), so a rod
+ * still cannot pull a move out of its own mouth; that is the `f!==user` term below and it is the
+ * authority's clause rather than a guard invented here.
+ *
+ * `allies` IS A REQUIRED PARAMETER WITH A LOUD ABSENCE. A third caller that forgot it would
+ * reproduce card C2 in silence, so an undefined `allies` is COUNTED and names its move -- the same
+ * treatment `redirectAimClassUnknown` gets one function down, and for the same reason.
+ *
+ * THE TWO FAMILIES STAY IN TWO PASSES and only the SECOND one grows. That is not tidiness: the pass
+ * split is `compareRedirectOrder`'s handler-priority term (Follow Me and Rage Powder declare
+ * `onFoeRedirectTargetPriority: 1`, the rods declare none), and merging the arrays would let a slow
+ * near-side rod outrank a fast far-side Rage Powder. Within the rod pass the near and far candidates
+ * are sorted TOGETHER by Speed, because at equal handler priority that is the whole of the
+ * authority's order and a rod does not become slower for standing beside you. */
+function redirectDrawnTo(user,aimed,foes,mvObj,mvId,field,scripted,allies){
   if(!user||!aimed)return null;
   if(tracksTargetOf(mvId,user,!!scripted))return null;
+  if(allies===undefined){
+    MEDFAILS.redirectAllyAxisMissing++;
+    if(!MEDFAILS.redirectAllyAxisMissingFirst)MEDFAILS.redirectAllyAxisMissingFirst=String(mvId||'');
+  }
+  const _allyPool=REDIRECT_FOE_ONLY?[]:_live(allies||[]).filter(f=>f&&f!==user);
   const _bySpeed=arr=>arr.length<2?arr
     :arr.slice().sort((x,y)=>compareTurnOrder({spe:effSpeed(x,field)},{spe:effSpeed(y,field)},field));
   /* Rage Powder is a powder move, so a Grass type, Overcoat or Safety Goggles ignores the draw and
@@ -20283,12 +20355,27 @@ function redirectDrawnTo(user,aimed,foes,mvObj,mvId,field,scripted){
   /* The rod is checked against the move's EFFECTIVE type, so an -ate-converted or weather-converted
    * move is drawn by the rod it has actually BECOME. */
   const _t=effMoveType(mvObj,mvId,field,user);
-  const _rods=_bySpeed(_live(foes||[]).filter(f=>{
+  const _isRod=f=>{
     if(!f)return false;
     const _rt=TAGS.param('ability',f.ability,'redirectsType');
     return !!(_rt&&_rt.type===_t);
-  }));
-  if(_rods.length)return _rods[0]===aimed?null:{to:_rods[0],announce:'ability: '+_rods[0].ability};
+  };
+  const _farRods=_live(foes||[]).filter(_isRod);
+  const _nearRods=_allyPool.filter(_isRod);
+  const _rods=_bySpeed(_farRods.concat(_nearRods));
+  if(_rods.length){
+    if(_rods[0]===aimed)return null;
+    if(_nearRods.indexOf(_rods[0])>=0)MEDSEEN.redirectedToAlly++;
+    return {to:_rods[0],announce:'ability: '+_rods[0].ability};
+  }
+  /* THE KNOB'S OWN COUNT, TAKEN WHERE THE DRAW WOULD HAVE HAPPENED. `_allyPool` is empty while
+   * MEDI_REDIRECT_FOE_ONLY is armed, so the near rods never enter the sort and the branch above
+   * cannot fire -- the count has to be taken here, against the array the arm suppressed, or the red
+   * demonstration would report zero and look like a board with no rod on it. */
+  if(REDIRECT_FOE_ONLY&&!_farRods.length){
+    const _sup=_live(allies||[]).filter(f=>f&&f!==user&&_isRod(f));
+    if(_sup.length&&_sup[0]!==aimed)MEDFAILS.redirectFoeOnlyRestored++;
+  }
   return null;
 }
 /* THE SINGLE-TARGET FAMILY, IN SHOWDOWN'S OWN VOCABULARY. These are the `move.target` values that fall
@@ -22381,11 +22468,20 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(!_tc||!_tc.target){ MEDFAILS.redirectAimClassUnknown++;
             if(!MEDFAILS.redirectAimClassUnknownFirst)MEDFAILS.redirectAimClassUnknownFirst=String(_rid); }
           else if(REDIRECTABLE_AIM.has(_tc.target)){
-            const _dr2=redirectDrawnTo(m,it.a.target,_rfoes2,MC.moves[_rid],_rid,field,false);
+            const _rown2=it.side==='A'?actA:actB;
+            const _dr2=redirectDrawnTo(m,it.a.target,_rfoes2,MC.moves[_rid],_rid,field,false,_rown2);
             if(_dr2&&_dr2.to!==it.a.target){
               if(PIVOT_SKIPS_REDIRECT&&it.a.kind==='switch'){ MEDFAILS.pivotSkipsRedirectRestored++; }
               else{
-              it.a.target=_dr2.to; it.tgtSlot=_rfoes2.indexOf(_dr2.to); it.allySlot=-1;
+              /* 2026-08-29 -- THE DRAW CAN NOW LAND ON THE NEAR SIDE, AND THE SLOT PAIR IS SIGNED.
+               * `tgtSlot` is the FOE-array index and `allySlot` the own-array one; `reaimToSlot`
+               * reads whichever is >= 0 and Showdown carries the same thing as one signed
+               * `targetLoc` (sim/pokemon.ts:770). Writing `tgtSlot = indexOf(...)` unconditionally
+               * would have stamped -1 for an ally draw and re-aimed the action at nothing. */
+              const _tiA=_rfoes2.indexOf(_dr2.to);
+              it.a.target=_dr2.to;
+              if(_tiA>=0){ it.tgtSlot=_tiA; it.allySlot=-1; }
+              else { it.tgtSlot=-1; it.allySlot=_rown2.indexOf(_dr2.to); }
               MEDSEEN.redirectedNonAttack++;
               if(it.a.kind==='switch')MEDSEEN.redirectedPivotStatus++;
               if(TR&&_dr2.announce)TR._pendRedir={m:_dr2.to,label:_dr2.announce};
@@ -27608,7 +27704,8 @@ function battleTurn(S,rng,actsForA,actsForB){
        * position relative to the `|move|` line is known. Everything below this line is the block that
        * used to compute the draw inline; the comments are kept because they are the derivation. */
       if(!a.move.spread&&targets.length){
-        const _dr=redirectDrawnTo(m,targets[0],foes,mv,a.move.id,field,!!a.rescript);
+        const _dr=redirectDrawnTo(m,targets[0],foes,mv,a.move.id,field,!!a.rescript,
+                                  it.side==='A'?actA:actB);
         const drawer=_dr&&!_dr.announce?_dr.to:null;
         if(drawer){
           /* Showdown REWRITES the target field of the move line it already emitted
@@ -27853,10 +27950,20 @@ function battleTurn(S,rng,actsForA,actsForB){
        * where this engine converted nothing at all. */
       if(_hadTargets) proteanConvert(m,a.move.id,field);
       /* spreadAll hits the PARTNER too -- Earthquake beside your own Archaludon costs it the same
-       * 0.75x packet the enemies eat. Membership from the artifact; the ally is appended AFTER the
-       * Wide Guard check below because Wide Guard protects a SIDE, and the attacker's own side
-       * never raised it against its own quake. */
-      const _allyHit=a.move.spread&&HITS_ALLY.has(a.move.id)
+       * 0.75x packet the enemies eat. Membership from the artifact.
+       *
+       * 2026-08-29 -- CARD C3. THE SENTENCE THAT USED TO END THIS COMMENT WAS THE BUG, AND IT WAS
+       * WRITTEN DOWN AS IF IT WERE A RULE: *"the ally is appended AFTER the Wide Guard check below
+       * because Wide Guard protects a SIDE, and the attacker's own side never raised it against its
+       * own quake."* No handler says that. `wideguard.condition.onTryHit(target, source, move)`
+       * (data/moves.ts; Champions overrides neither guard -- grepped, not recalled) tests the MOVE's
+       * target class and `checkMoveBypassesProtect`, and NOTHING about whose side the source is on.
+       * It is a `TryHit` handler hanging off the side condition, so it fires for whichever TARGET
+       * stands on the guarded side -- and `getMoveTargets` pushes `adjacentAllies()` into an
+       * `allAdjacent` list FIRST (sim/pokemon.ts:809), so the partner is a genuine target of its own
+       * side's move. The near check is now made below, above the far one so the two `-activate`
+       * lines come out in the authority's order, and `_allyHit` is `let` because it can be dropped. */
+      let _allyHit=a.move.spread&&HITS_ALLY.has(a.move.id)
         ?(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0):null;
       /* ROADMAP #81 WIRE 11 -- THE SPREAD MODIFIER IS DECIDED BY TARGETS *ENTERED*, NOT TARGETS HIT.
        *
@@ -27916,6 +28023,51 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       const _smartTarget=!a.move.spread&&!!TAGS.param('move',a.move.id,'smartTarget');
       const _spreadHit=!!a.move.spread&&(targets.length+(_allyHit?1:0))>1;
+      /* ===== 2026-08-29 -- CARD C3: THE NEAR SIDE'S GUARD, ASKED ABOUT THE NEAR SIDE'S BODY ========
+       *
+       * BELOW `_spreadHit` AND NOT ABOVE IT, and that is a correctness clause rather than a position.
+       * `if (targets.length > 1 && !move.smartTarget) move.spreadHit = true;` is the FIRST line of
+       * `trySpreadMoveHit` (sim/battle-actions.ts:551) -- above the whole step list, and the guard is
+       * a step. So a shielded partner is still IN THE COUNT that decides the 0.75, and the foes take
+       * exactly the damage they would have taken with it standing there. Measured in the authority
+       * before this was written: both foes read spread-reduced in the Wide Guard arm and in the
+       * Agility arm alike. Hoisting this above the line would quietly hand the foes 33% more damage.
+       *
+       * ONE FUNCTION, THE SAME ONE THE FAR SIDE ASKS. `sideGuardRefuses` re-derives the CLASS from
+       * `oneTurnGuard.blocks` on every read, so Quick Guard gets the near half at the same moment and
+       * neither name is spelled here -- Earthquake is priority 0 and a near-side Quick Guard must let
+       * it through, which is the probe's block 4. `attacker: m` carries clause 2 of
+       * `checkMoveBypassesProtect` exactly as the far site does; a pierce leaves the partner in the
+       * list and is paid for in the damage path off `_guardPierced`.
+       *
+       * ABOVE THE FAR BLOCK because the authority's `-activate` lines come out in target order and
+       * the ally is the first target in the list. */
+      if(_allyHit&&a.move.spread){
+        /* THE KNOB'S COUNT GOES THROUGH `guardRefusalOf`, NOT `sideGuardRefuses`. The wrapper bumps
+         * `MEDSEEN.sideGuardBlocked` on every refusal it reports, so counting the suppressed partners
+         * through it would inflate the very number the far half is judged by -- with events that did
+         * not happen. `guardRefusalOf` carries no counter, which is exactly what its own header says
+         * it is for. */
+        if(GUARD_FOE_SIDE_ONLY){
+          const _psg=it.side==='A'?field.sgA:field.sgB;
+          const _pctx={spread:true,priority:movePriority(a.move.id,field),attacker:m};
+          for(const _pg of Object.keys(_psg||{})){
+            if(!_psg[_pg])continue;
+            if(guardRefusalOf(_pg,a.move.id,_pctx)===true){MEDFAILS.guardFoeSideOnlyRestored++;break;}
+          }
+        }else{
+          const _osg=it.side==='A'?field.sgA:field.sgB;
+          const _oOut={};
+          const _ogid=sideGuardRefuses(_osg,a.move.id,
+                        {spread:true,priority:movePriority(a.move.id,field),attacker:m},_oOut);
+          if(_oOut.pierced)_guardPierced=true;
+          if(_ogid){
+            if(TR)TR.act(_allyHit,'move: '+sideGuardName(_ogid));
+            MEDSEEN.allyGuardBlocked++;
+            _allyHit=null;
+          }
+        }
+      }
       /* ROADMAP #81 WIRE 9 -- WIDE GUARD NAMES THE BODY IT SHIELDED, ONE LINE PER BODY.
        *
        * `this.add('-activate', target, 'move: Wide Guard')` (data/moves.ts, wideguard's condition)

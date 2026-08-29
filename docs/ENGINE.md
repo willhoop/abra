@@ -104,9 +104,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  788/788 probed mechanics live, 0 missing   (census 2026-08-29 03:12)
+  792/792 probed mechanics live, 0 missing   (census 2026-08-29 04:58)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 4.8 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 5.9 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -124,14 +124,77 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 4665862a6d9d now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 285/300 probed, 15 unprobed;  269/300 have an engine consumer, 31 have none
+  tag coverage: 285/300 probed, 15 unprobed;  270/300 have an engine consumer, 30 have none
     a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 04:07_
+_stamped 2026-08-29 05:09_
 
 <!-- /GENERATED -->
+
+## THE NEAR SIDE OF THE FIELD WAS NEVER OFFERED TO EITHER HANDLER, AND IN BOTH PLACES A COMMENT ASSERTED IT COULD NOT MATTER. **TWO CAUSES, NOT ONE. CENSUS 790 -> 792 LIVE / 792 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 100 -> 97 OF 961, PROTOCOL DIVERGED 222 -> 216, SIX `wideguard` CAUSES AND ONE `lightningrod` CAUSE GONE TO ZERO, ONE ORDERING CAUSE UNMASKED, `arms_comparable` COMPARABLE.** 2026-08-29.
+
+Full account: `docs/_reports/2026-08-29-ally-side.md`.
+
+**THE COORDINATOR'S HYPOTHESIS WAS REFUTED AS A ROOT AND CONFIRMED AS A PATTERN, AND IT WAS
+MEASURED RATHER THAN ARGUED.** C2 was landed alone and `tests/probe_ally_wide_guard.js` re-run on
+that tree: still `3 FAILED`, `allyGuardBlocked = 0`. No shared function, no shared array, no shared
+predicate — C2 is `redirectDrawnTo`'s two CALLERS handing it `it.side==='A'?actB:actA`; C3 is the
+attack branch reading `field.sgB` and appending the ally body *after* the check.
+
+**WHAT THEY DO SHARE IS A SENTENCE.** In both places the source asserted the near side could not
+matter and no handler says it. C3's was written out in full at the `_allyHit` site — *"the attacker's
+own side never raised it against its own quake"* — and that sentence was the bug.
+
+**EXACTLY TWO LEGAL ENTITIES CARRY THE SHAPE, DERIVED AND PRINTED.** Of the seven legal abilities
+with any `onAny*` handler (Damp, Fairy Aura, Friend Guard, Lightning Rod, No Guard, Opportunist,
+Unaware), **Lightning Rod is the only redirection one** — so the C1 pass's "six where the card named
+two" does not repeat. Of the eleven legal moves with a side condition, **Quick Guard and Wide Guard
+are the only two with an `onTryHit`**, and they are exactly the two the engine already calls
+`oneTurnGuard`; the class each refuses is a param, so Quick Guard gained the near half without its
+name being spelled anywhere.
+
+**THE AUTHORITY, BOTH READ WHOLE, NEITHER OVERRIDDEN BY CHAMPIONS (grepped).**
+`lightningrod.onAnyRedirectTarget` gates on `validTarget`, and `validTargetLoc` answers `normal` with
+`isAdjacent` **alone — adjacency, not side**; `wideguard.condition.onTryHit` tests the move's target
+class and `checkMoveBypassesProtect` and **nothing about whose side the source is on**, while
+`getMoveTargets` pushes `adjacentAllies()` into an `allAdjacent` list FIRST.
+
+**THE POSITION OF THE C3 FIX IS A CORRECTNESS CLAUSE.** `move.spreadHit` is set on the FIRST line of
+`trySpreadMoveHit`, above the whole step list, so a shielded partner stays in the count that decides
+the 0.75. The near check therefore sits BELOW `_spreadHit` and the probe asserts the foes' damage is
+bit-identical across the arms — one line higher would have handed them 33% more damage in silence.
+
+**THE PROBES, RED FIRST, BOTH WITH THE UNWIRED-KNOB SIGNATURE.**
+`tests/probe_ally_lightning_rod.js` read `[ally 0, foe1 90, ally SpA 0]` with Static and with
+Lightning Rod alike; `tests/probe_ally_wide_guard.js` read `[ally 109, foes 72/168]` with Agility and
+with Wide Guard alike. Under their knobs after the fix: `MEDI_REDIRECT_FOE_ONLY=1` gives `2 FAILED`
+and `redirectFoeOnlyRestored = 2`; `MEDI_GUARD_FOE_SIDE_ONLY=1` gives `2 FAILED` and
+`guardFoeSideOnlyRestored = 1`. **The knob-count is taken where the draw WOULD have happened** — the
+suppressed array — because a counter on the success branch reports zero while the arm is armed and
+is then indistinguishable from a board with no rod on it.
+
+**ELEVEN NEGATIVE ARMS, ALL MEASURED.** Follow Me and Rage Powder on the near side draw nothing
+(`onFoeRedirectTarget`); a non-Electric move, a spread Electric move and the attacker's own rod are
+all refused; Stalwart turns the near axis off exactly as it turns the far one off; a near-side Quick
+Guard lets Earthquake through and a near-side Wide Guard does not blunt our own `allAdjacentFoes`
+move; and both regression controls — the foe-side rod (WIRE 25) and the foe's spread into our guard
+(ROADMAP #126) — read identically on both arms.
+
+**THE CARDS' COUNTS WERE LOW AND ARE NOT QUOTED.** C2 was filed at 2 games and C3 at 1; **seven
+causes were removed, six of them Wide Guard.** Board-parted fell only 3 against those 7 because
+clearing a first divergence unmasks later ones — one new `ordering :: perish3 <> tailwind` cause
+appeared in a game that now plays further.
+
+**FILED, NOT FIXED: Safeguard's `onSetStatus` has no source-side test either** — a third site with
+this shape, named so nobody re-derives the enumeration. Not staged and not claimed broken.
+
+Pins, both arms: `--games 1200` (961), `--arm middle`, `--turns 12`, `--steering empirical`,
+`--team-store data/team-pool-frozen` (pool `0d103fb9fa87`), census pin `9446a684709d`. Release
+`0a2282c9231b` -> **`2c884278412b`**. Sample identical body-for-body: **60 first-divergence games
+before, 60 after, 60 overlap, 0 gone, 0 new.** After-artifact
+`data/verification/game-differential.allyside.json`; `data/game-differential.json` NOT written.
 
 ## THE TEN WEIGHTLESS ROWS WERE NOT UNCOMPUTABLE — THE DEX KNOWS ALL TEN AND THE BUILDER NEVER ASKED. **GENERATOR FIXED, ARTIFACT DELIBERATELY NOT REGENERATED. CENSUS UNMOVED AND UNRUN — PREDICTED, BECAUSE NO ENGINE BYTE AND NO ARTIFACT BYTE MOVED.** 2026-08-29.
 
@@ -377,22 +440,25 @@ identical arms across the ability knob.** Filed as its own batch.
   `tests/probe_pivot_redirect.js` and its knob.
 
 **Joins it:**
-- **AN ALLY'S LIGHTNING ROD IS NEVER CONSULTED.** `redirectDrawnTo` takes only the foe array, so
-  `onAnyRedirectTarget` cannot fire for the attacker's own partner. Reproduced red with identical
-  arms across the ability. The fix must offer the own side to the `redirectsType` family ONLY, with a
-  negative arm proving Follow Me and Rage Powder stay foe-only.
-- **WIDE GUARD DOES NOT COVER THE USER'S OWN SIDE AGAINST AN ALLY'S SPREAD MOVE.** Against a foe's
-  Discharge it protects both bodies (`[40,160]` -> `[0,0]`); against its own partner's Discharge the
-  arms are identical at `[40,160]`. That is card C3's exact shape and it is reproduced.
+- ~~*"AN ALLY'S LIGHTNING ROD IS NEVER CONSULTED"*~~ — **LANDED 2026-08-29**, one census row under
+  `redirectsType` plus `tests/probe_ally_lightning_rod.js` and `MEDI_REDIRECT_FOE_ONLY`.
+- ~~*"WIDE GUARD DOES NOT COVER THE USER'S OWN SIDE"*~~ — **LANDED 2026-08-29**, one census row under
+  `oneTurnGuard` plus `tests/probe_ally_wide_guard.js` and `MEDI_GUARD_FOE_SIDE_ONLY`. Quick Guard
+  gained the same half, because the class is a param.
+- **SAFEGUARD'S `onSetStatus` HAS NO SOURCE-SIDE TEST EITHER.** Third site with the ally-side shape,
+  found while enumerating for C2/C3 and NOT staged, NOT measured, NOT claimed broken. Its only
+  exclusion in the authority is `if (target !== source)`, so an ally's status move should be refused
+  by it.
 - **NO LEGAL MOVE CARRIES `tracksTarget`, SO ONE LINE OF `tracksTargetOf` CAN NEVER MATCH.** Snipe
   Shot and Pursuit are the only mainline carriers and neither is legal here. Harmless, reported
   rather than deleted — a tag-first read is the right shape and a member can arrive.
-- **THE THREE ROSTER STAGES AND `all_mechanics_fire.js` ARE STALE AGAINST `4b67526d29d8`.** Carried
+- **THE THREE ROSTER STAGES AND `all_mechanics_fire.js` ARE STALE AGAINST `2c884278412b`.** Carried
   forward, not created here: they already read `e129bca605e3` while the tree was `b39a5c87fe2d`.
 
 ### OWED, NOT RUN
 
 The exact commands, with their expected values stated first, are the `## OWED, NOT RUN` block of
+`docs/_reports/2026-08-29-ally-side.md`, which supersedes the same block in
 `docs/_reports/2026-08-29-redirection.md`.
 
 

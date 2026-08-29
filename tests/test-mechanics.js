@@ -3590,6 +3590,47 @@ probe('move', 'oneTurnGuard', 'Quick Guard blocks a +1 priority move and Wide Gu
                  + `spread, not priority)` };
 });
 
+/* 2026-08-29 -- CARD C3. A SIDE GUARD PROTECTS A SIDE, AND THIS ENGINE ONLY ASKED THE FOE'S.
+ *
+ * `wideguard.condition.onTryHit(target, source, move)` tests the move's target class and
+ * `checkMoveBypassesProtect` and NOTHING about whose side the source stands on. It hangs off the SIDE
+ * CONDITION, so it fires for whichever TARGET is on the guarded side -- and an `allAdjacent` move puts
+ * the user's OWN PARTNER in the target list (`getMoveTargets` pushes `adjacentAllies()` first,
+ * sim/pokemon.ts:809). The engine's own comment at the `_allyHit` site asserted the opposite as if it
+ * were a rule, and that sentence was the bug.
+ *
+ * THE THIRD ARM IS WHAT MAKES THIS MORE THAN "the ally took 0". Both foes must take EXACTLY the damage
+ * they took with the partner unguarded: `move.spreadHit` is set at the top of `trySpreadMoveHit`,
+ * above the step that removes the shielded body, so a guarded partner is still in the count that
+ * decides the 0.75. A near-side check hoisted one line earlier hands the foes 33% more damage and
+ * nothing else in this file would notice. */
+probe('move', 'oneTurnGuard', 'Wide Guard shields the partner from its OWN side\'s spread move', () => {
+  /* Gallade learns Wide Guard and is grounded, so it is a real target of its own side's Earthquake;
+   * the arms differ only in what it clicked. A Flying or Levitating partner reads 0 with and without
+   * the guard, which is the fixture defect the Wide Guard probe three entries up already records. */
+  const run = (guardMove) => {
+    const me = bare('garchomp'), ally = bare('gallade');
+    const f1 = bare('clefable'), f2 = bare('incineroar');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = [ally.curHP, f1.curHP, f2.curHP];
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'earthquake', f1, S.field)],
+               [ally, M.playerAction(ally, guardMove, null, S.field)]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { ally: h[0] - ally.curHP, foe1: h[1] - f1.curHP, foe2: h[2] - f2.curHP };
+  };
+  const control = run('agility'), test = run('wideguard'), wrong = run('quickguard');
+  return { works: control.ally > 0 && test.ally === 0
+                  && test.foe1 === control.foe1 && test.foe2 === control.foe2
+                  && wrong.ally === control.ally,
+           arms: { control, test },
+           detail: 'partner took ' + control.ally + ' from its own Earthquake  ->  ' + test.ally
+                 + ' behind its own Wide Guard (must be 0), ' + wrong.ally
+                 + ' behind Quick Guard (must equal the control — Earthquake is priority 0); '
+                 + 'foes ' + control.foe1 + '/' + control.foe2 + '  ->  ' + test.foe1 + '/' + test.foe2
+                 + ' (must be EQUAL — the shielded partner stays in the spread count)' };
+});
+
 /* THE HALF THAT IS MORE THAN HALF OF WHAT QUICK GUARD IS FOR. Showdown's condition reads
  * `if (move.priority <= 0.1) return;` — the FINAL priority, so a Prankster-boosted status move (0 ->
  * +1) is refused. Those are `kind:'affect'` actions and never reach the attack branch, which is why
@@ -5500,6 +5541,40 @@ probe('ability', 'redirectsType', 'Lightning Rod pulls an Electric move', () => 
            arms: { control: off, test: on },
            detail: 'no ability: aimed ' + off.aimed + ' / other ' + off.rod + ' / spa ' + off.spa
                  + '   |   Lightning Rod: aimed ' + on.aimed + ' / rod ' + on.rod + ' / spa ' + on.spa };
+});
+
+/* 2026-08-29 -- CARD C2. `onAny` MEANS EVERY BODY ON THE FIELD, INCLUDING THE ATTACKER'S PARTNER.
+ *
+ * The probe above stages the rod on the FAR side, which is the only side either draw site was ever
+ * handed. `lightningrod.onAnyRedirectTarget` is collected from every active body, and its gate is
+ * `this.validTarget(holder, source, redirectTarget)` -- `validTargetLoc` (sim/battle.ts:2395) answers
+ * `normal` with `isAdjacent` ALONE, adjacency and not side. So in doubles a partner is a valid draw
+ * target and an Electric click never reaches the foe it named. Two games of the empirical arm.
+ *
+ * MANECTRIC CARRIES BOTH LIGHTNING ROD AND STATIC on its own legal sheet, so the knob is one word on
+ * one body. The third arm is Follow Me on the same seat: it is `onFoeRedirectTarget`, so it must do
+ * NOTHING to its own side's click, and a fix that offered the near axis to the volatile family would
+ * turn every Follow Me into a partner-blocker. */
+probe('ability', 'redirectsType', 'Lightning Rod pulls its OWN partner\'s Electric move', () => {
+  const run = (ab, allySp, allyMove) => {
+    const me = bare('rotomheat'), ally = bare(allySp || 'manectric');
+    const f1 = bare('clefable'), f2 = bare('incineroar');
+    if (ab) ally.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = [ally.curHP, f1.curHP];
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'thunderbolt', f1, S.field)],
+               [ally, allyMove ? M.playerAction(ally, allyMove, null, S.field) : { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { aimed: h[1] - f1.curHP, rod: h[0] - ally.curHP, spa: ally.boosts.sa };
+  };
+  const off = run('static'), on = run('lightningrod'), fm = run(null, 'maushold', 'followme');
+  return { works: off.aimed > 0 && on.aimed === 0 && on.rod === 0 && on.spa > 0 && fm.aimed > 0,
+           arms: { control: off, test: on },
+           detail: 'partner has Static: aimed ' + off.aimed + ' / partner ' + off.rod + ' / spa ' + off.spa
+                 + '   |   Lightning Rod: aimed ' + on.aimed + ' / partner ' + on.rod + ' / spa ' + on.spa
+                 + '   |   partner used Follow Me instead: aimed ' + fm.aimed
+                 + ' (must be > 0 — onFoeRedirectTarget cannot see its own side)' };
 });
 
 /* THIS PROBE USED TO BE A SOURCE GREP — `/hospitality|healsAllyOnSwitchIn/.test(src)` — and it would

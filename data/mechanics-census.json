@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T08:31:16.245Z",
+  "generated": "2026-08-29T08:58:36.600Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 790,
-  "live": 790,
+  "probed": 792,
+  "live": 792,
   "missing": 0,
-  "armed": 790,
+  "armed": 792,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -761,6 +761,16 @@
     {
       "kind": "move",
       "tag": "oneTurnGuard",
+      "label": "Wide Guard shields the partner from its OWN side's spread move",
+      "live": true,
+      "detail": "partner took 109 from its own Earthquake  ->  0 behind its own Wide Guard (must be 0), 109 behind Quick Guard (must equal the control — Earthquake is priority 0); foes 72/168  ->  72/168 (must be EQUAL — the shielded partner stays in the spread count)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "oneTurnGuard",
       "label": "Quick Guard refuses a PRANKSTER-boosted status move, not a plain one",
       "live": true,
       "detail": "Whimsicott's Thunder Wave at the partner — no guard par, Prankster into Quick Guard none (must be none), the SAME move with no Prankster into the same Quick Guard par (must be par — priority 0 is not refused)",
@@ -1214,6 +1224,16 @@
       "label": "Lightning Rod pulls an Electric move",
       "live": true,
       "detail": "no ability: aimed 170 / other 0 / spa 0   |   Lightning Rod: aimed 0 / rod 0 / spa 1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "redirectsType",
+      "label": "Lightning Rod pulls its OWN partner's Electric move",
+      "live": true,
+      "detail": "partner has Static: aimed 90 / partner 0 / spa 0   |   Lightning Rod: aimed 0 / partner 0 / spa 1   |   partner used Follow Me instead: aimed 90 (must be > 0 — onFoeRedirectTarget cannot see its own side)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3793,7 +3813,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.4% (format 20, generic 30), control Rock Slide 27.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
