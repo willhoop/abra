@@ -507,7 +507,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * rewrites part-way through the turn, so a probe that priced the move before the turn started would
  * read the un-evolved body every time, which is exactly what the engine was doing.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\binnardsHit\(|\binnardsChain\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\binnardsHit\(|\binnardsChain\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -19828,6 +19828,90 @@ probe('move', 'sealsMoves', 'an Encore landing MID-TURN moves its victim into th
                  + ' (victim used ' + test.used + ', volatile ' + test.vol + '). The victim is the '
                  + 'SLOWEST body on the field, so overtaking Garchomp can only be the bracket. Two '
                  + 'identical orders here would mean the relocation is unwired' };
+});
+
+
+/* ================= 2026-08-29 — AND THE SUBSTITUTED MOVE'S TARGET COMES FROM ITS OWN CLASS =======
+ *
+ * The rows above prove the mid-turn Encore swaps the MOVE, moves the BRACKET, and re-asks the shield
+ * gate. None of them says WHO the substituted move is aimed at, and that was the next defect: all
+ * three of this engine's default-target draws — the Encore branch in `chooseAction`, WIRE 143's
+ * execution override, and the called-move branch — drew a body out of the LIVING FOES whatever the
+ * substituted move's target class said.
+ *
+ * THE AUTHORITY IS `Battle#getRandomTarget` (sim/battle.ts:2487), and its CLAUSE ORDER is the rule:
+ *     if (['self','all','allySide','allyTeam','adjacentAllyOrSelf'].includes(move.target)) return pokemon;
+ *     else if (move.target === 'adjacentAlly') { ...return sample(pokemon.adjacentAllies()); }
+ *     ... return pokemon.side.randomFoe();
+ * The near-side classes are answered BEFORE it looks at a foe. 91 of this format's 500 legal moves
+ * are near-side by class.
+ *
+ * IT SURFACED AS AN ARMOR TAIL DEFECT AND ARMOR TAIL IS NOT WHERE IT LIVES. The priority gate fires
+ * on an action whose target is in the mover's FOE array — which in a double is exactly the authority's
+ * `source.isAlly(armorTailHolder)` — so handed the right target it is right, and an ordinary CLICKED
+ * Helping Hand at one's own partner has never been refused here. The Encored one was, because the
+ * target field it read had been filled with a foe.
+ *
+ * THE KNOB IS THE COMMITTED MOVE'S TARGET CLASS AND NOTHING ELSE. Same four bodies, same Encore, same
+ * turn: `adjacentAlly` must name a body on the victim's OWN side and `normal` must name one on the
+ * far side. IDENTICAL ANSWERS ACROSS THE TWO ARMS ARE THE SIGNATURE OF AN UNWIRED KNOB, which is
+ * exactly what this engine printed before the fix — both arms named a foe.
+ *
+ * THE THIRD ARM IS THE FOE AXIS AT PRIORITY, kept because a fix that widened the near side would
+ * silently switch Armor Tail off: a +1 Quick Attack forced by the same Encore must still be refused. */
+const encoreAim = (committed) => {
+  const rng = () => 0.5;
+  const enc = bare('whimsicott'); enc.ability = 'Prankster';       // the encorer, +1 on a status move
+  const guard = bare('farigiraf'); guard.ability = 'Armor Tail';   // the format's only Armor Tail body
+  const vic = bare('sylveon');                                     // learns Helping Hand, Quick Attack and Bite
+  const pal = bare('milotic');                                     // the partner an ally-aimed move must find
+  const S = M.battleInit([enc, guard], [vic, pal], { seeded: true });
+  /* A KO empties a slot and an emptied slot re-aims — a different mechanic riding inside the
+   * measurement. Every body the victim can reach is made unfaintable. */
+  unfaintable(enc); unfaintable(guard); unfaintable(vic); unfaintable(pal);
+  const trace = []; S._trace = trace;
+  /* Turn 1 — the victim commits the move Encore will force back onto it. Its aim is the honest one:
+   * the ally for Helping Hand, the guard for the two foe moves. */
+  const t1 = committed === 'helpinghand' ? pal : guard;
+  M.battleTurn(S, rng, PASS2(enc, guard),
+    new Map([[vic, M.playerAction(vic, committed, t1, S.field)], [pal, { kind: 'pass' }]]));
+  const took = vic._lastMove;
+  trace.length = 0;
+  pal._helpingHand = false;
+  /* Turn 2 — the victim is handed a foe-aimed Bite and Encored back into what it committed, after
+   * both sides' actions were collected. The substituted move must find its own kind of target. */
+  M.battleTurn(S, rng,
+    new Map([[enc, M.playerAction(enc, 'encore', vic, S.field)], [guard, { kind: 'pass' }]]),
+    new Map([[vic, M.playerAction(vic, 'bite', guard, S.field)], [pal, { kind: 'pass' }]]));
+  const mv = trace.filter(l => l.startsWith('|move|') && /^\|move\|p2a/.test(l));
+  const used = (mv[0] || '').split('|')[3] || 'NONE';
+  const aimed = ((mv[0] || '').split('|')[4] || '').trim();
+  return { took, used,
+           /* THE SIDE, NOT THE BODY. The question is which half of the field the substituted move
+              addressed; naming a body would make this row fail on a narration change instead. */
+           aimSide: aimed ? aimed.slice(0, 2) : 'NONE',
+           marked: !!pal._helpingHand,
+           refused: trace.some(l => /^\|cant\|.*armor ?tail/i.test(l)) };
+};
+
+probe('move', 'targetClass', 'a move SUBSTITUTED into an action takes its target from its own target class', () => {
+  const ally = encoreAim('helpinghand');    // adjacentAlly, +5
+  const foe0 = encoreAim('bite');           // normal, 0
+  const foeP = encoreAim('quickattack');    // normal, +1 — the foe axis Armor Tail must still refuse
+  const works = ally.took === 'helpinghand' && ally.used === 'helpinghand'
+             && ally.aimSide === 'p2' && ally.marked && !ally.refused
+             && foe0.took === 'bite' && foe0.used === 'bite' && foe0.aimSide === 'p1' && !foe0.refused
+             && foeP.took === 'quickattack' && foeP.refused
+             && ally.aimSide !== foe0.aimSide;
+  return { works,
+           arms: { ally: ally.aimSide, foe0: foe0.aimSide, foePrio: foeP.refused ? 'refused' : 'landed' },
+           detail: 'four bodies, one Encore, one bit changed — the committed move\'s target class. '
+                 + 'adjacentAlly (Helping Hand) was substituted and aimed at ' + ally.aimSide
+                 + ' (partner marked ' + ally.marked + ', Armor Tail refused ' + ally.refused + '); '
+                 + 'normal (Bite) was substituted and aimed at ' + foe0.aimSide
+                 + '; normal at +1 (Quick Attack) was substituted and Armor Tail refused it '
+                 + foeP.refused + '. The two aim sides must DIFFER — one answer for both arms is the '
+                 + 'far-side-only draw this row exists to catch' };
 });
 
 /* ================= 2026-08-29 — AND THE SHIELD GATE ASKS ITS QUESTION AT THE ACTION ==============

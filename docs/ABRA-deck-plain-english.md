@@ -1,6 +1,30 @@
 # ABRA — the plain-English deck
 
-**Version 5.218.0 · 2026-08-29 · Will Hooper**
+**Version 5.219.0 · 2026-08-29 · Will Hooper**
+
+**5.219.0 - IF SOMETHING FORCES YOUR POKEMON TO USE A MOVE, WE HAD TO WORK OUT WHO IT WAS AIMED
+AT - AND WE ALWAYS PICKED THE OTHER TEAM.**
+
+Some moves are aimed at your own partner. Helping Hand boosts your partner's attack; Coaching gives
+your partner +1 attack and +1 defence. Normally you click them and you say who they are for, so
+there is nothing to work out.
+
+But some things take the choice away from you. Encore forces you to repeat your last move. Copycat
+makes you use whatever move was used just before yours. Nobody named a target in those cases, and
+the real game works it out from the move itself: a partner move goes to your partner, full stop.
+
+We were sending it at the other team instead. The +1/+1 from Coaching landed on an opponent. And a
+forced Helping Hand aimed across the field ran into an ability that stops fast moves coming at its
+own side - so our version showed the move being blocked, when in the real game it was never pointed
+that way at all.
+
+The ability was doing the right thing with the wrong information, and that is worth saying plainly:
+it looked like the ability was broken and it was not. We checked by playing an ordinary clicked
+Helping Hand at a partner on the OLD code, and it worked perfectly, exactly as it always had.
+
+This did not change who wins any of the 961 recorded games we test against. We said so before we
+ran it, and that is the answer we expected: both of the things it fixed were commentary rather than
+anything that moves a board.
 
 **5.218.0 - PROTECT GETS HARDER EVERY TIME YOU USE IT IN A ROW. WE WERE NOT COUNTING IT WHEN
 SOMETHING ELSE MADE YOU USE IT.**

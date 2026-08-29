@@ -1,6 +1,15 @@
 # ABRA — the model family (living reference)
 
-**Version 5.218.0 · Last updated 2026-08-29.**
+**Version 5.219.0 · Last updated 2026-08-29.**
+
+**5.219.0 - NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON NOW AIMS A SUBSTITUTED MOVE
+BY ITS OWN TARGET CLASS.** `Battle#getRandomTarget` answers the near-side classes before it looks
+at a foe; this engine's three default-target draws all began at `randomFoe()`, so a forced Helping
+Hand or a copied Coaching was aimed across the field. **Census 796 to 797 probed mechanics live, 0
+missing.** Empirical arm over 961 games: board-parted **unmoved at 94**, protocol 213 to 211, two
+causes removed and none added, both narration-only - predicted before the run. Every quarantined
+model figure in this ledger stays quarantined; this changes what the simulator does, not what any
+model scores.
 
 **5.218.0 - NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON NOW TESTS A SHIELD WHOSE MOVE
 WAS SUBSTITUTED MID-TURN.** `protect.onPrepareHit` is raised per action at execution;

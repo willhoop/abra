@@ -34,7 +34,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_shield_refusal_line.js`, `tests/probe_upkeep_lines.js`,
 `tests/probe_fatigue_tag.js`, `tests/probe_reds_plant_reaches.js`,
 `tests/probe_forced_switch_mirror.js`, `tests/probe_innards_out.js`,
-`tests/probe_shield_rearm.js`
+`tests/probe_shield_rearm.js`, `tests/probe_default_target_side.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -52,6 +52,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
+| `probe_default_target_side.js` | when a move is SUBSTITUTED into an action — Encore at selection, Encore at execution (WIRE 143), or the called-move branch (Copycat / Metronome / Sleep Talk / Mirror Move) — does it take its target from its own target class, the way `Battle#getRandomTarget` answers `self`, `all`, `allySide`, `allyTeam`, `adjacentAllyOrSelf` and `adjacentAlly` BEFORE it ever looks at a foe. Twelve arms over two engines under the differential's own `middle` pin: six red (an Encored Helping Hand, mirrored whole, and again against the format's OTHER live priority refuser, and again with the refuser's ability traded away so only the wrong SIDE is left; an Encored Coaching, where no priority is involved and +1/+1 lands on a foe; and a COPIED Coaching, which is the second draw site and not Encore at all) and six controls (a plain clicked Helping Hand, which was NEVER broken; the foe axis clicked directly and again through the override; the far-side draw at priority 0 on both doors, which fails if a die moves; and a `self` move where the near-side branch fires and nothing may change). Nothing is typed — the four counted facts are read off BOTH streams and compared to each other, deliberately coarse (`cant` as holder-side/ability, a single-turn mark as side/label, a boost as side/stat/stage, the move line as move->side) so an arm cannot fail on a spelling difference between the narrators and cannot pass while a body on the wrong half of the field takes the effect | the 87 near-side moves whose aim `playerAction` discards before it reaches an action — Protect, Tailwind, Rain Dance and Wide Guard all return a kind carrying no target, so only the four `adjacentAlly` chooseables are observable from outside at all. And Instruct, which reaches the authority through `runMove(..., targetLoc)` rather than through `getRandomTarget` and is a different rule |
 | `probe_shield_rearm.js` | does a shield whose MOVE was substituted mid-turn still pass the gate the authority asks at execution — `protect.onPrepareHit` runs inside `useMoveInner`, per action, so it is raised on the move being USED, while this engine armed `_shieldPending`/`_guardPending`/`_stallPending` once per turn off the move the player CLICKED. Eleven arms over two engines under the differential's own `middle` pin: five red (Encore's execution-time override and Instruct's spliced second action, each also MIRRORED whole, plus an Encore into ENDURE so a fix keyed on `kind === 'protect'` stays red) and six controls (the Encore replaced by a Charm; an ordinary Protect chain; a substitution onto a NON-shield so the re-ask fires and must arm nothing, once per producer; an ordinary Wide Guard; an ordinary Endure). Nothing is typed — the assertions are that the two engines agree on the shield lines AND on the stall counter (read through medicham2's own `stallBoardCounter`, the function `board_state.js` calls), that `MEDI_SHIELD_NO_REARM=1` parts the reds and moves no control, that the re-arm counters hit an EXACT per-arm value, and that the authority actually raised a shield on every red arm. The board removes the die: turn 1 the slowest body holds the last action, so `willAct()` refuses its shield BEFORE `StallMove` and the turn-2 substitution meets counter 0 | the shield's own DIE, which is what the four remaining pool games are — the counters agree and the draws do not, one of the four in the opposite direction. Copycat and Sleep Talk, which reach the identical splice and the identical trigger but have no arm. And a body Encored OFF a shield, which `shieldGateRearmedDisarmed` counts and no arm stages, because Protect is +4 and Encore is at best +1 |
 | `probe_innards_out.js` | does the ONE ability whose toll is the damage it just took pay it, on a real board against the authority — four scripted games, THREE of which must pay NOTHING (a connecting super-effective hit the holder SURVIVES; a Ghost Curse residual that kills it with no move involved; a game where only status moves are ever aimed at it) and one where the toll exceeds what the killer has and kills it. The carrier count is ENUMERATED from the format at run time, not named, and every arm asserts `megaRefused === 0` because the sole carrier is a mega and a refused ask stages the base forme, which does not carry the ability at all | the multi-hit interior — `_react` sets the reactor off once per hit while the volley is still ONE damage packet (WIRE 20), so nothing here separates "the toll is cumulative" from "the packet is cumulative"; and any toll aimed at an ALLY, which the authority pays and no arm stages |
 | `probe_state_trio.js` | three small state reads staged one at a time, each with a control that reaches the SAME mechanic through a DIFFERENT door: a confusion from a secondary against one from a status move, Dire Claw against Earthquake, and a faint against a voluntary switch / a U-turn pivot / a stay-in. Since 2026-08-27 it also carries the derived inert-secondary population, the derived count of REFUSAL REASONS for every status each cell must be able to take (it exits 2 rather than run a cell that qualifies for more than one), and `C-selfko` — a Soaked body that Mementos itself — which is the arm that separates `noteFaint` from `queueFaint` | **it asserts NOTHING and exits 0 whatever it finds** — it is read, not gated on; and any arm whose click is blocked, which is why the draw COUNT is printed beside every verdict (four arms reported IDENTICAL with zero draws before that was read) |
@@ -106,9 +107,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  796/796 probed mechanics live, 0 missing   (census 2026-08-29 07:10)
+  797/797 probed mechanics live, 0 missing   (census 2026-08-29 08:05)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 8.3 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 9.1 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -131,9 +132,144 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 07:32_
+_stamped 2026-08-29 08:26_
 
 <!-- /GENERATED -->
+
+## THE REFUSAL WAS READING A TARGET FIELD THAT HAD BEEN FILLED WITH A LIE — ALL THREE DEFAULT-TARGET DRAWS WENT STRAIGHT TO THE FOES. **CENSUS 796 -> 797 LIVE / 797 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED UNMOVED AT 94 OF 961 — PREDICTED BEFORE THE RUN — PROTOCOL 213 -> 211, TWO CAUSES REMOVED AND NONE ADDED, BOTH NARRATION-ONLY. CARD C6 STANDS.** 2026-08-29.
+
+Full account: `docs/_reports/2026-08-29-armor-tail-ally.md`. Release
+`03e049dc7299` -> **`6e7fff81fcec`**.
+
+**ARMOR TAIL WAS INNOCENT.** The priority gate fires only when the action's target is in the mover's
+FOE array, which in a double is exactly the authority's `source.isAlly(armorTailHolder)` — and an
+ordinary CLICKED Helping Hand at one's own partner has never been refused here. That is measured, not
+argued: the probe's `no-encore-helpinghand` arm is green on the shipping bytes, before any edit. What
+was wrong is the TARGET the gate was handed. The Helping Hand in game `…2653843264` arrived through
+Encore's execution-time override, which drew a body out of `live(foes)` whatever the substituted
+move's target class said.
+
+**`Battle#getRandomTarget` (sim/battle.ts:2487) ANSWERS THE NEAR-SIDE CLASSES BEFORE IT LOOKS AT A
+FOE**, and this engine's three sites that stand where it stands all began at its last line — the
+Encore branch in `chooseAction`, WIRE 143's execution override, and the called-move branch (Copycat /
+Metronome / Sleep Talk / Mirror Move). **Two of the three named `getRandomTarget` in their own
+comments.** Champions overrides eight files and none of them touches it; grepped, not recalled.
+Instruct is deliberately NOT in the set — the authority reaches it through `runMove(..., targetLoc)`,
+a different rule.
+
+**MEMBERSHIP PRINTED BEFORE WIRING: 91 OF THE 500 LEGAL MOVES ARE NEAR-SIDE BY CLASS** (60 `self`,
+17 `all`, 8 `allySide`, 4 `adjacentAlly`, 1 `adjacentAllyOrSelf`, 1 `allyTeam`), so all 91 were drawn
+wrong — and only **four** can be seen from outside, because `playerAction` throws the aim away for the
+rest. Those four are the `adjacentAlly` chooseables: helpinghand (7,842 uses, +5), coaching (1,510),
+dragoncheer (34), aromaticmist (3). Helping Hand is the only one with priority of its own, which is
+why a priority refuser is the instrument that noticed. The refuser family is derived too:
+`blocksMove {what:'priority'}` selects **armortail (Farigiraf), queenlymajesty (Tsareena) and dazzling
+— which has ZERO legal carriers, cannot occur, and is not staged.** Both live carriers are in the
+probe and the fix names neither.
+
+**WHY THE SAFEGUARD DERIVATION MISSED THIS, AND IT IS STRUCTURAL RATHER THAN AN OVERSIGHT.** That pass
+enumerated *decision handlers that RECEIVE A SOURCE*, because a handler never handed a source cannot be
+asked a near/far question. **This site is not a handler and has no source: it is a TARGET SELECTOR, a
+plain method on `Battle` with no `on…` name to walk for.** C2, C3 and Safeguard are PREDICATES — a
+predicate that hard-codes the far side refuses something it should allow. A SELECTOR that hard-codes
+the far side hands a correct predicate a wrong body, and the predicate then does exactly the right
+thing with it, which is why the symptom arrived wearing the predicate's name on a `|cant|` line.
+
+**WHAT WOULD CATCH A FIFTH — AN ENGINE-SIDE CENSUS, AND ITS DENOMINATOR IS PRINTED RATHER THAN
+PROMISED.** The frame has to move from the authority's handlers to THIS engine's sites, because the
+broken invariant is this engine's. Measured on the post-fix tree: **`it.side==='A'?actB:actA` appears
+at 22 live code sites** in `engine/medicham2-browser.js`, and nothing asks per site whether it is
+answering a SIDE question (*who are this body's opponents* — hard-coding is correct) or a TARGET
+question (*which body does this action address* — the far side is an assumption). **This pass
+classified four and moved three; eighteen are unclassified and that is the honest state.** A gate
+would be an artifact mapping each site to the authority function it implements; it is FILED with its
+denominator, not built, because building it inside a batch of one is the bloat this division was told
+not to add.
+
+**THE FIX IS ONE READER AND FOUR CALL SITES.** `defaultTargetOf(mon, mvId, allies, pick)` is
+`getRandomTarget`'s clause order with the class read off `targetClass.target`; `pick` is the caller's
+own far-side draw and **is only called on the far-side road**, so the addressed `midTargetDraw` stream
+is bit-identical for every move already resolved correctly — asserted, not assumed, by the
+`encore-aurasphere` and `copycat-aurasphere` arms. An `adjacentAlly` move takes no die at all. Two
+slot writes are now SIGNED (`tgtSlot` / `allySlot`), because stamping `-1` for an ally-directed
+encored move is what made `reaimToSlot` re-aim the `|move|` line at nothing — the empty target field
+in the carded stream.
+
+**THE PROBE: `tests/probe_default_target_side.js`, 12 arms, 6 red and 6 controls, SHOWN RED FIRST at
+12 failures across 12 arms.** No expectation is typed; both engines play the identical script under
+the differential's `middle` pin and the file asserts only that they agree on four COARSE counted facts
+(`cant` as holder-side/ability, a single-turn mark as side/label, a boost as side/stat/stage, the
+`|move|` line as move->side), that the knob parts the reds, and that the controls do not move.
+**TWO FIXTURES WERE WRONG BEFORE THE ENGINE WAS AND THE INSTRUMENT CAUGHT BOTH:** the first Copycat arm
+used Helping Hand, which carries `failcopycat`, and agreed while testing nothing; and the first
+fixture had the victim's partner clicking Protect, so `helpinghand.onTryHit`'s `willMove(target)`
+clause failed every Helping Hand on the authority. A `self`-with-priority arm uses **Follow Me** rather
+than Protect on purpose: an Encored Protect needs two consecutive Protects and draws the stall die,
+which is card F2's open family and would have put someone else's red inside this batch's evidence.
+
+Pins, both arms: `--games 1200` (961), `--arm middle`, `--turns 12`, `--steering empirical`,
+`--team-store data/team-pool-frozen`, census pin `9446a684709d`. `arms_comparable` reads COMPARABLE,
+same Showdown commit, and the first-BOARD-divergence set is **the same 40 games, 0 in, 0 out**.
+After-artifact `data/verification/game-differential.allytarget.json`; `data/game-differential.json`
+NOT written (mtime still 2026-08-28 23:14:37).
+
+**THE PREDICTION WAS MADE BEFORE THE RUN AND IT HELD.** Said in advance: the lab must move (+1 row,
+6 red arms) and the pool should move by AT MOST 1 and may well not move at all, because the defect
+needs a near-side move SUBSTITUTED into an action and the artifact carried exactly one first
+divergence with this cause. Board-parted read 94 both sides. **Why it could not have moved is a fact
+rather than a consolation:** both removed causes carry `materiality: NARRATION-ONLY` and
+`board_parted: 0`, and a cause that parted no board cannot lower a count of parted boards.
+
+```
+-1  unrelated event mismatch :: |-singleturn|p2b|helpinghand <> |cant|p1b|armortail|helpinghand
+-1  -fail: a different body  :: |-fail|p1a|heal        <> |-fail|p2b|heal      (not on the card, same mechanism)
+```
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"ARMOR TAIL REFUSES A PRIORITY MOVE AIMED AT THE MOVER'S OWN ALLY"*~~ — **landed, and the
+  refusal was not the defect.** One census row (`move / targetClass`) and
+  `tests/probe_default_target_side.js`'s twelve arms carry it. **Card C6 is CONFIRMED rather than
+  contradicted**: three arms stage the foe axis and it is refused on both engines, on both loads.
+
+**Joins it:**
+- **THE PRIORITY-REFUSAL GATES READ THE STATIC MOVE PRIORITY, AND THE AUTHORITY READS THE
+  ABILITY-MODIFIED ONE.** `getActionSpeed` writes `action.move.priority = priority` for gen > 5, so
+  `move.priority > 0.1` inside `armortail.onFoeTryMove` includes Gale Wings and Prankster. This
+  engine's gates ask `movePriority`, which is the printed constant, while `actionPriority` already
+  reads `priorityMod` — two implementations of one fact. **It is the surviving BOARD-MATERIAL Armor
+  Tail row** (`|cant|p2b|armortail|bravebird <> |-damage|p2a|H/H`, 1 game, first board divergence
+  turn 9, unchanged by this pass), and it is the opposite sign: the authority refuses and we do not.
+  Staged on this engine: a full-HP Gale Wings Brave Bird lands on the Farigiraf itself (195 -> 105)
+  and on the body beside it (170 -> 68).
+- **THE SAME GATE CANNOT SEE `move.target === 'all'`, AND PRANKSTER MAKES THAT CLAUSE REACHABLE.** The
+  authority refuses an `all` move outright above priority 0.1, excepting only perishsong, flowershield
+  and rototiller. No legal move is `all` at priority > 0.1 by itself — Prankster makes seventeen of
+  them so, including Rain Dance (1,429 uses), Sunny Day (1,145) and Haze (866). Not staged, not
+  measured; same batch as the row above, because both are "what number does the gate compare".
+- **`helpinghand.onTryHit`'s `willMove(target)` CLAUSE IS NOT IMPLEMENTED HERE.** Measured rather than
+  guessed: the probe's first fixture staged a partner that had already acted, the authority failed the
+  move and this engine marked it anyway. Routed out of the arms deliberately.
+- **EIGHTEEN OF THE TWENTY-TWO FAR-SIDE SITES ARE UNCLASSIFIED**, and there is no artifact that says
+  which of them answer a SIDE question and which answer a TARGET question. Filed with its denominator
+  so the next pass starts from 22 rather than from zero.
+- **`tools\lownode.cmd` WAS NOT REACHABLE FROM THIS SESSION'S SHELL.** `cmd.exe /c "…"` drops its
+  arguments and opens an interactive prompt — reproduced three ways. The 961-game differential was run
+  as `Start-Process node … -PassThru -NoNewWindow` with `PriorityClass = 'BelowNormal'`, which is what
+  the .cmd sets. Reported because it is a deviation from a standing rule, and because if the wrapper
+  is unreachable elsewhere it is an OPS item.
+
+### OWED, NOT RUN
+
+The exact commands are the `## OWED, NOT RUN` block of
+`docs/_reports/2026-08-29-armor-tail-ally.md`. **THE FIVE PRE-EXISTING REDS WERE ALL RE-RUN AND ALL
+FIVE READ IDENTICALLY:** `probe_shield_refusal_line` 13 arms / 1 failing; `probe_random_target_address`
+`LENGTH MISMATCH sd=61 sites=62`; `test-resolution-order` `Reached heap limit` rc 134 — **that one is
+ENGINE's, it is still not runnable, and this work neither made it runnable nor made it worse**;
+`probe_instruct_shield` 5 arms / 3 failing; and `test-engine-diff` rc 3 with `disagreed 0`, not re-run
+because it has no `--out` and would republish the artifact the `0 of 6,000` figure is read from.
+
 
 ## THE SHIELD GATE WAS ARMED AT THE TOP OF THE TURN AND THREE SITES REPLACE THE MOVE AFTER THAT, SO A SUBSTITUTED PROTECT NEVER DREW ITS OWN DIE. **CENSUS 795 -> 796 LIVE / 796 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 97 -> 94 OF 961, `active[].stall` 13 LEAVES / 13 GAMES -> 11 / 11, PROTOCOL 214 -> 213, `order_probe` UNMOVED AT 2. INSTRUCT IS THE SAME DEFECT, NOT A SECOND ONE.** 2026-08-29.
 

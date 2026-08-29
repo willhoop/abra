@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T11:10:59.681Z",
+  "generated": "2026-08-29T12:05:11.183Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 796,
-  "live": 796,
+  "probed": 797,
+  "live": 797,
   "missing": 0,
-  "armed": 796,
+  "armed": 797,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3813,7 +3813,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5384,6 +5384,16 @@
       "label": "an Encore landing MID-TURN moves its victim into the bracket of the ENCORED move",
       "live": true,
       "detail": "the same three bodies, the same clicks, one bit changed — with a CHARM in place of the Encore the turn ran p1a>p1b>p2a (victim used moonblast, volatile false); with the Encore landing it ran p1a>p2a>p1b (victim used quickattack, volatile true). The victim is the SLOWEST body on the field, so overtaking Garchomp can only be the bracket. Two identical orders here would mean the relocation is unwired",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "targetClass",
+      "label": "a move SUBSTITUTED into an action takes its target from its own target class",
+      "live": true,
+      "detail": "four bodies, one Encore, one bit changed — the committed move's target class. adjacentAlly (Helping Hand) was substituted and aimed at p2 (partner marked true, Armor Tail refused false); normal (Bite) was substituted and aimed at p1; normal at +1 (Quick Attack) was substituted and Armor Tail refused it true. The two aim sides must DIFFER — one answer for both arms is the far-side-only draw this row exists to catch",
       "hollow": false,
       "armed": true,
       "directCall": false

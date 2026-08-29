@@ -1911,6 +1911,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * one is the target that has already acted, where the authority bumps the duration and swaps at
    * execution. A zero across games with a mid-turn Encore in them is the finding. */
   encoreRelocatedQueuedAction: 0,
+  /* 2026-08-29 -- A DEFAULT-TARGET DRAW THAT THE MOVE'S OWN TARGET CLASS SENT TO THE NEAR SIDE
+   * (`Battle#getRandomTarget`'s first two clauses). All three draw sites -- Encore at selection,
+   * Encore at execution, and the called-move branch -- went straight to the foes before this date,
+   * so this reads 0 on every run cut before it. 91 of the 500 legal moves are near-side by class;
+   * a zero across games carrying an Encore, a Copycat or a Sleep Talk is the finding.
+   * `defaultTargetNoAlly` is the authority's own `return null` for an `adjacentAlly` move with
+   * nobody left to aim at, counted rather than folded into the line above because the move FAILS
+   * there and that is a different board. */
+  defaultTargetNearSide: 0, defaultTargetNoAlly: 0,
   /* WIRE 145 -- a `_lock` into a STATUS move was resolved into a real action. It reads zero on every
    * run before this wire and it CANNOT have read anything else: both selection-time call sites
    * resolved the lock through `targetForMove`, which refuses a 0-power move, so a status lock became
@@ -2155,6 +2164,12 @@ const MEDFAILS = { encoreAction: 0,
      the queue. A non-zero says an Encore volatile arrived from a road this engine has not modelled --
      loud, because a silent skip here is indistinguishable from the defect this counter's fix closed. */
   encoreRelocateNoQueue: 0,
+  /* 2026-08-29 -- `defaultTargetOf` was asked about a move with no `targetClass` row, so the near/far
+     question was unanswerable and the caller's far-side draw was used -- the pre-change behaviour.
+     It must read 0 over legal moves: tag_dex derives `targetClass.target` for all 500. A non-zero
+     means an aim was resolved by a FALLBACK, which is exactly the silent default this whole family
+     of defects was made of, so it is named as well as counted. */
+  defaultTargetClassUnknown: 0, defaultTargetClassUnknownFirst: '',
   /* ROADMAP #514 -- this module's own source could not be read, so LATCH_FIELDS_WRITTEN is empty and
      NO user-latch gate is enforced. That is the pre-change behaviour and it is announced rather than
      assumed: a silent empty set and a correctly-empty one produce the identical board. */
@@ -13677,7 +13692,12 @@ function _chooseAction(me,foes,ally,field,side,rng){
        * choosing is a duration that lasts forever. */
       const _mv=me._encoreMove;
       if(_mv&&MC.moves[_mv]){
-        const _t=live[Math.floor(rng()*live.length)%live.length];
+        /* 2026-08-29 -- THROUGH THE SHARED `getRandomTarget` READER. This drew from `live` -- the FOES --
+         * for whatever move the Encore names, so a body locked into Helping Hand or Coaching aimed an
+         * `adjacentAlly` move across the field. `ally` is this function's own parameter and the near-side
+         * half costs no new plumbing; the far-side road still takes exactly the draw it always took, in
+         * the same order, so no rollout stream moves for a move that was already resolved correctly. */
+        const _t=defaultTargetOf(me,_mv,[ally],()=>live[Math.floor(rng()*live.length)%live.length]);
         /* Falling through means the Encore is silently NOT honoured this turn — a real behaviour
          * change dressed as a no-op, so it counts itself rather than vanishing. */
         try{const _a=playerAction(me,_mv,_t,field); if(_a&&_a.kind!=='pass')return _a;}catch(e){ MEDFAILS.encoreAction++; }
@@ -20412,6 +20432,78 @@ function tracksTargetOf(mvId,user,scripted){
   }
   return false;
 }
+/* 2026-08-29 -- A MOVE USED WITHOUT A CHOSEN TARGET RESOLVES ITS TARGET FROM ITS OWN TARGET CLASS,
+ * AND ALL THREE SITES THAT ASKED THIS QUESTION WENT STRAIGHT TO THE FOES.
+ *
+ * FOUND AS "Armor Tail refuses a priority move aimed at the mover's own ALLY"
+ * (docs/_reports/2026-08-29-encore-order.md, unmasked in game 2653843264 turn 4), and THE REFUSAL IS
+ * NOT WHERE THE DEFECT IS. The priority gate at WIRE 85 fires only when the action's target is in the
+ * mover's FOE array, which in a double is exactly the authority's `source.isAlly(armorTailHolder)`;
+ * a plain clicked Helping Hand at one's own partner has never been refused here and
+ * `tests/probe_default_target_side.js`'s `no-encore-helpinghand` arm is green on the pre-fix engine
+ * to prove it. What was wrong is the TARGET FIELD the gate was reading. The Helping Hand in that game
+ * arrived through Encore's execution-time override, which drew a body out of `live(foes)` for a move
+ * whose class is `adjacentAlly` -- so the gate refused it correctly on false evidence.
+ *
+ * THE AUTHORITY IS `Battle#getRandomTarget` (sim/battle.ts:2487), read whole. Champions overrides
+ * eight files and none of them touches it -- grepped, not recalled. THE CLAUSE ORDER IS THE RULE: the
+ * near-side classes are answered BEFORE it ever looks at a foe.
+ *
+ *     if (['self','all','allySide','allyTeam','adjacentAllyOrSelf'].includes(move.target)) return pokemon;
+ *     else if (move.target === 'adjacentAlly') {
+ *       if (this.gameType === 'singles') return null;
+ *       const adjacentAllies = pokemon.adjacentAllies();
+ *       return adjacentAllies.length ? this.sample(adjacentAllies) : null;
+ *     }
+ *     ... return pokemon.side.randomFoe() || pokemon.side.foe.active[0];
+ *
+ * THE CLASS COMES OUT OF THE ARTIFACT, NEVER OFF A NAME. `targetClass.target` IS Showdown's own
+ * `move.target` string, derived by tag_dex for all 500 legal moves, so a move added to a later
+ * regulation is placed by its own class without an edit here. MEMBERSHIP PRINTED BEFORE WIRING
+ * (docs/LESSONS §4) and it is not small: **91 of the 500 legal moves are near-side** -- 60 `self`,
+ * 17 `all`, 8 `allySide`, 4 `adjacentAlly`, 1 `adjacentAllyOrSelf`, 1 `allyTeam`. Only four of them
+ * can be SEEN from outside, because `playerAction` throws the aim away for the rest (Protect, Tailwind,
+ * Rain Dance and Wide Guard all return a kind carrying no target at all): the `adjacentAlly` four,
+ * helpinghand (7,842 uses), coaching (1,510), dragoncheer (34) and aromaticmist (3).
+ *
+ * `pick` IS THE CALLER'S OWN FAR-SIDE DRAW AND IT IS ONLY CALLED ON THE FAR-SIDE ROAD, so the
+ * addressed `midTargetDraw` stream is bit-identical for every move that was already resolved
+ * correctly. That is asserted rather than assumed -- the probe's `encore-aurasphere` and
+ * `copycat-aurasphere` arms fail if a die moves.
+ *
+ * A MOVE WHOSE CLASS THIS ENGINE CANNOT READ IS COUNTED, LOUDLY, and falls through to the caller's
+ * draw -- the pre-fix behaviour -- because a silent default here looks exactly like a working feature.
+ *
+ * `adjacentAllyOrSelf` RETURNS THE USER, NOT THE ALLY, and that is the authority's line rather than a
+ * simplification: it is in the first list. Its one legal member is acupressure (4 uses). */
+const DEFAULT_TARGET_SELF=new Set(['self','all','allySide','allyTeam','adjacentAllyOrSelf']);
+/* 2026-08-29 -- MEDI_DEFAULT_TARGET_FOE_ONLY=1 puts back the far-side-only draw all three sites held
+ * until this date, so the probe can red its own arms on the shipping module. It stamps
+ * `MEDFAILS.defaultTargetFoeOnlyRestored` at load, which is what makes "the knob bound" checkable. */
+const DEFAULT_TARGET_FOE_ONLY=(typeof process!=='undefined'&&process.env
+                               &&process.env.MEDI_DEFAULT_TARGET_FOE_ONLY==='1');
+if(DEFAULT_TARGET_FOE_ONLY)MEDFAILS.defaultTargetFoeOnlyRestored=1;
+function defaultTargetOf(mon,mvId,allies,pick){
+  if(DEFAULT_TARGET_FOE_ONLY)return pick();
+  const tc=mvId?TAGS.param('move',mvId,'targetClass'):null;
+  const cls=tc&&tc.target;
+  if(!cls){
+    MEDFAILS.defaultTargetClassUnknown++;
+    if(!MEDFAILS.defaultTargetClassUnknownFirst)MEDFAILS.defaultTargetClassUnknownFirst=String(mvId);
+    return pick();
+  }
+  if(DEFAULT_TARGET_SELF.has(cls)){MEDSEEN.defaultTargetNearSide++;return mon;}
+  if(cls==='adjacentAlly'){
+    MEDSEEN.defaultTargetNearSide++;
+    const a=(allies||[]).filter(x=>x&&x!==mon&&!x.fainted&&x.curHP>0);
+    /* `sample(adjacentAllies)` over a doubles side is a draw of ONE, so no die is owed and none is
+     * taken. An empty list is the authority's `null` and the move fails downstream, which is what
+     * `mvFail` already does for an ally-aimed action with nobody to aim at. */
+    if(!a.length)MEDSEEN.defaultTargetNoAlly++;
+    return a.length?a[0]:null;
+  }
+  return pick();
+}
 /* `quiet` is passed by the TRACE site only, which asks the same question to decide whom to NAME on
  * the `|move|` line. Counting there as well would double every figure below and make a counter that
  * exists to be read a counter that cannot be. */
@@ -22570,7 +22662,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * player clicked — so the address names `m._encoreMove`. The original click took its own
          * `getTarget` draw one line above under its OWN move id, which is a different address and
          * cannot collide with this one. */
-        const _etgt=_elive[Math.floor(midTargetDraw(_R,rng,m._encoreMove,midEventSlot(m),_elive.length)*_elive.length)%_elive.length];
+        /* 2026-08-29 -- AND `getRandomTarget`'s FIRST TWO CLAUSES, WHICH THIS LINE SKIPPED. The address
+         * and the draw below are unchanged and are still only taken on the far-side road; the near-side
+         * classes are answered above it, exactly as sim/battle.ts:2498 answers them above its own
+         * `randomFoe()`. This is the site game 2653843264 turn 4 went through. */
+        const _etgt=defaultTargetOf(m,m._encoreMove,it.side==='A'?actA:actB,
+          ()=>_elive[Math.floor(midTargetDraw(_R,rng,m._encoreMove,midEventSlot(m),_elive.length)*_elive.length)%_elive.length]);
           let _eact=null;
           try{ _eact=playerAction(m,m._encoreMove,_etgt,field); }catch(e){ MEDFAILS.encoreAction++; }
           if(_eact&&_eact.kind!=='pass'){
@@ -22580,7 +22677,14 @@ function battleTurn(S,rng,actsForA,actsForB){
              * (the `|move|` line, the attack branch's `aim`) resolves through `tgtSlot` and a stale one
              * would send the forced move at the body the PLAYER had named. -1 for a self- or
              * ally-directed encored move, which is what `mk()` writes for those too. */
-            it.tgtSlot=_eact.target?_efoes.indexOf(_eact.target):-1;
+            /* 2026-08-29 -- SIGNED, LIKE EVERY OTHER RE-AIM SINCE THE ALLY AXIS LANDED. `tgtSlot` is the
+             * FOE-array index and `allySlot` the own-array one, and `reaimToSlot` reads whichever is >= 0
+             * (Showdown carries the pair as one signed `targetLoc`, sim/pokemon.ts:770). Writing only
+             * `tgtSlot` would stamp -1 for an ally-directed encored move and re-aim the `|move|` line at
+             * nothing, which is what the empty target field in that game's stream actually was. */
+            {const _eti=_eact.target?_efoes.indexOf(_eact.target):-1;
+             if(_eti>=0){it.tgtSlot=_eti;it.allySlot=-1;}
+             else{it.tgtSlot=-1;it.allySlot=_eact.target?(it.side==='A'?actA:actB).indexOf(_eact.target):-1;}}
           } else MEDFAILS.encoreOverrideUnbuilt++;
           _ovr=true;
         }
@@ -24865,7 +24969,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * authority reaches this one through `useMoveInner`'s `if (target === undefined) target =
          * this.battle.getRandomTarget(pokemon, move)` (sim/battle-actions.ts:418), inside `runMove`,
          * with `move` being the CALLED move — so the address names `_src` and this body's slot. */
-        const _caim=_clive.length?_clive[Math.floor(midTargetDraw(_R,rng,_src,midEventSlot(m),_clive.length)*_clive.length)%_clive.length]:null;
+        /* 2026-08-29 -- AND THE SAME TWO CLAUSES HERE. `useMoveInner` hands `getRandomTarget` the CALLED
+         * move, so a Copycat, a Sleep Talk or a Metronome that lands on an `adjacentAlly` move names the
+         * partner. Measured on the authority before the edit: a copied Coaching puts +1/+1 on the
+         * copier's own ally; this branch put it on a foe. */
+        const _caim=defaultTargetOf(m,_src,it.side==='A'?actA:actB,
+          ()=>(_clive.length?_clive[Math.floor(midTargetDraw(_R,rng,_src,midEventSlot(m),_clive.length)*_clive.length)%_clive.length]:null));
         if(_clive.length>1)MEDSEEN.calledMoveTargetDrawn++;
         const _sub2=playerAction(m,_src,_caim,field);
         if(!_sub2||_sub2.kind==='pass'){MEDFAILS.callMoveUnresolvable++;mvFail(m);continue;}
@@ -24875,8 +24984,11 @@ function battleTurn(S,rng,actsForA,actsForB){
          * an extra action into a turn, so a copied move inherits every BeforeMove refusal, every cost
          * and every branch of this loop exactly as an ordinary click does. Appending would have run it
          * after every other body had moved, which is a different turn. */
+        /* 2026-08-29 -- SIGNED, for the reason the Encore override's own note gives one screen up. */
+        const _cOwn=it.side==='A'?actA:actB, _cti=_sub2.target?(it.side==='A'?actB:actA).indexOf(_sub2.target):-1;
         const _cEntry={mon:m,side:it.side,a:_sub2,
-          tgtSlot:_sub2.target?(it.side==='A'?actB:actA).indexOf(_sub2.target):-1,
+          tgtSlot:_cti,
+          allySlot:_cti>=0?-1:(_sub2.target?_cOwn.indexOf(_sub2.target):-1),
           _order:TURN_ORDER.next,_pri:actionPriority({mon:m,side:it.side,a:_sub2},field),_qc:0,_copied:true};
         acts.splice(actIdx+1,0,_cEntry);
         continue;

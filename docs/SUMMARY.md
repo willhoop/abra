@@ -1,6 +1,17 @@
 # ABRA — Project Summary
 
-**Version 5.218.0 · 2026-08-29 · Will Hooper**
+**Version 5.219.0 · 2026-08-29 · Will Hooper**
+
+**5.219.0 - THE ARMOR TAIL CARD WAS A TARGETING DEFECT WEARING AN ABILITY'S NAME.** A Helping
+Hand forced by Encore was refused by an Armor Tail it had never been aimed at. The refusal is
+correct and is unchanged - it fires only on an action whose target is in the mover's foe array, and
+an ordinary clicked Helping Hand at one's own partner is green on the pre-fix bytes. What was wrong
+is that all three of this engine's default-target draws (Encore at selection, Encore at execution,
+and the called-move branch) went straight to the foes, where `Battle#getRandomTarget` answers the 91
+near-side moves first. **Census 796 to 797 live / 797 probed / 0 missing. Board-parted UNMOVED at
+94 of 961, protocol 213 to 211, two causes removed and none added - and the prediction that the
+pool would not move was made before the run.** Card C6 stands: the foe axis is refused on both
+engines on all three arms that stage it.
 
 **5.218.0 - CARD F2's FAMILY WAS NOT A COUNTER DEFECT AT ALL, AND THE COUNTER WAS ALREADY
 RIGHT.** The `stall` lifecycle was staged nine ways - consecutive shields, the `duration: 2` gap, a

@@ -1,6 +1,29 @@
 # ABRA — Technical Documentation
 
-**Version 5.218.0 · Last updated 2026-08-29**
+**Version 5.219.0 · Last updated 2026-08-29**
+
+**5.219.0 - A SUBSTITUTED MOVE RESOLVES ITS DEFAULT TARGET FROM `targetClass.target`.**
+`engine/medicham2-browser.js`. `Battle#getRandomTarget` (`sim/battle.ts:2487`) returns the USER for
+`self`, `all`, `allySide`, `allyTeam` and `adjacentAllyOrSelf`, and a sampled adjacent ally for
+`adjacentAlly`, BEFORE the `randomFoe()` fall-through. Champions overrides eight files and touches
+none of them.
+- `defaultTargetOf(mon, mvId, allies, pick)` is new. It reads the class off the move's own
+  `targetClass` tag, so no move is named in the engine. `pick` is the caller's existing far-side
+  draw and is invoked ONLY on the far-side road, which keeps the addressed `midTargetDraw` stream
+  bit-identical for every move already resolved correctly. An `adjacentAlly` move takes no die at
+  all: `sample()` over a doubles side is a draw of one.
+- Three call sites route through it: the Encore branch in `chooseAction`, WIRE 143's
+  execution-time override, and the called-move branch (ROADMAP #308). Instruct is excluded - the
+  authority reaches it through `runMove(move.id, target, targetLoc)`, not `getRandomTarget`.
+- The Encore override and the spliced copied-move entry now write the signed `tgtSlot` /
+  `allySlot` pair instead of `tgtSlot` alone; stamping `-1` for an ally-directed move was what made
+  `reaimToSlot` re-aim the move line at nothing.
+- A move with no `targetClass` row falls through to the caller's draw and is COUNTED and NAMED
+  (`MEDFAILS.defaultTargetClassUnknown`), never silently defaulted.
+
+Knob: `MEDI_DEFAULT_TARGET_FOE_ONLY=1`, stamping `MEDFAILS.defaultTargetFoeOnlyRestored` at load.
+Probe: `tests/probe_default_target_side.js`, 12 arms, 6 red and 6 controls. Census row:
+`move / targetClass`.
 
 **5.218.0 - THE SHIELD GATE IS RE-ARMED AT EXECUTION WHEN THE ACTION'S MOVE IS NOT THE ONE THE
 PRE-PASS ARMED AGAINST.**

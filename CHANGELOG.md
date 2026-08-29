@@ -11,6 +11,74 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.219.0] — 2026-08-29
+
+### Fixed
+- **A MOVE SUBSTITUTED INTO AN ACTION DREW ITS TARGET FROM THE FOES, WHATEVER ITS TARGET CLASS
+  SAID.** `Battle#getRandomTarget` (`sim/battle.ts:2487`) answers `self`, `all`, `allySide`,
+  `allyTeam` and `adjacentAllyOrSelf` with the USER and `adjacentAlly` with a random adjacent ally,
+  **before it ever looks at a foe**; Champions overrides eight files and touches none of them.
+  This engine had three sites standing where that function stands — the Encore branch in
+  `chooseAction`, WIRE 143's execution-time override, and the called-move branch (Copycat /
+  Metronome / Sleep Talk / Mirror Move) — and **all three began at its last line**, `randomFoe()`.
+  Two of the three named `getRandomTarget` in their own comments. **91 of the 500 legal moves are
+  near-side by class** and were all drawn wrong; only four can be observed from outside, because
+  `playerAction` discards the aim for the rest. `defaultTargetOf(mon, mvId, allies, pick)` is the
+  authority's clause order with the class read off `targetClass.target`, and `pick` — the caller's
+  own addressed far-side draw — is called ONLY on the far-side road, so no die moves for a move
+  that was already resolved correctly.
+- **ARMOR TAIL WAS THE SYMPTOM AND NOT THE DEFECT, AND THE REFUSAL IS UNCHANGED.** The carded
+  failure was `|cant|p1b: Farigiraf|ability: armortail|helpinghand` against the authority's
+  `|-singleturn|p2b: Whimsicott|Helping Hand` — an Encored Helping Hand refused although it named
+  the mover's own ally. The priority gate fires only when the action's target is in the mover's FOE
+  array, which in a double is exactly the authority's `source.isAlly(armorTailHolder)`; an ordinary
+  CLICKED Helping Hand at one's own partner has never been refused here, and the probe's
+  `no-encore-helpinghand` arm is green on the pre-fix bytes to prove it. **Card C6 stands** — three
+  arms stage the foe axis and it is refused on both engines on both loads.
+- **TWO SLOT WRITES ARE NOW SIGNED.** The Encore override and the spliced copied-move entry wrote
+  `tgtSlot = foes.indexOf(target)` and stamped `-1` for an ally-directed move, so `reaimToSlot`
+  re-aimed the `|move|` line at nothing — which is what the empty target field in the carded stream
+  actually was. Both now write the `tgtSlot` / `allySlot` pair the redirection site already used.
+
+### Added
+- `tests/probe_default_target_side.js` — **12 arms, 6 red and 6 controls, shown RED FIRST at 12
+  failures across 12 arms.** Both engines play the identical script under the differential's own
+  `middle` pin; no expectation is typed. The four counted facts are deliberately COARSE (`cant` as
+  holder-side/ability, a single-turn mark as side/label, a boost as side/stat/stage, the move line
+  as move→side), so an arm cannot fail on a spelling difference between the two narrators and
+  cannot pass while a body on the wrong half of the field takes the effect. Controls: a plain
+  clicked Helping Hand; the foe axis clicked directly and again through the override; the far-side
+  draw at priority 0 on both doors, which fails if a die moves; and a `self` move where the
+  near-side branch fires and nothing may change.
+- Census row `move / targetClass` — *a move SUBSTITUTED into an action takes its target from its own
+  target class* — three arms off one knob (the committed move's target class), staged through
+  `battleInit` plus two real `battleTurn`s. **Census 796 → 797 live / 797 probed / 0 missing**, both
+  ratchets held (`directCall` still 1, `unarmed` still 0).
+- Counters `MEDSEEN.defaultTargetNearSide`, `MEDSEEN.defaultTargetNoAlly`,
+  `MEDFAILS.defaultTargetClassUnknown` (+ `…First`) and the knob stamp
+  `MEDFAILS.defaultTargetFoeOnlyRestored` for `MEDI_DEFAULT_TARGET_FOE_ONLY=1`.
+
+### Notes
+- **Empirical arm, 961 games, release `03e049dc7299` → `6e7fff81fcec`: board-parted UNMOVED at 94,
+  protocol diverged 213 → 211, two causes removed and none added.** The prediction was stated before
+  the run and held: the lab must move, the pool should move by at most one and may not move at all.
+  **Both removed causes carry `materiality: NARRATION-ONLY` with `board_parted: 0`**, so the board
+  count could not have moved. `arms_comparable` reads COMPARABLE; the first-BOARD-divergence set is
+  the same 40 games, 0 in and 0 out. `data/game-differential.json` was NOT written.
+- **Filed, not fixed, and each its own batch:** the priority-refusal gates read the STATIC move
+  priority through `movePriority` while the authority reads the ability-MODIFIED one (`getActionSpeed`
+  writes `action.move.priority` for gen > 5), which is the surviving BOARD-MATERIAL Armor Tail row
+  and is the opposite sign — a full-HP Gale Wings Brave Bird lands here and is refused there; the same
+  gate cannot see `move.target === "all"`, a clause Prankster makes reachable on seventeen moves
+  including Rain Dance and Haze; and `helpinghand.onTryHit`'s `willMove(target)` clause is not
+  implemented at all, found because the probe's first fixture staged it by accident.
+- **Eighteen of the twenty-two `it.side==='A'?actB:actA` sites in `engine/medicham2-browser.js` are
+  unclassified** — nothing says which answer a SIDE question (correct) and which answer a TARGET
+  question (a candidate defect). That denominator is the answer to "what would catch a fifth"; the
+  artifact that would map each site to the authority function it implements is filed, not built.
+- Full account: `docs/_reports/2026-08-29-armor-tail-ally.md`.
+
+---
 ## [5.218.0] — 2026-08-29
 
 ### Fixed

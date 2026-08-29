@@ -1,6 +1,17 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.218.0 — 2026-08-29.**
+**Version: 5.219.0 — 2026-08-29.**
+
+**5.219.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version decides
+WHICH BODY a substituted move addresses, above every damage step - a move an Encore forced or a
+Copycat produced now takes its target from its own target class instead of always from the foes.
+Nothing above or below the stage table is touched, and `data/engine-diff.json` was not rewritten:
+the published **0 of 6,000 at all sixteen roll positions** still stands from 02:49.
+
+**`tests/test-engine-diff.js` WAS DELIBERATELY NOT RE-RUN THIS PASS**, because it has no `--out`
+and would republish that artifact. The probe carries the evidence instead: its `encore-aurasphere`
+and `copycat-aurasphere` arms are line-identical between the two engines and fail if the far-side
+draw consumes a different die, which is the only way this change could reach a damage number.
 
 **5.218.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version is a
 SHIELD-GATE one: a shield whose move was substituted mid-turn now passes the queue scan and the

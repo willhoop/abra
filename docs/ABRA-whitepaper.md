@@ -1,6 +1,21 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.218.0 · Last updated 2026-08-29**
+**Version 5.219.0 · Last updated 2026-08-29**
+
+**5.219.0 - WHEN SOMETHING ELSE CHOOSES A POKEMON'S MOVE FOR IT, THE SIMULATOR HAD TO PICK A
+TARGET, AND IT ALWAYS PICKED AN OPPONENT.** The reference implementation resolves an unchosen
+target from the move's own targeting rule, and it answers the moves that address your own side -
+yourself, your partner, your half of the field - before it ever considers an opponent. Ninety-one of
+this format's five hundred legal moves are of that kind. This simulator had three places that pick a
+target for a move nobody aimed - the move an Encore forces, and the move a copying move produces -
+and all three started from the opponents. The visible consequence was an ability that refuses fast
+moves aimed at its own side refusing a support move that was aimed at the user's own partner: the
+refusal itself was correct, and it was reading a target field that had been filled in wrongly.
+Measured over 961 recorded games at a twelve-turn cap, the count of games whose board state ever
+parts from the reference is unchanged at 94 and the count of narration disagreements falls from 213
+to 211 - which was predicted before the run and is reported as a prediction that held rather than as
+a gain. Both cleared disagreements were already classified as narration-only, so the board count
+could not have moved. Full account: `docs/_reports/2026-08-29-armor-tail-ally.md`.
 
 **5.218.0 - THE SIMULATOR DECIDED ONCE PER TURN WHETHER A SHIELD WOULD BE TESTED, AND THREE
 MECHANICS REPLACE THE MOVE A BODY IS USING AFTER THAT POINT.** The reference implementation asks a
