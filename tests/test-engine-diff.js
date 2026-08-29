@@ -1189,11 +1189,39 @@ const OUT_NAME = PLANT ? 'engine-diff-PLANTED-' + PLANT + '.json' : 'engine-diff
  * engine/publish_guard.js refuses the shrink, writes this run to data/verification/ instead so nothing
  * is lost, and sets a non-zero exit code so a refused run cannot read as a pass. */
 const GUARD = require(D('engine', 'publish_guard.js'));
-const PUBLISHED = GUARD.publish({
-  file: D('data', OUT_NAME),
-  sampleKey: 'compared',
-  what: 'the damage differential (' + OUT_NAME + ')',
-  artifact: {
+/* ---- ROADMAP #257's ORIGINAL, MISSING MITIGATION, FINALLY BUILT — `--out <file>`. 2026-08-29 ----
+ *
+ * THE GUARD ABOVE IS CORRECT AND IT MADE THIS FILE PERMANENTLY RED AS A TEST. `--n` defaults to 150
+ * and `data/engine-diff.json` holds 6,000, so every discovered run of this check — including
+ * tests/run-all.js, which has no EXTRA row for it — refused to publish and set `process.exitCode = 3`.
+ * The result was a check that printed `disagreed 0`, passed all three of its own conformance
+ * assertions, and exited non-zero anyway; it was carried through eleven test batches as a red
+ * differential and is not one. NO ENGINE STATE COULD HAVE MADE IT GREEN.
+ *
+ * The register row for #257 asked for exactly this flag and publish_guard.js's own header records
+ * that it did not exist ("there is no `--write` flag to omit and no `--out` to pass"). So: `--out`
+ * names where this run's artifact goes, the guard is not consulted, and the exit code is left to the
+ * three conformance sections — which are the only assertions this file actually makes.
+ *
+ * IT MAY NOT AIM AT THE PUBLISHED SET. A flag that could overwrite data/engine-diff.json would be the
+ * #257 defect with a command-line switch on it, so the target must sit under data/verification/. The
+ * file still carries a NOT_PUBLISHED block naming why, because a verification artifact that reads
+ * like the gate's artifact is how a 150-row measurement gets quoted as a 6,000-row one. */
+const OUT_FLAG = (() => {
+  const i = process.argv.indexOf('--out');
+  if (i < 0) return null;
+  const p = process.argv[i + 1];
+  if (!p) { console.error('  --out needs a path under data/verification/'); process.exit(2); }
+  const abs = path.isAbsolute(p) ? p : D(p);
+  const r = path.relative(D('.'), abs).replace(/\\/g, '/');
+  if (!r.startsWith('data/verification/')) {
+    console.error('  --out must name a path under data/verification/ — got ' + r + '\n'
+      + '  This flag exists so a verification run cannot touch the published artifact (ROADMAP #257).');
+    process.exit(2);
+  }
+  return abs;
+})();
+const ARTIFACT = {
   generated: new Date().toISOString(), by: 'tests/test-engine-diff.js',
   design: 'Showdown is the authority. Same attacker, move and defender through both engines; a '
         + 'disagreement is a MEDICHAM bug, including one nobody thought to look for.',
@@ -1280,7 +1308,22 @@ const PUBLISHED = GUARD.publish({
           + 'applyIntimidate; and the defender ability\'s onTryHit is asked directly, because '
           + 'Showdown\'s moveHit entry point does not run it.',
   touched,
-  },
+};
+const PUBLISHED = OUT_FLAG ? (() => {
+  fs.mkdirSync(path.dirname(OUT_FLAG), { recursive: true });
+  ARTIFACT.NOT_PUBLISHED = {
+    why: 'this run was directed to --out and never asked the publish guard',
+    published_artifact: 'data/' + OUT_NAME, this_sample: compared,
+    how_to_publish: 'run without --out, at a sample at least as large as the published one',
+    roadmap: '#257',
+  };
+  fs.writeFileSync(OUT_FLAG, JSON.stringify(ARTIFACT, null, 2) + '\n');
+  return { published: false, path: OUT_FLAG, sample: compared, ceiling: null };
+})() : GUARD.publish({
+  file: D('data', OUT_NAME),
+  sampleKey: 'compared',
+  what: 'the damage differential (' + OUT_NAME + ')',
+  artifact: ARTIFACT,
 });
 /* THE THREE CONFORMANCE SECTIONS BELOW AMEND THE FILE THIS RUN ACTUALLY WROTE, NOT A FIXED PATH.
  * They each used to re-read `data/engine-diff.json` by name and write it back — so a `--plant` run,

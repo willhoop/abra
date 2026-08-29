@@ -1,6 +1,29 @@
 # ABRA — Project Summary
 
-**Version 5.221.0 · 2026-08-29 · Will Hooper**
+**Version 5.222.0 · 2026-08-29 · Will Hooper**
+
+**5.222.0 - FIVE CARRIED TEST FAILURES CLOSED: THREE WERE THE INSTRUMENT, ONE WAS THE HARNESS, ONE IS
+A REAL ENGINE DEFECT AND IS FILED.** Five checks had been reported red, correctly and verified as
+pre-existing, through eleven test batches. `CLAUDE.md` bans "known failure" as a status, so each is
+closed with a verdict.
+
+| check | verdict |
+|---|---|
+| `tests/test-resolution-order.js` | FIXED - `tools/lownode.cmd` did not honour the `ABRA-HEAP` the check declares. 134 to 0; 26 arms, 0 failing |
+| `tests/test-engine-diff.js` | INSTRUMENT - exit 3 was `engine/publish_guard.js` refusing a shrink. `--out` added and wired into the suite |
+| `tests/probe_shield_refusal_line.js` | INSTRUMENT - a blanket expectation demanded silence from a control that correctly speaks. 13 arms, 0 failing |
+| `tests/probe_random_target_address.js` | INSTRUMENT - it assumed one shared address per die call, which the middle arm violates by design |
+| `tests/probe_instruct_shield.js` | FILED as ROADMAP #532 - a real, board-material engine defect, deliberately not fixed |
+
+**NO ENGINE BYTE CHANGED AND NO PUBLISHED ARTIFACT WAS REWRITTEN.** `data/engine-diff.json` is
+unchanged and still carries 0 disagreements over 6,000 matchups at all sixteen roll positions.
+`data/published-samples.json` is unmodified.
+
+**THE GENERALISATION, MEASURED.** 79 files in this repository start a node child process, and exactly
+one - `tests/run-all.js` - derives the child's heap from the child's own source. Today's exposure is
+nonetheless small and is stated as such: only two files declare `ABRA-HEAP`, and the second was
+measured passing at the default. Full account and the `OWED, NOT RUN` list:
+`docs/_reports/2026-08-29-five-reds.md`.
 
 **5.221.0 - `selfSwitch: true` IS A DEFAULT THE HANDLER TAKES BACK, AND THIS ENGINE READ IT AS A
 PROMISE.** Parting Shot's own `onHit` deletes its `selfSwitch` when `this.boost({atk:-1, spa:-1})`

@@ -11,6 +11,120 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.222.0] — 2026-08-29
+
+### Fixed
+- **THE MANDATED WRAPPER DID NOT HONOUR `ABRA-HEAP`, SO THE CHECK THAT DECLARES IT DIED AT EXIT 134
+  AND WAS CARRIED AS A RED RESOLUTION ORDER THROUGH ELEVEN TEST BATCHES.** `tests/run-all.js` derives
+  a child's heap from the child's own header and even annotates an OOM as *"a memory ceiling, not a
+  verdict about the game"*. `tools/lownode.cmd` did not — and CLAUDE.md mandates THAT wrapper for
+  every heavy run, so the command everybody types ran at node's default old space, measured at
+  **2240 MB** on this box, against the **6144** `tests/test-resolution-order.js` asks for. Shown red
+  through the exact mandated path (`rc 134, Reached heap limit`) and green at the declared size:
+  **26 arms staged, 1 KNOWN-OPEN, 0 failing, rc 0**. The check was asserting a great deal the whole
+  time — every arm plays both engines line for line and is replayed under a surgical in-memory
+  revert, with eight `RED PROVEN` arms and knob-cleared over-fire controls. **THE SLASH NORMALISATION
+  IS THE WHOLE FIX AND IT WAS CAUGHT ONLY BY TESTING BOTH SPELLINGS**: `findstr` reads a leading `/`
+  in its file argument as a SWITCH, so the un-normalised version opened no file, matched nothing, and
+  ran at the default heap **having reported no error at all** — a capability that exists, runs
+  clean and does nothing. Measured: backslashes derived `5120`, forward slashes derived nothing.
+  Derived from the script's own source, never a table; only the first argument is inspected, and only
+  when it is a file that exists. The `exit /b %ERRORLEVEL%` line is untouched and
+  `tests/test-lownode.js` is 4/0.
+- **`tests/test-engine-diff.js` EXITED 3 WHILE PRINTING `disagreed 0` AND PASSING ALL THREE OF ITS OWN
+  ASSERTIONS, AND NO ENGINE STATE COULD HAVE MADE IT GREEN.** The 3 is `engine/publish_guard.js`
+  correctly refusing a shrink: `--n` defaults to 150 and `data/engine-diff.json` holds 6,000, and
+  `tests/run-all.js` discovers this file with no `EXTRA` row, so every suite run was refused.
+  **`--out <file>` is ROADMAP #257's originally stated mitigation**, which `publish_guard.js`'s own
+  header recorded as not existing (*"no `--write` flag to omit and no `--out` to pass"*). It refuses
+  any path outside `data/verification/`, so it cannot become the #257 defect with a switch on it, and
+  the artifact still carries a `NOT_PUBLISHED` block. Wired into `run-all.js` on the same reasoning as
+  `generated_audit.js --no-rebuild` — without it the suite rewrites a published artifact its own
+  children read. **Shown red on a deliberate break first**: with `--out` in force and one conformance
+  verdict forced, the run exits 1. Also recorded, because it understates the original report: the
+  damage differential **never sets an exit code in either direction** — the only three verdicts
+  are the accuracy, accuracy-modifier and substitute-bypass conformance sections.
+- **`tests/probe_shield_refusal_line.js` ACCUSED A CORRECT ENGINE, AND ITS OWN PRINTOUT REFUTED THE
+  DIAGNOSIS TWO FIELDS TO THE LEFT.** `want = kind === 'red' ? 1 : 0` demanded that every control
+  announce the shield refusal zero times. True of the four controls whose shield is absent or cleared;
+  **false of `twave-shield`, a control with a shield that really refuses and that the `status` branch
+  has announced correctly since WIRE 130** — its own `what` string says so. It read
+  `clean=1 knob=1` against a demanded `0,0`, under the fixed message *"the knob did not reach the
+  driver's module"* while printing `MEDFAILS stamp clean=0 knob=1`, which is the knob loading. The
+  pair is now declared per arm (`announced: [clean, knob]`) with the old rule as the default, so every
+  other arm asserts exactly what it asserted before, and `twave-shield` declares `[1,1]` — a
+  stronger claim than an exemption, since a `clean` of 0 would mean the correct site had gone quiet and
+  a `knob` of 0 would mean the revert had reached a site it never touched. The `<-- FAIL` text is
+  derived from which clause failed. **13 arms, 0 failing**; shown red first by re-declaring the arm
+  `[1,0]`.
+- **`tests/probe_random_target_address.js` ASSERTED ONE SHARED ADDRESS PER DIE CALL, WHICH THE MIDDLE
+  ARM VIOLATES BY DESIGN**, and exited 2 on `sd=61 sites=62` saying *"this file's bookkeeping is off"*.
+  It was: `engine/game_differential.js:1349` pins the two-argument range form outside `getDamage` and
+  returns before `midDraw`, and its own comment says *"it consumes NO shared address"*. Measured over
+  40 pinned games before repairing — **7 games mismatched, and every call producing no address was
+  the two-argument form** (`random(0,2)` x4, `random(1,3)` x2, `random(2,6)` x2, `random(2,4)` x1); not
+  one scalar or `chance` call was ever missing. A site is now recorded only when the address log
+  actually grew, **derived** rather than copied, because `MID_RANGE_LIVE` and the `dmg` exclusion have
+  both moved once this month. The length assertion is kept and re-scoped to the narrower, worse meaning
+  it now carries. **rc 0 at 176 games and again at 777.**
+
+### Added
+- **ROADMAP #532 — INSTRUCT NEVER ASKS THE SHIELD, AND THE CONSEQUENCE IS AN EXTRA ACTION.**
+  Filed, measured, deliberately not landed: the engine is being changed by other batches and a fix from
+  here would be unattributable (`docs/DIVISIONS.md`). The `instruct` branch checks Good as Gold,
+  Instruct's own `refuses` list, `_charging` and `_recharge`, and calls `shieldRefuses` nowhere — a
+  MISSING CALLER, not a misplaced announcement, whose output is `acts.splice(actIdx+1, 0, _entry)`.
+  Measured on release `124f5aa8c8bd`, whose `engine/medicham2-browser.js` is **byte-identical to HEAD**
+  (`5f3b46415922`, hashed both ways): **5 arms, 3 red, both controls held**, all three parting at
+  reduced line 12 on `|-activate|...|move: Protect` versus `|-singleturn|...|move: Instruct`, with
+  `MEDSEEN.instructRepeat = 1` on each. Staged through Protect (149,746 uses), Spiky Shield (2,103)
+  and Baneful Bunker (1,746), membership read off `shieldsUser` in the release's own `data/tags.json`.
+  The King's Shield control is the one that matters — the only member with `blocksStatus === false`,
+  so a patch reading `t.protect` instead of `shieldRefuses` would pass all three reds and break it.
+- **THE PROBE HAD NO RUNNER, AND NOW IT HAS ONE THAT CANNOT STRAND.** It refused to run without
+  `--release <id>` for a reason that was DATED (*"the tree it would freeze is being edited by another
+  agent"*), and a marker naming a literal id strands when the id ages out (LESSONS §12) — so three
+  red arms could only ever be debt. It now takes the `tests/_live_release.js` route its sibling
+  `probe_shield_refusal_line.js` already used; `data/releases/` and `data/engine-release.json` are
+  verified untouched. **The marker shape was checked against `register_reality.js`'s own regexes rather
+  than assumed** (ROADMAP #521's trap): an `SHOWDOWN_PATH=...` prefix fails `SAFE`, and a first draft
+  bolded across the colon was invisible to `MARKER`. **No arm, fixture or assertion was changed.**
+- **ROADMAP #533 — `probe_random_target_address.js` CLAUSES 2-4 NOW MEASURE AN EMPTY BUCKET AND
+  PRINT `0 of 0` AS AN ANSWER.** Found by repairing the length check above. ROADMAP #478's engine-side
+  half has landed and moved the draw out of the blank `any` bucket those clauses scan. Measured over
+  300 pinned games, not inferred: the `Side.randomFoe < BattleActions.runMove` site fires **103 times**
+  on the real stack and the addresses are `any (addressed) 1174, acc 944, dmg 942, crit 941, tgtla 394,
+  sec 250, any (blank) 131, tgt (addressed) 104` — all 104 in `tgt`, **zero** in the bucket read.
+  Clause 4 is the negative control, so it is a control that cannot fail against a clause that cannot
+  see anything. **Clause 1 is unaffected and reproduces** (6 call sites, 105 of 212 bases at 49.5%,
+  deepest 4), so nothing published is retracted. Not repaired in the same pass: re-aiming the clauses
+  is a re-measurement, and a zero meaning *nothing was asked* reads exactly like a zero meaning
+  *nothing was wrong*.
+
+### Notes
+- **THE HEAP DECLARATION IS HONOURED IN ONE PLACE OUT OF EIGHTY, MEASURED.** 79 files in this
+  repository spawn a node child; **exactly one, `tests/run-all.js`, derives the child's heap from the
+  child's own source** (two more hard-code a flag for their own children). Today's real exposure is
+  small and is stated rather than extrapolated: only two files declare `ABRA-HEAP`, and
+  `tests/probe_endturn_clock_order.js` (4096) was **measured passing at the default today**, 7 arms,
+  rc 0. `engine/register_reality.js` honours no declaration and is named by two rows that run that
+  probe — not bitten today, one arm away from it, and deliberately not patched with no red to show.
+- **"A GENERATOR THAT DIES LOOKS EXACTLY LIKE ONE THAT RAN" IS VERIFIABLE FROM THE WRITE SITE.**
+  `engine/tag_dex.js`'s single `writeFileSync` is at line **9833 of 9854**, so an OOM leaves
+  `data/tags.json` with its previous content and its previous mtime and nothing on disk records the
+  failure; nothing in the repository spawns it, so the only reader of that exit code is a person.
+  **`tag_dex.js` was NOT run** — it rewrites a frozen release input and ROADMAP #529 records that a
+  no-op regeneration produces a 703-line usage diff. The claim is from the source, and is labelled so.
+- **NO ENGINE BYTE WAS CHANGED**, and no published artifact was written: `data/engine-diff.json` is
+  unchanged at its `02:49:53` mtime and `data/published-samples.json` is unmodified. The census pin
+  differs from the one the batch was given — live is `276e86601e8f`, 801 rows — and no
+  before/after is drawn across it.
+- Full account: `docs/_reports/2026-08-29-five-reds.md`, including a stated `OWED, NOT RUN` block
+  — chiefly that `engine/register_reality.js` has not been re-run, so #532's marker is not yet in
+  `data/register-reality.json` and `engine/quarantine.js`'s `no open, known engine defect` clause still
+  reads PASS. **It will flip to FAIL when that runs, taking the MEDICHAM gate from 5-of-8 clauses
+  failing to 6-of-8.** That is the correct state, recorded in advance so it is not read as a regression.
+
 ## [5.221.0] — 2026-08-29
 
 ### Fixed

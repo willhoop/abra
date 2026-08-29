@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 5 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 189 unsafe, 2 void (declared), 24 possibly stale, 35 ok, 0 missing
+  provenance: 188 unsafe, 2 void (declared), 24 possibly stale, 36 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 5 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
@@ -33,9 +33,65 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-29 04:34
 ```
 
-_stamped 2026-08-29 09:55_
+_stamped 2026-08-29 10:31_
 
 <!-- /GENERATED -->
+
+## THREE OF THE FIVE CARRIED REDS WERE NEVER RED. TWO WERE THE HARNESS AND ONE WAS THE RULER. 2026-08-29, CHANGELOG 5.222.0.
+
+Five checks had been reported red — correctly, and A/B-verified as pre-existing — through eleven
+test batches. CLAUDE.md bans "known failure" as a status, so each is closed with a verdict rather than
+carried again. Full account: `docs/_reports/2026-08-29-five-reds.md`.
+
+| check | verdict |
+|---|---|
+| `tests/test-resolution-order.js` | FIXED — the harness. `tools/lownode.cmd` did not honour `ABRA-HEAP` |
+| `tests/test-engine-diff.js` | INSTRUMENT — exit 3 was `publish_guard.js` refusing a shrink |
+| `tests/probe_shield_refusal_line.js` | INSTRUMENT — a blanket expectation accused a correct engine |
+| `tests/probe_random_target_address.js` | INSTRUMENT — it assumed one address per die call |
+| `tests/probe_instruct_shield.js` | FILED — a real engine defect, ROADMAP #532 |
+
+**THE PATTERN IS THIS DIVISION'S OWN, AND IT IS THE ONE LESSONS §5 IS ABOUT.** Four of the five were
+the measurement, not the game. That is now roughly thirty instances, and the two new shapes are worth
+naming because neither is a probe staging the wrong body:
+
+- **A RUNNER THAT DOES NOT HONOUR WHAT THE CHECK DECLARES.** `tests/run-all.js` reads `ABRA-HEAP` out
+  of a child's own header and even annotates an OOM as *"a memory ceiling, not a verdict about the
+  game"*. `tools/lownode.cmd` — which CLAUDE.md mandates for every heavy run, so it is the command
+  actually typed — did not, and the check died at exit 134 for eleven batches. The declaration was
+  right, the check was right, and nothing in between carried it.
+- **AN EXIT CODE THAT NO ENGINE STATE COULD HAVE MADE GREEN.** `tests/test-engine-diff.js` defaults to
+  `--n 150` against a published 6,000, so `engine/publish_guard.js` refused every discovered run and
+  set exit 3 — correctly. A permanently-red check is not a finding about the simulator, and it was
+  read as one.
+
+**AND ONE THING THIS DIVISION SHOULD READ TWICE.** `probe_shield_refusal_line.js` printed
+`<-- FAIL, the knob did not reach the driver's module` while printing, two fields to its left, the
+stamp that proves the knob DID reach it. A wrong diagnosis is worse than none: it aims the next reader
+at the loader instead of at the expectation. The message is now derived from which clause failed.
+
+**THE GENERALISATION, MEASURED RATHER THAN EXTRAPOLATED.** 79 files in this repository spawn a node
+child and **exactly one — `tests/run-all.js` — derives the child's heap from the child's own
+source**. Today's exposure is nonetheless small and is stated as such: only two files declare
+`ABRA-HEAP`, and the second (`tests/probe_endturn_clock_order.js`, 4096) was measured **passing** at
+the default. `engine/register_reality.js` honours no declaration and is named by two rows that run
+that probe — not bitten today, one arm away from it, and deliberately not patched with no red to
+show. The sharper half needs no run at all: `engine/tag_dex.js`'s single write is at line 9833 of
+9854, so an OOM leaves `data/tags.json` with its previous content **and its previous mtime**, and
+nothing on disk records that the regeneration did not happen.
+
+**ROADMAP #533 IS THIS DIVISION'S OWN INSTRUMENT AND IS FILED UNREPAIRED.** Repairing the length check
+in `probe_random_target_address.js` let it run to completion for the first time since 2026-08-27, and
+what it then printed was `0 of 0` — ROADMAP #478's engine-side half has moved the draw out of the
+bucket clauses 2–4 scan, so its negative control is a control that cannot fail against a clause
+that cannot see anything. Clause 1 is unaffected and reproduces, so nothing published is retracted.
+Re-aiming the clauses is a re-measurement and gets its own pass.
+
+**WHAT IS OWED.** `engine/register_reality.js` has not been re-run, so #532's marker is not yet in
+`data/register-reality.json` and `engine/quarantine.js`'s `no open, known engine defect` clause still
+reads PASS. It will read FAIL once that runs, which is the correct state and is recorded here in
+advance so it is not read as a regression. It was not run in this pass because it executes every
+marker in the register and rewrites its artifact unconditionally with no `--out`.
 
 ## THE ROSTER'S MOVE ROWS PASSED ON THE ANNOUNCEMENT, AND THE AUDIT THAT FOUND IT WAS WRONG ON 2 OF THE 11 ROWS IT NAMED. 2026-08-29, CHANGELOG 5.215.0.
 

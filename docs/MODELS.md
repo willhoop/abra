@@ -1,6 +1,19 @@
 # ABRA — the model family (living reference)
 
-**Version 5.221.0 · Last updated 2026-08-29.**
+**Version 5.222.0 · Last updated 2026-08-29.**
+
+**5.222.0 - NO MODEL CHANGED, NO FEATURE READ MOVED, AND NO FITTED VECTOR IS OWED BY THIS PASS.** The
+work in this version is entirely in test instruments, one run wrapper and the defect register. No file
+that any model reads was touched: `engine/medicham2-browser.js`, `engine/board.js`,
+`engine/game_differential.js` and `data/` are unchanged apart from `data/verification/`.
+
+The refit that was already owed before this pass is still owed, for the reasons `docs/MEASURE.md`
+records, and nothing here changes its terms.
+
+One thing worth carrying into any model reasoning: a real engine defect was found and filed rather
+than fixed - ROADMAP #532, a move that grants a second action without asking whether the target is
+shielded. It is board-material, so it is a difference every rollout through this engine has been
+playing. It is not repaired here, and no figure in this ledger is re-stated on account of it.
 
 **5.221.0 - NO MODEL CHANGED AND NO FITTED VECTOR IS OWED. THE SIMULATOR EVERY MODEL RESTS ON NOW
 CANCELS A CONDITIONAL PIVOT WHEN ITS STAT DROP LANDED ON NOBODY.** `selfSwitch` is a DEFAULT for the

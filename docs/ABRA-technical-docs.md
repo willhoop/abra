@@ -1,6 +1,44 @@
 # ABRA — Technical Documentation
 
-**Version 5.221.0 · Last updated 2026-08-29**
+**Version 5.222.0 · Last updated 2026-08-29**
+
+**5.222.0 - THE RUN WRAPPER READS THE HEAP DECLARATION. THE DAMAGE DIFFERENTIAL ACCEPTS AN OUTPUT
+PATH.**
+
+**The heap declaration.** A check that needs more heap than the default writes `ABRA-HEAP: <MB>` in
+its header. `tests/run-all.js` reads this value from the source of the check. It then adds
+`--max-old-space-size=<MB>` before the script path.
+
+`tools/lownode.cmd` now does the same. Obey these limits:
+
+- The wrapper reads only the first argument.
+- The wrapper reads the first argument only if this argument is a file that exists.
+- The wrapper changes forward slashes to backslashes before it starts `findstr`. `findstr` reads a
+  leading forward slash as an option. Without this step, `findstr` opens no file and finds no value.
+- If the file has no declaration, the wrapper does not add a flag.
+- If the first argument is not a file, the wrapper does not add a flag.
+- The wrapper does not change the exit code. `tests/test-lownode.js` tests this.
+
+To give a check more heap, write the declaration in the header of the check. Do not write the value in
+a table in the runner.
+
+**The output path.** `tests/test-engine-diff.js` writes `data/engine-diff.json` through
+`engine/publish_guard.js`. The guard refuses to write a smaller sample over a larger one. The guard
+also sets exit code 3. This is correct. But the default sample of this check is smaller than the
+published sample. Thus each automatic run failed.
+
+Use `--out <file>` to send the artifact of the run to a different path. Obey these limits:
+
+- The path must be below `data/verification/`. The check refuses other paths with exit code 2.
+- With `--out`, the check does not ask the guard.
+- With `--out`, the exit code comes only from the three conformance sections.
+- The artifact keeps a `NOT_PUBLISHED` block. This block gives the reason.
+
+`tests/run-all.js` gives this flag to the check. Thus the test suite does not write the published
+artifact.
+
+**CORRECTION TO 5.221.0.** `docs/DAMAGE-STAGES.md` at version 5.221.0 says that
+`tests/test-engine-diff.js` "has no `--out`". This was true at that time. This is no longer true.
 
 **5.221.0 - A CONDITIONAL SELF-SWITCH IS GATED ON THE STAT CHANGE HAVING LANDED.**
 `engine/tag_dex.js`, `engine/medicham2-browser.js`.

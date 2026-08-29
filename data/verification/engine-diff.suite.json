@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-29T14:01:01.831Z",
+  "generated": "2026-08-29T14:33:49.922Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
@@ -207,11 +207,10 @@
     "bpCallback": 5
   },
   "NOT_PUBLISHED": {
-    "why": "this run's compared=150 is smaller than the published 6000",
+    "why": "this run was directed to --out and never asked the publish guard",
     "published_artifact": "data/engine-diff.json",
-    "published_sample": 6000,
     "this_sample": 150,
-    "how_to_publish": "re-run at at least 6000, or pass --republish-smaller to replace the published figure deliberately",
+    "how_to_publish": "run without --out, at a sample at least as large as the published one",
     "roadmap": "#257"
   },
   "accuracy_conformance": {

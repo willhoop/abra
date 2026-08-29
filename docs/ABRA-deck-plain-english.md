@@ -1,6 +1,35 @@
 # ABRA — the plain-English deck
 
-**Version 5.221.0 · 2026-08-29 · Will Hooper**
+**Version 5.222.0 · 2026-08-29 · Will Hooper**
+
+**5.222.0 - THREE OF FIVE ALARMS WERE THE ALARM, NOT THE FIRE.** Five of our own tests had been
+reporting a problem for days. We looked at all five properly. Three of them were never looking at the
+game at all.
+
+One test was being killed for running out of memory before it could finish. It says in its own file
+how much memory it needs, and our main test runner reads that and gives it. But the shortcut command
+we tell everyone to use for big jobs did not read it, so the test died every time and the crash got
+written down as "the game engine got the turn order wrong". Given the memory it asked for, it passes
+everything.
+
+A second test was writing a results file, and we have a safety catch that refuses to overwrite a big
+result with a small one. That catch was doing its job perfectly. The side effect was that the test
+reported failure every single time, no matter how well the game engine was working. There was nothing
+to fix in the engine, because nothing in the engine could have changed the answer.
+
+A third test had an expectation written into it that was simply wrong. It insisted that a particular
+control case should stay silent, when the correct behaviour for that case is to speak up - and the
+test's own printout, two columns to the left of the complaint, showed that the engine had done exactly
+the right thing.
+
+**We did find one genuine problem, and we wrote it down instead of fixing it.** A move that lets a
+teammate or an opponent act a second time does not check whether that Pokemon is hiding behind a
+shield. So it hands out an extra turn that should not exist. That is a real difference in the game,
+not just in the wording. We left it alone on purpose: other people were changing the engine at the
+same time, and a fix made now could not be told apart from theirs.
+
+**Nothing we have published changed.** No result was updated, no number moved and no results file was
+rewritten.
 
 **5.221.0 - A MOVE THAT INSULTS YOUR POKEMON AND RUNS AWAY ONLY RUNS AWAY IF THE INSULT LANDED.**
 

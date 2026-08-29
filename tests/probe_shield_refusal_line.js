@@ -262,6 +262,14 @@ const CASES = [
 
   { id: 'twave-shield', kind: 'control', A: [ZAM].concat(WALL_A), B: mover('slowbro', 'Oblivious', 'Thunder Wave'),
     script: AT(PROT, 'thunderwave'), mv: 'thunderwave',
+    /* THE ONE ARM THAT ANNOUNCES ON BOTH LOADS, AND ITS PAIR IS THE ASSERTION RATHER THAN AN
+     * EXEMPTION. The shield here genuinely refuses and the `status` branch genuinely announces it, so
+     * `clean` MUST read 1 — a 0 would mean the already-correct site had gone quiet. And `knob` must
+     * ALSO read 1, because the revert knob owns the seven sites this file repaired and not this one:
+     * if the knob ever moved this counter it would mean the fix had reached a site it was never
+     * supposed to touch, which is the over-fire this arm exists to catch. [0,0] — the old blanket
+     * default — demanded the opposite of both. */
+    announced: [1, 1],
     what: 'AN ALREADY-CORRECT SHIELD SITE, WHICH THE KNOB MUST NOT REACH. The `status` branch has '
         + 'announced `|-activate|move: Protect` since WIRE 130. It is also the arm that proves the '
         + 'shield beats the DIE: Thunder Wave is 90%% and this runs on the arm that misses every '
@@ -431,11 +439,28 @@ for (const c of CASES) {
 
   /* HOW MANY TIMES THE NEW ROAD WAS TAKEN, per load. A red arm takes it exactly once clean and zero
    * times under the knob; a control takes it zero times on BOTH loads, which is what makes the
-   * control a control rather than an arm that happened to agree. */
+   * control a control rather than an arm that happened to agree.
+   *
+   * ---- 2026-08-29: THAT DEFAULT WAS A BLANKET RULE AND IT ACCUSED A CORRECT ENGINE ---------------
+   *
+   * `want = kind === 'red' ? 1 : 0` says every control announces ZERO times. That is true of the four
+   * controls whose shield is absent or cleared, and FALSE of `twave-shield`, which is a control with a
+   * shield that really does refuse and that the `status` branch has announced correctly since WIRE
+   * 130. Its own `what` says exactly that. So it read `clean=1 knob=1` against a demanded `0, 0` and
+   * this file reported `13 arms staged, 1 failing` — under a printed diagnosis, "the knob did not
+   * reach the driver's module", that its OWN NEXT FIELD refuted: `MEDFAILS stamp clean=0 knob=1` is
+   * the knob loading. The engine was right, the streams agreed on both loads, and the ruler was wrong.
+   * That is the class this repo pays most for, and it was carried as a red shield for two days.
+   *
+   * SO THE PAIR IS DECLARED PER ARM AND THE DEFAULT ONLY FILLS IT IN. `announced: [clean, knob]`, and
+   * the claim each arm makes is now the interesting one rather than a tally: the knob owns some
+   * announce sites and not others, so a RED arm must go 1 -> 0 (the knob removed the announcement it
+   * added) and `twave-shield` must go 1 -> 1 (the knob CANNOT reach a site it never touched). A
+   * default of [1,0]/[0,0] leaves every other arm asserting exactly what it asserted before. */
   const nClean = clean.delta.shieldRefusalAnnounced;
   const nBrk = brk.delta && brk.delta.shieldRefusalAnnounced;
-  const want = c.kind === 'red' ? 1 : 0;
-  const knobOk = clean.restored === 0 && brk.restored === 1 && nClean === want && nBrk === 0;
+  const [want, wantBrk] = c.announced || (c.kind === 'red' ? [1, 0] : [0, 0]);
+  const knobOk = clean.restored === 0 && brk.restored === 1 && nClean === want && nBrk === wantBrk;
   /* AN ARM MAY ALSO NAME A COUNTER THAT MUST READ A PARTICULAR VALUE ON THE CLEAN LOAD. The
    * move-result arm is the one that needs it: its second half is a BASE POWER, and the doubler keeps
    * its own tally, so the arm can assert the doubling did not happen at the exact turn it would. */
@@ -450,7 +475,7 @@ for (const c of CASES) {
   const wantR = (c.expectReasons || []).slice().sort().join(',');
   const gotR = reasons.slice().sort().join(',');
 
-  results.push({ c, clean, brk, short, refused, reasons, nClean, nBrk, knobOk, cnt, cntOk,
+  results.push({ c, clean, brk, short, refused, reasons, nClean, nBrk, want, wantBrk, knobOk, cnt, cntOk,
                  reasonsOk: wantR === gotR });
 
   if (short || refused) { bad++; continue; }
@@ -463,7 +488,7 @@ for (const c of CASES) {
 }
 
 for (const R of results) {
-  const { c, clean, brk, short, refused, reasons, nClean, nBrk, knobOk, cnt, cntOk, reasonsOk } = R;
+  const { c, clean, brk, short, refused, reasons, nClean, nBrk, want, wantBrk, knobOk, cnt, cntOk, reasonsOk } = R;
   const verdict = clean.r.div ? 'PARTS CLEAN ' : short ? 'SHORT       ' : refused ? 'CLICK REFUSED'
     : c.kind === 'red' ? (brk.r.div ? 'RED PROVEN  ' : 'KNOB SILENT ')
                        : (brk.r.div ? 'OVER-FIRES  ' : 'CONTROL HELD');
@@ -488,10 +513,21 @@ for (const R of results) {
   } else if (brk.r) {
     console.log('    UNDER THE KNOB the streams still agree over all ' + brk.r.turns + ' turns');
   }
+  /* THE DIAGNOSIS IS DERIVED FROM WHICH CLAUSE ACTUALLY FAILED. It used to be the fixed string "the
+   * knob did not reach the driver's module", printed whenever `knobOk` was false — and on the arm
+   * that was failing, the MEDFAILS stamp printed two fields to its left said the knob HAD reached it.
+   * A wrong diagnosis costs more than none: it sends the next reader at the module loader instead of
+   * at the expectation, which is where this sat for two days. */
+  const why = [];
+  if (clean.restored !== 0) why.push('the knob\'s stamp is set on the CLEAN load — the knob leaked');
+  if (brk.restored !== 1) why.push('the knob\'s stamp is absent under the knob — it did not reach the driver\'s module');
+  if (nClean !== want) why.push('clean announce is ' + nClean + ', declared ' + want);
+  if (nBrk !== wantBrk) why.push('knob announce is ' + nBrk + ', declared ' + wantBrk);
   console.log('    knob      shieldRefusalAnnounced clean=' + nClean + ' knob=' + nBrk
     + ' | MEDFAILS stamp clean=' + clean.restored + ' knob=' + brk.restored
-    + '   (this arm should take the announced road ' + (c.kind === 'red' ? 1 : 0) + ' time(s) clean, 0 on the knob)'
-    + (knobOk ? '' : '   <-- FAIL, the knob did not reach the driver\'s module'));
+    + '   (this arm should take the announced road ' + want + ' time(s) clean, ' + wantBrk + ' on the knob'
+    + (c.announced ? ' — DECLARED by the arm' : '') + ')'
+    + (knobOk ? '' : '   <-- FAIL: ' + why.join('; ')));
   if (cnt.length) console.log('    counters  '
     + cnt.map(x => x.k + ' clean=' + x.got + ' (must be ' + x.op + ' ' + x.want + ')').join(' | ')
     + (cntOk ? '' : '   <-- FAIL'));

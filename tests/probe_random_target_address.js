@@ -89,9 +89,42 @@ function site() {
   }
   return f.join(' < ');
 }
+/* ---- A DRAW IS NOT AN ADDRESS, AND THIS FILE ASSUMED IT WAS. FIXED 2026-08-29 -------------------
+ *
+ * `sd` below is the authority's ADDRESS LOG and `SITES` was every call to `ARM.random`/`ARM.chance`.
+ * The file then asserted the two were the same length and exited 2 — "this file's bookkeeping is off
+ * and nothing below is readable" — on `sd=61 sites=62`, which is where it has sat since 2026-08-27.
+ *
+ * THE BOOKKEEPING WAS OFF, AND THE ENGINE WAS NOT. `game_differential.js:1349` is
+ *
+ *     if (n !== undefined && MIDW.cat !== 'dmg' && !MID_RANGE_LIVE) { MID_RANGE_PINNED++; return m; }
+ *
+ * — the TWO-ARGUMENT range form outside `getDamage` is PINNED to `m` and returns before `midDraw`,
+ * and its own comment says so in as many words: "it consumes NO shared address." So a range draw is a
+ * call with no address by design, and one-address-per-call was never true.
+ *
+ * MEASURED RATHER THAN REASONED, over 40 pinned games: 7 games mismatched, and EVERY call that
+ * produced no address was the two-argument form — `random(0,2)` x4, `random(1,3)` x2, `random(2,6)` x2,
+ * `random(2,4)` x1. Not one scalar or `chance` call was ever missing.
+ *
+ * SO THE SITE IS RECORDED ONLY WHEN AN ADDRESS WAS ACTUALLY CONSUMED, and that is DERIVED from the
+ * log growing rather than from a rule about which forms are pinned. `MID_RANGE_LIVE` and the `dmg`
+ * exclusion have both moved once already this month; a predicate copied in here would go stale
+ * silently and re-open exactly this defect, one register row later. */
 const oR = ARM.random, oC = ARM.chance;
-ARM.random = function (m, n) { SITES.push(site()); SIZES.push(n === undefined ? m : null); return oR.call(this, m, n); };
-ARM.chance = function (a, b) { SITES.push(site()); SIZES.push(null); return oC(a, b); };
+const addrLen = () => GD.midAddresses().sd.length;
+ARM.random = function (m, n) {
+  const before = addrLen(), s = site(), z = (n === undefined ? m : null);
+  const r = oR.call(this, m, n);
+  if (addrLen() > before) { SITES.push(s); SIZES.push(z); }
+  return r;
+};
+ARM.chance = function (a, b) {
+  const before = addrLen(), s = site();
+  const r = oC(a, b);
+  if (addrLen() > before) { SITES.push(s); SIZES.push(null); }
+  return r;
+};
 
 /* the one site the proposal is about: runMove -> getTarget -> getRandomTarget -> randomFoe -> sample */
 const RUNMOVE_TARGET = /Side\.randomFoe.*BattleActions\.runMove/;
@@ -120,9 +153,14 @@ for (const cfg of CONFIGS) {
     catch (e) { threw++; continue; }
     const sd = GD.midAddresses().sd;
     totalDraws += sd.length;
+    /* KEPT, AND IT SHOULD NOW BE UNREACHABLE. The wrapper above records a site only when the address
+     * log actually grew, so a mismatch here no longer means "a pinned range draw happened" — it means
+     * a draw reached `midDraw` without going through `ARM.random`/`ARM.chance`, or the reverse, and
+     * every index below would then be reading another draw's stack. That is still worth exiting on. */
     if (sd.length !== SITES.length) {
       console.log('  LENGTH MISMATCH sd=' + sd.length + ' sites=' + SITES.length
-        + ' — this file\'s bookkeeping is off and nothing below is readable');
+        + ' — a draw took a shared address without passing through this file\'s wrappers (or the '
+        + 'reverse). Every stack below would be attributed to the wrong draw, so nothing is readable.');
       process.exit(2);
     }
     for (let i = 0; i < sd.length; i++) {

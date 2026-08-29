@@ -1,6 +1,24 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.221.0 — 2026-08-29.**
+**Version: 5.222.0 — 2026-08-29.**
+
+**5.222.0 - NO STAGE MOVED, NO DAMAGE NUMBER MOVED, AND NO FEATURE READ MOVED.** This version changes
+test instruments, one run wrapper and the defect register. It touches no damage packet and no input to
+any stage in the table below. `data/engine-diff.json` was not rewritten and its modification time is
+unchanged, so the published **0 of 6,000 at all sixteen roll positions** still stands from 02:49.
+
+**CORRECTION TO THE 5.221.0 NOTE BELOW, WHICH IS LEFT STANDING RATHER THAN EDITED.** That note gives
+as its reason for not re-running the differential that the check "has no `--out` and would republish
+that artifact". That was true when it was written. **`--out` now exists**: it names a path for the
+run's artifact, refuses any path outside `data/verification/`, and leaves the published artifact
+alone. So the reason has changed even though the decision has not - the differential still was not
+re-run for a figure in this pass, and the published residual still stands from 02:49 rather than from
+today.
+
+For the record, and because it bears on how anyone reads this instrument: the damage residual has
+never been this check's exit code. `disagreed` is published to the artifact and read by
+`engine/quarantine.js`. The only three conditions that set a failing status are the accuracy,
+accuracy-modifier and substitute-bypass conformance sections.
 
 **5.221.0 - NO STAGE MOVED, NO DAMAGE NUMBER MOVED, AND NO FEATURE READ MOVED EITHER.** The change in
 this version decides WHETHER THE USER OF A STATUS MOVE LEAVES THE FIELD after that move resolved. It

@@ -1,6 +1,45 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.221.0 · Last updated 2026-08-29**
+**Version 5.222.0 · Last updated 2026-08-29**
+
+**5.222.0 - NO RESULT IN THIS PAPER MOVED, AND THE REASON IS THE POINT: FIVE CHECKS THAT HAD BEEN
+REPORTED AS FAILURES OF THE SIMULATOR WERE EXAMINED, AND THREE OF THEM WERE NEVER MEASURING THE
+SIMULATOR AT ALL.** Two were defects in the machinery that runs a check, and one was a defect in the
+check's own expectation. This matters to a paper of measured results because a false alarm and a real
+one are read the same way, and a false alarm that is carried repeatedly trains a reader to discount
+the instrument that raises it.
+
+The first was a memory ceiling. One check declares, in its own header, that it needs more working
+memory than the runtime gives by default, and the project's test runner reads that declaration and
+honours it. The wrapper that the project's written procedure tells everybody to use for heavy runs did
+not read it, so the check was killed by the runtime before it reached any conclusion, and the
+resulting non-zero status was recorded as a failed comparison of turn order. Given the memory it asks
+for, the check passes: twenty-six staged comparisons, each played through both implementations and
+compared line by line, each replayed a second time against a deliberately reverted copy so that a pass
+is distinguishable from an implementation that never changed.
+
+The second was an exit status that no state of the simulator could have made clean. The damage
+comparison writes a published artifact through a guard that refuses to replace a large sample with a
+small one. Its default sample is smaller than the published one, so every automatic run was refused,
+and the guard set a non-zero status because a run that did not publish what its own output describes
+must not read as a success. The guard is correct. The consequence was that the check could never pass
+while being run automatically. A named output path now lets a verification run say where its artifact
+goes, which is the mitigation the original defect record asked for and which had never been built.
+
+**THE PUBLISHED DAMAGE RESIDUAL IS UNCHANGED AND WAS NOT REWRITTEN.** The comparison still reads zero
+disagreements over six thousand matchups at every one of the sixteen roll positions, and the artifact
+carrying it was not touched in this pass; its modification time is unchanged. One clarification is
+owed to any reader who has treated that check's exit status as its verdict: it never was. The
+disagreement count is published to the artifact and read by the gate; the only three conditions that
+set a failing status are the three separate conformance sections that compare our accuracy table, our
+accuracy-modifier table and our substitute-bypass set against the format.
+
+**ONE REAL DEFECT WAS FOUND AND IS RECORDED RATHER THAN REPAIRED.** A move that makes another Pokemon
+act again does not ask whether the target is behind a protective barrier, so it grants a second action
+in a turn where the reference implementation grants none. This changes the position, not merely the
+commentary. It is recorded in the defect register with a check that decides it, and deliberately left
+unfixed: other work was changing the simulator in the same window, and a repair made here could not
+have been attributed.
 
 **5.221.0 - A MOVE THAT SWAPS THE USER OUT ONLY DOES SO IF THE THING IT DID ON THE WAY OUT ACTUALLY
 HAPPENED, AND THE SIMULATOR SWAPPED REGARDLESS.** One move in this format lowers two of the target's

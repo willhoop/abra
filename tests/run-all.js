@@ -528,7 +528,19 @@ function plan(rel) {
                    * move_result_state is a library that runs nothing and exits 0 — the silent
                    * no-op that reads as coverage. Neither could be derived from the filename. */
                   'engine/generated_audit.js': ['--no-rebuild'],
-                  'engine/move_result_state.js': ['--selftest'] };
+                  'engine/move_result_state.js': ['--selftest'],
+                  /* ADDED 2026-08-29, and it is `generated_audit --no-rebuild` again: without it the
+                   * suite REWRITES a published artifact its own children read. tests/test-engine-diff.js
+                   * writes data/engine-diff.json through engine/publish_guard.js, and its `--n` default
+                   * is 150 against a published 6,000 — so every discovered run was refused, and a
+                   * refusal correctly sets exit 3. The check therefore exited NON-ZERO while printing
+                   * `disagreed 0` and passing all three of its own conformance assertions, and no
+                   * engine state could have made it green. `--out` is ROADMAP #257's originally stated
+                   * mitigation, which publish_guard.js's header recorded as not existing until now; it
+                   * refuses any path outside data/verification/, so the suite cannot republish and
+                   * cannot shrink. The three `process.exitCode = 1` verdicts are untouched by it —
+                   * shown red on a deliberate break before this row was written. */
+                  'tests/test-engine-diff.js': ['--out', 'data/verification/engine-diff.suite.json'] };
   /* THE HEAP IS DECLARED BY THE CHECK, NOT LISTED BY THE RUNNER. ROADMAP #446.
    *
    * tests/test-resolution-order.js dies at node's default heap — exit 134, `Reached heap limit

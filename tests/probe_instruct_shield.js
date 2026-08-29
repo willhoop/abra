@@ -71,17 +71,35 @@ if (!process.env.SHOWDOWN_PATH) {
   console.log('NOT RUN — the official simulator is absent. This is not a pass.');
   process.exit(2);
 }
+/* ---- THE RELEASE, AND WHY THE OLD REFUSAL IS REPLACED RATHER THAN RELAXED. 2026-08-29 -----------
+ *
+ * This file used to exit 2 unless it was handed `--release <id>`, and the reason it gave was DATED:
+ * "the tree it would freeze is being edited by another agent". That was true on 2026-08-27 and it is
+ * not a property of the check. What it cost is that this probe had NO RUNNER — a `VERIFIED BY` marker
+ * would have to name a literal release id, which strands the moment the id ages out (LESSONS §12), so
+ * the three red arms below could only ever be DEBT in the register instead of evidence. `engine/
+ * quarantine.js`'s open-defect clause counts a row whose instrument is RED; a row nothing runs holds
+ * nothing shut, which is #527's problem in a second file.
+ *
+ * The hazard the refusal was about is real and is answered by the mechanism its SIBLING already uses
+ * — `tests/probe_shield_refusal_line.js`, the other half of this same shield family. Preloading
+ * `tests/_live_release.js` redirects `cut`/`open` to a throwaway store under the OS temp directory, so
+ * a bare run freezes the LIVE tree and `data/releases/` and `data/engine-release.json` are never
+ * written. It must be required BEFORE `engine_release.js` is, and it announces itself on stderr, so a
+ * run that used it cannot be mistaken for one that did not. `--release <id>` still wins when given,
+ * which is what a published measurement must use — a scratch id is not reproducible. */
+if (!process.argv.includes('--release')) require(D('tests', '_live_release.js'));
+
 const ARG = n => { const i = process.argv.indexOf(n); return i >= 0 ? process.argv[i + 1] : null; };
 const ONLY = ARG('--only');
 const NL = String.fromCharCode(10);
 
-const REL_ID = ARG('--release');
-if (!REL_ID) {
-  console.log('NOT RUN — `--release <id>` is required. This file will not cut one: the tree it would '
-    + 'freeze is being edited by another agent, and a cut would write into the real store.');
-  process.exit(2);
-}
 const ER = require(D('engine', 'engine_release.js'));
+let REL_ID = ARG('--release');
+if (!REL_ID) {
+  REL_ID = ER.cut('tests/probe_instruct_shield.js — freeze the tree under test').id;
+  process.argv.push('--release', REL_ID);
+}
 const REL = ER.open(REL_ID);
 const MEDI_PATH = REL.path('engine/medicham2-browser.js');
 const GD_PATH = D('engine', 'game_differential.js');
