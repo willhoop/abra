@@ -1,6 +1,15 @@
 # ABRA — the model family (living reference)
 
-**Version 5.219.0 · Last updated 2026-08-29.**
+**Version 5.220.0 · Last updated 2026-08-29.**
+
+**5.220.0 - ONE MODEL INPUT MOVED, AND IT IS DECLARED.** The simulator's five priority-refusal
+gates now compare the ability-modified priority, the same number the turn sort uses, instead of the
+printed constant. **Census 797 to 798 probed mechanics live, 0 missing.** Empirical arm over 961
+games: board-parted **94 to 93**, protocol 211 to 208, end-state 894/63 to 895/62 - predicted at its
+point estimate before the run, and isolated to this half by a third arm on identical bytes.
+**`clickFragility` IS ONE OF THE SIX EXPORTS board.js READS, SO `benchRisk` MOVED AND THE FITTED
+VECTOR IS OWED A REFIT** - one species, since Gale Wings has a single legal carrier. Every
+quarantined figure in this ledger stays quarantined.
 
 **5.219.0 - NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON NOW AIMS A SUBSTITUTED MOVE
 BY ITS OWN TARGET CLASS.** `Battle#getRandomTarget` answers the near-side classes before it looks

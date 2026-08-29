@@ -1,6 +1,31 @@
 # ABRA — Technical Documentation
 
-**Version 5.219.0 · Last updated 2026-08-29**
+**Version 5.220.0 · Last updated 2026-08-29**
+
+**5.220.0 - A PRIORITY GATE READS THE ABILITY-MODIFIED PRIORITY.** `engine/medicham2-browser.js`.
+`Battle#getActionSpeed` (`sim/battle.ts:2639-2645`) runs the `ModifyPriority` event and then assigns
+`action.move.priority = priority` for gen > 5. It does NOT add `action.fractionalPriority` to that
+field, which is why every gate compares against `0.1`. Champions overrides eight files and touches
+neither `getActionSpeed` nor any of the five gates.
+
+Three legal abilities carry `onModifyPriority`: `galewings` (one carrier), `prankster` (seven) and
+`triage` (zero carriers - not implemented). Five legal entities gate on the result: `armortail`,
+`queenlymajesty`, `quickguard`, `upperhand` and `psychicterrain`; `dazzling` has zero carriers.
+
+`abilityPriorityShift(mon, moveId, isAtk)` is the single reader, lifted out of `actionPriority`, so
+the turn sort and the gates cannot answer differently. `gatePriority(mon, moveId, field,
+legacyShift)` is the value each gate compares; `legacyShift` is the term the site previously added,
+so `MEDI_PRIORITY_GATE_STATIC=1` restores each site exactly. Upper Hand passes its TARGET, because
+the number it reads is the target's queued move.
+
+`priorityRefusedAbove` takes an optional fourth out-param reporting which source held the bar, so
+Psychic Terrain can emit its own `|-activate|BODY|move: Psychic Terrain` instead of refusing in
+silence. A refusal that narrates nothing increments `MEDFAILS.priorityRefusedSilently`.
+
+The `all` and `foeSide` target classes are EXEMPT on the authority and are not wired here: the three
+moves that fall through the exemption are unreachable above priority 0.1 in this regulation.
+
+Probe: `tests/probe_priority_modified.js` (14 arms). Census row: `ability / priorityMod`.
 
 **5.219.0 - A SUBSTITUTED MOVE RESOLVES ITS DEFAULT TARGET FROM `targetClass.target`.**
 `engine/medicham2-browser.js`. `Battle#getRandomTarget` (`sim/battle.ts:2487`) returns the USER for

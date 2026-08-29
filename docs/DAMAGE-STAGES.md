@@ -1,6 +1,24 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.219.0 — 2026-08-29.**
+**Version: 5.220.0 — 2026-08-29.**
+
+**5.220.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version decides
+WHETHER A MOVE IS REFUSED AT ALL, above every damage step: five priority gates now compare the
+ability-modified priority instead of the printed constant. A refused move produces no damage packet,
+so no stage in the table below is reached differently and none of its inputs changed.
+`data/engine-diff.json` was not rewritten - the published **0 of 6,000 at all sixteen roll
+positions** still stands from 02:49.
+
+**ONE FEATURE READ DID MOVE AND IT IS DECLARED HERE TOO.** `clickFragility`'s "blocks priority
+outright" clause now reads the same number, so `benchRisk` moves for the format's single Gale Wings
+carrier. That is a FEATURE, not a damage stage - `dmgRange` is untouched - and it is owed a refit at
+the next release cut.
+
+**`tests/test-engine-diff.js` WAS DELIBERATELY NOT RE-RUN THIS PASS**, because it has no `--out` and
+would republish that artifact. That instrument compares `dmgRange` outputs directly and never calls a
+priority gate or `clickFragility`, so it is unchanged by construction; the probe's `nogalewings-
+bravebird`, `galewings-damaged` and `quickguard-priority0` arms carry HP fractions that are identical
+between the two engines and on both loads.
 
 **5.219.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version decides
 WHICH BODY a substituted move addresses, above every damage step - a move an Encore forced or a

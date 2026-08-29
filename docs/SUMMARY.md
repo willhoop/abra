@@ -1,6 +1,17 @@
 # ABRA — Project Summary
 
-**Version 5.219.0 · 2026-08-29 · Will Hooper**
+**Version 5.220.0 · 2026-08-29 · Will Hooper**
+
+**5.220.0 - EVERY PRIORITY GATE COMPARED THE PRINTED MOVE PRIORITY AND THE AUTHORITY COMPARES
+THE ONE THE ABILITY CHANGED.** `getActionSpeed` writes the modified number onto the move, which is
+why all five gates test against 0.1 rather than 0. This engine had two implementations of that one
+fact - the turn sort read the tag, the gates read the constant - so Gale Wings was absent from Armor
+Tail, Queenly Majesty, Quick Guard, Upper Hand and Psychic Terrain alike, and a full-HP Talonflame's
+Brave Bird landed here where the authority refuses it. **Census 797 to 798 live / 798 probed / 0
+missing. Board-parted 94 to 93 of 961 - predicted at its point estimate before the run - protocol 211
+to 208, end-state 894/63 to 895/62.** The sibling card, `move.target === 'all'`, is REFUTED rather
+than landed: the authority EXEMPTS that class and the three moves it does refuse cannot be reached
+above priority 0.1 in this regulation.
 
 **5.219.0 - THE ARMOR TAIL CARD WAS A TARGETING DEFECT WEARING AN ABILITY'S NAME.** A Helping
 Hand forced by Encore was refused by an Armor Tail it had never been aimed at. The refusal is

@@ -11,6 +11,111 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.220.0] — 2026-08-29
+
+### Fixed
+- **EVERY PRIORITY-REFUSAL GATE COMPARED THE PRINTED MOVE PRIORITY; THE AUTHORITY COMPARES THE ONE
+  THE ABILITY CHANGED.** `Battle#getActionSpeed` (`sim/battle.ts:2639-2645`) runs the
+  `ModifyPriority` event and then writes `action.move.priority = priority` for gen > 5 — and it does
+  NOT add `action.fractionalPriority` to that field, which is exactly why every gate compares
+  against `0.1` rather than `0` (an ability boost counts; Quick Claw and Custap Berry must not).
+  Champions overrides eight files and touches neither `getActionSpeed` nor any of the five gates —
+  grepped, not recalled.
+- **TWO IMPLEMENTATIONS OF ONE FACT, WHICH IS CLAUDE.md's "FACTS ARE GLOBAL" BROKEN.**
+  `actionPriority` read the shift off the `priorityMod` tag. The gates read `movePriority` — the
+  printed constant — plus `a.kind === 'attack' ? 0 : (isPrankster(m) ? 1 : 0)`, keyed on the ACTION
+  KIND rather than on the move's category. **Gale Wings was therefore absent from every gate on both
+  roads**, and one comment beside Upper Hand *claimed* the boost was counted while `movePriority`
+  could not see it.
+- **MEMBERSHIP DERIVED AND PRINTED BEFORE WIRING (docs/LESSONS §4).** `onModifyPriority` over the
+  format's 316 legal abilities selects **three**: `galewings` (Talonflame, one carrier), `prankster`
+  (Sableye, Banette-Mega, Liepard, Whimsicott, Meowstic, Klefki, Grimmsnarl) and **`triage`, which
+  has ZERO legal carriers — not implemented, not approximated, not staged**. `onFractionalPriority`
+  (Quick Draw, Stall, Mycelium Might) is deliberately excluded: the authority never writes it to
+  `action.move.priority`, and a gate counting it would refuse a Quick Draw body's ordinary attack.
+  **Five legal entities gate on the result** — `armortail` (Farigiraf), `queenlymajesty` (Tsareena),
+  `quickguard`, `upperhand` and `psychicterrain` — plus `dazzling`, zero carriers.
+- **`abilityPriorityShift(mon, moveId, isAtk)`** is `actionPriority`'s own closure lifted to module
+  scope; the sort now calls it too, so sort and gates cannot answer differently, and the sort is
+  bit-identical because every branch still passes its own `isAtk`.
+  **`gatePriority(mon, moveId, field, legacyShift)`** is the number each gate compares and the one
+  place `MEDI_PRIORITY_GATE_STATIC` lives; `legacyShift` is the term the SITE used to add, so the
+  knob restores each of the seven sites exactly rather than a common ancestor no site ever had.
+  **Upper Hand passes its TARGET**, because the number it reads is the target's queued move.
+- **PSYCHIC TERRAIN REFUSED IN SILENCE, AND THAT IS CLOSED TOO.** The `|cant|` narration looked for
+  a live foe carrying a priority-refusing ABILITY and the terrain has no holder, so the branch fell
+  off the end and the stream said nothing. Pre-existing and already reachable; fixed here because
+  the probe's terrain arm cannot go green without it, and a red test is not a status.
+  `priorityRefusedAbove` gained an OPTIONAL fourth out-param reporting which source held the bar —
+  the terrain claims it strictly below the ability, which is the authority's own event order
+  (`onFoeTryMove` inside `runEvent('TryMove')` is one step of `useMoveInner` above the per-target
+  `onTryHit`) — and `TR.terrainAct` emits `|-activate|BODY|move: Psychic Terrain` through the same
+  `sdTerrain` map that spells the `-fieldstart`. The three-argument shape is unchanged, so board.js's
+  feature read is untouched.
+
+### Changed
+- **`clickFragility` NOW READS THE MODIFIED PRIORITY, AND THE COST IS DECLARED RATHER THAN
+  AVOIDED.** It is one of the six exports board.js reaches this engine through and it feeds
+  `benchRisk`, so the fitted vector is **owed a refit at the next release cut** — the normal
+  ENGINE→MAG edge (`docs/DIVISIONS.md`). The membership is one species: Gale Wings has a single legal
+  carrier, and Prankster cannot reach that line at all because `clickFragility` is only ever asked
+  about a damaging click.
+
+### Notes
+- **`move.target === 'all'` IS REFUTED, NOT LANDED, AND THE PRIOR CARD RECORDED THE CLAUSE
+  BACKWARDS.** `docs/_reports/2026-08-29-armor-tail-ally.md` filed it as *"the authority refuses an
+  `all` move outright above priority 0.1, excepting only perishsong, flowershield and rototiller"*.
+  The handler says the opposite: `if (move.target === 'foeSide' || (move.target === 'all' &&
+  !targetAllExceptions.includes(move.id))) return;` — **`all` and `foeSide` are EXEMPT**, and only
+  those three moves fall through to be refused. Of the three, flowershield and rototiller are
+  `isNonstandard: 'Past'` here and **no legal Prankster carrier learns Perish Song**, so the refusing
+  branch cannot occur in this regulation. Nothing was wired for it: a mechanic is not open work until
+  a probe fails on it. The over-fire direction was MEASURED instead — of the 21 legal `all`/`foeSide`
+  moves, **twenty build an action carrying no target at all**, so this engine's gate scope never
+  fires and it is accidentally right; `chillyreception` is the one that does carry a foe, and it has
+  no legal Prankster or Gale Wings carrier. Filed with its derivation.
+- **Census 797 → 798 live / 798 probed / 0 missing**, both ratchets held (0 unarmed, 1 direct-call).
+  New row `ability / priorityMod — a priority-refusing gate compares the ABILITY-MODIFIED priority,
+  not the printed one`, three arms off one board through `battleInit` + a real `battleTurn`, and
+  shown red under the knob at **797 live / 1 missing** with all three arms reading identically
+  (`refused false / landed true`) — the signature of an unwired knob. `priorityGateRun(` is declared
+  in the REALTURN list, so the direct-call ratchet still reads 1.
+- **`tests/probe_priority_modified.js`, 14 arms, 7 red and 7 controls, SHOWN RED FIRST at 15 failures
+  across 14 arms** on the shipping bytes (the engine change stashed). Seven counted facts, taken the
+  same way off both streams and compared to each other — **including the `-damage` HP fraction**,
+  because this defect is board-material and a narration-only comparison could not say so. The
+  controls clear one thing each: the same Talonflame carrying its own Flame Body (the ability absent,
+  so the modified and static values coincide), the same body ONE HP below full (the condition), a
+  Prankster status move that was always refused, a Prankster `target:'all'` move the authority
+  exempts, a `+1` Gale Wings move aimed at the near side, Upper Hand's `category === 'Status'`
+  clause, and Quick Guard at priority 0. The run FAILS if no arm ever read a non-zero shift, and all
+  five gate handlers are read out of the format at run time. **One fixture was wrong before the
+  engine was**: three red arms staged the victim behind a Protect and were narration-only while
+  claiming to be board-material.
+- **EMPIRICAL ARM — BOARD-PARTED 94 → 93 OF 961, PREDICTED AT ITS POINT ESTIMATE BEFORE THE RUN.**
+  Protocol 211 → 208, end-state 894/63/2/2 → 895/62/2/2, distinct causes 190 → 187. Pins, all arms:
+  `--games 1200` (yields 961), `--arm middle`, `--turns 12`, `--steering empirical`,
+  `--team-store data/team-pool-frozen`, census pin `9446a684709d`, release `6e7fff81fcec` →
+  `eb6a797411cd`. `arms_comparable` reads COMPARABLE, same Showdown commit.
+  `data/game-differential.json` was NOT written — verified by mtime twice.
+- **THE TWO HALVES WERE SEPARATED ON IDENTICAL BYTES**, by a third 961-game arm differing from the
+  second by one environment variable. The PRIORITY half alone: board 94 → 93, protocol 209 → 208,
+  and it removes **exactly one cause and adds none** — the carded
+  `|cant|p2b|armortail|bravebird <> |-damage|p2a|H/H`. The NARRATION half alone: board **unmoved at
+  94**, end-state verdicts **byte-identical**, three `|-activate|…|psychicterrain` causes removed and
+  **one added** (`-damage field 3` on an Archaludon, n=1, in a class that already held 17). The added
+  cause cost no board and is WIRE 9's rung — a stream missing a line cannot be compared past it, and
+  emitting the line reaches a divergence that was already there. It is named rather than smoothed
+  over, because "no cause rose and none appeared" is the standard here and this run does not quite
+  meet it.
+- **`tools\lownode.cmd` IS REACHABLE FROM A Bash-tool SHELL AFTER ALL, WITH THE ARGUMENTS OUTSIDE
+  THE QUOTES.** The previous pass's note is closed: `cmd.exe /c "tools\lownode.cmd -e ..."` does drop
+  its arguments and open an interactive prompt, and `cmd.exe /c tools/lownode.cmd ...` fails with
+  *"'tools' is not recognized"* — but `MSYS2_ARG_CONV_EXCL='*' cmd.exe /c "tools\lownode.cmd"
+  <args...>` works. `tests/test-lownode.js` was run through that invocation first (4 passed,
+  including the exit-code clause) and all three 961-game differential arms ran through it at
+  BelowNormal.
+
 ## [5.219.0] — 2026-08-29
 
 ### Fixed

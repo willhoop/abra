@@ -1,6 +1,27 @@
 # ABRA — the plain-English deck
 
-**Version 5.219.0 · 2026-08-29 · Will Hooper**
+**Version 5.220.0 · 2026-08-29 · Will Hooper**
+
+**5.220.0 - SOME ABILITIES MAKE A MOVE GO FIRST. WE REMEMBERED THAT WHEN WORKING OUT THE ORDER,
+AND FORGOT IT EVERYWHERE ELSE.**
+
+A handful of things in this format exist to stop a move that goes first. Two abilities refuse one
+aimed at their own side. A one-turn shield blocks them for the whole team. One move only works if
+its target is about to use one. A field effect stops them outright.
+
+All five of those need to know one thing: is this move going first? And some abilities MAKE a move
+go first that normally would not. We handled that when deciding who moves first - and then handed
+all five of those refusals the move's ordinary speed instead, as if the ability were not there.
+
+So an attack that the real game refuses went through in our copy, and the Pokemon that should have
+been protected took the hit. That is the worst kind of difference to have: a Pokemon that lives in
+one version of the battle and faints in the other.
+
+There is now one place that answers "how fast is this move", and everything asks it.
+
+Across 961 recorded games, the number where our board ever differs from the real game went from 94
+to 93, and the narration disagreements from 211 to 208. We said before running it that we expected
+about one game, and that is what it was.
 
 **5.219.0 - IF SOMETHING FORCES YOUR POKEMON TO USE A MOVE, WE HAD TO WORK OUT WHO IT WAS AIMED
 AT - AND WE ALWAYS PICKED THE OTHER TEAM.**

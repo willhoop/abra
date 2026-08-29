@@ -1,10 +1,10 @@
 {
-  "current": "6e7fff81fcec",
-  "cut": "2026-08-29T12:06:26.957Z",
+  "current": "eb6a797411cd",
+  "cut": "2026-08-29T12:54:14.230Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
   "cuts": 10,
-  "latest_cut": "2026-08-29T12:08:56.279Z",
-  "latest_why": "default-target draw reads the move's own target class (getRandomTarget clauses 1-2) at all three substitution sites",
-  "pointer_written": "2026-08-29T12:08:56.291Z",
+  "latest_cut": "2026-08-29T13:17:31.348Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-29T13:17:31.360Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

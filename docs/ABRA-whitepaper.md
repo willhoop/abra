@@ -1,6 +1,23 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.219.0 · Last updated 2026-08-29**
+**Version 5.220.0 · Last updated 2026-08-29**
+
+**5.220.0 - AN ABILITY THAT MAKES A MOVE FASTER ALSO DECIDES WHETHER FIVE DIFFERENT THINGS ARE
+ALLOWED TO REFUSE IT, AND THE SIMULATOR ASKED THEM ALL THE WRONG NUMBER.** The reference
+implementation works out a move's speed bracket once, applies whatever the user's ability does to
+it, and then writes the RESULT back onto the move - so every later rule that asks "is this a fast
+move?" sees the boosted value. Five things in this format ask that question: two abilities that
+refuse fast moves aimed at their own side, a one-turn shield that stops them, a move that only works
+against one, and a field effect that blocks them. This simulator answered all five with the move's
+printed value, while the part that decides who acts first already read the boosted one - the same
+fact implemented twice, in two places, disagreeing. The visible consequence is a body surviving on
+one engine and dying on the other: a Flying-type attack from a full-health user with the relevant
+ability is refused by the reference and landed here. Both readings are now one function.
+Measured over 961 recorded games at a twelve-turn cap, the count of games whose board state ever
+parts from the reference falls from 94 to 93 and the count of narration disagreements from 211 to
+208. That the pool would move, and by roughly one game, was stated before the run. A third run
+differing by a single switch isolates the change: it removes exactly one disagreement and adds none.
+Full account: `docs/_reports/2026-08-29-priority-modified.md`.
 
 **5.219.0 - WHEN SOMETHING ELSE CHOOSES A POKEMON'S MOVE FOR IT, THE SIMULATOR HAD TO PICK A
 TARGET, AND IT ALWAYS PICKED AN OPPONENT.** The reference implementation resolves an unchosen

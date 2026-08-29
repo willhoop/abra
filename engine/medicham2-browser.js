@@ -1431,6 +1431,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * is airborne. Before this wire the terrain refused priority against everything on the field, so
    * this branch could not fire at all. */
   terrainSparedAirborne: 0,
+  /* 2026-08-29 -- a priority GATE read a NON-ZERO ability shift. Before this, every gate in the file
+   * compared the printed constant plus an ad-hoc Prankster term, so this branch could not fire at
+   * all for Gale Wings and could not fire on the attack road for anything. A zero over a run holding
+   * a Talonflame or any of the seven Prankster carriers IS the finding. */
+  priorityGateAbilityShift: 0,
+  /* 2026-08-29 -- a priority refusal that PSYCHIC TERRAIN held and that this engine now NARRATES.
+   * Its twin is MEDFAILS.priorityRefusedSilently: before this pass the terrain half of the bar
+   * emitted no line at all, because the narration looked for an ability holder and the terrain has
+   * none. A zero here in a game played under a Psychic Terrain with a priority move in it means the
+   * branch is inert again. */
+  priorityRefusedByTerrain: 0,
   /* WIRE 117 -- the Grassy Terrain heal SKIPPED because the body is not grounded. This is the
    * receipt for MEDFAILS.terrainHealUngrounded, which is gone: that counter existed to declare that
    * the Levitate and Air Balloon halves of this test were known-wrong and applied anyway. The gap is
@@ -3229,6 +3240,19 @@ const MEDFAILS = { encoreAction: 0,
      closed (no shift) and is counted, because a silently applied conditional shift is a wrong number
      in whatever direction the unknown condition points. */
   priorityModUnknownCond: 0, priorityModUnknownCondFirst: '',
+  /* 2026-08-29 -- `abilityPriorityShift` asked about a `movesOfClass:'status'` ability by a caller
+     that supplied NEITHER a move id NOR an `isAtk`, so "is this move a Status move" cannot be
+     answered. Answering it either way is a silent default on a bracket. Zero: every live caller has
+     one or the other. */
+  priorityShiftCategoryUnknown: 0, priorityShiftCategoryUnknownFirst: '',
+  /* 2026-08-29 -- the load-time stamp for MEDI_PRIORITY_GATE_STATIC. A knob read by a module the
+     driver never loaded reads identically on both arms and stages nothing; this is how a probe
+     proves it bound. */
+  priorityGateStaticRestored: 0,
+  /* 2026-08-29 -- the priority bar refused a move and NOBODY OWNED THE LINE: no ability holder and
+     not the terrain either. That is a board that moved with a silent stream, which is this project's
+     characteristic failure, so it is counted and the move id is named rather than left to be found. */
+  priorityRefusedSilently: 0, priorityRefusedSilentlyFirst: '',
   /* WIRE 117 -- `terrainHealUngrounded` LIVED HERE and is gone, wired rather than declared. It
      counted a Levitate body that Grassy Terrain healed anyway, and its own comment said WIRE 90 had
      already made the derivation available. Its replacement is MEDSEEN.terrainHealSkippedAirborne,
@@ -3762,6 +3786,13 @@ const TRACE=(function(){
     wx(w,from,of,up){ this.push(['-weather',sdWeather(w),from,of?'[of] '+ident(of):'',up?'[upkeep]':'']); },
     wxNone(){ this.push(['-weather','none']); },
     terrainStart(t,from,of){ this.push(['-fieldstart','move: '+sdTerrain(t),from,of?'[of] '+ident(of):'']); },
+    /* 2026-08-29 -- THE PRIORITY BAR'S OWN LINE. `psychicterrain.condition.onTryHit` ends
+     * `this.add('-activate', target, 'move: Psychic Terrain'); return null;` -- one line PER BLOCKED
+     * BODY, naming the SHIELDED body and not the attacker, and with NO `[still]` and no blanked move
+     * target, which is what separates it from the ability refusers' `|cant|`. Through `sdTerrain`,
+     * the same map `terrainStart` above spells the field line with, so the label cannot drift from
+     * the `-fieldstart` that put the terrain up. */
+    terrainAct(b,t){ this.push(['-activate',ident(b),'move: '+sdTerrain(t)]); },
     terrainEnd(t){ this.push(['-fieldend','move: '+sdTerrain(t)]); },
     fstart(cond,of){ this.push(['-fieldstart','move: '+cond,of?'[of] '+ident(of):'']); },
     fend(cond){ this.push(['-fieldend','move: '+cond]); },
@@ -5302,13 +5333,20 @@ function isGrounded(mon,att,mvCategory){
  * pass it; callers that do not (board.js's feature read, which has no target object) fall back to
  * "any live defender is grounded", which is the old unconditional behaviour minus the bodies that are
  * provably airborne. */
-function priorityRefusedAbove(defenders, field, aimedAt){
+/* 2026-08-29 -- `why` IS AN OPTIONAL OUT-PARAM AND IT EXISTS BECAUSE THE TWO SOURCES OF THIS BAR
+ * NARRATE DIFFERENTLY. The ability emits `|cant|HOLDER|ability: X|MOVE|[of] ATTACKER` with `[still]`
+ * and a blanked move target; the terrain emits `|-activate|BLOCKED BODY|move: Psychic Terrain` with
+ * neither. A caller handed only a NUMBER cannot tell them apart, and this engine's answer was to
+ * emit NOTHING when no ability held the bar -- a terrain refusing a move in silence. `why` is filled
+ * as `{by:'ability'|'terrain', holder, bodies:[...]}`. The three-argument shape is unchanged, which
+ * is what keeps board.js's feature read out of this. */
+function priorityRefusedAbove(defenders, field, aimedAt, why){
   const bar=priorityBlockAbilities();
   let out=Infinity;
   for(const d of (defenders||[])){
     if(!d||d.fainted) continue;
     const ab=String(d.ability||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-    if(ab&&bar.has(ab)) out=Math.min(out,bar.get(ab));
+    if(ab&&bar.has(ab)&&bar.get(ab)<out){ out=bar.get(ab); if(why){why.by='ability';why.holder=d;} }
   }
   /* THROUGH terrainId. This line tested `psychicterrain` — the BOARD's spelling — while the artifact's
    * `psychicsurge` sets `psychic`, so the ability that puts the terrain up could never trigger it. */
@@ -5319,7 +5357,12 @@ function priorityRefusedAbove(defenders, field, aimedAt){
       if(!d||d.fainted) continue;
       if(isGrounded(d)) blocked=true; else airborne=true;
     }
-    if(blocked) out=Math.min(out,0);
+    /* STRICTLY BELOW, so an ability bar already reading 0 keeps the narration. That is the
+     * authority's ORDER and not a preference: `onFoeTryMove` runs inside `runEvent('TryMove')`, one
+     * step of `useMoveInner` ABOVE the per-target `onTryHit` the terrain's handler hangs on, so when
+     * both would refuse it is the ability that says so. */
+    if(blocked&&0<out){ out=0;
+      if(why){why.by='terrain';why.bodies=aim.filter(d=>d&&!d.fainted&&isGrounded(d));} }
     /* ONCE PER CALL, AND ONLY WHEN THE BAR GENUINELY WAS NOT APPLIED. Counting per airborne body, or
      * on every call under the terrain, would make the number mean "Psychic Terrain was up" rather
      * than "this branch changed an outcome", and a counter nobody can read is a counter nobody acts
@@ -5817,14 +5860,16 @@ function foeThreatensGuardClass(gid, live, mine, field){
        *     TAG, which is why it costs nothing to be right about it. */
       if(firstTurnOnlyRefused(fo,id)) continue;
       if(TAGS.has('move',id,'needsTargetToAttack')) continue;
-      /* the same `+_pk` Prankster term the execution gate adds -- a Prankster body's status move is
-       * refused at +1, which is more than half of what Quick Guard is for. */
+      /* the same term the execution gate adds -- a Prankster body's status move is refused at +1,
+       * which is more than half of what Quick Guard is for. 2026-08-29: `gatePriority` below carries
+       * it now, off `priorityMod` rather than off Prankster's name, so a full-HP Talonflame's Brave
+       * Bird is a threat this chooser can see. `pk` survives ONLY as the knob's legacy term. */
       const pk = (TAGS.has('move',id,'statusCategory') && isPrankster(fo)) ? 1 : 0;
       /* 2026-08-26 -- `attacker: fo` IS WHAT MAKES CLAUSE 2 REACHABLE FROM THE CHOOSER. Without it a
        * guard looks worth clicking against a piercing ability's contact move that will walk straight
        * through it. `guardRefusalOf` answers 'pierced', which is `!== true`, so this line already
        * reads it correctly and the chooser stops counting that move as a threat. */
-      if(guardRefusalOf(gid, id, {spread:SPREAD.has(id), priority:movePriority(id,field)+pk, attacker:fo}) !== true) continue;
+      if(guardRefusalOf(gid, id, {spread:SPREAD.has(id), priority:gatePriority(fo,id,field,pk), attacker:fo}) !== true) continue;
       if(row.worth(fo, id, mine, field)) return true;
     }
   }
@@ -13065,7 +13110,14 @@ function clickFragility(att,moveId,tgt,benchFoes,field){
       consider(0,b.name,'absorbs '+mvType+' entirely',im.gain?{feedsIt:im.gain}:null);
     else if(mcEff(mvType,b.types)===0)
       consider(0,b.name,'type-immune to '+mvType+' (chart)');
-    if(movePriority(moveId,field)>priorityRefusedAbove([b],field))
+    /* 2026-08-29 -- THROUGH `gatePriority`, THE SAME NUMBER THE EXECUTION GATE COMPARES. This read
+     * the printed constant, so a full-HP Talonflame's Brave Bird was priced as safe against a bench
+     * Farigiraf that will refuse it outright. THE COST IS DECLARED, NOT AVOIDED, exactly as the
+     * WIRE 3 note above declares its own: this is one of the six exports board.js reaches this
+     * engine through and it feeds `benchRisk`, so the fitted vector is owed a refit at the next
+     * release cut. The membership is one species -- Gale Wings has ONE legal carrier, and Prankster
+     * cannot reach this line because `clickFragility` is only ever asked about a damaging click. */
+    if(gatePriority(att,moveId,field,0)>priorityRefusedAbove([b],field))
       consider(0,b.name,'blocks priority outright');
   }
   return {retention:worst.retention,cause:worst.cause,how:worst.how,extra:worst.extra,
@@ -14090,6 +14142,112 @@ const TURN_ORDER = { move: 200, next: 3, last: 201, switch: 103, megaEvo: 104, c
 const ENCORE_KEEPS_SELECTED_BRACKET=(typeof process!=='undefined'&&process.env
                                      &&process.env.MEDI_ENCORE_KEEPS_SELECTED_BRACKET==='1');
 if(ENCORE_KEEPS_SELECTED_BRACKET)MEDFAILS.encoreKeepsSelectedBracketRestored=1;
+/* ===== 2026-08-29 -- THE PRIORITY GATES READ THE STATIC MOVE PRIORITY. THE AUTHORITY READS THE
+ * ABILITY-MODIFIED ONE, AND IT IS THE SAME NUMBER THE TURN SORT USES. ================================
+ *
+ * `Battle#getActionSpeed` (sim/battle.ts:2639-2645), read whole:
+ *
+ *     let priority = this.dex.moves.get(move.id).priority;
+ *     priority = this.singleEvent('ModifyPriority', move, null, action.pokemon, target, null, priority);
+ *     priority = this.runEvent('ModifyPriority', action.pokemon, target, move, priority);
+ *     action.priority = priority + action.fractionalPriority;
+ *     if (this.gen > 5) action.move.priority = priority;          <-- THE LAST LINE IS THE DEFECT
+ *
+ * So every handler that later reads `move.priority` is reading the value AFTER the ability modified
+ * it, and NOT after the fractional term -- which is exactly why the authority's five gates compare
+ * against 0.1 rather than 0 (Quick Claw and Custap Berry are fractional and must not count).
+ *
+ * THIS ENGINE HAD TWO IMPLEMENTATIONS OF ONE FACT, which is CLAUDE.md's "FACTS ARE GLOBAL" broken.
+ * `actionPriority` already read the modification through the `priorityMod` tag; the gates asked
+ * `movePriority`, the printed constant, and bolted on an ad-hoc `isPrankster(m)?1:0` term. So:
+ *
+ *   - GALE WINGS WAS ABSENT FROM EVERY GATE. A full-HP Talonflame's Brave Bird is +1 on the
+ *     authority and 0 here, so an Armor Tail Farigiraf refused it there and ate it here -- a body
+ *     surviving on one engine and dying on the other, which is the surviving BOARD-MATERIAL row of
+ *     `docs/_reports/2026-08-29-armor-tail-ally.md`.
+ *   - PRANKSTER WAS ABSENT FROM THE ATTACK ROAD AND FROM UPPER HAND'S READ OF ITS TARGET'S MOVE. The
+ *     ad-hoc term was `a.kind==='attack' ? 0 : (isPrankster(m)?1:0)`, keyed on the ACTION KIND rather
+ *     than on the move's category -- the same two-move confusion `actionPriority`'s own 2026-08-29
+ *     note describes one field over.
+ *
+ * MEMBERSHIP, DERIVED OVER THE FORMAT AND PRINTED BEFORE THIS WAS WIRED (docs/LESSONS §4).
+ * `onModifyPriority` over the 316 legal abilities selects exactly THREE, and one cannot occur:
+ *
+ *     galewings   Talonflame                                                    1 legal carrier
+ *     prankster   Sableye Banette-Mega Liepard Whimsicott Meowstic Klefki Grimmsnarl   7
+ *     triage      NONE -- zero legal carriers, not implemented, not approximated
+ *
+ * `onFractionalPriority` (Quick Draw, Stall, Mycelium Might) is DELIBERATELY NOT IN THIS FUNCTION:
+ * the authority adds it to `action.priority` and never to `action.move.priority`, so a gate that
+ * counted it would refuse a Quick Draw body's ordinary attack.
+ *
+ * AND THE FIVE GATES, derived by grepping every reader of `move.priority` in the mod and in mainline
+ * rather than recalled -- Champions overrides eight files and none of them touches any of the five:
+ *
+ *     armortail        data/abilities.ts:223    move.priority > 0.1
+ *     queenlymajesty   data/abilities.ts:3714   the same handler but for the name on the `cant` line
+ *     dazzling         data/abilities.ts:862    ZERO legal carriers -- cannot occur, not staged
+ *     quickguard       data/moves.ts:14509      move.priority <= 0.1 -> return
+ *     upperhand        data/moves.ts:20193      the TARGET's queued move, not the user's
+ *     psychicterrain   data/moves.ts:14119      effect.priority <= 0.1 -> return
+ *
+ * `MEDI_PRIORITY_GATE_STATIC=1` puts every gate back on the constant it used to read, per site, and
+ * stamps `MEDFAILS.priorityGateStaticRestored` at load so a probe can prove the knob bound. */
+const PRIORITY_GATE_STATIC=(typeof process!=='undefined'&&process.env
+                            &&process.env.MEDI_PRIORITY_GATE_STATIC==='1');
+if(PRIORITY_GATE_STATIC)MEDFAILS.priorityGateStaticRestored=1;
+/* ONE READER FOR "HOW MUCH DOES THIS BODY'S ABILITY SHIFT THIS MOVE'S PRIORITY". Lifted verbatim out
+ * of `actionPriority`, which is the only place it used to live; that function now calls this one, so
+ * the sort and the gates cannot answer differently. `isAtk` is optional and is derived from the
+ * move's own `statusCategory` tag when the caller does not supply it -- `actionPriority`'s branches
+ * pass their own, which keeps the sort bit-identical, and the gates always have a move id. */
+function abilityPriorityShift(mon, moveId, isAtk){
+  if(!mon) return 0;
+  const _pm=TAGS.param('ability',mon.ability,'priorityMod');
+  if(!_pm||!_pm.shift)return 0;
+  if(_pm.condition){
+    if(/full hp/i.test(String(_pm.condition))){ if(mon.curHP<mon.st.hp)return 0; }
+    else{
+      MEDFAILS.priorityModUnknownCond++;
+      if(!MEDFAILS.priorityModUnknownCondFirst)MEDFAILS.priorityModUnknownCondFirst=mon.ability+':'+_pm.condition;
+      return 0;
+    }
+  }
+  if(_pm.movesOfClass==='status'){
+    /* A CALLER THAT SUPPLIES NEITHER is answering an unanswerable question, and answering it either
+     * way is a silent default on a bracket. Counted and refused. */
+    if(isAtk===undefined&&!moveId){
+      MEDFAILS.priorityShiftCategoryUnknown++;
+      if(!MEDFAILS.priorityShiftCategoryUnknownFirst)MEDFAILS.priorityShiftCategoryUnknownFirst=String(mon.ability);
+      return 0;
+    }
+    const _atk=(isAtk===undefined)?!TAGS.has('move',moveId,'statusCategory'):!!isAtk;
+    return _atk?0:+_pm.shift;
+  }
+  /* ROADMAP #290 -- A TYPE-NAMED SHIFT DOES NOT CARE WHETHER THE MOVE IS AN ATTACK, AND THIS LINE
+     READ `isAtk &&`. Gale Wings is `if (move?.type === "Flying" && pokemon.hp === pokemon.maxhp)
+     return priority + 1` -- one type test and one HP test, and NO category test. TAILWIND IS A
+     FLYING-TYPE STATUS MOVE, so a full-HP Talonflame's Tailwind is +1 on the authority and was 0
+     here. The four legal Flying-type STATUS moves this reaches are defog, featherdance, roost and
+     tailwind. */
+  if(moveId){const _mvR=MC.moves[moveId];
+    if(_mvR&&String(_mvR.t||'').toLowerCase()===String(_pm.movesOfClass||'').toLowerCase())return +_pm.shift;}
+  return 0;
+}
+/* THE NUMBER EVERY PRIORITY GATE COMPARES, and the ONE place the knob lives. `legacyShift` is the
+ * term the site used to add -- 0 for the sites that added nothing, the ad-hoc Prankster term for the
+ * two that did -- so `MEDI_PRIORITY_GATE_STATIC=1` restores each site EXACTLY, rather than restoring
+ * some common ancestor no site ever had.
+ *
+ * `mon` IS THE BODY WHOSE ABILITY OWNS THE MOVE, WHICH IS NOT ALWAYS THE MOVER. Upper Hand reads its
+ * TARGET's queued move, so that site passes the target; every other site passes the attacker. */
+function gatePriority(mon, moveId, field, legacyShift){
+  const base=movePriority(moveId, field);
+  if(PRIORITY_GATE_STATIC) return base+(+legacyShift||0);
+  const sh=abilityPriorityShift(mon, moveId);
+  if(sh) MEDSEEN.priorityGateAbilityShift++;
+  return base+sh;
+}
 /* The bracket, lifted out of battleTurn so the comparator is one module-level function rather than a
  * closure nothing outside the turn could reach. Behaviour is unchanged from the closure it replaces. */
 function actionPriority(it, field){
@@ -14101,37 +14259,15 @@ function actionPriority(it, field){
      the artifact ('only at full HP') is evaluated; any OTHER condition fails closed and is
      counted, because silently applying a conditional shift points a wrong number in an unknown
      direction. */
-  const _pmOf=(mon,cls,isAtk,moveId)=>{
-    const _pm=TAGS.param('ability',mon.ability,'priorityMod');
-    if(!_pm||!_pm.shift)return 0;
-    if(_pm.condition){
-      if(/full hp/i.test(String(_pm.condition))){ if(mon.curHP<mon.st.hp)return 0; }
-      else{
-        MEDFAILS.priorityModUnknownCond++;
-        if(!MEDFAILS.priorityModUnknownCondFirst)MEDFAILS.priorityModUnknownCondFirst=mon.ability+':'+_pm.condition;
-        return 0;
-      }
-    }
-    if(_pm.movesOfClass==='status')return isAtk?0:+_pm.shift;
-    /* ROADMAP #290 -- A TYPE-NAMED SHIFT DOES NOT CARE WHETHER THE MOVE IS AN ATTACK, AND THIS LINE
-       READ `isAtk &&`. Gale Wings is `if (move?.type === "Flying" && pokemon.hp === pokemon.maxhp)
-       return priority + 1` -- one type test and one HP test, and NO category test. TAILWIND IS A
-       FLYING-TYPE STATUS MOVE, so a full-HP Talonflame's Tailwind is +1 on the authority and was 0
-       here.
-       IT IS THE LARGEST REMAINING MEMBER OF THIS ROW'S OWN PROBE. `node engine/quarantine.js
-       --order-probe` reported 7 of 9 move-vs-move pairs as real turn-order disagreements and SIX of
-       the seven are Talonflame clicking Tailwind -- including `showdown moved Talonflame @160,
-       medicham2 moved Whimsicott @316`, where the authority put the SLOWER body first by 156 points
-       because it had the bracket. The probe reads `move.priority` off the format and therefore
-       cannot see an ability-granted one, which is why the pair looked like equal priority.
-       MEMBERSHIP PRINTED BEFORE THIS WAS WIRED, per docs/LESSONS §4. The artifact holds exactly two
-       `priorityMod` carriers -- Prankster (movesOfClass 'status', unaffected by this line) and Gale
-       Wings -- and the moves this widening newly reaches are the four legal Flying-type STATUS moves
-       in the regulation: defog, featherdance, roost, tailwind. */
-    if(moveId){const _mvR=MC.moves[moveId];
-      if(_mvR&&String(_mvR.t||'').toLowerCase()===String(_pm.movesOfClass||'').toLowerCase())return +_pm.shift;}
-    return 0;
-  };
+  /* 2026-08-29 -- THE BODY OF THIS CLOSURE IS NOW `abilityPriorityShift`, ONE MODULE-LEVEL FUNCTION,
+     because the priority GATES need the identical answer and were computing their own. Behaviour
+     here is unchanged: every branch below passes its own `isAtk`, exactly as it always did.
+     IT WAS THE LARGEST REMAINING MEMBER OF ROADMAP #290's PROBE. `node engine/quarantine.js
+     --order-probe` reported 7 of 9 move-vs-move pairs as real turn-order disagreements and SIX of
+     the seven are Talonflame clicking Tailwind -- including `showdown moved Talonflame @160,
+     medicham2 moved Whimsicott @316`, where the authority put the SLOWER body first by 156 points
+     because it had the bracket. */
+  const _pmOf=(mon,cls,isAtk,moveId)=>abilityPriorityShift(mon,moveId,isAtk);
   /* THE BRACKET IS THE SELECTED MOVE'S, and `_selMv` carries it when a lock overrode the choice.
    * `sim/battle-actions.js` reads `baseMove.priority` and `baseMove.pranksterBoosted` one line BEFORE
    * it runs OverrideAction, so an Encored body keeps the bracket of what its player picked and
@@ -23933,17 +24069,29 @@ function battleTurn(S,rng,actsForA,actsForB){
          * on the action carrying a FOE as its target is what keeps this from blocking the user's own
          * setup. The attack branch keeps its own copy for the spread case, where target is null. */
         if(_pmv&&a.target&&_pf.indexOf(a.target)>=0){
+          /* 2026-08-29 -- `_pk` IS THE KNOB'S LEGACY TERM AND NOTHING ELSE NOW. It was
+             `a.kind==='attack'?0:(isPrankster(m)?1:0)` -- keyed on the ACTION KIND rather than on the
+             move's category, and blind to Gale Wings on both roads. `gatePriority` reads the shift off
+             `priorityMod`, which is the same reader the turn sort uses. */
           const _pk=(a.kind==='attack'?0:(isPrankster(m)?1:0));
+          const _gpri=gatePriority(m,_pmv,field,_pk);
           /* WIRE 117 -- the TARGET is handed over, because Psychic Terrain is a per-body question and
              the ability bar is a per-side one. Without it a grounded partner would refuse a priority
              move aimed at the airborne body standing next to it. */
-          if(movePriority(_pmv,field)+_pk>priorityRefusedAbove(_pf,field,a.target)){m._lastMove=_pmv;
+          const _pWhy={};
+          if(_gpri>priorityRefusedAbove(_pf,field,a.target,_pWhy)){m._lastMove=_pmv;
             /* `cant|HOLDER|ability: Armor Tail|MOVE|[of] ATTACKER` -- data/abilities.ts:225, and the
              * POKEMON field is the REFUSER rather than the attacker, which is the one shape in this
              * family that inverts. The holder is found by asking which live foe carries a
-             * priority-refusing tag; Psychic Terrain's bar has no holder and emits nothing, which is
-             * declared in data/protocol-events.json rather than approximated with the terrain's name
-             * on a body that did not refuse. */
+             * priority-refusing tag. THE TERRAIN HALF USED TO EMIT NOTHING AT ALL -- it has no
+             * holder, so the `find` below returned undefined and the refusal happened in silence.
+             * That was pre-existing and reachable before this pass (any printed-priority move under
+             * a Psychic Terrain), and it is fixed here rather than filed because the ability-shifted
+             * number is what puts a Gale Wings Brave Bird on this branch. The line the terrain owes
+             * is NOT a `cant`: it is `|-activate|BLOCKED BODY|move: Psychic Terrain`, one per body,
+             * with no `[still]` and no blanked move target -- `psychicterrain.condition.onTryHit`,
+             * read whole. WHICH source held the bar is answered by `priorityRefusedAbove` itself
+             * through `_pWhy`, so the narration and the outcome cannot disagree. */
             /* ROADMAP #293 -- THROUGH `priorityBlockAbilities()`, THE SAME TABLE THAT DECIDED THE
              * REFUSAL. This asked `TAGS.param('ability', x.ability, 'blocksMove')` with no filter,
              * and `blocksMove` is not one tag's worth of meaning: the bar keeps only the members
@@ -23957,7 +24105,16 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(TR){const _bar=priorityBlockAbilities();
                    const _h=_pf.find(x=>x&&!x.fainted&&x.curHP>0
                      &&_bar.has(String(x.ability||'').toLowerCase().replace(/[^a-z0-9]/g,'')));
-                   if(_h){TR.attrStill();TR.cant(_h,'ability: '+_h.ability,_pmv,m);}}
+                   if(_h){TR.attrStill();TR.cant(_h,'ability: '+_h.ability,_pmv,m);}
+                   else if(_pWhy.by==='terrain'&&(_pWhy.bodies||[]).length){
+                     for(const _tb of _pWhy.bodies)TR.terrainAct(_tb,terrainId(field.terrain));
+                     MEDSEEN.priorityRefusedByTerrain++;
+                   }else{
+                     /* A REFUSAL THAT NARRATES NOTHING IS THIS FILE'S CHARACTERISTIC BUG WEARING A
+                      * FIX'S CLOTHES -- the board moves and the stream does not say why. Loud. */
+                     MEDFAILS.priorityRefusedSilently++;
+                     if(!MEDFAILS.priorityRefusedSilentlyFirst)MEDFAILS.priorityRefusedSilentlyFirst=String(_pmv);
+                   }}
             continue;}
           /* ROADMAP #126 -- AND THE SIDE-CONDITION SOURCE OF THE SAME REFUSAL, WIRED ONTO THE SAME
            * GATE. Will: *"its like armor tail"*. It is: same question, same `+_pk` Prankster term,
@@ -23989,7 +24146,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              * `-ability` line are the damage path's and this site is above the kind dispatch. */
             const _sgOut={};
             const _sgid=sideGuardRefuses(it.side==='A'?field.sgB:field.sgA,_pmv,
-                          {spread:false,priority:movePriority(_pmv,field)+_pk,attacker:m},_sgOut);
+                          {spread:false,priority:_gpri,attacker:m},_sgOut);
             if(_sgOut.pierced)_guardPierced=true;
             if(_sgid){m._lastMove=_pmv;
               /* `|-activate|TARGET|move: Quick Guard` -- the condition's own onTryHit names the
@@ -28051,7 +28208,12 @@ function battleTurn(S,rng,actsForA,actsForB){
             MEDFAILS.priorityConditionUnreadable++;
             if(!MEDFAILS.priorityConditionUnreadableFirst)MEDFAILS.priorityConditionUnreadableFirst=String(a.move.id);
           }else{
-            const _tp=movePriority(_theirId,field);
+            /* 2026-08-29 -- THE BODY PASSED HERE IS THE TARGET, NOT THE MOVER, because the number
+               being read is the TARGET'S queued move. The comment two blocks up already CLAIMED that
+               "a Prankster or Gale Wings boost that Showdown counts is counted here too" -- it was
+               not: `movePriority` is the printed constant, so a full-HP Talonflame's Brave Bird read
+               0 and Upper Hand failed against the one move it exists to beat. */
+            const _tp=gatePriority(_tgt,_theirId,field,0);
             const _ok=_np.strictlyAbove?(_tp>_np.minPriority):(_tp>=_np.minPriority);
             if(!_ok){MEDSEEN.priorityConditionRefused++;
               {if(TR)TR.attrStill();mvFail(m);}continue;}
@@ -28068,9 +28230,20 @@ function battleTurn(S,rng,actsForA,actsForB){
       {
         const _foes=it.side==='A'?actB:actA;
         const _aim=(a.target&&_foes.indexOf(a.target)>=0&&!a.move.spread)?a.target:null;
-        if(movePriority(a.move.id,field)>priorityRefusedAbove(_foes,field,_aim)){
+        const _aWhy={};
+        if(gatePriority(m,a.move.id,field,0)>priorityRefusedAbove(_foes,field,_aim,_aWhy)){
           if(TR){const _h=_foes.find(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksMove'));
-                 if(_h)TR.cant(_h,'ability: '+_h.ability,a.move.id,m);}
+                 if(_h)TR.cant(_h,'ability: '+_h.ability,a.move.id,m);
+                 /* THE SAME TERRAIN LINE AS THE PRE-DISPATCH GATE, because this branch answers the
+                  * SPREAD case the other one excludes and a spread move under a Psychic Terrain is
+                  * refused per body exactly as a single-target one is. */
+                 else if(_aWhy.by==='terrain'&&(_aWhy.bodies||[]).length){
+                   for(const _tb of _aWhy.bodies)TR.terrainAct(_tb,terrainId(field.terrain));
+                   MEDSEEN.priorityRefusedByTerrain++;
+                 }else{
+                   MEDFAILS.priorityRefusedSilently++;
+                   if(!MEDFAILS.priorityRefusedSilentlyFirst)MEDFAILS.priorityRefusedSilentlyFirst=String(a.move.id);
+                 }}
           continue;}
       }
       const foes=it.side==='A'?actB:actA;
@@ -28473,7 +28646,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * it is for. */
         if(GUARD_FOE_SIDE_ONLY){
           const _psg=it.side==='A'?field.sgA:field.sgB;
-          const _pctx={spread:true,priority:movePriority(a.move.id,field),attacker:m};
+          const _pctx={spread:true,priority:gatePriority(m,a.move.id,field,0),attacker:m};
           for(const _pg of Object.keys(_psg||{})){
             if(!_psg[_pg])continue;
             if(guardRefusalOf(_pg,a.move.id,_pctx)===true){MEDFAILS.guardFoeSideOnlyRestored++;break;}
@@ -28482,7 +28655,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _osg=it.side==='A'?field.sgA:field.sgB;
           const _oOut={};
           const _ogid=sideGuardRefuses(_osg,a.move.id,
-                        {spread:true,priority:movePriority(a.move.id,field),attacker:m},_oOut);
+                        {spread:true,priority:gatePriority(m,a.move.id,field,0),attacker:m},_oOut);
           if(_oOut.pierced)_guardPierced=true;
           if(_ogid){
             if(TR)TR.act(_allyHit,'move: '+sideGuardName(_ogid));
@@ -28517,7 +28690,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * paid in the damage path off `_guardPierced`. */
         const _sgOut={};
         const _gid=a.move.spread?sideGuardRefuses(_fsg,a.move.id,
-                                   {spread:true,priority:movePriority(a.move.id,field),attacker:m},_sgOut):null;
+                                   {spread:true,priority:gatePriority(m,a.move.id,field,0),attacker:m},_sgOut):null;
         if(_sgOut.pierced)_guardPierced=true;
         if(_gid){
           if(TR)for(const _wg of targets)TR.act(_wg,'move: '+sideGuardName(_gid));

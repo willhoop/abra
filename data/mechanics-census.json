@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T12:05:11.183Z",
+  "generated": "2026-08-29T12:52:04.382Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 797,
-  "live": 797,
+  "probed": 798,
+  "live": 798,
   "missing": 0,
-  "armed": 797,
+  "armed": 798,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3813,7 +3813,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 28.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7984,6 +7984,16 @@
       "label": "a Flash Fire body announces `-start` on the first Fire hit and `-immune` only on the second",
       "live": true,
       "detail": "[every line the struck body emitted across TWO Fire Punches] — FLASH FIRE [\"|-start|p1a:armarouge|ability:flashfire\",\"|-immune|p1a:armarouge|[from]ability:flashfire\"]; CONTROL, the same Armarouge carrying WEAK ARMOR (its other legal ability) taking the identical two hits, [\"-damage\",\"-damage\"]. The authority writes -start then -immune, in that order, because the -immune is inside `if (!target.addVolatile(\"flashfire\"))` — the gift's else, never its companion",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "priorityMod",
+      "label": "a priority-refusing gate compares the ABILITY-MODIFIED priority, not the printed one",
+      "live": true,
+      "detail": "one board, one cell changed. A full-HP Talonflame's Brave Bird into an Armor Tail Farigiraf was refused true / landed false; the SAME body carrying its own Flame Body instead was refused false / landed true; and the Gale Wings body ONE HP below full was refused false / landed true. Brave Bird is printed priority 0, so a gate reading the constant answers \"landed\" on all three — which is what this engine did until the gates were put on one shared reader with actionPriority",
       "hollow": false,
       "armed": true,
       "directCall": false

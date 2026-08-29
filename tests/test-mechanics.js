@@ -507,7 +507,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * rewrites part-way through the turn, so a probe that priced the move before the turn started would
  * read the un-evolved body every time, which is exactly what the engine was doing.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\binnardsHit\(|\binnardsChain\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -30814,6 +30814,77 @@ probe('ability', 'typeImmunity', 'a Flash Fire body announces `-start` on the fi
                  + `The authority writes -start then -immune, in that order, because the -immune is `
                  + `inside ` + '`if (!target.addVolatile("flashfire"))`' + ` — the gift's else, never `
                  + `its companion` };
+});
+
+/* ================= 2026-08-29 — A PRIORITY GATE COMPARES THE ABILITY-MODIFIED PRIORITY ===========
+ *
+ * `Battle#getActionSpeed` (sim/battle.ts:2639-2645) runs the `ModifyPriority` event and then writes
+ * `action.move.priority = priority` for gen > 5, so EVERY handler that later reads `move.priority`
+ * reads the value AFTER the ability changed it. `armortail.onFoeTryMove` is one of five such readers
+ * (queenlymajesty, quickguard, upperhand and psychicterrain are the others), and its test is
+ * `move.priority > 0.1` — the 0.1 is there to admit an ability boost and exclude a FRACTIONAL one.
+ *
+ * THIS ENGINE HAD TWO IMPLEMENTATIONS OF ONE FACT. `actionPriority` read the shift off the
+ * `priorityMod` tag; the gates read `movePriority`, the printed constant, plus an ad-hoc
+ * `isPrankster(m)?1:0` that fired only on non-attack action kinds. So GALE WINGS was absent from
+ * every gate: a full-HP Talonflame's Brave Bird is +1 upstream and was 0 here, the authority refuses
+ * it and this engine landed it — a body surviving on one engine and dying on the other. That is the
+ * surviving BOARD-MATERIAL row of docs/_reports/2026-08-29-armor-tail-ally.md, in the opposite
+ * direction from the four fixes before it.
+ *
+ * MEMBERSHIP, DERIVED: `onModifyPriority` selects THREE legal abilities — galewings (Talonflame, the
+ * only carrier), prankster (7 carriers) and triage (ZERO carriers, cannot occur, not implemented).
+ *
+ * THE THREE ARMS ARE ONE BOARD WITH ONE CELL CHANGED, and the two knobs are the two halves of the
+ * authority's own condition (`move?.type === "Flying" && pokemon.hp === pokemon.maxhp`):
+ *   ABILITY   Gale Wings against Talonflame's OWN other ability, Flame Body — inert on this board,
+ *             because nothing here makes contact with the Talonflame.
+ *   CONDITION the same Gale Wings body at 1 HP below full, where the authority returns the unmodified
+ *             priority. A reader that took the tag and skipped its condition passes the first knob
+ *             and fails this one.
+ * IDENTICAL ANSWERS ACROSS THE THREE ARE THE SIGNATURE OF AN UNWIRED KNOB, and identical answers are
+ * exactly what this engine printed before the fix: all three landed. */
+const priorityGateRun = (ability, hurt) => {
+  const rng = () => 0.5;
+  const atk = bare('talonflame'); atk.ability = ability;
+  const bystander = bare('klefki');
+  const guard = bare('farigiraf'); guard.ability = 'Armor Tail';   // the format's only carrier
+  const pal = bare('clefable');
+  const S = M.battleInit([atk, bystander], [guard, pal], { seeded: true });
+  /* A KO empties a slot and an emptied slot re-aims — a different mechanic riding inside the
+   * measurement. Every body on the field is made unfaintable. */
+  unfaintable(atk); unfaintable(bystander); unfaintable(guard); unfaintable(pal);
+  /* THE CONDITION ARM TAKES EXACTLY ONE POINT OFF, so the only thing separating it from the arm
+   * above is `hp === maxhp` and not a damage roll, a type or a turn. */
+  if (hurt) atk.curHP = atk.st.hp - 1;
+  const trace = []; S._trace = trace;
+  const before = guard.curHP;
+  M.battleTurn(S, rng,
+    new Map([[atk, M.playerAction(atk, 'bravebird', guard, S.field)], [bystander, { kind: 'pass' }]]),
+    PASS2(guard, pal));
+  return { refused: trace.some(l => /^\|cant\|.*armor ?tail/i.test(l)),
+           /* THE BOARD, NOT THE LINE. This row is board-material and must not be able to pass on a
+              narration change alone. */
+           landed: guard.curHP < before };
+};
+
+probe('ability', 'priorityMod', 'a priority-refusing gate compares the ABILITY-MODIFIED priority, not the printed one', () => {
+  const full = priorityGateRun('Gale Wings', false);
+  const noab = priorityGateRun('Flame Body', false);
+  const hurt = priorityGateRun('Gale Wings', true);
+  const works = full.refused && !full.landed
+             && !noab.refused && noab.landed
+             && !hurt.refused && hurt.landed;
+  return { works,
+           arms: { control: [noab.refused, hurt.refused], test: [full.refused] },
+           detail: 'one board, one cell changed. A full-HP Talonflame\'s Brave Bird into an Armor '
+                 + 'Tail Farigiraf was refused ' + full.refused + ' / landed ' + full.landed
+                 + '; the SAME body carrying its own Flame Body instead was refused ' + noab.refused
+                 + ' / landed ' + noab.landed + '; and the Gale Wings body ONE HP below full was '
+                 + 'refused ' + hurt.refused + ' / landed ' + hurt.landed + '. Brave Bird is printed '
+                 + 'priority 0, so a gate reading the constant answers "landed" on all three — which '
+                 + 'is what this engine did until the gates were put on one shared reader with '
+                 + 'actionPriority' };
 });
 
 
