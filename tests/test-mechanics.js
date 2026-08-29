@@ -272,6 +272,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * the chosen move equals the encored one. It reads the `|move|` stream rather than state, because
  * both halves of the mechanic — WHICH move ran and WHICH body it ran at — are on that one line, and
  * `S.lastActs` records the click rather than the execution and is unchanged by this fix by design. */
+/* `encoreBracket(` added 2026-08-29 with the mid-turn Encore RELOCATION, declared HERE and with its
+ * reason, exactly as the paragraph above requires. It stages a real doubles board through
+ * `battleInit` and spends TWO real turns through `battleTurn`, and it has to spend both: what it
+ * watches is the POSITION the overridden action lands in, which only exists on the turn the Encore
+ * lands and only exists at all inside the turn loop -- the bracket is resolved by `actionPriority`
+ * and then re-derived by `_resortTail` between actions, and neither is reachable from a direct call.
+ * It reads the `|move|` ORDER out of the stream rather than any state, because the position IS the
+ * mechanic and no field records it. */
 /* `guardRun(` added 2026-08-11 with ROADMAP #175's Magic Guard row, declared HERE and with its reason,
  * exactly as the paragraph above requires — the ratchet caught it as a direct call on its first run,
  * which is the guard working. It stages a real doubles board through `battleInit` and spends a real
@@ -499,7 +507,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * rewrites part-way through the turn, so a probe that priced the move before the turn started would
  * read the un-evolved body every time, which is exactly what the engine was doing.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\binnardsHit\(|\binnardsChain\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\binnardsHit\(|\binnardsChain\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -19750,6 +19758,76 @@ probe('move', 'sealsMoves', 'the encored move\'s target is RE-ROLLED, not aimed 
                  + `targets would mean the re-roll is unwired). The UN-Encored victim's own Brick `
                  + `Break named p1a and hit ${unencored.at}/${unencored9.at} at both rng values, and `
                  + `the un-Encored partner hit ${control.partner} throughout` };
+});
+
+/* ================= 2026-08-29 — AND WHERE THE OVERRIDDEN ACTION LANDS IN THE TURN ================
+ *
+ * WIRE 143 above proves the mid-turn Encore swaps the MOVE. It says nothing about the SLOT, and the
+ * two are decided by different code in Champions.
+ *
+ * `data/mods/champions/moves.ts:286-320` REPLACES encore's `condition.onStart`, and the clause
+ * mainline has no counterpart for is the last one: `this.queue.changeAction(target, {...moveid...})`
+ * followed by a rewrite of the new entry's `.priority`. Mainline's own `encore` (data/moves.ts) stops
+ * at `duration++` and leaves the swap to `onOverrideAction` — the door `sim/battle-queue.ts:290`
+ * documents as the one that "doesn't change priority order". Champions took the other door. Reading
+ * `/data/moves.ts` here reads a different game.
+ *
+ * SO THE VICTIM MOVES IN THE ENCORED MOVE'S BRACKET, NOT THE CHOSEN MOVE'S — and this engine held the
+ * opposite rule on purpose (`actionPriority`'s `_selMv`), which is why the mechanic needed its own row
+ * rather than a widened one.
+ *
+ * THE BOARD MAKES THE POSITION MEAN ONE THING. Whimsicott 116 (bare, so no Prankster — the Encore is
+ * an ordinary +0 click) is the fastest body and always acts first, which is what lets the Encore land
+ * while the victim's action is still queued. Sylveon 60 is the SLOWEST, so at priority 0 it acts last
+ * and only a bracket can move it; Garchomp 102 sits between them clicking Swords Dance, a 0-priority
+ * self-boost that touches neither speed nor bracket, and is the body the victim has to overtake.
+ *
+ * THE CONTROL IS THE ENCORE CLICK REPLACED BY A CHARM, not by a pass: a pass emits no `|move|` line
+ * at all, so the two arms' orders would be different LENGTHS and could not be compared. Charm is
+ * priority 0, is aimed at the same body, and moves nobody.
+ *
+ * THE TWO ARMS MUST NAME THE SAME THREE BODIES IN A DIFFERENT ORDER. An engine that keeps the chosen
+ * bracket prints `whimsicott>garchomp>sylveon` in BOTH arms — identical output across a varied knob,
+ * which is this repository's signature for a knob that is not wired to anything. */
+const encoreBracket = (enc) => {
+  const rng = () => 0.5;
+  const me = bare('whimsicott'), ally = bare('garchomp');
+  const f1 = bare('sylveon'), f2 = bare('milotic');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  /* Every body the victim's move can reach is made unfaintable: a KO empties a slot, and an emptied
+   * slot re-aims — a different mechanic riding along inside the measurement. */
+  unfaintable(me); unfaintable(ally); unfaintable(f1);
+  const trace = []; S._trace = trace;
+  /* Turn 1 — the victim commits Quick Attack (+1), so that is what Encore will copy. */
+  M.battleTurn(S, rng, PASS2(me, ally),
+    new Map([[f1, M.playerAction(f1, 'quickattack', me, S.field)], [f2, { kind: 'pass' }]]));
+  const committed = f1._lastMove;
+  trace.length = 0;
+  /* Turn 2 — the victim is handed Moonblast (0) and is Encored back into Quick Attack (+1) after both
+   * sides' actions were collected. */
+  M.battleTurn(S, rng,
+    new Map([[me, M.playerAction(me, enc ? 'encore' : 'charm', f1, S.field)],
+             [ally, M.playerAction(ally, 'swordsdance', ally, S.field)]]),
+    new Map([[f1, M.playerAction(f1, 'moonblast', me, S.field)], [f2, { kind: 'pass' }]]));
+  const mv = trace.filter(l => l.startsWith('|move|'));
+  return { committed, vol: !!(f1._vol && f1._vol.encore > 0),
+           order: mv.map(l => (l.split('|')[2] || '').split(':')[0]).join('>'),
+           used: (mv.find(l => /^\|move\|p2a/.test(l)) || '').split('|')[3] || 'NONE' };
+};
+
+probe('move', 'sealsMoves', 'an Encore landing MID-TURN moves its victim into the bracket of the ENCORED move', () => {
+  const control = encoreBracket(false), test = encoreBracket(true);
+  return { works: control.committed === 'quickattack' && test.committed === 'quickattack'
+                  && !control.vol && test.vol
+                  && control.order === 'p1a>p1b>p2a' && test.order === 'p1a>p2a>p1b'
+                  && control.used === 'moonblast' && test.used === 'quickattack',
+           arms: { control: control.order, test: test.order },
+           detail: 'the same three bodies, the same clicks, one bit changed — with a CHARM in place of '
+                 + 'the Encore the turn ran ' + control.order + ' (victim used ' + control.used
+                 + ', volatile ' + control.vol + '); with the Encore landing it ran ' + test.order
+                 + ' (victim used ' + test.used + ', volatile ' + test.vol + '). The victim is the '
+                 + 'SLOWEST body on the field, so overtaking Garchomp can only be the bracket. Two '
+                 + 'identical orders here would mean the relocation is unwired' };
 });
 
 /* ---- WIRE 144 — THE LOCK-IN FIVE ---------------------------------------------------------------

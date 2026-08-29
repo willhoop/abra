@@ -11,6 +11,85 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.217.0] — 2026-08-29
+
+### Fixed
+- **A MID-TURN ENCORE RELOCATES THE ENCORED BODY'S ACTION, AND THE DIRECTION IS FORWARD — CARD F1's
+  SYMPTOM WAS RIGHT AND ITS CAUSE WAS THE WRONG WAY ROUND.** The card read the encored body as being
+  moved to the BACK of our turn. `data/mods/champions/moves.ts:286-320` REPLACES
+  `encore.condition.onStart`, and its last clause calls `this.queue.changeAction(target, {...moveid...})`
+  and then rewrites the new entry's `.priority` — so the AUTHORITY moves it FORWARD, into the encored
+  move's bracket. Mainline's `encore` (`data/moves.ts`) stops at `duration++` and leaves the swap to
+  `onOverrideAction`, which `sim/battle-queue.ts:290` documents as the door that *"doesn't change
+  priority order"*. WIRE 118 implemented mainline and was RIGHT about mainline and about the case
+  Champions leaves alone — an Encore already standing at the top of a turn, where the request offers
+  only the encored move.
+- **THE BRACKET THAT LANDS IS A FULL RE-DERIVATION, NOT THE DELTA THE OVERRIDE PRINTS.** The Encore
+  resolves inside another body's move action and `Battle#runAction` ends (gen >= 8,
+  `sim/battle.ts:2915-2922`) by running `getActionSpeed` over every queued action and re-sorting;
+  `getActionSpeed` recomputes priority off `action.move.id` through `ModifyPriority`. The two readings
+  differ for an ability that keys on move CATEGORY, and Showdown answers the re-derivation — measured
+  on the `prankster-status` arm, where the printed arithmetic gives 0 and the authority gives +1.
+- **`actionPriority` READ ITS VALUE FROM ONE MOVE AND ITS CATEGORY FROM ANOTHER.** The priority came
+  from `_selMv` and the category from the action's `kind`, which are different moves whenever anything
+  overrode the choice; the authority reads `baseMove.priority` and `baseMove.pranksterBoosted` off one
+  record on consecutive lines. Every kind routes through the `_selMv` line now, not only `attack` — a
+  body that chose Protect (+4) and was Encored into Charm used to keep +4, because the `k==='protect'`
+  branch never looked at `_selMv`. Equivalence checked before the line was written: `movePriority`
+  returns each displaced branch's own constant (protect 4, wideguard 3, tailwind 0, trickroom -7), and
+  a bare switch carries no `_selMv` and still returns 6.
+
+### Added
+- `engine/medicham2-browser.js`: `encoreRelocateQueued(who, mvId)`, called from `applyMoveVolatile`
+  BELOW `mentalHerbCures` and only while `_vol.encore` still stands — which takes the authority's
+  `!target.hasItem('mentalherb')` exclusion from the item's own implementation rather than a second
+  copy of the rule. `ENCORE_Q` publishes the live turn's `acts` and cursor, assigned at the loop top
+  and dropped on the outer exit beside the flinch clear so every `break _TURN` clears it.
+  `MEDSEEN.encoreRelocatedQueuedAction`, `MEDFAILS.encoreRelocateNoQueue` (must read 0),
+  `MEDI_ENCORE_KEEPS_SELECTED_BRACKET=1` + `MEDFAILS.encoreKeepsSelectedBracketRestored`.
+- `tests/probe_encore_bracket.js` — 11 arms, shown RED first at **11 failures across 11 arms**. Five
+  red (up 0->+1, down +1->0, the empirical arm's own Protect shape, the Prankster re-derivation, and
+  the sides exchanged whole) and six negative (no Encore at all, a same-bracket relocation, a target
+  that has already acted, a refused Encore, a Mental Herb holder, and a target whose chosen move
+  already IS the encored one). No expectation is typed: both engines play one script under the
+  `middle` pin and the `|move|` orders are compared. **Two of the eleven first-run failures were the
+  FIXTURE and the counters caught both** — a Prankster-boosted Encore cannot touch a Dark type, and
+  the only two slow Prankster carriers in this regulation are Dark; and Encore carries the `protect`
+  flag, so the already-moved arm's Protect bounced the Encore instead of bumping its duration.
+- One census row under `move`/`sealsMoves`. Census **794 -> 795** live / 795 probed / 0 missing, 0
+  threw, 0 hollow, 0 unarmed; `encoreBracket(` declared in the REALTURN list with its reason, so the
+  direct-call ratchet still reads 1.
+
+### Notes
+- **THE `order_probe` FALLS FROM 11 ROWS TO 2 OVER 961 REAL GAMES.** Nine of the eleven turn-order
+  disagreements the whole-game instrument reports were this one mechanic, including the four
+  `protect(+4) vs ...(+0)` rows the 2026-08-29 card review nearly filed as *"Protect's +4 priority is
+  not applied"* and retracted. Protocol divergence **216 -> 214**; class `ordering` **60 -> 53** with
+  seven causes gone and none added.
+- **BOARD-PARTED IS UNMOVED AT 97 OF 961 AND THAT WAS NOT THE PREDICTION — RECORDED AS WRONG.** Said
+  before the run: both scoreboards should move. The lab and the protocol did; the board did not,
+  because the ordering line was MASKING the causes those games actually part on. The
+  first-board-divergence set is the same 40 games, 0 in and 0 out.
+- **THE CARD'S 11-GAME `stall` ATTRIBUTION IS REFUTED BY MEASUREMENT.** `active[].stall` is **13**
+  leaves in 13 games at this baseline, not 11, and after the fix it is still 13/13 — not one leaf
+  moved. It is card F2's family, not F1's.
+- **NONE OF THE NINE IS AN EXACT TIE.** Every closed `order_probe` row carries `same_priority: false`
+  and a non-zero `speed_gap` (30, 62, 50, 38, 31, 6, 31, 73, 172). Nothing here is a decision for Will.
+- **FILED, NOT FIXED, AND UNMASKED BY THIS PASS: ARMOR TAIL REFUSES A PRIORITY MOVE AIMED AT THE
+  MOVER'S OWN ALLY.** Game `...2653843264` now runs the encored Helping Hand at +5 exactly as the
+  authority does and then parts on our `|cant|p1b: Farigiraf|ability: armortail|helpinghand`, which
+  the authority does not write. Opposite sign to card C6 and its own batch.
+- **A FOURTH PRE-EXISTING NON-ZERO, A/B VERIFIED:** `tests/test-engine-diff.js` exits **rc=3** with
+  `disagreed 0` — the pool advisory for 9 undrawable species, identical on
+  `git show HEAD:engine/medicham2-browser.js` swapped into the tree with the digest checked either
+  way. The three the brief named are unchanged: `probe_shield_refusal_line` 13/1,
+  `probe_random_target_address` `sd=61 sites=62`, and `tests/test-resolution-order.js` on
+  `Reached heap limit` rc 134 — that last one is ENGINE's, it is still not runnable, and this work
+  neither made it runnable nor made it worse.
+- Full account: `docs/_reports/2026-08-29-encore-order.md`. Release `552e2a4510e8` ->
+  **`cc7dca43e395`**.
+
+
 ## [5.216.0] — 2026-08-29
 
 ### Fixed

@@ -1,6 +1,39 @@
 # ABRA — Technical Documentation
 
-**Version 5.216.0 · Last updated 2026-08-29**
+**Version 5.217.0 · Last updated 2026-08-29**
+
+**5.217.0 - A MID-TURN ENCORE NOW RELOCATES THE TARGET'S QUEUED ACTION INTO THE ENCORED MOVE'S
+PRIORITY BRACKET.**
+`engine/medicham2-browser.js`. `data/mods/champions/moves.ts:286-320` replaces
+`encore.condition.onStart`; its last clause calls `this.queue.changeAction(target, {choice:'move',
+moveid, order})` and rewrites the new entry's `.priority`. Mainline's `encore` stops at
+`this.effectState.duration++` and leaves the swap to `onOverrideAction`, documented at
+`sim/battle-queue.ts:290` as the door that does not change priority order. WIRE 118 implemented
+mainline, correctly for the case Champions leaves alone.
+- `encoreRelocateQueued(who, mvId)` is new. It walks the live turn queue from the cursor forward,
+  finds the target's own pending entry and writes `_selMv = mvId` on it. It rebuilds no action and
+  draws no die; the MOVE is still swapped at execution by WIRE 143.
+- It is called from `applyMoveVolatile` BELOW `mentalHerbCures` and only while `_vol.encore` still
+  stands, which takes the authority's `!target.hasItem('mentalherb')` clause from the item's own
+  implementation rather than a second copy. `sdChoiceOf(it.a) !== 'move'` is `willMove`'s own
+  restriction and `actionMoveId(it.a) === mvId` is `action.moveid !== move.id`.
+- `ENCORE_Q` is the live turn's `acts` array plus its cursor, assigned at the top of every action
+  (above the mega phase and above `_resortTail`) and cleared on the outer exit of the turn beside the
+  flinch clear, so every `break _TURN` drops it. `MEDFAILS.encoreRelocateNoQueue` must read 0.
+- `actionPriority` now resolves the bracket's VALUE and CATEGORY from one move id. It read the value
+  off `_selMv` and the category off the action's `kind`; the authority reads `baseMove.priority` and
+  `baseMove.pranksterBoosted` off one record on consecutive lines, and `getActionSpeed` re-derives
+  both off `action.move`. Every kind routes through the `_selMv` line now, not only `attack`.
+  `movePriority` returns each displaced branch's own constant (protect 4, wideguard 3, tailwind 0,
+  trickroom -7), checked before the line was written; a bare switch carries no `_selMv` and still
+  returns 6.
+- `MEDSEEN.encoreRelocatedQueuedAction`; `MEDI_ENCORE_KEEPS_SELECTED_BRACKET=1` restores the previous
+  reading and stamps `MEDFAILS.encoreKeepsSelectedBracketRestored`.
+- `tests/probe_encore_bracket.js`: 11 arms, 5 red and 6 negative, no typed expectation - both engines
+  play one script under the `middle` pin and the `|move|` orders are compared. The bracket that lands
+  is a full re-derivation rather than the override's printed delta, because `Battle#runAction` ends
+  (gen >= 8, `sim/battle.ts:2915-2922`) by running `getActionSpeed` over the queue and re-sorting; the
+  `prankster-status` arm separates the two and the authority answers the re-derivation.
 
 **5.216.0 - `sideBuffRefuses` NO LONGER SKIPS THE TARGET'S OWN SIDE CONDITION WHEN THE SOURCE IS A
 PARTNER.**

@@ -1,6 +1,27 @@
 # ABRA — the plain-English deck
 
-**Version 5.216.0 · 2026-08-29 · Will Hooper**
+**Version 5.217.0 · 2026-08-29 · Will Hooper**
+
+**5.217.0 - ENCORE DOES NOT JUST CHANGE WHICH MOVE YOU USE. IN THIS FORMAT IT CHANGES WHEN YOU USE IT.**
+
+Encore forces a Pokemon to repeat its last move. If it lands on somebody who has already picked
+something for this turn but has not moved yet, this format's version of Encore reaches into the turn
+order and moves them - because the move they are now forced into may be a faster-priority move than
+the one they chose. Ordinary Pokemon does not do this; the version everyone reads about leaves you
+where you were. We had implemented the ordinary version.
+
+So a body Encored into Protect, or Helping Hand, or Rage Powder went at the end of the turn instead of
+near the front. In one real game that meant its Protect failed, because a Protect that is the last
+thing to happen in a turn has nothing left to protect against.
+
+Nine of the eleven turn-order disagreements our comparison found across 961 real games were this one
+thing. Fixing it did not change how many games end up with a different board, because those games were
+going to differ anyway - what it did was uncover WHY. Two new problems became visible underneath it,
+both written down.
+
+We also found a smaller thing in the same place: when a move gets overridden we were pricing its
+priority off one move and its "is this a status move" flag off another. The real game reads both off
+the same record.
 
 **5.216.0 - SAFEGUARD PROTECTED US FROM THEM AND NOT FROM US.**
 

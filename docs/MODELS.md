@@ -1,6 +1,14 @@
 # ABRA — the model family (living reference)
 
-**Version 5.216.0 · Last updated 2026-08-29.**
+**Version 5.217.0 · Last updated 2026-08-29.**
+
+**5.217.0 - NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON NOW PUTS AN ENCORED ACTION WHERE
+CHAMPIONS PUTS IT.** A mid-turn Encore relocates the target's queued action into the ENCORED move's
+priority bracket; `medicham2` kept it in the chosen move's, which is mainline's rule and not this
+format's. `actionPriority` now resolves value AND category from one move rather than two.
+**Census 794 to 795 probed mechanics live, 0 missing.** `order_probe` **11 to 2** over 961 games;
+board-parted **unmoved at 97**. Every quarantined model figure in this ledger stays quarantined; this
+changes what the simulator does, not what any model scores.
 
 **5.216.0 - NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON NOW LETS A SIDE-WIDE STATUS
 SHIELD REFUSE WHAT ITS OWN SIDE WROTE.** `medicham2` skipped Safeguard whenever the source stood on

@@ -1,6 +1,20 @@
 # ABRA — Project Summary
 
-**Version 5.216.0 · 2026-08-29 · Will Hooper**
+**Version 5.217.0 · 2026-08-29 · Will Hooper**
+
+**5.217.0 - CARD F1's SYMPTOM WAS RIGHT AND ITS CAUSE WAS THE WRONG WAY ROUND, WHICH IS NOW FOUR
+CARDS IN A ROW.** The card read the encored body as moving to the BACK of our turn. What happens is
+that the authority moves it FORWARD: Champions overrides `encore.condition.onStart` and rewrites the
+target's queued action through `queue.changeAction`, where mainline leaves the swap to
+`onOverrideAction` - the door `sim/battle-queue.ts` documents as the one that does not change ordering.
+This engine implemented mainline's rule, which is correct for the case Champions leaves alone.
+**Census 794 to 795.** **`order_probe` 11 rows to 2** - nine of the eleven turn-order disagreements in
+961 real games were this single mechanic, including the four `protect(+4)` rows the card review nearly
+filed as a priority-table defect and retracted. Protocol divergence **216 to 214**; **board-parted
+unmoved at 97**, which was NOT the prediction and is recorded as wrong: the ordering line was masking
+the causes the games actually part on, two of which are now visible and filed (Armor Tail refusing a
+priority move aimed at the mover's own ally; the `stall` family, which this pass **refutes** as
+downstream of F1 - 13 leaves in 13 games before and after, not one moved).
 
 **5.216.0 - THE THIRD PLACE THIS SIMULATOR ASSERTED THAT THE NEAR SIDE OF THE FIELD COULD NOT
 MATTER, AND THE ASSERTION WAS WRITTEN OUT IN WORDS ABOVE THE BRANCH.** Safeguard's refusal was gated

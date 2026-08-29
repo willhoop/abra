@@ -1,6 +1,25 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.216.0 · Last updated 2026-08-29**
+**Version 5.217.0 · Last updated 2026-08-29**
+
+**5.217.0 - THIS FORMAT'S OWN COPY OF ENCORE MOVES THE ENCORED ACTION TO A DIFFERENT PLACE IN THE
+TURN, AND THE REFERENCE IMPLEMENTATION THE SIMULATOR WAS BUILT AGAINST DOES NOT.** The format
+overrides the move's condition and, when the body it lands on has not yet acted, rewrites that body's
+queued action outright and re-prices its priority; the unmodified implementation leaves the swap to an
+execution-time hook whose own source comments state that it does not change ordering. The simulator
+implemented the unmodified rule - which is correct for the case the format leaves alone, an Encore
+already standing when the turn opens - so a body Encored into a faster-bracket move resolved in the
+bracket of the move its player had chosen. The bracket that finally applies is not the arithmetic the
+override writes, either: the override runs inside another body's action, and the post-action re-sort
+recomputes priority from the encored move through the priority-modifying event, which answers
+differently for an ability that keys on move CATEGORY. One arm stages exactly that separation and the
+reference answers the re-derivation. A second correction rides with it: the priority function read its
+value from the selected move and its category from the action's kind - two different moves whenever
+anything overrode a choice - where the reference reads both off one record on consecutive lines. One
+probed mechanic added (794 to 795). Over 961 real games the turn-order instrument falls from **eleven
+disagreements to two**, protocol divergence from 216 to 214, and boards parted is **unmoved at 97** -
+the affected games part on causes the ordering line was concealing, two of which are newly visible and
+filed.
 
 **5.216.0 - A SIDE-WIDE STATUS SHIELD REFUSED ONLY WHAT THE OPPOSING SIDE WROTE, AND THE RULE IT
 WAS IMPLEMENTING MAKES NO SUCH DISTINCTION.** The reference simulator's handler excludes the affected

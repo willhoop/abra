@@ -104,9 +104,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  794/794 probed mechanics live, 0 missing   (census 2026-08-29 05:40)
+  795/795 probed mechanics live, 0 missing   (census 2026-08-29 06:19)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 6.5 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 7.3 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -121,7 +121,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 4665862a6d9d now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 8e4ffa1612a9 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/300 probed, 15 unprobed;  270/300 have an engine consumer, 30 have none
@@ -129,9 +129,116 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 05:49_
+_stamped 2026-08-29 06:35_
 
 <!-- /GENERATED -->
+
+## CHAMPIONS' OWN ENCORE REWRITES THE QUEUED ACTION AND MAINLINE DOES NOT, SO THE ENCORED BODY MOVES FORWARD AND NOT BACK. **CENSUS 794 -> 795 LIVE / 795 PROBED / 0 MISSING. `order_probe` 11 ROWS -> 2 OF 961 GAMES, PROTOCOL 216 -> 214, BOARD-PARTED UNMOVED AT 97 — AND THAT LAST ONE WAS NOT THE PREDICTION.** 2026-08-29.
+
+Full account: `docs/_reports/2026-08-29-encore-order.md`. Release
+`552e2a4510e8` -> **`cc7dca43e395`**.
+
+**THE CARD'S SYMPTOM WAS RIGHT AND ITS CAUSE WAS THE WRONG WAY ROUND, WHICH IS NOW FOUR CARDS IN A
+ROW.** Card F1 read the encored body as being moved to the BACK of our turn. It is the AUTHORITY that
+moves it, FORWARD: `data/mods/champions/moves.ts:286-320` REPLACES `encore.condition.onStart` and its
+last clause is `this.queue.changeAction(target, {choice:'move', moveid, order})` followed by a rewrite
+of the new entry's `.priority`. Mainline's `encore` stops at `duration++` and leaves the swap to
+`onOverrideAction` — the door `sim/battle-queue.ts:290` documents, in as many words, as the one that
+*"doesn't change priority order"*. **WIRE 118 implemented mainline and was right about mainline**, and
+right about the case Champions leaves alone: an Encore already standing when the turn opens, where the
+request offers only the encored move and `action.moveid` IS it.
+
+**THE BRACKET THAT LANDS IS A FULL RE-DERIVATION, NOT THE DELTA THE OVERRIDE PRINTS — AND THAT IS
+MEASURED, NOT ARGUED.** The Encore resolves inside another body's move action, and `Battle#runAction`
+ends (gen >= 8, `sim/battle.ts:2915-2922`) by running `getActionSpeed` over every queued action and
+re-sorting; `getActionSpeed` recomputes priority off `action.move.id` through `ModifyPriority`, which
+overwrites the delta. The re-sort cannot be skipped — it is gated on `queue.peek()?.choice === 'move'`
+and the relocated entry is itself a queued move. The `prankster-status` arm is the separation: a
+Prankster body that clicked a damaging move and is Encored into Calm Mind reads `0 - 0 + 0 = 0` under
+the printed arithmetic, and **Showdown puts it second**. An implementation of the formula alone stays
+red there.
+
+**THREE EDITS, AND THE THIRD IS A CORRECTION IN ITS OWN RIGHT.** `encoreRelocateQueued` writes
+`_selMv` on the target's pending entry and nothing else — no action rebuilt, no die drawn, the MOVE
+still swapped at execution where WIRE 143 put it. `ENCORE_Q` publishes the live turn's `acts` and
+cursor, assigned at the loop top above the mega phase and `_resortTail` (the two things that CHANGE
+the order) and dropped on the outer exit beside the flinch clear, so every `break _TURN` clears it.
+And `actionPriority` **read its VALUE off `_selMv` and its CATEGORY off the action's KIND** — two
+different moves whenever anything overrode a choice, where the authority reads `baseMove.priority` and
+`baseMove.pranksterBoosted` off one record on consecutive lines. Every kind routes through the
+`_selMv` line now, not only `attack`: a body that chose Protect (+4) and was Encored into Charm kept
++4, because the `k==='protect'` branch never looked at `_selMv` at all. Equivalence was CHECKED before
+the line was written — `movePriority` returns each displaced branch's own constant (protect 4,
+wideguard 3, tailwind 0, trickroom -7) — and a bare switch carries no `_selMv` and still returns 6.
+
+**THE AUTHORITY'S TWO GUARDS ARE HONOURED WITHOUT EITHER BEING SPELLED HERE.** `willMove`'s own
+restriction to a queued MOVE action is `sdChoiceOf(it.a) !== 'move'` plus the forward scan;
+`action.moveid !== move.id` is `actionMoveId(it.a) === mvId`; and `!target.hasItem('mentalherb')` comes
+from the item's OWN implementation, because the call sits BELOW `mentalHerbCures` and fires only while
+`_vol.encore` still stands. A second copy of the herb rule is the shape CLAUDE.md's FACTS ARE GLOBAL
+paragraph forbids.
+
+**BOARD-PARTED DID NOT MOVE AND THAT WAS NOT THE PREDICTION — RECORDED AS WRONG RATHER THAN
+EXPLAINED AWAY.** Said before the run: Encore is common and three of the sixty first divergences carry
+it, so both scoreboards should move. The lab moved (795) and the protocol moved (216 -> 214, class
+`ordering` 60 -> 53, seven causes gone and none added); the board sat at 97 with the identical 40
+first-board-divergence games, 0 in and 0 out. **The ordering line was MASKING the causes those games
+actually part on**, and what the pool run bought was the unmasking: `…2653843264` now runs its
+encored Helping Hand at +5 exactly as the authority does and parts one line later on Armor Tail
+refusing a priority move aimed at the MOVER'S OWN ALLY, and `…2656709541` parts directly on
+`-singleturn Protect` vs `-fail` with `p2.active[0].stall m=0 s=9`.
+
+**AND THE CARD'S 11-GAME `stall` ATTRIBUTION IS REFUTED BY MEASUREMENT.** `active[].stall` is **13**
+leaves in 13 games at this baseline, not 11, and after the fix it is still 13 / 13 — **not one leaf
+moved.** It is card F2's family. **None of the nine closed rows is an exact tie**: every one carries
+`same_priority: false` and a non-zero `speed_gap` (30, 62, 50, 38, 31, 6, 31, 73, 172), so there is
+nothing here for Will to decide.
+
+**THE PROBE WAS WRONG BEFORE THE ENGINE WAS, TWICE, AND THE COUNTERS CAUGHT BOTH.** The first run read
+11 failures across 11 arms; two of them were the FIXTURE. `prankster-status` staged an Encore that
+never landed (`-start` count 0) because a **Prankster-boosted status move cannot touch a Dark type**
+and the only two slow Prankster carriers this regulation has are Sableye and Grimmsnarl, both Dark;
+`already-moved` staged a bounced Encore rather than a bumped duration because **Encore carries the
+`protect` flag**. Neither was visible from the order alone — the `-start` assertion on BOTH streams is
+what named them.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"card F1 — Encore relocates the encored body's action in our turn order"*~~ — **landed, and the
+  direction was the opposite of the card's.** One census row carries it and
+  `tests/probe_encore_bracket.js` carries eleven arms.
+
+**Joins it:**
+- **ARMOR TAIL REFUSES A PRIORITY MOVE AIMED AT THE MOVER'S OWN ALLY.** Unmasked by this pass in
+  `…2653843264`: a Helping Hand at one's own partner draws `|cant|p1b: Farigiraf|ability: armortail`
+  here and nothing at all on the authority. **Opposite sign to card C6**, which says Armor Tail does
+  not block priority — both can be true, one is the ally axis and one is the foe axis. Not staged.
+- **THE `stall` FAMILY IS 13 GAMES AND IS NOT F1**, proved rather than argued. `…2656709541` is the
+  clearest: the ordering is now right and it parts on `-singleturn Protect` vs `-fail` with
+  `p2.active[0].stall m=0 s=9`. That is `randomChance(1, counter)` and the `willAct` gate, card F2.
+- **`ENCORE_Q` IS A SECOND HANDLE ON THE TURN QUEUE.** `_resortTail`, `_megaPhase` and
+  `_anyActionAfter` are closures over `acts`; this is the first module-level view of it, and nothing
+  enforces that the two stay in step beyond the cursor being assigned at the loop top. The counter is
+  the whole guard.
+- **`actionPriority`'s WIDENED `_selMv` LINE REACHES THE CHOICE LOCK TOO**, where `_selMv` is the
+  caller's move and the action is the locked one. Unreachable on the authority (the request offers only
+  the locked move) and unreachable through the differential's `scripted()`, which resolves against that
+  request — named because it is a behaviour change outside the mechanic that motivated it, not because
+  anything measured it.
+
+### OWED, NOT RUN
+
+The exact commands are the `## OWED, NOT RUN` block of
+`docs/_reports/2026-08-29-encore-order.md`. **A FOURTH PRE-EXISTING NON-ZERO beyond the three the
+brief named:** `tests/test-engine-diff.js` exits **rc=3** with `disagreed 0` — the pool advisory for
+9 undrawable species — and it does so identically on `git show HEAD:engine/medicham2-browser.js`
+swapped into the tree, digest checked either side (`d381ba91a2b4aa05033ff664502d6034` both ways).
+Reported, not filed, not fixed. The three named are unchanged: `probe_shield_refusal_line` 13/1,
+`probe_random_target_address` `sd=61 sites=62`, and `tests/test-resolution-order.js` on
+`Reached heap limit` rc 134 — **that last one is ENGINE's, it is still not runnable, and this work
+neither made it runnable nor made it worse.**
+
 
 ## THE THIRD SITE OF THE ALLY-SIDE CLASS, AND THE PARAGRAPH ABOVE THE FUNCTION CARRIED THE BUG IN WORDS. **CENSUS 792 -> 794 LIVE / 794 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED UNMOVED AT 97 OF 961, PROTOCOL UNMOVED AT 216, EVERY BLOCK OF THE ARTIFACT IDENTICAL STRING-FOR-STRING — PREDICTED BEFORE THE RUN, BECAUSE SAFEGUARD IS 22 CORPUS USES AND 17 OF 13,214 POOL GAMES MENTION IT AT ALL.** 2026-08-29.
 

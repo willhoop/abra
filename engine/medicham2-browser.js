@@ -1881,6 +1881,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * have run. A zero after real games with an Encore in them is the finding -- it means the only turn
    * the override can fire on is being missed, which is the state this counter was added to end. */
   encoreOverrodeAtExecution: 0,
+  /* 2026-08-29 -- AN ENCORE THAT LANDED MID-TURN AND MOVED THE TARGET'S QUEUED ACTION INTO THE
+   * ENCORED MOVE'S PRIORITY BRACKET. This is CHAMPIONS' OWN clause and mainline has nothing like it:
+   * `data/mods/champions/moves.ts:302-318` calls `this.queue.changeAction(target, {...moveid...})` and
+   * then rewrites the entry's `.priority`, where mainline's `encore` leaves the swap to
+   * `onOverrideAction` -- the door `sim/battle-queue.ts:290` documents as the one that "doesn't change
+   * priority order". Counted apart from `encoreOverrodeAtExecution`, which is the OTHER branch: that
+   * one is the target that has already acted, where the authority bumps the duration and swaps at
+   * execution. A zero across games with a mid-turn Encore in them is the finding. */
+  encoreRelocatedQueuedAction: 0,
   /* WIRE 145 -- a `_lock` into a STATUS move was resolved into a real action. It reads zero on every
    * run before this wire and it CANNOT have read anything else: both selection-time call sites
    * resolved the lock through `targetForMove`, which refuses a 0-power move, so a status lock became
@@ -2120,6 +2129,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* 2026-08-29 -- `encoreRelocateQueued` was reached with no turn queue in scope, so a mid-turn Encore
+     could not be placed at all. It must read 0: the only caller is inside the action loop, which owns
+     the queue. A non-zero says an Encore volatile arrived from a road this engine has not modelled --
+     loud, because a silent skip here is indistinguishable from the defect this counter's fix closed. */
+  encoreRelocateNoQueue: 0,
   /* ROADMAP #514 -- this module's own source could not be read, so LATCH_FIELDS_WRITTEN is empty and
      NO user-latch gate is enforced. That is the pre-change behaviour and it is announced rather than
      assumed: a silent empty set and a correctly-empty one produce the identical board. */
@@ -14005,6 +14019,15 @@ if((side==='A'?field.twA:field.twB)>0)_mods.push(2);
  * strictly before every move. It is here because the COMMIT-TIME QUEUE carries an entry for it and
  * this engine has no action of its own for it; see `commitQueueSort`. */
 const TURN_ORDER = { move: 200, next: 3, last: 201, switch: 103, megaEvo: 104, charge: 107 };
+/* 2026-08-29 -- MEDI_ENCORE_KEEPS_SELECTED_BRACKET=1 puts back the reading this file held until
+ * today: a mid-turn Encore leaves the target's action in the bracket of the move its PLAYER chose.
+ * That is mainline's rule and it is not Champions'. See `encoreRelocateQueued` for the whole account
+ * and for the two clauses the authority guards the relocation with. Same shape as
+ * MEDI_STALL_EAGER_CLEAR and MEDI_RESIDUAL_COLLAPSE, and it is loud:
+ * `MEDFAILS.encoreKeepsSelectedBracketRestored` is written at load. */
+const ENCORE_KEEPS_SELECTED_BRACKET=(typeof process!=='undefined'&&process.env
+                                     &&process.env.MEDI_ENCORE_KEEPS_SELECTED_BRACKET==='1');
+if(ENCORE_KEEPS_SELECTED_BRACKET)MEDFAILS.encoreKeepsSelectedBracketRestored=1;
 /* The bracket, lifted out of battleTurn so the comparator is one module-level function rather than a
  * closure nothing outside the turn could reach. Behaviour is unchanged from the closure it replaces. */
 function actionPriority(it, field){
@@ -14053,6 +14076,27 @@ function actionPriority(it, field){
    * executes what Encore forces. `_pmOf` is handed the same id for the identical reason — Prankster
    * and Gale Wings are captured on that same pre-override line. Absent `_selMv` (every unlocked
    * action) this is exactly what it always was. */
+  /* 2026-08-29 -- ONE MOVE OBJECT DECIDES BOTH HALVES OF THE BRACKET, AND THIS FUNCTION USED TWO.
+   *
+   * The authority reads `baseMove.priority` and `baseMove.pranksterBoosted` off the SAME record on
+   * consecutive lines (`sim/battle-actions.ts`), and `getActionSpeed` re-derives both off
+   * `action.move` on every re-sort (`sim/battle.ts:2639-2644`). Here the PRIORITY came from `_selMv`
+   * and the CATEGORY came from the action's KIND -- two different moves whenever anything overrode
+   * the choice. A body whose action is `kind:'attack'` and whose bracket move is Calm Mind was priced
+   * as an attack, so Prankster returned 0 for it; the authority answers +1. `statusCategory` is the
+   * artifact's own discriminator and is the only fact in this file that can tell a Status move from a
+   * Special one -- `MC.moves[id].c` reads 'S' for both Slack Off and Psychic.
+   *
+   * EVERY KIND ROUTES THROUGH THIS LINE NOW, not just `attack`, and that is a CORRECTION rather than
+   * a tidy-up: the branches below read their bracket off the action's kind, so a body that chose
+   * Protect (+4) and was Encored into Charm kept +4. Each branch's own constant is exactly what
+   * `movePriority` returns for the same id -- protect 4, wideguard 3, tailwind 0, trickroom -7,
+   * verified against the move table before this line was written -- so an action whose `_selMv` IS
+   * its own move is bit-identical to what it was. A BARE SWITCH carries no `_selMv` at all (no
+   * `move.id`, no `mv`) and still falls through to the `k==='switch'` constant of 6. */
+  const _selId=(it._selMv&&MC.moves[it._selMv])?it._selMv:null;
+  if(_selId) return movePriority(_selId, field)
+                    +_pmOf(it.mon,null,!TAGS.has('move',_selId,'statusCategory'),_selId);
   if(k==='attack'){ const _pmv=it._selMv||it.a.move.id;
                     return movePriority(_pmv, field)+_pmOf(it.mon,null,true,_pmv); }
   /* PRANKSTER, +1 TO ANY STATUS CLICK (now via the tag above). Every kind below is a status
@@ -14101,6 +14145,73 @@ function actionPriority(it, field){
   if(k==='tail')      return movePriority('tailwind', field)+pk;
   if(k==='trickroom') return movePriority('trickroom', field)+pk;
   return movePriority(it.a.mv, field)+pk;
+}
+/* ================= A MID-TURN ENCORE RELOCATES THE TARGET'S QUEUED ACTION ======================
+ *
+ * CHAMPIONS OVERRIDES `encore` AND MAINLINE DOES NOT DO THIS AT ALL. `data/mods/champions/moves.ts`
+ * replaces the whole `condition.onStart`, and the tail of it is:
+ *
+ *     const action = this.queue.willMove(target);                                            :302
+ *     if (!action) {
+ *       this.effectState.duration!++;                        <-- the target has already acted
+ *     } else if (action.moveid !== move.id && !target.hasItem('mentalherb')) {
+ *       const priority = action.priority
+ *                      - this.dex.moves.get(action.moveid).priority
+ *                      + this.dex.moves.get(move.id).priority;
+ *       this.queue.changeAction(target, { choice: 'move', moveid: move.id, order: action.order });
+ *       this.queue.willMove(target)!.priority = priority;                                    :318
+ *     }
+ *
+ * Mainline's `encore` (data/moves.ts) stops at the `duration++` and leaves the swap to
+ * `onOverrideAction`, which `sim/battle-queue.ts:290` documents in as many words as the door that
+ * "doesn't change priority order". WIRE 118 read mainline, and was RIGHT about mainline: a body keeps
+ * the bracket of what its player picked and executes what Encore forces. Champions took the other
+ * door, so for the one case it rewrote -- an Encore landing on a body that has NOT yet acted -- the
+ * action moves into the ENCORED move's bracket.
+ *
+ * THE BRACKET THAT ACTUALLY LANDS IS A FULL RE-DERIVATION, NOT THE DELTA PRINTED ABOVE. The Encore
+ * resolves inside another body's move action, and `Battle#runAction` ends (gen >= 8, sim/battle.ts
+ * :2915-2922) by running `getActionSpeed` over every queued action and re-sorting -- and
+ * `getActionSpeed` recomputes `priority` as `dex.moves.get(action.move.id).priority` passed through
+ * `ModifyPriority`. The relocated entry is itself a queued move, so `queue.peek()?.choice === 'move'`
+ * is satisfied and the re-sort cannot be skipped. The two readings differ whenever an ability
+ * modifies priority by CATEGORY: a Prankster body that clicked an attack and is Encored into a status
+ * move reads 0 under the printed arithmetic and +1 after the re-derivation. Staged as the
+ * `prankster-status` arm of tests/probe_encore_bracket.js, where Showdown answers +1.
+ *
+ * SO THIS WRITES `_selMv` AND NOTHING ELSE. `actionPriority` resolves the whole bracket -- value and
+ * category -- off `_selMv`, and `_resortTail` re-derives `_pri` from it before the very next action,
+ * which is the same instant the authority re-sorts. The MOVE the body executes is still swapped where
+ * it always was, at execution (WIRE 143), so no die moves and no action is rebuilt here.
+ *
+ * BOTH OF THE AUTHORITY'S GUARDS ARE HONOURED, AND NEITHER IS SPELLED HERE:
+ *   - `willMove(target)` answers only for a queued MOVE action, so a body that has already acted, or
+ *     whose action is a bare switch, is not relocated. That is the index scan below plus `sdChoiceOf`.
+ *   - `!target.hasItem('mentalherb')` -- the caller runs `mentalHerbCures` FIRST and this function is
+ *     entered only while `_vol.encore` is still standing, so the herb's own implementation decides it
+ *     rather than a second copy of the item rule. `curesVolatile` is read off the artifact there.
+ *   - `action.moveid !== move.id` -- a body that already chose the encored move is left alone.
+ *
+ * `ENCORE_Q` IS THE LIVE TURN'S QUEUE AND ITS CURSOR. It is assigned fresh at the top of every action
+ * and dropped when the loop ends, so nothing outside a turn can read a stale one; a call that finds no
+ * queue is COUNTED (`MEDFAILS.encoreRelocateNoQueue`) rather than skipped quietly, because a silent
+ * skip here looks exactly like the defect this closes. */
+let ENCORE_Q=null;
+function encoreRelocateQueued(who, mvId){
+  if(ENCORE_KEEPS_SELECTED_BRACKET)return false;
+  if(!who||!mvId||!MC.moves[mvId])return false;
+  const Q=ENCORE_Q;
+  if(!Q||!Q.acts){MEDFAILS.encoreRelocateNoQueue++;return false;}
+  for(let k=Q.at+1;k<Q.acts.length;k++){
+    const it=Q.acts[k];
+    if(!it||it.mon!==who)continue;
+    if(sdChoiceOf(it.a)!=='move')return false;     // willMove() answers for a move action only
+    if(actionMoveId(it.a)===mvId)return false;     // action.moveid !== move.id
+    it._selMv=mvId;
+    MEDSEEN.encoreRelocatedQueuedAction++;
+    return true;
+  }
+  return false;
 }
 /* The sort key for one queued action. `_qc` is rolled once per turn (WIRE 101), `_order` is written
  * only by After You / Quash, `_tie` is rolled once on first demand.
@@ -16964,6 +17075,16 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
     if(who._lastMove&&who._lockT!==Infinity){who._lock=who._lastMove;who._lockT=_tn;}
   }
   mentalHerbCures(who,vol);
+  /* 2026-08-29 -- AND THE QUEUED ACTION IS PLACED, BELOW THE HERB AND NOT ABOVE IT.
+   *
+   * Champions' `encore.condition.onStart` refuses the relocation for a Mental Herb holder by name
+   * (`&& !target.hasItem('mentalherb')`). Asking here, AFTER `mentalHerbCures` has run and only while
+   * `_vol.encore` is still standing, takes that clause from the item's own implementation instead of
+   * from a second copy of the rule -- the shape CLAUDE.md's FACTS ARE GLOBAL paragraph is about, and
+   * the herb's membership is the artifact's `curesVolatile` rather than a name.
+   * `_encoreMove` is read rather than `_lastMove`, because the guards above may have refused. */
+  if(vol==='encore'&&who._vol&&who._vol[vol]>0&&who._encoreMove)
+    encoreRelocateQueued(who,who._encoreMove);
   return true;
 }
 /* WIRE 62 -- MENTAL HERB, 684 sheets, and it undoes the whole point of the click that
@@ -22148,6 +22269,13 @@ function battleTurn(S,rng,actsForA,actsForB){
        * here: this loop body carries ~30 `continue`s and a line at the bottom is skipped by all of
        * them. Before action 0 it is a no-op. See midClearActiveMove for what it costs to omit. */
       midClearActiveMove();
+      /* 2026-08-29 -- THE LIVE QUEUE AND ITS CURSOR, published for the ONE reader that needs to place
+       * an action the authority moved: `encoreRelocateQueued`. Assigned at the loop top, above the
+       * mega phase and the re-sort, because those two are the things that CHANGE the order and a
+       * cursor taken below them would name a different entry. Dropped below the loop, so a volatile
+       * applied outside a turn cannot read a stale queue -- that road is counted, not silently taken.
+       * `_TURN` has `break`s in it and the drop is on the outer side of all of them. */
+      ENCORE_Q={acts,at:actIdx};
       if(!_megaPhaseDone&&acts[actIdx]&&(acts[actIdx]._pri||0)<6)_megaPhase(actIdx);
       /* ROADMAP #322 -- 104 THEN 107. Same trigger as the mega phase, strictly after it: the first
        * action that is not a bare switch is exactly "the switches are done", and the mega phase runs
@@ -34687,6 +34815,11 @@ function battleTurn(S,rng,actsForA,actsForB){
    * It was invisible for as long as it was because that arm ran on `Math.random` and reported the
    * leak on roughly half its runs -- see the seeding note beside it. */
   [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
+  /* 2026-08-29 -- AND THE LIVE QUEUE IS DROPPED ON EVERY EXIT, beside the flinch clear and for the
+   * identical reason: every `break _TURN` jumps over anything inside the block. Nothing outside a turn
+   * may read a cursor into a queue that has already been played -- and a caller that tries is COUNTED
+   * at `MEDFAILS.encoreRelocateNoQueue` rather than silently served the last turn's list. */
+  ENCORE_Q=null;
   /* 2026-08-26 -- `stall` EXPIRES AT THE RESIDUAL, AND THAT IS THE HALF THIS ENGINE COUNTED CLICKS
    * INSTEAD OF.
    *

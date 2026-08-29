@@ -1,10 +1,10 @@
 {
-  "current": "552e2a4510e8",
-  "cut": "2026-08-29T09:40:35.035Z",
-  "why": "safeguard near-side: sideBuffRefuses no longer skips its own side's condition when the source is a partner; the re-ask at the narration guard is quiet",
-  "cuts": 1,
-  "latest_cut": "2026-08-29T09:40:35.035Z",
-  "latest_why": "safeguard near-side: sideBuffRefuses no longer skips its own side's condition when the source is a partner; the re-ask at the narration guard is quiet",
-  "pointer_written": "2026-08-29T09:40:35.047Z",
+  "current": "cc7dca43e395",
+  "cut": "2026-08-29T10:19:14.509Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 7,
+  "latest_cut": "2026-08-29T10:25:10.028Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-08-29T10:25:10.041Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

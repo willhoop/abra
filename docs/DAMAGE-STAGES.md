@@ -1,6 +1,17 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.216.0 — 2026-08-29.**
+**Version: 5.217.0 — 2026-08-29.**
+
+**5.217.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version is a TURN-ORDER
+one: a mid-turn Encore now relocates its target's queued action into the ENCORED move's priority
+bracket, which is where Champions' own `encore.condition.onStart` puts it. Nothing above or below the
+stage table is touched - the same move deals the same amount, at a different point in the turn.
+**RE-RUN THIS PASS, unlike 5.216.0:** `tests/test-engine-diff.js` reports **0 disagreements over 150
+matchups**, seed 20260804, and it wrote to `data/verification/engine-diff.n150.json` -
+`data/engine-diff.json` was NOT touched and the published **0 of 6,000 at all sixteen roll positions**
+still stands from 02:49. The same run was repeated against `git show HEAD:engine/medicham2-browser.js`
+swapped into the tree and produced the identical verdict and the identical exit code, so the rc=3 this
+file's reader may see is the pool advisory for 9 undrawable species and not a disagreement.
 
 **5.216.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version is a STATUS
 REFUSAL: Safeguard now refuses what the target's own partner wrote, which is a `setStatus` and an

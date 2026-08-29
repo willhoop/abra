@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T09:40:29.444Z",
+  "generated": "2026-08-29T10:19:04.294Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 794,
-  "live": 794,
+  "probed": 795,
+  "live": 795,
   "missing": 0,
-  "armed": 794,
+  "armed": 795,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3813,7 +3813,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 27.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5374,6 +5374,16 @@
       "label": "the encored move's target is RE-ROLLED, not aimed at the best foe",
       "live": true,
       "detail": "the same mid-turn Encore, same board, only the seeded rng varied — at 0.1 the forced xscissor hit p1a, at 0.9 it hit p1b (identical targets would mean the re-roll is unwired). The UN-Encored victim's own Brick Break named p1a and hit p1a/p1a at both rng values, and the un-Encored partner hit brickbreak@p1b throughout",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "an Encore landing MID-TURN moves its victim into the bracket of the ENCORED move",
+      "live": true,
+      "detail": "the same three bodies, the same clicks, one bit changed — with a CHARM in place of the Encore the turn ran p1a>p1b>p2a (victim used moonblast, volatile false); with the Encore landing it ran p1a>p2a>p1b (victim used quickattack, volatile true). The victim is the SLOWEST body on the field, so overtaking Garchomp can only be the bracket. Two identical orders here would mean the relocation is unwired",
       "hollow": false,
       "armed": true,
       "directCall": false
