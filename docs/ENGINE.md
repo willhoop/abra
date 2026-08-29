@@ -132,6 +132,98 @@ _stamped 2026-08-29 03:26_
 
 <!-- /GENERATED -->
 
+## THE TEN WEIGHTLESS ROWS WERE NOT UNCOMPUTABLE — THE DEX KNOWS ALL TEN AND THE BUILDER NEVER ASKED. **GENERATOR FIXED, ARTIFACT DELIBERATELY NOT REGENERATED. CENSUS UNMOVED AND UNRUN — PREDICTED, BECAUSE NO ENGINE BYTE AND NO ARTIFACT BYTE MOVED.** 2026-08-29.
+
+Full account: `docs/_reports/2026-08-29-null-weights.md`. **This pass played no game, ran no census,
+no roster and no differential, and wrote no data file.**
+
+**THE COUNT IS TEN AND THE FIELD IS ABSENT, NOT NULL.** `grep -c '"wt":null' data/engine-data.js`
+is **0**; `hasOwnProperty('wt')` is **false** on all ten of `victreebel-mega, feraligatr-mega,
+skarmory-mega, barbaracle-mega, falinks-mega, aegislash-blade, gourgeist-small, gourgeist-large,
+gourgeist-super, palafin-hero`, out of 322 `MC.mons` rows.
+
+**THE VALUE WAS AVAILABLE AT BUILD TIME ALL ALONG.** `build/build_engine_data.js` already declares
+`wt` in `OWNED` and already derives it from `species.weighthg` — **inside the
+`Object.entries(M.MONS)` loop**, which only visits the rows CHOMP's model carries. `mons` is
+assembled from THREE sources; the other two (`data/mc-declared-rows.json`, 15 rows, and any row only
+the previous artifact holds) were appended VERBATIM. So the builder owned `wt` for 312 rows and
+silently did not own it for 10. `engine/merge_mega_into_engine.js` cannot be the fix — its source
+`data/mega-dex-official.json` carries **no weight field at all** (0 of 359 forms), and a second dex
+read there would be a second implementation of one fact.
+
+**THE PASS WAS PRINTED BEFORE IT WAS WIRED**, because a new derivation over-matches:
+`would fill: 10   already agree: 312   DISAGREE: 0   dex has no weight: 0`. Zero collateral.
+
+**SIX CROSS A BRACKET, CONFIRMED TWICE.** Champions overrides no `basePowerCallback` at all, so all
+four weight moves inherit mainline; `data/tags.json`'s kg brackets are the handler's hectogram
+thresholds converted and they agree.
+
+| row | fallback kg | true kg | BP fallback -> BP true |
+|---|---|---|---|
+| `victreebel-mega` | 15.5 | 125.5 | **40 -> 100** |
+| `feraligatr-mega` | 88.8 | 108.8 | **80 -> 100** |
+| `skarmory-mega` | 50.5 | 40.4 | **80 -> 60** (the only DOWN step in the format) |
+| `barbaracle-mega` | 96 | 100 | **80 -> 100** |
+| `gourgeist-small` | 12.5 | 9.5 | **40 -> 20** |
+| `gourgeist-super` | 12.5 | 39 | **40 -> 60** |
+| the other four | | | unchanged |
+
+Measured as damage across three weight arms on one body, with a fixed-base-power control of the same
+type and category that **does not move on any arm of any row** — Victreebel-Mega takes 1 / 22 / 55
+against a control of 42 / 42 / 42.
+
+**AND THE FALLBACK IS NOT ALWAYS THE BASE FORME.** `buildMon` stamps `wt: m.wt||null`, so a body
+BUILT at one of these rows carries `null`, `effWeight` returns null, and the move falls through to
+its dex `basePower` of **0**. Proved through the real paste door: `Victreebel @ Victreebelite ->
+victreebel-mega wt=null` and `Gourgeist-Super @ Leftovers -> gourgeist-super wt=null`. So a Low Kick
+into a pasted Victreebel-Mega deals **1** where it should deal **55**, and
+`MEDFAILS.weightRowNoValue` cannot see that half at all — `weightFollowsForme` is never called for a
+body that never changed forme.
+
+**`artifact_audit.js` WOULD NOT HAVE CAUGHT THIS AND WOULD NOT CATCH A SECOND INSTANCE**, and that is
+now written into its own header rather than left as coverage-by-appearance. `wt` IS in its `FIELDS`
+list: check A's rule is `mr > 0.9 && or < 0.5` and five of six crossers are megas — **5 of 76 =
+6.6%**; check B has no `SOURCES` entry for `wt` because its upstream is the DEX, not a `data/` file;
+check C sees nothing because nothing is mis-keyed. The instrument that DID see it is
+`build_engine_data.js`'s ROW CENSUS, which **prints** `UNEXPLAINED: 10` and does not decide the exit
+code. No fourth check was added — a gate on a gate is bloat.
+
+**ALL SIX CROSSERS DO OCCUR IN THE FROZEN POOL** (17,381 games): 20 / 33 / 25 / 25 / 9 / 15
+appearances, co-occurring with a weight move in 6-11 games each. **Stated before any run: the LAB
+should move and the POOL should not** — 42 co-occurrences in 17,381 is ~2.3 expected games in a 961
+sample, before asking whether the move was aimed at that body.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"`data/engine-data.js` is not ENGINE's to edit — this is ten one-field writes for whoever owns
+  the builder"*~~ — it was never ten hand writes. **The generator is fixed** and the ten fill
+  themselves from the dex on the next build.
+
+**Stays on it, sharper:**
+- **The artifact still holds the ten weightless rows.** The fix is in `build/build_engine_data.js`
+  and `data/engine-data.js` was NOT regenerated, deliberately: it is in `engine_release.js`
+  `SOURCES`, a MEASURE agent is running roster stages, and `--check` says a regeneration today ALSO
+  adds `floette-eternal-mega` and reorders the keys from index 35. **Both of those pre-date this
+  pass** — the same `--check` printed them before a byte was edited. That is a three-part value
+  change and belongs with whoever owns the pipeline.
+- **`MEDFAILS.weightRowNoValue` is still non-zero** and must fall to zero when the artifact lands.
+
+**Joins it:**
+- **THE MEGA-WEIGHT PROBE STILL HAS NO DOWN-STEP ARM, AND `skarmory-mega` IS STILL THE ONLY
+  CANDIDATE** (50.5 -> 40.4 kg, BP 80 -> 60). It becomes stageable the moment the artifact carries
+  the weights and not before; today it would assert the data hole.
+- **NO PROBE COVERS THE `wt=null` DOOR** — a body BUILT at one of these rows, as opposed to one that
+  forme-changed into it. Different door, different failure (BP 0 rather than a wrong bracket), and
+  no counter sees it.
+
+### OWED, NOT RUN
+
+The exact commands, with the regeneration hazard stated first, are the `## OWED, NOT RUN` block of
+`docs/_reports/2026-08-29-null-weights.md`. `node engine/status.js --write` was **not** run: two
+files belonging to another agent are modified in the tree, and stamping the generated blocks would
+record a half-modified tree as state.
+
 ## A PIVOT IS A MOVE, AND THE DRAW SITE REFUSED IT BY ACTION KIND — PARTING SHOT WAS THE ONE SINGLE-TARGET STATUS CLICK IN THE FORMAT THAT WALKED PAST A FOLLOW ME. **CENSUS 786 -> 788 LIVE / 788 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 114 -> 106 OF 961, `by_cause` BOARD-MATERIAL GAMES 104 -> 96, `-unboost: a different body` 5 -> 0, `boosts.atk` LEAF FAMILY 19 -> 10 GAMES AND `boosts.spa` 11 -> 4, `arms_comparable` COMPARABLE. DAMAGE DIFFERENTIAL 0/6000 AT ALL SIXTEEN CORNERS, SEED 20260804 — UNMOVED, PREDICTED.** 2026-08-29.
 
 Card **C1** of `docs/_reports/2026-08-29-empirical-divergence-cards.md`. Full account:

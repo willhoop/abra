@@ -31,6 +31,36 @@
  *                            Re-running such a builder to "fix" a gap doubles the dex instead. This
  *                            check is what makes the repair safe to attempt.
  *
+ * ══ WHAT THESE THREE CHECKS DO NOT COVER, MEASURED 2026-08-29 ══════════════════════════════════
+ *
+ * THE FOURTH INSTANCE OF THE CLASS WALKED PAST ALL THREE, AND SAYING SO IS THE POINT: an audit whose
+ * blind spot is undocumented reads as coverage. Ten rows of data/engine-data.js carried NO `wt` at
+ * all — victreebel-mega, feraligatr-mega, skarmory-mega, barbaracle-mega, falinks-mega,
+ * aegislash-blade, the three Gourgeist sizes and palafin-hero — and six of them therefore priced
+ * Low Kick / Grass Knot in the wrong bracket. `wt` is in FIELDS below, so the field was in view and
+ * the finding still did not appear:
+ *
+ *   A MISSED IT BECAUSE IT ASKS ABOUT A WHOLE COHORT. The rule is `mr > 0.9 && or < 0.5` — a field
+ *     null for ~100% of the mega cohort and ~0% of the rest. Five of the six were megas, which is
+ *     5 of 76 = 6.6%, nowhere near the threshold. That rule is RIGHT for the 2026-07-30 bug it was
+ *     written from (all 57 mega rows at once) and it is structurally blind to a SUBSET. Lowering the
+ *     threshold is not the fix: it would fire on every legitimately-absent team-build field.
+ *
+ *   B MISSED IT BECAUSE `wt` HAS NO SOURCE ENTRY ANYWHERE IN `SOURCES`. The one registered mapping
+ *     is mega-dex-official.json -> merge_mega_into_engine.js writing `{ab, mv, item}`, and that
+ *     source file carries no weight field at all (measured: 0 of 359 forms). The real upstream for
+ *     `wt` is the Champions DEX, which is not a file in data/ and so was never registered.
+ *
+ *   C MISSED IT BECAUSE THE KEYS ARE SPELLED CORRECTLY. Nothing was mis-keyed; a derivation was
+ *     simply never applied to rows that arrive from a different source.
+ *
+ * A SECOND INSTANCE SPELLED DIFFERENTLY WOULD ALSO WALK PAST — any field absent on a MINORITY of a
+ * cohort, whose upstream is the dex rather than a data/ file, is invisible here. The instrument that
+ * did see it is build/build_engine_data.js's ROW CENSUS, which puts every null to the format and
+ * prints `UNEXPLAINED`; note that it PRINTS and does not decide that script's exit code, so it is a
+ * diagnostic and not a gate. No fourth check is added here — the census already counts the shape,
+ * and a gate on a gate is bloat.
+ *
  * Findings are reported, never repaired. This file writes nothing.
  *
  *   node engine/artifact_audit.js

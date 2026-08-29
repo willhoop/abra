@@ -157,6 +157,38 @@ if ((CHECK || PURITY) && !DEX) {
   console.error('  nothing. Fix the dex (engine/champions_sim.js / SHOWDOWN_PATH) and re-run.');
   process.exit(2);
 }
+/* ── THE ONE PLACE THAT TURNS A SPECIES KEY INTO A WEIGHT (2026-08-29) ───────────────────────────
+ *
+ * WHY THIS IS A FUNCTION AND NOT AN EXPRESSION INSIDE ONE LOOP. It was an expression inside one loop
+ * — the `Object.entries(M.MONS)` walk below — and that loop only visits the rows CHOMP's model
+ * carries. `mons` is assembled from THREE sources (that walk, data/mc-declared-rows.json, and any
+ * row only the previous artifact holds), and the other two were appended verbatim. So the builder
+ * owned `wt` (it is in OWNED) for 312 rows and silently did not own it for 10:
+ *
+ *     victreebel-mega, feraligatr-mega, skarmory-mega, barbaracle-mega, falinks-mega,
+ *     aegislash-blade, gourgeist-small, gourgeist-large, gourgeist-super, palafin-hero
+ *
+ * The dex knows the weight of ALL TEN — this is not a case of the value being unavailable at build
+ * time, which is how the hand list read it ("uncomputable rather than wrong"). It is the derivation
+ * never being applied to those rows. Measured before the pass was wired: over all 322 rows it fills
+ * exactly those 10, agrees with the stored value on the other 312, and DISAGREES with none — so it
+ * is not an over-matching rewrite of the weight column.
+ *
+ * WHAT THE HOLE COST, since a null `wt` is not inert:
+ *   - a body BUILT at one of these formes gets `wt: null` from buildMon, and medicham2's `effWeight`
+ *     returns null, so Low Kick / Grass Knot / Heavy Slam / Heat Crash fall through to their dex
+ *     basePower of 0 — UNCOMPUTABLE, the exact 2026-07-28 shape;
+ *   - a body that FORME-CHANGES into one keeps the stamp of the body that left the field, which
+ *     medicham2 counts as `MEDFAILS.weightRowNoValue` and prices at a real but wrong number.
+ *
+ * NO try/catch. `Dex.species.get` does not throw on an unknown key — it returns `exists: false` —
+ * so a catch here could only swallow a real instrument failure, which is the census block's own
+ * stated rule two hundred lines down. The dex-less case is handled by the `DEX &&` guard and by the
+ * caller's fallback to the stored value, and it is announced at load. */
+function dexWeightKg(key) {
+  const sp = DEX && DEX.species.get(key);
+  return (sp && sp.exists && sp.weighthg) ? sp.weighthg / 10 : null;
+}
 const OUT = path.join(__dirname, '..', 'data', 'engine-data.js');
 const DATA = (...p) => path.join(__dirname, '..', 'data', ...p);
 
@@ -285,13 +317,7 @@ function buildMC(prior, quiet) {
      * Taken from the dex (species.weighthg, hectograms) rather than from CHOMP's model, because the
      * dex is the engine's own truth and this is exactly the kind of number that must not be
      * restated. Falls back to whatever was previously stored so a dex-less run cannot erase it. */
-    wt: (() => {
-      try {
-        const sp = DEX && DEX.species.get(key);
-        if (sp && sp.exists && sp.weighthg) return sp.weighthg / 10;
-      } catch (e) { /* fall through */ }
-      return old.wt != null ? old.wt : null;
-    })(),
+    wt: (dexWeightKg(key) != null) ? dexWeightKg(key) : (old.wt != null ? old.wt : null),
   };
   // if there was no stored line, derive a neutral one so nothing breaks
     if (!mons[key].st) {
@@ -339,6 +365,47 @@ function buildMC(prior, quiet) {
     console.warn('    They survive only because this build read its own output. Add them to '
       + 'data/mc-declared-rows.json with a reason.');
   }
+
+  /* ── `wt` IS OWNED FOR EVERY ROW, NOT ONLY THE ONES CHAMP-MODEL CARRIES (2026-08-29) ───────────
+   *
+   * The two loops above append rows VERBATIM, so `wt` — a field this builder declares it OWNS — was
+   * whatever those sources happened to hold, which for ten of them was nothing at all. This pass is
+   * the ONLY writer of `wt` outside the champ-model walk and it reads the same `dexWeightKg`, so
+   * there is one implementation of "how heavy is this species" and not two.
+   *
+   * IT FILLS, IT NEVER OVERWRITES A DISAGREEMENT SILENTLY. A stored value that differs from the dex
+   * is a real finding — the dex is authoritative and a difference means one of the three sources is
+   * restating a number — so it is REPORTED with both values and then corrected, rather than being
+   * assigned over in silence. Measured on the artifact this pass was written against: 10 filled,
+   * 312 already equal, 0 disagreements, 0 rows the dex has no weight for.
+   *
+   * KEY POSITION IS DELIBERATE. The five declared rows that already carry `wt` place it after `ab`
+   * and before `base`; a filled row is rebuilt in that same order so the ten join the shape the
+   * artifact already uses instead of inventing a second one. Key order in this artifact is
+   * load-bearing (data/mc-declared-rows.json says so) and `--check` compares bytes. */
+  let wtFilled = 0; const wtFilledList = [], wtCorrected = [], wtNoDex = [];
+  for (const k of Object.keys(mons)) {
+    const kg = dexWeightKg(k);
+    if (kg == null) { if (mons[k].wt == null) wtNoDex.push(k); continue; }
+    const cur = mons[k].wt;
+    if (cur === kg) continue;
+    /* COPY BEFORE WRITING. `mons[k]` may be the very object held inside SRC_DECLARED (the declared
+     * loop assigns the reference, not a clone), and --purity builds TWICE — so an in-place write
+     * here would leak into the second build and make the two candidates agree for the wrong
+     * reason. */
+    if (cur != null) { wtCorrected.push(`${k}: ${cur} -> ${kg}`); mons[k] = { ...mons[k], wt: kg }; continue; }
+    const src = mons[k], out = {};
+    for (const f of Object.keys(src)) { out[f] = src[f]; if (f === 'ab') out.wt = kg; }
+    if (out.wt == null) out.wt = kg;          // no `ab` field to anchor on — append rather than skip
+    mons[k] = out;
+    wtFilled++; wtFilledList.push(`${k} ${kg}`);
+  }
+  if (wtFilled) say(`  wt FILLED from the dex on ${wtFilled} row(s) the champ-model walk never `
+    + `visits: ${wtFilledList.join(', ')}`);
+  if (wtCorrected.length) console.warn(`  wt CORRECTED against the dex on ${wtCorrected.length} `
+    + `row(s) — a stored weight disagreed with the format: ${wtCorrected.join(', ')}`);
+  if (wtNoDex.length) console.warn(`  wt STILL NULL on ${wtNoDex.length} row(s) — the dex has no `
+    + `weight for them either: ${wtNoDex.join(', ')}`);
 
 /* MOVES: t and c come from champ-model's own compact MOVES table and are ENRICHED from the dex with
  * self-cost facts the rollout previously kept as hand-typed name lists (Will: every click needs a
