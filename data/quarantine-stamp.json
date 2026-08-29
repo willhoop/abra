@@ -1,16 +1,25 @@
 {
   "note": "RATCHET. citation_sites may SHRINK and may never grow while the MEDICHAM quarantine is closed. A new entry means a withheld figure was just published somewhere.",
   "source_digests": {
-    "engine/quarantine.js": "f65964a26fc3",
+    "engine/quarantine.js": "4988416b4a70",
     "engine/provenance.js": "58ccb92d8075",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
   "not_store_derived": "it records which artifacts are downstream of the simulator and where they are still cited. No game is counted anywhere in it, so the quality filter has no bearing.",
-  "gate_open": false,
-  "failing_clauses": [
-    "whole-game differential / the same game on both engines"
-  ],
+  "gate_open": true,
+  "failing_clauses": [],
   "quarantined": [
+    "_bench-headline.json",
+    "_bench-headline2.json",
+    "_bench-normal.json",
+    "_bench-order-12-60.json",
+    "_bench-order-20-60.json",
+    "_bench-order-6-60.json",
+    "_bench-repeat.json",
+    "_bench-reverse.json",
+    "_bench-scaling-interleaved.json",
+    "_bench-scaling.json",
+    "_scratch-bench-smoke.json",
     "ab-batch-effect.json",
     "all-mechanics-fire.json",
     "brood.json",
@@ -34,6 +43,7 @@
     "lookahead-cost.json",
     "mag.js",
     "medicham-represented-clicks.json",
+    "medicham-speed.json",
     "mew.js",
     "million-run-150k.json",
     "million-run-staged.json",
@@ -77,5 +87,5 @@
     "web/build-status.js",
     "web/publish-rule.js"
   ],
-  "generated": "2026-08-28T19:33:52.337Z"
+  "generated": "2026-08-29T01:27:45.939Z"
 }

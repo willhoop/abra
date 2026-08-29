@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-28",
+ "generated": "2026-08-29",
  "by": "engine/validate_damage.js",
  "source": "engine/validate_damage.js compared against @smogon/calc (MIT), stats aligned to isolate the damage math",
  "gen": 9,

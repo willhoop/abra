@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-28T23:20:17.328Z",
+  "generated": "2026-08-29T01:46:05.023Z",
   "by": "engine/bench_speed_consolidate.js",
   "what": "MEDICHAM THROUGHPUT, consolidated across every timed run. RANGES, not points — see warm_state_effect. A TIMING artifact only: it makes NO claim about whether the simulator is correct, MEDICHAM is under quarantine for accuracy, and nothing here lifts it.",
   "not_an_accuracy_claim": true,
