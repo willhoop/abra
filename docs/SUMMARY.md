@@ -1,6 +1,8 @@
 # ABRA — Project Summary
 
-**Version 5.222.0 · 2026-08-29 · Will Hooper**
+**Version 5.223.0 · 2026-08-29 · Will Hooper**
+
+**5.223.0 - INSTRUCT NEVER ASKED THE SHIELD, SO A PROTECTING BODY TOOK A SECOND ACTION THE AUTHORITY NEVER GAVE IT.** `shieldRefuses` had thirteen callers and the `instruct` branch was not one of them. Instruct is the ONE legal move in this format that hands another body an EXTRA action — derived on every run, not named: twelve others only reorder an action that already exists. Champions does not rewrite Instruct, checked rather than assumed. The empirical pool moved **board-parted 92 -> 91 of 961** and **protocol 207 -> 205**, and exactly one divergence cause changed with no new one appearing, so the movement is fully attributed. The census is **unmoved at 801 live / 801 probed / 0 missing**, which was predicted — this wires no new tag. A second, independent engine defect was found by a failing over-fire control and is FILED as ROADMAP #534, not fixed: the instructed repeat re-picks its target instead of reusing the slot the move was aimed at.
 
 **5.222.0 - FIVE CARRIED TEST FAILURES CLOSED: THREE WERE THE INSTRUMENT, ONE WAS THE HARNESS, ONE IS
 A REAL ENGINE DEFECT AND IS FILED.** Five checks had been reported red, correctly and verified as

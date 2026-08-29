@@ -1,6 +1,8 @@
 # ABRA — the model family (living reference)
 
-**Version 5.222.0 · Last updated 2026-08-29.**
+**Version 5.223.0 · Last updated 2026-08-29.**
+
+**5.223.0 - NO MODEL CHANGED AND NO FITTED VECTOR IS OWED BY THIS PASS, BUT THE SIMULATOR EVERY MODEL RESTS ON HANDS OUT ONE FEWER ACTION PER TURN THAN IT DID.** A Protecting body could be Instructed here and could not there, so any rollout that reached that board was pricing an extra swing that does not exist. Everything downstream of MEDICHAM remains QUARANTINED and no model number is quoted, compared or re-derived here. The engine tree moved `124f5aa8c8bd` -> `705ead2014b2`; the refit that closes the seam belongs to MEASURE and is not started from ENGINE.
 
 **5.222.0 - NO MODEL CHANGED, NO FEATURE READ MOVED, AND NO FITTED VECTOR IS OWED BY THIS PASS.** The
 work in this version is entirely in test instruments, one run wrapper and the defect register. No file

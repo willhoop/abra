@@ -1,6 +1,8 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.222.0 · Last updated 2026-08-29**
+**Version 5.223.0 · Last updated 2026-08-29**
+
+**5.223.0 - A MOVE THAT MAKES ANOTHER BODY ACT IS STILL A MOVE, AND A SHIELD REFUSES IT.** Instruct carries `flags.protect` and `category: "Status"`, so `checkMoveBypassesProtect` answers with its default `blockStatus`, `protect.condition.onTryHit` writes `-activate` and returns `NOT_FAIL` at `hitStepTryHitEvent` — step 2 of eight — and Instruct's `onHit`, where the second action is built, is never reached. This engine asked that question nowhere. The refusal is now the branch's first question and sits ABOVE the Good as Gold check, because `protect.condition` declares `onTryHitPriority: 3` and the ability declares none. Measured on the pinned empirical pool against an identically-pinned baseline: board-parted **92 -> 91 of 961**, protocol **207 -> 205**, one divergence cause removed and none added. The census is unmoved at 801 / 801 / 0, as predicted. Artifact `data/verification/game-differential.instructshield532.json`.
 
 **5.222.0 - NO RESULT IN THIS PAPER MOVED, AND THE REASON IS THE POINT: FIVE CHECKS THAT HAD BEEN
 REPORTED AS FAILURES OF THE SIMULATOR WERE EXAMINED, AND THREE OF THEM WERE NEVER MEASURING THE

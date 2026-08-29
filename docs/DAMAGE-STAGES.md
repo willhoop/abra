@@ -1,6 +1,8 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.222.0 — 2026-08-29.**
+**Version: 5.223.0 — 2026-08-29.**
+
+**5.223.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change is a REFUSAL: a move that would have queued a second action does not queue it. Nothing in the damage pipeline is touched, no multiplier is added or removed, and no feature read changes. What changes is HOW MANY damage calculations a turn contains — a shielded body no longer takes a swing it was never given. The stage-by-stage comparison against the authority is unaffected and was not re-run.
 
 **5.222.0 - NO STAGE MOVED, NO DAMAGE NUMBER MOVED, AND NO FEATURE READ MOVED.** This version changes
 test instruments, one run wrapper and the defect register. It touches no damage packet and no input to

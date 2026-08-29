@@ -1580,6 +1580,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * beside a non-zero `instructRepeat` is the state this engine was in: the second action was handed
    * out and the one ability that stops it was never asked. */
   instructRefusedByAbility: 0,
+  /* ROADMAP #532 -- an Instruct refused by the TARGET'S SHIELD, which is a step EARLIER than the
+   * ability above (`protect.condition.onTryHitPriority: 3` against Good as Gold's unprioritised
+   * `onTryHit`, so the shield answers first and `NOT_FAIL` ends the event). A zero beside a non-zero
+   * `instructRepeat` on a board where a shield is standing is the state this engine was in: the
+   * second action was handed out THROUGH a raised Protect. */
+  instructRefusedByShield: 0,
   sideBuffRefused: 0, itemRoomHidden: 0, wonderRoomSwap: 0, powerDoubledOnRead: 0,
   /* ROADMAP #462 -- the parked-vs-lost doors. `itemLostThroughDoor` is every item that left a body by
    * the ONE loss door; `itemLostWhileSuppressed` is the subset that was PARKED at the time, which is
@@ -5740,6 +5746,58 @@ function shieldRefusalAnnounce(tgt){
   MEDSEEN.shieldRefusalAnnounced++;
   if(TR)TR.act(tgt,'move: Protect');
 }
+
+/* ================= ROADMAP #532 -- AND THE FOURTEENTH CALLER, WHICH WAS MISSING ==================
+ *
+ * `shieldRefuses` answers WHETHER and thirteen sites asked it. THE `instruct` BRANCH ASKED NOWHERE,
+ * and Instruct is the ONE move in this regulation that hands ANOTHER BODY AN EXTRA ACTION -- derived,
+ * not recalled: of every legal move whose handler touches the action queue, exactly one builds a NEW
+ * action (`queue.resolveAction({choice:'move', pokemon: target, ...})`); After You, Quash and Round
+ * only REORDER an action that already exists, and After You carries no `protect` flag at all. So the
+ * cost of the missing caller is not a missing message, it is a shielded body taking a turn the
+ * authority never gave it.
+ *
+ * CHAMPIONS DOES NOT REWRITE INSTRUCT. The whole of `data/mods/champions/` mentions it once, at
+ * `learnsets.ts:12384` (`instruct: ["9M"]`); `data/mods/champions/moves.ts` overrides 259 moves and
+ * Instruct is not among them. The handler below is therefore mainline's, read whole
+ * (`data/moves.ts:9644-9677`):
+ *
+ *     flags: { protect: 1, bypasssub: 1, allyanim: 1, failinstruct: 1 },  category: "Status",
+ *     onHit(target, source) {
+ *       if (!target.lastMove || target.volatiles['dynamax']) return false;
+ *       ... lastMove.flags['failinstruct'] || isZ || isMax || flags['charge'] || flags['recharge']
+ *       || beakblast || focuspunch || shelltrap || (moveSlot && moveSlot.pp <= 0) -> return false;
+ *       this.add('-singleturn', target, 'move: Instruct', `[of] ${source}`);
+ *       this.queue.prioritizeAction(this.queue.resolveAction({ choice:'move', pokemon: target, ... }));
+ *     }
+ *
+ * THE SHIELD IS A DIFFERENT QUESTION FROM THAT LIST AND IT IS ASKED FIRST. `move.flags['protect']`
+ * is 1 and the category is Status, so `checkMoveBypassesProtect` (sim/battle.ts:1300-1302) answers
+ * with its default `blockStatus = true` and returns false -- `protect.condition.onTryHit` then writes
+ * `|-activate|TARGET|move: Protect` and returns `NOT_FAIL`. That is `hitStepTryHitEvent`, step 2 of
+ * eight; `onHit` is inside the hit loop and IS NEVER REACHED, so not one member of Instruct's own
+ * refusal list is ever consulted on a shielded target.
+ *
+ * IT IS ALSO EARLIER THAN GOOD AS GOLD, WHICH IS WHY THIS SITS ABOVE THAT CHECK RATHER THAN BESIDE
+ * IT. Both answer in the `TryHit` event; `protect.condition` declares `onTryHitPriority: 3` and the
+ * ability declares no priority at all, so the shield's handler runs first and its `NOT_FAIL` (`''`,
+ * falsy) breaks the event before the ability is reached. A Gholdengo behind its own Protect therefore
+ * reads `|-activate|move: Protect`, NOT `|-immune|[from] ability: Good as Gold` -- staged as a red
+ * arm in `tests/probe_instruct_shield.js` rather than argued here.
+ *
+ * NO `_isFoe` GATE, DELIBERATELY. `checkMoveBypassesProtect` never looks at sides, and the authority
+ * writes the identical `-activate` when Instruct is aimed at a PARTNER who is Protecting (staged
+ * output in the probe's header). The ally half cannot be expressed through the driver's script
+ * format, which resolves a `normal` move to `foes[t]` on both sides, so it is OWED rather than
+ * covered -- but gating on `_isFoe` here would be encoding the limit of the fixture into the engine.
+ *
+ * AND IT DOES NOT READ `MEDI_SHIELD_REFUSAL_UNANNOUNCED`. That knob restores seven sites EACH IN ITS
+ * OWN OLD SHAPE; this site had no old shape, because it never refused at all. Its revert is
+ * `MEDI_INSTRUCT_NO_SHIELD=1`, which restores exactly the pre-change behaviour -- the ask is skipped
+ * and the extra action is spliced through the shield. */
+const INSTRUCT_NO_SHIELD=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_INSTRUCT_NO_SHIELD==='1');
+if(INSTRUCT_NO_SHIELD)MEDFAILS.instructNoShieldRestored=1;
 
 /* WIRE 149 -- THE CHOOSER CAN CLICK A SIDE GUARD, AND WHICH ONE IS DERIVED FROM THE SAME PARAM THE
  * REFUSAL IS. Will, 2026-08-10: *"its gotta be able to click it man"*, and the trigger is his too:
@@ -26288,6 +26346,18 @@ function battleTurn(S,rng,actsForA,actsForB){
         m._lastMove=a.mv;
         const _ip=TAGS.param('move',a.mv,'instructsTarget')||{};
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        /* ROADMAP #532 -- THE SHIELD, ABOVE EVERYTHING ELSE IN THIS BRANCH. The whole rule, the two
+         * source reads it rests on and why it outranks the ability below are at `INSTRUCT_NO_SHIELD`
+         * beside `shieldRefusalAnnounce`. In one line: `hitStepTryHitEvent` filters the target out at
+         * step 2 of eight, so Instruct's `onHit` -- the only place the second action is built -- is
+         * never reached, and `shieldRefuses` is the reader because `shieldsUser.blocksStatus` is what
+         * separates King's Shield (which lets a Status move through and then fails Instruct for its
+         * own `failinstruct` flag) from the four members that refuse it. */
+        if(t&&!INSTRUCT_NO_SHIELD&&shieldRefuses(t,a.mv)){
+          MEDSEEN.instructRefusedByShield++;
+          shieldRefusalAnnounce(t);
+          continue;
+        }
         /* ROADMAP #161 -- AND INSTRUCT IS A STATUS MOVE, SO GOOD AS GOLD REFUSES IT.
          *
          * `data/moves.ts` instruct: `category: "Status"`, `target: "normal"` -- it may be aimed at a

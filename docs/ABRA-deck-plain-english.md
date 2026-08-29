@@ -1,6 +1,8 @@
 # ABRA — the plain-English deck
 
-**Version 5.222.0 · 2026-08-29 · Will Hooper**
+**Version 5.223.0 · 2026-08-29 · Will Hooper**
+
+**5.223.0 - IF A POKEMON IS HIDING BEHIND PROTECT, YOU CANNOT ORDER IT TO ATTACK AGAIN.** One move in this format tells an opposing or friendly Pokemon to repeat what it just did — a free extra attack, often the biggest one on the board. Our simulator handed that free attack out even when the target was behind a shield, which the real game refuses. That is a whole extra turn of damage that never happens. Fixed, and measured on 961 real ladder boards: the games where our simulator and the real one disagreed about the board went from 92 to 91, and the single cause that changed is exactly this one. While testing it we found a second, unrelated bug — the repeated attack aims at the wrong Pokemon — which is written down and left for its own pass rather than smuggled in here.
 
 **5.222.0 - THREE OF FIVE ALARMS WERE THE ALARM, NOT THE FIRE.** Five of our own tests had been
 reporting a problem for days. We looked at all five properly. Three of them were never looking at the

@@ -35,7 +35,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_fatigue_tag.js`, `tests/probe_reds_plant_reaches.js`,
 `tests/probe_forced_switch_mirror.js`, `tests/probe_innards_out.js`,
 `tests/probe_shield_rearm.js`, `tests/probe_default_target_side.js`,
-`tests/probe_partingshot_mirrorarmor.js`, `tests/probe_partingshot_conditional.js`
+`tests/probe_partingshot_mirrorarmor.js`, `tests/probe_partingshot_conditional.js`,
+`tests/probe_instruct_shield.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -47,7 +48,9 @@ this sentence — it was "twelve" until `test-damage-roll-support.js` was added 
 `probe_random_target_address.js` arrived, and "twenty-one" the same day when
 `probe_multihit_update.js` did, and again the same day when `probe_noguard_invuln.js` did.
 and again the same day when `probe_endturn_clock_order.js` did, and again the same day when
-`probe_substitute_status_step.js` did, and again the same day when `probe_yawn_substitute.js` did, and again the same day when `probe_doll_blind_family.js` did, and again the same day when `probe_trace_target.js` did, and again the same day when `probe_mega_trace_entry.js` did, and again the same day when `probe_mega_spread_stat.js` did, and again the same day when `probe_hp_pair.js` did, and again the same day when `probe_random_target_die.js` did.
+`probe_substitute_status_step.js` did, and again the same day when `probe_yawn_substitute.js` did, and again the same day when `probe_doll_blind_family.js` did, and again the same day when `probe_trace_target.js` did, and again the same day when `probe_mega_trace_entry.js` did, and again the same day when `probe_mega_spread_stat.js` did, and again the same day when `probe_hp_pair.js` did, and again the same day when `probe_random_target_die.js` did. And again on 2026-08-29 when
+`probe_instruct_shield.js` moved from MEASURE's five-reds pass into this list, which is the point:
+the sentence has now been wrong for four consecutive counts and the TABLE has never been.
 A number typed in prose beside a
 table is exactly what CLAUDE.md records going stale three times over.)*
 
@@ -55,6 +58,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 |---|---|---|
 | `probe_default_target_side.js` | when a move is SUBSTITUTED into an action — Encore at selection, Encore at execution (WIRE 143), or the called-move branch (Copycat / Metronome / Sleep Talk / Mirror Move) — does it take its target from its own target class, the way `Battle#getRandomTarget` answers `self`, `all`, `allySide`, `allyTeam`, `adjacentAllyOrSelf` and `adjacentAlly` BEFORE it ever looks at a foe. Twelve arms over two engines under the differential's own `middle` pin: six red (an Encored Helping Hand, mirrored whole, and again against the format's OTHER live priority refuser, and again with the refuser's ability traded away so only the wrong SIDE is left; an Encored Coaching, where no priority is involved and +1/+1 lands on a foe; and a COPIED Coaching, which is the second draw site and not Encore at all) and six controls (a plain clicked Helping Hand, which was NEVER broken; the foe axis clicked directly and again through the override; the far-side draw at priority 0 on both doors, which fails if a die moves; and a `self` move where the near-side branch fires and nothing may change). Nothing is typed — the four counted facts are read off BOTH streams and compared to each other, deliberately coarse (`cant` as holder-side/ability, a single-turn mark as side/label, a boost as side/stat/stage, the move line as move->side) so an arm cannot fail on a spelling difference between the narrators and cannot pass while a body on the wrong half of the field takes the effect | the 87 near-side moves whose aim `playerAction` discards before it reaches an action — Protect, Tailwind, Rain Dance and Wide Guard all return a kind carrying no target, so only the four `adjacentAlly` chooseables are observable from outside at all. And Instruct, which reaches the authority through `runMove(..., targetLoc)` rather than through `getRandomTarget` and is a different rule |
 | `probe_partingshot_conditional.js` | is a `selfSwitch` field a PROMISE or a DEFAULT the handler can take back — the ONE move in this format whose own `onHit` deletes it (`data/moves.ts:13180`, one hit in the whole dex) when its stat drop landed on NOBODY, with one ability named as an exception. Nineteen arms over two engines under the differential's own `middle` pin: five red across THREE doors (an ability refusing both stats, staged on two different bodies; the ALLY door, where the refusal is on the body beside the target and covers Grass types only; both stats at the STAT FLOOR, driven there over five turns with no ability anywhere; and one of each, which neither door reaches alone) and fourteen controls, every red paired with one on the SAME BODY. The controls are the half that matters, because a fix keyed on "a stat was refused" strands bodies that are correct today: a PARTIAL refusal, which `Battle#boost` counts as a SUCCESS; an INVERTED drop; a partial floor on either stat; the format's other legal status pivot, whose `selfSwitch` nothing deletes; and a bare voluntary switch. Nothing is typed — the observable is the whole BOARD at every boundary plus which body is standing in the user's slot, Showdown supplies the answer, and each arm asserts the branch COUNTS (cancel exactly 1 on a red, 0 on a control; the exception exactly 1 on the Mirror Armor arm) because that arm agreed BEFORE the fix as well | the stat floor UNDER Mirror Armor, which cannot be reached from a foe's drops at all — every drop bounces, so nothing a foe does moves it toward -6; and the NARRATION at the floor, where the authority writes `|-unboost|TARGET|atk|0` and this engine writes `|-fail|…|ability: Clear Body` (board-identical, so this instrument is blind to it by construction) |
+| `probe_instruct_shield.js` | does the ONE move in this format that hands ANOTHER BODY AN EXTRA ACTION ask the shield first — the population is DERIVED on every run out of the handlers themselves (of every legal move whose handler touches the action queue, exactly one calls `resolveAction({choice:'move', pokemon: target})` and the other twelve only REORDER an action that already exists), and Champions is asked directly whether it rewrites Instruct (it does not: 259 moves overridden, `learnsets.ts:12384` is the only mention). Thirteen arms over two engines under the differential's own `top-tie-first` pin: five red (all four `shieldsUser.blocksStatus === true` members — Protect 149,746, Detect 5,554, Spiky Shield 2,103, Baneful Bunker 1,746 — plus a Gholdengo behind its OWN Protect, which fixes WHERE the call goes, because `protect.condition` declares `onTryHitPriority: 3` and Good as Gold declares none) and seven controls, every one of them a way the new caller could over-fire: King's Shield, the sole `blocksStatus === false` member, which the authority fails for its own `failinstruct` flag; the same Gholdengo with the shield taken away; a STALE shield over two turns; ENDURE, a `stallingMove` that is not a `shieldsUser`; a target with no last move at all; and a repeat that actually costs HP. Nothing is typed — Showdown is the expectation, `MEDI_INSTRUCT_NO_SHIELD=1` must part every red and move no control, the two counters are asserted at EXACT per-arm equality on BOTH loads, and `shieldBlocksStatusUnknown` is asserted at zero so the file cannot pass through a silent default | the ALLY door, which the authority treats identically (`checkMoveBypassesProtect` never looks at sides) and which the driver's script format cannot express, so every arm aims at a foe; and the repeat's AIM — ROADMAP #534, carried as a DECLARED `KNOWN-OPEN` arm that must part identically clean and under the knob or the file fails |
 | `probe_shield_rearm.js` | does a shield whose MOVE was substituted mid-turn still pass the gate the authority asks at execution — `protect.onPrepareHit` runs inside `useMoveInner`, per action, so it is raised on the move being USED, while this engine armed `_shieldPending`/`_guardPending`/`_stallPending` once per turn off the move the player CLICKED. Eleven arms over two engines under the differential's own `middle` pin: five red (Encore's execution-time override and Instruct's spliced second action, each also MIRRORED whole, plus an Encore into ENDURE so a fix keyed on `kind === 'protect'` stays red) and six controls (the Encore replaced by a Charm; an ordinary Protect chain; a substitution onto a NON-shield so the re-ask fires and must arm nothing, once per producer; an ordinary Wide Guard; an ordinary Endure). Nothing is typed — the assertions are that the two engines agree on the shield lines AND on the stall counter (read through medicham2's own `stallBoardCounter`, the function `board_state.js` calls), that `MEDI_SHIELD_NO_REARM=1` parts the reds and moves no control, that the re-arm counters hit an EXACT per-arm value, and that the authority actually raised a shield on every red arm. The board removes the die: turn 1 the slowest body holds the last action, so `willAct()` refuses its shield BEFORE `StallMove` and the turn-2 substitution meets counter 0 | the shield's own DIE, which is what the four remaining pool games are — the counters agree and the draws do not, one of the four in the opposite direction. Copycat and Sleep Talk, which reach the identical splice and the identical trigger but have no arm. And a body Encored OFF a shield, which `shieldGateRearmedDisarmed` counts and no arm stages, because Protect is +4 and Encore is at best +1 |
 | `probe_innards_out.js` | does the ONE ability whose toll is the damage it just took pay it, on a real board against the authority — four scripted games, THREE of which must pay NOTHING (a connecting super-effective hit the holder SURVIVES; a Ghost Curse residual that kills it with no move involved; a game where only status moves are ever aimed at it) and one where the toll exceeds what the killer has and kills it. The carrier count is ENUMERATED from the format at run time, not named, and every arm asserts `megaRefused === 0` because the sole carrier is a mega and a refused ask stages the base forme, which does not carry the ability at all | the multi-hit interior — `_react` sets the reactor off once per hit while the volley is still ONE damage packet (WIRE 20), so nothing here separates "the toll is cumulative" from "the packet is cumulative"; and any toll aimed at an ALLY, which the authority pays and no arm stages |
 | `probe_state_trio.js` | three small state reads staged one at a time, each with a control that reaches the SAME mechanic through a DIFFERENT door: a confusion from a secondary against one from a status move, Dire Claw against Earthquake, and a faint against a voluntary switch / a U-turn pivot / a stay-in. Since 2026-08-27 it also carries the derived inert-secondary population, the derived count of REFUSAL REASONS for every status each cell must be able to take (it exits 2 rather than run a cell that qualifies for more than one), and `C-selfko` — a Soaked body that Mementos itself — which is the arm that separates `noteFaint` from `queueFaint` | **it asserts NOTHING and exits 0 whatever it finds** — it is read, not gated on; and any arm whose click is blocked, which is why the draw COUNT is printed beside every verdict (four arms reported IDENTICAL with zero draws before that was read) |
@@ -109,9 +113,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  801/801 probed mechanics live, 0 missing   (census 2026-08-29 09:41)
+  801/801 probed mechanics live, 0 missing   (census 2026-08-29 10:53)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 11.2 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 12.0 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -134,9 +138,217 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 10:31_
+_stamped 2026-08-29 11:14_
 
 <!-- /GENERATED -->
+
+## INSTRUCT WAS THE FOURTEENTH CALLER OF `shieldRefuses` AND IT WAS MISSING, SO A SHIELDED BODY TOOK A TURN THE AUTHORITY NEVER GAVE IT. **CENSUS UNMOVED AT 801 LIVE / 801 PROBED / 0 MISSING — PREDICTED, NO NEW TAG WAS WIRED. EMPIRICAL BOARD-PARTED 92 -> 91 OF 961, PROTOCOL 207 -> 205, AND THE ONLY DIVERGENCE CAUSE THAT MOVED IS THE ONE THIS FIX NAMES. THE PROBE WENT 5 ARMS / 3 RED TO 13 ARMS / 0 FAILING. A SECOND, INDEPENDENT DEFECT WAS FOUND BY A CONTROL AND IS FILED AS #534, NOT FIXED.** 2026-08-29, ROADMAP #532.
+
+**SAID BEFORE THE RUN, AND BOTH HALVES RECORDED.** Per CLAUDE.md's rank-by-the-pinned-pool rule, the
+scoreboard prediction was written down first: the LAB should go to zero, the CENSUS should not move
+(this wires no new tag — it adds a missing caller on `instructsTarget`, which was already LIVE), and
+the POOL should **stay at 92 or fall by at most 1**, because Instruct is 306 sheet slots and the board
+needs a shield standing AND an Instruct aimed into it on the same turn.
+
+| prediction | outcome |
+|---|---|
+| census unmoved at 801 / 801 / 0 | **HELD** — 801 live, 801 probed, 0 missing |
+| pool board-parted 92, falling by at most 1 | **HELD** — 92 -> 91, protocol 207 -> 205 |
+| the probe at 12 arms, 0 failing | **MISSED** — one of the new controls parted for a reason that is not this fix, and became #534 |
+
+The missed one is the useful one and it is written down rather than smoothed over: the control that
+was supposed to prove *the repeat actually costs HP* parted on the CLEAN load **and identically under
+the revert knob**, which is what said it was not this batch's change. See the last section below.
+
+### What the authority does, read whole rather than recalled
+
+**CHAMPIONS DOES NOT REWRITE INSTRUCT, AND THAT WAS CHECKED FIRST** — the Encore batch earlier the
+same day turned entirely on the opposite answer, so being right about mainline can be being wrong
+about this game. `data/mods/champions/moves.ts` overrides **259** moves and Instruct is not among
+them; the only mention of it anywhere under `/data/mods/champions/` is `learnsets.ts:12384`,
+`instruct: ["9M"]`. The probe asks the two files directly on every run and prints the answer, so this
+sentence cannot go stale the way a hand-maintained list does.
+
+The handler is therefore mainline's (`data/moves.ts:9644-9677`):
+
+```
+flags: { protect: 1, bypasssub: 1, allyanim: 1, failinstruct: 1 },   category: "Status",
+onHit(target, source) {
+  if (!target.lastMove || target.volatiles['dynamax']) return false;
+  if (lastMove.flags['failinstruct'] || lastMove.isZ || lastMove.isMax ||
+      lastMove.flags['charge'] || lastMove.flags['recharge'] ||
+      target.volatiles['beakblast'] || target.volatiles['focuspunch'] ||
+      target.volatiles['shelltrap'] || (moveSlot && moveSlot.pp <= 0)) return false;
+  this.add('-singleturn', target, 'move: Instruct', `[of] ${source}`);
+  this.queue.prioritizeAction(this.queue.resolveAction({ choice: 'move', pokemon: target,
+    moveid: target.lastMove.id, targetLoc: target.lastMoveTargetLoc }));
+}
+```
+
+**THE SHIELD IS A DIFFERENT QUESTION FROM THAT LIST, AND IT IS ASKED FIRST.** `move.flags['protect']`
+is 1 and the category is Status, so `checkMoveBypassesProtect` (`sim/battle.ts:1300-1302`) answers
+with its default `blockStatus = true` and returns false; `protect.condition.onTryHit` writes
+`|-activate|TARGET|move: Protect` and returns `NOT_FAIL`. That is `hitStepTryHitEvent`, **step 2 of
+eight**, and `onHit` lives inside the hit loop — so on a shielded target **not one member of
+Instruct's own refusal list is ever consulted**. The two are established separately here because they
+are separately observable and a fix that conflated them would pass the King's Shield control by luck.
+
+### How many legal moves make another body act — DERIVED, and the answer is one
+
+Printed on every run of the probe, off the handlers themselves with the Champions mod overlaid, so a
+later addition is picked up with no edit:
+
+| what it does | count | which |
+|---|---|---|
+| builds a **NEW** action for another body (`resolveAction({choice:'move', pokemon: target})`) | **1** | **Instruct** — and it carries `flags.protect`, so a shield can refuse it |
+| only **REORDERS** an action that already exists | 12 | After You (**no `protect` flag at all**), Disable, Encore (Champions overrides it), Gravity, Helping Hand, Payback, Quash, Round, Smack Down, Sucker Punch, Taunt, Upper Hand |
+
+So the cost of the missing caller was never a missing message. It was a body taking a turn.
+
+### What this engine did
+
+The `instruct` branch checked Good as Gold, Instruct's own `refuses` list, `_charging` and
+`_recharge`, and called `shieldRefuses` **nowhere** — the fourteenth caller of a function thirteen
+sites already read. It is a MISSING caller, not a misplaced announcement like the seven sites of
+ROADMAP #508, and what came out of it is `acts.splice(actIdx+1, 0, _entry)`.
+
+### The fix, and the one thing that decided where it goes
+
+```js
+if(t&&!INSTRUCT_NO_SHIELD&&shieldRefuses(t,a.mv)){
+  MEDSEEN.instructRefusedByShield++;
+  shieldRefusalAnnounce(t);
+  continue;
+}
+```
+
+**ABOVE the Good as Gold check and not beside it.** Both refusals answer in the same `TryHit` event;
+`protect.condition` declares `onTryHitPriority: 3` and the ability declares no priority at all, so the
+shield's handler runs first and its `NOT_FAIL` (`''`, falsy) breaks the event before the ability is
+reached. A Gholdengo behind its own Protect reads `|-activate|move: Protect`, never
+`|-immune|[from] ability: Good as Gold`. That is a red ARM, not a paragraph.
+
+**`shieldRefuses` AND NOT `t.protect`**, for the reason the King's Shield control exists: `shieldRefuses`
+is where `shieldsUser.blocksStatus` is read, and King's Shield is the one member of the family that
+is `false`.
+
+**NO `_isFoe` GATE, DELIBERATELY.** `checkMoveBypassesProtect` never looks at sides and the authority
+writes the identical `-activate` for an ally's shield. That half is OWED rather than covered, because
+the driver's script format resolves a `normal` move to `foes[t]` on both sides — but gating on
+`_isFoe` would be encoding the limit of the FIXTURE into the ENGINE, which is the shape of defect this
+ledger already carries three of.
+
+**AND IT DOES NOT READ `MEDI_SHIELD_REFUSAL_UNANNOUNCED`.** That knob restores seven sites *each in its
+own old shape*; this site had no old shape, because it never refused at all. Its revert is
+`MEDI_INSTRUCT_NO_SHIELD=1`.
+
+### The probe: 5 arms / 3 red -> 13 arms / 0 failing, 5 red and 7 control
+
+It was extended rather than replaced. Every arm now plays **twice** — clean and under the knob — and a
+red arm is one that agrees clean and PARTS under the knob, which is a stronger claim than the old
+"expected to part today".
+
+**Added red arms (2).** **Detect** (5,554 uses) completes the `blocksStatus: true` family, so all four
+refusing members are staged and the result cannot be a property of any one of them. **Gholdengo behind
+its own Protect** is the ordering arm above.
+
+**Added controls (4), each a way the new caller could over-fire.** The same Gholdengo with the shield
+taken away, so the pair separates the two refusals on ONE fixture and `instructRefusedByShield` must
+read **0** — an engine that started attributing the ability refusal to the shield would still agree on
+the protocol line and would be caught only by the counter. A **stale shield** over two turns (Protect
+turn 1, Instruct turn 2), which is the arm this fix could most plausibly have broken: a `mon.protect`
+surviving the boundary would refuse a repeat the authority grants. **Endure**, which is
+`stallingMove: true`, shares protect's `onPrepareHit` byte for byte and blocks nothing — #178 took it
+out of `shieldsUser` for exactly that reason, so a fix keyed on the stalling family over-fires here.
+And a target with **no last move at all** (Reuniclus base 30 against Oranguru base 60), which is the
+other refusal inside `onHit`.
+
+**What is asserted, beyond "the streams agree".** Both counters at EXACT per-arm equality on both
+loads — `instructRepeat` **and** `instructRefusedByShield`, so "it agreed" can never be read off a
+branch that never ran, and the knob run must show the refusal at zero everywhere, which is the revert
+being a revert. A `MEDFAILS` load-time stamp proving the knob reached the module the driver played.
+And `shieldBlocksStatusUnknown` at exact zero, so the file cannot pass through a silent default.
+
+```
+13 arms staged, 0 failing, 1 KNOWN-OPEN (declared, not counted — ROADMAP #534)
+```
+
+### The pool moved, and the movement is fully attributed
+
+Release `705ead2014b2` against `#531`'s baseline `data/verification/game-differential.partingshot531.json`
+on release `124f5aa8c8bd`, identical pins — census `9446a684709d`, pool `0d103fb9fa87`, 961 games,
+cap 12, arm `middle`, `--steering empirical`, and `baseline_comparability.ok: true` rather than
+assumed.
+
+| | before | after |
+|---|---|---|
+| board-parted games | 92 | **91** |
+| whole-game protocol divergences | 207 | **205** |
+| turn boundaries identical | 10251 / 10565 | 10252 / 10565 |
+
+**Exactly one divergence cause changed, and no new cause appeared:**
+
+```
+extra event emitted by medicham2 :: |-activate|p1a|protect <> |-singleturn|p1a|instruct
+    before   2 games, 1 board-parted, 1 board-never-parted
+    after    absent
+```
+
+which accounts for **all** of −2 whole-game and **all** of −1 board-parted. The real board is turn 12
+of a bo3 ladder game: a Dragonite clicks Protect, an Oranguru Instructs it, and this engine handed the
+Dragonite a second action through the shield.
+
+### THE CONTROL THAT FAILED IS THE FINDING — ROADMAP #534, FILED AND NOT FIXED
+
+The new control *"the repeat that actually costs HP"* was first staged with **Psychic aimed at foe
+slot 0**. It parted, on the clean load and **identically under the revert knob** — same reduced line,
+same pair of raw lines — which is what says it is not this batch's change.
+
+```
+showdown  |-resisted|p2a: Oranguru|1        then  |-damage|p2a: Oranguru|79/165
+medicham  |-activate|p2b: Garchomp|move: Protect
+```
+
+The authority builds the repeat with `targetLoc: target.lastMoveTargetLoc` — the slot the move was
+already aimed at. **This engine throws that away** and re-runs `targetForMove`, a heuristic
+best-target choice, so the second Psychic went into the Garchomp in the other slot and ate its
+Protect. Board-material: the damage lands on a different body.
+
+**It is filed rather than fixed**, because it needs a `lastMoveTargetLoc` equivalent recorded wherever
+`_lastMove` is written and `_lastMove` is read by Encore, Copycat, Sleep Talk and the called-move
+branch too — a different blast radius from a missing caller, and two engine changes in one batch makes
+neither attributable. The splice site's own comment (ROADMAP #223) argues for re-resolution because a
+pivot can empty the slot; that reason is real for a slot that has EMPTIED and is not a licence to
+re-choose one that is still occupied, so the fix needs an over-fire control on exactly that fallback.
+
+**IT STAYS IN THE INSTRUMENT RATHER THAN BEING DELETED**, as a declared `KNOWN-OPEN` arm that is
+printed and not counted — and the probe **asserts** that it parts identically on both loads, failing
+if that ever stops being true, so the exclusion cannot launder a red this batch caused. Its shield
+counters are still asserted at exact equality; only its protocol verdict is uncounted. The counted
+control was restaged with **Dazzling Gleam**, a spread move that carries no aim for the repeat to
+re-pick, so it measures the damage and cannot be decided by #534.
+
+**The pool cost of #534 is NOT measured and that is stated rather than glossed**: no cause of that
+shape appears in either artifact, which is one instrument saying nothing rather than evidence of zero —
+the empirical driver does not model the target at all (it aims at the first live foe), so the boards
+where the aim would differ are under-sampled by construction.
+
+### OWED, NOT RUN
+
+- **The ALLY door.** `checkMoveBypassesProtect` never looks at sides and an ally-aimed Instruct is the
+  commoner board by far; it is inexpressible through the driver's script format, so every arm aims at
+  a foe. Unchanged from the row's original filing, and the fix is deliberately ungated so the ally
+  case is handled by the same line the moment a fixture can reach it.
+- **ROADMAP #534 is open**, with its reproduction carried in the probe.
+- **`engine/register_reality.js` was not run**, so #532's marker verdict is not yet in
+  `data/register-reality.json`. It writes that file unconditionally with no `--out`.
+- **The full `tests/run-all.js` suite was not run.** The affected instruments were run individually.
+- **No engine release was cut into `data/releases/`.** Every run here took the
+  `tests/_live_release.js` route, which freezes the live tree into a throwaway store under the OS temp
+  directory; the id `705ead2014b2` is content-derived, so a real cut of the same tree yields it.
+- **The `.pdf` companions were not rebuilt** — pre-existing, `docs/*.pdf` are weeks stale.
+
+---
 
 ## `selfSwitch: true` IS A DEFAULT THE HANDLER TAKES BACK, AND WE READ IT AS A PROMISE — PARTING SHOT PIVOTED OUT OF EVERY REFUSED DROP. **CENSUS 798 -> 801 LIVE / 801 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 93 -> 92 OF 961, PROTOCOL 208 -> 207 — AND THE PREDICTION WAS "UNMOVED", SO IT MISSED BY ONE, IN THE IMPROVING DIRECTION. `pp[].partingshot` 3 GAMES -> 2 IS THE SIGNATURE. FULL METAL BODY HAS ZERO LEGAL CARRIERS AND WAS NOT WIRED.** 2026-08-29, CHANGELOG 5.221.0.
 

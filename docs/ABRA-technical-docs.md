@@ -1,6 +1,8 @@
 # ABRA — Technical Documentation
 
-**Version 5.222.0 · Last updated 2026-08-29**
+**Version 5.223.0 · Last updated 2026-08-29**
+
+**5.223.0 - A SHIELD REFUSES INSTRUCT, AND THE REFUSAL IS ASKED BEFORE THE ABILITY.** `shieldRefuses(target, moveId)` is now the first question in the `instruct` branch. It is asked before the status-refusing ability check, because both handlers answer in the `TryHit` event and the shield declares `onTryHitPriority: 3` while the ability declares none. It reads `shieldRefuses` and not the `protect` flag on the body, because `shieldsUser.blocksStatus` is what separates the four shields that refuse a status move from the one that does not. It is not gated on the target being a foe, because the authority does not look at sides. New counter `MEDSEEN.instructRefusedByShield`. Revert knob `MEDI_INSTRUCT_NO_SHIELD=1`.
 
 **5.222.0 - THE RUN WRAPPER READS THE HEAP DECLARATION. THE DAMAGE DIFFERENTIAL ACCEPTS AN OUTPUT
 PATH.**

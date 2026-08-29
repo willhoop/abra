@@ -1,10 +1,10 @@
 {
-  "current": "124f5aa8c8bd",
-  "cut": "2026-08-29T13:39:36.497Z",
-  "why": "tests/probe_partingshot_conditional.js — freeze the tree under test",
-  "cuts": 5,
-  "latest_cut": "2026-08-29T13:56:35.767Z",
-  "latest_why": "tests/probe_partingshot_conditional.js — freeze the tree under test",
-  "pointer_written": "2026-08-29T13:56:35.778Z",
+  "current": "705ead2014b2",
+  "cut": "2026-08-29T14:54:04.329Z",
+  "why": "tests/probe_shield_rearm.js — freeze the tree under test",
+  "cuts": 1,
+  "latest_cut": "2026-08-29T14:54:04.329Z",
+  "latest_why": "tests/probe_shield_rearm.js — freeze the tree under test",
+  "pointer_written": "2026-08-29T14:54:04.342Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

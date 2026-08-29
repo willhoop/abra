@@ -11,6 +11,69 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.223.0] — 2026-08-29
+
+### Fixed
+- **INSTRUCT NEVER ASKED THE SHIELD, SO A PROTECTING BODY TOOK A SECOND ACTION THE AUTHORITY NEVER
+  GAVE IT (ROADMAP #532).** `shieldRefuses` had thirteen callers and the `instruct` branch was not
+  one of them — a MISSING caller, not a misplaced announcement like the seven sites of #508 — so
+  `acts.splice(actIdx+1, 0, _entry)` put an extra click into the turn. **CHAMPIONS DOES NOT REWRITE
+  INSTRUCT AND THAT WAS CHECKED RATHER THAN ASSUMED**: 259 moves are overridden and Instruct is not
+  among them, the only mention under `/data/mods/champions/` being `learnsets.ts:12384`. The handler
+  is mainline's, and `checkMoveBypassesProtect` answers with `blockStatus` at its default, so
+  `protect.condition.onTryHit` writes `-activate` and returns `NOT_FAIL` at `hitStepTryHitEvent`,
+  **step 2 of eight** — Instruct's `onHit`, where the second action is built, is never reached and
+  not one member of its own refusal list is consulted. **THE CALL SITS ABOVE THE GOOD AS GOLD CHECK
+  AND NOT BESIDE IT**: both answer in the same `TryHit` event, `protect.condition` declares
+  `onTryHitPriority: 3` and the ability declares none, so a Gholdengo behind its own Protect reads
+  `-activate|move: Protect` and never `-immune`. It reads `shieldRefuses` and not `t.protect`,
+  because that is where `shieldsUser.blocksStatus` is read and King's Shield is the one member that
+  is `false`. Ungated on `_isFoe` deliberately — the authority never looks at sides. New counter
+  `MEDSEEN.instructRefusedByShield`; revert knob `MEDI_INSTRUCT_NO_SHIELD=1`, which deliberately
+  does NOT read `MEDI_SHIELD_REFUSAL_UNANNOUNCED` because this site had no old shape to restore.
+- **DERIVED, NOT NAMED: exactly ONE legal move in this format gives another body an extra action.**
+  Of every legal move whose handler touches the action queue, one calls
+  `resolveAction({choice:'move', pokemon: target})` — Instruct — and twelve only REORDER an action
+  that already exists (After You carries no `protect` flag at all). The probe derives this on every
+  run and refuses to continue if the population ever stops being Instruct alone.
+
+### Changed
+- **`tests/probe_instruct_shield.js` WENT 5 ARMS / 3 RED TO 13 ARMS / 0 FAILING**, 5 red and 7
+  control plus one declared KNOWN-OPEN. Every arm now plays TWICE — clean and under the revert knob —
+  so a red arm agrees clean and PARTS under the knob rather than merely being expected to part. Two
+  red arms added: **Detect** (5,554 uses), completing all four `shieldsUser.blocksStatus === true`
+  members, and **a Gholdengo behind its own Protect**, which is the arm that decides where the call
+  goes. Four controls added, each a way the new caller could over-fire: the same Gholdengo with the
+  shield removed (so `instructRefusedByShield` must read 0 on a board where the refusal is real but
+  is the ABILITY's); a **stale shield** across two turns; **Endure**, a `stallingMove` that is not a
+  `shieldsUser`; and a target with **no last move at all**. Both counters are asserted at EXACT
+  per-arm equality on both loads, `shieldBlocksStatusUnknown` is asserted at zero so the file cannot
+  pass through a silent default, and a `MEDFAILS` load-time stamp proves the knob reached the module
+  the driver played.
+
+### Notes
+- **THE SCOREBOARD PREDICTION WAS WRITTEN DOWN BEFORE THE RUN AND ONE OF THREE MISSED.** Census
+  unmoved at **801 live / 801 probed / 0 missing** — HELD, no new tag was wired. Empirical pool
+  board-parted **92 -> 91 of 961** and protocol **207 -> 205** on release `705ead2014b2` against
+  `#531`'s baseline on `124f5aa8c8bd` with identical pins (census `9446a684709d`, pool
+  `0d103fb9fa87`, 961 games, cap 12, arm `middle`, `--steering empirical`,
+  `baseline_comparability.ok: true`) — HELD, the prediction was "92, or at most -1". **The probe
+  prediction MISSED**: 12 counted arms were predicted at 0 failing and one control parted. **THE
+  MOVEMENT IS FULLY ATTRIBUTED** — exactly one divergence cause changed and no new one appeared:
+  `extra event emitted by medicham2 :: |-activate|p1a|protect <> |-singleturn|p1a|instruct`,
+  2 games / 1 board-parted, gone. Artifact
+  `data/verification/game-differential.instructshield532.json`. Account:
+  `docs/_reports/2026-08-29-instruct-shield.md`.
+- **A SECOND, INDEPENDENT ENGINE DEFECT WAS FOUND BY THE FAILING CONTROL AND IS FILED AS ROADMAP
+  #534, NOT FIXED.** The instructed repeat re-picks its target with `targetForMove` instead of
+  reusing the slot the move was aimed at, which the authority carries as
+  `targetLoc: target.lastMoveTargetLoc`. Staged: a Psychic aimed at foe slot 0 is repeated into foe
+  slot 1 and eats its Protect. Board-material. It parts IDENTICALLY on the clean load and under the
+  knob, which is what says it is not this batch's change, and the probe ASSERTS that rather than
+  claiming it — the arm fails if the two ever stop matching, so the exclusion cannot launder a red.
+  It is carried as a declared `KNOWN-OPEN` arm, printed and not counted; the counted damage control
+  was restaged with Dazzling Gleam, a spread move that carries no aim for the repeat to re-pick.
+
 ## [5.222.0] — 2026-08-29
 
 ### Fixed
