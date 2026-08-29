@@ -103,9 +103,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  786/786 probed mechanics live, 0 missing   (census 2026-08-29 02:34)
+  788/788 probed mechanics live, 0 missing   (census 2026-08-29 03:12)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 3.6 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 4.2 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -120,7 +120,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 130afedfe772 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 4665862a6d9d now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/300 probed, 15 unprobed;  269/300 have an engine consumer, 31 have none
@@ -128,9 +128,87 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 02:52_
+_stamped 2026-08-29 03:26_
 
 <!-- /GENERATED -->
+
+## A PIVOT IS A MOVE, AND THE DRAW SITE REFUSED IT BY ACTION KIND — PARTING SHOT WAS THE ONE SINGLE-TARGET STATUS CLICK IN THE FORMAT THAT WALKED PAST A FOLLOW ME. **CENSUS 786 -> 788 LIVE / 788 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 114 -> 106 OF 961, `by_cause` BOARD-MATERIAL GAMES 104 -> 96, `-unboost: a different body` 5 -> 0, `boosts.atk` LEAF FAMILY 19 -> 10 GAMES AND `boosts.spa` 11 -> 4, `arms_comparable` COMPARABLE. DAMAGE DIFFERENTIAL 0/6000 AT ALL SIXTEEN CORNERS, SEED 20260804 — UNMOVED, PREDICTED.** 2026-08-29.
+
+Card **C1** of `docs/_reports/2026-08-29-empirical-divergence-cards.md`. Full account:
+`docs/_reports/2026-08-29-redirection.md`. Engine release **`4b67526d29d8`**.
+
+**THE MECHANISM WAS GAPPED, NOT ABSENT, AND THE CARD'S HYPOTHESIS WAS WRONG.** It guessed *"our
+redirect check is gated on the move being damaging"*. ROADMAP #362 has drawn single-target STATUS
+moves since it landed and the Will-O-Wisp census row proves it. What refused Parting Shot is
+`playerAction`'s ACTION KIND: a `pivotStatus` move is `{kind:'switch', mv, target}` and the
+non-attack draw site excluded `kind==='switch'` BY NAME. **Membership printed before anything was
+wired: chillyreception (`target:'all'`, 93 uses) and partingshot (`target:'normal'`, 13,924).** One
+move excluded, and it was the expensive one.
+
+**THIS IS THE SECOND TIME `kind==='switch'` HAS BEEN ASKED IN PLACE OF "IS THIS A MOVE" IN THIS
+FILE.** The BeforeMove gate ~90 lines below carries the identical finding — a FROZEN body used
+Parting Shot — and the identical fix. The clause was removed rather than replaced: a bare switch
+carries no `mv`, `actionMoveId` answers null, and the existing `if(_rid && …)` skips it exactly as
+the removed clause did.
+
+**SIX LEGAL ENTITIES CARRY THE SHAPE AND TWO TURN IT OFF, DERIVED FROM THE FORMAT.** Follow Me and
+Rage Powder (`onFoeRedirectTarget`), Lightning Rod (`onAnyRedirectTarget`, 5 carriers), Counter and
+Mirror Coat (`onRedirectTarget`, `scripted`, a different mechanism), Stalwart (2 carriers). **Storm
+Drain and Propeller Tail have ZERO legal carriers here**, which is why `tags.json` reads n=1 on both
+`redirectsType` and `ignoresRedirection` — the deriver is right and the counts only looked short.
+
+**THE PROBE, RED FIRST.** `tests/probe_pivot_redirect.js` under `MEDI_PIVOT_SKIPS_REDIRECT=1` reads
+`3 FAILED`, `MEDFAILS.pivotSkipsRedirectRestored = 3` and `MEDSEEN.redirectedPivotStatus = 0`;
+unarmed it reads `all checks passed`, `0` and `3`. **The knob is specific and that is asserted, not
+assumed** — Noble Roar (the same two drops, not a pivot) and Chilly Reception (`target:'all'`) read
+IDENTICALLY on both arms, so an equal pair there would mean the fixture was measuring its staging.
+
+**THE NEGATIVE ARMS, BECAUSE AN OVER-FIRING FIX IS WORSE THAN THE GAP.** A Stalwart Archaludon is
+not drawn and its own Stamina is (`getMoveTargets` gates the whole event on `tracksTarget`); a
+Grass-type user is not drawn by Rage Powder and Incineroar is (`runStatusImmunity('powder')`), while
+Follow Me draws the same Grass body because it is not a powder.
+
+**THE 30-GAME LEAF ATTRIBUTION HELD, AND ITS NUMBER WAS STALE.** The card's `boosts.atk` at 30/28
+was measured on `e129bca605e3` (board-material 135); on the baseline actually in force it read
+19/18 and fell to **10/9**. It also reaches a family the card filed elsewhere: `boosts.spa` fell
+**11 -> 4** on both `active[]` and `party`, because Parting Shot drops Special Attack too. **Card H3
+is NARROWED, not closed** — four games remain.
+
+### C2 DOES NOT SHARE THE CAUSE, AND IT IS REPRODUCED RED
+
+Lightning Rod redirects correctly from the FOE side — Thunderbolt, Volt Switch and Electro Shot all
+move the hit and take the +1 SpA on a staged board with the ability as the only knob. **Both C2 cards
+in the dump are ALLY-side draws**: `|move|p2b: Rotom|voltswitch` with the rod on `p2a`, and
+`|move|p1b: Archaludon|electroshot` with the rod on `p1a`. Lightning Rod is `onAnyRedirectTarget`
+and `validTargetLoc` tests ADJACENCY, NOT SIDE, for `normal` — so a partner's rod pulls your own
+Electric click. `redirectDrawnTo` is only ever handed the FOE array, so it cannot fire. **Staged:
+identical arms across the ability knob.** Filed as its own batch.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"C1 — Parting Shot ignores Follow Me and Rage Powder"*~~ — two census rows carry it now, plus
+  `tests/probe_pivot_redirect.js` and its knob.
+
+**Joins it:**
+- **AN ALLY'S LIGHTNING ROD IS NEVER CONSULTED.** `redirectDrawnTo` takes only the foe array, so
+  `onAnyRedirectTarget` cannot fire for the attacker's own partner. Reproduced red with identical
+  arms across the ability. The fix must offer the own side to the `redirectsType` family ONLY, with a
+  negative arm proving Follow Me and Rage Powder stay foe-only.
+- **WIDE GUARD DOES NOT COVER THE USER'S OWN SIDE AGAINST AN ALLY'S SPREAD MOVE.** Against a foe's
+  Discharge it protects both bodies (`[40,160]` -> `[0,0]`); against its own partner's Discharge the
+  arms are identical at `[40,160]`. That is card C3's exact shape and it is reproduced.
+- **NO LEGAL MOVE CARRIES `tracksTarget`, SO ONE LINE OF `tracksTargetOf` CAN NEVER MATCH.** Snipe
+  Shot and Pursuit are the only mainline carriers and neither is legal here. Harmless, reported
+  rather than deleted — a tag-first read is the right shape and a member can arrive.
+- **THE THREE ROSTER STAGES AND `all_mechanics_fire.js` ARE STALE AGAINST `4b67526d29d8`.** Carried
+  forward, not created here: they already read `e129bca605e3` while the tree was `b39a5c87fe2d`.
+
+### OWED, NOT RUN
+
+The exact commands, with their expected values stated first, are the `## OWED, NOT RUN` block of
+`docs/_reports/2026-08-29-redirection.md`.
+
 
 ## WEIGHT WAS A BUILD-TIME CONSTANT AND THE AUTHORITY REWRITES IT ON EVERY FORME CHANGE — A MEGA WAS PRICED OFF THE BODY THAT LEFT THE FIELD, IN BOTH WEIGHT FAMILIES. **CENSUS 784 -> 786 LIVE / 786 PROBED / 0 MISSING. EMPIRICAL BOARD-MATERIAL 117 -> 114 OF 961, `-damage field 3` FIRST-DIVERGENCE GAMES 20 -> 17, `arms_comparable` COMPARABLE. DAMAGE DIFFERENTIAL 6000/6000/0 AT BOTH ENDPOINTS, SEED 20260804 — UNMOVED.** 2026-08-29.
 

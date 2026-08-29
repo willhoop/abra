@@ -1,6 +1,24 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.213.0 · Last updated 2026-08-29**
+**Version 5.214.0 · Last updated 2026-08-29**
+
+**5.214.0 — A MOVE THAT SWITCHES ITS USER OUT WAS CLASSIFIED AS A SWITCH RATHER THAN AS A MOVE, AND
+THE REDIRECTION SITE REFUSED IT ON THAT BASIS.** Doubles play turns on redirection: two moves and one
+ability in this format can pull a single-target click off the body it named and onto themselves. The
+reference simulator applies that test at target selection, in one place, to every single-target move
+regardless of category and regardless of what the move does to its user afterwards. `medicham2`
+applied it everywhere except to the one status move that also switches its user out, because the
+internal action label for such a move is the same label a voluntary switch carries. Membership of the
+affected class was enumerated from the format before the change and is exactly two moves, one of
+which the redirection rule does not reach in the reference simulator either. On identical pins — same
+driver policy, same team pool, same census pin, same turn cap — the count of games whose board
+diverges falls from **114 to 106 of 961**, and the mechanics census rises from **786 to 788 live
+probes with none missing**. The 6,000-comparison damage differential is unchanged at zero
+disagreements at every one of the sixteen roll positions. **A second card in the same review group is
+NOT the same defect and is not claimed fixed**: the draw ability is `onAny`-scoped in the reference
+simulator and adjacency, not side, decides whether it may take a click — so a partner's ability draws
+its own side's move, which this engine's draw function is never given the operands to see. It is
+reproduced under a control and filed.
 
 **5.213.0 — A BODY'S MASS WAS A BUILD-TIME CONSTANT, AND FOUR MOVES IN THIS FORMAT
 COMPUTE THEIR BASE POWER FROM IT.** Two moves read the target's mass off a bracket table and two read

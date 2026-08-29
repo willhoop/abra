@@ -1027,6 +1027,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * Storm Drain. The attack path has its own draw and is not counted here, so this number is exactly
    * the population that was walking past a redirector. */
   redirectedNonAttack: 0,
+  /* 2026-08-29 -- AND THE PIVOT HALF OF THE SAME POPULATION, COUNTED APART BECAUSE IT WAS THE
+   * GAP. `playerAction` gives a `pivotStatus` move `{kind:'switch',mv}`, and the draw site below
+   * excluded `kind==='switch'` by NAME -- so Parting Shot, a `target:'normal'` status move, was
+   * the one single-target status click in the format that walked past a Follow Me. Identical
+   * shape to the BeforeMove gate's own `kind==='switch'` bug: the kind is not the question,
+   * `actionMoveId` is. Kept apart from `redirectedNonAttack` so this branch can prove it ran
+   * rather than hiding inside a number that was already non-zero. */
+  redirectedPivotStatus: 0,
   /* WIRE 160 -- TRACE. `traceCopied` is the mechanic; `traceFoundNothing` is a legitimate board (every
    * foe carries an untraceable ability); `traceAmbiguousChoice` is THE HONEST SIZE OF WHAT IS GUESSED.
    *
@@ -2140,6 +2148,11 @@ const MEDFAILS = { encoreAction: 0,
      pre-WIRE-158 engine and it is what the roster row's red demonstration runs against.
      MUST READ 0 on any shipping run. */
   metronomeLadderBlindRestored: 0,
+  /* 2026-08-29 -- MEDI_PIVOT_SKIPS_REDIRECT=1 is armed, so the draw site excludes
+     `kind==='switch'` by name again and Parting Shot walks past a Follow Me. Bumped once per
+     click that WOULD have been drawn and was not, so the number is the defect's own size.
+     MUST READ 0 on any shipping run. */
+  pivotSkipsRedirectRestored: 0,
   /* WIRE 158 -- the holder carries `damageMultOnRepeat` and the artifact's `steps4096` is missing,
      empty, or does not start at the identity 4096. The consumer then applies NOTHING rather than
      guessing a ladder, because an invented step is a damage number nobody can trace. A non-zero
@@ -12572,6 +12585,14 @@ const NO_ATTACKER_IMMUNE_LINE=(typeof process!=='undefined'&&process.env&&proces
  * to run against the engine that actually shipped. Any run carrying it also carries a non-zero
  * `MEDFAILS.metronomeLadderBlindRestored`. Same shape as MEDI_NO_ATTACKER_IMMUNE_LINE above. */
 const NO_METRONOME_LADDER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_METRONOME_LADDER==='1');
+/* 2026-08-29 -- MEDI_PIVOT_SKIPS_REDIRECT=1 PUTS THE PIVOT EXCLUSION BACK: the non-attack draw
+ * site refuses `kind==='switch'` by name again, which is the shipped engine that let Parting Shot
+ * ignore a Follow Me or a Rage Powder in 7 games of the empirical arm. It is the WHOLE clause and
+ * not half of it -- the draw is computed either way, and the knob only decides whether the aim is
+ * moved -- so the counter below is the exact count of clicks the defect ate. Any run carrying it
+ * also carries a non-zero `MEDFAILS.pivotSkipsRedirectRestored`. Same shape as
+ * MEDI_NO_METRONOME_LADDER above. */
+const PIVOT_SKIPS_REDIRECT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PIVOT_SKIPS_REDIRECT==='1');
 /* 2026-08-23 -- MEDI_VOL_START_ARG_BLIND=1 PUTS THE GENERIC VOLATILE START LINE BACK for the one
  * volatile whose field 4 is computed: `-start|BODY|move: disable` instead of
  * `-start|BODY|Disable|<the sealed move>`. It exists so `tests/probe_volatile_start_field.js` can be
@@ -22316,7 +22337,25 @@ function battleTurn(S,rng,actsForA,actsForB){
        * read `tgtSlot`, which is why the two positions differ; the mutation itself is inert for a
        * body whose action never runs.) */
       if(TR)TR._pendRedir=null;
-      if(it.a&&it.a.target&&it.a.kind!=='attack'&&it.a.kind!=='switch'){
+      /* 2026-08-29 -- THE KIND IS NOT THE QUESTION, AND EXCLUDING `switch` BY NAME COST PARTING SHOT.
+       *
+       * `playerAction` returns `{kind:'switch',mv:id,target}` for every `pivotStatus` move, and the
+       * membership of that tag printed over the whole legal move table is exactly TWO: chillyreception
+       * (`target:'all'`, which REDIRECTABLE_AIM refuses, so it is a negative arm rather than a risk)
+       * and partingshot (`target:'normal'`, 13,924 uses). So the name test excluded exactly one move,
+       * and it was the most-clicked redirectable status move in the format.
+       *
+       * MEASURED BEFORE THE EDIT, same board, same drops, only the move varied: Noble Roar into a
+       * Follow Me moved its -1/-1 onto the redirector; Parting Shot left it on the aimed body. The
+       * authority makes no such split -- `getMoveTargets` runs `RedirectTarget` in its `default:` case
+       * for every single-target move, whatever the user does afterwards (sim/pokemon.ts:829).
+       *
+       * THIS IS THE SECOND TIME `kind==='switch'` HAS BEEN ASKED IN PLACE OF "is this a move" IN THIS
+       * FILE -- the BeforeMove gate ~90 lines below carries the same finding and the same fix. A bare
+       * switch carries no `mv`, so `actionMoveId` answers null and the `_rid &&` below skips it exactly
+       * as the removed clause did; `attack` keeps its own draw site because only it knows where its
+       * `|move|` line is. */
+      if(it.a&&it.a.target&&it.a.kind!=='attack'){
         const _rid=actionMoveId(it.a);
         const _rfoes2=it.side==='A'?actB:actA;
         if(_rid&&_rfoes2.indexOf(it.a.target)>=0){
@@ -22326,9 +22365,13 @@ function battleTurn(S,rng,actsForA,actsForB){
           else if(REDIRECTABLE_AIM.has(_tc.target)){
             const _dr2=redirectDrawnTo(m,it.a.target,_rfoes2,MC.moves[_rid],_rid,field,false);
             if(_dr2&&_dr2.to!==it.a.target){
+              if(PIVOT_SKIPS_REDIRECT&&it.a.kind==='switch'){ MEDFAILS.pivotSkipsRedirectRestored++; }
+              else{
               it.a.target=_dr2.to; it.tgtSlot=_rfoes2.indexOf(_dr2.to); it.allySlot=-1;
               MEDSEEN.redirectedNonAttack++;
+              if(it.a.kind==='switch')MEDSEEN.redirectedPivotStatus++;
               if(TR&&_dr2.announce)TR._pendRedir={m:_dr2.to,label:_dr2.announce};
+              }
             }
           }
         }

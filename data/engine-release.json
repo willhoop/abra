@@ -1,10 +1,10 @@
 {
-  "current": "b39a5c87fe2d",
-  "cut": "2026-08-29T06:38:44.077Z",
-  "why": "weight follows the forme at every species door (mega/forme swap/forecast/revert) -- B1 weight-based base power",
-  "cuts": 4,
-  "latest_cut": "2026-08-29T06:53:40.250Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-29T06:53:40.262Z",
+  "current": "4b67526d29d8",
+  "cut": "2026-08-29T07:13:12.184Z",
+  "why": "card C1: a pivot is a move -- Parting Shot obeys Follow Me and Rage Powder",
+  "cuts": 1,
+  "latest_cut": "2026-08-29T07:13:12.184Z",
+  "latest_why": "card C1: a pivot is a move -- Parting Shot obeys Follow Me and Rage Powder",
+  "pointer_written": "2026-08-29T07:13:12.198Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

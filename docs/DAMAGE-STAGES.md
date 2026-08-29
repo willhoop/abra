@@ -1,6 +1,12 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.213.0 — 2026-08-29.**
+**Version: 5.214.0 — 2026-08-29.**
+
+**5.214.0 — NO STAGE MOVED, AND NO DAMAGE NUMBER MOVED.** The change in this version is a TARGET
+SELECTION defect, not a damage one: a pivot status move was not offered to the redirection event, so
+its stat drops landed on the body it named instead of on the redirector. Nothing above or below the
+stage table was touched. The 6,000-comparison damage differential is unchanged at **0 disagreements at
+all sixteen roll positions**, seed 20260804, which is the reading this document exists to hold.
 
 **5.213.0 — THE GRASS KNOT AND HEAVY SLAM ROWS THE STANZA BELOW CALLED "THE SHARPEST OPEN
 DAMAGE QUESTION IN THIS DOCUMENT" ARE CLOSED, AND NO STAGE MOVED.** Neither was a stage and neither

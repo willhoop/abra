@@ -1,6 +1,12 @@
 # ABRA — the model family (living reference)
 
-**Version 5.213.0 · Last updated 2026-08-29.**
+**Version 5.214.0 · Last updated 2026-08-29.**
+
+**5.214.0 — NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON NOW REDIRECTS A PIVOT STATUS
+MOVE.** `medicham2` refused Parting Shot at the redirection site because its internal action label is
+the one a voluntary switch carries. The `empirical-click/v1` arm falls from **114 to 106 games whose
+board diverged of 961** and the census rises from **786 to 788 live**. Every quarantined model figure
+in this ledger stays quarantined; this is one more reason a pre-quarantine number may not be quoted.
 
 **5.213.0 — NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON GAINED A WEIGHT THAT
 FOLLOWS THE FORME.** `medicham2` stamped a body's weight once, at build time, and never rewrote it, so

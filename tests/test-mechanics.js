@@ -6755,6 +6755,94 @@ probe('move', 'redirects', 'a single-target STATUS move is drawn by Follow Me to
                  + `really up` };
 });
 
+/* 2026-08-29 — PARTING SHOT WALKED PAST A FOLLOW ME IN 7 GAMES, AND THE GATE WAS AN ACTION KIND.
+ *
+ * Card C1 of `docs/_reports/2026-08-29-empirical-divergence-cards.md`:
+ *     |move|p1b: Maushold|followme          |-singleturn|p1b: Maushold|move: followme
+ *     |move|p2a: Incineroar|partingshot|p1a: Beedrill
+ *     SHOWDOWN : |-unboost|p1b: Maushold|atk|1      <- the redirector took it
+ *     MEDICHAM : |-unboost|p1a: Beedrill|atk|1      <- we hit the named target
+ *
+ * THE HYPOTHESIS IN THE CARD — "our redirect check is gated on the move being damaging" — IS WRONG,
+ * and the probe above is why: a single-target STATUS move (Will-O-Wisp) has been drawn correctly
+ * since ROADMAP #362. The real gate is `playerAction`'s ACTION KIND. A `pivotStatus` move is
+ * `{kind:'switch', mv, target}`, and the non-attack draw site excluded `kind==='switch'` BY NAME.
+ * Membership of `pivotStatus` over the whole legal move table is exactly two — chillyreception
+ * (`target:'all'`, which REDIRECTABLE_AIM refuses anyway) and partingshot (`target:'normal'`,
+ * 13,924 uses) — so the name test excluded exactly one move and it was the expensive one.
+ *
+ * THE SAME MISTAKE IS ALREADY RECORDED ONE FILE OVER. `medicham2-browser.js`'s BeforeMove gate asked
+ * `it.a.kind==='switch'` in place of "is this a move" and let a FROZEN body use Parting Shot; the fix
+ * there was `actionMoveId`, and it is the fix here.
+ *
+ * THE THIRD ARM IS THE KNOB CLEARED EXPLICITLY. Noble Roar drops the same two stats on the same board
+ * with the same Follow Me up and is NOT a pivot, so it was drawn before this fix and after it. If the
+ * two moves ever agree on the broken engine, the fixture is measuring its own staging. */
+probe('move', 'redirects', 'Parting Shot is drawn by Follow Me — a pivot is a move', () => {
+  const run = (moveId, useFollowMe) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'clefable', 'garchomp', 'maushold');
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }],
+               [f2, useFollowMe ? M.playerAction(f2, 'followme', null, S.field) : { kind: 'pass' }]]));
+    return [f1.boosts.at, f1.boosts.sa, f2.boosts.at, f2.boosts.sa];
+  };
+  const off = run('partingshot', false), on = run('partingshot', true);
+  const roar = run('nobleroar', true);           // the same drops, not a pivot — always drawn
+  return { works: String(off) === '-1,-1,0,0' && String(on) === '0,0,-1,-1'
+                  && String(roar) === '0,0,-1,-1',
+           arms: { off, on, roar },
+           detail: `Parting Shot aimed at the Garchomp in foe slot A, `
+                 + `[aimed atk, aimed spa, partner atk, partner spa] — no Follow Me [${off}]; `
+                 + `Follow Me up [${on}]. The two drops must MOVE onto the redirector, not vanish and `
+                 + `not stay. Noble Roar, the same two drops on the same board with the same Follow Me `
+                 + `up but no self-switch, reads [${roar}] — the arm that proves the redirector was `
+                 + `really up and that the varied thing is the ACTION KIND` };
+});
+
+/* 2026-08-29 — AND THE REFUSALS, BECAUSE A FIX THAT DRAWS EVERYTHING IS WORSE THAN THE GAP.
+ *
+ * Admitting `kind==='switch'` to the draw site admits it to `redirectDrawnTo`'s conditions as well,
+ * and both of them are the authority's own:
+ *   - `getMoveTargets` runs the RedirectTarget event only `if (... && !move.tracksTarget)`
+ *     (sim/pokemon.ts:829). Stalwart writes `move.tracksTarget` in `onModifyMove`, so a Stalwart user
+ *     is not drawn by anything. Legal carriers derived from the format: Archaludon and Skarmory-Mega.
+ *   - Rage Powder's handler asks `source.runStatusImmunity('powder')` (data/moves.ts) before it
+ *     returns its body, so a Grass-type user hits what it aimed at. Follow Me asks nothing, which is
+ *     what the probe above already shows.
+ * Neither arm can pass by accident: each has its partner arm on the identical board with the single
+ * varied knob set the other way. */
+probe('move', 'redirects', 'a drawn Parting Shot still obeys Stalwart and the powder immunity', () => {
+  const stal = (ability) => {
+    const { me, ally, f1, f2, S } = board('archaludon', 'clefable', 'garchomp', 'maushold');
+    me.ability = ability;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'partingshot', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, M.playerAction(f2, 'followme', null, S.field)]]));
+    return [f1.boosts.at, f2.boosts.at];
+  };
+  const pow = (userSp) => {
+    const { me, ally, f1, f2, S } = board(userSp, 'clefable', 'garchomp', 'maushold');
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'partingshot', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, M.playerAction(f2, 'ragepowder', null, S.field)]]));
+    return [f1.boosts.at, f2.boosts.at];
+  };
+  /* Stamina is Archaludon's other legal ability, so the control arm is the same body with the same
+   * legal sheet and only the redirection clause removed. Meganium is a Grass type and Incineroar is
+   * not; both can use Parting Shot. */
+  const trackOff = stal('stamina'), trackOn = stal('stalwart');
+  const powOff = pow('incineroar'), powOn = pow('meganium');
+  return { works: String(trackOff) === '0,-1' && String(trackOn) === '-1,0'
+                  && String(powOff) === '0,-1' && String(powOn) === '-1,0',
+           arms: { trackOff, trackOn, powOff, powOn },
+           detail: `[aimed atk, redirector atk] after a Parting Shot into a live redirector. `
+                 + `Stalwart: Stamina user [${trackOff}] vs Stalwart user [${trackOn}] — the drop must `
+                 + `stay on the aimed body. Rage Powder: Incineroar user [${powOff}] vs Grass-type `
+                 + `Meganium user [${powOn}]. Equal arms on either pair mean the condition is unread `
+                 + `and the fix over-fires` };
+});
+
 /* ROADMAP #363 — TWO REDIRECTORS ON ONE SIDE, AND THIS ENGINE TOOK THE ONE IN THE LOWER SLOT.
  *
  * `priorityEvent` passes `fastExit`, so `runEvent` sorts the handlers with

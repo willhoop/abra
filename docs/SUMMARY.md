@@ -1,6 +1,15 @@
 # ABRA — Project Summary
 
-**Version 5.213.0 · 2026-08-29 · Will Hooper**
+**Version 5.214.0 · 2026-08-29 · Will Hooper**
+
+**5.214.0 — PARTING SHOT WALKED PAST A FOLLOW ME, AND THE REASON WAS A LABEL RATHER THAN A RULE.**
+The engine already redirected damaging moves and already redirected status moves; it refused Parting
+Shot alone, because a move that switches its user out carries the same internal action label as an
+ordinary switch. On identical pins the empirical driver arm goes from **114 games whose board
+diverged to 106 of 961**, and the mechanics census goes from **786 to 788 live probes with 0
+missing**. Both scoreboards were predicted to move before the run and both did. Two further cards in
+the same group — an ally's draw ability, and Wide Guard against an ally's own spread move — were
+reproduced under controls, are DIFFERENT defects, and are filed rather than fixed.
 
 **5.213.0 — A MEGA EVOLUTION WAS PRICED OFF THE BODY THAT LEFT THE FIELD.** Four moves in
 this format scale on weight, and the simulator held weight as a value stamped when the body was built

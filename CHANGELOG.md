@@ -10,6 +10,73 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.214.0] — 2026-08-29
+
+### Fixed
+- **A PIVOT IS A MOVE, AND THE REDIRECT SITE REFUSED IT BY ACTION KIND — CARD C1, 7 GAMES.** Parting
+  Shot was the one single-target status click in Reg M-B that walked past a Follow Me or a Rage
+  Powder. The card's own hypothesis — *"our redirect check is gated on the move being damaging"* — is
+  **wrong**: ROADMAP #362 has drawn single-target status moves since it landed, and the Will-O-Wisp
+  census row proves it. The real gate was `playerAction`'s ACTION KIND. A `pivotStatus` move is
+  `{kind:'switch', mv, target}` and the non-attack draw site excluded `kind==='switch'` **by name**.
+  Membership of that tag over the whole legal move table, printed before anything was wired, is
+  exactly two — **chillyreception** (`target:'all'`, which `REDIRECTABLE_AIM` refuses anyway, 93 uses)
+  and **partingshot** (`target:'normal'`, 13,924 uses) — so the name test excluded one move and it was
+  the expensive one.
+  - **The authority makes no such split.** `Pokemon#getMoveTargets` (`sim/pokemon.ts:791-838`, read
+    whole) runs the `RedirectTarget` event in its `default:` case for every single-target move,
+    whatever the user does to itself afterwards. Its four conditions are doubles, `!tracksTarget`, not
+    the charging turn of a charge move, and a target type that falls through to `default:`. **Category
+    is not one of them.** Champions overrides none of the four files involved.
+  - **This is the second time `kind==='switch'` has been asked in place of "is this a move" in this
+    file.** The BeforeMove gate ~90 lines below carries the identical finding — a frozen body used
+    Parting Shot — and the identical fix. The clause was removed rather than replaced: a bare switch
+    carries no `mv`, so `actionMoveId` answers null and the existing `if(_rid && …)` skips it exactly
+    as the removed clause did.
+
+### Added
+- **`tests/probe_pivot_redirect.js` and the `MEDI_PIVOT_SKIPS_REDIRECT=1` knob**, shown RED first.
+  Armed it reads `3 FAILED`, `MEDFAILS.pivotSkipsRedirectRestored = 3` (the defect's own count of
+  clicks it ate) and `MEDSEEN.redirectedPivotStatus = 0`; unarmed, `all checks passed`, `0` and `3`.
+  **The knob is specific and that is asserted, not assumed** — Noble Roar (the same two drops, not a
+  pivot) and Chilly Reception (`target:'all'`) read identically on both arms.
+- **Two census rows** under tag `redirects`: the draw, and the refusals. A fix that redirected
+  everything would be worse than the gap, so the second row holds four measured negative arms — a
+  Stalwart Archaludon is not drawn and its own Stamina is; a Grass-type user is not drawn by Rage
+  Powder and Incineroar is, while Follow Me draws the same Grass body because it is not a powder.
+
+### Changed
+- Census **786 → 788 live / 788 probed / 0 missing**. Empirical arm, release `b39a5c87fe2d` →
+  **`4b67526d29d8`**, `arms_comparable` **COMPARABLE**: board-parted **114 → 106 of 961**,
+  `by_cause` board-material games **104 → 96**, protocol diverged **231 → 225**, end-state
+  DIFFERENT **81 → 73**. The class `-unboost: a different body` went **5 → 0**, and so did the two
+  Protect/immune variants the card named. Damage differential **0/6000 at all sixteen corners**,
+  seed 20260804 — unmoved, as predicted before the run.
+
+### Notes
+- **The card's 30-game leaf attribution held, and its NUMBER was stale.** `active[].boosts.atk` at
+  30 and `party.boosts.atk` at 28 were measured on release `e129bca605e3` (board-material 135); on
+  the baseline actually in force they read **19 and 18**, and fell to **10 and 9**. The fix also
+  reaches a family the card filed elsewhere — `boosts.spa` fell **11 → 4** on both `active[]` and
+  `party`, because Parting Shot drops Special Attack too. **Card H3 is narrowed, not closed.**
+- **Card C2 does NOT share the cause and is FILED, NOT FIXED.** Lightning Rod redirects correctly
+  from the foe side (Thunderbolt, Volt Switch and Electro Shot all move the hit and take the +1 SpA
+  with the ability as the only knob). Both C2 cards in the dump are **ally-side** draws — the rod is
+  the ATTACKER'S OWN PARTNER. Lightning Rod is `onAnyRedirectTarget` and `validTargetLoc`
+  (`sim/battle.ts:2395`) tests **adjacency, not side**, for `normal`. `redirectDrawnTo` is only ever
+  handed the foe array, so it cannot fire; staged, the arms are identical across the ability.
+- **Card C3 is half live and card C6 is live.** Armor Tail refuses a Fake Out into its partner
+  (35 HP → 0 with the ability as the knob). Wide Guard protects both bodies from a foe's spread move
+  and does nothing against the user's own partner's spread move — identical arms at `[40,160]`,
+  which is card C3's exact shape. Both filed.
+- **Storm Drain and Propeller Tail have zero legal carriers in this regulation**, which is why
+  `tags.json` reads n=1 on `redirectsType` and `ignoresRedirection`. The deriver is right; the counts
+  only looked short. No legal move carries `tracksTarget` either — one line of `tracksTargetOf` can
+  never match today, reported rather than deleted.
+- Full account: `docs/_reports/2026-08-29-redirection.md`.
+
+---
+
 ## [5.213.0] — 2026-08-29
 
 ### Fixed

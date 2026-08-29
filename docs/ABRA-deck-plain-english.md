@@ -1,6 +1,28 @@
 # ABRA — the plain-English deck
 
-**Version 5.213.0 · 2026-08-29 · Will Hooper**
+**Version 5.214.0 · 2026-08-29 · Will Hooper**
+
+**5.214.0 — ONE MOVE IGNORED THE POKEMON STANDING IN FRONT OF IT.**
+
+In doubles, some moves and abilities exist to say *hit me instead*. Follow Me and Rage Powder do it;
+the whole point of them is to take a hit meant for a partner. Our simulator obeyed that for attacks,
+and it obeyed it for status moves like Will-O-Wisp. It ignored it for exactly one move: Parting Shot,
+which lowers the target's Attack and Special Attack and then switches its user out.
+
+The reason is not interesting and that is the point. Inside the engine, a move that swaps its user
+out is labelled the same way an ordinary switch is, and the redirection code skipped anything wearing
+that label. Parting Shot is the only move in this format that was caught by it — and it is one of the
+most-clicked moves there is.
+
+So in seven of the 961 test games, the wrong Pokemon walked away with the stat drops, and it stayed
+wrong for the rest of the battle. Fixing it takes the number of games where our simulator ends up
+with a different board from the real game from **114 down to 106**, and the count of game mechanics we
+can prove we play correctly from **786 to 788**.
+
+Two related things in the same review turned out to be different problems, not this one, and we said
+so instead of claiming them: an ability that is supposed to pull your OWN partner's electric move onto
+itself, and Wide Guard failing to protect a partner from your own side's spread move. Both are
+reproduced and both are written down. Neither is fixed yet.
 
 **5.213.0 — OUR SIMULATOR FORGOT THAT A POKEMON GETS HEAVIER WHEN IT MEGA-EVOLVES.**
 

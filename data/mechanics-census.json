@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T06:34:30.442Z",
+  "generated": "2026-08-29T07:12:06.889Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 786,
-  "live": 786,
+  "probed": 788,
+  "live": 788,
   "missing": 0,
-  "armed": 786,
+  "armed": 788,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1604,6 +1604,26 @@
       "label": "a single-target STATUS move is drawn by Follow Me too",
       "live": true,
       "detail": "Will-O-Wisp aimed at the Garchomp in foe slot A, [aimed body's status, partner's status] — no Follow Me [brn, none]; Follow Me up [none, brn]. The burn must MOVE, not vanish. And on the same board a damaging Darkest Lariat is drawn as it always was: aimed took 0, the Follow Me body took 108 — the arm that proves the redirector was really up",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "redirects",
+      "label": "Parting Shot is drawn by Follow Me — a pivot is a move",
+      "live": true,
+      "detail": "Parting Shot aimed at the Garchomp in foe slot A, [aimed atk, aimed spa, partner atk, partner spa] — no Follow Me [-1,-1,0,0]; Follow Me up [0,0,-1,-1]. The two drops must MOVE onto the redirector, not vanish and not stay. Noble Roar, the same two drops on the same board with the same Follow Me up but no self-switch, reads [0,0,-1,-1] — the arm that proves the redirector was really up and that the varied thing is the ACTION KIND",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "redirects",
+      "label": "a drawn Parting Shot still obeys Stalwart and the powder immunity",
+      "live": true,
+      "detail": "[aimed atk, redirector atk] after a Parting Shot into a live redirector. Stalwart: Stamina user [0,-1] vs Stalwart user [-1,0] — the drop must stay on the aimed body. Rage Powder: Incineroar user [0,-1] vs Grass-type Meganium user [-1,0]. Equal arms on either pair mean the condition is unread and the fix over-fires",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3773,7 +3793,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 21.1% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7323,7 +7343,7 @@
       "tag": "pivotStatus",
       "label": "a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch",
       "live": true,
-      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 38 to 40",
+      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 44 to 46",
       "hollow": false,
       "armed": true,
       "directCall": false

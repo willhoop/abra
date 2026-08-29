@@ -1,6 +1,24 @@
 # ABRA — Technical Documentation
 
-**Version 5.213.0 · Last updated 2026-08-29**
+**Version 5.214.0 · Last updated 2026-08-29**
+
+**5.214.0 — A PIVOT MOVE IS A MOVE AT THE REDIRECTION SITE.**
+`engine/medicham2-browser.js` decides the target of a single-target move that is not an attack in one
+block. Before this change, the block refused any action whose `kind` field was `'switch'`.
+- `playerAction` gives every move carrying the `pivotStatus` tag the action `{kind:'switch', mv,
+  target}`. Two moves in this format carry that tag: `chillyreception` and `partingshot`.
+- The reference simulator runs its `RedirectTarget` event in `Pokemon#getMoveTargets`
+  (`sim/pokemon.ts`, line 829). The event runs for every single-target move. The category of the move
+  and the self-switch of the move are not conditions of the event.
+- The block now refuses only the action `kind` `'attack'`, which has its own redirection call. An
+  action that is a real switch carries no `mv` field, so `actionMoveId` returns null and the existing
+  test skips it.
+- The counter `MEDSEEN.redirectedPivotStatus` counts each pivot move that is redirected. The counter
+  `MEDFAILS.pivotSkipsRedirectRestored` counts each pivot move that is not redirected because
+  `MEDI_PIVOT_SKIPS_REDIRECT=1` is set. On a normal run, the second counter must be 0.
+- `tests/probe_pivot_redirect.js` tests the change. It also tests four conditions that must stay true:
+  Stalwart stops the redirection, a Grass-type user is not drawn by Rage Powder, a Grass-type user is
+  drawn by Follow Me, and `chillyreception` is not redirected.
 
 **5.213.0 — A BODY'S WEIGHT FOLLOWS ITS SPECIES.**
 `engine/medicham2-browser.js` keeps the weight of each body in the field `wt`. Before this change,
