@@ -1,6 +1,14 @@
 # ABRA — the model family (living reference)
 
-**Version 5.215.0 · Last updated 2026-08-29.**
+**Version 5.216.0 · Last updated 2026-08-29.**
+
+**5.216.0 - NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON NOW LETS A SIDE-WIDE STATUS
+SHIELD REFUSE WHAT ITS OWN SIDE WROTE.** `medicham2` skipped Safeguard whenever the source stood on
+the same side as the target; the authority's exclusion is the target itself, not the target's side.
+Both the status handler and the confusion handler share one reader here, so both are corrected.
+**Census 792 to 794 probed mechanics live, 0 missing.** The whole-game figure is **unmoved at 97 of
+961 boards parted** - predicted before the run for a 22-use mechanic. Every quarantined model figure in
+this ledger stays quarantined; this changes what the simulator does, not what any model scores.
 
 **5.215.0 — NO MODEL CHANGED. AN INSTRUMENT THAT SCORES THE SIMULATOR EVERY MODEL RESTS ON NOW
 ASKS WHETHER A ONE-TURN STATE EVER REFUSED ANYTHING.** The deliberate roster credited eight guard

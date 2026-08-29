@@ -1051,6 +1051,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      counts the far half and is non-zero already, so a partner shielded from its own quake would have
      hidden inside it. Same reason `redirectedPivotStatus` is kept apart from `redirectedNonAttack`. */
   allyGuardBlocked: 0,
+  /* 2026-08-29 -- AND THE SIDE BUFF'S NEAR HALF, the third site of the same class. `sideBuffRefused`
+     and `confusionRefusedBySideBuff` count both halves together and are non-zero already, so a
+     partner's Glare refused by our own Safeguard would have hidden inside them. Counted here across
+     BOTH roads, because both go through the one reader; a zero after real games says the near axis
+     has come unwired again, which is otherwise indistinguishable from "no Safeguard was up". */
+  allySideBuffRefused: 0,
   /* WIRE 160 -- TRACE. `traceCopied` is the mechanic; `traceFoundNothing` is a legitimate board (every
    * foe carries an untraceable ability); `traceAmbiguousChoice` is THE HONEST SIZE OF WHAT IS GUESSED.
    *
@@ -2184,6 +2190,11 @@ const MEDFAILS = { encoreAction: 0,
      Bumped once per partner that WOULD have been shielded and was not. MUST READ 0 on any shipping
      run. */
   guardFoeSideOnlyRestored: 0,
+  /* 2026-08-29 -- MEDI_SIDEBUFF_FOE_SIDE_ONLY=1 is armed, so `sideBuffRefuses` skips its own side's
+     condition when the source is a partner and an ally's status or confusion walks through a
+     Safeguard. Bumped once per refusal that WOULD have happened and did not, on either road.
+     MUST READ 0 on any shipping run. */
+  sideBuffFoeSideOnlyRestored: 0,
   /* 2026-08-29 -- MEDI_NO_DAMAGE_TAKEN_TOLL=1 is armed, so the `punishesAttacker` consumer spends
      only `fraction` again and a toll whose amount is THE DAMAGE THIS MOVE DEALT finds no branch.
      That is the exact pre-fix engine, in which Innards Out derived onto the wrong tag entirely and
@@ -12642,6 +12653,15 @@ const REDIRECT_FOE_ONLY=(typeof process!=='undefined'&&process.env&&process.env.
  * was before this pass. Any run carrying it also carries a non-zero
  * `MEDFAILS.guardFoeSideOnlyRestored`. */
 const GUARD_FOE_SIDE_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_GUARD_FOE_SIDE_ONLY==='1');
+/* 2026-08-29 -- MEDI_SIDEBUFF_FOE_SIDE_ONLY=1 PUTS THE ALLY EXCLUSION BACK INTO `sideBuffRefuses`:
+ * the one reader of the `sideBuff` tag skips its own side's condition again when the SOURCE is a
+ * partner, so an ally's Glare, Confuse Ray or Teeter Dance walks straight through a Safeguard that
+ * the authority answers with `-activate|TARGET|move: Safeguard`. It is the whole clause -- BOTH
+ * roads, `blocksStatus` and `blocksVolatile`, because both go through this one function -- and the
+ * counter is bumped where the refusal would have happened, so it is the exact count the defect ate.
+ * Any run carrying it also carries a non-zero `MEDFAILS.sideBuffFoeSideOnlyRestored`. Same shape as
+ * MEDI_GUARD_FOE_SIDE_ONLY above. */
+const SIDEBUFF_FOE_SIDE_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SIDEBUFF_FOE_SIDE_ONLY==='1');
 /* 2026-08-29 -- MEDI_NO_DAMAGE_TAKEN_TOLL=1 PUTS THE UNPAID INNARDS OUT BACK: the `punishesAttacker`
  * consumer goes back to spending only `fraction`, so a punish whose amount is THE DAMAGE THIS MOVE
  * DEALT finds no branch and is skipped in silence -- which is precisely the engine that shipped, and
@@ -15795,22 +15815,52 @@ function restoreStatsAll(a,b){
  * split is the whole reason the tag could not be wired before -- Safeguard refuses a STATUS and Mist
  * refuses a STAT DROP, and treating the class as one thing would have made Mist a second Safeguard.
  *
- * IT ONLY REFUSES SOMETHING WRITTEN BY THE OTHER SIDE. `onSetStatus` opens `if (!effect || !source)
- * return;` and ends `if (target !== source)`, so a self-inflicted status (Rest, a Toxic Orb) and a
- * source-less one go straight through. The engine expresses that by requiring a SOURCE: every caller
- * that knows who wrote the status passes one, and the ones that do not (the residual, the hazards,
- * Yawn's delayed sleep) are exactly the cases the authority also lets through -- Yawn explicitly, by
- * name, at data/moves.ts:15591. Stated rather than left as an accident of which call sites were
- * edited; Toxic Spikes is the one member where the authority's answer has NOT been checked, and it
- * keeps its current behaviour rather than acquiring a guess. */
-function sideBuffRefuses(t,src,what){
+ * IT REFUSES WHAT ANY BODY OTHER THAN THE TARGET ITSELF WROTE. `onSetStatus` opens `if (!effect ||
+ * !source) return;` and ends `if (target !== source)`, so a self-inflicted status (Rest, a Toxic Orb)
+ * and a source-less one go straight through. The engine expresses that by requiring a SOURCE: every
+ * caller that knows who wrote the status passes one, and the ones that do not (the residual, the
+ * hazards, Yawn's delayed sleep) are exactly the cases the authority also lets through -- Yawn
+ * explicitly, by name, at data/moves.ts:15591. Stated rather than left as an accident of which call
+ * sites were edited; Toxic Spikes is the one member where the authority's answer has NOT been
+ * checked, and it keeps its current behaviour rather than acquiring a guess.
+ *
+ * 2026-08-29 -- THE THIRD SITE OF THE ALLY-SIDE CLASS, AND THIS PARAGRAPH USED TO CARRY THE BUG.
+ * It read "IT ONLY REFUSES SOMETHING WRITTEN BY THE OTHER SIDE", and one line below that sentence
+ * stood `if(src._sf&&src._sf===sf)return null;   // an ally is not the other side`. NO HANDLER SAYS
+ * THAT. The authority's exclusion is `target !== source` -- IDENTITY, not side -- and the only place
+ * `isAlly` appears in either handler is INSIDE the Infiltrator clause
+ * (`effect.infiltrates && !target.isAlly(source)`), where it exists precisely so that an ALLY'S
+ * infiltrating move is still refused. So the near side is not merely unmentioned: it is named and
+ * kept. Staged in the official simulator before the edit:
+ *     |move|p1b: Pikachu|Glare|p1a: Clefable   |-activate|p1a: Clefable|move: Safeguard
+ * and this engine paralysed. Same shape as card C2 (`redirectDrawnTo`'s foe-only candidate array)
+ * and card C3 (the attack branch's foe-only guard map); no shared code with either, only the
+ * sentence. `tests/probe_ally_safeguard.js`, `MEDI_SIDEBUFF_FOE_SIDE_ONLY=1`.
+ *
+ * THE SIDE STILL DECIDES WHOSE CONDITION IS ASKED -- `sf` is the TARGET's side object and always
+ * was. What changed is only that the SOURCE's side is no longer a reason to skip it.
+ *
+ * `quiet` SAYS THIS CALL IS A RE-ASK AND NOT AN EVENT, and it exists because the counter was wrong
+ * first. Three sites call this function: `applyStatus` and `applyConfusion` ACT on the answer, and
+ * the status branch's narration guard asks a SECOND time about the same refusal to decide whether to
+ * suppress its `-fail`. Counting there made one near-side Glare read 2, so the number described the
+ * fixture rather than the defect -- the exact failure the knob-count comment two lines below is
+ * about. Measured before it was fixed: the probe read 4 for three refusals. */
+function sideBuffRefuses(t,src,what,quiet){
   if(!t||!src||src===t)return null;
   const sf=t._sf; if(!sf||!sf.sc)return null;
-  if(src._sf&&src._sf===sf)return null;                       // an ally is not the other side
+  const _near=!!(src._sf&&src._sf===sf);
   for(const id in sf.sc){
     if(!(sf.sc[id]>0))continue;
     const p=TAGS.param('move',id,'sideBuff');
-    if(p&&p[what])return p;
+    if(!(p&&p[what]))continue;
+    /* THE KNOB COUNT IS TAKEN WHERE THE REFUSAL WOULD HAVE HAPPENED, not at the top of the function.
+     * Returning early on `_near` before the condition is matched would bump this once per near-side
+     * status call on a bare side, and the number would then describe the fixture rather than the
+     * defect. */
+    if(_near&&SIDEBUFF_FOE_SIDE_ONLY){if(!quiet)MEDFAILS.sideBuffFoeSideOnlyRestored++;return null;}
+    if(_near&&!quiet)MEDSEEN.allySideBuffRefused++;
+    return p;
   }
   return null;
 }
@@ -27183,7 +27233,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _why={};
         if(!applyStatus(t,st,m,ATTR.move(a.mv),_why)){
           m._mvRes=false;
-          if(TR&&!sideBuffRefuses(t,m,'blocksStatus')){
+          if(TR&&!sideBuffRefuses(t,m,'blocksStatus',true)){   /* quiet: a re-ask, not an event */
             if(_why.reason==='type'||_why.reason==='ability'){
               const _si=_why.ability?TAGS.param('ability',_why.ability,'statusImmune'):null;
               MEDSEEN.statusRefusedImmune++;

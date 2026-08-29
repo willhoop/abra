@@ -19343,6 +19343,85 @@ probe('move', 'sideBuff', 'Safeguard refuses a status aimed at that side', () =>
                  + `"par" — an engine where Nuzzle never paralysed anything passes the other half` };
 });
 
+/* 7b. sideBuff — AND THE NEAR HALF, THE THIRD SITE OF THE ALLY-SIDE CLASS. 2026-08-29.
+ *
+ * The row above proves the FAR half and has been green since WIRE 133. `sideBuffRefuses` opened with
+ * `if(src._sf&&src._sf===sf)return null;   // an ally is not the other side`, and no handler says
+ * that: `safeguard.condition.onSetStatus` ends `if (target !== source)` — IDENTITY, not side. The one
+ * `isAlly` in the block is inside the Infiltrator clause
+ * (`effect.infiltrates && !target.isAlly(source)`), which exists so that an ALLY'S infiltrating move
+ * is still refused. Staged in the official simulator before the edit:
+ *     |move|p1b: Pikachu|Glare|p1a: Clefable   |-activate|p1a: Clefable|move: Safeguard
+ * and this engine paralysed on both arms of the knob.
+ *
+ * THREE ARMS, NOT TWO, AND THE THIRD IS THE ONE THAT MATTERS. Removing the near-side skip could just
+ * as easily have been written as "refuse whatever the side condition sees", which would refuse a
+ * SELF-inflicted status too — a board that is correct today. So the third arm is the same Safeguard
+ * refusing the same status code arriving from the body ITSELF, and it must still land. */
+probe('move', 'sideBuff', 'Safeguard refuses the status its OWN PARTNER wrote, and not the body\'s own', () => {
+  const run = (t1, caster) => {
+    const me = bare('clefable'), ally = bare('pikachu');
+    const f1 = bare('garchomp'), f2 = bare('incineroar');
+    me.item = ''; ally.item = ''; me.ability = 'none'; ally.ability = 'none';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, t1 ? M.playerAction(me, t1, me, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const up = ((me._sf && me._sf.sc && me._sf.sc.safeguard) | 0) > 0;
+    if (caster === 'self') me.curHP = Math.max(1, Math.floor(me.st.hp / 2));
+    const cast = caster === 'self' ? [me, M.playerAction(me, 'rest', me, S.field)]
+                                   : [ally, M.playerAction(ally, 'glare', me, S.field)];
+    M.battleTurn(S, rng5,
+      new Map([[me, cast[0] === me ? cast[1] : { kind: 'pass' }],
+               [ally, cast[0] === ally ? cast[1] : { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return [up, me.status || 'clean'];
+  };
+  const control = run(null, 'ally');            // no Safeguard: the partner's Glare must land
+  const test = run('safeguard', 'ally');        // our own Safeguard must refuse our own partner
+  const own = run('safeguard', 'self');         // `target !== source`: Rest must still land
+  return { works: control[0] === false && control[1] === 'par'
+                  && test[0] === true && test[1] === 'clean'
+                  && own[0] === true && own[1] === 'slp',
+           arms: { control, test },
+           detail: `[was Safeguard up, our body's status] — no Safeguard, partner's Glare ${control} `
+                 + `(the control MUST read "par" or the probe is measuring an engine where Glare `
+                 + `never paralysed anything); our own Safeguard up ${test}; and the SAME Safeguard `
+                 + `against the body's own Rest ${own} — must be "slp", because the authority's `
+                 + `exclusion is identity and not side` };
+});
+
+/* 7c. sideBuff — THE VOLATILE ROAD, WHICH IS A DIFFERENT HANDLER. `onTryAddVolatile` names confusion
+ * and yawn and carries its own `target !== source`. Kept apart from 7b because the two reach
+ * `sideBuffRefuses` from two different call sites (`applyStatus` and `applyConfusion`), so one going
+ * green says nothing about the other. Teeter Dance is the fixture rather than Confuse Ray: it is
+ * `allAdjacent`, so ONE click puts the volatile on our partner and on both foes at once, and the foe
+ * arm is the negative — our Safeguard must stop the near one and leave theirs alone. */
+probe('move', 'sideBuff', 'Safeguard refuses the CONFUSION its own side\'s spread move wrote', () => {
+  const conf = (x) => !!(x && x._vol && x._vol.confusion > 0);
+  const run = (t1) => {
+    const me = bare('clefable'), ally = bare('tsareena');
+    const f1 = bare('garchomp'), f2 = bare('incineroar');
+    me.item = ''; ally.item = ''; me.ability = 'none'; ally.ability = 'none';
+    f1.ability = 'none'; f2.ability = 'none';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, t1 ? M.playerAction(me, t1, me, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    M.battleTurn(S, rng5,
+      new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'teeterdance', f1, S.field)]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return [conf(me), conf(f1) || conf(f2)];
+  };
+  const control = run(null), test = run('safeguard');
+  return { works: control[0] === true && control[1] === true
+                  && test[0] === false && test[1] === true,
+           arms: { control, test },
+           detail: `[our partner confused, a foe confused] — no Safeguard ${control}, our own `
+                 + `Safeguard ${test}. The FOE half must stay true on both arms: our side condition `
+                 + `protects our side and must not reach across the field` };
+});
+
 /* 8. suppressesItems — MAGIC ROOM, 4 uses and it kills Focus Sash, the Choice items and every
  *    residual item in the format for five turns. Leftovers is the reading, because a heal that does
  *    not happen is unambiguous and needs no damage roll. */

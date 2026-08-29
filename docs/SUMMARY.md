@@ -1,6 +1,20 @@
 # ABRA — Project Summary
 
-**Version 5.215.0 · 2026-08-29 · Will Hooper**
+**Version 5.216.0 · 2026-08-29 · Will Hooper**
+
+**5.216.0 - THE THIRD PLACE THIS SIMULATOR ASSERTED THAT THE NEAR SIDE OF THE FIELD COULD NOT
+MATTER, AND THE ASSERTION WAS WRITTEN OUT IN WORDS ABOVE THE BRANCH.** Safeguard's refusal was gated
+on the source standing opposite; the authority gates on the source not being the target itself. Both
+of its handlers - the status road and the confusion road - go through one reader here, so a single
+deletion corrected both plus the suppression of the redundant failure line. **Census 792 to 794.**
+**Board-parted unmoved at 97 of 961 and every block of the artifact identical string-for-string**,
+predicted before the run: Safeguard is **22 corpus uses** and appears in **17 of 13,214** frozen-pool
+games. The class was then DERIVED rather than read around, and both previous enumerations were widened
+first - the side-condition frame from 11 to **13** (slot conditions) and from `onTryHit` to *any
+handler receiving a source*, the field-wide frame from abilities to **items and move conditions**.
+**Zero further instances.** Nothing left behind would catch a fourth spelled differently, and that is
+stated rather than glossed: a gate for the class needs an artifact naming which authority handler each
+consumer implements, and no such artifact exists.
 
 **5.215.0 — EIGHT GUARD MOVES WERE SCORED RESOLVED ON A TURN WHERE NOTHING ATTACKED THEM, AND TWO OF
 THE ELEVEN ROWS THE AUDIT NAMED WERE NOT ACTUALLY IN THAT CASE.** The roster's move arm credited a

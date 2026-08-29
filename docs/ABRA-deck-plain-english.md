@@ -1,6 +1,27 @@
 # ABRA — the plain-English deck
 
-**Version 5.215.0 · 2026-08-29 · Will Hooper**
+**Version 5.216.0 · 2026-08-29 · Will Hooper**
+
+**5.216.0 - SAFEGUARD PROTECTED US FROM THEM AND NOT FROM US.**
+
+Safeguard puts a five-turn bubble over your side that refuses status - paralysis, burn, sleep,
+confusion. Our simulator only checked the bubble when the status came from the opponent. If your OWN
+partner paralysed you - which happens, because several moves that hit everything next to them also
+carry a status, and because people do aim things at their own side on purpose - the bubble did
+nothing.
+
+The real game does not work that way. Its rule is "not from yourself", not "not from your side". The
+only place the real rule mentions sides at all is in a clause about an ability that sees THROUGH the
+bubble, and it is written so that ability cannot see through it for a teammate.
+
+One line came out. Because everything that asks "does the bubble refuse this" goes through a single
+place, that fixed the status half, the confusion half and the message underneath it at once. We staged
+eleven checks around it, seven of which exist to prove we did not over-correct: you can still put
+yourself to sleep with Rest under your own Safeguard, their Safeguard still does not cover you, and it
+still does nothing about damage or about a Speed drop.
+
+Two more mechanics are now proved. Across 961 real ladder games nothing moved, which is what we said
+would happen before we ran it - Safeguard shows up in 17 games out of 13,214.
 
 **5.215.0 — WE WERE TICKING OFF "PROTECT WORKS" ON A TURN WHERE NOBODY ATTACKED IT.**
 

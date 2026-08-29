@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T08:58:36.600Z",
+  "generated": "2026-08-29T09:40:29.444Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 792,
-  "live": 792,
+  "probed": 794,
+  "live": 794,
   "missing": 0,
-  "armed": 792,
+  "armed": 794,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3813,7 +3813,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.4% (format 20, generic 30), control Rock Slide 27.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5254,6 +5254,26 @@
       "label": "Safeguard refuses a status aimed at that side",
       "live": true,
       "detail": "[was Safeguard up, the target's status after a Nuzzle] — the foe clicked Iron Defense false,par, the foe clicked Safeguard true,clean. The control MUST read \"par\" — an engine where Nuzzle never paralysed anything passes the other half",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sideBuff",
+      "label": "Safeguard refuses the status its OWN PARTNER wrote, and not the body's own",
+      "live": true,
+      "detail": "[was Safeguard up, our body's status] — no Safeguard, partner's Glare false,par (the control MUST read \"par\" or the probe is measuring an engine where Glare never paralysed anything); our own Safeguard up true,clean; and the SAME Safeguard against the body's own Rest true,slp — must be \"slp\", because the authority's exclusion is identity and not side",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sideBuff",
+      "label": "Safeguard refuses the CONFUSION its own side's spread move wrote",
+      "live": true,
+      "detail": "[our partner confused, a foe confused] — no Safeguard true,true, our own Safeguard false,true. The FOE half must stay true on both arms: our side condition protects our side and must not reach across the field",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -104,9 +104,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  792/792 probed mechanics live, 0 missing   (census 2026-08-29 04:58)
+  794/794 probed mechanics live, 0 missing   (census 2026-08-29 05:40)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 5.9 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 6.5 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -129,9 +129,85 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 05:09_
+_stamped 2026-08-29 05:49_
 
 <!-- /GENERATED -->
+
+## THE THIRD SITE OF THE ALLY-SIDE CLASS, AND THE PARAGRAPH ABOVE THE FUNCTION CARRIED THE BUG IN WORDS. **CENSUS 792 -> 794 LIVE / 794 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED UNMOVED AT 97 OF 961, PROTOCOL UNMOVED AT 216, EVERY BLOCK OF THE ARTIFACT IDENTICAL STRING-FOR-STRING — PREDICTED BEFORE THE RUN, BECAUSE SAFEGUARD IS 22 CORPUS USES AND 17 OF 13,214 POOL GAMES MENTION IT AT ALL.** 2026-08-29.
+
+Full account: `docs/_reports/2026-08-29-safeguard-source-side.md`. Release
+`2c884278412b` -> **`552e2a4510e8`**.
+
+**WHAT SAFEGUARD WAS MISSING.** `sideBuffRefuses` opened with
+`if(src._sf&&src._sf===sf)return null;   // an ally is not the other side`, under a header reading
+*"IT ONLY REFUSES SOMETHING WRITTEN BY THE OTHER SIDE"*. The authority's exclusion is
+`target !== source` — IDENTITY — and the one `isAlly` in either handler sits INSIDE the Infiltrator
+clause (`effect.infiltrates && !target.isAlly(source)`), where it exists so that an ALLY'S
+infiltrating move is still refused. **The near side is not unmentioned; it is named and kept.**
+
+**ONE READER, THREE CALL SITES, BOTH ROADS.** `applyStatus` (`blocksStatus` -> `onSetStatus`),
+`applyConfusion` (`blocksVolatile` -> `onTryAddVolatile`) and the status branch's narration guard all
+go through `sideBuffRefuses`, so the near half landed on both handlers and on the `-activate`
+suppression without a fourth edit. **The counter was wrong first**: counting inside the function made
+one near-side Glare read 2, because the narration guard re-asks about a refusal that already happened.
+`quiet` says a call is a re-ask; after it, `allySideBuffRefused = 3` against 3 staged refusals and
+`sideBuffFoeSideOnlyRestored = 3` under the knob.
+
+**ZERO OTHER INSTANCES, AND BOTH ENUMERATIONS WERE WIDENED BEFORE THEY WERE SEARCHED.** The previous
+pass's side-condition frame counted `sideCondition` only (**13** legal moves once `slotCondition` is
+included, not 11) and asked for `onTryHit` (the right question is **which handlers RECEIVE A SOURCE**,
+since one that is never handed a source cannot be asked a near/far question). Re-derived: **five**
+entities carry a source-taking DECISION handler — Quick Guard and Wide Guard (`onTryHit`, card C3),
+Safeguard (`onSetStatus`/`onTryAddVolatile`, this pass) and the three screens (`onAnyModifyDamage`),
+which are **already correct and were checked rather than waved through**: their side test is on the
+TARGET, and this engine's screen read keys off `def._sf` and is blind to the attacker's side, which is
+the authority's rule. The field-wide frame was widened to ITEMS and MOVE CONDITIONS — White Herb and
+Uproar join the seven abilities, and all nine gather correctly (Damp `[...actA,...actB]`, Friend Guard
+from the TARGET's own side, No Guard pairwise, the aura over all four actives, Uproar written onto
+both side objects).
+
+**A FOURTH SPELLED DIFFERENTLY WOULD NOT BE CAUGHT BY ANYTHING LEFT BEHIND, AND THAT IS STATED RATHER
+THAN GLOSSED.** What exists is one door for the `sideBuff` family (a second carrier of the tag arrives
+with the near half wired and no name spelled anywhere), two derivations that re-derive from the format
+on every run, and the frame-free engine-side list — **five same-side gates remain, three of them from
+tag params and two citing the authority line they came from.** A real gate would need an artifact
+mapping each consumer to the handler it implements; that is filed, not built.
+
+**FILED, NOT FIXED, BOTH ON THE FAR SIDE AND BOTH THEIR OWN BATCH: a foe's YAWN is not refused by
+Safeguard here and is in the authority** — `onTryAddVolatile` names yawn beside confusion, and the
+engine's own comment asserts the opposite (*"SAFEGUARD is an `onSetStatus`"* — it is both) — **and
+INFILTRATOR does not bypass Safeguard at all.**
+
+Pins, both arms: `--games 1200` (961), `--arm middle`, `--turns 12`, `--steering empirical`,
+`--team-store data/team-pool-frozen` (pool `0d103fb9fa87`), census pin `9446a684709d`.
+`arms_comparable` reads COMPARABLE and a SUBTREE DIFF was taken rather than the overlap check: the
+two artifacts differ only in timestamps, the release id and the source digests. After-artifact
+`data/verification/game-differential.safeguard.json`; `data/game-differential.json` NOT written
+(mtime still 2026-08-28 23:14).
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"Safeguard's `onSetStatus` has no source-side test either — a third site with this shape"*~~ —
+  **landed, and it was BOTH handlers rather than one.** Two census rows carry it now.
+
+**Joins it:**
+- **A FOE'S YAWN WALKS THROUGH A SAFEGUARD HERE.** Far side, a missing call rather than a wrong gate:
+  `applyStatus`/`applyConfusion` reach `sideBuffRefuses`, the yawn VOLATILE road does not. Staged in
+  the authority (`|-activate|p1a: Clefable|move: Safeguard`), not staged against a census row.
+- **INFILTRATOR HAS NO IMPLEMENTATION FOR THE SAFEGUARD BYPASS**, and the bypass is one-directional —
+  it applies from the far side only, which is the same asymmetry this pass is about.
+- **NO ARTIFACT SAYS WHICH AUTHORITY HANDLER A CONSUMER IMPLEMENTS**, so "is this gathered side-blind
+  where the handler is side-blind" cannot be asked by a gate. That is what a class check needs and it
+  does not exist.
+
+### OWED, NOT RUN
+
+The exact commands are the `## OWED, NOT RUN` block of
+`docs/_reports/2026-08-29-safeguard-source-side.md`. **A THIRD PRE-EXISTING RED beyond the two named
+in the brief:** `tests/test-resolution-order.js` dies on `FATAL ERROR: Reached heap limit`, rc=134,
+and it does so identically on `git show HEAD:engine/medicham2-browser.js` swapped into the tree —
+A/B verified with the digest checked either side of the swap. Reported, not filed, not fixed.
 
 ## THE NEAR SIDE OF THE FIELD WAS NEVER OFFERED TO EITHER HANDLER, AND IN BOTH PLACES A COMMENT ASSERTED IT COULD NOT MATTER. **TWO CAUSES, NOT ONE. CENSUS 790 -> 792 LIVE / 792 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 100 -> 97 OF 961, PROTOCOL DIVERGED 222 -> 216, SIX `wideguard` CAUSES AND ONE `lightningrod` CAUSE GONE TO ZERO, ONE ORDERING CAUSE UNMASKED, `arms_comparable` COMPARABLE.** 2026-08-29.
 
@@ -189,6 +265,7 @@ appeared in a game that now plays further.
 
 **FILED, NOT FIXED: Safeguard's `onSetStatus` has no source-side test either** — a third site with
 this shape, named so nobody re-derives the enumeration. Not staged and not claimed broken.
+*(Landed 2026-08-29, in the section above. It was BOTH handlers, not just `onSetStatus`.)*
 
 Pins, both arms: `--games 1200` (961), `--arm middle`, `--turns 12`, `--steering empirical`,
 `--team-store data/team-pool-frozen` (pool `0d103fb9fa87`), census pin `9446a684709d`. Release

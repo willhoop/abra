@@ -11,6 +11,70 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.216.0] — 2026-08-29
+
+### Fixed
+- **SAFEGUARD REFUSED ONLY WHAT THE OTHER SIDE WROTE, AND NO HANDLER SAYS THAT — THE THIRD SITE OF
+  THE ALLY-SIDE CLASS, AND THE PARAGRAPH ABOVE THE FUNCTION CARRIED THE BUG IN WORDS.**
+  `sideBuffRefuses` in `engine/medicham2-browser.js` opened with
+  `if(src._sf&&src._sf===sf)return null;   // an ally is not the other side`, under a header reading
+  *"IT ONLY REFUSES SOMETHING WRITTEN BY THE OTHER SIDE"*. The authority's
+  `safeguard.condition.onSetStatus` and `onTryAddVolatile` both end on `if (target !== source)` —
+  IDENTITY — and the sole `isAlly` in either is inside the `effect.infiltrates` early return, where it
+  exists so that an ALLY'S infiltrating move is still refused. The near side is not unmentioned; it is
+  named and kept. Champions overrides neither (`data/mods/champions/moves.ts` grepped for the id, no
+  match).
+- **ONE READER, THREE CALL SITES, BOTH ROADS.** `applyStatus` (`blocksStatus`), `applyConfusion`
+  (`blocksVolatile`) and the status branch's narration guard all go through `sideBuffRefuses`, so the
+  near half landed on both handlers and on the `-fail` suppression from one deletion.
+- **The counter was wrong first and it is recorded.** Counting inside the function made one near-side
+  Glare read 2, because the narration guard re-asks about a refusal that already happened — the number
+  described the fixture rather than the defect. `sideBuffRefuses(t, src, what, quiet)` now takes a
+  `quiet` argument; after it, `MEDSEEN.allySideBuffRefused = 3` against 3 staged refusals and
+  `MEDFAILS.sideBuffFoeSideOnlyRestored = 3` under `MEDI_SIDEBUFF_FOE_SIDE_ONLY=1`.
+
+### Added
+- `tests/probe_ally_safeguard.js` — 11 arms, shown RED on the shipping engine first with the
+  unwired-knob signature (identical readings across a varied knob). Seven arms are negative: a foe's
+  Glare is still refused, the FOES' Safeguard still does not cover our body, a SELF-inflicted Rest
+  still lands, our own Teeter Dance still confuses the foes, a stat drop is still not a status, an
+  ally's Earthquake is bit-identical at 72 on both arms, and the condition still expires on schedule.
+  **The probe was wrong before the engine was**: its first draft read `me.confused`, which this engine
+  does not have (`applyConfusion` writes `t._vol.confusion`), so the control arm went red while
+  measuring nothing. Caught by asserting the control explicitly.
+- Two census rows under `move`/`sideBuff`, one per road. Census **792 → 794** live / 794 probed /
+  0 missing, 0 threw, 0 hollow, 0 unarmed.
+
+### Notes
+- **THE CLASS WAS DERIVED, NOT READ AROUND, AND BOTH PREVIOUS ENUMERATIONS WERE WIDENED FIRST.** The
+  side-condition frame counted `sideCondition` only — with `slotCondition` it is **13** legal moves,
+  not 11 — and asked for `onTryHit`, where the right question is which handlers RECEIVE A SOURCE.
+  **Five** entities carry a source-taking decision handler: Quick Guard and Wide Guard (fixed
+  2026-08-29), Safeguard (this release), and the three screens' `onAnyModifyDamage`, which were
+  **verified correct rather than waved through** — their side test is on the TARGET, and this engine's
+  screen read keys off `def._sf` and is blind to the attacker's side. The field-wide frame was extended
+  to items and move conditions: White Herb and Uproar join the seven abilities and all nine gather
+  correctly. **Zero further instances.**
+- **NOTHING LEFT BEHIND WOULD CATCH A FOURTH SPELLED DIFFERENTLY.** Stated plainly rather than glossed.
+  What exists is one door for the `sideBuff` family, two derivations that re-derive from the format on
+  every run, and a frame-free engine-side list of five remaining same-side gates (three from tag params,
+  two citing the authority line they came from). A real class gate needs an artifact naming which
+  authority handler each consumer implements; it does not exist and is filed.
+- **Which scoreboard should move, said before the run: the LAB, not the POOL.** Safeguard is 22 corpus
+  uses and appears in **17 of 13,214** frozen-pool games. Measured after: empirical board-parted
+  **unmoved at 97 of 961**, protocol unmoved at 216, end-state 892/65/2/2 unmoved, and a subtree diff
+  of the two artifacts differs only in timestamps, the release id and the source digests.
+  `arms_comparable` reads COMPARABLE. Release `2c884278412b` → **`552e2a4510e8`**; after-artifact
+  `data/verification/game-differential.safeguard.json`; `data/game-differential.json` NOT written.
+- **Filed, not fixed, both on the FAR side and both their own batch:** a foe's **Yawn** is not refused
+  by Safeguard here and is in the authority (`onTryAddVolatile` names yawn beside confusion, and this
+  engine's own comment asserts the opposite), and **Infiltrator** has no implementation of the
+  Safeguard bypass at all.
+- **A third pre-existing red beyond the two carried in the brief**, A/B verified rather than assumed:
+  `tests/test-resolution-order.js` dies on `FATAL ERROR: Reached heap limit`, rc=134, identically on
+  `git show HEAD:engine/medicham2-browser.js` swapped into the tree and back. Reported, not fixed.
+- Full account: `docs/_reports/2026-08-29-safeguard-source-side.md`.
+
 ## [5.215.0] — 2026-08-29
 
 ### Fixed

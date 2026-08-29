@@ -1,6 +1,15 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.215.0 — 2026-08-29.**
+**Version: 5.216.0 — 2026-08-29.**
+
+**5.216.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version is a STATUS
+REFUSAL: Safeguard now refuses what the target's own partner wrote, which is a `setStatus` and an
+`addVolatile` question and never reaches the damage chain. `tests/probe_ally_safeguard.js` asserts it
+explicitly - an ally's Earthquake into the shielded body deals a bit-identical amount on both arms of
+the Safeguard knob, which is a probe reading and is not a figure from this table. The 6,000-comparison
+damage differential is expected unchanged at **0 disagreements at all sixteen roll positions**, seed
+20260804; it was NOT re-run this pass, deliberately, because `tests/test-engine-diff.js` has no
+`--out` and would republish `data/engine-diff.json`.
 
 **5.215.0 — NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version is to a
 MEASUREMENT INSTRUMENT — the roster's move arm now asks whether a one-turn state ever refused

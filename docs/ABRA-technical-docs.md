@@ -1,6 +1,32 @@
 # ABRA — Technical Documentation
 
-**Version 5.215.0 · Last updated 2026-08-29**
+**Version 5.216.0 · Last updated 2026-08-29**
+
+**5.216.0 - `sideBuffRefuses` NO LONGER SKIPS THE TARGET'S OWN SIDE CONDITION WHEN THE SOURCE IS A
+PARTNER.**
+`engine/medicham2-browser.js`. The authority's `safeguard.condition.onSetStatus` and
+`onTryAddVolatile` both end on `if (target !== source)`; the sole `isAlly` in either is inside the
+`effect.infiltrates` early return, which is one-directional by construction.
+- `sideBuffRefuses(t, src, what, quiet)` loses `if(src._sf&&src._sf===sf)return null;`. The TARGET's
+  side object still selects which conditions are asked; only the SOURCE's side stops being a reason to
+  skip them.
+- Three call sites share the reader - `applyStatus` (`blocksStatus`), `applyConfusion`
+  (`blocksVolatile`) and the status branch's narration guard - so both handlers and the `-fail`
+  suppression are corrected by the one deletion.
+- `quiet` marks the narration guard's call as a re-ask. Without it a single near-side refusal
+  incremented the counter twice, because that site asks a second time about a refusal that has already
+  happened.
+- `MEDSEEN.allySideBuffRefused` counts near-side refusals across both roads.
+  `MEDFAILS.sideBuffFoeSideOnlyRestored` counts refusals suppressed by
+  `MEDI_SIDEBUFF_FOE_SIDE_ONLY=1`, taken inside the loop after the condition matches, so it is the
+  defect's size rather than the fixture's.
+- `tests/probe_ally_safeguard.js`: 11 arms, 4 of which the knob reds and 7 negative.
+Derived over the format, filtered `exists && !isNonstandard && tier !== 'Illegal'`: **13** legal moves
+lay a side or slot condition, **5** carry a source-taking decision handler, and the remaining three
+(Reflect, Light Screen, Aurora Veil, `onAnyModifyDamage`) were verified correct - their side test is
+on the target, and the screen read here keys off `def._sf` alone. The field-wide walk was extended to
+items and move conditions: **White Herb** and **Uproar** join the seven abilities, and all nine gather
+correctly. Census 792 to 794. Whole-game board-parted unmoved at 97 of 961.
 
 **5.215.0 — THE MOVE ARM OF THE ROSTER ASKS WHETHER A LEAF'S EFFECT RAN, NOT ONLY WHETHER IT WAS
 ANNOUNCED.**

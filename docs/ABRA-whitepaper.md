@@ -1,6 +1,22 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.215.0 · Last updated 2026-08-29**
+**Version 5.216.0 · Last updated 2026-08-29**
+
+**5.216.0 - A SIDE-WIDE STATUS SHIELD REFUSED ONLY WHAT THE OPPOSING SIDE WROTE, AND THE RULE IT
+WAS IMPLEMENTING MAKES NO SUCH DISTINCTION.** The reference simulator's handler excludes the affected
+body ITSELF from its own shield and nothing else; the one place it mentions sides is inside a bypass
+clause, where the mention exists precisely so that the bypass does NOT apply from the near side. This
+simulator carried an extra exclusion for a source standing on the same side as the target, written
+into the source as a sentence as well as a branch. The consequence is that a status or a confusion
+written by a partner - directly, or as one arm of a move that reaches every adjacent body - landed
+where the reference refuses it and prints a refusal line. Both roads are served by a single reader, so
+one deletion corrects the status handler, the volatile handler and the suppression of the redundant
+failure line together. Eleven staged arms accompany the change, seven of them negative: the body is
+still not shielded from its own action, the opposing side's copy of the shield still does not protect
+this one, a stat reduction is still not a status, and an ally's damaging move is unchanged to the
+point. Two probed mechanics added (792 to 794). The whole-game measurement over 961 real games is
+unmoved at 97 boards parted, predicted before the run: the move appears in 17 of 13,214 games in the
+frozen pool, and the near-side road needs a second co-occurrence on top of that.
 
 **5.215.0 — A GUARD THAT HAS NEVER BLOCKED ANYTHING WAS SCORED AS WORKING, BECAUSE THE INSTRUMENT
 READ THE ANNOUNCEMENT AND NOT THE EFFECT.** The deliberate roster credits a move when the reference
