@@ -10,6 +10,112 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+
+## [5.215.0] — 2026-08-29
+
+### Fixed
+- **THE ROSTER'S MOVE ROWS PASSED ON THE ANNOUNCEMENT AND NEVER CHECKED THE EFFECT — 8 GUARD MOVES,
+  AND THE AUDIT THAT FOUND IT WAS ITSELF WRONG ON 2 OF THE 11 ROWS IT NAMED.** `verdictFor` in
+  `engine/all_mechanics_fire.js` credits a click when the authority's own segment carries any `-`
+  event outside `NOT_A_CONSEQUENCE`. `-singleturn` is not in that set, the move ladder stops at the
+  first resolving rung, and on that rung (`bare`) the receiver clicks `inert`, which resolves to
+  **Agility** on the fixture's Feraligatr. So Protect, Detect, Spiky Shield, King's Shield, Baneful
+  Bunker, Quick Guard, Wide Guard and Endure all read RESOLVED with **nothing ever thrown at them**.
+  The board comparator cannot rescue any of them: every one is a declared `duration: 1` leaf, ended in
+  the residual before the boundary at which the board is sampled, which is exactly why
+  `boardVerdict` already marks them `uncomparable_leaves`.
+  - **The mechanism was verified in full and the count was not.** `-singleturn` outside the set,
+    `rung: "bare"` on all eleven baseline rows, `turns: 1` with `TRAILING` defaulting to 0,
+    `thenWhatFor` with one caller, and `moves rows with then_what: 0` — every one confirmed.
+    **Focus Punch and Beak Blast do not belong in the list**: both are attacking moves (150 BP and
+    120 BP), so their segment carries `-damage`, and their `-singleturn` comes from
+    `priorityChargeCallback` at the top of the turn, *before* the `|move|` line, so it is not even
+    inside the segment the verdict reads. Their RESOLVED is earned by damage. The systemic half stands
+    for all eleven: the roster covered the leaf's CREATION and not its FUNCTION.
+
+### Added
+- **A DERIVED EFFECT CHECK, NARROWED ONCE AFTER IT OVER-MATCHED 60 OF 500.** `leafEffectMarkers()`
+  splits a leaf's own handlers into ARRIVAL (`onStart` and its family) and INTERCEPTION (`onTryHit`,
+  `onHit`, `onDamage`, `onTryPrimaryHit` — handlers that can only run because an incoming move reached
+  the leaf). Anything an interception handler prints is an EFFECT MARKER. Printed before it was wired,
+  as docs/ENGINE.md requires: the first rule — *any event a non-arrival handler emits* — matched **60
+  of 500 moves**, and 41 of those markers were `-end`/`-sideend`/`-fieldend` off `onEnd`, which is the
+  leaf EXPIRING rather than working (Tailwind, Encore, Taunt, Torment, Trick Room). Narrowed, the
+  match is **11 of 500**, and the same rule reaches **32 abilities and 1 item** for free.
+- **`engine/coverage.js` gains two rows.** `uncomparable leaves w/ a firing writer — 23 of 24`, naming
+  `volatile:attract` as the one with no firing writer, and `move leaves whose EFFECT was exercised`,
+  which reads NOT DERIVED with its reason until the published roster artifact is regenerated.
+
+### Changed
+- **`VOLATILE_THEN_WHAT` HAD NEVER FIRED ONCE, IN EITHER ARM.** All seven of its keys are volatiles
+  written by MOVES, and `thenWhatFor` was called at one site inside the ABILITY ladder. Measured
+  against `data/tags.json`: abilities 201 entries / 18 non-null / **0 reached by a volatile key**;
+  items 148 / 1 / **0**; moves 500 / 32 / **7 — and the move arm never called it.** Cute Charm, the one
+  ability that infatuates, is tagged `punishesAttacker` with no `statusInflict` param at all. Seven
+  entries wired to the one arm where none of their keys exist, producing no error and no zero counter
+  because `THEN_WHAT_SEEN.rows: 64` was entirely the tag-keyed table. `setupFor` now calls the same
+  producer, and verbs the move arm cannot execute are COUNTED (37, led by `attacksAfter` × 13) rather
+  than dropped.
+- **`engine/faces.js` gains the consequence verb `attackedOnTheSameTurn`.** Every other entry stages a
+  LATER turn; a `duration: 1` leaf has none, so the hit has to land on the click turn or not at all.
+  Four tag keys carry it, match sets printed before wiring with zero over-match: `shieldsUser` (5),
+  `oneTurnGuard` (2), `preTurnShield` (2), `survivesAnyHit` (1). The hit's SHAPE is derived from the
+  leaf's own guard — Quick Guard's `onTryHit` reads `move.priority`, Wide Guard's reads `move.target`
+  — and never from a move name.
+- **The move ladder's stop condition becomes *resolved AND the declared effect was seen*.** Identical
+  by construction for the 489 rows with no declared marker, and it can only ever make a row play MORE
+  boards, never fewer. **Verified: 0 of 500 rows changed `resolved`, `medicham_resolved`, `diverged`,
+  `rung`, `turns` or `board.verdict`** against `data/all-mechanics-fire.json` digest `acb84bbf62ad`.
+- **`tests/probe_uncompared_leaves.js`'s CLI said "a duration of 1 on 20".** It computed
+  `hole.length - boundary`, folding the 2 self-removed leaves into the duration-1 count.
+  It now prints the two arrays separately — **18 + 2** — matching `engine/coverage.js`, which was
+  already right. One producer, two spellings, published figures disagreeing by 2.
+
+### Notes
+- **`-singleturn` STAYS OUT OF `NOT_A_CONSEQUENCE`, AND THE REASON IS NOW AT THE DECLARATION.** It is
+  not bookkeeping like `-anim` or `-hitcount`: it is the authority announcing that a STATE WAS
+  CREATED, and for a move whose whole function is to create a state, creating one IS resolving.
+  Demoting it makes Protect report *"the move executed and produced no consequence line at all"* — a
+  false accusation against a correct engine. It would also single out one spelling of arrival among
+  `-start`, `-sidestart`, `-fieldstart` and `-singlemove`, which are legitimate consequences for
+  Tailwind, Substitute, Trick Room and Encore. The gap was never that the announcement is counted; it
+  is that nothing separately asked whether the effect ran.
+- **THREE OF THE FIRST RUN'S SEVEN REDS WERE THE RULER.** The first anchor asked for the leaf's
+  DISPLAY NAME on the marker line. Showdown announces the whole guard family generically:
+  `|-activate|p1a: Toxapex|move: Protect` for a Baneful Bunker, with the Bunker's own `-status … psn`
+  on the next line. Spiky Shield, King's Shield and Baneful Bunker were reported ANNOUNCEMENT-ONLY on
+  a turn where the block had plainly happened. The anchor is now the **literal third argument of the
+  handler's own `this.add`**, read out of the authority's source. The slot/side anchor is kept beside
+  it and is not redundant — both ally pads click Protect every turn.
+- **RESULT, over all 500 move rows on release `4b67526d29d8`:** 11 declare a marker, **7 demonstrate
+  the refusal on BOTH engines** (`leafEffectSplit: {}` — no engine split), 4 do not and each states
+  why on the row, and **76 further rows write a leaf that prints NOTHING when it fires** and belong to
+  a counter comparison. **No row flipped RED and no engine defect was found.**
+- **The four that remain ANNOUNCEMENT-ONLY are honest, not silent.** `endure` needs a LETHAL hit and
+  no hit in this fixture is lethal — every body is at x6 HP by design so that nothing faints and no
+  forced switch manufactures a divergence; counted as `shapeUnbuildable: {"lethal": 1}`, a fixture
+  limit and not an engine finding. `substitute`, `shedtail` and `psychicterrain` have no same-turn
+  entry in the table and are outside the 24 uncomparable leaves this pass is about.
+- **`focuspunch` is a DECLARED CONFLICT and cannot be had both ways.** It declares both a same-turn
+  consequence and `receiverMustNotAttack`; its leaf's whole function is being cancelled by a hit, so
+  the board that exercises the leaf is exactly the board on which the move is refused. `receiverIdle`
+  wins, the conflict is recorded on the row, and it needs two rows on two boards. Beak Blast is not in
+  this case — a contact hit burns the attacker and the blast still fires — and is staged normally.
+- **The counter comparison was SCOPED, NOT BUILT**, per the brief. The reader already exists with zero
+  plumbing: `GD.REL.require('engine/medicham2-browser.js').seen` returns **607 live counter keys**
+  (`MEDSEEN` declares 790 in source), including `sideGuardBlocked`, `sideGuardPierced`,
+  `protectPierced`, `enduredLethalHit`, `preTurnShieldAnnounced`, `helpingHandBP` and the four flinch
+  keys — and **nothing in `engine/` or `tests/` reads it against a Showdown-side count.** The cost is
+  four things: a per-game DELTA (MEDSEEN accumulates — 617 games in one run); a PAIRING table, the one
+  part that cannot be derived, needing a written reason per row; a per-pair SEMANTIC fixture, because
+  a counter and a protocol line need not count the same event; and extracting `leafEffectMarkers` into
+  a data-only module, since `all_mechanics_fire.js` runs on require.
+- **The published `data/all-mechanics-fire.json` was NOT overwritten.** The full run went to
+  `data/verification/all-mechanics-fire.leafeffect.json` (500 rows, 617 games, release
+  `4b67526d29d8`, census digest `6e73727d06ce` / 788 rows, identical to live). A
+  `--kind moves --write` run would have destroyed the abilities and items rows.
+- Full account: `docs/_reports/2026-08-29-roster-effect-check.md`.
+
 ## [5.214.0] — 2026-08-29
 
 ### Fixed

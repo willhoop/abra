@@ -260,10 +260,17 @@ console.log('  looking, and an ANNOUNCEMENT-ONLY verdict on a mechanic whose who
 console.log('  is an unasked question wearing a clean row\'s clothes.');
 console.log('');
 const boundary = R.standing_at_the_boundary;
+/* ONE PRODUCER, ONE SPELLING. This used to print `hole.length - boundary`, which FOLDS THE SELF-REMOVED
+ * LEAVES INTO THE DURATION-1 COUNT and said "a duration of 1 on 20" where the split is 18 + 2.
+ * `engine/coverage.js` reads the two arrays separately and got it right, so the same derivation was
+ * published two ways and the two disagreed by 2. The arrays are the answer; the subtraction was a
+ * second, worse producer of a number that was already on the object. */
 console.log('  Of the ' + hole.length + ', the authority declares a duration of 1 on '
-  + (hole.length - boundary) + ' — those are ended in the residual (sim/battle.ts:1097-1115)');
-console.log('  and cannot be standing at this comparator\'s boundary. The other ' + boundary
-  + ' have no declared');
+  + R.hole_duration1.length + ' — those are ended in the residual (sim/battle.ts:1097-1115)');
+console.log('  and cannot be standing at this comparator\'s boundary. A further '
+  + R.self_removed_within_action.length + ' remove themselves inside their own action ('
+  + R.self_removed_within_action.map(x => x.key).join(', ') + ').');
+console.log('  The other ' + boundary + ' have no declared');
 console.log('  clock or a clock of 2+ turns, so they ARE on the board when it is read.');
 console.log('');
 console.log('  ' + pad('LEAF', 30) + pad('W', 4) + pad('dur', 5) + pad('_vol', 6) + 'writers');

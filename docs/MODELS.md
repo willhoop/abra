@@ -1,6 +1,14 @@
 # ABRA — the model family (living reference)
 
-**Version 5.214.0 · Last updated 2026-08-29.**
+**Version 5.215.0 · Last updated 2026-08-29.**
+
+**5.215.0 — NO MODEL CHANGED. AN INSTRUMENT THAT SCORES THE SIMULATOR EVERY MODEL RESTS ON NOW
+ASKS WHETHER A ONE-TURN STATE EVER REFUSED ANYTHING.** The deliberate roster credited eight guard
+moves for ANNOUNCING themselves on a turn where nothing attacked them. Over 500 move rows the new
+effect check matches **11**, of which **7** now demonstrate the refusal on both engines and **4**
+state why they cannot; **76** further rows write a state that prints nothing when it fires. **No row
+changed verdict and no engine defect was found.** Every quarantined model figure in this ledger stays
+quarantined — this changes what the roster PROVES, not what any model scores.
 
 **5.214.0 — NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON NOW REDIRECTS A PIVOT STATUS
 MOVE.** `medicham2` refused Parting Shot at the redirection site because its internal action label is

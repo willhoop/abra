@@ -529,6 +529,76 @@ function finishLine() {
        + String((e && e.message) || e).split('\n')[0]);
   }
 
+  /* ---- A LEAF THIS COMPARATOR CAN NEVER SEE IS ONLY COVERED IF ANOTHER INSTRUMENT FIRED ON IT ----
+   *
+   * The row above prints the CEILING and says the excluded leaves are out of reach at this sampling
+   * point. That is a statement about the board and NOT a claim that the mechanics are untested — the
+   * board is one of four instruments. What was printed nowhere is the join: of the leaves the
+   * comparator can never see, how many have a WRITER that actually fired in the deliberate roster.
+   * Both inputs are derived and no prose is parsed. A leaf with no firing writer is one where the only
+   * evidence is a clean roster row, which is the fixture agreeing with itself. */
+  try {
+    const UL2 = require(D('tests', 'probe_uncompared_leaves.js'));
+    const L2 = UL2.derive();
+    const AMF = readJson(D('data', 'all-mechanics-fire.json'));
+    if (!AMF || !AMF.rows) throw new Error('data/all-mechanics-fire.json has no rows');
+    const fired = new Set();
+    for (const r of (AMF.rows.moves || [])) if (r.resolved && r.medicham_resolved) fired.add('move:' + r.id);
+    for (const k of ['abilities', 'items'])
+      for (const r of (AMF.rows[k] || [])) if (r.verdict === 'FIRED') fired.add(k.slice(0, -1) + ':' + r.id);
+    /* THE SET IS BUILT THE SAME WAY THE CEILING ROW ABOVE BUILDS IT — declared + duration-1 +
+     * self-removed — and NOT from `gone_at_the_boundary` alone, which is the duration-1 half only and
+     * gave a denominator of 22 against the published 24. Two spellings of one set is exactly the
+     * breach the ceiling row's own comment records. */
+    const uncKeys = new Set([].concat(L2.hole_duration1,
+                                      L2.self_removed_within_action.map(x => x.key),
+                                      L2.rows.filter(r => r.declared).map(r => r.key)));
+    const unc = L2.rows.filter(r => uncKeys.has(r.key));
+    const withWriter = unc.filter(r => (r.writers || []).some(w => fired.has(w)));
+    const dead = unc.filter(r => !(r.writers || []).some(w => fired.has(w))).map(r => r.key);
+    add('uncomparable leaves w/ a firing writer', withWriter.length, unc.length,
+        'a leaf this comparator can never see is only covered if ANOTHER instrument fired on it. '
+        + `${unc.length - withWriter.length} have no writer that fired in data/all-mechanics-fire.json`
+        + (dead.length ? ` (${dead.join(', ')})` : '') + ' — for those, a clean roster row is the '
+        + 'fixture agreeing with itself.',
+        'tests/probe_uncompared_leaves.js derive() x data/all-mechanics-fire.json rows[]; a move row '
+        + 'counts when resolved AND medicham_resolved, an ability or item row when its A/B verdict is '
+        + 'FIRED. Firing is not the same as exercising the leaf — see the row below');
+  } catch (e) {
+    nd('uncomparable leaves with a firing writer',
+       'the join would not run: ' + String((e && e.message) || e).split('\n')[0]);
+  }
+
+  /* ---- AND FIRING IS NOT THE SAME AS EXERCISING THE LEAF (MEASURE, 2026-08-29) -------------------
+   *
+   * The row above credits a leaf whose writer RESOLVED. `all_mechanics_fire.js` now asks the second
+   * question as well: for a leaf whose own handlers print something when they refuse an incoming move,
+   * did that line ever appear? A row that resolved without it was credited for the leaf being
+   * ANNOUNCED. This is a `have / of` over the rows that can be asked at all — a leaf that prints
+   * nothing when it fires is out of the denominator and belongs to a counter comparison. */
+  try {
+    const AMF2 = readJson(D('data', 'all-mechanics-fire.json'));
+    const LE = AMF2 && AMF2.summary && AMF2.summary.moves && AMF2.summary.moves.leaf_effect;
+    if (!LE) throw new Error('data/all-mechanics-fire.json carries no summary.moves.leaf_effect — '
+      + 'the moves arm has not been re-run since the effect check landed');
+    add('move leaves whose EFFECT was exercised', LE.leafEffectSeen, LE.leafDeclaresMarker,
+        `${LE.announcementOnly} move row(s) RESOLVED on the announcement alone — the leaf they wrote `
+        + 'never refused anything. '
+        + `${LE.leafDeclaresNoMarker} further leaves print NOTHING when they fire (Focus Punch's cancel, `
+        + "Beak Blast's burn, Electrify's retype) and are out of this denominator entirely: whether "
+        + 'they fired is a counter question, not a protocol one.'
+        + (Object.keys(LE.shapeUnbuildable || {}).length
+           ? ` Shapes this fixture cannot build: ${JSON.stringify(LE.shapeUnbuildable)}.` : '')
+        + (LE.verbsUnknown ? ` ${LE.verbsUnknown} consequence verb(s) the shared table names and the `
+           + 'move arm cannot execute.' : ''),
+        'data/all-mechanics-fire.json summary.moves.leaf_effect; the markers are derived from the '
+        + "authority's own condition source (the literal label of each this.add inside an interception "
+        + 'handler), so a leaf that changes how it announces itself is followed rather than missed');
+  } catch (e) {
+    nd('move leaves whose EFFECT was exercised',
+       String((e && e.message) || e).split('\n')[0]);
+  }
+
   /* staged entities that fired */
   const F = readJson(D('data', 'all-mechanics-fire.json'));
   if (F && F.summary) {

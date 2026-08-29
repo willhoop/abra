@@ -329,6 +329,59 @@ const THEN_WHAT = {
   failsIfVolatile: { stage: { foeClicksAfter: ['Earthquake', 'High Horsepower', 'Bulldoze'] }, after: ['a GROUND move is thrown at the subject'], readsOff: 'self',
     why: 'Magnet Rise grants a Ground immunity and nothing else. Its own turn is empty' },
 
+  /* ---- THE REFUSAL FAMILY, AND WHY IT NEEDED A VERB OF ITS OWN (MEASURE, 2026-08-29) -------------
+   *
+   * A SHIELD IS THE ONE CONSEQUENCE THAT CANNOT BE STAGED ON A LATER TURN. Every entry above adds
+   * turns AFTER the state is set — the header two blocks down says so, and for a state that persists
+   * that is right. These leaves all declare `duration: 1`, so by the next turn there is nothing left
+   * to attack into. The consequence has to land on the CLICK TURN or it cannot land at all, which is
+   * why `attackedOnTheSameTurn` is a new verb rather than another spelling of `attacksAfter`.
+   *
+   * THE ABILITY ARM CANNOT EXECUTE IT AND MUST SAY SO. `gauntletScript` builds its consequence turns
+   * past the switch; there is no place in it for a same-turn adversary. It will count the verb in
+   * `THEN_WHAT_SEEN.verbsUnknown`, which is the LOUD path that already exists for exactly this — a
+   * verb a caller cannot run must never stage nothing and look like a consequence that did not help.
+   * Measured: no ability or item in this format carries any of these four tags, so the counter stays
+   * at zero and the entries are the MOVE arm's alone.
+   *
+   * WHY THESE FOUR KEYS AND NOT THE VOLATILE TABLE BELOW. Measured over the 500 legal moves before
+   * being wired: `shieldsUser` matches 5 (Protect, Detect, Spiky Shield, King's Shield, Baneful
+   * Bunker), `oneTurnGuard` 2 (Quick Guard, Wide Guard), `preTurnShield` 2 (Focus Punch, Beak Blast),
+   * `survivesAnyHit` 1 (Endure) — ten rows, no over-match, nothing else touched. The volatile table
+   * below cannot reach four of them at all: Quick Guard and Wide Guard write a SIDE condition and
+   * Focus Punch and Beak Blast a pre-turn one, so none of the four carries a `statusInflict` param
+   * for `thenWhatFor` to key on.
+   *
+   * WHAT THE VALUE MEANS is the SHAPE of the hit the leaf's own guard reads, never a move name:
+   *   'physical'  any attack at all reaches an unconditional shield
+   *   'contact'   the punishing shields read `checkMoveMakesContact`
+   *   'priority'  Quick Guard's guard is `if (move.priority <= 0.1) return`
+   *   'spread'    Wide Guard's is `move.target !== 'allAdjacent' && !== 'allAdjacentFoes'`
+   *   'lethal'    Endure prints nothing until the damage would actually kill
+   * The caller picks the move off the RECEIVER'S OWN built pool by those properties, so no species
+   * and no move is named here. */
+  shieldsUser: { stage: { attackedOnTheSameTurn: 'physical' }, after: ['a move is thrown INTO the shield, on the turn the shield goes up'],
+    readsOff: 'self', why: 'Protect and its family emit `-singleturn` the moment they are clicked and '
+       + '`-activate` only when something is refused. With nothing attacking, the announcement is the '
+       + 'whole row — and `-singleturn` is a consequence, so the verdict reads RESOLVED for a shield '
+       + 'that has never blocked anything' },
+  punishesContact: { stage: { attackedOnTheSameTurn: 'contact' }, after: ['a CONTACT move is thrown into the shield'],
+    readsOff: 'both', why: 'Spiky Shield, King\'s Shield and Baneful Bunker each do something EXTRA to '
+       + 'a contact attacker — chip, a Defence drop, poison. A non-contact hit is refused identically '
+       + 'by all three and by plain Protect, so it cannot tell the four apart' },
+  oneTurnGuard: { stage: { attackedOnTheSameTurn: 'guardShape' }, after: ['a move of the SHAPE this guard reads is thrown at the protected side'],
+    readsOff: 'both', why: 'Quick Guard refuses only `move.priority > 0.1` and Wide Guard only a '
+       + 'spread target. An ordinary single-target attack passes straight through both, so a fixture '
+       + 'that throws one has staged the guard\'s own null case and called it a pass' },
+  preTurnShield: { stage: { attackedOnTheSameTurn: 'contact' }, after: ['the charging body is HIT before it acts'],
+    readsOff: 'both', why: 'Focus Punch is CANCELLED by any damaging hit and Beak Blast BURNS a '
+       + 'contact attacker. Both announce `-singleturn` from `priorityChargeCallback` at the top of '
+       + 'the turn whatever happens next, and both then deal ordinary damage — so the row resolves '
+       + 'twice over while the leaf\'s only function goes unexercised' },
+  survivesAnyHit: { stage: { attackedOnTheSameTurn: 'lethal' }, after: ['a LETHAL hit is thrown at the enduring body'],
+    readsOff: 'self', why: 'Endure clamps a killing blow to 1 HP and prints `-activate` only then. '
+       + 'A survivable hit leaves the clamp unexercised and the leaf still announces itself' },
+
   /* ---- THE CONSEQUENCES FOR THE ABILITY TAGS ROADMAP #156 CREATED ------------------------------
    * The same split holds on the ability side. Some of the twenty-five needed an ADVERSARY and are in
    * `FACES` above; these needed a turn that had not happened yet. */
@@ -374,6 +427,27 @@ const THEN_WHAT = {
  * docs/TAGS.md forbids. The volatile id is neither: it is a PARAM the artifact already derives
  * (`statusInflict.effects[].volatile`), so this table is still read out of the tag record and a move
  * that sets one of these volatiles tomorrow inherits its consequence.
+ *
+ * ---- AND IT HAS NEVER FIRED ONCE. MEASURED 2026-08-29, AND IT IS THE UNWIRED-KNOB LESSON ----------
+ *
+ * All seven of these volatiles are written by MOVES — Attract, Destiny Bond, Helping Hand, Gastro
+ * Acid, Power Trick, Power Shift and Magnet Rise are the moves that share their names. `thenWhatFor`
+ * is called at exactly ONE site in `engine/all_mechanics_fire.js`, inside the ABILITY ladder, and no
+ * ability in this format carries a `statusInflict` param naming any of the seven. Cute Charm — the
+ * one ability that infatuates — is tagged `punishesAttacker` with no `statusInflict` at all.
+ *
+ * So the reach of this table, measured against `data/tags.json`, is:
+ *
+ *     abilities  201 entries, thenWhatFor non-null on 18, reached BY A VOLATILE KEY on   0
+ *     items      148 entries, thenWhatFor non-null on  1, reached BY A VOLATILE KEY on   0
+ *     moves      500 entries, thenWhatFor non-null on 32, reached BY A VOLATILE KEY on   7
+ *
+ * The whole volatile half of `thenWhatFor` was dead: seven entries wired to the one arm where none of
+ * their keys exist. It produced no error and no zero counter — `THEN_WHAT_SEEN.rows` counted 64 rows
+ * and every one of them came from the tag-keyed table above. An unwired knob gives identical output.
+ * The fix is at the CALLER (`setupFor` now calls `thenWhatFor` too), not here; this note records that
+ * a table's reach is a thing to measure rather than to assume, and that 25 of those 32 move rows are
+ * reached by the tag table, not by this one.
  */
 const VOLATILE_THEN_WHAT = {
   attract:      { stage: { attacksAfter: 'both' }, after: ['the infatuated body tries to MOVE'], readsOff: 'target',

@@ -1,6 +1,21 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.214.0 · Last updated 2026-08-29**
+**Version 5.215.0 · Last updated 2026-08-29**
+
+**5.215.0 — A GUARD THAT HAS NEVER BLOCKED ANYTHING WAS SCORED AS WORKING, BECAUSE THE INSTRUMENT
+READ THE ANNOUNCEMENT AND NOT THE EFFECT.** The deliberate roster credits a move when the reference
+simulator's own stream shows the click producing a consequence line. For a move whose entire function
+is to create a one-turn state, the creation notice IS such a line, so eight guard moves scored as
+resolved on a turn in which nothing was thrown at them. The board comparator cannot supply the missing
+half: every one of those states carries a declared duration of one turn and is ended in the residual
+before the boundary at which the board is sampled. A second, separate question is now asked of each
+row — did the state this click created ever refuse anything — with the expected protocol marker
+derived from the reference simulator's own handler source rather than assumed. Over the 500 legal
+moves the derivation matches eleven; seven of those now demonstrate the refusal on both engines, four
+state why they cannot, and 76 further rows are recorded as writing a state whose effect emits nothing
+and is therefore a counter question rather than a protocol one. No row changed verdict and no engine
+defect was found. The correction to the record is that the earlier reading was an unasked question,
+not a pass.
 
 **5.214.0 — A MOVE THAT SWITCHES ITS USER OUT WAS CLASSIFIED AS A SWITCH RATHER THAN AS A MOVE, AND
 THE REDIRECTION SITE REFUSED IT ON THAT BASIS.** Doubles play turns on redirection: two moves and one

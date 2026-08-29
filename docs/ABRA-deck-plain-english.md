@@ -1,6 +1,23 @@
 # ABRA — the plain-English deck
 
-**Version 5.214.0 · 2026-08-29 · Will Hooper**
+**Version 5.215.0 · 2026-08-29 · Will Hooper**
+
+**5.215.0 — WE WERE TICKING OFF "PROTECT WORKS" ON A TURN WHERE NOBODY ATTACKED IT.**
+
+Our test harness plays a real game for every move in the format and asks the official simulator
+whether the move did anything. For Protect, Detect, Spiky Shield, King's Shield, Baneful Bunker,
+Quick Guard, Wide Guard and Endure, the answer was yes — because putting the shield up prints a line,
+and a line counts. But the opponent in those games was clicking Agility. Nothing was ever thrown at
+the shield. We had proved the shield goes up and never once proved it blocks.
+
+The harness now asks the second question too, and it works out what to look for by reading the
+official simulator's own code rather than by us writing it down. Seven of the eight guards now block
+something for real, and both engines agree on every one. Endure still cannot be tested, and the
+harness says so out loud instead of passing: our test bodies have six times the normal health so that
+nothing dies mid-test, which means no hit is ever lethal, which is the only thing Endure reacts to.
+
+Nothing broke and no engine bug came out of it. What changed is that a green tick which meant
+"we didn't ask" now says so.
 
 **5.214.0 — ONE MOVE IGNORED THE POKEMON STANDING IN FRONT OF IT.**
 

@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 5 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 189 unsafe, 2 void (declared), 20 possibly stale, 39 ok, 0 missing
+  provenance: 189 unsafe, 2 void (declared), 19 possibly stale, 40 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 5 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / the same game on both engines; mechanics / each one staged and compared against showdown)
@@ -29,13 +29,99 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-08-29 03:07
+    moved after the fit: engine/medicham2-browser.js  2026-08-29 03:28
     moved after the fit: data/abra-tags.js  2026-08-28 22:51
 ```
 
-_stamped 2026-08-29 03:26_
+_stamped 2026-08-29 04:07_
 
 <!-- /GENERATED -->
+
+## THE ROSTER'S MOVE ROWS PASSED ON THE ANNOUNCEMENT, AND THE AUDIT THAT FOUND IT WAS WRONG ON 2 OF THE 11 ROWS IT NAMED. 2026-08-29, CHANGELOG 5.215.0.
+
+`engine/all_mechanics_fire.js` credits a move when the authority's segment carries any `-` event
+outside `NOT_A_CONSEQUENCE`. `-singleturn` is not in that set; the move ladder stops at the first
+resolving rung; and on that rung the receiver clicks `inert`, which resolves to **Agility**. Eight
+guard moves therefore read RESOLVED with nothing ever thrown at them, and no board comparison could
+notice: every one is a declared `duration: 1` leaf, ended in the residual before the boundary at which
+the board is sampled.
+
+**Every named mechanism verified. The count did not.** Focus Punch and Beak Blast were in the audit's
+list of eleven and do not belong there — both are attacking moves, so their segment carries `-damage`,
+and their `-singleturn` is emitted by `priorityChargeCallback` at the top of the turn, before the
+`|move|` line, so it is not even inside the segment the verdict reads. The systemic half stands for
+all eleven: the roster covered the leaf's CREATION and not its FUNCTION.
+
+**`-singleturn` stays OUT of `NOT_A_CONSEQUENCE` and the reason is at the declaration.** It is not
+bookkeeping; it is the authority saying a state was created, and for a move whose whole function is to
+create a state, creating one IS resolving. Demoting it makes Protect report *"produced no consequence
+line at all"* — a false accusation against a correct engine — and singles out one spelling of arrival
+among `-start`, `-sidestart`, `-fieldstart` and `-singlemove`. The gap was never that the announcement
+is counted; it is that nothing separately asked whether the effect ran.
+
+### The derivation over-matched 60 of 500 on the first try, and the ANCHOR was wrong after that
+
+Rule 1 — *any event a non-arrival handler emits* — matched **60 of 500 moves**, 41 of those markers
+being `-end`/`-sideend`/`-fieldend` off `onEnd`, which is a leaf EXPIRING rather than working. Narrowed
+to INTERCEPTION handlers only — those that can run only because an incoming move reached the leaf —
+the match is **11 of 500**.
+
+Then the anchor. The first version asked for the leaf's DISPLAY NAME on the marker line. Showdown
+announces the whole guard family generically:
+
+```
+|move|p1a: Toxapex|Baneful Bunker|p1a: Toxapex
+|-singleturn|p1a: Toxapex|move: Protect        <- not "move: Baneful Bunker"
+|-activate|p1a: Toxapex|move: Protect          <- the block, under Protect's name
+|-status|p2a: Feraligatr|psn                   <- the Bunker's own punish
+```
+
+**Three of the first run's seven reds were the ruler.** The anchor is now the literal third argument
+of the handler's own `this.add`, read out of the authority's source. Suspect the instrument before the
+engine — twice in one pass.
+
+### `VOLATILE_THEN_WHAT` had never fired once, in either arm
+
+| | entries | `thenWhatFor` non-null | reached by a VOLATILE key |
+|---|---:|---:|---:|
+| abilities (the only arm that called it) | 201 | 18 | **0** |
+| items | 148 | 1 | **0** |
+| moves (never called it) | 500 | 32 | **7** |
+
+All seven keys are volatiles written by MOVES. Cute Charm, the one ability that infatuates, is tagged
+`punishesAttacker` with no `statusInflict` param at all. Seven entries wired to the one arm where none
+of their keys exist, producing no error and no zero counter. `setupFor` now calls the same producer,
+and the 37 verbs the move arm cannot execute are counted rather than dropped.
+
+### The result, over all 500 rows on release `4b67526d29d8`
+
+**11** rows declare an effect marker. **7** demonstrate the refusal on BOTH engines
+(`leafEffectSplit: {}` — no engine split). **4** do not and each states why on the row. **76** further
+rows write a leaf that prints nothing when it fires and belong to a counter comparison.
+
+**No row flipped RED and no engine defect was found.** Diffed row-by-row against
+`data/all-mechanics-fire.json` digest `acb84bbf62ad`: **0 of 500** changed `resolved`,
+`medicham_resolved`, `diverged`, `rung`, `turns` or `board.verdict`.
+
+`endure` cannot be checked at all here — its `-activate` needs a LETHAL hit and every body in this
+fixture is at x6 HP by design, so nothing anybody clicks is lethal. That is `shapeUnbuildable`, a
+**fixture limit and not an engine finding**, and it is printed rather than passed.
+
+### The counter comparison, costed and not built
+
+`GD.REL.require('engine/medicham2-browser.js').seen` already returns **607 live counter keys**
+(`MEDSEEN` declares 790 in source), including `sideGuardBlocked`, `sideGuardPierced`,
+`protectPierced`, `enduredLethalHit`, `preTurnShieldAnnounced`, `helpingHandBP` and the four flinch
+keys. **Nothing in `engine/` or `tests/` reads it against a Showdown-side count.** The Showdown side
+is now free — `leafEffectMarkers` returns the derived `{ev, label}` pairs. What it costs is: a per-game
+DELTA (MEDSEEN accumulates across 617 games in one run); a PAIRING table, the one part that cannot be
+derived; a per-pair SEMANTIC fixture, because a counter and a protocol line need not count the same
+event; and extracting `leafEffectMarkers` into a data-only module, because `all_mechanics_fire.js`
+runs on require. **Start with the shield family, not flinch** — half of that pair is already written
+and unit-tested.
+
+Full account: `docs/_reports/2026-08-29-roster-effect-check.md`.
+
 
 ## THREE THINGS THE GATE'S VERDICTS DO NOT COVER, NOW PRINTED. 2026-08-29.
 

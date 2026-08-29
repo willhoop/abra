@@ -1,6 +1,19 @@
 # ABRA — Project Summary
 
-**Version 5.214.0 · 2026-08-29 · Will Hooper**
+**Version 5.215.0 · 2026-08-29 · Will Hooper**
+
+**5.215.0 — EIGHT GUARD MOVES WERE SCORED RESOLVED ON A TURN WHERE NOTHING ATTACKED THEM, AND TWO OF
+THE ELEVEN ROWS THE AUDIT NAMED WERE NOT ACTUALLY IN THAT CASE.** The roster's move arm credited a
+click that printed a line; a guard prints one when it goes up. Focus Punch and Beak Blast were named
+in the same list and do not belong there — both are attacking moves and resolved on damage. The
+systemic half stands for all eleven: the roster covered the state's CREATION and not its FUNCTION.
+A derived effect check now asks the second question. Over the 500 legal moves it matches **11**, of
+which **7** demonstrate the refusal on both engines and **4** state why they cannot; **76** further
+rows write a state that prints nothing when it fires and belong to a counter comparison. **Zero rows
+changed verdict** against the previous artifact, and **no engine defect was found** — three of the
+first run's seven reds were the instrument, whose anchor asked for the move's own name where the
+authority prints `move: Protect` for the whole family. `engine/coverage.js` gains
+**uncomparable leaves w/ a firing writer — 23 of 24**.
 
 **5.214.0 — PARTING SHOT WALKED PAST A FOLLOW ME, AND THE REASON WAS A LABEL RATHER THAN A RULE.**
 The engine already redirected damaging moves and already redirected status moves; it refused Parting

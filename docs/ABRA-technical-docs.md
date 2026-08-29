@@ -1,6 +1,28 @@
 # ABRA — Technical Documentation
 
-**Version 5.214.0 · Last updated 2026-08-29**
+**Version 5.215.0 · Last updated 2026-08-29**
+
+**5.215.0 — THE MOVE ARM OF THE ROSTER ASKS WHETHER A LEAF'S EFFECT RAN, NOT ONLY WHETHER IT WAS
+ANNOUNCED.**
+`engine/all_mechanics_fire.js` reads a move row's verdict from the reference simulator's log. It
+counts any `-` event that is not in `NOT_A_CONSEQUENCE` as a consequence. `-singleturn` is not in that
+set and remains outside it; the reason is recorded at the declaration.
+- `leafEffectMarkers(moveId)` derives, per move, the protocol events the move's own state emits from
+  an INTERCEPTION handler — a handler that can only run because an incoming move reached the state.
+  The anchor is the literal third argument of that handler's `this.add`, not the move's display name:
+  the reference simulator announces the whole guard family as `move: Protect`.
+- `leafEffectSeen(log, spec, slot)` asks whether such a line appears on the subject's own slot, or on
+  the subject's own side for a side condition. Both anchors are required. The fixture's two partner
+  bodies click Protect every turn, so an unanchored search would credit any row.
+- `engine/faces.js` gains a consequence verb `attackedOnTheSameTurn`. Every other verb in that table
+  stages a later turn; a state with a declared duration of one turn has none. Four tag keys carry it:
+  `shieldsUser` (5 moves), `oneTurnGuard` (2), `preTurnShield` (2), `survivesAnyHit` (1).
+- `setupFor` now calls `thenWhatFor`. Before this change the move arm did not, and the volatile half
+  of that table reached zero rows in the only arm that did call it.
+- The ladder's stop condition becomes *resolved AND the declared effect was seen*. For a row with no
+  declared marker the condition is identical to the previous one.
+Measured over 500 move rows: 11 declare a marker, 7 demonstrate it on both engines, 4 do not and state
+why, 76 write a state that emits nothing on interception. Zero rows changed verdict.
 
 **5.214.0 — A PIVOT MOVE IS A MOVE AT THE REDIRECTION SITE.**
 `engine/medicham2-browser.js` decides the target of a single-target move that is not an attack in one

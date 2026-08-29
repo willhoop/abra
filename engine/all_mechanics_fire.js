@@ -490,6 +490,29 @@ const GUARDS = /move:\s*(protect|detect|spiky ?shield|baneful ?bunker|wide ?guar
  * as a consequence would credit a move for having been drawn on a screen. */
 const NOT_A_CONSEQUENCE = new Set(['-anim', '-hitcount', '-waiting', '-center', '-notarget', '-message',
                                    '-hint', '-ohko', '-combine', '-nothing']);
+/* ---- `-singleturn` IS DELIBERATELY NOT IN THAT SET, AND THE REASON IS WRITTEN DOWN EITHER WAY -----
+ *
+ * ASKED AND DECIDED 2026-08-29, because a declaration with no stated mechanism is how four exemptions
+ * in three days turned out to be wrong. `-singleturn` is what Showdown prints when Protect, Endure,
+ * Quick Guard, Focus Punch and their family come up, and counting it as a consequence is what makes
+ * those rows read RESOLVED with nothing having attacked into them. The obvious repair is to demote it
+ * here. IT IS THE WRONG REPAIR, for two measured reasons:
+ *
+ *   1. IT IS NOT BOOKKEEPING. Everything else in this set is the client being told how to draw a
+ *      frame — `-anim`, `-hitcount`, `-waiting`. `-singleturn` is the authority announcing that a
+ *      STATE WAS CREATED, and for a move whose entire function is to create a state, creating one IS
+ *      resolving. Demoting it makes Protect report *"the move executed and produced no consequence
+ *      line at all"*, which is a false accusation against a correct engine — the exact shape that
+ *      made 162 of 169 roster accusations turn out to be the ruler.
+ *   2. IT WOULD SINGLE OUT ONE SPELLING OF ARRIVAL. `-start`, `-sidestart`, `-fieldstart` and
+ *      `-singlemove` say the same thing for a leaf that lasts longer, and they are legitimate
+ *      consequences for Tailwind, Substitute, Trick Room and Encore. A set that holds `-singleturn`
+ *      and not those four is inconsistent by construction, and one that holds all five stops
+ *      crediting every state-setting move in the format.
+ *
+ * THE GAP IS NOT THAT THE ANNOUNCEMENT IS COUNTED. It is that nothing separately asked whether the
+ * leaf's EFFECT ever ran. That is a SECOND field, `leaf_effect` below — not a redefinition of the
+ * first — and it is what a reader needs to tell "the shield went up" from "the shield blocked". */
 /* CONSEQUENCES THAT ARE NOT `-` EVENTS, and every one of them cost a false negative before it was
  * written down. Showdown announces the biggest things a move can do WITHOUT a leading dash:
  *   `faint`         the target died — Explosion, an OHKO move
@@ -681,6 +704,155 @@ function verdictFor(log, who, moveId) {
   return best;
 }
 
+/* ================= DID THE LEAF DO ANYTHING, OR WAS IT ONLY ANNOUNCED? ============================
+ *
+ * MEASURE, 2026-08-29. `verdictFor` above answers *did the CLICK produce a line*. It cannot answer
+ * *did the STATE the click created ever run*, and for a whole family of moves those are different
+ * questions with different answers. Protect's row has read RESOLVED on the bare rung since the arm was
+ * written, on a turn where nothing attacked into it; so have Detect, Spiky Shield, King's Shield,
+ * Baneful Bunker, Quick Guard, Wide Guard and Endure. The board comparator cannot rescue any of them
+ * — every one is a declared `duration: 1` leaf, so `residualEvent` has ended it before the boundary
+ * where the board is sampled, and `boardVerdict` marks them `uncomparable_leaves` for exactly that.
+ *
+ * ---- THE DERIVATION, AND WHAT IT LOOKED LIKE BEFORE IT WAS NARROWED ------------------------------
+ *
+ * Printed before it was wired, as docs/ENGINE.md requires. THE FIRST RULE — *any protocol event a
+ * non-arrival handler emits* — matched 60 of the 500 legal moves and most of it was noise: `-end`,
+ * `-sideend` and `-fieldend` off `onEnd`/`onSideEnd`/`onFieldEnd` are the leaf EXPIRING rather than
+ * the leaf WORKING (Tailwind, Encore, Taunt, Torment, Trick Room), and a one-turn script can never see
+ * one, so 41 of the 60 markers would have gone red for the fixture's length. Substitute and Shed Tail
+ * contributed `-fail`/`-ohko` off their own already-have-one refusal path.
+ *
+ * THE NARROWED RULE has no semantics in it. An INTERCEPTION handler is one that can only run because
+ * an incoming MOVE reached the leaf — the `onTryHit` / `onHit` / `onDamage` / `onTryPrimaryHit` family,
+ * identifiable by NAME. Anything such a handler prints is an EFFECT MARKER, and a leaf that declares
+ * one and whose log shows none was never attacked into. Over the 500 legal moves that matches 11:
+ * the eight shields above, plus Substitute, Shed Tail and Psychic Terrain. Nothing else moves.
+ *
+ * ---- WHAT IT DELIBERATELY DOES NOT CATCH, STATED SO A ZERO IS READABLE ---------------------------
+ *
+ * A SILENT EFFECT HAS NO MARKER AND CANNOT HAVE ONE. Three of the eleven leaves the leaf-coverage
+ * audit named are dropped by this rule and they are dropped correctly:
+ *   Focus Punch  its cancel prints `|cant|` from `beforeMoveCallback` on the MOVE, not from a handler
+ *                on the condition, so the marker is not on the leaf
+ *   Beak Blast   its burn is `source.trySetStatus('brn')` — a state change with no `this.add` of its
+ *                own in the handler
+ *   Electrify    `onModifyType` prints nothing at all; it calls `this.debug`
+ * For those three the question *did it fire* is a COUNTER question, not a protocol one — which is the
+ * same argument `MEDSEEN.flinch`'s header already makes. They are counted here as
+ * `declares_no_marker` rather than passed silently, because a leaf with no observable effect and a
+ * leaf whose effect was never staged must not read alike.
+ *
+ * ---- THE ANCHOR, BECAUSE THE FIXTURE ITSELF CLICKS PROTECT ---------------------------------------
+ *
+ * The two ally pads click Protect every turn (`scriptFor`, and the comment there says why Endure was
+ * withdrawn). So a search for a bare `-activate` anywhere in the log would credit EVERY move row with
+ * a shield block that belonged to a pad. The marker line must therefore carry the leaf's own display
+ * name AND land where the leaf is: the SUBJECT'S SLOT for a leaf on the user, the subject's SIDE for a
+ * side condition, anywhere for a field one. */
+const INTERCEPTION_HANDLER = /^on(Any|Foe|Ally|Source)?(TryHit|TryHitSide|TryPrimaryHit|Hit|DamagingHit|Damage|TryMove|Immunity|MoveAborted)/;
+const ARRIVAL_HANDLER = /^on(Start|SideStart|SlotStart|FieldStart|Restart|SideRestart|FieldRestart)$/;
+/* THE EVENT AND THE LABEL THE AUTHORITY PRINTS WITH IT. The label is the third argument of
+ * `this.add`, and reading it rather than guessing the leaf's display name is a correction this
+ * instrument earned the hard way — see `leafEffectSeen`. */
+const addsEmittedBy = (fn) => {
+  const out = [];
+  if (typeof fn !== 'function') return out;
+  const re = /this\.add\(\s*['"]([^'"]+)['"]\s*(?:,\s*([^,)]*?)\s*(?:,\s*['"]([^'"]+)['"])?)?\s*[,)]/g;
+  let m;
+  const s = String(fn);
+  while ((m = re.exec(s))) out.push({ ev: m[1], label: m[3] || null });
+  return out;
+};
+/* WHICH LEAF A MOVE WRITES, and where it lives. `move.condition` first because a move that carries its
+ * own is the authority's own answer; the named-status fields are the fallback for a move that borrows
+ * one (Detect writes `protect`, Shed Tail writes `substitute`). */
+function leafOfMove(mv) {
+  if (!mv || !mv.exists) return null;
+  if (mv.condition && Object.keys(mv.condition).some(k => /^on/.test(k)))
+    return { cond: mv.condition, id: mv.id, display: mv.name, scope: 'slot', where: 'move.condition' };
+  for (const [k, scope] of [['volatileStatus', 'slot'], ['sideCondition', 'side'],
+                            ['slotCondition', 'side'], ['pseudoWeather', 'field']]) {
+    if (!mv[k]) continue;
+    const c = dex.conditions.getByID(mv[k]);
+    if (c && Object.keys(c).some(x => /^on/.test(x)))
+      return { cond: c, id: mv[k], display: c.name || mv.name, scope, where: k + ':' + mv[k] };
+  }
+  return null;
+}
+const LEAF_MARKER_CACHE = new Map();
+function leafEffectMarkers(moveId) {
+  if (LEAF_MARKER_CACHE.has(moveId)) return LEAF_MARKER_CACHE.get(moveId);
+  const L = leafOfMove(dex.moves.get(moveId));
+  let out = null;
+  if (L) {
+    const arrival = new Set(), eff = [], from = [];
+    for (const [k, v] of Object.entries(L.cond)) {
+      if (typeof v !== 'function' || !/^on/.test(k)) continue;
+      const adds = addsEmittedBy(v);
+      if (ARRIVAL_HANDLER.test(k)) { for (const a of adds) arrival.add(a.ev); continue; }
+      if (!INTERCEPTION_HANDLER.test(k)) continue;
+      if (adds.length) { for (const a of adds) eff.push(a); from.push(k); }
+    }
+    /* ---- ONLY A LABELLED MARKER COUNTS, AND THAT DROPS TWO ROWS ON PURPOSE ------------------------
+     * Substitute's and Shed Tail's interception handler also prints a bare `-fail` and `-ohko` with no
+     * literal beside them — those are the already-have-one and the OHKO-move refusal paths, not the
+     * substitute absorbing a hit. Without a label there is nothing to anchor on and the check would be
+     * a search for `-fail` anywhere on the subject's slot, which every blocked move in the fixture
+     * would satisfy. An unanchored marker is worse than no marker: it turns green on the wrong line. */
+    const seen = new Set();
+    const markers = eff.filter(a => a.label && !arrival.has(a.ev)
+                                 && !seen.has(a.ev + '|' + a.label) && seen.add(a.ev + '|' + a.label));
+    if (markers.length) out = { leaf: L.id, display: L.display, scope: L.scope, where: L.where,
+                                arrival: [...arrival], markers, from,
+                                unlabelled: eff.filter(a => !a.label && !arrival.has(a.ev)).map(a => a.ev) };
+  }
+  LEAF_MARKER_CACHE.set(moveId, out);
+  return out;
+}
+/* Did one of those markers actually appear, on the leaf, on the subject's own slot or side? Returns
+ * the matching lines as well as the boolean — a bare `false` is not a finding and the line is.
+ *
+ * ---- THE ANCHOR IS THE AUTHORITY'S OWN LABEL, AND THE FIRST VERSION WAS THE MOVE'S NAME -----------
+ *
+ * MEASURED AND CORRECTED IN THE SAME PASS, 2026-08-29, and it is the standing rule here: suspect the
+ * instrument before the engine. The first anchor asked for the LEAF'S DISPLAY NAME on the line, which
+ * is what a reader would assume the authority prints. It does not. Showdown announces the WHOLE shield
+ * family under the generic label:
+ *
+ *     |move|p1a: Toxapex|Baneful Bunker|p1a: Toxapex
+ *     |-singleturn|p1a: Toxapex|move: Protect          <- not "move: Baneful Bunker"
+ *     |move|p2a: Feraligatr|Aerial Ace|p1a: Toxapex
+ *     |-activate|p1a: Toxapex|move: Protect            <- the block, also under Protect's name
+ *     |-status|p2a: Feraligatr|psn                     <- the Bunker's own punish
+ *
+ * So Spiky Shield, King's Shield and Baneful Bunker were reported ANNOUNCEMENT-ONLY on a turn where
+ * the block had plainly happened and the poison was on the board. THREE OF THE SEVEN REDS IN THE FIRST
+ * RUN WERE THE RULER. The label is not guessed now: it is the literal third argument of the handler's
+ * own `this.add`, read out of the authority's source in `leafEffectMarkers`, so a leaf that changes
+ * how it announces itself is followed rather than missed.
+ *
+ * THE SLOT ANCHOR IS STILL NEEDED AND IS NOT REDUNDANT. Both ally pads click Protect every single turn
+ * — `scriptFor` says why — so `-activate … move: Protect` appears in this fixture for reasons that
+ * have nothing to do with the subject. Label AND slot, never one of them. */
+function leafEffectSeen(log, spec, subjectSlot) {
+  if (!spec) return { asked: false, seen: null, lines: [] };
+  const slot = (String(subjectSlot || '').match(/^(p[12][abc])/) || [])[1] || 'p1a';
+  const side = slot.slice(0, 2);
+  const lines = [];
+  for (const raw of (log || [])) {
+    const p = String(raw).split('|');
+    /* The label is its own `|`-delimited field, so it is compared as a FIELD and never with a
+     * substring test — `move: Protect` must not be satisfied by `move: Protect Pad` or by a label
+     * that merely contains it. */
+    if (!spec.markers.some(m => m.ev === p[1] && p.indexOf(m.label) >= 2)) continue;
+    if (spec.scope === 'slot' && String(p[2] || '').indexOf(slot) !== 0) continue;
+    if (spec.scope === 'side' && String(p[2] || '').indexOf(side) !== 0) continue;
+    lines.push(raw);
+  }
+  return { asked: true, seen: lines.length > 0, lines: lines.slice(0, 4) };
+}
+
 /* WHAT A BUILT BODY WILL ACTUALLY CLICK. `scripted()` looks the ask up in Showdown's own request and
  * answers `pass` when it is not there — and Showdown REFUSES a pass from a healthy active body, which
  * throws the whole game. So every click in every script is read back off the body that has to make it,
@@ -715,6 +887,14 @@ const DISRUPTIVE_ABILITY = (a) => AB_TAGS(a).some(t => DISRUPTIVE.indexOf(t) >= 
   || a === 'illusion';
 const MOVE_TAGS = m => ((TAGS.moves && TAGS.moves[m] && TAGS.moves[m].tags) || []);
 const MOVE_PARAMS = m => ((TAGS.moves && TAGS.moves[m] && TAGS.moves[m].params) || {});
+/* The adversary and consequence tables live in their own module — see engine/faces.js. They are
+ * required rather than defined here because THIS FILE RUNS ON REQUIRE: a probe that merely wanted to
+ * read the table kicked off a whole sweep the first time I tried it. A table is data and must be
+ * importable without starting an instrument.
+ *
+ * IT IS REQUIRED HERE, ABOVE `setupFor`, AND NOT BESIDE `runAbilities` WHERE IT USED TO BE. The move
+ * arm is now a second caller of `thenWhatFor` and it is defined 700 lines earlier. */
+const { FACES, facesFor, thenWhatFor } = require('./faces.js');
 /* volatile -> a move that grants it TO THE USER, inverted out of `statusInflict` rather than listed.
  * Spit Up and Swallow declare `spendsVolatile {volatile:'stockpile', requires:true}`; this is how the
  * scenario finds Stockpile without anybody writing "Stockpile" down. */
@@ -853,6 +1033,20 @@ if (has('--print-move-needs')) {
   return;
 }
 
+/* THE MOVE ARM'S HALF OF ROADMAP #158, COUNTED FOR THE SAME REASON THE ABILITY ARM'S IS: a capability
+ * that cannot prove it ran is assumed broken. `verbsUnknown` is the LOUD column — a verb the shared
+ * table names that this arm cannot execute must never stage nothing and look like a consequence that
+ * did not help, which is exactly what `VOLATILE_THEN_WHAT` did in silence until 2026-08-29. */
+const MOVE_THEN_WHAT_SEEN = { rows: 0, sameTurnAsked: 0, sameTurnStaged: 0, sameTurnDenied: 0,
+                              unstageable: 0, verbsUnknown: 0,
+                              verbsUnknownSeen: {}, shapeUnbuildable: {},
+                              leafDeclaresMarker: 0, leafEffectSeen: 0, announcementOnly: 0,
+                              leafEffectSplit: {}, leafDeclaresNoMarker: 0 };
+/* WEAKEST TO STRONGEST. A shield that reads contact is also refusing an ordinary physical hit, so the
+ * contact board satisfies both keys; `lethal` and `guardShape` are narrower still and satisfy nothing
+ * else, so they sort last and win outright. Used only to make the merge deterministic. */
+const SAME_TURN_RANK = [null, 'physical', 'contact', 'guardShape', 'lethal'];
+
 /* The SETUP a move needs before it can resolve, derived. Each entry returns extra moves the actor (or
  * its ally) must carry and extra script turns to play first. */
 function setupFor(moveId, pool) {
@@ -943,7 +1137,41 @@ function setupFor(moveId, pool) {
   const me = moveEntryNeeds(dex.moves.get(moveId));
   if (me.receiverMustNotAttack) receiverAttacks = null;
   if (me.receiverMustAttack && !receiverAttacks) receiverAttacks = 'physical';
+  /* ---- AND WHAT MUST HAPPEN TO THE STATE THE MOVE CREATES (MEASURE, 2026-08-29) -------------------
+   *
+   * `thenWhatFor` is the SAME producer the ability ladder calls, and until today the move ladder did
+   * not call it at all. That was not a small omission: all seven keys of `VOLATILE_THEN_WHAT` are
+   * volatiles written by MOVES, so the table reached ZERO rows in the one arm that read it (measured
+   * against data/tags.json — abilities 0, items 0, moves 7). An unwired knob gives identical output,
+   * and this one gave it for as long as the table has existed.
+   *
+   * IT IS ADDITIVE. `su` fields are only written where the table names a verb this arm can execute,
+   * so a row with no consequence key plays exactly the board it played before — measured at 42 of the
+   * 500 move rows carrying any consequence at all, 10 of them carrying the same-turn verb below.
+   * The verbs this arm CANNOT execute are counted rather than dropped: `attacksAfter` and its family
+   * add turns AFTER the click, which is the ability gauntlet's shape and not this one's. */
+  const tw = thenWhatFor(tags, pars);
+  let sameTurn = null;
+  if (tw) {
+    MOVE_THEN_WHAT_SEEN.rows++;
+    for (const s of (tw.stages || [])) {
+      if (!s) { MOVE_THEN_WHAT_SEEN.unstageable++; continue; }
+      for (const k of Object.keys(s)) {
+        if (k !== 'attackedOnTheSameTurn') {
+          MOVE_THEN_WHAT_SEEN.verbsUnknown++;
+          MOVE_THEN_WHAT_SEEN.verbsUnknownSeen[k] = (MOVE_THEN_WHAT_SEEN.verbsUnknownSeen[k] || 0) + 1;
+          continue;
+        }
+        /* THE STRONGEST SHAPE WINS, NOT THE FIRST ONE READ. Spiky Shield carries `punishesContact`
+         * AND `shieldsUser`, so it asks for both `contact` and `physical`; taking whichever the tag
+         * list happened to name first would make the fixture depend on the artifact's key order. */
+        sameTurn = SAME_TURN_RANK.indexOf(s[k]) > SAME_TURN_RANK.indexOf(sameTurn) ? s[k] : sameTurn;
+      }
+    }
+  }
   return { pre, extra, receiverAttacks, selfDamage, charge, recharge, trailing, needsSetter,
+           attackedOnTheSameTurn: sameTurn,
+           thenWhatWhy: tw ? tw.why : null, thenWhatAfter: tw ? tw.after : null,
            receiverIdle: !!me.receiverMustNotAttack,
            receiverPriority: !!me.receiverPriorityAttack,
            setsType: me.setsType || null,
@@ -1233,7 +1461,66 @@ function scriptFor(su, clickMove, bodies) {
    * body that cannot supply one degrades to the ordinary click and the row reports why. */
   const prio = ((receiver || {}).moves || []).map(id)
     .find(m => { const d = dex.moves.get(m); return d && d.exists && (d.priority || 0) > 0 && d.category !== 'Status'; });
-  const foe = su.receiverPriority && prio ? prio
+  /* ---- THE HIT THAT GOES INTO A ONE-TURN SHIELD, ON THE TURN THE SHIELD GOES UP -------------------
+   *
+   * MEASURE, 2026-08-29. Every other consequence in `engine/faces.js` is a LATER turn; a `duration: 1`
+   * leaf has none. `residualEvent` ends Protect, Endure, Quick Guard and their family before the next
+   * turn starts, so a shield that is not attacked into on its own click turn is never attacked into at
+   * all — and the row still reads RESOLVED, because `-singleturn` is a consequence and rightly so (see
+   * the block at `NOT_A_CONSEQUENCE`).
+   *
+   * THE SHAPE IS DERIVED FROM THE LEAF'S OWN GUARD, NEVER FROM THE MOVE'S NAME. Quick Guard's
+   * `onTryHit` opens `if (move.priority <= 0.1) return` and Wide Guard's tests `move.target`; those
+   * two source facts are what pick a priority attack or a spread attack, and the target names come out
+   * of the guard's own text rather than out of a set typed here. A shape the receiver cannot supply is
+   * COUNTED and the row keeps the board it had — a fixture that quietly substitutes the wrong hit is
+   * worse than one that says it could not build the right one.
+   *
+   * `lethal` IS THE ONE SHAPE THIS FIXTURE CANNOT BUILD, and that is a property of the HP pool rather
+   * than of the move: every body here is at x6 HP so nothing anybody clicks is lethal, which is the
+   * whole reason nothing faints and no forced switch can manufacture a divergence. Endure therefore
+   * stays uncovered and is counted as `shapeUnbuildable.lethal` instead of being given a survivable
+   * hit and passing on it. */
+  const recvIds = ((receiver || {}).moves || []).map(id);
+  const attackable = (k) => { const d = dex.moves.get(k);
+    return d && d.exists && d.category !== 'Status' && canReach(k) ? d : null; };
+  const guardSrc = String((((dex.moves.get(clickMove) || {}).condition) || {}).onTryHit || '');
+  const guardTargets = new Set([...guardSrc.matchAll(/move\??\.target\s*!==\s*["']([a-zA-Z]+)["']/g)].map(x => x[1]));
+  const byShape = (want) => {
+    if (want === 'contact')
+      return recvIds.find(k => { const d = attackable(k); return d && d.flags && d.flags.contact; }) || null;
+    if (want === 'guardShape') {
+      if (/move\.priority/.test(guardSrc))
+        return recvIds.find(k => { const d = attackable(k); return d && (d.priority || 0) > 0.1; }) || null;
+      if (guardTargets.size)
+        return recvIds.find(k => { const d = attackable(k); return d && guardTargets.has(d.target); }) || null;
+      return null;
+    }
+    if (want === 'lethal') return null;
+    return recvIds.find(k => attackable(k)) || null;
+  };
+  /* ---- THE ONE CASE WHERE THE CONSEQUENCE AND THE RESOLUTION CANNOT BOTH BE HAD -------------------
+   *
+   * FOCUS PUNCH. `moveEntryNeeds.receiverMustNotAttack` already exists and the block that set it says
+   * why: the tag `needsTargetToAttack` had built *"the one board on which the move CANNOT resolve — it
+   * is cancelled by being hit"*. Its leaf's whole function is that cancellation, so the board that
+   * exercises the leaf is exactly the board on which the move is refused. Staging the hit anyway would
+   * turn a correct RESOLVED row into `cant: Focus Punch` and read as an engine defect.
+   *
+   * So `receiverIdle` WINS and the conflict is recorded rather than resolved. It needs two rows on two
+   * boards, which is a fixture this arm does not have; a claim that Focus Punch's cancel is covered
+   * would be false either way, and this is the version that says so. Beak Blast is NOT in this case —
+   * a contact hit burns the attacker and the blast still fires — and is staged normally. */
+  const sameTurnDenied = !!(su.attackedOnTheSameTurn && su.receiverIdle);
+  su.sameTurnDenied = sameTurnDenied ? su.attackedOnTheSameTurn : null;
+  const sameTurnHit = su.attackedOnTheSameTurn && !sameTurnDenied ? byShape(su.attackedOnTheSameTurn) : null;
+  /* Stashed on the caller's own per-rung copy of `su` rather than counted here, because `scriptFor`
+   * runs once per RUNG and a counter incremented here would report one row several times. */
+  su.sameTurnStagedAs = sameTurnHit ? { shape: su.attackedOnTheSameTurn, move: sameTurnHit } : null;
+  su.sameTurnUnbuildable = su.attackedOnTheSameTurn && !sameTurnHit && !sameTurnDenied
+                         ? su.attackedOnTheSameTurn : null;
+  const foe = sameTurnHit ? sameTurnHit
+            : su.receiverPriority && prio ? prio
             : su.receiverIdle ? inert
             : su.receiverAttacks === 'physical' ? phys : su.receiverAttacks === 'special' ? spec : inert;
   const click = { m: clickMove, t: 0 };
@@ -1392,7 +1679,27 @@ function runMoves(list) {
     }
     /* A +PRIORITY ATTACK ON THE RECEIVER, when the move's guard reads the target's queued priority.
      * Added to the FRONT of the want list so `bodyOf` keeps it, and only for a row that asks. */
-    const recvWants = (su.receiverPriority
+    /* ---- AND A HIT OF THE SHAPE THE LEAF'S OWN GUARD READS (MEASURE, 2026-08-29) -----------------
+     *
+     * `scriptFor` picks the same-turn hit off the receiver's BUILT moves, so a shape that is not in
+     * the want list cannot be picked however well the pool supports it. Quick Guard needs a priority
+     * attack and Wide Guard a spread one; the default four (Agility, Facade, Aqua Tail, Hydro Pump)
+     * hold neither, so both guards would have been staged against the exact move each one is written
+     * to ignore. The predicate comes out of the guard's OWN `onTryHit` source — `move.priority` or
+     * the target names it tests — and never out of the move's name. Added to the FRONT so `bodyOf`
+     * keeps it, and only for a row that asks. */
+    const guardSrcW = String((((dex.moves.get(mv) || {}).condition) || {}).onTryHit || '');
+    const guardTargetsW = new Set([...guardSrcW.matchAll(/move\??\.target\s*!==\s*["']([a-zA-Z]+)["']/g)].map(x => x[1]));
+    const shapePred = su.attackedOnTheSameTurn === 'contact'
+        ? (m) => m.category !== 'Status' && m.flags && m.flags.contact && hitsFoe(m)
+      : su.attackedOnTheSameTurn === 'guardShape' && /move\.priority/.test(guardSrcW)
+        ? (m) => (m.priority || 0) > 0.1 && m.category !== 'Status' && hitsFoe(m)
+      : su.attackedOnTheSameTurn === 'guardShape' && guardTargetsW.size
+        ? (m) => m.category !== 'Status' && guardTargetsW.has(m.target)
+      : null;
+    const shapeWants = shapePred
+      ? [mvName(pickMove(POOL.get(recvSp) || new Set(), shapePred))].filter(Boolean) : [];
+    const recvWants = shapeWants.concat(su.receiverPriority
       ? [mvName(pickMove(POOL.get(recvSp) || new Set(),
           (m) => (m.priority || 0) > 0 && m.category !== 'Status' && hitsFoe(m))) ].filter(Boolean)
       : []).concat(RECEIVER_MOVES);
@@ -1403,7 +1710,15 @@ function runMoves(list) {
       const ab = Object.values(sp.abilities).find(a => su.allyAbilities.includes(id(a)));
       return bodyOf(sp.id, ab, '', PAD_MOVES);
     })() : null;
+    /* WHAT THE LEAF THIS MOVE WRITES PRINTS WHEN IT ACTUALLY FIRES — derived once per row, off the
+     * authority's own condition source. `null` for 489 of the 500 and the row then behaves exactly as
+     * it did before. */
+    const EFF = leafEffectMarkers(mv);
+    if (su.attackedOnTheSameTurn) MOVE_THEN_WHAT_SEEN.sameTurnAsked++;
     let best = null;
+    /* `scriptFor` stashes its same-turn decision on the PER-RUNG copy of `su`, not on `su` itself, so
+     * it is lifted out here — a counter read off `su` after the loop would always be empty. */
+    let sameTurnDenied = null, sameTurnUnbuildable = null;
     const attempts = [];
     for (const rung of RUNGS) {
       if (rung.when && !rung.when(su)) continue;
@@ -1425,6 +1740,8 @@ function runMoves(list) {
       if (!actor2 || !receiver) break;
       const bodies = stageBodies(actor2, receiver, allyBody);
       const script = scriptFor(s, mv, bodies);
+      sameTurnDenied = sameTurnDenied || s.sameTurnDenied || null;
+      sameTurnUnbuildable = sameTurnUnbuildable || s.sameTurnUnbuildable || null;
       const r = playScenario(Object.assign({ script, hpBoost: s.hpBoost,
                                              tag: 'move/' + mv + '/' + rung.id }, bodies));
       if (!r.staged) { best = best || { kind: 'move', id: mv, name: dm.name, carrier: chosen, resolved: false,
@@ -1445,6 +1762,44 @@ function runMoves(list) {
                      * streams parted and whether the BOARDS parted are two different findings and the
                      * artifact carries both, on the same game. */
                     board: boardVerdict(r, 'move', mv) };
+      /* ---- AND THE SECOND QUESTION: DID THE LEAF THIS MOVE WRITES ACTUALLY DO ANYTHING -------------
+       *
+       * MEASURE, 2026-08-29. Read on BOTH streams, because a leaf that fires for the authority and not
+       * for us is the finding this whole file exists for, and the two are separate booleans for the
+       * same reason `resolved` and `medicham_resolved` are. `announcement_only` is the qualifier that
+       * was missing: RESOLVED plus a declared effect marker that never appeared means the row was
+       * credited for the leaf being ANNOUNCED. It is set from SHOWDOWN'S stream, so it is a statement
+       * about what the fixture staged rather than about our engine. */
+      if (EFF) {
+        const sdE = leafEffectSeen(r.sdLog, EFF, who2);
+        const meE = leafEffectSeen(r.mediTrace, EFF, who2);
+        row.leaf_effect = {
+          leaf: EFF.leaf, display: EFF.display, scope: EFF.scope, where: EFF.where,
+          markers: EFF.markers, arrival: EFF.arrival, from: EFF.from,
+          staged_as: s.sameTurnStagedAs || null,
+          not_staged_because: s.sameTurnDenied
+            ? 'the move\'s own entry declares the target MUST NOT attack — the board that exercises '
+              + 'this leaf is the board on which the move is refused, and it needs two rows'
+            : s.sameTurnUnbuildable
+            ? 'no move on the receiver\'s built set has the shape this guard reads ('
+              + s.sameTurnUnbuildable + ')'
+            : su.attackedOnTheSameTurn ? null
+            : 'the consequence table names no same-turn adversary for this leaf',
+          showdown_seen: sdE.seen, showdown_lines: sdE.lines,
+          medicham_seen: meE.seen, medicham_lines: meE.lines,
+        };
+        row.announcement_only = !!(sd.resolved && !sdE.seen);
+        row.leaf_effect_split = sdE.seen !== meE.seen
+          ? (sdE.seen ? 'SHOWDOWN-ONLY' : 'MEDICHAM-ONLY') : null;
+      } else if (leafOfMove(dm)) {
+        /* A LEAF WITH NO INTERCEPTION MARKER AT ALL. Focus Punch's cancel prints from the MOVE, Beak
+         * Blast's burn and Electrify's retype print nothing of their own. A zero here is not a pass
+         * and it is not a gap in the fixture — it is a mechanic no protocol comparison can settle, and
+         * it belongs to a COUNTER. Recorded so the two cannot be read alike. */
+        row.leaf_effect = { leaf: (leafOfMove(dm) || {}).id, declares_no_marker: true,
+          why: 'the leaf\'s own handlers print nothing in response to an incoming move, so whether it '
+             + 'fired is a counter question and not a protocol one' };
+      }
       if (DUMPLOG) {
         console.log('  ---- ' + mv + ' [' + rung.id + ']  carrier ' + chosen + '  script ' + JSON.stringify(script));
         console.log('  SHOWDOWN:'); for (const l of r.sdLog) console.log('    ' + l);
@@ -1452,16 +1807,44 @@ function runMoves(list) {
       }
       /* THE FIRST RUNG THAT RESOLVES WINS AND THE LADDER STOPS. A row that never resolves keeps the
        * FIRST rung's reason, because the bare board's reason is the one that describes the move — the
-       * richer boards' reasons describe the fixture. */
-      attempts.push({ rung: rung.id, resolved: !!sd.resolved, why: sd.why || null });
-      best = best || row;
-      if (sd.resolved) { best = row; break; }
+       * richer boards' reasons describe the fixture.
+       *
+       * AND FOR A ROW WHOSE LEAF DECLARES AN EFFECT, RESOLVING IS NOT ENOUGH TO STOP (2026-08-29). A
+       * shield resolves on the bare board by announcing itself; if the ladder stops there, the richer
+       * boards that might have attacked into it are never played and the row is credited for the
+       * announcement. So the stop condition is *resolved AND the declared effect was seen*. It changes
+       * nothing for the 489 rows that declare no marker — measured, 11 of 500 do — and it can only
+       * ever make a row play MORE boards, never fewer, so no row that resolves today can stop
+       * resolving because of it. */
+      attempts.push({ rung: rung.id, resolved: !!sd.resolved, why: sd.why || null,
+                      leaf_effect_seen: row.leaf_effect && 'showdown_seen' in row.leaf_effect
+                                      ? row.leaf_effect.showdown_seen : null });
+      const effectSettled = !EFF || !!(row.leaf_effect && row.leaf_effect.showdown_seen);
+      if (!best || (sd.resolved && !best.resolved)) best = row;
+      if (sd.resolved && effectSettled) { best = row; break; }
     }
     /* WHAT EVERY RUNG SAID, NOT JUST THE FIRST. `best` deliberately keeps the BARE board's reason
      * because that is the one describing the move — but a reader trying to repair the fixture needs to
      * know what the richer boards said, and until now the artifact threw it away. A row that failed on
      * six different boards for six different reasons looked identical to one that failed once. */
     if (best) best.rung_attempts = attempts;
+    /* THE CONSEQUENCE ARM'S RECEIPT, TAKEN OFF THE ROW THAT WAS KEPT. A capability that cannot prove
+     * it ran is assumed broken, and this one ran for eleven years' worth of nothing before today. */
+    const LE = best && best.leaf_effect;
+    if (LE && LE.declares_no_marker) MOVE_THEN_WHAT_SEEN.leafDeclaresNoMarker++;
+    else if (LE) {
+      MOVE_THEN_WHAT_SEEN.leafDeclaresMarker++;
+      if (LE.staged_as) MOVE_THEN_WHAT_SEEN.sameTurnStaged++;
+      if (LE.showdown_seen) MOVE_THEN_WHAT_SEEN.leafEffectSeen++;
+      if (best.announcement_only) MOVE_THEN_WHAT_SEEN.announcementOnly++;
+      if (best.leaf_effect_split)
+        (MOVE_THEN_WHAT_SEEN.leafEffectSplit[best.leaf_effect_split] =
+          (MOVE_THEN_WHAT_SEEN.leafEffectSplit[best.leaf_effect_split] || 0) + 1);
+    }
+    if (sameTurnDenied) MOVE_THEN_WHAT_SEEN.sameTurnDenied++;
+    if (sameTurnUnbuildable)
+      MOVE_THEN_WHAT_SEEN.shapeUnbuildable[sameTurnUnbuildable] =
+        (MOVE_THEN_WHAT_SEEN.shapeUnbuildable[sameTurnUnbuildable] || 0) + 1;
     /* ---- THE ONE REFUSED MOVE ROW THAT IS NOT A FIXTURE BUG, AND IT NOW SAYS SO ------------------
      *
      * ATTRACT reads `.gender` one hop down, in the ATTRACT CONDITION rather than in its own entry —
@@ -1576,11 +1959,8 @@ function pickForNeed(need, pool, ctx) {
   return cands[0].id;
 }
 
-/* The adversary table lives in its own module — see engine/faces.js. It is required rather
- * than defined here because THIS FILE RUNS ON REQUIRE: a probe that merely wanted to read the table
- * kicked off a whole sweep the first time I tried it. A table is data and must be importable without
- * starting an instrument. */
-const { FACES, facesFor, thenWhatFor } = require('./faces.js');
+/* The adversary table is required ONCE, above `setupFor`, which is now a second caller — see the
+ * block there. It used to be required here, beside its first caller. */
 
 /* ROADMAP #158 -- `thenWhat`, AND IT IS COUNTED BECAUSE A CAPABILITY THAT CANNOT PROVE IT RAN IS
  * ASSUMED BROKEN. `THEN_WHAT_SEEN` counts the rows that were handed a CONSEQUENCE and the turns those
@@ -3320,6 +3700,11 @@ if (KIND === 'moves' || KIND === 'all') {
                            shelved_by_owner_diverging: shelvedN.diverging,
                            resolution_disagreements: disagree.length,
                            cannot_fire_in_this_fixture: rows.filter(r => r.cannot_fire).length,
+                           /* MEASURE 2026-08-29. `resolved` counts a click that produced a LINE. This
+                            * counts whether the leaf that click created ever DID anything, which for
+                            * a `duration: 1` leaf no board comparison can ask. */
+                           announcement_only: rows.filter(r => r.announcement_only).length,
+                           leaf_effect: Object.assign({}, MOVE_THEN_WHAT_SEEN),
                            seconds: +((Date.now() - t0) / 1000).toFixed(1) };
   console.log('    RESOLVED ' + resolved.length + ' of ' + rows.length + ' tried, of ' + LEGAL_MOVES.length + ' that exist'
             + '   (' + ((Date.now() - t0) / 1000).toFixed(1) + 's)');
@@ -3335,6 +3720,48 @@ if (KIND === 'moves' || KIND === 'all') {
   for (const r of rows) if (!r.resolved) { const k = String(r.why || '?').slice(0, 90); byWhy.set(k, (byWhy.get(k) || 0) + 1); }
   console.log('    WHY THE REST DID NOT RESOLVE:');
   for (const [k, v] of [...byWhy].sort((x, y) => y[1] - x[1])) console.log('      ' + String(v).padStart(4) + '  ' + k);
+  /* ---- THE EFFECT CHECK'S OWN RECEIPT (MEASURE, 2026-08-29) --------------------------------------
+   *
+   * A capability that cannot prove it ran is assumed broken, and this one is silent by construction:
+   * an effect check that reached nothing looks exactly like an effect check that passed. Every column
+   * here is derived — `leafDeclaresMarker` from the authority's own condition source, the rest from
+   * the games actually played — and a zero on the first means the derivation stopped matching, which
+   * is a broken instrument rather than a clean engine. */
+  const LEC = MOVE_THEN_WHAT_SEEN;
+  console.log('    LEAF EFFECT — ' + LEC.leafDeclaresMarker + ' row(s) write a leaf that PRINTS when it '
+            + 'refuses something; ' + LEC.leafEffectSeen + ' of those had the effect on the board, '
+            + LEC.announcementOnly + ' resolved on the ANNOUNCEMENT alone.');
+  console.log('      consequence table: ' + LEC.rows + ' move row(s) carry a key, same-turn adversary '
+            + 'asked for ' + LEC.sameTurnAsked + ' and staged on ' + LEC.sameTurnStaged
+            + '; ' + LEC.leafDeclaresNoMarker + ' leaf(s) print nothing when they fire and belong to a counter.');
+  if (!LEC.leafDeclaresMarker && rows.length > 20) {
+    console.log('      NO ROW DECLARED AN EFFECT MARKER. Over a full population that is the derivation '
+              + 'having stopped matching the authority, not a clean engine. A zero here is not a pass.');
+    process.exitCode = 1;
+  }
+  if (Object.keys(LEC.leafEffectSplit).length)
+    console.log('      LEAF-EFFECT SPLIT (one engine saw it and the other did not): '
+              + JSON.stringify(LEC.leafEffectSplit) + ' — each is a candidate ENGINE GAP.');
+  if (LEC.verbsUnknown)
+    console.log('      ' + LEC.verbsUnknown + ' consequence verb(s) the shared table names and the MOVE '
+              + 'arm cannot execute: ' + JSON.stringify(LEC.verbsUnknownSeen) + '. Those rows staged '
+              + 'NOTHING for that key. They belong to the ability gauntlet\'s vocabulary and are '
+              + 'counted rather than dropped.');
+  if (Object.keys(LEC.shapeUnbuildable).length)
+    console.log('      ' + JSON.stringify(LEC.shapeUnbuildable) + ' — a hit of that SHAPE could not be '
+              + 'built out of the receiver\'s legal pool, so the leaf keeps the board it had. This is '
+              + 'a fixture limit and is NOT an engine finding.');
+  if (LEC.sameTurnDenied)
+    console.log('      ' + LEC.sameTurnDenied + ' row(s) declare BOTH a same-turn consequence and a '
+              + 'target that must not attack. The board that exercises the leaf is the board on which '
+              + 'the move is refused; it needs two rows and this arm has one.');
+  const AO = rows.filter(r => r.announcement_only);
+  if (AO.length) {
+    console.log('      ANNOUNCEMENT-ONLY — resolved, and the leaf it wrote never refused anything:');
+    for (const r of AO) console.log('        ' + r.id.padEnd(18) + ' rung ' + String(r.rung).padEnd(14)
+      + ' markers ' + JSON.stringify(r.leaf_effect.markers)
+      + '  ' + (r.leaf_effect.not_staged_because || 'the adversary was staged and the marker still never came'));
+  }
   /* §5 OF THE DIFFERENTIAL DESIGN, APPLIED HERE: twelve games hitting one wire is ONE finding and not
    * twelve, so the divergences are collapsed onto the driver's own SPECIES-BLIND cause. */
   reportCauses(rows);

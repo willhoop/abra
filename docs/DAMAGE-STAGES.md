@@ -1,6 +1,11 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.214.0 — 2026-08-29.**
+**Version: 5.215.0 — 2026-08-29.**
+
+**5.215.0 — NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version is to a
+MEASUREMENT INSTRUMENT — the roster's move arm now asks whether a one-turn state ever refused
+anything — and touches nothing above or below the stage table. The 6,000-comparison damage
+differential is unchanged at **0 disagreements at all sixteen roll positions**, seed 20260804.
 
 **5.214.0 — NO STAGE MOVED, AND NO DAMAGE NUMBER MOVED.** The change in this version is a TARGET
 SELECTION defect, not a damage one: a pivot status move was not offered to the redirection event, so
