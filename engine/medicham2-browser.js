@@ -198,6 +198,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      Two rows in this format carry one (Gooey, Toxic Debris); a zero over a run holding either means
      the artifact stopped carrying the record and the line is silently gone again. */
   punishAnnounced: 0,
+  /* 2026-08-29 -- one per `punishesAttacker.dealsDamageTaken` toll actually PAID. The only member in
+     this regulation is Innards Out, whose one legal carrier is Victreebel-Mega, so this reads 0 on a
+     run that never staged one -- and a zero on a run that DID stage a KO onto that body means the
+     amount branch has gone back to being unreachable, which is the state it shipped in. */
+  damageTakenToll: 0,
   /* 2026-08-23 -- one per Champions-only `|-heal|…|[from] ability: Regenerator|[silent]` written on a
      switch-out. A zero over a run holding a Regenerator that actually healed means the artifact
      stopped carrying `announces` and the line is silently gone again. */
@@ -2153,6 +2158,11 @@ const MEDFAILS = { encoreAction: 0,
      click that WOULD have been drawn and was not, so the number is the defect's own size.
      MUST READ 0 on any shipping run. */
   pivotSkipsRedirectRestored: 0,
+  /* 2026-08-29 -- MEDI_NO_DAMAGE_TAKEN_TOLL=1 is armed, so the `punishesAttacker` consumer spends
+     only `fraction` again and a toll whose amount is THE DAMAGE THIS MOVE DEALT finds no branch.
+     That is the exact pre-fix engine, in which Innards Out derived onto the wrong tag entirely and
+     nothing anywhere read it. MUST READ 0 on any shipping run. */
+  damageTakenTollRestored: 0,
   /* WIRE 158 -- the holder carries `damageMultOnRepeat` and the artifact's `steps4096` is missing,
      empty, or does not start at the identity 4096. The consumer then applies NOTHING rather than
      guessing a ladder, because an invented step is a damage number nobody can trace. A non-zero
@@ -12593,6 +12603,14 @@ const NO_METRONOME_LADDER=(typeof process!=='undefined'&&process.env&&process.en
  * also carries a non-zero `MEDFAILS.pivotSkipsRedirectRestored`. Same shape as
  * MEDI_NO_METRONOME_LADDER above. */
 const PIVOT_SKIPS_REDIRECT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PIVOT_SKIPS_REDIRECT==='1');
+/* 2026-08-29 -- MEDI_NO_DAMAGE_TAKEN_TOLL=1 PUTS THE UNPAID INNARDS OUT BACK: the `punishesAttacker`
+ * consumer goes back to spending only `fraction`, so a punish whose amount is THE DAMAGE THIS MOVE
+ * DEALT finds no branch and is skipped in silence -- which is precisely the engine that shipped, and
+ * precisely why the defect was invisible. It is the whole clause: no HP moves, no `-damage` line is
+ * written and no chained faint is queued, so the red arm is the before-state rather than half of it.
+ * Any run carrying it also carries a non-zero `MEDFAILS.damageTakenTollRestored`. Same shape as
+ * MEDI_NO_METRONOME_LADDER above. */
+const NO_DAMAGE_TAKEN_TOLL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_DAMAGE_TAKEN_TOLL==='1');
 /* 2026-08-23 -- MEDI_VOL_START_ARG_BLIND=1 PUTS THE GENERIC VOLATILE START LINE BACK for the one
  * volatile whose field 4 is computed: `-start|BODY|move: disable` instead of
  * `-start|BODY|Disable|<the sealed move>`. It exists so `tests/probe_volatile_start_field.js` can be
@@ -30083,6 +30101,16 @@ function battleTurn(S,rng,actsForA,actsForB){
          * the HOLDER DIES to contact) chipped attackers 25% on every touch. requiresForme members
          * are skipped whole: this engine carries no forme state, and a base-forme Cramorant that
          * never Surfed punishing anyone would be a new wrong number, not a wired mechanic. */
+        /* 2026-08-29 -- A DEATH TOLL IS PAID ONCE, AND `_react` IS A COUNT OF HITS.
+         *
+         * The loop below sets a reactor off once per hit of a volley, which is right for Rough Skin
+         * and wrong for a punish gated on the holder DYING: `_koThisHit` is one boolean for the whole
+         * packet, so an `onFaintOnly` toll inside this loop is charged `_react` times for one death.
+         * The authority cannot reach that state -- `spreadMoveHit` returns false for a target with no
+         * HP, so `hitStepMoveHitLoop` breaks at `!moveDamage.some(val => val !== false)`
+         * (battle-actions.ts:956) and a body is only ever killed by the LAST arrival of a volley.
+         * This flag is that break expressed here; it is not a cap invented to make a number fit. */
+        let _deathTollPaid=false;
         for(let _hit=0;_hit<_react;_hit++){
         /* WIRE 82, the reacting half -- a hit LANDING ON a body that is holding a pre-turn shield.
          *
@@ -30135,6 +30163,59 @@ function battleTurn(S,rng,actsForA,actsForB){
                *     |faint|p1a: Weavile
                * Drained by `_stepDrainFaints`, one step below `_stepFaint`. */
               if(m.curHP<=0)queueFaint(m,'punishesAttacker');
+            }
+            /* 2026-08-29 -- THE OTHER AMOUNT: `dealsDamageTaken`, and the ONLY member is Innards Out.
+             *
+             *     data/abilities.ts:2130-2137
+             *       onDamagingHitOrder: 1,
+             *       onDamagingHit(damage, target, source, move) {
+             *         if (!target.hp) {
+             *           if (!move.smartTarget) damage += Number(move.totalDamage);
+             *           this.damage(target.getUndynamaxedHP(damage), source, target);
+             *         }
+             *       },
+             *
+             * THE ENGINE HAD NO IMPLEMENTATION AT ALL, and the reason it had none is that the tag was
+             * mis-derived: `effectRecipients` read the recipient with a character class that stopped
+             * inside `getUndynamaxedHP(damage)`, so the row landed on `buffsHolderOnHit` -- the tag
+             * for a holder that gets STRONGER when hit -- with all four of its params null. Fixed in
+             * tag_dex.js in the same pass; see the note on `argsOf` there.
+             *
+             * THE AMOUNT IS `_rowDealt`, WHICH IS ALREADY THE RIGHT NUMBER TWICE OVER.
+             *   - It is CLAMPED. `Battle#spreadDamage` returns the HP it actually removed, and that
+             *     return is what the relay variable carries. Staged on the authority, a Victreebel-Mega
+             *     on 53/155 eating an Aerial Ace priced above its remaining HP tolls the attacker 53,
+             *     not the raw roll -- Corviknight 173 -> 120. `dmg` is the pre-clamp number and would
+             *     have overcharged every kill.
+             *   - It is RE-READ after an `onDamage` survival clamp (`_reDealt` above), which is the
+             *     same correction the recoil already depends on. A Focus Sash or a Disguise between
+             *     the roll and the HP moves this number, and the authority reads it after they act.
+             *
+             * `move.totalDamage` IS NOT ADDED, AND THAT IS NOT AN OMISSION. It is zero at the moment
+             * the authority raises `DamagingHit` -- `move.totalDamage = 0` at battle-actions.ts:862
+             * and `move.totalDamage += damage[i]` at :965, which runs AFTER `spreadMoveHit` returns --
+             * so on a single-hit move the sum is exactly this hit's damage. On a volley it accumulates
+             * the earlier arrivals, and this engine already applies a volley as ONE packet (WIRE 20's
+             * declared divergence), so `_rowDealt` is that same cumulative figure. Adding a second
+             * accumulator here would double-count it. The multi-hit interior is its own road.
+             *
+             * THE LINE GOES ABOVE THE FAINTS, NOT BELOW. Measured, not reasoned: the authority prints
+             *     |-damage|p2a: Victreebel|0 fnt
+             *     |-damage|p1a: Corviknight|120/173|[from] ability: Innards Out|[of] p2a: Victreebel
+             *     |faint|p2a: Victreebel
+             * -- the toll lands between the holder's own damage line and its `|faint|`, because
+             * `faint()` only QUEUES (sim/pokemon.ts:1587) and `faintMessages()` does not drain until
+             * battle-actions.ts:976, below the whole hit loop. That is the identical placement the
+             * `fraction` branch above already documents for Rough Skin, so this needs no new step. */
+            if(_pun.dealsDamageTaken&&!m.fainted&&!_deathTollPaid&&_rowDealt>0){
+              if(NO_DAMAGE_TAKEN_TOLL){MEDFAILS.damageTakenTollRestored=1;}
+              else{
+                _deathTollPaid=true;
+                m.curHP-=_rowDealt;
+                if(TR)TR.dmg(m,'[from] ability: '+tg.ability,tg);
+                MEDSEEN.damageTakenToll++;
+                if(m.curHP<=0)queueFaint(m,'punishesAttacker');
+              }
             }
             /* 2026-08-23 -- THE HANDLER'S OWN LINE ABOUT ITSELF, off `punishesAttacker.announce`.
              *

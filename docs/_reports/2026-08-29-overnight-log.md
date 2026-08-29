@@ -87,3 +87,32 @@ cmd /c tools\lownode.cmd engine\all_mechanics_fire.js --write
 
 Needs Will, deliberately not attempted: pointing the gate at the empirical arm (a scoreboard change
 that will go red), cards H1 and H2, and the search bar (delta / PCS / K).
+
+## TWO FINDINGS THAT CHANGE WHAT A NUMBER MEANS
+
+**A COVERAGE LINE THAT CAN NEVER MOVE.** `coverage.js` prints `ranged mechanics fully staged 0 of 8`.
+That figure is `hi - lo - 1` read off `tags.json` — **a restatement of the declared range, not a
+measurement of anything staged.** It will read 0 of 8 forever, whatever any arm does, until something
+writes REACHED counts and `coverage.js` reads those instead. A finish-line row that cannot move is
+worse than no row: it looks like work outstanding and no work will ever close it. Route A of
+`docs/_reports/2026-08-29-multihit-interior-scope.md` fixes exactly this.
+
+**AN UNDECLARED FILTER IN THE MOVE PRIORS, AND IT REACHES THE EMPIRICAL DRIVER.** Of the three
+multi-hit moves that appear in no field anywhere, only ONE is a metagame fact: `tailslap` has 0 human
+clicks. `bonerush` (13 clicks) and `doublehit` (8) ARE clicked and are cut by an undeclared
+`.slice(0, 8)` at `engine/policy.js:349`. That is a filter, not an absence.
+
+It matters beyond multi-hit: `data/move-priors.json` is what `engine/empirical_driver.js` samples, so
+**the empirical arm can never click a move outside each species' top eight.** Every board-material
+figure this session rests on a driver with that tail cut off. Not a defect in the fixes; a bound on
+what the instrument can reach, and it belongs in the coverage reporting.
+
+**NOT WIDENED, DELIBERATELY.** `move-priors.json` is an `engine_release.js` SOURCE, so regenerating it
+moves every release id and is a refit trigger. That is MEASURE's call, not something to slip into an
+engine batch overnight.
+
+**AND A CORRECTION TO THE 2026-08-28 MULTI-HIT REPORT.** It said the volley loop sits two levels above
+`moveHit`. It does not — `hitStepMoveHitLoop` is a SIBLING of `moveHit`, both below `useMoveInner`, so
+running it brings no `-ate` and no accuracy step with it. `dmgRange`'s 7th argument already prices a
+rolled count. The volley loop is therefore cheaper than filed: it moves `skipped_multihit` 134 -> 0,
+and does NOT move `skipped_ability_multihit` 17.

@@ -174,6 +174,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * sides. Handing them in is the whole point of the row -- the chooser road re-reads the item as a side
  * effect of building a menu and a caller-supplied action builds none, so a helper that let the chooser
  * pick could not have seen the defect. */
+/* `innardsHit(` and `innardsChain(` added 2026-08-29 with the Innards Out wire, declared HERE and
+ * with their reason exactly as the paragraph above requires -- the ratchet caught both new probes as
+ * direct calls on their first run (`direct-call probes 1 -> 3`), which is the guard working. Each
+ * stages a real doubles board through `battleInit` and spends a real turn through `battleTurn`,
+ * handing in the attacker's click, and then reads HP off BOTH bodies. They are siblings of
+ * `aftermathHit(` and `punishOrder(` above -- same family, same road, same reader -- and they must
+ * spend a real turn for exactly the reason this ratchet exists: the defect they watch was that the
+ * `punishesAttacker` consumer had no branch for this amount, so a probe that called the toll itself
+ * would have computed the right number over an engine that never spends it. */
 /* `valuedAcc(` added 2026-08-06 with WIRE 131, declared HERE and with its reason, because it is the
  * one helper in this file that deliberately does NOT spend a turn. It stages the bodies through
  * `board()` -> `battleInit` — a real entry, which is what the ratchet's own name allows — and then
@@ -490,7 +499,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * rewrites part-way through the turn, so a probe that priced the move before the turn started would
  * read the un-evolved body every time, which is exactly what the engine was doing.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\binnardsHit\(|\binnardsChain\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -18152,6 +18161,101 @@ probe('ability', 'punishesAttacker', 'Aftermath reads the post-Sash HP, so a sur
                  + `(${control.left} left) and Tyranitar pays ${control.paid} (a quarter is `
                  + `${quarter}); Focus Sash: it SURVIVES on ${test.left} and Tyranitar pays `
                  + `${test.paid}` };
+});
+
+/* 3a-bis. THE OTHER AMOUNT IN THE SAME FAMILY, AND IT HAD NO IMPLEMENTATION AT ALL UNTIL 2026-08-29.
+ *
+ * Aftermath above pays `source.baseMaxhp / 4` — a share of the ATTACKER's own maximum, which is the
+ * only amount the `punishesAttacker` consumer could spend. Innards Out pays something else entirely:
+ *
+ *     data/abilities.ts:2130-2137   (Champions does NOT override it — no `innardsout` key in
+ *                                    data/mods/champions/abilities.ts)
+ *       onDamagingHit(damage, target, source, move) {
+ *         if (!target.hp) {
+ *           if (!move.smartTarget) damage += Number(move.totalDamage);
+ *           this.damage(target.getUndynamaxedHP(damage), source, target);
+ *         }
+ *       }
+ *
+ * — THE HP THE KILLING BLOW ACTUALLY REMOVED. One legal carrier in this regulation, Victreebel-Mega,
+ * derived rather than named; it is a mega, so the ability is only ever reached through a stone.
+ *
+ * WHY IT WAS ABSENT IS THE INTERESTING HALF: `tag_dex.js` read the recipient of `this.damage(...)`
+ * with a character class that stopped inside `getUndynamaxedHP(damage)`, so the row derived onto
+ * `buffsHolderOnHit` — the tag for a holder that gets STRONGER when hit — with all four params null.
+ * Mis-derived AND unread. Both halves fixed in the same pass; see `argsOf` in tag_dex.js.
+ *
+ * THE ARMS CLEAR THE KNOB EXPLICITLY AND IN BOTH DIRECTIONS, because "it fired" is satisfied by an
+ * engine that tolls on every hit:
+ *   control  the SAME body, same HP, same click, ability `none`      -> must pay 0
+ *   lethal   ability `innardsout`, on 20 HP                          -> must pay exactly 20
+ *   survives ability `innardsout`, at FULL HP so the click is not
+ *            lethal, and the raw damage is LARGER than 20            -> must pay 0
+ * The third arm is what makes the second one mean something: it proves the amount is gated on the
+ * faint rather than on the hit, and it proves the toll is CLAMPED, because the raw damage it reports
+ * is bigger than the toll the lethal arm charged. */
+const innardsHit = (defAbility, hp) => {
+  const me = bare('tyranitar');
+  const ally = bare('corviknight');
+  const f1 = bare('victreebel'); f1.ability = defAbility;
+  if (hp != null) { f1.st = Object.assign({}, f1.st, { hp }); f1.curHP = hp; }
+  const f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const mine = me.curHP, theirs = f1.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { paid: mine - me.curHP, left: f1.curHP, dead: !!f1.fainted,
+           took: theirs - Math.max(0, f1.curHP) };
+};
+probe('ability', 'punishesAttacker',
+      'Innards Out pays the attacker the HP its own death cost it, and pays nothing when it lives', () => {
+  const control = innardsHit('none', 20);
+  const lethal  = innardsHit('innardsout', 20);
+  const lives   = innardsHit('innardsout', null);
+  return { works: control.dead && control.paid === 0
+                  && lethal.dead && lethal.paid === lethal.took && lethal.paid === 20
+                  && !lives.dead && lives.paid === 0 && lives.took > lethal.paid,
+           arms: { control: control.paid, lethal: lethal.paid, lives: lives.paid },
+           detail: `Tyranitar Knock Off into a Victreebel on 20 HP — ability none: it DIES and `
+                 + `Tyranitar pays ${control.paid}; Innards Out: it DIES and Tyranitar pays `
+                 + `${lethal.paid} for the ${lethal.took} the blow removed. At FULL HP the same `
+                 + `click takes ${lives.took} (MORE than the toll, so the toll is clamped to the HP `
+                 + `that was there), it SURVIVES on ${lives.left}, and Tyranitar pays ${lives.paid}` };
+});
+
+/* 3a-ter. AND THE TOLL IS REAL HP ON A REAL BODY, not a line: it can kill the killer outright, which
+ * is the only way to tell a spent number from a printed one. `Battle#damage` faints the source like
+ * any other packet, so the attacker's death is queued BEHIND the holder's — the authority drains
+ * both from one `faintMessages()` below the hit loop. The control is the same board with the toll
+ * owed to a body that can afford it. */
+const innardsChain = (attackerHP) => {
+  const me = bare('tyranitar');
+  me.st = Object.assign({}, me.st, { hp: attackerHP }); me.curHP = attackerHP;
+  const ally = bare('corviknight');
+  const f1 = bare('victreebel'); f1.ability = 'innardsout';
+  f1.st = Object.assign({}, f1.st, { hp: 40 }); f1.curHP = 40;
+  const f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const mine = me.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { paid: mine - me.curHP, attackerDead: !!me.fainted, holderDead: !!f1.fainted,
+           left: me.curHP };
+};
+probe('ability', 'punishesAttacker',
+      'the Innards Out toll is spent HP and can kill the attacker it is charged to', () => {
+  const survives = innardsChain(200);
+  const chained  = innardsChain(30);
+  return { works: survives.holderDead && chained.holderDead
+                  && survives.paid === 40 && !survives.attackerDead && survives.left === 160
+                  && chained.attackerDead && chained.left <= 0,
+           arms: { survives: survives.left, chained: chained.left },
+           detail: `a Victreebel on 40 HP with Innards Out is Knocked Off dead in both arms. `
+                 + `Attacker on 200: it pays ${survives.paid} and lives on ${survives.left}. `
+                 + `Attacker on 30: it owes the same 40, cannot pay it, and faints `
+                 + `(dead=${chained.attackerDead}, hp ${chained.left})` };
 });
 
 /* 3b. THE ORDER ITSELF. `spreadDamage` (battle-actions.ts:1079) moves the HP; `runEvent('DamagingHit')`

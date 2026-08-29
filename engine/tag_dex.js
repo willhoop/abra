@@ -639,14 +639,48 @@ function statsBlockedIn(src) {
  *
  * Field-level responses (Toxic Debris laying spikes, Sand Spit setting weather) count as punishing
  * the attacker: they are a cost imposed for having attacked, and they do not compound on the holder.
+ *
+ * THE RECIPIENT IS THE SECOND ARGUMENT, AND AN ARGUMENT CANNOT BE FOUND BY A CHARACTER CLASS.
+ * 2026-08-29. The `damage|heal` arm read `\([^,)]*` for the first argument, which stops at the first
+ * `)` OR `,` it meets -- so a first argument that is itself a CALL terminated the match inside its
+ * own parentheses, the optional recipient group never bound, and `mark(undefined)` fell through to
+ * the `!who` clause meaning "no second argument, so the holder".
+ *
+ *     data/abilities.ts:2132  innardsout.onDamagingHit
+ *       this.damage(target.getUndynamaxedHP(damage), source, target);
+ *                   ^-- [^,)]* ends HERE, at the inner `)`, three arguments early
+ *
+ * Innards Out therefore derived as `buffsHolderOnHit` -- "the thing you hit gets STRONGER, and it
+ * compounds" -- for an ability that deals the attacker the damage it just dealt. Every param of that
+ * tag came back null (there is no `this.boost` to read), so the row was mis-derived AND inert, and
+ * `punishesAttacker`, whose `onFaintOnly` clause was written for exactly this handler shape, never
+ * saw it.
+ *
+ * `argsOf` splits at top level instead, so nesting cannot end an argument early. MEASURED OVER THE
+ * WHOLE FORMAT BEFORE IT WAS WIRED, per the derived-tag rule: of the 34 in-format abilities carrying
+ * an `onDamagingHit`/`onHit` handler, the reading changes on exactly ONE -- Innards Out, holder ->
+ * attacker -- and every other row, including the eleven whose recipient is implicit, is byte-identical
+ * to what the character class returned. It is a strictly wider reader, not a different rule.
  */
+function argsOf(src, openIdx) {
+  const args = [];
+  let depth = 0, cur = '';
+  for (let i = openIdx; i < src.length; i++) {
+    const c = src[i];
+    if (c === '(' || c === '[' || c === '{') { depth++; if (depth === 1 && i === openIdx) continue; cur += c; continue; }
+    if (c === ')' || c === ']' || c === '}') { depth--; if (depth === 0) { args.push(cur); return args; } cur += c; continue; }
+    if (c === ',' && depth === 1) { args.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  return args;
+}
 function effectRecipients(a) {
   const src = String(a.onDamagingHit || '') + String(a.onHit || '');
   const out = { holder: false, attacker: false };
   if (!src) return out;
-  const mark = who => { if (!who || who === 'target') out.holder = true; else if (who === 'source') out.attacker = true; };
-  for (const m of src.matchAll(/this\.boost\(\s*\{[^}]*\}\s*(?:,\s*([A-Za-z_$][\w$]*))?/g)) mark(m[1]);
-  for (const m of src.matchAll(/this\.(?:damage|heal)\([^,)]*(?:,\s*([A-Za-z_$][\w$]*))?/g)) mark(m[1]);
+  const mark = who => { const w = String(who == null ? '' : who).trim();
+    if (!w || w === 'target') out.holder = true; else if (w === 'source') out.attacker = true; };
+  for (const m of src.matchAll(/this\.(?:boost|damage|heal)\(/g)) mark(argsOf(src, m.index + m[0].length - 1)[1]);
   for (const m of src.matchAll(/\b(target|source)\.(?:addVolatile|trySetStatus|setStatus)\(/g)) mark(m[1]);
   if (/sideCondition|setWeather/.test(src)) out.attacker = true;
   return out;
@@ -7871,6 +7905,47 @@ const ABILITY_TAGS = [
                             (src.match(/source\.hasType\(\s*["'](\w+)["']\s*\)/) || [])[1] || null };
                })(),
                fraction: (src.match(/baseMaxhp\s*\/\s*(\d+)/) || [])[1] || null,
+               /* 2026-08-29 -- THE OTHER AMOUNT, AND WITHOUT IT THE TAG IS A SILENT NO-OP.
+                *
+                * `fraction` reads `source.baseMaxhp / N` -- a share of the ATTACKER's own maximum,
+                * which is Aftermath's and Rough Skin's shape and is the only amount the consumer in
+                * medicham2 has ever been able to spend. Innards Out's toll is not a share of anything:
+                *
+                *     data/abilities.ts:2132   this.damage(target.getUndynamaxedHP(damage), source, target)
+                *
+                * where `damage` is the handler's own relay variable -- THE DAMAGE THIS MOVE JUST DEALT
+                * TO THE HOLDER. With `fraction` null and no second field, a correctly-recipient'd
+                * Innards Out would have arrived at the consumer carrying an `onFaintOnly` trigger and
+                * NO NUMBER, and the `if (_pun.fraction ...)` branch would have skipped it in silence --
+                * a tag that derives, reads as wired, and does nothing. That is the failure this repo
+                * keeps paying for, so the amount is carried explicitly.
+                *
+                * DERIVED, NOT NAMED: the relay variable's name is read off the handler's own parameter
+                * list and looked for inside the first argument of a `this.damage(..., source, ...)`
+                * call, so a sibling ability spelling it differently arrives working.
+                *
+                * MEMBERSHIP PRINTED OVER THE FORMAT BEFORE THIS WAS WIRED: of the 34 in-format
+                * abilities with an `onDamagingHit`/`onHit` handler, exactly ONE matches -- Innards Out,
+                * carrier Victreebel-Mega -- and it is DISJOINT from the four `fraction` rows
+                * (Aftermath, Gulp Missile, Iron Barbs, Rough Skin), so no row carries both and the two
+                * branches in the consumer can never race.
+                *
+                * `getUndynamaxedHP` is the identity here and is not represented: it rescales only for
+                * a body holding the `dynamax` volatile (sim/pokemon.ts), which Gen 9 has no way to
+                * apply. Reading it as a multiplier would invent a case this format cannot reach. */
+               dealsDamageTaken: (() => {
+                 const fn = String(a.onDamagingHit || '');
+                 if (!fn) return null;
+                 const relay = ((fn.match(/^[^(]*\(\s*([A-Za-z_$][\w$]*)/) || [])[1]) || null;
+                 if (!relay) return null;
+                 for (const m of src.matchAll(/this\.damage\(/g)) {
+                   const args = argsOf(src, m.index + m[0].length - 1);
+                   if (String(args[1] || '').trim() !== 'source') continue;
+                   if (String(args[0] || '').split(/[^A-Za-z0-9_$]+/).filter(Boolean).includes(relay))
+                     return true;
+                 }
+                 return null;
+               })(),
                hazard,
                maxLayers: hazard ? +((src.match(/layers\s*<\s*(\d+)/) || [])[1] || 0) || null : null,
                setsWeather: (src.match(/setWeather\(\s*["'](\w+)["']/) || [])[1] || null };

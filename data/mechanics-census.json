@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T07:12:06.889Z",
+  "generated": "2026-08-29T08:31:16.245Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 788,
-  "live": 788,
+  "probed": 790,
+  "live": 790,
   "missing": 0,
-  "armed": 788,
+  "armed": 790,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3793,7 +3793,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 21.1% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4934,6 +4934,26 @@
       "label": "Aftermath reads the post-Sash HP, so a survivor does not detonate",
       "live": true,
       "detail": "Tyranitar Knock Off into an Aftermath Milotic on 20 HP — no item: it DIES (0 left) and Tyranitar pays 43 (a quarter is 43); Focus Sash: it SURVIVES on 1 and Tyranitar pays 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "Innards Out pays the attacker the HP its own death cost it, and pays nothing when it lives",
+      "live": true,
+      "detail": "Tyranitar Knock Off into a Victreebel on 20 HP — ability none: it DIES and Tyranitar pays 0; Innards Out: it DIES and Tyranitar pays 20 for the 20 the blow removed. At FULL HP the same click takes 118 (MORE than the toll, so the toll is clamped to the HP that was there), it SURVIVES on 37, and Tyranitar pays 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "the Innards Out toll is spent HP and can kill the attacker it is charged to",
+      "live": true,
+      "detail": "a Victreebel on 40 HP with Innards Out is Knocked Off dead in both arms. Attacker on 200: it pays 40 and lives on 160. Attacker on 30: it owes the same 40, cannot pay it, and faints (dead=true, hp 0)",
       "hollow": false,
       "armed": true,
       "directCall": false

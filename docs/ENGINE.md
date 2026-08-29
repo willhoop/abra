@@ -33,7 +33,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_state_trio.js`, `tests/probe_random_target_die.js`,
 `tests/probe_shield_refusal_line.js`, `tests/probe_upkeep_lines.js`,
 `tests/probe_fatigue_tag.js`, `tests/probe_reds_plant_reaches.js`,
-`tests/probe_forced_switch_mirror.js`
+`tests/probe_forced_switch_mirror.js`, `tests/probe_innards_out.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -51,6 +51,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
+| `probe_innards_out.js` | does the ONE ability whose toll is the damage it just took pay it, on a real board against the authority — four scripted games, THREE of which must pay NOTHING (a connecting super-effective hit the holder SURVIVES; a Ghost Curse residual that kills it with no move involved; a game where only status moves are ever aimed at it) and one where the toll exceeds what the killer has and kills it. The carrier count is ENUMERATED from the format at run time, not named, and every arm asserts `megaRefused === 0` because the sole carrier is a mega and a refused ask stages the base forme, which does not carry the ability at all | the multi-hit interior — `_react` sets the reactor off once per hit while the volley is still ONE damage packet (WIRE 20), so nothing here separates "the toll is cumulative" from "the packet is cumulative"; and any toll aimed at an ALLY, which the authority pays and no arm stages |
 | `probe_state_trio.js` | three small state reads staged one at a time, each with a control that reaches the SAME mechanic through a DIFFERENT door: a confusion from a secondary against one from a status move, Dire Claw against Earthquake, and a faint against a voluntary switch / a U-turn pivot / a stay-in. Since 2026-08-27 it also carries the derived inert-secondary population, the derived count of REFUSAL REASONS for every status each cell must be able to take (it exits 2 rather than run a cell that qualifies for more than one), and `C-selfko` — a Soaked body that Mementos itself — which is the arm that separates `noteFaint` from `queueFaint` | **it asserts NOTHING and exits 0 whatever it finds** — it is read, not gated on; and any arm whose click is blocked, which is why the draw COUNT is printed beside every verdict (four arms reported IDENTICAL with zero draws before that was read) |
 | `probe_hp_pair.js` | is the CRIT die drawn once per HIT, as the authority draws it, or once per CLICK — `data/mods/champions/scripts.ts` overrides the hit loop (`:461`) and `spreadMoveHit` (`:361`) and overrides NEITHER `getSpreadDamage` NOR `getDamage`, so the die is mainline's inside the per-hit call (`sim/battle-actions.ts:1641`, `critMult[1] = 24`). Three rows over two engines handed ONE die — CRIT on draw 0, NO-CRIT after — asserting the COUNT of crit draws for the click AND the outcome (which arrivals crit, and their damage) so no row can pass by classifying; the hit count is the knob and it must move the authority 1 -> 2 -> 3. The single-hit CONTROL is DERIVED from the attacker's own learnset with `target === 'normal'`, no charge and no raised `critRatio` asserted per row, after two earlier controls failed as the probe rather than the engine (Rock Slide is a spread move; Meteor Beam charges) | whether the crit RATE is right — every row is `critRatio` 1 and the die is supplied, so it says nothing about Scope Lens, Shell Armor or a raised stage. The 2-5 family, deliberately: its count is itself a draw, so a row there would be testing two things. And the reaction pass, which is raised once per MOVE here and once per HIT in the authority — ROADMAP #500, and `test-resolution-order.js`'s declared KNOWN-OPEN arm |
 | `probe_trace_list.js` | do the two engines build the same Trace `possibleTargets` — MEMBERS and ORDER, read on both sides at the moment of the draw, over pinned-pool boards paired so a mirror-Trace board is common | whether either engine plays the game right; and any draw on a turn `Battle#getRandomTarget` touched, which is ROADMAP #478's address bucket and is REFUSED by name rather than absorbed |
@@ -223,6 +224,99 @@ The exact commands, with the regeneration hazard stated first, are the `## OWED,
 `docs/_reports/2026-08-29-null-weights.md`. `node engine/status.js --write` was **not** run: two
 files belonging to another agent are modified in the tree, and stamping the generated blocks would
 record a half-modified tree as state.
+
+## INNARDS OUT WAS MIS-DERIVED ONTO THE TAG FOR ITS OWN OPPOSITE, BECAUSE A RECIPIENT REGEX COULD NOT READ A NESTED CALL. **CENSUS 788 -> 790 LIVE / 790 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 106 -> 100 OF 961, `by_cause` BOARD-MATERIAL 96 -> 90, `event missing from medicham2` 62 -> 57, ALL FOUR `[from]innardsout` CAUSES (6 GAMES) GONE TO ZERO, BOARDS-NEVER-DIVERGED 855 -> 861, `arms_comparable` COMPARABLE.** 2026-08-29.
+
+Card **D1** of `docs/_reports/2026-08-29-empirical-divergence-cards.md`. Full account:
+`docs/_reports/2026-08-29-innards-out.md`. Engine release **`0a2282c9231b`**.
+
+**ONE LEGAL CARRIER, ENUMERATED BEFORE ANYTHING WAS BUILT: Victreebel-Mega**, and it is a MEGA — so
+the ability is reachable only through a stone, and a fixture that brings the base forme stages
+nothing. Every arm asks Showdown's own `canMegaEvo` and asserts `megaRefused === 0`.
+
+**THE CARD SAID "NO IMPLEMENTATION AT ALL" AND THAT WAS THE SYMPTOM, NOT THE CAUSE.** The cause is in
+`tag_dex.js`. `effectRecipients` read the recipient of `this.damage(...)` with `\([^,)]*` for the
+first argument, and `[^,)]*` stops at the first `)` it meets:
+
+```
+data/abilities.ts:2132   this.damage(target.getUndynamaxedHP(damage), source, target);
+                                     ^-- ends HERE, at the INNER ')', three arguments early
+```
+
+The optional recipient group never binds, `mark(undefined)` falls into the `!who` clause meaning *"no
+second argument, so the holder"*, and the row derived onto **`buffsHolderOnHit`** — *"the thing you
+hit gets STRONGER, and it compounds"* — which is the OPPOSITE decision from the one this ability
+implies. All four of its params came back null, because there is no `this.boost` to read. **Mis-derived
+AND unread**: `punishesAttacker`, whose `onFaintOnly` clause was written for exactly this handler
+shape, never saw it because `effectRecipients(a).attacker` was false.
+
+**THE TAXONOMY NEEDED NO NEW TAG — IT NEEDED A SECOND AMOUNT.** `fraction` reads
+`source.baseMaxhp / N`, which is Aftermath's and Rough Skin's shape and the only amount the consumer
+could spend. A correctly-recipient'd Innards Out would have arrived carrying an `onFaintOnly` trigger
+and NO NUMBER, and `if (_pun.fraction ...)` would have skipped it in silence — a tag that derives,
+reads as wired, and does nothing. `dealsDamageTaken` is derived beside it, from the handler's own
+parameter list rather than from a name.
+
+**BOTH DERIVATION CHANGES WERE PRINTED OVER THE WHOLE FORMAT BEFORE EITHER WAS WIRED.** Of the 34
+in-format abilities carrying an `onDamagingHit`/`onHit` handler, the recipient reading changes on
+**exactly one** — Innards Out, holder -> attacker — and the new amount matches **exactly one**, which
+is DISJOINT from the four `fraction` rows. In the regenerated artifact exactly one tag list moved;
+the other twelve `punishesAttacker` rows are `added[dealsDamageTaken=null]`, purely additive, and
+`buffsHolderOnHit` keeps all five of its real members.
+
+**WHERE IT LANDS IN THE FAINT SEQUENCE WAS MEASURED, NOT REASONED**, because the brief was right that
+this is where it would be wrong. Staged on the authority, Victreebel-Mega on 53/155:
+
+```
+|-damage|p2a: Victreebel|0 fnt
+|-damage|p1a: Corviknight|120/173|[from] ability: Innards Out|[of] p2a: Victreebel
+|faint|p2a: Victreebel
+```
+
+The toll lands **between the holder's own damage line and its `|faint|`** — `faint()`
+(`sim/pokemon.ts:1587`) only QUEUES and `faintMessages()` does not drain until
+`battle-actions.ts:976`, below the whole hit loop. That is the identical placement the
+`punishesAttacker` block already documents for Rough Skin, so **no new step was added**: the site was
+already right and had nothing to spend. And it **can kill the attacker in turn** — one of the six real
+games is `|-damage|p1a|0fnt|[from]innardsout`.
+
+**`move.totalDamage` IS DELIBERATELY NOT ADDED, AND THAT IS NOT AN OMISSION.** It is ZERO when the
+authority raises `DamagingHit`: `move.totalDamage = 0` at `battle-actions.ts:862` and
+`+= damage[i]` at `:965`, which runs AFTER `spreadMoveHit` returns. On a single hit the sum is this
+hit's damage; on a volley it accumulates the earlier arrivals, and this engine applies a volley as ONE
+packet (WIRE 20's declared divergence), so `_rowDealt` is already that cumulative figure. A second
+accumulator would double-count it.
+
+**THE AMOUNT IS `_rowDealt` AND IT IS THE RIGHT NUMBER TWICE OVER**: it is CLAMPED to the HP actually
+removed (`dmg` is the pre-clamp roll and would overcharge every kill), and it is RE-READ after an
+`onDamage` survival clamp, which is the same correction the recoil already depends on.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"Innards Out has no implementation at all"*~~ — landed, and the census now carries it as two
+  probes: *"Innards Out pays the attacker the HP its own death cost it, and pays nothing when it
+  lives"* and *"the Innards Out toll is spent HP and can kill the attacker it is charged to"*.
+
+**Joins it:**
+- **THE `onFaintOnly` FAMILY TOLLS ONCE PER HIT OF A VOLLEY, AND A DEATH HAPPENS ONCE.** The punish
+  block sits inside `for(let _hit=0;_hit<_react;_hit++)` and `_koThisHit` is one boolean for the whole
+  packet. Innards Out is guarded by `_deathTollPaid`; **Aftermath, which shares the clause, is NOT**,
+  so a multi-hit KO onto an Aftermath holder charges its quarter `_react` times. Not touched here —
+  it is a different carrier and belongs with the multi-hit interior, whose split of the volley into
+  real arrivals is what decides the right shape for both.
+- **NOTHING PROBES A TOLL AIMED AT AN ALLY.** `onDamagingHit` does not care whose side the attacker is
+  on, so an ally that KOes the holder pays. No fixture stages it and no counter would see it.
+
+### OWED, NOT RUN
+
+The commands are the `## OWED, NOT RUN` block of `docs/_reports/2026-08-29-innards-out.md`. In short:
+the three roster stages and `all-mechanics-fire.json` all read `MEASURED AGAINST A DIFFERENT ENGINE`
+and were already stale before this pass; `tests/test-engine-diff.js` was NOT run because it has no
+`--out` flag and would rewrite the published damage artifact — no movement is PREDICTED (this fix adds
+a packet at a faint and changes no damage formula) and that is a prediction, not a measurement.
+`node engine/status.js --write` was **not** run: two files belonging to another agent are modified in
+the tree, and stamping the generated blocks would record a half-modified tree as state.
 
 ## A PIVOT IS A MOVE, AND THE DRAW SITE REFUSED IT BY ACTION KIND — PARTING SHOT WAS THE ONE SINGLE-TARGET STATUS CLICK IN THE FORMAT THAT WALKED PAST A FOLLOW ME. **CENSUS 786 -> 788 LIVE / 788 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 114 -> 106 OF 961, `by_cause` BOARD-MATERIAL GAMES 104 -> 96, `-unboost: a different body` 5 -> 0, `boosts.atk` LEAF FAMILY 19 -> 10 GAMES AND `boosts.spa` 11 -> 4, `arms_comparable` COMPARABLE. DAMAGE DIFFERENTIAL 0/6000 AT ALL SIXTEEN CORNERS, SEED 20260804 — UNMOVED, PREDICTED.** 2026-08-29.
 
