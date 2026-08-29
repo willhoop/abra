@@ -33,7 +33,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_state_trio.js`, `tests/probe_random_target_die.js`,
 `tests/probe_shield_refusal_line.js`, `tests/probe_upkeep_lines.js`,
 `tests/probe_fatigue_tag.js`, `tests/probe_reds_plant_reaches.js`,
-`tests/probe_forced_switch_mirror.js`, `tests/probe_innards_out.js`
+`tests/probe_forced_switch_mirror.js`, `tests/probe_innards_out.js`,
+`tests/probe_shield_rearm.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -51,6 +52,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
+| `probe_shield_rearm.js` | does a shield whose MOVE was substituted mid-turn still pass the gate the authority asks at execution — `protect.onPrepareHit` runs inside `useMoveInner`, per action, so it is raised on the move being USED, while this engine armed `_shieldPending`/`_guardPending`/`_stallPending` once per turn off the move the player CLICKED. Eleven arms over two engines under the differential's own `middle` pin: five red (Encore's execution-time override and Instruct's spliced second action, each also MIRRORED whole, plus an Encore into ENDURE so a fix keyed on `kind === 'protect'` stays red) and six controls (the Encore replaced by a Charm; an ordinary Protect chain; a substitution onto a NON-shield so the re-ask fires and must arm nothing, once per producer; an ordinary Wide Guard; an ordinary Endure). Nothing is typed — the assertions are that the two engines agree on the shield lines AND on the stall counter (read through medicham2's own `stallBoardCounter`, the function `board_state.js` calls), that `MEDI_SHIELD_NO_REARM=1` parts the reds and moves no control, that the re-arm counters hit an EXACT per-arm value, and that the authority actually raised a shield on every red arm. The board removes the die: turn 1 the slowest body holds the last action, so `willAct()` refuses its shield BEFORE `StallMove` and the turn-2 substitution meets counter 0 | the shield's own DIE, which is what the four remaining pool games are — the counters agree and the draws do not, one of the four in the opposite direction. Copycat and Sleep Talk, which reach the identical splice and the identical trigger but have no arm. And a body Encored OFF a shield, which `shieldGateRearmedDisarmed` counts and no arm stages, because Protect is +4 and Encore is at best +1 |
 | `probe_innards_out.js` | does the ONE ability whose toll is the damage it just took pay it, on a real board against the authority — four scripted games, THREE of which must pay NOTHING (a connecting super-effective hit the holder SURVIVES; a Ghost Curse residual that kills it with no move involved; a game where only status moves are ever aimed at it) and one where the toll exceeds what the killer has and kills it. The carrier count is ENUMERATED from the format at run time, not named, and every arm asserts `megaRefused === 0` because the sole carrier is a mega and a refused ask stages the base forme, which does not carry the ability at all | the multi-hit interior — `_react` sets the reactor off once per hit while the volley is still ONE damage packet (WIRE 20), so nothing here separates "the toll is cumulative" from "the packet is cumulative"; and any toll aimed at an ALLY, which the authority pays and no arm stages |
 | `probe_state_trio.js` | three small state reads staged one at a time, each with a control that reaches the SAME mechanic through a DIFFERENT door: a confusion from a secondary against one from a status move, Dire Claw against Earthquake, and a faint against a voluntary switch / a U-turn pivot / a stay-in. Since 2026-08-27 it also carries the derived inert-secondary population, the derived count of REFUSAL REASONS for every status each cell must be able to take (it exits 2 rather than run a cell that qualifies for more than one), and `C-selfko` — a Soaked body that Mementos itself — which is the arm that separates `noteFaint` from `queueFaint` | **it asserts NOTHING and exits 0 whatever it finds** — it is read, not gated on; and any arm whose click is blocked, which is why the draw COUNT is printed beside every verdict (four arms reported IDENTICAL with zero draws before that was read) |
 | `probe_hp_pair.js` | is the CRIT die drawn once per HIT, as the authority draws it, or once per CLICK — `data/mods/champions/scripts.ts` overrides the hit loop (`:461`) and `spreadMoveHit` (`:361`) and overrides NEITHER `getSpreadDamage` NOR `getDamage`, so the die is mainline's inside the per-hit call (`sim/battle-actions.ts:1641`, `critMult[1] = 24`). Three rows over two engines handed ONE die — CRIT on draw 0, NO-CRIT after — asserting the COUNT of crit draws for the click AND the outcome (which arrivals crit, and their damage) so no row can pass by classifying; the hit count is the knob and it must move the authority 1 -> 2 -> 3. The single-hit CONTROL is DERIVED from the attacker's own learnset with `target === 'normal'`, no charge and no raised `critRatio` asserted per row, after two earlier controls failed as the probe rather than the engine (Rock Slide is a spread move; Meteor Beam charges) | whether the crit RATE is right — every row is `critRatio` 1 and the die is supplied, so it says nothing about Scope Lens, Shell Armor or a raised stage. The 2-5 family, deliberately: its count is itself a draw, so a row there would be testing two things. And the reaction pass, which is raised once per MOVE here and once per HIT in the authority — ROADMAP #500, and `test-resolution-order.js`'s declared KNOWN-OPEN arm |
@@ -104,9 +106,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  795/795 probed mechanics live, 0 missing   (census 2026-08-29 06:19)
+  796/796 probed mechanics live, 0 missing   (census 2026-08-29 07:10)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 7.3 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 8.3 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -129,9 +131,144 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 06:35_
+_stamped 2026-08-29 07:32_
 
 <!-- /GENERATED -->
+
+## THE SHIELD GATE WAS ARMED AT THE TOP OF THE TURN AND THREE SITES REPLACE THE MOVE AFTER THAT, SO A SUBSTITUTED PROTECT NEVER DREW ITS OWN DIE. **CENSUS 795 -> 796 LIVE / 796 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 97 -> 94 OF 961, `active[].stall` 13 LEAVES / 13 GAMES -> 11 / 11, PROTOCOL 214 -> 213, `order_probe` UNMOVED AT 2. INSTRUCT IS THE SAME DEFECT, NOT A SECOND ONE.** 2026-08-29.
+
+Full account: `docs/_reports/2026-08-29-stall-counter.md`. Release
+`cc7dca43e395` -> **`03e049dc7299`**.
+
+**WHAT THE COUNTER DOES WRONG: NOTHING. THE GATE NEVER RAN.** The lifecycle was staged nine ways
+before a byte moved — consecutive Protect, Protect/idle/Protect across the `duration: 2` gap, Detect,
+Endure, Baneful Bunker, a Wide Guard feeding a Protect, a Quick Guard on the far side, both slots
+shielding, and a six-Protect ramp — and **every one agreed with the authority at every turn boundary**,
+counter for counter (`stallBoardCounter(n)` against `volatiles.stall.counter`). The increment, the
+`onHit`-not-`onBlock` rule, the `duration: 2` lapse, the switch-out wipe and the lost-roll delete are
+all already right.
+
+What is wrong is one line up. `protect.onPrepareHit` lives inside `useMoveInner` — **per action, at
+execution** — so the authority asks it about the move being USED. This engine armed
+`_shieldPending` / `_guardPending` / `_stallPending` **once per turn**, in the pre-pass, off
+`it.a.kind` and `actionMoveId(it.a)`, i.e. off the move the player CLICKED. Three sites replace that
+move afterwards and none of them re-asked:
+
+| site | what it does | armed? |
+|---|---|---|
+| WIRE 143, Encore's execution-time override | rewrites `it.a` in place, seventy lines below the pre-pass | no |
+| Instruct | `acts.splice(actIdx+1, 0, _entry)` — a whole entry the pre-pass never walked | no |
+| a called move (Copycat / Sleep Talk) | the identical splice | no |
+
+So a substituted shield reached no queue scan, no `StallMove` roll and no counter, and the
+`kind:'protect'` branch then announced it off whatever `mon.protect` ALREADY held — **`-fail` for a
+body that had none, and a free UNROLLED `-singleturn` for one that did.** Both signs, one cause.
+
+**IS INSTRUCT A SECOND DEFECT? NO — MEASURED, NOT ARGUED.** The two producers are separated by arm in
+`tests/probe_shield_rearm.js` (`encore-into-free-protect`, `instruct-repeat-free-protect`, each also
+mirrored) and the SAME one-line trigger closes all four: the action arriving at the gate carries a
+different move id from the one the arming was decided against. Under `MEDI_SHIELD_NO_REARM=1` all four
+part again, identically. The card's own count of 2 for F2 was an undercount by shape as well as by
+number: **six** of the pool's first divergences read `|-singleturn|pXa|protect <> |-fail|pXa`, four of
+them Encore and two Instruct.
+
+**THE POOL, WHICH IS WHAT THE 13 WERE.** Every `active[].stall` leaf in the baseline's
+`first_board_divergences` reads the same way round — `medicham 0 / showdown 3` (x4) and
+`medicham 0 / showdown 9` — we hold no counter where the authority holds one, which is exactly what a
+shield that never reached its gate leaves behind. Two of the thirteen part on the BOARD ALONE with no
+protocol divergence at all, so no line comparison could ever have found them.
+
+**SAID BEFORE THE RUN: BOTH SCOREBOARDS SHOULD MOVE.** Encore and Instruct are not rare in this pool
+(seven first divergences carry one), and the defect writes a board leaf by construction. Both did:
+lab 795 -> 796, pool 97 -> 94 board-parted and 13 -> 11 stall leaves.
+
+**AND THE FAMILY DID NOT GO TO ZERO, WHICH IS THE FINDING THAT MATTERS NEXT.** The four remaining
+`-singleturn ... protect <> -fail` games are all one shape and it is NOT this one: the victim's
+previous turn held a SUCCESSFUL Protect, so the substituted shield meets counter 3 and the outcome is
+the 1/3 roll. Three of the four go the authority's way and **one goes ours** — `…2656940771` t2 now
+reads `|-fail|p1a: Aurorus` on the authority against our `|-singleturn|p1a: Aurorus|Protect`. **An
+opposite-sign pair on the same denominator is a DIE defect, not a gate defect**, and it is a different
+batch: the counters now agree, the draw does not. Filed, not fixed.
+
+**THE PROBE — `tests/probe_shield_rearm.js`, SHOWN RED FIRST ON THE PREVIOUS RELEASE.** Eleven arms,
+five red and six controls, every arm played on both engines under the differential's own `middle` pin
+with the identical script. Nothing is typed: the file asserts that the two engines agree on the
+shield lines AND on the stall counter, that the knob parts the red arms and does not move the
+controls, and that the branch counters say which arms exercised the fix. Run against
+`--release cc7dca43e395` — the engine as it stood before this batch — all four Protect arms print
+`b2:0/3`, `-singleturn|protect` against `-fail`. On `03e049dc7299` all eleven are clear.
+
+**THE COUNTER IS COMPARED THROUGH THE ENGINE'S OWN MAP.** `M.stallBoardCounter` is what
+`engine/board_state.js` calls, and its three constants come off `stallCounterChecks` and therefore off
+`data/conditions.ts`'s `stall`. The probe calls it rather than copying it, so it cannot disagree with
+the board leaf it is about.
+
+**THE ARMS ARE FREE OF THE DIE ON PURPOSE, AND THE BOARD IS WHAT MAKES THEM SO.** Turn 1 all four
+bodies click Protect; Toxapex (base 35) is the slowest on the field, holds the LAST action, and the
+authority refuses the move at `!!this.queue.willAct()` — **before** `StallMove`, so it adds no `stall`
+and draws no roll. Its `lastMove` is still Protect, so the turn-2 Encore copies a shield and meets
+counter 0, where the authority cannot refuse it. Every red arm is therefore a fact rather than a coin.
+Two earlier fixture attempts failed on the die and were discarded rather than argued with — a
+`middle`-arm 1/3 that loses on BOTH engines produces agreement while testing nothing, which is a green
+test asking nothing.
+
+**AND TWO FIXTURE FAULTS WERE CAUGHT BY THE INSTRUMENT BEFORE ANY CONCLUSION WAS DRAWN.** `Recover` at
+full HP fails, and the two engines narrate that failure differently (`|move|X|Recover||[still]` against
+`|move|X|recover|X`), so the first draft carried a second, unrelated divergence — replaced with Haze,
+which always succeeds and touches nothing. And `encore-into-nonshield` first staged an Encore onto the
+move the victim had already clicked, so `actionMoveId` never changed and the re-arm counter read 0:
+the exact-count assertion said so rather than the arm passing quietly.
+
+**THE ONE WRITE THE FIX MADE POSSIBLE, AND THE GUARD FOR IT.** `mon.protect` is cleared at the top of
+every turn and one body has one action, so until the arming could be re-asked mid-turn this flag was
+always false on the way into `_shieldGate` and the write was a write. It is not any more: an Instruct
+can hand a body a SECOND shield in a turn where the first one held, and the authority's
+`onPrepareHit` returning false makes the MOVE fail — it writes no `protect` volatile and removes none,
+so the first Protect keeps protecting. The gate now records `_shieldRaised` for the ACTION and
+restores a standing shield, counted at `MEDSEEN.shieldStoodThroughRefusal`; the announcement reads
+`_shieldRaised` and falls back to `mon.protect` when no gate ran, which is what it always read.
+**It is 0 in this pool run and it is expected to become unreachable**: a shield that is standing
+already refuses the Instruct outright, and that refusal is `tests/probe_instruct_shield.js`'s own open
+defect (3 of 5 arms, red before this batch and red after, A/B verified on `cc7dca43e395`).
+
+**`shieldGateRearmedDisarmed` IS EXPECTED TO READ 0 AND IT DOES.** The helper clears the three
+pendings before it sets them, so a body Encored OFF a shield stops drawing a die for one it never used.
+That case is **unreachable in this format** and is stated rather than staged: Encore is +1 at best
+(Prankster) and Protect is +4, so a body that CHOSE a shield has always resolved it before any Encore
+can land. The counter exists so that a later change which makes it reachable is loud.
+
+### OWED, NOT RUN
+
+```bash
+# the roster stages and the fire sweep, stale against 03e049dc7299
+SHOWDOWN_PATH=... cmd /c tools\lownode.cmd tests\roster.js --items --abilities --moves --write
+SHOWDOWN_PATH=... cmd /c tools\lownode.cmd engine\all_mechanics_fire.js --write
+node engine/quarantine.js
+node engine/coverage.js
+```
+
+- **THE SHIELD'S OWN DIE, WHICH IS WHAT IS LEFT OF THE `stall` FAMILY.** Four games, one shape, and
+  one of them the opposite sign: two engines rolling the same 1/3 against the same counter and getting
+  different answers. The `middle` arm shares a `stall` stream by category and the games are not VOID,
+  so the DRAW COUNTS agree — which points at the address rather than at the stream. Not staged, not
+  probed, its own batch.
+- **INSTRUCT IS STILL NOT REFUSED BY A STANDING SHIELD** (`tests/probe_instruct_shield.js`, 3 of 5
+  arms). Pre-existing and A/B verified unchanged on `cc7dca43e395`; this batch makes it one game more
+  visible (`|-activate|p1a|protect <> |-singleturn|p1a|instruct`, 1 -> 2) because our shield now goes
+  up where it used to fail. That is the fix working, not a regression, and it is reported rather than
+  filed away.
+- **HELPING HAND DOES NOT FAIL WHEN THE ALLY HAS ALREADY MOVED.** Found in a staging run, not in the
+  pool: `|move|p1b: Furfrou|Helping Hand||[still]` + `-fail` on the authority against a `-singleturn`
+  here. Not this batch's, not touched.
+- **THE THREE CALLED-MOVE SPLICES ARE COVERED BY THE SAME TRIGGER AND ONLY TWO ARE STAGED.** Copycat
+  and Sleep Talk go through the identical `acts.splice`, and the re-arm reads the move id rather than
+  the producer, so they are covered by construction — but no arm plays one. Protect carries
+  `failcopycat` and no `metronome` flag, so the population may be empty in this format; that was not
+  derived and is not claimed.
+- **`ENCORE_Q` AND `_armShieldGate` NOW BOTH REACH THE LIVE TURN'S `acts`.** Nothing enforces that the
+  helper's `idx` is the live cursor beyond the call sites passing it; a caller that passed a stale
+  index would ask `_anyActionAfter` the wrong question and there is no counter for that.
+
 
 ## CHAMPIONS' OWN ENCORE REWRITES THE QUEUED ACTION AND MAINLINE DOES NOT, SO THE ENCORED BODY MOVES FORWARD AND NOT BACK. **CENSUS 794 -> 795 LIVE / 795 PROBED / 0 MISSING. `order_probe` 11 ROWS -> 2 OF 961 GAMES, PROTOCOL 216 -> 214, BOARD-PARTED UNMOVED AT 97 — AND THAT LAST ONE WAS NOT THE PREDICTION.** 2026-08-29.
 

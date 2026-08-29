@@ -29,11 +29,11 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-08-29 06:26
+    moved after the fit: engine/medicham2-browser.js  2026-08-29 07:00
     moved after the fit: data/abra-tags.js  2026-08-29 04:34
 ```
 
-_stamped 2026-08-29 06:35_
+_stamped 2026-08-29 07:32_
 
 <!-- /GENERATED -->
 

@@ -1,6 +1,15 @@
 # ABRA — the model family (living reference)
 
-**Version 5.217.0 · Last updated 2026-08-29.**
+**Version 5.218.0 · Last updated 2026-08-29.**
+
+**5.218.0 - NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON NOW TESTS A SHIELD WHOSE MOVE
+WAS SUBSTITUTED MID-TURN.** `protect.onPrepareHit` is raised per action at execution;
+`medicham2` armed the shield gate once per turn off the CLICKED move, so an Encore-overridden or
+Instruct-injected Protect skipped the queue scan, the `StallMove` roll and the counter entirely.
+**Census 795 to 796 probed mechanics live, 0 missing.** Empirical arm over 961 games:
+`active[].stall` **13 games to 11**, board-parted **97 to 94**, protocol 214 to 213. Every
+quarantined model figure in this ledger stays quarantined; this changes what the simulator does, not
+what any model scores.
 
 **5.217.0 - NO MODEL CHANGED. THE SIMULATOR EVERY MODEL RESTS ON NOW PUTS AN ENCORED ACTION WHERE
 CHAMPIONS PUTS IT.** A mid-turn Encore relocates the target's queued action into the ENCORED move's

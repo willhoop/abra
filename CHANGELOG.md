@@ -11,6 +11,63 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.218.0] — 2026-08-29
+
+### Fixed
+- **THE SHIELD GATE WAS ARMED ONCE PER TURN OFF THE MOVE THE PLAYER CLICKED, AND THREE SITES REPLACE
+  THAT MOVE AFTERWARDS.** `protect.onPrepareHit` — `!!this.queue.willAct() && this.runEvent('StallMove',
+  pokemon)` — lives inside `useMoveInner`, i.e. PER ACTION AT EXECUTION, so the authority raises it on
+  the move being USED. This engine decided `_shieldPending` / `_guardPending` / `_stallPending` in the
+  turn pre-pass, off `it.a.kind` and `actionMoveId(it.a)`. Encore's execution-time override (WIRE 143)
+  rewrites `it.a` in place; Instruct and the called-move branch each SPLICE a whole entry into `acts`
+  that the pre-pass never walked. None of the three re-asked, so a substituted shield reached no queue
+  scan, no `StallMove` roll and no counter — and the `kind:'protect'` branch then announced it off
+  whatever `mon.protect` already held: `-fail` for a body with no shield, and a free UNROLLED
+  `-singleturn` for one that had. `_armShieldGate` is the pre-pass's own three branches lifted into a
+  function and re-asked at the gate's call site whenever the action carries a different move id than
+  the one it was armed against.
+- **A REFUSED SHIELD NO LONGER TAKES DOWN ONE THAT IS ALREADY STANDING.** `mon.protect` is cleared at
+  the top of every turn and one body has one action, so until the arming could be re-asked mid-turn
+  this flag was always false on the way in and the write was a write. An Instruct can now hand a body a
+  second shield in one turn, and the authority's `onPrepareHit` returning false fails the MOVE — it
+  writes no `protect` volatile and removes none. `_shieldRaised` records what THIS action did (which is
+  what the `|-singleturn|` / `|-fail|` line reads) and `mon.protect` records what is standing, counted
+  at `MEDSEEN.shieldStoodThroughRefusal`.
+
+### Added
+- `tests/probe_shield_rearm.js` — eleven arms over both engines under the differential's `middle` pin,
+  five red and six controls, SHOWN RED FIRST against the previous release `cc7dca43e395` where all four
+  Protect arms print `stall leaf b2:0/3` and `-singleturn|protect` against `-fail`. No expectation is
+  typed: the arms assert that the two engines agree on the shield lines AND on the stall counter (read
+  through medicham2's own `stallBoardCounter`, the function `engine/board_state.js` calls), that
+  `MEDI_SHIELD_NO_REARM=1` parts every red arm and moves no control, that the re-arm counters hit an
+  EXACT per-arm value, and that the authority actually raised a shield on each red arm. The board
+  removes the die rather than hoping: turn 1 the slowest body holds the last action, so `willAct()`
+  refuses its shield BEFORE `StallMove` and the turn-2 substitution meets counter 0.
+- Census row `move / stallCounterChecks` — *a shield SUBSTITUTED mid-turn still passes the shield gate
+  and arms the stall counter*. **Census 795 -> 796 live / 796 probed / 0 missing.**
+
+### Changed
+- Engine release `cc7dca43e395` -> `03e049dc7299`.
+
+### Notes
+- **Empirical arm, identical pins (961 games, pool `0d103fb9fa87`, census `9446a684709d`, cap 12, arm
+  `middle`): board-parted 97 -> 94, `active[].stall` 13 leaves / 13 games -> 11 / 11, protocol diverged
+  214 -> 213, `order_probe` unmoved at 2.** Both scoreboards were predicted to move and both did.
+- **INSTRUCT IS THE SAME DEFECT, NOT A SECOND ONE** — measured by arm, not argued: one trigger closes
+  the Encore and Instruct families and both mirrors, and the knob parts all four identically.
+- **THE `stall` FAMILY DID NOT GO TO ZERO AND THE REMAINDER IS A DIFFERENT DEFECT.** The four surviving
+  `-singleturn ... protect <> -fail` games all meet counter 3, so the outcome is the 1/3 roll — and one
+  of the four now goes OUR way (`…2656940771` t2: the authority `-fail`s, we `-singleturn`). An
+  opposite-sign pair on the same denominator is the DIE, not the gate. Filed, not fixed.
+- Pre-existing reds, A/B verified unchanged on `cc7dca43e395`: `probe_shield_refusal_line` 13/1,
+  `probe_random_target_address` `sd=61 sites=62`, `test-resolution-order` heap limit,
+  `test-engine-diff` rc 3 with `disagreed 0`, and a FIFTH the brief did not name —
+  `probe_instruct_shield` 5 arms / 3 failing.
+- Roster stages and `all_mechanics_fire.js` are stale against `03e049dc7299` and are OWED, listed in
+  `docs/ENGINE.md`. Full account: `docs/_reports/2026-08-29-stall-counter.md`.
+
+
 ## [5.217.0] — 2026-08-29
 
 ### Fixed

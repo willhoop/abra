@@ -943,6 +943,27 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                                  equal to this one by construction and a counter that cannot
    *                                  disagree with another is not evidence. */
   stallSurvivedSkippedResidual: 0,
+  /* 2026-08-29 -- THE SHIELD GATE ARMED OFF THE MOVE THE PLAYER CLICKED, AND THREE SITES SUBSTITUTE
+   * THE MOVE AFTER THAT. Split three ways because one merged counter cannot tell a re-arm that found
+   * nothing from a re-arm that changed the answer, and cannot tell either from the arming that was
+   * already there.
+   *   shieldGateRearmed          an action reached the gate site carrying a DIFFERENT move id from the
+   *                              one the pre-pass armed against, so the arming was re-asked. A zero
+   *                              over real games means no Encore override and no Instruct repeat, not
+   *                              that the branch is absent.
+   *   shieldGateRearmedArmed     ...and the re-ask armed a pending the pre-pass had NOT. This is the
+   *                              population the fix changes: an Encore-substituted or Instruct-injected
+   *                              shield that used to be announced off a stale `mon.protect`.
+   *   shieldGateRearmedDisarmed  ...and the re-ask CLEARED a pending the pre-pass HAD -- a body that
+   *                              clicked Protect and was Encored off it, which used to draw a stall die
+   *                              for a shield it never used. The opposite sign, and a separate number
+   *                              because a fix that only ever adds shields would look identical here.
+   *   shieldStoodThroughRefusal  a shield already standing THIS TURN survived a later action's refused
+   *                              shield. Showdown's `onPrepareHit` returning false writes no volatile
+   *                              and removes none, so the first Protect keeps protecting; this engine
+   *                              wrote `mon.protect = <this roll>` and would have wiped it. */
+  shieldGateRearmed: 0, shieldGateRearmedArmed: 0, shieldGateRearmedDisarmed: 0,
+  shieldStoodThroughRefusal: 0,
   /* ROADMAP #240 -- THE RE-SORT TRIGGER. `sim/battle.js:2403` runs the re-sort after EVERY action and
    * the guard passes only when the NEXT QUEUED action is a `move`, so a queue whose head is a switch
    * keeps the speeds it was stamped with at turn start.
@@ -2415,6 +2436,12 @@ const MEDFAILS = { encoreAction: 0,
                                       the OUTER exit of the turn, so it fires on a turn that ended by
                                       wiping a side -- a turn the authority's residual never opens. */
   stallEagerClearRestored: 0, stallLapseOffResidualRestored: 0,
+  /* 2026-08-29 -- set at MODULE LOAD when MEDI_SHIELD_NO_REARM=1 takes the execution-time re-arm of
+     the shield gate back out, so a body whose move was substituted mid-turn (Encore's override,
+     Instruct's second action, a called move) is announced off whatever `mon.protect` already held.
+     Stamped at load rather than at use so a probe can prove the knob reached the module the driver
+     played BEFORE it classifies an arm -- same shape as shieldRefusalUnannouncedRestored. */
+  shieldNoRearmRestored: 0,
   /* 2026-08-26 -- set for the whole run when MEDI_DISABLE_ONSTART_BLIND=1 puts the pre-fix read back
      on purpose, so a deliberate restore arm and a broken engine can never be read as the same thing.
      Same shape as suckerQueueBlindRestored. */
@@ -12341,6 +12368,21 @@ const PROTECT_STALL_NO_LAPSE=(typeof process!=='undefined'&&process.env&&process
  * as MEDI_PROTECT_STALL_NO_LAPSE above. */
 const STALL_EAGER_CLEAR=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STALL_EAGER_CLEAR==='1');
 const STALL_LAPSE_OFF_RESIDUAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STALL_LAPSE_OFF_RESIDUAL==='1');
+/* 2026-08-29 -- MEDI_SHIELD_NO_REARM=1 PUTS BACK THE ARMING THAT ONLY EVER RAN AT THE TOP OF THE TURN.
+ *
+ * `_armShieldGate` was three `if` branches inside the pre-pass, so `_shieldPending` / `_guardPending` /
+ * `_stallPending` were decided off the move the PLAYER CLICKED. Three sites substitute the move after
+ * that pass has run -- Encore's execution-time override (WIRE 143), Instruct's spliced second action
+ * and the called-move splice (Copycat / Sleep Talk) -- and none of them re-asked. The authority raises
+ * `onPrepareHit` inside `useMoveInner`, PER ACTION AT EXECUTION, and cannot care when the action was
+ * chosen; this engine decided once per turn.
+ *
+ * With the knob on, an Encore-substituted or Instruct-injected Protect never reaches `_shieldGate`,
+ * `mon.protect` keeps whatever the body already had, and the shield is announced from that: `-fail`
+ * for a body that had none, and a FREE unrolled `-singleturn` for one that had. Any run carrying it
+ * also carries a non-zero `MEDFAILS.shieldNoRearmRestored`. Same shape as MEDI_STALL_EAGER_CLEAR. */
+const SHIELD_NO_REARM=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SHIELD_NO_REARM==='1');
+if(SHIELD_NO_REARM)MEDFAILS.shieldNoRearmRestored=1;
 /* 2026-08-26 -- MEDI_DISABLE_ONSTART_BLIND=1 TAKES DISABLE'S OWN TWO CLAUSES BACK OUT: the seal stops
  * asking whether the target's last move has any PP left and whether it was STRUGGLE, the way this
  * engine ran until today -- so a Protect clicked for the ninth time is still Disable-able here and is
@@ -21576,28 +21618,39 @@ function battleTurn(S,rng,actsForA,actsForB){
      * and Taunt is +0, so the shield has already resolved). Asking it later would quietly change that.
      * The `else` that clears the counter for every body NOT shielding this turn also stays: it reads
      * only this turn's chosen action and no ordering at all. */
-    for(let i=0;i<acts.length;i++){
-      const it=acts[i];
-      /* 2026-08-26 -- THE `duration: 2` CLOCK STARTS THIS TURN UNREFRESHED, for every body that is
-       * about to act. Written here rather than in the sweep that reads it because the sweep runs at
-       * the residual, i.e. AFTER every gate that could set it, and a flag cleared after it is read is
-       * a flag that never falls. */
-      it.mon._stallFresh=false;
-      /* 2026-08-26 -- AND THE GRAVITY CANCEL IS A ONE-TURN FLAG, cleared here for the same reason:
-       * `this.queue.cancelMove(pokemon)` deletes an action from THIS turn's queue and nothing else, so
-       * a flag that survived to the next turn would silence a body Gravity had already finished with.
-       *
-       * 2026-08-27 -- RENAMED `_gravCancel` -> `_queueCancel` AND IT NOW CARRIES ITS CAUSE. Smack Down
-       * cancels a committed two-turn move by the identical authority call (`this.queue.cancelMove`,
-       * inside its own `condition.onStart`), so "this action was deleted from the queue" is ONE FACT
-       * with two producers. A second flag would have been a second copy of it, which is the shape
-       * CLAUDE.md's FACTS-ARE-GLOBAL rule forbids. */
-      it.mon._queueCancel=null;
+    /* 2026-08-29 -- THE ARMING IS A FUNCTION, BECAUSE THREE SITES SUBSTITUTE THE MOVE AFTER THIS
+     * PRE-PASS HAS ALREADY DECIDED WHAT KIND OF ACTION IT IS.
+     *
+     * Every line inside is the pre-pass's own, MOVED AND NOT REWRITTEN -- the same three branches in
+     * the same order, the same `volatileForbidsMove` question, the same `_preWillAct` record, the same
+     * `STALL_EAGER_CLEAR` restore. What changes is that it can be asked TWICE: once here on the move
+     * the player clicked, and again at the gate's own call site if the action arriving there is
+     * carrying a different move.
+     *
+     * WHY THAT IS THE AUTHORITY'S SHAPE AND NOT A CONVENIENCE. `onPrepareHit` lives inside
+     * `useMoveInner` -- per action, at execution -- so it is raised on the move that IS BEING USED and
+     * cannot see when the action was chosen. This engine decided once per turn, off the click, which
+     * is the same answer for every ordinary action and the wrong one for the three that substitute:
+     * Encore's execution-time override (WIRE 143 rewrites `it.a` in place), Instruct's spliced second
+     * action, and the called-move splice (Copycat / Sleep Talk). An Encore-substituted Protect was
+     * therefore announced off whatever `mon.protect` already held -- `-fail` for a body that had no
+     * shield, and a FREE UNROLLED `-singleturn` for one that did.
+     *
+     * IT CLEARS BEFORE IT SETS, and that half is a defect of its own sign: a body that clicked Protect
+     * and was Encored OFF it kept `_shieldPending` from the pre-pass, so it ran the shield gate and
+     * drew a stall die for a shield it never used. `shieldGateRearmedDisarmed` counts exactly those.
+     *
+     * `_armMv` IS THE WHOLE TRIGGER. It records the move the arming was decided against; the gate site
+     * re-asks only when the action no longer carries it, so an ordinary action -- which is every action
+     * in almost every turn -- takes the identical path it took before, one string compare later. */
+    const _armShieldGate=(it,idx)=>{
+      it._armMv=actionMoveId(it.a)||'';
+      it._shieldPending=false;it._guardPending=false;it._stallPending=false;
       if(it.a.kind==='protect'&&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
         /* DEFERRED. `_preWillAct` is the answer the TOP-OF-TURN order would have given, recorded only
          * so `MEDSEEN.shieldGateOrderChanged` can say how often the two disagree -- a fix whose
          * counter cannot move is indistinguishable from no fix. Nothing reads it as a decision. */
-        it._shieldPending=true;it._preWillAct=_anyActionAfter(i);
+        it._shieldPending=true;it._preWillAct=_anyActionAfter(idx);
       }
       /* ROADMAP #126 -- THE GUARD RAISED IS RECORDED BY ITS MOVE ID, not by a boolean whose name is
        * the mechanic.
@@ -21623,7 +21676,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * SAME `!!this.queue.willAct()` call, asked at the same instant, and the side condition cannot
          * go up ahead of a gate that may refuse it. Deferring the gate and not the raise would be two
          * halves of one rule pulled apart -- which is what the shields and the Guards already were. */
-        it._guardPending=true;it._preWillAct=_anyActionAfter(i);
+        it._guardPending=true;it._preWillAct=_anyActionAfter(idx);
       }
       /* 2026-08-23 -- THE GATE WAS KEYED ON THE ACTION KIND, AND ENDURE HAS NO KIND OF ITS OWN.
        *
@@ -21652,7 +21705,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * DISPATCH -- harmless there, wrong to grow here. */
       else if(actionMoveId(it.a)&&TAGS.has('move',actionMoveId(it.a),'stallCounterChecks')
               &&!volatileForbidsMove(it.mon,actionMoveId(it.a))){
-        it._stallPending=true;it._preWillAct=_anyActionAfter(i);
+        it._stallPending=true;it._preWillAct=_anyActionAfter(idx);
       }
       /* 2026-08-26 -- AND THE `else` THAT CLEARED THE COUNTER HERE IS GONE. See `_stallExpire` below
        * the action loop for the whole rule; in one line, the authority has no "you clicked something
@@ -21662,6 +21715,25 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `turnLoop` returns before the residual action. That is the whole of
        * `p2.active[1].stall  medicham 0 / showdown 3`. */
       else if(STALL_EAGER_CLEAR){it.mon.tookProtectTurns=0;MEDFAILS.stallEagerClearRestored=1;}
+    };
+    for(let i=0;i<acts.length;i++){
+      const it=acts[i];
+      /* 2026-08-26 -- THE `duration: 2` CLOCK STARTS THIS TURN UNREFRESHED, for every body that is
+       * about to act. Written here rather than in the sweep that reads it because the sweep runs at
+       * the residual, i.e. AFTER every gate that could set it, and a flag cleared after it is read is
+       * a flag that never falls. */
+      it.mon._stallFresh=false;
+      /* 2026-08-26 -- AND THE GRAVITY CANCEL IS A ONE-TURN FLAG, cleared here for the same reason:
+       * `this.queue.cancelMove(pokemon)` deletes an action from THIS turn's queue and nothing else, so
+       * a flag that survived to the next turn would silence a body Gravity had already finished with.
+       *
+       * 2026-08-27 -- RENAMED `_gravCancel` -> `_queueCancel` AND IT NOW CARRIES ITS CAUSE. Smack Down
+       * cancels a committed two-turn move by the identical authority call (`this.queue.cancelMove`,
+       * inside its own `condition.onStart`), so "this action was deleted from the queue" is ONE FACT
+       * with two producers. A second flag would have been a second copy of it, which is the shape
+       * CLAUDE.md's FACTS-ARE-GLOBAL rule forbids. */
+      it.mon._queueCancel=null;
+      _armShieldGate(it,i);
     }
     /* WIRE 118 -- "HAS THIS BODY ALREADY ACTED?" IS NOW "HAS IT RESOLVED?", AND THAT IS THE POINT.
      * A flinch only stops a body that has not yet moved. That used to be an INDEX into a list frozen
@@ -22193,10 +22265,28 @@ function battleTurn(S,rng,actsForA,actsForB){
          * `!!this.queue.willAct()` BEFORE `runEvent('StallMove')`, so the authority never reaches the
          * `delete pokemon.volatiles['stall']` line and the volatile is left exactly as it was -- to
          * die at the residual like any other unrefreshed duration. See `_stallExpire`. */
+        /* 2026-08-29 -- A REFUSED SHIELD MAY NOT TAKE DOWN ONE THAT IS ALREADY STANDING.
+         *
+         * `mon.protect` is cleared at the top of every turn and one body has one action, so until the
+         * arming could be re-asked mid-turn this flag was ALWAYS false on the way in and the write was
+         * a write. It is not any more: an Instruct hands the same body a second shield in the same turn,
+         * and Showdown's `onPrepareHit` returning false makes the MOVE fail -- it writes no `protect`
+         * volatile and removes none, so the first Protect keeps protecting. Writing this roll's answer
+         * over it would end a shield the authority leaves up.
+         *
+         * THE ANNOUNCEMENT IS THE ACTION'S AND THE STATE IS THE BODY'S, so they are two fields now.
+         * `_shieldRaised` is what THIS action did and is what the `kind:'protect'` branch announces;
+         * `mon.protect` is what is standing afterwards. On every path that existed before this line,
+         * `_stood` is false and the two are equal. */
+        const _stood=!!it.mon.protect, _stoodMv=it.mon._protectMove;
         if(!_will){it.mon.protect=false;
           if(STALL_EAGER_CLEAR){it.mon.tookProtectTurns=0;MEDFAILS.stallEagerClearRestored=1;}}   // willAct() === null
         else it.mon.protect=_stallRoll(it);
+        it._shieldRaised=!!it.mon.protect;
         it.mon._lastMove=it.a.mv||'protect';it.mon._protectMove=it.a.mv||null;
+        if(_stood&&!it._shieldRaised){
+          it.mon.protect=true;it.mon._protectMove=_stoodMv;MEDSEEN.shieldStoodThroughRefusal++;
+        }
       }
       /* 2026-08-23 -- ENDURE, THE SIXTH `stallingMove`, THROUGH THE SAME GATE AND THE SAME DIE.
        *
@@ -23335,6 +23425,42 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `_stepInvuln` cannot fire on a body aiming at itself), so the two positions are the same
        * answer for this family today and this one keeps the announcement order untouched. Stated
        * rather than left to be found. */
+      /* 2026-08-29 -- AND THE ARMING IS RE-ASKED HERE WHEN THE MOVE IS NOT THE ONE IT WAS DECIDED ON.
+       *
+       * `_armShieldGate` ran once per body at the top of the turn, so `_shieldPending` named the move
+       * the PLAYER CLICKED. Three sites replace that move after the pre-pass: Encore's execution-time
+       * override rewrites `it.a` seventy lines up, and Instruct and the called-move branch each SPLICE
+       * a whole new entry into `acts` that the pre-pass never walked. All three produced a shield the
+       * gate never saw, and the announcement then fell out of a stale `mon.protect`:
+       *
+       *     staged, both engines, one script (encore-into-free-protect)
+       *     t1  the victim's own Protect is refused for holding the last action -- no stall, no die
+       *     t2  it is Encored into Protect at counter 0, which the authority cannot refuse
+       *         showdown  |move|Protect  |-singleturn|Protect      stall counter 3
+       *         medicham  |move|Protect||[still]  |-fail|          stall counter 0
+       *
+       * which is `p1.active[0].stall  m=0  s=3` in the pinned pool, on the nose.
+       *
+       * THE TRIGGER IS THE MOVE ID AND NOT A FLAG ON THE THREE PRODUCERS. A flag would have to be
+       * remembered at each of them and a fourth substituting site would arrive silently; the move id is
+       * the thing the arming is actually a function of, so it cannot come apart from it. It is also why
+       * this costs one string compare on an ordinary action: `_armMv` still equals the move.
+       *
+       * BELOW THE `BeforeMove` GATES, WHICH IS WHERE IT BELONGS AND NOT WHERE IT IS CONVENIENT. The
+       * authority raises `OverrideAction` above them (inside `runMove`) and `onPrepareHit` below them
+       * (inside `useMoveInner`), so an Encored body that is asleep is refused by sleep and never asks
+       * the shield question at all. Re-arming here, at the gate's own site, keeps that order. */
+      if(!it._gateRan&&it._armMv!==(actionMoveId(it.a)||'')){
+        if(SHIELD_NO_REARM){ MEDFAILS.shieldNoRearmRestored=1; }
+        else{
+          const _hadArm=!!(it._shieldPending||it._guardPending||it._stallPending);
+          _armShieldGate(it,actIdx);
+          const _hasArm=!!(it._shieldPending||it._guardPending||it._stallPending);
+          MEDSEEN.shieldGateRearmed++;
+          if(_hasArm&&!_hadArm)MEDSEEN.shieldGateRearmedArmed++;
+          if(_hadArm&&!_hasArm)MEDSEEN.shieldGateRearmedDisarmed++;
+        }
+      }
       if(!it._gateRan&&(it._shieldPending||it._guardPending||it._stallPending)){
         _shieldGate(it,actIdx); it._gateRan=true;
       }
@@ -27434,7 +27560,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * artifact rather than being a ternary over one name. */
       if(a.kind==='protect'||a.kind==='wideguard'){
         const _sg=a.kind==='wideguard'?(it.side==='A'?field.sgA:field.sgB):null;
-        if(a.kind==='wideguard'?!!(_sg&&_sg[actionMoveId(a)||'wideguard']):m.protect){
+        /* 2026-08-29 -- THE SHIELD LINE IS THIS ACTION'S ANSWER, NOT THE BODY'S STATE. `_shieldRaised`
+         * is written by `_shieldGate` for the action that just ran; `m.protect` is what is standing.
+         * They differ on exactly one board -- an Instruct handing a body a SECOND shield in a turn
+         * where the first one held -- and there the authority announces the second one's own `-fail`
+         * while leaving the first one up. Absent the gate (a body that never armed) `_shieldRaised` is
+         * undefined and this reads `m.protect`, which is what it always read. */
+        if(a.kind==='wideguard'?!!(_sg&&_sg[actionMoveId(a)||'wideguard'])
+                               :(it._shieldRaised===undefined?m.protect:it._shieldRaised)){
           if(TR)TR.st1(m,a.kind==='wideguard'?sideGuardName(actionMoveId(a)||'wideguard'):'Protect');
         } else { if(TR)TR.attrStill(); mvFail(m); }
       }

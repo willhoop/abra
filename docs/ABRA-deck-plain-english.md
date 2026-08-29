@@ -1,6 +1,28 @@
 # ABRA — the plain-English deck
 
-**Version 5.217.0 · 2026-08-29 · Will Hooper**
+**Version 5.218.0 · 2026-08-29 · Will Hooper**
+
+**5.218.0 - PROTECT GETS HARDER EVERY TIME YOU USE IT IN A ROW. WE WERE NOT COUNTING IT WHEN
+SOMETHING ELSE MADE YOU USE IT.**
+
+Protect works the first time. Use it again the next turn and it only works one time in three; again
+after that and it is one in nine. The game keeps a counter for that, and our counter was right - we
+checked it nine different ways and it matched the real game every time.
+
+The problem was one step earlier. We decided at the START of a turn whether a body was putting up a
+shield, based on what its player had clicked. But two things can change what you use AFTER you have
+clicked: Encore, which forces you to repeat your last move, and Instruct, which makes you use your last
+move a second time. When either of those handed a body a Protect, we never ran the shield check at all.
+So we announced it from whatever was left over: a failure if the body had no shield up, and a FREE
+shield - one that never had to pass the one-in-three - if it did.
+
+Over 961 real games that was 97 games with a different board, and it is now 94. The counter itself
+shows up on eleven boards instead of thirteen. Instruct turned out to be the same bug as Encore rather
+than a second one, which we established by testing them separately.
+
+What is left is smaller and different: four games where both engines agree the odds are one in three
+and disagree about the coin. One of those four now goes our way instead of theirs, which is how you can
+tell it is the coin and not the rule. That is written down for next time.
 
 **5.217.0 - ENCORE DOES NOT JUST CHANGE WHICH MOVE YOU USE. IN THIS FORMAT IT CHANGES WHEN YOU USE IT.**
 

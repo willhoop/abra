@@ -1,6 +1,23 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.217.0 · Last updated 2026-08-29**
+**Version 5.218.0 · Last updated 2026-08-29**
+
+**5.218.0 - THE SIMULATOR DECIDED ONCE PER TURN WHETHER A SHIELD WOULD BE TESTED, AND THREE
+MECHANICS REPLACE THE MOVE A BODY IS USING AFTER THAT POINT.** The reference implementation asks a
+shielding move's own gate inside the routine that uses a move - per action, at execution - so it is
+always asked about the move actually being used. This simulator decided in a pre-pass at the top of the
+turn, from the move the player had selected. Three mechanics substitute a different move afterwards:
+this format's Encore, which rewrites a queued action in place; the repeat action Instruct inserts; and
+a called move. A shield arriving by any of the three was never tested at all, so it drew no consecutive-
+use roll, never advanced the counter that makes repeated shields fail, and was announced from a flag
+left over from earlier in the turn - reported as a failure for a body that had no shield, and as a free
+untested success for one that did. Both directions, one cause. A second correction rides with it: a
+shield that IS refused no longer removes one the same body already had standing, because the reference
+implementation fails the move and writes no state. One probed mechanic added (795 to 796). Over 961
+real games the end-state leaf for the consecutive-use counter falls from **thirteen games to eleven**,
+boards parted from **97 to 94**, and protocol divergence from 214 to 213. The remainder of that leaf
+family is a different defect and is stated rather than absorbed: the counters now agree and the roll
+does not, in four games, one of them in the opposite direction.
 
 **5.217.0 - THIS FORMAT'S OWN COPY OF ENCORE MOVES THE ENCORED ACTION TO A DIFFERENT PLACE IN THE
 TURN, AND THE REFERENCE IMPLEMENTATION THE SIMULATOR WAS BUILT AGAINST DOES NOT.** The format

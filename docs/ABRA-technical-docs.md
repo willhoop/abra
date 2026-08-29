@@ -1,6 +1,36 @@
 # ABRA — Technical Documentation
 
-**Version 5.217.0 · Last updated 2026-08-29**
+**Version 5.218.0 · Last updated 2026-08-29**
+
+**5.218.0 - THE SHIELD GATE IS RE-ARMED AT EXECUTION WHEN THE ACTION'S MOVE IS NOT THE ONE THE
+PRE-PASS ARMED AGAINST.**
+`engine/medicham2-browser.js`. `protect.onPrepareHit` -
+`!!this.queue.willAct() && this.runEvent('StallMove', pokemon)` - lives inside `useMoveInner`, i.e.
+per action at execution. Champions overrides `protect` with `{inherit: true, pp: 5}` and nothing
+else, so the handler is mainline's. This engine armed `_shieldPending` / `_guardPending` /
+`_stallPending` once per turn in the pre-pass, off `it.a.kind` and `actionMoveId(it.a)`.
+- `_armShieldGate(it, idx)` is new and is the pre-pass's own three branches MOVED, not rewritten -
+  the same order, the same `volatileForbidsMove` question, the same `_preWillAct` record, the same
+  `STALL_EAGER_CLEAR` restore. It clears the three pendings before it sets them and records
+  `it._armMv`, the move id the arming was decided against.
+- It is re-asked at the gate's own call site (below the `BeforeMove` refusals, above the `|move|`
+  line) whenever `it._armMv !== actionMoveId(it.a)`. That covers all three substituting sites without
+  naming any of them: WIRE 143's Encore override, which rewrites `it.a` in place; Instruct's
+  `acts.splice(actIdx+1, 0, _entry)`; and the called-move splice. An ordinary action costs one string
+  compare and takes the identical path.
+- `_shieldGate` now records `it._shieldRaised` for the ACTION and restores a shield that was
+  already standing when this action's shield is refused - the authority's `onPrepareHit` returning
+  false fails the MOVE and writes no `protect` volatile, so the earlier one survives. The
+  `kind:'protect'` branch announces `_shieldRaised` and falls back to `m.protect` when no gate
+  ran, which is what it always read. `MEDSEEN.shieldStoodThroughRefusal`.
+- Counters: `MEDSEEN.shieldGateRearmed` / `shieldGateRearmedArmed` / `shieldGateRearmedDisarmed`.
+  `MEDI_SHIELD_NO_REARM=1` restores the pre-pass-only arming and stamps
+  `MEDFAILS.shieldNoRearmRestored` at module load.
+- `tests/probe_shield_rearm.js`: 11 arms, 5 red and 6 controls, no typed expectation - both engines
+  play one script under the `middle` pin and the shield lines AND the stall counter are compared, the
+  counter through medicham2's own `stallBoardCounter`. The red arms are free of the die by
+  construction: turn 1 all four bodies shield and the slowest holds the last action, so `willAct()`
+  refuses it BEFORE `StallMove` and the turn-2 substitution meets counter 0.
 
 **5.217.0 - A MID-TURN ENCORE NOW RELOCATES THE TARGET'S QUEUED ACTION INTO THE ENCORED MOVE'S
 PRIORITY BRACKET.**

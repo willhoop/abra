@@ -1,6 +1,18 @@
 # ABRA — Project Summary
 
-**Version 5.217.0 · 2026-08-29 · Will Hooper**
+**Version 5.218.0 · 2026-08-29 · Will Hooper**
+
+**5.218.0 - CARD F2's FAMILY WAS NOT A COUNTER DEFECT AT ALL, AND THE COUNTER WAS ALREADY
+RIGHT.** The `stall` lifecycle was staged nine ways - consecutive shields, the `duration: 2` gap, a
+switch-out, Detect, Endure, Baneful Bunker, a Wide Guard feed - and agreed with the authority at every
+turn boundary. What was wrong is one line up: the shield GATE was armed in the turn pre-pass off the
+move the player clicked, and three sites substitute the move afterwards (Encore's execution-time
+override, Instruct's spliced action, a called move). A substituted shield never reached the gate, so it
+drew no die and was announced from a stale flag. **Census 795 to 796 live / 796 probed / 0 missing.
+Board-parted 97 to 94 of 961, `active[].stall` 13 leaves / 13 games to 11 / 11, protocol 214 to 213.**
+Instruct is the SAME defect, measured by arm rather than argued. What is left of the family is the
+shield's own DIE - four games at counter 3, one of them the opposite sign - and that is a different
+batch. Full account: `docs/_reports/2026-08-29-stall-counter.md`.
 
 **5.217.0 - CARD F1's SYMPTOM WAS RIGHT AND ITS CAUSE WAS THE WRONG WAY ROUND, WHICH IS NOW FOUR
 CARDS IN A ROW.** The card read the encored body as moving to the BACK of our turn. What happens is

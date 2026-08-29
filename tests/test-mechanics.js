@@ -507,7 +507,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * rewrites part-way through the turn, so a probe that priced the move before the turn started would
  * read the un-evolved body every time, which is exactly what the engine was doing.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\binnardsHit\(|\binnardsChain\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\binnardsHit\(|\binnardsChain\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -19828,6 +19828,80 @@ probe('move', 'sealsMoves', 'an Encore landing MID-TURN moves its victim into th
                  + ' (victim used ' + test.used + ', volatile ' + test.vol + '). The victim is the '
                  + 'SLOWEST body on the field, so overtaking Garchomp can only be the bracket. Two '
                  + 'identical orders here would mean the relocation is unwired' };
+});
+
+/* ================= 2026-08-29 — AND THE SHIELD GATE ASKS ITS QUESTION AT THE ACTION ==============
+ *
+ * The two rows above prove the mid-turn Encore swaps the MOVE and moves the BRACKET. Neither says
+ * anything about the GATE the substituted move then has to pass, and a shield is the one family that
+ * has one.
+ *
+ * `protect.onPrepareHit` (data/moves.ts; Champions overrides the move with `{inherit:true, pp:5}` and
+ * nothing else) is `!!this.queue.willAct() && this.runEvent('StallMove', pokemon)`, and it lives
+ * inside `useMoveInner` — PER ACTION, AT EXECUTION. It is raised on the move being USED and cannot
+ * see when the action was chosen. This engine armed `_shieldPending` / `_guardPending` /
+ * `_stallPending` ONCE PER TURN in the pre-pass, off the move the player clicked, so a shield that
+ * arrived by substitution never reached `_shieldGate` at all: no queue scan, no stall die, no counter,
+ * and the `kind:'protect'` branch announced it off whatever `mon.protect` already held.
+ *
+ * THE BOARD MAKES TURN 1 SPEND THE VICTIM'S SHIELD WITHOUT ARMING ITS COUNTER, and that is what makes
+ * turn 2 a fact rather than a die. All four bodies click Protect; Toxapex (35) is the slowest on the
+ * field, so it holds the LAST action, `willAct()` is false and the authority refuses the move — which
+ * adds no `stall` volatile and draws no roll. Its `lastMove` is still Protect, so the Encore on turn 2
+ * copies a shield, and the counter it meets is 0. A shield at counter 0 CANNOT be refused by the die,
+ * so neither arm below depends on one.
+ *
+ * THE CONTROL IS THE ENCORE CLICK REPLACED BY A CHARM, for the same reason as the row above: the
+ * victim then plays the Haze it chose, raises nothing and arms nothing. Two identical answers here
+ * would mean the gate is not reading the substituted action. */
+const encoreShield = (enc) => {
+  const rng = () => 0.5;
+  const me = bare('whimsicott'), ally = bare('garchomp');
+  const f1 = bare('toxapex'), f2 = bare('milotic');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  /* Turn 1 — four shields, and the slowest body is refused for holding the last action. */
+  M.battleTurn(S, rng,
+    new Map([[me, M.playerAction(me, 'protect', me, S.field)],
+             [ally, M.playerAction(ally, 'protect', ally, S.field)]]),
+    new Map([[f1, M.playerAction(f1, 'protect', f1, S.field)],
+             [f2, M.playerAction(f2, 'protect', f2, S.field)]]));
+  const t1 = { raised: !!f1.protect, n: f1.tookProtectTurns | 0, last: String(f1._lastMove || '') };
+  trace.length = 0;
+  /* Turn 2 — the victim is handed Haze and is Encored back into Protect after both sides' actions
+   * were collected, so the shield reaches its gate as a SUBSTITUTED move. */
+  M.battleTurn(S, rng,
+    new Map([[me, M.playerAction(me, enc ? 'encore' : 'charm', f1, S.field)],
+             [ally, M.playerAction(ally, 'swordsdance', ally, S.field)]]),
+    new Map([[f1, M.playerAction(f1, 'haze', f1, S.field)],
+             [f2, M.playerAction(f2, 'swordsdance', f2, S.field)]]));
+  return { t1, vol: !!(f1._vol && f1._vol.encore > 0), raised: !!f1.protect,
+           /* THE COUNTER IS READ THROUGH THE ENGINE'S OWN MAP, the one board_state.js calls, so this
+            * row cannot disagree with the board leaf it is about. */
+           stall: M.stallBoardCounter(f1.tookProtectTurns | 0),
+           used: (trace.find(l => /^\|move\|p2a/.test(l)) || '').split('|')[3] || 'NONE',
+           lines: trace.filter(l => /^\|(-singleturn|-fail)\|p2a/.test(l)).length };
+};
+
+probe('move', 'stallCounterChecks', 'a shield SUBSTITUTED mid-turn still passes the shield gate and arms the stall counter', () => {
+  const control = encoreShield(false), test = encoreShield(true);
+  return { works: control.t1.raised === false && test.t1.raised === false
+                  && control.t1.n === 0 && test.t1.n === 0
+                  && control.t1.last === 'protect' && test.t1.last === 'protect'
+                  && !control.vol && test.vol
+                  && control.used === 'haze' && test.used === 'protect'
+                  && control.raised === false && test.raised === true
+                  && control.stall === 0 && test.stall === 3,
+           arms: { control: control.used + '/stall ' + control.stall,
+                   test: test.used + '/stall ' + test.stall },
+           detail: 'turn 1 all four bodies shield and the victim, being slowest, is refused for '
+                 + 'holding the last action — raised ' + test.t1.raised + ', counter ' + test.t1.n
+                 + ', last move ' + test.t1.last + ', so the authority armed nothing and drew no die. '
+                 + 'On turn 2 the same board, the same clicks and one bit changed: with a CHARM where '
+                 + 'the Encore goes, the victim played ' + control.used + ' and its stall counter read '
+                 + control.stall + '; with the Encore landing it played ' + test.used + ', raised the '
+                 + 'shield (' + test.raised + ') and its counter read ' + test.stall + '. A gate armed '
+                 + 'off the CLICK rather than off the action leaves both arms at 0' };
 });
 
 /* ---- WIRE 144 — THE LOCK-IN FIVE ---------------------------------------------------------------

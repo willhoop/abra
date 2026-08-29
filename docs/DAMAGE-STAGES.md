@@ -1,6 +1,17 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.217.0 — 2026-08-29.**
+**Version: 5.218.0 — 2026-08-29.**
+
+**5.218.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version is a
+SHIELD-GATE one: a shield whose move was substituted mid-turn now passes the queue scan and the
+consecutive-use roll, where before it passed neither. Nothing above or below the stage table is
+touched, and `data/engine-diff.json` was not rewritten — the published **0 of 6,000 at all sixteen
+roll positions** still stands from 02:49.
+
+**RE-RUN THIS PASS**, and it went to `data/verification/engine-diff.n150.json`:
+`tests/test-engine-diff.js` reports **0 disagreements over 150 matchups** at seed 20260804. The rc=3
+a reader may see is that file's pool advisory rather than a disagreement, A/B verified as pre-existing
+on release `cc7dca43e395`.
 
 **5.217.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version is a TURN-ORDER
 one: a mid-turn Encore now relocates its target's queued action into the ENCORED move's priority
