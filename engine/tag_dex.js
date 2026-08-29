@@ -3385,8 +3385,49 @@ const MOVE_TAGS = [
      * string). The shape survives a move being added; the names do not, and CLAUDE.md opens on the
      * hand-maintained list of four that went stale. Membership is unchanged by this edit, which is
      * the point of making it here rather than after something slipped through. */
-    of: m => (m.selfSwitch && m.category === 'Status' && typeof m.selfSwitch !== 'string')
-             ? { selfSwitch: m.selfSwitch } : null },
+    /* ---- ROADMAP #531 -- A `selfSwitch` FIELD IS NOT A PROMISE. THE HANDLER CAN TAKE IT BACK. ----
+     *
+     * `selfSwitch: true` reads as "the user leaves", and for six of the format's seven pivots it is.
+     * For the seventh the field is only the DEFAULT: `partingshot`'s own `onHit` deletes it again
+     * when its stat drop landed on nobody, with one named ability exempted --
+     *
+     *     const success = this.boost({ atk: -1, spa: -1 }, target, source);
+     *     if (!success && !target.hasAbility("mirrorarmor")) { delete move.selfSwitch; }
+     *
+     * -- so a consumer reading `selfSwitch` alone pivots unconditionally and leaves the wrong body in
+     * the slot for the rest of the game. That is exactly the shape of a fact living in one field while
+     * the rule lives in another.
+     *
+     * ALL THREE PARTS ARE READ OFF THE HANDLER, NOT TYPED. The deletion, the guard variable's origin
+     * (`this.boost(...)`, which is what makes the condition "did a stat change land") and the exempt
+     * ability names. `cancelsWhen` is `null` when the guard cannot be parsed, and the engine's
+     * consumer must be LOUD about that rather than picking a side -- an unreadable condition is not
+     * evidence for either answer.
+     *
+     * OVER-MATCH GUARD, PRINTED BEFORE IT WAS WIRED: `delete move.selfSwitch` appears exactly ONCE in
+     * the whole 954-move dex (`data/moves.ts:13180`) and `data/mods/champions/moves.ts` does not
+     * mention the move at all, so this clause claims one member and can claim no other by accident.
+     * The five unconditional status/string pivots keep the params they had, byte for byte. */
+    of: m => {
+      if (!(m.selfSwitch && m.category === 'Status' && typeof m.selfSwitch !== 'string')) return null;
+      const out = { selfSwitch: m.selfSwitch };
+      const src = (String(m.onHit || '') + String(m.onTryHit || '') + String(m.onAfterHit || ''))
+        .replace(/\s+/g, ' ');
+      if (!/delete move\.selfSwitch/.test(src)) return out;
+      out.conditional = true;
+      /* `[^{]{0,200}` and not `[^)]*`: the guard's OWN condition contains a call with brackets --
+       * `!target.hasAbility("mirrorarmor")` -- so a class excluding `)` stops at the wrong place and
+       * silently reports an unparseable condition. It was written that way first and `cancelsWhen`
+       * came back null, which is the loud fallback doing its job on the derivation rather than on
+       * the engine. */
+      const g = src.match(/if \(\s*!(\w+)\b[^{]{0,200}\{\s*delete move\.selfSwitch/);
+      const v = g ? g[1] : null;
+      out.cancelsWhen = (v && new RegExp('(?:const|let|var) ' + v + ' = this\\.boost\\(').test(src))
+        ? 'noStatChangeLanded' : null;
+      out.exceptAbilities = [...new Set([...src.matchAll(/hasAbility\(\s*["'](\w+)["']\s*\)/g)]
+        .map(x => x[1]))];
+      return out;
+    } },
   /* ROADMAP #81 WIRE 12 -- `passes: true` NAMED NOTHING A CONSUMER COULD APPLY, and the engine had
    * no consumer at all: Baton Pass and Shed Tail both resolved to a click that never switched, so
    * Heliolisk paid half its HP for a Substitute and then STOOD THERE. The two are not the same

@@ -1,6 +1,30 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.220.0 · Last updated 2026-08-29**
+**Version 5.221.0 · Last updated 2026-08-29**
+
+**5.221.0 - A MOVE THAT SWAPS THE USER OUT ONLY DOES SO IF THE THING IT DID ON THE WAY OUT ACTUALLY
+HAPPENED, AND THE SIMULATOR SWAPPED REGARDLESS.** One move in this format lowers two of the target's
+stats and then retreats. In the reference implementation the retreat is CONDITIONAL: if neither stat
+actually moved - because an ability refused the drop, or because both stats were already as low as
+they can go - the move's own code cancels the retreat, with a single ability named as an exception
+because it sends the drop back at the attacker instead. This simulator always retreated, so it was
+right about the named exception only by being wrong about the rule the exception exists for, and the
+wrong Pokemon was left standing for the rest of the battle.
+
+The population was derived from the format rather than taken from the defect report, and it is wider
+than the report said: three abilities cancel the retreat, not two, the third protecting a Grass-typed
+ALLY rather than its own holder; a fourth refuses only one of the two stats, so the retreat SURVIVES
+it; and a fifth named in the reference code has no legal holder in this regulation at all and was
+deliberately not implemented. What the reference counts as "the drop happened" is a partial change,
+not a complete one, which is what makes that fourth ability a control rather than a case.
+
+Measured over 961 recorded games at a twelve-turn cap, the count of games whose board ever parts from
+the reference falls from 93 to 92 and the narration disagreements from 208 to 207. **That was
+predicted as UNMOVED and it moved, so the prediction is recorded as a miss.** The one game is
+attributed by which board fields stopped disagreeing - the species, typing, ability, maximum health,
+held item and remaining uses of that very move, all falling by exactly one game, which is the shape of
+a single board holding the wrong Pokemon in a slot. Full account:
+`docs/_reports/2026-08-29-partingshot-conditional.md`.
 
 **5.220.0 - AN ABILITY THAT MAKES A MOVE FASTER ALSO DECIDES WHETHER FIVE DIFFERENT THINGS ARE
 ALLOWED TO REFUSE IT, AND THE SIMULATOR ASKED THEM ALL THE WRONG NUMBER.** The reference

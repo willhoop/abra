@@ -34,7 +34,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_shield_refusal_line.js`, `tests/probe_upkeep_lines.js`,
 `tests/probe_fatigue_tag.js`, `tests/probe_reds_plant_reaches.js`,
 `tests/probe_forced_switch_mirror.js`, `tests/probe_innards_out.js`,
-`tests/probe_shield_rearm.js`, `tests/probe_default_target_side.js`
+`tests/probe_shield_rearm.js`, `tests/probe_default_target_side.js`,
+`tests/probe_partingshot_mirrorarmor.js`, `tests/probe_partingshot_conditional.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -53,6 +54,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 | file | asks | structurally cannot see |
 |---|---|---|
 | `probe_default_target_side.js` | when a move is SUBSTITUTED into an action — Encore at selection, Encore at execution (WIRE 143), or the called-move branch (Copycat / Metronome / Sleep Talk / Mirror Move) — does it take its target from its own target class, the way `Battle#getRandomTarget` answers `self`, `all`, `allySide`, `allyTeam`, `adjacentAllyOrSelf` and `adjacentAlly` BEFORE it ever looks at a foe. Twelve arms over two engines under the differential's own `middle` pin: six red (an Encored Helping Hand, mirrored whole, and again against the format's OTHER live priority refuser, and again with the refuser's ability traded away so only the wrong SIDE is left; an Encored Coaching, where no priority is involved and +1/+1 lands on a foe; and a COPIED Coaching, which is the second draw site and not Encore at all) and six controls (a plain clicked Helping Hand, which was NEVER broken; the foe axis clicked directly and again through the override; the far-side draw at priority 0 on both doors, which fails if a die moves; and a `self` move where the near-side branch fires and nothing may change). Nothing is typed — the four counted facts are read off BOTH streams and compared to each other, deliberately coarse (`cant` as holder-side/ability, a single-turn mark as side/label, a boost as side/stat/stage, the move line as move->side) so an arm cannot fail on a spelling difference between the narrators and cannot pass while a body on the wrong half of the field takes the effect | the 87 near-side moves whose aim `playerAction` discards before it reaches an action — Protect, Tailwind, Rain Dance and Wide Guard all return a kind carrying no target, so only the four `adjacentAlly` chooseables are observable from outside at all. And Instruct, which reaches the authority through `runMove(..., targetLoc)` rather than through `getRandomTarget` and is a different rule |
+| `probe_partingshot_conditional.js` | is a `selfSwitch` field a PROMISE or a DEFAULT the handler can take back — the ONE move in this format whose own `onHit` deletes it (`data/moves.ts:13180`, one hit in the whole dex) when its stat drop landed on NOBODY, with one ability named as an exception. Nineteen arms over two engines under the differential's own `middle` pin: five red across THREE doors (an ability refusing both stats, staged on two different bodies; the ALLY door, where the refusal is on the body beside the target and covers Grass types only; both stats at the STAT FLOOR, driven there over five turns with no ability anywhere; and one of each, which neither door reaches alone) and fourteen controls, every red paired with one on the SAME BODY. The controls are the half that matters, because a fix keyed on "a stat was refused" strands bodies that are correct today: a PARTIAL refusal, which `Battle#boost` counts as a SUCCESS; an INVERTED drop; a partial floor on either stat; the format's other legal status pivot, whose `selfSwitch` nothing deletes; and a bare voluntary switch. Nothing is typed — the observable is the whole BOARD at every boundary plus which body is standing in the user's slot, Showdown supplies the answer, and each arm asserts the branch COUNTS (cancel exactly 1 on a red, 0 on a control; the exception exactly 1 on the Mirror Armor arm) because that arm agreed BEFORE the fix as well | the stat floor UNDER Mirror Armor, which cannot be reached from a foe's drops at all — every drop bounces, so nothing a foe does moves it toward -6; and the NARRATION at the floor, where the authority writes `|-unboost|TARGET|atk|0` and this engine writes `|-fail|…|ability: Clear Body` (board-identical, so this instrument is blind to it by construction) |
 | `probe_shield_rearm.js` | does a shield whose MOVE was substituted mid-turn still pass the gate the authority asks at execution — `protect.onPrepareHit` runs inside `useMoveInner`, per action, so it is raised on the move being USED, while this engine armed `_shieldPending`/`_guardPending`/`_stallPending` once per turn off the move the player CLICKED. Eleven arms over two engines under the differential's own `middle` pin: five red (Encore's execution-time override and Instruct's spliced second action, each also MIRRORED whole, plus an Encore into ENDURE so a fix keyed on `kind === 'protect'` stays red) and six controls (the Encore replaced by a Charm; an ordinary Protect chain; a substitution onto a NON-shield so the re-ask fires and must arm nothing, once per producer; an ordinary Wide Guard; an ordinary Endure). Nothing is typed — the assertions are that the two engines agree on the shield lines AND on the stall counter (read through medicham2's own `stallBoardCounter`, the function `board_state.js` calls), that `MEDI_SHIELD_NO_REARM=1` parts the reds and moves no control, that the re-arm counters hit an EXACT per-arm value, and that the authority actually raised a shield on every red arm. The board removes the die: turn 1 the slowest body holds the last action, so `willAct()` refuses its shield BEFORE `StallMove` and the turn-2 substitution meets counter 0 | the shield's own DIE, which is what the four remaining pool games are — the counters agree and the draws do not, one of the four in the opposite direction. Copycat and Sleep Talk, which reach the identical splice and the identical trigger but have no arm. And a body Encored OFF a shield, which `shieldGateRearmedDisarmed` counts and no arm stages, because Protect is +4 and Encore is at best +1 |
 | `probe_innards_out.js` | does the ONE ability whose toll is the damage it just took pay it, on a real board against the authority — four scripted games, THREE of which must pay NOTHING (a connecting super-effective hit the holder SURVIVES; a Ghost Curse residual that kills it with no move involved; a game where only status moves are ever aimed at it) and one where the toll exceeds what the killer has and kills it. The carrier count is ENUMERATED from the format at run time, not named, and every arm asserts `megaRefused === 0` because the sole carrier is a mega and a refused ask stages the base forme, which does not carry the ability at all | the multi-hit interior — `_react` sets the reactor off once per hit while the volley is still ONE damage packet (WIRE 20), so nothing here separates "the toll is cumulative" from "the packet is cumulative"; and any toll aimed at an ALLY, which the authority pays and no arm stages |
 | `probe_state_trio.js` | three small state reads staged one at a time, each with a control that reaches the SAME mechanic through a DIFFERENT door: a confusion from a secondary against one from a status move, Dire Claw against Earthquake, and a faint against a voluntary switch / a U-turn pivot / a stay-in. Since 2026-08-27 it also carries the derived inert-secondary population, the derived count of REFUSAL REASONS for every status each cell must be able to take (it exits 2 rather than run a cell that qualifies for more than one), and `C-selfko` — a Soaked body that Mementos itself — which is the arm that separates `noteFaint` from `queueFaint` | **it asserts NOTHING and exits 0 whatever it finds** — it is read, not gated on; and any arm whose click is blocked, which is why the draw COUNT is printed beside every verdict (four arms reported IDENTICAL with zero draws before that was read) |
@@ -107,9 +109,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  798/798 probed mechanics live, 0 missing   (census 2026-08-29 08:52)
+  801/801 probed mechanics live, 0 missing   (census 2026-08-29 09:41)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 10.0 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 10.6 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -127,14 +129,95 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is a85bd4880bf2 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 285/300 probed, 15 unprobed;  270/300 have an engine consumer, 30 have none
+  tag coverage: 285/300 probed, 15 unprobed;  271/300 have an engine consumer, 29 have none
     a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 09:19_
+_stamped 2026-08-29 09:55_
 
 <!-- /GENERATED -->
+
+## `selfSwitch: true` IS A DEFAULT THE HANDLER TAKES BACK, AND WE READ IT AS A PROMISE — PARTING SHOT PIVOTED OUT OF EVERY REFUSED DROP. **CENSUS 798 -> 801 LIVE / 801 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 93 -> 92 OF 961, PROTOCOL 208 -> 207 — AND THE PREDICTION WAS "UNMOVED", SO IT MISSED BY ONE, IN THE IMPROVING DIRECTION. `pp[].partingshot` 3 GAMES -> 2 IS THE SIGNATURE. FULL METAL BODY HAS ZERO LEGAL CARRIERS AND WAS NOT WIRED.** 2026-08-29, CHANGELOG 5.221.0.
+
+Full account: `docs/_reports/2026-08-29-partingshot-conditional.md`. Release
+`eb6a797411cd` -> **`124f5aa8c8bd`**. ROADMAP #531 closed.
+
+**THE MOD WAS READ FIRST AND IT CHANGES NOTHING HERE.** `data/mods/champions/moves.ts` does not
+mention `partingshot` (grep: 0 hits) and the mod's `abilities.ts` and `scripts.ts` touch neither
+`selfSwitch` nor `onTryBoost` nor `boost(`. So mainline applies, and `data/moves.ts:13178-13181` is
+the whole rule: `const success = this.boost({atk:-1, spa:-1}, target, source); if (!success &&
+!target.hasAbility("mirrorarmor")) delete move.selfSwitch;`.
+
+**WE WERE RIGHT ABOUT THE ONE NAMED EXCEPTION BY ACCIDENT.** `engine/medicham2-browser.js` switched
+unconditionally, so the condition Mirror Armor is an exception TO was not implemented and the
+exception could not be violated. Board-material without argument: the wrong body holds the slot, and
+it stays wrong for the rest of the game.
+
+**WHAT `Battle#boost` COUNTS AS SUCCESS IS THE CRUX AND IT IS THE APPLIED DELTA** (`sim/battle.ts:2017-2085`).
+`success` starts `null` and is set the first time a stat's CAPPED change is non-zero, so a **PARTIAL
+landing is a SUCCESS** and the pivot stands. Two orderings decide the rest and both were read at the
+lines rather than assumed: `getCappedBoost` runs **BEFORE** `TryBoost`, so a stat already at -6
+reaches every ability handler as `0` and no refuser ever sees it; and Mirror Armor's own handler
+`continue`s past a stat at the floor, so a floored reflector reflects nothing and the exception is
+what keeps its pivot. That is why the ABILITY door and the STAT-FLOOR door are separate mechanisms
+and are staged separately.
+
+**MEMBERSHIP DERIVED AND PRINTED BEFORE WIRING (docs/LESSONS §4), AND THE PRIOR CARD WAS NARROW.**
+SEVEN legal moves carry `selfSwitch` and exactly ONE is conditional — `delete move.selfSwitch` occurs
+**once in the whole 954-move dex**. FIVE legal abilities can refuse a foe's Attack or Special Attack:
+**three CANCEL the pivot** — Clear Body (Metagross, Dragapult, Garganacl), White Smoke (Torkoal) and
+**Flower Veil (Floette-Eternal, Florges), which the card did not have** — one is the named exception
+(Mirror Armor, Corviknight) and one refuses a single stat so the pivot **SURVIVES** it (Hyper Cutter:
+Pinsir, Mawile, Gliscor, Crabominable). Flower Veil is `onAllyTryBoost`, covers **Grass types only**,
+and a Fairy Florges does not cover ITSELF. **Full Metal Body is in the handler population and has ZERO
+legal carriers** — not implemented, not approximated, not staged. The five Intimidate-gated refusers
+(Inner Focus, Oblivious, Own Tempo, Scrappy, Guard Dog) are inert here.
+
+**THE TAG CARRIES THE RULE, NOT A NAME.** `pivotStatus` now derives `conditional`, `cancelsWhen` and
+`exceptAbilities` off the handler text, so a second conditional pivot arrives without another branch.
+**Over-match measured before wiring: exactly ONE move row in `data/tags.json` changed**, zero ability
+rows, zero item rows. **The first guard regex was wrong and the loud fallback is what said so** —
+`[^)]*` cannot cross the bracket inside `hasAbility("mirrorarmor")`, so `cancelsWhen` came back
+`null`, which is the derivation failing visibly instead of the engine failing silently. An
+unparseable condition keeps the pre-fix behaviour and bumps `MEDFAILS.pivotConditionUnreadable`,
+because guessing here decides which body holds a slot for the rest of a game.
+
+**THE GATE IS `_dropLanded === false` AND NOT `!_dropLanded`.** Three answers, not two: `null` = the
+drop block never ran, `false` = it ran and nothing moved, `true` = a stage changed. A move that never
+reached the drop keeps exactly the behaviour it had, because this gate may only speak about a drop it
+watched.
+
+**THE PROBE: `tests/probe_partingshot_conditional.js`, 19 arms, 5 red and 14 controls, SHOWN RED
+FIRST at 5 board-material defects on the shipping bytes.** Three doors are red — an ability refusing
+both stats (on two different bodies), the ally door, both stats at the floor, and one of each, which
+**neither door reaches alone**. Every red is paired with a control on the SAME BODY. The over-fire
+controls are the half that matters: a PARTIAL refusal (Hyper Cutter, target reads `0/-1`), an
+INVERTED drop (Contrary, `1/1`), a partial floor on either stat, an unconditional status pivot
+(Chilly Reception) into the same Clear Body, and a bare voluntary switch. `MEDI_PIVOT_UNCONDITIONAL=1`
+parts every red and moves no control. **`mirror` agreed BEFORE the fix as well** — an engine that
+pivots unconditionally agrees with an exception because it agrees with everything — so that arm is
+asserted on the exception BRANCH COUNT (exactly 1) rather than on the boards matching.
+
+**TWO FIXTURE FAULTS, BOTH FOUND BY READING THE OUTPUT.** The boost reader searched the party BY
+SPECIES and reported `0/0` for a body the same run had just driven to `-6/-6`, because the default
+partner was also a Snorlax; it reads the standing slot now and the duplicate is gone. And no two
+consecutive Protects appear anywhere in the scripts — the stall counter is a DIE, and a die in a
+fixture is a coin toss dressed as a result.
+
+**THE PREDICTION MISSED AND IT IS RECORDED AS A MISS.** The prior card predicted the pinned pool
+UNMOVED and named the lab as the scoreboard. The lab moved as predicted (798 -> 801, five red arms ->
+clean). **The pool moved too, 93 -> 92 board-parted.** The one game is attributed by its leaf
+signature and the signature names the move: `active[].species` 9->8, `types` 8->7, `ability` 7->6,
+`maxhp` 8->7, `item` 11->10, `hp` 53->52 and **`pp[].partingshot` 3 games -> 2**. Nothing rose;
+`party.hp` and `party.fainted` did not move, which is what says this is slot occupancy and not damage.
+
+**WHAT THIS DID NOT CLOSE, STATED.** At the floor the authority's `getCappedBoost` zeroes the entry
+before `TryBoost`, so Clear Body never fires and the authority writes `|-unboost|TARGET|atk|0`; this
+engine asks `statDropRefusal` before the clamp and writes `|-fail|…|ability: Clear Body`. Board-
+identical either way, so the quarantine bar is unaffected — a NARRATION item, left for its own
+landing. And the pool's one `hypercutter` ORDERING game (`|-fail|…|hypercutter` against
+`|-unboost|p2a|spa|1`) survives this fix untouched and is not this defect.
 
 ## THE PRIORITY GATES COMPARED THE PRINTED NUMBER AND THE AUTHORITY COMPARES THE ABILITY-MODIFIED ONE — GALE WINGS WAS ABSENT FROM ALL FIVE. **CENSUS 797 -> 798 LIVE / 798 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 94 -> 93 OF 961 — PREDICTED AT ITS POINT ESTIMATE BEFORE THE RUN — PROTOCOL 211 -> 208, END-STATE 894/63 -> 895/62. `move.target === 'all'` IS NOT A SECOND FIX: THE CARD RECORDED THE CLAUSE BACKWARDS AND THE REFUSING BRANCH CANNOT OCCUR HERE.** 2026-08-29.
 

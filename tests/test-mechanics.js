@@ -7288,6 +7288,97 @@ probe('move', 'pivotStatus', 'Parting Shot switches the user out', () => {
                  + `after Parting Shot ${test}` };
 });
 
+/* ---- ROADMAP #531 -- THE PROBE ABOVE ASKS WHETHER THE PIVOT FIRES. IT FIRES TOO OFTEN. ----------
+ *
+ * `selfSwitch: true` is a DEFAULT for this one move and its own handler takes it back:
+ *
+ *     const success = this.boost({ atk: -1, spa: -1 }, target, source);
+ *     if (!success && !target.hasAbility("mirrorarmor")) { delete move.selfSwitch; }
+ *
+ * data/moves.ts:13178-13181, and `data/mods/champions/moves.ts` does not mention the move, so
+ * mainline applies. It is the ONLY move in the dex that deletes its own `selfSwitch` -- membership
+ * printed over the whole move table before this was wired, and carried by tag_dex as
+ * `pivotStatus.conditional` rather than by a name here.
+ *
+ * THREE ROWS AND NOT ONE, because there are three different questions and a single row would let
+ * two of them pass on the third's evidence: does the pivot stop when an ability refuses the drop,
+ * does it stop when nothing REFUSED it and nothing COULD MOVE, and does it still happen against the
+ * one ability the handler exempts. The third is the one that was already right for the wrong reason
+ * -- an engine that pivots unconditionally agrees with the exception because it agrees with
+ * everything -- so it is asserted against a control on the SAME BODY that must give the opposite
+ * answer.
+ *
+ * EVERY ARM READS THE OUTCOME (which body is standing in slot 0 after the turn) and never a flag. */
+probe('move', 'pivotStatus', 'Parting Shot does NOT switch the user out when its drop landed on nobody', () => {
+  const run = (ab) => {
+    const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('milotic');
+    const f1 = bare('garganacl'), f2 = bare('garchomp');
+    f1.ability = ab;
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'partingshot', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return S.actA.map(x => x && x.name).join(',') + ' target ' + f1.boosts.at + '/' + f1.boosts.sa;
+  };
+  /* THE KNOB IS THE ABILITY ON ONE BODY AND NOTHING ELSE. The control is the SAME Garganacl with the
+   * ability blanked, so an identical answer across the two would be the unwired signature rather
+   * than agreement. */
+  const control = run('none'), test = run('clearbody');
+  return { works: control === 'milotic,corviknight target -1/-1'
+                  && test === 'incineroar,corviknight target 0/0',
+           arms: { control, test },
+           detail: `slot 0 after the turn, then the target's atk/spa — no ability: ${control} `
+                 + `(the drop lands, the user leaves); Clear Body: ${test} (the drop lands on `
+                 + `nobody, so the user STAYS)` };
+});
+
+probe('move', 'pivotStatus', 'a target already at the stat floor cancels the pivot too — no ability involved', () => {
+  const run = (at, sa) => {
+    const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('milotic');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    f1.boosts.at = at; f1.boosts.sa = sa;
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'partingshot', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return S.actA.map(x => x && x.name).join(',') + ' target ' + f1.boosts.at + '/' + f1.boosts.sa;
+  };
+  /* THE CONTROL IS A PARTIAL LANDING, which `Battle#boost` counts as a SUCCESS: Attack cannot move
+   * and Special Attack can, so the user leaves. It is the arm that separates "the pivot needs every
+   * stat to land" from "the pivot needs ANY stat to land", and a fix keyed on the first breaks it. */
+  const control = run(-6, 0), test = run(-6, -6);
+  return { works: control === 'milotic,corviknight target -6/-1'
+                  && test === 'incineroar,corviknight target -6/-6',
+           arms: { control, test },
+           detail: `slot 0 after the turn, then the target's atk/spa — Attack alone at the floor: `
+                 + `${control} (SpA still moves, so the user leaves); both at the floor: ${test} `
+                 + `(nothing can move, so the user STAYS)` };
+});
+
+probe('move', 'pivotStatus', 'and it still pivots against the one ability the handler exempts', () => {
+  const run = (ab) => {
+    const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('milotic');
+    const f1 = bare('corviknight'), f2 = bare('garchomp');
+    f1.ability = ab;
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'partingshot', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return S.actA.map(x => x && x.name).join(',') + ' target ' + f1.boosts.at + '/' + f1.boosts.sa;
+  };
+  /* ONE BODY, TWO ABILITIES, OPPOSITE ANSWERS — and the TARGET'S boosts are identical in both arms
+   * (0/0), which is the whole point: the board cannot tell these two apart and the pivot can. The
+   * user's own reflected drops are not readable here because switching out clears them, which is
+   * what `tests/probe_partingshot_mirrorarmor.js` reads the protocol streams for. */
+  const control = run('clearbody'), test = run('mirrorarmor');
+  return { works: control === 'incineroar,corviknight target 0/0'
+                  && test === 'milotic,corviknight target 0/0',
+           arms: { control, test },
+           detail: `slot 0 after the turn, then the target's atk/spa — Clear Body: ${control} (the `
+                 + `user stays); Mirror Armor on the SAME Corviknight: ${test} (the drop lands on `
+                 + `nobody either, and the handler exempts it by name, so the user LEAVES)` };
+});
+
 /* WIRE 120 -- THE PROBE ABOVE ASKS WHETHER THE PIVOT FIRES; THIS ONE ASKS WHETHER IT FIRES AT THE
  * RIGHT MOMENT, which is the scope question this division keeps finding on the wrong side of. A
  * `kind:'switch'` action was given priority +6 whether or not it carried a MOVE, so Parting Shot --

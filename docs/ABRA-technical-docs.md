@@ -1,6 +1,37 @@
 # ABRA — Technical Documentation
 
-**Version 5.220.0 · Last updated 2026-08-29**
+**Version 5.221.0 · Last updated 2026-08-29**
+
+**5.221.0 - A CONDITIONAL SELF-SWITCH IS GATED ON THE STAT CHANGE HAVING LANDED.**
+`engine/tag_dex.js`, `engine/medicham2-browser.js`.
+
+`data/moves.ts:13178-13181` gives `partingshot` an `onHit` that reads
+`const success = this.boost({atk:-1, spa:-1}, target, source); if (!success &&
+!target.hasAbility("mirrorarmor")) delete move.selfSwitch;`. `data/mods/champions/moves.ts` does not
+mention the move, and the mod's `abilities.ts` and `scripts.ts` touch neither `selfSwitch` nor
+`onTryBoost` nor `boost(`, so mainline applies.
+
+`Battle#boost` (`sim/battle.ts:2017-2085`) sets `success` on the first non-zero APPLIED delta, so a
+partial application is a success. `getCappedBoost` runs before the `TryBoost` event, so a stat at -6
+reaches every ability handler as `0`. `mirrorarmor.onTryBoost` `continue`s past a stat at -6, so a
+floored reflector reflects nothing and `success` is still falsy.
+
+Seven legal moves carry `selfSwitch`; exactly one is conditional (`delete move.selfSwitch` occurs once
+in the dex). Five legal abilities can refuse a foe's `atk` or `spa`: `clearbody`, `whitesmoke` and
+`flowerveil` (`onAllyTryBoost`, Grass targets only) cancel the pivot; `mirrorarmor` is the exception;
+`hypercutter` refuses `atk` alone, so the pivot stands. `fullmetalbody` has zero legal carriers and is
+not implemented. The five Intimidate-gated refusers test `effect.name === 'Intimidate'` and are inert.
+
+`pivotStatus` now derives `conditional`, `cancelsWhen` and `exceptAbilities` from the handler text.
+The engine's `a.kind === 'switch'` branch records `_dropLanded` (`null` = the drop block never ran,
+`false` = ran with no applied delta, `true` = a stage moved) and refuses the pivot only on `false`,
+only when `cancelsWhen === 'noStatChangeLanded'`, and only when the target's ability is not in
+`exceptAbilities`. `cancelsWhen === null` bumps `MEDFAILS.pivotConditionUnreadable` and keeps the
+pre-fix behaviour. `MEDI_PIVOT_UNCONDITIONAL=1` restores the defect;
+`MEDSEEN.pivotCancelledNothingLanded` and `MEDSEEN.pivotKeptByExceptAbility` count the two branches.
+
+Probe: `tests/probe_partingshot_conditional.js` (19 arms). Census rows: three under
+`move / pivotStatus`.
 
 **5.220.0 - A PRIORITY GATE READS THE ABILITY-MODIFIED PRIORITY.** `engine/medicham2-browser.js`.
 `Battle#getActionSpeed` (`sim/battle.ts:2639-2645`) runs the `ModifyPriority` event and then assigns

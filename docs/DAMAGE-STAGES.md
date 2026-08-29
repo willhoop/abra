@@ -1,6 +1,18 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.220.0 — 2026-08-29.**
+**Version: 5.221.0 — 2026-08-29.**
+
+**5.221.0 - NO STAGE MOVED, NO DAMAGE NUMBER MOVED, AND NO FEATURE READ MOVED EITHER.** The change in
+this version decides WHETHER THE USER OF A STATUS MOVE LEAVES THE FIELD after that move resolved. It
+touches no damage packet: `partingshot` has `basePower: 0` and `category: 'Status'`, so no stage in
+the table below is reached at all on the turn in question, and none of the inputs to any stage
+changed. Unlike 5.220.0 this batch touches nothing `board.js` reads, so `benchRisk` is unmoved and no
+refit is owed.
+
+`data/engine-diff.json` was not rewritten and `tests/test-engine-diff.js` was not re-run - it has no
+`--out` and would republish that artifact. The published **0 of 6,000 at all sixteen roll positions**
+therefore still stands from 02:49, and it is unchanged by construction rather than by assertion: that
+instrument compares `dmgRange` outputs and never reaches a `selfSwitch`.
 
 **5.220.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change in this version decides
 WHETHER A MOVE IS REFUSED AT ALL, above every damage step: five priority gates now compare the

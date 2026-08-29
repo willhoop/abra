@@ -119,24 +119,23 @@ const ARMS = [
     what: 'THE KNOB CLEARED. Same Corviknight, an ability with no opinion about stat drops.' },
   { id: 'clearbody', species: 'garganacl', ability: 'Clear Body',
     what: 'THE DROP REFUSED WITHOUT REFLECTION — separates "unconditional switch" from '
-        + '"switch depends on the drop landing".',
-    /* ---- THE DECLARED DIVERGENCE — ROADMAP #531, FILED 2026-08-29, DELIBERATELY NOT LANDED -----
-     *
-     * This arm PARTS, and it is meant to: `data/moves.ts:13179` deletes Parting Shot's own
-     * `selfSwitch` when the drop landed on nobody, and `engine/medicham2-browser.js:26108` switches
-     * unconditionally. The authority keeps Incineroar standing; we bring Clefable in.
-     *
-     * IT IS DECLARED RATHER THAN FIXED because ENGINE was holding the forced-switch mirror in the
-     * same window and a second change to the same family would have made neither attributable
-     * (docs/DIVISIONS.md's file-it-do-not-fix rule). The declaration is not a waiver: a divergence
-     * that MATCHES nothing fails this file as STALE-ALLOW, so the day somebody lands the fix this
-     * probe goes red and says the declaration has become false.
-     *
-     * FOUR LEAVES, ONE CAUSE: the wrong body is standing in p1a, so its species, its types, its
-     * ability and its PP map all read the replacement's. */
-    allow: { side: 'p1', slot: 'p1a', fields: ['species', 'types', 'ability', 'pp.partingshot'],
-      why: 'ROADMAP #531 — Parting Shot\'s self-switch is unconditional here and conditional in the '
-         + 'authority. The wrong body is standing; the four leaves are one cause.' } },
+        + '"switch depends on the drop landing".' },
+  /* ---- THE DECLARATION IS GONE BECAUSE THE DEFECT IS — ROADMAP #531, LANDED 2026-08-29 ----------
+   *
+   * The arm above carried an `allow` for four leaves on `p1a` (`species`, `types`, `ability`,
+   * `pp.partingshot`): `data/moves.ts:13180` deletes Parting Shot's own `selfSwitch` when the drop
+   * landed on nobody, and this engine switched unconditionally — so the authority kept Incineroar
+   * standing while we brought Clefable in.
+   *
+   * IT WAS REMOVED IN THE SAME PASS AS THE FIX, WHICH IS THE WHOLE POINT OF HAVING DECLARED IT
+   * RATHER THAN DELETED THE ARM: a declared divergence that stops happening fails this file as
+   * STALE-ALLOW instead of quietly passing, so the fix could not land without this line being dealt
+   * with. The arm is now an ordinary control and must read BOARDS-IDENTICAL like the other three.
+   *
+   * THE CONDITION ITSELF IS PROVED ELSEWHERE AND DELIBERATELY NOT HERE. This file answers Will's
+   * Mirror Armor question and its four arms are cut for that; `tests/probe_partingshot_conditional.js`
+   * is the instrument for the condition, over nineteen arms across the ability door, the stat floor,
+   * both over-fire axes and a knob that puts the defect back. */
   { id: 'sturdy', species: 'garganacl', ability: 'Sturdy',
     what: 'THE KNOB CLEARED for the arm above. Same Garganacl, drops land normally.' },
 ];
@@ -291,5 +290,6 @@ if (JSONOUT) {
 const bad = results.filter(r => r.verdict !== 'BOARDS-IDENTICAL' && r.verdict !== 'AS-DECLARED (#531)');
 console.log(bad.length
   ? '\nFAIL — ' + bad.map(r => r.id + ' ' + r.verdict).join(', ')
-  : '\nPASS — 3 arms board-identical, 1 arm parts exactly as ROADMAP #531 declares and nowhere else.');
+  : '\nPASS — all 4 arms board-identical, and the declaration ROADMAP #531 used to need is gone '
+    + 'because the condition is implemented.');
 process.exit(bad.length ? 1 : 0);

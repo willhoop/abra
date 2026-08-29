@@ -1,6 +1,35 @@
 # ABRA — the plain-English deck
 
-**Version 5.220.0 · 2026-08-29 · Will Hooper**
+**Version 5.221.0 · 2026-08-29 · Will Hooper**
+
+**5.221.0 - A MOVE THAT INSULTS YOUR POKEMON AND RUNS AWAY ONLY RUNS AWAY IF THE INSULT LANDED.**
+
+There is a move in this format that lowers two of your Pokemon's attack stats and then swaps its own
+user out for a teammate. Two effects in one click, and it is one of the most popular moves in the
+game.
+
+What we had not noticed is that the second half depends on the first. In the real game, if nothing
+actually happened to your Pokemon - because it has an ability that refuses stat drops, or because
+those stats are already as low as they can possibly go - then the user does NOT get to leave. It just
+stands there. There is exactly one exception, an ability that reflects the drop back at the attacker
+instead of blocking it, and against that one the user does leave.
+
+Our copy always swapped. So we happened to get the exception right, but only because we got
+everything right in the same wrong way, and everywhere else we handed the opponent a free escape the
+real game refuses. The result is the worst kind: the wrong Pokemon is standing on the field, and it
+stays wrong for the rest of the battle.
+
+We also went and asked the game itself which abilities can do this, instead of trusting the note
+someone wrote. There were three, not two - the extra one protects a Grass-type TEAMMATE rather than
+itself. A fourth blocks only one of the two stats, and because the other one still drops, the user
+DOES get to leave; that one is now a test that has to keep passing, because a careless fix would have
+broken it. A fifth is named in the real game's code and no Pokemon in this format has it, so we left
+it alone.
+
+Across 961 recorded games, the number where our board ever differs from the real game went from 93 to
+92, and the narration disagreements from 208 to 207. We had said we expected NO change in that
+figure, because this situation is rare in real play. It changed by one. We were wrong, and we are
+saying so rather than rewriting what we predicted.
 
 **5.220.0 - SOME ABILITIES MAKE A MOVE GO FIRST. WE REMEMBERED THAT WHEN WORKING OUT THE ORDER,
 AND FORGOT IT EVERYWHERE ELSE.**

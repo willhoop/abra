@@ -1,6 +1,14 @@
 # ABRA — the model family (living reference)
 
-**Version 5.220.0 · Last updated 2026-08-29.**
+**Version 5.221.0 · Last updated 2026-08-29.**
+
+**5.221.0 - NO MODEL CHANGED AND NO FITTED VECTOR IS OWED. THE SIMULATOR EVERY MODEL RESTS ON NOW
+CANCELS A CONDITIONAL PIVOT WHEN ITS STAT DROP LANDED ON NOBODY.** `selfSwitch` is a DEFAULT for the
+one move in this format whose own handler deletes it, and this engine read it as a promise.
+**Census 798 to 801 probed mechanics live, 0 missing.** Empirical arm over 961 games: board-parted
+**93 to 92**, protocol 208 to 207. **The prediction was UNMOVED and it missed by one, in the improving
+direction** - recorded as a miss rather than reframed. No `board.js` export moved, so unlike 5.220.0
+this batch owes MEASURE nothing. Every quarantined figure in this ledger stays quarantined.
 
 **5.220.0 - ONE MODEL INPUT MOVED, AND IT IS DECLARED.** The simulator's five priority-refusal
 gates now compare the ability-modified priority, the same number the turn sort uses, instead of the

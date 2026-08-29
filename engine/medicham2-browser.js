@@ -603,6 +603,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * (U-turn, Volt Switch, Flip Turn) and the state pass (Baton Pass, Shed Tail). A zero on a game
    * with any pivot in it means every entry line is one field short. */
   switchNamedItsCause: 0,
+  /* ROADMAP #531 -- A CONDITIONAL PIVOT THAT DID NOT HAPPEN, because the drop it is paid for landed
+     on nobody: every stat refused, or every stat already at the floor, or one of each. Exactly ONE
+     move in this format carries `pivotStatus.conditional` and it is derived from the handler that
+     deletes its own `selfSwitch`, so this counter is the whole population of the mechanic. A zero
+     across a run in which Parting Shot met a Clear Body means the gate is not reaching this site. */
+  pivotCancelledNothingLanded: 0,
+  /* ROADMAP #531 -- THE OTHER HALF, AND IT IS THE ONE THAT MUST NOT BE MISSED. The drop landed on
+     nobody AND the target carries the ability the handler names as its exception, so the pivot
+     stands. It is counted separately from the ordinary pivot precisely because "we agree here" was
+     true before the fix for the wrong reason -- we agreed with the exception because we agreed with
+     everything. A zero on a Parting Shot into the format's one Mirror Armor body says the exception
+     is no longer being taken and the fix has started stranding a body it must not. */
+  pivotKeptByExceptAbility: 0,
   /* 2026-08-24 -- FICKLE BEAM PROCS THAT ANNOUNCED THEMSELVES. One move in the format carries
    * `conditionalPower {when:'chance'}`; a zero across a run with it clicked ~10 times means the line
    * is not being written and the stream is short exactly where the damage doubled. */
@@ -2261,6 +2274,19 @@ const MEDFAILS = { encoreAction: 0,
      That is the exact pre-fix engine, in which Innards Out derived onto the wrong tag entirely and
      nothing anywhere read it. MUST READ 0 on any shipping run. */
   damageTakenTollRestored: 0,
+  /* ROADMAP #531 -- MEDI_PIVOT_UNCONDITIONAL=1 is armed, so a status pivot whose stat drop landed on
+     nobody switches the user out anyway. That is the exact shipped engine: `selfSwitch` read as a
+     promise instead of a default. Set for the whole run at the moment the gate would have refused,
+     so a run that never reached the gate leaves it at 0 and cannot claim the knob bound.
+     MUST READ 0 on any shipping run. */
+  pivotUnconditionalRestored: 0,
+  /* ROADMAP #531 -- THE LOUD FALLBACK. The move carries `pivotStatus.conditional` and the artifact
+     could not say WHAT the cancellation hangs on (`cancelsWhen` is null, meaning tag_dex could not
+     parse the guard). The engine then pivots, which is the pre-fix behaviour, rather than picking a
+     side -- an unreadable condition is not evidence for either answer, and guessing here decides
+     which body holds a slot for the rest of the game. A non-zero reading means the derivation has
+     come unwired upstream and this mechanic is silently back to unconditional. */
+  pivotConditionUnreadable: 0, pivotConditionUnreadableFirst: '',
   /* WIRE 158 -- the holder carries `damageMultOnRepeat` and the artifact's `steps4096` is missing,
      empty, or does not start at the identity 4096. The consumer then applies NOTHING rather than
      guessing a ladder, because an invented step is a damage number nobody can trace. A non-zero
@@ -12786,6 +12812,15 @@ const SIDEBUFF_FOE_SIDE_ONLY=(typeof process!=='undefined'&&process.env&&process
  * Any run carrying it also carries a non-zero `MEDFAILS.damageTakenTollRestored`. Same shape as
  * MEDI_NO_METRONOME_LADDER above. */
 const NO_DAMAGE_TAKEN_TOLL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_DAMAGE_TAKEN_TOLL==='1');
+/* ROADMAP #531 -- MEDI_PIVOT_UNCONDITIONAL=1 PUTS THE UNCONDITIONAL PIVOT BACK: a status pivot whose
+ * own handler deletes its `selfSwitch` when the drop landed on nobody switches the user out anyway,
+ * which is precisely the engine that shipped and precisely why the gap was invisible -- we agreed
+ * with the authority's ONE named exception (Mirror Armor) because we agreed with it on everything.
+ * It is the whole clause: the body leaves, the replacement is brought in, and the wrong Pokemon
+ * holds the slot for the rest of the game, so the red arm is the before-state rather than half of
+ * it. Any run carrying it also carries a non-zero `MEDFAILS.pivotUnconditionalRestored`. Same shape
+ * as MEDI_NO_DAMAGE_TAKEN_TOLL above. */
+const PIVOT_UNCONDITIONAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PIVOT_UNCONDITIONAL==='1');
 /* 2026-08-23 -- MEDI_VOL_START_ARG_BLIND=1 PUTS THE GENERIC VOLATILE START LINE BACK for the one
  * volatile whose field 4 is computed: `-start|BODY|move: disable` instead of
  * `-start|BODY|Disable|<the sealed move>`. It exists so `tests/probe_volatile_start_field.js` can be
@@ -26846,9 +26881,15 @@ function battleTurn(S,rng,actsForA,actsForB){
            Pokemon on the bench and left the replacement untouched — the shape Will read off the
            turn-1 list as "Basculegion pivots out with Flip Turn, Archaludon comes in, SHOWDOWN has
            Archaludon at -1/-1 and we have 0/0". `_pt` is resolved once at the top of this branch. */
+        /* ROADMAP #531 -- `null` = the drop block never ran, `false` = it ran and NOTHING moved,
+         * `true` = at least one stage actually changed. It is three answers rather than two because
+         * the pivot gate below may only fire on the middle one: a move that never reached the drop
+         * at all (no target, a refusal above) keeps exactly the behaviour it had. */
+        let _dropLanded=null;
         if(a.mv&&_pt&&!_pt.fainted){
           const _sc2=TAGS.param('move',a.mv,'statChangeInCode');
           if(_sc2&&_sc2.boosts&&_sc2.on==='target'&&_pt.boosts){
+            _dropLanded=false;
             const _sg=invSign(_pt);   // WIRE 100b
             let _ref2=null;                // WIRE 3 -- refuse per stat, announce once
             for(const k in _sc2.boosts){
@@ -26858,6 +26899,12 @@ function battleTurn(S,rng,actsForA,actsForB){
                         if(_r){ _ref2=_ref2||_r; continue; } }
               const _b0=_pt.boosts[_s];
               _pt.boosts[_s]=clamp(_pt.boosts[_s]+_d,-6,6);
+              /* ROADMAP #531 -- THE APPLIED DELTA, WHICH IS WHAT `Battle#boost` COUNTS AS SUCCESS.
+               * Not "was the stat requested" and not "was it refused": `boostBy` returns the CAPPED
+               * change, so a stat already at the floor contributes nothing even though nothing
+               * refused it, and a PARTIAL application (one stat refused, one landed) is a success.
+               * Both halves are staged as arms in tests/probe_partingshot_conditional.js. */
+              if(_pt.boosts[_s]!==_b0)_dropLanded=true;
               /* ROADMAP #289 -- the clamped line is announced here too. `statChangeInCode.on ===
                * 'target'` has three members over the whole format -- Defog, Parting Shot, Strength
                * Sap -- and all three call `this.boost(...)` out of a MOVE's own handler with neither
@@ -26923,6 +26970,53 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_tv.block==='move'){MEDSEEN.moveTrapBlockedSwitch++;continue;}
           if(_tv.block==='fairy'){MEDSEEN.fairyLockBlockedSwitch++;continue;}
           if(_tv.block==='partial'){MEDSEEN.trapBlockedSwitchByMove++;continue;}
+        }
+        /* ---- ROADMAP #531 -- THE PIVOT IS THE PAYMENT'S RECEIPT, NOT A PROPERTY OF THE CLICK -----
+         *
+         * `selfSwitch: true` is a DEFAULT for one move in this format and the handler takes it back:
+         *
+         *     const success = this.boost({ atk: -1, spa: -1 }, target, source);
+         *     if (!success && !target.hasAbility("mirrorarmor")) { delete move.selfSwitch; }
+         *
+         * (data/moves.ts:13178-13181, and `data/mods/champions/moves.ts` does not mention the move,
+         * so mainline applies.) This engine switched unconditionally, which made us right about the
+         * NAMED EXCEPTION by accident -- the condition Mirror Armor is an exception TO was not
+         * implemented, so the exception could not be violated -- and wrong everywhere a drop is
+         * refused. Board-material without argument: the wrong body holds the slot, and it stays
+         * wrong for the rest of the game.
+         *
+         * NOTHING HERE IS NAMED. `conditional`, `cancelsWhen` and `exceptAbilities` are all read off
+         * the handler by tag_dex, so a second conditional pivot arrives without another branch and
+         * a change to the exception list arrives without an edit. Membership was printed before this
+         * was wired: `delete move.selfSwitch` occurs ONCE in the whole dex.
+         *
+         * THE THREE WAYS TO REACH IT, and all three are staged arms rather than reasoning:
+         *   an ability refuses BOTH stats   Clear Body, White Smoke, Flower Veil on a Grass ally
+         *   both stats are AT THE FLOOR     nothing refused anything and nothing could move
+         *   one of each                     Hyper Cutter on Attack, Special Attack at -6
+         * And the three ways it must NOT fire: a PARTIAL landing (`Battle#boost` calls that a
+         * success), the exception ability, and any pivot whose `selfSwitch` nothing deletes.
+         *
+         * `_dropLanded === false` is deliberately not `!_dropLanded`: a move that never reached the
+         * drop keeps the behaviour it had, because this gate may only speak about a drop it watched.
+         */
+        if(a.mv&&_dropLanded===false){
+          const _pv=TAGS.param('move',a.mv,'pivotStatus');
+          if(_pv&&_pv.conditional){
+            if(_pv.cancelsWhen!=='noStatChangeLanded'){
+              /* LOUD, NOT SILENT. A conditional pivot whose condition the artifact cannot state
+                 keeps the pre-fix behaviour and says so, because guessing decides which body holds
+                 a slot for the rest of the game. */
+              MEDFAILS.pivotConditionUnreadable++;
+              if(!MEDFAILS.pivotConditionUnreadableFirst)
+                MEDFAILS.pivotConditionUnreadableFirst=String(a.mv)+':'+String(_pv.cancelsWhen);
+            } else {
+              const _tab=String((_pt&&_pt.ability)||'').replace(/[^a-z0-9]/gi,'').toLowerCase();
+              if((_pv.exceptAbilities||[]).indexOf(_tab)>=0)MEDSEEN.pivotKeptByExceptAbility++;
+              else if(PIVOT_UNCONDITIONAL)MEDFAILS.pivotUnconditionalRestored=1;
+              else {MEDSEEN.pivotCancelledNothingLanded++;continue;}
+            }
+          }
         }
         const idx=own.indexOf(m);
         /* `a.to` names the replacement when the caller chose one. A switch action without it keeps

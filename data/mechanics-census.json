@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T12:52:04.382Z",
+  "generated": "2026-08-29T13:41:43.737Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 798,
-  "live": 798,
+  "probed": 801,
+  "live": 801,
   "missing": 0,
-  "armed": 798,
+  "armed": 801,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1744,6 +1744,36 @@
       "label": "Parting Shot switches the user out",
       "live": true,
       "detail": "active side A after the turn — after Charm incineroar,corviknight (the user must stay); after Parting Shot milotic,corviknight",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "pivotStatus",
+      "label": "Parting Shot does NOT switch the user out when its drop landed on nobody",
+      "live": true,
+      "detail": "slot 0 after the turn, then the target's atk/spa — no ability: milotic,corviknight target -1/-1 (the drop lands, the user leaves); Clear Body: incineroar,corviknight target 0/0 (the drop lands on nobody, so the user STAYS)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "pivotStatus",
+      "label": "a target already at the stat floor cancels the pivot too — no ability involved",
+      "live": true,
+      "detail": "slot 0 after the turn, then the target's atk/spa — Attack alone at the floor: milotic,corviknight target -6/-1 (SpA still moves, so the user leaves); both at the floor: incineroar,corviknight target -6/-6 (nothing can move, so the user STAYS)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "pivotStatus",
+      "label": "and it still pivots against the one ability the handler exempts",
+      "live": true,
+      "detail": "slot 0 after the turn, then the target's atk/spa — Clear Body: incineroar,corviknight target 0/0 (the user stays); Mirror Armor on the SAME Corviknight: milotic,corviknight target 0/0 (the drop lands on nobody either, and the handler exempts it by name, so the user LEAVES)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3813,7 +3843,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 28.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 27.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7433,7 +7463,7 @@
       "tag": "pivotStatus",
       "label": "a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch",
       "live": true,
-      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 44 to 46",
+      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 50 to 52",
       "hollow": false,
       "armed": true,
       "directCall": false

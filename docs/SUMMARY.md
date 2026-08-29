@@ -1,6 +1,18 @@
 # ABRA — Project Summary
 
-**Version 5.220.0 · 2026-08-29 · Will Hooper**
+**Version 5.221.0 · 2026-08-29 · Will Hooper**
+
+**5.221.0 - `selfSwitch: true` IS A DEFAULT THE HANDLER TAKES BACK, AND THIS ENGINE READ IT AS A
+PROMISE.** Parting Shot's own `onHit` deletes its `selfSwitch` when `this.boost({atk:-1, spa:-1})`
+landed on nobody, with `mirrorarmor` named as the exception - the only `delete move.selfSwitch` in the
+whole dex. We pivoted unconditionally, so we were right about the exception by being wrong about the
+rule it is an exception to, and the wrong body held the slot for the rest of the game. **Derived from
+the format, and wider than the card: THREE abilities cancel it** - Clear Body, White Smoke and Flower
+Veil, which covers a Grass ALLY and not its Fairy holder - **Mirror Armor is the exception, and Hyper
+Cutter refuses one stat only, so the pivot SURVIVES it** because a partial landing is a success.
+**Full Metal Body has zero legal carriers and was not wired.** **Census 798 to 801 live / 801 probed /
+0 missing. Board-parted 93 to 92 of 961, protocol 208 to 207 - predicted UNMOVED, so the prediction
+MISSED by one, in the improving direction.**
 
 **5.220.0 - EVERY PRIORITY GATE COMPARED THE PRINTED MOVE PRIORITY AND THE AUTHORITY COMPARES
 THE ONE THE ABILITY CHANGED.** `getActionSpeed` writes the modified number onto the move, which is

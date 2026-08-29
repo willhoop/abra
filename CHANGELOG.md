@@ -11,6 +11,79 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.221.0] — 2026-08-29
+
+### Fixed
+- **PARTING SHOT'S SELF-SWITCH IS A DEFAULT ITS OWN HANDLER TAKES BACK, AND THIS ENGINE READ IT AS A
+  PROMISE.** `data/moves.ts:13178-13181`: `const success = this.boost({atk:-1, spa:-1}, target,
+  source); if (!success && !target.hasAbility("mirrorarmor")) delete move.selfSwitch;`. So the pivot
+  happens ONLY IF the drop landed on somebody. `data/mods/champions/moves.ts` does not mention the
+  move and the mod's `abilities.ts` and `scripts.ts` touch neither `selfSwitch` nor `onTryBoost` nor
+  `boost(` — grepped, not recalled — so mainline applies. **We were right about the one named
+  exception BY ACCIDENT**: the condition Mirror Armor is an exception TO was not implemented, so the
+  exception could not be violated.
+- **WHAT `Battle#boost` COUNTS AS SUCCESS IS THE CRUX, AND IT IS THE APPLIED DELTA.** `success`
+  starts `null` and is set the first time a stat's CAPPED change is non-zero, so a PARTIAL landing
+  (one stat refused, one applied) is a success and the pivot stands. `getCappedBoost` runs BEFORE
+  `TryBoost`, so a stat already at -6 reaches every ability handler as `0` and no refuser ever sees
+  it — which is why the ABILITY door and the STAT-FLOOR door are separate and are staged separately.
+- **DERIVED FROM THE FORMAT RATHER THAN INHERITED FROM THE CARD, AND THE CARD WAS NARROW.** SEVEN
+  legal moves carry `selfSwitch` and exactly ONE is conditional (`delete move.selfSwitch` occurs once
+  in the whole 954-move dex). FIVE legal abilities can refuse a foe's Attack or Special Attack:
+  **three cancel the pivot** — Clear Body, White Smoke, and **Flower Veil, which the card did not
+  have** (`onAllyTryBoost`, Grass types only, and a Fairy Florges does not cover itself) — one is the
+  named exception (Mirror Armor) and one refuses a single stat so the pivot SURVIVES it (Hyper
+  Cutter). **Full Metal Body has ZERO legal carriers**: named by the handler read, absent from this
+  regulation, not wired and not staged.
+- **THE TAG CARRIES THE RULE NOW, NOT A NAME.** `engine/tag_dex.js`'s `pivotStatus` derives
+  `conditional`, `cancelsWhen` and `exceptAbilities` off the handler text. Over-match measured before
+  wiring: **exactly one move row in `data/tags.json` changed**, zero ability rows, zero item rows.
+  An unparseable condition yields `cancelsWhen: null` and the engine's consumer is LOUD about it
+  (`MEDFAILS.pivotConditionUnreadable`) and keeps the pre-fix behaviour, because guessing decides
+  which body holds a slot for the rest of a game. The first guard regex WAS unparseable — `[^)]*`
+  cannot cross the bracket inside `hasAbility("mirrorarmor")` — and the loud fallback is what said so.
+
+### Added
+- `tests/probe_partingshot_conditional.js` — **19 arms over two engines, 5 red and 14 controls,
+  SHOWN RED FIRST at 5 board-material defects on the shipping bytes.** Three doors are red (an
+  ability refusing both stats, on two different bodies; the ally door; both stats at the floor; and
+  one of each, which neither door reaches alone) and every one of them is paired with a control on
+  the SAME BODY that must keep pivoting. The over-fire controls are the ones that matter: a PARTIAL
+  refusal (Hyper Cutter), an INVERTED drop (Contrary), a partial FLOOR on either stat, an
+  unconditional status pivot into the same Clear Body, and a bare voluntary switch.
+  `MEDI_PIVOT_UNCONDITIONAL=1` parts every red and moves no control, and the arms assert the branch
+  COUNTS — cancel exactly 1 on a red and 0 on a control, exception exactly 1 on the Mirror Armor arm
+  — because `mirror` agreed before the fix as well and "the boards match" is not evidence there.
+- Three census rows under `move|pivotStatus`, each reading the OUTCOME (which body is standing) with
+  a control that gives the opposite answer. **Census 798 -> 801 live / 801 probed / 0 missing.**
+
+### Changed
+- `tests/probe_partingshot_mirrorarmor.js` — its `clearbody` arm's DECLARED divergence is deleted in
+  the same pass as the fix, and the file now expects all four arms board-identical. That is the
+  mechanism working: a declared divergence that stops happening fails as STALE-ALLOW, so the fix
+  could not land without the declaration being dealt with.
+
+### Notes
+- **EMPIRICAL BOARD-PARTED 93 -> 92 OF 961** (boards-never-diverged 868 -> 869), protocol 208 -> 207,
+  turn boundaries 10244/10559 -> 10251/10565. Pins: release `eb6a797411cd` -> **`124f5aa8c8bd`**,
+  pool `0d103fb9fa87`, census `9446a684709d`, `--games 1200` (961), `--turns 12`, `--arm middle`,
+  `--steering empirical`, `--end-state`, `--out data/verification/game-differential.partingshot531.json`.
+- **THE PREDICTION MISSED, BY ONE, IN THE IMPROVING DIRECTION, AND IT IS RECORDED AS A MISS.** The
+  prior card predicted the pinned pool UNMOVED — Parting Shot into a boost-refusing ability is rare —
+  and named the lab as the scoreboard. The lab moved as predicted; the pool moved by one game.
+- **The one game is attributed by its leaf signature and the signature names the move.**
+  `active[].species` 9->8, `types` 8->7, `ability` 7->6, `maxhp` 8->7, `item` 11->10, `hp` 53->52 and
+  **`pp[].partingshot` 3 games -> 2** — the shape of one board holding the wrong body in a slot.
+  Nothing rose. `party.hp` and `party.fainted` did not move.
+- Report: `docs/_reports/2026-08-29-partingshot-conditional.md`. **Two of the five inherited reds were
+  re-run and are unchanged at their stated values** — `probe_shield_refusal_line` 13 arms / 1 failing
+  and `probe_instruct_shield` 5 arms / 3 failing; `probe_forced_switch_mirror` (the nearest family to
+  this change) is GREEN. The other three — `probe_random_target_address`, `test-resolution-order`
+  (a V8 heap exhaustion in the harness) and `test-engine-diff` — were NOT re-run and are neither
+  claimed fixed nor claimed unchanged. `engine/board.js`, `engine/magnemite.js` and
+  `data/engine-data.js` were not touched, and `data/game-differential.json` was not written.
+
+
 ## [5.220.0] — 2026-08-29
 
 ### Fixed
