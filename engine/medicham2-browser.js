@@ -1586,6 +1586,27 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * `instructRepeat` on a board where a shield is standing is the state this engine was in: the
    * second action was handed out THROUGH a raised Protect. */
   instructRefusedByShield: 0,
+  /* ROADMAP #534 -- WHICH ROAD THE REPEAT'S AIM CAME DOWN, four ways, because "the repeat happened"
+   * cannot tell them apart and `instructRepeat` was non-zero throughout the whole defect.
+   *   instructAimReused         the slot the click named still holds a live body, and it is hit.
+   *                             This is the authority's ordinary case and was NEVER taken here.
+   *   instructAimSlotVacated    that slot was emptied or its occupant fainted in the same turn, so
+   *                             the authority falls through to `getRandomTarget` and so do we. The
+   *                             ROADMAP #223 case the splice site's comment was written for.
+   *   instructAimNoSlot         the click named no slot at all -- self-aimed, spread or field.
+   *   instructAimRepicked       the old road, taken now only when one of the two above says to.
+   * A non-zero `instructAimRepicked` beside a zero `instructAimSlotVacated` means the recording and
+   * the reader are out of step; `MEDFAILS.instructAimUnrecorded` is the loud version of that. */
+  instructAimReused: 0, instructAimSlotVacated: 0, instructAimNoSlot: 0, instructAimRepicked: 0,
+  /* The one clause of `getTarget` this engine does not express: a fainted ALLY at the stored loc is
+   * returned by the authority and the repeat fails on it. `playerAction` prices a click against a
+   * live body and has no expression for a dead one, so this site falls back instead -- counted, not
+   * hidden. Unreachable from the differential's script format, which cannot aim at an ally. */
+  instructAimFaintedOccupant: 0,
+  /* The move's own target class says the loc decides nothing -- a spread, field or self move, or a
+   * `randomNormal` whose named branch the authority gates off. The aim is recorded for it (the
+   * authority records one too) and deliberately not spent. */
+  instructAimClassNotByLoc: 0,
   sideBuffRefused: 0, itemRoomHidden: 0, wonderRoomSwap: 0, powerDoubledOnRead: 0,
   /* ROADMAP #462 -- the parked-vs-lost doors. `itemLostThroughDoor` is every item that left a body by
    * the ONE loss door; `itemLostWhileSuppressed` is the subset that was PARKED at the time, which is
@@ -2200,6 +2221,15 @@ const MEDFAILS = { encoreAction: 0,
      means an aim was resolved by a FALLBACK, which is exactly the silent default this whole family
      of defects was made of, so it is named as well as counted. */
   defaultTargetClassUnknown: 0, defaultTargetClassUnknownFirst: '',
+  /* ROADMAP #534 -- the two ways the instructed repeat can end up choosing its own target when the
+     authority would have reused a recorded one. `instructAimUnrecorded` means the commit site and the
+     reader are out of step: a body committed a click (it has a `_lastMove`) and no aim was written
+     against that same id. `instructAimClassUnknown` means `targetClass` had no row, so "does the loc
+     decide anything for this move" was unanswerable and the pre-change road was taken. Both must read
+     0 over legal moves; a non-zero on either is an aim resolved by a FALLBACK, which is the silent
+     default this whole family of defects is made of, so both are named as well as counted. */
+  instructAimUnrecorded: 0, instructAimUnrecordedFirst: '',
+  instructAimClassUnknown: 0, instructAimClassUnknownFirst: '',
   /* ROADMAP #514 -- this module's own source could not be read, so LATCH_FIELDS_WRITTEN is empty and
      NO user-latch gate is enforced. That is the pre-change behaviour and it is announced rather than
      assumed: a silent empty set and a correctly-empty one produce the identical board. */
@@ -5798,6 +5828,55 @@ function shieldRefusalAnnounce(tgt){
 const INSTRUCT_NO_SHIELD=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_INSTRUCT_NO_SHIELD==='1');
 if(INSTRUCT_NO_SHIELD)MEDFAILS.instructNoShieldRestored=1;
+
+/* ROADMAP #534 -- `MEDI_INSTRUCT_NO_AIM_REUSE=1` PUTS BACK THE RE-PICK, so the probe can red its own
+ * arms on the shipping module rather than declaring an expected line. It restores the pre-change
+ * behaviour EXACTLY -- `targetForMove` over the living foes, falling to `live(_foes)[0]` -- and it
+ * reverts only the AIM: the repeat still happens, the shield above it still refuses, and the arms
+ * assert `instructRepeat` at the same value on both loads so that a knob which quietly killed the
+ * mechanic could not be mistaken for one that re-aimed it. It stamps
+ * `MEDFAILS.instructNoAimReuseRestored` at load, which is what makes "the knob bound" checkable
+ * before any verdict is read. */
+const INSTRUCT_NO_AIM_REUSE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_INSTRUCT_NO_AIM_REUSE==='1');
+if(INSTRUCT_NO_AIM_REUSE)MEDFAILS.instructNoAimReuseRestored=1;
+
+/* ROADMAP #534 -- WHICH MOVES TRAVEL BY LOC AT ALL, READ OFF THE CLASS AND NEVER OFF A NAME.
+ *
+ * `lastMoveTargetLoc` is recorded for EVERY move, including a spread one, because `resolveAction`
+ * fills an absent `targetLoc` from `getRandomTarget` for anything (sim/battle-queue.ts:263-267). It
+ * only DECIDES anything for the classes `useMoveInner` then resolves through the returned body:
+ * `getMoveTargets` (sim/pokemon.ts:790) answers `all` / `foeSide` / `allySide` / `allyTeam` and the
+ * `allAdjacent*` families from the FIELD and ignores `target` entirely. So handing the recorded slot
+ * to a spread click would change which body `playerAction` PRICES the action against without
+ * changing what the authority does -- a behaviour change dressed as a fix, which is this project's
+ * signature failure. This set is the gate on that.
+ *
+ * TWO CLASSES ARE DELIBERATELY OUT, each with the authority's own reason:
+ *   randomNormal -- `getTarget`'s named branch is gated off for it in so many words
+ *                   (`if (move.target !== 'randomNormal' && this.validTargetLoc(...))`,
+ *                   sim/battle.ts:2461), so the repeat re-rolls and WIRE 144 already does that.
+ *   scripted     -- `validTargetLoc` accepts it, but Counter and Mirror Coat are built by
+ *                   `playerAction` as COUNTED rather than aimed, so a slot handed to them would move
+ *                   a priced body for no modelled gain. Excluded on purpose, counted below, and OWED.
+ *
+ * THE CLASS COMES OUT OF THE ARTIFACT (`targetClass.target` is Showdown's own `move.target` string,
+ * derived by tag_dex for all 500 legal moves), so a move added to a later regulation is placed by its
+ * own class with no edit here -- the same reader `defaultTargetOf` uses. A move whose class cannot be
+ * read is counted, loudly, and falls through to the pre-change road. */
+const AIM_BY_LOC=new Set(['normal','any','adjacentFoe','adjacentAlly','adjacentAllyOrSelf']);
+function aimTravelsByLoc(mvId){
+  const tc=mvId?TAGS.param('move',mvId,'targetClass'):null;
+  const cls=tc&&tc.target;
+  if(!cls){
+    MEDFAILS.instructAimClassUnknown++;
+    if(!MEDFAILS.instructAimClassUnknownFirst)MEDFAILS.instructAimClassUnknownFirst=String(mvId);
+    return false;
+  }
+  if(AIM_BY_LOC.has(cls))return true;
+  MEDSEEN.instructAimClassNotByLoc++;
+  return false;
+}
 
 /* WIRE 149 -- THE CHOOSER CAN CLICK A SIDE GUARD, AND WHICH ONE IS DERIVED FROM THE SAME PARAM THE
  * REFUSAL IS. Will, 2026-08-10: *"its gotta be able to click it man"*, and the trigger is his too:
@@ -19810,6 +19889,11 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * `_mvRes`/`_mvResLast` were already cleared four lines below under ROADMAP #84, which is the same
    * clause of the same authority call; this is the member of that group that was missed. */
   out._lastMove=null;
+  /* ROADMAP #534 -- AND THE AIM GOES WITH IT, because `clearVolatile` clears both halves of one fact.
+   * It cannot be reached with `_lastMove` null (every reader asks the move first), so this is
+   * hygiene rather than a second guard -- but leaving a stale slot on a body that has been to the
+   * bench is the same half-cleared shape the comment above is about. */
+  out._lastAim=null;
   /* _disguiseBusted IS DELIBERATELY NOT CLEARED HERE. A Mimikyu that leaves and comes back does not
    * get a second disguise -- the forme change lasts the battle. It sits beside these two because the
    * natural instinct on reading this line is to reset every underscore flag alongside them, and that
@@ -21576,8 +21660,19 @@ function battleTurn(S,rng,actsForA,actsForB){
          bound to its user: this side's slots can be exchanged mid-turn by Ally Switch, and a self-aim
          re-resolved through a slot index would then land on the PARTNER. Showdown avoids the same trap
          by recomputing `pokemon.getLocOf(pokemon)` at execution rather than by remembering a slot. */
+      /* ROADMAP #534 -- `aimT`/`aimA` ARE THE SAME PAIR, FROZEN AT THE CHOICE, AND THEY EXIST BECAUSE
+         `tgtSlot`/`allySlot` DO NOT STAY THE CHOICE. Two sites above the kind dispatch rewrite them
+         when the action is replaced -- Encore's execution-time override and WIRE 144's `randomNormal`
+         re-roll -- and both are right to, because those decide which BODY is hit this instant.
+         The AUTHORITY records something else: `moveUsed(move, targetLoc)` is handed `action.targetLoc`
+         (sim/battle-actions.ts:291), and neither `OverrideAction` nor `getTarget`'s randomNormal
+         branch writes back to it. So `lastMoveTargetLoc` is the RAW CHOICE and can name a slot the
+         move never actually hit. Instruct is the one consumer of that field, and this pair is what it
+         reads. */
       acts.push({mon,side,a:_a,_selMv,tgtSlot:_a&&_a.target?foes.indexOf(_a.target):-1,
-        allySlot:(_a&&_a.target&&_a.target!==mon)?(side==='A'?actA:actB).indexOf(_a.target):-1});};
+        allySlot:(_a&&_a.target&&_a.target!==mon)?(side==='A'?actA:actB).indexOf(_a.target):-1,
+        aimT:_a&&_a.target?foes.indexOf(_a.target):-1,
+        aimA:(_a&&_a.target&&_a.target!==mon)?(side==='A'?actA:actB).indexOf(_a.target):-1});};
     mk(actA[0],'A',actB,actA[1]);mk(actA[1],'A',actB,actA[0]);mk(actB[0],'B',actA,actB[1]);mk(actB[1],'B',actA,actB[0]);
     /* what was actually clicked this turn, both sides, for observers (the Tower's local game
      * record). A summary, not the live objects -- nothing outside can mutate the turn. */
@@ -24102,6 +24197,25 @@ function battleTurn(S,rng,actsForA,actsForB){
          * lock that names a move the body does not carry. */
         if(_mid){
           m._lastMove=_mid;
+          /* ROADMAP #534 -- AND THE SLOT IT WAS AIMED AT RIDES THE SAME SITE, FOR THE SAME REASON THE
+           * CHOICE LOCK DOES. The authority writes both in ONE call:
+           *
+           *     pokemon.moveUsed(move, targetLoc)                    sim/battle-actions.ts:291
+           *     moveUsed(move, targetLoc) { this.lastMove = move; this.lastMoveTargetLoc = targetLoc; }
+           *                                                          sim/pokemon.ts:910-919
+           *
+           * so `lastMove` and `lastMoveTargetLoc` cannot disagree about which click they describe.
+           * Recording the pair here rather than beside the fifty redundant `m._lastMove=a.mv` writes
+           * below is what makes that true here too -- those sit inside individual kind branches and
+           * would have given the aim a different commit rule from the move.
+           *
+           * IT IS KEYED BY THE MOVE, and that is not belt-and-braces. Three sites ABOVE this line
+           * write `_lastMove` on a refusal road (the shield gate at 22607/22630 and Throat Chop's
+           * `onBeforeMove`), and a reader that trusted a bare pair would hand Instruct the aim of a
+           * DIFFERENT, earlier click. `tests/probe_instruct_target.js`'s `aim-stale-across-turns` arm
+           * is that case -- turn 1 aims at slot 1, turn 2 aims at slot 0 -- and it parts if the key is
+           * dropped. */
+          m._lastAim={mv:_mid,t:(it&&it.aimT!==undefined)?it.aimT:-1,a:(it&&it.aimA!==undefined)?it.aimA:-1};
           if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){
             m._lock=_mid; m._lockT=Infinity;
             MEDSEEN.choiceLockArmed++;
@@ -25236,9 +25350,15 @@ function battleTurn(S,rng,actsForA,actsForB){
          * after every other body had moved, which is a different turn. */
         /* 2026-08-29 -- SIGNED, for the reason the Encore override's own note gives one screen up. */
         const _cOwn=it.side==='A'?actA:actB, _cti=_sub2.target?(it.side==='A'?actB:actA).indexOf(_sub2.target):-1;
+        /* ROADMAP #534 -- `aimT`/`aimA` ride along, because a SPLICED action reaches the commit site
+         * exactly as a collected one does and the aim is recorded there. Without them the called
+         * move's own aim would be recorded as "no slot", and an Instruct that arrived afterwards
+         * would take the slotless road for a move that plainly named a slot. */
         const _cEntry={mon:m,side:it.side,a:_sub2,
           tgtSlot:_cti,
           allySlot:_cti>=0?-1:(_sub2.target?_cOwn.indexOf(_sub2.target):-1),
+          aimT:_cti,
+          aimA:_cti>=0?-1:(_sub2.target?_cOwn.indexOf(_sub2.target):-1),
           _order:TURN_ORDER.next,_pri:actionPriority({mon:m,side:it.side,a:_sub2},field),_qc:0,_copied:true};
         acts.splice(actIdx+1,0,_cEntry);
         continue;
@@ -26383,8 +26503,73 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!t||!_mid||_refused||t._charging||t._recharge){mvFail(m);continue;}
         const _side=actA.indexOf(t)>=0?'A':'B';
         const _foes=_side==='A'?actB:actA;
-        const _pick=targetForMove(t,_mid,live(_foes),field);
-        const _na=playerAction(t,_mid,(_pick&&_pick.target)||live(_foes)[0]||null,field);
+        /* ROADMAP #534 -- THE REPEAT GOES BACK AT THE SLOT THE CLICK NAMED. IT USED TO PICK AGAIN.
+         *
+         *     targetLoc: target.lastMoveTargetLoc                    data/moves.ts:9670
+         *
+         * That is the whole rule, and the two lines this replaces broke it twice over. `targetForMove`
+         * ranks the living foes by DAMAGE and returns the one the move hits hardest -- a best-play
+         * choice the authority never makes -- so a Psychic aimed at a resisting slot 0 came back at
+         * slot 1, and on the board this was found on it came back into a Protect that was never in
+         * its way. And `targetForMove` opens `if(!mv||!hasPower(mv))return null`, so for a SINGLE-
+         * TARGET STATUS MOVE it answered nothing at all and the old fallback `live(_foes)[0]` pinned
+         * the repeat to foe slot 0 -- for EVERY single-target status move in the format (73 of the 355
+         * single-target moves, derived and printed by the probe), not as a corner.
+         *
+         * THE SLOT IS RESOLVED BY `reaimToSlot` AND NOT BY A SECOND COPY OF THE RULE. `getTarget`
+         * (sim/battle.ts:2434) runs at RUN time and answers three ways -- the slot's live occupant is
+         * hit even if it is not the body that was aimed at; a fainted FOE falls through to
+         * `getRandomTarget`; a fainted ALLY is returned as-is. `reaimToSlot` is this engine's reading
+         * of exactly that source and already serves the thirteen sites that resolve a slot at
+         * execution, so Instruct becomes the fourteenth caller rather than the second implementation
+         * (CLAUDE.md: one fact, one implementation).
+         *
+         * `quiet` IS TRUE ON PURPOSE. `reaimedToSlot` and its siblings count how often a CLICK found a
+         * different body than the chooser named; this call asks the same question about a queued
+         * repeat, and letting it into those totals would make a counter that exists to be read a
+         * counter that cannot be. The four counters below are this site's own.
+         *
+         * A FAINTED ALLY IS THE ONE CLAUSE NOT HONOURED, and it is counted rather than hidden.
+         * `reaimToSlot`'s ally road hands back its occupant whatever state it is in, which is the
+         * authority; `playerAction` prices a click against a live body and has no expression for a
+         * dead one, so it falls back and says so. The ally axis is unreachable from the differential's
+         * script format anyway (a `normal` move resolves to `foes[t]` on both sides), so nothing here
+         * measures it either way. */
+        let _aimT=null,_road='';
+        const _aim=(!INSTRUCT_NO_AIM_REUSE&&t._lastAim&&t._lastAim.mv===_mid&&aimTravelsByLoc(_mid))
+                   ?t._lastAim:null;
+        if(_aim&&(_aim.t>=0||_aim.a>=0)){
+          /* THE OCCUPANT IS READ SEPARATELY FROM THE RESOLUTION, because `reaimToSlot` does the
+           * authority's retarget INSIDE itself and hands back a live body either way. Without this
+           * comparison a vacated slot and a reused one are the same non-null return, and the counter
+           * that exists to tell them apart would read `reused` on both. It did: the vacated arm's
+           * first run reported `reused 1, vacated 0` on a board where the aimed body was visibly on
+           * the floor. */
+          const _occ=_aim.t>=0?(_foes[_aim.t]||null):((_side==='A'?actA:actB)[_aim.a]||null);
+          const _r=reaimToSlot(null,{side:_side,mon:t,tgtSlot:_aim.t,allySlot:_aim.a},actA,actB,_mid,true);
+          const _lv=(_r&&!_r.fainted&&_r.curHP>0)?_r:null;
+          if(_lv&&_lv===_occ){_aimT=_lv;_road='reused';MEDSEEN.instructAimReused++;}
+          else if(_lv){_aimT=_lv;_road='vacated';MEDSEEN.instructAimSlotVacated++;}
+          else if(_r){_road='faintedally';MEDSEEN.instructAimFaintedOccupant++;}
+          else {_road='vacated';MEDSEEN.instructAimSlotVacated++;}
+        } else if(_aim){
+          /* A single-target click that named no slot. Nothing to reuse: the old road stands. */
+          _road='noslot';MEDSEEN.instructAimNoSlot++;
+        } else if(!INSTRUCT_NO_AIM_REUSE){
+          if(!t._lastAim||t._lastAim.mv!==_mid){
+            /* LOUD, because a silent default here looks exactly like a working feature. A body that
+               reached this branch has a `_lastMove`, so it committed a click, so the commit site
+               above wrote an aim keyed to that same id. If this ever fires, the two are out of step. */
+            MEDFAILS.instructAimUnrecorded++;
+            if(!MEDFAILS.instructAimUnrecordedFirst)MEDFAILS.instructAimUnrecordedFirst=String(_mid);
+          } else {_road='noslot';MEDSEEN.instructAimNoSlot++;}
+        }
+        if(!_aimT){
+          if(_road!=='noslot')MEDSEEN.instructAimRepicked++;
+          const _pick=targetForMove(t,_mid,live(_foes),field);
+          _aimT=(_pick&&_pick.target)||live(_foes)[0]||null;
+        }
+        const _na=playerAction(t,_mid,_aimT,field);
         if(!_na||_na.kind==='pass'){mvFail(m);continue;}
         /* `|-singleturn|TARGET|move: Instruct|[of] SOURCE` -- data/moves.ts:9665. The INSTRUCTED body
          * is the subject and the instructor is the attribution, which is the opposite way round from
@@ -26395,8 +26580,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          * by another body's pivot, so the second click has to re-resolve its aim exactly as a first
          * one does; the choke point above the kind dispatch reads these two fields and nothing else. */
         const _own=_side==='A'?actA:actB;
+        /* ROADMAP #534 -- and the repeat records its OWN aim, for the reason the called-move entry
+         * does one screen up: it reaches the commit site too, and an Instruct is legal twice in a
+         * turn from two different bodies. */
         const _entry={mon:t,side:_side,a:_na,tgtSlot:_na.target?_foes.indexOf(_na.target):-1,
           allySlot:(_na.target&&_na.target!==t)?_own.indexOf(_na.target):-1,
+          aimT:_na.target?_foes.indexOf(_na.target):-1,
+          aimA:(_na.target&&_na.target!==t)?_own.indexOf(_na.target):-1,
           _order:TURN_ORDER.next,_pri:actionPriority({mon:t,side:_side,a:_na},field),_qc:0,_instructed:true};
         acts.splice(actIdx+1,0,_entry);
         MEDSEEN.instructRepeat++;

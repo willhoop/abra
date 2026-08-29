@@ -11,6 +11,84 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.224.0] — 2026-08-29
+
+### Fixed
+- **THE INSTRUCTED REPEAT RE-PICKED ITS TARGET INSTEAD OF REUSING THE SLOT THE CLICK NAMED, SO THE
+  SECOND SWING LANDED ON A DIFFERENT BODY (ROADMAP #534).** The authority builds the second action
+  with `targetLoc: target.lastMoveTargetLoc` (`data/moves.ts:9670`) — the slot the move was already
+  aimed at, written by `Pokemon#moveUsed(move, targetLoc)` at the same instant as `lastMove`
+  (`sim/pokemon.ts:919`), whose one caller passes `action.targetLoc` (`sim/battle-actions.ts:291`).
+  This engine threw it away and ran `targetForMove`, a best-damage heuristic, over the living foes.
+  **CHAMPIONS REWRITES NONE OF THE CHAIN AND THAT IS CHECKED ON EVERY PROBE RUN**: Instruct is not
+  among the 259 overridden moves, and the mod's `scripts.ts` overrides neither `runMove` nor
+  `getTarget` nor `getRandomTarget` nor `resolveAction` nor `moveUsed`.
+- **THE STATUS ROAD WAS THE HALF THAT WAS NOT IN THE FILING, AND IT IS THE WIDER ONE.**
+  `targetForMove` opens `if (!mv || !hasPower(mv)) return null`, so for a single-target STATUS move
+  it answered nothing at all and the fallback `live(_foes)[0]` pinned the repeat to **foe slot 0**
+  unconditionally — for **73 of the 355 legal single-target moves** in this regulation, derived and
+  printed rather than typed.
+
+### Added
+- **The aimed slot is recorded beside `_lastMove`, at the ONE site the authority writes both at**,
+  and is KEYED BY THE MOVE ID: three sites above the commit site write `_lastMove` on a refusal road,
+  and a reader that trusted a bare pair would hand the repeat an earlier click's aim. `aimT`/`aimA`
+  are frozen at the choice, separately from `tgtSlot`/`allySlot`, because Encore's execution-time
+  override and the `randomNormal` re-roll rewrite those two and the authority never writes back to
+  `action.targetLoc`.
+- **`aimTravelsByLoc` gates the READ on the move's target class**, read off `targetClass.target` in
+  `data/tags.json` and never off a name, with the membership PRINTED on every probe run: **360 of the
+  500 legal moves spend the recorded loc, 140 do not.** `resolveAction` fills a `targetLoc` for every
+  move including a spread one and `getMoveTargets` then ignores it, so spending the slot for a spread
+  click would move which body the action is PRICED against and change nothing the authority does.
+  `randomNormal` is excluded by the authority's own clause `move.target !== 'randomNormal'`.
+- **The slot is resolved through `reaimToSlot`, which becomes its fourteenth caller** rather than a
+  second copy of `Battle#getTarget`: a live occupant is hit even if it is not the body that was aimed
+  at, and a fainted FOE falls through to `getRandomTarget`. A fainted ALLY is the one clause not
+  expressed — the authority returns it and `playerAction` cannot price a click against a dead body —
+  and it is counted on `MEDSEEN.instructAimFaintedOccupant` rather than hidden.
+- New counters `MEDSEEN.instructAimReused / instructAimSlotVacated / instructAimNoSlot /
+  instructAimRepicked / instructAimClassNotByLoc`, and two loud MEDFAILS rows,
+  `instructAimUnrecorded` and `instructAimClassUnknown`, both asserted at exact zero by the probe so
+  the file cannot pass through a silent default. Revert knob `MEDI_INSTRUCT_NO_AIM_REUSE=1`, stamped
+  at load in `MEDFAILS.instructNoAimReuseRestored`.
+- `tests/probe_instruct_target.js` — **14 arms, 0 failing**, 5 red and 9 control. Both directions on
+  the damaging road, the status road, the status road into a shield, and the board the row was filed
+  on. The controls include the two cases where re-picking and reusing AGREE (one per slot, with
+  `instructAimReused` asserted at 1 so the arm proves the road was taken rather than skipped), the
+  aimed slot VACATED by a same-turn faint, a spread click, a self-aimed click, a two-turn staleness
+  board, a target with no last move, and #532's shield refusal.
+
+### Changed
+- `tests/probe_instruct_shield.js`'s declared `KNOWN-OPEN` arm `instruct-foe-singletarget-repeat` is
+  **PROMOTED to a counted control** rather than deleted: an exclusion that outlives the defect it
+  names is a stale handoff in a new costume. That probe reads **13 arms / 0 failing / 0 KNOWN-OPEN**.
+
+### Notes
+- **CENSUS UNMOVED AT 801 LIVE / 801 PROBED / 0 MISSING — predicted before the run**, because no new
+  tag is wired: `instructsTarget` and `targetClass` were both already live and this adds a reader.
+- **EMPIRICAL BOARD-PARTED 91 -> 90 OF 961, AND THE PREDICTION WAS "UNMOVED", SO IT MISSED BY ONE, IN
+  THE IMPROVING DIRECTION.** Protocol unmoved at 205; throws 2 -> 1; boundaries 10252/10565 ->
+  10260/10566. Release `e8f7c7dba595`, census pin `9446a684709d`, pool `0d103fb9fa87`, 961 games,
+  cap 12, arm `middle`, `--steering empirical`, `baseline_comparability.ok: true`.
+- **THE POOL DELTA IS KNOB-CONTROLLED, NOT ONLY DIFFED.** The same run under
+  `MEDI_INSTRUCT_NO_AIM_REUSE=1` on the SAME release reproduces the baseline exactly — parted 91,
+  protocol 205, threw 2, boundaries 10252/10565 — so the whole delta is this change and nothing else
+  in the tree. Exactly one divergence cause removed and none added: `unrelated event mismatch ::
+  |-immune|p2a <> |-supereffective|p2b|1`. The real board is turn 5 of a bo3 ladder game — a Gengar
+  aims Shadow Ball at an Oranguru that is IMMUNE to it, the Oranguru Instructs it, and this engine
+  sent the repeat into the Sinistcha in the other slot for super-effective damage, because the damage
+  heuristic will not aim at a body it cannot hurt and the authority happily does. The same game
+  carried the run's second THROW and that is gone with it.
+- Artifacts: `data/verification/game-differential.instructaim534.json`, its knob arm
+  `...instructaim534-knob.json`, the dumped board in
+  `data/verification/divergence-turns.instructaim534-knob.json`, and
+  `data/verification/engine-diff.instructaim534.json` (`disagreed 0`).
+  `data/game-differential.json` was NOT written — mtime still 2026-08-28 23:14.
+- Account: `docs/_reports/2026-08-29-instruct-target.md`.
+
+---
+
 ## [5.223.0] — 2026-08-29
 
 ### Fixed

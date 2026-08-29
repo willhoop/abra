@@ -1,6 +1,8 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.223.0 — 2026-08-29.**
+**Version: 5.224.0 — 2026-08-29.**
+
+**5.224.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change decides WHICH BODY a repeated move is aimed at, not what it does when it lands. No multiplier is added or removed and no feature read changes; the same damage pipeline runs against a different defender. The one adjacent effect is that a spread or `randomNormal` repeat is now PRICED against the recorded slot rather than against the hardest-hit foe — a valuation field on the action, not a stage — and the class gate keeps the loc out of the spread road entirely. The stage-by-stage comparison against the authority is unaffected; `tests/test-engine-diff.js` was re-run and reads `disagreed 0`.
 
 **5.223.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change is a REFUSAL: a move that would have queued a second action does not queue it. Nothing in the damage pipeline is touched, no multiplier is added or removed, and no feature read changes. What changes is HOW MANY damage calculations a turn contains — a shielded body no longer takes a swing it was never given. The stage-by-stage comparison against the authority is unaffected and was not re-run.
 

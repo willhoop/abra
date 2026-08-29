@@ -1,10 +1,10 @@
 {
-  "current": "705ead2014b2",
-  "cut": "2026-08-29T14:54:04.329Z",
-  "why": "tests/probe_shield_rearm.js — freeze the tree under test",
+  "current": "e8f7c7dba595",
+  "cut": "2026-08-29T15:43:20.583Z",
+  "why": "ROADMAP 534 the instructed repeat reuses the aimed slot",
   "cuts": 1,
-  "latest_cut": "2026-08-29T14:54:04.329Z",
-  "latest_why": "tests/probe_shield_rearm.js — freeze the tree under test",
-  "pointer_written": "2026-08-29T14:54:04.342Z",
+  "latest_cut": "2026-08-29T15:43:20.583Z",
+  "latest_why": "ROADMAP 534 the instructed repeat reuses the aimed slot",
+  "pointer_written": "2026-08-29T15:43:20.594Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

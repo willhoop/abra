@@ -279,25 +279,24 @@ const CASES = [
         + 'SUB-100 move misses" cannot decide it, and the damage index is pinned — the volley lands '
         + 'twice in both engines and the boards have to match after each. It is also a SPREAD move '
         + '(`allAdjacentFoes`), which is deliberate: it carries no aim for the repeat to re-pick, so '
-        + 'this arm is about the damage and cannot be decided by the KNOWN-OPEN arm below.' },
-
-  /* ---- DECLARED KNOWN-OPEN, PRINTED AND NOT COUNTED ---------------------------------------------
-   * FOUND BY THIS BATCH AND FILED RATHER THAN FIXED (ROADMAP #534), because it is a SECOND defect
-   * and landing two in one batch makes neither attributable. It is carried here rather than deleted
-   * so the instrument keeps saying it — a defect nothing prints is the fourteen stale handoffs in a
-   * new costume — and it is NOT counted, so this file cannot be read as a carried red. */
-  { id: 'instruct-foe-singletarget-repeat', kind: 'known-open',
+        + 'this arm is about the damage and cannot be decided by the aim of the repeat.' },
+  /* ---- WAS DECLARED KNOWN-OPEN, AND IS NOW A COUNTED CONTROL ------------------------------------
+   * ROADMAP #534 was FOUND by this arm on 2026-08-29 and fixed in the batch immediately after. The
+   * arm is PROMOTED rather than deleted, and rather than left excluded: an exclusion that outlives
+   * the defect it names is the fourteen stale handoffs in a new costume, and the board is now the
+   * sharpest control this file has for the OTHER fix — a repeat that goes back at the slot it was
+   * aimed at, on a board where the WRONG slot is behind a Protect, so a regression in either
+   * direction reds here. `tests/probe_instruct_target.js` is where the aim itself is proved. */
+  { id: 'instruct-foe-singletarget-repeat', kind: 'control',
     A: SIDE_A(['alakazam', '', 'Inner Focus', ['Psychic', 'Calm Mind']]),
     script: AT({ m: 'psychic', t: 0 }), last: 'psychic', repClean: 1, repKnob: 1, refClean: 0,
-    what: 'ROADMAP #534 — THE INSTRUCTED REPEAT RE-PICKS ITS TARGET INSTEAD OF REUSING THE SLOT THE '
-        + 'MOVE WAS AIMED AT. The authority builds the second action with `targetLoc: '
-        + 'target.lastMoveTargetLoc` (`data/moves.ts:9670`), so a single-target repeat goes back at '
-        + 'the SAME SLOT; this engine re-runs `targetForMove` and picks afresh. Staged: Alakazam '
-        + 'aims Psychic at slot 0 (Oranguru) and is Instructed — showdown hits Oranguru twice, this '
-        + 'engine sends the repeat into the Garchomp in slot 1 and eats its Protect. It parts '
-        + 'IDENTICALLY on the clean load and under the knob, which is what says it is not this '
-        + 'batch\'s change; the shield counters are correct on both. Board-material — the damage '
-        + 'lands on the wrong body.' },
+    what: 'THE SINGLE-TARGET REPEAT, AND IT IS THE BOARD ROADMAP #534 WAS FILED ON. Alakazam aims '
+        + 'Psychic at foe slot 0 (Oranguru) and is Instructed; the authority builds the second '
+        + 'action with `targetLoc: target.lastMoveTargetLoc` (`data/moves.ts:9670`) and hits '
+        + 'Oranguru twice. Until #534 landed this engine re-ran `targetForMove`, sent the repeat '
+        + 'into the Garchomp in slot 1 and ate its Protect — board-material — and it parted '
+        + 'IDENTICALLY under `MEDI_INSTRUCT_NO_SHIELD=1`, which is what said it was a second '
+        + 'defect rather than this file. It now agrees on both loads and is COUNTED.' },
 ];
 
 /* ---- LEGALITY, DERIVED ------------------------------------------------------------------------- */
@@ -529,7 +528,7 @@ for (const R of results) {
 
 const nKnown = results.filter(r => r.known).length;
 console.log(NL + ran + ' arms staged, ' + bad + ' failing, ' + nKnown
-  + ' KNOWN-OPEN (declared, not counted — ROADMAP #534)   [release ' + REL_ID + ']');
+  + ' KNOWN-OPEN (declared, not counted)   [release ' + REL_ID + ']');
 console.log(bad ? 'FAIL' : ONLY ? 'PASS for the arm(s) named by --only. THIS IS NOT THE FILE’S VERDICT — '
   + 'the other arms did not run, and the claims below are only true of a full run.'
   : 'PASS — a shield refuses Instruct and the engine says so, all four '

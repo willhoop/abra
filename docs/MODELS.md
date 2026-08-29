@@ -1,6 +1,8 @@
 # ABRA — the model family (living reference)
 
-**Version 5.223.0 · Last updated 2026-08-29.**
+**Version 5.224.0 · Last updated 2026-08-29.**
+
+**5.224.0 - NO MODEL CHANGED AND NO FITTED VECTOR IS OWED BY THIS PASS, BUT THE SIMULATOR EVERY MODEL RESTS ON NOW LANDS THE INSTRUCTED REPEAT ON A DIFFERENT BODY.** Any rollout that reached an Instruct board was crediting the damage to the wrong defender, and for a single-target status repeat it was crediting the effect to foe slot 0 unconditionally. Everything downstream of MEDICHAM remains QUARANTINED and no model number is quoted, compared or re-derived here. The engine tree moved `705ead2014b2` -> `e8f7c7dba595`; the refit that closes the seam belongs to MEASURE and is not started from ENGINE.
 
 **5.223.0 - NO MODEL CHANGED AND NO FITTED VECTOR IS OWED BY THIS PASS, BUT THE SIMULATOR EVERY MODEL RESTS ON HANDS OUT ONE FEWER ACTION PER TURN THAN IT DID.** A Protecting body could be Instructed here and could not there, so any rollout that reached that board was pricing an extra swing that does not exist. Everything downstream of MEDICHAM remains QUARANTINED and no model number is quoted, compared or re-derived here. The engine tree moved `124f5aa8c8bd` -> `705ead2014b2`; the refit that closes the seam belongs to MEASURE and is not started from ENGINE.
 
