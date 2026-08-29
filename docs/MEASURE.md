@@ -33,9 +33,57 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-08-28 22:51
 ```
 
-_stamped 2026-08-29 00:10_
+_stamped 2026-08-29 02:08_
 
 <!-- /GENERATED -->
+
+## THREE THINGS THE GATE'S VERDICTS DO NOT COVER, NOW PRINTED. 2026-08-29.
+
+`engine/coverage.js` exists to print what a clean verdict is NOT a claim about. Yesterday produced three
+facts of exactly that shape and none of them was in it. All three are now derived at run time; each
+prints `NOT DERIVED` with a reason if its source stops parsing, shown on a deliberate break before being
+trusted.
+
+**1. THE DIFFERENTIAL'S SPREADS ARE SYNTHETIC — `differential bodies on a REAL spread  0 of 17536`.** An
+open team sheet carries no spread, so `game_differential.js` ASSIGNS one from the body's slot index. The
+row reads the rule off the driver's own constants rather than retyping it: 66 points, a 32 cap, a
+descending Speed ladder `[32, 22, 11, 0]` by slot, the remainder to the higher attacking stat then
+spilling to `spd` then `def`, and **0 into HP** (Champions' Showdown line adds the investment plus 75 for
+HP and medicham2's L50 line has no HP term, so HP points would diverge silently on every body). The
+NATURE is real — `--nature real`, 17,440 bodies from the sheet's own and 96 fallen back to Serious — and
+both engines are handed the same invented spread, so **the run is internally consistent and its damage is
+not metagame damage.** The artifact already declared `spreads_absent`; what was missing was what got put
+there instead, and that it is a construction.
+
+**2. THE COMPARATOR ONLY READS AT A TURN BOUNDARY, SO THE CEILING IS 56, NOT 80 — `board leaves compared
+34 of 56`.** The denominator was the population and a reader takes a denominator for a target. Of the 80
+leaves a legal mechanic can write, 4 are declared uncomparable, **18 carry a declared duration of 1** and
+are ended in the residual, and **2 are removed inside their own action** (`volatile:fling`,
+`volatile:sparklingaria`). None of those 24 can be standing when the board is read, so 80 is not
+reachable and the widening work is the **22** that can. The most-written leaves in the hole —
+`flinch` (20 writers), `protect` — are among the permanently uncomparable, so the remaining work is
+smaller AND worth less than `34 of 80` suggested.
+
+**AND THE SELF-REMOVAL RULE HAD TWO PRODUCERS, DISAGREEING.** It lived only in
+`tests/probe_leaf_name_map.js`, so `derive()` — the function `status.js` and `coverage.js` read — did not
+know about it and would have published a ceiling of **58** where that probe printed **56**. The rule and
+the boundary call-site count moved into `tests/probe_uncompared_leaves.js`; the name-map probe now calls
+them and its printed output is unchanged. The ceiling holds only while `BS.snapshot` has one caller, so
+that is counted every run (1 call site, `stateCheck`; 0 elsewhere) and printed beside the number it
+justifies.
+
+**3. WHICH DRIVER A WHOLE-GAME FIGURE WAS TAKEN UNDER — `driver policies the gate quotes  1 of 2`.** On
+one set of pins (release `e129bca605e3`, cap 12, pool `0d103fb9fa87`, 961 games each) the coverage-seeker
+reaches a result in **17 games (1.8%)** with **0** whose board diverged, and the empirical arm reaches
+**459 (47.8%)** with **135**. The gate reads only the first. The row prints both, states that the arms
+share their pins so the difference is the driver and nothing else, and quotes
+`engine/arms_comparable.js`'s actual refusal rather than paraphrasing it — the pair is refused on
+`policy`, so they are two instruments and not a before/after. It also carries the empirical arm's own
+limit, derived: **42 of 961 games (4.4%) truncate on a forced switch medicham2's placement cannot express
+to Showdown, so 47.8% is a lower bound.** Six older artifacts in the same family sit on other pins and
+are counted, not printed — a different cap, release or pool is a different question.
+
+Full account: `docs/_reports/2026-08-29-coverage-scope-lines.md`.
 
 ## THE WHOLE-GAME DIFFERENTIAL'S CLEAN SHEET IS A CLAIM ABOUT GAMES THAT DO NOT END. 2026-08-29.
 

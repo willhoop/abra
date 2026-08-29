@@ -10,6 +10,113 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.212.0] — 2026-08-29
+
+### Fixed
+- **THE FORCED-SWITCH MIRROR ASKED AN END-OF-TURN QUESTION ABOUT A MID-TURN REQUEST, AND IT WAS THE
+  HARNESS — CARD A1 CONFIRMED, OPEN QUESTION H4 SETTLED.** `M.battleTurn()` plays a whole turn
+  atomically; Showdown stops dead the instant a pivot resolves and asks who comes in.
+  `mirrorForcedSwitch` read medicham2's CURRENT occupant of the slot, so on any turn where one slot
+  took TWO bodies the SECOND was answered to the FIRST request — the harness asking Showdown to switch
+  in a body Showdown had standing, then stopping the game with *"the boards had already parted"* on
+  boards that agreed. Reproduced from the pinned pool (`pair-speedctrl / 2654713271 vs 2654811481`,
+  turn 7): a Parting Shot brings Gengar in, Iron Head kills it, and the pivoter returns as the corpse's
+  replacement later in the same turn. Fixed, that game plays to turn 11 and both engines end the
+  battle. **No engine byte moved and medicham2's pivot was never wrong.**
+  - **The ordered occupancy is OBSERVED, never parsed for identity.** `trace.push` is wrapped on the
+    instance (it stays a real Array); the SLOT comes off the identifier positionally and the BODY out
+    of `S.actA`/`S.actB` at that instant, then through `rosterKey` — reading the NAME off the line
+    would have been a sixth implementation of "which body of the roster is this".
+  - **Two exclusions, both counted, neither silent.** The driver's own voluntary switch reaches
+    Showdown in the choice string and never raises a request (4,134 excluded against the driver's
+    independently-derived 4,141 switches chosen); a drag never raises one either
+    (`sim/battle-actions.ts:1353` picks its own body — 142 excluded). `unplaced` reads 0.
+  - **The stop sentence was split**, because `(fainted/active)` was one string for two answers that
+    mean opposite things and is why H4 could not be answered from the artifact. It now reads
+    `has FAINTED` or `already has ACTIVE on the field`.
+
+### Changed
+- **THE EMPIRICAL ARM RE-RUN ON IDENTICAL PINS** (release `e129bca605e3`, census pin `9446a684709d`,
+  pool `0d103fb9fa87`, 961 games, cap 12, arm `middle`): games whose BOARD diverged **135 → 117**,
+  completion **47.76% → 48.39%**, mirror truncations **42 → 27 (4.4% → 2.8%)**, protocol-diverged games
+  248 → 233, class `showdown stopped emitting while medicham2 continued` **18 → 3**, turn boundaries
+  compared 10,445 → 10,530. The sample did not move — same swarm, same source digests, same Showdown
+  commit. `data/game-differential.json` was NOT written; the before artifacts are untouched so the card
+  review is still checkable against its own source. Written to
+  `data/verification/game-differential.empirical-after.json`.
+- **The 135-game denominator every card in `docs/_reports/2026-08-29-empirical-divergence-cards.md` was
+  measured against is now 117**, and the 27 surviving truncations are six named engine defects (C1 ×2,
+  C2, A2, G2, F7) plus 19 genuinely parted boards, not the instrument.
+
+### Added
+- **`tests/probe_forced_switch_mirror.js`** — one turn, every fixture member derived from the format and
+  printed before use: the `pivotStatus` move on the fastest legal learner carrying a status-move
+  `priorityMod`; the only deterministic OHKO in this format (the move tagged both `userFaints` and
+  `fixedDamage` whose `damageCallback` reads `pokemon.hp`, so no accuracy roll and no damage roll can
+  reach it); the frailest legal body the killer's type can touch, at the front of the bench. The
+  fixture must prove it staged and is judged on the AUTHORITY'S log. Shown **RED first** under
+  `MEDI_MIRROR_END_OF_TURN=1`, printing the defect's own sentence.
+
+### Notes
+- **Census unmoved at 784 live / 784 probed / 0 missing**, predicted before the run: this batch fixed
+  the harness, not a mechanic. `planted_divergence_proof_ok`, `planted_state_proof_ok` and
+  `mappings_all_proved` all still true; `MEDFAILS.traceBodyOffField` 0, roster-key fallbacks 0/0/0.
+- `choices_refused` reads **3 before and 3 after**, same seeds and same strings — pre-existing, filed
+  in `docs/ENGINE.md`'s hand list, not introduced here.
+- Full account: `docs/_reports/2026-08-29-forced-switch-mirror.md`.
+
+## [5.211.0] — 2026-08-29
+
+### Added
+- **THREE SCOPE LINES THE GATE'S VERDICTS WERE MISSING, ALL DERIVED AT RUN TIME.** `engine/coverage.js`
+  prints what a clean verdict does not cover; three facts of exactly that shape existed and none was in
+  it. Each degrades to `NOT DERIVED` with a stated reason if its source stops parsing, demonstrated on a
+  deliberate break before being trusted.
+  - **`differential bodies on a REAL spread  0 of 17536`.** A Showdown open team sheet reveals no spread
+    (`evs: null` on every stored sheet), so `game_differential.js` assigns one from the body's slot
+    index. The row reads `SP_BUDGET`, `SP_CAP`, `SPE_LADDER`, the spill order and the HP field **off the
+    driver's source at run time** rather than retyping them — 66 points, 32 cap, Speed ladder
+    `[32, 22, 11, 0]`, remainder to the higher attacking stat then `spd` then `def`, 0 into HP. The
+    NATURE is real (`--nature real`, 17,440 declared / 96 fallen back) and both engines are handed the
+    same invented spread, so the run is internally consistent and **its damage is not metagame damage**.
+  - **`board leaves compared  34 of 56` — the CEILING, not the 80-leaf population.** 4 leaves are
+    declared uncomparable, 18 carry a declared duration of 1 and are ended in the residual, and 2 are
+    removed inside their own action, so 24 can never be standing at the boundary the comparator reads.
+    22 uncompared leaves can, and are the whole of the widening work. `BS.snapshot`'s call sites are
+    counted every run (1, in `stateCheck`; 0 elsewhere) and printed beside the ceiling they justify,
+    because a second sampling point would break it.
+  - **`driver policies the gate quotes  1 of 2`.** On identical pins (release `e129bca605e3`, cap 12,
+    pool `0d103fb9fa87`, 961 games) `census-coverage-seeking/v1` reaches a result in 17 games (1.8%)
+    with 0 diverging boards and `empirical-click/v1` reaches 459 (47.8%) with 135. The gate reads only
+    the first, so **"board-material zero" is a statement about games that do not end**. Both arms print
+    side by side with `engine/arms_comparable.js`'s own refusal quoted rather than paraphrased, and with
+    the empirical arm's derived limit: 42 of 961 games (4.4%) truncate on an unmirrorable forced switch,
+    making 47.8% a lower bound. Arms are FOUND, not listed — a third policy appears with no edit — and
+    the six older artifacts in the family on other pins are counted, not printed.
+
+### Fixed
+- **THE SELF-REMOVAL RULE HAD TWO PRODUCERS AND THEY DISAGREED ON THE CEILING, 58 AGAINST 56.**
+  `selfRemovesWithinAction` and the `BS.snapshot` call-site count lived only in
+  `tests/probe_leaf_name_map.js`, so `tests/probe_uncompared_leaves.js` `derive()` — the function
+  `engine/status.js` and `engine/coverage.js` read — did not know about them. Both moved into
+  `derive()`'s file, which now exports `ceiling`, `hole_duration1`, `self_removed_within_action`,
+  `self_remove_guarded_by_declared_clock` and `boundaryCallSites()`; the name-map probe calls them and
+  its printed output is byte-unchanged (`34 -> 56`, `volatile:fling` and `volatile:sparklingaria`
+  removed, `volatile:lockedmove` rescued by the declared-clock guard). Two producers of one fact is the
+  breach that made the closed-row detector disagree with itself on 24 of 292 rows.
+
+### Changed
+- `engine/coverage.js` records its reads by path under `data/` rather than by basename, so an artifact
+  in `data/verification/` can be aged like any other; `COVFAILS` gains `driverSource` and `armDir`, both
+  printed, so a driver that no longer parses and a directory of arms that cannot be listed are visible
+  rather than silently narrowing the block.
+
+### Notes
+- No number in this entry was measured by this pass. Every figure is read out of
+  `data/game-differential.json`, `data/verification/game-differential.{empirical,coverage-control}.json`
+  or derived from source; the artifacts were read from `git show HEAD:` where an ENGINE agent was
+  rewriting them.
+
 ## [5.210.0] — 2026-08-29
 
 ### Changed

@@ -169,9 +169,14 @@ const M = GD.mirrorForcedSwitch;
   const r = M([false, true], [me('slowbrogalar', false), me('liepard', false)],
               [sd('slowbrogalar', true, false), sd('liepard', false, true),
                sd('mudsdale', false, false), sd('sableye', false, false)]);
-  ok(r.cannot && /liepard/.test(r.cannot) && /cannot switch in/.test(r.cannot),
-     'a live medicham2 body that showdown has FAINTED reports `cannot`, and names the body',
-     String(r.cannot));
+  /* THE WORDING IS PART OF THE ASSERTION, 2026-08-29. It used to read `(fainted/active)` — ONE
+   * sentence for two answers that mean opposite things, and that merge is why the empirical-arm card
+   * review could not say whether its 42 truncated games were the engine or the harness. FAINTED is a
+   * parted board; ACTIVE was the harness reading an end-of-turn slot to answer a mid-turn request
+   * (see `MIRROR_END_OF_TURN`). A test that accepted either string could not tell them apart. */
+  ok(r.cannot && /liepard/.test(r.cannot) && /has FAINTED/.test(r.cannot),
+     'a live medicham2 body that showdown has FAINTED says FAINTED, and names the body',
+     String(r.cannot) + '   (never the old merged "(fainted/active)")');
   ok(r.lookupMiss === 0,
      'and it is NOT charged to the alias-table counter — the two engines agree on the NAME',
      'lookupMiss=' + r.lookupMiss + '; SWITCH_LOOKUP_MISS.sd must stay a name failure and must read 0');

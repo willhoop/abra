@@ -154,3 +154,4 @@ divergences.html
 
 # The same convention inside data/: a hand-made dump used to read one run, never cited.
 data/_scratch-*
+divergences-*.html

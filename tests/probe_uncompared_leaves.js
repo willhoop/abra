@@ -128,17 +128,112 @@ function derive() {
     throw e;
   }
 
+  /* ---- THE CEILING, NOT THE TOTAL -------------------------------------------------------------
+   * `total` is every leaf a legal mechanic can write. It is NOT the widening target, and reading it as
+   * one is the mistake this block exists to stop: a reader who sees `34 of 80` assumes 80 is reachable.
+   * It is not. The comparator samples at a TURN BOUNDARY only (`boundaryCallSites()` below reads that
+   * off the driver rather than asserting it), and a condition the authority has already ended by then
+   * can never be standing when the board is read. Two independent reasons, both derived:
+   *
+   *   duration 1              `residualEvent` decrements and ENDS it (sim/battle.ts:1097-1115), and
+   *                           the boundary is taken AFTER the whole residual phase.
+   *   self-removed in-action  no declared clock at all, and a handler on `onUpdate` / `onAfterMove`
+   *                           removes the condition by its own name before the action returns.
+   *
+   * These are EVIDENCE, not proof, and the difference is the point — a leaf whose clock is rewritten
+   * in `onStart` would be misclassified here. The falsifier is a staged boundary read of both engines
+   * (`tests/probe_volatile_leaves.js`), one leaf at a time. Nothing should be WIRED on this column
+   * alone; it is here so that the ceiling is stated instead of the total. */
+  const holeDur1 = hole.filter(r => r.life.gone_at_the_boundary);
+  const selfRemoved = [], selfRemoveGuarded = [];
+  const standing = hole.filter(r => !r.life.gone_at_the_boundary).filter(r => {
+    const w = selfRemovesWithinAction(dex, r.name);
+    if (!w.length) return true;
+    if (r.life.duration != null) { selfRemoveGuarded.push({ key: r.key, where: w, duration: r.life.duration }); return true; }
+    selfRemoved.push({ key: r.key, where: w });
+    return false;
+  });
+  const compared = rows.filter(r => r.compared).length;
+
   return { population: { move: POP.move.length, ability: POP.ability.length, item: POP.item.length },
            rows, hole,
-           compared: rows.filter(r => r.compared).length,
+           compared,
            declared: rows.filter(r => r.declared).length,
            total: rows.length,
            /* the honest widening target: the hole minus the leaves the authority ends in the
             * residual, which cannot be standing when this comparator reads a turn boundary */
-           standing_at_the_boundary: hole.filter(r => !r.life.gone_at_the_boundary).length,
+           standing_at_the_boundary: standing.length,
+           standing_keys: standing.map(r => r.key),
+           hole_duration1: holeDur1.map(r => r.key),
+           self_removed_within_action: selfRemoved,
+           self_remove_guarded_by_declared_clock: selfRemoveGuarded,
+           /* THE NUMBER A COVERAGE LINE MUST QUOTE. `compared` plus everything that can still be
+            * standing when the comparator looks. Everything else is permanently uncomparable AT THIS
+            * BOUNDARY — a statement about the sampling point, not about the mechanic. */
+           ceiling: compared + standing.length,
            dead_leaves: [...COMPARED].filter(k => !leaves.has(k)).length };
 }
-module.exports = { derive };
+
+/* ---- IS THIS LEAF REMOVED INSIDE ITS OWN ACTION? -----------------------------------------------
+ * MOVED HERE FROM `tests/probe_leaf_name_map.js` ON 2026-08-29 so the rule has ONE producer. That file
+ * computed it and `derive()` did not, so the two published different ceilings — 58 against 56 — which
+ * is the two-producers-of-one-fact breach that made the closed-row detector disagree with itself on 24
+ * of 292 rows in both directions. The name-map probe now calls this.
+ *
+ * Derived from the AUTHORITY's own entry, never from a list: a handler that calls `removeVolatile` /
+ * `delete pokemon.volatiles[...]` on the leaf's own name, hung on a hook that runs INSIDE the action,
+ * ends the condition before any boundary.
+ *
+ * AND IT OVER-MATCHED, SO THE GUARD IS SAID OUT LOUD. The first version caught `lockedmove` — whose
+ * `onAfterMove` is `if (this.effectState.duration === 1) pokemon.removeVolatile('lockedmove')`, a
+ * CONDITIONAL removal at the end of a real 2-turn clock — and would have dropped a rampage lock out of
+ * the widening target on the strength of a `removeVolatile` appearing in a handler. A DECLARED CLOCK
+ * WINS: the caller applies this only to a condition that declares no duration at all, and the rows the
+ * guard rescued are RETURNED rather than dropped. */
+const WITHIN_ACTION_HOOKS = ['onUpdate', 'onAfterMove'];
+function selfRemovesWithinAction(dex, name) {
+  const seen = [];
+  const scan = (e, where) => {
+    if (!e) return;
+    for (const h of WITHIN_ACTION_HOOKS) {
+      const f = e[h];
+      if (typeof f !== 'function') continue;
+      const s = String(f);
+      if (s.includes('removeVolatile("' + name + '")') || s.includes("removeVolatile('" + name + "')")
+        || s.includes('volatiles["' + name + '"]') || s.includes("volatiles['" + name + "']"))
+        seen.push(where + '.' + h);
+    }
+  };
+  const mv = dex.moves.get(name);
+  if (mv && mv.exists) { scan(mv, 'move:' + name); scan(mv.condition, 'move:' + name + '.condition'); }
+  const it = dex.items.get(name);
+  if (it && it.exists) { scan(it, 'item:' + name); scan(it.condition, 'item:' + name + '.condition'); }
+  scan(dex.conditions.getByID(name), 'condition:' + name);
+  return seen;
+}
+
+/* ---- WHERE THE BOARD IS ACTUALLY SAMPLED, READ OFF THE DRIVER ----------------------------------
+ * ALSO MOVED FROM `probe_leaf_name_map.js`, 2026-08-29, same reason. The ceiling above rests entirely
+ * on the claim "the comparator only reads at a turn boundary", and that claim holds only while
+ * `BS.snapshot` has exactly one caller. A second sampling point anywhere in the tree would make some
+ * of the leaves excluded above reachable after all — so it is COUNTED on every run rather than
+ * remembered, and a caller that reports the ceiling must report this beside it. */
+function boundaryCallSites() {
+  const gd = fs.readFileSync(D('engine', 'game_differential.js'), 'utf8');
+  const snapshot_calls = [...gd.matchAll(/BS\.snapshot\(/g)].length;
+  const statecheck_call_lines = [...gd.matchAll(/\bstateCheck\(/g)]
+    .map(m => gd.slice(0, m.index).split('\n').length);
+  const other_snapshot_callers = [];
+  for (const dir of ['engine', 'tests']) for (const f of fs.readdirSync(D(dir))) {
+    if (!f.endsWith('.js') || (dir === 'engine' && f === 'game_differential.js')) continue;
+    const src = fs.readFileSync(D(dir, f), 'utf8');
+    if (/\bBS\.snapshot\s*\(|board_state[^\n]*\)\.snapshot\s*\(/.test(src))
+      other_snapshot_callers.push(dir + '/' + f);
+  }
+  return { snapshot_calls, statecheck_call_lines, other_snapshot_callers };
+}
+
+module.exports = { derive, selfRemovesWithinAction, boundaryCallSites };
 if (require.main !== module) return;
 
 const JSONOUT = process.argv.includes('--json');

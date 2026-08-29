@@ -83,10 +83,14 @@ const READS = new Set();
  * fail -- an artifact that was never generated is a real state and is REPORTED as NOT DERIVED. What
  * may not happen is the failure vanishing: a coverage number is a claim about what is NOT covered,
  * so a read that failed and said nothing would understate the hole it exists to print. */
-const COVFAILS = { readJson: 0, readJsonFirst: '', gateSource: 0, artifactStat: 0 };
+const COVFAILS = { readJson: 0, readJsonFirst: '', gateSource: 0, artifactStat: 0,
+                   driverSource: 0, driverSourceWhy: '', armDir: 0, armDirWhy: '' };
 const readJson = f => {
   try { const j = JSON.parse(fs.readFileSync(f, 'utf8'));
-        if (/[\\/]data[\\/]/.test(f)) READS.add(path.basename(f));
+        /* KEYED BY ITS PATH UNDER `data/`, NOT BY BASENAME. `artifactAge` resolves what this records,
+         * and two artifacts in different directories can share a basename — `data/verification/`
+         * holds the second driver arm, whose file is named after the arm and not after the run. */
+        if (/[\\/]data[\\/]/.test(f)) READS.add(path.relative(D('data'), f).replace(/\\/g, '/'));
         return j; }
   catch (e) {
     /* ENOENT is the ordinary case -- the artifact has never been generated. It still COUNTS, because
@@ -329,6 +333,143 @@ function tagCoverage() {
            noConsumer: [...uniq.values()].filter(r => !r.consumedBy).map(r => r.tag) };
 }
 
+/* ---- THE SPREAD THE WHOLE-GAME DIFFERENTIAL PLAYS, READ OFF THE DRIVER -------------------------
+ * ADDED 2026-08-29. Every damage number the whole-game differential produces is computed on a spread
+ * NOBODY PLAYS, and nothing printed that.
+ *
+ * A Showdown open team sheet reveals species, item, ability, moves, nature, gender and level and NOT
+ * the spread — every stored sheet reads `evs: null` — so `game_differential.js` ASSIGNS one from the
+ * body's index. The nature is real and is used by both engines; the stat points are invented. Two
+ * engines handed the same invented spread agree or disagree honestly, so the run is internally
+ * consistent and its damage figures are STILL NOT METAGAME DAMAGE. That is scope, not a defect: the
+ * artifact already declares `declared_gaps.spreads_absent`, and what was missing is the other half —
+ * what got put there INSTEAD, and that it is a construction.
+ *
+ * DERIVED BY READING THE DRIVER'S OWN CONSTANTS AT RUN TIME, never retyped. A budget or a cap typed
+ * here would be wrong the day somebody widens the ladder, and would be wrong while looking exactly as
+ * authoritative as a value that was read. Every field is required: a partial parse prints NOT DERIVED
+ * rather than a spread description that is half this file's guess. */
+function spreadRule() {
+  let src;
+  try { src = fs.readFileSync(D('engine', 'game_differential.js'), 'utf8'); }
+  catch (e) {
+    COVFAILS.driverSource++;
+    COVFAILS.driverSourceWhy = COVFAILS.driverSourceWhy || ('unreadable: ' + e.message);
+    return null;
+  }
+  const budget = src.match(/const\s+SP_BUDGET\s*=\s*(\d+)\s*,\s*SP_CAP\s*=\s*(\d+)\s*;/);
+  const ladder = src.match(/const\s+SPE_LADDER\s*=\s*\[([^\]]*)\]\s*;/);
+  const hp = src.match(/const\s+e\s*=\s*\{\s*hp:\s*(\d+)/);
+  const spill = src.match(/for\s*\(const\s+stat\s+of\s+\[([^\]]+)\]\)/);
+  const main = /e\[physical\s*\?\s*'atk'\s*:\s*'spa'\]\s*=\s*main/.test(src);
+  if (!budget || !ladder || !hp || !spill || !main) {
+    /* NOT a missing artifact — the DRIVER is on disk and its spread block did not parse. Counted
+     * separately from `readJson`, because "the file is absent" and "the file no longer looks like what
+     * this reader expects" are different states and only one of them is ordinary. */
+    COVFAILS.driverSource++;
+    COVFAILS.driverSourceWhy = COVFAILS.driverSourceWhy || ('spreadFor did not parse — missing: '
+      + [!budget && 'SP_BUDGET/SP_CAP', !ladder && 'SPE_LADDER', !hp && 'the hp field',
+         !spill && 'the spill order', !main && 'the main-stat assignment'].filter(Boolean).join(', '));
+    return null;
+  }
+  const cap = +budget[2];
+  return {
+    budget: +budget[1], cap,
+    /* the ladder is written in terms of SP_CAP, so it is resolved rather than eval'd */
+    ladder: ladder[1].split(',').map(x => x.trim()).map(x => x === 'SP_CAP' ? cap : Number(x)),
+    hp: +hp[1],
+    spill: spill[1].split(',').map(x => x.trim().replace(/^['"]|['"]$/g, '')),
+  };
+}
+
+/* ---- WHICH DRIVER PLAYED THE GAMES, AND THE FAMILY OF ARMS THAT EXISTS -------------------------
+ * ADDED 2026-08-29, and it is the widest unstated narrowing the gate currently has.
+ *
+ * `engine/steering.js` offers two selection policies. Under `census-coverage-seeking/v1` the driver
+ * clicks whatever reaches the least-exercised census row, which exercises mechanics and almost never
+ * finishes a game; under `empirical-click/v1` it draws from real recorded human play and reaches a
+ * result about half the time. On identical pins the two arms do not report the same world, so a
+ * whole-game figure quoted WITHOUT its policy is not interpretable — "board-material zero" under the
+ * coverage-seeker is a statement about games that do not end.
+ *
+ * THE ARMS ARE FOUND, NOT LISTED. Every artifact under `data/` and `data/verification/` whose name is
+ * in the whole-game differential family and which carries a `steering.policy` is reported, so a third
+ * arm added tomorrow appears here with no edit. The classification of an ending is taken from the
+ * DRIVER'S OWN SOURCE — the literals are matched by anchoring on the CODE around them
+ * (`battle.ended && M.battleOver(S)`, `END_STATE ?`, `if (mirrorImpossible)`), never on the wording, so
+ * rewording a message moves this with it and restructuring the code prints NOT DERIVED. Nothing here
+ * parses prose. */
+function endReasonRule() {
+  let src;
+  try { src = fs.readFileSync(D('engine', 'game_differential.js'), 'utf8'); }
+  catch (e) {
+    COVFAILS.driverSource++;
+    COVFAILS.driverSourceWhy = COVFAILS.driverSourceWhy || ('unreadable: ' + e.message);
+    return null;
+  }
+  const un = x => x.replace(/\\'/g, "'").replace(/\\n/g, '\n').replace(/\\\\/g, '\\');
+  const LIT = "'((?:[^'\\\\]|\\\\.)*)'";
+  const both = src.match(new RegExp('endReason\\s*=\\s*battle\\.ended\\s*&&\\s*M\\.battleOver\\(S\\)\\s*\\?\\s*' + LIT));
+  const cap = src.match(new RegExp('endReason\\s*=\\s*END_STATE\\s*\\?\\s*' + LIT));
+  const part = src.match(new RegExp('if\\s*\\(mirrorImpossible\\)\\s*\\{[\\s\\S]{0,200}?endReason\\s*=\\s*' + LIT));
+  if (!both || !cap || !part) {
+    COVFAILS.driverSource++;
+    COVFAILS.driverSourceWhy = COVFAILS.driverSourceWhy || ('the endReason literals did not parse — missing: '
+      + [!both && 'both-ended', !cap && 'turn-cap', !part && 'mirror-impossible'].filter(Boolean).join(', '));
+    return null;
+  }
+  return { result: un(both[1]), capPrefix: un(cap[1]), truncPrefix: un(part[1]) };
+}
+
+const ARM_FAMILY = /^game-differential[.-].*\.json$|^game-differential\.json$/;
+function differentialArms() {
+  const rule = endReasonRule();
+  const gate = new Set(gateArtifacts());
+  const out = [];
+  for (const dir of ['', 'verification']) {
+    let names;
+    try { names = fs.readdirSync(dir ? D('data', dir) : D('data')); }
+    catch (e) {
+      /* A directory of arms that cannot be listed makes an arm INVISIBLE, and an invisible arm is
+       * exactly the failure this row exists to prevent: the reader would see one policy and conclude
+       * one exists. Counted AND its reason kept, never skipped in silence. */
+      COVFAILS.armDir++;
+      COVFAILS.armDirWhy = COVFAILS.armDirWhy || ((dir || 'data') + ': ' + e.message);
+      continue;
+    }
+    for (const f of names.filter(x => ARM_FAMILY.test(x)).sort()) {
+      const rel = dir ? dir + '/' + f : f;
+      const j = readJson(D('data', rel));
+      /* An artifact with no steering block PREDATES engine/steering.js. It is skipped rather than
+       * reported under a guessed policy, for the same reason arms_comparable.js fails closed on one:
+       * nothing recorded what selected its sample. */
+      if (!j || !j.steering || !j.steering.policy || !Array.isArray(j.arms) || !j.arms.length) continue;
+      const er = (j.arms[0] && j.arms[0].end_reasons) || null;
+      const keys = er && typeof er === 'object' ? Object.keys(er) : [];
+      const sum = pred => keys.filter(pred).reduce((n, k) => n + (+er[k] || 0), 0);
+      const st = j.state || {};
+      out.push({
+        rel, gated: gate.has(f) && !dir,
+        policy: j.steering.policy,
+        census_role: j.steering.census_role || null,
+        games: j.games == null ? null : +j.games,
+        cap: j.turns_cap == null ? null : +j.turns_cap,
+        release: j.engine_release || null,
+        pool: j.steering.team_pool_digest || null,
+        /* NOT DERIVED rather than 0 when the driver's literals could not be read: a zero here would
+         * read as "no game ever finished", which is a finding. */
+        result: rule && er ? (+er[rule.result] || 0) : null,
+        capped: rule && er ? sum(k => k.indexOf(rule.capPrefix) === 0) : null,
+        truncated: rule && er ? sum(k => k.indexOf(rule.truncPrefix) === 0) : null,
+        boards_diverged: (j.games != null && st.games_board_never_diverged != null)
+          ? j.games - st.games_board_never_diverged : null,
+        artifact: j,
+      });
+    }
+  }
+  return { rule, arms: out };
+}
+
 /* ---- THE FINISH LINE, AS A SET OF COUNTS ------------------------------------------------------
  * "Is MEDICHAM done" as one command instead of a judgement. Every row is `have / of` plus what the
  * denominator excludes. A row that cannot be derived says NOT DERIVED and never estimates. */
@@ -340,14 +481,49 @@ function finishLine() {
   /* board leaves — IMPORTED, never recomputed. status.js printing its own split from board_state.js
    * is the two-producers-of-one-fact breach that made the closed-row detector disagree with itself
    * on 24 of 292 rows in both directions. */
+  /* THE DENOMINATOR IS THE CEILING, NOT THE POPULATION — 2026-08-29. This row read `34 of 80` and 80
+   * IS NOT A TARGET: the comparator samples at a TURN BOUNDARY and nowhere else, so a leaf the
+   * authority has already ended by then can never be standing when the board is read. 18 of the
+   * unread leaves carry a declared duration of 1 and are ended in the residual, and 2 more are removed
+   * inside their own action. Those 20 plus the 4 declared uncomparable are out of reach at this
+   * sampling point permanently, however much widening work gets done — and the highest-reach leaves in
+   * the hole are among them, so the remaining work is smaller AND worth less than `34 of 80` suggests.
+   * Printing the population as the denominator invited exactly the reading this file exists to stop.
+   *
+   * THE BOUNDARY CLAIM IS COUNTED, NOT ASSERTED, and it is the load-bearing one: the ceiling is only
+   * true while `BS.snapshot` has a single caller. A second sampling point anywhere in the tree would
+   * make some of the excluded leaves reachable after all, so the call sites are re-derived every run
+   * and printed beside the number they justify. */
   try {
-    const L = require(D('tests', 'probe_uncompared_leaves.js')).derive();
-    add('board leaves compared', L.compared, L.total,
-        `${L.declared} declared uncomparable, ${L.total - L.compared - L.declared - L.standing_at_the_boundary}`
-        + ` the authority ends in the residual -> ${L.compared + L.standing_at_the_boundary} comparable,`
-        + ` ${L.standing_at_the_boundary} standing and unread`,
-        'tests/probe_uncompared_leaves.js derive(); the residual split is EVIDENCE, not proof — it '
-        + 'assumes the comparator only reads at a turn boundary, which is unverified');
+    const UL = require(D('tests', 'probe_uncompared_leaves.js'));
+    const L = UL.derive();
+    let B = null, bwhy = '';
+    try { B = UL.boundaryCallSites(); }
+    catch (e) { bwhy = ' — THE BOUNDARY CALL SITES COULD NOT BE COUNTED ('
+      + String((e && e.message) || e).split('\n')[0] + '), so the CEILING PRINTED ABOVE rests on an unchecked claim'; }
+    const dur1 = L.hole_duration1.length, selfrm = L.self_removed_within_action.length;
+    const biggest = L.hole.filter(r => r.life.gone_at_the_boundary)
+      .slice(0, 4).map(r => r.name + ' (' + r.writers.length + ' writer' + (r.writers.length === 1 ? '' : 's') + ')');
+    add('board leaves compared', L.compared, L.ceiling,
+        `${L.ceiling} is the CEILING, not the ${L.total} leaves a legal mechanic can write:`
+        + ` ${L.declared} are declared uncomparable, ${dur1} carry a declared duration of 1 and are`
+        + ` ended in the residual, and ${selfrm} are removed inside their own action`
+        + (selfrm ? ` (${L.self_removed_within_action.map(x => x.key).join(', ')})` : '')
+        + ` — none of those ${L.declared + dur1 + selfrm} can be standing when the board is read, so`
+        + ` ${L.total} is not a target. ${L.standing_at_the_boundary} uncompared leaves CAN stand at a`
+        + ` boundary and are the whole of the widening work.`
+        + (biggest.length ? ` The most-written of the permanently uncomparable: ${biggest.join(', ')}.` : '')
+        + (B ? ` BS.snapshot has ${B.snapshot_calls} call site${B.snapshot_calls === 1 ? '' : 's'} in the`
+              + ` driver (stateCheck, line${B.statecheck_call_lines.length === 1 ? '' : 's'}`
+              + ` ${B.statecheck_call_lines.join(', ')}) and ${B.other_snapshot_callers.length} elsewhere`
+              + `${B.other_snapshot_callers.length ? ' (' + B.other_snapshot_callers.join(', ')
+                 + ') — A SECOND SAMPLING POINT BREAKS THE CEILING ABOVE' : ''}.`
+            : bwhy),
+        'tests/probe_uncompared_leaves.js derive().ceiling and boundaryCallSites(); ONE producer — the '
+        + 'same functions tests/probe_leaf_name_map.js prints from. Reach over the frozen pool is NOT '
+        + 'derived here (it streams 135 MB); run that probe with --pool for it. The residual and '
+        + 'self-removal splits are EVIDENCE, not proof: a clock rewritten in onStart would be '
+        + 'misclassified, and the falsifier is a staged boundary read (tests/probe_volatile_leaves.js)');
   } catch (e) {
     nd('board leaves compared', 'the leaf derivation would not run: '
        + String((e && e.message) || e).split('\n')[0]);
@@ -449,6 +625,106 @@ function finishLine() {
         + ` ${(G.coverage.clicked_but_never_connected || []).length} clicked and never connected`,
         'data/game-differential.json coverage.*');
   } else nd('turn boundaries compared', 'data/game-differential.json absent');
+
+  /* ---- THE SPREAD EVERY DAMAGE FIGURE WAS COMPUTED ON --------------------------------------- */
+  const SR = spreadRule();
+  const dg = (G && G.declared_gaps) || null;
+  const bodies = dg ? (+dg.nature_declared || 0) + (+dg.nature_fallback_to_serious || 0)
+                      + (+dg.nature_forced_flat || 0) : null;
+  if (!SR) {
+    nd('differential bodies on a REAL spread',
+       'engine/game_differential.js spreadFor() did not parse, so the spread this instrument plays '
+       + 'cannot be described' + (COVFAILS.driverSourceWhy ? ' — ' + COVFAILS.driverSourceWhy : ''));
+  } else if (bodies == null) {
+    nd('differential bodies on a REAL spread',
+       'the spread rule was read from engine/game_differential.js (' + SR.budget + ' points, '
+       + SR.cap + ' cap, Speed ladder [' + SR.ladder.join(', ') + ']) but data/game-differential.json '
+       + 'records no declared_gaps.nature_* counters, so there is no body count to put it against');
+  } else {
+    add('differential bodies on a REAL spread', 0, bodies,
+        `an open team sheet does not carry a spread — every stored sheet reads \`evs: null\` — so`
+        + ` game_differential.js ASSIGNS one from the body's slot index: ${SR.budget} points, a`
+        + ` ${SR.cap} cap, a descending Speed ladder [${SR.ladder.join(', ')}] by slot, the remainder`
+        + ` to the higher attacking stat and then spilling to ${SR.spill.join(' then ')}, and ${SR.hp}`
+        + ` into HP (deliberate: Showdown's Champions line adds the investment plus 75 for HP and`
+        + ` medicham2's L50 line has no HP term, so HP points would diverge silently on every body).`
+        + ` The NATURE is real — \`--nature ${dg.nature_mode}\`, ${dg.nature_declared} bodies built`
+        + ` from the sheet's own and ${dg.nature_fallback_to_serious} fallen back to Serious — and`
+        + ` BOTH ENGINES ARE HANDED THE SAME INVENTED SPREAD, so the run is internally consistent and`
+        + ` its damage is NOT METAGAME DAMAGE. Nobody plays these spreads. A clean damage verdict here`
+        + ` is a claim about this construction, not about what the ladder rolls.`,
+        'engine/game_differential.js SP_BUDGET / SP_CAP / SPE_LADDER / spreadFor(), parsed from source '
+        + 'at run time; counts from data/game-differential.json declared_gaps.nature_*, one spreadFor() '
+        + 'per body built. The sheet-side gap is the artifact\'s own declared_gaps.spreads_absent');
+  }
+
+  /* ---- WHICH DRIVER A WHOLE-GAME FIGURE WAS MEASURED UNDER ----------------------------------- */
+  const DA = differentialArms();
+  if (!DA.arms.length) {
+    nd('driver policies the gate quotes',
+       'no artifact in the whole-game differential family carries a `steering.policy`, so nothing '
+       + 'records what selected the sample any published whole-game figure was taken on'
+       + (COVFAILS.driverSourceWhy ? ' (' + COVFAILS.driverSourceWhy + ')' : ''));
+  } else {
+    /* ONLY THE ARMS ON THE GATE'S OWN PINS, AND THE REST COUNTED RATHER THAN PRINTED. `data/` holds
+     * six whole-game artifacts from 11 to 16 days ago at other caps, other releases and other pools;
+     * printed in full this row was a wall, and a wall is skimmed, which is the failure this file
+     * exists to fix arriving from the other side. An arm on different pins is not a second reading of
+     * the same question — it is a different question — so it belongs in the tail, with its age. */
+    const G0 = DA.arms.find(a => a.gated) || DA.arms[DA.arms.length - 1];
+    const pinOf = a => `release ${a.release}, cap ${a.cap}, pool ${a.pool}`;
+    const samePins = DA.arms.filter(a => pinOf(a) === pinOf(G0));
+    const others = DA.arms.filter(a => pinOf(a) !== pinOf(G0));
+    samePins.sort((a, b) => (b.gated ? 1 : 0) - (a.gated ? 1 : 0) || a.rel.localeCompare(b.rel));
+    const policies = [...new Set(samePins.map(a => a.policy))];
+    const gated = [...new Set(samePins.filter(a => a.gated).map(a => a.policy))];
+    const pct = (n, d) => (n == null || !d) ? '?' : (100 * n / d).toFixed(1) + '%';
+    const say = a => `${a.policy} (${a.rel}, ${a.games} games): `
+      + `${a.result == null ? 'NOT DERIVED' : a.result} reached a result (${pct(a.result, a.games)}), `
+      + `${a.capped == null ? 'NOT DERIVED' : a.capped} stopped at the turn cap, `
+      + `${a.truncated == null ? 'NOT DERIVED' : a.truncated} truncated because medicham2's placement `
+      + `could not be mirrored to showdown (${pct(a.truncated, a.games)}${a.truncated ? ', so the '
+        + 'result rate above is a LOWER BOUND' : ''}), `
+      + `${a.boards_diverged == null ? 'NOT DERIVED' : a.boards_diverged} games whose BOARD diverged`;
+    /* THE REFUSAL IS COMPUTED, NOT ASSERTED. `engine/arms_comparable.js` is the file that decides
+     * whether two arms may sit in one table, so it is asked rather than paraphrased. */
+    let refusal = null;
+    const g = G0, o = samePins.find(a => a.policy !== G0.policy);
+    if (g && o) {
+      try { const r = require(D('engine', 'arms_comparable.js')).compare(g.artifact, o.artifact);
+            refusal = r.ok ? 'arms_comparable.js finds them COMPARABLE'
+                           : 'arms_comparable.js REFUSES the pair: ' + r.reasons.join('; '); }
+      catch (e) {
+        /* Not a bare catch: the point of this line is that the two arms are NOT a before/after, and a
+         * silently missing refusal would let a reader assume they are. Said out loud. */
+        COVFAILS.driverSource++;
+        COVFAILS.driverSourceWhy = COVFAILS.driverSourceWhy
+          || ('arms_comparable.js would not run: ' + String((e && e.message) || e).split('\n')[0]);
+        refusal = 'arms_comparable.js WOULD NOT RUN, so whether these two may be tabled together is '
+          + 'UNKNOWN — treat them as two instruments';
+      }
+    }
+    const oldest = others.map(a => artifactAge(a.rel)).filter(x => x && x.ageMs != null)
+      .sort((x, y) => y.ageMs - x.ageMs)[0];
+    add('driver policies the gate quotes', gated.length, policies.length,
+        samePins.map(say).join('.  ') + '.  '
+        + `ALL ${samePins.length} ON ONE SET OF PINS — ${pinOf(G0)}, so the difference between them is `
+        + 'the DRIVER and nothing else.'
+        + (others.length ? `  ${others.length} further artifact${others.length === 1 ? '' : 's'} in this `
+            + `family sit${others.length === 1 ? 's' : ''} on other pins`
+            + (oldest ? ` (oldest ${humanAge(oldest.ageMs)})` : '')
+            + ' and are not shown — a different cap, release or pool is a different question, not a '
+            + 'second reading of this one. node engine/coverage.js --audit' : '')
+        + (refusal ? '  ' + refusal + '.' : '')
+        + '  TWO INSTRUMENTS, NOT A BEFORE/AFTER: a whole-game verdict is only about the policy it was '
+        + 'taken under, and "board-material zero" under a coverage-seeking driver is a statement about '
+        + 'games that do not end.',
+        'data/ and data/verification/ game-differential*.json steering.policy / arms[0].end_reasons / '
+        + 'state.games_board_never_diverged; the ending classes are anchored on the CODE around each '
+        + '`endReason` literal in engine/game_differential.js, so a reworded message follows and a '
+        + 'restructured one prints NOT DERIVED. Gated = the artifact engine/quarantine.js and '
+        + 'engine/status.js actually read');
+  }
 
   return rows;
 }
@@ -572,7 +848,8 @@ console.log(lines().join('\n'));
  * that failed in silence would understate the very hole this file exists to show. An absent artifact
  * is a legitimate state and prints as NOT DERIVED above -- this says HOW MANY there were, so 'one
  * artifact missing' and 'nothing on disk parsed' cannot look identical. */
-if (COVFAILS.readJson || COVFAILS.gateSource || COVFAILS.artifactStat) {
+if (COVFAILS.readJson || COVFAILS.gateSource || COVFAILS.artifactStat
+    || COVFAILS.driverSource || COVFAILS.armDir) {
   console.error('');
   console.error('  READS THAT FAILED -- some counts above read NOT DERIVED for this reason,');
   console.error('  not because the work is done:');
@@ -580,4 +857,12 @@ if (COVFAILS.readJson || COVFAILS.gateSource || COVFAILS.artifactStat) {
     + (COVFAILS.readJsonFirst ? '  (first: ' + COVFAILS.readJsonFirst + ')' : ''));
   console.error('    gate sources unreadable, so the artifact list is INCOMPLETE: ' + COVFAILS.gateSource);
   console.error('    artifacts with no file on disk, so no age: ' + COVFAILS.artifactStat);
+  /* THE DRIVER IS NOT AN ARTIFACT AND ITS FAILURE IS NOT THE ORDINARY ONE. `engine/game_differential.js`
+   * being absent or no longer parsing where these readers expect is a BROKEN CHECKOUT or a refactor,
+   * not a run that has not happened yet -- and it silences the spread and the driver-policy rows, the
+   * two widest narrowings this block prints. */
+  console.error('    engine/game_differential.js reads that did not parse: ' + COVFAILS.driverSource
+    + (COVFAILS.driverSourceWhy ? '  (first: ' + COVFAILS.driverSourceWhy + ')' : ''));
+  console.error('    arm directories that could not be listed, so an ARM MAY BE MISSING above: '
+    + COVFAILS.armDir + (COVFAILS.armDirWhy ? '  (first: ' + COVFAILS.armDirWhy + ')' : ''));
 }

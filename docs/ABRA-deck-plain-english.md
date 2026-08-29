@@ -1,6 +1,33 @@
 # ABRA — the plain-English deck
 
-**Version 5.210.0 · 2026-08-29 · Will Hooper**
+**Version 5.212.0 · 2026-08-29 · Will Hooper**
+
+**5.212.0 — WE WERE MARKING GAMES AS "THE TWO ENGINES DISAGREED" WHEN THE ONLY DISAGREEMENT WAS OUR
+OWN TEST RIG.**
+
+Our simulator plays a whole turn in one go. The official simulator we check ourselves against stops
+in the middle of a turn whenever a Pokémon uses a move that switches it out, and asks who is coming
+in. Our test rig answered that mid-turn question by looking at who was standing at the END of the
+turn — and sometimes that is a different Pokémon, because the one that came in got knocked out and
+the original walked back. So the rig named a Pokémon the official simulator already had on the
+field, got refused, and wrote the game down as a disagreement. The two engines had agreed on every
+single line.
+
+Nothing about how we play Pokémon changed. What changed is that 42 of 961 test games were being cut
+short for that reason, and now 27 are — and the 27 left are real. Games we play to a finish went
+from 47.8% to 48.4%, and games where the two engines genuinely end up with a different board went
+from 135 to 117. Eighteen of the disagreements we had listed were never disagreements.
+
+**5.211.0 — THREE THINGS OUR OWN SCOREBOARD DOES NOT COVER, NOW PRINTED BESIDE IT.**
+
+Nothing we have claimed changed. Three of the claims are now narrower on the page than they looked.
+First, the stat spreads in our biggest test are INVENTED — a public team sheet does not show them,
+so we make them up from a fixed recipe and give the same made-up numbers to both sides. That is a
+fair fight, and it is not the damage a real ladder game does. Second, we compare 34 of the 80 kinds
+of lingering effect a move can leave behind, and 24 of the other 46 are gone by the moment we look,
+so the real target is 56 and not 80. Third, a driver that hunts for rare mechanics finishes 2% of
+its games, while a driver that plays like a person finishes 48% — and the clean sheet we have been
+quoting came from the first one. Those are two different tests, not a before and after.
 
 **5.210.0 — WE PULLED A NUMBER THAT HAD NOTHING BEHIND IT.**
 

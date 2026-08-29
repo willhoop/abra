@@ -1,6 +1,26 @@
 # ABRA — Project Summary
 
-**Version 5.210.0 · 2026-08-29 · Will Hooper**
+**Version 5.212.0 · 2026-08-29 · Will Hooper**
+
+**5.212.0 — THE FORCED-SWITCH MIRROR WAS THE HARNESS, AND THE EMPIRICAL ARM'S DENOMINATOR MOVED.**
+`M.battleTurn()` plays a whole turn atomically while Showdown stops dead at a pivot and asks who comes
+in, so on any turn where one slot took TWO bodies the harness answered the FIRST request with the
+SECOND body — and then stopped the game claiming the boards had parted, on boards that agreed. The
+mirror now answers from medicham2's ORDERED occupancy of the slot, observed as the turn is played. No
+engine byte moved; medicham2's pivot was never wrong. On identical pins the empirical arm goes from
+**47.8% completion and 135 games whose board diverged** to **48.4% and 117**, with mirror truncations
+42 → 27. The 27 that remain are 19 genuinely parted boards and 6 downstream of other named engine
+defects. Census unmoved at 784 / 784 / 0, predicted, because this is the harness and not a mechanic.
+
+**5.211.0 — THREE SCOPE LINES ADDED TO `engine/coverage.js`.** Nothing measured moved. Three
+verdicts are now printed with their limits: the whole-game differential's stat spreads are ASSIGNED
+by the driver from a slot index (66 points, 32 cap, no HP) and are therefore not metagame damage;
+the board-leaf denominator is the CEILING **56** and not the 80-leaf population, because 24 leaves
+cannot be standing at the turn boundary the comparator reads; and a whole-game figure names its
+DRIVER, since the coverage-seeking arm reaches a result in 1.8% of games (0 diverging boards) where
+the empirical arm reaches 47.8% (135) on identical pins. All three are derived at run time.
+*(The empirical arm's two figures are 48.4% and 117 as of 5.212.0 — see above. The 47.8% / 135 pair is
+left as it was written, because it is what that release measured.)*
 
 **5.210.0 — THE PORY TWO-FEATURE PAIR IS WITHDRAWN: ITS GENERATOR WRITES NO ARTIFACT.**
 `engine/pory_baseline.py` prints a five-arm table and saves nothing, so the material-baseline

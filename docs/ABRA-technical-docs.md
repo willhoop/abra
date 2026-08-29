@@ -1,6 +1,39 @@
 # ABRA — Technical Documentation
 
-**Version 5.210.0 · Last updated 2026-08-29**
+**Version 5.212.0 · Last updated 2026-08-29**
+
+**5.212.0 — THE FORCED-SWITCH MIRROR READS THE ORDERED OCCUPANCY OF A SLOT.**
+`engine/game_differential.js` gives the reference simulator the replacement that `medicham2` chose.
+Before this change it read the body that occupied the slot at the END of the turn.
+- `medicham2` plays one whole turn in one call. The reference simulator stops in the middle of a turn
+  when a pivot move resolves, and it asks for a replacement at that moment.
+- If one slot received two bodies in the same turn, the two moments give two different bodies. The
+  harness then named a body that the reference simulator had on the field. The reference simulator
+  refused the choice and the harness stopped the game.
+- The harness now records each body as it enters a slot, in order, for the turn being played. It
+  answers each request with the next body in that list. It removes the switch that the driver itself
+  ordered, and it removes a drag, because the reference simulator does not ask about either. Both
+  removals are counted and printed.
+- The message for a refused mirror now says `has FAINTED` or `already has ACTIVE on the field`. The
+  earlier message said `(fainted/active)` for both. The two conditions have opposite causes.
+- Set `MEDI_MIRROR_END_OF_TURN=1` to restore the earlier behaviour.
+  `tests/probe_forced_switch_mirror.js` fails with this variable set and passes without it.
+
+On the same pins the empirical driver arm gives 48.4% of games with a result and 117 games with a
+different board. The earlier values were 47.8% and 135.
+
+**5.211.0 — THE GATE NOW PRINTS THREE MORE LIMITS OF ITS OWN VERDICTS.**
+`engine/coverage.js` prints three new rows. Each row is calculated at run time. Each row shows
+`NOT DERIVED` and the reason if its source does not parse.
+- `differential bodies on a REAL spread` — the whole-game differential gives each body a spread that
+  it calculates from the position of the body in the team. A team sheet does not show a spread. The
+  rule (66 points, a limit of 32, a Speed ladder, no HP) is read from the source of the driver. The
+  nature is the real nature from the sheet. Both engines get the same calculated spread. Therefore
+  the comparison is correct, but the damage is not the damage of a real ladder game.
+- `board leaves compared` — the denominator is now the CEILING (56) and not the population (80). The
+  comparator reads the board only at the end of a turn. 24 leaves cannot be present at that moment.
+- `driver policies the gate quotes` — a whole-game result is only correct for the driver policy that
+  made it. The gate reads one policy of two.
 
 **5.210.0 — THE PORY TWO-FEATURE PAIR IS WITHDRAWN: ITS GENERATOR WRITES NO ARTIFACT.**
 `engine/pory_baseline.py` prints a five-arm table and saves nothing, so the material-baseline

@@ -1,6 +1,26 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.210.0 — 2026-08-29.**
+**Version: 5.212.0 — 2026-08-29.**
+
+**5.212.0 — NO DAMAGE STAGE MOVED, AND THE POPULATION THE `-damage field 3` CARDS WERE COUNTED IN
+DID.** The whole-game differential's forced-switch mirror was stopping 42 of 961 empirical-arm games
+on a harness fault rather than on the game; it now stops 27, and the count of games whose board
+diverged fell from 135 to 117. Any damage card counted against the 135 is an upper bound until it is
+re-read against the 117 — including the twelve `-damage field 3` cards of
+`docs/_reports/2026-08-29-empirical-divergence-cards.md`, whose Grass Knot and Heavy Slam rows remain
+the sharpest open damage question in this document. Nothing in the stage table below was measured on
+that arm, so no stage verdict here changes.
+
+**5.211.0 — THE SPREAD EVERY DAMAGE NUMBER HERE RUNS ON IS ASSIGNED, NOT OBSERVED.**
+A Showdown open team sheet reveals species, item, ability, moves, nature, gender and level and NOT
+the spread, so `engine/game_differential.js` `spreadFor(index)` assigns one from the body's slot
+index: 66 points, a 32 cap, a descending Speed ladder by slot, the remainder to the higher attacking
+stat and then spilling to Sp. Def then Def, and **nothing into HP** — deliberate, because Champions'
+Showdown line adds the investment plus 75 for HP while medicham2's L50 line has no HP term, so HP
+points would diverge silently on every body. Both engines are handed the same spread, so a stage
+disagreement is still a real disagreement; what a clean damage verdict is NOT is a statement about
+what the ladder actually rolls. `engine/coverage.js` prints this beside the verdict and reads the
+budget, the cap and the ladder off the driver's source rather than repeating them.
 
 **5.210.0 — THE PORY TWO-FEATURE PAIR IS WITHDRAWN: ITS GENERATOR WRITES NO ARTIFACT.**
 `engine/pory_baseline.py` prints a five-arm table and saves nothing, so the material-baseline

@@ -1,6 +1,39 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.210.0 · Last updated 2026-08-29**
+**Version 5.212.0 · Last updated 2026-08-29**
+
+**5.212.0 — A HARNESS STOP WAS COUNTING AS A DIVERGED BOARD, AND THE EMPIRICAL ARM'S DENOMINATOR
+MOVES FROM 135 TO 117.** No engine behaviour changed and no result about the simulator is retracted;
+one instrument was reading the wrong moment. `medicham2`'s turn is atomic — `battleTurn()` plays the
+whole turn and returns — while the reference simulator halts the instant a pivot move resolves and
+asks which body replaces the user. The differential harness answered that MID-TURN question with
+`medicham2`'s END-OF-TURN occupant of the slot, so on any turn in which one slot received two bodies
+(a pivot brings a replacement in, that replacement dies, and the pivoter returns) the harness named a
+body the authority already had standing, was refused, and stopped the game as a parted board. It was
+reproduced on one pinned game before anything was changed, both protocol streams agreeing line for
+line up to the halt. The mirror now answers from the ORDERED occupancy of the slot, observed as the
+turn is played and resolved through the same single identity accessor every other roster question
+uses. On identical pins (release `e129bca605e3`, census pin `9446a684709d`, pool `0d103fb9fa87`, 961
+games, 12-turn cap) the empirical-click arm moves from **47.8% of games reaching a result and 135
+whose board diverged** to **48.4% and 117**, with harness truncations falling 42 → 27. The 27 that
+remain are 19 boards that genuinely parted and 6 downstream of separately-recorded engine defects,
+so the completion figure is still a lower bound and is still labelled one. Detail:
+`docs/_reports/2026-08-29-forced-switch-mirror.md`.
+
+**5.211.0 — THREE SCOPE LINES: THE DIFFERENTIAL'S SPREADS ARE SYNTHETIC, THE BOARD-LEAF CEILING
+IS 56 AND NOT 80, AND A WHOLE-GAME FIGURE IS ONLY ABOUT ITS DRIVER.** No result in this document
+changes; three of them are now bounded, and the bounds are derived at run time by
+`engine/coverage.js`. **(i)** Every damage figure the whole-game differential produces is computed
+on a spread the driver ASSIGNS from a body's slot index — 66 points, a 32 cap, a descending Speed
+ladder, nothing in HP — because an open team sheet reveals no spread. The nature is the sheet's own
+and both engines receive the same invented spread, so the comparison is sound and **the damage is
+not metagame damage**. **(ii)** The board comparator samples only at a turn boundary, so of the 80
+leaves a legal mechanic can write, 24 can never be standing when it looks; the widening ceiling is
+**56**, of which 34 are compared. **(iii)** On one set of pins (release `e129bca605e3`, cap 12, pool
+`0d103fb9fa87`, 961 games) the coverage-seeking driver reaches a result in 1.8% of games with 0
+diverging boards and the empirical driver reaches 47.8% with 135, and `engine/arms_comparable.js`
+refuses the pair on `policy` — so **"board-material zero" is a statement about games that do not
+end**, not about the engine in general.
 
 **5.210.0 — THE PORY TWO-FEATURE PAIR IS WITHDRAWN: ITS GENERATOR WRITES NO ARTIFACT.**
 `engine/pory_baseline.py` prints a five-arm table and saves nothing, so the material-baseline

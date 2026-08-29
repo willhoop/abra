@@ -3057,6 +3057,49 @@ function refusedChoice(sd, input, err) {
  * no unclaimed match is NOT counted here — it is a lookup miss and goes to SWITCH_LOOKUP_MISS.sd,
  * whose printed caption ("that side PASSED while the other switched") already says what it means. */
 const FORCED_SWITCH_MIRROR = { switched: 0, passed: 0 };
+/* ---- 2026-08-29 — THE MIRROR WAS ASKING AN END-OF-TURN QUESTION ABOUT A MID-TURN REQUEST --------
+ *
+ * `mirrorForcedSwitch` read medicham2's CURRENT active in a slot. medicham2 plays a whole turn in one
+ * atomic `battleTurn` call; Showdown STOPS DEAD the instant a pivot resolves and asks who comes in. So
+ * the two engines are not at the same moment, and on any turn where a slot took TWO entries the last
+ * one was answered to the first request.
+ *
+ * THE REPRODUCED GAME, `pair-speedctrl` / `2654713271 vs 2654811481`, turn 7, both streams agreeing
+ * line for line up to the pause:
+ *
+ *     |move|p2a: Incineroar|partingshot|p1a: Kingambit      <- SHOWDOWN PAUSES HERE
+ *     |switch|p2a: Gengar|gengar, L50|135/135|[from] partingshot     medicham2's answer
+ *     |move|p1a: Kingambit|ironhead|p2a: Gengar
+ *     |faint|p2a: Gengar
+ *     |switch|p2a: Incineroar|incineroar, L50|131/170       <- the pivoter comes BACK as the corpse's
+ *                                                              replacement, and it is what `mine[0]`
+ *                                                              holds when the mirror finally looks
+ *
+ * so the harness asked Showdown to switch in a body Showdown had standing, Showdown refused, and the
+ * game was stopped with *"the boards had already parted"* — on boards that agree. 42 of 961 games in
+ * the empirical arm ended on this, 16 of the 30 dumped cases with the wanted body ALIVE AND ACTIVE in
+ * Showdown at the SAME hp as medicham2's. (The other 14 are the real thing: Showdown's copy is a
+ * corpse and medicham2's is not. Both used to print the same sentence; they no longer do.)
+ *
+ * THE ORDERED OCCUPANCY IS OBSERVED, NOT PARSED FOR IDENTITY. `trace.push` is wrapped, and on a
+ * `|switch|` / `|drag|` line the SLOT is read off the identifier (`p2a` -> side p2, slot 0 — a
+ * POSITIONAL read) and the BODY is taken out of `S.actA`/`S.actB` at that instant, because `ident()`
+ * resolves the slot by `indexOf` and therefore runs AFTER the body is placed. The identity then goes
+ * through `rosterKey` like every other identity question in this file. Reading the name out of the
+ * line would have been a SIXTH implementation of "which body of the roster is this" — see the
+ * rosterKey header for the five that have already been paid for.
+ *
+ * THE VOLUNTARY SWITCH IS DROPPED, AND ONLY WHEN IT IS PROVABLY THE ONE THIS HARNESS ASKED FOR. A
+ * driver-chosen switch is expressed to Showdown in the CHOICE STRING and never raises a `forceSwitch`,
+ * so leaving it in the queue would answer the turn's first forced request with the wrong body. It is
+ * dropped only if it is the first entry in the slot, carries no `[from]` and is not a drag, AND its
+ * `rosterKey` equals the `switchTo` this driver issued for that slot. Counted, never silent.
+ *
+ * KNOB: `MEDI_MIRROR_END_OF_TURN=1` restores the old read. tests/probe_forced_switch_mirror.js is red
+ * under it and green without it. */
+const MIRROR_END_OF_TURN = process.env.MEDI_MIRROR_END_OF_TURN === '1';
+const ENTRY_WATCH = { lines: 0, placed: 0, unplaced: 0, first_unplaced: '',
+                      from_entry_log: 0, from_end_of_turn: 0, voluntary_dropped: 0, drag_skipped: 0 };
 /* THE THIRD ANSWER, AND IT IS NOT A DEFECT IN EITHER ENGINE OR IN THIS HARNESS.
  *
  * THE NOUN IS A FORCED SWITCH THAT COULD NOT BE EXPRESSED TO SHOWDOWN AT ALL, because the two engines
@@ -3375,6 +3418,44 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
    * authority read the pin. `medicham2.battleInit` assigns null when this is absent, so every other
    * caller is unchanged and the fallback is counted (`MEDSEEN.traceChoiceNoDie`) rather than silent. */
   const S = M.battleInit(A, B, { trace, autoMega: false, rng: armRng });
+  /* ---- THE ORDERED OCCUPANCY OF EVERY SLOT, THIS TURN. See the MIRROR_END_OF_TURN header. ---------
+   *
+   * `trace` STAYS A REAL ARRAY — `harvest`, `reduce`, `trace.slice`, `trace.filter` and the returned
+   * `mediTrace` all still see one. Only the instance's `push` is wrapped, and it delegates to
+   * `Array.prototype.push` so the array itself is unchanged.
+   *
+   * ARMED AFTER `battleInit`, DELIBERATELY: the four lead `|switch|` lines are emitted INSIDE that
+   * call, when `S` is still in its temporal dead zone, and they are not answers to anything Showdown
+   * will ask. `entryReset()` then clears it at the top of every turn, so the queue is a statement
+   * about THIS turn and never about the last one. */
+  const ENTRY_LOG = { p1: [[], []], p2: [[], []] };
+  const entryReset = () => { ENTRY_LOG.p1 = [[], []]; ENTRY_LOG.p2 = [[], []]; };
+  let entryArmed = false;
+  const rawPush = Array.prototype.push;
+  trace.push = function (...lines) {
+    const n = rawPush.apply(this, lines);
+    if (!entryArmed) return n;
+    for (const L of lines) {
+      const p = String(L).split('|');
+      if (p[1] !== 'switch' && p[1] !== 'drag') continue;
+      ENTRY_WATCH.lines++;
+      const who = String(p[2] || '');
+      const sdk = who.slice(0, 2), slot = who[2] === 'a' ? 0 : who[2] === 'b' ? 1 : -1;
+      const body = (sdk === 'p1' ? S.actA : sdk === 'p2' ? S.actB : null);
+      /* A `??:` identifier means `ident()` could not find the body on the field, which medicham2
+       * already counts as MEDFAILS.traceBodyOffField. It cannot happen on an entry line and is
+       * counted here rather than assumed away — a silent skip is the shape this repo pays for. */
+      if (!body || slot < 0 || !body[slot]) {
+        ENTRY_WATCH.unplaced++;
+        if (!ENTRY_WATCH.first_unplaced) ENTRY_WATCH.first_unplaced = String(L).slice(0, 90);
+        continue;
+      }
+      ENTRY_WATCH.placed++;
+      ENTRY_LOG[sdk][slot].push({ body: body[slot], drag: p[1] === 'drag', from: /\[from\]/.test(L) });
+    }
+    return n;
+  };
+  entryArmed = true;
   /* ---- MEDICHAM2 HAS ITS OWN 20-TURN HORIZON, AND ABOVE IT THE END-STATE COMPARISON IS NONSENSE ---
    *
    * `battleOver` is `S.turn >= (S.maxTurns || 20) || …`, and this driver had never set `maxTurns`. So
@@ -3981,6 +4062,9 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
        * are the ones STANDING when the choice was made, and the abilities and items are the ones they
        * ACTUALLY HELD — read off the live medicham bodies, never off the sheet, per §3.1. */
       const playMark = trace.length;
+      /* THE ENTRY QUEUE IS PER TURN. Cleared here, beside `playMark`, for the same reason that mark
+       * exists: everything below is a statement about the turn about to be played. */
+      entryReset();
       const play = { moves: [], bodies: [] };
       for (const [sdk, acts, own] of [['p1', chosen.p1, S.actA], ['p2', chosen.p2, S.actB]]) {
         const foeSide = sdk === 'p1' ? 'p2' : 'p1';
@@ -4093,6 +4177,30 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
        * dead slot itself; if Showdown picked its own replacement the two engines would be playing
        * different games from the next line on and every later divergence would be the harness. */
       let guard = 0, mirrorImpossible = null;
+      /* BUILT ONCE, OUTSIDE THE `while`, BECAUSE IT IS CONSUMED ACROSS ITERATIONS. Showdown raises one
+       * request, takes the answer, resumes the turn and may raise another — the pivot's replacement
+       * dying to a later attacker is exactly the reproduced game. Rebuilding the queue per iteration
+       * would answer every one of them with the same body. */
+      const entryQueues = {};
+      for (const sd of ['p1', 'p2']) {
+        entryQueues[sd] = [0, 1].map(i => {
+          if (MIRROR_END_OF_TURN) return [];
+          /* A DRAG IS NOT A REQUEST. `forceSwitch()` (sim/battle-actions.ts:1353) picks the incoming
+           * body ITSELF out of `possibleSwitches` — Roar, Whirlwind, Dragon Tail and Circle Throw
+           * never raise a replacement request, so an entry medicham2 made through a phaze is one
+           * Showdown will never ask about. Left in the queue it would be consumed by the NEXT genuine
+           * request and name the wrong body. Counted, because a silent filter is a silent default. */
+          const q = ENTRY_LOG[sd][i].filter(e => { if (!e.drag) return true; ENTRY_WATCH.drag_skipped++; return false; });
+          /* DROP THE SWITCH THIS DRIVER ITSELF ORDERED, and nothing else. It reached Showdown in the
+           * choice string above, so Showdown will never ask about it; leaving it in would answer the
+           * turn's first FORCED request with the body that voluntarily walked in at the top of it. */
+          const want = chosen[sd] && chosen[sd][i] && chosen[sd][i].switchTo;
+          if (want != null && q.length && !q[0].from && rosterKey(q[0].body) === want) {
+            q.shift(); ENTRY_WATCH.voluntary_dropped++;
+          }
+          return q.map(e => e.body);
+        });
+      }
       while (battle.requestState === 'switch' && guard++ < 8 && !mirrorImpossible) {
         for (const sd of ['p1', 'p2']) {
           const side = sd === 'p1' ? battle.p1 : battle.p2;
@@ -4104,9 +4212,12 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
            * decision could only ever be tested by hunting the corpus for a game that happens to reach
            * it. Corpus games move; a constructed one does not. tests/test-forced-switch-mirror.js hands
            * it the exact shape as data. */
-          const mr = mirrorForcedSwitch(side.activeRequest.forceSwitch, mine, side.pokemon);
+          const mr = mirrorForcedSwitch(side.activeRequest.forceSwitch, mine, side.pokemon,
+                                        entryQueues[sd]);
           FORCED_SWITCH_MIRROR.switched += mr.switched;
           FORCED_SWITCH_MIRROR.passed += mr.passed;
+          ENTRY_WATCH.from_entry_log += mr.fromEntryLog;
+          ENTRY_WATCH.from_end_of_turn += mr.fromEndOfTurn;
           SWITCH_LOOKUP_MISS.sd += mr.lookupMiss;
           if (mr.cannot) { mirrorImpossible = sd + ': ' + mr.cannot; break; }
           const cs = mr.picks.join(', ');
@@ -4429,14 +4540,35 @@ let scriptMoveNotOnRequest = 0, scriptMoveFirstMissing = '';
  *               species is not on Showdown's side at all (the two engines disagree about the body's
  *               NAME — the alias failure `lookupMiss` counts, and it must read 0), or it is there and
  *               fainted/active (they disagree about what is ALIVE — the boards have parted). Neither
- *               has an answer that reproduces our placement, so the caller stops the game. */
-function mirrorForcedSwitch(forceSwitch, mine, roster) {
+ *               has an answer that reproduces our placement, so the caller stops the game.
+ *
+ * ---- `entries` — THE ORDERED OCCUPANCY, AND WHY `mine` IS THE WRONG SOURCE ON ITS OWN (2026-08-29)
+ *
+ * `entries[i]` is the list of bodies medicham2 placed in slot `i` THIS TURN, in order, with the
+ * driver's own voluntary switch already removed. The caller builds it; the full account of what it
+ * cost is on `MIRROR_END_OF_TURN`. It is CONSUMED — `shift()` — because Showdown asks one request at a
+ * time and the caller's `while` loop hands this function the same queue again for the next one.
+ *
+ * A QUEUED BODY IS NOT ASKED WHETHER IT IS ALIVE. `mine[i]`'s liveness test is what separates "our slot
+ * holds a corpse, pass" from "our slot holds a live body Showdown will not accept, cannot" — a question
+ * about the END of the turn. A queued entry is a statement about a MOMENT: medicham2 put this body on
+ * the field then, and Showdown is asking about then. The pivot replacement that dies later in the same
+ * turn is the reproduced case, and testing its end-of-turn `fainted` would answer `pass` to a request
+ * Showdown raised while it was still standing.
+ *
+ * ABSENT (the argument, or an empty queue for the slot) IT BEHAVES EXACTLY AS BEFORE, which is what
+ * tests/test-forced-switch-mirror.js parts 2–6 assert by handing it three arguments. */
+function mirrorForcedSwitch(forceSwitch, mine, roster, entries) {
   const claimed = new Set();
-  const out = { picks: [], switched: 0, passed: 0, lookupMiss: 0, cannot: null };
+  const out = { picks: [], switched: 0, passed: 0, lookupMiss: 0, cannot: null,
+                fromEntryLog: 0, fromEndOfTurn: 0 };
   (forceSwitch || []).forEach((need, i) => {
     if (!need) { out.picks.push('pass'); return; }
-    const body = mine && mine[i];
-    const live = !!(body && !body.fainted);
+    const eq = entries && entries[i];
+    const queued = (eq && eq.length) ? eq.shift() : null;
+    if (queued) out.fromEntryLog++; else out.fromEndOfTurn++;
+    const body = queued || (mine && mine[i]);
+    const live = !!(body && (queued || !body.fainted));
     /* `rosterKey`, NOT `body.name`. The name is display state and seven abilities in this format
      * rewrite it mid-game; a renamed body used to be a body NOTHING COULD ASK FOR, so the mirror
      * reported `cannot`, the driver stopped the game, and three staged scenarios came back SHORT.
@@ -4447,11 +4579,21 @@ function mirrorForcedSwitch(forceSwitch, mine, roster) {
                                    && rosterKey(q) === want);
     if (j >= 0) { claimed.add(j); out.switched++; out.picks.push('switch ' + (j + 1)); return; }
     if (!live) { out.passed++; out.picks.push('pass'); return; }
-    const named = roster.some(q => rosterKey(q) === want);
-    if (!named) out.lookupMiss++;
+    const named = roster.filter(q => rosterKey(q) === want);
+    if (!named.length) out.lookupMiss++;
     if (!out.cannot) {
+      /* `(fainted/active)` MERGED TWO ANSWERS THAT MEAN OPPOSITE THINGS, and merging them is why the
+       * 2026-08-29 card review could not say whether the 42 truncated games were the engine or the
+       * harness. FAINTED is the real finding — Showdown's copy of the body is a corpse and ours is
+       * not, so the boards HAVE parted. ACTIVE was, in every case measured, the harness asking an
+       * end-of-turn question (see MIRROR_END_OF_TURN); it is still reported as a stop, because a stop
+       * on a board that agrees is a bug wherever it lives, but it now says which one it is. */
+      const anyFnt = named.some(q => q.fainted), anyAct = named.some(q => !q.fainted && q.isActive);
       out.cannot = 'slot ' + (i + 1) + ' holds ' + want + ', which showdown '
-                 + (named ? 'has but cannot switch in (fainted/active)' : 'does not have under that name');
+                 + (!named.length ? 'does not have under that name'
+                    : anyAct ? 'already has ACTIVE on the field'
+                    : anyFnt ? 'has FAINTED'
+                    : 'has but cannot switch in (claimed by the other slot)');
     }
     out.picks.push('pass');
   });
@@ -7868,6 +8010,17 @@ console.log('    forced-switch SLOTS mirrored from medicham2: ' + FORCED_SWITCH_
 /* NOT A DEFECT AND NOT ZERO-GATED. The noun is a forced switch that could not be expressed because
  * the two engines already disagree about which bodies are alive. Printed beside the refusal count so
  * the two are never read as one number: the line above must be 0, this one need not be. */
+/* WHERE THE MIRROR'S ANSWER CAME FROM. `from_entry_log` is the ordered occupancy this turn — the
+ * right source; `from_end_of_turn` is the old read, still correct for a slot that took exactly one
+ * body and the only source when it took none. `unplaced` must read 0: it is a `|switch|` line whose
+ * slot could not be resolved, which cannot happen and is counted rather than assumed away. */
+console.log('    the mirror answered from medicham2\'s ORDERED occupancy ' + ENTRY_WATCH.from_entry_log
+  + ' time(s) and from its END-OF-TURN slot ' + ENTRY_WATCH.from_end_of_turn + '; '
+  + ENTRY_WATCH.placed + ' entry lines watched, ' + ENTRY_WATCH.voluntary_dropped
+  + ' voluntary switch(es) and ' + ENTRY_WATCH.drag_skipped + ' drag(s) excluded, '
+  + ENTRY_WATCH.unplaced + ' unplaced (must read 0'
+  + (ENTRY_WATCH.first_unplaced ? '; first: ' + ENTRY_WATCH.first_unplaced : '') + ')'
+  + (MIRROR_END_OF_TURN ? '   [MEDI_MIRROR_END_OF_TURN=1 — THE DEFECT IS RESTORED]' : ''));
 console.log('    ' + MIRROR_IMPOSSIBLE.n + ' forced switch(es) UNMIRRORABLE — the boards had already parted, '
   + 'so the game was stopped rather than answered'
   + (MIRROR_IMPOSSIBLE.n ? '.  first: ' + MIRROR_IMPOSSIBLE.first
@@ -8258,6 +8411,17 @@ if (WRITE) {
        * and carries the real, earlier divergence that parted the boards. */
       forced_switch_unmirrorable: MIRROR_IMPOSSIBLE.n,
       forced_switch_unmirrorable_first: MIRROR_IMPOSSIBLE.first || null,
+      /* 2026-08-29 — WHERE THE MIRROR'S ANSWER CAME FROM. See MIRROR_END_OF_TURN. `unplaced` must
+       * read 0. `end_of_turn_read` is the flag, in the artifact so a run taken under the knob can
+       * never be tabled against one that was not. */
+      forced_switch_answer_source: { from_ordered_occupancy: ENTRY_WATCH.from_entry_log,
+                                     from_end_of_turn_slot: ENTRY_WATCH.from_end_of_turn,
+                                     entry_lines_watched: ENTRY_WATCH.placed,
+                                     voluntary_excluded: ENTRY_WATCH.voluntary_dropped,
+                                     drags_excluded: ENTRY_WATCH.drag_skipped,
+                                     unplaced: ENTRY_WATCH.unplaced,
+                                     unplaced_first: ENTRY_WATCH.first_unplaced || null,
+                                     end_of_turn_read: MIRROR_END_OF_TURN },
       /* 2026-08-10 — the driver's ally aim. `aim_ally` at 0 on a run that staged one means the
        * translation is blind again; `aim_slot_empty` is a named slot with no body and must be 0. */
       aim_foe: AIM.foe, aim_ally: AIM.ally, aim_self: AIM.self,

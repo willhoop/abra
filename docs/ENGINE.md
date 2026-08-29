@@ -32,7 +32,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_hp_pair.js`,
 `tests/probe_state_trio.js`, `tests/probe_random_target_die.js`,
 `tests/probe_shield_refusal_line.js`, `tests/probe_upkeep_lines.js`,
-`tests/probe_fatigue_tag.js`, `tests/probe_reds_plant_reaches.js`
+`tests/probe_fatigue_tag.js`, `tests/probe_reds_plant_reaches.js`,
+`tests/probe_forced_switch_mirror.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -102,9 +103,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  784/784 probed mechanics live, 0 missing   (census 2026-08-28 22:47)
+  784/784 probed mechanics live, 0 missing   (census 2026-08-29 02:00)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 53 min old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 2.9 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-28 22:51)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -127,9 +128,147 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 00:10_
+_stamped 2026-08-29 02:08_
 
 <!-- /GENERATED -->
+
+## H4 SETTLED — THE FORCED-SWITCH MIRROR ASKED AN END-OF-TURN QUESTION ABOUT A MID-TURN REQUEST, AND IT WAS THE HARNESS. **BOARD-MATERIAL 135 -> 117 OF 961, COMPLETION 47.76% -> 48.39%, MIRROR TRUNCATIONS 42 -> 27, `showdown stopped emitting` 18 -> 3. CENSUS UNMOVED AT 784 LIVE / 784 PROBED / 0 MISSING — PREDICTED, BECAUSE NO ENGINE BYTE MOVED.** 2026-08-29, CHANGELOG 5.212.0.
+
+Card **A1** of `docs/_reports/2026-08-29-empirical-divergence-cards.md` and the open question **H4**
+under it. Full account: `docs/_reports/2026-08-29-forced-switch-mirror.md`.
+
+**MEDICHAM2'S PIVOT WAS NEVER IN QUESTION ONCE THE GAME WAS ON SCREEN.** `M.battleTurn()` is atomic —
+it plays the whole turn and returns. Showdown STOPS DEAD the instant a pivot resolves and asks who
+comes in. `mirrorForcedSwitch` read medicham2's CURRENT occupant of the slot, so on any turn where one
+slot took TWO bodies the SECOND was answered to the FIRST request. Reproduced from the pinned pool,
+`pair-speedctrl / 2654713271 vs 2654811481`, turn 7, both streams identical to the pause:
+
+```
+  |move|p2a: Incineroar|partingshot|p1a: Kingambit          <- SHOWDOWN PAUSES AND ASKS
+  |switch|p2a: Gengar|gengar, L50|135/135|[from] partingshot   medicham2's ANSWER to that request
+  |move|p1a: Kingambit|ironhead|p2a: Gengar
+  |faint|p2a: Gengar
+  |switch|p2a: Incineroar|incineroar, L50|131/170              <- the PIVOTER returns later in the SAME
+                                                                 turn, and THAT is what the mirror read
+```
+
+so the harness asked Showdown to switch in a body Showdown had standing, Showdown refused, and the
+game stopped at turn 7 with *"the boards had already parted"*. Fixed, that game plays to turn 11 and
+**both engines end the battle** with identical live rosters.
+
+**THE ORDERED OCCUPANCY IS OBSERVED, NOT PARSED FOR IDENTITY.** `trace.push` is wrapped on the instance
+(it stays a real Array); on a `|switch|`/`|drag|` the SLOT comes off the identifier — a POSITIONAL read
+— and the BODY out of `S.actA`/`S.actB` at that instant, because `ident()` resolves the slot by
+`indexOf` and therefore runs after the body is placed. Identity then goes through `rosterKey`. Reading
+the NAME off the line was rejected: it would be a **sixth** implementation of "which body of the roster
+is this", and the rosterKey header lists the five already paid for.
+
+**TWO EXCLUSIONS, BOTH COUNTED.** The driver's own voluntary switch reaches Showdown in the choice
+string and never raises a request — **4,134 excluded against the driver's independently-derived 4,141
+switches chosen**, a coherence check nothing in the fix arranges. A drag never raises one either
+(`forceSwitch()` picks its own body, `sim/battle-actions.ts:1353`) — **142 excluded**. `unplaced 0`.
+
+**AND THE STOP SENTENCE WAS SPLIT, WHICH IS WHY H4 WAS UNANSWERABLE FROM THE ARTIFACT.**
+`(fainted/active)` was ONE string for two answers that mean opposite things. It now reads `has FAINTED`
+or `already has ACTIVE on the field`, and the diagnosis falls out of the end-reason table without
+opening a dump.
+
+**THE CARD IS PARTLY REFUTED WHERE IT MATTERS.** *"on boards the report prints as otherwise
+identical"* is true of the ACTIVE half only: of the 32 mirror-stop games in the dump, **3 had matching
+LIVE rosters and 0 had matching full rosters**, and 14 of the 30 classifiable ones are the OPPOSITE
+finding — Showdown's copy is a corpse and ours is not, a real parted board, correctly stopped.
+
+**THE 27 THAT REMAIN ARE NOT THIS BUG.** 19 `has FAINTED` (14 of 14 dumped have genuinely disagreeing
+LIVE sets), 2 `"pass, pass" refused`, and **6 `already has ACTIVE`, each downstream of ONE other carded
+defect** — C1 Rage Powder vs Parting Shot (x2), A2 a failed pivot that switches anyway, C2 Lightning
+Rod vs Volt Switch, G2 Bug Bite's `stealeat` fields, F7 Struggle's `-activate`. None was touched. The
+mirror now REPORTS them instead of BEING them.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"H4 — which half of the pivot stop is wrong, the harness or our pivot timing"*~~ — **the harness**,
+  settled by reproducing the game rather than by argument, and the engine needed no change.
+- ~~*"the forced-switch mirror truncates 42 of 961 games and the 47.8% completion is a lower bound"*~~ —
+  27 and 48.39%, still a lower bound, and the remainder is six named engine defects.
+
+**Joins it:**
+- **`choices_refused` READS 3 AND MUST READ 0 — PRE-EXISTING, MEASURED IDENTICAL BEFORE AND AFTER.**
+  Same seeds, same strings: `Can't move: Floette's Protect is disabled` (2, both THREW their game) and
+  `forced-switch choice rejected p1 "pass, pass": Can't pass: You need to switch in a Pokémon to
+  replace Ninetales`. The second is the mirror answering `pass` for a slot Showdown insists needs
+  filling — a different question from A1 and its own batch.
+- **THE DRAG AND VOLUNTARY EXCLUSIONS ARE MEASURED, NOT STAGED.** Nothing puts a drag and a forced
+  switch into the SAME slot on the SAME turn, and nothing stages a voluntary switch followed by a
+  forced replacement in one slot — the only two shapes where getting either wrong changes an answer.
+- **`data/game-differential.json` IS STILL THE COVERAGE ARM AND WAS NOT RE-RUN.** That arm reports 0
+  truncations, so the mirror fix cannot move it; the command and its expected values are in the
+  report's `## OWED, NOT RUN`.
+
+### OWED, NOT RUN
+
+The exact commands, with their expected values stated first, are the `## OWED, NOT RUN` block of
+`docs/_reports/2026-08-29-forced-switch-mirror.md`.
+
+## PARTING SHOT'S SELF-SWITCH IS CONDITIONAL IN THE AUTHORITY AND UNCONDITIONAL HERE — WILL'S MIRROR ARMOR QUESTION IS ANSWERED CORRECTLY TODAY *BY ACCIDENT*. **CENSUS UNMOVED AT 784 LIVE / 784 PROBED / 0 MISSING, PREDICTED BEFORE THE RUN BECAUSE NOTHING WAS LANDED. ROADMAP #531 FILED.** 2026-08-29.
+
+Will asked: *"does parting shot into mirror armor send the target out while the user gets the drops?"*
+It was answered by PLAYING it in both engines, not by reading handlers. Full account:
+`docs/_reports/2026-08-29-partingshot-mirrorarmor.md`.
+
+**THE ANSWER.** The target stays exactly where it is and takes nothing; the **user** takes the −1
+Attack and −1 Special Attack, announced by `|-ability|…|Mirror Armor` once per stat; the user then
+pivots out; and because `sim/pokemon.ts:1514` `clearVolatile` zeroes the boost table on the way to the
+bench, **the drops it just took are erased by the very switch they permitted.** Against Mirror Armor,
+Parting Shot is a free pivot that costs nobody anything. Both engines agree, line for line and leaf
+for leaf.
+
+**AND THAT AGREEMENT IS AN ACCIDENT.** `data/moves.ts:13177-13182` makes the pivot CONDITIONAL —
+`if (!success && !target.hasAbility('mirrorarmor')) delete move.selfSwitch;` — and Mirror Armor is the
+one NAMED EXCEPTION to the condition. `medicham2-browser.js:26108` is
+`if(idx>=0)pivotFrom(a.mv,()=>switchOut(...))` with no reference to whether the drop landed, so the
+condition is absent and the exception cannot be violated. We agree on Mirror Armor because we agree on
+everything. **Parting Shot is the only move in the dex that deletes its own `selfSwitch`** (one grep
+hit, `data/moves.ts:13180`), so the defect has exactly one member.
+
+**MEASURED, FOUR ARMS, ONE KNOB — TWO BODIES × TWO ABILITIES SO EVERY RESULT IS ATTRIBUTABLE.**
+`corviknight/Mirror Armor`, `corviknight/Pressure` and `garganacl/Sturdy` are all BOARDS-IDENTICAL at
+1,204 leaves. `garganacl/Clear Body` PARTS: the authority prints `|-fail|…|unboost|[from] ability:
+Clear Body` and **no `|switch|` at all**, leaving Incineroar standing, while this engine brings
+Clefable in — four leaves (`p1a` species / types / ability / `pp.partingshot`), one cause, at both
+boundaries. **THE KNOB IS PROVED WIRED RATHER THAN ASSUMED**: the same Corviknight reflects onto the
+user under Mirror Armor and eats the drop itself under Pressure, so no arm is inert.
+
+**FILED, NOT FIXED, AND THE REASON IS SCHEDULING.** Another ENGINE agent held the forced-switch mirror
+(cards A1/A2) in the same window and a second change to the same family would have made neither
+attributable — docs/DIVISIONS.md's file-it-do-not-fix rule. **The divergence is DECLARED in the probe
+with its register row**, so it prints on every run and the probe goes **STALE-ALLOW red** the day
+somebody lands the fix without updating the declaration. A declared divergence is a receipt; it is not
+a waiver, and it is not "a known failure".
+
+**WHICH SCOREBOARD THIS SHOULD MOVE, SAID BEFORE THE RUN**: the LAB. Parting Shot is common; Parting
+Shot into a boost-refusing ability or a doubly-floored target is not, so the pinned pool may sit still
+on a fix and that would not be evidence against it.
+
+### THE HAND LIST
+
+**Joins it:**
+- **A PIVOT MOVE'S SELF-SWITCH IS NOT GATED ON THE MOVE HAVING DONE ANYTHING.** ROADMAP #531. Board-material
+  — the wrong body stands in the slot and stays there. Scope is every refusal *except* Mirror Armor:
+  Clear Body (Metagross, Dragapult, Garganacl), White Smoke (Torkoal), and a target already at −6
+  Attack and −6 Special Attack. The −6 fixture is **owed and not staged** — reaching −6 inside a script
+  means six Parting Shots and each of them pivots the user away.
+- **THE CENSUS SAYS "PARTING SHOT SWITCHES THE USER OUT" AND NOTHING SAYS IT IS CONDITIONAL.** The row
+  that asserts the OUTCOME — which body is standing after the turn, under a refused drop — is what
+  #531 owes, and it is the row that takes the census to 785.
+
+### OWED, NOT RUN
+
+The exact commands, with their expected values stated first, are the `## OWED, NOT RUN` block of
+`docs/_reports/2026-08-29-partingshot-mirrorarmor.md`. Nothing was re-run against a fresh release in
+this pass on purpose: the tree had already moved under the existing artifacts and another ENGINE agent
+was live, so the whole-game differential was deliberately left alone.
+
 
 ## FLASH FIRE ABSORBED THE HIT AND BINNED THE GIFT — ROADMAP #432's ONE STATED REMAINDER IS FIXED, AND THE COMPARATOR IS ONE LEAF WIDER. **CENSUS 782 -> 784 LIVE / 784 PROBED / 0 MISSING. BOARD LEAVES COMPARED 33 -> 34. GATE 8 OF 8, OPEN. WHOLE-GAME UNMOVED AT 961 GAMES / 6 RAW / 6 DECLARED / 0 THAT COUNT, DAMAGE 0/6000 AT ALL SIXTEEN CORNERS, ROSTER 140 / 129 / 475 WITH ZERO IN BOTH FAILURE COLUMNS — ALL PREDICTED.** 2026-08-29, CHANGELOG 5.209.0.
 

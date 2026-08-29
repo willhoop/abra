@@ -1,6 +1,24 @@
 # ABRA — the model family (living reference)
 
-**Version 5.210.0 · Last updated 2026-08-29.**
+**Version 5.212.0 · Last updated 2026-08-29.**
+
+**5.212.0 — NO MODEL CHANGED. ONE OF THE TWO DRIVER-ARM FIGURES THIS LEDGER QUOTES DID.**
+`empirical-click/v1` now reaches **48.4%** of its games and finds **117** whose board diverged, up from
+47.8% / 135 on identical pins. The move is an INSTRUMENT repair, not an engine one: the forced-switch
+mirror answered Showdown's mid-turn replacement request with medicham2's END-OF-TURN occupant of the
+slot, so a turn in which one slot took two bodies was stopped as a parted board on boards that agreed.
+42 truncations became 27, and the 27 that remain are 19 genuinely parted boards and 6 downstream of
+other named engine defects. No engine byte moved and the census is unmoved at 784 / 784 / 0.
+
+**5.211.0 — NO MODEL CHANGED. THE SCOPE OF THE WHOLE-GAME FIGURES QUOTED IN THIS LEDGER DID.**
+Any whole-game differential figure is now understood to be a statement about ONE driver policy.
+`census-coverage-seeking/v1` reaches a result in 1.8% of its games; `empirical-click/v1` reaches
+47.8% on identical pins and finds 135 games whose board diverged where the first finds 0. *(48.4% and
+117 as of 5.212.0; the pair above is left as that release measured it.)*
+`engine/arms_comparable.js` refuses the pair on `policy` — they are two instruments, not a
+before/after — and `engine/coverage.js` prints both arms beside the gate's verdict so that neither
+can be quoted without its driver. Damage figures from the same instrument carry a second bound: the
+stat spreads are assigned by the driver, not observed from a sheet.
 
 **5.210.0 — THE PORY TWO-FEATURE PAIR IS WITHDRAWN: ITS GENERATOR WRITES NO ARTIFACT.**
 `engine/pory_baseline.py` prints a five-arm table and saves nothing, so the material-baseline

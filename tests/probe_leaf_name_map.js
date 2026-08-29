@@ -95,6 +95,10 @@ const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
 
 /* ---- 1. THE HOLE, FROM THE PROBE THAT OWNS IT -------------------------------------------------- */
+/* Spawned for the ROWS (a child process, so a throw in the dex walk is reported rather than taking
+ * this file down mid-parse) and required for the RULES it owns — `selfRemovesWithinAction` and
+ * `boundaryCallSites`. The require is free: that module runs nothing at load. */
+const UPM = require(D('tests', 'probe_uncompared_leaves.js'));
 let UP;
 try {
   UP = JSON.parse(cp.execFileSync(process.execPath,
@@ -385,41 +389,16 @@ let holeStanding = HOLE.filter(r => !r.life.gone_at_the_boundary);
 
 /* A DECLARED CLOCK IS NOT THE WHOLE LIFETIME, AND THE PARENT PROBE SAYS SO IN ITS OWN HEADER: "a
  * condition with no declared clock may still be removed inside the turn by its own move (Sparkling
- * Aria's is)". Two of the 25 are exactly that, and neither can be standing when the comparator reads.
- * Derived from the AUTHORITY's own entry, not from a list — a handler that calls `removeVolatile` /
- * `delete pokemon.volatiles[...]` on the leaf's own name, hung on a hook that runs INSIDE the action
- * (`onUpdate`, `onAfterMove`), ends the condition before any boundary. */
-const WITHIN_ACTION_HOOKS = ['onUpdate', 'onAfterMove'];
-function selfRemovesWithinAction(name) {
-  const seen = [];
-  const scan = (e, where) => {
-    if (!e) return;
-    for (const h of WITHIN_ACTION_HOOKS) {
-      const f = e[h];
-      if (typeof f !== 'function') continue;
-      const s = String(f);
-      if (s.includes("removeVolatile(\"" + name + "\")") || s.includes("removeVolatile('" + name + "')")
-        || s.includes('volatiles["' + name + '"]') || s.includes("volatiles['" + name + "']"))
-        seen.push(where + '.' + h);
-    }
-  };
-  const mv = dex.moves.get(name);
-  if (mv && mv.exists) { scan(mv, 'move:' + name); scan(mv.condition, 'move:' + name + '.condition'); }
-  const it = dex.items.get(name);
-  if (it && it.exists) { scan(it, 'item:' + name); scan(it.condition, 'item:' + name + '.condition'); }
-  scan(dex.conditions.getByID(name), 'condition:' + name);
-  return seen;
-}
-/* AND IT OVER-MATCHED, SO THE GUARD IS HERE AND IS SAID OUT LOUD. The first version of this rule
- * caught `lockedmove` — whose `onAfterMove` is `if (this.effectState.duration === 1)
- * pokemon.removeVolatile('lockedmove')`, a CONDITIONAL removal at the end of a real 2-turn clock —
- * and would have dropped a rampage lock out of the widening target on the strength of a `removeVolatile`
- * appearing in a handler. docs/ENGINE.md: print what a new predicate matched before wiring it.
- * A DECLARED CLOCK WINS. The rule now applies only to a condition that declares no duration at all,
- * which is the same column the parent probe keys on, and the rows the guard rescued are printed. */
+ * Aria's is)". Two of the 24 are exactly that, and neither can be standing when the comparator reads.
+ *
+ * THE RULE LIVES IN THE PARENT PROBE AS OF 2026-08-29 AND IS CALLED FROM HERE. It was defined here and
+ * nowhere else, so `derive()` — the function `engine/coverage.js` and `engine/status.js` read — did not
+ * know about it and published a ceiling of 58 where this file printed 56. Two producers of one fact,
+ * disagreeing, exactly as the closed-row detector did on 24 of 292 rows. The guard that rescues
+ * `lockedmove` from over-matching moved with it and is documented at the definition. */
 const SELF_REMOVED = [], SELF_REMOVE_GUARDED = [];
 holeStanding = holeStanding.filter(r => {
-  const w = selfRemovesWithinAction(r.name);
+  const w = UPM.selfRemovesWithinAction(dex, r.name);
   if (!w.length) return true;
   if (r.life.duration != null) { SELF_REMOVE_GUARDED.push({ key: r.key, where: w, duration: r.life.duration }); return true; }
   SELF_REMOVED.push({ key: r.key, where: w });
@@ -429,19 +408,13 @@ const TARGET = COMPARED_ROWS.length + holeStanding.length;
 
 /* WHERE THE BOARD IS ACTUALLY SAMPLED, read off the driver rather than asserted. Every board this
  * repository compares goes through `BS.snapshot`, and the only place that is called from is
- * `stateCheck` in `game_differential.js`. Its call sites are what decide the boundary claim. */
-const GD = fs.readFileSync(D('engine', 'game_differential.js'), 'utf8');
-const SNAPSHOT_CALLS = [...GD.matchAll(/BS\.snapshot\(/g)].length;
-const STATECHECK_CALLS = [...GD.matchAll(/\bstateCheck\(/g)]
-  .map(m => GD.slice(0, m.index).split('\n').length);
-/* Any OTHER caller of BS.snapshot in the tree would be a second sampling point and would break the
- * boundary claim, so they are counted rather than assumed away. */
-const OTHER_SNAPSHOT_CALLERS = [];
-for (const dir of ['engine', 'tests']) for (const f of fs.readdirSync(D(dir))) {
-  if (!f.endsWith('.js') || (dir === 'engine' && f === 'game_differential.js')) continue;
-  const src = fs.readFileSync(D(dir, f), 'utf8');
-  if (/\bBS\.snapshot\s*\(|board_state[^\n]*\)\.snapshot\s*\(/.test(src)) OTHER_SNAPSHOT_CALLERS.push(dir + '/' + f);
-}
+ * `stateCheck` in `game_differential.js`. Its call sites are what decide the boundary claim — and,
+ * same as the rule above, that derivation now lives in the parent probe so the coverage line and this
+ * probe cannot part on it. */
+const BCS = UPM.boundaryCallSites();
+const SNAPSHOT_CALLS = BCS.snapshot_calls;
+const STATECHECK_CALLS = BCS.statecheck_call_lines;
+const OTHER_SNAPSHOT_CALLERS = BCS.other_snapshot_callers;
 
 /* ---- 6. REACH OVER THE FROZEN POOL (optional) -------------------------------------------------- */
 async function poolReach() {
