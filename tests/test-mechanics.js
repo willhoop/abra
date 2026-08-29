@@ -11606,6 +11606,71 @@ probe('move', 'forcesSwitch', 'Dragon Tail drags the target out', () => {
                  + '; Dragon Tail dealt ' + test.dealt + ' and left ' + test.front };
 });
 
+/* 2026-08-29 — A FORCED SWITCH IS ADDRESSED TO THE BODY THE AIM RESOLVED, AND BOTH DOORS LOOKED THAT
+ * BODY UP IN THE MOVER'S FOE ARRAY ONLY.
+ *
+ * Roar, Whirlwind, Dragon Tail and Circle Throw are all `normal`, and `Battle#validTargetLoc` asks
+ * ADJACENCY and nothing else for that class — so aiming one at one's own partner is a legal choice.
+ * `BattleActions#forceSwitch` (sim/battle-actions.ts:1353) then runs over whatever bodies the target
+ * resolution produced and contains NO side test at all; it is ONE function serving both halves of
+ * `forcesSwitch`, which is why the two sites in this engine were one defect.
+ *
+ * THE KNOB IS THE AIM AND NOTHING ELSE. Same board, same bench, same move, same die — the control
+ * points across the field and the test points at the partner. Before 2026-08-29 the test arm read
+ * `_foes.indexOf(target) === -1` and the status door failed the move outright while the damaging door
+ * dealt its damage and skipped the drag in silence, so BOTH arms left the partner standing and the
+ * knob moved nothing. `MEDI_TARGET_SIDE_FOE_ONLY=1` puts that back.
+ *
+ * THE OUTCOME IS WHO IS STANDING IN THE SLOT, never a classification: each arm reads the names in
+ * both active arrays after a real turn. */
+probe('move', 'forcesSwitch', 'a STATUS phaze aimed at the MOVER\'S OWN PARTNER drags the partner', () => {
+  const run = (atAlly) => {
+    const me = bare('garchomp'), ally = bare('corviknight'), abench = bare('whimsicott');
+    const f1 = bare('incineroar'), f2 = bare('milotic'), fbench = bare('snorlax');
+    const S = M.battleInit([me, ally, abench], [f1, f2, fbench], { seeded: true });
+    const tgt = atAlly ? S.actA[1] : S.actB[0];
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'roar', tgt, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { allyGone: S.actA.indexOf(ally) < 0, foeGone: S.actB.indexOf(f1) < 0,
+             front: S.actA.map(x => x && x.name).join(',') + ' | ' + S.actB.map(x => x && x.name).join(',') };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.foeGone && !control.allyGone && test.allyGone && !test.foeGone,
+           arms: { control: control.front, test: test.front },
+           detail: 'Roar ACROSS the field left ' + control.front + ' (the foe must be gone and the '
+                 + 'partner must not); the same Roar at the PARTNER left ' + test.front
+                 + ' (the partner must be gone and the foe must not). Knob: MEDI_TARGET_SIDE_FOE_ONLY=1' };
+});
+
+/* THE DAMAGING DOOR OF THE SAME AUTHORITY FUNCTION, AND IT IS A SEPARATE SITE IN THIS FILE. Dragon
+ * Tail is resolved after the hit, per surviving target row, so its address book was computed once
+ * above the loop from the MOVER's side. The attack branch had always aimed an ally-directed hit
+ * correctly — the damage landed and only the drag went missing, which is the shape a `continue` in a
+ * loop makes. */
+probe('move', 'forcesSwitch', 'a DAMAGING forced switch aimed at the MOVER\'S OWN PARTNER damages AND drags the partner', () => {
+  const run = (atAlly) => {
+    const me = bare('garchomp'), ally = bare('corviknight'), abench = bare('whimsicott');
+    const f1 = bare('incineroar'), f2 = bare('milotic'), fbench = bare('snorlax');
+    const S = M.battleInit([me, ally, abench], [f1, f2, fbench], { seeded: true });
+    const tgt = atAlly ? S.actA[1] : S.actB[0];
+    const before = tgt.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'dragontail', tgt, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { dealt: before - tgt.curHP, gone: (atAlly ? S.actA.indexOf(ally) : S.actB.indexOf(f1)) < 0,
+             other: atAlly ? S.actB.indexOf(f1) >= 0 : S.actA.indexOf(ally) >= 0,
+             front: S.actA.map(x => x && x.name).join(',') + ' | ' + S.actB.map(x => x && x.name).join(',') };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.dealt > 0 && control.gone && control.other
+                && test.dealt > 0 && test.gone && test.other,
+           arms: { control: control.front, test: test.front },
+           detail: 'Dragon Tail ACROSS the field dealt ' + control.dealt + ' and left ' + control.front
+                 + '; the same Dragon Tail at the PARTNER dealt ' + test.dealt + ' and left ' + test.front
+                 + '. Both arms must DAMAGE and DRAG the body they name and leave the other side alone '
+                 + '— before 2026-08-29 the partner arm dealt its damage and the drag never happened. '
+                 + 'Knob: MEDI_TARGET_SIDE_FOE_ONLY=1' };
+});
+
 /* ROADMAP #340 — THE DRAG DIE IS THE ONLY THING THAT INDEXES INTO THE BENCH, AND THE BENCH WAS IN
  * THE WRONG ORDER.
  *

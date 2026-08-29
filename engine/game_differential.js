@@ -4468,7 +4468,21 @@ function scripted(script, turn, sd, i, act, side) {
   const dm = dex.moves.get(id(want.m));
   let target = null;
   const tt = (act.moves[k] && 'target' in act.moves[k]) ? act.moves[k].target : dm.target;
-  if (tt === 'normal' || tt === 'any' || tt === 'adjacentFoe') target = (want.t == null ? 0 : want.t) + 1;
+  /* 2026-08-29 -- `{ ally: true }` AIMS A `normal`/`any` MOVE AT THE USER'S OWN PARTNER, WHICH THIS
+   * ENCODER COULD NOT EXPRESS AND THE AUTHORITY HAS ALWAYS ACCEPTED.
+   *
+   *     case 'randomNormal': case 'scripted': case 'normal': return isAdjacent;   sim/battle.ts
+   *
+   * `validTargetLoc` asks only ADJACENCY for `normal`, so a negative targetLoc naming the partner is
+   * a legal choice; `any` is `return true`. `adjacentFoe` is `isAdjacent && isFoe` and is therefore
+   * REFUSED here rather than silently coerced -- a script that asks for an impossible aim must not
+   * quietly get a legal one, which is the silent-default failure this repository is built around.
+   * `aimOf`/`aimBody` already resolve a negative target through the mover's OWN array (the dispatch
+   * site's own note says so); only this encoder was foe-only. Both engines receive the same aim. */
+  if (want.ally && (tt === 'normal' || tt === 'any')) target = -((i === 0 ? 1 : 0) + 1);
+  else if (want.ally) { scriptAllyAimRefused++; if (!scriptAllyAimFirst) scriptAllyAimFirst = String(want.m) + ' (' + tt + ')'; }
+  if (target !== null) { /* already aimed by the ally clause */ }
+  else if (tt === 'normal' || tt === 'any' || tt === 'adjacentFoe') target = (want.t == null ? 0 : want.t) + 1;
   else if (tt === 'adjacentAlly') target = -((i === 0 ? 1 : 0) + 1);
   else if (tt === 'adjacentAllyOrSelf') target = -(i + 1);
   /* A SCRIPT MAY ASK TO MEGA EVOLVE, and until 2026-08-07 it could not — the auto-mega block below
@@ -4495,6 +4509,9 @@ function scripted(script, turn, sd, i, act, side) {
 }
 /* Asks to mega that Showdown's request refused. MUST read 0 in any run whose scenarios ask for one. */
 let scriptMegaRefused = 0;
+/* An `{ ally: true }` ask on a move whose target class cannot legally name a partner. MUST read 0 in
+ * any run whose scenarios ask for one; a non-zero says the arm aimed at a FOE while claiming an ally. */
+let scriptAllyAimRefused = 0, scriptAllyAimFirst = '';
 /* ROADMAP #174 -- scripted clicks that were not on the request and became a `pass`. MUST read 0 in
  * any run whose scenarios claim to have clicked something; a non-zero says the script did not run,
  * whatever the verdicts say. The FIRST one is kept with the list it was offered instead, because a
@@ -6120,8 +6137,11 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                     * games in one process and needs a per-scenario reading. */
                    scriptCounters: () => ({ moveNotOnRequest: scriptMoveNotOnRequest,
                                             firstMissing: scriptMoveFirstMissing,
-                                            megaRefused: scriptMegaRefused }),
-                   resetScriptCounters: () => { scriptMoveNotOnRequest = 0; scriptMoveFirstMissing = ''; },
+                                            megaRefused: scriptMegaRefused,
+                                            allyAimRefused: scriptAllyAimRefused,
+                                            allyAimFirst: scriptAllyAimFirst }),
+                   resetScriptCounters: () => { scriptMoveNotOnRequest = 0; scriptMoveFirstMissing = '';
+                                                scriptAllyAimRefused = 0; scriptAllyAimFirst = ''; },
                    /* 2026-08-22 — THE REFUSAL COUNTERS, exported for exactly the reason the nature and
                     * aim counters are: a caller proving "the authority took everything this harness
                     * said" must read THIS DRIVER'S OWN answer. A test that wrapped

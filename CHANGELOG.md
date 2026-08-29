@@ -11,6 +11,75 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.225.0] — 2026-08-29
+
+### Added
+- **`engine/side_selection_census.js` — AN ENGINE-SIDE CENSUS OF EVERY PLACE THIS SIMULATOR WRITES
+  DOWN A SIDE, AND A RATCHET ON THE ONES NOBODY HAS CLASSIFIED.** Six defects in two days were the
+  same wrong belief — *the other side is the far side* — in code with no shared function, array or
+  predicate. Each was found by fixing the previous one and never by a gate. The Safeguard pass
+  enumerated *the authority's handlers* and structurally could not see them: a bad SELECTOR hands a
+  CORRECT predicate the wrong body, so the symptom arrives wearing the predicate's name, and
+  `Battle#getRandomTarget` is a plain method with no `on…` name to walk for. This census asks the
+  question of THIS file instead — *where does a line pick one half of the field, and is that a SIDE
+  question or a TARGET question?* **102 sites, 21 declared (7 SIDE, 13 TARGET, 1 READER), 81
+  undeclared and ratcheted.** Keyed `anchor | expr | digest-of-the-line`, never a line number, so
+  moving a site keeps its declaration and CHANGING one invalidates it.
+  **It catches spellings the one-regex approach misses, and that is measured rather than claimed:**
+  `_side==='A'?actB:actA`, `it.side==='A'?field.sgB:field.sgA`, `(actA.indexOf(m)>=0?actB:actA)`, and
+  **`m._sf===sfA?sfB:sfA`, which contains no `side` token at all** and is a live member of the very
+  defect class filed below. **It would NOT catch a site that picks a side without an `A`/`B` ternary**
+  — a named helper, `sides[1 - i]`, or a filter written out in full. Said plainly, because a gate
+  built from an instance catches that instance.
+- **`{ ally: true }` ON A SCRIPTED CLICK.** `game_differential.js`'s scripted encoder wrote
+  `target = want.t + 1` for every `normal` move, so a fixture that aims one at the user's own partner
+  **could not be expressed at all** — and the authority has always accepted it
+  (`case 'randomNormal': case 'scripted': case 'normal': return isAdjacent;`, `Battle#validTargetLoc`).
+  An ally ask on a class that cannot legally name a partner is REFUSED and COUNTED
+  (`scriptCounters().allyAimRefused`), never silently coerced into a foe aim.
+
+### Fixed
+- **A FORCED SWITCH IS ADDRESSED TO THE BODY THE AIM RESOLVED, AND BOTH DOORS LOOKED THAT BODY UP IN
+  THE MOVER'S FOE ARRAY ONLY.** `reaimToSlot` has answered both axes since ROADMAP #223, so the body
+  it hands back can legitimately stand on the mover's own side; the two `forcesSwitch` sites then
+  computed that body's party, bench and side-field as `it.side==='A'?…B:…A`. An ally-aimed phaze
+  therefore scored `indexOf(...) === -1`, and the **STATUS door failed the move outright** while the
+  **DAMAGING door dealt its damage and skipped the drag in silence**. The authority has ONE function
+  for both halves — `BattleActions#forceSwitch` (`sim/battle-actions.ts:1353`), reached from `:1104`
+  and `:1260` — and it contains no side test at all, which is why these are one fix and not two.
+  New shared reader `sideBoxOf`, whose far-side fallback is the pre-change answer and is COUNTED
+  (`MEDSEEN.targetSideNotOnField`) rather than silent. Knob `MEDI_TARGET_SIDE_FOE_ONLY=1`.
+  Probe `tests/probe_ally_forced_switch.js`: **6 arms, 3 red and 3 controls, 0 failing**, with the
+  knob parting the red arms on identical bytes and moving no control.
+
+### Changed
+- **Census 801 → 803 live / 803 probed / 0 missing.** Two new `move / forcesSwitch` rows, both shown
+  MISSING under the knob without rewriting the artifact. Both ratchets held: 803 of 803 armed, 802 of
+  803 spend a real turn.
+
+### Notes
+- **ALL TWENTY-TWO OF THE FAR-SIDE SITES `docs/_reports/2026-08-29-armor-tail-ally.md` §3.2 FILED ARE
+  NOW CLASSIFIED, WITH THE AUTHORITY LINE THAT DECIDES EACH: SEVEN SIDE, FIFTEEN TARGET, SEVENTEEN
+  CORRECT, FIVE WRONG.** Three of the seventeen are correct for a reason worth recording rather than
+  by luck — Pressure's far-side restriction IS `onDeductPP`'s `if (target.isAlly(source)) return`,
+  Armor Tail's IS `source.isAlly(armorTailHolder)` (where the handler's `source` is the move's
+  target), and `hazardOnHit` names `source.side.foeSidesWithConditions()` explicitly.
+- **THE OTHER THREE WRONG SITES ARE FILED AND NOT FIXED, BECAUSE THEY ARE SEPARATE MECHANICS WITH
+  SEPARATE FIXTURES**: the redirect gate refuses to consider an ally-aimed status move where the
+  authority runs `RedirectTarget` on any resolved target (`sim/pokemon.ts:829-836`); the delayed-hit
+  booking fails an ally-aimed Future Sight; and `removesHazards` hands `sweepField` the mover's far
+  side where `defog.onHit` reads **`target.side`** (`data/moves.ts:3463`) — with two sibling call
+  sites spelling the same assumption `m._sf===sfA?sfB:sfA`. Folding them in here would make the
+  result unattributable.
+- **THE EMPIRICAL BOARD COUNT COULD NOT MOVE AND THE PREDICTION SAID SO BEFORE THE RUN.**
+  `chooseAction` and `empiricalPick` both write `target = j + 1` over the FOES for
+  `normal`/`any`/`adjacentFoe`, so **no pooled game has ever aimed one of these at a partner** — the
+  run's own AIM counter reads `31216 at a foe, 467 at an ally`, and all 467 are `adjacentAlly` moves.
+  **Board-parted 90 → 90 of 961, protocol 205 → 205, threw 1 → 1, end-state 898/60/2/1 unchanged**,
+  every shape and materiality count identical. Release `e8f7c7dba595` → `070890fc77a2`.
+  Full account: `docs/_reports/2026-08-29-side-vs-target-census.md`.
+
+
 ## [5.224.0] — 2026-08-29
 
 ### Fixed

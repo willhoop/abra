@@ -113,9 +113,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  801/801 probed mechanics live, 0 missing   (census 2026-08-29 11:42)
+  803/803 probed mechanics live, 0 missing   (census 2026-08-29 13:05)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 12.9 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 13.8 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -138,9 +138,121 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 12:10_
+_stamped 2026-08-29 13:08_
 
 <!-- /GENERATED -->
+
+## ALL TWENTY-TWO FAR-SIDE SITES ARE CLASSIFIED, AND THE FIVE THAT WERE WRONG ARE ONE CAUSE: A BODY THE AIM ALREADY RESOLVED, LOOKED UP IN THE MOVER'S FOE ARRAY. **CENSUS 801 -> 803 LIVE / 803 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED UNMOVED AT 90 OF 961 AND PROTOCOL UNMOVED AT 205 - PREDICTED BEFORE THE RUN WITH A STRUCTURAL REASON: NEITHER DRIVER CAN AIM A `normal` MOVE AT A PARTNER, AND THE RUN'S OWN AIM COUNTER SAYS SO. SEVEN SIDE, FIFTEEN TARGET, SEVENTEEN CORRECT, FIVE WRONG - TWO FIXED, THREE FILED AS SEPARATE BATCHES.** 2026-08-29, CHANGELOG 5.225.0.
+
+Full account: [docs/_reports/2026-08-29-side-vs-target-census.md](_reports/2026-08-29-side-vs-target-census.md).
+
+### THE CLASSIFICATION IS THE DELIVERABLE, AND IT IS CITED RATHER THAN TYPED
+
+`docs/_reports/2026-08-29-armor-tail-ally.md` §3.2 filed **22 live sites** that hard-code the mover's
+far side and said, honestly, that 18 of them were unclassified. All twenty-two now carry the authority
+line that decides them, in `data/side-selection-declarations.json`:
+
+- **SEVEN are SIDE questions** - the spread target list, trapping, where a hazard layer lands, a bare
+  switch, Baton Pass, `hazardOnHit`, and the damaging pivot's own switch-out. The far side is the
+  answer, and in one of them the AUTHORITY names a side explicitly:
+  `for (const side of source.side.foeSidesWithConditions())` (`data/moves.ts:18074`, Stone Axe).
+- **FIFTEEN are TARGET questions**, of which **ten are correct** - and three for a reason worth
+  writing down rather than by luck. Pressure's far-side restriction IS `onDeductPP`'s
+  `if (target.isAlly(source)) return`; Armor Tail's IS `source.isAlly(armorTailHolder)`, where the
+  handler's `source` is the move's TARGET; and `getRandomTarget`'s own comment says auto-resolution
+  never picks an ally.
+- **FIVE ARE WRONG AND THEY ARE ONE CAUSE.** `reaimToSlot` has answered both axes since ROADMAP #223,
+  so the body it returns can stand on the mover's own side. Five callers then asked *where does that
+  body live* and answered `it.side==='A'?...B:...A`. `indexOf` returns `-1`, and every one of the five
+  reads `-1` as *nothing here* - **so the symptom is always silence**, which is why none had been seen.
+
+### THE TWO THAT WERE FIXED ARE ONE AUTHORITY FUNCTION
+
+```
+sim/battle-actions.ts:1353  forceSwitch() -> runEvent('DragOut', target, source, move)
+sim/battle-actions.ts:1104  the DAMAGING half, inside spreadMoveHit
+sim/battle-actions.ts:1260  the STATUS half, in the same function's other arm
+```
+
+One function, no side test in it, so one batch. New shared reader **`sideBoxOf`**, whose far-side
+fallback is the pre-change answer and is COUNTED (`MEDSEEN.targetSideNotOnField`) rather than silent;
+`MEDSEEN.targetSideIsMoversOwn` counts the branch that did not exist before and is asserted at an
+EXACT per-arm value, so "the engines agree" cannot be read off a branch that never ran. Knob
+`MEDI_TARGET_SIDE_FOE_ONLY=1`.
+
+**THE INSTRUMENT HAD TO GROW BEFORE THE FIXTURE COULD BE BUILT.** `game_differential.js`'s scripted
+encoder wrote `target = want.t + 1` for every `normal` move, so the ask could not be expressed at all.
+`{ ally: true }` now writes the negative targetLoc the authority has always accepted
+(`case 'randomNormal': case 'scripted': case 'normal': return isAdjacent;`), and an ally ask on a class
+that cannot legally name a partner is REFUSED and COUNTED, never coerced.
+
+### WHAT IS LEFT BEHIND - `engine/side_selection_census.js`, AND WHAT IT CANNOT SEE
+
+An **ENGINE-side** census, because the authority-side one already failed: a bad SELECTOR hands a
+CORRECT predicate the wrong body, and `Battle#getRandomTarget` has no `on...` name to enumerate.
+**102 sites, 21 declared (7 SIDE, 13 TARGET, 1 READER), 81 UNDECLARED and ratcheted** - the undeclared
+count may fall and may never rise.
+
+**It catches a sixth spelled differently, and that is measured rather than claimed.** It already finds
+four spellings the filed regex misses - `_side==='A'?actB:actA`, `it.side==='A'?field.sgB:field.sgA`,
+`(actA.indexOf(m)>=0?actB:actA)`, and **`m._sf===sfA?sfB:sfA`, which contains no `side` token at all**
+and is a live sibling of the Defog defect filed below. **It would NOT catch a site that picks a side
+without an `A`/`B` ternary** - a named helper, `sides[1 - i]`, or a filter written out in full. Said
+plainly: a gate built from an instance catches that instance. What it adds is that a NEW site of the
+shape that has burned this project six times cannot arrive silently. The key is
+`anchor | expr | digest-of-the-line`, never a line number, so moving a site keeps its declaration and
+CHANGING one invalidates it.
+
+### THE PROBE - `tests/probe_ally_forced_switch.js`, 6 ARMS / 3 RED / 3 CONTROL / 0 FAILING
+
+The knob arm of `dragontail-at-ally` is the diagnosis in one line: `dmg[p1b]` is still there and
+`drag/p1b` is gone - what a `continue` in a loop looks like from outside.
+
+**THE FIXTURE WAS WRONG TWICE BEFORE THE ENGINE WAS.** The first partner clicked Protect, which blocks
+Dragon Tail outright, so the arm staged **no damage and no drag on either engine** and agreed while
+testing nothing - the authority's own empty `dmg[]` is what said so. The second filler was Recover,
+which imported a `self`-target `|move|` line defect present with the knob ON as well; routed out and
+filed rather than glossed.
+
+### WHICH SCOREBOARD, SAID BEFORE THE RUN
+
+*The lab must move: +2 census rows and 3 red arms. The pool must NOT move - board-parted stays at
+exactly 90 of 961.* Not a hope: `chooseAction` and `empiricalPick` both write `target = j + 1` over the
+FOES for `normal`/`any`/`adjacentFoe`. **The run's own AIM counter corroborates it: `31216 at a foe,
+467 at an ally`, and all 467 are `adjacentAlly` moves.** Every figure in the artifact is identical
+across the two arms - 961 games / 1 threw / 205 diverged, boards never diverged 871, turn boundaries
+10260 of 10566, end-state 898/60/2/1, 184 causes, and the same materiality split.
+`arms_comparable` reads COMPARABLE.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"EIGHTEEN OF THE TWENTY-TWO FAR-SIDE SITES ARE UNCLASSIFIED"*~~ - **closed.** All twenty-two are
+  classified with citations, and the census now carries the question per site with a ratchet.
+
+**Joins it:**
+- **THE REDIRECT GATE REFUSES TO CONSIDER AN ALLY-AIMED STATUS MOVE.** The authority runs
+  `RedirectTarget` on any resolved target (`sim/pokemon.ts:829-836`). Needs a Follow Me opposite an
+  ally-aimed status click. Its own batch.
+- **AN ALLY-AIMED DELAYED HIT FAILS.** `_ffoes.indexOf(_ft)` is `-1`, so `delayedHitNoSlot` fires where
+  the authority books the hit onto the target's own side. Its own batch.
+- **DEFOG READS `target.side` AND WE HAND `sweepField` THE MOVER'S FAR SIDE** (`data/moves.ts:3463`),
+  with **two sibling call sites** spelling the same assumption `m._sf===sfA?sfB:sfA`. Its own batch.
+- **A `self`-TARGET HEAL NAMES THE USER ON ITS `|move|` LINE AND THE AUTHORITY NAMES NOBODY.**
+  `recover->p1b` against `recover->none`; Protect on the same board reads `->none` on both engines, so
+  the difference is per action KIND. Narration. Found by a control, not in the twenty-two.
+- **`tools\lownode.cmd` IS UNREACHABLE FROM THIS SHELL FOR THE SECOND SESSION RUNNING.** `cmd //c`
+  drops every argument and opens an interactive prompt. An OPS item, named twice now.
+
+**Carried forward unchanged** from the hand lists below: the fainted-ally clause of `getTarget`, the
+`scripted` exemption from `aimTravelsByLoc`, the `chillyreception` target-class exemption, and the
+`benchRisk` refit that `clickFragility` owes MEASURE.
+
+### OWED, NOT RUN
+
+The `## OWED, NOT RUN` block of `docs/_reports/2026-08-29-side-vs-target-census.md`.
+
+---
 
 ## THE INSTRUCTED REPEAT PICKED ITS OWN TARGET, AND THE AUTHORITY REUSES THE SLOT THE CLICK NAMED — TWO ROADS, AND THE SECOND ONE PINNED EVERY SINGLE-TARGET STATUS REPEAT TO FOE SLOT 0. **CENSUS UNMOVED AT 801 LIVE / 801 PROBED / 0 MISSING — PREDICTED. EMPIRICAL BOARD-PARTED 91 -> 90 OF 961, PROTOCOL UNMOVED AT 205, THROWS 2 -> 1; THE PREDICTION WAS "UNMOVED" AND IT MISSED BY ONE, IN THE IMPROVING DIRECTION. THE DELTA IS KNOB-CONTROLLED ON THE SAME RELEASE, NOT ONLY DIFFED. NEW PROBE 14 ARMS / 0 FAILING; THE SIBLING'S KNOWN-OPEN ARM IS PROMOTED AND IT IS NOW 13 / 0 / 0.** 2026-08-29, ROADMAP #534, CHANGELOG 5.224.0.
 

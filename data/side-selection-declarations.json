@@ -1,0 +1,138 @@
+{
+  "_what": "HAND-WRITTEN. One row per side-selecting site in engine/medicham2-browser.js, saying which question that site is answering and citing the authority line that decides it. engine/side_selection_census.js joins this against a live scan; a site with no row here is UNDECLARED and the ratchet refuses to let the undeclared count rise.",
+  "_questions": {
+    "SIDE": "who are this body's opponents / whose side does this effect land on. Hard-coding the far side is correct: the authority itself names a SIDE at the equivalent point.",
+    "TARGET": "which body does this action address, and where does THAT body stand. The far side is an assumption; the answer belongs to the move's target class or to the resolved body. A TARGET row may still be CORRECT — three of the four the Armor Tail pass classified were.",
+    "READER": "the shared function the TARGET sites delegate to. Its far-side branch is the declared fallback, not an assumption."
+  },
+  "_verdict_field": "`verdict` is CORRECT, FIXED (this batch), or WRONG-FILED (measured wrong, not fixed here, with the report section that carries it).",
+  "_scope": "Classified 2026-08-29 by the side-vs-target batch: the twenty-two sites docs/_reports/2026-08-29-armor-tail-ally.md §3.2 filed by their `it.side==='A'?actB:actA` spelling. The scanner finds MORE than those twenty-two, because it is spelling-agnostic; the rest are honestly UNDECLARED and are what the ratchet protects.",
+  "declarations": {
+    "fn:statusMoveTargets | actB:actA | 8225a7f4": {
+      "question": "SIDE",
+      "verdict": "CORRECT",
+      "authority": "sim/pokemon.ts:809-816 getMoveTargets — `case 'allAdjacent': targets.push(...this.adjacentAllies()); // falls through` `case 'allAdjacentFoes': targets.push(...this.adjacentFoes());`",
+      "note": "The spread classes name a SIDE by definition. The ally half is not missing — the same line binds `_mine` and the `_spA` branch pushes the partner first, which is the authority's own order."
+    },
+    "fn:reaimToSlot | actB:actA | 7feb3be1": {
+      "question": "TARGET",
+      "verdict": "CORRECT",
+      "authority": "sim/pokemon.ts:770 getAtLoc — one SIGNED targetLoc reads both directions",
+      "note": "The ally axis is answered ABOVE this line off `it.allySlot`; `tgtSlot` is a foe-array index by construction, and the two slot writes were signed by the Armor Tail pass. The far side here is the foe AXIS, not an assumption about where the target is."
+    },
+    "fn:sideBoxOf | actB:actA | 34dbdecb": {
+      "question": "READER",
+      "verdict": "FIXED",
+      "authority": "sim/battle-actions.ts:1353 forceSwitch — runs over the resolved targets with no side test",
+      "note": "Added 2026-08-29. The shared address book for a RESOLVED body: it returns the side that body actually stands on, and falls back to the mover's far side only when the body is on neither active array — counted on MEDSEEN.targetSideNotOnField so the fallback is loud. MEDI_TARGET_SIDE_FOE_ONLY=1 restores the old far-side-only answer at every caller."
+    },
+    "kind:attack | actB:actA | ba842604": {
+      "question": "SIDE",
+      "verdict": "CORRECT",
+      "authority": "data/abilities.ts shadowtag/arenatrap/magnetpull — all three are `onFoeTrapPokemon`",
+      "note": "switchTrapVerdict is handed the TRAPPERS, and every trapping ability in the format hangs off a Foe handler. A body's own side cannot trap it."
+    },
+    "kind:attack | actB:actA | 2fd9243b": {
+      "question": "TARGET",
+      "verdict": "CORRECT",
+      "authority": "sim/battle.ts:2517 getRandomTarget — `return pokemon.side.randomFoe() || pokemon.side.foe.active[0]`",
+      "note": "Encore's execution-time override. This is the caller's FAR-SIDE DRAW handed to `defaultTargetOf` as its `pick`, and it is only called on the far-side road — the near-side classes are answered before it. Fixed by the Armor Tail pass; the ternary that remains is the correct half."
+    },
+    "kind:attack | actB:actA | 9352590a": {
+      "question": "TARGET",
+      "verdict": "CORRECT",
+      "authority": "sim/battle.ts:2508-2517 getRandomTarget — the `activePerHalf > 2` clause is skipped in a double, so `randomNormal` falls through to `randomFoe()`",
+      "note": "The randomTarget draw pool. Read whole rather than recalled: the authority's own comment says auto-resolution will NEVER make one of these target an ally, so the far side is the answer and not an assumption."
+    },
+    "kind:attack | actB:actA | 4f76037c": {
+      "question": "TARGET",
+      "verdict": "WRONG-FILED",
+      "authority": "sim/pokemon.ts:829-836 getMoveTargets — `if (this.battle.activePerHalf > 1 && !move.tracksTarget) { ... target = this.battle.priorityEvent('RedirectTarget', this, this, move, target); }`",
+      "note": "The redirect gate for a single-target STATUS move requires the action's target to be in the mover's foe array before redirection is considered. The authority runs RedirectTarget on ANY resolved target, ally-aimed included, gated only on activePerHalf, tracksTarget and charging. Measured, not fixed here: it needs its own fixture (a Follow Me opposite an ally-aimed status click). §7 of the report."
+    },
+    "kind:switch | actB:actA | 95fcaf58": {
+      "question": "TARGET",
+      "verdict": "CORRECT",
+      "authority": "data/abilities.ts:3431 pressure — `onDeductPP(target, source) { if (target.isAlly(source)) return; return 1; }`",
+      "note": "`pressureTargetsOf` is handed the FOES, and the authority's own handler returns early for an ally. The far side is the authority's `isAlly` guard written the other way round, not an assumption. (The anchor reads `kind:switch` because that is the nearest branch test above the PP block; the digest is what identifies the site.)"
+    },
+    "kind:switch | actB:actA | fe7bd2f0": {
+      "question": "TARGET",
+      "verdict": "CORRECT",
+      "authority": "data/abilities.ts:223 armortail — `if ((source.isAlly(armorTailHolder) || move.target === 'all') && move.priority > 0.1)`",
+      "note": "The pre-dispatch priority refusal. In `onFoeTryMove(target, source, move)` the handler's `source` IS the move's target, so the clause asks whether the MOVE'S TARGET stands on the holder's side — which in a two-sided game is exactly 'the target is in the mover's foe array'. Queenly Majesty is byte-identical. Dazzling has zero legal carriers."
+    },
+    "kind:callmove | actB:actA | 78619b1e": {
+      "question": "TARGET",
+      "verdict": "CORRECT",
+      "authority": "sim/battle.ts:2517 getRandomTarget",
+      "note": "The called-move (Copycat / Metronome / Sleep Talk / Mirror Move) far-side draw pool, handed to `defaultTargetOf` as its `pick`. Same shape as the Encore override."
+    },
+    "kind:pass | actB:actA | 3a5a867f": {
+      "question": "TARGET",
+      "verdict": "CORRECT",
+      "authority": "sim/pokemon.ts:770 getAtLoc",
+      "note": "The SIGNED slot write for a spliced called-move action: `tgtSlot` is the foe-array index and `allySlot` the own-array one, bound on the same line. Both axes are written, so `reaimToSlot` can read whichever is >= 0."
+    },
+    "kind:futurehit | actB:actA | cb279c06": {
+      "question": "TARGET",
+      "verdict": "WRONG-FILED",
+      "authority": "data/moves.ts futuresight/doomdesire — `target: 'normal'`, and the slot condition is written onto the TARGET's side",
+      "note": "The delayed hit is booked into the FAR side's slot conditions, so an ally-aimed Future Sight scores `_fslot < 0` and the move fails (MEDSEEN.delayedHitNoSlot). Measured, not fixed here: it is a booking site rather than an address book and needs its own arm. §7 of the report."
+    },
+    "kind:hazard | actB:actA | dcb37853": {
+      "question": "SIDE",
+      "verdict": "CORRECT",
+      "authority": "sim/pokemon.ts:796-804 getMoveTargets — `case 'foeSide': ... if (!move.target.startsWith('ally')) targets.push(...this.foes(true));`",
+      "note": "Every hazard move in this format is `foeSide`. The layer lands on a SIDE the move names, and the side is taken from a body standing in that side's slots."
+    },
+    "kind:instruct | actB:actA | 9875826a": {
+      "question": "TARGET",
+      "verdict": "CORRECT",
+      "authority": "data/moves.ts:9670 instruct — `targetLoc: target.lastMoveTargetLoc`",
+      "note": "The instructed body's side is derived from where THAT body stands (`actA.indexOf(t)>=0?'A':'B'`) and the foe array follows from it. Closed by ROADMAP #534; it is a target question already answered off the target."
+    },
+    "kind:switch | actB:actA | f6c44cd1": {
+      "question": "SIDE",
+      "verdict": "CORRECT",
+      "authority": "sim/battle-actions.ts:118-132 switchIn — the swap is entirely within `side.pokemon`",
+      "note": "A bare switch happens on the mover's OWN side; `foes` is passed to `switchOut` for what the ENTRANT meets. There is no target."
+    },
+    "kind:passstate | actB:actA | f6c44cd1": {
+      "question": "SIDE",
+      "verdict": "CORRECT",
+      "authority": "sim/battle-actions.ts:118-132 switchIn",
+      "note": "Baton Pass and its family. Same shape as the bare switch: the mover leaves its own side and the far array is only what the entrant meets."
+    },
+    "kind:attack | actB:actA | ed9b865e": {
+      "question": "TARGET",
+      "verdict": "CORRECT",
+      "authority": "data/abilities.ts:223 armortail; data/moves.ts psychicterrain condition — `if (target.isSemiInvulnerable() || target.isAlly(source)) return;`",
+      "note": "The in-branch priority refusal, which exists to cover the SPREAD case the pre-dispatch gate excludes. Both refusers ask about the body being aimed at, and `_aim` is handed over when there is one."
+    },
+    "kind:attack | actB:actA | 7feb3be1": {
+      "question": "TARGET",
+      "verdict": "CORRECT",
+      "authority": "sim/pokemon.ts:809-849 getMoveTargets",
+      "note": "The attack branch's address book. Used for the spread target list (a SIDE question, with the ally added separately off HITS_ALLY) and as the redirector pool, which already receives the near array as well. The single-target aim itself comes from `reaimToSlot` and is not looked up here."
+    },
+    "fn:_hpThresholdBoost | actB:actA | 934a23c7": {
+      "question": "SIDE",
+      "verdict": "CORRECT",
+      "authority": "data/moves.ts:18074 stoneaxe / :2231 ceaselessedge — `for (const side of source.side.foeSidesWithConditions()) side.addSideCondition(...)`",
+      "note": "hazardOnHit. The authority names the SOURCE's foe sides explicitly, so this is a side question and the far side is the answer even for an ally-aimed hit."
+    },
+    "fn:_hpThresholdBoost | actB:actA | 79cd0d52": {
+      "question": "TARGET",
+      "verdict": "WRONG-FILED",
+      "authority": "data/moves.ts:3463 defog — `for (const targetCondition of removeTarget) if (target.side.removeSideCondition(targetCondition))`",
+      "note": "removesHazards. Defog reads the TARGET's side for the screens-and-hazards loop and the SOURCE's side for the hazards-only loop; this site hands `sweepField` the mover's far side for the first of those. Rapid Spin's own arm is `hazardsFrom: 'self'` and is unaffected. Measured, not fixed here — and two sibling call sites spell the same assumption `m._sf===sfA?sfB:sfA`, which is exactly why the census is not keyed on one spelling. §7 of the report."
+    },
+    "fn:<module> | actB:actA | f6c44cd1": {
+      "question": "SIDE",
+      "verdict": "CORRECT",
+      "authority": "sim/battle-actions.ts:118-132 switchIn",
+      "note": "The damaging PIVOT (U-turn and its family). The user leaves its OWN side; the far array is what the entrant meets. Not the forced-switch drag, which is the site below it and was fixed."
+    }
+  }
+}

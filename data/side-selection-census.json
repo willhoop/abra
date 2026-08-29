@@ -1,0 +1,1344 @@
+{
+  "generated": "2026-08-29T16:44:10.421Z",
+  "by": "engine/side_selection_census.js",
+  "sources": [
+    "engine/medicham2-browser.js"
+  ],
+  "matched_lines": 102,
+  "sites": 102,
+  "by_question": {
+    "UNCLASSIFIED": 81,
+    "SIDE": 7,
+    "TARGET": 13,
+    "READER": 1
+  },
+  "undeclared": 81,
+  "rows": [
+    {
+      "key": "fn:health | p2:p1 | d8948f22",
+      "anchor": "fn:health",
+      "family": "p12",
+      "expr": "p2:p1",
+      "lines": [
+        3565
+      ],
+      "text": "const sideOf=m=>{const S=TR&&TR.S;if(!S)return 'p1';return (S.actB&&S.actB.indexOf(m)>=0)?'p2':'p1';};",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:condHolds | actA:actB | 37b7b29b",
+      "anchor": "fn:condHolds",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        6436
+      ],
+      "text": "const side=(self._sf.side==='A')?S.actA:S.actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:residualShadowBuild | twA:twB | a104c37a",
+      "anchor": "fn:residualShadowBuild",
+      "family": "tw",
+      "expr": "twA:twB",
+      "lines": [
+        8103
+      ],
+      "text": "if(((S==='A'?field.twA:field.twB)|0)>0)push('side:'+S+':tailwind',R.byKey.get('side:tailwind'),0);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:residualExpireAt | p1:p2 | 59560307",
+      "anchor": "fn:residualExpireAt",
+      "family": "p12",
+      "expr": "p1:p2",
+      "lines": [
+        8234
+      ],
+      "text": "if(TR)TR.sendSide(sf.side==='A'?'p1':'p2',(_sb&&_sb.startsAs)||_id);}",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:activeAllyOf | actA:actB | f4a1bc32",
+      "anchor": "fn:activeAllyOf",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        9195
+      ],
+      "text": "const act=(sf===S.sfA)?S.actA:S.actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:residualUpdatePass | actB:actA | 94c4c746",
+      "anchor": "fn:residualUpdatePass",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        9573
+      ],
+      "text": "const _foes=(actA.indexOf(m)>=0?actB:actA), _it0=m.item;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:liveFoesOf | actB:actA | 16b34662",
+      "anchor": "fn:liveFoesOf",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        13509
+      ],
+      "text": "const _f=_s.side==='A'?_S.actB:_S.actA;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:speed | twA:twB | af3c9b45",
+      "anchor": "kind:speed",
+      "family": "tw",
+      "expr": "twA:twB",
+      "lines": [
+        14027
+      ],
+      "text": "if(pick.kind==='speed'&&((side==='A'?field.twA:field.twB)<=0)&&!illegalMoveNow(me,'tailwind'))return{kind:'tail'};",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:effSpeed | twA:twB | 21839ece",
+      "anchor": "fn:effSpeed",
+      "family": "tw",
+      "expr": "twA:twB",
+      "lines": [
+        14198
+      ],
+      "text": "if((side==='A'?field.twA:field.twB)>0)_mods.push(2);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:allyRefusesStatDrop | actA:actB | 6bdb9357",
+      "anchor": "fn:allyRefusesStatDrop",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        15847
+      ],
+      "text": "const side=sf.side==='A'?S.actA:S.actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:allyRefusesStatus | actA:actB | 6bdb9357",
+      "anchor": "fn:allyRefusesStatus",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        16398
+      ],
+      "text": "const side=sf.side==='A'?S.actA:S.actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:allyRefusesVolatile | actA:actB | 6bdb9357",
+      "anchor": "fn:allyRefusesVolatile",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        16435
+      ],
+      "text": "const side=sf.side==='A'?S.actA:S.actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:statusMoveTargets | actB:actA | 8225a7f4",
+      "anchor": "fn:statusMoveTargets",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        16865
+      ],
+      "text": "const _foes=it.side==='A'?actB:actA, _mine=it.side==='A'?actA:actB;",
+      "question": "SIDE",
+      "authority": "sim/pokemon.ts:809-816 getMoveTargets — `case 'allAdjacent': targets.push(...this.adjacentAllies()); // falls through` `case 'allAdjacentFoes': targets.push(...this.adjacentFoes());`",
+      "note": "The spread classes name a SIDE by definition. The ally half is not missing — the same line binds `_mine` and the `_spA` branch pushes the partner first, which is the authority's own order."
+    },
+    {
+      "key": "fn:statusMoveTargets | actA:actB | 8225a7f4",
+      "anchor": "fn:statusMoveTargets",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        16865
+      ],
+      "text": "const _foes=it.side==='A'?actB:actA, _mine=it.side==='A'?actA:actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:applyEntryEffects | sfB:sfA | 7732eedf",
+      "anchor": "fn:applyEntryEffects",
+      "family": "sf",
+      "expr": "sfB:sfA",
+      "lines": [
+        17662
+      ],
+      "text": "const _S=m._sf._S, _own=m._sf, _foe=_S?(_own===_S.sfA?_S.sfB:_S.sfA):null;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:applyEntryEffects | p1:p2 | bcbedec6",
+      "anchor": "fn:applyEntryEffects",
+      "family": "p12",
+      "expr": "p1:p2",
+      "lines": [
+        17676
+      ],
+      "text": "if(TR)TR.sendSide(_sd===_own?(_own.side==='A'?'p1':'p2'):(_own.side==='A'?'p2':'p1'),_nm);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:applyEntryEffects | p2:p1 | bcbedec6",
+      "anchor": "fn:applyEntryEffects",
+      "family": "p12",
+      "expr": "p2:p1",
+      "lines": [
+        17676
+      ],
+      "text": "if(TR)TR.sendSide(_sd===_own?(_own.side==='A'?'p1':'p2'):(_own.side==='A'?'p2':'p1'),_nm);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:applyEntryEffects | actB:actA | c798fe6a",
+      "anchor": "fn:applyEntryEffects",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        17712
+      ],
+      "text": "const _foes=_S?((m._sf===_S.sfA)?_S.actB:_S.actA):null;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:canMegaNow | sfB:sfA | 6087b87a",
+      "anchor": "fn:canMegaNow",
+      "family": "sf",
+      "expr": "sfB:sfA",
+      "lines": [
+        17841
+      ],
+      "text": "return !(onB>=0?S.sfB:S.sfA).megaUsed;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:megaEvolveNow | sfB:sfA | 20941310",
+      "anchor": "fn:megaEvolveNow",
+      "family": "sf",
+      "expr": "sfB:sfA",
+      "lines": [
+        17849
+      ],
+      "text": "const sf=sd==='B'?S.sfB:S.sfA;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:megaEvolveNow | actB:actA | 3fa874f7",
+      "anchor": "fn:megaEvolveNow",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        17945
+      ],
+      "text": "const own=sd==='B'?S.actB:S.actA, foes=sd==='B'?S.actA:S.actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:megaEvolveNow | actA:actB | 3fa874f7",
+      "anchor": "fn:megaEvolveNow",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        17945
+      ],
+      "text": "const own=sd==='B'?S.actB:S.actA, foes=sd==='B'?S.actA:S.actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:canMegaNow | sfB:sfA | 6c47420a",
+      "anchor": "fn:canMegaNow",
+      "family": "sf",
+      "expr": "sfB:sfA",
+      "lines": [
+        18021
+      ],
+      "text": "return !((onB>=0?S.sfB:S.sfA).megaUsed);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:traceSweep | actB:actA | d9760c48",
+      "anchor": "fn:traceSweep",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        18970
+      ],
+      "text": "const foes=(sf===S.sfA)?S.actB:S.actA;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:receiverSweep | actA:actB | f4a1bc32",
+      "anchor": "fn:receiverSweep",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        19013
+      ],
+      "text": "const act=(sf===S.sfA)?S.actA:S.actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:sweepField | p1:p2 | 07c20a21",
+      "anchor": "fn:sweepField",
+      "family": "p12",
+      "expr": "p1:p2",
+      "lines": [
+        19140
+      ],
+      "text": "const _lab=sf=>sf&&sf.side==='A'?'p1':'p2';",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:reaimToSlot | actA:actB | 6630094f",
+      "anchor": "fn:reaimToSlot",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        20841
+      ],
+      "text": "const own=it.side==='A'?actA:actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:reaimToSlot | actB:actA | 7feb3be1",
+      "anchor": "fn:reaimToSlot",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        20848
+      ],
+      "text": "const foes=it.side==='A'?actB:actA;",
+      "question": "TARGET",
+      "authority": "sim/pokemon.ts:770 getAtLoc — one SIGNED targetLoc reads both directions",
+      "note": "The ally axis is answered ABOVE this line off `it.allySlot`; `tgtSlot` is a foe-array index by construction, and the two slot writes were signed by the Armor Tail pass. The far side here is the foe AXIS, not an assumption about where the target is."
+    },
+    {
+      "key": "fn:sideBoxOf | actB:actA | 34dbdecb",
+      "anchor": "fn:sideBoxOf",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        20911
+      ],
+      "text": "const far={own:farA?actB:actA,bench:farA?benchB:benchA,sf:farA?sfB:sfA,",
+      "question": "READER",
+      "authority": "sim/battle-actions.ts:1353 forceSwitch — runs over the resolved targets with no side test",
+      "note": "Added 2026-08-29. The shared address book for a RESOLVED body: it returns the side that body actually stands on, and falls back to the mover's far side only when the body is on neither active array — counted on MEDSEEN.targetSideNotOnField so the fallback is loud. MEDI_TARGET_SIDE_FOE_ONLY=1 restores the old far-side-only answer at every caller."
+    },
+    {
+      "key": "fn:sideBoxOf | benchB:benchA | 34dbdecb",
+      "anchor": "fn:sideBoxOf",
+      "family": "bench",
+      "expr": "benchB:benchA",
+      "lines": [
+        20911
+      ],
+      "text": "const far={own:farA?actB:actA,bench:farA?benchB:benchA,sf:farA?sfB:sfA,",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:sideBoxOf | sfB:sfA | 34dbdecb",
+      "anchor": "fn:sideBoxOf",
+      "family": "sf",
+      "expr": "sfB:sfA",
+      "lines": [
+        20911
+      ],
+      "text": "const far={own:farA?actB:actA,bench:farA?benchB:benchA,sf:farA?sfB:sfA,",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:sideBoxOf | actA:actB | 68baf505",
+      "anchor": "fn:sideBoxOf",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        20912
+      ],
+      "text": "foes:farA?actA:actB,found:false};",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | actA:actB | e3c68935",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        21722
+      ],
+      "text": "allySlot:(_a&&_a.target&&_a.target!==mon)?(side==='A'?actA:actB).indexOf(_a.target):-1,",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | actA:actB | 4a87471a",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        21724
+      ],
+      "text": "aimA:(_a&&_a.target&&_a.target!==mon)?(side==='A'?actA:actB).indexOf(_a.target):-1});};",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | actB:actA | ba842604",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        21984
+      ],
+      "text": "it._trapV=switchTrapVerdict(it.mon,it.side==='A'?actB:actA,field);",
+      "question": "SIDE",
+      "authority": "data/abilities.ts shadowtag/arenatrap/magnetpull — all three are `onFoeTrapPokemon`",
+      "note": "switchTrapVerdict is handed the TRAPPERS, and every trapping ability in the format hangs off a Foe handler. A body's own side cannot trap it."
+    },
+    {
+      "key": "kind:wideguard | actB:actA | 51407186",
+      "anchor": "kind:wideguard",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        22369
+      ],
+      "text": "for(const e of _all){berryCureUpdate(e.m,e.s==='A'?actB:actA);berryPinchUpdate(e.m,e.s==='A'?actB:actA);berryPPUpdate(e.m,e.s==='A'?actB:actA);}",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | sgA:sgB | 68307372",
+      "anchor": "kind:attack",
+      "family": "sg",
+      "expr": "sgA:sgB",
+      "lines": [
+        22805
+      ],
+      "text": "(it.side==='A'?field.sgA:field.sgB)[_g]=true;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | actB:actA | 2fd9243b",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        23030
+      ],
+      "text": "const _efoes=it.side==='A'?actB:actA, _elive=live(_efoes);",
+      "question": "TARGET",
+      "authority": "sim/battle.ts:2517 getRandomTarget — `return pokemon.side.randomFoe() || pokemon.side.foe.active[0]`",
+      "note": "Encore's execution-time override. This is the caller's FAR-SIDE DRAW handed to `defaultTargetOf` as its `pick`, and it is only called on the far-side road — the near-side classes are answered before it. Fixed by the Armor Tail pass; the ternary that remains is the correct half."
+    },
+    {
+      "key": "kind:attack | actA:actB | 1919421e",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        23042
+      ],
+      "text": "const _etgt=defaultTargetOf(m,m._encoreMove,it.side==='A'?actA:actB,",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | actA:actB | 4ff19dcd",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        23060
+      ],
+      "text": "else{it.tgtSlot=-1;it.allySlot=_eact.target?(it.side==='A'?actA:actB).indexOf(_eact.target):-1;}}",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | actB:actA | 9352590a",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        23095
+      ],
+      "text": "const _rfoes=it.side==='A'?actB:actA, _rlive=live(_rfoes);",
+      "question": "TARGET",
+      "authority": "sim/battle.ts:2508-2517 getRandomTarget — the `activePerHalf > 2` clause is skipped in a double, so `randomNormal` falls through to `randomFoe()`",
+      "note": "The randomTarget draw pool. Read whole rather than recalled: the authority's own comment says auto-resolution will NEVER make one of these target an ally, so the far side is the answer and not an assumption."
+    },
+    {
+      "key": "kind:attack | actB:actA | 4f76037c",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        23210
+      ],
+      "text": "const _rfoes2=it.side==='A'?actB:actA;",
+      "question": "TARGET",
+      "authority": "sim/pokemon.ts:829-836 getMoveTargets — `if (this.battle.activePerHalf > 1 && !move.tracksTarget) { ... target = this.battle.priorityEvent('RedirectTarget', this, this, move, target); }`",
+      "note": "The redirect gate for a single-target STATUS move requires the action's target to be in the mover's foe array before redirection is considered. The authority runs RedirectTarget on ANY resolved target, ally-aimed included, gated only on activePerHalf, tracksTarget and charging. Measured, not fixed here: it needs its own fixture (a Follow Me opposite an ally-aimed status click). §7 of the report."
+    },
+    {
+      "key": "kind:attack | actA:actB | b03a1995",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        23216
+      ],
+      "text": "const _rown2=it.side==='A'?actA:actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:switch | actB:actA | 95fcaf58",
+      "anchor": "kind:switch",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        23791
+      ],
+      "text": "const _pFoes=it.side==='A'?actB:actA;",
+      "question": "TARGET",
+      "authority": "data/abilities.ts:3431 pressure — `onDeductPP(target, source) { if (target.isAlly(source)) return; return 1; }`",
+      "note": "`pressureTargetsOf` is handed the FOES, and the authority's own handler returns early for an ally. The far side is the authority's `isAlly` guard written the other way round, not an assumption. (The anchor reads `kind:switch` because that is the nearest branch test above the PP block; the digest is what identifies the site.)"
+    },
+    {
+      "key": "kind:switch | actB:actA | fe7bd2f0",
+      "anchor": "kind:switch",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        24322
+      ],
+      "text": "const _pf=it.side==='A'?actB:actA;",
+      "question": "TARGET",
+      "authority": "data/abilities.ts:223 armortail — `if ((source.isAlly(armorTailHolder) || move.target === 'all') && move.priority > 0.1)`",
+      "note": "The pre-dispatch priority refusal. In `onFoeTryMove(target, source, move)` the handler's `source` IS the move's target, so the clause asks whether the MOVE'S TARGET stands on the holder's side — which in a two-sided game is exactly 'the target is in the mover's foe array'. Queenly Majesty is byte-identical. Dazzling has zero legal carriers."
+    },
+    {
+      "key": "kind:attack | sgB:sgA | 1fd39860",
+      "anchor": "kind:attack",
+      "family": "sg",
+      "expr": "sgB:sgA",
+      "lines": [
+        24404
+      ],
+      "text": "const _sgid=sideGuardRefuses(it.side==='A'?field.sgB:field.sgA,_pmv,",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:affect | sfB:sfA | 57623dfa",
+      "anchor": "kind:affect",
+      "family": "sf",
+      "expr": "sfB:sfA",
+      "lines": [
+        25138
+      ],
+      "text": "if(_rm&&_landed)sweepField(_rm,m,m._sf,m._sf===sfA?sfB:sfA,field,actA.concat(actB));}",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:callmove | actB:actA | 78619b1e",
+      "anchor": "kind:callmove",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        25366
+      ],
+      "text": "const _cfoes=it.side==='A'?actB:actA;",
+      "question": "TARGET",
+      "authority": "sim/battle.ts:2517 getRandomTarget",
+      "note": "The called-move (Copycat / Metronome / Sleep Talk / Mirror Move) far-side draw pool, handed to `defaultTargetOf` as its `pick`. Same shape as the Encore override."
+    },
+    {
+      "key": "kind:callmove | actA:actB | c5d1bf0c",
+      "anchor": "kind:callmove",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        25389
+      ],
+      "text": "const _caim=defaultTargetOf(m,_src,it.side==='A'?actA:actB,",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:pass | actA:actB | 3a5a867f",
+      "anchor": "kind:pass",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        25401
+      ],
+      "text": "const _cOwn=it.side==='A'?actA:actB, _cti=_sub2.target?(it.side==='A'?actB:actA).indexOf(_sub2.target):-1;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:pass | actB:actA | 3a5a867f",
+      "anchor": "kind:pass",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        25401
+      ],
+      "text": "const _cOwn=it.side==='A'?actA:actB, _cti=_sub2.target?(it.side==='A'?actB:actA).indexOf(_sub2.target):-1;",
+      "question": "TARGET",
+      "authority": "sim/pokemon.ts:770 getAtLoc",
+      "note": "The SIGNED slot write for a spliced called-move action: `tgtSlot` is the foe-array index and `allySlot` the own-array one, bound on the same line. Both axes are written, so `reaimToSlot` can read whichever is >= 0."
+    },
+    {
+      "key": "kind:futurehit | actB:actA | cb279c06",
+      "anchor": "kind:futurehit",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        25579
+      ],
+      "text": "const _ffoes=it.side==='A'?actB:actA;",
+      "question": "TARGET",
+      "authority": "data/moves.ts futuresight/doomdesire — `target: 'normal'`, and the slot condition is written onto the TARGET's side",
+      "note": "The delayed hit is booked into the FAR side's slot conditions, so an ally-aimed Future Sight scores `_fslot < 0` and the move fails (MEDSEEN.delayedHitNoSlot). Measured, not fixed here: it is a booking site rather than an address book and needs its own arm. §7 of the report."
+    },
+    {
+      "key": "kind:futurehit | sfB:sfA | e9a7e147",
+      "anchor": "kind:futurehit",
+      "family": "sf",
+      "expr": "sfB:sfA",
+      "lines": [
+        25580
+      ],
+      "text": "const _fsf=it.side==='A'?sfB:sfA;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:hazard | actB:actA | dcb37853",
+      "anchor": "kind:hazard",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        25759
+      ],
+      "text": "const _fsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);",
+      "question": "SIDE",
+      "authority": "sim/pokemon.ts:796-804 getMoveTargets — `case 'foeSide': ... if (!move.target.startsWith('ally')) targets.push(...this.foes(true));`",
+      "note": "Every hazard move in this format is `foeSide`. The layer lands on a SIDE the move names, and the side is taken from a body standing in that side's slots."
+    },
+    {
+      "key": "kind:hazard | p2:p1 | 87d10188",
+      "anchor": "kind:hazard",
+      "family": "p12",
+      "expr": "p2:p1",
+      "lines": [
+        25800
+      ],
+      "text": "const _laid=layHazard(_fsf,_h.hazard,_h.maxLayers,m,it.side==='A'?'p2':'p1');",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:statcode | sfB:sfA | b28c2fd1",
+      "anchor": "kind:statcode",
+      "family": "sf",
+      "expr": "sfB:sfA",
+      "lines": [
+        25885
+      ],
+      "text": "if(_rm)sweepField(_rm,m,m._sf,m._sf===sfA?sfB:sfA,field,actA.concat(actB));}",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:tail | twA:twB | cd40e85a",
+      "anchor": "kind:tail",
+      "family": "tw",
+      "expr": "twA:twB",
+      "lines": [
+        25905
+      ],
+      "text": "if((it.side==='A'?field.twA:field.twB)>0){mvFail(m);continue;}",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:boostally | actA:actB | ae02ac1b",
+      "anchor": "kind:boostally",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        26098
+      ],
+      "text": "const who=_isFoe?_tgt:(_tgt&&_tgt!==m?_tgt:(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0));",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:boostally | actA:actB | 9e118295",
+      "anchor": "kind:boostally",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        26147
+      ],
+      "text": "_lift=(it.side==='A'?actA:actB).filter(x=>x&&!x.fainted&&x.curHP>0);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:instruct | actB:actA | 9875826a",
+      "anchor": "kind:instruct",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        26561
+      ],
+      "text": "const _foes=_side==='A'?actB:actA;",
+      "question": "TARGET",
+      "authority": "data/moves.ts:9670 instruct — `targetLoc: target.lastMoveTargetLoc`",
+      "note": "The instructed body's side is derived from where THAT body stands (`actA.indexOf(t)>=0?'A':'B'`) and the foe array follows from it. Closed by ROADMAP #534; it is a target question already answered off the target."
+    },
+    {
+      "key": "kind:instruct | actA:actB | 93b96a63",
+      "anchor": "kind:instruct",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        26604
+      ],
+      "text": "const _occ=_aim.t>=0?(_foes[_aim.t]||null):((_side==='A'?actA:actB)[_aim.a]||null);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:pass | actA:actB | 88d9f66c",
+      "anchor": "kind:pass",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        26638
+      ],
+      "text": "const _own=_side==='A'?actA:actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:helpinghand | actA:actB | b38155fd",
+      "anchor": "kind:helpinghand",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        27040
+      ],
+      "text": "const ally=(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:slotswap | actA:actB | 6630094f",
+      "anchor": "kind:slotswap",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        27116
+      ],
+      "text": "const own=it.side==='A'?actA:actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:switch | actA:actB | f6c44cd1",
+      "anchor": "kind:switch",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        27240
+      ],
+      "text": "const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:switch | actB:actA | f6c44cd1",
+      "anchor": "kind:switch",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        27240
+      ],
+      "text": "const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;",
+      "question": "SIDE",
+      "authority": "sim/battle-actions.ts:118-132 switchIn — the swap is entirely within `side.pokemon`",
+      "note": "A bare switch happens on the mover's OWN side; `foes` is passed to `switchOut` for what the ENTRANT meets. There is no target."
+    },
+    {
+      "key": "kind:switch | benchA:benchB | a1d6d4c1",
+      "anchor": "kind:switch",
+      "family": "bench",
+      "expr": "benchA:benchB",
+      "lines": [
+        27241
+      ],
+      "text": "const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:switch | sfA:sfB | a1d6d4c1",
+      "anchor": "kind:switch",
+      "family": "sf",
+      "expr": "sfA:sfB",
+      "lines": [
+        27241
+      ],
+      "text": "const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:passstate | actA:actB | f6c44cd1",
+      "anchor": "kind:passstate",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        27444
+      ],
+      "text": "const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:passstate | actB:actA | f6c44cd1",
+      "anchor": "kind:passstate",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        27444
+      ],
+      "text": "const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;",
+      "question": "SIDE",
+      "authority": "sim/battle-actions.ts:118-132 switchIn",
+      "note": "Baton Pass and its family. Same shape as the bare switch: the mover leaves its own side and the far array is only what the entrant meets."
+    },
+    {
+      "key": "kind:passstate | benchA:benchB | a1d6d4c1",
+      "anchor": "kind:passstate",
+      "family": "bench",
+      "expr": "benchA:benchB",
+      "lines": [
+        27445
+      ],
+      "text": "const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:passstate | sfA:sfB | a1d6d4c1",
+      "anchor": "kind:passstate",
+      "family": "sf",
+      "expr": "sfA:sfB",
+      "lines": [
+        27445
+      ],
+      "text": "const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:abilityboost | actA:actB | 384c82be",
+      "anchor": "kind:abilityboost",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        27575
+      ],
+      "text": "const _side=(it.side==='A'?actA:actB);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:heal | actA:actB | 1265c0de",
+      "anchor": "kind:heal",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        27737
+      ],
+      "text": "if(_hp.allies){for(const x of (it.side==='A'?actA:actB)){",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:healdesc | actA:actB | c3f93dba",
+      "anchor": "kind:healdesc",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        27858
+      ],
+      "text": "const _own=it.side==='A'?actA:actB, _sf=it.side==='A'?sfA:sfB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:healdesc | sfA:sfB | c3f93dba",
+      "anchor": "kind:healdesc",
+      "family": "sf",
+      "expr": "sfA:sfB",
+      "lines": [
+        27858
+      ],
+      "text": "const _own=it.side==='A'?actA:actB, _sf=it.side==='A'?sfA:sfB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:healdesc | benchA:benchB | 538b4cd8",
+      "anchor": "kind:healdesc",
+      "family": "bench",
+      "expr": "benchA:benchB",
+      "lines": [
+        27859
+      ],
+      "text": "const _bench=it.side==='A'?benchA:benchB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:status | actA:actB | f29d662d",
+      "anchor": "kind:status",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        28105
+      ],
+      "text": "const _sown=_sside==='A'?actA:actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:wideguard | sgA:sgB | 7b9ba02a",
+      "anchor": "kind:wideguard",
+      "family": "sg",
+      "expr": "sgA:sgB",
+      "lines": [
+        28241
+      ],
+      "text": "const _sg=a.kind==='wideguard'?(it.side==='A'?field.sgA:field.sgB):null;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | actB:actA | ed9b865e",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        28641
+      ],
+      "text": "const _foes=it.side==='A'?actB:actA;",
+      "question": "TARGET",
+      "authority": "data/abilities.ts:223 armortail; data/moves.ts psychicterrain condition — `if (target.isSemiInvulnerable() || target.isAlly(source)) return;`",
+      "note": "The in-branch priority refusal, which exists to cover the SPREAD case the pre-dispatch gate excludes. Both refusers ask about the body being aimed at, and `_aim` is handed over when there is one."
+    },
+    {
+      "key": "kind:attack | actB:actA | 7feb3be1",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        28659
+      ],
+      "text": "const foes=it.side==='A'?actB:actA;",
+      "question": "TARGET",
+      "authority": "sim/pokemon.ts:809-849 getMoveTargets",
+      "note": "The attack branch's address book. Used for the spread target list (a SIDE question, with the ally added separately off HITS_ALLY) and as the redirector pool, which already receives the near array as well. The single-target aim itself comes from `reaimToSlot` and is not looked up here."
+    },
+    {
+      "key": "kind:attack | actA:actB | 95fe4f80",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        28714
+      ],
+      "text": "it.side==='A'?actA:actB);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | actA:actB | d1694220",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        28973
+      ],
+      "text": "?(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0):null;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | actA:actB | 0baca628",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        29026
+      ],
+      "text": "const _dside=actA.indexOf(targets[0])>=0?actA:actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | sgA:sgB | 106cfcc4",
+      "anchor": "kind:attack",
+      "family": "sg",
+      "expr": "sgA:sgB",
+      "lines": [
+        29058
+      ],
+      "text": "const _psg=it.side==='A'?field.sgA:field.sgB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | sgA:sgB | bfc002d6",
+      "anchor": "kind:attack",
+      "family": "sg",
+      "expr": "sgA:sgB",
+      "lines": [
+        29065
+      ],
+      "text": "const _osg=it.side==='A'?field.sgA:field.sgB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | sgB:sgA | db685b02",
+      "anchor": "kind:attack",
+      "family": "sg",
+      "expr": "sgB:sgA",
+      "lines": [
+        29094
+      ],
+      "text": "const _fsg=it.side==='A'?field.sgB:field.sgA;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | sgA:sgB | 0566e782",
+      "anchor": "kind:attack",
+      "family": "sg",
+      "expr": "sgA:sgB",
+      "lines": [
+        29897
+      ],
+      "text": "const _sg=(actA.indexOf(tg)>=0)?field.sgA:field.sgB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | p1:p2 | a148df9c",
+      "anchor": "kind:attack",
+      "family": "p12",
+      "expr": "p1:p2",
+      "lines": [
+        29948
+      ],
+      "text": "const _sd=tg._sf.side==='A'?'p1':'p2';",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "kind:attack | actA:actB | 813c6dd6",
+      "anchor": "kind:attack",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        30037
+      ],
+      "text": "const _tside=actA.indexOf(tg)>=0?actA:actB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:_damagingHit | p1:p2 | 895733bd",
+      "anchor": "fn:_damagingHit",
+      "family": "p12",
+      "expr": "p1:p2",
+      "lines": [
+        31493
+      ],
+      "text": "layHazard(m._sf,_pun.hazard,_pun.maxLayers,tg,m._sf.side==='A'?'p1':'p2',_punSay);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:_hpThresholdBoost | actB:actA | 934a23c7",
+      "anchor": "fn:_hpThresholdBoost",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        33034
+      ],
+      "text": "const _hsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);",
+      "question": "SIDE",
+      "authority": "data/moves.ts:18074 stoneaxe / :2231 ceaselessedge — `for (const side of source.side.foeSidesWithConditions()) side.addSideCondition(...)`",
+      "note": "hazardOnHit. The authority names the SOURCE's foe sides explicitly, so this is a side question and the far side is the answer even for an ally-aimed hit."
+    },
+    {
+      "key": "fn:_hpThresholdBoost | p2:p1 | 8acdce89",
+      "anchor": "fn:_hpThresholdBoost",
+      "family": "p12",
+      "expr": "p2:p1",
+      "lines": [
+        33035
+      ],
+      "text": "if(_hsf){layHazard(_hsf,_hoh.hazard,_hoh.maxLayers,m,it.side==='A'?'p2':'p1');",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:_hpThresholdBoost | actB:actA | 79cd0d52",
+      "anchor": "fn:_hpThresholdBoost",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        33043
+      ],
+      "text": "const _osf=m._sf, _fsf2=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);",
+      "question": "TARGET",
+      "authority": "data/moves.ts:3463 defog — `for (const targetCondition of removeTarget) if (target.side.removeSideCondition(targetCondition))`",
+      "note": "removesHazards. Defog reads the TARGET's side for the screens-and-hazards loop and the SOURCE's side for the hazards-only loop; this site hands `sweepField` the mover's far side for the first of those. Rapid Spin's own arm is `hazardsFrom: 'self'` and is unaffected. Measured, not fixed here — and two sibling call sites spell the same assumption `m._sf===sfA?sfB:sfA`, which is exactly why the census is not keyed on one spelling. §7 of the report."
+    },
+    {
+      "key": "fn:<module> | actA:actB | f6c44cd1",
+      "anchor": "fn:<module>",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        33714
+      ],
+      "text": "const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:<module> | actB:actA | f6c44cd1",
+      "anchor": "fn:<module>",
+      "family": "act",
+      "expr": "actB:actA",
+      "lines": [
+        33714
+      ],
+      "text": "const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;",
+      "question": "SIDE",
+      "authority": "sim/battle-actions.ts:118-132 switchIn",
+      "note": "The damaging PIVOT (U-turn and its family). The user leaves its OWN side; the far array is what the entrant meets. Not the forced-switch drag, which is the site below it and was fixed."
+    },
+    {
+      "key": "fn:<module> | benchA:benchB | a1d6d4c1",
+      "anchor": "fn:<module>",
+      "family": "bench",
+      "expr": "benchA:benchB",
+      "lines": [
+        33715
+      ],
+      "text": "const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:<module> | sfA:sfB | a1d6d4c1",
+      "anchor": "fn:<module>",
+      "family": "sf",
+      "expr": "sfA:sfB",
+      "lines": [
+        33715
+      ],
+      "text": "const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:<module> | sfA:sfB | 36e753bb",
+      "anchor": "fn:<module>",
+      "family": "sf",
+      "expr": "sfA:sfB",
+      "lines": [
+        34528
+      ],
+      "text": "if(_G.has('futureHit')){const _sfF=actA.indexOf(m)>=0?sfA:sfB, _siF=actA.indexOf(m)>=0?actA.indexOf(m):actB.indexOf(m);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:<module> | sfA:sfB | 1c41944c",
+      "anchor": "fn:<module>",
+      "family": "sf",
+      "expr": "sfA:sfB",
+      "lines": [
+        34595
+      ],
+      "text": "if(_G.has('wish')){const _sf2=actA.indexOf(m)>=0?sfA:sfB, _si2=actA.indexOf(m)>=0?actA.indexOf(m):actB.indexOf(m);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:<module> | actA:actB | 4294f63b",
+      "anchor": "fn:<module>",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        34660
+      ],
+      "text": "else if(_cr.scope==='adjacentAllies')_who=(actA.indexOf(m)>=0?actA:actB).filter(x=>x&&x!==m);",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    },
+    {
+      "key": "fn:<module> | actA:actB | ac4aa6fb",
+      "anchor": "fn:<module>",
+      "family": "act",
+      "expr": "actA:actB",
+      "lines": [
+        34917
+      ],
+      "text": "_s=(m._seededBy.side==='A'?actA:actB)[m._seededBy.slot]||null;",
+      "question": "UNCLASSIFIED",
+      "authority": "",
+      "note": ""
+    }
+  ]
+}

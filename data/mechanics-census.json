@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T15:42:10.601Z",
+  "generated": "2026-08-29T17:05:02.342Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 801,
-  "live": 801,
+  "probed": 803,
+  "live": 803,
   "missing": 0,
-  "armed": 801,
+  "armed": 803,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3021,6 +3021,26 @@
     {
       "kind": "move",
       "tag": "forcesSwitch",
+      "label": "a STATUS phaze aimed at the MOVER'S OWN PARTNER drags the partner",
+      "live": true,
+      "detail": "Roar ACROSS the field left garchomp,corviknight | snorlax,milotic (the foe must be gone and the partner must not); the same Roar at the PARTNER left garchomp,whimsicott | incineroar,milotic (the partner must be gone and the foe must not). Knob: MEDI_TARGET_SIDE_FOE_ONLY=1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "forcesSwitch",
+      "label": "a DAMAGING forced switch aimed at the MOVER'S OWN PARTNER damages AND drags the partner",
+      "live": true,
+      "detail": "Dragon Tail ACROSS the field dealt 69 and left garchomp,corviknight | snorlax,milotic; the same Dragon Tail at the PARTNER dealt 30 and left garchomp,whimsicott | incineroar,milotic. Both arms must DAMAGE and DRAG the body they name and leave the other side alone — before 2026-08-29 the partner arm dealt its damage and the drag never happened. Knob: MEDI_TARGET_SIDE_FOE_ONLY=1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "forcesSwitch",
       "label": "a drag indexes into the bench in the AUTHORITY's order — a body that switches out takes the incoming body's party slot",
       "live": true,
       "detail": "[p2 bench, then who a Roar drags in at die index 0 / index 1] — CONTROL, nobody switched first: bench [snorlax,weavile], drags \"snorlax\" / \"weavile\". TEST, p2a switched to the FIRST bench member on turn 1: bench [corviknight,weavile] (the authority's own party after that pivot is snorlax,milotic,corviknight,weavile, so its bench is corviknight,weavile), drags \"corviknight\" / \"weavile\". An engine that removes-and-appends reads bench [weavile,corviknight] here and drags the wrong body at BOTH indices",
@@ -3843,7 +3863,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 18.3% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

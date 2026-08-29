@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 188,
+  "mtime_only": 189,
   "mtime_only_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -160,6 +160,7 @@
     "scoreboard.json",
     "seed-source-audit.json",
     "sheet-usage.json",
+    "side-selection-census.json",
     "silent-catch-baseline.json",
     "site-data-orphans.json",
     "slowking-eval.json",
@@ -196,7 +197,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 2,
+  "verified": 3,
   "graph_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -413,6 +414,7 @@
     "seed-source-audit.json",
     "sheet-channel-value.json",
     "sheet-usage.json",
+    "side-selection-census.json",
     "silent-catch-baseline.json",
     "site-data-orphans.json",
     "slowking-eval.json",
@@ -490,7 +492,8 @@
     "quality-filter.json",
     "raw-log-census.json",
     "regulations.json",
-    "scenarios-from-will.json"
+    "scenarios-from-will.json",
+    "side-selection-declarations.json"
   ],
   "discoveries": [
     {
@@ -1043,7 +1046,17 @@
         "_bench-belownormal.json",
         "_bench-scaling-interleaved.json"
       ]
+    },
+    {
+      "when": "2026-08-29T17:00:10.120Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 path variable",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 250,
+      "graph_after": 251,
+      "files": [
+        "side-selection-census.json"
+      ]
     }
   ],
-  "generated": "2026-08-29T16:10:29.326Z"
+  "generated": "2026-08-29T17:14:41.989Z"
 }

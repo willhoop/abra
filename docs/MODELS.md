@@ -1,6 +1,8 @@
 # ABRA — the model family (living reference)
 
-**Version 5.224.0 · Last updated 2026-08-29.**
+**Version 5.225.0 · Last updated 2026-08-29.**
+
+**5.225.0 - NO MODEL CHANGED AND NO FITTED VECTOR IS OWED BY THIS PASS.** The simulator every model rests on now drags the body a forced switch was actually aimed at, and it now carries a written answer for all twenty-two places it picks a half of the field: seven SIDE, fifteen TARGET, seventeen correct, five wrong. Nothing a model reads moved on the pinned pool - board-parted is unmoved at 90 of 961 and every end-state count is identical - because neither the coverage driver nor the empirical driver can aim a `normal` move at a partner, which is stated as a structural fact about `chooseAction` and `empiricalPick` and corroborated by the run's own AIM counter. Everything downstream of MEDICHAM remains QUARANTINED and no model number is quoted, compared or re-derived here. The engine tree moved `e8f7c7dba595` -> `070890fc77a2`; the refit that closes the seam belongs to MEASURE and is not started from ENGINE.
 
 **5.224.0 - NO MODEL CHANGED AND NO FITTED VECTOR IS OWED BY THIS PASS, BUT THE SIMULATOR EVERY MODEL RESTS ON NOW LANDS THE INSTRUCTED REPEAT ON A DIFFERENT BODY.** Any rollout that reached an Instruct board was crediting the damage to the wrong defender, and for a single-target status repeat it was crediting the effect to foe slot 0 unconditionally. Everything downstream of MEDICHAM remains QUARANTINED and no model number is quoted, compared or re-derived here. The engine tree moved `705ead2014b2` -> `e8f7c7dba595`; the refit that closes the seam belongs to MEASURE and is not started from ENGINE.
 

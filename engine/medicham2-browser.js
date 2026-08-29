@@ -874,6 +874,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      the surviving one, which is `getTarget`'s fall-through to `getRandomTarget`. `reaimNoLiveFoe` is
      the other half: nothing left to hit, so the move finds nobody. */
   reaimedOffFaintedFoe: 0, reaimNoLiveFoe: 0,
+  /* 2026-08-29 -- `sideBoxOf`. `targetSideIsMoversOwn` is the branch that did not exist before this
+     date: the resolved target stands on the MOVER'S OWN side, so its party, bench and side-field are
+     the near ones. `targetSideNotOnField` is the loud fall-back -- a body on neither active array
+     keeps the pre-2026-08-29 far-side answer, and a silent one would read as a working feature. */
+  targetSideIsMoversOwn: 0, targetSideNotOnField: 0,
   /* 2026-08-12 -- RETRACTED, and the counter is kept at zero deliberately rather than deleted: the
      announcement IS owed (the authority emits `-fail` at the user) and the fix that paid it cost 4 and
      6 games on the whole-game differential, so it was pulled the same day. See the affect branch. */
@@ -20873,6 +20878,50 @@ function reaimToSlot(t,it,actA,actB,mvId,quiet){
   }
   return now;
 }
+/* ---- 2026-08-29 -- THE ADDRESS BOOK BELONGS TO THE RESOLVED TARGET, NOT TO THE MOVER --------------
+ *
+ * `reaimToSlot` above already answers BOTH axes -- `allySlot` and `tgtSlot` -- so the body it hands
+ * back can legitimately stand on the MOVER'S OWN SIDE. Every caller that then wanted that body's
+ * party, bench or side-field computed it as `it.side==='A'?...B:...A` -- the mover's FAR side -- and
+ * an ally-aimed move therefore looked up its own target in the wrong half of the field, got `-1`, and
+ * silently did nothing.
+ *
+ * THE AUTHORITY NAMES THE TARGET'S OWN SIDE AND NEVER THE MOVER'S FOE SIDE:
+ *
+ *     forceSwitch(damage, targets, source)                       sim/battle-actions.ts:1353
+ *       ... this.runEvent('DragOut', target, source, move) ... target.forceSwitchFlag = true;
+ *     case 'randomNormal': case 'scripted': case 'normal': return isAdjacent;   sim/battle.ts
+ *
+ * `validTargetLoc` asks only ADJACENCY for a `normal` move, so aiming Roar or Dragon Tail at one's own
+ * partner is a legal choice and the authority drags the partner. There is no side test anywhere in
+ * `forceSwitch`; it works on the bodies the target resolution produced.
+ *
+ * A BODY THAT IS ON NEITHER ACTIVE ARRAY IS THE PRE-EXISTING ANSWER, LOUDLY. `found:false` gives the
+ * mover's far side exactly as before and bumps a counter, because a silent default here would look
+ * exactly like a working feature (CLAUDE.md).
+ *
+ * `MEDI_TARGET_SIDE_FOE_ONLY=1` restores the far-side-only address book at every caller, so a probe
+ * can red its own arms on the shipping module. It stamps `MEDFAILS.targetSideFoeOnlyRestored` at load,
+ * which is what makes "the knob is bound to this module" checkable rather than assumed. */
+const TARGET_SIDE_FOE_ONLY=(typeof process!=='undefined'&&process.env
+                            &&process.env.MEDI_TARGET_SIDE_FOE_ONLY==='1');
+if(TARGET_SIDE_FOE_ONLY)MEDFAILS.targetSideFoeOnlyRestored=1;
+function sideBoxOf(body,it,actA,actB,benchA,benchB,sfA,sfB){
+  const farA=it.side==='A';
+  const far={own:farA?actB:actA,bench:farA?benchB:benchA,sf:farA?sfB:sfA,
+             foes:farA?actA:actB,found:false};
+  if(TARGET_SIDE_FOE_ONLY)return far;
+  if(body&&actA.indexOf(body)>=0){
+    if(farA)MEDSEEN.targetSideIsMoversOwn++;
+    return {own:actA,bench:benchA,sf:sfA,foes:actB,found:true};
+  }
+  if(body&&actB.indexOf(body)>=0){
+    if(!farA)MEDSEEN.targetSideIsMoversOwn++;
+    return {own:actB,bench:benchB,sf:sfB,foes:actA,found:true};
+  }
+  MEDSEEN.targetSideNotOnField++;
+  return far;
+}
 /* ---- ROADMAP #362 -- WHO ACTUALLY GETS DRAWN, AS ONE FUNCTION ------------------------------------
  *
  * Follow Me, Rage Powder, Lightning Rod and Storm Drain lived inside the ATTACK branch, so a
@@ -25567,8 +25616,15 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       if(a.kind==='phaze'){
         const _t=reaimToSlot(a.target,it,actA,actB,a.mv);
-        const _foes=it.side==='A'?actB:actA, _fb=it.side==='A'?benchB:benchA, _fsf=it.side==='A'?sfB:sfA;
-        const _own=it.side==='A'?actA:actB;
+        /* 2026-08-29 -- THE DRAGGED BODY'S OWN SIDE, THROUGH `sideBoxOf`. Roar and Whirlwind are
+         * `normal`, so `validTargetLoc` lets a player aim one at their own partner and the authority's
+         * `forceSwitch` (sim/battle-actions.ts:1353) drags whoever the target resolution named -- there
+         * is no side test in it. These three arrays were the mover's FAR side, so an ally-aimed phaze
+         * scored `_i = -1` and this branch failed the move instead of dragging the partner.
+         * `_own` is the argument `switchOut` calls `foes`, so it is the OTHER side of the dragged body. */
+        const _pbx=sideBoxOf(_t,it,actA,actB,benchA,benchB,sfA,sfB);
+        const _foes=_pbx.own, _fb=_pbx.bench, _fsf=_pbx.sf;
+        const _own=_pbx.foes;
         const _i=_t?_foes.indexOf(_t):-1;
         /* WIRE 66 REACHES HERE TOO, and the pair matrix caught it not doing so: ROAR IS A SOUND MOVE
            (405 corpus uses), so a Soundproof body cannot be phazed -- Showdown left Bastiodon on the
@@ -33670,8 +33726,12 @@ function battleTurn(S,rng,actsForA,actsForB){
       {
         const _fs=TAGS.param('move',a.move.id,'forcesSwitch');
         if(_fs&&_fs.forceSwitch){
-          const _own=it.side==='A'?actA:actB, _foes=it.side==='A'?actB:actA;
-          const _fb=it.side==='A'?benchB:benchA, _fsf=it.side==='A'?sfB:sfA;
+          /* 2026-08-29 -- THE ADDRESS BOOK IS PER TARGET AND IT IS THE TARGET'S OWN SIDE. Dragon Tail
+           * and Circle Throw are `normal`, so a player may aim one at their own partner; the authority
+           * has ONE `forceSwitch` for both halves of `forcesSwitch` (sim/battle-actions.ts:1353) and it
+           * contains no side test at all. These four arrays were the mover's FAR side, computed ONCE
+           * above the loop, so an ally-aimed drag scored `_i = -1` and was skipped in silence. Per row
+           * rather than per action because the row is what carries the body. */
           /* 2026-08-23 -- IT WALKS THE SURVIVING SET, NOT THE TARGET LIST, AND THAT IS THE WHOLE
            * DEFECT. The authority's forceSwitch is step 6 of `spreadMoveHit` and every step before it
            * has been ZEROING the array as it went:
@@ -33707,6 +33767,8 @@ function battleTurn(S,rng,actsForA,actsForB){
             const tg=R.tg;
             if(R.out){MEDSEEN.forcedSwitchTargetRemoved++;continue;}
             if(!tg||tg.fainted||tg.curHP<=0)continue;
+            const _dbx=sideBoxOf(tg,it,actA,actB,benchA,benchB,sfA,sfB);
+            const _own=_dbx.foes, _foes=_dbx.own, _fb=_dbx.bench, _fsf=_dbx.sf;
             const _i=_foes.indexOf(tg); if(_i<0)continue;
             /* ROADMAP #341 -- SUCTION CUPS REFUSES THIS DOOR TOO, and until now it did not.
              *
