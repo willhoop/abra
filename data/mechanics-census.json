@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-30T04:25:43.720Z",
+  "generated": "2026-08-30T05:22:50.551Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 808,
-  "live": 808,
+  "probed": 810,
+  "live": 810,
   "missing": 0,
-  "armed": 808,
+  "armed": 810,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1084,6 +1084,26 @@
       "label": "the perish counter ticks at order 24 — above the order-26 side clocks and before order-28 Speed Boost",
       "live": true,
       "detail": "TAILWIND arm \"p1a p1b p2a p2b SIDEEND\" — the four order-24 counters must precede the order-26 |-sideend|, which is what five games of the pinned pool got backwards. SPEED BOOST arm \"p1a p1b p2a p2b BOOST\" — the counters must precede the order-28 |-boost| AND come out in the pre-boost order, p1a(100) before p1b(80), because a tick below the walk reads p1b at 120 and reverses them. OVER-FIRE, no Tailwind and no Speed Boost: \"p1a p1b p2a p2b\" (plain speed order, must not move). CLEARED, the same Tailwind board with no clock on anybody: \"SIDEEND\" (the side clock still expires and no counter is announced). tw [\"|-start|p1a:primarina|perish1\",\"|-start|p1b:blaziken|perish1\",\"|-start|p2a:snorlax|perish1\",\"|-start|p2b:toxapex|perish1\",\"|-sideend|p1:|move:tailwind\"] boost [\"|-start|p1a:primarina|perish1\",\"|-start|p1b:blaziken|perish1\",\"|-start|p2a:snorlax|perish1\",\"|-start|p2b:toxapex|perish1\",\"|-boost|p1b:blaziken|spe|1|[from]ability:speedboost\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reactionPerArrival",
+      "label": "a two-hit volley raises DamagingHit between its arrivals, not once below both",
+      "live": true,
+      "detail": "T = an arrival landing on the target, R = its DamagingHit reaction, C = the |-hitcount|. TWO-HIT arms must read TRTRC — Dual Wingbeat into Rough Skin \"TRTRC\", Twin Beam into Stamina \"TRTRC\"; TTRRC is the whole volley reacting below itself, which is six games of the pinned pool. SINGLE-HIT controls, the same bodies and the same reactors, must read TR and must not move: Dragon Claw \"TR\", Flash Cannon \"TR\". rough2 [\"|turn|1\",\"|move|p1a:talonflame|dualwingbeat|p2a:garchomp\",\"|-damage|p2a:garchomp|1430/1464\",\"|-damage|p1a:talonflame|1071/1224|[from]ability:roughskin|[of]p2a:garchomp\",\"|-damage|p2a:garchomp|1396/1464\",\"|-damage|p1a:talonflame|918/1224|[from]ability:roughskin|[of]p2a:garchomp\",\"|-hitcount|p2a:garchomp|2\",\"|upkeep\"] stam2 [\"|turn|1\",\"|move|p1a:farigiraf|twinbeam|p2a:archaludon\",\"|-resisted|p2a:archaludon|1\",\"|-damage|p2a:archaludon|1293/1320\",\"|-boost|p2a:archaludon|def|1|[from]ability:stamina\",\"|-resisted|p2a:archaludon|1\",\"|-damage|p2a:archaludon|1266/1320\",\"|-boost|p2a:archaludon|def|1|[from]ability:stamina\",\"|-hitcount|p2a:archaludon|2\",\"|upkeep\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "resistBerryAtCalculation",
+      "label": "the resist berry is spent while the damage is calculated, not while it is applied",
+      "live": true,
+      "detail": "SPREAD (Heat Wave, Occa Berry on the SECOND foe) — B=|-enditem [eat]|, W=[weaken], A=the OTHER foe's damage, H=the holder's: \"BWAH\" must be BWAH; AB WH is the berry landing between the two targets' damage lines, which is five games of the pinned pool. MULTI-ARRIVAL (Triple Axel into a Yache Berry), E=|-supereffective|: \"EBWHEHEH\" must be EBWHEHEH — the berry under the FIRST arrival's effectiveness line, not above it. CONTROLS, empty hand: \"AH\" / \"EHEHEH\" (no berry line at all) and the holder took 79 with the berry against 158 without, which must be exactly double — the halve did not move. SUBSTITUTE arm: a doll ate the hit and the berry is \"occaberry\" (must still be occaberry). spread [\"|turn|1\",\"|move|p1a:delphox|heatwave|p2a:raichu\",\"|-supereffective|p2b:sinistcha|1\",\"|-enditem|p2b:sinistcha|occaberry|[eat]\",\"|-enditem|p2b:sinistcha|occaberry|[weaken]\",\"|-damage|p2a:raichu|1001/1080\",\"|-damage|p2b:sinistcha|1089/1168\",\"|upkeep\"] multi [\"|turn|1\",\"|move|p1a:tsareena|tripleaxel|p2a:garchomp\",\"|-supereffective|p2a:garchomp|2\",\"|-enditem|p2a:garchomp|yacheberry|[eat]\",\"|-enditem|p2a:garchomp|yacheberry|[weaken]\",\"|-damage|p2a:garchomp|1434/1464\",\"|-supereffective|p2a:garchomp|2\",\"|-damage|p2a:garchomp|1374/1464\",\"|-supereffective|p2a:garchomp|2\",\"|-damage|p2a:garchomp|1284/1464\",\"|-hitcount|p2a:garchomp|3\",\"|upkeep\"]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3883,7 +3903,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

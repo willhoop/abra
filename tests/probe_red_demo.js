@@ -3030,8 +3030,15 @@ demoSource('ROADMAP #81 WIRE 7  Knock Off cannot take the Sash that just saved t
    * guards, so what is reverted is only the ORDER. */
   [["      const _stepAfterHit=(R)=>{const tg=R.tg;",
     "      const _stepAfterHit=(R)=>{if(1){void R;return;}const tg=R.tg;"],
-   ["        const _rbHit=TAGS.param('item',tg.item,'resistBerry');",
-    "        {\n          const _ri=TAGS.param('move',a.move.id,'removesItem');\n          if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){\n            const _taken=tg.item; tg.item='';\n            if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);\n            if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}\n          }\n        }\n        const _rbHit=TAGS.param('item',tg.item,'resistBerry');"]],
+   /* RE-AIMED AGAIN 2026-08-30. The resist berry's SPEND moved out of `_stepApply` and up into
+    * `_stepDamage`, where the authority raises it (`onSourceModifyDamage` inside `getDamage`), so the
+    * line this pattern quoted is no longer in this step at all. WHAT THE DEMONSTRATION CLAIMS HAS NOT
+    * CHANGED: the strip has to land ABOVE THE FOCUS SASH, and the anchor is now the one statement left
+    * at that exact position — the knob path that hands the berry closure back to the old site. The
+    * moved copy below is byte-identical and still carries both refusal guards, so what is reverted is
+    * only the ORDER. */
+   ["        if(R._berryApply){const _b=R._berryApply;R._berryApply=null;",
+    "        {\n          const _ri=TAGS.param('move',a.move.id,'removesItem');\n          if(_ri&&tg.item&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){\n            const _taken=tg.item; tg.item='';\n            if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);\n            if(_ri.steals&&!m.item){m.item=_taken;if(TR)TR.item(m,_taken,'[from] move: '+a.move.id);}\n          }\n        }\n        if(R._berryApply){const _b=R._berryApply;R._berryApply=null;"]],
   (E) => { const none = W7.knock(E, 'gengar', ''), sash = W7.knock(E, 'gengar', 'focussash');
            return none.dead && !sash.dead && sash.hp === 1; });
 

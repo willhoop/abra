@@ -1833,6 +1833,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * counters are kept apart for exactly the reason `inMoveUpdateRan` and
    * `inMoveUpdateSkippedNoTarget` are. */
   multiHitUpdateBetweenHits: 0,
+  /* 2026-08-30 -- the interior arrivals of a volley whose `DamagingHit` reaction was paid INLINE,
+   * beside the arrival that earned it, instead of below the whole loop. A zero on a corpus that holds
+   * a Dual Wingbeat into a Rough Skin body means the per-arrival road is unwired; the LAST arrival is
+   * never counted here because it is still paid by `_stepDamagingHit`, which is the authority's own
+   * position for it. */
+  reactionPaidPerArrival: 0,
+  /* 2026-08-30 -- the type-resist berry, counted where it is now SPENT (the calculation step) and,
+   * separately, the addressed-arrival road where the spend is handed to the packet loop so it lands
+   * under the FIRST arrival's effectiveness line. `resistBerrySpent` must be non-zero on any corpus
+   * holding a resist berry at all; `resistBerryAtFirstArrival` only on one that also holds a volley
+   * or a Parental Bond click into one, which is why the two are kept apart. */
+  resistBerrySpent: 0, resistBerryAtFirstArrival: 0,
   /* 2026-08-23 -- the two `onAfterHit` field families, counted at their new home so "the step is in
    * the list" and "the step does anything" cannot be confused. Both must be non-zero on any corpus
    * that contains a Stone Axe / Ceaseless Edge and a Rapid Spin / Mortal Spin. */
@@ -20502,6 +20514,27 @@ const VOLLEY_REACT_DRAWN=(typeof process!=='undefined'&&process.env
  * the census under a deliberate break — a demonstration must not overwrite the artifact five other
  * files read. */
 if(VOLLEY_REACT_DRAWN)MEDFAILS.volleyReactDrawnRestored=1;
+/* 2026-08-30 -- `MEDI_REACT_BATCHED=1` RESTORES THE BATCHED REACTION: every `onDamagingHit` reactor
+ * of a volley paid in one deferred step BELOW the whole packet loop, so the stream read
+ * `dmg dmg react react` where the authority writes `dmg react dmg react`.
+ *
+ * IT IS NOT THE KNOB ABOVE. `MEDI_VOLLEY_REACT_DRAWN` is a claim about HOW MANY times the event
+ * fires; this one is a claim about WHERE each firing lands. The two were measured apart -- the count
+ * was already right when this was still wrong -- and they are knobbed apart. */
+const REACT_BATCHED=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_REACT_BATCHED==='1');
+if(REACT_BATCHED)MEDFAILS.reactBatchedRestored=1;
+/* 2026-08-30 -- `MEDI_BERRY_AT_APPLY=1` RESTORES THE TYPE-RESIST BERRY BEING SPENT AT THE POINT THE
+ * HP MOVES. The authority spends it inside `getDamage` (`onSourceModifyDamage` -> `eatItem()`), which
+ * runs for EVERY target of a spread move before `spreadDamage` moves any HP, and BELOW that hit's
+ * effectiveness and crit lines. Spending it in the apply step put it between the other targets'
+ * `-damage` lines on a spread click and above the first arrival's `-supereffective` on a volley.
+ *
+ * STAMPED AT DECLARATION, like the knobs above, so a run under the break is identifiable before a
+ * berry happens to be held. */
+const BERRY_AT_APPLY=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_BERRY_AT_APPLY==='1');
+if(BERRY_AT_APPLY)MEDFAILS.berryAtApplyRestored=1;
 /* 2026-08-29 -- THE AFTER-FAINT BOUNDARY, AND IT IS THE THIRD KNOB ON THE FAINT DRAIN. The two above
  * are claims about WHERE a `|faint|` line is written; this one is a claim about what happens BELOW the
  * whole drain -- when the on-KO event fires, how big one payment is, and whether it fires at all once
@@ -30498,7 +30531,50 @@ function battleTurn(S,rng,actsForA,actsForB){
          }
          const _multiPk=!!(_pkSel&&_pkSel.length>1);
          R.effShow=damageIsComputed(a.move.id)?d.eff:0;
-         if(TR&&!_multiPk){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}}
+         if(TR&&!_multiPk){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}
+         /* ==== 2026-08-30 -- THE TYPE-RESIST BERRY IS SPENT IN THE CALCULATION, NOT AT THE APPLY ==
+          *
+          * `chopleberry.onSourceModifyDamage` (data/items.ts:1038-1049, the same body on every member
+          * of the family, and Champions overrides none of them) calls `target.eatItem()` and then
+          * writes `-enditem … [weaken]` beside `eatItem`'s own `[eat]`. `ModifyDamage` is raised at
+          * sim/battle-actions.ts:1825 -- BELOW `-supereffective`/`-resisted` (:1800/:1807) and BELOW
+          * `-crit` (:1814) -- and the whole of `getDamage` runs for EVERY target
+          * (`getSpreadDamage`, scripts.ts:361) before `spreadDamage` moves any HP (:368).
+          *
+          * SO THE POSITION IS THIS STEP AND NOT THE NEXT ONE. `_stepApply` is `spreadDamage`, and the
+          * driver is step-outer/row-inner -- so a berry spent there landed BETWEEN the other targets'
+          * `-damage` lines. Five games of the 2026-08-29 pinned pool.
+          *
+          * `_multiPk` IS THE OTHER HALF OF THE SAME FACT. When the arrivals are addressed, the
+          * effectiveness and crit lines are emitted by `_stepApply`'s packet loop rather than here,
+          * so the berry belongs under the FIRST arrival's pair -- the closure is handed to that loop
+          * instead of being spent here. It is the same moment in the authority (hit 1's `getDamage`);
+          * only which of this engine's two sites writes hit 1's effectiveness line differs.
+          *
+          * THE SUBSTITUTE GUARD IS EXPLICIT NOW BECAUSE THE BRANCH THAT USED TO SUPPLY IT IS BELOW
+          * THIS LINE. The old site sat under `_stepApply`'s `subBlocks` return, and the handler's own
+          * `hitSub` check refuses there too -- so the rule did not change, only who asks it.
+          * `subBlocks` is a pure predicate (`:9784`) and `tg._sub` has not moved yet at this point,
+          * which is exactly the state the old site read.
+          *
+          * NO NUMBER MOVES. `dmgRange` applies the halve as a pure read -- it is called dozens of
+          * times per turn on hypothetical moves and must never mutate -- so this site owns the
+          * CONSUMPTION and its two lines and nothing else. The probe's empty-hand arms assert the
+          * damage is exactly double either way.
+          *
+          * THE UNSEEN FIST `-ability` LINE STAYS BELOW IT, which is the authority's order too:
+          * `bypassProtect` is announced after `runEvent('ModifyDamage')` returns
+          * (battle-actions.ts:1828-1834). That block is ~50 lines down. */
+         {const _rbC=TAGS.param('item',tg.item,'resistBerry');
+          if(_rbC&&_rbC.onType===mv.t&&(!_rbC.requiresSuperEffective||d.eff>1)
+             &&!berryRefusedByFoeNew(tg)&&!subBlocks(m,tg,a.move.id)){
+            const _it=tg.item;
+            const _spend=()=>{ if(TR){TR.enditem(tg,_it,'[eat]');TR.enditem(tg,_it,'[weaken]');}
+                               tg.item=''; MEDSEEN.resistBerrySpent++; };
+            if(BERRY_AT_APPLY){R._berryApply=_spend;MEDFAILS.berryAtApplyRestored=1;}
+            else if(_multiPk){R._berry=_spend;MEDSEEN.resistBerryAtFirstArrival++;}
+            else _spend();
+          }}}
         /* ==== ROADMAP #322 -- ONE INDEX PER ARRIVAL, WHICH IS WHAT THE AUTHORITY DRAWS ============
          *
          * `hitStepMoveHitLoop` calls `spreadMoveHit` once per hit (sim/battle-actions.ts:947) and
@@ -30786,16 +30862,21 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* 2026-08-23 -- THE SAME UNNERVE REFUSAL THE HALVE ABOVE TAKES. The two must be asked with one
          * reader or a run can halve the damage and keep the berry, or spend a berry that weakened
          * nothing. See berryRefusedByFoe's header. */
-        const _rbHit=TAGS.param('item',tg.item,'resistBerry');
-        if(_rbHit&&_rbHit.onType===mv.t&&(!_rbHit.requiresSuperEffective||d.eff>1)&&!berryRefusedByFoeNew(tg)){
-          /* ROADMAP #81 WIRE 7 -- A RESIST BERRY WRITES TWO LINES, NOT ONE. Every member of the family
-           * has the same body: `if (target.eatItem()) { this.add('-enditem', target, this.effect,
-           * '[weaken]'); return this.chainModify(0.5); }` -- so `eatItem()` writes the `[eat]` and the
-           * handler writes a second `[weaken]` beside it. Confirmed in the authority's own log through
-           * data/game-differential.json's knock_off_roadmap_80 block, which records both. One rule for
-           * the tag, no names. */
-          if(TR){TR.enditem(tg,tg.item,'[eat]');TR.enditem(tg,tg.item,'[weaken]');}
-          tg.item='';}
+        /* ROADMAP #81 WIRE 7 -- A RESIST BERRY WRITES TWO LINES, NOT ONE. Every member of the family
+         * has the same body: `if (target.eatItem()) { this.add('-enditem', target, this.effect,
+         * '[weaken]'); return this.chainModify(0.5); }` -- so `eatItem()` writes the `[eat]` and the
+         * handler writes a second `[weaken]` beside it. Confirmed in the authority's own log through
+         * data/game-differential.json's knock_off_roadmap_80 block, which records both. One rule for
+         * the tag, no names.
+         *
+         * 2026-08-30 -- AND THE SPEND MOVED UP TO `_stepDamage`, WHERE `getDamage` RAISES IT. What is
+         * left here is the KNOB PATH ONLY: `MEDI_BERRY_AT_APPLY=1` hands the closure back to this
+         * line, which is the position the two paragraphs above described. The decision -- which berry,
+         * against which type, refused by which foe -- is unchanged and is made once, at the new site;
+         * only the CALL is here. A knob run reaches this line below the substitute return exactly as
+         * the old code did, so a doll still saves the berry on both arms. */
+        if(R._berryApply){const _b=R._berryApply;R._berryApply=null;
+                          MEDFAILS.berryAtApplyRestored=1;_b();}
         /* WIRE 12 -- survivesFromFull. Focus Sash is the most-held item in the format (8,078
          * sheets) and Sturdy its ability twin, and neither existed here: every lethal hit into a
          * full-HP sash body was a kill that is not a kill. The gates come from the handler via the
@@ -31072,8 +31153,51 @@ function battleTurn(S,rng,actsForA,actsForB){
              * undefined too, and a single-packet click never reaches this loop. */
             const _cI=R.crits?!!R.crits[i]:!!R.crit;
             if(TR){TR.eff(tg,R.effShow);if(_cI)TR.crit(tg);}
+            /* 2026-08-30 -- THE RESIST BERRY, UNDER THE FIRST ARRIVAL'S EFFECTIVENESS AND CRIT LINES.
+             * `_stepDamage` made the decision and handed the closure over because THIS loop is where
+             * hit 1's `-supereffective`/`-crit` are written on the addressed road; the authority
+             * spends the berry inside hit 1's own `getDamage`, below both. Row 133 of the 2026-08-29
+             * dump is the one this closes -- a Parental Bond Drain Punch into a Chople Berry. */
+            if(i===0&&R._berry){const _b=R._berry;R._berry=null;_b();}
             tg.curHP-=_packets[i];_landed++;MEDSEEN.multiHitPacketsDealt++;
             if(TR)TR.dmg(tg);
+            /* ============ 2026-08-30 -- THE `DamagingHit` EVENT IS RAISED PER ARRIVAL ==============
+             *
+             * `runEvent('DamagingHit', damagedTargets, …)` sits INSIDE `spreadMoveHit`
+             * (data/mods/champions/scripts.ts:409), which `hitStepMoveHitLoop` calls once per hit
+             * (:518). So a two-hit volley raises it TWICE, interleaved with its own damage; this
+             * engine counted the firings correctly and paid all of them in one deferred step below
+             * the whole loop, printing `dmg dmg react react`.
+             *
+             * ONLY ARRIVALS 0..n-2 MOVE. The last arrival's reaction stays with `_stepDamagingHit`,
+             * which is where the authority puts it: below THAT hit's `runMoveEffects`, `selfDrops`
+             * and `secondaries`. `tg.curHP>0` is what makes "n-2" a fact rather than an index -- a
+             * body killed by arrival k means the loop breaks and k WAS the last arrival, so its
+             * reaction is owed to the deferred step, not to this line.
+             *
+             * IT IS ABOVE THE `Update` PASS BELOW, because the authority's `eachEvent('Update')` is
+             * at scripts.ts:538, outside `spreadMoveHit` and therefore below its `DamagingHit`.
+             *
+             * DECLARED REMAINDER, and it is the same one the `Update` block below already declares:
+             * an interior arrival's reaction lands under its `-damage` rather than under that hit's
+             * secondaries, because this engine wraps the effects steps once per MOVE. No multi-hit
+             * move in this format carries a target secondary, so the two positions coincide today --
+             * `tests/probe_multihit_update.js` derives that list on every run.
+             *
+             * THE COUNT IS NOT DOUBLE-PAID: each call takes an explicit 1 and `R._reactPaid` is what
+             * `_damagingHit` and `_stepBuffOnHit` subtract from `_react` when they are finally run
+             * with no argument. Passing the count explicitly is also what keeps this line out of
+             * `_react`'s temporal dead zone -- the `const` is declared below this loop, because it
+             * needs `_landed`. */
+            if(i<_packets.length-1&&tg.curHP>0){
+              if(REACT_BATCHED)MEDFAILS.reactBatchedRestored=1;
+              else{
+                R._reactPaid=(R._reactPaid|0)+1;
+                _damagingHit(1);
+                _stepBuffOnHit(R,1);
+                MEDSEEN.reactionPaidPerArrival++;
+              }
+            }
             /* ================= 2026-08-27 -- THE UPDATE EVENT IS RAISED PER HIT ====================
              *
              * `eachEvent('Update')` sits INSIDE the authority's hit loop, one statement below the
@@ -31429,7 +31553,16 @@ function battleTurn(S,rng,actsForA,actsForB){
          * `tests/probe_red_demo.js` can revert this wire by moving the call and nothing else. A
          * `const` arrow would not survive that, because the revert calls it above its own
          * declaration; a function declaration is hoisted to the top of `_stepApply` and does. */
-        function _damagingHit(){
+        /* 2026-08-30 -- `_n` IS "HOW MANY ARRIVALS AM I BEING PAID FOR", AND IT IS THE WHOLE OF THE
+         * PER-ARRIVAL WIRE ON THIS SIDE. Called with no argument by `_stepDamagingHit`, which is the
+         * deferred position and settles whatever the packet loop did not already pay; called with a
+         * literal 1 from inside the packet loop for each interior arrival.
+         *
+         * THE TERNARY IS LOAD-BEARING, NOT STYLE: `_react` is a `const` declared BELOW the packet
+         * loop (it needs `_landed`), so an inline call must never evaluate it. Passing 1 takes the
+         * other branch and the dead zone is never entered. */
+        function _damagingHit(_n){
+        const _cntDH=(_n==null?Math.max(0,_react-(R._reactPaid|0)):_n);
         /* WIRE 5 -- punishesAttacker, all of it. Rough Skin (3,762 sheets) and its family were
          * ABSENT: the engine had no concept that touching something can cost you. Unlike
          * buffsHolderOnHit this does NOT compound -- it is a flat toll, so the right play is to
@@ -31451,7 +31584,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * (battle-actions.ts:956) and a body is only ever killed by the LAST arrival of a volley.
          * This flag is that break expressed here; it is not a cap invented to make a number fit. */
         let _deathTollPaid=false;
-        for(let _hit=0;_hit<_react;_hit++){
+        for(let _hit=0;_hit<_cntDH;_hit++){
         /* WIRE 82, the reacting half -- a hit LANDING ON a body that is holding a pre-turn shield.
          *
          * Placed beside punishesAttacker because it is the same dispatch question ("who reacts to
@@ -31854,8 +31987,15 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
           MEDSEEN.hpThresholdBoosted++;
         }
-        if(HP_THRESHOLD_BOOST_EARLY){MEDFAILS.hpThresholdBoostEarlyRestored=1;_hpThresholdBoost();}
-        else R._hpt=_hpThresholdBoost;   /* run by `_stepHpThresholdBoost`, below `_stepHitCount` */
+        /* 2026-08-30 -- ONCE PER MOVE, SO NEVER FROM AN INTERIOR ARRIVAL. `boostsAtHPThreshold` is
+         * `onAfterMoveSecondary`, which `hitStepMoveHitLoop` runs at scripts.ts:577 -- BELOW the whole
+         * hit loop and below the `-hitcount` at :550. An interior arrival is inside that loop, so it
+         * has no business arming or firing this; `_n == null` is the deferred call, which is the one
+         * that stands where the authority's statement stands. */
+        if(_n==null){
+          if(HP_THRESHOLD_BOOST_EARLY){MEDFAILS.hpThresholdBoostEarlyRestored=1;_hpThresholdBoost();}
+          else R._hpt=_hpThresholdBoost;  /* run by `_stepHpThresholdBoost`, below `_stepHitCount` */
+        }
         }   /* end _damagingHit */
         /* ROADMAP #81 WIRE 7 -- KNOCK OFF STRIPS THE ITEM *AFTER* THE DAMAGE. ROADMAP #80 filed this
          * and only half of it was closed: #80's DAMAGE claim was retracted (both engines price the
@@ -33089,8 +33229,20 @@ function battleTurn(S,rng,actsForA,actsForB){
        * IT STAYS ABOVE `_stepAfterHit`, which is where it already was and where the authority puts
        * it -- the five staged Knock Off turns in `_stepDamagingHit`'s header measured the reaction
        * above the `-enditem` on all five, and none of that moved. */
-      const _stepBuffOnHit=(R)=>{const tg=R.tg;const _react=R.react;
-        if(!R.hit&&!R.fainted)return;
+      /* 2026-08-30 -- `_n` IS THE SAME "HOW MANY ARRIVALS AM I BEING PAID FOR" `_damagingHit` TAKES,
+       * and it is here because `buffsHolderOnHit` is the OTHER HALF of the authority's one
+       * `DamagingHit` event. The step list calls this with one argument and pays the remainder; the
+       * packet loop calls it with a literal 1 for each interior arrival, so a Stamina body gets its
+       * Defence between two Twin Beam arrivals rather than twice below both. */
+      const _stepBuffOnHit=(R,_n)=>{const tg=R.tg;
+        const _react=(_n==null?Math.max(0,(R.react|0)-(R._buffPaid|0)):_n);
+        if(_n!=null)R._buffPaid=(R._buffPaid|0)+_n;
+        /* THE GATE IS ASKED ON THE DEFERRED CALL ONLY, AND THAT IS NOT A LOOSENING. `R.hit` /
+         * `R.fainted` are written at the BOTTOM of `_stepApply` (`:32021`), so the packet loop reaches
+         * this with both undefined -- asking there would refuse every interior arrival silently, which
+         * is the shape this file has a rule about. The inline caller has already established what the
+         * gate asks: the packet landed and `tg.curHP > 0`. */
+        if(_n==null&&!R.hit&&!R.fainted)return;
         {
           /* WIRE 4 of N -- buffsHolderOnHit and punishesAttacker, ONE dispatch through the `contact`
            * linkage key. Both were entirely absent from this engine.
@@ -33147,7 +33299,13 @@ function battleTurn(S,rng,actsForA,actsForB){
            * one, so granting it would mean inventing the number. The counter therefore keeps meaning
            * what it meant -- "buffs this engine owed and did not pay" -- for the members that are
            * genuinely still owed, instead of covering one that is now paid. */
-          if(_buff&&_bw===true&&_buff.gainsVolatile&&!_buff.boosts){
+          /* 2026-08-30 -- THE VOLATILE HALF IS LEFT ONCE PER MOVE AND THAT IS DELIBERATE. `_n != null`
+           * is an interior arrival of a volley, and the authority WOULD re-announce there
+           * (`charge.onRestart` re-adds the `-start` line). This engine has never fired it more than
+           * once per click -- the block sits outside the `_react` loop below it -- so paying it here
+           * would be a SECOND change riding on a line-ordering fix, on a family with no row in the
+           * pinned pool. It is named rather than silently taken. */
+          if(_n==null&&_buff&&_bw===true&&_buff.gainsVolatile&&!_buff.boosts){
             if(_buff.gainsVolatile==='charge'&&tg.curHP>0&&!tg.fainted){
               const _cv=(tg._vol=tg._vol||{});
               /* `onRestart` re-announces and does NOT stack: the volatile is a boolean in Showdown

@@ -10,6 +10,86 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.229.0] — 2026-08-30
+
+### Fixed
+- **A DAMAGE REACTION IS RAISED ONCE PER ARRIVAL AND THIS ENGINE PAID THE WHOLE VOLLEY BELOW ITSELF.**
+  `runEvent('DamagingHit', damagedTargets, pokemon, move, damagedDamage)` sits INSIDE `spreadMoveHit`
+  (`data/mods/champions/scripts.ts:409`), which `hitStepMoveHitLoop` calls once per hit (`:518`) —
+  Champions overrides both functions and leaves the position verbatim, checked first. So a two-hit
+  volley into a Rough Skin body writes `damage, toll, damage, toll`; this engine wrote
+  `damage, damage, toll, toll`. The COUNT was already right (WIRE 84 / the 2026-08-29 `_react` fix);
+  only the POSITION was wrong. Arrivals `0..n-2` are now paid inside the packet loop, beside the
+  arrival that earned them and above that hit's `eachEvent('Update')`; **the last arrival stays with
+  `_stepDamagingHit`**, which is where the authority raises it relative to that hit's `runMoveEffects`,
+  `selfDrops` and `secondaries`. Both halves of the one event move together — `punishesAttacker`
+  (Rough Skin) and `buffsHolderOnHit` (Stamina) — because a body holds one ability and the authority
+  raises one event. Six games of the pinned pool, four Rough Skin and two Stamina.
+- **THE TYPE-RESIST BERRY WAS SPENT WHEN THE HP MOVED AND THE AUTHORITY SPENDS IT WHILE THE DAMAGE IS
+  CALCULATED.** Every member of the family has one body — `onSourceModifyDamage` calling
+  `target.eatItem()` and then `this.add('-enditem', target, this.effect, '[weaken]')`
+  (`data/items.ts:1038-1049` for Chople; `data/mods/champions/items.ts` carries no berry at all, so
+  Champions overrides none of them). `ModifyDamage` is raised inside `getDamage`
+  (`sim/battle-actions.ts:1825`), BELOW the `-supereffective`/`-resisted` line (`:1800`/`:1807`) and
+  the `-crit` line (`:1814`); and `spreadMoveHit` runs `getSpreadDamage` for EVERY target
+  (`scripts.ts:361`) before `spreadDamage` moves any HP (`:368`). Two consequences, both wrong here:
+  on a spread click the berry landed BETWEEN the other targets' `-damage` lines, and on an addressed
+  volley it landed ABOVE the first arrival's own effectiveness line. The spend moved to `_stepDamage`
+  (and, on the addressed road, to the first arrival of the packet loop). **No damage number moved** —
+  `dmgRange` already applied the halve as a pure read, so this site owns the consumption and its two
+  lines and nothing else; the probe's empty-hand arms assert the damage is exactly double either way.
+  The substitute guard moved with it and is explicit (`subBlocks`), because the branch that used to
+  supply it now sits below the spend — which is also where the authority's own `hitSub` check refuses.
+  Six games of the pinned pool.
+
+### Notes
+- **THEY ARE TWO FIXES, NOT ONE, AND THAT WAS MEASURED BEFORE EITHER WAS LANDED.** The hypothesis on
+  the way in was that both are "the packet loop defers something the authority does per arrival". A
+  2x2 over `MEDI_REACT_BATCHED` and `MEDI_BERRY_AT_APPLY`, on one staged board per defect, refutes the
+  common half: each knob moves ITS OWN board and leaves the other **byte-identical**, under both
+  settings of the other knob. The census agrees in both directions — each knob takes exactly its own
+  probe MISSING and leaves the other LIVE. The berry was never about the packet loop at all: it is the
+  calculation/application split ACROSS TARGETS, and it is visible on a single-hit spread click.
+- **THE EARLIER `_react` FIX HAD NOT CHANGED G3's SHAPE, RE-MEASURED ON THE CURRENT TREE RATHER THAN
+  ASSUMED.** It was counted on release `26787be1b8b4`; on `b45e6b257029` the same six games and the
+  same six cause strings are still there. That fix corrected HOW MANY times the event fires; this one
+  corrects WHERE each firing lands, which is why they are knobbed apart.
+- **THE PREDICTION WAS STATED BEFORE THE RUN AND HELD.** Protocol `191 -> 183` predicted (band
+  179-189), **181 measured**; `ordering` class `43 -> 31` predicted, **31 measured, exact**;
+  board-parted **84 unmoved, predicted and exact**; end-state verdicts identical, predicted. The band
+  rather than a point was owed to one row named in advance — a Parental Bond Drain Punch into a Chople
+  Berry, where this engine halves EVERY arrival of the volley and the authority halves only the one
+  that ate the berry, and where the drain heal is paid once per row rather than per hit. That game did
+  resurface, on the drain heal.
+- **EXACTLY TWELVE CAUSES REMOVED AND EVERY ONE NAMES ONE OF THE TWO MECHANISMS**; the two added are
+  the same games diverging later (`|-heal|p2a|H/H|[from]drain <> |-supereffective|p1a|1` and a
+  confusion damage value). `191 - 12 + 2 = 181`. Sample identity was checked rather than assumed: 961
+  games both runs, `turns_cap` 12, arm `middle`, steering `empirical-click/v1`, census pin
+  `9446a684709d`, `closet.teams_dropped` 43, `coverage.exercised` 556 of 580, `state.not_compared` 5,
+  `mid_void.void_games` 9 — and `engine/arms_comparable.js` reports COMPARABLE.
+- **`tests/test-resolution-order.js`'s A1 ARM IS PROMOTED FROM `known-open` TO `red`, IN THE SAME
+  PASS.** It staged Dual Wingbeat into a Toxic Debris Glimmora and declared *"the INTERLEAVING cannot
+  be [reached] without converting the hit loop"*. That was one restructure too pessimistic: only
+  `DamagingHit` is per-hit, so moving that one event reproduces the authority's stream with every other
+  step still wrapped once per move. The arm now agrees clean and is RED PROVEN under its own surgical
+  revert `react-batched`. KNOWN-OPEN arms in that file: **1 -> 0**.
+- **A KNOB IS NOT A BACKLOG.** Both new knobs are registered in `tests/test-mechanics.js`'s
+  `DELIBERATE_BREAK`, so a run under either REFUSES to write the census — demonstrated, and the message
+  names `MEDFAILS.reactBatchedRestored` / `berryAtApplyRestored`.
+- **ONE PRE-EXISTING DEMONSTRATION WAS RE-AIMED RATHER THAN LEFT BROKEN.** `tests/probe_red_demo.js`'s
+  *"Knock Off cannot take the Sash that just saved the target"* anchored on the resist berry's old line
+  in `_stepApply`, so moving the spend took it to COULD-NOT-BE-APPLIED (5 -> 6). Its claim is unchanged
+  — the strip has to land ABOVE the Focus Sash — and the anchor is now the one statement left at that
+  exact position. Back to **5 COULD NOT BE APPLIED and 1 HOLLOW of 200**, the set inherited from HEAD;
+  that file remains RED and is not this batch's.
+- Census **808 -> 810 live / 810 probed / 0 missing**, hollow 0, unarmed 0, threw 0. New probes
+  `ability/reactionPerArrival` (four arms — two two-hit tests and two single-hit over-fire controls off
+  the same bodies into the same reactors, which must not move) and `item/resistBerryAtCalculation`
+  (five arms — spread, addressed-volley, two empty-hand arithmetic controls and a substitute arm where
+  the berry must survive). Both shown RED first.
+- Engine release `b45e6b257029 -> a18431d6dbe2`; `engine/medicham2-browser.js` digest `d2b485c7ce59`;
+  Showdown `20ad99ffc9a5`. Detail: [docs/_reports/2026-08-30-packet-timing.md](docs/_reports/2026-08-30-packet-timing.md).
+
 
 ## [5.228.0] — 2026-08-30
 

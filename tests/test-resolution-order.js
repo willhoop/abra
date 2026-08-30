@@ -245,6 +245,28 @@ const BREAKS = {
           m.curHP=0;m.fainted=true,noteFaint(m);_selfKOPending=true;MEDSEEN.selfKOAlwaysAboveTheHit++;}
       }`, ';']] },
 
+  /* 2026-08-30 -- THE ROW A1 DECLARED OPEN SINCE IT WAS STAGED, AND IT IS NOW A RED ARM. The claim
+   * that the interleaving "cannot be [fixed] without converting the hit loop" was one restructure too
+   * pessimistic: `DamagingHit` is raised inside `spreadMoveHit`, which is per HIT, while everything
+   * else in the step list is per MOVE -- so moving THAT ONE EVENT to the packet loop reproduces the
+   * authority's stream without touching the granularity of any other step. Only arrivals 0..n-2 move;
+   * the last one stays in `_stepDamagingHit`, which is where the authority raises it relative to that
+   * hit's secondaries. */
+  'react-batched': {
+    what: 'deletes the per-arrival `DamagingHit` payment from inside the packet loop, so every '
+        + 'reactor of a volley is paid by the deferred `_stepDamagingHit` below the whole loop — i.e. '
+        + 'exactly the engine as it stood until 2026-08-30, printing `dmg dmg react react`. The COUNT '
+        + 'is untouched (`_react` still settles the remainder), so the arm parts on the POSITION.',
+    edits: [[`            if(i<_packets.length-1&&tg.curHP>0){
+              if(REACT_BATCHED)MEDFAILS.reactBatchedRestored=1;
+              else{
+                R._reactPaid=(R._reactPaid|0)+1;
+                _damagingHit(1);
+                _stepBuffOnHit(R,1);
+                MEDSEEN.reactionPaidPerArrival++;
+              }
+            }`, '            ;']] },
+
   'berry-at-every-group': {
     what: 'runs the `onUpdate` pass after EVERY residual group instead of only after the weather, '
         + 'which is where ROADMAP #221 left it. The post-upkeep pass still runs and simply finds '
@@ -717,14 +739,18 @@ const CASES = [
     script: [T([{ m: 'shadowpunch', t: 0 }, PROT], [{ m: 'iceshard', t: 0 }, { m: 'bodyslam', t: 0 }])] },
 
   /* =============================== THE HALF THAT IS NOT FIXED ================================== */
-  { id: 'a1-multihit-frequency', group: 'A1', kind: 'known-open', brk: null,
-    what: 'A DECLARED, MEASURED, UNFIXED ROW — not a failure and not a pass. Dual Wingbeat into '
-        + 'GLIMMORA (Toxic Debris). The authority runs the WHOLE step list once per hit, so it lays a '
-        + 'Toxic Spikes layer between the two `-damage` lines; this engine runs the step list once per '
-        + 'MOVE, emits both packets, then reacts twice. The COUNT is already right (WIRE 84) and the '
-        + 'INTERLEAVING cannot be without converting the hit loop, which is WIRE 20\'s declared '
-        + 'granularity divergence and a restructure rather than an ordering fix. Staged here so the '
-        + 'claim carries a running measurement instead of a sentence.',
+  /* CLOSED 2026-08-30, AND PROMOTED FROM `known-open` TO `red` IN THE SAME PASS rather than left
+   * standing with a footnote. It was staged as a declared, measured, unfixed row and it read
+   * `KNOWN-OPEN?` — the harness's own word for "declared open and no longer parting" — the moment the
+   * per-arrival `DamagingHit` landed. A declaration that has stopped being true is the fourteen stale
+   * handoffs in miniature, so the row now carries a break and is held to a red arm's bar. */
+  { id: 'a1-multihit-frequency', group: 'A1', kind: 'red', brk: 'react-batched',
+    what: 'Dual Wingbeat into GLIMMORA (Toxic Debris). The authority raises `DamagingHit` inside '
+        + '`spreadMoveHit`, which runs once per HIT, so it lays a Toxic Spikes layer BETWEEN the two '
+        + '`-damage` lines; this engine emitted both packets and then reacted twice. The COUNT was '
+        + 'already right (WIRE 84) and the INTERLEAVING was declared unreachable without converting '
+        + 'the whole hit loop — it was not: only that one event is per-hit, and moving it alone '
+        + 'reproduces the stream with every other step still wrapped once per move.',
     A: [['corviknight', '', 'Pressure', ['Dual Wingbeat', 'Protect']], ['clefable', '', 'Unaware', ['Protect']],
         ['milotic', '', 'Marvel Scale', ['Protect']], ['snorlax', '', 'Thick Fat', ['Protect']]],
     B: [['glimmora', '', 'Toxic Debris', ['Sludge Bomb', 'Protect']], ['toxapex', '', 'Regenerator', ['Protect']],

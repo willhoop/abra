@@ -5208,6 +5208,169 @@ probe('condition', 'residualPerishStep',
                  + ' boost ' + JSON.stringify(boost.lines) };
 });
 
+/* ---- 2026-08-30 -- G3: A DAMAGE REACTION IS RAISED ONCE PER ARRIVAL, NOT ONCE PER CLICK ---------
+ *
+ * `hitStepMoveHitLoop` calls `spreadMoveHit` once per hit (data/mods/champions/scripts.ts:518) and
+ * `runEvent('DamagingHit', damagedTargets, ...)` sits INSIDE `spreadMoveHit` (:409), so a two-hit
+ * volley raises the event twice, interleaved with its own damage. Champions overrides both functions
+ * and leaves the position verbatim -- checked first, because the Encore batch turned entirely on a
+ * Champions override.
+ *
+ * This engine already counted the reactions correctly (`_react`) and paid ALL of them in one deferred
+ * step below the whole packet loop, so the stream read `dmg dmg react react` where the authority
+ * writes `dmg react dmg react`. Six games of the 2026-08-29 pinned pool, across BOTH halves of the
+ * `DamagingHit` family -- `punishesAttacker` (Rough Skin, rows 43/61/73/177) and `buffsHolderOnHit`
+ * (Stamina, rows 107/167).
+ *
+ * THE LAST ARRIVAL STAYS DEFERRED AND THAT IS THE AUTHORITY'S POSITION, NOT A SHORTCUT: the last
+ * hit's `DamagingHit` is raised below THAT hit's `runMoveEffects`, `selfDrops` and `secondaries`,
+ * which is exactly where `_stepDamagingHit` already stands in `_STEPS`. Only arrivals 0..n-2 move.
+ *
+ * DECLARED REMAINDER: an interior arrival's reaction is emitted directly under its `-damage` rather
+ * than under that hit's secondaries, because this engine wraps the effects steps once per MOVE. The
+ * two positions coincide for every multi-hit move in this format -- no multi-hit move here carries a
+ * target secondary -- which `tests/probe_multihit_update.js` derives on every run rather than
+ * trusting this sentence.
+ *
+ * THE CONTROLS ARE SINGLE-HIT CLICKS OFF THE SAME BODIES INTO THE SAME REACTORS. A single-hit move
+ * has one arrival, so nothing may move on those arms at all; an engine that fired the reaction inline
+ * for EVERY arrival including the last would print the toll above the move's own secondaries and
+ * fail them. `MEDI_REACT_BATCHED=1` is the before-arm and puts every reaction back below the volley. */
+probe('ability', 'reactionPerArrival',
+      'a two-hit volley raises DamagingHit between its arrivals, not once below both', () => {
+  const run = (mv, ab, tgSp, atSp) => {
+    const trace = [];
+    const me = bare(atSp), ally = bare('milotic'), f1 = bare(tgSp), f2 = bare('snorlax');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    f1.ability = ab;
+    unfaintable(f1); unfaintable(me);
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon);
+    /* T = a `-damage` on the TARGET, R = the reaction (a toll on the ATTACKER, or a boost on the
+     * target carrying the ability's attribution), C = the `-hitcount`. Nothing else is scored. */
+    const seq = lines.map(l => /^\|-damage\|p2a:/.test(l) && !/\[from\]ability:/.test(l) ? 'T'
+                            : /^\|-damage\|p1a:.*\[from\]ability:/.test(l) ? 'R'
+                            : /^\|-boost\|p2a:.*\[from\]ability:/.test(l) ? 'R'
+                            : /^\|-hitcount\|/.test(l) ? 'C' : '').join('');
+    return { seq, lines };
+  };
+  const rough2 = run('dualwingbeat', 'roughskin', 'garchomp', 'talonflame');
+  const rough1 = run('dragonclaw',   'roughskin', 'garchomp', 'talonflame');
+  const stam2  = run('twinbeam',     'stamina',   'archaludon', 'farigiraf');
+  const stam1  = run('flashcannon',  'stamina',   'archaludon', 'farigiraf');
+  return { works: rough2.seq === 'TRTRC' && stam2.seq === 'TRTRC'
+                  && rough1.seq === 'TR' && stam1.seq === 'TR',
+           arms: { control: [rough1.seq, stam1.seq], test: [rough2.seq, stam2.seq] },
+           detail: 'T = an arrival landing on the target, R = its DamagingHit reaction, C = the '
+                 + '|-hitcount|. TWO-HIT arms must read TRTRC — Dual Wingbeat into Rough Skin "'
+                 + rough2.seq + '", Twin Beam into Stamina "' + stam2.seq + '"; TTRRC is the whole '
+                 + 'volley reacting below itself, which is six games of the pinned pool. SINGLE-HIT '
+                 + 'controls, the same bodies and the same reactors, must read TR and must not move: '
+                 + 'Dragon Claw "' + rough1.seq + '", Flash Cannon "' + stam1.seq + '". rough2 '
+                 + JSON.stringify(rough2.lines) + ' stam2 ' + JSON.stringify(stam2.lines) };
+});
+
+/* ---- 2026-08-30 -- G4: THE TYPE-RESIST BERRY IS SPENT IN THE DAMAGE CALCULATION -----------------
+ *
+ * Every member of the family has one body (data/items.ts:1038-1049 for Chople, and Champions
+ * overrides none of them -- data/mods/champions/items.ts carries no berry at all):
+ *
+ *     onSourceModifyDamage(damage, source, target, move) {
+ *       ... if (target.eatItem()) { this.add('-enditem', target, this.effect, '[weaken]');
+ *                                   return this.chainModify(0.5); } }
+ *
+ * `ModifyDamage` is raised inside `getDamage` (sim/battle-actions.ts:1825), BELOW the
+ * `-supereffective` / `-resisted` line (:1800/:1807) and the `-crit` line (:1814) and ABOVE the
+ * return. `spreadMoveHit` then runs `getSpreadDamage` for EVERY target (scripts.ts:361) before
+ * `spreadDamage` moves any HP (:368). So two positions follow, and this engine had both wrong:
+ *
+ *   1. ON A SPREAD MOVE every target's berry is announced before ANY target's `-damage`. This engine
+ *      spent it "at the point a real hit lands", inside `_stepApply` -- and the driver is
+ *      step-outer/row-inner, so the berry landed BETWEEN the other targets' damage lines. Five games
+ *      of the 2026-08-29 pinned pool (rows 11, 13, 33, 141, 157).
+ *   2. ON A MULTI-ARRIVAL CLICK the berry belongs under the FIRST arrival's effectiveness and crit
+ *      lines, which `_stepApply`'s packet loop emits -- so spending it at the top of that step put it
+ *      ABOVE them. Row 133, a Parental Bond Drain Punch into a Chople Berry.
+ *
+ * THE DAMAGE DOES NOT MOVE AND THAT IS THE POINT: `dmgRange` already applies the halve as a pure
+ * read, so only the CONSUMPTION and its two lines moved. The `none` arms are the arithmetic control
+ * for exactly that -- the same boards with an empty hand, whose damage must be double.
+ *
+ * THE SUBSTITUTE GUARD MOVED WITH IT, because the new site is above the substitute branch that used
+ * to sit between them and the handler's own `hitSub` check refuses there. `sub` is that arm: a doll
+ * eats the hit and the berry must survive.
+ *
+ * `MEDI_BERRY_AT_APPLY=1` is the before-arm and puts the spend back at the application site. */
+probe('item', 'resistBerryAtCalculation',
+      'the resist berry is spent while the damage is calculated, not while it is applied', () => {
+  const spread = (item) => {
+    const trace = [];
+    const me = bare('delphox'), ally = bare('milotic'), f1 = bare('raichu'), f2 = bare('sinistcha');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    f2.item = item;
+    unfaintable(f1); unfaintable(f2);
+    const b2 = f2.curHP;
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'heatwave', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon);
+    const seq = lines.map(l => /^\|-enditem\|p2b:.*\[eat\]/.test(l) ? 'B'
+                            : /^\|-enditem\|p2b:.*\[weaken\]/.test(l) ? 'W'
+                            : /^\|-damage\|p2a:/.test(l) ? 'A'
+                            : /^\|-damage\|p2b:/.test(l) ? 'H' : '').join('');
+    return { seq, took: b2 - f2.curHP, lines };
+  };
+  const multi = (item) => {
+    const trace = [];
+    const me = bare('tsareena'), ally = bare('milotic'), f1 = bare('garchomp'), f2 = bare('snorlax');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    f1.item = item;
+    unfaintable(f1);
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'tripleaxel', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon);
+    const seq = lines.map(l => /^\|-enditem\|p2a:.*\[eat\]/.test(l) ? 'B'
+                            : /^\|-enditem\|p2a:.*\[weaken\]/.test(l) ? 'W'
+                            : /^\|-supereffective\|p2a:/.test(l) ? 'E'
+                            : /^\|-damage\|p2a:/.test(l) ? 'H' : '').join('');
+    return { seq, lines };
+  };
+  const sub = () => {
+    const trace = [];
+    const me = bare('delphox'), ally = bare('milotic'), f1 = bare('sinistcha'), f2 = bare('snorlax');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    f1.item = 'occaberry'; f1._sub = Math.floor(f1.st.hp / 4);
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'flamethrower', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return f1.item;
+  };
+  const sp = spread('occaberry'), spNone = spread('');
+  const mu = multi('yacheberry'), muNone = multi('');
+  const subHeld = sub();
+  return { works: sp.seq === 'BWAH' && spNone.seq === 'AH' && sp.took * 2 === spNone.took
+                  && mu.seq === 'EBWHEHEH' && muNone.seq === 'EHEHEH'
+                  && subHeld === 'occaberry',
+           arms: { control: [spNone.seq, muNone.seq, subHeld], test: [sp.seq, mu.seq] },
+           detail: 'SPREAD (Heat Wave, Occa Berry on the SECOND foe) — B=|-enditem [eat]|, '
+                 + 'W=[weaken], A=the OTHER foe\'s damage, H=the holder\'s: "' + sp.seq + '" must be '
+                 + 'BWAH; AB WH is the berry landing between the two targets\' damage lines, which is '
+                 + 'five games of the pinned pool. MULTI-ARRIVAL (Triple Axel into a Yache Berry), '
+                 + 'E=|-supereffective|: "' + mu.seq + '" must be EBWHEHEH — the berry under the '
+                 + 'FIRST arrival\'s effectiveness line, not above it. CONTROLS, empty hand: "'
+                 + spNone.seq + '" / "' + muNone.seq + '" (no berry line at all) and the holder took '
+                 + sp.took + ' with the berry against ' + spNone.took + ' without, which must be '
+                 + 'exactly double — the halve did not move. SUBSTITUTE arm: a doll ate the hit and '
+                 + 'the berry is "' + subHeld + '" (must still be occaberry). spread '
+                 + JSON.stringify(sp.lines) + ' multi ' + JSON.stringify(mu.lines) };
+});
+
 /* WIRE 157 -- THE WEATHER RESIDUAL RUNS IN BOTH DIRECTIONS AND THIS ENGINE HELD ONLY THE ONE THAT
  * HURTS. The probe above is the whole of what existed: sand chips, and three things ignore it. The
  * SAME `onWeather` hook restores HP, and none of that reached any code -- Ice Body read LIVE off the
@@ -31574,7 +31737,8 @@ process.exitCode = red.length ? 1 : 0;
  * be mistaken for a clean run. Any future switch of the same kind belongs here. A RATCHET REGRESSION
  * IS NOT ONE OF THEM: it is a finding about the probes, and the floor above is what protects it. */
 const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afterFaintPerTargetRestored',
-                          'statusOneStepRestored', 'perishAtFootRestored']
+                          'statusOneStepRestored', 'perishAtFootRestored',
+                          'reactBatchedRestored', 'berryAtApplyRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '
