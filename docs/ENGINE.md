@@ -115,7 +115,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  812/812 probed mechanics live, 0 missing   (census 2026-08-30 10:25)
+  813/813 probed mechanics live, 0 missing   (census 2026-08-30 10:58)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
     never fired in the staged harness (all-mechanics-fire.json, 1.5 days old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
@@ -140,9 +140,188 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-30 10:32_
+_stamped 2026-08-30 11:21_
 
 <!-- /GENERATED -->
+
+## `EatItem` WAS RAISED ON FOUR OF THE SEVEN ROADS A BERRY IS EATEN ON, AND THE MEMBERSHIP IS TEN ROADS RATHER THAN THE THREE THAT WERE FOUND. **CENSUS 812 -> 813 LIVE / 813 PROBED / 0 MISSING. THE POOL IS BYTE-IDENTICAL — 153 CAUSES BEFORE AND AFTER, ZERO ADDED, ZERO REMOVED, ZERO MOVED, PROTOCOL 175, BOARD-PARTED 84, `ordering` 24, END-STATE 903/55/2/0/1 — AND ALL FOUR WERE WRITTEN TO DISK AT THEIR POINT ESTIMATE BEFORE THE RUN, WITH THE CARRIER ARITHMETIC THAT PREDICTED THEM.** 2026-08-30.
+
+Full account: [docs/_reports/2026-08-30-eat-event.md](_reports/2026-08-30-eat-event.md).
+
+| | before | after |
+|---|---|---|
+| census (`data/mechanics-census.json`) | 812 probed / 812 live / 0 missing | **813 / 813 / 0** |
+| empirical protocol-diverged games | 175 of 961 | **175 — unmoved, as predicted** |
+| empirical board-parted | 84 of 961 | **84 — unmoved, as predicted** |
+| distinct divergence causes | 153 | **153, zero added and zero removed** |
+| engine release | `68c90b3b9f17` | **`f933a01b792a`** |
+
+### THE MEMBERSHIP IS DERIVED, AND IT IS LARGER THAN THE THREE THAT WERE REPORTED
+
+The brief said three roads. Read out of the format rather than counted from what was found, there are
+**ten**: four already raise the event, **three did not and are this batch**, and **three cannot matter
+and are refused by a derivation rather than by taste.**
+
+|  | road | authority | this engine, before |
+|---|---|---|---|
+| 1 | pinch berry `onUpdate` | `eatItem()` | raised |
+| 2 | status berry `onUpdate` | `eatItem()` | raised |
+| 3 | Leppa `onUpdate` | `eatItem()` | raised |
+| 4 | Stuff Cheeks / Teatime | `eatItem(true)` | raised |
+| 5 | confusion berry `onUpdate` | `eatItem()` | **NOT RAISED** |
+| 6 | resist berry `onSourceModifyDamage` | `eatItem()` | **NOT RAISED** |
+| 7 | a berry FLUNG at a body | `runEvent('EatItem', foe, …)` | **NOT RAISED** |
+| 8 | Cud Chew's residual re-eat | `runEvent('EatItem', pokemon, …)` | not raised — **and it cannot matter** |
+| 9 | Bug Bite / Pluck, on the ATTACKER | `runEvent('EatItem', source, …)` | the eat itself is absent — **and no legal carrier** |
+| 10 | Fling's thrower-side `singleEvent('EatItem')` | fires only `if (source.hasAbility('cudchew'))` | absent — **zero legal carriers** |
+
+Rows 8-10 are the ones worth writing down, because each looks like work and is not:
+
+- **8** is a genuine `runEvent` in `data/abilities.ts:743-752` and is a **no-op in this format.**
+  `runEvent('EatItem', pokemon, …)` reaches `onEatItem` on the EATER, its allies (`onAllyEatItem`), its
+  foes (`onFoeEatItem`) and the source (`onSourceEatItem`) — and **filtered
+  `exists && !isNonstandard && tier !== 'Illegal'`, exactly three legal entities carry any of those
+  hooks and all three are plain `onEatItem` on the eater**: `cheekpouch`, `cudchew`, `ripen`. No item
+  and no move carries one. So the only handler Cud Chew's residual can reach is **its own**, which
+  re-arms `effectState.berry` and is deleted two lines below. Raising it would be a counter attached to
+  nothing.
+- **9** raises the event on the ATTACKER, so it needs a consumer that LEARNS Bug Bite or Pluck.
+  `D.species.getMovePool` over every legal carrier of the three consumers — Diggersby, Dedenne,
+  Maushold, Maushold-Four, Farigiraf, the three Tauros-Paldea, Flapple, Appletun — returns **neither
+  move**. The separate defect there is that this engine does not make the attacker eat the berry at
+  all; it is declared open at the strip site and is not an `EatItem` question.
+- **10** is gated on the thrower having Cud Chew, and **no Cud Chew carrier learns Fling**. Diggersby
+  and Dedenne learn Fling and carry Cheek Pouch, which is row 7 and not row 10.
+
+### WHAT MOVED IN THE ENGINE
+
+`runEatItemEvent(m, itemId, fromEffect)` is the tail of `consumeBerry` lifted into its own function,
+so the three roads that never call `consumeBerry` can raise the event without pretending to be one.
+Rows 5 and 6 are routed through `consumeBerry` **whole**, because `Pokemon#eatItem`
+(`sim/pokemon.ts:1789-1809`) is one straight line and a road that skipped `runEvent('EatItem')` had
+skipped `lastItem`, `ateBerry`, `usedItemThisTurn` and `runEvent('AfterUseItem')` with it — so Harvest,
+Belch, Recycle, Pickup and Symbiosis were all dead on the resist-berry road too. **Row 7 is
+deliberately NOT routed through it**: the berry is the THROWER's, its `-enditem [from] move: Fling`
+and its `lastItem` are written by Fling's own `condition.onUpdate`, and the only state the authority
+puts on the foe is `ateBerry`.
+
+Three things stated rather than absorbed:
+
+- **The resist berry's `[weaken]` line now comes AFTER everything `eatItem()` does**, which is where the
+  handler writes it: `if (target.eatItem()) { this.add('-enditem', target, this.effect, '[weaken]');
+  return this.chainModify(0.5); }`. So a Cheek Pouch holder reads `B P W D` and not `B W D`.
+- **`curesVolatile` has three members and one of them is MENTAL HERB, which is not a berry.** Membership
+  was printed before wiring. It cannot reach the confusion road today because its `cures` list does not
+  contain `confusion`, but a non-berry arriving there keeps the old shape and is COUNTED
+  (`MEDFAILS.volatileCuredByNonBerry`) rather than silently eaten.
+- **RIPEN'S SECOND HALVE IS THE PREREQUISITE'S CONSEQUENCE AND IS NOT WIRED HERE.** Its `onEatItem`
+  records `abilityState.berryWeaken` and its own `onSourceModifyDamage` (priority -1) spends it as a
+  SECOND ×0.5. This engine's `damageReduce` row for Ripen carries `onlyWhen: null` and correctly
+  REFUSES rather than defaulting on. Raising the event is what makes the state derivable; it is a
+  mechanic of its own and is filed, not smuggled in.
+
+### THE PREDICTION, WRITTEN TO DISK BEFORE THE RUN
+
+`data/verification/prediction-eatevent.json`, written before a line of engine changed.
+
+| | baseline | predicted | accepted band | **measured** |
+|---|---|---|---|---|
+| census | 813 / 812 / 1 | **813 / 813 / 0** | exactly | **813 / 813 / 0** |
+| protocol-diverged games | 175 | **175 — unmoved** | 172–178 | **175** |
+| board-parted games | 84 | **84 — unmoved** | 82–86 | **84** |
+| `ordering` class, games | 24 | **24** | 22–26 | **24** |
+| end-state verdicts | 903 / 55 / 2 / 0 / 1 | **identical** | identical | **identical** |
+
+**Which scoreboard, said in advance and with the arithmetic.** This is the first of the recent batches
+that changes HP, so "the pool will not move" needed a reason rather than a hope. Derived from
+`data/team-pool-frozen/games.bo3.jsonl` (13,214 games) BEFORE the run: `cheekpouch` appears in **10**,
+`ripen` in **2**, and `cheekpouch` beside a confusion berry in **ZERO**. Scaled to a 961-game sample
+that is ~0.6 expected games in which the ability could react at all, and the berry must additionally
+fire inside the 12-turn cap. The half that could reach the pool is the record-keeping — Symbiosis
+beside a resist berry is 49 of 13,214 (~3.6 games), Harvest 23, Pickup 2, Belch 3, Recycle 3 — each
+needing a further condition. **So: HP moves on a staged board and the pool does not.** The pool came
+back byte-identical, 153 causes with zero added and zero removed.
+
+**AND "THE POOL DID NOT MOVE" IS NOT THE SAME CLAIM AS "THE KNOB IS UNWIRED", WHICH IS WHY THE STAGED
+NUMBERS ARE HERE.** The resist-berry road demonstrably RUNS in the pool — `[weaken]` is written four
+times inside the diverging subset alone, and the previous batch attributed five pool games to that same
+site. What is absent from the pool is the CONSUMER: zero `cheekpouch`, zero `ripen`, zero `cudchew`,
+zero `symbiosis`, zero `harvest` and zero `fling` appear anywhere in the 250-game dump.
+
+### THE PROBE — RED FIRST, WITH THE OVER-FIRE CONTROLS THAT MUST NOT MOVE
+
+`ability/healsOnBerryEaten`, eleven arms on one unfaintable Maushold at 40%, all through
+`battleInit` / `battleTurn`. Shown RED before a line of engine changed, with all three test roads
+reading **exactly their own no-ability control**:
+
+```
+  MISSING  healsOnBerryEaten  resist "BWD" vs control "BWD";  confusion "BE" vs "BE";  fling "DI" vs "DI"
+```
+
+- **TESTS.** RESIST BERRY (Close Combat into a Chople) must read `B P W D` and end on `control + maxhp/3`;
+  CONFUSION BERRY (a Persim spent on a Confuse Ray, **no attack thrown**, so nothing but the ability can
+  move that HP) must read `B E P`; FLUNG BERRY must read `D I P`.
+- **ARITHMETIC CONTROL:** the empty-hand arm takes exactly **double** the berry arm's damage (296 against
+  148), so the fix moved a heal and not the halve.
+- **OVER-FIRE CONTROL 1: the pinch `onUpdate` road** must still read `B I P` and fire the ability
+  **exactly once**. This is the arm that catches a fix which raises `EatItem` everywhere.
+- **OVER-FIRE CONTROL 2: the status `onUpdate` road** must still read `B S P`, which it already did.
+- Both over-fire arms are **character-identical before the fix, after the fix, and under the knob**.
+
+`MEDI_EATEVENT_UPDATE_ONLY=1` restores the old shape and is registered in `DELIBERATE_BREAK`: under it
+the census REFUSES to write, the message names `MEDFAILS.eatEventUpdateOnlyRestored`, exactly this
+probe reads MISSING (812 live / 1 missing), and the two over-fire arms still read `BIP` and `BSP`.
+
+### THE CLOSETED PERISH ROW (ROADMAP #440) STILL HOLDS
+
+This batch does not touch the drain. All four edits are a berry consumption site (`consumeBerry`,
+`itemCuresVolatile`, the resist-berry spend inside the damage-calculation step, and Fling's `onHit`);
+none writes a faint, none reads the residual queue, and none moves `|upkeep|`. Its cause string is in
+neither the added nor the removed set — **there is no added or removed set** — and
+`tests/probe_upkeep_lines.js` on the new release is **4 of 49, the same four by name** as the inherited
+baseline (A TEST, C hungerswitch, C whiteherb, D uproar). Falsifier (b), the COVERAGE arm of
+`data/game-differential.json`, remains undecided exactly as before.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"three berry-eating roads never raise `EatItem` at all, so Cheek Pouch, Cud Chew and Symbiosis do
+  not fire on them"*~~ — **landed and probed** by `ability/healsOnBerryEaten`. The membership was
+  derived at ten roads rather than three; the seven that are not in the fix are each refused by a
+  reason above.
+
+**Joins it:**
+- **RIPEN DOES NOT HALVE A RESIST BERRY A SECOND TIME.** `damageReduce.onlyWhen` is `null` and the
+  reader correctly refuses it; the authority's condition is `abilityState.berryWeaken`, set from
+  `onEatItem`, which this batch makes derivable for the first time. Two legal carriers (Flapple,
+  Appletun), 2 of 13,214 pool games — a LAB fix, and it will not move the pool.
+- **BUG BITE AND PLUCK DO NOT MAKE THE ATTACKER EAT THE BERRY.** The strip is correct and the eat is
+  absent, so the berry's effect never happens and `[from] stealeat|[move] Bug Bite` is never written.
+  Declared open at the strip site with no probe. 369 of 13,214 pool games mention Bug Bite, so unlike
+  the row above this one **should** move the pool.
+
+**Carried forward unchanged** from the hand lists below: Triple Axel into an intact Disguise dealing
+zero on arrivals 2 and 3 (the `formeAbsorbPerHitPlan` remainder of ROADMAP #526); a multi-arrival volley
+halving EVERY arrival against a resist berry; the drain heal paid once per row where the authority pays
+per hit; an attacker killed by an interior arrival's toll not stopping the volley;
+`tests/probe_upkeep_lines.js` red at 4 of 49, cleared of this batch above; this walk re-asking
+`residualOrder()` per group; a perish-killed body skipping its own orders 25-29;
+`tests/probe_red_demo.js`'s five COULD-NOT-BE-APPLIED and one HOLLOW, unchanged and unanchored by this
+edit; `boost()`'s second refusal; whether every other announcing ability writes its `|-ability|` line;
+ROADMAP #362's stale row; the Cursed Body 30% and Blizzard 10%; the redirect gate's ally-aimed status
+move, the ally-aimed delayed hit, Defog's `target.side`, the `self`-target heal `|move|` line, the
+fainted-ally clause of `getTarget`, the `scripted` exemption from `aimTravelsByLoc`, the
+`chillyreception` target-class exemption, and the `benchRisk` refit `clickFragility` owes MEASURE.
+
+### OWED, NOT RUN
+
+The `## OWED, NOT RUN` block of
+[docs/_reports/2026-08-30-eat-event.md](_reports/2026-08-30-eat-event.md) — a pool-scale reading of the
+four new counters, the roster's three stages, `data/all-mechanics-fire.json` and the COVERAGE arm of
+the whole-game differential (all WITHHELD on a release mismatch that now predates this batch by four
+releases), `tests/test-engine-diff.js`, and the two rows that just joined the hand list.
+
+---
 
 ## THE REVEAL WAS WRITTEN AT THE HIT AND THE ON-EAT ABILITY ABOVE THE BERRY IT REACTS TO — TWO FIXES, MEASURED APART, AND G6 IS NOT THE STANDING DISGUISE DEFECT. **CENSUS 810 -> 812 LIVE / 812 PROBED / 0 MISSING. EMPIRICAL PROTOCOL 181 -> 175, `ordering` 31 -> 24 — EXACTLY THE SEVEN GAMES, AND EVERY ONE OF THE SEVEN REMOVED CAUSES NAMES ONE OF THE TWO MECHANISMS. BOARD-PARTED UNMOVED AT 84 OF 961 AND END-STATE VERDICTS IDENTICAL. ALL FOUR PREDICTED FIGURES HIT AT THEIR POINT ESTIMATE.** 2026-08-30.
 

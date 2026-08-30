@@ -1,0 +1,38 @@
+{
+  "written": "2026-08-30T00:00:00Z",
+  "by": "ENGINE, before any engine line changed and before the differential ran",
+  "batch": "the EatItem event on the three berry roads that never raised it",
+  "which_scoreboard_and_why": "THE LAB MOVES; THE POOL SHOULD NOT. Derived from data/team-pool-frozen/games.bo3.jsonl (13,214 games): cheekpouch appears in 10, ripen in 2, cudchew in 21 — and cheekpouch x a confusion berry in ZERO. Eight of the ten cheekpouch games also carry a resist berry. Scaled to the differential's 961-game sample that is ~0.6 expected games in which the ability could react at all, and the berry must additionally fire inside the 12-turn cap. The half that CAN reach the pool is the record-keeping the same routing buys — lastItem / ateBerry / usedItemThisTurn / AfterUseItem on the resist-berry road: symbiosis x resist berry 49 of 13,214 (~3.6 games), harvest x resist berry 23 (~1.7), pickup 2, belch 3, recycle 3, each needing a further condition (an empty-handed partner, the residual, a 50% roll). So: HP moves on a staged board and is expected NOT to move the pool.",
+  "baseline": {
+    "census_probed": 813, "census_live": 812, "census_missing": 1,
+    "protocol_diverged_games": 175,
+    "board_parted_games": 84,
+    "ordering_class_games": 24,
+    "end_state": "903 / 55 / 2 / 0 / 1",
+    "release": "68c90b3b9f17"
+  },
+  "predicted": {
+    "census_probed": 813, "census_live": 813, "census_missing": 0,
+    "protocol_diverged_games": 175,
+    "board_parted_games": 84,
+    "ordering_class_games": 24,
+    "end_state": "903 / 55 / 2 / 0 / 1 — identical"
+  },
+  "accepted_band": {
+    "census": "813 / 813 / 0, exactly",
+    "protocol_diverged_games": "172-178",
+    "board_parted_games": "82-86",
+    "ordering_class_games": "22-26",
+    "end_state": "identical"
+  },
+  "falsifiers": [
+    "If board-parted rises above 86 the routing has changed HP somewhere it must not — the most likely culprit is a Symbiosis hand-over now firing on the resist-berry road where the partner should have refused.",
+    "If protocol falls below 172 the fix is worth more than the pool counts suggest and the attribution must be read off the dump diff before it is claimed.",
+    "If the census does not reach 813/813/0 the fix did not land on all three roads."
+  ],
+  "pinned": {
+    "pool": "data/team-pool-frozen", "pool_digest": "0d103fb9fa87",
+    "census_pin": "9446a684709d", "games": 961, "turns_cap": 12, "arm": "middle",
+    "steering": "empirical-click/v1"
+  }
+}

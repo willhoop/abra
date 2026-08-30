@@ -25158,6 +25158,164 @@ probe('ability', 'healsOnBerryEaten', 'Cheek Pouch heals a third on TOP of the b
                  + ' — so the heal is the BERRY firing and not the ability healing on its own' };
 });
 
+/* 2026-08-30 -- AND THE `EatItem` EVENT WAS RAISED ON FOUR OF THE SEVEN ROADS A BERRY IS EATEN ON.
+ *
+ * The probe above stages the `onUpdate` pinch road, which is one of the four that WORK. Three others
+ * eat a berry and raise nothing, so the holder's `onEatItem` ability heals nothing — measured, not
+ * argued, on the three staged boards below.
+ *
+ * THE MEMBERSHIP IS DERIVED, not counted from the roads that happened to be found. Every place the
+ * authority raises `EatItem` was read out of the format:
+ *
+ *   1  pinch berry `onUpdate`            -> `eatItem()`      RAISED (the probe above)
+ *   2  status berry `onUpdate`           -> `eatItem()`      RAISED (`berryCureUpdate`)
+ *   3  Leppa `onUpdate`                  -> `eatItem()`      RAISED (`berryPPUpdate`)
+ *   4  Stuff Cheeks / Teatime            -> `eatItem(true)`  RAISED (`eatHeldBerry`)
+ *   5  confusion berry `onUpdate`        -> `eatItem()`      **NOT RAISED** -- `itemCuresVolatile`
+ *   6  resist berry `onSourceModifyDamage` -> `eatItem()`    **NOT RAISED** -- the `_spend` closure
+ *   7  Fling of a berry, on the FOE      -> `runEvent('EatItem', foe, ...)`  **NOT RAISED**
+ *
+ * AND THREE MORE THAT LOOK LIKE MEMBERS AND CANNOT MATTER, each refused by a derivation rather than
+ * by taste, because "a road exists" is not "a road can occur":
+ *
+ *   8  Cud Chew's residual re-eat raises `EatItem` in the authority (data/abilities.ts:743-752).
+ *      `runEvent('EatItem', pokemon, ...)` collects `onEatItem` from the EATER (there is no legal
+ *      `onAnyEatItem` / `onAllyEatItem` / `onFoeEatItem` in this format -- printed, see below), so the
+ *      only handler it can reach is Cud Chew's own, which re-arms `effectState.berry` and is then
+ *      deleted two lines below. Net zero. Raising it here would be a no-op with a counter attached.
+ *   9  Bug Bite and Pluck raise `EatItem` on the ATTACKER. NO legal carrier of any of the three
+ *      consumers learns either move -- `D.species.getMovePool` over Diggersby, Dedenne, Maushold,
+ *      Maushold-Four, Farigiraf, the three Tauros-Paldea, Flapple and Appletun returns neither. The
+ *      missing half there is that this engine does not make the attacker EAT the berry at all, which
+ *      is a different defect and is declared open at the strip site.
+ *  10  Fling's `singleEvent('EatItem', source.getAbility(), ...)` on the THROWER fires only
+ *      `if (source.hasAbility('cudchew'))`, and no Cud Chew carrier learns Fling. Zero legal
+ *      carriers; not implemented, on purpose.
+ *
+ * THE CONSUMERS WERE PRINTED BEFORE THE WIRE, per docs/LESSONS.md 4. Filtered
+ * `exists && !isNonstandard && tier !== 'Illegal'`, exactly THREE legal entities carry any
+ * `on*EatItem` hook and all three are abilities on the eater itself: `cheekpouch` (Diggersby,
+ * Dedenne, Maushold, Maushold-Four), `cudchew` (the three Tauros-Paldea, Farigiraf) and `ripen`
+ * (Flapple, Appletun). No item and no move carries one. That is why this probe stages Cheek Pouch:
+ * it is the only one of the three whose reaction is VISIBLE as HP.
+ *
+ * WHAT ROUTING THE TWO `eatItem()` ROADS THROUGH `consumeBerry` ALSO BUYS, and it is the authority
+ * rather than a bonus -- `Pokemon#eatItem` (sim/pokemon.ts:1789-1809) is ONE straight line, so a road
+ * that skipped `runEvent('EatItem')` skipped `lastItem`, `ateBerry`, `usedItemThisTurn` and
+ * `runEvent('AfterUseItem')` too. Harvest, Belch, Recycle, Pickup and Symbiosis all read one of those
+ * four and all four were absent on the resist-berry road. The Fling road is NOT routed through
+ * `consumeBerry` and must not be: the berry is the THROWER's, `-enditem [from] move: Fling` is written
+ * on the thrower by Fling's own `condition.onUpdate`, and the authority sets nothing on the foe except
+ * `ateBerry`.
+ *
+ * `MEDI_EATEVENT_UPDATE_ONLY=1` restores exactly the old shape -- the event on the four `onUpdate`
+ * and forced roads only. */
+probe('ability', 'healsOnBerryEaten',
+      'the EatItem event is raised on EVERY road a berry is eaten, not only the onUpdate one', () => {
+  const POUCH = /\[from\]ability:cheekpouch$/;
+  const pouchLines = (ls) => ls.filter(l => POUCH.test(l)).length;
+  /* ROAD 6 -- the type-resist berry, spent inside the damage calculation. The holder is made
+   * unfaintable because a Close Combat that KOs clamps both arms to 0 and the two agree, which this
+   * file marks HOLLOW; it is at HALF HP so a third of max can actually land. */
+  const SEQ = (l) => /-enditem\|.*\[eat\]/.test(l) ? 'B'
+                   : /-enditem\|.*\[weaken\]/.test(l) ? 'W'
+                   : POUCH.test(l) ? 'P'
+                   : /^\|-heal\|/.test(l) ? 'I'
+                   : /^\|-curestatus\|/.test(l) ? 'S'
+                   : /^\|-end\|.*confusion/.test(l) ? 'E'
+                   : /^\|-damage\|/.test(l) ? 'D' : '';
+  /* ONE STAGING FOR FIVE ROADS, so a difference between two of them is the road and not the board.
+   * The holder is the same unfaintable Maushold at 40% every time -- unfaintable because a KO clamps
+   * both arms to 0 and the two then agree, which this file marks HOLLOW, and 40% because a body at
+   * full HP reads 0 -> 0 whatever the ability does. */
+  const road = (ability, item, moveId, atkSp) => {
+    const trace = [];
+    const me = bare(atkSp), ally = bare('milotic'), f1 = bare('maushold'), f2 = bare('farigiraf');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    f1.ability = ability; f1.item = item;
+    unfaintable(f1); f1.curHP = Math.floor(f1.st.hp * 0.4);
+    const h0 = f1.curHP; trace.length = 0;
+    M.battleTurn(S, rng5,
+      moveId ? new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]])
+             : PASS2(me, ally),
+      PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon).filter(l => /\|p2a:/.test(l));
+    return { h0, hp: f1.curHP, max: f1.st.hp, third: Math.floor(f1.st.hp / 3),
+             seq: lines.map(SEQ).join(''), ate: lines.some(l => /-enditem\|.*\[eat\]/.test(l)),
+             pouch: pouchLines(lines), took: h0 - f1.curHP, lines };
+  };
+  /* ROAD 7 -- a berry FLUNG at the holder. It is eaten by a body that never held it, at any HP, and
+   * the `-enditem` belongs to the THROWER, so this staging cannot share the helper above. */
+  const flung = (ability) => {
+    const trace = [];
+    const me = bare('diggersby'), ally = bare('milotic'), f1 = bare('maushold'), f2 = bare('farigiraf');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    me.item = 'sitrusberry'; f1.ability = ability;
+    unfaintable(f1); f1.curHP = Math.floor(f1.st.hp * 0.4);
+    const h0 = f1.curHP; trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'fling', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon).filter(l => /\|p2a:/.test(l));
+    return { h0, hp: f1.curHP, max: f1.st.hp, third: Math.floor(f1.st.hp / 3),
+             seq: lines.map(SEQ).join(''),
+             berryHeal: lines.some(l => /\[from\]item:sitrusberry/.test(l)),
+             pouch: pouchLines(lines), lines };
+  };
+
+  /* THE THREE ROADS UNDER TEST */
+  const rOn = road('cheekpouch', 'chopleberry', 'closecombat', 'lucario');
+  const rOff = road('none', 'chopleberry', 'closecombat', 'lucario');
+  const rHand = road('cheekpouch', '', 'closecombat', 'lucario');   // the berry is the knob
+  const cOn = road('cheekpouch', 'persimberry', 'confuseray', 'milotic');
+  const cOff = road('none', 'persimberry', 'confuseray', 'milotic');
+  const cHand = road('cheekpouch', '', 'confuseray', 'milotic');
+  const fOn = flung('cheekpouch');
+  const fOff = flung('none');
+  /* THE OVER-FIRE CONTROLS: the two roads that ALREADY raise the event. They must not move and must
+   * not fire the ability twice. These are the arms that catch a fix which raises `EatItem`
+   * everywhere -- exactly the shape the forme/on-eat batch used the day before. */
+  const pOn = road('cheekpouch', 'sitrusberry', null, 'milotic');     // the pinch onUpdate road
+  const pOff = road('none', 'sitrusberry', null, 'milotic');
+  const sOn = road('cheekpouch', 'cheriberry', 'thunderwave', 'milotic');   // the status onUpdate road
+  const sOff = road('none', 'cheriberry', 'thunderwave', 'milotic');
+
+  const ok =
+    /* the resist road: the ability heals a third, and the line sits BETWEEN the two enditems, which
+       is where `eatItem()` returning puts it -- `-enditem [weaken]` is written after the call */
+    rOn.seq === 'BPWD' && rOff.seq === 'BWD'
+    && rOn.hp === rOff.hp + rOn.third && rOn.pouch === 1 && rOff.pouch === 0
+    /* the ARITHMETIC control -- the berry still halves, so the fix moved a heal and not the damage */
+    && rHand.took === 2 * rOff.took && rHand.pouch === 0
+    /* the confusion road: NO attack is thrown, so nothing but the ability can move this HP */
+    && cOn.seq === 'BEP' && cOff.seq === 'BE' && cOn.ate && cOff.ate
+    && cOn.hp === cOff.hp + cOn.third && cOff.hp === cOff.h0
+    && cHand.pouch === 0 && cHand.hp === cHand.h0
+    /* the fling road: the berry's own heal happens in BOTH arms, the pouch's in one */
+    && fOn.seq === 'DIP' && fOff.seq === 'DI' && fOn.berryHeal && fOff.berryHeal
+    && fOn.hp === fOff.hp + fOn.third
+    /* OVER-FIRE 1: the pinch road still reads `B I P` and fires the ability exactly ONCE */
+    && pOn.seq === 'BIP' && pOff.seq === 'BI' && pOn.pouch === 1
+    && pOn.hp === pOff.hp + pOn.third
+    /* OVER-FIRE 2: the status road still reads `B S P` -- it was already in the authority's order */
+    && sOn.seq === 'BSP' && sOff.seq === 'BS' && sOn.pouch === 1
+    && sOn.hp === sOff.hp + sOn.third;
+
+  return { works: ok,
+           arms: { control: [rOff.seq, cOff.seq, fOff.seq, rOff.hp, cOff.hp, fOff.hp],
+                   test:    [rOn.seq,  cOn.seq,  fOn.seq,  rOn.hp,  cOn.hp,  fOn.hp] },
+           detail: 'three roads, one ability, one Maushold. RESIST BERRY (Close Combat into a Chople) '
+                 + '"' + rOn.seq + '" against a no-ability control "' + rOff.seq + '", HP ' + rOn.hp
+                 + ' against ' + rOff.hp + ' (+' + rOn.third + ' = maxhp/3); the EMPTY-HAND arm takes '
+                 + rHand.took + ' against the berry arm\'s ' + rOff.took + ', so the halve did not '
+                 + 'move. CONFUSION BERRY (a Persim spent on a Confuse Ray, no attack thrown) "'
+                 + cOn.seq + '" against "' + cOff.seq + '", ' + cOn.hp + ' against ' + cOff.hp
+                 + '. FLUNG BERRY "' + fOn.seq + '" against "' + fOff.seq + '", ' + fOn.hp
+                 + ' against ' + fOff.hp + '. OVER-FIRE CONTROLS, which must NOT move — the pinch '
+                 + 'road "' + pOn.seq + '" and the status road "' + sOn.seq + '", each firing the '
+                 + 'ability exactly once (' + pOn.pouch + '/' + sOn.pouch + ')' };
+});
+
 /* 2026-08-28 -- AND RIPEN *ANNOUNCES ITSELF* ON EVERY BERRY IT EATS, WHICH IS A DIFFERENT HOOK FROM
  * THE DOUBLING AND WAS ABSENT.
  *
@@ -31888,7 +32046,8 @@ process.exitCode = red.length ? 1 : 0;
 const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afterFaintPerTargetRestored',
                           'statusOneStepRestored', 'perishAtFootRestored',
                           'reactBatchedRestored', 'berryAtApplyRestored',
-                          'formeBustInlineRestored', 'eatReactBeforeBerryRestored']
+                          'formeBustInlineRestored', 'eatReactBeforeBerryRestored',
+                          'eatEventUpdateOnlyRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

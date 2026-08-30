@@ -10,6 +10,113 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.231.0] — 2026-08-30
+
+### Fixed
+- **THREE OF THE SEVEN ROADS THIS ENGINE EATS A BERRY ON RAISED NO `EatItem` EVENT, SO AN ON-EAT
+  ABILITY HEALED NOTHING ON THEM.** Champions overrides nothing here — a walk of
+  `data/mods/champions/` for `eatItem(` returns no hits — so `Pokemon#eatItem`
+  (`sim/pokemon.ts:1785-1811`) is inherited whole and is ONE STRAIGHT LINE:
+  `runEvent('TryEatItem')`, `-enditem [eat]`, `singleEvent('Eat')` (the berry),
+  `runEvent('EatItem')` (Cheek Pouch / Cud Chew / Ripen), `lastItem` / `item=''` /
+  `usedItemThisTurn` / `ateBerry`, `runEvent('AfterUseItem')` (Symbiosis). The three roads that never
+  ran it: **the type-resist berry** (`chopleberry.onSourceModifyDamage` is
+  `if (target.eatItem()) { this.add('-enditem', target, this.effect, '[weaken]'); return
+  this.chainModify(0.5); }`, so the whole of `eatItem` precedes the `[weaken]` line — this engine
+  wrote its own `[eat]`/`[weaken]` pair and emptied the hand directly); **the confusion berry**
+  (`persimberry.onUpdate` calls `eatItem()`, which this engine split out as `itemCuresVolatile`); and
+  **a berry FLUNG at a body** (`fling.onPrepareHit` replaces `move.onHit` with `singleEvent('Eat')`
+  then `runEvent('EatItem', foe, source, move, item)`). Measured on staged boards, all three reading
+  exactly their own no-ability control before the fix.
+- **AND ONE MISSING CALL WAS FIVE MECHANICS, NOT ONE.** Because `eatItem` is one straight line, the
+  resist-berry and confusion-berry roads had also been skipping `lastItem`, `ateBerry`,
+  `usedItemThisTurn` and `runEvent('AfterUseItem')` — so Harvest had no berry to give back, Belch
+  stayed illegal, Recycle and Pickup saw no spend and the partner's Symbiosis never answered. Both
+  roads now go through `consumeBerry` whole rather than gaining a heal.
+
+### Changed
+- `engine/medicham2-browser.js`: the `_eatItemEvent` closure inside `consumeBerry` becomes a
+  module-level `runEatItemEvent(m, itemId, fromEffect)`, so the roads that never call `consumeBerry`
+  can raise the event without pretending to be one. `itemCuresVolatile` and the resist-berry `_spend`
+  closure route through `consumeBerry`; the `[weaken]` line is written after the call, which is the
+  handler's own order. **The Fling road deliberately does NOT route through it** — the berry is the
+  THROWER's, `fling.condition.onUpdate` writes the `-enditem [from] move: Fling` and the `lastItem`
+  there, and the only state the authority puts on the foe is `ateBerry`.
+- `engine/medicham2-browser.js`: `reEatsBerry.notFromEffects` (`['bugbite','pluck']`) is honoured for
+  the first time, via the new `fromEffect` argument. It was carried in the artifact and declared
+  unreachable; it is still unreachable and now for a MEASURED reason rather than an assumed one — see
+  the Notes.
+- `engine/medicham2-browser.js`: a NON-berry reaching `itemCuresVolatile` keeps the old shape and is
+  counted (`MEDFAILS.volatileCuredByNonBerry`) rather than silently routed through a berry path.
+  Membership was printed before wiring: `curesVolatile` has three legal members and one of them is
+  Mental Herb, which is not a berry and cannot reach that line today because its `cures` list carries
+  no `confusion`.
+
+### Added
+- One census probe, shown RED before a line of engine changed: `ability/healsOnBerryEaten` —
+  *"the EatItem event is raised on EVERY road a berry is eaten, not only the onUpdate one"*, **eleven
+  arms** on one unfaintable Maushold at 40%. Three test roads (`BPWD`, `BEP`, `DIP`, each landing
+  exactly `control + maxhp/3`), an **arithmetic control** asserting the empty hand takes exactly
+  double so the halve did not move, an empty-hand control, and **two OVER-FIRE controls** — the pinch
+  `onUpdate` road must still read `BIP` and the status road `BSP`, each firing the ability exactly
+  once. Those two are the arms that catch a fix which raises `EatItem` everywhere, and they are
+  character-identical before the fix, after it, and under the knob.
+- Revert knob `MEDI_EATEVENT_UPDATE_ONLY=1`, stamped at declaration
+  (`MEDFAILS.eatEventUpdateOnlyRestored`) and registered in `tests/test-mechanics.js`'s
+  `DELIBERATE_BREAK`, so a run under it REFUSES to write the census. It is **not**
+  `MEDI_EATREACT_BEFORE_BERRY`: that one is a claim about WHERE the one firing lands, this one about
+  WHETHER it fires at all.
+- Counters `MEDSEEN.eatItemEventRaised`, `eatEventOffResistBerry`, `eatEventOffVolatileBerry` and
+  `eatEventOffFlungBerry`. The invariant worth checking once something surfaces `MEDSEEN` at pool
+  scale: `eatItemEventRaised >= berryConsumed`, with equality over a real sample meaning the three
+  new sites are dead again.
+- `data/verification/prediction-eatevent.json` — the scoreboard prediction, written to disk before a
+  line of engine changed.
+
+### Notes
+- **THE MEMBERSHIP WAS DERIVED AT TEN ROADS AND NOT TAKEN AS THE THREE THAT WERE REPORTED.** Four
+  already raised the event (the pinch berry, the status berry, Leppa, and the forced eat Stuff Cheeks
+  and Teatime make), three are the fix, and **three are refused with a measurement rather than a
+  judgement**: (1) Cud Chew's residual re-eat DOES raise `EatItem` in the authority and is a **no-op
+  in this format** — filtered `exists && !isNonstandard && tier !== 'Illegal'`, exactly three legal
+  entities carry any `on*EatItem` hook (`cheekpouch`, `cudchew`, `ripen`), all three are plain
+  `onEatItem` on the EATER, and no item and no move carries one, so the only handler it can reach is
+  its own, which re-arms and is deleted two lines below; (2) Bug Bite and Pluck raise it on the
+  ATTACKER, and `D.species.getMovePool` over all ten legal carriers of those three abilities returns
+  **neither move**; (3) Fling's thrower-side `singleEvent('EatItem')` fires only
+  `if (source.hasAbility('cudchew'))` and no Cud Chew carrier learns Fling.
+- **THE POOL WAS PREDICTED NOT TO MOVE, WITH ARITHMETIC, AND IT DID NOT.** This is the first of the
+  recent batches that changes HP, so the prediction had to be earned rather than hoped: derived from
+  `data/team-pool-frozen/games.bo3.jsonl` (13,214 games) BEFORE the run, `cheekpouch` appears in
+  **10**, `ripen` in **2**, and `cheekpouch` beside a confusion berry in **ZERO**. The pinned
+  empirical arm came back **byte-identical — 153 causes before and after, zero added, zero removed,
+  zero moved**, protocol 175 of 961, board-parted 84, `ordering` 24, end-state 903/55/2/0/1. All five
+  figures were written to disk before the run and all five landed at their point estimate.
+- **"THE POOL DID NOT MOVE" IS NOT "THE KNOB IS UNWIRED".** The resist-berry road demonstrably runs in
+  this pool — `[weaken]` is written four times inside the diverging subset alone — and what is absent
+  is the CONSUMER: zero `cheekpouch`, zero `ripen`, zero `cudchew`, zero `symbiosis`, zero `harvest`
+  and zero `fling` anywhere in the 250-game dump. The staged boards carry the HP evidence.
+- **RIPEN'S SECOND HALVE IS NOT WIRED AND IS THIS BATCH'S OWN CONSEQUENCE.** `ripen.onEatItem` records
+  `abilityState.berryWeaken` and `ripen.onSourceModifyDamage` (priority −1) spends it as a SECOND
+  ×0.5. This engine's `damageReduce` row for Ripen carries `onlyWhen: null` and the reader correctly
+  REFUSES rather than defaulting on. Raising the event is the prerequisite for the state, not the
+  fix — filed as its own batch rather than smuggled into an event batch.
+- **NEITHER OUTSTANDING RED IS THIS BATCH'S.** `tests/probe_upkeep_lines.js --release f933a01b792a`
+  reads 4 of 49, the same four by name as the inherited baseline (A TEST, C hungerswitch,
+  C whiteherb, D uproar), all at the perish/upkeep faint-drain boundary; `tests/probe_red_demo.js`
+  reads the inherited 5 COULD-NOT-BE-APPLIED and 1 HOLLOW of 200. **The closeted ROADMAP #440 row
+  still holds**: this batch touches no part of the drain, and its cause string is in neither the added
+  nor the removed set because there is no added or removed set.
+- **A HEAP CEILING IS NOT A VERDICT, AND IT LOOKED LIKE ONE FOR A MINUTE.**
+  `node tests/test-resolution-order.js` exits **134** (`Reached heap limit`) at node's default old
+  space. Run through `tools/lownode.cmd`, which derives `ABRA-HEAP: 6144` from the script's own
+  header, it reports PASS on 26 arms with 0 failing. The wrapper's own header already records this
+  happening once and being carried as a red through eleven test batches.
+- Full account: [docs/_reports/2026-08-30-eat-event.md](docs/_reports/2026-08-30-eat-event.md).
+  Engine release `68c90b3b9f17` → **`f933a01b792a`**.
+
+---
+
 ## [5.230.0] — 2026-08-30
 
 ### Fixed

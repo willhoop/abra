@@ -1,10 +1,10 @@
 {
-  "current": "68c90b3b9f17",
-  "cut": "2026-08-30T14:11:17.073Z",
+  "current": "f933a01b792a",
+  "cut": "2026-08-30T15:00:11.035Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 23,
-  "latest_cut": "2026-08-30T14:14:23.710Z",
-  "latest_why": "G6 the busted-disguise reveal moves to eachEvent(Update); G8 the EatItem pass moves below the berry's own effect",
-  "pointer_written": "2026-08-30T14:14:23.724Z",
+  "cuts": 24,
+  "latest_cut": "2026-08-30T15:04:11.837Z",
+  "latest_why": "EatItem is raised on the resist-berry, confusion-berry and flung-berry roads",
+  "pointer_written": "2026-08-30T15:04:11.851Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

@@ -2148,6 +2148,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      (Ripen, 2 carriers, 0 uses in the store), so a run with no Appletun or Flapple in it reads 0
      legitimately -- read it beside the staged probe, never on its own. */
   berryEatAnnounced: 0,
+  /* 2026-08-30 -- ONE COUNT OF `runEvent('EatItem')`, WHEREVER IT WAS RAISED FROM, and three counts
+     of the roads that could not raise it before. `eatItemEventRaised` must be >= `berryConsumed`
+     over any sample where a berry was ever weakened, cured a confusion or was flung, because those
+     three roads add to it and never to `berryConsumed`; equality over a real sample means the three
+     new sites are dead again, which is exactly the silent-default shape this project keeps finding. */
+  eatItemEventRaised: 0, eatEventOffResistBerry: 0, eatEventOffVolatileBerry: 0,
+  eatEventOffFlungBerry: 0,
   cudChewArmed: 0, cudChewReEaten: 0, harvestRestored: 0, pickupTook: 0,
   /* ROADMAP #175 -- THE NEXT-MOVE GUARANTEE, FOUR COUNTERS, because the mechanic has four separable
    * halves and a single total could not tell you which one is dead.
@@ -9350,6 +9357,50 @@ function passItemFromAlly(spender){
   if(TR)TR.actOf(giver,'ability: '+giver.ability,spender,_it);
   return true;
 }
+/* ==== 2026-08-30 -- `runEvent('EatItem')`, AND IT IS ITS OWN FUNCTION BECAUSE THREE ROADS RAISE IT
+ * WITHOUT GOING THROUGH `Pokemon#eatItem` AT ALL. ===================================================
+ *
+ * This was the tail of `consumeBerry` and reachable from nowhere else, so an ability whose whole job
+ * is to react to eating reacted to four of the seven roads a berry is eaten on. CHEEK POUCH AND CUD
+ * CHEW SHARE THE HOOK (`onEatItem`, sim/pokemon.ts:1792), so they share a position; RIPEN carries the
+ * third `onEatItem` in this format and its body only records `berryWeaken`, which this engine does not
+ * yet read -- see the note at the resist-berry site.
+ *
+ * THE MEMBERSHIP IS DERIVED, and it is in the probe's header rather than here so it sits beside the
+ * arms that check it. Four roads reach this through `consumeBerry` (the pinch berry, the status berry,
+ * Leppa, and the forced eat Stuff Cheeks and Teatime make); three reach it directly and are the reason
+ * this function exists (the resist berry, the confusion berry, and a berry FLUNG at a body).
+ *
+ * `fromEffect` IS THE AUTHORITY'S `sourceEffect` AND IT IS NOT DECORATION. Cud Chew's handler opens
+ * `if (item.isBerry && (!effect || !['bugbite','pluck'].includes(effect.id)))`, which the artifact
+ * carries as `notFromEffects` -- and until this function existed that list was UNREACHABLE and said so
+ * in a comment. It is still unreachable in practice and now for a REASON that was measured rather than
+ * assumed: `D.species.getMovePool` over every legal carrier of the three consumers (Diggersby, Dedenne,
+ * Maushold, Maushold-Four, Farigiraf, the three Tauros-Paldea, Flapple, Appletun) contains neither
+ * `bugbite` nor `pluck`. The clause is honoured anyway, because a later regulation is what makes a
+ * dead branch expensive. */
+function runEatItemEvent(m,itemId,fromEffect){
+  if(!m)return;
+  /* CHEEK POUCH -- a third of max HP on TOP of whatever the berry did, on ANY berry. Heal Block
+   * gates it exactly as it gates every other heal in this file; the amount is the ability's own
+   * fraction. */
+  {const _cp=TAGS.param('ability',m.ability,'healsOnBerryEaten');
+   if(_cp&&Array.isArray(_cp.heal)&&!healBlocked(m)&&m.curHP>0){
+     const _h0=m.curHP;
+     m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_cp.heal[0]/_cp.heal[1]));
+     if(m.curHP>_h0){MEDSEEN.cheekPouchHealed++;if(TR)TR.heal(m,'[from] ability: '+m.ability);}
+   }}
+  /* CUD CHEW arms its second helping here, in `onEatItem`, exactly where the authority arms it. The
+   * counter is the handler's own (2) and the residual spends it. */
+  {const _cc=TAGS.param('ability',m.ability,'reEatsBerry');
+   if(_cc&&+_cc.delayTurns>0&&String(itemId||'')
+      &&!(fromEffect&&Array.isArray(_cc.notFromEffects)
+          &&_cc.notFromEffects.indexOf(String(fromEffect))>=0)){
+     m._cud={berry:String(itemId),left:+_cc.delayTurns};
+     MEDSEEN.cudChewArmed++;
+   }}
+  MEDSEEN.eatItemEventRaised++;
+}
 function consumeBerry(m,itemId,onEat){
   if(!m)return;
   /* 2026-08-30 -- THIS FUNCTION IS `Pokemon#eatItem`'S BODY NOW, IN ITS ORDER, AND `onEat` IS THE
@@ -9392,28 +9443,7 @@ function consumeBerry(m,itemId,onEat){
   m._usedItemThisTurn=true;
   m.item='';
   MEDSEEN.berryConsumed++;
-  /* `runEvent('EatItem')` -- CHEEK POUCH AND CUD CHEW, ONE PASS, sim/pokemon.ts:1792. They are the
-   * SPENDER's own two reactions to eating and they share a hook, so they share a position. */
-  const _eatItemEvent=()=>{
-    /* CHEEK POUCH -- a third of max HP on TOP of whatever the berry did, on ANY berry. Heal Block
-     * gates it exactly as it gates every other heal in this file; the amount is the ability's own
-     * fraction. */
-    {const _cp=TAGS.param('ability',m.ability,'healsOnBerryEaten');
-     if(_cp&&Array.isArray(_cp.heal)&&!healBlocked(m)&&m.curHP>0){
-       const _h0=m.curHP;
-       m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_cp.heal[0]/_cp.heal[1]));
-       if(m.curHP>_h0){MEDSEEN.cheekPouchHealed++;if(TR)TR.heal(m,'[from] ability: '+m.ability);}
-     }}
-    /* CUD CHEW arms its second helping here, in `onEatItem`, exactly where the authority arms it. The
-     * counter is the handler's own (2) and the residual spends it; `notFromEffects` is carried and is
-     * unreachable from this site, because Bug Bite and Pluck do not come through here at all -- which
-     * is the point of routing only real EATING through one function. */
-    {const _cc=TAGS.param('ability',m.ability,'reEatsBerry');
-     if(_cc&&+_cc.delayTurns>0&&String(itemId||'')){
-       m._cud={berry:String(itemId),left:+_cc.delayTurns};
-       MEDSEEN.cudChewArmed++;
-     }}
-  };
+  const _eatItemEvent=()=>runEatItemEvent(m,itemId,null);
   if(EATREACT_BEFORE_BERRY){
     /* THE OLD SHAPE, RESTORED WHOLE: the reactions above the line and above the effect. */
     MEDFAILS.eatReactBeforeBerryRestored=1;
@@ -16746,9 +16776,32 @@ function itemCuresVolatile(m,vol){
   const p=TAGS.param('item',m.item,'curesVolatile');
   if(!(p&&Array.isArray(p.cures)&&p.cures.indexOf(vol)>=0))return false;
   const it=m.item;
-  if(m._vol)delete m._vol[vol];
-  m.item='';
-  if(TR){TR.enditem(m,it,'[eat]');TR.vend(m,vol);}
+  /* 2026-08-30 -- A CONFUSION BERRY IS EATEN BY `Pokemon#eatItem` LIKE EVERY OTHER `onUpdate` BERRY,
+   * AND THIS SITE WROTE ITS OWN TWO LINES INSTEAD. Persim's whole handler is
+   * `onUpdate(pokemon) { if (pokemon.volatiles['confusion']) pokemon.eatItem(); }` and Lum's is the
+   * same road with a status clause beside it -- the identical statement `berryPinchUpdate` and
+   * `berryCureUpdate` make. So the `-enditem [eat]`, `lastItem`, `ateBerry`, `usedItemThisTurn`,
+   * `runEvent('EatItem')` and `runEvent('AfterUseItem')` are all owed here, and none of them happened:
+   * a Cheek Pouch holder spent a Persim and healed nothing, and Harvest had no record to give back.
+   *
+   * ONLY A BERRY IS ROUTED, AND THE OTHER BRANCH IS LOUD RATHER THAN SILENT. Membership was printed
+   * before wiring, per docs/LESSONS.md 4: `curesVolatile` has THREE legal members and one of them is
+   * MENTAL HERB, which is not a berry, is not eaten, and writes a plain `-enditem`. It cannot reach
+   * this line today because its `cures` list does not contain `confusion` and `confusion` is the only
+   * volatile this function is ever asked about -- but "cannot today" is exactly the assumption that
+   * rots, so a non-berry arriving here keeps the old shape and is COUNTED. */
+  if(EATEVENT_UPDATE_ONLY||!TAGS.has('item',it,'isBerry')){
+    if(EATEVENT_UPDATE_ONLY)MEDFAILS.eatEventUpdateOnlyRestored=1;
+    else MEDFAILS.volatileCuredByNonBerry++;
+    if(m._vol)delete m._vol[vol];
+    m.item='';
+    if(TR){TR.enditem(m,it,'[eat]');TR.vend(m,vol);}
+  } else {
+    /* `onEat` is the berry's own effect -- `removeVolatile('confusion')`, which writes the `-end`.
+     * `consumeBerry` owns the `-enditem [eat]` above it and the `EatItem` pass below it. */
+    consumeBerry(m,it,()=>{ if(m._vol)delete m._vol[vol]; if(TR)TR.vend(m,vol); });
+    MEDSEEN.eatEventOffVolatileBerry++;
+  }
   MEDSEEN.volatileCuredByItem++;
   return true;
 }
@@ -20627,6 +20680,21 @@ if(FORME_BUST_INLINE)MEDFAILS.formeBustInlineRestored=1;
 const EATREACT_BEFORE_BERRY=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_EATREACT_BEFORE_BERRY==='1');
 if(EATREACT_BEFORE_BERRY)MEDFAILS.eatReactBeforeBerryRestored=1;
+/* 2026-08-30 -- `MEDI_EATEVENT_UPDATE_ONLY=1` RESTORES `EatItem` BEING RAISED ONLY ON THE FOUR ROADS
+ * THAT RUN THROUGH `consumeBerry`. It is NOT the knob above: that one is a claim about WHERE the one
+ * firing lands relative to the berry's own effect; this one is a claim about WHETHER it fires at all
+ * on three roads that never called `consumeBerry`.
+ *
+ * The three are the type-resist berry (`onSourceModifyDamage` -> `eatItem()`), the confusion berry
+ * (`onUpdate` -> `eatItem()`, which this engine splits out as `itemCuresVolatile`) and a berry FLUNG
+ * at a body (`runEvent('EatItem', foe, source, move, item)`, data/moves.ts fling). Under the knob a
+ * Cheek Pouch holder eats all three and heals nothing, which is what this engine did until today.
+ *
+ * STAMPED AT DECLARATION, like the knobs above, so a run under the break is identifiable before a
+ * berry is held. */
+const EATEVENT_UPDATE_ONLY=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_EATEVENT_UPDATE_ONLY==='1');
+if(EATEVENT_UPDATE_ONLY)MEDFAILS.eatEventUpdateOnlyRestored=1;
 /* 2026-08-29 -- THE AFTER-FAINT BOUNDARY, AND IT IS THE THIRD KNOB ON THE FAINT DRAIN. The two above
  * are claims about WHERE a `|faint|` line is written; this one is a claim about what happens BELOW the
  * whole drain -- when the on-KO event fires, how big one payment is, and whether it fires at all once
@@ -30667,8 +30735,35 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_rbC&&_rbC.onType===mv.t&&(!_rbC.requiresSuperEffective||d.eff>1)
              &&!berryRefusedByFoeNew(tg)&&!subBlocks(m,tg,a.move.id)){
             const _it=tg.item;
-            const _spend=()=>{ if(TR){TR.enditem(tg,_it,'[eat]');TR.enditem(tg,_it,'[weaken]');}
-                               tg.item=''; MEDSEEN.resistBerrySpent++; };
+            /* 2026-08-30 -- AND `eatItem()` IS THE WHOLE FIRST STATEMENT OF THE HANDLER, NOT A LINE
+             * AND AN EMPTY SLOT. `if (target.eatItem()) { this.add('-enditem', target, this.effect,
+             * '[weaken]'); return this.chainModify(0.5); }` -- so everything `Pokemon#eatItem` does
+             * happens BEFORE the `[weaken]` is written: the `-enditem [eat]`, `singleEvent('Eat')`
+             * (a resist berry's `onEat` is empty), `runEvent('EatItem')`, then `lastItem`,
+             * `ateBerry`, `usedItemThisTurn`, then `runEvent('AfterUseItem')`.
+             *
+             * THIS SITE DID THE FIRST LINE AND THE LAST STATE CHANGE AND NOTHING IN BETWEEN, so a
+             * Cheek Pouch body healed nothing off a resist berry, Harvest had no `lastItem` to give
+             * back, Belch stayed illegal, Pickup saw no spend and the partner's Symbiosis never
+             * answered. Five mechanics, one missing call.
+             *
+             * RIPEN'S SECOND HALVE IS STILL OWED AND IS NOT WIRED HERE. Its `onEatItem` records
+             * `abilityState.berryWeaken` and its own `onSourceModifyDamage` (priority -1) spends it,
+             * which is a SECOND x0.5 on top of the berry's. This engine's `damageReduce` row for
+             * Ripen carries `onlyWhen: null` and correctly REFUSES rather than defaulting on, so the
+             * doubling is absent. Raising the event here is its prerequisite and not its fix; it is
+             * a mechanic of its own and is filed, not smuggled in. */
+            const _spend=()=>{
+              if(EATEVENT_UPDATE_ONLY){
+                MEDFAILS.eatEventUpdateOnlyRestored=1;
+                if(TR){TR.enditem(tg,_it,'[eat]');TR.enditem(tg,_it,'[weaken]');}
+                tg.item='';
+              } else {
+                consumeBerry(tg,_it,null);                 /* the whole of `eatItem()` */
+                if(TR)TR.enditem(tg,_it,'[weaken]');       /* the handler's own line, after it */
+                MEDSEEN.eatEventOffResistBerry++;
+              }
+              MEDSEEN.resistBerrySpent++; };
             if(BERRY_AT_APPLY){R._berryApply=_spend;MEDFAILS.berryAtApplyRestored=1;}
             else if(_multiPk){R._berry=_spend;MEDSEEN.resistBerryAtFirstArrival++;}
             else _spend();
@@ -32736,9 +32831,29 @@ function battleTurn(S,rng,actsForA,actsForB){
            * (`if (item.onEat) foe.ateBerry = true;`): a body that never held the berry is recorded as
            * having eaten one. Belch and Cud Chew read that flag, so reproducing the quirk is the
            * difference between matching and being tidier than the game. */
+          /* 2026-08-30 -- AND THE FOE'S `onEatItem` ANSWERS, WHICH IS THE HANDLER'S SECOND LINE.
+           *     move.onHit = function (foe) {
+           *       if (this.singleEvent('Eat', item, source.itemState, foe, source, move)) {
+           *         this.runEvent('EatItem', foe, source, move, item);   <-- was absent
+           *       }
+           *       if (item.onEat) foe.ateBerry = true;
+           *     };
+           * THIS ROAD IS DELIBERATELY *NOT* ROUTED THROUGH `consumeBerry`, and that is the authority
+           * rather than a shortcut: the berry belongs to the THROWER, whose `-enditem [from] move:
+           * Fling` and `lastItem` are written by Fling's own `condition.onUpdate`. The only state the
+           * authority puts on the FOE is `ateBerry` -- no `lastItem`, no `usedItemThisTurn`, no
+           * `AfterUseItem`, so no Symbiosis. Routing it through the one consumption site would have
+           * handed the target four things the game does not give it.
+           *
+           * `a.move.id` is the `sourceEffect`, so Cud Chew's `notFromEffects` sees `fling` and arms,
+           * which is what the handler's own list says (it excludes `bugbite` and `pluck` and nothing
+           * else). */
           {const _fi=m._flingItem;
            if(_fi&&!tg.fainted&&tg.curHP>0&&TAGS.has('item',_fi,'isBerry')){
-             if(berryForceEat(tg,_fi,m))tg._ateBerry=true;
+             const _ex=berryForceEat(tg,_fi,m);
+             if(EATEVENT_UPDATE_ONLY)MEDFAILS.eatEventUpdateOnlyRestored=1;
+             else { runEatItemEvent(tg,_fi,a.move.id); MEDSEEN.eatEventOffFlungBerry++; }
+             if(_ex)tg._ateBerry=true;
              MEDSEEN.flungBerryEaten++;
            }}
           {const _ff=m._flingFx;
