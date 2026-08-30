@@ -1,6 +1,8 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.225.0 — 2026-08-29.**
+**Version: 5.226.0 — 2026-08-29.**
+
+**5.226.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change decides how many times an `onDamagingHit` REACTOR is raised for a volley that stopped at a KO; it is downstream of every damage step, and the packet vector, the roll index and the crit decisions are untouched. The damage a reactor DEALS is unchanged - `punishesAttacker`'s `fraction` and `dealsDamageTaken` arithmetic is not edited - only the number of times it is charged. The survivor arm of `tests/probe_volley_reactor_count.js` is the control that holds this: identical HP and an identical `-hitcount` on both engines, before and after. `tests/test-engine-diff.js` was NOT re-run; it calls `moveHit` once and skips every `multiHit` move by construction, so it is structurally blind to this change - which is an argument and not a measurement.
 
 **5.225.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change decides WHICH SIDE a body that the aim already resolved is looked up on, which is above every damage step; no multiplier is added or removed and no feature read changes. The damaging forced-switch door runs AFTER the hit, so the drag it now performs for an ally-aimed Dragon Tail happens on a board the damage pipeline has already finished with. The two FOE-axis control arms of `tests/probe_ally_forced_switch.js` are line-identical clean and under the knob, which is the same claim measured. `tests/test-engine-diff.js` was NOT re-run - it has no `--out` and would republish the artifact the `0 of 6,000` is read from.
 

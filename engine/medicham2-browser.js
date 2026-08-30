@@ -1208,6 +1208,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                         packet shape could not be trusted and ONE line was emitted. This is the
    *                         declared, narrow remainder of the WIRE 12 divergence -- LOUD on purpose. */
   fixedDamageNoCrit: 0, multiHitPacketsDealt: 0, multiHitPacketsCollapsed: 0,
+  /* 2026-08-29 -- a volley whose packet loop STOPPED at the KO, so the reaction count (`_react`) is
+   * the LANDED count and not the drawn one. It is the population where the two numbers can differ at
+   * all: everywhere else they are equal and this counter is silent. A zero over a run that killed
+   * something with a multi-hit move means the clause is unwired -- which is what it was until today,
+   * and the symptom was `|-hitcount|1` printed beside two Rough Skin tolls. */
+  volleyReactStoppedAtKO: 0,
   /* ROADMAP #151 -- an Aegislash flipped forme on the move it was about to use. A zero on a run that
    * clicked an attack off a Stance Change body means the ability is unwired, which is what it was
    * until 2026-08-11 -- `stancechange` appeared nowhere in this file at all. */
@@ -2638,6 +2644,10 @@ const MEDFAILS = { encoreAction: 0,
    * split back on purpose, so a deliberate restore arm and a broken engine can never be read as the
    * same thing. Same shape as damageSpanDrawRestored. */
   multiHitOneIndexRestored: 0,
+  /* 2026-08-29 -- set to 1 for the whole run when MEDI_VOLLEY_REACT_DRAWN=1 puts the DRAWN reaction
+   * count back on purpose, so the before-arm of the killing-volley fix and a broken engine can never
+   * be read as the same thing. Same shape as multiHitOneIndexRestored. */
+  volleyReactDrawnRestored: 0,
   /* ROADMAP #499 -- A MULTI-HIT CLICK WHOSE ARRIVALS THIS ENGINE CANNOT ADDRESS SEPARATELY, so the
    * whole volley took ONE crit decision where the authority took N: `hits` says more than one and
    * dmgRange handed back no packet list to hang the decisions on. It is a flat volley whose band does
@@ -20382,6 +20392,22 @@ if(TRANSFORM_SURVIVES_FAINT)MEDFAILS.transformSurvivesFaintRestored=1;
 const TYPES_SURVIVE_FAINT=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_TYPES_SURVIVE_FAINT==='1');
 if(TYPES_SURVIVE_FAINT)MEDFAILS.typesSurviveFaintRestored=1;
+/* 2026-08-29 -- `MEDI_VOLLEY_REACT_DRAWN=1` restores the state this engine held until today: a volley
+ * whose packet loop STOPPED at the KO still set every `onDamagingHit` reactor off once per arrival it
+ * DREW, so a Dual Wingbeat that killed on its first arrival announced `|-hitcount|1` and tolled the
+ * attacker twice. See the `_react` block inside `_stepApply` for the authority's own loop guard, and
+ * `tests/probe_volley_reactor_count.js` for both engines' streams on one staged board.
+ *
+ * ITS OWN KNOB rather than folding into the faint-queue knobs above, because this is not a claim
+ * about where a `|faint|` LINE is written: it is a claim about how many times an event fires. The two
+ * were measured apart and are fixed apart. */
+const VOLLEY_REACT_DRAWN=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_VOLLEY_REACT_DRAWN==='1');
+/* STAMPED AT DECLARATION AND NOT ONLY WHERE IT FIRES, so a run under the knob is identifiable BEFORE
+ * a killing volley happens to occur. `tests/test-mechanics.js` reads exactly this to refuse writing
+ * the census under a deliberate break — a demonstration must not overwrite the artifact five other
+ * files read. */
+if(VOLLEY_REACT_DRAWN)MEDFAILS.volleyReactDrawnRestored=1;
 /* 2026-08-27 -- `MEDI_REFILL_NO_HERB=1` restores the state this engine held until today: a post-faint
  * REPLACEMENT's entry drop had no `onAnySwitchIn` pass after it, so a White Herb answered it a whole
  * turn late. See the call site inside `refill()`. */
@@ -31187,7 +31213,56 @@ function battleTurn(S,rng,actsForA,actsForB){
            * reactions for ONE dart -- the reaction count was reading the move's total while the
            * damage step had already been split. */
           if(_smartTarget&&_smartRows>1)return 1;
-          if(_hitsThisUse!==null&&TAGS.param('move',a.move.id,'multiHit'))return Math.max(1,_hitsThisUse);
+          /* 2026-08-29 -- THE VOLLEY THAT KILLS SETS THE REACTOR OFF ONCE PER ARRIVAL THAT LANDED,
+           * NOT ONCE PER ARRIVAL IT DREW.
+           *
+           * `data/mods/champions/scripts.ts:461-464`, the Champions override of `hitStepMoveHitLoop`
+           * read whole rather than recalled:
+           *
+           *     for (hit = 1; hit <= targetHits; hit++) {
+           *       if (damage.includes(false)) break;
+           *       if (hit > 1 && pokemon.status === 'slp' && ...) break;
+           *       if (targets.every(target => !target?.hp)) break;
+           *
+           * The loop refuses to OPEN an arrival against a body already on zero, and
+           * `runEvent('DamagingHit')` is raised inside `spreadMoveHit` — so a Rough Skin, a Gooey, a
+           * Stamina or a Weak Armor is set off once per LANDED arrival. `scripts.ts:550` writes
+           * `-hitcount` as `hit - 1`, which is that same landed count.
+           *
+           * THE PACKET LOOP ABOVE ALREADY KNOWS THIS AND THIS LINE WAS A SECOND OPINION ABOUT IT.
+           * `if(tg.curHP<=0)break;` is the authority's guard expressed there, `_landed` is what it
+           * counted, and `R.hitLanded` carries that number to `_stepHitCount`. The reaction count
+           * read `_hitsThisUse` — the DRAWN count — so this engine announced `|-hitcount|1` and
+           * tolled twice off the same click. That is the two-implementations-of-one-fact breach
+           * CLAUDE.md names, in the same function, four hundred lines apart.
+           *
+           * MEASURED ON BOTH ENGINES, one staged Dual Wingbeat into a Rough Skin Sharpedo whose
+           * first arrival kills it (`tests/probe_volley_reactor_count.js`, `--state`):
+           *     SHOWDOWN  hit, TOLL, faint, -hitcount 1
+           *     MEDICHAM  hit, TOLL, TOLL, faint, -hitcount 1
+           * and the turn BEFORE it — the survivor control, same board, same click — reads two tolls
+           * and `-hitcount 2` on both. Cards 7 and 228 of
+           * `data/verification/divergence-turns.empirical.json` are the same shape in real games:
+           * the attacker keeps 19 HP it should have lost, and 18 more.
+           *
+           * IT IS GATED ON THE PACKET ROAD HAVING RUN. `_landed` is 0 on the single-packet road and
+           * on the COLLAPSED road (a Focus Sash, an Endure or a busted Disguise rewrote the total, so
+           * `_packets` is null and the volley lands as one subtraction) — WIRE 20's declared
+           * divergence, which is not touched here. On those roads the drawn count stays the answer.
+           *
+           * THE KNOB IS THE BEFORE-ARM. `MEDI_VOLLEY_REACT_DRAWN=1` restores the drawn count and
+           * stamps `MEDFAILS.volleyReactDrawnRestored`, so the probe above can be shown red on
+           * demand. `MEDSEEN.volleyReactStoppedAtKO` counts the clicks where the two numbers differ —
+           * a zero over a run with a killing volley in it means this line stopped firing. */
+          if(_hitsThisUse!==null&&TAGS.param('move',a.move.id,'multiHit')){
+            const _drawn=Math.max(1,_hitsThisUse);
+            if(_packets&&_landed>0&&_landed<_drawn){
+              MEDSEEN.volleyReactStoppedAtKO++;
+              if(VOLLEY_REACT_DRAWN){MEDFAILS.volleyReactDrawnRestored=1;return _drawn;}
+              return _landed;
+            }
+            return _drawn;
+          }
           /* ROADMAP #139 -- A PARENTAL BOND CLICK IS TWO HITS TO EVERY `onDamagingHit` REACTOR, and
            * that is the half of "two separate hits" this engine's granularity can actually deliver.
            * The DAMAGE is two packets summed into one range (which is what the whole multi-hit family

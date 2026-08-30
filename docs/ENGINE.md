@@ -24,6 +24,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_unburden_herb_paths.js`, `tests/probe_knockoff_megastone.js`, `tests/probe_sand_force.js`,
 `tests/probe_random_target_address.js`,
 `tests/probe_spread_status_steps.js`, `tests/probe_multihit_update.js`,
+`tests/probe_volley_reactor_count.js`,
 `tests/probe_noguard_invuln.js`, `tests/probe_endturn_clock_order.js`,
 `tests/probe_substitute_status_step.js`, `tests/probe_yawn_substitute.js`,
 `tests/probe_doll_blind_family.js`, `tests/probe_trace_target.js`,
@@ -96,6 +97,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 | `probe_spread_status_steps.js` | does a spread STATUS move run each STEP across every target the way `trySpreadMoveHit`'s `moveSteps` does — six arms, no typed expectation, both engines on one pinned corner, each played clean and again under `MEDI_SPREAD_STATUS_PER_TARGET=1`; three reds that must part under the knob, three controls that must not, and the nesting counters asserted as an EXACT per-game delta off `globalThis.MEDSEEN` so a knob that reached a module the driver never loaded fails the arm whatever the streams say | anything outside the `kind==='affect'` branch: `corrosivegas` arrives as `trickitem` and is named rather than covered, and the SUBSTITUTE step sits above accuracy here and below it in the authority — both declared, neither staged. And the step BOUNDARIES themselves, which it inherits rather than checks: it compares the two engines' streams, never this branch's step list against `moveSteps` |
 | `probe_random_target_address.js` | can the `randomNormal` target die be SHARED by blanking our address — every authority draw in the blank `any` bucket tagged with its REAL stack, the `nth` its runMove target draw carries, the proposal's pick rate against a coin floor, a wrong-turn negative control, and `--focus` for one named game so "would this reach board-material zero" is answered against the game the artifact records | whether either engine plays the game right — it compares ADDRESSES and the picks they imply, never a board. And it measures the proposal WITHOUT it being landed, so it says nothing about what a whole-game re-run would report |
 | `probe_multihit_update.js` | does an `onUpdate` handler see EVERY intermediate HP of a volley — `eachEvent('Update')` is inside the authority's hit loop (`sim/battle-actions.ts:967`, kept verbatim by the Champions override at `data/mods/champions/scripts.ts:538`), so a pinch berry is eaten BETWEEN hits. The fixture is derived from the format and then SEARCHED by playing candidate boards, selected on the SHOWDOWN stream alone and printed, judged with no typed expectation on three quantities — the number of `-damage` lines before the eat, the LOWEST HP the body ever stood on, and the HP it ends the volley on — with a child on `MEDI_MULTIHIT_UPDATE_ONCE=1` that must move the eat AND must part from the authority | anything about the once-per-move wrap of the STEP LIST, which is unchanged and stays `test-resolution-order.js`'s KNOWN-OPEN arm; and the exact position of the intermediate pass, which it places below the PACKET where the authority places it below that hit's whole `spreadMoveHit` — it DERIVES and PRINTS that no multi-hit move in this format carries a target secondary, so the two coincide today, rather than asserting they always will |
+| `probe_volley_reactor_count.js` | how many times a volley that KILLS sets an `onDamagingHit` reactor off, on both engines at once — the authority's own loop guard is `if (targets.every(target => !target?.hp)) break` (`data/mods/champions/scripts.ts:461-464`, the Champions override, not mainline), so a Rough Skin is tolled once per arrival that LANDED and `-hitcount` is `hit - 1` off the same count. Two arms: a Dual Wingbeat into a Rough Skin body that survives (the SURVIVOR CONTROL — both engines must toll twice, or "paid once" is satisfied by an engine that forgot how to count hits) and the same click on the turn it kills. Nothing is typed as an expected value; the verdict is whether the two streams carry the same number of toll lines on the same turn | the reactor's POSITION, which is a separate open defect — the authority interleaves per arrival and this engine batches below the volley, so the probe FORCES `--state` and says so, because the protocol stop rule would end the game above the turn being measured |
 | `probe_noguard_invuln.js` | does No Guard's OTHER half reach the game — `onAnyInvulnerability` returns 0 (`data/abilities.ts`, no `noguard` row in the Champions override) and `trySpreadMoveHit` KEEPS a target whose step result is zero (`sim/battle-actions.ts:605`), so a No Guard move survives step 0 and is judged by the TYPE CHART at step 2 — five arms over two engines, one turn each, judged on the OUTCOME (immune / hit / miss / unboost) rather than on the wording, with the target's immunity-reason count DERIVED and printed per arm and the file REFUSING any target immune for more than one reason, plus `MEDSEEN.noGuardThroughInvuln` at exact equality and a `--red` arm on `MEDI_NOGUARD_INVULN_BLIND=1` where the three live arms must PART and the two controls must NOT | anything about the STAGE ORDER, which it does not test and which was never the defect — `_STEPS` already matches `moveSteps` and control D proves an ordinary immunity still reads `-immune`. And every other `onAny*` handler whose second half may be unwired: it is ONE ability, reached through `_neverMissAb`'s `never` flag, and a derived tag for `onAnyInvulnerability` is owed rather than done |
 | `probe_endturn_clock_order.js` | is a PER-BODY DURATION CLOCK a step of the residual walk — `Battle#fieldEvent` collects a bare `duration` with no handler at all (`getKey`, `sim/battle.ts:487`) and `resolvePriority` (`:950`) gives it the position `onResidualOrder` declares, so Taunt@15, Encore@16, Disable@17, Heal Block@20, Throat Chop@22 and Yawn@23 are ordinary steps. Seven arms over two engines with no typed expectation, four of them the defect on four DIFFERENT members (which is what makes it one root rather than four coincidences) and two the over-fire control, each played clean and again under `MEDI_ENDTURN_CLOCKS_AT_FOOT=1` — a knob that moves the POSITION and keeps every line, plus `MEDFAILS.endturnClocksAtFoot` asserted present on the knob load and ABSENT on the clean one, because the first draft's knob reached no module at all and read seven held controls | whether a clock's LENGTH is right (`test-volatile-duration.js` owns that; no turn count is typed here), and the three clocks it does not move — `perishsong@24`, `uproar@28` and `lockedmove` own an `onResidual` and a faint queue, and `perish-vs-speedboost` measures that gap as a KNOWN-OPEN arm every run rather than declaring it in prose. And `magnetrise@18`, which has no reader in this engine at all: a MISSING tick, not a misplaced one |
 | `probe_substitute_status_step.js` | is the DOLL asked where the authority asks it on the STATUS road, and does it answer what the authority answers — `moveSteps` puts `hitStepAccuracy` at index 4 and the doll at index 7 (`hitStepMoveHitLoop` -> the Champions mod's own `// 0. check for substitute`, `data/mods/champions/scripts.ts:342` -> `tryPrimaryHitEvent`), and `getDamage` returns `undefined` for a `basePower: 0` move so the handler writes `|-fail|` on the MOVER with `[still]`, never `-activate` on the target. Twelve arms over two engines, one turn each, no typed expectation: seven reds across FIVE call sites (`status`, `affect`, `sharesHP`, `trap` and Leech Seed's silent guard conjunct) that must part under `MEDI_SUB_STATUS_AT_TRYHIT=1`, five controls that must not, the affected move set DERIVED and printed every run (eleven), each arm's non-doll refusal-reason count derived and REFUSED above one, and per-arm refusal counts declared ASYMMETRICALLY — 0 clean and 1 on the knob wherever the die gets there first | whether the DOLL's own membership is right: `SUBPASS` is `test-engine-diff.js`'s conformance block and nothing here re-derives it. And `yawn`, which called `subBlocks` NOWHERE — a missing check rather than a misplaced one, and now `probe_yawn_substitute.js`'s |
@@ -113,9 +115,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  803/803 probed mechanics live, 0 missing   (census 2026-08-29 13:05)
+  804/804 probed mechanics live, 0 missing   (census 2026-08-29 15:28)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 13.8 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 22.8 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -130,7 +132,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0d6c0628ab3c now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c87a6cb94b06 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/300 probed, 15 unprobed;  271/300 have an engine consumer, 29 have none
@@ -138,9 +140,119 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 13:08_
+_stamped 2026-08-29 22:05_
 
 <!-- /GENERATED -->
+
+## THE VOLLEY THAT KILLS SET THE REACTOR OFF ONCE PER ARRIVAL IT *DREW*, AND THE AUTHORITY COUNTS THE ONES THAT *LANDED* — SO `|-hitcount|1` WAS PRINTED BESIDE TWO ROUGH SKIN TOLLS. **CENSUS 803 -> 804 LIVE / 804 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 90 -> 88 OF 961, PROTOCOL 205 -> 204 — PREDICTED AT ITS POINT ESTIMATE BEFORE THE RUN. AND THE CARD REVIEW'S D-FAMILY IS RE-CUT: D2 IS FOUR THINGS, D4 IS REFUTED (BOTH ENGINES FIRE STAMINA TWICE — IT IS A POSITION, NOT A FREQUENCY), AND D3 IS ITS OWN SITE.** 2026-08-29.
+
+Full account: [docs/_reports/2026-08-29-faint-boundary.md](_reports/2026-08-29-faint-boundary.md).
+
+### THE FAMILY DOES NOT SHARE A CAUSE, AND THAT WAS MEASURED RATHER THAN ARGUED
+
+The brief asked whether D2, D3 and D4 are one boundary problem. Read out of each card's own lines in
+`data/verification/divergence-turns.empirical.json` rather than out of the card titles:
+
+| card | the review said | what the lines say |
+|---|---|---|
+| **D2** | "the faint is announced before the hit's consequences" | **four different things** — the reactor COUNT (cards 7, 228, board-material, fixed here), the reactor POSITION (cards 52, 72, 91, narration), a Cursed Body 30% (card 58) and a Blizzard 10% (card 73) |
+| **D3** | "an on-KO boost lands after the authority has ended the battle" | **confirmed and separate** — `checkWin` returns at `sim/battle.ts:2592`, ABOVE `runEvent('AfterFaint')` at `:2596` |
+| **D4** | "Stamina fires once per move, not once per hit" | **REFUTED.** Card 134 shows `-boost def|1` TWICE on both engines. The count has been right since WIRE 84; only the POSITION differs, which makes D4 the same defect as D2's ordering half |
+
+So the one real sharing is D4 with half of D2, and it is not a faint problem: `runEvent('DamagingHit')`
+is raised INSIDE each `spreadMoveHit` and this engine batches it below the whole volley.
+
+### THE FIX IS A SECOND OPINION REMOVED, NOT A NEW RULE
+
+`data/mods/champions/scripts.ts:461-464` — the Champions override, not mainline:
+
+```
+  for (hit = 1; hit <= targetHits; hit++) {
+    if (damage.includes(false)) break;
+    if (hit > 1 && pokemon.status === 'slp' && ...) break;
+    if (targets.every(target => !target?.hp)) break;      <- no arrival opens against a corpse
+```
+
+and `-hitcount` is `hit - 1` at `:550`. `_stepApply`'s packet loop already broke on `tg.curHP<=0` and
+already counted what landed into `R.hitLanded`. `_react` — how many times every `onDamagingHit`
+reactor fires — was a SECOND reading of that same quantity, taken from the DRAWN count. One
+expression now takes it from `_landed` when the packet road ran and stopped early; the single-packet
+and COLLAPSED roads (WIRE 20's declared divergence) are untouched and still use the drawn count.
+`R.react` feeds both `punishesAttacker` and `buffsHolderOnHit`, so one edit corrected both families.
+
+Knob `MEDI_VOLLEY_REACT_DRAWN=1` restores the before-arm and stamps
+`MEDFAILS.volleyReactDrawnRestored` at DECLARATION; `tests/test-mechanics.js` now REFUSES to write the
+census under it, beside `residualCollapsed`. Counter `MEDSEEN.volleyReactStoppedAtKO`.
+
+### THE PROBE — TWO ENGINES, ONE BOARD, RED FIRST
+
+`tests/probe_volley_reactor_count.js`, release `070890fc77a2` then `12dae69813f6`:
+
+```
+  turn |         SHOWDOWN                     |         MEDICHAM (before)
+  1    | hit,TOLL,hit,TOLL,count:2  [tolls 2] | hit,hit,TOLL,TOLL,count:2   [tolls 2]
+  2    | hit,TOLL,faint,count:1     [tolls 1] | hit,TOLL,TOLL,faint,count:1 [tolls 2]
+```
+
+Turn 1 is the survivor control — the identical click into a body that lives must still toll TWICE, or
+"the toll is paid once" is satisfied by an engine that forgot how to count hits. `no-ability` is the
+cleared control on Sharpedo's other legal ability: zero tolls on both engines **and the body still
+dies**. The probe FORCES `--state` and says why: the interleave above parts the protocol on turn 1, so
+the default stop rule would end the game above the turn being measured.
+
+Census row `ability / punishesAttacker` — *"a volley that kills on its first arrival tolls the
+attacker ONCE, not once per drawn hit"*: killer arm 2 tolls / paid 38 -> 1 toll / paid 19, survivor
+arm unchanged at 2 / 38, cleared arm unchanged at 0 / 0.
+
+### WHICH SCOREBOARD, SAID BEFORE THE RUN
+
+Lab moves (a new row); pool moves by **2**, 90 -> **88**, because cards 7 and 228 are the only two
+board-material instances in the empirical population and the commoner interleave is narration a board
+comparison cannot see. **Result 88 — held at the point estimate.** Protocol 205 -> 204, threw 1 -> 1.
+`data/verification/game-differential.volleyreact.json`, release `12dae69813f6`, arm `middle`,
+`--end-state`, census pin `9446a684709d`, pool `0d103fb9fa87`, `--team-store data/team-pool-frozen`,
+961 games, cap 12. One run parameter differs from the baseline and it is the release.
+
+### THE CLOSETED PERISH ROW (#440) STILL HOLDS
+
+The drain position was not touched. Falsifiers (a), (c) and (d) are all unmet; **(b) rests on the
+COVERAGE arm, which was not re-run this batch** and is named in OWED rather than absorbed. All seven
+`move/perishClock` census probes are live on the post-fix census.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"the faint is announced before the hit's consequences (D2)"*~~ — **it was never one thing.** The
+  board-material half is fixed and probed; the rest is re-filed below by its real cause.
+
+**Joins it:**
+- **`onDamagingHit` IS RAISED PER ARRIVAL AND WE BATCH IT BELOW THE VOLLEY** — cards 52, 72, 91, 134,
+  212, 228 and the whole of D4. Narration on every card measured, and it is the KNOWN-OPEN arm
+  `tests/test-resolution-order.js` already carries. The largest item left in this family; a
+  restructure, so its own batch.
+- **THE ON-KO BOOST RUNS AFTER A BATTLE THE AUTHORITY HAS ENDED, AND PAYS PER TARGET INSTEAD OF PER
+  DRAIN** — D3, cards 215 and 216. `checkWin` at `sim/battle.ts:2592` above `AfterFaint` at `:2596`;
+  `onSourceAfterFaint(length, ...)` is one payment sized by the drain. Two clauses, one site.
+- **A CURSED BODY 30% AND A BLIZZARD 10% THAT FIRE ON ONE ENGINE ONLY, BOTH ON A TURN SOMETHING DIED**
+  — cards 58 and 73. The sites are reached; a die ADDRESS is the plausible reading and it is NOT
+  measured.
+- **CORRECTION TO THE STANDING `lownode` ITEM:** it IS reachable — `cmd //c "<absolute path to a
+  two-line .cmd wrapper>"` works and preserves the exit code. Only the inline form
+  `cmd //c "tools\lownode.cmd <args>"` fails, because the argument string is re-split. The filed
+  wording ("unreachable for the second session running") is too strong.
+
+**Carried forward unchanged** from the hand lists below: the redirect gate's ally-aimed status move,
+the ally-aimed delayed hit, Defog's `target.side`, the `self`-target heal `|move|` line, the
+fainted-ally clause of `getTarget`, the `scripted` exemption from `aimTravelsByLoc`, the
+`chillyreception` target-class exemption, and the `benchRisk` refit `clickFragility` owes MEASURE.
+
+### OWED, NOT RUN
+
+The `## OWED, NOT RUN` block of `docs/_reports/2026-08-29-faint-boundary.md` — the coverage-arm
+differential, the roster, `all-mechanics-fire.json`, the damage differential, cards 58 and 73, and the
+interleave's board-materiality over the population.
+
+---
 
 ## ALL TWENTY-TWO FAR-SIDE SITES ARE CLASSIFIED, AND THE FIVE THAT WERE WRONG ARE ONE CAUSE: A BODY THE AIM ALREADY RESOLVED, LOOKED UP IN THE MOVER'S FOE ARRAY. **CENSUS 801 -> 803 LIVE / 803 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED UNMOVED AT 90 OF 961 AND PROTOCOL UNMOVED AT 205 - PREDICTED BEFORE THE RUN WITH A STRUCTURAL REASON: NEITHER DRIVER CAN AIM A `normal` MOVE AT A PARTNER, AND THE RUN'S OWN AIM COUNTER SAYS SO. SEVEN SIDE, FIFTEEN TARGET, SEVENTEEN CORRECT, FIVE WRONG - TWO FIXED, THREE FILED AS SEPARATE BATCHES.** 2026-08-29, CHANGELOG 5.225.0.
 

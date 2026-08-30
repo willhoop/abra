@@ -1,6 +1,8 @@
 # ABRA — the model family (living reference)
 
-**Version 5.225.0 · Last updated 2026-08-29.**
+**Version 5.226.0 · Last updated 2026-08-29.**
+
+**5.226.0 - NO MODEL CHANGED AND NO FITTED VECTOR IS OWED BY THIS PASS.** The simulator every model rests on now charges a contact punish once per arrival that landed rather than once per arrival drawn, so an attacker that kills with the first hit of a two-hit move keeps the HP it should keep. On the pinned empirical pool that is board-parted 90 -> 88 of 961 and protocol 205 -> 204 - two games' end states corrected, predicted at the point estimate before the run. Everything downstream of MEDICHAM remains QUARANTINED and no model number is quoted, compared or re-derived here. The engine tree moved `070890fc77a2` -> `12dae69813f6`; the refit that closes the seam belongs to MEASURE and is not started from ENGINE.
 
 **5.225.0 - NO MODEL CHANGED AND NO FITTED VECTOR IS OWED BY THIS PASS.** The simulator every model rests on now drags the body a forced switch was actually aimed at, and it now carries a written answer for all twenty-two places it picks a half of the field: seven SIDE, fifteen TARGET, seventeen correct, five wrong. Nothing a model reads moved on the pinned pool - board-parted is unmoved at 90 of 961 and every end-state count is identical - because neither the coverage driver nor the empirical driver can aim a `normal` move at a partner, which is stated as a structural fact about `chooseAction` and `empiricalPick` and corroborated by the run's own AIM counter. Everything downstream of MEDICHAM remains QUARANTINED and no model number is quoted, compared or re-derived here. The engine tree moved `e8f7c7dba595` -> `070890fc77a2`; the refit that closes the seam belongs to MEASURE and is not started from ENGINE.
 

@@ -500,6 +500,16 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * the row: the doll has to be STANDING when the move resolves, and a direct call to a branch would be
  * green on an engine that never asked about it, which is exactly the state seven branches were in.
  *
+ * `volleyToll(` added 2026-08-29 with the killing-volley row, declared HERE and with its reason on
+ * the same rule. It stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn`, and it HAS to: the claim is about how many times an `onDamagingHit` reactor fires
+ * inside ONE click's packet loop, and the count is decided by the loop's own break at `tg.curHP<=0`.
+ * A direct call to the punish site would be handed a hit count by the caller and would therefore
+ * assert the caller's arithmetic rather than the loop's — green on an engine that tolls twice for one
+ * arrival, which is exactly the state this engine was in. It returns the emitted stream beside the
+ * HP, because the `-hitcount` line and the toll lines are two readings of the same quantity and the
+ * whole defect is that they disagreed.
+ *
  * `megaWtTarget(` added 2026-08-29 with the mega-weight family, declared HERE and with its reason on
  * the same rule. It stages a real doubles board through `board()` -> `battleInit` and spends a real
  * turn through `battleTurn`, FOUR times per arm — the weight move and a fixed-power control move, each
@@ -507,7 +517,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * rewrites part-way through the turn, so a probe that priced the move before the turn started would
  * read the un-evolved body every time, which is exactly what the engine was doing.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -18534,6 +18544,70 @@ probe('ability', 'punishesAttacker', 'the contact punish is paid AFTER the damag
                  + `be equal` };
 });
 
+/* 2026-08-29 — A VOLLEY THAT KILLS SETS THE REACTOR OFF ONCE PER ARRIVAL THAT *LANDED*.
+ *
+ * `data/mods/champions/scripts.ts:461-464`, the Champions override of `hitStepMoveHitLoop`:
+ *
+ *     for (hit = 1; hit <= targetHits; hit++) {
+ *       if (damage.includes(false)) break;
+ *       if (hit > 1 && pokemon.status === 'slp' && ...) break;
+ *       if (targets.every(target => !target?.hp)) break;
+ *
+ * The loop refuses to OPEN an arrival against a body already on zero, and `runEvent('DamagingHit')`
+ * is raised inside `spreadMoveHit` — so Rough Skin is tolled once per landed arrival, and
+ * `scripts.ts:550` writes `-hitcount` as `hit - 1`, the same number.
+ *
+ * WHAT THIS ENGINE DID: the packet loop already broke on `tg.curHP<=0` and already announced the
+ * landed count, and the REACTION count was a second opinion taken from the DRAWN count. So a Dual
+ * Wingbeat that killed on its first arrival printed `|-hitcount|1` beside TWO Rough Skin tolls —
+ * two numbers for one quantity, four hundred lines apart in one function.
+ *
+ * BOTH ENGINES, one staged board (`tests/probe_volley_reactor_count.js --release <id>`):
+ *     SHOWDOWN  hit, TOLL, faint, -hitcount 1
+ *     MEDICHAM  hit, TOLL, TOLL, faint, -hitcount 1      <- before
+ * and cards 7 and 228 of data/verification/divergence-turns.empirical.json are the same shape in two
+ * real pinned games.
+ *
+ * THE SURVIVOR ARM IS THE OVER-FIRE CONTROL AND IT IS NOT OPTIONAL: the identical click into a body
+ * that lives through BOTH arrivals must still toll TWICE. Without it "the toll is paid once" is
+ * satisfied by an engine that forgot how to count hits at all — which is the state this engine was in
+ * before WIRE 84. `no-ability` is the cleared control: the same board, the same KO, no toll at all. */
+const volleyToll = (defAbility, tgHP) => {
+  const me = bare('talonflame'), ally = bare('corviknight');
+  const f1 = bare('garchomp'); f1.ability = defAbility;
+  if (tgHP != null) f1.curHP = tgHP;
+  const f2 = bare('milotic');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  const hm = me.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'dualwingbeat', f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const ls = trace.map(String);
+  return { paid: hm - me.curHP, dead: !!f1.fainted,
+           tolls: ls.filter(l => /^\|-damage\|p1a/.test(l) && /\[from\] ability: /.test(l)).length,
+           count: +(ls.find(l => /^\|-hitcount\|/.test(l)) || '||0').split('|').pop() };
+};
+probe('ability', 'punishesAttacker',
+      'a volley that kills on its first arrival tolls the attacker ONCE, not once per drawn hit', () => {
+  const survivor = volleyToll('roughskin', null);
+  const killer   = volleyToll('roughskin', 5);
+  const cleared  = volleyToll('none', 5);
+  const eighth = Math.floor(bare('talonflame').st.hp / 8);
+  return { works: !survivor.dead && survivor.tolls === 2 && survivor.count === 2
+                    && survivor.paid === eighth * 2
+                  && killer.dead && killer.count === 1 && killer.tolls === 1
+                    && killer.paid === eighth
+                  && cleared.dead && cleared.count === 1 && cleared.tolls === 0 && cleared.paid === 0,
+           arms: { survivor: survivor.tolls, killer: killer.tolls, cleared: cleared.tolls },
+           detail: `Talonflame Dual Wingbeat (two arrivals) into a Rough Skin Garchomp — an eighth of `
+                 + `Talonflame is ${eighth}. It SURVIVES: -hitcount ${survivor.count}, `
+                 + `${survivor.tolls} toll(s), Talonflame paid ${survivor.paid}. On 5 HP it DIES to `
+                 + `the first arrival: -hitcount ${killer.count}, ${killer.tolls} toll(s), paid `
+                 + `${killer.paid}. Same board with no ability: it still dies (-hitcount `
+                 + `${cleared.count}) and Talonflame pays ${cleared.paid}` };
+});
+
 /* THE FAINT QUEUE, STAGE 2 — A CONTACT PUNISH THAT KILLS THE ATTACKER IS ANNOUNCED WITH THE TARGET,
  * AND THE TARGET IS FIRST. 2026-08-23.
  *
@@ -31253,10 +31327,12 @@ process.exitCode = red.length ? 1 : 0;
  * nobody made. The engine stamps `MEDFAILS.residualCollapsed` for exactly this — a break that cannot
  * be mistaken for a clean run. Any future switch of the same kind belongs here. A RATCHET REGRESSION
  * IS NOT ONE OF THEM: it is a finding about the probes, and the floor above is what protects it. */
-if (M.fails.residualCollapsed) {
+const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored']
+  .filter(k => M.fails[k]);
+if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '
-    + 'deliberate break (MEDFAILS.residualCollapsed). The counts above are a demonstration, not a '
-    + 'census.');
+    + 'deliberate break (MEDFAILS.' + DELIBERATE_BREAK.join(', MEDFAILS.') + '). The counts above '
+    + 'are a demonstration, not a census.');
   process.exit(0);
 } else {
   fs.writeFileSync(CENSUS, JSON.stringify({

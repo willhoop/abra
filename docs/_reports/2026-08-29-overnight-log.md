@@ -116,3 +116,55 @@ engine batch overnight.
 running it brings no `-ate` and no accuracy step with it. `dmgRange`'s 7th argument already prices a
 rolled count. The volley loop is therefore cheaper than filed: it moves `skipped_multihit` 134 -> 0,
 and does NOT move `skipped_ability_multihit` 17.
+
+---
+
+## SEVENTEEN BATCHES — THE FULL LEDGER
+
+Board-parted **135 -> 90** of 961. Census **780 -> 803** live / probed / 0 missing. Every figure below
+verified by the coordinator against the named artifact before it was committed.
+
+| batch | what was actually wrong | board-parted |
+|---|---|---|
+| forced-switch mirror | THE HARNESS. `battleTurn()` is atomic while Showdown stops inside a turn, so the mirror read the END-OF-TURN occupant | 135 -> 117 |
+| weight base power | the brackets were right; the weight never followed a forme change | 117 -> 114 |
+| pivot redirection | the draw site excluded `kind === "switch"` BY NAME | 114 -> 106 |
+| Innards Out | a regex stopped at the INNER bracket, filing the ability under the tag for its own opposite | 106 -> 100 |
+| ally Lightning Rod + Wide Guard | two causes, not one -- what they shared was a SENTENCE | 100 -> 97 |
+| Safeguard source side | the authority ends on `target !== source` -- identity, not side | 97 (lab only, predicted) |
+| Encore bracket | Champions REPLACES the handler mainline leaves alone | 97 (`order_probe` 11 -> 2) |
+| shield re-arm | the counter was right; the GATE was armed off a move since replaced | 97 -> 94 |
+| default target side | 91 of 500 moves drawn wrong; the ability was innocent | 94 (narration-only) |
+| priority modified | a priority-granting ability was absent from all five gates | 94 -> 93 |
+| Parting Shot conditional | a third cancelling ability the card did not have | 93 -> 92 |
+| the five reds | 3 INSTRUMENT, 1 FIXED, 1 FILED -- one could never have gone green | -- |
+| Instruct shield | never asked whether a shield was up | 92 -> 91 |
+| Instruct target | 73 of 355 status repeats pinned to foe slot 0 | 91 -> 90 |
+| side-vs-target census | all 5 remaining instances are ONE cause; symptom is always SILENCE | 90 (pool cannot see it) |
+
+## WHAT THE NIGHT ACTUALLY TAUGHT
+
+**THE CARDS ARE RELIABLE ABOUT WHERE AND UNRELIABLE ABOUT WHY.** Every single stated cause was wrong;
+every symptom was real. Two counts were overstated, two understated, one clause recorded backwards,
+and one card (Armor Tail) blamed an ability that was innocent.
+
+**FIVE DEFECTS WERE ONE WRONG BELIEF TYPED IN FIVE PLACES**, in code sharing no function, array or
+predicate. Each was found by fixing the previous one, never by a gate — because a bad SELECTOR hands
+a CORRECT predicate the wrong body and arrives wearing the predicate's name. An authority-side
+enumeration structurally cannot see that; `engine/side_selection_census.js` is engine-side for that
+reason, and it catches four spellings the original regex missed.
+
+**THE INSTRUMENT WAS WRONG BEFORE THE ENGINE AT LEAST SIX TIMES**: three roster reds that were the
+ruler, a probe reading a field this engine does not have, a control demanding zero announcements from
+a shield that genuinely refuses, and a test whose rc 3 was `publish_guard` correctly refusing a shrink
+— no engine state could ever have made it green.
+
+**A GENERATOR THAT DIES LOOKS EXACTLY LIKE ONE THAT RAN.** `tag_dex.js` writes at line 9833 of 9854,
+so an OOM leaves `data/tags.json` with its old content AND its old mtime. Nothing on disk records the
+death. `test-resolution-order` had been rc 134 for days because the wrapper ignored the
+`ABRA-HEAP: 6144` the check itself declares; it now reads 26 arms, 0 failing, and was doing more work
+than most tests that ran.
+
+**AND ONE COVERAGE FACT THAT BOUNDS EVERYTHING**: both action pickers write targets over the FOES, so
+no pooled game has ever aimed a single-target move at a partner — 31,216 aims at a foe, 467 at an ally.
+The entire ally-side class is invisible to the pinned pool by construction. Only the lab can see it.

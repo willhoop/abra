@@ -11,6 +11,62 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.226.0] — 2026-08-29
+
+### Fixed
+- **A VOLLEY THAT KILLS SET EVERY `onDamagingHit` REACTOR OFF ONCE PER ARRIVAL IT *DREW*, WHERE THE
+  AUTHORITY COUNTS THE ONES THAT *LANDED* — SO THIS ENGINE PRINTED `|-hitcount|1` BESIDE TWO ROUGH
+  SKIN TOLLS OFF ONE CLICK.** `data/mods/champions/scripts.ts:461-464` — the Champions override of
+  `hitStepMoveHitLoop`, not mainline — opens each arrival behind
+  `if (targets.every(target => !target?.hp)) break`, and writes `-hitcount` as `hit - 1` at `:550`.
+  `_stepApply`'s packet loop in `engine/medicham2-browser.js` already broke on `tg.curHP<=0` and
+  already counted what landed into `R.hitLanded`; `_react` was a SECOND reading of that same quantity,
+  taken from the DRAWN count `_hitsThisUse`. Two implementations of one fact, four hundred lines apart
+  in one function. `R.react` feeds both `punishesAttacker` and `buffsHolderOnHit`, so one expression
+  corrected both families. The single-packet and COLLAPSED roads (WIRE 20's declared divergence) are
+  untouched and still use the drawn count.
+  **Measured on both engines, one staged board** (`tests/probe_volley_reactor_count.js`): a Dual
+  Wingbeat whose first arrival kills reads `hit, TOLL, faint, -hitcount 1` on the authority and read
+  `hit, TOLL, TOLL, faint, -hitcount 1` here. The turn before it — the survivor control, same board,
+  same click — reads two tolls and `-hitcount 2` on both, so "the toll is paid once" cannot be
+  satisfied by an engine that forgot how to count hits.
+  **Empirical whole-game board-parted 90 → 88 of 961, protocol 205 → 204** — predicted at its point
+  estimate before the run. **Census 803 → 804 live / 804 probed / 0 missing.**
+
+### Changed
+- **THE CARD REVIEW'S D-FAMILY IS RE-CUT, AND ONE OF ITS CARDS IS REFUTED.**
+  `docs/_reports/2026-08-29-empirical-divergence-cards.md` grouped D2/D3/D4 as one faint-boundary
+  family. Read out of the cards' own lines: **D2 is four different things** (the reactor count, the
+  reactor position, a Cursed Body 30% and a Blizzard 10%); **D4 is not a frequency defect at all —
+  both engines fire Stamina twice on Twin Beam, and only the POSITION differs**, which makes D4 the
+  same defect as D2's ordering half; and **D3 is its own site**, `checkWin` returning at
+  `sim/battle.ts:2592` above `runEvent('AfterFaint')` at `:2596`. Only the board-material half was
+  landed. Account: `docs/_reports/2026-08-29-faint-boundary.md`.
+
+### Added
+- **`tests/probe_volley_reactor_count.js`** — a two-engine probe for how many arrivals of a killing
+  volley set a reactor off. It FORCES `--state` and prints why: the reactor INTERLEAVE (still open)
+  parts the protocol on turn 1, and the default stop rule would end the game above the turn being
+  measured. Cast checked through `TeamValidator`; the type chart read from `Dex.forFormat` and
+  printed, never recalled.
+- **`MEDI_VOLLEY_REACT_DRAWN=1`** — the before-arm knob, stamping `MEDFAILS.volleyReactDrawnRestored`
+  at DECLARATION rather than only where it fires, and **`MEDSEEN.volleyReactStoppedAtKO`**, which is
+  non-zero exactly on the clicks where the drawn and landed counts differ.
+- **`tests/test-mechanics.js` now refuses to write `data/mechanics-census.json` under a NAMED list of
+  deliberate breaks**, `residualCollapsed` and `volleyReactDrawnRestored`. Demonstrated rather than
+  asserted: the knob run printed the refusal and the artifact's digest was unchanged across it.
+
+### Notes
+- **Not landed, and filed with their causes:** the `onDamagingHit` interleave (cards 52, 72, 91, 134,
+  212, 228 and D4 — narration on every card measured, and a restructure rather than an expression);
+  D3's two clauses; and cards 58 and 73, whose sites are reached and whose die addresses were NOT
+  measured. Nothing is claimed about them.
+- **The closeted perish row (ROADMAP #440) still holds.** The drain position was not touched;
+  falsifiers (a), (c) and (d) are unmet, and (b) rests on the coverage-arm artifact, which was not
+  re-run this batch and is named in that report's `OWED, NOT RUN` rather than absorbed.
+
+---
+
 ## [5.225.0] — 2026-08-29
 
 ### Added

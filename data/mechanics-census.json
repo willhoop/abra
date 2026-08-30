@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T17:05:02.342Z",
+  "generated": "2026-08-29T19:28:00.529Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 803,
-  "live": 803,
+  "probed": 804,
+  "live": 804,
   "missing": 0,
-  "armed": 803,
+  "armed": 804,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3863,7 +3863,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 25.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5034,6 +5034,16 @@
       "label": "the contact punish is paid AFTER the damage lands, not before",
       "live": true,
       "detail": "Tyranitar Knock Off into Garchomp — no ability: damage lines [target], Tyranitar paid 0; Rough Skin: [target,attacker], paid 21 (an eighth is 21); the target lost 79 and 79, which must be equal",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "a volley that kills on its first arrival tolls the attacker ONCE, not once per drawn hit",
+      "live": true,
+      "detail": "Talonflame Dual Wingbeat (two arrivals) into a Rough Skin Garchomp — an eighth of Talonflame is 19. It SURVIVES: -hitcount 2, 2 toll(s), Talonflame paid 38. On 5 HP it DIES to the first arrival: -hitcount 1, 1 toll(s), paid 19. Same board with no ability: it still dies (-hitcount 1) and Talonflame pays 0",
       "hollow": false,
       "armed": true,
       "directCall": false
