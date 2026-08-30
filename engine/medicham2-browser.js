@@ -1591,6 +1591,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      one fact and should move together on any volley this engine can address; a gap between them is
      a volley that priced per arrival and then collapsed, which MEDFAILS names. */
   formeAbsorbArrivalOnly: 0, formeAbsorbBustBetweenArrivals: 0,
+  /* 2026-08-30 -- the SINGLE-ARRIVAL road's two ends. `formeAbsorbBustAtUpdate` is `_stepApply`
+     deciding the reveal is owed; `formeAbsorbBustPaidAtUpdate` is `_stepUpdate` paying it, which is
+     `eachEvent('Update')` at the foot of the hit. They must be EQUAL on any run -- a gap is a body
+     left renamed with no `detailschange`, which `MEDFAILS.formeBustPendingUnpaid` names. */
+  formeAbsorbBustAtUpdate: 0, formeAbsorbBustPaidAtUpdate: 0,
+  /* 2026-08-30 -- the `EatItem` pass, run BELOW the berry's own effect the way `Pokemon#eatItem`
+     runs it. Counted because the whole defect was invisible to every board comparison: the final
+     HP was right and only the order of the two `-heal` lines was wrong. */
+  berryEatReactionAfterEffect: 0,
   /* WIRE 137 -- a status move whose named target had left the field and was re-aimed at the body now
    * standing in that slot. A move targets a SLOT; this counts how often that actually bites.
    * WIRE 139 SUBSUMED IT: the status branch now asks the shared `reaimToSlot`, which counts every
@@ -3007,6 +3016,11 @@ const MEDFAILS = { encoreAction: 0,
   formeAbsorbArrivalsUnaddressed: 0, formeAbsorbArrivalsUnaddressedFirst: '',
   formeAbsorbPerHitPlan: 0, formeAbsorbPerHitPlanFirst: '',
   formeAbsorbCollapsedWithClamp: 0, formeAbsorbPendingUnspent: 0,
+  /* 2026-08-30 -- the single-arrival reveal was owed and the move ended without `_stepUpdate`
+     running. NOT EXPECTED: the backstop below the step driver calls it unconditionally, and a row
+     that reached the absorb has `_reached > 0` by construction. Non-zero means a body was renamed
+     with no `detailschange` and no chip -- silent, which is the shape this file has a rule about. */
+  formeBustPendingUnpaid: 0,
   /* 2026-08-28 -- set whenever MEDI_FORMEONHIT_CLICK_WIDE=1 puts the whole-click absorb back on
      purpose, so a deliberate restore arm and a broken engine can never be read as the same thing. */
   formeOnHitClickWideRestored: 0,
@@ -9336,8 +9350,26 @@ function passItemFromAlly(spender){
   if(TR)TR.actOf(giver,'ability: '+giver.ability,spender,_it);
   return true;
 }
-function consumeBerry(m,itemId){
+function consumeBerry(m,itemId,onEat){
   if(!m)return;
+  /* 2026-08-30 -- THIS FUNCTION IS `Pokemon#eatItem`'S BODY NOW, IN ITS ORDER, AND `onEat` IS THE
+   * CALLER'S HALF OF IT. sim/pokemon.ts:1789-1809, one statement per line:
+   *
+   *     this.battle.add('-enditem', this, item, '[eat]');                          :1789
+   *     this.battle.singleEvent('Eat', item, this.itemState, this, source, ...);   :1791
+   *     this.battle.runEvent('EatItem', this, source, sourceEffect, item);         :1792
+   *     this.lastItem = this.item; this.item = ''; ... this.ateBerry = true;        :1806-1808
+   *     this.battle.runEvent('AfterUseItem', this, null, null, item);              :1809
+   *
+   * `onEat` is `singleEvent('Eat')` -- the BERRY'S own effect, which differs per caller (a heal, a
+   * cure, a PP refill) and is therefore handed in rather than switched on here. The `-enditem` line
+   * moved INSIDE, because it is the statement above it and four callers each writing their own is
+   * four chances for one of them to write it on the wrong side of the eat. That is exactly what had
+   * happened: three of the four wrote it BELOW `consumeBerry`, so Cheek Pouch's `-heal` came out
+   * first and the berry's own `-heal` reported the post-BOTH HP.
+   *
+   * `MEDI_EATREACT_BEFORE_BERRY=1` puts the `EatItem` pass back above the `-enditem` and the effect,
+   * which is the whole of the old shape. */
   /* 2026-08-28 -- THE HOLDER'S ABILITY ANNOUNCES ITSELF BEFORE THE EAT. `announcesBerryEat` is
    * derived from the ability's own `onTryEatItem` handler, whose whole body for the one legal member
    * is `this.add('-activate', pokemon, 'ability: Ripen')` -- unconditional, and on a DIFFERENT hook
@@ -9360,23 +9392,40 @@ function consumeBerry(m,itemId){
   m._usedItemThisTurn=true;
   m.item='';
   MEDSEEN.berryConsumed++;
-  /* CHEEK POUCH -- a third of max HP on TOP of whatever the berry did, on ANY berry. Heal Block gates
-   * it exactly as it gates every other heal in this file; the amount is the ability's own fraction. */
-  {const _cp=TAGS.param('ability',m.ability,'healsOnBerryEaten');
-   if(_cp&&Array.isArray(_cp.heal)&&!healBlocked(m)&&m.curHP>0){
-     const _h0=m.curHP;
-     m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_cp.heal[0]/_cp.heal[1]));
-     if(m.curHP>_h0){MEDSEEN.cheekPouchHealed++;if(TR)TR.heal(m,'[from] ability: '+m.ability);}
-   }}
-  /* CUD CHEW arms its second helping here, in `onEatItem`, exactly where the authority arms it. The
-   * counter is the handler's own (2) and the residual spends it; `notFromEffects` is carried and is
-   * unreachable from this site, because Bug Bite and Pluck do not come through here at all -- which is
-   * the point of routing only real EATING through one function. */
-  {const _cc=TAGS.param('ability',m.ability,'reEatsBerry');
-   if(_cc&&+_cc.delayTurns>0&&String(itemId||'')){
-     m._cud={berry:String(itemId),left:+_cc.delayTurns};
-     MEDSEEN.cudChewArmed++;
-   }}
+  /* `runEvent('EatItem')` -- CHEEK POUCH AND CUD CHEW, ONE PASS, sim/pokemon.ts:1792. They are the
+   * SPENDER's own two reactions to eating and they share a hook, so they share a position. */
+  const _eatItemEvent=()=>{
+    /* CHEEK POUCH -- a third of max HP on TOP of whatever the berry did, on ANY berry. Heal Block
+     * gates it exactly as it gates every other heal in this file; the amount is the ability's own
+     * fraction. */
+    {const _cp=TAGS.param('ability',m.ability,'healsOnBerryEaten');
+     if(_cp&&Array.isArray(_cp.heal)&&!healBlocked(m)&&m.curHP>0){
+       const _h0=m.curHP;
+       m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_cp.heal[0]/_cp.heal[1]));
+       if(m.curHP>_h0){MEDSEEN.cheekPouchHealed++;if(TR)TR.heal(m,'[from] ability: '+m.ability);}
+     }}
+    /* CUD CHEW arms its second helping here, in `onEatItem`, exactly where the authority arms it. The
+     * counter is the handler's own (2) and the residual spends it; `notFromEffects` is carried and is
+     * unreachable from this site, because Bug Bite and Pluck do not come through here at all -- which
+     * is the point of routing only real EATING through one function. */
+    {const _cc=TAGS.param('ability',m.ability,'reEatsBerry');
+     if(_cc&&+_cc.delayTurns>0&&String(itemId||'')){
+       m._cud={berry:String(itemId),left:+_cc.delayTurns};
+       MEDSEEN.cudChewArmed++;
+     }}
+  };
+  if(EATREACT_BEFORE_BERRY){
+    /* THE OLD SHAPE, RESTORED WHOLE: the reactions above the line and above the effect. */
+    MEDFAILS.eatReactBeforeBerryRestored=1;
+    _eatItemEvent();
+    if(TR)TR.enditem(m,itemId,'[eat]');
+    if(onEat)onEat();
+  } else {
+    if(TR)TR.enditem(m,itemId,'[eat]');   /* :1789 */
+    if(onEat)onEat();                     /* :1791  singleEvent('Eat') -- the BERRY */
+    _eatItemEvent();                      /* :1792  runEvent('EatItem') -- the ABILITY */
+    MEDSEEN.berryEatReactionAfterEffect++;
+  }
   /* ROADMAP #175 -- AND THE PARTNER'S SYMBIOSIS ANSWERS, LAST. It is at the BOTTOM of this function on
    * purpose: Cheek Pouch and Cud Chew are the SPENDER's own reactions to eating, and the replacement
    * item must not be in the slot while they resolve, or `_cud` would arm off a berry that is no longer
@@ -9455,9 +9504,9 @@ function eatHeldBerry(m){
   if(!m||m.fainted||m.curHP<=0)return false;
   const _it=m.item;
   if(!_it||!TAGS.has('item',_it,'isBerry'))return false;
-  consumeBerry(m,_it);                       // the one consumption site -- Harvest, Cud Chew, Symbiosis
-  if(TR)TR.enditem(m,_it,'[eat]');
-  if(!berryForceEat(m,_it))MEDSEEN.forcedBerryEffectUnexpressed++;
+  /* the one consumption site -- it writes the `-enditem`, runs this berry's own effect and only
+     then pays Cheek Pouch, Cud Chew and Symbiosis. See consumeBerry. */
+  consumeBerry(m,_it,()=>{ if(!berryForceEat(m,_it))MEDSEEN.forcedBerryEffectUnexpressed++; });
   MEDSEEN.forcedBerryEaten++;
   return true;
 }
@@ -9479,9 +9528,15 @@ function berryCureUpdate(m,foes){
   const _cs=TAGS.param('item',m.item,'curesStatus');
   if(!(_cs&&m.status&&_cs.statuses))return;
   if(!(_cs.statuses==='any'||(Array.isArray(_cs.statuses)&&_cs.statuses.indexOf(m.status)>=0)))return;
-  if(TR){TR.enditem(m,m.item,'[eat]');TR.cure(m,m.status,ATTR.cured(false).from);}
-  m.status='';m.toxTurns=0;
-  consumeBerry(m,m.item);        // ROADMAP #128 -- the one consumption site
+  /* ROADMAP #128 -- the one consumption site. THIS CALLER WAS ALREADY IN THE AUTHORITY'S ORDER
+     (`-enditem`, then the cure, then Cheek Pouch) because it wrote its two lines ABOVE the call; it
+     is routed through `onEat` so that the position is stated in one place rather than held by three
+     callers agreeing with a fourth by accident. */
+  const _cit=m.item;
+  consumeBerry(m,_cit,()=>{
+    if(TR)TR.cure(m,m.status,ATTR.cured(false).from);
+    m.status='';m.toxTurns=0;
+  });
 }
 /* ===== 2026-08-23 -- UNNERVE IS ONE READER, AND IT REACHED TWO OF THE FIVE PLACES A BERRY IS EATEN =
  *
@@ -9582,9 +9637,13 @@ function berryPinchUpdate(m,foes){
    * it applies to the fraction AND to Oran's flat ten. One reader (berryEffectMult) rather than a
    * clause here, because the PP restore below needs the identical answer. */
   const _amt=(_ht.restores?Math.floor(m.st.hp*_fr(_ht.restores)):+_ht.restoresFlat)*berryEffectMult(m);
-  m.curHP=Math.min(m.st.hp,m.curHP+_amt);
-  consumeBerry(m,_it);           // ROADMAP #128 -- the one consumption site
-  if(TR){TR.enditem(m,_it,'[eat]');TR.heal(m,'[from] item: '+_it);}
+  /* ROADMAP #128 -- the one consumption site. THE HEAL IS THE BERRY'S `onEat` AND THEREFORE RUNS
+     INSIDE IT: applying it above the call is what made Cheek Pouch's third land in the same lump, so
+     this line reported the post-BOTH HP and the pouch's own line came out above the `-enditem`. */
+  consumeBerry(m,_it,()=>{
+    m.curHP=Math.min(m.st.hp,m.curHP+_amt);
+    if(TR)TR.heal(m,'[from] item: '+_it);
+  });
 }
 /* ROADMAP #144 -- THE BERRY THAT GIVES PP BACK, AND IT COULD NOT EXIST BEFORE PP DID.
  *
@@ -9629,9 +9688,10 @@ function berryPPUpdate(m,foes){
   const _rpMul=berryEffectMult(m);
   const amt=(_rpMul>1&&+_rp.ripenAmount>0)?+_rp.ripenAmount:+_rp.amount;
   const _it=m.item;
-  m._pp[String(pick).toLowerCase().replace(/[^a-z0-9]/g,'')]=Math.min(mx,ppLeft(m,pick)+amt);
-  consumeBerry(m,_it);           // ROADMAP #128 -- the one consumption site
-  MEDSEEN.ppRestoredByItem++;
+  /* ROADMAP #128 -- the one consumption site; the refill and its line are this berry's `onEat`. */
+  consumeBerry(m,_it,()=>{
+    m._pp[String(pick).toLowerCase().replace(/[^a-z0-9]/g,'')]=Math.min(mx,ppLeft(m,pick)+amt);
+    MEDSEEN.ppRestoredByItem++;
   /* 2026-08-28 -- THE LINE CARRIES THE SLOT IT REFILLED AND THE AUTHORITY'S `[consumed]`.
    * `onEat` closes with FOUR arguments, so FIVE fields on the wire (data/items.ts:3348-3372;
    * no `leppaberry` key in data/mods/champions/items.ts, so Champions inherits it):
@@ -9641,9 +9701,9 @@ function berryPPUpdate(m,foes){
    * `Rain Dance`/`raindance` to the same string. `pick` is the slot chosen above by the handler's own
    * rule (an empty slot first, else the first below max), so the third field is DERIVED from the same
    * decision the PP restore used rather than re-guessed here. */
-  if(TR){TR.enditem(m,_it,'[eat]');
-         if(LEPPA_LINE_BARE){MEDFAILS.leppaLineBareRestored=1;TR.act(m,'item: '+_it);}
-         else TR.act(m,'item: '+_it,pick,'[consumed]');}
+    if(TR){ if(LEPPA_LINE_BARE){MEDFAILS.leppaLineBareRestored=1;TR.act(m,'item: '+_it);}
+            else TR.act(m,'item: '+_it,pick,'[consumed]');}
+  });
 }
 /* ---- 2026-08-22 -- `eachEvent('Update')`, WHICH IS WHERE AN `onUpdate` BERRY IS ACTUALLY EATEN ----
  *
@@ -20535,6 +20595,38 @@ if(REACT_BATCHED)MEDFAILS.reactBatchedRestored=1;
 const BERRY_AT_APPLY=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_BERRY_AT_APPLY==='1');
 if(BERRY_AT_APPLY)MEDFAILS.berryAtApplyRestored=1;
+/* 2026-08-30 -- `MEDI_FORME_BUST_INLINE=1` RESTORES THE BUSTED-DISGUISE REVEAL BEING WRITTEN AT THE
+ * HIT. The authority splits the mechanic across two handlers and two positions: `onDamage` writes
+ * the `-activate` and returns 0 (so `spreadDamage` still emits a `-damage` at unchanged HP), and
+ * `onUpdate` -- raised by `eachEvent('Update')` at the FOOT of the hit iteration
+ * (data/mods/champions/scripts.ts:538) -- performs the forme change and the `maxhp/8` chip. This
+ * engine ran both at the first position, so `detailschange` came out above the other spread
+ * target's damage, above a secondary unboost and above a `-start`.
+ *
+ * IT IS NOT ROADMAP #392 AND NOT #505. #392 (closed, probed) is about WHO the absorb refuses -- a
+ * body already built as the busted forme; this is about WHERE the reveal lands. #505 cannot reach
+ * it either: the authority's `formeChange` here passes `isPermanent: true`, so `clearVolatile`'s
+ * closing `setSpecies(baseSpecies)` never reverts it.
+ *
+ * ONLY THE SINGLE-ARRIVAL ROAD MOVED. The volley road has fired at the between-arrival `Update`
+ * seam since ROADMAP #526, which is the same event.
+ *
+ * STAMPED AT DECLARATION, like the knobs above. */
+const FORME_BUST_INLINE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_FORME_BUST_INLINE==='1');
+if(FORME_BUST_INLINE)MEDFAILS.formeBustInlineRestored=1;
+/* 2026-08-30 -- `MEDI_EATREACT_BEFORE_BERRY=1` RESTORES AN `onEatItem` ABILITY FIRING ABOVE THE
+ * BERRY IT REACTS TO. `Pokemon#eatItem` is one straight line (sim/pokemon.ts:1789-1809): the
+ * `-enditem [eat]`, then `singleEvent('Eat')` -- the berry's OWN effect -- then `runEvent('EatItem')`,
+ * which is where Cheek Pouch and Cud Chew live, then the item slot is cleared and `AfterUseItem`
+ * reaches Symbiosis. This engine paid the whole tail inside `consumeBerry`, which every caller runs
+ * ABOVE its own `-enditem` and its own effect -- so the pouch line came out first AND the berry's
+ * own `-heal` reported the post-BOTH HP.
+ *
+ * STAMPED AT DECLARATION, so a run under the break is identifiable before a berry is held. */
+const EATREACT_BEFORE_BERRY=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_EATREACT_BEFORE_BERRY==='1');
+if(EATREACT_BEFORE_BERRY)MEDFAILS.eatReactBeforeBerryRestored=1;
 /* 2026-08-29 -- THE AFTER-FAINT BOUNDARY, AND IT IS THE THIRD KNOB ON THE FAINT DRAIN. The two above
  * are claims about WHERE a `|faint|` line is written; this one is a claim about what happens BELOW the
  * whole drain -- when the on-KO event fires, how big one payment is, and whether it fires at all once
@@ -30128,6 +30220,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        * rng stream than the authority does. `null` until the first target is actually priced, so a
        * move that misses everything draws nothing at all. */
       let _hitsThisUse=null;
+      /* 2026-08-30 -- THE BUSTED-DISGUISE REVEAL, OWED TO THIS MOVE'S `Update` PASS. Declared at
+       * MOVE scope and not inside `_stepApply`, because the two ends of it are two different
+       * steps: `_stepApply` decides that the forme is owed and `_stepUpdate` pays it, which is
+       * exactly the authority's `onDamage` / `onUpdate` split. The between-arrival seam inside
+       * `_stepApply` keeps its own `_absPending` -- that one never leaves the step. */
+      let _bustPending=null;
       /* WIRE 147 -- HOW MANY BODIES THE DARTS ARE SPLIT ACROSS, read once at the damage step because
        * `_stepDamage` never sets `R.out` and the surviving set is therefore stable across it. */
       let _smartRows=0;
@@ -31008,7 +31106,30 @@ function battleTurn(S,rng,actsForA,actsForB){
                * 2026-08-28 -- IT IS ARRIVAL ONE'S OWN `-damage` AND THEREFORE LIVES ON THIS ROAD ONLY.
                * On the volley road the packet loop emits it for arrival 0 like every other arrival,
                * and emitting it here as well printed the line twice. */
-              dmg=_abs.chip;if(TR)TR.dmg(tg);_bust();
+              /* 2026-08-30 -- AND ON A SINGLE-ARRIVAL CLICK THE REVEAL IS OWED TO `_stepUpdate`,
+               * WHICH IS THE SAME `eachEvent('Update')` THE SEAM ABOVE IS. The authority raises
+               * it at the FOOT of the hit iteration (data/mods/champions/scripts.ts:538), below
+               * the whole of `spreadMoveHit` -- so `detailschange` and the `maxhp/8` chip come
+               * after every OTHER spread target's `-damage`, after `runMoveEffects` and after
+               * `secondaries`. This engine wrote them here, at the hit, which is four games of
+               * the pinned pool (a Heat Wave's second target, a Moonblast's spa drop, a Throat
+               * Chop's silence, a Heat Wave's burn).
+               *
+               * `dmg` GOES TO ZERO RATHER THAN TO THE CHIP, and that is the authority rather
+               * than bookkeeping: `onDamage` RETURNS 0, so `damage[i]` is 0 and the eighth is a
+               * SEPARATE `this.damage(baseMaxhp/8, ..., species)` call whose source effect is a
+               * SPECIES and not a Move -- which is why no Focus Sash, no Endure and no recoil
+               * may answer it. Those three blocks sit below this one and read `dmg`.
+               *
+               * THE ZERO-DAMAGE LINE IS NO LONGER WRITTEN HERE EITHER: with `dmg` at zero the
+               * shared `tg.curHP-=dmg` / `TR.dmg(tg,_cf)` pair below emits exactly it, at
+               * unchanged HP and with `_chipFrom` still null. One emitter, not two.
+               *
+               * `MEDI_FORME_BUST_INLINE=1` restores the old straight line. */
+              if(FORME_BUST_INLINE){MEDFAILS.formeBustInlineRestored=1;
+                dmg=_abs.chip;if(TR)TR.dmg(tg);_bust();}
+              else{dmg=0;_bustPending={tg:tg,chip:_abs.chip,bust:_bust};
+                   MEDSEEN.formeAbsorbBustAtUpdate++;}
             }
           }
         }
@@ -32980,6 +33101,24 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _stepUpdate=()=>{
         if(_updateDone)return; _updateDone=true;
         if(!(_reached>0)){MEDSEEN.inMoveUpdateSkippedNoTarget++;return;}
+        /* 2026-08-30 -- THE BUSTED-DISGUISE REVEAL IS PAID HERE, ABOVE THE BERRY, and both
+         * halves of that sentence are the authority. `disguise.onUpdate` is an `onUpdate`
+         * handler like the pinch berry beside it, and `findPokemonEventHandlers` collects a
+         * body's handlers ABILITY FIRST (ability, then item, then status, then volatiles) --
+         * which is the same order the between-arrival seam inside `_stepApply` already uses,
+         * uncopied: both call the closure `_stepApply` built, so a volley and a single hit
+         * cannot come to rename the forme differently.
+         *
+         * ABOVE THE `NO_INMOVE_UPDATE` KNOB, deliberately: that knob is a claim about the
+         * `onUpdate` PASS and this is the forme change the authority raises in it. Leaving the
+         * reveal unpaid under an unrelated knob would strand a body renamed with no line. */
+        if(_bustPending){
+          const _p=_bustPending;_bustPending=null;
+          _p.bust();
+          _p.tg.curHP-=_p.chip;
+          if(TR){const _cf=_p.tg._chipFrom;_p.tg._chipFrom=null;TR.dmg(_p.tg,_cf||undefined);}
+          MEDSEEN.formeAbsorbBustPaidAtUpdate++;
+        }
         if(NO_INMOVE_UPDATE){MEDFAILS.inMoveUpdateSuppressed=1;return;}
         _updateEvent(); MEDSEEN.inMoveUpdateRan++;
       };
@@ -33688,6 +33827,10 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(!_afterHitFieldDone)MEDSEEN.afterHitFieldFlushed++;
       if(!_updateDone)MEDSEEN.inMoveUpdateFlushed++;
       _stepAfterHitField(); _stepUpdate();
+      /* 2026-08-30 -- AND THE REVEAL MUST NOT SURVIVE THE MOVE. `_stepUpdate` above is
+       * unconditional, so this can only fire on the `_reached === 0` early return -- a population
+       * `_stepApply` never reached. Counted rather than assumed away. */
+      if(_bustPending){MEDFAILS.formeBustPendingUnpaid++;_bustPending=null;}
       /* ROADMAP #81 WIRE 1 -- NOTHING GOT THROUGH, so the move FAILED and the crash is paid. This is
          the immunity half of the same rule the shield half above pays: measured in the authority, a
          High Jump Kick into a Ghost prints `|-immune|` and then takes the user to `0 fnt`. No

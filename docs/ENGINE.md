@@ -115,9 +115,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  810/810 probed mechanics live, 0 missing   (census 2026-08-30 01:22)
+  812/812 probed mechanics live, 0 missing   (census 2026-08-30 10:25)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 1.1 days old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 1.5 days old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -132,7 +132,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c54b2faf934b now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is d17968a643d4 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/300 probed, 15 unprobed;  271/300 have an engine consumer, 29 have none
@@ -140,9 +140,173 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-30 01:39_
+_stamped 2026-08-30 10:32_
 
 <!-- /GENERATED -->
+
+## THE REVEAL WAS WRITTEN AT THE HIT AND THE ON-EAT ABILITY ABOVE THE BERRY IT REACTS TO — TWO FIXES, MEASURED APART, AND G6 IS NOT THE STANDING DISGUISE DEFECT. **CENSUS 810 -> 812 LIVE / 812 PROBED / 0 MISSING. EMPIRICAL PROTOCOL 181 -> 175, `ordering` 31 -> 24 — EXACTLY THE SEVEN GAMES, AND EVERY ONE OF THE SEVEN REMOVED CAUSES NAMES ONE OF THE TWO MECHANISMS. BOARD-PARTED UNMOVED AT 84 OF 961 AND END-STATE VERDICTS IDENTICAL. ALL FOUR PREDICTED FIGURES HIT AT THEIR POINT ESTIMATE.** 2026-08-30.
+
+Full account: [docs/_reports/2026-08-30-forme-and-oneat.md](_reports/2026-08-30-forme-and-oneat.md).
+
+### THEY ARE TWO, AND THERE WAS NEVER A SHARED CAUSE TO FIND
+
+The 2x2 over `MEDI_FORME_BUST_INLINE` and `MEDI_EATREACT_BEFORE_BERRY`, one staged board per defect,
+asserted on the FULL canonical line arrays rather than on the shape strings:
+
+```
+                              G6 board (Heat Wave / Disguise)   G8 board (Sitrus / Cheek Pouch)
+  neither                     VZXDC     CORRECT                 BIP   CORRECT
+  MEDI_FORME_BUST_INLINE      VZDCX     WRONG                   BIP   CORRECT
+  MEDI_EATREACT_BEFORE_BERRY  VZXDC     CORRECT                 PBI   WRONG
+  both                        VZDCX     WRONG                   PBI   WRONG
+```
+
+Each knob moves its own board and leaves the other **byte-identical under both settings of the
+other**. The census agrees in both directions: each knob takes exactly its own probe MISSING (811
+live / 1 missing) and leaves the other LIVE; both are registered in `DELIBERATE_BREAK`, so both runs
+REFUSED to write the census and the message named the right `MEDFAILS` key.
+
+### G6 IS A SECOND DEFECT, NOT THE ONE ALREADY ON THE BOOKS
+
+The standing claim that *Disguise fires on the already-busted forme* is **ROADMAP #392, CLOSED
+2026-08-23**, carried live in the census as `ability / formeOnHit / a body that is ALREADY the busted
+forme absorbs nothing`, and absent from `open_work.js`. It asks **WHO** the absorb refuses
+(`onEffectiveness`, the Champions override); this asks **WHERE** the reveal is written (`onUpdate`,
+inherited). **ROADMAP #505 cannot reach it either**: `clearVolatile`'s closing
+`setSpecies(baseSpecies)` reverts a NON-permanent forme, and Disguise's `onUpdate` calls
+`formeChange(speciesid, this.effect, true)` — the third argument IS `isPermanent`, so this forme is in
+the set #505's own row declares exempt.
+
+### G8 WAS RE-MEASURED ON THE CURRENT TREE, AS ASKED, AND THE BERRY FIX HAD NOT TOUCHED IT
+
+The same three games and the same three cause strings, re-read from the `a18431d6dbe2` dump. **They
+are different roads and that is why**: the type-resist berry never went through `consumeBerry` at all,
+so `item/resistBerryAtCalculation` could not have moved the `onUpdate` pinch berry's `EatItem` pass.
+
+### THE AUTHORITY'S TWO STATEMENTS, CHAMPIONS CHECKED FIRST BOTH TIMES
+
+`data/mods/champions/abilities.ts:14` declares `disguise: { inherit: true, onEffectiveness(...) }` — it
+replaces that handler and **nothing else**, so `onDamage` (`data/abilities.ts:962-967`, writes the
+`-activate` and RETURNS 0) and `onUpdate` (`:991-997`, the `formeChange` plus
+`this.damage(baseMaxhp/8, ..., species)`) are the mainline bodies. `onUpdate` is raised by
+`eachEvent('Update')` at the FOOT of the hit iteration (`data/mods/champions/scripts.ts:538`), below
+the whole of `spreadMoveHit`. And `data/mods/champions/abilities.ts` carries **no `cheekpouch` key at
+all**, so `onEatItem` is inherited whole; `Pokemon#eatItem` is one straight line —
+`-enditem [eat]` (`sim/pokemon.ts:1789`), `singleEvent('Eat')` (`:1791`, the BERRY),
+`runEvent('EatItem')` (`:1792`, CHEEK POUCH), then the slot is cleared and `AfterUseItem` reaches
+Symbiosis.
+
+### `dmg` GOES TO ZERO, WHICH IS A STATE CHANGE AND NOT A LINE MOVE
+
+Said out loud rather than folded into the ordering claim. `onDamage` returns 0, so `damage[i]` is 0
+and the eighth is a SEPARATE `this.damage()` whose source effect is a SPECIES and not a Move — which
+is why no Focus Sash, no Endure and no recoil may answer it, and those three blocks sit below this one
+and read `dmg`. Strictly closer to the authority than the chip that used to sit there. With `dmg` at
+zero the shared `tg.curHP-=dmg` / `TR.dmg(tg,_cf)` pair below emits the ROADMAP #308 zero-damage line
+itself, so there is **one emitter and not two** — the first version of #526's fix printed that line
+twice and a control caught it.
+
+### THE `-enditem` LINE MOVED INSIDE `consumeBerry`, AND THAT IS THE LOAD-BEARING HALF
+
+Four callers each writing their own line is four chances to write it on the wrong side of the eat, and
+three of the four had. `consumeBerry` is `Pokemon#eatItem`'s body now, in its order, and takes the
+caller's `onEat` closure. **One caller was already right and is the over-fire control**:
+`berryCureUpdate` wrote its two lines above the call, so the status-berry road already read `B S P`; it
+is routed through `onEat` anyway, so the position is stated in one place rather than held by three
+callers agreeing with a fourth by accident.
+
+### THE PROBES — RED FIRST, AND THE OVER-FIRE CONTROLS ARE THE POINT
+
+**`ability/formeOnHit`** — three TESTS that must all read `VZXDC` (Heat Wave's second target, Moonblast's
+SpA-drop secondary, Throat Chop's `-start`, which are the three shapes the four pool games take), and
+two controls that must NOT move: a **plain single-target click** must stay `VZDC`, which is what a fix
+deferring the reveal to the END OF TURN would break, and a **multi-arrival volley** must stay `VZDCZ`,
+because its bust has fired at the between-arrival `Update` seam since ROADMAP #526. Arithmetic control:
+the holder ends on `maxhp - maxhp/8` on both.
+
+**`ability/healsOnBerryEaten`** — `BIP`, and **the berry's own `-heal` must report the berry's own HP**,
+equal to the no-ability control's, which is what says the two heals are no longer one lump. Controls:
+no ability (`BI`), an EMPTY HAND (no line at all), and the STATUS-berry road (`BSP`).
+
+### WHICH SCOREBOARD, SAID BEFORE THE RUN — AND ALL FOUR HIT EXACTLY
+
+`data/verification/prediction-formeoneat.json`, stamped 14:16Z against a run started at 14:22Z.
+
+| | baseline | predicted | band | measured |
+|---|---|---|---|---|
+| protocol-diverged | 181 | **175** | 172-179 | **175** |
+| board-parted | 84 | **84 unmoved** | 82-85 | **84** |
+| `ordering` class | 31 | **24** | 22-26 | **24** |
+| end-state verdicts | 903/55/2/0/1 | identical | identical | **identical** |
+
+Both mechanics are line-ORDER defects with no HP consequence, so the board was predicted flat and the
+protocol to move. The band on protocol existed because dump row 85 was expected to resurface on a
+Rising Voltage KO — **and it did, on exactly that line**, the single added cause.
+
+Seven causes removed, every one naming a mechanism; one added.
+`engine/arms_comparable.js` reports **COMPARABLE**. `data/game-differential.json` untouched.
+
+### A METHOD NOTE THAT COST TWO RUNS
+
+`--out` redirects the artifact but does **not** imply `--write`, and `--state` / `--end-state` are
+their own flags. A run without them exits 0, writes the DUMP and writes no artifact at all; a run with
+`--write` but without `--end-state` writes an artifact whose `state` block is `null` and whose
+`diverged` reads 177 rather than 175, because the end-state comparison is what marks one game THREW.
+**Two arms differing in `--end-state` are not comparable on `diverged`.**
+
+### THE CLOSETED PERISH ROW (ROADMAP #440) STILL HOLDS
+
+This batch does not touch the drain: the G6 edit is inside `_stepApply` / `_stepUpdate`, both above
+`_stepFaint` in the move's step list, and the G8 edit is inside `consumeBerry`, which writes no faint
+and reads no queue. Its cause string is in neither the added nor the removed set, and
+`tests/probe_upkeep_lines.js` is **character-identical with both knobs restored**. Falsifier (b) — the
+COVERAGE arm of `data/game-differential.json` — remains undecided, exactly as before.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"the busted-disguise reveal lands at the hit rather than at the `Update` below the move"*~~ —
+  **landed and probed** by `ability/formeOnHit`, and it is a SECOND defect rather than ROADMAP #392,
+  which is closed and separately probed.
+- ~~*"an on-eat ability fires before the berry it reacts to"*~~ — **landed and probed** by
+  `ability/healsOnBerryEaten`. The `-enditem` line moved inside `consumeBerry` with it.
+
+**Joins it:**
+- **THREE BERRY-EATING ROADS NEVER RAISE `EatItem` AT ALL, SO CHEEK POUCH, CUD CHEW AND SYMBIOSIS DO
+  NOT FIRE ON THEM.** The authority's `onSourceModifyDamage` calls `target.eatItem()`, which is the
+  WHOLE of `eatItem`; this engine's resist-berry site writes its own `[eat]`/`[weaken]` pair and
+  empties the hand directly, never through `consumeBerry`. **MEASURED on a staged board, not
+  reasoned**: Close Combat into a Cheek Pouch Maushold holding a Chople Berry emits `-enditem [eat]`,
+  `-enditem [weaken]`, `-damage` and **no `-heal`**. `itemCuresVolatile` (a Persim or Lum spent on a
+  confusion) is the same shape, and so is the `_lastItem` / `_ateBerry` record Harvest and Belch read.
+  It changes HP, so it is its own batch.
+- **TRIPLE AXEL INTO AN INTACT DISGUISE DEALS ZERO ON ARRIVALS 2 AND 3.** Found while choosing this
+  batch's volley control and NOT diagnosed — it is the `formeAbsorbPerHitPlan` remainder ROADMAP #526
+  already declared open by name. Dual Wingbeat takes the addressable road, is correct, and is what the
+  probe uses.
+
+**Carried forward unchanged** from the hand lists below: a multi-arrival volley halving EVERY arrival
+against a resist berry; the drain heal paid once per row where the authority pays per hit; an attacker
+killed by an interior arrival's toll not stopping the volley; `tests/probe_upkeep_lines.js` red at 4 of
+49, cleared of this batch by a knob-cleared control; this walk re-asking `residualOrder()` per group; a
+perish-killed body skipping its own orders 25-29; `tests/probe_red_demo.js`'s five COULD-NOT-BE-APPLIED
+and one HOLLOW, unchanged and unanchored by either edit; `boost()`'s second refusal; whether every other
+announcing ability writes its `|-ability|` line; ROADMAP #362's stale row; the Cursed Body 30% and
+Blizzard 10%; the redirect gate's ally-aimed status move, the ally-aimed delayed hit, Defog's
+`target.side`, the `self`-target heal `|move|` line, the fainted-ally clause of `getTarget`, the
+`scripted` exemption from `aimTravelsByLoc`, the `chillyreception` target-class exemption, and the
+`benchRisk` refit `clickFragility` owes MEASURE.
+
+### OWED, NOT RUN
+
+The `## OWED, NOT RUN` block of
+[docs/_reports/2026-08-30-forme-and-oneat.md](_reports/2026-08-30-forme-and-oneat.md) — the three
+berry roads that raise no `EatItem`, a pool-scale reading of the four new counters, the roster's three
+stages, `data/all-mechanics-fire.json` and the COVERAGE arm of the whole-game differential (all
+WITHHELD on a release mismatch that now predates this batch by three releases), and
+`tests/test-engine-diff.js`.
+
+---
 
 ## THE REACTION WAS PAID BELOW THE WHOLE VOLLEY AND THE BERRY WAS SPENT WHEN THE HP MOVED — TWO FIXES, MEASURED APART, AND THE SECOND ONE IS NOT ABOUT THE PACKET LOOP AT ALL. **CENSUS 808 -> 810 LIVE / 810 PROBED / 0 MISSING. EMPIRICAL PROTOCOL 191 -> 181, `ordering` 43 -> 31 — EXACTLY THE TWELVE GAMES, AND EVERY ONE OF THE TWELVE REMOVED CAUSES NAMES ONE OF THE TWO MECHANISMS. BOARD-PARTED UNMOVED AT 84 OF 961 AND END-STATE VERDICTS IDENTICAL, BOTH PREDICTED. `test-resolution-order.js`'s KNOWN-OPEN ARM IS PROMOTED TO RED PROVEN, 1 -> 0.** 2026-08-30.
 

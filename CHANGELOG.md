@@ -10,6 +10,108 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.230.0] — 2026-08-30
+
+### Fixed
+- **A BUSTED DISGUISE ANNOUNCED ITSELF AT THE HIT AND THE AUTHORITY ANNOUNCES IT AT THE `Update`
+  BELOW THE WHOLE MOVE.** `data/mods/champions/abilities.ts:14` declares
+  `disguise: { inherit: true, onEffectiveness(...) }` — it replaces that handler and **nothing else**,
+  which was checked before anything was read from mainline. So the two handlers this defect is about
+  are inherited: `onDamage` (`data/abilities.ts:962-967`) writes the `-activate`, sets `busted` and
+  **returns 0**, from inside `spreadDamage`; `onUpdate` (`:991-997`) performs the `formeChange` and
+  then `this.damage(pokemon.baseMaxhp / 8, pokemon, pokemon, species)`, and it is raised by
+  `eachEvent('Update')` at the **foot of the hit iteration** (`data/mods/champions/scripts.ts:538`) —
+  below the whole of `spreadMoveHit`, i.e. below every other spread target's `-damage`, below
+  `runMoveEffects` and below `secondaries`. This engine wrote `detailschange` and the chip inline at
+  the hit, so they came out above the second spread target's damage, above a secondary's stat drop
+  and above a Throat Chop's silence. Four games of the pinned pool.
+- **AN `onEatItem` ABILITY FIRED ABOVE THE BERRY IT REACTS TO, AND THE BERRY'S OWN `-heal` THEN
+  REPORTED THE POST-BOTH TOTAL.** `Pokemon#eatItem` is one straight line (`sim/pokemon.ts:1789-1809`):
+  `-enditem [eat]`, `singleEvent('Eat')` — the berry — `runEvent('EatItem')` — Cheek Pouch and Cud
+  Chew — then the slot is cleared and `AfterUseItem` reaches Symbiosis.
+  `data/mods/champions/abilities.ts` carries no `cheekpouch` key at all, so `onEatItem(item, pokemon)
+  { this.heal(pokemon.baseMaxhp / 3); }` is inherited whole. This engine paid the whole tail inside
+  `consumeBerry`, which three of its four callers ran ABOVE their own `-enditem` and their own effect.
+  Three games of the pinned pool. The final HP was never wrong, which is why every board comparison
+  passed it.
+
+### Changed
+- `engine/medicham2-browser.js`: the single-arrival absorb sets `dmg = 0` and defers a move-scoped
+  `_bustPending` to `_stepUpdate`, flushed above `_updateEvent` because Showdown collects a body's
+  handlers ability-first. `dmg = 0` rather than the chip is `onDamage`'s own return and is a state
+  change, declared rather than folded into the ordering claim: the Focus Sash, Endure and recoil
+  blocks below read `dmg`, and the authority's chip is a separate `damage()` call whose source effect
+  is a Species. The zero-damage line is now emitted once, by the shared pair below, instead of at the
+  absorb site. The volley road is untouched — it has fired at the between-arrival `Update` seam since
+  ROADMAP #526 — and both roads call the same closure.
+- `engine/medicham2-browser.js`: `consumeBerry(m, itemId, onEat)` is `Pokemon#eatItem`'s body in its
+  order, and the `-enditem` line moved inside it. Four callers each writing their own line is four
+  chances to write it on the wrong side of the eat, and three of the four had. `berryCureUpdate` was
+  already correct and is routed through `onEat` anyway, so the position is stated in one place rather
+  than held by three callers agreeing with a fourth by accident.
+
+### Added
+- Two census probes, both shown RED before a line of engine changed: `ability/formeOnHit`
+  ("the busted-disguise reveal is written at the Update below the move, not at the hit", five arms)
+  and `ability/healsOnBerryEaten` ("Cheek Pouch heals BELOW the berry it ate, and the berry reports
+  its own HP", four arms). **The over-fire controls are the point**: a plain single-target click must
+  keep the reveal adjacent, which a fix deferring it to the end of TURN would break; a multi-arrival
+  volley must keep its between-arrival bust; and the status-berry road, already in the authority's
+  order, must not move.
+- Revert knobs `MEDI_FORME_BUST_INLINE=1` and `MEDI_EATREACT_BEFORE_BERRY=1`, both stamped at
+  declaration and both registered in `tests/test-mechanics.js`'s `DELIBERATE_BREAK`, so a run under
+  either REFUSES to write the census.
+- Counters `MEDSEEN.formeAbsorbBustAtUpdate` and `formeAbsorbBustPaidAtUpdate` (which must be equal),
+  `MEDSEEN.berryEatReactionAfterEffect`, and `MEDFAILS.formeBustPendingUnpaid`.
+- `data/verification/prediction-formeoneat.json` — the scoreboard prediction, written to disk at
+  14:16Z against a run started at 14:22Z.
+
+### Notes
+- **THEY ARE TWO FIXES AND IT WAS MEASURED.** A 2×2 over the two knobs, one staged board per defect:
+  each moves its own board and leaves the other **byte-identical on the full canonical line array**
+  under both settings of the other. The census agrees in both directions — each knob takes exactly
+  its own probe MISSING and leaves the other LIVE.
+- **G6 IS NOT THE STANDING DISGUISE DEFECT.** That is ROADMAP #392, **closed 2026-08-23**, carried
+  live in the census as `a body that is ALREADY the busted forme absorbs nothing` and absent from
+  `open_work.js`. It asks WHO the absorb refuses (`onEffectiveness`, the Champions override); this
+  asks WHERE the reveal is written (`onUpdate`, inherited). **Nor is it ROADMAP #505**: Disguise's
+  `formeChange(speciesid, this.effect, true)` passes `isPermanent`, and that row already declares a
+  permanent forme exempt from `clearVolatile`'s closing `setSpecies(baseSpecies)`.
+- **G8 WAS RE-MEASURED ON THE CURRENT TREE BEFORE IT WAS DIAGNOSED.** The resist-berry fix that
+  landed hours earlier had not changed its shape — same three games, same three cause strings. They
+  are different roads: the resist berry never went through `consumeBerry` at all.
+- **THE PREDICTION HELD AT ALL FOUR POINT ESTIMATES**: protocol 181 → **175** (band 172–179),
+  board-parted **84 unmoved** (band 82–85), `ordering` 31 → **24** (band 22–26), end-state verdicts
+  **identical**. Exactly seven causes removed, every one naming a mechanism; one added, which is one
+  of the seven diverging later on the Rising Voltage KO named in the prediction before the run.
+- **NEITHER OUTSTANDING RED IS THIS BATCH'S**, shown rather than argued:
+  `tests/probe_upkeep_lines.js` reads the same 4 of 49 arms by name and is **character-identical with
+  both knobs restored**; `tests/probe_red_demo.js` reads the inherited 5 COULD-NOT-BE-APPLIED and 1
+  HOLLOW, and neither edit is anchored by any demonstration.
+- **THE CLOSETED ROADMAP #440 ROW STILL HOLDS.** This batch touches no part of the faint drain; its
+  cause string is in neither the added nor the removed set, and the knob-cleared control above is the
+  same evidence from the other direction. Falsifier (b) — the COVERAGE arm of
+  `data/game-differential.json` — remains undecided, exactly as before.
+- **FILED, NOT FIXED — three berry-eating roads raise no `EatItem` at all.** The authority's
+  `onSourceModifyDamage` calls `target.eatItem()`, which is the WHOLE of `eatItem`, so a type-resist
+  berry eaten under Cheek Pouch heals a third. This engine's resist-berry site writes its own
+  `[eat]`/`[weaken]` pair and empties the hand directly. **Measured on a staged board**: Close Combat
+  into a Cheek Pouch Maushold holding a Chople Berry emits `-enditem [eat]`, `-enditem [weaken]`,
+  `-damage` and **no `-heal`**. `itemCuresVolatile` is the same shape. Its own batch, because it
+  changes HP.
+- Artifacts: `data/verification/game-differential.formeoneat.json` and
+  `data/verification/divergence-turns.formeoneat.json`, release `68c90b3b9f17`, pool
+  `data/team-pool-frozen`, census pin `9446a684709d`, 961 games, cap 12, arm `middle`.
+  `data/game-differential.json` was **not** touched. `engine/arms_comparable.js` reports COMPARABLE.
+- **A METHOD NOTE THAT COST TWO RUNS.** `--out` redirects the artifact but does not imply `--write`,
+  and `--state` / `--end-state` are their own flags. A run with `--write` but without `--end-state`
+  writes an artifact whose `state` block is `null` and whose `diverged` reads 177 rather than 175,
+  because the end-state comparison is what marks one game THREW. Two arms differing in that flag are
+  not comparable on `diverged`.
+- Full account: `docs/_reports/2026-08-30-forme-and-oneat.md`.
+
+---
+
 ## [5.229.0] — 2026-08-30
 
 ### Fixed

@@ -1,0 +1,31 @@
+{
+  "what": "THE SCOREBOARD PREDICTION FOR THE G6 / G8 BATCH, WRITTEN TO DISK BEFORE game_differential.js WAS STARTED. Recorded so that 'held' or 'missed' is a fact rather than a recollection.",
+  "written": "2026-08-30T14:16:00Z",
+  "by": "ENGINE",
+  "engine_release": "68c90b3b9f17",
+  "baseline_artifact": "data/verification/game-differential.packettiming.json",
+  "baseline_release": "a18431d6dbe2",
+  "run_pins": {
+    "games_arg": 1200,
+    "games_expected": 961,
+    "turns_cap": 12,
+    "arm": "middle",
+    "team_store": "data/team-pool-frozen",
+    "team_pool_digest": "0d103fb9fa87",
+    "census_pin": "9446a684709d"
+  },
+  "which_scoreboard_and_why": "THE LAB MUST MOVE AND THE POOL SHOULD MOVE ON PROTOCOL ONLY. Both mechanics are line-ORDER defects with no HP consequence: the busted-disguise reveal already landed on the right HP (114/130 either way, asserted by the probe's own arithmetic control), and Cheek Pouch's final HP was never wrong (568/596 either way). The 2026-08-29 breakdown flags ONE of G6's four games as board-material and explicitly declines to attribute it, because first_board_divergence_turns is several turns downstream; G8's three are all narration. So the board is predicted UNMOVED and that is said before the run rather than explained after it.",
+  "predictions": [
+    { "figure": "protocol-diverged games", "baseline": 181, "point": 175, "band": [172, 179],
+      "why": "seven games leave the ordering class -- four Disguise (dump rows 7, 85, 103, 146) and three Cheek Pouch (rows 50, 143, 162). A BAND rather than a point because at least one is expected to resurface later in a different class: row 85's stream, once realigned, continues to a Rising Voltage that this engine kills Charizard with (0 fnt) where the authority leaves it on 55/153, so that game should come back as a damage-class row. Rows 7, 103, 146, 50, 143 and 162 all re-align cleanly in the dump window and should leave outright." },
+    { "figure": "board-parted games (961 - state.games_board_never_diverged)", "baseline": 84, "point": 84, "band": [82, 85],
+      "why": "UNMOVED. Neither mechanic moves an HP, a status or a slot; both move only where a line is written. The one board-material game in G6 was not attributed to G6." },
+    { "figure": "ordering class, games", "baseline": 31, "point": 24, "band": [22, 26],
+      "why": "exactly the seven cause strings named above, and nothing else in the class names a forme reveal or an on-eat ability." },
+    { "figure": "end-state verdicts", "baseline": "903 / 55 / 2 / 0 / 1", "point": "identical", "band": "identical",
+      "why": "no board leaf moves, so no verdict can." },
+    { "figure": "census (data/mechanics-census.json)", "baseline": "810 probed / 810 live / 0 missing", "point": "812 / 812 / 0", "band": "812 / 812 / 0",
+      "why": "two new probes, both green; MEASURED BEFORE THIS FILE WAS WRITTEN and recorded here for completeness rather than as a forecast." }
+  ],
+  "one_fix_or_two": "TWO, and it was MEASURED rather than argued: the 2x2 over MEDI_FORME_BUST_INLINE and MEDI_EATREACT_BEFORE_BERRY has each knob moving its own staged board and leaving the other byte-identical on the full canonical line array under BOTH settings of the other."
+}

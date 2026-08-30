@@ -5371,6 +5371,155 @@ probe('item', 'resistBerryAtCalculation',
                  + JSON.stringify(sp.lines) + ' multi ' + JSON.stringify(mu.lines) };
 });
 
+/* ---- 2026-08-30 -- G6: THE BUSTED-DISGUISE REVEAL IS WRITTEN AT THE `Update`, NOT AT THE HIT -----
+ *
+ * TWO HANDLERS, TWO POSITIONS, and this engine ran them both at the first one. Champions overrides
+ * `disguise` (data/mods/champions/abilities.ts:14) and what it replaces is `onEffectiveness` ALONE --
+ * `onDamage` and `onUpdate` are `inherit: true` and are read from data/abilities.ts:962/991:
+ *
+ *     onDamage(...)  { this.add('-activate', target, 'ability: Disguise');
+ *                      this.effectState.busted = true; return 0; }          :962-967
+ *     onUpdate(pokemon) { ... pokemon.formeChange(speciesid, this.effect, true);
+ *                         this.damage(pokemon.baseMaxhp / 8, ...); }        :991-997
+ *
+ * `onDamage` is raised inside `spreadDamage`, so the `-activate` and the zero-damage line sit with the
+ * hit. `onUpdate` is raised by `eachEvent('Update')` at the FOOT of the hit iteration
+ * (data/mods/champions/scripts.ts:538) -- BELOW the whole of `spreadMoveHit`, i.e. below every other
+ * spread target's `-damage`, below `runMoveEffects` and below `secondaries`. So `detailschange` and
+ * the `maxhp/8` chip are the LAST two lines of the move and this engine wrote them as the third and
+ * fourth. Four games of the pinned pool (rows 7, 85, 103, 146 of the 2026-08-30 dump):
+ *
+ *     SHOWDOWN  -activate Disguise | -damage 130/130 | -damage OTHER FOE | detailschange | -damage 114/130
+ *     MEDICHAM  -activate Disguise | -damage 130/130 | detailschange | -damage 114/130 | -damage OTHER FOE
+ *
+ * IT IS NOT ROADMAP #392, which is closed and separately probed ("a body that is ALREADY the busted
+ * forme absorbs nothing"): that is a claim about WHO the absorb refuses, this is a claim about WHERE
+ * the reveal lands. Nor is it #505 -- the authority's `formeChange` here passes `isPermanent: true`,
+ * so `clearVolatile`'s closing `setSpecies(baseSpecies)` never reverts it and that row says so.
+ *
+ * THE VOLLEY ROAD ALREADY HELD THE RIGHT POSITION and must not move: on a multi-arrival click the
+ * bust is fired at the between-arrival Update seam (ROADMAP #526), which IS `eachEvent('Update')`.
+ * Only the SINGLE-ARRIVAL road was wrong. `MEDI_FORME_BUST_INLINE=1` restores it. */
+probe('ability', 'formeOnHit',
+      'the busted-disguise reveal is written at the Update below the move, not at the hit', () => {
+  const run = (atSp, mvId, f1Sp, f2Sp, rng) => {
+    const trace = [];
+    const me = bare(atSp), ally = bare('milotic'), f1 = bare(f1Sp), f2 = bare(f2Sp);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    f1.ability = 'disguise';
+    trace.length = 0;
+    M.battleTurn(S, rng || rng5,
+      new Map([[me, M.playerAction(me, mvId, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon);
+    /* V = the `-activate`, Z = the holder's ZERO-damage line, X = anything else the move still owes
+     * (the other spread target's damage, a secondary unboost, a `-start`), D = `detailschange`,
+     * C = the maxhp/8 chip. Nothing else is scored. */
+    const seq = lines.map(l => /^\|-activate\|p2a:.*disguise/.test(l) ? 'V'
+                            : /^\|detailschange\|p2a:/.test(l) ? 'D'
+                            : /^\|-damage\|p2a:.*\[from\]pokemon:/.test(l) ? 'C'
+                            : /^\|-damage\|p2a:/.test(l) ? 'Z'
+                            : /^\|-damage\|p2b:/.test(l) ? 'X'
+                            : /^\|-unboost\|p2a:/.test(l) ? 'X'
+                            : /^\|-start\|p2a:/.test(l) ? 'X' : '').join('');
+    return { seq, lines, hp: f1.curHP, max: f1.st.hp };
+  };
+  const spread = run('charizard', 'heatwave', 'mimikyu', 'raichu');
+  const secY   = run('sylveon',   'moonblast', 'mimikyu', 'snorlax', () => 0.01);
+  const chop   = run('absol',     'throatchop', 'mimikyu', 'snorlax');
+  const plain  = run('absol',     'nightslash', 'mimikyu', 'snorlax');
+  const volley = run('talonflame', 'dualwingbeat', 'mimikyu', 'snorlax');
+  const chip = spread.max - Math.floor(spread.max / 8);
+  return { works: spread.seq === 'VZXDC' && secY.seq === 'VZXDC' && chop.seq === 'VZXDC'
+                  && plain.seq === 'VZDC' && volley.seq === 'VZDCZ'
+                  && spread.hp === chip && plain.hp === chip,
+           arms: { control: [plain.seq, volley.seq, plain.hp], test: [spread.seq, secY.seq, chop.seq] },
+           detail: 'V=|-activate| Disguise, Z=the holder\'s zero-damage line, X=what the move still '
+                 + 'owed (the other spread target\'s damage / a secondary / a |-start|), '
+                 + 'D=|detailschange|, C=the maxhp/8 chip. THE THREE TESTS must all read VZXDC — the '
+                 + 'reveal LAST, at eachEvent(Update): Heat Wave into Mimikyu+Raichu "'
+                 + spread.seq + '", Moonblast (spa-drop secondary) "' + secY.seq + '", Throat Chop "'
+                 + chop.seq + '". VZDCX / VZDXC is the reveal landing at the hit, which is four games '
+                 + 'of the pinned pool. OVER-FIRE CONTROLS that must NOT move: a plain single-target '
+                 + 'click with nothing owed after the damage "' + plain.seq + '" (must stay VZDC — a '
+                 + 'fix that deferred the reveal to the END OF TURN would break this), and a '
+                 + 'MULTI-ARRIVAL volley "' + volley.seq + '" (must stay VZDCZ — its bust already '
+                 + 'fires at the between-arrival Update, ROADMAP #526). ARITHMETIC CONTROL: the '
+                 + 'holder ends on ' + spread.hp + ' spread / ' + plain.hp + ' plain, and both must '
+                 + 'be ' + chip + ' — only the LINE ORDER moved. spread '
+                 + JSON.stringify(spread.lines) };
+});
+
+/* ---- 2026-08-30 -- G8: AN `onEatItem` ABILITY FIRES BELOW THE BERRY IT REACTS TO ----------------
+ *
+ * `Pokemon#eatItem` (sim/pokemon.ts:1789-1809) is one straight line and this engine ran the third
+ * statement first:
+ *
+ *     this.battle.add('-enditem', this, item, '[eat]');                          :1789
+ *     this.battle.singleEvent('Eat', item, this.itemState, this, source, ...);   :1791  <- the BERRY
+ *     this.battle.runEvent('EatItem', this, source, sourceEffect, item);         :1792  <- CHEEK POUCH
+ *     ... this.item = ''; ... this.battle.runEvent('AfterUseItem', ...);         :1806-1809 <- SYMBIOSIS
+ *
+ * Cheek Pouch is `onEatItem(item, pokemon) { this.heal(pokemon.baseMaxhp / 3); }`
+ * (data/abilities.ts:483-485), and `data/mods/champions/abilities.ts` carries no `cheekpouch` key at
+ * all, so Champions inherits the whole thing. Three games of the pinned pool (rows 50, 143, 162):
+ *
+ *     SHOWDOWN  -enditem Sitrus [eat] | -heal 63/149 [from] item | -heal 112/149 [from] Cheek Pouch
+ *     MEDICHAM  -heal 112/149 [from] Cheek Pouch | -enditem Sitrus [eat] | -heal 112/149 [from] item
+ *
+ * BOTH HALVES ARE ONE DEFECT: the pouch heal was applied inside `consumeBerry`, which every caller
+ * runs BEFORE it writes its own `-enditem` and its own effect -- so the line came out first AND the
+ * berry's own `-heal` printed the post-BOTH HP. The final HP was never wrong, which is why every
+ * board comparison passed it.
+ *
+ * THE STATUS-BERRY ROAD WAS ALREADY RIGHT and is the over-fire control: `berryCureUpdate` writes its
+ * `-enditem` and `-curestatus` ABOVE its `consumeBerry` call, so that one arm must not move.
+ * `MEDI_EATREACT_BEFORE_BERRY=1` restores the whole of it. */
+probe('ability', 'healsOnBerryEaten',
+      'Cheek Pouch heals BELOW the berry it ate, and the berry reports its own HP', () => {
+  const run = (ab, item, st) => {
+    const trace = [];
+    const me = bare('milotic'), ally = bare('milotic'), f1 = bare('maushold'), f2 = bare('snorlax');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    f1.ability = ab; f1.item = item;
+    /* Made deep enough that one Scald cannot kill it and the berry threshold is still crossed -- the
+     * arms differ ONLY in the ability and the item. */
+    f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 4 });
+    f1.curHP = Math.floor(f1.st.hp * 0.52);
+    if (st) f1.status = st;
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'scald', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon);
+    const seq = lines.map(l => /^\|-enditem\|p2a:.*\[eat\]/.test(l) ? 'B'
+                            : /^\|-heal\|p2a:.*\[from\]item:/.test(l) ? 'I'
+                            : /^\|-heal\|p2a:.*cheekpouch/.test(l) ? 'P'
+                            : /^\|-curestatus\|p2a:/.test(l) ? 'S' : '').join('');
+    /* What the berry's own `-heal` line SAYS, which is the second half of the defect. */
+    const itemLine = lines.find(l => /^\|-heal\|p2a:.*\[from\]item:/.test(l)) || '';
+    const itemHP = +((itemLine.match(/\|(\d+)\//) || [])[1] || 0);
+    return { seq, itemHP, hp: f1.curHP, max: f1.st.hp, lines };
+  };
+  const pouch = run('cheekpouch', 'sitrusberry', null);
+  const none  = run('none',       'sitrusberry', null);
+  const dry   = run('cheekpouch', '',            null);
+  const cure  = run('cheekpouch', 'lumberry',    'brn');
+  return { works: pouch.seq === 'BIP' && none.seq === 'BI' && dry.seq === '' && cure.seq === 'BSP'
+                  && pouch.itemHP === none.itemHP && pouch.hp > none.hp,
+           arms: { control: [none.seq, dry.seq, cure.seq], test: [pouch.seq, pouch.itemHP] },
+           detail: 'B=|-enditem [eat]|, I=the berry\'s own |-heal [from] item|, P=Cheek Pouch\'s '
+                 + '|-heal|, S=|-curestatus|. TEST: Cheek Pouch + Sitrus reads "' + pouch.seq
+                 + '" and must be BIP — the ability BELOW the berry. PBI is the defect, three games '
+                 + 'of the pinned pool. AND THE BERRY\'S OWN LINE MUST REPORT THE BERRY\'S OWN HP: '
+                 + pouch.itemHP + ' with the pouch against ' + none.itemHP + ' without, which must be '
+                 + 'EQUAL — printing the post-both total there is the other half of the same defect. '
+                 + 'CONTROLS: no ability "' + none.seq + '" (BI), Cheek Pouch with an EMPTY HAND "'
+                 + dry.seq + '" (no line at all), and the STATUS-berry road "' + cure.seq + '" (BSP), '
+                 + 'which was already in the authority\'s order and must not move. The pouch still '
+                 + 'pays: ' + pouch.hp + ' against ' + none.hp + ' of ' + pouch.max + '. pouch '
+                 + JSON.stringify(pouch.lines) };
+});
+
 /* WIRE 157 -- THE WEATHER RESIDUAL RUNS IN BOTH DIRECTIONS AND THIS ENGINE HELD ONLY THE ONE THAT
  * HURTS. The probe above is the whole of what existed: sand chips, and three things ignore it. The
  * SAME `onWeather` hook restores HP, and none of that reached any code -- Ice Body read LIVE off the
@@ -31738,7 +31887,8 @@ process.exitCode = red.length ? 1 : 0;
  * IS NOT ONE OF THEM: it is a finding about the probes, and the floor above is what protects it. */
 const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afterFaintPerTargetRestored',
                           'statusOneStepRestored', 'perishAtFootRestored',
-                          'reactBatchedRestored', 'berryAtApplyRestored']
+                          'reactBatchedRestored', 'berryAtApplyRestored',
+                          'formeBustInlineRestored', 'eatReactBeforeBerryRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-30T05:22:50.551Z",
+  "generated": "2026-08-30T14:25:52.850Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 810,
-  "live": 810,
+  "probed": 812,
+  "live": 812,
   "missing": 0,
-  "armed": 810,
+  "armed": 812,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1104,6 +1104,26 @@
       "label": "the resist berry is spent while the damage is calculated, not while it is applied",
       "live": true,
       "detail": "SPREAD (Heat Wave, Occa Berry on the SECOND foe) — B=|-enditem [eat]|, W=[weaken], A=the OTHER foe's damage, H=the holder's: \"BWAH\" must be BWAH; AB WH is the berry landing between the two targets' damage lines, which is five games of the pinned pool. MULTI-ARRIVAL (Triple Axel into a Yache Berry), E=|-supereffective|: \"EBWHEHEH\" must be EBWHEHEH — the berry under the FIRST arrival's effectiveness line, not above it. CONTROLS, empty hand: \"AH\" / \"EHEHEH\" (no berry line at all) and the holder took 79 with the berry against 158 without, which must be exactly double — the halve did not move. SUBSTITUTE arm: a doll ate the hit and the berry is \"occaberry\" (must still be occaberry). spread [\"|turn|1\",\"|move|p1a:delphox|heatwave|p2a:raichu\",\"|-supereffective|p2b:sinistcha|1\",\"|-enditem|p2b:sinistcha|occaberry|[eat]\",\"|-enditem|p2b:sinistcha|occaberry|[weaken]\",\"|-damage|p2a:raichu|1001/1080\",\"|-damage|p2b:sinistcha|1089/1168\",\"|upkeep\"] multi [\"|turn|1\",\"|move|p1a:tsareena|tripleaxel|p2a:garchomp\",\"|-supereffective|p2a:garchomp|2\",\"|-enditem|p2a:garchomp|yacheberry|[eat]\",\"|-enditem|p2a:garchomp|yacheberry|[weaken]\",\"|-damage|p2a:garchomp|1434/1464\",\"|-supereffective|p2a:garchomp|2\",\"|-damage|p2a:garchomp|1374/1464\",\"|-supereffective|p2a:garchomp|2\",\"|-damage|p2a:garchomp|1284/1464\",\"|-hitcount|p2a:garchomp|3\",\"|upkeep\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "formeOnHit",
+      "label": "the busted-disguise reveal is written at the Update below the move, not at the hit",
+      "live": true,
+      "detail": "V=|-activate| Disguise, Z=the holder's zero-damage line, X=what the move still owed (the other spread target's damage / a secondary / a |-start|), D=|detailschange|, C=the maxhp/8 chip. THE THREE TESTS must all read VZXDC — the reveal LAST, at eachEvent(Update): Heat Wave into Mimikyu+Raichu \"VZXDC\", Moonblast (spa-drop secondary) \"VZXDC\", Throat Chop \"VZXDC\". VZDCX / VZDXC is the reveal landing at the hit, which is four games of the pinned pool. OVER-FIRE CONTROLS that must NOT move: a plain single-target click with nothing owed after the damage \"VZDC\" (must stay VZDC — a fix that deferred the reveal to the END OF TURN would break this), and a MULTI-ARRIVAL volley \"VZDCZ\" (must stay VZDCZ — its bust already fires at the between-arrival Update, ROADMAP #526). ARITHMETIC CONTROL: the holder ends on 114 spread / 114 plain, and both must be 114 — only the LINE ORDER moved. spread [\"|turn|1\",\"|move|p1a:charizard|heatwave|p2a:mimikyu\",\"|-activate|p2a:mimikyu|ability:disguise\",\"|-damage|p2a:mimikyu|130/130\",\"|-damage|p2b:raichu|50/135\",\"|detailschange|p2a:mimikyu|mimikyubusted,l50\",\"|-damage|p2a:mimikyu|114/130|[from]pokemon:mimikyubusted\",\"|upkeep\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "healsOnBerryEaten",
+      "label": "Cheek Pouch heals BELOW the berry it ate, and the berry reports its own HP",
+      "live": true,
+      "detail": "B=|-enditem [eat]|, I=the berry's own |-heal [from] item|, P=Cheek Pouch's |-heal|, S=|-curestatus|. TEST: Cheek Pouch + Sitrus reads \"BIP\" and must be BIP — the ability BELOW the berry. PBI is the defect, three games of the pinned pool. AND THE BERRY'S OWN LINE MUST REPORT THE BERRY'S OWN HP: 370 with the pouch against 370 without, which must be EQUAL — printing the post-both total there is the other half of the same defect. CONTROLS: no ability \"BI\" (BI), Cheek Pouch with an EMPTY HAND \"\" (no line at all), and the STATUS-berry road \"BSP\" (BSP), which was already in the authority's order and must not move. The pouch still pays: 568 against 370 of 596. pouch [\"|turn|1\",\"|move|p1a:milotic|scald|p2a:maushold\",\"|-damage|p2a:maushold|221/596\",\"|-enditem|p2a:maushold|sitrusberry|[eat]\",\"|-heal|p2a:maushold|370/596|[from]item:sitrusberry\",\"|-heal|p2a:maushold|568/596|[from]ability:cheekpouch\",\"|upkeep\"]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3903,7 +3923,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
