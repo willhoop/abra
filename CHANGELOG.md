@@ -11,6 +11,75 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.227.0] — 2026-08-29
+
+### Fixed
+- **`checkWin` RETURNS ABOVE `runEvent('AfterFaint')`, SO THE KILL THAT WINS THE GAME IS NEVER PAID —
+  AND WHEN IT IS PAID IT IS ONE BOOST SIZED BY THE DRAIN, NOT ONE PER CORPSE.** `sim/battle.ts:2532`
+  `faintMessages()`, read whole; `data/mods/champions/scripts.ts` was checked FIRST and overrides
+  neither `faintMessages` nor `checkWin`, so mainline is the authority here. Three statements sit
+  below the drain loop and `engine/medicham2-browser.js` had all three wrong. **POSITION** —
+  `AfterFaint` is raised below the whole `while`, so every `|faint|` is already on the wire; WIRE
+  104's payment lived inside `_stepFaint`, which the driver runs per ROW, so a spread that killed two
+  wrote `faint,BOOST,faint,BOOST`. **SIZE** — it is raised ONCE with `length`, the faint-queue depth
+  at entry: `moxie` is `this.boost({atk: length}, source)` and `eelevate` the same expression on
+  `getBestStat`, both read off `Dex.forFormat('gen9championsvgc2026regmb')`, so a double KO is one
+  `+2` and the drain counts an ALLY the same spread took. **EXISTENCE** — `checkWin` at `:2592`
+  returns above `:2596`; this engine's own win test is `if(sideWiped(S)) break _TURN` at the top of
+  the NEXT action, so the boost landed on a board that no longer existed. The payment moved into a
+  once-per-move `_stepAfterFaint` between `_stepDrainFaints` and `_stepHitCount` — the authority's own
+  order (`faintMessages()` is `battle-actions.ts:976`, `-hitcount` is `:978`) — gated on `sideWiped(S)`,
+  which is the engine's OWN `checkWin` and not a second copy of the rule.
+- **The narration with it:** `boost()` resolves an Ability effect to
+  `this.add('-ability', target, effect.name, 'boost')` above a **bare** `-boost`
+  (`sim/battle.ts:2058-2064`). This engine wrote no announcement and tagged the boost
+  `[from] ability: moxie`. Both forms are deleted by `EQUIV` before the differential compares
+  anything, so no gate here could go red on them.
+- **`tests/test-mechanics.js` `move/spreadFoes` and `tests/probe_red_demo.js` `ROADMAP #81 WIRE 10`
+  were keyed to a spelling and both went red on a correct fix.** Each proved the on-KO boost had
+  fired by grepping `-boost ... [from] ability: eelevate` — this engine's own attribution, never the
+  authority's — so the census briefly read 805 live / 1 MISSING with nothing about spread pricing
+  changed. Both now read the `|-ability|` line, which is the authority's own marker for the same
+  event. `docs/LESSONS.md`'s *a grep is a claim about a name*, arriving through a probe.
+
+### Added
+- `tests/probe_afterfaint_boundary.js` — two engines on one board, 24 assertions, shown RED first on
+  release `12dae69813f6`. Krookodile's Earthquake takes two foes on turn 1 (two in the back) and the
+  last two on turn 2, so **the two turns differ in nothing except whether p2 had a body left**. The
+  OVER-FIRE CONTROL is the point of the file: a Rotom-Heat holds slot b behind Levitate so every turn
+  is exactly one KO on a battle that keeps going, and every one must STILL pay `+1` — an engine that
+  learned *stop after a faint* rather than *stop after the WIN* passes the first arm and fails there.
+  A third arm is the same board on Krookodile's other legal ability.
+- Knob `MEDI_AFTERFAINT_PER_TARGET=1` restores the per-corpse, no-win-gate payment byte for byte,
+  stamps `MEDFAILS.afterFaintPerTargetRestored` at DECLARATION, and is registered in
+  `tests/test-mechanics.js`'s `DELIBERATE_BREAK` so a knob run cannot overwrite the census. Counters
+  `MEDSEEN.afterFaintPaid`, `afterFaintSkippedBattleEnded`, `afterFaintMultiDrain`.
+- Two census rows under `ability` / `boostsOnKO`. The first reads the WIRE through `battleInit`'s own
+  `trace` sink, because the STATE cannot see this fix at all — two `+1`s and one `+2` leave the
+  identical Attack stage, at the cap as well as below it. The second varies ONE thing, a body on the
+  foe bench: with it `+2`, without it the side is emptied and `+0`. Both are red under the knob.
+
+### Notes
+- **CENSUS 804 -> 806 live / 806 probed / 0 missing.**
+- **Empirical board-parted 88 -> 84 of 961, protocol 204 -> 199, threw 1 -> 1, DIFFERENT-WINNER 0
+  before and after.** The prediction, stated before the run, was *unmoved at 88* and **it MISSED by
+  4, in the improving direction** — it assumed the two payment shapes always leave the same stage,
+  which is true only while the battle continues. Attributed rather than explained away: **five causes
+  removed and none added, every one naming an on-KO `atk` boost**, and **the only board-leaf families
+  that moved are `party.boosts.atk` 9 -> 5 games and `active[].boosts.atk` 9 -> 5 games**. The four
+  end-state games came out of band 5 alone. `data/verification/game-differential.afterfaint.json`,
+  release `26787be1b8b4`, census pin `9446a684709d`, pool `0d103fb9fa87`, 961 games, cap 12, arm
+  `middle`; the run was executed twice, without and with `--write`, and both read the same figures.
+- **ROADMAP #362 IS NOT THIS SITE AND ITS ROW IS STALE.** The brief carried it as an open winner
+  defect; **WIRE 160 closed it on 2026-08-23** and `tests/probe_selfdestruct_winner.js`'s header
+  records the closure. It is MEASURE's row and this batch did not edit it.
+- **`tests/probe_red_demo.js` `WIRE 120 Parting Shot` is RED and it is NOT this batch's** — the
+  demonstration's revert no longer flips the outcome. Proven twice: identical under
+  `MEDI_AFTERFAINT_PER_TARGET=1`, and identical with HEAD's own `medicham2-browser.js` swapped in for
+  the run. Reported and handed back, not filed as fixed.
+- Full account: `docs/_reports/2026-08-29-afterfaint-boundary.md`.
+
+
 ## [5.226.0] — 2026-08-29
 
 ### Fixed

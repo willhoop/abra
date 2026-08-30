@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-29T19:28:00.529Z",
+  "generated": "2026-08-30T02:34:00.716Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 804,
-  "live": 804,
+  "probed": 806,
+  "live": 806,
   "missing": 0,
-  "armed": 804,
+  "armed": 806,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3863,7 +3863,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 25.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.2% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4124,6 +4124,26 @@
       "label": "Moxie boosts the NAMED stat, and only on a KO",
       "live": true,
       "detail": "[atk stage, spa stage] after a KO -- no ability 0,0; MOXIE 1,0 (must be 1,0 and nothing else moved: 0); and Moxie on a turn with NO KO (the foe at full HP survived: true) raises 0 (must be 0 — the trigger is the KO, not the click)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsOnKO",
+      "label": "a double KO is ONE payment sized by the drain, not one per body",
+      "live": true,
+      "detail": "the SAME Earthquake, the same Moxie Garchomp, the same board — only how many bodies it took differs. ONE drained -> 1 line(s) [1], stage +1;  TWO drained -> 1 line(s) [2], stage +2. THE WIRE IS WHAT IS ASSERTED, because the STAGE cannot tell one `+2` from two `+1`s: [|faint|p2a:weavile |faint|p2b:milotic |-boost|p1a:garchomp|atk|2]. An engine paying per corpse writes two lines and interleaves them with the faints; an engine ignoring `length` writes one `+1`. The Flying ally is alive on both arms (true/true) so the drain is only ever the foes, and the foe bench is alive (true/true) so neither arm ended the battle",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsOnKO",
+      "label": "a KO that ENDS the battle pays nothing — checkWin returns above AfterFaint",
+      "live": true,
+      "detail": "the same double KO, twice. WITH a body on the foe bench the drain does not end the battle and Moxie pays +2; WITHOUT one the side is emptied, `checkWin` (sim/battle.ts:2592) returns above `runEvent('AfterFaint')` (:2596) and it pays +0. Both arms really did take two bodies (2/2), so a zero on the second arm cannot be a KO that never happened. MEDI_AFTERFAINT_PER_TARGET=1 restores the old engine and reads 2 on both",
       "hollow": false,
       "armed": true,
       "directCall": false

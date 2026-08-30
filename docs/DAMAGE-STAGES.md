@@ -1,6 +1,8 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.226.0 — 2026-08-29.**
+**Version: 5.227.0 — 2026-08-29.**
+
+**5.227.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change decides WHEN a `boostsOnKO` payment is made, HOW LARGE one payment is, and whether it is made at all once the drain has emptied a side. All three are downstream of every damage step: the step is inserted below `_stepDrainFaints`, which is itself below `_stepApply`, so the packet vector, the roll index and the crit decisions are untouched. The BOOST it grants can reach a later turn's damage, and that is exactly the case the fix removes - a payment made after the battle ended has no later turn to reach. The `single` arm of `tests/probe_afterfaint_boundary.js` is the control that holds this: a single KO on a continuing battle reads `faint,ABIL,BOOST:atk+1` on both engines, before and after. `tests/test-engine-diff.js` was NOT re-run; it calls `moveHit` once and has no faint drain, so it is structurally blind to this change - which is an argument and not a measurement.
 
 **5.226.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** The change decides how many times an `onDamagingHit` REACTOR is raised for a volley that stopped at a KO; it is downstream of every damage step, and the packet vector, the roll index and the crit decisions are untouched. The damage a reactor DEALS is unchanged - `punishesAttacker`'s `fraction` and `dealsDamageTaken` arithmetic is not edited - only the number of times it is charged. The survivor arm of `tests/probe_volley_reactor_count.js` is the control that holds this: identical HP and an identical `-hitcount` on both engines, before and after. `tests/test-engine-diff.js` was NOT re-run; it calls `moveHit` once and skips every `multiHit` move by construction, so it is structurally blind to this change - which is an argument and not a measurement.
 

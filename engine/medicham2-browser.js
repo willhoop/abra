@@ -1214,6 +1214,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * something with a multi-hit move means the clause is unwired -- which is what it was until today,
    * and the symptom was `|-hitcount|1` printed beside two Rough Skin tolls. */
   volleyReactStoppedAtKO: 0,
+  /* 2026-08-29 -- THE AFTER-FAINT BOUNDARY. `afterFaintPaid` is a drain that reached
+   * `runEvent('AfterFaint')` at all; `afterFaintSkippedBattleEnded` is a drain that emptied a side,
+   * so `checkWin` (sim/battle.ts:2592) returned above it and nothing was owed;
+   * `afterFaintMultiDrain` is the population where the payment SIZE can differ from the old
+   * per-corpse one -- a drain of two or more. A zero on the last of those over a run containing a
+   * spread KO means the `length` half is unwired and only the win gate is being exercised. */
+  afterFaintPaid: 0, afterFaintSkippedBattleEnded: 0, afterFaintMultiDrain: 0,
   /* ROADMAP #151 -- an Aegislash flipped forme on the move it was about to use. A zero on a run that
    * clicked an attack off a Stance Change body means the ability is unwired, which is what it was
    * until 2026-08-11 -- `stancechange` appeared nowhere in this file at all. */
@@ -2648,6 +2655,11 @@ const MEDFAILS = { encoreAction: 0,
    * count back on purpose, so the before-arm of the killing-volley fix and a broken engine can never
    * be read as the same thing. Same shape as multiHitOneIndexRestored. */
   volleyReactDrawnRestored: 0,
+  /* 2026-08-29 -- set to 1 for the whole run when MEDI_AFTERFAINT_PER_TARGET=1 puts the per-corpse,
+   * inside-the-loop, no-win-gate on-KO boost back on purpose, so the before-arm of the after-faint
+   * boundary fix and a broken engine can never be read as the same thing. Same shape as
+   * volleyReactDrawnRestored. */
+  afterFaintPerTargetRestored: 0,
   /* ROADMAP #499 -- A MULTI-HIT CLICK WHOSE ARRIVALS THIS ENGINE CANNOT ADDRESS SEPARATELY, so the
    * whole volley took ONE crit decision where the authority took N: `hits` says more than one and
    * dmgRange handed back no packet list to hang the decisions on. It is a flat volley whose band does
@@ -20408,6 +20420,19 @@ const VOLLEY_REACT_DRAWN=(typeof process!=='undefined'&&process.env
  * the census under a deliberate break — a demonstration must not overwrite the artifact five other
  * files read. */
 if(VOLLEY_REACT_DRAWN)MEDFAILS.volleyReactDrawnRestored=1;
+/* 2026-08-29 -- THE AFTER-FAINT BOUNDARY, AND IT IS THE THIRD KNOB ON THE FAINT DRAIN. The two above
+ * are claims about WHERE a `|faint|` line is written; this one is a claim about what happens BELOW the
+ * whole drain -- when the on-KO event fires, how big one payment is, and whether it fires at all once
+ * the drain has decided the battle. `MEDI_AFTERFAINT_PER_TARGET=1` restores exactly what this engine
+ * did until today: WIRE 104's block inside `_stepFaint`, once per corpse, sized `stages`, with no win
+ * gate and with the `[from] ability:` attribution.
+ *
+ * STAMPED AT DECLARATION, for the reason the one above is: a run under the knob must be identifiable
+ * BEFORE a KO happens to occur, and `tests/test-mechanics.js` reads exactly this to refuse writing the
+ * census under a deliberate break. */
+const AFTERFAINT_PER_TARGET=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_AFTERFAINT_PER_TARGET==='1');
+if(AFTERFAINT_PER_TARGET)MEDFAILS.afterFaintPerTargetRestored=1;
 /* 2026-08-27 -- `MEDI_REFILL_NO_HERB=1` restores the state this engine held until today: a post-faint
  * REPLACEMENT's entry drop had no `onAnySwitchIn` pass after it, so a White Herb answered it a whole
  * turn late. See the call site inside `refill()`. */
@@ -32740,12 +32765,26 @@ function battleTurn(S,rng,actsForA,actsForB){
        * done. The `|faint|` line and the AfterFaint event both live here, which is why a KO scored on
        * the first body of a spread move cannot be holding a Beast Boost when the second body is
        * priced -- `AfterFaint` is run at battle.ts:2598, two steps after getSpreadDamage. */
+      /* 2026-08-29 -- `length`, THE AUTHORITY'S OWN RELAY VARIABLE, COUNTED WHERE THE CORPSES ARE.
+       *
+       *     const length = this.faintQueue.length;                        sim/battle.ts:2534
+       *     ... while (this.faintQueue.length) { ... this.add('faint', pokemon); ... }
+       *     this.runEvent('AfterFaint', ..., length);                     sim/battle.ts:2596
+       *
+       * It is the DEPTH OF THE DRAIN and not the number of bodies this move killed -- an ally taken
+       * out by the same spread is in it, which card 216 shows on the authority (`+2` off a Discharge
+       * that killed one foe and one ally). This engine has no single queue to measure at entry, so the
+       * count is accumulated at the two places the drain actually announces: `_stepFaint`, per row,
+       * and `_stepDrainFaints`, which returns what it emptied. Declared per ACTION, beside
+       * `_updateDone`, so it cannot carry across moves. */
+      let _afterFaintN=0;
       const _stepFaint=(R)=>{const tg=R.tg;
         /* ROADMAP #331 -- THE QUEUE IS DRAINED HERE, AND THE USER IS AT THE FRONT OF IT. Above the
          * `!R.fainted` early return on purpose: the user's line is owed whether or not the target
          * died, and it is owed BEFORE the target's, because `faintQueue` holds it first. */
-        if(_selfKOPending){_selfKOPending=false;if(TR)TR.faint(m);}
+        if(_selfKOPending){_selfKOPending=false;_afterFaintN++;if(TR)TR.faint(m);}
         if(!R.fainted)return;
+        _afterFaintN++;
         if(TR)TR.faint(tg);
         /* 2026-08-25 -- `runEvent('Faint', pokemon, faintData.source, faintData.effect)`, sim/battle.ts
          * :2551, ONE LINE BELOW THE `|faint|` THIS STEP JUST WROTE. This is the move-damage arm of the
@@ -32754,19 +32793,48 @@ function battleTurn(S,rng,actsForA,actsForB){
          * not written, so `_stepDrainFaints` below emits it after the `-activate`, which is the order
          * the authority's single queue gives. */
         destinyBondOnFaint(tg,m);
-        /* WIRE 104 -- `boostsOnKO` (Eelevate on Eelektross-Mega; Beast Boost's carriers are not in
-         * the format's usage but the read is by shape). +1 to the attacker's HIGHEST raw stat on a
-         * kill it scored, from the tag's own {stat:'highest', stages:1}. Sheet usage reads 0
-         * because sheets list the pre-mega ability -- Lesson 3, same as Mega Sol. */
-        {const _bk=TAGS.param('ability',m.ability,'boostsOnKO');
-         if(_bk&&_bk.stages&&!m.fainted&&m.boosts){
-           let _key=SD2ENG[_bk.stat]||null;
-           if(_bk.stat==='highest'||!_key){
-             _key='at';for(const _k2 of ['df','sa','sd','sp'])if(m.st[_k2]>m.st[_key])_key=_k2;
-           }
-           const _b0=m.boosts[_key];m.boosts[_key]=clamp(m.boosts[_key]+(+_bk.stages||1),-6,6);
-           if(TR)TR.bst(m,_key,m.boosts[_key]-_b0,'[from] ability: '+m.ability);
-         }}
+        /* 2026-08-29 -- WIRE 104's PAYMENT USED TO BE MADE HERE AND IT IS NOW MADE BY
+         * `_stepAfterFaint`, BELOW THE WHOLE DRAIN. This line is the BEFORE-ARM and nothing else: it
+         * reproduces the old behaviour byte for byte -- once per corpse, sized `stages`, no win gate,
+         * `[from] ability:` attribution -- so the fix can be shown red on demand. */
+        if(AFTERFAINT_PER_TARGET)_koBoost(1,'[from] ability: '+m.ability);
+      };
+      /* WIRE 104 -- `boostsOnKO` (Moxie on seven legal carriers; Eelevate on Eelektross-Mega, whose
+       * sheet usage reads 0 because sheets list the pre-mega ability -- Lesson 3, same as Mega Sol.
+       * Beast Boost, Chilling Neigh, Grim Neigh and both As Ones hook the identical event and have no
+       * legal carrier, so the read is by SHAPE and they arrive with no edit here).
+       *
+       * ONE FUNCTION, TWO CALLERS, because the stat pick was never the defect and a second copy of it
+       * would drift. `n` and `announce` are the only things the two arms disagree about: the
+       * before-arm passes 1 per corpse and its old `[from]` attribution, the authority's arm passes
+       * the depth of the drain and the authority's own `|-ability|` line.
+       *
+       * THE CAP NEEDS NO GUARD HERE. `boost()` only writes a line `if (boostBy)` (sim/battle.ts:2046)
+       * and an Ability effect with `isSecondary`/`isSelf` false writes nothing at all when the step is
+       * zero; `TR.bst` already suppresses a zero-delta line on its own first branch and counts it as
+       * `MEDFAILS.boostZeroSuppressed`. Same rule, one reader, and it was already right. */
+      const _koBoost=(n,attr,announce)=>{
+        const _bk=TAGS.param('ability',m.ability,'boostsOnKO');
+        if(!(_bk&&_bk.stages&&!m.fainted&&m.boosts))return;
+        let _key=SD2ENG[_bk.stat]||null;
+        if(_bk.stat==='highest'||!_key){
+          _key='at';for(const _k2 of ['df','sa','sd','sp'])if(m.st[_k2]>m.st[_key])_key=_k2;
+        }
+        const _b0=m.boosts[_key];
+        m.boosts[_key]=clamp(m.boosts[_key]+(+_bk.stages||1)*n,-6,6);
+        /* `this.add('-ability', target, effect.name, 'boost')` — sim/battle.ts:2062, the branch an
+         * ABILITY effect takes inside `boost()`. It is written ABOVE the `-boost` and the `-boost` is
+         * then BARE, which is the pair the authority actually puts on the wire; this engine wrote no
+         * announcement and tagged the boost instead. The DISPLAY NAME comes off the tag artifact
+         * (`tagsFor(...).name` is 'Moxie', 'Eelevate'), never from a table here — and it falls back to
+         * the id rather than to nothing, so an ABRA_TAGS_OFF arm cannot silently lose the line.
+         * `EQUIV`'s `ability-announcement` rule in engine/game_differential.js deletes this line from
+         * BOTH streams before anything is compared, so it cannot create or hide a divergence; it is
+         * here because it is what the authority writes and because it is the only unambiguous marker
+         * that the ability fired at all when the boosted stat is one the move itself also moved. */
+        if(announce&&TR){const _rec=TAGS.tagsFor&&TAGS.tagsFor('ability',m.ability);
+          TR.ab(m,(_rec&&_rec.name)||String(m.ability),'boost');}
+        if(TR)TR.bst(m,_key,m.boosts[_key]-_b0,attr);
       };
       /* STEP 9 -- `|-hitcount|`, AND IT IS BELOW THE FAINT. 2026-08-22.
        *
@@ -32797,7 +32865,58 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * IT IS ABOVE `_stepHitCount` because the whole of the 2026-08-22 note below is that the count
        * is announced over a body the authority has already killed AND de-activated. */
-      const _stepDrainFaints=()=>{ drainFaints('afterHitLoop'); };
+      const _stepDrainFaints=()=>{ _afterFaintN+=drainFaints('afterHitLoop'); };
+      /* STEP 8c -- THE REST OF `faintMessages()`, AND IT IS THE TWO STATEMENTS BELOW THE `while` LOOP.
+       * 2026-08-29, card D3.
+       *
+       *     if (checkWin && this.checkWin(faintData)) return true;                 sim/battle.ts:2592
+       *     if (faintData && length) {
+       *       this.runEvent('AfterFaint', faintData.target, faintData.source,
+       *                     faintData.effect, length);                             sim/battle.ts:2596
+       *
+       * THREE THINGS, ALL OF WHICH THIS ENGINE HAD WRONG, and none of which is a new rule -- they are
+       * the position, the size and the existence of a payment the engine already made:
+       *
+       *   POSITION. The event is raised BELOW the whole drain, so every `|faint|` is already on the
+       *     wire. The old site was inside `_stepFaint`, which the driver runs per ROW, so a spread
+       *     that killed two interleaved `faint,BOOST,faint,BOOST` where the authority writes
+       *     `faint,faint,BOOST`.
+       *   SIZE. It is raised ONCE with `length`. Moxie is `this.boost({atk: length}, source)` and
+       *     Eelevate is the same expression on `getBestStat`, both read off
+       *     `Dex.forFormat('gen9championsvgc2026regmb')`. A double KO is one `+2`, not two `+1`s.
+       *   EXISTENCE. `checkWin` RETURNS above it. A drain that empties a side ends the battle and the
+       *     event never runs -- so the on-KO boost that wins the game is never paid. This engine's own
+       *     win test is `if(sideWiped(S)) break _TURN` at the TOP OF THE NEXT ACTION, hundreds of
+       *     lines below here, which is why the boost was landing on a board that no longer existed.
+       *
+       * `sideWiped(S)` IS THE ENGINE'S OWN `checkWin` AND NOT A SECOND COPY OF THE RULE -- it is the
+       * same predicate the three `break _TURN` sites read, split out of `battleOver` by ROADMAP #231
+       * for exactly this reason. It is asked HERE, after `_stepDrainFaints`, because the authority
+       * asks it after the drain: `pokemonLeft` is decremented inside the `while` loop, so a body that
+       * dies in this drain counts towards the win test that follows it.
+       *
+       * NOT WIRED, AND SAID RATHER THAN LEFT TO BE FOUND: `boost()`'s own second guard,
+       * `if (this.gen > 5 && !target.side.foePokemonLeft()) return false;` (sim/battle.ts:2028),
+       * refuses the same payment independently. On every board reachable here `checkWin` gets there
+       * first, so adding it would be a clause with no arm that can distinguish it. Filed.
+       *
+       * ONCE PER MOVE, NOT ONCE PER ROW, on `_stepUpdate`'s pattern one step list up: the driver calls
+       * every step for every row and the done-flag is what makes a field-wide event field-wide. There
+       * is deliberately NO backstop call beside `_stepAfterHitField()` / `_stepUpdate()` below the
+       * driver: `_afterFaintN` is only ever incremented by the two steps above, so a move whose rows
+       * were all `out` reaches this with a zero and there is nothing to flush. */
+      let _afterFaintDone=false;
+      const _stepAfterFaint=()=>{
+        if(_afterFaintDone)return; _afterFaintDone=true;
+        if(!_afterFaintN)return;
+        if(AFTERFAINT_PER_TARGET)return;   /* the before-arm already paid, per corpse, in `_stepFaint` */
+        if(_afterFaintN>1)MEDSEEN.afterFaintMultiDrain++;
+        if(sideWiped(S)){MEDSEEN.afterFaintSkippedBattleEnded++;return;}
+        MEDSEEN.afterFaintPaid++;
+        /* NO `[from]` TAG AND AN `|-ability|` ABOVE IT, because that is the pair `boost()` writes when
+         * the effect is an Ability (sim/battle.ts:2058-2064). See `_koBoost`. */
+        _koBoost(_afterFaintN,null,true);
+      };
       const _stepHitCount=(R)=>{ if(!R.hitLanded)return;
         MEDSEEN.hitCountLinesDeferred++;
         if(R.tg&&R.tg.fainted)MEDSEEN.hitCountNamedACorpse++;
@@ -33278,6 +33397,11 @@ function battleTurn(S,rng,actsForA,actsForB){
                     _stepAfterHitField,                // 2026-08-23 -- the other two onAfterHit families
                     _stepUpdate,                       // 2026-08-23 -- eachEvent('Update'), :967
                     _stepFaint,_stepDrainFaints,
+                    /* 2026-08-29 -- and the two statements BELOW `faintMessages()`'s drain loop:
+                     * `checkWin` at sim/battle.ts:2592 and `runEvent('AfterFaint', ..., length)` at
+                     * :2596. Above `_stepHitCount` because the whole of `faintMessages()` is
+                     * battle-actions.ts:976 and the count line is :978. See `_stepAfterFaint`. */
+                    _stepAfterFaint,
                     /* 2026-08-22 -- `-hitcount` IS BELOW THE FAINT, sim/battle-actions.ts:976-978:
                      *     this.battle.faintMessages(false, false, !pokemon.hp);
                      *     if (move.multihit && ...) this.battle.add('-hitcount', targets[0], hit - 1);

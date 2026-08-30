@@ -115,9 +115,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  804/804 probed mechanics live, 0 missing   (census 2026-08-29 15:28)
+  806/806 probed mechanics live, 0 missing   (census 2026-08-29 22:34)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 22.8 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 23.8 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -140,9 +140,162 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 22:05_
+_stamped 2026-08-29 23:06_
 
 <!-- /GENERATED -->
+
+## `checkWin` RETURNS ABOVE `AfterFaint`, SO THE KILL THAT WINS THE GAME IS NEVER PAID — AND THE PAYMENT IS ONE BOOST SIZED BY THE DRAIN, NOT ONE PER CORPSE. **CENSUS 804 -> 806 LIVE / 806 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 88 -> 84 OF 961, PROTOCOL 204 -> 199, FIVE CAUSES REMOVED AND NONE ADDED — ALL FIVE NAME AN ON-KO `atk` BOOST, AND THE ONLY BOARD LEAVES THAT MOVED ARE `boosts.atk`. THE PREDICTION WAS "UNMOVED AT 88" AND IT MISSED BY 4, IN THE IMPROVING DIRECTION. DIFFERENT-WINNER READS 0 BEFORE AND AFTER. D3 AND ROADMAP #362 ARE NOT ONE CAUSE, AND #362 IS ALREADY CLOSED IN THE ENGINE.** 2026-08-29.
+
+Full account: [docs/_reports/2026-08-29-afterfaint-boundary.md](_reports/2026-08-29-afterfaint-boundary.md).
+
+### ROADMAP #362 IS NOT THIS SITE, AND ITS ROW IS STALE
+
+The brief carried #362 as an open winner defect — *"`battleResult` returns 0.5 on a simultaneous
+double wipe"*. That is what `docs/ROADMAP.md` says; it is not what the engine says. **WIRE 160 landed
+the last-faint win rule on 2026-08-23** and `tests/probe_selfdestruct_winner.js`'s own header records
+the closure, with the Perish Song pair `w4`/`w5` added as the fixture that separates *read the right
+body* from *guessed the right side*. The row wants closing in MEASURE, whose defect it is; this batch
+did not edit it.
+
+They are adjacent lines and different questions. Both sit at the foot of `faintMessages()`: #362 is
+`checkWin`'s `this.win(faintData.target.side)` — WHO wins a mutual wipe, read by `battleResult` and
+therefore by every rollout. D3 is that `checkWin` **RETURNS**, so `runEvent('AfterFaint')` two lines
+below never runs at all. A D3 board is not even a #362 board: on both empirical cards the winning
+side still has bodies, so `checkWin` exits through `!side.foePokemonLeft()`.
+
+### THREE STATEMENTS BELOW THE DRAIN LOOP, AND THIS ENGINE HAD ALL THREE WRONG
+
+`sim/battle.ts:2532`. `data/mods/champions/scripts.ts` was read FIRST and overrides neither
+`faintMessages` nor `checkWin`; the Champions `abilities.ts` touches `eelevate` only with
+`{inherit:true, isNonstandard:null}`. Mainline is the authority here and that is checked, not assumed.
+
+```
+  const length = this.faintQueue.length;                              :2534
+  while (this.faintQueue.length) { ... this.add('faint', pokemon); ... }
+  if (checkWin && this.checkWin(faintData)) return true;              :2592
+  this.runEvent('AfterFaint', ..., length);                           :2596
+```
+
+- **POSITION** — the event is below the whole loop. This engine paid inside `_stepFaint`, which the
+  driver runs per ROW, so a spread that killed two wrote `faint,BOOST,faint,BOOST`.
+- **SIZE** — raised ONCE with the queue DEPTH. `moxie` is `this.boost({atk: length}, source)` and
+  `eelevate` the same expression on `getBestStat`, both off `Dex.forFormat`. A double KO is one `+2`.
+  The drain includes an ALLY the same spread took, which card 216 shows on the authority.
+- **EXISTENCE** — `checkWin` returns above it. This engine's win test is `if(sideWiped(S)) break _TURN`
+  at the top of the NEXT action, so the boost landed on a board that no longer existed.
+
+A fourth statement is narration: `boost()` resolves an Ability effect to
+`this.add('-ability', target, effect.name, 'boost')` above a **bare** `-boost` (`:2058-2064`). This
+engine wrote no announcement and tagged the boost `[from] ability: moxie`.
+
+`boost()`'s own second guard, `!target.side.foePokemonLeft()` (`:2028`), refuses the same payment
+independently. **NOT wired** — `checkWin` gets there first on every board reachable here, so a clause
+for it has no arm that could distinguish it. Filed.
+
+### NINE BODIES, TWO ABILITIES — ENUMERATED FROM THE FORMAT, NOT FROM THE CARD
+
+Twelve legal abilities carry a faint hook and they split on WHICH EVENT. `AfterFaint` (`:2596`, below
+`checkWin`) holds Eelevate, Moxie, Battle Bond, Beast Boost, Chilling Neigh, Grim Neigh and both As
+Ones; `Faint` (`:2551`, INSIDE the loop and above `checkWin`) holds Soul-Heart, Receiver, Power of
+Alchemy and Illusion — **not this defect**. Of the eight, legal carriers are **Moxie 7** (Pinsir,
+Gyarados, Heracross, Krookodile, Scrafty, Pyroar, Quaquaval), **Eelevate 1** (Eelektross-Mega),
+Battle Bond 1 whose handler needs `species.id === 'greninjabond'` and so can never fire, and **zero**
+for the other five. Both live members already carry `boostsOnKO`, so one edit covers both.
+
+### THE PROBE — RED FIRST, AND THE OVER-FIRE CONTROL IS THE POINT
+
+`tests/probe_afterfaint_boundary.js`, release `12dae69813f6` then `26787be1b8b4`, 24 assertions:
+
+```
+  wipe                             BEFORE                                AFTER
+  turn 1 | faint,faint,ABIL,BOOST:atk+2 | faint,BOOST+1,faint,BOOST+1 | faint,faint,ABIL,BOOST:atk+2
+  turn 2 | faint,faint,WIN             | faint,BOOST+1,faint,BOOST+1 | faint,faint
+```
+
+One board, both wrong clauses: Krookodile's Earthquake takes two foes on turn 1 (two in the back) and
+the last two on turn 2. **The two turns differ in nothing except whether p2 had a body left.** Arm
+`single` is the OVER-FIRE CONTROL and is where the file earns its keep — a Rotom-Heat holds slot b
+behind Levitate, so every turn is exactly one KO on a battle that keeps going and every one MUST
+still pay `+1`. An engine that learned *stop after a faint* rather than *stop after the WIN* passes
+`wipe` and fails there. Arm `cleared` is the same board on Krookodile's other legal ability.
+`MEDI_AFTERFAINT_PER_TARGET=1` restores WIRE 104's old block byte for byte, puts exactly the three
+failures back, and is registered in `DELIBERATE_BREAK` so a knob run cannot overwrite the census.
+
+The payment moved into a once-per-move `_stepAfterFaint`, between `_stepDrainFaints` and
+`_stepHitCount` — the authority's own order (`faintMessages()` is `battle-actions.ts:976`,
+`-hitcount` is `:978`). `sideWiped(S)` is the gate and is **the engine's own `checkWin`**, the same
+predicate the three `break _TURN` sites read.
+
+### TWO INSTRUMENTS WERE KEYED TO A SPELLING AND BOTH WENT RED ON A CORRECT FIX
+
+`tests/test-mechanics.js`'s `move/spreadFoes` row and `tests/probe_red_demo.js`'s `ROADMAP #81 WIRE
+10` both proved the boost had fired by grepping `-boost ... [from] ability: eelevate` — **this
+engine's own attribution, a form the authority has never written.** The moment the authority's pair
+went on the wire, the census read 805 live / 1 MISSING and the demonstration read
+`shipped-arm=false`, with nothing about spread pricing changed. Both now read `|-ability|`, which is
+the authority's marker for the same event. It is `docs/LESSONS.md`'s *a grep is a claim about a name*
+arriving through a probe, and it is why the `|-ability|` line was landed rather than filed: `EQUIV`
+deletes it from both streams, so **no gate here can go red on it** and the probe's narration
+assertion is now its only watcher.
+
+### WHICH SCOREBOARD, SAID BEFORE THE RUN — AND IT MISSED
+
+Predicted: pool **unmoved at 88**, protocol **204 -> 202**, DIFFERENT-WINNER **0**. Result **84**,
+**199**, **0**. The prediction assumed the two payment shapes always leave the same stage; they do,
+*while the battle continues* — and it forgot its own third clause, that a game the drain ENDS keeps a
+boost the authority never gave, which survives to the final board. Attributed, not explained away:
+**five causes removed and none added, every one naming an on-KO `atk` boost** (including two
+`showdown stopped emitting while medicham2 continued :: |-boost|…|atk|1`, which is clause 3 caught in
+the population by name), and **the only board-leaf families that moved are `party.boosts.atk` 9 -> 5
+and `active[].boosts.atk` 9 -> 5**. The four end-state games came out of band 5 alone; bands 1, 2, 3,
+4 and 6 are unmoved. `data/verification/game-differential.afterfaint.json`, release `26787be1b8b4`,
+census pin `9446a684709d`, pool `0d103fb9fa87`, 961 games, cap 12, arm `middle`. **The run was
+executed twice, without and with `--write`, and both read 199 / 877 / 9 VOID / 1 threw** — the sample
+is proven identical rather than assumed.
+
+### A PRE-EXISTING RED, MEASURED APART AND HANDED BACK
+
+`tests/probe_red_demo.js` fails `WIRE 120 Parting Shot does not jump the queue` —
+`reverted-arm=true (must be false)`, i.e. the demonstration's revert no longer flips. **It is not
+this batch's**, proven twice rather than argued: identical under `MEDI_AFTERFAINT_PER_TARGET=1`, and
+identical with HEAD's own `medicham2-browser.js` swapped in for the run. Reported, not filed as
+fixed; the revert wants re-aiming at the Parting Shot lines as they stand after the 2026-08-29
+`selfSwitch` and redirect-gate batches.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"THE ON-KO BOOST RUNS AFTER A BATTLE THE AUTHORITY HAS ENDED, AND PAYS PER TARGET INSTEAD OF PER
+  DRAIN"*~~ — **fixed and probed.** It was three clauses at one site, not two, and the population
+  held five instances where the card named two.
+
+**Joins it:**
+- **`tests/probe_red_demo.js` `WIRE 120 Parting Shot` IS RED AND IT IS NOT THIS BATCH'S.** Its revert
+  no longer flips the outcome. Needs its own pass.
+- **ROADMAP #362's ROW IS STALE — THE DEFECT IT DESCRIBES WAS CLOSED BY WIRE 160 ON 2026-08-23.**
+  MEASURE's row; it wants closing there with its `INSTRUMENT OWED` clause checked against `w3`/`w4`/`w5`.
+- **`boost()`'s SECOND REFUSAL — `!target.side.foePokemonLeft()`, `sim/battle.ts:2028`.** Unreachable
+  behind `checkWin` on every board staged here, so it is filed rather than wired.
+- **DOES EVERY OTHER ANNOUNCING ABILITY WRITE ITS `|-ability|` LINE?** This batch put it on the wire
+  for `boostsOnKO` only, because that is where the authority was read. `EQUIV` deletes the line, so no
+  instrument in the repo would say.
+
+**Carried forward unchanged** from the hand lists below: `onDamagingHit` raised per arrival while this
+engine batches it below the volley (cards 52, 72, 91, 134, 212, 228 and the whole of D4); the Cursed
+Body 30% and Blizzard 10% of cards 58 and 73; the redirect gate's ally-aimed status move, the
+ally-aimed delayed hit, Defog's `target.side`, the `self`-target heal `|move|` line, the fainted-ally
+clause of `getTarget`, the `scripted` exemption from `aimTravelsByLoc`, the `chillyreception`
+target-class exemption, and the `benchRisk` refit `clickFragility` owes MEASURE.
+
+### OWED, NOT RUN
+
+The `## OWED, NOT RUN` block of
+[docs/_reports/2026-08-29-afterfaint-boundary.md](_reports/2026-08-29-afterfaint-boundary.md) — the
+roster's three stages and `all-mechanics-fire.json` (both WITHHELD on a release mismatch that predates
+this batch), the damage differential, `tests/probe_selfdestruct_winner.js`, and
+`tests/test-resolution-order.js`.
+
+---
 
 ## THE VOLLEY THAT KILLS SET THE REACTOR OFF ONCE PER ARRIVAL IT *DREW*, AND THE AUTHORITY COUNTS THE ONES THAT *LANDED* — SO `|-hitcount|1` WAS PRINTED BESIDE TWO ROUGH SKIN TOLLS. **CENSUS 803 -> 804 LIVE / 804 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 90 -> 88 OF 961, PROTOCOL 205 -> 204 — PREDICTED AT ITS POINT ESTIMATE BEFORE THE RUN. AND THE CARD REVIEW'S D-FAMILY IS RE-CUT: D2 IS FOUR THINGS, D4 IS REFUTED (BOTH ENGINES FIRE STAMINA TWICE — IT IS A POSITION, NOT A FREQUENCY), AND D3 IS ITS OWN SITE.** 2026-08-29.
 

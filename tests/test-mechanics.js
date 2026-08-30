@@ -15069,6 +15069,101 @@ probe('ability', 'boostsOnKO', 'Moxie boosts the NAMED stat, and only on a KO', 
                  + ' (must be 0 — the trigger is the KO, not the click)' };
 });
 
+/* 2026-08-29 -- THE AFTER-FAINT BOUNDARY, CARD D3. The two probes above ask WHICH STAT and WHETHER a
+ * KO is required; neither can see WHEN the payment is made, HOW BIG one payment is, or whether it is
+ * made at all after the drain has decided the battle.
+ *
+ *     const length = this.faintQueue.length;                              sim/battle.ts:2534
+ *     while (this.faintQueue.length) { ... this.add('faint', pokemon); ... }
+ *     if (checkWin && this.checkWin(faintData)) return true;              sim/battle.ts:2592
+ *     this.runEvent('AfterFaint', ..., length);                           sim/battle.ts:2596
+ *
+ * `Moxie` is `this.boost({ atk: length }, source)`, read off
+ * `Dex.forFormat('gen9championsvgc2026regmb')`. So the event fires ONCE per drain, sized by the
+ * DEPTH of that drain, and not at all when `checkWin` returned first.
+ *
+ * THE TWO ARMS DIFFER IN ONE THING EACH, AND THAT IS THE WHOLE DESIGN. This probe's arms differ only
+ * in how many bodies the same Earthquake took; the next one's differ only in whether the foe side had
+ * a body in the back. Neither varies the ability, the click, the killer or the board. */
+probe('ability', 'boostsOnKO', 'a double KO is ONE payment sized by the drain, not one per body', () => {
+  /* `spare` sits on the foe BENCH so the double KO does not empty the side — that is the NEXT
+   * probe's question and mixing the two would make both unfalsifiable. Corviknight is the ally
+   * because Earthquake is `allAdjacent` and a Flying partner cannot join the drain and inflate it. */
+  /* THE STATE ALONE CANNOT SEE THIS AND THAT IS SAID RATHER THAN WORKED AROUND: two `+1`s and one
+   * `+2` leave the identical Attack stage, at the cap as well as below it. So the probe reads the
+   * WIRE — `battleInit`'s own `trace` sink — and asserts the COUNT of `-boost` lines and their
+   * position against the `|faint|`s. Under MEDI_AFTERFAINT_PER_TARGET=1 the stage is unchanged and
+   * this row still goes red, which is the difference between a probe and a coincidence. */
+  const run = (killBoth) => {
+    const trace = [];
+    const me = bare('garchomp'); me.ability = 'moxie';
+    const ally = bare('corviknight');
+    const f1 = bare('weavile'), f2 = bare('milotic'), spare = bare('talonflame');
+    f1.curHP = 5; if (killBoth) f2.curHP = 5;      /* otherwise f2 stands at full HP and survives */
+    const S = M.battleInit([me, ally], [f1, f2, spare], { seeded: true, trace });
+    trace.length = 0;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'earthquake', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon).filter(l => /^\|(faint|-boost)\|/.test(l));
+    const boosts = lines.filter(l => /^\|-boost\|/.test(l));
+    return { at: me.boosts.at, drained: (f1.fainted ? 1 : 0) + (f2.fainted ? 1 : 0),
+             /* FIELD 4, NOT `pop()`: the before-arm's line carries a trailing `[from]ability:moxie`
+              * and `pop()` would read that as NaN — a red for the wrong reason, on the arm that has
+              * to be red for the RIGHT one. */
+             nBoost: boosts.length, amounts: boosts.map(l => +l.split('|')[4]),
+             /* every `|faint|` of the drain is on the wire before the payment, as
+              * `runEvent('AfterFaint')` at sim/battle.ts:2596 is below the whole `while` loop */
+             belowAllFaints: lines.lastIndexOf(lines.filter(l => /^\|faint\|/.test(l)).pop())
+                             < lines.findIndex(l => /^\|-boost\|/.test(l)),
+             allyAlive: !ally.fainted, spareAlive: !spare.fainted, shape: lines.join(' ') };
+  };
+  const one = run(false), two = run(true);
+  return { works: one.drained === 1 && two.drained === 2
+                  && one.at === 1 && two.at === 2
+                  && one.nBoost === 1 && two.nBoost === 1
+                  && one.amounts[0] === 1 && two.amounts[0] === 2
+                  && one.belowAllFaints && two.belowAllFaints
+                  && one.allyAlive && two.allyAlive && one.spareAlive && two.spareAlive,
+           arms: { control: one.amounts, test: two.amounts },
+           detail: 'the SAME Earthquake, the same Moxie Garchomp, the same board — only how many '
+                 + 'bodies it took differs. ONE drained -> ' + one.nBoost + ' line(s) '
+                 + JSON.stringify(one.amounts) + ', stage +' + one.at + ';  TWO drained -> '
+                 + two.nBoost + ' line(s) ' + JSON.stringify(two.amounts) + ', stage +' + two.at
+                 + '. THE WIRE IS WHAT IS ASSERTED, because the STAGE cannot tell one `+2` from two '
+                 + '`+1`s: [' + two.shape + ']. An engine paying per corpse writes two lines and '
+                 + 'interleaves them with the faints; an engine ignoring `length` writes one `+1`. '
+                 + 'The Flying ally is alive on both arms (' + one.allyAlive + '/' + two.allyAlive
+                 + ') so the drain is only ever the foes, and the foe bench is alive ('
+                 + one.spareAlive + '/' + two.spareAlive + ') so neither arm ended the battle' };
+});
+
+probe('ability', 'boostsOnKO', 'a KO that ENDS the battle pays nothing — checkWin returns above AfterFaint', () => {
+  /* THE ONE VARIED KNOB IS A BODY IN THE BACK. Both arms are the identical double KO from the probe
+   * above; `back` decides whether the foe side still has anything, which is the only input to
+   * `checkWin`. If both arms answered the same, this probe would be measuring nothing. */
+  const run = (back) => {
+    const me = bare('garchomp'); me.ability = 'moxie';
+    const ally = bare('corviknight');
+    const f1 = bare('weavile'), f2 = bare('milotic');
+    f1.curHP = 5; f2.curHP = 5;
+    const foes = back ? [f1, f2, bare('talonflame')] : [f1, f2];
+    const S = M.battleInit([me, ally], foes, { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'earthquake', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { at: me.boosts.at, drained: (f1.fainted ? 1 : 0) + (f2.fainted ? 1 : 0) };
+  };
+  const alive = run(true), wiped = run(false);
+  return { works: alive.drained === 2 && wiped.drained === 2 && alive.at === 2 && wiped.at === 0,
+           arms: { control: alive.at, test: wiped.at },
+           detail: 'the same double KO, twice. WITH a body on the foe bench the drain does not end '
+                 + 'the battle and Moxie pays +' + alive.at + '; WITHOUT one the side is emptied, '
+                 + '`checkWin` (sim/battle.ts:2592) returns above `runEvent(\'AfterFaint\')` (:2596) '
+                 + 'and it pays +' + wiped.at + '. Both arms really did take two bodies ('
+                 + alive.drained + '/' + wiped.drained + '), so a zero on the second arm cannot be a '
+                 + 'KO that never happened. MEDI_AFTERFAINT_PER_TARGET=1 restores the old engine and '
+                 + 'reads 2 on both' };
+});
+
 /* WIRE 99 -- Mega Sol's private sun (Meganium's Champions mega; sheets read 0 by Lesson 3). */
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THE "PRIVATE" HALF IS NOW MEASURED RATHER
  * THAN ASSERTED IN PROSE. The old comment said the field still reports no weather; nothing checked
@@ -17445,9 +17540,18 @@ const spreadKOLeak = (ability, killFirst) => {
   /* THE KO BOOST IS COUNTED OFF THE STREAM, NOT OFF `boosts`. Eelevate raises the HIGHEST raw stat,
    * which on Gholdengo is Special Attack — the same stat Make It Rain drops by two — so a stage read
    * off the body cannot tell "+1 fired and was cancelled" from "+1 never fired", and the first cut of
-   * this probe reported 0 on the arm where the boost demonstrably happened. */
+   * this probe reported 0 on the arm where the boost demonstrably happened.
+   *
+   * IT IS THE `|-ability|` LINE AND NOT THE `[from]` TAG, 2026-08-29. This read `-boost` carrying
+   * `[from] ability: eelevate`, which was this engine's OWN spelling and never the authority's:
+   * `boost()` resolves an Ability effect to `this.add('-ability', target, effect.name, 'boost')`
+   * above a BARE `-boost` (sim/battle.ts:2058-2064). When the after-faint boundary fix put the
+   * authority's pair on the wire this probe went MISSING with nothing about spread pricing changed —
+   * an instrument keyed to a spelling, exactly the shape docs/LESSONS.md records for the grep that
+   * was a claim about a name. The `|-ability|` line is the authority's own marker for the same
+   * event and cannot be confused with Make It Rain's self-drop. */
   return { b: h2 - f2.curHP, died: f1.fainted,
-           ko: trace.filter(l => /^\|-boost\|.*eelevate/.test(l)).length };
+           ko: trace.filter(l => /^\|-ability\|.*eelevate/i.test(l)).length };
 };
 probe('move', 'spreadFoes', 'a spread move prices every target before any of them faints', () => {
   const koBoost = spreadKOLeak('eelevate', true);
@@ -31327,7 +31431,7 @@ process.exitCode = red.length ? 1 : 0;
  * nobody made. The engine stamps `MEDFAILS.residualCollapsed` for exactly this — a break that cannot
  * be mistaken for a clean run. Any future switch of the same kind belongs here. A RATCHET REGRESSION
  * IS NOT ONE OF THEM: it is a finding about the probes, and the floor above is what protects it. */
-const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored']
+const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afterFaintPerTargetRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

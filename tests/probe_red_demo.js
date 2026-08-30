@@ -3663,7 +3663,14 @@ demoSource('ROADMAP #81 WIRE 10  a KO on the first target cannot boost the hit o
     const koB = W10.board(E, 'eelevate', true, 'makeitrain');
     const noKO = W10.board(E, 'eelevate', false, 'makeitrain');
     const plain = W10.board(E, 'none', true, 'makeitrain');
-    const fired = koB.trace.filter(l => /^\|-boost\|.*eelevate/.test(l)).length;
+    /* THE `|-ability|` LINE, NOT THE `[from]` TAG — 2026-08-29, and it is the same correction
+     * tests/test-mechanics.js's `spreadFoes` row took on the same day. This read a `-boost` carrying
+     * `[from] ability: eelevate`, which was this engine's own spelling and never the authority's:
+     * `boost()` writes `this.add('-ability', target, effect.name, 'boost')` above a BARE `-boost`
+     * (sim/battle.ts:2058-2064). The after-faint boundary fix put the authority's pair on the wire and
+     * this demonstration went red with nothing about spread pricing changed — an instrument keyed to
+     * a spelling. The announcement is the authority's own marker for the same event. */
+    const fired = koB.trace.filter(l => /^\|-ability\|.*eelevate/i.test(l)).length;
     return koB.died && !noKO.died && fired === 1 && noKO.b > 0
         && koB.b === noKO.b && plain.b === noKO.b;
   });

@@ -1,10 +1,10 @@
 {
-  "current": "12dae69813f6",
-  "cut": "2026-08-29T19:31:50.882Z",
-  "why": "volley reactor count: onDamagingHit fires once per LANDED arrival (knob stamp)",
+  "current": "26787be1b8b4",
+  "cut": "2026-08-30T02:35:52.385Z",
+  "why": "after-faint boundary (card D3): checkWin returns above AfterFaint, and AfterFaint is one payment sized by the drain",
   "cuts": 1,
-  "latest_cut": "2026-08-29T19:31:50.882Z",
-  "latest_why": "volley reactor count: onDamagingHit fires once per LANDED arrival (knob stamp)",
-  "pointer_written": "2026-08-29T19:31:50.894Z",
+  "latest_cut": "2026-08-30T02:35:52.385Z",
+  "latest_why": "after-faint boundary (card D3): checkWin returns above AfterFaint, and AfterFaint is one payment sized by the drain",
+  "pointer_written": "2026-08-30T02:35:52.503Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
