@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-30T15:22:21.095Z",
+  "generated": "2026-08-30T15:43:34.715Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 813,
-  "live": 813,
+  "probed": 814,
+  "live": 814,
   "missing": 0,
-  "armed": 813,
+  "armed": 814,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -2830,6 +2830,16 @@
     },
     {
       "kind": "move",
+      "tag": "takesTargetItem",
+      "label": "Bug Bite and Pluck make the ATTACKER eat the stolen berry - the line, the effect, and NOT lastItem",
+      "live": true,
+      "detail": "BUG BITE into a Chople writes \"|-enditem|p2a:incineroar|chopleberry|[from]stealeat|[move]bugbite|[of]p1a:scizor\" (must be `[from] stealeat|[move] bugbite|[of] ...`, and an empty onEat so HP must not move: 0). Into a SITRUS the ATTACKER gains 290 of a required 290 with \"|-heal|p1a:scizor|870/1160|[from]item:sitrusberry\", ateBerry=true, lastItem=\"\" (must stay empty). PLUCK on a Corviknight gains 346/346. CONTROLS - empty hand \"no line\" +0; a Life Orb survives as \"lifeorb\" +0; a STICKY HOLD Sitrus survives as \"sitrusberry\" +0; KNOCK OFF strips the same Sitrus (\"|-enditem|p2a:incineroar|sitrusberry|[from]move:knockoff|[of]p1a:scizor\") and the attacker gains 0, ateBerry=false",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "statSwap",
       "label": "Psyshock is scored against the target Defense",
       "live": true,
@@ -3923,7 +3933,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 26.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.2% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

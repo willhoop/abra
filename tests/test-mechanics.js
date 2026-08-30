@@ -11114,6 +11114,136 @@ probe('move', 'removesItem', 'Bug Bite takes a BERRY and leaves anything else â€
                  + 'a do-nothing engine passing. Before the fix the first arm read ""' };
 });
 
+/* 2026-08-30 -- AND THE STRIP IS ONLY HALF THE HANDLER. THE ATTACKER EATS IT.
+ *
+ * The probe above closes the over-fire (a Mystic Water is not a berry). This one closes the half its
+ * own site declared open in a comment and never measured -- `the authority does not merely remove the
+ * berry, it makes the ATTACKER eat it ... No failing probe on the eat half yet`.
+ *
+ * THE AUTHORITY, READ WHOLE, AND CHAMPIONS OVERRIDES NEITHER MOVE (no `bugbite:`/`pluck:` key in
+ * data/mods/champions/moves.ts). data/moves.ts:1920-1929 and :13451-13460 are the SAME BODY:
+ *
+ *     onHit(target, source, move) {
+ *       const item = target.getItem();
+ *       if (source.hp && item.isBerry && target.takeItem(source)) {
+ *         this.add('-enditem', target, item.name, '[from] stealeat', '[move] Bug Bite', [of] source);
+ *         if (this.singleEvent('Eat', item, target.itemState, source, source, move)) {
+ *           this.runEvent('EatItem', source, source, move, item);
+ *           if (item.id === 'leppaberry') target.staleness = 'external';
+ *         }
+ *         if (item.onEat) source.ateBerry = true;
+ *       }
+ *     }
+ *
+ * Four statements, and this engine had ONE of them (the strip) with the wrong `[from]`.
+ *
+ * MEMBERSHIP DERIVED OVER THE WHOLE FORMAT, NOT COUNTED FROM THE BRIEF. Of the 500 legal moves,
+ * NINE call `takeItem` and exactly TWO make the ATTACKER eat what they took -- `bugbite` and
+ * `pluck`. Corrosive Gas, Covet, Knock Off, Switcheroo, Thief and Trick call `takeItem` and no
+ * `singleEvent('Eat')`; Fling calls `singleEvent('Eat')` and no `takeItem`, and its eater is the FOE
+ * (the road the previous batch closed). So the membership here is exactly the two named, which is
+ * the first time in this run of batches that it has been.
+ *
+ * WHAT THE FIX CAN AND CANNOT REACH IN THIS FORMAT, DERIVED RATHER THAN ASSUMED:
+ *   - the `-enditem ... [from] stealeat|[move] X|[of] Y` LINE: reachable, and it is 3 of the 961
+ *     pinned-pool games (the WHOLE of the differential's `-enditem field 4` class).
+ *   - `singleEvent('Eat')` on the ATTACKER: reachable and BOARD-MATERIAL. 10 of this format's 28
+ *     legal berries carry a real `onEat`; the other 18 are the resist family, whose `onEat` is an
+ *     empty function -- so it is written, it returns, and it moves nothing.
+ *   - `runEvent('EatItem', source, ...)`: raised, and it has NO REACHABLE CONSUMER here. 38 legal
+ *     species learn Bug Bite and 9 learn Pluck; `D.species.getMovePool` over all TEN legal carriers
+ *     of the format's three `on*EatItem` abilities (Cheek Pouch x4, Cud Chew x4, Ripen x2) returns
+ *     NEITHER move. It is raised anyway, for the reason the previous batch honoured Cud Chew's
+ *     `notFromEffects`: a later regulation is what makes a dead branch expensive.
+ *   - `source.ateBerry`: set, and its one consumer (Belch) is learned by NO Bug Bite or Pluck
+ *     learner. Recycle IS -- Hydrapple learns both -- which is why the `lastItem` control below is
+ *     a real over-fire test and not decoration: the authority sets `ateBerry` and NOT `lastItem`,
+ *     so a Hydrapple that Bug Bites a berry must not be able to Recycle it.
+ *   - `target.staleness = 'external'` on a Leppa: NOT MODELLED, this engine has no staleness, and
+ *     it is counted (`MEDFAILS.stealEatStalenessUnmodelled`) rather than passed over.
+ *
+ * THE FIVE CONTROLS ARE THE POINT. A fix that made every item-remover an eater passes both TEST arms
+ * and fails KNOCK OFF; one that ate off an empty slot fails the no-item arm; one that ignored
+ * `takeItem`'s own refusal fails STICKY HOLD, which is a berry that must NOT be eaten. */
+probe('move', 'takesTargetItem', 'Bug Bite and Pluck make the ATTACKER eat the stolen berry - the line, the effect, and NOT lastItem', () => {
+  /* One staging for every arm, so a difference between two of them is the varied knob and not the
+   * board. BOTH bodies are unfaintable: the target because a KO clamps both arms and this file marks
+   * that HOLLOW, and the ATTACKER because its HP is the reading and a body at full HP heals 0. */
+  const run = (attacker, moveId, item, tgAbility) => {
+    const trace = [];
+    const me = bare(attacker), ally = bare('milotic');
+    const f1 = bare('incineroar'), f2 = bare('farigiraf');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    f1.item = item; if (tgAbility) f1.ability = tgAbility;
+    unfaintable(f1); f1.curHP = Math.floor(f1.st.hp * 0.6);
+    unfaintable(me); me.curHP = Math.floor(me.st.hp * 0.5);
+    const a0 = me.curHP; trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon);
+    return { a0, gained: me.curHP - a0, quarter: Math.floor(me.st.hp / 4),
+             tgItem: f1.item || '', lastItem: me._lastItem || '', ate: !!me._ateBerry,
+             end: lines.filter(l => /^\|-enditem\|/.test(l)).join(' ; '),
+             heals: lines.filter(l => /^\|-heal\|p1a:/.test(l)).join(' ; '), lines };
+  };
+  /* THE LINE. `[from] stealeat` and `[move] <Name>` are two SEPARATE fields either side of the `[of]`
+   * -- which is why this asserts the whole string and not a substring. A Chople is used because its
+   * `onEat` is empty, so this arm reads the LINE with no HP moving underneath it. */
+  const A = run('scizor', 'bugbite', 'chopleberry');
+  /* THE EFFECT. A Sitrus, whose `onEat` heals baseMaxhp/4 -- ON THE ATTACKER, which never held it. */
+  const B = run('scizor', 'bugbite', 'sitrusberry');
+  /* THE SECOND MEMBER, on a body that learns it, so the fix cannot be keyed to one move id. */
+  const P = run('corviknight', 'pluck', 'sitrusberry');
+  /* CONTROLS */
+  const cNone = run('scizor', 'bugbite', '');                            // no item at all
+  const cNonBerry = run('scizor', 'bugbite', 'lifeorb');                 // not a berry: not even stripped
+  const cHold = run('scizor', 'bugbite', 'sitrusberry', 'stickyhold');   // a berry that must NOT be eaten
+  const cKnock = run('scizor', 'knockoff', 'sitrusberry');               // stripped, and NOT eaten
+
+  const LINE = (mv, item, who) => new RegExp('^\\|-enditem\\|p2a:incineroar\\|' + item
+    + '\\|\\[from\\]stealeat\\|\\[move\\]' + mv + '\\|\\[of\\]p1a:' + who + '$');
+
+  const ok =
+    /* TEST 1 -- the line, and nothing else moved */
+    LINE('bugbite', 'chopleberry', 'scizor').test(A.end) && A.gained === 0 && A.tgItem === ''
+    /* TEST 2 -- the effect, on the attacker, exactly a quarter of ITS max */
+    && LINE('bugbite', 'sitrusberry', 'scizor').test(B.end)
+    && B.gained === B.quarter && B.quarter > 0 && /item:sitrusberry/.test(B.heals) && B.ate
+    /* TEST 3 -- Pluck is the same handler on a different body */
+    && LINE('pluck', 'sitrusberry', 'corviknight').test(P.end)
+    && P.gained === P.quarter && P.ate
+    /* CONTROL -- the attacker gains NO lastItem on either eating arm: the authority writes
+       `lastItem`, `usedItemThisTurn` and `AfterUseItem` on NEITHER, so Recycle and Symbiosis stay
+       dead on this road. Hydrapple learns Bug Bite AND Recycle, so this is reachable. */
+    && B.lastItem === '' && P.lastItem === ''
+    /* CONTROL -- nothing in the slot: no line, no heal, no flag */
+    && cNone.end === '' && cNone.gained === 0 && !cNone.ate
+    /* CONTROL -- a NON-berry is not stripped at all and is certainly not eaten */
+    && cNonBerry.end === '' && cNonBerry.tgItem === 'lifeorb' && cNonBerry.gained === 0 && !cNonBerry.ate
+    /* CONTROL -- a berry that must NOT be eaten: takeItem's own refusal, so the berry is still there */
+    && cHold.end === '' && cHold.tgItem === 'sitrusberry' && cHold.gained === 0 && !cHold.ate
+    /* CONTROL -- KNOCK OFF strips the SAME berry and the attacker eats nothing. This is the arm that
+       catches a fix which made every item-remover an eater. */
+    && /\[from\]move:knockoff/.test(cKnock.end) && cKnock.tgItem === ''
+    && cKnock.gained === 0 && !cKnock.ate;
+
+  return { works: ok,
+           arms: { control: [cNone.end || '(none)', cNonBerry.tgItem, cHold.tgItem, cKnock.end,
+                             cKnock.gained, cNone.gained],
+                   test: [A.end, B.end, P.end, B.gained, P.gained, B.ate] },
+           detail: 'BUG BITE into a Chople writes "' + (A.end || '(nothing)') + '" (must be '
+                 + '`[from] stealeat|[move] bugbite|[of] ...`, and an empty onEat so HP must not move: '
+                 + A.gained + '). Into a SITRUS the ATTACKER gains ' + B.gained + ' of a required '
+                 + B.quarter + ' with "' + (B.heals || 'no heal line') + '", ateBerry=' + B.ate
+                 + ', lastItem="' + B.lastItem + '" (must stay empty). PLUCK on a Corviknight gains '
+                 + P.gained + '/' + P.quarter + '. CONTROLS - empty hand "' + (cNone.end || 'no line')
+                 + '" +' + cNone.gained + '; a Life Orb survives as "' + cNonBerry.tgItem + '" +'
+                 + cNonBerry.gained + '; a STICKY HOLD Sitrus survives as "' + cHold.tgItem + '" +'
+                 + cHold.gained + '; KNOCK OFF strips the same Sitrus ("' + cKnock.end + '") and the '
+                 + 'attacker gains ' + cKnock.gained + ', ateBerry=' + cKnock.ate };
+});
+
 probe('move', 'statSwap', 'Psyshock is scored against the target Defense', () => {
   const hit = (mult, mv) => turnDamage(['alakazam', 'incineroar', 'milotic', 'garchomp'],
     (B) => { B.f1.st = Object.assign({}, B.f1.st, { df: B.f1.st.df * mult }); unfaintable(B.f1); }, mv);
@@ -32047,7 +32177,7 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afte
                           'statusOneStepRestored', 'perishAtFootRestored',
                           'reactBatchedRestored', 'berryAtApplyRestored',
                           'formeBustInlineRestored', 'eatReactBeforeBerryRestored',
-                          'eatEventUpdateOnlyRestored']
+                          'eatEventUpdateOnlyRestored', 'stealEatStripOnlyRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json â€” the engine is running under a '

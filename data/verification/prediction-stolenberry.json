@@ -1,0 +1,64 @@
+{
+  "what": "ENGINE prediction, written to disk BEFORE a line of engine changed, for the Bug Bite / Pluck steal-eat batch (2026-08-30).",
+  "by": "ENGINE",
+  "written_before_the_run": true,
+  "mechanic": "Bug Bite and Pluck strip the target's berry and never make the ATTACKER eat it: no `[from] stealeat|[move] X` line, no berry effect on the attacker, no EatItem event, no ateBerry.",
+  "which_scoreboard": "BOTH. Unlike the last five batches this one is predicted to MOVE THE POOL, and the arithmetic is below rather than a hope.",
+  "pool_arithmetic_derived_before_the_run": {
+    "source": "data/team-pool-frozen/games.bo3.jsonl, 13214 games",
+    "games_mentioning_bugbite_anywhere": 369,
+    "games_mentioning_pluck_anywhere": 0,
+    "games_that_actually_CLICK_bugbite": 81,
+    "total_bugbite_clicks": 117,
+    "clicks_into_a_body_whose_SHEET_item_is_a_berry": 53,
+    "games_with_such_a_click": 41,
+    "scaled_to_961": "41/13214 * 961 = 2.98 expected games",
+    "measured_in_the_961_sample_itself": "the -enditem field 4 class of data/verification/game-differential.eatevent.json is EXACTLY 3 games and all 3 of its causes are this line",
+    "note": "369 is a MENTION count (mostly sheets). The click count is what can diverge."
+  },
+  "baseline": {
+    "release": "f933a01b792a",
+    "census_probed_live_missing": [813, 813, 0],
+    "protocol_diverged_games": 175,
+    "board_parted_games": 84,
+    "distinct_causes": 153,
+    "enditem_field_4_class_games": 3,
+    "ordering_class_games": 24,
+    "end_state_verdicts": [903, 55, 2, 0, 1],
+    "games": 961,
+    "threw": 1
+  },
+  "predicted": {
+    "census_probed_live_missing": [814, 814, 0],
+    "census_band": "exactly - one new probe, and it must be live",
+    "protocol_diverged_games": 172,
+    "protocol_band": [170, 175],
+    "board_parted_games": 83,
+    "board_band": [82, 84],
+    "distinct_causes": 150,
+    "causes_band": [147, 153],
+    "enditem_field_4_class_games": 0,
+    "enditem_band": "exactly 0 - all three causes are this defect and nothing else is in that class",
+    "ordering_class_games": 24,
+    "ordering_band": [22, 26],
+    "end_state_verdicts": "identical",
+    "end_state_band": "at most 2 in any cell"
+  },
+  "why_those_numbers": {
+    "protocol": "The three games' FIRST divergence is the stealeat line. Removing a first divergence lets the game run further and it may find a later one, so the drop is 0..3 and the point estimate is the full 3.",
+    "board": "Game 2 (seed ...2657492148) is board-material: showdown writes `|-heal|p2a: Scizor|125/145|[from] item: Sitrus Berry` and this engine writes nothing, and the medicham final roster carries Scizor at 89 where the authority has it at 125. The other two berries (Chople, Passho) have an EMPTY onEat, so they move no HP. So exactly one board-parted game should close.",
+    "end_state": "The Scizor heal changes HP inside a game the empirical driver replays from real human clicks, so the trajectory is unchanged in WHAT IS CLICKED; only HP moves. An end-state flip is possible and is not predicted."
+  },
+  "over_fire_controls_that_must_not_move": [
+    "a target holding a NON-berry (Life Orb): not stripped at all, and the attacker eats nothing",
+    "a target holding NOTHING: no -enditem, no heal, attacker HP unchanged",
+    "a berry that must NOT be eaten - a Sticky Hold holder, whose takeItem fails: the berry stays in the slot and the attacker eats nothing",
+    "KNOCK OFF into the same Sitrus Berry: the berry is stripped and the attacker must NOT heal - my fix must not make every item-remover an eater",
+    "the attacker must NOT gain lastItem / usedItemThisTurn / AfterUseItem: the authority's steal-eat writes NONE of them, so Recycle and Symbiosis must stay dead on this road"
+  ],
+  "second_owed_item": {
+    "name": "RIPEN'S SECOND RESIST-BERRY HALVE",
+    "prediction": "NOT LANDED IN THIS BATCH. Predicted BLOCKED on the same data/tags.json regeneration that ROADMAP #529 is blocked on, and predicted to be a SECOND fix rather than the same one.",
+    "falsifier": "if a correct derivation of the second halve exists off a tag data/tags.json ALREADY carries correctly, this prediction is wrong and the fix should have landed here."
+  }
+}

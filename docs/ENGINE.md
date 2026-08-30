@@ -115,9 +115,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  813/813 probed mechanics live, 0 missing   (census 2026-08-30 10:58)
+  814/814 probed mechanics live, 0 missing   (census 2026-08-30 11:43)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 1.5 days old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 1.7 days old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -132,7 +132,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is d17968a643d4 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is b2b34a814603 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/300 probed, 15 unprobed;  271/300 have an engine consumer, 29 have none
@@ -140,9 +140,168 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-30 11:21_
+_stamped 2026-08-30 16:12_
 
 <!-- /GENERATED -->
+
+## BUG BITE AND PLUCK STRIPPED THE BERRY AND NEVER MADE THE ATTACKER EAT IT — THE MEMBERSHIP IS EXACTLY THE TWO NAMED, FOR ONCE, AND THE POOL MOVED. **CENSUS 813 -> 814 LIVE / 814 PROBED / 0 MISSING. EMPIRICAL PROTOCOL 175 -> 173, BOARD-PARTED 84 -> 83, CAUSES 153 -> 151 (3 REMOVED — ALL THREE THIS DEFECT — AND 1 ADDED, WHICH IS THE THIRD GAME RUNNING FURTHER). THE `-enditem field 4` CLASS NO LONGER EXISTS AND ZERO `stealeat` REMAINS IN THE DUMP. END-STATE IMPROVED 903/55 -> 905/53. FIVE OF SEVEN PREDICTIONS AT THE POINT ESTIMATE, SEVEN OF SEVEN IN BAND.** 2026-08-30.
+
+Full account: [docs/_reports/2026-08-30-stolen-berry.md](_reports/2026-08-30-stolen-berry.md).
+
+| | before | after |
+|---|---|---|
+| census (`data/mechanics-census.json`) | 813 probed / 813 live / 0 missing | **814 / 814 / 0** |
+| empirical protocol-diverged games | 175 of 961 | **173** |
+| empirical board-parted | 84 of 961 | **83** |
+| distinct divergence causes | 153 | **151** |
+| the `-enditem field 4` class | 3 games | **the class is gone** |
+| end-state verdicts | 903 / 55 / 2 / 0 / 1 | **905 / 53 / 2 / 0 / 1** |
+| engine release | `f933a01b792a` | **`0e8ec5729a7b`** |
+
+### THE MEMBERSHIP IS DERIVED AND IT IS THE TWO NAMED — WHICH HAS NOT HAPPENED IN THIS RUN OF BATCHES
+
+Over the 500 legal moves, **NINE call `takeItem` and exactly TWO make the ATTACKER eat what they
+took**: `bugbite` and `pluck`. Corrosive Gas, Covet, Knock Off, Switcheroo, Thief and Trick call
+`takeItem` and no `singleEvent('Eat')`; Fling calls `singleEvent('Eat')` and no `takeItem`, and its
+eater is the FOE — the road the previous batch closed. Champions overrides neither move, so
+`data/moves.ts:1911-1934` and `:13442-13465` are inherited whole and are the same body.
+
+**Pluck has ZERO mentions in the 13,214-game pool and is in the fix anyway**, because the fix is not
+keyed on a move id and the probe stages it on a Corviknight to prove that.
+
+### THE AUTHORITY IS FOUR STATEMENTS AND THIS ENGINE HAD ONE
+
+```js
+this.add('-enditem', target, item.name, '[from] stealeat', '[move] Bug Bite', [of] source);
+if (this.singleEvent('Eat', item, target.itemState, source, source, move)) {
+  this.runEvent('EatItem', source, source, move, item);
+  if (item.id === 'leppaberry') target.staleness = 'external';
+}
+if (item.onEat) source.ateBerry = true;
+```
+
+- **`singleEvent` RETURNS TRUE FOR EVERY LEGAL BERRY, so the inner `if` is a straight line here** —
+  `Battle#singleEvent` returns `relayVar` when the callback is `undefined` and the callback's own
+  return otherwise, and all **28 legal berries carry an `onEat` FUNCTION**. The 18 resist berries'
+  bodies are EMPTY (`onEat() { }`), so they return `undefined` and the event still fires. This nearly
+  went in as a branch on `onEat === false`, which is what a resist berry looks like from memory.
+- **`[from] stealeat` and `[move] <Name>` are TWO SEPARATE FIELDS** above the `[of]` — six arguments.
+  The existing `TR.enditem` emitter can write any two of the three and never all three in order, so
+  the line gets its own `TR.stealeat` emitter rather than a concatenated string.
+- **The authority writes NO `lastItem`, NO `usedItemThisTurn` and NO `AfterUseItem` on the thief**,
+  which is why this road is deliberately NOT routed through `consumeBerry`, exactly as Fling's is
+  not. HYDRAPPLE LEARNS BOTH BUG BITE AND RECYCLE, so that difference is reachable.
+
+### THE GATE READS THE RIGHT TAG FIRST AND THE FALLBACK IS LOUD
+
+`takesTargetItem.consumesAndGainsEffect` is the direct statement and **ROADMAP #529 is still live**:
+the deriver's `eats` test is single-quote-only and the compiled body writes `singleEvent("Eat"`. So
+the gate reads it first and falls back on `removesItem.requiresItemClass === ['isBerry'] && !steals`
+— a different, correct predicate off the same handler's guard — counting
+`MEDFAILS.stealEatViaClassGuard` every time. **The equivalence was MEASURED through
+`engine/tags.js`'s own `__setDB` staged-tag seam**: with the two rows corrected in memory, all eight
+`takeItem` moves produced byte-identical boards and the counter read 2 on the on-disk pass and 0 on
+the staged one. It will fall silent by itself the day the regeneration lands.
+
+### THE PREDICTION, WRITTEN TO DISK BEFORE THE RUN
+
+`data/verification/prediction-stolenberry.json`. **This is the first batch in a while predicted to
+move the POOL**, and the arithmetic was written down: 369 pool games MENTION Bug Bite but only 81
+CLICK it, 41 of those into a body whose sheet item is a berry — and the 961-game sample settles it
+exactly, because the `-enditem field 4` class was 3 games and all three of its causes were this line.
+
+| | baseline | predicted | band | **measured** |
+|---|---|---|---|---|
+| census | 813/813/0 | **814/814/0** | exactly | **814/814/0** |
+| protocol-diverged | 175 | **172** | 170–175 | **173** |
+| board-parted | 84 | **83** | 82–84 | **83** |
+| distinct causes | 153 | **150** | 147–153 | **151** |
+| `-enditem field 4` | 3 | **0** | exactly | **0 — the class is gone** |
+| `ordering` | 24 | **24** | 22–26 | **24** |
+| end-state | 903/55/2/0/1 | identical | ≤2 per cell | **905/53/2/0/1** |
+
+The two that missed missed by one, in the same direction, for the reason stated in advance in the
+prediction file: removing a first divergence lets the game run further. One of the three did exactly
+that — `…2654877056` now diverges later at an unrelated damage value on a Milotic, which is the ONE
+added cause. The other two run clean to the end. **The board-material one was named before the run**:
+`…2657492148`, where the authority heals a Scizor 145/4 off a stolen Sitrus and this engine left it
+at 89 against 125.
+
+### ONE FIX OR TWO — TWO, SETTLED TWICE
+
+**(a) The 2x2 over two revert knobs**, `MEDI_STEALEAT_STRIP_ONLY` x `MEDI_EATEVENT_UPDATE_ONLY` (the
+prerequisite that landed hours earlier and also touches berries), one process per cell:
+
+```
+  A moves S with B=0 : DIFFERS       B moves E with A=0 : DIFFERS
+  A moves S with B=1 : DIFFERS       B moves E with A=1 : DIFFERS
+  B leaves S, A=0    : IDENTICAL     A leaves E, B=0    : IDENTICAL
+  B leaves S, A=1    : IDENTICAL     A leaves E, B=1    : IDENTICAL
+```
+
+**(b) RIPEN'S SECOND HALVE IS STILL OPEN, IS SEPARATE, AND IS NOT LANDABLE TODAY.** Ice Beam into an
+Appletun holding a Yache: 188 bare, 94 with the berry, **94 under Ripen where the authority requires
+~47**, and `MEDFAILS.damageReduceUnknown` moves with first `ripen/null` — the reader refuses and says
+so. Ripen's WHOLE tag record is `{announcesBerryEat, doublesBerryEffect{mult:2,heal,boost},
+damageReduce{0.5,null}}` and **none of the three states `abilityState.berryWeaken`**, so the fix
+needs the same `tag_dex.js` regeneration #529 needs. **And the two mechanics cannot interact at all
+here**: `getMovePool` over all ten legal carriers of the format's three `on*EatItem` abilities
+returns neither move, against 38 Bug Bite learners and 9 Pluck learners.
+
+### THE CLOSETED PERISH ROW (ROADMAP #440) STILL HOLDS
+
+One site touched — the item strip inside `_stepAfterHit`, above `faintMessages` — plus a new trace
+emitter. No faint written, no residual queue read, no `|upkeep|` moved. The closet row's cause string
+is in neither the added nor the removed set: the added set is one damage value on a Milotic and the
+removed set is three `stealeat` lines. `tests/probe_upkeep_lines.js --release 0e8ec5729a7b` is **4 of
+49, the same four by name** as the inherited baseline. Falsifier (b), the COVERAGE arm of
+`data/game-differential.json`, remains undecided exactly as before.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"BUG BITE AND PLUCK DO NOT MAKE THE ATTACKER EAT THE BERRY"*~~ — **landed and probed** by
+  `move/takesTargetItem`, shown red under `MEDI_STEALEAT_STRIP_ONLY=1` first, with five over-fire
+  controls (Knock Off into the same berry, a Sticky Hold berry that must not be eaten, an empty hand,
+  a non-berry, and the thief's `lastItem` staying empty). It moved the pool, which is what it was
+  ranked for.
+
+**Stays on it, with a sharper reason than it had:**
+- **RIPEN DOES NOT HALVE A RESIST BERRY A SECOND TIME.** Measured at 94 against a required ~47, with
+  a knob-cleared control. **BLOCKED, not undone** — it needs `damageReduce.onlyWhen` to carry the
+  authority's `abilityState.berryWeaken`, which is a `tag_dex.js` regeneration.
+- **`tag_dex.js` MIS-DERIVES `takesTargetItem` FOR BUG BITE AND PLUCK (ROADMAP #529).** Re-measured,
+  still exactly two rows, still behaviour-neutral — and the blocker is TIGHTER: four OPS ingest
+  commits have landed since `data/tags.json` was generated, the last twenty-five minutes before this
+  batch. **The two rows above want the SAME thing — one `tag_dex.js` pass with the store pinned — so
+  that pass now gates two separate mechanics, which is a stronger case for doing it than either had
+  alone.** Pinning the store is a MEASURE-shaped decision about a corpus, not an ENGINE-only call.
+
+**Carried forward unchanged** from the hand lists below: Triple Axel into an intact Disguise dealing
+zero on arrivals 2 and 3 (the `formeAbsorbPerHitPlan` remainder of ROADMAP #526); a multi-arrival
+volley halving EVERY arrival against a resist berry; the drain heal paid once per row where the
+authority pays per hit; an attacker killed by an interior arrival's toll not stopping the volley;
+`tests/probe_upkeep_lines.js` red at 4 of 49, cleared of this batch above; this walk re-asking
+`residualOrder()` per group; a perish-killed body skipping its own orders 25-29;
+`tests/probe_red_demo.js`'s five COULD-NOT-BE-APPLIED and one HOLLOW, unchanged and unanchored by
+this edit; `boost()`'s second refusal; whether every other announcing ability writes its
+`|-ability|` line; ROADMAP #362's stale row; the Cursed Body 30% and Blizzard 10%; the redirect
+gate's ally-aimed status move, the ally-aimed delayed hit, Defog's `target.side`, the `self`-target
+heal `|move|` line, the fainted-ally clause of `getTarget`, the `scripted` exemption from
+`aimTravelsByLoc`, the `chillyreception` target-class exemption, and the `benchRisk` refit
+`clickFragility` owes MEASURE.
+
+### OWED, NOT RUN
+
+The `## OWED, NOT RUN` block of
+[docs/_reports/2026-08-30-stolen-berry.md](_reports/2026-08-30-stolen-berry.md) — a pool-scale
+reading of the four new counters, `MEDFAILS.stealEatAttackerFainted` never yet seen non-zero (the
+authority's `source.hp` guard on the STRIP, deliberately left for want of a probe), the roster's
+three stages, `data/all-mechanics-fire.json` and the COVERAGE arm of the whole-game differential (all
+WITHHELD on a release mismatch that now predates this batch by five releases),
+`tests/test-engine-diff.js`, and the two rows that stay on the hand list.
+
+---
 
 ## `EatItem` WAS RAISED ON FOUR OF THE SEVEN ROADS A BERRY IS EATEN ON, AND THE MEMBERSHIP IS TEN ROADS RATHER THAN THE THREE THAT WERE FOUND. **CENSUS 812 -> 813 LIVE / 813 PROBED / 0 MISSING. THE POOL IS BYTE-IDENTICAL — 153 CAUSES BEFORE AND AFTER, ZERO ADDED, ZERO REMOVED, ZERO MOVED, PROTOCOL 175, BOARD-PARTED 84, `ordering` 24, END-STATE 903/55/2/0/1 — AND ALL FOUR WERE WRITTEN TO DISK AT THEIR POINT ESTIMATE BEFORE THE RUN, WITH THE CARRIER ARITHMETIC THAT PREDICTED THEM.** 2026-08-30.
 

@@ -2155,6 +2155,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      new sites are dead again, which is exactly the silent-default shape this project keeps finding. */
   eatItemEventRaised: 0, eatEventOffResistBerry: 0, eatEventOffVolatileBerry: 0,
   eatEventOffFlungBerry: 0,
+  /* 2026-08-30 -- THE STOLEN BERRY. `bugbite`/`pluck` strip a berry and make the ATTACKER eat it, so
+     this road raises `EatItem` on a body that never held the item. Three counters because the three
+     halves fail separately: the eat happening at all, the berry's own effect landing on the thief,
+     and the `EatItem` pass. `stolenBerryEffectUnexpressed` is the 18 resist berries, whose `onEat` is
+     an EMPTY FUNCTION in the authority too -- so a large count there is correct, not a shortfall, and
+     it is separated from `forcedBerryEffectUnexpressed` (Stuff Cheeks / Teatime) so the two cannot be
+     read as one number. */
+  stolenBerryEaten: 0, stolenBerryEffectUnexpressed: 0, eatEventOffStolenBerry: 0,
   cudChewArmed: 0, cudChewReEaten: 0, harvestRestored: 0, pickupTook: 0,
   /* ROADMAP #175 -- THE NEXT-MOVE GUARANTEE, FOUR COUNTERS, because the mechanic has four separable
    * halves and a single total could not tell you which one is dead.
@@ -2649,6 +2657,30 @@ const MEDFAILS = { encoreAction: 0,
      the strip was REFUSED rather than allowed. `isGem` is the only other class the authority uses
      and it has no legal carrier in Reg M-B; a non-zero here means one arrived. */
   itemClassGuardUnknown: 0, itemClassGuardUnknownFirst: '',
+  /* 2026-08-30 -- THE STEAL-EAT GATE FELL BACK ON THE CLASS GUARD, AND THE FALLBACK IS LOUD.
+     `takesTargetItem.consumesAndGainsEffect` is the direct statement ("this move eats what it took")
+     and ROADMAP #529 records that `tag_dex.js` derives it WRONG for exactly `bugbite` and `pluck`:
+     the `eats` test is `/eatItem|singleEvent\('Eat'/` -- single quotes only -- run against the
+     COMPILED dist body, which uses double quotes. So both rows read `consumesAndGainsEffect:false`
+     today and the gate has to fall back on `removesItem.requiresItemClass === ['isBerry']`, which is
+     derived by a DIFFERENT and correct predicate off the same handler's own guard.
+     A silent fallback looks exactly like a working feature, so it counts. When #529's regeneration
+     lands this must go to ZERO and the direct read takes over with no edit here. */
+  stealEatViaClassGuard: 0,
+  /* 2026-08-30 -- set for the whole run when MEDI_STEALEAT_STRIP_ONLY=1 puts Bug Bite and Pluck back
+     to taking the berry without eating it. Registered in tests/test-mechanics.js DELIBERATE_BREAK. */
+  stealEatStripOnlyRestored: 0,
+  /* 2026-08-30 -- the authority's guard is `if (source.hp && item.isBerry && target.takeItem(source))`
+     -- one `if` over the strip AND the eat. This engine gates only the EAT on the attacker being
+     alive and leaves the strip where it was, because there is no failing probe on the strip half and
+     an unprobed behaviour change is how a batch stops being attributable. A non-zero here is a real
+     over-strip (Bug Bite makes contact, so Rough Skin can kill the thief mid-handler) and is the
+     receipt that the branch is reachable. */
+  stealEatAttackerFainted: 0,
+  /* 2026-08-30 -- `if (item.id === 'leppaberry') target.staleness = 'external'` is the fourth
+     statement of the steal-eat handler and this engine has no staleness model at all. Counted rather
+     than passed over. Expected non-zero only when a Leppa is stolen. */
+  stealEatStalenessUnmodelled: 0,
   /* 2026-08-23 -- set for the whole run when MEDI_UNNERVE_PARTIAL=1 puts Unnerve back on two of the
      five berry sites, so the cure berry, the instantaneous confusion cure and the resist berry are
      eaten under an Unnerve body again. */
@@ -3900,6 +3932,21 @@ const TRACE=(function(){
      * lose the attribution. push() drops empty fields, so every existing four-argument caller is
      * unaffected -- the same shape `act`'s `extra2` and `prep`'s `extra` already use. */
     enditem(m,it,tag,of,extra){ this.push(['-enditem',ident(m),it,tag,of?'[of] '+ident(of):'',extra]); },
+    /* 2026-08-30 -- BUG BITE AND PLUCK WRITE A SIX-ARGUMENT `-enditem` AND IT NEEDS ITS OWN EMITTER.
+     * The authority is
+     *     this.add('-enditem', target, item.name, '[from] stealeat', '[move] Bug Bite', [of] source)
+     * (data/moves.ts bugbite/pluck onHit, and Champions overrides neither) -- `[from] stealeat` and
+     * `[move] <Name>` are TWO SEPARATE FIELDS and the `[of]` is a THIRD, below both. `enditem` above
+     * places `of` at field 4 and `extra` at field 5, so it can write any two of the three and never
+     * all three in the authority's order. Concatenating them into one string would be the same
+     * mistake the `[silent]`/`[from]` pair note above already records: the differ compares FIELDS.
+     *
+     * MEASURED IN THE PINNED POOL, so the shape is read and not assumed:
+     *     |-enditem|p2a: Incineroar|Chople Berry|[from] stealeat|[move] Bug Bite|[of] p1b: Scizor
+     * against this engine's |-enditem|p2a: Incineroar|chopleberry|[from] move: bugbite|[of] p1b: Scizor.
+     * The move NAME is the dex's own `name` off the tag record, never typed here. */
+    stealeat(m,it,mvName,of){
+      this.push(['-enditem',ident(m),it,'[from] stealeat','[move] '+mvName,of?'[of] '+ident(of):'']); },
     ab(m,a,extra){ this.push(['-ability',ident(m),a,extra]); },
     /* `|-transform|USER|TARGET` -- sim/pokemon.ts:1352, with the :1350 variant appending
      * `[from] <effect.fullname>` when something other than the move caused the copy. There is no
@@ -20695,6 +20742,29 @@ if(EATREACT_BEFORE_BERRY)MEDFAILS.eatReactBeforeBerryRestored=1;
 const EATEVENT_UPDATE_ONLY=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_EATEVENT_UPDATE_ONLY==='1');
 if(EATEVENT_UPDATE_ONLY)MEDFAILS.eatEventUpdateOnlyRestored=1;
+/* 2026-08-30 -- `MEDI_STEALEAT_STRIP_ONLY=1` RESTORES BUG BITE AND PLUCK TAKING THE BERRY AND NOT
+ * EATING IT. Their `onHit` is FOUR statements and this engine had one of them:
+ *
+ *     this.add('-enditem', target, item.name, '[from] stealeat', '[move] Bug Bite', [of] source);
+ *     if (this.singleEvent('Eat', item, target.itemState, source, source, move)) {
+ *       this.runEvent('EatItem', source, source, move, item);
+ *       if (item.id === 'leppaberry') target.staleness = 'external';
+ *     }
+ *     if (item.onEat) source.ateBerry = true;
+ *
+ * Under the knob the strip stays and the line reverts to `[from] move: <id>`, so a Scizor's Bug Bite
+ * takes a Sitrus Berry and the Scizor heals nothing -- which is what this engine did until today.
+ *
+ * IT IS NOT `MEDI_EATEVENT_UPDATE_ONLY`. That one is a claim about the THREE roads on which a body
+ * eats ITS OWN berry without going through `consumeBerry`. This one is a claim about a road on which
+ * a body eats SOMEBODY ELSE'S, gains its effect, and deliberately gains none of `lastItem`,
+ * `usedItemThisTurn` or `AfterUseItem`. The two are shown independent by a 2x2 in the probe's report.
+ *
+ * STAMPED AT DECLARATION, like the knobs above, so a run under the break is identifiable before a
+ * berry is held. */
+const STEALEAT_STRIP_ONLY=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_STEALEAT_STRIP_ONLY==='1');
+if(STEALEAT_STRIP_ONLY)MEDFAILS.stealEatStripOnlyRestored=1;
 /* 2026-08-29 -- THE AFTER-FAINT BOUNDARY, AND IT IS THE THIRD KNOB ON THE FAINT DRAIN. The two above
  * are claims about WHERE a `|faint|` line is written; this one is a claim about what happens BELOW the
  * whole drain -- when the on-KO event fires, how big one payment is, and whether it fires at all once
@@ -33643,10 +33713,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * carrier in Reg M-B and no tag, so a row demanding it would silently allow every strip if
          * the unknown were read as a pass -- the silent-default shape. It refuses and says so.
          *
-         * WHAT IS STILL OWED, STATED: the authority does not merely remove the berry, it makes the
-         * ATTACKER eat it (`singleEvent('Eat', item, ..., source, ...)`) and writes
-         * `[from] stealeat|[move] Bug Bite` rather than `[from] move: bugbite`. Neither is fixed
-         * here; this closes the over-fire only. No failing probe on the eat half yet. */
+         * 2026-08-30 -- THE OWED HALF IS BELOW, AND THIS PARAGRAPH IS WHAT IT CLOSED. It read:
+         * *"the authority does not merely remove the berry, it makes the ATTACKER eat it
+         * (`singleEvent('Eat', item, ..., source, ...)`) and writes `[from] stealeat|[move] Bug Bite`
+         * rather than `[from] move: bugbite`. Neither is fixed here; this closes the over-fire only.
+         * No failing probe on the eat half yet."* Both are fixed now, and there is a failing probe:
+         * `move/takesTargetItem`, shown red under `MEDI_STEALEAT_STRIP_ONLY=1` first. */
         /* ROADMAP #462 -- THE CLASS GUARD ASKS WHAT IS ON THE BODY, not what the body can use.
          * The authority's guard is `const item = target.getItem()`, which does not consult
          * `ignoringItem()`, so a berry parked by a Magic Room is still a berry to Bug Bite. */
@@ -33663,11 +33735,88 @@ function battleTurn(S,rng,actsForA,actsForB){
          * an empty string over an already-empty slot and the item came back at room-end. `itemLose`
          * empties the slot AND the park and hands back what it took; `itemGive` refuses a hand that is
          * full in the IDENTITY sense, which is the authority's `setItem`. */
+        /* ==== 2026-08-30 -- AND THE ATTACKER EATS IT. THE STRIP WAS ONE STATEMENT OF FOUR. =========
+         *
+         * `bugbite.onHit` and `pluck.onHit` are the SAME BODY (data/moves.ts:1920-1929, :13451-13460;
+         * no `bugbite:`/`pluck:` key in data/mods/champions/moves.ts, so Champions inherits both):
+         *
+         *     this.add('-enditem', target, item.name, '[from] stealeat', '[move] Bug Bite', [of] source);
+         *     if (this.singleEvent('Eat', item, target.itemState, source, source, move)) {
+         *       this.runEvent('EatItem', source, source, move, item);
+         *       if (item.id === 'leppaberry') target.staleness = 'external';
+         *     }
+         *     if (item.onEat) source.ateBerry = true;
+         *
+         * `singleEvent` RETURNS TRUE FOR EVERY LEGAL BERRY, which is the fact that decides whether the
+         * `if` is a branch or a straight line here. `Battle#singleEvent` (sim/battle.ts:623-651)
+         * returns `relayVar` (true) when the callback is `undefined`, and otherwise the callback's
+         * return -- and all 28 legal berries in this format carry an `onEat` FUNCTION. The 18 resist
+         * berries' bodies are EMPTY (`onEat() { }`, data/items.ts chopleberry:1050 and the same on
+         * every member), so they return `undefined` and `singleEvent` hands back true. So the event is
+         * raised and `ateBerry` is set on every berry, and the 18 simply move no HP.
+         *
+         * IT IS DELIBERATELY NOT ROUTED THROUGH `consumeBerry`, for the same reason Fling's road is
+         * not: `consumeBerry` is `Pokemon#eatItem`'s body, and this handler is NOT `eatItem`. Routing
+         * it there would hand the thief four things the game does not give it -- `lastItem`,
+         * `usedItemThisTurn`, a second `-enditem [eat]`, and the partner's Symbiosis. HYDRAPPLE LEARNS
+         * BOTH BUG BITE AND RECYCLE, so `lastItem` is REACHABLE and the difference is a move that
+         * would otherwise get a berry back that was never its own.
+         *
+         * WHAT THE `EatItem` PASS CAN REACH HERE, MEASURED: nothing. 38 legal species learn Bug Bite
+         * and 9 learn Pluck; `getMovePool` over all TEN legal carriers of this format's three
+         * `on*EatItem` abilities (Cheek Pouch x4, Cud Chew x4, Ripen x2) returns neither move. It is
+         * raised anyway -- a dead branch is cheap and a later regulation is what makes it expensive --
+         * and `runEatItemEvent` is passed the MOVE ID as `fromEffect`, which is exactly the list Cud
+         * Chew's `notFromEffects` names.
+         *
+         * THE GATE IS THE CLASS GUARD AND THE FALLBACK IS LOUD. The direct statement is
+         * `takesTargetItem.consumesAndGainsEffect`, and ROADMAP #529 records that `tag_dex.js` derives
+         * it WRONG for exactly these two moves (a single-quote regex against a double-quoted compiled
+         * body), so it reads false today. The gate reads it FIRST and falls back on
+         * `removesItem.requiresItemClass === ['isBerry'] && !steals` -- a different, correct predicate
+         * off the same handler's own guard -- counting `MEDFAILS.stealEatViaClassGuard` every time it
+         * does. Both predicates select exactly {bugbite, pluck} over this format's nine `takeItem`
+         * moves, so the day #529's regeneration lands the counter goes to zero and nothing here
+         * changes. A silent fallback would have been indistinguishable from a working feature.
+         *
+         * `source.hp` IS THE AUTHORITY'S OWN FIRST CONDITION and it guards the STRIP as well as the
+         * eat. Only the eat is gated here, because there is no failing probe on the strip half and an
+         * unprobed behaviour change makes a batch unattributable -- the over-strip is COUNTED
+         * (`MEDFAILS.stealEatAttackerFainted`) instead. Bug Bite makes contact, so Rough Skin killing
+         * the thief mid-handler is a real way to reach it. */
+        const _tti=(_ri&&a.move&&a.move.id)?TAGS.param('move',a.move.id,'takesTargetItem'):null;
+        const _eatsDeclared=!!(_tti&&_tti.consumesAndGainsEffect);
+        const _eatsByClass=!!(_ri&&Array.isArray(_ri.requiresItemClass)
+                              &&_ri.requiresItemClass.length===1
+                              &&_ri.requiresItemClass[0]==='isBerry'&&!_ri.steals);
+        if(_eatsByClass&&!_eatsDeclared)MEDFAILS.stealEatViaClassGuard++;
+        const _stealEat=!STEALEAT_STRIP_ONLY&&(_eatsDeclared||_eatsByClass);
         if(_ri&&itemOn(tg)&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){
           const _taken=itemLose(tg);
           if(_taken){
-            if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);
-            if(_ri.steals&&itemGive(m,_taken)&&TR)TR.item(m,_taken,'[from] move: '+a.move.id);
+            const _thiefAlive=!!(m&&!m.fainted&&m.curHP>0);
+            if(_stealEat&&!_thiefAlive)MEDFAILS.stealEatAttackerFainted++;
+            if(_stealEat&&_thiefAlive){
+              const _mvRec=TAGS.tagsFor?TAGS.tagsFor('move',a.move.id):null;
+              /* the dex's own `name`, off the tag record. Never typed, and the `||` is the artifact
+                 being absent rather than a name being missing -- ABRA_TAGS_OFF returns null here. */
+              if(TR)TR.stealeat(tg,_taken,(_mvRec&&_mvRec.name)||a.move.id,m);
+              /* :1922  singleEvent('Eat', item, target.itemState, source, source, move) -- the
+                 BERRY'S OWN EFFECT, on the THIEF, at whatever HP it is on. `berryForceEat` is the one
+                 implementation of that half and is shared with Stuff Cheeks, Teatime and Cud Chew. */
+              if(!berryForceEat(m,_taken))MEDSEEN.stolenBerryEffectUnexpressed++;
+              /* :1923  runEvent('EatItem', source, source, move, item) */
+              runEatItemEvent(m,_taken,a.move.id);
+              MEDSEEN.eatEventOffStolenBerry++;
+              /* :1924  the Leppa staleness line, which this engine has no model for */
+              if(TAGS.has('item',_taken,'restoresPP'))MEDFAILS.stealEatStalenessUnmodelled++;
+              /* :1926  `if (item.onEat) source.ateBerry = true` -- every legal berry has one */
+              m._ateBerry=true;
+              MEDSEEN.stolenBerryEaten++;
+            } else {
+              if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);
+              if(_ri.steals&&itemGive(m,_taken)&&TR)TR.item(m,_taken,'[from] move: '+a.move.id);
+            }
           }
         }
       };
