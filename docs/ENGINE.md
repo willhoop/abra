@@ -115,9 +115,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  806/806 probed mechanics live, 0 missing   (census 2026-08-29 22:34)
+  808/808 probed mechanics live, 0 missing   (census 2026-08-30 00:09)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 23.8 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 1.0 days old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -132,7 +132,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c87a6cb94b06 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c54b2faf934b now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/300 probed, 15 unprobed;  271/300 have an engine consumer, 29 have none
@@ -140,9 +140,142 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-29 23:06_
+_stamped 2026-08-30 00:16_
 
 <!-- /GENERATED -->
+
+## THE BURN CHIP IS ORDER 10 AND RAN AT ORDER 9, AND PERISH SONG HAD NO STEP IN THE RESIDUAL WALK AT ALL — TWO FIXES, MEASURED APART, AND `data/residual-order.json` ALREADY CARRIED BOTH ORDERS SO NEITHER TOUCHED A BYTE OF DATA. **CENSUS 806 -> 808 LIVE / 808 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED UNMOVED AT 84 OF 961, PROTOCOL 199 -> 191, `ordering` 53 -> 43 — EXACTLY THE TEN GAMES, PREDICTED AT ITS POINT ESTIMATE OF 191 BEFORE THE RUN. TWO CAUSES REMOVED AND BOTH NAME A MECHANISM; THE TWO ADDED ARE THE SAME GAMES DIVERGING LATER. END-STATE VERDICTS IDENTICAL.** 2026-08-29/30.
+
+Full account: [docs/_reports/2026-08-29-residual-order.md](_reports/2026-08-29-residual-order.md).
+
+### THEY ARE TWO, AND THAT WAS MEASURED BEFORE EITHER WAS LANDED
+
+The brief asked first because tonight C2/C3 looked like one cause and were two. A 2x2 over the two
+knobs, one staged board per defect: **each knob moves its own board and leaves the other
+byte-identical**, and the census says the same — `MEDI_STATUS_ONE_STEP=1` takes
+`condition/residualStatusOrder` MISSING and leaves `condition/residualPerishStep` LIVE, and the
+reverse holds. They share a table and not a cause: one is an entry split in two, the other is a step
+that was not in the table.
+
+### THE ARTIFACT ALREADY HAD IT, AND THE SOURCE WAS READ ANYWAY
+
+`data/residual-order.json` publishes `status:psn` 9, `status:tox` 9, `status:brn` **10**,
+`condition:perishsong` **24.2**, `expiry:tailwind` 26.5. Nothing was written to it. Cited to source as
+well, because a generated file is not a fact until something compares it to its source:
+`data/conditions.ts:15` / `:133` / `:154` and `data/moves.ts:13270`. **Champions overrides none of
+them** — `data/mods/champions/conditions.ts` holds exactly `par`, `slp`, `frz`, and its `moves.ts`
+holds no `perishsong`. That was checked first, on the brief's instruction, because tonight's Encore
+batch turned entirely on a Champions override.
+
+### `RESIDUAL_GROUPS`' OWN HEADER READ THE DEFECT OUT LOUD
+
+*"psn/tox/brn are 9,9,10 and run as one step"*. `comparePriority` (`sim/battle.ts:404`) sorts order
+ASC then speed DESC over ONE list built before the walk (`:507`), so every body's poison chips before
+any body's burn. Poison Heal follows the burn down to 10 rather than staying at 9, and the header's
+old reason for merging them is corrected in place: it is an `onDamage` at priority 1, so it does not
+occupy a position, it INTERCEPTS the one the chip occupies.
+
+### THE PERISH DEATH DID NOT MOVE, AND TWO GUARDS ARE WHY
+
+`onEnd` is `add('-start', target, 'perish0'); target.faint()`, `Pokemon#faint()` writes no line, and
+the duration-expiry branch `continue`s past `faintMessages()` at `sim/battle.ts:565`. The step calls
+`queueFaint` exactly as the foot loop did. What had to be added: the group close now skips a body it
+has already marked (`&& !m.fainted`), or the queued line is written inline one branch later; and the
+walk's `break _TURN` is now `sideWiped(S) && !faintQueueOwed()`, because `this.ended` is set inside a
+DRAIN and the expiry skips the drain — so a side wiped at order 24 does not stop the walk, `|upkeep|`
+is still written at `:2814`, and `:2832` ends it. **A four-body mutual perish wipe is byte-identical
+before and after in all three arms, winner included.**
+
+### THE OVER-FIRE CONTROLS ARE THE POINT, AND ONE IS AN EXISTING PROBE
+
+`condition/residualStatusOrder` brackets the split: Leftovers@5 first, Leech Seed@8 second, the
+partial-trap chip@13 last, asserted unmoved on both arms under both knobs. Its control arm is the same
+four bodies all POISONED — every chip at order 9, so the sequence must be plain speed order, which an
+engine that learned *poison first* rather than *order first* would fail. `condition/residualPerishStep`
+carries a `bare` arm with no Tailwind and no Speed Boost that must not move, and a `noperish` arm where
+the side clock still expires and no counter is announced. **The four-armed `move/perishClock` probe is
+the control for the DRAIN and was deliberately not touched** — all seven `perishClock` rows and
+`condition/weatherResidualFaintQueue` are LIVE under both knobs.
+
+### THE PREDICTION HELD, AT ITS POINT ESTIMATE
+
+Stated before the run: protocol **199 -> 191**, board-parted **84 unmoved**, end-state unmoved. Result
+**191 / 84 / identical verdicts (903/55/2/0/1)**. The reasoning behind 191 rather than 189 was that the
+ten dumped rows are FIRST divergences, so removing them can surface a later one in the same game — and
+that is exactly the shape of the class table: `ordering` 53 -> 43, `event missing from medicham2`
+51 -> 52, `unrelated event mismatch` 34 -> 35, every other class unchanged. In the dump,
+**perish-vs-`-sideend` 5 -> 0 and psn-vs-brn 5 -> 0**. Sample identity checked rather than assumed —
+961 games, cap 12, arm `middle`, `empirical-click/v1`, `teams_dropped` 43, `coverage.exercised` 556 of
+580, `not_compared` 5, `void_games` 9, all identical both runs.
+`data/verification/game-differential.residualorder.json`, release `b45e6b257029`, pool
+`data/team-pool-frozen`, census pin `9446a684709d`.
+
+### THE CLOSETED PERISH ROW (#440) STILL HOLDS — AND THE FIRST READING OF IT WAS THE INSTRUMENT
+
+(a) UNMET — the single row's context carries `perish0` x3 immediately above the split. (c) UNMET —
+`residualFollowerUnmapped` is empty. (d) UNMET — `n=1` before and after, same seed pair, same cause
+string. **(b) rests on the COVERAGE arm, which was not re-run this batch** and is named in OWED rather
+than absorbed. **(a) was reported MET for about a minute and it was my probe**: I grepped the dump row
+for `showdown_before`, the field name the closet's MATCHER uses, and the dump calls it `before` — the
+absent field read as "no `perish0`". Suspect the instrument before the engine.
+
+### A COMMENT THAT NAMED THE WRONG CAUSE, CORRECTED IN THE SAME PASS
+
+`residualOrder`'s header attributed the `|-sideend|…|tailwind` rows to its declared tie-sort
+limitation. They were Perish Song having no step, there is no speed tie anywhere on the board that
+reproduces them, and the count was two when the dump held five. Struck through in place with the
+correction beside it, and **the new count is deliberately not written in** — a comment carrying a
+number is a comment that goes stale, which is why this one needed correcting.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"the two `|-sideend|…|tailwind` rows in the pool are a case `residualOrder` does NOT fix"*~~ —
+  **it was never the tie sort.** Five rows, not two, and the cause was a missing step; probed by
+  `condition/residualPerishStep`.
+- ~~*"psn/tox/brn are 9,9,10 and run as one step"*~~ — **split and probed** by
+  `condition/residualStatusOrder`.
+
+**Joins it:**
+- **THIS WALK RE-ASKS `residualOrder()` PER GROUP AND THE AUTHORITY SORTS ONCE.** `fieldEvent`
+  `speedSort`s the handler list at `sim/battle.ts:507`, before the loop, so nothing mid-walk can
+  reorder it — including the order-28 Speed Boost the engine's own comment cites as the reason for
+  re-asking. It is a real disagreement, it is NOT what caused G1 or G2, and no probe in this repo
+  stages it. Its own batch.
+- **A PERISH-KILLED BODY NOW SKIPS ITS OWN ORDERS 25-29.** Reasoned from `sim/pokemon.ts:1590`
+  (`faint()` sets `hp = 0`, so every hp-guarded handler refuses there too) and therefore a move
+  TOWARD the authority — but **reasoned, not measured**: nothing stages a perish-killed body carrying
+  a Speed Boost, a Harvest or a White Herb.
+- **`tests/probe_red_demo.js` IS RED AT HEAD AND THE RED SET HAS MOVED SINCE THE LAST BATCH NAMED IT.**
+  `WIRE 120 Parting Shot`, the item carried forward, now reads OK; what fails is **5 COULD NOT BE**
+  **APPLIED and 1 HOLLOW** of 200 — WIRE 117 Psychic Terrain, ROADMAP #81 WIRE 2 (Protect holding the
+  last action), WIRE 7 (mega stone Knock Off) and WIRE 8 x2 (Electro Shot). **Proven not this batch's**
+  rather than argued: `git diff` puts all thirteen of this pass's engine hunks in the counter, knob,
+  `RESIDUAL_GROUPS` and residual-walk regions, and every byte outside them is HEAD's — so the four
+  anchors are identical at HEAD and live (two absent in both, two present in both). Each needs its edit
+  re-aimed at what the engine says today.
+- **`tests/test-perish-song.js --break-the-faint` WAS DEAD AT HEAD AND IS REPAIRED, NOT FILED.** Its
+  anchor named a line 2026-08-24 had already replaced with `queueFaint`; the demonstration had been
+  exiting 1 on its own "THE MUTATION DID NOT APPLY" guard ever since. Re-aimed at the walk's site and
+  shown RED, 2 of 2, with the clean run still PASS.
+
+**Carried forward unchanged** from the hand lists below: `onDamagingHit` raised per arrival while this
+engine batches it below the volley; `boost()`'s second refusal; whether every other announcing ability
+writes its `|-ability|` line; ROADMAP #362's stale row; the Cursed Body 30% and Blizzard 10%; the
+redirect gate's ally-aimed status move, the
+ally-aimed delayed hit, Defog's `target.side`, the `self`-target heal `|move|` line, the fainted-ally
+clause of `getTarget`, the `scripted` exemption from `aimTravelsByLoc`, the `chillyreception`
+target-class exemption, and the `benchRisk` refit `clickFragility` owes MEASURE.
+
+### OWED, NOT RUN
+
+The `## OWED, NOT RUN` block of
+[docs/_reports/2026-08-29-residual-order.md](_reports/2026-08-29-residual-order.md) — the COVERAGE arm
+of the whole-game differential (which is what falsifier (b) of #440 rests on), the roster's three
+stages and `all-mechanics-fire.json` (all four WITHHELD on a release mismatch that predates this
+batch), `tests/test-engine-diff.js`, and `tests/probe_protect_stage_order.js`.
+
+---
 
 ## `checkWin` RETURNS ABOVE `AfterFaint`, SO THE KILL THAT WINS THE GAME IS NEVER PAID — AND THE PAYMENT IS ONE BOOST SIZED BY THE DRAIN, NOT ONE PER CORPSE. **CENSUS 804 -> 806 LIVE / 806 PROBED / 0 MISSING. EMPIRICAL BOARD-PARTED 88 -> 84 OF 961, PROTOCOL 204 -> 199, FIVE CAUSES REMOVED AND NONE ADDED — ALL FIVE NAME AN ON-KO `atk` BOOST, AND THE ONLY BOARD LEAVES THAT MOVED ARE `boosts.atk`. THE PREDICTION WAS "UNMOVED AT 88" AND IT MISSED BY 4, IN THE IMPROVING DIRECTION. DIFFERENT-WINNER READS 0 BEFORE AND AFTER. D3 AND ROADMAP #362 ARE NOT ONE CAUSE, AND #362 IS ALREADY CLOSED IN THE ENGINE.** 2026-08-29.
 

@@ -11,6 +11,113 @@ silently rewritten; what changed and why is stated.
 ---
 
 
+## [5.228.0] — 2026-08-30
+
+### Fixed
+- **THE BURN CHIP IS RESIDUAL ORDER 10 AND THIS ENGINE RAN IT AT ORDER 9, IN ONE SPEED-SORTED PASS
+  WITH POISON.** `RESIDUAL_GROUPS`' own header said so out loud — *"psn/tox/brn are 9,9,10 and run as
+  one step"* — and had done since the table was written. `data/conditions.ts` declares
+  `brn.onResidualOrder: 10` (`:15`) against `psn` (`:133`) and `tox` (`:154`) at 9;
+  `data/mods/champions/conditions.ts` overrides none of the three (it carries exactly `par`, `slp`,
+  `frz`), and that was checked FIRST. `Battle#comparePriority` (`sim/battle.ts:404`) sorts order ASC,
+  priority DESC, speed DESC over ONE handler list built and `speedSort`ed BEFORE the walk (`:507`), so
+  EVERY body's poison chips before ANY body's burn — on either side, whatever the speeds. Split into
+  a `status` step at 9 and a `statusBrn` step at 10. **Poison Heal follows the burn down to 10 rather
+  than staying at 9, and the header's old reason for merging the three is corrected in place**: it is
+  an `onDamage` at priority 1 (`data/abilities.ts:3321-3328`), so it occupies no residual position of
+  its own, it INTERCEPTS the one the chip occupies. `ability/healsFromOwnStatus` is live on the
+  post-fix census.
+- **PERISH SONG HAD NO STEP IN THE RESIDUAL WALK AT ALL.** `condition:perishsong` is order 24 subOrder
+  2 (`data/moves.ts:13270`, no Champions override) and the tick stood in the foot-of-turn clock loop
+  BELOW the whole walk — so `expiry:tailwind` at order 26, spent INSIDE the walk by
+  `residualExpireAt`, announced its `|-sideend|` above every `perishN`, and the counters were read off
+  speeds the order-28 Speed Boost group had already moved. It is `{step:'perish'}` at 24 now.
+  **The death did not move**: `perishsong.condition.onEnd` is `add('-start', target, 'perish0');
+  target.faint()`, `Pokemon#faint()` writes no line, and `fieldEvent`'s duration-expiry branch
+  `continue`s past the `faintMessages()` at `sim/battle.ts:565`, so the step calls `queueFaint`
+  exactly as the foot loop did and `residualFollowerRuns` still decides above-or-below `|upkeep|`. Two
+  guards make that survive the move — the group close skips a body it has already marked
+  (`&& !m.fainted`), or the queued `|faint|` is written inline one branch later; and the walk's
+  `break _TURN` is now `sideWiped(S) && !faintQueueOwed()`, because `this.ended` is set inside a DRAIN
+  and the expiry skips the drain, so a side wiped at order 24 does not stop the walk, `|upkeep|` is
+  still written at `:2814` and `:2832` ends it. A four-body mutual perish wipe is byte-identical
+  before and after in all three arms, winner included.
+- **`tests/test-perish-song.js --break-the-faint` COULD NOT APPLY ITS MUTATION AND HAD NOT BEEN ABLE
+  TO AT HEAD EITHER.** Its anchor named a line 2026-08-24 replaced with `queueFaint`; the
+  demonstration had been exiting 1 on its own "THE MUTATION DID NOT APPLY" guard ever since — which is
+  the loud failure working, and is why it was repaired rather than filed. Re-aimed at the walk's site
+  (not the foot-of-turn line, which now only runs under a knob and would delete nothing) and shown RED
+  at `2 of 2 FAILED`, with the clean run still PASS.
+
+### Added
+- **TWO CENSUS PROBES, EACH SHOWN RED UNDER ITS OWN KNOB FIRST.** `tests/test-mechanics.js`
+  `condition/residualStatusOrder` stages brn-200 / psn-150 / brn-100 / tox-50 interleaved across both
+  sides, because a board with the burns on one side scores the same either way; its control arm is the
+  same four bodies all POISONED, where every chip shares order 9 and the sequence must be plain speed
+  order — an engine that learned *poison first* rather than *order first* passes the test arm and
+  fails that one. `condition/residualPerishStep` asserts the four order-24 counters above the order-26
+  `|-sideend|` AND above the order-28 `|-boost|` in the PRE-boost body order (100 against 80, and
+  80 x 1.5 = 120, so the pair swap). **The over-fire controls are the point**: the status probe
+  brackets its split with Leftovers@5, Leech Seed@8 and the partial-trap chip@13, asserted unmoved on
+  both arms; the perish probe carries a bare arm with no Tailwind and no Speed Boost that must not
+  move, a cleared arm with no clock on anybody, and leaves the four-armed `move/perishClock` probe —
+  the control for the DRAIN — untouched. Census **806 -> 808 live / 808 probed / 0 missing**.
+- **`MEDI_STATUS_ONE_STEP=1` AND `MEDI_PERISH_AT_FOOT=1`**, the two before-arms, both applied to the
+  TABLE rather than to the walk so they move a POSITION and never delete a mechanic. Both stamp a
+  `MEDFAILS` counter (`statusOneStepRestored`, `perishAtFootRestored`) and both are registered in
+  `DELIBERATE_BREAK`, so a run under either REFUSES to write the census. `MEDSEEN.perishKOInWalk`
+  reads the deaths the walk's step pays, so a step that stops firing while the old position quietly
+  covers for it is readable rather than inferred.
+
+### Changed
+- **`residualOrder`'s HEADER NAMED THE WRONG CAUSE AND IS CORRECTED IN PLACE, NOT DELETED.** It
+  attributed the `|-sideend|…|tailwind` rows to its declared tie-sort limitation — *"the two rows in
+  the pool are a case it does NOT fix"*. They were Perish Song having no step; there is no speed tie
+  anywhere on the board that reproduces them, and the 2026-08-29 dump held five rows, not two. Struck
+  through with the correction beside it, and the new count is deliberately NOT written in: a comment
+  carrying a number is a comment that goes stale, which is the whole reason this one needed
+  correcting.
+
+### Notes
+- **THEY ARE TWO FIXES AND THAT WAS MEASURED RATHER THAN ASSUMED.** A 2x2 over the two knobs, one
+  staged board per defect: each knob moves its own board and leaves the other byte-identical, and the
+  census agrees — `MEDI_STATUS_ONE_STEP=1` takes `residualStatusOrder` MISSING and leaves
+  `residualPerishStep` LIVE, and the reverse holds.
+- **NEITHER FIX TOUCHED A BYTE OF DATA.** `data/residual-order.json` has published 9 / 9 / 10 / 24.2 /
+  26.5 since it was generated; the whole of both changes is the step mapping in `RESIDUAL_GROUPS` and
+  the two walk sites that read it.
+- **THE PREDICTION WAS STATED BEFORE THE RUN AND HELD AT ITS POINT ESTIMATE.** Predicted protocol
+  **199 -> 191**, board-parted **84 unmoved**, end-state unmoved. Result **191 / 84 / identical
+  verdicts (903 / 55 / 2 / 0 / 1)**. The reasoning behind 191 rather than 189 was that the ten dumped
+  rows are FIRST divergences, so removing them can surface a later one in the same game — and that is
+  the shape of the class table: `ordering` **53 -> 43** (exactly the ten), `event missing from
+  medicham2` 51 -> 52, `unrelated event mismatch` 34 -> 35, every other class unchanged. In the dump,
+  perish-vs-`-sideend` **5 -> 0** and psn-vs-brn **5 -> 0**.
+  `data/verification/game-differential.residualorder.json` and
+  `data/verification/divergence-turns.residualorder.json`, release `b45e6b257029`, pool
+  `data/team-pool-frozen`, census pin `9446a684709d`, 961 games, cap 12, arm `middle`, steering
+  `empirical-click/v1`. Sample identity checked rather than assumed: 961 games, `teams_dropped` 43,
+  `coverage.exercised` 556 of 580, `not_compared` 5, `void_games` 9 — all identical both runs.
+- **THE CLOSETED PERISH ROW (ROADMAP #440) STILL HOLDS.** (a) UNMET — the single row's context carries
+  `perish0` x3 immediately above the split; (c) UNMET — `MEDFAILS.residualFollowerUnmapped` is empty;
+  (d) UNMET — `n=1` before and after, same seed pair, same cause string. **(b) rests on the COVERAGE
+  arm, which was not re-run this batch** and is named in OWED rather than absorbed. **(a) was reported
+  MET for about a minute and it was the instrument, not the game**: the dump row was grepped for
+  `showdown_before`, the field name the closet's MATCHER uses, and the dump calls it `before`.
+- **A SIDE EFFECT NAMED RATHER THAN CLAIMED AS INTENDED.** With the tick at order 24, a perish-killed
+  body now skips its own orders 25-29, where before it received them. The authority sets `hp = 0`
+  inside `faint()` (`sim/pokemon.ts:1590`), so every hp-guarded residual handler refuses there too —
+  which makes this a move TOWARD the authority. It is REASONED from that line and not measured:
+  nothing in this repo stages a perish-killed body carrying a Speed Boost, a Harvest or a White Herb.
+- **NO STRENGTH CLAIM AND NO BOARD ATTRIBUTION.** The board is unmoved at 84 and that was the
+  prediction; one of the ten games is marked board-material in the ordering breakdown and its first
+  board divergence is 5-10 turns downstream, so attribution was never available.
+- Full account: `docs/_reports/2026-08-29-residual-order.md`, with its `## OWED, NOT RUN` block — the
+  COVERAGE arm of the whole-game differential, the roster's three stages and
+  `data/all-mechanics-fire.json` (all four WITHHELD on a release mismatch that predates this batch),
+  `tests/test-engine-diff.js`, and `tests/probe_protect_stage_order.js`.
+
+
 ## [5.227.0] — 2026-08-29
 
 ### Fixed

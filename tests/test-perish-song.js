@@ -83,8 +83,15 @@ const BREAK = process.argv.includes('--break-the-faint');
 if (BREAK) {
   if (WHICH !== 'live') { console.log('--break-the-faint needs the live tree'); process.exit(1); }
   const before = SRC;
-  SRC = SRC.replace('if(x._perish<=0){x.fainted=true,noteFaint(x);x.curHP=0;MEDSEEN.perishKO++;',
-                    'if(false){x.fainted=true,noteFaint(x);x.curHP=0;MEDSEEN.perishKO++;');
+  /* RE-AIMED 2026-08-29. The anchor read `if(x._perish<=0){x.fainted=true,noteFaint(x);x.curHP=0;`
+   * and had ALREADY stopped matching before this pass -- 2026-08-24 moved the death onto
+   * `queueFaint`, and the mutation had been failing loudly (the check below) ever since. It is
+   * fixed rather than deleted, exactly as the message says. IT NOW NAMES THE WALK'S OWN SITE:
+   * 2026-08-29 gave Perish Song a residual step at its published order 24, so the foot-of-turn
+   * line only runs under `MEDI_PERISH_AT_FOOT=1` and a mutation aimed at it would delete
+   * nothing on a default run -- which is the silent no-op this block already refuses. */
+  SRC = SRC.replace("if(m._perish<=0){MEDSEEN.perishKO++;MEDSEEN.perishKOInWalk++;queueFaint(m,'perish');}",
+                    "if(false){MEDSEEN.perishKO++;MEDSEEN.perishKOInWalk++;queueFaint(m,'perish');}");
   if (SRC === before) {
     console.log('THE MUTATION DID NOT APPLY — medicham2-browser.js:14898 has moved. A demonstration '
               + 'that silently patched nothing is worse than none: fix the anchor, do not delete it.');

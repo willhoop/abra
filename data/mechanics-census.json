@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-30T02:34:00.716Z",
+  "generated": "2026-08-30T04:25:43.720Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 806,
-  "live": 806,
+  "probed": 808,
+  "live": 808,
   "missing": 0,
-  "armed": 806,
+  "armed": 808,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1064,6 +1064,26 @@
       "label": "a perish |faint| sits below |upkeep| when nothing follows it in the walk, and above it when something does",
       "live": true,
       "detail": "first of the |faint|/|upkeep| lines — BARE |upkeep (must be |upkeep: nothing follows the expiry, so the tail of runAction pays), PROTECT |faint|p2b:garchomp, TAILWIND |faint|p1b:corviknight, PICKUP |faint|p2b:diggersby (all three must be a |faint|: a surviving handler pays before |upkeep|). faints per arm 4/4/4/4 (must be 4 each). bare [\"|upkeep\",\"|faint|p2b:garchomp\",\"|faint|p1b:corviknight\",\"|faint|p1a:primarina\",\"|faint|p2a:snorlax\"] protect [\"|faint|p2b:garchomp\",\"|faint|p1b:corviknight\",\"|faint|p1a:primarina\",\"|faint|p2a:snorlax\",\"|upkeep\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "condition",
+      "tag": "residualStatusOrder",
+      "label": "every body chips psn/tox at order 9 before any body chips brn at order 10",
+      "live": true,
+      "detail": "MIXED (brn-200, psn-150, brn-100, tox-50) chip sequence \"psn:p1b psn:p2b brn:p1a brn:p2a\" — must be the two order-9 chips then the two order-10 burns, NOT the speed-sorted brn/psn/brn/tox that one pass gives. CONTROL, the same four bodies all POISONED so every chip shares order 9: \"psn:p1a psn:p1b psn:p2a psn:p2b\" — must be plain speed order. BRACKET, both arms — Leftovers@5 at index 0/0 (must be 0), Leech Seed@8 at 1/1 (must be 1, above the chips at 3..6), trap@11 at 7/7 (must be last). mixed [\"|-heal|p1a:garchomp|154/183brn|[from]item:leftovers\",\"|-damage|p2a:milotic|149/170brn|[from]leechseed\",\"|-heal|p1a:garchomp|175/183brn|[from]leechseed|[of]p2a:milotic\",\"|-damage|p1b:clefable|149/170psn|[from]psn\",\"|-damage|p2b:snorlax|221/235tox|[from]psn\",\"|-damage|p1a:garchomp|164/183brn|[from]brn\",\"|-damage|p2a:milotic|139/170brn|[from]brn\",\"|-damage|p1b:clefable|128/170psn|[from]move:whirlpool|[partiallytrapped]\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "condition",
+      "tag": "residualPerishStep",
+      "label": "the perish counter ticks at order 24 — above the order-26 side clocks and before order-28 Speed Boost",
+      "live": true,
+      "detail": "TAILWIND arm \"p1a p1b p2a p2b SIDEEND\" — the four order-24 counters must precede the order-26 |-sideend|, which is what five games of the pinned pool got backwards. SPEED BOOST arm \"p1a p1b p2a p2b BOOST\" — the counters must precede the order-28 |-boost| AND come out in the pre-boost order, p1a(100) before p1b(80), because a tick below the walk reads p1b at 120 and reverses them. OVER-FIRE, no Tailwind and no Speed Boost: \"p1a p1b p2a p2b\" (plain speed order, must not move). CLEARED, the same Tailwind board with no clock on anybody: \"SIDEEND\" (the side clock still expires and no counter is announced). tw [\"|-start|p1a:primarina|perish1\",\"|-start|p1b:blaziken|perish1\",\"|-start|p2a:snorlax|perish1\",\"|-start|p2b:toxapex|perish1\",\"|-sideend|p1:|move:tailwind\"] boost [\"|-start|p1a:primarina|perish1\",\"|-start|p1b:blaziken|perish1\",\"|-start|p2a:snorlax|perish1\",\"|-start|p2b:toxapex|perish1\",\"|-boost|p1b:blaziken|spe|1|[from]ability:speedboost\"]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3863,7 +3883,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.2% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7223,7 +7243,7 @@
       "tag": "passiveHeal",
       "label": "Leftovers heals at order 5 and the burn chips at order 10 — a full-HP burned holder still loses the tick",
       "live": true,
-      "detail": "Snorlax at full HP (235) holding Leftovers, one passing turn. NOT burned 235 (the heal has nothing to do); BURNED 221 = 235 - 14. Under a body-major walk the chip runs first and Leftovers restores the identical 1/16 after it, so the burned arm reads 235 and the status is free. The two orders differ ONLY at the top and bottom of the bar, which is why no damage differential can see this. The walk itself is counted on the same turn: 21 groups entered (of 21) and 100 step slots (of 100 = every step on all four living bodies) — a zero on either is the loop not running, not a mechanic being absent",
+      "detail": "Snorlax at full HP (235) holding Leftovers, one passing turn. NOT burned 235 (the heal has nothing to do); BURNED 221 = 235 - 14. Under a body-major walk the chip runs first and Leftovers restores the identical 1/16 after it, so the burned arm reads 235 and the status is free. The two orders differ ONLY at the top and bottom of the bar, which is why no damage differential can see this. The walk itself is counted on the same turn: 23 groups entered (of 23) and 108 step slots (of 108 = every step on all four living bodies) — a zero on either is the loop not running, not a mechanic being absent",
       "hollow": false,
       "armed": true,
       "directCall": false

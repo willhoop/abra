@@ -5066,6 +5066,148 @@ probe('move', 'perishClock',
                  + 'bare ' + JSON.stringify(bareArm.lines) + ' protect ' + JSON.stringify(prot.lines) };
 });
 
+/* ---- 2026-08-29 -- G1: THE BURN CHIP IS ORDER 10 AND WAS RUNNING AT ORDER 9 ---------------------
+ *
+ * `data/conditions.ts` declares `brn.onResidualOrder: 10` (`:15`) against `psn` (`:133`) and `tox`
+ * (`:154`) at 9, and Champions overrides none of the three -- `data/mods/champions/conditions.ts`
+ * carries only `par`, `slp` and `frz`. `data/residual-order.json` has published 9/9/10 the whole
+ * time. `Battle#comparePriority` (sim/battle.ts:404) sorts order ASC, priority DESC, speed DESC over
+ * ONE handler list built and `speedSort`ed BEFORE the walk (`:507`), so EVERY body's poison chips
+ * before ANY body's burn -- on either side, whatever the speeds.
+ *
+ * THIS ENGINE MERGED ALL THREE INTO ONE `{step:'status'}` ENTRY AND SAID SO OUT LOUD: the header on
+ * `RESIDUAL_GROUPS` read *"psn/tox/brn are 9,9,10 and run as one step"*. Five games of the pinned
+ * pool's 2026-08-29 divergence dump are that sentence.
+ *
+ * THE SPEEDS ARE EXPLICIT AND INTERLEAVED ACROSS BOTH SIDES, which is what makes the two shapes
+ * distinguishable at all: brn-200, psn-150, brn-100, tox-50. One speed-sorted pass gives
+ * brn/psn/brn/tox; two order-separated passes give psn/tox/brn/brn. A board with the burns on one
+ * side would have scored the same either way.
+ *
+ * THE BRACKET IS THE OVER-FIRE CONTROL AND IT IS THE POINT. A residual reorder is exactly the change
+ * that moves lines it was not aimed at, so three neighbours are staged and asserted UNMOVED: the
+ * Leftovers heal at order 5 (first line of the residual), the Leech Seed chip at order 8 (above every
+ * status chip, with its own heal), and the partial-trap chip at order 11 (below every status chip,
+ * INCLUDING the burns, which is a position that only exists once the burn is at 10).
+ *
+ * THE CONTROL ARM IS THE SAME BOARD WITH ALL FOUR BODIES POISONED. Every chip then shares order 9,
+ * the walk collapses back to a single speed-sorted pass, and the sequence must be plain speed order.
+ * An engine that had learned "poison first" rather than "order first" passes the mixed arm and fails
+ * this one. `MEDI_STATUS_ONE_STEP=1` is the before-arm and restores the merged step. */
+probe('condition', 'residualStatusOrder',
+      'every body chips psn/tox at order 9 before any body chips brn at order 10', () => {
+  const run = (mode) => {
+    const trace = [];
+    const me = bare('garchomp'), ally = bare('clefable');
+    const f1 = bare('milotic'), f2 = bare('snorlax');
+    me.st   = Object.assign({}, me.st,   { sp: 200 });
+    ally.st = Object.assign({}, ally.st, { sp: 150 });
+    f1.st   = Object.assign({}, f1.st,   { sp: 100 });
+    f2.st   = Object.assign({}, f2.st,   { sp:  50 });
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    if (mode === 'allpsn') for (const x of [me, ally, f1, f2]) x.status = 'psn';
+    else { me.status = 'brn'; ally.status = 'psn'; f1.status = 'brn'; f2.status = 'tox'; }
+    me.item = 'leftovers'; me.curHP = me.st.hp - 40;          /* order 5  */
+    f1._seededBy = { per: 8, by: me, slot: 0 };                /* order 8  */
+    ally._trap = { turns: 3, mv: 'whirlpool', frac: 1 / 8 };   /* order 11 */
+    trace.length = 0;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    const all = trace.map(M.traceCanon).filter(l => /^\|-(damage|heal)\|/.test(l));
+    const chips = all.map((l, i) => ({ l, i })).filter(x => /\[from\](brn|psn)$/.test(x.l))
+      .map(x => ({ i: x.i, k: /\[from\]brn$/.test(x.l) ? 'brn' : 'psn',
+                   who: (x.l.match(/\|(p[12][ab]):/) || [])[1] }));
+    return { all, seq: chips.map(c => c.k + ':' + c.who).join(' '),
+             lo: chips.length ? chips[0].i : -1, hi: chips.length ? chips[chips.length - 1].i : -1,
+             leftAt: all.findIndex(l => /item:leftovers/.test(l)),
+             seedAt: all.findIndex(l => /\[from\]leechseed$/.test(l)),
+             trapAt: all.findIndex(l => /partiallytrapped/.test(l)) };
+  };
+  const mixed = run('mixed'), allpsn = run('allpsn');
+  /* the bracket, asserted on BOTH arms: order 5 and order 8 strictly above every chip, order 11
+   * strictly below every one of them. */
+  const bracket = (r) => r.leftAt === 0 && r.seedAt === 1 && r.seedAt < r.lo
+                      && r.trapAt === r.all.length - 1 && r.trapAt > r.hi;
+  return { works: mixed.seq === 'psn:p1b psn:p2b brn:p1a brn:p2a'
+                  && allpsn.seq === 'psn:p1a psn:p1b psn:p2a psn:p2b'
+                  && bracket(mixed) && bracket(allpsn),
+           arms: { control: allpsn.seq, test: mixed.seq },
+           detail: 'MIXED (brn-200, psn-150, brn-100, tox-50) chip sequence "' + mixed.seq
+                 + '" — must be the two order-9 chips then the two order-10 burns, NOT the '
+                 + 'speed-sorted brn/psn/brn/tox that one pass gives. CONTROL, the same four bodies '
+                 + 'all POISONED so every chip shares order 9: "' + allpsn.seq + '" — must be plain '
+                 + 'speed order. BRACKET, both arms — Leftovers@5 at index ' + mixed.leftAt + '/'
+                 + allpsn.leftAt + ' (must be 0), Leech Seed@8 at ' + mixed.seedAt + '/' + allpsn.seedAt
+                 + ' (must be 1, above the chips at ' + mixed.lo + '..' + mixed.hi + '), trap@11 at '
+                 + mixed.trapAt + '/' + allpsn.trapAt + ' (must be last). mixed '
+                 + JSON.stringify(mixed.all) };
+});
+
+/* ---- 2026-08-29 -- G2: PERISH SONG HAD NO STEP IN THE RESIDUAL WALK AT ALL ----------------------
+ *
+ * `condition:perishsong` is order 24 subOrder 2 in `data/residual-order.json`, derived by CALLING
+ * `Battle#resolvePriority`; `data/moves.ts:13270` is the `onResidualOrder: 24` it reads, and Champions
+ * overrides neither the move nor its condition. `RESIDUAL_GROUPS`' `MAP` had no perish entry, so the
+ * tick stood in the foot-of-turn clock loop BELOW the whole walk. Two things followed and both are
+ * asserted here:
+ *
+ *   1. `expiry:tailwind` is order 26 and is spent INSIDE the walk by `residualExpireAt`, so its
+ *      `|-sideend|` came out ABOVE every `perishN`. That is five games of the pinned pool's
+ *      2026-08-29 divergence dump, and `residualOrder`'s own header called the two rows it knew about
+ *      "a case it does NOT fix".
+ *   2. `ability:speedboost` is order 28 and this walk re-asks `residualOrder()` per group, so a tick
+ *      below the walk reads speeds the boost has ALREADY moved. The `boost` arm is built on exactly
+ *      that: 100 against 80, and 80 x 1.5 is 120 — the two bodies swap. At order 24 they must come out
+ *      in the PRE-boost order and above the `-boost` line.
+ *
+ * THE DEATH IS NOT WHAT MOVED, AND THE CONTROL FOR THAT IS THE FOUR-ARMED `move/perishClock` PROBE
+ * ABOVE, which is left exactly as it was: the tick still goes through `queueFaint`, and
+ * `residualFollowerRuns` still decides whether the drain lands above or below `|upkeep|`. This probe
+ * plants `_perish = 2`, so it ticks to `perish1` and NOBODY DIES — the position of the counter and
+ * the position of the faint are two questions and this one asks only the first.
+ *
+ * THE `bare` ARM IS THE OVER-FIRE CONTROL: no Tailwind, no Speed Boost, four counters in plain speed
+ * order, and it must read the same before and after. `noperish` is the cleared knob — the same
+ * Tailwind board with no clock on any body, which must announce no counter and must still end the
+ * Tailwind at its own order. `MEDI_PERISH_AT_FOOT=1` is the before-arm and puts the tick back at the
+ * foot of the turn. */
+probe('condition', 'residualPerishStep',
+      'the perish counter ticks at order 24 — above the order-26 side clocks and before order-28 Speed Boost', () => {
+  const run = (mode) => {
+    const trace = [];
+    const me = bare('primarina'), ally = bare('blaziken');
+    const f1 = bare('snorlax'), f2 = bare('toxapex');
+    me.st   = Object.assign({}, me.st,   { sp: 100 });
+    ally.st = Object.assign({}, ally.st, { sp:  80 });   /* x1.5 on a +1 is 120, so the pair swap */
+    f1.st   = Object.assign({}, f1.st,   { sp:  10 });
+    f2.st   = Object.assign({}, f2.st,   { sp:   5 });
+    if (mode === 'boost') ally.ability = 'speedboost';
+    const S = M.battleInit([me, ally, bare('clefable'), bare('milotic')],
+                           [f1, f2, bare('archaludon'), bare('garchomp')], { seeded: true, trace });
+    if (mode === 'tw' || mode === 'noperish') S.field.twA = 1;  /* expires THIS residual, order 26 */
+    if (mode !== 'noperish') for (const x of [me, ally, f1, f2]) x._perish = 2;
+    trace.length = 0;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    const lines = trace.map(M.traceCanon).filter(l => /perish|sideend|speedboost/.test(l));
+    return { lines, seq: lines.map(l => /perish/.test(l) ? (l.match(/\|(p[12][ab]):/) || [])[1]
+                                       : (/sideend/.test(l) ? 'SIDEEND' : 'BOOST')).join(' ') };
+  };
+  const tw = run('tw'), boost = run('boost'), bareArm = run('bare'), none = run('noperish');
+  return { works: tw.seq === 'p1a p1b p2a p2b SIDEEND'
+                  && boost.seq === 'p1a p1b p2a p2b BOOST'
+                  && bareArm.seq === 'p1a p1b p2a p2b'
+                  && none.seq === 'SIDEEND',
+           arms: { control: none.seq, test: tw.seq },
+           detail: 'TAILWIND arm "' + tw.seq + '" — the four order-24 counters must precede the '
+                 + 'order-26 |-sideend|, which is what five games of the pinned pool got backwards. '
+                 + 'SPEED BOOST arm "' + boost.seq + '" — the counters must precede the order-28 '
+                 + '|-boost| AND come out in the pre-boost order, p1a(100) before p1b(80), because a '
+                 + 'tick below the walk reads p1b at 120 and reverses them. OVER-FIRE, no Tailwind and '
+                 + 'no Speed Boost: "' + bareArm.seq + '" (plain speed order, must not move). CLEARED, '
+                 + 'the same Tailwind board with no clock on anybody: "' + none.seq + '" (the side '
+                 + 'clock still expires and no counter is announced). tw ' + JSON.stringify(tw.lines)
+                 + ' boost ' + JSON.stringify(boost.lines) };
+});
+
 /* WIRE 157 -- THE WEATHER RESIDUAL RUNS IN BOTH DIRECTIONS AND THIS ENGINE HELD ONLY THE ONE THAT
  * HURTS. The probe above is the whole of what existed: sand chips, and three things ignore it. The
  * SAME `onWeather` hook restores HP, and none of that reached any code -- Ice Body read LIVE off the
@@ -31431,7 +31573,8 @@ process.exitCode = red.length ? 1 : 0;
  * nobody made. The engine stamps `MEDFAILS.residualCollapsed` for exactly this — a break that cannot
  * be mistaken for a clean run. Any future switch of the same kind belongs here. A RATCHET REGRESSION
  * IS NOT ONE OF THEM: it is a finding about the probes, and the floor above is what protects it. */
-const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afterFaintPerTargetRestored']
+const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afterFaintPerTargetRestored',
+                          'statusOneStepRestored', 'perishAtFootRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

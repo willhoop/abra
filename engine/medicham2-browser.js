@@ -1236,6 +1236,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   perHitDamageLoop: 0, perHitBasePower: 0, smartTargetSplit: 0,
   conditionalPowerRolled: 0, conditionalPowerPriced: 0,
   perishTicked: 0, perishKO: 0, perishClearedOnSwitch: 0,
+  /* 2026-08-29 -- the perish deaths paid by the WALK's order-24 step rather than by the foot-of-turn
+     clock loop. Zero with `perishKO` non-zero means the step is not firing and the old position is
+     quietly covering for it, which is the shape this repo keeps being bitten by. */
+  perishKOInWalk: 0,
   /* WIRE 160 -- a finished game in which BOTH sides emptied and the winner was decided by which
      body fainted last (sim/battle.ts:2603). Zero on a run with no mutual wipe in it is the
      expected reading; zero on the boards staged for it means the rule never fired. */
@@ -2660,6 +2664,14 @@ const MEDFAILS = { encoreAction: 0,
    * boundary fix and a broken engine can never be read as the same thing. Same shape as
    * volleyReactDrawnRestored. */
   afterFaintPerTargetRestored: 0,
+  /* 2026-08-29 -- set to 1 for the whole run when MEDI_STATUS_ONE_STEP=1 merges the burn chip back
+   * into the psn/tox step, i.e. runs order 10 at order 9 on purpose. Same shape as
+   * afterFaintPerTargetRestored. */
+  statusOneStepRestored: 0,
+  /* 2026-08-29 -- set to 1 for the whole run when MEDI_PERISH_AT_FOOT=1 takes the perish tick back
+   * out of the residual walk and puts it in the foot-of-turn clock loop, i.e. below every order-26
+   * side clock instead of at its published order 24. Same shape as statusOneStepRestored. */
+  perishAtFootRestored: 0,
   /* ROADMAP #499 -- A MULTI-HIT CLICK WHOSE ARRIVALS THIS ENGINE CANNOT ADDRESS SEPARATELY, so the
    * whole volley took ONE crit decision where the authority took N: `hits` says more than one and
    * dmgRange handed back no packet list to hang the decisions on. It is a flat volley whose band does
@@ -7148,6 +7160,26 @@ const residualExpiryDeferred = () => [...RESIDUAL_EXPIRY.entries()]
 const ENDTURN_CLOCKS_AT_FOOT = (typeof process !== 'undefined' && process.env
   && process.env.MEDI_ENDTURN_CLOCKS_AT_FOOT === '1');
 if (ENDTURN_CLOCKS_AT_FOOT) MEDFAILS.endturnClocksAtFoot = 1;
+/* ---- 2026-08-29 -- THE TWO RESIDUAL-ORDER KNOBS THIS PASS ADDED, AND THEY ARE BEFORE-ARMS ---------
+ *
+ * `MEDI_STATUS_ONE_STEP=1` merges the burn chip back into the psn/tox step, which is what the MAP
+ * below did until this pass: one `{step:'status'}` entry at order 9 carrying all three chips, while
+ * `data/residual-order.json` has published `status:brn` at order 10 the whole time. Its own comment
+ * said so out loud -- *"psn/tox/brn are 9,9,10 and run as one step"*.
+ *
+ * `MEDI_PERISH_AT_FOOT=1` takes the perish tick back out of the walk and puts it in the foot-of-turn
+ * clock loop, which is where it stood: `condition:perishsong` is order 24 and had NO step in
+ * `RESIDUAL_GROUPS` at all, so every order-26 side clock and every order-28 handler was announced
+ * above it and the counters were read off speeds Speed Boost had already moved.
+ *
+ * BOTH STAMP A `MEDFAILS` COUNTER, so a run under either can never be mistaken for a clean one and
+ * `tests/test-mechanics.js` refuses to overwrite the census under them. */
+const STATUS_ONE_STEP = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_STATUS_ONE_STEP === '1');
+if (STATUS_ONE_STEP) MEDFAILS.statusOneStepRestored = 1;
+const PERISH_AT_FOOT = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_PERISH_AT_FOOT === '1');
+if (PERISH_AT_FOOT) MEDFAILS.perishAtFootRestored = 1;
 /* 2026-08-29 -- `MEDI_WEIGHT_STATIC=1` reads the weight back off the BUILD-TIME stamp, which is what
  * this engine did until the forme fix in `speciesWeight` above. It reverts ONE read, so a probe can
  * attribute a parting to the weight and not to the mega's stat line, and it stamps
@@ -7336,8 +7368,17 @@ function residualFollowerRuns(field, sfA, sfB, actA, actB) {
   return false;
 }
 const RESIDUAL_GROUPS = (() => {
-  /* chunk -> the authority effect whose order it inherits. One id is enough; where a chunk implements
-   * several they share an order by construction (psn/tox/brn are 9,9,10 and run as one step). */
+  /* chunk -> the authority effect whose order it inherits. One id is enough where a chunk implements
+   * several effects the format gives the SAME order; where it does not, the chunk is split.
+   *
+   * 2026-08-29 -- `status` USED TO BE ONE STEP CARRYING ALL THREE CHIPS and the sentence that stood
+   * here said why: *"psn/tox/brn are 9,9,10 and run as one step"*. It read its own defect out loud.
+   * `data/conditions.ts` declares `brn.onResidualOrder: 10` (`:15`) against `psn` (`:133`) and `tox`
+   * (`:154`) at 9, Champions overrides none of the three (`data/mods/champions/conditions.ts` carries
+   * only `par`, `slp` and `frz`), and `data/residual-order.json` has published 9/9/10 since it was
+   * generated. `comparePriority` (sim/battle.ts:404) sorts order ASC then speed DESC over ONE list
+   * built before the walk, so EVERY body's poison chips before ANY body's burn -- and this engine ran
+   * all three in one speed-sorted pass, interleaving them. */
   const MAP = [
     { step: 'weather',    id: 'sandstorm',        ns: 'field'     },
     { step: 'futureHit',  id: 'futuremove',       ns: 'condition' },
@@ -7348,6 +7389,10 @@ const RESIDUAL_GROUPS = (() => {
     { step: 'volHeal',    id: 'aquaring',         ns: 'condition' },
     { step: 'seed',       id: 'leechseed',        ns: 'condition' },
     { step: 'status',     id: 'psn',              ns: 'status'    },
+    /* AND THE BURN, ONE ORDER BELOW ITS TWO NEIGHBOURS. The position in this literal decides nothing
+     * -- the sort below reads the artifact -- but it is written next to the step it was split OUT of
+     * so the pair cannot be read as sharing a slot again. */
+    { step: 'statusBrn',  id: 'brn',              ns: 'status'    },
     { step: 'curse',      id: 'curse',            ns: 'condition' },
     { step: 'trap',       id: 'partiallytrapped', ns: 'status'    },
     { step: 'volChip',    id: 'saltcure',         ns: 'condition' },
@@ -7366,7 +7411,28 @@ const RESIDUAL_GROUPS = (() => {
      * `onResidualOrder: 25` and no `onResidual`, announces nothing, and the type it gives back is
      * read TWENTY ORDERS ABOVE it by the Grassy Terrain heal (order 5, grounded bodies only). */
     { step: 'expRoost',   id: 'roost',            ns: 'expiry'    },
+    /* 2026-08-29 -- PERISH SONG, AND IT HAD NO STEP IN THIS TABLE AT ALL. `condition:perishsong` is
+     * order 24 subOrder 2 in `data/residual-order.json`; the tick stood in the foot-of-turn clock
+     * loop, BELOW the whole walk, so `expiry:tailwind` at order 26 -- spent inside this loop by
+     * `residualExpireAt` -- announced its `|-sideend|` above every `perishN`, and the counters were
+     * read off a speed order the order-28 Speed Boost group had already changed. `residualOrder`'s
+     * own header called the two `|-sideend|…|tailwind` rows in the pool "a case it does NOT fix";
+     * it is FIVE rows of the 2026-08-29 dump, not two, and this is the step that fixes them.
+     *
+     * THE DEATH STILL DEFERS AND THAT IS NOT AN OVERSIGHT. `perishsong.condition.onEnd` is
+     * `add('-start', target, 'perish0'); target.faint()` and `fieldEvent`'s duration-expiry branch
+     * `continue`s PAST the `faintMessages()` at sim/battle.ts:565 -- so the tick goes through
+     * `queueFaint` exactly as it did at the foot, and `residualFollowerRuns` still decides whether
+     * the drain lands above or below `|upkeep|`. Moving WHERE the counter ticks does not move WHERE
+     * the line is paid, and the four-armed `move/perishClock` probe is the control that says so. */
+    { step: 'perish',     id: 'perishsong',       ns: 'condition' },
   ];
+  /* THE TWO BEFORE-ARMS, APPLIED TO THE TABLE RATHER THAN TO THE WALK. Removing the step is what
+   * makes the walk's own `_G.has(...)` guards fall back to where the code stood, so the knob moves a
+   * POSITION and never deletes a mechanic -- the distinction `probe_endturn_clock_order.js` was
+   * built on. Both are counted in MEDFAILS at the declaration site. */
+  if (STATUS_ONE_STEP) { const i = MAP.findIndex(m => m.step === 'statusBrn'); if (i >= 0) MAP.splice(i, 1); }
+  if (PERISH_AT_FOOT)  { const i = MAP.findIndex(m => m.step === 'perish');    if (i >= 0) MAP.splice(i, 1); }
   /* 2026-08-27 -- AND THE PER-BODY DURATION CLOCKS, one step each, at the order the artifact gives
    * them. They are pushed rather than written into the literal above because the SET is derived (see
    * `RESIDUAL_CLOCK_ORDER`): a member with no reader in this engine never reaches here, and under
@@ -7859,8 +7925,24 @@ function entryOrder(all,entrants,field){
  * every body, and a tied pair's final order depends on the swaps made while the OTHER handlers were
  * placed. This engine's walk is group-major over BODIES and does not know which handlers a body
  * actually has, so it reproduces (2) exactly and (1) only when the tied group's members are the whole
- * of what is in the list. Staged and measured: the two `|-sideend|…|tailwind` rows in the pool are a
- * case it does NOT fix, and the reason is written up in docs/_reports/2026-08-24-residual-order.md. */
+ * of what is in the list.
+ *
+ * ~~Staged and measured: the two `|-sideend|…|tailwind` rows in the pool are a case it does NOT fix,
+ * and the reason is written up in docs/_reports/2026-08-24-residual-order.md.~~
+ *
+ * **THAT SENTENCE NAMED THE WRONG CAUSE AND IS CORRECTED HERE RATHER THAN DELETED, 2026-08-29.** The
+ * limitation above is real and the `|-sideend|…|tailwind` rows were never an instance of it. Those
+ * rows are Perish Song having NO STEP IN `RESIDUAL_GROUPS` AT ALL: the counter ticked in the
+ * foot-of-turn clock loop below the whole walk, so `expiry:tailwind` at order 26 -- spent INSIDE the
+ * walk by `residualExpireAt` -- came out above every `perishN` on any board, tied or not. It is
+ * `{step:'perish'}` at order 24 in the MAP above now, and `tests/test-mechanics.js`
+ * `condition/residualPerishStep` is red under `MEDI_PERISH_AT_FOOT=1` and green without it, on a
+ * board with no speed tie anywhere in it.
+ *
+ * IT WAS ALSO OUT OF DATE AS A COUNT, WHICH IS HOW IT GOT LOOKED AT. The 2026-08-29 divergence dump
+ * holds FIVE such rows, not two. A comment that carries a number is a comment that goes stale --
+ * exactly the failure `docs/LESSONS.md` records about the fourteen handoffs -- so the number is not
+ * replaced with a newer one here: read it off the artifact. */
 let _RES_TIE_GEN=0;
 /* THE OLD STABLE SORT, ON A KNOB, so the census probe can be shown MISSING on demand without swapping
  * a file. It is the pre-2026-08-24 line exactly. */
@@ -34447,7 +34529,16 @@ function battleTurn(S,rng,actsForA,actsForB){
      * difference is whether a second body on the LOSING side also takes its own chip after the side
      * is already dead -- which cannot change the outcome and cannot bring anybody in, because both
      * of those live below this loop. */
-    if(sideWiped(S)){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedInResidual++;break _TURN;}
+    /* 2026-08-29 -- AND A DEATH THAT IS STILL OWED A LINE HAS NOT ENDED THE BATTLE YET. `this.ended`
+     * is set inside `checkWin`, which `faintMessages` calls -- and the duration-expiry branch
+     * `continue`s past `faintMessages` (sim/battle.ts:514-524), so a side wiped by the order-24
+     * perish expiry does NOT stop the walk: the remaining groups run, `case 'residual'` writes
+     * `|upkeep|` at :2814 because `this.ended` is still false, and the tail of `runAction` at :2832
+     * drains and ends it. `faintQueueOwed()` is this engine's reader for exactly that question and
+     * already exists for it. IT MOVES NOTHING TODAY EXCEPT THE PERISH CASE: the only other in-walk
+     * queueing site is `weatherAbilityChip`, whose group drains before this check is next reached,
+     * so the queue is empty at every group boundary the old line ever saw. */
+    if(sideWiped(S)&&!faintQueueOwed()){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedInResidual++;break _TURN;}
     const _G=RESIDUAL_HAS[_gi], _Gn=RESIDUAL_GROUPS[_gi].steps.length;
     MEDSEEN.residualGroupsWalked++;
     for(const m of residualOrder(actA,actB,field)){if(!m||m.fainted||m.curHP<=0)continue;
@@ -34916,7 +35007,19 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `onDamage` at priority 1: it does not occupy a residual position, it INTERCEPTS the one the
        * chip occupies. So the three blocks below share the `status` step and the `_ph`/`_mgi` locals,
        * and splitting them would be both a wrong order and a broken scope. */
-      if(_G.has('status')){
+      /* 2026-08-29 -- THE CHIP RUNS IN THE GROUP THE BODY'S OWN STATUS BELONGS TO, and a body carries
+       * exactly one status, so this branch is taken at most once per body per walk. `brn` is order 10
+       * and `psn`/`tox` are order 9; under `MEDI_STATUS_ONE_STEP=1` the `statusBrn` step is not in
+       * the table at all and the burn falls back into the `status` group, which is byte-for-byte the
+       * merged pass this replaced.
+       *
+       * POISON HEAL MOVES WITH THE CHIP IT INTERCEPTS AND THAT IS WHY IT IS STILL INSIDE THE BRANCH.
+       * It is an `onDamage` at priority 1 (data/abilities.ts:3321-3328): it occupies no residual
+       * position of its own, it intercepts whichever chip is running. The header on `RESIDUAL_GROUPS`
+       * used to give that as the reason all three chips shared one step, and it is not -- the reason
+       * it is not a step of its own is the same reason it must follow `brn` down to order 10. The
+       * statuses it answers to are still the TAG's, never a name here. */
+      if(m.status&&(m.status==='brn'?(STATUS_ONE_STEP?_G.has('status'):_G.has('statusBrn')):_G.has('status'))){
       const _phl=TAGS.param('ability',m.ability,'healsFromOwnStatus');
       const _ph=!!(_phl&&Array.isArray(_phl.statuses)&&_phl.statuses.includes(m.status));
       if(_ph){
@@ -35249,6 +35352,20 @@ function battleTurn(S,rng,actsForA,actsForB){
        * line (`if (handler.effectHolder.fainted) continue`) and not a shortcut. Its corpse keeps the
        * dropped type until it leaves the field; `switchOut` restores it on the way out, and nothing
        * reads the types of a fainted body in between. */
+      /* 2026-08-29 -- PERISH SONG'S COUNTER, AT ITS PUBLISHED ORDER 24. These three lines are the ones
+       * that stood in the foot-of-turn clock loop; nothing about what they DO has changed and that is
+       * the point -- `MEDI_PERISH_AT_FOOT=1` puts them back there, so a probe attributes a parting to
+       * the POSITION rather than to the mechanic (the rule the endturn-clock knob was built on).
+       *
+       * THE `queueFaint` IS THE AUTHORITY'S OWN DEFERRAL AND NOT A CONVENIENCE HERE. `onEnd` is
+       * `add('-start', target, 'perish0'); target.faint()`, `Pokemon#faint()` writes no line, and the
+       * duration-expiry branch `continue`s past `faintMessages()` at sim/battle.ts:565 -- so the
+       * `|faint|` is still owed when the walk moves on. The group close below therefore has to leave
+       * a body it has already marked alone; see the `!m.fainted` guard there. */
+      if(_G.has('perish')&&m._perish!=null){
+        m._perish--;MEDSEEN.perishTicked++;if(TR)TR.vstart(m,'perish'+m._perish);
+        if(m._perish<=0){MEDSEEN.perishKO++;MEDSEEN.perishKOInWalk++;queueFaint(m,'perish');}
+      }
       if(_G.has('expRoost')&&m._typeWas){
         m.types=m._typeWas; m._typeWas=null; MEDSEEN.roostTypeRestored++;
       }
@@ -35294,7 +35411,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * The burn arm is the over-fire control for this branch and it is asserted in
        * tests/test-mechanics.js `weatherResidualFaintQueue`: an engine that deferred EVERY residual
        * faint to the group close passes the sand arm and breaks that one. */
-      if(m.curHP<=0){
+      /* 2026-08-29 -- AND A BODY THIS GROUP HAS ALREADY MARKED IS LEFT ALONE. `!m.fainted` is the
+       * same predicate this loop's own `continue` reads at the top; without it the perish step above
+       * -- which QUEUES its line, on purpose -- would have that line written inline one branch later,
+       * which is exactly the deferral the step exists to preserve. It moves nothing else: the two
+       * in-walk sites that faint inline (the delayed hit, the trap chip) already set the flag, and
+       * `queueFaint` at `weatherAbilityChip` already did too, so every other path reached this branch
+       * with `fainted` false or was a no-op behind `TR.faint`'s own dedupe. */
+      if(m.curHP<=0&&!m.fainted){
         if(_G.has('weather'))queueFaint(m,'weatherGroup');
         else{m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
       }
@@ -35438,7 +35562,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          death: a burn is `onResidual(pokemon)`, registered per body, so `fieldEvent` reaches :565
          between bodies -- that site is elsewhere in this file, is already correct, and is the
          over-fire control the probe holds at 1. */
-      if(x._perish!=null){x._perish--;MEDSEEN.perishTicked++;if(TR)TR.vstart(x,'perish'+x._perish);
+      /* 2026-08-29 -- AND IT IS A STEP OF THE WALK NOW, at the order 24 the artifact publishes. This
+         line is what it was and runs ONLY under `MEDI_PERISH_AT_FOOT=1`, which is the position knob
+         the probe beside it attributes with -- a knob that DELETED the mechanic instead of moving it
+         would make every red arm part for the wrong reason. The whole comment above it is the
+         derivation of the DEFERRED DRAIN and is unchanged by the move: the tick is in a different
+         place, the `queueFaint` and everything below it are not. */
+      if(PERISH_AT_FOOT&&x._perish!=null){x._perish--;MEDSEEN.perishTicked++;if(TR)TR.vstart(x,'perish'+x._perish);
         if(x._perish<=0){MEDSEEN.perishKO++;queueFaint(x,'perish');}}
       /* 2026-08-27 -- YAWN, HEAL BLOCK AND THE THROAT CHOP SILENCE ARE STEPS OF THE WALK NOW
          (`residualClockTick`, at orders 23, 20 and 22). These three lines are what they were and
