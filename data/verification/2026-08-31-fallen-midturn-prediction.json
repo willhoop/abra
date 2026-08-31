@@ -1,0 +1,21 @@
+{
+  "written_by": "ENGINE, 2026-08-31, BEFORE any engine run",
+  "topic": "mid-turn fallen count for Last Respects (powerFromFallen) — the drain boundary",
+  "baselines_as_given_and_verified": {
+    "census": { "design": 815, "probed": 815, "live": 815, "missing": 0, "hollow": 0, "threw": 0 },
+    "board_parted": 82, "protocol": 172, "distinct_causes": 150,
+    "release": "862624c9826e", "pool": "0d103fb9fa87", "census_pin": "9446a684709d",
+    "games": 961, "cap": 12, "arm": "middle"
+  },
+  "which_scoreboard_should_move": "THE LAB, NOT THE POOL. Last Respects has exactly three legal carriers (Basculegion, Basculegion-F, Houndstone) and the new cases are a mid-turn ally death by a NON-ATTACK path. The pinned pool is expected to sit exactly still; a pool move would be a surprise that needs explaining, not a win.",
+  "predictions": [
+    { "id": "P1", "claim": "The AUTHORITY updates the count mid-turn. MEASURED before this file was written: 30 -> 58 damage, |faint| precedes the damage line, side.totalFainted 0 -> 1." },
+    { "id": "P2", "claim": "The HP-zero / drain window is NOT reachable by this move. At the Last Respects callback the authority shows an EMPTY undrained set at every drain site tested." },
+    { "id": "P3", "claim": "medicham2 AGREES on the ally-killed-by-a-foe-move case — it is already probed and green." },
+    { "id": "P4", "claim": "medicham2 AGREES on the ally SELF-DESTRUCTING earlier in the turn (count 0 -> 1, damage roughly doubles)." },
+    { "id": "P5", "claim": "medicham2 AGREES on a PIVOT REPLACEMENT dying to entry hazards mid-turn (count 0 -> 1). This is the least certain of the five; the corpse is made by a switch-in, not by an action." },
+    { "id": "P6", "claim": "Supreme Overlord's frozen snapshot does NOT move on either new board — the freshness control." },
+    { "id": "P7", "claim": "census goes 815 -> 815 + (probes added), missing stays 0, hollow stays 0, threw stays 0." },
+    { "id": "P8", "claim": "the pinned pool does NOT move: board-parted stays 82, protocol stays 172, distinct causes stays 150." }
+  ]
+}

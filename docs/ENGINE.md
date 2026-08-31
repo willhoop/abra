@@ -117,7 +117,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  815/815 probed mechanics live, 0 missing   (census 2026-08-30 23:36)
+  817/817 probed mechanics live, 0 missing   (census 2026-08-31 02:12)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
     never fired in the staged harness (all-mechanics-fire.json, 2.1 days old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
@@ -142,9 +142,80 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-31 01:19_
+_stamped 2026-08-31 02:18_
 
 <!-- /GENERATED -->
+
+## LAST RESPECTS DOES UPDATE MID-TURN AND THIS ENGINE ALREADY DID IT — BUT ONLY ONE OF THE THREE ROADS TO A MID-TURN CORPSE WAS PROBED, AND THE OTHER TWO ARE A DIFFERENT MECHANISM. **CENSUS 815 -> 817 LIVE / 817 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. NO ENGINE BYTE CHANGED, SO BOARD-PARTED 82, PROTOCOL 172 AND CAUSES 150 ARE UNMOVED BY CONSTRUCTION AND THE TREE IS STILL `862624c9826e`. THE DRAIN-RELATIVE WINDOW WAS INSTRUMENTED ON THE AUTHORITY AT FIVE DRAIN SITES AND IS NOT REACHABLE BY THIS MOVE.** 2026-08-31.
+
+Will asked: *"do we update Last Respects mid-turn if the partner faints before it acts?"*
+
+**THE AUTHORITY DOES, AND SO DO WE.** Measured first, on Showdown, seed `[1,2,3,4]`, before anything
+here was read: a doubles board, Houndstone at 10 Speed, one Garchomp at 200, the ally at 1 HP.
+
+```
+ally alive          Last Respects deals 30    p1.totalFainted 0
+ally KOd this turn  Last Respects deals 58    p1.totalFainted 1     x1.933,  BP 50 -> 100
+```
+
+and `|faint|p1b: Milotic` precedes `|-damage|p2a: Garchomp` in the log. Every claim the brief carried
+was re-derived rather than accepted: `lastrespects` is `isNonstandard: null`, **Champions does not
+override it** (`grep lastrespects data/mods/champions/moves.ts` returns nothing), the handler is
+`basePowerCallback(pokemon, target, move) { return 50 + 50 * pokemon.side.totalFainted; }` with no cap
+on the power, `side.totalFainted++` is at `sim/battle.ts:2551` inside `faintMessages()`, and a filtered
+walk of the format gives **exactly three legal carriers — Basculegion, Basculegion-F, Houndstone.**
+
+### THE POINT IS NOT THAT IT AGREES. THE POINT IS THAT IT AGREED ON ONE ROAD OUT OF THREE.
+
+The three probes that existed all reach the count the same way: **an ally killed by a foe's attack.**
+That is the road every ordinary turn takes, so an engine that was fresh only there would have looked
+finished. Two more roads to a mid-turn corpse were staged, and the second one turns out to be a
+**completely different mechanism inside this file**:
+
+| road to the corpse | how the count reaches Last Respects here |
+|---|---|
+| a foe's attack KOs the ally | `fallenSettle(S)` at the action boundary — the derived count |
+| the ally kills ITSELF (Memento, `selfdestruct: 'ifHit'`) | the same action-boundary settle |
+| a PIVOT REPLACEMENT dies on entry hazards | `if(nx._sf)nx._sf.fainted++` **inline at the switch-in** |
+
+Both new cases are correct at 51 -> 100, and the pivot one is correct **twice over**: it is right with
+the action-boundary settles removed *and* right with the inline tally removed, and only goes red when
+both are. That is stated in the probe rather than left to be found — a reader who deletes the inline
+`++` as an obvious duplicate of a derived counter will not see a single test move.
+
+**THE TALLY-ON-TOP-OF-A-DERIVED-COUNTER IS A SHAPE THIS PROJECT HAS PAID FOR, AND IT IS NOT CLAIMED
+BROKEN HERE.** `fallenSettle` DERIVES from the live `fainted` flags; two sites (`:19802`, `:27271`)
+also `++` the same field. Nothing measured drifts: every settle overwrites with the derived truth, and
+each `++` fires once per body at its own transition, so the hybrid value only exists inside a window
+nothing reads. Filed as an observation, not a defect — there is no failing probe, so there is no fix.
+
+### THE DRAIN-RELATIVE HALF WAS ASKED PROPERLY AND THE ANSWER IS "NOT REACHABLE", MEASURED
+
+The authority increments at the **drain**; this engine sets `fainted` at **HP zero**, and the faint-queue
+block says so in as many words (*"The state half is OWED"*). Two different moments, and a real
+divergence if anything ever read between them. So the authority was instrumented at the exact call
+into `getDamage` for this move and asked, at five distinct drain sites, whether any body on the side
+sat at `hp === 0` with `fainted` still false:
+
+```
+single-hit KO   MULTI-HIT KO   SPREAD KO   the ally SELF-DESTRUCTS   a PIVOT REPLACEMENT on hazards
+      ->  undrained set EMPTY at every one, and totalFainted already 1
+```
+
+The window exists in the authority and **no Last Respects click can sit inside it**, because the count
+is only consumed at move execution and every move execution is preceded by a drain. Nothing here has
+to model it. The one mechanic that could have told a derived count from the authority's monotone tally
+is **Revival Blessing**, which is `isNonstandard: 'Past'` here with **zero legal users**, and
+`onBeforeFaint` — the only handler that can refuse an increment — does not exist anywhere in this
+format's data.
+
+### THE SCOREBOARD WAS NAMED BEFORE THE RUN
+
+`data/verification/2026-08-31-fallen-midturn-prediction.json`, written to disk before any engine ran.
+**The lab moves; the pool does not.** Three legal carriers and a corpse made by a switch-in is a lab
+mechanic by construction — and in the event **no engine byte changed at all**, so board-parted 82,
+protocol 172 and causes 150 are unmoved by construction rather than by measurement. Eight predictions,
+eight held.
 
 ## THE DIVERGENCE ANNOTATOR RESOLVED THE FIRST DEX HIT, SO THREE LIVE CAUSES WORE `cannot_occur_in_format: true` AND TWO OF THEM PART A BOARD. **INSTRUMENT ONLY. CENSUS UNMOVED AT 815 LIVE / 815 PROBED / 0 MISSING AND DELIBERATELY NOT REGENERATED; BOARD-PARTED 82, PROTOCOL 172, CAUSES 150 ALL UNMOVED BY CONSTRUCTION — NEITHER FILE IS IN THE FROZEN `SOURCES` AND THE TREE IS STILL `862624c9826e`. FIVE NAMES IN THE REGULATION COLLIDE, THREE WERE LIVE HOLES, AND ALL THREE FLAGGED ROWS WERE MISLABELLED.** 2026-08-31.
 

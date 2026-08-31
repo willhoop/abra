@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-31T03:36:52.330Z",
+  "generated": "2026-08-31T06:12:22.041Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 815,
-  "live": 815,
+  "probed": 817,
+  "live": 817,
   "missing": 0,
-  "armed": 815,
+  "armed": 817,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -2200,6 +2200,26 @@
     },
     {
       "kind": "move",
+      "tag": "powerFromFallen",
+      "label": "Last Respects counts an ally that killed ITSELF earlier in the same turn",
+      "live": true,
+      "detail": "[side fallen count, ally dead?, Last Respects damage into an UNTOUCHED foe] — the ally passes 0,0,51; the ally clicks Memento at the OTHER foe and kills itself earlier in the same turn 1,1,100. Memento is selfdestruct:'ifHit' and deals no damage to the aimed body, so the only varied thing is whether the ally is alive. The authority prices this BP 50 -> BP 100, so the damage must double",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "powerFromFallen",
+      "label": "Last Respects counts a PIVOT REPLACEMENT that died on hazards mid-turn — and the frozen count does not move",
+      "live": true,
+      "detail": "[Spikes layers, side fallen count, entrant dead?, damage into an UNTOUCHED foe] — the entrant survives the hazards 3,0,0,51; the entrant walks onto them at 1 HP and dies MID-TURN, before the click 3,1,1,100. FRESHNESS CONTROL on the identical board — Supreme Overlord's Iron Head, whose count is FROZEN at its entry, reads 97 with the entrant alive and 97 with it dead (x1.000) against Last Respects' x1.96",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "overridesEffectiveness",
       "label": "Freeze-Dry beats Ice Beam into a Water type",
       "live": true,
@@ -3943,7 +3963,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

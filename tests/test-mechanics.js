@@ -9150,6 +9150,141 @@ probe('move', 'powerFromFallen', 'Last Respects prices the already-fallen on the
                  + `ladder must be 1x/2x/3x/4x of ${d[0]}` };
 });
 
+/* 2026-08-31 -- WILL ASKED THE MID-TURN QUESTION AGAIN AND THE THREE PROBES ABOVE ONLY ANSWER ONE
+ * SHAPE OF IT: an ally killed BY A FOE'S ATTACK. A count that is fresh only on that road is fresh by
+ * accident, because it is the road every ordinary turn takes.
+ *
+ * MEASURED ON THE AUTHORITY FIRST, at seed [1,2,3,4], with the shipping engine untouched. A doubles
+ * board, Houndstone at 10 Speed, one Garchomp at 200, the ally at 1 HP:
+ *
+ *     ally alive            Last Respects deals 30    p1.totalFainted 0
+ *     ally KOd this turn    Last Respects deals 58    p1.totalFainted 1   (x1.933, BP 50 -> 100)
+ *
+ * and `|faint|p1b: Milotic` precedes the `|-damage|p2a: Garchomp` line in the log. The move re-reads
+ * `pokemon.side.totalFainted` at every use (`return 50 + 50 * pokemon.side.totalFainted`, no cap;
+ * Champions does not override the move) and `side.totalFainted++` lives inside `faintMessages()` at
+ * sim/battle.ts:2551, which runs at the tail of every move and every action.
+ *
+ * AND THE DRAIN-RELATIVE WINDOW WAS ASKED AND IS NOT REACHABLE, which is worth stating because the
+ * authority's increment is at the DRAIN and this engine's `fainted` flag is at HP ZERO -- two
+ * different moments, and a real divergence if anything ever read between them. The authority was
+ * instrumented at the exact call into `getDamage` for this move and asked, at FIVE distinct drain
+ * sites, whether any body on the side sat at `hp === 0` with `fainted` still false:
+ *
+ *     single-hit KO / MULTI-HIT KO / SPREAD KO / the ally SELF-DESTRUCTS / a PIVOT REPLACEMENT
+ *     dying on entry hazards      ->  undrained set EMPTY at every one, totalFainted already 1
+ *
+ * So the count this move sees is always the DRAINED count; the window exists in the authority and no
+ * Last Respects click can sit inside it. Nothing here has to model it, and that is a measurement
+ * rather than a shrug. (Revival Blessing would be the one thing that could tell a derived count from
+ * the authority's monotone tally -- it is `isNonstandard: 'Past'` here with ZERO legal users.)
+ *
+ * THIS PROBE IS THE SELF-INFLICTED ROAD: Memento is `selfdestruct: 'ifHit'`, so the ALLY kills
+ * ITSELF, no foe attack is involved, and the ally's own action deals no damage to the body Last
+ * Respects is aimed at -- the control varies the ALLY'S DEATH and nothing else. It is RED on an
+ * engine whose death counter settles only at turn end: with the two action-boundary `fallenSettle`
+ * calls removed the test arm falls back to 51 from 100 while the control stays 51. */
+probe('move', 'powerFromFallen', 'Last Respects counts an ally that killed ITSELF earlier in the same turn', () => {
+  const run = (kill) => {
+    const me = bare('houndstone'), ally = bare('whimsicott');
+    const S = M.battleInit([me, ally, bare('milotic'), bare('corviknight')],
+                           [bare('garchomp'), bare('incineroar')], { seeded: true });
+    const f1 = S.actB[0], f2 = S.actB[1];
+    unfaintable(f1); unfaintable(f2);
+    /* the order is FORCED, not hoped for: the ally resolves first in both arms */
+    ally.st = Object.assign({}, ally.st, { sp: 300 });
+    me.st = Object.assign({}, me.st, { sp: 10 });
+    f1.st = Object.assign({}, f1.st, { sp: 5 });
+    f2.st = Object.assign({}, f2.st, { sp: 4 });
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'lastrespects', f1, S.field)],
+               [ally, kill ? M.playerAction(ally, 'memento', f2, S.field) : { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return [S.sfA.fainted, ally.fainted ? 1 : 0, before - f1.curHP];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 0 && control[1] === 0 && test[0] === 1 && test[1] === 1
+                  && control[2] > 0 && Math.abs(test[2] - 2 * control[2]) <= 3,
+           arms: { control, test },
+           detail: `[side fallen count, ally dead?, Last Respects damage into an UNTOUCHED foe] — the `
+                 + `ally passes ${control}; the ally clicks Memento at the OTHER foe and kills itself `
+                 + `earlier in the same turn ${test}. Memento is selfdestruct:'ifHit' and deals no `
+                 + `damage to the aimed body, so the only varied thing is whether the ally is alive. `
+                 + `The authority prices this BP 50 -> BP 100, so the damage must double` };
+});
+
+/* 2026-08-31 -- AND THE THIRD ROAD TO A CORPSE: NOBODY ATTACKED AND NOBODY CLICKED. A PIVOT
+ * REPLACEMENT WALKS ONTO ENTRY HAZARDS AND DIES, HALFWAY THROUGH THE TURN.
+ *
+ * MEASURED ON THE AUTHORITY on the identical shape: three layers of Spikes on p1's side, the ally
+ * U-turns, the entrant arrives at 1 HP and the log reads `|switch|p1b: Milotic|1/254|[from] U-turn`
+ * then `|faint|p1b: Milotic` then `|move|p1a: Houndstone|Last Respects`. Damage 30 -> 58, exactly the
+ * foe-attack road's numbers, and `totalFainted` is already 1 at the callback with an EMPTY undrained
+ * set.
+ *
+ * IT IS A DIFFERENT MECHANISM IN THIS ENGINE AND THE PROBE ABOVE CANNOT SEE IT. The entry-hazard
+ * death does not go through the ordinary faint site; it does `if(nx._sf)nx._sf.fainted++` inline at
+ * the switch-in, so the count is right here even with BOTH action-boundary `fallenSettle` calls
+ * removed. Measured across four builds:
+ *
+ *     shipping                        control 51   test 100
+ *     action-boundary settles removed control 51   test 100   <- this probe cannot tell
+ *     the switch-in tally removed     control 51   test 100   <- nor can it tell
+ *     BOTH removed                    control 51   test  51   <- RED
+ *
+ * The two are BACK-UPS OF EACH OTHER rather than one road, which is stated here rather than left to
+ * be found: a reader who deletes the inline `++` as a duplicate of the derived counter will not see a
+ * single test move.
+ *
+ * THE SECOND HALF IS THE FRESHNESS CONTROL AND IT IS ON THE IDENTICAL BOARD. Supreme Overlord reads
+ * the side count ONCE at its body's entry and freezes it; Last Respects re-reads it at every use. The
+ * same Spikes, the same U-turn, the same dying entrant, a Kingambit standing in the Houndstone's slot
+ * clicking Iron Head: 97 with the entrant alive and 97 with it dead, x1.000, against Last Respects'
+ * x1.96. Without it "the number moved" is also what an engine that recomputes EVERYTHING would print. */
+probe('move', 'powerFromFallen', 'Last Respects counts a PIVOT REPLACEMENT that died on hazards mid-turn — and the frozen count does not move', () => {
+  const run = (frail, sp, mvId, ab) => {
+    const me = bare(sp); if (ab) me.ability = ab;
+    const ally = bare('corviknight'), entrant = bare('milotic');
+    const S = M.battleInit([me, ally, entrant, bare('snorlax')],
+                           [bare('garchomp'), bare('incineroar')], { seeded: true });
+    const f1 = S.actB[0], f2 = S.actB[1];
+    unfaintable(f1); unfaintable(f2);
+    ally.st = Object.assign({}, ally.st, { sp: 300 });
+    me.st = Object.assign({}, me.st, { sp: 10 });
+    f1.st = Object.assign({}, f1.st, { sp: 5 });
+    f2.st = Object.assign({}, f2.st, { sp: 4 });
+    /* the layers are LAID with three real clicks, not written into the side object */
+    for (let i = 0; i < 3; i++)
+      M.battleTurn(S, rng5, PASS2(me, ally),
+        new Map([[f1, M.playerAction(f1, 'spikes', null, S.field)], [f2, { kind: 'pass' }]]));
+    const layers = ((me._sf && me._sf.hz) || {}).spikes | 0;
+    if (frail) entrant.curHP = 1;                        // the ONLY varied thing
+    const before = f1.curHP;
+    /* the U-turn is aimed at the OTHER foe, so the measured body takes nothing but the click */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mvId, f1, S.field)],
+               [ally, M.playerAction(ally, 'uturn', f2, S.field)]]),
+      PASS2(f1, f2));
+    return [layers, S.sfA.fainted, entrant.fainted ? 1 : 0, before - f1.curHP];
+  };
+  const control = run(false, 'houndstone', 'lastrespects');
+  const test = run(true, 'houndstone', 'lastrespects');
+  const fCtl = run(false, 'kingambit', 'ironhead', 'supremeoverlord');
+  const fTest = run(true, 'kingambit', 'ironhead', 'supremeoverlord');
+  return { works: control[0] === 3 && test[0] === 3
+                  && control[1] === 0 && control[2] === 0 && test[1] === 1 && test[2] === 1
+                  && control[3] > 0 && Math.abs(test[3] - 2 * control[3]) <= 3
+                  && fCtl[2] === 0 && fTest[2] === 1 && fCtl[3] > 0 && fCtl[3] === fTest[3],
+           arms: { control, test },
+           detail: `[Spikes layers, side fallen count, entrant dead?, damage into an UNTOUCHED foe] — `
+                 + `the entrant survives the hazards ${control}; the entrant walks onto them at 1 HP `
+                 + `and dies MID-TURN, before the click ${test}. FRESHNESS CONTROL on the identical `
+                 + `board — Supreme Overlord's Iron Head, whose count is FROZEN at its entry, reads `
+                 + `${fCtl[3]} with the entrant alive and ${fTest[3]} with it dead (x1.000) against `
+                 + `Last Respects' x${(test[3] / control[3]).toFixed(2)}` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). THE MOVE'S ENTIRE IDENTITY, and found by the
  * differential test rather than by anyone reading a list. Ice is normally RESISTED by Water;
  * Freeze-Dry is super effective on it. The added arm fires both moves at a NON-Water body, where the
