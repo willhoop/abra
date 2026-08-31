@@ -88,14 +88,43 @@ for (const id of COLLIDES) {
      '`|move|p1a|' + id + '` is a CLICK of that move and is never reclassified');
 }
 
-console.log('\n  PART 4 — the entities that carry the worklist are untouched');
+/* PART 4 ASSERTED A CLASSIFICATION AND THE CLASSIFICATION CHANGED UNDER IT ON 2026-08-31. It read
+ * "`protect` is NOT in the standalone condition table, so the rule cannot reach it" — true of the
+ * 35-entry table, and FALSE of the shipped resolver, which now derives the condition set from what
+ * something legal can actually set and so does reach `protect`. The claim that matters was never the
+ * classification: it is that the worklist keeps its corpus weight, because a rule that binned the move
+ * half would have deleted the top of the ranking. So the OUTCOME is what is asserted here now. */
+console.log('\n  PART 4 — the entities that carry the worklist keep their weight, however they classify');
+const carriers = (() => {
+  const m = new Map();
+  for (const sp of dex.species.all()) {
+    if (!sp.exists || sp.isNonstandard || sp.tier === 'Illegal') continue;
+    for (const a of Object.values(sp.abilities || {})) {
+      const k = String(a).toLowerCase().replace(/[^a-z0-9]/g, ''); m.set(k, (m.get(k) || 0) + 1);
+    }
+  }
+  return m;
+})();
+/* A `uses` figure is not what this file asserts, but an unreadable tags.json would make PART 4's
+ * "the worklist keeps its weight" claim pass on two UNKNOWNs — so the failure speaks and PART 4
+ * asserts a real number below rather than merely an equal one. */
+let TAGS_ERR = null;
+const TAGS = (() => {
+  try { return JSON.parse(require('fs').readFileSync(path.join(__dirname, '..', 'data', 'tags.json'), 'utf8')); }
+  catch (e) { TAGS_ERR = String((e && e.message) || e); return {}; }
+})();
+ok(!TAGS_ERR, 'data/tags.json parsed' + (TAGS_ERR ? ' — IT DID NOT: ' + TAGS_ERR
+   + ' , so every `uses` below reads UNKNOWN and PART 4 would pass on an absence' : ''));
+const RESOLVER = EK.makeStanding({ dex, tags: TAGS, abilityCarriers: carriers });
 for (const id of ['protect', 'tailwind', 'encore', 'reflect', 'endure']) {
   const m = dex.moves.get(id);
   ok(m && m.exists && !m.isNonstandard, '`' + id + '` is legal in this format');
-  ok(!IS_COND(id), '  and is NOT in the standalone condition table, so the rule cannot reach it — '
-     + 'its volatile is named after its own move and the move is the setter');
-  const cause = 'ordering :: |-singleturn|p1a|' + id + ' <> |move|p2b|' + id;
-  ok(!EK.conditionSlotTokens(cause, IS_COND).has(id), '  `|-singleturn|p1a|' + id + '` keeps it a move');
+  const a = RESOLVER.annotateCause('ordering :: |-singleturn|p1a|' + id + ' <> |move|p2b|' + id);
+  const mv = a.mentions.find(x => x.kind === 'moves' && x.id === id);
+  ok(!!mv && mv.reachable === true,
+     '  and the resolver still returns the MOVE beside whatever else it names, reachable — the move '
+     + 'is the setter of its own volatile and dropping it would delete the top of the worklist');
+  ok(a.cannot_occur_in_format === false, '  so `|-singleturn|p1a|' + id + '` is never binned impossible');
 }
 
 console.log('\n  PART 5 — an UNPARSED cause (one half, no pair) does not throw');

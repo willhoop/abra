@@ -467,7 +467,8 @@ const TAGS_OBJ = (() => {
     return {};
   }
 })();
-const STANDING_KINDS = [['moves', 'moves'], ['abilities', 'abilities'], ['items', 'items']];
+/* The kind order lives with the resolver now — `EK.STANDING_KINDS`. Re-exported nowhere and copied
+ * nowhere, so the two cannot drift apart. */
 
 /* LEGAL IS NOT THE SAME AS REACHABLE, AND THE DIFFERENCE IS EXACTLY THE CASE WILL CAUGHT.
  * Guard Dog is `isNonstandard: null` — perfectly legal in Champions — and NO legal species in this
@@ -489,31 +490,14 @@ const ABILITY_CARRIERS = (() => {
   return m;
 })();
 
-function entityStanding(id) {
-  for (const [sec, dexKind] of STANDING_KINDS) {
-    const row = TAGS_OBJ[sec] && TAGS_OBJ[sec][id];
-    let d = null;
-    try { d = dex[dexKind].get(id); } catch (e) { d = null; STANDING_FAILS.dexLookup++; }
-    if (row || (d && d.exists)) {
-      const legal = !!(d && d.exists && !d.isNonstandard);
-      /* An ability nothing legal can carry is unreachable even though it is legal. `null` when the
-       * map could not be built, so UNKNOWN never reads as zero. */
-      const carriers = sec === 'abilities'
-        ? (ABILITY_CARRIERS.size ? (ABILITY_CARRIERS.get(id) || 0) : null) : null;
-      return { kind: sec, id, legal, carriers,
-               reachable: legal && carriers !== 0,
-               nonstandard: (d && d.isNonstandard) || null,
-               uses: row && typeof row.uses === 'number' ? row.uses : null };
-    }
-  }
-  const sp = (() => { try { return dex.species.get(id); } catch (e) { STANDING_FAILS.speciesLookup++; return null; } })();
-  if (sp && sp.exists) {
-    const legal = !sp.isNonstandard && sp.tier !== 'Illegal';
-    return { kind: 'species', id, legal, carriers: null, reachable: legal,
-             nonstandard: sp.isNonstandard || (sp.tier === 'Illegal' ? 'Illegal' : null), uses: null };
-  }
-  return null;
-}
+/* THE RESOLVER ITSELF MOVED TO `engine/effect_kind.js` ON 2026-08-31 (see that file's header). It is
+ * called from here and implemented once, because loading THIS file costs 26 seconds and rebuilds a
+ * team-pool cache — a naming rule that can only be exercised that way is a rule nobody tests, which is
+ * the argument effect_kind.js was created on in the first place. `tests/probe_entity_kind.js` drives
+ * the same object in under a second, and its `first-hit` arm is the old behaviour kept as a control. */
+const STANDING = EK.makeStanding({ dex, tags: TAGS_OBJ, abilityCarriers: ABILITY_CARRIERS,
+                                   fails: STANDING_FAILS });
+const entityStanding = STANDING.entityStanding;
 
 /* ---- HOW MUCH REAL PLAY A BODY TOUCHES ---------------------------------------------------------
  *
@@ -569,54 +553,15 @@ function speciesUses(sp) {
 
 /* A cause is a protocol fragment, so the entity names in it are already normalised ids sitting between
  * pipes, colons and spaces. Split on everything that is not a letter or digit and test each token --
- * cheap, and it cannot miss one by guessing the wrong field position. */
-/* AND THE TOKEN HAS TO BE ASKED OF THE RIGHT TABLE. A CONDITION AND A MOVE MAY SHARE A NAME, and
- * `entityStanding` walks moves FIRST, so `|-start|p2a|confusion|[fatigue]` — the volatile a locking
- * move leaves behind, which Outrage, Petal Dance, Raging Fury and Thrash all cause and all of which
- * are legal here — was published as `moves/confusion, legal: false, nonstandard: 'Past'`. A live
- * mechanic, labelled as one this format cannot contain. The rule and its argument are in
- * `engine/effect_kind.js`; the standalone condition table is the format's own, read once. */
-const CONDITION_TABLE = (() => {
-  try { return dex.data.Conditions || {}; }
-  catch (e) { STANDING_FAILS.dexLookup++; return {}; }
-})();
-const IS_CONDITION = (id) => Object.prototype.hasOwnProperty.call(CONDITION_TABLE, id);
-let CONDITION_SLOT_HITS = 0, CONDITION_SLOT_RESCUED = 0;
-
-function annotateCause(cause) {
-  const seen = new Set(), out = [];
-  /* Computed ONCE per cause, because it is a property of the whole pair: `|move|pXy|<name>` is the
-   * one position that names a move as a move, and a token there stays a move wherever else it appears. */
-  const condSlots = EK.conditionSlotTokens(cause, IS_CONDITION);
-  for (const tok of String(cause).split(/[^a-z0-9]+/i)) {
-    const id = N.id(tok);
-    if (!id || id.length < 4 || seen.has(id)) continue;
-    seen.add(id);
-    if (condSlots.has(id)) {
-      CONDITION_SLOT_HITS++;
-      out.push(EK.conditionStanding(id));
-      /* A LEGAL move of the same name is kept BESIDE the condition, never instead of it: Showdown
-       * names a volatile after the move that sets it, so that move is a genuine setter and its corpus
-       * usage is real signal. An ILLEGAL one cannot be the setter — nothing here can click it — so the
-       * match is a coincidence of spelling. Dropping it is the whole fix, and it is counted so a run
-       * that rescues nothing cannot pass as a run that had nothing to rescue. */
-      const mv = entityStanding(id);
-      if (mv && mv.legal) out.push(mv); else if (mv) CONDITION_SLOT_RESCUED++;
-      continue;
-    }
-    const st = entityStanding(id);
-    if (st) out.push(st);
-  }
-  if (!out.length) return { mentions: [] };
-  const known = out.filter(m => typeof m.uses === 'number');
-  return {
-    mentions: out,
-    /* THE HEADLINE FIELD. If every entity a cause names is illegal in this format, fixing it changes
-     * nothing a real game can reach -- and that must be visible without a second query. */
-    cannot_occur_in_format: out.every(m => m.reachable === false),
-    max_uses: known.length ? Math.max(...known.map(m => m.uses)) : null,
-  };
-}
+ * cheap, and it cannot miss one by guessing the wrong field position.
+ *
+ * AND THE TOKEN HAS TO BE ASKED ABOUT THE RIGHT ENTITY. A condition, a side condition, an item and a
+ * move may share a name, and a legal FORME may hide under a base spelling this format does not carry.
+ * Resolving the first dex hit published three live mechanics as `cannot_occur_in_format: true`, two of
+ * them BOARD-PARTING. The rule, its derived membership and its argument are in
+ * `engine/effect_kind.js`; the composition is `EK.makeStanding(...).annotateCause`, called here and
+ * implemented nowhere else. */
+const annotateCause = STANDING.annotateCause;
 
 /* ---- THE PIN, AND WHY THERE ARE FOUR OF THEM (ROADMAP #88) --------------------------------------
  *
@@ -6105,6 +6050,11 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                     * is the loud half: any read that had to fall back on display state is counted
                     * here and must be 0. */
                    rosterKey, rosterKeyFallbacks: () => ({ ...ROSTER_KEY_FALLBACK }),
+                   /* 2026-08-31 — the entity-kind resolver, exported so a check drives THE annotator
+                    * this file actually publishes with rather than a second copy of the rule. It is
+                    * the object `engine/effect_kind.js` built; `tests/probe_entity_kind.js` builds an
+                    * equivalent one in under a second and asserts the same claims. */
+                   annotateCause, entityStanding, entityKindResolver: STANDING,
                    /* 2026-08-12 — the end-state measurement. `endStateVerdict` is the classifier,
                     * `shapeOfCause` is THE SHAPE MODULE'S function re-exported rather than a second
                     * copy, and the two flags let a test assert the driver actually read the argument
@@ -8059,10 +8009,19 @@ console.log('    format-standing lookups that threw and fell back: '
  * this rule actually prevented, so "the collision no longer occurs" and "the rule never fired" cannot
  * read the same. `condition_table` guards the other half: an empty table would silence the rule
  * entirely and every count below would be a legitimate-looking zero. */
-console.log('    condition/move name collision: ' + CONDITION_SLOT_HITS + ' token(s) resolved as a '
-  + 'CONDITION rather than a move, ' + CONDITION_SLOT_RESCUED + ' of them rescued from a move this '
-  + 'format does not contain (table: ' + Object.keys(CONDITION_TABLE).length + ' standalone conditions'
-  + (Object.keys(CONDITION_TABLE).length ? '' : '  <-- EMPTY, so the rule cannot fire at all') + ')');
+console.log('    entity-kind resolution: ' + STANDING.counters.condition_slot_tokens + ' token(s) '
+  + 'resolved as a CONDITION rather than a move, ' + STANDING.counters.rescued_from_an_illegal_move
+  + ' of them rescued from a move this format does not contain; '
+  + STANDING.counters.kind_preference_rescues + ' answered from a REACHABLE kind instead of the first '
+  + 'dex hit; ' + STANDING.counters.species_forme_rescues + ' species rescued by a legal forme under '
+  + 'an out-of-format base spelling');
+console.log('      the derived membership: ' + STANDING.conditions.count + ' condition names in play ('
+  + STANDING.conditions.standalone + ' standalone)'
+  + (STANDING.conditions.count ? '' : '  <-- EMPTY, so the rule cannot fire at all')
+  + ', colliding with an out-of-format move: '
+  + (STANDING.conditions.collisions.map(c => c.id).join(', ') || 'NONE')
+  + '; illegal base species carrying a legal forme: '
+  + (STANDING.formes.rescues.map(r => r.id).join(', ') || 'NONE'));
 console.log('');
 
 if (WRITE) {
@@ -8233,9 +8192,16 @@ if (WRITE) {
       rule: 'a token outside a `|move|SLOT|NAME` position that names an entry in the format\'s '
           + 'standalone condition table is a CONDITION; a LEGAL move of the same name is kept beside '
           + 'it as a setter, an ILLEGAL one is dropped because it cannot be the setter',
-      standalone_conditions: Object.keys(CONDITION_TABLE).length,
-      condition_slot_tokens: CONDITION_SLOT_HITS,
-      rescued_from_an_illegal_move: CONDITION_SLOT_RESCUED,
+      standalone_conditions: STANDING.conditions.standalone,
+      condition_names_in_play: STANDING.conditions.count,
+      /* THE MEMBERSHIP, PRINTED INTO THE ARTIFACT. A derivation that silently matched nothing looks
+       * exactly like one that had nothing to match, and this repo has paid for that twice. */
+      collisions_with_an_out_of_format_move: STANDING.conditions.collisions.map(c => c.id),
+      illegal_base_species_with_a_legal_forme: STANDING.formes.rescues.map(r => r.id),
+      condition_slot_tokens: STANDING.counters.condition_slot_tokens,
+      rescued_from_an_illegal_move: STANDING.counters.rescued_from_an_illegal_move,
+      kind_preference_rescues: STANDING.counters.kind_preference_rescues,
+      species_forme_rescues: STANDING.counters.species_forme_rescues,
     },
     directed: DIR, damage_interior: INTERIOR,
     /* ROADMAP #80. The streams are dropped from the artifact — they are debugging context, not a

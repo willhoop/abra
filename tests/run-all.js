@@ -222,7 +222,19 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * unregistered one. Measured 2026-08-27 with --selftest: 18 passed, 0 failed, exit 0,
    * milliseconds, no filesystem, no dex, no game. Its RED cases are real ones (each of the four
    * values of moveThisTurnResult must be distinguishable from the other three). */
-  'engine/move_result_state.js'];
+  'engine/move_result_state.js',
+  /* tests/probe_entity_kind.js — the divergence annotator's entity-kind resolution, 2026-08-31. The
+   * annotator publishes `cannot_occur_in_format: true`, which is a TRIAGE flag: a row wearing it is
+   * closed without being read. Resolving the FIRST dex hit put that flag on three live causes at
+   * once — the Heal Block volatile (set by Psychic Noise, which is legal), a legal item under a
+   * `Past` move's name, and two BOARD-PARTED damage rows on Floette-Mega whose base spelling is
+   * `Illegal`. NOTHING WENT RED FOR ANY OF THEM, because a wrong "impossible" removes work from the
+   * queue rather than adding a failure to it, and it is exactly that direction a gate has to cover.
+   * It is a pure derivation over the format — no game, no release, no artifact write, ~1s — and its
+   * membership is DERIVED on every run rather than listed, so a collision spelled differently is
+   * caught with no edit. `PROBE_ENTITY_KIND_ARM=first-hit` re-runs it against the old resolver and
+   * it goes red (6 failures), which is how it was shown red before being trusted. */
+  'tests/probe_entity_kind.js'];
 
 /* COVERAGE ASSERTION. Any file in tests/ or engine/ that reports its own pass/fail verdict is a
  * check, and a check that nothing runs is worse than no check — it reads as coverage in a review. If

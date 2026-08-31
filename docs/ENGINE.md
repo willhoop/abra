@@ -37,7 +37,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_forced_switch_mirror.js`, `tests/probe_innards_out.js`,
 `tests/probe_shield_rearm.js`, `tests/probe_default_target_side.js`,
 `tests/probe_partingshot_mirrorarmor.js`, `tests/probe_partingshot_conditional.js`,
-`tests/probe_instruct_shield.js`
+`tests/probe_instruct_shield.js`, `engine/effect_kind.js`, `tests/test-effect-kind.js`,
+`tests/probe_entity_kind.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -105,6 +106,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 | `probe_trace_target.js` | when TWO foes are eligible, do the two engines pick the SAME one on a board where SOMETHING ELSE HAS ALREADY DRAWN at the same address — the authority Trace draw is `this.sample` (`data/abilities.ts:5110` -> `sim/battle.ts:355` -> `sim/prng.ts:132`, and `PRNG#random` advances even at length 1), and the collision is `BattleQueue#insertChoice`'s range-form tie (`sim/battle-queue.ts:395`) taking `nth 0` in the `turn|any|-|-` bucket. Everything derived from the filtered format dex and printed; the eligible-foe count DERIVED and any cell below two REFUSED, and `traceChoiceNoDie > 0` refused outright; the p1b ALLY is the knob and WHICH allies tie is MEASURED off `midRangeCounters()` rather than guessed — 3 TIE boards and 21 NO-TIE over-fire controls, and the file fails if either set is empty; no typed expectation, Showdown's own `|-ability|…|[from] ability: Trace` is the answer; a `MEDI_MID_RANGE_DRAWS=1` child whose numbers the PARENT judges (not its exit code — under the knob the child asserts the defect is PRESENT, so a working knob exits 0) | whether either engine plays the game right — it compares one ability name per board. Whether the value a shared address yields is the value the REAL game would yield: the middle arm's die is a hash and there is no ground truth for which foe, only the claim that both engines read the same one. And every OTHER range-form caller — `Battle.durationCallback` and a condition `onStart` were each measured drawing once in 60 games and are neutralised by the same change with no staged board of their own: named, not covered |
 | `probe_mega_trace_entry.js` | does a mega that arrives holding Trace copy AND THEN RUN what it copied — `setAbility` ends `singleEvent('Start', ability, ...)` (`sim/pokemon.ts:1946`) and a mega reaches it through `formeChange` with `isPermanent`, whose flag suppresses the `SetAbility` event and the `-ability` line and NOT the `Start` handler, so Trace's `onStart` -> `Update` -> `setAbility(copied)` -> the COPIED ability's `Start` all run inside the evolution. Six arms over two engines, one board each, no typed expectation: the quantity is a count of `\|-unboost\|p2*\|atk\|`, `\|-enditem\|…\|White Herb` and Trace-copy lines read out of BOTH streams, three reds and three OVER-FIRE controls (the mega's own Intimidate, a traceable ability with no `onStart`, and the ORDINARY switch-in Trace door that was already right), everything derived from the filtered format dex and printed, the entry-drop SHAPE read off the handler source rather than a name, a fixture audit that DERIVES `SOURCES` and per-foe `REASONS` and REFUSES any cell qualifying twice, and a `MEDI_MEGA_TRACE_LATE=1` child whose `MEDFAILS.megaTraceLate` stamp is asserted present-on-knob and absent-clean | the OTHER copiers, which have the identical gap and are not touched: `receiverSweep` counts it under `MEDFAILS.inheritedAbilityStartNotFired`, and `traceSweep`'s DEFERRED copies have no counter at all. WHICH foe Trace picks — every arm gives both foes the same ability on purpose, so the target die cannot decide any answer here; `probe_trace_target.js` owns that. And a mega-Trace onto a WEATHER setter, which nothing stages |
 | `probe_random_target_die.js` | when TWO foes are alive, do the two engines send a `randomNormal` move at the SAME body — `Battle#getTarget` gates its named-target branch off for `randomNormal` (`sim/battle.ts:2461`) and falls to `getRandomTarget` -> `Side#randomFoe` -> `sample`, so which foe an Outrage hits in a double is a DIE. Every legal `randomNormal` move except Struggle, a carrier derived from each learnset, swept over the two fields that actually MOVE the address — the ATTACKER SLOT and the TURN (the moves lock, so turns 2 and 3 re-roll) — because sweeping the ally or the foe pair would draw the identical value in every cell and agreeing would be free. No typed expectation: the answer is the `\|move\|` line's target ident out of BOTH streams. Living foes are counted PER MOVE LINE off both protocols and any cell under two is REFUSED; the authority's answers AND ours must each VARY across the sweep or the file reports that it never reached a die; an ordinary `normal`-target move NAMED at p2b is the over-fire control on every cell; and both engines' own receipts are asserted — authority draws inside `runMove` and lookahead draws both above zero, `randomTargetAmbiguous === randomTargetDrawn`, `MEDFAILS.tgtStreamMissing` at zero. `MEDI_TGT_ADDR_LEGACY=1` restores BOTH halves in a child (the engine's stream AND the authority's wrapper) and must reproduce the SAME parted cells by name | whether either engine plays the game right — it compares one target ident per move line. Whether the value a shared address yields is the value the REAL game would yield: the die is a hash and there is no ground truth for which foe, only the claim that both engines read the same one. And the other `getRandomTarget` callers — `useMoveInner`'s two retarget-after-`ModifyMove` sites and `sim/pokemon.ts:825`'s retarget-on-faint — which the address change reaches with no staged board of their own: named and counted by the driver, not covered |
+| `probe_entity_kind.js` | does the divergence annotator resolve the ENTITY the protocol line is actually about, or the first dex hit — the collision membership DERIVED from the format on every run (96 condition names something legal can set, of which 3 collide with an out-of-format move; 1 legal item and 0 abilities colliding with one; 1 illegal base species carrying a legal forme) and every member asserted against BOTH arms of a knob, with `PROBE_ENTITY_KIND_ARM=first-hit` restoring the old resolver and going red 6 ways. Negative controls in the same file: a volatile with NO legal setter must STAY impossible, a `|move|SLOT|NAME` click of a `Past` move must stay impossible, and Protect / Tailwind / Encore / Reflect / Substitute must keep their `max_uses` across the knob. Then it re-annotates a stored differential artifact and reports the label change | whether either engine plays the game right — it reads no game and writes none, and a relabelled row is a row somebody now has to LOOK at, never a fix. And a volatile applied through a COMPUTED name (`addVolatile(someVar)`): the derivation reads declared fields and string literals only, none exists in this format's legal set today, and the guard says so rather than implying coverage |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -117,7 +119,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 ENGINE — does the simulator do what Pokémon does
   815/815 probed mechanics live, 0 missing   (census 2026-08-30 23:36)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 2.0 days old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 2.1 days old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -140,9 +142,72 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-31 00:04_
+_stamped 2026-08-31 01:19_
 
 <!-- /GENERATED -->
+
+## THE DIVERGENCE ANNOTATOR RESOLVED THE FIRST DEX HIT, SO THREE LIVE CAUSES WORE `cannot_occur_in_format: true` AND TWO OF THEM PART A BOARD. **INSTRUMENT ONLY. CENSUS UNMOVED AT 815 LIVE / 815 PROBED / 0 MISSING AND DELIBERATELY NOT REGENERATED; BOARD-PARTED 82, PROTOCOL 172, CAUSES 150 ALL UNMOVED BY CONSTRUCTION — NEITHER FILE IS IN THE FROZEN `SOURCES` AND THE TREE IS STILL `862624c9826e`. FIVE NAMES IN THE REGULATION COLLIDE, THREE WERE LIVE HOLES, AND ALL THREE FLAGGED ROWS WERE MISLABELLED.** 2026-08-31.
+
+Full account: [docs/_reports/2026-08-31-annotator-entity-kind.md](_reports/2026-08-31-annotator-entity-kind.md).
+Prediction written before the run: [docs/_reports/2026-08-31-annotator-entity-kind.PREDICTION.md](_reports/2026-08-31-annotator-entity-kind.PREDICTION.md) — **six figures, six hits at the point estimate.**
+
+| | before | after |
+|---|---|---|
+| rows wearing `cannot_occur_in_format: true` | 3 | **0** |
+| of those, mislabelled | 3 | — |
+| of the mislabelled, board-parting | **2** | — |
+| condition names the annotator knows | 35 (the standalone table) | **96, derived from legal setters** |
+| names in this format a first-hit resolver gets wrong | 5, of which **3 uncovered** | **0 uncovered** |
+| `probe_entity_kind` | 6 FAILURES on the `first-hit` arm | PASS |
+
+**`cannot_occur_in_format` is a TRIAGE flag — a row wearing it is closed without being read — and this
+is the failure direction that never goes red, because a wrong "impossible" REMOVES work from the queue
+instead of adding a failure to it.** Three guises of one fault, all of them "the first dex hit wins":
+
+- **a volatile named after a `Past` move.** `healblock` is applied by Psychic Noise, which is legal;
+  the MOVE Heal Block is `Past`; the volatile is NOT in the 35-entry standalone condition table, so the
+  move table answered. The set is now DERIVED — a name is a condition in play when something legal can
+  set it, read from declared `volatileStatus`/`sideCondition`/`slotCondition`/`pseudoWeather`/
+  `weather`/`terrain`/`status` fields AND from `addVolatile('…')` literals in handler source. **96
+  names; 3 collide with an out-of-format move (`confusion`, `hail`, `healblock`); the first two were
+  already covered.** Deliberately NOT "every condition name in the dex": `octolock`, `telekinesis` and
+  `iceball` have no legal setter here, genuinely cannot occur, and are the probe's negative control.
+- **a legal ITEM under a `Past` move's name.** `metronome`. Derived: 1 item, 0 abilities. The resolver
+  now prefers a REACHABLE kind and falls back to the first hit when nothing is reachable.
+- **a legal FORME under an out-of-format base spelling, and this is the expensive one.**
+  `|-damage|p1a:floette|74/149` names Floette-Mega / Floette-Eternal, both legal; the BASE `floette` is
+  `Past` AND `tier: 'Illegal'`. Both such rows are `board_parted: 1`, `DIFFERENT-END-STATE`. Derived
+  across the whole regulation: **exactly ONE illegal base species carries a legal forme.** `legal` still
+  reports the base spelling honestly; only `reachable` is corrected, with `via: [...]` saying why.
+
+**SHOWN RED WITH A KNOB, NOT WITH A MEMORY OF YESTERDAY.**
+`PROBE_ENTITY_KIND_ARM=first-hit node tests/probe_entity_kind.js` puts the OLD resolver under test and
+reports 6 failures, exit 1. Every claim is asserted against both arms, and the two names that are
+expected NOT to move across the knob say so as a stated control rather than banking an unearned pass.
+The second receipt is the artifact's own labels: PART 5 re-annotates all 112 annotated causes and
+reports `3 relabelled REACHABLE, 0 still impossible, 0 newly impossible`. Confirmed end to end through
+the SHIPPED annotator as well — `game_differential.js`'s exported `annotateCause` over the same causes
+gives was 3 -> now 0, `species_forme_rescues: 2`, `rescued_from_an_illegal_move: 11` (confusion x10 +
+healblock x1, printed and reconciled, no over-match).
+
+**The resolver moved to `engine/effect_kind.js` and `game_differential.js` calls it.** Loading the
+differential costs 26 seconds and rebuilds a team-pool cache, so a naming rule that could only be
+exercised that way was a rule nobody would test — which is the argument `effect_kind.js` was created
+on. One implementation, and `tests/probe_entity_kind.js` drives it in about a second.
+
+**WOULD IT CATCH A COLLISION SPELLED DIFFERENTLY? YES.** Nothing in the fix names an entity, and the
+probe asks for the collision set at run time rather than iterating a list, so a new `Past` move
+colliding with a live volatile fails it with no edit. The membership counts are printed by the probe
+AND stamped into the artifact. **The stated limit:** a volatile applied through a COMPUTED name
+(`addVolatile(someVar)`) is invisible to the derivation. None exists in this format's legal set today;
+the guard does not close that arm and does not pretend to.
+
+**OWED:** the differential was not re-run, so the artifact on disk still carries the old three `true`s
+until it is. The three rescued mechanics are now open work and none was fixed. `tests/test-mechanics.js`
+was not run and no census was regenerated — it does not require the annotator, so a run would have
+churned a pinned artifact for no information. ROADMAP #321's declared-gap hole is **filed, not landed**:
+`DECLARED_NOT_EMITTED` is keyed by EVENT NAME, so declaring that row would silence every `-end`
+divergence in the run, and it changes `diverged`. Its own batch.
 
 ## TEN ROWS OF `data/engine-data.js` CARRIED NO WEIGHT, AND THE ARTIFACT IS REGENERATED. **CENSUS 814 -> 815 LIVE / 815 PROBED / 0 MISSING. EMPIRICAL PROTOCOL 173 -> 172, BOARD-PARTED 83 -> 82, CAUSES 151 -> 150 (ONE REMOVED, ZERO ADDED), END-STATE IDENTICAL AT 905/53/2/0/1. THE REGENERATION IS TWO CHANGES AND NOT THREE — THE ADDED FORME ROW IS A SECOND ROW FOR A BODY THE ARTIFACT ALREADY HAS, `artifact_audit.js` CHECK E CAUGHT IT BY NAME, AND THE GENERATOR NOW DROPS IT BY THE FORMAT'S OWN SPECIES ID. GAPS 2 -> 1.** 2026-08-30.
 

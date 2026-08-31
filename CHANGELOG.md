@@ -10,6 +10,69 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.234.0] — 2026-08-31
+
+### Fixed
+- **THE DIVERGENCE ANNOTATOR RESOLVED THE FIRST DEX HIT, SO THREE LIVE CAUSES WORE
+  `cannot_occur_in_format: true` AND TWO OF THEM PART A BOARD.** That flag is a TRIAGE flag — a row
+  wearing it is closed without being read — and it is the failure direction that never goes red,
+  because a wrong "impossible" REMOVES work from the queue instead of adding a failure to it. Three
+  guises of one fault, all derived rather than listed:
+  - a VOLATILE named after a `Past` move. `healblock` is applied by Psychic Noise
+    (`isNonstandard: null`, `secondary: { chance: 100, volatileStatus: 'healblock' }`) while the MOVE
+    Heal Block is `Past`, and the volatile is not in the 35-entry standalone condition table, so the
+    move table answered. The condition set is now COMPUTED — a name is a condition in play when
+    something legal in this format can set it — giving **96 names, 3 colliding with an out-of-format
+    move (`confusion`, `hail`, `healblock`), the first two already covered.** Deliberately not "every
+    condition name in the dex": `octolock`, `telekinesis` and `iceball` have no legal setter here,
+    genuinely cannot occur, and are the probe's negative control;
+  - a legal ITEM under a `Past` move's name (`metronome`; derived: 1 item, 0 abilities). The resolver
+    now prefers a REACHABLE kind and falls back to the first hit when nothing is reachable;
+  - a legal FORME under an out-of-format base spelling. `|-damage|p1a:floette|74/149` names
+    Floette-Mega / Floette-Eternal, both legal, while the BASE `floette` is `Past` AND
+    `tier: 'Illegal'`. **Both such rows are `board_parted: 1`, `DIFFERENT-END-STATE`.** Derived across
+    the whole regulation: exactly ONE illegal base species carries a legal forme.
+- `entityStanding` and `annotateCause` moved from `engine/game_differential.js` to
+  `engine/effect_kind.js`, which is what the differential now calls. Loading the differential costs
+  26 seconds and rebuilds a team-pool cache, so a naming rule exercisable only that way was a rule
+  nobody would test — the argument `effect_kind.js` was created on. One implementation.
+
+### Added
+- `tests/probe_entity_kind.js`, registered as a GATE in `tests/run-all.js`. **Shown red with a knob,
+  not with a memory of yesterday:** `PROBE_ENTITY_KIND_ARM=first-hit` puts the OLD resolver under test
+  and reports 6 failures, exit 1. Every claim is asserted against both arms, and the two names
+  expected NOT to move across the knob say so as a stated control. Its membership is derived at run
+  time, so a collision spelled differently is caught with no edit to the probe.
+- `entity_annotation` in the differential artifact now carries the derived membership by name —
+  `condition_names_in_play`, `collisions_with_an_out_of_format_move`,
+  `illegal_base_species_with_a_legal_forme`, `kind_preference_rescues`, `species_forme_rescues` — so a
+  derivation that silently matched nothing cannot pass for one that had nothing to match.
+
+### Changed
+- `tests/test-effect-kind.js` PART 4 asserted a CLASSIFICATION ("`protect` is not in the standalone
+  condition table, so the rule cannot reach it") and the classification changed under it. It now
+  asserts the OUTCOME the claim was always about: the move is returned beside whatever else the token
+  names, reachable, so the widening cannot delete the top of the worklist.
+
+### Notes
+- **INSTRUMENT ONLY. No game moved.** Neither `engine/effect_kind.js` nor
+  `engine/game_differential.js` is in the frozen `SOURCES` set, and `engine_release.js` reports the
+  tree as `862624c9826e` before and after — the id the session's baselines were taken on. Board-parted
+  82, protocol 172, causes 150 and census 815/815/0 are unchanged by construction; no differential was
+  re-run and the census was deliberately NOT regenerated, since `tests/test-mechanics.js` does not
+  require the annotator.
+- Receipt: the artifact's own labels. `data/verification/game-differential.enginedata.json` re-annotated
+  in place reports `3 relabelled REACHABLE, 0 still impossible, 0 newly impossible`, confirmed end to
+  end through the shipped `annotateCause` (was 3 -> now 0).
+- **OWED:** the differential was not re-run, so the file on disk still carries the old three `true`s
+  and must not be triaged from until it is. The three rescued mechanics are open work and none was
+  fixed. ROADMAP #321's declared-gap hole is FILED, NOT LANDED — `DECLARED_NOT_EMITTED` is keyed by
+  EVENT NAME, so declaring that row would silence every `-end` divergence in the run, and it changes
+  `diverged`. Its own batch.
+- Full account: `docs/_reports/2026-08-31-annotator-entity-kind.md`. Prediction written before the run:
+  `docs/_reports/2026-08-31-annotator-entity-kind.PREDICTION.md` — six figures, six hits at the point
+  estimate.
+
 ## [5.233.0] — 2026-08-30
 
 ### Fixed
