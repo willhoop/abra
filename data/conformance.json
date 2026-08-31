@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-29T01:26:16.070Z",
+ "generated": "2026-08-31T03:33:52.798Z",
  "by": "engine/conformance.js",
- "files": 534,
+ "files": 553,
  "findings": [
   {
    "std": "S12",
@@ -575,7 +575,19 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_afterfaint_boundary.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_fatigue_tag.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_innards_out.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -588,6 +600,12 @@
   {
    "std": "S12",
    "file": "tests/probe_mega_trace_entry.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_partingshot_conditional.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -640,6 +658,12 @@
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
   {
+   "std": "S12",
+   "file": "tests/probe_volley_reactor_count.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
    "std": "convention",
    "file": "tests/test-dynamics.js",
    "what": "header is one line",
@@ -648,6 +672,12 @@
   {
    "std": "S12",
    "file": "tests/test-effect-kind.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/test-empirical-driver.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -1106,6 +1136,15 @@
    "file": "data/sheet-channel-value.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/side-selection-declarations.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of engine/side_selection_census.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
+   ]
   },
   {
    "std": "S13",

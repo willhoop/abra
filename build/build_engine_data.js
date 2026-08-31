@@ -365,6 +365,62 @@ function buildMC(prior, quiet) {
     console.warn('    They survive only because this build read its own output. Add them to '
       + 'data/mc-declared-rows.json with a reason.');
   }
+  /* ── TWO KEYS, ONE BODY — THE FORMAT DECIDES WHICH KEY SURVIVES (2026-08-30) ───────────────────
+   *
+   * CHOMP's model carries THREE floette keys and the dex resolves two of them to the SAME species:
+   * `floette-mega` and `floette-eternal-mega` are both Floette-Mega. Appending both is not a new
+   * entity, it is a SECOND REPRESENTATION OF ONE BODY, and engine/artifact_audit.js check E says
+   * what that costs in its own words: "two representations of one body WILL diverge, and the
+   * emptier one wins wherever a consumer resolves by concatenation rather than through the
+   * artifact." That consumer is real and named — medicham2-browser.js's `megaKeyFor` falls back to
+   * `baseKey + '-mega'` when the `megaStone.into` answer has no row, and for a Floette-Eternal that
+   * guess IS `floette-eternal-mega`. WIRE 132 measured the cost of reaching it: `ab: null`, `mv: []`,
+   * a mega that threatens nothing. It is only unreachable today because the named answer exists.
+   *
+   * THE RULE IS DERIVED, NOT A NAME. Group every row by the species `Dex.species.get(key)` resolves
+   * it to; in a group of more than one, keep the key whose flattened form IS the dex species id and
+   * drop the rest. Nothing is dropped when no key in the group is canonical — that case is a
+   * genuine ambiguity and it is reported instead, because a silent drop is the failure this file's
+   * own header spends four hundred lines on.
+   *
+   * PRINTED BEFORE IT WAS WIRED, per docs/LESSONS.md 4: over the 323 candidate rows it matches
+   * ONE group — floettemega -> [floette-eternal-mega, floette-mega], canonical `floette-mega`,
+   * dropping `floette-eternal-mega` — with 322 distinct dex species and ZERO rows the dex cannot
+   * resolve. It cannot over-match on a forme name, because `castform-sunny`, `charizard-mega-x`
+   * and every other hyphenated forme resolves to a species of its own.
+   *
+   * IT RUNS BEFORE THE `wt` PASS so the weight report counts rows that survive. */
+  if (DEX) {
+    const flatKey = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const bySpecies = new Map();
+    for (const k of Object.keys(mons)) {
+      const sp = DEX.species.get(k);
+      const sid = (sp && sp.exists) ? sp.id : null;
+      if (!sid) continue;                       // an unresolvable key is not a duplicate of anything
+      if (!bySpecies.has(sid)) bySpecies.set(sid, []);
+      bySpecies.get(sid).push(k);
+    }
+    const dropped = [];
+    for (const [sid, ks] of bySpecies) {
+      if (ks.length < 2) continue;
+      const canon = ks.filter(k => flatKey(k) === sid);
+      if (canon.length !== 1) {
+        console.warn(`  TWO ROWS, ONE BODY and NO canonical key: ${sid} <- ${ks.join(', ')}. `
+          + 'Every one is KEPT — dropping without a rule is how a forme disappears silently. '
+          + 'engine/artifact_audit.js check E will report this until it is reconciled.');
+        continue;
+      }
+      const shape = k => `${k} [mv=${(mons[k].mv || []).length} ab=${mons[k].ab || 'null'}]`;
+      for (const k of ks) {
+        if (k === canon[0]) continue;
+        dropped.push(`${sid}: kept ${shape(canon[0])}, DROPPED ${shape(k)}`);
+        delete mons[k];
+      }
+    }
+    if (dropped.length) say(`  TWO ROWS, ONE BODY — ${dropped.length} duplicate row(s) dropped, the `
+      + `format's own species id deciding which key survives: ${dropped.join(' | ')}`);
+  }
+
 
   /* ── `wt` IS OWNED FOR EVERY ROW, NOT ONLY THE ONES CHAMP-MODEL CARRIES (2026-08-29) ───────────
    *

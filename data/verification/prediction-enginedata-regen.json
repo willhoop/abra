@@ -1,0 +1,66 @@
+{
+  "_file": "data/verification/prediction-enginedata-regen.json",
+  "_what": "ENGINE's own scoreboard prediction for the data/engine-data.js regeneration, written to disk BEFORE any measurement of the batch (no census run, no differential run, no probe run had happened when this file was written).",
+  "written": "2026-08-30",
+  "by": "ENGINE",
+  "batch": "regenerate data/engine-data.js (ten wt fields + one added forme row + the key reorder)",
+
+  "_already_confirmed_before_this_file": {
+    "check_still_shows_the_same_three": true,
+    "evidence": "node build/build_engine_data.js --check re-run on this tree prints: (1) wt undefined -> value on the same ten rows, (2) mons: 11 row(s) differ incl. floette-eternal-mega, (3) mons: KEY ORDER differs from index 35 — artifact has castform-snowy, the sources produce torterra. Identical to the 2026-08-29 report."
+  },
+
+  "diff_prediction": {
+    "rule": "an unexplained fourth change is a stop-and-report",
+    "wt_fields_added": 10,
+    "wt_values": {
+      "victreebel-mega": 125.5, "feraligatr-mega": 108.8, "skarmory-mega": 40.4,
+      "barbaracle-mega": 100, "falinks-mega": 99, "aegislash-blade": 53,
+      "gourgeist-small": 9.5, "gourgeist-large": 14, "gourgeist-super": 39,
+      "palafin-hero": 97.4
+    },
+    "rows_added": ["floette-eternal-mega"],
+    "rows_removed": [],
+    "key_reorder": "EXACTLY: the 15 rows of data/mc-declared-rows.json move to the END of mons, in the declared-file order; the 308 champ-model rows keep their relative order. Derived statically before the run.",
+    "moves_block": "byte-identical",
+    "C_block": "byte-identical",
+    "priors_block": "byte-identical",
+    "any_other_field_change": "NONE. If one appears, stop and report."
+  },
+
+  "reorder_neutrality_prediction": {
+    "claim": "behaviour-neutral for every consumer that walks the table, and NOT neutral for two stamps",
+    "mc_key_first_key_wins": "NEUTRAL — 0 flat collisions in the 323-key candidate (measured statically)",
+    "merge_mega_byNorm": "NEUTRAL — same normaliser, 0 collisions",
+    "replay_differential_FLAT_MONS": "NEUTRAL — first-writer-wins needs a collision; there is none",
+    "replay_differential_SLOW_POOL": "NEUTRAL, and the knob is genuinely unwired here: the pool filters out every hyphenated key, and all 15 moved rows are hyphenated, so the filtered input subsequence is IDENTICAL under both orders (measured). The consumer IS tie-sensitive (a 3-way speed-60 tie sits on the 60-row boundary) — it is simply not reached by THIS permutation.",
+    "million_run_pickSpecies": "NOT NEUTRAL by construction — a weighted sampler walking the table in order. It changes anyway from the 10 weights and the added row, and it reads a release. It is an instrument, not the engine.",
+    "feature_fixture_tableDigest": "NOT NEUTRAL — an order-dependent hash. The damage-table digest WILL move. It is a stamp, not behaviour, and status.js already reports it moved for an earlier reason."
+  },
+
+  "added_row_prediction": {
+    "legal": "YES at the species level — Dex.forFormat resolves floetteeternalmega to Floette-Mega, isNonstandard null, changesFrom Floette-Eternal, requiredItem Floettite (also isNonstandard null).",
+    "carriers_of_the_KEY": "PREDICTED ZERO. The artifact already carries floette-mega for the same dex species, and megaKeyFor prefers the megaStone.into answer (floette-mega) and never evaluates the suffix guess while that row exists. So the added key is a DUPLICATE for a species already present, not a new entity.",
+    "expected_row_shape": "{t, bs, st (derived neutral), mv: [], item: null, ab: null, wt: 100.8} — stage 3 will NOT fill it, because data/mega-dex-official.json keys it floettemega, which byNorm resolves to the EXISTING floette-mega row.",
+    "expected_row_census_consequence": "ab null goes 0 -> 1 UNEXPLAINED and mv empty goes 4 -> 5. That is a REGRESSION in the generator's own diagnostic and is the reason this row is a decision rather than a chore."
+  },
+
+  "scoreboard": {
+    "_which_scoreboard": "THE LAB SHOULD MOVE. THE POOL SHOULD SIT STILL. My own pool arithmetic, derived before the run from data/team-pool-frozen/games.bo3.jsonl (13,214 games), requiring the STONE to be paired with its base for the four mega crossers: victreebel+victreebelite 29 games (11 also carry a weight move), feraligatr+feraligite 54 (20), skarmory+skarmorite 55 (10), barbaracite+barbaracle 19 (10), gourgeist-small 7 (4), gourgeist-super 13 (5). UNION = 60 of 13,214 = 4.36 expected games in a 961 sample. That is OPPORTUNITY only: the weight move must also be CLICKED, aimed at that body, while it stands in the crossing forme, inside the 12-turn cap. At a generous 15% that is ~0.65 expected board-material games.",
+    "census":            { "baseline": "814/814/0", "predicted": "815/815/0", "band": "exactly", "why": "one new probe row (move:variablePower, the DOWNWARD mega weight crossing + a built-at arm), shown red before the regeneration" },
+    "protocol_diverged": { "baseline": 173, "predicted": 173, "band": "171-175" },
+    "board_parted":      { "baseline": 83,  "predicted": 83,  "band": "82-84" },
+    "distinct_causes":   { "baseline": 151, "predicted": 151, "band": "149-153" },
+    "end_state":         { "baseline": "905/53/2/0/1", "predicted": "identical", "band": "<=2 per cell" },
+    "MEDFAILS_weightRowNoValue": { "baseline": ">0 on any run that megas one of the ten", "predicted": 0, "band": "exactly" },
+    "engine_release":    { "baseline": "0e8ec5729a7b", "predicted": "MOVES — engine-data.js is in SOURCES" }
+  },
+
+  "_falsifiers": [
+    "a fourth kind of change in the diff",
+    "the reorder changing any consumer's OUTPUT other than the two named stamps",
+    "the census going DOWN",
+    "board-parted outside 82-84",
+    "a test that is green today going red"
+  ]
+}

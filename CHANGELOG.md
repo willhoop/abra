@@ -10,6 +10,68 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.233.0] — 2026-08-30
+
+### Fixed
+- **TEN ROWS OF `data/engine-data.js` CARRIED NO WEIGHT AT ALL, AND THE ARTIFACT IS NOW
+  REGENERATED.** The generator fix landed on 2026-08-29 and the artifact was deliberately left
+  alone; this is the value change. `mons` is assembled from three sources and only the champ-model
+  walk ran the weight derivation, so `victreebel-mega`, `feraligatr-mega`, `skarmory-mega`,
+  `barbaracle-mega`, `falinks-mega`, `aegislash-blade`, the three Gourgeist sizes and `palafin-hero`
+  had no `wt` field. A body that FORME-CHANGED into one kept the stamp of the body that left; a body
+  BUILT at one got `wt: null` from `buildMon`, `effWeight` returned null, and Low Kick / Grass Knot /
+  Heavy Slam / Heat Crash fell through to their dex `basePower` of **0** — 1 damage where the
+  authority deals 55.
+
+  Census **814/814/0 -> 815/815/0**. Empirical arm, 961 games under the frozen pool: protocol-diverged
+  **173 -> 172**, board-parted **83 -> 82**, distinct causes **151 -> 150 with one removed and zero
+  added**, end-state **identical at 905/53/2/0/1**, `ordering` unmoved at 24. The one removed cause is
+  a Heat Crash into a Falinks-Mega, `37/140` against `24/140`.
+
+- **THE REGENERATION IS TWO CHANGES AND NOT THREE.** `--check` had said it would also ADD a forme row.
+  That row is legal at the SPECIES level and has **zero carriers as a key**: the artifact already
+  carries a row for the same dex species, and `megaKeyFor` asks `megaStone.into` first, so the
+  concatenated `baseKey + '-mega'` guess is never evaluated while the named row exists. Adding it took
+  `engine/artifact_audit.js` from 2 GAPs to 3 — *"two representations of one body WILL diverge, and the
+  emptier one wins wherever a consumer resolves by concatenation rather than through the artifact"* —
+  and that consumer is `megaKeyFor`'s own fallback.
+
+### Changed
+- **`build/build_engine_data.js` DROPS A DUPLICATE ROW BY THE FORMAT'S OWN SPECIES ID.** Rows are
+  grouped by the species `Dex.species.get(key)` resolves them to; in a group of more than one the key
+  whose flattened form IS the dex species id survives. A group with **no** canonical key is REPORTED
+  and nothing is dropped, because a silent drop is the failure this builder's header exists to
+  prevent. Printed over the 323 candidate rows before it was wired: **one group**, 322 distinct dex
+  species, zero rows the dex cannot resolve. `engine/artifact_audit.js` **2 GAPs -> 1**;
+  `engine/generated_audit.js` **DRIFTED 2 -> 1**. The single remaining gap is the inherited
+  `data/abra-tags.js` drift.
+
+- **The key order of `mons` now places the 15 declared rows at the end**, which is what the sources
+  produce. Proven behaviour-neutral rather than assumed: a REORDER-ONLY control artifact — the old
+  values in the new order, no added row, no weight filled — was played through the whole census and
+  moved **0 verdicts over 359 result rows**. `replay_differential.js`'s `SLOW_POOL` IS tie-sensitive
+  (a three-way speed-60 tie sits on its `.slice(0, 60)` boundary) and this permutation does not reach
+  it, because the pool filters out every hyphenated key and all 15 moved rows are hyphenated.
+  `engine/feature_fixture.js`'s damage-table digest DOES move — it is an order-dependent hash, it is a
+  stamp rather than behaviour, and the verdict on it is MEASURE's.
+
+### Added
+- **A `move/variablePower` census row for the two doors no existing arm could reach**: the only
+  DOWNWARD weight crossing in this format across a mega (BP 80 -> 60), and a body BUILT at a
+  battle-only forme. Shown red first on both doors, with two knob-cleared controls that read
+  identically before and after — a mega that gains 37 kg and crosses no bracket (+2.8% both runs) and
+  a size forme that already had its weight (1.00x). The built-at ladder lands on the exact 2.00x and
+  3.00x of a 20/40/60 bracket step.
+
+### Notes
+- **Stage 3 of the pipeline (`engine/merge_mega_into_engine.js`) was deliberately NOT run.** It reads
+  the live stores, which OPS appended to eighteen minutes before this batch, and its re-derivation cost
+  is measured in the builder's own header at 14 mega movesets and all 76 `mv_provenance` blocks. Stage
+  1 carried every stage-3 field through untouched. It is owed on a pinned store and is recorded in the
+  report's `OWED, NOT RUN`.
+- Engine release **`0e8ec5729a7b` -> `862624c9826e`**. `data/game-differential.json` was not touched.
+- Full account: `docs/_reports/2026-08-30-engine-data-regen.md`.
+
 ## [5.232.0] — 2026-08-30
 
 ### Fixed

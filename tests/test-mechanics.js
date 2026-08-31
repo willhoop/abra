@@ -4596,6 +4596,91 @@ probe('move', 'variablePower', 'a MEGA EVOLUTION moves the USER weight the Heavy
                  + `Kingambit ${one.d}, Whimsicott ${flat.d}` };
 });
 
+/* ---- THE FORMES THE WEIGHT COLUMN NEVER REACHED (2026-08-30) -------------------------------------
+ *
+ * The two probes above both step the weight UPWARD, so between them they cannot separate "the engine
+ * follows the forme" from "a mega hits harder". This row is the DOWNWARD arm and the BUILT-AT arm,
+ * and both were unreachable until data/engine-data.js was regenerated: ten rows carried no `wt` at
+ * all -- five megas, Aegislash-Blade, the three Gourgeist sizes and Palafin-Hero -- because `mons` is
+ * assembled from three sources and only the champ-model walk ran the weight derivation.
+ *
+ * TWO DOORS, AND THEY FAIL DIFFERENTLY. Nothing here is typed: every kilogram below is the format's
+ * own (`Dex.species.get(...).weighthg/10`) and every bracket is the tag's own
+ * (`variablePower.brackets`).
+ *
+ *   THE FORME-CHANGE DOOR. `weightFollowsForme` reads the row for the forme that arrived; a row with
+ *   no `wt` leaves the stamp of the body that LEFT the field and counts MEDFAILS.weightRowNoValue.
+ *     Skarmory   50.5 -> 40.4 kg   bracket >=50 -> >=25   BP 80 -> 60   THE ONLY DOWNWARD CROSSING
+ *     Victreebel 15.5 -> 125.5 kg  bracket >=10 -> >=100  BP 40 -> 100  upward, three brackets
+ *     Falinks    62   -> 99   kg   bracket >=50 both      BP 80 -> 80   THE CONTROL: it megas, it
+ *                                  gains 37 kg, and it must NOT step.
+ *
+ *   THE BUILT-AT DOOR, which `weightFollowsForme` never sees at all. `buildMon` stamps
+ *   `wt: m.wt||null`, so a body built AT one of these rows carries null, `effWeight` returns null and
+ *   the move falls through to its dex basePower of ZERO -- 1 damage where the authority deals 55.
+ *   The three Gourgeist sizes are a 20/40/60 ladder off one species:
+ *     Gourgeist-Small  9.5 kg  BP 20      Gourgeist-Large 14 kg  BP 40
+ *     Gourgeist-Super 39   kg  BP 60      Gourgeist       12.5 kg BP 40  <- ALREADY HAD ITS WEIGHT
+ *   Gourgeist itself is the knob-cleared control for that door: its row was never one of the ten, so
+ *   it must sit on the SAME rung as Gourgeist-Large and the two must not part.
+ *
+ * EVERY ARM IS A RATIO AGAINST A FIXED-BASE-POWER MOVE OF THE SAME TYPE AND CATEGORY (Low Kick vs
+ * Brick Break, Grass Knot vs Energy Ball), so stat, STAB and type effectiveness are common to both
+ * and cancel; what is left is the base power. Thresholds sit in open ground: a crossing must move the
+ * ratio by more than 20%, a non-crossing arm by less than 8%.
+ *
+ * SHOWN RED FIRST against the unregenerated artifact. */
+const wtRatioAt = (defSp) => {
+  const fire = (mv) => {
+    const { me, ally, f1, f2, S } = board('venusaur', 'farigiraf', defSp, 'milotic');
+    me.moves = ['grassknot', 'energyball', 'protect', 'sludgebomb'];
+    unfaintable(f1);
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { d: before - f1.curHP, wt: f1.wt };
+  };
+  const w = fire('grassknot'), c = fire('energyball');
+  return { r: w.d / c.d, wt: w.wt, d: [w.d, c.d] };
+};
+probe('move', 'variablePower', 'the weight brackets are read on the forme STANDING THERE — '
+    + 'downward across a mega, and on a body BUILT at a battle-only forme', () => {
+  /* door 1 -- the forme change */
+  const down = megaWtTarget('machamp', ['lowkick', 'brickbreak', 'protect', 'closecombat'],
+    'lowkick', 'brickbreak', 'skarmory', 'skarmorite');
+  const up = megaWtTarget('machamp', ['lowkick', 'brickbreak', 'protect', 'closecombat'],
+    'lowkick', 'brickbreak', 'victreebel', 'victreebelite');
+  const flat = megaWtTarget('machamp', ['lowkick', 'brickbreak', 'protect', 'closecombat'],
+    'lowkick', 'brickbreak', 'falinks', 'falinksite');
+  /* door 2 -- built at the row, no forme change anywhere */
+  const small = wtRatioAt('gourgeist-small'), large = wtRatioAt('gourgeist-large');
+  const sup = wtRatioAt('gourgeist-super'), base = wtRatioAt('gourgeist');
+  const megaOK = (a) => a.mega && a.r0 > 0 && a.r1 > 0;
+  const pct = (a) => stepPct(a).toFixed(1) + '%';
+  const rung = (a, b) => b.r > 0 ? a.r / b.r : 0;
+  const ladderSuper = rung(sup, small), ladderLarge = rung(large, small);
+  const builtControl = rung(large, base);
+  return { works: megaOK(down) && megaOK(up) && megaOK(flat)
+                  && down.forme === 'skarmory-mega' && up.forme === 'victreebel-mega'
+                  && flat.forme === 'falinks-mega'
+                  && stepPct(down) < -20 && stepPct(up) > 20 && Math.abs(stepPct(flat)) < 8
+                  && ladderSuper > 2.0 && ladderLarge > 1.4 && ladderLarge < 2.6
+                  && Math.abs(builtControl - 1) < 0.08,
+           arms: { control: pct(flat) + ' / built ' + builtControl.toFixed(2) + 'x',
+                   test: [pct(down), pct(up)].join(' / ')
+                       + ' | ladder ' + ladderLarge.toFixed(2) + 'x / ' + ladderSuper.toFixed(2) + 'x' },
+           detail: 'FORME DOOR, Low Kick / Brick Break ratio before and after the TARGET megas — '
+                 + `Skarmory ${down.wt0}->${down.wt1} kg (>=50 down to >=25, BP 80->60) steps ${pct(down)}; `
+                 + `Victreebel ${up.wt0}->${up.wt1} kg (>=10 to >=100, BP 40->100) steps ${pct(up)}; `
+                 + `Falinks ${flat.wt0}->${flat.wt1} kg CROSSES NO BRACKET and must not step, ${pct(flat)}. `
+                 + 'BUILT-AT DOOR, Grass Knot / Energy Ball ratio on a body built at the row — '
+                 + `Small ${small.wt} kg r=${small.r.toFixed(3)}, Large ${large.wt} kg `
+                 + `${ladderLarge.toFixed(2)}x small, Super ${sup.wt} kg ${ladderSuper.toFixed(2)}x small `
+                 + `(BP 20/40/60); Gourgeist ${base.wt} kg ALREADY had its weight and is the cleared `
+                 + `control — Large must sit on its rung, ${builtControl.toFixed(2)}x` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Two identical bodies but for the stat that
  * should matter; if Body Press reads Attack instead, the high-Defence one deals the SAME damage and
  * that equality is the null result. A THIRD ARM was added with the conversion: the same two bodies

@@ -115,9 +115,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  814/814 probed mechanics live, 0 missing   (census 2026-08-30 11:43)
+  815/815 probed mechanics live, 0 missing   (census 2026-08-30 23:36)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 1.7 days old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 2.0 days old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -132,7 +132,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is b2b34a814603 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 5c41e5b16f8f now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/300 probed, 15 unprobed;  271/300 have an engine consumer, 29 have none
@@ -140,9 +140,141 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-30 16:12_
+_stamped 2026-08-31 00:04_
 
 <!-- /GENERATED -->
+
+## TEN ROWS OF `data/engine-data.js` CARRIED NO WEIGHT, AND THE ARTIFACT IS REGENERATED. **CENSUS 814 -> 815 LIVE / 815 PROBED / 0 MISSING. EMPIRICAL PROTOCOL 173 -> 172, BOARD-PARTED 83 -> 82, CAUSES 151 -> 150 (ONE REMOVED, ZERO ADDED), END-STATE IDENTICAL AT 905/53/2/0/1. THE REGENERATION IS TWO CHANGES AND NOT THREE — THE ADDED FORME ROW IS A SECOND ROW FOR A BODY THE ARTIFACT ALREADY HAS, `artifact_audit.js` CHECK E CAUGHT IT BY NAME, AND THE GENERATOR NOW DROPS IT BY THE FORMAT'S OWN SPECIES ID. GAPS 2 -> 1.** 2026-08-30.
+
+Full account: [docs/_reports/2026-08-30-engine-data-regen.md](_reports/2026-08-30-engine-data-regen.md).
+
+| | before | after |
+|---|---|---|
+| census (`data/mechanics-census.json`) | 814 probed / 814 live / 0 missing | **815 / 815 / 0** |
+| empirical protocol-diverged games | 173 of 961 | **172** |
+| empirical board-parted | 83 of 961 | **82** |
+| distinct divergence causes | 151 | **150 — one removed, zero added** |
+| end-state verdicts | 905 / 53 / 2 / 0 / 1 | **905 / 53 / 2 / 0 / 1, identical** |
+| `wt null` rows in the generator's own census | 10 | **0** |
+| `engine/artifact_audit.js` | 2 GAPs | **1 GAP** |
+| engine release | `0e8ec5729a7b` | **`862624c9826e`** |
+
+### `--check` STILL SAID THE SAME THREE THINGS, AND ONLY TWO OF THEM SHIPPED
+
+Re-run on this tree eight batches later, `--check` printed the 2026-08-29 report's three changes word
+for word: the ten `wt` fields, an added `floette-eternal-mega` row, and `KEY ORDER differs from index
+35`. The third is a red herring dressed as work.
+
+**THE ADDED ROW IS A DUPLICATE, NOT A NEW ENTITY.** It is legal at the SPECIES level — `Dex.forFormat`
+resolves it to Floette-Mega, `isNonstandard: null`, and its stone is a real legal mega stone. It has
+**zero carriers as a KEY**, because the artifact already carries `floette-mega` for that same dex
+species and `megaKeyFor` (WIRE 132) asks `megaStone.into` FIRST, so the concatenated `baseKey +
+'-mega'` guess is never evaluated while the named row exists. CHOMP's model carries three floette keys
+and the dex resolves two of them to one body.
+
+It was added and the audit went **2 GAPs -> 3**, both new ones this row, in its own words: *"two
+representations of one body WILL diverge, and the emptier one wins wherever a consumer resolves by
+concatenation rather than through the artifact."* That consumer is `megaKeyFor`'s fallback, and WIRE
+132 already measured what reaching it costs — `ab: null`, `mv: []`, a mega that threatens nothing.
+So `build/build_engine_data.js` now groups rows by the species the dex resolves them to and keeps the
+key whose flattened form IS the dex species id; a group with no canonical key is REPORTED and nothing
+is dropped. **Printed before it was wired: one group, `floettemega`, 322 distinct dex species, zero
+rows the dex cannot resolve.** The shipped diff is the ten weights and the reorder, nothing else.
+
+### THE REORDER IS BEHAVIOUR-NEUTRAL, AND IT WAS MEASURED RATHER THAN ARGUED
+
+It is exactly *"the 15 rows of `data/mc-declared-rows.json` move to the end, everything else keeps its
+relative order"* — 277 indices change and every one is a shift. The order-sensitive consumers were
+enumerated, and the useful finding is that **`replay_differential.js`'s `SLOW_POOL` IS tie-sensitive**
+(a three-way speed-60 tie sits on its `.slice(0, 60)` boundary) **and this permutation does not reach
+it**, because the pool filters out every hyphenated key and all 15 moved rows are hyphenated.
+
+Then a **REORDER-ONLY control artifact** — the old values in the new order, no added row, no weight
+filled — was played through the whole census: **0 verdict differences over 359 result rows.** The one
+detail that moved is a Monte-Carlo probe reading 19.7% against 19.8%, which moves the same way between
+two runs of the same bytes. `feature_fixture.js`'s table digest DOES move (it is an order-dependent
+hash); that is a stamp and MEASURE's verdict, and it had already moved before this batch.
+
+### STAGE 3 WAS NOT RUN, AND THAT IS THE ONE DEVIATION FROM THE RECIPE
+
+`engine/merge_mega_into_engine.js` reads `data/games.bo3.jsonl` and `games.ladder.jsonl` live, and OPS
+appended to both **eighteen minutes** before this batch started. Its own re-derivation cost is measured
+in the builder's header — 14 mega movesets and all 76 `mv_provenance` blocks — which is a corpus change
+smuggled into a weight batch. Stage 1 carried every stage-3 field through untouched, so nothing was
+lost; stage 2 re-run afterwards reports `materially changed 0`.
+
+### THE PROBE — TWO DOORS, RED FIRST, WITH THE CONTROL THAT DID NOT MOVE
+
+`move/variablePower`, the **downward** crossing and the **built-at** door, neither of which any
+existing arm could reach. Every kilogram is the format's own and every bracket is the tag's own.
+
+```
+                                        RED (before)            GREEN (after)
+Skarmory   50.5 -> 40.4 kg  BP 80->60   50.5->50.5    -0.3%     40.4    -25.8%
+Victreebel 15.5 -> 125.5 kg BP 40->100  15.5->15.5    -1.5%     125.5  +142.4%
+Falinks    62   -> 99   kg  BP 80->80   62  ->62      +2.8%     99      +2.8%   <- CONTROL
+Gourgeist-Small / Large / Super         null / null / null      20/40/60 ladder: 2.00x and 3.00x
+Gourgeist  12.5 kg, ALREADY had its wt  0.00x                   1.00x   <- CLEARED CONTROL
+```
+
+**The control reads 2.8% on both runs.** Falinks megas, gains 37 kg and crosses no target-weight
+bracket, so it must not step — and it does not, identically. That is what says the two red arms are the
+weight and not "a mega hits harder".
+
+### THE PREDICTION, WRITTEN TO DISK BEFORE ANYTHING WAS MEASURED
+
+`data/verification/prediction-enginedata-regen.json` — before the probe was written, before the
+artifact was touched, before a game was played. **Six of eight at the point estimate, eight of eight in
+band.** The two that moved both moved by one, in the same direction, and the run named the reason the
+prediction's own arithmetic had missed:
+
+```
+-damage field 3 :: |-damage|p2a:falinks|37/140  vs  |-damage|p2a:falinks|24/140
+  |move|p1a: Rhyperior|heatcrash|p2a: Falinks
+```
+
+**Falinks-Mega is a NON-crosser on the target-weight table — which is exactly why it is this probe's
+control — and a CROSSER on the RATIO family.** Rhyperior at 282.8 kg over a stale 62 kg is 4.56
+(`>=4`, BP 100); over the true 99 kg it is 2.86 (`>=2`, BP 60). The prediction counted the six
+target-weight crossers and not the ratio family, so it under-predicted the pool by exactly the one game
+that moved.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"TEN ROWS OF `data/engine-data.js` CARRY NO WEIGHT, SO A BODY BUILT AT ONE DEALS 1 WHERE IT SHOULD
+  DEAL 55"*~~ — **landed and probed** by `move/variablePower`, shown red on both doors first, with the
+  Falinks non-crossing mega and the already-weighted Gourgeist as knob-cleared controls that read
+  identically before and after. It moved the pool by one game, which is the ratio family.
+
+**Stays on it, one of them with a new companion:**
+- **RIPEN DOES NOT HALVE A RESIST BERRY A SECOND TIME.** Unchanged. **BLOCKED** on `damageReduce.onlyWhen`
+  carrying the authority's `abilityState.berryWeaken`, which is a `tag_dex.js` regeneration.
+- **`tag_dex.js` MIS-DERIVES `takesTargetItem` FOR BUG BITE AND PLUCK (ROADMAP #529).** Unchanged.
+- **`data/abra-tags.js` IS DRIFTED FROM `data/tags.json` AND IS NOW THE ONLY GAP `artifact_audit.js`
+  REPORTS.** It wants the same pinned-store `tag_dex.js` pass the two rows above want, so **three
+  mechanics now wait on one MEASURE-shaped decision** rather than two.
+
+**Carried forward unchanged** from the hand lists below: Triple Axel into an intact Disguise dealing
+zero on arrivals 2 and 3; a multi-arrival volley halving EVERY arrival against a resist berry; the drain
+heal paid once per row where the authority pays per hit; an attacker killed by an interior arrival's
+toll not stopping the volley; `tests/probe_upkeep_lines.js` red at 4 of 49, re-measured on release
+`862624c9826e` as the same four by name; this walk re-asking `residualOrder()` per group; a
+perish-killed body skipping its own orders 25-29; `tests/probe_red_demo.js`'s five COULD-NOT-BE-APPLIED
+and one HOLLOW, unchanged; `boost()`'s second refusal; whether every other announcing ability writes its
+`|-ability|` line; ROADMAP #362's stale row; the Cursed Body 30% and Blizzard 10%; the redirect gate's
+ally-aimed status move, the ally-aimed delayed hit, Defog's `target.side`, the `self`-target heal
+`|move|` line, the fainted-ally clause of `getTarget`, the `scripted` exemption from `aimTravelsByLoc`,
+the `chillyreception` target-class exemption, and the `benchRisk` refit `clickFragility` owes MEASURE.
+
+### OWED, NOT RUN
+
+The `## OWED, NOT RUN` block of
+[docs/_reports/2026-08-30-engine-data-regen.md](_reports/2026-08-30-engine-data-regen.md) — stage 3 of
+the pipeline on a PINNED store, `--purity`, the three `item: null` Gourgeist rows, the `abra-tags.js`
+drift, the roster's three stages, `data/all-mechanics-fire.json`, the COVERAGE arm of the whole-game
+differential, `tests/test-engine-diff.js`, the moved damage-table digest (MEASURE's verdict), and a
+RATIO-family arm for the new probe — the half the pool actually exercised.
 
 ## BUG BITE AND PLUCK STRIPPED THE BERRY AND NEVER MADE THE ATTACKER EAT IT — THE MEMBERSHIP IS EXACTLY THE TWO NAMED, FOR ONCE, AND THE POOL MOVED. **CENSUS 813 -> 814 LIVE / 814 PROBED / 0 MISSING. EMPIRICAL PROTOCOL 175 -> 173, BOARD-PARTED 84 -> 83, CAUSES 153 -> 151 (3 REMOVED — ALL THREE THIS DEFECT — AND 1 ADDED, WHICH IS THE THIRD GAME RUNNING FURTHER). THE `-enditem field 4` CLASS NO LONGER EXISTS AND ZERO `stealeat` REMAINS IN THE DUMP. END-STATE IMPROVED 903/55 -> 905/53. FIVE OF SEVEN PREDICTIONS AT THE POINT ESTIMATE, SEVEN OF SEVEN IN BAND.** 2026-08-30.
 
