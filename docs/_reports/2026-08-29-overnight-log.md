@@ -168,3 +168,39 @@ than most tests that ran.
 **AND ONE COVERAGE FACT THAT BOUNDS EVERYTHING**: both action pickers write targets over the FOES, so
 no pooled game has ever aimed a single-target move at a partner — 31,216 aims at a foe, 467 at an ally.
 The entire ally-side class is invisible to the pinned pool by construction. Only the lab can see it.
+
+---
+
+## A NEW REGULATION WAS ANNOUNCED, 2026-08-31 — WHAT WE ACTUALLY HAVE
+
+Will mentioned it; no specifics were given and **none were derived, because none are available.**
+
+| | |
+|---|---|
+| local Showdown checkout | `20ad99f`, **2026-07-22**, **72 commits behind** origin |
+| Champions formats it knows | Reg M-A and Reg M-B only, plus the non-VGC ladders |
+| the new regulation | **absent** — no format id, no legality set, no learnset delta |
+
+**So nothing about it may be stated.** Typing a specific from memory here is the exact case CLAUDE.md
+bans, and the coordinator already broke that rule once this session by naming two species in an
+illustration.
+
+**WHAT A NEW REGULATION COSTS, FROM HOW THE CODE IS BUILT RATHER THAN FROM GUESSWORK:**
+
+*Mostly a re-derivation.* The engine matches on TAG SHAPE, never on names, and every legality check
+goes through `Dex.forFormat`. The census walks legal entities, the roster stages them, `mod_audit`
+asks the format directly, and the coverage counts are all derived. Point them at a new format id and
+they re-derive. **Every mechanic fixed tonight is a mechanic made correct against the authority, and
+that value carries across regulations** — none of the 27 batches is Reg M-B-specific work.
+
+*Genuinely Reg M-B and needs rebuilding from games in the new format:* the frozen team pool
+(`data/team-pool-frozen`), `data/meta-usage.json`, `data/move-priors.json` — which is what the
+empirical driver samples — and every usage-weighted ranking. Those are store-derived and mean nothing
+until the new format has been laddered.
+
+*Unaffected:* the comparison machinery itself. The differential plays the same format on both engines,
+so its logic does not care which format that is.
+
+**WHEN THE FORMAT LANDS:** pull Showdown, run `node engine/mod_audit.js` and the census against the
+new format id, and read what the legal set does. That is a re-run, not a rewrite. Do NOT pull mid-batch
+— it moves the authority under every measurement in flight.
