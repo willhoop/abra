@@ -10551,6 +10551,63 @@ probe('move', 'terrainScaled', 'Expanding Force gains power on Psychic Terrain',
                  + `(must equal no terrain)` };
 });
 
+/* 2026-09-01 -- THE OTHER HALF OF THE SAME HANDLER, AND THE PROBE ABOVE COULD NOT SEE IT.
+ *
+ * `expandingforce` has TWO handlers under the same two clauses (data/moves.ts:4953-4964; Champions
+ * carries no `expandingforce` key, so mainline is the authority): `onBasePower` chainModify(1.5),
+ * which the probe above tests, and `onModifyMove` setting `move.target = 'allAdjacentFoes'`, which
+ * nothing tested. Measured before a byte moved: the partner lost ZERO, and the aimed body lost the
+ * same 148 whether its partner was standing or not.
+ *
+ * TWO ASSERTIONS, NOT ONE, and this is the whole reason the probe exists in this shape. Widening the
+ * target list alone would hit TWO bodies for SINGLE-TARGET damage -- strictly worse than the bug it
+ * replaces -- so the reduction is asserted SEPARATELY, against the same board with the partner
+ * already down. `targets.length > 1` is the authority's own gate on `move.spreadHit`
+ * (battle-actions.ts:551), so the one-foe arm must keep the FULL number and is not a bug.
+ *
+ * THE SECOND FOE MAY NOT BE A DARK TYPE, and that cost a run: the first version of this staged
+ * Tyranitar in the partner slot, Psychic does nothing to Dark, and a correctly widened move read 0 on
+ * the partner. Both foes are the same species so the two HP losses are directly comparable.
+ *
+ * THE OVER-FIRE ARMS ARE THE POINT. A fix keyed on "any terrain" passes the Psychic arm and fails the
+ * Electric one; a fix that forgot the user's feet passes both and fails the airborne one. The ability
+ * is set EXPLICITLY on both grounding arms, so neither side is relying on what buildMon supplies. */
+probe('move', 'targetClass', 'Expanding Force becomes a spread move on Psychic Terrain for a grounded '
+    + 'user, and every body it reaches pays the spread reduction', () => {
+  const run = (terrain, userAbility, partnerDown) => {
+    const B = board('chimecho', 'incineroar', 'garchomp', 'garchomp');
+    B.S.field.terrain = terrain; B.me.ability = userAbility;
+    unfaintable(B.f1); unfaintable(B.f2);
+    if (partnerDown) { B.f2.curHP = 0; B.f2.fainted = true; }
+    const h1 = B.f1.curHP, h2 = B.f2.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'expandingforce', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { f1: h1 - B.f1.curHP, f2: partnerDown ? null : h2 - B.f2.curHP };
+  };
+  const test = run('psychic', 'none', false);          // the mechanic
+  const clear = run('', 'none', false);                // control: no terrain
+  const wrongTerrain = run('electric', 'none', false);  // control: the other terrain
+  const airborne = run('psychic', 'levitate', false);   // control: the USER's feet
+  const solo = run('psychic', 'none', true);            // the reduction's denominator
+
+  /* HALF 1 -- the target list. */
+  const widened = test.f2 > 0 && clear.f2 === 0 && wrongTerrain.f2 === 0 && airborne.f2 === 0;
+  /* HALF 2 -- the reduction, asserted against the SAME board with only the partner removed. The band
+   * is the authority's 0.75 with a truncation either side; a widened move that skipped the reduction
+   * would read equal to `solo` and fail here while passing half 1. */
+  const reduced = solo.f1 > 0 && test.f1 < solo.f1
+               && test.f1 >= Math.floor(solo.f1 * 0.70) && test.f1 <= Math.ceil(solo.f1 * 0.80)
+               && test.f1 === test.f2;
+  return { works: widened && reduced && clear.f1 > 0,
+           arms: { control: clear.f2, test: test.f2 },
+           detail: `partner's HP loss: Psychic Terrain ${test.f2}, no terrain ${clear.f2}, `
+                 + `Electric Terrain ${wrongTerrain.f2}, airborne user ${airborne.f2} (last three must `
+                 + `be 0); aimed body under Psychic Terrain lost ${test.f1} with a live partner and `
+                 + `${solo.f1} with the partner down (the 0.75 must be paid only when two bodies are `
+                 + `in the list), and the partner lost ${test.f2}` };
+});
+
 /* ROADMAP #92 -- THE FIELD TERRAIN'S OWN DAMAGE MULTIPLIERS, WHICH ARE NOT `terrainScaled`.
  *
  * The probe above tests a MOVE that reads the terrain (Expanding Force carries the tag). These four
@@ -32664,7 +32721,8 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afte
                           'formeBustInlineRestored', 'eatReactBeforeBerryRestored',
                           'eatEventUpdateOnlyRestored', 'stealEatStripOnlyRestored',
                           'kingsRockOncePerMoveRestored', 'accEvaSeparateRestored',
-                          'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored']
+                          'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',
+                          'terrainTargetSingleRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

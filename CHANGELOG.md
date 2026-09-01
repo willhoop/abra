@@ -10,6 +10,81 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.239.0] — 2026-09-01
+
+### Fixed
+- **A TERRAIN REWRITES THE MOVE'S TARGET, AND THIS ENGINE HAD NO TARGET REWRITE AT ALL.**
+  `data/moves.ts:4956-4964`, not overridden in `data/mods/champions/` (the file carries no
+  `expandingforce` key):
+
+  ```js
+  onModifyMove(move, source, target) {
+      if (this.field.isTerrain('psychicterrain') && source.isGrounded()) {
+          move.target = 'allAdjacentFoes';
+      }
+  },
+  ```
+
+  `SPREAD` in `medicham2-browser.js` is a set of move NAMES fixed at load, and Showdown's target is
+  not — `onModifyMove` runs inside `useMove` and may reassign `move.target` before `getMoveTargets`
+  is ever called. So a move can be single-target in the dex and a spread move on the board, and a
+  membership test that only asks the dex cannot see it.
+
+  **One assignment, two consequences, and the second is the one that gets forgotten.** Measured on
+  the unmodified engine, Chimecho into Garchomp + Garchomp with both foes unfaintable: the partner
+  lost **0** in every arm — the target list never widened — and the aimed body lost the same **148**
+  whether its partner was standing or not — the spread 0.75 was never paid. A fix that widened the
+  list and skipped the reduction would have hit TWO bodies for SINGLE-TARGET damage, which is worse
+  than the bug it replaces. After: `111 / 111` with two live foes and `148` with one, which is
+  `targets.length > 1` — `trySpreadMoveHit`'s own first line (`battle-actions.ts:551`).
+
+  The membership is derived, not recalled: walked over the format filtered
+  `exists && !isNonstandard && tier !== 'Illegal'` and carrier-checked through the validator's own
+  `checkCanLearn`, the legal moves whose `onModifyMove` assigns `move.target` are **Expanding Force**
+  (38 carriers, field-conditional) and **Curse** (124 carriers, off the user's TYPE — a different
+  shape, still unmodelled). Tera Starstorm is mainline's third member and has zero carriers here.
+
+  **The gate is the USER's feet, and `isSemiInvulnerable()` is not in it.** Every terrain CONDITION
+  handler pairs `isGrounded()` with `!isSemiInvulnerable()`; this handler is on the MOVE and pairs it
+  with nothing. Adding the clause would have been an over-narrowing invented in this repository.
+
+  Typed as a literal per the ROADMAP #92 precedent — no tag carries a target REWRITE
+  (`targetClass.target` is Showdown's STATIC `move.target` string and is correct as it stands), and
+  routing through `tag_dex` first would have blocked the fix on a regeneration.
+
+### Added
+- `MEDSEEN.terrainTargetWidened` and `MEDSEEN.terrainTargetWidenedSpreadReduced` — two counters,
+  because it is two consequences. A run where the first moves and the second never does, over boards
+  with a live partner, is the "two bodies at single-target damage" defect. Proved to move
+  independently.
+- `MEDI_TERRAIN_TARGET_SINGLE=1` restores the single-target reading, stamped at declaration as
+  `MEDFAILS.terrainTargetSingleRestored` and registered in `tests/test-mechanics.js`
+  `DELIBERATE_BREAK`, so a run under the break cannot write the census.
+- A census probe under `move | targetClass` asserting the target list and the spread reduction as
+  **two separate expressions**, with three over-fire controls that must not move: no terrain,
+  Electric Terrain, and an airborne user with the ability set explicitly on both grounding arms.
+
+### Notes
+- Census **821 → 822** live / 822 probed / 0 missing / 0 hollow / 0 threw / 0 unarmed.
+- Empirical board-parted **80 → 78** of 961, protocol **171 → 169**, causes **149 → 147**
+  (3 removed, 1 added), end-state **907/52/1/0/1 → 909/50/1/0/1**. The delta is knob-controlled on
+  release `1c346ff23712`: the before-arm reproduces the published 171 / 80 / 149 / 907-52-1-0-1
+  exactly, with `first_divergences`, `classes` and `end_state` byte-identical strings.
+- The pool confirms the two halves on **different games**: two removed causes are the second body
+  never being reached (`|-damage|p2b`, `|-immune|p2b`), and the third is the reduction itself —
+  `165-84 = 81` against `165-57 = 108`, exactly `0.750`.
+- Damage differential clean: 6,000 comparisons, seed 20260804, **0 disagreements** on the midpoint,
+  both corners and all 14 interior indices.
+- **A named prediction miss.** The pool was predicted to sit still and it moved by 2 games. The
+  arithmetic behind the prediction was sound (the differential draws from `P(move | species)` rather
+  than replaying the store's 147 clicks, giving ~0.8 expected games) and the headline drawn from it
+  was not: 0.8 is not zero. Eight predictions hit, five missed, and all five are that one miss
+  propagated. Recorded in `docs/_reports/2026-09-01-terrain-spread-target.md`.
+- **Still open and measured more precisely by this pass:** the `terrainScaled` x1.5 fires with no
+  grounded gate on all three members — an airborne user's Expanding Force reads 114 where the
+  authority reads 76. The rewrite landed here IS gated, so the move now widens correctly and boosts
+  incorrectly on the same board.
+
 ## [5.238.0] — 2026-09-01
 
 ### Fixed

@@ -119,7 +119,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  821/821 probed mechanics live, 0 missing   (census 2026-09-01 00:29)
+  822/822 probed mechanics live, 0 missing   (census 2026-09-01 01:26)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
     never fired in the staged harness (all-mechanics-fire.json, 3.1 days old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
@@ -144,9 +144,90 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-01 01:04_
+_stamped 2026-09-01 01:49_
 
 <!-- /GENERATED -->
+
+## A TERRAIN REWRITES THE MOVE'S TARGET, AND THIS ENGINE HAD NO TARGET REWRITE AT ALL — ONE ASSIGNMENT, TWO CONSEQUENCES, AND THE SECOND IS THE ONE THAT GETS FORGOTTEN. **CENSUS 821 -> 822 LIVE / 822 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. BOARD-PARTED 80 -> 78 OF 961, PROTOCOL 171 -> 169, CAUSES 149 -> 147 (THREE REMOVED, ONE ADDED), END-STATE 907/52/1/0/1 -> 909/50/1/0/1. THE DELTA IS KNOB-CONTROLLED ON THE SAME RELEASE: THE BEFORE-ARM REPRODUCES THE PUBLISHED 171 / 80 / 149 / 907-52-1-0-1 EXACTLY, WITH `first_divergences`, `classes` AND `end_state` BYTE-IDENTICAL STRINGS. EIGHT PREDICTIONS HIT AND FIVE MISSED — ALL FIVE THE SAME MISS, MADE ONCE: I SAID THE POOL WOULD SIT STILL AND IT MOVED.** 2026-09-01.
+
+Full account: [docs/_reports/2026-09-01-terrain-spread-target.md](_reports/2026-09-01-terrain-spread-target.md).
+Prediction written before the run: `data/verification/2026-09-01-terrain-spread-target-prediction.json`.
+
+| | before | after |
+|---|---|---|
+| census (`data/mechanics-census.json`) | 821 / 821 / 0 | **822 / 822 / 0** |
+| empirical board-parted | 80 of 961 | **78** |
+| empirical protocol-diverged | 171 of 961 | **169** |
+| distinct divergence causes | 149 | **147** (3 removed, 1 added) |
+| end-state verdicts | 907 / 52 / 1 / 0 / 1 | **909 / 50 / 1 / 0 / 1** |
+| damage differential, 6,000 comparisons, seed 20260804 | — | **0 disagreements**, all 16 arms |
+| engine release | `cde6cb10daa7` | **`1c346ff23712`** |
+
+### THE MEMBERSHIP HAS EXACTLY ONE LEGAL MEMBER, AND THE *SHAPE* HAS TWO
+
+Walked over the format, filtered `exists && !isNonstandard && tier !== 'Illegal'`, carrier-checked
+through the validator's own `checkCanLearn`. The legal moves whose `onModifyMove` assigns
+`move.target` are **Expanding Force** (38 carriers, `'allAdjacentFoes'` under a FIELD condition) and
+**Curse** (124 carriers, `move.nonGhostTarget` / `'randomNormal'` off the USER'S TYPE — a different
+shape, still unmodelled, deliberately not folded in). Tera Starstorm is mainline's third member and
+has zero carriers here. Champions carries no `expandingforce` key, so `data/moves.ts:4944-4965` is the
+authority.
+
+### THE GATE IS THE USER'S FEET, AND `isSemiInvulnerable()` DOES NOT BELONG IN IT
+
+`if (this.field.isTerrain('psychicterrain') && source.isGrounded())` — and **nothing else**. The
+scope's observation that every terrain handler pairs `isGrounded()` with `!isSemiInvulnerable()` is
+about the terrain CONDITION's own handlers; this one lives on the MOVE and pairs it with nothing.
+Adding the clause would have been an over-narrowing invented in this file.
+
+### TWO CONSEQUENCES, MEASURED APART, AND THE POOL CONFIRMS THEM ON DIFFERENT GAMES
+
+Red first, Chimecho into Garchomp + Garchomp, both unfaintable: the partner lost **0** in every arm
+(the list never widened) and the aimed body lost the same **148** whether its partner was standing or
+not (the reduction was never paid). After: `111 / 111` with two foes and `148` with one, which is
+`targets.length > 1` — `trySpreadMoveHit`'s own first line. **Widening alone would have hit two bodies
+for single-target damage, which is worse than the bug**, so the probe asserts the two halves as two
+expressions and the engine counts them as two counters (`terrainTargetWidened`,
+`terrainTargetWidenedSpreadReduced`, proved to move independently).
+
+The pool separates them too, on different games:
+
+```
+REMOVED  |-damage|p2b|H/H <> |faint|p2a                       the second body, never reached
+REMOVED  |-immune|p2b <> |-supereffective|p2a|1                the second body, never reached
+REMOVED  -damage field 3 :: archaludon 84/165 vs 57/165        81 against 108 — exactly 0.750
+ADDED    |-fail|p2b <> |-fieldend|psychicterrain               the same game running further
+```
+
+### THE PREDICTION MISS, NAMED
+
+I predicted the pool would **sit still** and wrote the arithmetic for it: the differential does not
+replay the store's 147 Expanding Force clicks, it DRAWS from `P(move | species)`, and the product of
+(both entities in the six: 2.30%) x (both brought) x (the terrain actually clicked inside 12 turns) x
+(the carrier then clicking inside the 5-turn window) came to **0.8 games**. The product was right and
+the headline was wrong: 0.8 is not zero, and the pool delivered 2. Inside my stated band `[78, 80]`,
+not at my point. **The scope's call was the right one.**
+
+### THE HAND LIST
+
+**Removed — this is a census probe now, so the census carries it:**
+
+- ~~Expanding Force is a spread move under Psychic Terrain and this engine fires it at one target~~
+  (the `move | targetClass` census row *"Expanding Force becomes a spread move on Psychic Terrain for
+  a grounded user, and every body it reaches pays the spread reduction"*, which asserts the target
+  list and the spread reduction as two separate expressions)
+
+**Owed and named, not fixed here** (the full list is in the report's `OWED, NOT RUN`):
+
+- The `terrainScaled` x1.5 still fires with **no grounded gate** on all three members, measured here
+  at 114 against the authority's 76 for an airborne user. The rewrite I landed IS gated, so the move
+  now widens correctly and boosts incorrectly on the same board. Next batch.
+- **Curse's target rewrite** — 124 carriers, the second member of the shape — is unmodelled and has
+  no register row.
+- The three roster stages were not re-run and are now stale against `1c346ff23712`; they were already
+  stale and already WITHHELD before this pass.
+- The `tag_dex` enrichment that would let the engine stop naming `expandingforce`
+  (`targetClass.rewritesTo`) is unfiled work, not landed work — it is a regeneration.
 
 ## `punishesAttacker` CARRIES A HAZARD AND A SKY, BOTH DERIVED AND BOTH CONSUMED — THE TWO CARDS ARE A SIDE SELECTOR AND A GUARD, AND THEY ARE TWO CAUSES. **CENSUS 819 -> 821 LIVE / 821 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. BOARD-PARTED 82 -> 80 OF 961, PROTOCOL 172 -> 171, CAUSES 150 -> 149 (TWO REMOVED, ONE ADDED), END-STATE 905/53/2/0/1 -> 907/52/1/0/1, TURN-1 BOARDS 956 -> 957. THE DELTA IS KNOB-CONTROLLED ON THE SAME RELEASE: THE BEFORE-ARM REPRODUCES THE PUBLISHED 172 / 82 / 150 / 905-53-2-0-1 EXACTLY, WITH `first_divergences`, `classes` AND `end_state` BYTE-IDENTICAL STRINGS. EIGHT PREDICTIONS HIT, THREE MISSED BY ONE STEP AND NONE IN THE WRONG DIRECTION.** 2026-09-01.
 

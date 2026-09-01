@@ -1,0 +1,59 @@
+{
+  "written": "2026-09-01T05:25Z",
+  "by": "ENGINE",
+  "topic": "Expanding Force becomes allAdjacentFoes on Psychic Terrain with a grounded user - the target rewrite AND the spread reduction",
+  "written_before": "the census probe was written, any engine byte was changed, and any run was made",
+
+  "derived_not_predicted": {
+    "authority": "data/mods/champions/moves.ts carries NO `expandingforce` key - `grep -n expandingforce data/mods/champions/moves.ts` returns nothing. The handler is read whole from mainline data/moves.ts:4944-4965. onModifyMove(move, source, target) { if (this.field.isTerrain('psychicterrain') && source.isGrounded()) { move.target = 'allAdjacentFoes'; } }, and onBasePower is chainModify(1.5) under the SAME two clauses.",
+    "the_gate_is_the_users_feet": "`source.isGrounded()`. The engine comment at the terrainScaled site says the two members disagree about whose feet matter - Expanding Force the USER's, Rising Voltage the TARGET's - and the authority confirms it for this member.",
+    "semi_invulnerable": "ABSENT from this handler. Neither clause of expandingforce.onModifyMove nor of its onBasePower mentions isSemiInvulnerable(). The scope's observation that every TERRAIN CONDITION handler pairs isGrounded() with !isSemiInvulnerable() is about the CONDITION's own handlers (onSetStatus/onTryHit/onResidual), not about a MOVE reading the field. So the clause does NOT belong in this gate and adding it would be an over-narrowing invented here.",
+    "membership": "Legal moves whose onModifyMove rewrites move.target, walked over Dex.forFormat('gen9championsvgc2026regmb').moves.all() filtered `exists && !isNonstandard && tier !== 'Illegal'` and carrier-checked through champions_sim.moveCarriers: TWO. (1) Curse - 124 carriers - rewrites to move.nonGhostTarget / 'randomNormal' on a NON-GHOST or ALLY-AIMED user; not field-conditional, a different shape, NOT in this batch. (2) Expanding Force - 38 carriers - rewrites to 'allAdjacentFoes' under a field condition. Tera Starstorm is mainline's third member and is UNREACHABLE here (Terapagos is not in the regulation). So the field-conditional target-rewrite shape has EXACTLY ONE legal member.",
+    "landing_road": "LITERAL, per the ROADMAP #92 precedent the scope names. No tag carries a target rewrite - `targetClass.target` is Showdown's STATIC move.target string and tag_dex may not be regenerated in these conditions. A one-entry constant table citing data/moves.ts:4960-4964, exactly as the four terrain base-power constants are typed."
+  },
+
+  "P0_red_first_MEASURED_BEFORE_ANY_EDIT": {
+    "board": "Chimecho (Psychic, the ability set explicitly on BOTH arms) + Incineroar vs Garchomp + Tyranitar, both foes unfaintable, seeded, rng 0.5",
+    "grounded user + psychic terrain, 2 foes": { "f1": 148, "f2": 0 },
+    "grounded user + NO terrain,      2 foes": { "f1": 76, "f2": 0 },
+    "AIRBORNE user + psychic terrain, 2 foes": { "f1": 114, "f2": 0 },
+    "grounded user + psychic terrain, 1 foe": { "f1": 148 },
+    "grounded user + ELECTRIC terrain, 2 foes": { "f1": 76, "f2": 0 },
+    "half_1_target_list": "REFUTED AT HEAD - f2 loses 0 in every arm. The scope's most load-bearing unproven claim ('Expanding Force hits one target under Psychic Terrain') is now MEASURED, not inferred.",
+    "half_2_spread_reduction": "REFUTED AT HEAD - f1 loses 148 with two live foes and 148 with one. No reduction is paid because nothing ever set spreadHit.",
+    "an_unrelated_defect_this_measurement_exposes_and_this_batch_does_NOT_fix": "the AIRBORNE arm reads 114, not 76. 76 x 1.5 = 114: the move's own terrainScaled x1.5 fires with NO grounded gate (the scope's item 2). The terrain CONDITION's Psychic x5325/4096 IS correctly gated (148 = 114 x 1.3 only in the grounded arm). Item 2 is a separate batch and is NOT touched here; my airborne control asserts f2 == 0, not f1."
+  },
+
+  "P1_both_halves_asserted_separately": "YES, and they are two assertions with two separate failure modes. HALF 1 is a TARGET-COUNT assertion: f2's HP loss goes 0 -> positive. HALF 2 is a DAMAGE assertion on f1 comparing two-live-foes against one-live-foe on the SAME terrain: 148/148 today, and after the fix the two-foe number must be strictly LESS than the one-foe number and land in the x0.75 band. A fix that widened the target list and forgot the reduction passes half 1 and FAILS half 2 by dealing 148 to each of two bodies.",
+
+  "P2_over_fire_controls_that_must_NOT_move": {
+    "no terrain, 2 foes": "f2 must stay at 0 and f1 must stay at 76",
+    "ELECTRIC terrain, 2 foes": "f2 must stay at 0 and f1 must stay at 76 - a fix keyed on 'any terrain' passes the psychic arm and fails this one",
+    "AIRBORNE user (Levitate, set explicitly) + psychic terrain": "f2 must stay at 0. f1 stays at 114 because the ungated power boost is item 2's defect, not this one.",
+    "an ordinary single-target Psychic move under Psychic Terrain": "must still reach one body - a fix that widened by TYPE rather than by move would fail this",
+    "Rising Voltage under Electric Terrain": "must still reach one body - it carries terrainScaled too and carries NO target rewrite in the authority"
+  },
+
+  "P3_census": { "before": "821 live / 821 probed / 0 missing / 0 hollow / 0 threw", "point": 822, "band": [822, 823], "note": "one new probe under move|targetClass. 823 only if the harness counts the two halves as two rows, which it will not - they are one probe with one `works`." },
+
+  "P4_board_parted": {
+    "before": 80,
+    "point": 80,
+    "band": [78, 80],
+    "I_DISAGREE_WITH_THE_SCOPE_AND_HERE_IS_THE_ARITHMETIC": "The scope predicts the pool MOVES on 147 clicks. 147 is a count of REAL HUMAN CLICKS in the 17,381-game STORE. The differential does not replay those clicks - `--steering empirical` DRAWS each action from P(move | species) in data/move-priors.json. So the reachable rate is a product, not a count.",
+    "the_product": "Derived from data/team-pool-frozen: an Expanding Force carrier and a Psychic Terrain setter are BOTH present in the six on either side in 399 of 17,381 games = 2.30%. Over 961 games that is ~22. Both must then be BROUGHT (4 of 6 each side, ~44%) -> ~10. The setter must actually CLICK Psychic Terrain inside the 12-turn cap: its per-decision prior is 0.084 (Meowstic), 0.032 (Meowstic-M-Mega), 0.030 (Reuniclus), 0.024 (Meowstic-F) -> ~26% over the turns it is active -> ~2.6. The carrier must then click Expanding Force inside the 5-turn terrain window (priors 0.030-0.342) -> ~30% -> ~0.8 games. And both foes must still be standing for a second body to exist.",
+    "point_estimate_in_words": "ZERO to ONE game. I predict the pool SITS STILL and I am saying so before the run.",
+    "the_one_piece_of_direct_evidence_pointing_the_other_way": "data/verification/game-differential.punishkinds.json `mid_void.unshared_address_shapes` carries `acc expandingforce [sd only]: 2`, `crit expandingforce [sd only]: 2`, `dmg expandingforce [sd only]: 2` - the AUTHORITY drew accuracy/crit/damage addresses for Expanding Force that medicham2 never drew, in 2 games. That is exactly the second target's draws. But all 9 low-identity games ALSO carry `populationbomb [sd only]: 9`, so those 2 games are unlikely to leave the VOID bucket on this fix alone."
+  },
+
+  "P5_protocol": { "before": 171, "point": 171, "band": [169, 171] },
+  "P6_causes": { "before": 149, "point": 149, "band": [147, 151], "note": "a removal can unmask a later cause in the same game; that has happened in three previous batches" },
+  "P7_end_state": { "before": "907/52/1/0/1", "point": "907/52/1/0/1", "band": "unchanged, or +/-1 in the first two if a void game becomes usable" },
+  "P8_void_and_usable": { "before": "void 9 / usable 952 / diverged_among_usable 162", "point": "unchanged", "band": "void 7-9; if the 2 Expanding Force games gain identity they move into usable and `diverged` may move by up to 2 in either direction" },
+
+  "P9_knob": "MEDI_TERRAIN_TARGET_SINGLE=1 restores the single-target reading. Registered in tests/test-mechanics.js DELIBERATE_BREAK as MEDFAILS.terrainTargetSingleRestored, stamped at declaration. Under the knob the new probe must be RED and every other probe unchanged.",
+
+  "P10_which_scoreboard_said_before_the_run": "LAB moves, POOL sits still. The census is the scoreboard for this fix. This is a 38-carrier move that needs a 4-carrier terrain setter on the same board and a 12-turn cap; the roster/census is where it is exercised and the pinned pool is where it is nearly absent. If the pool moves at all it will be by ONE game and I will report that as a hit inside the band rather than as the point estimate.",
+
+  "P11_counters": "MEDSEEN.terrainTargetWidened (the rewrite fired at execution) and MEDSEEN.terrainTargetWidenedSpreadReduced (the widened move actually paid the 0.75 because more than one body was in the list). Two counters and not one, because half 1 can fire with half 2 dead - exactly the failure the brief names."
+}

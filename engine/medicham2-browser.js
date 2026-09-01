@@ -1342,6 +1342,16 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * them from a driver reading Showdown's request) and was aimed off the board instead of falling
    * through to a no-op. A zero after real games means the fix is not on the path. */
   spreadClickWithoutNamedTarget: 0,
+  /* 2026-09-01 -- THE TERRAIN TARGET REWRITE, AND IT IS TWO COUNTERS BECAUSE IT IS TWO CONSEQUENCES.
+   * `terrainTargetWidened` is every execution at which a move's `target` was rewritten to
+   * `allAdjacentFoes` by the field (Expanding Force, and only Expanding Force in this format -- see
+   * TERRAIN_TARGET_REWRITE for the derivation). `terrainTargetWidenedSpreadReduced` is the subset
+   * that then actually PAID the 0.75, which needs more than one body in the list.
+   *
+   * TWO AND NOT ONE, because the widening can fire with the reduction dead and that is strictly worse
+   * than the bug it replaces: two bodies taking SINGLE-TARGET damage. A run where the first counter
+   * moves and the second never does, over games that contain a live partner, is that defect. */
+  terrainTargetWidened: 0, terrainTargetWidenedSpreadReduced: 0,
   /* WIRE 144 -- the same event for the `randomTarget` family (Outrage, Petal Dance, Raging Fury,
    * Thrash, Uproar, Struggle). A driver that reads Showdown's request supplies no target for these
    * either, because Showdown never asks for one. Counted apart from the spread family because they
@@ -2754,6 +2764,10 @@ const MEDFAILS = { encoreAction: 0,
    * two defects are two statements and the 2x2 that says so needs to move them independently. */
   punishHazardOnAttackerSideRestored: 0,
   punishWeatherIfClearRestored: 0,
+  /* 2026-09-01 -- set to 1 for the whole run when MEDI_TERRAIN_TARGET_SINGLE=1 puts the SINGLE-TARGET
+   * reading of a terrain-widened move back on purpose, so the before-arm of the target-rewrite fix and
+   * a broken engine can never be read as the same thing. Same shape as the rows above. */
+  terrainTargetSingleRestored: 0,
   /* 2026-09-01 -- a hazard punish fired on a body whose side field carries no `_S` back-reference, so
    * the far side could not be resolved and NO layer was laid. Counted rather than fallen back on: the
    * silent fallback is what put the layer on the holder's own half for three weeks. */
@@ -4274,6 +4288,61 @@ const HITS_ALLY = new Set(TAGS.withTag ? TAGS.withTag('move', 'spreadAll') : [])
 const SPREAD = (TAGS.off || TAGS.missing || !TAGS.withTag)
   ? SPREAD_LEGACY
   : new Set([...TAGS.withTag('move', 'spreadFoes'), ...HITS_ALLY]);
+/* 2026-09-01 -- A FIELD CONDITION REWRITES THE MOVE'S TARGET, AND THIS ENGINE HAD NO TARGET REWRITE.
+ *
+ * `SPREAD` above is a SET OF NAMES fixed at load. Showdown's target is not: `onModifyMove` runs inside
+ * `useMove` and may reassign `move.target` before `getMoveTargets` is ever called, and the authority
+ * knows it -- `useMoveInner` follows the event with `if (baseMove.target !== move.target) target =
+ * this.battle.getRandomTarget(pokemon, move);`. So a move can be single-target in the dex and a spread
+ * move on the board, and a membership test that only asks the dex cannot see it.
+ *
+ * THE MEMBERSHIP IS DERIVED AND IT IS ONE MOVE. Walked over the format
+ * (`Dex.forFormat('gen9championsvgc2026regmb').moves.all()`, filtered
+ * `exists && !isNonstandard && tier !== 'Illegal'`, then carrier-checked through the validator's own
+ * `checkCanLearn`), the legal moves whose `onModifyMove` assigns `move.target` are TWO:
+ *
+ *   Curse            124 carriers  `move.target = move.nonGhostTarget` / `'randomNormal'`
+ *                                  -- a rewrite off the USER'S TYPE, not off the field. A different
+ *                                  shape, still unmodelled, and deliberately not folded in here.
+ *   Expanding Force   38 carriers  `move.target = 'allAdjacentFoes'` under a FIELD condition.
+ *
+ * Tera Starstorm is mainline's third member and has ZERO carriers in this regulation, so the
+ * field-conditional target-rewrite shape has exactly one legal member.
+ *
+ * TWO CONSEQUENCES FROM ONE ASSIGNMENT, and the second is the one that gets forgotten. Measured on
+ * this engine before a byte changed, Chimecho into Garchomp + Tyranitar with both foes unfaintable:
+ * the aimed foe lost 148 and the PARTNER LOST 0, and the aimed foe lost the same 148 whether its
+ * partner was standing or not. So we reached one body, and that body was never charged the spread
+ * 0.75 -- widening the list alone would have hit TWO bodies for single-target damage, which is worse
+ * than the bug. Both halves fall out of `a.move.spread` here because `_spreadHit` is derived from the
+ * resulting target list, exactly as `trySpreadMoveHit`'s first line derives `move.spreadHit` from
+ * `targets.length > 1`.
+ *
+ * TYPED AS A LITERAL, per the ROADMAP #92 precedent stated at the terrain base-power constants. No tag
+ * carries a target REWRITE: `targetClass.target` is Showdown's STATIC `move.target` string and is
+ * correct as it stands, so the enrichment that would carry this (`terrainScaled.subject`, or a
+ * `targetClass.rewritesTo`) is a `tag_dex` regeneration and filed as follow-up work rather than made a
+ * blocker for the fix.
+ *
+ * THE GATE IS THE USER'S FEET. `source.isGrounded()` -- data/moves.ts:4960-4964, and Champions carries
+ * no `expandingforce` key so mainline is the authority here. The engine's own comment at the
+ * `terrainScaled` site records that the two members disagree about whose feet matter; this is the one
+ * that reads the user's.
+ *
+ * AND `isSemiInvulnerable()` IS NOT IN IT. Every terrain CONDITION handler pairs `isGrounded()` with
+ * `!isSemiInvulnerable()`; this handler is on the MOVE and pairs it with nothing. Adding the clause
+ * here would be an over-narrowing invented in this file, so it is deliberately absent and said so. */
+const TERRAIN_TARGET_REWRITE = { expandingforce: 'psychic' };
+/* `att` IS THE USER and the tense is EXECUTION. A caller with no field, or with a body the terrain
+ * cannot reach, gets `false` -- which is the right answer rather than a default: with no Psychic
+ * Terrain there is no rewrite to make. */
+function terrainWidensToSpread(id, att, field){
+  if(TERRAIN_TARGET_SINGLE) return false;
+  const need = TERRAIN_TARGET_REWRITE[String(id||'').toLowerCase()];
+  if(!need) return false;
+  if(!field || terrainId(field.terrain) !== need) return false;
+  return !!isGrounded(att);
+}
 /* WIRE 73 -- WHICH TERRAIN TICKS HP, DERIVED. A move that both SETS a terrain and carries `perTurnHP`
  * is describing the terrain's residual, not its own: Grassy Terrain's `{effect:'heal', per:16}` is the
  * 1/16 every grounded body gets at end of turn for as long as the terrain is up. Keyed by the ENGINE's
@@ -20840,6 +20909,17 @@ const PUNISH_WEATHER_IF_CLEAR=(typeof process!=='undefined'&&process.env
  * writing the census under a deliberate break. */
 if(HAZARD_ON_ATTACKER_SIDE)MEDFAILS.punishHazardOnAttackerSideRestored=1;
 if(PUNISH_WEATHER_IF_CLEAR)MEDFAILS.punishWeatherIfClearRestored=1;
+/* 2026-09-01 -- `MEDI_TERRAIN_TARGET_SINGLE=1` RESTORES THE SINGLE-TARGET READING of a move the field
+ * widens, which is what this engine did for as long as it existed: one body hit, at full
+ * single-target damage, where the authority hits both and charges each the spread 0.75. The knob is
+ * ONE and not two on purpose -- the two consequences are not two independent statements, they are one
+ * `move.target` assignment and everything that reads the resulting target list. */
+const TERRAIN_TARGET_SINGLE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_TERRAIN_TARGET_SINGLE==='1');
+/* STAMPED AT DECLARATION, like the knobs above, so a run under the break is identifiable BEFORE an
+ * Expanding Force is clicked on a Psychic Terrain -- tests/test-mechanics.js reads exactly this to
+ * refuse writing the census under a deliberate break. */
+if(TERRAIN_TARGET_SINGLE)MEDFAILS.terrainTargetSingleRestored=1;
 /* 2026-08-30 -- `MEDI_REACT_BATCHED=1` RESTORES THE BATCHED REACTION: every `onDamagingHit` reactor
  * of a volley paid in one deferred step BELOW the whole packet loop, so the stream read
  * `dmg dmg react react` where the authority writes `dmg react dmg react`.
@@ -28945,6 +29025,27 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
       }
       const mv=a.move.mv;
+      /* 2026-09-01 -- THE FIELD REWRITES THE TARGET, AND IT IS ANSWERED HERE BECAUSE THE AUTHORITY
+       * ANSWERS IT HERE. `onModifyMove` runs inside `useMove`, not at the moment the action was
+       * chosen -- so a Psychic Terrain that went up earlier THIS TURN, from a faster body, still
+       * widens the move. Deciding it in `playerActionPrimary` alone would answer last turn's
+       * question, which is the same mistake `a.rescript` exists to avoid two blocks down.
+       *
+       * RE-DERIVED, NOT OR-ED IN. The right-hand side is `SPREAD.has(...) || widened`, the whole
+       * expression the three construction sites use, so an action object reused on a later turn with
+       * the terrain gone falls back to the dex answer instead of staying spread forever. A bare
+       * `a.move.spread=true` would have been a one-way latch.
+       *
+       * ONE ASSIGNMENT AND NOT NINE LOCALS. Nine sites below read `a.move.spread` -- the priority
+       * gate's aim, the target list, the redirection gate, the ally-hit test, the smart-target test,
+       * `_spreadHit`, and the three guard-class reads -- and "is this a spread move" is ONE fact. A
+       * second local carried past them is how two answers to one question start. */
+      let _terrainWidened=false;
+      {
+        const _w=terrainWidensToSpread(a.move.id,m,field);
+        if(_w&&!SPREAD.has(a.move.id)){_terrainWidened=true;MEDSEEN.terrainTargetWidened++;}
+        a.move.spread=SPREAD.has(a.move.id)||_w;
+      }
       /* ROADMAP #118 -- THE ARMING THAT STOOD HERE IS GONE, AND ITS ABSENCE IS THE FIX. It read
        *   if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){m._lock=a.move.id;m._lockT=Infinity;}
        * inside the ATTACK branch, so it could not see the ~30 status kinds. It now lives at the
@@ -29591,6 +29692,12 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       const _smartTarget=!a.move.spread&&!!TAGS.param('move',a.move.id,'smartTarget');
       const _spreadHit=!!a.move.spread&&(targets.length+(_allyHit?1:0))>1;
+      /* THE SECOND HALF OF THE TERRAIN REWRITE, COUNTED SEPARATELY FROM THE FIRST. The widening is
+       * only correct if the bodies it reaches are then charged the 0.75, and a fix that did one and
+       * not the other would hit two bodies for single-target damage -- strictly worse than the
+       * single-target bug it replaced. This counter is the receipt for the half that gets forgotten;
+       * it is legitimately below `terrainTargetWidened` whenever the partner is already down. */
+      if(_terrainWidened&&_spreadHit)MEDSEEN.terrainTargetWidenedSpreadReduced++;
       /* ===== 2026-08-29 -- CARD C3: THE NEAR SIDE'S GUARD, ASKED ABOUT THE NEAR SIDE'S BODY ========
        *
        * BELOW `_spreadHit` AND NOT ABOVE IT, and that is a correctness clause rather than a position.
@@ -37098,7 +37205,12 @@ function playerActionPrimary(me,moveId,target,field){
    * decision nobody made -- the same reason `randomNormal` (Outrage, 68 uses) and `scripted`
    * (Mirror Coat, 26) are counted rather than aimed: Showdown picks those with a die this engine
    * would have to guess the shape of. */
-  if(mv&&hasPower(mv)&&!target&&SPREAD.has(id)){
+  /* 2026-09-01 -- AND A MOVE THE FIELD HAS WIDENED IS IN THIS FAMILY TOO, for the reason the block
+   * above gives: a driver reading Showdown's request supplies no target for a spread move, and once
+   * Psychic Terrain is up Expanding Force IS one. The authority reaches the same place by a different
+   * road -- `useMoveInner` calls `getRandomTarget` the moment `baseMove.target !== move.target` --
+   * and this branch's own header says why a price rather than a decision is the right output. */
+  if(mv&&hasPower(mv)&&!target&&(SPREAD.has(id)||terrainWidensToSpread(id,me,field))){
     const _fo=liveFoesOf(me);
     if(_fo.length){
       let _t=null,_bs=-1;
@@ -37195,7 +37307,12 @@ function playerActionPrimary(me,moveId,target,field){
   if(mv&&target&&TAGS.param('move',id,'delayedHit'))
     return {kind:'futurehit',mv:id,target};
   if(mv&&hasPower(mv)&&target){
-    const spread=SPREAD.has(id);
+    /* 2026-09-01 -- THE PRICE HAS TO KNOW ABOUT THE REWRITE TOO. `d` here is a VALUATION and it is
+     * what every caller that never reaches `battleTurn` sees, so a widened Expanding Force priced at
+     * full single-target damage would be over-valued by a third in exactly the position the fix
+     * exists for. The executor re-derives this from the live field regardless -- see its site -- so
+     * this is the price, not the decision. */
+    const spread=SPREAD.has(id)||terrainWidensToSpread(id,me,field);
     /* WIRE 131 — `acc` is the chance THIS click lands on THIS target, not the move's printed number.
      * Both bodies are in hand here and the old line used neither. */
     return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:hitProb(me,target,id,field)},
