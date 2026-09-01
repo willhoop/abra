@@ -1694,6 +1694,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      target -- a negative evasion stage is left alone, because the ability ignores evasion rather
      than helping it. */
   evasionIgnored: 0,
+  /* 2026-08-31 -- the accuracy/evasion stage step, which the authority runs ONCE on a combined and
+     clamped boost. `...Combined` counts every accuracy check whose combined boost is non-zero;
+     `...BothSides` counts the subset where BOTH stages are non-zero, which is the only case in which
+     the old two-multiplication form gave a different answer and the case no census row had ever put
+     on a board; `...Truncated` counts the checks where the authority's `>>> 0` actually threw a
+     fraction away, which is what separates a combined fix from a correct one. Three counters and not
+     one, because the three populations differ by orders of magnitude and a single number would hide
+     which of them a run exercised. */
+  accStageCombined: 0,
+  accStageBothSides: 0,
+  accStageTruncated: 0,
   /* ROADMAP #466 -- the two halves of `punishesMinimize`, counted SEPARATELY because the tag's own
      `halves` param exists to make a one-sided implementation visible. `...NeverMiss` bumps when one of
      the six flagged moves is guaranteed against a minimized body; `...Damage` bumps when the same
@@ -2733,6 +2744,10 @@ const MEDFAILS = { encoreAction: 0,
    * CLICK back on purpose, so the before-arm of the King's Rock volley fix and a broken engine can
    * never be read as the same thing. Same shape as volleyReactDrawnRestored. */
   kingsRockOncePerMoveRestored: 0,
+  /* 2026-08-31 -- set to 1 for the whole run when MEDI_ACC_EVA_SEPARATE=1 puts the SEPARATELY
+   * MULTIPLIED accuracy and evasion stages back on purpose, so the before-arm of the combined-stage
+   * fix and a broken engine can never be read as the same thing. Same shape as the rows above. */
+  accEvaSeparateRestored: 0,
   /* 2026-08-31 -- the King's Rock block was reached with NO arrival count on the row, so it fell back
    * to one die. A silent fallback looks exactly like a working feature (CLAUDE.md), and the only way
    * this can be non-zero is a damaging road that never ran `_stepApply`'s tail. */
@@ -10095,8 +10110,17 @@ function hitChance(att,def,id,field,ctx){
   let _eb=(def&&def.boosts&&def.boosts.eva)||0;
   if(_eb>0){const _ie=TAGS.param('ability',att&&att.ability,'ignoresEvasion');
     if(_ie&&_ie.ignoresEvasion){_eb=0;MEDSEEN.evasionIgnored++;}}
-  if(_ab)acc*=accStageMul(_ab);
-  if(_eb)acc/=accStageMul(_eb);
+  /* 2026-08-31 -- THE TWO STAGES ARE ONE NUMBER, AND THEY WERE TWO MULTIPLICATIONS HERE.
+   *
+   * `if(_ab)acc*=accStageMul(_ab); if(_eb)acc/=accStageMul(_eb);` used to sit on this line. -1 accuracy
+   * into +1 evasion is 56.25 here against 60 there, and at the caps 11.1 against 33.3. It also parts
+   * with ONE side zero wherever the answer is fractional, because the authority truncates and this did
+   * not: 80 printed at +6 evasion alone is 26.667 here and 26 there. See the block
+   * beside the combined arithmetic below, which is where the stage step now happens: the authority
+   * runs it BELOW `runEvent('ModifyAccuracy')`, and its truncation only lands in the right place if
+   * the modifiers have already been spent. `MEDI_ACC_EVA_SEPARATE=1` puts the old pair back HERE, at
+   * the old position, so the restore arm is the old function and not an approximation of it. */
+  if(ACC_EVA_SEPARATE){ if(_ab)acc*=accStageMul(_ab); if(_eb)acc/=accStageMul(_eb); }
   const _mv=(typeof MC!=='undefined'&&MC&&MC.moves&&MC.moves[id])||null;
   /* THE CATEGORY, AND THE FAILURE IS COUNTED RATHER THAN SWALLOWED. Only Hustle and Wonder Skin gate
    * on it today, so a miss here silently turns two conditional modifiers off — which is exactly the
@@ -10137,6 +10161,63 @@ function hitChance(att,def,id,field,ctx){
        * is what the reference does and Math.min would be a second, quieter rule. */
       if(r.setTo!=null)acc=r.setTo;
       else if(r.mult!=null)acc*=r.mult;
+    }
+  }
+  /* ---- THE ACCURACY AND EVASION STAGES, COMBINED ONCE, CLAMPED ONCE, LOOKED UP ONCE, TRUNCATED ----
+   *
+   * THE AUTHORITY, `sim/battle-actions.ts:713-727`. Champions does NOT override `hitStepAccuracy`;
+   * the only `ignoreAccuracy` / `ignoreEvasion` text in `data/mods/champions/scripts.ts` is inside
+   * `hitStepMoveHitLoop`'s `multiaccuracy` branch, which is hits 2..n of Population Bomb and Triple
+   * Axel and a different question:
+   *     let boost = 0;
+   *     if (!move.ignoreAccuracy) { boost = clampIntRange(boosts['accuracy'], -6, 6); }
+   *     if (!move.ignoreEvasion)  { boost = clampIntRange(boost - boosts['evasion'], -6, 6); }
+   *     if (boost > 0)      { accuracy = trunc(accuracy * (3 + boost) / 3); }
+   *     else if (boost < 0) { accuracy = trunc(accuracy * 3 / (3 - boost)); }
+   *
+   * WHAT WAS WRONG: this engine multiplied the two stages SEPARATELY (`acc *= accStageMul(_ab)` then
+   * `acc /= accStageMul(_eb)`) and never truncated. Measured against the authority, printed 100:
+   *     acc -1 / eva +1   56.25 here   60 there
+   *     acc -2 / eva +2   36.00        42
+   *     acc -6 / eva +6   11.11        33
+   *     acc +1 / eva +2   80.00        75      <- the direction REVERSES; it is not "more accurate"
+   * It decides hit or miss, so it is board-material.
+   *
+   * IT SITS *BELOW* THE MODIFIER WALK, AND THAT IS THE AUTHORITY'S ORDER RATHER THAN A TIDY-UP.
+   * `hitStepAccuracy` runs `accuracy = runEvent('ModifyAccuracy', ...)` -- Bright Powder, Wide Lens,
+   * Zoom Lens, Compound Eyes, Hustle, Sand Veil, Snow Cloak, Wonder Skin, Tangled Feet and Gravity
+   * are ALL `onModifyAccuracy` / `onSourceModifyAccuracy` handlers -- and only THEN the stages. The
+   * multiplications commute, so the old order was harmless while there was no truncation; the moment
+   * one exists the ORDER decides where the fraction is thrown away. Compound Eyes on a 90 move into
+   * +1 evasion is trunc(117 * 3/4) = 87 on the authority and trunc(90 * 3/4) * 1.3 = 87.1 the other
+   * way round. Putting the stage step here makes the two agree by construction.
+   *
+   * THE TWO CLAMPS ARE SEPARATE AND NESTED IN THE SOURCE, AND ONLY THE SECOND ONE IS OBSERVABLE.
+   * The first (`clampIntRange(boosts['accuracy'], -6, 6)`) cannot bite: the game already clamps a
+   * stage to +-6 when it is applied, and the one `onModifyBoost` ability with a legal carrier in this
+   * format sets a stage to ZERO rather than out of range. The second one is the whole caps arm:
+   * -6 - (+6) is -12 and must come back as -6, which is 33.3% and not 11.1%.
+   *
+   * `>>> 0` IS THE AUTHORITY'S OWN TRUNCATION, not Math.floor chosen for taste -- `Dex#trunc` is
+   * literally `num >>> 0` (sim/dex.ts:391). Accuracy here is bounded by 3 x the printed value, so the
+   * 32-bit wrap that makes the two differ cannot be reached.
+   *
+   * `ignoreAccuracy` HAS NO LEGAL CARRIER IN THIS FORMAT and `ignoreEvasion` has two moves
+   * (Darkest Lariat, Sacred Sword) plus two abilities (Keen Eye, Illuminate). The ABILITY half is
+   * consumed above, where `_eb` is zeroed. The MOVE half is NOT modelled -- `data/tags.json` gives
+   * both moves `ignoresBoosts {defensive:true}`, which is `ignoreDefensive` and is the damage
+   * chain's business, and no tag carries `ignoreEvasion`. That is a separate, named, unfixed defect;
+   * it is counted here rather than left silent so it cannot read like a working feature. */
+  if(!ACC_EVA_SEPARATE){
+    let _bst=0;
+    _bst=clamp(Math.round(+_ab||0),-6,6);
+    _bst=clamp(_bst-Math.round(+_eb||0),-6,6);
+    if(_bst!==0){
+      MEDSEEN.accStageCombined++;
+      if(_ab!==0&&_eb!==0)MEDSEEN.accStageBothSides++;
+      const _pre=(_bst>0)?(acc*(3+_bst)/3):(acc*3/(3-_bst));
+      acc=_pre>>>0;
+      if(acc!==_pre)MEDSEEN.accStageTruncated++;
     }
   }
   return acc;
@@ -20711,6 +20792,24 @@ const KINGSROCK_ONCE_PER_MOVE=(typeof process!=='undefined'&&process.env
  * King's Rock volley happens to occur -- tests/test-mechanics.js reads exactly this to refuse
  * writing the census under a deliberate break. */
 if(KINGSROCK_ONCE_PER_MOVE)MEDFAILS.kingsRockOncePerMoveRestored=1;
+/* 2026-08-31 -- `MEDI_ACC_EVA_SEPARATE=1` RESTORES THE TWO SEPARATELY MULTIPLIED STAGES, at their old
+ * position above the modifier walk, so the restore arm is the old function rather than a rearranged
+ * approximation of it. The authority combines the accuracy stage and the evasion stage into ONE
+ * clamped boost and looks the table up once (sim/battle-actions.ts:713-727, no Champions override);
+ * this engine multiplied by the accuracy stage and divided by the evasion stage -- 56.25 against 60
+ * at -1/+1, and 11.1 against 33.3 at the caps. The truncation makes it part with one side zero too,
+ * wherever the answer is fractional: 80 printed at +6 evasion alone is 26.667 here and 26 there.
+ *
+ * IT IS NOT ONE OF THE ACCURACY-MODIFIER KNOBS AND THERE ARE NONE: the modifier table (Wide Lens,
+ * Bright Powder, Sand Veil, Compound Eyes, Gravity, Hustle, Wonder Skin) is a different step of the
+ * same function and is unchanged by this. What this knob restores is the STAGE arithmetic and its
+ * POSITION relative to that table. */
+const ACC_EVA_SEPARATE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_ACC_EVA_SEPARATE==='1');
+/* STAMPED AT DECLARATION, like the knobs above, so a run under the break is identifiable BEFORE an
+ * accuracy check with a stage on it happens to occur -- tests/test-mechanics.js reads exactly this to
+ * refuse writing the census under a deliberate break. */
+if(ACC_EVA_SEPARATE)MEDFAILS.accEvaSeparateRestored=1;
 /* 2026-08-30 -- `MEDI_REACT_BATCHED=1` RESTORES THE BATCHED REACTION: every `onDamagingHit` reactor
  * of a volley paid in one deferred step BELOW the whole packet loop, so the stream read
  * `dmg dmg react react` where the authority writes `dmg react dmg react`.

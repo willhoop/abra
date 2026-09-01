@@ -1,6 +1,8 @@
 # ABRA — the model family (living reference)
 
-**Version 5.236.0 · Last updated 2026-08-31.**
+**Version 5.237.0 · Last updated 2026-08-31.**
+
+**5.237.0 - NO MODEL CHANGED AND NO FITTED VECTOR IS OWED.** The change is inside MEDICHAM: the accuracy and evasion stages are now one clamped stage, looked up once and truncated, below the modifier walk rather than above it. `hitProb` is `hitChance` clamped into [0,1], so every valuation site inherits the corrected number without a second rule; `board.js` carries no accuracy-stage arithmetic of its own, so there is nothing to keep in step. The whole-game differential is unmoved at 82 board-parted of 961 and 172 protocol-diverged, so no quarantined figure becomes any more or less re-runnable than it already was.
 
 **5.236.0 - NO MODEL CHANGED AND NO FITTED VECTOR IS OWED.** The change is inside MEDICHAM: King's Rock now takes one flinch die per landed arrival instead of one per click. Every downstream model stays quarantined and no quarantined number moves, because the whole-game differential on the new release is identical to the baseline in every figure (82 board-parted of 961, 172 protocol-diverged, 150 causes, 905/53/2/0/1). The engine release moved `862624c9826e` -> `b43a2fea0cb1`, so any measurement pinned to the old id describes other bytes.
 

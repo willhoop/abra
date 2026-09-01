@@ -118,7 +118,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  818/818 probed mechanics live, 0 missing   (census 2026-08-31 22:12)
+  819/819 probed mechanics live, 0 missing   (census 2026-08-31 23:15)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
     never fired in the staged harness (all-mechanics-fire.json, 3.0 days old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
@@ -143,9 +143,131 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-31 22:39_
+_stamped 2026-08-31 23:42_
 
 <!-- /GENERATED -->
+
+## THE ACCURACY STAGE AND THE EVASION STAGE WERE TWO MULTIPLICATIONS AND THE AUTHORITY COMBINES THEM ONCE — AND THE TRUNCATION REACHES FURTHER THAN THE COMBINATION DOES. **CENSUS 818 -> 819 LIVE / 819 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. BOARD-PARTED UNMOVED AT 82 OF 961, PROTOCOL UNMOVED AT 172, CAUSES UNMOVED AT 150 WITH ZERO ADDED AND ZERO REMOVED, END-STATE IDENTICAL AT 905/53/2/0/1 — ALL FOUR PREDICTED AT THEIR POINT ESTIMATE BEFORE THE RUN AS A LAB-ONLY MOVE, WITH THE POOL ARITHMETIC STATED FIRST. TWELVE PREDICTIONS, ELEVEN HITS AND ONE NAMED MISS. THE AUTHORITY'S NUMBER WAS INSTRUMENTED AT `hitStepAccuracy` ITSELF, NOT INFERRED.** 2026-08-31.
+
+Full account: [docs/_reports/2026-08-31-accuracy-stage-combine.md](_reports/2026-08-31-accuracy-stage-combine.md).
+Prediction written before the run: `data/verification/2026-08-31-accuracy-stage-combine-prediction.json`.
+
+| | before | after |
+|---|---|---|
+| census (`data/mechanics-census.json`) | 818 / 818 / 0 | **819 / 819 / 0** |
+| empirical board-parted | 82 of 961 | **82** |
+| empirical protocol-diverged | 172 of 961 | **172** |
+| distinct divergence causes | 150 | **150** (0 added, 0 removed) |
+| end-state verdicts | 905 / 53 / 2 / 0 / 1 | **905 / 53 / 2 / 0 / 1** |
+| engine release | `b43a2fea0cb1` | **`52e0e7effbd6`** |
+
+### THE ANSWER, IN ONE LINE: ONE SUBTRACTION, ONE CLAMP, ONE LOOKUP, ONE TRUNCATION
+
+`sim/battle-actions.ts:713-727` combines the accuracy stage and the evasion stage into a SINGLE
+clamped boost and looks the `(3+n)/3` table up once, then truncates. Champions does not override
+`hitStepAccuracy` — its only `ignoreAccuracy` / `ignoreEvasion` text is inside `hitStepMoveHitLoop`'s
+`multiaccuracy` branch, a different function. This engine multiplied the two stages separately and
+never truncated. Every number below is the authority's own, captured from the argument the same call
+hands to `randomChance(accuracy, 100)`:
+
+| printed | acc | eva | before | AUTHORITY |
+|---|---|---|---|---|
+| 100 | −1 | +1 | 56.25 | **60** |
+| 100 | −6 | +6 | 11.11 | **33** |
+| 100 | +1 | +2 | 80.00 | **75** — the direction REVERSES |
+| 80 | 0 | +6 | 26.67 | **26** — one stage zero, and it still parts |
+
+**THE TWO CLAMPS ARE AS DESCRIBED AND ONLY THE SECOND ONE CAN BITE.** A stage is already held inside
+±6 when it is applied, and the one `onModifyBoost` ability with a legal carrier here (Unaware, 2)
+sets a stage to ZERO rather than out of range — so the first clamp is a no-op. The second is the whole
+caps result: −6 − (+6) is −12 and must come back as −6.
+
+**`ignoreAccuracy` HAS ZERO LEGAL CARRIERS. `ignoreEvasion` HAS TWO MOVES AND TWO ABILITIES.** The
+ability half (Keen Eye, Illuminate) is wired and probed, and is this batch's composition control. The
+MOVE half (Darkest Lariat, Sacred Sword) is **not modelled** — no tag carries the flag — and is filed
+below, not fixed.
+
+### THE FINDING THAT WAS NOT IN THE BRIEF, AND IT CAUGHT A ROW PINNING THE BUG
+
+*"They agree whenever one side is zero"* is FALSE. They agree when one side is zero **and the result
+is an integer.** The truncation runs on any non-zero combined boost, so a one-sided stage on a 95- or
+80-printed move parts too — which is how `ability|accuracyMod — the bot PRICES an evasive body` was
+caught asserting `0.2667` for an 80-printed move at +6 evasion where the authority reads **26**. That
+row went MISSING on the first census run after the fix and its expectation is corrected from the
+`trunc-eva6` arm's measurement, not from arithmetic.
+
+### THE FIX IS ONE EXPRESSION, AND IT MOVED BELOW THE MODIFIER WALK ON PURPOSE
+
+The authority runs `runEvent('ModifyAccuracy', ...)` — Bright Powder, Wide Lens, Zoom Lens, Compound
+Eyes, Hustle, Sand Veil, Snow Cloak, Wonder Skin, Tangled Feet and Gravity are all handlers of it —
+and only THEN the stages. Multiplications commute, so the old order was harmless while nothing
+truncated; the moment a truncation exists the ORDER decides where the fraction is thrown away.
+`>>> 0` is the authority's own `Dex#trunc` (`sim/dex.ts:391`), not `Math.floor` chosen for taste.
+Three counters split the three populations — `accStageCombined`, `accStageBothSides`,
+`accStageTruncated` — because one number would hide which of them a run exercised.
+
+### TWO INSTRUMENTS, BOTH SHOWN RED FIRST
+
+`tests/probe_accuracy_stage_combine.js` — 11 arms over two engines under the `middle` pin, nothing
+typed as an expected accuracy: the authority is instrumented at `BattleActions.prototype.hitStepAccuracy`,
+which writes the two stages onto the live bodies and captures what that call rolls against, and
+medicham2 is asked `hitChance`, the function its four roll sites call. Every arm then spends a real
+turn at two dice straddling the authority's number and asserts the HP the target lost. **RED before
+the fix at 10 assertions across 5 live arms with all 4 controls already green**; GREEN after; GREEN
+under `--red`, where every live arm MUST part and every control MUST NOT.
+
+`tests/test-mechanics.js`, `move|accuracyMod` — one new census row, four live arms with BOTH stages
+non-zero (every pre-existing accuracy row zeroes one of them, which is why none of them could ever
+have gone red on this) and three controls. Under `MEDI_ACC_EVA_SEPARATE=1` the census reads **817
+live / 2 missing** and REFUSES to write, the knob being registered in `DELIBERATE_BREAK`; the six
+control readings are byte-identical across the knob.
+
+### THE HAND LIST
+
+**Leaves it:**
+- ~~*"THE ACCURACY AND EVASION STAGES ARE MULTIPLIED SEPARATELY"*~~ — **landed and probed** by
+  `tests/probe_accuracy_stage_combine.js` and the new `move|accuracyMod` census row, shown red on both
+  doors first, with four knob-cleared over-fire controls that read identically before and after.
+- ~~*"THE STAGE STEP IS NOT TRUNCATED"*~~ — landed with it, and it is the half that reached furthest:
+  it parts with ONE stage at zero wherever the answer is fractional.
+
+**Joins it:**
+- **`move.ignoreEvasion` IS NOT MODELLED.** Darkest Lariat and Sacred Sword carry it in the dex; the
+  `ignoresBoosts` tag they hold is derived from `ignoreDefensive` and belongs to the damage chain, and
+  no tag anywhere carries `ignoreEvasion`. Against a target on positive evasion both moves are less
+  accurate here than in the real game. The fix is a param on the existing derivation at
+  `engine/tag_dex.js:5034` plus one read; membership does not change. **Left out deliberately to keep
+  this a batch of one.**
+- **THE `multiaccuracy` SECOND ACCURACY PATH IS UNEXAMINED.** Champions gives hits 2..n of Population
+  Bomb and Triple Axel their own separately-multiplied, separately-clamped, UNTRUNCATED block
+  (`data/mods/champions/scripts.ts:484-505`) — the arithmetic just removed from `hitStepAccuracy` is
+  correct *there*. What medicham2 does for arrivals 2..n of those two was not checked. 1,880 corpus uses.
+- **`ModifyBoost` IS NOT MODELLED.** Unaware (2 legal carriers) zeroes the target's evasion when it
+  attacks and the attacker's accuracy when it defends (`data/abilities.ts:5207-5221`); the engine reads
+  `att.boosts.acc` and `def.boosts.eva` raw. Carriers enumerated, engine not read — a hypothesis.
+
+**Carried forward unchanged** from the hand lists below: Ripen not halving a resist berry a second
+time; `tag_dex.js` mis-deriving `takesTargetItem` for Bug Bite and Pluck; `data/abra-tags.js` drifted
+from `data/tags.json`; Triple Axel into an intact Disguise dealing zero on arrivals 2 and 3; a
+multi-arrival volley halving EVERY arrival against a resist berry; the drain heal paid once per row;
+an attacker killed by an interior arrival's toll not stopping the volley; `tests/probe_upkeep_lines.js`
+red at 4 of 49; this walk re-asking `residualOrder()` per group; a perish-killed body skipping its own
+orders 25-29; `tests/probe_red_demo.js`'s five COULD-NOT-BE-APPLIED and one HOLLOW; `boost()`'s second
+refusal; whether every other announcing ability writes its `|-ability|` line; ROADMAP #362's stale row;
+the Cursed Body 30% and Blizzard 10%; the redirect gate's ally-aimed status move, the ally-aimed
+delayed hit, Defog's `target.side`, the `self`-target heal `|move|` line, the fainted-ally clause of
+`getTarget`, the `scripted` exemption from `aimTravelsByLoc`, the `chillyreception` target-class
+exemption, and the `benchRisk` refit `clickFragility` owes MEASURE; and the King's Rock killing
+arrival's die.
+
+### OWED, NOT RUN
+
+The `## OWED, NOT RUN` block of
+[docs/_reports/2026-08-31-accuracy-stage-combine.md](_reports/2026-08-31-accuracy-stage-combine.md) —
+the unmodelled `move.ignoreEvasion`, a pool-scale reading of the three new `MEDSEEN` counters (the
+differential surfaces no `MEDSEEN`, so all three have only been read on a staged board),
+`tests/test-engine-diff.js` (no damage byte moved), the three roster stages (already stale before this
+pass), the `multiaccuracy` second path, and `ModifyBoost`.
 
 ## KING'S ROCK TOOK ONE DIE PER CLICK AND THE AUTHORITY TAKES ONE PER LANDED ARRIVAL — WILL'S "SUPER FLINCH MACHINE" IS REAL AND WE WERE NOT MODELLING IT. **CENSUS 817 -> 818 LIVE / 818 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. BOARD-PARTED UNMOVED AT 82 OF 961, PROTOCOL UNMOVED AT 172, CAUSES UNMOVED AT 150 WITH ZERO ADDED AND ZERO REMOVED, END-STATE IDENTICAL AT 905/53/2/0/1 — ALL FOUR PREDICTED AT THEIR POINT ESTIMATE BEFORE THE RUN, ELEVEN PREDICTIONS AND ELEVEN HITS. THE AUTHORITY'S DIE COUNT WAS INSTRUMENTED, NOT INFERRED.** 2026-08-31.
 

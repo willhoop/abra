@@ -1,0 +1,47 @@
+{
+  "written": "2026-09-01T03:05Z",
+  "by": "ENGINE, before the probe was shown red and before any census or differential run",
+  "batch": "the accuracy stage and the evasion stage are multiplied separately; they must be ONE clamped stage, looked up once, and truncated",
+  "authority": "sim/battle-actions.ts:713-727 (hitStepAccuracy). Champions does NOT override hitStepAccuracy (grep in data/mods/champions/scripts.ts finds it only inside the multiaccuracy branch of hitStepMoveHitLoop, which is a different function).",
+  "derived_before_the_run": {
+    "legal_moves_carrying_ignoreAccuracy": 0,
+    "legal_moves_carrying_ignoreEvasion": 2,
+    "legal_moves_carrying_ignoreEvasion_names": ["darkestlariat", "sacredsword"],
+    "legal_moves_carrying_multiaccuracy": 2,
+    "legal_moves_carrying_multiaccuracy_names": ["populationbomb", "tripleaxel"],
+    "onModifyBoost_abilities_with_legal_carriers": {"unaware": 2},
+    "accuracy_stage_movers_legal": ["coil", "mudslap", "muddywater", "nightdaze"],
+    "evasion_stage_movers_legal": ["doubleteam", "minimize", "sweetscent"],
+    "pinned_pool_sheet_entries": {"coil": 724, "muddywater": 1009, "minimize": 42, "nightdaze": 15, "mudslap": 8, "sweetscent": 3, "doubleteam": 2},
+    "pinned_pool_games": 13214,
+    "pinned_pool_teams": 26428,
+    "pinned_pool_games_with_any_evasion_mover_on_either_side": 40,
+    "pinned_pool_games_with_accuracy_mover_one_side_and_evasion_mover_the_other": 2
+  },
+  "the_arithmetic_predicted": [
+    {"printed": 100, "acc": -1, "eva": 1, "abra_now": 56.25, "authority": 60},
+    {"printed": 100, "acc": -2, "eva": 2, "abra_now": 36.0, "authority": 42},
+    {"printed": 100, "acc": -6, "eva": 6, "abra_now": 11.111, "authority": 33},
+    {"printed": 100, "acc": 1, "eva": 2, "abra_now": 80.0, "authority": 75, "note": "the DIRECTION REVERSES here — the fix is not `always more accurate`"},
+    {"printed": 95, "acc": -1, "eva": 2, "abra_now": 42.75, "authority": 47, "combine_without_trunc": 47.5, "note": "the arm that isolates the truncation"},
+    {"printed": 100, "acc": -1, "eva": 0, "abra_now": 75, "authority": 75, "note": "CONTROL — one stage zero, must not move"},
+    {"printed": 100, "acc": 0, "eva": 2, "abra_now": 60, "authority": 60, "note": "CONTROL — one stage zero, must not move"},
+    {"printed": 100, "acc": 0, "eva": 0, "abra_now": 100, "authority": 100, "note": "CONTROL — both zero, must not move"}
+  ],
+  "predictions": [
+    {"id": "P1", "what": "census live", "point": 819, "band": "819", "why": "exactly one new probe row is added"},
+    {"id": "P2", "what": "census probed", "point": 819, "band": "819"},
+    {"id": "P3", "what": "census missing / hollow / threw", "point": "0 / 0 / 0", "band": "0 / 0 / 0"},
+    {"id": "P4", "what": "empirical board-parted of 961", "point": 82, "band": "80-84", "why": "the both-stages-non-zero case is essentially unreachable in the pinned pool: 40 of 13,214 games carry an evasion-stage mover at all and only 2 of 13,214 pair one against an accuracy-stage mover, so a 961-game sample expects ~0.15 such games — and in each the move must be BROUGHT, CLICKED and LAND. The truncation half is reachable one-sidedly but Coil pushes every >=75-printed move over 100 (no roll at all) and Muddy Water's accuracy drop is a 30% secondary."},
+    {"id": "P5", "what": "empirical protocol-diverged of 961", "point": 172, "band": "169-175"},
+    {"id": "P6", "what": "distinct divergence causes", "point": 150, "band": "146-154"},
+    {"id": "P7", "what": "end-state verdicts", "point": "905/53/2/0/1", "band": "+/-2 any cell"},
+    {"id": "P8", "what": "sample identity against the kingsrock baseline", "point": "identical", "band": "identical", "why": "same pool digest, same census pin, same arm, same turn cap, same game count"},
+    {"id": "P9", "what": "tests/probe_accuracy_stage_combine.js, clean arm", "point": "GREEN", "band": "GREEN"},
+    {"id": "P10", "what": "tests/probe_accuracy_stage_combine.js --red", "point": "GREEN (every live arm PARTS, every control HOLDS)", "band": "GREEN"},
+    {"id": "P11", "what": "the new census row under MEDI_ACC_EVA_SEPARATE=1", "point": "MISSING, 818 live / 1 missing, and the census REFUSED to write", "band": "the knob is narrow — exactly one row moves"},
+    {"id": "P12", "what": "MEDFAILS.accStageNoTable / any new silent fallback counter", "point": 0, "band": "0"},
+    {"id": "P13", "what": "tests/test-engine-diff.js", "point": "NOT RUN — no damage byte moves", "band": "declared, not measured"}
+  ],
+  "honest_note_on_probability": "This alters a RATE, not a deterministic value. Mode A pins the dice: the two corner arms hold the accuracy die at a constant (every sub-100 move misses, or every one hits), so a change of 56.25 -> 60 cannot be seen there at all. The `middle` arm draws a live seeded value per address, so a changed accuracy can flip a hit — but only if the die lands in the gap. This is therefore predicted as a LAB-ONLY move: the census row and the two-engine probe are where it must show, and the pool is predicted UNMOVED at its point estimate."
+}

@@ -1,10 +1,10 @@
 {
-  "current": "b43a2fea0cb1",
-  "cut": "2026-09-01T02:14:48.515Z",
-  "why": "King's Rock takes one flinch die per LANDED arrival, not one per click (WIRE 103)",
+  "current": "52e0e7effbd6",
+  "cut": "2026-09-01T03:16:21.326Z",
+  "why": "accuracy and evasion stages combined into one clamped stage, truncated, below the modifier walk",
   "cuts": 1,
-  "latest_cut": "2026-09-01T02:14:48.515Z",
-  "latest_why": "King's Rock takes one flinch die per LANDED arrival, not one per click (WIRE 103)",
-  "pointer_written": "2026-09-01T02:14:48.550Z",
+  "latest_cut": "2026-09-01T03:16:21.326Z",
+  "latest_why": "accuracy and evasion stages combined into one clamped stage, truncated, below the modifier walk",
+  "pointer_written": "2026-09-01T03:16:21.443Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

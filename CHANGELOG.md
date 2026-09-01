@@ -10,6 +10,103 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.237.0] — 2026-08-31
+
+### Fixed
+- **THE ACCURACY STAGE AND THE EVASION STAGE ARE ONE CLAMPED STAGE, AND THIS ENGINE MULTIPLIED THEM
+  SEPARATELY AND NEVER TRUNCATED.** `hitStepAccuracy` (`sim/battle-actions.ts:713-727`) combines the
+  two into a single clamped boost, looks the `(3+n)/3` table up **once**, and truncates. MEDICHAM did
+  `acc *= accStageMul(accuracyStage)` then `acc /= accStageMul(evasionStage)`, with no combined clamp
+  and no truncation. **It decides hit or miss.**
+  - Champions does **not** override `hitStepAccuracy`. Its only `ignoreAccuracy` / `ignoreEvasion`
+    text is at `data/mods/champions/scripts.ts:487` and `:496`, inside `hitStepMoveHitLoop`'s
+    `multiaccuracy` branch — a different function, and one whose *separate* multiplications are
+    correct where they are.
+  - The authority's own numbers, captured from the argument the same call passes to
+    `randomChance(accuracy, 100)` on a real staged Champions battle with the stages written onto the
+    live bodies: printed 100 at **−1 accuracy into +1 evasion is 60**, where this engine rolled
+    56.25; **at the caps it is 33**, against 11.1; at **+1 accuracy into +2 evasion it is 75**,
+    against 80 — the direction **reverses**, so a change that merely raised accuracy would be wrong.
+  - **The two clamps are separate and nested exactly as the source reads, and only the second one can
+    bite.** A stage is already held inside ±6 when it is applied, and the one `onModifyBoost` ability
+    with a legal carrier in this format sets a stage to *zero* rather than out of range. The second
+    clamp is the whole caps result: `−6 − (+6)` is `−12` and must come back as `−6`.
+- **THE TRUNCATION REACHED FURTHER THAN THE COMBINATION DID, AND IT CAUGHT A TEST THAT WAS PINNING
+  THE BUG.** *"The two forms agree whenever one side is zero"* is **false** — they agree when one
+  side is zero **and the result is an integer**. An 80-printed move into +6 evasion **alone** is
+  26.667 here and **26** on the authority. That is the exact board the census row
+  `ability|accuracyMod — the bot PRICES an evasive body` stages, and it had asserted `0.2667` since
+  it was written; it went MISSING on the first census run after the fix. Its expectation is corrected
+  to `0.26` **from the measurement**, not from arithmetic.
+- **The stage step also moved below the modifier walk**, which is the authority's order
+  (`runEvent('ModifyAccuracy', ...)` — Bright Powder, Wide Lens, Zoom Lens, Compound Eyes, Hustle,
+  Sand Veil, Snow Cloak, Wonder Skin, Tangled Feet and Gravity are all handlers of it — precedes the
+  stages). Multiplications commute, so the old position was harmless while nothing truncated; the
+  moment a truncation exists, the **order** decides where the fraction is discarded. `>>> 0` is the
+  authority's own `Dex#trunc` (`sim/dex.ts:391`), not `Math.floor` chosen for taste.
+
+### Added
+- `tests/probe_accuracy_stage_combine.js` — 11 arms over both engines under the differential's
+  `middle` pin, with **nothing typed as an expected accuracy**. `BattleActions.prototype.hitStepAccuracy`
+  is wrapped: it writes the two stages onto the live bodies and captures the argument that same call
+  hands to `randomChance(accuracy, 100)`. medicham2 is asked `hitChance`, the function its four roll
+  sites call. Each arm then **spends a real turn** at two dice straddling the authority's number and
+  asserts the HP the target lost, so a number that agrees while a board does not would be caught.
+  **Shown RED first: 10 failing assertions across 5 live arms, with all 4 controls already green.**
+  Green after; green under `--red`.
+- A `move|accuracyMod` census row with **both stages non-zero on every live arm** — every pre-existing
+  accuracy row zeroes one of them, which is why none of them could ever have gone red on this. Four
+  live arms (including one where the direction reverses, and one 95-printed arm that is a guard
+  against a combined-but-untruncated fix) and three controls whose six readings are **byte-identical
+  across the knob**.
+- `MEDSEEN.accStageCombined`, `accStageBothSides` and `accStageTruncated` — three counters, not one,
+  because the three populations differ by orders of magnitude and a single number would hide which of
+  them a run exercised.
+- `MEDI_ACC_EVA_SEPARATE=1` restores the old pair **at the old position**, stamps
+  `MEDFAILS.accEvaSeparateRestored` at declaration, and is registered in `tests/test-mechanics.js`'s
+  `DELIBERATE_BREAK`, so a run under it refuses to write the census (verified: the artifact digest is
+  unchanged across such a run).
+
+### Notes
+- **Predicted as a LAB-ONLY move before the run, with the arithmetic stated first.** Mode A pins the
+  dice: the two corner arms hold the accuracy die at a constant, so 56.25 → 60 cannot be seen there at
+  all, and only the `middle` arm's live per-address draw can flip a board. Measured from the pinned
+  pool beforehand: **47 sheet entries** carry an evasion-stage mover across 26,428 team sheets;
+  **40 of 13,214 games** have one on either side; **2 of 13,214** pair one against an accuracy-stage
+  mover. A 961-game sample therefore expects **~0.15** games in which both stages could be non-zero
+  on one check.
+- **Twelve predictions written to `data/verification/2026-08-31-accuracy-stage-combine-prediction.json`
+  before any run; eleven held.** Census **818 → 819 live / 819 probed / 0 missing / 0 hollow /
+  0 threw**. The whole-game differential on release `52e0e7effbd6` is **unmoved at 82 board-parted of
+  961, 172 protocol-diverged, 150 distinct causes (0 added, 0 removed), end-state 905/53/2/0/1**, with
+  the class table, the 60-entry first-divergence list, the coverage block and the end-state summary
+  all **byte-equal** to the baseline under identical pins (961 games, cap 12, arm `middle`, steering
+  `empirical-click/v1`, pin digest `ccb365985023`, census pin `9446a684709d`,
+  `--team-store data/team-pool-frozen`).
+- **The one miss is named.** The deliberate-break knob was predicted to move exactly one census row;
+  it moves **two** — the new row, and the row whose typed expectation this fix corrected. 2 of 819 is
+  still narrow, and the census was refused on that run.
+- **A second, independent scoreboard also did not move.** The first differential of this pass ran with
+  the default `coverage` steering by mistake and is reported rather than discarded: 961 games,
+  **6 protocol-diverged, 0 board-parted**, which is the coverage-steering figure standing since
+  2026-08-29. That run also wrote `data/divergence-turns.json` (`--out` redirects the main artifact;
+  `--dump-out` is a separate flag); it was **restored from HEAD immediately** and the re-run wrote to
+  `data/verification/divergence-turns.accstage.json`. `data/game-differential.json` was never touched.
+- **NOT FIXED, AND NAMED RATHER THAN LEFT SILENT: `move.ignoreEvasion` is not modelled.** Darkest
+  Lariat and Sacred Sword carry the flag in the dex; `data/tags.json` gives both
+  `ignoresBoosts {defensive: true}`, which is derived from `ignoreDefensive` and is the damage chain's
+  business, and **no tag anywhere carries `ignoreEvasion`**. Against a target on positive evasion both
+  moves are less accurate here than in the real game. The fix is a param on the existing derivation at
+  `engine/tag_dex.js:5034` plus one read; membership does not change, because both carriers already
+  hold the tag. Left out deliberately to keep this a batch of one; the probe's "ignores one half"
+  control uses the **ability** carrier, which is the implemented one.
+- Also filed, not fixed: the `multiaccuracy` second accuracy path (Population Bomb, Triple Axel;
+  1,880 corpus uses) was not checked, and `ModifyBoost` — Unaware, 2 legal carriers — is not modelled.
+- `tests/test-engine-diff.js` was **not** re-run: it has no `--out` and would republish
+  `data/engine-diff.json`, from which the published `0 of 6,000 at all sixteen corners` is read.
+  Nothing here touches a damage byte. The three roster stages were not re-run and were already stale
+  before this pass.
+
 ## [5.236.0] — 2026-08-31
 
 ### Fixed

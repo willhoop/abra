@@ -17126,14 +17126,21 @@ probe('ability', 'writesAccuracy', 'the bot VALUES a click into a No Guard body 
 
 probe('ability', 'accuracyMod', 'the bot PRICES an evasive body, and not only dodges around it', () => {
   /* Three knobs the valuation path could not see, each with its own arithmetic so a single blanket
-   * multiplier cannot pass all three: Bright Powder x0.9 -> 0.72, +6 evasion /3 -> 0.2667,
-   * Wide Lens x1.1 -> 0.88. The control must sit at the printed 0.8. */
+   * multiplier cannot pass all three: Bright Powder x0.9 -> 0.72, +6 evasion -> 0.26,
+   * Wide Lens x1.1 -> 0.88. The control must sit at the printed 0.8.
+   *
+   * THE EVASION ARM READ 0.2667 UNTIL 2026-08-31 AND THAT WAS PINNING A BUG. The stage step is ONE
+   * combined, clamped boost followed by `trunc` (sim/battle-actions.ts:713-727), so 80 printed at a
+   * combined -6 is trunc(80 * 3/9) = 26, not 26.667. It is not typed here from arithmetic either:
+   * `tests/probe_accuracy_stage_combine.js`'s `trunc-eva6` arm stages this exact board on the real
+   * simulator and reads the number the authority hands to `randomChance(accuracy, 100)` — it is 26.
+   * The other three arms carry no stage, so `trunc` never runs on them and they are unchanged. */
   const control = valuedAcc('hydropump', null);
   const bp = valuedAcc('hydropump', (B) => { B.f1.item = 'brightpowder'; });
   const eva = valuedAcc('hydropump', (B) => { B.f1.boosts.eva = 6; });
   const lens = valuedAcc('hydropump', (B) => { B.me.item = 'widelens'; });
   return { works: String(control) === '0.8,0.8' && String(bp) === '0.72,0.72'
-                  && String(eva) === '0.2667,0.2667' && String(lens) === '0.88,0.88',
+                  && String(eva) === '0.26,0.26' && String(lens) === '0.88,0.88',
            arms: { control, test: [bp, eva, lens] },
            detail: `[bestMoveVs.acc, playerAction.acc] for Hydro Pump — bare ${control}; the foe's `
                  + `Bright Powder ${bp}; the foe at +6 evasion ${eva}; my Wide Lens ${lens}` };
@@ -28122,6 +28129,78 @@ probe('ability', 'ignoresEvasion', 'Keen Eye and Illuminate ignore a target\'s e
                  + 'The two abilities must agree: their handlers are byte-identical' };
 });
 
+/* THE ACCURACY STAGE AND THE EVASION STAGE ARE ONE NUMBER — AND EVERY ROW ABOVE ZEROES ONE OF THEM.
+ *
+ * THE AUTHORITY, `sim/battle-actions.ts:713-727` (Champions does not override `hitStepAccuracy`):
+ *     let boost = 0;
+ *     if (!move.ignoreAccuracy) { boost = clampIntRange(boosts['accuracy'], -6, 6); }
+ *     if (!move.ignoreEvasion)  { boost = clampIntRange(boost - boosts['evasion'], -6, 6); }
+ *     if (boost > 0)      { accuracy = trunc(accuracy * (3 + boost) / 3); }
+ *     else if (boost < 0) { accuracy = trunc(accuracy * 3 / (3 - boost)); }
+ * ONE subtraction, ONE clamp, ONE lookup, ONE truncation. This engine multiplied the two stages
+ * separately -- `acc*=accStageMul(_ab); acc/=accStageMul(_eb);` -- and never truncated: -1 into +1
+ * is 56.25 here against 60 there, and at the caps it is 11.1 against 33.3. It parts with ONE side
+ * zero too wherever the answer is fractional -- 80 printed at +6 evasion alone is 26.667 here and 26
+ * there, which is the number the row `ability|accuracyMod - the bot PRICES an evasive body` had been
+ * asserting as 0.2667.
+ *
+ * WHY THIS ROW EXISTS BESIDE THREE OLDER ACCURACY ROWS, AND WHY NONE OF THEM COULD HAVE CAUGHT IT.
+ * `item|accuracyMod` leaves the attacker unboosted, `move|accuracyMod` moves each modifier alone and
+ * `ability|ignoresEvasion` directly above moves evasion only. Nothing put a non-zero ACCURACY stage
+ * and a non-zero EVASION stage on the same board, so all three stay green straight through the fix.
+ * EVERY LIVE ARM HERE SETS BOTH, and the three that hold one at zero are labelled CONTROL.
+ *
+ * THE READING IS A LANDED HIT, NOT A NUMBER. Each arm spends a real turn with the die pinned to a
+ * constant chosen to sit between the two engines' answers, so the arm reports the HP the target
+ * actually lost. `_R.acc()*100 <= acc` is the roll, so a die of d hits when 100d <= accuracy.
+ *
+ * ARM D IS THE TRUNCATION AND IT IS A GUARD RATHER THAN A DEMONSTRATION: 95 printed at a combined -3
+ * is 47.5 before truncation and 47 after, so a die of 0.473 MISSES on the authority and would HIT on
+ * a combined-but-untruncated fix. It reads the same before and after the fix on purpose -- what it
+ * catches is the wrong fix, not the old engine.
+ *
+ * ARM C REVERSES THE DIRECTION. +1 accuracy into +2 evasion is 80 on the old arithmetic and 75 on the
+ * authority, so a change that simply made everything more accurate fails here. */
+probe('move', 'accuracyMod',
+      'a non-zero accuracy stage AND a non-zero evasion stage are ONE clamped stage, not two multiplications', () => {
+  const run = (mv, a, e, die, ab) => {
+    const me = bare('lycanrocmidnight'); me.ability = ab || 'none';
+    me.moves = ['crunch', 'rocktomb', 'protect'];
+    const ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    unfaintable(f1); me.boosts.acc = a; f1.boosts.eva = e;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const h = f1.curHP;
+    M.battleTurn(S, () => die,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return h - f1.curHP;
+  };
+  /* LIVE — both stages non-zero on every one of these. */
+  const A = run('crunch', -1, 1, 0.58);      /* authority 60, old engine 56.25 -> must LAND */
+  const B = run('crunch', -6, 6, 0.20);      /* authority 33, old engine 11.11 -> must LAND */
+  const C = run('crunch', 1, 2, 0.78);       /* authority 75, old engine 80    -> must MISS */
+  const Dt = run('rocktomb', -1, 2, 0.473);  /* authority 47, untruncated 47.5 -> must MISS */
+  /* CONTROLS — one stage zero, so the two forms are algebraically identical and NOTHING may move. */
+  const e1 = run('crunch', -1, 0, 0.73), e2 = run('crunch', -1, 0, 0.77);   /* 75 both ways */
+  const f1 = run('crunch', 0, 2, 0.58), f2 = run('crunch', 0, 2, 0.62);     /* 60 both ways */
+  /* CONTROL — both stages non-zero, but the attacker's ability sets move.ignoreEvasion, so the
+   * authority never takes the second clause. Must read the accuracy-only answer. */
+  const k1 = run('crunch', -1, 2, 0.73, 'keeneye'), k2 = run('crunch', -1, 2, 0.77, 'keeneye');
+  return { works: A > 0 && B > 0 && C === 0 && Dt === 0
+                  && e1 > 0 && e2 === 0 && f1 > 0 && f2 === 0 && k1 > 0 && k2 === 0,
+           arms: { control: [e1, e2, f1, f2, k1, k2], test: [A, B, C, Dt] },
+           detail: '[HP off an unfaintable Milotic, die pinned] BOTH stages non-zero: -1 acc / +1 eva '
+                 + 'at die 0.58 -> ' + A + ' (authority rolls 60, the old arithmetic 56.25, so this '
+                 + 'must LAND); -6 / +6 at 0.20 -> ' + B + ' (authority 33, old 11.1); +1 / +2 at '
+                 + '0.78 -> ' + C + ' (authority 75, old 80, so this must MISS -- the direction '
+                 + 'reverses); Rock Tomb (95 printed) -1 / +2 at 0.473 -> ' + Dt + ' (authority '
+                 + 'truncates 47.5 to 47, so this must MISS). CONTROLS, one stage zero and identical '
+                 + 'under both forms: -1/0 at 0.73/0.77 -> ' + e1 + '/' + e2 + ', 0/+2 at 0.58/0.62 '
+                 + '-> ' + f1 + '/' + f2 + '. KEEN EYE with BOTH stages set, at 0.73/0.77 -> '
+                 + k1 + '/' + k2 + ', which must read the accuracy-only answer of 75' };
+});
+
 /* MERCILESS — ROADMAP #213, AND IT IS NOT A RATE ROW. THAT IS THE FINDING.
  *
  * It was routed to the rate runner beside Super Luck and Magma Armor, on the reasonable reading that
@@ -32467,7 +32546,7 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afte
                           'reactBatchedRestored', 'berryAtApplyRestored',
                           'formeBustInlineRestored', 'eatReactBeforeBerryRestored',
                           'eatEventUpdateOnlyRestored', 'stealEatStripOnlyRestored',
-                          'kingsRockOncePerMoveRestored']
+                          'kingsRockOncePerMoveRestored', 'accEvaSeparateRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

@@ -1,6 +1,8 @@
 # ABRA — Project Summary
 
-**Version 5.236.0 · 2026-08-31 · Will Hooper**
+**Version 5.237.0 · 2026-08-31 · Will Hooper**
+
+**5.237.0 - AN ACCURACY DROP AND AN EVASION BOOST ARE ONE NET STEP, NOT TWO SEPARATE MULTIPLICATIONS.** The real game adds the two together, clamps the total, looks up a single number and rounds it down. We were multiplying each one in turn and keeping the fraction, so “lowered accuracy into a boosted target” read 56.25% where the truth is 60%, and at the extremes 11% where the truth is 33%. In one shape it went the other way (80% against a true 75%), which is what stops this being a one-directional “we were too harsh” correction. The rounding half turned out to reach further than the combining half: it separates the two versions even when only one of the effects is present, and it caught one of our own tests that had recorded the un-rounded value as correct. Both are fixed, both are proved by a test that was shown failing first against the official simulator's own instrumented number, and the 961-game whole-game comparison is unchanged in every figure - predicted before the run, because the ingredients are rare in the sampled games.
 
 **5.236.0 - THE KING'S ROCK FLINCH ROLL NOW HAPPENS ONCE PER HIT THAT LANDS, NOT ONCE PER ATTACK.** On a ten-strike move that is the difference between a 10% flinch and a 65% one, and our simulator was giving every volley the flat 10%. The official simulator's own dice were counted with an instrument rather than reasoned about; ours now produce the same count, including the case where the target faints part-way through and the remaining strikes never happen. The mechanics census rose 817 -> 818 and the 961-game comparison against the official simulator is identical in every figure - both predicted in writing before the run.
 

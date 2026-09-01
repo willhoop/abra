@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-01T02:12:13.444Z",
+  "generated": "2026-09-01T03:15:01.436Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 818,
-  "live": 818,
+  "probed": 819,
+  "live": 819,
   "missing": 0,
-  "armed": 818,
+  "armed": 819,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3963,7 +3963,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 28.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4523,7 +4523,7 @@
       "tag": "accuracyMod",
       "label": "the bot PRICES an evasive body, and not only dodges around it",
       "live": true,
-      "detail": "[bestMoveVs.acc, playerAction.acc] for Hydro Pump — bare 0.8,0.8; the foe's Bright Powder 0.72,0.72; the foe at +6 evasion 0.2667,0.2667; my Wide Lens 0.88,0.88",
+      "detail": "[bestMoveVs.acc, playerAction.acc] for Hydro Pump — bare 0.8,0.8; the foe's Bright Powder 0.72,0.72; the foe at +6 evasion 0.26,0.26; my Wide Lens 0.88,0.88",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7264,6 +7264,16 @@
       "label": "Keen Eye and Illuminate ignore a target's evasion, and do not help against a lowered one",
       "live": true,
       "detail": "[HP off the target] Crunch (100 printed accuracy) at the LOSING roll into a target on +2 evasion -- no ability 0 (it misses), KEEN EYE 67, ILLUMINATE 67. The same click into a target on NO evasion boost is 67, which is the control that says the miss was the evasion and not the move. The two abilities must agree: their handlers are byte-identical",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "accuracyMod",
+      "label": "a non-zero accuracy stage AND a non-zero evasion stage are ONE clamped stage, not two multiplications",
+      "live": true,
+      "detail": "[HP off an unfaintable Milotic, die pinned] BOTH stages non-zero: -1 acc / +1 eva at die 0.58 -> 62 (authority rolls 60, the old arithmetic 56.25, so this must LAND); -6 / +6 at 0.20 -> 58 (authority 33, old 11.1); +1 / +2 at 0.78 -> 0 (authority 75, old 80, so this must MISS -- the direction reverses); Rock Tomb (95 printed) -1 / +2 at 0.473 -> 0 (authority truncates 47.5 to 47, so this must MISS). CONTROLS, one stage zero and identical under both forms: -1/0 at 0.73/0.77 -> 64/0, 0/+2 at 0.58/0.62 -> 62/0. KEEN EYE with BOTH stages set, at 0.73/0.77 -> 64/0, which must read the accuracy-only answer of 75",
       "hollow": false,
       "armed": true,
       "directCall": false
