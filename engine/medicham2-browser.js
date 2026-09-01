@@ -1352,6 +1352,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * than the bug it replaces: two bodies taking SINGLE-TARGET damage. A run where the first counter
    * moves and the second never does, over games that contain a live partner, is that defect. */
   terrainTargetWidened: 0, terrainTargetWidenedSpreadReduced: 0,
+  /* 2026-09-01 -- THE GROUNDED GATE ON THE MOVE'S OWN TERRAIN MULTIPLIER, and it is two counters for
+   * the reason the pair above is two: a gate that is never REFUSED is a gate that is not wired, and
+   * `Applied` alone cannot tell that apart from a gate that is simply always satisfied. `Applied`
+   * counts every boost PAID with a known subject; `Refused` counts every one WITHHELD because the
+   * subject body was airborne. A run with terrain in it where `Refused` stays at 0 forever is the
+   * unwired-knob shape, not evidence the gate is unnecessary. */
+  terrainScaledGateApplied: 0, terrainScaledGateRefused: 0,
   /* WIRE 144 -- the same event for the `randomTarget` family (Outrage, Petal Dance, Raging Fury,
    * Thrash, Uproar, Struggle). A driver that reads Showdown's request supplies no target for these
    * either, because Showdown never asks for one. Counted apart from the spread family because they
@@ -2768,6 +2775,20 @@ const MEDFAILS = { encoreAction: 0,
    * reading of a terrain-widened move back on purpose, so the before-arm of the target-rewrite fix and
    * a broken engine can never be read as the same thing. Same shape as the rows above. */
   terrainTargetSingleRestored: 0,
+  /* 2026-09-01 -- set to 1 for the whole run when MEDI_TERRAIN_SCALED_UNGATED=1 puts the UNGATED
+   * move-level terrain multiplier back on purpose. Separate knob from the row above: the rewrite is a
+   * claim about the TARGET LIST and this is a claim about the BASE POWER, they were red at the same
+   * time on the same board, and one knob could not have told them apart. */
+  terrainScaledUngatedRestored: 0,
+  /* 2026-09-01 -- a `terrainScaled {terrain, mult}` member reached the base-power gate with no entry
+   * in TERRAIN_SCALED_SUBJECT. It keeps the boost UNGATED (which is what this engine did before the
+   * gate existed, so nothing silently loses damage) and says so, because the three members disagree
+   * about whose feet matter and a guessed subject is the silent default this file may not ship. */
+  terrainScaledSubjectUnknown: 0, terrainScaledSubjectUnknownFirst: '',
+  /* 2026-09-01 -- the gated body was not handed to dmgRange at all (a pure pricing call with no
+   * defender, or no attacker). It DECLINES the boost rather than assuming the body was standing --
+   * same rule as terrainScaledNoAttacker one field over. */
+  terrainScaledGateNoBody: 0,
   /* 2026-09-01 -- a hazard punish fired on a body whose side field carries no `_S` back-reference, so
    * the far side could not be resolved and NO layer was laid. Counted rather than fallen back on: the
    * silent fallback is what put the layer on the holder's own half for three weeks. */
@@ -4333,6 +4354,40 @@ const SPREAD = (TAGS.off || TAGS.missing || !TAGS.withTag)
  * `!isSemiInvulnerable()`; this handler is on the MOVE and pairs it with nothing. Adding the clause
  * here would be an over-narrowing invented in this file, so it is deliberately absent and said so. */
 const TERRAIN_TARGET_REWRITE = { expandingforce: 'psychic' };
+/* 2026-09-01 -- WHOSE FEET THE MOVE'S OWN TERRAIN MULTIPLIER READS. The other half of the sentence
+ * above: the target REWRITE is one member and the x1.5/x2 BOOST is three, and they do not agree.
+ *
+ * DERIVED FROM THE FORMAT, NOT INHERITED. `Dex.forFormat('gen9championsvgc2026regmb').moves.all()`
+ * filtered `exists && !isNonstandard && tier !== 'Illegal'`, every legal move whose handler source
+ * reads the terrain, then carrier-checked through `champions_sim.moveCarriers`. Eight moves read a
+ * terrain; FOUR carry the `terrainScaled` tag; THREE of those carry `{terrain, mult}` and so reach
+ * the base-power site this map serves:
+ *
+ *   expandingforce  38 carriers  data/moves.ts:4953-4958   onBasePower(basePower, source)
+ *                                  `this.field.isTerrain('psychicterrain') && source.isGrounded()`
+ *                                  -> chainModify(1.5)                            THE USER
+ *   mistyexplosion  20 carriers  data/moves.ts:12145-12150 onBasePower(basePower, source)
+ *                                  `this.field.isTerrain('mistyterrain') && source.isGrounded()`
+ *                                  -> chainModify(1.5)                            THE USER
+ *   risingvoltage   24 carriers  data/moves.ts:15136-15142 basePowerCallback(source, target, move)
+ *                                  `this.field.isTerrain('electricterrain') && target.isGrounded()`
+ *                                  -> move.basePower * 2                          THE TARGET
+ *
+ * The fourth tag member, Terrain Pulse (12 carriers), carries `byTerrain`/`anyTerrainBPMult` and no
+ * `{terrain, mult}`; its gate is `requiresGrounded` on the USER and was already applied at the
+ * type/base-power site above. Psyblade is mainline's fifth and Champions marks it
+ * `isNonstandard: 'Past'` (data/mods/champions/moves.ts:763), so it is not a member here at all.
+ *
+ * CHAMPIONS OVERRIDES NONE OF THE THREE -- checked in `data/mods/champions/moves.ts` by key, not by
+ * memory, because the whole point of the mod is that mainline is not the authority by default.
+ *
+ * `isSemiInvulnerable()` IS DELIBERATELY ABSENT, for the same reason it was refused on the rewrite:
+ * none of the three handlers above names it. The clause belongs to the terrain CONDITION's handlers,
+ * not to a move's.
+ *
+ * TYPED AS A LITERAL, per the ROADMAP #92 precedent. `terrainScaled` has no `subject` param; adding
+ * one is a `tag_dex` regeneration and is filed as follow-up rather than made a blocker. */
+const TERRAIN_SCALED_SUBJECT = { expandingforce: 'user', mistyexplosion: 'user', risingvoltage: 'target' };
 /* `att` IS THE USER and the tense is EXECUTION. A caller with no field, or with a body the terrain
  * cannot reach, gets `false` -- which is the right answer rather than a default: with no Psychic
  * Terrain there is no rewrite to make. */
@@ -11695,14 +11750,48 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
                                   :[_POW[_n],4096]);
       }
     }
-    /* THE MOVE'S OWN TERRAIN SCALING -- Expanding Force `chainModify(1.5)` in Psychic Terrain and
-     * Rising Voltage's doubling in Electric Terrain. Both used to multiply the base DAMAGE. The
-     * grounded-ness gate is still not applied and the reason is unchanged and stated at the old
-     * site: the tag carries `{terrain, mult}` and no SUBJECT, and the two members disagree about
-     * whose feet matter (Expanding Force the user's, Rising Voltage the target's). */
+    /* THE MOVE'S OWN TERRAIN SCALING, NOW GATED ON THE RIGHT BODY'S FEET.
+     *
+     * This block used to fire on the terrain alone, and the comment that stood here said so and
+     * deferred the gate because "the tag carries `{terrain, mult}` and no SUBJECT, and the members
+     * disagree about whose feet matter". That deferral is what this is. The subject is now read from
+     * `TERRAIN_SCALED_SUBJECT` (declared beside `TERRAIN_TARGET_REWRITE`, with the three authority
+     * handlers quoted), and the ASYMMETRY is the whole job -- a gate applied uniformly fixes two
+     * members and breaks the third.
+     *
+     * MEASURED RED FIRST, one live foe so no spread reduction can confound the number:
+     *   Chimecho Expanding Force -> Garchomp : clear 76, Psychic Terrain + grounded 148,
+     *                                          Psychic Terrain + AIRBORNE user 114  (= 76 x 1.5)
+     *   Clefable Misty Explosion -> Garchomp : clear 146, Misty Terrain + grounded 218,
+     *                                          Misty Terrain + AIRBORNE user 218
+     *   Raichu Rising Voltage -> Incineroar  : clear 48, Electric Terrain UG/TG 121,
+     *                                          UG / AIRBORNE target 121, AIRBORNE user / TG 94
+     * The airborne arms had to read 76 / 146 / 62, and the fourth row (94) was ALREADY RIGHT -- the
+     * move's x2 pays on an airborne user because it reads the TARGET, while the terrain condition's
+     * x1.3 correctly does not. That row is the one a uniform user-gate would have broken, and it is
+     * asserted unmoved in the probe.
+     *
+     * A MEMBER WITH NO SUBJECT IS LOUD, NOT DEFAULTED. It keeps the ungated boost (today's answer,
+     * so nothing silently loses damage) and counts `MEDFAILS.terrainScaledSubjectUnknown` with the
+     * offending id, because a new `{terrain, mult}` member arriving next regulation must announce
+     * itself rather than inherit a guess. */
     {
       const _ts=TAGS.param('move',mv&&mv.id,'terrainScaled');
-      if(_ts&&_ts.terrain&&_ts.mult&&terrainId(field.terrain)===terrainId(_ts.terrain))BPCH(+_ts.mult);
+      if(_ts&&_ts.terrain&&_ts.mult&&terrainId(field.terrain)===terrainId(_ts.terrain)){
+        const _sub=TERRAIN_SCALED_SUBJECT[String(mv.id||'').toLowerCase()];
+        let _ok;
+        if(TERRAIN_SCALED_UNGATED){_ok=true;}
+        else if(_sub==='user'||_sub==='target'){
+          const _body=_sub==='user'?att:def;
+          _ok=_body?!!isGrounded(_body):(MEDFAILS.terrainScaledGateNoBody++,false);
+        } else {
+          MEDFAILS.terrainScaledSubjectUnknown++;
+          if(!MEDFAILS.terrainScaledSubjectUnknownFirst)MEDFAILS.terrainScaledSubjectUnknownFirst=String(mv.id||'?');
+          _ok=true;
+        }
+        if(_ok){BPCH(+_ts.mult);if(_sub)MEDSEEN.terrainScaledGateApplied++;}
+        else MEDSEEN.terrainScaledGateRefused++;
+      }
     }
     /* ROADMAP #92 -- THE FIELD TERRAINS THEMSELVES, ABSENT ENTIRELY UNTIL NOW. Not "in most games":
      * measured, all terrain setters combined are 161 corpus uses against Fake Out's 15,106. The
@@ -20920,6 +21009,18 @@ const TERRAIN_TARGET_SINGLE=(typeof process!=='undefined'&&process.env
  * Expanding Force is clicked on a Psychic Terrain -- tests/test-mechanics.js reads exactly this to
  * refuse writing the census under a deliberate break. */
 if(TERRAIN_TARGET_SINGLE)MEDFAILS.terrainTargetSingleRestored=1;
+/* 2026-09-01 -- `MEDI_TERRAIN_SCALED_UNGATED=1` RESTORES THE UNGATED MOVE-LEVEL TERRAIN MULTIPLIER:
+ * Expanding Force's and Misty Explosion's x1.5 and Rising Voltage's x2 paid on the terrain alone, with
+ * nobody's feet checked. That is what this engine did for as long as the tag was read, and its own
+ * comment at the site said so and deferred the fix.
+ *
+ * A SECOND KNOB AND NOT AN EXTENSION OF THE ONE ABOVE. `MEDI_TERRAIN_TARGET_SINGLE` is a claim about
+ * the TARGET LIST; this is a claim about the BASE POWER. They were both red on the same board on the
+ * same turn -- an airborne Chimecho's Expanding Force read 114 where the authority reads 76 while the
+ * target list was separately wrong -- and one knob over the pair could not have attributed either. */
+const TERRAIN_SCALED_UNGATED=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_TERRAIN_SCALED_UNGATED==='1');
+if(TERRAIN_SCALED_UNGATED)MEDFAILS.terrainScaledUngatedRestored=1;
 /* 2026-08-30 -- `MEDI_REACT_BATCHED=1` RESTORES THE BATCHED REACTION: every `onDamagingHit` reactor
  * of a volley paid in one deferred step BELOW the whole packet loop, so the stream read
  * `dmg dmg react react` where the authority writes `dmg react dmg react`.

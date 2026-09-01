@@ -510,6 +510,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * HP, because the `-hitcount` line and the toll lines are two readings of the same quantity and the
  * whole defect is that they disagreed.
  *
+ * `terrainBoostHit(` added 2026-09-01 with the terrain grounded-gate family, declared HERE and for
+ * the same reason. It calls `board()` -> `battleInit` and spends a real turn through `battleTurn`, and
+ * it HAS to: the claim is that a base-power multiplier is gated on one specific body's feet, and
+ * `isGrounded` reads Gravity off the body's own SIDE STAMP -- a direct `dmgRange` call would hand the
+ * formula two loose bodies with no side and the grounding clause order would never be exercised. It
+ * also faints the second foe before the turn so `targets.length` is 1, because Expanding Force now
+ * widens under Psychic Terrain and the spread 0.75 would otherwise ride on top of the multiplier this
+ * family is trying to read.
+ *
  * `megaWtTarget(` added 2026-08-29 with the mega-weight family, declared HERE and with its reason on
  * the same rule. It stages a real doubles board through `board()` -> `battleInit` and spends a real
  * turn through `battleTurn`, FOUR times per arm — the weight move and a fixed-power control move, each
@@ -517,7 +526,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * rewrites part-way through the turn, so a probe that priced the move before the turn started would
  * read the un-evolved body every time, which is exactly what the engine was doing.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -10606,6 +10615,131 @@ probe('move', 'targetClass', 'Expanding Force becomes a spread move on Psychic T
                  + `be 0); aimed body under Psychic Terrain lost ${test.f1} with a live partner and `
                  + `${solo.f1} with the partner down (the 0.75 must be paid only when two bodies are `
                  + `in the list), and the partner lost ${test.f2}` };
+});
+
+/* 2026-09-01 -- THE MOVE'S OWN TERRAIN MULTIPLIER, AND WHOSE FEET DECIDES IT.
+ *
+ * The probe above is the TARGET LIST. These three are the BASE POWER, which the last batch left
+ * ungated on purpose and measured on the way past: an airborne Chimecho's Expanding Force read 114
+ * where the authority reads 76, so the same move widened correctly and boosted incorrectly on the
+ * same board.
+ *
+ * THE MEMBERSHIP IS DERIVED. `Dex.forFormat('gen9championsvgc2026regmb').moves.all()` filtered
+ * `exists && !isNonstandard && tier !== 'Illegal'`, every legal move whose handler reads a terrain
+ * (eight), then the four carrying the `terrainScaled` tag, then the three carrying `{terrain, mult}`
+ * -- Expanding Force (38 carriers), Rising Voltage (24), Misty Explosion (20). Terrain Pulse is the
+ * fourth tag member, carries `byTerrain`/`anyTerrainBPMult` instead, and has its own probe below.
+ * Psyblade is mainline's fifth member and Champions marks it `isNonstandard: 'Past'`.
+ *
+ * AND THE THREE DO NOT AGREE ABOUT WHOSE FEET, which is the entire reason this is three probes and
+ * not one loop. `expandingforce.onBasePower(basePower, source)` and
+ * `mistyexplosion.onBasePower(basePower, source)` read `source.isGrounded()` -- THE USER.
+ * `risingvoltage.basePowerCallback(source, target, move)` reads `target.isGrounded()` -- THE TARGET.
+ * A gate applied uniformly to the user fixes two of them and breaks the third, and the Rising Voltage
+ * probe carries the arm that catches exactly that.
+ *
+ * ONE LIVE FOE IN EVERY ARM, and that is not tidiness. Expanding Force now widens to
+ * `allAdjacentFoes` under Psychic Terrain, so a second standing body would put the spread 0.75 on top
+ * of the multiplier this probe is trying to read -- two mechanics in one number. The partner is
+ * fainted so `targets.length` is 1 and the only thing that can move the figure is the boost.
+ *
+ * THE AIRBORNE BODY IS GIVEN LEVITATE EXPLICITLY ON BOTH ARMS. `bare()` blanks the ability, so the
+ * grounded arm is a body with NO ability rather than a body whose ability happens not to lift it. */
+const terrainBoostHit = (sps, moveId, terrain, userAbility, targetAbility) => {
+  const B = board(sps[0], sps[1], sps[2], sps[3]);
+  B.S.field.terrain = terrain;
+  B.me.ability = userAbility; B.f1.ability = targetAbility;
+  unfaintable(B.f1);
+  B.f2.curHP = 0; B.f2.fainted = true;
+  const h = B.f1.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return h - B.f1.curHP;
+};
+
+probe('move', 'terrainScaled', 'Expanding Force\'s Psychic Terrain x1.5 is gated on the USER\'s feet', () => {
+  /* Garchomp is Dragon/Ground -- Psychic is NEUTRAL into it, so the fixture can actually show the
+   * difference. The trap the last batch hit was a Dark body, which Psychic does nothing to, and a
+   * correctly-behaving move then reads zero in every arm. */
+  const hit = (t, ua, ta) => terrainBoostHit(['chimecho', 'incineroar', 'garchomp', 'garchomp'],
+    'expandingforce', t, ua, ta || 'none');
+  const clear = hit('', 'none');                 // no terrain
+  const test = hit('psychic', 'none');           // grounded user  -- boost paid
+  const airborne = hit('psychic', 'levitate');   // AIRBORNE user  -- boost withheld
+  const wrongTerrain = hit('electric', 'none');  // over-fire: the other terrain
+  const clearAirborne = hit('', 'levitate');     // over-fire: no terrain, airborne
+  const targetUp = hit('psychic', 'none', 'levitate'); // the TARGET's feet must be irrelevant here
+  return { works: clear > 0 && test > clear && airborne === clear
+                  && wrongTerrain === clear && clearAirborne === clear && targetUp === test,
+           arms: { control: airborne, test },
+           detail: `Expanding Force HP lost: no terrain ${clear}, Psychic Terrain + grounded user `
+                 + `${test}, Psychic Terrain + AIRBORNE user ${airborne} (must equal the no-terrain `
+                 + `${clear} -- it read 114 against 76 before this gate existed), Electric Terrain `
+                 + `${wrongTerrain}, no terrain + airborne ${clearAirborne}; and with the TARGET `
+                 + `airborne under Psychic Terrain ${targetUp} (must equal ${test} -- this handler `
+                 + `reads the user's feet and only the user's)` };
+});
+
+probe('move', 'terrainScaled', 'Misty Explosion\'s Misty Terrain x1.5 is gated on the USER\'s feet', () => {
+  /* Fairy into Garchomp's Dragon half is super-effective and nothing resists it here, so both arms
+   * carry a real number. Misty Terrain's own condition halves DRAGON moves off the DEFENDER's feet --
+   * Misty Explosion is Fairy, so that handler cannot contaminate this measurement. */
+  const hit = (t, ua) => terrainBoostHit(['clefable', 'incineroar', 'garchomp', 'garchomp'],
+    'mistyexplosion', t, ua, 'none');
+  const clear = hit('', 'none');
+  const test = hit('misty', 'none');
+  const airborne = hit('misty', 'levitate');
+  const wrongTerrain = hit('electric', 'none');
+  const clearAirborne = hit('', 'levitate');
+  return { works: clear > 0 && test > clear && airborne === clear
+                  && wrongTerrain === clear && clearAirborne === clear,
+           arms: { control: airborne, test },
+           detail: `Misty Explosion HP lost: no terrain ${clear}, Misty Terrain + grounded user `
+                 + `${test}, Misty Terrain + AIRBORNE user ${airborne} (must equal the no-terrain `
+                 + `${clear}), Electric Terrain ${wrongTerrain}, no terrain + airborne `
+                 + `${clearAirborne}` };
+});
+
+probe('move', 'terrainScaled', 'Rising Voltage\'s Electric Terrain x2 is gated on the TARGET\'s feet, '
+    + 'not the user\'s', () => {
+  /* THE DEFENDER MAY NOT BE GROUND OR DRAGON. Garchomp -- the body every other terrain probe here
+   * stages -- is IMMUNE to Electric, so every arm would read 0 and the probe would agree about
+   * nothing. Incineroar is Fire/Dark: Electric is neutral into it and it can be lifted with Levitate
+   * without changing its type chart.
+   *
+   * THE 2x2 IS THE POINT. Electric Terrain's CONDITION also boosts Electric moves x5325/4096, and
+   * that one IS gated -- on the ATTACKER. So the four cells are:
+   *     grounded user / grounded target : x2 (move) and x1.3 (condition)
+   *     grounded user / AIRBORNE target : x1.3 only
+   *     AIRBORNE user / grounded target : x2 only          <- ALREADY RIGHT BEFORE THIS FIX
+   *     AIRBORNE user / AIRBORNE target : neither, so it must equal the clear field exactly
+   * The third cell is the arm that catches a gate applied uniformly to the user: it read 94 both
+   * before and after, and a user-gated Rising Voltage would collapse it to 48. */
+  const hit = (t, ua, ta) => terrainBoostHit(['raichu', 'chimecho', 'incineroar', 'incineroar'],
+    'risingvoltage', t, ua, ta);
+  const clear = hit('', 'none', 'none');
+  const ugTg = hit('electric', 'none', 'none');
+  const ugTa = hit('electric', 'none', 'levitate');
+  const uaTg = hit('electric', 'levitate', 'none');
+  const uaTa = hit('electric', 'levitate', 'levitate');
+  const wrongTerrain = hit('misty', 'none', 'none');
+  /* The move's own doubling, read off the pair the condition cannot touch (attacker airborne in
+   * both), so this ratio is the x2 alone and nothing else. */
+  const doubling = uaTa > 0 ? uaTg / uaTa : 0;
+  return { works: clear > 0 && wrongTerrain === clear
+                  && ugTa < ugTg                         // withheld when the TARGET is airborne
+                  && uaTg > uaTa                         // PAID when only the USER is airborne
+                  && uaTa === clear                      // both airborne: no terrain effect at all
+                  && doubling >= 1.9 && doubling <= 2.1,
+           arms: { control: ugTa, test: ugTg },
+           detail: `Rising Voltage HP lost, no terrain ${clear}; Electric Terrain -- grounded user + `
+                 + `grounded target ${ugTg}, grounded user + AIRBORNE target ${ugTa} (the move's x2 `
+                 + `must be withheld; it read ${ugTg} before this gate existed), AIRBORNE user + `
+                 + `grounded target ${uaTg} (the x2 must STILL be paid -- a gate put on the user's `
+                 + `feet collapses this to ${uaTa}), both airborne ${uaTa} (must equal the clear `
+                 + `field ${clear}); Misty Terrain ${wrongTerrain}. The x2 read off the two `
+                 + `attacker-airborne cells is ${doubling.toFixed(2)}` };
 });
 
 /* ROADMAP #92 -- THE FIELD TERRAIN'S OWN DAMAGE MULTIPLIERS, WHICH ARE NOT `terrainScaled`.
@@ -32722,7 +32856,7 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afte
                           'eatEventUpdateOnlyRestored', 'stealEatStripOnlyRestored',
                           'kingsRockOncePerMoveRestored', 'accEvaSeparateRestored',
                           'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',
-                          'terrainTargetSingleRestored']
+                          'terrainTargetSingleRestored', 'terrainScaledUngatedRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

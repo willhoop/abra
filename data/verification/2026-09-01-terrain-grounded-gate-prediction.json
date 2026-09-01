@@ -1,0 +1,86 @@
+{
+  "written": "2026-09-01, BEFORE any measurement, any engine edit, any census run and any differential run",
+  "batch": "the terrainScaled x1.5/x2 multiplier fires with no grounded gate",
+  "baselines_given_by_the_router_and_taken_as_the_before": {
+    "census": "822 live / 822 probed / 0 missing",
+    "empirical_board_parted": 78,
+    "empirical_protocol_diverged": 169,
+    "distinct_divergence_causes": 147,
+    "release": "1c346ff23712",
+    "pool": "0d103fb9fa87",
+    "census_pin": "9446a684709d",
+    "games": 961,
+    "cap": 12,
+    "arm": "middle"
+  },
+
+  "P_membership": {
+    "claim": "the terrainScaled tag has FOUR legal carrier-checked members, but only THREE reach the ungated multiplier site",
+    "predicted": {
+      "tag_members": ["expandingforce", "risingvoltage", "mistyexplosion", "terrainpulse"],
+      "reach_the_ungated_site": ["expandingforce", "risingvoltage", "mistyexplosion"],
+      "terrainpulse_excluded_because": "its params are byTerrain/anyTerrainBPMult/requiresGrounded and carry no {terrain,mult}; it is already gated on the USER at the type/BP site",
+      "carriers": {"expandingforce": 38, "risingvoltage": 24, "mistyexplosion": 20, "terrainpulse": 12}
+    },
+    "note": "the router said the scope named two; the scope's own field-effect report named three. Derived here, not inherited."
+  },
+
+  "P_subjects": {
+    "claim": "the three members really do gate on different feet",
+    "predicted": {
+      "expandingforce": "USER  (onBasePower(basePower, source) -> source.isGrounded())",
+      "mistyexplosion": "USER  (onBasePower(basePower, source) -> source.isGrounded())",
+      "risingvoltage": "TARGET (basePowerCallback(source, target, move) -> target.isGrounded())"
+    },
+    "champions_override": "none of the four is overridden in data/mods/champions/moves.ts; psyblade IS overridden and is isNonstandard 'Past', so it is not a member at all"
+  },
+
+  "P0_red_first": {
+    "claim": "every gated arm is RED at HEAD before a byte moves",
+    "EF_airborne_user_psychic_terrain_one_foe": "reads 1.5x the no-terrain number (prior batch measured 114 vs 76); MUST equal the no-terrain number after the fix",
+    "MEXP_airborne_user_misty_terrain": "reads 1.5x the no-terrain number; MUST equal it after",
+    "RV_grounded_user_airborne_target_electric_terrain": "reads ~2x the correctly-conditioned number; after the fix the move's x2 must vanish and only the terrain CONDITION's x1.3 (attacker grounded) may remain",
+    "RV_airborne_user_grounded_target_electric_terrain": "ALREADY CORRECT AT HEAD BY ACCIDENT (~2x base, no condition x1.3) and MUST NOT MOVE. This is the arm a uniform user-gate fix breaks."
+  },
+
+  "P1_probe_shape": {
+    "predicted": "one probe per member, three probes, each with a grounded arm and an airborne arm on the SUBJECT body; Rising Voltage additionally carries the cross arm (airborne user + grounded target must KEEP the boost)",
+    "over_fire_controls_that_must_not_move": ["no terrain", "the wrong terrain"]
+  },
+
+  "P2_census": {
+    "before": 822,
+    "predicted_point": 825,
+    "band": [823, 826],
+    "reason": "three probes, one per member; the point estimate assumes all three land as separate rows"
+  },
+
+  "P3_which_scoreboard": {
+    "predicted": "THE LAB MOVES. THE POOL MOVES BY AT MOST TWO GAMES AND MAY WELL SIT STILL.",
+    "arithmetic": "the boost only DISAPPEARS when the gated body is AIRBORNE. Terrain field-starts in the 17,381-game store are Electric 237 / Psychic 110 / Grassy 13 / Misty 4 -- 1.87% of games carry any terrain. Over 961 pool games that is ~18 games with a terrain at all, ~13 Electric and ~6 Psychic. Inside those, --steering empirical must then sample Rising Voltage (24 carriers) or Expanding Force (38 carriers) AND the gated body must be airborne (a Flying type or a Levitate/E-Elevate body, well under a third of the field). The product is well under one game. Misty Explosion is zero: 4 Misty field-starts in the whole store and 0 Misty Explosion clicks under one.",
+    "explicit_caveat": "--steering empirical samples P(move | species); it does NOT replay the store's clicks, so the scope's 103 Rising Voltage clicks and 147 Expanding Force clicks do NOT translate into pool games. The last batch made exactly this mistake in the other direction (predicted a still pool at a 0.8-game expectation and the pool delivered 2), so the band below is stated wide on purpose and a MOVE of one or two games is INSIDE the prediction, not against it.",
+    "board_parted": {"before": 78, "point": 78, "band": [75, 79]},
+    "protocol_diverged": {"before": 169, "point": 169, "band": [165, 170]},
+    "causes": {"before": 147, "point": 147, "band": [144, 149]}
+  },
+
+  "P4_knob": {
+    "predicted": "MEDI_TERRAIN_SCALED_UNGATED=1 restores the ungated multiplier and reproduces the 822/78/169/147 before-arm byte-identically on the SAME release",
+    "counter": "MEDFAILS.terrainScaledUngatedRestored, registered in tests/test-mechanics.js DELIBERATE_BREAK"
+  },
+
+  "P5_counters": {
+    "predicted": "MEDSEEN.terrainScaledGateApplied rises when the boost is PAID and MEDSEEN.terrainScaledGateRefused rises when it is WITHHELD; a run where the second never moves is an unwired gate",
+    "loud_fallback": "MEDFAILS.terrainScaledSubjectUnknown for a {terrain,mult} member not in the literal subject map -- it applies the boost ungated (today's behaviour) and SAYS SO rather than silently guessing a subject"
+  },
+
+  "P6_damage_differential": {
+    "predicted": "0 disagreements on 6000 comparisons, seed 20260804, written via --out to data/verification/engine-diff.terraingate.json"
+  },
+
+  "P7_isSemiInvulnerable": {
+    "predicted": "DOES NOT BELONG. Neither expandingforce.onBasePower, mistyexplosion.onBasePower nor risingvoltage.basePowerCallback names isSemiInvulnerable(). Same answer as the last batch, for the same reason: the clause lives on the terrain CONDITION's handlers, not on the MOVE's."
+  },
+
+  "P8_void_usable": {"predicted": "void 9 unchanged; no artifact declared void by this pass"}
+}

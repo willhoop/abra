@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-01T05:26:42.879Z",
+  "generated": "2026-09-01T06:14:14.566Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 822,
-  "live": 822,
+  "probed": 825,
+  "live": 825,
   "missing": 0,
-  "armed": 822,
+  "armed": 825,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -2650,6 +2650,36 @@
     },
     {
       "kind": "move",
+      "tag": "terrainScaled",
+      "label": "Expanding Force's Psychic Terrain x1.5 is gated on the USER's feet",
+      "live": true,
+      "detail": "Expanding Force HP lost: no terrain 76, Psychic Terrain + grounded user 148, Psychic Terrain + AIRBORNE user 76 (must equal the no-terrain 76 -- it read 114 against 76 before this gate existed), Electric Terrain 76, no terrain + airborne 76; and with the TARGET airborne under Psychic Terrain 148 (must equal 148 -- this handler reads the user's feet and only the user's)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "terrainScaled",
+      "label": "Misty Explosion's Misty Terrain x1.5 is gated on the USER's feet",
+      "live": true,
+      "detail": "Misty Explosion HP lost: no terrain 146, Misty Terrain + grounded user 218, Misty Terrain + AIRBORNE user 146 (must equal the no-terrain 146), Electric Terrain 146, no terrain + airborne 146",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "terrainScaled",
+      "label": "Rising Voltage's Electric Terrain x2 is gated on the TARGET's feet, not the user's",
+      "live": true,
+      "detail": "Rising Voltage HP lost, no terrain 48; Electric Terrain -- grounded user + grounded target 121, grounded user + AIRBORNE target 61 (the move's x2 must be withheld; it read 121 before this gate existed), AIRBORNE user + grounded target 94 (the x2 must STILL be paid -- a gate put on the user's feet collapses this to 48), both airborne 48 (must equal the clear field 48); Misty Terrain 48. The x2 read off the two attacker-airborne cells is 1.96",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "setsTerrain",
       "label": "Electric Terrain raises an ELECTRIC move and nothing else",
       "live": true,
@@ -3973,7 +4003,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 27.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

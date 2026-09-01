@@ -1,10 +1,10 @@
 {
-  "current": "1c346ff23712",
-  "cut": "2026-09-01T05:31:04.376Z",
-  "why": "Expanding Force becomes allAdjacentFoes on Psychic Terrain for a grounded user - the target rewrite and the spread reduction",
-  "cuts": 2,
-  "latest_cut": "2026-09-01T05:52:32.221Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-01T05:52:32.348Z",
+  "current": "d9dc3afe16ef",
+  "cut": "2026-09-01T06:15:15.803Z",
+  "why": "terrain grounded gate: the move's own terrain multiplier reads the right body's feet",
+  "cuts": 1,
+  "latest_cut": "2026-09-01T06:15:15.803Z",
+  "latest_why": "terrain grounded gate: the move's own terrain multiplier reads the right body's feet",
+  "pointer_written": "2026-09-01T06:15:15.838Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
