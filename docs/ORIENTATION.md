@@ -55,18 +55,18 @@ games were in that state. Two guards now exist:
 `tests/test-quality.js` asserts both select an identical set of ids.
 
 <!-- BEGIN:FUNNEL -->
-Of **80,183** games collected, **19,642** are usable — **24.5%**.
+Of **80,382** games collected, **19,736** are usable — **24.6%**.
 
 Games are dropped for five reasons, in this order:
 
 | Stage | Games remaining |
 |---|---|
-| collected | 80,183 |
-| after removing named bots | 42,752 |
-| after removing accounts that behave like bots | 38,059 |
-| after removing forfeits | 24,714 |
-| after removing games under 3 turns | 24,516 |
-| after requiring all four brought to be revealed | **19,642** |
+| collected | 80,382 |
+| after removing named bots | 42,948 |
+| after removing accounts that behave like bots | 38,243 |
+| after removing forfeits | 24,835 |
+| after removing games under 3 turns | 24,635 |
+| after requiring all four brought to be revealed | **19,736** |
 <!-- END:FUNNEL -->
 
 1. **Named bots** — accounts whose usernames announce them.
@@ -99,7 +99,7 @@ metagame. That is the concrete reason this filter exists and why every engine mu
 
 `engine/argmax_paired.js`, `engine/bench_speed_consolidate.js`, `engine/calibrate.py`, `engine/click_census.js`, `engine/click_counts.js`, `engine/coach.js`, `engine/derive_sets.js`, `engine/durable-ingest.js`, `engine/feature_engine_contrast.js`, `engine/forced_switch_audit.js`, `engine/medicham2-browser.js`, `engine/mega_census.js`, `engine/mega_sets_from_sheets.js`, `engine/mew_farm.js`, `engine/next_regulation_ingest.js`, `engine/replay_differential.js`, `engine/rollout_r1_join.py`, `engine/rollout_switch_census.js`, `engine/sheet_usage.js`, `engine/stamp.js`, `engine/validate_store.js`, `tests/test-medicham-coverage.js`, `tests/test-next-regulation.js`, `tests/test-parse.js`, `tests/test-side-guard-chooser.js`, `tests/test-workflow-paths.js`
 
-Anything they publish is computed over a store that is 75.5% unusable.
+Anything they publish is computed over a store that is 75.4% unusable.
 <!-- END:RAWREADERS -->
 
 
