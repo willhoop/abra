@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-31T06:12:22.041Z",
+  "generated": "2026-09-01T02:12:13.444Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 817,
-  "live": 817,
+  "probed": 818,
+  "live": 818,
   "missing": 0,
-  "armed": 817,
+  "armed": 818,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3963,7 +3963,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 28.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4104,6 +4104,16 @@
       "label": "King's Rock flinches on its 10%, and Sheer Force deletes it",
       "live": true,
       "detail": "did the target get its Swords Dance off -- rock+low roll false (flinched), no rock true, rock+high roll true, rock+Sheer Force true (the boost deletes the rock's flinch)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "addsFlinch",
+      "label": "King's Rock takes ONE die per LANDED ARRIVAL, not one per click",
+      "live": true,
+      "detail": "King's Rock dice taken, rng pinned to 0.5 so every one of them LOSES -- a 2-arrival Dual Wingbeat 2 (the tag says multiHit.hits=2, so this is read and not typed); the SAME holder's single-hit Brave Bird 1 (the over-fire control -- a fix that multiplied the roll by anything fails here); the same volley with NO item 0; Air Slash, which already flinches, 0 (the item's own no-stacking clause); and the volley into a 1 HP body 0 rolled with 1 DECLARED-REMAINDER dice skipped on the KO (the authority takes them and a flinch on a corpse is refused by addVolatile, so no board can differ). MEDFAILS.kingsRockNoArrivalCount 0/0/0/0/0 -- every arm must be 0 or the count came from a silent fallback",
       "hollow": false,
       "armed": true,
       "directCall": false

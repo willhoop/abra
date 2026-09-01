@@ -1,0 +1,171 @@
+{
+ "generated": "2026-09-01T02:19:11.186Z",
+ "mode": "scheduled",
+ "detection": {
+  "generated": "2026-09-01T02:19:11.181Z",
+  "authorities": {
+   "live": {
+    "url": "https://play.pokemonshowdown.com/data/formats.js",
+    "reached": true,
+    "formats_listed": 342,
+    "vgc_reg_rows": 4
+   },
+   "dex": {
+    "path": "C:\\Users\\willj\\Projects\\Pokemon\\pokemon-showdown",
+    "reached": true,
+    "formats_listed": 333,
+    "vgc_reg_rows": 4
+   },
+   "replays": {
+    "url": "https://replay.pokemonshowdown.com/search.json?page=1",
+    "sample": 51
+   }
+  },
+  "active_regulation": "regmb",
+  "active_format": "gen9championsvgc2026regmb",
+  "known_format_ids": [
+   "gen9championsvgc2026regmb",
+   "gen9championsvgc2026regmbbo3"
+  ],
+  "counters": {
+   "vgc_regulation_formats_detected": 4,
+   "known": 2,
+   "unknown": 2,
+   "candidates": 0,
+   "superseded": 2,
+   "collectable_not_simulatable": 0,
+   "problems": 0
+  },
+  "formats": [
+   {
+    "name": "[Gen 9 Champions] VGC 2026 Reg M-A",
+    "seen_in": [
+     "live",
+     "dex"
+    ],
+    "ruleset": [
+     "Flat Rules",
+     "VGC Timer",
+     "Open Team Sheets"
+    ],
+    "id": "gen9championsvgc2026regma",
+    "gen": 9,
+    "year": 2026,
+    "token": "ma",
+    "bo3": false,
+    "bo3_source": "ruleset",
+    "open_team_sheets": "optional",
+    "known": false,
+    "later_than_active": false,
+    "classification": "superseded",
+    "recent_replays": 0,
+    "simulatable": true,
+    "collectable": true
+   },
+   {
+    "name": "[Gen 9 Champions] VGC 2026 Reg M-A (Bo3)",
+    "seen_in": [
+     "live",
+     "dex"
+    ],
+    "ruleset": [
+     "Flat Rules",
+     "VGC Timer",
+     "Force Open Team Sheets",
+     "Best of = 3"
+    ],
+    "id": "gen9championsvgc2026regmabo3",
+    "gen": 9,
+    "year": 2026,
+    "token": "ma",
+    "bo3": true,
+    "bo3_source": "ruleset",
+    "open_team_sheets": "forced",
+    "known": false,
+    "later_than_active": false,
+    "classification": "superseded",
+    "recent_replays": 0,
+    "simulatable": true,
+    "collectable": true
+   },
+   {
+    "name": "[Gen 9 Champions] VGC 2026 Reg M-B",
+    "seen_in": [
+     "live",
+     "dex"
+    ],
+    "ruleset": [
+     "Flat Rules",
+     "VGC Timer",
+     "Open Team Sheets"
+    ],
+    "id": "gen9championsvgc2026regmb",
+    "gen": 9,
+    "year": 2026,
+    "token": "mb",
+    "bo3": false,
+    "bo3_source": "ruleset",
+    "open_team_sheets": "optional",
+    "known": true,
+    "later_than_active": false,
+    "classification": "known",
+    "recent_replays": 7,
+    "simulatable": true,
+    "collectable": true
+   },
+   {
+    "name": "[Gen 9 Champions] VGC 2026 Reg M-B (Bo3)",
+    "seen_in": [
+     "live",
+     "dex"
+    ],
+    "ruleset": [
+     "Flat Rules",
+     "VGC Timer",
+     "Force Open Team Sheets",
+     "Best of = 3"
+    ],
+    "id": "gen9championsvgc2026regmbbo3",
+    "gen": 9,
+    "year": 2026,
+    "token": "mb",
+    "bo3": true,
+    "bo3_source": "ruleset",
+    "open_team_sheets": "forced",
+    "known": true,
+    "later_than_active": false,
+    "classification": "known",
+    "recent_replays": 4,
+    "simulatable": true,
+    "collectable": true
+   }
+  ],
+  "candidates": [],
+  "problems": []
+ },
+ "counters": {
+  "vgc_regulation_formats_detected": 4,
+  "known": 2,
+  "unknown": 2,
+  "candidates": 0,
+  "superseded": 2,
+  "collectable_not_simulatable": 0,
+  "problems": 0,
+  "formats_collected": 0,
+  "games_appended": 0,
+  "stores_written": 0
+ },
+ "collected": [],
+ "reconciled": [],
+ "problems": [],
+ "by": "engine/next_regulation_ingest.js",
+ "source_digests": {
+  "engine/next_regulation_ingest.js": "6708405545bd",
+  "engine/next_regulation.js": "6664afe6622c",
+  "engine/durable-ingest.js": "7861dd8766a0",
+  "data/regulations.json": "6c1995e9a9fb",
+  "note": "Content, not mtime. A checkout moves an mtime without moving code."
+ },
+ "note": "Rewritten only when the detection changes. engine/next_regulation_ingest.js runs every six hours; an old `generated` means the answer has not moved, NOT that the check stopped. The run log is the record that it ran.",
+ "signature": "{\"formats\":[[\"gen9championsvgc2026regma\",\"superseded\",\"live+dex\"],[\"gen9championsvgc2026regmabo3\",\"superseded\",\"live+dex\"],[\"gen9championsvgc2026regmb\",\"known\",\"live+dex\"],[\"gen9championsvgc2026regmbbo3\",\"known\",\"live+dex\"]],\"candidates\":0,\"unknown\":2,\"lagging\":0,\"collected\":0,\"problems\":0}"
+}

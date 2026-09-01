@@ -10,6 +10,90 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.235.0] — 2026-08-31
+
+### Added
+- **THE NEXT REGULATION IS COLLECTED FROM THE HOUR IT SHIPS, AND UNTIL THEN IT DECLINES OUT LOUD.**
+  A new regulation is announced for roughly 2026-09-09 and Showdown usually adds the format a day or
+  two later. The replay pool is a ROLLING window — the ingest workflow's own measurement is ~1,250 per
+  format, filling in ~18 h at peak — so the opening days of a metagame are not recoverable later, and
+  "we will point the collector at it when it lands" silently costs them.
+  - `engine/next_regulation.js` derives the format set at run time from **three** authorities and
+    types no format id: `play.pokemonshowdown.com/data/formats.js` (342 formats — what the SERVER will
+    accept, the arrival signal), the pinned local checkout (333 formats — what the SIMULATOR can play),
+    and the replay search (traffic). A Champions VGC regulation is recognised by SHAPE,
+    `gen<N>championsvgc<YYYY>reg<token>[bo3]`, so the next one matches with no edit.
+  - **A set difference against `data/regulations.json` is the WRONG test and would have collected a
+    dead metagame:** Reg M-A is live and absent from the config, so "not in the config" reports two
+    brand-new regulations today. The token is part of the id, so `(gen, year, token)` is compared
+    against the active regulation's triple; strictly greater is a CANDIDATE, and Reg M-A classifies
+    `superseded` — still printed, with its classification, in case the ordering is ever wrong.
+  - `engine/next_regulation_ingest.js` collects into `data/games.<formatid>.jsonl`, one store per
+    format id, rows written by `engine/durable-ingest.js` unchanged with the raw logs archived beside
+    them. Two regulations cannot share a file; the three tracked stores are unreachable from it. It
+    never edits `data/regulations.json` — it prints the block to paste, because flipping `active`
+    re-points the LADDER collector and that is a person's decision.
+  - **Three outcomes, only one an error.** `candidates == 0` is the expected state until the format
+    ships and is stated in words at exit 0. `formats_detected == 0` is an `::error::` — there has
+    never been a moment with no Champions VGC format, so a zero there is the detector failing.
+    `collectable_not_simulatable` is its own counter: on the day, replays can be collected while the
+    pinned checkout cannot play them, and only the first of those two jobs is automatic.
+  - One additive `continue-on-error` step in `.github/workflows/ingest.yml`, a `--reconcile` in the
+    push-retry loop, and a `git add data/games.gen9champions*.jsonl.gz` proven under `bash -e` both
+    empty and matching — an unguarded `git add` on a pathspec matching nothing is what killed that
+    workflow for 24 days.
+  - `data/next-regulation.json` is rewritten **only when the answer moves** (a signature of the
+    detection with the volatile parts removed), so a six-hourly job that collects nothing does not
+    produce four commits a day churning every mtime `provenance.js` reads. It stamps `source_digests`,
+    so provenance verifies it by CONTENT and the mtime-only ratchet fell **190 -> 189**.
+- `tests/test-next-regulation.js` — 19 checks, shown RED on a deliberate break first (reverting the
+  format tag to its constant and making the ordering always-false turned 5 red, then green on
+  restore). It fails if the detector finds no Champions VGC format at all, asserts the ordering knob
+  MOVES the outcome (`candidates 0 -> 2` with the active regulation swung back one) and is asymmetric,
+  and asserts the absent path exits 0, prints its counters and says in words what it did.
+
+### Fixed
+- **`engine/durable-ingest.js` STAMPED EVERY CHAMPIONS TIER `champions-regmb`, AND THE ONE ALARM
+  THAT WATCHES FOR A ROTATION READS THAT FIELD.** A literal, for any tier containing "champions", so
+  51 Reg M-A replays stored as Reg M-B — and on the day the next regulation ships, its games would
+  have carried the OLD regulation's name too. `build/triggers.js`'s `formatTrigger` compares the
+  store's modal format against the recent window; with one constant on both sides it can never
+  differ, so **the rotation alarm was dead by construction** — a capability absent while everything
+  reported success. The tier line already carries the regulation, so it is now read.
+  **Reg M-B is byte-identical to what the constant produced**, asserted on 800 real stored games (400
+  ladder, 400 bo3) re-extracted from the raw archive: relabelling the active regulation would make
+  every new row differ from every stored row and fire the alarm on a rotation that had not happened.
+  A Champions tier with no readable token gets `champions-reg?` — visibly a gap — rather than
+  borrowing a regulation's name.
+- **The collector's store scan looked for the plain `.jsonl` while git carries the `.gz`.** On a
+  runner the plain file is gitignored and absent, so `--reconcile` reported "nothing to reconcile"
+  with a whole store beside it (51 rows read as `0 store(s) on disk`). Fixing the scan exposed the
+  second half: the matched filename was used as the store path, so `reconcile()` was handed a `.gz`,
+  read the gzip binary as text (194 "rows" from a 51-row store) and wrote the archive back out as
+  plain text — destroying the file it exists to protect. It happened to the rehearsal store and was
+  restored from a copy. The scan now always yields the PLAIN path and `reconcile()` refuses a `.gz`.
+
+### Notes
+- Rehearsed end to end against a format that DOES exist — `gen9championsvgc2026regmabo3`, real, live
+  and unknown to the config: 51 games appended, all 51 carrying open team sheets, `.gz` verified to
+  decompress to the same 51 rows. Reconcile exercised in all three states a runner can meet:
+  `51 -> 51` idempotent, `0 -> 51` restoring from the `.gz` alone, `10 -> 51` union over a torn store.
+- **`node engine/status.js --write` was NOT run.** `engine/medicham2-browser.js` was rewritten by
+  another process 17 minutes into this session and `data/mechanics-census.json` regenerated 11 minutes
+  into it. Restamping four ledgers from numbers moving under a second agent would publish somebody
+  else's half-finished engine as this pass' state, so no census figure is quoted anywhere in this
+  entry. The generated blocks are one session stale by choice.
+- Filed, not fixed: `engine/quarantine.js:2833` exempts a store from quarantine by scanning collector
+  SOURCE for a literal `games.<name>.jsonl`. This collector's store name is derived at run time, so no
+  literal exists and the new store would be classed as one of our own runs — which on the day would
+  wrongly quarantine figures counted off a HUMAN corpus, the exact failure that file's comment records
+  for `games.bo3.jsonl`. MEASURE's file.
+- Nothing entered `engine/engine_release.js`'s frozen `SOURCES`; every release id is unchanged.
+  `engine/conformance.js` is red on 67 pre-existing regressions, none naming a file touched here, and
+  its baseline was not rewritten.
+
+---
+
 ## [5.234.0] — 2026-08-31
 
 ### Fixed

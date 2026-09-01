@@ -428,7 +428,28 @@ function extract(id, uploadtime, text){
   // information regime + format tags (bo3 is open team sheet; players may also agree to it)
   const tier=(text.match(/^\|tier\|(.+)$/m)||[])[1]||null;
   const openSheet=/\|showteam\|/.test(text) || /best of three|bo3/i.test(tier||'');
-  const fmt=(tier||'').toLowerCase().includes('champions')?'champions-regmb'
+  /* THE REGULATION IN THIS TAG WAS A CONSTANT, AND THE ONLY ALARM THAT WATCHES FOR A ROTATION READS
+   * THIS FIELD. Every Champions tier collapsed to the literal 'champions-regmb', so a Reg M-A replay
+   * stored as `champions-regmb` (measured 2026-08-31 on 51 of them), and on the day the next
+   * regulation ships its games would have been stamped with the OLD regulation's name too.
+   * build/triggers.js's formatTrigger compares the modal format across the store against the recent
+   * window; with one constant on both sides it can never differ, so the rotation alarm was dead by
+   * construction — the exact shape CLAUDE.md opens with, a capability absent while everything
+   * reports success.
+   *
+   * The regulation is IN the tier line Showdown writes, so it is read rather than assumed:
+   *   |tier|[Gen 9 Champions] VGC 2026 Reg M-B (Bo3)  ->  champions-regmb
+   *   |tier|[Gen 9 Champions] VGC 2026 Reg M-A (Bo3)  ->  champions-regma
+   * REG M-B IS BYTE-IDENTICAL TO WHAT THE CONSTANT PRODUCED, deliberately: relabelling the active
+   * regulation would make every new row differ from every stored row and fire the rotation alarm on
+   * a rotation that had not happened. triggers.js's own comment says an alarm that cries wolf on day
+   * one is worse than no alarm. This refines the label; it does not rename anything already true.
+   *
+   * A Champions tier with no readable Reg token keeps its own value rather than borrowing a
+   * regulation's — 'champions-reg?' is visibly a gap, 'champions-regmb' would be a false fact. */
+  const chReg=(tier||'').match(/\breg\s*([a-z0-9]+(?:-[a-z0-9]+)*)/i);
+  const fmt=(tier||'').toLowerCase().includes('champions')
+             ? 'champions-reg'+(chReg?chReg[1].toLowerCase().replace(/[^a-z0-9]/g,''):'?')
            : /vgc/i.test(tier||'')?'vgc-'+((tier||'').match(/reg\w*\s*\w*/i)||['reg?'])[0].toLowerCase().replace(/[^a-z0-9]/g,'')
            : 'other';
   return { id, date:new Date(uploadtime*1000).toISOString().slice(0,16).replace('T',' '),

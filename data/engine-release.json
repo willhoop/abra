@@ -1,10 +1,10 @@
 {
-  "current": "862624c9826e",
-  "cut": "2026-08-31T03:38:37.646Z",
-  "why": "data/engine-data.js regenerated: ten weightless rows filled from the dex, the 15 declared rows moved to the end of mons, and the duplicate floette mega key dropped by the format's own species id",
-  "cuts": 3,
-  "latest_cut": "2026-08-31T04:59:03.136Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-08-31T04:59:03.151Z",
+  "current": "b43a2fea0cb1",
+  "cut": "2026-09-01T02:14:48.515Z",
+  "why": "King's Rock takes one flinch die per LANDED arrival, not one per click (WIRE 103)",
+  "cuts": 1,
+  "latest_cut": "2026-09-01T02:14:48.515Z",
+  "latest_why": "King's Rock takes one flinch die per LANDED arrival, not one per click (WIRE 103)",
+  "pointer_written": "2026-09-01T02:14:48.550Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

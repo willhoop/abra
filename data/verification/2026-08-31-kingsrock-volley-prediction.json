@@ -1,0 +1,52 @@
+{
+  "written": "2026-08-31, BEFORE the census run and BEFORE the whole-game differential run",
+  "by": "ENGINE",
+  "question": "Does the King's Rock flinch die fire per LANDED arrival, per DRAWN hit, or once per click?",
+  "what_was_landed": "WIRE 103 now takes one die per LANDED arrival (R.arrivals, the same number -hitcount and timesAttacked read) instead of one per click. Knob MEDI_KINGSROCK_ONCE_PER_MOVE=1 restores the old behaviour and is registered in tests/test-mechanics.js DELIBERATE_BREAK.",
+
+  "which_scoreboard_should_move": {
+    "the_lab": "MOVES. One new census row (the volley count) and a new differential probe. This is where the fix is visible.",
+    "the_pinned_pool": "PREDICTED UNMOVED, and the arithmetic is stated before the run rather than after it. 36 of 7,772 distinct teams in data/team-pool-frozen carry a King's Rock body with a multi-arrival move (0.46%); 52 of 13,214 bo3 games and 17 of 4,167 ots games contain one. A 961-game sample therefore expects ~4 such games, in each of which the body must additionally be BROUGHT, must CLICK the volley, and the extra dice must change a board leaf rather than a message. Expected movement 0. A move of +/-1 in either direction is luck, not signal, and is inside the band below.",
+    "damage_differential": "NOT RUN. No damage byte moved; the change is one loop around a secondary die. Stated rather than quietly skipped."
+  },
+
+  "baseline": {
+    "source": "data/verification/game-differential.enginedata.json, generated 2026-08-31T03:49:08.571Z",
+    "census_live": 817, "census_probed": 817, "census_missing": 0,
+    "board_parted": 82, "protocol_diverged": 172, "distinct_causes": 150,
+    "end_state": { "SAME-END-STATE": 905, "DIFFERENT-END-STATE": 53, "ENDED-APART": 2, "NO-COMPARABLE-BOARD": 0, "THREW": 1 },
+    "games": 961, "turns_cap": 12, "arm": "middle", "steering": "empirical-click/v1",
+    "census_pin": "9446a684709d", "pool": "0d103fb9fa87", "release_before": "862624c9826e"
+  },
+
+  "predictions": [
+    { "id": "P1", "what": "census live", "point": 818, "band": [818, 818],
+      "why": "exactly one new probe row is added (item/addsFlinch, the volley count). Nothing is removed and no existing probe reads a King's Rock volley, so no row can flip." },
+    { "id": "P2", "what": "census probed", "point": 818, "band": [818, 818], "why": "same row" },
+    { "id": "P3", "what": "census missing / hollow / threw", "point": 0, "band": [0, 0],
+      "why": "the new row is green on the live tree; it was shown RED first under the pre-fix engine and under the knob" },
+    { "id": "P4", "what": "board-parted games of 961", "point": 82, "band": [80, 84],
+      "why": "see which_scoreboard_should_move. ~4 expected games carry the body at all; the extra dice can only matter if one of them lands a flinch the old engine did not, which is at most a 9-31 point probability difference on a turn that must also be reached." },
+    { "id": "P5", "what": "protocol-diverged games of 961", "point": 172, "band": [170, 175],
+      "why": "same population. A flinch that fires in one engine and not the other writes a |cant| line, so protocol is the more sensitive of the two and is given the wider band." },
+    { "id": "P6", "what": "distinct divergence causes (end_state[0].summary.by_cause length)", "point": 150, "band": [147, 153],
+      "why": "no cause class is expected to be removed by this fix and none is expected to be created; the band carries the same luck as P4/P5." },
+    { "id": "P7", "what": "end-state verdicts", "point": "905 / 53 / 2 / 0 / 1", "band": "+/-2 in any cell",
+      "why": "unchanged population" },
+    { "id": "P8", "what": "sample identity", "point": "961 games, cap 12, arm middle, steering empirical-click/v1, census pin 9446a684709d, pool 0d103fb9fa87",
+      "band": "IDENTICAL", "why": "every pin is passed explicitly; if any of these moves the comparison is void and the numbers are withheld" },
+    { "id": "P9", "what": "tests/probe_kingsrock_volley.js clean", "point": "GREEN, 7 arms",
+      "band": "GREEN", "why": "measured before this file was written: authority 2 vs medicham 2 on Dual Wingbeat, 3 vs 3 on a three-arrival Icicle Spear, and 1 vs 1 on all four controls" },
+    { "id": "P10", "what": "tests/probe_kingsrock_volley.js --red", "point": "GREEN (both live arms PART, all four controls hold)",
+      "band": "GREEN", "why": "the knob is read at module load, above the game_differential require" },
+    { "id": "P11", "what": "MEDFAILS.kingsRockNoArrivalCount over every staged run", "point": 0, "band": [0, 0],
+      "why": "a damaging click always runs _stepApply's tail, which is where R.arrivals is set. Non-zero means the fallback to one die was taken and the count is not trustworthy. NOTE: game_differential.js surfaces no MEDFAILS, so its POOL-SCALE reading is unknown by construction and is not claimed here." }
+  ],
+
+  "declared_remainder_not_fixed": {
+    "what": "the die the authority takes on the arrival that KILLS",
+    "why_not_fixed": "this engine wraps the whole step list once per move, so the row is already fainted when WIRE 103 runs. Taking the die anyway would add a `sec` draw on every killing hit by a King's Rock holder, shifting the nth of later draws at the same address for zero board benefit.",
+    "why_it_cannot_reach_a_board": "the authority's own addVolatile bails on a body at zero (sim/pokemon.ts:1980), so the flinch it rolls for is refused there too",
+    "counted_by": "MEDSEEN.kingsRockRollSkippedOnKO, asserted >= 1 by the probe's kill arm and by the census row's fifth arm"
+  }
+}

@@ -88,6 +88,16 @@ const TAGS = (function(){
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
 const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
+   * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
+   * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
+   * (sim/battle-actions.ts:1343), which `spreadMoveHit` calls once per LANDED arrival, so this is
+   * the quantity `tests/probe_kingsrock_volley.js` compares against the authority's own instrumented
+   * count. `kingsRockRollSkippedOnKO` is the declared remainder: the authority takes a die on the
+   * arrival that KILLS and this engine does not, which cannot reach a board because `addVolatile`
+   * refuses a corpse (sim/pokemon.ts:1980) -- counted so that "we chose not to" and "nobody noticed"
+   * do not read alike. */
+  kingsRockRolls: 0, kingsRockRollSkippedOnKO: 0,
   /* 2026-08-24 -- a costsUserHP click whose declared boost table landed BEFORE the payment, which is
    * where the authority puts Clangorous Soul's `onHit`. A capability that cannot prove it ran is
    * assumed broken; the sibling MEDFAILS.hpCostBoostFirstUnrouted counts the other side of the same
@@ -2719,6 +2729,14 @@ const MEDFAILS = { encoreAction: 0,
    * count back on purpose, so the before-arm of the killing-volley fix and a broken engine can never
    * be read as the same thing. Same shape as multiHitOneIndexRestored. */
   volleyReactDrawnRestored: 0,
+  /* 2026-08-31 -- set to 1 for the whole run when MEDI_KINGSROCK_ONCE_PER_MOVE=1 puts the ONE die per
+   * CLICK back on purpose, so the before-arm of the King's Rock volley fix and a broken engine can
+   * never be read as the same thing. Same shape as volleyReactDrawnRestored. */
+  kingsRockOncePerMoveRestored: 0,
+  /* 2026-08-31 -- the King's Rock block was reached with NO arrival count on the row, so it fell back
+   * to one die. A silent fallback looks exactly like a working feature (CLAUDE.md), and the only way
+   * this can be non-zero is a damaging road that never ran `_stepApply`'s tail. */
+  kingsRockNoArrivalCount: 0,
   /* 2026-08-29 -- set to 1 for the whole run when MEDI_AFTERFAINT_PER_TARGET=1 puts the per-corpse,
    * inside-the-loop, no-win-gate on-KO boost back on purpose, so the before-arm of the after-faint
    * boundary fix and a broken engine can never be read as the same thing. Same shape as
@@ -20674,6 +20692,25 @@ const VOLLEY_REACT_DRAWN=(typeof process!=='undefined'&&process.env
  * the census under a deliberate break — a demonstration must not overwrite the artifact five other
  * files read. */
 if(VOLLEY_REACT_DRAWN)MEDFAILS.volleyReactDrawnRestored=1;
+/* 2026-08-31 -- `MEDI_KINGSROCK_ONCE_PER_MOVE=1` RESTORES ONE KING'S ROCK DIE PER CLICK. The item
+ * has no hit-time handler of its own: `onModifyMove` PUSHES `{chance: 10, volatileStatus: 'flinch'}`
+ * onto `move.secondaries` (data/items.ts:3213-3223), and `BattleActions#secondaries` draws for every
+ * entry (sim/battle-actions.ts:1343) inside `spreadMoveHit`, which `hitStepMoveHitLoop` calls once
+ * per LANDED arrival (data/mods/champions/scripts.ts:518, guarded at :464). This engine wraps the
+ * whole step list once per MOVE, so WIRE 103 took ONE die however many arrivals landed: a Population
+ * Bomb flinched on 10% where the real game flinches on 1 - 0.9^n.
+ *
+ * IT IS NOT `MEDI_VOLLEY_REACT_DRAWN` AND IT IS NOT `MEDI_REACT_BATCHED`. Those two are about an
+ * `onDamagingHit` reactor -- how many times it fires and where each firing lands. This is a
+ * SECONDARY, drawn in a different step, and no multi-hit move in this format carries a secondary of
+ * its own (14 legal `multiHit` moves, all with `secondaries: null`), so King's Rock is the only way
+ * the per-hit secondary loop is observable here at all. Its own knob for that reason. */
+const KINGSROCK_ONCE_PER_MOVE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_KINGSROCK_ONCE_PER_MOVE==='1');
+/* STAMPED AT DECLARATION, like the knobs above, so a run under the break is identifiable BEFORE a
+ * King's Rock volley happens to occur -- tests/test-mechanics.js reads exactly this to refuse
+ * writing the census under a deliberate break. */
+if(KINGSROCK_ONCE_PER_MOVE)MEDFAILS.kingsRockOncePerMoveRestored=1;
 /* 2026-08-30 -- `MEDI_REACT_BATCHED=1` RESTORES THE BATCHED REACTION: every `onDamagingHit` reactor
  * of a volley paid in one deferred step BELOW the whole packet loop, so the stream read
  * `dmg dmg react react` where the authority writes `dmg react dmg react`.
@@ -31639,8 +31676,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          * `moveDamage[i]` and therefore counts there. This engine routes a sub-eaten hit away from
          * this line entirely, so it does not count here. Not fixed in this pass and not hidden —
          * `MEDFAILS.timesHitSubstituteUncounted` is bumped where that road is taken. */
+        /* 2026-08-31 -- HOW MANY ARRIVALS LANDED, CARRIED OUT OF THIS STEP INSTEAD OF RE-DERIVED.
+         * `-hitcount` (`R.hitLanded`), `timesAttacked` and now the King's Rock die in `_stepEffects`
+         * are three readers of ONE number, which the authority also derives once (`hit - 1`,
+         * data/mods/champions/scripts.ts:550 and :568). A second expression for it in the secondaries
+         * step would be the facts-are-global breach this file already records twice on this line. */
+        R.arrivals=_packets?_landed:1;
         if(m!==tg&&dmg>=0){
-          const _arrivals=_packets?_landed:1;
+          const _arrivals=R.arrivals;
           if(_arrivals>0){tg._timesAttacked=((tg._timesAttacked)|0)+_arrivals;MEDSEEN.timesHitCounted+=_arrivals;}
         }
         if(dmg>0){(tg._hitBy=tg._hitBy||new Set()).add(m);tg._hurtThisTurn=true;
@@ -32859,19 +32902,64 @@ function battleTurn(S,rng,actsForA,actsForB){
            * on the target and Sheer Force deletes it on the user (the item is why a Sheer Force
            * holder never runs the Rock). Same actedAt/Inner Focus bookkeeping as every other flinch,
            * so a zero in MEDSEEN.flinch stays diagnostic. */
+          /* 2026-08-31 -- ONE DIE PER LANDED ARRIVAL, NOT ONE PER CLICK. Will asked whether the item
+           * is a "super flinch machine" on a multi-hit move, and it is: the authority pushes the
+           * secondary and then draws for it inside `BattleActions#secondaries`
+           * (sim/battle-actions.ts:1343), which is step 5 of `spreadMoveHit`
+           * (data/mods/champions/scripts.ts:388) -- called once per hit by `hitStepMoveHitLoop`
+           * (:518). Measured on the authority rather than reasoned: a Dual Wingbeat takes TWO dice
+           * and a three-arrival Icicle Spear takes THREE, read off an instrumented
+           * `BattleActions.prototype.secondaries` in tests/probe_kingsrock_volley.js.
+           *
+           * SO THE REAL RATE IS `1 - (1 - p)^n`, NOT `p`: 19% on a two-hit volley, 41% on a five-hit
+           * one, against the 10% this engine gave every one of them. That is not a rounding error on
+           * a rare board -- 82 of 211 King's Rock sheet entries in the store carry a multi-arrival
+           * move, Population Bomb the commonest of them.
+           *
+           * `R.arrivals` IS THE ONE NUMBER, set in `_stepApply` where the packet loop counts it, and
+           * it is the same number `-hitcount` and `timesAttacked` read. The authority derives all
+           * three from one `hit` counter; a second expression for it here would be the
+           * facts-are-global breach. A row that reaches this block with no count falls back to ONE
+           * and says so -- a silent fallback looks exactly like a working feature.
+           *
+           * DECLARED REMAINDER, AND IT CANNOT REACH A BOARD. The authority takes a die on the arrival
+           * that KILLS, because `secondaries` runs inside that arrival's own `spreadMoveHit`; this
+           * engine's step list is wrapped once per MOVE, so by the time this line runs the row is
+           * already fainted and the block is refused. The flinch it would have set is refused by the
+           * authority too -- `addVolatile` bails on `if (!this.hp && !status.affectsFainted)`
+           * (sim/pokemon.ts:1980) -- so the two engines cannot differ on any board because of it.
+           * `kingsRockRollSkippedOnKO` carries HOW MANY dice were skipped, so "we chose not to" and
+           * "nobody noticed" can never read alike. */
           {const _kr=TAGS.param('item',m.item,'addsFlinch');
-           if(_kr&&_kr.pFlinch&&!suppressed&&!tg.fainted
-              &&!(fx&&fx.secondary&&fx.secondary.some(s=>s&&s.volatile==='flinch'))
-              /* ROADMAP #262 -- `_R.sec()`. King's Rock does not run a handler of its own at hit time:
-               * `onModifyMove` PUSHES `{chance: 10, volatileStatus: 'flinch'}` onto `move.secondaries`
-               * (data/items.ts:3219), so the authority draws for it inside `BattleActions#secondaries`
-               * like any other secondary. Addressing it as a generic draw made the same event carry two
-               * different names across the two engines -- 6 of each in 900 games, matching zero times. */
-              &&_secDraw()<+_kr.pFlinch){
-             _secFired(tg);   // ROADMAP #262 -- see `_secDraw`; King's Rock is a secondary like any other
-             if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
-             else if(refusesFlinch(tgAb)) MEDSEEN.flinchBlockedByInnerFocus++;
-             else { tg._flinch=true; MEDSEEN.flinch++; }
+           /* THE NO-STACKING CLAUSE, which is the item's own: `onModifyMove` returns without pushing
+            * when any of the move's existing secondaries is a flinch (data/items.ts:3216-3218). 19
+            * legal moves in this format carry one. */
+           const _krOwnFlinch=!!(fx&&fx.secondary&&fx.secondary.some(s=>s&&s.volatile==='flinch'));
+           if(_kr&&_kr.pFlinch&&!suppressed&&!_krOwnFlinch){
+             if(tg.fainted){ MEDSEEN.kingsRockRollSkippedOnKO+=Math.max(1,+R.arrivals||1); }
+             else {
+               let _krN=+R.arrivals;
+               if(!(_krN>0)){ _krN=1; MEDFAILS.kingsRockNoArrivalCount++; }
+               if(KINGSROCK_ONCE_PER_MOVE)_krN=1;
+               for(let _krI=0;_krI<_krN;_krI++){
+                 /* THE DIE IS COUNTED WHERE IT IS TAKEN. At 10% a counter of OUTCOMES is nine parts
+                  * noise, so nothing outside this file could have told one roll from five. */
+                 MEDSEEN.kingsRockRolls++;
+                 /* ROADMAP #262 -- `_R.sec()`. King's Rock does not run a handler of its own at hit
+                  * time, so the authority draws for it inside `BattleActions#secondaries` like any
+                  * other secondary. Addressing it as a generic draw made the same event carry two
+                  * different names across the two engines -- 6 of each in 900 games, matching zero
+                  * times. */
+                 if(_secDraw()<+_kr.pFlinch){
+                   _secFired(tg);   // ROADMAP #262 -- King's Rock is a secondary like any other
+                   if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
+                   else if(refusesFlinch(tgAb)) MEDSEEN.flinchBlockedByInnerFocus++;
+                   /* THE TRANSITION, NOT THE ROLL: two passing dice in one volley are ONE flinch, and
+                    * `MEDSEEN.flinch` is read as a rate by tests/test-mechanics.js. */
+                   else { if(!tg._flinch)MEDSEEN.flinch++; tg._flinch=true; }
+                 }
+               }
+             }
            }}
           /* WIRE 141 -- FLING'S SECONDARY IS NOT IN THE RULEBOOK, BECAUSE IT COMES OUT OF THE ITEM.
            * `data/moves.ts` pushes `{status: item.fling.status}` or

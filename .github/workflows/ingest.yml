@@ -111,6 +111,27 @@ jobs:
           done
           [ "$fail" -eq 0 ]
 
+      # THE NEXT REGULATION, COLLECTED FROM THE HOUR IT SHIPS.
+      #
+      # The replay pool is a ROLLING window (see the cadence note at the top of this file), so the
+      # opening days of a new regulation are NOT recoverable later. "We will point the collector at
+      # it when it lands" silently costs the start of the metagame.
+      #
+      # This step collects nothing today and SAYS SO — engine/next_regulation.js derives the format
+      # set from the live server's format list and the local dex at run time and compares it against
+      # data/regulations.json. No format id is hardcoded anywhere in it, so the day Showdown ships
+      # the next Champions VGC regulation this step starts collecting on the next scheduled run with
+      # nobody editing anything.
+      #
+      # IT CANNOT DISTURB THE THREE TRACKED STORES. It writes data/games.<formatid>.jsonl — the file
+      # name IS the format id — and skips every format data/regulations.json already knows about, so
+      # games.ladder.jsonl, games.bo3.jsonl and games.ots.jsonl are unreachable from it. It also
+      # never edits data/regulations.json: flipping `active` re-points the LADDER collector, which
+      # is the one edit that could stop the existing corpus growing. It prints the block to paste.
+      - name: Collect the next Champions regulation, if Showdown has shipped it
+        continue-on-error: true
+        run: PAGES=25 CONC=20 node engine/next_regulation_ingest.js
+
       - name: Rebuild the meta model
         continue-on-error: true
         run: node engine/analyze.js data/games.ladder.jsonl
@@ -178,11 +199,25 @@ jobs:
           add_artifacts() {
             for f in data/games.ladder.jsonl.gz data/games.bo3.jsonl.gz data/games.ots.jsonl.gz \
                      data/meta-usage.json data/live.js data/move-priors.observed.json \
-                     data/bring-priors.json data/chomp-ev.json docs/ORIENTATION.md; do
+                     data/bring-priors.json data/chomp-ev.json docs/ORIENTATION.md \
+                     data/next-regulation.json; do
               if [ -e "$f" ]; then
                 git add "$f"
               else
                 echo "::warning::$f was not produced this run; it is not in this commit"
+              fi
+            done
+            # THE NEXT-REGULATION STORES, WHOSE NAMES DO NOT EXIST YET.
+            # One .gz per Showdown format id, written by engine/next_regulation_ingest.js, so they
+            # cannot be listed above — the id is not known until Showdown ships the format. The
+            # glob matches nothing today; an unmatched glob leaves `$f` as the literal pattern,
+            # which `-e` rejects, so this is a no-op rather than the `bash -e` abort that killed
+            # this workflow for 24 days. It is deliberately NOT a ::warning:: when empty: absent is
+            # the correct state until the regulation rotates.
+            for f in data/games.gen9champions*.jsonl.gz; do
+              if [ -e "$f" ]; then
+                git add "$f"
+                echo "next-regulation store committed: $f ($(wc -c < "$f") bytes)"
               fi
             done
           }
@@ -237,6 +272,15 @@ jobs:
                 echo "::error::$f shrank during reconcile — refusing to push"; exit 1
               fi
             done
+
+            # THE NEXT-REGULATION STORES GET THE SAME RECONCILE, FOR THE SAME REASON.
+            # `git reset --hard origin/main` above restored ORIGIN'S .gz and left the gitignored
+            # plain .jsonl alone, so recompressing the plain file here would publish our copy over
+            # origin's and lose whatever another run pushed in between. --reconcile is the same
+            # union-and-dedupe-by-id the ladder gets four lines up: origin's rows first, ours
+            # appended, first occurrence wins. It refuses to write a store smaller than it found.
+            # No network, and a no-op when no such store exists.
+            node engine/next_regulation_ingest.js --reconcile || true
 
             node engine/analyze.js data/games.ladder.jsonl || true
             # the OBSERVED table again, never the frozen engine source — see the derivation step

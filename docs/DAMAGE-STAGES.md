@@ -1,6 +1,8 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.234.0 — 2026-08-31.**
+**Version: 5.235.0 — 2026-08-31.**
+
+**5.235.0 - NO STAGE MOVED, NO DAMAGE NUMBER MOVED, AND NOTHING IN THIS DOCUMENT CHANGES.** This version adds the collector for the next regulation - a detector that derives the target Showdown format at run time instead of holding a constant, and one store per format id - and repairs the per-game format tag in `engine/durable-ingest.js`, which returned a literal for every Champions tier. Neither touches the damage path: no multiplier, no stage, no rounding rule and no order of operations was read or edited, and no figure here was re-measured. It is recorded only so the version line does not assert a damage change it did not make. Full account: `docs/_reports/2026-08-31-next-regulation-ingest.md`.
 
 **5.234.0 - NO STAGE MOVED, NO DAMAGE NUMBER MOVED, AND TWO DAMAGE DIVERGENCES BECAME VISIBLE THAT HAD BEEN LABELLED IMPOSSIBLE.** Nothing in this document changes. The divergence annotator - the instrument that tags each disagreement with whether the entities it names are legal in this format - was resolving a token to the first dex hit, and `|-damage|p1a:floette|74/149` against `92/149` names Floette-Mega / Floette-Eternal, both legal, through a base spelling that is `Past` and `tier: 'Illegal'`. Both such rows are `board_parted: 1`, `DIFFERENT-END-STATE`, and both had been binned `cannot_occur_in_format: true`. **They are `-damage field 3` MAGNITUDE divergences and nothing here yet says which stage they belong to** - no stage was investigated, no multiplier was touched, and no figure in this document was re-measured. They are recorded here so that the next damage-stage pass has them on the list rather than filtered out of it. Full account: `docs/_reports/2026-08-31-annotator-entity-kind.md`.
 

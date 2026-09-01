@@ -146,6 +146,238 @@ _stamped 2026-08-31 02:18_
 
 <!-- /GENERATED -->
 
+## KING'S ROCK TOOK ONE DIE PER CLICK AND THE AUTHORITY TAKES ONE PER LANDED ARRIVAL — WILL'S "SUPER FLINCH MACHINE" IS REAL AND WE WERE NOT MODELLING IT. **CENSUS 817 -> 818 LIVE / 818 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. BOARD-PARTED UNMOVED AT 82 OF 961, PROTOCOL UNMOVED AT 172, CAUSES UNMOVED AT 150 WITH ZERO ADDED AND ZERO REMOVED, END-STATE IDENTICAL AT 905/53/2/0/1 — ALL FOUR PREDICTED AT THEIR POINT ESTIMATE BEFORE THE RUN, ELEVEN PREDICTIONS AND ELEVEN HITS. THE AUTHORITY'S DIE COUNT WAS INSTRUMENTED, NOT INFERRED.** 2026-08-31.
+
+Full account: [docs/_reports/2026-08-31-kingsrock-volley.md](_reports/2026-08-31-kingsrock-volley.md).
+Prediction written before the run: `data/verification/2026-08-31-kingsrock-volley-prediction.json`.
+
+| | before | after |
+|---|---|---|
+| census (`data/mechanics-census.json`) | 817 / 817 / 0 | **818 / 818 / 0** |
+| empirical board-parted | 82 of 961 | **82** |
+| empirical protocol-diverged | 172 of 961 | **172** |
+| distinct divergence causes | 150 | **150** (0 added, 0 removed) |
+| end-state verdicts | 905 / 53 / 2 / 0 / 1 | **905 / 53 / 2 / 0 / 1** |
+| engine release | `862624c9826e` | **`b43a2fea0cb1`** |
+
+### THE ANSWER, IN ONE LINE: PER LANDED ARRIVAL
+
+The item runs no handler at hit time — `onModifyMove` PUSHES `{chance: 10, volatileStatus: 'flinch'}`
+onto `move.secondaries` (`data/items.ts:3219`) — so the die is drawn in `BattleActions#secondaries`
+(`sim/battle-actions.ts:1343`), which is step 5 of the Champions `spreadMoveHit`
+(`data/mods/champions/scripts.ts:388`), which `hitStepMoveHitLoop` calls once per hit (`:518`) under
+`if (targets.every(target => !target?.hp)) break;` (`:464`). **So: one die per arrival that LANDED,
+never per arrival the volley DREW, and `-hitcount` is the same counter.** The real flinch rate is
+`1 - (1 - p)^n` — **19% on two arrivals, 41% on five** — against the flat 10% this engine gave every
+one of them.
+
+**IT WAS INSTRUMENTED, NOT INFERRED.** `BattleActions.prototype.secondaries` was wrapped and the
+King's-Rock-shaped entry counted per living target per call: Dual Wingbeat **2**, a three-arrival
+Icicle Spear **3**, Brave Bird **1**, the volley that kills on arrival 1 of 2 **1** (only
+`dualwingbeat#1` ever reached the function), no item **0**, Air Slash **0** with its own 30% flinch
+still rolled, an aimed Status move **0**.
+
+### WHY NOTHING SAW IT, AND WHY IT IS NOT THE STANDING WRAP
+
+WIRE 103's own comment rests on 2,000 staged turns measuring `pFlinch x accuracy` — **every one of
+them a single-hit click**, so "one die per click" and "one die per landed arrival" were the same
+observation. And the standing once-per-move wrap of the step list
+(`test-resolution-order.js`'s KNOWN-OPEN arm) could not have exposed it either: derived on every
+probe run, **14 legal `multiHit` moves in this format and all 14 carry `secondaries: null`.** King's
+Rock is the only road by which the authority's per-hit secondary loop is observable here at all,
+which is why it gets its own knob.
+
+**THE BUILD IS COMMON EVEN THOUGH THE POOL RATE IS NOT** — 82 of 211 King's Rock sheet entries in the
+store carry a multi-arrival move (Population Bomb 36, Bullet Seed 24, Rock Blast 19, Dual Wingbeat 11,
+Dragon Darts 11, Beat Up 3), while only 36 of 7,772 distinct pinned-pool teams do. That 0.46% is why
+the pool was predicted unmoved, **before the run and with the arithmetic stated**.
+
+### THE FIX IS A LOOP OVER A NUMBER THAT ALREADY EXISTED
+
+`R.arrivals = _packets ? _landed : 1`, set in `_stepApply` where the packet loop counts it. `-hitcount`,
+`timesAttacked` and the King's Rock die are now three readers of ONE number, exactly as the authority
+derives all three from one `hit` counter. A row reaching WIRE 103 with no count falls back to one die
+and says so (`MEDFAILS.kingsRockNoArrivalCount`, asserted at zero on every arm of both instruments).
+
+**DECLARED REMAINDER, COUNTED AND NOT FIXED:** the authority takes a die on the arrival that KILLS
+and this engine takes none, because its step list is wrapped once per move and the row is already
+fainted. It cannot part a board — the authority's own `addVolatile` refuses a body at zero
+(`sim/pokemon.ts:1980`) — and taking it would add a `sec` draw on every killing hit by a King's Rock
+holder for no board benefit. `MEDSEEN.kingsRockRollSkippedOnKO` carries how many were skipped and both
+instruments assert it non-zero on their kill arm.
+
+### TWO INSTRUMENTS, BOTH SHOWN RED FIRST
+
+`tests/probe_kingsrock_volley.js` — 7 arms over two engines under the `middle` pin, no typed
+expectation. RED before the fix (authority 2 / medicham 1, and 3 / 1) with all four over-fire controls
+already green; GREEN after; GREEN under `--red`, where both live arms part and no control moves. The
+new census row reads `2 / 1 / 0 / 0 / 0+1 skipped` with the rng pinned so every die loses, goes MISSING
+under `MEDI_KINGSROCK_ONCE_PER_MOVE=1` at **817 live / 1 missing** — so the knob is narrow — and the
+run REFUSED to write the census, because the knob is registered in `DELIBERATE_BREAK`.
+
+## THE NEXT REGULATION HAS NO FORMAT ID YET, SO NOTHING TYPES ONE — THE COLLECTOR DERIVES IT FROM THE LIVE SERVER AND DECLINES OUT LOUD UNTIL IT EXISTS. **NO MECHANIC MOVED AND NO CENSUS FIGURE IS QUOTED HERE — ANOTHER PROCESS REWROTE `engine/medicham2-browser.js` AND REGENERATED THE CENSUS WHILE THIS WORK WAS IN FLIGHT, SO EVERY CENSUS NUMBER ON DISK BELONGS TO SOMEBODY ELSE'S PASS. NO FROZEN SOURCE WAS TOUCHED, SO EVERY RELEASE ID IS UNCHANGED. THE ONE ENGINE BYTE THAT MOVED IS `durable-ingest.js`'s FORMAT TAG, WHICH WAS THE CONSTANT `'champions-regmb'` FOR EVERY CHAMPIONS TIER AND IS WHY THE EXISTING ROTATION ALARM COULD NEVER FIRE.** 2026-08-31.
+
+The next regulation is announced for roughly 2026-09-09 and Showdown usually ships the format a day
+or two after. The brief was to have the scraper and the store ready first, and to make the ABSENCE
+loud — because a collector that does nothing and a collector that was never wired up produce
+identical output on every day but the one that matters.
+
+### THERE IS NO FORMAT ID, AND THE CHECK THAT SAYS SO IS THE PRODUCT
+
+`engine/next_regulation.js` asks three authorities at run time and types nothing:
+
+| authority | what it answers | measured 2026-08-31 |
+|---|---|---|
+| `play.pokemonshowdown.com/data/formats.js` | what the SERVER will accept a battle in — the arrival signal | 342 formats, 4 Champions VGC regulation formats |
+| the pinned local checkout, `Dex.formats.all()` | what the SIMULATOR can play | 333 formats, the same 4 |
+| `replay.pokemonshowdown.com/search.json` | whether anybody is playing it | 51 most recent replays site-wide |
+
+A Champions VGC regulation is recognised by SHAPE — `gen<N>championsvgc<YYYY>reg<token>[bo3]`, with
+`mod` starting `champions` and `gameType: doubles` where the authority carries them — so the format
+Showdown ships next week matches without an edit. **The `page` parameter on the all-formats replay
+search is IGNORED**: pages 1 and 2 came back byte-identical, so that arm is 51 replays and is
+corroboration only, never the detector.
+
+**A SET DIFFERENCE AGAINST `data/regulations.json` IS THE WRONG TEST AND IT WOULD HAVE COLLECTED A
+DEAD METAGAME.** Reg M-A is live on the server right now and is absent from the config, so a plain
+"not in the config" rule reports two brand-new regulations today. The regulation token is part of the
+id, so the ordering is derived: `(gen, year, token)` against the ACTIVE regulation's triple, strictly
+greater is a CANDIDATE. Reg M-A sorts below Reg M-B and is classified `superseded` — and it is still
+PRINTED, with its classification, because if the next token ever sorts the other way the line that
+says so has to be on screen.
+
+### WHAT RUNS TODAY, AND WHY IT IS NOT SILENCE
+
+```
+  Champions VGC regulation formats detected: 4
+    gen9championsvgc2026regma        superseded [live+dex]
+    gen9championsvgc2026regmabo3     superseded [live+dex]
+    gen9championsvgc2026regmb        known      [live+dex]
+    gen9championsvgc2026regmbbo3     known      [live+dex]
+
+  THE NEXT REGULATION DOES NOT EXIST YET. Nothing to collect, and nothing collected.
+  COLLECTED NOTHING, AND THAT IS THE CORRECT ANSWER TODAY.
+    formats detected           4
+    candidates                 0
+    games appended             0
+```
+
+Three distinct outcomes, and only one of them is an error:
+- `candidates == 0` — expected until the format ships, stated in words, exit 0;
+- `vgc_regulation_formats_detected == 0` — `::error::`, because there has never been a moment with no
+  Champions VGC format, so a zero there is the DETECTOR failing rather than the game changing;
+- a format on the live server and NOT in the pinned checkout — its own counter,
+  `collectable_not_simulatable`, because on the day that is the real state: replays can be collected
+  and the simulator cannot play them until somebody pulls Showdown. Those are two jobs and only the
+  first one is automatic.
+
+### ONE STORE PER FORMAT ID — THE NAME IS THE ID
+
+`data/games.<formatid>.jsonl`, written by `engine/durable-ingest.js` unchanged, with the raw logs
+archived beside it so STORE RAW / ANALYSE ON TOP holds and any new field is a re-parse. Two
+regulations cannot share a file, and the three tracked stores are unreachable from it: every format
+already named in `data/regulations.json` is skipped, and `games.ladder` / `games.bo3` / `games.ots`
+do not match the id shape at all. It never edits `data/regulations.json` either — flipping `active`
+re-points the LADDER collector, so the run PRINTS the block to paste and leaves the decision to a
+person.
+
+### THE REHEARSAL, AGAINST A FORMAT THAT DOES EXIST
+
+`--format gen9championsvgc2026regmabo3` (Reg M-A bo3 — real, live, and unknown to the config) at
+`PAGES=1`: **51 games appended, 51 with open team sheets, store 0 -> 51, `.gz` written and verified
+to decompress to the same 51 rows.** The reconcile path was then exercised in all three states it can
+meet on a runner — `51 -> 51` idempotent, `0 -> 51` restoring a fresh checkout from the `.gz` alone,
+and `10 -> 51` where a torn plain store meets a full `.gz` and the union wins.
+
+**TWO REAL DEFECTS FELL OUT OF THAT REHEARSAL, AND NEITHER WOULD HAVE FAILED ANY EXISTING CHECK.**
+
+- **`durable-ingest.js` STAMPED EVERY CHAMPIONS TIER `'champions-regmb'`.** A literal, for any tier
+  containing "champions". So all 51 Reg M-A replays stored as Reg M-B — and, worse, on the day the
+  next regulation ships its games would have carried the OLD regulation's name too.
+  `build/triggers.js`'s `formatTrigger` is the one alarm that watches for a rotation and it TALLIES
+  THIS FIELD, comparing the store's modal format against the recent window: with a constant on both
+  sides it can never differ. **The rotation alarm was dead by construction.** The tier line already
+  carries the regulation, so it is now read: `champions-reg` + the token. **Reg M-B is byte-identical
+  to what the constant produced** — asserted on 800 real stored games, 400 ladder and 400 bo3,
+  re-extracted from the raw archive — because relabelling the active regulation would make every new
+  row differ from every stored row and fire the alarm on a rotation that had not happened. A Champions
+  tier with no readable token gets `champions-reg?`, visibly a gap, rather than borrowing a
+  regulation's name.
+- **THE STORE SCAN LOOKED FOR THE PLAIN `.jsonl` AND GIT CARRIES THE `.gz`.** On a runner the plain
+  file is gitignored and absent, so `--reconcile` found nothing and said "nothing to reconcile" with a
+  whole store sitting beside it. Reproduced by deleting the plain file: 51 rows became `0 next-regulation
+  store(s) on disk`. Fixing the scan then produced the SECOND half of it — the matched filename was
+  pushed as the store path, so `reconcile()` was handed a `.gz`, read a gzip binary as text (194
+  "rows" out of a 51-row store), and wrote the archive back out as plain text. **It destroyed the file
+  it exists to protect**, and the only reason that is a footnote is that it happened to the rehearsal
+  store, which was restored from a copy. The scan now always yields the PLAIN path and `reconcile()`
+  refuses a `.gz` outright.
+
+### THE PROBE, RED FIRST, WITH THE KNOB VARIED IN BOTH DIRECTIONS
+
+`tests/test-next-regulation.js`, 19 checks. It was shown RED on a deliberate break before it was
+trusted — reverting the format tag to the constant and making the ordering comparison always-false
+turned **5 checks red**, then green again on restore. The three that matter:
+
+- **the counter that must not be zero.** The detector finding no Champions VGC regulation format at
+  all fails the test, because that is the state in which the capability is dead and silent.
+- **the ordering knob, varied.** Same detected rows, active regulation moved back one:
+  `candidates 0 -> 2`. Identical output across a varied knob would have meant the rule was unwired,
+  and the asymmetry is asserted in both directions so that a rule reading "everything is a candidate"
+  cannot pass.
+- **the format tag, varied.** Two constructed `|tier|` lines quoting the two real Champions VGC
+  regulations: `champions-regmb` vs `champions-regma`. The old code returned the same string for both.
+
+The `--dry-run --no-net --no-write` arm asserts the absent path exits 0, prints its counters, says in
+words what it did, and writes nothing.
+
+### WHAT THE SIX-HOURLY JOB DOES WITH IT
+
+One additive step in `.github/workflows/ingest.yml`, `continue-on-error`, after the shrink guard, plus
+a `--reconcile` inside the push-retry loop and a `git add` of `data/games.gen9champions*.jsonl.gz`.
+The glob matches nothing today, and an unmatched glob leaves the literal pattern, which `[ -e ]`
+rejects — proven under `bash -e` both empty and matching, because an unguarded `git add` on a pathspec
+that matches nothing is exactly what killed this workflow for 24 days.
+
+**THE ARTIFACT IS REWRITTEN ONLY WHEN THE ANSWER MOVES.** A fresh timestamp every run would stage on
+every run, so a six-hourly job that collected nothing would still produce four commits a day, churning
+every mtime `provenance.js` reads to record that nothing happened. `data/next-regulation.json` carries
+a signature of the detection with the volatile parts removed and says so in its own `note`, so an old
+`generated` means the answer has not moved rather than that the check stopped. It stamps
+`source_digests`, so `provenance.js` verifies it by CONTENT and the mtime-only ratchet went **190 ->
+189** rather than up by one.
+
+### THE HAND LIST
+
+Unchanged by this pass — no mechanic was touched, so nothing leaves it and nothing joins it.
+
+### OWED, NOT RUN
+
+- **`node engine/status.js --write` WAS NOT RUN, AND THAT IS DELIBERATE.** `engine/medicham2-browser.js`
+  was rewritten by another process 17 minutes into this session and `data/mechanics-census.json` was
+  regenerated 11 minutes into it. Restamping four ledgers from numbers that are moving under a second
+  agent is the photograph-with-the-frame-moving failure, and it would publish somebody else's half-finished
+  engine as this pass' state. The generated blocks are therefore one session stale by choice. Whoever
+  lands next should run it.
+- **The census and the roster were not run here either**, for the same reason plus a better one:
+  nothing in `SOURCES` moved and no simulator byte was edited by this pass, so a regeneration could
+  only cost time.
+- **`engine/quarantine.js:2833` will classify the new store as one of our own runs.** It exempts a
+  store by scanning collector SOURCE for a literal `games.<name>.jsonl`, and this collector's store
+  name is derived at run time, so no literal exists to find. Harmless today (no such store), and on
+  the day the regulation lands it would wrongly quarantine figures counted off a HUMAN corpus — the
+  exact failure that file's own comment records for `games.bo3.jsonl`. **MEASURE's file; filed, not
+  touched.**
+- **`engine/conformance.js` is red on 67 pre-existing regressions.** None of them name a file added or
+  edited here, and the baseline was NOT rewritten.
+- **`build/compress-stores.js` was deliberately left alone.** Adding discovered stores to its list
+  would make `tests/test-workflow-paths.js` demand a `.gz` for every next-regulation store; the
+  collector compresses its own instead.
+- **The day it lands.** Paste the printed block into `data/regulations.json`, set `active` by hand,
+  run `build/archive-regulation.js`, and pull the Showdown checkout — collection is automatic,
+  simulation is not.
+
+
 ## LAST RESPECTS DOES UPDATE MID-TURN AND THIS ENGINE ALREADY DID IT — BUT ONLY ONE OF THE THREE ROADS TO A MID-TURN CORPSE WAS PROBED, AND THE OTHER TWO ARE A DIFFERENT MECHANISM. **CENSUS 815 -> 817 LIVE / 817 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. NO ENGINE BYTE CHANGED, SO BOARD-PARTED 82, PROTOCOL 172 AND CAUSES 150 ARE UNMOVED BY CONSTRUCTION AND THE TREE IS STILL `862624c9826e`. THE DRAIN-RELATIVE WINDOW WAS INSTRUMENTED ON THE AUTHORITY AT FIVE DRAIN SITES AND IS NOT REACHABLE BY THIS MOVE.** 2026-08-31.
 
 Will asked: *"do we update Last Respects mid-turn if the partner faints before it acts?"*

@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-31T03:33:52.798Z",
+ "generated": "2026-09-01T02:16:17.715Z",
  "by": "engine/conformance.js",
- "files": 553,
+ "files": 558,
  "findings": [
   {
    "std": "S12",
@@ -576,6 +576,12 @@
   {
    "std": "S12",
    "file": "tests/probe_afterfaint_boundary.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_entity_kind.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },

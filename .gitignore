@@ -155,3 +155,9 @@ divergences.html
 # The same convention inside data/: a hand-made dump used to read one run, never cited.
 data/_scratch-*
 divergences-*.html
+
+# NEXT-REGULATION STORES — one file per Showdown format id, written by
+# engine/next_regulation_ingest.js. Same rule as the three stores above: git carries the .gz that
+# build/... — here the collector's own reconcile step — writes, and the plain .jsonl is ignored.
+# The name IS the format id, so a store cannot be ambiguous about which regulation is in it.
+data/games.gen9champions*.jsonl

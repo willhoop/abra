@@ -15465,6 +15465,75 @@ probe('item', 'addsFlinch', "King's Rock flinches on its 10%, and Sheer Force de
                  + `rock+high roll ${badRoll}, rock+Sheer Force ${sheer} (the boost deletes the rock's flinch)` };
 });
 
+/* WIRE 103, THE VOLLEY HALF -- 2026-08-31. The probe above stages a SINGLE-HIT click, and so did
+ * every one of the 2,000 staged turns WIRE 103's own comment rests on, so "one die per click" and
+ * "one die per landed arrival" were the same observation and neither could be told from the other.
+ *
+ * THE AUTHORITY DRAWS PER ARRIVAL. King's Rock runs no handler at hit time -- `onModifyMove` pushes
+ * `{chance: 10, volatileStatus: 'flinch'}` onto `move.secondaries` (data/items.ts:3219) -- and
+ * `BattleActions#secondaries` takes one `battle.random(100)` per entry (sim/battle-actions.ts:1343)
+ * inside `spreadMoveHit`, which the Champions hit loop calls once per hit
+ * (data/mods/champions/scripts.ts:388 and :518). Measured on an instrumented
+ * `BattleActions.prototype.secondaries` in tests/probe_kingsrock_volley.js: a Dual Wingbeat takes
+ * TWO dice and a three-arrival Icicle Spear takes THREE.
+ *
+ * SO THE RATE IS `1 - (1 - p)^n`. This is a COUNT probe and not a rate probe on purpose: at 10% an
+ * outcome counter is nine parts noise, which is exactly why nothing saw this for eighteen days. The
+ * rng is pinned to 0.5, so every die LOSES and no flinch lands in any arm -- the arms differ only in
+ * how many dice were taken.
+ *
+ * THE FOURTH ARM IS THE DECLARED REMAINDER. On the arrival that KILLS, the authority still takes its
+ * die; this engine's step list is wrapped once per move, so the row is already fainted when the
+ * block runs and it takes none. That cannot reach a board -- the authority's own `addVolatile` bails
+ * on a body at zero (sim/pokemon.ts:1980) -- and `kingsRockRollSkippedOnKO` counts the skipped dice
+ * so the gap is a measured quantity rather than a sentence. */
+probe('item', 'addsFlinch', "King's Rock takes ONE die per LANDED ARRIVAL, not one per click", () => {
+  const arm = (item, move, hp) => {
+    const me = bare('talonflame'); me.item = item;
+    const ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('garchomp');
+    if (hp != null) f1.curHP = hp;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const r0 = M.MEDSEEN.kingsRockRolls, s0 = M.MEDSEEN.kingsRockRollSkippedOnKO;
+    const n0 = M.fails.kingsRockNoArrivalCount;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, move, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'recover', null, S.field)], [f2, { kind: 'pass' }]]));
+    return { rolled: M.MEDSEEN.kingsRockRolls - r0,
+             skipped: M.MEDSEEN.kingsRockRollSkippedOnKO - s0,
+             fellBack: M.fails.kingsRockNoArrivalCount - n0,
+             dead: !!f1.fainted, flinched: !!f1._flinch };
+  };
+  /* THE ARRIVAL COUNT IS READ OFF THE FORMAT, not typed: `multihit` is 2 for Dual Wingbeat and
+     absent for Brave Bird, and this probe asserts against that number rather than against a 2. */
+  const TG = require(D('engine', 'tags.js'));
+  const declared = TG.param('move', 'dualwingbeat', 'multiHit') || {};
+  const want = +declared.hits > 0 ? +declared.hits : 2;
+  const volley = arm('kingsrock', 'dualwingbeat');
+  const single = arm('kingsrock', 'bravebird');
+  const noItem = arm('', 'dualwingbeat');
+  const ownFlinch = arm('kingsrock', 'airslash');
+  const killed = arm('kingsrock', 'dualwingbeat', 1);
+  return { works: volley.rolled === want && single.rolled === 1 && noItem.rolled === 0
+                  && ownFlinch.rolled === 0 && killed.rolled === 0 && killed.dead
+                  && killed.skipped >= 1
+                  && [volley, single, noItem, ownFlinch, killed].every(a => a.fellBack === 0)
+                  && [volley, single, noItem, ownFlinch, killed].every(a => !a.flinched),
+           arms: { control: single.rolled, test: volley.rolled },
+           detail: `King's Rock dice taken, rng pinned to 0.5 so every one of them LOSES -- a `
+                 + `${want}-arrival Dual Wingbeat ${volley.rolled} (the tag says multiHit.hits=${want}, `
+                 + `so this is read and not typed); the SAME holder's single-hit Brave Bird `
+                 + `${single.rolled} (the over-fire control -- a fix that multiplied the roll by `
+                 + `anything fails here); the same volley with NO item ${noItem.rolled}; Air Slash, `
+                 + `which already flinches, ${ownFlinch.rolled} (the item's own no-stacking clause); `
+                 + `and the volley into a 1 HP body ${killed.rolled} rolled with `
+                 + `${killed.skipped} DECLARED-REMAINDER dice skipped on the KO (the authority takes `
+                 + `them and a flinch on a corpse is refused by addVolatile, so no board can differ). `
+                 + `MEDFAILS.kingsRockNoArrivalCount ${volley.fellBack}/${single.fellBack}/`
+                 + `${noItem.fellBack}/${ownFlinch.fellBack}/${killed.fellBack} -- every arm must be 0 `
+                 + `or the count came from a silent fallback` };
+});
+
 /* ROADMAP #197 -- A MID-BATTLE FORME CHANGE CARRIES THE BODY'S NATURE, AND IT DID NOT.
  *
  * Found by tests/test-forme-assert.js, the forme absolute-assertion mode, on its first run:
@@ -32397,7 +32466,8 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afte
                           'statusOneStepRestored', 'perishAtFootRestored',
                           'reactBatchedRestored', 'berryAtApplyRestored',
                           'formeBustInlineRestored', 'eatReactBeforeBerryRestored',
-                          'eatEventUpdateOnlyRestored', 'stealEatStripOnlyRestored']
+                          'eatEventUpdateOnlyRestored', 'stealEatStripOnlyRestored',
+                          'kingsRockOncePerMoveRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

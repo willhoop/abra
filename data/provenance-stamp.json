@@ -197,7 +197,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 2,
+  "verified": 4,
   "graph_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -331,6 +331,7 @@
     "move-priors.observed.json",
     "mutation-coverage.json",
     "nature-arms.json",
+    "next-regulation.json",
     "nmf-rank-selection.json",
     "nmf-roles.json",
     "nmf.js",
@@ -1056,7 +1057,17 @@
       "files": [
         "side-selection-census.json"
       ]
+    },
+    {
+      "when": "2026-09-01T02:18:21.085Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 path variable",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 251,
+      "graph_after": 252,
+      "files": [
+        "next-regulation.json"
+      ]
     }
   ],
-  "generated": "2026-08-31T07:27:35.906Z"
+  "generated": "2026-09-01T02:30:32.704Z"
 }
