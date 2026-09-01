@@ -10,6 +10,123 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.238.0] — 2026-09-01
+
+### Fixed
+- **A HAZARD PUNISH LAYS ITS LAYER ON THE SIDE OPPOSITE THE HOLDER, AND THIS ENGINE READ IT OFF THE
+  ATTACKER — SO AN ALLY'S HIT PUT IT ON OUR OWN HALF.** `data/abilities.ts:5096`, not overridden in
+  `data/mods/champions/`:
+  `const side = source.isAlly(target) ? source.side.foe : source.side;`
+  Both branches name the same side in a two-side game: **the one that is not the holder's.** A foe's
+  own side IS that side; an ally's foe side is too. MEDICHAM passed `m._sf`, the attacker's side
+  field — identical for a foe, wrong for an ally — so a partner's Earthquake into its own Glimmora
+  scattered the Toxic Spikes on its own side and poisoned its own switch-ins.
+  - **Only an ally can expose it**, which is why nothing caught it: every fixture in this repository
+    hits Glimmora from across the field, and `tests/probe_punish_announce.js` says in its own header
+    *"the layer was laid, on the right side"* — true of the arm it stages, silent about the one it
+    cannot.
+  - The far side is now derived from the HOLDER through `tg._sf._S`, the back-reference `battleInit`
+    writes (`S.sfA._S=S; S.sfB._S=S;`), and the `-sidestart` label is read off that same side field
+    so the state and the line cannot disagree. A body whose side field carries no `_S` lays NOTHING
+    and increments `MEDFAILS.punishHazardNoFarSide` — a silent fallback to the attacker's side is
+    what caused this in the first place.
+  - Empirical cause, gone in the after-arm:
+    `|-sidestart|p1:|toxicspikes <> |-sidestart|p2:|toxicspikes`
+- **A WEATHER PUNISH SETS ITS SKY THROUGH A STANDING WEATHER, AND THE GUARD SAID `!field.weather`.**
+  `sandspit.onDamagingHit` (`data/abilities.ts:3978`) is an **ungated** `this.field.setWeather('sandstorm')`,
+  and `Field#setWeather` (`sim/field.ts:45-52`) refuses only when the SAME weather already stands —
+  `if (this.weather === status.id) { if (sourceEffect.effectType === 'Ability') { if (gen > 5) return false;`.
+  gen 9 is > 5, so its own sandstorm refuses and sun, rain or snow is **overwritten**. This engine
+  refused to set a sky whenever any sky stood, and a Sandaconda is brought INTO weather — so the
+  broken branch was the common one, and the empirical card's sentence was *"we carry on in sun"*.
+  - **This is a facts-are-global break as well as a wrong guard.** `applyMoveWeather` (the move road)
+    and the `weatherSetter` entry block (the switch-in road) both ask `field.weather !== w`. This
+    third road asked something else, and no test that only ever set a sky from an empty field could
+    tell the three apart.
+  - The primal skies are not represented, and that is derived rather than overlooked: `SetWeather` is
+    refused by Desolate Land, Primordial Sea and Delta Stream, and none has a legal carrier here.
+  - Empirical cause, gone in the after-arm:
+    `|-weather|sandstorm|[from]sandspit <> |-weather|sunnyday|[upkeep]`
+
+### Changed
+- `data/side-selection-declarations.json` — the hazard site's two expressions are declared:
+  `fn:_damagingHit | sfB:sfA | dba899f4` as **SIDE** (the authority's own ternary) and
+  `fn:_damagingHit | p1:p2 | a034cd87` as **READER** (the label for the side the line above chose).
+  The old site **was** one of the census's 102 and **was undeclared**. 103 sites, undeclared 83 → 82.
+
+### Added
+- `tests/probe_punish_side_and_sky.js` — five scenarios × two ability arms against the official
+  simulator under the differential's `bottom-tie-first` pin. Each turn's protocol is compared as a
+  sequence with nothing typed; layers-per-side and the sky are read out of each engine's own state at
+  the same instant; the AUTHORITY is asserted to move across every ability knob first, so an unwired
+  fixture fails before the engine can be judged.
+- Two `probe('ability','punishesAttacker',…)` census rows — the hazard side and the standing sky.
+  Both **shown RED first** (819 live / 821 probed / **2 missing**) before an engine byte moved.
+- `MEDI_HAZARD_ON_ATTACKER_SIDE=1` and `MEDI_PUNISH_WEATHER_IF_CLEAR=1`, stamped at declaration into
+  `MEDFAILS.punishHazardOnAttackerSideRestored` / `punishWeatherIfClearRestored` and registered in
+  `tests/test-mechanics.js` `DELIBERATE_BREAK`, so a run under either refuses to write the census.
+  **Two knobs and not one is the measurement**, not a convenience.
+
+### Notes
+- **THE BRIEF'S HYPOTHESIS IS REFUTED, AND BY READING RATHER THAN BY RUNNING.** It proposed one cause:
+  that `punishesAttacker`'s payload models only damage and boosts, so neither a side condition nor a
+  sky could land. `engine/tag_dex.js` derives `hazard`, `maxLayers` **and** `setsWeather`, and
+  `medicham2-browser.js` consumes all three at two adjacent statements. Both defects are downstream
+  of the payload and they are two.
+- **MEMBERSHIP, PRINTED OVER THE FORMAT FIRST.** Thirteen `punishesAttacker` rows, **every one with at
+  least one legal carrier** — not one member was ruled out for having none. Exactly one carries a
+  hazard (`toxicdebris`, Glimmora, 2,115 uses) and exactly one a sky (`sandspit`, Sandaconda, 34), so
+  neither probe can be satisfied by a sibling.
+- **THE 2×2.** Each knob moves only its own arms under both settings of the other — on the staged
+  board (four corners in four child processes) and against the official simulator (0 failing clauses
+  fixed, 6 under one knob, 6 under the other, **12 under both: the union, no interaction term**).
+  The FOE-hit arm, the clear-sky arm, the already-sandstorm arm (whose clock must NOT reset — the arm
+  an "always set it" fix fails) and **Rough Skin**, a member of the same family that was already
+  correct, do not move at any corner.
+- **THE DELTA IS KNOB-CONTROLLED ON THE SAME RELEASE, NOT DIFFED AGAINST A PUBLISHED FIGURE.** The
+  before-arm is this tree with both knobs armed and it reproduces the baseline exactly: 172
+  protocol-diverged, 82 board-parted, 150 causes, end-state 905/53/2/0/1, turn-1 boards 956 — with
+  `first_divergences` (60 entries), the whole `classes` block and the whole `end_state` block
+  **byte-identical strings** to `data/verification/game-differential.accstage.json`. The only fields
+  that differ at all are the census pin and the coverage block that reads it, which demonstrates the
+  artifact's own *"the census CREDITED ONLY — it measures coverage and does not select"* rather than
+  believing it.
+- **MEASURED.** Census 819 → **821 live / 821 probed / 0 missing / 0 hollow / 0 threw**. Whole-game
+  differential (`--end-state --steering empirical --team-store data/team-pool-frozen --arm middle`,
+  961 games, cap 12, pool `0d103fb9fa87`, release `cde6cb10daa7`): board-parted 82 → **80**, protocol
+  172 → **171**, causes 150 → **149**, end-state 905/53/2/0/1 → **907/52/1/0/1**, turn-1 boards
+  956 → **957**.
+- **TWO CAUSES REMOVED AND ONE ADDED, AND THE ADDED ONE IS THE SAME GAME RUNNING FURTHER.**
+  `|-status|p1a|tox <> |-damage|p1a|H/H|[from]stealthrock` appears in the game that used to part on
+  the Toxic Debris side; its board no longer parts (board-parted took the full 2) and its protocol
+  parts later on a different mechanism. That is why protocol and causes each fell by 1 where 2 was
+  predicted. **Filed undiagnosed rather than counted as a win.**
+- **PREDICTIONS, WRITTEN TO DISK BEFORE ANY PROBE EXISTED** — eleven, eight hit, three missed by one
+  step and none in the wrong direction: census 821 and board-parted 80 both hit at their point
+  estimate; protocol (170 predicted, 171) and causes (148 predicted, 149) missed by one and stayed in
+  band; end-state was predicted **unchanged** and improved instead.
+  `data/verification/2026-09-01-punishes-attacker-kinds-prediction.json`.
+- **AN INSTRUMENT DEFECT FOUND ON THE WAY, AND LEFT WHERE IT ALSO LIVES.** Showdown's `|split|` shared
+  half carries an HP-bar colour — `20/100y`, `…r` — which the normaliser inherited from
+  `tests/probe_punish_announce.js` had no place for, so the twin failed to dedupe and a phantom
+  `-damage` appeared in the authority's stream. Diagnosed by dumping the raw protocol, not by
+  reasoning. Corrected in the new probe; **the ancestor is deliberately not edited** — it can only
+  produce a false FAILURE, and changing a passing probe's comparator inside a batch about something
+  else is how a green test starts asking nothing.
+- **`data/side-selection-census.json` IS DELIBERATELY NOT RESTAMPED.** Its ratchet floor is simply the
+  previous artifact's value, so writing it would raise 81 to 82 and weaken a gate that is **already
+  red for somebody else's reason** — it read 83 against 81 at HEAD, before this pass began. A `--write`
+  run mid-pass moved the floor to 84 by accident and was reverted with `git checkout --`; recorded
+  because a silently weakened ratchet is worse than the thing it guards.
+- **NOT RE-RUN, DECLARED RATHER THAN ASSUMED.** `tests/test-engine-diff.js`, the interaction matrix
+  and the deliberate roster: no tag was added or changed, `data/tags.json` is untouched, and neither
+  instrument reads anything this pass moved. Two earlier differential runs that omitted `--end-state`
+  (174 → 173) are **withheld**, because that flag changes when a game stops and therefore the sample.
+- **`data/game-differential.json` and `data/divergence-turns.json` were NOT touched.**
+- Full account: `docs/_reports/2026-09-01-punishes-attacker-kinds.md`.
+
+---
+
 ## [5.237.0] — 2026-08-31
 
 ### Fixed

@@ -2748,6 +2748,16 @@ const MEDFAILS = { encoreAction: 0,
    * MULTIPLIED accuracy and evasion stages back on purpose, so the before-arm of the combined-stage
    * fix and a broken engine can never be read as the same thing. Same shape as the rows above. */
   accEvaSeparateRestored: 0,
+  /* 2026-09-01 -- set to 1 for the whole run when MEDI_HAZARD_ON_ATTACKER_SIDE=1 puts the ATTACKER's
+   * side back under a hazard punish on purpose, and when MEDI_PUNISH_WEATHER_IF_CLEAR=1 puts the
+   * `only from an empty sky` guard back under a weather punish. Two knobs and not one, because the
+   * two defects are two statements and the 2x2 that says so needs to move them independently. */
+  punishHazardOnAttackerSideRestored: 0,
+  punishWeatherIfClearRestored: 0,
+  /* 2026-09-01 -- a hazard punish fired on a body whose side field carries no `_S` back-reference, so
+   * the far side could not be resolved and NO layer was laid. Counted rather than fallen back on: the
+   * silent fallback is what put the layer on the holder's own half for three weeks. */
+  punishHazardNoFarSide: 0,
   /* 2026-08-31 -- the King's Rock block was reached with NO arrival count on the row, so it fell back
    * to one die. A silent fallback looks exactly like a working feature (CLAUDE.md), and the only way
    * this can be non-zero is a damaging road that never ran `_stepApply`'s tail. */
@@ -20810,6 +20820,26 @@ const ACC_EVA_SEPARATE=(typeof process!=='undefined'&&process.env
  * accuracy check with a stage on it happens to occur -- tests/test-mechanics.js reads exactly this to
  * refuse writing the census under a deliberate break. */
 if(ACC_EVA_SEPARATE)MEDFAILS.accEvaSeparateRestored=1;
+/* 2026-09-01 -- THE TWO `punishesAttacker` EFFECT-KIND KNOBS, DECLARED APART BECAUSE THE DEFECTS ARE.
+ *
+ * `MEDI_HAZARD_ON_ATTACKER_SIDE=1` puts the ATTACKER's side field back under a hazard punish, which is
+ * the reading that agrees with the authority for a FOE and disagrees for an ALLY.
+ * `MEDI_PUNISH_WEATHER_IF_CLEAR=1` puts the `!field.weather` guard back under a weather punish, which
+ * refuses to overwrite a sky the authority overwrites.
+ *
+ * TWO KNOBS AND NOT ONE IS THE WHOLE MEASUREMENT: the brief's hypothesis was that both cards were one
+ * cause -- a tag payload too narrow to carry a side condition or a sky. It is not; `tag_dex` derives
+ * `hazard`, `maxLayers` and `setsWeather` and both are consumed. A single knob could not have told a
+ * shared cause from two, and a 2x2 over these two can. */
+const HAZARD_ON_ATTACKER_SIDE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_HAZARD_ON_ATTACKER_SIDE==='1');
+const PUNISH_WEATHER_IF_CLEAR=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_PUNISH_WEATHER_IF_CLEAR==='1');
+/* STAMPED AT DECLARATION, like the knobs above, so a run under either break is identifiable BEFORE a
+ * Glimmora is hit or a Sandaconda is touched -- tests/test-mechanics.js reads exactly these to refuse
+ * writing the census under a deliberate break. */
+if(HAZARD_ON_ATTACKER_SIDE)MEDFAILS.punishHazardOnAttackerSideRestored=1;
+if(PUNISH_WEATHER_IF_CLEAR)MEDFAILS.punishWeatherIfClearRestored=1;
 /* 2026-08-30 -- `MEDI_REACT_BATCHED=1` RESTORES THE BATCHED REACTION: every `onDamagingHit` reactor
  * of a volley paid in one deferred step BELOW the whole packet loop, so the stream read
  * `dmg dmg react react` where the authority writes `dmg react dmg react`.
@@ -32211,7 +32241,29 @@ function battleTurn(S,rng,actsForA,actsForB){
              * the rock that extends this sky is the holder's. The first cut of this line read
              * `m.item` and would have given Sand Spit eight turns whenever the mon that HIT it
              * happened to carry a Smooth Rock. */
-            if(_pun.setsWeather&&!field.weather){
+            /* 2026-09-01, EMPIRICAL CARD E2 -- AND THE GUARD WAS `!field.weather`, WHICH IS NOT THE
+             * AUTHORITY'S RULE. `Field#setWeather` (sim/field.ts:45-52) refuses ONLY when the SAME
+             * weather already stands:
+             *     if (this.weather === status.id) {
+             *       if (sourceEffect && sourceEffect.effectType === 'Ability') {
+             *         if (this.battle.gen > 5 || this.weatherState.duration === 0) return false;
+             * gen 9 is > 5 and the source here IS an Ability, so its own sky refuses and ANY OTHER SKY
+             * IS OVERWRITTEN. Sand Spit is `onDamagingHit(){ this.field.setWeather('sandstorm'); }`
+             * with no gate of its own (data/abilities.ts:3978, no Champions override), so the guard was
+             * the whole mechanic: under sun, rain or snow this engine carried on in the old sky. The
+             * one legal carrier is Sandaconda, and a Sandaconda is BROUGHT INTO weather, so the broken
+             * branch was the common one -- the empirical card reads `we carry on in sun`.
+             *
+             * IT IS A FACTS-ARE-GLOBAL BREAK AND NOT ONLY A WRONG GUARD. `applyMoveWeather` (the move
+             * road) and the `weatherSetter` entry block (the on-switch-in road) both ask
+             * `field.weather !== w`; this third road asked something else, and no test that only ever
+             * set a sky from an empty field could tell the three apart.
+             *
+             * THE PRIMAL SKIES ARE NOT REPRESENTED AND THAT IS DERIVED, NOT OVERLOOKED: `SetWeather`
+             * is refused by Desolate Land / Primordial Sea / Delta Stream, and NONE of the three has a
+             * legal carrier in this regulation. */
+            if(_pun.setsWeather&&(PUNISH_WEATHER_IF_CLEAR?!field.weather
+                                                        :field.weather!==weatherId(_pun.setsWeather))){
               const _w=weatherId(_pun.setsWeather);
               if(_w){field.weather=_w;field.weatherT=weatherTurns(_w,tg.item);
                 if(TR)TR.wx(_w,'[from] ability: '+tg.ability,tg);
@@ -32232,8 +32284,32 @@ function battleTurn(S,rng,actsForA,actsForB){
              * facts-are-global rule names, and the two would have gone on disagreeing invisibly. Its
              * `+_pun.maxLayers||1` default is deliberately NOT preserved: an absent cap is now
              * counted in MEDFAILS.hazardCapUnknown instead of quietly becoming 1. */
-            if(_pun.hazard&&m._sf)
-              layHazard(m._sf,_pun.hazard,_pun.maxLayers,tg,m._sf.side==='A'?'p1':'p2',_punSay);
+            /* 2026-09-01, EMPIRICAL CARD E1 -- AND THE SIDE WAS THE ATTACKER'S, WHICH IS THE SAME
+             * ANSWER FOR A FOE AND THE WRONG ONE FOR AN ALLY. The handler picks it in one line
+             * (data/abilities.ts:5096, no Champions override):
+             *     const side = source.isAlly(target) ? source.side.foe : source.side;
+             * In a two-side game BOTH branches name the side OPPOSITE THE HOLDER -- a foe's own side
+             * IS that side, and an ally's foe side is too. This engine passed `m._sf`, the attacker's
+             * side field, so a partner's Earthquake into its own Glimmora laid the Toxic Spikes on
+             * ITS OWN half of the field and poisoned its own switch-ins. Board-material, and it is
+             * the far-side class `engine/side_selection_census.js` was built for: a correct predicate
+             * (`layHazard`) handed the wrong body by its SELECTOR, so the symptom wears the
+             * predicate's name.
+             *
+             * READ OFF THE HOLDER, NEVER OFF THE ATTACKER, because the authority's expression does not
+             * mention the attacker's side at all once both branches are evaluated. `_S` is the
+             * back-reference battleInit writes onto both side fields (`S.sfA._S=S; S.sfB._S=S;`), the
+             * same road `applyEntryEffects` takes to the far side. */
+            if(_pun.hazard){
+              const _os=tg&&tg._sf, _SS=_os&&_os._S;
+              const _punHzOn=HAZARD_ON_ATTACKER_SIDE?m._sf
+                            :(_SS?(_os===_SS.sfA?_SS.sfB:_SS.sfA):null);
+              /* LOUD, not a silent fall back to the attacker's side: a body whose side field carries
+               * no `_S` cannot answer the authority's question at all, and a hazard quietly laid on
+               * the wrong half is the defect this block just closed. */
+              if(!_punHzOn)MEDFAILS.punishHazardNoFarSide++;
+              else layHazard(_punHzOn,_pun.hazard,_pun.maxLayers,tg,_punHzOn.side==='A'?'p1':'p2',_punSay);
+            }
             /* ROADMAP #197 -- AND `inflictsVolatile`, WHICH THE COMMENT ABOVE SAID HAD NOWHERE TO
              * LAND. Cute Charm read 0 fires in 16,575 constructed trials against a declared 30%.
              * There IS state for it now: `applyAttract` owns the volatile, its gender clause and its

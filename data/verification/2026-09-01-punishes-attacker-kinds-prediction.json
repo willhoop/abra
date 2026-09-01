@@ -1,0 +1,22 @@
+{
+  "written": "2026-09-01T04:20Z",
+  "by": "ENGINE",
+  "topic": "punishesAttacker effect KINDS - E1 Toxic Debris side, E2 Sand Spit weather",
+  "written_before": "any probe was written, any engine byte was changed, and any run was made",
+  "derived_not_predicted": {
+    "members": "13 punishesAttacker rows in data/tags.json, ALL 13 with at least one legal carrier in gen9championsvgc2026regmb: spicyspray(Scovillain-Mega), aftermath(Garbodor), cursedbody(6), cutecharm(4), effectspore(Vileplume), flamebody(3), gooey(2), innardsout(Victreebel-Mega), poisonpoint(5), roughskin(2), sandspit(Sandaconda), static(7), toxicdebris(Glimmora). ZERO members were ruled out for having no carrier.",
+    "payload": "tag_dex.js DOES derive BOTH kinds: `hazard`+`maxLayers` (toxicdebris only) and `setsWeather` (sandspit only). medicham2-browser.js DOES consume BOTH (WIRE 68 hazard, and the setsWeather block above it). The brief's hypothesis - that the payload models only damage and boosts - is REFUTED before anything was run.",
+    "champions": "Neither toxicdebris nor sandspit is overridden in data/mods/champions/abilities.ts (the file carries no such key). Both handlers read whole from data/abilities.ts:3978 and :5096."
+  },
+  "P1_one_cause_or_two": "TWO. They are two different statements in the same block and neither is a payload gap. E1 = the SIDE selector: we pass the ATTACKER's side field (`m._sf`), the authority uses `source.isAlly(target) ? source.side.foe : source.side`, which in a two-side game is ALWAYS the side opposite the HOLDER - so the two disagree exactly when an ALLY lands the physical hit. E2 = an over-restrictive guard: `if(_pun.setsWeather && !field.weather)` refuses to set the sky when ANY weather stands, where Field#setWeather refuses only when the SAME weather stands (sim/field.ts:45-52, gen>5 + Ability source -> false).",
+  "P2_2x2_independence": "Each knob moves ONLY its own staged arms; the other arm is byte-identical under both settings of the other knob.",
+  "P3_census": { "before": "819 live / 819 probed / 0 missing", "point": 821, "band": [820, 821], "hollow": 0, "threw": 0 },
+  "P4_board_parted": { "before": 82, "point": 80, "band": [80, 82], "why": "both defects write a compared board leaf - toxicspikes into side.hz, and field.weather is a compared leaf (BOARD_LEAF weather: /^field.weather/). The card family attributes ONE game to each." },
+  "P5_protocol": { "before": 172, "point": 170, "band": [170, 172] },
+  "P6_causes": { "before": 150, "point": 148, "band": [146, 150], "note": "removals may unmask a later cause in the same game, which has added rows in three previous batches" },
+  "P7_end_state": { "before": "905/53/2/0/1", "point": "905/53/2/0/1" },
+  "P8_probes_red_first": "both new census probes RED on the unmodified engine, GREEN after; each MEDI_* knob puts its own probe back to RED and leaves the other GREEN",
+  "P9_over_fire_controls": "Rough Skin (fraction toll) and the FOE-hit Toxic Debris arm must be identical under all four knob settings. A Sand Spit arm with sandstorm ALREADY standing must set nothing and must not reset the clock - the arm that catches a fix that simply always sets the sky.",
+  "P10_side_census": { "before": "102 sites, 83 undeclared, ratchet 81, verdict ROSE (RED AT HEAD, NOT CAUSED BY THIS PASS)", "claim": "the toxicdebris hazard site at medicham2-browser.js:32236 IS one of the 102 and is UNDECLARED", "after": "the fix changes the site's expression, so it re-enters undeclared; I will DECLARE it and any new far-side ternary it introduces, so `undeclared` must not rise above 83" },
+  "P11_which_scoreboard": "Toxic Debris 2,115 corpus uses but the ALLY-HIT path needs a partner clicking a physical spread move into its own Glimmora, so pool reach is thin; Sand Spit is 34 uses and one carrier. LAB (census) must move for both. POOL is predicted to move by 2 games only because the empirical cards each attribute exactly ONE game - if it does not move at all, that is the expected shape for a rare mechanic and is stated HERE, before the run, not afterwards."
+}

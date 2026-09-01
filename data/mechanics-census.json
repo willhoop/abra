@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-01T03:15:01.436Z",
+  "generated": "2026-09-01T04:29:15.287Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 819,
-  "live": 819,
+  "probed": 821,
+  "live": 821,
   "missing": 0,
-  "armed": 819,
+  "armed": 821,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3963,7 +3963,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 28.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5184,6 +5184,26 @@
       "label": "a punish that kills the attacker is announced BELOW the target it just killed",
       "live": true,
       "detail": "ROUGH SKIN, both bodies on 1 HP, Fake Out — faint lines [\"|faint|p2a:garchomp\",\"|faint|p1a:weavile\"] (must be [\"|faint|p2a:garchomp\",\"|faint|p1a:weavile\"]: the queue is drained in PUSH order and the target was pushed first). SPIKY SHIELD, the over-fire control, only the attacker dies — [\"|faint|p1a:weavile\"] (must be [\"|faint|p1a:weavile\"]). Before the queue the Rough Skin arm read the two lines the other way round",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "a hazard punish lands on the side OPPOSITE THE HOLDER, even when an ALLY landed the hit",
+      "live": true,
+      "detail": "Toxic Spikes layers [holder side, other side] after ONE Earthquake into a x6-HP Glimmora. ALLY landed it: [0, 1] -- the authority puts it on `source.side.foe`, i.e. the OTHER side, so holder must be 0. FOE landed it (the over-fire control, correct under both readings): [0, 1]. THE KNOB IS CLEARED EXPLICITLY -- the same Glimmora under its own other legal ability, Corrosion: ally [0, 0], foe [0, 0] -- identical output across a varied knob would mean the fixture is unwired",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "a weather punish sets its sky THROUGH a standing weather, and refuses only its own",
+      "live": true,
+      "detail": "the sky after ONE Aqua Tail into a x6-HP Sandaconda, and the clock with it. The tag says the ability sets `sand`, which is READ off punishesAttacker.setsWeather and not typed here. From CLEAR sand/4; from SUN sand/4; from RAIN sand/4 -- all three must be sand, because setWeather overwrites a DIFFERENT sky. From its OWN sky set to 3 turns: sand/2 -- must be sand/2, the residual tick and NOT a reset to 5, which is the over-fire control an \"always set it\" fix fails. THE KNOB IS CLEARED EXPLICITLY -- the same Sandaconda under Shed Skin: sun/4",
       "hollow": false,
       "armed": true,
       "directCall": false

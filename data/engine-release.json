@@ -1,10 +1,10 @@
 {
-  "current": "52e0e7effbd6",
-  "cut": "2026-09-01T03:16:21.326Z",
-  "why": "accuracy and evasion stages combined into one clamped stage, truncated, below the modifier walk",
-  "cuts": 1,
-  "latest_cut": "2026-09-01T03:16:21.326Z",
-  "latest_why": "accuracy and evasion stages combined into one clamped stage, truncated, below the modifier walk",
-  "pointer_written": "2026-09-01T03:16:21.443Z",
+  "current": "cde6cb10daa7",
+  "cut": "2026-09-01T04:31:18.673Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 5,
+  "latest_cut": "2026-09-01T04:50:52.235Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-09-01T04:50:52.249Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

@@ -38,7 +38,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_shield_rearm.js`, `tests/probe_default_target_side.js`,
 `tests/probe_partingshot_mirrorarmor.js`, `tests/probe_partingshot_conditional.js`,
 `tests/probe_instruct_shield.js`, `engine/effect_kind.js`, `tests/test-effect-kind.js`,
-`tests/probe_entity_kind.js`, `tests/probe_kingsrock_volley.js`
+`tests/probe_entity_kind.js`, `tests/probe_kingsrock_volley.js`,
+`tests/probe_punish_side_and_sky.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -118,9 +119,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  819/819 probed mechanics live, 0 missing   (census 2026-08-31 23:15)
+  821/821 probed mechanics live, 0 missing   (census 2026-09-01 00:29)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 3.0 days old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 3.1 days old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -135,7 +136,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is d477faaef0df now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is a61d70677385 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/300 probed, 15 unprobed;  271/300 have an engine consumer, 29 have none
@@ -143,9 +144,121 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-08-31 23:42_
+_stamped 2026-09-01 01:04_
 
 <!-- /GENERATED -->
+
+## `punishesAttacker` CARRIES A HAZARD AND A SKY, BOTH DERIVED AND BOTH CONSUMED — THE TWO CARDS ARE A SIDE SELECTOR AND A GUARD, AND THEY ARE TWO CAUSES. **CENSUS 819 -> 821 LIVE / 821 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. BOARD-PARTED 82 -> 80 OF 961, PROTOCOL 172 -> 171, CAUSES 150 -> 149 (TWO REMOVED, ONE ADDED), END-STATE 905/53/2/0/1 -> 907/52/1/0/1, TURN-1 BOARDS 956 -> 957. THE DELTA IS KNOB-CONTROLLED ON THE SAME RELEASE: THE BEFORE-ARM REPRODUCES THE PUBLISHED 172 / 82 / 150 / 905-53-2-0-1 EXACTLY, WITH `first_divergences`, `classes` AND `end_state` BYTE-IDENTICAL STRINGS. EIGHT PREDICTIONS HIT, THREE MISSED BY ONE STEP AND NONE IN THE WRONG DIRECTION.** 2026-09-01.
+
+Full account: [docs/_reports/2026-09-01-punishes-attacker-kinds.md](_reports/2026-09-01-punishes-attacker-kinds.md).
+Prediction written before the run: `data/verification/2026-09-01-punishes-attacker-kinds-prediction.json`.
+
+| | before | after |
+|---|---|---|
+| census (`data/mechanics-census.json`) | 819 / 819 / 0 | **821 / 821 / 0** |
+| empirical board-parted | 82 of 961 | **80** |
+| empirical protocol-diverged | 172 of 961 | **171** |
+| distinct divergence causes | 150 | **149** (2 removed, 1 added) |
+| end-state verdicts | 905 / 53 / 2 / 0 / 1 | **907 / 52 / 1 / 0 / 1** |
+| side-selection census | 102 sites, 83 undeclared | **103 sites, 82 undeclared** |
+| engine release | `52e0e7effbd6` | **`cde6cb10daa7`** |
+
+### THE HYPOTHESIS WAS THE PAYLOAD, AND THE PAYLOAD WAS ALREADY COMPLETE
+
+The brief's reading was that one member needs a side condition, the other needs a sky, and the tag
+models only damage and boosts. **`tag_dex.js` derives `hazard`, `maxLayers` AND `setsWeather`, and
+`medicham2-browser.js` consumes all three at two adjacent statements.** Refuted by reading, before a
+line was run. Both defects are downstream of the payload and they are not the same defect.
+
+**Thirteen `punishesAttacker` rows, every one with at least one legal carrier** — not one member was
+ruled out for having none. Exactly ONE carries a hazard (`toxicdebris`, Glimmora, 2,115 uses) and
+exactly ONE carries a sky (`sandspit`, Sandaconda, 34), so neither probe can be satisfied by a sibling.
+Neither handler is overridden in `data/mods/champions/`, checked rather than assumed.
+
+### E1 — THE SIDE IS THE HOLDER'S FAR SIDE, AND ONLY AN ALLY CAN SHOW IT
+
+```
+data/abilities.ts:5096   const side = source.isAlly(target) ? source.side.foe : source.side;
+```
+
+Both branches name the side OPPOSITE THE HOLDER in a two-side game. This engine passed `m._sf`, the
+ATTACKER's side field — the same answer for a foe, the wrong one for an ally. So a partner's Earthquake
+into its own Glimmora scattered the Toxic Spikes on **its own half of the field**.
+
+That is why no fixture caught it: `tests/probe_punish_announce.js` says in its own header *"The layer
+was laid, on the right side"*, which is true of the arm it stages and silent about the arm it cannot.
+It is the far-side class `engine/side_selection_census.js` exists for — a correct predicate handed the
+wrong body by its selector, so the symptom arrives wearing the predicate's name.
+
+**The site WAS one of the census's 102 and it WAS UNDECLARED.** It is now two expressions and both are
+declared; `undeclared` falls 83 -> 82.
+
+### E2 — `setWeather` REFUSES ONLY ITS OWN SKY, AND THE GUARD SAID `!field.weather`
+
+```
+data/abilities.ts:3978   sandspit.onDamagingHit() { this.field.setWeather('sandstorm'); }   // no gate at all
+sim/field.ts:45-52       if (this.weather === status.id) { ... if (gen > 5) return false;
+```
+
+gen 9 > 5 and the source is an Ability: its own sandstorm refuses, and sun, rain or snow is
+OVERWRITTEN. This engine refused to set a sky whenever any sky stood — and a Sandaconda is brought INTO
+weather, so the broken branch is the common one. The card's sentence, *"we carry on in sun"*, is
+exactly the empirical cause that is now gone:
+
+```
+-weather: a different body :: |-weather|sandstorm|[from]sandspit <> |-weather|sunnyday|[upkeep]
+```
+
+**It is a facts-are-global break as well as a wrong guard.** `applyMoveWeather` and the `weatherSetter`
+entry block both ask `field.weather !== w`; this third road asked something else, and no test that only
+ever set a sky from an empty field could tell the three apart.
+
+### THE 2x2, AND THE OVER-FIRE ARM THAT CATCHES A FAMILY-WIDE FIX
+
+`MEDI_HAZARD_ON_ATTACKER_SIDE=1` and `MEDI_PUNISH_WEATHER_IF_CLEAR=1`, both registered in
+`DELIBERATE_BREAK`. On the staged board, four corners in four child processes: the hazard knob moves
+ONLY the ally-hit arm, the weather knob moves ONLY the sun and rain arms, and **nothing moves the
+FOE-hit arm, the clear-sky arm, the already-sandstorm arm or ROUGH SKIN** — the member of the same
+family that was already correct. Against the official simulator, `tests/probe_punish_side_and_sky.js`
+is 0 failing clauses fixed, 6 under one knob, 6 under the other, and 12 under both: exactly the union,
+with no interaction term.
+
+### THE ADDED CAUSE IS THE SAME GAME RUNNING FURTHER
+
+Two causes removed, one added — `|-status|p1a|tox <> |-damage|p1a|H/H|[from]stealthrock`, in the game
+that used to part on the Toxic Debris side. Its BOARD no longer parts (board-parted took the full 2)
+and its protocol still does, later, on a different mechanism. That is why protocol and causes each fell
+by 1 where 2 was predicted, and it is filed undiagnosed rather than counted as a win.
+
+### AN INSTRUMENT DEFECT FOUND ON THE WAY, AND LEFT WHERE IT ALSO LIVES
+
+Showdown's `|split|` shared half carries an HP-BAR COLOUR — `20/100y`, `…r` — which the inherited
+normaliser's HP pattern had no place for, so the twin failed to dedupe and a duplicate `-damage`
+appeared in the authority's stream and in nobody else's. It reads exactly like a missing event and it
+was diagnosed by dumping the raw protocol. Corrected in the new probe; **still latent in
+`tests/probe_punish_announce.js`, deliberately not edited** — it can only produce a false FAILURE, and
+changing a passing probe's comparator inside a batch about something else is how a green test starts
+asking nothing.
+
+### THE HAND LIST
+
+**Removed — these are census probes now, so the census carries them:**
+
+- ~~E1: Toxic Debris lays its hazard on the wrong side~~ (`tests/probe_punish_side_and_sky.js` and the
+  `punishesAttacker` census row *"a hazard punish lands on the side OPPOSITE THE HOLDER"*)
+- ~~E2: Sand Spit does not set weather~~ (the same probe and the census row *"a weather punish sets its
+  sky THROUGH a standing weather"*) — this also closes the Sand Spit clause of CLAUDE.md's 2026-08-08
+  quarantine paragraph, which named it as still true.
+
+**Owed and named, not fixed here** (the full list is in the report's `OWED, NOT RUN`):
+
+- `data/side-selection-census.json` is deliberately NOT restamped: the ratchet floor is the previous
+  artifact's value, so writing it would raise 81 to 82 and weaken a gate that is **already red for
+  somebody else's reason** (83 against 81 at HEAD, before this pass began).
+- The `stealthrock`/`-status` cause the E1 game now parts on is not diagnosed.
+- `tests/test-engine-diff.js`, the interaction matrix and the deliberate roster were not re-run, and
+  that is declared rather than assumed: no tag was added or changed, `data/tags.json` is untouched, and
+  neither instrument reads anything this pass moved.
 
 ## THE ACCURACY STAGE AND THE EVASION STAGE WERE TWO MULTIPLICATIONS AND THE AUTHORITY COMBINES THEM ONCE — AND THE TRUNCATION REACHES FURTHER THAN THE COMBINATION DOES. **CENSUS 818 -> 819 LIVE / 819 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. BOARD-PARTED UNMOVED AT 82 OF 961, PROTOCOL UNMOVED AT 172, CAUSES UNMOVED AT 150 WITH ZERO ADDED AND ZERO REMOVED, END-STATE IDENTICAL AT 905/53/2/0/1 — ALL FOUR PREDICTED AT THEIR POINT ESTIMATE BEFORE THE RUN AS A LAB-ONLY MOVE, WITH THE POOL ARITHMETIC STATED FIRST. TWELVE PREDICTIONS, ELEVEN HITS AND ONE NAMED MISS. THE AUTHORITY'S NUMBER WAS INSTRUMENTED AT `hitStepAccuracy` ITSELF, NOT INFERRED.** 2026-08-31.
 

@@ -1,0 +1,27 @@
+
+  2x2 — one row per ARM, one column per CORNER of (MEDI_HAZARD_ON_ATTACKER_SIDE, MEDI_PUNISH_WEATHER_IF_CLEAR)
+
+  E1ally    tspikes[holder=0,other=1] hp=612              tspikes[holder=1,other=0] hp=612              tspikes[holder=0,other=1] hp=612              tspikes[holder=1,other=0] hp=612              
+  E1foe     tspikes[holder=0,other=1] hp=612              tspikes[holder=0,other=1] hp=612              tspikes[holder=0,other=1] hp=612              tspikes[holder=0,other=1] hp=612              
+  E1ctl     tspikes[holder=0,other=0] hp=612              tspikes[holder=0,other=0] hp=612              tspikes[holder=0,other=0] hp=612              tspikes[holder=0,other=0] hp=612              
+  E2clear   sky=sand/4 hp=744                             sky=sand/4 hp=744                             sky=sand/4 hp=744                             sky=sand/4 hp=744                             
+  E2sun     sky=sand/4 hp=820                             sky=sand/4 hp=820                             sky=sun/4 hp=820                              sky=sun/4 hp=820                              
+  E2rain    sky=sand/4 hp=670                             sky=sand/4 hp=670                             sky=rain/4 hp=670                             sky=rain/4 hp=670                             
+  E2own     sky=sand/2 hp=744                             sky=sand/2 hp=744                             sky=sand/2 hp=744                             sky=sand/2 hp=744                             
+  E2ctl     sky=sun/4 hp=820                              sky=sun/4 hp=820                              sky=sun/4 hp=820                              sky=sun/4 hp=820                              
+  RSarm     attackerHP=140 targetHP=89                    attackerHP=140 targetHP=89                    attackerHP=140 targetHP=89                    attackerHP=140 targetHP=89                    
+  RSctl     attackerHP=160 targetHP=89                    attackerHP=160 targetHP=89                    attackerHP=160 targetHP=89                    attackerHP=160 targetHP=89                    
+
+  columns: haz=0 wx=0   |   haz=1 wx=0   |   haz=0 wx=1   |   haz=1 wx=1
+  E1ally     hazard knob moves it: true/true   weather knob moves it: false/false
+  E1foe      hazard knob moves it: false/false   weather knob moves it: false/false
+  E1ctl      hazard knob moves it: false/false   weather knob moves it: false/false
+  E2clear    hazard knob moves it: false/false   weather knob moves it: false/false
+  E2sun      hazard knob moves it: false/false   weather knob moves it: true/true
+  E2rain     hazard knob moves it: false/false   weather knob moves it: true/true
+  E2own      hazard knob moves it: false/false   weather knob moves it: false/false
+  E2ctl      hazard knob moves it: false/false   weather knob moves it: false/false
+  RSarm      hazard knob moves it: false/false   weather knob moves it: false/false
+  RSctl      hazard knob moves it: false/false   weather knob moves it: false/false
+
+  NO INTERACTION: each knob moves the same arms whatever the other is set to

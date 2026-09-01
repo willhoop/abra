@@ -133,6 +133,18 @@
       "verdict": "CORRECT",
       "authority": "sim/battle-actions.ts:118-132 switchIn",
       "note": "The damaging PIVOT (U-turn and its family). The user leaves its OWN side; the far array is what the entrant meets. Not the forced-switch drag, which is the site below it and was fixed."
+    },
+    "fn:_damagingHit | sfB:sfA | dba899f4": {
+      "question": "SIDE",
+      "verdict": "CORRECT",
+      "authority": "data/abilities.ts:5096 toxicdebris.onDamagingHit -- `const side = source.isAlly(target) ? source.side.foe : source.side;` (no Champions override)",
+      "note": "A hazard punish lays its layer on the side OPPOSITE THE HOLDER. Both branches of the authority's ternary name that same side in a two-side game -- a foe's own side IS the far side of the holder, and an ally's foe side is too -- so the holder is the correct anchor and the attacker is not. This site replaced one that read `m._sf` (the ATTACKER's side field), which agreed for a foe and put the Toxic Spikes on the holder's OWN half whenever a partner landed the physical hit. Empirical card E1; proved on the official simulator by tests/probe_punish_side_and_sky.js and reverted by MEDI_HAZARD_ON_ATTACKER_SIDE=1."
+    },
+    "fn:_damagingHit | p1:p2 | a034cd87": {
+      "question": "READER",
+      "verdict": "CORRECT",
+      "authority": "sim/side.ts addSideCondition -> `|-sidestart|<side>|move: Toxic Spikes` names the SAME side the layer went onto",
+      "note": "Not a selection at all: it is the protocol LABEL for the side the line above already chose, read off `_punHzOn` itself rather than off either body. It cannot disagree with the state, which is exactly what the previous shape could -- it read the label off `m._sf` and so was wrong in the same games and for the same reason."
     }
   }
 }

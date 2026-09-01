@@ -19658,6 +19658,123 @@ probe('ability', 'punishesAttacker',
                  + '). Before the queue the Rough Skin arm read the two lines the other way round' };
 });
 
+/* ================= THE TWO EFFECT KINDS `punishesAttacker` CARRIES THAT ARE NOT A TOLL ===========
+ *
+ * Empirical cards E1 and E2 (docs/_reports/2026-08-29-empirical-divergence-cards.md). The brief's
+ * hypothesis was that the tag's payload models only damage and boosts. IT DOES NOT -- `tag_dex.js`
+ * derives `hazard` + `maxLayers` AND `setsWeather`, and `medicham2-browser.js` consumes both. The two
+ * defects are a SIDE SELECTOR and a GUARD, in two different statements, and they are measured apart.
+ *
+ * MEMBERSHIP, PRINTED OVER THE FORMAT BEFORE EITHER PROBE WAS WRITTEN. Thirteen `punishesAttacker`
+ * rows, every one of them with at least one legal carrier -- spicyspray, aftermath, cursedbody,
+ * cutecharm, effectspore, flamebody, gooey, innardsout, poisonpoint, roughskin, sandspit, static,
+ * toxicdebris. Exactly ONE carries `hazard` (toxicdebris/Glimmora) and exactly ONE carries
+ * `setsWeather` (sandspit/Sandaconda), so neither probe can be satisfied by a sibling. */
+
+/* E1 -- THE SIDE. `data/abilities.ts:5096` (NOT overridden in data/mods/champions/):
+ *
+ *     const side = source.isAlly(target) ? source.side.foe : source.side;
+ *
+ * In a two-side game BOTH branches name the side OPPOSITE THE HOLDER. This engine passed the
+ * ATTACKER's side field, which is the same answer for a foe and the WRONG one for an ally -- so a
+ * partner's Earthquake into its own Glimmora poisoned ITS OWN switch-ins instead of the opponent's.
+ *
+ * THE FOE ARM IS THE OVER-FIRE CONTROL and it is the reason this was invisible: it is correct under
+ * both readings, and every fixture in this repository hit Glimmora from across the field. */
+probe('ability', 'punishesAttacker',
+      'a hazard punish lands on the side OPPOSITE THE HOLDER, even when an ALLY landed the hit', () => {
+  const arm = (subjAb, who) => {
+    const me = bare('glimmora'), ally = bare('garchomp');
+    const f1 = bare('hippowdon'), f2 = bare('milotic');
+    me.ability = subjAb; ally.ability = 'sandveil'; f1.ability = 'sandforce';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    /* Ground is 2x into Rock/Poison and a faint would force a switch, which becomes the thing under
+       test. x6 HP is `engine/all_mechanics_fire.js`'s own multiplier. */
+    me.st.hp *= 6; me.curHP = me.st.hp;
+    const A = new Map(), B = new Map();
+    A.set(me, { kind: 'pass' });
+    A.set(ally, who === 'ally' ? M.playerAction(ally, 'earthquake', null, S.field) : { kind: 'pass' });
+    B.set(f1, who === 'foe' ? M.playerAction(f1, 'earthquake', null, S.field) : { kind: 'pass' });
+    B.set(f2, { kind: 'pass' });
+    M.battleTurn(S, rng5, A, B);
+    return { holder: (S.sfA.hz && S.sfA.hz.toxicspikes) | 0,
+             other:  (S.sfB.hz && S.sfB.hz.toxicspikes) | 0, dead: !!me.fainted };
+  };
+  const ally = arm('toxicdebris', 'ally'), foe = arm('toxicdebris', 'foe');
+  const cleared = arm('corrosion', 'ally'), clearedFoe = arm('corrosion', 'foe');
+  return { works: ally.other === 1 && ally.holder === 0
+                  && foe.other === 1 && foe.holder === 0
+                  && cleared.other === 0 && cleared.holder === 0
+                  && clearedFoe.other === 0 && clearedFoe.holder === 0
+                  && !ally.dead && !foe.dead,
+           /* THE ARMS ARE THE ABILITY KNOB, NOT THE ATTACKER KNOB, and that was learned on the first
+              run: the foe arm and the ally arm agree once the engine is CORRECT (both `0:1`), which
+              is the whole point of the fix and read to the hollow-probe detector as two arms that
+              say the same thing. The knob that must move the board is the SUBJECT'S ABILITY. */
+           arms: { control: cleared.holder + ':' + cleared.other, test: ally.holder + ':' + ally.other },
+           detail: 'Toxic Spikes layers [holder side, other side] after ONE Earthquake into a x6-HP '
+                 + 'Glimmora. ALLY landed it: [' + ally.holder + ', ' + ally.other + '] -- the '
+                 + 'authority puts it on `source.side.foe`, i.e. the OTHER side, so holder must be 0. '
+                 + 'FOE landed it (the over-fire control, correct under both readings): ['
+                 + foe.holder + ', ' + foe.other + ']. THE KNOB IS CLEARED EXPLICITLY -- the same '
+                 + 'Glimmora under its own other legal ability, Corrosion: ally [' + cleared.holder
+                 + ', ' + cleared.other + '], foe [' + clearedFoe.holder + ', ' + clearedFoe.other
+                 + '] -- identical output across a varied knob would mean the fixture is unwired' };
+});
+
+/* E2 -- THE SKY. `data/abilities.ts:3978` is an unconditional `this.field.setWeather('sandstorm')`,
+ * and `Field#setWeather` (sim/field.ts:45-52) refuses ONLY when the SAME weather already stands:
+ *
+ *     if (this.weather === status.id) {
+ *       if (sourceEffect && sourceEffect.effectType === 'Ability') {
+ *         if (this.battle.gen > 5 || this.weatherState.duration === 0) return false;
+ *
+ * gen 9 > 5, so a standing SANDSTORM refuses and a standing SUN, RAIN or SNOW is OVERWRITTEN. This
+ * engine guarded on `!field.weather`, so Sand Spit was inert under every other sky -- which is the
+ * only sky a Sand Spit game usually has, since the body it sits on is brought into weather.
+ *
+ * IT IS ALSO A FACTS-ARE-GLOBAL BREAK. `applyMoveWeather` and the `weatherSetter` entry block both
+ * ask `field.weather !== w`; this one statement asked something else, and the three could not have
+ * been told apart by any test that only ever set the sky from an empty field.
+ *
+ * THE STANDING-SANDSTORM ARM IS THE OVER-FIRE CONTROL, and it is the arm a naive "just always set
+ * it" fix fails: the clock must NOT go back to 5. */
+probe('ability', 'punishesAttacker',
+      'a weather punish sets its sky THROUGH a standing weather, and refuses only its own', () => {
+  const arm = (subjAb, wx, wt) => {
+    const me = bare('sandaconda'), ally = bare('milotic');
+    const f1 = bare('feraligatr'), f2 = bare('clefable');
+    me.ability = subjAb;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    me.st.hp *= 6; me.curHP = me.st.hp;
+    if (wx) { S.field.weather = wx; S.field.weatherT = wt; }
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'aquatail', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { wx: S.field.weather || '', wt: S.field.weatherT | 0, dead: !!me.fainted };
+  };
+  /* THE ENGINE'S OWN WORD FOR THE TAG'S WEATHER, read and not typed: a sibling that named a
+     different sky arrives working, and a rename cannot quietly turn this probe into a tautology. */
+  const TG = require(D('engine', 'tags.js'));
+  const want = M.weatherId((TG.param('ability', 'sandspit', 'punishesAttacker') || {}).setsWeather);
+  const clear = arm('sandspit', null, 0), sun = arm('sandspit', 'sun', 5),
+        rain = arm('sandspit', 'rain', 5), own = arm('sandspit', want, 3),
+        cleared = arm('shedskin', 'sun', 5);
+  return { works: !!want && clear.wx === want && sun.wx === want && rain.wx === want
+                  && own.wx === want && own.wt === 2
+                  && cleared.wx === 'sun' && cleared.wt === 4
+                  && ![clear, sun, rain, own, cleared].some(a => a.dead),
+           arms: { control: cleared.wx, test: sun.wx },
+           detail: 'the sky after ONE Aqua Tail into a x6-HP Sandaconda, and the clock with it. The '
+                 + 'tag says the ability sets `' + want + '`, which is READ off '
+                 + 'punishesAttacker.setsWeather and not typed here. From CLEAR ' + clear.wx + '/'
+                 + clear.wt + '; from SUN ' + sun.wx + '/' + sun.wt + '; from RAIN ' + rain.wx + '/'
+                 + rain.wt + ' -- all three must be ' + want + ', because setWeather overwrites a '
+                 + 'DIFFERENT sky. From its OWN sky set to 3 turns: ' + own.wx + '/' + own.wt
+                 + ' -- must be ' + want + '/2, the residual tick and NOT a reset to 5, which is the '
+                 + 'over-fire control an "always set it" fix fails. THE KNOB IS CLEARED EXPLICITLY -- '
+                 + 'the same Sandaconda under Shed Skin: ' + cleared.wx + '/' + cleared.wt };
+});
+
 /* 4a. A CRIT IGNORES THE ATTACKER'S NEGATIVE OFFENSIVE STAGES — the expensive one, because
  *     Intimidate is on 31,129 observed sets. `ignoreOffensive = (ignoreNegativeOffensive &&
  *     atkBoosts < 0)`, so an Intimidated attacker landing a crit hits at FULL Attack.
@@ -32546,7 +32663,8 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afte
                           'reactBatchedRestored', 'berryAtApplyRestored',
                           'formeBustInlineRestored', 'eatReactBeforeBerryRestored',
                           'eatEventUpdateOnlyRestored', 'stealEatStripOnlyRestored',
-                          'kingsRockOncePerMoveRestored', 'accEvaSeparateRestored']
+                          'kingsRockOncePerMoveRestored', 'accEvaSeparateRestored',
+                          'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '
