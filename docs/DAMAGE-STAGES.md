@@ -1,6 +1,8 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.235.0 — 2026-08-31.**
+**Version: 5.236.0 — 2026-08-31.**
+
+**5.236.0 - NO STAGE MOVED AND NO DAMAGE NUMBER MOVED.** This version changes how many times the King's Rock flinch die is drawn on a multi-hit move (once per landed arrival, not once per click). The draw is a SECONDARY, taken after the damage is already applied, so no stage in this document is touched and `tests/test-engine-diff.js` was deliberately not re-run - its standing result is 0/6000 at all sixteen corners, seed 20260804, 2026-08-29, with the unchanged `skipped_multihit 134` scope caveat.
 
 **5.235.0 - NO STAGE MOVED, NO DAMAGE NUMBER MOVED, AND NOTHING IN THIS DOCUMENT CHANGES.** This version adds the collector for the next regulation - a detector that derives the target Showdown format at run time instead of holding a constant, and one store per format id - and repairs the per-game format tag in `engine/durable-ingest.js`, which returned a literal for every Champions tier. Neither touches the damage path: no multiplier, no stage, no rounding rule and no order of operations was read or edited, and no figure here was re-measured. It is recorded only so the version line does not assert a damage change it did not make. Full account: `docs/_reports/2026-08-31-next-regulation-ingest.md`.
 

@@ -10,6 +10,87 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.236.0] — 2026-08-31
+
+### Fixed
+- **THE KING'S ROCK FLINCH DIE IS TAKEN ONCE PER LANDED ARRIVAL, AND THIS ENGINE TOOK ONE PER CLICK.**
+  Will asked whether the item is a "super flinch machine" on a multi-hit move. It is, and MEDICHAM was
+  not modelling it: every volley got a flat 10% where the real rate is `1 - (1 - p)^n` — **19% over two
+  arrivals and 41% over five.**
+  - The item runs no hit-time handler. `onModifyMove` pushes `{chance: 10, volatileStatus: 'flinch'}`
+    onto `move.secondaries` (`data/items.ts:3219`) for a non-Status move carrying no flinch secondary of
+    its own, and Champions does not override it. The draw therefore happens in
+    `BattleActions#secondaries` (`sim/battle-actions.ts:1343`) — step 5 of the Champions `spreadMoveHit`
+    (`data/mods/champions/scripts.ts:388`), called once per hit by `hitStepMoveHitLoop` (`:518`) under
+    `if (targets.every(target => !target?.hp)) break;` (`:464`). **Per LANDED arrival, never per arrival
+    the volley DREW**; `-hitcount` is the same counter (`hit - 1`, `:550`).
+  - **THE AUTHORITY WAS INSTRUMENTED, NOT INFERRED.** `BattleActions.prototype.secondaries` was wrapped
+    and the King's-Rock-shaped entry counted per living target per call: **2** dice on a `multihit: 2`
+    Dual Wingbeat, **3** on a three-arrival Icicle Spear, **1** on a single-hit move, **1** on a volley
+    that kills on arrival 1 of 2 (only `dualwingbeat#1` ever reached the function), **0** with no item,
+    **0** on a move that already flinches (with its own 30% flinch still rolled), **0** on an aimed
+    Status move.
+  - **NOTHING IN THE REPOSITORY COULD HAVE SEEN IT.** WIRE 103's validation rests on 2,000 staged turns
+    measuring `pFlinch x accuracy`, every one of them a single-hit click, so "one die per click" and "one
+    die per landed arrival" were the same observation. The standing once-per-move wrap of the step list
+    could not expose it either: derived on every probe run, **all 14 legal `multiHit` moves in this
+    format carry `secondaries: null`**, so King's Rock is the only road by which the authority's per-hit
+    secondary loop is observable here.
+  - **THE FIX SHARES A NUMBER RATHER THAN DERIVING A SECOND ONE.** `_stepApply` writes
+    `R.arrivals = _packets ? _landed : 1`, and `-hitcount` (`R.hitLanded`), `timesAttacked` and WIRE 103
+    are now three readers of it — the authority derives all three from one `hit` counter. A row reaching
+    WIRE 103 with no count falls back to one die **and says so** (`MEDFAILS.kingsRockNoArrivalCount`,
+    asserted at zero on every arm of both instruments). `MEDSEEN.flinch` increments on the `_flinch`
+    TRANSITION, so two passing dice in one volley are one flinch.
+  - **DECLARED REMAINDER, COUNTED AND NOT FIXED:** the authority takes a die on the arrival that KILLS
+    and this engine takes none, because its step list is wrapped once per move and the row is already
+    fainted. It cannot part a board — the authority's own `addVolatile` refuses a body at zero
+    (`sim/pokemon.ts:1980`) — and taking it would add a `sec` draw to every killing hit by a holder for
+    no board benefit. `MEDSEEN.kingsRockRollSkippedOnKO` carries how many were skipped, and both
+    instruments assert it non-zero on their kill arm.
+
+### Added
+- `tests/probe_kingsrock_volley.js` — 7 arms over two engines under the differential's own `middle` pin,
+  no typed expectation. Three live (a fixed two-arrival volley, a 2-5 volley whose LENGTH is a die, and a
+  volley that kills before its last arrival) and four over-fire controls, each a way a count fix could
+  over-reach: a single-hit move that must stay at exactly ONE, the same volley with the item gone, a move
+  that already flinches (where the item's no-stacking clause adds nothing AND the move's own secondary
+  must still be rolled), and an aimed STATUS move. Shown RED first — authority 2 / medicham 1 and 3 / 1,
+  with all four controls already green.
+- `MEDI_KINGSROCK_ONCE_PER_MOVE=1`, stamped at declaration as `MEDFAILS.kingsRockOncePerMoveRestored`
+  and registered in `tests/test-mechanics.js` `DELIBERATE_BREAK`, so a run under it refuses to write
+  `data/mechanics-census.json` (verified: the artifact digest did not move across that run).
+- A second `item` / `addsFlinch` census row, counting dice with the rng pinned to 0.5 so every die LOSES
+  and the arms differ only in how many were taken: `2 / 1 / 0 / 0 / 0 + 1 skipped`. The arrival count is
+  read off `engine/tags.js` (`multiHit.hits`), not typed. It goes MISSING under the knob at **817 live /
+  1 missing**, so the knob is narrow.
+
+### Notes
+- **THE SCOREBOARD WAS NAMED BEFORE THE RUN.** `data/verification/2026-08-31-kingsrock-volley-prediction.json`,
+  written before the census and before the differential. **Eleven predictions, eleven held at the point
+  estimate.** Census 817 → **818** live / 818 probed / 0 missing / 0 hollow / 0 threw. Whole-game
+  differential on release `b43a2fea0cb1`: board-parted unmoved at **82 of 961**, protocol-diverged
+  unmoved at **172**, distinct causes unmoved at **150** with zero added and zero removed, end-state
+  identical at **905 / 53 / 2 / 0 / 1**, and the `by_cause` list byte-equal both ways.
+- **THE POOL WAS PREDICTED TO SIT STILL, WITH THE ARITHMETIC STATED FIRST.** The build is common on
+  paper — 82 of 211 King's Rock sheet entries in the store carry a multi-arrival move — and rare in the
+  sample: 36 of 7,772 distinct pinned-pool teams (0.46%), so a 961-game draw expects ~4 games containing
+  the body at all.
+- **Sample identity, checked and not assumed:** 961 games both runs, `turns_cap` 12, arm `middle`,
+  steering `empirical-click/v1`, census pin `9446a684709d`, pool `0d103fb9fa87` under
+  `--team-store data/team-pool-frozen`, `closet.teams_dropped` 43, `coverage.exercised` 556,
+  `order_probe` 2 rows, median first board divergence turn 5, `mode` string identical.
+  `data/game-differential.json` was NOT touched; `--out` redirected the write to
+  `data/verification/game-differential.kingsrock.json`.
+- **`tests/test-engine-diff.js` was deliberately not re-run** — no damage byte moved. Its standing result
+  is 0/6000 at all sixteen corners, seed 20260804, 2026-08-29, with the unchanged `skipped_multihit 134`
+  scope caveat. **The three roster stages were not re-run** and were already stale before this pass
+  (release `e129bca605e3` against a tree of `862624c9826e`).
+- Engine release `862624c9826e` → **`b43a2fea0cb1`**.
+- Full account: `docs/_reports/2026-08-31-kingsrock-volley.md`.
+
+---
+
 ## [5.235.0] — 2026-08-31
 
 ### Added
