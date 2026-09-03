@@ -1359,6 +1359,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * subject body was airborne. A run with terrain in it where `Refused` stays at 0 forever is the
    * unwired-knob shape, not evidence the gate is unnecessary. */
   terrainScaledGateApplied: 0, terrainScaledGateRefused: 0,
+  /* 2026-09-01 -- ELECTRIC TERRAIN'S TWO REFUSALS, COUNTED APART BECAUSE THEY ARE TWO HANDLERS.
+   * `onSetStatus` turns away the SLEEP and `onTryAddVolatile` turns away the DROWSE, and an engine
+   * that wired only the first still lands the Yawn volatile and its `-start` line and only fails two
+   * turns later. So a run with Electric Terrain and a Yawn in it where `Yawn` stays 0 while `Sleep`
+   * moves is precisely the half-wired state, and one merged counter could not have said so. */
+  terrainRefusedSleep: 0, terrainRefusedYawn: 0,
+  /* 2026-09-01 -- the `-activate|TARGET|move: Electric Terrain` the refusal writes. Counted apart from
+   * the refusal itself because the authority's announce is CONDITIONAL where the refusal is not: a run
+   * where `terrainRefusedSleep` moves and this never does is an engine refusing silently. */
+  terrainRefusalAnnounced: 0,
+  /* 2026-09-01 -- the direct status-move announcer took the terrain branch and therefore did NOT add a
+   * `-fail`. A receipt that the guard ran, in the same shape as `statusRefusedImmune` beside it. */
+  statusRefusedByTerrain: 0,
   /* WIRE 144 -- the same event for the `randomTarget` family (Outrage, Petal Dance, Raging Fury,
    * Thrash, Uproar, Struggle). A driver that reads Showdown's request supplies no target for these
    * either, because Showdown never asks for one. Counted apart from the spread family because they
@@ -2789,6 +2802,22 @@ const MEDFAILS = { encoreAction: 0,
    * defender, or no attacker). It DECLINES the boost rather than assuming the body was standing --
    * same rule as terrainScaledNoAttacker one field over. */
   terrainScaledGateNoBody: 0,
+  /* 2026-09-01 -- set to 1 for the whole run when MEDI_ETERRAIN_ALLOWS_SLEEP=1 puts BOTH of Electric
+   * Terrain's refusals back off, so the before-arm of this fix and a broken engine can never be read
+   * as the same thing. ONE knob over the pair, unlike the two terrain knobs above, and the reason is
+   * the opposite of theirs: these are two handlers of ONE condition that were absent TOGETHER and
+   * were never separately right, so no measurement needs to tell them apart. */
+  eTerrainSleepAllowedRestored: 0,
+  /* 2026-09-01 -- the body handed to Electric Terrain's status refusal carries no side back-reference,
+   * so its field -- and therefore the terrain -- cannot be read. It DECLINES to refuse and says so.
+   * The silent version reads "no terrain", which turns the protection off in exactly the bare
+   * unit-test call, and is the silent default `statusImmuneWeatherUnknown` exists for one field over. */
+  terrainStatusFieldUnknown: 0, terrainStatusFieldUnknownFirst: '',
+  /* 2026-09-01 -- a MOVE reached Electric Terrain's sleep refusal with no `formatSecondaryCount` row,
+   * so "does this effect carry secondaries" -- the authority's own announce gate -- could not be read.
+   * It ANNOUNCES anyway (all five legal sleep sources carry `count: 0`, so that is the answer for
+   * every member this format has) and says so, rather than silently deciding. */
+  terrainRefusalSecondaryUnknown: 0, terrainRefusalSecondaryUnknownFirst: '',
   /* 2026-09-01 -- a hazard punish fired on a body whose side field carries no `_S` back-reference, so
    * the far side could not be resolved and NO layer was laid. Counted rather than fallen back on: the
    * silent fallback is what put the layer on the holder's own half for three weeks. */
@@ -16977,6 +17006,52 @@ function allyRefusesVolatile(t,vol){
 /* ROADMAP #239 -- `why` is the same optional out-object `canTakeStatus` fills, forwarded so a caller
  * that has to ANNOUNCE the refusal can ask which clause did it. Every existing call passes four
  * arguments and is unaffected. */
+/* 2026-09-01 -- ELECTRIC TERRAIN REFUSES SLEEP, AND ONE FUNCTION ANSWERS IT FOR BOTH HANDLERS.
+ *
+ * The terrain condition carries TWO refusals and this engine read NEITHER, while reading its
+ * `onBasePower` at four separate sites. Authority, quoted rather than recalled -- `data/moves.ts`,
+ * `electricterrain.condition`; there is no `electricterrain` key in `data/mods/champions/moves.ts`
+ * or `conditions.ts`, so mainline is authoritative here and saying so is a derivation:
+ *
+ *     onSetStatus(status, target, source, effect) {
+ *       if (status.id === 'slp' && target.isGrounded() && !target.isSemiInvulnerable()) {
+ *         if (effect.id === 'yawn' || (effect.effectType === 'Move' && !effect.secondaries))
+ *           this.add('-activate', target, 'move: Electric Terrain');
+ *         return false; } }
+ *     onTryAddVolatile(status, target) {
+ *       if (!target.isGrounded() || target.isSemiInvulnerable()) return;
+ *       if (status.id === 'yawn') { this.add('-activate', target, 'move: Electric Terrain');
+ *                                   return null; } }
+ *
+ * BOTH CALLERS ASK THIS, for CLAUDE.md's facts-are-global reason: the sleep road and the drowse road
+ * have already come apart once in this file (WIRE 114 -- the yawn branch tested `!t.status` where the
+ * status road asked `canTakeStatus`), and two copies of "does the terrain refuse this body" would
+ * come apart the same way. The two SENTENCES differ and the PREDICATE does not.
+ *
+ * AND `isSemiInvulnerable()` REALLY DOES BELONG HERE, which is the opposite answer to the one the
+ * `terrainScaled` MOVE handlers got two batches ago -- those name `isGrounded()` and nothing else, so
+ * adding the clause there would have been an over-narrowing invented in this file. This one is on the
+ * CONDITION and names it explicitly. `semiInvulnerable` is also the RIGHT tag here, unlike at Gravity
+ * (:26703), where the same tag was the wrong set: Gravity's `onFieldStart` names only the AIRBORNE
+ * charges, while `isSemiInvulnerable()` is the whole family -- fly, bounce, dive, dig, phantomforce,
+ * shadowforce, skydrop -- of which this format legally holds exactly the five the tag carries
+ * (bounce, dig, dive, fly, phantomforce; Shadow Force and Sky Drop are `isNonstandard: 'Past'`).
+ *
+ * THE FIELD IS READ OFF THE BODY'S OWN SIDE, the same road ROADMAP #213's Leaf Guard arm takes, and a
+ * body with no side stamp is COUNTED rather than defaulted. Silently reading "no terrain" would turn
+ * the protection off in exactly the bare unit-test call, which is the silent-default shape. */
+function eTerrainRefusesSleepOn(t){
+  if(ETERRAIN_ALLOWS_SLEEP)return false;
+  if(!t)return false;
+  const _S=t._sf&&t._sf._S,_f=_S&&_S.field;
+  if(!_f){MEDFAILS.terrainStatusFieldUnknown++;
+    if(!MEDFAILS.terrainStatusFieldUnknownFirst)MEDFAILS.terrainStatusFieldUnknownFirst=String(t.name||t.sp||'?');
+    return false;}
+  if(terrainId(_f.terrain)!=='electric')return false;
+  if(!isGrounded(t))return false;
+  if(t._invuln&&t._charging&&TAGS.has('move',t._charging,'semiInvulnerable'))return false;
+  return true;
+}
 function applyStatus(t,st,src,eff,why){
   /* WIRE 157 -- ABOVE `canTakeStatus`, WHICH IS THE TARGET'S OWN REFUSAL. This one belongs to the
    * SIDE, and it is asked first for the same reason Uproar's is: a status refused by a body standing
@@ -17001,6 +17076,40 @@ function applyStatus(t,st,src,eff,why){
       * (data/moves.ts:15595), which is exactly the direct status-move path this engine routes here. */
      if(TR)TR.act(t,'move: '+(_sb.startsAs||_sb.sideCondition));
      return false;}}
+  /* 2026-09-01 -- ELECTRIC TERRAIN'S `onSetStatus`. The predicate is `eTerrainRefusesSleepOn`, shared
+   * with the drowse road; what is decided HERE is the SENTENCE, and the authority's announce is
+   * conditional where the refusal is not.
+   *
+   * `effect.id === 'yawn' || (effect.effectType === 'Move' && !effect.secondaries)`. The second half
+   * is DERIVED and not typed: `formatSecondaryCount.count` on the tag row is exactly
+   * `effect.secondaries.length`. Membership printed before this was wired -- every legal move that can
+   * sleep a body in this format, carrier-checked through `champions_sim.moveCarriers`: Rest 346,
+   * Yawn 46, Hypnosis 27, Sleep Powder 26, Sing 7, and **Spore ZERO**. All five carry
+   * `formatSecondaryCount {count: 0}`, so the `!secondaries` clause is UNREACHABLE in this regulation
+   * and every legal route announces -- but the clause is read rather than collapsed, because the
+   * regulation is what makes that true and the regulation changes.
+   *
+   * IT SITS BELOW SAFEGUARD, AND THE ORDER DECIDES ONLY THE LINE. Both are `onSetStatus` refusals and
+   * both write `-activate` naming a different move, so a body under Safeguard AND Electric Terrain
+   * reaches the same board either way. No board can tell them apart, so nothing here asserts an order
+   * that was not staged.
+   *
+   * `why.reason` IS FILLED so the caller does not add a `-fail` on top: the announcer at :29000 writes
+   * one for any refusal it cannot name, and that line does not exist in the authority. */
+  if(st==='slp'&&eTerrainRefusesSleepOn(t)){
+    MEDSEEN.terrainRefusedSleep++;
+    let _say=!!(eff&&String(eff.id||'')==='yawn');
+    if(!_say&&eff&&eff.kind==='move'){
+      const _sc=TAGS.param('move',eff.id,'formatSecondaryCount');
+      if(!_sc){MEDFAILS.terrainRefusalSecondaryUnknown++;
+        if(!MEDFAILS.terrainRefusalSecondaryUnknownFirst)MEDFAILS.terrainRefusalSecondaryUnknownFirst=String(eff.id);
+        _say=true;}
+      else _say=!(+_sc.count);
+    }
+    if(_say&&TR){TR.act(t,'move: Electric Terrain');MEDSEEN.terrainRefusalAnnounced++;}
+    if(why){why.reason='terrain';why.ability=null;}
+    return false;
+  }
   /* ROADMAP #175 -- CORROSION, off the SHAPE of `nameImplementedBySim` rather than off its name.
    * The param states WHICH statuses walk through the type chart (`['tox','psn']`), so a Will-O-Wisp
    * from the same body is still refused by a Fire type -- which is the one arm the probe asserts must
@@ -21021,6 +21130,18 @@ if(TERRAIN_TARGET_SINGLE)MEDFAILS.terrainTargetSingleRestored=1;
 const TERRAIN_SCALED_UNGATED=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_TERRAIN_SCALED_UNGATED==='1');
 if(TERRAIN_SCALED_UNGATED)MEDFAILS.terrainScaledUngatedRestored=1;
+/* 2026-09-01 -- `MEDI_ETERRAIN_ALLOWS_SLEEP=1` RESTORES BOTH OF ELECTRIC TERRAIN'S REFUSALS BEING
+ * ABSENT: a Sleep Powder lands under Electric Terrain exactly as it does on a clear field, and so
+ * does a Yawn. That is what this engine did until now -- the terrain's `onBasePower` was read at four
+ * sites and its `onSetStatus` and `onTryAddVolatile` at none.
+ *
+ * ONE KNOB OVER THE PAIR, and that is a deliberate difference from the two knobs above. Those two
+ * separate a claim about the TARGET LIST from a claim about the BASE POWER, which were red at the
+ * same time and needed telling apart. These two handlers belong to one condition, were absent
+ * together, and no measurement in this repository needs to attribute one without the other. */
+const ETERRAIN_ALLOWS_SLEEP=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_ETERRAIN_ALLOWS_SLEEP==='1');
+if(ETERRAIN_ALLOWS_SLEEP)MEDFAILS.eTerrainSleepAllowedRestored=1;
 /* 2026-08-30 -- `MEDI_REACT_BATCHED=1` RESTORES THE BATCHED REACTION: every `onDamagingHit` reactor
  * of a volley paid in one deferred step BELOW the whole packet loop, so the stream read
  * `dmg dmg react react` where the authority writes `dmg react dmg react`.
@@ -27695,6 +27816,29 @@ function battleTurn(S,rng,actsForA,actsForB){
            refusing at neither is what this engine did. */
         const _vv=t?allyRefusesVolatile(t,'yawn'):null;
         if(_vv)MEDSEEN.allyVeilRefusedVolatile++;
+        /* 2026-09-01 -- ELECTRIC TERRAIN'S `onTryAddVolatile`, AND IT HAS TO BE REFUSED HERE.
+         *
+         * The condition carries TWO handlers and they are not redundant. Refusing only at the SLEEP
+         * two turns later leaves the drowse standing and the `|-start|TARGET|move: Yawn` line with it,
+         * so the board carries a clock the authority never wrote and the target is "about to fall
+         * asleep" for two turns before nothing happens. Exactly the split WIRE 157 already argued for
+         * Flower Veil, one condition over.
+         *
+         * `return null` IN THE AUTHORITY, WHICH IS A REFUSAL WITHOUT A `-fail`: `runMoveEffects` turns
+         * a **false** from `addVolatile` into `-fail` + `[still]` and leaves a **null** alone (the
+         * same distinction the already-drowsing branch below relies on). So this writes the
+         * `-activate` and NOTHING else, and it sits above that branch because a refused volatile never
+         * reaches the already-present test.
+         *
+         * IT IS PLACED BELOW `allyRefusesVolatile` AND ABOVE THE SHIELD deliberately: the veil is an
+         * ally handler on the same event, the shield is `hitStepTryHitEvent` and sits a whole step
+         * higher in the authority's order, and a shielded Yawn must still say `move: Protect`. */
+        const _etY=!_vv&&t&&!t.fainted&&eTerrainRefusesSleepOn(t);
+        if(_etY){
+          MEDSEEN.terrainRefusedYawn++;
+          if(TR){TR.act(t,'move: Electric Terrain');MEDSEEN.terrainRefusalAnnounced++;}
+          m._lastMove=a.mv;continue;
+        }
         /* WIRE 241 -- WIRE 122 got the refusal right and said nothing, which is exactly the state
          * this whole row is about. The gate is now the one announcer; the clause it replaces read
          * `TAGS.has(...)&&t!==m` and `tryHitRefusal` carries that `t!==m` itself. */
@@ -28949,6 +29093,14 @@ function battleTurn(S,rng,actsForA,actsForB){
                * amends the `|move|` line already in the log rather than emitting a new event. */
               if(t.status===st){ MEDSEEN.statusFailSameStatus++; TR.fail(t,t.status); }
               else { MEDSEEN.statusFailOtherStatus++; TR.attrStill(); TR.fail(m); }
+            } else if(_why.reason==='terrain'){
+              /* 2026-09-01 -- ELECTRIC TERRAIN ALREADY WROTE ITS OWN LINE at the refusal, and the
+               * authority writes NOTHING ELSE: `onSetStatus` adds the `-activate` and returns false,
+               * and `setStatus`'s own `-fail` sits behind the `this.status === status.id` test that a
+               * clean body does not satisfy. Falling into the `else` below would have stapled a
+               * `|-fail|` onto every refused Sleep Powder -- a line the authority has never written,
+               * and exactly the over-fire the Safeguard branch is guarded against two lines up. */
+              MEDSEEN.statusRefusedByTerrain++;
             } else {
               if(!_why.reason)MEDFAILS.statusRefusalUnlabelled++;
               /* NOT WIDENED BEYOND WHAT WAS MEASURED. The only other reason `canTakeStatus` can give

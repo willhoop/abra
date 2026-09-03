@@ -1,10 +1,10 @@
 {
-  "current": "d9dc3afe16ef",
-  "cut": "2026-09-01T06:15:15.803Z",
-  "why": "terrain grounded gate: the move's own terrain multiplier reads the right body's feet",
+  "current": "53e3e90dce8d",
+  "cut": "2026-09-01T20:35:51.971Z",
+  "why": "Electric Terrain refuses slp and the yawn volatile to a grounded, non-semi-invulnerable body",
   "cuts": 1,
-  "latest_cut": "2026-09-01T06:15:15.803Z",
-  "latest_why": "terrain grounded gate: the move's own terrain multiplier reads the right body's feet",
-  "pointer_written": "2026-09-01T06:15:15.838Z",
+  "latest_cut": "2026-09-01T20:35:51.971Z",
+  "latest_why": "Electric Terrain refuses slp and the yawn volatile to a grounded, non-semi-invulnerable body",
+  "pointer_written": "2026-09-01T20:35:51.984Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

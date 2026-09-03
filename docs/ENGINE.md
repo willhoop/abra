@@ -119,9 +119,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  822/822 probed mechanics live, 0 missing   (census 2026-09-01 01:26)
+  827/827 probed mechanics live, 0 missing   (census 2026-09-01 16:30)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 3.1 days old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 3.8 days old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -136,7 +136,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is a61d70677385 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c297a74974a1 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/300 probed, 15 unprobed;  271/300 have an engine consumer, 29 have none
@@ -144,9 +144,76 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-01 01:49_
+_stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
+
+## ELECTRIC TERRAIN'S `onBasePower` WAS READ AT FOUR SITES AND ITS TWO REFUSALS AT NONE — AND THE POOL PROVES IT NEVER GETS THERE, RATHER THAN LOOKING LIKE IT. **CENSUS 825 -> 827 LIVE / 827 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. BOARD-PARTED UNMOVED AT 77 OF 961, PROTOCOL UNMOVED AT 168, CAUSES UNMOVED AT 146 WITH ZERO ADDED AND ZERO REMOVED, END-STATE IDENTICAL AT 910/49/1/0/1 — ALL FOUR WRITTEN TO DISK AT THEIR POINT ESTIMATE BEFORE THE RUN, AS A LAB-ONLY MOVE, WITH THE ARITHMETIC STATED FIRST. THE STILL POOL IS NOT AN ASSUMPTION: `MEDSEEN.terrainRefusedSleep` AND `terrainRefusedYawn` BOTH READ **0 OVER 961 GAMES** WHILE `terrainScaledGateApplied` READS 72 IN THE SAME RUN, SO THE COUNTER MECHANISM IS ALIVE AND THE MECHANIC IS UNREACHED. ELEVEN PREDICTIONS, TEN HITS AND ONE NAMED MISS.** 2026-09-01.
+
+**THE FOURTH TERRAIN BATCH, AND THE FIRST ONE ABOUT A REFUSAL.** The three before it were all
+`onBasePower` or a target list. This is `electricterrain.condition`'s `onSetStatus` and
+`onTryAddVolatile`, which this engine read nowhere: a Sleep Powder landed under Electric Terrain
+exactly as it does on a clear field, and so did a Yawn.
+
+Authority quoted at the site (`data/moves.ts`, `electricterrain.condition`; **no `electricterrain`
+key in `data/mods/champions/moves.ts` or `conditions.ts`**, so mainline is authoritative and that is
+derived rather than assumed):
+
+```
+onSetStatus(status, target, source, effect) {
+  if (status.id === 'slp' && target.isGrounded() && !target.isSemiInvulnerable()) {
+    if (effect.id === 'yawn' || (effect.effectType === 'Move' && !effect.secondaries))
+      this.add('-activate', target, 'move: Electric Terrain');
+    return false; } }
+onTryAddVolatile(status, target) {
+  if (!target.isGrounded() || target.isSemiInvulnerable()) return;
+  if (status.id === 'yawn') { this.add('-activate', target, 'move: Electric Terrain'); return null; } }
+```
+
+**TWO HANDLERS, ONE PREDICATE, AND WIRING ONLY THE FIRST WOULD HAVE LOOKED FINISHED.** Refusing at
+the SLEEP two turns later leaves the drowse standing and the `|-start|TARGET|move: Yawn` line with
+it, so the board says "about to fall asleep" for two turns and then nothing happens. The predicate is
+one function (`eTerrainRefusesSleepOn`) called from both roads — the sleep road and the drowse road
+have already come apart once in this file at WIRE 114 — and the SENTENCE is what differs.
+
+**THE MEMBERSHIP IS DERIVED AND IT CHANGED THE FIXTURE.** Every legal move that can sleep a body in
+this format, carrier-checked through `champions_sim.moveCarriers` (the validator's own
+`checkCanLearn`): **Rest 346, Yawn 46, Hypnosis 27, Sleep Powder 26, Sing 7 — and Spore ZERO.**
+Nothing in Reg M-B can click Spore, so the probes stage Sleep Powder off a Venusaur instead. All five
+carry `formatSecondaryCount {count: 0}`, so the authority's `!effect.secondaries` clause is
+UNREACHABLE in this regulation and every legal route announces — the clause is still READ off the tag
+rather than collapsed, because it is the regulation that makes it true and the regulation changes.
+
+**AND `isSemiInvulnerable()` BELONGS HERE, WHICH IS THE OPPOSITE ANSWER TO THE `terrainScaled` ONE.**
+Those handlers are on the MOVE and name `isGrounded()` and nothing else, so adding the clause there
+would have been an over-narrowing invented in this file, and it was refused twice. This pair is on
+the CONDITION and names it explicitly. `semiInvulnerable` is also the RIGHT tag here, unlike at
+Gravity (`:26703`), where the same tag was the wrong set: Gravity's `onFieldStart` names only the
+AIRBORNE charges, while `isSemiInvulnerable()` is the whole family, of which this format legally
+holds exactly the five the tag carries (bounce, dig, dive, fly, phantomforce).
+
+**REST INHERITS IT FOR FREE, AND THAT WAS NOT KNOWN WHEN THE PREDICTION WAS WRITTEN.** Rest routes
+through `applyStatus`, so a grounded Snorlax under Electric Terrain now reads
+`|-activate|p1a: snorlax|move: electricterrain` then `|-fail|p1a: snorlax`, keeps its status clean and
+takes NO heal — matching `rest.onHit`'s `if (!result) return result` and `runMoveEffects`' `-fail` at
+`battle-actions.ts:1303`. 346 carriers, and it came with the funnel rather than with a branch.
+
+**THE `-fail` OVER-FIRE THIS NEARLY SHIPPED.** The direct-status announcer at `:29000` writes a
+`|-fail|` for any refusal it cannot name, and the authority writes none here. `why.reason='terrain'`
+and a matching branch is what stops it; the probe asserts the refused arm emits **exactly one** line
+and that it is the `-activate`.
+
+**KNOB:** `MEDI_ETERRAIN_ALLOWS_SLEEP=1` restores both halves, both probes go MISSING at 825 live /
+2 missing, the census REFUSES to write, and all four new counters read 0. One knob over the pair, not
+two — unlike the two terrain knobs beside it, these are two handlers of one condition that were
+absent together and no measurement needs to attribute one without the other.
+`eTerrainSleepAllowedRestored` is registered in `DELIBERATE_BREAK`.
+
+**TWO INHERITED FIXTURE-LEGALITY FINDINGS, REPORTED AND NOT TOUCHED.** They are pre-existing probes,
+both green, and neither is this batch's: `probe('ability','statusImmune','Insomnia refuses sleep…')`
+stages **Spore**, which has zero legal carriers, and the three `delayedSleep` probes stage
+**Whimsicott** clicking Yawn, which Whimsicott cannot learn. Recorded here so the next pass over
+either does not re-derive it.
 
 ## A TERRAIN REWRITES THE MOVE'S TARGET, AND THIS ENGINE HAD NO TARGET REWRITE AT ALL — ONE ASSIGNMENT, TWO CONSEQUENCES, AND THE SECOND IS THE ONE THAT GETS FORGOTTEN. **CENSUS 821 -> 822 LIVE / 822 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. BOARD-PARTED 80 -> 78 OF 961, PROTOCOL 171 -> 169, CAUSES 149 -> 147 (THREE REMOVED, ONE ADDED), END-STATE 907/52/1/0/1 -> 909/50/1/0/1. THE DELTA IS KNOB-CONTROLLED ON THE SAME RELEASE: THE BEFORE-ARM REPRODUCES THE PUBLISHED 171 / 80 / 149 / 907-52-1-0-1 EXACTLY, WITH `first_divergences`, `classes` AND `end_state` BYTE-IDENTICAL STRINGS. EIGHT PREDICTIONS HIT AND FIVE MISSED — ALL FIVE THE SAME MISS, MADE ONCE: I SAID THE POOL WOULD SIT STILL AND IT MOVED.** 2026-09-01.
 
@@ -37407,8 +37474,13 @@ multipliers and the narrowed `damageBoost` family are census probes (`move|setsT
 `tests/test-damage-stages.js` against the authority at exact equality. **Do not re-add any of them
 here.** The four things that class left unfixed are named in the ROADMAP #92 section above with their
 reasons — ~~Charge has no volatile to read~~ (**RETRACTED, WIRE 157: `charge` is now a base-power
-chain member and Electromorphosis banks it — three of the four remain**), `terrainScaled` carries no
-grounded subject, Rivalry has no gender, and the artifact stores 1.3 as a float. Rivalry is the only one of the four that belongs on
+chain member and Electromorphosis banks it — three of the four remain**), ~~`terrainScaled` carries no
+grounded subject~~ (**LANDED 2026-09-01: `TERRAIN_SCALED_SUBJECT` is a literal beside
+`TERRAIN_TARGET_REWRITE`, the membership is FOUR tag members of which THREE reach the `{terrain, mult}`
+site, and the three do NOT agree — Expanding Force and Misty Explosion read the USER's feet, Rising
+Voltage the TARGET's, all three verified against the authority's own handler source. Three census
+probes carry a grounded arm, an airborne arm and, for Rising Voltage, the cross arm that a uniform
+user-gate breaks — two of the four remain**), Rivalry has no gender, and the artifact stores 1.3 as a float. Rivalry is the only one of the remaining that belongs on
 this list, and it is already on it.
 
 **AND IT HAS A SUCCESSOR THAT CANNOT GO STALE, 2026-08-06.** A hand list is prose, and prose cannot

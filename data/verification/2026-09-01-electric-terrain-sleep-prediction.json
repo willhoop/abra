@@ -1,0 +1,87 @@
+{
+  "written": "2026-09-01, BEFORE any engine edit, any probe run, any census run and any differential run. Source has been READ (canTakeStatus, applyStatus, the a.kind==='yawn' branch, and the authority's electricterrain.condition) but nothing has been staged or measured.",
+  "batch": "Electric Terrain refuses `slp` and refuses the `yawn` volatile to a grounded, non-semi-invulnerable body",
+
+  "baselines_verified_off_disk_by_me_this_session": {
+    "census": "825 live / 825 probed / 0 missing, 0 threw, 0 hollow",
+    "empirical_board_parted": 77,
+    "empirical_protocol_diverged": 168,
+    "release": "d9dc3afe16ef",
+    "pool": "0d103fb9fa87",
+    "census_pin": "9446a684709d",
+    "games": 961,
+    "cap": 12,
+    "arm": "middle"
+  },
+
+  "P_authority": {
+    "claim": "the two handlers are on the CONDITION, Champions overrides neither, and both carry the semi-invulnerable companion clause",
+    "read": "data/moves.ts electricterrain.condition — onSetStatus(status,target,source,effect): `status.id==='slp' && target.isGrounded() && !target.isSemiInvulnerable()` -> announce then `return false`; the announce is gated `effect.id==='yawn' || (effect.effectType==='Move' && !effect.secondaries)`. onTryAddVolatile(status,target): `if (!target.isGrounded() || target.isSemiInvulnerable()) return;` then `status.id==='yawn'` -> announce, `return null`.",
+    "champions": "no electricterrain key in data/mods/champions/moves.ts or conditions.ts, so mainline is the authority"
+  },
+
+  "P_membership_sleep_sources": {
+    "claim": "every legal sleep route in this format announces, because NONE of them carries secondaries — so the authority's `!effect.secondaries` branch is UNREACHABLE here and the announce is effectively unconditional for a Move",
+    "predicted_members_with_carriers": {
+      "yawn": 46, "hypnosis": 27, "sleeppowder": 26, "sing": 7, "rest": 346, "spore": 0
+    },
+    "spore": "ZERO legal carriers in Champions Reg M-B. Two EXISTING probes stage it (the Insomnia one) and one stages Whimsicott/Yawn, which Whimsicott cannot learn. Both are pre-existing fixtures, neither is mine, and I predict I will REPORT them and not touch them."
+  },
+
+  "P_sites": {
+    "claim": "TWO engine sites, and canTakeStatus is the wrong home for the status half",
+    "status_half": "applyStatus — because the announce needs `eff` (which canTakeStatus never receives) and because Safeguard's identical `-activate|TARGET|move: X` refusal already lives there",
+    "volatile_half": "the `a.kind==='yawn'` branch in the turn loop, above the apply and beside the Sweet Veil / Flower Veil `allyRefusesVolatile` refusal",
+    "why_not_canTakeStatus": "its other caller is the yawn branch's own `canTakeStatus(t,'slp')`, which models the authority's `runStatusImmunity` — types and abilities only. A terrain clause added there would refuse the DROWSE for the wrong reason and double up with the volatile half."
+  },
+
+  "P0_red_first": {
+    "claim": "both halves are RED at HEAD before a byte moves",
+    "status": "Sleep Powder from a Venusaur into a grounded Garchomp under Electric Terrain reads `slp` at HEAD and must read `none` after",
+    "volatile": "Yawn from a Swampert into a grounded Garchomp under Electric Terrain sets `_yawn` non-null at HEAD and must be null after",
+    "arms_that_must_not_move": "the airborne target (Levitate) must still be slept and still be drowsed; no terrain and Psychic Terrain must still sleep and still drowse; Will-O-Wisp under Electric Terrain must still BURN"
+  },
+
+  "P1_probe_shape": {
+    "predicted": "two probes under tag `setsTerrain` (the tag the four terrain-condition base-power probes already use, because no tag carries a refusal), each with a grounded arm, an airborne arm and the over-fire controls named above",
+    "fixture_legality": "Sleep Powder off a Venusaur (a real carrier) and Yawn off a Swampert (a real carrier). Sleep Powder is 75% accurate and rng5 returns 0.5, so it cannot miss; Garchomp is not Grass and not Overcoat, so the powder is not refused for an unrelated reason.",
+    "the_trap_this_avoids": "staging Spore, which nothing in this regulation can click"
+  },
+
+  "P2_census": { "before": 825, "predicted_point": 827, "band": [826, 828],
+                 "reason": "two probes, one per handler" },
+
+  "P3_which_scoreboard": {
+    "predicted": "THE LAB MOVES. THE POOL SITS STILL.",
+    "arithmetic": "the scope measured 11 sleep clicks under Electric Terrain (upper bound 12) across the WHOLE 17,381-game store — 0.06% of games. Over 961 pool games that is under one expected event before any further conditioning, and `--steering empirical` samples P(move | species) rather than replaying those clicks, so the 11 does not translate. Electric Terrain itself is 237 field-starts of 17,381 = 1.4%, and the terrain must additionally be UP (5-turn window, no extender in this format) at the moment a sleep move is clicked at a GROUNDED body, inside a 12-turn cap.",
+    "board_parted": { "before": 77, "point": 77, "band": [74, 80] },
+    "protocol_diverged": { "before": 168, "point": 168, "band": [164, 172] },
+    "explicit": "A STILL POOL HERE IS A CONFIRMATION, NOT A FAILURE, and it is said before the run. A move of one or two games is inside the band; a move of five would mean this fix reached something I have not modelled and would be reported as a surprise."
+  },
+
+  "P4_knob": {
+    "predicted": "MEDI_ETERRAIN_ALLOWS_SLEEP=1 restores BOTH halves ungated, both probes go MISSING, and the census REFUSES to write because the counter is registered in DELIBERATE_BREAK",
+    "counter": "MEDFAILS.eTerrainSleepAllowedRestored"
+  },
+
+  "P5_counters": {
+    "predicted": "MEDSEEN.terrainRefusedSleep rises when the sleep is WITHHELD and MEDSEEN.terrainRefusedYawn rises when the drowse is; a run where either never moves is an unwired gate",
+    "loud_fallback": "MEDFAILS.terrainStatusFieldUnknown for a body with no side stamp — it must COUNT rather than silently read 'no terrain', which is exactly the silent default `statusImmuneWeatherUnknown` was added for one field over"
+  },
+
+  "P6_damage_differential": {
+    "predicted": "0 disagreements on 6000 comparisons, seed 20260804 — no damage byte moves in this pass. Written via --out to data/verification/engine-diff.eterrainsleep.json"
+  },
+
+  "P7_semiInvulnerable": {
+    "claim": "UNLIKE the terrainScaled MOVE handlers, this pair DOES carry `!target.isSemiInvulnerable()`, and it is in the CONDITION where the scope said the clause lives. So it belongs in this fix and is not an invented over-narrowing.",
+    "risk": "the engine's semi-invulnerable read may not be reachable from applyStatus; if it is not, the clause is declared and counted rather than guessed"
+  },
+
+  "P8_rest": {
+    "predicted": "Rest is the 346-carrier member and the authority refuses it too — `onSetStatus` does not care that the source is the target. If the engine's Rest routes through applyStatus it inherits the refusal for free and the heal must also fail; if it writes `status='slp'` directly it does NOT, and that is a second defect this pass would surface rather than fix.",
+    "confidence": "genuinely unknown — not read before this file was written"
+  },
+
+  "P9_void_usable": { "predicted": "void_files stays at 2 (exploitability.json, medicham-bench.json); no artifact declared void by this pass" }
+}

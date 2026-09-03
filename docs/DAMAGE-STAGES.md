@@ -1,7 +1,8 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.239.0 — 2026-09-01.**
+**Version: 5.240.0 — 2026-09-01.**
 
+**5.240.0 - NO DAMAGE STAGE MOVED AND NO DAMAGE NUMBER MOVED.** This version changes whether Electric Terrain lets a sleep or a drowse land. Nothing in the damage chain is touched, and `tests/test-engine-diff.js` was re-run anyway on the same seed as a control: 6,000 compared, 6,000 agreed, 0 disagreed. One second-order note of the kind that looks like a damage change later: a body that stays awake keeps acting, so games under Electric Terrain can now run differently from that point - that is the board changing, not the formula.
 **5.239.0 - NO DAMAGE STAGE MOVED AND NO DAMAGE NUMBER MOVED.** This version changes where a hazard punish puts its layer and when a weather punish is allowed to set its sky. Neither touches the damage chain, so `tests/test-engine-diff.js` was not re-run and its `0 of 6,000 at all sixteen corners` stands unchanged. One second-order note, recorded because it is the kind of thing that looks like a damage change later: Sand Spit now sets sandstorm over a standing sun or rain, so the sun/rain Fire and Water multipliers stop applying from that point in those games - that is the weather changing, not the formula.
 **5.237.0 - NO DAMAGE STAGE MOVED AND NO DAMAGE NUMBER MOVED.** This version changes the accuracy chain, which decides WHETHER a move connects and sits above every damage step; `tests/test-engine-diff.js` was therefore not re-run and its `0 of 6,000 at all sixteen corners` stands unchanged. Recorded here because the accuracy stage table `(3+n)/3` is a near neighbour of the stat-stage table `(2+n)/2` and the two are easy to confuse - they are separate constants and only the accuracy one was touched.
 

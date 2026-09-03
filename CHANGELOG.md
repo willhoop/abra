@@ -10,6 +10,67 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.240.0] — 2026-09-01
+
+### Fixed
+- **ELECTRIC TERRAIN REFUSES `slp` AND THE `yawn` VOLATILE, AND THIS ENGINE READ NEITHER HANDLER.**
+  Its `onBasePower` was read at four sites; `electricterrain.condition.onSetStatus` and
+  `onTryAddVolatile` at none, so a Sleep Powder and a Yawn landed under Electric Terrain exactly as
+  they do on a clear field. `data/moves.ts`, not overridden in `data/mods/champions/` (neither
+  `moves.ts` nor `conditions.ts` carries an `electricterrain` key):
+
+  ```js
+  onSetStatus(status, target, source, effect) {
+    if (status.id === 'slp' && target.isGrounded() && !target.isSemiInvulnerable()) {
+      if (effect.id === 'yawn' || (effect.effectType === 'Move' && !effect.secondaries))
+        this.add('-activate', target, 'move: Electric Terrain');
+      return false; } }
+  onTryAddVolatile(status, target) {
+    if (!target.isGrounded() || target.isSemiInvulnerable()) return;
+    if (status.id === 'yawn') { this.add('-activate', target, 'move: Electric Terrain');
+                                return null; } }
+  ```
+
+  One predicate (`eTerrainRefusesSleepOn`) serves both roads, because the sleep road and the drowse
+  road have already come apart once in this file (WIRE 114). Wiring only `onSetStatus` would have
+  looked finished and left the drowse and its `|-start|…|move: Yawn` standing for two turns.
+- **Rest inherits the refusal through `applyStatus`** — a grounded body under Electric Terrain now
+  fails Rest outright, taking no sleep and no heal, matching `rest.onHit`'s `if (!result) return
+  result` and the `-fail` at `sim/battle-actions.ts:1303`. 346 legal carriers, no branch needed.
+- **The refused status no longer picks up a `|-fail|` it should not have.** The direct-status
+  announcer writes one for any refusal it cannot name; `why.reason='terrain'` and a matching branch
+  stop it, and the probe asserts the refused arm emits exactly one line.
+
+### Added
+- Two census probes under `move|setsTerrain`, both shown RED first: the sleep refusal (grounded
+  arm, airborne arm, wrong-terrain and clear-field over-fire controls, and a Will-O-Wisp control
+  proving it refuses `slp` and not every status) and the yawn-volatile refusal. Both assert the
+  protocol line as well as the board.
+- `MEDI_ETERRAIN_ALLOWS_SLEEP=1` restores both halves; `eTerrainSleepAllowedRestored` is registered
+  in `DELIBERATE_BREAK`, so the census refuses to write under it.
+- Counters `MEDSEEN.terrainRefusedSleep`, `terrainRefusedYawn`, `terrainRefusalAnnounced`,
+  `statusRefusedByTerrain`; loud fallbacks `MEDFAILS.terrainStatusFieldUnknown` (a body with no side
+  stamp cannot answer and is counted rather than read as "no terrain") and
+  `terrainRefusalSecondaryUnknown`.
+
+### Notes
+- **Census 825 → 827 live / 827 probed / 0 missing, 0 hollow, 0 threw.**
+- **Board-parted unmoved at 77 of 961, protocol unmoved at 168, causes unmoved at 146 with zero
+  added and zero removed, end-state identical at 910/49/1/0/1.** All four were written to disk at
+  their point estimate before the run, declared as a lab-only move with the arithmetic first.
+  Knob-controlled before-arm on ONE release (`53e3e90dce8d`), census pinned to `9446a684709d`, pool
+  pinned to `data/team-pool-frozen` at `0d103fb9fa87`; `classes`, `first_divergences`, `coverage`,
+  `state`, `end_state` and `credit` are byte-identical strings across the two arms.
+- **The still pool is measured, not assumed.** Over the same 961 games `terrainRefusedSleep` and
+  `terrainRefusedYawn` both read **0** while `terrainScaledGateApplied` reads 72 — the counter
+  mechanism is alive and this mechanic is simply unreached by the pool.
+- Damage differential clean: 6000 compared, 6000 agreed, 0 disagreed, seed 20260804.
+- Membership derived and carrier-checked: the legal sleep sources are Rest 346, Yawn 46, Hypnosis 27,
+  Sleep Powder 26, Sing 7, **and Spore 0** — nothing in Reg M-B can click Spore, which is why the
+  probe stages Sleep Powder.
+- **Reported, not fixed** (pre-existing, both green): the `statusImmune` Insomnia probe stages Spore,
+  and the three `delayedSleep` probes stage Whimsicott clicking Yawn, which it cannot learn.
+
 ## [5.239.0] — 2026-09-01
 
 ### Fixed

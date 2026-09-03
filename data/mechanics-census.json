@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-01T06:14:14.566Z",
+  "generated": "2026-09-01T20:30:07.000Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 825,
-  "live": 825,
+  "probed": 827,
+  "live": 827,
   "missing": 0,
-  "armed": 825,
+  "armed": 827,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -2719,6 +2719,26 @@
       "directCall": false
     },
     {
+      "kind": "move",
+      "tag": "setsTerrain",
+      "label": "Electric Terrain refuses SLEEP to a grounded body, and nothing else",
+      "live": true,
+      "detail": "Sleep Powder into a Garchomp -- clear field slp, ELECTRIC TERRAIN none (must be none), Electric Terrain + AIRBORNE target slp (must still be slp -- the refusal is grounded-only), Psychic Terrain slp (must still be slp); Will-O-Wisp under Electric Terrain brn against brn on a clear field (must both be brn -- it refuses slp and nothing else). THE LINE: refused [\"|-activate|p2a:garchomp|move:electricterrain\"] (must be exactly the -activate, with NO -fail beside it), clear field [], airborne [], burn [] (all three must be empty)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "setsTerrain",
+      "label": "Electric Terrain refuses the YAWN volatile to a grounded body",
+      "live": true,
+      "detail": "the drowse counter on the aimed Garchomp -- clear field 1, ELECTRIC TERRAIN 0 (must be 0: the volatile never lands), Electric Terrain + AIRBORNE target 1 (must still drowse), Psychic Terrain 1 (must still drowse). THE LINES: refused [\"|-activate|p2a:garchomp|move:electricterrain\"] (exactly the -activate, and the Yawn -start must be GONE with it), clear field [\"|-start|p2a:garchomp|move:yawn\"] (the -start and nothing else)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "ability",
       "tag": "damageBoost",
       "label": "Water Bubble raises a WATER move and nothing else",
@@ -4003,7 +4023,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.8% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 26.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

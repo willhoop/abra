@@ -10833,6 +10833,125 @@ probe('move', 'setsTerrain', 'Misty Terrain HALVES a DRAGON move and nothing els
                  + `body: ${otherMove[0]} -> ${otherMove[1]} (must not move)` };
 });
 
+/* 2026-09-01 -- WHAT ELECTRIC TERRAIN *REFUSES*, WHICH IS A DIFFERENT HANDLER FROM WHAT IT BOOSTS.
+ *
+ * The four probes above are the terrain condition's `onBasePower`. These two are its `onSetStatus`
+ * and its `onTryAddVolatile`, and until now this engine read NEITHER: a Sleep Powder landed under
+ * Electric Terrain exactly as it does on a clear field, and so did a Yawn.
+ *
+ * THE AUTHORITY, quoted rather than recalled (data/moves.ts, `electricterrain.condition`; there is no
+ * `electricterrain` key in data/mods/champions/moves.ts or conditions.ts, so mainline is authoritative):
+ *
+ *     onSetStatus(status, target, source, effect) {
+ *       if (status.id === 'slp' && target.isGrounded() && !target.isSemiInvulnerable()) {
+ *         if (effect.id === 'yawn' || (effect.effectType === 'Move' && !effect.secondaries))
+ *           this.add('-activate', target, 'move: Electric Terrain');
+ *         return false;
+ *       } }
+ *     onTryAddVolatile(status, target) {
+ *       if (!target.isGrounded() || target.isSemiInvulnerable()) return;
+ *       if (status.id === 'yawn') { this.add('-activate', target, 'move: Electric Terrain');
+ *                                   return null; } }
+ *
+ * THE SLEEP SOURCES ARE DERIVED AND CARRIER-CHECKED, and the derivation changed the fixture. Every
+ * legal move that can put a body to sleep in this format, through `champions_sim.moveCarriers` (the
+ * validator's own `checkCanLearn`): Rest 346, Yawn 46, Hypnosis 27, Sleep Powder 26, Sing 7 --
+ * and **Spore ZERO**. Nothing in Champions Reg M-B can click Spore, so it is staged nowhere here.
+ * Not one of the five carries `secondaries`, so the authority's `!effect.secondaries` branch is
+ * unreachable in this regulation and every legal sleep route announces.
+ *
+ * THE OVER-FIRE CONTROLS ARE THE HALF THAT CATCHES A GATE WIRED TOO WIDE: a clear field and a WRONG
+ * terrain must both still sleep, an AIRBORNE target must still sleep (the refusal is grounded-only),
+ * and a NON-sleep status must still land under Electric Terrain (it refuses `slp`, not everything).
+ * A refusal that also ate the burn would pass a two-armed probe. */
+probe('move', 'setsTerrain', 'Electric Terrain refuses SLEEP to a grounded body, and nothing else', () => {
+  /* Sleep Powder off a Venusaur, which really learns it; 75% accuracy against rng5's flat 0.5, so it
+   * cannot miss and a miss cannot be misread as a refusal. Garchomp is neither Grass nor Overcoat,
+   * so the powder is not turned away for an unrelated reason, and it is GROUNDED with no ability at
+   * all -- Levitate is set explicitly on the airborne arm rather than left to a species. */
+  /* THE TRACE IS READ TOO, and not as decoration: the authority's refusal is `-activate` AND NOTHING
+   * ELSE, while this engine's own direct-status announcer staples a `|-fail|` onto any refusal it
+   * cannot name. So a fix that got the board right and left the announcer alone would part the two
+   * streams in a NEW place -- which is why the line and the absence of the `-fail` are both asserted. */
+  const run = (terrain, targetAbility, moveId) => {
+    const me = bare('venusaur'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    S.field.terrain = terrain;
+    f1.ability = targetAbility;
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, moveId, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { status: f1.status || 'none',
+             say: trace.filter(l => /Electric Terrain|^\|-fail\|/.test(l)).map(M.traceCanon) };
+  };
+  const clear = run('', 'none', 'sleeppowder');                  // control: it sleeps on a clear field
+  const test = run('electricterrain', 'none', 'sleeppowder');    // REFUSED
+  const airborne = run('electricterrain', 'levitate', 'sleeppowder');  // grounded-only, so it sleeps
+  const wrongTerrain = run('psychicterrain', 'none', 'sleeppowder');
+  const burn = run('electricterrain', 'none', 'willowisp');      // it refuses slp, not every status
+  const burnClear = run('', 'none', 'willowisp');
+  const SAY = M.traceCanon('|-activate|p2a: garchomp|move: Electric Terrain');
+  return { works: clear.status === 'slp' && test.status === 'none' && airborne.status === 'slp'
+                  && wrongTerrain.status === 'slp' && burn.status === 'brn' && burnClear.status === 'brn'
+                  && test.say.length === 1 && test.say[0] === SAY   // the line, and no -fail beside it
+                  && clear.say.length === 0 && airborne.say.length === 0 && burn.say.length === 0,
+           arms: { control: clear.status, test: test.status },
+           detail: `Sleep Powder into a Garchomp -- clear field ${clear.status}, ELECTRIC TERRAIN `
+                 + `${test.status} (must be none), Electric Terrain + AIRBORNE target `
+                 + `${airborne.status} (must still be slp -- the refusal is grounded-only), Psychic `
+                 + `Terrain ${wrongTerrain.status} (must still be slp); Will-O-Wisp under Electric `
+                 + `Terrain ${burn.status} against ${burnClear.status} on a clear field (must both be `
+                 + `brn -- it refuses slp and nothing else). THE LINE: refused ${JSON.stringify(test.say)} `
+                 + `(must be exactly the -activate, with NO -fail beside it), clear field `
+                 + `${JSON.stringify(clear.say)}, airborne ${JSON.stringify(airborne.say)}, burn `
+                 + `${JSON.stringify(burn.say)} (all three must be empty)` };
+});
+
+probe('move', 'setsTerrain', 'Electric Terrain refuses the YAWN volatile to a grounded body', () => {
+  /* Yawn off a Swampert, which really learns it. Whimsicott -- the body the three existing
+   * `delayedSleep` probes stage -- does NOT, and that is recorded rather than copied.
+   *
+   * THE DROWSE IS READ, NOT THE SLEEP. Refusing at the sleep two turns later would leave the drowse
+   * standing and the `-start|move: Yawn` line with it, so reading `_yawn` is what separates the
+   * volatile handler from the status handler this pass also wires. */
+  const run = (terrain, targetAbility) => {
+    const me = bare('swampert'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    S.field.terrain = terrain;
+    f1.ability = targetAbility;
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'yawn', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    /* THE `-start` IS READ ALONGSIDE THE COUNTER, because the two are the whole point of refusing at
+     * the VOLATILE rather than at the sleep two turns later: a fix that only wired `onSetStatus`
+     * leaves this line standing and the board says "about to fall asleep" for two turns. */
+    return { drowse: f1._yawn == null ? 0 : f1._yawn,
+             say: trace.filter(l => /Electric Terrain|move: Yawn|^\|-fail\|/.test(l)).map(M.traceCanon) };
+  };
+  const clear = run('', 'none');
+  const test = run('electricterrain', 'none');
+  const airborne = run('electricterrain', 'levitate');
+  const wrongTerrain = run('psychicterrain', 'none');
+  const SAY = M.traceCanon('|-activate|p2a: garchomp|move: Electric Terrain');
+  return { works: clear.drowse > 0 && test.drowse === 0 && airborne.drowse > 0 && wrongTerrain.drowse > 0
+                  && test.say.length === 1 && test.say[0] === SAY
+                  && clear.say.length === 1 && clear.say[0] !== SAY,   // the -start, and only it
+           arms: { control: clear.drowse, test: test.drowse },
+           detail: `the drowse counter on the aimed Garchomp -- clear field ${clear.drowse}, ELECTRIC `
+                 + `TERRAIN ${test.drowse} (must be 0: the volatile never lands), Electric Terrain + `
+                 + `AIRBORNE target ${airborne.drowse} (must still drowse), Psychic Terrain `
+                 + `${wrongTerrain.drowse} (must still drowse). THE LINES: refused `
+                 + `${JSON.stringify(test.say)} (exactly the -activate, and the Yawn -start must be `
+                 + `GONE with it), clear field ${JSON.stringify(clear.say)} (the -start and nothing `
+                 + `else)` };
+});
+
 /* ROADMAP #92 -- THE NARROWED `damageBoost`, AND THE NARROWING IS THE POINT.
  *
  * 44 abilities carry this tag and nothing read it. It cannot be wired as a class: the param carries
@@ -32856,7 +32975,8 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afte
                           'eatEventUpdateOnlyRestored', 'stealEatStripOnlyRestored',
                           'kingsRockOncePerMoveRestored', 'accEvaSeparateRestored',
                           'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',
-                          'terrainTargetSingleRestored', 'terrainScaledUngatedRestored']
+                          'terrainTargetSingleRestored', 'terrainScaledUngatedRestored',
+                          'eTerrainSleepAllowedRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '
