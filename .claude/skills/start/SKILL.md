@@ -409,6 +409,67 @@ of the four board-material games is in that state now, put there by a correct fi
 different budget's output as a catastrophe before catching it; the coordinator twice briefed figures
 from two different budgets side by side.
 
+**A GATE CAN CERTIFY ON A POPULATION THAT DOES NOT CONTAIN THE FAILURE, AND EVERY CLAUSE STILL READS
+CLEAN.** The whole-game differential ran a driver that sought census coverage rather than trying to
+win, so **944 of 961 games hit the turn cap with both sides standing** and only 17 ended. The gate
+read 8 of 8 PASS and board-material ZERO on that. Swapping in a driver that samples real human clicks
+took completion 1.8% -> 47.8% and board-material **0 -> 135**, on the same release, the same pool
+digest and the same cap. Neither number was wrong. **`board-material 0` was a statement about games
+that do not end**, and nothing printed said so. Will named the mechanism in one line: *"its because we
+just spam useless moves instead of playing with a brain."*
+
+**A DIVERGENCE CARD IS RELIABLE ABOUT *WHERE* AND UNRELIABLE ABOUT *WHY* — THIRTY BATCHES, THIRTY
+REFUTED CAUSES.** Every card whose stated cause was tested was wrong; every symptom was real. Three
+were misattributed outright: one blamed an ability that was innocent (the predicate was correct and
+was being handed the wrong body), one recorded the authority's clause backwards, and one was refuted
+by its own printed lines showing both engines agreeing. **Read a card as a location. Brief the
+symptom, never the diagnosis** — and when you do state a cause, mark it as the hypothesis it is.
+
+**A COMPARATOR FIELD IS NOT A CAUSE, AND GROUPING BY IT HIDES ~19 MECHANISMS PER BUCKET.** The
+`ordering` class held 52 rows and **exactly ONE was a turn-order disagreement**; the other 51 were 18
+unrelated mechanisms wearing the field's name. Splitting `event missing from medicham2` the same way
+found 19 more, of which two were 43% of the class. `docs/CARD-REVIEW-2026-08-22.md` already recorded
+that Will beats the automated rollup by grouping on MECHANISM — this is why, measured.
+
+**THE SAME WRONG BELIEF GETS TYPED IN N PLACES THAT SHARE NO CODE, AND EACH IS FOUND ONLY BY FIXING
+THE ONE BEFORE.** Six sites asserted the near side could not matter — a redirect gate handed only the
+foe array, a guard reading one side's field, `sideBuffRefuses` opening with *"an ally is not the other
+side"* against an authority that ends on `target !== source` (identity, not side), three default-target
+draws starting at `randomFoe()` (**91 of 500 legal moves drawn wrong**), a repeat pinned to foe slot 0
+(**73 of 355**), and a hazard laid on the holder's own side. No shared function, array or predicate.
+**An authority-side enumeration structurally cannot see this**: a bad SELECTOR hands a CORRECT
+predicate the wrong body, so the bug arrives wearing the predicate's name. The census that can see it
+is engine-side — `engine/side_selection_census.js`.
+
+**A DEFECT WHOSE SYMPTOM IS *SILENCE* IS NEVER SEEN.** Five of those six side sites resolved to
+`indexOf` returning `-1`, and all five read `-1` as *nothing here*. Not a wrong value, not an
+exception — an effect that simply does not happen. Same shape as Destiny Bond writing a volatile no
+line ever read, and as three tags derived correctly with no consumer.
+
+**A CHECK CAN BE ACTIVELY ASSERTING THE DEFECT, NOT MERELY BLIND TO IT.** Accuracy and evasion stages
+were multiplied separately where the authority combines them into one clamped stage. Every existing
+accuracy census row zeroed one of the two stages, so all of them would have stayed green through the
+fix — and **one row was asserting `0.2667` for an 80-printed move at +6 evasion where the authority
+rolls against 26.** The brief warned the coverage was blind; the truth was worse.
+
+**"VALIDATED" IS SCOPED TO THE POPULATION IT WAS VALIDATED ON, AND THE SCOPE IS USUALLY UNWRITTEN.**
+WIRE 103's comment said King's Rock measures within sampling error of `pFlinch x accuracy` over 2,000
+staged turns. **That was on ordinary moves.** On a volley the authority rolls the secondary per LANDED
+arrival and we took one die per click, so every multi-hit flinched at a flat 10% where the true rate
+is `1-(1-p)^n` — 41% at five arrivals. Same session: three probes on one mechanic all reached it by
+the same road, which is one probe wearing three names.
+
+**A ROADMAP ROW CAN ASSERT A DEFECT THE ENGINE FIXED DAYS AGO.** #362's premise ("`battleResult`
+returns 0.5") was closed by WIRE 160 six days earlier, with the probe recording the closure in its own
+header. #312 was stale in **all four bullets** — every item landed, each with a live census probe — so
+the row was a documentation edit, not work. **The register is not self-correcting in that direction.**
+
+**AN ANNOTATOR CAN MARK A REACHABLE MECHANIC IMPOSSIBLE, AND THAT HIDES A REAL DEFECT RATHER THAN
+INVENTING A FALSE ONE.** Three rows carried `cannot_occur_in_format: true` because the annotator
+matched a MOVE that is `Past` while the VOLATILE of that name is set by a legal move. **Two of the
+three were board-material and neither had ever been filed** — being labelled impossible is precisely
+what kept them out of every work queue. Five names collide in this regulation.
+
 Read this before believing any number, including your own. Every line is a real event with a receipt in
 `CHANGELOG.md`. **They are ordered by how often they have bitten.**
 
@@ -608,6 +669,79 @@ observable to an instrument.
 
 *Which question: "did the engine change, or did a byte that is not code?"*
 
+
+**A YOUTUBE TRANSCRIPT IS ONE COMMAND, AND FIVE HAND-ROLLED ROUTES ALL FAIL.**
+`bash tools/yt_transcript.sh <url-or-id> [outfile]`. WebFetch returns the site footer; the `timedtext`
+URL returns 0 bytes because YouTube signs it against the requesting IP; `/youtubei/v1/get_transcript`
+returns 0 segments; the ANDROID player client reports 0 caption tracks; the browser pane is denied
+navigation. **`yt-dlp` is already installed** and carries the client impersonation those endpoints now
+demand. Auto-generated tracks repeat every line as a rolling caption, so the duplicate collapse is not
+cosmetic — without it the text is twice as long with every sentence doubled.
+
+*Which question: "how do I read a video someone linked?"*
+
+**THE WRAPPER IS REACHABLE FROM A POSIX SHELL, AND THE FORM MATTERS.**
+`MSYS2_ARG_CONV_EXCL='*' cmd.exe /c "tools\lownode.cmd" <args…>` — **path quoted, arguments bare**.
+`cmd //c "<absolute path to a two-line .cmd wrapper>"` also works and preserves the exit code. The
+inline form does not, and backslashes inside the arguments get eaten — that produced
+`teststest-resolution-order.js` for the coordinator. From PowerShell, `cmd /c tools\lownode.cmd <args>`
+works plainly. **`tools/lownode.cmd` now honours an `ABRA-HEAP: <MB>` line declared by the script it
+runs** — that is what made `test-resolution-order.js` runnable after days at rc 134.
+
+*Which question: "why did my heavy run do nothing / die?"*
+
+**A GENERATOR THAT DIES LOOKS EXACTLY LIKE ONE THAT RAN.** `engine/tag_dex.js` needs
+`NODE_OPTIONS=--max-old-space-size=3072`, and **its only write is line 9833 of 9854** — so an OOM
+leaves `data/tags.json` with its old content AND ITS OLD MTIME. Nothing on disk records the death.
+79 files spawn a node child and exactly one (`run-all.js`) reads the child's heap declaration.
+
+*Which question: "did that regeneration actually happen?"*
+
+**THREE FLAGS ON THE DIFFERENTIAL THAT SILENTLY CHANGE WHAT YOU MEASURED.** `--out` redirects the MAIN
+artifact and `--dump-out` is separate — conflating them overwrites the main dump. **Omitting
+`--steering` silently runs the default coverage arm**, which is a different instrument, not a smaller
+one. And `--steering empirical` samples `P(move | species)` rather than replaying the store, so **a raw
+store click count does NOT translate into pool games** — that is what made two pool predictions miss.
+
+*Which question: "why does my run disagree with the published artifact?"*
+
+**`tests/test-mechanics.js` WRITES THE CENSUS ARTIFACT ON A RED RUN BY DESIGN — AND REFUSES TO WRITE
+UNDER A DECLARED BREAK.** A knob run overwrote the census once and was caught only by `status.js`
+printing a mismatch. The refusal under `DELIBERATE_BREAK` is the guard working: a red run cannot
+publish itself as a census, and seeing that refusal is how you know a knob is genuinely wired.
+Separately, `tests/probe_shield_rearm.js` **cuts a real release** if run without the shim preloaded.
+
+*Which question: "what did my knob run just overwrite?"*
+
+**TWO NEW DERIVED INSTRUMENTS, BOTH ENGINE-SIDE ON PURPOSE.** `node engine/coverage.js` prints what
+every gate verdict does NOT cover — nine derived counts, each with the artifact it reads and its age.
+`node engine/side_selection_census.js` classifies every far-side ternary in the simulator as a SIDE
+question or a TARGET question, with a downward ratchet on the undeclared count; it catches four
+spellings a regex misses, **including one containing no `side` token at all**. Its stated limit: a site
+that picks a side without an A/B ternary is invisible to it.
+
+*Which question: "what is this gate not looking at, and would a second instance be caught?"*
+
+**THE NEXT REGULATION IS DETECTED, NOT CONFIGURED.** `node engine/next_regulation.js` asks Showdown's
+live client format list (the ARRIVAL signal), the pinned local checkout (the SIMULATION signal, which
+lags) and the replay search, and matches a Champions VGC regulation **by id shape**, so the next one is
+picked up with no edit. It collects nothing today and says so in words. **On the day, the manual step
+is pulling the Showdown checkout** — collection is automatic, simulation is not. And note the trap it
+avoided: a plain set-difference against the config would have started collecting the PREVIOUS
+regulation, which is live and simply absent from the config.
+
+*Which question: "what happens when the format rotates?"*
+
+**THE AUTHORITY, THREE ANCHORS FOUND THE EXPENSIVE WAY (re-open the line; the checkout moves).**
+`data/mods/champions/scripts.ts:180` — `canTerastallize` returns null, so **Terastallization does not
+exist in this format** and every claim resting on it is out of scope. `data/conditions.ts:578-581` —
+the sun's `onImmunity` refuses `frz` for **any body of any type**, guarded on `effectiveWeather()`, so
+a suppressor turns the protection back off; the obvious "it is a Fire type" explanation is wrong,
+because `getImmunity('frz','Fire')` is true and only Ice is immune. `sim/battle-actions.ts:713-727` —
+accuracy and evasion combine into ONE clamped stage with a single lookup and a `trunc`, and **the two
+clamps are nested, not one clamp on the sum**.
+
+*Which question: "why did the authority refuse that, when the type says it should land?"*
 
 Everything below was discovered the expensive way. **Each entry says what QUESTION it answers, never
 what the answer is** — an answer written here rots like the fourteen handoffs. Verify before citing:
