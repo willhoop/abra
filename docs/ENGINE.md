@@ -148,6 +148,86 @@ _stamped 2026-09-04 06:54_
 
 <!-- /GENERATED -->
 
+## SEVEN GAMES BACK AND THE SEQUENCE IS 77 → 61 → 50 → 53 → 46: BOARD-MATERIAL **53 OF 961 → 46 OF 961**, PROTOCOL **154 → 141**, VOID UNCHANGED AT 7, CENSUS LEVEL AT 829, SIDE-SELECTION UNDECLARED **80 → 78** WITH THE RATCHET LOWERED TO MATCH. 2026-09-04, CHANGELOG 5.250.0
+
+**Release `7ffc58da8ef8` → `252025cfcddc`**, same census pin, same frozen pool, same empirical
+driver. Full account: `docs/_reports/2026-09-04-fix-batch-M6instr-defog.md`. **The step that ROSE is
+left in the sequence on purpose** — it was the previous pass removing a coincidence that hid four
+games, and a series that only ever falls is a series somebody has edited.
+
+**M6's INSTRUMENT HALF IS CLOSED, AND IT CLOSED 13 OF ITS 14 CAUSES — THE 14th WAS NEVER M6.** The
+authority takes the confusion self-hit roll inside `getConfusionDamage`, which calls `randomizer`
+DIRECTLY and never enters the wrapped damage function, so the draw ran with the differential's
+category at its default and `pinRandom`'s damage-index inversion — gated on the `dmg` category —
+never applied. One shared die, read `floor(u*16)` on one side against `15 - floor(u*16)` on the
+other: **anti-correlated, which is worse than independent.** Fixed on BOTH sides in one pass —
+`around('getConfusionDamage', 'dmg', 0)` in the differential, and the simulator's
+`confusionSelfDamage` drawing `_R.dmg` — under **one** knob name so the restore is the original red
+and not a third behaviour. All 13 `-damage field 3` confusion value causes are gone and that class
+falls **22 → 9**. The 14th is `|-damage|p1b|H/H|[from]confusion <> |move|p1b|makeitrain`: a
+stream-position defect wearing a confusion line, class `unrelated event mismatch`, a different family,
+untouched and unmovable by this fix.
+
+**THE CORNERS ARE UNTOUCHED AND IT IS CHECKED RATHER THAN CLAIMED.** `rngStreams(f)` for a plain
+function aliases every stream, so under a corner arm and in every rollout `_R.dmg === _R.any` and
+this line is byte-identical to what it was. `tests/probe_confusion_selfhit_address.js` §4 asserts
+both directions — the aliasing AND that a seeded split struct parts them — because the first alone
+would pass by everything being aliased everywhere, which would make the change vacuous. §3 flipped
+from PRINTING the residual to ASSERTING it: `MEDI_CONFUSION_DMG_CAT_LEGACY=1` reproduces the exact
+pre-fix boards, 204 vs 202 foe-aimed and 202 vs 204 self-aimed.
+
+**A CAUSE COUNT IS NOT A GAME COUNT, AND THAT IS THE WHOLE OF THE 13-VERSUS-7 GAP.** Board-material
+fell by 7 while 13 causes closed, because **6 of the 13 games carry a second, already-counted
+divergence.** Every other class is unchanged to the game (`event missing`, `extra event`, `ordering`,
+`unrelated event mismatch`, `-status field 4` and the singletons), so the six survivors were already
+in another class rather than having moved into one. Which class, per game, is unmeasured and is OWED.
+
+**DEFOG SWEPT THE WRONG SIDE — `engine/medicham2-browser.js:26471`, THE DEFECT FILED IN THE SECTION
+BELOW, NOW CLOSED.** Every call site handed `sweepField` *the side the mover is not on*, which is
+neither of the two sides `defog.onHit` names: the target's side for screens and hazards, the source's
+side for hazards. `defog.target` is `normal` (derived, not typed) and `validTargetLoc` asks only
+adjacency, so an ally aim is legal — and there the old selector was wrong **twice in opposite
+directions**, taking screens off the FOE while emptying the FOE's hazard bag. The source moves too:
+Defog is `reflectable`, and a Magic Bounce re-use makes the bouncer the source. `bounceOff` now
+writes `info.bouncedBy` — the one place that knows a bounce happened is the one place that reports it
+— and the old expression survives only as `_far`, the fallback a loud counter reports on.
+`tests/probe_defog_target_side.js`, three arms: ally-aim and Magic-Bounce **red first**, foe-aim
+control green throughout. Arm C stages hazards on BOTH sides so that a target-side-only fix would be
+visibly wrong on the bounce road.
+
+**THE THREE `sweepField` SITES ARE NOT THREE COPIES OF ONE SELECTION, AND THE SECTION BELOW SAYING SO
+IS SUPERSEDED.** Consolidating them would have broken Tidy Up: it is `target: 'self'` with
+`[pokemon.side, ...pokemon.side.foeSidesWithConditions()]`, so folding it into the Defog repair
+collapses its two bags into one and leaves the opponent's hazards standing. The damaging branch is
+`hazardsFrom: 'self'` and never reads the argument. **This is the *facts are global* rule correctly
+NOT applied** — the shared fact is the sweep; which side each move names is a different question.
+Both memberships are DERIVED on every run (`data/tags.json` walked, both handler blocks parsed out of
+`data/moves.ts`), so a new carrier fails by name, and both unchanged sites now carry a comment saying
+why they are unchanged.
+
+**THE SIDE-SELECTION CENSUS IS 80 → 78 WITH THE RATCHET LOWERED**, two sites declared
+(`kind:affect | sfB:sfA` FIXED, `kind:statcode | sfB:sfA` CORRECT). **Four uncommitted declaration
+rows belonging to another session were destroyed by a `git checkout --` during the batch**: two are
+restored verbatim from a pre-loss printout, two are RECONSTRUCTIONS labelled as such in the file, each
+quoting the expired key's own text and asking for a re-read by its author. The code they cover has not
+moved a byte and the census verifies that by digest. `git checkout --` on a file another session has
+edited and not committed is **unrecoverable**; git holds nothing to restore from.
+
+**THE BEFORE/AFTER SPANS A CHANGED INSTRUMENT AS WELL AS A CHANGED ENGINE.** `PIN_DIGEST`
+`ccb365985023` → `bcb38e47d94f`. The 13 → 0 cause count survives that; **the board-material integer
+is not strictly one-variable and must not be quoted as if it were.** The scoreboard was called before
+the run and scored 4 of 5: protocol, VOID, census and *"Defog moves the pool by exactly zero"* all
+hit; **board-material was called at 39 and came in at 46**, and the miss is the caveat about second
+causes that was written into the prediction and then under-weighted.
+
+**WHAT IS OWED HERE.** `data/game-differential.json` was not rewritten, so the clause the gate prints
+still reads **77 of 961** while this section's 46 lives in `data/verification/fix-batch-M6instr-defog.json`.
+`node engine/status.js --write` was not run, so the generated block above is one pass behind.
+`tests/staged_board.js` is 25 of 25 board-identical and exits 1 on a **pre-existing** red whose anchor
+is absent at `HEAD` too — reported, not patched. The surviving ordering cause has no probe. The pinned
+differential publishes no `MEDFAILS` for `confusionDmgStreamMissing` or `sweepFieldNoTargetSide`;
+both are asserted at zero on staged boards only, with the 961-game evidence indirect but positive.
+
 ## THE POOL GOT WORSE BY FOUR GAMES AND THE FIX IS CORRECT: BOARD-MATERIAL **50 OF 961 → 53 OF 961**, PROTOCOL **150 → 154**, VOID UNCHANGED AT 7, CENSUS LEVEL AT 829. **ONE CLASS MOVED AND EVERY MOVED CAUSE IS `[from]confusion` — M6's TRUE SIZE IS 14 GAMES AND FOUR OF THEM WERE HIDDEN BY A COIN FLIP.** 2026-09-04, CHANGELOG 5.249.0
 
 **Release `9b449a41c865` → `7ffc58da8ef8`**, every other pin held. Full account:

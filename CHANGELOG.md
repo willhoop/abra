@@ -10,6 +10,75 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.250.0] — 2026-09-04
+
+### Fixed
+- **BOARD-MATERIAL 53 → 46 OF 961.** Protocol 154 → 141, VOID 7, census 829/829 level,
+  side-selection undeclared 80 → 78 with the ratchet lowered to match. Release `7ffc58da8ef8` →
+  `252025cfcddc`. Written to `data/verification/fix-batch-M6instr-defog.json`;
+  **`data/game-differential.json` still holds 77 and is what the gate prints.**
+- **M6 CLOSED 13 OF 14, AND THE 14th WAS NEVER M6.** The fourteen were CAUSES, not games: thirteen
+  were `-damage field 3 :: |-damage|…|[from]confusion` value disagreements and all thirteen are gone,
+  that class falling **22 → 9**. The fourteenth is
+  `unrelated event mismatch :: |-damage|p1b|H/H|[from]confusion <> |move|p1b|makeitrain` — **a
+  stream-position defect wearing a confusion line**, a different family, untouched. Board-material
+  fell only 7 because **6 of the 13 games carry a second, already-counted divergence**; every other
+  class is unchanged to the game.
+- **DEFOG READ THE WRONG SIDE.** `engine/medicham2-browser.js:26471`, found while proving a
+  neighbouring site innocent — the old `WRONG-FILED` note had named the wrong line. Probe
+  `tests/probe_defog_target_side.js`, three arms: ally-aim and Magic-Bounce red-first, foe-aim control
+  green throughout.
+
+### Changed
+- `tests/probe_confusion_selfhit_address.js` §3 flipped from PRINTING to ASSERTING;
+  `MEDI_CONFUSION_DMG_CAT_LEGACY=1` reproduces the exact pre-fix boards, 204-vs-202 and 202-vs-204.
+
+### Notes
+- **THE SCOREBOARD CALL SCORED 4 OF 5 AND THE MISS IS THE HEADLINE.** Board-material was predicted at
+  39 (range 39–43) and came in at **46** — the "second cause" caveat was named in the prediction and
+  then under-weighted. Protocol 141 against a predicted 140–148 ✓, VOID 7 ✓, census 829/829 ✓, and
+  **Defog moved the pinned pool by exactly zero, as called before the run** ✓. Recording the miss
+  because a prediction is worth nothing if only the hits are counted. Running record: 2-of-3, 4-of-4,
+  a one-game protocol miss, now 4-of-5.
+- **`PIN_DIGEST` MOVED `ccb365985023` → `bcb38e47d94f`, so this comparison spans a changed INSTRUMENT
+  as well as a changed engine.** The 13 → 0 cause count survives that because it is counted per cause;
+  **the board-material integer is not strictly one-variable and is not presented as if it were.**
+- **THE THREE `sweepField` SITES ARE NOT THREE COPIES OF ONE SELECTION, AND CONSOLIDATING THEM WOULD
+  HAVE BROKEN TIDY UP.** Tidy Up is `target:'self'` with `[pokemon.side, ...foeSidesWithConditions()]`
+  — folding it into the Defog fix would have collapsed its two bags into one and left the opponent's
+  hazards standing. Left alone, with derived membership checks so a new carrier fails by name. This is
+  the *facts are global* rule correctly NOT applied: two sites that look identical are asking
+  different questions.
+- **FOUR UNCOMMITTED DECLARATION ROWS WERE DESTROYED BY A `git checkout --` DURING THIS BATCH, AND
+  THAT IS RECORDED RATHER THAN QUIETLY REPAIRED.** Two were restored verbatim from a census printout;
+  two are RECONSTRUCTIONS, labelled as such **in the file itself**, each carrying `THE ORIGINAL ANSWER,
+  VERBATIM` lifted from the expired key's own text. The code they cover has not moved a byte and the
+  census verifies that by digest, so the substance survived — but they need a re-read by their author
+  and the file says so. **`git checkout --` on a file another session has edited and not committed is
+  unrecoverable; git holds nothing to restore from.**
+- **STILL OPEN:** `tests/staged_board.js` is 25/25 board-identical but exits 1 on a **pre-existing**
+  red — the `fakeout-flinch` proof-plant anchor is absent at HEAD too, and its own 2026-08-19 header
+  files the fix in `engine/engine_release.js`. Not patched.
+- **REGISTER COVERAGE, MEASURED:** of 219 open rows, **13 name a marker the classifier admits, 43
+  declare `INSTRUMENT OWED`, and 0 carry a refused marker** (was 9 last night). The number nobody had
+  asked for is the real gap: **163 of 219 carry neither — 43 of the 74 rows asserting breakage cannot
+  be confirmed or refuted by anything.** #381 measured 35 of 49 on 2026-08-23; the declared half has
+  improved and the undeclared half has grown with the register.
+- **#320 AND #322's STALE CAVEAT WAS NOT TONIGHT'S DOING.** Both were repaired on 2026-08-28 under
+  ROADMAP #521, six minutes apart, so the *"MARKER NOT MACHINE-RUNNABLE"* paragraph had been false for
+  seven days. Corrected by dated addendum quoting the old text verbatim, lifted from the row's own
+  bytes rather than retyped.
+- **TWO PREMATURE-CLOSE CANDIDATES FILED WITH EVIDENCE AND NOT REOPENED:** #258 and #409 were recorded
+  as PREMATURE CLOSE in the stale `register-reality.json`, and both rows plus their shared instrument
+  are byte-identical to the tree that produced that verdict. The instrument was **not run** — its
+  whole-repo pass scans files a live agent owned. Also flagged: **#389** open-and-asserting-breakage
+  while its unchanged instrument reads green, and **four closures (#316, #330, #344, #526) resting on
+  markers the register has never once executed.**
+- Full accounts: `docs/_reports/2026-09-04-fix-batch-M6instr-defog.md`,
+  `docs/_reports/2026-09-04-register-hygiene.md`.
+
+---
+
 ## [5.249.0] — 2026-09-04
 
 ### Fixed

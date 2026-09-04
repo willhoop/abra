@@ -156,12 +156,56 @@ for (const s of sites) {
   if (!byKey.has(k)) byKey.set(k, { key: k, anchor: s.anchor, family: s.family, expr: s.expr, lines: [], text: s.text });
   byKey.get(k).lines.push(s.line);
 }
+/* ---- ANCHOR DRIFT IS A REAL WAY TO LOSE A DECLARATION, AND IT USED TO LOOK LIKE A NEW SITE ------
+ *
+ * 2026-09-04. The census went RED at `undeclared 84` against a ratchet of 81 and the four sites it
+ * named were in NOBODY'S diff — 29955, 29973, 35133, 35142. All four were BYTE-IDENTICAL to code that
+ * had been classified on 2026-08-29: their `expr` and their digest were unchanged and only the ANCHOR
+ * had moved. Two of them because an `a.kind==='pass'` branch test was inserted above them, so the
+ * nearest named context changed from `kind:attack` to `kind:pass`; two because the enclosing function
+ * drifted to 1,660 lines above the site and the anchor window is 1,500, so the anchor fell back to
+ * `fn:<module>`.
+ *
+ * THE ANCHOR STAYS IN THE KEY. It is doing real work — three declarations in this file share the
+ * digest `f6c44cd1` and are three different sites — and a key that dropped it would let one
+ * declaration silently cover code somewhere else, which is the exact failure the key was designed
+ * against. What was wrong is that the expiry was SILENT: an unchanged line arrived reading
+ * UNDECLARED, indistinguishable from a genuinely new selection, and the honest reading of that is
+ * "somebody added a side selection" rather than "a declaration expired under a line that did not
+ * move".
+ *
+ * SO IT IS PRINTED, AND IT IS STILL UNDECLARED. The row keeps its UNDECLARED status and still counts
+ * against the ratchet — a site that moved into a DIFFERENT BRANCH may genuinely select something
+ * else now, and auto-inheriting the old answer is how a bad selector would arrive wearing a good
+ * predicate's name. What the note buys is that the re-declaration is an informed act: it says which
+ * key expired and that the code itself is unchanged. */
+const declByCode = new Map();
+for (const k of Object.keys(decl)) {
+  const p = k.split(' | ');
+  if (p.length !== 3) continue;
+  const code = p[1] + ' | ' + p[2];
+  if (!declByCode.has(code)) declByCode.set(code, []);
+  declByCode.get(code).push({ key: k, anchor: p[0] });
+}
+let DRIFTED = 0;
 const rows = [...byKey.values()].map(r => {
   const d = decl[r.key];
+  let drift = '';
+  if (!d) {
+    const same = (declByCode.get(r.expr + ' | ' + digestOf(r.text)) || []).filter(x => x.anchor !== r.anchor);
+    if (same.length) {
+      DRIFTED++;
+      drift = 'ANCHOR-DRIFT — this code is byte-identical to the declared key(s) '
+        + same.map(x => JSON.stringify(x.key)).join(', ')
+        + ' and only the enclosing anchor moved. The declaration EXPIRED; the line did not change. '
+        + 'Re-answer it under the new anchor rather than assuming the old answer still holds.';
+    }
+  }
   return Object.assign({}, r, {
     question: d ? d.question : 'UNCLASSIFIED',
     authority: d ? d.authority : '',
     note: d ? (d.note || '') : '',
+    drift,
   });
 });
 rows.sort((a, b) => a.lines[0] - b.lines[0]);
@@ -194,6 +238,8 @@ console.log('  ' + sites.length + ' matched lines  ->  ' + rows.length + ' disti
 console.log('  by question: ' + Object.keys(byQ).sort().map(k => k + ' ' + byQ[k]).join('   '));
 console.log('  undeclared: ' + undeclared.length + '   ratchet ' + ratchet
   + (rose ? '   >> ROSE — a new side selection entered with nobody saying what it answers' : '   ok'));
+console.log('  of those, ANCHOR-DRIFT (unchanged code whose declaration expired when the enclosing '
+  + 'anchor moved): ' + DRIFTED);
 console.log('');
 for (const r of rows) {
   if (ONLY_UNDECLARED && r.question !== 'UNCLASSIFIED') continue;
@@ -201,6 +247,7 @@ for (const r of rows) {
     + r.anchor);
   if (r.authority) console.log('      ' + r.authority + (r.note ? '   — ' + r.note : ''));
   else console.log('      ' + r.text);
+  if (r.drift) console.log('      >> ' + r.drift);
 }
 
 if (process.argv.includes('--write')) {
