@@ -9597,7 +9597,13 @@ function main() {
 
   if (JSONOUT || HAS('--write')) {
     const art = { generated: new Date().toISOString(), by: 'tests/roster.js', stage: STAGE,
-      engine_release: REL.id, format: CS.FORMAT,
+      /* THE WHOLE STAMP, NOT THE ID — 2026-09-04. `engine_release: REL.id` alone is a CLAIM about
+       * which bytes this run read; `source_digests` is the receipt, and it is the only thing
+       * `engine/provenance.js` can verify BY CONTENT ("newer than its source is no evidence at all",
+       * CLAUDE.md). `engine/pin_guard.js` withholds every count in this file until it is here. The id
+       * key is unchanged — `stamp()` writes `engine_release` — so nothing that reads this artifact
+       * needs editing. */
+      ...REL.stamp(), format: CS.FORMAT,
       counts: Object.fromEntries(VERDICT_ORDER.map(v => [v, (by[v] || []).length])),
       /* THE ARM THAT ACTUALLY RAN, counted per id rather than copied off the row's label. A row's
        * `arm` is what the RULE asked for; this is what `play()` handed the driver. They were not the

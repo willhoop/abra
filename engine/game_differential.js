@@ -189,8 +189,23 @@ const OUT = flag('--out', null);
  * the whole reason `--baseline` refuses up front is the same one. And it refuses rather than silently
  * flipping the arm: asking by omission is what produced this reading in the first place — the OWED
  * command in docs/_reports/2026-09-03-pinned-rerun-chain.md carried every pin and no `--steering`,
- * was run verbatim, and published a coverage artifact into the gate's slot. */
-if (WRITE && !OUT && !EMPIRICAL) {
+ * was run verbatim, and published a coverage artifact into the gate's slot.
+ *
+ * IT ONLY REFUSES WHEN THIS FILE IS THE ENTRY POINT — 2026-09-04, MEASURE, and this was not a
+ * refinement, it was blocking three of the five pinned regenerations. `argv` here is the WHOLE
+ * process's argv, and thirty-odd callers `require` this module for `ARM_BY_ID`, `CLOSET_SPECIES` and
+ * `buildPair`. So `tests/roster.js --stage items --write` and `engine/all_mechanics_fire.js --kind
+ * all --write` — neither of which touches data/game-differential.json — each died at exit 2 the
+ * instant they reached this require, before playing a single game, with a message about a file they
+ * do not write. MEASURED with a knob-cleared control: `node -e "require('./engine/
+ * game_differential.js')" pad --write` exits 2, and the byte-identical call with `--steering
+ * empirical` appended loads clean. Exit 2 is also the SKIP code these tests use, so under
+ * tests/run-all.js the roster would have read as politely skipped rather than as broken.
+ *
+ * `require.main === module` restores the guard to the question it means to ask — *is the run I am
+ * about to perform going to publish a coverage arm* — and changes nothing for a direct invocation,
+ * which is the only caller that can publish anything here. The refusal is still at second zero. */
+if (require.main === module && WRITE && !OUT && !EMPIRICAL) {
   console.error('REFUSING TO PUBLISH A COVERAGE-ARM RUN INTO data/game-differential.json.');
   console.error('');
   console.error('  That file answers engine/quarantine.js\'s whole-game clause. Under '

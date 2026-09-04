@@ -176,6 +176,56 @@ function resolve(opts) {
   };
 }
 
+/* ---- ONE BLOCK, ON ITS OWN: CAN IT VOUCH FOR ITS OWN POPULATION? — 2026-09-04 ------------------
+ *
+ * `comparable()` below answers a TWO-SIDED question and it was the only reader of these fields, so a
+ * clause asking the ONE-SIDED question — *is this artifact's sample identified at all* — had nothing
+ * to call and rolled its own. `wholeGameClause` rolled `steering.policy` and stopped there: it
+ * refused the wrong DRIVER and waved through the wrong TEAM POOL, using a field this very file
+ * already knew was load-bearing (`team_pool_digest`, whose absence `comparable()` has refused since
+ * WIRE 5 — "the swarm reads the live game store, which OPS appends to").
+ *
+ * So the selector list lives in ONE function and both questions are asked through it. A selector
+ * added here tomorrow is checked by every clause the same day, with no clause edited. That is the
+ * whole point: the alternative is a per-clause list, and a per-clause list is the hand-maintained ban
+ * list of four in a different costume.
+ *
+ * `opts.policy` — the arm the READER is answerable by. A block that declares a different policy is
+ * not a weaker answer; it is an answer about other games (961 games, 17 of which end, is not a claim
+ * about games).
+ *
+ * IT REFUSES ON ABSENCE, NOT ONLY ON MISMATCH. An artifact with no `steering` block is one whose
+ * sample nobody recorded, and silence must never read as agreement. */
+function vouches(s, opts) {
+  const want = opts && opts.policy;
+  const bad = [];
+  if (!s || !s.policy) {
+    bad.push('declares no steering policy at all — it predates engine/steering.js, so nothing '
+      + 'recorded what selected its sample. NOT comparable.');
+    return { ok: false, reasons: bad };
+  }
+  if (want && s.policy !== want) {
+    bad.push('declares `' + s.policy + '` and the reader is answerable by `' + want + '`. Those are '
+      + 'different populations, not a stronger and a weaker one.');
+  }
+  if (s.policy === POLICY_EMPIRICAL) {
+    const d = (s.driver_inputs || []).filter((x) => x && x.file && x.digest);
+    if (!d.length) {
+      bad.push('an `' + POLICY_EMPIRICAL + '` arm records no `driver_inputs`, so the tables that '
+        + 'SELECTED its sample cannot be shown equal. That block is what the census digest is under '
+        + 'the coverage policy.');
+    }
+  } else if (!s.input_digest) {
+    bad.push('records no `input_digest`, so the census bytes that SELECTED its sample are unknown. '
+      + 'A census that gained rows changes WHICH scenarios play.');
+  }
+  if (s.team_pool_digest === undefined) {
+    bad.push('does not record `team_pool_digest`, so the TEAMS it played cannot be identified. The '
+      + 'swarm reads the live game store, which OPS appends to.');
+  }
+  return { ok: !bad.length, reasons: bad };
+}
+
 /* Two artifacts' steering blocks: may their numbers be compared?
  *
  * FAILS CLOSED ON AN ABSENT BLOCK. Every artifact written before this file existed has no `steering`,
@@ -184,9 +234,12 @@ function resolve(opts) {
  * before/after pairs this wire exists to re-examine. */
 function comparable(a, b) {
   const bad = [];
+  /* THE ONE-SIDED QUESTION FIRST, THROUGH THE SHARED DOOR. An arm that cannot identify its own
+   * population cannot be shown equal to anything, and asking that here rather than inline is what
+   * keeps `vouches()` the single list of selectors. */
   for (const [name, s] of [['before', a], ['after', b]]) {
-    if (!s || !s.policy) bad.push(name + ' declares no steering policy at all — it predates '
-      + 'engine/steering.js, so nothing recorded what selected its sample. NOT comparable.');
+    const v = vouches(s);
+    for (const r of v.reasons) bad.push(name + ' ' + r);
   }
   if (bad.length) return { ok: false, reasons: bad };
   if (a.policy !== b.policy) {
@@ -202,11 +255,10 @@ function comparable(a, b) {
   const digestsOf = s => (s.driver_inputs || []).map(x => (x && x.file) + '@' + (x && x.digest)).sort().join(', ');
   if (a.policy === POLICY_EMPIRICAL) {
     const da = digestsOf(a), db = digestsOf(b);
-    if (!da || !db) {
-      bad.push('an `empirical-click/v1` arm records no `driver_inputs`, so the tables that SELECTED '
-        + 'its sample cannot be shown equal. That block is what the census digest is under the '
-        + 'coverage policy.');
-    } else if (da !== db) {
+    /* THE ABSENCE CASE IS REFUSED ONE LEVEL UP, by `vouches()`, and used to be spelled again here.
+     * Two implementations of one refusal disagree eventually and both keep working — the message is
+     * now written once, beside the selector list it belongs to. */
+    if (da !== db) {
       bad.push('the BEHAVIOUR TABLES differ: ' + da + ' vs ' + db + '. Under empirical-click/v1 these '
         + 'select the sample, so the two arms played different games for a reason unrelated to the '
         + 'change under test.');
@@ -224,11 +276,9 @@ function comparable(a, b) {
    * played. OPS appends to that store continuously; it moved twice during this wire's own test runs.
    * WIRE 4 controlled it by asserting size and mtime by hand before, between and after both arms. This
    * is the same assertion made by the instrument, on the thing that actually matters: the digest of the
-   * team KEYS actually picked, per configuration. `undefined` on either side is a REFUSAL, not a pass. */
-  if (a.team_pool_digest === undefined || b.team_pool_digest === undefined) {
-    bad.push('one arm does not record `team_pool_digest`, so the two arms cannot be shown to have '
-      + 'played the same TEAMS. The swarm reads the live game store, which OPS appends to.');
-  } else if (a.team_pool_digest !== b.team_pool_digest) {
+   * team KEYS actually picked, per configuration. `undefined` on either side is a REFUSAL, not a pass
+   * — made by `vouches()` now, one level up, so the same refusal serves the one-sided readers too. */
+  if (a.team_pool_digest !== b.team_pool_digest) {
     bad.push('the TEAM POOL differs: ' + a.team_pool_digest + ' vs ' + b.team_pool_digest + ' ('
       + a.team_pool_teams + ' vs ' + b.team_pool_teams + ' distinct teams in the corpus, '
       + a.team_pool_picked + ' vs ' + b.team_pool_picked + ' picked). The game store moved between the '
@@ -237,5 +287,5 @@ function comparable(a, b) {
   return { ok: !bad.length, reasons: bad };
 }
 
-module.exports = { resolve, comparable, POLICY, POLICY_RULE,
+module.exports = { resolve, comparable, vouches, POLICY, POLICY_RULE,
                    POLICY_EMPIRICAL, POLICY_EMPIRICAL_RULE, LIVE_CENSUS };

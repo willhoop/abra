@@ -23,6 +23,32 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## AN OUTSIDE USAGE TABLE IS ARCHIVED AS A COMPARISON SET THAT FEEDS NOTHING, AND THE STORE'S CONTAMINATION IS RE-MEASURED RATHER THAN RE-DISCOVERED — 2026-09-04, CHANGELOG 5.245.0
+
+**THE INGEST ALREADY EXISTED AND ITS CRON WAS DUE TO FIRE TODAY, SO IT WAS RUN RATHER THAN DUPLICATED.**
+`engine/fetch_smogon_stats.js` pulled Smogon's August 2026 statistics: **310 species, 1,269,250 bo1
+battles, zero illegal entries.** The Champions SP fingerprint was checked rather than assumed —
+**66/32, zero violations** — because the header carries no format name and a filename proves nothing.
+
+**IT IS A COMPARISON SET. IT FEEDS NOTHING.** No model, no prior, no filter and no view reads it. It
+exists to be diffed against our own store, which is the only thing an outside table is safe for here:
+it is a different population collected under different rules, and the moment it feeds a decision it
+becomes an unstamped input to everything downstream.
+
+**OUR STORE HOLDS 85 SPECIES THAT ARE `isNonstandard: 'Past'`** — the known contamination, measured
+again rather than recalled. **Species Smogon has seen that we never have: 0.**
+
+**AND THE FIRST JOIN WAS WRONG IN A WAY THAT LOOKED LIKE A FINDING.** A naive join said 71, including
+Charizard-Mega-Y at rank 6 with **26.52%** usage — a species we obviously do see. `durable-ingest.js`
+collapses megas to their base forme in `six`, so the seen-set has to be `six ∪ sets`; that was
+control-tested both ways before the corrected number was written down. **bo1 and bo3 are different
+metagames and the same species proves it: 26.52% in one, 50.46% in the other.** Nothing that pools
+the two stores is measuring one population.
+
+**WHAT THIS DIVISION DID NOT DO.** No store was rewritten, no re-parse was run, no live game was
+played, and `data/meta-usage.json` was not regenerated. The store figures in the `<!-- GENERATED -->`
+block above are from the last `status.js --write` and are one pass behind; that run is OWED.
+
 ## THE RAW LOG IS THE SOURCE OF TRUTH AND THE STORE IS A DERIVED VIEW — 2026-09-04, CHANGELOG 5.244.0
 
 **THE INVERSION BEHIND A DOZEN STORE REWORKS.** The REGENERABLE artifact was durable and the

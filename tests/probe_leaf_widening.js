@@ -11,6 +11,9 @@
  *   volatile:throatchop     move:throatchop           5,577 uses
  *   volatile:unburden       ability:unburden          5,036 uses
  *   volatile:mustrecharge   6 moves, hyperbeam 4,576  4,701 uses
+ *   volatile:flashfire      ability:flashfire         1,416 uses   (added 2026-09-04)
+ *
+ * Every one of those counts is read out of `data/tags.json` at the entity's own row, never typed.
  *
  * TWO ARMS PER LEAF, AND NEITHER IS EVIDENCE WITHOUT THE OTHER.
  *
@@ -111,6 +114,23 @@ function anyAttack(sp) {
   return null;
 }
 
+/* A SINGLE-TARGET FIRE ATTACK AND A LEGAL BODY THAT LEARNS IT, DERIVED — nothing here is typed. The
+ * move is the first legal Fire attack in the dex's own order that resolves inside one turn, hits one
+ * slot and cannot miss; the carrier is the first legal species whose learnset holds it. Flash Fire
+ * bodies are excluded because the authority's `onTryHit` only absorbs when `target !== source`, and
+ * the bench fillers are excluded because Species Clause forbids the same body twice on one team. */
+function fireAttackAndCarrier(exclude) {
+  for (const mv of dex.moves.all().filter(m => m.exists && !m.isNonstandard)) {
+    if (mv.type !== 'Fire' || mv.category === 'Status' || !(mv.basePower > 0)) continue;
+    if (mv.flags && (mv.flags.charge || mv.flags.recharge)) continue;
+    if (mv.target !== 'normal') continue;
+    if (mv.accuracy !== true && mv.accuracy < 100) continue;
+    const sp = carrierOf(mv.id, s => !hasAbility('flashfire')(s) && !exclude.has(s.id));
+    if (sp) return { mv, sp };
+  }
+  return null;
+}
+
 const FILLER = ['clefable', 'milotic', 'corviknight'];
 const bench = (...n) => n.map(x => ({ species: x, item: '', ability: '', moves: ['Protect'] }));
 
@@ -191,6 +211,37 @@ const CASES = [];
     plant: (S) => { const t = (S.actA || [])[0]; if (t) t._recharge = false; },
     held: (S, battle) => ({ medi: ((S.actA || [])[0] || {})._recharge ? 1 : 0,
                             sd: (((battle.sides[0].active[0] || {}).volatiles || {}).mustrecharge || {}).duration }) });
+}
+
+{ /* FLASH FIRE — pokemon-showdown/data/abilities.ts:1331-1368, read whole. The ability's `onTryHit`
+   * refuses a Fire move and calls `addVolatile('flashfire')`; the CONDITION declares no duration at
+   * all (`noCopy: true`, `onStart`, two `onModify` hooks and an `onEnd`), so presence is the whole of
+   * the leaf on the authority's side and comparing it as presence collapses nothing. Champions
+   * overrides no `flashfire` key in any of the eight files under data/mods/champions/, so mainline is
+   * what this format runs. medicham2 keys it in `_vol.flashfire` — the one table it spells the
+   * authority's way — written by `absorbGift` (medicham2-browser.js:16158) off the tag's own
+   * `typeImmunity.gain.volatile`, and removed with the ability at :19465.
+   *
+   * THE CARRIER MAY NOT CLICK PROTECT: a shield refuses the Fire move and there is then nothing to
+   * absorb, which is the same trap the Unburden fixture fell into on its first version. It clicks a
+   * derived single-target attack at the FOE'S PARTNER, which IS shielding — so the fixture cannot end
+   * early on a knockout and the Fire move's user is still standing to throw it. */
+  const ff = SPECIES.find(s => hasAbility('flashfire')(s) && !FILLER.includes(s.id) && anyAttack(s));
+  const fire = ff && fireAttackAndCarrier(new Set([ff.id, ...FILLER]));
+  const atk = ff && anyAttack(ff);
+  const ok = !!(ff && fire && atk);
+  const atkId = atk ? N.id(atk.id) : '', fireId = fire ? N.id(fire.mv.id) : '';
+  CASES.push({ leaf: 'flashfire', carrier: ok ? ff : null, boundary: 1,
+    authority: 'pokemon-showdown/data/abilities.ts:1331-1368 (condition, NO duration)',
+    ours: 'engine/medicham2-browser.js:16158 `_vol.flashfire`',
+    p1: ok && [{ species: N.id(ff.id), item: '', ability: 'Flash Fire', moves: [atk.name, 'Protect'] }].concat(bench(...FILLER)),
+    p2: ok && [{ species: N.id(fire.sp.id), item: '', ability: '', moves: [fire.mv.name, 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: atkId, t: 1 }, { m: 'protect' }], p2: [{ m: fireId, t: 0 }, { m: 'protect' }] },
+             { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] }],
+    /* THE PLANT CLEARS THE ABSORBED GIFT ON THE CARRIER — p1 slot 0, the body that ate the Fire move. */
+    plant: (S) => { const t = (S.actA || [])[0]; if (t && t._vol) delete t._vol.flashfire; },
+    held: (S, battle) => ({ medi: (((S.actA || [])[0] || {})._vol || {}).flashfire ? 1 : 0,
+                            sd: ((((battle.sides[0].active[0] || {}).volatiles) || {}).flashfire ? 1 : 0) }) });
 }
 
 { /* UNBURDEN — OBSERVE ONLY, AND THE FIXTURE IS BUILT TO SHOW THE OVER-MATCH RATHER THAN TO ARGUE IT.
@@ -291,7 +342,12 @@ for (const c of CASES) {
   if (rd.err) { console.log('       RED THREW: ' + rd.err); fail++; continue; }
   const caught = (rd.boards[c.boundary] || { onLeaf: [] }).onLeaf;
   console.log('       RED      ' + (caught.length
-    ? 'PASS — caught ' + caught.map(d => d.path + ' ' + JSON.stringify(d.a) + '<>' + JSON.stringify(d.b)).join(', ')
+    /* THE FIELD NAMES ARE `medicham` / `showdown`, NOT `a` / `b` — `board_state.js`'s `walk` pushes
+     * `{ path, medicham, showdown }`. This line read `d.a` / `d.b` and printed `undefined<>undefined`
+     * on every catch, so the arm said PASS and showed NOTHING, which is a receipt that proves nothing
+     * (CLAUDE.md: a capability that cannot prove it ran is assumed broken). Corrected 2026-09-04. */
+    ? 'PASS — caught ' + caught.map(d => d.path + ' medi=' + JSON.stringify(d.medicham)
+        + ' sd=' + JSON.stringify(d.showdown)).join(', ')
     : 'RED — the plant was INVISIBLE to the comparator (' + (rd.boards[c.boundary] || {}).nDiffs + ' diffs, none on this leaf)'));
   if (!caught.length) { red++; fail++; }
 }

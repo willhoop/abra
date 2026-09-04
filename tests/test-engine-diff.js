@@ -1221,8 +1221,30 @@ const OUT_FLAG = (() => {
   }
   return abs;
 })();
+/* ---- WHICH BYTES WAS THIS MEASURED AGAINST — 2026-09-04 ---------------------------------------
+ *
+ * THIS ARTIFACT CARRIED NO RELEASE PIN AT ALL, and it is the one behind the gate clause reading
+ * "clean at BOTH corners of the damage roll: midpoint 0 of 6000". MEASURED: between the previous
+ * artifact's stamp (2026-08-29T06:49Z) and 2026-09-04, FOUR of `engine_release.js`'s twenty-six
+ * frozen sources moved underneath it — `engine/medicham2-browser.js` (six commits),
+ * `data/engine-data.js`, `data/tags.json`, `data/abra-tags.js`. Every other clause in
+ * `engine/quarantine.js` refuses a release mismatch; that one could not, because there was no field
+ * to read.
+ *
+ * IT STILL READS THE LIVE TREE, ON PURPOSE. An INSTRUMENT is not frozen — only the engine is, and
+ * this file IS the instrument that says whether the engine is right. What was missing was a way to
+ * name the live bytes without cutting a release this run had not read from, which is what
+ * `engine_release.liveStamp()` is: the same five fields `open().stamp()` writes, computed off the
+ * tree, writing nothing. `engine_release_cut` comes back null when these exact bytes were never
+ * frozen, and that is a fact about the tree rather than a hole — `source_digests` is complete either
+ * way, so provenance.js can verify this run BY CONTENT, which is the only verification worth having.
+ *
+ * IT IS TAKEN AT THE END, AFTER THE COMPARISONS. Reading it at module load would name the bytes the
+ * run INTENDED to read; taken here it names what was on disk across the run, and a source that moved
+ * mid-run shows up as an id that matches nothing rather than as a clean-looking pin. */
 const ARTIFACT = {
   generated: new Date().toISOString(), by: 'tests/test-engine-diff.js',
+  ...require(D('engine', 'engine_release.js')).liveStamp(),
   design: 'Showdown is the authority. Same attacker, move and defender through both engines; a '
         + 'disagreement is a MEDICHAM bug, including one nobody thought to look for.',
   scope: 'damage only, no items or abilities. Turn order, status duration and switching need a '

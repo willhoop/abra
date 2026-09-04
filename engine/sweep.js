@@ -194,7 +194,24 @@ const POP_RX = /^(pool|team_pool|team_store|teamstore|population|corpus|store|sa
 const POL_RX = /^(steering|policy|driver|chooser|baseline_mode|run_mode|arm|mode)$|_(policy|driver)$/i;
 const SAMPLE_RX = /^(games|games_played|compared|requested|rows|n|sample_size|played)$/i;
 
+/* IT IMPORTS FIRST AND PARSES SECOND — 2026-09-04.
+ *
+ * This parsed `stamp()`'s source because reading the key names off a real stamp needs an OPEN
+ * release, which a sweep of a tree with no pointer does not have. `engine_release.js` now declares
+ * the names in a plain `STAMP_SHAPE` object that needs no release at all, so the import is available
+ * and the parser is the fallback rather than the method.
+ *
+ * THE PARSER WENT BLIND THE MOMENT THE PRODUCER IMPROVED, WHICH IS THE ARGUMENT FOR IMPORTING. When
+ * `stamp()` was rewritten to build from `STAMP_SHAPE` — `[STAMP_SHAPE.id]: id` — the `^\s*name:`
+ * regex matched nothing and this whole section reported CANNOT DERIVE. Loud, and correct, and
+ * entirely avoidable: a reader that parses its producer's prose is one refactor from silence. */
 function stampKeys() {
+  try {
+    const shape = require('./engine_release.js').STAMP_SHAPE;
+    const keys = shape && Object.values(shape).filter(v => typeof v === 'string');
+    if (keys && keys.length) return keys;
+  } catch (e) { SWFAILS.read++; if (!SWFAILS.first) SWFAILS.first = 'STAMP_SHAPE: ' + e.message; }
+  /* the fallback, kept as a second opinion for a tree whose engine_release.js will not load */
   const src = readFile(D('engine', 'engine_release.js'));
   if (!src) return null;
   const m = src.match(/stamp\(\)\s*\{\s*return\s*\{([\s\S]*?)\};/);
@@ -298,11 +315,34 @@ function section2() {
     if (!prod) unattributed++;
     const reads = key => prod ? new RegExp('\\b' + key + '\\b').test(prod.src) : null;
 
+    /* ---- IS THE PIN READ? ASK THE CLAUSE, NOT ITS SOURCE — 2026-09-04 ------------------------
+     *
+     * The grep below (`reads()`) asks whether the producing FUNCTION'S TEXT mentions the field, and
+     * it was the only available answer while every clause checked its pin inline. It stops being an
+     * answer the moment a clause DELEGATES: `wholeGameClause` now asks `steering.vouches()` for the
+     * selector list and `pin_guard.guard()` for the release, both across a module boundary, and this
+     * section went on reporting *"population pin RECORDED BUT NOT READ"* about a clause that reads it
+     * through two hops. A grep that cannot follow a refactor accuses the fix.
+     *
+     * So the clause's own RECEIPT decides when there is one — `pins.checked`, written at the point
+     * the artifact is read. That is derived from the run rather than from the prose around it, which
+     * is the same reason `status.js` shells out to `provenance.js` instead of restating its rules.
+     * A clause with NO receipt is the loudest row here, because it is the shape a fourth unpinned
+     * clause arrives in. */
+    const rcpt = (c.pins && Array.isArray(c.pins.checked)) ? c.pins.checked : null;
+    const declares = k => rcpt ? rcpt.indexOf(k) >= 0 : null;
+
     const gaps = [];
+    if (!rcpt) gaps.push('THIS CLAUSE DECLARES NOTHING — no `pins` receipt, so what it checked is '
+      + 'guessed from its source text and not read from the run');
     if (!hasRel.length) gaps.push('NO RELEASE PIN — cannot notice the bytes moved');
-    else if (prod && !hasRel.some(k => reads(k.key))) gaps.push('release pin RECORDED BUT NOT READ by ' + prod.fn + '()');
+    else if (declares('release') === false
+             || (declares('release') === null && prod && !hasRel.some(k => reads(k.key))))
+      gaps.push('release pin RECORDED BUT NOT READ' + (prod ? ' by ' + prod.fn + '()' : ''));
     if (isSample && !hasPop.length) gaps.push('NO POPULATION PIN on a run that measured a sample');
-    else if (isSample && prod && !hasPop.some(k => reads(k.key))) gaps.push('population pin RECORDED BUT NOT READ by ' + prod.fn + '()');
+    else if (isSample && (declares('population') === false
+             || (declares('population') === null && prod && !hasPop.some(k => reads(k.key)))))
+      gaps.push('population pin RECORDED BUT NOT READ' + (prod ? ' by ' + prod.fn + '()' : ''));
     if (isSample && !hasPol.length) gaps.push('NO POLICY PIN on a run that measured a sample');
 
     const block = gaps.length ? rows : detail;

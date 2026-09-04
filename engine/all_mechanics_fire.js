@@ -3676,7 +3676,19 @@ function applyCloset(kind, rows) {
   return { diverging: hit.length, total: (rows || []).filter(r => r.deferred).length };
 }
 
-const report = { generated: new Date().toISOString(), release: GD.REL.id || null, arm: ARM.id,
+/* THE WHOLE STAMP, NOT A HAND-ROLLED `release` — 2026-09-04.
+ *
+ * `release: GD.REL.id` spelled the pin itself instead of asking the module that owns it, and it cost
+ * two fields that decide what this artifact measured. `showdown_commit`: the population of this run
+ * is `dex.moves.all()` / `.abilities.all()` / `.items.all()` filtered to the format, so the Showdown
+ * checkout IS the denominator — 500 moves is a fact about a commit. `source_digests`: the only thing
+ * provenance.js can verify by CONTENT, an id being a claim rather than a receipt.
+ *
+ * `release` is kept beside the stamp because readers cite it by that name; `stamp()` writes
+ * `engine_release`, which is the spelling every other artifact in this repository uses and the one
+ * `engine/pin_guard.js` reads. */
+const report = { generated: new Date().toISOString(),
+                 ...GD.REL.stamp(), release: GD.REL.id || null, arm: ARM.id,
                  format: CS.FORMAT, red: REDS, red_ok: RED_OK, trailing_turns_forced: TRAILING,
                  closet: { source: 'tests/roster.js DEFERRED', ids: Object.keys(CLOSET) },
                  rows: {}, summary: {} };

@@ -39,8 +39,23 @@ let Q;
 try { Q = require(D('engine', 'quarantine.js')); }
 catch (e) { console.log('  FAIL  cannot load engine/quarantine.js: ' + e.message); process.exit(1); }
 
-if (typeof Q.wholeGameClause !== 'function') {
-  console.log('  FAIL  engine/quarantine.js does not export wholeGameClause');
+/* ---- WHICH CLAUSE THIS FILE IS ABOUT, AND WHY IT MOVED ON 2026-09-04 ----------------------------
+ * The whole-game clause was SPLIT on Will's 2026-08-22 ruling (*"board-material now, narration as its
+ * own separate gate afterwards"*): `wholeGameClause` now counts BOARD-MATERIAL games —
+ * `state.games` less `state.games_board_never_diverged` — and `narrationClause` counts PROTOCOL FIRST
+ * DIVERGENCE and reports without gating.
+ *
+ * EVERY ASSERTION BELOW IS ABOUT `classes[].causes[]`, WHICH ARE PROTOCOL CAUSES. A board divergence
+ * is a leaf PATH and carries no cause, so there is nothing here the board clause could compose. The
+ * quantity this file guards went with narration, so this file follows it. ROADMAP #292 is a protocol
+ * question and always was.
+ *
+ * THE TWO CLAUSES SHARE ONE DOOR (`wholeGameDoor`), so the refusal arms further down assert the same
+ * behaviour through either caller — measured, not assumed: with the same fixtures both clauses return
+ * `withheld: true` with an identical `pins.checked` list. That is why the repoint could not quietly
+ * turn a refusal arm green, and it is asserted below rather than left as a claim in a comment. */
+if (typeof Q.narrationClause !== 'function') {
+  console.log('  FAIL  engine/quarantine.js does not export narrationClause');
   process.exit(1);
 }
 
@@ -54,13 +69,39 @@ console.log('\n  THE WHOLE-GAME COMPOSITION — same run as the headline, or a d
  * ARM_NO_STEERING below keeps that refusal branch covered. */
 const STEERING = require(D('engine', 'steering.js'));
 
+/* ---- AND THE SAME THING HAPPENED AGAIN ONE DAY LATER, WHICH IS WHY THE PIN IS IMPORTED TOO -------
+ *
+ * 2026-09-04. `engine/pin_guard.js` extended the refusal from the steering POLICY to the whole
+ * declaration — the release stamp, its `source_digests`, and every SELECTOR `steering.vouches()`
+ * names (the behaviour tables under the empirical policy, and `team_pool_digest`, which
+ * `wholeGameClause` recorded and never read). These arms carried the policy and nothing else, so all
+ * eleven of them turned into refusals and this file went red for the second time in two days for the
+ * same reason: a fixture that declares less than a real artifact does.
+ *
+ * NOTHING HERE IS TYPED. The pin key names come from `engine_release.STAMP_SHAPE` and the selector
+ * shape from `steering.js`, so a rename breaks this file loudly instead of quietly turning its arms
+ * into refusals — which is the failure mode this comment block already existed to record. */
+const ER = require(D('engine', 'engine_release.js'));
+const RELPIN = (() => {
+  const ptr = JSON.parse(require('fs').readFileSync(D('data', 'engine-release.json'), 'utf8'));
+  const id = ptr.id || ptr.release || ptr.current;
+  return { [ER.STAMP_SHAPE.id]: id,
+           /* a synthetic digest map: the guard asks whether the artifact CAN be verified by content,
+            * and verifying it is provenance.js's job over real files, never this fixture's */
+           [ER.STAMP_SHAPE.digests]: { 'engine/medicham2-browser.js': 'fixture0000f' } };
+})();
+const STEER_FULL = () => ({ policy: STEERING.POLICY_EMPIRICAL,
+  driver_inputs: [{ file: 'data/move-priors.json', digest: 'fixtureprior' }],
+  team_pool_digest: 'fixturepool0' });
+
 /* Two artifacts with deliberately DIFFERENT shape mixes. The causes are real protocol shapes so the
  * shape module classifies them the way it classifies a live run's. */
 const art = (games, causes) => ({
+  ...RELPIN,
   games, diverged: causes.reduce((n, c) => n + c.n, 0), threw: 0,
   planted_divergence_proof_ok: true,
   generated: new Date().toISOString(),
-  steering: { policy: STEERING.POLICY_EMPIRICAL },
+  steering: STEER_FULL(),
   classes: [{ cls: 'synthetic', games: causes.reduce((n, c) => n + c.n, 0), causes }],
 });
 
@@ -98,7 +139,7 @@ const readBack = (why) => {
 /* key ORDER is a presentation choice (the clause sorts by size); the MAP is the claim */
 const canon = (o) => JSON.stringify(Object.fromEntries(Object.entries(o || {}).sort()));
 
-const a = Q.wholeGameClause(ARM_A), b = Q.wholeGameClause(ARM_B);
+const a = Q.narrationClause(ARM_A), b = Q.narrationClause(ARM_B);
 const ga = readBack(a.why), gb = readBack(b.why);
 
 ok(ga && Object.keys(ga).length, 'the clause prints a composition at all', JSON.stringify(ga));
@@ -140,7 +181,7 @@ for (const [nm, r, A] of [['A', a, ARM_A], ['B', b, ARM_B]]) {
 {
   const ARM_NO_STEERING = Object.assign({}, ARM_A);
   delete ARM_NO_STEERING.steering;
-  const r = Q.wholeGameClause(ARM_NO_STEERING);
+  const r = Q.narrationClause(ARM_NO_STEERING);
 
   ok(r.ok === false && r.cannot_answer === true && r.withheld === true,
      'CONTROL — an artifact with NO steering block is REFUSED, not answered',
@@ -156,6 +197,47 @@ for (const [nm, r, A] of [['A', a, ARM_A], ['B', b, ARM_B]]) {
      'CONTROL — the SAME artifact with the steering block composes, so the guard is the difference',
      'with steering ' + JSON.stringify(readBack(a.why))
        + ', without ' + JSON.stringify(readBack(r.why)));
+
+  /* ---- THE TWO REFUSALS ADDED 2026-09-04, EACH WITH ITS OWN ARM FOR THE SAME REASON AS ABOVE ----
+   * Repairing `art()` above without these would delete the coverage of what just broke it. Both are
+   * byte-identical to ARM_A but for the one field, and ARM_A is asserted to compose, so the knob is
+   * varied and the two outcomes differ. */
+  const ARM_NO_PIN = Object.assign({}, ARM_A);
+  delete ARM_NO_PIN[ER.STAMP_SHAPE.id]; delete ARM_NO_PIN[ER.STAMP_SHAPE.digests];
+  const rp = Q.narrationClause(ARM_NO_PIN);
+  /* `withheld === true` ALONE CANNOT TELL WHICH DOOR REFUSED, and this file holds four fixtures that
+   * are each refused for a DIFFERENT reason. A clause that refused everything — or that refused this
+   * one on steering — would satisfy a bare `withheld` check and be read as coverage of the pin.
+   * 2026-09-04: this arm was the weakest of the three and it is the one a repoint could have carried
+   * green. So it also asserts the refusal NAMES the field the fixture deleted. The name is IMPORTED
+   * from `engine_release.STAMP_SHAPE`, never typed, so a rename there fails here loudly. */
+  ok(rp.ok === false && rp.withheld === true
+     && new RegExp(ER.STAMP_SHAPE.id).test(String(rp.why || ''))
+     && String(rp.pins && rp.pins.checked) !== String(r.pins && r.pins.checked),
+     'CONTROL — an artifact with NO release stamp is REFUSED: it cannot say which engine produced '
+     + 'the games it is composing, and the refusal NAMES the pin rather than some other door',
+     'ok=' + rp.ok + ' withheld=' + rp.withheld
+       + ' checked=' + JSON.stringify(rp.pins && rp.pins.checked)
+       + ' (the steering refusal checked ' + JSON.stringify(r.pins && r.pins.checked) + ')');
+  /* ONE DOOR, TWO CALLERS — the property that made the 2026-09-04 repoint safe, asserted rather than
+   * assumed. If the pin refusal ever sits on only one of the two clauses, this file is testing a
+   * caller that still looks while the other has stopped, which is the shape of a green-by-not-looking
+   * regression. It asserts the OUTCOME, not the receipt, so a cosmetic change to either is free. */
+  ok(Q.wholeGameClause(ARM_NO_PIN).withheld === true && rp.withheld === true,
+     'CONTROL — BOTH whole-game clauses refuse the unpinned artifact, so the door is shared and this '
+     + 'file is not the only caller that still looks',
+     'board withheld=' + Q.wholeGameClause(ARM_NO_PIN).withheld + ' narration withheld=' + rp.withheld);
+  ok(readBack(rp.why) === null && headline(rp) === null,
+     'and no composition and no headline are printed beside THAT refusal either',
+     'composition ' + JSON.stringify(readBack(rp.why)) + ', headline ' + JSON.stringify(headline(rp)));
+
+  const ARM_NO_POOL = Object.assign({}, ARM_A, { steering: STEER_FULL() });
+  delete ARM_NO_POOL.steering.team_pool_digest;
+  const rt = Q.narrationClause(ARM_NO_POOL);
+  ok(rt.ok === false && rt.withheld === true && /team_pool_digest/.test(rt.why || ''),
+     'CONTROL — the right POLICY with no `team_pool_digest` is REFUSED. That field was already in '
+     + 'the artifact and the clause read only `policy`, so a run against the wrong team pool passed',
+     'ok=' + rt.ok + ' withheld=' + rt.withheld + ' why=' + String(rt.why || '').slice(0, 120));
 }
 
 /* ---- THE SAME FAILURE, ONE FIELD OVER: A RATE COMPARED WITH A RATE UNDER A DIFFERENT PIN --------
@@ -177,7 +259,7 @@ for (const [nm, r, A] of [['A', a, ARM_A], ['B', b, ARM_B]]) {
   } else {
     const same = Object.assign({}, ARM_A, { mode: base.mode });
     const diff = Object.assign({}, ARM_A, { mode: base.mode + '/DIFFERENT-PIN' });
-    const rs = Q.wholeGameClause(same), rd = Q.wholeGameClause(diff);
+    const rs = Q.narrationClause(same), rd = Q.narrationClause(diff);
     ok(rs.baseline_comparable === true && rs.progress !== null,
        'a run under the BASELINE OWN mode still reports a direction of travel',
        'mode ' + base.mode + ' -> progress ' + JSON.stringify(rs.progress));

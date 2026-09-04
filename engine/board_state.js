@@ -1021,6 +1021,54 @@ function mediBody(m, id, ctx) {
        * those two moments straddle a turn boundary, a Knocked-Off Scarf leaves a lock standing on one
        * side and not the other. That is an engine finding to FILE, not a reason to narrow the leaf. */
       choicelock: (m._lockT === Infinity && m._lock) ? id(m._lock) : '',
+      /* ---- 2026-09-04 — THREE LEAVES THIS COMPARATOR HAD NO EYES ON, EACH SHOWN RED FIRST.
+       * `tests/probe_uncompared_leaves.js` derives that 34 of the 80 leaves a legal mechanic in this
+       * format can write are read here, and that 22 of the omissions CAN BE STANDING when the board is
+       * sampled. These are the three largest of those 22 by their writers' corpus uses, and every
+       * count below is read off that entity's own row in `data/tags.json` rather than typed.
+       *
+       * RED BEFORE GREEN, AND WITH A CONTROL. `tests/probe_leaf_widening.js` stages a real game per
+       * leaf, plants a difference on medicham2's LIVE state at the boundary through the driver's own
+       * `statePlant` hook, and asserts the comparison reports it. Before this block all three plants
+       * were INVISIBLE — `0 diffs, none on this leaf` — on a board that already compares 34 leaves.
+       * The CONTROL arm is the identical game with no plant and must stay silent, because a widened
+       * comparator that has only ever been shown firing has been made noisy rather than correct.
+       *
+       *   throatchop     move:throatchop, 5,577 uses. A CLOCK ON BOTH SIDES, compared as one.
+       *                  data/moves.ts:19391-19420 declares `duration: 2` on the condition; medicham2
+       *                  writes `_noSound = +blocksSoundMoves.turns` at :33473 — 2, DERIVED into
+       *                  data/tags.json from `dex.conditions.get(throatchop)` — and ticks it once per
+       *                  turn (:7822 in the residual walk, :36936 at the foot of the turn). Measured
+       *                  at the boundary that closes the applying turn: `_noSound = 1` against
+       *                  `throatchop(d1)`, and 0 against absent one boundary later. What this leaf
+       *                  still cannot see is the ORDER — `residualExpiryDeferred()` already names
+       *                  `throatchop@22` — and it does not claim to.
+       *   mustrecharge   6 moves, 4,701 uses (hyperbeam alone 4,576). PRESENCE, and the narrowing
+       *                  costs nothing AT THIS SAMPLING POINT: data/conditions.ts:364-378 declares
+       *                  `duration: 2`, the residual of the applying turn takes it to 1, and
+       *                  `onBeforeMove` removes it on the next turn before any further boundary — so
+       *                  the authority's clock can only ever read 1 when this comparator looks.
+       *                  medicham2 holds the bare boolean `_recharge` (:34724) and CANNOT express a
+       *                  clock, so comparing one would be this file's representation rather than a
+       *                  rule disagreement.
+       *   flashfire      ability:flashfire, 1,416 uses. PRESENCE ON BOTH SIDES AND NOTHING COLLAPSED:
+       *                  data/abilities.ts:1331-1368's condition declares no duration whatever
+       *                  (`noCopy`, an `onStart`, two `onModify` hooks and an `onEnd`). medicham2 keys
+       *                  the absorbed gift in `_vol.flashfire` (:16158, `absorbGift`) off the tag's own
+       *                  `typeImmunity.gain.volatile`, and ends it with the ability at :19465. Both
+       *                  engines held it at TWO consecutive boundaries in the control arm.
+       *
+       * CHAMPIONS OVERRIDES NONE OF THE THREE, checked rather than assumed: no `throatchop`,
+       * `mustrecharge` or `flashfire` key appears in `data/mods/champions/{moves,conditions,abilities,
+       * items,scripts,formats-data,rulesets}.ts` — only in `learnsets.ts` — so mainline is the
+       * authority for all three and the line numbers above are mainline's.
+       *
+       * EXPECT THIS TO PART BOARDS THAT USED TO AGREE. That is the point: a game whose only
+       * disagreement lived on one of these was scored as AGREEING because nothing looked, so
+       * `board-material` was a floor. A rise here is a measurement gaining eyes, not a regression. */
+      throatchop: num(m._noSound),
+      mustrecharge: m._recharge ? 1 : 0,
+      flashfire: vol.flashfire ? 1 : 0,
     },
     /* ---- THE STALL COUNTER BEHIND CONSECUTIVE PROTECT. 2026-08-25. -------------------------------
      *
@@ -1105,6 +1153,15 @@ function sdBody(p, id, ctx) {
        * not. Encore is a separate volatile here and is compared on its own leaf, which is why no
        * discriminator is needed on this side and one is needed on medicham2's. */
       choicelock: v.choicelock ? id((v.choicelock.move) || '') : '',
+      /* THE AUTHORITY'S SIDE OF THE 2026-09-04 WIDENING — the reasons are on the medicham side, beside
+       * the field each of these is compared against. `v.throatchop` is read as the CLOCK it declares,
+       * because both engines hold one and they agreed exactly at every staged boundary.
+       * `v.mustrecharge` and `v.flashfire` are read as PRESENCE: the first because medicham2 holds a
+       * boolean and this side's duration is only ever 1 when a turn boundary is sampled, the second
+       * because the condition carries no duration on either side and there is nothing to collapse. */
+      throatchop: dur(v.throatchop),
+      mustrecharge: v.mustrecharge ? 1 : 0,
+      flashfire: v.flashfire ? 1 : 0,
     },
     /* THE AUTHORITY'S SIDE OF THE STALL COUNTER: the raw denominator off its own volatile, with NO
      * volatile reading 0. Gated on the same capability as medicham2's so both sides are `null`

@@ -293,6 +293,30 @@ function sha12OrNull(abs) {
   catch (e) { console.error('  (cannot digest ' + abs + ': ' + e.message + ' — scored as a mismatch)'); return null; }
 }
 
+/* ---- THE NAMES OF THE STAMP'S FIELDS, DECLARED ONCE — 2026-09-04 -------------------------------
+ *
+ * `stamp()` used to spell its five keys inline, so every CONSUMER of a stamp had to spell them again
+ * from memory. That is the FACTS ARE GLOBAL rule in CLAUDE.md broken across a file boundary: two
+ * places deciding what "the release pin is called" will disagree eventually, and the disagreement is
+ * invisible because both keep working — `data/all-mechanics-fire.json` writes `release`,
+ * `data/roster.*.json` write `engine_release`, and every reader carries a `j.engine_release ||
+ * j.release || null` chain that reads an artifact declaring NEITHER as "fine".
+ *
+ * So the field names live here, `stamp()` and `liveStamp()` BUILD from them, and `pin_guard.js` READS
+ * from them. Rename one and the producer and the guard move together; there is no version where a
+ * consumer's typed spelling can drift away from the producer's.
+ *
+ * WHY `sweep.js` PARSES THIS FUNCTION'S SOURCE INSTEAD. It could not import: reading the key names
+ * out of `stamp()` requires an OPEN release, which a sweep of a tree with no pointer does not have.
+ * `STAMP_SHAPE` is a plain object and removes that excuse; the parser stays as a second opinion. */
+const STAMP_SHAPE = {
+  id: 'engine_release',
+  cut: 'engine_release_cut',
+  cuts: 'engine_release_cuts',
+  showdown: 'showdown_commit',
+  digests: 'source_digests',
+};
+
 /* The pinned Showdown commit belongs in the release too. A measurement scored against a different
  * reference engine is a different measurement, and `champions_sim.js` already reads the real commit
  * from git rather than trusting its own constant. */
@@ -388,8 +412,17 @@ function seedEventsFromRecord(dir, prev) {
  * printed by the CLI. */
 const CUT_COUNTERS = { closure_scans: 0, closure_refusals: 0, closure_unresolved: 0 };
 
-function cut(why, opts) {
-  const S = store(opts);
+/* ---- THE DIGEST OF THE LIVE TREE, WITHOUT WRITING ANYTHING — 2026-09-04 ------------------------
+ *
+ * `cut()` computed this inline and was the only way to get it, so a producer that reads the LIVE tree
+ * (`tests/test-engine-diff.js` requires `engine/medicham2-browser.js` directly, by design: an
+ * INSTRUMENT is not frozen, only the engine is) had exactly two options — cut a release it did not
+ * read from, or stamp nothing. It stamped nothing, for eleven months, and `data/engine-diff.json`
+ * therefore cannot notice that four of its twenty-six frozen sources moved underneath it.
+ *
+ * The id is a pure function of the digests, so the live tree HAS a release id whether or not anybody
+ * ever froze those bytes. Computing it costs twenty-six file hashes and writes nothing. */
+function treeDigest() {
   const files = {};
   const missing = [];
   for (const rel of SOURCES) {
@@ -397,6 +430,53 @@ function cut(why, opts) {
     if (!fs.existsSync(abs)) { missing.push(rel); continue; }
     files[rel] = sha12(abs);
   }
+  const id = missing.length ? null : crypto.createHash('sha256')
+    .update(SOURCES.map(r => r + ':' + files[r]).join('\n')).digest('hex').slice(0, 12);
+  return { id, files, missing };
+}
+
+/* THE SAME FIELDS `open().stamp()` WRITES, FOR A RUN THAT READ THE LIVE TREE.
+ *
+ * `engine_release_cut` is null when these exact bytes have never been frozen, and that is a fact
+ * about the tree rather than a hole in the stamp: `source_digests` is complete either way, so
+ * `provenance.js` can still verify the run BY CONTENT, which is the only verification that was ever
+ * worth anything here. A reader who wants the snapshot as well can cut it — the id is already known.
+ *
+ * IT REFUSES WHEN A SOURCE IS MISSING, exactly as `cut()` does. A stamp over twenty-five of
+ * twenty-six files names a tree that does not exist. */
+function liveStamp() {
+  const t = treeDigest();
+  if (t.missing.length) {
+    throw new Error('cannot stamp the live tree — these sources do not exist: ' + t.missing.join(', ')
+      + '\n  A stamp over a partial source set names a tree nobody can reconstruct.');
+  }
+  /* NOT SILENT. "this tree was never frozen" and "its manifest is on disk and unreadable" are two
+   * different facts, and the first version of this collapsed them: a CORRUPT release.json read as
+   * NEVER CUT, which is the reassuring direction and therefore the dangerous one. ENOENT stays quiet
+   * because absence is the expected case for an unfrozen tree; anything else is named on stderr. */
+  let man = null;
+  try { man = JSON.parse(fs.readFileSync(path.join(RELEASES, t.id, 'release.json'), 'utf8')); }
+  catch (e) {
+    man = null;
+    if (e && e.code !== 'ENOENT') {
+      console.error('engine_release: release.json for ' + t.id + ' exists and could not be read ('
+        + e.message + '). Reporting this tree as NEVER CUT, which may be wrong.');
+    }
+  }
+  return {
+    [STAMP_SHAPE.id]: t.id,
+    [STAMP_SHAPE.cut]: man ? man.cut : null,
+    [STAMP_SHAPE.cuts]: man ? (man.cuts || []).length : 0,
+    [STAMP_SHAPE.showdown]: showdownCommit(),
+    [STAMP_SHAPE.digests]: t.files,
+  };
+}
+
+function cut(why, opts) {
+  const S = store(opts);
+  const T = treeDigest();
+  const files = T.files;
+  const missing = T.missing;
   /* A RELEASE CUT OVER A MISSING SOURCE IS NOT A RELEASE. Silently freezing eleven of twelve files
    * produces a snapshot that loads and measures and is not the engine. */
   if (missing.length) {
@@ -436,8 +516,7 @@ function cut(why, opts) {
   /* The ID is the digest OF THE DIGESTS, so an identical tree always yields an identical release id
    * and cutting twice in a row reuses this directory rather than making a second copy. NOT "a no-op"
    * — that wording is what licensed the record being overwritten; see the cut-log comment above. */
-  const id = crypto.createHash('sha256')
-    .update(SOURCES.map(r => r + ':' + files[r]).join('\n')).digest('hex').slice(0, 12);
+  const id = T.id;
   const dir = path.join(S.releases, id);
 
   /* THE SNAPSHOT COPIES, CHECKED PER FILE. This used to be `if (!fs.existsSync(dir))` around the
@@ -1070,11 +1149,11 @@ function open(id, opts) {
      * reader who sees anything but 1 knows to read cuts[] rather than assume one purpose. */
     stamp() {
       return {
-        engine_release: id,
-        engine_release_cut: v.manifest.cut,
-        engine_release_cuts: (v.manifest.cuts || []).length,
-        showdown_commit: v.manifest.showdown_commit,
-        source_digests: Object.assign({}, v.manifest.files),
+        [STAMP_SHAPE.id]: id,
+        [STAMP_SHAPE.cut]: v.manifest.cut,
+        [STAMP_SHAPE.cuts]: (v.manifest.cuts || []).length,
+        [STAMP_SHAPE.showdown]: v.manifest.showdown_commit,
+        [STAMP_SHAPE.digests]: Object.assign({}, v.manifest.files),
       };
     },
   };
@@ -1093,7 +1172,9 @@ function open(id, opts) {
  * loader wherever the bodies still exist, and this only where they do not. */
 module.exports = { cut, list, verify, drift, open, rerender, surface, compat, sha12, sha12OrNull,
                    requireClosure, census, callerNeeds, exportedNames, PROVIDES_BY,
-                   CUT_COUNTERS, SOURCES, POINTER, RELEASES };
+                   CUT_COUNTERS, SOURCES, POINTER, RELEASES,
+                   /* the pin vocabulary and the live-tree stamp — see STAMP_SHAPE and liveStamp */
+                   STAMP_SHAPE, treeDigest, liveStamp };
 
 if (require.main === module) {
   const [cmd, arg] = process.argv.slice(2);

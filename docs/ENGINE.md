@@ -148,6 +148,196 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## THE PREDICTION BELOW IS RESOLVED AND THE POOL DID NOT MOVE: BOARD-MATERIAL **77 → 77**, PROTOCOL **168 → 168**. AND THE GATE THIS DIVISION IS JUDGED BY NOW COUNTS BOARDS — **77 OF 961 (8.0%)** GATES, THE 167 IT USED TO PRINT IS NARRATION AND REPORTS. 2026-09-04, CHANGELOG 5.245.0
+
+**THE WIDENING SECTION BELOW LEFT BOTH POOL FIGURES UNCLAIMED AND CALLED THE DIRECTION IN ADVANCE —
+*rise, or stay flat; it cannot fall*. It stayed flat.** Board-material **77 → 77**, protocol
+first-divergence **168 → 168**, on engine release `8ad06030e129`, which **did not change**:
+`engine/board_state.js` is the comparator and is not one of the 26 frozen sources, so this ran on
+byte-identical engine bytes with the comparator as the only variable. **Flat does NOT certify the
+three leaves.** The artifact records divergences, never per-leaf agreements, so a leaf that agrees and
+a leaf that is never reached produce the same zero here; `tests/probe_leaf_widening.js` is the
+instrument that separates them, and it is green on all three arms with its control silent.
+
+**ONE CORRECTION TO THE SECTION BELOW, MADE FROM ABOVE RATHER THAN IN PLACE.** Its heading states the
+compared-leaf denominator as **56**. The published denominator is **80** — 34 compared, 42 unread and
+4 declared uncomparable at 5.209.0, and 37 + 39 + 4 after this pass. **This pass uses 80**, which is
+what `CHANGELOG 5.245.0` and `tests/probe_uncompared_leaves.js`'s own published table carry. The
+moved quantities are unaffected and identical in both readings: compared **34 → 37**, the hole
+**42 → 39**, standing-at-a-boundary **22 → 19**.
+
+### THE GATE OVER THIS DIVISION CHANGED WHICH QUANTITY IT COUNTS, AND THAT IS A REVERSAL
+
+The whole-game clause gated on `j.diverged` — PROTOCOL first-divergence — and printed **167 of 961**.
+It now reads `state.games` less `state.games_board_never_diverged` = 961 − 884 = **77 of 961 (8.0%)**,
+and a separate `narrationClause` carries **167** and REPORTS without gating. Will's 2026-08-22 ruling,
+implemented: **commentary may differ; boards may not.** Every section below that states or implies the
+whole-game clause counts protocol first-divergence is superseded here and not rewritten.
+
+**IT IS NOT A RELAXATION AND THIS DIVISION SHOULD NOT READ IT AS ONE.** Of the 168 protocol
+divergences, **102** write no differing board leaf anywhere — narration, and still owed. Against that,
+**11 of the 77 part a BOARD while the protocol never diverges at all** (77 − (168 − 102), derived from
+four artifact fields). Those 11 were counted **nowhere** under the single clause, which means a repair
+to a narration line could have moved this division's headline without moving the engine. They now
+print as their own kind, and on them the bar went up.
+
+### A GUARD ADDED HOURS EARLIER KILLED TWO OF THIS DIVISION'S OWN SCRIPTS, AND IT WOULD HAVE READ AS *SKIPPED*
+
+`engine/game_differential.js`'s coverage-arm refusal ran at **module load**, off the whole process's
+argv, so `tests/roster.js --write` and `engine/all_mechanics_fire.js --write` died at **exit 2 before
+playing a single game**. **Exit 2 is the SKIP code**, so `run-all` would have reported them politely
+skipped rather than failed — a capability that cannot prove it ran, arriving through the exit code
+rather than through a counter. Fixed with `require.main === module`; both arms re-verified. Three of
+the five pinned regenerations were impossible until it was.
+
+### THE FIVE PINNED ARTIFACTS ARE REGENERATED AND NO MEASURED FIGURE MOVED
+
+`engine-diff`, `roster.{items,abilities,moves}` and `all-mechanics-fire`, each now carrying **26
+`source_digests` plus `showdown_commit`**, verified by reading the fields rather than by trusting the
+run, behind `engine/pin_guard.js`. **engine-diff 0/6000 at the midpoint and both corners; roster 0
+FIRED-AND-BOARDS-DIFFER / 0 DID-NOT-FIRE on all three stages; mechanics verdicts identical row for
+row.** Roster ran without `--reds`, so `reds: []` carries forward — deliberate, to keep the
+regeneration a single-variable change. **The census was not regenerated and stands at 829 live**, as
+the section below already records.
+
+### UNBURDEN IS THIS DIVISION'S DEFECT, AND IT IS OWED A REGISTER ROW
+
+`engine/medicham2-browser.js` holds **no state under that name**. `effSpeed` recomputes the doubling
+from `_hadItem && !m.item` (`:14770`), so **every body in this engine that loses an item gets
+Unburden's speed doubling** — a Knock Off, a consumed berry, a spent Focus Sash — where the authority
+adds the volatile only from Unburden's own `onAfterUseItem` / `onTakeItem` (`data/abilities.ts:5229-5234`).
+It is decision-changing through turn order, it sits on a leaf nothing compares, and **it is an ENGINE
+defect rather than a comparator gap.** It is also the standing correction to the claim that the leaf
+widening generalises: the comparator side does — two lines per leaf, `SD_VOLATILE_KEYS` derives
+itself — **the FIXTURES do not**, and Unburden is the proof that a leaf can look wireable on every
+derived column and still hold a different quantity under the same name. The remaining 19 are real
+work, not a loop.
+
+**OWED:** `node engine/status.js --write`, and a register row for the Unburden speed doubling. The
+section below also lists `node engine/all_mechanics_fire.js` as owed — **that one has since been run**,
+as part of the five pinned regenerations above, with its verdicts identical row for row. Full accounts:
+six reports under `docs/_reports/2026-09-04-*.md`.
+
+## THE COMPARATOR WAS AGREEING BY NOT LOOKING ON THREE OF THE LARGEST LEAVES IN THE FORMAT. **NO ENGINE BYTE MOVED AND NO CENSUS FIGURE MOVED — CENSUS STANDS AT 829 LIVE AND WAS NOT REGENERATED. BOARD LEAVES COMPARED 34 OF 56 -> 37 OF 56; THE HOLE 42 -> 39; STANDING-AT-A-BOUNDARY 22 -> 19.** 2026-09-04.
+
+`engine/medicham2-browser.js` is untouched. The change is to `engine/board_state.js`, the comparator,
+and it is a widening: three leaves that a legal mechanic writes were reaching the board and **nothing
+was looking at them**, so a game whose only disagreement lived in one of them was scored as AGREEING.
+
+| leaf | uses | writer |
+|---|---|---|
+| `volatile:throatchop` | **5,577** | `move:throatchop` |
+| `volatile:mustrecharge` | **4,701** | 6 moves; `hyperbeam` alone 4,576 |
+| `volatile:flashfire` | **1,416** | `ability:flashfire` |
+
+Every count is read off that entity's own row in `data/tags.json`, never typed. Champions overrides
+none of the three — `grep` across the eight files in `data/mods/champions/` returns the names only in
+`learnsets.ts` — so mainline is the authority and the line numbers below are mainline's.
+
+### RED FIRST, AND WITH A CONTROL, OR IT IS NOISE RATHER THAN A COMPARISON
+
+`tests/probe_leaf_widening.js` plants a difference on each leaf on medicham2's **live** state at the
+boundary, through the driver's own `statePlant` hook. Before this pass all three plants were
+**invisible** — `0 diffs, none on this leaf` — on a board that already compares 34 leaves:
+
+```
+  compared keys today: 23 per-body volatiles
+       RED      RED — the plant was INVISIBLE to the comparator (0 diffs, none on this leaf)   x3
+  3 leaf(s) NOT COMPARED — a planted difference on them reached the board and nothing looked.
+  FAIL — 3 arm(s) did not hold.
+```
+
+and after:
+
+```
+  compared keys today: 26 per-body volatiles
+       RED      PASS — caught p2.active[0].vol.throatchop    medi=0 sd=1
+       RED      PASS — caught p1.active[0].vol.mustrecharge  medi=0 sd=1
+       RED      PASS — caught p1.active[0].vol.flashfire     medi=0 sd=1
+  PASS — every arm held.
+```
+
+**The control arm is half the evidence and it stayed silent on all three** — the identical staged
+game with no plant, reporting nothing on the leaf. Without it the comparator would only have been
+made noisier. `learnset lookups that threw during the fixture search: 0` on both runs, so the carrier
+pool was the whole format.
+
+### WHAT IS COMPARED, AND WHAT IS DELIBERATELY NOT
+
+- **`throatchop` — a clock on both sides, compared as one.** `data/moves.ts:19391` declares
+  `duration: 2`; medicham2 writes `_noSound = +blocksSoundMoves.turns` at `:33473`, where `turns` is
+  **2** DERIVED into `data/tags.json` from `dex.conditions.get(throatchop)`. Measured at the boundary
+  that closes the applying turn: `_noSound = 1` against `throatchop(d1)`. The residual **order** gap
+  is unchanged and not claimed fixed — `residualExpiryDeferred()` already names `throatchop@22`.
+- **`mustrecharge` — presence, and the narrowing costs nothing AT THIS SAMPLING POINT.**
+  `data/conditions.ts:364-378` declares `duration: 2`; the residual of the applying turn takes it to
+  1 and `onBeforeMove` removes it on the next turn before any further boundary, so the authority's
+  clock can only ever read 1 when this comparator looks. medicham2 holds the bare boolean `_recharge`
+  (`:34724`) and cannot express a clock, so comparing one would be the reader's representation.
+- **`flashfire` — presence on both sides, collapsing nothing.** `data/abilities.ts:1331-1368`'s
+  condition declares no duration whatever. medicham2 keys the gift in `_vol.flashfire` (`:16158`) off
+  the tag's own `typeImmunity.gain.volatile`. Both engines held it at **two consecutive boundaries**.
+
+### UNBURDEN IS THE FIFTH-LARGEST LEAF IN THE HOLE AND IT IS STILL NOT WIRED, ON MEASURED EVIDENCE
+
+Two bodies lose an item to a Knock Off in the same turn; slot 0 carries Unburden and slot 1 does not.
+The observe arm reads `medi="[1,1]" sd="[1,0]"`. medicham2 holds **no state under that name** — the
+doubling is recomputed inside `effSpeed` from `_hadItem && !m.item` (`:14770`), true for **every body
+that lost an item whatever its ability**, where the authority adds the volatile only from Unburden's
+own `onAfterUseItem` / `onTakeItem` (`data/abilities.ts:5229-5234`). Wiring presence between those two
+shapes would part **every board on which anybody's Focus Sash broke**.
+
+**And that is an ENGINE defect to file, not a comparator one:** on this reading, every body in this
+engine that loses an item gets Unburden's speed doubling. It is decision-changing, it sits on a leaf
+nothing compares, and it is owed a register row rather than a fix inside a comparator pass.
+
+### A RECEIPT THAT PROVED NOTHING, INSIDE THE PROBE ITSELF
+
+The committed probe's RED line read `d.a` / `d.b`. `board_state.js`'s `walk` pushes
+`{ path, medicham, showdown }` — there is no `a` or `b` — so the first green run printed
+`caught p2.active[0].vol.throatchop undefined<>undefined`. The arm said PASS and showed nothing.
+Corrected in the same pass.
+
+### WHICH SCOREBOARD, SAID BEFORE ANYTHING WAS RUN
+
+These are common mechanics, so the **pinned pool is the right scoreboard** and it should move.
+
+| | expected |
+|---|---|
+| census `live` | **UNCHANGED at 829.** No simulator byte moved; a movement here would be a bug in this pass |
+| `status.js` board leaves compared | 34 of 56 -> **37 of 56** — measured, confirmed |
+| pinned pool **board-material** (published **77 of 961** on release `8ad06030e129`) | should **RISE, or stay flat. It cannot fall.** A fall means this pass took eyes away |
+| pinned pool **protocol first-divergence** (published **168**) | **UNCHANGED** — no narration was touched |
+
+Board-material and protocol first-divergence are different numbers and this section means
+board-material wherever it says the count should rise. Neither pool figure is claimed:
+`engine/game_differential.js` is banned in light mode and the exact invocation is in the report's
+OWED block.
+
+### THE HAND LIST
+
+**Removed — nothing.** None of these three leaves was ever on a hand list; they were in neither the
+comparison nor `NOT_COMPARED`, which is precisely the failure mode the widening addresses — an
+unlisted omission reads exactly like agreement, so it never got written down as owed.
+
+**Owed and named, not fixed here:**
+
+- **Unburden's speed doubling applies to every body that lost an item**, regardless of ability
+  (`medicham2-browser.js:14770`). Found by the observe arm above. Needs a register row.
+- **The remaining 19 leaves that can stand at a boundary and are not compared.** Next cheapest by
+  construction: `lockon`, `minimize`, `noretreat` — the three that `probe_uncompared_leaves.js`
+  already finds in medicham2's `_vol` table under the authority's own spelling. **The comparator side
+  generalises (two lines per leaf, and `SD_VOLATILE_KEYS` derives itself from `String(sdBody)`); the
+  FIXTURE does not.** Each of the three here needed a script written against the authority's own
+  refusals, and `unburden` proves a leaf can look wireable on every derived column and still be
+  unwireable because one engine holds a different quantity under the same name.
+- **The census was NOT regenerated**, deliberately: `tests/test-mechanics.js` rewrites
+  `data/mechanics-census.json`, which steers `all_mechanics_fire.js`, and another agent owned that
+  file this session. The 829 above is the artifact as it stood, not a re-derivation.
+- `node engine/all_mechanics_fire.js` and `node engine/status.js --write` are both owed.
+
+Full account, with both probe runs verbatim: `docs/_reports/2026-09-04-leaf-widening-batch1.md`.
+
 ## NO ENGINE BYTE MOVED, NO MECHANIC CHANGED AND NO CENSUS FIGURE IS QUOTED — AND THE TWO FAILURES THAT LOOKED MOST LIKE THIS DIVISION'S WERE **REFUTED BY A CONTROL** RATHER THAN ARGUED AWAY. 2026-09-04, CHANGELOG 5.244.0
 
 **NOTHING IN THE SIMULATOR CHANGED IN THIS PASS.** No frozen source was touched, so every release id

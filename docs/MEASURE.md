@@ -38,6 +38,118 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## THE GATING CLAUSE WAS COUNTING THE WRONG QUANTITY WHILE THE RIGHT ONE SAT UNREAD IN THE SAME ARTIFACT. BOARD-MATERIAL **77 OF 961 (8.0%)** GATES; PROTOCOL FIRST-DIVERGENCE **167 OF 961** REPORTS. 2026-09-04, CHANGELOG 5.245.0
+
+**THIS IS A REVERSAL OF WHAT THIS LEDGER AND EVERY LIVING DOCUMENT HAVE BEEN PUBLISHING.** The dated
+sections below stand as written and are superseded from here, not rewritten. Any sentence that says
+the whole-game clause counts protocol first-divergence, or quotes **167** as *the* whole-game number,
+is retired by this section.
+
+| clause | quantity | reading | gates |
+|---|---|---|---|
+| whole-game differential / BOARD-MATERIAL | `board_material_games` | **77 of 961 (8.0%)** — `state.games` 961 less `state.games_board_never_diverged` 884 | **yes** |
+| whole-game differential / NARRATION | `protocol_first_divergence_games` | **167 of 961** — 168 raw, less the one declared row | no — REPORTS |
+
+**THE TWO FIELDS ARE READ, NOT DERIVED.** `engine/game_differential.js` writes both; the clause
+subtracts them and does nothing else. There is no second implementation of *did a board part* —
+`engine/board_state.js` decides that once and the differential records the answer, which is this
+division's own rule about a fact having one owner.
+
+**WHY THIS IS NOT A RELAXATION, AND THE ARGUMENT IS MEASURED RATHER THAN ASSERTED.** Of the 168
+protocol divergences, `protocol_diverged_board_never_did` is **102**: those games write no differing
+board leaf at any compared turn boundary. They are real work and they are narration. Going the other
+way, **11 of the 77 part a BOARD while the protocol never diverges at all** — derived from four
+artifact fields as `material − (protocol_diverged_games − protocol_diverged_board_never_did)` =
+77 − (168 − 102), named as derived, and deliberately NOT clamped, so a negative reads as *the
+artifact contradicts itself* rather than as a clean bill of health.
+
+**THOSE 11 ARE THE REASON THIS SPLIT IS A TIGHTENING.** Under the single clause a game whose board
+went wrong with nothing in the narration pointing at it left the count altogether — no cause, no
+class, no shape, nothing to grep. **A fix that closed a protocol divergence without repairing the
+board would have improved the headline without improving the engine.** That is the failure mode this
+division exists to catch, and it was live inside our own headline number.
+
+**NOTHING MAY BE SUBTRACTED FROM THE BOARD COUNT, AND THAT IS STRUCTURAL RATHER THAN STRICT.** Both
+subtraction mechanisms — `DECLARED_DIVERGENCE` and `data/decision-impact.json` — attribute by
+protocol CAUSE over `classes[].causes[]`. A parted board is a leaf PATH and carries no cause, so
+there is no mapping to subtract through. The clause publishes a RAW count and says so; the one
+declared row subtracts from NARRATION, where it belongs, and cannot open this clause.
+
+**NARRATION IS A GATE THAT REPORTS, NOT A BACKLOG.** It has a row, a count, a place in `failing`, and
+`node engine/quarantine.js --narration` exits 1 while it is red. The `gates: false` flag is applied by
+a WRAPPER to every return path including all the refusals — in the first draft only the final verdict
+carried it, so a stale or torn artifact would have made narration come back WITHHELD, default to
+gating, and hold the gate shut on the exact quantity the 2026-08-22 ruling took off the critical
+path. Two arms assert both refusal families keep the flag.
+
+**BOTH CLAUSES NAME THEIR QUANTITY IN THEIR FIRST WORDS AND CARRY A `quantity` FIELD.** Two
+correctly-computed numbers printed side by side with only one published has caused three reconciles
+in a single session here. Never state either figure without naming which quantity it is.
+
+**GATE: `CLOSED — 1 of 8 GATING clauses fail`.** Seven pass on artifacts that can now prove what
+produced them; the one failure is the engine backlog.
+
+### THE ARMS TESTED A COPY, AND A DELIBERATE BREAK COST ZERO OF THEM
+
+Putting narration back on the gate should have gone RED and did not. The selftest arms were
+exercising a five-line reimplementation of the filter rather than the shipping one — **the verifier
+re-implementing the rule it is checking**, caught on itself. The rule is now `gateVerdict()`,
+exported, and the arms drive it. Selftest **186 → 210 passed, 0 failed**.
+
+### FIVE PINNED ARTIFACTS CAN NOW PROVE WHAT PRODUCED THEM, AND NO MEASURED FIGURE MOVED
+
+`engine-diff`, `roster.{items,abilities,moves}` and `all-mechanics-fire` were regenerated and each
+carries **26 `source_digests` plus `showdown_commit`**, verified by reading the fields rather than by
+trusting the run. `engine/pin_guard.js` is the one door that withholds on an absent, wrong or
+unverifiable pin. **Nothing measured moved:** engine-diff 0/6000 at the midpoint and both corners;
+roster 0 DIFFER / 0 DID-NOT-FIRE on all three stages; mechanics verdicts identical row for row.
+Roster ran without `--reds`, so `reds: []` carries forward — deliberate, to keep the regeneration a
+single-variable change.
+
+**THREE OF THE FIVE WERE IMPOSSIBLE UNTIL A GUARD ADDED HOURS EARLIER WAS REPAIRED**, and the failure
+would have read as *skipped*: `game_differential.js`'s coverage-arm refusal ran at MODULE LOAD off the
+whole process's argv, so `roster.js --write` and `all_mechanics_fire.js --write` died at **exit 2 —
+the SKIP code** — before playing a game. `require.main === module` fixes it; both arms re-verified.
+
+### THE LEAF WIDENING MEASURED FLAT, AND THE PREDICTION WAS WRITTEN DOWN FIRST
+
+Board-material **77 → 77**, protocol **168 → 168**, on release `8ad06030e129` — **unchanged**, because
+`engine/board_state.js` is the comparator and not one of the 26 frozen sources, so the engine bytes
+were byte-identical and the comparator was the only variable. The call made in advance was *rise or
+stay flat, it cannot fall*. **Flat does NOT prove the three leaves clean** — that artifact records
+divergences, not per-leaf agreements, and `tests/probe_leaf_widening.js` is the separator.
+
+### THREE "PRE-EXISTING FAILURES" WERE NEVER FAILING, AND THAT WAS PROVED BEFORE IT WAS BELIEVED
+
+A working-tree test written against the new `pin_guard.js` was run against a `git show HEAD:` copy of
+`quarantine.js` that predates it. A **VINTAGE GAP** — reproduced exactly by injecting HEAD's bytes,
+then disproved by finding the same arms green in the pre-rename working tree. The "separate
+undiagnosed defect" filed against them is RETIRED. A rename that silently turns something green is
+indistinguishable from one that hides it, which is why this was checked before it was committed.
+`tests/test-divergence-composition.js` is repointed to `narrationClause` — it composes divergence
+CLASSES, which is the narration quantity — and reads **18 checks, all pass**, was 17 with 10 red.
+
+**`git stash` WAS REFUSED AS A DIAGNOSTIC HERE, CORRECTLY.** With `core.autocrlf=true` and 24 files of
+other agents' uncommitted work in the tree, a stash/pop can rewrite line endings — the same mechanism
+that has twice moved a release digest with no code change. A sparse HEAD worktree was used instead and
+removed afterwards.
+
+### OWED
+
+- `node engine/status.js --write` was not run. The `<!-- GENERATED -->` block at the top of this file
+  is one pass behind and **still says `5 of 8 gate clauses fail`**; the gate reads `CLOSED — 1 of 8
+  GATING clauses fail`. Read the gate, not the block.
+- **Unburden is an ENGINE defect, not a comparator gap, and needs a register row.**
+  `engine/medicham2-browser.js` holds no state under that name; `effSpeed` recomputes the doubling
+  from `_hadItem && !m.item` (`:14770`), so every body in this engine that loses an item gets the
+  speed doubling.
+- The weights restamp was NOT run, by Will's decision. `data/policy-weights.json` untouched, MAG
+  paused. That the measuring path is free of it was verified in code: `game_differential`, `roster`,
+  `all_mechanics_fire`, `test-engine-diff` and `steering` carry zero references to MAG or the policy
+  weights, and the empirical driver samples `data/move-priors.json` — recorded human clicks, no model
+  in the path.
+- Full accounts: six reports under `docs/_reports/2026-09-04-*.md`.
+
 ## THE REPOSITORY ALREADY KNEW AND NOTHING ACTED — SO THE INSTRUMENT THAT READS THE INSTRUMENTS IS THIS DIVISION'S. 2026-09-04, CHANGELOG 5.244.0
 
 **THIS IS ONE FINDING WEARING FIVE COSTUMES.** `engine/status.js` was printing the row

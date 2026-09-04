@@ -1,0 +1,1278 @@
+{
+ "generated": "2026-09-04T07:05:20.466Z",
+ "month": "2026-08",
+ "kind": "COMPARISON SET — a PRIOR, not truth.",
+ "note": "AGGREGATE population statistics from Smogon. Describes the ladder, never an individual game, and cannot be joined to a replay. Cutoffs are WEIGHTINGS, not subsets: all four cutoffs for a month cover the same battles, which is why Raw and Real are identical across them and only Usage % moves. Merged into nothing; data/meta-usage.json and data/smogon-priors.json are untouched by this script.",
+ "ranking": "CLAUDE.md ranks usage sources below the Showdown damage calculator and HoopaDex learnsets.",
+ "populations": {
+  "bo1": {
+   "format": "gen9championsvgc2026regmb",
+   "legalityCheck": {
+    "ran": true,
+    "legalSpeciesInFormat": 347
+   },
+   "cutoffs": {
+    "0": {
+     "present": true,
+     "provenance": {
+      "usageUrl": "https://www.smogon.com/stats/2026-08/gen9championsvgc2026regmb-0.txt.gz",
+      "movesetUrl": "https://www.smogon.com/stats/2026-08/moveset/gen9championsvgc2026regmb-0.txt.gz",
+      "archivedAt": "2026-09-04T06:59:45.666Z",
+      "stampedAt": "2026-09-04T07:05:20.466Z",
+      "usageBytes": 25170,
+      "movesetBytes": 874356
+     },
+     "totalBattles": 1269250,
+     "avgWeightPerTeam": 1,
+     "speciesInUsageTable": 310,
+     "speciesInMovesetFile": 309,
+     "spFingerprint": {
+      "spreads": 1854,
+      "maxSpreadTotal": 66,
+      "maxSingleStat": 32,
+      "budget": 66,
+      "perStatCap": 32,
+      "budgetViolations": 0
+     },
+     "illegalSpecies": [],
+     "speciesNotInDex": [],
+     "coverageVsOurStore": {
+      "smogonSpecies": 310,
+      "unseenInOurStore": 0,
+      "unseenUsagePctSum": 0,
+      "unseenTop": []
+     },
+     "top20": [
+      {
+       "rank": 1,
+       "name": "Kingambit",
+       "usagePct": 27.08899,
+       "raw": 687654
+      },
+      {
+       "rank": 2,
+       "name": "Sinistcha",
+       "usagePct": 26.12007,
+       "raw": 663058
+      },
+      {
+       "rank": 3,
+       "name": "Incineroar",
+       "usagePct": 24.65783,
+       "raw": 625939
+      },
+      {
+       "rank": 4,
+       "name": "Garchomp",
+       "usagePct": 23.69163,
+       "raw": 601412
+      },
+      {
+       "rank": 5,
+       "name": "Whimsicott",
+       "usagePct": 22.25988,
+       "raw": 565067
+      },
+      {
+       "rank": 6,
+       "name": "Sneasler",
+       "usagePct": 21.05562,
+       "raw": 534497
+      },
+      {
+       "rank": 7,
+       "name": "Basculegion",
+       "usagePct": 20.45334,
+       "raw": 519208
+      },
+      {
+       "rank": 8,
+       "name": "Farigiraf",
+       "usagePct": 20.3233,
+       "raw": 515907
+      },
+      {
+       "rank": 9,
+       "name": "Staraptor-Mega",
+       "usagePct": 14.4223,
+       "raw": 366110
+      },
+      {
+       "rank": 10,
+       "name": "Charizard-Mega-Y",
+       "usagePct": 13.27142,
+       "raw": 336895
+      },
+      {
+       "rank": 11,
+       "name": "Sylveon",
+       "usagePct": 12.45712,
+       "raw": 316224
+      },
+      {
+       "rank": 12,
+       "name": "Pelipper",
+       "usagePct": 11.18905,
+       "raw": 284034
+      },
+      {
+       "rank": 13,
+       "name": "Raichu-Mega-Y",
+       "usagePct": 10.49155,
+       "raw": 266328
+      },
+      {
+       "rank": 14,
+       "name": "Archaludon",
+       "usagePct": 10.08505,
+       "raw": 256009
+      },
+      {
+       "rank": 15,
+       "name": "Gholdengo",
+       "usagePct": 9.28907,
+       "raw": 235803
+      },
+      {
+       "rank": 16,
+       "name": "Milotic",
+       "usagePct": 8.91034,
+       "raw": 226189
+      },
+      {
+       "rank": 17,
+       "name": "Floette-Mega",
+       "usagePct": 8.26803,
+       "raw": 209884
+      },
+      {
+       "rank": 18,
+       "name": "Grimmsnarl",
+       "usagePct": 8.06941,
+       "raw": 204842
+      },
+      {
+       "rank": 19,
+       "name": "Delphox-Mega",
+       "usagePct": 7.52901,
+       "raw": 191124
+      },
+      {
+       "rank": 20,
+       "name": "Maushold",
+       "usagePct": 6.79728,
+       "raw": 172549
+      }
+     ]
+    },
+    "1500": {
+     "present": true,
+     "provenance": {
+      "usageUrl": "https://www.smogon.com/stats/2026-08/gen9championsvgc2026regmb-1500.txt.gz",
+      "movesetUrl": "https://www.smogon.com/stats/2026-08/moveset/gen9championsvgc2026regmb-1500.txt.gz",
+      "archivedAt": "2026-09-04T06:59:47.403Z",
+      "stampedAt": "2026-09-04T07:05:20.466Z",
+      "usageBytes": 25170,
+      "movesetBytes": 769433
+     },
+     "totalBattles": 1269250,
+     "avgWeightPerTeam": 0.504,
+     "speciesInUsageTable": 310,
+     "speciesInMovesetFile": 301,
+     "spFingerprint": {
+      "spreads": 1806,
+      "maxSpreadTotal": 66,
+      "maxSingleStat": 32,
+      "budget": 66,
+      "perStatCap": 32,
+      "budgetViolations": 0
+     },
+     "illegalSpecies": [],
+     "speciesNotInDex": [],
+     "coverageVsOurStore": {
+      "smogonSpecies": 310,
+      "unseenInOurStore": 0,
+      "unseenUsagePctSum": 0,
+      "unseenTop": []
+     },
+     "top20": [
+      {
+       "rank": 1,
+       "name": "Kingambit",
+       "usagePct": 32.50878,
+       "raw": 687654
+      },
+      {
+       "rank": 2,
+       "name": "Sinistcha",
+       "usagePct": 25.32975,
+       "raw": 663058
+      },
+      {
+       "rank": 3,
+       "name": "Garchomp",
+       "usagePct": 25.14263,
+       "raw": 601412
+      },
+      {
+       "rank": 4,
+       "name": "Incineroar",
+       "usagePct": 24.76948,
+       "raw": 625939
+      },
+      {
+       "rank": 5,
+       "name": "Basculegion",
+       "usagePct": 23.8447,
+       "raw": 519208
+      },
+      {
+       "rank": 6,
+       "name": "Sneasler",
+       "usagePct": 23.40289,
+       "raw": 534497
+      },
+      {
+       "rank": 7,
+       "name": "Farigiraf",
+       "usagePct": 22.88432,
+       "raw": 515907
+      },
+      {
+       "rank": 8,
+       "name": "Whimsicott",
+       "usagePct": 22.77551,
+       "raw": 565067
+      },
+      {
+       "rank": 9,
+       "name": "Staraptor-Mega",
+       "usagePct": 17.2482,
+       "raw": 366110
+      },
+      {
+       "rank": 10,
+       "name": "Charizard-Mega-Y",
+       "usagePct": 15.41865,
+       "raw": 336895
+      },
+      {
+       "rank": 11,
+       "name": "Sylveon",
+       "usagePct": 14.70336,
+       "raw": 316224
+      },
+      {
+       "rank": 12,
+       "name": "Raichu-Mega-Y",
+       "usagePct": 12.11899,
+       "raw": 266328
+      },
+      {
+       "rank": 13,
+       "name": "Pelipper",
+       "usagePct": 10.80167,
+       "raw": 284034
+      },
+      {
+       "rank": 14,
+       "name": "Archaludon",
+       "usagePct": 10.38765,
+       "raw": 256009
+      },
+      {
+       "rank": 15,
+       "name": "Floette-Mega",
+       "usagePct": 9.96645,
+       "raw": 209884
+      },
+      {
+       "rank": 16,
+       "name": "Gholdengo",
+       "usagePct": 9.72353,
+       "raw": 235803
+      },
+      {
+       "rank": 17,
+       "name": "Milotic",
+       "usagePct": 8.98378,
+       "raw": 226189
+      },
+      {
+       "rank": 18,
+       "name": "Delphox-Mega",
+       "usagePct": 8.95671,
+       "raw": 191124
+      },
+      {
+       "rank": 19,
+       "name": "Grimmsnarl",
+       "usagePct": 7.96642,
+       "raw": 204842
+      },
+      {
+       "rank": 20,
+       "name": "Maushold",
+       "usagePct": 6.90909,
+       "raw": 172549
+      }
+     ]
+    },
+    "1630": {
+     "present": true,
+     "provenance": {
+      "usageUrl": "https://www.smogon.com/stats/2026-08/gen9championsvgc2026regmb-1630.txt.gz",
+      "movesetUrl": "https://www.smogon.com/stats/2026-08/moveset/gen9championsvgc2026regmb-1630.txt.gz",
+      "archivedAt": "2026-09-04T06:59:48.397Z",
+      "stampedAt": "2026-09-04T07:05:20.466Z",
+      "usageBytes": 25170,
+      "movesetBytes": 653435
+     },
+     "totalBattles": 1269250,
+     "avgWeightPerTeam": 0.071,
+     "speciesInUsageTable": 310,
+     "speciesInMovesetFile": 283,
+     "spFingerprint": {
+      "spreads": 1687,
+      "maxSpreadTotal": 66,
+      "maxSingleStat": 32,
+      "budget": 66,
+      "perStatCap": 32,
+      "budgetViolations": 0
+     },
+     "illegalSpecies": [],
+     "speciesNotInDex": [],
+     "coverageVsOurStore": {
+      "smogonSpecies": 310,
+      "unseenInOurStore": 0,
+      "unseenUsagePctSum": 0,
+      "unseenTop": []
+     },
+     "top20": [
+      {
+       "rank": 1,
+       "name": "Kingambit",
+       "usagePct": 40.74192,
+       "raw": 687654
+      },
+      {
+       "rank": 2,
+       "name": "Basculegion",
+       "usagePct": 30.39518,
+       "raw": 519208
+      },
+      {
+       "rank": 3,
+       "name": "Garchomp",
+       "usagePct": 27.5492,
+       "raw": 601412
+      },
+      {
+       "rank": 4,
+       "name": "Incineroar",
+       "usagePct": 26.84631,
+       "raw": 625939
+      },
+      {
+       "rank": 5,
+       "name": "Sneasler",
+       "usagePct": 26.6429,
+       "raw": 534497
+      },
+      {
+       "rank": 6,
+       "name": "Whimsicott",
+       "usagePct": 24.39747,
+       "raw": 565067
+      },
+      {
+       "rank": 7,
+       "name": "Sinistcha",
+       "usagePct": 23.79411,
+       "raw": 663058
+      },
+      {
+       "rank": 8,
+       "name": "Farigiraf",
+       "usagePct": 22.55958,
+       "raw": 515907
+      },
+      {
+       "rank": 9,
+       "name": "Charizard-Mega-Y",
+       "usagePct": 21.08663,
+       "raw": 336895
+      },
+      {
+       "rank": 10,
+       "name": "Staraptor-Mega",
+       "usagePct": 18.61174,
+       "raw": 366110
+      },
+      {
+       "rank": 11,
+       "name": "Sylveon",
+       "usagePct": 17.15276,
+       "raw": 316224
+      },
+      {
+       "rank": 12,
+       "name": "Floette-Mega",
+       "usagePct": 13.25719,
+       "raw": 209884
+      },
+      {
+       "rank": 13,
+       "name": "Raichu-Mega-Y",
+       "usagePct": 12.56665,
+       "raw": 266328
+      },
+      {
+       "rank": 14,
+       "name": "Archaludon",
+       "usagePct": 10.93822,
+       "raw": 256009
+      },
+      {
+       "rank": 15,
+       "name": "Gholdengo",
+       "usagePct": 10.32722,
+       "raw": 235803
+      },
+      {
+       "rank": 16,
+       "name": "Delphox-Mega",
+       "usagePct": 9.88398,
+       "raw": 191124
+      },
+      {
+       "rank": 17,
+       "name": "Pelipper",
+       "usagePct": 9.48305,
+       "raw": 284034
+      },
+      {
+       "rank": 18,
+       "name": "Blastoise-Mega",
+       "usagePct": 8.47511,
+       "raw": 134721
+      },
+      {
+       "rank": 19,
+       "name": "Grimmsnarl",
+       "usagePct": 7.71785,
+       "raw": 204842
+      },
+      {
+       "rank": 20,
+       "name": "Froslass-Mega",
+       "usagePct": 7.43746,
+       "raw": 157126
+      }
+     ]
+    },
+    "1760": {
+     "present": true,
+     "provenance": {
+      "usageUrl": "https://www.smogon.com/stats/2026-08/gen9championsvgc2026regmb-1760.txt.gz",
+      "movesetUrl": "https://www.smogon.com/stats/2026-08/moveset/gen9championsvgc2026regmb-1760.txt.gz",
+      "archivedAt": "2026-09-04T06:59:49.393Z",
+      "stampedAt": "2026-09-04T07:05:20.466Z",
+      "usageBytes": 25170,
+      "movesetBytes": 611976
+     },
+     "totalBattles": 1269250,
+     "avgWeightPerTeam": 0.003,
+     "speciesInUsageTable": 310,
+     "speciesInMovesetFile": 277,
+     "spFingerprint": {
+      "spreads": 1631,
+      "maxSpreadTotal": 66,
+      "maxSingleStat": 32,
+      "budget": 66,
+      "perStatCap": 32,
+      "budgetViolations": 0
+     },
+     "illegalSpecies": [],
+     "speciesNotInDex": [],
+     "coverageVsOurStore": {
+      "smogonSpecies": 310,
+      "unseenInOurStore": 0,
+      "unseenUsagePctSum": 0,
+      "unseenTop": []
+     },
+     "top20": [
+      {
+       "rank": 1,
+       "name": "Kingambit",
+       "usagePct": 47.24375,
+       "raw": 687654
+      },
+      {
+       "rank": 2,
+       "name": "Incineroar",
+       "usagePct": 33.5619,
+       "raw": 625939
+      },
+      {
+       "rank": 3,
+       "name": "Garchomp",
+       "usagePct": 32.17919,
+       "raw": 601412
+      },
+      {
+       "rank": 4,
+       "name": "Basculegion",
+       "usagePct": 31.48652,
+       "raw": 519208
+      },
+      {
+       "rank": 5,
+       "name": "Sneasler",
+       "usagePct": 31.37445,
+       "raw": 534497
+      },
+      {
+       "rank": 6,
+       "name": "Charizard-Mega-Y",
+       "usagePct": 26.52116,
+       "raw": 336895
+      },
+      {
+       "rank": 7,
+       "name": "Sinistcha",
+       "usagePct": 26.05128,
+       "raw": 663058
+      },
+      {
+       "rank": 8,
+       "name": "Whimsicott",
+       "usagePct": 23.51407,
+       "raw": 565067
+      },
+      {
+       "rank": 9,
+       "name": "Farigiraf",
+       "usagePct": 18.48378,
+       "raw": 515907
+      },
+      {
+       "rank": 10,
+       "name": "Sylveon",
+       "usagePct": 18.35675,
+       "raw": 316224
+      },
+      {
+       "rank": 11,
+       "name": "Floette-Mega",
+       "usagePct": 17.1481,
+       "raw": 209884
+      },
+      {
+       "rank": 12,
+       "name": "Staraptor-Mega",
+       "usagePct": 16.48945,
+       "raw": 366110
+      },
+      {
+       "rank": 13,
+       "name": "Delphox-Mega",
+       "usagePct": 12.75477,
+       "raw": 191124
+      },
+      {
+       "rank": 14,
+       "name": "Raichu-Mega-Y",
+       "usagePct": 11.01093,
+       "raw": 266328
+      },
+      {
+       "rank": 15,
+       "name": "Blastoise-Mega",
+       "usagePct": 10.8934,
+       "raw": 134721
+      },
+      {
+       "rank": 16,
+       "name": "Archaludon",
+       "usagePct": 10.09785,
+       "raw": 256009
+      },
+      {
+       "rank": 17,
+       "name": "Venusaur",
+       "usagePct": 8.61851,
+       "raw": 106229
+      },
+      {
+       "rank": 18,
+       "name": "Pelipper",
+       "usagePct": 8.28709,
+       "raw": 284034
+      },
+      {
+       "rank": 19,
+       "name": "Froslass-Mega",
+       "usagePct": 7.62465,
+       "raw": 157126
+      },
+      {
+       "rank": 20,
+       "name": "Aerodactyl-Mega",
+       "usagePct": 7.44922,
+       "raw": 111119
+      }
+     ]
+    }
+   }
+  },
+  "bo3": {
+   "format": "gen9championsvgc2026regmbbo3",
+   "legalityCheck": {
+    "ran": true,
+    "legalSpeciesInFormat": 347
+   },
+   "cutoffs": {
+    "0": {
+     "present": true,
+     "provenance": {
+      "usageUrl": "https://www.smogon.com/stats/2026-08/gen9championsvgc2026regmbbo3-0.txt.gz",
+      "movesetUrl": "https://www.smogon.com/stats/2026-08/moveset/gen9championsvgc2026regmbbo3-0.txt.gz",
+      "archivedAt": "2026-09-04T06:59:50.906Z",
+      "stampedAt": "2026-09-04T07:05:20.466Z",
+      "usageBytes": 25169,
+      "movesetBytes": 782143
+     },
+     "totalBattles": 179434,
+     "avgWeightPerTeam": 1,
+     "speciesInUsageTable": 310,
+     "speciesInMovesetFile": 299,
+     "spFingerprint": {
+      "spreads": 1794,
+      "maxSpreadTotal": 66,
+      "maxSingleStat": 32,
+      "budget": 66,
+      "perStatCap": 32,
+      "budgetViolations": 0
+     },
+     "illegalSpecies": [],
+     "speciesNotInDex": [],
+     "coverageVsOurStore": {
+      "smogonSpecies": 310,
+      "unseenInOurStore": 0,
+      "unseenUsagePctSum": 0,
+      "unseenTop": []
+     },
+     "top20": [
+      {
+       "rank": 1,
+       "name": "Kingambit",
+       "usagePct": 41.72426,
+       "raw": 149735
+      },
+      {
+       "rank": 2,
+       "name": "Incineroar",
+       "usagePct": 32.1472,
+       "raw": 115366
+      },
+      {
+       "rank": 3,
+       "name": "Garchomp",
+       "usagePct": 30.50843,
+       "raw": 109485
+      },
+      {
+       "rank": 4,
+       "name": "Basculegion",
+       "usagePct": 27.34153,
+       "raw": 98120
+      },
+      {
+       "rank": 5,
+       "name": "Sneasler",
+       "usagePct": 25.88891,
+       "raw": 92907
+      },
+      {
+       "rank": 6,
+       "name": "Charizard-Mega-Y",
+       "usagePct": 25.26556,
+       "raw": 90670
+      },
+      {
+       "rank": 7,
+       "name": "Whimsicott",
+       "usagePct": 24.61964,
+       "raw": 88352
+      },
+      {
+       "rank": 8,
+       "name": "Sinistcha",
+       "usagePct": 24.1593,
+       "raw": 86700
+      },
+      {
+       "rank": 9,
+       "name": "Farigiraf",
+       "usagePct": 19.91624,
+       "raw": 71473
+      },
+      {
+       "rank": 10,
+       "name": "Sylveon",
+       "usagePct": 17.38522,
+       "raw": 62390
+      },
+      {
+       "rank": 11,
+       "name": "Floette-Mega",
+       "usagePct": 17.29661,
+       "raw": 62072
+      },
+      {
+       "rank": 12,
+       "name": "Staraptor-Mega",
+       "usagePct": 16.77469,
+       "raw": 60199
+      },
+      {
+       "rank": 13,
+       "name": "Raichu-Mega-Y",
+       "usagePct": 12.79551,
+       "raw": 45919
+      },
+      {
+       "rank": 14,
+       "name": "Delphox-Mega",
+       "usagePct": 10.28763,
+       "raw": 36919
+      },
+      {
+       "rank": 15,
+       "name": "Archaludon",
+       "usagePct": 10.20403,
+       "raw": 36619
+      },
+      {
+       "rank": 16,
+       "name": "Pelipper",
+       "usagePct": 9.97999,
+       "raw": 35815
+      },
+      {
+       "rank": 17,
+       "name": "Venusaur",
+       "usagePct": 8.75782,
+       "raw": 31429
+      },
+      {
+       "rank": 18,
+       "name": "Gholdengo",
+       "usagePct": 8.30556,
+       "raw": 29806
+      },
+      {
+       "rank": 19,
+       "name": "Swampert-Mega",
+       "usagePct": 7.86724,
+       "raw": 28233
+      },
+      {
+       "rank": 20,
+       "name": "Grimmsnarl",
+       "usagePct": 7.34838,
+       "raw": 26371
+      }
+     ]
+    },
+    "1500": {
+     "present": true,
+     "provenance": {
+      "usageUrl": "https://www.smogon.com/stats/2026-08/gen9championsvgc2026regmbbo3-1500.txt.gz",
+      "movesetUrl": "https://www.smogon.com/stats/2026-08/moveset/gen9championsvgc2026regmbbo3-1500.txt.gz",
+      "archivedAt": "2026-09-04T06:59:51.608Z",
+      "stampedAt": "2026-09-04T07:05:20.466Z",
+      "usageBytes": 25169,
+      "movesetBytes": 679800
+     },
+     "totalBattles": 179434,
+     "avgWeightPerTeam": 0.698,
+     "speciesInUsageTable": 310,
+     "speciesInMovesetFile": 278,
+     "spFingerprint": {
+      "spreads": 1667,
+      "maxSpreadTotal": 66,
+      "maxSingleStat": 32,
+      "budget": 66,
+      "perStatCap": 32,
+      "budgetViolations": 0
+     },
+     "illegalSpecies": [],
+     "speciesNotInDex": [],
+     "coverageVsOurStore": {
+      "smogonSpecies": 310,
+      "unseenInOurStore": 0,
+      "unseenUsagePctSum": 0,
+      "unseenTop": []
+     },
+     "top20": [
+      {
+       "rank": 1,
+       "name": "Kingambit",
+       "usagePct": 48.03399,
+       "raw": 149735
+      },
+      {
+       "rank": 2,
+       "name": "Incineroar",
+       "usagePct": 34.52983,
+       "raw": 115366
+      },
+      {
+       "rank": 3,
+       "name": "Garchomp",
+       "usagePct": 33.06024,
+       "raw": 109485
+      },
+      {
+       "rank": 4,
+       "name": "Basculegion",
+       "usagePct": 30.43707,
+       "raw": 98120
+      },
+      {
+       "rank": 5,
+       "name": "Charizard-Mega-Y",
+       "usagePct": 29.29281,
+       "raw": 90670
+      },
+      {
+       "rank": 6,
+       "name": "Sneasler",
+       "usagePct": 28.10864,
+       "raw": 92907
+      },
+      {
+       "rank": 7,
+       "name": "Whimsicott",
+       "usagePct": 25.16097,
+       "raw": 88352
+      },
+      {
+       "rank": 8,
+       "name": "Sinistcha",
+       "usagePct": 23.57325,
+       "raw": 86700
+      },
+      {
+       "rank": 9,
+       "name": "Floette-Mega",
+       "usagePct": 20.37667,
+       "raw": 62072
+      },
+      {
+       "rank": 10,
+       "name": "Farigiraf",
+       "usagePct": 20.08306,
+       "raw": 71473
+      },
+      {
+       "rank": 11,
+       "name": "Sylveon",
+       "usagePct": 19.76101,
+       "raw": 62390
+      },
+      {
+       "rank": 12,
+       "name": "Staraptor-Mega",
+       "usagePct": 18.21663,
+       "raw": 60199
+      },
+      {
+       "rank": 13,
+       "name": "Raichu-Mega-Y",
+       "usagePct": 13.85459,
+       "raw": 45919
+      },
+      {
+       "rank": 14,
+       "name": "Delphox-Mega",
+       "usagePct": 11.67187,
+       "raw": 36919
+      },
+      {
+       "rank": 15,
+       "name": "Venusaur",
+       "usagePct": 10.41739,
+       "raw": 31429
+      },
+      {
+       "rank": 16,
+       "name": "Archaludon",
+       "usagePct": 10.29409,
+       "raw": 36619
+      },
+      {
+       "rank": 17,
+       "name": "Pelipper",
+       "usagePct": 9.25692,
+       "raw": 35815
+      },
+      {
+       "rank": 18,
+       "name": "Gholdengo",
+       "usagePct": 8.14649,
+       "raw": 29806
+      },
+      {
+       "rank": 19,
+       "name": "Swampert-Mega",
+       "usagePct": 8.14475,
+       "raw": 28233
+      },
+      {
+       "rank": 20,
+       "name": "Aerodactyl-Mega",
+       "usagePct": 7.84508,
+       "raw": 24370
+      }
+     ]
+    },
+    "1630": {
+     "present": true,
+     "provenance": {
+      "usageUrl": "https://www.smogon.com/stats/2026-08/gen9championsvgc2026regmbbo3-1630.txt.gz",
+      "movesetUrl": "https://www.smogon.com/stats/2026-08/moveset/gen9championsvgc2026regmbbo3-1630.txt.gz",
+      "archivedAt": "2026-09-04T06:59:52.099Z",
+      "stampedAt": "2026-09-04T07:05:20.466Z",
+      "usageBytes": 25169,
+      "movesetBytes": 451650
+     },
+     "totalBattles": 179434,
+     "avgWeightPerTeam": 0.315,
+     "speciesInUsageTable": 310,
+     "speciesInMovesetFile": 217,
+     "spFingerprint": {
+      "spreads": 1242,
+      "maxSpreadTotal": 66,
+      "maxSingleStat": 32,
+      "budget": 66,
+      "perStatCap": 32,
+      "budgetViolations": 0
+     },
+     "illegalSpecies": [],
+     "speciesNotInDex": [],
+     "coverageVsOurStore": {
+      "smogonSpecies": 310,
+      "unseenInOurStore": 0,
+      "unseenUsagePctSum": 0,
+      "unseenTop": []
+     },
+     "top20": [
+      {
+       "rank": 1,
+       "name": "Kingambit",
+       "usagePct": 55.65325,
+       "raw": 149735
+      },
+      {
+       "rank": 2,
+       "name": "Charizard-Mega-Y",
+       "usagePct": 37.74834,
+       "raw": 90670
+      },
+      {
+       "rank": 3,
+       "name": "Incineroar",
+       "usagePct": 37.72827,
+       "raw": 115366
+      },
+      {
+       "rank": 4,
+       "name": "Garchomp",
+       "usagePct": 36.99023,
+       "raw": 109485
+      },
+      {
+       "rank": 5,
+       "name": "Basculegion",
+       "usagePct": 35.3838,
+       "raw": 98120
+      },
+      {
+       "rank": 6,
+       "name": "Sneasler",
+       "usagePct": 29.18927,
+       "raw": 92907
+      },
+      {
+       "rank": 7,
+       "name": "Whimsicott",
+       "usagePct": 27.19545,
+       "raw": 88352
+      },
+      {
+       "rank": 8,
+       "name": "Floette-Mega",
+       "usagePct": 26.43517,
+       "raw": 62072
+      },
+      {
+       "rank": 9,
+       "name": "Sylveon",
+       "usagePct": 22.19994,
+       "raw": 62390
+      },
+      {
+       "rank": 10,
+       "name": "Sinistcha",
+       "usagePct": 22.10055,
+       "raw": 86700
+      },
+      {
+       "rank": 11,
+       "name": "Farigiraf",
+       "usagePct": 18.21076,
+       "raw": 71473
+      },
+      {
+       "rank": 12,
+       "name": "Staraptor-Mega",
+       "usagePct": 17.43101,
+       "raw": 60199
+      },
+      {
+       "rank": 13,
+       "name": "Raichu-Mega-Y",
+       "usagePct": 14.30962,
+       "raw": 45919
+      },
+      {
+       "rank": 14,
+       "name": "Venusaur",
+       "usagePct": 13.84683,
+       "raw": 31429
+      },
+      {
+       "rank": 15,
+       "name": "Delphox-Mega",
+       "usagePct": 12.24702,
+       "raw": 36919
+      },
+      {
+       "rank": 16,
+       "name": "Archaludon",
+       "usagePct": 9.67266,
+       "raw": 36619
+      },
+      {
+       "rank": 17,
+       "name": "Aerodactyl-Mega",
+       "usagePct": 8.85095,
+       "raw": 24370
+      },
+      {
+       "rank": 18,
+       "name": "Arcanine-Hisui",
+       "usagePct": 8.31747,
+       "raw": 22855
+      },
+      {
+       "rank": 19,
+       "name": "Swampert-Mega",
+       "usagePct": 8.12181,
+       "raw": 28233
+      },
+      {
+       "rank": 20,
+       "name": "Pelipper",
+       "usagePct": 7.80851,
+       "raw": 35815
+      }
+     ]
+    },
+    "1760": {
+     "present": true,
+     "provenance": {
+      "usageUrl": "https://www.smogon.com/stats/2026-08/gen9championsvgc2026regmbbo3-1760.txt.gz",
+      "movesetUrl": "https://www.smogon.com/stats/2026-08/moveset/gen9championsvgc2026regmbbo3-1760.txt.gz",
+      "archivedAt": "2026-09-04T06:59:52.439Z",
+      "stampedAt": "2026-09-04T07:05:20.466Z",
+      "usageBytes": 25169,
+      "movesetBytes": 318888
+     },
+     "totalBattles": 179434,
+     "avgWeightPerTeam": 0.071,
+     "speciesInUsageTable": 310,
+     "speciesInMovesetFile": 164,
+     "spFingerprint": {
+      "spreads": 880,
+      "maxSpreadTotal": 66,
+      "maxSingleStat": 32,
+      "budget": 66,
+      "perStatCap": 32,
+      "budgetViolations": 0
+     },
+     "illegalSpecies": [],
+     "speciesNotInDex": [],
+     "coverageVsOurStore": {
+      "smogonSpecies": 310,
+      "unseenInOurStore": 0,
+      "unseenUsagePctSum": 0,
+      "unseenTop": []
+     },
+     "top20": [
+      {
+       "rank": 1,
+       "name": "Kingambit",
+       "usagePct": 55.69655,
+       "raw": 149735
+      },
+      {
+       "rank": 2,
+       "name": "Charizard-Mega-Y",
+       "usagePct": 50.45718,
+       "raw": 90670
+      },
+      {
+       "rank": 3,
+       "name": "Garchomp",
+       "usagePct": 45.00415,
+       "raw": 109485
+      },
+      {
+       "rank": 4,
+       "name": "Incineroar",
+       "usagePct": 42.30358,
+       "raw": 115366
+      },
+      {
+       "rank": 5,
+       "name": "Basculegion",
+       "usagePct": 40.38831,
+       "raw": 98120
+      },
+      {
+       "rank": 6,
+       "name": "Floette-Mega",
+       "usagePct": 32.8875,
+       "raw": 62072
+      },
+      {
+       "rank": 7,
+       "name": "Whimsicott",
+       "usagePct": 31.76655,
+       "raw": 88352
+      },
+      {
+       "rank": 8,
+       "name": "Sneasler",
+       "usagePct": 26.9063,
+       "raw": 92907
+      },
+      {
+       "rank": 9,
+       "name": "Sylveon",
+       "usagePct": 24.38735,
+       "raw": 62390
+      },
+      {
+       "rank": 10,
+       "name": "Sinistcha",
+       "usagePct": 20.02917,
+       "raw": 86700
+      },
+      {
+       "rank": 11,
+       "name": "Venusaur",
+       "usagePct": 18.49388,
+       "raw": 31429
+      },
+      {
+       "rank": 12,
+       "name": "Staraptor-Mega",
+       "usagePct": 15.07711,
+       "raw": 60199
+      },
+      {
+       "rank": 13,
+       "name": "Farigiraf",
+       "usagePct": 14.70428,
+       "raw": 71473
+      },
+      {
+       "rank": 14,
+       "name": "Raichu-Mega-Y",
+       "usagePct": 12.05213,
+       "raw": 45919
+      },
+      {
+       "rank": 15,
+       "name": "Delphox-Mega",
+       "usagePct": 10.72343,
+       "raw": 36919
+      },
+      {
+       "rank": 16,
+       "name": "Archaludon",
+       "usagePct": 9.76797,
+       "raw": 36619
+      },
+      {
+       "rank": 17,
+       "name": "Swampert-Mega",
+       "usagePct": 8.98362,
+       "raw": 28233
+      },
+      {
+       "rank": 18,
+       "name": "Aerodactyl-Mega",
+       "usagePct": 8.41471,
+       "raw": 24370
+      },
+      {
+       "rank": 19,
+       "name": "Arcanine-Hisui",
+       "usagePct": 8.34015,
+       "raw": 22855
+      },
+      {
+       "rank": 20,
+       "name": "Toxapex",
+       "usagePct": 7.60832,
+       "raw": 18436
+      }
+     ]
+    }
+   }
+  }
+ },
+ "store": {
+  "games": 102355,
+  "badLines": 0,
+  "tornRead": false,
+  "distinctSixSpecies": 361,
+  "distinctSetSpecies": 438,
+  "distinctUnion": 443,
+  "perFile": {
+   "data/games.ladder.jsonl": {
+    "present": true,
+    "games": 76833,
+    "badLines": 0,
+    "sizeBytes": 383723981,
+    "mtime": "2026-09-04T05:30:37.628Z",
+    "mtimeMovedDuringScan": false
+   },
+   "data/games.bo3.jsonl": {
+    "present": true,
+    "games": 25522,
+    "badLines": 0,
+    "sizeBytes": 227347410,
+    "mtime": "2026-09-04T05:30:48.177Z",
+    "mtimeMovedDuringScan": false
+   }
+  },
+  "join": "durable-ingest.js collapses mega/primal formes to the base species in `six`; `sets` keeps the battle forme. The seen-set is the UNION, or every mega would falsely read as unseen."
+ }
+}

@@ -1,8 +1,39 @@
 {
- "generated": "2026-09-04T01:29:33.339Z",
+ "generated": "2026-09-04T07:11:02.254Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "engine_release": "8ad06030e129",
+ "engine_release_cut": "2026-09-04T01:08:54.834Z",
+ "engine_release_cuts": 89,
+ "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+ "source_digests": {
+  "engine/medicham2-browser.js": "f8a48053d028",
+  "engine/board.js": "c85a3b756c98",
+  "engine/rollout_leaf.js": "00400fbc2862",
+  "engine/position_features.js": "4850adf1a2ab",
+  "engine/tags.js": "145a3cc9ce2f",
+  "engine/champions_sim.js": "b9ae3b072b4a",
+  "data/residual-order.json": "eff160ad1c5a",
+  "data/switchin-order.json": "24a007a66b7d",
+  "engine/mc_key.js": "f57c27a6bf38",
+  "engine/lookup.js": "17f49e5aed43",
+  "engine/set_priors.js": "f8a81445ee3a",
+  "engine/smogon_priors.js": "5c039f9ebdbc",
+  "engine/quality.js": "e8a3b0a14884",
+  "engine/showdown_path.js": "0efe29f4245d",
+  "data/move-effects.js": "f35ecd91ba86",
+  "data/ability-blocks.json": "86741fd35452",
+  "data/smogon-priors.json": "7cff8927a784",
+  "data/regulations.json": "6c1995e9a9fb",
+  "data/quality-filter.json": "3c733e7a0bfb",
+  "data/engine-data.js": "bbc417dfae0e",
+  "data/abra-tags.js": "ad3e18bff6ae",
+  "data/tags.json": "97581f80a200",
+  "data/policy-weights.json": "626c1d240782",
+  "data/policy-weights-joint.json": "e2aca467ff04",
+  "data/move-priors.json": "e667fe8ab457",
+  "engine/pp.js": "30b12a4ef623"
+ },
  "format": "gen9championsvgc2026regmb",
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
@@ -3699,6 +3730,12 @@
      "path": "p1.active[0].vol.focusenergy",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].vol.mustrecharge",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 1,
@@ -16296,6 +16333,12 @@
     },
     {
      "turn": 1,
+     "path": "p1.active[0].vol.mustrecharge",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p1.pp[0].frenzyplant",
      "with": 1,
      "without": 0
@@ -16632,6 +16675,12 @@
      "path": "p1.active[0].vol.focusenergy",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].vol.mustrecharge",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 1,
@@ -19542,6 +19591,12 @@
     },
     {
      "turn": 1,
+     "path": "p1.active[0].vol.mustrecharge",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p1.pp[0].hydrocannon",
      "with": 1,
      "without": 0
@@ -19671,6 +19726,12 @@
      "path": "p1.active[0].vol.focusenergy",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].vol.mustrecharge",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 1,
@@ -32014,6 +32075,12 @@
     },
     {
      "turn": 1,
+     "path": "p1.active[0].vol.mustrecharge",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p1.pp[0].rockwrecker",
      "with": 1,
      "without": 0
@@ -41296,6 +41363,12 @@
      "without": 1240
     },
     {
+     "turn": 1,
+     "path": "p2.active[0].vol.throatchop",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 2,
      "path": "p1.active[0].vol.focusenergy",
      "with": 0,
@@ -43781,7 +43854,7 @@
    "reads": "priority !== 0 on a damaging move",
    "note": "priority +3 — Crabominable is the SLOWEST legal user of this move in the format (63 against 120 Speed) and dies outright to Volcarona's Flamethrower. It carries a 100% FLINCH, which fires in both pin arms, so with the bracket correct the foe never acts and the user is UNTOUCHED at the boundary; with it ignored the user is dead before it clicks.  NO ON-BOARD NEGATIVE: no second doomed body with an ordinary click could be derived, so the ignored-bracket board is supplied by the CONTROL ARM alone.",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1138 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1204 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "crabominable",

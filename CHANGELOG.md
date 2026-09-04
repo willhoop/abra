@@ -10,6 +10,113 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.245.0] — 2026-09-04
+
+### Changed
+- **THE GATE COUNTS BOARDS NOW, AND NARRATION IS ITS OWN CLAUSE — WILL'S RULING, IMPLEMENTED.** The
+  whole-game clause gated on `j.diverged`, protocol first-divergence, printing **167 of 961**. It now
+  reads `state.games − state.games_board_never_diverged` = **77 of 961 (8.0%)**, and a separate
+  `narrationClause` carries **167 of 961** and REPORTS without gating. CLAUDE.md records the 2026-08-22
+  call: board-material now, narration as its own gate afterwards, chosen so the narration work is not
+  silently abandoned. **It gets a row, a count, a place in `failing`, and `--narration` exits 1 while
+  red** — a gate, not a backlog.
+  - **The non-gating flag is applied by a wrapper to EVERY return path, including the refusals.** In
+    the first draft only the final verdict carried it, so a stale or torn artifact would have made
+    narration come back WITHHELD, default to gating, and hold the gate shut on the exact quantity the
+    ruling took off the critical path. Two arms assert both refusal families keep the flag.
+  - **Both clauses name their quantity in their first words** and carry a `quantity` field. Two
+    correctly-computed numbers printed side by side with only one published has caused three
+    reconciles in one session here.
+- **GATE: CLOSED — 1 of 8 GATING clauses fail.** Seven PASS on artifacts that can now prove what
+  produced them; the one failure is the real engine backlog.
+
+### Added
+- **THE UNCAUSED SET IS PRINTED RATHER THAN LOST. 11 of the 77** part a board while the protocol never
+  diverges. Under the single clause those left the count entirely, **so a fix could improve the
+  headline without improving the engine.** Now its own kind, derived from four fields, named as
+  derived, and deliberately NOT clamped — a negative is reported as the artifact contradicting itself.
+- **ALL FIVE PINNED ARTIFACTS REGENERATED AND NOW CARRY A VERIFIABLE PIN** — `engine-diff`,
+  `roster.{items,abilities,moves}`, `all-mechanics-fire` — each with 26 `source_digests` plus
+  `showdown_commit`. Verified by the coordinator by reading the fields, not by trusting the run. **No
+  measured figure moved:** engine-diff 0/6000 at midpoint and both corners, roster 0 DIFFER /
+  0 DID-NOT-FIRE on all three stages, mechanics verdicts identical row for row.
+- `engine/pin_guard.js` — the one door that withholds on an absent, wrong or unverifiable pin.
+- **Smogon August 2026 archived as a COMPARISON SET, feeding nothing.** An ingest already existed
+  (`engine/fetch_smogon_stats.js`) and its cron was due to fire today, so it was run rather than
+  duplicated. 310 species, 1,269,250 bo1 battles, **zero illegal**, and the Champions SP fingerprint
+  (66/32, zero violations) was checked because the header carries no format name and a filename proves
+  nothing.
+
+### Fixed
+- **THREE LEAVES WIRED INTO THE COMPARATOR: `throatchop` (5,577 uses), `mustrecharge` (4,701),
+  `flashfire` (1,416).** Board leaves compared **34 → 37 of 80**; the hole 42 → 39, standing-at-a-
+  boundary 22 → 19. Each shown red first — the plant was INVISIBLE before, caught after — with the
+  agreeing-board control passing on both sides.
+- **A GUARD I ADDED HOURS EARLIER BROKE TWO OTHER SCRIPTS, AND WOULD HAVE READ AS *SKIPPED*.**
+  `game_differential.js`'s coverage-arm refusal ran at MODULE LOAD off the whole process's argv, so
+  `roster.js --write` and `all_mechanics_fire.js --write` died at exit 2 before playing a single game.
+  **Exit 2 is the SKIP code**, so `run-all` would have reported them politely skipped rather than
+  failed. Three of the five regenerations were impossible until it was fixed with
+  `require.main === module`. Both arms re-verified.
+- `tests/test-divergence-composition.js` repointed to `narrationClause` — it composes divergence
+  CLASSES, which is the narration quantity. 18 checks, all pass, was 17 with 10 red.
+
+### Notes
+- **A SELFTEST BREAK COST ZERO ARMS BECAUSE THE ARMS TESTED A COPY.** Putting narration back on the
+  gate should have gone red and did not — the arms exercised a five-line reimplementation of the
+  filter rather than the shipping one. The rule is now `gateVerdict()`, exported, and the arms drive
+  it. That is the *verifier re-implements the rule it is checking* class, caught on itself.
+  Selftest **186 → 210 passed, 0 failed**.
+- **THE THREE "PRE-EXISTING" FAILURES IN THE COMPOSITION TEST WERE NEITHER FIXED NOR HIDDEN — THEY
+  WERE NEVER FAILING.** A working-tree test written against the new `pin_guard.js` was run against a
+  `git show HEAD:` copy of `quarantine.js` that predates it. A VINTAGE GAP, reproduced exactly by
+  injecting HEAD's bytes, then disproved by finding the same arms green in the pre-rename working
+  tree. The "separate undiagnosed defect" filed against them is RETIRED. **A rename that silently
+  turns something green is indistinguishable from one that hides it, which is why this was checked
+  before it was committed.**
+- **`git stash` was REFUSED as a diagnostic here, correctly.** With `core.autocrlf=true` and 24 files
+  of other agents' uncommitted work in the tree, a stash/pop can rewrite line endings — the same
+  mechanism that has twice moved a release digest with no code change. A sparse HEAD worktree was used
+  instead and removed afterwards.
+- **THE LEAF WIDENING MEASURED FLAT: board-material 77 → 77, protocol 168 → 168.** The prediction,
+  called in advance, was *rise or stay flat, it cannot fall* — and it stayed flat. **The release id did
+  not change** (`8ad06030e129`), because `board_state.js` is the comparator and not one of the 26
+  frozen sources, so this ran on byte-identical engine bytes with the comparator as the only variable.
+  **Flat does NOT prove the three leaves are clean** — that artifact records divergences, not per-leaf
+  agreements, and `tests/probe_leaf_widening.js` is the separator.
+- **UNBURDEN IS NOT WIRED, ON MEASURED EVIDENCE, AND IT IS AN ENGINE DEFECT RATHER THAN A COMPARATOR
+  GAP.** `medicham2-browser.js` holds no state under that name; `effSpeed` recomputes from
+  `_hadItem && !m.item` (`:14770`), so **every body in this engine that loses an item gets Unburden's
+  speed doubling** — a Knock Off, a consumed berry, a used Sash. Owed a register row.
+- **HONEST CORRECTION TO A CLAIM MADE EARLIER TODAY:** the leaf widening does NOT simply generalise.
+  The comparator side does — two lines per leaf, and `SD_VOLATILE_KEYS` derives itself. **The fixtures
+  do not**: each needed a script written against the authority's own refusals, and Unburden proves a
+  leaf can look wireable on every derived column and still hold a different quantity under the same
+  name. The remaining 19 are real work, not a loop.
+- **OUR STORE HOLDS 85 SPECIES THAT ARE `isNonstandard: 'Past'`** — the known contamination,
+  re-measured rather than re-discovered. Species Smogon has seen that we never have: **0**. A naive
+  join says 71, including Charizard-Mega-Y at rank 6 with 26.5% usage, because `durable-ingest.js`
+  collapses megas to base in `six`; the correct seen-set is `six ∪ sets`, control-tested both ways.
+  bo1 and bo3 are different metagames — that species is 26.52% in one and 50.46% in the other.
+- **NOT RUN, BY WILL'S DECISION:** the weights restamp. `data/policy-weights.json` untouched and MAG
+  stays paused until MEDICHAM is correct. **Verified in code rather than assumed: `game_differential`,
+  `roster`, `all_mechanics_fire`, `test-engine-diff` and `steering` contain ZERO references to MAG or
+  the policy weights.** The empirical driver samples `data/move-priors.json` — real human clicks, no
+  model in the path.
+- Roster ran without `--reds`, so `reds: []` carries forward — deliberate, to keep the pin
+  regeneration a single-variable change.
+- **THE COMPARED-LEAF FIGURE HAS TWO DENOMINATORS AND BOTH ARE CORRECT — NAME WHICH, EVERY TIME.**
+  **37 of 80** is out of every leaf a legal mechanic can write. **37 of 56** is out of the CEILING —
+  80 less the 24 that can never be standing when the board is read (4 declared uncomparable, 18 with a
+  declared duration of 1 that end in the residual, 2 removed inside their own action). `coverage.js`
+  prints the 56 form and says so in its own note; the probe and this changelog print the 80 form.
+  Flagged during the documentation pass as "one of the two is wrong" — neither is. **It is the same
+  failure the board-material/narration split exists to prevent: two correctly-computed numbers, and a
+  reader with no way to tell which question was asked.**
+- Full accounts: six reports under `docs/_reports/2026-09-04-*.md`.
+
+---
+
 ## [5.244.0] — 2026-09-04
 
 ### Added

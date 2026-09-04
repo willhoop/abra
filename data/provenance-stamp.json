@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 189,
+  "mtime_only": 184,
   "mtime_only_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -20,7 +20,6 @@
     "ability-blocks.json",
     "abra-meta.js",
     "abra-tags.js",
-    "all-mechanics-fire.json",
     "archetypes.json",
     "artifact-rerunnable-baseline.json",
     "board-browser-baseline.json",
@@ -49,7 +48,6 @@
     "engine-data.js",
     "engine-diff-PLANTED-band.json",
     "engine-diff-PLANTED-spread.json",
-    "engine-diff.json",
     "engine-release.json",
     "eval-report.json",
     "exploitability-machamp.json",
@@ -141,15 +139,11 @@
     "rollout-seed-prevalence.json",
     "rollout-switch-census.json",
     "rollout-switch-probe.json",
-    "roster.abilities.json",
     "roster.abilities.pre-shape-rules.json",
     "roster.abilities.prev.json",
     "roster.all.json",
     "roster.all.prev.json",
-    "roster.items.json",
     "roster.items.prev.json",
-    "roster.json",
-    "roster.moves.json",
     "roster.moves.prev.json",
     "roster.moves.staging-trial.json",
     "roster.spine.json",
@@ -167,6 +161,7 @@
     "slowking-playstyle-eval.json",
     "slowking-playstyle.js",
     "slowking.js",
+    "smogon-coverage-2026-08.json",
     "smogon-priors-bo3.json",
     "smogon-priors.json",
     "species-abilities.json",
@@ -197,7 +192,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 4,
+  "verified": 9,
   "graph_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -422,6 +417,7 @@
     "slowking-playstyle-eval.json",
     "slowking-playstyle.js",
     "slowking.js",
+    "smogon-coverage-2026-08.json",
     "smogon-priors-bo3.json",
     "smogon-priors.json",
     "species-abilities.json",
@@ -1067,7 +1063,17 @@
       "files": [
         "next-regulation.json"
       ]
+    },
+    {
+      "when": "2026-09-04T07:21:20.775Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 path template smogon-coverage-<*>.json",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 252,
+      "graph_after": 253,
+      "files": [
+        "smogon-coverage-2026-08.json"
+      ]
     }
   ],
-  "generated": "2026-09-04T04:25:15.326Z"
+  "generated": "2026-09-04T07:21:20.776Z"
 }

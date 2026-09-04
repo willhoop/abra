@@ -4,6 +4,18 @@
  *   node engine/quarantine.js --graph    print the derivation: why each artifact is in or out
  *   node engine/quarantine.js --check    GATE — fails if a quarantined figure is being printed
  *   node engine/quarantine.js --selftest drive every branch on synthetic input, red and green
+ *   node engine/quarantine.js --whole-game  BOARD-MATERIAL games — the gating whole-game clause
+ *   node engine/quarantine.js --narration   PROTOCOL first-divergence games — reports, does not gate
+ *   node engine/quarantine.js --order-probe the move-vs-move turn-order floor
+ *
+ * THE TWO WHOLE-GAME COMMANDS ANSWER TWO DIFFERENT QUESTIONS AND NEITHER IS "THE" DIVERGENCE RATE.
+ * Will's call, 2026-08-22: *"board-material now, narration as its own separate gate afterwards."*
+ * `--whole-game` counts games whose BOARDS part (`state.games` less
+ * `state.games_board_never_diverged`) and decides the gate. `--narration` counts games whose
+ * PROTOCOL LINES part (`j.diverged`, less what is declared and cleared) and decides nothing. On
+ * release `8ad06030e129` they read 77 of 961 and 167 of 961 — the same run, two quantities. Quote
+ * one without its name and somebody spends an afternoon reconciling it; ROADMAP #387 is that
+ * afternoon already spent once.
  *
  * WHY THIS EXISTS
  * ---------------
@@ -36,6 +48,10 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
+/* THE ONE REFUSAL FOR "WHAT WAS THIS MEASURED UNDER" — 2026-09-04. Five clauses in this file each
+ * carried their own copy of *"this refuses a MISMATCH, not an absence"*, so five of them read an
+ * artifact that declared NOTHING as agreement. See engine/pin_guard.js for the receipt. */
+const PIN = require('./pin_guard.js');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -487,17 +503,24 @@ function rosterStage(stage, inject) {
     if (j.stage !== stage && !(j.stage === 'all' && ROSTER_STAGES.includes(stage))) continue;
     /* THE RELEASE GUARD, BEFORE A SINGLE COUNT IS READ — see the header on this function. It sits
      * here rather than after the arithmetic so that nothing downstream can read a figure the clause
-     * has decided it may not report. An artifact with NO stamp is still allowed to answer, exactly as
-     * `orderProbeClause` and `wholeGameClause` allow one: this refuses a MISMATCH, not an absence. */
-    const ranOn = j.engine_release || j.release || null;
-    if (ranOn && curId && ranOn !== curId) {
-      return { stage, file: 'data/' + f, ok: false, withheld: true, cannot_answer: true,
-        ranOn, staleAgainst: curId, generated: j.generated || null,
-        why: `MEASURED AGAINST A DIFFERENT ENGINE — this artifact ran on release ${ranOn} and the `
-           + `tree is ${curId}. That is not a weaker answer, it is an answer about other bytes. `
-           + `WITHHELD, not annotated: every count in data/${f} describes a simulator that is not `
-           + `this one, and none of them is repeated here. Re-run SHOWDOWN_PATH=... node `
-           + `tests/roster.js --stage ${stage} --write.` };
+     * has decided it may not report.
+     *
+     * IT USED TO REFUSE A MISMATCH AND ALLOW AN ABSENCE, and it said so in as many words. That
+     * sentence was copied into five clauses in this file, so five of them read an artifact that
+     * declared NOTHING as agreement — the equivalence CLAUDE.md names as this repository's most
+     * expensive failure mode. It now goes through engine/pin_guard.js, which refuses both, and asks
+     * for `source_digests` as well: an id is a CLAIM about which bytes were read and the digest set
+     * is the only thing provenance.js can check BY CONTENT. tests/roster.js opens a release and holds
+     * the handle, so spreading `REL.stamp()` into its artifact is a one-line change. */
+    {
+      const r = PIN.guard({ name: `deliberate roster / ${stage}`, file: 'data/' + f, artifact: j,
+        need: ['release', 'digests'], curId,
+        rerun: `SHOWDOWN_PATH=... node tests/roster.js --stage ${stage} --write` });
+      /* THE COUNT FIELDS ARE ABSENT FROM A WITHHELD VERDICT, not set to null — a reader doing
+       * `r.differ ?? '?'` would print `?` either way, but `differ in r` is the difference between
+       * "this clause reported no divergences" and "this clause reported nothing". The selftest
+       * asserts it by name. */
+      if (r) return Object.assign(r, { stage, file: 'data/' + f });
     }
     const c = j.counts || {};
     const differ = c['FIRED-AND-BOARDS-DIFFER'] || 0;
@@ -567,6 +590,8 @@ function rosterStage(stage, inject) {
         + (sc && sc.unattributable_ids ? `: ${sc.unattributable_ids.join(', ')}` : '');
     return {
       stage, file: 'data/' + f, generated: j.generated || null, release: j.engine_release || null,
+      pins: PIN.receipt({ file: 'data/' + f, checked: ['release', 'digests'],
+                          release: j.engine_release || null }),
       differ, silent, badReds, matched: c['FIRED-AND-BOARDS-MATCH'] || 0,
       couldNotStage: c['COULD-NOT-STAGE'] || 0,
       deferred: deferred.length, staleShelf, scope: sc, unattributable,
@@ -585,6 +610,8 @@ function rosterStage(stage, inject) {
   }
   return {
     stage, file: null, ok: false, missing: true, differ: null, silent: null,
+    pins: PIN.receipt({ file: null, checked: ['release', 'digests'],
+                        why: 'no artifact declares this stage' }),
     why: `NO ARTIFACT FOR THIS STAGE — none of ${tried.join(', ')} declares stage "${stage}". `
        + `A missing stage is a FAILING clause, never a passing one: run `
        + `SHOWDOWN_PATH=... node tests/roster.js --stage ${stage} --write`,
@@ -595,11 +622,30 @@ function rosterStage(stage, inject) {
  * reimplements its rule in three lines and therefore proves nothing about the rule that ships; this
  * one drives THE SHIPPING FUNCTION on synthetic artifacts. Absent, it reads the real file exactly as
  * before. */
-function differentialClause(artifact) {
+function differentialClause(artifact, curId) {
   const j = artifact === undefined ? readJson(D('data', 'engine-diff.json')) : artifact;
   if (!j) {
     return { name: 'game differential', ok: false, missing: true,
+             pins: PIN.receipt({ file: 'data/engine-diff.json', checked: ['release', 'digests'],
+                                 why: 'no artifact to pin' }),
              why: 'NO ARTIFACT — data/engine-diff.json is absent. Run tests/test-engine-diff.js.' };
+  }
+  /* ---- THE PIN, BEFORE A SINGLE COUNT IS READ — 2026-09-04 --------------------------------------
+   *
+   * THIS ARTIFACT CARRIED NO RELEASE PIN AT ALL, and it is the one behind "clean at BOTH corners of
+   * the damage roll: midpoint 0 of 6000". Measured: between its `generated` stamp (2026-08-29T06:49Z)
+   * and 2026-09-04, FOUR of the twenty-six frozen sources moved — `engine/medicham2-browser.js`
+   * (six commits), `data/engine-data.js`, `data/tags.json` and `data/abra-tags.js`. Every other
+   * clause in this file refuses a release mismatch. This one could not: there was no field to read.
+   *
+   * ITS PRODUCER READS THE LIVE TREE ON PURPOSE and that is not the defect — an INSTRUMENT is not
+   * frozen, only the engine is. What was missing was a way to stamp the live tree without cutting a
+   * release it had not read from, which `engine_release.liveStamp()` now provides. */
+  {
+    const r = PIN.guard({ name: 'game differential', file: 'data/engine-diff.json', artifact: j,
+      need: ['release', 'digests'], curId,
+      rerun: 'SHOWDOWN_PATH=... node tests/test-engine-diff.js --n 6000 --seed 20260804' });
+    if (r) return r;
   }
   const dis = j.disagreed || 0;
   const worst = (j.worst || [])[0];
@@ -619,14 +665,17 @@ function differentialClause(artifact) {
    * be computed must fail (the same rule `coverageClause` states); reading a missing arm as "nothing
    * disagreed" is exactly the silent default this file exists to stop. A PLANTED run fails too — a red
    * demonstration is not a measurement, and the instrument already refuses to write it here. */
+  /* the receipt every return below carries — see engine/pin_guard.js `audit` */
+  const RCPT = PIN.receipt({ file: 'data/engine-diff.json', checked: ['release', 'digests'],
+                             release: (j[PIN.K.id] || null) });
   if (j.plant) {
-    return { name: 'game differential', ok: false, generated: j.generated || null,
+    return { name: 'game differential', ok: false, generated: j.generated || null, pins: RCPT,
       why: `THIS ARTIFACT IS A PLANTED RED DEMONSTRATION (--plant ${j.plant.kind}) and is not a `
          + 'measurement. Re-run tests/test-engine-diff.js without --plant.' };
   }
   const arms = Array.isArray(j.arms) ? j.arms : null;
   if (!arms || !arms.length) {
-    return { name: 'game differential', ok: false, generated: j.generated || null,
+    return { name: 'game differential', ok: false, generated: j.generated || null, pins: RCPT,
       why: 'THE CORNER ARMS ARE ABSENT from data/engine-diff.json. `disagreed` is a MIDPOINT residual '
          + 'and cannot see a range wrong by the same amount at both ends, so it is not a sufficient '
          + 'claim on its own. Re-run: SHOWDOWN_PATH=... node tests/test-engine-diff.js --n 6000 '
@@ -636,7 +685,7 @@ function differentialClause(artifact) {
   const ok = dis === 0 && badArms.length === 0;
   const armTxt = arms.map(a => `${a.arm} ${a.disagreed || 0}/${a.compared}`).join(', ');
   return {
-    name: 'game differential', ok, generated: j.generated || null,
+    name: 'game differential', ok, generated: j.generated || null, pins: RCPT,
     arms: arms.map(a => ({ arm: a.arm, compared: a.compared, disagreed: a.disagreed || 0 })),
     why: ok
       ? `clean at BOTH corners of the damage roll: midpoint 0 of ${j.compared}, ${armTxt} (seed ${j.seed})`
@@ -810,12 +859,16 @@ function mechanicsClause(inject) {
   const j = (inject && inject.j) || readJson(D('data', 'all-mechanics-fire.json'));
   if (!j) {
     return { name: NAME, ok: false, missing: true,
+      pins: PIN.receipt({ file: 'data/all-mechanics-fire.json', checked: ['release', 'digests'],
+                          why: 'no artifact to pin' }),
       why: 'NO ARTIFACT — data/all-mechanics-fire.json is absent. A clause that cannot be computed '
          + 'FAILS. Run: SHOWDOWN_PATH=... node engine/all_mechanics_fire.js --kind all --write' };
   }
   const cur = (inject && inject.cur) || readJson(D('data', 'engine-release.json'));
   const curId = cur && (cur.id || cur.release || cur.current);
   const ranOn = j.release || j.engine_release || null;
+  const MRCPT = PIN.receipt({ file: 'data/all-mechanics-fire.json',
+                             checked: ['release', 'digests'], release: ranOn });
   const s = j.summary || {};
   const div = ['moves', 'abilities', 'items'].reduce((n, k) => n + (+((s[k] || {}).diverged) || 0), 0);
   const unfired = ['abilities', 'items'].reduce((n, k) => n + (+((s[k] || {}).did_not_fire) || 0), 0);
@@ -833,11 +886,33 @@ function mechanicsClause(inject) {
              + (shelved ? `;  ${shelved} shelved by the owner — still staged and played, not counted` : '')
              + `]`;
 
-  if (ranOn && curId && ranOn !== curId) {
-    return { name: NAME, ok: false, generated: j.generated || null, staleAgainst: curId, ranOn,
-      why: `MEASURED AGAINST A DIFFERENT ENGINE — this artifact ran on release ${ranOn} and the tree `
-         + `is ${curId}. That is not a weaker answer, it is an answer about other bytes. Re-run before `
-         + `this clause can say anything.` + tail };
+  /* ---- THE PIN, THROUGH THE ONE DOOR — 2026-09-04 -----------------------------------------------
+   *
+   * TWO THINGS WERE WRONG HERE AND ONLY ONE OF THEM WAS THE MISSING ABSENCE CHECK.
+   *
+   * (1) THE REFUSAL PRINTED THE FIGURES IT WAS REFUSING. `+ tail` appended
+   *     `[moves 4, abilities 0, items 0; 3 never fired ...]` to a sentence saying the artifact
+   *     describes other bytes. That is a captioned figure, which CLAUDE.md calls the bug in as many
+   *     words — `PRE-CHANGE` was printed beside the quarantined numbers and they were quoted anyway.
+   *     Nothing measured comes back on the refusal now.
+   * (2) `ranOn &&` MEANT AN ARTIFACT WITH NO PIN ANSWERED. And this one hand-rolls `release: <id>`
+   *     rather than spreading `REL.stamp()`, so it carries no `showdown_commit` — while the AUTHORITY
+   *     selects its population: its 500 moves come from `dex.moves.all()` filtered to the format, so a
+   *     different Showdown checkout is a different denominator — and no `source_digests`, which is
+   *     the only thing provenance.js can verify by CONTENT. `GD.REL` is already open in that file;
+   *     `...GD.REL.stamp()` replaces the hand-rolled field.
+   *
+   * IT IS NOT CENSUS-STEERED, and the note in CLAUDE.md saying it is does not hold for this file.
+   * MEASURED 2026-09-04: `engine/all_mechanics_fire.js` contains no reference to
+   * `data/mechanics-census.json` at all — the census steers `engine/game_differential.js`, which is a
+   * different instrument. Its population is the format's legal entity lists plus `data/tags.json`,
+   * and both are covered by the release stamp (tags.json is a frozen source; the checkout is
+   * `showdown_commit`). So the pin it needs is the STAMP, not a steering block. */
+  {
+    const r = PIN.guard({ name: NAME, file: 'data/all-mechanics-fire.json', artifact: j,
+      need: ['release', 'digests'], curId: curId || null,
+      rerun: 'SHOWDOWN_PATH=... node engine/all_mechanics_fire.js --kind all --write' });
+    if (r) return r;
   }
 
   /* ---- THE DECISION-EQUIVALENCE BAR, APPLIED PER ENTITY ----------------------------------------
@@ -855,6 +930,7 @@ function mechanicsClause(inject) {
    * an older artifact with a `summary` and no `rows` must not read as "nothing to filter". */
   if (rowsMissing.length || rowsSeen !== div) {
     return { name: NAME, ok: div === 0, generated: j.generated || null, diverged: div, unfired,
+      pins: MRCPT,
       why: (rowsMissing.length
         ? `THE REACH FILTER CANNOT BE APPLIED — data/all-mechanics-fire.json carries no per-entity rows `
           + `for ${rowsMissing.join(', ')}, so every divergence counts. `
@@ -948,7 +1024,7 @@ function mechanicsClause(inject) {
       + declaredThrew.map((r) => '    ' + r.cause + '  ->  ' + r.error).join(NL)
     : '';
 
-  return { name: NAME, ok: counted.length === 0, generated: j.generated || null,
+  return { name: NAME, ok: counted.length === 0, generated: j.generated || null, pins: MRCPT,
     diverged: div, unfired, counted: counted.length, shelved: belowShelf.length,
     unknown_reach: unknown.length, decision_cleared: excused.length,
     /* the split a reader needs, as DATA and not only as prose — never summed into `diverged` */
@@ -987,6 +1063,9 @@ function coverageClause() {
   if (!tags) missing.push('data/tags.json');
   if (missing.length) {
     return { name: 'coverage / every used mechanic is measured by something', ok: false, missing: true,
+      pins: PIN.noArtifact('this clause recomputes from data/click-counts.json, data/mechanics-census.json '
+      + 'and data/tags.json on every run and holds no result of its own, so there is nothing for it '
+      + 'to be stale against — it is the READER of those artifacts, not a record of a measurement'),
       why: `CANNOT ANSWER — absent: ${missing.join(', ')}. A clause that cannot be computed FAILS; `
          + 'reading it as "nothing is uncovered" is the shape of bug this gate exists to stop.' };
   }
@@ -1020,6 +1099,9 @@ function coverageClause() {
   const tagsAtFault = [...new Set(uncovered.flatMap(u => (u.why.match(/probed: (.*)$/) || [, ''])[1].split(', ').filter(Boolean)))];
   return {
     name: 'coverage / every used mechanic is measured by something',
+    pins: PIN.noArtifact('this clause recomputes from data/click-counts.json, data/mechanics-census.json '
+      + 'and data/tags.json on every run and holds no result of its own, so there is nothing for it '
+      + 'to be stale against — it is the READER of those artifacts, not a record of a measurement'),
     ok: uncovered.length === 0, uncovered, above_shelf: above,
     why: uncovered.length === 0
       ? `clean: all ${above} moves above ${SHELF} clicks are measured by the roster or the census`
@@ -1327,6 +1409,17 @@ function roadmapRowSaysBroken(l) {
  * recorded and printed beside the declared count rather than absorbed into it. Empty is the claim
  * that every matcher answered. */
 const MATCHER_THREW = [];
+
+/* THE SENTENCE THE NARRATION CLAUSE CARRIES ON EVERY RUN, PASSING OR FAILING — see `gates: false` in
+ * `narrationClause`'s return. It says the quantity, says it does not block, and says what would make
+ * that a lie, because a clause that quietly stopped blocking is exactly what "we'll do narration
+ * later" turning into the fourteen stale handoffs would look like from the outside. */
+const REPORTS_NOT_GATES =
+  ' THIS CLAUSE REPORTS, IT DOES NOT HOLD THE GATE SHUT — Will, 2026-08-22: board-material now,'
+  + ' narration as its own separate gate afterwards. The GATING whole-game clause counts'
+  + ' BOARD-MATERIAL games (`state.games` less `state.games_board_never_diverged`) and is a different'
+  + ' number on the line above this one; do not read the two as one quantity. Narration exits'
+  + ' non-zero on its own through `node engine/quarantine.js --narration`.';
 
 /* THE ONLY KINDS THAT MAY BE SUBTRACTED, AND THEIR HEADINGS. A `kind` outside this table is not
  * declared — see the loop in `wholeGameClause`. Keeping the headings HERE, beside the rows, is what
@@ -2013,18 +2106,37 @@ function mechanicsCauseEvidence(j) {
   return causeEvidence({ first_divergences: firsts });   /* deliberately no `order_probe` */
 }
 
-/* `wgDecisionImpact` IS THE SECOND INJECTION POINT AND IT EXISTS FOR THE SELFTEST ONLY, on the same
- * reasoning as `artifact` above and as `withholder`'s gate argument: a `--force` flag anybody can pass
- * on the command line eventually gets passed, and a parameter is visible in the caller where a flag is
- * not. Left undefined by every shipping caller, which is what makes the real reader the default. */
-function wholeGameClause(artifact, wgDecisionImpact) {
-  const NAME = 'whole-game differential / the same game on both engines';
+/* ================================================================================================
+ * ONE DOOR ONTO data/game-differential.json — THE READ AND EVERY REFUSAL, ASKED ONCE FOR BOTH OF
+ * THE CLAUSES THAT READ IT.
+ * ================================================================================================
+ * WILL'S 2026-08-22 CALL SPLIT THIS ARTIFACT INTO TWO CLAUSES — board-material GATES, narration
+ * REPORTS — and a split is exactly the shape that has already cost this file. `pin_guard.js`'s own
+ * header records ONE refusal sentence copied into FIVE clauses, every one of which therefore read an
+ * artifact that declared NOTHING as agreement. Copying the pin guard, the steering guard and the
+ * missing-artifact branch into a second whole-game clause would have rebuilt that failure on the day
+ * the guard against it landed.
+ *
+ * So the door is asked ONCE and answers `{ refused }` or `{ j, rcpt }`. A caller that ignores the
+ * refusal cannot get a `j` out of it — there is no path to the numbers that does not pass the guard.
+ *
+ * WHAT IS DELIBERATELY *NOT* IN HERE: THE PLANTED PROOFS, BECAUSE THEY ARE TWO DIFFERENT PROOFS.
+ * `planted_divergence_proof_ok` is the PROTOCOL comparator proving it can see a protocol divergence
+ * it planted itself. `state.planted_state_proof_ok` is the BOARD comparator proving it can see a
+ * board one — a planted HP off-by-one, a planted stat stage — and `state.mappings_all_proved` is the
+ * claim that every leaf mapping was demonstrated. A board clause resting on the protocol proof would
+ * be an instrument vouched for by a DIFFERENT instrument, which reads exactly like a vouched one.
+ * Each clause therefore checks its own, below.
+ * ============================================================================================== */
+function wholeGameDoor(NAME, artifact) {
   const j = artifact === undefined ? readJson(D('data', 'game-differential.json')) : artifact;
   if (!j) {
-    return { name: NAME, ok: false, missing: true,
+    return { refused: { name: NAME, ok: false, missing: true,
+      pins: PIN.receipt({ file: 'data/game-differential.json',
+                          checked: ['release', 'digests', 'population'], why: 'no artifact to pin' }),
       why: 'NO ARTIFACT — data/game-differential.json is absent. A clause that cannot be computed '
          + 'FAILS. Run: SHOWDOWN_PATH=... node engine/game_differential.js --release <id> '
-         + '--games 1200 --write' };
+         + '--games 1200 --write' } };
   }
   /* ==============================================================================================
    * THE HEADLINE IS WITHHELD WHEN IT DESCRIBES BYTES THE TREE NO LONGER HAS — ROADMAP #298.
@@ -2054,21 +2166,27 @@ function wholeGameClause(artifact, wgDecisionImpact) {
    * artifact carrying no release at all is allowed to answer, exactly as `orderProbeClause` allows
    * one, and the selftest's injected artifacts rely on that. A tree with no `engine-release.json`
    * likewise compares nothing — there is no id to disagree with.
+   *
+   *   ^^^ THAT PARAGRAPH IS RETRACTED, 2026-09-04, AND IS LEFT STANDING BECAUSE IT IS WHAT THE
+   *   SENTENCE COST. "Consistent with its siblings" was true and was the problem: FIVE clauses in
+   *   this file carried the same rule, so all five read an artifact that declared NOTHING as
+   *   agreement. `engine/sweep.js` §2 reported 3 of 8 clauses blind on exactly this, and the
+   *   selftest arms that "relied on that" were relying on a fixture nobody had pinned rather than on
+   *   a principle. Absence now REFUSES, in `engine/pin_guard.js`, for every clause at once.
    * ============================================================================================ */
+  /* THE `ranOn && curId &&` ABOVE MEANT AN ARTIFACT WITH NO PIN ANSWERED, and the paragraph below
+   * argued for that on purpose ("a missing release id is a fact about an old writer"). It is wrong,
+   * and it was wrong in the same place four more times: `rosterStage`, `mechanicsClause`,
+   * `orderProbeClause` and `decisionImpact` each carried the same sentence. Silence is not a fact
+   * about an old writer when the thing being decided is WHICH BYTES THIS NUMBER DESCRIBES — it is
+   * the absence of the only evidence that could answer. One refusal now, in engine/pin_guard.js. */
   {
-    const cur = readJson(D('data', 'engine-release.json'));
-    const curId = cur && (cur.id || cur.release || cur.current);
-    const ranOn = j.engine_release || j.release || null;
-    if (ranOn && curId && ranOn !== curId) {
-      return { name: NAME, ok: false, cannot_answer: true, withheld: true,
-        generated: j.generated || null, ranOn, staleAgainst: curId,
-        why: `MEASURED AGAINST A DIFFERENT ENGINE — this artifact ran on release ${ranOn} and the tree `
-           + `is ${curId}. That is not a weaker answer, it is an answer about other bytes. THE RATE, `
-           + `THE DIVERGED COUNT, THE GAME COUNT AND THE CLASS COMPOSITION ARE ALL WITHHELD rather `
-           + `than printed with a caveat — a figure beside a warning is what got the PRE-CHANGE `
-           + `numbers quoted for days. Re-run before this clause can say anything: `
-           + `SHOWDOWN_PATH=... node engine/game_differential.js --games 1200 --write` };
-    }
+    const r = PIN.guard({ name: NAME, file: 'data/game-differential.json', artifact: j,
+      need: ['release', 'digests'],
+      rerun: 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
+           + '--arm middle --end-state --census <pin> --games 1200 '
+           + '--team-store data/team-pool-frozen --write' });
+    if (r) return { refused: r };
   }
   /* ==============================================================================================
    * THE POPULATION IS PART OF THE QUESTION — 2026-09-03. A GATE THAT CANNOT TELL WHICH DRIVER
@@ -2087,8 +2205,10 @@ function wholeGameClause(artifact, wgDecisionImpact) {
    * is not the question the gate is asking.
    *
    * IT REFUSES RATHER THAN DOWNGRADES, AND IT REFUSES ON ABSENCE TOO. The sibling refusals in this
-   * function (#298, decisionImpact) allow an UNSTAMPED artifact to answer, because a missing release
-   * id is a fact about an old writer and not a claim about the games. Steering is not like that: an
+   * function (#298, decisionImpact) allowed an UNSTAMPED artifact to answer when this was written,
+   * because a missing release id was read as a fact about an old writer and not a claim about the
+   * games. THEY NO LONGER DO — 2026-09-04, engine/pin_guard.js; the exception this paragraph carves
+   * out for steering turned out to be the RULE. Steering is not like that: an
    * artifact with no `steering` block is one whose sample nobody recorded, and `steering.comparable`
    * has failed closed on exactly that since it was written — *"the honest answer for those is NOT
    * that they were comparable, it is that nothing recorded whether they were."* Every artifact this
@@ -2096,32 +2216,256 @@ function wholeGameClause(artifact, wgDecisionImpact) {
    *
    * THE FIGURES ARE WITHHELD, NOT CAPTIONED, for the same reason as #298 one block up: a rate printed
    * beside a warning gets quoted without the warning. `PRE-CHANGE` has the receipt. */
+  /* IT CHECKED `steering.policy` AND NOTHING ELSE — 2026-09-04, LAST NIGHT'S DEFECT ONE FIELD OVER.
+   *
+   * The block above refused the wrong DRIVER and waved through the wrong TEAM POOL, using a field the
+   * artifact ALREADY RECORDS (`steering.team_pool_digest`) and that `engine/steering.js` has refused
+   * the absence of since WIRE 5 — *"the swarm reads the live game store, which OPS appends to"*. A run
+   * against a different pool passed this clause. So the selector list is asked for through
+   * `steering.vouches()`, which is now the one implementation for the one-sided question and for
+   * `comparable()`'s two-sided one; a selector added there tomorrow is checked here the same day with
+   * no edit in this file. */
   {
     const STEERING = require('./steering.js');
-    const pol = (j.steering && j.steering.policy) ? String(j.steering.policy) : null;
-    if (pol !== STEERING.POLICY_EMPIRICAL) {
-      return { name: NAME, ok: false, cannot_answer: true, withheld: true,
-        generated: j.generated || null, steering_policy: pol,
-        wanted_steering_policy: STEERING.POLICY_EMPIRICAL,
-        why: `MEASURED ON THE WRONG POPULATION — this clause is answered by \`${STEERING.POLICY_EMPIRICAL}\``
-           + ` and the artifact declares \`${pol || '(no steering block at all)'}\`. THE RATE, THE`
-           + ` DIVERGED COUNT, THE GAME COUNT AND THE CLASS COMPOSITION ARE ALL WITHHELD. Under the`
-           + ` coverage driver the games do not end — 944 of 961 stop at the turn cap and 17 reach a`
-           + ` result, so a PASS there is a claim about openings, not about games. Re-run the`
-           + ` published arm: SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical`
-           + ` --release <id> --arm middle --end-state --census <pin> --games 1200`
-           + ` --team-store data/team-pool-frozen --write` };
-    }
+    const r = PIN.guard({ name: NAME, file: 'data/game-differential.json', artifact: j,
+      need: ['population'], policy: STEERING.POLICY_EMPIRICAL,
+      note: 'Under the coverage driver the games do not end — 944 of 961 stop at the turn cap and 17 '
+          + 'reach a result, so a PASS there is a claim about openings, not about games.',
+      rerun: 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
+           + '--arm middle --end-state --census <pin> --games 1200 '
+           + '--team-store data/team-pool-frozen --write' });
+    if (r) return { refused: Object.assign(r, { steering_policy: (j.steering && j.steering.policy) || null,
+                                                wanted_steering_policy: STEERING.POLICY_EMPIRICAL }) };
   }
+  const WGRCPT = PIN.receipt({ file: 'data/game-differential.json',
+                              checked: ['release', 'digests', 'population'],
+                              release: j[PIN.K.id] || null });
+  return { j, rcpt: WGRCPT };
+}
+
+
+/* ================================================================================================
+ * THE WHOLE-GAME CLAUSE COUNTS BOARDS THAT PART — WILL'S CALL, 2026-08-22, WIRED 2026-09-04.
+ * ================================================================================================
+ * *"the bar is BOARD-MATERIAL now, with narration as its own separate gate afterwards."* CLAUDE.md
+ * carries the ruling and the reasoning: **commentary may differ; boards may not.** What it did NOT
+ * carry until today was a clause that computes it. The whole-game clause gated on `j.diverged` — the
+ * PROTOCOL first-divergence count, the turn at which the two engines' `|` lines stop matching — and
+ * read `167 of 961` while `state.games - state.games_board_never_diverged` sat in the same artifact,
+ * unread, at `77 of 961`.
+ *
+ * THE TWO FIELDS ARE READ, NOT DERIVED. `engine/game_differential.js` writes `state.games` and
+ * `state.games_board_never_diverged`; this clause subtracts them and does nothing else. There is no
+ * second implementation of "did a board part" here — `engine/board_state.js` decides that, once, and
+ * the differential records the answer.
+ *
+ * WHY THIS IS NOT A RELAXATION, MEASURED RATHER THAN ASSERTED. Of the 168 protocol-diverged games in
+ * the artifact this landed against, `protocol_diverged_board_never_did` is **102**: those games write
+ * no differing board leaf at any compared turn boundary. They are real work and they are narration.
+ * Meanwhile 11 games part a BOARD with no protocol divergence at all — see UNCAUSED below — and the
+ * old clause counted exactly none of them. The split does not lower the bar so much as point it at
+ * the right quantity, and on those 11 it RAISES it.
+ *
+ * NOTHING MAY BE SUBTRACTED FROM THIS COUNT, AND THAT IS STRUCTURAL RATHER THAN STRICT. Both
+ * subtraction mechanisms in this file — `DECLARED_DIVERGENCE` and `data/decision-impact.json` —
+ * attribute by protocol CAUSE, over `classes[].causes[]`. The artifact records no cause for a parted
+ * board: a board divergence is a `state.first_board_divergences` row carrying leaf PATHS, and there
+ * is no mapping from a path to a cause. So this clause publishes a RAW count and says so, and the
+ * perish-drain `CLOSETED` row — which is a protocol declaration — subtracts from the NARRATION clause
+ * and cannot open this one. Inventing an attribution here to make the two look symmetrical would be
+ * the merged-number failure this file has already paid for twice.
+ *
+ * AND THAT CLOSETED ROW'S OWN FALSIFIER IS LIVE ON THIS ARTIFACT. Its `falsifiedBy` clause (b) reads
+ * *"the board claim failing — `state.games_board_never_diverged` below `state.games`, ... or a
+ * non-empty `state.first_board_divergences`"*. Both are true here. That is not this clause's verdict
+ * to take — the row is a NARRATION declaration and the register printer names it there — but a board
+ * clause that computed the exact quantity a live declaration is falsified by, and said nothing, would
+ * be the silent default rebuilt inside the fix for it.
+ * ============================================================================================== */
+function wholeGameClause(artifact) {
+  const NAME = 'whole-game differential / BOARD-MATERIAL — games whose boards part';
+  const DOOR = wholeGameDoor(NAME, artifact);
+  if (DOOR.refused) return DOOR.refused;
+  const j = DOOR.j;
+  const NL = String.fromCharCode(10);
+  const RCPT = PIN.receipt({ file: 'data/game-differential.json',
+    checked: ['release', 'digests', 'population', 'state.planted_state_proof_ok',
+              'state.mappings_all_proved'],
+    release: j[PIN.K.id] || null });
+  const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
+  const st = (j.state && typeof j.state === 'object') ? j.state : null;
+  const games = st ? num(st.games) : null;
+  const never = st ? num(st.games_board_never_diverged) : null;
+  /* A CLAUSE THAT CANNOT BE COMPUTED FAILS — this file's own standing rule, and the ONE branch a
+   * board gate must not soften. Falling back on `j.diverged` here would publish the narration count
+   * under the board clause's name, which is precisely the confusion this split exists to end. There
+   * is no fallback and there will not be one: `state_mode` is named so a reader knows the run was
+   * never asked for boards, rather than guessing that boards agreed. */
+  if (games === null || never === null) {
+    return { name: NAME, ok: false, cannot_answer: true, generated: j.generated || null, pins: RCPT,
+      why: 'CANNOT ANSWER — this artifact carries no board comparison. `state.games` reads '
+         + String(st ? st.games : '(no `state` block at all)')
+         + ' and `state.games_board_never_diverged` reads '
+         + String(st ? st.games_board_never_diverged : '-')
+         + '; `state_mode` is ' + String(j.state_mode) + '. THERE IS NO FALLBACK ONTO THE PROTOCOL '
+         + 'COUNT: `j.diverged` answers a different question and publishing it here would be the '
+         + 'silent default. Re-run with boards on: SHOWDOWN_PATH=... node '
+         + 'engine/game_differential.js --steering empirical --release <id> --arm middle --end-state '
+         + '--census <pin> --games 1200 --team-store data/team-pool-frozen --write' };
+  }
+  if (!games) {
+    return { name: NAME, ok: false, generated: j.generated || null, pins: RCPT,
+      why: 'THE ARTIFACT RECORDS ZERO GAMES WITH A BOARD COMPARED, which is not the same as zero '
+         + 'boards parting.' };
+  }
+  /* THE BOARD COMPARATOR'S OWN PLANTED PROOF, NOT THE PROTOCOL ONE. `planted_divergence_proof_ok`
+   * proves the LINE comparator can see a planted line; it says nothing about whether the LEAF
+   * comparator can see a planted HP or a planted stat stage. `state.planted_state_proof` plants
+   * exactly those, and `state.mappings_all_proved` is the claim that every leaf mapping was
+   * demonstrated. An instrument blind to a board difference it planted itself cannot be believed
+   * about the ones it did not plant — and a board clause vouched for by the PROTOCOL proof would be
+   * an instrument vouched for by a different instrument, which reads exactly like a vouched one. */
+  if (st.planted_state_proof_ok !== true || st.mappings_all_proved !== true) {
+    return { name: NAME, ok: false, cannot_answer: true, generated: j.generated || null, pins: RCPT,
+      why: 'THE BOARD COMPARATOR DID NOT PROVE ITSELF — `state.planted_state_proof_ok` is '
+         + String(st.planted_state_proof_ok) + ' and `state.mappings_all_proved` is '
+         + String(st.mappings_all_proved) + '. A comparator blind to a board difference it planted '
+         + 'itself says nothing about the ones it did not plant, so every board figure in this run is '
+         + 'WITHHELD rather than printed with a caveat. Re-run: SHOWDOWN_PATH=... node '
+         + 'engine/game_differential.js --steering empirical --release <id> --arm middle --end-state '
+         + '--census <pin> --games 1200 --team-store data/team-pool-frozen --write' };
+  }
+  const material = games - never;
+  if (material < 0) {
+    return { name: NAME, ok: false, cannot_answer: true, generated: j.generated || null, pins: RCPT,
+      why: 'THE ARTIFACT CONTRADICTS ITSELF — `state.games_board_never_diverged` is ' + never
+         + ' out of `state.games` ' + games + ', which is more games than were played. No board '
+         + 'figure can be taken from a run whose own two fields disagree.' };
+  }
+  /* ==============================================================================================
+   * THE UNCAUSED SET — A BOARD THAT PARTS WITH NOTHING IN THE NARRATION POINTING AT IT.
+   * ==============================================================================================
+   * This is the failure mode of the split, and it is named here rather than left to be discovered. A
+   * fix that closes a game's PROTOCOL divergence without fixing the board moves that game out of the
+   * narration clause entirely — no cause, no class, no shape, nothing to grep — while the board goes
+   * on being wrong. Under the single clause that shipped until today such a game vanished from the
+   * count outright. Under the split it stays in the board count, and this line is what makes it
+   * legible as a distinct KIND rather than as one of N.
+   *
+   * DERIVED FROM FOUR ARTIFACT FIELDS AND NAMED AS DERIVED. The artifact does not carry the figure;
+   * it carries `games`, `games_board_never_diverged`, `protocol_diverged_games` and
+   * `protocol_diverged_board_never_did`, and the games whose boards parted while their protocol
+   * matched are `material - (protocol_diverged_games - protocol_diverged_board_never_did)`. A
+   * negative result means those four fields disagree, and it is REPORTED rather than clamped —
+   * `Math.max(0, ...)` here would turn a broken instrument into a clean bill of health. */
+  const P = num(st.protocol_diverged_games), Pn = num(st.protocol_diverged_board_never_did);
+  const bothParted = (P === null || Pn === null) ? null : P - Pn;
+  const uncaused = bothParted === null ? null : material - bothParted;
+  const uncausedLine = (() => {
+    if (uncaused === null) {
+      return NL + '  UNCAUSED — NOT COMPUTED. This artifact carries no `state.protocol_diverged_games`'
+        + ' / `state.protocol_diverged_board_never_did`, so nothing here can say how many of the '
+        + material + ' parted boards have NOTHING in the narration pointing at them.';
+    }
+    if (uncaused < 0) {
+      return NL + '  UNCAUSED — THE ARTIFACT CONTRADICTS ITSELF: ' + material + ' board-material '
+        + 'game(s) but ' + bothParted + ' game(s) whose protocol AND board both parted (' + P
+        + ' protocol divergence(s) less ' + Pn + ' whose board never did). A subset cannot be larger '
+        + 'than its set; one of those four fields is wrong.';
+    }
+    const rows = Array.isArray(st.first_board_divergences) ? st.first_board_divergences : [];
+    const orphans = rows.filter((r) => r && r.protocol_diverged_at_turn === null);
+    return NL + '  UNCAUSED — ' + uncaused + ' of the ' + material + ' game(s) part a BOARD while the'
+      + ' protocol NEVER diverges at all (' + material + ' less ' + bothParted + ' whose protocol also'
+      + ' parted: ' + P + ' protocol divergence(s) less ' + Pn + ' whose board never did). THESE ARE'
+      + ' THE ONES WITH NOTHING TO GREP: no cause, no class, no shape and no row in the narration'
+      + ' clause. A fix that closes a protocol divergence without fixing the board puts a game HERE,'
+      + ' and under the single clause that shipped until 2026-09-04 it would have left the count'
+      + ' altogether.'
+      + (orphans.length
+          ? NL + '    the artifact carries ' + rows.length + ' first-board-divergence row(s) — a'
+            + ' SAMPLE of the ' + material + ', never the list — of which ' + orphans.length
+            + ' carry `protocol_diverged_at_turn: null`:'
+            + orphans.slice(0, 8).map((r) => NL + '      turn ' + r.turn + '  '
+                + String(r.seed || '?').slice(0, 46) + '  '
+                + (r.diffs || []).map((d) => d.path).join(', ')).join('')
+          : NL + '    the artifact carries no first-board-divergence row with'
+            + ' `protocol_diverged_at_turn: null`, so this count has no worked example in it and the '
+            + uncaused + ' above is arithmetic over four fields and nothing more.');
+  })();
+  const held = num(st.protocol_diverged_board_held_longer);
+  const before = num(st.board_parted_before_the_protocol_did);
+  const orderLine = (held === null && before === null) ? ''
+    : NL + '  ORDER OF PARTING — ' + (before === null ? '?' : before) + ' game(s) parted a BOARD'
+      + ' before the protocol did and ' + (held === null ? '?' : held) + ' held the board together'
+      + ' after the protocol parted. Neither is this clause\'s verdict; they are printed because a'
+      + ' board that parts FIRST is a rule disagreement the narration only reports downstream of.';
+  const boundLine = (num(st.turn_boundaries_compared) === null) ? ''
+    : NL + '  ' + st.turn_boundaries_identical + ' of ' + st.turn_boundaries_compared
+      + ' turn boundaries compared were IDENTICAL. That is the denominator this clause does NOT use —'
+      + ' a game counts here if ANY boundary parted, so a per-boundary rate always reads greener.';
+  const rawLine = NL + '  RAW, AND NOT BY OVERSIGHT: no `DECLARED_DIVERGENCE` row and no'
+    + ' data/decision-impact.json row can be subtracted from this count. Both attribute by protocol'
+    + ' CAUSE over `classes[].causes[]`, and the artifact records no cause for a parted board — a'
+    + ' board divergence is a leaf PATH. The NARRATION clause is where a declaration subtracts.';
+  const pct = (100 * material / games).toFixed(1);
+  return {
+    name: NAME, ok: material === 0, gates: true, generated: j.generated || null, pins: RCPT,
+    quantity: 'board_material_games',
+    games, board_material: material, board_never_diverged: never,
+    protocol_diverged_games: P, protocol_diverged_board_never_did: Pn,
+    board_material_uncaused_by_protocol: uncaused,
+    why: (material === 0
+      ? 'BOARD-MATERIAL: 0 of ' + games + ' games. Every compared turn boundary in every game holds '
+        + 'the SAME BOARD on both engines. This is the quantity Will named on 2026-08-22 — '
+        + 'commentary may differ, boards may not — and it is met.'
+      : 'BOARD-MATERIAL: ' + material + ' of ' + games + ' = ' + pct + '% of games reach a turn '
+        + 'boundary whose BOARD differs between the two engines (' + games + ' games less ' + never
+        + ' whose board never diverged, both read straight off `state`). Mode A pins every die on '
+        + 'both sides, so each one is a RULE they disagree about. This clause fails until it is zero.')
+      + rawLine + uncausedLine + orderLine + boundLine,
+  };
+}
+
+/* `wgDecisionImpact` IS THE SECOND INJECTION POINT AND IT EXISTS FOR THE SELFTEST ONLY, on the same
+ * reasoning as `artifact` above and as `withholder`'s gate argument: a `--force` flag anybody can pass
+ * on the command line eventually gets passed, and a parameter is visible in the caller where a flag is
+ * not. Left undefined by every shipping caller, which is what makes the real reader the default. */
+/* ================================================================================================
+ * EVERY RETURN PATH CARRIES `gates: false`, INCLUDING THE REFUSALS — AND THAT IS NOT TIDINESS.
+ * ================================================================================================
+ * `narrationVerdict` has SEVEN exits: the missing artifact, three pin/steering refusals inside
+ * `wholeGameDoor`, zero games, a planted proof that did not fire, and the verdict itself. Only the
+ * last one built the flag by hand in the first draft, and the consequence is the exact silent
+ * default this repository opens with: on a STALE or torn artifact the narration clause would come
+ * back WITHHELD with no `gates` field, default to gating, and hold the quarantine gate shut on a
+ * quantity Will took off the critical path on 2026-08-22. Nothing would have said so — the gate
+ * would simply have read CLOSED for a reason nobody had chosen.
+ *
+ * So the flag is applied by the WRAPPER, to whatever the body returns, and an eighth exit added
+ * later inherits it without anybody remembering to. `quantity` is applied the same way and the same
+ * spread lets the body override it, so a future branch can name a narrower quantity if it has one.
+ * ============================================================================================== */
+function narrationClause(artifact, wgDecisionImpact) {
+  const r = narrationVerdict(artifact, wgDecisionImpact);
+  if (!r || typeof r !== 'object') return r;
+  return Object.assign({ quantity: 'protocol_first_divergence_games' }, r, { gates: false });
+}
+
+function narrationVerdict(artifact, wgDecisionImpact) {
+  const NAME = 'whole-game differential / NARRATION — protocol first divergence';
+  const DOOR = wholeGameDoor(NAME, artifact);
+  if (DOOR.refused) return DOOR.refused;
+  const j = DOOR.j, WGRCPT = DOOR.rcpt;
   const games = +j.games || 0, div = +j.diverged || 0;
   if (!games) {
-    return { name: NAME, ok: false, generated: j.generated || null,
+    return { name: NAME, ok: false, generated: j.generated || null, pins: WGRCPT,
       why: 'THE ARTIFACT RECORDS ZERO GAMES, which is not the same as zero divergences.' };
   }
   /* A PLANTED PROOF THAT DID NOT FIRE INVALIDATES THE RUN. An instrument that cannot see a divergence
    * it planted itself cannot be believed about the ones it did not plant. */
   if (j.planted_divergence_proof_ok !== true) {
-    return { name: NAME, ok: false, generated: j.generated || null,
+    return { name: NAME, ok: false, generated: j.generated || null, pins: WGRCPT,
       why: 'THE PLANTED-DIVERGENCE PROOF DID NOT FIRE, so this run cannot be believed at all. An '
          + 'instrument blind to a divergence it planted itself says nothing about ' + div + '.' };
   }
@@ -2171,7 +2515,7 @@ function wholeGameClause(artifact, wgDecisionImpact) {
       + ']'
     : '';
   if (!base || typeof base.rate !== 'number') {
-    return { name: NAME, ok: false, generated: j.generated || null, rate,
+    return { name: NAME, ok: false, generated: j.generated || null, rate, pins: WGRCPT,
       why: `NO BASELINE — data/whole-game-baseline.json is absent, so nothing can say whether ${div} `
          + `of ${games} (${pct}%) is better or worse than yesterday. THE FIRST RUN FAILS BY DESIGN: `
          + 'stamp it deliberately (node engine/quarantine.js --stamp-whole-game) so the number that '
@@ -2333,7 +2677,31 @@ function wholeGameClause(artifact, wgDecisionImpact) {
   const ok = undeclared === 0;
 
   return {
-    name: NAME, ok, generated: j.generated || null, rate, baseline: base.rate,
+    name: NAME, ok, generated: j.generated || null, rate, baseline: base.rate, pins: WGRCPT,
+    /* ============================================================================================
+     * `gates: false` — NARRATION REPORTS, IT DOES NOT HOLD THE GATE SHUT. WILL'S CALL, 2026-08-22.
+     * ============================================================================================
+     * *"board-material now, narration as its own separate gate afterwards"*. So this clause has its
+     * own row, its own count and its own verdict line on every run, and `medichamIsCorrect()` does
+     * not ask it for permission.
+     *
+     * WHY THAT IS NOT QUIETLY DROPPING IT, WHICH IS THE OBVIOUS OBJECTION AND A FAIR ONE. The thing
+     * this project fails at is a real finding going unread — fourteen stale handoffs, a ban list of
+     * four, `PRE-CHANGE` printed beside a number that got quoted anyway. Every one of those was
+     * something NOBODY PRINTED, or printed as a caption on a figure. This is the opposite shape: the
+     * count is COMPUTED on every run by the shipping clause, printed on its own line with the word
+     * NARRATION in it, exported as data, and it exits non-zero through `--narration`. What it does
+     * not do is block. CLAUDE.md's own words for the alternative — *"the narration gate is a GATE,
+     * not a backlog"* — are satisfied by a clause that computes and prints, not by one that blocks;
+     * a blocking narration clause is exactly what Will's ruling removed from the critical path, and
+     * re-adding it here under a different name would be overriding him.
+     *
+     * WHAT IT COSTS, SAID PLAINLY RATHER THAN LEFT TO BE DISCOVERED: a regression that adds ONLY
+     * protocol divergences — new narration, identical boards — will no longer hold the gate shut.
+     * That is the deliberate content of the ruling, and it is the reason this row prints its count on
+     * a PASSING run as well as a failing one. */
+    gates: false,
+    quantity: 'protocol_first_divergence_games',
     diverged: div, games,
     /* kept so a reader can see the trend without the trend being able to pass anything — and set to
      * null rather than guessed when the baseline was stamped under a different pin */
@@ -2360,18 +2728,27 @@ function wholeGameClause(artifact, wgDecisionImpact) {
     /* the exclusion, carried as DATA as well as prose so status.js and any later reader can see it
      * without parsing a sentence. `null` means the artifact declared none — see closetLine. */
     sample_exclusions: j.closet || null,
+    /* THE QUANTITY IS NAMED IN THE FIRST FIVE WORDS, BECAUSE TWO CORRECTLY-COMPUTED NUMBERS PRINTED
+     * SIDE BY SIDE WITH ONLY ONE PUBLISHED IS HOW THIS PROJECT SPENDS AN AFTERNOON RECONCILING.
+     * ROADMAP #387 is exactly this defect one layer up — *"what is genuinely wrong is that nothing
+     * labels the quantity"* — filed against the single clause that used to print both 8.0% and 8.5%
+     * with no word attached to either. A reader must never have to work out which of the two
+     * whole-game clauses a bare `N of M` came from. */
     why: ok
-      ? `ZERO divergences across ${games} games that anything is asked to answer for`
+      ? `PROTOCOL FIRST DIVERGENCE: ZERO across ${games} games that anything is asked to answer for`
         + (declaredGames || impactGames ? ` (${div} raw, ${declaredGames} declared, ${impactGames}`
           + ` cleared on decision impact)` : '')
         + `. Mode A pins every die on both sides, so this is the real bar and it has been met.`
+        + REPORTS_NOT_GATES
         + declaredLine + registerLine + impactLine + matcherLine + closetLine
-      : `${undeclared} of ${games} = ${(100 * undeclared / games).toFixed(1)}% DIVERGE — the two engines`
-        + ` disagree about ${undeclared} games`
+      : `PROTOCOL FIRST DIVERGENCE: ${undeclared} of ${games} = `
+        + `${(100 * undeclared / games).toFixed(1)}% of games have a `
+        + `turn at which the two engines' PROTOCOL LINES stop matching`
         + (declaredGames || impactGames ? ` (${div} raw, less ${declaredGames} declared and`
           + ` ${impactGames} cleared on decision impact)` : '')
         + `. Mode A pins every die on both sides, so each one is a RULE they disagree about, not noise.`
-        + ` This clause fails until that is zero.` + declaredLine + registerLine + impactLine
+        + ` This clause reads RED until that is zero.` + REPORTS_NOT_GATES
+        + declaredLine + registerLine + impactLine
         + matcherLine + closetLine
         + (!comparable
              ? `  DIRECTION OF TRAVEL WITHHELD — the baseline was stamped under \`${baseMode}\` and this`
@@ -2430,6 +2807,9 @@ function openDefectClause() {
      * unreadable" does not distinguish a missing file from a permission error from a torn write, and
      * the person reading this clause is the one who has to fix it. */
     return { name: 'no open, known engine defect', ok: false, missing: true,
+      pins: PIN.noArtifact('this clause reads docs/ROADMAP.md and data/register-reality.json live on every '
+      + 'run and records no measurement of its own; it stamps the AGE of what it read rather than '
+      + 'carrying a result that could go stale'),
       why: 'CANNOT ANSWER — docs/ROADMAP.md is unreadable (' + e.message + '). A clause that cannot '
          + 'be computed FAILS.' };
   }
@@ -2596,6 +2976,9 @@ function openDefectClause() {
           + ' [' + r.cell + ']').join('; ') : '.');
   return {
     name: 'no open, known engine defect', ok: withRed.length === 0, open, excused, withRed, debt,
+    pins: PIN.noArtifact('this clause reads docs/ROADMAP.md and data/register-reality.json live on every '
+      + 'run and records no measurement of its own; it stamps the AGE of what it read rather than '
+      + 'carrying a result that could go stale'),
     staleRows, unrunnable, verdicts_read: RR.rows.length, verdicts_generated: RR.generated || null,
     why: (withRed.length === 0
       ? 'clean: no open row names an instrument that is RED — no open defect is backed by a failing '
@@ -2653,21 +3036,28 @@ function orderProbeClause(inject) {
       + '`order_probe` array. The discriminator did not run, which says nothing about the turn order '
       + 'and must not read as green.' };
   }
-  const cur = readJson(D('data', 'engine-release.json'));
-  const curId = cur && (cur.id || cur.release || cur.current);
-  const ranOn = j.engine_release || j.release || null;
+  const ranOn = j[PIN.K.id] || j.release || null;
   const bad = probe.filter((r) => r && r.speed_tied === false && r.same_priority === true);
-  if (ranOn && curId && ranOn !== curId) {
-    /* CANNOT ANSWER, AND IT SAYS WHICH KIND OF RED IT IS. The count is still PRINTED, because a
-     * listing is not a verdict and being able to see what the last answerable run found is worth
-     * having — but `cannot_answer` is what the exit code carries, and nobody may quote the number as a
-     * statement about this tree. */
-    return { name: NAME, ok: false, cannot_answer: true, ranOn, staleAgainst: curId,
-      probed: probe.length, unequal: bad.length,
-      why: `MEASURED AGAINST A DIFFERENT ENGINE — the probe ran on release ${ranOn} and the tree is `
-         + `${curId}. That is not a weaker answer to this question, it is an answer about other bytes. `
-         + `WITHHELD, not annotated: that run probed ${probe.length} pair(s) and ${bad.length} carried `
-         + `the conjunction, and neither figure describes this tree. Re-run engine/game_differential.js.` };
+  /* ---- THE FIFTH COPY OF THE SENTENCE, AND THE SECOND CAPTIONED FIGURE — 2026-09-04 -------------
+   *
+   * This clause is NOT in `medichamIsCorrect()` — it is the `--order-probe` command, run by
+   * `engine/register_reality.js` on its exit code — so the assembler's receipt audit does not reach
+   * it. It is here because looking for a second instance found one: the same `ranOn && curId &&`
+   * (absence answers) AND the same captioned figure `mechanicsClause` had, arguing for itself in as
+   * many words — *"the count is still PRINTED, because a listing is not a verdict"*. It printed
+   * `probed 1,411 pair(s), 0 carried the conjunction` inside a sentence saying neither figure
+   * describes this tree, which is the shape CLAUDE.md names: the number gets quoted and the warning
+   * gets skimmed. `PRE-CHANGE` has the receipt.
+   *
+   * WHAT THIS DOES NOT CLOSE, said plainly: the door itself. A SIXTH clause outside the gate's list
+   * is still only caught by somebody calling the guard. Inside the list, `PIN.audit` makes it
+   * structural; outside it, this is a fix and not a mechanism. */
+  {
+    const r = PIN.guard({ name: NAME, file: 'data/game-differential.json', artifact: j,
+      need: ['release', 'digests'],
+      rerun: 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --arm middle '
+           + '--games 1200 --team-store data/team-pool-frozen --write' });
+    if (r) return r;
   }
   const games = +j.games || 0;
   if (!probe.length) {
@@ -2697,12 +3087,54 @@ function orderProbeClause(inject) {
   };
 }
 
+/* ---- EVERY CLAUSE SAYS WHAT IT WAS MEASURED UNDER, OR IT IS WITHHELD — 2026-09-04 ---------------
+ *
+ * `PIN.audit` is applied to the LIST and not to three named clauses, and that is the whole point.
+ * Will's acceptance test for a fix here is *would this catch a second instance, spelled differently,
+ * through another door?* Three targeted fixes answer no: a FOURTH clause added tomorrow, reading a
+ * fourth artifact with no pin at all, would pass on its first run and the only thing that would say
+ * so is `engine/sweep.js` — which is itself in sweep §1, the list of checks that nothing invokes.
+ *
+ * A clause now passes only if it hands back a `pins` receipt naming the artifact it read and what it
+ * checked, or declares — with a reason — that it reads no artifact. There is no third state and no
+ * inference step: the audit does not go looking for an unreceipted clause's file, because a search
+ * that returns null on an ambiguous match is the silent default rebuilt inside the guard against it. */
 function medichamIsCorrect() {
-  const clauses = [differentialClause(), ...ROSTER_STAGES.map(s => {
+  const clauses = PIN.audit([differentialClause(), ...ROSTER_STAGES.map(s => {
     const r = rosterStage(s);
     return { ...r, name: `deliberate roster / ${s}` };
-  }), coverageClause(), wholeGameClause(), mechanicsClause(), openDefectClause()];
-  return { ok: clauses.every(c => c.ok), clauses, failing: clauses.filter(c => !c.ok) };
+  }), coverageClause(), wholeGameClause(), narrationClause(), mechanicsClause(), openDefectClause()]);
+  /* ==============================================================================================
+   * A CLAUSE MAY REPORT WITHOUT GATING, AND IT MUST SAY SO IN ITS OWN RETURN — 2026-09-04.
+   * ==============================================================================================
+   * `gates === false` is OPT-IN and defaults to gating. A clause added tomorrow that forgets the
+   * field holds the gate shut, which is the safe direction; the unsafe default would be a new clause
+   * that quietly reports and blocks nothing, which is the silent-default shape CLAUDE.md opens with.
+   *
+   * ONLY `narrationClause` SETS IT, and only because Will took that decision by name on 2026-08-22.
+   * It is not a general-purpose escape hatch: `PIN.audit` runs FIRST, so a reporting clause that
+   * cannot say what it was measured under is still withheld, and `failing` still carries it — a
+   * reader of `status.js` sees the red row whether or not the gate turned on it.
+   *
+   * `failing` AND `gate_failing` ARE DIFFERENT LISTS AND BOTH ARE PUBLISHED. Collapsing them would
+   * make "8 of 9 clauses fail" and "the gate is open" appear together, which is the pair of
+   * contradictory sentences this file's own printer shipped on 2026-08-11. */
+  return gateVerdict(clauses);
+}
+
+/* THE RULE, AS A FUNCTION, SO THE SELFTEST DRIVES THE SHIPPING ONE AND NOT A COPY OF IT.
+ *
+ * The first draft of the arms asserted this rule against a five-line reimplementation written beside
+ * them, and it was CAUGHT by a deliberate break: setting `gating = clauses` — narration back on the
+ * gate, the whole point of the 2026-08-22 ruling undone — left the selftest at 210 passed, 0 failed.
+ * A test of a copy is a test of the copy. `medichamIsCorrect` cannot be driven on synthetic rows
+ * because it reads live artifacts, so the RULE is what gets extracted, not the assembler. */
+function gateVerdict(clauses) {
+  const gating = clauses.filter(c => c.gates !== false);
+  return { ok: gating.every(c => c.ok), clauses,
+           failing: clauses.filter(c => !c.ok),
+           gate_failing: gating.filter(c => !c.ok),
+           reporting: clauses.filter(c => c.gates === false) };
 }
 
 /* ================================================================================================
@@ -3127,7 +3559,17 @@ module.exports = { medichamIsCorrect, classify, state, withholder, playLayer, so
                     * composition it prints. Its `artifact` argument already existed; without the
                     * export the only way to check that the composition and the headline describe the
                     * SAME run was to read the source, which is how they came to describe two. */
-                   wholeGameClause, clauseExit };
+                   wholeGameClause,
+                   /* SPLIT 2026-09-04 ON WILL'S 2026-08-22 RULING. `wholeGameClause` is now the
+                    * BOARD-MATERIAL clause and it GATES; `narrationClause` is the protocol
+                    * first-divergence clause and it REPORTS. Both are exported, both name their
+                    * quantity in `quantity` and in the first words of `why`, and neither restates the
+                    * other — `wholeGameDoor` is the one read and the one refusal for both.
+                    *
+                    * A CONSUMER THAT WANTS THE PROTOCOL COMPOSITION NOW WANTS `narrationClause`:
+                    * `data/game-differential.json`'s `classes[].causes[]` are protocol causes, so the
+                    * shape composition ROADMAP #292 pinned belongs to that clause and moved with it. */
+                   narrationClause, gateVerdict, clauseExit };
 
 /* THE ONE PLACE A CLAUSE BECOMES AN EXIT CODE — `--order-probe`, `--whole-game` and anything added
  * after them. It was two copies of one expression the moment the second command existed, and this
@@ -3243,7 +3685,30 @@ if (require.main === module) {
     console.log('  ' + r.why);
     console.log('');
     console.log('  exit ' + clauseExit(r)
-              + '   [0 the two engines agree on every game, 1 they do not, 2 cannot answer]');
+              + '   [0 no board parts in any game, 1 at least one does, 2 cannot answer]');
+    console.log('  THE QUANTITY CHANGED ON 2026-09-04 AND THE COMMAND DID NOT. This printed the'
+              + ' PROTOCOL first-divergence count until then; it now prints BOARD-MATERIAL games,'
+              + ' which is Will\'s 2026-08-22 bar. For the protocol number use --narration. Any'
+              + ' figure quoted from this command before 2026-09-04 is the other quantity.');
+    console.log('');
+    process.exit(clauseExit(r));
+  }
+
+  /* ---- --narration: THE SECOND HALF OF THE SPLIT, WITH ITS OWN EXIT CODE ----------------------
+   *
+   * It has a command for the same reason the board clause has one: *"the narration gate is a GATE,
+   * not a backlog."* A quantity that only appears inside a four-minute report is a quantity nothing
+   * can be ratcheted against, which is how ROADMAP #218 came to have no instrument for six days.
+   * This exits 1 while narration is red — it simply is not what `medichamIsCorrect()` asks. */
+  if (has('--narration')) {
+    const r = narrationClause();
+    console.log('');
+    console.log((r.ok ? 'PASS  ' : 'RED   ') + r.name);
+    console.log('  ' + r.why);
+    console.log('');
+    console.log('  exit ' + clauseExit(r)
+              + '   [0 the protocol never parts, 1 it does, 2 cannot answer]'
+              + '   — this clause does NOT hold the quarantine gate shut; --whole-game does.');
     console.log('');
     process.exit(clauseExit(r));
   }
@@ -3339,6 +3804,33 @@ if (require.main === module) {
       console.log(`  ${cond ? 'ok  ' : 'FAIL'} ${name}${cond ? '' : '   got ' + JSON.stringify(got)}`);
     };
 
+    /* ---- THE PIN EVERY SYNTHETIC FIXTURE NOW NEEDS — 2026-09-04 --------------------------------
+     *
+     * `engine/pin_guard.js` withholds a clause whose artifact cannot say what it was measured under,
+     * and the fixtures below carried no pin because until today nothing asked for one. FIXING THE
+     * FIXTURE IS THE RIGHT MOVE AND WEAKENING THE CLAUSE IS NOT: the same miss on 2026-09-03 was that
+     * session's only regression, when the steering refusal fired on
+     * `tests/test-divergence-composition.js`'s synthetic arms.
+     *
+     * A synthetic digest map is honest here. The guard asks whether the artifact CAN be verified by
+     * content, not whether it verifies — verifying is `provenance.js`'s job and it reads real files.
+     * What every arm below is about is the OTHER thing the clause decides, so each one is given a pin
+     * that vouches and then tests its own question; the pin's own red and green arms are separate and
+     * are named `PIN GUARD` so nothing can pass by having them share a fixture. */
+    const PINNED = (extra) => {
+      const cur = readJson(D('data', 'engine-release.json'));
+      const id = (cur && (cur.id || cur.release || cur.current)) || null;
+      return Object.assign({ [PIN.K.id]: id,
+        [PIN.K.digests]: { 'engine/medicham2-browser.js': 'fixture0000f' } }, extra || {});
+    };
+    /* AND THE POPULATION HALF. `steering.vouches()` asks for the SELECTOR, which under the empirical
+     * policy is the behaviour tables, plus the team pool — the field `wholeGameClause` recorded and
+     * never read. A fixture declaring only `policy` is exactly the artifact this change refuses. */
+    const STEER_OK = (extra) => Object.assign({
+      policy: require('./steering.js').POLICY_EMPIRICAL,
+      driver_inputs: [{ file: 'data/move-priors.json', digest: 'fixtureprior' }],
+      team_pool_digest: 'fixturepool0' }, extra || {});
+
     /* -- the gate's clauses, on synthetic artifacts ------------------------------------------- */
     const stage = (counts, reds) => ({ counts, reds: reds || [] });
     const clause = j => {
@@ -3369,7 +3861,7 @@ if (require.main === module) {
     {
       const relCur = readJson(D('data', 'engine-release.json'));
       const relId = relCur && (relCur.id || relCur.release || relCur.current);
-      const ART = (extra) => ({ stage: 'items', generated: 'then',
+      const ART = (extra) => PINNED({ stage: 'items', generated: 'then',
         counts: { 'FIRED-AND-BOARDS-DIFFER': 0, 'DID-NOT-FIRE': 0, 'FIRED-AND-BOARDS-MATCH': 136 },
         scope: { tested: 139, in_scope: 148, unattributable: 0 }, reds: [], results: [], ...extra });
       if (!relId) {
@@ -3395,16 +3887,24 @@ if (require.main === module) {
           + 'mismatch and nothing else', fresh.withheld !== true && fresh.ok === true, fresh.why);
         ok('RED — #316 — a WITHHELD roster verdict exits 2, never 0', clauseExit(stale) === 2);
       }
-      const unstamped = rosterStage('items', { file: 'roster.items.json', json: ART({}) });
-      ok('#316 — an UNSTAMPED roster artifact is allowed to answer: the clause refuses a MISMATCH, '
-        + 'not an absence', unstamped.withheld !== true && unstamped.ok === true, unstamped.why);
+      /* THIS ARM READ *"an UNSTAMPED roster artifact is ALLOWED TO ANSWER: the clause refuses a
+       * MISMATCH, not an absence"* and it was inverted on 2026-09-04. It is not a tightening of
+       * taste: `ART({})` now spreads a valid pin, so the old arm would have gone on passing while
+       * asserting NOTHING — a green test asking no question, which is worse than the red it replaces.
+       * The pin is stripped explicitly here so the fixture is genuinely unstamped. */
+      const unstampedArt = ART({}); delete unstampedArt[PIN.K.id]; delete unstampedArt[PIN.K.digests];
+      const unstamped = rosterStage('items', { file: 'roster.items.json', json: unstampedArt });
+      ok('#316 — INVERTED 2026-09-04 — an UNSTAMPED roster artifact is WITHHELD, not answered. '
+        + 'Silence about which bytes produced a count is not a fact about an old writer; it is the '
+        + 'absence of the only evidence that could answer',
+        unstamped.withheld === true && unstamped.ok === false, unstamped.why);
     }
 
     /* -- ROADMAP #88: THE DIFFERENTIAL CLAUSE, THROUGH THE SHIPPING FUNCTION -------------------
      * Every case below is a WHOLE artifact handed to `differentialClause` itself, so a change to the
      * rule cannot pass by having its selftest re-state the old one. The two RED cases are the point:
      * a clean midpoint with a dirty corner, and an artifact with no corners at all. */
-    const armArt = (mid, top, bot) => ({ compared: 6000, seed: 20260804, disagreed: mid,
+    const armArt = (mid, top, bot) => PINNED({ compared: 6000, seed: 20260804, disagreed: mid,
       arms: [{ arm: 'top', compared: 6000, disagreed: top, worst: [] },
              { arm: 'bottom', compared: 6000, disagreed: bot, worst: [] }] });
     ok('both corners clean and the midpoint clean PASSES', differentialClause(armArt(0, 0, 0)).ok === true);
@@ -3413,7 +3913,7 @@ if (require.main === module) {
     ok('RED — the midpoint is clean and the TOP corner is not: the clause FAILS',
       differentialClause(armArt(0, 3, 0)).ok === false);
     ok('RED — an artifact with NO corner arms FAILS rather than passing by absence',
-      differentialClause({ compared: 6000, seed: 1, disagreed: 0 }).ok === false);
+      differentialClause(PINNED({ compared: 6000, seed: 1, disagreed: 0 })).ok === false);
     ok('RED — a PLANTED artifact is refused even when every number in it is zero',
       differentialClause({ ...armArt(0, 0, 0), plant: { kind: 'spread', halfwidth: 12 } }).ok === false);
     ok('a dirty midpoint still fails, with both corners clean',
@@ -3422,6 +3922,179 @@ if (require.main === module) {
       /top 0\/6000/.test(differentialClause(armArt(0, 0, 0)).why)
       && /bottom 0\/6000/.test(differentialClause(armArt(0, 0, 0)).why),
       differentialClause(armArt(0, 0, 0)).why);
+
+    /* ============================================================================================
+     * PIN GUARD — EVERY CLAUSE SAYS WHAT IT WAS MEASURED UNDER, OR IT IS WITHHELD (2026-09-04)
+     * ============================================================================================
+     * RED FIRST, THEN GREEN, PER CLAUSE. Each pair below hands the SHIPPING function an artifact with
+     * an absent or wrong stamp and asserts it REFUSES, then the same artifact with a good one and
+     * asserts it ANSWERS. Without the second arm a guard is indistinguishable from a gate somebody
+     * broke — and the point of this change is that the clauses answer again once the artifacts are
+     * regenerated, not that they are red forever.
+     *
+     * WHY THE NO-FIGURE ARMS. A refusal that still carries the count is `PRE-CHANGE` with a new word
+     * in front of it, and `mechanicsClause` was doing exactly that — its stale branch appended
+     * `[moves 4, abilities 0, items 0; ...]` to a sentence saying the artifact describes other bytes.
+     * So each refusal is asserted to carry NONE of its artifact's numbers. */
+    {
+      const relCur2 = readJson(D('data', 'engine-release.json'));
+      const relId2 = (relCur2 && (relCur2.id || relCur2.release || relCur2.current)) || null;
+      const noPin = (o) => { const c = { ...o }; delete c[PIN.K.id]; delete c[PIN.K.digests]; return c; };
+
+      /* ---- 1. THE DAMAGE DIFFERENTIAL — the artifact that carried NO PIN AT ALL --------------- */
+      const dNo = differentialClause(noPin(armArt(0, 0, 0)));
+      ok('PIN GUARD / RED — data/engine-diff.json with NO release pin is WITHHELD, not answered: it '
+        + 'is the artifact behind "clean at BOTH corners" and it could not notice four frozen '
+        + 'sources moving underneath it',
+        dNo.ok === false && dNo.withheld === true && dNo.cannot_answer === true, dNo.why);
+      /* THE ASSERTION IS ON THE RESULT, NOT ON EVERY DIGIT. A first draft forbade the string `6000`
+       * and went red on the RE-RUN COMMAND, which legitimately names `--n 6000` — the sample the
+       * repair should take is not a figure from the measurement being withheld. What may not appear
+       * is the artifact's own verdict and its arm table. */
+      ok('PIN GUARD / RED — and NO FIGURE comes back with the refusal: no verdict, no corner arms',
+        !/clean at BOTH corners|midpoint 0 of|top 0\/6000/.test(dNo.why)
+        && dNo.arms === undefined, dNo);
+      ok('PIN GUARD / RED — a differential stamped to ANOTHER release is WITHHELD',
+        differentialClause({ ...armArt(0, 0, 0), [PIN.K.id]: '__not-this-tree__' }, relId2 || 'X')
+          .withheld === true);
+      ok('PIN GUARD / RED — an id with no `source_digests` is WITHHELD: an id is a CLAIM and the '
+        + 'digest set is the only thing provenance.js can check by CONTENT',
+        differentialClause({ ...noPin(armArt(0, 0, 0)), [PIN.K.id]: relId2 }, relId2).withheld === true);
+      ok('PIN GUARD / GREEN — a fully stamped differential ANSWERS, so the guard refuses a missing '
+        + 'pin and nothing else', differentialClause(armArt(0, 0, 0)).ok === true);
+      ok('PIN GUARD / RED — a withheld differential exits 2, never 0', clauseExit(dNo) === 2);
+
+      /* ---- 2. THE DELIBERATE ROSTER — absence used to be waved through ------------------------ */
+      const rArt = (extra) => ({ stage: 'items', generated: 'then',
+        counts: { 'FIRED-AND-BOARDS-DIFFER': 0, 'DID-NOT-FIRE': 0, 'FIRED-AND-BOARDS-MATCH': 136 },
+        scope: { tested: 139, in_scope: 148, unattributable: 0 }, reds: [], results: [], ...extra });
+      const rNo = rosterStage('items', { file: 'roster.items.json', json: rArt({}) });
+      ok('PIN GUARD / RED — a roster artifact with NO stamp is WITHHELD. It used to ANSWER, and the '
+        + 'clause said so in as many words ("this refuses a MISMATCH, not an absence") — a sentence '
+        + 'copied into five clauses in this file, every one of which read silence as agreement',
+        rNo.ok === false && rNo.withheld === true, rNo.why);
+      ok('PIN GUARD / RED — and the counts are ABSENT from that refusal, not set to null',
+        rNo.differ === undefined && rNo.matched === undefined && !/136|139|148/.test(rNo.why), rNo);
+      ok('PIN GUARD / GREEN — a roster artifact carrying the WHOLE stamp ANSWERS',
+        rosterStage('items', { file: 'roster.items.json',
+          json: rArt({ [PIN.K.id]: relId2, [PIN.K.digests]: { 'engine/board.js': 'aaaaaaaaaaaa' } }) })
+          .ok === true);
+
+      /* ---- 3. THE MECHANICS CLAUSE — a hand-rolled `release` is not a stamp ------------------- */
+      const mBase = { summary: { moves: { diverged: 0 }, abilities: { diverged: 0 },
+                                 items: { diverged: 0 } },
+                      rows: { moves: [], abilities: [], items: [] } };
+      const mLegacy = mechanicsClause({ j: { release: 'rel-fixture', ...mBase },
+        cur: { id: 'rel-fixture' }, U: usageIndex(), DI: decisionImpact('nothing-on-disk') });
+      ok('PIN GUARD / RED — `release: <id>` hand-rolled instead of REL.stamp() is WITHHELD: it '
+        + 'carries no `showdown_commit`, and the AUTHORITY selects this run population — its 500 '
+        + 'moves are dex.moves.all() filtered to the format, so a different checkout is a different '
+        + 'denominator', mLegacy.withheld === true, mLegacy.why);
+      const mNo = mechanicsClause({ j: { ...mBase }, cur: { id: 'rel-fixture' }, U: usageIndex(),
+                                    DI: decisionImpact('nothing-on-disk') });
+      ok('PIN GUARD / RED — and an artifact with NO pin at all is WITHHELD too',
+        mNo.withheld === true, mNo.why);
+      const mOk = mechanicsClause({ j: { [PIN.K.id]: 'rel-fixture',
+        [PIN.K.digests]: { 'engine/medicham2-browser.js': 'bbbbbbbbbbbb' }, ...mBase },
+        cur: { id: 'rel-fixture' }, U: usageIndex(), DI: decisionImpact('nothing-on-disk') });
+      ok('PIN GUARD / GREEN — the same artifact carrying the whole stamp ANSWERS',
+        mOk.withheld !== true && mOk.ok === true, mOk.why);
+
+      /* ---- 4. THE WHOLE-GAME CLAUSES — the population, one field over -------------------------
+       *
+       * DRIVEN THROUGH THE BOARD CLAUSE AND CROSS-CHECKED THROUGH THE NARRATION ONE, because the
+       * read and the refusals are now ONE door (`wholeGameDoor`) with two callers. The whole point
+       * of extracting it was that `pin_guard.js`'s header records the same refusal sentence copied
+       * into five clauses; a split that copied it into a sixth would have been the same defect
+       * landing on the day of the fix. So each refusal is asserted on BOTH callers — if the door
+       * were ever bypassed in one of them, exactly one column of these arms would go green. */
+      const WG_STATE = { games: 1230, games_board_never_diverged: 1230,
+        protocol_diverged_games: 0, protocol_diverged_board_never_did: 0,
+        planted_state_proof_ok: true, mappings_all_proved: true };
+      const wgBase = (steer) => PINNED({ games: 1230, diverged: 0, planted_divergence_proof_ok: true,
+        mode: 'M', generated: 'then', classes: [], state_mode: true, state: WG_STATE,
+        steering: steer });
+      const wPolicyOnly = wholeGameClause(
+        wgBase({ policy: require('./steering.js').POLICY_EMPIRICAL }), decisionImpact('NOPE'));
+      ok('PIN GUARD / RED — THE DEFECT ITSELF: a steering block declaring the RIGHT POLICY and no '
+        + '`team_pool_digest` is WITHHELD. The clause read `steering.policy` and never the field its '
+        + 'own artifact already records, so a run against the wrong team pool passed',
+        wPolicyOnly.withheld === true && /team_pool_digest/.test(wPolicyOnly.why), wPolicyOnly.why);
+      ok('PIN GUARD / RED — and no figure comes back with it: no 1230, no rate, no class composition',
+        !/1230/.test(wPolicyOnly.why) && wPolicyOnly.games === undefined
+        && wPolicyOnly.rate === undefined, wPolicyOnly);
+      const wNoSteer = wholeGameClause(wgBase(undefined), decisionImpact('NOPE'));
+      ok('PIN GUARD / RED — an artifact with NO steering block at all is WITHHELD',
+        wNoSteer.withheld === true, wNoSteer.why);
+      const wWrongPol = wholeGameClause(
+        wgBase(STEER_OK({ policy: require('./steering.js').POLICY })), decisionImpact('NOPE'));
+      ok('PIN GUARD / RED — the coverage arm is still refused, and the refusal NAMES BOTH policies',
+        wWrongPol.withheld === true
+        && wWrongPol.why.indexOf(require('./steering.js').POLICY) >= 0
+        && wWrongPol.why.indexOf(require('./steering.js').POLICY_EMPIRICAL) >= 0, wWrongPol.why);
+      const wGood = wholeGameClause(wgBase(STEER_OK()), decisionImpact('NOPE'));
+      ok('PIN GUARD / GREEN — release stamp + a steering block naming every selector ANSWERS',
+        wGood.withheld !== true && wGood.games === 1230, wGood.why);
+      ok('PIN GUARD / RED — every withheld whole-game verdict exits 2, never 0',
+        clauseExit(wPolicyOnly) === 2 && clauseExit(wNoSteer) === 2 && clauseExit(wWrongPol) === 2);
+      /* THE SAME FOUR ARTIFACTS THROUGH THE OTHER CALLER. One door, two clauses: a refusal that
+       * fires for the board clause and not for the narration clause would mean the door had been
+       * bypassed in one of them, which is precisely the five-copies failure this shape replaced. */
+      ok('PIN GUARD — the NARRATION clause refuses the identical three artifacts, because the read '
+        + 'and the refusal are one door with two callers rather than two copies of one sentence',
+        narrationClause(wgBase({ policy: require('./steering.js').POLICY_EMPIRICAL }),
+                        decisionImpact('NOPE')).withheld === true
+        && narrationClause(wgBase(undefined), decisionImpact('NOPE')).withheld === true
+        && narrationClause(wgBase(STEER_OK({ policy: require('./steering.js').POLICY })),
+                           decisionImpact('NOPE')).withheld === true);
+      ok('PIN GUARD / GREEN — and it ANSWERS the good one, so the arm above is not just refusing '
+        + 'everything handed to it',
+        narrationClause(wgBase(STEER_OK()), decisionImpact('NOPE')).withheld !== true);
+
+      /* ---- 5. THE DOOR THAT CATCHES THE FOURTH CLAUSE ---------------------------------------- */
+      const audited = PIN.audit([{ name: 'a clause added tomorrow', ok: true, why: 'looks clean' }]);
+      ok('PIN GUARD / RED — A FOURTH CLAUSE ADDED TOMORROW WITH NO PIN CANNOT PASS. It hands back no '
+        + '`pins` receipt, so the ASSEMBLER withholds it — the refusal is on the LIST, not on three '
+        + 'named clauses, which is what makes it catch a second instance through another door',
+        audited[0].ok === false && audited[0].withheld === true, audited[0]);
+      ok('PIN GUARD / RED — and the refusal says HOW to add one, so it is a route and not a hole',
+        /pins: PIN\.receipt/.test(audited[0].why) && /PIN\.noArtifact/.test(audited[0].why),
+        audited[0].why);
+      ok('PIN GUARD / GREEN — a clause that DOES declare its artifact passes through untouched',
+        PIN.audit([{ name: 'x', ok: true, pins: PIN.receipt({ file: 'data/x.json' }) }])[0].ok === true);
+      ok('PIN GUARD / GREEN — and a clause that legitimately reads NO artifact declares that, with a '
+        + 'reason, rather than being withheld',
+        PIN.audit([{ name: 'y', ok: true,
+                     pins: PIN.noArtifact('recomputed live every run') }])[0].ok === true);
+      let pinThrew = null;
+      try { PIN.noArtifact(); } catch (e) { pinThrew = e.message; }
+      ok('PIN GUARD / RED — an artifact-free declaration with NO REASON throws: an unexplained '
+        + 'exemption is the invisible exception this whole guard is against',
+        typeof pinThrew === 'string' && /must say why/.test(pinThrew), pinThrew);
+      let pinThrew2 = null;
+      try { PIN.guard({ name: 'n', file: 'data/n.json', artifact: {}, need: ['release'] }); }
+      catch (e) { pinThrew2 = e.message; }
+      ok('PIN GUARD / RED — a refusal with no re-run command throws: a withheld figure with no route '
+        + 'back is a hole, not a refusal',
+        typeof pinThrew2 === 'string' && /rerun/.test(pinThrew2), pinThrew2);
+
+      /* ---- 5b. THE GUARD CAN PROVE IT RAN ----------------------------------------------------
+       * CLAUDE.md: a capability that cannot prove it ran is assumed broken. Every arm above would
+       * also pass against a guard that returned a canned refusal without reading anything, so the
+       * counters are asserted to have MOVED on each distinct branch. */
+      ok('PIN GUARD — the guard proves it ran: the release, digest, population and receipt branches '
+        + 'have each fired at least once in this process',
+        PIN.PIN_COUNTERS.checked > 0 && PIN.PIN_COUNTERS.no_release > 0
+        && PIN.PIN_COUNTERS.no_digests > 0 && PIN.PIN_COUNTERS.population > 0
+        && PIN.PIN_COUNTERS.no_receipt > 0, PIN.PIN_COUNTERS);
+
+      /* ---- 6. EVERY SHIPPING CLAUSE CARRIES A RECEIPT ---------------------------------------- */
+      const liveClauses = medichamIsCorrect().clauses;
+      ok('PIN GUARD — every clause the gate assembles hands back a receipt naming what it read',
+        liveClauses.every((c) => c.pins
+          && (c.pins.artifact || (c.pins.checked || []).indexOf('no-artifact') >= 0)),
+        liveClauses.filter((c) => !c.pins).map((c) => c.name));
+    }
 
     /* -- THE ROW DETECTOR, ON SYNTHETIC ROWS — ROADMAP #148 FOR THE THIRD TIME -----------------
      *
@@ -3639,7 +4312,10 @@ if (require.main === module) {
      * fixture carries ONE counted row beside the shelved one, so the clause still has to decide
      * something and the shelf is not the only thing in it. */
     {
-      const FIX = { release: 'rel-fixture', generated: '2026-08-28T00:00:00.000Z',
+      /* the injected `cur` below is `rel-fixture`, so the fixture's own pin must name it — a
+        * fixture that pins the REAL tree while claiming the tree is `rel-fixture` would be testing
+        * the release guard rather than the shelf printer. */
+      const FIX = { ...PINNED({ [PIN.K.id]: 'rel-fixture' }), generated: '2026-08-28T00:00:00.000Z',
         summary: { moves: { diverged: 1, shelved_by_owner_diverging: 1 } },
         rows: { moves: [
           { id: 'atexactly', diverged: true },
@@ -3674,7 +4350,8 @@ if (require.main === module) {
         { counted: MC.counted, ok: MC.ok, diverged: MC.diverged });
       /* PRINTED AT ZERO TOO — the DECLARED register's own standard, one block up. A subtraction that
        * goes silent when it stops firing is indistinguishable from a mechanic that never came up. */
-      const NONE = mechanicsClause({ j: { release: 'rel-fixture', summary: { moves: { diverged: 1 } },
+      const NONE = mechanicsClause({ j: { ...PINNED({ [PIN.K.id]: 'rel-fixture' }),
+                                          summary: { moves: { diverged: 1 } },
                                           rows: { moves: [{ id: 'atexactly', diverged: true }],
                                                   abilities: [], items: [] } },
         cur: { id: 'rel-fixture' }, U: FIXU, DI: decisionImpact('nothing-on-disk') });
@@ -3704,7 +4381,10 @@ if (require.main === module) {
      * THE CURRENT RELEASE IS READ OFF DISK BY THE CLAUSE, so every synthetic artifact below carries
      * NO release. An unstamped artifact is deliberately allowed to answer — the clause refuses only on
      * a MISMATCH — which is the same rule `mechanicsClause` applies. */
-    const PROBE = (rows, extra) => ({ games: 100, order_probe: rows, ...(extra || {}) });
+    /* PINNED, because the order probe now refuses an artifact that cannot say what it was measured
+     * under (see the block in `orderProbeClause`). Fixing the fixture is the right move; loosening
+     * the clause so a synthetic artifact keeps passing would be the tuning this change is against. */
+    const PROBE = (rows, extra) => PINNED({ games: 100, order_probe: rows, ...(extra || {}) });
     const PAIR = (tied, samePri) => ({ speed_tied: tied, same_priority: samePri, speed_gap: 40,
       cause: 'ordering :: |move|p1a|tailwind <> |move|p2a|tailwind', seed: 's' + tied + samePri,
       showdown_first: { body: 'A', speed: 300 }, medicham_first: { body: 'B', speed: 260 } });
@@ -3723,21 +4403,27 @@ if (require.main === module) {
     ok('RED — NO ARTIFACT is a FAILING clause, never a passing one',
       orderProbeClause(null).ok === false && /NO ARTIFACT/.test(orderProbeClause(null).why));
     ok('RED — an artifact with NO order_probe array FAILS rather than passing by absence',
-      orderProbeClause({ games: 100 }).ok === false
-      && /NO ORDER PROBE/.test(orderProbeClause({ games: 100 }).why));
+      orderProbeClause(PINNED({ games: 100 })).ok === false
+      && /NO ORDER PROBE/.test(orderProbeClause(PINNED({ games: 100 })).why));
     ok('RED — an EMPTY probe over ZERO games decides nothing and does not pass',
-      orderProbeClause({ games: 0, order_probe: [] }).ok === false);
+      orderProbeClause(PINNED({ games: 0, order_probe: [] })).ok === false);
     ok('an empty probe over REAL games passes, and says it is clean BY ABSENCE rather than by proof',
-      orderProbeClause({ games: 100, order_probe: [] }).ok === true
-      && /clean by absence/.test(orderProbeClause({ games: 100, order_probe: [] }).why));
-    /* THE RELEASE GUARD, WHICH IS THE ONE THAT FIRES TODAY. A probe cut against other bytes must fail,
-     * must be distinguishable from the defect (`cannot_answer`), and must still PRINT its count —
-     * withheld as a verdict, visible as a listing. */
-    const OTHER = orderProbeClause(PROBE([PAIR(true, true)], { engine_release: 'not-this-tree' }));
+      orderProbeClause(PINNED({ games: 100, order_probe: [] })).ok === true
+      && /clean by absence/.test(orderProbeClause(PINNED({ games: 100, order_probe: [] })).why));
+    /* THE RELEASE GUARD, WHICH IS THE ONE THAT FIRES TODAY. A probe cut against other bytes must
+     * fail and must be distinguishable from the defect (`cannot_answer`). */
+    const OTHER = orderProbeClause(PROBE([PAIR(true, true)], { [PIN.K.id]: 'not-this-tree' }));
     ok('RED — a probe measured against OTHER BYTES cannot answer, however clean it looks',
       OTHER.ok === false && OTHER.cannot_answer === true, OTHER.why);
-    ok('the withheld run still reports what it found, so the figure is visible and unquotable',
-      OTHER.probed === 1 && /WITHHELD, not annotated/.test(OTHER.why));
+    /* INVERTED 2026-09-04. This read *"the withheld run still reports what it found, so the figure is
+     * visible and unquotable"* and asserted `OTHER.probed === 1`. There is no such thing as a visible
+     * unquotable figure in this repository — `status.js` printed `PRE-CHANGE` beside the quarantined
+     * numbers and they were quoted anyway, by the agent that printed them. Withheld means GONE. */
+    ok('INVERTED 2026-09-04 — the withheld probe reports NOTHING it found: no probed count, no '
+      + 'unequal count, and neither in the sentence',
+      OTHER.probed === undefined && OTHER.unequal === undefined && !/1 pair/.test(OTHER.why), OTHER);
+    ok('RED — an order probe with NO pin at all is WITHHELD too, not answered',
+      orderProbeClause({ games: 100, order_probe: [PAIR(true, true)] }).withheld === true);
 
 
     /* DECISION IMPACT — the contract, driven through the shipping reader by pointing it at a synthetic
@@ -3782,20 +4468,21 @@ if (require.main === module) {
         decisionImpact('REL').clear('move:someplayedmove') === null
         && /NO DECISION-IMPACT RUN/.test(decisionImpact('REL').why));
       /* THE WHOLE-GAME CLAUSE THROUGH ITS OWN INJECTION POINT: the same cause, cleared and not. */
-      const wgArt = { games: 100, diverged: 10, planted_divergence_proof_ok: true, mode: 'M',
+      const wgArt = { ...PINNED(), games: 100, diverged: 10, planted_divergence_proof_ok: true,
+        mode: 'M',
         /* the published arm, so these cases exercise the SUBTRACTION rather than the population
          * refusal added 2026-09-03 — which has its own red block further down */
-        steering: { policy: require('./steering.js').POLICY_EMPIRICAL },
+        steering: STEER_OK(),
         classes: [{ cls: 'drag', causes: [{ cause: 'drag: a different body :: x', n: 10 }] }] };
       diWrite(GOOD);
       /* the reader closes over the rows it read, so the file is no longer needed after this line */
       const wgDI = decisionImpact('REL');
-      ok('WHOLE GAME — a cause cleared by a paired run does not hold the clause shut',
-        wholeGameClause(wgArt, wgDI).ok === true, wholeGameClause(wgArt, wgDI).why);
+      ok('NARRATION — a cause cleared by a paired run does not hold the clause shut',
+        narrationClause(wgArt, wgDI).ok === true, narrationClause(wgArt, wgDI).why);
       ok('RED — the SAME artifact with an inert decision-impact reader still FAILS',
-        wholeGameClause(wgArt, decisionImpact('NOPE')).ok === false);
-      ok('the whole-game clause prints what was cleared and never folds it into the verdict silently',
-        /DECISION IMPACT/.test(wholeGameClause(wgArt, wgDI).why));
+        narrationClause(wgArt, decisionImpact('NOPE')).ok === false);
+      ok('the narration clause prints what was cleared and never folds it into the verdict silently',
+        /DECISION IMPACT/.test(narrationClause(wgArt, wgDI).why));
     } finally {
       if (diSaved !== null) fs.writeFileSync(diPath, diSaved);
       else if (fs.existsSync(diPath)) fs.unlinkSync(diPath);
@@ -3815,9 +4502,18 @@ if (require.main === module) {
     {
       const relCur = readJson(D('data', 'engine-release.json'));
       const relId = relCur && (relCur.id || relCur.release || relCur.current);
-      const WG = (extra) => ({ games: 1230, diverged: 695, planted_divergence_proof_ok: true,
-        mode: 'M', generated: 'then', classes: [],
-        steering: { policy: require('./steering.js').POLICY_EMPIRICAL }, ...extra });
+      /* THE FIXTURE CARRIES A `state` BLOCK because these arms are driven through the BOARD clause,
+       * which reads `state.games` / `state.games_board_never_diverged` and refuses an artifact that
+       * carries neither. Its board numbers are deliberately DIFFERENT from its protocol ones (1230
+       * games, 695 protocol divergences, 700 boards never parted -> 530 board-material) so that an
+       * arm cannot pass by reading the wrong quantity and getting the same answer. */
+      const WG = (extra) => PINNED({ games: 1230, diverged: 695, planted_divergence_proof_ok: true,
+        mode: 'M', generated: 'then', classes: [], steering: STEER_OK(),
+        state_mode: true,
+        state: { games: 1230, games_board_never_diverged: 700, protocol_diverged_games: 695,
+                 protocol_diverged_board_never_did: 200,
+                 planted_state_proof_ok: true, mappings_all_proved: true },
+        ...extra });
       const stale = wholeGameClause(WG({ engine_release: '__not-this-tree__' }), decisionImpact('NOPE'));
       if (!relId) {
         ok('#298 — no engine-release.json on this tree, so the clause has no id to disagree with and '
@@ -3837,10 +4533,14 @@ if (require.main === module) {
         ok('#298 — an artifact stamped to THIS tree is answered normally, so the check refuses a '
           + 'mismatch and nothing else', fresh.withheld !== true && fresh.games === 1230, fresh.why);
       }
-      const unstamped = wholeGameClause(WG({}), decisionImpact('NOPE'));
-      ok('#298 — an UNSTAMPED artifact is allowed to answer, exactly as orderProbeClause allows one: '
-        + 'the clause refuses a MISMATCH, not an absence',
-        unstamped.withheld !== true && unstamped.games === 1230, unstamped.why);
+      /* INVERTED 2026-09-04, for the same reason as the roster arm above. This read *"an UNSTAMPED
+       * artifact is allowed to answer, exactly as orderProbeClause allows one"* — and `WG({})` now
+       * carries a pin, so the arm would have kept passing while testing nothing at all. */
+      const unstampedWG = WG({}); delete unstampedWG[PIN.K.id]; delete unstampedWG[PIN.K.digests];
+      const unstamped = wholeGameClause(unstampedWG, decisionImpact('NOPE'));
+      ok('#298 — INVERTED 2026-09-04 — an UNSTAMPED whole-game artifact is WITHHELD. This is the '
+        + 'clause whose number gets quoted, and an unpinned figure reads exactly like a pinned one',
+        unstamped.withheld === true && unstamped.games === undefined, unstamped.why);
 
       /* -- AND THE EXIT CODE THE WITHHOLD TURNS INTO, because a verdict object nobody maps is not a
        * gate. `--whole-game` (ROADMAP #218's instrument) and `--order-probe` (#290's) share ONE
@@ -3887,6 +4587,195 @@ if (require.main === module) {
       }
     }
 
+    /* -- BOARD-MATERIAL vs NARRATION — TWO CLAUSES, AND EACH MUST BE ABLE TO FAIL ALONE ---------
+     *
+     * WILL'S CALL, 2026-08-22, WIRED 2026-09-04: board-material gates, narration reports. The whole
+     * hazard of a split like this is ONE CLAUSE WEARING TWO NAMES — two rows in the report, one
+     * quantity underneath, and nobody able to tell because both rows move together. So the proof is
+     * not that each clause returns a number; it is that the two arms below are OPPOSITE, and that
+     * each clause is red on exactly one of them.
+     *
+     * MEASURED BEFORE THE ARMS WERE TRUSTED, on the pre-change implementation — the protocol clause
+     * standing in the board slot, which is what shipped until 2026-09-04. It passes ARM A (where 12
+     * boards part and the narration is clean) and fails ARM B (where 40 protocol lines part and no
+     * board does): 6 of the 9 assertions below go red, and both directions are inverted. An arm set
+     * that could not do that would be re-testing one clause twice.
+     *
+     * THE FIXTURES DIFFER IN THEIR BOARD FIELDS AND THEIR PROTOCOL FIELDS INDEPENDENTLY, which is
+     * the only way a clause reading the wrong one is caught: ARM A is `diverged: 0` with 12 boards
+     * parted, ARM B is `diverged: 40` with zero boards parted. A clause reading the other quantity
+     * gives the wrong verdict on BOTH, not on neither. */
+    {
+      const SPLIT = (o) => PINNED(Object.assign({
+        mode: (readJson(D('data', 'whole-game-baseline.json')) || {}).mode || 'M',
+        generated: 'fixture', planted_divergence_proof_ok: true, steering: STEER_OK(),
+        state_mode: true,
+      }, o));
+      const INERT = { active: false, why: 'no run', clear: () => null };
+      /* ARM A — 12 boards part; the protocol never diverges once. */
+      const ARM_A = SPLIT({ games: 1000, diverged: 0, classes: [],
+        state: { games: 1000, games_board_never_diverged: 988,
+                 protocol_diverged_games: 0, protocol_diverged_board_never_did: 0,
+                 turn_boundaries_compared: 9000, turn_boundaries_identical: 8970,
+                 board_parted_before_the_protocol_did: 12, protocol_diverged_board_held_longer: 0,
+                 planted_state_proof_ok: true, mappings_all_proved: true,
+                 first_board_divergences: [{ turn: 4, seed: 'fixture-a-1',
+                   protocol_diverged_at_turn: null,
+                   diffs: [{ path: 'p1.active[0].hp', medicham: 100, showdown: 80 }] }] } });
+      /* ARM B — 40 protocol first divergences; not one board ever parts. */
+      const ARM_B = SPLIT({ games: 1000, diverged: 40,
+        classes: [{ cls: 'event missing from medicham2',
+          causes: [{ cause: 'event missing from medicham2 :: |upkeep <> |-end|p1a|x', n: 40 }] }],
+        state: { games: 1000, games_board_never_diverged: 1000,
+                 protocol_diverged_games: 40, protocol_diverged_board_never_did: 40,
+                 turn_boundaries_compared: 9000, turn_boundaries_identical: 9000,
+                 board_parted_before_the_protocol_did: 0, protocol_diverged_board_held_longer: 0,
+                 planted_state_proof_ok: true, mappings_all_proved: true,
+                 first_board_divergences: [] } });
+      const aB = wholeGameClause(ARM_A), aN = narrationClause(ARM_A, INERT);
+      const bB = wholeGameClause(ARM_B), bN = narrationClause(ARM_B, INERT);
+      ok('SPLIT / ARM A — boards part and the narration agrees: the BOARD clause FAILS',
+        aB.ok === false && aB.board_material === 12, aB.why);
+      ok('SPLIT / ARM A — ...and on the SAME artifact the NARRATION clause PASSES. Two rows, two '
+        + 'answers: this is the assertion that the split is not one clause wearing two names',
+        aN.ok === true, aN.why);
+      ok('SPLIT / ARM B — the narration parts and no board does: the BOARD clause PASSES',
+        bB.ok === true && bB.board_material === 0, bB.why);
+      ok('SPLIT / ARM B — ...and on the SAME artifact the NARRATION clause FAILS',
+        bN.ok === false && bN.undeclared === 40, bN.why);
+      ok('SPLIT — the two arms move the board clause in OPPOSITE directions from the narration '
+        + 'clause. Identical verdicts across a varied knob would mean the knob is unwired',
+        aB.ok !== bB.ok && aN.ok !== bN.ok && aB.ok !== aN.ok && bB.ok !== bN.ok,
+        'A board=' + aB.ok + '/narr=' + aN.ok + '  B board=' + bB.ok + '/narr=' + bN.ok);
+      /* THE QUANTITY IS IN THE FIRST WORDS OF EACH VERDICT, NOT ONLY IN A FIELD. Two correct numbers
+       * printed side by side with only one published is ROADMAP #387, and it cost three reconciles
+       * in one session. A reader must never have to work out which `N of M` this is. */
+      ok('SPLIT — each clause NAMES ITS QUANTITY in the first words of its own verdict and in a '
+        + '`quantity` field, so no reader has to guess which of the two an `N of M` came from',
+        /^BOARD-MATERIAL/.test(aB.why) && /^PROTOCOL FIRST DIVERGENCE/.test(bN.why)
+        && aB.quantity === 'board_material_games'
+        && bN.quantity === 'protocol_first_divergence_games',
+        aB.quantity + ' / ' + bN.quantity);
+      ok('SPLIT — the narration clause declares `gates: false` and the board clause does not, and '
+        + 'the narration verdict SAYS SO in words as well as in a field',
+        bN.gates === false && aB.gates !== false && /REPORTS, IT DOES NOT HOLD THE GATE SHUT/.test(bN.why),
+        'narration gates=' + bN.gates + '  board gates=' + aB.gates);
+
+      /* -- THE UNCAUSED SET, WHICH IS THE FAILURE MODE OF THE SPLIT ---------------------------
+       *
+       * A game whose protocol divergence CLOSES while its board still parts has nothing in the
+       * narration pointing at it — no cause, no class, no shape. Under the single clause that
+       * shipped until 2026-09-04 it left the count altogether, and a fix could therefore make the
+       * headline better by making the engine no more correct. ARM A is entirely that case. */
+      ok('SPLIT / UNCAUSED — a board that parts with NO protocol divergence anywhere in the game is '
+        + 'counted AND named as uncaused, not merely counted',
+        aB.board_material_uncaused_by_protocol === 12 && /UNCAUSED — 12 of the 12/.test(aB.why),
+        aB.board_material_uncaused_by_protocol);
+      ok('SPLIT / UNCAUSED — the sample row carrying `protocol_diverged_at_turn: null` is PRINTED '
+        + 'with its leaf path, because a count with no worked example is not evidence anybody can act on',
+        /fixture-a-1/.test(aB.why) && /p1\.active\[0\]\.hp/.test(aB.why), aB.why);
+      ok('SPLIT / UNCAUSED — with every board agreeing there are none, and the sample is EMPTY '
+        + 'rather than absent — a control, so the arm above is not matching a fixed string',
+        bB.board_material_uncaused_by_protocol === 0
+        && !/protocol_diverged_at_turn: null`:/.test(bB.why), bB.why);
+      /* RED — the four fields are not clamped. `Math.max(0, ...)` here would turn an instrument
+       * contradicting itself into a clean bill of health, which is the silent default this file
+       * opens with. */
+      const CONTRA = SPLIT({ games: 1000, diverged: 40, classes: [],
+        state: { games: 1000, games_board_never_diverged: 995,
+                 protocol_diverged_games: 40, protocol_diverged_board_never_did: 0,
+                 planted_state_proof_ok: true, mappings_all_proved: true } });
+      const contra = wholeGameClause(CONTRA);
+      ok('SPLIT / RED — 5 board-material games but 40 games whose protocol AND board both parted is '
+        + 'an artifact contradicting itself, and it is REPORTED rather than clamped to zero',
+        contra.ok === false && contra.board_material_uncaused_by_protocol === -35
+        && /CONTRADICTS ITSELF/.test(contra.why), contra.why);
+
+      /* -- THE BOARD CLAUSE HAS NO FALLBACK ONTO THE PROTOCOL COUNT ---------------------------
+       *
+       * This is the one branch that would quietly undo the whole change: an artifact with no board
+       * comparison, answered off `j.diverged`, publishes the narration count under the board
+       * clause's name. It refuses, and the refusal names `state_mode` so a reader knows the run was
+       * never asked for boards rather than guessing that boards agreed. */
+      const NOSTATE = SPLIT({ games: 1000, diverged: 40, classes: [], state_mode: false });
+      delete NOSTATE.state;
+      const nos = wholeGameClause(NOSTATE);
+      ok('SPLIT / RED — an artifact with NO board comparison CANNOT ANSWER the board clause, and '
+        + 'nothing falls back onto `j.diverged`: the protocol count may not be published under the '
+        + 'board clause\'s name',
+        nos.ok === false && nos.cannot_answer === true && nos.board_material === undefined
+        && !/\b40\b/.test(nos.why) && /state_mode/.test(nos.why), nos.why);
+      ok('SPLIT / RED — and the same artifact still ANSWERS the narration clause, so the refusal '
+        + 'above is about the missing BOARD data and not about the fixture being malformed',
+        narrationClause(NOSTATE, INERT).cannot_answer !== true, narrationClause(NOSTATE, INERT).why);
+
+      /* -- THE BOARD COMPARATOR'S OWN PLANTED PROOF, NOT THE PROTOCOL ONE --------------------- */
+      const UNPROVED = SPLIT({ games: 1000, diverged: 0, classes: [],
+        state: { games: 1000, games_board_never_diverged: 1000,
+                 protocol_diverged_games: 0, protocol_diverged_board_never_did: 0,
+                 planted_state_proof_ok: false, mappings_all_proved: true } });
+      const unp = wholeGameClause(UNPROVED);
+      ok('SPLIT / RED — a run whose BOARD comparator never proved it can see a planted board '
+        + 'difference is WITHHELD, even though its PROTOCOL proof fired. An instrument vouched for '
+        + 'by a different instrument reads exactly like a vouched one',
+        unp.ok === false && unp.cannot_answer === true && unp.board_material === undefined,
+        unp.why);
+      const UNMAPPED = SPLIT({ games: 1000, diverged: 0, classes: [],
+        state: { games: 1000, games_board_never_diverged: 1000,
+                 protocol_diverged_games: 0, protocol_diverged_board_never_did: 0,
+                 planted_state_proof_ok: true, mappings_all_proved: false } });
+      ok('SPLIT / RED — and an unproved LEAF MAPPING withholds it too: "no board differs" means '
+        + 'nothing when nobody demonstrated the mapping that would have shown one',
+        wholeGameClause(UNMAPPED).cannot_answer === true, wholeGameClause(UNMAPPED).why);
+      ok('SPLIT / GREEN — with both proofs fired and every board agreeing, the clause PASSES. '
+        + 'Without this the two arms above would pass against a clause that refuses everything',
+        wholeGameClause(SPLIT({ games: 1000, diverged: 0, classes: [],
+          state: { games: 1000, games_board_never_diverged: 1000,
+                   protocol_diverged_games: 0, protocol_diverged_board_never_did: 0,
+                   planted_state_proof_ok: true, mappings_all_proved: true } })).ok === true);
+
+      /* -- AND THE GATE ITSELF: A REPORTING CLAUSE MAY NOT DECIDE IT, AND MUST STILL BE SEEN ---
+       *
+       * Driven on synthetic clause lists rather than on the live gate, because the live gate reads
+       * whatever artifact is on disk and this asserts the RULE. `gates` is opt-in: a clause added
+       * tomorrow that forgets the field GATES, which is the safe direction. */
+      const G = gateVerdict;      /* THE SHIPPING RULE, not a restatement of it — see gateVerdict */
+      const gRows = [{ name: 'board', ok: true }, { name: 'narration', ok: false, gates: false }];
+      ok('SPLIT / GATE — a RED reporting clause does not hold the gate shut, which is what Will\'s '
+        + '2026-08-22 ruling says in as many words',
+        G(gRows).ok === true);
+      ok('SPLIT / GATE — ...but it is STILL in `failing`, so status.js and every reader sees the red '
+        + 'row. Withholding it from the gate is not the same as hiding it, and the difference is '
+        + 'the whole reason the ruling kept narration as a clause rather than a backlog',
+        G(gRows).failing.length === 1 && G(gRows).gate_failing.length === 0
+        && G(gRows).reporting.length === 1);
+      ok('SPLIT / GATE / RED — a clause that does NOT declare `gates` still holds the gate shut. '
+        + 'The unsafe default would be a new clause that quietly reports and blocks nothing',
+        G([{ name: 'board', ok: false }, { name: 'narration', ok: true, gates: false }]).ok === false);
+      /* RED — THE REFUSAL PATHS CARRY THE FLAG TOO. A stale, torn or unpinned artifact makes the
+       * narration clause come back WITHHELD, and a withheld clause with no `gates` field would
+       * default to gating and hold the quarantine gate shut on the quantity Will took off the
+       * critical path. Both refusal families are asserted, because they leave through different
+       * doors — `wholeGameDoor` for the pin, the clause body for the planted proof. */
+      const refusedNarr = narrationClause(SPLIT({ games: 1000, diverged: 40, classes: [],
+        steering: undefined, state: ARM_B.state }), INERT);
+      ok('SPLIT / RED — a WITHHELD narration clause still declares `gates: false`. Without this a '
+        + 'stale artifact would put narration back on the gate and nothing would say so',
+        refusedNarr.withheld === true && refusedNarr.gates === false, refusedNarr.gates);
+      const noProofNarr = narrationClause(SPLIT({ games: 1000, diverged: 40, classes: [],
+        planted_divergence_proof_ok: false, state: ARM_B.state }), INERT);
+      ok('SPLIT / RED — and so does the OTHER refusal family, which leaves through a different exit: '
+        + 'a planted protocol proof that did not fire',
+        noProofNarr.ok === false && noProofNarr.gates === false, noProofNarr.gates);
+      ok('SPLIT / GATE — and the SHIPPING assembler is the thing being described: the live gate '
+        + 'carries exactly one reporting clause and it is the narration one',
+        (() => { const g = medichamIsCorrect();
+                 return (g.reporting || []).length === 1
+                   && /NARRATION/.test(g.reporting[0].name); })(),
+        (medichamIsCorrect().reporting || []).map(c => c.name));
+    }
+
+
     /* -- THE TWO DECLARED KINDS, AND THE BOUNDARY ON EACH MATCHER — 2026-08-23 ------------------
      *
      * THE POSITIVE CASE IS NOT THE PROOF. A declaration is one loose matcher away from hiding a real
@@ -3897,14 +4786,13 @@ if (require.main === module) {
     {
       const MOODY_SD = '|-boost|p2a: Scovillain|spa|2';
       const MOODY_ME = '|-boost|p2a: Scovillain|def|2|[from] ability: moody';
-      const WG = (cause, rows, probe) => ({ games: 100, diverged: rows.length, mode: 'M',
-        planted_divergence_proof_ok: true,
-        steering: { policy: require('./steering.js').POLICY_EMPIRICAL },
+      const WG = (cause, rows, probe) => PINNED({ games: 100, diverged: rows.length, mode: 'M',
+        planted_divergence_proof_ok: true, steering: STEER_OK(),
         classes: [{ cls: cause.split(' :: ')[0], causes: [{ cause, n: rows.length }] }],
         first_divergences: rows.map((r) => ({ cause, showdown_before: [], ...r })),
         order_probe: (probe || []).map((r) => ({ cause, ...r })) });
       const INERT = { active: false, why: 'no run', clear: () => null };
-      const dec = (cause, rows, probe) => wholeGameClause(WG(cause, rows, probe), INERT);
+      const dec = (cause, rows, probe) => narrationClause(WG(cause, rows, probe), INERT);
       const MOODY = '-boost field 3 :: |-boost|p2a|spa|2 <> |-boost|p2a|def|2';
 
       /* MOODY IS NO LONGER DECLARED, AND THIS IS THE RATCHET THAT KEEPS IT THAT WAY — 2026-08-25.
@@ -4313,9 +5201,30 @@ if (require.main === module) {
   console.log('');
   console.log('QUARANTINE — everything downstream of MEDICHAM is withheld until MEDICHAM is correct');
   console.log('');
+  const GATING = S.gate.clauses.filter(c => c.gates !== false);
   console.log(`  GATE: ${S.ok ? 'OPEN — MEDICHAM passes both conditions; nothing is withheld'
-                              : 'CLOSED — ' + S.gate.failing.length + ' of ' + S.gate.clauses.length + ' clauses fail'}`);
-  for (const c of S.gate.clauses) console.log(`    ${c.ok ? 'PASS' : 'FAIL'}  ${pad2(c.name, 30)} ${c.why.replace(/\s+/g, ' ')}`);
+                              : 'CLOSED — ' + (S.gate.gate_failing || S.gate.failing).length + ' of '
+                                + GATING.length + ' GATING clauses fail'}`);
+  /* A REPORTING CLAUSE IS LABELLED `RPRT`, NEVER `FAIL`, AND NEVER `PASS` EITHER. Printing it as
+   * FAIL beside an OPEN gate is the contradictory-sentences bug this printer already shipped once;
+   * printing it as PASS while it is red is worse — it would be the caption-on-a-figure failure with
+   * the caption removed. A third word is the only honest option, and every reporting row carries its
+   * own red/green inside its verdict text. */
+  for (const c of S.gate.clauses) {
+    const tag = c.gates === false ? 'RPRT' : (c.ok ? 'PASS' : 'FAIL');
+    console.log(`    ${tag}  ${pad2(c.name, 30)} ${c.why.replace(/\s+/g, ' ')}`);
+  }
+  if ((S.gate.reporting || []).length) {
+    console.log('');
+    console.log('  RPRT = REPORTS, DOES NOT GATE. Will, 2026-08-22: board-material now, narration as');
+    console.log('  its own separate gate afterwards. These rows are computed and printed on every run');
+    console.log('  and exit non-zero through their own command; they do not decide the line above.');
+    for (const c of S.gate.reporting) {
+      console.log('    ' + pad2(c.name, 62) + ' ' + (c.ok ? 'GREEN' : 'RED') + '  — quantity `'
+        + (c.quantity || 'UNNAMED — a reporting row that does not name its quantity is a number '
+           + 'nobody can reconcile') + '`');
+    }
+  }
   if (S.staleExemptions.length) {
     console.log('');
     console.log('  STALE EXEMPTION — a declared instrument that is no longer in the play layer:');

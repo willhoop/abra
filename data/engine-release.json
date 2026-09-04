@@ -2,9 +2,9 @@
   "current": "8ad06030e129",
   "cut": "2026-09-04T01:08:54.834Z",
   "why": "delayed-hit crit draw + substitute clamp + table digest hashes t/wt",
-  "cuts": 68,
-  "latest_cut": "2026-09-04T05:35:02.635Z",
+  "cuts": 89,
+  "latest_cut": "2026-09-04T07:05:53.839Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-04T05:35:02.789Z",
+  "pointer_written": "2026-09-04T07:05:53.959Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
