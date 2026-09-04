@@ -1,0 +1,21 @@
+{
+  "_what": "MUTATION TESTING FOR THE GATES. Not for the engine — the engine already has an oracle (Showdown) and is differentially tested against it. The GATES have no oracle: nothing checks the checkers, which is how `8 of 8 PASS` survived being false. This config is the SETTINGS ONLY; `mutate` is written in by tools/mutate-gates.js at run time because a typed line range goes stale the moment engine/quarantine.js is edited, and a mutation range that has slid off its function silently mutates comments and reports a perfect score.",
+  "_do_not_run_this_directly": "node tools/mutate-gates.js. Running stryker against the repo root would sandbox 27 GB of data/ and would let a mutant's --selftest write and unlink data/decision-impact.json in the LIVE tree. The shim builds an isolated tree instead and refuses to run if that tree does not reproduce the live selftest verdict byte-for-byte.",
+  "packageManager": "npm",
+  "testRunner": "command",
+  "commandRunner": {
+    "command": "node engine/quarantine.js --selftest"
+  },
+  "coverageAnalysis": "off",
+  "reporters": ["clear-text", "json", "progress"],
+  "jsonReporter": { "fileName": "mutation-report.json" },
+  "clearTextReporter": { "maxTestsToLog": 0, "allowColor": false },
+  "htmlReporter": { "fileName": "mutation-report.html" },
+  "_concurrency_is_1_and_that_is_a_finding_not_a_setting": "MEASURED 2026-09-04, on ONE pinned tree with byte-identical inputs. At concurrency 2 three consecutive runs of the SAME 83 mutants scored 75.90%, 68.67% and 73.49% — the survivor SET moved, not just the timing, and the mutants that flipped (lines 1083, 1100, 1116) are the load-bearing ones. At concurrency 1, three consecutive runs are byte-identical at 68.67% / 57 killed / 26 survived. The unmutated selftest itself is deterministic (15 for 15). SO THE ERROR IS IN THE HARNESS AND IT RUNS IN THE FLATTERING DIRECTION: parallel runs report mutants as KILLED that survive, i.e. they report the checkers as better checked than they are. That is the exact failure this whole exercise exists to find, arriving inside the tool brought in to find it. Do not raise this without re-measuring stability first.",
+  "concurrency": 1,
+  "timeoutMS": 30000,
+  "timeoutFactor": 4,
+  "disableTypeChecks": false,
+  "cleanTempDir": true,
+  "thresholds": { "high": 90, "low": 70, "break": null }
+}

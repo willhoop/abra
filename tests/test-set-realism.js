@@ -1,6 +1,17 @@
 /* test-set-realism.js — generated sets must not carry same-type attacking moves far more often than
  * human sets do.
  *
+ * ABRA-HEAP: 6144
+ *
+ * IT NEEDS MORE HEAP THAN NODE GIVES BY DEFAULT, AND THAT IS DECLARED RATHER THAN LEFT TO CRASH.
+ * Run bare, this dies at exit 134 with `Reached heap limit Allocation failed` — a memory ceiling
+ * that reads, at the exit code, exactly like the realism check having FOUND a defect. It builds
+ * whole generated rosters and holds the observed open-sheet set corpus beside them. At 6144 MB it
+ * reports 6 passed / 0 failed.
+ *
+ * `tests/run-all.js` and `tools/lownode.cmd` derive the flag from this line; it is declared here,
+ * in the file that knows its own cost, rather than tabled in the runner where it would go stale.
+ *
  * WHY THIS EXISTS. `set_priors.fillSet` filled unrevealed move slots by drawing from P(move|species)
  * independently. Independence cannot represent a SLOT: Dire Claw and Gunk Shot are both perfectly
  * normal Sneasler moves that compete for one place on the set, so marginal sampling paired them at

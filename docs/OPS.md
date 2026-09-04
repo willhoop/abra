@@ -23,6 +23,57 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## THE RAW LOG IS THE SOURCE OF TRUTH AND THE STORE IS A DERIVED VIEW — 2026-09-04, CHANGELOG 5.244.0
+
+**THE INVERSION BEHIND A DOZEN STORE REWORKS.** The REGENERABLE artifact was durable and the
+IRREPLACEABLE one was gitignored. Everything below follows from putting that the right way round:
+the store can be rebuilt from the raw log; nothing can rebuild the raw log.
+
+- **S1 — the filter ran before the archive write.** `engine/durable-ingest.js:543` continued on the
+  completeness check BEFORE the log was archived, so a game the CURRENT parser could not read had its
+  raw log **deleted** — destroying the one artifact a FUTURE parser could have used. That is the
+  invariant broken at its source, not downstream of it.
+- **S2 — the row was written before the log**, on independent streams, so a crash left an **orphan
+  row**: the wrong direction. Two passes now, through one exported `archiveThenStore()`, with store
+  output verified byte-identical.
+- **S3 — the archive is now write-once dated shards**, not one blob. Caught mid-test before it
+  shipped: a `-2` collision suffix sorts BEFORE `.jsonl`, which replays an append-only archive out of
+  order.
+- **S4 — `get()` resolved an empty string on HTTP error, on timeout AND on an empty body.** Three
+  facts, one value, which is why a dead API and a quiet day were indistinguishable. It returns null on
+  failure now, with the discriminator derived from the endpoint rather than assumed.
+
+**A PUBLISHED ESTIMATE IS REVERSED.** The single-blob archive was described as roughly **65 days**
+from trouble. Measured, compression is **13.98%** and a single blob is **78 MB across both archives
+today — already 78% of the 100 MB limit.** The estimate was wrong; the shard design is what the
+measurement implies, not a preference.
+
+**AND THE GUARD THAT PROTECTS A REBUILD ASSUMED THE OLD EQUALITY.** `engine/rebuild_records.js:117`
+compared COUNTS. Now that the archive is a SUPERSET by design it would have refused every valid
+rebuild — **and it was already letting a bad one through**: with a truncated log the counts balanced
+**3 == 3** and it swapped in a corrupted store at exit 0, while another arm lost a game outright. It
+now filters on completeness and re-asks the guard **by id**, naming any game that would be lost.
+Strictly stronger than what it replaced.
+
+**RECOVERED: 7,275 raw logs across both stores — 6,661 ladder, 614 bo3, 0 unavailable, 0 without a
+timestamp.** Both archives are complete supersets, `MODE=reparse` is unblocked, and the store-orphan
+section of `engine/sweep.js` is clean. **This is the first time a re-parse is safe to run**, which is
+the whole point of the ordering fixes above: a re-parse under S1 would have deleted every log the
+current parser cannot read.
+
+**THE SHAPE ALL OF THIS ARRIVED IN.** `engine/durable-ingest.js:464` already explained the archive
+drift in a comment, and that comment already said *"RUN THIS BEFORE ANY REPARSE"*. Nothing was
+unknown; nothing read it. That is this session's single finding, and OPS is where it cost the most,
+because the thing at risk was the only artifact in the project that cannot be regenerated.
+
+**NOT FIXED, ROUTED, AND NAMED SO IT CANNOT LOOK CLOSED.** `data/games.selfplay.jsonl` holds **89
+duplicate ids**. The raw-log census artifact still asserts the old subset relation and has no
+generator to correct it. Neither was touched.
+
+**WHAT WAS NOT RUN.** No ingest, no bot session and no publication was performed by this pass, and
+`node engine/status.js --write` was not run — so the `<!-- GENERATED -->` block above still carries
+its 2026-09-01 store figures and must not be read as today's. Full accounts: eleven reports under
+`docs/_reports/2026-09-04-*.md`.
 ## Standing state
 
 MAGABRA is **locked** on Showdown (`!magabra`): it can battle and save replays, it **cannot chat**.

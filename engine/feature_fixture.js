@@ -714,6 +714,68 @@ function columns(dex) {
  * quantity: refit, never restamp. A moved TABLE hash means a derived table was re-ingested, which may
  * or may not reach the fit -- the honest answer is to measure how much of the corpus it touches.
  * Collapsing the two into one verdict makes the louder one unreadable. */
+
+/* ---- WHICH FIELDS OF A ROW ARE HASHED --------------------------------------------------------
+ *
+ * DERIVED FROM THE ROWS THEMSELVES, MINUS A DECLARED EXCLUSION LIST. A field added to the damage
+ * table tomorrow is hashed BY DEFAULT. Leaving one out is a conscious edit to the map below, with a
+ * reason a reviewer can read. Absence stops being silent, which is the whole point.
+ *
+ * THE PREVIOUS VERSION WAS AN ENUMERATED LIST AND IT WENT BLIND WITHOUT SAYING SO. Until 2026-09-03
+ * it hashed `m.ty`, a field 0 of 322 rows carry — the table spells typing `t` — so the term was a
+ * constant `null` on every row and the digest could NEVER see a type change, while the comment
+ * beside it said, in the same three lines, that typing was covered. `wt` was not hashed at all, so a
+ * weight change (Low Kick, Grass Knot, Heavy Slam and Heat Crash all read it) was equally invisible.
+ *
+ * REPAIRING THOSE TWO TERMS WAS AN INSTANCE FIX AND IT RE-ARMED THE SAME FAILURE. A list of the
+ * RIGHT names fails exactly the way a list of the WRONG names did: the next field somebody adds goes
+ * unhashed and nothing says so. Measured rather than argued — with the repaired list in place,
+ * injecting `crit_mult` into a row moved the digest NOT AT ALL, and injecting `abilityShield` moved
+ * it not at all either. Both move it now.
+ *
+ * A FIELD THAT IS ABSENT USED TO HASH IDENTICALLY TO ONE PRESENT AND EMPTY. `m.mv || []` maps both
+ * to `[]` and `m.item || null` maps both to `null`, so DELETING `mv` from a row (diancie-mega, whose
+ * `mv` is `[]`) or `item` from a row (aegislash-blade, whose `item` is `null`) moved nothing.
+ * Absence now carries its own sentinel. No row is missing any hashed field today, so this changes no
+ * byte of the current digest — it changes what happens the day one is. */
+const TABLE_FIELDS_NOT_HASHED = new Map([
+  ['nature',        'reaches the damage formula only through `st`, the computed stats, which IS hashed'],
+  ['sp',            'reaches the damage formula only through `st`, the computed stats, which IS hashed'],
+  ['base',          'provenance: which species a forme derives from. Not an input to a damage calculation'],
+  ['mega',          'provenance: a flag marking this row a mega forme. Not an input to a damage calculation'],
+  ['mv_provenance', 'provenance: where the moveset came from. The moveset itself is `mv`, which IS hashed'],
+  ['set_source',    'provenance: which observations produced the set. The set itself is hashed'],
+]);
+
+/* POSITION ONLY, NEVER MEMBERSHIP, AND THE DIFFERENCE IS THE WHOLE FIX. Order means nothing to a
+ * hash except that it decides the VALUE, and an unnecessary digest move costs a restamp — which, as
+ * `verify()` below records, answers one gate while silencing another. So the seven fields hashed on
+ * 2026-09-03 keep their positions and the digest keeps its value `9d289cf77e24`. Any field NOT named
+ * here is still hashed; it is appended after these, in sorted order. Deleting a name from this array
+ * reorders the digest, it does not stop the field being hashed. */
+const TABLE_FIELD_ORDER = ['mv', 'item', 'ab', 'st', 'bs', 't', 'wt'];
+
+/* "the row has no such key", which JSON cannot otherwise tell apart from "present and null". A NUL
+ * prefix, written as an escape so this file stays plain text, and so the sentinel cannot collide
+ * with any value the table could legitimately hold. */
+const TABLE_FIELD_ABSENT = '\u0000ABSENT';
+
+/* The union of every key on every row, split by the declaration above. `declaredButAbsent` is
+ * reported because an exclusion for a field the table no longer carries is a dead line, and a dead
+ * declaration is how a list starts drifting from what it describes. */
+function tableFields(rows) {
+  const seen = new Set();
+  for (const [, m] of rows) if (m && typeof m === 'object') for (const k of Object.keys(m)) seen.add(k);
+  const rank = k => { const i = TABLE_FIELD_ORDER.indexOf(k); return i < 0 ? TABLE_FIELD_ORDER.length : i; };
+  const all = [...seen].sort();
+  return {
+    hashed: all.filter(k => !TABLE_FIELDS_NOT_HASHED.has(k))
+      .sort((a, b) => rank(a) - rank(b) || (a < b ? -1 : a > b ? 1 : 0)),
+    excluded: all.filter(k => TABLE_FIELDS_NOT_HASHED.has(k)),
+    declaredButAbsent: [...TABLE_FIELDS_NOT_HASHED.keys()].filter(k => !seen.has(k)).sort(),
+  };
+}
+
 function tableDigest() {
   /* THROUGH THE ACCESSOR, NOT THE RAW TABLE (R1). The first version of this read Object.keys(MC.mons)
    * directly and tests/test-mc-key.js failed it in the same run — so mcKey gained an `all` verb
@@ -733,36 +795,29 @@ function tableDigest() {
     return { species: 0, digest: 'UNAVAILABLE' };
   }
   if (!rows) return { species: 0, digest: 'UNAVAILABLE' };
+  /* NOTHING IS NAMED HERE. The fields come from the rows; see TABLE_FIELDS_NOT_HASHED above for the
+   * six that are deliberately left out and why. A row that grows a seventh field grows a seventh
+   * term without anybody editing this function.
+   *
+   * `undefined` is folded into ABSENT rather than into `null`, because JSON.stringify writes an
+   * `undefined` array element as `null` and would otherwise collapse the very distinction the
+   * sentinel exists to make. */
+  const F = tableFields(rows);
   const parts = [];
   for (const [n, m0] of rows) {
     const m = m0 || {};
-    /* Set-bearing fields plus the stats, typing and weight the damage formula multiplies.
-     *
-     * `m.ty` WAS HASHED HERE UNTIL 2026-09-03 AND EXISTS ON 0 OF 322 ROWS. The table spells typing
-     * `t`, so the term evaluated to a constant `null` on every row and the digest has NEVER been
-     * able to see a type change — while the comment above it said, in the same three lines, that
-     * typing was covered. `wt` was not hashed at all, so a weight change (Low Kick, Grass Knot,
-     * Heavy Slam, Heat Crash all read it) was equally invisible. This is a RULER defect, not an
-     * engine one: the guard reported agreement it had not checked.
-     *
-     * It was not arbitrary and it was not a typo anybody would spot by reading — `ty` is the
-     * plausible spelling, and a field that is absent hashes as `null` exactly like a field that is
-     * present and empty. Only a mutation test tells the two apart, which is why one exists:
-     * mutate one row's `t`, one row's `wt`, and confirm the digest MOVES. It did not, before this.
-     *
-     * ORDER IS APPEND-ONLY AND DELIBERATE. The first five terms keep their positions so this reads
-     * as one repaired term plus one new one rather than a reshuffle; `t` sits where the dead `ty`
-     * sat, and `wt` goes on the end.
-     *
-     * NOT HASHED, on purpose: `nature` and `sp` reach the formula only through `st`, which is
-     * hashed; `base`, `mega`, `mv_provenance` and `set_source` are provenance, not inputs to a
-     * damage calculation. */
-    parts.push(n + '=' + JSON.stringify([
-      m.mv || [], m.item || null, m.ab || null, m.st || null, m.bs || null, m.t || null,
-      m.wt == null ? null : m.wt,
-    ]));
+    parts.push(n + '=' + JSON.stringify(F.hashed.map(k =>
+      (Object.prototype.hasOwnProperty.call(m, k) && m[k] !== undefined) ? m[k] : TABLE_FIELD_ABSENT)));
   }
-  return { species: rows.length, digest: h(parts) };
+  /* `fields` travels with the digest so a stamp records WHAT WAS MEASURED and not only its value.
+   * Without it, a digest that moved because the table changed is indistinguishable from one that
+   * moved because the ruler grew a term — and those call for opposite responses. */
+  const out = { species: rows.length, digest: h(parts), fields: F.hashed, notHashed: F.excluded };
+  /* A DECLARED EXCLUSION FOR A FIELD THE TABLE NO LONGER CARRIES IS A DEAD LINE, and a dead line in a
+   * hand-written list is exactly how `ty` survived. Present only when there is one, so the common
+   * case adds nothing to a stamp and the uncommon case cannot be missed. */
+  if (F.declaredButAbsent.length) out.deadExclusions = F.declaredButAbsent;
+  return out;
 }
 
 /* THE FIXTURE'S OWN IDENTITY, AND `scenarios` WAS NOT IT — 2026-08-13.
@@ -876,9 +931,23 @@ function verify(stored, dex, opts) {
    * stamp, which must not be announced as staleness or every pre-existing file cries wolf. */
   if (stored.table && stored.table.digest && now.table && now.table.digest !== 'UNAVAILABLE'
       && stored.table.digest !== now.table.digest) {
+    /* DID THE TABLE MOVE, OR DID THE RULER? A digest is one number for both, and they call for
+     * opposite responses — a regenerated table may reach the fit, a widened digest reaches nothing
+     * and only means the old stamp measured less. Stamps written before `fields` existed carry none,
+     * and say nothing here rather than crying wolf. It is APPENDED TO THE FIRST LINE so the closing
+     * lines of this block, which engine/status.js renders, keep their positions. */
+    let ruler = '';
+    const sf = stored.table.fields, nf = now.table.fields;
+    if (Array.isArray(sf) && Array.isArray(nf) && sf.join(',') !== nf.join(',')) {
+      const inn = nf.filter(k => !sf.includes(k)), out = sf.filter(k => !nf.includes(k));
+      ruler = '\n  AND THE RULER ITSELF CHANGED: fields hashed'
+        + (inn.length ? ' +' + inn.join(',') : '') + (out.length ? ' -' + out.join(',') : '')
+        + ' — part of this digest move is the MEASURE, not the table.';
+    }
     fire('damage table',
       'the DAMAGE TABLE these weights were fitted against has been regenerated '
-      + `(${stored.table.species} species -> ${now.table.species}, digest ${stored.table.digest} -> ${now.table.digest}).\n`
+      + `(${stored.table.species} species -> ${now.table.species}, digest ${stored.table.digest} -> ${now.table.digest}).`
+      + ruler + '\n'
       + '  The feature hashes below may still match and that is NOT reassurance: the fixture stands on a\n'
       + '  fixed handful of species, so a set change to any species it does not contain moves nothing here.\n'
       + '  Measure what it touches before deciding — how many corpus games contain a changed species —\n'
@@ -952,7 +1021,17 @@ if (require.main === module) {
 
   const c = columns(dex);
   const H = hashes(dex);
-  console.log(`FEATURE FIXTURE — ${c.nSlots} slots, ${c.nCands} candidates, ${c.nPairs} pairs, rounding ${ROUND}\n`);
+  console.log(`FEATURE FIXTURE — ${c.nSlots} slots, ${c.nCands} candidates, ${c.nPairs} pairs, rounding ${ROUND}`);
+  /* PRINTED, NOT ASSUMED. The set is derived from the rows, so the only way to know what it covers
+   * today is to read it out — which is also the only way a wrongly-excluded field is ever noticed. */
+  console.log(`DAMAGE TABLE — ${H.table.species} rows, digest ${H.table.digest}`);
+  console.log(`  hashed      ${(H.table.fields || []).join(', ')}`);
+  console.log(`  NOT hashed  ${(H.table.notHashed || []).map(k => k + ' (' + TABLE_FIELDS_NOT_HASHED.get(k) + ')').join('\n              ')}`);
+  if (H.table.deadExclusions) {
+    console.log(`  DEAD EXCLUSION — TABLE_FIELDS_NOT_HASHED names ${H.table.deadExclusions.join(', ')}, `
+      + 'which no row carries. Remove the line or find out where the field went.');
+  }
+  console.log('');
   console.log('MARGINAL FEATURES (hash, how many fixture candidates it fires on)');
   for (const f of B.FEATURES) {
     const col = c.marg[f];

@@ -1,8 +1,10 @@
 // RAW-STORE-OK: byte-for-byte compression of the store. A filter here would corrupt the archive.
 /* compress-stores.js — write the .gz that git actually tracks.
  *
- *   node build/compress-stores.js          # compress any store whose .gz is stale
- *   node build/compress-stores.js --check  # exit 1 if a .gz is stale, change nothing
+ *   node build/compress-stores.js                # compress any store whose .gz is stale
+ *   node build/compress-stores.js --check        # exit 1 if a .gz is stale, change nothing
+ *   node build/compress-stores.js --raw          # append this run's NEW raw logs as a dated shard
+ *   node build/compress-stores.js --restore-raw  # rebuild the plain raw archives from their shards
  *
  * WHY THIS EXISTS
  * ---------------
@@ -34,8 +36,21 @@ const zlib = require('zlib');
 
 const D = path.join(__dirname, '..', 'data');
 const STORES = ['games.ladder.jsonl', 'games.ots.jsonl', 'games.bo3.jsonl'];
+/* The RAW PROTOCOL LOGS behind those stores. These are the SOURCE OF TRUTH — the parsed store is a
+ * derived view that can be thrown away and rebuilt offline — and until now they were gitignored and
+ * existed on one laptop.
+ *
+ * DERIVED FROM STORES, NOT TYPED BESIDE IT. A second hand-maintained list of three is the shape
+ * this project has paid for twice (the ban list of four, the fourteen handoffs): it agrees with
+ * STORES today and goes stale the day a fourth store is added, silently, because nothing would
+ * compare them. The naming rule is not a coincidence to be re-stated — it is engine/durable-ingest.js's
+ * own `const RAW = STORE.replace(/\.jsonl$/,'') + '.raw-logs.jsonl'`, applied here to the same list. */
+const RAW_STORES = STORES.map(s => s.replace(/\.jsonl$/, '') + '.raw-logs.jsonl');
+const RAW_DIR = path.join(D, 'raw');
 const CHECK = process.argv.includes('--check');
 const SYNC  = process.argv.includes('--sync');
+const RAW        = process.argv.includes('--raw');
+const RESTORERAW = process.argv.includes('--restore-raw');
 
 const mb = b => (b / 1048576).toFixed(1) + ' MB';
 /* Counted on the buffer rather than by splitting a 288 MB string into an array of 64,000. */
@@ -44,6 +59,112 @@ const countLines = buf => {
   for (let i = 0; i < buf.length; i++) if (buf[i] === 10) n++;
   return buf.length && buf[buf.length - 1] !== 10 ? n + 1 : n;
 };
+
+/* ================================================================================================
+ * `--raw` / `--restore-raw` — THE RAW LOG ARCHIVE BECOMES DURABLE, AS WRITE-ONCE DATED SHARDS
+ * ================================================================================================
+ *
+ * THE INVARIANT THIS SERVES. The raw protocol log is the ONLY source of truth; the parsed store is
+ * a derived view that can be thrown away and rebuilt offline (MODE=reparse). That is only worth
+ * anything if the logs SURVIVE. They did not: `**\/*.raw-logs.jsonl` is gitignored, so the archive
+ * existed on one laptop, and Showdown's replay pool is a ROLLING ~1,250 per format — a log that is
+ * lost cannot be re-fetched by anyone, ever.
+ *
+ * WHY SHARDS AND NOT ONE .gz — THE ARITHMETIC, NOT A PREFERENCE.
+ *   - gzip on raw protocol logs runs ~14% (they compress better than the parsed store's ~12%).
+ *   - The ladder + bo3 plain archives are ~585 MB today, so ONE tracked .gz is ~80 MB against
+ *     GitHub's HARD 100 MB per-file limit — weeks away from the exact wall that forced the parsed
+ *     stores into .gz in the first place (acf7124, 2026-07-28).
+ *   - Worse, gzip has no append: a single .gz is REWRITTEN WHOLE every run. At a six-hourly cadence
+ *     that is a fresh ~80 MB blob in the pack every time — hundreds of MB of pack growth a day, and
+ *     git history is not something you can vacuum afterwards.
+ *
+ * So: one small gzip per ingest run, named for the moment it was cut, in data/raw/<store>/. Each is
+ * a few hundred KB. Git stores each exactly once and never rewrites it.
+ *
+ * A SHARD IS NEVER REWRITTEN AND NEVER DELETED. NO COMPACTION. Compaction is what would make this
+ * dangerous — it turns an append-only history into a mutable one, and it is precisely the
+ * `merge=union` shape of mistake this repository has already paid for. A name collision inside one
+ * minute gets a new suffix rather than an overwrite.
+ *
+ * `--restore-raw` is the mirror of the workflow's "Restore the plain stores from the tracked .gz"
+ * step: shards, in filename order (which is chronological by construction), back to the plain path.
+ * It UNIONS with whatever plain file is already there, first occurrence wins, exactly like --sync —
+ * so on a fresh runner it is a plain concatenation, and on a laptop holding rows no shard has seen
+ * yet it cannot lose them. Idempotent either way.
+ */
+const stamp = () => {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}T${p(d.getUTCHours())}${p(d.getUTCMinutes())}`;
+};
+const idOf = line => { const m = line.match(/"id":"([^"]+)"/); return m ? m[1] : line; };
+const shardDirFor = rawName => path.join(RAW_DIR, rawName.replace(/\.raw-logs\.jsonl$/, ''));
+const shardsIn = dir => (fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.jsonl.gz')).sort() : []);
+/* Read the ids already sharded. Line-wise regex rather than JSON.parse: a raw log row carries the
+ * whole protocol text, and parsing 400 MB of it to read one field is minutes of nothing. */
+function shardedIds(dir) {
+  const ids = new Set();
+  for (const f of shardsIn(dir)) {
+    for (const line of zlib.gunzipSync(fs.readFileSync(path.join(dir, f))).toString('utf8').split('\n')) {
+      if (line.trim()) ids.add(idOf(line));
+    }
+  }
+  return ids;
+}
+
+if (RAW) {
+  let wroteAny = 0;
+  for (const name of RAW_STORES) {
+    const src = path.join(D, name), dir = shardDirFor(name);
+    if (!fs.existsSync(src)) { console.log(`  ${name.padEnd(34)} no plain archive here — nothing to shard`); continue; }
+    const have = shardedIds(dir);
+    const fresh = [];
+    for (const line of fs.readFileSync(src, 'utf8').split('\n')) {
+      if (!line.trim()) continue;
+      const id = idOf(line);
+      if (have.has(id)) continue;
+      have.add(id);                       // also dedupes WITHIN this run's new rows
+      fresh.push(line);
+    }
+    if (!fresh.length) { console.log(`  ${name.padEnd(34)} up to date (${have.size} logs across ${shardsIn(dir).length} shard(s))`); continue; }
+    fs.mkdirSync(dir, { recursive: true });
+    /* NEVER OVERWRITE — two runs inside one minute must produce two shards, not one — and the
+     * sequence number is ALWAYS present and zero-padded so that FILENAME ORDER IS CHRONOLOGICAL
+     * ORDER, which is the only thing --restore-raw uses to replay them. A bare `<stamp>.jsonl.gz`
+     * plus a `<stamp>-2.jsonl.gz` collision suffix sorts the SECOND shard first ('-' 0x2D sorts
+     * before '.' 0x2E), silently replaying an append-only archive out of order. */
+    const s = stamp(); let n = 0, out;
+    do { out = path.join(dir, `${s}-${String(n++).padStart(2, '0')}.jsonl.gz`); } while (fs.existsSync(out));
+    const body = Buffer.from(fresh.join('\n') + '\n', 'utf8');
+    fs.writeFileSync(out, zlib.gzipSync(body, { level: 9 }));
+    const g = fs.statSync(out).size;
+    wroteAny++;
+    console.log(`  ${name.padEnd(34)} +${fresh.length} log(s) -> ${path.relative(D, out)}  ${mb(body.length)} -> ${mb(g)} (${(100 * g / body.length).toFixed(1)}%)`);
+  }
+  console.log(`\n${wroteAny} raw shard(s) written. Shards are write-once: never rewritten, never compacted.`);
+  process.exit(0);
+}
+
+if (RESTORERAW) {
+  for (const name of RAW_STORES) {
+    const dst = path.join(D, name), dir = shardDirFor(name);
+    const files = shardsIn(dir);
+    if (!files.length) { console.log(`  ${name.padEnd(34)} no shards under ${path.relative(D, dir)} — nothing to restore`); continue; }
+    const seen = new Set(); const out = [];
+    const take = line => { if (!line.trim()) return; const id = idOf(line); if (seen.has(id)) return; seen.add(id); out.push(line); };
+    for (const f of files) for (const line of zlib.gunzipSync(fs.readFileSync(path.join(dir, f))).toString('utf8').split('\n')) take(line);
+    const before = out.length;
+    /* Union with any local plain archive rather than clobbering it — the same reason --sync is an
+     * append: a laptop can hold logs no shard has seen, and a restore must never be a deletion. */
+    if (fs.existsSync(dst)) for (const line of fs.readFileSync(dst, 'utf8').split('\n')) take(line);
+    fs.writeFileSync(dst, out.join('\n') + '\n');
+    console.log(`  ${name.padEnd(34)} ${files.length} shard(s) -> ${before} log(s)`
+      + (out.length > before ? ` + ${out.length - before} local-only` : '') + `  = ${out.length}`);
+  }
+  console.log('\nraw archives restored from their shards.');
+  process.exit(0);
+}
 
 /* ---- `--sync` — PULL ORIGIN'S GAMES DOWN INTO THE LOCAL STORE -----------------------------------
  *

@@ -46,12 +46,21 @@ if (typeof Q.wholeGameClause !== 'function') {
 
 console.log('\n  THE WHOLE-GAME COMPOSITION — same run as the headline, or a different one?\n');
 
+/* THE POPULATION IS PART OF THE QUESTION (2026-09-03). `wholeGameClause` refuses outright unless the
+ * artifact declares it was played under the published driver, so a fixture that omits `steering` gets
+ * a refusal and never reaches the composition at all. The constant is IMPORTED, never typed: a rename
+ * in engine/steering.js must break loudly here rather than silently turn these arms into refusals —
+ * which is exactly how this file went red on 2026-09-03 while still reporting a composition failure.
+ * ARM_NO_STEERING below keeps that refusal branch covered. */
+const STEERING = require(D('engine', 'steering.js'));
+
 /* Two artifacts with deliberately DIFFERENT shape mixes. The causes are real protocol shapes so the
  * shape module classifies them the way it classifies a live run's. */
 const art = (games, causes) => ({
   games, diverged: causes.reduce((n, c) => n + c.n, 0), threw: 0,
   planted_divergence_proof_ok: true,
   generated: new Date().toISOString(),
+  steering: { policy: STEERING.POLICY_EMPIRICAL },
   classes: [{ cls: 'synthetic', games: causes.reduce((n, c) => n + c.n, 0), causes }],
 });
 
@@ -111,6 +120,42 @@ for (const [nm, r, A] of [['A', a, ARM_A], ['B', b, ARM_B]]) {
   ok(h && sum === h[0] && h[1] === A.games,
      'ARM ' + nm + ' — the composition sums to the headline\'s own diverged count',
      'headline ' + JSON.stringify(h) + ', composition sums to ' + sum);
+}
+
+/* ---- THIRD ARM: NO STEERING BLOCK AT ALL, AND THE CLAUSE MUST REFUSE ---------------------------
+ * 2026-09-04. The two arms above were built WITHOUT a `steering` block and stopped composing anything
+ * on 2026-09-03, when `wholeGameClause` began refusing an artifact that does not declare the
+ * published driver. Adding the block repairs them — and, on its own, DELETES ALL COVERAGE OF THE
+ * BRANCH THAT BROKE THEM: the fixture would go green by no longer exercising the thing just built.
+ * That is this repository's signature failure (a green test asking nothing), so the refusal gets its
+ * own arm.
+ *
+ * IT IS A CONTROL, NOT A GREP. ARM_NO_STEERING is byte-identical to ARM_A except for the one key, and
+ * ARM_A is asserted above to compose a real shape map. So the knob is varied and the two outcomes
+ * DIFFER — composition vs refusal. A test that only checked the refusal would pass against a clause
+ * that refused everything.
+ *
+ * SHOWN RED ON A DELIBERATE BREAK: delete the `pol !== STEERING.POLICY_EMPIRICAL` guard in
+ * engine/quarantine.js and this arm fails by name — the artifact composes instead of being withheld. */
+{
+  const ARM_NO_STEERING = Object.assign({}, ARM_A);
+  delete ARM_NO_STEERING.steering;
+  const r = Q.wholeGameClause(ARM_NO_STEERING);
+
+  ok(r.ok === false && r.cannot_answer === true && r.withheld === true,
+     'CONTROL — an artifact with NO steering block is REFUSED, not answered',
+     'ok=' + r.ok + ' cannot_answer=' + r.cannot_answer + ' withheld=' + r.withheld);
+  ok(r.wanted_steering_policy === STEERING.POLICY_EMPIRICAL && r.steering_policy == null,
+     'the refusal names the driver it wanted and reports the artifact declared none',
+     'wanted ' + JSON.stringify(r.wanted_steering_policy)
+       + ', artifact ' + JSON.stringify(r.steering_policy));
+  ok(readBack(r.why) === null && headline(r) === null,
+     'the figures are WITHHELD — no composition and no headline are printed beside the refusal',
+     'composition ' + JSON.stringify(readBack(r.why)) + ', headline ' + JSON.stringify(headline(r)));
+  ok(canon(readBack(a.why)) !== canon(readBack(r.why)),
+     'CONTROL — the SAME artifact with the steering block composes, so the guard is the difference',
+     'with steering ' + JSON.stringify(readBack(a.why))
+       + ', without ' + JSON.stringify(readBack(r.why)));
 }
 
 /* ---- THE SAME FAILURE, ONE FIELD OVER: A RATE COMPARED WITH A RATE UNDER A DIFFERENT PIN --------

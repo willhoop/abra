@@ -148,6 +148,52 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## NO ENGINE BYTE MOVED, NO MECHANIC CHANGED AND NO CENSUS FIGURE IS QUOTED — AND THE TWO FAILURES THAT LOOKED MOST LIKE THIS DIVISION'S WERE **REFUTED BY A CONTROL** RATHER THAN ARGUED AWAY. 2026-09-04, CHANGELOG 5.244.0
+
+**NOTHING IN THE SIMULATOR CHANGED IN THIS PASS.** No frozen source was touched, so every release id
+is unchanged, and no census, roster, mechanics-fire or whole-game run was performed. No figure from
+5.243.0 moves and none is restated here; read the gate, not this section.
+
+**THE ATTRIBUTION IS THE FINDING.** `tests/run-all.js` reads **143 passed, 28 failed**, and the two
+reds that most resembled a simulator regression — `test-pin-arms` and `test-game-differential` — were
+**REFUTED**: each red test was re-run at the prior commit in a control worktree, and both were already
+red there. **Exactly one failure was caused by the session**, five assert a stale fact, three were
+heap ceilings, twenty were pre-existing. This division's standing rule is to suspect the instrument
+before the engine; the control is what turns that from a habit into evidence, and without it two
+non-defects would have entered the record as engine defects.
+
+**THE ONE REGRESSION IS A CONSUMER OF THIS DIVISION'S OWN FIXTURES.** `tests/test-divergence-composition.js`
+broke because 5.243.0's steering refusal fires on two synthetic fixtures that carry no steering block:
+quarantine's selftest fixtures were updated in that commit and this consumer was missed. The fixture
+now takes the constant from `engine/steering.js` instead of a typed string, **and a third arm asserts
+the refusal** — without it, repairing the fixture would have silently deleted coverage of the branch
+5.243.0 had just built, which is the "a green test can be asking nothing" failure arriving through the
+repair rather than through the code.
+
+**A CHECK THAT CANNOT START LOOKS EXACTLY LIKE A CHECK THAT PASSES.** Three were dying at exit 134,
+out of heap, with no declared ceiling. With one, `tests/test-engine-release.js` gives **71 passed /
+0 failed** and `tests/test-set-realism.js` gives **6 passed / 0 failed**; `engine/validate_selfplay.js`
+gives a real verdict and a genuine finding it had been too dead to report.
+
+**THE KEY GATE OVER THIS DIVISION'S GENERATED DATA HAD FIVE SILENT LIMITS.** `tests/test-artifact-keys.js`
+sliced to 8 keys, capped depth at 3 where the deepest real object is 10, never descended arrays,
+iterated a hard-coded two-name list, and **exited 0 when the engine data failed to load** — so
+`MC.priors`, **230 keys**, was never inspected once, inside the file written to catch a hand-typed
+lookup. It now walks fully and FAILS rather than truncating. **13 undeclared tables** are newly visible
+and are REPORTED, not fixed.
+
+**AND A COMMENT IN THIS DIVISION'S OWN RELEASE MACHINERY IS THE SESSION'S CLEANEST EXAMPLE OF THE
+SHAPE.** `engine/engine_release.js:653` heads a section titled *"PRUNING, AND WHY IT IS SAFE"* whose
+safety argument reasons from **nine releases holding 23 MB**. There are **523 releases holding 2.5 GB**.
+The comment was true when written, was never re-derived, and is exactly the kind of prose CLAUDE.md
+says to read the count off the rows for. Across **495 files and 17,519 comments** the census found
+**0 confirmed** contradictions of code, **37** references to things that no longer exist, and
+**nine ROADMAP ids cited in code across 30 citations that have never been register rows**.
+
+**WHAT IS OWED HERE.** `node engine/status.js --write` was not run, so the `<!-- GENERATED -->` block
+above is still one pass behind. The pruning comment is stale and unfixed. The 13 undeclared tables and
+`engine/conformance.js`'s one unattributed finding are routed and open. Full accounts: eleven reports
+under `docs/_reports/2026-09-04-*.md`.
 ## THE WHOLE-GAME CLAUSE WAS CERTIFYING THIS ENGINE ON A POPULATION WHERE 944 OF 961 GAMES NEVER REACHED AN ENDING. **NO ENGINE BYTE MOVED, NO CENSUS FIGURE MOVED AND NO MECHANIC CHANGED — THE CHANGE IS TO THE INSTRUMENT AND TO THE GATE. ON RELEASE `8ad06030e129`: BOARD-MATERIAL DIVERGENCE 77 OF 961 (8.0%), PROTOCOL FIRST-DIVERGENCE 168. THE GATE READS CLOSED — 1 OF 8 CLAUSES FAIL, AND THAT IS CORRECT.** 2026-09-03.
 
 **THE ENGINE DID NOT GET WORSE. THE MEASUREMENT OF IT GOT HONEST.** The whole-game clause was answered

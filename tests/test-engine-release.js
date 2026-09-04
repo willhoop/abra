@@ -1,5 +1,19 @@
 /* test-engine-release.js — a measurement reading a release does not see the live tree change.
  *
+ * ABRA-HEAP: 6144
+ *
+ * IT NEEDS MORE HEAP THAN NODE GIVES BY DEFAULT, AND THAT IS DECLARED RATHER THAN LEFT TO CRASH.
+ * Run bare, this dies at exit 134 with `Reached heap limit Allocation failed` after ~7.5 KB of
+ * output — a MEMORY CEILING that every gate in this repo reads as a failing verdict, because a
+ * SIGABRT and a red check are the same exit code. It is not a leak: the file opens frozen releases
+ * and a release is a COPY of the engine rather than a checksum (CLAUDE.md), so the snapshots are
+ * resident by design. At 6144 MB it reports 71 passed / 0 failed.
+ *
+ * The line above is the declaration `tests/run-all.js` and `tools/lownode.cmd` both read out of this
+ * header. It lives HERE and not in a table inside the runner for the reason the CI job list was
+ * replaced: a table of costs goes stale, and the staleness surfaces as exit 134 on a machine nobody
+ * is watching. Same shape as ROADMAP #446, one file over.
+ *
  * WHY. On 2026-08-04 three division agents ran concurrently, which is the point of having divisions.
  * Their files were separated. The 7,100-game WOBBUFFET run was destroyed anyway, because
  * `data/policy-weights.json` — the very thing being measured — was refitted between the two legs of

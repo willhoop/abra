@@ -46,7 +46,17 @@ const MODE=process.env.MODE||'fetch'; // fetch | reparse | backfill
  *
  * setEncoding routes the stream through StringDecoder, which holds an incomplete sequence back until
  * the next chunk completes it. Do not "optimise" this back to a bare concatenation. */
-const get=u=>new Promise(r=>{const q=https.get(u,x=>{let d='';x.setEncoding('utf8');x.on('data',c=>d+=c);x.on('end',()=>r(d));});q.on('error',()=>r(''));q.setTimeout(12000,()=>{q.destroy();r('');});});
+/* ---- THREE FACTS MUST NOT SHARE ONE VALUE ---------------------------------------------------
+ * This resolved `''` on an HTTP error, on a timeout, AND on an empty-but-successful body. A dead
+ * replay API and a genuinely quiet hour were therefore INDISTINGUISHABLE to every caller, and the
+ * run printed "appended 0 games" and exited 0 in both cases — the project's signature failure mode,
+ * a capability absent while everything reports success.
+ *
+ * `null` now means THE REQUEST DID NOT COMPLETE; a string (including '') means the endpoint
+ * answered and that is what it said. Callers that only asked "is there a body" are unaffected —
+ * `null` and `''` are both falsy — but the run can now count the difference and refuse to call a
+ * broken endpoint a quiet day. See the counters and the exit-code discriminators in main(). */
+const get=u=>new Promise(r=>{const q=https.get(u,x=>{let d='';x.setEncoding('utf8');x.on('data',c=>d+=c);x.on('end',()=>r(d));});q.on('error',()=>r(null));q.setTimeout(12000,()=>{q.destroy();r(null);});});
 const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const isBot=n=>/^pcrlbot|bot\d|^[a-z]+bot$/i.test(n||'');
 
@@ -460,6 +470,55 @@ function extract(id, uploadtime, text){
 }
 async function pool(items,fn,c){const out=[];let i=0;await Promise.all(Array.from({length:c},async()=>{while(i<items.length){const k=i++;out[k]=await fn(items[k]);}}));return out;}
 
+/* ---- ARCHIVE THEN STORE — THE ONE ORDERING, IN ONE PLACE ------------------------------------
+ * THE INVARIANT: the raw log is the ONLY source of truth. Everything else in the store is a
+ * derived view that can be thrown away and rebuilt offline. Two things broke it, both in the
+ * same loop, and both are fixed here rather than at the call site — an inline fix holds the
+ * instance and not the class, and this script is also SPAWNED by engine/next_regulation_ingest.js,
+ * which would have inherited neither.
+ *
+ * 1. THE LOG OF AN UNPARSEABLE GAME WAS DELETED. The `six.p1.length<4` filter sat BEFORE the
+ *    archive write, so a game the CURRENT parser chokes on had its raw log discarded — destroying
+ *    the one artifact a FUTURE parser could have used, and doing it silently. The public replay
+ *    pool is a rolling ~1,250 per format, so nothing can be re-fetched later. Pass A archives
+ *    every log we hold; the filter now lives in pass B, where it decides a ROW and nothing else.
+ *
+ *    CONSEQUENCE, STATED OUT LOUD: the archive is now a strict SUPERSET of the store. It always
+ *    should have been. MODE=reparse re-applies the identical filter, so a reparse still produces
+ *    the same store; MODE=backfill compares ids and simply finds less missing.
+ *
+ * 2. THE ROW WAS WRITTEN BEFORE THE LOG. Two independent unawaited streams, row first — so a
+ *    crash between them leaves a row whose log was never archived, which is the ORPHAN direction:
+ *    unrecoverable. The other direction (a log with no row yet) is repaired by a free offline
+ *    reparse. Pass A therefore completes AND CLOSES ITS STREAM before pass B derives anything,
+ *    from the same in-memory strings — no second read, no second fetch.
+ *
+ * The store output is byte-identical to what the old loop produced: same iteration order, same
+ * `if(!t) continue`, same filter, same JSON.stringify(rec). Only the archive gains rows. */
+async function archiveThenStore(fetched, opts){
+  const o=opts||{}, store=o.store||STORE, raw=o.raw||RAW;
+  const closed=s=>new Promise((res,rej)=>{ s.on('error',rej); s.end(res); });
+
+  // PASS A — the log, always, for every body we actually hold. Nothing is derived yet.
+  const rawOut=fs.createWriteStream(raw,{flags:'a'}); let archived=0, noLog=0;
+  for(const [x,t] of fetched){
+    if(!t){ noLog++; continue; }
+    rawOut.write(JSON.stringify({id:x.id,uploadtime:x.uploadtime,log:t})+'\n'); archived++;
+  }
+  await closed(rawOut);
+
+  // PASS B — derive rows from the SAME strings. A game the parser cannot read costs a row, never a log.
+  const out=fs.createWriteStream(store,{flags:'a'}); let added=0, unparsed=0;
+  for(const [x,t] of fetched){
+    if(!t) continue;
+    const rec=extract(x.id,x.uploadtime,t);
+    if(rec.six.p1.length<4||rec.six.p2.length<4){ unparsed++; continue; }
+    out.write(JSON.stringify(rec)+'\n'); added++;
+  }
+  await closed(out);
+  return {archived,added,unparsed,noLog};
+}
+
 async function main(){
   /* backfill mode: refetch raw logs for games that are in STORE but missing from the archive.
      WHY THIS IS NEEDED. The hourly GitHub Action appends to STORE, but the raw archive is
@@ -477,8 +536,12 @@ async function main(){
     if(fs.existsSync(RAW)) for(const l of fs.readFileSync(RAW,'utf8').split('\n')){ if(!l.trim())continue;
       try{ have.add(JSON.parse(l).id); }catch(e){} }
     const missing=[...recs.keys()].filter(id=>!have.has(id));
-    process.stderr.write(`store ${recs.size}, archive ${have.size}, missing ${missing.length}\n`);
-    if(!missing.length){ process.stderr.write('archive is complete; nothing to do\n'); return; }
+    /* `archive > store` IS THE CORRECT STATE, NOT A DEFECT. The fetch path archives the log of a
+     * game its parser cannot turn into a row, so the archive is a strict SUPERSET. This line
+     * measures `store \ archive` — the only direction that is ever a problem — and says so, because
+     * "archive is complete" printed next to a larger archive count reads as a bug otherwise. */
+    process.stderr.write(`store ${recs.size}, archive ${have.size} (a superset by design), missing ${missing.length}\n`);
+    if(!missing.length){ process.stderr.write('archive is complete: every stored game has its raw log; nothing to do\n'); return; }
     // The .json endpoint carries the authoritative `uploadtime`. extract() derives `date` from it
     // (new Date(uploadtime*1000)), so guessing it corrupts the date on every backfilled record.
     // Fall back to reconstructing the timestamp from the store's own date string, which is UTC.
@@ -523,28 +586,74 @@ async function main(){
         process.exitCode=1; return;
       }
     }
-    const tmp=STORE+'.tmp', out=fs.createWriteStream(tmp); let n=0;
+    /* DEDUPE BY ID, FIRST OCCURRENCE WINS — the same rule the store and the reconcile loop use.
+     * The archive is now a strict superset of the store, so a game the CURRENT parser cannot read
+     * has a log and no row, is therefore never in `have`, and is re-fetched and re-archived on
+     * every run. That is correct — we would rather hold the log twice than not at all — but the
+     * day a future parser learns to read it, an un-deduped reparse would emit one store row per
+     * archived copy. A no-op on today's archive (76,431 logs, 76,431 ids) and a guarantee after. */
+    const tmp=STORE+'.tmp', out=fs.createWriteStream(tmp); let n=0, dup=0; const seenIds=new Set();
     for(const l of fs.readFileSync(RAW,'utf8').split('\n')){ if(!l.trim())continue;
-      let r; try{r=JSON.parse(l);}catch(e){continue;} const rec=extract(r.id,r.uploadtime,r.log);
+      let r; try{r=JSON.parse(l);}catch(e){continue;}
+      if(seenIds.has(r.id)){ dup++; continue; } seenIds.add(r.id);
+      const rec=extract(r.id,r.uploadtime,r.log);
       if(rec.six.p1.length<4||rec.six.p2.length<4)continue; out.write(JSON.stringify(rec)+'\n'); n++; }
+    if(dup) process.stderr.write(`skipped ${dup} duplicate archived log(s) (same id seen earlier)\n`);
     out.end(); out.on('finish',()=>{ fs.renameSync(tmp,STORE); process.stderr.write(`reparsed ${n} games from raw archive -> ${STORE}\n`); });
     return;
   }
   const have=new Set();
   if(fs.existsSync(STORE)) for(const l of fs.readFileSync(STORE,'utf8').split('\n')) if(l.trim()){try{have.add(JSON.parse(l).id);}catch(e){}}
-  let items=[];
+  let items=[], pagesOk=0, pagesFailed=0;
   for(const FORMAT of FORMATS){
-    for(let p=1;p<=PAGES;p++){const j=await get(`https://replay.pokemonshowdown.com/search.json?format=${FORMAT}&page=${p}`);try{const arr=JSON.parse(j); if(!arr.length)break; items.push(...arr);}catch(e){break;}}
+    for(let p=1;p<=PAGES;p++){
+      const j=await get(`https://replay.pokemonshowdown.com/search.json?format=${FORMAT}&page=${p}`);
+      /* A REQUEST THAT NEVER COMPLETED IS NOT "NO MORE PAGES". Both used to arrive here as '' and
+       * both broke the loop, so a dead endpoint read as an exhausted pool. */
+      if(j===null){ pagesFailed++; process.stderr.write(`search page ${p} of ${FORMAT}: request failed\n`); break; }
+      let arr; try{ arr=JSON.parse(j); }catch(e){ pagesFailed++; process.stderr.write(`search page ${p} of ${FORMAT}: unparseable body (${j.length} bytes)\n`); break; }
+      if(!Array.isArray(arr)){ pagesFailed++; process.stderr.write(`search page ${p} of ${FORMAT}: body is not a list\n`); break; }
+      pagesOk++;
+      if(!arr.length) break;
+      items.push(...arr);
+    }
   }
+  const idsSeen=items.length;                       // BEFORE dedupe: what the search endpoint offered
   const seen=new Set(); items=items.filter(x=>!seen.has(x.id)&&seen.add(x.id)&&!have.has(x.id));
-  process.stderr.write(`already stored: ${have.size}; new to fetch: ${items.length}\n`);
+  const newIds=items.length;
+  process.stderr.write(`already stored: ${have.size}; new to fetch: ${newIds}\n`);
   const logs=await pool(items,x=>get(`https://replay.pokemonshowdown.com/${x.id}.log`).then(t=>[x,t]),CONC);
-  const out=fs.createWriteStream(STORE,{flags:'a'}), rawOut=fs.createWriteStream(RAW,{flags:'a'}); let added=0;
-  for(const [x,t] of logs){ if(!t)continue; const rec=extract(x.id,x.uploadtime,t);
-    if(rec.six.p1.length<4||rec.six.p2.length<4)continue;
-    out.write(JSON.stringify(rec)+'\n'); rawOut.write(JSON.stringify({id:x.id,uploadtime:x.uploadtime,log:t})+'\n'); added++; }
-  out.end(); rawOut.end();
-  process.stderr.write(`appended ${added} games. store now ${have.size+added} total. raw archived -> ${RAW}\n`);
+  const logsRequested=logs.length, logsNull=logs.filter(([,t])=>t===null).length;
+  const r=await archiveThenStore(logs);
+  process.stderr.write(`ingest counters: idsSeen=${idsSeen} newIds=${newIds} `
+    +`logsRequested=${logsRequested} logsNull=${logsNull} archived=${r.archived} `
+    +`rows=${r.added} unparsed=${r.unparsed} searchPagesOk=${pagesOk} searchPagesFailed=${pagesFailed}\n`);
+  process.stderr.write(`appended ${r.added} games. store now ${have.size+r.added} total. raw archived -> ${RAW}\n`);
+
+  /* ---- A ZERO-GAIN RUN MUST NOT LOOK LIKE A QUIET DAY -----------------------------------------
+   * "appended 0 games" was printed with exit 0 whether the API was dead or nothing new had been
+   * played. THE DISCRIMINATOR IS A FACT ABOUT THE ENDPOINT, NOT AN INVENTION: Showdown's public
+   * replay pool is a ROLLING ~1,250 per format (the cadence note in .github/workflows/ingest.yml
+   * is built on the same fact), so a live format ALWAYS fills page one. Zero ids offered is the
+   * search being broken, never the ladder being idle.
+   *
+   * The exit code is the signal. The workflow keeps `continue-on-error: true` on the pull steps —
+   * a collection job must never page the owner — and the shrink guard, which already runs under
+   * `set -eu`, is where this becomes loud. */
+  if(idsSeen===0){
+    process.stderr.write(`ZERO-GAIN: the search endpoint offered NO ids for ${FORMATS.join(',')}. `
+      +`The replay pool is a rolling ~1,250 per format, so a live format always fills page one. `
+      +`This is the search failing, not a quiet ladder.\n`);
+    process.exitCode=1; return;
+  }
+  if(logsRequested && logsNull/logsRequested>0.5){
+    process.stderr.write(`ZERO-GAIN: ${logsNull} of ${logsRequested} log requests did not complete `
+      +`(>50%). The log endpoint is failing; the ids were found but the logs were not fetched.\n`);
+    process.exitCode=1; return;
+  }
+  if(newIds===0) process.stderr.write(`nothing new: the search offered ${idsSeen} id(s) and every one was already stored.\n`);
 }
 if(require.main===module) main();
-module.exports={extract};
+/* archiveThenStore is EXPORTED so a second ingest path cannot quietly grow its own ordering. Any
+ * caller that has fetched logs writes them through this and inherits both halves of the invariant. */
+module.exports={extract,archiveThenStore};

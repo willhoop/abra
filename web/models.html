@@ -458,6 +458,9 @@ svg{width:100%;height:auto;display:block}
   BRING PRIORS and SMOGON PRIORS each have their own entry in <b>docs/MODELS.md</b> and none of them
   has a box here. They are censuses, reports, data repairs and outside sources — they describe the
   format, or fix the dex, and in every case the thing that <i>acts</i> on them is already drawn.
+  <b>THE PER-TURN PIPELINE</b> is left out for a different reason: it is not a model at all but the
+  <i>composition</i> — the table saying which of these boxes run in what order on a single turn — so
+  drawing it would put the diagram inside the diagram.
   Each one is declared by name with its reason in <b>tests/test-model-map.js</b>, which fails if a
   model is added to the ledger and left off this picture, and fails just as hard if one of these is
   quietly dropped from the ledger instead. The full ledger is the place to read them.

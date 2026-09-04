@@ -78,6 +78,15 @@ const HTML_PATH = path.join(ROOT, 'web', 'models.html');
  * there the question is "does it decide", here it is "does the decision flow run through it".
  * ============================================================================================== */
 const DECLARED = {
+  'THE PER-TURN PIPELINE':
+    'NOT A MODEL — it is the COMPOSITION table, the section of docs/MODELS.md that says which models '
+    + 'run in what order on a single turn. A decision-flow map is made of the boxes it composes, so '
+    + 'putting the composition on the map as its own box would draw the diagram inside the diagram. '
+    + 'It was masked until 2026-09-04 by the ALAKAZAM failure above and surfaced the moment that '
+    + 'cleared: one red hiding the next is why this check names every offender rather than the first. '
+    + 'RETIRES IF: this heading stops describing composition and starts describing a thing that makes '
+    + 'a decision, at which point it needs a box and this entry must go.',
+
   'ROLES':
     'A LABELLING VOCABULARY, not a decider. It describes every team by the functional roles it '
     + 'reveals, and its own ledger entry reports that predicting the winner from preview roles TIES A '
@@ -173,11 +182,15 @@ const NOT_A_LEDGER_MODEL = {
     + 'presence — PORY (retracted inside the KADABRA entry), JOLTEON and PORYGON2 — and it exists as '
     + 'one box because putting three retired-or-unmeasured leaves side by side is the honest picture. '
     + 'JOLTEON and PORYGON2 are both matched by the forward check in their own right.',
-  'ALAKAZAM':
-    'THE CAPSTONE\'S PROJECT NAME, and it has no heading of its own in docs/MODELS.md — the ledger '
-    + 'documents its PARTS (SLOWKING, MILTANK, GARY, DUSK, the value nets) instead. That is a real gap '
-    + 'in the ledger and docs/MODELS.md is MEASURE\'s file, so it is REPORTED here rather than fixed '
-    + 'here. The day an ALAKAZAM heading lands, check 6 goes red and this entry gets deleted.',
+  /* ALAKAZAM's exemption was DELETED on 2026-09-04, exactly as its own text instructed. It read:
+   * "The day an ALAKAZAM heading lands, check 6 goes red and this entry gets deleted." The heading
+   * landed in docs/MODELS.md at 5.244.0, check 6 went red naming ALAKAZAM, and the entry is gone.
+   *
+   * WORTH KEEPING AS A SHAPE RATHER THAN A NOTE. This is what an exemption is supposed to do: carry
+   * the condition that retires it, so the day it stops being true something FAILS BY NAME instead of
+   * the exemption quietly outliving the gap it described. Every other entry above should be read
+   * against that standard — an exemption whose text cannot go stale is an exemption nothing will
+   * ever remove. */
 };
 
 /* ---- parsing ---------------------------------------------------------------------------------- */

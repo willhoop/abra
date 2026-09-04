@@ -1,5 +1,18 @@
 /* validate_selfplay.js — the acceptance bar for MEW output, from docs/MEW-whitepaper.md section 6.
  *
+ * ABRA-HEAP: 6144
+ *
+ * IT NEEDS MORE HEAP THAN NODE GIVES BY DEFAULT, AND THAT IS DECLARED RATHER THAN LEFT TO CRASH.
+ * Run bare, this dies at exit 134 with `Reached heap limit Allocation failed`. That is the worst
+ * possible failure for THIS file specifically: it is the acceptance bar, so a heap crash is
+ * indistinguishable at the exit code from self-play data being rejected — the gate reads as if it
+ * had done its job. It loads the whole self-play store to check the store-shape invariants.
+ *
+ * THE DECLARATION LETS IT RUN; IT DOES NOT MAKE IT PASS. At 6144 MB the file reaches a real verdict
+ * and that verdict is RED on `no duplicate ids`. That finding is left standing and unsuppressed.
+ *
+ * `tests/run-all.js` and `tools/lownode.cmd` derive the flag from this line.
+ *
  * Self-play data is cheap and unlimited, which is exactly why it needs a gate: a broken generator
  * produces a million confidently wrong games as easily as a working one produces good ones. MEW has
  * already shipped one such batch — its first run filled every unrevealed move slot with Tackle, and

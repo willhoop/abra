@@ -234,7 +234,39 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * membership is DERIVED on every run rather than listed, so a collision spelled differently is
    * caught with no edit. `PROBE_ENTITY_KIND_ARM=first-hit` re-runs it against the old resolver and
    * it goes red (6 failures), which is how it was shown red before being trusted. */
-  'tests/probe_entity_kind.js'];
+  'tests/probe_entity_kind.js',
+  /* THE TWO BELOW LANDED IN COMMIT 75e96de3 WITH NO RUNNER AT ALL, AND THE COVERAGE COUNT SAID SO
+   * BEFORE ANYBODY NOTICED — the unaccounted list moved by exactly two in the pass that added them.
+   * That is the assertion above doing its job, and the fix it asks for is a runner, not a name on
+   * an exemption list: PENDING_WIRE already carries 36 promises and a 37th buys nothing when the
+   * blocker is "nobody wired it".
+   *
+   * BOTH WERE RUN ALONE BEFORE BEING LISTED, GREEN ARM AND RED ARM, 2026-09-04. Each carries a
+   * restore knob that puts the defect back at run time, so neither is a probe that passes by asking
+   * nothing — the state this list rates worse than an unregistered check.
+   *
+   * They read the LIVE engine/medicham2-browser.js rather than a frozen release, which is why they
+   * can be wired here when the fourteen release-pinned probes cannot: there is no baseline choice
+   * for this runner to make. They do play a game against the authority, so `plan()` skips them
+   * VISIBLY when SHOWDOWN_PATH is unset, and their own guard exits 2 (SKIP) on the same condition —
+   * the validate_selfplay precedent, a check that cannot answer stays on screen every run.
+   *
+   * tests/probe_delayed_crit.js — ROADMAP #419. `condition:futuremove`'s payout is an ORDINARY hit
+   * and takes the same 1/24 crit draw as a direct click; this engine's residual payout drew
+   * `_R.dmg()` and nothing else, so under a crit-CERTAIN die the delayed hit was byte-identical to
+   * the same hit under a crit-IMPOSSIBLE die. Identical output across a varied knob is the finding
+   * (docs/LESSONS.md), and it is what the probe asserts. Measured 2026-09-04: exit 0, ALL CLAUSES
+   * PASS. Under MEDI_DELAYED_HIT_NO_CRIT=1 it reports 4 failing clauses, including "the crit die was
+   * never drawn at all". */
+  'tests/probe_delayed_crit.js',
+  /* tests/probe_sub_clamp.js — ROADMAP #416. data/moves.ts:18341 clamps `damage` to the DOLL's
+   * remaining HP above everything that reads it, so recoil and drain are paid on the doll's last HP
+   * and never on the overkill. This engine booked `dealt += Math.min(dmg, tg.curHP)` — the BODY's
+   * ceiling — sixty lines further up. The clamp makes the answer a CONSTANT, which is what lets the
+   * two engines be compared on an exact integer instead of a shape. Measured 2026-09-04: exit 0, ALL
+   * CLAUSES PASS. Under MEDI_SUB_DEALT_UNCLAMPED=1 the recoil row reads `authority -12, ours -25`
+   * and the drain row `authority 21, ours 62`. */
+  'tests/probe_sub_clamp.js'];
 
 /* COVERAGE ASSERTION. Any file in tests/ or engine/ that reports its own pass/fail verdict is a
  * check, and a check that nothing runs is worse than no check — it reads as coverage in a review. If

@@ -1,5 +1,15 @@
 {
   "note": "Name-keyed lookup tables whose keys are NOT all flat-lowercase, and therefore CAN be missed by a caller that normalises. Each names the one function allowed to read it. Generated-empty is not the goal: the goal is that every entry here is deliberate. A table with flat-lowercase keys needs no entry, because norm() cannot miss it. See docs/ARTIFACT-ACCESS-RULES.md and tests/test-artifact-keys.js.",
+  "not_species_keys": "A table flagged here is NOT automatically the MC.mons class. Three of the four families below key camelCase IDENTIFIERS — tag names, feature names, engine counter names — which are minted by one generator and compared verbatim. They trip the FLAT test because norm() would lowercase them, not because anybody normalises them. Saying otherwise would invent a defect. The MC.mons class is a table keyed by a name a HUMAN or a SHEET writes, where two spellings of the same thing exist; that is engine-data.js:MC.mons and porygon2-species.json:mons, and no other entry in this file.",
+  "families": {
+    "policy-weights featureHashes.features": {
+      "accessor": "engine/feature_fixture.js",
+      "function": "verify(stored, dex, opts) — engine/feature_fixture.js:900",
+      "why": "TEN artifacts, ONE answer. Every policy-weights*.json carries a featureHashes block stamped by engine/feature_fixture.js (hashes(dex)), written from engine/fit_policy.js:1372, engine/fit_joint.js:226 or the --stamp CLI. Exactly one function reads the `features` sub-table: verify(), which does `const a = stored[blk]` then `a[f]` for each f in Object.keys(hashes(dex).features). Both sides of that comparison are minted by the same producer — board.js's own feature names via B.FEATURES — so no normalisation exists in the path and no second doorway exists to diverge from. This is R1 working rather than R1 broken: the three callers hand the whole blob to the one reader instead of indexing it themselves (engine/magnemite.js:65 and :450 via checkSemantics, and the `--check FILE` CLI which engine/status.js:365 shells for the refit verdict).",
+      "reachability_stated_rather_than_implied": "Two of the ten are read on a routine path: policy-weights.json (engine/status.js:365 and engine/magnemite.js's WEIGHTS_FILE default) and policy-weights-joint.json (engine/magnemite.js's jointWeightsFile default). The other eight are ABLATION and ARCHIVE fits (-all, -joint-presheet, -julyonly, -multiturn, -nomt, -nopop, -pre-censoring, -presheet) and are reached only when somebody passes them explicitly — `node engine/feature_fixture.js --check <file>`, or options.jointWeightsFile. The declaration below is a claim about WHO IS ALLOWED TO READ the table, which is true of all ten; it is NOT a claim that all ten are read today. Recorded here so the entry cannot be quoted as evidence that an ablation stamp is live.",
+      "do_not_edit_the_artifacts": "data/policy-weights.json and its siblings are under the owner's pause and are quarantined (fitted on features computed through MEDICHAM). Nothing in this registry modifies them; a restamp is a REFIT question, not a key-convention question."
+    }
+  },
   "accessors": {
     "engine-data.js:MC.mons": {
       "accessor": "engine/mc_key.js",
@@ -12,6 +22,75 @@
     "scoreboard.json:labels": {
       "accessor": "app/index.html",
       "why": "Capitalised keys, but they are DISPLAY LABELS rendered to the page, not identifiers anything looks up by a derived name. Recorded so the detector stays green honestly rather than by narrowing its rule."
+    },
+    "tag-consumption.json:by_tag": {
+      "accessor": "tests/test-tag-consumed.js",
+      "why": "291 keys, 275 not flat — but they are OUR tag vocabulary (targetClass, formatSecondaryCount, volatileRestart), camelCase identifiers, not species. Sole writer and sole reader are the same file: it writes `by_tag: status` at :349 and reads it back as its own ratchet baseline at :277 (`t in prevStatus`, `prevStatus[t]`). The lookup key `t` comes from Object.keys(uses), built at :62-70 by walking data/tags.json's rec.tags VERBATIM — the identical strings the write side used. No norm() anywhere in the path, and no second consumer: app/ and web/ name the FILE in a quarantine list and read no field of it. Same shape as porygon2-species.json:mons — writer==reader, so keys and lookups cannot diverge today, and this entry is the warning if a second consumer appears."
+    },
+    "policy-weights.json:featureHashes.features": {
+      "accessor": "engine/feature_fixture.js",
+      "family": "policy-weights featureHashes.features",
+      "why": "Read only by feature_fixture.verify(). Live path: engine/status.js:365 shells `--check` on this file for the REFIT OWED verdict, and engine/magnemite.js:65 checks it at weight load. See families[] above for the full derivation."
+    },
+    "policy-weights-joint.json:featureHashes.features": {
+      "accessor": "engine/feature_fixture.js",
+      "family": "policy-weights featureHashes.features",
+      "why": "Read only by feature_fixture.verify(). Live path: engine/magnemite.js:450 checks blocks ['features','jointFeatures'] on this file when the joint layer is requested. See families[] above."
+    },
+    "policy-weights-all.json:featureHashes.features": {
+      "accessor": "engine/feature_fixture.js",
+      "family": "policy-weights featureHashes.features",
+      "why": "Ablation fit. Same one door — feature_fixture.verify() — reached only by an explicit `--check <file>`. Declared as WHO MAY READ IT, not as evidence it is read today."
+    },
+    "policy-weights-joint-presheet.json:featureHashes.features": {
+      "accessor": "engine/feature_fixture.js",
+      "family": "policy-weights featureHashes.features",
+      "why": "Ablation fit. Same one door — feature_fixture.verify() — reached only by an explicit `--check <file>` or options.jointWeightsFile. Declared as WHO MAY READ IT, not as evidence it is read today."
+    },
+    "policy-weights-julyonly.json:featureHashes.features": {
+      "accessor": "engine/feature_fixture.js",
+      "family": "policy-weights featureHashes.features",
+      "why": "Ablation fit. Same one door — feature_fixture.verify() — reached only by an explicit `--check <file>`. Declared as WHO MAY READ IT, not as evidence it is read today."
+    },
+    "policy-weights-multiturn.json:featureHashes.features": {
+      "accessor": "engine/feature_fixture.js",
+      "family": "policy-weights featureHashes.features",
+      "why": "Ablation fit. Same one door — feature_fixture.verify() — reached only by an explicit `--check <file>`. Declared as WHO MAY READ IT, not as evidence it is read today."
+    },
+    "policy-weights-nomt.json:featureHashes.features": {
+      "accessor": "engine/feature_fixture.js",
+      "family": "policy-weights featureHashes.features",
+      "why": "Ablation fit. Same one door — feature_fixture.verify() — reached only by an explicit `--check <file>`. Declared as WHO MAY READ IT, not as evidence it is read today."
+    },
+    "policy-weights-nopop.json:featureHashes.features": {
+      "accessor": "engine/feature_fixture.js",
+      "family": "policy-weights featureHashes.features",
+      "why": "Ablation fit (DROP=priorLogP). Same one door — feature_fixture.verify() — reached only by an explicit `--check <file>`. NOTE: build/build_mag_variables.js:45 reads this file, but it reads the TOP-LEVEL `features` ARRAY and `weights`, never featureHashes.features; the two are different fields with the same last name and must not be confused."
+    },
+    "policy-weights-pre-censoring.json:featureHashes.features": {
+      "accessor": "engine/feature_fixture.js",
+      "family": "policy-weights featureHashes.features",
+      "why": "Preserved 3.42.0 baseline (engine/censoring_value.js:121 names it as the before-arm). Same one door — feature_fixture.verify() — reached only by an explicit `--check <file>`. Declared as WHO MAY READ IT, not as evidence it is read today."
+    },
+    "policy-weights-presheet.json:featureHashes.features": {
+      "accessor": "engine/feature_fixture.js",
+      "family": "policy-weights featureHashes.features",
+      "why": "Ablation fit. Same one door — feature_fixture.verify() — reached only by an explicit `--check <file>`. Declared as WHO MAY READ IT, not as evidence it is read today."
+    }
+  },
+  "deliberately_undeclared": {
+    "note": "These tables trip the detector and are LEFT RED on purpose. A declaration is a claim that a reader exists; naming one that does not is the citation-shaped failure this repo has already paid for (a figure with a receipt and no source). tests/test-artifact-keys.js reads only `accessors`, so nothing here makes the gate green — that is the intent.",
+    "million-run.json:engine_counters": {
+      "disposition": "DEAD TABLE — nothing reads it",
+      "why": "141 keys, 140 not flat. Written at engine/million_run.js:1463 as `engine_counters: seenDelta`, and seenDelta is built at :1241-1242 as a per-run DELTA OF M.MEDSEEN — the simulator's bulk counter object. Nothing anywhere reads data/million-run.json back: engine/million_run.js never reads its own OUT (no readFileSync(OUT), no prev baseline, unlike tests/test-tag-consumed.js), and the only other mentions in the tree are quarantine METADATA listing the filename (web/quarantine-data.js, web/stadium.html, app/*) and tests/test-docs-current.js's figure census, which scans numeric VALUES across every data/*.json and never indexes a key. In-process, instrumentChecks() at :1269 reads exactly TWO names by hard-coded literal — counters.flinch and counters.secondaryVolatileApplied — from the LIVE object before the artifact is written; that is 2 of 141, and it is not a read of this artifact.",
+      "class": "Same finding as docs/_reports/2026-09-04-sweep-instrument.md §4 — 783 of 1048 counter fields that nothing reads, of which MEDSEEN itself is 544 of 644. This is that object published one layer down into an artifact, where bulk exposure makes it read as instrumented.",
+      "honest_remedy": "Either give it a named reader, or stop publishing the whole delta and publish only the counters something checks. Both are ENGINE/million_run decisions, not a key-convention decision, so neither is taken here."
+    },
+    "million-run-150k.json:engine_counters": {
+      "disposition": "DEAD TABLE — nothing reads it",
+      "why": "148 keys, 147 not flat. Byte-identical shape to million-run.json:engine_counters, written by the same line of the same generator on an older/larger run. Every clause above applies unchanged.",
+      "class": "See million-run.json:engine_counters.",
+      "honest_remedy": "See million-run.json:engine_counters."
     }
   }
 }

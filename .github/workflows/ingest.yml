@@ -55,10 +55,38 @@ jobs:
           wc -l < data/games.ladder.jsonl > "$RUNNER_TEMP/base-ladder"
           wc -l < data/games.bo3.jsonl    > "$RUNNER_TEMP/base-bo3"
 
+      # THE RAW LOGS ARE THE ONLY SOURCE OF TRUTH; EVERYTHING ABOVE IS A DERIVED VIEW.
+      #
+      # Until 2026-09-04 they were gitignored, so the archive this whole "a new question is a
+      # re-parse, never a re-pull" design rests on existed on ONE LAPTOP. Showdown's replay pool is
+      # a rolling ~1,250 per format (see the cadence note at the top), so a log that is lost cannot
+      # be re-fetched by anybody, ever. build/compress-stores.js now carries them as write-once
+      # dated shards under data/raw/<store>/, which git tracks.
+      #
+      # Restoring them here does two jobs: the runner gets the real archive rather than a stub, and
+      # it gives the shard guard below a BASELINE to compare against. Today the shard directories
+      # are empty and this is a no-op that says so.
+      - name: Restore the raw log archives from their tracked shards
+        run: |
+          set -eu
+          node build/compress-stores.js --restore-raw
+          for s in games.ladder games.bo3; do
+            f="data/$s.raw-logs.jsonl"
+            if [ -f "$f" ]; then wc -l < "$f" > "$RUNNER_TEMP/base-raw-$s"; else echo 0 > "$RUNNER_TEMP/base-raw-$s"; fi
+            echo "$s raw archive: $(cat "$RUNNER_TEMP/base-raw-$s") logs"
+          done
+
       # A collection job must never page the owner. Showdown can rate-limit, time out, or serve a
       # malformed log; none of that is a defect in this repo, and failing the run emailed a failure
       # notice every hour. These steps report their error and the run carries on.
+      #
+      # `id:` ALONGSIDE continue-on-error IS THE POINT. The step must not page the owner, but its
+      # outcome must still be READABLE by a later step. durable-ingest.js now exits non-zero on a
+      # zero-gain run it can PROVE was a broken endpoint rather than a quiet ladder, and the shrink
+      # guard below is where that becomes loud. With continue-on-error the step's `conclusion` is
+      # always success; `outcome` keeps the real result, and without an id nothing can ask for it.
       - name: Pull new replays (only appends games not already stored)
+        id: pull_ladder
         continue-on-error: true
         run: PAGES=25 CONC=20 node engine/durable-ingest.js data/games.ladder.jsonl
       # THE BEST-OF-3 LADDER, INTO ITS OWN STORE. NEVER POOLED.
@@ -80,6 +108,7 @@ jobs:
       # games/day would under-reach the window on the ladder. 25 exhausts the public pool and
       # auto-stops when a page comes back empty, so it costs nothing when there is less to take.
       - name: Pull the Bo3 open-team-sheet ladder (separate store, never pooled)
+        id: pull_bo3
         continue-on-error: true
         run: |
           BO3=$(node -e "const r=require('./data/regulations.json');process.stdout.write((r.regulations[r.active]||{}).bo3Format||'')")
@@ -94,6 +123,14 @@ jobs:
       # monotonic by construction. If it ever falls, something upstream lost history (an empty
       # restore, a truncated fetch, a bad dedupe) and committing that would overwrite the good copy
       # on origin with the damaged one. Refuse, loudly, before anything is written.
+      #
+      # A ZERO-GAIN RUN IS ALSO CHECKED HERE, AND FOR THE SAME REASON. `get()` used to resolve the
+      # empty string on an HTTP error, on a timeout AND on an empty body — three facts sharing one
+      # value — so a dead replay API and a quiet hour both printed "appended 0 games" and exited 0.
+      # The collector reported success for as long as it liked. durable-ingest.js now separates them
+      # (the search offering ZERO ids cannot be a quiet ladder: the pool is a rolling ~1,250 per
+      # format, so a live format always fills page one) and exits non-zero. The pull steps keep
+      # continue-on-error so the run still commits whatever it did get; THIS step is what fails.
       - name: Refuse to proceed if a store shrank
         run: |
           set -eu
@@ -107,6 +144,34 @@ jobs:
               fail=1
             else
               echo "$k: $was -> $now (+$((now - was)))"
+            fi
+          done
+
+          # THE RAW ARCHIVE IS THE SOURCE OF TRUTH, SO IT GETS THE SAME MONOTONICITY CLAIM.
+          # It is append-only and deduped by id exactly as the parsed stores are, and it is now a
+          # strict SUPERSET of them — durable-ingest.js archives the log of a game its parser cannot
+          # read, which used to be deleted. A raw archive that lost logs is unrecoverable.
+          for s in games.ladder games.bo3; do
+            f="data/$s.raw-logs.jsonl"
+            was=$(cat "$RUNNER_TEMP/base-raw-$s")
+            now=0; [ -f "$f" ] && now=$(wc -l < "$f")
+            if [ "$now" -lt "$was" ]; then
+              echo "::error::$f SHRANK: $was -> $now logs. The raw archive cannot be re-fetched. Refusing."
+              fail=1
+            else
+              echo "$s raw: $was -> $now (+$((now - was)))"
+            fi
+          done
+
+          # THE PULL STEPS' REAL OUTCOME. continue-on-error hides it from the run's conclusion; it
+          # must not hide it from a human. A non-zero exit here means durable-ingest.js PROVED the
+          # endpoint was broken — not that it found nothing.
+          for o in "ladder:${{ steps.pull_ladder.outcome }}" "bo3:${{ steps.pull_bo3.outcome }}"; do
+            k="${o%%:*}"; v="${o#*:}"
+            if [ "$v" = "failure" ]; then
+              echo "::error::the $k pull reported a BROKEN ENDPOINT (durable-ingest.js exited non-zero)."
+              echo "::error::this is not a quiet ladder — read that step's 'ZERO-GAIN' line for which endpoint failed."
+              fail=1
             fi
           done
           [ "$fail" -eq 0 ]
@@ -189,6 +254,13 @@ jobs:
           # actually tracks, and `--check` exits 1 if one lags its store.
           node build/compress-stores.js
 
+          # AND SHARD THIS RUN'S NEW RAW LOGS. One small gzip per run under data/raw/<store>/,
+          # never a single archive-wide .gz: the raw logs compress to ~14%, so one blob is ~78 MB
+          # today against GitHub's HARD 100 MB per-file limit, and gzip cannot append — it would be
+          # rewritten whole every six hours and add hundreds of MB of pack growth a day. Shards are
+          # write-once: never rewritten, never compacted.
+          node build/compress-stores.js --raw
+
           # ADD ONLY WHAT EXISTS, AND SAY SO WHEN SOMETHING DOES NOT.
           # `git add` on a pathspec that matches nothing exits 1, this block runs under `bash -e`,
           # and the commit then never happens — silently, because every derivation step above is
@@ -218,6 +290,17 @@ jobs:
               if [ -e "$f" ]; then
                 git add "$f"
                 echo "next-regulation store committed: $f ($(wc -c < "$f") bytes)"
+              fi
+            done
+            # THE RAW LOG SHARDS, WHOSE NAMES ARE TIMESTAMPS AND SO CANNOT BE LISTED EITHER.
+            # Same unmatched-glob discipline as the block above: an empty glob leaves `$f` as the
+            # literal pattern, `-e` rejects it, and this is a no-op rather than the `bash -e` abort
+            # that killed this workflow for 24 days. Absent is the correct state before the first
+            # shard is cut. Shards are write-once, so this only ever ADDS files.
+            for f in data/raw/*/*.jsonl.gz; do
+              if [ -e "$f" ]; then
+                git add "$f"
+                echo "raw log shard committed: $f ($(wc -c < "$f") bytes)"
               fi
             done
           }
@@ -290,6 +373,14 @@ jobs:
             node build/sync_orientation.js || true
             python3 engine/refresh-site-data.py || true
             node build/compress-stores.js
+            # RE-SHARD INSIDE THE RETRY LOOP, NOT ONLY BEFORE IT. `git reset --hard origin/main`
+            # above restores ORIGIN'S tracked files, which now includes data/raw/ — so the shard
+            # staged before the loop is gone and origin's shard set is what is on disk. The plain
+            # raw archive is gitignored and survives the reset untouched, and --raw recomputes
+            # "rows not already in a shard" against whatever shards origin actually has. That makes
+            # this self-healing in a push race rather than a lost shard, and it cannot duplicate:
+            # the id set is rebuilt from the shards on disk every time.
+            node build/compress-stores.js --raw
             add_artifacts
             if git diff --cached --quiet; then
               echo "origin already has everything from this run"; exit 0

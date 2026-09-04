@@ -38,6 +38,107 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## THE REPOSITORY ALREADY KNEW AND NOTHING ACTED — SO THE INSTRUMENT THAT READS THE INSTRUMENTS IS THIS DIVISION'S. 2026-09-04, CHANGELOG 5.244.0
+
+**THIS IS ONE FINDING WEARING FIVE COSTUMES.** `engine/status.js` was printing the row
+`driver policies the gate quotes — 1 of 2` on line 103 of a 253-line output. `engine/durable-ingest.js:464`
+explained the archive drift in a comment and instructed *"RUN THIS BEFORE ANY REPARSE"*.
+`tests/run-all.js` was red on its own unaccounted-checks clause. In each case the fact was DERIVED,
+was WRITTEN DOWN, and no consumer read it. This division's whole argument is that state is printed
+rather than typed — and printing is not reading. **A number that nothing acts on is not a
+measurement, it is a decoration.**
+
+**SO EVERY FIX IN THIS PASS CARRIES A LABEL, AND THE LABEL IS THE OWNER'S ACCEPTANCE TEST.**
+CLASS-level means the failure becomes unreachable; INSTANCE-level means one door is shut. The
+question to ask of each: *would this catch a second instance, spelled differently, arriving through
+another door?* An INSTANCE-level fix is not wrong — it is incomplete, and saying which one you
+shipped is the difference between a repair and a re-arming.
+
+**CLASS-LEVEL — `engine/sweep.js`: WHAT EACH INSTRUMENT FAILS TO CHECK ABOUT ITSELF.** Five derived
+sections, about three seconds, exit 1 on any finding. First run:
+
+| section | first run |
+|---|---|
+| checks nothing runs | **60** |
+| gate clauses blind to their own staleness | **3 of 8** |
+| published figures out of date | **12** |
+| counter fields nothing reads | **783 of 1,048** |
+| store rows with no raw log | **614** |
+
+**IT WAS SHOWN RED BEFORE IT WAS TRUSTED**, on every `CANNOT DERIVE` path, under `SWEEP_BREAK=1..5`.
+That is not ceremony here: a sweep whose derivation silently fails reports a spotless repository, and
+this division has already paid for a ruler that printed a stable number because it could not see.
+
+**CLASS-LEVEL — MUTATION TESTING, PILOTED ON THE GATES AND NOT ON THE ENGINE.** The engine has a
+strong external oracle in the official simulator. **The gates have none**, which is exactly how a gate
+reading `8 of 8 PASS` survived being false and why the pilot was pointed here first. `tools/mutate-gates.js`
+with `stryker.gates.conf.json`: **83 mutants, 57 killed, 26 survived, 28s**. A surviving mutant is a
+clause whose failure nothing observes — the same claim `tests/test-wiring.js` makes about a capability
+that cannot prove it ran, applied to the rulers.
+
+**CLASS-LEVEL — THE DAMAGE-TABLE DIGEST NOW DERIVES ITS HASHED FIELDS, AND 5.242.0's REPAIR IS
+REVERSED AS SUFFICIENT.** That version repaired two named terms and this ledger recorded it as done.
+It was INSTANCE-level: an enumerated list means a field added tomorrow goes unhashed exactly as typing
+did, so closing the two instances re-armed the class. The hashed set is now derived from the rows'
+actual keys minus a declared exclusion map of six entries. **The derivation then found a second blind
+class the list could not have:** an ABSENT field hashes identically to a PRESENT AND EMPTY one, so
+deleting a body's entire moveset moved nothing — live on **4 rows for `mv` and 10 for `item`**. The
+digest value is **unchanged at `9d289cf77e24`**, so this adds NO third reason to restamp; the two
+reasons recorded at 5.242.0 stand, still fused by any single restamp, still the owner's call.
+
+**INSTANCE-LEVEL AND SAID SO — `tests/test-artifact-keys.js` HAD FIVE SILENT LIMITS, NOT ONE.** It
+sliced to 8 keys, capped depth at 3 where the deepest real object is 10, never descended arrays,
+iterated a hard-coded two-name list, and **exited 0 when the engine data failed to load**. Compounded,
+`MC.priors` — **230 keys** — was never inspected once, inside the file written to catch hand-typed
+lookups. **The cost argument that justified the truncation was false when measured: 733ms full against
+596ms truncated.** It now walks fully, FAILS rather than truncates at a budget, and prints its own
+out-of-scope set by name (**5,466** `.json` files in **12** directories). **13 undeclared tables** are
+newly visible and are REPORTED, not fixed.
+
+**ATTRIBUTION WAS MEASURED, NOT INFERRED, AND THAT IS THE PART THIS DIVISION OWNS.** `tests/run-all.js`
+reads **143 passed, 28 failed**. **Exactly one failure was caused by this session**, established by
+re-running each red test at the prior commit in a control worktree rather than by reasoning about what
+had been touched. Five assert a stale fact, three were heap ceilings, twenty were already red. **The
+two strongest medicham2 hypotheses — `test-pin-arms` and `test-game-differential` — were both REFUTED
+by the control**, and neither may be cited as evidence about the engine.
+
+**THE COUNT WAS MISREPORTED TWICE BEFORE IT SETTLED: 23, THEN 30, AND THE TRUTH IS 28.** The first was
+a TORN READ — a line count taken on the runner's output while it was still being written. CLAUDE.md
+documents that hazard for artifacts; this is the same hazard applied to a log, and it produced a
+well-formed, plausible, wrong number exactly as the artifact version does. **And a command ran for
+twenty minutes having done nothing**: the tell was not the exit code but **2 seconds of CPU**, because
+output piped through a buffering stage makes a stalled run and a working one identical.
+
+**THREE CHECKS COULD NOT RUN AT ALL** — exit 134, out of heap, no declared ceiling. With one,
+`tests/test-engine-release.js` gives **71 passed / 0 failed**, `tests/test-set-realism.js` gives
+**6 passed / 0 failed**, and `engine/validate_selfplay.js` gives a real verdict plus a finding it was
+too dead to report. A check that cannot start and a check that passes are the same exit code to
+anybody not reading.
+
+**THE COMMENT CENSUS GIVES A BASE RATE THIS PROJECT HAS NEVER HAD** — 495 files, 17,519 comments:
+**0 confirmed** contradictions of their own code across **1,371** candidates, **2** TODO/FIXME (both
+false positives), **37** references to things that no longer exist, **4** imperatives with no executor
+and **6** whose executor is RED. The standout is this section's own thesis: `engine/engine_release.js:653`
+heads *"PRUNING, AND WHY IT IS SAFE"* and reasons from **nine releases holding 23 MB** against
+**523 releases holding 2.5 GB** today. `ROADMAP #144` is cited in code and has never been a register
+row — **nine such ids across 30 citations**.
+
+**WHAT IS OWED. Every one of these was withheld on purpose; none is a finding waiting to be collected:**
+
+- `node engine/status.js --write` — NOT run. The `<!-- GENERATED -->` block at the top of this file is
+  still one pass behind and still quotes the pre-5.243.0 gate.
+- `node engine/feature_fixture.js --stamp` on the fitted policy weights — **WILL'S CALL, NOT TO BE RUN.**
+  Unchanged from 5.242.0 and 5.243.0. The weights were not written and MAG stays paused.
+- The owner's decision on moving the whole-game clause from protocol first-divergence to
+  board-material. Unchanged from 5.243.0.
+- `npm install` — NOT run. The mutation dependency is declared and uninstalled, so the pilot's numbers
+  above are reproducible only after it is.
+- **26 surviving mutants** to triage. Each is a gate clause whose failure nothing observes.
+- ROUTED AND NOT FIXED: **89 duplicate ids** in the self-play store; one unattributed finding in
+  `engine/conformance.js`; the 13 undeclared key tables; a raw-log census artifact still asserting the
+  old subset relation with no generator to correct it.
+
+Full accounts: eleven reports under `docs/_reports/2026-09-04-*.md`.
 ## THE GATE CERTIFIED THE ENGINE ON A POPULATION WHERE THE GAMES DO NOT END, AND THIS DIVISION OWNS THAT RULER. 2026-09-03, CHANGELOG 5.243.0.
 
 **THE READING IS REVERSED.** `engine/quarantine.js` read **8 of 8 PASS**. It now reads **GATE: CLOSED —

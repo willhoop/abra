@@ -29,6 +29,27 @@
  *
  * WHAT IT BUYS: the next artifact somebody generates with hyphenated or capitalised keys fails this
  * test until they say who reads it. That is the point at which the question is cheap to answer.
+ *
+ * 2026-09-04 — THE DETECTOR HAD THE SPECIES-KEY BUG ITSELF, IN THREE PLACES.
+ * -------------------------------------------------------------------------
+ * The walk descended into only `ks.slice(0, 8)` of any object, capped at `depth > 3`, and read
+ * `globalThis.MC` through a hand-typed list of two table names. All three are the SAME failure the
+ * file exists to catch: a limit that stops looking and reports nothing, so that being unexamined and
+ * being clean produce identical output. Measured on the day: **33 tables were invisible, 13 of them
+ * NOT flat-lowercase and therefore exactly the risk class this guard claims to enumerate** — including
+ * tag-consumption.json:by_tag (291 keys), million-run.json:engine_counters (141) and ten
+ * policy-weights*:featureHashes.features. `MC.priors` (230 keys) had never been looked at at all.
+ * The header above said "of eleven real name-keyed tables" and the true count was fifty.
+ *
+ * THE INVARIANT NOW, and it is the whole point: **a table this guard did not fully inspect is named
+ * in the output and FAILS.** Silence may never mean "checked and fine".
+ *
+ * The limits that remain are budgets, not truncations — exceeding one is a named, failing outcome,
+ * never a quiet `slice`. They were sized against a measurement rather than a guess (2026-09-04):
+ *   - deepest object anywhere in data/*.json ....... 10   (MAX_DEPTH 40, ~4x headroom)
+ *   - most nodes in one artifact ............... 188,906  (diff-team-pool.json; budget 2M, ~10x)
+ *   - cost of the full walk, arrays included ...... 733ms (the old truncated walk: 596ms, so the
+ *     slice was never buying speed -- JSON.parse dominates and always did)
  */
 'use strict';
 const fs = require('fs');
@@ -46,20 +67,52 @@ const MIN_KEYS = 50;
 const NAMEISH = /^[a-z0-9][a-z0-9 '.:-]{1,30}$/i;
 const FLAT = /^[a-z0-9]+$/;
 
-function tables(obj, depth, at, out) {
-  if (!obj || typeof obj !== 'object' || Array.isArray(obj) || depth > 3) return;
-  const ks = Object.keys(obj);
-  if (ks.length >= MIN_KEYS && ks.filter(k => NAMEISH.test(k)).length / ks.length > 0.9) {
-    const notFlat = ks.filter(k => !FLAT.test(k));
-    out.push({ at: at || '(root)', n: ks.length, notFlat: notFlat.length, sample: notFlat.slice(0, 3) });
-    return;                                   // a table's VALUES are not themselves tables to report
-  }
-  for (const k of ks.slice(0, 8)) tables(obj[k], depth + 1, at ? `${at}.${k}` : k, out);
+/* Budgets, not truncations. Hitting one is RECORDED AND FAILS -- see the header. */
+const NODE_BUDGET = 2000000;                  // measured worst artifact: 188,906 nodes
+const MAX_DEPTH = 40;                         // measured deepest object in data/*.json: 10
+
+/* Walks EVERY key of every object, and every element of every array, to any depth. Returns the
+ * tables it found AND the places it had to stop, so that a stop can never pass for a clean result. */
+function scan(root, artifact) {
+  const out = [], unfinished = [];
+  const seen = new WeakSet();                 // engine-data.js is a live object graph, not JSON: a
+  let nodes = 0;                              // shared node must not be walked twice or forever.
+
+  (function visit(obj, at, depth) {
+    if (!obj || typeof obj !== 'object') return;
+    if (seen.has(obj)) return;                // already reported at whichever path reached it first
+    seen.add(obj);
+    if (++nodes > NODE_BUDGET) {
+      if (!unfinished.length) unfinished.push({ at: at || '(root)', why: `node budget ${NODE_BUDGET} exhausted` });
+      return;
+    }
+    if (depth > MAX_DEPTH) {
+      unfinished.push({ at: at || '(root)', why: `depth cap ${MAX_DEPTH} reached` });
+      return;
+    }
+    if (Array.isArray(obj)) {
+      for (let i = 0; i < obj.length; i++) visit(obj[i], `${at}[${i}]`, depth + 1);
+      return;
+    }
+    const ks = Object.keys(obj);
+    if (ks.length >= MIN_KEYS && ks.filter(k => NAMEISH.test(k)).length / ks.length > 0.9) {
+      const notFlat = ks.filter(k => !FLAT.test(k));
+      out.push({ at: at || '(root)', n: ks.length, notFlat: notFlat.length, sample: notFlat.slice(0, 3) });
+      /* Stopping here is the one limit that is NOT a blind spot, because it was MEASURED rather than
+       * assumed: descending into every found table's values costs 9.3s (vs 0.7s) and turns up ZERO
+       * further tables. It is a scope rule with a number behind it. Re-measure before trusting it. */
+      return;
+    }
+    for (const k of ks) visit(obj[k], at ? `${at}.${k}` : k, depth + 1);
+  })(root, '', 0);
+
+  return { out, unfinished: unfinished.map(u => ({ artifact, ...u })) };
 }
 
 /* ---- every name-keyed table in the project ---------------------------------------------------- */
 const found = [];
 const unparseable = [];
+const unfinished = [];
 for (const f of fs.readdirSync(D('data'))) {
   if (!/\.json$/.test(f)) continue;
   let j;
@@ -67,13 +120,14 @@ for (const f of fs.readdirSync(D('data'))) {
    * see into, which is exactly the blind spot the guard exists to remove. Counted and named. */
   try { j = JSON.parse(fs.readFileSync(D('data', f), 'utf8')); }
   catch (e) { unparseable.push(`${f} (${e.message.slice(0, 40)})`); continue; }
-  const out = [];
-  tables(j, 0, '', out);
-  out.forEach(t => found.push({ artifact: f, ...t }));
+  const r = scan(j, f);
+  r.out.forEach(t => found.push({ artifact: f, ...t }));
+  unfinished.push(...r.unfinished);
 }
 
 /* engine-data.js is a SCRIPT, not JSON -- it publishes globalThis.MC -- and it is the table that
  * caused all of this, so it would be absurd for the general guard to skip it. */
+let mcLoadError = null;
 try {
   require(D('data', 'engine-data.js'));
   /* THE DOOR IS LOADED BESIDE THE TABLE, ALWAYS. engine/mc_key.js installs the SEAL on MC.mons --
@@ -82,21 +136,41 @@ try {
    * decoration: section 4 of tests/test-mc-key.js FAILS on any file that loads the table without
    * it, because a seal that depends on load order is a seal that is sometimes absent. */
     require(D('engine', 'mc_key.js'));
-  for (const name of ['mons', 'moves']) {
-    const t = globalThis.MC && globalThis.MC[name];
-    if (!t) continue;
-    const ks = Object.keys(t);
-    if (ks.length < MIN_KEYS) continue;
-    const notFlat = ks.filter(k => !FLAT.test(k));
-    found.push({ artifact: 'engine-data.js', at: `MC.${name}`, n: ks.length, notFlat: notFlat.length, sample: notFlat.slice(0, 3) });
-  }
+  /* NOT a hand-typed list of table names. It used to read `['mons', 'moves']`, and MC.priors -- 230
+   * keys -- was therefore never looked at once. A name list is the same silent stop as a slice: it
+   * reports nothing about what it did not name. The generic walker finds whatever MC actually holds,
+   * so a table added to MC tomorrow is examined without anybody remembering to edit this line. */
+  const r = scan({ MC: globalThis.MC }, 'engine-data.js');   // wrapped so paths read `MC.mons`
+  r.out.forEach(t => found.push({ artifact: 'engine-data.js', ...t }));
+  unfinished.push(...r.unfinished);
 } catch (e) {
-  console.error('  (could not load data/engine-data.js: ' + e.message + ')');
+  /* Not a warning. If the table that caused all of this cannot be loaded, this guard inspected
+   * nothing in it, and saying so quietly on stderr is the exact equivalence the file bans. */
+  mcLoadError = e.message;
 }
 
 ok(found.length > 0, `found ${found.length} name-keyed lookup tables with ${MIN_KEYS}+ keys`);
 ok(unparseable.length === 0,
   `every data/*.json parsed, so none is invisible to this guard (${unparseable.join(', ') || 'all parsed'})`);
+ok(mcLoadError === null,
+  `data/engine-data.js loaded, so MC's tables were actually inspected (${mcLoadError || 'loaded'})`);
+
+/* THE INVARIANT. Anything the walk could not finish is named here and fails. A budget is allowed to
+ * exist; a budget that is hit and says nothing is the bug this whole file is about. */
+ok(unfinished.length === 0,
+  'the walk finished every artifact, so nothing was skipped unexamined'
+  + (unfinished.length ? ` — UNFINISHED: ${unfinished.map(u => `${u.artifact}:${u.at} (${u.why})`).join('; ')}` : ''));
+
+/* SCOPE, STATED OUT LOUD EVERY RUN. This guard reads data/*.json and data/engine-data.js. It does
+ * not read data/'s subdirectories -- those are frozen release copies, shards and training sets, not
+ * artifacts a live caller looks a name up in. That is a judgement, and a judgement that is never
+ * printed is indistinguishable from a blind spot, which is how the slice survived. So: print it. */
+const subdirs = fs.readdirSync(D('data'), { withFileTypes: true }).filter(e => e.isDirectory());
+const countJson = dir => fs.readdirSync(dir, { withFileTypes: true })
+  .reduce((n, e) => n + (e.isDirectory() ? countJson(path.join(dir, e.name)) : (/\.json$/.test(e.name) ? 1 : 0)), 0);
+const skipped = subdirs.map(e => ({ name: e.name, n: countJson(D('data', e.name)) })).filter(s => s.n > 0);
+console.log(`  NOT INSPECTED (declared scope — data/*.json only): ${skipped.reduce((n, s) => n + s.n, 0)} .json`
+  + ` in ${skipped.length} subdirectorie(s): ${skipped.map(s => `${s.name}/(${s.n})`).join(' ')}`);
 
 if (process.argv.includes('--list')) {
   console.log('\n  ' + 'artifact'.padEnd(30) + 'table'.padEnd(14) + 'keys'.padStart(6) + '   key style');

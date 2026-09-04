@@ -10,6 +10,115 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.244.0] — 2026-09-04
+
+### Added
+- **`engine/sweep.js` — WHAT EACH INSTRUMENT FAILS TO CHECK ABOUT ITSELF.** Built because in every one of
+  this session's findings **the repository already knew and nothing acted**: `status.js` was printing
+  `driver policies the gate quotes — 1 of 2` on line 103 of a 253-line output; `durable-ingest.js:464`
+  explained the archive drift in a comment and said *"RUN THIS BEFORE ANY REPARSE"*; `run-all.js` was red
+  on its own unaccounted-checks clause. Five derived sections, ~3s, exit 1 on any finding. First run:
+  **60 checks nothing runs · 3 of 8 clauses blind to their own staleness · 12 published figures out of
+  date · 783 of 1,048 counter fields nothing reads · 614 store rows with no raw log.** Every
+  `CANNOT DERIVE` path was shown red under `SWEEP_BREAK=1..5` before the tool was trusted.
+- **Mutation testing, piloted on the GATES rather than the engine** (`tools/mutate-gates.js`,
+  `stryker.gates.conf.json`). The engine has a strong oracle in Showdown; **the gates have none**, which
+  is how `8 of 8 PASS` survived being false. 83 mutants, 57 killed, **26 survived**, 28s.
+
+### Fixed
+- **THE RAW LOG IS NOW THE SOURCE OF TRUTH, AND THE STORE IS A DERIVED VIEW (S1-S4).** The inversion
+  behind a dozen store reworks: the regenerable artifact was durable and the irreplaceable one was
+  gitignored.
+  - **S1** `durable-ingest.js:543` — the completeness filter continued BEFORE the archive write, so a
+    game the CURRENT parser could not read had its raw log **deleted**, destroying the one artifact a
+    FUTURE parser could have used. The invariant broken at its source.
+  - **S2** the store row was written BEFORE the log on independent streams, so a crash left an **orphan
+    row** — the wrong direction. Two passes now, through one exported `archiveThenStore()`; store output
+    verified byte-identical.
+  - **S3** the archive becomes durable as **write-once dated shards**, not one `.gz`. Measured at 13.98%
+    compression: a single blob is **78 MB across both archives today, already 78% of GitHub's 100 MB
+    limit** — the earlier "65 days away" estimate was wrong. Caught mid-test: a `-2` collision suffix
+    sorts BEFORE `.jsonl`, replaying an append-only archive out of order.
+  - **S4** `get()` resolved an empty string on HTTP error, on timeout AND on an empty body — three facts,
+    one value, which is why a dead API and a quiet day were indistinguishable. Now null on failure, with
+    the discriminator derived from the endpoint (a rolling ~1,250-replay pool means a live format always
+    returns a full page one).
+- **THE ARCHIVE IS NOW A SUPERSET BY DESIGN, AND ONE GUARD ASSUMED EQUALITY.**
+  `engine/rebuild_records.js:117` compared COUNTS. It would have refused every valid rebuild once an
+  unparseable log was archived — **and it was already letting a bad one through**: with a truncated log
+  the counts balanced 3 == 3 and it swapped in a corrupted store at exit 0, and in another arm lost a
+  game outright. Now filters on completeness and re-asks the guard **by id**, naming any game that would
+  be lost. Strictly stronger than what it replaced.
+- **THE DIGEST NOW DERIVES ITS HASHED FIELDS INSTEAD OF LISTING THEM.** 5.242.0's repair was
+  INSTANCE-level and re-armed the same failure: an enumerated list means a field added tomorrow goes
+  unhashed. Derived from the rows' actual keys minus a six-entry declared exclusion map.
+  **Second blind class found by the derivation and not by the list:** an absent field hashed identically
+  to an EMPTY one — deleting a Pokemon's entire moveset moved nothing, live on 4 rows for `mv` and 10 for
+  `item`. **Digest value unchanged at `9d289cf77e24`**, so this adds no third reason to restamp.
+- **A KEY GATE HAD FIVE SILENT LIMITS, NOT ONE.** `tests/test-artifact-keys.js` sliced to 8 keys, capped
+  depth at 3 where the deepest real object is 10, never descended arrays, iterated a hard-coded
+  `['mons','moves']` — so **`MC.priors`, 230 keys, was never inspected once**, in the file written to
+  catch hand-typed lookups — and **exited 0 when `engine-data.js` failed to load**. The cost argument was
+  false: full walk 733ms against 596ms truncated. It now walks fully, FAILS rather than truncates when a
+  budget is hit, and **prints its own out-of-scope set by name** (5,466 `.json` in 12 directories).
+  Newly visible and REPORTED, not fixed: 13 undeclared tables.
+- **THE ONE REGRESSION THIS SESSION CAUSED.** `tests/test-divergence-composition.js` — 5.243.0's steering
+  refusal fires on two synthetic fixtures that carry no steering block; quarantine's own selftest
+  fixtures were updated in that commit and this consumer was missed. The fixture now takes the constant
+  from `engine/steering.js` rather than a typed string, **and a third arm asserts the refusal** — without
+  it, repairing the fixture would have silently deleted coverage of the branch just built.
+- **THREE CHECKS COULD NOT RUN AT ALL** — exit 134, out of heap, no `ABRA-HEAP` declared.
+  `test-engine-release.js` gives 71 passed / 0 failed. `test-set-realism.js` gives 6 passed / 0 failed.
+  `validate_selfplay.js` gives a real verdict, and a genuine finding it was too dead to report.
+
+### Changed
+- **7,275 raw logs recovered across both stores** — 6,661 ladder and 614 bo3, **0 unavailable, 0 without
+  a timestamp**. Both archives are now complete supersets and `MODE=reparse` is unblocked. The sweep's
+  store-orphan section is clean.
+- `tests/probe_delayed_crit.js` and `tests/probe_sub_clamp.js` given `GATES` entries — they were added
+  by 5.241.0 with no runner. Unaccounted checks **60 to 58**.
+
+### Notes
+- **RUN-ALL: 143 passed, 28 failed. EXACTLY ONE FAILURE WAS CAUSED BY THIS SESSION**, established by
+  re-running each at `0b9479db` in a control worktree rather than by inference. Five are tests asserting
+  a stale fact, three were heap ceilings, twenty were already red. **The two strongest medicham2
+  hypotheses — `test-pin-arms` and `test-game-differential` — were both REFUTED by the control.**
+- **A COUNT WAS MISREPORTED TWICE BEFORE IT SETTLED: 23, then 30, and the truth is 28.** The first was a
+  torn read — a line count taken on the runner's output while it was still being written, which is the
+  hazard this repo already documents for artifacts, applied to a log.
+- **A COMMAND RAN FOR TWENTY MINUTES HAVING DONE NOTHING**, and the tell was not the exit code but **2
+  seconds of CPU**. An eighth variant: output piped through `Select-Object` buffers until the pipeline
+  ends, so a stalled run and a working one look identical.
+- **THE COMMENT CENSUS**, over 495 files and 17,519 comments: **0 confirmed** comments contradicting their
+  own code across 1,371 candidates, **2** TODO/FIXME (both false positives), **37** references to things
+  that no longer exist, and 4 imperatives with no executor plus 6 whose executor is RED. Standout:
+  `engine_release.js:653` heads a section titled *"PRUNING, AND WHY IT IS SAFE"* reasoning from **nine
+  releases holding 23 MB** — there are **523 releases holding 2.5 GB**. And `ROADMAP #144` is cited in
+  the code and **has never been a register row** (nine such ids, 30 citations).
+- **NOT FIXED, ROUTED:** `data/games.selfplay.jsonl` holds **89 duplicate ids**; `engine/conformance.js`
+  gained one unattributed S13 finding; the 13 undeclared key tables; `data/raw-log-census.json` asserts
+  the old subset relation with no generator to correct it.
+- `data/policy-weights.json` untouched and MAG still paused, by the owner's decision. `npm install` NOT
+  run — `@stryker-mutator/core@10.0.0` is declared and uninstalled. `status.js --write` not run.
+- **AN EXEMPTION THAT CARRIED THE CONDITION RETIRING IT ACTUALLY RETIRED.** `tests/test-model-map.js`
+  excused ALAKAZAM with the words *"the day an ALAKAZAM heading lands, check 6 goes red and this entry
+  gets deleted."* The heading landed at 5.244.0, the check went red naming ALAKAZAM, and the entry is
+  gone. **Deleting it then revealed a SECOND failure it had been masking** — `THE PER-TURN PIPELINE`,
+  which is the composition table rather than a model, now declared with a reason and named in the
+  page's own omissions note (a declaration only the test can see is an exemption). `test-model-map`
+  ALL PASS, selftest 7/0 so it did not go green by going blind. **Most exemptions in this repo cannot
+  go stale, which means nothing will ever remove them; this one could, and did.**
+- **THE LEAF WIDENING IS PROVED BUT NOT FIXED.** `tests/probe_leaf_widening.js` lands as a RED
+  demonstration: it plants a difference on an uncompared leaf and reports **2 leaf(s) NOT COMPARED — a
+  planted difference on them reached the board and nothing looked.** `engine/board_state.js` is
+  UNCHANGED, so the comparator still sees 34 of 80 leaves and **board-material 77 of 961 remains a
+  floor**. The probe prints `learnset lookups that threw: 0`, which is what makes the result a claim
+  about the comparator rather than about a fixture search that quietly narrowed — a COULD-NOT-STAGE is
+  always a claim about the fixture, never about the mechanic.
+- Full accounts: eleven reports under `docs/_reports/2026-09-04-*.md`.
+
+---
+
 ## [5.243.0] — 2026-09-03
 
 ### Fixed

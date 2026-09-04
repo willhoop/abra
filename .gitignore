@@ -14,6 +14,16 @@ data/*.raw-logs.jsonl
 **/*.raw-logs.jsonl
 data/archive/**/games.*.ladder.jsonl
 
+# THE RAW LOG SHARDS UNDER data/raw/ ARE TRACKED ON PURPOSE — DO NOT ADD A RULE THAT CATCHES THEM.
+# The two rules above make the PLAIN raw archive local-only, which is right (585 MB) and which was
+# also the whole problem: the only source of truth in this project lived on one laptop, and
+# Showdown's replay pool is a rolling ~1,250 per format, so a lost log cannot be re-fetched by
+# anyone. build/compress-stores.js --raw writes write-once dated shards to
+# data/raw/<store>/<YYYYMMDDTHHMM>-NN.jsonl.gz (~0.2 MB per ingest run) and git carries those.
+# Verified 2026-09-04 with `git check-ignore -v data/raw/games.ladder/20260904T1200-00.jsonl.gz`:
+# no existing pattern matches it. This line only keeps a stray UNCOMPRESSED file out.
+data/raw/**/*.jsonl
+
 # Python bytecode. 14 .pyc files were committed before this rule existed; they are
 # machine- and version-specific build artifacts, not source.
 __pycache__/
