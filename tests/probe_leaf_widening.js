@@ -31,13 +31,37 @@
  * question: that a difference ON THIS LEAF now reaches the board comparison. Whether the two engines
  * ever DO differ here is the whole-game differential's question, not this one's.
  *
- * UNBURDEN IS AN OBSERVE ARM AND NOT A WIRING, AND THE REASON IS PRINTED RATHER THAN ASSERTED.
- * medicham2 holds NO state under that name: the doubling is recomputed inside `effSpeed` from
- * `_hadItem && !m.item` (engine/medicham2-browser.js:14770), which is TRUE FOR EVERY BODY THAT LOST
- * AN ITEM whatever its ability, where the authority's volatile is added only by Unburden's own
- * `onAfterUseItem` / `onTakeItem` (pokemon-showdown/data/abilities.ts:5229-5234). Comparing the two
- * would part every board on which anybody's Focus Sash broke. The arm prints both engines' raw state
- * so the omission is DECLARED on measured evidence instead of on an argument.
+ * UNBURDEN IS AN OBSERVE ARM AND NOT A WIRING, AND WHAT IT OBSERVES IS THE ENGINE'S OWN SPEED.
+ * medicham2 holds no state under that name. It applies the doubling inside `effSpeed`, gated on
+ * `TAGS.param('ability', m.ability, 'speedOnItemLoss')` — a param `data/tags.json` grants to exactly
+ * ONE ability (`n: 1`, `examples: ["Unburden"]`, read out of the artifact at run time and printed
+ * below, never typed) — nested inside an entry guard `m._hadItem && !m.item`. So the arm ASKS THE
+ * ENGINE for the number, twice per body: once as the body stands, and once on a delegating clone with
+ * the item-loss input cleared. The difference between those two readings IS the doubling, computed by
+ * `effSpeed` rather than restated here. The authority half is read the same way, from its own function:
+ * `getStat('spe', false, false)` against `getStat('spe', false, true)`, modified against unmodified.
+ *
+ * WHAT THIS PARAGRAPH SAID UNTIL 2026-09-04, AND WHY IT WAS FALSE — THE ERROR IS THE THING TO KEEP.
+ * It said the doubling was "TRUE FOR EVERY BODY THAT LOST AN ITEM whatever its ability", and that
+ * comparing the leaf "would part every board on which anybody's Focus Sash broke". That claim was
+ * published in CHANGELOG 5.245.0, in a commit message, in seven living documents, and was reported to
+ * the owner as fact. It is wrong, and the mechanism was in the ROW BELOW rather than in the engine:
+ * the `stand` predicate recomputed `_hadItem && !m.item` — THE ENTRY GUARD, which sits OUTSIDE the
+ * gated block — and compared that against the authority's volatile. It never read `effSpeed` at all.
+ * Its `[1,1]` therefore only ever said "both of these bodies have lost an item", which is true of any
+ * body that lost one and says nothing whatsoever about Unburden. The `ours:` label named the entry
+ * guard as if it were the doubling, which is how the reading survived being looked at.
+ *
+ * A PROBE MUST ASSERT ON WHAT THE ENGINE COMPUTED, NEVER ON A VALUE IT RECOMPUTES ALONGSIDE. A row
+ * that declines to answer is correct; a row that answers a question it was not asked is what this cost.
+ *
+ * WHAT THE REPAIRED ARM STILL DOES NOT MEASURE, NAMED RATHER THAN LEFT AS AN ABSENCE. `effSpeed`
+ * consults the body's ability AT READ TIME, where the authority grants a volatile AT THE MOMENT THE
+ * ITEM IS LOST — so an Unburden ACQUIRED AFTER the hand empties doubles here and not there. This arm
+ * measures that asymmetry on the ENGINE'S HALF ONLY, by re-asking `effSpeed` for the plain body with
+ * the carrier's own ability spelling on a clone. The AUTHORITY'S half needs a body that gains the
+ * ability mid-battle (Skill Swap), which this fixture does not stage, so the row prints ENGINE HALF
+ * ONLY and the defect stays INSTRUMENT OWED.
  */
 'use strict';
 const path = require('path');
@@ -52,6 +76,62 @@ const BS = require(D('engine', 'board_state.js'));
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
 const N = require(D('engine', 'names.js'));
+
+/* ---- THE ENGINE'S OWN SPEED FUNCTION, OUT OF THE SAME FROZEN RELEASE THE GAME IS PLAYED ON -------
+ *
+ * `G.REL` is the release `game_differential.js` opened, so this is the SNAPSHOT'S `effSpeed` and not
+ * the live file's — the value read is the value the game was played with, whatever ENGINE is doing to
+ * the working tree while this runs. `need:` makes an aged-out release refuse by name at load instead
+ * of throwing `M.effSpeed is not a function` deep inside a boundary callback (CLAUDE.md §releases).
+ * A release that cannot serve it is a fact about the SNAPSHOT and the row below says COULD-NOT-MEASURE
+ * rather than falling back on anything. */
+const MEDI = G.REL.require('engine/medicham2-browser.js', { need: ['effSpeed'] });
+
+/* THE ONE CARRIER, READ OUT OF THE ARTIFACT THAT GATES THE ENGINE. `effSpeed` doubles on
+ * `TAGS.param('ability', m.ability, 'speedOnItemLoss')`; this is that param's own row, so the count
+ * printed with the arm is derived from the same table the engine consults. Never typed. */
+const UB_TAG = (require(D('data', 'tags.json')).tags || []).find(t => t.tag === 'speedOnItemLoss') || null;
+
+/* A COUNTERFACTUAL IS BUILT BY CLEARING ONE INPUT, NEVER BY RESTATING A CONDITION. `Object.create(m)`
+ * delegates every read to the real body — `st`, `boosts`, `item`, `ability`, `_roomItem`, `_sf` — so
+ * the ONLY thing that differs between the two readings is the field named here, and neither reading
+ * mutates the live board the rest of the game is played from. */
+const withField = (m, k, v) => { const o = Object.create(m); o[k] = v; return o; };
+
+/* NOT A SILENT CATCH. A throw out of either engine's speed function is COUNTED, its message is kept,
+ * and the row it belongs to reports COULD-NOT-MEASURE — because a swallowed throw here would show up
+ * as a body whose speed did not change, which is indistinguishable from a body the doubling did not
+ * apply to. That is exactly the confusion this whole file is being repaired for. */
+let SPE_THREW = 0, SPE_FIRST = '';
+function speThrew(where, why) { SPE_THREW++; if (!SPE_FIRST) SPE_FIRST = where + ': ' + why; return { err: where + ' THREW: ' + why }; }
+function mediSpe(m, field, side) {
+  try { return { v: MEDI.effSpeed(m, field, side) }; } catch (e) { return speThrew('effSpeed', e.message); }
+}
+function sdSpe(p, unmodified) {
+  try { return { v: p.getStat('spe', false, unmodified) }; } catch (e) { return speThrew('getStat spe', e.message); }
+}
+const mult = (live, cleared) => (cleared > 0 ? 'x' + (Math.round((live / cleared) * 100) / 100) : 'x?');
+
+/* THE ENGINE'S READING FOR ONE BODY: what it says now, and what it says with the item-loss input
+ * cleared. Both numbers come out of `effSpeed`. */
+function mediReading(m, field, side) {
+  if (!m) return { err: 'NO BODY IN THIS SLOT' };
+  const a = mediSpe(m, field, side); if (a.err) return { err: a.err };
+  const b = mediSpe(withField(m, '_hadItem', false), field, side); if (b.err) return { err: b.err };
+  return { live: a.v, cleared: b.v, doubled: a.v !== b.v ? 1 : 0, mult: mult(a.v, b.v), ability: m.ability };
+}
+/* THE AUTHORITY'S READING FOR ONE BODY, FROM ITS OWN FUNCTION: `getStat('spe')` modified against
+ * unmodified. `unmodified` skips the `ModifySpe` event, which is where Unburden's condition lives
+ * (data/abilities.ts:5238-5244) — so the difference is every speed modifier standing on that body.
+ * The fixture carries no Tailwind, no weather, no Choice Scarf and no status, and the plain slot is
+ * the control that SHOWS that: if anything other than Unburden were modifying speed here, the plain
+ * body would not read x1. */
+function sdReading(p) {
+  if (!p) return { err: 'NO BODY IN THIS SLOT' };
+  const a = sdSpe(p, false); if (a.err) return { err: a.err };
+  const b = sdSpe(p, true); if (b.err) return { err: b.err };
+  return { live: a.v, cleared: b.v, doubled: a.v !== b.v ? 1 : 0, mult: mult(a.v, b.v) };
+}
 
 /* A LEGAL CARRIER, DERIVED FROM THE FORMAT'S OWN LEARNSETS. `.all()` is the National Dex wearing the
  * format's name (CLAUDE.md), so every walk is filtered, and a fixture built on a set the validator
@@ -244,11 +324,12 @@ const CASES = [];
                             sd: ((((battle.sides[0].active[0] || {}).volatiles) || {}).flashfire ? 1 : 0) }) });
 }
 
-{ /* UNBURDEN — OBSERVE ONLY, AND THE FIXTURE IS BUILT TO SHOW THE OVER-MATCH RATHER THAN TO ARGUE IT.
+{ /* UNBURDEN — OBSERVE ONLY ON THE WIRING, MEASURED ON THE MECHANIC.
    * data/abilities.ts:5227-5249. TWO bodies lose an item to a Knock Off in the same turn: slot 0
-   * CARRIES Unburden, slot 1 does not. The authority puts the volatile on one of them; medicham2's
-   * stand-in (`_hadItem && !item`) is true for BOTH, because it reads the slot and not the ability.
-   * A presence comparison between those two shapes parts every board on which anybody's item goes.
+   * CARRIES Unburden, slot 1 does not. THAT IS THE TWO-ARM TEST THE OLD ROW HAD AND DID NOT USE:
+   * slot 1 is a body WITHOUT the ability that loses its item, so under the old `_hadItem && !m.item`
+   * predicate it read as a match, and under a reading taken from `effSpeed` it must not. Slot 0 is the
+   * arm that must still register. Neither arm is evidence without the other.
    *
    * NEITHER BODY MAY CLICK PROTECT — a shield blocks the Knock Off, which is what made the first
    * version of this fixture report an item still in hand at every boundary. Both click a derived
@@ -260,8 +341,13 @@ const CASES = [];
   const atk0 = sp && anyAttack(sp), atk1 = plain && anyAttack(plain);
   const ok = sp && plain && ko.length === 2 && atk0 && atk1;
   CASES.push({ leaf: 'unburden', carrier: sp, boundary: 1, observeOnly: true,
-    authority: 'pokemon-showdown/data/abilities.ts:5227-5249 (no duration; onEnd removes it)',
-    ours: 'NO NAMED STATE — recomputed in effSpeed from `_hadItem && !m.item` (:14770)',
+    authority: 'pokemon-showdown/data/abilities.ts:5227-5249 (volatile granted on take/use; its'
+             + ' condition onModifySpe chainModify(2))',
+    /* THE LABEL NAMES WHAT IS ACTUALLY READ. It used to name `_hadItem && !m.item`, which is the ENTRY
+     * GUARD and not the doubling — the gate is one line further in and reads the ability tag. Naming
+     * the guard is how a reading of the guard passed for a reading of the mechanic. */
+    ours: 'NO NAMED STATE — effSpeed applies TAGS.param(ability, speedOnItemLoss).speedMult inside an'
+        + ' `_hadItem && !m.item` entry guard; this arm reads effSpeed itself, never the guard',
     p1: ok && [{ species: N.id(sp.id), item: 'Sitrus Berry', ability: 'Unburden', moves: [atk0.name, 'Protect'] },
                { species: N.id(plain.id), item: 'Sitrus Berry', ability: '', moves: [atk1.name, 'Protect'] },
                ...bench(FILLER[1], FILLER[2])],
@@ -272,11 +358,94 @@ const CASES = [];
                p2: [{ m: 'knockoff', t: 0 }, { m: 'knockoff', t: 1 }] },
              { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] }],
     plant: null,
+    /* EVERY NUMBER BELOW COMES OUT OF ONE OF THE TWO ENGINES' OWN SPEED FUNCTIONS. Nothing here
+     * recomputes a condition: `mediReading` calls `effSpeed` twice and subtracts, `sdReading` calls
+     * `getStat('spe')` twice and subtracts. */
     held: (S, battle) => {
-      const stand = m => (m && m._hadItem && !m.item) ? 1 : 0;
-      const vol = p => (p && (p.volatiles || {}).unburden) ? 1 : 0;
-      return { medi: '[' + stand((S.actA || [])[0]) + ',' + stand((S.actA || [])[1]) + ']',
-               sd: '[' + vol(battle.sides[0].active[0]) + ',' + vol(battle.sides[0].active[1]) + ']' };
+      const rows = [0, 1].map(i => {
+        const m = (S.actA || [])[i];
+        return {
+          medi: mediReading(m, S.field, 'A'),
+          sd: sdReading(battle.sides[0].active[i]),
+          who: N.id((m || {}).name || '?'),
+          /* THE ENTRY GUARD, READ DELIBERATELY AND USED ONLY TO VALIDATE THE FIXTURE. Slot 1 is a
+           * control only if it ACTUALLY lost its item; a Knock Off that failed would leave a body the
+           * doubling could never reach, and its x1 below would then be true for the wrong reason. It
+           * is also the RETIRED predicate, printed for contrast so the repair keeps proving itself.
+           * Validating a fixture with it is legitimate; ANSWERING with it is what this cost. */
+          lostItem: !!(m && m._hadItem && !m.item),
+        };
+      });
+      /* ROADMAP #535, ENGINE HALF. Re-ask `effSpeed` for the PLAIN body — the one that has already
+       * lost its item and never held Unburden — carrying the carrier's own ability spelling, taken off
+       * slot 0's live body so the string is the engine's and not mine. If that clone doubles, the
+       * engine's doubling is a function of the CURRENT ability rather than of a grant made when the
+       * item went. The authority half is NOT staged here; see the header. */
+      const ab0 = (((S.actA || [])[0]) || {}).ability;
+      const m1 = (S.actA || [])[1];
+      let acquired = { err: 'NOT ATTEMPTED — no carrier ability or no plain body at this boundary' };
+      if (ab0 && m1) {
+        const swapped = withField(m1, 'ability', ab0);
+        const r = mediReading(swapped, S.field, 'A');
+        acquired = r.err ? r : { ...r, ability: ab0, who: N.id(m1.name || '?') };
+      }
+      const show = k => '[' + rows.map(r => (r[k].err ? '?' : r[k].mult)).join(',') + ']';
+      return { medi: show('medi'), sd: show('sd'), rows, acquired };
+    },
+    /* THE ROW'S OWN VERDICT. It is separate from the CONTROL/RED pair above because no plant is
+     * possible on a leaf the comparator does not carry — but it is NOT free to pass: a disagreement
+     * between the two engines' readings FAILS, and a reading either engine could not produce is
+     * COULD-NOT-MEASURE and also FAILS. Green by not looking is the failure being repaired. */
+    report: (bd) => {
+      const L = [], rows = (bd.held && bd.held.rows) || [];
+      L.push('       one carrier for this param in data/tags.json: n=' + (UB_TAG ? UB_TAG.n : '?')
+        + '  ' + JSON.stringify(UB_TAG ? UB_TAG.examples : null) + '   (read from the artifact the engine gates on)');
+      if (rows.length !== 2) return { lines: L.concat('       COULD-NOT-MEASURE — the fixture did not present two p1 bodies at this boundary'), fail: true };
+      /* BOTH ARMS OR NEITHER. The claim needs a body WITH the ability and a body WITHOUT it that both
+       * lost an item; if either Knock Off failed, this row measures nothing and must say so rather
+       * than report an x1 that means "still holding". */
+      if (!rows[0].lostItem || !rows[1].lostItem)
+        return { lines: L.concat('       COULD-NOT-MEASURE — the fixture did not empty both hands at this'
+          + ' boundary (' + rows.map(r => r.who + ' lostItem=' + (r.lostItem ? 1 : 0)).join(', ')
+          + '). A claim about the FIXTURE, never about the mechanic.'), fail: true };
+      L.push('       the RETIRED predicate — `_hadItem && !m.item`, the ENTRY GUARD — reads ['
+        + rows.map(r => (r.lostItem ? 1 : 0)).join(',') + '] on these same two bodies: it calls the'
+        + ' PLAIN body a match too. That is the reading that was published.');
+      let bad = 0, unmeasured = 0;
+      for (const r of rows) {
+        if (r.medi.err || r.sd.err) {
+          unmeasured++;
+          L.push('       ' + r.who + '  COULD-NOT-MEASURE — ' + (r.medi.err || '') + ' ' + (r.sd.err || ''));
+          continue;
+        }
+        const agree = r.medi.doubled === r.sd.doubled;
+        if (!agree) bad++;
+        L.push('       ' + r.who.padEnd(16)
+          + ' effSpeed ' + r.medi.live + '<-' + r.medi.cleared + ' ' + r.medi.mult
+          + '   getStat spe ' + r.sd.live + '<-' + r.sd.cleared + ' ' + r.sd.mult
+          + '   ability=' + JSON.stringify(r.medi.ability)
+          + '   ' + (agree ? 'AGREE' : 'DISAGREE'));
+      }
+      L.push('       ' + (unmeasured ? 'COULD-NOT-MEASURE on ' + unmeasured + ' of 2 bodies — this row makes NO claim'
+        : bad ? 'MEASURED — the two engines DISAGREE on ' + bad + ' of 2 bodies'
+        : 'MEASURED — the two engines agree on both bodies: the ability carrier doubles and the plain'
+          + ' body that lost the same item does NOT. The old `_hadItem && !m.item` reading called both of'
+          + ' these a match.'));
+      /* THE RESIDUAL, PRINTED EVERY RUN. Agreement in one staged fixture is not a licence to stop
+       * comparing: this leaf is still absent from the board comparator, so a divergence on it anywhere
+       * else reaches the board and nothing looks. That is a statement of fact, not a failure of this
+       * arm. */
+      L.push('       STILL NOT COMPARED — `volatile:unburden` is not in SD_VOLATILE_KEYS, so a real'
+        + ' divergence on this leaf is invisible to the board comparison wherever it happens.');
+      const a = bd.held.acquired || {};
+      L.push('       ROADMAP #535, ENGINE HALF ' + (a.err ? 'COULD-NOT-MEASURE — ' + a.err
+        : ': ' + a.who + ' has already lost its item and never carried the ability; given ability='
+          + JSON.stringify(a.ability) + ' on a clone, effSpeed reads ' + a.live + '<-' + a.cleared + ' ' + a.mult
+          + ' -> the doubling follows the CURRENT ability' + (a.doubled ? '' : ' (it did NOT double — the engine half does not reproduce)')));
+      L.push('       ROADMAP #535, AUTHORITY HALF NOT MEASURED — it needs a body that GAINS the ability'
+        + ' after the item is gone (Skill Swap), which this fixture does not stage. The marker stays'
+        + ' INSTRUMENT OWED.');
+      return { lines: L, fail: !!(bad || unmeasured) };
     } });
 }
 
@@ -322,7 +491,16 @@ for (const c of CASES) {
   const bd = ctl.boards[c.boundary];
   if (!bd) { console.log('       NO BOUNDARY ' + c.boundary + ' — the fixture, not the mechanic'); fail++; continue; }
   if (c.observeOnly) {
-    console.log('       OBSERVE ONLY — no wiring is asserted for this leaf. See the header.');
+    /* OBSERVE ONLY IS ABOUT THE WIRING, NOT ABOUT THE MEASUREMENT. No plant is possible on a leaf the
+     * comparator does not carry, so there is no CONTROL/RED pair — but the row still has to answer
+     * for what it prints, and `report` FAILS the run on a disagreement or on a reading it could not
+     * take. An observe row that can never go red is the thing this file was repaired for. */
+    console.log('       OBSERVE ONLY ON THE WIRING — no comparator plant is possible. The mechanic itself'
+      + ' is MEASURED below, out of both engines\' own speed functions.');
+    if (!c.report) { console.log('       NO REPORT FUNCTION — the row would print nothing and pass. Counted as a failure.'); fail++; continue; }
+    const rep = c.report(bd);
+    for (const l of rep.lines) console.log(l);
+    if (rep.fail) fail++;
     continue;
   }
   const bothHold = bd.held.medi && bd.held.sd;
@@ -359,6 +537,10 @@ if (red) console.log('  ' + red + ' leaf(s) NOT COMPARED — a planted differenc
  * pool, and a pool that shrank to nothing reads exactly like a mechanic that cannot be staged. Printed
  * unconditionally rather than only when non-zero: a counter nobody reads is the defect this session
  * found 783 instances of, and a zero here is the evidence that the search was clean. */
+/* SAME REASON, FOR THE SPEED READS. A throw out of `effSpeed` or `getStat` that were swallowed would
+ * look exactly like a body whose speed did not change — which is the reading that means "the doubling
+ * did not apply". Printed unconditionally so a zero is evidence rather than an absence. */
+console.log('  speed reads that threw (effSpeed / getStat): ' + SPE_THREW + (SPE_FIRST ? '  first: ' + SPE_FIRST : ''));
 console.log('  learnset lookups that threw during the fixture search: ' + LS_THREW
   + (LS_THREW ? '  <- the carrier pool is NARROWER than the format, so a COULD-NOT-STAGE below is'
       + ' a statement about this search and NOT about the mechanic' : ''));

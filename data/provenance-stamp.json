@@ -192,7 +192,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 9,
+  "verified": 2,
   "graph_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -449,6 +449,8 @@
     "xatu.json"
   ],
   "no_writer_files": [
+    "_diag77-cards.json",
+    "_diag77-sample.json",
     "_fire-abil-A.json",
     "_fire-abil-B.json",
     "_fire-abil-C.json",
@@ -1075,5 +1077,5 @@
       ]
     }
   ],
-  "generated": "2026-09-04T07:21:20.776Z"
+  "generated": "2026-09-04T10:07:58.384Z"
 }

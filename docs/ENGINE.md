@@ -119,10 +119,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  827/827 probed mechanics live, 0 missing   (census 2026-09-01 16:30)
+  829/829 probed mechanics live, 0 missing   (census 2026-09-04 05:54)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 3.8 days old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-08-29 02:49)
+    never fired in the staged harness (all-mechanics-fire.json, 2.9 h old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-04 03:02)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -136,7 +136,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is c297a74974a1 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is da8597c45bb8 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/300 probed, 15 unprobed;  271/300 have an engine consumer, 29 have none
@@ -144,9 +144,140 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-01 17:21_
+_stamped 2026-09-04 06:06_
 
 <!-- /GENERATED -->
+
+## THREE MORE FIXES, ELEVEN GAMES: BOARD-MATERIAL **61 OF 961 → 50 OF 961**, PROTOCOL **161 → 150**, VOID UNCHANGED, CENSUS LEVEL, ON IDENTICAL PINS. THE 50 IS IN THE VERIFICATION ARTIFACT AND THE PUBLISHED CLAUSE STILL READS 77. 2026-09-04, CHANGELOG 5.248.0
+
+**WHAT MOVED, AND WHAT DID NOT.** Release `f3504e5f88d6` → `9b449a41c865` with every other pin held.
+The three fixes are the only variable, which is why eleven games can be attributed to them.
+`tests/staged_board.js` reads 25 of 25 and `engine/quarantine.js --selftest` reads 210 passed, 0
+failed. Across this session the run is **77 → 61 → 50**, all of it from the engine side.
+
+**M5 — SUCKER PUNCH DID NOT FAIL INTO A REDIRECTOR.** This engine evaluated the refusal against the
+ORIGINAL aim and redirected 137 lines later. The authority redirects FIRST
+(`sim/battle-actions.ts:467` → `sim/pokemon.ts:835`) and only then runs `onTry` on `targets[0]`, so
+its `willMove` question is put to the Follow Me user and the move prints `-fail`.
+`tests/probe_sucker_redirect_refusal.js` is red first at `p1.party.maushold.hp`, ours 62 against the
+authority's 149, and identical after. **ROADMAP #403's 2026-08-23 queue clause is intact** — arm 4 is
+the control over it and is green in BOTH knob states, so this fix did not buy its result by
+re-breaking the queue.
+
+**M7 — THE ENCORE'D PROTECT `stall` DIE WAS TWO INDEPENDENT COINS.** Our address read
+`…|any|crunch|p10` where the authority reads `…|any|protect|p20`, and that was measured with both
+logs side by side **before any edit was made**. The die is shared after.
+`tests/probe_encore_stall_address.js`. **The card was right that this is an ADDRESS and not the
+logic** — worth recording precisely because that is not the base rate here.
+
+**M8 — A CONTACT ABILITY TRANSFER ANNOUNCED ON THE WRONG BODY.**
+`tests/probe_contact_ability_transfer.js` is red first at `boosts.atk`, ours 0 against the
+authority's −1, four times over. **The card was right that a fix aimed at the WRITE moves nothing:**
+the writes were already correct, and the announcement body and two missing `Start` events were not.
+
+**A PROBE WAS VACUOUSLY GREEN ON ITS FIRST FORM AND THE COUNTERS CAUGHT IT, NOT THE BOARDS.** M8's
+first fixture had the holder clicking Protect, so the contact move never reached `onDamagingHit` on
+EITHER engine — two boards agreeing about a mechanic that never fired. No board comparison can see
+its own silence; a firing counter can. *A green test can be asking nothing*, caught by an instrument
+rather than by luck.
+
+**LEAF ATTRIBUTION, AND NO CHANGED FAMILY WENT UP.** `active[].stall` **11 → 5**, `party.ability`
+**2 → 0**, `active[].vol.encore` **1 → 0**, `pp[].ragepowder` **1 → 0**, and `boosts.atk` **5 → 3** on
+both sides.
+
+**ALL FOUR PREDICTIONS WERE CALLED IN WRITING BEFORE THE RUN AND ALL FOUR HIT.** The block below
+records a two-of-three and names its miss; both entries stand, because a prediction record that only
+appears when it flatters is not a record.
+
+**STILL OPEN, NAMED RATHER THAN IMPLIED.**
+
+- The gate is **RED at 50**. A smaller number of divergent games is not an open gate.
+- **ROADMAP #541's third clause is NOT closed** — `active[].ability` reads 3, not 0. The MOVE Skill
+  Swap raises no acquired `Start` either, and **no probe covers it**.
+- `active[].species` is **unmoved at 7**: forme-flip TIMING, not the revert, and still no probe.
+- VOID's head is `acc partingshot [sd only]` **at 8**, unexamined.
+- M2 is untouched by design and stays fenced by #542 until it is split into attributable pieces.
+- **`engine/side_selection_census.js` EXITS 1 — undeclared 84 against a ratchet of 81.** The four new
+  sites (`:29955`, `:29973`, `:35133`, `:35142`) fall outside every hunk of this session's diff, so
+  they arrived in earlier commits and nothing ran the check. This is the side-selection class — a bad
+  SELECTOR handing a CORRECT predicate the wrong body — which has bitten six times.
+
+**OWED FROM HERE.** `data/game-differential.json` is NOT republished, so the gate clause still prints
+77 of 961 — a MEASURE republish, not an engine one. Cutting the release **STRANDED the pinned
+artifacts** `engine-diff`, the roster stages and `all-mechanics-fire`: they name a release the tree
+has moved past and must be regenerated before their clauses can speak. That is the pin guard working,
+not a regression, and a stranded artifact is a figure to WITHHOLD and re-measure rather than to
+resurrect. `node engine/status.js --write` was not run, so the `<!-- GENERATED -->` block above is one
+pass behind. Full account: `docs/_reports/2026-09-04-fix-batch-M5M7M8.md`.
+
+## THREE FIXES, SIXTEEN GAMES: BOARD-MATERIAL **77 OF 961 → 61 OF 961**, PROTOCOL **168 → 161**, VOID **8 → 7**, ON IDENTICAL PINS. THE 61 IS IN `data/verification/fix-batch-M1M3M4.json` AND `data/game-differential.json` WAS NOT REWRITTEN, SO THE PUBLISHED CLAUSE STILL READS 77. 2026-09-04, CHANGELOG 5.247.0
+
+**WHAT MOVED, AND WHAT DID NOT.** Release `8ad06030e129` → `f3504e5f88d6` (engine digest `5391ae37d4d8`)
+with every other pin held: census `9446a684709d`, pool `0d103fb9fa87`, `--steering empirical`, 961
+games played. The three fixes are the only variable, which is the whole reason sixteen games can be
+attributed to them at all. `tests/staged_board.js` reads 25 of 25 clean.
+
+**M1 — A MULTI-ACCURACY VOLLEY LANDED THE WRONG NUMBER OF ARRIVALS.** The authority rolls accuracy
+PER ARRIVAL and stops at the first miss. This regulation carries exactly two `multiaccuracy` moves,
+Triple Axel and Population Bomb, and that membership is DERIVED from the format on every run rather
+than recalled. `tests/probe_multiaccuracy_address.js` is red under `MEDI_MULTIACC_RAW_ACC=1` at
+authority 10 arrivals against our 1, green after at 10/3 versus 10/3, with a no-Wide-Lens control
+reading 1/1 on both sides in both knob states.
+
+**M3 — A NON-PERMANENT FORME WAS NOT REVERTED ON SWITCH-OUT.** `clearVolatile` ends with
+`setSpecies(baseSpecies)` (`sim/pokemon.ts:1564`). `tests/probe_nonpermanent_forme_revert.js` is red
+under `MEDI_NO_TEMP_FORME_REVERT=1` with 3 boards differing on `party.species` and 5 of 5 identical
+after. The Palafin arm is the OVER-FIRE CONTROL and is green in both knob states, because its forme
+IS permanent and must therefore NOT revert — a fix that reverted everything would have passed the
+live arm and failed here.
+
+**M4 — A CHOICE LOCK WAS NEVER CLEARED.** `choicelock` is one of the five leaves the protocol never
+narrates, which is exactly why it survived this long: a protocol first-divergence comparison cannot
+see a leaf nobody prints, and the board clause can. `tests/probe_choicelock_cleared.js` is red under
+`MEDI_NO_CHOICELOCK_REQUEST_SWEEP=1`, 3 of 3 identical after, and the `active[].vol.choicelock`
+divergence family goes **5 → 0**.
+
+**THE CARD WAS RIGHT ABOUT WHERE AND WRONG ABOUT WHY, TWICE OUT OF THREE — THIRTY-TWO BATCHES
+RUNNING.** M1's addresses were **eleven of eleven shared before AND after**, so the defect was never an
+address; it was the accuracy VALUE — the printed 90 against Wide Lens's 99 and Gravity's 150 — and
+that was proved arithmetically on four of six games off the shared die **before any edit was made**.
+M3's Morpeko and Castform were **already correct** on the switch-out road and only Aegislash was live;
+Morpeko then moved anyway through the FAINT road, which had been predicted NOT to move. **Treating a
+stated cause as evidence would have produced two wrong fixes in this batch alone.**
+
+**THE PREDICTION WAS CALLED IN WRITING BEFORE THE RUN AND SCORED TWO OF THREE.** Board-material
+60–70 — hit at 61. Protocol about 162 — hit at 161. **VOID 0–2 — MISSED; it stayed at 7.** M1 removed
+the Population Bomb shape entirely, but those games carry OTHER unshared addresses and remained void.
+The miss is recorded because a prediction whose misses go uncounted is not a prediction.
+
+**A REGRESSION WAS CAUGHT BY THE CENSUS AND NOT BY THE PINNED POOL.** The first form of the M4 fix
+freed a lock on a fixture body clicking off its own move list, taking the census **829 → 828**.
+Narrowed to *did the move list CHANGE*, it went back to 829. **The pinned pool measured identically on
+both forms of the fix** — only the lab saw it. Say which scoreboard a mechanic should move before
+running it, and check that one.
+
+**STILL OPEN, NAMED RATHER THAN IMPLIED.**
+
+- `active[].species` is **unmoved at 7**. What remains there is forme-flip TIMING, not the revert, and
+  **no probe covers it** — this is an INSTRUMENT OWED, not a fix owed.
+- VOID's new head is `acc partingshot [sd only]` **at 8**, unexamined.
+- M2 is untouched by design and stays fenced by #542 until it is split into attributable pieces.
+
+**A FOURTH CHECK COULD NOT RUN, AND IT WAS BLOCKING COMMITS.**
+`tests/test-artifact-rerunnable.js` audits 91 stamped artifacts across 30 releases and died at node's
+default heap PARTWAY THROUGH — after printing a STRANDED line and before printing its clean verdict.
+It therefore blocked on a PARTIAL verdict that read worse than the truth; with heap it is all green,
+5 checks. **The real fault was `.githooks/pre-commit`**, which ran its whole gate loop with bare
+`node` and ignored `ABRA-HEAP`, so every gate in that loop carried the same trap. The hook now reads
+each script's own declaration the way `tools/lownode.cmd` does. **A gate whose answer is whatever it
+managed to say before it died is worse than one that fails cleanly.**
+
+**OWED FROM HERE.** `data/game-differential.json` is NOT republished, so the gate clause still prints
+77 of 961 — that is a MEASURE republish, not an engine one. `node engine/status.js --write` was not
+run, so the `<!-- GENERATED -->` block above is one pass behind. `tests/test-engine-diff.js` was not
+re-run and the simulator moved, so the per-hit damage differential's currency is a question for
+`node engine/provenance.js` rather than a figure to restate. Full account:
+`docs/_reports/2026-09-04-fix-batch-M1M3M4.md`.
 
 ## RETRACTED — *"EVERY BODY IN THIS ENGINE THAT LOSES AN ITEM GETS UNBURDEN'S SPEED DOUBLING"* IS FALSE. THE PUSH IS GATED ON THE ABILITY TAG AT `:14772` AND ALWAYS WAS; THE INSTRUMENT COMPARED ITS OWN STAND-IN AND NOT THIS ENGINE'S SPEED. **NO ENGINE BYTE MOVED, NO ARTIFACT BYTE MOVED AND NOTHING WAS RUN — THE CENSUS IS UNTOUCHED AT 829 LIVE / 829 PROBED / 0 MISSING, READ FROM `git show HEAD` AND GENERATED 2026-09-04T03:12:47Z. A DEFECT REMAINS AND IT IS NARROWER: ROADMAP #535.** 2026-09-04.
 

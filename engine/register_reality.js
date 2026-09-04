@@ -44,6 +44,11 @@
  *   CANNOT ANSWER    red; it measured nothing, and the row is neither confirmed nor cleared by it.
  *   EXIT CODE        the instrument exited with a code outside {0,1} and never said what that code
  *   UNDECLARED       means. Not read as a verdict. See classifyExit().
+ *   MARKER REJECTED  the row NAMES an instrument and this file refused to READ the marker, so nothing
+ *                    was started. A defect in this file or in the row, never in the instrument, and
+ *                    printed with the marker and the rule that refused it. It used to degrade to
+ *                    INSTRUMENT UNRUNNABLE — the same label a broken gate produces — and nine markers
+ *                    lived in that bucket after ROADMAP #521 fixed one spelling. See classifyMarker().
  *
  * ================= WHAT IT DELIBERATELY DOES NOT DO ================================================
  *
@@ -134,7 +139,148 @@ const OWED = /INSTRUMENT OWED:\s*([^|]+?)(?:\s*\||$)/;
  * — multi-minute game-playing runs, three of which REWRITE artifacts other readers hold. Widening the
  * regex would silently put them inside every register pass. That is a decision with an owner, not a
  * regex tweak, and it is filed rather than taken here. */
-const SAFE = /^node\s+((?:-r\s+(?:\.[\\/])?(?:engine|tests|build)[\\/][A-Za-z0-9_.\-]+\.js\s+)*)((?:engine|tests|build)[\\/][A-Za-z0-9_.\-]+\.js)((?:\s+--[A-Za-z0-9_\-=]+)*)\s*$/;
+/* ============ CORRECTED 2026-09-04: #521 FIXED ONE SPELLING AND NINE MORE WALKED PAST ============
+ *
+ * The paragraph above is dated evidence and is left standing. Its LAST argument — that admitting
+ * bare `--flag value` pairs "would silently put multi-minute game-playing runs inside every register
+ * pass" — was MEASURED FALSE on 2026-09-04, on these exact bytes. The old regex permitted
+ * `--[A-Za-z0-9_\-=]+`, and `=` is in that class, so every single command it named as the thing it
+ * was protecting against was ALREADY ADMITTED under one extra character:
+ *
+ *     node engine/game_differential.js --arm middle      refused
+ *     node engine/game_differential.js --arm=middle      ADMITTED
+ *     node tests/roster.js --stage moves                 refused
+ *     node tests/roster.js --stage=moves                 ADMITTED
+ *     node -r ./tests/_live_release.js tests/probe_corpse_in_slot.js --games=1200 --verify-inert
+ *                                                        ADMITTED
+ *
+ * So there was no cost guard to preserve. There was a SPELLING guard that caught one spelling of four
+ * commands, and the pass it was said to protect already runs 63 entry scripts of which 12 write a
+ * file, `engine/quarantine.js` and `engine/status.js` among them. A guard an equals sign defeats is
+ * this repository's own thesis wearing a regex: it reads as protection and is not.
+ *
+ * WHAT `SAFE` IS ACTUALLY FOR, STATED ONCE AND THEN IMPLEMENTED AS A PROPERTY. `runUncached` calls
+ * `execFileSync(process.execPath, argv)` and passes NO `shell` option, so no shell will ever see this
+ * string. "Could a shell be tricked by it" is therefore not the question. Exactly two are:
+ *
+ *   1. DOES THIS STRING MEAN, AS AN ARGV, WHAT IT SAYS? If it only means what it says under a shell —
+ *      an `NAME=value` prefix, `&&`, a pipe, a redirect, `$(...)`, quotes, a glob — then running it
+ *      without one runs a DIFFERENT COMMAND and reports the row as decided by it. That is worse than
+ *      not running it, and it is why `node tests/a.js && curl evil` must stay refused even though,
+ *      with no shell, those three tokens are inert argv.
+ *   2. DOES ANYTHING IN IT MAKE NODE LOAD OR EVALUATE CODE THAT IS NOT THIS REPOSITORY'S? Node reads
+ *      ONLY the tokens BEFORE the entry point. Everything after the entry point is handed verbatim to
+ *      a repo script as `process.argv` and node never looks at it.
+ *
+ * THAT SPLIT IS THE PROPERTY, AND IT IS WHY THIS IS NOT A THIRD LIST OF PERMITTED SHAPES. The token
+ * vector has three regions and each gets one rule:
+ *
+ *   PRE-ENTRY   node's own options. Hostile, and CLOSED BY REFUSAL: the only option admitted is
+ *               `-r`/`--require` whose value resolves INSIDE ROOT and ends `.js`. Anything else —
+ *               including an option nobody here has heard of — is REFUSED. The default is refuse, so
+ *               a node option invented next year cannot walk past this the way `-r` walked past #521.
+ *   ENTRY       the first non-option token. Must resolve inside ROOT and end `.js`.
+ *   POST-ENTRY  the instrument's own argv. INERT BY CONSTRUCTION — node does not read it and
+ *               execFileSync does not interpret it. Admitted verbatim, subject only to question 1.
+ *
+ * Under that property `--stage moves`, `--stage=moves`, `--games 1200` and
+ * `--team-store data/team-pool-frozen` are all the SAME FACT, which is the whole point: the old rule
+ * gave two different answers to two spellings of one command, and a rule that does that is measuring
+ * the spelling.
+ *
+ * THE ONE ENUMERATION LEFT, NAMED RATHER THAN HIDDEN. `EVAL_OPTS` below is a list, and it CANNOT FAIL
+ * OPEN: an unlisted pre-entry option is refused anyway. The list exists only to make the refusal
+ * SENTENCE better for the cases most likely to be attempted. If it goes stale, a marker gets a
+ * vaguer message — never an execution.
+ *
+ * AND A REFUSAL IS NOW LOUD. Every `false` out of here becomes `KIND.REJECTED` -> verdict
+ * `MARKER REJECTED`, named with its reason, counted in the artifact, and printed by BOTH the
+ * measuring path and `--list`. It used to become `KIND.NOT_STARTED` -> `INSTRUMENT UNRUNNABLE`,
+ * which is the same label a gate that ENOENTs or gets killed produces — so "my ruler would not read
+ * this marker" and "this instrument is broken" sat in one bucket of 27. Those are a defect in the
+ * RULER and a defect in the WORLD, and one label for both is how nine of them survived #521. */
+const EVAL_OPTS = new Set(['-e', '--eval', '-p', '--print', '--input-type',
+  '--experimental-loader', '--loader', '--import', '--experimental-vm-modules']);
+/* A shell would give these meaning. We run no shell, so a marker carrying one does not mean what its
+ * author wrote — refuse rather than run a different command under the row's name. `<` and `>` are in
+ * here too, but the placeholder check runs FIRST so `<id>` gets the message it deserves. */
+const SHELL_ONLY = /[&|;<>$`(){}\[\]*?~'"\n]/;
+/* Unexpanded template text. `SHOWDOWN_PATH=...` and `--release <id>` are not commands, they are
+ * instructions to a human, and no widening of any kind makes them runnable. */
+const PLACEHOLDER = /<[^>]*>|\.\.\./;
+
+/* Lexical containment only — no fs, so `enumerate()` stays pure and `--list` can report a rejection
+ * without touching the disk. path.resolve is what decides it, not a regex over the string: that is
+ * what kills `../../evil.js`, `/etc/passwd` and a bare drive letter in one rule rather than three. */
+function insideRepo(tok) {
+  if (!/\.js$/.test(tok)) return null;
+  const p = path.resolve(ROOT, tok);
+  const rel = path.relative(ROOT, p);
+  if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) return null;
+  return p;
+}
+
+/* PURE. Returns { ok: true, argv } or { ok: false, code, why }. `code` is a short machine-readable
+ * reason so the artifact can carry WHICH rule refused, not just that something did. */
+function classifyMarker(cmd) {
+  const no = (code, why) => ({ ok: false, code, why });
+  const s = String(cmd == null ? '' : cmd).trim();
+  if (!s) return no('NOT A COMMAND', 'the marker is empty');
+  const t = s.split(/\s+/);
+  if (PLACEHOLDER.test(s))
+    return no('PLACEHOLDER', 'the marker carries unexpanded template text (`<...>` or `...`), so it is '
+      + 'an instruction to a human and cannot be run as written. Write the real value into the row.');
+  if (t[0] !== 'node') {
+    if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(t[0]))
+      return no('NEEDS A SHELL', 'the marker begins with the environment assignment `' + t[0] + '`. '
+        + 'That is a SHELL feature and this file runs no shell, so the assignment would be taken as '
+        + 'the program name. Pass the value inside the instrument, or drop the prefix.');
+    return no('NOT A COMMAND', 'the marker does not begin with `node` — it is ' + JSON.stringify(t[0])
+      + ', which names no instrument this file can run');
+  }
+  const meta = t.find(x => SHELL_ONLY.test(x));
+  if (meta)
+    return no('NEEDS A SHELL', 'the token ' + JSON.stringify(meta) + ' only means what its author wrote '
+      + 'under a shell, and this file runs none. Executed as plain argv it would run a DIFFERENT '
+      + 'command while reporting the row as decided by this one.');
+  const pre = [];
+  let i = 1;
+  while (i < t.length && t[i].startsWith('-')) {
+    const tok = t[i];
+    const eq = tok.indexOf('=');
+    const name = eq === -1 ? tok : tok.slice(0, eq);
+    if (name !== '-r' && name !== '--require') {
+      if (EVAL_OPTS.has(name))
+        return no('EVALUATES CODE', 'the node option `' + name + '` hands node a program or a loader '
+          + 'to run. A register row may name an instrument; it may not carry code.');
+      return no('UNKNOWN NODE OPTION', 'the node option `' + name + '` is not one this file has '
+        + 'reasoned about, and an option before the entry point can change what node LOADS. Refused by '
+        + 'default. If it is legitimate, admit it here deliberately and say why it is safe.');
+    }
+    const val = eq === -1 ? t[++i] : tok.slice(eq + 1);
+    if (val === undefined)
+      return no('NO PRELOAD PATH', 'the marker ends with a bare `' + name + '` and names no file to preload');
+    const abs = insideRepo(val);
+    if (!abs)
+      return no('LOADS OUTSIDE THE REPO', 'the preload ' + JSON.stringify(val) + ' is not a `.js` file '
+        + 'inside this repository. `-r` executes it in this process tree exactly as the entry point is '
+        + 'executed, so it is held to exactly the same bar.');
+    pre.push(name, abs);
+    i++;
+  }
+  if (i >= t.length)
+    return no('NO ENTRY POINT', 'the marker names node options but no script for node to run');
+  const entry = insideRepo(t[i]);
+  if (!entry)
+    return no('LOADS OUTSIDE THE REPO', 'the entry point ' + JSON.stringify(t[i]) + ' is not a `.js` '
+      + 'file inside this repository, and this file executes what a register row names');
+  /* EVERYTHING AFTER THE ENTRY POINT IS INERT. Node stops reading options at the entry point and hands
+   * the remainder to the script as process.argv; execFileSync interprets none of it. So these tokens
+   * are input to code that is already inside this repository, and the questions above are both already
+   * answered for them. This is the region the old regex was policing, and policing it was never a
+   * safety act — see the equals-sign measurement at the head of this block. */
+  return { ok: true, argv: pre.concat([entry], t.slice(i + 1)) };
+}
 
 /* TWO OF MY OWN TOOLS PRINTED `register rows` AND DISAGREED — 206 HERE, 251 IN open_work.js.
  * Neither was wrong and that is the problem: `docs/ROADMAP.md` holds 251 lines shaped `| #N | …`, of
@@ -179,6 +325,10 @@ function verdict(row, green, kind) {
   if (green === null) {
     if (kind === KIND.REFUSED || kind === KIND.CONTRADICTION) return 'INSTRUMENT CANNOT ANSWER';
     if (kind === KIND.UNDECLARED) return 'EXIT CODE UNDECLARED';
+    /* NOT `INSTRUMENT UNRUNNABLE`, WHICH WOULD BE A FALSE SENTENCE. Nobody asked the instrument
+     * anything; this file declined to read the row's marker. That is fixable HERE or in the row, and
+     * it must not look like a broken gate. */
+    if (kind === KIND.REJECTED) return 'MARKER REJECTED';
     return 'INSTRUMENT UNRUNNABLE';
   }
   if (!row.closed && green) return 'STALE ROW';
@@ -186,7 +336,10 @@ function verdict(row, green, kind) {
   return 'CONFIRMED';
 }
 const BAD = new Set(['STALE ROW', 'PREMATURE CLOSE', 'INSTRUMENT UNRUNNABLE',
-  'INSTRUMENT CANNOT ANSWER', 'EXIT CODE UNDECLARED']);
+  'INSTRUMENT CANNOT ANSWER', 'EXIT CODE UNDECLARED',
+  /* A REJECTED MARKER EXITS THIS FILE 1. It is a row claiming to be decided by something that was
+   * never started, which is the coverage lie #521 was filed for. */
+  'MARKER REJECTED']);
 
 /* ================= WHICH EXIT CODES ARE VERDICTS, AND WHICH ARE REFUSALS ==========================
  *
@@ -263,6 +416,10 @@ const KIND = {
   UNDECLARED: 'UNDECLARED',
   CONTRADICTION: 'DECLARATION-CONTRADICTS-EXIT',
   NOT_STARTED: 'NOT-STARTED',
+  /* THE RULER REFUSED TO READ THE MARKER — a defect in THIS FILE or in the ROW, never in the
+   * instrument. Split out of NOT_STARTED on 2026-09-04 because the two shared one label and one
+   * bucket of 27, and nine markers lived in it. */
+  REJECTED: 'MARKER-REJECTED',
   LEGACY: 'LEGACY-ANY-NONZERO-IS-RED',
 };
 const DECLARATION = /^ABRA-EXIT[ \t]+(\d+)[ \t]+(VERDICT-GREEN|VERDICT-RED|CANNOT-ANSWER)\b/;
@@ -320,17 +477,14 @@ function run(cmd) {
 /* `exec` is injectable ONLY so the selftest can drive this exact function with a synthetic child
  * result instead of a restatement of it. Nothing else passes it; the default is the real thing. */
 function runUncached(cmd, exec) {
-  const m = cmd.match(SAFE);
-  if (!m) return { green: null, kind: KIND.NOT_STARTED, why: 'the marker is not a plain `node [-r <repo script>.js] <repo script>.js [--flags]` command, so it was NOT run' };
-  /* THE PRELOADS KEEP THEIR ORDER AND STAY IN FRONT OF THE SCRIPT — node ignores a `-r` that appears
-   * after the entry point, so a preload built in the wrong position would run the child WITHOUT it and
-   * look exactly like a run that had it. Each is re-rooted at ROOT for the same reason the script is:
-   * the marker names a path inside the repository, and resolving it against the caller's cwd would
-   * make that guarantee depend on where the command was typed. */
-  const pre = ((m[1] || '').trim() ? m[1].trim().split(/\s+/) : [])
-    .map(tok => tok === '-r' ? tok : path.join(ROOT, tok.replace(/^\.[\\/]/, '')));
-  const args = pre.concat([path.join(ROOT, m[2])],
-    (m[3] || '').trim() ? m[3].trim().split(/\s+/) : []);
+  /* A REFUSED MARKER IS A VERDICT OF ITS OWN, NOT A QUIET NOT-STARTED. `classifyMarker` builds the
+   * argv, so the preloads keep their order and stay in front of the entry point — node ignores a `-r`
+   * that lands after the script, and a preload built in the wrong position would run the child WITHOUT
+   * it and look exactly like a run that had it. */
+  const c = classifyMarker(cmd);
+  if (!c.ok) return { green: null, kind: KIND.REJECTED, reject: c.code,
+    why: 'MARKER REJECTED (' + c.code + '): ' + c.why + '  marker: `' + cmd + '`' };
+  const args = c.argv;
   const t0 = Date.now();
   try {
     const out = (exec || execFileSync)(process.execPath, args, { cwd: ROOT, encoding: 'utf8', stdio: 'pipe', timeout: TIMEOUT_MS });
@@ -393,7 +547,8 @@ function runUncached(cmd, exec) {
  * measurement wearing a different renderer, so its timestamp is honest. `--list` runs none. */
 const MEASUREMENT_TOKEN = Symbol('register_reality: this came from a real run of the instruments');
 const VERDICTS = new Set(['STALE ROW', 'PREMATURE CLOSE', 'CONFIRMED', 'UNVERIFIABLE',
-  'INSTRUMENT OWED', 'INSTRUMENT UNRUNNABLE', 'INSTRUMENT CANNOT ANSWER', 'EXIT CODE UNDECLARED']);
+  'INSTRUMENT OWED', 'INSTRUMENT UNRUNNABLE', 'INSTRUMENT CANNOT ANSWER', 'EXIT CODE UNDECLARED',
+  'MARKER REJECTED']);
 
 /* PURE. Everything `--list` is allowed to touch lives in here. */
 function enumerate(lines) {
@@ -401,8 +556,13 @@ function enumerate(lines) {
   const marked = rows.filter(r => r.cmd);
   const owed = rows.filter(r => !r.cmd && r.owed);
   const openBroken = rows.filter(r => !r.closed && r.saysBroken);
+  /* COMPUTED HERE BECAUSE classifyMarker IS PURE, so `--list` reports a marker this file will never
+   * run WITHOUT running anything and WITHOUT touching the artifact. That is the honest place for it:
+   * a rejected marker is a fact about the REGISTER, not a measurement of an instrument. */
+  const rejected = marked.map(r => ({ r, c: classifyMarker(r.cmd) })).filter(x => !x.c.ok)
+    .map(x => ({ n: x.r.n, cmd: x.r.cmd, code: x.c.code, why: x.c.why, title: x.r.title }));
   return {
-    rows, marked, owed, openBroken,
+    rows, marked, owed, openBroken, rejected,
     coverage: {
       register_rows: rows.length,
       id_rows: rows.idRows,
@@ -411,6 +571,11 @@ function enumerate(lines) {
       open_asserting_breakage_and_marked: openBroken.filter(r => r.cmd).length,
       instrument_owed: owed.length,
       open_asserting_breakage_and_owed: openBroken.filter(r => !r.cmd && r.owed).length,
+      /* THE FIGURE THE NINE HID BEHIND. It is meant to be zero, and it is printed on every run and
+       * every listing so that it cannot go quiet again. */
+      markers_rejected: rejected.length,
+      markers_rejected_and_open_asserting_breakage:
+        rejected.filter(x => openBroken.some(o => o.n === x.n)).length,
     },
     unverifiable_open_defects: openBroken.filter(r => !r.cmd && !r.owed).map(r => ({ n: r.n, title: r.title })),
   };
@@ -465,8 +630,15 @@ function buildArtifact(m) {
        * the two into one coverage figure would be the caption-instead-of-a-quarantine move. */
       instrument_owed: c.instrument_owed,
       open_asserting_breakage_and_owed: c.open_asserting_breakage_and_owed,
+      /* KEPT OUT OF `unrunnable`. Until 2026-09-04 a marker this file refused to read was counted
+       * there beside gates that ENOENT'd or were killed — one bucket of 27, in which nine markers
+       * refused by SAFE were indistinguishable from broken instruments. A defect in the ruler and a
+       * defect in the world do not share a number. */
+      markers_rejected: c.markers_rejected,
+      markers_rejected_and_open_asserting_breakage: c.markers_rejected_and_open_asserting_breakage,
       distinct_commands_run: RUN_CACHE.size,
     },
+    markers_rejected: m.en.rejected,
     instrument_owed: m.en.owed.map(r => ({ n: r.n, owes: r.owed, title: r.title })),
     /* WRITTEN THROUGH THE READER'S OWN KEY, NEVER SPELLED AGAIN — 2026-08-18.
      *
@@ -510,6 +682,22 @@ function renderCoverage(c) {
   console.log('  ' + String(c.open_asserting_breakage_and_owed).padStart(4) + '  of those, DECLARING that nothing decides them (a debt, not coverage)');
   console.log('  ' + String(c.marked).padStart(4) + '  rows carrying a VERIFIED BY marker in total');
   console.log('  ' + String(c.instrument_owed).padStart(4) + '  rows declaring INSTRUMENT OWED — nothing decides them and they say so');
+  console.log('  ' + String(c.markers_rejected).padStart(4) + '  markers this file REFUSES TO READ — they name an instrument that is never started ('
+    + c.markers_rejected_and_open_asserting_breakage + ' on an OPEN row asserting breakage)');
+}
+/* THE REJECTED BLOCK, PRINTED BY BOTH PATHS. The marker is printed IN FULL next to the rule that
+ * refused it, because "9 rejected" is a number somebody skims and a marker somebody can fix is a
+ * marker they can see. This is the half of ROADMAP #521 that was missing: the spelling was widened
+ * and the SILENCE was left in place, so nine more went the same way through other doors. */
+function renderRejected(en) {
+  if (!en.rejected.length) return;
+  console.log('  MARKER REJECTED — these rows NAME an instrument and this file refused to read the marker,');
+  console.log('  so NOTHING RAN and the row is neither verified nor reported as unverified:');
+  for (const x of en.rejected) {
+    console.log('      #' + String(x.n).padEnd(5) + '[' + x.code + ']  `' + x.cmd + '`');
+    console.log('             ' + x.why);
+  }
+  console.log('');
 }
 function renderOwedAndProse(en) {
   if (en.owed.length) {
@@ -539,6 +727,9 @@ function renderListing(en, opts) {
         + 'was neither read nor written. The verdicts in that file are whatever the last real run measured.',
       coverage: en.coverage,
       marked: en.marked.map(r => ({ n: r.n, cmd: r.cmd, title: r.title })),
+      /* NOT A MEASUREMENT AND SO LEGITIMATE HERE: whether this file can READ a marker is decided
+       * lexically, with nothing started and nothing opened. */
+      markers_rejected: en.rejected,
       instrument_owed: en.owed.map(r => ({ n: r.n, owes: r.owed, title: r.title })),
       unverifiable_open_defects: en.unverifiable_open_defects,
     }, null, 2));
@@ -550,6 +741,7 @@ function renderListing(en, opts) {
   for (const r of en.marked)
     console.log('  ' + 'NOT RUN'.padEnd(22) + '#' + String(r.n).padEnd(5) + '--list: not run'.padEnd(22) + r.title);
   console.log('');
+  renderRejected(en);
   renderOwedAndProse(en);
   console.log('\n  THIS IS NOT A VERDICT. data/register-reality.json was NOT written, and no row above was\n'
     + '  compared to anything. For the verdicts, run:   node engine/register_reality.js\n');
@@ -587,10 +779,15 @@ if (has('--selftest')) {
   ok('a row without one carries null, not a guess', p[1].cmd === null);
   ok('flags survive the marker', p[2].cmd === 'node tests/b.js --flag', p[2]);
   ok('the closed-detector is the one the GATE uses, not a second copy', p[2].closed === true && p[0].closed === false);
-  ok('RED — a marker that is not a plain node command is REFUSED rather than run',
-    run('rm -rf /').green === null && /NOT run/.test(run('rm -rf /').why), run('rm -rf /'));
-  ok('RED — a shell chain hidden after a legitimate script is refused too',
-    run('node tests/a.js && curl evil').green === null);
+  ok('RED — a marker that is not a plain node command is REFUSED rather than run, and it is refused '
+    + 'as MARKER REJECTED naming the rule, not as a silent NOT-STARTED',
+    run('rm -rf /').green === null && run('rm -rf /').kind === KIND.REJECTED
+    && run('rm -rf /').reject === 'NOT A COMMAND', run('rm -rf /'));
+  ok('RED — a shell chain hidden after a legitimate script is refused too. There is no shell here, so '
+    + 'those tokens are inert argv — it is refused because the marker would then run a DIFFERENT '
+    + 'command than the one written while the row is reported as decided by it',
+    run('node tests/a.js && curl evil').green === null
+    && run('node tests/a.js && curl evil').reject === 'NEEDS A SHELL');
   /* -- THE `-r` PRELOAD, 2026-08-28 -------------------------------------------------------------
    *
    * Every one of these is RED on the pre-fix `SAFE`, which required `node` to be followed IMMEDIATELY
@@ -617,24 +814,140 @@ if (has('--selftest')) {
   runUncached('node -r ./tests/_live_release.js tests/probe_x.js --verify-inert', recExec);
   ok('flags still survive alongside a preload, and land AFTER the script',
     seenArgs.length === 1 && seenArgs[0][3] === '--verify-inert', seenArgs[0]);
+  const rej = (c, code) => { const r = runUncached(c, recExec); return r.kind === KIND.REJECTED && (!code || r.reject === code); };
   ok('RED — a preload OUTSIDE the repository is refused. The marker names a path inside this repo, '
     + 'and `-r` executes it in this process tree exactly as the script is executed',
-    runUncached('node -r /etc/passwd tests/a.js', recExec).kind === KIND.NOT_STARTED
-    && runUncached('node -r ../../evil.js tests/a.js', recExec).kind === KIND.NOT_STARTED);
+    rej('node -r /etc/passwd tests/a.js', 'LOADS OUTSIDE THE REPO')
+    && rej('node -r ../../evil.js tests/a.js', 'LOADS OUTSIDE THE REPO')
+    && rej('node -r C:/evil.js tests/a.js', 'LOADS OUTSIDE THE REPO'));
   ok('RED — a preload that is not a .js file is refused, and so is a bare `-r` with no path',
-    runUncached('node -r tests/evil.sh tests/a.js', recExec).kind === KIND.NOT_STARTED
-    && runUncached('node -r tests/a.js', recExec).kind === KIND.NOT_STARTED);
-  ok('RED — widening for `-r` did NOT widen for bare values. `--stage moves`, `--kind abilities`, '
-    + '`--games 1200` and `--team-store <dir>` stay refused: admitting them would put multi-minute '
-    + 'game-playing runs that REWRITE shared artifacts inside every register pass',
-    ['node tests/roster.js --stage moves',
-      'node engine/all_mechanics_fire.js --kind abilities',
-      'node engine/game_differential.js --arm middle --team-store data/team-pool-frozen',
-      'node -r ./tests/_live_release.js tests/probe_corpse_in_slot.js --games 1200 --verify-inert',
-    ].every(c => runUncached(c, recExec).kind === KIND.NOT_STARTED));
-  ok('RED — a `SHOWDOWN_PATH=... node …` marker is STILL refused, so deleting that prefix off the '
-    + 'fourteen markers that carry it is a real change and not a formality',
-    runUncached('SHOWDOWN_PATH=... node tests/a.js', recExec).kind === KIND.NOT_STARTED);
+    rej('node -r tests/evil.sh tests/a.js', 'LOADS OUTSIDE THE REPO')
+    && rej('node -r tests/a.js', 'NO ENTRY POINT'));
+  ok('RED — the ENTRY POINT is held to the same bar as the preload, by path.resolve rather than by '
+    + 'a regex over the string: a relative escape, an absolute path and a bare drive letter are one '
+    + 'rule, not three',
+    rej('node ../../evil.js', 'LOADS OUTSIDE THE REPO') && rej('node /etc/passwd', 'LOADS OUTSIDE THE REPO')
+    && rej('node C:/evil.js', 'LOADS OUTSIDE THE REPO') && rej('node tests/evil.sh', 'LOADS OUTSIDE THE REPO'));
+
+  /* -- THE NINE, AND WHY THE BARE-VALUE RULE WAS RETIRED — 2026-09-04 ---------------------------
+   *
+   * The assertion that used to sit here read: *"widening for `-r` did NOT widen for bare values …
+   * admitting them would put multi-minute game-playing runs that REWRITE shared artifacts inside
+   * every register pass"*. It is retired rather than quietly deleted, because it was GREEN and FALSE,
+   * and the reason is one line of measurement: the old regex permitted `--[A-Za-z0-9_\-=]+`, and `=`
+   * is in that class. Every command it named was already admitted one character away. Both spellings
+   * are asserted below so that claim cannot rot back into prose. */
+  const EQ_PAIRS = [
+    ['node tests/roster.js --stage moves', 'node tests/roster.js --stage=moves'],
+    ['node engine/all_mechanics_fire.js --kind abilities', 'node engine/all_mechanics_fire.js --kind=abilities'],
+    ['node engine/game_differential.js --arm middle', 'node engine/game_differential.js --arm=middle'],
+  ];
+  ok('RED — THE MEASUREMENT THAT RETIRED THE BARE-VALUE RULE. The pre-fix SAFE gave two DIFFERENT '
+    + 'answers to two spellings of ONE command, admitting `--arm=middle` while refusing `--arm middle`. '
+    + 'A rule that does that is measuring the spelling, so there was no cost guard to preserve',
+    EQ_PAIRS.every(([a, b]) => {
+      const HEAD = /^node\s+((?:-r\s+(?:\.[\\/])?(?:engine|tests|build)[\\/][A-Za-z0-9_.\-]+\.js\s+)*)((?:engine|tests|build)[\\/][A-Za-z0-9_.\-]+\.js)((?:\s+--[A-Za-z0-9_\-=]+)*)\s*$/;
+      return HEAD.test(b) && !HEAD.test(a);          /* the pre-fix rule disagreed with itself */
+    }));
+  ok('RED — and the rule now in force gives ONE answer to both spellings, which is the property the '
+    + 'old one only approximated',
+    EQ_PAIRS.every(([a, b]) => classifyMarker(a).ok === true && classifyMarker(b).ok === true));
+  ok('RED — post-entry tokens reach the child VERBATIM, bare values included. Node stops reading '
+    + 'options at the entry point, so these are input to repo code and never anything node interprets',
+    (() => { seenArgs.length = 0;
+      runUncached('node engine/game_differential.js --arm middle --team-store data/team-pool-frozen', recExec);
+      return seenArgs.length === 1 && JSON.stringify(seenArgs[0].slice(1))
+        === JSON.stringify(['--arm', 'middle', '--team-store', 'data/team-pool-frozen']); })(),
+    seenArgs[0]);
+  ok('RED — a `SHOWDOWN_PATH=… node …` marker is STILL refused, and now says WHY: an environment '
+    + 'assignment is a shell feature, and with no shell it would be taken as the program name',
+    rej('SHOWDOWN_PATH=/real/path node tests/a.js', 'NEEDS A SHELL'));
+  ok('RED — the four markers spelled `SHOWDOWN_PATH=... node …` are refused as PLACEHOLDER, not as '
+    + 'a shell problem: no widening of any kind makes an unexpanded `...` or `<id>` runnable, and the '
+    + 'row is what has to change',
+    rej('SHOWDOWN_PATH=... node tests/roster.js --stage moves', 'PLACEHOLDER')
+    && rej('node tests/roster.js --stage items --release <id>', 'PLACEHOLDER'));
+  ok('RED — a marker that is not a command at all (#330 carries a DATA FILE PATH) is refused as '
+    + 'NOT A COMMAND. It read as coverage for as long as the refusal was silent',
+    rej('data/switchin-order.json', 'NOT A COMMAND'));
+  ok('RED — EVERY shell metacharacter class is refused, not the two that were thought of: a pipe, a '
+    + 'redirect, a semicolon, a substitution, a backquote, a glob and a quote',
+    ['node tests/a.js | tee x', 'node tests/a.js > data/register-reality.json',
+      'node tests/a.js; rm -rf data', 'node tests/a.js $(cat /etc/passwd)',
+      'node tests/a.js --out `whoami`', 'node tests/*.js', 'node tests/a.js --x "y z"',
+    ].every(c => rej(c, 'NEEDS A SHELL')));
+  ok('RED — an option that hands node CODE is refused whatever its value, and `-e`/`-p`/`--import` '
+    + 'are named only to improve the sentence',
+    rej('node -p 1', 'EVALUATES CODE') && rej('node --import ./evil.mjs tests/a.js', 'EVALUATES CODE'));
+  /* THE ANSWER TO "WOULD THIS CATCH A SECOND INSTANCE, SPELLED DIFFERENTLY, THROUGH ANOTHER DOOR?"
+   * #521 enumerated one wrong form and nine walked past it. The pre-entry region now FAILS CLOSED:
+   * an option nobody here has heard of is refused, so the next `-r` cannot be admitted by silence. */
+  ok('RED — AN UNRECOGNISED NODE OPTION IS REFUSED BY DEFAULT rather than admitted by silence. This '
+    + 'is the assertion that answers #521: a pre-entry token nobody enumerated cannot walk past, '
+    + 'because the default in that region is REFUSE and the refusal is LOUD',
+    rej('node --max-old-space-size=4096 engine/fit_policy.js', 'UNKNOWN NODE OPTION')
+    && rej('node --nonsense-option-invented-today tests/a.js', 'UNKNOWN NODE OPTION'));
+
+  /* -- THE LOUD HALF, AND IT IS THE HALF THAT MATTERS -------------------------------------------
+   *
+   * #521 widened the spelling and left the SILENCE in place, so nine more markers went the same way
+   * through other doors. Everything below is about the silence rather than the regex: a marker this
+   * file refuses must be DISTINGUISHABLE from a broken instrument, must be counted, and must be
+   * printed with the marker text and the rule that refused it. */
+  ok('RED — A REJECTED MARKER IS ITS OWN VERDICT. It used to degrade to INSTRUMENT UNRUNNABLE, which '
+    + 'is the label a gate that ENOENTs or gets killed produces — 27 rows in one bucket, nine of them '
+    + 'markers SAFE would not read. A defect in the RULER and a defect in the WORLD are not one fact',
+    verdict(R(false, C), null, KIND.REJECTED) === 'MARKER REJECTED'
+    && verdict(R(false, C), null, KIND.NOT_STARTED) === 'INSTRUMENT UNRUNNABLE'
+    && verdict(R(false, C), null, KIND.REJECTED) !== verdict(R(false, C), null, KIND.NOT_STARTED),
+    verdict(R(false, C), null, KIND.REJECTED));
+  ok('RED — a rejected marker is BAD, so this file exits 1 on it. A row claiming to be decided by '
+    + 'something that was never started is the coverage lie, not a note',
+    BAD.has('MARKER REJECTED') && VERDICTS.has('MARKER REJECTED'));
+  ok('RED — a rejected marker is NOT read as agreement in either direction, on an open row or a '
+    + 'closed one. CONFIRMED off a marker nothing read is the "capability absent, everything reported '
+    + 'success" shape',
+    ['CONFIRMED', 'STALE ROW', 'PREMATURE CLOSE']
+      .every(v => verdict(R(true, C), null, KIND.REJECTED) !== v
+                && verdict(R(false, C), null, KIND.REJECTED) !== v));
+  /* THE COUNT AND THE NAMES, THROUGH THE PURE ENUMERATOR — so `--list` reports a marker that will
+   * never run WITHOUT starting anything, which is the only way to see this before paying for a run. */
+  const ENR = enumerate([
+    '| #1 | **A GOOD ONE.** VERIFIED BY: `node tests/a.js` | open — DEFECT |',
+    '| #2 | **A TEMPLATE.** VERIFIED BY: `SHOWDOWN_PATH=... node tests/roster.js --stage moves` | open — DEFECT |',
+    '| #3 | **NOT A COMMAND.** VERIFIED BY: `data/switchin-order.json` | open — DEFECT |',
+    '| #4 | **NO MARKER.** plain prose | open — DEFECT |',
+  ]);
+  ok('RED — enumerate() counts rejected markers PURELY, so the figure exists without running an '
+    + 'instrument and `--list` can print it',
+    ENR.coverage.markers_rejected === 2 && ENR.coverage.marked === 3
+    && ENR.coverage.markers_rejected_and_open_asserting_breakage === 2, ENR.coverage);
+  ok('RED — each rejection carries the ROW, the MARKER TEXT and the RULE that refused it. "9 rejected" '
+    + 'is a number somebody skims; a marker somebody can fix is one they can see',
+    ENR.rejected.length === 2
+    && ENR.rejected[0].n === 2 && ENR.rejected[0].code === 'PLACEHOLDER'
+    && /SHOWDOWN_PATH/.test(ENR.rejected[0].cmd) && ENR.rejected[0].why.length > 20
+    && ENR.rejected[1].n === 3 && ENR.rejected[1].code === 'NOT A COMMAND', ENR.rejected);
+  ok('RED — the rejected marker is not merely counted, it is PRINTED, with its text and its reason. '
+    + 'The nine survived a table built to prevent exactly this because nothing said their names',
+    (() => {
+      const out = []; const realLog = console.log;
+      console.log = (...a) => out.push(a.join(' '));
+      try { renderRejected(ENR); } finally { console.log = realLog; }
+      const t = out.join('\n');
+      return /MARKER REJECTED/.test(t) && /#2/.test(t) && /#3/.test(t)
+        && /SHOWDOWN_PATH=\.\.\. node tests\/roster\.js --stage moves/.test(t)
+        && /PLACEHOLDER/.test(t) && /NOT A COMMAND/.test(t) && /data\/switchin-order\.json/.test(t);
+    })());
+  ok('a register with nothing rejected prints NOTHING here — a block that fires on a clean run is a '
+    + 'block people learn to skip (#148)',
+    (() => {
+      const out = []; const realLog = console.log;
+      console.log = (...a) => out.push(a.join(' '));
+      try { renderRejected(enumerate(['| #1 | **FINE.** VERIFIED BY: `node tests/a.js` | open — DEFECT |'])); }
+      finally { console.log = realLog; }
+      return out.length === 0;
+    })());
   /* THE OWED MARKER, THROUGH THE PARSER, because a marker that is not picked up reads as prose and a
    * marker picked up off the wrong row reads as debt somebody else owes. */
   const po = parse([
@@ -882,11 +1195,21 @@ for (const r of results)
   console.log('  ' + r.verdict.padEnd(22) + '#' + String(r.n).padEnd(5)
     + ((r.why || '') + (r.cached ? ' (cached)' : '')).padEnd(22) + r.title);
 console.log('');
+renderRejected(en);
 renderOwedAndProse(en);
 console.log('  wrote data/register-reality.json\n');
 if (failing.length) {
-  console.log('REGISTER REALITY: ' + failing.length + ' row(s) disagree with their own instrument. '
-    + 'A stale row holds a gate shut on a defect that does not exist.');
+  /* THE TWO HALVES ARE NAMED SEPARATELY. "disagree with their own instrument" is a FALSE sentence
+   * about a rejected marker — nothing was asked of that instrument — and a summary line that is false
+   * for part of its own count is how a figure stops being read. */
+  const rej = failing.filter(r => r.verdict === 'MARKER REJECTED').length;
+  if (failing.length - rej)
+    console.log('REGISTER REALITY: ' + (failing.length - rej) + ' row(s) disagree with their own '
+      + 'instrument. A stale row holds a gate shut on a defect that does not exist.');
+  if (rej)
+    console.log('REGISTER REALITY: ' + rej + ' marker(s) REJECTED — those rows name an instrument and '
+      + 'this file refused to read the marker, so nothing ran. Listed above with the rule that '
+      + 'refused each. This is coverage the register CLAIMS and does not have.');
   process.exit(1);
 }
 console.log('REGISTER REALITY: every marked row agrees with its instrument.');

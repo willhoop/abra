@@ -382,6 +382,16 @@ const NOT_A_CHECK = {
   'engine/rollout_r3.js':             'MEASUREMENT — gate R3 of docs/ROLLOUT-design.md, likewise. QUARANTINED.',
   'engine/sheet_usage.js':            'COUNT — ability and item usage tallied from declared open sheets. A report.',
   'engine/showdown_bot.js':           'BOT — plays MAG in the real Showdown client. Needs a live server.',
+  /* CLASSIFIED 2026-09-04, and it is a DETECTOR FALSE POSITIVE named rather than narrowed away — the
+   * rule at the head of these two lists. It trips `looksLikeACheck` on the bare-literal clause
+   * (`process.exit(1)` plus the word FAIL) and that pairing is its ONLY non-zero exit: line 287 is
+   * `main().then(() => process.exit(0), e => { console.error('FAILED: ' + e.stack); process.exit(1); })`
+   * — an unhandled rejection, which is error plumbing and not a verdict. Read in full before being
+   * named: it parses an archived Smogon month's usage table, filters every species through
+   * Dex.forFormat, and reports how far our store is from the ladder Smogon measured. Its own header
+   * calls the result a PRIOR and says it "is written to its own dated artifact and merged into
+   * nothing". A number about a population, with no contract to be red about. */
+  'engine/smogon_coverage.js':        'MEASUREMENT — stamps an archived Smogon month as a comparison set and reports our store\'s distance from it. Its only non-zero exit is an unhandled rejection printing FAILED, which is what trips the detector; it asserts no contract. It also needs data/smogon-stats/<month>/ to exist, which is not in the repo.',
   'engine/surprise.js':               'REPORT — ranks where MAG\'s expectations disagreed with what the game did.',
   'engine/tag_dex.js':                'GENERATOR — writes data/tags.json. Its OUTPUT is gated by the discovered test-tag-*.js family (consumed, params-derived, signature, wire). Having the suite regenerate the tags would have the suite rewrite its own input.',
 };
@@ -438,7 +448,12 @@ const PENDING_WIRE = {
   'tests/probe_punish_announce.js': 'CLASSIFIED 2026-08-27 — a REAL CHECK with NO RUNNER. The mechanism: an ability that punishes its attacker announces itself, and the announcement is GATED ON THE PUNISHMENT ACTUALLY HAPPENING — so an engine that announces unconditionally claims a mechanic that did not fire. The membership was derived over the whole ability table rather than guessed: of the twelve `punishesAttacker` rows this format actually carries, exactly TWO announce (Gooey on Goodra, Toxic Debris on Glimmora) and ten are silent, and neither is overridden in the champions mod, checked rather than assumed. Blocker: plays a game. No VERIFIED BY marker; landed 2026-08-23 in 21f44515.',
   'tests/probe_red_demo.js': 'GREEN as of 2026-08-26 (ROADMAP #449/#273): 200 demonstrations, 0 HOLLOW, 0 COULD NOT BE APPLIED, exit 0, and it now DECLARES its exit code (ABRA-EXIT 0/1/2), so a refusal can no longer be read as a measured engine defect. NOT WIRED HERE, and the reason is that it already HAS a runner: engine/register_reality.js executes it on every pass as the VERIFIED BY of #273 and #449 — a closed row is checked as hard as an open one — so wiring it a second time buys a second 25-second run of the same command and a second place for its verdict to be decided. If register_reality ever stops running it, wire it here that day.',
   'tests/probe_regenerator_line.js': 'CLASSIFIED 2026-08-27 — a REAL CHECK, and it HAS a runner. The mechanism, and it is the mod-versus-mainline trap this project has a written rule about: CHAMPIONS ANNOUNCES REGENERATOR\'S HEAL AND MAINLINE DOES NOT, and this engine\'s own comment cited MAINLINE. Reading /data/abilities.ts where /data/mods/champions/abilities.ts overrides it is the same error as the paralysis-25% family. Blocker for wiring here: plays a game, wants the preload. `VERIFIED BY: node tests/probe_regenerator_line.js` is in the register.',
-  'tests/probe_selfdestruct_winner.js': 'NEW — landed today in 186cb65 and has never been measured by anyone but its author. It is the file that proves this assertion was needed: under the old predicate a brand-new check could land in tests/ and nothing anywhere would say so.',
+  /* "landed today" was written on 2026-08-22 and read as a claim about the present for thirteen days.
+   * The date is stated rather than deixis now — a relative time in a standing exemption is the same
+   * defect as a count typed beside a list. Re-checked 2026-09-04: `git log -1` on the file says
+   * cfa3cab9, 2026-08-22, and it still carries no VERIFIED BY marker and no discovered runner, so the
+   * substance of the entry holds and only its clock was wrong. */
+  'tests/probe_selfdestruct_winner.js': 'Landed 2026-08-22 in cfa3cab9 and has never been measured by anyone but its author — re-checked 2026-09-04: still no VERIFIED BY marker and no discovered runner. It plays a game. It is the file that proves this assertion was needed: under the old predicate a brand-new check could land in tests/ and nothing anywhere would say so.',
   'tests/probe_sound_lock_restart.js': 'CLASSIFIED 2026-08-27 — a REAL CHECK, and it HAS a runner. The mechanism: a SECOND Throat Chop into an already-silenced body — does the lock RESTART its counter, extend it, or do nothing? The three answers differ only on a later turn, which is why an end-of-turn board comparison cannot see it. Blocker for wiring here: plays a game, wants the preload or a `--release` pin. `VERIFIED BY: node -r ./tests/_live_release.js tests/probe_sound_lock_restart.js` is in the register — and until 2026-08-28 `SAFE` refused that preload, so this entry claimed a runner that never started (ROADMAP #521). MEASURED once it did: exit 0, 5 arms, A parts under MEDI_SOUND_LOCK_RESTARTS=1.',
   'tests/probe_spread_secondary_address.js': 'CLASSIFIED 2026-08-27 — a REAL CHECK, and it HAS a runner. The mechanism: when a spread move rolls its SECONDARY, do the two engines ask the same question — one roll addressed to all targets, or one per target? Two engines that draw a different NUMBER of dice from a shared stream part on everything afterwards, so this is upstream of any divergence count taken on a spread move. Blocker for wiring here: it loads medicham2-browser.js and plays. `VERIFIED BY: node tests/probe_spread_secondary_address.js` is in the register.',
   'tests/probe_trace_choice.js': 'Measured exit 0 on 2026-08-22 (12 staged, 0 not matching). Plays the game_differential driver; not re-certified.',
@@ -453,7 +468,62 @@ const PENDING_WIRE = {
   'engine/format_audit.js': 'A REAL CONFORMANCE CHECK — does every constant in our generated move tables equal the format\'s? Two blockers. It WRITES data/format-audit.json on every run, so wiring it makes the suite rewrite an artifact its own children may be reading; and its verdict was not measured when it was found, because a MEASURE agent may not write into data/ beside a live ENGINE agent. Settle the write question, measure it on a settled tree, then wire.',
   'engine/orient.js': 'CLASSIFIED 2026-08-27 — A REAL CHECK THAT ALREADY HAS A RUNNER, and it was nearly given a second one in this very pass. The mechanism: every section of the orientation map is DERIVED at run time, so a section that cannot derive is a renamed file or a moved heading, and the file\'s own words are "a map that quietly drops a section reads as though the section does not exist" — the stale-handoff failure arriving inside the tool built to end it. Measured 2026-08-27: 8/8 sections derived, exit 0, 1s. IT WAS ADDED TO GATES AND THEN TAKEN BACK OUT: tests/test-orient.js is DISCOVERED by the glob and already execFileSyncs engine/orient.js against the real repo as its first arm, and it asks strictly more than a bare run does — every section present BY NAME, every ORIENT_BREAK knob going red and naming its section, no findings leaking into the IN FLIGHT block, and the enumeration summing. A GATES entry would have bought a second execution and a weaker question. This is the trap this file has already sprung once, recorded here so the next pass does not spring it a third time: CHECK FOR AN EXISTING RUNNER BEFORE ADDING A NAME.',
   'engine/preflight.js': 'CLASSIFIED 2026-08-27 — A REAL CHECK THAT IS CORRECTLY STANDALONE, AND THE ONE ENTRY HERE WHOSE BLOCKER IS STRUCTURAL RATHER THAN TEMPORAL. The mechanism: run twenty self-play games instead of twenty thousand and assert the gradient is NON-ZERO on the block you are about to spend an hour training, because a zero gradient is proof the feature never varied in any choice set — the lever is off, the flag is missing, or the path is dead. It exists because two 1.5-hour runs of 144,000 games each finished before anyone noticed the switch weights were bit-identical to the behaviour clone: train_policy.js spawns workers without --switching and mew.js makes switching opt-in. WHY IT MUST NOT BECOME A SUITE GATE, in its own words: "Any flag it does not recognise is passed straight through to mew_farm, so this is checked under EXACTLY the configuration the real run will use. Checking a different configuration is the bug." Its subject is THE CONFIGURATION OF A RUN ABOUT TO BE LAUNCHED, not the state of the tree, and a suite has no such run — so a default-flag green here would be the reassuring null the file was built to prevent. It also spawns mew_farm self-play. NOTE FOR WHOEVER TOUCHES THIS FILE NEXT: neither table fits it. NOT_A_CHECK is defined as asserting no contract, and this asserts one; PENDING_WIRE promises "this is exactly what has to happen before it can be", and for this file the honest answer is NEVER, deliberately. It is parked here rather than in a third table invented on the way past — argued in docs/_reports/2026-08-27-never-run.md, not acted on.',
-  'engine/register_reality.js': 'A REAL CHECK — the register is an artifact and this is the only thing that compares it to reality. Same two blockers: it WRITES its artifact unconditionally, and the pass that found it was instructed not to touch docs/ROADMAP.md, which it reads. Unmeasured, deliberately.',
+  /* THIS ENTRY'S TWO STATED BLOCKERS WERE BOTH STALE AND ARE CORRECTED HERE, 2026-09-04. It read:
+   * "it WRITES its artifact unconditionally, and the pass that found it was instructed not to touch
+   * docs/ROADMAP.md". The first is FALSE since ROADMAP #369 — `--list` no longer writes, and
+   * tests/test-register-reality-readonly.js is DISCOVERED by the glob and asserts it on the REAL
+   * process, comparing data/register-reality.json's bytes AND mtime across a `--list`. The second was
+   * never a property of the file, only of one pass's instructions, and a per-pass constraint written
+   * into a standing exemption is the fourteen-handoff failure in miniature. Neither of them is why it
+   * is not wired. The real reasons, both checked on this tree:
+   *   - `--selftest` ALREADY HAS A RUNNER. That same discovered test spawns it (line 130) and fails
+   *     on a non-zero exit, so a GATES entry buys a second execution — the probe_red_demo trap.
+   *   - the FULL measurement is not a suite job. It execFileSyncs every `VERIFIED BY:` marker in the
+   *     register; on this tree that is dozens of commands, most of which play whole games against the
+   *     authority, and it publishes data/register-reality.json when it does.
+   *   - `--list` alone would be the OTHER failure this file rates worse than an unregistered check:
+   *     its own header calls it "an inventory, not a verdict" and it exits 0 by construction. A
+   *     registered no-op reads as coverage. */
+  'engine/register_reality.js': 'A REAL CHECK — the register is an artifact and this is the only thing that compares it to reality. Its `--selftest` is already run by the DISCOVERED tests/test-register-reality-readonly.js, so wiring that buys a second execution; its `--list` exits 0 by construction and would be a registered no-op; and the full measurement execFileSyncs every VERIFIED BY marker (dozens of whole games) and publishes data/register-reality.json. Wire nothing here until the full measurement has a home that is not the suite.',
+  /* CLASSIFIED AND MEASURED 2026-09-04. Unlike every tests/ entry above it, this one does NOT play a
+   * game: it reads engine/medicham2-browser.js as TEXT and asks, of every ternary that picks one half
+   * of the field, whether that is a SIDE question or a TARGET question. Bare it prints and ratchets;
+   * only `--write` restamps. Cheap, deterministic, no simulator, no artifact write — it meets every
+   * condition this list uses for "wire it".
+   *
+   * IT IS NOT WIRED BECAUSE IT IS RED, AND THE RED IS REAL. Measured 2026-09-04 05:56: exit 1,
+   * `undeclared: 84   ratchet 81   >> ROSE`. Four UNCLASSIFIED sites are present that the settled
+   * data/side-selection-census.json (stamped 2026-08-29T16:44:10Z, 81 undeclared) does not carry —
+   * lines 29955 and 29973 (`kind:pass`, `it.side==='A'?actB:actA`) and 35133 and 35142
+   * (`fn:<module>`, the same shape inside the hazard-punish block).
+   *
+   * ATTRIBUTED RATHER THAN ASSUMED, because engine/medicham2-browser.js was DIRTY and three minutes
+   * old when this was measured, and a photograph of a moving subject is not evidence (CLAUDE.md).
+   * All four novel sites fall OUTSIDE all 31 hunks of the uncommitted diff, so they did not arrive
+   * with the live edit — they arrived in commits since the artifact was stamped, and this ratchet has
+   * therefore been red for days with nothing running it. That is precisely what the coverage
+   * assertion above exists to surface.
+   *
+   * WIRING IT NOW SHIPS A RED, which is engine/feature_fixture.js's reason one entry up and the same
+   * answer applies. Classifying a side-selection site as SIDE or TARGET is a judgement about the
+   * authority and belongs to ENGINE, who owns both the file and data/side-selection-declarations.json.
+   * Wire it in the pass that settles the ratchet. */
+  'engine/side_selection_census.js': 'A REAL RATCHET GATE, and the only file in the unaccounted list that neither plays a game nor writes without --write. RED TODAY: measured 2026-09-04, exit 1, undeclared 84 against a ratchet of 81. The four novel sites are all outside the uncommitted diff of engine/medicham2-browser.js, so they came in with commits since the 2026-08-29 artifact rather than with the live edit. Classifying them is ENGINE\'s. Wire it the pass the ratchet is settled — wiring it before that ships a red MEASURE cannot fix.',
+  /* CLASSIFIED 2026-09-04, THE DAY IT LANDED. It is the instrument that asks what an instrument does
+   * not check about itself, and §1 of its own output is the list this runner prints. Two blockers,
+   * both structural rather than temporal:
+   *   - IT IS RED BY CONSTRUCTION, not by accident. Line 754 is `process.exit(sumFindings ? 1 : 0)`
+   *     and §1's findings ARE the unaccounted-for checks above. Derived, not assumed: while that list
+   *     is non-empty this file cannot exit 0, so wiring it registers a second copy of a red this
+   *     runner already owns, in a place where the two could disagree.
+   *   - IT SPAWNS THIS FILE. Line 124 runs `tests/run-all.js --coverage` in a child. A GATES entry
+   *     would put the runner inside itself; it terminates (--coverage starts no children) but one
+   *     verdict would then be decided in two places, which is the argument used against wiring
+   *     engine/orient.js and tests/probe_red_demo.js.
+   * It also requires engine/quarantine.js and engine/coverage.js at §-time, so it is not free.
+   * NOT RUN IN THIS PASS: an ENGINE agent was live in engine/medicham2-browser.js, which quarantine
+   * and coverage both read. */
+  'engine/sweep.js': 'A FINDINGS REPORTER ABOUT THE INSTRUMENTS, landed 2026-09-04. It exits 1 on any finding (line 754) and §1\'s findings are this runner\'s own unaccounted list, so it is red by construction while that list is non-empty; and it spawns tests/run-all.js --coverage (line 124), so wiring it puts this runner inside itself and gives one verdict two homes. Not run in this pass — it loads quarantine.js and coverage.js, and an ENGINE agent was live in the simulator they read.',
 };
 
 /* ---- the coverage scan, over BOTH directories ------------------------------------------------ */

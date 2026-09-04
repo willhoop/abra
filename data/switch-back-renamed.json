@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-04T03:24:54.234Z",
+ "generated": "2026-09-04T09:03:32.000Z",
  "by": "tests/test-switch-back-renamed.js",
  "what": "can a body medicham2 renamed mid-battle be switched back in — subject against a control on the same board and turn",
  "write_policy": "FINDINGS. A DIFFERS arm is the measurement and is published with run_ok:false, so a consumer can refuse it. Before 2026-08-23 the artifact carried no run status at all.",

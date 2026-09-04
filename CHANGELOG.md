@@ -10,6 +10,142 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.248.0] — 2026-09-04
+
+### Fixed
+- **BOARD-MATERIAL 61 OF 961 → 50 OF 961.** Protocol first-divergence 161 → 150, VOID unchanged at 7,
+  census 829/829 live throughout. Release `f3504e5f88d6` → `9b449a41c865`, identical pins.
+  **All four predictions hit.** Written to `data/verification/fix-batch-M5M7M8.json`;
+  `data/game-differential.json` was NOT rewritten, so the published clause still reads 77.
+- **M5 — SUCKER PUNCH DID NOT FAIL INTO A REDIRECTOR.** `medicham2-browser.js` evaluated the refusal
+  against the ORIGINAL aim and redirected 137 lines later; the authority redirects FIRST
+  (`sim/battle-actions.ts:467` → `sim/pokemon.ts:835`) and only then runs `onTry` on `targets[0]`, so
+  its `willMove` asks the Follow Me user and prints `-fail`. Red-first at
+  `p1.party.maushold.hp` ours 62 against the authority's 149; identical after. **ROADMAP #403's
+  2026-08-23 queue clause is intact** — arm 4 is the control over it and is green in both knob states.
+- **M7 — THE ENCORE'D PROTECT `stall` DIE WAS TWO INDEPENDENT COINS.** Our addresses read
+  `…|any|crunch|p10` where the authority reads `…|any|protect|p20`, measured with both logs side by
+  side BEFORE any edit. The card was right that this is the address and not the logic. Shared after.
+- **M8 — A CONTACT ABILITY TRANSFER ANNOUNCED ON THE WRONG BODY.** Red-first at `boosts.atk` ours 0
+  against the authority's −1, four times over. **The card was right that a fix aimed at the WRITE
+  moves nothing** — the writes were already correct; the announcement body and two missing `Start`
+  events were not.
+- Probes: `tests/probe_sucker_redirect_refusal.js`, `tests/probe_encore_stall_address.js`,
+  `tests/probe_contact_ability_transfer.js`. `tests/staged_board.js` 25 of 25;
+  `engine/quarantine.js --selftest` 210/0.
+- **LEAF ATTRIBUTION, AND NO CHANGED FAMILY WENT UP:** `active[].stall` 11 → 5, `party.ability`
+  2 → 0, `active[].vol.encore` 1 → 0, `pp[].ragepowder` 1 → 0, `boosts.atk` 5 → 3 on both sides.
+
+### Changed
+- **`tests/probe_leaf_widening.js` NOW MEASURES THE ENGINE INSTEAD OF ITS OWN STAND-IN.** This is the
+  instrument that produced the false Unburden claim retracted in 5.246.0. It called `effSpeed` out of
+  the same frozen release the game is played on, twice per body, against the authority's
+  `getStat('spe')` modified versus unmodified. **The published claim is now refuted on its own
+  fixture, both arms in one game:** a Venusaur/Overgrow that lost its item reads `effSpeed 122←122 ×1`
+  and does not register; a Sceptile/Unburden reads `344←172 ×2` and does. Shown red twice before being
+  trusted — injecting the published claim prints `DISAGREE`, and forcing `effSpeed` to throw prints
+  `COULD-NOT-MEASURE … this row makes NO claim`. The three wired leaves still pass.
+- **#535's ENGINE HALF IS NOW MEASURED**, its authority half still `INSTRUMENT OWED`: a Venusaur that
+  never carried Unburden, handed the ability's spelling on a clone with its hand already empty, reads
+  `effSpeed 244←122 ×2`. **The doubling follows the CURRENT ability.** No citation was invented for
+  the authority half, which needs a Skill Swap fixture this probe cannot stage without corrupting its
+  own control arm.
+
+### Notes
+- **A PROBE WAS VACUOUSLY GREEN ON ITS FIRST FORM AND THE COUNTERS CAUGHT IT, NOT THE BOARDS.** M8's
+  fixture had the holder clicking Protect, so the Crunch never reached `onDamagingHit` on EITHER
+  engine — two boards agreeing about a mechanic that never fired. *A green test can be asking
+  nothing*, caught by an instrument rather than by luck.
+- **MY OWN MEASUREMENT COMMAND WAS WRONG IN THE BRIEF: `--out` WITHOUT `--write` WRITES NOTHING AND
+  EXITS 0.** Ninth variant of the command-that-succeeds-having-done-nothing class, and this time the
+  coordinator wrote it. The agent caught it rather than reporting a stale artifact as a result.
+- **~60 CHECKS NOTHING RUNS: TRIAGED, ZERO WIRED, AND THAT IS THE CORRECT OUTCOME.** RUNNABLE NOW 0 ·
+  NEEDS A BASELINE CHOICE 65 · NOT A CHECK 1. **63 of the 66 load a simulator**, and an ENGINE agent
+  was live in `medicham2-browser.js` throughout — certifying a red arm and a green arm against a
+  moving tree would have been invalid. Unaccounted 66 → 63. **PENDING-WIRE audit: 0 of 36 wireable
+  today**, 34 blockers verified still true, 2 carrying stale text and corrected.
+- **A REAL DEFECT NOBODY WAS LOOKING AT: `engine/side_selection_census.js` EXITS 1 — undeclared 84
+  against a ratchet of 81.** Four undeclared side selections in `medicham2-browser.js`
+  (`:29955`, `:29973`, `:35133`, `:35142`), and **all four fall outside every hunk of tonight's diff**,
+  so they arrived in earlier commits and nothing ran the check. This is the side-selection class —
+  a bad SELECTOR handing a CORRECT predicate the wrong body — which has bitten six times.
+- **9 OF 124 `VERIFIED BY:` MARKERS ARE REJECTED BY `register_reality.js`'s OWN `SAFE` PREDICATE AND
+  READ AS `NOT_STARTED`.** So those rows claim an instrument, the tool declines to run it, and the row
+  is neither verified nor reported as unverified. **ROADMAP #521 fixed this exact class once and the
+  fix was too narrow** — it repaired only the `-r <preload>` case. An unaccounted check shows RED;
+  these show GREEN.
+- **STILL OPEN AND NAMED:** the gate is red at 50; #541's third clause (`active[].ability` at 3, not 0)
+  is NOT closed; the MOVE Skill Swap raises no acquired `Start` either and has no probe; `active[]
+  .species` unmoved at 7 is forme flip TIMING, not the revert; VOID's head `acc partingshot [sd only]`
+  at 8 is unexamined; M2 stays fenced by #542 until split.
+- **CUTTING THE RELEASE STRANDED FIVE PINNED ARTIFACTS** — `engine-diff` and the three roster stages
+  plus `all-mechanics-fire` now name a release the tree has moved past. They must be regenerated
+  before their clauses can speak again; that is the pin guard working, not a regression.
+- `data/policy-weights.json` untouched, MAG still paused by the owner's decision.
+- Full accounts: `docs/_reports/2026-09-04-fix-batch-M5M7M8.md`,
+  `docs/_reports/2026-09-04-probe-leaf-widening-repair.md`,
+  `docs/_reports/2026-09-04-unrun-checks-triage.md`.
+
+---
+
+## [5.247.0] — 2026-09-04
+
+### Fixed
+- **BOARD-MATERIAL 77 OF 961 → 61 OF 961. Sixteen games.** Protocol first-divergence 168 → 161, VOID
+  8 → 7. Release `8ad06030e129` → `f3504e5f88d6` (engine digest `5391ae37d4d8`), identical pins —
+  census `9446a684709d`, pool `0d103fb9fa87`, `--steering empirical`, 961 played. Written to
+  `data/verification/fix-batch-M1M3M4.json`; **`data/game-differential.json` was NOT touched**, so the
+  published clause still reads 77 until MEASURE republishes.
+- **M1 — MULTI-ACCURACY VOLLEYS LANDED THE WRONG NUMBER OF ARRIVALS.** Triple Axel and Population Bomb
+  are the only two `multiaccuracy` moves in this regulation, derived rather than recalled. The
+  authority rolls accuracy PER ARRIVAL and stops at the first miss. Probe
+  `tests/probe_multiaccuracy_address.js`; red under `MEDI_MULTIACC_RAW_ACC=1` at authority 10 arrivals
+  against our 1, green after at 10/3 versus 10/3, with a no-Wide-Lens control reading 1/1 on both
+  sides in both knob states.
+- **M3 — A NON-PERMANENT FORME WAS NOT REVERTED ON SWITCH-OUT.** `sim/pokemon.ts:1564` `clearVolatile`
+  ends with `setSpecies(baseSpecies)`. Probe `tests/probe_nonpermanent_forme_revert.js`; red under
+  `MEDI_NO_TEMP_FORME_REVERT=1` with 3 boards differing on `party.species`, 5 of 5 identical after,
+  Palafin control green in both states (its forme IS permanent, so it must NOT revert).
+- **M4 — A CHOICE LOCK WAS NEVER CLEARED.** `choicelock` is one of the five leaves the protocol never
+  narrates, which is why it hid. Probe `tests/probe_choicelock_cleared.js`; red under
+  `MEDI_NO_CHOICELOCK_REQUEST_SWEEP=1`, 3 of 3 identical after, and the
+  `active[].vol.choicelock` divergence family **5 → 0**.
+
+### Notes
+- **THE DIAGNOSIS CARD'S STATED CAUSE WAS REFUTED TWICE, WHICH IS THE EXPECTED RATE HERE.** M1's
+  addresses were **11-of-11 shared before and after** — the defect was never an address, it was the
+  accuracy VALUE (the printed 90 against Wide Lens's 99 and Gravity's 150), proved arithmetically on
+  four of six games from the shared die **before any edit was made**. And M3's Morpeko and Castform
+  were **already correct** on the switch-out road; only Aegislash was live — Morpeko then moved anyway
+  via the FAINT road, which had been predicted NOT to move. **A card is reliable about WHERE and
+  unreliable about WHY**, now thirty-two batches running.
+- **THE PREDICTION WAS CALLED IN WRITING BEFORE THE RUN AND SCORED 2 OF 3.** Board-material 60–70 (hit
+  at 61), protocol ~162 (hit at 161), **VOID 0–2 (MISSED — it stayed at 7).** M1 removed the
+  Population Bomb shape entirely, but those games carry OTHER unshared addresses and so remained void.
+  Recording the miss because a prediction only means anything if the misses are counted too.
+- **A REGRESSION WAS CAUGHT BY THE CENSUS AND NOT BY THE POOL, WHICH IS WHY BOTH EXIST.** The first
+  form of the M4 fix freed a lock on a fixture body clicking off its own move list, taking the census
+  829 → 828. Narrowed to "did the move list CHANGE" and back to 829. **The pinned pool measured
+  identically on both forms** — only the lab saw it. That is the two-scoreboard rule paying for itself
+  rather than being argued for.
+- `tests/staged_board.js` 25 of 25 clean.
+- **STILL OPEN AND NAMED:** `active[].species` unmoved at 7 — that is forme flip TIMING, not the
+  revert, and no probe covers it. VOID's new head is `acc partingshot [sd only]` at 8, unexamined. M2
+  untouched by design; it is fenced by #542 until it is split.
+- **A FOURTH CHECK THAT COULD NOT RUN, AND IT WAS BLOCKING COMMITS.**
+  `tests/test-artifact-rerunnable.js` audits 91 stamped artifacts across 30 releases and died at
+  node's default heap **partway through** — after printing a STRANDED line and before printing *"no
+  artifact became unre-runnable since the baseline (1 known, was 1)"*. **So it blocked on a partial
+  verdict that read worse than the truth.** With heap it is ALL GREEN, 5 checks.
+- **THE REAL FIX WAS THE HOOK, NOT THE FILE.** `.githooks/pre-commit` ran its gate loop with bare
+  `node` and ignored `ABRA-HEAP` entirely, so *every* gate in that loop carried the same trap. The
+  hook now reads each script's own declaration the way `tools/lownode.cmd` does, so a new gate added
+  to that loop inherits it. **A gate whose answer is whatever it managed to say before it died is
+  worse than one that fails cleanly.**
+- Full account: `docs/_reports/2026-09-04-fix-batch-M1M3M4.md`.
+
+---
+
 ## [5.246.0] — 2026-09-04
 
 ### Fixed
