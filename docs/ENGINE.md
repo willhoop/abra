@@ -119,9 +119,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  829/829 probed mechanics live, 0 missing   (census 2026-09-04 05:54)
+  829/829 probed mechanics live, 0 missing   (census 2026-09-04 06:46)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 2.9 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 3.7 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-04 03:02)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -144,9 +144,68 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-04 06:06_
+_stamped 2026-09-04 06:54_
 
 <!-- /GENERATED -->
+
+## THE POOL GOT WORSE BY FOUR GAMES AND THE FIX IS CORRECT: BOARD-MATERIAL **50 OF 961 → 53 OF 961**, PROTOCOL **150 → 154**, VOID UNCHANGED AT 7, CENSUS LEVEL AT 829. **ONE CLASS MOVED AND EVERY MOVED CAUSE IS `[from]confusion` — M6's TRUE SIZE IS 14 GAMES AND FOUR OF THEM WERE HIDDEN BY A COIN FLIP.** 2026-09-04, CHANGELOG 5.249.0
+
+**Release `9b449a41c865` → `7ffc58da8ef8`**, every other pin held. Full account:
+`docs/_reports/2026-09-04-fix-batch-M6-sidesel.md`.
+
+**THE SIDE-SELECTION CENSUS IS GREEN — 84 UNDECLARED → 80 AGAINST A RATCHET OF 81 — AND ALL FOUR
+SITES WERE ANCHOR DRIFT, NOT NEW CODE.** `:29955`, `:29973`, `:35133` and `:35142` are byte-identical
+to code classified on 2026-08-29: same expression, same site digest (`ed9b865e`, `7feb3be1`,
+`934a23c7`, `79cd0d52`). What moved is the census's ANCHOR — an `a.kind==='pass'` test was inserted
+above the first two, and the enclosing function drifted 1,660 lines above the last two against a
+1,500-line search window. Three declarations expired for code that never changed. All four verdicts
+were **re-derived from the authority today**, not copied: `:29955` and `:29973` TARGET/CORRECT
+(Armor Tail's `onFoeTryMove` and Psychic Terrain's per-body `onTryHit`, with `_aim` handed over;
+`getMoveTargets` for the address book), `:35133` SIDE/CORRECT (Stone Axe and Ceaseless Edge both read
+`source.side.foeSidesWithConditions()`), `:35142` TARGET/CORRECT-HERE — **and its old `WRONG-FILED`
+note named the wrong site.** `sweepField`'s `foeSf` is consumed only by Defog and Tidy Up, both
+STATUS moves that resolve at two SIBLING sites; the damaging pair that reaches this one is
+`hazardsFrom: 'self'` and never reads it. **The real Defog defect is at `:26471` and is OWED.**
+
+**AN EXPIRED DECLARATION AND A NEW SELECTOR WERE INDISTINGUISHABLE, AND NOW THEY ARE NOT.**
+`side_selection_census.js` cross-indexes declarations by `expr | digest` and prints `ANCHOR-DRIFT`
+naming the key that expired. The row STAYS undeclared and still counts against the ratchet — a site
+that moved into a different branch may select something else now, and auto-inheriting is the failure
+the key exists to catch. **Matched set printed with a control before it was trusted:** against the
+pre-fix declarations it flags exactly the 4 named sites and none of the other 80.
+
+**M6 IS THE ADDRESS *AND* THE ARITHMETIC, AND ONLY ONE HALF IS THIS DIVISION'S.** `data/conditions.ts`
+`confusion.onBeforeMove` writes `this.activeTarget = pokemon` BETWEEN the 1/3 roll and
+`getConfusionDamage`, so the authority's two draws sit at two different addresses whenever the
+confused body clicked at a foe. This engine stamped `MID_TGT` once and used it for both — measured
+with both logs side by side before any edit: `sd …|any|bodyslam|p20|0` against
+`me …|any|bodyslam|p10|1`. Fixed, `tests/probe_confusion_selfhit_address.js`, 17 checks green and 2
+red under `MEDI_CONFUSION_DMG_ADDR_LEGACY=1`, with the self-aimed control green in both states.
+
+**THE 2026-08-22 REVIEW COULD NOT SEE IT BECAUSE ITS FIXTURE MADE THE TWO FIELDS COINCIDE.** It
+staged the confused body clicking AMNESIA, which is `target: 'self'`. That board is now arm 2, kept as
+the control.
+
+**THE RESIDUAL IS THE INSTRUMENT'S AND THE PROBE ASSERTS NOTHING ABOUT IT.** With the addresses
+matched the two engines draw the same `u` and read it in opposite directions —
+`game_differential.js` returns `Math.floor(u*16)` because `MIDW.cat` is `any` (`getConfusionDamage`
+calls `battle.randomizer` directly and never enters the wrapped `getDamage`), while this engine takes
+`damageRollIndex(u) = 15 - floor(u*16)`. **ENGINE cannot flip it:** `bottom-tie-first` pairs
+`CORNER_BOTTOM` with `damageIndex 15` and `damageRollIndex(0)` is 15, so that corner agrees today and
+would part on every confusion self-hit. The fix is `around('getConfusionDamage', 'dmg', 0)` in
+`midWrapShowdown` plus moving this engine's draw to the `dmg` stream in one pass; it **moves
+`PIN_DIGEST`** and needs its own before/after.
+
+**THE NUMBER WENT THE WRONG WAY AND THAT IS REPORTED FIRST, NOT EXPLAINED AFTERWARDS.** The
+prediction was written to `data/verification/2026-09-04-M6-address-prediction.json` before the run and
+called the pool "neutral-to-slightly-worse" with the arithmetic. Protocol missed its band by one.
+**The falsifier — "a rise of more than 3 means it desynchronised something beyond the confusion draw"
+— is REFUTED by direct evidence:** one class moved (`-damage field 3`, 18 → 22), six causes were added
+and two removed, and **eight of eight carry `[from]confusion`.** Nothing else in the run changed by a
+game. **KEPT, NOT REVERTED**, because the engine now matches the authority; the revert is one
+environment variable and is the owner's call, named rather than taken.
+
+**WHAT IS OWED HERE.** `data/game-differential.json` was not rewritten, so the clause the gate prints still reads **77 of 961** while this section's 53 lives in `data/verification/fix-batch-M6-sidesel.json` — name the artifact each time either is quoted. `node engine/status.js --write` was not re-run after this section was written, so the `<!-- GENERATED -->` block above is stamped earlier than the work below it. The instrument half of M6 is open and is worth all 14 games; it moves `PIN_DIGEST` and needs its own before/after. The Defog target-side defect at `engine/medicham2-browser.js:26471` is unfixed, and the three `sweepField` sites are three copies of one selection. 80 side selections are still undeclared. `tests/test-engine-diff.js` was not re-run and the pinned artifact stranded by the previous release cut has not been regenerated, so the per-hit stage differential's currency is unknown rather than merely un-re-checked.
 
 ## THREE MORE FIXES, ELEVEN GAMES: BOARD-MATERIAL **61 OF 961 → 50 OF 961**, PROTOCOL **161 → 150**, VOID UNCHANGED, CENSUS LEVEL, ON IDENTICAL PINS. THE 50 IS IN THE VERIFICATION ARTIFACT AND THE PUBLISHED CLAUSE STILL READS 77. 2026-09-04, CHANGELOG 5.248.0
 
@@ -197,10 +256,16 @@ appears when it flatters is not a record.
 - `active[].species` is **unmoved at 7**: forme-flip TIMING, not the revert, and still no probe.
 - VOID's head is `acc partingshot [sd only]` **at 8**, unexamined.
 - M2 is untouched by design and stays fenced by #542 until it is split into attributable pieces.
-- **`engine/side_selection_census.js` EXITS 1 — undeclared 84 against a ratchet of 81.** The four new
+- ~~**`engine/side_selection_census.js` EXITS 1 — undeclared 84 against a ratchet of 81.** The four new
   sites (`:29955`, `:29973`, `:35133`, `:35142`) fall outside every hunk of this session's diff, so
-  they arrived in earlier commits and nothing ran the check. This is the side-selection class — a bad
-  SELECTOR handing a CORRECT predicate the wrong body — which has bitten six times.
+  they arrived in earlier commits and nothing ran the check.~~ **CLOSED the same day, and the reading
+  above was wrong in its diagnosis: none of the four is new code.** All four are byte-identical to
+  code classified on 2026-08-29 and only the census ANCHOR moved, so three declarations expired for
+  lines that never changed. Undeclared is 80 against the ratchet of 81 and the check exits 0. The
+  entry is struck rather than deleted because it is dated evidence; see the batch entry at the top of
+  this file and `docs/_reports/2026-09-04-fix-batch-M6-sidesel.md` §1. This is still the
+  side-selection class — a bad SELECTOR handing a CORRECT predicate the wrong body — and it has now
+  bitten seven times, the seventh being the instrument rather than the engine.
 
 **OWED FROM HERE.** `data/game-differential.json` is NOT republished, so the gate clause still prints
 77 of 961 — a MEASURE republish, not an engine one. Cutting the release **STRANDED the pinned

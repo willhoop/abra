@@ -10,6 +10,86 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.249.0] — 2026-09-04
+
+### Fixed
+- **THE REGISTER'S MARKER PREDICATE IS NOW A PROPERTY, NOT A LIST OF SPELLINGS.** 9 of 124
+  `VERIFIED BY:` markers were refused by `register_reality.js`'s `SAFE` predicate and degraded to
+  `NOT_STARTED` — the row claimed an instrument, the tool declined to run it, and nothing said so.
+  **ROADMAP #521 fixed this exact class once by enumerating one wrong form, and nine walked past it.**
+  `classifyMarker()` replaces it: there is no shell (`execFileSync`, never `shell:true`), so the rule
+  is that node reads only the tokens BEFORE the entry point; that region **fails closed**, the entry
+  must resolve inside the repo, and post-entry tokens are inert by construction. `--arm middle` and
+  `--arm=middle` are now one fact. 22 hostile strings still refused (pipe, redirect, `;`, `&&`,
+  `$( )`, backquote, glob, quote, `-e`/`-p`/`--import`, out-of-repo preload, env prefix).
+  Full-population regression: **124 markers, 115 identical argv, 0 moved, 0 lost.** Selftest 58 → 73.
+- **THE OLD GUARD WAS FICTIONAL, WHICH IS WHY THIS IS NOT A RELAXATION.** Its comment claimed bare
+  values were refused to keep game-playing runs out of the pass. Measured on the pre-fix bytes:
+  `--arm=middle`, `--stage=moves` and `--games=1200` were **already admitted**. It guarded spelling,
+  not cost.
+- **ONE NUMBER WAS HIDING TWO DEFECTS.** In the last artifact **all 27 rows counted "instrument
+  unrunnable" were `SAFE` rejections** — a ruler defect and a world defect summed under one heading.
+  `engine/quarantine.js` now splits them: `MARKER REJECTED` (nobody was asked) from `unrunnable`
+  (asked, answered nothing usable), each with its own count, sentence and per-row verdict.
+  `--selftest` **210 → 216 passed, 0 failed**, all six new arms shown RED first on four separate
+  deliberate breaks. `tests/test-divergence-composition.js` stayed green **without being edited** —
+  the first `quarantine.js` change in three sessions that did not break it.
+- **FOUR BROKEN ROADMAP MARKERS REPAIRED, AND `--release <id>` WAS REMOVED RATHER THAN FILLED IN.**
+  #316, #319, #330 and #526 carried an unexpanded `SHOWDOWN_PATH=...` prefix — decoration, since every
+  instrument already requires `engine/showdown_path.js` — and literal `<id>` placeholders.
+  `roster.js:145` treats a null release as "newest", so **a typed id would only age out and strand the
+  marker later.** #330's marker was `data/switchin-order.json`, a DATA FILE rather than a command.
+- **M6 — THE CONFUSION SELF-HIT DREW FROM ONE ADDRESS WHERE THE AUTHORITY USES TWO.**
+  `this.activeTarget = pokemon` sits between confusion's 1/3 roll and `getConfusionDamage`, so the two
+  draws have different addresses whenever the confused body clicked at a foe. Probe
+  `tests/probe_confusion_selfhit_address.js` — 17 green, 2 red under
+  `MEDI_CONFUSION_DMG_ADDR_LEGACY=1`, self-aimed control green in both states, and **anti-vacuity
+  asserted on the `confusionSelfHit` counter first**.
+
+### Changed
+- **BOARD-MATERIAL 50 → 53 OF 961, AND THE RISE IS THE FIX WORKING.** Protocol 150 → 154, VOID 7,
+  census 829/829 level. **M6's true size is 14 games; four had been hidden by a coin landing the same
+  way on both engines**, and correcting the address removed the coincidence. The evidence is narrow:
+  **one class moved — `-damage field` 18 → 22 — and eight of eight moved causes carry
+  `[from]confusion`.** Nothing else changed by a single game. Called in writing BEFORE the run as
+  "neutral-to-slightly-worse" (`data/verification/2026-09-04-M6-address-prediction.json`); protocol
+  missed the stated band by one. **Kept, not reverted** — the revert is one env var and is the owner's
+  call. Release `9b449a41c865` → `7ffc58da8ef8`.
+
+### Notes
+- **THE SIDE-SELECTION ALARM WAS ANCHOR DRIFT, NOT NEW CODE — AND THE CENSUS NOW SAYS SO BY NAME.**
+  `engine/side_selection_census.js` read undeclared **84 against a ratchet of 81**, with four sites in
+  `medicham2-browser.js` that fall outside every hunk of tonight's diff. **All four are byte-identical
+  to code classified on 2026-08-29** — same expression, same site digest. Only the census's ANCHOR
+  moved: an `a.kind==='pass'` test was inserted above two of them, and the enclosing function drifted
+  **1,660 lines against a 1,500-line window** for the other two. Three declarations expired for lines
+  that never changed. All four re-derived from the authority today and found CORRECT. Undeclared
+  **84 → 80**, ratchet met, exit 0. A new `ANCHOR-DRIFT` verdict names the expired key and was shown
+  against a control to flag exactly those four and none of the other eighty.
+- **A REAL DEFECT WAS FOUND WHILE PROVING A SITE INNOCENT.** `sweepField`'s `foeSf` is consumed only
+  by Defog and Tidy Up, and the fourth site's own `WRONG-FILED` note **named the wrong line**. The
+  live Defog target-side defect is at `engine/medicham2-browser.js:26471` and is OWED.
+- **THE BEST DECISION IN THIS PASS WAS A REFUSAL.** #318 is an OPEN row asserting breakage, and the
+  obvious repair — drop the env prefix — would have produced a marker that **reports the row green
+  while the defect it names is untouched**: `tests/roster.js:9167` passes `learnsetMode: 'report'`, so
+  632 learnset refusals go to a printed bucket and never reach `bad`, which is the whole of the exit
+  code. No marker was written; the row's `INSTRUMENT OWED` declaration is its honest coverage.
+- **THE LIVE `rejected` COUNT IS 0 AND THAT IS HONEST, NOT A FIX THAT DID NOTHING.**
+  `data/register-reality.json` is the 2026-08-27 artifact and predates the new vocabulary, so the five
+  rows are still spelled `INSTRUMENT UNRUNNABLE` in it. The mechanism is in; the artifact has not
+  caught up, and regenerating it is blocked on an undecided question.
+- **A DECISION FILED RATHER THAN HALF-GUARDED:** four newly-runnable markers are heavy and two rewrite
+  gate inputs, so **the full register pass must not run beside a live agent** until an owner decides.
+- **STILL OPEN:** M6's instrument half (`game_differential.js` reads that `random(16)` un-inverted;
+  ENGINE cannot flip it without the corner arm parting on every self-hit) — it is worth all 14 games.
+  Defog at `:26471`. Three `sweepField` sites that are three copies of one selection. 80 undeclared
+  side selections. #320/#322 carry a now-stale "MARKER NOT MACHINE-RUNNABLE" paragraph.
+- Full accounts: `docs/_reports/2026-09-04-safe-marker-rejection.md`,
+  `docs/_reports/2026-09-04-marker-repair-and-clause.md`,
+  `docs/_reports/2026-09-04-fix-batch-M6-sidesel.md`.
+
+---
+
 ## [5.248.0] — 2026-09-04
 
 ### Fixed

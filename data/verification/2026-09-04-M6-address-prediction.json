@@ -1,0 +1,56 @@
+{
+  "generated": "2026-09-04T10:48:59.802Z",
+  "by": "ENGINE, third fix batch (M6 + the side-selection census)",
+  "what": "WRITTEN BEFORE THE RUN. Baseline is data/verification/fix-batch-M5M7M8.json on release 9b449a41c865: protocol first-divergence 150 of 961, VOID 7, census 829 live / 829 probed.",
+  "scoreboard_called_in_advance": {
+    "which_scoreboard": "THE LAB, NOT THE POOL. The M6 fix moves an INSTRUMENT ADDRESS (MID_TGT), which is read by midEventDraw alone. It changes no game value, so no rollout, no self-play game and no seeded census probe can observe it. The probe is the scoreboard that should move; the pinned pool is expected to sit still.",
+    "why_the_pool_may_not_improve": "Before the fix the confusion self-hit damage roll was two INDEPENDENT dice (different addresses), which agree with probability 1/16. After the fix it is ONE SHARED die read in OPPOSITE DIRECTIONS: the authority takes Math.floor(u*16) because getConfusionDamage calls battle.randomizer directly and never enters the wrapped getDamage, while this engine takes damageRollIndex(u) = 15 - floor(u*16). Anti-correlated, so they now agree with probability 0. The direction of the pool change is therefore neutral-to-slightly-worse, and that is stated here rather than explained afterwards."
+  },
+  "predictions": [
+    {
+      "name": "protocol first-divergence (diverged)",
+      "baseline": 150,
+      "point": 150,
+      "band": [
+        147,
+        153
+      ],
+      "reason": "No game value moved. The 10 confusion first-divergence causes in the baseline are already diverging and stay diverging. At most ~1 confusion self-hit in the pool currently agrees by luck and would now part; against that, every self-hit now draws a different u, which replays later turns and can move an unrelated first divergence by one or two either way."
+    },
+    {
+      "name": "VOID games (mid_void.void_games)",
+      "baseline": 7,
+      "point": 7,
+      "band": [
+        5,
+        7
+      ],
+      "reason": "The void check asks whether the addresses BOTH engines drew agree. The fix makes strictly more addresses shared and none fewer, so identity can only rise. A fall to 6 or 5 would be a real (small) improvement; a rise would mean the fix desynchronised something and is the failure mode to look for."
+    },
+    {
+      "name": "confusion causes in classes[] (baseline 10, of which 9 are -damage field 3 value differences)",
+      "baseline": 10,
+      "point": 10,
+      "band": [
+        9,
+        12
+      ],
+      "reason": "The remaining half is the instrument inversion, which this batch does not close. The IDENTITY of the diverging games may change (different u drawn) without the count moving."
+    },
+    {
+      "name": "mechanics census live/probed",
+      "baseline": "829/829",
+      "point": "829/829",
+      "band": "829/829",
+      "reason": "ALREADY MEASURED after the change, not predicted: no tag was wired and no probe row was added, and test-mechanics.js regenerated at 829/829/0."
+    },
+    {
+      "name": "side-selection census undeclared",
+      "baseline": 84,
+      "point": 80,
+      "band": "80 exactly",
+      "reason": "ALREADY MEASURED: the four expired declarations were re-answered under their new anchors and the ratchet floor is 81."
+    }
+  ],
+  "what_would_falsify_the_reading": "If protocol falls by ~9-10 then the anti-correlation claim is wrong and the address was the whole of M6. If it rises by more than 3 the fix desynchronised something beyond the confusion draw and must be reverted."
+}
