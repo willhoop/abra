@@ -10,6 +10,97 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.253.0] — 2026-09-04
+
+### Fixed
+- **A ROW ASSERTING A LIVE DEFECT WAS BEING HIDDEN FROM THE GATE BY A PARSE ARTIFACT.** #175 read
+  **CLOSED** while its own status cell begins `open — engine DEFECT`: the code span
+  `` `ab==='stalwart'||` `` split the cell, and `roadmapRowStatusCell` — which takes the text after
+  the LAST pipe — picked up an appended closure narrative as the verdict. **It is open and asserting
+  breakage again**, and that is the entire +1 in the gate column.
+- **THE CLASS IS TWO DEFECTS, AND THE SECOND IS BIGGER THAN THE ONE THAT WAS NAMED.** The pipe half
+  hid 8 rows. **The emphasis half hid nine** (#254, #255, #256, #259, #299, #302, #303, #304, #308):
+  the cell's leading-whitespace skip is `\s*`, which does not skip `**`, so a cell authored
+  `| **CLOSED 2026-08-13** |` fails with **no pipe anywhere in the row**.
+- **Eighteen rows repaired, notation only. Open rows 237 → 222; open-and-asserting 50 → 51.** Diff is
+  18 insertions / 18 deletions, one line each, and **a whole-register replay through the shipping
+  detectors confirms exactly 17 verdicts moved and no eighteenth by accident.**
+  `roadmapRowStatusCell` and `roadmapRowIsClosed` are byte-identical to HEAD.
+- **#332 CARRIED A CORRUPT TITLE FRAGMENT** — the literal text AND, backslash, pipe, the word upkeep,
+  before tonight, which made its two readings disagree about closed versus open-and-broken. The new
+  guard refused to judge it and printed NOT READABLE every run rather than guessing. Repaired — a
+  six-character deletion — and the row now parses.
+
+### Added
+- **`tests/test-register-cell-parse.js` — a PROPERTY, not a list of the two known-bad forms.** One
+  invariant per row: *the gate-visible verdict must be the same whether the status cell is read as the
+  shipping detector reads it, or as the column the author wrote and then rendered to plain text.* It
+  **imports** `roadmapRowIsClosed` rather than reimplementing it — a third copy of that detector once
+  disagreed with the canonical one on **24 of 292 rows in both directions**, and a verifier that
+  re-implements the rule it checks is a documented failure class here.
+  - **Shown red twice, on synthetics and on real data.** Seven synthetic doors each with a repaired
+    twin that goes quiet — **four of them doors nobody in this repo has ever used** (a link, inline
+    HTML, a code-wrapped status, an escaped pipe). Then `--register <path>` against
+    `git show 8519e071:docs/ROADMAP.md` **names 15 rows and exits 1** — the repair pass's own list,
+    reproduced by an instrument that had never seen it.
+  - It carries a mixed-corpus arm and a lift arm that fail if the comparison is deleted or if the
+    shipping reader ever stops cutting, **so it cannot go green by asking nothing.**
+  - **Current register: 506 rows, 0 verdict failures.** 0.17s, deterministic, writes nothing.
+
+### Notes
+- **THE GATE THAT BLOCKS EVERY COMMIT WAS BROKEN BY ONE UNPAIRED BACKTICK, WRITTEN BY THIS SESSION AN
+  HOUR EARLIER, IN THE ENTRY DESCRIBING A CORRUPT BACKTICK FRAGMENT.** `tests/test-docs-current.js`
+  clause 3b(c) read **129 untraceable figures across 12 documents** against a baseline of 35 — with
+  `ABRA-whitepaper.md` at 10 → 41 having gained no new figure at all. **My hypothesis was that the
+  republished artifacts had stranded the citations, and it was REFUTED as the mechanism:** rebuilding
+  the number union of all 273 `data/*.json` at HEAD (44,154 distinct values) showed **0 of the 129
+  were in an artifact at HEAD and absent now.** Tonight's republish cost the census nothing.
+- **THE REAL CAUSE: `figuresIn()` strips inline code with `[^`]*`, AND `[^`]*` MATCHES NEWLINES.**
+  Three callers hand it multi-line input — `changelogHas` passes the whole of `CHANGELOG.md` as one
+  string. An odd-backtick line inverts code/prose polarity for everything below it, and **the
+  changelog is newest-first**, so a single unpaired backtick near the top blanked **27,000 lines
+  beneath it**. Measured on the same tree at the same moment: whole-file scan **889** distinct
+  changelog figures, line-by-line **2,431**. At HEAD the two read 2,408 against 2,430, which is why it
+  had never fired before.
+- **`engine/docs_scan.js` ALREADY HAD THE DATED-HISTORY EXEMPTION — it was BROKEN, not missing.**
+  `figuresInText()` is now fence-aware and line-oriented, and `paragraphs()` no longer splits inside
+  a fence. **No exemption was added; the document side got stricter.** Gate **24 passed, 0 failed**,
+  census back to 35, and **`data/docs-currency-baseline.json` was not written** — no ratchet moved.
+- **BOTH ARMS PROVEN, AND A DATE IS NOT A SHIELD.** A whole-file scan fails the new
+  `odd-backtick-line-does-not-eat-the-next-line` arm; a naive per-line scan fails
+  `a-fenced-block-is-quoted-output-not-a-claim`, because it accused a real table in
+  `docs/PRIOR-ART.md`. On the live census with an injectable read: an invented `3,809` in a live block
+  is caught, **the same `3,809` inside a dated block is STILL caught**, and only presence in the
+  recorded history exempts — which is itself a claim under a version, in a diff.
+
+- **CUT-BUT-HARMLESS REPORTS RATHER THAN FAILS, AND THE REASON IS ARGUED RATHER THAN ASSUMED.** 15
+  cells are still cut by a pipe whose verdict is unchanged either way. Failing on them would force the
+  631-pipe diff the repair pass deliberately declined, the verdict clause already covers every cut
+  that has a consequence, and it is printed as a list with no bar — **deliberately not a ratchet**,
+  because a count that may only go down invites the next author to argue their row is the exception.
+- **THE ESCAPE THAT LOOKS LIKE THE FIX IS NOT ONE, AND THIS WAS MEASURED RATHER THAN ASSUMED.**
+  Escaping a pipe as `\|` changes nothing: the capture uses a negated-pipe character class, which
+  stops at `\|` exactly as it stops at `|`. Proven on a synthetic row through the shipping detectors —
+  the authored form and the fully-escaped form extract identical wrong text. Only removing the pipes
+  recovers the status.
+- **NINETY ROWS AND 631 PIPES WERE DELIBERATELY LEFT ALONE**, every one checked and none with a
+  verdict at risk (13 closed, 2 correctly open). Churn across 90 rows for no behavioural change is not
+  worth the diff, and saying so is part of the work.
+- **SIXTEEN CLOSURES WERE MADE READABLE WITHOUT BEING RE-VERIFIED, AND EACH SAYS SO IN ITS OWN CELL.**
+  A parse repair must not launder itself into a verification — that is what #403 cost tonight. Cheap
+  artifact checks did pass for #167, #172, #293, #294 (live census labels), #196, #282 and #465; the
+  weakest four — #254, #255, #256, #304 — rest only on the named instrument existing on disk **and
+  say that too**.
+- **Three rows named in the brief are NOT this defect and were untouched:** #122 has no pipe at all
+  (`PART DONE` is not `DONE`, and open is correct); #511 and #514 are cut, but the text under the cut
+  is an open ENGINE filing rather than a closure.
+- `tests/test-roadmap-register.js` green; `VERIFIED BY` count 123 → 123; `NOT A DEFECT` 19 → 19.
+  `run-all.js` globs `tests/test-*.js`, so the new check is wired by its name — `--list` 156 → 157.
+- Full accounts: `docs/_reports/2026-09-04-pipe-class-repair.md`,
+  `docs/_reports/2026-09-04-cell-parse-guard.md`.
+
+---
+
 ## [5.252.0] — 2026-09-04
 
 ### Changed

@@ -1,6 +1,10 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.252.0 — 2026-09-04.**
+**Version: 5.253.0 — 2026-09-04.**
+
+**5.253.0 - NO DAMAGE STAGE MOVED, NO MULTIPLIER CHANGED, AND NO DAMAGE VALUE WAS RE-MEASURED. THIS RELEASE IS A PARSE REPAIR IN THE DEFECT REGISTER.** Nothing in this document's stage table, its multiplier classes or its ordering changes. No mechanic was altered in the simulator, no differential ran and no game was played. The stage-by-stage instrument was NOT re-run in this pass; its result is carried forward from the previous version, where it was measured on the current engine.
+
+**WHY A REGISTER REPAIR APPEARS ON A DAMAGE PAGE AT ALL.** A row whose status cell begins `open — engine DEFECT` was reporting CLOSED to the gate, because the status reader takes the text after the LAST pipe in the row and a code span inside the cell carried a pipe. Any row on this page's subject could have been hidden the same way, in either direction, and eighteen rows were repaired across the register. **None of the eighteen is a damage-stage row, and no stage, multiplier or roll index is touched by any of them.** The published whole-game figure in `data/game-differential.json` is unchanged at board-material 46 of 961.
 
 **5.252.0 - NO DAMAGE STAGE MOVED AND NO MULTIPLIER CHANGED, AND THE CURRENCY THIS PAGE HAS OWED SINCE 5.246.0 IS DISCHARGED: THE STAGE-BY-STAGE INSTRUMENT WAS RE-RUN ON THE CURRENT ENGINE.** `tests/test-engine-diff.js` ran on release `0dec37ff5ad9` and rewrote `data/engine-diff.json`, which now carries the release id, its cut time, the Showdown commit and a full set of source digests. The measured result is unmoved: 6,000 comparisons requested, 6,000 compared, 6,000 agreed, **0 disagreed**, at the midpoint and at all 16 corner arms - 17 damage indices, seed 20260804. The scope caveat is unchanged and is stated rather than dropped: `skipped_multihit` 134, `skipped_ability_multihit` 17, 0 non-finite. **So the stage table below is a CURRENT measurement again, not dated evidence**, and the six versions of "the currency is still owed" above it are answered by the instrument rather than by an argument.
 

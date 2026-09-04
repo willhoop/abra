@@ -497,6 +497,26 @@ function figureRules(base, next) {
   for (const [d, n] of Object.entries(byDoc).sort((a, b) => b[1] - a[1])) console.log(`         ${String(n).padStart(4)}  ${d}`);
 
   console.log('\n== 3b(c). census: figures with no artifact behind them anywhere ==');
+  /* THE LEXER CARRIES ITS OWN RED DEMONSTRATION — 2026-09-04, the same discipline as 3b(a) above.
+   * `figuresIn` strips inline code with a regex whose character class matches newlines, and three
+   * callers handed it MULTI-LINE input — so one unpaired backtick deleted every character up to the
+   * next backtick on a LATER line. On a newest-first CHANGELOG that is the entire recorded history
+   * below tonight's entry: the "recorded history is traceable" exemption saw 889 of the changelog's
+   * 2,431 figures, and this clause read 129 across 12 documents against a baseline of 35, on a
+   * documentation pass that added no figure at all. A gate that turns red because of where a
+   * backtick landed is the "one of the two known failures" story with a new costume.
+   *
+   * PINNED IN BOTH DIRECTIONS, because each rejected fix fails exactly one case: a whole-file scan
+   * fails `odd-backtick-line-does-not-eat-the-next-line`, and a naive per-line scan fails
+   * `a-fenced-block-is-quoted-output-not-a-claim` (measured live — it accused an illustrative table
+   * inside a ``` block in docs/PRIOR-ART.md). No one-sided change can satisfy the set. */
+  const lex = S.lexingProof();
+  const lexBroken = lex.filter(p => !p.holds);
+  ok(lexBroken.length === 0,
+    `the figure lexer reads what it must and skips what it must not (${lex.length - lexBroken.length}/${lex.length} demonstration cases hold)` +
+    (lexBroken.length ? '\n         BROKEN:\n         ' + lexBroken.map(p =>
+      `${p.id}: must ${p.expected ? 'READ' : 'SKIP'} the figure and did ${p.found ? 'read' : 'not'}\n           ${p.why}`).join('\n         ') : ''));
+
   const census = S.untraceableCensus(living);
   const baseCensus = known.untraceable_by_doc || {};
   const worse = [];

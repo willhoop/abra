@@ -1,6 +1,23 @@
 # ABRA — Project Summary
 
-**Version 5.252.0 · 2026-09-04 · Will Hooper**
+**Version 5.253.0 · 2026-09-04 · Will Hooper**
+
+**5.253.0 - A ROW ON OUR OWN LIST OF BROKEN THINGS SAID "STILL BROKEN" AND WAS BEING READ AS "FIXED", BECAUSE OF A PUNCTUATION MARK INSIDE THE CELL. NO MECHANIC CHANGED, NO GAME WAS PLAYED, AND THE SCORE IS STILL 46 OF 961.**
+
+| question | artifact | answer |
+|---|---|---|
+| the whole-game clause that GATES | `data/game-differential.json` | **board-material 46 of 961** — unchanged, and nothing was re-measured this pass |
+| open rows on the defect register | the register | **237 → 222** after eighteen rows were made readable |
+| open rows that assert something is broken | the register | **50 → 51**, because one live defect had been hiding |
+| what the new check reads today | the new check | **506 rows, 0 verdict failures** |
+
+**WHAT WENT WRONG.** Our register writes each row's status in a table cell. The reader that decides whether a row is closed takes the text after the last vertical bar in the row — and a cell that contains a bar of its own, inside a piece of quoted code, gets cut in half. One row said `open — engine DEFECT` in its first words and reported CLOSED to the gate, because the reader had picked up a note appended after the cut. **The same fault moved verdicts in both directions, and nothing prevented the next row doing it.**
+
+**THE HALF NOBODY HAD NAMED WAS THE BIGGER ONE.** Bars hid 8 rows. **Bold text hid nine** — the reader skips spaces before the status word and does not skip asterisks, so a cell written as bold fails to match at all. Eighteen rows were repaired, notation only, one line each. A replay of the whole register through the shipping readers confirms exactly 17 verdicts moved and no eighteenth by accident.
+
+**THE NEW CHECK ASKS A PROPERTY RATHER THAN LISTING THE TWO KNOWN SHAPES.** For every row: the verdict the gate sees must be the same whether the cell is read the way the shipping reader reads it, or the way the author wrote it. It calls the shipping reader rather than writing its own — a third copy of that reader once disagreed with the real one on 24 of 292 rows, in both directions. It was shown failing on seven made-up bad rows, four of them shapes nobody here has ever written, and then on the real register as it stood before the repair, where it names 15 rows and fails.
+
+**WHAT WE ARE NOT CLAIMING.** Sixteen closures were made READABLE without being RE-VERIFIED, and each one says so in its own cell. A repair to how a row is read must never be mistaken for evidence that the thing it describes was fixed. 15 more cells are still cut by a bar in a way that does not change any verdict; those are reported and deliberately not put behind a count that may only go down, because a count like that invites the next author to argue their row is the exception. Ninety rows and 631 bars were checked and left alone.
 
 **5.252.0 - THE PUBLISHED GATING FIGURE MOVES AND, FOR THE FIRST TIME TONIGHT, IT IS THE SAME NUMBER WE MEASURED: BOARD-MATERIAL 77 OF 961 → 46 OF 961 (4.8%). THE GATE ALSO STOPPED FAILING FOR THE WORST REASON AND STARTED FAILING FOR THE RIGHT ONE.**
 

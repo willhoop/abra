@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 188 unsafe, 2 void (declared), 30 possibly stale, 33 ok, 0 missing
+  provenance: 188 unsafe, 2 void (declared), 31 possibly stale, 32 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
@@ -29,14 +29,40 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-04 17:07
+    moved after the fit: engine/medicham2-browser.js  2026-09-04 18:58
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-08-29 04:34
 ```
 
-_stamped 2026-09-04 17:21_
+_stamped 2026-09-04 19:22_
 
 <!-- /GENERATED -->
+
+## A ROW ASSERTING A LIVE DEFECT READ **CLOSED** TO THE GATE BECAUSE OF HOW ITS CELL PARSED — THE REGISTER IS A RULER AND IT HAD A READING ERROR, IN **BOTH DIRECTIONS**. 2026-09-04, CHANGELOG 5.253.0
+
+**NO MECHANIC CHANGED, NO DIFFERENTIAL RAN, AND NO WHOLE-GAME FIGURE WAS RE-MEASURED.** `data/game-differential.json` still holds board-material 46 of 961, exactly where the previous release published it. Nothing in this block is evidence about the simulator, and no sentence in it should be read as the engine having moved.
+
+**THE DEFECT IS A READING ERROR IN AN INSTRUMENT, WHICH IS THIS DIVISION'S ENTIRE SUBJECT.** The shipping status reader takes the text after the LAST pipe in a register row. #175's status cell begins `open — engine DEFECT`; a code span inside that cell carries a pipe, the cell was split, and an appended closure narrative was read as the verdict. So a row asserting a live defect reported **CLOSED** to the gate while saying the opposite in its own first words. It is open and asserting breakage again, and that is the entire +1 in the gate's defect column.
+
+**THE CLASS WAS TWO DEFECTS AND THE BIGGER HALF HAD NO NAME.** The pipe half hid 8 rows. The emphasis half hid nine: the cell's leading-whitespace skip is `\s*`, which does not skip `**`, so a cell authored `| **CLOSED 2026-08-13** |` fails to match with no pipe anywhere in the row. Eighteen rows were repaired, notation only — 18 insertions and 18 deletions, one line each. Open rows fell 237 → 222 and open-and-asserting-breakage rose 50 → 51. A whole-register replay through the shipping detectors confirms **exactly 17 verdicts moved and no eighteenth by accident**, and the two detector functions are byte-identical to HEAD.
+
+**THE GUARD IS WRITTEN AS A PROPERTY AND IT IMPORTS THE DETECTOR IT CHECKS.** One invariant per row: *the gate-visible verdict must be the same whether the status cell is read as the shipping detector reads it, or as the column the author wrote and then rendered to plain text.* It imports the shipping closed-row detector rather than reimplementing it — a third copy of that detector once disagreed with the canonical one on **24 of 292 rows in both directions**, and a verifier that re-implements the rule it is checking is a documented failure class in this repository. It was shown red twice: on seven synthetic doors, each with a repaired twin that goes quiet, **four of them doors nobody here has ever used**; and then on real data, where pointing it at the pre-repair register names **15 rows and exits 1** — the repair pass's own list, reproduced by an instrument that had never seen it. A mixed-corpus arm and a lift arm fail if the comparison is deleted or if the shipping reader ever stops cutting, so it cannot go green by asking nothing. Current register: 506 rows, 0 verdict failures, 0.17s, deterministic, writes nothing.
+
+**REPORTING RATHER THAN RATCHETING IS A JUDGEMENT, AND IT IS THE KIND THIS DIVISION IS SUPPOSED TO MAKE OUT LOUD.** 15 cells are still cut by a pipe whose verdict is unchanged either way. They are printed as a list with no bar and **deliberately not ratcheted**: a count that may only go down invites the next author to argue their row is the exception, and the verdict clause already covers every cut that has a consequence. Ninety rows and 631 pipes were left alone, every one checked and none with a verdict at risk — 13 closed, 2 correctly open. Churn across ninety rows for no behavioural change is not worth the diff, and saying so is part of the work.
+
+**THE ESCAPE THAT LOOKS LIKE THE FIX WAS MEASURED AND IS NOT ONE.** Escaping a pipe changes nothing: the capture uses a negated-pipe character class, which stops at an escaped pipe exactly as it stops at a bare one. Proven on a synthetic row through the shipping detectors — the authored form and the fully-escaped form extract identical wrong text. Only removing the pipes recovers the status.
+
+**A PARSE REPAIR MUST NOT LAUNDER ITSELF INTO A VERIFICATION, AND SIXTEEN CLOSURES SAY SO IN THEIR OWN CELLS.** Sixteen rows were made READABLE without being RE-VERIFIED, and each records that in the cell rather than in a report somebody has to find. Cheap artifact checks did pass for seven of them; the weakest four rest only on the named instrument existing on disk, and say that too. A row that becomes legible is a row whose verdict can now be READ. It is not a row whose verdict was re-measured, and keeping those two apart is why this division exists.
+
+**WHAT IS OWED HERE.**
+
+- **Leaf calibration — this division's one number — stays WITHHELD and was not run.** `data/winrate-backtest.json` is downstream of MEDICHAM, the gate has not opened, and no reliability curve may be published through an engine whose boards still part.
+
+- **The MAG refit stays OWED and it is a REFIT rather than a restamp.** No fitted vector was written and no fit was started; the damage table under the feature function has moved, so a restamp would write over the evidence for the refit.
+- **The sixteen readable-but-unverified closures are owed a verification**, and it is not scheduled here. Their cells carry the admission; the register does not carry a re-measurement.
+- **The 15 cut-but-harmless cells are carried, not fixed**, by the decision recorded above.
+- **The defect-clause split this ledger printed one release ago — 40 rows asserting breakage with no instrument, 7 answering nothing usable, 3 naming a green one — predates this repair and was NOT re-derived.** Read the printed work list, not that split.
+- **This documentation pass did not run `node engine/status.js --write` and did not hand-edit inside a `<!-- GENERATED -->` block.** The block at the top of this file was restamped by the ENGINE division's own pass while this text was being written, so it is current to THAT pass and says nothing about this one. It carries no register figure, so it neither confirms nor contradicts anything above — and it now prints a smaller MEDICHAM clause count than the dated block below, which is that division's result and is not claimed here.
 
 ## THE PUBLISHED NUMBER AND THE MEASURED NUMBER ARE THE SAME NUMBER FOR THE FIRST TIME — BOARD-MATERIAL **77 OF 961 → 46 OF 961 (4.8%)** — AND THE GATE WENT FROM *UNMEASURED* TO *MEASURED-AND-RED*. 2026-09-04, CHANGELOG 5.252.0
 

@@ -188,6 +188,92 @@ function figuresIn(line) {
   return out;
 }
 
+/* ---- figuresIn IS A LINE SCANNER, AND THREE CALLERS WERE HANDING IT A WHOLE FILE — 2026-09-04 ----
+ *
+ * `figuresIn` strips inline code with /`[^`]*`/g. `[^`]*` MATCHES NEWLINES, so on multi-line input a
+ * backtick span runs from one line into another and deletes every character between them. Every other
+ * strip in that chain is line-local (an ISO date, a version string, a `lines N-M` citation); this one
+ * silently was not.
+ *
+ * IT COST THE WHOLE CHANGELOG EXEMPTION. `changelogHas` scanned CHANGELOG.md as ONE STRING. Measured
+ * on the tree of 2026-09-04: line-by-line the changelog yields 2,431 distinct figures; as one string
+ * it yields 889. 63% of the recorded history was invisible to the exemption that exists to honour it.
+ *
+ * AND IT MOVED WITHOUT ANYONE TOUCHING A DOCUMENT, WHICH IS THE PART THAT MATTERS. A markdown line
+ * carrying an ODD number of backticks inverts the code/prose polarity of everything after it. The
+ * CHANGELOG is newest-first, so a new entry sits at the TOP: one stray backtick in tonight's entry —
+ * ironically, an entry ABOUT a corrupt backtick fragment — flipped the polarity of all 27,000 lines
+ * below it. The census went 35 -> 129 across 12 documents with the whitepaper at 10 -> 41, on a pass
+ * that added no figure at all. A gate that goes red because of where a backtick landed is a gate that
+ * gets waived, and this repository has already paid four days for one of those.
+ *
+ * A FENCED BLOCK IS NOT PROSE, and it was only ever excluded by ACCIDENT — ``` is three backticks, so
+ * the old pairing swallowed fenced content as a side effect of the same bug. Fixing the lexing without
+ * saying this out loud reintroduced a real false positive on the first run: docs/PRIOR-ART.md's
+ * illustrative overlap table (`3,843 bo3`) inside a ``` block was reported as an untraceable claim.
+ * Numbers in a code block are quoted output, not assertions, so the exclusion is now DELIBERATE.
+ *
+ * WHY THIS IS A CORRECTION AND NOT A LOOSENING. It does not add an exemption, does not widen the
+ * changelog rule beyond what changelogHas() already documents, and on the doc side it is STRICTER —
+ * per-line scanning reads prose the old span-eater had been deleting. Measured both ways on the same
+ * tree: the census returns to exactly the baseline 35, per document, and the cited-artifact clause
+ * finds the same 72 mismatches with no key added and none removed. */
+function fenceOpen(line) { return /^\s*(?:```|~~~)/.test(line); }
+
+/** Figures in a MULTI-LINE span: fenced blocks are skipped, and inline code is stripped one line at a
+ *  time so a backtick can never reach across a line break. Single lines go straight to figuresIn. */
+function figuresInText(text) {
+  const out = [];
+  let fenced = false;
+  for (const L of String(text).split('\n')) {
+    if (fenceOpen(L)) { fenced = !fenced; continue; }
+    if (fenced) continue;
+    for (const f of figuresIn(L)) out.push(f);
+  }
+  return out;
+}
+
+/* ---- THE RED DEMONSTRATION FOR THE LEXER, one case per thing it must and must not read ----------
+ *
+ * Same discipline as RETRACTION_CASES below: a rule that decides what counts as a stated figure
+ * carries a case it MUST read and a case it MUST NOT, and both run before it is used on a document.
+ * Cases `odd-backtick-*` and `fenced-*` are the two regressions above, pinned in both directions —
+ * the first FAILS against a whole-file scan, the second FAILS against a naive per-line one, so no
+ * single-sided fix can satisfy the set. */
+const LEXING_CASES = [
+  { id: 'a-plain-figure-is-read',
+    why: 'The base case. Without it the others could be satisfied by reading nothing at all.',
+    text: 'The run scored 4,321 games.', find: true },
+
+  { id: 'inline-code-is-not-a-claim',
+    why: 'A path or an identifier in backticks asserts nothing, which is why the strip exists.',
+    text: 'The store is `data/games-4321.jsonl` on disk.', find: false },
+
+  { id: 'odd-backtick-line-does-not-eat-the-next-line',
+    why: 'THE REGRESSION THAT COST THE GATE. One unpaired backtick used to pair with the next '
+       + 'backtick on a LATER line and delete everything between, including the figure. On a '
+       + 'newest-first CHANGELOG that is 27,000 lines of recorded history, from one stray character.',
+    text: 'A corrupt ` fragment was found.\nThe run scored 4,321 games beside `data/x.json`.', find: true },
+
+  { id: 'a-fenced-block-is-quoted-output-not-a-claim',
+    why: 'The other direction. ``` is three backticks, so the old span-eater excluded fenced content '
+       + 'by accident; a naive per-line fix reads it as prose and accuses an illustrative table. '
+       + 'Measured live on docs/PRIOR-ART.md before this case existed.',
+    text: '```\ntheir store   4,321 games\n```', find: false },
+
+  { id: 'prose-after-a-fence-is-still-read',
+    why: 'A fence must close. Without this the fence rule could silence the rest of a document.',
+    text: '```\nignore 9,999\n```\n\nThe run scored 4,321 games.', find: true },
+];
+
+/** Runs every case through the real function. `holds` false means the lexer changed meaning. */
+function lexingProof() {
+  return LEXING_CASES.map(c => {
+    const found = figuresInText(c.text).some(f => f.value === 4321);
+    return { id: c.id, why: c.why, expected: c.find, found, holds: found === c.find };
+  });
+}
+
 /* Numbers that appear for reasons unrelated to any artifact. A coin's log-loss and a 50% baseline
  * are properties of arithmetic, not of a measurement, and flagging them trains people to ignore
  * this check. Same reasoning as engine/provenance.js's named exceptions: few, and each with a why. */
@@ -265,13 +351,26 @@ function artifactHas(nums, f) {
 
 /** Blank-line-separated blocks, with the 1-based line number each starts on. A table row is its own
  *  claim and markdown tables have no blank lines inside them, so a row is also a paragraph. */
+/* A FENCED BLOCK IS ONE BLOCK, blank lines and all. Splitting inside a fence hands figuresInText a
+ * fragment with no opening ``` in it, so the fragment reads as prose and the fence rule silently
+ * stops applying part-way down a code sample. Only one such blank line exists in the living set
+ * today and it happened to be harmless — which is exactly the kind of luck this file stops relying
+ * on. Every fence in docs/, docs/archive/ and CHANGELOG.md is balanced, checked before this landed. */
 function paragraphs(text) {
   const lines = text.split('\n');
   const out = [];
-  let cur = [], start = 1;
+  let cur = [], start = 1, fenced = false;
   const flush = () => { if (cur.length) out.push({ start, lines: cur.slice() }); cur = []; };
   for (let i = 0; i < lines.length; i++) {
     const L = lines[i];
+    if (fenceOpen(L)) {
+      if (!fenced) { flush(); start = i + 1; }          // the fence opens its own block
+      cur.push(L);
+      fenced = !fenced;
+      if (!fenced) { flush(); start = i + 2; }          // and closes it
+      continue;
+    }
+    if (fenced) { if (!cur.length) start = i + 1; cur.push(L); continue; }
     if (L.trim() === '') { flush(); start = i + 2; continue; }
     if (L.trim().startsWith('#')) { flush(); start = i + 2; continue; }   // a heading ends a block
     if (L.trim().startsWith('|')) { flush(); out.push({ start: i + 1, lines: [L] }); start = i + 2; continue; }
@@ -555,7 +654,7 @@ function citationMismatches(docs) {
       const text = b.lines.join('\n');
       /* A block that is itself ABOUT staleness quotes the old number on purpose. */
       if (QUALIFIED.test(text)) continue;
-      for (const f of figuresIn(text)) {
+      for (const f of figuresInText(text)) {
         if (isUniversal(f)) continue;
         if (f.value < 10 && Number.isInteger(f.value)) continue;   // counts this small are structural
         if (sets.some(s => artifactHas(s.nums, f))) continue;
@@ -632,7 +731,7 @@ function changelogHas(f) {
   if (!changelogNumsCache) {
     changelogNumsCache = new Set();
     try {
-      for (const g of figuresIn(fs.readFileSync(D('CHANGELOG.md'), 'utf8')))
+      for (const g of figuresInText(fs.readFileSync(D('CHANGELOG.md'), 'utf8')))
         changelogNumsCache.add(Number(g.value).toFixed(6));
     } catch (e) {
       /* IT MUST SAY SO. Failing to read the changelog does not corrupt anything — the exemption just
@@ -656,16 +755,19 @@ function changelogHas(f) {
  * exactly this about its own ratchet and records it in place; this is the same lesson, second file.
  *
  * `where` carries {file, line, value, text} per offending figure. The count is unchanged. */
-function untraceableCensus(docs) {
+/* `read` IS INJECTABLE for the same reason retractionRegistry's is: a claim about what this census
+ * DOES catch has to be demonstrable on a document whose content is known, without writing a file into
+ * docs/ to find out. Nothing in the repository passes it; the default is readDoc. */
+function untraceableCensus(docs, { read = readDoc } = {}) {
   const all = allArtifactNumbers();
   const per = {}, where = {};
   let total = 0;
   for (const rel of docs) {
     let n = 0;
-    for (const b of paragraphs(readDoc(rel))) {
+    for (const b of paragraphs(read(rel))) {
       const cited = citationsIn(b.lines).length > 0;
       if (cited) continue;                         // handled by citationMismatches, harder rule
-      for (const f of figuresIn(b.lines.join('\n'))) {
+      for (const f of figuresInText(b.lines.join('\n'))) {
         if (isUniversal(f)) continue;
         if (f.value < 10 && Number.isInteger(f.value)) continue;
         if (artifactHas(all, f)) continue;
@@ -716,7 +818,8 @@ function archiveState() {
 
 module.exports = {
   D, liveDocs, livingDocs, archiveDocs, readDoc, versionHeader, changelogTop,
-  figuresIn, isUniversal, artifactNumbers, artifactHas, paragraphs, citationsIn,
+  figuresIn, figuresInText, fenceOpen, lexingProof, LEXING_CASES,
+  isUniversal, artifactNumbers, artifactHas, paragraphs, citationsIn,
   retractionRegistry, retractionViolations, citationMismatches, untraceableCensus,
   isDistinctive, sigFigs, truncateTo, restatesFigure, retractionProof, RETRACTION_CASES,
   archiveState, supersededHeader, QUALIFIED,
@@ -735,6 +838,7 @@ if (require.main === module) {
     versioned: versioned.map(x => ({ doc: x.doc, version: x.v.version })),
     unversioned: docs.filter(d => !versionHeader(readDoc(d))),
     archive: archiveState(),
+    lexing_proof: lexingProof(),
     retraction_proof: retractionProof(),
     retraction_registry: [...reg.values()].map(e => ({ value: e.value + (e.pct ? '%' : ''), strength: e.strength, sources: e.sources })),
     retraction_violations: retractionViolations(living, reg),
@@ -744,6 +848,13 @@ if (require.main === module) {
   if (process.argv.includes('--json')) { console.log(JSON.stringify(report, null, 2)); process.exit(0); }
   console.log(`CHANGELOG top: ${report.changelog_top}`);
   console.log(`docs scanned: ${report.docs_scanned}  versioned: ${report.versioned.length}  unversioned: ${report.unversioned.length}`);
+  const lex = report.lexing_proof.filter(p => !p.holds);
+  console.log(`
+figure lexer proof: ${report.lexing_proof.length - lex.length}/${report.lexing_proof.length} hold`
+    + (lex.length ? '  *** ' + lex.map(p => p.id).join(', ') + ' ***' : ''));
+  for (const p of report.lexing_proof) {
+    console.log(`  ${p.holds ? 'ok  ' : 'FAIL'} ${p.id.padEnd(46)} ${p.expected ? 'must read' : 'must skip'}`);
+  }
   const broken = report.retraction_proof.filter(p => !p.holds);
   console.log(`\nretraction match proof: ${report.retraction_proof.length - broken.length}/${report.retraction_proof.length} hold`
     + (broken.length ? '  *** ' + broken.map(p => p.id).join(', ') + ' ***' : ''));

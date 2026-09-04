@@ -119,10 +119,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  829/829 probed mechanics live, 0 missing   (census 2026-09-04 15:49)
+  829/829 probed mechanics live, 0 missing   (census 2026-09-04 18:58)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 2 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-04 17:18)
+    never fired in the staged harness (all-mechanics-fire.json, 4 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-04 19:17)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -144,9 +144,103 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-04 17:21_
+_stamped 2026-09-04 19:22_
 
 <!-- /GENERATED -->
+
+## THREE CLOCKS AND A FIELD HANDLER: BOARD-MATERIAL **46 OF 961 → 41 OF 961**, PROTOCOL **141 → 128** RAW, VOID UNCHANGED AT 7, CENSUS LEVEL AT 829/829. **EVERY GAME THAT CLOSED WAS NAMED BEFORE THE RUN AND NOT ONE NEW GAME PARTED.** 2026-09-04
+
+Release `3187ea18c625`, 961 games, arm `middle`, `--end-state`, census pin `9446a684709d`, pool
+`0d103fb9fa87`, pins digest `bcb38e47d94f` — identical to the pins the published 46 was measured on.
+The new figure is in `data/verification/fix-batch-5.json`. **`data/game-differential.json` was NOT
+rewritten**, so `node engine/status.js` still reads BOARD-MATERIAL 46; republishing is a settled-tree
+pass and is in the report's OWED block.
+
+**THE ATTRIBUTION IS MEASURED, NOT ARGUED.** `MEDI_SAMPLE_DUMP` on both runs gives an identical
+961-row game list, so the two counts are the same question. Joined on `config|seed`: **5 closed, 0
+new**, and all five are the games this batch named in advance — two Infestations, a Fire Spin, a Heal
+Block and a Soundproof.
+
+### THE RE-DIAGNOSIS FIRST, BECAUSE EIGHT MECHANISMS HAD BEEN FIXED SINCE THE OLD MAP
+
+The 46 split **6 VOID / 5 UNCAUSED / 35 caused**, and the caused half is 20-odd mechanisms. The
+`ordering` comparator class holds **24 rows and 24 distinct causes**, which is the whole argument for
+never grouping by class. The three biggest groups were unavailable — the damage-VALUE family (7) is
+fenced by ROADMAP #542, VOID (6) is a denominator question for MEASURE, and the UNCAUSED five are
+four unrelated counters — so the batch took the largest mechanism that was neither: the partial trap
+at 3, then two more whose authority handler reads in one block.
+
+**AND TWO CANDIDATES WERE REFUTED IN THE LAB BEFORE ANY EDIT.** Flame Body and Cursed Body both look
+exactly like this batch's shape on the card — an ability secondary the authority fires and we do not
+— and both FIRE correctly on a staged board: `flamebody` moves the attacker's status `"" -> "brn"`
+across the ability knob at a `sec` roll of 0.01 and not at 0.5. They are a shared-die ADDRESS
+problem, not a missing mechanic, and were left alone rather than "fixed".
+
+### THE THREE, EACH RED FIRST WITH A KNOB AND A CONTROL THAT AGREED AND STILL AGREES
+
+- **A partial trap chipped one turn longer than the authority** — 3 games. `sim/battle.ts:515-523`
+  decrements `duration` ABOVE the handler and `continue`s past `onResidual` on zero, so
+  `partiallytrapped`'s `duration: 5` is FOUR chips. This engine chipped, then decremented, then
+  ended. `data/tags.json` had been carrying the right number all along as `partialTrap.turns`
+  ("4-5") on 7 of 7 members, beside the `duration` the engine read.
+  RED: `medi 4 chip(s), authority 3`. GREEN: `3 / 3`. `tests/probe_trap_duration.js`,
+  `MEDI_TRAP_TICK_BEFORE_CLOCK=1`.
+- **Heal Block ran a turn long and lapsed without saying so** — 1 board-material game, 2 protocol.
+  `_healBlock = turns + 1` against the authority's own counter, and a lapse branch whose comment said
+  *"It announces nothing when it lapses in this engine."* RED: Leftovers refused on turns 2, 3 AND 4
+  against the authority's 2 and 3, with no `-end` at all. GREEN: refused 1 / 1, `-end` on turn 2 in
+  both. The announcement was added to the `MEDI_ENDTURN_CLOCKS_AT_FOOT=1` path too, so that knob
+  stays a POSITION control. `tests/probe_healblock_clock.js`, `MEDI_HEALBLOCK_CLOCK_LONG=1`.
+- **Perish Song marked a Soundproof body, and announced a field activation on a click that affected
+  nobody** — 1 board-material game, 7 more protocol. `perishsong.onHitField` carries `result` and
+  `message` and this branch carried neither, so a second Perish Song into an already-counting field
+  could not FAIL; and the branch asked `tryHitRefusal` but never `moveClassBlocked`, the reader
+  fifteen other branches in the same file already call beside it. RED on both halves. GREEN on both.
+  `tests/probe_perishsong_field.js`, `MEDI_PERISH_ALWAYS_ACTIVATES=1`.
+
+### THE SCOREBOARD WAS CALLED BEFORE THE RUN AND ONE CALL MISSED
+
+Predicted board-material 42 (range 40-44) — **41**, in range. VOID 7 — **7**. Census 829/829 —
+**829/829**. Predicted protocol 138 (range 135-142) — **128**, outside the range. The reasoning was
+that a first-divergence only leaves the count when a game becomes wholly clean; that is true, and the
+twelve rows removed happened to be the ONLY divergence in thirteen games. **The population was
+measurable before the prediction and was not measured.** Running record: 2-of-3, 4-of-4, a one-game
+protocol miss, 4-of-5, 4-of-4, **3-of-4**.
+
+### THE HAND LIST
+
+**Removed — three, because the census and the probes now carry them:** the partial-trap duration, the
+Heal Block clock, and Perish Song's `result`/`message` plus its `sound` refusal. Each has a committed
+probe, a `MEDI_*` restore knob shown RED, and a counter that proves the handler ran.
+
+**Owed and named, not fixed here:**
+
+- **Perish Song's Invulnerability arm writes no `-miss`.** The authority's
+  `add('-miss', source, pokemon)` has no counterpart; the `result` flag is raised so the move cannot
+  spuriously fail, but the LINE is owed and unprobed. Declared in the engine comment at the branch.
+- **Close Combat's self-drop is skipped when the hit breaks a Substitute** — 1 board-material game,
+  structural, no probe exists. The cheapest of what is left.
+- **The Dire Claw sleep clock** — 2 games, and a DURATION defect of the same family this batch just
+  fixed twice.
+- **The `castform.species` forme-flip TIMING leaf** — 1 UNCAUSED game, no probe covers it.
+- **Cursed Body and Flame Body are NOT on this list**, and that is the finding rather than an
+  omission: both were shown to fire, so they are a die-address question and not this division's
+  missing-mechanic shape.
+- **Changing the engine STALED five gate clauses that had been green** — the game differential, the
+  three roster stages and mechanics-fire all read *"MEASURED AGAINST A DIFFERENT ENGINE"*. **All five
+  were re-run on `3187ea18c625` and all five PASS again**, so the gate is back to its found shape:
+  the only GATING failure is board-material. **`data/game-differential.json` was deliberately not
+  republished.**
+
+Full account, with every probe run verbatim: `docs/_reports/2026-09-04-fix-batch-5.md`.
+
+## A REGISTER ROW ASSERTING A LIVE ENGINE DEFECT WAS READING **CLOSED** TO THE GATE, AND IT IS OPEN AGAIN. NO MECHANIC CHANGED AND NO DIFFERENTIAL RAN. 2026-09-04, CHANGELOG 5.253.0
+
+**NOTHING IN THIS BLOCK IS EVIDENCE ABOUT THE SIMULATOR.** No mechanic was changed, no differential was run, no game was played and no whole-game figure was re-derived. `data/game-differential.json` still holds board-material 46 of 961. What moved is the readability of the register that records what is still broken.
+
+**THE ROW IS AN ENGINE ROW AND THE GATE COULD NOT SEE IT.** #175's status cell begins `open — engine DEFECT`, and a code span inside the cell carries a pipe; the shipping status reader takes the text after the LAST pipe, so it read an appended closure narrative as the verdict. The row is open and asserting breakage again, and that is the entire +1 in the gate's defect column. Across the whole repair, open rows fell 237 → 222 and open-and-asserting-breakage rose 50 → 51 — eighteen rows repaired, notation only, with the detector functions byte-identical to HEAD.
+
+**THE DEFECT-CLAUSE SPLIT PRINTED IN THE BLOCK BELOW PREDATES THIS REPAIR.** Its 40 rows asserting breakage with no instrument, 7 answering nothing usable and 3 naming a green one were counted while those cells could not be read correctly, and this pass did not re-derive them. Print the open work rather than reading that split.
 
 ## THE PUBLISHED GATE FIGURE FINALLY IS THE MEASURED ONE — BOARD-MATERIAL **77 OF 961 → 46 OF 961 (4.8%)**, PROTOCOL **168 → 141** RAW / **140** DECLARED-ADJUSTED, AND THE GATE'S ONE FAILURE IS NOW A MEASURED RED RATHER THAN AN UNMEASURED CLAUSE. 2026-09-04, CHANGELOG 5.252.0
 
