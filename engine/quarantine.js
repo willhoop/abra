@@ -2070,6 +2070,49 @@ function wholeGameClause(artifact, wgDecisionImpact) {
            + `SHOWDOWN_PATH=... node engine/game_differential.js --games 1200 --write` };
     }
   }
+  /* ==============================================================================================
+   * THE POPULATION IS PART OF THE QUESTION — 2026-09-03. A GATE THAT CANNOT TELL WHICH DRIVER
+   * PRODUCED ITS INPUT IS THE DEFECT, NOT JUST THE READING IT HAPPENED TO GIVE.
+   * ==============================================================================================
+   * This clause read whatever sat at `data/game-differential.json` and asked nothing about how those
+   * games were played. Measured on release `8ad06030e129`, cap 12, pool `0d103fb9fa87`, census pin
+   * `9446a684709d` — the SAME pins on both sides, the driver the only difference:
+   *
+   *     census-coverage-seeking/v1   17 of 961 games reached a result (1.8%),  0 boards parted
+   *     empirical-click/v1          474 of 961 games reached a result (49.3%), 77 boards parted
+   *
+   * So the clause read 8 of 8 PASS and MEDICHAM was declared correct on a population that does not
+   * contain the failure. 944 of 961 games were cut off by the 12-turn cap; severity band 1
+   * (DIFFERENT-WINNER) has never once been reachable. A question answerable by games that never end
+   * is not the question the gate is asking.
+   *
+   * IT REFUSES RATHER THAN DOWNGRADES, AND IT REFUSES ON ABSENCE TOO. The sibling refusals in this
+   * function (#298, decisionImpact) allow an UNSTAMPED artifact to answer, because a missing release
+   * id is a fact about an old writer and not a claim about the games. Steering is not like that: an
+   * artifact with no `steering` block is one whose sample nobody recorded, and `steering.comparable`
+   * has failed closed on exactly that since it was written — *"the honest answer for those is NOT
+   * that they were comparable, it is that nothing recorded whether they were."* Every artifact this
+   * driver has written since 2026-08-07 carries the block.
+   *
+   * THE FIGURES ARE WITHHELD, NOT CAPTIONED, for the same reason as #298 one block up: a rate printed
+   * beside a warning gets quoted without the warning. `PRE-CHANGE` has the receipt. */
+  {
+    const STEERING = require('./steering.js');
+    const pol = (j.steering && j.steering.policy) ? String(j.steering.policy) : null;
+    if (pol !== STEERING.POLICY_EMPIRICAL) {
+      return { name: NAME, ok: false, cannot_answer: true, withheld: true,
+        generated: j.generated || null, steering_policy: pol,
+        wanted_steering_policy: STEERING.POLICY_EMPIRICAL,
+        why: `MEASURED ON THE WRONG POPULATION — this clause is answered by \`${STEERING.POLICY_EMPIRICAL}\``
+           + ` and the artifact declares \`${pol || '(no steering block at all)'}\`. THE RATE, THE`
+           + ` DIVERGED COUNT, THE GAME COUNT AND THE CLASS COMPOSITION ARE ALL WITHHELD. Under the`
+           + ` coverage driver the games do not end — 944 of 961 stop at the turn cap and 17 reach a`
+           + ` result, so a PASS there is a claim about openings, not about games. Re-run the`
+           + ` published arm: SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical`
+           + ` --release <id> --arm middle --end-state --census <pin> --games 1200`
+           + ` --team-store data/team-pool-frozen --write` };
+    }
+  }
   const games = +j.games || 0, div = +j.diverged || 0;
   if (!games) {
     return { name: NAME, ok: false, generated: j.generated || null,
@@ -3740,6 +3783,9 @@ if (require.main === module) {
         && /NO DECISION-IMPACT RUN/.test(decisionImpact('REL').why));
       /* THE WHOLE-GAME CLAUSE THROUGH ITS OWN INJECTION POINT: the same cause, cleared and not. */
       const wgArt = { games: 100, diverged: 10, planted_divergence_proof_ok: true, mode: 'M',
+        /* the published arm, so these cases exercise the SUBTRACTION rather than the population
+         * refusal added 2026-09-03 — which has its own red block further down */
+        steering: { policy: require('./steering.js').POLICY_EMPIRICAL },
         classes: [{ cls: 'drag', causes: [{ cause: 'drag: a different body :: x', n: 10 }] }] };
       diWrite(GOOD);
       /* the reader closes over the rows it read, so the file is no longer needed after this line */
@@ -3770,7 +3816,8 @@ if (require.main === module) {
       const relCur = readJson(D('data', 'engine-release.json'));
       const relId = relCur && (relCur.id || relCur.release || relCur.current);
       const WG = (extra) => ({ games: 1230, diverged: 695, planted_divergence_proof_ok: true,
-        mode: 'M', generated: 'then', classes: [], ...extra });
+        mode: 'M', generated: 'then', classes: [],
+        steering: { policy: require('./steering.js').POLICY_EMPIRICAL }, ...extra });
       const stale = wholeGameClause(WG({ engine_release: '__not-this-tree__' }), decisionImpact('NOPE'));
       if (!relId) {
         ok('#298 — no engine-release.json on this tree, so the clause has no id to disagree with and '
@@ -3807,6 +3854,37 @@ if (require.main === module) {
         clauseExit(null) === 2 && clauseExit(undefined) === 2);
       ok('RED — `cannot_answer` alone is enough for 2, without `withheld`',
         clauseExit({ ok: false, cannot_answer: true }) === 2);
+
+      /* -- THE POPULATION REFUSAL — 2026-09-03 ------------------------------------------------
+       *
+       * The gate read 8 of 8 PASS on a coverage-arm artifact in which 944 of 961 games never
+       * ended. The artifact records its own `steering.policy`, so the clause can tell — it simply
+       * never asked. These are driven through the SHIPPING clause on injected artifacts, and the
+       * green case is the one above (`WG` declares the empirical policy), so this block proves the
+       * refusal fires without proving that it fires on everything.
+       *
+       * A GREEN THAT LOOKS LIKE THIS BLOCK'S GREEN IS WORTHLESS WITHOUT THE THIRD CASE. Refusing a
+       * NAMED coverage artifact and refusing an artifact with NO block are different failures — the
+       * second is the one that would quietly return if somebody re-published an older run. */
+      {
+        const S = require('./steering.js');
+        const cov = wholeGameClause(WG({ steering: { policy: S.POLICY } }), decisionImpact('NOPE'));
+        ok('RED — a COVERAGE-arm artifact cannot answer the whole-game clause: 944 of 961 of its '
+          + 'games never end, so a PASS there is a claim about openings',
+          cov.ok === false && cov.cannot_answer === true && cov.withheld === true, cov.why);
+        ok('RED — and the FIGURE IS GONE, not captioned: no rate, no diverged, no games, and none '
+          + 'of the three numbers appears in the verdict string',
+          cov.rate === undefined && cov.diverged === undefined && cov.games === undefined
+          && !/1230|695|56\.5/.test(cov.why), cov);
+        ok('the refusal NAMES both policies, so a reader is not left guessing which arm it wanted',
+          cov.steering_policy === S.POLICY && cov.wanted_steering_policy === S.POLICY_EMPIRICAL
+          && cov.why.indexOf(S.POLICY) >= 0 && cov.why.indexOf(S.POLICY_EMPIRICAL) >= 0, cov);
+        const none = wholeGameClause(WG({ steering: undefined }), decisionImpact('NOPE'));
+        ok('RED — an artifact with NO steering block cannot answer either: nothing recorded what '
+          + 'selected its sample, which is how steering.comparable has failed closed since #81',
+          none.ok === false && none.cannot_answer === true && none.games === undefined, none.why);
+        ok('RED — the population refusal exits 2, never 0', clauseExit(cov) === 2);
+      }
     }
 
     /* -- THE TWO DECLARED KINDS, AND THE BOUNDARY ON EACH MATCHER — 2026-08-23 ------------------
@@ -3821,6 +3899,7 @@ if (require.main === module) {
       const MOODY_ME = '|-boost|p2a: Scovillain|def|2|[from] ability: moody';
       const WG = (cause, rows, probe) => ({ games: 100, diverged: rows.length, mode: 'M',
         planted_divergence_proof_ok: true,
+        steering: { policy: require('./steering.js').POLICY_EMPIRICAL },
         classes: [{ cls: cause.split(' :: ')[0], causes: [{ cause, n: rows.length }] }],
         first_divergences: rows.map((r) => ({ cause, showdown_before: [], ...r })),
         order_probe: (probe || []).map((r) => ({ cause, ...r })) });

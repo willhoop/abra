@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-29T03:17:36.793Z",
- "release": "e129bca605e3",
+ "generated": "2026-09-04T01:30:14.277Z",
+ "release": "8ad06030e129",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -280,7 +280,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -336,7 +337,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -392,7 +394,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -448,7 +451,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -504,7 +508,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -560,7 +565,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -616,27 +622,32 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "everyone-hurt",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "hurt+items",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -692,7 +703,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -748,7 +760,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -806,7 +819,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -862,7 +876,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -916,11 +931,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "allyswitch",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -976,7 +997,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1032,7 +1054,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1088,7 +1111,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1144,7 +1168,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1200,7 +1225,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1252,11 +1278,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "aquaring",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1312,7 +1344,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1368,7 +1401,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1424,7 +1458,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1480,7 +1515,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1536,7 +1572,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1590,41 +1627,53 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "attract",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-immune"
+      "why": "-immune",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-immune"
+      "why": "-immune",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": false,
-      "why": "-immune"
+      "why": "-immune",
+      "leaf_effect_seen": null
      },
      {
       "rung": "everyone-hurt",
       "resolved": false,
-      "why": "-immune"
+      "why": "-immune",
+      "leaf_effect_seen": null
      },
      {
       "rung": "hurt+items",
       "resolved": false,
-      "why": "-immune"
+      "why": "-immune",
+      "leaf_effect_seen": null
      },
      {
       "rung": "asleep",
       "resolved": false,
-      "why": "the move was never issued — Showdown emitted no |move| line for it"
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": null
      },
      {
       "rung": "real-pool",
       "resolved": false,
-      "why": "-immune"
+      "why": "-immune",
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1686,7 +1735,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1742,7 +1792,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1796,11 +1847,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "auroraveil",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1856,7 +1913,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1926,7 +1984,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -1982,7 +2041,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2036,11 +2096,45 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "banefulbunker",
+     "display": "Baneful Bunker",
+     "scope": "slot",
+     "where": "move.condition",
+     "markers": [
+      {
+       "ev": "-activate",
+       "label": "move: Protect"
+      }
+     ],
+     "arrival": [
+      "-singleturn"
+     ],
+     "from": [
+      "onTryHit"
+     ],
+     "staged_as": {
+      "shape": "contact",
+      "move": "aerialace"
+     },
+     "not_staged_because": null,
+     "showdown_seen": true,
+     "showdown_lines": [
+      "|-activate|p1a: Toxapex|move: Protect"
+     ],
+     "medicham_seen": true,
+     "medicham_lines": [
+      "|-activate|p1a: Toxapex|move: Protect"
+     ]
+    },
+    "announcement_only": false,
+    "leaf_effect_split": null,
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": true
      }
     ],
     "preflight": {
@@ -2096,7 +2190,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2152,7 +2247,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2206,11 +2302,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "beakblast",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2266,7 +2368,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2322,37 +2425,44 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "everyone-hurt",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "hurt+items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "asleep",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "real-pool",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2408,7 +2518,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2460,11 +2571,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "partiallytrapped",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2522,7 +2639,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2578,7 +2696,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2647,22 +2766,26 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "the move was never issued — Showdown emitted no |move| line for it"
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "the move was never issued — Showdown emitted no |move| line for it"
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": false,
-      "why": "the move was never issued — Showdown emitted no |move| line for it"
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": null
      },
      {
       "rung": "everyone-hurt",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2726,7 +2849,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2782,7 +2906,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2838,7 +2963,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2894,7 +3020,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -2950,7 +3077,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3006,7 +3134,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3062,7 +3191,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3118,7 +3248,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3170,11 +3301,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "bounce",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3230,7 +3367,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3286,7 +3424,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3342,7 +3481,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3398,7 +3538,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3454,7 +3595,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3510,7 +3652,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3566,7 +3709,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3622,7 +3766,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3678,7 +3823,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3734,7 +3880,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3790,7 +3937,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3846,7 +3994,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3902,7 +4051,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -3958,7 +4108,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4010,11 +4161,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "charge",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4070,7 +4227,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4126,7 +4284,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4182,7 +4341,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4236,11 +4396,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "chillyreception",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4296,7 +4462,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4352,7 +4519,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4408,7 +4576,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4490,7 +4659,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4546,7 +4716,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4602,7 +4773,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4658,7 +4830,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4714,17 +4887,20 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4776,11 +4952,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "confusion",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4836,7 +5018,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4911,12 +5094,14 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "blocked by a guard: |-activate|p1b: Venusaur|move: Protect"
+      "why": "blocked by a guard: |-activate|p1b: Venusaur|move: Protect",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -4972,7 +5157,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5028,7 +5214,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5084,7 +5271,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5138,11 +5326,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "counter",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5198,7 +5392,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5254,7 +5449,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5310,7 +5506,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5366,7 +5563,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5422,7 +5620,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5478,7 +5677,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5532,11 +5732,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "curse",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5592,7 +5798,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5650,7 +5857,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5706,7 +5914,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5762,7 +5971,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5818,7 +6028,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5870,11 +6081,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "destinybond",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -5928,11 +6145,45 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "protect",
+     "display": "Protect",
+     "scope": "slot",
+     "where": "volatileStatus:protect",
+     "markers": [
+      {
+       "ev": "-activate",
+       "label": "move: Protect"
+      }
+     ],
+     "arrival": [
+      "-singleturn"
+     ],
+     "from": [
+      "onTryHit"
+     ],
+     "staged_as": {
+      "shape": "physical",
+      "move": "facade"
+     },
+     "not_staged_because": null,
+     "showdown_seen": true,
+     "showdown_lines": [
+      "|-activate|p1a: Absol|move: Protect"
+     ],
+     "medicham_seen": true,
+     "medicham_lines": [
+      "|-activate|p1a: Absol|move: Protect"
+     ]
+    },
+    "announcement_only": false,
+    "leaf_effect_split": null,
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": true
      }
     ],
     "preflight": {
@@ -5984,11 +6235,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "dig",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6044,7 +6301,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6096,21 +6354,29 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "disable",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6166,7 +6432,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6218,11 +6485,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "dive",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6278,7 +6551,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6334,7 +6608,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6390,7 +6665,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6446,7 +6722,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6500,11 +6777,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "dragoncheer",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6560,7 +6843,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6616,7 +6900,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6672,7 +6957,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6728,7 +7014,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6786,7 +7073,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6842,7 +7130,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6898,7 +7187,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -6954,7 +7244,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7010,7 +7301,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7066,7 +7358,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7122,7 +7415,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7178,7 +7472,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7234,7 +7529,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7290,7 +7586,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7346,7 +7643,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7402,7 +7700,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7454,11 +7753,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "electricterrain",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7512,11 +7817,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "electrify",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7572,7 +7883,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7628,7 +7940,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7684,7 +7997,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7736,21 +8050,29 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "encore",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7806,7 +8128,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7860,11 +8183,74 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "endure",
+     "display": "Endure",
+     "scope": "slot",
+     "where": "move.condition",
+     "markers": [
+      {
+       "ev": "-activate",
+       "label": "move: Endure"
+      }
+     ],
+     "arrival": [
+      "-singleturn"
+     ],
+     "from": [
+      "onDamage"
+     ],
+     "staged_as": null,
+     "not_staged_because": "no move on the receiver's built set has the shape this guard reads (lethal)",
+     "showdown_seen": false,
+     "showdown_lines": [],
+     "medicham_seen": false,
+     "medicham_lines": []
+    },
+    "announcement_only": true,
+    "leaf_effect_split": null,
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "items",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "warm-up",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "everyone-hurt",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "hurt+items",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "asleep",
+      "resolved": false,
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "real-pool",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
      }
     ],
     "preflight": {
@@ -7920,7 +8306,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -7976,7 +8363,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8032,7 +8420,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8088,7 +8477,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8144,7 +8534,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8202,7 +8593,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8258,7 +8650,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8314,7 +8707,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8366,11 +8760,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "fairylock",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8428,7 +8828,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8484,7 +8885,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8540,7 +8942,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8596,7 +8999,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8652,7 +9056,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8708,7 +9113,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8764,7 +9170,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8820,7 +9227,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8876,7 +9284,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8934,7 +9343,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -8990,7 +9400,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9046,7 +9457,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9098,11 +9510,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "partiallytrapped",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9158,7 +9576,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9214,7 +9633,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9270,7 +9690,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9326,7 +9747,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9382,7 +9804,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9438,7 +9861,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9494,7 +9918,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9546,11 +9971,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "confusion",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9604,16 +10035,23 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "fling",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9669,7 +10107,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9725,7 +10164,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9777,11 +10217,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "fly",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9837,7 +10283,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9893,7 +10340,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -9945,11 +10393,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "focusenergy",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10003,11 +10457,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "focuspunch",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10061,11 +10521,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "followme",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10121,7 +10587,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10177,7 +10644,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10233,7 +10701,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10291,7 +10760,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10347,7 +10817,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10405,7 +10876,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10472,11 +10944,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "gastroacid",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10532,7 +11010,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10590,7 +11069,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10646,7 +11126,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10702,7 +11183,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10758,7 +11240,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10814,7 +11297,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10866,11 +11350,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "grassyterrain",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10926,7 +11416,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -10980,11 +11471,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "gravity",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11040,7 +11537,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11096,7 +11594,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11152,7 +11651,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11208,7 +11708,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11264,7 +11765,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11320,7 +11822,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11376,7 +11879,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11432,7 +11936,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11488,7 +11993,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11544,7 +12050,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11600,7 +12107,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11720,42 +12228,50 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "everyone-hurt",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "hurt+items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "asleep",
       "resolved": false,
-      "why": "the move was never issued — Showdown emitted no |move| line for it"
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": null
      },
      {
       "rung": "real-pool",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "ally-statused",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11809,11 +12325,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "healingwish",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11869,7 +12391,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11925,7 +12448,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -11981,7 +12505,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12037,7 +12562,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12091,11 +12617,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "helpinghand",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12151,7 +12683,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12207,7 +12740,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12263,7 +12797,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12319,7 +12854,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12375,7 +12911,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12431,7 +12968,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12487,7 +13025,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12545,7 +13084,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12601,7 +13141,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12659,7 +13200,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12715,7 +13257,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12771,7 +13314,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12827,7 +13371,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12885,7 +13430,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12941,7 +13487,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -12997,7 +13544,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13053,7 +13601,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13109,7 +13658,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13167,7 +13717,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13223,7 +13774,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13279,7 +13831,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13331,11 +13884,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "imprison",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13391,7 +13950,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13447,7 +14007,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13499,11 +14060,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "partiallytrapped",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13555,11 +14122,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "ingrain",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13615,7 +14188,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13671,7 +14245,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13729,7 +14304,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13785,7 +14361,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13841,7 +14418,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -13895,11 +14473,45 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "kingsshield",
+     "display": "King's Shield",
+     "scope": "slot",
+     "where": "move.condition",
+     "markers": [
+      {
+       "ev": "-activate",
+       "label": "move: Protect"
+      }
+     ],
+     "arrival": [
+      "-singleturn"
+     ],
+     "from": [
+      "onTryHit"
+     ],
+     "staged_as": {
+      "shape": "contact",
+      "move": "aerialace"
+     },
+     "not_staged_because": null,
+     "showdown_seen": true,
+     "showdown_lines": [
+      "|-activate|p1a: Aegislash|move: Protect"
+     ],
+     "medicham_seen": true,
+     "medicham_lines": [
+      "|-activate|p1a: Aegislash|move: Protect"
+     ]
+    },
+    "announcement_only": false,
+    "leaf_effect_split": null,
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": true
      }
     ],
     "preflight": {
@@ -13955,7 +14567,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14011,7 +14624,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14067,7 +14681,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14123,42 +14738,50 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "everyone-hurt",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "hurt+items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "asleep",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "real-pool",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "moves-used",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14214,7 +14837,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14270,7 +14894,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14326,7 +14951,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14382,7 +15008,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14438,7 +15065,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14490,11 +15118,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "leechseed",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14550,7 +15184,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14606,7 +15241,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14658,11 +15294,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "lightscreen",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14718,7 +15360,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14772,11 +15415,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "lockon",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14832,7 +15481,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14888,7 +15538,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -14944,7 +15595,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15000,7 +15652,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15056,7 +15709,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15112,7 +15766,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15166,11 +15821,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "magicroom",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15226,7 +15887,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15280,11 +15942,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "magnetrise",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15340,7 +16008,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15396,7 +16065,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15452,7 +16122,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15508,7 +16179,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15564,7 +16236,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15620,7 +16293,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15676,7 +16350,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15732,7 +16407,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15788,7 +16464,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15844,7 +16521,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15898,11 +16576,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "minimize",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -15956,11 +16640,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "mirrorcoat",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16016,7 +16706,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16068,11 +16759,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "mistyterrain",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16128,7 +16825,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16184,7 +16882,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16240,7 +16939,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16296,7 +16996,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16354,7 +17055,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16410,7 +17112,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16466,7 +17169,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16522,7 +17226,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16578,7 +17283,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16634,7 +17340,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16703,22 +17410,26 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "the move was never issued — Showdown emitted no |move| line for it"
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "the move was never issued — Showdown emitted no |move| line for it"
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": false,
-      "why": "the move was never issued — Showdown emitted no |move| line for it"
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": null
      },
      {
       "rung": "everyone-hurt",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16780,7 +17491,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16836,7 +17548,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16892,7 +17605,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -16946,11 +17660,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "noretreat",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17006,7 +17726,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17064,7 +17785,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17120,7 +17842,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17176,7 +17899,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17232,7 +17956,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17288,7 +18013,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17344,7 +18070,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17396,11 +18123,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "perishsong",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17456,7 +18189,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17514,7 +18248,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17566,11 +18301,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "phantomforce",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17626,7 +18367,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17682,7 +18424,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17738,7 +18481,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17794,7 +18538,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17850,7 +18595,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17906,7 +18652,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -17962,7 +18709,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18018,12 +18766,14 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18079,7 +18829,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18135,7 +18886,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18191,7 +18943,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18247,7 +19000,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18312,7 +19066,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18368,7 +19123,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18422,11 +19178,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "powertrick",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18482,7 +19244,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18538,7 +19301,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18592,11 +19356,45 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "protect",
+     "display": "Protect",
+     "scope": "slot",
+     "where": "move.condition",
+     "markers": [
+      {
+       "ev": "-activate",
+       "label": "move: Protect"
+      }
+     ],
+     "arrival": [
+      "-singleturn"
+     ],
+     "from": [
+      "onTryHit"
+     ],
+     "staged_as": {
+      "shape": "physical",
+      "move": "facade"
+     },
+     "not_staged_because": null,
+     "showdown_seen": true,
+     "showdown_lines": [
+      "|-activate|p1a: Abomasnow|move: Protect"
+     ],
+     "medicham_seen": true,
+     "medicham_lines": [
+      "|-activate|p1a: Abomasnow|move: Protect"
+     ]
+    },
+    "announcement_only": false,
+    "leaf_effect_split": null,
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": true
      }
     ],
     "preflight": {
@@ -18652,7 +19450,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18708,7 +19507,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18766,7 +19566,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18818,11 +19619,74 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "psychicterrain",
+     "display": "Psychic Terrain",
+     "scope": "slot",
+     "where": "move.condition",
+     "markers": [
+      {
+       "ev": "-activate",
+       "label": "move: Psychic Terrain"
+      }
+     ],
+     "arrival": [
+      "-fieldstart"
+     ],
+     "from": [
+      "onTryHit"
+     ],
+     "staged_as": null,
+     "not_staged_because": "the consequence table names no same-turn adversary for this leaf",
+     "showdown_seen": false,
+     "showdown_lines": [],
+     "medicham_seen": false,
+     "medicham_lines": []
+    },
+    "announcement_only": true,
+    "leaf_effect_split": null,
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "items",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "warm-up",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "everyone-hurt",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "hurt+items",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "asleep",
+      "resolved": false,
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "real-pool",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
      }
     ],
     "preflight": {
@@ -18878,7 +19742,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18934,7 +19799,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -18990,7 +19856,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19046,7 +19913,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19102,42 +19970,50 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "everyone-hurt",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "hurt+items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "asleep",
       "resolved": false,
-      "why": "the move was never issued — Showdown emitted no |move| line for it"
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": null
      },
      {
       "rung": "real-pool",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "fast-carrier",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19193,7 +20069,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19247,11 +20124,45 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "quickguard",
+     "display": "Quick Guard",
+     "scope": "slot",
+     "where": "move.condition",
+     "markers": [
+      {
+       "ev": "-activate",
+       "label": "move: Quick Guard"
+      }
+     ],
+     "arrival": [
+      "-singleturn"
+     ],
+     "from": [
+      "onTryHit"
+     ],
+     "staged_as": {
+      "shape": "guardShape",
+      "move": "aquajet"
+     },
+     "not_staged_because": null,
+     "showdown_seen": true,
+     "showdown_lines": [
+      "|-activate|p1a: Ceruledge|move: Quick Guard"
+     ],
+     "medicham_seen": true,
+     "medicham_lines": [
+      "|-activate|p1a: Ceruledge|move: Quick Guard"
+     ]
+    },
+    "announcement_only": false,
+    "leaf_effect_split": null,
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": true
      }
     ],
     "preflight": {
@@ -19307,7 +20218,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19363,7 +20275,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19417,11 +20330,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "ragepowder",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19477,7 +20396,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19535,7 +20455,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19591,7 +20512,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19647,7 +20569,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19703,7 +20626,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19759,7 +20683,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19815,37 +20740,44 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "everyone-hurt",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "hurt+items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "asleep",
       "resolved": false,
-      "why": "the move was never issued — Showdown emitted no |move| line for it"
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": null
      },
      {
       "rung": "real-pool",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19897,11 +20829,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "reflect",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -19996,7 +20934,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20052,7 +20991,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20108,7 +21048,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20164,7 +21105,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20220,7 +21162,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20276,7 +21219,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20332,7 +21276,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20390,7 +21335,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20446,7 +21392,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20504,7 +21451,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20560,7 +21508,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20614,11 +21563,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "roost",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20674,7 +21629,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20730,7 +21686,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20782,11 +21739,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "safeguard",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20838,11 +21801,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "saltcure",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20898,7 +21867,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -20950,11 +21920,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "partiallytrapped",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21010,7 +21986,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21066,7 +22043,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21122,7 +22100,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21178,7 +22157,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21234,7 +22214,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21290,7 +22271,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21346,7 +22328,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21402,7 +22385,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21458,7 +22442,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21514,7 +22499,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21570,7 +22556,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21626,7 +22613,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21678,11 +22666,75 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "substitute",
+     "display": "Substitute",
+     "scope": "slot",
+     "where": "volatileStatus:substitute",
+     "markers": [
+      {
+       "ev": "-activate",
+       "label": "move: Substitute"
+      }
+     ],
+     "arrival": [
+      "-start",
+      "-end"
+     ],
+     "from": [
+      "onTryPrimaryHit"
+     ],
+     "staged_as": null,
+     "not_staged_because": "the consequence table names no same-turn adversary for this leaf",
+     "showdown_seen": false,
+     "showdown_lines": [],
+     "medicham_seen": false,
+     "medicham_lines": []
+    },
+    "announcement_only": true,
+    "leaf_effect_split": null,
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "items",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "warm-up",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "everyone-hurt",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "hurt+items",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "asleep",
+      "resolved": false,
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "real-pool",
+      "resolved": false,
+      "why": "-fail move: Shed Tail",
+      "leaf_effect_seen": false
      }
     ],
     "preflight": {
@@ -21738,7 +22790,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21794,7 +22847,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21850,7 +22904,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21906,7 +22961,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -21962,7 +23018,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22018,7 +23075,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22074,7 +23132,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22130,7 +23189,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22188,7 +23248,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22244,7 +23305,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22300,7 +23362,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22356,32 +23419,38 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "everyone-hurt",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "hurt+items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "asleep",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22437,7 +23506,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22493,7 +23563,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22547,11 +23618,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "smackdown",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22607,7 +23684,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22659,11 +23737,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "partiallytrapped",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22719,7 +23803,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22777,32 +23862,38 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "everyone-hurt",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "hurt+items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "asleep",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22858,7 +23949,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22914,7 +24006,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -22979,7 +24072,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23035,7 +24129,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23093,7 +24188,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23149,7 +24245,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23205,7 +24302,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23257,11 +24355,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "spikes",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23315,11 +24419,45 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "spikyshield",
+     "display": "Spiky Shield",
+     "scope": "slot",
+     "where": "move.condition",
+     "markers": [
+      {
+       "ev": "-activate",
+       "label": "move: Protect"
+      }
+     ],
+     "arrival": [
+      "-singleturn"
+     ],
+     "from": [
+      "onTryHit"
+     ],
+     "staged_as": {
+      "shape": "contact",
+      "move": "aerialace"
+     },
+     "not_staged_because": null,
+     "showdown_seen": true,
+     "showdown_lines": [
+      "|-activate|p1a: Chesnaught|move: Protect"
+     ],
+     "medicham_seen": true,
+     "medicham_lines": [
+      "|-activate|p1a: Chesnaught|move: Protect"
+     ]
+    },
+    "announcement_only": false,
+    "leaf_effect_split": null,
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": true
      }
     ],
     "preflight": {
@@ -23375,7 +24513,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23431,7 +24570,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23487,17 +24627,20 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "warm-up",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23555,7 +24698,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23616,11 +24760,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "stealthrock",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23676,7 +24826,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23734,7 +24885,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23790,7 +24942,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23842,11 +24995,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "stickyweb",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23900,11 +25059,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "stockpile",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -23960,7 +25125,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24016,7 +25182,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24072,7 +25239,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24128,7 +25296,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24184,7 +25353,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24240,7 +25410,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24296,7 +25467,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24361,7 +25533,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24417,12 +25590,14 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24478,7 +25653,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24530,11 +25706,75 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "substitute",
+     "display": "Substitute",
+     "scope": "slot",
+     "where": "move.condition",
+     "markers": [
+      {
+       "ev": "-activate",
+       "label": "move: Substitute"
+      }
+     ],
+     "arrival": [
+      "-start",
+      "-end"
+     ],
+     "from": [
+      "onTryPrimaryHit"
+     ],
+     "staged_as": null,
+     "not_staged_because": "the consequence table names no same-turn adversary for this leaf",
+     "showdown_seen": false,
+     "showdown_lines": [],
+     "medicham_seen": false,
+     "medicham_lines": []
+    },
+    "announcement_only": true,
+    "leaf_effect_split": null,
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "items",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "warm-up",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "everyone-hurt",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "hurt+items",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "asleep",
+      "resolved": false,
+      "why": "the move was never issued — Showdown emitted no |move| line for it",
+      "leaf_effect_seen": false
+     },
+     {
+      "rung": "real-pool",
+      "resolved": true,
+      "why": null,
+      "leaf_effect_seen": false
      }
     ],
     "preflight": {
@@ -24590,7 +25830,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24646,7 +25887,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24702,7 +25944,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24758,7 +26001,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24814,7 +26058,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24870,7 +26115,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24922,11 +26168,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "confusion",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -24984,7 +26236,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25036,11 +26289,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "confusion",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25096,7 +26355,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25152,12 +26412,14 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25213,7 +26475,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25269,7 +26532,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25321,11 +26585,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "syrupbomb",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25381,7 +26651,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25433,11 +26704,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "tailwind",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25489,11 +26766,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "taunt",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25549,7 +26832,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25605,12 +26889,14 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail move: Teatime"
+      "why": "-fail move: Teatime",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25662,11 +26948,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "confusion",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25722,7 +27014,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25778,7 +27071,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25834,7 +27128,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25892,7 +27187,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -25946,11 +27242,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "throatchop",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26006,7 +27308,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26062,7 +27365,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26120,7 +27424,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26176,7 +27481,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26232,7 +27538,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26288,7 +27595,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26344,7 +27652,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26400,7 +27709,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26456,7 +27766,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26508,11 +27819,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "torment",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26568,7 +27885,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26620,11 +27938,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "toxicspikes",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26680,7 +28004,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26736,7 +28061,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26792,7 +28118,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26848,7 +28175,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26904,12 +28232,14 @@
      {
       "rung": "bare",
       "resolved": false,
-      "why": "-fail"
+      "why": "-fail",
+      "leaf_effect_seen": null
      },
      {
       "rung": "items",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -26965,7 +28295,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27017,11 +28348,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "trickroom",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27079,7 +28416,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27135,7 +28473,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27191,7 +28530,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27247,7 +28587,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27305,7 +28646,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27357,11 +28699,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "uproar",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27417,7 +28765,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27473,7 +28822,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27529,7 +28879,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27585,7 +28936,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27641,7 +28993,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27699,7 +29052,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27755,7 +29109,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27811,7 +29166,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27867,7 +29223,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27923,7 +29280,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -27979,7 +29337,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28031,11 +29390,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "partiallytrapped",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28091,7 +29456,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28145,11 +29511,45 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "wideguard",
+     "display": "Wide Guard",
+     "scope": "slot",
+     "where": "move.condition",
+     "markers": [
+      {
+       "ev": "-activate",
+       "label": "move: Wide Guard"
+      }
+     ],
+     "arrival": [
+      "-singleturn"
+     ],
+     "from": [
+      "onTryHit"
+     ],
+     "staged_as": {
+      "shape": "guardShape",
+      "move": "blizzard"
+     },
+     "not_staged_because": null,
+     "showdown_seen": true,
+     "showdown_lines": [
+      "|-activate|p1a: Aegislash|move: Wide Guard"
+     ],
+     "medicham_seen": true,
+     "medicham_lines": [
+      "|-activate|p1a: Aegislash|move: Wide Guard"
+     ]
+    },
+    "announcement_only": false,
+    "leaf_effect_split": null,
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": true
      }
     ],
     "preflight": {
@@ -28205,7 +29605,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28261,7 +29662,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28315,11 +29717,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "wish",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28373,11 +29781,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "wonderroom",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28433,7 +29847,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28489,7 +29904,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28541,11 +29957,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "partiallytrapped",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28601,7 +30023,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28655,11 +30078,17 @@
       "screens_named_comparable": true
      }
     },
+    "leaf_effect": {
+     "leaf": "yawn",
+     "declares_no_marker": true,
+     "why": "the leaf's own handlers print nothing in response to an incoming move, so whether it fired is a counter question and not a protocol one"
+    },
     "rung_attempts": [
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28715,7 +30144,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -28773,7 +30203,8 @@
      {
       "rung": "bare",
       "resolved": true,
-      "why": null
+      "why": null,
+      "leaf_effect_seen": null
      }
     ],
     "preflight": {
@@ -53979,6 +55410,38 @@
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 11,
    "cannot_fire_in_this_fixture": 1,
+   "announcement_only": 4,
+   "leaf_effect": {
+    "rows": 41,
+    "sameTurnAsked": 10,
+    "sameTurnStaged": 7,
+    "sameTurnDenied": 1,
+    "unstageable": 0,
+    "verbsUnknown": 37,
+    "verbsUnknownSeen": {
+     "attacksAfter": 13,
+     "boostFirst": 2,
+     "asleep": 2,
+     "koTheHolder": 1,
+     "warmup": 2,
+     "countsPP": 2,
+     "switchAfter": 1,
+     "allyAttacksAfter": 1,
+     "itemsOnBoth": 3,
+     "subjectClicksAfter": 1,
+     "allyAbility": 1,
+     "foeClicksAfter": 7,
+     "bothCategories": 1
+    },
+    "shapeUnbuildable": {
+     "lethal": 1
+    },
+    "leafDeclaresMarker": 11,
+    "leafEffectSeen": 7,
+    "announcementOnly": 4,
+    "leafEffectSplit": {},
+    "leafDeclaresNoMarker": 76
+   },
    "seconds": 5
   },
   "abilities": {
@@ -53996,7 +55459,7 @@
    "diverged_including_shelved": 2,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 9.6
+   "seconds": 9.4
   },
   "then_what": {
    "rows": 64,
@@ -54022,7 +55485,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 4.5
+   "seconds": 4.8
   },
   "board_state": {
    "rows": 15,
@@ -54328,7 +55791,7 @@
    ]
   }
  },
- "games_played": 1289,
+ "games_played": 1313,
  "games_threw": 0,
  "sheets_unassembled": 0,
  "overlap": {
@@ -54740,8 +56203,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "e129bca605e3",
-    "roster_generated": "2026-08-29T03:15:57.650Z",
+    "roster_release": "8ad06030e129",
+    "roster_generated": "2026-09-04T01:28:52.048Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

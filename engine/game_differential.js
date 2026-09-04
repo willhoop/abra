@@ -170,6 +170,40 @@ const DUMP_OUT = flag('--dump-out', 'data/divergence-turns.json');
  * the steering test can take two arms WITHOUT clobbering the published artifact — a test that
  * overwrites the run everybody quotes is a worse bug than the one it checks. */
 const OUT = flag('--out', null);
+/* ---- THE PUBLISHED SLOT BELONGS TO THE EMPIRICAL ARM — 2026-09-03 --------------------------------
+ *
+ * `data/game-differential.json` is the file `engine/quarantine.js`'s whole-game clause reads, and the
+ * clause was being ANSWERED BY GAMES THAT NEVER END. Measured on release `8ad06030e129`, cap 12, pool
+ * `0d103fb9fa87`: the coverage arm reached a natural result in **17 of 961 games (1.8%)** — 944 were
+ * cut off by the turn cap — and **0 boards parted**. The empirical arm, on the SAME pins, reached a
+ * result in **474 of 961 (49.3%)** and **77 games' boards parted**. The driver was the only
+ * difference. A gate certified MEDICHAM correct on the population that does not contain the failure.
+ *
+ * THE DEFAULT ARM DOES NOT MOVE AND THIS IS NOT A DEPRECATION. Will, 2026-08-29: *"thats why we have
+ * both."* 48 legal moves are clicked ZERO times in 21,726 real games and the empirical driver cannot
+ * reach that tail by construction; the coverage arm is what does, and dozens of probes `require` this
+ * module and inherit `coverage` at require time. What moves is WHICH ARM MAY OCCUPY THE PUBLISHED
+ * SLOT. A coverage run is still a first-class run — it just writes to a name of its own.
+ *
+ * IT REFUSES AT SECOND ZERO, NOT AT THE WRITE. Finding out after four minutes of games costs the run;
+ * the whole reason `--baseline` refuses up front is the same one. And it refuses rather than silently
+ * flipping the arm: asking by omission is what produced this reading in the first place — the OWED
+ * command in docs/_reports/2026-09-03-pinned-rerun-chain.md carried every pin and no `--steering`,
+ * was run verbatim, and published a coverage artifact into the gate's slot. */
+if (WRITE && !OUT && !EMPIRICAL) {
+  console.error('REFUSING TO PUBLISH A COVERAGE-ARM RUN INTO data/game-differential.json.');
+  console.error('');
+  console.error('  That file answers engine/quarantine.js\'s whole-game clause. Under '
+    + '`census-coverage-seeking/v1` the driver clicks whatever reaches the least-exercised census row');
+  console.error('  rather than trying to win, so 944 of 961 games stop at the turn cap and the clause '
+    + 'is answered by games that never end (17 reached a result, 0 boards parted).');
+  console.error('');
+  console.error('  Publish the empirical arm:');
+  console.error('    node engine/game_differential.js --steering empirical ... --write');
+  console.error('  or keep the coverage arm and give it its own name:');
+  console.error('    node engine/game_differential.js ... --write --out data/verification/game-differential.coverage.json');
+  process.exit(2);
+}
 /* ---- `--nature` — THE THIRD RUN PARAMETER (2026-08-08) -------------------------------------------
  *
  * `real` (the default) carries the SHEET'S OWN nature to both engines. `serious` flattens every body,

@@ -148,6 +148,38 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## THE WHOLE-GAME CLAUSE WAS CERTIFYING THIS ENGINE ON A POPULATION WHERE 944 OF 961 GAMES NEVER REACHED AN ENDING. **NO ENGINE BYTE MOVED, NO CENSUS FIGURE MOVED AND NO MECHANIC CHANGED — THE CHANGE IS TO THE INSTRUMENT AND TO THE GATE. ON RELEASE `8ad06030e129`: BOARD-MATERIAL DIVERGENCE 77 OF 961 (8.0%), PROTOCOL FIRST-DIVERGENCE 168. THE GATE READS CLOSED — 1 OF 8 CLAUSES FAIL, AND THAT IS CORRECT.** 2026-09-03.
+
+**THE ENGINE DID NOT GET WORSE. THE MEASUREMENT OF IT GOT HONEST.** The whole-game clause was answered
+by an artifact from the `census-coverage-seeking/v1` driver, which seeks census coverage rather than
+trying to win: 17 of 961 games reached a result (1.8%), 944 stopped at the 12-turn cap with both
+sides standing, and 0 boards parted. Re-measured on the same pins — release `8ad06030e129`, cap 12,
+pool `0d103fb9fa87`, census pin `9446a684709d`, 961 games of a 1200 PAIR budget, **the driver the
+only difference** — the `empirical-click/v1` driver reaches a result in 474 of 961 (49.3%) and 77
+boards part.
+
+**WHAT THIS DIVISION HAS TO CARRY FROM IT.** The remaining work is larger than the ledger said, and
+the shape of the missing evidence is specific: an error that only shows itself **after a faint, after
+a forced switch, or in the last third of a game** cannot appear in a sample where 944 of 961 games
+stop at turn 12 with both sides standing. The clean whole-game readings recorded in the dated
+sections below were all taken on the coverage arm. They stand as written and are superseded here
+rather than rewritten.
+
+**THE BAR IS UNCHANGED AND SO IS THE READING RULE.** The owner's 2026-08-22 call stands: the gate is
+board-material, with narration as its own separate gate afterwards. Board-material is **77 of 961
+(8.0%)**; protocol first-divergence is **168**; they are two quantities and this ledger names which
+one it means every time. The clause itself currently prints **167** because it gates on protocol
+first-divergence less one declared case — a real mismatch with a decision already made, deliberately
+NOT changed in the pass that turned the gate red, and owed to the owner.
+
+**Downstream of the republished artifact:** ROADMAP #440's closeted perish row now matches no cause
+in the published run, and Supreme Overlord fell 5 to 1.
+
+**NOT RUN, AND NOT A FINDING WAITING TO BE COLLECTED.** `node engine/status.js --write` was
+deliberately not run, so the `<!-- GENERATED -->` block above is one pass behind and still quotes the
+pre-change gate. No census, roster or mechanics-fire run was performed by this pass. Full account:
+`docs/_reports/2026-09-03-gate-reads-empirical-arm.md`.
+
 ## TWO DAMAGE-PATH ROWS, ONE DIE THAT WAS NEVER DRAWN AND ONE CEILING THAT WAS THE WRONG BODY'S. **CENSUS 827 -> 829 LIVE / 829 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW, 0 UNARMED. NO POOL FIGURE IS QUOTED — LIGHT MODE, THE WHOLE-GAME DIFFERENTIAL WAS NOT RUN, AND THE PREDICTION IS WRITTEN DOWN BELOW *BEFORE* ANYBODY RUNS IT.** 2026-09-03.
 
 ROADMAP **#419** (the delayed hit takes no crit draw at all) and **#416** (a broken Substitute's

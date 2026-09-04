@@ -1,10 +1,10 @@
 {
-  "current": "53e3e90dce8d",
-  "cut": "2026-09-01T20:35:51.971Z",
-  "why": "Electric Terrain refuses slp and the yawn volatile to a grounded, non-semi-invulnerable body",
+  "current": "8ad06030e129",
+  "cut": "2026-09-04T01:08:54.834Z",
+  "why": "delayed-hit crit draw + substitute clamp + table digest hashes t/wt",
   "cuts": 1,
-  "latest_cut": "2026-09-01T20:35:51.971Z",
-  "latest_why": "Electric Terrain refuses slp and the yawn volatile to a grounded, non-semi-invulnerable body",
-  "pointer_written": "2026-09-01T20:35:51.984Z",
+  "latest_cut": "2026-09-04T01:08:54.834Z",
+  "latest_why": "delayed-hit crit draw + substitute clamp + table digest hashes t/wt",
+  "pointer_written": "2026-09-04T01:08:54.846Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

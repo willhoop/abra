@@ -10,6 +10,67 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.243.0] — 2026-09-03
+
+### Fixed
+- **THE GATE DECLARED MEDICHAM CORRECT ON A POPULATION WHERE THE GAMES DO NOT END, AND THIS IS THE
+  SECOND TIME THIS SHAPE HAS BEEN PAID FOR.** `engine/quarantine.js` read **8 of 8 PASS** with the
+  whole-game clause at zero. The artifact answering it was produced by the `census-coverage-seeking/v1`
+  driver, which seeks census coverage rather than trying to win: **17 of 961 games reached a result
+  (1.8%)** and 944 stopped at the 12-turn cap with both sides standing. On the SAME pins — release
+  `8ad06030e129`, cap 12, pool `0d103fb9fa87`, census pin `9446a684709d` — the `empirical-click/v1`
+  driver reaches a result in **474 of 961 (49.3%)** and **77 games' boards part**. The driver is the
+  only difference between the two runs. `engine/status.js` was already printing the row
+  `driver policies the gate quotes — 1 of 2`; nothing was wrong with the run, the wrong arm was wired
+  to the clause.
+- **ONE PUBLISHED QUANTITY, NOT TWO FILES THAT CAN DRIFT.** `data/game-differential.json` IS the
+  empirical arm now; the clause was NOT repointed at `data/verification/`. `engine/game_differential.js`
+  refuses at second zero to publish a coverage run into that path — `--write` without `--out` now
+  requires `--steering empirical`. That closes the exact door this came through: `--out` had diverted
+  the empirical run to `data/verification/` while the published file kept its old coverage numbers.
+- **AND THE CLAUSE NOW REFUSES THE WRONG DRIVER RATHER THAN PASSING ON IT.** `wholeGameClause` reads
+  the artifact's own `steering.policy` and withholds its figures on anything that is not
+  `empirical-click/v1`, including an artifact carrying no steering block at all — verdict
+  `MEASURED ON THE WRONG POPULATION`, `clauseExit` 2. **A gate that cannot tell which driver produced
+  its input is the defect; this reading was only the symptom.** Demonstrated RED against the real
+  coverage artifact before it was replaced, and re-verified by the coordinator afterwards by feeding
+  the preserved coverage file back in. Selftest 159 passed, 0 failed.
+
+### Changed
+- **GATE: CLOSED — 1 of 8 clauses fail, and that is the CORRECT outcome.** Clauses 1–5, 7 and 8 PASS;
+  the whole-game clause is now genuinely RED on the same engine. It is state (b), a named instrument
+  actually failing — not (a) a stale release and not (c) a register row without an instrument.
+  **Nothing was tuned to reach it.**
+- `data/game-differential.json` regenerated at release `8ad06030e129`, arm `middle`, `--end-state`,
+  census pin `9446a684709d`, `--team-store data/team-pool-frozen`, 961 games played of a 1200 PAIR
+  budget. It reproduces the earlier empirical run exactly.
+- The `--steering` DEFAULT was deliberately not flipped: dozens of `tests/probe_*.js` require that
+  module and would strand on any release without `move-priors.json` in `SOURCES`.
+
+### Notes
+- **THE CLAUSE PRINTS 167 OF 961, NOT 77, AND THE DIFFERENCE IS A REAL MISMATCH WITH A DECISION
+  ALREADY MADE.** It gates on `j.diverged` — protocol first-divergence, 168 less 1 declared — and
+  never computes `state.games − state.games_board_never_diverged`. CLAUDE.md records the owner's
+  2026-08-22 call that **the bar is BOARD-MATERIAL, with narration as its own separate gate
+  afterwards**, which makes 77 the figure the clause should be reading. NOT changed here: moving
+  167 → 77 in the same pass that turned the gate red is indistinguishable from tuning. It is the
+  owner's call and sits in the report's OWED block.
+- **BOTH QUANTITIES ARE CORRECT AND ONLY ONE IS PUBLISHED.** Board-material is **77 of 961 (8.0%)**;
+  protocol first-divergence is **168**. Say which one is being quoted, every time.
+- A byte copy of the superseded coverage artifact was taken BEFORE the overwrite and kept:
+  `data/verification/game-differential.coverage-2026-09-04T0141.json`. Nothing was deleted.
+- Downstream: ROADMAP #440's closeted perish row now matches no cause in the published run, and
+  Supreme Overlord fell 5 → 1.
+- **RED AND NOT FIXED, PRE-EXISTING AND STATED RATHER THAN FILED:** `tests/test-web-status.js` (12)
+  and `tests/test-web-quarantine-loaders.js` (2). Their payload was built 2026-08-25 declaring
+  `open:false` against an OPEN gate. They were red before this change. WEB is under a declared pause;
+  commands are in the report's OWED block.
+- `engine/status.js --write` deliberately NOT run — the five division ledgers must not be stamped with
+  a lifted quarantine that was never real. `data/policy-weights.json` untouched; MAG stays paused.
+- Full account: `docs/_reports/2026-09-03-gate-reads-empirical-arm.md`.
+
+---
+
 ## [5.242.0] — 2026-09-03
 
 ### Fixed

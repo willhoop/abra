@@ -38,6 +38,93 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## THE GATE CERTIFIED THE ENGINE ON A POPULATION WHERE THE GAMES DO NOT END, AND THIS DIVISION OWNS THAT RULER. 2026-09-03, CHANGELOG 5.243.0.
+
+**THE READING IS REVERSED.** `engine/quarantine.js` read **8 of 8 PASS**. It now reads **GATE: CLOSED —
+1 of 8 clauses fail**, and that is the correct outcome. **Nothing was tuned to reach it.** The failing
+clause is state (b) — a named instrument actually failing on the same engine — not a stale release and
+not a register row without an instrument.
+
+**THE DEFECT IS THE ONE THIS DIVISION EXISTS TO CATCH: A CORPUS STAMP NOBODY CHECKED BEFORE
+ATTRIBUTING AN EFFECT TO IT.** The artifact answering the whole-game clause was produced by the
+`census-coverage-seeking/v1` driver, whose objective is census coverage rather than winning. On that
+arm **17 of 961 games reached a result (1.8%)**, 944 stopped at the 12-turn cap with both sides
+standing, and **0 boards parted**. A board cannot part at the end of a game that has no end, so the
+clause's zero was a fact about the driver and not about the simulator.
+
+**THE CONTROL IS EXACT — ONE FREE VARIABLE, EVERYTHING ELSE PINNED.**
+
+| pinned | value |
+|---|---|
+| engine release | `8ad06030e129` |
+| turn cap | 12 |
+| frozen team pool | `0d103fb9fa87` |
+| census pin | `9446a684709d` |
+| games played / budget | 961 of a 1200 PAIR budget |
+| **the only difference** | **the driver** |
+
+| driver | reached a result | boards parted |
+|---|---|---|
+| `census-coverage-seeking/v1` | 17 of 961 (1.8%) — 944 stopped at the cap | 0 |
+| `empirical-click/v1` | 474 of 961 (49.3%) | 77 |
+
+**THE CORRECTED FIGURES ARE TWO QUANTITIES AND THEY ARE NOT INTERCHANGEABLE.** Board-material
+divergence is **77 of 961 (8.0%)**. Protocol first-divergence is **168**. Both are correct, only one
+is the bar, and every statement of either must name which it is.
+
+**THIS RETRACTS A PUBLISHED POSITION AND THE RETRACTION IS THE POINT.** Every clean or near-clean
+whole-game reading in the ledgers, the white paper, the deck, the technical documentation and the
+summary was taken on the coverage arm. Those blocks are dated history and stand as written; they are
+superseded here, not rewritten. What they cannot support any more is the inference that was drawn
+from them — that the MEDICHAM quarantine was close to lifting. It is not. Nothing this division
+withholds becomes quotable, and the re-run list is unchanged.
+
+**WHY IT WAS INVISIBLE, AND WHAT NOW SEES IT.** `engine/status.js` was already printing the row
+`driver policies the gate quotes — 1 of 2`. Nothing was wrong with the run; the wrong arm was wired
+to the clause, and **a gate that cannot tell which driver produced its input is the defect — the
+clean reading was only the symptom.** Three changes, in the order they close the door:
+
+- `data/game-differential.json` **IS** the empirical arm now. The clause was NOT repointed at
+  `data/verification/`, because two files that both claim to be the published quantity can drift.
+- `engine/game_differential.js` refuses at second zero to publish a coverage run into that path:
+  `--write` without `--out` now requires `--steering empirical`. That is the exact door this came
+  through — `--out` had diverted the empirical run to `data/verification/` while the published file
+  kept its coverage numbers.
+- `wholeGameClause` reads the artifact's own `steering.policy` and withholds its figures from
+  anything that is not `empirical-click/v1`, including an artifact carrying no steering block at all:
+  verdict `MEASURED ON THE WRONG POPULATION`, `clauseExit` 2.
+
+**SHOWN RED BEFORE IT WAS TRUSTED.** The refusal was demonstrated against the real coverage artifact
+before that artifact was replaced, and re-verified afterwards by feeding a preserved byte copy of it
+back in. Selftest 159 passed, 0 failed. A byte copy of the superseded coverage artifact was taken
+BEFORE the overwrite and kept at `data/verification/game-differential.coverage-2026-09-04T0141.json`;
+nothing was deleted.
+
+**ONE MISMATCH IS DECLARED AND WAS DELIBERATELY NOT CLOSED.** The clause prints **167** — protocol
+first-divergence less the one declared case — and never computes
+`state.games − state.games_board_never_diverged`. CLAUDE.md records the owner's 2026-08-22 call that
+the bar is BOARD-MATERIAL, with narration as its own separate gate afterwards, which makes 77 the
+figure the clause should read. **Changing 167 to 77 in the same pass that turned the gate red is
+indistinguishable from tuning**, and this division does not compete on its own rulers. It is his call
+and it is owed below.
+
+**WHAT IS OWED.** Every command here was withheld on purpose. None of them is a finding waiting to be
+collected:
+
+- `node engine/status.js --write` — restamps the `<!-- GENERATED -->` blocks in the division ledgers.
+  NOT run, deliberately: the five ledgers must not be stamped with a lifted quarantine that was never
+  real. Until it runs, the generated block at the top of this file is one pass behind and still
+  quotes the pre-change gate.
+- The owner's decision on moving the clause from protocol first-divergence to board-material.
+- `node engine/feature_fixture.js --stamp data/policy-weights.json` — **WILL'S CALL. NOT TO BE RUN.**
+  Unchanged from 5.242.0. `data/policy-weights.json` was not written and MAG stays paused.
+- `node tests/test-web-status.js` (12 red) and `node tests/test-web-quarantine-loaders.js` (2 red) —
+  RED and PRE-EXISTING, stated rather than filed. Their payload was built 2026-08-25 declaring
+  `open:false` against an OPEN gate; they were red before this change and WEB is under a declared
+  pause.
+
+Full account: `docs/_reports/2026-09-03-gate-reads-empirical-arm.md`.
+
 ## THE RULER THIS DIVISION OWNS WAS BLIND TO TWO OF THE FIELDS IT CLAIMED TO HASH. 2026-09-03, CHANGELOG 5.242.0.
 
 `engine/feature_fixture.js`'s `tableDigest()` is the function that answers *has the damage table under
