@@ -10,6 +10,48 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.242.0] — 2026-09-03
+
+### Fixed
+- **THE WEIGHTS-STALENESS GATE WAS BLIND TO TWO OF THE FIELDS IT CLAIMED TO HASH — A RULER DEFECT,
+  NOT AN ENGINE ONE.** `engine/feature_fixture.js` `tableDigest()` hashed `m.ty`, **a field carried by
+  0 of 322 rows** (the table spells typing `t`), so the term evaluated to a constant `null` and the
+  digest has never been able to see a TYPE change — while the comment three lines above it stated that
+  typing was covered. `m.wt` was not hashed at all, so a WEIGHT change was equally invisible, and
+  weight is a live damage input (Low Kick, Grass Knot, Heavy Slam, Heat Crash, Heavy Metal, Light
+  Metal). Now hashes `m.t` and `m.wt`; term order is append-only so the diff reads as one repaired
+  term plus one new one. `nature` and `sp` remain unhashed on purpose — they reach the formula only
+  through `st`, which is hashed — as do the four provenance fields.
+- **THE BLINDNESS WAS DEMONSTRATED BEFORE IT WAS FIXED, AND THE DIAGNOSIS WAS ITSELF FALSIFIED.**
+  Mutating one row's `t` in memory did not move the digest; nor did mutating `wt`; `mv` and `st` moved
+  it, which is the control proving the mutation test works. After the fix all four move. **A field
+  that is ABSENT hashes as `null` exactly like a field that is PRESENT AND EMPTY** — so inventing a
+  `ty` field was run as a second control, and it moved the digest before the fix, proving the term was
+  live in the hash and the data had simply never populated it. Only a mutation test separates those
+  two, which is why one now exists.
+
+### Changed
+- Damage-table digest `1bda9df11d73` → `9d289cf77e24` **with no change to the table itself.**
+  `tableDigest` is now exported so the probe calls the canonical function rather than copying it.
+
+### Notes
+- **THE STAMP IN `data/policy-weights.json` IS NOW STALE FOR TWO INDEPENDENT REASONS** — the damage
+  table was regenerated (318 → 322 species) *and* the ruler that measures it changed. A single restamp
+  absorbs both and cannot separate them afterwards. Recorded here because that is the only place the
+  distinction survives.
+- **NO RESTAMP AND NO REFIT WERE RUN, BY THE OWNER'S EXPLICIT DECISION.** MAG stays paused until
+  MEDICHAM is correct: MEDICHAM is upstream of the weights, so a refit under a simulator still known
+  wrong would only have to be repeated. `data/policy-weights.json` was not written. The verdict on the
+  table change remains RESTAMP-not-refit and waits for him.
+- **THE GATE STILL PARSES AND ITS VERDICT IS UNCHANGED.** `engine/status.js` parses this file's
+  printed OUTPUT, so the shape is load-bearing and was deliberately not touched: it still matches
+  `FEATURE SEMANTICS CHECK FAILED`, still exits 1, and its `how:` string is byte-identical to the one
+  already stamped in `docs/MEASURE.md`. Both gates fire exactly as before; only the hex value moved.
+  `tests/test-feature-semantics.js` 24 passed, 0 failed.
+- Full account: `docs/_reports/2026-09-03-table-digest-blind-fields.md`.
+
+---
+
 ## [5.241.0] — 2026-09-03
 
 ### Fixed

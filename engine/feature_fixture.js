@@ -736,9 +736,30 @@ function tableDigest() {
   const parts = [];
   for (const [n, m0] of rows) {
     const m = m0 || {};
-    /* Set-bearing fields plus the stats and typing the damage formula multiplies. */
+    /* Set-bearing fields plus the stats, typing and weight the damage formula multiplies.
+     *
+     * `m.ty` WAS HASHED HERE UNTIL 2026-09-03 AND EXISTS ON 0 OF 322 ROWS. The table spells typing
+     * `t`, so the term evaluated to a constant `null` on every row and the digest has NEVER been
+     * able to see a type change — while the comment above it said, in the same three lines, that
+     * typing was covered. `wt` was not hashed at all, so a weight change (Low Kick, Grass Knot,
+     * Heavy Slam, Heat Crash all read it) was equally invisible. This is a RULER defect, not an
+     * engine one: the guard reported agreement it had not checked.
+     *
+     * It was not arbitrary and it was not a typo anybody would spot by reading — `ty` is the
+     * plausible spelling, and a field that is absent hashes as `null` exactly like a field that is
+     * present and empty. Only a mutation test tells the two apart, which is why one exists:
+     * mutate one row's `t`, one row's `wt`, and confirm the digest MOVES. It did not, before this.
+     *
+     * ORDER IS APPEND-ONLY AND DELIBERATE. The first five terms keep their positions so this reads
+     * as one repaired term plus one new one rather than a reshuffle; `t` sits where the dead `ty`
+     * sat, and `wt` goes on the end.
+     *
+     * NOT HASHED, on purpose: `nature` and `sp` reach the formula only through `st`, which is
+     * hashed; `base`, `mega`, `mv_provenance` and `set_source` are provenance, not inputs to a
+     * damage calculation. */
     parts.push(n + '=' + JSON.stringify([
-      m.mv || [], m.item || null, m.ab || null, m.st || null, m.bs || null, m.ty || null,
+      m.mv || [], m.item || null, m.ab || null, m.st || null, m.bs || null, m.t || null,
+      m.wt == null ? null : m.wt,
     ]));
   }
   return { species: rows.length, digest: h(parts) };
@@ -896,7 +917,11 @@ function verify(stored, dex, opts) {
   return out;
 }
 
-module.exports = { SCENARIOS, ROUND, build, columns, hashes, verify };
+/* `tableDigest` is exported so the blind-field demonstration (docs/_reports/2026-09-03-table-digest-
+ * blind-fields.md) can mutate one row of the real table in memory and re-ask THIS function, rather
+ * than re-implementing the hash beside it. A second copy of a digest is the `buildMon("Scizor")`
+ * shape (LESSONS §8) and would have agreed with the bug it was written to find. */
+module.exports = { SCENARIOS, ROUND, build, columns, hashes, verify, tableDigest };
 
 /* ---- CLI -------------------------------------------------------------------------------------- */
 if (require.main === module) {

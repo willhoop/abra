@@ -38,6 +38,74 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## THE RULER THIS DIVISION OWNS WAS BLIND TO TWO OF THE FIELDS IT CLAIMED TO HASH. 2026-09-03, CHANGELOG 5.242.0.
+
+`engine/feature_fixture.js`'s `tableDigest()` is the function that answers *has the damage table under
+this fitted vector moved*. It hashed `m.ty` for typing. **The table carries no `ty`: the field is
+present on 0 of 322 rows, and typing lives in `t`.** So that term evaluated to a constant `null` on
+every row of every run since it was written, and a TYPE change has never been visible to the digest.
+`m.wt` was not hashed at all, and weight is a live damage input in this format — Low Kick, Grass Knot,
+Heavy Slam, Heat Crash, Heavy Metal and Light Metal. Both are hashed now. Term order is append-only,
+so the diff reads as one repaired term plus one new one. `nature` and `sp` stay unhashed on purpose,
+because they reach the damage formula only through `st`, which is hashed; so do the four provenance
+fields. Full account: `docs/_reports/2026-09-03-table-digest-blind-fields.md`.
+
+**THIS IS LESSONS §5 IN THIS DIVISION'S OWN HOUSE, AND IT IS THE HARDER VARIANT.** The usual shape is
+an instrument accusing a correct engine. This one accused nobody: it printed a stable digest, which is
+exactly what a correct digest prints when nothing has changed. **A silent ruler and a ruler that
+cannot see are the same output.**
+
+**AN ABSENT FIELD HASHES AS `null` EXACTLY LIKE A FIELD THAT IS PRESENT AND EMPTY.** That is why
+reading the code was never going to settle it — the comment three lines above the term said typing was
+covered, and nothing in the output disagreed. It was settled by MUTATION, with controls in both
+directions:
+
+| mutate one row's… | before the fix | after |
+|---|---|---|
+| `t` (typing) | digest does NOT move | moves |
+| `wt` (weight) | digest does NOT move | moves |
+| `mv` | moves — **the control**, the harness can see a change | moves |
+| `st` | moves — **the control** | moves |
+| an INVENTED `ty` field | **moves** — the term was live; the data never populated it | n/a |
+
+The second control is the one worth keeping. Without it, "the digest did not move" is equally
+consistent with *the term is dead* and with *the term is live and this field is empty everywhere*, and
+those two have different fixes. `tableDigest` is now exported so the probe calls the canonical function
+instead of copying it — the same rule `status.js` follows in shelling out to `provenance.js`.
+
+**MEASURED.** The damage-table digest moved `1bda9df11d73` → `9d289cf77e24` **with no change to the
+table itself.** `tests/test-feature-semantics.js`: 24 passed, 0 failed. `engine/status.js` parses this
+gate's printed OUTPUT rather than its code, so the shape was deliberately left alone — it still matches
+`FEATURE SEMANTICS CHECK FAILED`, still exits 1, and its `how:` string is byte-identical to the one
+already stamped in the `<!-- GENERATED -->` block at the top of this file. Its verdict is unchanged.
+
+**THE STAMP IN `data/policy-weights.json` IS NOW STALE FOR TWO INDEPENDENT REASONS, AND ONE RESTAMP
+WOULD FUSE THEM.** The damage table was regenerated (318 → 322 species) *and* the ruler that measures
+it changed. A single `--stamp` absorbs both causes and cannot separate them afterwards, so this note
+and the CHANGELOG entry are the only places the distinction survives. Whoever runs the restamp inherits
+that: after it, "the table moved" and "the ruler moved" are one undifferentiated green.
+
+**NO RESTAMP AND NO REFIT WERE RUN, BY THE OWNER'S EXPLICIT DECISION. THAT IS A DECISION, NOT AN
+OMISSION, AND IT IS NOT THIS DIVISION'S TO OVERRIDE.** MAG stays paused until MEDICHAM is correct;
+MEDICHAM is upstream of the weights, so a refit under a simulator still known wrong would only have to
+be repeated. `data/policy-weights.json` was not written. The RESTAMP-not-refit verdict on the table
+regeneration stands unchanged from 5.241.0 and waits for him.
+
+**WHY IT WAS SAFE TO FIX THE RULER WITHOUT THE RESTAMP, WHEN 5.241.0 SAID THEY SHOULD LAND TOGETHER.**
+The deferral guarded against clearing a gate ahead of the verdict it exists to inform. That risk lives
+entirely in the RESTAMP, not in the fix: with nothing restamped, the table gate still fires, the
+evidence for the refit verdict is not written over, and the only thing that moved is a hex value. The
+two halves are still coupled in the other direction, which is what the paragraph above records.
+
+**WHAT IS OWED.** Both commands below were withheld deliberately in this pass, and neither is a
+finding waiting to be collected:
+
+- `node engine/status.js --write` — restamps the `<!-- GENERATED -->` blocks in the division ledgers.
+  Not run: light mode. Until it runs, the generated block at the top of this file is one pass behind
+  and its `feature_fixture --check FAILED` line quotes the pre-fix run.
+- `node engine/feature_fixture.js --stamp data/policy-weights.json` — **WILL'S CALL. NOT TO BE RUN.**
+  It is the restamp that fuses the two staleness causes above, and MAG is paused.
+
 ## THREE OF THE FIVE CARRIED REDS WERE NEVER RED. TWO WERE THE HARNESS AND ONE WAS THE RULER. 2026-08-29, CHANGELOG 5.222.0.
 
 Five checks had been reported red — correctly, and A/B-verified as pre-existing — through eleven

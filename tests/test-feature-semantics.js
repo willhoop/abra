@@ -170,13 +170,20 @@ ok(/allyHit/.test(msg), 'the rejection message names the feature that moved');
  * When the fixture grew from 10 scenarios to 12 on 2026-08-13, gate 2 began returning for every
  * pre-existing stamp and the table verdict became UNREACHABLE. `data/policy-weights.json` is the
  * live instance: it is stamped against 10 scenarios AND against damage-table digest 405c836793d1,
- * the table is now 1bda9df11d73 over 322 species, and the only thing the check would say is
+ * the table was 1bda9df11d73 over 322 species, and the only thing the check would say is
  *
  *     "the fixture itself changed ... restamp after checking board.js"
  *
  * which points at the one action that ERASES the table evidence. `web/status-data.js`, a snapshot of
  * status.js from 2026-08-10, still carries the table verdict this check used to give — so the loss is
  * observed, not inferred.
+ *
+ * DIGEST VALUE UPDATED 2026-09-03, and the paragraph above is left standing as the dated account it
+ * is. `tableDigest()` hashed `m.ty`, a field 0 of 322 rows carry, so typing was named in its comment
+ * and absent from its hash; `m.wt` was not hashed at all. Repairing the term moved the live table
+ * digest 1bda9df11d73 -> 9d289cf77e24 with no change to the table itself. The stamped baseline in
+ * data/policy-weights.json is still 405c836793d1 and is now stale for TWO reasons — the table was
+ * regenerated, and the ruler that measures it changed.
  *
  * The two gates are independent by construction: `tableDigest()` reads `mcKey.all()` and never looks
  * at SCENARIOS, so a moved fixture is no reason at all to stop asking whether the damage table moved.
