@@ -1,7 +1,8 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.240.0 — 2026-09-01.**
+**Version: 5.241.0 — 2026-09-03.**
 
+**5.241.0 - NO STAGE MOVED, NO DAMAGE NUMBER MOVED ON THE DIRECT ROAD, AND ONE ROAD GAINED A STAGE IT NEVER HAD.** The delayed payout (`data/conditions.ts:415` -> `trySpreadMoveHit`) takes the authority's FULL step list, so the crit step at `sim/battle-actions.ts:1156` -> `:1636-1642` applies to it exactly as to a direct click, with `critMult = [0,24,8,2,1]` at `:1633`, the x1.5 at `data/mods/champions/scripts.ts:222` and the `|-crit|` line at `:285`. This engine drew no crit for that road at all - not rarely, never - so the stage was ABSENT rather than misplaced. It is now present, and it is present at the CORRECT position: the payout is re-priced through the certain-crit path (§3, the road that already passes at both endpoints), not multiplied onto a number that has already been rolled, STAB'd, type-charted and chain-spent, which is the battle loop's rolled-crit defect §3 still records. **The evidence is the unwired-knob signature, and it is the reason a stage can be absent for months without a divergence naming it:** handed a crit-certain die and then a crit-impossible one, the authority answered 72 with the line and 48 without while this engine answered 69 both times. **Nothing in §1's stage table changes**, and no multiplier moved class in §2. **The second fix is downstream of the formula, not in it.** A hit that overkills a Substitute doll now books what the DOLL absorbed rather than what the BODY could have taken (`data/moves.ts:18341-18357`, no Champions override): the damage the formula produced is unchanged, and what changed is the quantity recoil and drain are paid FROM - recoil -25 became -12, drain +62 became +21, both now equal to the authority. **THE CORNER DAMAGE DIFFERENTIAL WAS NOT RE-RUN IN THIS PASS** - the machine was in light mode - so the previous release's figure must NOT be read as covering this change. A road that gained a crit stage can move a damage number, which is exactly what that instrument exists to see; the command is in the report's OWED block and the figure is withheld until it runs.
 **5.240.0 - NO DAMAGE STAGE MOVED AND NO DAMAGE NUMBER MOVED.** This version changes whether Electric Terrain lets a sleep or a drowse land. Nothing in the damage chain is touched, and `tests/test-engine-diff.js` was re-run anyway on the same seed as a control: 6,000 compared, 6,000 agreed, 0 disagreed. One second-order note of the kind that looks like a damage change later: a body that stays awake keeps acting, so games under Electric Terrain can now run differently from that point - that is the board changing, not the formula.
 **5.239.0 - NO DAMAGE STAGE MOVED AND NO DAMAGE NUMBER MOVED.** This version changes where a hazard punish puts its layer and when a weather punish is allowed to set its sky. Neither touches the damage chain, so `tests/test-engine-diff.js` was not re-run and its `0 of 6,000 at all sixteen corners` stands unchanged. One second-order note, recorded because it is the kind of thing that looks like a damage change later: Sand Spit now sets sandstorm over a standing sun or rain, so the sun/rain Fire and Water multipliers stop applying from that point in those games - that is the weather changing, not the formula.
 **5.237.0 - NO DAMAGE STAGE MOVED AND NO DAMAGE NUMBER MOVED.** This version changes the accuracy chain, which decides WHETHER a move connects and sits above every damage step; `tests/test-engine-diff.js` was therefore not re-run and its `0 of 6,000 at all sixteen corners` stands unchanged. Recorded here because the accuracy stage table `(3+n)/3` is a near neighbour of the stat-stage table `(2+n)/2` and the two are easy to confuse - they are separate constants and only the accuracy one was touched.
@@ -862,6 +863,39 @@ into the crit's plain multiply.
 - **Shape: different, and already documented** in `engine/game_differential.js`'s header — 11 uniform
   integers here against 16 inverted indices there, agreeing only at the endpoints. **That note does
   not cover position, and position is fine.** The shape question is not this audit's.
+
+### The crit, third road: the DELAYED payout took no draw at all — added 5.241.0
+
+The two roads above are about POSITION. This one was about ABSENCE, and absence is the harder thing
+for this document to have caught, because a stage that is never entered produces no wrong number to
+compare — it produces the same number every time.
+
+The authority hands a delayed payout to `trySpreadMoveHit` (`data/conditions.ts:415`), so it walks
+the same step list as a direct click: the crit step at `sim/battle-actions.ts:1156` → `:1636-1642`,
+`critMult = [0,24,8,2,1]` at `:1633`, the plain ×1.5 at `data/mods/champions/scripts.ts:222` and the
+`|-crit|` line at `:285`. Champions carries no `futuremove` key, so mainline is the authority and that
+is derived rather than assumed.
+
+**How it was measured, and why a sampled run could never have found it.** The die was pinned, not
+sampled — crit-CERTAIN on one arm and crit-IMPOSSIBLE on the other, same board, same attacker:
+
+| die | authority | ours, before |
+|---|---|---|
+| crit-certain | **72**, `\|-crit\|` present | **69**, no line |
+| crit-impossible | **48**, no line | **69**, no line |
+
+Identical output across a varied knob is the finding. The direct-click control on the same attacker
+moved on both engines, so the harness could see a crit either way.
+
+**Where the fix lands, in this document's terms.** The payout is RE-PRICED as a certain crit through
+`dmgRange` — the road §3 above measures as being at the authority's position and passing at both
+endpoints — rather than multiplied afterwards like the battle loop's rolled crit. A late ×1.5 would
+have produced a number that is wrong in exactly the way the 46.5% bottom-roll row above is wrong. The
+`-crit` line is written between the effectiveness line and the damage line, which is the authority's
+order.
+
+**The rolled-crit defect in the battle loop is UNCHANGED by this**, and the table above it still
+stands. This adds a road; it does not fix that one.
 
 ---
 

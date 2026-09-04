@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.241.0] — 2026-09-03
+
+### Fixed
+- **A DELAYED HIT TOOK NO CRIT DRAW AT ALL, SO IT COULD NEVER CRIT (#419).** The authority hands a
+  delayed payout to `trySpreadMoveHit` (`data/conditions.ts:415`), so it gets the FULL step list
+  including the crit step (`sim/battle-actions.ts:1156` → `:1636-1642`, `critMult = [0,24,8,2,1]` at
+  `:1633`; the ×1.5 at `data/mods/champions/scripts.ts:222`, the `|-crit|` line at `:285`). Champions
+  carries no `futuremove` key at all — derived, not recalled. **The signature was the unwired knob,
+  not a missing line:** handed a crit-CERTAIN die and then a crit-IMPOSSIBLE one, the authority
+  answered 72-with-`-crit` and 48-without while this engine answered **69 both times**, with
+  `delayedHitCritDrawn` at 0. No movement across a varied input IS the finding.
+  Proof `tests/probe_delayed_crit.js` — shown RED first with its controls green, green after, and RED
+  again under `MEDI_DELAYED_HIT_NO_CRIT=1`.
+- **A BROKEN SUBSTITUTE'S `lastDamage` WAS THE UNCLAMPED HIT WHERE THE AUTHORITY CLAMPS IT TO THE
+  DOLL'S REMAINING HP (#416).** `data/moves.ts:18341-18357`, not overridden in
+  `data/mods/champions/` (`grep` returns 0). Nothing double-pays it, because `HIT_SUBSTITUTE` becomes
+  `damage[i] = true` → 0 before `move.totalDamage`. This engine banked `min(dmg, tg.curHP)` sixty
+  lines above the branch, so the ceiling was the BODY's and never the DOLL's: recoil **-25 against
+  -12**, drain **+62 against +21**. `_reDealt` now takes an explicit ceiling and the substitute branch
+  passes the doll's pre-hit HP — one helper, three callers.
+  Proof `tests/probe_sub_clamp.js` — RED first on exactly the two overkill arms with **both wide-doll
+  controls already agreeing number-for-number**, and RED again under `MEDI_SUB_DEALT_UNCLAMPED=1`.
+- **A CENSUS ROW WENT RED FOR A FIXTURE REASON, NOT AN ENGINE ONE.** `rngStreams` aliased one plain
+  function onto all seven streams, so the band row's bucket 0 drew `u=0.03125` and fell under 1/24.
+  Its `rng` is now a split struct pinning `crit`; the other fifteen buckets are byte-identical.
+
+### Notes
+- Census 827 → **829** live / 829 probed / 0 missing / 0 hollow / 0 threw / 0 unarmed.
+- **Scoreboard called BEFORE the run, per the 2026-08-23 ranking rule:** both are rare mechanics, so
+  the LAB was expected to move and the PINNED POOL to sit still. The lab moved (+2). **The pool was
+  not run and is not claimed** — the machine was in light mode. The command is in the report's OWED
+  block.
+- **DECLARED REMAINDER, not fixed here:** the substitute road's drain is `Math.ceil` in the authority
+  and `Math.round` in this engine. It coincides for every 1/2-fraction move and parts on Draining
+  Kiss's 3/4. Different line, already on the 2026-08-23 hand list.
+- **THE WEIGHTS-STALENESS GATE HAS BEEN BLIND TO TYPE AND WEIGHT CHANGES.**
+  `engine/feature_fixture.js:741` hashes `m.ty` — a field that exists on **0 of 322 rows** (types live
+  in `t`) — and does not hash `wt` at all. Verified directly by the coordinator, not relayed. NOT
+  fixed in this pass: fixing it moves the digest, so it must land with the restamp rather than before
+  it, and the restamp writes to MAG's `data/policy-weights.json`, which is under the owner's pause.
+- **THE DAMAGE-TABLE REGENERATION DOES NOT REACH THE FIT — verdict RESTAMP, not refit.** All 91
+  touched rows are megas or in-battle formes; `st`, `bs`, `t`, `item` and `ab` moved on ZERO rows. The
+  substantive change is 76 mega moveset rewrites, and `engine/board.js` has exactly two `buildMon`
+  call sites (`:1466`, `:3956`) — the first overwrites the table's moves with the sheet's, the second
+  is fed `baseSpecies()`-stripped names — so the mega `mv` reaches **0 of 16,830 corpus games**.
+  Upper bound on games touched at all: **12 of 16,830 (0.07%)**. Awaiting the owner's call, because
+  the restamp target is MAG's.
+  Full accounts: `docs/_reports/2026-09-03-crit-draw-and-substitute-clamp.md`,
+  `docs/_reports/2026-09-03-damage-table-refit-verdict.md`.
+
+---
+
 ## [5.240.0] — 2026-09-01
 
 ### Fixed

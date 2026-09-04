@@ -148,6 +148,121 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## TWO DAMAGE-PATH ROWS, ONE DIE THAT WAS NEVER DRAWN AND ONE CEILING THAT WAS THE WRONG BODY'S. **CENSUS 827 -> 829 LIVE / 829 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW, 0 UNARMED. NO POOL FIGURE IS QUOTED — LIGHT MODE, THE WHOLE-GAME DIFFERENTIAL WAS NOT RUN, AND THE PREDICTION IS WRITTEN DOWN BELOW *BEFORE* ANYBODY RUNS IT.** 2026-09-03.
+
+ROADMAP **#419** (the delayed hit takes no crit draw at all) and **#416** (a broken Substitute's
+`lastDamage` is the unclamped hit). Both filed 2026-08-23 by ENGINE, both `INSTRUMENT OWED`, both
+carried in the engine's own comments as declared gaps — and neither had ever been shown red.
+
+**BOTH PREMISES HELD.** Neither row was one of the two that turned out to have been closed days
+earlier: `#419` was reproduced at `MEDSEEN.delayedHitCritDrawn` = **0 draws** on a payout the
+authority drew 1 for, and `#416` at **-25 recoil against the authority's -12** on the same board.
+
+### #419 — THE AUTHORITY GIVES THE PAYOUT THE FULL STEP LIST, SO IT ROLLS THE ORDINARY CRIT
+
+```
+data/conditions.ts:415        this.actions.trySpreadMoveHit([target], data.source, hitMove, true)
+sim/battle-actions.ts:1156      const curDamage = this.getDamage(source, target, moveData)
+sim/battle-actions.ts:1636-42     moveHit.crit = move.willCrit || false
+                                  if (move.willCrit === undefined)
+                                    if (critRatio) moveHit.crit = randomChance(1, critMult[critRatio])
+sim/battle-actions.ts:1633        critMult = [0, 24, 8, 2, 1]                (the gen 9 branch)
+data/mods/champions/scripts.ts:220,222  isCrit -> tr(baseDamage * 1.5)
+data/mods/champions/scripts.ts:285      if (isCrit && !suppressMessages) add('-crit', target)
+```
+
+Champions overrides neither `getDamage` nor `getSpreadDamage`, and there is no `futuremove` key in
+the mod at all — **derived, not assumed**: `grep futuremove data/mods/champions/*.ts` returns
+nothing.
+
+This engine's residual payout drew `_R.dmg()` and nothing else. Its own header said so: *"NO CRIT
+LINE, AND THAT IS STATED RATHER THAN MISSED: this payout takes no crit draw at all, so emitting
+`-crit` would require inventing one. It is a separate gap."*
+
+**THE MEASUREMENT IS THE UNWIRED-KNOB SIGNATURE, NOT A MISSING LINE.** Handed a crit-CERTAIN die and
+then a crit-IMPOSSIBLE one, on the same board, the authority answered **72 damage with `|-crit|`**
+and **48 without**; this engine answered **69 both times, with no line either time**. Identical
+output across a varied knob is the finding.
+
+The fix is one draw and one re-price, at the address the `dmg` draw beside it already uses (the
+BOOKED move, the BOOKED source, the collecting body). The crit is **re-priced through `dmgRange(...,
+isCrit=true, ...)`**, not multiplied — the authority's 1.5 lands at `scripts.ts:222`, above the
+randomizer, STAB, the type chart and burn — and a rate of exactly 1 is skipped because `dmgRange`
+has already folded that 1.5 in. The `-crit` line sits between the effectiveness line and the damage,
+which is `scripts.ts:270-284` then `:285`.
+
+### #416 — THE CLAMP IS ABOVE BOTH READERS, AND THE CEILING THIS ENGINE USED WAS THE BODY'S
+
+```
+data/moves.ts:18341-18343   if (damage > target.volatiles['substitute'].hp)
+                              damage = target.volatiles['substitute'].hp;
+data/moves.ts:18345         source.lastDamage = damage;
+data/moves.ts:18352-18354   if (damage) this.actions.applyRecoilDamage(damage, move, source);
+data/moves.ts:18355-18357   if (move.drain) this.heal(ceil(damage * drain[0]/drain[1]), ...)
+```
+
+`grep substitute data/mods/champions/moves.ts` returns **0**, so mainline is the authority here and
+that is derived rather than remembered. And nothing double-pays it: `spreadMoveHit` turns a
+`HIT_SUBSTITUTE` result into `damage[i] = true` (`data/mods/champions/scripts.ts:351-353`), which the
+hit loop folds to 0 before `move.totalDamage += damage[i]` (`sim/battle-actions.ts:961-965`), so the
+outer `applyRecoilDamage(move.totalDamage, ...)` at `:982` sees nothing from a doll.
+
+This engine banked `dealt = min(dmg, tg.curHP)` sixty lines **above** the substitute branch. The
+ceiling was the BODY's HP; it was never the DOLL's. Measured: a Double-Edge into a 35-HP doll cost
+the authority **12** and this engine **25**; a Bitter Blade into a 41-HP doll healed the authority
+**21** and this engine **62**.
+
+The fix gives `_reDealt` an explicit ceiling — default `tg.curHP`, so the two existing callers are
+byte-identical — and the substitute branch passes `_s0`, the doll's HP read one line above the
+subtraction. **One helper, three callers**, because "how much did this actually deal" is one fact.
+
+**THE CONTROL IS THE REGISTER ROW'S OWN AND IT WAS ALREADY GREEN BEFORE THE FIX**: the identical pair
+with the target's max HP x12, so `floor(H/4)` is above the hit and no clamp applies. Both engines
+read **-25** and **+75** there, before and after. That is what says the fix touches the overkill and
+nothing else.
+
+### WHICH SCOREBOARD, SAID BEFORE ANYTHING WAS CHECKED
+
+Both are **rare-mechanic** rows under Will's 2026-08-23 ranking, so the prediction is *lab moves,
+pool sits still*:
+
+| | expected lab | expected pinned pool |
+|---|---|---|
+| #419 | census **+1** | board-parted **unmoved**, possible **-1**. Future Sight is 20 sheets and the crit is 1/24, so the conjunction is rare — but it is not zero, because this engine could not crit a payout the authority could |
+| #416 | census **+1** | board-parted **unmoved**, possible **-1 or -2**. Substitute is common, an overkill into a doll with a recoil or drain move is not |
+
+Neither pool figure is claimed. `engine/game_differential.js` is a banned command in light mode and
+the exact invocation is in the report's OWED block.
+
+### THE HAND LIST
+
+**Removed — these are census probes now, so the census carries them:**
+
+- ~~the delayed hit takes no crit draw at all~~ (the `move | delayedHit` row *"the delayed payout
+  rolls the ordinary crit, prices it and announces it"*, plus `tests/probe_delayed_crit.js` across
+  both engines)
+- ~~a broken Substitute's recoil and drain are paid on the unclamped hit~~ (the `move | substitute`
+  row *"an overkill into a doll pays recoil and drain on the DOLL'S last HP, not on the swing"*, plus
+  `tests/probe_sub_clamp.js` across both engines)
+
+**Owed and named, not fixed here:**
+
+- **A broken Substitute's drain is `Math.round` where the authority is `Math.ceil`**
+  (`data/moves.ts:18356` against `_payDrainRow`'s `sim/battle.ts:2168` rule). The two coincide for
+  every 1/2-fraction drain move in this format and part on a 3/4 one (Draining Kiss). It was already
+  on the 2026-08-23 hand list, it is a **different line from #416**, and folding it in would have
+  destroyed the attribution of this pass. It stays there.
+- **The census band row's fixture had to be cleared, and that is worth naming.** `rngStreams` aliases
+  every stream onto a plain function, so the existing *"the delayed hit SELECTS out of the
+  sixteen-roll band"* row was answering the new crit die with its own damage `u` — bucket 0's
+  `0.03125` is under 1/24, and the row read 177 where its own band says 118. Its `rng` is now a split
+  struct pinning `crit` to no-crit and leaving the other six on `u`; the other fifteen buckets are
+  byte-identical. **A row that started failing because a NEW die reached it is the fixture, not the
+  engine** — but it is exactly the shape that gets mistaken for a regression, so it is written down.
+- Nothing was re-run that light mode forbids: no whole-game differential, no roster stage, no
+  `all_mechanics_fire`, no `status.js --write`. Every command is in the report's OWED block.
+
+
 ## ELECTRIC TERRAIN'S `onBasePower` WAS READ AT FOUR SITES AND ITS TWO REFUSALS AT NONE — AND THE POOL PROVES IT NEVER GETS THERE, RATHER THAN LOOKING LIKE IT. **CENSUS 825 -> 827 LIVE / 827 PROBED / 0 MISSING, 0 HOLLOW, 0 THREW. BOARD-PARTED UNMOVED AT 77 OF 961, PROTOCOL UNMOVED AT 168, CAUSES UNMOVED AT 146 WITH ZERO ADDED AND ZERO REMOVED, END-STATE IDENTICAL AT 910/49/1/0/1 — ALL FOUR WRITTEN TO DISK AT THEIR POINT ESTIMATE BEFORE THE RUN, AS A LAB-ONLY MOVE, WITH THE ARITHMETIC STATED FIRST. THE STILL POOL IS NOT AN ASSUMPTION: `MEDSEEN.terrainRefusedSleep` AND `terrainRefusedYawn` BOTH READ **0 OVER 961 GAMES** WHILE `terrainScaledGateApplied` READS 72 IN THE SAME RUN, SO THE COUNTER MECHANISM IS ALIVE AND THE MECHANIC IS UNREACHED. ELEVEN PREDICTIONS, TEN HITS AND ONE NAMED MISS.** 2026-09-01.
 
 **THE FOURTH TERRAIN BATCH, AND THE FIRST ONE ABOUT A REFUSAL.** The three before it were all

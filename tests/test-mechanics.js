@@ -30376,6 +30376,90 @@ probe('move', 'substitute', 'a substitute that BREAKS writes `-end`, and only on
                  + `\`[damage]\` report is the authority's ELSE arm and means the doll is still up` };
 });
 
+/* ROADMAP #416, 2026-09-03 -- AN OVERKILL INTO A DOLL PAYS THE ATTACKER BACK ON THE DOLL'S LAST HP.
+ *
+ * Champions does not override Substitute (`grep substitute data/mods/champions/moves.ts` -> 0), so
+ * `data/moves.ts` is the line, and the clamp sits ABOVE both readers:
+ *
+ *     data/moves.ts:18341-18343   if (damage > target.volatiles['substitute'].hp)
+ *                                   damage = target.volatiles['substitute'].hp;
+ *     data/moves.ts:18345         source.lastDamage = damage;
+ *     data/moves.ts:18352-18354   if (damage) this.actions.applyRecoilDamage(damage, move, source);
+ *     data/moves.ts:18355-18357   if (move.drain) this.heal(ceil(damage * drain[0]/drain[1]), ...)
+ *
+ * This engine banked `dealt = min(dmg, tg.curHP)` sixty lines above the substitute branch, so the
+ * ceiling was the BODY's HP and never the DOLL's, and a swing that overshot a 35-HP doll paid recoil
+ * on the whole swing. The file said so at the site and left it for the road that owns it.
+ *
+ * THE KNOB IS THE DOLL'S WIDTH AND IT IS CLEARED EXPLICITLY. The control is the register row's own —
+ * the identical pair with the target's max HP multiplied, so `floor(H/4)` is comfortably above the
+ * hit, no clamp applies and the attacker is paid on the real damage. A fix that clamped everything
+ * would break that arm; a doll the attack cannot break would make BOTH arms the control, which is
+ * why the overkill arm asserts the doll actually reached zero and the control asserts it did not.
+ *
+ * THE NUMBERS ARE DERIVED FROM THE MOVE, NOT TYPED. The recoil share is `MC.moves[id].rc` and the
+ * drain share is the `drain` tag's own fraction; the expected payment is the authority's own
+ * expression (`clampIntRange(Math.round(dealt * r[0] / r[1]), 1)`, sim/battle-actions.ts:1384) over
+ * the doll's starting HP, which this probe reads off the board rather than computing.
+ *
+ * The cross-engine account, with the authority playing the same turn, is `tests/probe_sub_clamp.js`;
+ * it measured the authority at -12 recoil and this engine at -25 before the wire.
+ *
+ * DECLARED, NOT ASSERTED HERE: the authority's drain on this road is `Math.ceil` where `_payDrainRow`
+ * is `Math.round`. They coincide on every 1/2-fraction drain move and part on a 3/4 one. That is a
+ * different defect on a different line and is deliberately not folded in. */
+probe('move', 'substitute', 'an overkill into a doll pays recoil and drain on the DOLL\'S last HP, not on the swing', () => {
+  const T = require(D('data', 'tags.json'));
+  const run = (mv, wide) => {
+    const me = bare('abomasnow'), ally = bare('clefable');
+    const f1 = bare('absol'), f2 = bare('garchomp');
+    /* THE CONTROL'S DOLL IS WIDE BECAUSE ITS BODY IS. `floor(maxhp/4)` is the doll, so multiplying
+     * the max HP is the only knob that moves the doll without touching the hit. */
+    if (wide) f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 12 });
+    f1.curHP = f1.st.hp;
+    me.curHP = Math.floor(me.st.hp / 2);       /* room for a drain heal to be visible */
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    /* turn 1 exists only to put the doll up — both arms get the identical click */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'substitute', f1, S.field)], [f2, { kind: 'pass' }]]));
+    const doll0 = f1._sub, hp0 = me.curHP;
+    trace.length = 0;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+                 PASS2(f1, f2));
+    return { doll0, left: f1._sub, ate: doll0 - f1._sub, delta: me.curHP - hp0,
+             lines: trace.map(M.traceCanon).filter(l => /substitute|recoil|drain/i.test(l)) };
+  };
+  const rc = MC.moves['doubleedge'].rc;
+  const dr = (T.moves['gigadrain'] && T.moves['gigadrain'].params.drain) || {};
+  const recoilOn = (d) => Math.max(1, Math.round(d * rc[0] / rc[1]));
+  const drainOn = (d) => Math.round(d * dr.fraction);
+  const rK = run('doubleedge', false), rW = run('doubleedge', true);
+  const dK = run('gigadrain', false), dW = run('gigadrain', true);
+  const j = JSON.stringify;
+  const works = rc && rc.length === 2 && dr.fraction > 0
+    /* the fixture's own premise: the overkill BREAKS the doll and the control does not */
+    && rK.doll0 > 0 && rK.left === 0 && rW.left > 0
+    && dK.doll0 > 0 && dK.left === 0 && dW.left > 0
+    /* the overkill is paid on the doll's LAST HP … */
+    && -rK.delta === recoilOn(rK.doll0) && dK.delta === drainOn(dK.doll0)
+    /* … and the wide-doll control is still paid on the real damage, unchanged by the fix */
+    && -rW.delta === recoilOn(rW.ate) && dW.delta === drainOn(dW.ate)
+    /* and the two arms are not the same number, or the knob is unwired */
+    && rK.delta !== rW.delta && dK.delta !== dW.delta;
+  return { works, arms: { control: [String(rW.delta), String(dW.delta), String(rW.left)],
+                          test: [String(rK.delta), String(dK.delta), String(rK.left)] },
+           detail: `an Abomasnow at half HP into an Absol's ${rK.doll0}-HP doll. OVERKILL — `
+                 + `Double-Edge takes ${-rK.delta} recoil (the authority's round(${rK.doll0} x `
+                 + `${rc[0]}/${rc[1]}) = ${recoilOn(rK.doll0)}), doll left ${rK.left}, ${j(rK.lines)}; `
+                 + `Giga Drain heals ${dK.delta} (round(${dK.doll0} x ${dr.fraction}) = `
+                 + `${drainOn(dK.doll0)}), doll left ${dK.left}. CONTROL, the identical pair with the `
+                 + `body's max HP x12 so the ${rW.doll0}-HP doll SURVIVES: recoil ${-rW.delta} off `
+                 + `${rW.ate} dealt, drain ${dW.delta} off ${dW.ate} dealt, dolls left ${rW.left} / `
+                 + `${dW.left}. Before the wire both overkill arms were paid on the whole swing — `
+                 + `${-rW.delta} and ${dW.delta}-sized numbers into a doll a fraction of that size` };
+});
+
 /* 2026-08-27 -- A STATUS MOVE MEETS THE DOLL AT `onTryPrimaryHit`, WHICH IS THREE STEPS BELOW THE
  * ACCURACY ROLL -- SO IT CAN MISS FIRST, AND WHEN IT DOES NOT IT FAILS ON THE MOVER.
  *
@@ -30666,7 +30750,14 @@ probe('move', 'delayedHit', 'the delayed hit SELECTS out of the sixteen-roll ban
   const band = ctx.rolls.slice();
   const land = (u) => {
     const B = mk();
-    const rng = () => u;
+    /* ROADMAP #419, 2026-09-03 — THE CRIT DIE IS CLEARED EXPLICITLY, AND IT HAD TO BE.
+     * `rngStreams` aliases EVERY stream onto a plain function, so `() => u` answered the crit die too
+     * — and once the delayed payout started drawing one (#419), bucket 0's u = 0.03125 fell under
+     * Future Sight's 1/24 and this row read 177 where its own band says 118. That is the fixture, not
+     * the engine: this row asks what the DAMAGE die selects, so the crit die must say no-crit at
+     * every bucket. 0.999 is above every crit rate this format can produce.
+     * Everything else still reads `u`, so the fifteen other buckets are byte-identical to before. */
+    const rng = { any: () => u, crit: () => 0.999, split: true, seed: null };
     const S = M.battleInit([B.me, B.ally], [B.f1, B.f2], { seeded: true });
     M.battleTurn(S, rng, new Map([[B.me, M.playerAction(B.me, 'futuresight', B.f1, S.field)],
                                   [B.ally, { kind: 'pass' }]]), PASS2(B.f1, B.f2));
@@ -30727,6 +30818,85 @@ probe('move', 'delayedHit', 'the delayed hit SELECTS out of the sixteen-roll ban
                  + `the damage differential read 0 while the interior was wrong. THE EFFECTIVENESS `
                  + `LINE, three arms: super-effective ${j(se)}; resisted ${j(rz)}; neutral ${j(nt)} `
                  + `(which must carry NEITHER line)` };
+});
+
+/* ROADMAP #419, 2026-09-03 -- THE DELAYED PAYOUT TOOK NO CRIT DRAW AT ALL, SO IT COULD NEVER CRIT.
+ *
+ * The row above closed the DAMAGE die on this same payout and left the crit one open; the engine said
+ * so in its own header -- *"this payout takes no crit draw at all, so emitting `-crit` would require
+ * inventing one. It is a separate gap."*
+ *
+ * THE AUTHORITY, READ AND NOT RECALLED. `condition:futuremove`'s payout is an ORDINARY HIT:
+ *     data/conditions.ts:415        this.actions.trySpreadMoveHit([target], data.source, hitMove, true)
+ *     sim/battle-actions.ts:1156      const curDamage = this.getDamage(source, target, moveData)
+ *     sim/battle-actions.ts:1636-42     moveHit.crit = move.willCrit || false
+ *                                       if (move.willCrit === undefined)
+ *                                         if (critRatio) moveHit.crit = randomChance(1, critMult[critRatio])
+ *     data/mods/champions/scripts.ts:220,222  isCrit -> tr(baseDamage * 1.5)
+ *     data/mods/champions/scripts.ts:285      if (isCrit && !suppressMessages) add('-crit', target)
+ * Champions overrides neither `getDamage` nor `getSpreadDamage`, and does not override `futuremove` at
+ * all, so the delayed hit rolls the same 1/24 a direct click rolls.
+ *
+ * THE KNOB IS THE CRIT DIE AND IT IS CLEARED EXPLICITLY. Both arms are the SAME board, the SAME
+ * damage die and the SAME booking; only the `crit` stream moves, from 0 (below every rate this format
+ * produces) to 0.999 (above every one). Before the wire the two arms were BYTE-IDENTICAL -- no line
+ * and the same number -- which is this repo's unwired-knob signature and not evidence that the crit
+ * does not matter. The row asserts the LINE and the NUMBER together, because an engine that printed
+ * `-crit` and did not re-price would pass a line-only check.
+ *
+ * AND IT IS PAIRED WITH A DIRECT CLICK ON THE SAME BOARD under the same two dice. A crit that the
+ * ordinary attack path could not show either would be a fixture that is immune for two reasons.
+ * The full cross-engine account, with the authority playing the same three turns, is
+ * `tests/probe_delayed_crit.js`. */
+probe('move', 'delayedHit', 'the delayed payout rolls the ordinary crit, prices it and announces it', () => {
+  const arm = (crit, direct) => {
+    const me = bare('oranguru'), ally = bare('whimsicott');
+    const f1 = bare('hippowdon'), f2 = bare('garchomp');
+    unfaintable(f1);
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    /* 1/24 is 0.0417; 0 is under every crit rate this format can produce and 0.999 is over every one.
+     * Every other stream keeps the mid-roll 0.5 both arms, so nothing but the crit moves. */
+    const rng = { any: () => 0.5, crit: () => (crit ? 0 : 0.999), split: true, seed: null };
+    const click = direct ? 'psychic' : 'futuresight';
+    let hurt = 0, was = f1.curHP, block = [];
+    for (let t = 0; t < 3; t++) {
+      trace.length = 0;
+      M.battleTurn(S, rng, new Map([[me, M.playerAction(me, click, f1, S.field)], [ally, { kind: 'pass' }]]),
+                   PASS2(f1, f2));
+      if (was - f1.curHP > hurt) {
+        hurt = was - f1.curHP;
+        block = trace.map(M.traceCanon).filter(l => /-crit|-damage|-supereffective|-resisted|futuresight/.test(l));
+      }
+      was = f1.curHP;
+    }
+    return { hurt, crit: block.some(l => /^\|-crit\|/.test(l)), block };
+  };
+  const dC = arm(true, false), dN = arm(false, false);
+  const pC = arm(true, true), pN = arm(false, true);
+  const j = JSON.stringify;
+  /* THE `-crit` MUST SIT BETWEEN THE EFFECTIVENESS LINE AND THE `-damage`, which is the authority's
+   * order (scripts.ts:270-284 then :285 then the damage) and the order the direct path already keeps. */
+  const ordered = (L) => { const c = L.findIndex(l => /^\|-crit\|/.test(l)),
+                                 d = L.findIndex(l => /^\|-damage\|/.test(l));
+                           return c >= 0 && d > c; };
+  /* THE SIZE OF THE MOVE IS ASSERTED AS A BAND AND NOT AS AN EQUALITY, AND THE REASON IS THE FIX'S
+   * OWN POINT. The authority's crit is `tr(baseDamage * 1.5)` at `scripts.ts:222` — BEFORE the
+   * randomizer, STAB, the type chart and burn — so the crit price is not 1.5x the final number and
+   * a `round(plain * 1.5)` equality is off by one here (193 against 194). Asserting that equality
+   * would be asserting the multiply-at-the-end model this engine deliberately does not use. */
+  const band15 = (a, b) => a >= Math.floor(b * 1.4) && a <= Math.ceil(b * 1.6);
+  const works = dC.crit && !dN.crit && dC.hurt > dN.hurt && ordered(dC.block)
+             && pC.crit && !pN.crit && pC.hurt > pN.hurt
+             && band15(dC.hurt, dN.hurt) && band15(pC.hurt, pN.hurt);
+  return { works, arms: { control: [String(dN.hurt), String(dN.crit)], test: [String(dC.hurt), String(dC.crit)] },
+           detail: `Future Sight, Oranguru into an unfaintable Hippowdon, paid out at the residual two `
+                 + `turns later — CRIT-CERTAIN die: ${dC.hurt} damage, |-crit| ${dC.crit}, lines `
+                 + `${j(dC.block)}; CONTROL, the identical board with only the crit stream moved to `
+                 + `no-crit: ${dN.hurt}, |-crit| ${dN.crit}, lines ${j(dN.block)}. The same attacker's `
+                 + `DIRECT Psychic on the same board answers ${pC.hurt}/${pC.crit} against `
+                 + `${pN.hurt}/${pN.crit}, so the harness can see a crit either way. Before the wire `
+                 + `the two delayed arms were byte-identical — the payout drew no crit die at all` };
 });
 
 /* 2026-08-23 -- A STATUS MOVE MISSES A SEMI-INVULNERABLE BODY TOO, AND THIS ENGINE LANDED ALL OF THEM.

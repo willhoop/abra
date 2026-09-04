@@ -706,6 +706,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * on a run containing a lethal hit into a Focus Sash or an Endure means this re-read is not on the
    * path and every such toll is one point high. */
   dealtReReadAfterClamp: 0,
+  /* ROADMAP #416, 2026-09-03 -- a hit whose damage OVERSHOT the substitute doll it landed on, so the
+   * doll's remaining HP became the ceiling on `dealt` (data/moves.ts:18341-18343). Counted apart from
+   * `dealtReReadAfterClamp` because the two ceilings are different facts about different bodies: that
+   * one is the survival clamp on the BODY, this one is the doll. A zero on a run containing an
+   * overkill into a Substitute means this cap is not on the path and every recoil and drain off such
+   * a hit is paid on the whole swing. */
+  subDealtCapped: 0,
   /* ROADMAP #139 -- Rough Skin, Weak Armor and every other `onDamagingHit` reactor firing TWICE off
    * one bonded click, which is the reaction half of "two separate hits". */
   parentalBondReactedTwice: 0,
@@ -1827,6 +1834,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * interpolating the span. Expected to equal `delayedHitLanded`; a gap means dmgRange took a path
    * that does not fill the out-parameter and `MEDFAILS.delayedHitBandMissing` names the move. */
   delayedHitBandSelected: 0,
+  /* ROADMAP #419, 2026-09-03 -- THE PAYOUT'S OWN CRIT. `delayedHitCritDrawn` counts the die (one per
+   * landed payout, exactly as the authority draws one inside `getDamage`), `delayedHitCrit` the
+   * subset that came back a crit. `delayedHitCritDrawn` short of `delayedHitLanded` means a payout
+   * reached the board without spending the die -- which is the defect this pair was added to close,
+   * and which read as ZERO movement across a pinned crit die for as long as it lasted. */
+  delayedHitCritDrawn: 0, delayedHitCrit: 0,
   /* WIRE 141 -- a forme that flipped on the CLOCK (Hunger Switch). A zero after real games with a
    * Morpeko in them means the residual block never reached the ability.
    * flingThrown / flingRefused are the two halves of Fling and are counted APART because the refusal
@@ -2752,6 +2765,12 @@ const MEDFAILS = { encoreAction: 0,
    * the main path's so a regression in one cannot be masked by the other. Non-zero means the delayed
    * hit fell back to the SPAN interpolation, which is the defect this counter was added to close. */
   delayedHitBandMissing: 0, delayedHitBandMissingFirst: '',
+  /* ROADMAP #419, 2026-09-03 -- set to 1 for the whole run when MEDI_DELAYED_HIT_NO_CRIT=1 puts the
+   * missing crit draw back on purpose, so a deliberate restore arm and an engine that has regressed
+   * can never be read as the same thing. Same shape as MEDI_DAMAGE_SPAN_DRAW and
+   * MEDI_CRIT_ONCE_PER_CLICK: a switch that silently makes the engine wrong is the silent default
+   * this repo keeps paying for. */
+  delayedHitNoCritRestored: 0,
   /* ROADMAP #304 -- set to 1 for the whole run when MEDI_DAMAGE_SPAN_DRAW=1 puts the defect back on
    * purpose. Counted apart from `damageBandMissing` so a deliberate restore arm and a broken engine
    * can never be read as the same thing. */
@@ -12625,6 +12644,13 @@ const CRIT_ONCE_PER_CLICK_RESTORED=(typeof process!=='undefined'&&process.env&&p
  * reproduces the SAME red rather than a third behaviour, and any run carrying it also carries a
  * non-zero `MEDFAILS.formeOnHitClickWideRestored`. */
 const FORMEONHIT_CLICK_WIDE_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FORMEONHIT_CLICK_WIDE==='1');
+/* ROADMAP #419 -- THE SAME SWITCH FOR THE DELAYED HIT'S CRIT. `MEDI_DELAYED_HIT_NO_CRIT=1` takes the
+ * crit draw back OUT of `condition:futuremove`'s payout, which is what this engine did until
+ * 2026-09-03: the payout spent `_R.dmg()` and nothing else, so it could never emit `-crit` and could
+ * never crit. It restores the ONE expression the fix turns on, so the restore reproduces the SAME red
+ * rather than a third behaviour, and any run carrying it also carries a non-zero
+ * `MEDFAILS.delayedHitNoCritRestored`. */
+const DELAYED_HIT_NO_CRIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DELAYED_HIT_NO_CRIT==='1');
 function damageRollIndex(u){
   const i=DAMAGE_ROLL_SIDES-1-Math.floor(u*DAMAGE_ROLL_SIDES);
   return i<0?0:(i>DAMAGE_ROLL_SIDES-1?DAMAGE_ROLL_SIDES-1:i);
@@ -21258,6 +21284,16 @@ if(REFILL_NO_HERB)MEDFAILS.refillNoHerbRestored=1;
 const DEALT_BEFORE_CLAMP=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_DEALT_BEFORE_CLAMP==='1');
 if(DEALT_BEFORE_CLAMP)MEDFAILS.dealtBeforeClampRestored=1;
+/* ROADMAP #416, 2026-09-03 -- `MEDI_SUB_DEALT_UNCLAMPED=1` restores the state this engine held until
+ * today: an overkill into a SUBSTITUTE banked the whole hit as "dealt", where the authority clamps it
+ * to the doll's remaining HP before recoil and drain read it (data/moves.ts:18341-18357). It restores
+ * the ONE call the fix adds, so the restore reproduces the SAME red rather than a third behaviour.
+ * KEPT APART FROM MEDI_DEALT_BEFORE_CLAMP deliberately: that knob is the sash/Endure ceiling on the
+ * BODY, this one is the doll's, and two defects sharing a switch cannot be attributed separately.
+ * See the substitute branch inside the hit loop. */
+const SUB_DEALT_UNCLAMPED=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_SUB_DEALT_UNCLAMPED==='1');
+if(SUB_DEALT_UNCLAMPED)MEDFAILS.subDealtUnclampedRestored=1;
 let _FAINTQ=[];
 /* 2026-08-27 -- A CORPSE IS ITSELF AGAIN, AND IT IS THE SAME AUTHORITY CALL `queueFaint`'s `_ttmWrap`
  * LINE ALREADY CITES.
@@ -31570,9 +31606,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          * a hit the authority charges nothing for.
          *
          * ONE HELPER, TWO CALLERS, because "how much did this actually deal" is one fact. */
-        const _reDealt=(nd)=>{
+        /* ROADMAP #416, 2026-09-03 -- AND IT TAKES A CEILING, BECAUSE THE DOLL'S IS NOT THE BODY'S.
+         * The default stays `tg.curHP`, so the two callers above are byte-identical; the substitute
+         * road passes the DOLL's remaining HP instead. One helper, three callers, for the reason the
+         * header gives -- "how much did this actually deal" is one fact, and two implementations of
+         * it is the facts-are-global breach this file has a rule about. */
+        const _reDealt=(nd,cap)=>{
           if(DEALT_BEFORE_CLAMP){MEDFAILS.dealtBeforeClampRestored=1;return;}
-          const v=Math.max(0,Math.min(nd,tg.curHP));
+          const v=Math.max(0,Math.min(nd,(cap==null?tg.curHP:cap)));
           if(v===_rowDealt)return;
           dealt+=v-_rowDealt;
           _dealtEach[_dealtEach.length-1]=v;
@@ -31593,6 +31634,47 @@ function battleTurn(S,rng,actsForA,actsForB){
            status path, so one substitute cannot mean two things inside one turn. */
         if(subBlocks(m,tg,a.move.id)){const _s0=tg._sub;tg._sub=Math.max(0,tg._sub-dmg);
           _subAte=true;                      // ROADMAP #72 -- see the declaration for why this is not `!connected`
+          /* ==== ROADMAP #416, 2026-09-03 -- AN OVERKILL INTO A DOLL IS PAID ON THE DOLL'S LAST HP ===
+           *
+           * The paragraph a few lines below this one already stated the gap rather than hiding it --
+           * *"the authority CLAMPS `damage` to the doll's remaining HP and assigns the clamped value
+           * to `source.lastDamage`, which recoil and drain then read … This engine passes the
+           * unclamped `dmg` to both."* This is that sentence closed.
+           *
+           * THE AUTHORITY, READ AND NOT RECALLED. Champions does not override Substitute (`grep
+           * substitute data/mods/champions/moves.ts` -> 0), so it is mainline's handler and the clamp
+           * sits ABOVE everything that reads the number:
+           *
+           *     data/moves.ts:18341-18343  if (damage > target.volatiles['substitute'].hp)
+           *                                  damage = target.volatiles['substitute'].hp;
+           *     data/moves.ts:18344        target.volatiles['substitute'].hp -= damage;
+           *     data/moves.ts:18345        source.lastDamage = damage;
+           *     data/moves.ts:18352-18354  if (damage) this.actions.applyRecoilDamage(damage, move, source);
+           *     data/moves.ts:18355-18357  if (move.drain) this.heal(ceil(damage * drain[0]/drain[1]), ...)
+           *
+           * AND NOTHING DOUBLE-PAYS IT: `spreadMoveHit` turns a HIT_SUBSTITUTE result into
+           * `damage[i] = true` (data/mods/champions/scripts.ts:351-353), which the hit loop folds to 0
+           * before `move.totalDamage += damage[i]` (sim/battle-actions.ts:961-965), so the OUTER
+           * `applyRecoilDamage(move.totalDamage, ...)` at :982 sees nothing from a doll.
+           *
+           * `_s0` IS THE CEILING AND IT IS THE DOLL'S HP *BEFORE* THIS HIT, which is exactly the
+           * authority's `target.volatiles['substitute'].hp` at the moment of the comparison -- read on
+           * the line above, before the subtraction, so the two cannot drift.
+           *
+           * MEASURED, tests/probe_sub_clamp.js: a Double-Edge into a 35-HP doll paid the authority 12
+           * (`round(35 * 33/100)`) and this engine 25; a Bitter Blade into a 41-HP doll healed the
+           * authority 21 and this engine 62. The WIDE-DOLL control -- the identical pair with the
+           * target's max HP multiplied so the doll survives -- agreed at -25 and +75 on both engines
+           * before this line existed and must still agree after it.
+           *
+           * DECLARED REMAINDER, NOT FIXED HERE AND NOT BUNDLED: the authority's drain on this road is
+           * `Math.ceil` (data/moves.ts:18356) where `_payDrainRow` is `Math.round` (sim/battle.ts:2168,
+           * the ordinary road's rule). The two coincide for every 1/2-fraction drain move and part on
+           * a 3/4 one. That is a different defect on a different line, already declared in
+           * `_payDrainRow`'s own header, and folding it in here would destroy the attribution of this
+           * one. */
+          if(SUB_DEALT_UNCLAMPED)MEDFAILS.subDealtUnclampedRestored=1;
+          else{ if(dmg>_s0)MEDSEEN.subDealtCapped++; _reDealt(dmg,_s0); }
           /* ROADMAP #357 -- THE DECLARED REMAINDER OF THE TIMES-HIT COUNTER, COUNTED RATHER THAN
            * ARGUED AWAY. The authority increments `timesAttacked` on `typeof moveDamage[i] ===
            * 'number'` and a substitute-eaten hit still produces a number, so it counts THERE. This
@@ -36034,12 +36116,71 @@ function battleTurn(S,rng,actsForA,actsForB){
             * fill the out-parameter; the old interpolation is kept for that case and counted, rather
             * than a plausible number appearing with nothing to read. */
            const _fsCtx={rolls:[]};
-           const _d=dmgRange(_src,m,_row,field,false,false,_fsCtx);
+           let _d=dmgRange(_src,m,_row,field,false,false,_fsCtx);
+           let _fsRolls=_fsCtx.rolls;
            const _mv0=MID_MOVE,_at0=MID_ATT,_tg0=MID_TGT;
            MID_MOVE=String(_rF.mv||'-');MID_ATT=midEventSlot(_src);MID_TGT=midEventSlot(m);
+           /* ==== ROADMAP #419 -- THE PAYOUT ROLLS THE ORDINARY CRIT, BECAUSE IT IS AN ORDINARY HIT ==
+            *
+            * The paragraph that used to sit at the `-crit` site said the gap out loud rather than
+            * hiding it -- *"this payout takes no crit draw at all, so emitting `-crit` would require
+            * inventing one"* -- and this is that declaration closed. Read off the authority:
+            *
+            *   data/conditions.ts:415        this.actions.trySpreadMoveHit([target], data.source,
+            *                                                               hitMove, true)
+            *   sim/battle-actions.ts:1156      const curDamage = this.getDamage(source, target, moveData)
+            *   sim/battle-actions.ts:1636-42     moveHit.crit = move.willCrit || false
+            *                                     if (move.willCrit === undefined)
+            *                                       if (critRatio) moveHit.crit =
+            *                                         randomChance(1, critMult[critRatio])
+            *   sim/battle-actions.ts:1633        critMult = [0, 24, 8, 2, 1]   (the gen 9 branch)
+            *   data/mods/champions/scripts.ts:220,222  isCrit -> tr(baseDamage * 1.5)
+            *   data/mods/champions/scripts.ts:285      if (isCrit && !suppressMessages) add('-crit')
+            *
+            * Champions overrides neither `getDamage` nor `getSpreadDamage` and does not override
+            * `futuremove` at all, so a delayed payout takes exactly the die a direct click takes.
+            * MEASURED before the wire (tests/probe_delayed_crit.js): under a crit-CERTAIN die the
+            * authority dealt 72 into a Slowking and printed `|-crit|`; this engine dealt 69 with no
+            * line, and dealt the SAME 69 under a crit-IMPOSSIBLE die. Identical output across a
+            * varied knob is the unwired signature, not evidence that the knob does not matter.
+            *
+            * THE DIE IS `crit`, ADDRESSED LIKE THE DAMAGE DRAW BESIDE IT (ROADMAP #262): the address
+            * is the BOOKED move, the BOOKED source and the collecting body, which is what the
+            * authority's own `getDamage(data.source, target, hitMove)` names. Sharing the `MID_*`
+            * save/restore with the `dmg` draw is deliberate -- two copies of an address convention is
+            * how two files come to disagree quietly.
+            *
+            * IT IS DRAWN UNCONDITIONALLY, WIRE 35's RULE, UNCHANGED. A Shell Armor target and a bare
+            * one must spend the same stream or every later roll in the turn shifts for a reason that
+            * has nothing to do with crits.
+            *
+            * AND THE CRIT IS RE-PRICED, NOT MULTIPLIED (ROADMAP #81 WIRE 11 / #92). A crit ignores the
+            * attacker's negative offensive stages, the defender's positive defensive stages and
+            * screens, and the authority applies its 1.5 BEFORE the randomizer, STAB, the type chart
+            * and burn. `dmgRange(..., isCrit=true, ...)` is the same call the main path's `_price(true)`
+            * makes and returns a band that already carries the crit in the right place. A rate of
+            * exactly 1 (Flower Trick's family) is NOT re-priced, because dmgRange has already folded
+            * that 1.5 in -- re-pricing would charge 2.25x. A FRESH context is used for the re-price
+            * because `dmgRangeOneHit` PUSHES onto `rolls` rather than replacing it. */
+           let _fcrit=false;
+           if(DELAYED_HIT_NO_CRIT)MEDFAILS.delayedHitNoCritRestored=1;
+           else{
+             const _fcc=critChance(_rF.mv,_src,suppressedAbility(_src,m),m);
+             const _fcr=(_R&&_R.crit)?_R.crit():rng();
+             MEDSEEN.delayedHitCritDrawn++;
+             _fcrit=(_fcc>=1)||(_fcc>0&&_fcc<1&&_fcr<_fcc);
+             if(_fcrit){
+               MEDSEEN.delayedHitCrit++;
+               if(_fcc>0&&_fcc<1){
+                 const _fsCtxC={rolls:[]};
+                 _d=dmgRange(_src,m,_row,field,false,true,_fsCtxC);
+                 _fsRolls=_fsCtxC.rolls;
+               }
+             }
+           }
            const _fu=(_R&&_R.dmg)?_R.dmg():rng();
            MID_MOVE=_mv0;MID_ATT=_at0;MID_TGT=_tg0;
-           const _fsBand=(_fsCtx.rolls&&_fsCtx.rolls.length===DAMAGE_ROLL_SIDES)?_fsCtx.rolls:null;
+           const _fsBand=(_fsRolls&&_fsRolls.length===DAMAGE_ROLL_SIDES)?_fsRolls:null;
            if(!_fsBand){MEDFAILS.delayedHitBandMissing++;
              if(!MEDFAILS.delayedHitBandMissingFirst)MEDFAILS.delayedHitBandMissingFirst=String(_rF.mv||'?');}
            else MEDSEEN.delayedHitBandSelected++;
@@ -36062,9 +36203,20 @@ function battleTurn(S,rng,actsForA,actsForB){
               * `damageIsComputed` is the same predicate the attack branch uses, so the fixed-damage
               * family announces neither line here for the reason it announces neither there.
               *
-              * NO CRIT LINE, AND THAT IS STATED RATHER THAN MISSED: this payout takes no crit draw at
-              * all, so emitting `-crit` would require inventing one. It is a separate gap. */
+              * ROADMAP #419, 2026-09-03 -- AND THE CRIT LINE, BETWEEN THEM, WHICH IS THE AUTHORITY'S
+              * ORDER AND NOT A CHOICE: `data/mods/champions/scripts.ts` writes `-supereffective` /
+              * `-resisted` at :270-284 and `-crit` at :285, so effectiveness, then crit, then damage.
+              * That is the same three-line order the direct attack path already keeps (ROADMAP #68),
+              * and it is what the authority prints for this very payout:
+              *     |-end|p2a: Slowking|move: Future Sight
+              *     |-resisted|p2a: Slowking|1
+              *     |-crit|p2a: Slowking
+              *     |-damage|p2a: Slowking|130/202
+              * This comment used to read *"NO CRIT LINE, AND THAT IS STATED RATHER THAN MISSED: this
+              * payout takes no crit draw at all, so emitting `-crit` would require inventing one."*
+              * The draw is above now, so the line is no longer an invention. */
              if(TR&&damageIsComputed(_rF.mv))TR.eff(m,_d.eff);
+             if(TR&&_fcrit)TR.crit(m);
              if(TR)TR.dmg(m);
              if(m.curHP<=0){m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
            }

@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-01T20:30:07.000Z",
+  "generated": "2026-09-04T00:17:56.347Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 827,
-  "live": 827,
+  "probed": 829,
+  "live": 829,
   "missing": 0,
-  "armed": 827,
+  "armed": 829,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4023,7 +4023,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 26.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 26.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7811,6 +7811,16 @@
     {
       "kind": "move",
       "tag": "substitute",
+      "label": "an overkill into a doll pays recoil and drain on the DOLL'S last HP, not on the swing",
+      "live": true,
+      "detail": "an Abomasnow at half HP into an Absol's 35-HP doll. OVERKILL — Double-Edge takes 12 recoil (the authority's round(35 x 33/100) = 12), doll left 0, [\"|-end|p2a:absol|substitute\",\"|-damage|p1a:abomasnow|70/165|[from]recoil\"]; Giga Drain heals 18 (round(35 x 0.5) = 18), doll left 0. CONTROL, the identical pair with the body's max HP x12 so the 420-HP doll SURVIVES: recoil 23 off 69 dealt, drain 52 off 103 dealt, dolls left 351 / 317. Before the wire both overkill arms were paid on the whole swing — 23 and 52-sized numbers into a doll a fraction of that size",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "substitute",
       "label": "a status move meets the doll BELOW the accuracy roll -- it can miss first, and when it lands it `-fail`s the MOVER",
       "live": true,
       "detail": "the same Thunder Wave at the same 58-HP doll: rolling 0.99 gives [\"|-miss|p1a:clefable|p2a:snorlax\"] (status \"\"), rolling 0.00 gives [\"|-fail|p1a:clefable\"] with the doll still on 58. With NO doll the same two rolls give [\"|-miss|p1a:clefable|p2a:snorlax\"] and status \"par\". Before the fix BOTH doll arms printed |-activate|...|move:substitute|[block] and neither reached the die",
@@ -7854,6 +7864,16 @@
       "label": "the delayed hit SELECTS out of the sixteen-roll band, and does not interpolate a span",
       "live": true,
       "detail": "Future Sight, Oranguru into an unfaintable Hippowdon, spent at the centre of each of the sixteen buckets — got [118,118,120,121,123,124,126,127,129,130,132,133,135,136,138,139]; the authority's band, read back out of dmgRange and reversed into u order, is [118,118,120,121,123,124,126,127,129,130,132,133,135,136,138,139]. The two ENDS agree on either implementation (118 / 139), which is exactly why every corner arm of the damage differential read 0 while the interior was wrong. THE EFFECTIVENESS LINE, three arms: super-effective [\"|-end|p2a:venusaur|move:futuresight\",\"|-supereffective|p2a:venusaur|1\",\"|-damage|p2a:venusaur|1042/1240\"]; resisted [\"|-end|p2a:scizor|move:futuresight\",\"|-resisted|p2a:scizor|1\",\"|-damage|p2a:scizor|1101/1160\"]; neutral [\"|-end|p2a:snorlax|move:futuresight\",\"|-damage|p2a:snorlax|1789/1880\"] (which must carry NEITHER line)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "delayedHit",
+      "label": "the delayed payout rolls the ordinary crit, prices it and announces it",
+      "live": true,
+      "detail": "Future Sight, Oranguru into an unfaintable Hippowdon, paid out at the residual two turns later — CRIT-CERTAIN die: 193 damage, |-crit| true, lines [\"|move|p1a:oranguru|futuresight||[still]\",\"|-end|p2a:hippowdon|move:futuresight\",\"|-crit|p2a:hippowdon\",\"|-damage|p2a:hippowdon|1271/1464\"]; CONTROL, the identical board with only the crit stream moved to no-crit: 129, |-crit| false, lines [\"|move|p1a:oranguru|futuresight||[still]\",\"|-end|p2a:hippowdon|move:futuresight\",\"|-damage|p2a:hippowdon|1335/1464\"]. The same attacker's DIRECT Psychic on the same board answers 145/true against 97/false, so the harness can see a crit either way. Before the wire the two delayed arms were byte-identical — the payout drew no crit die at all",
       "hollow": false,
       "armed": true,
       "directCall": false
