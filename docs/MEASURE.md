@@ -38,6 +38,58 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## RETRACTED — *"EVERY BODY IN THIS ENGINE THAT LOSES AN ITEM GETS UNBURDEN'S SPEED DOUBLING"* IS FALSE, AND THE INSTRUMENT WAS WRONG BEFORE THE ENGINE WAS. 2026-09-04, CHANGELOG 5.246.0
+
+**THIS RETRACTS A SENTENCE THIS LEDGER PUBLISHED HOURS EARLIER**, in its own OWED list and in four
+living documents. The dated section below stands as written and is superseded from here. The OWED
+bullet that carried it is a WORK ITEM rather than evidence, so it is corrected in place with its old
+wording quoted — **a false open item sends someone to fix a non-defect.**
+
+**WHAT THE CODE DOES.** `engine/medicham2-browser.js:14770` is the ENTRY GUARD (`m._hadItem && !m.item`).
+The multiplier is pushed on the next line, `:14772`, gated on
+`TAGS.param('ability', m.ability, 'speedOnItemLoss')`. Walking the ability block of `data/tags.json`
+returns exactly one key carrying that parameter: `unburden`.
+
+| arm | expectation | census reading |
+|---|---|---|
+| `ability none` | must NOT move | `187,187` |
+| `Unburden` | must move | `187,374` |
+
+That control was already on record before the claim was published. It is the knob-cleared pair this
+division asks for by rule, and it separates the two readings on its own.
+
+**THE MECHANISM, WHICH IS THE DURABLE HALF.** `tests/probe_leaf_widening.js:277` holds
+`const stand = m => (m && m._hadItem && !m.item) ? 1 : 0` and reports THAT as the engine's side. It
+never read `effSpeed`. Its agreeing reading therefore asserted one thing only — *both bodies had lost
+an item* — and could not have detected the multiplier, present or absent, in either direction.
+**An instrument that compares its own stand-in against the authority can only ever confirm its own
+stand-in.** A noise floor cannot save that: the floor tells you whether an effect is bigger than the
+spread, and it says nothing at all when the instrument is not measuring the quantity written on its
+label.
+
+**AN INSTRUMENT CAN BE WRONG BEFORE THE ENGINE IS, AND IT WAS THREE TIMES IN ONE NIGHT** — a probe
+printing `undefined<>undefined` as its receipt, a selftest exercising a five-line copy of the rule it
+was checking, and this one. Two were caught by the agents that owned them; this one was relayed as
+fact without being verified at the line.
+
+**WHAT IS ACTUALLY OWED IS NARROWER: ROADMAP #535.** The doubling is recomputed from the body's
+CURRENT ability rather than held as the volatile the authority grants at the moment the item is lost.
+So an Unburden acquired AFTER the hand is already empty doubles here and does not in the authority;
+Skill Swap is the reachable door. Filed `INSTRUMENT OWED` — nothing in the tree decides it, and the
+row says so rather than citing a probe that does not exist.
+
+**FIVE OF THE SIX ROWS FILED THIS PASS SAY `INSTRUMENT OWED` AND ONE CARRIES A `VERIFIED BY`**
+(register `497 → 503` rows, `251 → 257` open). That ratio is the honest state of the register rather
+than a shortfall to be tidied: a row that names the instrument it does not have is auditable, and a
+row that cites a probe nobody ran is not. **`NOT A DEFECT` was used in none of the six**, because
+`engine/quarantine.js:1040` matches that string in a status cell and treats it as a ruling that
+overrides the derived verdict — a casual note in a register cell is executable, and it has previously
+subtracted three live turn-order divergences from the gate.
+
+**NO FIGURE IN THIS LEDGER MOVES ON A RETRACTION.** Nothing was re-measured in this pass, no artifact
+was regenerated, and no quarantined figure becomes quotable. `node engine/status.js --write` is still
+OWED, so the `<!-- GENERATED -->` block above is one pass behind — read the gate, not the block.
+
 ## THE GATING CLAUSE WAS COUNTING THE WRONG QUANTITY WHILE THE RIGHT ONE SAT UNREAD IN THE SAME ARTIFACT. BOARD-MATERIAL **77 OF 961 (8.0%)** GATES; PROTOCOL FIRST-DIVERGENCE **167 OF 961** REPORTS. 2026-09-04, CHANGELOG 5.245.0
 
 **THIS IS A REVERSAL OF WHAT THIS LEDGER AND EVERY LIVING DOCUMENT HAVE BEEN PUBLISHING.** The dated
@@ -139,10 +191,17 @@ removed afterwards.
 - `node engine/status.js --write` was not run. The `<!-- GENERATED -->` block at the top of this file
   is one pass behind and **still says `5 of 8 gate clauses fail`**; the gate reads `CLOSED — 1 of 8
   GATING clauses fail`. Read the gate, not the block.
-- **Unburden is an ENGINE defect, not a comparator gap, and needs a register row.**
-  `engine/medicham2-browser.js` holds no state under that name; `effSpeed` recomputes the doubling
-  from `_hadItem && !m.item` (`:14770`), so every body in this engine that loses an item gets the
-  speed doubling.
+- **RETRACTED 2026-09-04 (CHANGELOG 5.246.0) — THIS OWED ITEM WAS FALSE AND IS REPLACED BY A
+  NARROWER ONE.** It read, verbatim: *"Unburden is an ENGINE defect, not a comparator gap, and
+  needs a register row. `engine/medicham2-browser.js` holds no state under that name; `effSpeed`
+  recomputes the doubling from `_hadItem && !m.item` (`:14770`), so every body in this engine that
+  loses an item gets the speed doubling."* **That is false.** `:14770` is the ENTRY GUARD only; the
+  push on the next line, `:14772`, is gated on `TAGS.param('ability', m.ability, 'speedOnItemLoss')`,
+  which exactly one ability key in `data/tags.json` carries. The evidence rested on
+  `tests/probe_leaf_widening.js:277` comparing its OWN stand-in rather than this engine's Speed.
+  What is owed is ROADMAP #535 — the doubling is recomputed from the CURRENT ability instead of
+  being held as the volatile granted when the item went — filed `INSTRUMENT OWED`. Full account in
+  the retraction section at the top of this ledger.
 - The weights restamp was NOT run, by Will's decision. `data/policy-weights.json` untouched, MAG
   paused. That the measuring path is free of it was verified in code: `game_differential`, `roster`,
   `all_mechanics_fire`, `test-engine-diff` and `steering` carry zero references to MAG or the policy

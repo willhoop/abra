@@ -148,6 +148,82 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## RETRACTED — *"EVERY BODY IN THIS ENGINE THAT LOSES AN ITEM GETS UNBURDEN'S SPEED DOUBLING"* IS FALSE. THE PUSH IS GATED ON THE ABILITY TAG AT `:14772` AND ALWAYS WAS; THE INSTRUMENT COMPARED ITS OWN STAND-IN AND NOT THIS ENGINE'S SPEED. **NO ENGINE BYTE MOVED, NO ARTIFACT BYTE MOVED AND NOTHING WAS RUN — THE CENSUS IS UNTOUCHED AT 829 LIVE / 829 PROBED / 0 MISSING, READ FROM `git show HEAD` AND GENERATED 2026-09-04T03:12:47Z. A DEFECT REMAINS AND IT IS NARROWER: ROADMAP #535.** 2026-09-04.
+
+**WHAT WAS PUBLISHED, AND IS NOW WITHDRAWN.** The sentence *"every body in this engine that loses an
+item gets Unburden's speed doubling — a Knock Off, a consumed berry, a spent Focus Sash"* went into
+this file at `:206`, `:285-291` and `:325`, into `CHANGELOG.md` 5.245.0, into that commit's message,
+and was reported to Will as fact. **It is false.** This pass changes prose in this file only — no
+simulator byte, no probe byte, no artifact, and no run.
+
+**REFUTED THREE WAYS, EACH READ ON THIS PASS RATHER THAN RECALLED.**
+
+- **The code.** `engine/medicham2-browser.js:14770` opens the block on `m._hadItem&&!m.item`. That is
+  the ENTRY GUARD. The push is on the next line, `:14772` —
+  `const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)_mods.push(+_ub.speedMult);`
+  Nothing reaches the speed-modifier chain unless the body's CURRENT ability carries the tag.
+- **The tag membership, derived not remembered.** `data/tags.json` carries exactly **one** carrier of
+  `speedOnItemLoss`: `unburden`. Five legal holders — Sceptile, Liepard, Slurpuff, Hawlucha,
+  Sneasler — from `Dex.forFormat('gen9championsvgc2026regmb')` filtered on
+  `exists && !isNonstandard && tier !== 'Illegal'`. (The Sticky Hold over-match of this tag is old, is
+  fixed, and is documented in place at `:14724`.)
+- **A live census control that was already on record.** `data/mechanics-census.json` at HEAD holds
+  `kind: ability, tag: speedOnItemLoss`, *"Unburden doubles Speed once the item is gone"*,
+  `live: true, armed: true`, detail **`[speed holding, speed once the item is gone] — ability none
+  187,187 (must not move); Unburden 187,374`**. The SAME body losing the SAME item with the ability
+  off does not move; with Unburden it doubles. The knob was cleared and the answer was printed before
+  the claim was ever made.
+
+**THE MECHANISM OF THE ERROR, WHICH IS THE DURABLE HALF.** `tests/probe_leaf_widening.js:276` holds
+`const stand = m => (m && m._hadItem && !m.item) ? 1 : 0;` and reports that as `medi`. **It is the
+probe's OWN stand-in — the guard on the OUTSIDE of the block — and never `effSpeed`'s Speed.** It was
+then set against the authority's `volatiles.unburden`, a different quantity, so the observe arm's
+`medi="[1,1]" sd="[1,0]"` is two engines answering two questions. The `[1,1]` could not have read
+anything else: both bodies had lost an item, which is the whole of what that predicate asks. **A
+probe that reads the guard instead of the guarded quantity agrees with itself and then reports an
+engine defect.** This division's own working rule already covers it — test the OUTCOME, not the
+classification — and it was broken by an instrument written to OBSERVE a leaf, where a stand-in for
+absent state feels like reading state. The general form: **when an engine holds no named state, a
+leaf probe must compare the CONSEQUENCE (here, Speed), because any stand-in it invents is its own
+hypothesis wearing the engine's name.**
+
+**WHAT IS ACTUALLY WRONG. IT IS SMALLER AND DIFFERENTLY SHAPED — ROADMAP #535.** The authority
+(`data/abilities.ts:5227-5249`; a recursive grep of `/data/mods/champions/` returns nothing, so
+Champions overrides Unburden nowhere) adds a VOLATILE from Unburden's own `onAfterUseItem` and
+`onTakeItem` and removes it in `onEnd`, applying `chainModify(2)` only while
+`!pokemon.item && !pokemon.ignoringAbility()`. The volatile therefore records **who held the ability
+at the moment the item went.** This engine holds no state under that name and re-derives the answer
+from the CURRENT ability on every `effSpeed` call, so a body that empties its hand and only
+AFTERWARDS acquires Unburden doubles here and does not double there. **Skill Swap is the reachable
+door** and is implemented (`a.kind==='abilityswap'`, WIRE 110, `:27555`). The switch-out half is
+already correct and separately green — `_hadItem` is re-stamped on every switch-in at `:19973`. A
+second clause, `pokemon.ignoringAbility()`, has no counterpart in this engine at all and is stated
+here rather than counted.
+
+**INSTRUMENT OWED — NOTHING DECIDES #535 TODAY.** No probe fails on it. The probe it needs empties a
+hand FIRST and only then hands the body Unburden by Skill Swap, asserting the Speed does not move;
+`_hadItem` carries no acquisition time for such a probe to assert against, which is why the row is
+filed unprobed rather than fixed.
+
+**WHAT THIS SECTION CHANGED BELOW, SO A READER WHO SAW THE OLD VERSION CAN TELL.**
+
+- *"UNBURDEN IS THIS DIVISION'S DEFECT"* (`:206`) and the hand-list bullet (`:325`) were **corrected
+  in place**, and each now carries the sentence it used to carry, quoted.
+- *"UNBURDEN IS THE FIFTH-LARGEST LEAF IN THE HOLE"* (`:285-291`) is DATED MEASURED EVIDENCE and is
+  **not rewritten** — the `medi="[1,1]" sd="[1,0]"` reading really was taken and it stands. It is
+  superseded by a dated note at the head of that sub-section, which quotes the two refuted sentences
+  verbatim and says what the reading actually measured.
+
+**OWED FROM HERE AND NOT DONE.** `CHANGELOG.md` 5.245.0 still states the refuted claim, and its
+commit message cannot be edited; this pass owns `docs/ENGINE.md` only. `node engine/status.js --write`
+was NOT run — another agent held the game-playing slot — so the `<!-- GENERATED -->` block above is
+unrestamped; it carries no Unburden claim, so no generated figure is false. `tests/probe_leaf_widening.js`
+is untouched **deliberately**, and it still asserts the refuted reading in two places of its own:
+`:264` declares its `ours` field as *no named state, recomputed in effSpeed from `_hadItem && !m.item`
+(:14770)*, and `:276` still holds the `stand` predicate. Another agent's work reads that file, so it
+is REPORTED here, not edited. Full account:
+`docs/_reports/2026-09-04-unburden-retraction.md`.
+
 ## THE PREDICTION BELOW IS RESOLVED AND THE POOL DID NOT MOVE: BOARD-MATERIAL **77 → 77**, PROTOCOL **168 → 168**. AND THE GATE THIS DIVISION IS JUDGED BY NOW COUNTS BOARDS — **77 OF 961 (8.0%)** GATES, THE 167 IT USED TO PRINT IS NARRATION AND REPORTS. 2026-09-04, CHANGELOG 5.245.0
 
 **THE WIDENING SECTION BELOW LEFT BOTH POOL FIGURES UNCLAIMED AND CALLED THE DIRECTION IN ADVANCE —
@@ -200,20 +276,39 @@ row.** Roster ran without `--reds`, so `reds: []` carries forward — deliberate
 regeneration a single-variable change. **The census was not regenerated and stands at 829 live**, as
 the section below already records.
 
-### UNBURDEN IS THIS DIVISION'S DEFECT, AND IT IS OWED A REGISTER ROW
+### UNBURDEN IS THIS DIVISION'S DEFECT — **CORRECTED IN PLACE 2026-09-04. THE DEFECT IS REAL, IT IS ROADMAP #535, AND IT IS MUCH NARROWER THAN THIS PARAGRAPH SAID**
 
-`engine/medicham2-browser.js` holds **no state under that name**. `effSpeed` recomputes the doubling
-from `_hadItem && !m.item` (`:14770`), so **every body in this engine that loses an item gets
-Unburden's speed doubling** — a Knock Off, a consumed berry, a spent Focus Sash — where the authority
-adds the volatile only from Unburden's own `onAfterUseItem` / `onTakeItem` (`data/abilities.ts:5229-5234`).
-It is decision-changing through turn order, it sits on a leaf nothing compares, and **it is an ENGINE
-defect rather than a comparator gap.** It is also the standing correction to the claim that the leaf
-widening generalises: the comparator side does — two lines per leaf, `SD_VOLATILE_KEYS` derives
-itself — **the FIXTURES do not**, and Unburden is the proof that a leaf can look wireable on every
-derived column and still hold a different quantity under the same name. The remaining 19 are real
-work, not a loop.
+**THIS PARAGRAPH USED TO READ:** *"`engine/medicham2-browser.js` holds no state under that name.
+`effSpeed` recomputes the doubling from `_hadItem && !m.item` (`:14770`), so **every body in this
+engine that loses an item gets Unburden's speed doubling** — a Knock Off, a consumed berry, a spent
+Focus Sash."* **The bolded half is FALSE and is retracted** — see the section at the top of this
+file. `:14770` is only the entry GUARD; the push on the next line, `:14772`, is gated on
+`TAGS.param('ability', m.ability, 'speedOnItemLoss')`, and `data/tags.json` carries exactly one
+carrier of that tag. The census control on record — `ability none 187,187 (must not move); Unburden
+187,374` — says the same thing with the same body. The evidence the claim rested on was
+`tests/probe_leaf_widening.js:276` comparing its OWN `_hadItem && !m.item` stand-in against the
+authority's volatile, so the instrument was wrong and the engine was not.
 
-**OWED:** `node engine/status.js --write`, and a register row for the Unburden speed doubling. The
+**WHAT SURVIVES, CORRECTED.** `engine/medicham2-browser.js` really does hold **no state under that
+name**, and that is the defect: the doubling is re-derived from the body's CURRENT ability on every
+`effSpeed` call, where the authority adds a volatile from Unburden's own `onAfterUseItem` /
+`onTakeItem` (`data/abilities.ts:5229-5234`) that records who held the ability **at the moment the
+item went**. So an Unburden acquired AFTER the hand is already empty doubles here and does not
+double there; **Skill Swap (`:27555`) is the reachable door.** It sits on a leaf nothing compares and
+**it is an ENGINE defect rather than a comparator gap** — filed as ROADMAP #535, unprobed. What it is
+NOT, and used to be claimed as, is decision-changing on every board where an item was lost: it can
+only bite after an ability changes hands, and nothing has measured how often that is.
+
+**AND THE ARGUMENT IT WAS CARRYING STILL HOLDS, FOR A BETTER REASON THAN BEFORE.** It is the standing
+correction to the claim that the leaf widening generalises: the comparator side does — two lines per
+leaf, `SD_VOLATILE_KEYS` derives itself — **the FIXTURES do not**, and Unburden is the proof that a
+leaf can look wireable on every derived column and still hold a different quantity under the same
+name. That is exactly what caught the probe out: with no named state to read it invented one, and the
+invented quantity agreed with itself. The remaining 19 are real work, not a loop.
+
+**OWED:** `node engine/status.js --write`. The register row asked for here **now exists — ROADMAP
+#535** — and it carries the narrow defect above plus INSTRUMENT OWED: a probe that empties a hand
+first and only then grants Unburden by Skill Swap, asserting the Speed is unmoved. The
 section below also lists `node engine/all_mechanics_fire.js` as owed — **that one has since been run**,
 as part of the five pinned regenerations above, with its verdicts identical row for row. Full accounts:
 six reports under `docs/_reports/2026-09-04-*.md`.
@@ -280,6 +375,33 @@ pool was the whole format.
 
 ### UNBURDEN IS THE FIFTH-LARGEST LEAF IN THE HOLE AND IT IS STILL NOT WIRED, ON MEASURED EVIDENCE
 
+**SUPERSEDED 2026-09-04, AND DELIBERATELY NOT REWRITTEN — THE MEASUREMENT BELOW WAS REALLY TAKEN AND
+THE INFERENCE DRAWN FROM IT WAS WRONG.** Two sentences below are retracted, quoted here so the
+correction is unambiguous: *"true for every body that lost an item whatever its ability"*, and *"on
+this reading, every body in this engine that loses an item gets Unburden's speed doubling."* Both are
+FALSE. `:14770` is the entry guard only; the push at `:14772` is gated on
+`TAGS.param('ability', m.ability, 'speedOnItemLoss')`, whose sole carrier is Unburden, and the census
+control `ability none 187,187 (must not move); Unburden 187,374` had already shown it.
+
+**WHAT THE `medi="[1,1]" sd="[1,0]"` READING ACTUALLY MEASURED.** `medi` is not this engine's Speed
+and not any state it holds: `tests/probe_leaf_widening.js:276` computes
+`const stand = m => (m && m._hadItem && !m.item) ? 1 : 0;` — the probe's own stand-in for absent
+state. `[1,1]` therefore says *both bodies lost an item*, which was the fixture's design, and it
+could not have read anything else. `sd` is the authority's `volatiles.unburden`, a different
+quantity. The pair never compared the same thing, so **the observe arm is evidence that the leaf
+cannot be compared as presence — which is its true finding — and is no evidence at all about who
+gets the multiplier.**
+
+**THE REAL DEFECT, NARROWER: ROADMAP #535.** The doubling is recomputed from the body's CURRENT
+ability rather than held as the volatile the authority grants at the moment the item goes, so an
+Unburden acquired AFTER the hand empties doubles here and not there. Skill Swap (`:27555`) is the
+reachable door. INSTRUMENT OWED; nothing decides it today. The sentence below about wiring presence
+parting *"every board on which anybody's Focus Sash broke"* is true only of the probe's stand-in —
+which is why adopting that stand-in as the leaf would have been the wrong wiring as well as the wrong
+reading.
+
+**The dated block below stands as written.**
+
 Two bodies lose an item to a Knock Off in the same turn; slot 0 carries Unburden and slot 1 does not.
 The observe arm reads `medi="[1,1]" sd="[1,0]"`. medicham2 holds **no state under that name** — the
 doubling is recomputed inside `effSpeed` from `_hadItem && !m.item` (`:14770`), true for **every body
@@ -322,8 +444,18 @@ unlisted omission reads exactly like agreement, so it never got written down as 
 
 **Owed and named, not fixed here:**
 
-- **Unburden's speed doubling applies to every body that lost an item**, regardless of ability
-  (`medicham2-browser.js:14770`). Found by the observe arm above. Needs a register row.
+- **CORRECTED IN PLACE 2026-09-04 — OFF THE HAND LIST BECAUSE IT IS NOT A DEFECT, AND REPLACED BY THE
+  NARROWER ONE THAT IS.** This bullet used to read: *"**Unburden's speed doubling applies to every
+  body that lost an item**, regardless of ability (`medicham2-browser.js:14770`). Found by the observe
+  arm above. Needs a register row."* **Do not go looking for that** — `:14770` is the entry guard, the
+  push at `:14772` is gated on `TAGS.param('ability', m.ability, 'speedOnItemLoss')` whose sole
+  carrier is Unburden, and the census control `ability none 187,187 (must not move); Unburden
+  187,374` already said so. The observe arm that "found" it compared the probe's own
+  `_hadItem && !m.item` stand-in against the authority's volatile. **What is owed is narrower and is
+  now ROADMAP #535:** the doubling is recomputed from the CURRENT ability instead of held as the
+  volatile granted when the item went, so an Unburden acquired AFTER the hand empties doubles here
+  and not there — Skill Swap (`:27555`) is the reachable door. It is unprobed, and the probe it needs
+  is named in the row.
 - **The remaining 19 leaves that can stand at a boundary and are not compared.** Next cheapest by
   construction: `lockon`, `minimize`, `noretreat` — the three that `probe_uncompared_leaves.js`
   already finds in medicham2's `_vol` table under the authority's own spelling. **The comparator side

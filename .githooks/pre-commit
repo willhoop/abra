@@ -174,9 +174,18 @@ for f in $GATE_ARTIFACTS; do
   echo "$(git hash-object "$f" 2>/dev/null || echo ABSENT) $f" >> "$GATE_SNAP"
 done
 
+# HONOUR THE SCRIPT'S OWN `ABRA-HEAP: <MB>` DECLARATION, exactly as tools/lownode.cmd does.
+# Added 2026-09-04. This loop called bare `node`, so test-artifact-rerunnable.js -- which audits 91
+# stamped artifacts across 30 releases -- died at the default heap (exit 134) PARTWAY THROUGH and
+# blocked the commit on a partial verdict that read WORSE than the truth: it had printed a STRANDED
+# line and died before printing "no artifact became unre-runnable since the baseline". A gate that
+# cannot finish is not a stricter gate; its answer is whatever it managed to say before it died.
+# The declaration is read here rather than hard-coded so a NEW gate added to this loop inherits it.
 for t in tests/test-docs-current.js tests/test-roadmap-register.js tests/test-artifact-rerunnable.js; do
   [ -f "$t" ] || continue
-  if ! OUT=$(node "$t" 2>&1); then
+  HEAP=$(grep -m1 -oE 'ABRA-HEAP:[[:space:]]*[0-9]+' "$t" 2>/dev/null | grep -oE '[0-9]+')
+  if [ -n "$HEAP" ]; then NODEOPT="--max-old-space-size=$HEAP"; else NODEOPT=""; fi
+  if ! OUT=$(node $NODEOPT "$t" 2>&1); then
     echo ""
     echo "  BLOCKED by $t"
     echo "$OUT" | grep -iE 'FAIL|undeclared|stale|untraceable' | head -12 | sed 's/^/    /'

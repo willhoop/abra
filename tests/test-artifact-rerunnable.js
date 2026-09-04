@@ -1,5 +1,14 @@
 /* AN ARTIFACT WHOSE RELEASE CANNOT BE OPENED IS UNFALSIFIABLE, AND IT LOOKS EXACTLY LIKE A LIVE ONE.
  *
+ * ABRA-HEAP: 6144
+ *
+ * DECLARED 2026-09-04, AND THE REASON IS THIS FILE'S OWN SUBJECT. It audits 91 stamped artifacts
+ * across 30 releases and died at node's default heap (exit 134) partway through — after printing a
+ * STRANDED line and before printing `no artifact became unre-runnable since the baseline (1 known,
+ * was 1)`. So it blocked a commit on a partial verdict that read WORSE than the truth. A check that
+ * cannot finish is not a stricter check; it is a check whose answer is whatever it managed to say
+ * before it died. Fourth such file found in one session.
+ *
  * Will, 2026-08-12: *"should i be concerned we suddenly cant run old things"*, then *"you need to fix
  * it and make it so it doesnt happen again"*.
  *

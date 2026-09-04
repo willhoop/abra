@@ -10,6 +10,55 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.246.0] — 2026-09-04
+
+### Fixed
+- **RETRACTION — THE BROAD UNBURDEN CLAIM PUBLISHED IN 5.245.0 IS REFUTED, AND THE INSTRUMENT WAS
+  WRONG RATHER THAN THE ENGINE.** 5.245.0, its commit message and four living documents state that
+  *"every body in this engine that loses an item gets Unburden's speed doubling."* **That is false.**
+  `engine/medicham2-browser.js:14772` gates the push on
+  `TAGS.param('ability', m.ability, 'speedOnItemLoss')`, so only an ability carrying that tag receives
+  the multiplier — verified at the line by the coordinator, and independently by a live census control
+  that was already on record: **`ability none 187,187` (must not move) against `Unburden 187,374`.**
+  The evidence the claim rested on was `tests/probe_leaf_widening.js:277` comparing **its own stand-in
+  rather than the engine's Speed**. The retracted sentence is left standing in the 5.245.0 block, which
+  is dated evidence and is superseded from above rather than rewritten.
+- **THE REAL DEFECT IS NARROWER AND IS FILED AS #535.** The doubling is recomputed from the body's
+  CURRENT ability instead of being held as the volatile granted at the moment the item was lost. So an
+  Unburden acquired **after** the hand empties doubles here and does not in the authority; Skill Swap
+  is the reachable door. Filed with `INSTRUMENT OWED` — nothing currently decides it.
+
+### Added
+- **SIX REGISTER ROWS FILED FOR DEFECTS THAT EXISTED ONLY AS PROSE.** #535 Unburden (as corrected
+  above), #536 the 89 duplicate ids in `data/games.selfplay.jsonl`, #537 nine phantom ROADMAP ids
+  carrying 30 citations in engine files, #538 the pruning argument reasoning from nine releases when
+  there are 523, #539 the two dead counter tables, #540 `data/raw-log-census.json` asserting the old
+  archive-subset relation with no generator to correct it. Register **497 → 503 rows, 251 → 257 open**;
+  `tests/test-roadmap-register.js` 3/3. **Only #539 carries a `VERIFIED BY`** — measured red at exit 1;
+  the other five say `INSTRUMENT OWED` rather than citing a probe that does not exist.
+- **ROADMAP #218 was stale in the other direction and is corrected by a dated addendum, not a
+  rewrite.** Its `--whole-game` marker changed quantity in commit `9dca646b` from protocol
+  first-divergence to board-material. The addendum carries both numbers, attributed, and names the
+  8.0%-versus-8.0% coincidence explicitly so the two are not read as the same measurement.
+
+### Notes
+- **THE PHRASE `NOT A DEFECT` WAS DELIBERATELY USED IN NONE OF THE SIX ROWS.**
+  `engine/quarantine.js:1040` tests `/NOT A DEFECT/i` against a row's status cell and treats it as a
+  ruling that OVERRIDES the derived verdict — a casual note in a register cell is executable and has
+  previously subtracted three live turn-order divergences from the gate.
+- **THIS IS THE THIRD TIME TONIGHT THE INSTRUMENT WAS WRONG BEFORE THE ENGINE WAS**, and the first two
+  were caught by the agents rather than by me: a probe printing `undefined<>undefined` as its receipt,
+  a selftest exercising a five-line copy of the rule it was checking, and now a probe comparing its own
+  stand-in. **The coordinator relayed this one to the owner as fact without verifying it**, which is
+  the compression that was not supposed to happen.
+- **#537 NEEDS THE OWNER:** allocate the nine phantom rows or strike the thirty citations. `#86` cannot
+  simply be struck.
+- `docs/ENGINE.md` carried the refuted broad claim in three places (`:207`, `:285-291`, `:325`) and is
+  corrected in this pass.
+- Full account: `docs/_reports/2026-09-04-register-rows-filed.md`.
+
+---
+
 ## [5.245.0] — 2026-09-04
 
 ### Changed

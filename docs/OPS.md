@@ -23,6 +23,24 @@ _stamped 2026-09-01 17:21_
 
 <!-- /GENERATED -->
 
+## TWO STORE DEFECTS THIS LEDGER HELD AS PROSE ARE NOW REGISTER ROWS, AND NEITHER HAS AN INSTRUMENT. 2026-09-04, CHANGELOG 5.246.0
+
+**NOTHING IN THE STORE MOVED IN THIS PASS.** No ingest, no bot session, no publication, no re-parse.
+What changed is where two of this ledger's own findings live. The 5.244.0 section below says of the
+`data/games.selfplay.jsonl` duplicate ids and of the raw-log census artifact that they were *"named so
+it cannot look closed"* — and at the time they were named only in this document. They are now filed as
+ROADMAP #536 and #540, both `INSTRUMENT OWED`: nothing in the tree decides either, and the rows say so
+rather than citing a probe that does not exist. That section stands as written and is superseded from
+here rather than rewritten.
+
+**THE POINT IS THE MECHANISM, NOT THE BOOKKEEPING.** A defect recorded only in a dated ledger section
+is a defect nobody can enumerate, which is the same failure as the fourteen typed handoffs. Six such
+defects were filed this pass (register `497 → 503` rows, `251 → 257` open); five of the six carry no
+`VERIFIED BY`, which is the honest state of them.
+
+**`node engine/status.js --write` is still OWED**, so the `<!-- GENERATED -->` block above still
+carries its 2026-09-01 store figures and must not be read as today's.
+
 ## AN OUTSIDE USAGE TABLE IS ARCHIVED AS A COMPARISON SET THAT FEEDS NOTHING, AND THE STORE'S CONTAMINATION IS RE-MEASURED RATHER THAN RE-DISCOVERED — 2026-09-04, CHANGELOG 5.245.0
 
 **THE INGEST ALREADY EXISTED AND ITS CRON WAS DUE TO FIRE TODAY, SO IT WAS RUN RATHER THAN DUPLICATED.**
