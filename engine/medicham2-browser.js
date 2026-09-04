@@ -847,6 +847,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * size so it had nothing to send. A non-zero second number on a board with a Corviknight in it is
    * the reflection silently degrading to the old blocking behaviour. */
   statDropReflected: 0, reflectSourceUnknown: 0,
+  /* WIRE 138 -- Defiant/Competitive retaliating against a stat drop, and the calls that could not name
+   * a source so the two source guards were skipped. THESE TWO WERE INCREMENTED WITHOUT BEING DECLARED
+   * FROM THE DAY THE WIRE LANDED, and it was not a cosmetic hole: `undefined++` is NaN and `NaN++`
+   * stays NaN, so `data/million-run.json` and `data/million-run-150k.json` BOTH published
+   * `"retaliateWhenLowered": null` -- the family fired through 150,000 games and its counter recorded
+   * nothing, twice, while a `=== 0` zero-check passed on it forever. It was the only non-finite value
+   * in either artifact. Declared here beside `reflectSourceUnknown`, which is the same shape one wire
+   * along; `tests/test-counter-init.js` is the property that stops the next one. */
+  retaliateWhenLowered: 0, retaliateSourceUnknown: 0,
   /* WIRE 157 -- an entry drop that spent its ONE firing for the battle (Supersweet Syrup). */
   entryDropOncePerBattle: 0,
   /* 2026-08-23 -- an entry stat drop refused by the target's SUBSTITUTE, and the number of times the
@@ -1207,6 +1216,22 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                             expected unless one is brought and says only that;
    *   volatileCuredByItem       a Lum or a Persim spent on a volatile rather than on a status. */
   confusionSet: 0, confusionMinDuration: 0, confusionSelfHit: 0, confusionExpired: 0,
+  /* 2026-09-04 -- the self-hit DAMAGE draw was re-addressed onto the confused body, matching the
+     authority's `this.activeTarget = pokemon` one line above `getConfusionDamage`. Counted only when
+     the stamp actually MOVES, so a self-targeting click (where the two slots already agree) does not
+     inflate it and a zero over a run that staged a foe-aimed confused click means the fix is inert. */
+  confusionDmgAddrMovedToSelf: 0,
+  /* 2026-09-04 -- M6's second half. The self-hit roll is taken on the `dmg` stream, which is the
+     address `game_differential.js`'s new `getConfusionDamage` wrapper gives the authority's own
+     `battle.randomizer` draw. A zero over a run that staged a self-hit means the stream struct never
+     reached the site and `MEDFAILS.confusionDmgStreamMissing` will say so. */
+  confusionDmgOnDmgStream: 0,
+  /* 2026-09-04 -- THE DEFOG SIDE SELECTION. `defogSweptTargetSide` counts only the sweeps where the
+     TARGET's side differs from "the side the mover is not on" (an ally aim, or a bounce), so a
+     foe-aimed Defog does not inflate it and the counter measures the SELECTION rather than the sweep.
+     `defogSweptFromBouncerSide` is the same statement for the SOURCE half: non-zero only when Magic
+     Bounce moved it off the clicker. `bounceSourceRecorded` is every bounce that wrote a receipt. */
+  defogSweptTargetSide: 0, defogSweptFromBouncerSide: 0, bounceSourceRecorded: 0,
   /* 2026-08-25 -- a Status move that DECLARES `ignoreImmunity: false` refused by the type chart.
      Thunder Wave into a Ground type is the whole of this class in Reg M-B; a zero over a run that
      staged one means the gate stopped being asked. */
@@ -2209,11 +2234,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * the type back to a corpse too; a rise here with a flat `roostTypeRestored` would mean the step in
    * the walk has stopped firing and this is covering for it. */
   roostTypeRestoredOnFaint: 0,
-  /* ROADMAP #343 -- a `typeRemovedForTurn` move that declared no heal primary at all, so the step-4
-   * gate had nothing to read. There is no such move in Reg M-B today (25 legal moves carry `self`,
-   * exactly one of them -- roost -- is a heal-primary Status move), so a non-zero here means the
-   * family grew and the gate is guessing. */
-  roostRiderNoPrimary: 0,
+  /* `roostRiderNoPrimary` WAS DECLARED HERE AND IS INCREMENTED ON `MEDFAILS` (:29386). It has moved to
+   * the MEDFAILS literal, where it belongs -- it counts what WENT WRONG, not what HAPPENED. While the
+   * declaration sat here BOTH counters were useless: `MEDSEEN.roostRiderNoPrimary` read 0 forever
+   * whatever the engine did, and `MEDFAILS.roostRiderNoPrimary` was NaN, which is the documented trap
+   * where a reader taking one object's delta against the other compares `undefined` to 0 and can never
+   * go red. Left as a comment rather than deleted so the next reader of this block is not sent looking
+   * for a field that used to be here. */
 
   groundedByVolatile: 0,
   /* ROADMAP #186 -- the branch where the ABSORB gate deferred to `isGrounded` and let a Ground move
@@ -2388,6 +2415,22 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* 2026-09-04 -- MEDI_CONFUSION_DMG_ADDR_LEGACY=1 is armed: the confusion self-hit's damage draw is
+     back at the CLICK'S target instead of the confused body. Must read 0 on any shipping run. */
+  confusionDmgAddrLegacyRestored: 0,
+  /* 2026-09-04 -- MEDI_CONFUSION_DMG_CAT_LEGACY=1 is armed: the self-hit roll is back on the generic
+     stream AND `game_differential.js` has dropped its `getConfusionDamage` wrapper, so the middle arm
+     reads the authority's `random(16)` UN-inverted. Must read 0 on any shipping run. */
+  confusionDmgCatLegacyRestored: 0,
+  /* AND THE LOUD FALLBACK BESIDE IT. `confusionSelfDamage` reached with no stream struct: the roll
+     falls back to the generic die, which is the pre-fix behaviour arriving silently. Must read 0. */
+  confusionDmgStreamMissing: 0, confusionDmgStreamMissingFirst: '',
+  /* 2026-09-04 -- MEDI_DEFOG_FOE_SIDE_LEGACY=1 is armed: the sweep is back on "the side the mover is
+     not on" instead of the target's side. Must read 0 on any shipping run. */
+  defogFoeSideLegacyRestored: 0,
+  /* AND THE LOUD FALLBACK BESIDE IT. The sweep ran with `_landed > 0` and no surviving row could name
+     a side, so it fell back to the far side -- which IS the pre-fix bug, arriving silently. Must read 0. */
+  sweepFieldNoTargetSide: 0, sweepFieldNoTargetSideFirst: '',
   /* 2026-08-29 -- `encoreRelocateQueued` was reached with no turn queue in scope, so a mid-turn Encore
      could not be placed at all. It must read 0: the only caller is inside the action loop, which owns
      the queue. A non-zero says an Encore volatile arrived from a road this engine has not modelled --
@@ -3088,6 +3131,22 @@ const MEDFAILS = { encoreAction: 0,
   /* ROADMAP #144 -- a Ripen holder ate a berry whose effect Ripen doubles, and this engine applied the
    * single amount. Declared at berryPPUpdate. Legal carriers: Flapple, Appletun -- 0 corpus uses. */
   ripenBerryBoostUnmodelled: 0,
+  /* 2026-08-30 -- a NON-BERRY `curesVolatile` item (Mental Herb is the only other legal member) reached
+   * the confusion-cure road, which is the berry road, and kept the old shape instead of being eaten.
+   * Must read 0 while `cures` carries no `confusion` for it. INCREMENTED AT :17583 WITHOUT BEING
+   * DECLARED, so it has been NaN since the day it was written -- the guard against a member arriving
+   * later could never have fired, and could never have read zero either. */
+  volatileCuredByNonBerry: 0,
+  /* ROADMAP #343 -- a `typeRemovedForTurn` move that declared no heal primary at all, so the step-4
+   * gate had nothing to read. There is no such move in Reg M-B today (25 legal moves carry `self`,
+   * exactly one of them -- roost -- is a heal-primary Status move), so a non-zero here means the
+   * family grew and the gate is guessing.
+   *
+   * MOVED HERE FROM THE `MEDSEEN` LITERAL, 2026-09-04. It is incremented on MEDFAILS (:29386) and was
+   * declared on MEDSEEN, so `MEDSEEN.roostRiderNoPrimary` sat at 0 forever and this one was NaN. Both
+   * numbers were unreadable and each looked like the other's proof. MEDSEEN counts what HAPPENED;
+   * MEDFAILS counts what WENT WRONG, and "the gate had nothing to read" is the second thing. */
+  roostRiderNoPrimary: 0,
   /* ROADMAP #123 -- a body flagged `_invuln` with no `_charging` to explain it. The pierce list is a
    * property of the MOVE that took it off the field, so a body in that state has no list and every
    * move would be refused -- which is the pre-fix behaviour arriving back through the fallback. Must
@@ -6687,7 +6746,15 @@ function terrainId(t){
  * there would put a second `|move|` line into the stream of every Protean body that throws a
  * reflectable status move at a bouncer. So the announcement is opted into at the sites that are
  * really resolving the move, and a caller that forgets stays exactly as silent as it is today. */
-function bounceOff(user,target,moveId,announce){
+/* 2026-09-04 -- `info` IS OPTIONAL AND IS THE BOUNCE'S RECEIPT. Showdown's Magic Bounce re-uses the
+ * move with the BOUNCER as source (`this.actions.useMove(newMove, target, {target: source})`), so a
+ * handler that needs `source.side` -- Defog's second loop is the only one in this format -- cannot
+ * read it off the clicker. This function is the one place that knows a bounce happened, and the
+ * alternative was for the call site to re-derive the bounce RULE from the tag, which is the second
+ * copy CLAUDE.md's facts-are-global rule exists to stop. Every existing caller passes four arguments
+ * and is unaffected. On a SPREAD click it records the last bouncer; only the single-target Defog site
+ * reads it, and that is said here rather than left to be discovered. */
+function bounceOff(user,target,moveId,announce,info){
   if(!target||target===user||!moveId) return target;
   const r=TAGS.param('ability',target.ability,'reflectsStatusMoves');
   if(!r) return target;
@@ -6702,6 +6769,7 @@ function bounceOff(user,target,moveId,announce){
     if(_rec&&_rec.name){MEDSEEN.bounceAnnounced++;TR.mv(target,moveId,user,'[from] ability: '+_rec.name);}
     else {MEDFAILS.bounceNoName++;TR.mv(target,moveId,user);}
   }
+  if(info){info.bouncedBy=target;MEDSEEN.bounceSourceRecorded++;}
   return user;
 }
 const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
@@ -17502,6 +17570,18 @@ function applyStatus(t,st,src,eff,why){
  * form observed in EVERY arm -- measured, see the paragraph above. */
 const CONFUSION_TURNS_MIN = 2;
 const CONFUSION_SELF_HIT_BP = 40;                 // data/conditions.ts:191 -- getConfusionDamage(pokemon, 40)
+/* THE RESTORE KNOB FOR THE SELF-HIT DAMAGE ADDRESS -- see confusionSelfDamage. It puts the damage
+ * draw back at the CLICK'S target, which is where it sat until 2026-09-04, so
+ * tests/probe_confusion_selfhit_address.js can be shown RED rather than told it was. */
+const CONFUSION_DMG_ADDR_LEGACY = (typeof process !== 'undefined' && process.env
+                                   && process.env.MEDI_CONFUSION_DMG_ADDR_LEGACY === '1');
+/* 2026-09-04 -- THE OTHER HALF OF M6, AND IT IS THE INSTRUMENT'S. See confusionSelfDamage's `==== THE
+ * STREAM ====` block. `MEDI_CONFUSION_DMG_CAT_LEGACY=1` is read under the SAME NAME by
+ * `engine/game_differential.js`, which uses it to drop its `getConfusionDamage` wrapper, so the two
+ * halves go back together and the restore reproduces the SAME red rather than a third behaviour --
+ * the policy `MEDI_TGT_ADDR_LEGACY` already sets. */
+const CONFUSION_DMG_CAT_LEGACY = (typeof process !== 'undefined' && process.env
+                                  && process.env.MEDI_CONFUSION_DMG_CAT_LEGACY === '1');
 /* THE ITEM THAT TAKES A VOLATILE OFF, read by SHAPE from `curesVolatile.cures`. Lum and Persim reach
  * it because tag_dex now derives that list from `onEat`'s own `removeVolatile` calls; Mental Herb
  * keeps its separate site because it carries per-volatile bookkeeping (`_sealed`, the Encore lock)
@@ -17779,7 +17859,9 @@ function volStartArg(who,a){
  * `aTarget`; every gate, every counter and the order of the three arms are as they were. The comments
  * inside are the originals and are the record of how each arm was measured.
  */
-function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce){
+/* `info` -- see `bounceOff`. Optional, forwarded rather than re-derived, so the ONE place that
+ * knows a bounce happened is the one place that reports it. */
+function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce,info){
   let _tl;
         const _spF=TAGS.param('move',mvId,'spreadFoes'), _spA=TAGS.param('move',mvId,'spreadAll');
         /* WIRE 153 -- A SELF-TARGETING STATUS MOVE CLICKED WITH NO TARGET FAILED OUTRIGHT. 2026-08-10.
@@ -17836,7 +17918,7 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce){
           /* Magic Bounce is asked of each body separately, exactly as it is on the single-target
              path below, and the result is de-duplicated by identity: two bouncers on one side would
              otherwise send the same move back at its user twice. */
-          _tl=_tl.map(x=>bounceOff(m,x,mvId,announce)).filter((x,i,arr)=>x&&arr.indexOf(x)===i);
+          _tl=_tl.map(x=>bounceOff(m,x,mvId,announce,info)).filter((x,i,arr)=>x&&arr.indexOf(x)===i);
           if(_tl.length>1)MEDSEEN.spreadStatusTargets++;
         } else {
         /* WIRE 139 -- THE SLOT, BEFORE ANYTHING ELSE LOOKS AT THE BODY. This branch is where Charm,
@@ -17847,7 +17929,7 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce){
          * dropped a body sitting on the BENCH. */
           let _t0=reaimToSlot(aTarget,it,actA,actB,mvId);
           _t0=_t0&&!_t0.fainted&&_t0.curHP>0?_t0:null;
-          _t0=bounceOff(m,_t0,mvId,announce);
+          _t0=bounceOff(m,_t0,mvId,announce,info);
           _tl=_t0?[_t0]:[];
         }
   return _tl;
@@ -18503,7 +18585,7 @@ function applyHealBlock(who,mvId){
  * roll that decides whether the body hurts itself (data/conditions.ts:181). So a confusion whose
  * clock has just run out costs nothing at all -- the volatile is removed and the move goes through.
  * Returns TRUE when the body loses its action. */
-function confusionSelfDamage(m,rng){
+function confusionSelfDamage(m,rng,_R){
   const A=Math.floor(m.st.at*boostMul(m.boosts.at));
   const D=Math.floor(m.st.df*boostMul(m.boosts.df));
   /* `battle-actions.ts:1856`, with level 50 folded into the 22 the damage function already uses.
@@ -18519,7 +18601,11 @@ function confusionSelfDamage(m,rng){
    * implementation. That is the FACTS-ARE-GLOBAL rule; a second copy of the expression is how two
    * readers eventually disagree.
    *
-   * ==== AND THE DIE IS THE GENERIC ONE, DELIBERATELY. THIS WAS CHANGED AND CHANGED BACK. ==========
+   * ==== ~~AND THE DIE IS THE GENERIC ONE, DELIBERATELY. THIS WAS CHANGED AND CHANGED BACK.~~ =======
+   * ==== 2026-09-04 -- IT IS THE `dmg` STREAM NOW, AND THE OTHER HALF OF THE FIX IS THE INSTRUMENT'S.
+   *
+   * The struck heading is kept because the measurement under it is real and still explains why the
+   * first attempt failed. What was wrong was the CONCLUSION, not the numbers.
    *
    * The 2026-08-22 card review filed this as "the confusion self-hit draws a different roll", with
    * 108 -> 75 on the authority against 108 -> 78 here (33 vs 30, and 30/33 = 0.909, inside the
@@ -18534,29 +18620,95 @@ function confusionSelfDamage(m,rng){
    *     ME   |1|acc|confuseray|p20|0   (no counterpart)          |1|any|amnesia|p20|0   |1|dmg|amnesia|p20|0
    *
    * `getConfusionDamage` does NOT call `getDamage`. It calls `this.battle.randomizer(damage)` DIRECTLY
-   * (sim/battle-actions.ts:1859), so the instrument's method wrapper never fires and the authority's
-   * draw is category `any` -- which is what this engine was already using. The generic stream is the
-   * matching address; the `dmg` stream is not.
+   * (sim/battle-actions.ts:1861), so the instrument's method wrapper never fired and the authority's
+   * draw came out category `any`. THAT WAS READ AS "THE GENERIC STREAM IS THE MATCHING ADDRESS", and
+   * it is the wrong way round: the authority's category was `any` because the INSTRUMENT was not
+   * looking, not because the game says this draw is generic. Moving one side alone is a third
+   * behaviour, which is why the first attempt made the number smaller instead of zero.
    *
-   * WHAT REMAINS IS AN INSTRUMENT GAP, NOT AN ENGINE ONE, and it is left alone here on purpose.
-   * `game_differential.js` inverts `random(16)` only when `MID_CAT === 'dmg'` -- its own comment says
-   * `random(16)` "is a damage roll or a 1-in-16 chance with no way to know which" -- so this one
-   * damage roll is read UN-inverted against an engine whose damage is increasing in u. Both PINNED
-   * CORNERS agree (a corner arm answers `random(16)` with its `damageIndex` whatever the category
-   * says), so this engine's direction is the right one and inverting it here would BREAK them.
+   * SO BOTH HALVES MOVE TOGETHER. `engine/game_differential.js` now wraps
+   * `BattleActions#getConfusionDamage` as `dmg` -- the fourth owner of a damage roll and the only one
+   * that reaches `battle.randomizer` without passing through `getDamage` -- and this engine draws the
+   * same event on `_R.dmg`. The two addresses then agree AND `pinRandom`'s damage-index inversion
+   * fires, which is what closes the residual below.
    *
-   * THE MISSING DRAW IN THAT DUMP IS OURS AND IS A SEPARATE, REAL GAP: the authority spends
+   * ~~WHAT REMAINS IS AN INSTRUMENT GAP, NOT AN ENGINE ONE, and it is left alone here on purpose.
+   * `game_differential.js` inverts `random(16)` only when `MID_CAT === 'dmg'` ... so this one damage
+   * roll is read UN-inverted against an engine whose damage is increasing in u.~~ **CLOSED 2026-09-04
+   * BY THE INSTRUMENT, WHICH IS WHERE IT WAS FILED.**
+   *
+   * THE PINNED CORNERS ARE UNTOUCHED AND THAT WAS THE OBJECTION TO FIXING IT HERE. A corner arm
+   * answers `random(16)` with its `damageIndex` whatever the category says, and `rngStreams(f)` for a
+   * plain function aliases EVERY stream to `f` -- so under `top-tie-first` and `bottom-tie-first`
+   * `_R.dmg` and `_R.any` are the same function and this line is byte-identical to what it was. Only
+   * the middle arm and a seeded split struct can tell the two streams apart, which is exactly the
+   * population the fix is for. Live play and every rollout pass a plain function and see no change.
+   *
+   * ~~THE MISSING DRAW IN THAT DUMP IS OURS AND IS A SEPARATE, REAL GAP: the authority spends
    * `any|confuseray|p20|0` inside `confusion.onStart` (`this.effectState.time = this.random(2, 6)`)
-   * and this engine takes the duration from the tag as a constant, so it never draws at all. */
-  return Math.max(1,Math.floor(base*(100-damageRollIndex(rng()))/100));
+   * and this engine takes the duration from the tag as a constant, so it never draws at all.~~
+   * **CLOSED BY THE INSTRUMENT, NOT BY US, AND MEASURED RATHER THAN ASSUMED.** ROADMAP #501 widened
+   * `game_differential.js`'s range-form pin to every category but `dmg`, so the authority's
+   * `random(2, 6)` now returns `m` and CONSUMES NO ADDRESS. Re-measured 2026-09-04 on a staged
+   * Confuse Ray: no `confuseray` address appears in either engine's log. The duration is still taken
+   * at the floor and `confusionMinDuration` still says so; what is gone is the stream consequence.
+   *
+   * ==== 2026-09-04 -- THE DAMAGE DRAW'S ADDRESS IS THE CONFUSED BODY, NOT THE MOVE'S TARGET =======
+   *
+   * `data/conditions.ts` confusion.onBeforeMove, read whole (no `/data/mods/champions/conditions.ts`
+   * row for `confusion` -- checked on this run):
+   *
+   *     if (!this.randomChance(33, 100)) return;      <- draw 1, at the CLICK'S target
+   *     this.activeTarget = pokemon;                  <- the authority REPOINTS the active target
+   *     const damage = this.actions.getConfusionDamage(pokemon, 40);   <- draw 2, at the SELF slot
+   *
+   * `getConfusionDamage` calls `this.battle.randomizer(damage)` (sim/battle-actions.ts:1861) which is
+   * one `this.random(16)`, and the middle arm addresses every draw off `battle.activeTarget`. So the
+   * authority's two draws sit at TWO DIFFERENT ADDRESSES whenever the confused body clicked at a foe,
+   * and this engine put both at `MID_TGT` -- the click's target, stamped once at the top of the
+   * action. Measured before the fix, one staged doubles turn, Snorlax confused and clicking Body Slam
+   * at the Milotic in p10:
+   *
+   *     sd   20260813|6|any|bodyslam|p10|0     the 1/3 roll, at the CLICK'S target
+   *     sd   20260813|6|any|bodyslam|p20|0     the damage roll, at the CONFUSED BODY
+   *     me   20260813|6|any|bodyslam|p10|0     agreed
+   *     me   20260813|6|any|bodyslam|p10|1     UNSHARED -- a different address is a different die
+   *
+   * The control that isolates it is the SAME board with a self-targeting click (Amnesia): both fields
+   * are already `p20` there, both engines shared every address before this change as well as after,
+   * and it is why the 2026-08-22 review -- which staged exactly that Amnesia board -- could not see
+   * this. `MEDI_CONFUSION_DMG_ADDR_LEGACY=1` restores the single stamp.
+   *
+   * THIS IS AN INSTRUMENT ADDRESS AND NOT A GAME VALUE, said plainly: `MID_TGT` is read by
+   * `midEventDraw` alone, so no rollout, no self-play game and no seeded census probe can observe
+   * this line. What it fixes is WHICH die the two engines share; ~~and the residual after it is the
+   * un-inverted read three paragraphs up~~ **that residual is closed as of 2026-09-04 by the `dmg`
+   * stream below plus `game_differential.js`'s `getConfusionDamage` wrapper.** */
+  const _pt = MID_TGT, _self = midEventSlot(m);
+  if (CONFUSION_DMG_ADDR_LEGACY) { MEDFAILS.confusionDmgAddrLegacyRestored = 1; }
+  else { MID_TGT = _self; if (_pt !== _self) MEDSEEN.confusionDmgAddrMovedToSelf++; }
+  /* THE STREAM, AND THE FALLBACK IS LOUD. Every caller reaching here comes through `battleTurn`,
+   * which builds `_R` on its first line, so a missing `_R.dmg` means a NEW call path that did not
+   * pass one -- and a silent slide back onto the generic stream would look exactly like the fix
+   * working while re-opening the anti-correlated read. Counted, named, and never swallowed. */
+  let _draw = rng;
+  if (CONFUSION_DMG_CAT_LEGACY) { MEDFAILS.confusionDmgCatLegacyRestored = 1; }
+  else if (_R && typeof _R.dmg === 'function') { _draw = _R.dmg; MEDSEEN.confusionDmgOnDmgStream++; }
+  else { MEDFAILS.confusionDmgStreamMissing++;
+         if (!MEDFAILS.confusionDmgStreamMissingFirst)
+           MEDFAILS.confusionDmgStreamMissingFirst = 'confusionSelfDamage was called without a stream '
+             + 'struct -- the self-hit roll fell back to the generic die and the middle arm will read '
+             + 'it UN-inverted against the authority'; }
+  try { return Math.max(1,Math.floor(base*(100-damageRollIndex(_draw()))/100)); }
+  finally { MID_TGT = _pt; }
 }
-function confusionBeforeMove(m,rng){
+function confusionBeforeMove(m,rng,_R){
   if(!m||!m._vol||!(m._vol.confusion>0))return false;
   if(--m._vol.confusion<=0){delete m._vol.confusion;if(TR)TR.vend(m,'confusion');MEDSEEN.confusionExpired++;return false;}
   if(TR)TR.act(m,'confusion');
   /* `this.randomChance(33, 100)` at data/conditions.ts:187 -- one attempt in three. */
   if(rng()>=1/3)return false;
-  const d=confusionSelfDamage(m,rng);
+  const d=confusionSelfDamage(m,rng,_R);
   m.curHP-=d;MEDSEEN.confusionSelfHit++;
   if(TR)TR.dmg(m,'[from] confusion');
   if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
@@ -20140,21 +20292,43 @@ function layHazard(sf,hz,cap,setter,sideLabel,say){
  * side questions are separate: it takes hazards off BOTH sides and screens off the TARGET's side
  * only, so a wire that collapsed them would delete the user's own Reflect.
  *
- * `ownSf` is the USER's side and `foeSf` is the other one. Tidy Up's `foeSidesWithConditions()` and
- * Defog's pair of loops both come out as `hazardsFrom: 'both'`, which is the same behaviour in a
- * two-side game -- the difference upstream is only that Showdown skips a side with nothing on it.
+ * ~~`ownSf` is the USER's side and `foeSf` is the other one. Tidy Up's `foeSidesWithConditions()`
+ * and Defog's pair of loops both come out as `hazardsFrom: 'both'`, which is the same behaviour in a
+ * two-side game -- the difference upstream is only that Showdown skips a side with nothing on it.~~
+ *
+ * ==== 2026-09-04 -- THAT LAST SENTENCE WAS FALSE AND IT COST TWO BOARD FIELDS PER ALLY-AIMED DEFOG.
+ *
+ * The two handlers name DIFFERENT PAIRS OF SIDES and they only coincide when the target is a foe:
+ *
+ *     defog    target.side (screens + hazards)  and  source.side (hazards)
+ *     tidyup   pokemon.side  and  pokemon.side.foeSidesWithConditions()
+ *
+ * `defog.target` is `normal`, which `validTargetLoc` lets name the PARTNER, and Magic Bounce re-uses
+ * the move with the BOUNCER as source -- so both of Defog's sides move about while Tidy Up's never
+ * do. THE CALLER CHOOSES THE TWO SIDES; this function only says what comes off them. `srcSf` is the
+ * side the move is being used FROM and `tgtSf` is the side it is aimed AT, and the ALLY-AIMED case
+ * legitimately passes the same object for both -- which is exactly the case that must NOT empty the
+ * opponent's hazard bag, so the bag list is de-duplicated by identity rather than by hope.
  *
  * Returns how many DISTINCT things it took away, so a caller can tell a sweep that did something
  * from one that swept an empty field. Nothing in this engine fails a click on that today (Defog
  * still drops evasion and Tidy Up still boosts), and Showdown agrees -- both return `success ||`
  * their own boost. */
-function sweepField(rm,user,ownSf,foeSf,field,acts){
+/* THE RESTORE KNOB FOR THE SIDE SELECTION -- see the Defog call site. It puts back
+ * `m._sf === sfA ? sfB : sfA` at the one site that changed, so tests/probe_defog_target_side.js can
+ * be shown RED rather than told it was. Must read 0 on any shipping run. */
+const DEFOG_FOE_SIDE_LEGACY=(typeof process!=='undefined'&&process.env
+                             &&process.env.MEDI_DEFOG_FOE_SIDE_LEGACY==='1');
+function sweepField(rm,user,srcSf,tgtSf,field,acts){
   if(!rm)return 0;
   let n=0;
   const _lab=sf=>sf&&sf.side==='A'?'p1':'p2';
   const _bags=[];
-  if(rm.hazardsFrom==='self'||rm.hazardsFrom==='both')_bags.push(ownSf);
-  if(rm.hazardsFrom==='target'||rm.hazardsFrom==='both')_bags.push(foeSf);
+  if(rm.hazardsFrom==='self'||rm.hazardsFrom==='both')_bags.push(srcSf);
+  /* DE-DUPLICATED BY IDENTITY. An ally-aimed Defog has srcSf === tgtSf and the authority's two loops
+   * then run over ONE side; pushing it twice would be harmless today (the second pass finds the bags
+   * already empty) and would silently double `n` the moment a caller reads the return value. */
+  if((rm.hazardsFrom==='target'||rm.hazardsFrom==='both')&&tgtSf!==srcSf)_bags.push(tgtSf);
   for(const sf of _bags){
     if(!sf||!sf.hz)continue;
     for(const hz of (rm.hazards||[])){
@@ -20165,7 +20339,7 @@ function sweepField(rm,user,ownSf,foeSf,field,acts){
     }
   }
   if(rm.alsoRemoves&&rm.alsoRemoves.length){
-    const sf=rm.screensFrom==='target'?foeSf:ownSf;
+    const sf=rm.screensFrom==='target'?tgtSf:srcSf;
     if(sf&&sf.sc)for(const id of rm.alsoRemoves){
       if(!(sf.sc[id]>0))continue;
       delete sf.sc[id]; n++; MEDSEEN.sideConditionSwept++;
@@ -24861,7 +25035,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * freeze above it applied -- a half fix that reads exactly like a whole one. They now ask the
        * same `actionMoveId` reader, so the three can never disagree again. */
       if(actionMoveId(it.a)
-         &&confusionBeforeMove(m,rng)){m._mvRes=false;continue;}
+         &&confusionBeforeMove(m,rng,_R)){m._mvRes=false;continue;}
       /* ROADMAP #197 -- ATTRACT, AND ITS POSITION IN THIS CHAIN IS READ RATHER THAN CHOSEN. The
        * authority orders the BeforeMove refusals by `onBeforeMovePriority`: recharge 11, slp and frz
        * 10, flinch 8, confusion 3, ATTRACT 2 (data/moves.ts:742), par 1. So it sits below confusion
@@ -26156,7 +26330,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          * WHAT STAYS ONCE PER MOVE: `m._lastMove` (set above), the `mvFail` for a move that found
          * nobody at all, a user-directed `si` effect (Showdown carries `move.selfDropped` for exactly
          * that), and `userFaints` -- Memento's user dies once, and only if the move reached somebody. */
-        const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB,true);
+        /* 2026-09-04 -- THE BOUNCE RECEIPT. Read only by the Defog sweep at the bottom of this
+         * branch; see `bounceOff`. Declared here so the object exists before the resolution runs. */
+        const _bInfo={bouncedBy:null};
+        const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB,true,_bInfo);
         if(!_tl.length){mvFail(m);continue;}
         /* How many bodies the move actually LANDED on. Read by `userFaints` below, and by the
            user-directed `si` guard inside the loop. A refusal `continue`s without touching it, so a
@@ -26467,8 +26644,58 @@ function battleTurn(S,rng,actsForA,actsForB){
          * `_landed` for the reason the Memento block below is: every refusal in the loop `continue`s,
          * so a Defog that a Protect, a Good as Gold or a Magic Bounce turned away must remove nothing
          * -- and the whole gauntlet above is the one this branch already runs, not a second copy. */
+        /* ==== 2026-09-04 -- THE SIDE SELECTION, AND IT WAS "THE SIDE THE MOVER IS NOT ON" ==========
+         *
+         * `sweepField`'s second side argument is consumed by `hazardsFrom: 'target'|'both'` and by
+         * `screensFrom: 'target'`, and this line handed it `m._sf === sfA ? sfB : sfA`. The authority
+         * names two sides and neither of them is that (data/moves.ts `defog.onHit`, read whole):
+         *
+         *     for (const c of removeTarget) if (TARGET.side.removeSideCondition(c)) ...
+         *     for (const c of removeAll)    if (SOURCE.side.removeSideCondition(c)) ...
+         *
+         * `defog.target` is `normal`, and `Battle#validTargetLoc` asks only ADJACENCY for `normal` --
+         * so the partner is a legal aim and `target.side === source.side`. On that click the old
+         * selector was wrong TWICE, in opposite directions: it took the screens off the FOE (leaving
+         * the ally's Reflect standing) and emptied the FOE'S hazard bag (deleting rocks the opponent
+         * still had). Measured on tests/probe_defog_target_side.js arm B before this changed:
+         * `p1.screens.named.reflect 3 vs null` and `p2.hazards.stealthrock 0 vs 1`.
+         *
+         * AND THE SOURCE MOVES TOO, WHICH IS WHY THE BOUNCE ARM EXISTS. Magic Bounce re-uses the move
+         * with the BOUNCER as source, so after a bounce `source.side` is the bouncer's side and
+         * `target.side` is the original user's. Reading only the target's side would have fixed the
+         * screens and BROKEN the hazards on that road -- arm C is the regression guard that caught
+         * exactly that, and `_bInfo.bouncedBy` is the receipt `bounceOff` writes rather than a second
+         * derivation of the bounce rule here.
+         *
+         * THE OTHER TWO CALL SITES ARE NOT COPIES OF THIS AND ARE DELIBERATELY UNCHANGED. Tidy Up is
+         * `[pokemon.side, ...pokemon.side.foeSidesWithConditions()]` and is `target: 'self'`, so "the
+         * target's side" would collapse its two bags into one; the damaging branch's carriers are
+         * `hazardsFrom: 'self'` and never read the argument at all. Both memberships are DERIVED, not
+         * asserted, in the probe's §0, so a new carrier turns it red by name.
+         *
+         * `MEDI_DEFOG_FOE_SIDE_LEGACY=1` restores the old selector at this one site. */
         {const _rm=TAGS.param('move',a.mv,'removesHazards');
-         if(_rm&&_landed)sweepField(_rm,m,m._sf,m._sf===sfA?sfB:sfA,field,actA.concat(actB));}
+         if(_rm&&_landed){
+           const _far=(m._sf===sfA?sfB:sfA);
+           let _srcSf=m._sf,_tgtSf=_far;
+           if(DEFOG_FOE_SIDE_LEGACY){MEDFAILS.defogFoeSideLegacyRestored=1;}
+           else{
+             /* THE TARGET IS THE ROW THAT SURVIVED THE GAUNTLET. `_landed` is non-zero here, so at
+              * least one row is still in; a null would mean the two disagree about what landed, and
+              * it is COUNTED rather than defaulted -- a silent slide back to `_far` is the pre-fix
+              * behaviour arriving without a receipt. */
+             const _lr=_aRows.find(R=>!R.out);
+             const _lt=_lr&&_lr.tg;
+             if(_lt&&_lt._sf){_tgtSf=_lt._sf; if(_tgtSf!==_far)MEDSEEN.defogSweptTargetSide++;}
+             else{MEDFAILS.sweepFieldNoTargetSide++;
+                  if(!MEDFAILS.sweepFieldNoTargetSideFirst)MEDFAILS.sweepFieldNoTargetSideFirst=
+                    String(a.mv)+' landed on '+_landed+' body/bodies and none of them could name a '
+                    +'side -- the sweep fell back to the far side, which is the pre-2026-09-04 bug';}
+             if(_bInfo.bouncedBy&&_bInfo.bouncedBy._sf){
+               _srcSf=_bInfo.bouncedBy._sf;
+               if(_srcSf!==m._sf)MEDSEEN.defogSweptFromBouncerSide++;}
+           }
+           sweepField(_rm,m,_srcSf,_tgtSf,field,actA.concat(actB));}}
         /* WIRE 86 -- MEMENTO FAINTS ITS USER, AND THE CHECK LIVED IN THE ATTACK BRANCH.
          * WIRE 46 wired `userFaints` where damaging moves resolve, gated on `dealt > 0`. Memento is
          * a STATUS move: it resolves here, in `affect`, so its whole cost -- the user dies -- never
@@ -27215,6 +27442,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          * `reflectable` -- so there is no body between the click and the effect for anything to
          * refuse, which is exactly why this branch has no gauntlet for it to have skipped. */
         {const _rm=TAGS.param('move',a.mv,'removesHazards');
+         /* 2026-09-04 -- THE SELECTOR HERE IS **NOT** THE ONE THE DEFOG SITE FIXED, AND FOLDING THE
+          * TWO TOGETHER WOULD BREAK THIS ONE. Tidy Up's handler is
+          * `[pokemon.side, ...pokemon.side.foeSidesWithConditions()]` and its target is `self`, so
+          * "the target's side" IS the user's side and the two bags would collapse into one, leaving
+          * the opponent's hazards standing. This branch's `the other side` is the FOE's side and is
+          * exactly what the authority names. tests/probe_defog_target_side.js §0 derives both facts
+          * (the handler text and `tidyup.target === 'self'`) on every run rather than asserting them,
+          * so a change upstream turns it red by name. */
          if(_rm)sweepField(_rm,m,m._sf,m._sf===sfA?sfB:sfA,field,actA.concat(actB));}
         /* ROADMAP #308 -- AND THEN THE USER EATS IT. `onHit(pokemon) { if (!this.boost({def:2}))
          * return null; pokemon.eatItem(true); }` -- the eat is BELOW the boost and is skipped when the
@@ -35139,6 +35374,13 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _rmh=TAGS.param('move',a.move&&a.move.id,'removesHazards');
           if(_rmh&&connected&&!m.fainted&&(_rmh.throughSubstitute||!_subAte)
              &&!(_rmh.refusedBySheerForce&&TAGS.param('ability',m.ability,'removesOwnSecondaries'))){
+            /* 2026-09-04 -- `_fsf2` IS UNREAD ON THIS ROAD AND THAT IS A DERIVED CLAIM, NOT AN
+             * ASSUMPTION. Every carrier that reaches the damaging branch is `hazardsFrom: 'self'`
+             * (rapidspin, mortalspin), and only `hazardsFrom` naming the far side or
+             * `screensFrom: 'target'` can tell the two sides apart at all -- so nothing here consults
+             * it. tests/probe_defog_target_side.js §0 walks data/tags.json and FAILS BY NAME if a
+             * damaging carrier ever gains one of those params, at which point this line needs the
+             * target-side selection the Defog site now uses. */
             const _osf=m._sf, _fsf2=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
             sweepField(_rmh,m,_osf,_fsf2,field,actA.concat(actB));
             MEDSEEN.hazardSweepAtAfterHit++;

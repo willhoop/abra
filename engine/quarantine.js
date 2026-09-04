@@ -4053,6 +4053,37 @@ if (require.main === module) {
       ok('PIN GUARD / GREEN — the same artifact carrying the whole stamp ANSWERS',
         mOk.withheld !== true && mOk.ok === true, mOk.why);
 
+      /* ---- 3b. MEASURED AGAINST A DIFFERENT RELEASE — the branch the guard exists FOR ---------
+       *
+       * `PIN_COUNTERS` has SIX refusal branches and 5b below named five. The omitted one was
+       * `wrong_release` (pin_guard.js:184), which fires on `cur && p.id !== cur` — the artifact was
+       * measured against OTHER BYTES. That is the branch behind every `PRE-CHANGE` figure, behind
+       * LESSONS §12's 168-of-200 stranded releases, and behind the whole reason this guard exists.
+       * Found 2026-09-04 by `docs/_reports/2026-09-04-dead-counters-audit.md`, which measured its
+       * counter as having no reader of any kind anywhere in the tree.
+       *
+       * STATED EXACTLY, because the looser version of this sentence was written here first and was
+       * wrong: the BRANCH was already driven in this process — `:4010` hands the differential clause
+       * an artifact stamped `__not-this-tree__` and asserts the refusal. What did not exist was any
+       * READER OF THE COUNTER, so nothing could tell "this branch fired" from "this branch is
+       * unreachable", which is the founding rule inverted at the one guard built to enforce it.
+       *
+       * THE KNOB IS THE TREE'S ID AND NOTHING ELSE. `mOk` above is the SAME artifact read against a
+       * matching `cur`, so the two arms differ in one field — without that control a refusal here
+       * would be indistinguishable from the mechanics clause refusing everything. Cleared explicitly
+       * on 2026-09-04: setting this `cur` back to `rel-fixture` turns both arms below RED. */
+      const wrBefore = PIN.PIN_COUNTERS.wrong_release;
+      const mStale = mechanicsClause({ j: { [PIN.K.id]: 'rel-fixture',
+        [PIN.K.digests]: { 'engine/medicham2-browser.js': 'bbbbbbbbbbbb' }, ...mBase },
+        cur: { id: 'rel-MOVED-ON' }, U: usageIndex(), DI: decisionImpact('nothing-on-disk') });
+      ok('PIN GUARD / RED — a FULLY STAMPED artifact measured on a DIFFERENT release is WITHHELD, and '
+        + 'the refusal names both ids: an answer about other bytes is not a weaker answer',
+        mStale.withheld === true && /rel-fixture/.test(mStale.why) && /rel-MOVED-ON/.test(mStale.why),
+        mStale.why);
+      ok('PIN GUARD / RED — and `wrong_release` MOVED BY EXACTLY ONE on this call, so the counter 5b '
+        + 'reads is attributable to a named branch and not to whatever else ran first',
+        PIN.PIN_COUNTERS.wrong_release - wrBefore === 1, PIN.PIN_COUNTERS);
+
       /* ---- 4. THE WHOLE-GAME CLAUSES — the population, one field over -------------------------
        *
        * DRIVEN THROUGH THE BOARD CLAUSE AND CROSS-CHECKED THROUGH THE NARRATION ONE, because the
@@ -4134,12 +4165,25 @@ if (require.main === module) {
       /* ---- 5b. THE GUARD CAN PROVE IT RAN ----------------------------------------------------
        * CLAUDE.md: a capability that cannot prove it ran is assumed broken. Every arm above would
        * also pass against a guard that returned a canned refusal without reading anything, so the
-       * counters are asserted to have MOVED on each distinct branch. */
-      ok('PIN GUARD — the guard proves it ran: the release, digest, population and receipt branches '
-        + 'have each fired at least once in this process',
-        PIN.PIN_COUNTERS.checked > 0 && PIN.PIN_COUNTERS.no_release > 0
-        && PIN.PIN_COUNTERS.no_digests > 0 && PIN.PIN_COUNTERS.population > 0
-        && PIN.PIN_COUNTERS.no_receipt > 0, PIN.PIN_COUNTERS);
+       * counters are asserted to have MOVED on each distinct branch.
+       *
+       * IT NAMED FIVE OF SIX UNTIL 2026-09-04, and the missing one was `wrong_release` — the branch
+       * that fires when an artifact was measured against a DIFFERENT ENGINE RELEASE, which is the
+       * whole reason `pin_guard.js` exists. Nothing anywhere read that counter, so the one refusal
+       * path this repository was built around was the one whose FIRING nothing could observe.
+       *
+       * THE LIST IS NOW DERIVED FROM `PIN_COUNTERS` ITSELF RATHER THAN TYPED. A hand-typed list is
+       * how the sixth branch came to be omitted, and typing a sixth name would leave the seventh
+       * exactly as exposed — the same argument `data/tags.json` makes about matching on tag shape and
+       * never on a name. A branch added tomorrow is asserted the day it is added. `unreadable` is
+       * added lazily by `readJson` and only ever appears here already non-zero, so it cannot make
+       * this red by existing. */
+      const pinBranches = Object.keys(PIN.PIN_COUNTERS).filter((k) => k !== 'checked');
+      const pinCold = pinBranches.filter((k) => !(PIN.PIN_COUNTERS[k] > 0));
+      ok('PIN GUARD — the guard proves it ran: EVERY branch `PIN_COUNTERS` declares has fired at '
+        + 'least once in this process (' + pinBranches.join(', ') + ')',
+        PIN.PIN_COUNTERS.checked > 0 && pinCold.length === 0,
+        'never fired: ' + (pinCold.join(', ') || 'none') + ' — ' + JSON.stringify(PIN.PIN_COUNTERS));
 
       /* ---- 6. EVERY SHIPPING CLAUSE CARRIES A RECEIPT ---------------------------------------- */
       const liveClauses = medichamIsCorrect().clauses;

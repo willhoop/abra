@@ -357,6 +357,33 @@ const MID_UNSHARED = !!process.env.MEDI_MID_CAT_UNSHARED;
  * `engine/medicham2-browser.js` under the same name and the two halves go back together. It is LOUD:
  * the run prints the restored state beside the wrapper receipt. */
 const TGT_ADDR_LEGACY = process.env.MEDI_TGT_ADDR_LEGACY === '1';
+/* ---- 2026-09-04, M6's INSTRUMENT HALF -- THE CONFUSION SELF-HIT'S `random(16)` WAS READ BACKWARDS.
+ *
+ * `data/conditions.ts` confusion.onBeforeMove calls `this.actions.getConfusionDamage(pokemon, 40)`,
+ * and `getConfusionDamage` (sim/battle-actions.ts:1850-1862) ends `this.battle.randomizer(damage)`
+ * -- one `this.random(16)` (sim/battle.ts:2388). It does NOT go through `getDamage`, so none of the
+ * three methods `midWrapShowdown` wraps is on the stack and `MIDW.cat` stays at its default `any`.
+ *
+ * TWO CONSEQUENCES, AND THE SECOND IS THE EXPENSIVE ONE:
+ *   - the ADDRESS category is `any` while medicham2 draws the same event on its own generic stream,
+ *     which matched only by luck;
+ *   - `pinRandom`'s damage-index inversion is gated on `cat === 'dmg'`, so the authority read the
+ *     draw as `floor(u*16)` -- an INDEX where 0 is MAXIMUM damage -- against an engine whose
+ *     `damageRollIndex(u) = 15 - floor(u*16)` runs the other way. **A shared die read backwards on
+ *     one side is an ANTI-CORRELATED die**, which this file's own pin header says is worse than an
+ *     independent one. Both pinned corner arms answer `random(16)` with `spec.damageIndex` whatever
+ *     the category says, so the corners never saw it and ENGINE could not fix it from its side
+ *     without parting them -- which is exactly why `tests/probe_confusion_selfhit_address.js` filed
+ *     this here instead of papering over it.
+ *
+ * ONE KNOB, BOTH HALVES, same policy as `MEDI_TGT_ADDR_LEGACY` above: `engine/medicham2-browser.js`
+ * reads `MEDI_CONFUSION_DMG_CAT_LEGACY` under the same name and puts its own draw back on the
+ * generic stream, so the restore reproduces the SAME red rather than a third behaviour.
+ *
+ * IT MOVES `PIN_DIGEST` -- the claim below joins the pin list, and the authority's draw changes
+ * category, so a run after this is not comparable draw-for-draw with a run before it. Said out loud
+ * because a moved digest is a changed INSTRUMENT, not a changed engine. */
+const CONFUSION_DMG_CAT_LEGACY = process.env.MEDI_CONFUSION_DMG_CAT_LEGACY === '1';
 const MIDW = (() => {
   const K = '__abra_mid_wrapper_state__';
   const fresh = () => ({ cat: 'any', att: '-', battle: null, adopted: 0, enters: 0,
@@ -366,7 +393,12 @@ const MIDW = (() => {
                           * board from the lookahead family. */
                          tgtMove: '-', tgtAtt: '-', inRunMove: false,
                          tgtEnters: 0, tgtDrawsInMove: 0, tgtDrawsLookahead: 0, runMoveEnters: 0,
-                         tgtUnnameable: 0, tgtUnnameableFirst: '' });
+                         tgtUnnameable: 0, tgtUnnameableFirst: '',
+                         /* 2026-09-04 -- how many times the authority actually entered
+                          * `getConfusionDamage`. A run whose confusion self-hits are all in the
+                          * un-inverted read looks exactly like a run that has none, so the count is
+                          * published rather than inferred from the divergence rate. */
+                         confusionDmgEnters: 0 });
   if (MID_UNSHARED) return fresh();
   if (!globalThis[K]) globalThis[K] = fresh();
   else {
@@ -1130,13 +1162,15 @@ function midWrapShowdown(BattleActions) {
    * null on every load after the first and the claim would refuse the very case it exists for. */
   MID_WRAP_CLASS = BattleActions;
   if (BattleActions.__midWrapped) return;
-  const around = (name, cat, attIdx) => {
+  const around = (name, cat, attIdx, ctr) => {
     const fn = BattleActions.prototype[name];
     if (typeof fn !== 'function') throw new Error('MIDDLE ARM: BattleActions#' + name + ' is not a function — '
       + 'the authority moved and this wrapper is guessing. Fix the name rather than falling back.');
+    (BattleActions.__midWrapNames = BattleActions.__midWrapNames || []).push(name + ':' + cat);
     BattleActions.prototype[name] = function (...a) {
       const prev = MIDW.cat, prevB = MIDW.battle;
       MIDW.cat = cat; MIDW.enters++;
+      if (ctr) MIDW[ctr] = (MIDW[ctr] || 0) + 1;
       /* THE BATTLE HAS TO BE CAPTURED HERE, AND ASSUMING OTHERWISE COST THE WHOLE FEATURE.
        * The address builder is installed as `battle.prng.random`, and `Battle#random` is
        * `return this.prng.random(m, n)` -- so inside it `this` is the PRNG, not the battle. Every
@@ -1161,6 +1195,14 @@ function midWrapShowdown(BattleActions) {
   around('hitStepAccuracy', 'acc', 1);
   around('secondaries', 'sec', 1);
   around('getDamage', 'dmg', 0);      /* the crit roll lives in here too and is split out below */
+  /* 2026-09-04, M6's INSTRUMENT HALF -- see CONFUSION_DMG_CAT_LEGACY at the top of this file.
+   * `getConfusionDamage` is the FOURTH owner of a damage roll and the only one that reaches
+   * `battle.randomizer` without passing through `getDamage`, so it needs its own entry rather than a
+   * denominator test: `random(16)` elsewhere is a 1-in-16 chance and inverting THAT would be wrong
+   * (ROADMAP #260, and this file's own note above `around`). There is no two-argument `random` inside
+   * it -- read whole at sim/battle-actions.ts:1850-1862 -- so the `dmg`->`crit` relabel below cannot
+   * fire here. `pokemon` is argument 0, the same signature position `getDamage` uses for its source. */
+  if (!CONFUSION_DMG_CAT_LEGACY) around('getConfusionDamage', 'dmg', 0, 'confusionDmgEnters');
   /* ---- ROADMAP #478 -- `runMove` IS NOT A CATEGORY, IT IS A SCOPE ------------------------------
    *
    * It sets no `MIDW.cat` and changes no address on its own. What it answers is the ONE question the
@@ -1693,6 +1735,29 @@ function armClaims(a) {
               try { const b = MID_CTX_SEEN.sd.length; const v = a.random(2, 6);
                     const grew = MID_CTX_SEEN.sd.length - b;
                     return MID_RANGE_LIVE ? (grew === 1) : (grew === 0 && v === 2); }
+              finally { MIDW.cat = prev; } });
+    /* 2026-09-04, M6's INSTRUMENT HALF. TWO STATEMENTS, because either alone passes while the other
+     * is broken: the WRAP has to be on `getConfusionDamage` (without it the category is `any` and the
+     * inversion below never runs on that draw), and a `random(16)` taken under `dmg` has to come back
+     * as an INDEX read the way `damageRollIndex` reads it (0 = maximum damage at the top of u).
+     * The second is asserted against `midDamageIndex`, which is the duplicated-on-purpose twin of
+     * medicham2's `damageRollIndex` -- see that function's header and tests/test-damage-roll-support.js.
+     * Both are knob-aware, so `MEDI_CONFUSION_DMG_CAT_LEGACY=1` does not leave a pin claim lying. */
+    P('`BattleActions#getConfusionDamage` is wrapped as `dmg`  [MEDI_CONFUSION_DMG_CAT_LEGACY=1 removes it]',
+      () => { const names = (MID_WRAP_CLASS && MID_WRAP_CLASS.__midWrapNames) || [];
+              return names.indexOf('getConfusionDamage:dmg') >= 0 ? !CONFUSION_DMG_CAT_LEGACY
+                                                                  : !!CONFUSION_DMG_CAT_LEGACY; });
+    P('and a `random(16)` taken under `dmg` comes back INVERTED — the sixteen-index convention both '
+      + 'engines share, not `floor(u*16)`',
+      () => { const prev = MIDW.cat; MIDW.cat = 'dmg';
+              try { for (let i = 0; i < 64; i++) { const b = MID_CTX_SEEN.sd.length;
+                      const v = a.random(DAMAGE_ROLL_SIDES);
+                      if (MID_CTX_SEEN.sd.length - b !== 1) return false;
+                      const u = midValue(MID_CTX_SEEN.sd[MID_CTX_SEEN.sd.length - 1]);
+                      /* `--mid-damage-uninverted` is the OTHER restore knob for this same read and
+                       * it must not leave this claim lying either. */
+                      if (v !== (MID_NO_INVERT ? Math.floor(u * DAMAGE_ROLL_SIDES) : midDamageIndex(u))) return false; }
+                    return true; }
               finally { MIDW.cat = prev; } });
     return C;
   }
@@ -6229,7 +6294,12 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                                           tgtInMove: MIDW.tgtDrawsInMove, tgtLookahead: MIDW.tgtDrawsLookahead,
                                           tgtLegacy: TGT_ADDR_LEGACY,
                                           tgtUnnameable: MIDW.tgtUnnameable,
-                                          tgtUnnameableFirst: MIDW.tgtUnnameableFirst }) };
+                                          tgtUnnameableFirst: MIDW.tgtUnnameableFirst,
+                                          /* 2026-09-04 -- M6's instrument half. A ZERO here on a run
+                                           * that reports confusion divergences means the wrap is not
+                                           * carrying them and the reading is about something else. */
+                                          confusionDmgEnters: MIDW.confusionDmgEnters,
+                                          confusionDmgCatLegacy: CONFUSION_DMG_CAT_LEGACY }) };
 
 if (require.main !== module) return;
 
@@ -7099,6 +7169,13 @@ if (PRIMARY_ARM.middle) {
     : MIDW.enters + ' entries into this module\'s holder, ' + MIDW.adopted + ' reload(s) adopted it, '
       + (MID_UNSHARED ? 'state PER-MODULE (--red arm)' : 'state shared'))
     + (!MID_WRAP_ERROR && !MIDW.enters ? '   <-- ZERO: every authority draw was addressed `any`' : ''));
+  /* 2026-09-04, M6's INSTRUMENT HALF -- LOUD BOTH WAYS. A zero says this run staged no confusion
+   * self-hit at all, so nothing about the M6 class can be read from it; a non-zero under the legacy
+   * knob says the run is deliberately carrying the anti-correlated read. */
+  console.log('  getConfusionDamage wrapped as `dmg`: ' + (CONFUSION_DMG_CAT_LEGACY
+    ? 'NO — MEDI_CONFUSION_DMG_CAT_LEGACY=1, the pre-2026-09-04 `any`/UN-INVERTED read (red arm)'
+    : 'yes, ' + MIDW.confusionDmgEnters + ' entr' + (MIDW.confusionDmgEnters === 1 ? 'y' : 'ies')
+      + (MIDW.confusionDmgEnters ? '' : '   <-- ZERO: no confusion self-hit occurred in this run')));
   console.log('  MID_BATTLE bound at install: ' + (MID_UNBOUND ? 'NO — --mid-unbound, this is the '
     + 'ROADMAP #220 BEFORE-ARM and is not a current measurement' : 'yes'));
   console.log('  empty-address games counted VOID: ' + (VOID_EMPTY_IS_VOID ? 'YES — --void-empty-is-void, '

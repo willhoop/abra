@@ -965,6 +965,20 @@ const seedFrom = (bd, side, f) => {
     ok(C.ambiguous === 0,
       'no two legal carriers of one volatile disagree — measured, because `|-start|` does not name the move',
       JSON.stringify(C.ambiguousKeys));
+    /* THE SIXTH BRANCH, ADDED 2026-09-04. `lookupThrew` had NO READER ANYWHERE — declaration and
+     * increment and nothing else — while its four siblings above were asserted here and
+     * `callbackThrew` is asserted in `engine/seed_source_audit.js`. It is `magnemite.js:198`'s
+     * `dex.conditions.get` catch, and its own comment says what a rise means: "a registry lookup that
+     * starts throwing would empty this table one key at a time and every duration would quietly
+     * become the fallback 3 — the exact shape of the 2026-07-31 defect". A degradation with no reader
+     * is CLAUDE.md's opening example of this failure class, sitting inside the guard against it.
+     *
+     * IT IS NOT BLIND TO ZERO: `legalMoves === LEGAL_N` two arms up proves the walk ran and `durOf`
+     * is called once per condition on that walk, so the guarded lookup demonstrably executed. */
+    ok(C.lookupThrew === 0,
+      'and no condition lookup THREW — a throw here empties the duration table one key at a time and '
+      + 'every volatile quietly becomes the fallback 3',
+      C.lookupThrew ? `${C.lookupThrew} threw — first: ${C.lookupThrewFirst}` : '0 of ' + C.keys + ' keys');
 
     /* THE CONTROL, and it is the point of the row: the four durations that were already right must
      * be byte-identical, or the filter fixed one number by breaking five. */

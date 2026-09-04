@@ -10,6 +10,83 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.251.0] — 2026-09-04
+
+### Fixed
+- **MORE THAN HALF THE UNVERIFIABLE DEFECT CLAIMS WERE ALREADY FALSE. Open rows 261 → 237;
+  open-and-asserting-breakage 74 → 50.** Of the 43 open rows that asserted breakage with nothing able
+  to confirm or refute them, **24 were already fixed and 6 were duplicates of another row.** Every
+  closure carries its own evidence in the cell — a live census row, a roster verdict, a tag value, or
+  a knob-and-counter pair — dated, with the prior status carried forward verbatim. **None was closed
+  on "the triage says so"**, and 22 of the 24 were re-verified against `73cca9f8` rather than the
+  triage's `73cca9f8`-predecessor, because a commit landed between the two passes and every artifact
+  had to be re-staged.
+- **FOUR `NaN` COUNTERS FIXED — FIELDS INCREMENTED INTO AN OBJECT THAT NEVER DECLARED THEM.**
+  `MEDSEEN.retaliateWhenLowered` was published as **`null` in both `data/million-run.json` and
+  `data/million-run-150k.json`**: the capability fired and the counter recorded nothing, twice, in two
+  published artifacts. `roostRiderNoPrimary` was declared **inside the `MEDSEEN` literal** while being
+  incremented on `MEDFAILS`, so one read 0 forever and the other was NaN — the documented "compares
+  `undefined` to 0 and can never go red" trap, live in the tree. **No `|| 0` was added at any
+  increment site**; that would hide which object owns the counter, and ownership was the defect.
+- **`PIN_COUNTERS.wrong_release` IS NOW READ — THE BRANCH THAT FIRES WHEN AN ARTIFACT WAS MEASURED
+  AGAINST A DIFFERENT RELEASE.** `engine/quarantine.js` asserted the pin guard proved it ran, quoted
+  the founding rule in its own comment, and named five of six branches, omitting the one that is the
+  entire reason the guard exists — **built by this session, hours earlier.** §5b's branch list is now
+  **derived from `Object.keys(PIN_COUNTERS)` rather than typed**, so a sixth branch is covered with no
+  edit. Selftest **216 → 218 passed, 0 failed**.
+
+### Added
+- **`tests/test-counter-init.js` — every increment must target a declared field.** A PROPERTY, not a
+  list of known-bad names, so it catches a second instance spelled differently in any file. Across
+  **507 files and 602 counter literals it finds exactly 4 violations with zero false positives**, so
+  it needs no exemption list — which is the strongest available evidence that the rule is the right
+  shape. **Shown RED on all four before they were fixed** (3 passed / 1 failed, naming each with a
+  real line number), green after. It carries a synthetic red-proof arm so it can never pass by asking
+  nothing, and it names the 6 computed-key increments it honestly cannot decide.
+
+### Notes
+- **THE PIPE REPAIR I SPECIFIED DOES NOT WORK, AND IT WAS MEASURED BEFORE ANYTHING WAS TOUCHED.**
+  #531 is CLOSED in its own cell and the register read it as open-and-broken, because
+  `roadmapRowStatusCell` takes the text after the LAST pipe and the closure quotes a protocol line.
+  **Escaping those pipes as `\|` changes nothing** — the capture uses a negated-pipe character class,
+  which stops at `\|` exactly as it stops at `|`. Proven on a synthetic row through the shipping
+  detectors: as authored and fully escaped both extract `ability: Clear Body…`; with the pipes removed
+  it extracts the real status. **The pipes were removed and `roadmapRowIsClosed` was not touched** —
+  that detector is exported so there is ONE closed-row detector, and mutation testing showed it can be
+  `return true` with all 159 of its assertions still passing.
+- **THE SWEEP FOUND A CLASS, NOT AN INSTANCE: 98 rows carry 669 unescaped pipes inside inline code,
+  and 22 have their status cell cut by one.** Only #531 also asserted breakage. **Nine of the
+  remaining 21 read OPEN against an authored `closed` or `PART DONE` cell** (#167, #172, #282, #293,
+  #294, #465, #122, #511, #514, with #196 parsing empty). **They were reported and left**: none
+  reaches the gate, and inferring a closure from a parse artifact is precisely what #403 cost tonight.
+  Their owners must restate them.
+- **TWO OF THE TRIAGE'S CLAIMS WERE TRANSCRIPTION ERRORS AND ARE RECORDED AS SUCH:** #375 is OPEN, not
+  closed (#371's own sub-causes verified), and #422's census row spells its apostrophe with a
+  backtick.
+- **#220's FIGURE CORRECTED IN-CELL: 4 causes / 6 games, not 32**, counted directly from
+  `data/game-differential.json`.
+- **ONE CORRECTION TO THE COUNTER AUDIT, MADE IN THE CODE RATHER THAN A REPORT:** the `wrong_release`
+  branch *was* already being driven at `quarantine.js:4010`. What did not exist was any **reader** of
+  the counter.
+- **FIVE COUNTERS THE AUDIT CALLED UNREAD ARE READ** — `noBench`, both `STATE_PLAN` fields and both
+  `unstageable` fields reach published artifacts through `Object.assign`, **which a name grep cannot
+  see.** Two more were declared unread in the source with reasons rather than given a guessed
+  assertion. Tier 2 was decided per counter, never mass-wired.
+- **`tests/test-no-silent-failure.js`'s `++` RULE WAS DELIBERATELY NOT CHANGED.** It asks a different
+  question and has already been corrected four times for exactly this over-reach.
+- **THE 47-ENTRY COUNTER-READER REGISTRY WAS DELIBERATELY NOT BUILT** — without `engine_counters_zero`
+  measured first, its entries would be guesses. In OWED.
+- Census untouched at **live 829**; `NOT A DEFECT` written zero times across 24 closures;
+  `VERIFIED BY` count 138 before and 138 after — no marker was invented.
+- **`node engine/status.js --write` STILL NOT RUN.** It computes through `engine/quarantine.js`, which
+  was uncommitted in the worktree all night; running it would read a file mid-edit and write the
+  result into the ledgers' generated blocks.
+- Full accounts: `docs/_reports/2026-09-04-unverifiable-breakage-triage.md`,
+  `docs/_reports/2026-09-04-register-closures.md`, `docs/_reports/2026-09-04-counter-fixes.md`,
+  `docs/_reports/2026-09-04-dead-counters-audit.md`.
+
+---
+
 ## [5.250.0] — 2026-09-04
 
 ### Fixed

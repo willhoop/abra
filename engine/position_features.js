@@ -267,10 +267,20 @@ function priorityRefusedAbove(board, side, field) {
  * movePriority carries the terrain-conditional cases like Grassy Glide. Both come from the engine
  * rather than being restated here, so there is one definition of the queue in this project. */
 /* DEGRADATION COUNTERS. Zero is the expected value of every field here; a non-zero one means some
- * consumer silently got a worse answer than this module promises. Read it, do not just trust it. */
-const STATS = { speedFallbacks: 0, lastSpeedError: null };
+ * consumer silently got a worse answer than this module promises. Read it, do not just trust it.
+ *
+ * `movesFirstCalls` IS NOT A DEGRADATION — it is what makes the zero above mean anything. Until
+ * 2026-09-04 NOTHING IN THE TREE READ `speedFallbacks` (three appearances: this line and the two
+ * increments), and the comment below said "Exported as STATS so a caller or a test can assert it
+ * stayed at zero" — a check the code could not perform, which is the same shape as
+ * `MEDFAILS.ripenBerryBoostUnmodelled`. Wiring the obvious `speedFallbacks === 0` assertion would
+ * have been WORSE than nothing: it is green whether the guarded path ran or not, which is a test
+ * asking nothing. `tests/test-engine-consistency.js` asserts the PAIR — the path ran AND it never
+ * degraded — and neither half is meaningful alone. */
+const STATS = { speedFallbacks: 0, lastSpeedError: null, movesFirstCalls: 0 };
 
 function movesFirst(att, attMoveId, attSideTag, def, defMoveId, defSideTag, field, trickRoom) {
+  STATS.movesFirstCalls++;
   const pa = attMoveId ? M.movePriority(attMoveId, field) : 0;
   const pd = defMoveId ? M.movePriority(defMoveId, field) : 0;
   if (pa !== pd) return pa > pd;

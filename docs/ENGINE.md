@@ -148,6 +148,25 @@ _stamped 2026-09-04 06:54_
 
 <!-- /GENERATED -->
 
+## NO MECHANIC CHANGED AND NO WHOLE-GAME FIGURE WAS RE-MEASURED — BUT FOUR OF THIS ENGINE'S OWN COUNTERS WERE `NaN`, AND ONE OF THEM IS THE PROOF THAT A WIRE FIRED. 2026-09-04, CHANGELOG 5.251.0
+
+**WHAT THIS RELEASE IS, STATED FIRST SO IT CANNOT BE READ AS PROGRESS ON THE GATE.** It is the register and the counters. No mechanic in `engine/medicham2-browser.js` was changed, no differential was run, and the only edits recorded under this version inside the simulator are counter DECLARATIONS — fields added to the object they were already being incremented on. `data/verification/fix-batch-M6instr-defog.json` still holds board-material 46 of 961 and protocol 141; `data/game-differential.json` still holds 77 of 961 and is what the gate clause prints. Both are unchanged and neither is re-derived here.
+
+**THE PART THAT IS THIS DIVISION'S PROBLEM: A COUNTER THAT READS `NaN` IS A CAPABILITY WEARING A RECEIPT.** This project's founding rule is that a capability which cannot prove it ran is assumed broken, and the proof is a counter. `MEDSEEN.retaliateWhenLowered` — the counter that says the retaliate-on-stat-drop wire fired at all — was published as `null` in `data/million-run.json` and in `data/million-run-150k.json`, because it was incremented into an object that never declared it. The capability fired and the counter recorded nothing, twice, in two published artifacts. `roostRiderNoPrimary` was declared inside one object literal and incremented on another, so one field read zero forever whatever the engine did and the other was `NaN`; comparing `undefined` to zero can never go red, which is the trap this repository documented and was then carrying live.
+
+**NO `|| 0` WAS ADDED AT ANY INCREMENT SITE, AND THAT REFUSAL IS THE FIX.** A default at the increment makes the arithmetic work and hides which object owns the counter — and ownership was the entire defect. The declarations were moved to the object that is actually incremented. Two wires that this division had treated as proven were, for the duration, proven by nothing.
+
+**THE RULE IS NOW A PROPERTY OVER THE WHOLE TREE, NOT A LIST OF FOUR NAMES.** `tests/test-counter-init.js` asserts that every increment targets a declared field. Across **507** files and **602** counter literals it finds exactly **4** violations with zero false positives, so it carries no exemption list. It was shown RED on all four before they were fixed, naming each with a real line number; it carries a synthetic red-proof arm so it cannot pass by asking nothing; and it names the **6** computed-key increments it cannot decide rather than guessing them. A second instance spelled differently, in any engine file, now fails by name.
+
+**FIVE COUNTERS AN EARLIER AUDIT CALLED UNREAD ARE READ, THROUGH `Object.assign`.** They reach published artifacts by spread, so the counter's name never appears beside a reader and a name grep cannot see it. Recorded as a correction to the audit rather than acted on. Two more were declared unread in the source with their reasons rather than given a guessed assertion.
+
+**WHAT IS OWED FROM HERE.**
+
+- **The whole-game figures are not re-measured by this pass and must not be quoted as if they were.** The gate reads `data/game-differential.json` at 77 of 961; the re-measured 46 lives in the verification artifact and is named with it every time.
+- **`node engine/status.js --write` was not run**, so the `<!-- GENERATED -->` block at the top of this file is three passes behind and was not hand-edited. Read the gate, not the block.
+- **`tests/test-engine-diff.js` was not re-run**, so the stage-by-stage damage evidence beside this ledger is dated evidence from the release it names and is not a current measurement.
+- **The narration gate and the obscure roster tail are untouched by this version.** Nothing here lifts a clause.
+
 ## SEVEN GAMES BACK AND THE SEQUENCE IS 77 → 61 → 50 → 53 → 46: BOARD-MATERIAL **53 OF 961 → 46 OF 961**, PROTOCOL **154 → 141**, VOID UNCHANGED AT 7, CENSUS LEVEL AT 829, SIDE-SELECTION UNDECLARED **80 → 78** WITH THE RATCHET LOWERED TO MATCH. 2026-09-04, CHANGELOG 5.250.0
 
 **Release `7ffc58da8ef8` → `252025cfcddc`**, same census pin, same frozen pool, same empirical

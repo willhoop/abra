@@ -1,6 +1,20 @@
 # ABRA — Project Summary
 
-**Version 5.250.0 · 2026-09-04 · Will Hooper**
+**Version 5.251.0 · 2026-09-04 · Will Hooper**
+
+**5.251.0 - THE GATING FIGURE DID NOT MOVE, BECAUSE THIS RELEASE IS THE DEFECT REGISTER AND THE COUNTERS. WHAT MOVED IS THE LIST OF WHAT IS STILL BROKEN: OPEN ROWS 261 → 237, OPEN-AND-ASSERTING-BREAKAGE 74 → 50, AND MORE THAN HALF THE UNVERIFIABLE CLAIMS WERE ALREADY FALSE.**
+
+| question | artifact | answer |
+|---|---|---|
+| the whole-game clause that GATES, as PUBLISHED | `data/game-differential.json` | **board-material 77 of 961** — unchanged, and not re-derived in this pass |
+| the same clause, RE-MEASURED at the previous version | `data/verification/fix-batch-M6instr-defog.json` | **board-material 46 of 961** — measured, not published, and not re-run here |
+| the whole-game clause that REPORTS, at that same measurement | the same verification artifact | **protocol first-divergence 141 of 961** |
+
+**WHAT ACTUALLY CHANGED, IN ONE LINE EACH.** Of the **43** open register rows that asserted a defect while nothing in the repository could confirm or refute them, **24 were already fixed** and **6 were duplicates of another row**. That is the whole result: a backlog whose majority was false. Open rows fell **261 → 237** and open-and-asserting-breakage fell **74 → 50**. Separately, **four counters were reading `NaN`** because they were incremented into an object that never declared them, and one of the four was published as `null` in two artifacts — the capability fired and the counter recorded nothing, twice.
+
+**THE THREE THINGS FROM THIS PASS THAT ARE METHOD RATHER THAN SCORE.** First, **none of the 24 closures rests on the triage**: each carries its own dated evidence in the cell with the prior status verbatim, and **22 of the 24 were re-verified against a newer commit** because one landed between the two passes. Second, **the repair that had been specified does not work and was measured before anything was touched** — escaping the pipes in a roadmap cell changes nothing, because the capture stops at an escaped pipe exactly as it stops at a bare one; the pipes were removed instead, and the shared closed-row detector was left alone because mutation testing showed it can be replaced with `return true` while all **159** of its assertions still pass. Third, the sweep found a class rather than an instance — **98** rows carry **669** unescaped pipes and **22** have a cut status cell — and **those rows were reported and left**, because inferring a closure from a parse artifact is the error that started the evening.
+
+**WHAT THIS VERSION DOES NOT CLAIM.** No mechanic changed, no differential was run, no model was refitted, no quarantined figure becomes quotable, and no whole-game figure is re-derived. `node engine/status.js --write` was not run for the third release running, so the generated blocks in the division ledgers are three passes behind — read the gate, not the block.
 
 **5.250.0 - THE GATING FIGURE COMES BACK DOWN, 53 OF 961 → 46 OF 961, AND THE SESSION READS 77 → 61 → 50 → 53 → 46 WITH THE RISE LEFT IN. THE PUBLISHED CLAUSE STILL READS 77 BECAUSE THE GATE'S ARTIFACT WAS AGAIN DELIBERATELY NOT REWRITTEN.** Two fixes: the INSTRUMENT half of the confusion self-hit damage draw, which lives in the differential as well as in the simulator, and a Defog that swept the wrong side. Protocol first-divergence is 154 → 141, VOID holds at 7, the census is level at 829 of 829, and the undeclared side-selection count falls 80 → 78 with its ratchet lowered to match.
 

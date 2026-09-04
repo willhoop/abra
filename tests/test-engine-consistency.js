@@ -321,6 +321,34 @@ console.log('\n== 5. turn order ==');
   ok(real === 1 || real === 0, 'the staged pair produces a decided order', `movesFirst ${real}`);
 }
 
+/* ============ 6. THE DEGRADATION COUNTER THIS FILE WAS ALREADY NOMINATED TO READ ============= *
+ *
+ * `engine/position_features.js:271` declares `STATS` with the words "Read it, do not just trust it"
+ * and "Exported as STATS so a caller or a test can assert it stayed at zero". NOTHING DID. Measured
+ * 2026-09-04: `speedFallbacks` had exactly three appearances in the whole tree — its declaration and
+ * its two increments — so the stated check was one the code could not perform, the same shape as
+ * `MEDFAILS.ripenBerryBoostUnmodelled`.
+ *
+ * What it guards: `movesFirst` wraps `M.effSpeed` in two catches, and the catch substitutes RAW
+ * `st.sp` — no Choice Scarf, no Tailwind, no paralysis, no weather Speed ability. That is the exact
+ * bug §1 above proves is fixed, silently reintroduced on any exception. It is reachable: effSpeed
+ * raises on a missing field, a null mon, or a mon built without `boosts`.
+ *
+ * ASSERTED AS A PAIR, AND THE PAIR IS THE POINT. `speedFallbacks === 0` alone is green when the
+ * guarded path never ran, which is a check asking nothing — this repo's own recorded hazard. The
+ * arms above call positionFeatures 6 times and reach `movesFirst` 12 times, so `movesFirstCalls > 0`
+ * is what turns the zero into evidence. Both halves are printed. */
+console.log('\n== 6. degradation counters ==');
+{
+  const S = P.STATS;
+  ok(S.movesFirstCalls > 0,
+    'the arms above actually reached position_features movesFirst, so its counters mean something',
+    `movesFirstCalls ${S.movesFirstCalls}`);
+  ok(S.speedFallbacks === 0,
+    'position_features never fell back to RAW st.sp — no Scarf/Tailwind/paralysis silently dropped',
+    `speedFallbacks ${S.speedFallbacks}${S.lastSpeedError ? ' — last: ' + S.lastSpeedError : ''}`);
+}
+
 console.log(`\n${fails ? `ENGINE CONSISTENCY: ${fails} FAILED — a fact is not reaching every engine that needs it`
                         : 'ENGINE CONSISTENCY: all checks passed'}`);
 process.exit(fails ? 1 : 0);

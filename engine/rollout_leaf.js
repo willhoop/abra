@@ -345,6 +345,15 @@ function seedVolatiles(b, board, mon) {
 /* PROOF OF FIRING for the two facts #277 added to the seed, and for which SOURCE answered the
  * Protect streak. A seed that carried nothing looks exactly like a position with nothing on it,
  * which is what kept the foe's shield uncounted for as long as it was. */
+/* `streakFromCaller` IS DECLARED UNREAD, WITH A REASON, 2026-09-04. `tests/test-seed-clock.js:859`
+ * asserts `streakFromBoard > 0` and `choiceLocked > 0` and prints the whole object in its failure
+ * detail; nothing reads this third field. IT IS LEFT UNASSERTED DELIBERATELY rather than given a
+ * `=== 0` arm, because this branch is a LEGITIMATE path — the caller typed a streak the board had no
+ * record of — and its correct value is not known to be zero. Asserting a number nobody has measured
+ * is how a gate starts crying wolf. What it is EVIDENCE for, if somebody measures it: a rise here
+ * against a flat `streakFromBoard` means the board stopped carrying the shield and the caller's guess
+ * is standing in for it, which is the silent default this whole block exists to make visible.
+ * Owed: `docs/_reports/2026-09-04-counter-fixes.md`. */
 const SEED_COUNTERS = { streakFromBoard: 0, streakFromCaller: 0, choiceLocked: 0 };
 function buildSide(board, side, dex, stats, protectTurns) {
   const mons = [];
@@ -454,6 +463,13 @@ const liveCount = arr => arr.filter(x => x && !x.fainted && x.curHP > 0).length;
  * === 0` is the claim), and the first disagreement also prints — once per process, the same shape
  * `magnemite.js`'s semantics warning uses, because a line per rollout in a 200,000-game run is a line
  * nobody reads. */
+/* `noRecord` IS DECLARED UNREAD, WITH A REASON, 2026-09-04. `tests/test-rollout-fallen.js` asserts
+ * `checked`, `agreed`, `mismatch` and `first`; this field has no reader anywhere. It counts the pairs
+ * the guard SKIPPED because the board kept no graveyard for that side — so it is the size of the hole
+ * in `checked`, and `checked > 0` cannot see it. NOT GIVEN A `=== 0` ARM, because a board with no
+ * graveyard is a legitimate shape here and nobody has measured what the honest value is; an arm on a
+ * guessed number is the over-firing gate CLAUDE.md's #148 is about. Owed:
+ * `docs/_reports/2026-09-04-counter-fixes.md`. */
 const FALLEN_GUARD = { checked: 0, agreed: 0, mismatch: 0, noRecord: 0, first: null, warned: false };
 function fallenTruth(board, side) {
   if (!board || !board.graveyard || !board.graveyard[side]) return null;
