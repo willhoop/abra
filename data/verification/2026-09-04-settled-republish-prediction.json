@@ -1,0 +1,46 @@
+{
+  "generated": "2026-09-04T21:15:00Z",
+  "by": "MEASURE, written BEFORE the run — engine/game_differential.js was not started when this was saved",
+  "what": "The scoreboard called in writing before republishing data/game-differential.json onto release 0dec37ff5ad9.",
+  "release_under_test": "0dec37ff5ad9",
+  "release_of_the_comparison_figure": "252025cfcddc",
+  "comparison_artifact": "data/verification/fix-batch-M6instr-defog.json",
+  "comparison_figures": { "board_material": 46, "of_games": 961, "protocol_first_divergence": 141, "void": 7, "threw": 1 },
+  "published_artifact_now_holds": { "file": "data/game-differential.json", "board_material": 77, "of_games": 961, "protocol_first_divergence": 168, "release": "8ad06030e129" },
+
+  "what_actually_moved_between_the_two_releases": {
+    "method": "byte diff of the two frozen snapshots under data/releases/<id>/, line-endings normalised — NOT a git diff, because release 252025cfcddc was cut from a working tree that matches no commit",
+    "files_moved": 4,
+    "of": 26,
+    "engine/medicham2-browser.js": "FOUR COUNTER DECLARATIONS AND NOTHING ELSE. Added `retaliateWhenLowered`/`retaliateSourceUnknown` and `volatileCuredByNonBerry`; moved `roostRiderNoPrimary` between two object literals. Zero executable lines outside those declarations.",
+    "engine/rollout_leaf.js": "COMMENT-ONLY. No executable line differs.",
+    "engine/position_features.js": "ONE counter declaration (`movesFirstCalls`) and ONE increment site.",
+    "data/smogon-priors.json": "NOT A COUNTER. The Smogon month advanced 2026-07 -> 2026-08 and species_count fell 284 -> 283. This is the one input in the frozen set whose VALUE changed."
+  },
+
+  "prediction": {
+    "board_material": 46,
+    "band": "44-48",
+    "protocol_first_divergence": 141,
+    "protocol_band": "138-145",
+    "void_games": 7,
+    "threw": 1,
+    "games_played": 961,
+    "reasoning": [
+      "A counter declaration cannot alter a board: it adds a field to an object literal and increments it. Three of the four moved files are exactly that (or comment-only), so they are inert BY INSPECTION, not by assumption.",
+      "engine/rollout_leaf.js and engine/position_features.js are the LEAF and the POSITION feature vector. The whole-game differential plays empirically-steered human clicks and evaluates no leaf, so those two are inert twice over.",
+      "The one live risk is data/smogon-priors.json. engine/game_differential.js requires engine/champions_sim.js, which reaches engine/set_priors.js -> engine/smogon_priors.js to FILL UNREVEALED SET SLOTS. The pinned pool is open-team-sheet play, so the fill should not fire; if it does, spreads move, damage moves, and boards move.",
+      "So the prediction is UNCHANGED at 46, and the named way for it to be wrong is the priors month, not the counters."
+    ]
+  },
+
+  "how_to_score_this": "If board-material lands outside 44-48, do NOT attribute it to the counter work. The counter delta is four declarations and is inert by inspection. Attribute it to data/smogon-priors.json advancing a month, and say so.",
+  "pins_held_fixed": {
+    "arm": "middle",
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "steering": "empirical",
+    "games_requested": 1200,
+    "note": "--games is a PAIR budget; ~961 are actually played. The played count is the one quoted."
+  }
+}

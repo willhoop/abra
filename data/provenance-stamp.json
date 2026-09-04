@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 184,
+  "mtime_only": 181,
   "mtime_only_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -140,11 +140,8 @@
     "rollout-switch-census.json",
     "rollout-switch-probe.json",
     "roster.abilities.pre-shape-rules.json",
-    "roster.abilities.prev.json",
     "roster.all.json",
     "roster.all.prev.json",
-    "roster.items.prev.json",
-    "roster.moves.prev.json",
     "roster.moves.staging-trial.json",
     "roster.spine.json",
     "roster.spine.prev.json",
@@ -192,7 +189,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 2,
+  "verified": 9,
   "graph_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -1077,5 +1074,5 @@
       ]
     }
   ],
-  "generated": "2026-09-04T20:39:33.164Z"
+  "generated": "2026-09-04T22:31:13.297Z"
 }

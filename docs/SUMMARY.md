@@ -1,6 +1,22 @@
 # ABRA — Project Summary
 
-**Version 5.251.0 · 2026-09-04 · Will Hooper**
+**Version 5.252.0 · 2026-09-04 · Will Hooper**
+
+**5.252.0 - THE PUBLISHED GATING FIGURE MOVES AND, FOR THE FIRST TIME TONIGHT, IT IS THE SAME NUMBER WE MEASURED: BOARD-MATERIAL 77 OF 961 → 46 OF 961 (4.8%). THE GATE ALSO STOPPED FAILING FOR THE WORST REASON AND STARTED FAILING FOR THE RIGHT ONE.**
+
+| question | artifact | answer |
+|---|---|---|
+| the whole-game clause that GATES, as PUBLISHED | `data/game-differential.json` | **board-material 46 of 961** — republished this pass, on release `0dec37ff5ad9` |
+| the whole-game clause that REPORTS and does not gate | `data/game-differential.json` | **protocol first-divergence 141 of 961** raw, 140 after one declared |
+| games actually played, and how many were unusable | `data/game-differential.json` | **961 played** of a 1200-PAIR budget; 7 void, 1 threw |
+| the stage-by-stage damage differential, re-run this pass | `data/engine-diff.json` | **0 disagreed** of 6,000 compared, at 17 damage indices, seed 20260804 |
+| mechanics live in the census | `data/mechanics-census.json` | **829 of 829**, 0 missing |
+
+**THE HEADLINE UNDER THE HEADLINE.** The gate reads `CLOSED — 1 of 8 GATING clauses fail`, against 6 of 8 earlier in the day. Five of those six failed because the artifact answering them could not prove which engine produced it — nothing was known. All five were regenerated against one frozen release, and **no clause is in that state now.** The one remaining failure is a named instrument genuinely RED on the current engine over 46 real games. Moving from *unmeasured* to *measured-and-red* is progress, and the two must not be reported as the same thing. Separately, and inside a clause that PASSES: 40 open register rows assert breakage with no instrument that decides them, 7 name an instrument that answers nothing usable, and 3 name a green one.
+
+**THE METHOD, IN TWO LINES.** The run was predicted in writing before it started — 46 board-material, 141 protocol, 7 void, 1 thrown — and read 46, 141, 7, 1: four of four, all exact. The premise behind that prediction was incomplete, and the gap was found before the run rather than after: `data/smogon-priors.json` had also moved, from Smogon month 2026-07 to 2026-08 and from 284 species to 283, and it is not a counter. It was named as the falsifier in advance and then measured inert.
+
+**WHAT THIS VERSION DOES NOT CLAIM.** No model was refitted, no quarantined figure becomes quotable, and the gate did not open. The MAG refit stays OWED and is a REFIT rather than a restamp, because the damage table moved from 318 species to 322. One disclosure carried forward: the release that first produced the 46 was cut from a working tree that no commit contains; it is superseded by one cut from committed bytes, and every figure above names the latter.
 
 **5.251.0 - THE GATING FIGURE DID NOT MOVE, BECAUSE THIS RELEASE IS THE DEFECT REGISTER AND THE COUNTERS. WHAT MOVED IS THE LIST OF WHAT IS STILL BROKEN: OPEN ROWS 261 → 237, OPEN-AND-ASSERTING-BREAKAGE 74 → 50, AND MORE THAN HALF THE UNVERIFIABLE CLAIMS WERE ALREADY FALSE.**
 

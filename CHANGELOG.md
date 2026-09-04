@@ -10,6 +10,52 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.252.0] — 2026-09-04
+
+### Changed
+- **THE GATE IS HONEST AND CURRENT AGAIN: `CLOSED — 1 of 8 GATING clauses fail`, published
+  board-material 77 → 46 of 961 (4.8%).** Protocol first-divergence 168 → 141 raw / 140
+  declared-adjusted. Release `0dec37ff5ad9`, 961 games PLAYED of a 1,200-pair budget, landed on
+  `data/game-differential.json` — `publish_guard` did not divert. **The gate had been printing 77 all
+  night** while the measured figure fell to 46, because no fix republishes onto the live artifact
+  while the simulator is being edited.
+- **AND THE SINGLE FAILURE IS FINALLY THE RIGHT KIND.** For most of tonight the gate failed on
+  artifacts that could not prove which engine produced them — state (a), *nothing is known*. **No
+  clause is in that state any more:** all five stranded pins are cleared. The one FAIL is **(b), a
+  named instrument genuinely RED**, on the current engine, at 46 real games. State (c) is reported
+  separately inside the passing defect clause — 40 open rows assert breakage with no instrument, 7
+  answer nothing usable, 3 name a green one.
+- **All five pinned artifacts regenerated at `0dec37ff5ad9`** — `engine-diff` (0 of 6000 across 17
+  damage indices), the three roster stages (0 DIFFER, 0 DID-NOT-FIRE on each), and `all-mechanics-fire`
+  (`--kind all`, 5 diverge / 1 declared / 4 below the reach shelf / 0 left). `node engine/status.js
+  --write` ran LAST, so the ledgers' generated blocks reflect settled artifacts — **the first time in
+  three releases it could run at all**, because it computes through `engine/quarantine.js`, which was
+  uncommitted all night.
+
+### Notes
+- **THE PREDICTION WAS WRITTEN BEFORE THE RUN AND WENT 4 FOR 4, ALL EXACT** — 46 board-material, 141
+  protocol, 7 void, 1 threw. Recorded as
+  `data/verification/2026-09-04-settled-republish-prediction.json`. Running record across the night:
+  2-of-3, 4-of-4, a one-game protocol miss, 4-of-5, 4-of-4.
+- **MY PREMISE FOR THAT PREDICTION WAS INCOMPLETE, AND THE AGENT CAUGHT IT IN ADVANCE RATHER THAN
+  AFTERWARDS.** I said the only change since the 46 was counter declarations. **`data/smogon-priors.json`
+  had also moved** — Smogon month 2026-07 → 2026-08, 284 → 283 species — and it is not a counter; it
+  reaches the run through `champions_sim → set_priors → smogon_priors`. It was **named as the
+  falsifier before the run and then measured inert**: `classes` and `first_divergences` byte-identical
+  to the 46 artifact, with only stamps and live `meta-usage.json` corpus counts differing. That is the
+  difference between a prediction that held and a prediction that was lucky.
+- **THE RELEASE THAT PRODUCED THE 46 WAS CUT FROM A WORKING TREE REACHABLE FROM NO COMMIT.**
+  `252025cfcddc` is superseded by `0dec37ff5ad9`, which is cut from committed bytes — but a figure
+  measured against bytes no commit contains cannot be reproduced later, and that is worth saying out
+  loud rather than discovering in a month.
+- **THE WEIGHTS OWE A REFIT, NOT A RESTAMP.** The damage table moved 318 → 322 species.
+  `data/policy-weights.json` is untouched and MAG stays paused by the owner's decision; this is
+  recorded so the eventual pass is not mistaken for a stamp.
+- Census live **829/829**. Side-selection undeclared **78**, ratchet 78.
+- Full account: `docs/_reports/2026-09-04-settled-republish.md`.
+
+---
+
 ## [5.251.0] — 2026-09-04
 
 ### Fixed

@@ -1,14 +1,14 @@
 {
- "generated": "2026-09-04T07:12:33.191Z",
- "engine_release": "8ad06030e129",
- "engine_release_cut": "2026-09-04T01:08:54.834Z",
- "engine_release_cuts": 89,
+ "generated": "2026-09-04T21:19:25.510Z",
+ "engine_release": "0dec37ff5ad9",
+ "engine_release_cut": "2026-09-04T21:09:39.783Z",
+ "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "f8a48053d028",
+  "engine/medicham2-browser.js": "96aa97295723",
   "engine/board.js": "c85a3b756c98",
-  "engine/rollout_leaf.js": "00400fbc2862",
-  "engine/position_features.js": "4850adf1a2ab",
+  "engine/rollout_leaf.js": "1c4ba432e563",
+  "engine/position_features.js": "622482051bf4",
   "engine/tags.js": "145a3cc9ce2f",
   "engine/champions_sim.js": "b9ae3b072b4a",
   "data/residual-order.json": "eff160ad1c5a",
@@ -21,7 +21,7 @@
   "engine/showdown_path.js": "0efe29f4245d",
   "data/move-effects.js": "f35ecd91ba86",
   "data/ability-blocks.json": "86741fd35452",
-  "data/smogon-priors.json": "7cff8927a784",
+  "data/smogon-priors.json": "f2dc78cea6c5",
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "3c733e7a0bfb",
   "data/engine-data.js": "bbc417dfae0e",
@@ -32,7 +32,7 @@
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623"
  },
- "release": "8ad06030e129",
+ "release": "0dec37ff5ad9",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -55456,7 +55456,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 5.6
+   "seconds": 5.4
   },
   "abilities": {
    "exist": 316,
@@ -55473,7 +55473,7 @@
    "diverged_including_shelved": 2,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 10
+   "seconds": 9.5
   },
   "then_what": {
    "rows": 64,
@@ -55499,7 +55499,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 4.7
+   "seconds": 4.5
   },
   "board_state": {
    "rows": 15,
@@ -56217,8 +56217,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "8ad06030e129",
-    "roster_generated": "2026-09-04T07:06:40.744Z",
+    "roster_release": "0dec37ff5ad9",
+    "roster_generated": "2026-09-04T21:18:38.067Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

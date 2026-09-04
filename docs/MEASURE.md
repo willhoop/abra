@@ -15,28 +15,51 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 189 unsafe, 2 void (declared), 34 possibly stale, 28 ok, 0 missing
+  provenance: 188 unsafe, 2 void (declared), 30 possibly stale, 33 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-04 06:43
+    moved after the fit: engine/medicham2-browser.js  2026-09-04 17:07
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-08-29 04:34
 ```
 
-_stamped 2026-09-04 06:54_
+_stamped 2026-09-04 17:21_
 
 <!-- /GENERATED -->
+
+## THE PUBLISHED NUMBER AND THE MEASURED NUMBER ARE THE SAME NUMBER FOR THE FIRST TIME — BOARD-MATERIAL **77 OF 961 → 46 OF 961 (4.8%)** — AND THE GATE WENT FROM *UNMEASURED* TO *MEASURED-AND-RED*. 2026-09-04, CHANGELOG 5.252.0
+
+**THE TWO-NUMBER PROBLEM THIS DIVISION HAS REPORTED FIVE TIMES IS CLOSED, AND IT CLOSED BY REPUBLICATION RATHER THAN BY ARGUMENT.** `data/game-differential.json` was rewritten on release `0dec37ff5ad9`: board-material 46 of 961, protocol first-divergence 141 of 961 raw and 140 after one declared, 961 games PLAYED of a 1200-PAIR budget, 7 void, 1 thrown. There is no longer a correctly-measured value of this quantity living outside the artifact the gate reads. **The standing caveat — *the published clause still holds 77* — is DISCHARGED**, and it is written here as discharged rather than deleted, because a caveat that vanishes without a sentence is indistinguishable from a caveat somebody stopped honouring.
+
+**THE FAILURE CHANGED STATE, AND THIS DIVISION EXISTS TO INSIST THAT IS THE HEADLINE.** For most of the night the gate failed on artifacts that could not prove which engine produced them — **state (a), in which nothing is known**. Five of the six failing clauses were in that state. All five pinned artifacts were regenerated against one release and **no clause is in state (a) now**. The one remaining FAIL is **state (b): a named instrument genuinely RED, on the current engine, over 46 real games.** An unmeasured clause and a measured red clause are not the same finding, and reporting them under one integer is how a ruler stops being one. The gate reads `CLOSED — 1 of 8 GATING clauses fail`.
+
+**A NOTE ON THE TWO RENDERINGS OF THAT COUNT, BECAUSE BOTH ARE IN THIS REPOSITORY AND THEY LOOK LIKE A DISAGREEMENT.** The gate's own banner prints `1 of 8 GATING clauses fail`; the `<!-- GENERATED -->` blocks in these ledgers print `2 of 9 gate clauses fail` and name both whole-game clauses. They are the same verdict counted two ways: there are 9 clauses of which 8 gate, and 2 fail of which 1 gates. The non-gating failure is NARRATION, which is a separate gate by Will's 2026-08-22 call. Neither figure is wrong and neither may be quoted without saying which population it counts.
+
+**STATE (c) IS REPORTED SEPARATELY AND HOLDS NOTHING SHUT, WHICH IS EXACTLY WHY IT HAS TO BE NAMED.** Inside the defect clause that PASSES: 40 open register rows assert breakage with no instrument that decides them, 7 name an instrument that was asked and answered nothing usable, and 3 name a green one. Folding the 40 into the gate's verdict would report a broken simulator where what exists is an unmeasured one — the same error, in the opposite direction, as reporting an unmeasured clause as a passing one.
+
+**THE PREDICTION WAS WRITTEN BEFORE THE RUN AND SCORED 4 OF 4, ALL EXACT — AND THE PREMISE IT RESTED ON WAS INCOMPLETE, CAUGHT IN ADVANCE RATHER THAN AFTERWARDS.** Called: board-material 46 in a band of 44 to 48, protocol 141 in a band of 138 to 145, void 7, thrown 1. Read: 46, 141, 7, 1. The brief's premise was that the only change since the 46 was counter declarations. Byte-diffing the two frozen snapshots showed four of 26 files had moved and the fourth was not a counter: `data/smogon-priors.json` advanced from Smogon month 2026-07 to 2026-08 and from 284 species to 283, and it reaches the run through `engine/champions_sim.js` into `engine/set_priors.js` and `engine/smogon_priors.js`. **It was named as the falsifier before the run and then measured inert** — `classes` and `first_divergences` byte-identical, every differing field a stamp or a live corpus count. That is the difference between a prediction that held and one that was lucky, and it is the only reason the 4-of-4 is worth recording. Running record: 2-of-3, 4-of-4, a one-game protocol miss, 4-of-5, now 4-of-4.
+
+**A FIGURE MEASURED AGAINST BYTES NO COMMIT CONTAINS CANNOT BE REPRODUCED, AND ONE WAS.** The release that first produced the 46 was cut from a working tree reachable from no commit. It is superseded by one cut from committed bytes, and every figure above names the latter — but the comparison between them had to be made by diffing frozen snapshots rather than by `git diff`, and if the snapshot directory is ever pruned that measurement is gone. Recorded now rather than discovered in a month.
+
+**WHAT IS OWED HERE.**
+
+- **Leaf calibration — this division's one number — stays WITHHELD.** `data/winrate-backtest.json` is downstream of MEDICHAM and the gate has not opened. It was not run. The standing brief to point the backtest at the current leaf and publish a reliability curve cannot be honestly discharged while the board-material clause is non-zero: a calibration curve measured through an engine whose boards part at the rate now published in `data/game-differential.json` would be a number wearing a receipt.
+
+- **The MAG refit stays OWED and it is a REFIT, not a restamp.** The damage table moved from 318 species to 322, so the feature FUNCTION's input changed. No fitted vector was written and no fit was started; MAG is paused by its owner's decision.
+- **The narration baseline restamp is available and unrun**, so direction of travel on protocol divergence stays withheld. Two pins are two instruments.
+- **The register's coverage gap is unchanged**: 40 open rows assert breakage with no instrument, 7 answer nothing usable, 3 name a green one.
+- **`node engine/status.js --write` DID run**, last in the sequence and for the first time in three releases, so the `<!-- GENERATED -->` block at the top of this file is current and was not hand-edited. `docs/WEB.md` carries no generated block, so four of the five ledgers are stamped.
 
 ## MORE THAN HALF THE UNVERIFIABLE DEFECT CLAIMS WERE ALREADY FALSE — OPEN ROWS **261 → 237**, OPEN-AND-ASSERTING-BREAKAGE **74 → 50**. NO WHOLE-GAME FIGURE WAS RE-MEASURED, SO THE BOARD DID NOT MOVE. 2026-09-04, CHANGELOG 5.251.0
 

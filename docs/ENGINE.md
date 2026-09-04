@@ -119,10 +119,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  829/829 probed mechanics live, 0 missing   (census 2026-09-04 06:46)
+  829/829 probed mechanics live, 0 missing   (census 2026-09-04 15:49)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 3.7 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-04 03:02)
+    never fired in the staged harness (all-mechanics-fire.json, 2 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-04 17:18)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -144,9 +144,26 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-04 06:54_
+_stamped 2026-09-04 17:21_
 
 <!-- /GENERATED -->
+
+## THE PUBLISHED GATE FIGURE FINALLY IS THE MEASURED ONE — BOARD-MATERIAL **77 OF 961 → 46 OF 961 (4.8%)**, PROTOCOL **168 → 141** RAW / **140** DECLARED-ADJUSTED, AND THE GATE'S ONE FAILURE IS NOW A MEASURED RED RATHER THAN AN UNMEASURED CLAUSE. 2026-09-04, CHANGELOG 5.252.0
+
+**Release `0dec37ff5ad9`, cut from committed bytes, 26 files frozen.** `data/game-differential.json` was rewritten — 961 games PLAYED of a 1200-PAIR budget, board-material 46 of 961, protocol first-divergence 141 of 961, 7 void and 1 thrown. `engine/publish_guard.js` did not divert the run. Full account: `docs/_reports/2026-09-04-settled-republish.md`.
+
+**THE SENTENCE THIS LEDGER HAS CARRIED FOR FIVE VERSIONS IS DISCHARGED.** Every previous pass measured into `data/verification/` and left the published clause reading 77, because no fix republishes onto the live artifact while the simulator is being edited. That is over: the measured figure and the published figure are one figure, in one artifact, on one release.
+
+**AND THE KIND OF FAILURE MATTERS MORE THAN THE COUNT.** The gate reads `CLOSED — 1 of 8 GATING clauses fail`, against 6 of 8 before this pass. Five of the six were state (a) — an artifact that could not prove which engine produced it, so the clause was not failing, it was silent. All five stranded pins were regenerated at this release: the stage-by-stage damage differential, the three deliberate-roster stages, and the staged mechanics sweep. **No clause is in state (a).** The one FAIL is state (b): a named instrument RED on the engine that exists, over 46 real games. That is ENGINE's number and it is the only thing between here and a lifted quarantine.
+
+**THE FIVE REGENERATIONS, WITH THEIR SCOPES ATTACHED.** The stage-by-stage damage differential reads 0 disagreed of 6,000 compared at 17 damage indices, seed 20260804, with `skipped_multihit` 134 and `skipped_ability_multihit` 17 unchanged. The roster stages read 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on each of items, abilities and moves. The staged mechanics sweep reads 5 diverge, 1 declared, 4 below the reach shelf and **0 left**, over 1,313 games with none thrown. The live census is level at 829 of 829 with 0 missing, and the undeclared side-selection count is 78 against a ratchet of 78.
+
+**WHAT IS OWED HERE.**
+
+- **The gate is CLOSED on one clause and it is this division's**: board-material 46 of 961 on the current engine.
+- **The narration clause is RED at 140 of 961 and does not gate**, by Will's 2026-08-22 call. Its stamped baseline was taken on a different pin, so direction of travel on protocol divergence stays withheld until the baseline is restamped — an owner's call, unrun.
+- **The release that first produced the 46 was cut from a working tree reachable from no commit.** Superseded, and recorded rather than discovered later.
+- **40 open register rows assert breakage with no instrument that decides them**, 7 name an instrument that answers nothing usable, and 3 name a green one. That is the register's coverage gap, not evidence about the simulator.
 
 ## NO MECHANIC CHANGED AND NO WHOLE-GAME FIGURE WAS RE-MEASURED — BUT FOUR OF THIS ENGINE'S OWN COUNTERS WERE `NaN`, AND ONE OF THEM IS THE PROOF THAT A WIRE FIRED. 2026-09-04, CHANGELOG 5.251.0
 
