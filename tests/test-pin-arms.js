@@ -237,12 +237,46 @@ console.log('\nPART 3 — a pin that moves ONE engine is CHANGELOG 3.45.0 repeat
 
   /* THE BOTTOM ARM'S HIT MUST BE EVENT FOR EVENT, not merely "both hit". medicham2 SKIPS the accuracy
    * check at acc >= 100 and Showdown always calls randomChance; the pin has to make the outcome the
-   * same for every accuracy from 1 to 100 or the two streams part on a `-miss`. */
-  for (const a of G.ARMS.filter(x => !x.top)) {
+   * same for every accuracy from 1 to 100 or the two streams part on a `-miss`.
+   *
+   * 2026-09-05 -- AND `middle` IS EXCLUDED, BECAUSE THIS CLAIM IS FALSE OF IT BY DESIGN AND WAS ONLY
+   * EVER GREEN BY ACCIDENT.
+   *
+   * The filter used to be `!x.top`, written when every non-top arm was CORNER-PINNED and `chance`
+   * returned a constant. `middle` carries `corner: CORNER_BOTTOM`, so `top` is false and it was swept
+   * in -- against an arm whose own `what` string reads *"Moves miss at their printed accuracy"*. Its
+   * `chance(num, den)` is `midDraw(cat) < num/den`, a LIVE uniform: outside a battle the loop below
+   * is asserting that one draw is under 0.01, then under 0.02, and so on to 1.00. Measured on this
+   * tree: `middle.chance(acc, 100)` reads false for acc 1..10 on a fresh load and false for 1..5 in
+   * the middle of this file's run -- the value moves with how many draws Parts 1 and 2 consumed, and
+   * the historical pass was one hash landing under 0.01. A gate that green on a coin is not a gate.
+   *
+   * THE ARM IS NOT UNTESTED HERE. Its own claim -- *"a certainty is still a certainty: 100 accuracy
+   * always hits, 0 never does"* -- is what a live-dice arm can actually promise about accuracy, and it
+   * is asserted directly below rather than dropped. Identity between the two engines on a 90-accuracy
+   * move comes from the SHARED ADDRESS in this arm, not from a pinned constant, and that is what
+   * `PART 1` measures. */
+  for (const a of G.ARMS.filter(x => !x.top && !x.middle)) {
     const wrong = [];
     for (let acc = 1; acc <= 100; acc++) if (a.chance(acc, 100) !== true) wrong.push(acc);
     if (wrong.length) fail(a.id + ': a move at accuracy ' + wrong.slice(0, 5).join(', ') + ' does NOT hit');
     else pass(a.id + ': every accuracy from 1 to 100 HITS, so no -miss is emitted on either side');
+  }
+  for (const a of G.ARMS.filter(x => x.middle)) {
+    /* THE CERTAINTIES, WHICH ARE THE ONLY ACCURACY FACTS A LIVE-DICE ARM CAN CARRY. A 100-accuracy
+     * move must never miss and a 0-accuracy one must never hit, or the two engines part on a `-miss`
+     * for a move neither of them rolls for. Both directions, over several draws, so an arm whose
+     * `chance` had become a constant `true` would fail the second half rather than pass the first. */
+    const bad100 = [], bad0 = [];
+    for (let i = 0; i < 50; i++) {
+      if (a.chance(100, 100) !== true) bad100.push(i);
+      if (a.chance(0, 100) !== false) bad0.push(i);
+    }
+    if (bad100.length || bad0.length)
+      fail(a.id + ': a certainty is not a certainty (' + bad100.length + ' of 50 sure hits missed, '
+         + bad0.length + ' of 50 sure misses hit)');
+    else pass(a.id + ': 100 accuracy always hits and 0 never does, over 50 live draws each — the '
+         + 'only accuracy claim an arm with real dice can make');
   }
   for (const a of G.ARMS.filter(x => x.top)) {
     const wrong = [];

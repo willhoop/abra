@@ -62,6 +62,48 @@
  *     stores by `engine/rollout_switch_census.js` and is upstream of MEDICHAM (not quarantined).
  *     WHICH body to send is unmodelled and is drawn uniformly over the legal bench — declared,
  *     counted, and not to be read as a behaviour claim.
+ *
+ * ================= BOTH OF THOSE GAPS ARE CLOSED BY A SECOND POLICY, 2026-09-05 ===================
+ *
+ * `joint-empirical-click/v1` — a THIRD steering arm, not an edit to the second. `empirical-click/v1`
+ * keeps meaning exactly what it meant when every figure published under that name was measured; a
+ * silent widening would make those figures ambiguous forever. Everything below is inert unless the
+ * caller asks for the joint arm by id, and `counters()` carries the joint fields at zero under the
+ * other arms so the two artifacts have one shape.
+ *
+ * WHAT THE OLD ARM ACTUALLY DID ABOUT TARGETS, MEASURED FROM ITS OWN SOURCE RATHER THAN ASSUMED.
+ * The comment above says the caller "keeps its existing target rule", and that rule is
+ * `game_differential.js`'s `const j = foes.findIndex(q => q && !q.fainted)` — the LOWEST LIVE INDEX,
+ * every time, for both slots. That is not the "~50% independent choice" the board.js line contrasts
+ * humans against: it is 100% double-targeting, at the same foe, all game. The consequence is
+ * structural rather than statistical — the foe standing in slot b is never named by a single-target
+ * move at all until slot a is permanently empty, so three of a four-body bring are removed through
+ * one lane while the fourth stands at full HP.
+ *
+ * THE HUMAN NUMBER, DERIVED — `engine/joint_click_census.js` -> `data/joint-click-census.json`, over
+ * 101,995 finished Champions games from both raw human stores:
+ *
+ *   both actives clicked a single-foe move, both foes alive at turn start, no redirect, no `[from]`,
+ *   no `[spread]`, and no faint between the two clicks:   62,154 of 159,951 name the SAME foe
+ *                                                         = 38.9%   (bounds 29.1% - 54.1%)
+ *
+ *   the bounds carry the 53,309 AMBIGUOUS pairs, where a defending body fainted between the two
+ *   clicks and Showdown re-aimed the second move onto the survivor, so the chosen target is not
+ *   observable. They are bounded, never counted.
+ *
+ * AND THE SWITCH RATE IS NOT ONE NUMBER. `data/rollout-switch-census.json` gives one pooled
+ * conditional rate. The same walk conditioned on context — HP band, tenure on the field, bench size —
+ * spans 3.8% to 18.5% across 21 populated cells, a factor of five that a single constant cannot
+ * express in either direction:
+ *
+ *   full HP, just switched in, one body on the bench      3.8%
+ *   under a third HP, settled, two on the bench          18.5%
+ *
+ * WHICH BODY, MEASURED AND DELIBERATELY NEARLY-NOTHING. On a bench holding both a body that has
+ * already been on the field and one that has not, humans send the debutant 52.8% of the time against
+ * the 50.0% a uniform draw gives. It is wired because it is one derived number and it closes the
+ * declared gap rather than halving it, and it is reported with that 2.8-point margin attached so
+ * nobody reads it as a behaviour claim it cannot support.
  *   - ONLY THE TOP 8 MOVES AND TOP 4 LEADS PER SPECIES are in the table (`engine/policy.js`), and a
  *     species needs 15 recorded acts to be profiled at all. So `p` sums to slightly under 1 and the
  *     tail is exactly the 0.02 floor above.
@@ -148,6 +190,124 @@ function switchRateFrom(bytes, where) {
            generated: j.generated || null, from: where || null };
 }
 
+/* ---- THE JOINT MODEL, LOADED THE SAME WAY AND REFUSING THE SAME WAY ------------------------------
+ *
+ * `data/joint-click-census.json` is NOT an engine SOURCE and is read live, for exactly the reason
+ * `data/rollout-switch-census.json` is: it is a fact about HUMAN play read off raw Showdown protocol,
+ * upstream of MEDICHAM, and not part of the engine being measured. The caller digests it into the
+ * steering block so two arms can be shown to have used the same bytes.
+ *
+ * EVERY DEGRADATION IS A REFUSAL, NOT A DEFAULT. A missing focus rate would fall back to whatever the
+ * caller did before, which is 100% focus wearing a joint label — the exact shape of the failure this
+ * repository is named after. */
+const CELL_MIN_N = 500;   // a cell thinner than this is not a rate, it is an anecdote
+
+function loadJoint(bytes, where) {
+  const w = where || 'joint-click-census';
+  let j;
+  try { j = JSON.parse(bytes); }
+  catch (e) { throw new Error('empirical_driver: ' + w + ' did not parse — ' + e.message); }
+  const p = j && j.pooled;
+  const jt = p && p.joint_target;
+  const sw = p && p.switch;
+  const focus = jt && jt.pct_same_foe_clean;
+  if (typeof focus !== 'number' || !(focus > 0) || !(focus < 100)) {
+    throw new Error('empirical_driver: ' + w + ' carries no usable '
+      + '`pooled.joint_target.pct_same_foe_clean`. Refusing to run: the fallback is the caller\'s own '
+      + 'target rule, which names the lowest live foe every time — 100% focus reported under a joint '
+      + 'label. Rebuild it: node engine/joint_click_census.js --write');
+  }
+  const pooledRate = sw && sw.pct_decisions_with_a_bench_that_are_a_voluntary_switch;
+  if (typeof pooledRate !== 'number' || !(pooledRate > 0)) {
+    throw new Error('empirical_driver: ' + w + ' carries no usable pooled switch rate.');
+  }
+  const cells = new Map();
+  for (const [k, v] of Object.entries((sw && sw.by_cell) || {})) {
+    if (!v || typeof v.pct !== 'number' || !(v.decisions > 0)) continue;
+    cells.set(k, { n: v.decisions, rate: v.pct / 100 });
+  }
+  if (!cells.size) {
+    throw new Error('empirical_driver: ' + w + ' carries no `pooled.switch.by_cell` rows. The '
+      + 'context table IS the switch model under this policy; without it the arm is the previous arm '
+      + 'with a different name on it.');
+  }
+  const ch = p.switch_in_choice || {};
+  const pNew = typeof ch.pct_mixed_bench_chose_new === 'number' ? ch.pct_mixed_bench_chose_new / 100 : null;
+  if (pNew === null) {
+    throw new Error('empirical_driver: ' + w + ' carries no `pooled.switch_in_choice.'
+      + 'pct_mixed_bench_chose_new`, so WHICH body to send would silently stay uniform while the '
+      + 'policy id claims the gap is closed.');
+  }
+  return { pFocus: focus / 100, pFocusPct: focus, pNewBody: pNew, pNewBodyPct: ch.pct_mixed_bench_chose_new,
+           uniformWouldGivePct: ch.pct_mixed_bench_uniform_would_give,
+           cells, cellRows: cells.size, cellMinN: CELL_MIN_N,
+           pooledRate: pooledRate / 100, pooledRatePct: pooledRate,
+           games: p.games || null, clean_pairs: jt.clean_pairs || null,
+           bounds: [jt.pct_same_foe_lower_bound, jt.pct_same_foe_upper_bound],
+           generated: j.generated || null, from: w };
+}
+
+/* THE CELL KEY IS BUILT IN ONE PLACE AND BY ONE FUNCTION, because the census writes it and the driver
+ * reads it, and two spellings of one key is this repository's most expensive recurring failure. The
+ * bands are the census's own — see `hpBand`/`tenureBand` in engine/joint_click_census.js. */
+function cellKey(hpPct, tenure, bench) {
+  const hp = hpPct == null ? 'unknown'
+    : hpPct >= 100 ? 'full' : hpPct > 66 ? 'hp_67_99' : hpPct > 33 ? 'hp_34_66' : 'hp_1_33';
+  const t = tenure == null ? 'tenure_unknown' : tenure <= 0 ? 'tenure_0' : tenure === 1 ? 'tenure_1' : 'tenure_2plus';
+  return hp + '|' + t + '|bench_' + Math.min(2, Math.max(1, bench));
+}
+
+/* The rate for one decision. A cell that is absent, or thinner than CELL_MIN_N, falls back to the
+ * POOLED rate and says so in a counter — not because a thin cell is wrong, but because a rate read
+ * off 131 decisions and a rate read off 391,253 must not be indistinguishable in the artifact. */
+function switchRateAt(J, C, key) {
+  const c = J.cells.get(key);
+  if (!c) { C.joint_cell_absent++; return J.pooledRate; }
+  if (c.n < J.cellMinN) { C.joint_cell_too_thin++; return J.pooledRate; }
+  C.joint_cell_hit++;
+  return c.rate;
+}
+
+/* ---- THE JOINT TARGET DRAW ---------------------------------------------------------------------
+ *
+ * TWO SLOTS, ONE DRAW, AND NO STATE. The obvious construction is a per-turn memo: the first slot to
+ * ask picks a foe and the second consults it. That is STATE, and `game_differential.js`'s
+ * `driverSnap`/`driverRestore` header records what state in this driver costs — the planted-
+ * comparator proofs silently become a DIFFERENT GAME from their clean arm. So both slots compute the
+ * SAME anchor from the SAME address, and only the second slot draws again to decide whether to join
+ * it. Asking twice returns the same answer, which is correct here: it is one decision.
+ *
+ *   anchorAt(live, u)               the foe this side is looking at, uniform over the live foes
+ *   joinOrSplit(live, anchor, ...)  the partner joins with probability pFocus, else takes another
+ *
+ * WITH ONE LIVE FOE THERE IS NO CHOICE and the caller must not consult this at all — a "focus rate"
+ * measured over forced targets is not a focus rate, which is why the census conditions on both foes
+ * being alive at turn start and why `forced` is counted separately here. */
+function anchorAt(live, u) {
+  if (!live || !live.length) return null;
+  return live[Math.min(live.length - 1, Math.floor(u * live.length))];
+}
+function joinOrSplit(live, anchor, pFocus, uJoin, uPick) {
+  if (!live || !live.length) return null;
+  if (live.length === 1) return live[0];
+  if (uJoin < pFocus) return anchor;
+  const others = live.filter(x => x !== anchor);
+  if (!others.length) return anchor;
+  return others[Math.min(others.length - 1, Math.floor(uPick * others.length))];
+}
+
+/* WHICH BODY. `debutants` are the bench bodies that have never stood on the field; `veterans` have.
+ * On a MIXED bench the debutant is taken with probability pNewBody (52.8% measured, against 50.0% for
+ * uniform). On a bench that is all one kind there is nothing to prefer and the draw is uniform — the
+ * same case the census reports as carrying no information. */
+function pickBody(debutants, veterans, pNew, uGroup, uPick) {
+  const all = debutants.concat(veterans);
+  if (!all.length) return null;
+  let group = all;
+  if (debutants.length && veterans.length) group = (uGroup < pNew) ? debutants : veterans;
+  return group[Math.min(group.length - 1, Math.floor(uPick * group.length))];
+}
+
 /* ---- THE DRAW ----------------------------------------------------------------------------------
  * `ids`  the LEGAL move ids for this body, already filtered by the caller from Showdown's own
  *        request. Legality is never re-decided here.
@@ -199,6 +359,21 @@ function counters() {
     no_move_candidates: 0,        // only switches were available (the caller's own fallbacks apply)
     first_no_prior_row: '',       // the first unprofiled species, named — a bare count sends the
                                   // reader back to guess which row it was
+    /* ---- THE JOINT ARM'S OWN COUNTERS -----------------------------------------------------------
+     * ZERO BY CONSTRUCTION UNDER `empirical-click/v1`, and carried there anyway so the two arms have
+     * ONE counter shape and a reader never has to work out whether an absent field means the
+     * capability was off or the capability is broken. */
+    joint_target_draws: 0,        // a slot named a foe through the joint model
+    joint_target_forced: 0,       // ... of the decisions, the ones with only one live foe: no choice
+    joint_anchor: 0,              // the slot that set this side's anchor for the turn
+    joint_joined: 0,              // the partner joined the anchor (focus fire)
+    joint_split: 0,               // the partner took the other foe
+    joint_cell_hit: 0,            // the switch rate came from a context cell with enough data
+    joint_cell_too_thin: 0,       // ... the cell existed and was under CELL_MIN_N: pooled rate used
+    joint_cell_absent: 0,         // ... no such cell at all: pooled rate used
+    joint_body_mixed_bench: 0,    // a bench holding both a debutant and a returning body
+    joint_body_chose_debutant: 0, // ... and the debutant was taken
+    joint_body_uniform: 0,        // the bench was all one kind — nothing to prefer
   };
 }
 
@@ -218,4 +393,5 @@ function rowFor(P, C, id, baseId) {
   return null;
 }
 
-module.exports = { loadPriors, switchRateFrom, drawMove, counters, rowFor, norm, UNOBSERVED };
+module.exports = { loadPriors, switchRateFrom, drawMove, counters, rowFor, norm, UNOBSERVED,
+                   loadJoint, cellKey, switchRateAt, anchorAt, joinOrSplit, pickBody, CELL_MIN_N };

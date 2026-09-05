@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-05T01:00:17.472Z",
+ "generated": "2026-09-05T03:16:01.429Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "316669459d67",
- "engine_release_cut": "2026-09-05T00:58:16.892Z",
- "engine_release_cuts": 1,
+ "engine_release": "6f96db9da019",
+ "engine_release_cut": "2026-09-05T03:06:38.003Z",
+ "engine_release_cuts": 5,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "c2438663ebe5",
+  "engine/medicham2-browser.js": "f1f75fb6b312",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "1c4ba432e563",
   "engine/position_features.js": "622482051bf4",
@@ -27,7 +27,7 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "3c733e7a0bfb",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "ad3e18bff6ae",
+  "data/abra-tags.js": "801040fb5f71",
   "data/tags.json": "adbbdbf244d2",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
@@ -44,7 +44,7 @@
   "COULD-NOT-STAGE": 8
  },
  "arms_played": {
-  "top-tie-first": 316
+  "top-tie-first": 280
  },
  "scope": {
   "total": 148,
@@ -62,324 +62,7 @@
   "could_not_stage_in_scope": 8,
   "attributed_by_second_control": []
  },
- "reds": [
-  {
-   "rule": "item/mega-stone",
-   "ok": true,
-   "why": "the mega transformation is skipped — the choice is still made and still accepted, so only the FORME goes missing",
-   "moved": {
-    "member": "abomasite",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.species",
-     "species"
-    ]
-   }
-  },
-  {
-   "rule": "item/resist-berry",
-   "ok": true,
-   "why": "the resist berry stops halving anything — it is still held, still read, and the multiplier is dropped",
-   "moved": {
-    "member": "babiriberry",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/drain-scaled",
-   "ok": true,
-   "why": "the item stops scaling the drain heal — the damage and the drain both still happen",
-   "moved": {
-    "member": "bigroot",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/type-scoped-power",
-   "ok": true,
-   "why": "the type-scoped item multiplier is dropped entirely",
-   "moved": {
-    "member": "blackbelt",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/accuracy-scaled",
-   "ok": true,
-   "why": "the accuracy modifier row is dropped, so every holder reads as untabled",
-   "moved": {
-    "member": "brightpowder",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/status-cure",
-   "ok": true,
-   "why": "the status cure is skipped — the berry is still held",
-   "moved": {
-    "member": "cheriberry",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.status",
-     "party.item",
-     "status",
-     "item"
-    ]
-   }
-  },
-  {
-   "rule": "item/speed-scaled",
-   "ok": true,
-   "why": "the item speed multiplier is dropped from the speed used to order the turn",
-   "moved": {
-    "member": "choicescarf",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "party.fainted",
-     "party.status",
-     "hp",
-     "fainted",
-     "status",
-     "species",
-     "maxhp",
-     "item",
-     "types",
-     "ability",
-     "vol.choicelock",
-     "pp.xscissor"
-    ]
-   }
-  },
-  {
-   "rule": "item/extends-a-duration",
-   "ok": true,
-   "why": "the duration extension is dropped and the base length is written instead",
-   "moved": {
-    "member": "damprock",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "field.weather_turns"
-    ]
-   }
-  },
-  {
-   "rule": "item/super-effective-power",
-   "ok": true,
-   "why": "the super-effective damage multiplier is dropped",
-   "moved": {
-    "member": "expertbelt",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/hp-floor",
-   "ok": true,
-   "why": "the HP floor stops holding the body up — the item is still held and still read",
-   "moved": {
-    "member": "focussash",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "party.fainted",
-     "party.status",
-     "species",
-     "hp",
-     "maxhp",
-     "types",
-     "ability",
-     "vol.focusenergy",
-     "pp.focusenergy",
-     "pp.flashcannon"
-    ]
-   }
-  },
-  {
-   "rule": "item/residual-heal",
-   "ok": true,
-   "why": "the passive heal is skipped — the item is still held and still on the board",
-   "moved": {
-    "member": "leftovers",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/all-damage-and-cost",
-   "ok": true,
-   "why": "the flat damage multiplier is dropped; the self-cost is left alone, so a break that moves only the target's HP is the localisation",
-   "moved": {
-    "member": "lifeorb",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/species-locked-stat",
-   "ok": true,
-   "why": "the species-locked stat multiplier is dropped — the item is still held and still read",
-   "moved": {
-    "member": "lightball",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/cures-a-volatile",
-   "ok": true,
-   "why": "the volatile cure is skipped",
-   "moved": {
-    "member": "mentalherb",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.item",
-     "item",
-     "vol.taunt",
-     "vol.focusenergy",
-     "pp.focusenergy"
-    ]
-   }
-  },
-  {
-   "rule": "item/category-scoped-power",
-   "ok": true,
-   "why": "the category-scoped base-power multiplier is dropped (it is a hardcoded NAME check in the simulator, not a tag read — see the rule comment)",
-   "moved": {
-    "member": "muscleband",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/heals-at-threshold",
-   "ok": true,
-   "why": "the threshold heal is skipped",
-   "moved": {
-    "member": "oranberry",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "party.item",
-     "hp",
-     "item"
-    ]
-   }
-  },
-  {
-   "rule": "item/heal-on-attack",
-   "ok": true,
-   "why": "the after-attack heal is dropped — the attack still lands for the same damage",
-   "moved": {
-    "member": "shellbell",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/restores-lowered-stats",
-   "ok": true,
-   "why": "the stat restoration is skipped",
-   "moved": {
-    "member": "whiteherb",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.item",
-     "party.boosts.atk",
-     "item",
-     "boosts.atk"
-    ]
-   }
-  }
- ],
+ "reds": [],
  "mirror": {
   "pairs": 0,
   "same_numbers_swapped": []

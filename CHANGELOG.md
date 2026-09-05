@@ -10,6 +10,61 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.256.0] — 2026-09-05
+
+### Fixed
+- **A CHARGED MOVE STRUCK THE WRONG SLOT, AND IT WAS INVISIBLE BY CONSTRUCTION.** `vol.charging`'s
+  release turn aimed at `live(foes)[0]` where the authority replays the `targetLoc` stored on the
+  sub-volatile — **a Phantom Force charged at slot b struck slot a.** It could not have been seen
+  before this session, because the old driver resolved every foe-aimed click with
+  `foes.findIndex(q => q && !q.fainted)` — **the lowest live index for both slots — so re-aiming was a
+  no-op by construction.** The driver's focus-fire bug was hiding a real targeting defect.
+- **AND THE CARD'S OWN CLAIM WAS ALSO REAL, BUT SMALL:** the charge wrapper surviving a BeforeMove
+  refusal fires **2 times in 961 games.** Two defects, and the one on the card was the minor half.
+- **BOARD-MATERIAL: joint arm 110 → 53, empirical arm 35 → 34.** Protocol joint 191 → 138, empirical
+  120 → 121. VOID joint **38 → 4**; charge moves are now entirely absent from
+  `unshared_address_shapes`. Census 829/829/0, gate back to **2 of 9**.
+- **THE CONTROLS ARE THE PROOF.** Knob-cleared runs reproduce the old figures **exactly** — joint 110,
+  empirical 35 — against 53 and 34 with the fixes live. `engine/engine_release.js drift` confirms only
+  `medicham2-browser.js` moved between the releases, **so the entire 57-game movement is these two
+  fixes and nothing else.**
+- **`scripted()` NOW REPLAYS A LOCKED MOVE — ONE LINE, EXACTLY WHERE IT WAS OWED.**
+  `Pokemon#getMoves(lockedMove)` returns no `target` field, so the encoder no longer supplies one
+  (`'target' in act.moves[k] ? … : null`, which is the unscripted chooser's own rule). **Every directed
+  scenario can now reach a release turn; none ever had.** The `directed` block did NOT move — all three
+  roster stages, `all_mechanics_fire --kind all` and nine adjacent scripted probes are unchanged.
+- **`tests/test-pin-arms.js` WAS A STALE ASSERTION, NOT A DEFECT — AND IT HAD ONLY EVER PASSED BY
+  LUCK.** Its `!x.top` filter swept in the `middle` arm, whose `chance` is a live uniform and whose own
+  description reads *"moves miss at their printed accuracy"*. **It was green only when one hash landed
+  under 0.01.** Fixed; all arms pass.
+
+### Notes
+- **THE PREDICTION SCORED 3 OF 8 AND THE MISSES ARE THE INTERESTING PART.** Both empirical misses were
+  by one and are attributed. **All three joint misses were in the same direction — the fix being much
+  larger than called.** Recorded rather than rounded off; the running tally across the night is
+  2-of-3, 4-of-4, 4-of-5, 4-of-4, 4-of-4, 3-of-4, 4-of-4, 5-of-8, 3-of-8.
+- **THE FIXTURE ONLY EXISTED FOR AN HOUR BEFORE IT PAID.** `docs/_reports/2026-09-05-fix-batch-8.md`
+  filed `vol.charging` as REAL and **UNSTAGEABLE** — `scripted()` fell back to `dm.target` for a locked
+  move whose request carries no target field, so Showdown refused the choice and **no staged scenario
+  in this repo had ever played a two-turn release turn.** The joint driver's 38 VOID games, dominated
+  by `phantomforce`, `electroshot` and `solarbeam` against **zero** charge-move shapes in the control
+  arm, are what made it stageable.
+- **THIS IS THE SECOND TIME TONIGHT A DRIVER CHANGE EXPOSED A DEFECT RATHER THAN CAUSING ONE.** The
+  coverage → empirical swap took board-material 0 → 135 by playing games that end; the focus-fire →
+  joint swap has now exposed a targeting defect that a constant aim made unobservable. **Neither
+  number was wrong; both were statements about a population.**
+- **OWED AND NAMED:** `docs/ENGINE.md` still carries `vol.charging` and was not restamped — the brief
+  overrode the standing instruction. One new control-arm board row is attributed but not diagnosed. 13
+  of the joint arm's 53 are unnamed under the artifact's 40-row cap. The semi-invulnerable half of the
+  abort fix is wired but not staged.
+- **`tests/test-wiring.js` was run once in a regression sweep before the agent realised it plays
+  self-play games**; it is a pre-existing red and was not repeated. Reported rather than left to look
+  like a fresh failure.
+- Full account: `docs/_reports/2026-09-05-charging-fixture.md`. Probes:
+  `tests/probe_charge_release.js`, `tests/probe_charge_abort.js`.
+
+---
+
 ## [5.255.0] — 2026-09-05
 
 ### Fixed

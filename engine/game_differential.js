@@ -85,14 +85,23 @@ const BASELINE = flag('--baseline', null);
  * mistake `engine/arms_comparable.js` exists to catch after the fact, and it is cheaper to catch at
  * second zero. The two policies are also refused against each other by steering.comparable, so an
  * empirical artifact can never be diffed against a coverage one: it is a RE-BASELINE, not a delta. */
+/* `joint` is `joint-empirical-click/v1`, 2026-09-05: everything the empirical arm does, plus the two
+ * capabilities engine/empirical_driver.js:56-64 declares it lacks — a TARGET model (this file named
+ * the lowest live foe every time, i.e. 100% double-targeting against a measured human 38.9%) and a
+ * SWITCH model conditioned on context (3.8% to 18.5% across cells, against one pooled 9.98%). It is
+ * a THIRD id, not a widening of the second, so every figure published under `empirical-click/v1`
+ * keeps meaning what it meant. Under `coverage` and `empirical` NOT ONE BYTE of behaviour changes —
+ * every joint branch below is behind `JOINT`. */
 const STEER_MODE = flag('--steering', 'coverage');
-if (STEER_MODE !== 'coverage' && STEER_MODE !== 'empirical') {
+if (!['coverage', 'empirical', 'joint'].includes(STEER_MODE)) {
   console.error('--steering must name an arm by id: `coverage` (census-coverage-seeking/v1, the '
-    + 'default and every published number) or `empirical` (empirical-click/v1, sampled from '
-    + 'data/move-priors.json). Got "' + STEER_MODE + '".');
+    + 'default and every published number), `empirical` (empirical-click/v1, sampled from '
+    + 'data/move-priors.json) or `joint` (joint-empirical-click/v1, which adds the target and '
+    + 'context-switch models). Got "' + STEER_MODE + '".');
   process.exit(2);
 }
-const EMPIRICAL = STEER_MODE === 'empirical';
+const JOINT = STEER_MODE === 'joint';
+const EMPIRICAL = STEER_MODE === 'empirical' || JOINT;
 /* `--state` — THE STATE DIFFERENTIAL (Will, 2026-08-07). Compare the BOARD at every turn boundary, not
  * the narration. See engine/board_state.js for what is read and why the boundary is where it is.
  *
@@ -205,7 +214,28 @@ const OUT = flag('--out', null);
  * `require.main === module` restores the guard to the question it means to ask — *is the run I am
  * about to perform going to publish a coverage arm* — and changes nothing for a direct invocation,
  * which is the only caller that can publish anything here. The refusal is still at second zero. */
-if (require.main === module && WRITE && !OUT && !EMPIRICAL) {
+/* AND THE THIRD ARM IS REFUSED FROM THE PUBLISHED SLOT TOO, 2026-09-05, FOR THE OPPOSITE REASON.
+ * `engine/quarantine.js`'s whole-game clause asks `PIN.guard({ ..., policy: POLICY_EMPIRICAL })`, and
+ * `steering.vouches()` REFUSES a block declaring any other policy — so a `joint-empirical-click/v1`
+ * artifact written here would WITHHOLD the clause rather than answer it, and the gate would go from
+ * measured-and-red to unmeasured. That is a worse state, not a better one, and it would arrive
+ * silently. Checked and stated BEFORE the first joint run, not discovered after it. Whether the gate
+ * should become answerable by this arm is a decision somebody makes in writing, not a side effect of
+ * a `--write`. */
+if (require.main === module && WRITE && !OUT && STEER_MODE !== 'empirical') {
+  if (JOINT) {
+    console.error('REFUSING TO PUBLISH A JOINT-ARM RUN INTO data/game-differential.json.');
+    console.error('');
+    console.error('  That file answers engine/quarantine.js\'s whole-game clause, and the clause is '
+      + 'answerable by `empirical-click/v1` ONLY.');
+    console.error('  steering.vouches() refuses any other policy — "different populations, not a '
+      + 'stronger and a weaker one" — so this would');
+    console.error('  turn a MEASURED-AND-RED clause into an UNMEASURED one without saying so.');
+    console.error('');
+    console.error('  Give it its own name:');
+    console.error('    node engine/game_differential.js --steering joint ... --write --out data/verification/game-differential.joint.json');
+    process.exit(2);
+  }
   console.error('REFUSING TO PUBLISH A COVERAGE-ARM RUN INTO data/game-differential.json.');
   console.error('');
   console.error('  That file answers engine/quarantine.js\'s whole-game clause. Under '
@@ -2202,7 +2232,7 @@ function equivProof() {
  * NOTHING IS LOADED UNDER THE COVERAGE ARM. A default run does not touch either file, so this arm
  * cannot change what the coverage arm plays. */
 const EMP = EMPIRICAL ? require('./empirical_driver.js') : null;
-let EMP_PRIORS = null, EMP_SWITCH = null, EMP_C = null, EMP_INPUTS = null;
+let EMP_PRIORS = null, EMP_SWITCH = null, EMP_C = null, EMP_INPUTS = null, EMP_JOINT = null;
 if (EMPIRICAL) {
   const relDigest = (REL.manifest.files || {})['data/move-priors.json'] || null;
   if (!relDigest) {
@@ -2223,8 +2253,24 @@ if (EMPIRICAL) {
       digest: ER.sha12(swPath), generated: EMP_SWITCH.generated,
       rows: EMP_SWITCH.games,
       what: 'the conditional voluntary-switch rate, ' + EMP_SWITCH.pct + '% of decisions taken with a '
-          + 'live bench, measured off the raw logs of both human stores' },
+          + 'live bench, measured off the raw logs of both human stores'
+          + (JOINT ? ' — NOT CONSULTED under joint-empirical-click/v1, which reads a context cell out '
+                   + 'of data/joint-click-census.json instead. Declared and digested anyway, because '
+                   + 'a table that a policy stops reading is a fact about the run.' : '') },
   ];
+  /* THE JOINT ARM'S THIRD TABLE. Read LIVE and not out of the release, for the same reason and with
+   * the same asymmetry stated: it is a fact about HUMAN play read off raw Showdown protocol, upstream
+   * of MEDICHAM, and not part of the engine being measured. It is digested into the steering block so
+   * two arms can be shown to have used the same bytes, which is what `steering.comparable` reads. */
+  if (JOINT) {
+    const jPath = D('data', 'joint-click-census.json');
+    EMP_JOINT = EMP.loadJoint(fs.readFileSync(jPath, 'utf8'), 'data/joint-click-census.json');
+    EMP_INPUTS.push({ file: 'data/joint-click-census.json', read_from: 'live tree (not an engine SOURCE)',
+      digest: ER.sha12(jPath), generated: EMP_JOINT.generated, rows: EMP_JOINT.games,
+      what: 'the joint TARGET draw (' + EMP_JOINT.pFocusPct + '% of human turns name the same foe, '
+          + 'over ' + EMP_JOINT.clean_pairs + ' clean pairs) and the voluntary-switch rate by context ('
+          + EMP_JOINT.cellRows + ' cells), measured off the raw logs of both human stores' });
+  }
 }
 const STEER = STEERING.resolve({ censusPath: CENSUS_PIN, mode: STEER_MODE, driverInputs: EMP_INPUTS });
 const CENSUS = STEER.census;
@@ -4526,7 +4572,33 @@ function scripted(script, turn, sd, i, act, side) {
   }
   const dm = dex.moves.get(id(want.m));
   let target = null;
-  const tt = (act.moves[k] && 'target' in act.moves[k]) ? act.moves[k].target : dm.target;
+  /* 2026-09-05 — AN ABSENT `target` ON THE REQUEST ENTRY MEANS "DO NOT NAME ONE", AND THIS FELL BACK
+   * TO THE DEX ROW FOR TWO YEARS OF SCENARIOS.
+   *
+   * `Pokemon#getMoves(lockedMove)` (sim/pokemon.ts:971-990) returns `{ move, id }` and NOTHING ELSE
+   * for a locked move — the second turn of Solar Beam, Phantom Force, Fly, Dig — because the target
+   * was chosen when the move was started. `Side#chooseMove` then reads `targetType =
+   * request.moves[moveIndex].target!` (sim/side.ts:581), gets `undefined`, and refuses any choice
+   * that names one: *"Can't move: You can't choose a target for Phantom Force"* (sim/side.ts:669).
+   * All ten two-turn moves legal in this regulation are `normal` or `any` targeted, so supplying
+   * `dm.target` here refused EVERY release turn — and consequently NO directed scenario in this
+   * repository had ever played one. `docs/_reports/2026-09-05-fix-batch-8.md` OWED 1 filed
+   * `vol.charging` as REAL AND UNSTAGEABLE for exactly this reason.
+   *
+   * THE UNSCRIPTED CHOOSER IN THIS FILE ALREADY HAD THE RIGHT RULE and a comment recording the four
+   * games the guess cost it: `const tt = ('target' in mv) ? mv.target : null;`. `'target' in mv` is
+   * the AUTHORITY answering whether this click names a body; `mv.target || dm.target` is a second
+   * object answering a question it was not asked. Only `scripted()` was never updated — the identical
+   * asymmetry CLAUDE.md's FACTS ARE GLOBAL rule is about, inside one file.
+   *
+   * THE `act.moves[k] &&` GUARD IS GONE BECAUSE IT WAS DEAD: `k` comes from a `findIndex` over
+   * `act.moves` and is `>= 0` at this line, so the entry always exists. Keeping it would have hidden
+   * the real branch behind a condition that can never be false.
+   *
+   * A SCRIPT MAY STILL WRITE `t: 1` ON A RELEASE TURN and it is IGNORED rather than refused, because
+   * the authority ignores it too: the aim is the one remembered from the charge turn. */
+  const tt = ('target' in act.moves[k]) ? act.moves[k].target : null;
+  if (tt === null) scriptLockedNoTarget++;
   /* 2026-08-29 -- `{ ally: true }` AIMS A `normal`/`any` MOVE AT THE USER'S OWN PARTNER, WHICH THIS
    * ENCODER COULD NOT EXPRESS AND THE AUTHORITY HAS ALWAYS ACCEPTED.
    *
@@ -4576,6 +4648,11 @@ let scriptAllyAimRefused = 0, scriptAllyAimFirst = '';
  * whatever the verdicts say. The FIRST one is kept with the list it was offered instead, because a
  * bare count sends the reader back to guess which row it was. */
 let scriptMoveNotOnRequest = 0, scriptMoveFirstMissing = '';
+/* 2026-09-05 -- scripted clicks whose REQUEST ENTRY carried no `target` field, i.e. locked moves. This
+ * is the loud half of the fix directly above: it read 0 on every run in this repository's history
+ * because the encoder refused the choice before the counter could exist, so a non-zero here is the
+ * evidence that a release turn was actually played rather than an assertion that it was. */
+let scriptLockedNoTarget = 0;
 
 /* Pick ONE action for one active slot. Legal actions come from Showdown's request; the choice among
  * them is the coverage rule. */
@@ -4733,23 +4810,53 @@ function empiricalPick(pool, battle, side, i, p, act) {
   const moves = use.filter(c => c.move);
   const switches = use.filter(c => c.switchTo != null);
 
-  /* ---- LEAVING. The priors carry no switch model, so the RATE comes from the store and the CHOICE
-   * of body does not come from anywhere — see engine/empirical_driver.js's header. Uniform over the
-   * legal bench, declared and counted, never presented as a behaviour claim. */
+  /* ---- LEAVING. Under `empirical-click/v1` the RATE comes from the store as one pooled number and
+   * the CHOICE of body does not come from anywhere — see engine/empirical_driver.js's header. Under
+   * `joint-empirical-click/v1` the rate is read from a context cell and the choice prefers a body
+   * that has not been on the field, both at measured rates. */
+  const bodyPick = (u) => {
+    if (!JOINT) return switches[Math.min(switches.length - 1, Math.floor(u * switches.length))];
+    /* `activeTurns` is Showdown's own counter of turns this body has spent on the field, so "has it
+     * been out before" is read from the authority rather than reconstructed here. */
+    const deb = switches.filter(c => !(c.everOut));
+    const vet = switches.filter(c => c.everOut);
+    if (deb.length && vet.length) {
+      C.joint_body_mixed_bench++;
+      const g = drv(battle, side, i, 'sg');
+      const pick = EMP.pickBody(deb, vet, EMP_JOINT.pNewBody, g, u);
+      if (deb.includes(pick)) C.joint_body_chose_debutant++;
+      return pick;
+    }
+    C.joint_body_uniform++;
+    return EMP.pickBody(deb, vet, EMP_JOINT.pNewBody, 0, u);
+  };
+  /* THE CONTEXT CELL, BUILT FROM WHAT SHOWDOWN'S OWN REQUEST ALREADY KNOWS. `cellKey` lives in
+   * empirical_driver.js beside the census's own band definitions, because the file that WRITES the
+   * key and the file that READS it must not each own a spelling of it. */
+  const rateHere = () => {
+    if (!JOINT) return EMP_SWITCH.rate;
+    const hp = (p && p.maxhp) ? (p.hp / p.maxhp) * 100 : null;
+    /* TENURE IS `activeTurns - 1`, AND THE MINUS ONE IS THE WHOLE CELL LOOKUP. Showdown zeroes
+     * `activeTurns` on switch-in and increments it at the START of each turn, so a body making its
+     * FIRST decision — a turn-1 lead, a mid-game switch-in on the turn after it arrived, a
+     * replacement — reads 1 in every case. The census defines tenure as decisions ALREADY MADE, which
+     * is 0 there. Off by one and every draw would read a neighbouring cell: 3.3% would be looked up as
+     * 10.4%, and nothing would look wrong. */
+    const tenure = p && typeof p.activeTurns === 'number' ? p.activeTurns - 1 : null;
+    return EMP.switchRateAt(EMP_JOINT, C, EMP.cellKey(hp, tenure, switches.length));
+  };
   if (!switches.length) {
     if (act.trapped || act.maybeTrapped) C.trapped++; else C.no_bench++;
   } else if (!moves.length) {
     /* No legal click at all: leaving is not a decision here, it is the only action. Counted apart
      * from a chosen switch so the realised switch rate is not inflated by forced ones. */
     C.no_move_candidates++;
-    const u = drv(battle, side, i, 'sb');
-    return switches[Math.min(switches.length - 1, Math.floor(u * switches.length))];
+    return bodyPick(drv(battle, side, i, 'sb'));
   } else {
     C.switch_reached_the_draw++;
-    if (drv(battle, side, i, 'sw') < EMP_SWITCH.rate) {
+    if (drv(battle, side, i, 'sw') < rateHere()) {
       C.switch_offered++;
-      const u = drv(battle, side, i, 'sb');
-      return switches[Math.min(switches.length - 1, Math.floor(u * switches.length))];
+      return bodyPick(drv(battle, side, i, 'sb'));
     }
   }
   if (!moves.length) return coveragePick(pool);
@@ -4780,10 +4887,60 @@ function empiricalPick(pool, battle, side, i, p, act) {
   return hit;
 }
 
+/* ---- WHICH FOE THIS SLOT NAMES ------------------------------------------------------------------
+ *
+ * UNDER `coverage` AND `empirical` THIS IS THE LINE IT ALWAYS WAS — `foes.findIndex(q => q &&
+ * !q.fainted)`, the lowest live index — and it is expressed here once so both arms read it from the
+ * same place rather than from two copies of the same expression.
+ *
+ * UNDER `joint` IT IS A DRAW, AND IT IS STATELESS ON PURPOSE. Both slots of a side compute the SAME
+ * anchor, because the address they hash is keyed on slot 0 regardless of which slot is asking; only
+ * the partner draws again, to decide whether to join the anchor or take the other foe. A per-turn
+ * memo would have been the obvious construction and it is STATE — `driverSnap`/`driverRestore` would
+ * have to carry it or the planted-comparator proofs silently become a different game from their
+ * clean arm, which is the failure that header already records one layer down.
+ *
+ * `midValue` DIRECTLY RATHER THAN `drv`, and that is the load-bearing detail. `drv` folds an `nth`
+ * counter into the address so that two decisions sharing an address get DIFFERENT variates and a
+ * repeat is counted. Here the sharing is the entire point: slot 0 and slot 1 must read the same
+ * anchor, and asking twice within one decision must give the same answer. Going through `drv` would
+ * hand the second asker a different foe and light up DRV_REPEATS on every turn of every game.
+ *
+ * IT DOES NOT TOUCH `MEDFAILS.damagingClickWithoutTarget`. This decides WHICH live foe is named, not
+ * WHETHER one is; `target = null` still means nobody was named, still reaches the engine as no aim,
+ * and a damaging click that genuinely has nobody must still fail into that counter. */
+function jointAddr(battle, side, kind) {
+  return midValue('drv|' + DRIVER_GAME_SEED + '|' + (battle ? battle.turn : 0) + '|'
+                  + (side && side.id) + '|joint|' + kind);
+}
+function foeTargetIndex(battle, side, i, foes) {
+  const live = [];
+  foes.forEach((q, n) => { if (q && !q.fainted) live.push(n); });
+  if (!live.length) return -1;
+  if (!JOINT) return live[0];
+  EMP_C.joint_target_draws++;
+  if (live.length === 1) { EMP_C.joint_target_forced++; return live[0]; }
+  const anchor = EMP.anchorAt(live, jointAddr(battle, side, 'anchor'));
+  /* WHICH SLOT IS THE ANCHOR is itself drawn, rather than always being slot 0. Pinning it to slot 0
+   * would give slot 0 a uniform marginal and slot 1 a mixture, and the census measures NO slot bias
+   * in either the marginal (561,427 vs 551,910) or the focus target (a 51.1% / b 48.9%). */
+  const anchorSlot = jointAddr(battle, side, 'whichslot') < 0.5 ? 0 : 1;
+  if (i === anchorSlot) { EMP_C.joint_anchor++; return anchor; }
+  const t = EMP.joinOrSplit(live, anchor, EMP_JOINT.pFocus,
+                            jointAddr(battle, side, 'join'), jointAddr(battle, side, 'pick'));
+  if (t === anchor) EMP_C.joint_joined++; else EMP_C.joint_split++;
+  return t;
+}
+
 function chooseAction(battle, side, i, act, axis, claimed) {
   claimed = claimed || new Set();
   const p = side.active[i];
   const foes = (side.foe && side.foe.active) || [];
+  /* HOISTED OUT OF THE MOVE LOOP, and identical under the two existing arms: `foes` does not change
+   * while the candidates are built, so `findIndex` returned the same number on every iteration. It is
+   * ONE DECISION — which foe this slot is looking at — and evaluating it once per move would count
+   * one decision several times and, under the joint arm, ask the same question repeatedly. */
+  const foeTarget = foeTargetIndex(battle, side, i, foes);
   const cands = [];
   (act.moves || []).forEach((mv, k) => {
     if (mv.disabled) return;
@@ -4804,9 +4961,8 @@ function chooseAction(battle, side, i, act, axis, claimed) {
     if (tt === null) { /* locked: no target field at all */ }
     else
     if (tt === 'normal' || tt === 'any' || tt === 'adjacentFoe') {
-      const j = foes.findIndex(q => q && !q.fainted);
-      if (j < 0) return;                       // no legal target: not a legal action
-      target = j + 1;
+      if (foeTarget < 0) return;               // no legal target: not a legal action
+      target = foeTarget + 1;
     } else if (tt === 'adjacentAlly') {
       const j = side.active.findIndex((q, n) => q && !q.fainted && n !== i);
       if (j < 0) return;
@@ -4853,7 +5009,12 @@ function chooseAction(battle, side, i, act, axis, claimed) {
        *
        * RE-KEYING IT IS A CHANGE TO THE SAMPLE, WHICH IS MEASURE'S TO MAKE, NOT A MECHANICS BATCH'S. */
       const steerKeyNotAnIdentity = id(q.species.id);
+      /* `everOut` — HAS THIS BODY STOOD ON THE FIELD BEFORE. Read from Showdown's own
+       * `pokemon.activeTurns`, which is zeroed on every switch-in and incremented at each turn's
+       * start, so a bench body carries the count from its last stint. Only the joint arm reads it;
+       * it is minted here because this is the one place a bench candidate is built. */
       cands.push({ switchTo: qk, want: 1e6, prefer: 0, banned: false,
+                   everOut: (q.activeTurns || 0) > 0,
                    steer: steerKeyNotAnIdentity,
                    clicks: (CLICKS.get('switch:' + steerKeyNotAnIdentity) || 0) * 6 });
     });
@@ -6203,9 +6364,11 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                                             firstMissing: scriptMoveFirstMissing,
                                             megaRefused: scriptMegaRefused,
                                             allyAimRefused: scriptAllyAimRefused,
-                                            allyAimFirst: scriptAllyAimFirst }),
+                                            allyAimFirst: scriptAllyAimFirst,
+                                            lockedNoTarget: scriptLockedNoTarget }),
                    resetScriptCounters: () => { scriptMoveNotOnRequest = 0; scriptMoveFirstMissing = '';
-                                                scriptAllyAimRefused = 0; scriptAllyAimFirst = ''; },
+                                                scriptAllyAimRefused = 0; scriptAllyAimFirst = '';
+                                                scriptLockedNoTarget = 0; },
                    /* 2026-08-22 — THE REFUSAL COUNTERS, exported for exactly the reason the nature and
                     * aim counters are: a caller proving "the authority took everything this harness
                     * said" must read THIS DRIVER'S OWN answer. A test that wrapped
@@ -6621,6 +6784,44 @@ if (process.env.MEDI_SAMPLE_DUMP) {
     arms,
   }, null, 2) + '\n');
   console.log('  wrote ' + process.env.MEDI_SAMPLE_DUMP + '  (sample fingerprint: '
+    + arms.map(a => a.arm + ' ' + a.games.length).join(', ') + ')');
+}
+
+/* ---- THE RAW TRAJECTORY — `MEDI_TRACE_DUMP=<file>` (2026-09-05, cap-or-stall) --------------------
+ *
+ * `MEDI_SAMPLE_DUMP` above carries a DIGEST of medicham2's stream, which answers "did the sample
+ * move" and cannot answer "what happened inside the game". The cap question — of the games that hit
+ * the turn cap, how many were PROGRESSING and how many were STALLED — is a question about the
+ * interior, and every candidate discriminator (HP falling, KOs, no-op clicks, repetition, a revisited
+ * board) is a different reduction of the same stream. Dumping the stream once and reducing it outside
+ * this file means a discriminator can be rejected without paying for another four-minute run.
+ *
+ * Purely observational and off unless the env var names a file: it reads records that already exist,
+ * changes no die, no click and no board, and an ordinary run is byte-identical. */
+if (process.env.MEDI_TRACE_DUMP) {
+  const arms = (ARM_RUNS || []).map(a => ({
+    arm: (a.arm && a.arm.id) || a.id || '?',
+    games: (a.results || []).map(r => ({
+      config: r.config, seed: r.seed, turns: r.turns,
+      end_reason: r.endReason || null, ended_medi: !!r.endedMedi, ended_sd: !!r.endedSd,
+      diverged: !!r.div, board_parted_turn: r.stateDiv ? r.stateDiv.turn : null,
+      final_roster: r.finalRoster || null,
+      trace: r.mediTrace || [],
+    })),
+  }));
+  fs.writeFileSync(D(process.env.MEDI_TRACE_DUMP), JSON.stringify({
+    what: 'medicham2\'s FULL emitted stream, one row per game per arm, for interior analysis of why a '
+        + 'game did or did not end. Observational; no die, click or board is changed by this block.',
+    generated: new Date().toISOString(),
+    engine_release: REL.id,
+    steering: STEER_MODE,
+    turns_cap: MAXTURNS,
+    team_store_pinned_to: TEAM_STORE || null,
+    census_pinned_to: CENSUS_PIN || null,
+    pins_digest: (PINS && PINS.digest) || null,
+    arms,
+  }) + '\n');
+  console.log('  wrote ' + process.env.MEDI_TRACE_DUMP + '  (traces: '
     + arms.map(a => a.arm + ' ' + a.games.length).join(', ') + ')');
 }
 const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
@@ -8063,11 +8264,14 @@ if (EMPIRICAL) {
   const C = EMP_C, d = C.decisions || 1;
   const pc = n => (100 * n / d).toFixed(1) + '%';
   console.log('');
-  console.log('  THE EMPIRICAL DRIVER  (empirical-click/v1)');
+  console.log('  THE EMPIRICAL DRIVER  (' + STEER.policy + ')');
   console.log('    behaviour table: ' + EMP_PRIORS.from + '   ' + EMP_PRIORS.species
     + ' species profiled, generated ' + EMP_PRIORS.generated + ', ' + EMP_PRIORS.acts + ' recorded acts');
   console.log('    switch rate:     ' + EMP_SWITCH.pct + '% of decisions taken with a live bench, from '
-    + EMP_SWITCH.from + ' (' + EMP_SWITCH.games + ' finished games, generated ' + EMP_SWITCH.generated + ')');
+    + EMP_SWITCH.from + ' (' + EMP_SWITCH.games + ' finished games, generated ' + EMP_SWITCH.generated + ')'
+    + (JOINT ? '\n                     NOT CONSULTED under this policy — the rate is read from the '
+             + 'context cell below. Loaded and digested so the two arms can still be shown to have '
+             + 'been handed the same tables.' : ''));
   console.log('    ' + C.decisions + ' decisions reached this driver'
     + (C.decisions ? '' : '   <-- ZERO. THE ARM DID NOT RUN.'));
   console.log('    ' + C.move_from_prior + ' (' + pc(C.move_from_prior) + ') moves drawn from the species distribution, '
@@ -8087,9 +8291,35 @@ if (EMPIRICAL) {
     + C.ban_narrowed + ' narrowed by an omit-* ban');
   console.log('    ' + DRV_REPEATS + ' repeated driver addresses'
     + (DRV_REPEATS ? '  <-- indexed, but battle.turn did not separate two decisions as assumed' : ' (must read 0)'));
-  console.log('    WHAT THIS DRIVER DOES NOT MODEL, so it is not read as behaviour: the TARGET (the '
-    + 'existing rule is unchanged — first live foe) and WHICH body a switch goes to (uniform over the '
-    + 'legal bench). data/move-priors.json carries neither.');
+  if (!JOINT) {
+    console.log('    WHAT THIS DRIVER DOES NOT MODEL, so it is not read as behaviour: the TARGET (the '
+      + 'existing rule is unchanged — first live foe) and WHICH body a switch goes to (uniform over the '
+      + 'legal bench). data/move-priors.json carries neither.');
+  } else {
+    const J = EMP_JOINT;
+    const partner = C.joint_joined + C.joint_split;
+    console.log('');
+    console.log('    THE JOINT MODEL  (' + J.from + ', generated ' + J.generated + ', ' + J.games + ' human games)');
+    console.log('      TARGET: ' + C.joint_target_draws + ' slot-decisions named a foe, '
+      + C.joint_target_forced + ' of them FORCED (one live foe — no choice, excluded from the rate)');
+    console.log('      ' + C.joint_anchor + ' set their side\'s anchor; the partner joined it '
+      + C.joint_joined + ' times and split ' + C.joint_split + ' ('
+      + (partner ? (100 * C.joint_joined / partner).toFixed(2) : '0.00')
+      + '% realised against ' + J.pFocusPct + '% measured over ' + J.clean_pairs + ' human pairs, '
+      + 'bounds ' + J.bounds[0] + '%-' + J.bounds[1] + '%)'
+      + (partner ? '' : '   <-- ZERO. THE TARGET MODEL DID NOT RUN.'));
+    console.log('      SWITCH RATE BY CONTEXT: ' + C.joint_cell_hit + ' draws read a cell with at least '
+      + J.cellMinN + ' human decisions in it, ' + C.joint_cell_too_thin + ' fell back to the pooled '
+      + J.pooledRatePct + '% because the cell was thinner, ' + C.joint_cell_absent
+      + ' because no such cell exists (' + J.cellRows + ' cells in the table)');
+    console.log('      WHICH BODY: ' + C.joint_body_mixed_bench + ' switches faced a bench holding both a '
+      + 'debutant and a returning body, ' + C.joint_body_chose_debutant + ' took the debutant ('
+      + (C.joint_body_mixed_bench ? (100 * C.joint_body_chose_debutant / C.joint_body_mixed_bench).toFixed(2) : '0.00')
+      + '% realised against ' + J.pNewBodyPct + '% measured, where uniform gives ' + J.uniformWouldGivePct + '%); '
+      + C.joint_body_uniform + ' faced a bench that was all one kind and were drawn uniformly');
+    console.log('      THE MARGIN ON THE BODY MODEL IS 2.8 POINTS AND IS PRINTED RATHER THAN CLAIMED. '
+      + 'It closes a declared gap; it is not evidence that humans prefer a fresh body by much.');
+  }
 }
 /* PRINTED BECAUSE A REFUSAL EMITS NO PROTOCOL LINE. It is invisible in BOTH streams by construction,
  * so the only place it can ever be seen is a counter — and until 2026-08-22 the forced-switch path
@@ -8508,8 +8738,34 @@ if (WRITE) {
         switch_rate_realised_pct: EMP_C.switch_reached_the_draw
           ? +(100 * EMP_C.switch_offered / EMP_C.switch_reached_the_draw).toFixed(3) : null,
         priors_species: EMP_PRIORS.species, priors_generated: EMP_PRIORS.generated,
-        not_modelled: ['the TARGET of a move (the existing first-live-foe rule is unchanged)',
-                       'WHICH body a voluntary switch goes to (uniform over the legal bench)'],
+        not_modelled: JOINT
+          ? ['nothing in the two declared gaps — the target draw and the switch model are both wired '
+             + 'under joint-empirical-click/v1; see joint_model below for what each realised',
+             'WHICH move a switching body would have clicked is still P(move|species) and is not '
+             + 'conditioned on the board']
+          : ['the TARGET of a move (the existing first-live-foe rule is unchanged)',
+             'WHICH body a voluntary switch goes to (uniform over the legal bench)'],
+        /* THE JOINT ARM'S OWN RECEIPT. `null` under the other arms rather than a block of zeros, so a
+         * reader cannot mistake "this arm does not have a joint model" for "the joint model did
+         * nothing". The counters themselves are carried at zero inside EMP_C under every arm, which
+         * is the opposite call and the right one for the same reason: one counter shape. */
+        joint_model: JOINT ? {
+          from: EMP_JOINT.from, generated: EMP_JOINT.generated, human_games: EMP_JOINT.games,
+          focus_rate_measured_pct: EMP_JOINT.pFocusPct,
+          focus_rate_measured_over_clean_pairs: EMP_JOINT.clean_pairs,
+          focus_rate_bounds_pct: EMP_JOINT.bounds,
+          focus_rate_realised_pct: (EMP_C.joint_joined + EMP_C.joint_split)
+            ? +(100 * EMP_C.joint_joined / (EMP_C.joint_joined + EMP_C.joint_split)).toFixed(3) : null,
+          switch_cells: EMP_JOINT.cellRows, switch_cell_min_n: EMP_JOINT.cellMinN,
+          switch_pooled_fallback_pct: EMP_JOINT.pooledRatePct,
+          body_debutant_rate_measured_pct: EMP_JOINT.pNewBodyPct,
+          body_debutant_rate_uniform_would_give_pct: EMP_JOINT.uniformWouldGivePct,
+          body_debutant_rate_realised_pct: EMP_C.joint_body_mixed_bench
+            ? +(100 * EMP_C.joint_body_chose_debutant / EMP_C.joint_body_mixed_bench).toFixed(3) : null,
+          what_the_previous_arm_did: 'both slots named `foes.findIndex(q => q && !q.fainted)` — the '
+            + 'lowest live index — so double-targeting ran at 100% and the foe in slot b was never '
+            + 'named by a single-target move until slot a was permanently empty',
+        } : null,
       }) : null,
       /* 2026-08-22 — THE HARNESS ANSWERING THE AUTHORITY. `choices_refused` counts `battle.choose()`
        * calls Showdown returned false for and MUST READ 0: a refusal emits no protocol line, so a run

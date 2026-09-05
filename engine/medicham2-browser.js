@@ -2268,6 +2268,25 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * `null` and reads exactly like a counter that never fired — caught on this fix's first run. */
   chargeWrapApplied: 0, chargeWrapOutlivedRelease: 0, chargeWrapTicked: 0, chargeWrapExpired: 0,
   chargeWrapAbandoned: 0, chargeWrapClearedOnFaint: 0,
+  /* 2026-09-05 -- WHERE THE RELEASE TURN AIMED, and the three answers are kept apart because two of
+   * them are ways for the fix to look like it fired when it did not.
+   *   chargeReleasedAtRememberedSlot  the aim came from the slot the charge was aimed at. Zero on a
+   *                                   run that played a release turn means the memory is unwired and
+   *                                   the engine is back to `live(foes)[0]`.
+   *   chargeReleaseSlotVacated        the remembered slot was empty or held a corpse, so the old rule
+   *                                   ran as a declared fallback. The authority is in `getRandomTarget`
+   *                                   here; this is the one place the two are not claimed to agree.
+   *   chargeReleaseNoRememberedSlot   a charge committed with NO body attached to the action. Must read
+   *                                   0 for the ten moves in this regulation, every one of which is
+   *                                   `normal` or `any` targeted; a non-zero says a charge is being
+   *                                   committed somewhere this fix never reached.
+   * DECLARED HERE for the reason directly above: an undeclared key makes `++` produce NaN, which
+   * prints as `null` and reads exactly like a counter that never fired. */
+  chargeReleasedAtRememberedSlot: 0, chargeReleaseSlotVacated: 0, chargeReleaseNoRememberedSlot: 0,
+  /* 2026-09-05 -- a charge dropped because the BeforeMove gate refused the move, which is the
+   * authority's `twoturnmove.onMoveAborted`. Zero on a run containing a flinched or slept charge means
+   * the marker never armed and the wrapper is surviving a refusal again. */
+  chargeWrapAbortedAtGate: 0,
   /* 2026-08-26 -- THE OTHER TWO THIRDS OF `onFieldStart`, each counted on its own because each can be
    * absent while the other works.
    *   gravityStrippedVolatile      a Magnet Rise deleted by the field going up. Invisible in HP by
@@ -4940,6 +4959,20 @@ const GRAVITY_GROUNDS_EVERY_CHARGE=(typeof process!=='undefined'&&process.env&&p
  * NOTHING else -- the semi-invulnerability already ended at execution and still does -- so a knob run
  * turns exactly the one `chargeTurn` clock row red and leaves the invulnerability row green. */
 const CHARGE_WRAP_CLEARED_AT_EXECUTION=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CHARGE_WRAP_CLEARED_AT_EXECUTION==='1');
+/* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
+ * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
+ * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
+ * outlives execution, and the semi-invulnerability is untouched -- so a knob run turns exactly the
+ * two `release-at-b` arms of `tests/probe_charge_release.js` red and leaves the slot-a arm and the
+ * single-turn control green. That asymmetry is what says this was one aim and not a broken family. */
+const CHARGE_REAIMS_FIRST_LIVE_FOE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE==='1');
+/* 2026-09-05 -- MEDI_CHARGE_WRAP_SURVIVES_ABORT=1 restores the pre-fix engine: the gate marker is
+ * never armed, so a charge refused by a flinch, sleep, Disable or any other BeforeMove door keeps its
+ * wrapper, its sub-volatile and -- for the five semi-invulnerable members -- its invulnerability. It
+ * restores that and NOTHING else: the release path, the residual spend and the switch-out clear are
+ * untouched, so a knob run turns exactly the `abort-flinch` arm red and leaves the `no-flinch`
+ * control green. */
+const CHARGE_WRAP_SURVIVES_ABORT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CHARGE_WRAP_SURVIVES_ABORT==='1');
 /* 2026-08-26 -- MEDI_SUPPRESSED_ITEM_IS_LOST=1 puts `lockMenuMove` back on the raw SLOT, so an item
  * parked by Magic Room or Klutz destroys the Choice lock instead of suspending it. That is the whole
  * of the defect: a knob run turns exactly the `suppresses` census row red and leaves the Knock Off row
@@ -18719,7 +18752,7 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
        * `removeVolatile` returns true only when there WAS one, which is what the id test is. */
       if(who._charging&&(_sg.consumesVolatiles||[]).indexOf(String(who._charging))>=0){
         _ap=true;
-        who._charging=null;who._invuln=false;
+        who._charging=null;who._invuln=false;who._ttmTgtSlot=null;
         /* `pokemon.removeVolatile("twoturnmove")`, on the authority's own line inside this clause --
          * `_ttmWrap` is that wrapper here. Grounding the charge and leaving the clock standing would
          * report a lock the body no longer has; Gravity's site makes the identical pairing. */
@@ -21251,7 +21284,7 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * when it comes back. Beside `_charging` rather than in the residual sweep, because the two are
    * ended by the SAME event here and a wrapper left standing on a benched body would report a charge
    * that no longer exists. */
-  out._charging=null; out._invuln=false; out._ttmWrap=null;
+  out._charging=null; out._invuln=false; out._ttmWrap=null; out._ttmTgtSlot=null;
   /* ROADMAP #147 -- AND A ROOSTED TYPE COMES BACK WITH IT. `roost` is an ordinary volatile, so
    * `Pokemon#clearVolatile()` takes it on the way out and the body is Flying again the instant it
    * leaves. The end-of-turn restore walks the ACTIVE slots and would never see a body that pivoted
@@ -23028,6 +23061,39 @@ const MID_LOG = [];
  * `activeMoveStickyRestored` is written the moment the knob swallows a clear. */
 const ACTIVE_MOVE_STICKY = (typeof process !== 'undefined' && process.env
                             && process.env.MEDI_ACTIVE_MOVE_STICKY === '1');
+/* 2026-09-05 -- THE TWO-TURN WRAPPER DIES WHEN THE GATE REFUSES THE MOVE, AND IT DID NOT.
+ *
+ * `twoturnmove.onMoveAborted(pokemon) { pokemon.removeVolatile('twoturnmove'); }`
+ * (data/conditions.ts:319-321) and `onEnd` takes the sub-volatile down with it. `runMove` raises
+ * `MoveAborted` on exactly one condition -- `runEvent('BeforeMove')` returning false
+ * (sim/battle-actions.ts:255-263) -- so a charge aborted by sleep, a flinch, freeze, full paralysis,
+ * a recharge, Disable, Taunt, Throat Chop, Imprison, Attract or Heal Block is DROPPED, and for
+ * Fly / Dig / Dive / Bounce / Phantom Force the user comes down out of the sky with it.
+ *
+ * THIS ENGINE CLEARED THE WRAPPER AT SWITCH-OUT, AT FAINT, AT THE RESIDUAL, UNDER GRAVITY AND WHEN
+ * THE CHOOSER ABANDONED AN UNAIMABLE CHARGE -- AND AT NONE OF THE GATE'S ~TEN REFUSAL DOORS. Staged:
+ * an Aerodactyl flinching an Archaludon's Electro Shot release parts exactly one board leaf,
+ * `p1.active[0].vol.charging  medicham 1  showdown 0`, which is the shape
+ * `docs/_reports/2026-09-05-fix-batch-8.md` §6 filed as REAL AND UNSTAGEABLE.
+ *
+ * IT IS ONE MARKER AND NOT TEN EDITS, for the reason the end-of-turn `_gateRan` sweep gives directly:
+ * the loop body carries ~30 `continue`s and a rule repeated at each of them arrives incomplete. The
+ * marker is armed at the HEAD of the gate and disarmed at the `|move|` line, which the file's own
+ * comment there names as the boundary -- *"Everything above this line is a BeforeMove refusal"*. So
+ * the door that has to be enumerated is the one the authority enumerates, and a refusal added later
+ * is covered without an edit.
+ *
+ * IT FIRES IMMEDIATELY, at the top of the NEXT action and after the last one, on
+ * `midClearActiveMove`'s own idiom and beside its call sites. Deferring it to the residual would be
+ * wrong by a whole turn for the five semi-invulnerable members: the authority makes the aborted body
+ * targetable again at once, and a later body on the same turn aims at it. */
+let TTM_INFLIGHT=null;
+function midAbortTwoTurn(){
+  const m=TTM_INFLIGHT; TTM_INFLIGHT=null;
+  if(!m||(!m._ttmWrap&&!m._charging))return;
+  m._charging=null;m._invuln=false;m._ttmWrap=null;m._ttmTgtSlot=null;
+  MEDSEEN.chargeWrapAbortedAtGate++;
+}
 function midClearActiveMove() {
   if (ACTIVE_MOVE_STICKY) { MEDFAILS.activeMoveStickyRestored = 1; return; }
   MID_MOVE = '-'; MID_TGT = '-'; MID_ATT = '-';
@@ -23309,14 +23375,53 @@ function battleTurn(S,rng,actsForA,actsForB){
          execution, so a stale body is not carried across the turn. */
       let _a;
       if(mon._charging&&MC.moves[mon._charging]){
-        const _t=live(foes)[0]||null;
+        /* 2026-09-05 -- THE RELEASE TURN AIMS WHERE THE CHARGE WAS AIMED, AND THIS LINE READ
+         * `live(foes)[0]` -- the LOWEST LIVE FOE INDEX, every time.
+         *
+         * The authority REMEMBERS the aim. `twoturnmove.onStart` (data/conditions.ts:287-306) writes
+         *
+         *     let moveTargetLoc: number = attacker.lastMoveTargetLoc!;
+         *     attacker.volatiles[effect.id].targetLoc = moveTargetLoc;
+         *
+         * and `Side#chooseMove`'s locked branch (sim/side.ts:673-686) replays it:
+         *
+         *     let lockedMoveTargetLoc = pokemon.lastMoveTargetLoc || 0;
+         *     if (pokemon.volatiles[lockedMoveID]?.targetLoc) lockedMoveTargetLoc = ...;
+         *
+         * So a Phantom Force charged at the foes' slot b and released while both foes are standing
+         * strikes slot b. This engine struck slot a.
+         *
+         * IT IS A LOCATION AND NOT A BODY, which is why `_ttmTgtSlot` is an INDEX into the foe array
+         * and not a reference: whoever is standing in that slot at release takes the hit, exactly as
+         * `reaimToSlot` already resolves every other aim at execution.
+         *
+         * THE FALLBACK IS THE OLD RULE AND IT IS COUNTED. An empty or fainted remembered slot leaves
+         * the authority in `getRandomTarget`; this engine keeps `live(foes)[0]` there rather than
+         * inventing a die the differential cannot share, and says so through
+         * `chargeReleaseSlotVacated` instead of doing it quietly.
+         *
+         * WHY IT WAS INVISIBLE UNTIL NOW: `game_differential.js`'s driver resolved every single-foe
+         * click with `foes.findIndex(q => q && !q.fainted)` -- the same lowest live index -- so every
+         * charge in every measured game was aimed at slot a and re-aiming it to slot a was a no-op by
+         * construction. `joint-empirical-click/v1` draws a real joint target, and charge moves
+         * immediately dominated its unshared-address shapes. */
+        const _rix=(mon._ttmTgtSlot==null||CHARGE_REAIMS_FIRST_LIVE_FOE)?-1:mon._ttmTgtSlot;
+        const _rem=_rix>=0?foes[_rix]:null;
+        let _t;
+        if(_rem&&!_rem.fainted&&_rem.curHP>0){_t=_rem;MEDSEEN.chargeReleasedAtRememberedSlot++;}
+        else{
+          _t=live(foes)[0]||null;
+          if(CHARGE_REAIMS_FIRST_LIVE_FOE)MEDFAILS.chargeReaimsFirstLiveFoeRestored=1;
+          else if(mon._ttmTgtSlot!=null)MEDSEEN.chargeReleaseSlotVacated++;
+          else MEDSEEN.chargeReleaseNoRememberedSlot++;
+        }
         _a=playerAction(mon,mon._charging,_t,field);
         /* THE WRAPPER IS ABANDONED WITH THE CHARGE. This is a charge the engine cannot re-aim, so it
          * is dropped rather than released — the authority's own `twoturnmove.onMoveAborted` does
          * exactly that (`pokemon.removeVolatile('twoturnmove')`, data/conditions.ts:319), and its
          * `onEnd` takes the sub-volatile down with it. Leaving `_ttmWrap` here would report a charge
          * clock on a body that is about to click something else. */
-        if(!_a||_a.kind!=='attack'){mon._charging=null;mon._invuln=false;mon._ttmWrap=null;MEDSEEN.chargeWrapAbandoned++;_a=forced||chooseAction(mon,foes,ally,field,side,rng);}
+        if(!_a||_a.kind!=='attack'){mon._charging=null;mon._invuln=false;mon._ttmWrap=null;mon._ttmTgtSlot=null;MEDSEEN.chargeWrapAbandoned++;_a=forced||chooseAction(mon,foes,ally,field,side,rng);}
       } else _a=forced||chooseAction(mon,foes,ally,field,side,rng);
       /* WIRE 24 -- THE LOCK BINDS A HANDED-IN ACTION TOO, and until now it only bound a CHOSEN one.
        *
@@ -24620,6 +24725,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * At the TOP of iteration k rather than the bottom of k-1 for the same reason `_updateAll` is
        * here: this loop body carries ~30 `continue`s and a line at the bottom is skipped by all of
        * them. Before action 0 it is a no-op. See midClearActiveMove for what it costs to omit. */
+      midAbortTwoTurn();   // 2026-09-05 -- the PREVIOUS action's aborted charge, same idiom, same reason
       midClearActiveMove();
       /* 2026-08-29 -- THE LIVE QUEUE AND ITS CURSOR, published for the ONE reader that needs to place
        * an action the authority moved: `encoreRelocateQueued`. Assigned at the loop top, above the
@@ -25182,6 +25288,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * THE MOVE IS IDENTIFIED BY THE VOLATILE IT SETS, NOT BY ITS NAME: `statusInflict` is the tag
        * that already carries `{volatile:'destinybond', to:'user'}`, and engine/faces.js states the
        * same precedent for the seven moves whose whole mechanic is which volatile they write. */
+      /* 2026-09-05 -- THE TWO-TURN MARKER IS ARMED HERE, at the head of the gate, for the reason the
+       * Destiny Bond strip directly below is here: everything under this point can `continue` out.
+       * Disarmed at the `|move|` line; swept by `midAbortTwoTurn`. Armed only for a body that is
+       * actually holding a charge, so an ordinary action costs one truthiness test. */
+      if(m._ttmWrap||m._charging){
+        if(CHARGE_WRAP_SURVIVES_ABORT)MEDFAILS.chargeWrapSurvivesAbortRestored=1;
+        else TTM_INFLIGHT=m;
+      }
       {const _dbId=actionMoveId(it.a);
        m._dbHeldAtGate=false;
        if(NO_DESTINY_BOND){MEDFAILS.destinyBondSuppressed=1;}
@@ -25783,6 +25897,14 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(!it._gateRan&&(it._shieldPending||it._guardPending||it._stallPending)){
         _shieldGate(it,actIdx); it._gateRan=true;
       }
+      /* 2026-09-05 -- AND THE TWO-TURN MARKER IS DISARMED HERE. The comment directly below states the
+       * boundary this file already relies on: *"Everything above this line is a BeforeMove refusal ...
+       * Everything below is a TryMove or onTry failure"*. The authority drops the wrapper on the
+       * former and keeps it through the latter -- a Solar Beam release stopped by a Protect keeps its
+       * clock, and the `no-flinch` control arm of `tests/probe_charge_release.js` asserts exactly
+       * that. OUTSIDE the `if(TR)` block below on purpose: the state must not depend on whether a
+       * trace sink is attached, for the reason ROADMAP #262 gives one screen down. */
+      TTM_INFLIGHT=null;
       /* ROADMAP #68 -- `|move|USER|MOVE|TARGET`, AND ITS POSITION IS THE MECHANIC.
        *
        * Showdown emits the move line inside `useMoveInner` (sim/battle-actions.ts:453) AFTER the
@@ -27959,7 +28081,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                * cancels the queued move, is `pokemon.removeVolatile('twoturnmove')`. A Gravity that
                * grounded the charge and left the clock standing would report a lock this body no
                * longer has. */
-              _b._charging=null;_b._invuln=false;_b._ttmWrap=null;_ap=true;MEDSEEN.gravityGroundedCharge++;
+              _b._charging=null;_b._invuln=false;_b._ttmWrap=null;_b._ttmTgtSlot=null;_ap=true;MEDSEEN.gravityGroundedCharge++;
               if(_gc.cancelsTheQueuedMove&&!GRAVITY_GROUNDS_EVERY_CHARGE)_b._queueCancel='gravity';
             } else MEDSEEN.gravityChargeLeftStanding++;
           }
@@ -30437,6 +30559,15 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _herb=m.item==='powerherb';
           if(!(_sk&&_sk.skipsIn&&effWeatherOf(field,m)===_sk.skipsIn)&&!_herb){
             m._charging=a.move.id;
+            /* 2026-09-05 -- THE AIM IS REMEMBERED HERE BECAUSE THE AUTHORITY REMEMBERS IT HERE:
+             * `twoturnmove.onStart` stores `attacker.lastMoveTargetLoc` on the sub-volatile in the
+             * same breath as adding it. A LOCATION, not a body -- see the release site in `mk`.
+             * `a.target` is the aim as CHOSEN, above `reaimToSlot`, which is the authority's own
+             * "the location of the originally targeted slot before any redirection". A move with no
+             * body attached leaves it null and the release falls back loudly. */
+            {const _cf=it.side==='A'?actB:actA;
+             const _cix=a.target?_cf.indexOf(a.target):-1;
+             m._ttmTgtSlot=_cix>=0?_cix:null;}
             m._invuln=TAGS.has('move',a.move.id,'semiInvulnerable');
             /* THE WRAPPER, ADDED HERE AND ONLY HERE, because the authority adds it here and only
              * here: `attacker.addVolatile('twoturnmove', defender)` is the LAST line of the handler,
@@ -36910,6 +37041,7 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* 2026-08-25 -- and the LAST action's `clearActiveMove()`, which the loop-top call cannot reach.
      * Everything below this line — the settles, the final `_updateAll`, the whole residual walk —
      * runs with `battle.activeMove === null` in the authority. See midClearActiveMove. */
+    midAbortTwoTurn();   // 2026-09-05 -- and the LAST action's aborted charge, which the loop top cannot reach
     midClearActiveMove();
     flushAfterMoveSpends([...actA,...actB]);   // WIRE 152 -- the LAST action's debt, same reason
     opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;   // ROADMAP #212 -- and the LAST action's copy

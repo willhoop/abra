@@ -1,6 +1,32 @@
 # ABRA — Project Summary
 
-**Version 5.255.0 · 2026-09-05 · Will Hooper**
+**Version 5.256.0 · 2026-09-05 · Will Hooper**
+
+**5.256.0 - THE BEST FINDING OF THE NIGHT WAS ONE NO INSTRUMENT HERE COULD HAVE FOUND YESTERDAY. A TWO-TURN MOVE CHARGED AT ONE ENEMY CAME OUT AND STRUCK THE OTHER, AND A FLAW IN THE STAND-IN PLAYER HAD BEEN MAKING THAT UNOBSERVABLE BY CONSTRUCTION.**
+
+| question | artifact | answer |
+|---|---|---|
+| the whole-game clause that GATES | `data/game-differential.json` | **board-material 46 of 961** — again NOT republished, and stale as a description of tonight's engine |
+| the same clause on tonight's engine, JOINT arm | the joint charge-fixture artifact under `data/verification/` | **board-material 53 of 961**, protocol first-divergence 138, VOID 4 |
+| the same clause, EMPIRICAL arm — a different policy, NOT pairable with the row above | the empirical charge-fixture artifact under `data/verification/` | **board-material 34 of 961**, protocol 121 |
+| the knob-cleared controls, one per arm | the two `-knobs` artifacts under `data/verification/` | the old figures reproduced **exactly**: joint **110**, empirical **35** |
+| probed mechanics live | `data/mechanics-census.json` | **829 of 829**, 0 unprobed |
+| the engine gate | `node engine/status.js` | back to **2 of 9** failing clauses |
+| the prediction card, written before the runs | this version's prediction artifact | **3 of 8**, with every miss recorded |
+
+**WHAT THE DEFECT WAS, AND WHY IT COULD NOT HAVE BEEN SEEN.** Some moves spend a turn charging and land on the next. The real game remembers which enemy you aimed at when you started and lands the hit there; our simulator aimed at the lowest live enemy index instead, so a Phantom Force charged at slot b struck slot a. **Until tonight the stand-in player driving these games aimed both of its Pokemon at that same lowest index anyway**, so remembering the aim and forgetting it produced identical games and no comparison could tell them apart. A flaw in the ruler was hiding a flaw in the subject. The second fix, the one actually written on the defect card, was the smaller half: a charge wrapper surviving a refusal it should not survive, 2 times in 961 games.
+
+**EVERY SCORE ABOVE BELONGS TO AN ARM, AND THE ARMS ARE NOT INTERCHANGEABLE.** They are different policies playing different games, and the program refuses to pair them by design. The joint arm moved 110 to 53; the empirical arm moved 35 to 34. The games thrown away because the two simulators never drew a die at the same address fell from 38 to 4 in the joint arm, and charge moves have left that list entirely.
+
+**THE 57-GAME MOVEMENT IS ATTRIBUTED, NOT ASSERTED.** Re-running with the same release, the same pinned pool and the same driver, with only the two fixes switched off, reproduced the old figures exactly, and the drift tool confirms that only the simulator file moved between the two releases. **So the whole movement is these two fixes and nothing else** — which is a stronger claim than any before-and-after taken on a tree that was moving underneath it.
+
+**TWO METHOD FINDINGS WORTH MORE THAN EITHER FIX.** The staging fixture that caught this was one hour old: the same defect had been filed earlier the same night as real and impossible to stage, because no staged scenario in this project had ever played a two-turn move's landing turn. And this is the **second** time in one night that changing the stand-in player exposed a defect rather than causing one — the earlier swap moved the different-board count from 0 to 135 simply by playing games that end. Neither number was wrong; each was a statement about which games were being played.
+
+**AND A TEST THAT HAD ALWAYS BEEN GREEN HAD ONLY EVER BEEN LUCKY.** Its filter scooped in a setting whose value is re-rolled at random, so it passed only when one hash landed under 0.01. It was winning a coin flip, not checking anything. Fixed.
+
+**THE HONEST COLUMN.** The prediction card scored 3 of 8. Both misses on the empirical arm were by one. **All three misses on the joint arm went the same way** — the fix being much larger than called — which is a bias in the prior rather than noise in the measurement, and it is only visible because the misses are written down.
+
+**WHAT IS STILL WITHHELD.** Everything downstream of the simulator: leaf calibration, every rollout figure, every head-to-head. The gate is shut and the MAG refit is owed as a refit rather than a restamp. `docs/ENGINE.md` still carries the charging defect and was not restamped in this pass, one changed game is attributed but not diagnosed, 13 of the joint arm's 53 are unnamed under the artifact's 40-row cap, and the semi-invulnerable half of the second fix is wired but not staged.
 
 **5.255.0 - THE MOST EXPENSIVE THING THIS VERSION FOUND WAS NOT A GAME MECHANIC. A RELEASE FINGERPRINT MOVED BECAUSE A FILE'S LINE ENDINGS CHANGED, NOTHING ELSE DIFFERED IN ANY OF THE 26 FROZEN SOURCES, AND FIVE HEAVY RE-RUNS WERE SPENT DISCOVERING THAT.**
 

@@ -1,0 +1,30 @@
+{
+  "written": "2026-09-05, BEFORE any differential run on the fixed tree",
+  "by": "ENGINE — tests/probe_charge_release.js and tests/probe_charge_abort.js are both green at this point",
+  "what_changed": [
+    "engine/game_differential.js scripted(): a locked move's request entry carries no `target` field, so the encoder no longer supplies one. This is the INSTRUMENT and it touches BOTH arms.",
+    "engine/medicham2-browser.js: the release turn of a two-turn move aims at the slot the charge was aimed at (_ttmTgtSlot) instead of live(foes)[0].",
+    "engine/medicham2-browser.js: the two-turn wrapper is dropped when the BeforeMove gate refuses the move, which is the authority's twoturnmove.onMoveAborted."
+  ],
+  "predictions": {
+    "empirical-click/v1": {
+      "board_material": 35,
+      "protocol_diverged": 120,
+      "void_games": 4,
+      "reasoning": "This arm resolves every single-foe click with `foes.findIndex(q => q && !q.fainted)`, so every charge in it is aimed at slot a and the remembered slot IS `live(foes)[0]`. The re-aim is a no-op by construction here. The ABORT fix can move it — real dice mean flinches, sleep and full paralysis do land on release turns — so a movement of 1-2 would be an honest miss and not noise. Called at NO MOVEMENT.",
+      "call_is_a_miss_if": "any of the three numbers differs"
+    },
+    "joint-empirical-click/v1": {
+      "board_material": 95,
+      "protocol_diverged": 175,
+      "void_games": 15,
+      "reasoning": "This arm draws a real joint target and aims at slot b, which is the whole reason the charge family appeared in its unshared-address shapes (23 crit phantomforce, 18 electroshot, 5 solarbeam, against zero in the control). The re-aim fix should remove most of that. 46 shape-instances across 38 VOID games; not every VOID game will be a charge game, and neither fix touches the move draw, so a floor well above zero is expected.",
+      "call_is_a_miss_if": "any of the three numbers differs by more than 10"
+    }
+  },
+  "census": { "live": 829, "probed": 829, "missing": 0,
+    "reasoning": "Both fixes sit inside existing chargeTurn/twoturnmove rows. No new census row is created by either." },
+  "gate": { "clauses_failing": 2,
+    "reasoning": "The two whole-game clauses read the unrepublished data/game-differential.json. The other five are re-run on the new release." },
+  "not_touched": ["data/game-differential.json", "data/policy-weights.json", "data/abra-tags.js", "docs/ROADMAP.md"]
+}
