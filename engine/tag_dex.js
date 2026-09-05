@@ -1,6 +1,16 @@
 /* tag_dex.js — tag every move, item and ability with the PARAMETERS it sets, and check whether
  * anything actually reads them.
  *
+ * ABRA-HEAP: 3072
+ *
+ * DECLARED 2026-09-04, AND IT IS A SAFETY DECLARATION RATHER THAN A PERFORMANCE ONE. This script
+ * exhausts node's default heap, and the failure is SILENT IN THE WORST POSSIBLE WAY: its only write
+ * is near the very end of the file, so an OOM leaves data/tags.json holding its OLD CONTENT AND ITS
+ * OLD MTIME. Nothing on disk records the death, and every consumer then reads a stale tag set that
+ * looks freshly generated. The repo's own notes already carried the required 3072 as prose that a
+ * caller had to remember; tools/lownode.cmd and .githooks/pre-commit both read this line now, so
+ * remembering is no longer part of it.
+ *
  *   SHOWDOWN_PATH=... node engine/tag_dex.js   ->  data/tags.json
  *
  * WHY TAGS AND NOT SPECIAL CASES

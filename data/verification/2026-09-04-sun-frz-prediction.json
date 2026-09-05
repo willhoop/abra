@@ -1,0 +1,46 @@
+{
+  "what": "FIX BATCH 7 — the scoreboard called in writing BEFORE engine/game_differential.js was started, so the prediction cannot be fitted to the result.",
+  "written": "2026-09-05T01:20Z",
+  "by": "ENGINE, fix batch 7",
+  "release_measured": "316669459d67",
+  "baseline_artifact": "data/verification/fix-batch-6.json",
+  "baseline_release": "014fe780a1a6",
+  "pins": {
+    "games": 1200,
+    "arm": "middle",
+    "steering": "empirical",
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen"
+  },
+  "the_fix": "canTakeStatus now honours the WEATHER CONDITION's own onImmunity (data/conditions.ts:579-582; desolateland byte-identical; no Champions override), so a body under the sun cannot be frozen. Probe tests/probe_sun_refuses_freeze.js, knob MEDI_FRZ_IN_SUN=1.",
+  "predictions": [
+    {
+      "quantity": "board-material (games whose boards part)",
+      "baseline": 40,
+      "predicted": 38,
+      "range": [37, 40],
+      "reason": "TWO of the forty are single-leaf `frz medi / \"\" sd` games and close if the sun was really up: pair-protect-bust ...2658818786 (p2 party charizard, and BOTH source teams carry charizard/CharizarditeY) and pair-redirect-priority ...2656727922 (p2 mawile, with charizardmegay confirmed in the run's own final roster). A THIRD, omit-weather ...2663587839, loses its frz leaf and does NOT close: it also parts on p1.active[0] holding dragalge where showdown holds a FAINTED whimsicott, which this change does not touch. DOWNSIDE, stated rather than hidden: 'a Charizard-Y is on the team' is not 'it megaed and the sun was up on that turn', and ...2658818786 could be an ordinary 10% draw, which would land 39. UPSIDE RISK IS NEAR ZERO BY CONSTRUCTION: the secondary roll still happens (the refusal is inside canTakeStatus, BELOW the draw), so no RNG address moves, and the change only makes this engine refuse what the authority already refuses."
+    },
+    {
+      "quantity": "protocol first-divergence (raw)",
+      "baseline": 124,
+      "predicted": 124,
+      "range": [122, 125],
+      "reason": "MEASURED, not guessed: of the 122 dumped first-divergence cards (data/_diag46b-cards.json) and of the artifact's own 60-row sample, exactly ONE is an extra medicham `-status frz` — omit-weather ...2663587839, `|faint|p1a <> |-status|p1b|frz`. The only other frz card is a THAW (`|-damage|p1b|H/Hfrz <> |-curestatus|p1b|frz|[msg]`) in a game where SHOWDOWN froze, which this change cannot touch. That one game carries a second, independent board divergence, so it is expected to re-diverge later rather than to lose a card. WHAT I COULD NOT MEASURE, DECLARED: whether ...2658818786 and ...2656727922 carry a `-status frz` as a LATER divergence — the dump records the FIRST divergence only."
+    },
+    {
+      "quantity": "VOID (mid-battle desync)",
+      "baseline": 7,
+      "predicted": 7,
+      "range": [6, 8],
+      "reason": "No die is added or removed. A refused freeze can change how many turns a game lasts, so a one-game drift is possible."
+    },
+    {
+      "quantity": "census live/probed",
+      "baseline": "829/829",
+      "predicted": "829/829",
+      "reason": "Already re-derived after the fix (tests/test-mechanics.js, 2026-09-05T00:53:10Z) and level. Recorded here because it was measured BEFORE this file was written, not predicted."
+    }
+  ],
+  "running_prediction_record_before_this_batch": "2-of-3, 4-of-4, a one-game protocol miss, 4-of-5, 4-of-4, 3-of-4, 4-of-4"
+}

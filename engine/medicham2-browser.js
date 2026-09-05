@@ -466,6 +466,25 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * silently back where it was; the duration-expiry branch beside it has its own line and would keep
    * passing on its own. */
   trapEndedSourceGone: 0,
+  /* 2026-09-04 -- THE TWO HALVES OF THE TRAP CLOCK, SEPARATED, because they fail differently. A zero
+   * on `partialTrapTick` means no trap chipped at all -- the residual step is not being reached. A
+   * zero on `partialTrapExpired` while `partialTrapTick` is high means every trap in the run ended
+   * some other way (its source left, its holder fainted) and the DURATION branch -- the one the chip
+   * order was wrong in -- was never exercised, so an arm that agreed proved nothing about it. */
+  partialTrapTick: 0, partialTrapExpired: 0,
+  /* 2026-09-04 -- HEAL BLOCK LAPSING ON ITS OWN CLOCK, which is the branch that now writes the `-end`
+     the authority writes. `healBlockApplied` beside it counts the applications; a run with the first
+     high and this at zero means every block in it was cured or carried off the field and the clock
+     branch was never exercised. */
+  healBlockExpired: 0,
+  /* 2026-09-04 -- THE THREE ARMS OF `perishsong.onHitField`, separated because they fail differently.
+     `perishMarked` counts bodies that actually took the clock; `perishClassRefused` counts the
+     `TryHit === null` arm (Soundproof), which was invisible to this branch until today;
+     `perishNoTarget` counts the clicks that reached `!result` and therefore FAILED. A run with
+     `perishMarked` high and `perishNoTarget` at zero never staged a repeat click, so its agreement
+     says nothing about that arm. `perishInvulnerable` is the arm that raises `result` and writes no
+     line -- see the declared remainder at the branch. */
+  perishMarked: 0, perishClassRefused: 0, perishNoTarget: 0, perishInvulnerable: 0,
   /* ROADMAP #221 -- THE EFFECT-MAJOR RESIDUAL WALK, AND A ZERO ON EITHER IS A FAILURE RATHER THAN AN
    * ABSENCE. `residualGroupsWalked` counts the outer pass -- one per order-group per turn, so any turn
    * at all makes it non-zero; a zero means the restructured loop is not running and every end-of-turn
@@ -1788,6 +1807,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #213 -- a status refused by a WEATHER-gated immunity (`statusImmune.inWeather`; Leaf
      Guard is the only member). Zero unless the sun is up over one of its three carriers. */
   statusRefusedByWeather: 0,
+  /* 2026-09-04 -- a status refused by the SKY'S OWN `onImmunity`, which is a FIELD refusal and not an
+     ability one: `sunnyday` and `desolateland` both carry
+     `onImmunity(type, pokemon) { if (pokemon.effectiveWeather() !== "<id>") return;
+      if (type === "frz") return false; }` (data/conditions.ts:579-582 and :629-632, no Champions
+     override). Counted apart from `statusRefusedByWeather` one field up, which is Leaf Guard -- an
+     ABILITY whose own handler happens to read the weather. A run where one moves and the other never
+     does is the state this engine was in until now. Zero on any board with no sun over a freezable
+     body. */
+  statusRefusedByWeatherCondition: 0,
   /* ROADMAP #213 -- a damaging move from the holder's OWN PARTNER refused (`refusesAllyDamage`;
      Telepathy is the only carrier). Zero unless an ally clicks a spread move over its own side. */
   allyDamageRefused: 0,
@@ -2008,6 +2036,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * on any corpus with a Substitute in it; ZERO on a corpus that contains one means the backstop is
    * unreachable and one of the two is silently not running. */
   afterHitFieldFlushed: 0, inMoveUpdateFlushed: 0,
+  /* 2026-09-04 -- AND THE THIRD ONCE-PER-MOVE STEP THAT LIVES IN THE SAME BACKSTOP: `_stepSelfPay`,
+     which is the authority's step 4 (`selfDrops`, sim/battle-actions.ts:1096). It was NOT flushed,
+     so a Close Combat whose only row went `out` on a Substitute paid no `-unboost` at all, and a
+     Hyper Beam through a doll armed no recharge. Non-zero is expected on any corpus holding a
+     `self`-carrying damaging move clicked into a Substitute; ZERO on such a corpus means the
+     backstop is unreachable. */
+  selfPayFlushed: 0,
+  /* 2026-09-04 -- the two halves of the `proceduralStatus` attribution, kept apart on purpose.
+     `proceduralStatusApplied` rises on every status this branch lands, of any kind; the second rises
+     only on the SLEEP that took the bare line, which is the only status whose `-status` shape the
+     attribution can change. A run with a Dire Claw in it must show the first non-zero, and one that
+     ever rolled `slp` must show the second -- a zero on the second with the first non-zero says the
+     branch is running and the bare arm is not reached. */
+  proceduralStatusApplied: 0, slpUnattributedAnonEffect: 0,
   forcedBerryEaten: 0, forcedBerryEffectUnexpressed: 0, teatimeFieldPass: 0, stuffCheeksNoBerry: 0,
   /* 2026-08-23 -- a berry REFUSED because an Unnerve body was standing opposite. It counts the
      REFUSAL and not the walk, so it cannot rise merely because the reader was called; a zero on a
@@ -2521,6 +2563,29 @@ const MEDFAILS = { encoreAction: 0,
      Bumped once per partner that WOULD have been shielded and was not. MUST READ 0 on any shipping
      run. */
   guardFoeSideOnlyRestored: 0,
+  /* 2026-09-04 -- MEDI_TRAP_TICK_BEFORE_CLOCK=1 is armed, so a partial trap chips on the residual
+     that expires it and takes one turn of damage more than the authority. Bumped once per trap that
+     expired under the restored order, so the number is the count of extra chips this run took.
+     MUST READ 0 on any shipping run. */
+  trapTickBeforeClockRestored: 0,
+  /* 2026-09-04 -- MEDI_HEALBLOCK_CLOCK_LONG=1 is armed, so Heal Block refuses one residual more than
+     the authority and lapses without writing its `-end`. Bumped once per lapse taken under the
+     restored clock. MUST READ 0 on any shipping run. */
+  healBlockClockLongRestored: 0,
+  /* 2026-09-04 -- MEDI_PERISH_ALWAYS_ACTIVATES=1 is armed, so Perish Song is blind to a `sound`
+     refusal and announces `-fieldactivate` on a click that affected nobody. Bumped once per click
+     taken under the restored shape. MUST READ 0 on any shipping run. */
+  perishAlwaysActivatesRestored: 0,
+  /* 2026-09-04 -- MEDI_PROCEDURAL_STATUS_NAMES_MOVE=1 is armed, so a `proceduralStatus` sleep is
+     announced with an `[from] move:` the authority does not write. Bumped once per line taken under
+     the restored attribution. MUST READ 0 on any shipping run. */
+  proceduralStatusNamesMoveRestored: 0,
+  /* 2026-09-04 -- MEDI_SELFPAY_SKIPPED_ON_SUB=1 is armed, so the once-per-move backstop below the
+     step driver does NOT flush `_stepSelfPay`, and a move whose every row went `out` on a Substitute
+     pays no self stat drop and arms no recharge. That is the exact shipped engine before this fix.
+     Bumped once per move that WOULD have been flushed and was not, so it is the count of skipped
+     payments. MUST READ 0 on any shipping run. */
+  selfPaySkippedOnSubRestored: 0,
   /* 2026-08-29 -- MEDI_SIDEBUFF_FOE_SIDE_ONLY=1 is armed, so `sideBuffRefuses` skips its own side's
      condition when the source is a partner and an ally's status or confusion walks through a
      Safeguard. Bumped once per refusal that WOULD have happened and did not, on either road.
@@ -2945,6 +3010,14 @@ const MEDFAILS = { encoreAction: 0,
    * The silent version reads "no terrain", which turns the protection off in exactly the bare
    * unit-test call, and is the silent default `statusImmuneWeatherUnknown` exists for one field over. */
   terrainStatusFieldUnknown: 0, terrainStatusFieldUnknownFirst: '',
+  /* 2026-09-04 -- the body handed to the SKY's status refusal carries no side back-reference, so the
+   * weather cannot be read. It DECLINES to refuse and says so, the same rule as the two fields either
+   * side of it: silently reading "no weather" turns the refusal off in exactly the bare unit-test
+   * call, which is the shape that hides a dead feature. */
+  weatherStatusFieldUnknown: 0, weatherStatusFieldUnknownFirst: '',
+  /* 2026-09-04 -- set to 1 for the whole run when MEDI_FRZ_IN_SUN=1 restores the sky's `onImmunity`
+   * being absent: a freeze lands under the sun exactly as it does on a clear field. */
+  frzInSunRestored: 0,
   /* 2026-09-01 -- a MOVE reached Electric Terrain's sleep refusal with no `formatSecondaryCount` row,
    * so "does this effect carry secondaries" -- the authority's own announce gate -- could not be read.
    * It ANNOUNCES anyway (all five legal sleep sources carry `count: 0`, so that is the answer for
@@ -4353,6 +4426,25 @@ const ATTR=(function(){
   return {
     /* THE EFFECT DESCRIPTORS. A caller says WHAT caused the thing; it never says how to spell it. */
     move:id=>id?{kind:'move',id:String(id)}:null,
+    /* 2026-09-04 -- THE MOVE AS AN EFFECT THE AUTHORITY CANNOT NAME. `proceduralStatus`'s handler
+     * chooses the status ITSELF and then calls `target.trySetStatus(status, source)` with NO third
+     * argument (data/mods/champions/moves.ts:191-208 for Dire Claw; data/moves.ts triattack for the
+     * other member), so `setStatus` falls back to `sourceEffect = this.battle.effect` -- and inside
+     * `singleEvent('Hit', <the secondary>, ...)` that is the ANONYMOUS secondary object, whose
+     * `effectType` is neither 'Move' nor 'Ability'. `slp.onStart` therefore takes its `else` arm and
+     * writes the bare line. That is a property of the TAG, not of a move name: the tag exists
+     * precisely because the status is picked inside the handler rather than declared on the
+     * secondary, and a declared one (`sec.status`) is the shape that DOES reach `setStatus` with the
+     * move attached, from `runMoveEffects`.
+     *
+     * MEASURED IN THE AUTHORITY, one staged doubles turn per move, target Milotic:
+     *     sleeppowder (primary status)   |-status|p2a: Milotic|slp|[from] move: Sleep Powder
+     *     hypnosis    (primary status)   |-status|p2a: Milotic|slp|[from] move: Hypnosis
+     *     direclaw    (proceduralStatus) |-status|p2a: Milotic|slp            <- bare
+     *     yawn        (a condition)      |-status|p2a: Milotic|slp            <- bare
+     * and this engine wrote `|-status|p2a: milotic|slp|[from] move: direclaw` for the third.
+     * `tests/probe_direclaw_attribution.js` is the arm. */
+    moveAnon:id=>id?{kind:'move',id:String(id),anon:true}:null,
     item:id=>id?{kind:'item',id:String(id)}:null,
     ability:(id,of)=>id?{kind:'ability',id:String(id),of:of||null}:null,
     cond:id=>id?{kind:'condition',id:String(id)}:null,
@@ -4379,7 +4471,15 @@ const ATTR=(function(){
         return bare();
       }
       if(e.kind==='ability')return named('[from] ability: '+e.id,e.of);
-      if(e.kind==='move'&&st==='slp')return named('[from] move: '+e.id);
+      if(e.kind==='move'&&st==='slp'){
+        /* THE ANONYMOUS ARM. See `moveAnon` above: an effect the authority reaches through
+         * `battle.effect` rather than through an argument has no `effectType === 'Move'`, so the
+         * sleep line is bare. The counter is here rather than at the call site because this is the
+         * branch that decides the line. */
+        if(e.anon&&!PROCEDURAL_STATUS_NAMES_MOVE){MEDSEEN.slpUnattributedAnonEffect++;return bare();}
+        if(e.anon)MEDFAILS.proceduralStatusNamesMoveRestored++;
+        return named('[from] move: '+e.id);
+      }
       return bare();
     },
     /* `-curestatus`. sim/pokemon.ts:1682. EVERY cure carries a tag; the only question is which.
@@ -7971,10 +8071,20 @@ function residualClockTick(m, id) {
     return;
   }
   if (how === 'healBlock') {
-    /* Heal Block is applied as `turns + 1` because this tick fires on the application turn too — the
-     * same convention as Encore's lock. It announces nothing when it lapses in this engine. */
+    /* 2026-09-04 -- AND IT ANNOUNCES ITS OWN LAPSE. `healblock.condition.onEnd` is
+     * `this.add('-end', pokemon, 'move: Heal Block')` (data/moves.ts:8322-8324, not overridden by
+     * Champions) and this engine wrote nothing at all -- the file's own comment here used to say so.
+     * The whole-game differential carries it twice as
+     * `event missing from medicham2 :: |-end|p1b|healblock <> |upkeep`. The position is not typed:
+     * this step's place in the walk comes from `data/residual-order.json`, which is the authority's
+     * own `onResidualOrder: 20`. */
     if (!(m._healBlock > 0)) return;
-    MEDSEEN.residualClockInWalk++; m._healBlock--;
+    MEDSEEN.residualClockInWalk++;
+    if (--m._healBlock <= 0) {
+      MEDSEEN.healBlockExpired++;
+      if (HEALBLOCK_CLOCK_LONG) MEDFAILS.healBlockClockLongRestored++;
+      else if (TR) TR.vend(m, 'move: Heal Block');
+    }
     return;
   }
   if (how === 'soundLock') {
@@ -13697,6 +13807,37 @@ const REDIRECT_FOE_ONLY=(typeof process!=='undefined'&&process.env&&process.env.
  * was before this pass. Any run carrying it also carries a non-zero
  * `MEDFAILS.guardFoeSideOnlyRestored`. */
 const GUARD_FOE_SIDE_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_GUARD_FOE_SIDE_ONLY==='1');
+/* 2026-09-04 -- MEDI_TRAP_TICK_BEFORE_CLOCK=1 PUTS THE PARTIAL TRAP'S CHIP BACK ABOVE ITS CLOCK: the
+ * residual chips first and only then tests `--turns<=0`, so a `duration: 5` trap takes FIVE chips
+ * where the authority takes four (`sim/battle.ts:515-523` decrements before the handler and
+ * `continue`s past it on zero). Any run carrying it also carries a non-zero
+ * `MEDFAILS.trapTickBeforeClockRestored`. `tests/probe_trap_duration.js` is the arm. */
+const TRAP_TICK_BEFORE_CLOCK=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TRAP_TICK_BEFORE_CLOCK==='1');
+/* 2026-09-04 -- MEDI_HEALBLOCK_CLOCK_LONG=1 PUTS HEAL BLOCK'S EXTRA TURN AND ITS SILENCE BACK:
+ * `_healBlock` is set to `turns + 1` again, so the block refuses one residual more than the
+ * authority does, and the lapse writes no `-end` line. Any run carrying it also carries a non-zero
+ * `MEDFAILS.healBlockClockLongRestored`. `tests/probe_healblock_clock.js` is the arm. */
+const HEALBLOCK_CLOCK_LONG=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HEALBLOCK_CLOCK_LONG==='1');
+/* 2026-09-04 -- MEDI_PERISH_ALWAYS_ACTIVATES=1 PUTS PERISH SONG'S OLD SHAPE BACK: the loop asks no
+ * `moveClassBlocked`, so a Soundproof body is marked, and `-fieldactivate` is pushed at the foot of
+ * the loop whether or not anything landed, so a click into an already-counting field never fails.
+ * Any run carrying it also carries a non-zero `MEDFAILS.perishAlwaysActivatesRestored`.
+ * `tests/probe_perishsong_field.js` is the arm. */
+const PERISH_ALWAYS_ACTIVATES=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PERISH_ALWAYS_ACTIVATES==='1');
+/* 2026-09-04 -- MEDI_PROCEDURAL_STATUS_NAMES_MOVE=1 PUTS THE INVENTED ATTRIBUTION BACK: a sleep
+ * applied by the `proceduralStatus` branch is announced `|-status|TARGET|slp|[from] move: <id>` again,
+ * where the authority writes the line bare. Any run carrying it also carries a non-zero
+ * `MEDFAILS.proceduralStatusNamesMoveRestored`. `tests/probe_direclaw_attribution.js` is the arm. */
+const PROCEDURAL_STATUS_NAMES_MOVE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PROCEDURAL_STATUS_NAMES_MOVE==='1');
+/* 2026-09-04 -- MEDI_SELFPAY_SKIPPED_ON_SUB=1 PUTS THE MISSING FLUSH BACK: the once-per-move backstop
+ * below the step driver flushes `_stepAfterHitField` and `_stepUpdate` but NOT `_stepSelfPay`, so a
+ * move whose every row went `out` on a Substitute (`spreadMoveHit` sets `targets[i] = null`, NOT
+ * false, at sim/battle-actions.ts:1063-1066, and `selfDrops` at :1317-1325 opens `if (target ===
+ * false) continue`) never reaches the authority's step 4 at all. Close Combat through a broken doll
+ * pays no `-unboost`; Hyper Beam through one arms no recharge at `selfDrops`' position. Any run
+ * carrying it also carries a non-zero `MEDFAILS.selfPaySkippedOnSubRestored`.
+ * `tests/probe_selfdrop_through_sub.js` is the arm. */
+const SELFPAY_SKIPPED_ON_SUB=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELFPAY_SKIPPED_ON_SUB==='1');
 /* 2026-08-29 -- MEDI_SIDEBUFF_FOE_SIDE_ONLY=1 PUTS THE ALLY EXCLUSION BACK INTO `sideBuffRefuses`:
  * the one reader of the `sideBuff` tag skips its own side's condition again when the SOURCE is a
  * partner, so an ally's Glare, Confuse Ray or Teeter Dance walks straight through a Safeguard that
@@ -15736,6 +15877,47 @@ const STATUS_IMMUNE_ABIL={ brn:['waterveil','waterbubble','thermalexchange'],
  * trigger -- the same treatment Primordial Sea gets in the weather block. */
 const STATUS_IMMUNE_ABIL_ANY=['purifyingsalt',
                               'comatose'/* UNREACHABLE in Reg M-B: Komala is isNonstandard 'Past' */];
+/* 2026-09-04 -- THE SKY REFUSES A STATUS, AND THAT IS A FIELD RULE RATHER THAN AN ABILITY ONE.
+ *
+ * The two lists above are the body's own immunities and the block below them is Leaf Guard -- an
+ * ABILITY that happens to read the weather. NEITHER can express "the sun itself refuses this", which
+ * is a handler on the WEATHER CONDITION, and this engine read none of them. Authority, quoted rather
+ * than recalled (`data/conditions.ts:579-582`; `desolateland` carries the byte-identical handler at
+ * :629-632, and `data/mods/champions/conditions.ts` overrides NEITHER -- it holds par, slp and frz
+ * and no weather):
+ *
+ *     sunnyday: { ... onImmunity(type, pokemon) {
+ *       if (pokemon.effectiveWeather() !== 'sunnyday') return;
+ *       if (type === 'frz') return false; }, ... }
+ *
+ * reached from `Pokemon#setStatus` (sim/pokemon.ts:1714-1725) through `runStatusImmunity`
+ * (:2275-2295), whose second half is `runEvent('Immunity', this, null, null, type)`.
+ *
+ * THIS IS THE SAME SHAPE AS ELECTRIC TERRAIN'S `onSetStatus` (2026-09-01) AND IS WRITTEN THE SAME
+ * WAY: the membership is a field condition, `data/tags.json` tags moves, items and abilities and not
+ * conditions, so the table is read out of the authority and CITED rather than derived at run time --
+ * and `tests/probe_sun_refuses_freeze.js` DERIVES the authority's own table (every weather id any
+ * legal move or ability can put on this field, each one's `onImmunity` source) and asserts it equals
+ * this object. A second refusing weather, or a second refused status, REDS that probe by name.
+ *
+ * THE KEY IS THE ENGINE'S WEATHER WORD, and that is not a shortcut: `tag_dex`'s W2ENGINE maps BOTH
+ * `sunnyday` and `desolateland` onto `sun`, and the two conditions carry the identical handler, so
+ * one row is the whole family rather than a collapse of two different rules.
+ *
+ * SILENT IN EVERY ROUTE THIS REGULATION HAS. `setStatus` writes `-immune` only when
+ * `(sourceEffect as Move).status` is set -- a move whose PRIMARY status is the refused one -- and
+ * ZERO legal moves in Reg M-B carry `status: 'frz'` (derived, printed by the probe). Every freeze
+ * that can happen here arrives as a secondary or out of Tri Attack's own handler, where `sourceEffect`
+ * has no `.status` and the authority says nothing at all. The announcer below still routes a
+ * `reason: 'weather'` to the bare `-immune` line, because that is what the authority would write if
+ * such a move existed; it is unreachable today and is not left to fall into the `-fail` branch.
+ *
+ * UTILITY UMBRELLA IS NOT MODELLED HERE AND CANNOT BE REACHED. `Pokemon#effectiveWeather` blanks sun
+ * and rain for its holder (sim/pokemon.ts:2203-2210), which would let a freeze land under the sun --
+ * and `Dex.forFormat('gen9championsvgc2026regmb').items.get('utilityumbrella').isNonstandard` is
+ * `'Past'`. Stated rather than implemented, and the probe asserts the ban so a regulation change
+ * turns this comment red instead of leaving it wrong. */
+const WEATHER_REFUSES_STATUS={sun:['frz']};
 /* POWDER MOVES. Grass types are immune to all of them, as are Overcoat and Safety Goggles. This is
  * why Spore misses Rillaboom and Amoonguss entirely - a fact any bring recommendation depends on. */
 /* Screens last 5 turns (8 with Light Clay, which this engine does not model). The DOUBLES
@@ -16648,6 +16830,29 @@ function canTakeStatus(t,st,ignoreTypeImmunity,src,why){
         * than the weather being re-derived here. */
        const _w=src?effWeatherOf(_f,src,t):((_f.wSup||suppressesWeather(t))?'':_f.weather);
        if(_w&&_si.inWeather.some(x=>weatherId(x)===_w||x===_w)){MEDSEEN.statusRefusedByWeather++;return _no('ability',ab);}
+     }
+   }}
+  /* 2026-09-04 -- AND THE SKY'S OWN REFUSAL, which belongs to nobody's ability. See
+   * WEATHER_REFUSES_STATUS above for the authority and for why the key is the engine's word.
+   *
+   * THE WEATHER IS READ THE SAME WAY THE LEAF GUARD ARM ABOVE READS IT, one function and not two:
+   * `effWeatherOf` carries Air Lock / Cloud Nine suppression AND Mega Sol's private sun, and Mega Sol
+   * really does reach this handler -- `sunnyday.onImmunity` calls `pokemon.effectiveWeather()` with no
+   * argument, so `sourceEffect` falls back to `this.battle.effect`, which inside `runEvent('Immunity')`
+   * is the sunnyday condition itself and satisfies `sourceEffect.effectType === 'Weather'`
+   * (sim/pokemon.ts:2195-2202). A Mega Sol body ATTACKING makes its target freeze-proof with no sun on
+   * the field, and `effWeatherOf(field, src, t)` is exactly that read.
+   *
+   * A CALL WITH NO SOURCE falls back to the field's own weather with suppression applied, the same
+   * fallback the block above uses -- the residual and hazard status roads have no attacker to ask. */
+  {const _wS=t._sf&&t._sf._S,_wf=_wS&&_wS.field;
+   if(!WEATHER_STATUS_IMMUNITY_OFF&&Object.keys(WEATHER_REFUSES_STATUS).some(w=>WEATHER_REFUSES_STATUS[w].indexOf(st)>=0)){
+     if(!_wf){MEDFAILS.weatherStatusFieldUnknown++;
+       if(!MEDFAILS.weatherStatusFieldUnknownFirst)MEDFAILS.weatherStatusFieldUnknownFirst=String(st)+':'+String(t.name||t.sp||'?');}
+     else{
+       const _w=src?effWeatherOf(_wf,src,t):((_wf.wSup||suppressesWeather(t))?'':_wf.weather);
+       if(_w&&(WEATHER_REFUSES_STATUS[_w]||[]).indexOf(st)>=0){
+         MEDSEEN.statusRefusedByWeatherCondition++;return _no('weather');}
      }
    }}
   return true;
@@ -18568,14 +18773,24 @@ function mentalHerbCures(who,vol){
  * THE DURATION IS THE MOVE'S, NOT THE VOLATILE'S -- `data/moves.ts:8289-8292`, healblock's
  * durationCallback: `if (effect?.name === "Psychic Noise") return 2;` against a bare 5 otherwise.
  * That is why the number comes off the CARRIER's `blocksHealing` tag and never off a table keyed by
- * the volatile. The +1 is the tick convention this engine uses for every clock: the residual fires
- * on the application turn too. */
+ * the volatile.
+ *
+ * 2026-09-04 -- AND THE +1 IS GONE, BECAUSE THE CLOCK IS THE AUTHORITY'S OWN COUNTER AND NOT A FELT
+ * TURN COUNT. `duration` is decremented by the residual walk BEFORE the handler runs and the effect
+ * ENDS on the residual that takes it to zero (`sim/battle.ts:515-523`), so `duration: 2` refuses the
+ * heal on the application turn's residual and on exactly ONE more. This engine ticks `_healBlock`
+ * below its consumer as well, so `turns + 1` bought a THIRD refused residual -- measured against the
+ * official simulator on the same board: Leftovers refused on turns 2, 3 and 4 here against 2 and 3
+ * there, and the victim's Sitrus stayed in its pocket a whole turn after the authority had eaten it.
+ * That is the board half of the two `|-end|…|healblock <> |upkeep` games on release `0dec37ff5ad9`.
+ * `tests/probe_healblock_clock.js` is the arm; `MEDI_HEALBLOCK_CLOCK_LONG=1` puts the +1 and the
+ * silent lapse back. */
 function applyHealBlock(who,mvId){
   if(!who||who.fainted)return false;
   const _bh=TAGS.param('move',mvId,'blocksHealing');
   if(!_bh||!(+_bh.turns>0)){ MEDFAILS.healBlockNoDuration++; return false; }
   const _h0=who._healBlock;
-  who._healBlock=+_bh.turns+1;
+  who._healBlock=+_bh.turns+(HEALBLOCK_CLOCK_LONG?1:0);
   if(TR&&!(_h0>0))TR.vstart(who,'move: Heal Block');
   MEDSEEN.healBlockApplied++;
   mentalHerbCures(who,'healblock');
@@ -21689,6 +21904,18 @@ if(TERRAIN_SCALED_UNGATED)MEDFAILS.terrainScaledUngatedRestored=1;
 const ETERRAIN_ALLOWS_SLEEP=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_ETERRAIN_ALLOWS_SLEEP==='1');
 if(ETERRAIN_ALLOWS_SLEEP)MEDFAILS.eTerrainSleepAllowedRestored=1;
+/* 2026-09-04 -- `MEDI_FRZ_IN_SUN=1` RESTORES THE SKY'S `onImmunity` BEING ABSENT: an Ice Punch freezes
+ * a body standing under the sun exactly as it does on a clear field. That is what this engine did for
+ * as long as it has had weather -- the sun's `onWeatherModifyDamage` was read and its `onImmunity` was
+ * not -- and it is the state that parted three of the forty board-material games on release
+ * `014fe780a1a6`, two of them with a Charizard-Mega-Y (Drought) on the field.
+ *
+ * ONE KNOB OVER THE WHOLE TABLE, deliberately, for the reason the Electric Terrain knob gives: this is
+ * one handler shared byte-for-byte between two weather conditions, absent together, and no measurement
+ * here needs to attribute `sunnyday` without `desolateland` -- which has no legal carrier anyway. */
+const WEATHER_STATUS_IMMUNITY_OFF=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_FRZ_IN_SUN==='1');
+if(WEATHER_STATUS_IMMUNITY_OFF)MEDFAILS.frzInSunRestored=1;
 /* 2026-08-30 -- `MEDI_REACT_BATCHED=1` RESTORES THE BATCHED REACTION: every `onDamagingHit` reactor
  * of a volley paid in one deferred step BELOW the whole packet loop, so the stream read
  * `dmg dmg react react` where the authority writes `dmg react dmg react`.
@@ -28484,13 +28711,60 @@ function battleTurn(S,rng,actsForA,actsForB){
          * refusal at all, so it was wrong for a FOE Gholdengo too -- an `_isFoe` gate could not have
          * been the bug here because there was no gate. The USER is exempt (`t===m`), which is the
          * ability's own `target !== source` and is carried inside `tryHitRefusal`. */
+        /* 2026-09-04 -- `result` AND `message` ARE THE HANDLER'S OWN TWO FLAGS, AND THIS BRANCH
+         * CARRIED NEITHER. `perishsong.onHitField` (data/moves.ts, not overridden by Champions -- the
+         * only `perishsong` hits under data/mods/champions/ are in learnsets.ts) reads:
+         *
+         *     let result = false; let message = false;
+         *     for (const pokemon of this.getAllActive()) {
+         *       if (this.runEvent('Invulnerability', ...) === false) { add('-miss', ...); result = true; }
+         *       else if (this.runEvent('TryHit', pokemon, source, move) === null) { result = true; }
+         *       else if (!pokemon.volatiles['perishsong']) { addVolatile; add('-start', ... '[silent]');
+         *                                                   result = true; message = true; }
+         *     }
+         *     if (!result) return false;
+         *     if (message) this.add('-fieldactivate', 'move: Perish Song');
+         *
+         * A BODY THAT ALREADY HOLDS THE CLOCK RAISES NEITHER FLAG. So a second Perish Song into a
+         * field that is already counting affects nobody, `result` stays false and the WHOLE MOVE
+         * FAILS -- `|-fail|<the singer>`. This engine announced `-fieldactivate` unconditionally at
+         * the foot of the loop, which is seven of the 141 protocol divergences on release
+         * `0dec37ff5ad9`, across five configurations.
+         *
+         * AND THE `sound` REFUSAL IS THE `TryHit === null` ARM. `soundproof.onTryHit` is
+         * `if (target !== source && move.flags['sound']) { add('-immune', target, '[from] ability:
+         * Soundproof'); return null; }` and Perish Song carries `flags: { sound: 1, ... }`. This
+         * branch asked `tryHitRefusal` -- which covers `refusesStatusMoves`, Prankster and the type
+         * absorbers -- and never asked `moveClassBlocked`, the reader fifteen other branches in this
+         * file already call beside it. One board-material game on that release is exactly this:
+         * `|-immune|p1b: Kommo-o|[from] ability: Soundproof` against our `|-start|p1b|perish3`, with
+         * `p1.active[1].vol.perish` medi 3 / sd 0. `x!==m` is the handler's own `target !== source`.
+         *
+         * THE INVULNERABILITY ARM RAISES `result` AND WRITES NO LINE, AND THAT IS DECLARED RATHER
+         * THAN SILENT: the authority's `add('-miss', source, pokemon)` has no counterpart here, so a
+         * Perish Song sung under somebody's Fly still says one line less than the authority. What it
+         * must NOT do is make the move fail, which is why the flag is raised.
+         *
+         * `tests/probe_perishsong_field.js` is the arm and was RED on both halves before this moved;
+         * `MEDI_PERISH_ALWAYS_ACTIVATES=1` restores the blind refusal and the unconditional line. */
+        let _pres=false,_pmsg=false;
         for(const x of [...actA,...actB]){
-          if(!(x&&!x.fainted&&x.curHP>0&&x._perish==null))continue;
+          if(!(x&&!x.fainted&&x.curHP>0))continue;
+          if(x!==m&&x._invuln&&x._charging&&TAGS.has('move',x._charging,'semiInvulnerable')){
+            _pres=true;MEDSEEN.perishInvulnerable++;continue;}
           const _rf=tryHitRefusal(m,x,a.mv);
-          if(_rf){announceTryHitRefusal(_rf,x);continue;}
+          if(_rf){announceTryHitRefusal(_rf,x);_pres=true;continue;}
+          if(!PERISH_ALWAYS_ACTIVATES&&x!==m&&moveClassBlocked(x,a.mv,m)){
+            if(TR)TR.imm(x,moveClassImmuneAttr(x,m));
+            _pres=true;MEDSEEN.perishClassRefused++;continue;}
+          if(x._perish!=null)continue;
           x._perish=tn;if(TR)TR.vstart(x,'perish'+(tn-1));
+          _pres=true;_pmsg=true;MEDSEEN.perishMarked++;
         }
-        if(TR)TR.push(['-fieldactivate','move: Perish Song']);
+        if(PERISH_ALWAYS_ACTIVATES){MEDFAILS.perishAlwaysActivatesRestored++;
+          if(TR)TR.push(['-fieldactivate','move: Perish Song']);}
+        else if(!_pres){MEDSEEN.perishNoTarget++;m._lastMove=a.mv;mvFail(m);continue;}
+        else if(_pmsg&&TR)TR.push(['-fieldactivate','move: Perish Song']);
         m._lastMove=a.mv;continue;
       }
       if(a.kind==='yawn'){
@@ -29758,7 +30032,15 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!applyStatus(t,st,m,ATTR.move(a.mv),_why)){
           m._mvRes=false;
           if(TR&&!sideBuffRefuses(t,m,'blocksStatus',true)){   /* quiet: a re-ask, not an event */
-            if(_why.reason==='type'||_why.reason==='ability'){
+            /* 2026-09-04 -- `weather` JOINS THIS BRANCH AND NOT THE `else`. The sky's `onImmunity` is
+             * refused inside `runStatusImmunity` exactly where a TYPE immunity is (sim/pokemon.ts:
+             * 1714-1725), so a move whose PRIMARY status the sun refuses would take the identical bare
+             * `|-immune|TARGET` line -- no ability attribution, because no ability caused it, which is
+             * what a null `_why.ability` already produces here. IT IS UNREACHABLE IN REG M-B: zero
+             * legal moves carry `status: 'frz'`, so every freeze arrives as a secondary or out of Tri
+             * Attack's handler and the authority writes nothing. It is routed rather than left to fall
+             * into the `-fail` below, which would be a line the authority has never written. */
+            if(_why.reason==='type'||_why.reason==='ability'||_why.reason==='weather'){
               const _si=_why.ability?TAGS.param('ability',_why.ability,'statusImmune'):null;
               MEDSEEN.statusRefusedImmune++;
               TR.imm(t,(_si&&_si.announcesWith)||undefined);
@@ -34548,7 +34830,14 @@ function battleTurn(S,rng,actsForA,actsForB){
               * `MID_TGT` -- and `_secFired` is what carries that forward to the next row's chance. */
              _secFired(tg);
              const _i=Math.min(_ps.oneOf.length-1,Math.floor(_R.sec()*_ps.oneOf.length));
-             applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i],m,ATTR.move(a.move.id));
+             /* 2026-09-04 -- `moveAnon`, NOT `move`. The status this branch applies was chosen inside
+              * the authority's own handler and handed to `trySetStatus` with no `sourceEffect`, so
+              * `slp.onStart` writes the BARE line. See ATTR.moveAnon for the authority and the
+              * four-move measurement. The descriptor still carries the move id, so the Electric
+              * Terrain refusal below `applyStatus` keeps reading `formatSecondaryCount` off it and
+              * keeps its silence for a secondary-sourced sleep. */
+             MEDSEEN.proceduralStatusApplied++;
+             applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i],m,ATTR.moveAnon(a.move.id));
            }}
           /* WIRE 156 -- FAKE OUT'S FLINCH IS A SECONDARY, AND THE HARDCODE THAT USED TO SIT HERE
            * SAID IT WAS NOT.
@@ -35592,6 +35881,37 @@ function battleTurn(S,rng,actsForA,actsForB){
        * done-flag set on its first entry — so a move whose rows survived the driver reaches these two
        * lines and does nothing. The counters below say which of the two paths a run actually used,
        * because "the step is in the list" and "the step ever runs" are different claims. */
+      /* 2026-09-04 -- AND `_stepSelfPay` IS FLUSHED HERE TOO, ABOVE THE OTHER TWO, BECAUSE THAT IS
+       * WHERE THE AUTHORITY PUTS IT. `selfDrops` is step 4 of `spreadMoveHit`
+       * (sim/battle-actions.ts:1096); `onAfterHit` and `eachEvent('Update')` are :963 and :967 of
+       * `hitStepMoveHitLoop`, strictly below it. The paragraph above already stated the rule -- "a
+       * step whose scope is the whole move never runs at all when every row is out" -- and named
+       * `out` + `_reached > 0` as the substitute case; `_stepSelfPay` was simply not in the flush.
+       *
+       * MEASURED, `omit-weather ...2659317806` of `data/verification/fix-batch-5.json`: Blaziken's
+       * Close Combat broke a Delphox's doll and the authority wrote `|-unboost|p1a: Blaziken|def|1`
+       * / `spd|1` where this engine wrote nothing, parting `p1.party.blaziken.boosts.def medi=0
+       * sd=-1` at turn 10. Staged head-to-head the same way, both engines' own state read:
+       *     no sub    medi def -1 spd -1   sd def -1 spd -1     (agreed before AND after)
+       *     sub       medi def  0 spd  0   sd def -1 spd -1     (the defect)
+       *
+       * IT IS THE STEP, NOT THE DROP. `_stepSelfPay`'s own gates are unchanged and decide what is
+       * actually paid: `connected` for the stat table (set at the top of the substitute-aware damage
+       * road, so a MISS or a Protect still pays nothing) and `_reached > 0` for the recharge, which
+       * is the authority's own condition. The call is idempotent through `_selfPaid`, so a move whose
+       * rows survived the driver reaches this line and does nothing. */
+      /* THE GATE IS `_reached > 0`, AND IT IS THE AUTHORITY'S OWN RATHER THAN A CONVENIENCE. A total
+       * MISS never reaches `spreadMoveHit` at all -- `hitStepAccuracy` writes `targets[i] = false`
+       * inside `hitStepMoveHitLoop` and the loop returns above it -- so `selfDrops` is not merely
+       * refused on a miss, it is not called. `_reached` is this engine's count of rows past every
+       * gate and is incremented at the top of `_stepDamage`, i.e. exactly at the point the authority
+       * enters `spreadMoveHit`; a miss, a Protect and a type immunity all leave it at zero. Calling
+       * unconditionally here would let `_stepSelfPay`'s recharge arm mark `_rechargeArmed` on a
+       * missed Hyper Beam and silently disarm WIRE 43's backstop below the step list. */
+      if(_reached>0){
+        if(SELFPAY_SKIPPED_ON_SUB){ if(!_selfPaid)MEDFAILS.selfPaySkippedOnSubRestored++; }
+        else { if(!_selfPaid)MEDSEEN.selfPayFlushed++; _stepSelfPay(); }
+      }
       if(!_afterHitFieldDone)MEDSEEN.afterHitFieldFlushed++;
       if(!_updateDone)MEDSEEN.inMoveUpdateFlushed++;
       _stepAfterHitField(); _stepUpdate();
@@ -37322,17 +37642,57 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* ROADMAP #175 -- the CHIP is refused and the CLOCK still runs. `partiallytrapped`'s
            * onResidual damages and its `duration` is decremented by the volatile machinery either
            * way, so a Magic Guard body is still stuck for the same number of turns. */
-          if(!refusesIndirect(m)){m.curHP-=Math.floor(m.st.hp*m._trap.frac);
-            if(TR){
-              /* A trap with no recorded move cannot name one, and that is LOUD rather than papered
-               * over with the old literal: the fallback prints a string the authority never writes. */
-              if(!m._trap.mv){MEDFAILS.trapSourceUnknown++;
-                if(!MEDFAILS.trapSourceUnknownFirst)MEDFAILS.trapSourceUnknownFirst=String(m.name||'?');}
-              const _ta=m._trap.mv?ATTR.from(ATTR.move(m._trap.mv)):'[from] partiallytrapped';
-              TR.dmg(m,_ta,null,'[partiallytrapped]');}}
-          if(--m._trap.turns<=0){const _tmv=m._trap.mv;m._trap=null;
-            if(TR)TR.vend(m,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');}
-          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+          /* 2026-09-04 -- THE CLOCK RUNS ABOVE THE CHIP, NOT BELOW IT, AND THAT ONE LINE IS A WHOLE
+           * TURN OF DAMAGE. The counter is NOT decremented by `partiallytrapped` itself; it is
+           * decremented by the residual walk BEFORE the handler is called, and a counter that reaches
+           * zero SKIPS the handler outright (sim/battle.ts:515-523, inside `fieldEvent('Residual')`):
+           *
+           *     if (eventid === 'Residual' && handler.end && handler.state?.duration) {
+           *       handler.state.duration--;
+           *       if (!handler.state.duration) { handler.end.call(...); continue; }
+           *     }
+           *
+           * `continue` is the whole point: `onResidual` -- the chip AND the source-gone branch above
+           * it -- never runs on the residual that expires the trap. So `duration: 5` is FOUR chips.
+           * `data/tags.json` has recorded that all along as this family's `partialTrap.turns` ("4-5")
+           * beside the `duration` (5) this block read, and 7 of 7 members carry the pair.
+           *
+           * Chipping first and testing `--turns<=0` afterwards ends the trap on the same residual as
+           * the authority and takes ONE EXTRA CHIP on the way out. Three of the 46 board-material
+           * games on release `0dec37ff5ad9` are exactly that and nothing else -- two Infestations and
+           * a Fire Spin, each parting the board by precisely `maxhp/8`, one of them killing a
+           * Kingambit the authority leaves at 10.
+           *
+           * `tests/probe_trap_duration.js` reads both engines' own state (hp per turn, and the
+           * volatile's presence) and was RED here at `medi 4 chip(s), authority 3` before this moved.
+           * `MEDI_TRAP_TICK_BEFORE_CLOCK=1` restores the chip-then-decrement order. */
+          if(TRAP_TICK_BEFORE_CLOCK){
+            if(!refusesIndirect(m)){m.curHP-=Math.floor(m.st.hp*m._trap.frac);MEDSEEN.partialTrapTick++;
+              if(TR){
+                if(!m._trap.mv){MEDFAILS.trapSourceUnknown++;
+                  if(!MEDFAILS.trapSourceUnknownFirst)MEDFAILS.trapSourceUnknownFirst=String(m.name||'?');}
+                const _ta=m._trap.mv?ATTR.from(ATTR.move(m._trap.mv)):'[from] partiallytrapped';
+                TR.dmg(m,_ta,null,'[partiallytrapped]');}}
+            if(--m._trap.turns<=0){const _tmv=m._trap.mv;m._trap=null;MEDSEEN.partialTrapExpired++;
+              MEDFAILS.trapTickBeforeClockRestored++;
+              if(TR)TR.vend(m,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');}
+            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+          }
+          else if(--m._trap.turns<=0){
+            const _tmv=m._trap.mv;m._trap=null;MEDSEEN.partialTrapExpired++;
+            if(TR)TR.vend(m,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');
+          }
+          else{
+            if(!refusesIndirect(m)){m.curHP-=Math.floor(m.st.hp*m._trap.frac);MEDSEEN.partialTrapTick++;
+              if(TR){
+                /* A trap with no recorded move cannot name one, and that is LOUD rather than papered
+                 * over with the old literal: the fallback prints a string the authority never writes. */
+                if(!m._trap.mv){MEDFAILS.trapSourceUnknown++;
+                  if(!MEDFAILS.trapSourceUnknownFirst)MEDFAILS.trapSourceUnknownFirst=String(m.name||'?');}
+                const _ta=m._trap.mv?ATTR.from(ATTR.move(m._trap.mv)):'[from] partiallytrapped';
+                TR.dmg(m,_ta,null,'[partiallytrapped]');}}
+            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+          }
         }
       }
       /* ROADMAP #175 -- A REFUSED SEED PAYS THE SEEDER NOTHING, and that is the half a careless gate
@@ -37715,9 +38075,15 @@ function battleTurn(S,rng,actsForA,actsForB){
          beside them attributes with -- a knob that DELETED the mechanic instead of moving it
          would make every red arm part for the wrong reason. */
       if(ENDTURN_CLOCKS_AT_FOOT&&x._yawn!=null){x._yawn--;if(x._yawn<=0){x._yawn=null;if(TR)TR.vend(x,'move: Yawn');if(!x.status)applyStatus(x,'slp');}}
-      /* Heal Block ticks with the other clocks. It is applied as `turns + 1` because this tick fires
-       * on the application turn too — the same convention as Encore's lock two blocks down. */
-      if(ENDTURN_CLOCKS_AT_FOOT&&x._healBlock>0)x._healBlock--;
+      /* Heal Block ticks with the other clocks, and 2026-09-04 it ANNOUNCES its lapse here too. The
+       * announcement is copied rather than left to the walk on purpose: `MEDI_ENDTURN_CLOCKS_AT_FOOT=1`
+       * is a POSITION knob, and a knob that also deleted the `-end` would red the probe beside it for
+       * the wrong reason. The `turns + 1` this comment used to describe is gone — see applyHealBlock. */
+      if(ENDTURN_CLOCKS_AT_FOOT&&x._healBlock>0&&--x._healBlock<=0){
+        MEDSEEN.healBlockExpired++;
+        if(HEALBLOCK_CLOCK_LONG)MEDFAILS.healBlockClockLongRestored++;
+        else if(TR)TR.vend(x,'move: Heal Block');
+      }
       /* WIRE 45 / WIRE 44 -- the Throat Chop silence and the Gigaton Hammer lockout tick here with
          every other clock in this engine, for the reason the Disable comment gives: a duration that
          only counts down on turns the engine happens to be CHOOSING lasts forever in a rollout driven
@@ -39244,6 +39610,11 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
   spreadL50,moveFx,movePriority,priorityRefusedAbove,isGrounded,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
   /* ROADMAP #81 WIRE 12 -- the aura roster read; see the root export above. */
   auraStateOf,
+  /* 2026-09-04 -- THE SKY'S STATUS REFUSALS, EXPORTED SO THE PROBE COMPARES THE ENGINE'S TABLE WITH
+   * THE AUTHORITY'S OWN rather than re-typing it beside this file. `data/tags.json` carries no
+   * conditions, so this membership is cited and not derived at run time; the exported object is what
+   * makes the citation checkable. See WEATHER_REFUSES_STATUS. */
+  WEATHER_REFUSES_STATUS,
   /* ROADMAP #198 -- THE STATUS VOCABULARY, EXPORTED RATHER THAN RE-TYPED. The tag artifact speaks
    * Showdown's words (`burn`, `poison`, `sleep`) and this engine speaks its own (`brn`, `psn`, `slp`).
    * `engine/million_run.js`'s staged arm needs the join to score Effect Spore's 11/10/9 ladder band by

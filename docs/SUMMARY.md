@@ -1,6 +1,23 @@
 # ABRA — Project Summary
 
-**Version 5.253.0 · 2026-09-04 · Will Hooper**
+**Version 5.254.0 · 2026-09-05 · Will Hooper**
+
+**5.254.0 - A GENERATED COPY OF OUR RULEBOOK HAD BEEN SHIPPING A LIVE SIMULATOR BUG FOR SIX DAYS, AND THE CHECK THAT CATCHES IT WAS RED THE WHOLE TIME AND WAS FILED INSTEAD OF ACTED ON. FOUR MECHANICS ALSO LANDED: 41 OF 961 BECOMES 37.**
+
+| question | artifact | answer |
+|---|---|---|
+| the whole-game clause that GATES | `data/game-differential.json` | **board-material 46 of 961** — NOT republished this pass, and now stale as a description of the engine |
+| the same clause, measured on tonight's engine | `data/verification/fix-batch-7.json` | **board-material 37 of 961**, protocol first-divergence 122 |
+| the stage-by-stage damage comparison | `data/engine-diff.json` | **6,000 compared, 0 disagreed**, re-run after every release this version cut |
+| probed mechanics live | `data/mechanics-census.json` | **829 of 829**, level throughout |
+
+**WHAT WENT WRONG, AND IT IS NOT THE ENGINE HALF.** One rulebook describes what every move, item and ability does. A second copy of it is generated for the browser simulator and frozen into every engine release. A rule was fixed in the source on 2026-08-29 and the copy was never rebuilt, so the copy went six days behind - **and three of the differences were rule parameters the engine reads by name.** Parting Shot's pivot lost its condition, so the browser engine took its unreadable-condition fallback and sent the user back to the bench unconditionally. **Fifth instance of this class.**
+
+**THE CHECK WAS NOT MISSING AND IT DID NOT MISS IT.** `engine/artifact_audit.js` derives every self-declaring generated bundle from that bundle's own header and re-runs its builder. It exited 1, said `1 GAP(S) FOUND`, named the exact pair, in under two seconds, and it is a registered gate. It went unacted-on because only a full suite runs it - **and it was written down in a session report, annotated "this check got BETTER across the session."** That is *a check nobody acts on is not a check*, verbatim. **The fix is a PLACEMENT, not a sixth comparison:** the pre-commit hook now runs it above its scope guard, because that guard waves a data-only commit through and "regenerate the tags, commit the data" is the shape of all five instances. No new comparison code was written.
+
+**THE ENGINE HALF.** Four mechanics: a move's self-inflicted stat drops never ran when a Substitute ate the hit, a sleep chosen inside a handler was attributed to the move that called it, and a body standing in the sun could be frozen because the sky's own refusal handler had never been read - only its damage handlers had. Every closure was named before the run, and the games that closed were joined to the games that had parted rather than inferred from the totals.
+
+**WHAT WE ARE NOT CLAIMING.** No model was refitted, no quarantined figure becomes quotable and the gate did not open - it is back at its found shape, with both failing clauses reading the artifact that was deliberately not republished. Four self-test plants were found unable to go red, hidden because every published run of that suite omits the switch that arms them; a suite never shown able to fail is not evidence, so all four were re-aimed and verified by hand. Five suspects were refuted before any edit. One job is owed and named: the rulebook builder should rebuild the browser copy in the same act, and proving it would strand the frozen release tonight's numbers were measured on.
 
 **5.253.0 - A ROW ON OUR OWN LIST OF BROKEN THINGS SAID "STILL BROKEN" AND WAS BEING READ AS "FIXED", BECAUSE OF A PUNCTUATION MARK INSIDE THE CELL. NO MECHANIC CHANGED, NO GAME WAS PLAYED, AND THE SCORE IS STILL 46 OF 961.**
 

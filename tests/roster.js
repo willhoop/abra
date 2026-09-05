@@ -1,6 +1,17 @@
 /* tests/roster.js — THE DELIBERATE ROSTER. Every legal move, ability and item in the format, staged
  * from ITS OWN DATA, played in both engines, with a CONTROL ARM that removes only the entity.
  *
+ * ABRA-HEAP: 6144
+ *
+ * THE HEAP WAS ALREADY DECLARED, IN PROSE, AND NOTHING COULD READ IT. The block below has said
+ * `node --max-old-space-size=6144` since 2026-08-27; `tools/lownode.cmd` derives the ceiling from an
+ * `ABRA-HEAP: <MB>` line and from nothing else, and CLAUDE.md mandates that wrapper for every heavy
+ * run. So `tools\lownode.cmd testsoster.js --stage moves --reds --write` died at `Reached heap
+ * limit` — twice, reproducibly, 2026-09-04 — while the same command with the flag typed by hand
+ * completes. A memory ceiling read as a verdict is the class this repository keeps paying for, and
+ * the wrapper's own header says so about `tests/test-resolution-order.js`. One line, so the two
+ * declarations cannot drift apart.
+ *
  *   SHOWDOWN_PATH=... node tests/roster.js --stage spine
  *   SHOWDOWN_PATH=... node tests/roster.js --stage items
  *   SHOWDOWN_PATH=... node tests/roster.js --stage items --reds
@@ -5702,8 +5713,10 @@ const RULES = [
      + 'in both arms: an engine that had stopped resolving anything at all would otherwise read as a '
      + 'correct block.',
   break: { why: 'the priority block is skipped, so the shielded side takes the fast move',
-    patch: [['function priorityRefusedAbove(defenders, field, aimedAt){',
-             'function priorityRefusedAbove(defenders, field, aimedAt){if(1)return Infinity;']] },
+    /* RE-AIMED 2026-09-04: the function grew a fourth parameter (`why`) and the anchor did not, so the
+     * plant matched 0 times. The signature is read off the engine rather than remembered. */
+    patch: [['function priorityRefusedAbove(defenders, field, aimedAt, why){',
+             'function priorityRefusedAbove(defenders, field, aimedAt, why){if(1)return Infinity;']] },
   match(e) {
     if (typeof e.onFoeTryMove !== 'function') return null;
     if (!PRIORITY_HIT) return cannot('this format has no 100-accuracy single-target damaging move '
@@ -6839,8 +6852,14 @@ const RULES = [
      * directly, 0 executions on Acupressure, Belly Drum, Guard Swap and Strength Sap. The stage the
      * subject acts on is written by the SETUP branch, so that is what is dropped. Measured: 0 leaves
      * before; after, 14-30 on all five members tried. */
-    patch: [["      if(a.kind==='setup'){\r\n        const _fx=a.mv&&moveFx(a.mv);",
-             "      if(a.kind==='setup'){m._lastMove=a.mv||m._lastMove;continue;}\r\n      if(a.kind==='setup'){\r\n        const _fx=a.mv&&moveFx(a.mv);"]] },
+    /* RE-AIMED 2026-09-04: the anchor and the replacement both carried a literal `
+` and
+     * `engine/medicham2-browser.js` is LF in this working tree, so the plant matched 0 times and the
+     * rule reported "an unapplied plant reads exactly like a comparator that found nothing" — a
+     * self-test that could not go red, on two rules, for as long as the engine has been LF. A line
+     * ending is not a mechanic. */
+    patch: [["      if(a.kind==='setup'){\n        const _fx=a.mv&&moveFx(a.mv);",
+             "      if(a.kind==='setup'){m._lastMove=a.mv||m._lastMove;continue;}\n      if(a.kind==='setup'){\n        const _fx=a.mv&&moveFx(a.mv);"]] },
   match(e) {
     if (!readsExistingBoosts(e)) return null;
     const set = boostSetterFor(e);
@@ -6904,7 +6923,18 @@ const RULES = [
      * the two boards agree for different reasons. A NOT CAUGHT here is the instrument working: it is
      * the one place in this file where the break cannot be aimed because the mechanism is not
      * written. Filed, not declared — an anchor is owed once the tag exists. */
-    patch: [['  m._ateBerry=true;', '  m._ateBerry=false;']] },
+    /* AND THE PARAGRAPH ABOVE IS CORRECTED BY THE MEASUREMENT, not edited: it predicted that an
+     * aimed plant here would read NOT CAUGHT because nothing gates Belch. Aimed on 2026-09-04, the
+     * plant IS caught — `move/needs-a-berry-already-eaten` reports ok, so this engine does read the
+     * eaten flag somewhere the 2026-08-27 pass could not see. The dated claim is left standing as
+     * dated evidence; this is what is true today.
+     *
+     * AIMED 2026-09-04. `  m._ateBerry=true;` matches TWICE — `consumeBerry`'s own site and the
+     * stolen-berry road — so the plant reported "the anchor matched 2 time(s)" and proved nothing
+     * either way. The first site is uniquely identified by the line above it, which is where the
+     * eaten flag is actually written on the ordinary road. */
+    patch: [["  m._lastItem=String(itemId||'');" + String.fromCharCode(10) + '  m._ateBerry=true;',
+             "  m._lastItem=String(itemId||'');" + String.fromCharCode(10) + '  m._ateBerry=false;']] },
   match(e) {
     if (!needsAnEatenBerry(e)) return null;
     if (!HALF_HP_BERRY) return cannot('no legal berry in this format eats itself at half HP, so a '
@@ -7783,8 +7813,14 @@ const RULES = [
     /* RE-AIMED 2026-08-27. `if(a.kind==='setup'){` matches TWICE — the HP-cost site and the boost
      * site — and an anchor that matches twice is never planted. The following line is carried into
      * the anchor so it names the BOOST site only. */
-    patch: [["      if(a.kind==='setup'){\r\n        const _fx=a.mv&&moveFx(a.mv);",
-             "      if(a.kind==='setup'){m._lastMove=a.mv||m._lastMove;continue;}\r\n      if(a.kind==='setup'){\r\n        const _fx=a.mv&&moveFx(a.mv);"]] },
+    /* RE-AIMED 2026-09-04: the anchor and the replacement both carried a literal `
+` and
+     * `engine/medicham2-browser.js` is LF in this working tree, so the plant matched 0 times and the
+     * rule reported "an unapplied plant reads exactly like a comparator that found nothing" — a
+     * self-test that could not go red, on two rules, for as long as the engine has been LF. A line
+     * ending is not a mechanic. */
+    patch: [["      if(a.kind==='setup'){\n        const _fx=a.mv&&moveFx(a.mv);",
+             "      if(a.kind==='setup'){m._lastMove=a.mv||m._lastMove;continue;}\n      if(a.kind==='setup'){\n        const _fx=a.mv&&moveFx(a.mv);"]] },
   match(e) {
     if (!e.boosts || e.target !== 'self') return null;
     const arm = armFor(e);
