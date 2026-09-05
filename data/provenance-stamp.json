@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 181,
+  "mtime_only": 182,
   "mtime_only_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -64,6 +64,7 @@
     "illusion.json",
     "immunity-sweep.json",
     "interaction-matrix.json",
+    "joint-click-census.json",
     "jolteon-weights.json",
     "json-nan-guard-baseline.json",
     "kad-replays.js",
@@ -287,6 +288,7 @@
     "illusion.json",
     "immunity-sweep.json",
     "interaction-matrix.json",
+    "joint-click-census.json",
     "jolteon-weights.json",
     "json-nan-guard-baseline.json",
     "kad-replays.js",
@@ -1077,7 +1079,17 @@
       "files": [
         "smogon-coverage-2026-08.json"
       ]
+    },
+    {
+      "when": "2026-09-05T03:47:39.878Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 path variable",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 253,
+      "graph_after": 254,
+      "files": [
+        "joint-click-census.json"
+      ]
     }
   ],
-  "generated": "2026-09-05T01:42:27.741Z"
+  "generated": "2026-09-05T04:01:41.005Z"
 }

@@ -1641,6 +1641,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * which of them stopped firing. A zero here over a run holding a Disable or a Cursed Body means
    * the same-turn refusal is dead again; the SELECTION half is `moveDisabledBy` and is separate. */
   disableRefusedAtExecution: 0,
+  /* 2026-09-05 -- a move REFUSED at execution time because a FOE'S IMPRISON carries it. Counted apart
+   * from Taunt's and Disable's for the reason those two are counted apart from each other: this one
+   * reads the SEALER'S OWN move list, which neither of the others touches. A zero over a run holding
+   * an Imprison means the seal is dead again and the volatile is decoration -- which is exactly the
+   * state this counter was added to end. The SELECTION half (`onFoeDisableMove`) is deliberately not
+   * wired and has no counter, because a counter for a thing that cannot fire would read like one. */
+  imprisonRefusedAtExecution: 0,
+  /* 2026-09-05 -- a reflectable PIVOT came back at its user AND TOOK ITS SWITCH WITH IT. Counted
+   * apart from `bounceAnnounced`, which says only that a bounce happened: the pivot changing hands is
+   * the half that was missing after the bounce itself was added, and one merged counter could not
+   * tell a half fix from a whole one. A zero over a run holding a Parting Shot into a Magic Bounce
+   * body means the pivot branch has stopped asking `bounceOff` again. */
+  pivotBouncedToTheBouncer: 0,
   /* ROADMAP #295 -- the chooser handed back a move the body may not select right now, and the vet in
    * `chooseAction` replaced it. NON-ZERO IS EXPECTED and is the leak being caught, not a failure: the
    * priors sampler picks by name out of MC.priors and never reads `me.moves`. A zero over a run that
@@ -3592,6 +3605,11 @@ const MEDFAILS = { encoreAction: 0,
    * indistinguishable from the pre-wire engine in which Taunt did nothing at all, so the failure is
    * counted rather than swallowed. */
   forbidTableFailed: 0, forbidTableFailedFirst: '',
+  /* 2026-09-05 -- the IMPRISON table. `imprisonTableFailed` is the derivation throwing;
+   * `imprisonTableEmpty` is the worse one -- it built and matched NOTHING, which is byte-identical in
+   * behaviour to the pre-fix engine and would otherwise be invisible. `imprisonNoName` is a sealing
+   * move the artifact carries with no display name, so the `|cant|` line went out with an id. */
+  imprisonTableFailed: 0, imprisonTableFailedFirst: '', imprisonTableEmpty: 0, imprisonNoName: 0,
   /* A heal whose SIZE no artifact this engine reads can state — Rest (full, plus sleep), Synthesis /
    * Moonlight / Morning Sun (weather-dependent), Wish (delayed a turn), Healing Wish (the user
    * faints), Strength Sap (scales off the TARGET's Attack). The tag says
@@ -4809,7 +4827,7 @@ function forbidByVolatile(){
  * demand would keep serving the old membership and score this wire READ-AND-IGNORED -- the false-DEAD
  * direction. tags.js publishes the hook for exactly this; `SPREAD` and the terrain tables do not
  * register one, which is a separate pre-existing gap and is not fixed here. */
-if(TAGS&&typeof TAGS.__onSetDB==='function') TAGS.__onSetDB(function(){ _forbidVol=null; _volDur=null; });
+if(TAGS&&typeof TAGS.__onSetDB==='function') TAGS.__onSetDB(function(){ _forbidVol=null; _volDur=null; _impSeal=null; });
 /* ============ ROADMAP #111 -- THE VOLATILE DURATION FAMILY, AS ONE MECHANISM ======================
  *
  * `Battle#residualEvent` (sim/battle.js:341-348) decrements EVERY handler carrying BOTH an `end` and
@@ -4927,6 +4945,17 @@ const CHARGE_WRAP_CLEARED_AT_EXECUTION=(typeof process!=='undefined'&&process.en
  * of the defect: a knob run turns exactly the `suppresses` census row red and leaves the Knock Off row
  * green, because a Knock Off empties the slot AND the park. */
 const SUPPRESSED_ITEM_IS_LOST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUPPRESSED_ITEM_IS_LOST==='1');
+/* 2026-09-05 -- MEDI_IMPRISON_SEALS_NOTHING=1 restores the pre-fix engine: the `imprison` volatile
+ * still lands and still shows on the board, and a foe may still click a move the Imprison user
+ * carries. It restores that and NOTHING else, so a knob run turns exactly the one `sealsMoves`
+ * execution row red and leaves the three over-fire controls green. */
+const IMPRISON_SEALS_NOTHING=(typeof process!=='undefined'&&process.env&&process.env.MEDI_IMPRISON_SEALS_NOTHING==='1');
+/* 2026-09-05 -- MEDI_PIVOT_IGNORES_BOUNCE=1 restores the pre-fix pivot branch: a reflectable PIVOT
+ * status move is aimed with a bare `reaimToSlot` and never asks `bounceOff`, so the drop lands on the
+ * bouncer and the CLICKER switches out. It restores that and NOTHING else -- every other bounce site
+ * is untouched, so a knob run leaves the non-pivot reflectable arm green, which is what says this was
+ * one shut door rather than a broken ability. */
+const PIVOT_IGNORES_BOUNCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PIVOT_IGNORES_BOUNCE==='1');
 /* 2026-08-26 -- MEDI_LOCK_STALE_ON_HANDED_ACTION=1 restores the raw `mon._lock` read at the collect
  * site, so a CALLER-SUPPLIED action is bound by a lock whose Choice item has already left. The chooser
  * path is untouched by this knob and stays correct, which is exactly how the defect hid: the re-read
@@ -14609,6 +14638,93 @@ function setPurePriors(v){ PURE_PRIORS = !!v; }
  * is now this call, so Throat Chop's silence and the Gigaton Hammer lockout stop leaking through the
  * single most-used path in the chooser as well. */
 function illegalMoveNow(me,id){ return !!moveDisabledBy(me,id); }
+/* ============ IMPRISON AT EXECUTION — THE ONE SEALER THAT SEALS ITS OWN MOVES =====================
+ *
+ * `data/moves.ts:9492-9524` (no Champions override — `data/mods/champions/moves.ts` carries no
+ * `imprison` row, and tests/probe_imprison_seal.js greps for one on every run rather than trusting
+ * this sentence). The condition is two handlers off one volatile:
+ *
+ *     onFoeDisableMove(pokemon) {            <- THE MENU HALF. NOT WIRED. See the gap note below.
+ *       for (const moveSlot of this.effectState.source.moveSlots) {
+ *         if (moveSlot.id === 'struggle') continue;
+ *         pokemon.disableMove(moveSlot.id, true);
+ *       }
+ *       pokemon.maybeDisabled = true;
+ *     },
+ *     onFoeBeforeMovePriority: 4,
+ *     onFoeBeforeMove(attacker, defender, move) {
+ *       if (move.id !== 'struggle' && this.effectState.source.hasMove(move.id) && !move.isZOrMaxPowered) {
+ *         this.add('cant', attacker, 'move: Imprison', move);
+ *         return false;
+ *       }
+ *     },
+ *
+ * THE VOLATILE ALREADY LANDED AND SEALED NOTHING. `statusInflict {volatile:'imprison', to:'user'}`
+ * has been written by the ordinary applier since the tag existed, and `vol.imprison` agrees leaf for
+ * leaf with the authority on every staged board — so this read as a working mechanic from every
+ * direction except the one that matters. A foe could click a move the Imprison user carries, it dealt
+ * its damage, AND it spent its PP, which the authority does not (`deductPP` sits BELOW the BeforeMove
+ * event, sim/battle-actions.ts:280-284). 564 sheet uses; live on the pinned pool as board-material
+ * row 13 of data/verification/fix-batch-7.json, where the authority wrote
+ * `|cant|p1b: Floette|move: Imprison|Dazzling Gleam` and this engine played the move.
+ *
+ * MATCHED ON THE TAG SHAPE, NEVER ON A NAME, and the membership is PRINTED by the probe on every run:
+ * `sealsMoves.fromUsersOwnMoves === true` is what separates this from Taunt, Disable, Encore,
+ * Torment, Gravity and Throat Chop — all six of which seal something the USER chose about the TARGET
+ * and are already answered by `forbidByVolatile` and `sealedMoveRefuses`. Exactly one move in this
+ * regulation carries it. The volatile is read off that same move's `statusInflict` (`to: 'user'`),
+ * so a second member arriving in a later regulation is picked up with no edit here.
+ *
+ * A TABLE THAT COULD NOT BE BUILT SPEAKS. An empty map is exactly what the engine looked like before
+ * this wire — Imprison silently sealing nothing again — which is a silent default wearing the shape
+ * of a working feature, so it is COUNTED at the read site rather than swallowed.
+ *
+ * ---- THE GAP, DECLARED RATHER THAN DISCOVERED ----------------------------------------------------
+ * `onFoeDisableMove` — the MENU half — is NOT wired. `moveDisabledBy(me, id)` takes ONE BODY, and
+ * whether a move is imprisoned is a fact about the FOES, so wiring it is a signature change across
+ * `selectableMoves`, `mustStruggle`, `struggleSource`, `illegalMoveNow` and the priors sampler. It is
+ * also invisible to the whole-game differential, which supplies every click from Showdown's own
+ * request. So the cost of the gap is confined to a rollout choosing a move it will then be refused —
+ * which is what the authority does anyway when the Imprison lands mid-turn — and it is OWED, not
+ * hidden. Nothing here fabricates a menu answer. */
+let _impSeal=null;
+function imprisonVolatiles(){
+  if(_impSeal) return _impSeal;
+  _impSeal=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','sealsMoves'):[])){
+      const sm=TAGS.param('move',id,'sealsMoves');
+      if(!sm||sm.fromUsersOwnMoves!==true) continue;
+      const si=TAGS.param('move',id,'statusInflict');
+      if(!si||!Array.isArray(si.effects)) continue;
+      for(const e of si.effects) if(e.volatile&&e.to==='user') _impSeal.set(e.volatile,id);
+    }
+  }catch(e){
+    MEDFAILS.imprisonTableFailed++;
+    if(!MEDFAILS.imprisonTableFailedFirst) MEDFAILS.imprisonTableFailedFirst=String((e&&e.message)||e);
+  }
+  return _impSeal;
+}
+/* WHICH FOE IS SEALING THIS CLICK, or null. Returns the record rather than a boolean so the `|cant|`
+ * line can name the SEALING MOVE out of the artifact instead of a string typed here. */
+function imprisonSealedBy(me,mvId,foes){
+  if(IMPRISON_SEALS_NOTHING){MEDFAILS.imprisonSealsNothingRestored=1;return null;}
+  if(!me||!mvId||!foes||!foes.length) return null;
+  /* `move.id !== 'struggle'`, data/moves.ts:9516. A body reduced to Struggle by an Imprison that
+     covered every slot must still be able to use it, or the seal is a soft lock. */
+  if(mvId==='struggle') return null;
+  const tbl=imprisonVolatiles();
+  if(!tbl.size){MEDFAILS.imprisonTableEmpty++;return null;}
+  for(const f of foes){
+    if(!f||f.fainted||f.curHP<=0||!f._vol) continue;
+    for(const [vol,src] of tbl){
+      if(!f._vol[vol]) continue;
+      /* `this.effectState.source.hasMove(move.id)` — the SEALER'S OWN slots, not the victim's. */
+      if((f.moves||[]).indexOf(mvId)>=0) return {by:f,move:src};
+    }
+  }
+  return null;
+}
 /* ---- ROADMAP #152: A SLOT IS DISABLED, AND THE SOURCE IS PART OF THE FACT ------------------------
  *
  * WHAT WAS MISSING WAS A CONCEPT, NOT A CLAUSE. This engine had "its PP is gone" and nothing else, so
@@ -25371,6 +25487,35 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR)TR.cant(m,'Disable',_sid);
           continue; }
       }
+      /* 2026-09-05 -- IMPRISON AT EXECUTION, BESIDE TAUNT AND DISABLE BECAUSE IT IS THE SAME MOMENT
+       * AND THE SAME SHAPE: a body that chose a move before the foe's Imprison landed does not get to
+       * use it. See `imprisonSealedBy` for the authority, the tag derivation and the declared MENU
+       * gap. ABOVE THE PP DEDUCTION for Disable's reason -- `deductPP` is below the BeforeMove event
+       * (sim/battle-actions.ts:280-284), so a refused click spends nothing.
+       *
+       * `_lastMove` IS DELIBERATELY NOT SET, for Taunt's and Disable's reason directly above:
+       * `pokemon.moveUsed()` is the only writer of `lastMove` and it runs after BeforeMove.
+       *
+       * THE POSITION AGAINST confusion / Attract / paralysis IS ALREADY WRONG IN THIS LOOP AND THIS
+       * LINE DOES NOT MAKE IT WRONGER. The authority orders the whole BeforeMove family by priority
+       * -- recharge 11, slp/frz 10, flinch 8, disable 7, throatchop 6, taunt 5, IMPRISON 4,
+       * confusion 3, attract 2, par 1 -- and this engine already runs confusion, Attract and
+       * paralysis ABOVE Throat Chop, Taunt and Disable. Imprison sits with the three it belongs
+       * beside; the pre-existing inversion is named here rather than silently inherited. */
+      {
+        const _iid=actionMoveId(a);
+        const _imp=_iid?imprisonSealedBy(m,_iid,it.side==='A'?actB:actA):null;
+        if(_imp){ MEDSEEN.imprisonRefusedAtExecution++;
+          m._mvRes=false;   // the handler returns false
+          /* `cant|POKEMON|move: Imprison|MOVE` -- data/moves.ts:9517. The sealing move is named from
+           * the derived table rather than typed, so a second member arrives labelled with its own
+           * name. A record with no display name is COUNTED and the line goes out with the id, on
+           * `bounceOff`'s precedent -- a silent default would look exactly like the emitter working. */
+          if(TR){ const _rec=TAGS.tagsFor?TAGS.tagsFor('move',_imp.move):null;
+            if(_rec&&_rec.name)TR.cant(m,'move: '+_rec.name,_iid);
+            else {MEDFAILS.imprisonNoName++;TR.cant(m,'move: '+_imp.move,_iid);} }
+          continue; }
+      }
       /* ROADMAP #308 -- FOCUS PUNCH LOSES ITS FOCUS *BEFORE* THE PP IS SPENT AND BEFORE THE MOVE LINE.
        *
        * This test used to live in the attack branch, ~700 lines below -- after the `|move|` line was
@@ -29032,18 +29177,54 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* WIRE 139 -- RESOLVED ONCE, AT THE TOP, and used by the block gate below AND by the stat
            drop further down. Two reads of "who is the target" inside one branch is how they come to
            disagree; this is the same argument as the shared reader itself. */
-        const _pt=reaimToSlot(a.target,it,actA,actB,a.mv);
+        /* 2026-09-05 -- AND THE PIVOT ROAD ASKS `bounceOff`, WHICH IT NEVER DID.
+         *
+         * `bounceOff` has existed since WIRE 33 and is called at six sites. This branch -- the only
+         * road Parting Shot takes -- was not one of them, so a reflectable PIVOT at a Magic Bounce
+         * body dropped THE BOUNCER and pivoted THE CLICKER, which is both halves backwards.
+         *
+         * THE AUTHORITY DOES NOT RE-AIM, IT HANDS THE MOVE OVER: `magicbounce.onTryHit` builds a
+         * fresh active move and calls `this.actions.useMove(newMove, target, {target: source})`
+         * (data/abilities.ts), so the BOUNCER is the source. For an ordinary reflectable move that is
+         * only attribution, which is why every other call site can pass `m` on; for a PIVOT it decides
+         * which body leaves the field, because `source.switchFlag = move.id` is written against that
+         * source (sim/battle-actions.ts:1311). Measured on the authority, one staged turn, Incineroar
+         * Parting Shot into a Magic Bounce Espeon:
+         *     |move|p1a: Incineroar|Parting Shot|p2a: Espeon
+         *     |move|p2a: Espeon|Parting Shot|p1a: Incineroar|[from] ability: Magic Bounce
+         *     |-unboost|p1a: Incineroar|atk|1
+         *     |-unboost|p1a: Incineroar|spa|1
+         *     forceSwitch [true,false] on P2 -- ESPEON leaves, and Incineroar does not.
+         *
+         * `_bi.bouncedBy` IS THE RECORD `bounceOff` ALREADY KEEPS (added 2026-09-04 for Defog's
+         * `source.side`), so this reads the one place that knows a bounce happened rather than
+         * re-deriving the bounce RULE from the tag here -- the second copy CLAUDE.md's
+         * facts-are-global rule exists to stop.
+         *
+         * MEMBERSHIP PRINTED BEFORE THIS WAS WIRED, over the whole format (tests/probe_pivot_magic_
+         * bounce.js re-derives it on every run): 60 reflectable moves, 7 pivots, and the intersection
+         * this widens is EXACTLY ONE -- partingshot. batonpass, chillyreception, flipturn, shedtail,
+         * uturn and voltswitch carry no `reflectable` flag and must keep going straight through. */
+        const _bi={};
+        const _pt=PIVOT_IGNORES_BOUNCE
+          ? (MEDFAILS.pivotIgnoresBounceRestored=1, reaimToSlot(a.target,it,actA,actB,a.mv))
+          : bounceOff(m,reaimToSlot(a.target,it,actA,actB,a.mv),a.mv,true,_bi);
+        /* THE SOURCE AFTER A BOUNCE IS THE BOUNCER. Every reader below that asks "who threw this"
+         * -- the try-hit refusal, the move-class block, the per-stat drop refusal and Defiant's
+         * retaliation -- must ask about the body the authority made the source, or a bounced Parting
+         * Shot reads as SELF-INFLICTED (`_pt === m`) and Defiant never fires. */
+        const _bsrc=_bi.bouncedBy||m;
         /* WIRE 241 -- the refusal was right and the line was ATTRIBUTION-LESS: this branch printed a
          * bare `|-immune|` for Good as Gold where the authority names the ability. It is split out
          * above the shield/move-class gate because those two announce differently and folding all
          * three into one `TR.imm` is what made this look correct. */
         if(a.mv&&_pt&&!_pt.fainted){
-          const _rf=tryHitRefusal(m,_pt,a.mv);
+          const _rf=tryHitRefusal(_bsrc,_pt,a.mv);
           if(_rf){announceTryHitRefusal(_rf,_pt);m._lastMove=a.mv;continue;}
         }
         if(a.mv&&_pt&&!_pt.fainted
            &&((shieldRefuses(_pt,a.mv))
-              ||moveClassBlocked(_pt,a.mv,m))){m._lastMove=a.mv;                 // WIRE 66
+              ||moveClassBlocked(_pt,a.mv,_bsrc))){m._lastMove=a.mv;             // WIRE 66
           if(TR){if(_pt.protect)TR.act(_pt,'move: Protect');else TR.imm(_pt);}
           continue;}
         /* WIRE 67 -- PARTING SHOT ACTUALLY DROPS THE TARGET. This engine has modelled the switch and
@@ -29076,7 +29257,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             for(const k in _sc2.boosts){
               const _s=SD2ENG[k]; if(!_s||_pt.boosts[_s]==null) continue;
               const _d=_sc2.boosts[k]*_sg;
-              if(_d<0){ const _r=statDropRefusal(_pt,_s,a.mv,false,m,Math.abs(_d));   // WIRE 157
+              if(_d<0){ const _r=statDropRefusal(_pt,_s,a.mv,false,_bsrc,Math.abs(_d));   // WIRE 157
                         if(_r){ _ref2=_ref2||_r; continue; } }
               const _b0=_pt.boosts[_s];
               _pt.boosts[_s]=clamp(_pt.boosts[_s]+_d,-6,6);
@@ -29097,7 +29278,7 @@ function battleTurn(S,rng,actsForA,actsForB){
               if(TR)TR.bst(_pt,_s,_pt.boosts[_s]-_b0,'',true);
               /* WIRE 138 -- ONCE PER STAT LOWERED. `retaliateWhenLowered` is the shared reader; the
                  attacker is named so an ALLY's drop does not trigger it. */
-              if(_d<0&&_pt.boosts[_s]!==_b0)retaliateWhenLowered(_pt,m);
+              if(_d<0&&_pt.boosts[_s]!==_b0)retaliateWhenLowered(_pt,_bsrc);
             }
             if(TR&&_ref2&&_ref2.announce)TR.failUnboost(_pt,_ref2.label,_ref2.ab);
           }
@@ -29199,10 +29380,26 @@ function battleTurn(S,rng,actsForA,actsForB){
             }
           }
         }
-        const idx=own.indexOf(m);
+        /* 2026-09-05 -- AND THE SWITCH CHANGED HANDS WITH THE MOVE. `source.switchFlag = move.id`
+         * (sim/battle-actions.ts:1311) is written against the body that USED the move, and after a
+         * bounce that body is the bouncer -- so the bouncer leaves and the clicker stays. Every array
+         * flips with it, because `switchOut` reads the OUTGOING body's own side (its bench, its
+         * side-conditions) and the OPPOSING actives (whom the entrant's Intimidate aims at).
+         *
+         * `a.to` IS DELIBERATELY NOT CARRIED ACROSS. It names a replacement the CALLER picked for the
+         * clicker's side, and the body leaving is now on the other one; passing it would name a
+         * bench member of the wrong team. A bounced pivot falls back to "whoever is first", which is
+         * exactly what this line already does for every switch action that arrives without one. */
+        const _pvOut=_bi.bouncedBy||m;
+        const _pvOwn=_bi.bouncedBy?foes:own, _pvFoes=_bi.bouncedBy?own:foes;
+        const _pvBench=_bi.bouncedBy?(it.side==='A'?benchB:benchA):bench;
+        const _pvSf=_bi.bouncedBy?(it.side==='A'?sfB:sfA):sf;
+        const idx=_pvOwn.indexOf(_pvOut);
+        if(_bi.bouncedBy&&idx>=0)MEDSEEN.pivotBouncedToTheBouncer++;
         /* `a.to` names the replacement when the caller chose one. A switch action without it keeps
            the old behaviour of taking whoever is first, so nothing that used this before changes. */
-        if(idx>=0)pivotFrom(a.mv,()=>switchOut(own,idx,bench,foes,sf,field,a.to));
+        if(idx>=0)pivotFrom(a.mv,()=>switchOut(_pvOwn,idx,_pvBench,_pvFoes,_pvSf,field,
+                                               _bi.bouncedBy?undefined:a.to));
         continue;
       }
       /* ---- ROADMAP #81 WIRE 12 -- CURSE, BOTH HALVES --------------------------------------------

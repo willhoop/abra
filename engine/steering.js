@@ -99,6 +99,39 @@ const POLICY_EMPIRICAL_RULE =
   + 'Showdown\'s own request and the configuration ban/prefer axes still narrow the pool first. The '
   + 'census is still CREDITED and no longer SELECTS; the behaviour tables select the sample.';
 
+/* ---- THE THIRD ARM, 2026-09-05 ------------------------------------------------------------------
+ *
+ * A THIRD POLICY, AND `empirical-click/v1` KEEPS MEANING WHAT IT MEANT. The empirical arm declares
+ * two gaps in its own header (engine/empirical_driver.js:56-64): it has NO TARGET MODEL — the caller
+ * names the lowest live foe every time, which is 100% double-targeting against a measured human
+ * 38.9% — and NO SWITCH MODEL beyond one pooled rate, against a measured 3.8%-18.5% span across
+ * context. `joint-empirical-click/v1` closes both.
+ *
+ * IT IS A NEW ID RATHER THAN A WIDENING, and that is the whole reason it is here. Every whole-game
+ * figure ever published carries `steering.policy`; silently changing what `empirical-click/v1` does
+ * would make all of them ambiguous, and `comparable()` below would go on cheerfully pairing arms
+ * taken either side of the change because their policy STRINGS still matched. It would also do it
+ * silently, which is the failure this file exists to prevent.
+ *
+ * WHAT THIS MEANS FOR THE GATE, SAID BEFORE ANY RUN RATHER THAN AFTER. `engine/quarantine.js`'s
+ * whole-game clause asks `PIN.guard({ ..., policy: POLICY_EMPIRICAL })` against
+ * `data/game-differential.json`, and `vouches()` REFUSES any block declaring a different policy —
+ * *"those are different populations, not a stronger and a weaker one."* So an artifact written under
+ * this policy into the published slot would WITHHOLD the clause, not answer it. That is correct and
+ * it is not a bug to route around: a joint-arm run belongs in `data/verification/` until somebody
+ * decides, deliberately and in writing, which arm the gate is answerable by. */
+const POLICY_JOINT = 'joint-empirical-click/v1';
+const POLICY_JOINT_RULE =
+  'everything `' + POLICY_EMPIRICAL + '` does, plus the two capabilities that policy declares it '
+  + 'lacks. TARGET: the two active bodies no longer each name the lowest live foe — one anchor is '
+  + 'drawn uniformly over the live foes and the partner joins it at the rate humans focus-fire '
+  + '(data/joint-click-census.json, pooled.joint_target.pct_same_foe_clean), else takes the other. '
+  + 'SWITCH: the voluntary-switch rate is read from a context cell (HP band x tenure on the field x '
+  + 'bench size) rather than from one pooled constant, and WHICH body is sent prefers a body that has '
+  + 'not yet been on the field at the measured rate. Legality still comes from Showdown\'s own '
+  + 'request and the ban/prefer axes still narrow the pool first. The census is still CREDITED and '
+  + 'still does not SELECT.';
+
 /* Resolve the steering input for one run.
  *   opts.censusPath    an explicit file to pin to (the `--census` flag). Default: the live census.
  *   opts.mode          'coverage' (default) or 'empirical'.
@@ -110,16 +143,30 @@ const POLICY_EMPIRICAL_RULE =
  *                      the same reason an unreadable census is: a run with no declared selector is a
  *                      run with no steering that looks like a run.
  * Returns a block that goes straight into the artifact and is what arms_comparable.js compares. */
+/* THE ARM TABLE, IN ONE PLACE. `resolve`, `vouches` and `comparable` all used to ask
+ * `=== 'empirical'` inline, so a third arm meant three edits and any one of them missed would leave a
+ * policy that is table-driven being checked as though it were census-driven. */
+const MODES = {
+  coverage:  { policy: POLICY,           rule: POLICY_RULE,           tableDriven: false },
+  empirical: { policy: POLICY_EMPIRICAL, rule: POLICY_EMPIRICAL_RULE, tableDriven: true },
+  joint:     { policy: POLICY_JOINT,     rule: POLICY_JOINT_RULE,     tableDriven: true },
+};
+/* Which POLICY IDS select their sample from behaviour tables rather than from the census. Derived
+ * from the table above so the two can never fall out of step. */
+const TABLE_DRIVEN = new Set(Object.values(MODES).filter(m => m.tableDriven).map(m => m.policy));
+
 function resolve(opts) {
   opts = opts || {};
   const mode = opts.mode || 'coverage';
-  if (mode !== 'coverage' && mode !== 'empirical') {
-    throw new Error('steering: unknown mode "' + mode + '". The arms are `coverage` ('
-      + POLICY + ') and `empirical` (' + POLICY_EMPIRICAL + '), and one must be named by id.');
+  const M = MODES[mode];
+  if (!M) {
+    throw new Error('steering: unknown mode "' + mode + '". The arms are '
+      + Object.entries(MODES).map(([k, v]) => '`' + k + '` (' + v.policy + ')').join(', ')
+      + ', and one must be named by id.');
   }
   const driverInputs = opts.driverInputs || null;
-  if (mode === 'empirical' && (!Array.isArray(driverInputs) || !driverInputs.length)) {
-    throw new Error('steering: mode `empirical` was asked for with no driverInputs. The behaviour '
+  if (M.tableDriven && (!Array.isArray(driverInputs) || !driverInputs.length)) {
+    throw new Error('steering: mode `' + mode + '` was asked for with no driverInputs. The behaviour '
       + 'tables ARE the selector under this policy; a block that does not name and digest them '
       + 'cannot be compared with any other run, and arms_comparable.js would have nothing to refuse.');
   }
@@ -156,13 +203,13 @@ function resolve(opts) {
     + ') — matches_live reads UNKNOWN, not false'); }
 
   return {
-    policy: mode === 'empirical' ? POLICY_EMPIRICAL : POLICY,
-    rule: mode === 'empirical' ? POLICY_EMPIRICAL_RULE : POLICY_RULE,
+    policy: M.policy,
+    rule: M.rule,
     /* WHAT JOB THE CENSUS IS DOING IN THIS RUN, said out loud rather than inferred from `policy`.
      * Under the empirical arm it is measured and not consulted; a reader who sees a census digest
      * beside a 1.8%-vs-64% completion claim should not have to work out which. */
-    census_role: mode === 'empirical' ? 'CREDITED ONLY — it measures coverage and does not select'
-                                      : 'SELECTS THE SAMPLE — covWant reads it at every decision',
+    census_role: M.tableDriven ? 'CREDITED ONLY — it measures coverage and does not select'
+                               : 'SELECTS THE SAMPLE — covWant reads it at every decision',
     driver_inputs: driverInputs || null,
     input: 'data/mechanics-census.json',
     input_read_from: pinned ? path.relative(ROOT, src).replace(/\\/g, '/') : 'data/mechanics-census.json',
@@ -208,10 +255,10 @@ function vouches(s, opts) {
     bad.push('declares `' + s.policy + '` and the reader is answerable by `' + want + '`. Those are '
       + 'different populations, not a stronger and a weaker one.');
   }
-  if (s.policy === POLICY_EMPIRICAL) {
+  if (TABLE_DRIVEN.has(s.policy)) {
     const d = (s.driver_inputs || []).filter((x) => x && x.file && x.digest);
     if (!d.length) {
-      bad.push('an `' + POLICY_EMPIRICAL + '` arm records no `driver_inputs`, so the tables that '
+      bad.push('an `' + s.policy + '` arm records no `driver_inputs`, so the tables that '
         + 'SELECTED its sample cannot be shown equal. That block is what the census digest is under '
         + 'the coverage policy.');
     }
@@ -253,7 +300,7 @@ function comparable(a, b) {
    * Compared by DIGEST LIST so an added or removed table is a difference too. Reached only when both
    * arms already agree on `policy`, which the clause above enforces. */
   const digestsOf = s => (s.driver_inputs || []).map(x => (x && x.file) + '@' + (x && x.digest)).sort().join(', ');
-  if (a.policy === POLICY_EMPIRICAL) {
+  if (TABLE_DRIVEN.has(a.policy)) {
     const da = digestsOf(a), db = digestsOf(b);
     /* THE ABSENCE CASE IS REFUSED ONE LEVEL UP, by `vouches()`, and used to be spelled again here.
      * Two implementations of one refusal disagree eventually and both keep working — the message is
@@ -288,4 +335,5 @@ function comparable(a, b) {
 }
 
 module.exports = { resolve, comparable, vouches, POLICY, POLICY_RULE,
-                   POLICY_EMPIRICAL, POLICY_EMPIRICAL_RULE, LIVE_CENSUS };
+                   POLICY_EMPIRICAL, POLICY_EMPIRICAL_RULE,
+                   POLICY_JOINT, POLICY_JOINT_RULE, MODES, TABLE_DRIVEN, LIVE_CENSUS };

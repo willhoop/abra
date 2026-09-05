@@ -122,6 +122,48 @@ function releasePin(j) {
   };
 }
 
+/* ================================================================================================
+ * WHY DID THE ID MOVE — THE COST THIS REFUSAL WAS PAID BLIND, TWICE — 2026-09-05
+ * ================================================================================================
+ *
+ * The refusal below is CORRECT and it was expensive. 2026-08-28 09:58Z->10:06Z the gate fell from 7
+ * of 8 clauses to 5; 2026-09-04/05 it read 7 FAILING of 9 and an agent re-ran five heavy clauses to
+ * restore it. Both times the whole cause was that `engine/medicham2-browser.js` had its LINE ENDINGS
+ * changed. All 26 frozen sources were content-identical — `diff --strip-trailing-cr` gave zero
+ * differences. The re-runs bought the discovery that nothing had changed.
+ *
+ * NOTHING IS EXCUSED HERE, AND THAT IS THE DESIGN. The id still moved, the artifact is still measured
+ * against other bytes, every figure in it is still WITHHELD, and this branch still fires. The only
+ * thing that changes is that the refusal now says WHICH of the two causes it was, so the next reader
+ * spends seconds instead of five heavy runs. `.gitattributes:70-77` explains why the two obvious
+ * fixes — pin the nine CRLF sources to LF, or normalise the digest — are both shut on purpose.
+ *
+ * ONE IMPLEMENTATION. The classification lives in `engine/engine_release.js` (`driftDiagnosis`), not
+ * here, and it is a PROPERTY of two byte strings rather than a list of the nine filenames. It is put
+ * in `why` rather than in a new field because `status.js` and `quarantine.js` both already render a
+ * clause's `why` verbatim — so neither needs an edit, and there is no second version of this fact to
+ * drift away from the first. Two implementations of one fact is this repository's most expensive
+ * recurring failure.
+ *
+ * IT CANNOT TAKE THE GATE DOWN AND IT CANNOT LEAK A FIGURE. It reads digests and bytes only; it never
+ * touches the artifact's contents, so rule 3 above holds. And a failure inside it degrades to one
+ * printed sentence — never a throw — because a gate that dies while explaining itself has turned a
+ * diagnosis into an outage. NO SQUARE BRACKETS: `tests/test-divergence-composition.js` reads a
+ * bracketed block back out of `why` as a shape composition, and a bracketed aside is indistinguishable
+ * from a figure to anything that greps. */
+function whyTheIdMoved(pinnedId) {
+  if (!pinnedId) return { sentence: '', verdict: null };
+  let d;
+  try { d = ER.driftDiagnosis(pinnedId); }
+  catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0];
+    console.error('pin_guard: could not diagnose why release ' + pinnedId + ' differs from the tree — ' + msg);
+    return { sentence: ' WHY THE ID MOVED: could not be determined — ' + msg
+      + '. Treat this as a real engine change until something says otherwise.', verdict: 'UNDIAGNOSABLE' };
+  }
+  return { sentence: ' ' + d.summary, verdict: d.verdict };
+}
+
 /* THE RECEIPT A CLAUSE HANDS BACK. `audit()` refuses any clause that does not produce one.
  *
  * It is DATA and not prose, so `status.js`, `sweep.js` and any later reader can see what a clause
@@ -182,10 +224,11 @@ function guard(o) {
     }
     if (cur && p.id !== cur) {
       PIN_COUNTERS.wrong_release++;
+      const dx = whyTheIdMoved(p.id);
       return withheld('MEASURED AGAINST A DIFFERENT ENGINE — ' + o.file + ' ran on release ' + p.id
         + ' and the tree is ' + cur + '. That is not a weaker answer, it is an answer about other'
-        + ' bytes. EVERY COUNT IN IT IS WITHHELD and none is repeated here.',
-        { ranOn: p.id, staleAgainst: cur });
+        + ' bytes. EVERY COUNT IN IT IS WITHHELD and none is repeated here.' + dx.sentence,
+        { ranOn: p.id, staleAgainst: cur, drift_cause: dx.verdict });
     }
     if (need.includes('digests') && !p.digests) {
       PIN_COUNTERS.no_digests++;

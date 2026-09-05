@@ -1,0 +1,62 @@
+{
+  "what": "LEAF WIDENING BATCH 2 — the scoreboard called in writing BEFORE engine/game_differential.js was started, so the prediction cannot be fitted to the result.",
+  "written": "2026-09-05T03:30Z",
+  "by": "ENGINE, leaf widening batch 2",
+  "release_measured": "6f96db9da019",
+  "baseline_artifact": "data/verification/fix-batch-8.json",
+  "baseline_release": "a5c736283129",
+  "baseline_comparability": "MEASURED, NOT ASSUMED. All 26 frozen SOURCE files of a5c736283129 are CONTENT-IDENTICAL to this tree; the only difference is the line endings of engine/medicham2-browser.js, which changed the digest at 2026-09-04T22:58 local and staled five gate clauses without changing one byte of behaviour. Verified with `diff --strip-trailing-cr` over every frozen file: 0 content differences (release.json excepted, which is the manifest itself). So this is a clean before/after for the COMPARATOR change alone.",
+  "the_change": "engine/board_state.js only. THREE leaves added to the per-body volatile comparison: volatile:lockon (compared as the CLOCK both engines hold — data/moves.ts:10414 duration 2, medicham2 _vol.lockon ticked at :38438), volatile:minimize and volatile:noretreat (compared as PRESENCE — neither condition declares a duration and medicham2 writes a bare 1 through the generic volatile write at :18787). NOTHING IN THE SIMULATOR CHANGED. Probe: tests/probe_leaf_widening.js, three new arms, each shown RED before the wiring (`the plant was INVISIBLE to the comparator`) and PASS after, each with a control arm on an agreeing board that stays silent.",
+  "pins": {
+    "games": 1200,
+    "arm": "middle",
+    "steering": "empirical",
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "out": "data/verification/leaf-widening-batch2.json"
+  },
+  "the_direction_is_forced": "A WIDENING CAN ONLY RAISE BOARD-MATERIAL OR LEAVE IT FLAT. Three keys were added to both sides of the comparison and none was removed, so no game that parted before can stop parting. A FALL would mean something other than this change moved and the run must be re-examined rather than reported.",
+  "predictions": [
+    {
+      "quantity": "board-material (state.first_board_divergences.length)",
+      "baseline": 35,
+      "predicted": 35,
+      "range": [35, 38],
+      "reason": "THE POOL SHOULD NOT MOVE AND THE LAB ALREADY HAS. These three are the obscure tail Will's 2026-08-23 ruling puts second: measured against the frozen store itself, data/team-pool-frozen holds ZERO lines containing `Lock-On` and ZERO containing `Dragapult` — the format's ONLY legal Lock-On carrier — so that leaf cannot be standing in any game of this sample. `Minimize` appears on 37 lines and `No Retreat` on 58 across the whole store, and a move sitting on a sheet is not a move clicked inside a 12-turn cap. On top of that, both engines were shown to hold all three leaves with IDENTICAL values at every staged boundary (1 against 1 on the applying turn; lockon 0 against absent on the next), so even a game that does stand one is more likely to agree on it than to part. 35 is the call. A rise to 36-38 would be the correct outcome and must not be tuned away; it would mean a real disagreement was reaching the board and nothing was looking."
+    },
+    {
+      "quantity": "protocol first-divergence (diverged)",
+      "baseline": 120,
+      "predicted": 120,
+      "range": [120, 120],
+      "reason": "EXACTLY 120, and this one is not a guess. board_state.js is a BOARD reader; it is not in the protocol comparison at all, it is not one of the 26 frozen SOURCES, and no simulator byte changed. The release, the census pin, the team store and the seed derivation are all pinned to fix-batch-8's. If this number moves at all, something moved that I have not accounted for and the board-material figure below it is not comparable either."
+    },
+    {
+      "quantity": "VOID (mid_void.void_games)",
+      "baseline": 4,
+      "predicted": 4,
+      "range": [4, 4],
+      "reason": "Same argument. No die is added, removed or re-addressed; the comparator gained three read-only fields."
+    },
+    {
+      "quantity": "games",
+      "baseline": 961,
+      "predicted": 961,
+      "range": [961, 961],
+      "reason": "Same pinned pool, same 1200 ask, same drops."
+    },
+    {
+      "quantity": "census live/probed",
+      "baseline": "829/829",
+      "predicted": "829/829",
+      "reason": "Already re-derived after each of the three wirings (tests/test-mechanics.js, three times) and level at 829 live / 829 probed / 0 missing / 0 threw / 0 hollow. Recorded because it was measured BEFORE this file was written, not predicted."
+    },
+    {
+      "quantity": "leaves compared / comparable at this boundary",
+      "baseline": "37 of 56",
+      "predicted": "40 of 56",
+      "reason": "Already derived, not predicted: tests/probe_uncompared_leaves.js reports compared 40, ceiling 56, standing 16 (was 19). boundaryCallSites() still reports snapshot_calls 1 and other_snapshot_callers [], so the ceiling still rests on a single sampling point."
+    }
+  ],
+  "what_this_run_cannot_answer": "Whether these three leaves ever DO part in real play. The pool is the wrong instrument for a mechanic it barely contains, and saying so before the run is the point of writing this down."
+}

@@ -1069,6 +1069,61 @@ function mediBody(m, id, ctx) {
       throatchop: num(m._noSound),
       mustrecharge: m._recharge ? 1 : 0,
       flashfire: vol.flashfire ? 1 : 0,
+      /* ---- 2026-09-05 — THREE MORE OF THE NINETEEN THAT CAN BE STANDING WHEN THIS COMPARATOR LOOKS.
+       * `tests/probe_uncompared_leaves.js`, re-derived that day: 80 leaves a legal mechanic in this
+       * format can write, 37 read here, 4 declared, and of the 39 in neither list the authority ends
+       * 18 in the residual and 2 inside their own action — so NINETEEN are on the board when it is
+       * sampled and nothing looks at them. These three are the subset this engine already keys under
+       * the AUTHORITY'S OWN SPELLING in `_vol`, which is the cheap end and not the important end.
+       *
+       * WHAT THE ENGINE HOLDS WAS CHECKED BEFORE ANY OF IT WAS WIRED, because Unburden is the standing
+       * lesson: that leaf passes every derived column and this engine holds NO state under the name at
+       * all (`effSpeed` recomputes the doubling from the current ability). All three below are real
+       * `_vol` entries written by named code and read back by it.
+       *
+       * RED BEFORE GREEN, WITH A CONTROL, ON A REAL STAGED GAME. `tests/probe_leaf_widening.js` plays
+       * one game per leaf through the driver's own `statePlant` hook and asserts the comparison
+       * reports the planted difference. Before this block all three plants were INVISIBLE —
+       * `0 diffs, none on this leaf` — on a board that already compares 37 leaves. The CONTROL arm is
+       * the identical game with no plant and must stay silent.
+       *
+       *   lockon      move:lockon, ONE legal carrier in this format (Dragapult). A CLOCK ON BOTH
+       *               SIDES, compared as one. data/moves.ts:10397-10426 read whole: `onHit` does
+       *               `source.addVolatile('lockon', target)` — THE USER holds it — and the condition
+       *               declares `noCopy: true, duration: 2`. medicham2 writes `_vol.lockon` from the
+       *               `guaranteeVolatiles()` table's own volatile name (:29657) and ticks it in its
+       *               own end-of-turn loop (:38438). Measured at both boundaries of a staged game:
+       *               1 against `lockon(d1)` on the applying turn, 0 against absent on the next.
+       *               WHAT THIS LEAF DOES NOT CARRY, said rather than implied: WHICH body the
+       *               guarantee is aimed at. medicham2 keeps that in `_guarantee.at`, a live object
+       *               reference, and the authority in `effectState.source`; comparing those two would
+       *               be this file inventing an identity map. The clock is the comparison.
+       *   minimize    move:minimize, 5 legal carriers. PRESENCE, and nothing is collapsed:
+       *               data/moves.ts:11920-11951 declares NO duration on the condition (`noCopy`,
+       *               `onRestart: () => null`, `onSourceModifyDamage`, `onAccuracy`). medicham2 lands
+       *               on the generic volatile write (:18787) with a bare 1 — `minimize` is in neither
+       *               `durationVolatiles()` nor `guaranteeVolatiles()`, so it is never ticked. It is
+       *               READ here (:10540, :12666 — the doubled damage and the never-miss), so this is a
+       *               live leaf and not an inert one. The move's `boosts: {evasion: 2}` is a separate
+       *               half that the `boosts` leaf above already compared.
+       *   noretreat   move:noretreat, ONE legal carrier (Falinks). PRESENCE, same reasoning:
+       *               data/moves.ts:12790-12822 declares no duration — an `onStart` line and an
+       *               `onTrapPokemon` calling `pokemon.tryTrap()`. `tryTrap` sets the body's own
+       *               `trapped` FLAG and adds NO volatile, so the `trapped` leaf sixty lines up is
+       *               untouched by this one and the two cannot be confused. medicham2 reaches it
+       *               through the same composed rider and the same generic write (:18787).
+       *
+       * CHAMPIONS OVERRIDES NONE OF THE THREE, checked rather than assumed: `lockon`, `minimize` and
+       * `noretreat` appear in `data/mods/champions/` ONLY in `learnsets.ts` — no key in `moves.ts`,
+       * `conditions.ts`, `abilities.ts`, `items.ts`, `scripts.ts`, `formats-data.ts` or `rulesets.ts`.
+       * Mainline is the authority and the line numbers above are mainline's.
+       *
+       * EXPECT THIS TO PART BOARDS THAT USED TO AGREE, exactly as the 2026-09-04 block above did. A
+       * game whose only disagreement lived on one of these was scored as AGREEING because nothing
+       * looked, so `board-material` was a floor. A rise is a measurement gaining eyes. */
+      lockon: num(vol.lockon),
+      minimize: vol.minimize ? 1 : 0,
+      noretreat: vol.noretreat ? 1 : 0,
     },
     /* ---- THE STALL COUNTER BEHIND CONSECUTIVE PROTECT. 2026-08-25. -------------------------------
      *
@@ -1162,6 +1217,19 @@ function sdBody(p, id, ctx) {
       throatchop: dur(v.throatchop),
       mustrecharge: v.mustrecharge ? 1 : 0,
       flashfire: v.flashfire ? 1 : 0,
+      /* 2026-09-05 — THE AUTHORITY'S SIDE OF THE BATCH-2 WIDENING. The reasons are on the medicham
+       * side, beside the field each of these is compared against. `v.lockon` is read as the CLOCK it
+       * declares (`duration: 2`, data/moves.ts:10414), because both engines hold one and they agreed
+       * exactly at both staged boundaries — 1 on the applying turn, gone on the next. */
+      lockon: dur(v.lockon),
+      /* PRESENCE, and nothing is collapsed: data/moves.ts:11929-11944 gives the `minimize` condition
+       * no duration at all, and medicham2's generic write lands a bare 1 that is never ticked. */
+      minimize: v.minimize ? 1 : 0,
+      /* PRESENCE, same reasoning: data/moves.ts:12806-12814 declares no duration. The move's SELF-TRAP
+       * is a `pokemon.tryTrap()` inside `onTrapPokemon`, which sets the body's own `trapped` flag and
+       * adds NO volatile — so this leaf and the `trapped` leaf sixty lines up cannot shadow each
+       * other, and reading one is not a second reading of the other. */
+      noretreat: v.noretreat ? 1 : 0,
     },
     /* THE AUTHORITY'S SIDE OF THE STALL COUNTER: the raw denominator off its own volatile, with NO
      * volatile reading 0. Gated on the same capability as medicham2's so both sides are `null`

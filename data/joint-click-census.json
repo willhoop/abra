@@ -1,0 +1,1268 @@
+{
+ "generated": "2026-09-05T03:34:36.087Z",
+ "node": "v24.15.0",
+ "what": "the joint TARGET draw and the CONTEXT of a voluntary switch, over real human protocol",
+ "quarantined": false,
+ "why_not_quarantined": "the store is upstream of the simulator — every figure is read off raw Showdown protocol and nothing passes through medicham2-browser.js, board.js or a leaf",
+ "format": "gen9championsvgc2026regmb",
+ "redirect_members_derived_from_tags": {
+  "moves": [
+   "followme",
+   "ragepowder"
+  ],
+  "abilities": [
+   "lightningrod"
+  ]
+ },
+ "tags_digest": "adbbdbf244d20599",
+ "method": {
+  "joint_target": "both active bodies of one side clicked a single-foe-targeted move (dex target in {normal, any, adjacentFoe}); both foes alive at TURN START, because the two choices are simultaneous; no redirect activation on the defending side; no `[from]` and no `[spread]`. A defending faint BETWEEN the two clicks makes the pair AMBIGUOUS — Showdown re-aims onto the survivor and prints the new target — and those are bounded, never counted.",
+  "switch": "a |switch| emitted before the first |move| of its own turn was CHOSEN (switches resolve above every move priority in this format). Byte-for-byte the identification rule in engine/rollout_switch_census.js.",
+  "switch_in_choice": "restricted to sides where the number of distinct bodies seen equals |teamsize|, so the bench roster is a fact rather than a reconstruction."
+ },
+ "limit": null,
+ "elapsed_s": 22.8,
+ "stores": [
+  {
+   "key": "ladder",
+   "note": "bo1 ladder",
+   "file": "games.ladder.raw-logs.jsonl",
+   "digest": "4a332aeee377dbe5",
+   "games": 76551,
+   "skipped": 684,
+   "forfeits": 20252,
+   "joint_target": {
+    "pairs_seen": 182319,
+    "clean_pairs": 119480,
+    "clean_same": 46991,
+    "clean_split": 72489,
+    "ambiguous_ko_between": 41162,
+    "ambiguous_read_same": 200,
+    "ambiguous_read_split": 40962,
+    "excluded_redirect": 5243,
+    "excluded_foe_dead_at_turn_start": 16434,
+    "lone_click_turns": 469068,
+    "same_slot_twice": 727,
+    "more_than_two_clicks": 1,
+    "pct_same_foe_clean": 39.33,
+    "pct_same_foe_lower_bound": 29.252,
+    "pct_same_foe_upper_bound": 54.875,
+    "bound_note": "the bounds carry the AMBIGUOUS pairs — a defending body fainted between the two clicks, so Showdown re-aimed the second move and the chosen target is unobservable. The lower bound counts every one of them as a split, the upper as a focus."
+   },
+   "focus_target_slot": {
+    "a": {
+     "decisions": 24136,
+     "voluntary_switches": 0,
+     "pct": 0
+    },
+    "b": {
+     "decisions": 22855,
+     "voluntary_switches": 0,
+     "pct": 0
+    }
+   },
+   "marginal_target_slot": {
+    "a": {
+     "decisions": 422746,
+     "voluntary_switches": 0,
+     "pct": 0
+    },
+    "b": {
+     "decisions": 412417,
+     "voluntary_switches": 0,
+     "pct": 0
+    }
+   },
+   "click_filter": {
+    "move_lines": 1511383,
+    "from_tag": 5313,
+    "spread": 211929,
+    "move_not_in_dex": 0,
+    "not_single_target": 406777,
+    "no_target_token": 40288,
+    "aimed_at_own_side": 11913,
+    "single_foe_clicks": 835163
+   },
+   "parse_skips": {
+    "switch_no_slot": 0,
+    "faint_no_slot": 0,
+    "move_no_slot": 0
+   },
+   "switch": {
+    "decisions_with_a_bench": 1293904,
+    "decisions_without_a_bench": 396044,
+    "voluntary": 123326,
+    "pct_decisions_with_a_bench_that_are_a_voluntary_switch": 9.531,
+    "by_hp_at_turn_start": {
+     "full": {
+      "decisions": 714096,
+      "voluntary_switches": 57718,
+      "pct": 8.083
+     },
+     "hp_1_33": {
+      "decisions": 156682,
+      "voluntary_switches": 22181,
+      "pct": 14.157
+     },
+     "hp_34_66": {
+      "decisions": 198090,
+      "voluntary_switches": 22240,
+      "pct": 11.227
+     },
+     "hp_67_99": {
+      "decisions": 224276,
+      "voluntary_switches": 21106,
+      "pct": 9.411
+     },
+     "unknown": {
+      "decisions": 760,
+      "voluntary_switches": 81,
+      "pct": 10.658
+     }
+    },
+    "by_turn": {
+     "turn_1": {
+      "decisions": 292763,
+      "voluntary_switches": 18699,
+      "pct": 6.387
+     },
+     "turn_2": {
+      "decisions": 268999,
+      "voluntary_switches": 27639,
+      "pct": 10.275
+     },
+     "turn_3": {
+      "decisions": 230589,
+      "voluntary_switches": 24810,
+      "pct": 10.759
+     },
+     "turn_4plus": {
+      "decisions": 501553,
+      "voluntary_switches": 52178,
+      "pct": 10.403
+     }
+    },
+    "by_bench_size": {
+     "bench_1": {
+      "decisions": 466158,
+      "voluntary_switches": 36238,
+      "pct": 7.774
+     },
+     "bench_2": {
+      "decisions": 827746,
+      "voluntary_switches": 87088,
+      "pct": 10.521
+     }
+    },
+    "by_time_on_field": {
+     "tenure_0": {
+      "decisions": 510051,
+      "voluntary_switches": 30889,
+      "pct": 6.056
+     },
+     "tenure_1": {
+      "decisions": 352298,
+      "voluntary_switches": 42671,
+      "pct": 12.112
+     },
+     "tenure_2plus": {
+      "decisions": 431555,
+      "voluntary_switches": 49766,
+      "pct": 11.532
+     }
+    },
+    "by_status": {
+     "clean": {
+      "decisions": 1237070,
+      "voluntary_switches": 117492,
+      "pct": 9.498
+     },
+     "statused": {
+      "decisions": 56834,
+      "voluntary_switches": 5834,
+      "pct": 10.265
+     }
+    },
+    "by_hp_x_turn": {
+     "full x turn_1": {
+      "decisions": 292763,
+      "voluntary_switches": 18699,
+      "pct": 6.387
+     },
+     "full x turn_2": {
+      "decisions": 158238,
+      "voluntary_switches": 15998,
+      "pct": 10.11
+     },
+     "full x turn_3": {
+      "decisions": 104397,
+      "voluntary_switches": 9483,
+      "pct": 9.084
+     },
+     "full x turn_4plus": {
+      "decisions": 158698,
+      "voluntary_switches": 13538,
+      "pct": 8.531
+     },
+     "hp_1_33 x turn_2": {
+      "decisions": 23310,
+      "voluntary_switches": 3415,
+      "pct": 14.65
+     },
+     "hp_1_33 x turn_3": {
+      "decisions": 32267,
+      "voluntary_switches": 4886,
+      "pct": 15.142
+     },
+     "hp_1_33 x turn_4plus": {
+      "decisions": 101105,
+      "voluntary_switches": 13880,
+      "pct": 13.728
+     },
+     "hp_34_66 x turn_2": {
+      "decisions": 31906,
+      "voluntary_switches": 3490,
+      "pct": 10.938
+     },
+     "hp_34_66 x turn_3": {
+      "decisions": 42555,
+      "voluntary_switches": 5136,
+      "pct": 12.069
+     },
+     "hp_34_66 x turn_4plus": {
+      "decisions": 123629,
+      "voluntary_switches": 13614,
+      "pct": 11.012
+     },
+     "hp_67_99 x turn_2": {
+      "decisions": 55266,
+      "voluntary_switches": 4699,
+      "pct": 8.503
+     },
+     "hp_67_99 x turn_3": {
+      "decisions": 51155,
+      "voluntary_switches": 5281,
+      "pct": 10.324
+     },
+     "hp_67_99 x turn_4plus": {
+      "decisions": 117855,
+      "voluntary_switches": 11126,
+      "pct": 9.44
+     },
+     "unknown x turn_2": {
+      "decisions": 279,
+      "voluntary_switches": 37,
+      "pct": 13.262
+     },
+     "unknown x turn_3": {
+      "decisions": 215,
+      "voluntary_switches": 24,
+      "pct": 11.163
+     },
+     "unknown x turn_4plus": {
+      "decisions": 266,
+      "voluntary_switches": 20,
+      "pct": 7.519
+     }
+    },
+    "by_cell": {
+     "full|tenure_0|bench_1": {
+      "decisions": 110095,
+      "voluntary_switches": 3640,
+      "pct": 3.306
+     },
+     "full|tenure_0|bench_2": {
+      "decisions": 323396,
+      "voluntary_switches": 21126,
+      "pct": 6.533
+     },
+     "full|tenure_1|bench_1": {
+      "decisions": 51287,
+      "voluntary_switches": 4941,
+      "pct": 9.634
+     },
+     "full|tenure_1|bench_2": {
+      "decisions": 119480,
+      "voluntary_switches": 15688,
+      "pct": 13.13
+     },
+     "full|tenure_2plus|bench_1": {
+      "decisions": 49038,
+      "voluntary_switches": 4245,
+      "pct": 8.657
+     },
+     "full|tenure_2plus|bench_2": {
+      "decisions": 60800,
+      "voluntary_switches": 8078,
+      "pct": 13.286
+     },
+     "hp_1_33|tenure_0|bench_1": {
+      "decisions": 7878,
+      "voluntary_switches": 623,
+      "pct": 7.908
+     },
+     "hp_1_33|tenure_0|bench_2": {
+      "decisions": 6414,
+      "voluntary_switches": 824,
+      "pct": 12.847
+     },
+     "hp_1_33|tenure_1|bench_1": {
+      "decisions": 15436,
+      "voluntary_switches": 2078,
+      "pct": 13.462
+     },
+     "hp_1_33|tenure_1|bench_2": {
+      "decisions": 26662,
+      "voluntary_switches": 4633,
+      "pct": 17.377
+     },
+     "hp_1_33|tenure_2plus|bench_1": {
+      "decisions": 50539,
+      "voluntary_switches": 5740,
+      "pct": 11.358
+     },
+     "hp_1_33|tenure_2plus|bench_2": {
+      "decisions": 49753,
+      "voluntary_switches": 8283,
+      "pct": 16.648
+     },
+     "hp_34_66|tenure_0|bench_1": {
+      "decisions": 12563,
+      "voluntary_switches": 815,
+      "pct": 6.487
+     },
+     "hp_34_66|tenure_0|bench_2": {
+      "decisions": 14269,
+      "voluntary_switches": 1467,
+      "pct": 10.281
+     },
+     "hp_34_66|tenure_1|bench_1": {
+      "decisions": 21046,
+      "voluntary_switches": 2091,
+      "pct": 9.935
+     },
+     "hp_34_66|tenure_1|bench_2": {
+      "decisions": 35852,
+      "voluntary_switches": 5027,
+      "pct": 14.022
+     },
+     "hp_34_66|tenure_2plus|bench_1": {
+      "decisions": 57356,
+      "voluntary_switches": 5260,
+      "pct": 9.171
+     },
+     "hp_34_66|tenure_2plus|bench_2": {
+      "decisions": 57004,
+      "voluntary_switches": 7580,
+      "pct": 13.297
+     },
+     "hp_67_99|tenure_0|bench_1": {
+      "decisions": 14513,
+      "voluntary_switches": 738,
+      "pct": 5.085
+     },
+     "hp_67_99|tenure_0|bench_2": {
+      "decisions": 20369,
+      "voluntary_switches": 1597,
+      "pct": 7.84
+     },
+     "hp_67_99|tenure_1|bench_1": {
+      "decisions": 25873,
+      "voluntary_switches": 2126,
+      "pct": 8.217
+     },
+     "hp_67_99|tenure_1|bench_2": {
+      "decisions": 56509,
+      "voluntary_switches": 6070,
+      "pct": 10.742
+     },
+     "hp_67_99|tenure_2plus|bench_1": {
+      "decisions": 50269,
+      "voluntary_switches": 3920,
+      "pct": 7.798
+     },
+     "hp_67_99|tenure_2plus|bench_2": {
+      "decisions": 56743,
+      "voluntary_switches": 6655,
+      "pct": 11.728
+     },
+     "unknown|tenure_0|bench_1": {
+      "decisions": 153,
+      "voluntary_switches": 8,
+      "pct": 5.229
+     },
+     "unknown|tenure_0|bench_2": {
+      "decisions": 401,
+      "voluntary_switches": 51,
+      "pct": 12.718
+     },
+     "unknown|tenure_1|bench_1": {
+      "decisions": 73,
+      "voluntary_switches": 9,
+      "pct": 12.329
+     },
+     "unknown|tenure_1|bench_2": {
+      "decisions": 80,
+      "voluntary_switches": 8,
+      "pct": 10
+     },
+     "unknown|tenure_2plus|bench_1": {
+      "decisions": 39,
+      "voluntary_switches": 4,
+      "pct": 10.256
+     },
+     "unknown|tenure_2plus|bench_2": {
+      "decisions": 14,
+      "voluntary_switches": 1,
+      "pct": 7.143
+     }
+    }
+   },
+   "switch_in_choice": {
+    "voluntary_switch_ins": 123326,
+    "resolved": 113154,
+    "unresolved_bench_composition": 10113,
+    "chosen_not_in_reconstructed_bench": 29,
+    "chose_a_body_never_yet_on_the_field": 76925,
+    "chose_a_returning_body": 36229,
+    "mixed_bench": 22884,
+    "mixed_bench_chose_new": 11882,
+    "mixed_bench_expected_new": 11446.16666666667,
+    "bench_options_sum": 190433,
+    "bench_options_n": 113154,
+    "bench_option_count": {
+     "options_1": {
+      "decisions": 36036,
+      "voluntary_switches": 0,
+      "pct": 0
+     },
+     "options_2": {
+      "decisions": 76957,
+      "voluntary_switches": 0,
+      "pct": 0
+     },
+     "options_3": {
+      "decisions": 161,
+      "voluntary_switches": 0,
+      "pct": 0
+     }
+    },
+    "mean_bench_options": 1.683,
+    "pct_chose_never_seen": 67.983,
+    "pct_mixed_bench_chose_new": 51.923,
+    "pct_mixed_bench_uniform_would_give": 50.018
+   }
+  },
+  {
+   "key": "bo3",
+   "note": "bo3 ladder — the open-sheet population",
+   "file": "games.bo3.raw-logs.jsonl",
+   "digest": "e9dff09a86767086",
+   "games": 25444,
+   "skipped": 263,
+   "forfeits": 8744,
+   "joint_target": {
+    "pairs_seen": 58822,
+    "clean_pairs": 40471,
+    "clean_same": 15163,
+    "clean_split": 25308,
+    "ambiguous_ko_between": 12147,
+    "ambiguous_read_same": 60,
+    "ambiguous_read_split": 12087,
+    "excluded_redirect": 1924,
+    "excluded_foe_dead_at_turn_start": 4280,
+    "lone_click_turns": 160308,
+    "same_slot_twice": 111,
+    "more_than_two_clicks": 0,
+    "pct_same_foe_clean": 37.466,
+    "pct_same_foe_lower_bound": 28.817,
+    "pct_same_foe_upper_bound": 51.902,
+    "bound_note": "the bounds carry the AMBIGUOUS pairs — a defending body fainted between the two clicks, so Showdown re-aimed the second move and the chosen target is unobservable. The lower bound counts every one of them as a split, the upper as a focus."
+   },
+   "focus_target_slot": {
+    "a": {
+     "decisions": 7650,
+     "voluntary_switches": 0,
+     "pct": 0
+    },
+    "b": {
+     "decisions": 7513,
+     "voluntary_switches": 0,
+     "pct": 0
+    }
+   },
+   "marginal_target_slot": {
+    "a": {
+     "decisions": 138681,
+     "voluntary_switches": 0,
+     "pct": 0
+    },
+    "b": {
+     "decisions": 139493,
+     "voluntary_switches": 0,
+     "pct": 0
+    }
+   },
+   "click_filter": {
+    "move_lines": 520962,
+    "from_tag": 932,
+    "spread": 74569,
+    "move_not_in_dex": 0,
+    "not_single_target": 150876,
+    "no_target_token": 14215,
+    "aimed_at_own_side": 2196,
+    "single_foe_clicks": 278174
+   },
+   "parse_skips": {
+    "switch_no_slot": 0,
+    "faint_no_slot": 0,
+    "move_no_slot": 0
+   },
+   "switch": {
+    "decisions_with_a_bench": 483470,
+    "decisions_without_a_bench": 118907,
+    "voluntary": 60720,
+    "pct_decisions_with_a_bench_that_are_a_voluntary_switch": 12.559,
+    "by_hp_at_turn_start": {
+     "full": {
+      "decisions": 261988,
+      "voluntary_switches": 28266,
+      "pct": 10.789
+     },
+     "hp_1_33": {
+      "decisions": 60073,
+      "voluntary_switches": 10734,
+      "pct": 17.868
+     },
+     "hp_34_66": {
+      "decisions": 75180,
+      "voluntary_switches": 10793,
+      "pct": 14.356
+     },
+     "hp_67_99": {
+      "decisions": 86016,
+      "voluntary_switches": 10897,
+      "pct": 12.669
+     },
+     "unknown": {
+      "decisions": 213,
+      "voluntary_switches": 30,
+      "pct": 14.085
+     }
+    },
+    "by_turn": {
+     "turn_1": {
+      "decisions": 98490,
+      "voluntary_switches": 8833,
+      "pct": 8.968
+     },
+     "turn_2": {
+      "decisions": 93033,
+      "voluntary_switches": 12847,
+      "pct": 13.809
+     },
+     "turn_3": {
+      "decisions": 83502,
+      "voluntary_switches": 11725,
+      "pct": 14.042
+     },
+     "turn_4plus": {
+      "decisions": 208445,
+      "voluntary_switches": 27315,
+      "pct": 13.104
+     }
+    },
+    "by_bench_size": {
+     "bench_1": {
+      "decisions": 168348,
+      "voluntary_switches": 16568,
+      "pct": 9.842
+     },
+     "bench_2": {
+      "decisions": 315122,
+      "voluntary_switches": 44152,
+      "pct": 14.011
+     }
+    },
+    "by_time_on_field": {
+     "tenure_0": {
+      "decisions": 189994,
+      "voluntary_switches": 15456,
+      "pct": 8.135
+     },
+     "tenure_1": {
+      "decisions": 133525,
+      "voluntary_switches": 21707,
+      "pct": 16.257
+     },
+     "tenure_2plus": {
+      "decisions": 159951,
+      "voluntary_switches": 23557,
+      "pct": 14.728
+     }
+    },
+    "by_status": {
+     "clean": {
+      "decisions": 461702,
+      "voluntary_switches": 57913,
+      "pct": 12.543
+     },
+     "statused": {
+      "decisions": 21768,
+      "voluntary_switches": 2807,
+      "pct": 12.895
+     }
+    },
+    "by_hp_x_turn": {
+     "full x turn_1": {
+      "decisions": 98490,
+      "voluntary_switches": 8833,
+      "pct": 8.968
+     },
+     "full x turn_2": {
+      "decisions": 57916,
+      "voluntary_switches": 7729,
+      "pct": 13.345
+     },
+     "full x turn_3": {
+      "decisions": 39336,
+      "voluntary_switches": 4607,
+      "pct": 11.712
+     },
+     "full x turn_4plus": {
+      "decisions": 66246,
+      "voluntary_switches": 7097,
+      "pct": 10.713
+     },
+     "hp_1_33 x turn_2": {
+      "decisions": 7145,
+      "voluntary_switches": 1427,
+      "pct": 19.972
+     },
+     "hp_1_33 x turn_3": {
+      "decisions": 11086,
+      "voluntary_switches": 2249,
+      "pct": 20.287
+     },
+     "hp_1_33 x turn_4plus": {
+      "decisions": 41842,
+      "voluntary_switches": 7058,
+      "pct": 16.868
+     },
+     "hp_34_66 x turn_2": {
+      "decisions": 10073,
+      "voluntary_switches": 1441,
+      "pct": 14.306
+     },
+     "hp_34_66 x turn_3": {
+      "decisions": 14623,
+      "voluntary_switches": 2297,
+      "pct": 15.708
+     },
+     "hp_34_66 x turn_4plus": {
+      "decisions": 50484,
+      "voluntary_switches": 7055,
+      "pct": 13.975
+     },
+     "hp_67_99 x turn_2": {
+      "decisions": 17831,
+      "voluntary_switches": 2238,
+      "pct": 12.551
+     },
+     "hp_67_99 x turn_3": {
+      "decisions": 18396,
+      "voluntary_switches": 2563,
+      "pct": 13.932
+     },
+     "hp_67_99 x turn_4plus": {
+      "decisions": 49789,
+      "voluntary_switches": 6096,
+      "pct": 12.244
+     },
+     "unknown x turn_2": {
+      "decisions": 68,
+      "voluntary_switches": 12,
+      "pct": 17.647
+     },
+     "unknown x turn_3": {
+      "decisions": 61,
+      "voluntary_switches": 9,
+      "pct": 14.754
+     },
+     "unknown x turn_4plus": {
+      "decisions": 84,
+      "voluntary_switches": 9,
+      "pct": 10.714
+     }
+    },
+    "by_cell": {
+     "full|tenure_0|bench_1": {
+      "decisions": 37376,
+      "voluntary_switches": 1281,
+      "pct": 3.427
+     },
+     "full|tenure_0|bench_2": {
+      "decisions": 114637,
+      "voluntary_switches": 10485,
+      "pct": 9.146
+     },
+     "full|tenure_1|bench_1": {
+      "decisions": 19144,
+      "voluntary_switches": 2382,
+      "pct": 12.443
+     },
+     "full|tenure_1|bench_2": {
+      "decisions": 47871,
+      "voluntary_switches": 8072,
+      "pct": 16.862
+     },
+     "full|tenure_2plus|bench_1": {
+      "decisions": 18145,
+      "voluntary_switches": 2002,
+      "pct": 11.033
+     },
+     "full|tenure_2plus|bench_2": {
+      "decisions": 24815,
+      "voluntary_switches": 4044,
+      "pct": 16.297
+     },
+     "hp_1_33|tenure_0|bench_1": {
+      "decisions": 3763,
+      "voluntary_switches": 356,
+      "pct": 9.461
+     },
+     "hp_1_33|tenure_0|bench_2": {
+      "decisions": 3303,
+      "voluntary_switches": 556,
+      "pct": 16.833
+     },
+     "hp_1_33|tenure_1|bench_1": {
+      "decisions": 5670,
+      "voluntary_switches": 1045,
+      "pct": 18.43
+     },
+     "hp_1_33|tenure_1|bench_2": {
+      "decisions": 9631,
+      "voluntary_switches": 2228,
+      "pct": 23.134
+     },
+     "hp_1_33|tenure_2plus|bench_1": {
+      "decisions": 18062,
+      "voluntary_switches": 2569,
+      "pct": 14.223
+     },
+     "hp_1_33|tenure_2plus|bench_2": {
+      "decisions": 19644,
+      "voluntary_switches": 3980,
+      "pct": 20.261
+     },
+     "hp_34_66|tenure_0|bench_1": {
+      "decisions": 5904,
+      "voluntary_switches": 428,
+      "pct": 7.249
+     },
+     "hp_34_66|tenure_0|bench_2": {
+      "decisions": 7550,
+      "voluntary_switches": 952,
+      "pct": 12.609
+     },
+     "hp_34_66|tenure_1|bench_1": {
+      "decisions": 7565,
+      "voluntary_switches": 1008,
+      "pct": 13.325
+     },
+     "hp_34_66|tenure_1|bench_2": {
+      "decisions": 13527,
+      "voluntary_switches": 2571,
+      "pct": 19.006
+     },
+     "hp_34_66|tenure_2plus|bench_1": {
+      "decisions": 19082,
+      "voluntary_switches": 2207,
+      "pct": 11.566
+     },
+     "hp_34_66|tenure_2plus|bench_2": {
+      "decisions": 21552,
+      "voluntary_switches": 3627,
+      "pct": 16.829
+     },
+     "hp_67_99|tenure_0|bench_1": {
+      "decisions": 6741,
+      "voluntary_switches": 396,
+      "pct": 5.874
+     },
+     "hp_67_99|tenure_0|bench_2": {
+      "decisions": 10568,
+      "voluntary_switches": 982,
+      "pct": 9.292
+     },
+     "hp_67_99|tenure_1|bench_1": {
+      "decisions": 9460,
+      "voluntary_switches": 1120,
+      "pct": 11.839
+     },
+     "hp_67_99|tenure_1|bench_2": {
+      "decisions": 20614,
+      "voluntary_switches": 3275,
+      "pct": 15.887
+     },
+     "hp_67_99|tenure_2plus|bench_1": {
+      "decisions": 17374,
+      "voluntary_switches": 1770,
+      "pct": 10.188
+     },
+     "hp_67_99|tenure_2plus|bench_2": {
+      "decisions": 21259,
+      "voluntary_switches": 3354,
+      "pct": 15.777
+     },
+     "unknown|tenure_0|bench_1": {
+      "decisions": 38,
+      "voluntary_switches": 1,
+      "pct": 2.632
+     },
+     "unknown|tenure_0|bench_2": {
+      "decisions": 114,
+      "voluntary_switches": 19,
+      "pct": 16.667
+     },
+     "unknown|tenure_1|bench_1": {
+      "decisions": 18,
+      "voluntary_switches": 0,
+      "pct": 0
+     },
+     "unknown|tenure_1|bench_2": {
+      "decisions": 25,
+      "voluntary_switches": 6,
+      "pct": 24
+     },
+     "unknown|tenure_2plus|bench_1": {
+      "decisions": 6,
+      "voluntary_switches": 3,
+      "pct": 50
+     },
+     "unknown|tenure_2plus|bench_2": {
+      "decisions": 12,
+      "voluntary_switches": 1,
+      "pct": 8.333
+     }
+    }
+   },
+   "switch_in_choice": {
+    "voluntary_switch_ins": 60720,
+    "resolved": 56016,
+    "unresolved_bench_composition": 4691,
+    "chosen_not_in_reconstructed_bench": 4,
+    "chose_a_body_never_yet_on_the_field": 35432,
+    "chose_a_returning_body": 20584,
+    "mixed_bench": 12944,
+    "mixed_bench_chose_new": 7043,
+    "mixed_bench_expected_new": 6473.666666666667,
+    "bench_options_sum": 95572,
+    "bench_options_n": 56016,
+    "bench_option_count": {
+     "options_1": {
+      "decisions": 16513,
+      "voluntary_switches": 0,
+      "pct": 0
+     },
+     "options_2": {
+      "decisions": 39450,
+      "voluntary_switches": 0,
+      "pct": 0
+     },
+     "options_3": {
+      "decisions": 53,
+      "voluntary_switches": 0,
+      "pct": 0
+     }
+    },
+    "mean_bench_options": 1.706,
+    "pct_chose_never_seen": 63.253,
+    "pct_mixed_bench_chose_new": 54.411,
+    "pct_mixed_bench_uniform_would_give": 50.013
+   }
+  }
+ ],
+ "pooled": {
+  "games": 101995,
+  "joint_target": {
+   "clean_pairs": 159951,
+   "clean_same": 62154,
+   "clean_split": 97797,
+   "ambiguous_ko_between": 53309,
+   "excluded_redirect": 7167,
+   "excluded_foe_dead_at_turn_start": 20714,
+   "lone_click_turns": 629376,
+   "pct_same_foe_clean": 38.858,
+   "pct_same_foe_lower_bound": 29.145,
+   "pct_same_foe_upper_bound": 54.142
+  },
+  "marginal_target_slot": {
+   "a": {
+    "decisions": 561427,
+    "voluntary_switches": 0,
+    "pct": 0
+   },
+   "b": {
+    "decisions": 551910,
+    "voluntary_switches": 0,
+    "pct": 0
+   }
+  },
+  "focus_target_slot": {
+   "a": {
+    "decisions": 31786,
+    "voluntary_switches": 0,
+    "pct": 0
+   },
+   "b": {
+    "decisions": 30368,
+    "voluntary_switches": 0,
+    "pct": 0
+   }
+  },
+  "switch": {
+   "decisions_with_a_bench": 1777374,
+   "voluntary": 184046,
+   "pct_decisions_with_a_bench_that_are_a_voluntary_switch": 10.355,
+   "by_hp_at_turn_start": {
+    "full": {
+     "decisions": 976084,
+     "voluntary_switches": 85984,
+     "pct": 8.809
+    },
+    "hp_1_33": {
+     "decisions": 216755,
+     "voluntary_switches": 32915,
+     "pct": 15.185
+    },
+    "hp_34_66": {
+     "decisions": 273270,
+     "voluntary_switches": 33033,
+     "pct": 12.088
+    },
+    "hp_67_99": {
+     "decisions": 310292,
+     "voluntary_switches": 32003,
+     "pct": 10.314
+    },
+    "unknown": {
+     "decisions": 973,
+     "voluntary_switches": 111,
+     "pct": 11.408
+    }
+   },
+   "by_turn": {
+    "turn_1": {
+     "decisions": 391253,
+     "voluntary_switches": 27532,
+     "pct": 7.037
+    },
+    "turn_2": {
+     "decisions": 362032,
+     "voluntary_switches": 40486,
+     "pct": 11.183
+    },
+    "turn_3": {
+     "decisions": 314091,
+     "voluntary_switches": 36535,
+     "pct": 11.632
+    },
+    "turn_4plus": {
+     "decisions": 709998,
+     "voluntary_switches": 79493,
+     "pct": 11.196
+    }
+   },
+   "by_bench_size": {
+    "bench_1": {
+     "decisions": 634506,
+     "voluntary_switches": 52806,
+     "pct": 8.322
+    },
+    "bench_2": {
+     "decisions": 1142868,
+     "voluntary_switches": 131240,
+     "pct": 11.483
+    }
+   },
+   "by_time_on_field": {
+    "tenure_0": {
+     "decisions": 700045,
+     "voluntary_switches": 46345,
+     "pct": 6.62
+    },
+    "tenure_1": {
+     "decisions": 485823,
+     "voluntary_switches": 64378,
+     "pct": 13.251
+    },
+    "tenure_2plus": {
+     "decisions": 591506,
+     "voluntary_switches": 73323,
+     "pct": 12.396
+    }
+   },
+   "by_status": {
+    "clean": {
+     "decisions": 1698772,
+     "voluntary_switches": 175405,
+     "pct": 10.325
+    },
+    "statused": {
+     "decisions": 78602,
+     "voluntary_switches": 8641,
+     "pct": 10.993
+    }
+   },
+   "by_hp_x_turn": {
+    "full x turn_1": {
+     "decisions": 391253,
+     "voluntary_switches": 27532,
+     "pct": 7.037
+    },
+    "full x turn_2": {
+     "decisions": 216154,
+     "voluntary_switches": 23727,
+     "pct": 10.977
+    },
+    "full x turn_3": {
+     "decisions": 143733,
+     "voluntary_switches": 14090,
+     "pct": 9.803
+    },
+    "full x turn_4plus": {
+     "decisions": 224944,
+     "voluntary_switches": 20635,
+     "pct": 9.173
+    },
+    "hp_1_33 x turn_2": {
+     "decisions": 30455,
+     "voluntary_switches": 4842,
+     "pct": 15.899
+    },
+    "hp_1_33 x turn_3": {
+     "decisions": 43353,
+     "voluntary_switches": 7135,
+     "pct": 16.458
+    },
+    "hp_1_33 x turn_4plus": {
+     "decisions": 142947,
+     "voluntary_switches": 20938,
+     "pct": 14.647
+    },
+    "hp_34_66 x turn_2": {
+     "decisions": 41979,
+     "voluntary_switches": 4931,
+     "pct": 11.746
+    },
+    "hp_34_66 x turn_3": {
+     "decisions": 57178,
+     "voluntary_switches": 7433,
+     "pct": 13
+    },
+    "hp_34_66 x turn_4plus": {
+     "decisions": 174113,
+     "voluntary_switches": 20669,
+     "pct": 11.871
+    },
+    "hp_67_99 x turn_2": {
+     "decisions": 73097,
+     "voluntary_switches": 6937,
+     "pct": 9.49
+    },
+    "hp_67_99 x turn_3": {
+     "decisions": 69551,
+     "voluntary_switches": 7844,
+     "pct": 11.278
+    },
+    "hp_67_99 x turn_4plus": {
+     "decisions": 167644,
+     "voluntary_switches": 17222,
+     "pct": 10.273
+    },
+    "unknown x turn_2": {
+     "decisions": 347,
+     "voluntary_switches": 49,
+     "pct": 14.121
+    },
+    "unknown x turn_3": {
+     "decisions": 276,
+     "voluntary_switches": 33,
+     "pct": 11.957
+    },
+    "unknown x turn_4plus": {
+     "decisions": 350,
+     "voluntary_switches": 29,
+     "pct": 8.286
+    }
+   },
+   "by_cell": {
+    "full|tenure_0|bench_1": {
+     "decisions": 147471,
+     "voluntary_switches": 4921,
+     "pct": 3.337
+    },
+    "full|tenure_0|bench_2": {
+     "decisions": 438033,
+     "voluntary_switches": 31611,
+     "pct": 7.217
+    },
+    "full|tenure_1|bench_1": {
+     "decisions": 70431,
+     "voluntary_switches": 7323,
+     "pct": 10.397
+    },
+    "full|tenure_1|bench_2": {
+     "decisions": 167351,
+     "voluntary_switches": 23760,
+     "pct": 14.198
+    },
+    "full|tenure_2plus|bench_1": {
+     "decisions": 67183,
+     "voluntary_switches": 6247,
+     "pct": 9.298
+    },
+    "full|tenure_2plus|bench_2": {
+     "decisions": 85615,
+     "voluntary_switches": 12122,
+     "pct": 14.159
+    },
+    "hp_1_33|tenure_0|bench_1": {
+     "decisions": 11641,
+     "voluntary_switches": 979,
+     "pct": 8.41
+    },
+    "hp_1_33|tenure_0|bench_2": {
+     "decisions": 9717,
+     "voluntary_switches": 1380,
+     "pct": 14.202
+    },
+    "hp_1_33|tenure_1|bench_1": {
+     "decisions": 21106,
+     "voluntary_switches": 3123,
+     "pct": 14.797
+    },
+    "hp_1_33|tenure_1|bench_2": {
+     "decisions": 36293,
+     "voluntary_switches": 6861,
+     "pct": 18.904
+    },
+    "hp_1_33|tenure_2plus|bench_1": {
+     "decisions": 68601,
+     "voluntary_switches": 8309,
+     "pct": 12.112
+    },
+    "hp_1_33|tenure_2plus|bench_2": {
+     "decisions": 69397,
+     "voluntary_switches": 12263,
+     "pct": 17.671
+    },
+    "hp_34_66|tenure_0|bench_1": {
+     "decisions": 18467,
+     "voluntary_switches": 1243,
+     "pct": 6.731
+    },
+    "hp_34_66|tenure_0|bench_2": {
+     "decisions": 21819,
+     "voluntary_switches": 2419,
+     "pct": 11.087
+    },
+    "hp_34_66|tenure_1|bench_1": {
+     "decisions": 28611,
+     "voluntary_switches": 3099,
+     "pct": 10.831
+    },
+    "hp_34_66|tenure_1|bench_2": {
+     "decisions": 49379,
+     "voluntary_switches": 7598,
+     "pct": 15.387
+    },
+    "hp_34_66|tenure_2plus|bench_1": {
+     "decisions": 76438,
+     "voluntary_switches": 7467,
+     "pct": 9.769
+    },
+    "hp_34_66|tenure_2plus|bench_2": {
+     "decisions": 78556,
+     "voluntary_switches": 11207,
+     "pct": 14.266
+    },
+    "hp_67_99|tenure_0|bench_1": {
+     "decisions": 21254,
+     "voluntary_switches": 1134,
+     "pct": 5.335
+    },
+    "hp_67_99|tenure_0|bench_2": {
+     "decisions": 30937,
+     "voluntary_switches": 2579,
+     "pct": 8.336
+    },
+    "hp_67_99|tenure_1|bench_1": {
+     "decisions": 35333,
+     "voluntary_switches": 3246,
+     "pct": 9.187
+    },
+    "hp_67_99|tenure_1|bench_2": {
+     "decisions": 77123,
+     "voluntary_switches": 9345,
+     "pct": 12.117
+    },
+    "hp_67_99|tenure_2plus|bench_1": {
+     "decisions": 67643,
+     "voluntary_switches": 5690,
+     "pct": 8.412
+    },
+    "hp_67_99|tenure_2plus|bench_2": {
+     "decisions": 78002,
+     "voluntary_switches": 10009,
+     "pct": 12.832
+    },
+    "unknown|tenure_0|bench_1": {
+     "decisions": 191,
+     "voluntary_switches": 9,
+     "pct": 4.712
+    },
+    "unknown|tenure_0|bench_2": {
+     "decisions": 515,
+     "voluntary_switches": 70,
+     "pct": 13.592
+    },
+    "unknown|tenure_1|bench_1": {
+     "decisions": 91,
+     "voluntary_switches": 9,
+     "pct": 9.89
+    },
+    "unknown|tenure_1|bench_2": {
+     "decisions": 105,
+     "voluntary_switches": 14,
+     "pct": 13.333
+    },
+    "unknown|tenure_2plus|bench_1": {
+     "decisions": 45,
+     "voluntary_switches": 7,
+     "pct": 15.556
+    },
+    "unknown|tenure_2plus|bench_2": {
+     "decisions": 26,
+     "voluntary_switches": 2,
+     "pct": 7.692
+    }
+   }
+  },
+  "switch_in_choice": {
+   "resolved": 169170,
+   "unresolved_bench_composition": 14804,
+   "chosen_not_in_reconstructed_bench": 33,
+   "chose_a_body_never_yet_on_the_field": 112357,
+   "chose_a_returning_body": 56813,
+   "mixed_bench": 35828,
+   "mixed_bench_chose_new": 18925,
+   "mean_bench_options": 1.691,
+   "pct_chose_never_seen": 66.417,
+   "pct_mixed_bench_chose_new": 52.822,
+   "pct_mixed_bench_uniform_would_give": 50.016
+  }
+ }
+}

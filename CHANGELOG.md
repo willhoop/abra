@@ -10,6 +10,93 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.255.0] — 2026-09-05
+
+### Fixed
+- **BOARD-MATERIAL 37 → 35 OF 961**, protocol 122 → 120, VOID 6 → 4, census 829/829. Both games
+  attributed by id, **zero new**. `data/game-differential.json` is NOT republished and still holds 46.
+- **IMPRISON SET A VOLATILE AND SEALED NOTHING.** `data/abra-tags.js` has carried
+  `sealsMoves {fromUsersOwnMoves: true}` all along and **no engine line read it**, so a foe played a
+  sealed move, dealt damage and spent PP. Authority `data/moves.ts:9492-9524`. Probe
+  `tests/probe_imprison_seal.js` — live arm `p1.active[0].hp ours 78 / authority 130` before,
+  IDENTICAL after; **three over-fire controls** (an unshared move, the user's own ally, no Imprison)
+  green in both directions. Same shape as Destiny Bond: implemented, and doing nothing.
+- **THE PIVOT ROAD NEVER ASKED `bounceOff`.** Magic Bounce hands the move over
+  (`useMove(newMove, target, {target: source})`), so a Parting Shot at a bouncer drops the **CLICKER**
+  and the **BOUNCER** leaves. This engine did both backwards. 14 leaves apart before, identical after;
+  Synchronize, U-turn and Taunt controls unmoved.
+
+### Added
+- **THREE MORE LEAVES WIRED — COMPARATOR 37 → 40 OF 56**, on Will's ruling that the leaves come before
+  chasing the count to zero: *board-material zero on 37 of 56 standing leaves is not the same claim as
+  zero on all of them.* `lockon`, `minimize`, `noretreat`, each **traced to a real write AND read site
+  before wiring** — the Unburden check, because a leaf can look wireable on every derived column and
+  the engine still hold nothing under that name — and each staged in a real game to confirm it stands
+  at the boundary. Red-first with a control on all three; `lockon`'s clock was compared as a clock
+  (`b2 medi=0 sd=absent`).
+- **A RELEASE DIGEST THAT MOVES NOW SAYS WHY** (`engine/engine_release.js`, `engine/pin_guard.js`,
+  `tests/probe_release_drift_diagnosis.js`). It distinguishes *the sources actually changed* from
+  *content-identical modulo line endings*. **PROPERTY, not enumeration** — it reads no filename, no
+  path, no `.gitattributes` entry and not `SOURCES`; one probe case diagnoses a file whose name exists
+  nowhere in the repo, calling the classifier on two bare buffers.
+  - **Nothing is excused and the digest is unchanged.** It still hashes raw bytes, the id still moves
+    on a line-ending change, stranded artifacts stay stranded. Tonight's two failing clauses are
+    diagnosed CONTENT-CHANGED and still FAIL with every count withheld: *"A re-measurement IS owed."*
+  - **`status.js` and `quarantine.js` needed NO edit** — both already render `pin_guard`'s `why`
+    verbatim, so one implementation lands in both. Two implementations of one fact is this
+    repository's most expensive recurring failure.
+  - On the current tree, **36 cited releases: 34 CONTENT-CHANGED, 1 EOL-ONLY, 1 NO-DRIFT, 0
+    UNDIAGNOSABLE.** Cost inside the gate: **37 ms**.
+
+### Notes
+- **THIS COST FIVE HEAVY RE-RUNS TONIGHT BEFORE IT EXISTED.** An agent found the gate at **7 of 9
+  instead of 2 of 9** and re-ran five clauses to restore it. The cause was not code:
+  `engine/medicham2-browser.js` had its **line endings** changed, moving the release digest, with all
+  26 frozen sources content-identical (`diff --strip-trailing-cr`: 0 differences). The standing case
+  is live right now — one cited release differs from the tree in exactly one file, **39,932 LF against
+  39,932 CRLF, zero characters edited.**
+- **THE OBVIOUS FIXES ARE BOTH CORRECTLY SHUT, AND THIS IS THE THIRD DOOR.** `.gitattributes:70-77`
+  names nine sources deliberately left unpinned, because pinning them to LF **would rewrite them, move
+  every release id, and break `tests/roster.js`, whose red demonstrations match `\r\n` against the
+  simulator's source.** And normalising the comparator is explicitly forbidden here — *"the difference
+  is already observable to an instrument."* So this adds a DIAGNOSIS rather than an exemption, and the
+  nine-source job stays filed **but is now visible every time it costs something.**
+- **THE DIAGNOSIS CAUGHT A BUG IN ITSELF** — its first terminator counter printed
+  `39866 LF vs 39932 CRLF` for two identical files. **A false alarm from the thing built to stop false
+  alarms.** Shown red four ways before being trusted, including with `eolNorm` broken to identity
+  (9/16, reproducing the pre-fix behaviour) and with an over-excusing break (10/16); then 17/17.
+- **THE RE-DIAGNOSIS OF THE 37 FOUND NO BIG BUCKET LEFT.** ~12 damage-value (fenced by #542), 5
+  `stall` (refuted — a die, not a missing mechanic), 3 Cursed Body / Flame Body / castform (refuted),
+  2 Poison Touch (**die value; the ability is wired at WIRE 50 and both engines reach the draw at the
+  same point**), 2 `vol.charging`, and a one-row tail. **After fencing, the largest actionable group
+  was two rows.** It is a long tail now.
+- **PREDICTIONS: 4 of 4 on the leaf batch, exact on all four.** Board-material flat at 35 was called in
+  writing before the run and is the CORRECT outcome — **the pinned pool holds zero Lock-On and zero
+  Dragapult**, so the lab moved and the pool rightly did not. On batch 8 the VOID call was wrong: 6
+  predicted against 4 measured, because the bounced Parting Shot restored a shared accuracy address
+  (`acc partingshot [sd only]` 8 → 5). Recorded.
+- **`vol.charging` IS A CONFIRMED DEFECT THAT CANNOT BE PROBED TODAY.** `scripted()` in
+  `engine/game_differential.js` falls back to `dm.target` for a locked move whose request carries no
+  target field, so Showdown refuses the choice and **no staged scenario in this repo has ever played a
+  two-turn release turn.** The unscripted chooser in the same file already has the right rule.
+  Reported, not fixed — it can move the artifact's `directed` block.
+- **STORE-REPLAY IS REFUTED AS A DRIVER AND THE REASON IS STRUCTURAL.** Replaying recorded human click
+  sequences stops being a replay at the **first damage-dependent faint**, and **≥24.8% of frozen-pool
+  games have one on turn 1** — because Champions sheets never publish the 66 stat points (`evs: null`
+  on 100% of sheet bodies, measured across 47,856), so simulated damage cannot match the real game's.
+  It is also a POPULATION change rather than a driver change: the differential pairs team A from game
+  X against team B from game Y, so **no recorded sequence exists for the matchups it plays.**
+- **THE COORDINATION GAP IS ALREADY QUANTIFIED IN THIS REPO AND NOBODY HAD ACTED ON IT.**
+  `engine/board.js:377` measures humans **double-targeting 23.4%** of the time against **~50%** for
+  independent choice, and `engine/empirical_driver.js:56-64` declares that it has **no target model
+  and no switch model** — with switches at **12.1%** of real slot decisions. That is why the arm runs
+  a median of **11 turns against real VGC's 7**, with **49% hitting the cap instead of ending.**
+- Full accounts: `docs/_reports/2026-09-05-fix-batch-8.md`,
+  `docs/_reports/2026-09-05-leaf-widening-batch2.md`,
+  `docs/_reports/2026-09-05-release-drift-diagnosis.md`.
+
+---
+
 ## [5.254.0] — 2026-09-05
 
 ### Fixed

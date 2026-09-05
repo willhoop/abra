@@ -1,6 +1,27 @@
 # ABRA — Project Summary
 
-**Version 5.254.0 · 2026-09-05 · Will Hooper**
+**Version 5.255.0 · 2026-09-05 · Will Hooper**
+
+**5.255.0 - THE MOST EXPENSIVE THING THIS VERSION FOUND WAS NOT A GAME MECHANIC. A RELEASE FINGERPRINT MOVED BECAUSE A FILE'S LINE ENDINGS CHANGED, NOTHING ELSE DIFFERED IN ANY OF THE 26 FROZEN SOURCES, AND FIVE HEAVY RE-RUNS WERE SPENT DISCOVERING THAT.**
+
+| question | artifact | answer |
+|---|---|---|
+| the whole-game clause that GATES | `data/game-differential.json` | **board-material 46 of 961** — again NOT republished, and stale as a description of tonight's engine |
+| the same clause, measured on tonight's engine | `data/verification/fix-batch-8.json` | **board-material 35 of 961**, protocol first-divergence 120, VOID 4 |
+| board leaves the comparator actually looks at | the leaf-widening verification artifact | **40 of 56** standing leaves, up from 37 |
+| the stage-by-stage damage comparison | `data/engine-diff.json` | not re-run in this pass; the last measured result is carried forward from the block below |
+| probed mechanics live | `data/mechanics-census.json` | **829 of 829**, level throughout |
+| cited releases, classified by why their digest moved | `engine/pin_guard.js` | **34** CONTENT-CHANGED, **1** EOL-ONLY, **1** NO-DRIFT, **0** UNDIAGNOSABLE, of **36** |
+
+**WHAT WENT WRONG, AND WHY THE FIX IS A DIAGNOSIS RATHER THAN AN EXEMPTION.** Every measurement here is taken against a frozen photograph of the code, identified by a fingerprint over its bytes. If the fingerprint moves, the measurement is stale. Tonight the fingerprint moved and nothing had changed: one source had been re-saved with different line endings, so all 26 frozen files were letter-for-letter identical while the id was new. The gate read 7 of 9 clauses failing instead of 2 of 9, and five heavy clauses were re-run to restore it. The tool now says WHICH happened — the sources changed, or they are identical apart from their line endings. **It excuses nothing:** the fingerprint still hashes raw bytes, it still moves on a line-ending change, stranded artifacts stay stranded, and this version's two failing clauses are labelled CONTENT-CHANGED and still fail with every count withheld. Both obvious repairs are correctly shut — pinning the nine unpinned sources would rewrite them, move every release id and break a suite that matches a carriage return against the simulator's own text, and normalising the comparison is banned because the difference is already observable to an instrument. **The tool also caught a false alarm in itself before being trusted**, and was shown red four ways: 9 of 16 with its normaliser disabled, 10 of 16 over-applied, 17 of 17 repaired.
+
+**THE ENGINE HALF, AND THE RULE ABOUT WHICH FILE A SCORE CAME FROM.** Two mechanics landed. Imprison had been setting a volatile and sealing nothing, so a foe played a sealed move, dealt damage and spent PP — the tag carried the seal all along and no engine line read it. And the pivot road never asked whether a move had been bounced, so a Parting Shot reflected by Magic Bounce dropped the wrong Pokemon's stats and made the wrong Pokemon leave; the two engines were 14 board leaves apart before the fix and identical after. Board-material went 37 of 961 to 35, protocol 122 to 120, VOID 6 to 4, census level. Both closed games were attributed by id with zero new. **The published artifact was again deliberately not rewritten**, so two numbers exist for one question by design and neither may be quoted without its file.
+
+**WE ALSO WIDENED THE COMPARISON ITSELF, ON WILL'S RULING THAT THE LEAVES COME BEFORE THE COUNT.** Board-material zero on 37 of 56 standing leaves is not the same claim as zero on all 56 — a comparator that does not look at a leaf agrees about it for free. Three more are wired, each traced to a real write AND read site before wiring and each staged in a real game, taking it to 40 of 56. **The game score stayed flat at 35 and that was called exactly in advance**: the pinned pool holds zero Lock-On and zero Dragapult, so the lab moved and the pool correctly did not.
+
+**AN IDEA WAS REFUTED RATHER THAN TRIED, WHICH IS THE CHEAPER ORDER.** Driving the differential with recorded human clicks cannot work here. A replay stops being a replay at the first damage-dependent faint, and at least 24.8% of frozen-pool games have one on turn 1, because Champions sheets never publish the 66 stat points — the spread is absent on 100% of sheet bodies across 47,856 of them. And the differential deliberately pairs one game's team against another game's team, so no recorded sequence exists for the matchups it plays. **The gap in the driver we do use was already quantified in this repository and nobody had acted on it:** humans double-target 23.4% of the time against roughly half under independent choice, the driver declares it has no target model and no switch model, switches are 12.1% of real decisions, and its games run a median of 11 turns against real VGC's 7 with 49% hitting the cap instead of ending.
+
+**WHAT IS STILL WITHHELD.** Everything downstream of the simulator: leaf calibration, every rollout figure, every head-to-head. The gate is shut and the MAG refit is owed as a refit rather than a restamp. The remaining whole-game differences no longer form a large group — after fencing the rows already filed, the largest actionable group was two rows.
 
 **5.254.0 - A GENERATED COPY OF OUR RULEBOOK HAD BEEN SHIPPING A LIVE SIMULATOR BUG FOR SIX DAYS, AND THE CHECK THAT CATCHES IT WAS RED THE WHOLE TIME AND WAS FILED INSTEAD OF ACTED ON. FOUR MECHANICS ALSO LANDED: 41 OF 961 BECOMES 37.**
 

@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-05T01:29:20.593Z",
+ "generated": "2026-09-05T03:16:36.451Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "ae608567e8a8",
- "engine_release_cut": "2026-09-05T01:24:36.996Z",
- "engine_release_cuts": 1,
+ "engine_release": "6f96db9da019",
+ "engine_release_cut": "2026-09-05T03:06:38.003Z",
+ "engine_release_cuts": 5,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "c2438663ebe5",
+  "engine/medicham2-browser.js": "f1f75fb6b312",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "1c4ba432e563",
   "engine/position_features.js": "622482051bf4",
@@ -44,8 +44,8 @@
   "COULD-NOT-STAGE": 22
  },
  "arms_played": {
-  "top-tie-first": 825,
-  "bottom-tie-first": 264
+  "top-tie-first": 741,
+  "bottom-tie-first": 246
  },
  "scope": {
   "total": 500,
@@ -63,590 +63,7 @@
   "could_not_stage_in_scope": 22,
   "attributed_by_second_control": []
  },
- "reds": [
-  {
-   "rule": "move/priority",
-   "ok": true,
-   "why": "every move resolves in bracket 0, so a priority click no longer outruns a faster foe",
-   "moved": {
-    "member": "accelerock",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/boosts-self",
-   "ok": true,
-   "why": "the self-boost is skipped entirely — the click is still made, still costs the turn and still records itself as the last move",
-   "moved": {
-    "member": "acidarmor",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.boosts.def",
-     "boosts.def"
-    ]
-   }
-  },
-  {
-   "rule": "move/plain-attack",
-   "ok": true,
-   "why": "every damage roll is halved",
-   "moved": {
-    "member": "acidspray",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/variable-power",
-   "ok": true,
-   "why": "every damage roll is halved",
-   "moved": {
-    "member": "acrobatics",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/needs-a-stat-stage-to-act-on",
-   "ok": true,
-   "why": "a stat stage written by a move's own boost block is dropped, so there is nothing for the subject to clear, copy, invert or swap",
-   "moved": {
-    "member": "guardswap",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.boosts.def",
-     "boosts.def"
-    ]
-   }
-  },
-  {
-   "rule": "move/crit",
-   "ok": true,
-   "why": "a critical hit stops being worth x1.5 — it still lands, still ignores the defender's positive stages and still ignores screens",
-   "moved": {
-    "member": "aircutter",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/needs-the-user-off-full-hp",
-   "ok": true,
-   "why": "a residual volatile takes HP off its victim and returns NOTHING to the body it is supposed to heal — the only residual heal path in this engine",
-   "moved": {
-    "member": "leechseed",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/self-boosts-after",
-   "ok": true,
-   "why": "the self stat change is never applied — the damage still lands",
-   "moved": {
-    "member": "armorcannon",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.boosts.def",
-     "party.boosts.spd",
-     "boosts.def",
-     "boosts.spd"
-    ]
-   }
-  },
-  {
-   "rule": "move/volatile",
-   "ok": true,
-   "why": "the move-sealing volatiles (Taunt, Encore, Disable) land with the bare 1-turn fallback instead of the duration the artifact carries — the counter is what this family is compared on",
-   "moved": {
-    "member": "disable",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "vol.disable"
-    ]
-   }
-  },
-  {
-   "rule": "move/needs-the-sky-it-names",
-   "ok": true,
-   "why": "a weather set by a move is never written to the field",
-   "moved": {
-    "member": "auroraveil",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "screens.physical",
-     "screens.special",
-     "screens.named.auroraveil"
-    ]
-   }
-  },
-  {
-   "rule": "move/boosts-target",
-   "ok": true,
-   "why": "the target's stat stage is left where it was — the move still resolves, still announces and still spends the turn",
-   "moved": {
-    "member": "babydolleyes",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.boosts.atk",
-     "boosts.atk"
-    ]
-   }
-  },
-  {
-   "rule": "move/protect-family",
-   "ok": true,
-   "why": "the shield is never raised — the click still resolves and still spends the turn",
-   "moved": {
-    "member": "banefulbunker",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "party.fainted",
-     "party.status",
-     "species",
-     "hp",
-     "maxhp",
-     "types",
-     "ability",
-     "stall",
-     "pp.banefulbunker"
-    ]
-   }
-  },
-  {
-   "rule": "move/self-switch",
-   "ok": true,
-   "why": "a move-driven switch is never classified as one, so the user stays on the field",
-   "moved": {
-    "member": "chillyreception",
-    "verdict": "COULD-NOT-STAGE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": "the SUBJECT arm did not run: SHORT — the script declares 2 turn(s) and 1 were played",
-    "fields": []
-   }
-  },
-  {
-   "rule": "move/needs-a-berry-already-eaten",
-   "ok": true,
-   "why": "a threshold berry restores nothing when it is eaten",
-   "moved": {
-    "member": "belch",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/drain",
-   "ok": true,
-   "why": "the drain heal is skipped and the damage is left alone, so a break that moves ONLY the user's HP is the localisation",
-   "moved": {
-    "member": "bitterblade",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/recharge",
-   "ok": true,
-   "why": "every damage roll is halved, so the hit this rule DOES stage moves",
-   "moved": {
-    "member": "blastburn",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/multihit",
-   "ok": true,
-   "why": "a multi-hit move lands exactly ONE hit — which is the defect this family was written against",
-   "moved": {
-    "member": "bonerush",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/charge",
-   "ok": true,
-   "why": "the wind-up is skipped — the move resolves on the turn it is clicked",
-   "moved": {
-    "member": "bounce",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "vol.charging",
-     "party.hp",
-     "party.status",
-     "hp",
-     "status",
-     "vol.focusenergy",
-     "pp.focusenergy"
-    ]
-   }
-  },
-  {
-   "rule": "move/recoil",
-   "ok": true,
-   "why": "the recoil is never paid — the damage still lands",
-   "moved": {
-    "member": "bravebird",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/force-switch",
-   "ok": true,
-   "why": "the phaze never removes anybody — the move still resolves and still spends the turn",
-   "moved": {
-    "member": "roar",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "species",
-     "hp",
-     "maxhp",
-     "types",
-     "ability",
-     "vol.focusenergy",
-     "pp.focusenergy"
-    ]
-   }
-  },
-  {
-   "rule": "move/fixed-damage",
-   "ok": true,
-   "why": "the fixed-damage branch is skipped — the click still resolves and still spends the turn",
-   "moved": {
-    "member": "comeuppance",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/terrain-setter",
-   "ok": true,
-   "why": "the terrain is never written to the field",
-   "moved": {
-    "member": "electricterrain",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "field.terrain",
-     "field.terrain_turns"
-    ]
-   }
-  },
-  {
-   "rule": "move/needs-the-terrain-it-names",
-   "ok": true,
-   "why": "a terrain set by a move is never written to the field",
-   "moved": {
-    "member": "steelroller",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/pseudo-weather",
-   "ok": true,
-   "why": "the room is never set — the click still resolves and still spends the turn",
-   "moved": {
-    "member": "trickroom",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "field.trickroom_turns"
-    ]
-   }
-  },
-  {
-   "rule": "move/ohko",
-   "ok": true,
-   "why": "an OHKO deals 1 point instead of the target's whole HP, so the body survives",
-   "moved": {
-    "member": "fissure",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "party.fainted",
-     "party.status",
-     "hp",
-     "fainted",
-     "status"
-    ]
-   }
-  },
-  {
-   "rule": "move/status-inflict",
-   "ok": true,
-   "why": "no status is ever written to any body — the move still resolves, still announces and still spends the turn",
-   "moved": {
-    "member": "glare",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.status",
-     "status"
-    ]
-   }
-  },
-  {
-   "rule": "move/the-user-faints-and-the-replacement-arrives-restored",
-   "ok": true,
-   "why": "the user no longer faints, so no replacement arrives to be restored",
-   "moved": {
-    "member": "healingwish",
-    "verdict": "COULD-NOT-STAGE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": "the SUBJECT arm did not run: SHORT — the script declares 4 turn(s) and 3 were played",
-    "fields": []
-   }
-  },
-  {
-   "rule": "move/heals-a-body-that-was-damaged-first",
-   "ok": true,
-   "why": "the heal is skipped — the click still resolves and still spends the turn",
-   "moved": {
-    "member": "lifedew",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/side-condition",
-   "ok": true,
-   "why": "a screen is never raised — the click still resolves and still spends the turn",
-   "moved": {
-    "member": "lightscreen",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "screens.special",
-     "screens.named.lightscreen"
-    ]
-   }
-  },
-  {
-   "rule": "move/weather-setter",
-   "ok": true,
-   "why": "the weather is never written to the field — the click still resolves and still spends the turn",
-   "moved": {
-    "member": "raindance",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "field.weather",
-     "field.weather_turns"
-    ]
-   }
-  },
-  {
-   "rule": "move/heal",
-   "ok": true,
-   "why": "the heal is skipped — the click still resolves and still spends the turn",
-   "moved": {
-    "member": "recover",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/full-heal-that-also-writes-a-status-onto-its-user",
-   "ok": true,
-   "why": "the full heal still happens and the user is no longer put to sleep by it",
-   "moved": {
-    "member": "rest",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.status",
-     "status",
-     "party.status_counter",
-     "status_counter",
-     "pp.focusenergy"
-    ]
-   }
-  },
-  {
-   "rule": "move/needs-a-volatile-set-first",
-   "ok": true,
-   "why": "the gate volatile is never spent, so the move that reads it acts on a stale count",
-   "moved": {
-    "member": "swallow",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.boosts.def",
-     "party.boosts.spd",
-     "boosts.def",
-     "boosts.spd"
-    ]
-   }
-  },
-  {
-   "rule": "move/type-changing",
-   "ok": true,
-   "why": "the weather-driven TYPE conversion is dropped from the damage path; the base-power doubling on the same line is left alone",
-   "moved": {
-    "member": "weatherball",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "move/heals-the-slot-a-turn-later-across-a-switch",
-   "ok": true,
-   "why": "the slot condition is never booked, so nothing arrives a turn later",
-   "moved": {
-    "member": "wish",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  }
- ],
+ "reds": [],
  "mirror": {
   "pairs": 0,
   "same_numbers_swapped": []
@@ -23523,6 +22940,12 @@
     },
     {
      "turn": 2,
+     "path": "p1.active[0].vol.lockon",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
      "path": "p1.pp[0].lockon",
      "with": 1,
      "without": 0
@@ -25137,6 +24560,12 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].vol.minimize",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.pp[0].minimize",
      "with": 1,
      "without": 0
@@ -25167,6 +24596,12 @@
     },
     {
      "turn": 2,
+     "path": "p2.active[0].vol.minimize",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
      "path": "p2.pp[0].minimize",
      "with": 2,
      "without": 0
@@ -25187,6 +24622,12 @@
      "turn": 3,
      "path": "p2.active[0].boosts.evasion",
      "with": 4,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].vol.minimize",
+     "with": 1,
      "without": 0
     },
     {
@@ -27027,6 +26468,12 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].vol.noretreat",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.pp[0].noretreat",
      "with": 1,
      "without": 0
@@ -27105,6 +26552,12 @@
     },
     {
      "turn": 2,
+     "path": "p2.active[0].vol.noretreat",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
      "path": "p2.pp[0].noretreat",
      "with": 2,
      "without": 0
@@ -27172,6 +26625,12 @@
     {
      "turn": 3,
      "path": "p2.active[0].boosts.spe",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].vol.noretreat",
      "with": 1,
      "without": 0
     },
@@ -44437,7 +43896,7 @@
    "reads": "priority !== 0 on a damaging move",
    "note": "priority +3 — Crabominable is the SLOWEST legal user of this move in the format (63 against 120 Speed) and dies outright to Volcarona's Flamethrower. It carries a 100% FLINCH, which fires in both pin arms, so with the bracket correct the foe never acts and the user is UNTOUCHED at the boundary; with it ignored the user is dead before it clicks.  NO ON-BOARD NEGATIVE: no second doomed body with an ordinary click could be derived, so the ignored-bracket board is supplied by the CONTROL ARM alone.",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1204 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1270 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "crabominable",

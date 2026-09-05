@@ -1,10 +1,10 @@
 {
-  "current": "ae608567e8a8",
-  "cut": "2026-09-05T01:24:36.996Z",
-  "why": "data/abra-tags.js rebuilt from data/tags.json — the fifth drift of the browser copy, Parting Shot's conditional pivot had never reached it",
-  "cuts": 1,
-  "latest_cut": "2026-09-05T01:24:36.996Z",
-  "latest_why": "data/abra-tags.js rebuilt from data/tags.json — the fifth drift of the browser copy, Parting Shot's conditional pivot had never reached it",
-  "pointer_written": "2026-09-05T01:24:37.069Z",
+  "current": "6f96db9da019",
+  "cut": "2026-09-05T03:06:38.003Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 19,
+  "latest_cut": "2026-09-05T03:55:47.289Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-09-05T03:55:47.428Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

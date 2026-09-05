@@ -119,10 +119,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  829/829 probed mechanics live, 0 missing   (census 2026-09-04 21:29)
+  829/829 probed mechanics live, 0 missing   (census 2026-09-04 23:09)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 9 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-04 21:27)
+    never fired in the staged harness (all-mechanics-fire.json, 35 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-04 23:15)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -144,9 +144,27 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-04 21:41_
+_stamped 2026-09-04 23:52_
 
 <!-- /GENERATED -->
+
+## IMPRISON SET A VOLATILE AND SEALED NOTHING, AND THE PIVOT ROAD NEVER ASKED `bounceOff`: BOARD-MATERIAL **37 OF 961 -> 35 OF 961**, PROTOCOL **122 -> 120** RAW, VOID **6 -> 4**, CENSUS LEVEL AT 829/829. **THE COMPARATOR ALSO WIDENED 37 -> 40 OF 56 LEAVES ON WILL'S RULING, AND THE POOL CORRECTLY DID NOT MOVE FOR IT.** 2026-09-05, CHANGELOG 5.255.0
+
+**IMPRISON IS THE DESTINY BOND SHAPE: IMPLEMENTED, AND DOING NOTHING.** `data/abra-tags.js` has carried `sealsMoves {fromUsersOwnMoves: true}` all along and **no engine line read it**, so this engine set the volatile, printed the message, and then let a foe play a sealed move, deal damage and spend PP. The authority is `data/moves.ts:9492-9524`. The probe is `tests/probe_imprison_seal.js`: its live arm read the defender at 78 HP here against 130 in the authority before the fix, and **IDENTICAL after**. **Three over-fire controls are green in both directions** — an unshared move, the user's own ally, and no Imprison on the field — because a seal that fires too widely is the same defect in the other direction and a probe with no refusal case is a silencer. A capability that cannot prove it ran is assumed broken; this one had a volatile to show for itself and no effect at all, which is the exact failure class this ledger keeps finding.
+
+**MAGIC BOUNCE HANDS THE MOVE OVER, SO THE CLICKER IS THE ONE THAT GETS DROPPED AND THE BOUNCER IS THE ONE THAT LEAVES.** The authority re-enters the move as `useMove(newMove, target, {target: source})`, which means a Parting Shot bounced back lowers the **CLICKER's** stats and switches the **BOUNCER** out. This engine did **both backwards**, because the pivot road never asked whether the move it was resolving had been bounced. The two engines were **14** board leaves apart before the fix and identical after, with the Synchronize, U-turn and Taunt controls unmoved — a bounced status ability, an unbounceable pivot and a bounceable non-pivot, so the control set separates "bounce" from "pivot" rather than moving with the fix.
+
+**THE COMPARATOR WAS AGREEING BY NOT LOOKING, AND IT NOW LOOKS AT THREE MORE LEAVES.** Will's ruling is that the leaves come before chasing the count to zero: *board-material zero on 37 of 56 standing leaves is not the same claim as zero on all of them.* `lockon`, `minimize` and `noretreat` are wired, taking it to **40 of 56**. Each was traced to a real **write AND read** site in this engine before being wired — the Unburden check, because a leaf can look wireable on every derived column and the engine still hold nothing under that name — and each was staged in a real game to confirm it stands at the boundary rather than being unreachable. All three red first with a control, and `lockon`'s clock was compared **as a clock** (`b2 medi=0 sd=absent`) rather than as a flag, because a counter compared as a boolean agrees on every value but zero.
+
+**THE POOL DID NOT MOVE FOR THE LEAVES AND THAT WAS CALLED EXACTLY IN ADVANCE.** Board-material stayed flat at **35**. The pinned pool holds **zero Lock-On and zero Dragapult**, so the lab moved and the pool correctly did not — the ranking rule working, stated before the run rather than explained after it. Predictions on the leaf batch went **4 of 4**, exact on all four. On the mechanics batch the VOID call was wrong — **6** predicted against **4** measured — because the bounced Parting Shot restored a shared accuracy address (`acc partingshot [sd only]` **8 -> 5**). Recorded as a miss.
+
+**WHICH ARTIFACT HOLDS WHICH WHOLE-GAME FIGURE.** `data/game-differential.json` was **NOT** republished and still holds board-material 46 of 961 — that is what the gate prints, and it is stale as a description of tonight's engine. Tonight's measurement is board-material 35 of 961, protocol 120, VOID 4, in this version's verification artifact under `data/verification/`. Both games that closed were attributed **by id on identical game lists, with zero new**. Name the artifact beside either figure, every time.
+
+**THE RE-DIAGNOSIS OF THE 37 FOUND NO BIG BUCKET LEFT, WHICH IS THE MOST USEFUL THING IN THIS SECTION FOR WHOEVER PICKS IT UP NEXT.** About **12** are damage-value rows already fenced by a filed row; **5** are `stall` and are refuted — a die, not a missing mechanic; **3** are Cursed Body, Flame Body and castform and are refuted; **2** are Poison Touch and are a die value, with the ability wired and both engines reaching the draw at the same point; **2** are `vol.charging`; the rest is a one-row tail. **After fencing, the largest actionable group was two rows.** It is a long tail now, and a long tail is a different kind of work from a bucket.
+
+**`vol.charging` IS A CONFIRMED DEFECT THAT CANNOT BE PROBED TODAY, AND THE OBSTACLE IS THE INSTRUMENT.** `scripted()` in `engine/game_differential.js` falls back to `dm.target` for a locked move whose request carries no target field, so the authority refuses the choice — and **no staged scenario in this repository has ever played a two-turn release turn.** The unscripted chooser in the same file already has the right rule. Reported, not fixed; it can move the artifact's `directed` block, so it is owed before that block is quoted.
+
+**WHAT IS OWED HERE.** The gate did not open and this ledger claims nothing downstream of it. The two failing clauses read the unrepublished whole-game artifact and are diagnosed CONTENT-CHANGED with their counts withheld — a re-measurement is owed, not annotated. `vol.charging` needs the scripted chooser fixed before it can be probed at all. The nine sources named in `.gitattributes` as deliberately unpinned stay unpinned, for the reason recorded in this version's release-drift work: pinning them would rewrite them, move every release id and break `tests/roster.js`, whose red demonstrations match a carriage return against this engine's own source. `node engine/status.js --write` was not run by this documentation pass and no `<!-- GENERATED -->` block was hand-edited, so the block above is stamped to an earlier pass. Full accounts: `docs/_reports/2026-09-05-fix-batch-8.md`, `docs/_reports/2026-09-05-leaf-widening-batch2.md`, `docs/_reports/2026-09-05-release-drift-diagnosis.md`.
 
 ## THE BROWSER RULEBOOK HAD BEEN SIX DAYS BEHIND THE NODE ONE AND THE DRIFT WAS **NOT** COSMETIC — PARTING SHOT'S CONDITIONAL PIVOT NEVER REACHED IT. THE CHECK THAT CATCHES THIS EXISTS, IS A PROPERTY, AND WAS **RED THE WHOLE TIME**. CENSUS LEVEL AT **829/829**, GATE BACK TO **2 OF 9**. 2026-09-05
 

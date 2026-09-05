@@ -449,12 +449,113 @@ const CASES = [];
     } });
 }
 
+/* ---- BATCH 2, 2026-09-05 — THREE MORE OF THE NINETEEN --------------------------------------------
+ *
+ * `tests/probe_uncompared_leaves.js` re-derived on this date: 80 leaves a legal mechanic in this
+ * format can write, 37 compared, 4 declared, 39 in neither list — and of those 39 the authority ends
+ * 18 in the residual (`duration: 1`) and 2 inside their own action (`fling`, `sparklingaria`), so
+ * NINETEEN can be standing when this comparator reads a turn boundary. The three below are the three
+ * of that nineteen this engine already keys under the authority's own spelling in `_vol` — which is
+ * the cheap end, not the important end, and the header for each says what the engine actually HOLDS
+ * rather than assuming the name implies a quantity. (Unburden above is the standing lesson: a leaf can
+ * look wireable on every derived column and hold nothing at all.)
+ *
+ * CHAMPIONS OVERRIDES NONE OF THE THREE — checked, not assumed. `lockon`, `minimize` and `noretreat`
+ * appear in `data/mods/champions/` ONLY in `learnsets.ts`; there is no key for any of them in
+ * `moves.ts`, `conditions.ts`, `abilities.ts`, `items.ts`, `scripts.ts`, `formats-data.ts` or
+ * `rulesets.ts`. So mainline `data/moves.ts` is the authority and the line numbers below are its. */
+
+{ /* LOCK-ON — A CLOCK ON BOTH SIDES, COMPARED AS ONE.
+   * data/moves.ts:10397-10426, read whole. `onTryHit` refuses a second application while one stands;
+   * `onHit` does `source.addVolatile('lockon', target)` — THE USER HOLDS IT, which is the half a
+   * careless fixture gets backwards — and the condition declares `noCopy: true, duration: 2`.
+   * medicham2 keys it in `_vol.lockon` (medicham2-browser.js:29657 `a.kind==='lockon'`, written at the
+   * `guaranteeVolatiles()` table's own volatile name) and ticks it in its own end-of-turn loop
+   * (:38438). BOTH engines therefore hold 2 at application and 1 at the boundary that closes the
+   * applying turn, and 0 at the next one — so the CLOCK is the comparison and nothing is collapsed.
+   *
+   * TURN 2 IS IN THE SCRIPT ON PURPOSE: it is the boundary where the counter runs out, and a clock
+   * that only ever agrees on the turn it was written is not evidence that the two clocks run alike. */
+  const sp = carrierOf('lockon');
+  CASES.push({ leaf: 'lockon', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts:10397-10426 (condition, duration 2, held by the USER)',
+    ours: 'engine/medicham2-browser.js:29657 `_vol.lockon`, ticked at :38438',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Lock-On', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'lockon', t: 0 }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] },
+             { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    /* THE PLANT CLEARS THE GUARANTEE ON THE USER — p1 slot 0, the body that clicked it. */
+    plant: (S) => { const t = (S.actA || [])[0]; if (t && t._vol) delete t._vol.lockon; },
+    held: (S, battle) => ({ medi: (((S.actA || [])[0] || {})._vol || {}).lockon | 0,
+                            sd: ((((battle.sides[0].active[0] || {}).volatiles) || {}).lockon || {}).duration }) });
+}
+
+{ /* MINIMIZE — PRESENCE ON BOTH SIDES, AND NOTHING IS COLLAPSED.
+   * data/moves.ts:11920-11951, read whole. The condition is `noCopy: true`, `onRestart: () => null`,
+   * an `onSourceModifyDamage` and an `onAccuracy` — NO DURATION AT ALL. It is `target: 'self'` and
+   * carries `boosts: { evasion: 2 }` beside the volatile, so the board's `boosts` leaf already
+   * compares the other half of the move and this arm adds the half nothing looked at.
+   * medicham2 reaches it through the composed-effect rider (medicham2-browser.js:26545 `_siRider`),
+   * which calls `applyMoveVolatile` and lands on the generic write at :18787 — `_vol.minimize = 1`,
+   * no clock, never ticked, because `minimize` is in neither `durationVolatiles()` (keyed off
+   * `sealsMoves`) nor `guaranteeVolatiles()`. Presence against presence.
+   *
+   * THIS ENGINE DOES READ IT — :10540 and :12666, the `PUNISH_MINIMIZE_BLIND` sites that double a
+   * minimize-flagged move's damage and make it never miss. So the leaf is not inert here; it is
+   * simply never compared. */
+  /* THE FILLERS ARE EXCLUDED FROM THE CARRIER SEARCH, and this is not tidiness. The first legal
+   * `minimize` carrier in dex order IS Clefable, which is also `FILLER[0]` — so the unfiltered search
+   * built a p1 of two Clefable, which Species Clause forbids. `buildPair` does not run the validator,
+   * so the fixture played anyway and would have been an illegal team quietly measuring a legal claim. */
+  const sp = carrierOf('minimize', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'minimize', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts:11920-11951 (condition, NO duration)',
+    ours: 'engine/medicham2-browser.js:18787 `_vol.minimize` (generic write, bare 1)',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Minimize', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'minimize' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] },
+             { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { const t = (S.actA || [])[0]; if (t && t._vol) delete t._vol.minimize; },
+    held: (S, battle) => ({ medi: (((S.actA || [])[0] || {})._vol || {}).minimize ? 1 : 0,
+                            sd: ((((battle.sides[0].active[0] || {}).volatiles) || {}).minimize ? 1 : 0) }) });
+}
+
+{ /* NO RETREAT — PRESENCE ON BOTH SIDES.
+   * data/moves.ts:12790-12822, read whole. `onTry` refuses a second application and DELETES the
+   * volatile from the move when the user is already `trapped`; the condition declares no duration —
+   * only an `onStart` line and an `onTrapPokemon` that calls `pokemon.tryTrap()`. `tryTrap` sets the
+   * body's own `trapped` FLAG and adds no volatile, so the `trapped` leaf this comparator already
+   * reads is untouched by this fixture and the two arms cannot be confused with each other.
+   * medicham2 reaches it through the same composed rider as Minimize and lands on the same generic
+   * write at :18787 — `_vol.noretreat = 1`, no clock. Presence against presence.
+   *
+   * medicham2-browser.js:26327 already cites this move's `onTry` refusal, so the second-click clause
+   * is wired; this arm is about the LEAF being invisible to the board comparison, not about the move. */
+  const sp = carrierOf('noretreat');
+  CASES.push({ leaf: 'noretreat', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts:12790-12822 (condition, NO duration)',
+    ours: 'engine/medicham2-browser.js:18787 `_vol.noretreat` (generic write, bare 1)',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['No Retreat', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'noretreat' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] },
+             { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { const t = (S.actA || [])[0]; if (t && t._vol) delete t._vol.noretreat; },
+    held: (S, battle) => ({ medi: (((S.actA || [])[0] || {})._vol || {}).noretreat ? 1 : 0,
+                            sd: ((((battle.sides[0].active[0] || {}).volatiles) || {}).noretreat ? 1 : 0) }) });
+}
+
 /* ---- THE RUN ------------------------------------------------------------------------------------ */
 const LEAFRE = leaf => new RegExp('\\.vol\\.' + leaf + '$');
 function runArm(c, plant) {
   const a = G.buildPair(c.p1), b = G.buildPair(c.p2);
   if (!a || !b) return { err: 'COULD NOT BUILD THE PAIR' };
   const boards = [];
+  /* THE SCRIPT'S OWN FALLBACK COUNTER, READ PER ARM — 2026-09-05. `scripted()` returns `pass` for a
+   * click that is not on Showdown's request and COUNTS it; this file did not read that count, so a
+   * fixture whose carrier never learned `Protect` would have both engines pass, the boards agree, and
+   * the arm report a clean CONTROL while testing nothing. That is the silent default this repository
+   * is named after, and the driver already exposes the answer — there is no excuse for a second guess. */
+  G.resetScriptCounters();
   const r = G.playGame(a, b, 'directed', 'leafwiden/' + c.leaf + (plant ? '/red' : '/control'), {
     script: c.script,
     statePlant: plant ? ((S, battle, turnIdx) => { if (turnIdx === c.boundary) plant(S); }) : undefined,
@@ -464,7 +565,7 @@ function runArm(c, plant) {
                     nDiffs: snap.diffs.length,
                     otherPaths: snap.diffs.filter(d => !LEAFRE(c.leaf).test(d.path)).map(d => d.path) });
     } });
-  return { err: r && r.err, boards };
+  return { err: r && r.err, boards, script: G.scriptCounters() };
 }
 
 console.log('\n  LEAF WIDENING — CONTROL AND RED, PER LEAF');
@@ -482,6 +583,12 @@ for (const c of CASES) {
 
   const ctl = runArm(c, null);
   if (ctl.err) { console.log('       CONTROL THREW: ' + ctl.err); fail++; continue; }
+  /* PRINTED UNCONDITIONALLY, so a zero is evidence the script ran rather than an absence. A non-zero
+   * here means at least one scripted click silently became a `pass`, and every board below it is a
+   * board from a game that did not do what this fixture says it did. It FAILS the arm. */
+  console.log('       scripted clicks that fell through to `pass`: ' + ctl.script.moveNotOnRequest
+    + (ctl.script.firstMissing ? '   first: ' + ctl.script.firstMissing : ''));
+  if (ctl.script.moveNotOnRequest) { console.log('       FAIL — the fixture did not run its own script.'); fail++; continue; }
   for (const b of ctl.boards)
     console.log('       b' + b.turnIdx + '  medi=' + JSON.stringify(b.held.medi) + ' sd=' + JSON.stringify(b.held.sd)
       + '   diffs=' + b.nDiffs + (b.onLeaf.length ? '  ON THIS LEAF: ' + b.onLeaf.map(d => d.path).join(',') : ''));

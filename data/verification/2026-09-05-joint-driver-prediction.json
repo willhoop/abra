@@ -1,0 +1,70 @@
+{
+  "written": "2026-09-05, BEFORE the first joint-arm game was played",
+  "by": "MEASURE",
+  "what": "the whole-game differential under a THIRD steering arm, joint-empirical-click/v1",
+  "pins": {
+    "release": "a5c736283129",
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "arm": "middle",
+    "mode": "--end-state",
+    "games_flag": "--games 1200 (a PAIR budget; ~961 games are PLAYED)"
+  },
+  "baseline": {
+    "artifact": "data/verification/fix-batch-8.json",
+    "policy": "empirical-click/v1",
+    "note": "IT IS A RE-BASELINE AND NOT A DELTA. steering.comparable REFUSES a cross-policy pair by design, exactly as it does for coverage vs empirical. The matchups and pins are identical, so completion and median turns are read against each other; the two artifacts are formally not a before/after.",
+    "games_played": 961,
+    "median_turns": 11,
+    "both_engines_ended": 485,
+    "turn_cap_12": 473,
+    "board_material": 35,
+    "protocol_diverged": 120,
+    "void": 4,
+    "threw": 1,
+    "switch_rate_realised_pct": 9.686
+  },
+
+  "the_premise_in_the_brief_is_refuted_before_the_run": {
+    "brief_said": "the driver samples P(move|species) per slot INDEPENDENTLY, so it double-targets ~50% of the time against a human 23.4%",
+    "measured_from_the_driver_s_own_source": "engine/game_differential.js chooseAction resolved every normal/any/adjacentFoe click with `const j = foes.findIndex(q => q && !q.fainted)` — the LOWEST LIVE INDEX. Both slots evaluate it against the same board in the same request, so double-targeting ran at 100%, not 50%, and always at the same foe.",
+    "why_it_matters_for_the_direction": "100% focus fire is not a weak policy, it is the STRONGEST damage-concentration policy available. Making the target draw human-realistic (38.9% same foe) therefore SPREADS damage that was concentrated, keeps both foes alive and attacking for longer, and should make games LONGER rather than shorter. The completion problem this arm was asked to fix is very unlikely to be a targeting problem.",
+    "what_the_old_rule_did_structurally": "the foe standing in slot b was never named by a single-target move until slot a was permanently empty, so three of a four-body bring were removed through one lane and the fourth arrived at full HP as the last body of the game."
+  },
+
+  "derived_inputs": {
+    "artifact": "data/joint-click-census.json",
+    "human_games": 101995,
+    "focus_rate_pct": 38.858,
+    "focus_rate_clean_pairs": 159951,
+    "focus_rate_bounds_pct": [29.145, 54.142],
+    "switch_pooled_conditional_pct": 10.355,
+    "switch_cells": 30,
+    "switch_cell_span_pct": [3.337, 18.904],
+    "body_debutant_pct": 52.822,
+    "body_debutant_uniform_would_give_pct": 50.016
+  },
+
+  "predictions": [
+    { "quantity": "realised focus rate (partner joins the anchor)", "call": 38.9, "band": [37.5, 40.3],
+      "why": "a self-check on the draw, not a finding. If this is not within a point of the measured 38.858 the model is not wired to the number it claims." },
+    { "quantity": "median turns", "call": 12, "band": [11, 12],
+      "why": "spreading damage that was 100% concentrated removes attackers more slowly, so games get longer, and the cap is 12." },
+    { "quantity": "both engines ended (of 961)", "call": 420, "band": [360, 490],
+      "why": "DOWN from 485. This is the prediction that matters and it is the opposite of what the arm was commissioned to achieve. Focus fire kills attackers sooner and both sides were doing it at 100%." },
+    { "quantity": "turn cap 12 (of 961)", "call": 538, "band": [468, 598],
+      "why": "the complement of the above, less the ~3 void/thrown/parted." },
+    { "quantity": "board-material (of 961)", "call": 52, "band": [40, 70],
+      "why": "UP, and a rise is the finding rather than a regression. Damage now lands on the slot-b foe at all, which is a class of position the previous arm could not reach, and longer games mean more turn boundaries compared. The coverage->empirical swap did the same thing, 0 -> 135." },
+    { "quantity": "protocol first-divergence (of 961)", "call": 142, "band": [120, 175],
+      "why": "same reasoning, one comparator weaker." },
+    { "quantity": "realised switch rate (% of decisions with a live bench)", "call": 11.0, "band": [8.5, 13.5],
+      "why": "the pooled human rate is 10.355 but the driver's CONTEXT mix decides the realised number: turn-1 full-HP first-decision cells are 3.3-7.2% and chipped settled cells are 12-18.9%. Which mix dominates is exactly what a single constant could not express, in either direction." },
+    { "quantity": "joint_cell_absent + joint_cell_too_thin", "call": 0, "band": [0, 400],
+      "why": "the driver always knows HP and activeTurns, so the `unknown` HP cells cannot be reached and every other cell carries at least 9,717 human decisions. A large number here means the key the driver builds is not the key the census wrote." }
+  ],
+
+  "what_would_make_this_a_failure_rather_than_a_result": "if completion falls AND board-material does not rise, the arm has bought realism in the target draw and nothing else, and should be reported as such. If completion rises, the premise above is wrong and the refutation is what needs withdrawing, not the arm.",
+
+  "not_predicted_and_said_so": "which of the two changes is responsible for whichever way completion moves. This run changes the target model and the switch model together, so it cannot attribute. A knob-cleared control arm for each half is OWED, not run here."
+}
