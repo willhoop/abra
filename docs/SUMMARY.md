@@ -1,6 +1,24 @@
 # ABRA — Project Summary
 
-**Version 5.256.0 · 2026-09-05 · Will Hooper**
+**Version 5.257.0 · 2026-09-05 · Will Hooper**
+
+**5.257.0 - THE STAND-IN PLAYER WAS NOT PRESSING PROTECT TOO OFTEN. IT WAS BEING HANDED A MENU WITH ONE ITEM ON IT, AND FIXING THAT MADE 79% OF THE TEST GAMES ACTUALLY FINISH INSTEAD OF 56%. WE ALSO WITHDREW A CLAIM WE PUBLISHED THREE HOURS EARLIER: THE MEASURING ARM WE CALLED UNREPRODUCIBLE IS BIT-IDENTICAL, AND THE REAL DEFECT IS THAT WE NEVER FROZE THE MEASURING TOOL AT ALL.**
+
+| question | artifact and arm | answer |
+|---|---|---|
+| the whole-game clause that GATES | `data/game-differential.json` | **board-material 46 of 961** - again NOT republished, and stale as a description of tonight's engine |
+| the same clause on tonight's engine, EMPIRICAL arm | the protect-fix artifact under `data/verification/` | **147 protocol / 55 board-material**, on a comparator now reading 54 leaves |
+| the strictly paired protect measurement, EMPIRICAL arm | the two protect-fix artifacts under `data/verification/` | **34 to 47 board-material**, 961 games each, the driver rule the only difference |
+| the same clause, JOINT arm - a different policy, NOT pairable with the rows above | the leaf-widening artifacts under `data/verification/` | **53 board-material** on the driver as it was, and it repeats; the same arm on the repaired driver reads **167 protocol / 69 board-material**, twice, identically |
+| how often the stand-in pressed Protect | the same paired artifacts | **32.77% to 20.79%** of clicks, against an input table of 13.565% and humans at 14.76% |
+| how many decisions had one option in them | the driver counters | **22.2%**, of which **60%** were Protect; with all four moves present the arm was already at **15.3%** |
+| how much of the comparison is now wired | `tests/probe_uncompared_leaves.js` | **54 of the leaves compared, standing hole 16 to 0**, two refusals both derived rather than asserted |
+
+**WHAT THE FIX ACTUALLY WAS, IN ONE LINE: A SETTING NAMED `prefer` WAS DELETING THE OTHER OPTIONS RATHER THAN FAVOURING ONE.** Protect makes a turn happen with nothing in it, so a stand-in that presses it constantly produces games that grind to the time limit and never end. **Resolved games went 539 to 762 and games still running at the cap went 418 to 189.** The count of games where the two engines part on the board went **up**, 34 to 47, and that is what a fix looks like here: a game that ends reaches late positions the old stand-in never played, so there is more game in which to disagree. We say that in the same breath as the number, because a score rising looks like bad news and this one is not.
+
+**THE CORRECTION IS THE MORE VALUABLE HALF OF THIS VERSION.** Earlier tonight we published that one measuring arm gave 167, 167 and 138 on identical settings, that we did not know why, and that none of its numbers could be quoted until we did. **That is withdrawn: six runs split perfectly cleanly either side of the moment the protect fix landed, three on each side, and each group is identical to itself down to its last internal counter.** There was no randomness. **The real defect is bigger:** every measurement here freezes the engine, the scenario list and the team pool - all of them things the measuring tool READS - and **the measuring tool itself was never fingerprinted**. A program whose whole job is to answer "are these two runs comparable" answered **COMPARABLE** about two runs made by different code, and its own notes had described that exact gap in writing. **A hole that is written down is not a hole that is closed.** The tool now fingerprints its own code, refuses to publish a run that was edited while it played, and derives that warning from the two runs in front of it.
+
+**AND ONE FIGURE PUBLISHED TONIGHT IS CORRECTED: 47 SHOULD READ 55 WHERE IT DESCRIBES THE CURRENT EMPIRICAL ARM.** Both are real. 47 is the pre-widening comparison at 40 leaves and stays correct as one leg of the paired measurement; 55 is the same run through the widened comparison at 54 leaves. **A whole-game figure without its artifact and its arm named is not a figure**, which is why every row of the table above carries both. Still open and named rather than tuned away: the stand-in presses Protect **1.53** times as often as its own input table says, because that table is a population-wide rate squeezed onto the four moves a Pokemon actually carries and Protect survives the squeeze. Full accounts in `docs/_reports/2026-09-05-protect-amplification.md`, `docs/_reports/2026-09-05-leaf-widening-all16.md` and `docs/_reports/2026-09-05-cap-or-stall.md`.
 
 **5.256.0 - THE BEST FINDING OF THE NIGHT WAS ONE NO INSTRUMENT HERE COULD HAVE FOUND YESTERDAY. A TWO-TURN MOVE CHARGED AT ONE ENEMY CAME OUT AND STRUCK THE OTHER, AND A FLAW IN THE STAND-IN PLAYER HAD BEEN MAKING THAT UNOBSERVABLE BY CONSTRUCTION.**
 

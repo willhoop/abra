@@ -53,7 +53,26 @@ const argv = process.argv.slice(2);
 const flag = (n, dflt) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : dflt; };
 const has = n => argv.includes(n);
 const GAMES = +flag('--games', 45);
-const MAXTURNS = +flag('--turns', 12);
+/* THE TURN CAP IS 20, NOT 12 — WILL'S RULING 2026-09-05, ON A MEASUREMENT RATHER THAN A FEELING.
+ *
+ * `docs/_reports/2026-09-05-cap-or-stall.md` swept the cap on one identical set of pins:
+ *
+ *     cap 12   resolved 543 (56.5%)   diverged 121
+ *     cap 18   resolved 781 (81.3%)   diverged 157
+ *     cap 24   resolved 907 (94.4%)   diverged 164
+ *
+ * SO THE 12-CAP WAS HIDING ROUGHLY A QUARTER OF THE DIVERGENCES THIS INSTRUMENT CAN SEE, and only
+ * 25.6% of the extra turns went to games that never resolve at all. 20 is the knee: most of the
+ * completion, most of the divergences, without paying for the tail.
+ *
+ * IT IS NOT A LICENCE TO LET A STALLED GAME RUN LONGER. The same report measured that 49-70% of
+ * cap-hitting games were STALLED rather than long, and named the cause — a `prefer` axis that handed
+ * the sampler one candidate on 22.2% of decisions, 60% of them Protect. That is fixed separately, and
+ * the two changes are deliberately NOT combined: a cap change and a driver change landing together
+ * would make neither attributable, which is the mistake that voided 7,100 games in August.
+ *
+ * EVERY FIGURE MEASURED AT 12 IS A CLAIM ABOUT THE FIRST TWELVE TURNS and does not transfer. */
+const MAXTURNS = +flag('--turns', 20);
 const ONLY = flag('--config', null);
 const WRITE = has('--write');
 const VERBOSE = has('--verbose');
@@ -2272,7 +2291,22 @@ if (EMPIRICAL) {
           + EMP_JOINT.cellRows + ' cells), measured off the raw logs of both human stores' });
   }
 }
-const STEER = STEERING.resolve({ censusPath: CENSUS_PIN, mode: STEER_MODE, driverInputs: EMP_INPUTS });
+/* THE INSTRUMENT'S OWN DIGEST, TAKEN AT MODULE LOAD. See engine/steering.js `driverCode` for the
+ * receipt: six runs on identical pins read 121/138/147/167 because empirical_driver.js was rewritten
+ * between them, and nothing recorded it. The frozen set is passed from here because this is where the
+ * release handle lives — a file served out of the snapshot must NOT be digested live, or a guard
+ * fires on a change the run never saw.
+ *
+ * TAKEN AT LOAD, NOT AT WRITE, BECAUSE NODE READS A MODULE ONCE. An edit landing at minute three does
+ * not change what this process is executing; it changes what the NEXT process executes. The digest
+ * that belongs in the artifact is therefore the one from the moment the bytes were read, and
+ * `driverCodeGuard()` below re-takes it at the end to answer the different question — did somebody
+ * write to the instrument WHILE this ran, which makes the run unrepeatable from the tree it names.
+ * That is not hypothetical: engine/game_differential.js was written at 02:28:45 on 2026-09-05, inside
+ * a run that started at 02:27:14 and published a number. */
+const DRIVER_CODE = STEERING.driverCode({ frozen: Object.keys((REL.manifest && REL.manifest.files) || {}) });
+const STEER = STEERING.resolve({ censusPath: CENSUS_PIN, mode: STEER_MODE, driverInputs: EMP_INPUTS,
+                                 driverCode: DRIVER_CODE });
 const CENSUS = STEER.census;
 const SECTION = { item: 'items', move: 'moves', ability: 'abilities' };
 const COV_TARGETS = [];      // { key, kind, tag, label, entities:Set }
@@ -4799,14 +4833,14 @@ function drv(battle, side, i, kind) {
 function empiricalPick(pool, battle, side, i, p, act) {
   const C = EMP_C;
   C.decisions++;
-  /* THE `prefer` AXIS STAYS A HARD NARROWING, exactly as it is the FIRST sort key under the coverage
-   * rule. The pair-* configurations exist to STAGE an interaction (protect against a protect-buster,
-   * a redirect against priority); softening it into a weight would quietly stop those configurations
-   * staging anything while still reporting their games, and the sample would move for a reason that
-   * is not the driver. Within the preferred set the draw is still the empirical one. */
-  let use = pool;
-  const pref = pool.filter(c => c.prefer);
-  if (pref.length) { if (pref.length < pool.length) C.prefer_narrowed++; use = pref; }
+  /* THE `prefer` AXIS NO LONGER NARROWS THIS ARM'S DRAW — 2026-09-05, MEASURE. The rule, the
+   * measurement that condemned it and the `MEDI_PREFER_HARD=1` knob that restores it are all in
+   * engine/empirical_driver.js beside the sampler they were overriding. In one line: two of the nine
+   * configurations `prefer` a set containing the protect family (once by `stalling`, once because the
+   * family is +4 PRIORITY), the narrowing applied at EVERY decision rather than at a staging one, and
+   * 22.2% of this arm's decisions reached the sampler with a single candidate — 60% of them Protect.
+   * The coverage rule below is UNCHANGED and still sorts `prefer` first. */
+  const use = EMP.preferPool(pool, C);
   const moves = use.filter(c => c.move);
   const switches = use.filter(c => c.switchTo != null);
 
@@ -6809,7 +6843,13 @@ if (process.env.MEDI_TRACE_DUMP) {
       trace: r.mediTrace || [],
     })),
   }));
-  fs.writeFileSync(D(process.env.MEDI_TRACE_DUMP), JSON.stringify({
+  /* AN ABSOLUTE PATH IS TAKEN AS WRITTEN. `D()` joins against the repo root, so an absolute target
+   * became `<repo>\C:\...` and threw ENOENT — AFTER a full run had been played, which is the whole
+   * cost of the mistake. The dump is a scratch artifact by nature and belongs outside the tree as
+   * often as inside it. 2026-09-05, MEASURE. */
+  const traceOut = path.isAbsolute(process.env.MEDI_TRACE_DUMP)
+    ? process.env.MEDI_TRACE_DUMP : D(process.env.MEDI_TRACE_DUMP);
+  fs.writeFileSync(traceOut, JSON.stringify({
     what: 'medicham2\'s FULL emitted stream, one row per game per arm, for interior analysis of why a '
         + 'game did or did not end. Observational; no die, click or board is changed by this block.',
     generated: new Date().toISOString(),
@@ -6821,7 +6861,7 @@ if (process.env.MEDI_TRACE_DUMP) {
     pins_digest: (PINS && PINS.digest) || null,
     arms,
   }) + '\n');
-  console.log('  wrote ' + process.env.MEDI_TRACE_DUMP + '  (traces: '
+  console.log('  wrote ' + traceOut + '  (traces: '
     + arms.map(a => a.arm + ' ' + a.games.length).join(', ') + ')');
 }
 const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
@@ -8287,8 +8327,24 @@ if (EMPIRICAL) {
     + '% realised against ' + EMP_SWITCH.pct + '% measured); '
     + C.no_bench + ' had nowhere to go, ' + C.trapped + ' were trapped, '
     + C.no_move_candidates + ' had no legal click at all and HAD to leave');
-  console.log('    ' + C.prefer_narrowed + ' decisions narrowed by a pair-* prefer axis, '
-    + C.ban_narrowed + ' narrowed by an omit-* ban');
+  console.log('    ' + C.prefer_narrowed + ' decisions narrowed by a pair-* prefer axis'
+    + (C.prefer_hard_narrowing
+        ? '  <-- MEDI_PREFER_HARD=1: the pre-2026-09-05 rule is BACK ON, this run is the defect'
+        : ' (the axis does not narrow this arm; ' + C.prefer_would_have_narrowed
+          + ' decisions would have been narrowed by the old rule)')
+    + ', ' + C.ban_narrowed + ' narrowed by an omit-* ban');
+  /* THE PROTECT RATE AGAINST THE DRIVER'S OWN INPUT. One number, at the line, in every run: the arm
+   * claims to sample data/move-priors.json, so the share that table itself carries is the only
+   * self-contained check that it did. `expected` is what the weight vectors asked for — its gap to
+   * `realised` is a sampler question, not a weighting one. */
+  {
+    const legal = C.protect_legal, drew = C.protect_draws;
+    const exp = legal ? (C.protect_expected_x1e6 / 1e6) / drew : 0;
+    console.log('    protect family: ' + (drew ? (100 * C.protect_clicked / drew).toFixed(2) : '0.00')
+      + '% of ' + drew + ' sampled clicks realised, ' + (100 * exp).toFixed(2) + '% expected from the '
+      + 'weights, against ' + EMP_PRIORS.input_family_share_pct + '% carried by data/move-priors.json '
+      + 'itself (' + EMP_PRIORS.family.join('/') + '); ' + legal + ' decisions had one legal');
+  }
   console.log('    ' + DRV_REPEATS + ' repeated driver addresses'
     + (DRV_REPEATS ? '  <-- indexed, but battle.turn did not separate two decisions as assumed' : ' (must read 0)'));
   if (!JOINT) {
@@ -8805,10 +8861,54 @@ if (WRITE) {
      * exactly this block; an artifact without one fails that check CLOSED. */
     steering: STEER_STAMP,
     baseline_comparability: BASELINE_CHECK,
-  }, REL.stamp());
+  }, REL.stamp(), driverCodeGuard());
   const outPath = OUT ? path.resolve(OUT) : D('data', 'game-differential.json');
   fs.writeFileSync(outPath, JSON.stringify(artifact, null, 2) + '\n');
   console.log('  -> ' + (OUT ? outPath : 'data/game-differential.json'));
+}
+
+/* DID THE INSTRUMENT MOVE WHILE THIS RUN WAS PLAYING? — 2026-09-05, MEASURE.
+ *
+ * A WITHHELD NUMBER IS HONEST; AN UNREPRODUCIBLE ONE WEARING A RECEIPT IS THE FAILURE THIS PROJECT
+ * IS BUILT AGAINST. So this does not annotate — it sets `void: true`, which `engine/provenance.js`
+ * honours as a self-declaration, blanks the headline counts the artifact would otherwise publish, and
+ * exits non-zero.
+ *
+ * THE ONE THING IT CANNOT DO IS UNDO THE RUN. Node read the modules at load, so a mid-run edit did
+ * not change what was executed; the games are as valid as they ever were. What it destroys is the
+ * ability to REPEAT them — the artifact names a tree that no longer exists, and a repeat run would
+ * pick up the edit and disagree for a reason nobody could see. That is exactly what happened to the
+ * empirical arm at 02:27-02:29 on 2026-09-05, and the artifact said nothing.
+ *
+ * IT IS NOT A `catch {}`. An undigestable instrument file THROWS out of `driverCode`, because "we
+ * could not check" must never render as "it did not move". */
+function driverCodeGuard() {
+  const after = STEERING.driverCode({ frozen: Object.keys((REL.manifest && REL.manifest.files) || {}) });
+  if (after.digest === DRIVER_CODE.digest) {
+    console.log('  the INSTRUMENT held still: driver code ' + DRIVER_CODE.digest + ' over '
+      + Object.keys(DRIVER_CODE.files).length + ' files, unchanged across the whole run');
+    return { driver_code_stable: true };
+  }
+  const moved = Object.keys(Object.assign({}, DRIVER_CODE.files, after.files))
+    .filter(f => DRIVER_CODE.files[f] !== after.files[f]).sort();
+  const why = 'THE INSTRUMENT WAS REWRITTEN WHILE THIS RUN WAS PLAYING. Driver code was '
+    + DRIVER_CODE.digest + ' at module load and is ' + after.digest + ' now; ' + moved.length
+    + ' file(s) moved: ' + moved.join(', ') + '. The games this run played are as valid as they ever '
+    + 'were — node read the modules once, at load — but they CANNOT BE REPEATED from the tree this '
+    + 'artifact names, and a repeat run would pick up the edit and disagree for a reason no pin '
+    + 'records. The figures are withheld rather than captioned.';
+  console.error('\n  !! ' + why);
+  process.exitCode = 1;
+  return {
+    void: true, void_reason: why,
+    driver_code_stable: false,
+    driver_code_at_load: DRIVER_CODE, driver_code_at_write: after, driver_code_moved: moved,
+    /* The counts a reader would otherwise quote, replaced by the refusal in the same field. Blanking
+     * them is the point: a caption is not a quarantine (CLAUDE.md), and every number in this file is
+     * read out of these three keys. */
+    diverged: null, mid_void: null, state: null,
+    withheld: 'diverged, mid_void and state are WITHHELD. Re-run on a tree that is holding still.',
+  };
 }
 
 /* THE READABLE DUMP — the same diverging games with the lines either side of the split.

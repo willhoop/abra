@@ -219,6 +219,21 @@ const bench = (...n) => n.map(x => ({ species: x, item: '', ability: '', moves: 
  * fields are read by name and the list is printed rather than described. */
 function rawMedi(S) {
   const out = [];
+  /* THE FIELD AND THE SLOT RECORDS, ADDED 2026-09-05 WITH BATCH 3. The two shapes this file learned in
+   * that batch live nowhere near `_vol`, and a raw dump that showed only bodies would print an
+   * identical line for a Gravity that is up and one that is not — the silent agreement this whole file
+   * exists to make impossible. READ, NEVER CREATED: medicham2's own `slotCondOf` INSTALLS an empty map
+   * on the side object, and its comment records 51 unrelated moves "moving" the first time a reader
+   * did that. `(sf && sf.slot) || {}` reads and writes nothing. */
+  { const F = S.field || {};
+    const fb = [];
+    for (const k of ['gravity', 'magicRoom', 'wonderRoom', 'tr', 'fairylock']) if (F[k]) fb.push(k + '=' + F[k]);
+    if (fb.length) out.push('field{' + fb.join(' ') + '}'); }
+  for (const [nm, sf] of [['A', S.sfA], ['B', S.sfB]]) {
+    const sl = (sf && sf.slot) || {};
+    for (const i of Object.keys(sl)) if (sl[i])
+      out.push('slot' + nm + i + '{' + sl[i].mv + ' when=' + sl[i].when + ' due=' + sl[i].due + '}');
+  }
   for (const m of [...(S.actA || []), ...(S.actB || [])].filter(Boolean)) {
     const bits = [];
     for (const k of Object.keys(m._vol || {})) if (m._vol[k]) bits.push(k + '=' + JSON.stringify(m._vol[k]));
@@ -231,6 +246,11 @@ function rawMedi(S) {
 }
 function rawSd(battle) {
   const out = [];
+  { const pw = (battle.field || {}).pseudoWeather || {};
+    const fb = Object.keys(pw).map(k => k + (pw[k] && pw[k].duration != null ? '(d' + pw[k].duration + ')' : ''));
+    if (fb.length) out.push('field{' + fb.join(' ') + '}'); }
+  for (const side of battle.sides) for (let i = 0; i < (side.slotConditions || []).length; i++)
+    for (const k of Object.keys(side.slotConditions[i] || {})) out.push('slot' + side.id + i + '{' + k + '}');
   for (const side of battle.sides) for (const p of side.active) {
     if (!p) continue;
     const bits = [];
@@ -544,8 +564,433 @@ const CASES = [];
                             sd: ((((battle.sides[0].active[0] || {}).volatiles) || {}).noretreat ? 1 : 0) }) });
 }
 
+/* ---- BATCH 3, 2026-09-05 — THE WHOLE OF THE REMAINING SIXTEEN -----------------------------------
+ *
+ * `tests/probe_uncompared_leaves.js`, re-derived at the top of this batch: 500 legal moves, 201
+ * abilities carried by a legal species, 148 legal items write EIGHTY leaves between them. FORTY are
+ * read by the comparator, FOUR are declared in `NOT_COMPARED`, and of the thirty-six in neither list
+ * the authority ends EIGHTEEN in the residual (`duration: 1`) and TWO inside their own action
+ * (`fling`, `sparklingaria`). So SIXTEEN can be standing when the board is sampled and nothing looks
+ * at them. This batch takes all sixteen.
+ *
+ * THEY ARE NOT ALL THE SAME SHAPE, and that is the reason this file needed a change before a single
+ * fixture could be written. Nine are per-body volatiles (`.vol.<leaf>`); three are PSEUDO-WEATHERS,
+ * which live on the field and which `readMedi` keeps as a `<name>_turns` clock; three are SLOT
+ * CONDITIONS, which `board_state.js` did not read AT ALL — `uncomparableLeavesOf` carried the literal
+ * comment *"this file reads no slot condition"* and there was no `SD_SLOT_KEYS` to read.
+ *
+ * WHAT THE ENGINE HOLDS WAS CHECKED FIRST, EVERY TIME, BEFORE ANY OF IT WAS WIRED. Unburden is the
+ * standing lesson and it is IN this set: it passes every derived column and this engine holds NO state
+ * under that name at all. Two of the sixteen come back as NOT WIREABLE and say why:
+ *
+ *   volatile:unburden    THE ENGINE HOLDS NOTHING. `effSpeed` recomputes the doubling from the
+ *                        CURRENT ability inside a `_hadItem && !m.item` entry guard; there is no field
+ *                        to read. Its arm above is OBSERVE-ONLY and measures the mechanic instead.
+ *   volatile:powershift  NO LEGAL BODY CAN WRITE IT. Champions un-bans the MOVE
+ *                        (data/mods/champions/moves.ts:739-742, `isNonstandard: null`) and then no
+ *                        species in the regulation learns it — `powershift` appears in NEITHER
+ *                        data/learnsets.ts NOR data/mods/champions/learnsets.ts, zero occurrences.
+ *                        The row below DERIVES that carrier count on every run rather than asserting
+ *                        it, and FAILS the moment a carrier appears, because at that point the leaf
+ *                        becomes stageable and the absence of a fixture stops being a fact about the
+ *                        regulation. `probe_uncompared_leaves.js` filters ABILITIES on a legal carrier
+ *                        and MOVES only on `isNonstandard`, so this leaf is inside its ceiling of 56 —
+ *                        the denominator is the authority's and is not adjusted here.
+ *
+ * CHAMPIONS OVERRIDES CHECKED PER LEAF, NOT ASSUMED. Of the sixteen, `data/mods/champions/` carries a
+ * key for exactly three outside `learnsets.ts`: `dragoncheer` (moves.ts:241-244, FLAGS only — it gains
+ * `sound`; the condition is mainline's), `metronome` (moves.ts:628-631, the MOVE is `isNonstandard:
+ * "Past"` — the ITEM, which is what writes this leaf, carries no champions key and is legal) and
+ * `powershift` (moves.ts:739-742, un-banned, no carrier). Every other line number below is mainline's
+ * because mainline is what this format runs for them. */
+
+/* A LEGAL BODY OF A GIVEN TYPE THAT CAN ATTACK, DERIVED. Smack Down's condition only applies to a
+ * Flying-type or a Levitate body (data/moves.ts smackdown.condition.onStart), so its fixture needs one
+ * — and a typed body cannot be named from memory here (CLAUDE.md). */
+function typedAttacker(type, exclude) {
+  return SPECIES.find(s => (s.types || []).includes(type) && !exclude.has(s.id) && anyAttack(s)) || null;
+}
+/* HOW MANY LEGAL SPECIES LEARN THIS MOVE — the same walk `carrierOf` makes, counted rather than
+ * stopped at the first hit, so a row can report ZERO as a derived fact instead of as a search that
+ * gave up. */
+function carrierCount(moveId) {
+  let n = 0;
+  for (const s of SPECIES) {
+    const ls = learnsetOf(s.id);
+    if (ls && ls.learnset && ls.learnset[moveId]) n++;
+  }
+  return n;
+}
+
+{ /* THE RAMPAGE LOCK — A CLOCK ON BOTH SIDES, COMPARED AS ONE.
+   * data/conditions.ts `lockedmove` declares `duration: 2` and is applied by Outrage / Petal Dance /
+   * Thrash / Raging Fury as `self: { volatileStatus: 'lockedmove' }` (data/moves.ts outrage:10-12).
+   * Champions overrides no `lockedmove` key anywhere outside learnsets.
+   *
+   * medicham2 keeps it in `_mtLock` — `{ move, left, confuse, vol }`, written at
+   * medicham2-browser.js:36952 and ticked at :38462 — and NOT in `_vol`, which is why
+   * `probe_uncompared_leaves.js`'s `_vol` column reads `.` for it. That column is a hint about where
+   * the cheap wirings are and its own header says a MISS IS NOT EVIDENCE OF ABSENCE; this is the row
+   * that proves the header right.
+   *
+   * `_mtLock` CARRIES TWO LOCKS AND `vol` TELLS THEM APART. Uproar rides the same field and ALREADY
+   * has its own compared leaf twenty lines above in `mediBody` (`m._mtLock.vol === 'uproar'`), so this
+   * leaf must EXCLUDE uproar or every Outrage would be reported twice and every Uproar would report as
+   * a locked move. The discriminator is read, not assumed.
+   *
+   * THE AIM IS DELIBERATELY NOT SUPPLIED. Every rampage move is `target: 'randomNormal'`, which
+   * `scripted()` does not aim (it aims `normal`, `any` and `adjacentFoe` only), so both engines pick
+   * their own foe off the shared die.
+   *
+   * AND THAT IS WHY NEITHER FOE MAY CLICK PROTECT — THE FIRST VERSION OF THIS FIXTURE DID, AND IT
+   * STAGED NOTHING. With the standard p2 (`Recycle` in slot 0, a bench filler clicking `Protect` in
+   * slot 1) the random aim landed on the SHIELD, the move was blocked, and Showdown's `self` effects
+   * never ran: `medi=0 sd=undefined` at the boundary, on BOTH engines, agreeing perfectly about a
+   * volatile that was never applied. medicham2's own header records the same rule at :832 — *"above
+   * step 7 never reaches `selfDrops`, so it arms no `lockedmove`"*. A COULD-NOT-STAGE is a claim about
+   * the fixture and never about the mechanic (CLAUDE.md), so the fixture changed: BOTH p2 actives
+   * click a derived inert move, and the second lead is a DERIVED second carrier of it rather than a
+   * named body. Whichever foe the die picks, the Outrage lands. */
+  const sp = carrierOf('outrage', s => !FILLER.includes(s.id));
+  const inert2 = carrierOf('recycle', s => !FILLER.includes(s.id) && s.id !== 'snorlax' && s.id !== (sp && sp.id));
+  CASES.push({ leaf: 'lockedmove', kind: 'vol', carrier: sp && inert2 ? sp : null, boundary: 1,
+    authority: 'pokemon-showdown/data/conditions.ts lockedmove (duration 2), applied by outrage `self`',
+    ours: 'engine/medicham2-browser.js:36952 `_mtLock.left`, ticked :38462 — NOT in `_vol`',
+    p1: sp && inert2 && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Outrage', 'Protect'] }].concat(bench(...FILLER)),
+    p2: sp && inert2 && [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] },
+          { species: N.id(inert2.id), item: '', ability: '', moves: ['Recycle', 'Protect'] },
+          ...bench(FILLER[0], FILLER[1])],
+    script: [{ p1: [{ m: 'outrage' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'recycle' }] }],
+    plant: (S) => { const t = (S.actA || [])[0]; if (t) t._mtLock = null; },
+    held: (S, battle) => { const m = (S.actA || [])[0] || {};
+      return { medi: (m._mtLock && m._mtLock.vol !== 'uproar') ? (m._mtLock.left | 0) : 0,
+               sd: (((battle.sides[0].active[0] || {}).volatiles || {}).lockedmove || {}).duration }; } });
+}
+
+{ /* ALLY SWITCH — A CLOCK ON BOTH SIDES.
+   * data/moves.ts allyswitch: the volatile comes from `onPrepareHit` (`return pokemon.addVolatile(
+   * 'allyswitch')`) and its condition declares `duration: 2`, `counterMax: 729`, an `onStart` that
+   * sets `counter = 3` and an `onRestart` that rolls `randomChance(1, counter)`.
+   * medicham2 holds the two-turn life in `_aswDur` (written medicham2-browser.js:29272-29273, ticked
+   * :38520) and the ladder in `_aswCount`. THE COUNTER IS NOT COMPARED HERE and that is a narrowing
+   * said out loud: the authority keeps `counter` on the volatile's effectState and this engine keeps
+   * it beside the clock, but the two are the same quantity and comparing them is a second wire, not
+   * this one — the CLOCK is what decides whether the volatile is standing at all.
+   *
+   * THE MOVE SWAPS ITS USER INTO THE OTHER SLOT, so the body carrying the volatile at the boundary is
+   * p1 slot 1, not slot 0. `held` scans both slots on both engines rather than assuming, because a
+   * fixture that read slot 0 would report ABSENT on a move that worked. */
+  const sp = carrierOf('allyswitch', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'allyswitch', kind: 'vol', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts allyswitch.condition (duration 2), added in onPrepareHit',
+    ours: 'engine/medicham2-browser.js:29272 `_aswDur`, ticked :38520',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Ally Switch', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'allyswitch' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { for (const t of (S.actA || [])) if (t && t._aswDur) t._aswDur = 0; },
+    held: (S, battle) => ({
+      medi: Math.max(0, ...(S.actA || []).map(m => (m && m._aswDur) | 0)),
+      sd: Math.max(0, ...(battle.sides[0].active || []).map(p => (((p || {}).volatiles || {}).allyswitch || {}).duration | 0)) }) });
+}
+
+{ /* DRAGON CHEER — PRESENCE, AND NOTHING IS COLLAPSED.
+   * data/moves.ts dragoncheer: `volatileStatus: 'dragoncheer'`, `target: 'adjacentAlly'`, and the
+   * condition is an `onStart` plus an `onModifyCritRatio` with NO duration. Champions overrides the
+   * move's FLAGS only (data/mods/champions/moves.ts:241-244 adds `sound`), never the condition.
+   * medicham2 derives the crit-stage family from the artifact — `critStageVolatile`, exactly two
+   * members, `focusenergy` and `dragoncheer` (medicham2-browser.js:5523) — and writes the volatile's
+   * own name into `_vol` through the crit-stage owner at :18671. `focusenergy`, the other member of
+   * that derived pair, is ALREADY a compared leaf, which is the strongest available evidence that this
+   * one is real state rather than a name.
+   *
+   * IT LANDS ON THE ALLY. `adjacentAlly` is aimed by `scripted()` with a negative target, so the
+   * volatile is on p1 slot 1 (the first bench filler, standing) and not on the clicker. */
+  const sp = carrierOf('dragoncheer', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'dragoncheer', kind: 'vol', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts dragoncheer.condition (NO duration); champions overrides flags only',
+    ours: 'engine/medicham2-browser.js:18671 `_vol.dragoncheer` (critStageVolatile, derived: 2 members)',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Dragon Cheer', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'dragoncheer' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { const t = (S.actA || [])[1]; if (t && t._vol) delete t._vol.dragoncheer; },
+    held: (S, battle) => ({ medi: (((S.actA || [])[1] || {})._vol || {}).dragoncheer ? 1 : 0,
+                            sd: ((((battle.sides[0].active[1] || {}).volatiles) || {}).dragoncheer ? 1 : 0) }) });
+}
+
+{ /* GASTRO ACID — PRESENCE.
+   * data/moves.ts gastroacid: `volatileStatus: 'gastroacid'`, `target: 'normal'`; the condition is an
+   * `onStart` (which suppresses the ability) plus an `onCopy`, with NO duration. Champions overrides
+   * no `gastroacid` key outside learnsets.
+   * medicham2 reaches it through the generic volatile write (`(who._vol = who._vol || {})[vol] = _tn`,
+   * medicham2-browser.js:18820) and its own switch-out audit NAMES it: the eleven volatiles this
+   * engine used to carry across a switch are listed at :21397 and `gastroacid` is one of them, so it
+   * is measured state and not a name that happens to match.
+   *
+   * THIS LEAF IS ALREADY KNOWN TO BLOCK A ROW. `probe_uncompared_leaves.js`'s own header records the
+   * narration batch failing on it — `uncomparable_leaves: ["volatile:gastroacid"]`,
+   * `core_leaf_unchecked: true` — so that row was blocked on THE INSTRUMENT rather than on the game. */
+  const sp = carrierOf('gastroacid', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'gastroacid', kind: 'vol', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts gastroacid.condition (NO duration)',
+    ours: 'engine/medicham2-browser.js:18820 `_vol.gastroacid` (generic write); named at :21397',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Gastro Acid', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'gastroacid', t: 0 }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { const t = (S.actB || [])[0]; if (t && t._vol) delete t._vol.gastroacid; },
+    held: (S, battle) => ({ medi: (((S.actB || [])[0] || {})._vol || {}).gastroacid ? 1 : 0,
+                            sd: ((((battle.sides[1].active[0] || {}).volatiles) || {}).gastroacid ? 1 : 0) }) });
+}
+
+{ /* THE METRONOME ITEM — THE CONSECUTIVE-USE COUNTER, COMPARED AS A NUMBER.
+   * data/items.ts metronome: `onStart(pokemon) { pokemon.addVolatile('metronome') }` — the volatile
+   * exists from the moment the holder is on the field — and its condition carries NO duration and
+   * TWO fields, `lastMove` and `numConsecutive`, which `onModifyDamage` reads back as a ladder index.
+   * `data/mods/champions/items.ts` carries no `metronome` key; the champions override at moves.ts:628
+   * bans the MOVE of the same name and says nothing about the item.
+   *
+   * PRESENCE WOULD BE THE WRONG COMPARISON AND WOULD PART EVERY BOARD. The authority's volatile is
+   * standing on any holder from switch-in; medicham2 has no volatile at all and holds the counter in
+   * `_metroN` (written medicham2-browser.js:25818-25828, cleared on switch-out at :21480, read as the
+   * ladder index at :12755). So the COUNTER is the comparable quantity — `numConsecutive` against
+   * `_metroN` — and it reads 0 against 0 on a body with no item at all, which is exactly right.
+   *
+   * THE BOUNDARY IS 2, NOT 1, AND THAT IS THE POINT. The authority's `onTryMove` takes the `else`
+   * branch on a first click and sets `numConsecutive = 0`; only a REPEAT advances it. A fixture that
+   * read boundary 1 would compare 0 against 0 and prove nothing — the unwired-knob shape. Both engines
+   * must read 1 at the boundary that closes the SECOND identical click. */
+  const sp = SPECIES.find(s => !FILLER.includes(s.id) && anyAttack(s));
+  const atk = sp && anyAttack(sp);
+  CASES.push({ leaf: 'metronome', kind: 'vol', carrier: sp && atk ? sp : null, boundary: 2,
+    authority: 'pokemon-showdown/data/items.ts metronome.condition (numConsecutive, NO duration)',
+    ours: 'engine/medicham2-browser.js:25818 `_metroN`, cleared :21480, read :12755 — no volatile at all',
+    p1: sp && atk && [{ species: N.id(sp.id), item: 'Metronome', ability: '', moves: [atk.name, 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: N.id(atk && atk.id), t: 0 }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] },
+             { p1: [{ m: N.id(atk && atk.id), t: 0 }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { const t = (S.actA || [])[0]; if (t) t._metroN = 0; },
+    held: (S, battle) => ({ medi: ((S.actA || [])[0] || {})._metroN | 0,
+                            sd: (((battle.sides[0].active[0] || {}).volatiles || {}).metronome || {}).numConsecutive }) });
+}
+
+{ /* POWER TRICK — PRESENCE.
+   * data/moves.ts powertrick: `volatileStatus: 'powertrick'`, `target: 'self'`; the condition is
+   * `onStart` / `onCopy` / `onEnd` / `onRestart` with NO duration. Champions overrides no key outside
+   * learnsets. medicham2 reaches the generic write at :18820 and names `powertrick` in its own
+   * switch-out audit at :21398, so this is state the engine measurably holds. */
+  const sp = carrierOf('powertrick', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'powertrick', kind: 'vol', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts powertrick.condition (NO duration)',
+    ours: 'engine/medicham2-browser.js:18820 `_vol.powertrick` (generic write); named at :21398',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Power Trick', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'powertrick' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { const t = (S.actA || [])[0]; if (t && t._vol) delete t._vol.powertrick; },
+    held: (S, battle) => ({ medi: (((S.actA || [])[0] || {})._vol || {}).powertrick ? 1 : 0,
+                            sd: ((((battle.sides[0].active[0] || {}).volatiles) || {}).powertrick ? 1 : 0) }) });
+}
+
+{ /* SMACK DOWN — PRESENCE, AND THE FIXTURE HAS TO EARN IT.
+   * data/moves.ts smackdown.condition.onStart, READ WHOLE: `applies` starts FALSE and is set true only
+   * by `hasType('Flying')` or `hasAbility(['levitate','eelevate'])`, then cleared again by an Iron
+   * Ball, an Ingrain or a standing Gravity; a Fly / Bounce / Magnet Rise / Telekinesis each set it
+   * true. `if (!applies) return false;` — SO THE VOLATILE DOES NOT LAND ON AN ORDINARY GROUNDED BODY
+   * AT ALL. A fixture that aimed this at the Snorlax every other row uses would have measured nothing
+   * and reported it as an absent leaf, which is a claim about the fixture wearing a claim about the
+   * mechanic. The target is a DERIVED Flying-type. It carries no duration on either side.
+   * medicham2 reaches the generic write at :18820, names `smackdown` in the switch-out audit at
+   * :21398, and READS it in `isGrounded` through `GROUNDING_VOL` at :5998 — so the leaf is live here.
+   *
+   * THE FLYER MAY NOT CLICK PROTECT: Smack Down carries `protect: 1`, so a shield refuses it and the
+   * volatile never lands. It clicks a derived single-target attack at p1 slot 1, which IS shielding. */
+  const sp = carrierOf('smackdown', s => !FILLER.includes(s.id));
+  const flyer = typedAttacker('Flying', new Set([sp ? sp.id : '', ...FILLER]));
+  const fatk = flyer && anyAttack(flyer);
+  const ok = !!(sp && flyer && fatk);
+  CASES.push({ leaf: 'smackdown', kind: 'vol', carrier: ok ? sp : null, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts smackdown.condition (NO duration; applies to Flying/Levitate only)',
+    ours: 'engine/medicham2-browser.js:18820 `_vol.smackdown`; read by isGrounded via GROUNDING_VOL :5998',
+    p1: ok && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Smack Down', 'Protect'] }].concat(bench(...FILLER)),
+    p2: ok && [{ species: N.id(flyer.id), item: '', ability: '', moves: [fatk.name, 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'smackdown', t: 0 }, { m: 'protect' }],
+               p2: [{ m: N.id(fatk && fatk.id), t: 1 }, { m: 'protect' }] }],
+    plant: (S) => { const t = (S.actB || [])[0]; if (t && t._vol) delete t._vol.smackdown; },
+    held: (S, battle) => ({ medi: (((S.actB || [])[0] || {})._vol || {}).smackdown ? 1 : 0,
+                            sd: ((((battle.sides[1].active[0] || {}).volatiles) || {}).smackdown ? 1 : 0) }) });
+}
+
+{ /* STOCKPILE — THE LAYER COUNT, AND IT IS A NUMBER ON BOTH SIDES.
+   * data/moves.ts stockpile.condition: `onStart` sets `layers = 1`, `onRestart` refuses above 3 and
+   * otherwise increments; NO duration. The move's own `onTry` refuses a fourth click. Champions
+   * overrides no key outside learnsets — medicham2-browser.js:5675 says so for stockpile / spitup /
+   * swallow specifically.
+   * medicham2 holds the LAYERS in `_vol.stockpile` through `applyLayeredVolatile` (the header at
+   * :5489-5500 records that this field once held a bare 1 that never rose above 1, and that Spit Up
+   * and Swallow read the count off the STOCKPILE tag's own cap). So a presence comparison here would
+   * throw away the whole quantity — this is compared as the layer count. */
+  const sp = carrierOf('stockpile', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'stockpile', kind: 'vol', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts stockpile.condition (layers 1..3, NO duration)',
+    ours: 'engine/medicham2-browser.js:5489 `_vol.stockpile` IS the layer count (applyLayeredVolatile)',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Stockpile', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'stockpile' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { const t = (S.actA || [])[0]; if (t && t._vol) delete t._vol.stockpile; },
+    held: (S, battle) => ({ medi: (((S.actA || [])[0] || {})._vol || {}).stockpile | 0,
+                            sd: (((battle.sides[0].active[0] || {}).volatiles || {}).stockpile || {}).layers }) });
+}
+
+/* ---- THE THREE PSEUDO-WEATHERS. A CLOCK ON BOTH SIDES, ON THE FIELD AND NOT ON A BODY ------------
+ * All three declare `duration: 5` with a `durationCallback` (the Terrain Extender / room-extender
+ * shape) and all three are ticked in the residual, so at the boundary that closes the applying turn
+ * both engines must read 4. medicham2 keeps them on `field` and spends them through ONE function,
+ * `fieldClock` (medicham2-browser.js:8977), which is also what carries Trick Room and Fairy Lock —
+ * and `trickroom_turns` and `fairylock_turns` are ALREADY compared leaves read off that same field.
+ * That is the strongest evidence available that these three are real state: the comparator already
+ * reads two members of the identical mechanism. */
+{ /* GRAVITY */
+  const sp = carrierOf('gravity', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'gravity', kind: 'field', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/conditions.ts gravity (duration 5, onFieldResidual)',
+    ours: 'engine/medicham2-browser.js:8983 fieldClock(\'gravity\',\'gravity\') — `field.gravity`',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Gravity', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'gravity' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { if (S.field) S.field.gravity = 0; },
+    held: (S, battle) => ({ medi: (S.field || {}).gravity | 0,
+                            sd: (((battle.field || {}).pseudoWeather || {}).gravity || {}).duration }) });
+}
+{ /* MAGIC ROOM. medicham2 implements the suppression as a SWAP (`itemRoomHide` parks the item in
+   * `_roomItem`), and `mediBody`'s `item` leaf already reads `m.item || m._roomItem` for exactly that
+   * reason — ROADMAP #462 — so this fixture cannot part the item leaf as a side effect. */
+  const sp = carrierOf('magicroom', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'magicroom', kind: 'field', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/conditions.ts magicroom (duration 5, onFieldResidual)',
+    ours: 'engine/medicham2-browser.js:8988 fieldClock(\'magicroom\',\'magicRoom\') — `field.magicRoom`',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Magic Room', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'magicroom' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { if (S.field) S.field.magicRoom = 0; },
+    held: (S, battle) => ({ medi: (S.field || {}).magicRoom | 0,
+                            sd: (((battle.field || {}).pseudoWeather || {}).magicroom || {}).duration }) });
+}
+{ /* WONDER ROOM. The Def/SpD swap is a DAMAGE-TIME read in both engines (medicham2-browser.js:11693)
+   * and writes nothing to a body, so this fixture touches no other leaf. */
+  const sp = carrierOf('wonderroom', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'wonderroom', kind: 'field', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/conditions.ts wonderroom (duration 5, onFieldResidual)',
+    ours: 'engine/medicham2-browser.js:8984 fieldClock(\'wonderroom\',\'wonderRoom\') — `field.wonderRoom`',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Wonder Room', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'wonderroom' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { if (S.field) S.field.wonderRoom = 0; },
+    held: (S, battle) => ({ medi: (S.field || {}).wonderRoom | 0,
+                            sd: (((battle.field || {}).pseudoWeather || {}).wonderroom || {}).duration }) });
+}
+
+/* ---- THE THREE SLOT CONDITIONS. A SHAPE `board_state.js` DID NOT READ AT ALL -------------------
+ * `uncomparableLeavesOf` ended with the literal line *"this file reads no slot condition"* and pushed
+ * every one of them into the uncomparable list unconditionally. There was no `SD_SLOT_KEYS` to ask.
+ *
+ * BOTH ENGINES KEEP ONE RECORD PER ACTIVE SLOT AND NEITHER EXPOSES A CLOCK ON IT. Showdown:
+ * `side.slotConditions[position][id]` (sim/side.ts:197, 267-269, `addSlotCondition` at :472-489),
+ * where Future Sight's countdown lives in `effectState.endingTurn` and Wish's in
+ * `effectState.startingTurn` — neither is a `duration`. medicham2: `sf.slot[i] = { mv, when, due, … }`
+ * (medicham2-browser.js:30130 for the heal descriptors, :27638 for the delayed hit), where the clock
+ * is `due`. So these are compared as PRESENCE, and the two counters are a SEPARATE wire that is named
+ * here rather than left as an absence.
+ *
+ * WHICH NAME A RECORD CARRIES IS READ OFF ITS `when`, WHICH IS THE ENGINE'S OWN DISCRIMINATOR —
+ * medicham2-browser.js:8865 already maps `futureHit -> futuremove` and `endOfNextTurn -> wish` for its
+ * residual shadow, and `data/tags.json` carries the authority's own `slotCondition` name beside each
+ * `when` (`wish` -> when `endOfNextTurn`, `healingwish` -> when `onEntry`). An unmapped `when` is
+ * COUNTED by the reader rather than silently reading as an empty slot. */
+{ /* FUTURE SIGHT — the record lands on the TARGET'S side and slot, which is the half a careless
+   * fixture gets backwards. data/moves.ts futuresight.onTry: `target.side.addSlotCondition(target,
+   * 'futuremove')`, then it assigns `move`, `source` and `moveData` and returns `NOT_FAIL` — nothing
+   * happens to the target now. data/conditions.ts futuremove sets `endingTurn = (turn - 1) + 2`, so at
+   * the residual of the applying turn `getOverflowedTurnCount()` is 1 against an endingTurn of 2 and
+   * the record STANDS; it resolves at the next turn's residual.
+   * medicham2 books it at :27638 with `when: 'futureHit'` and reuses the Wish machinery deliberately
+   * (its own comment: two delayed-effect queues would be the FACTS-ARE-GLOBAL violation). */
+  const sp = carrierOf('futuresight', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'futuremove', kind: 'slot', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts futuresight.onTry + data/conditions.ts futuremove (endingTurn, no duration)',
+    ours: 'engine/medicham2-browser.js:27638 `sf.slot[i] = { when: \'futureHit\' }`',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Future Sight', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'futuresight', t: 0 }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { if (S.sfB && S.sfB.slot) delete S.sfB.slot[0]; },
+    held: (S, battle) => ({ medi: (((S.sfB || {}).slot || {})[0] ? 1 : 0),
+                            sd: (((battle.sides[1].slotConditions || [])[0] || {}).futuremove ? 1 : 0) }) });
+}
+{ /* WISH — `target: 'self'`, `slotCondition: 'Wish'`. The condition banks `source.maxhp / 2` in
+   * `onStart` and `startingTurn = getOverflowedTurnCount()`; its `onResidual` returns early while the
+   * turn count has not moved past that, so the record STANDS at the boundary that closes the wishing
+   * turn and pays out at the next one.
+   * medicham2 books it at :30130 with `when: 'endOfNextTurn'` and `due` one higher than the tag's
+   * count, for the reason its own comment gives — the residual at the end of THIS turn ticks it once. */
+  const sp = carrierOf('wish', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'wish', kind: 'slot', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts wish.condition (startingTurn, NO duration)',
+    ours: 'engine/medicham2-browser.js:30130 `sf.slot[i] = { when: \'endOfNextTurn\' }`',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Wish', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'wish' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { if (S.sfA && S.sfA.slot) delete S.sfA.slot[0]; },
+    held: (S, battle) => ({ medi: (((S.sfA || {}).slot || {})[0] ? 1 : 0),
+                            sd: (((battle.sides[0].slotConditions || [])[0] || {}).wish ? 1 : 0) }) });
+}
+{ /* HEALING WISH — `selfdestruct: 'ifHit'`, so the user DIES and a replacement is forced in during the
+   * same turn. data/moves.ts healingwish.condition.onSwap only spends the record when
+   * `!target.fainted && (target.hp < target.maxhp || target.status)` — A FULL-HP, STATUSLESS
+   * REPLACEMENT LEAVES IT STANDING, which is what makes this stageable at all and is exactly the
+   * behaviour medicham2 records having confirmed on a staged game (:21007, "the record is only cleared
+   * when it was actually SPENT"). Its reader is in `bringIn` at :21008-21027 and is deliberately a
+   * READ — `slotCondOf` would install an empty map and its comment records 51 unrelated moves
+   * "moving" the first time somebody let a reader write. */
+  const sp = carrierOf('healingwish', s => !FILLER.includes(s.id));
+  CASES.push({ leaf: 'healingwish', kind: 'slot', carrier: sp, boundary: 1,
+    authority: 'pokemon-showdown/data/moves.ts healingwish.condition (onSwitchIn/onSwap, NO duration)',
+    ours: 'engine/medicham2-browser.js:30130 `sf.slot[i] = { when: \'onEntry\' }`, read at :21008',
+    p1: sp && [{ species: N.id(sp.id), item: '', ability: '', moves: ['Healing Wish', 'Protect'] }].concat(bench(...FILLER)),
+    p2: [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER)),
+    script: [{ p1: [{ m: 'healingwish' }, { m: 'protect' }], p2: [{ m: 'recycle' }, { m: 'protect' }] }],
+    plant: (S) => { if (S.sfA && S.sfA.slot) delete S.sfA.slot[0]; },
+    held: (S, battle) => ({ medi: (((S.sfA || {}).slot || {})[0] ? 1 : 0),
+                            sd: (((battle.sides[0].slotConditions || [])[0] || {}).healingwish ? 1 : 0) }) });
+}
+
+{ /* POWER SHIFT — NOT WIREABLE, AND THE REASON IS DERIVED ON EVERY RUN RATHER THAN REMEMBERED.
+   * Champions un-bans the move (data/mods/champions/moves.ts:739-742, `isNonstandard: null`) and then
+   * gives it to nobody: `powershift` occurs ZERO times in data/learnsets.ts and ZERO times in
+   * data/mods/champions/learnsets.ts. `probe_uncompared_leaves.js` filters its ABILITY population on
+   * having a legal carrier and its MOVE population only on `isNonstandard`, so this leaf sits inside
+   * the ceiling of 56 — that is the authority's denominator and it is not adjusted here.
+   *
+   * THE ROW IS AN ASSERTION, NOT A NOTE. `carrierCount` walks the same legal species list every other
+   * fixture uses; the moment one of them learns Power Shift this row FAILS, because at that point the
+   * leaf is stageable and the absence of a fixture stops being a fact about the regulation. */
+  CASES.push({ leaf: 'powershift', kind: 'vol', boundary: 1, noCarrierIsTheAnswer: 'powershift',
+    authority: 'pokemon-showdown/data/moves.ts powershift.condition (NO duration); champions moves.ts:739 un-bans it',
+    ours: 'engine/medicham2-browser.js:18820 would take the generic `_vol` write — never reached, nothing learns it',
+    carrier: null, p1: null, p2: null, script: [], plant: null, held: () => ({ medi: 0, sd: 0 }) });
+}
+
 /* ---- THE RUN ------------------------------------------------------------------------------------ */
-const LEAFRE = leaf => new RegExp('\\.vol\\.' + leaf + '$');
+/* WHICH COMPARISON PATH THIS LEAF LANDS ON — 2026-09-05, BATCH 3. Until this batch every case was a
+ * per-body volatile and the matcher was one hard-coded `.vol.<leaf>` suffix. Batch 3 adds two other
+ * SHAPES of leaf, so the matcher is DERIVED from the case's `kind` rather than typed per row:
+ *
+ *   vol     `p1.active[0].vol.<leaf>`   a per-body volatile (the only shape before this batch)
+ *   field   `field.<leaf>_turns`        a pseudo-weather, which lives on the FIELD and not on a body
+ *   slot    `p1.slots[0].<leaf>`        a slot condition, which belongs to a SIDE'S SLOT
+ *
+ * A row may override with `pathRe`; none does today, and an override would be that row's own claim
+ * about where its leaf lands rather than a derivation. */
+const LEAFRE = (leaf, kind) => (kind === 'field' ? new RegExp('^field\\.' + leaf + '_turns$')
+  : kind === 'slot' ? new RegExp('\\.slots\\[\\d+\\]\\.' + leaf + '$')
+  : new RegExp('\\.vol\\.' + leaf + '$'));
+const caseRe = c => c.pathRe || LEAFRE(c.leaf, c.kind);
 function runArm(c, plant) {
   const a = G.buildPair(c.p1), b = G.buildPair(c.p2);
   if (!a || !b) return { err: 'COULD NOT BUILD THE PAIR' };
@@ -561,25 +1006,51 @@ function runArm(c, plant) {
     statePlant: plant ? ((S, battle, turnIdx) => { if (turnIdx === c.boundary) plant(S); }) : undefined,
     onBoundary: (snap, turnIdx, S, battle) => {
       boards.push({ turnIdx, held: c.held(S, battle), raw_medi: rawMedi(S), raw_sd: rawSd(battle),
-                    onLeaf: snap.diffs.filter(d => LEAFRE(c.leaf).test(d.path)),
+                    onLeaf: snap.diffs.filter(d => caseRe(c).test(d.path)),
                     nDiffs: snap.diffs.length,
-                    otherPaths: snap.diffs.filter(d => !LEAFRE(c.leaf).test(d.path)).map(d => d.path) });
+                    otherPaths: snap.diffs.filter(d => !caseRe(c).test(d.path)).map(d => d.path) });
     } });
   return { err: r && r.err, boards, script: G.scriptCounters() };
 }
 
 console.log('\n  LEAF WIDENING — CONTROL AND RED, PER LEAF');
-console.log('  compared keys today: ' + BS.SD_VOLATILE_KEYS.length + ' per-body volatiles\n');
+console.log('  compared keys today: ' + BS.SD_VOLATILE_KEYS.length + ' per-body volatiles, '
+  + BS.SD_PSEUDO_KEYS.length + ' pseudo-weathers, ' + (BS.SD_SLOT_KEYS || []).length + ' slot conditions, '
+  + BS.SD_SIDE_KEYS.length + ' side conditions\n');
 
 let fail = 0, red = 0;
 for (const c of CASES) {
-  console.log('  ---- volatile:' + c.leaf);
+  /* THE CLASS IS THE ROW'S OWN, NEVER A HARD-CODED `volatile:`. Batch 3 added pseudo-weather and
+   * slot-condition rows and this line labelled every one of them `volatile:` — a report whose labels
+   * name the wrong class of leaf cannot be matched against the derivation it came from. */
+  console.log('  ---- ' + (c.kind === 'field' ? 'pseudoWeather:' : c.kind === 'slot' ? 'slotCondition:' : 'volatile:') + c.leaf);
   console.log('       authority  ' + c.authority);
   console.log('       ours       ' + c.ours);
+  /* A ROW WHOSE WHOLE FINDING IS THAT NOTHING IN THE REGULATION CAN WRITE THE LEAF — 2026-09-05.
+   * It is separated from the ordinary no-carrier failure directly below because the two are different
+   * sentences: "this search could not find a body" is a claim about the FIXTURE and must fail, while
+   * "no body exists" is a claim about the REGULATION and is a legitimate answer. The difference is
+   * only honest if it is DERIVED, so the count is walked here on every run and the row FAILS the
+   * moment it is non-zero — at which point the leaf is stageable and the missing fixture is a gap. */
+  if (c.noCarrierIsTheAnswer) {
+    const n = carrierCount(c.noCarrierIsTheAnswer);
+    console.log('       legal species in this regulation whose learnset holds `' + c.noCarrierIsTheAnswer
+      + '`: ' + n + '   (walked over ' + SPECIES.length + ' legal, non-mega species)');
+    if (n === 0) console.log('       NOT WIREABLE — no legal body can write this leaf. Not a fixture failure.');
+    else { console.log('       FAIL — ' + n + ' carrier(s) exist, so this leaf IS stageable and has no fixture.'); fail++; }
+    continue;
+  }
   if (!c.carrier || !c.p1 || !c.p2) { console.log('       NO LEGAL CARRIER — a claim about the fixture, not the mechanic'); fail++; continue; }
   console.log('       carrier    ' + c.carrier.name);
-  console.log('       in the comparator: ' + (BS.SD_VOLATILE_KEYS.includes(c.leaf) ? 'YES' : 'no')
-    + '        declared in NOT_COMPARED: ' + (BS.DECLARED_LEAVES.has('volatile:' + c.leaf) ? 'YES' : 'no'));
+  /* READ OUT OF `board_state.js`'S OWN DERIVED KEY SETS, PER SHAPE. A hand-written "yes" here would be
+   * a second producer of the exact fact this file exists to measure. `SD_SLOT_KEYS` did not exist
+   * before this batch — `uncomparableLeavesOf` carried the literal comment "this file reads no slot
+   * condition" — so a missing export reports `no` rather than throwing. */
+  const keys = (c.kind === 'field' ? BS.SD_PSEUDO_KEYS
+              : c.kind === 'slot' ? (BS.SD_SLOT_KEYS || []) : BS.SD_VOLATILE_KEYS);
+  const klass = (c.kind === 'field' ? 'pseudoWeather:' : c.kind === 'slot' ? 'slotCondition:' : 'volatile:');
+  console.log('       in the comparator: ' + (keys.includes(c.leaf) ? 'YES' : 'no')
+    + '        declared in NOT_COMPARED: ' + (BS.DECLARED_LEAVES.has(klass + c.leaf) ? 'YES' : 'no'));
 
   const ctl = runArm(c, null);
   if (ctl.err) { console.log('       CONTROL THREW: ' + ctl.err); fail++; continue; }

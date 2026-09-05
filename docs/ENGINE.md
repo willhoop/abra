@@ -119,10 +119,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  829/829 probed mechanics live, 0 missing   (census 2026-09-04 23:09)
+  829/829 probed mechanics live, 0 missing   (census 2026-09-05 02:07)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 35 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-04 23:15)
+    never fired in the staged harness (all-mechanics-fire.json, 2.3 h old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-05 00:39)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -144,9 +144,27 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-04 23:52_
+_stamped 2026-09-05 02:59_
 
 <!-- /GENERATED -->
+
+## THE COMPARATOR IS COMPLETE — **40 → 54 LEAVES, STANDING HOLE 16 → 0**, WITH BOTH REFUSALS **DERIVED**. AND THE STAND-IN THAT DRIVES EVERY ENGINE COMPARISON WAS BEING HANDED **ONE CANDIDATE ON 22.2% OF DECISIONS**, WHICH IS WHY ITS GAMES DID NOT END. 2026-09-05, CHANGELOG 5.257.0
+
+**THE COMPARATOR SIDE FIRST, BECAUSE IT IS THE PART THAT BELONGS TO THIS DIVISION OUTRIGHT.** All sixteen remaining leaves were addressed: **compared 40 → 54, standing hole 16 → 0.** Fourteen were wired, and each was shown **INVISIBLE before and caught after**, against a board already reading 40 leaves, with a silent control on every one. Half the eight per-body leaves **were not in `_vol` at all** (`_mtLock`, `_aswDur`, `_metroN`), so wiring off the probe's `_vol` column would have missed three of them and reported them absent — a reminder that **a probe's own column listing is not the engine's state**.
+
+**TWO COULD NOT BE WIRED AND NEITHER REFUSAL IS AN ASSERTION.** `volatile:unburden` — **this engine holds nothing under that name.** `effSpeed` recomputes the doubling from the CURRENT ability inside an `_hadItem && !m.item` guard, so there is no stored field for a comparator to read; comparing it would mean inventing one. `volatile:powershift` — **no legal body can write it.** Champions un-bans the move and then nobody in the regulation learns it, so the leaf is unreachable rather than unimplemented. **The probe derives that carrier count on every run and goes red the moment it is non-zero**, which is the difference between a refusal and an excuse: if a body ever learns the move, the check says so without anybody remembering to look.
+
+**THE DRIVER DEFECT IS NOT AN ENGINE DEFECT AND IT REACHES EVERY ENGINE FIGURE, WHICH IS WHY IT IS IN THIS LEDGER.** `engine/game_differential.js`'s `prefer` axis was a **hard narrowing** rather than a preference: **22.2% of decisions arrived at the sampler with exactly one candidate, 60% of them Protect**, and **on decisions where the body still had four moves the arm already realised 15.3%, the human rate.** Protect is the move that makes a turn happen with nothing in it, so the arm was manufacturing games that ground to the cap and stopped. **Games that finish went 56% → 79%** — resolved **539 → 762**, open at the cap **418 → 189** — on 961 games each, release `688e696f00c8`, empirical arm, the driver rule the only difference.
+
+**BOARD-MATERIAL WENT 34 → 47 ON THAT PAIR AND THAT IS THE EXPECTED CONSEQUENCE, NOT A REGRESSION.** A game that ends reaches late-turn positions the old arm never played, so the comparison gained board states to disagree about. **This is the second time in two nights that a driver change RESET a baseline rather than improving one**, and the standing rule from the charging fix holds: a whole-game count is not comparable across a driver change. It is also the second time a driver flaw was found to be HIDING engine behaviour rather than causing it — focus-fire hid a targeting defect, and one-candidate decisions hid every position past the cap.
+
+**A CORRECTION THIS LEDGER CARRIES BECAUSE IT CHANGES HOW ITS OWN NUMBERS ARE READ.** This version's changelog note records the joint arm as giving **167, 167 and 138** on identical pins with the cause under investigation, and withholds 110, 53, 167 and 138 as draws from an uncharacterised distribution. **Withdrawn.** Six runs on one identical set of pins split perfectly cleanly at the protect fix, which landed at 02:27 — **121/34, 121/34, 138/53** with `prefer_narrowed` at 20,507, 20,507, 20,353 before it and **167/69, 167/69, 147/55** with `prefer_narrowed` at 0 after it — **bit-identical within each side, down to `credit_events` and `shuffle_calls`.** The joint **53** stands and repeats. The engine was never the variable; **the instrument was, and nothing froze it**: the release pins the engine, the census pins the scenarios and the pool pins the population, all of them INPUTS, while `engine/game_differential.js` and `engine/empirical_driver.js` are read live. `engine/steering.js` now digests the instrument into `steering.driver_code` and `game_differential.js` voids a run whose instrument moved under it, withholding `diverged`, `mid_void` and `state`.
+
+**AND ONE FIGURE PUBLISHED TONIGHT IS CORRECTED: THE EMPIRICAL ARM ON THE REPAIRED DRIVER READS 55 BOARD-MATERIAL, NOT 47.** 47 is the same run read by the comparator at 40 leaves, before the widening, and stays correct as the second leg of the paired protect measurement; **55 is the widened comparator at 54 leaves**, with protocol at 147. Two comparators, one run, two correct readings — which is precisely why a leaf count belongs beside a board-material count whenever either is quoted.
+
+**WHICH ARTIFACT HOLDS WHICH WHOLE-GAME FIGURE.** `data/game-differential.json` was again **NOT** republished and still holds board-material 46 of 961 — that is what the gate prints, it is stale as a description of tonight's engine, and it is deliberately not overwritten outside a settled-tree pass. Everything above is in the verification artifacts under `data/verification/`, one per arm, each with a knob-cleared control beside it: `MEDI_PREFER_HARD=1` restores the narrowing, and the before leg of the protect pair was **re-run under that knob** rather than lifted from a published artifact, reproducing every published count exactly.
+
+**WHAT IS OWED HERE.** The gate did not open and this ledger claims nothing downstream of it. `tests/test-game-differential.js` has **4 failures** — pinned dice and two damage endpoints — seen while `board_state.js` was under live edit; they are **red and routed, not filed as known**, and need a clean-tree re-run before they are diagnosed. `node engine/status.js --write` was **not** run by this documentation pass and no `<!-- GENERATED -->` block was hand-edited, so the block above is stamped to an earlier pass and its census and gate counts are that pass's.
 
 ## A CHARGED MOVE STRUCK THE WRONG SLOT — `vol.charging`'s RELEASE TURN AIMED AT `live(foes)[0]` WHERE THE AUTHORITY REPLAYS THE STORED `targetLoc` — AND IT WAS **INVISIBLE BY CONSTRUCTION**, BECAUSE THE OLD DRIVER RESOLVED EVERY FOE-AIMED CLICK WITH THE LOWEST LIVE INDEX FOR BOTH SLOTS. JOINT ARM **110 → 53**, EMPIRICAL ARM **35 → 34**. 2026-09-05, CHANGELOG 5.256.0
 

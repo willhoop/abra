@@ -2,9 +2,9 @@
   "current": "688e696f00c8",
   "cut": "2026-09-05T04:24:10.632Z",
   "why": "ENGINE 2026-09-05 — locked-move encoder + charge release aim + MoveAborted wrapper drop",
-  "cuts": 21,
-  "latest_cut": "2026-09-05T05:12:56.173Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-05T05:12:56.187Z",
+  "cuts": 35,
+  "latest_cut": "2026-09-05T18:34:29.170Z",
+  "latest_why": "MEASURE 2026-09-05 — cap 20 measurement: paired 12-vs-20 empirical arm on one frozen engine",
+  "pointer_written": "2026-09-05T18:34:29.189Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

@@ -78,9 +78,16 @@ function derive() {
     add('volatile', w.volatile); add('sideCondition', w.side);
     add('slotCondition', w.slot); add('pseudoWeather', w.pseudo);
   }
+  /* THE FOURTH CLASS JOINED ON 2026-09-05 AND ITS ABSENCE WAS NOT NEUTRAL. `board_state.js` grew
+   * `SD_SLOT_KEYS` in the same pass that started reading slot conditions; without this line the three
+   * leaves it now compares would still count as HOLE here, so the instrument would have gone on
+   * reporting a gap the comparator had closed — the mirror image of the failure this file exists to
+   * measure, and just as wrong. `|| []` because a release-era `board_state.js` predating that export
+   * must degrade to the old answer rather than throw. */
   const COMPARED = new Set(BS.SD_VOLATILE_KEYS.map(k => 'volatile:' + k)
     .concat(BS.SD_SIDE_KEYS.map(k => 'sideCondition:' + k))
-    .concat(BS.SD_PSEUDO_KEYS.map(k => 'pseudoWeather:' + k)));
+    .concat(BS.SD_PSEUDO_KEYS.map(k => 'pseudoWeather:' + k))
+    .concat((BS.SD_SLOT_KEYS || []).map(k => 'slotCondition:' + k)));
 
   /* ---- WHAT THE AUTHORITY DECLARES ABOUT A CONDITION'S LIFETIME -------------------------------
    * `duration: 1` is decremented by `residualEvent` and ENDED there (sim/battle.ts:1097-1115, whose

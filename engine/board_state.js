@@ -144,6 +144,68 @@ const NOT_COMPARED = [
    * VICTIM's half is compared (`vol.trapped`, wired this pass) and is the half that decides whether a
    * switch is legal. Comparing the source half would report a divergence on every trap in the game --
    * a manufactured one, off two representations of one fact. */
+  /* ---- 2026-09-05, BATCH 3. THE TWO OF THE SIXTEEN THAT COULD NOT BE WIRED, AND THE THREE COUNTERS
+   * THE FOURTEEN THAT WERE WIRED DELIBERATELY DO NOT CARRY. Named rather than left as absences,
+   * because that is this file's whole rule and because two of these five are exactly the shape that
+   * has cost the most here: a leaf that passes every derived column and holds nothing. */
+  { field: 'Unburden — `volatile:unburden`',
+    why: 'THE ENGINE HOLDS NO STATE UNDER THIS NAME AND THERE IS NOTHING TO COMPARE. The authority '
+       + 'grants a volatile at the moment the item is taken or used (data/abilities.ts:5227-5249) and '
+       + 'its condition does `onModifySpe chainModify(2)`. medicham2 applies the doubling inside '
+       + '`effSpeed`, gated on `TAGS.param(\'ability\', m.ability, \'speedOnItemLoss\')` — a param '
+       + 'data/tags.json grants to exactly ONE ability — nested in an `_hadItem && !m.item` entry '
+       + 'guard. There is no field. A comparator can only read a value one of the engines does not '
+       + 'have by RECOMPUTING the rule, which is this file checking its own belief against the '
+       + 'authority rather than checking two engines.',
+    status: 'NOT WIREABLE — no state, not an oversight.',
+    measured_by: 'tests/probe_leaf_widening.js, the `unburden` OBSERVE arm — it asks `effSpeed` twice '
+       + 'per body (as it stands, and on a delegating clone with the item-loss input cleared) and the '
+       + 'authority `getStat(\'spe\')` modified against unmodified, and FAILS on a disagreement. '
+       + 'Measured: the carrier reads x2 on both engines and a body that lost the same item without '
+       + 'the ability reads x1 on both.',
+    wrong_if: 'medicham2 ever grows a named field for it — then it becomes comparable and this row is '
+       + 'the thing that must be deleted rather than kept.',
+    leaves: ['volatile:unburden'] },
+  { field: 'Power Shift — `volatile:powershift`',
+    why: 'NO LEGAL BODY IN THIS REGULATION CAN WRITE IT. Champions un-bans the MOVE '
+       + '(data/mods/champions/moves.ts:739-742, `isNonstandard: null`) and then gives it to nobody: '
+       + '`powershift` occurs ZERO times in data/learnsets.ts and ZERO times in '
+       + 'data/mods/champions/learnsets.ts. `tests/probe_uncompared_leaves.js` filters its ABILITY '
+       + 'population on having a legal carrier and its MOVE population only on `isNonstandard`, so '
+       + 'this leaf sits inside its ceiling — that is the authority\'s denominator and this file does '
+       + 'not adjust it.',
+    status: 'NOT WIREABLE — unstageable, so no red demonstration is possible.',
+    measured_by: 'tests/probe_leaf_widening.js derives the carrier count over the legal, non-mega '
+       + 'species list on every run and FAILS the moment it is non-zero — at which point the leaf is '
+       + 'stageable and the missing fixture stops being a fact about the regulation.',
+    leaves: ['volatile:powershift'] },
+  { field: 'the RAMPAGE COUNT behind `volatile:lockedmove`, and the ALLY SWITCH ladder counter',
+    why: 'ONE FACT, TWO SHAPES, AND THE AUTHORITY\'S `duration` IS NOT THE ONE THAT CARRIES IT. '
+       + 'data/conditions.ts `lockedmove` declares `duration: 2` and its own `onRestart` sets it BACK '
+       + 'to 2 on every turn the lock persists, so `duration` reads 1 at every boundary and says '
+       + 'nothing about how many turns remain; the remaining count is `effectState.trueDuration`, '
+       + 'sampled `this.random(2, 4)`, which is not a duration. medicham2 keeps the remaining count in '
+       + '`_mtLock.left`. Comparing the two would read 2 against 1 on every THREE-turn rampage — the '
+       + 'reader\'s representation, not a rule disagreement. The PRESENCE of the lock IS compared, and '
+       + 'it is the half that decides whether the next click is free. Ally Switch is the same shape '
+       + 'one field over: the authority keeps the 3/9/27 success ladder in `effectState.counter` and '
+       + 'this engine in `_aswCount`; its two-turn CLOCK is compared and the ladder is not.',
+    next: 'a directed scenario that stages a 3-turn rampage and prints `trueDuration` against '
+        + '`_mtLock.left` at every boundary — that is an ENGINE question and not a reader one',
+    /* NO LEAF OF ITS OWN: `volatile:lockedmove` and `volatile:allyswitch` ARE compared. This row
+     * declares the PART of each that is not, which is why it names none. */
+    leaves: [] },
+  { field: 'the two SLOT-CONDITION countdowns — Future Sight\'s `endingTurn` and Wish\'s `startingTurn`',
+    why: 'the PRESENCE of all three slot conditions is compared (2026-09-05). Neither engine puts a '
+       + '`duration` on a slot record: Showdown keeps Future Sight\'s countdown in '
+       + '`effectState.endingTurn` and Wish\'s start in `effectState.startingTurn` — both absolute turn '
+       + 'numbers — while medicham2 keeps a RELATIVE `due` counter on `sf.slot[i]`. They are different '
+       + 'quantities, not two spellings of one, and a map between them would be this file inventing a '
+       + 'rule. Healing Wish carries no clock at all on either side, so its leaf is complete.',
+    next: 'compare `getOverflowedTurnCount()` against the boundary index and derive the relative '
+        + 'countdown from the authority\'s absolute one — it is arithmetic this file can do honestly, '
+        + 'but it is a second wire and is not being smuggled into the first',
+    leaves: [] },
   { field: 'the TRAPPER mark a move trap leaves on its source (Showdown `volatiles.trapper`)',
     why: 'one fact, two shapes: medicham2 stores the trapper inside the VICTIM own `_trapHard` record '
        + 'and has no field on the source at all. The victim half (`trapped`) IS compared and is the '
@@ -1124,6 +1186,107 @@ function mediBody(m, id, ctx) {
       lockon: num(vol.lockon),
       minimize: vol.minimize ? 1 : 0,
       noretreat: vol.noretreat ? 1 : 0,
+      /* ---- 2026-09-05, BATCH 3 — THE WHOLE OF THE REMAINING SIXTEEN, AND THIS IS THE PER-BODY EIGHT.
+       *
+       * `tests/probe_uncompared_leaves.js` re-derived at the top of this batch: 500 legal moves, 201
+       * abilities carried by a legal species and 148 legal items write EIGHTY leaves; 40 were read
+       * here, 4 were declared, and of the 36 in neither list the authority ends 18 in the residual
+       * (`duration: 1`) and 2 inside their own action (`fling`, `sparklingaria`). SIXTEEN can be
+       * standing when this comparator reads a turn boundary. Fourteen are wired in this pass; the
+       * other two are named at the foot of this block with the reason each cannot be.
+       *
+       * WHAT THE ENGINE HOLDS WAS CHECKED BEFORE ANY OF IT WAS WIRED, and Unburden is why: it passes
+       * every derived column and this engine holds NOTHING under the name. HALF OF THE EIGHT BELOW ARE
+       * NOT IN `_vol` AT ALL — `_mtLock`, `_aswDur`, `_metroN` — so a wiring taken off
+       * `probe_uncompared_leaves.js`'s `_vol` column would have missed three of them AND reported them
+       * as absent. That column's own header says a MISS IS NOT EVIDENCE OF ABSENCE; these rows are the
+       * proof.
+       *
+       * RED BEFORE GREEN, WITH A CONTROL, ON A REAL STAGED GAME. `tests/probe_leaf_widening.js` plays
+       * one game per leaf and corrupts medicham2's LIVE state at the boundary through the driver's own
+       * `statePlant` hook. BEFORE THIS BLOCK ALL FOURTEEN PLANTS WERE INVISIBLE — `0 diffs, none on
+       * this leaf` — on a board already comparing 40 leaves. Every row below was first printed with
+       * BOTH engines' values side by side at the staged boundary; those readings are quoted per row.
+       *
+       * CHAMPIONS OVERRIDES CHECKED PER LEAF, NOT ASSUMED. Of the sixteen, `data/mods/champions/`
+       * carries a key for exactly three outside `learnsets.ts`: `dragoncheer` (moves.ts:241-244, FLAGS
+       * only — it gains `sound`), `metronome` (moves.ts:628-631, the MOVE is `isNonstandard: "Past"`;
+       * the ITEM that writes this leaf has no champions key and is legal) and `powershift`
+       * (moves.ts:739-742, un-banned). Every line number below is mainline's because mainline is what
+       * this format runs for them.
+       *
+       *   lockedmove   PRESENCE, AND THE CLOCK IS DELIBERATELY NOT COMPARED. data/conditions.ts
+       *                `lockedmove` read WHOLE: `duration: 2`, and `onRestart` RESETS it to 2 on every
+       *                turn the lock persists — so the authority's `duration` reads 1 at EVERY
+       *                boundary and carries no information about how many turns remain. The remaining
+       *                count lives in `effectState.trueDuration`, sampled `this.random(2, 4)`, which
+       *                is NOT a duration. medicham2 keeps the remaining count in `_mtLock.left`
+       *                (:36952, ticked :38462). Comparing `left` against `duration` would read 2
+       *                against 1 on every THREE-turn rampage — the reader's representation, not a rule
+       *                disagreement. The two counters are declared in NOT_COMPARED.
+       *                `_mtLock` CARRIES TWO LOCKS AND `vol` TELLS THEM APART: Uproar rides the same
+       *                field and already has its own leaf sixty lines up, so this one EXCLUDES it or
+       *                every Outrage would be counted twice and every Uproar would read as a rampage.
+       *                Staged: `_mtLock.left = 1` against `lockedmove(d1)`.
+       *   allyswitch   A CLOCK ON BOTH SIDES. data/moves.ts allyswitch adds the volatile from
+       *                `onPrepareHit` and its condition declares `duration: 2` with an `onRestart` that
+       *                sets it back to 2 on a successful re-click — so it reads 1 at any boundary it is
+       *                standing at, on both sides, and a 2 here would be a clock running long rather
+       *                than a representation. medicham2 holds `_aswDur` (:29272, ticked :38520).
+       *                Staged: 1 against `allyswitch(d1)`. THE LADDER COUNTER IS NOT COMPARED — the
+       *                authority keeps `counter` (3, 9, 27 …) on the volatile and this engine keeps it
+       *                in `_aswCount`; that is a second wire and is declared, not folded in here.
+       *   dragoncheer  PRESENCE, and nothing is collapsed: data/moves.ts dragoncheer.condition is an
+       *                `onStart` plus an `onModifyCritRatio` with NO duration. medicham2 derives the
+       *                crit-stage family from the artifact — `critStageVolatile`, exactly TWO members,
+       *                `focusenergy` and `dragoncheer` (:5523) — and writes it through that owner at
+       *                :18671. `focusenergy`, the other member of the same derived pair, has been a
+       *                compared leaf since 2026-08-12. Staged: 1 against `dragoncheer`.
+       *   gastroacid   PRESENCE. data/moves.ts gastroacid.condition: `onStart` + `onCopy`, NO duration.
+       *                medicham2 takes the generic write at :18820 and names `gastroacid` in its own
+       *                switch-out audit at :21397. THIS LEAF WAS ALREADY BLOCKING A ROW:
+       *                `probe_uncompared_leaves.js`'s header records the narration batch failing on it
+       *                with `uncomparable_leaves: ["volatile:gastroacid"]`, `core_leaf_unchecked:
+       *                true` — that row was blocked on THE INSTRUMENT and not on the game.
+       *                Staged: 1 against `gastroacid`.
+       *   metronome    THE CONSECUTIVE-USE COUNTER, AND PRESENCE WOULD BE THE WRONG COMPARISON.
+       *                data/items.ts metronome adds its volatile in the ITEM'S `onStart`, so on the
+       *                authority it stands on any holder from switch-in; medicham2 has no volatile at
+       *                all and holds the count in `_metroN` (:25818, cleared on switch-out :21480, read
+       *                as the ladder index :12755). A presence bit would part every board carrying a
+       *                Metronome. The COUNTER is the comparable quantity and reads 0 against 0 on a
+       *                body with no item. Staged at the boundary closing the SECOND identical click —
+       *                a first click sets `numConsecutive = 0` on the authority, so boundary 1 would
+       *                have compared 0 against 0 and proved nothing: 1 against 1.
+       *   powertrick   PRESENCE. data/moves.ts powertrick.condition: onStart/onCopy/onEnd/onRestart,
+       *                NO duration. Generic write at :18820, named in the switch-out audit at :21398.
+       *                Staged: 1 against `powertrick`.
+       *   smackdown    PRESENCE. data/moves.ts smackdown.condition.onStart read WHOLE: `applies`
+       *                starts FALSE and only a Flying type, Levitate, a Fly/Bounce, a Magnet Rise or a
+       *                Telekinesis turns it true — so THE VOLATILE DOES NOT LAND ON AN ORDINARY
+       *                GROUNDED BODY. No duration either side. medicham2 takes the generic write at
+       *                :18820, names it at :21398 and READS it in `isGrounded` through `GROUNDING_VOL`
+       *                (:5998), so the leaf is live here rather than inert. Staged against a DERIVED
+       *                Flying-type: 1 against `smackdown`.
+       *   stockpile    THE LAYER COUNT, WHICH IS A NUMBER ON BOTH SIDES. data/moves.ts
+       *                stockpile.condition: `onStart` sets `layers = 1`, `onRestart` increments and
+       *                refuses above 3; NO duration. medicham2's `_vol.stockpile` IS the layer count
+       *                (`applyLayeredVolatile`; the header at :5489-5500 records that this field once
+       *                held a bare 1 that never rose, and that Spit Up and Swallow read the count off
+       *                STOCKPILE's own cap). A presence bit would throw the whole quantity away.
+       *                Staged: 1 against `layers: 1`.
+       *
+       * EXPECT THIS TO PART BOARDS THAT USED TO AGREE, exactly as the two blocks above did. A game
+       * whose only disagreement lived on one of these was scored as AGREEING because nothing looked,
+       * so `board-material` was a floor. A rise is a measurement gaining eyes, not a regression. */
+      lockedmove: (m._mtLock && m._mtLock.vol !== 'uproar') ? 1 : 0,
+      allyswitch: num(m._aswDur),
+      dragoncheer: vol.dragoncheer ? 1 : 0,
+      gastroacid: vol.gastroacid ? 1 : 0,
+      metronome: num(m._metroN),
+      powertrick: vol.powertrick ? 1 : 0,
+      smackdown: vol.smackdown ? 1 : 0,
+      stockpile: num(vol.stockpile),
     },
     /* ---- THE STALL COUNTER BEHIND CONSECUTIVE PROTECT. 2026-08-25. -------------------------------
      *
@@ -1230,6 +1393,29 @@ function sdBody(p, id, ctx) {
        * adds NO volatile — so this leaf and the `trapped` leaf sixty lines up cannot shadow each
        * other, and reading one is not a second reading of the other. */
       noretreat: v.noretreat ? 1 : 0,
+      /* 2026-09-05 — THE AUTHORITY'S SIDE OF THE BATCH-3 PER-BODY EIGHT. The reason for each narrowing
+       * is on the medicham side, beside the field it is compared against. Three of them are worth
+       * repeating here because this side is where the discarded quantity lives:
+       *
+       *   `v.lockedmove` is read as PRESENCE and NOT as `dur(...)`. Its `duration` is reset to 2 by
+       *   the condition's own `onRestart` on every turn the lock persists, so it is 1 at every
+       *   boundary and says nothing about how many turns are left; the remaining count is
+       *   `trueDuration`, which is not a duration. See NOT_COMPARED.
+       *
+       *   `v.metronome.numConsecutive` is read as the COUNTER because the volatile itself stands on
+       *   any holder from switch-in — a presence bit would part every board carrying the item, since
+       *   medicham2 has no volatile here at all and only a count.
+       *
+       *   `v.stockpile.layers` is read as the LAYER COUNT: 1..3 on both sides, and a presence bit
+       *   would discard the whole of the mechanic Spit Up and Swallow read back. */
+      lockedmove: v.lockedmove ? 1 : 0,
+      allyswitch: dur(v.allyswitch),
+      dragoncheer: v.dragoncheer ? 1 : 0,
+      gastroacid: v.gastroacid ? 1 : 0,
+      metronome: v.metronome ? num(v.metronome.numConsecutive) : 0,
+      powertrick: v.powertrick ? 1 : 0,
+      smackdown: v.smackdown ? 1 : 0,
+      stockpile: v.stockpile ? num(v.stockpile.layers) : 0,
     },
     /* THE AUTHORITY'S SIDE OF THE STALL COUNTER: the raw denominator off its own volatile, with NO
      * volatile reading 0. Gated on the same capability as medicham2's so both sides are `null`
@@ -1242,6 +1428,53 @@ function sdBody(p, id, ctx) {
  * `ctx` = { id, weatherId, terrainId, fails } — `id` is the project's own name normaliser and the two
  * translators are THE ENGINE'S OWN exported functions. `fails` is a counter object the caller keeps,
  * so a translation that could not be made is a receipt rather than a silent empty string. */
+/* ---- SLOT CONDITIONS: A WHOLE SHAPE OF LEAF THIS FILE DID NOT READ (2026-09-05, BATCH 3) ---------
+ *
+ * `uncomparableLeavesOf` used to end with the literal line *"this file reads no slot condition"* and
+ * pushed every one of them into the uncomparable list unconditionally. There was no `SD_SLOT_KEYS` to
+ * ask, so a caller asking "is `slotCondition:wish` compared?" got NO for a structural reason rather
+ * than a measured one — the same class as the leaves ROADMAP #308 found: absent from the comparison
+ * AND absent from the declaration, which reads exactly like agreement.
+ *
+ * THE THREE THAT A LEGAL MECHANIC IN THIS FORMAT CAN WRITE are `futuremove` (Future Sight), `wish` and
+ * `healingwish`, derived by `tests/probe_uncompared_leaves.js` over all 500 legal moves.
+ *
+ * BOTH ENGINES KEEP ONE RECORD PER ACTIVE SLOT AND NEITHER PUTS A `duration` ON IT. Showdown:
+ * `side.slotConditions[position][id]` (sim/side.ts:197, 267-269; `addSlotCondition` :472-489), where
+ * Future Sight's countdown lives in `effectState.endingTurn` and Wish's in `effectState.startingTurn`.
+ * medicham2: `sf.slot[i] = { mv, when, due, … }` (:30130 for the heal descriptors, :27638 for the
+ * delayed hit), where the clock is `due`. So these are compared as PRESENCE and the two counters are
+ * a SEPARATE wire, declared in NOT_COMPARED rather than folded into a `!!`.
+ *
+ * WHICH NAME A MEDICHAM RECORD CARRIES IS READ OFF ITS `when`, WHICH IS THE ENGINE'S OWN
+ * DISCRIMINATOR, NOT ONE INVENTED HERE. medicham2-browser.js:8865 already maps `futureHit ->
+ * futuremove` and `endOfNextTurn -> wish` for its residual shadow, and `data/tags.json` carries the
+ * AUTHORITY'S OWN `slotCondition` name beside each `when` on the `healDescriptor` param — `wish` has
+ * `when: 'endOfNextTurn', slotCondition: 'wish'` and `healingwish` has `when: 'onEntry',
+ * slotCondition: 'healingwish'`. Three `when` values, three names, and the map is checkable against
+ * the artifact rather than remembered.
+ *
+ * AN UNMAPPED `when` IS COUNTED, NEVER SILENTLY EMPTY. A record this table does not recognise would
+ * otherwise make all three leaves read 0 — a body of state reported as an empty slot, which is the
+ * silent default this file is built to refuse. */
+const SLOT_COND_BY_WHEN = { futureHit: 'futuremove', endOfNextTurn: 'wish', onEntry: 'healingwish' };
+const SLOT_COND_NAMES = ['futuremove', 'wish', 'healingwish'];
+function mediSlots(sf, i, fails) {
+  /* READ, NEVER CREATED. medicham2's own `slotCondOf` INSTALLS an empty map on the side object, and
+   * its comment records 51 unrelated moves appearing to "move" the first time a reader did that. */
+  const rec = ((sf && sf.slot) || {})[i];
+  const out = {};
+  for (const k of SLOT_COND_NAMES) out[k] = 0;
+  if (!rec) return out;
+  const name = SLOT_COND_BY_WHEN[rec.when];
+  if (!name) {
+    if (fails) { fails.slot_when_unmapped = (fails.slot_when_unmapped || 0) + 1;
+                 fails.slot_when_unmapped_first = fails.slot_when_unmapped_first || String(rec.when); }
+    return out;
+  }
+  out[name] = 1;
+  return out;
+}
 function readMedi(S, ctx) {
   const id = ctx.id;
   const F = S.field || {};
@@ -1268,6 +1501,10 @@ function readMedi(S, ctx) {
      * `partyMap`'s comment records paying for once already. `null` here means "this engine cannot
      * say", which `compare()` skips and `snapshot()` reports; it never means "nothing spent". */
     pp: [0, 1].map(i => (!ctx.ppHold && ctx.ppSpent && act[i] ? ctx.ppSpent(act[i]) : null)),
+    /* THE SLOT CONDITIONS, PER SLOT — see the block above `readMedi`. Compared whether or not a body
+     * is standing there, which is the authority's own behaviour: a Wish outlives its wisher and a
+     * Healing Wish exists precisely to be collected by whoever arrives next. */
+    slots: [0, 1].map(i => mediSlots(sf, i, ctx.fails)),
   });
   return {
     engine: 'medicham2',
@@ -1280,7 +1517,36 @@ function readMedi(S, ctx) {
               * on for ever would be invisible to every stream instrument. Measured on both engines
               * before it was wired: the authority holds `fairylock(d1)` at the boundary of the turn it
               * was set and this engine holds 1. */
-             fairylock_turns: num(F.fairylock) },
+             fairylock_turns: num(F.fairylock),
+             /* ---- 2026-09-05, BATCH 3 — THE THREE PSEUDO-WEATHERS NOBODY COMPARED.
+              *
+              * All three declare `duration: 5` in data/conditions.ts with the same `durationCallback`,
+              * whose only branch is `source?.hasAbility('persistent') -> 7`. PERSISTENT HAS ZERO LEGAL
+              * CARRIERS IN THIS REGULATION (derived, not recalled: no legal species lists it), so the
+              * 5 is the only value either engine can produce and the two clocks are the same quantity.
+              * Each is ticked once in the residual, so the boundary that closes the applying turn
+              * reads 4 — measured on both engines, 4 against `gravity(d4)` / `magicroom(d4)` /
+              * `wonderroom(d4)`, before any of this was wired.
+              *
+              * medicham2 spends all three through ONE function, `fieldClock` (:8977), which is also
+              * what carries Trick Room (:8982) and Fairy Lock — and `trickroom_turns` and
+              * `fairylock_turns` two lines above have been compared leaves for weeks. So this is not
+              * a new mechanism being trusted; it is the two remaining members of a mechanism already
+              * half-compared, which is exactly the shape of omission this file exists to end.
+              *
+              * A COUNTER, NOT A PRESENCE BIT, for the reason this file's header gives about Tailwind:
+              * a Gravity with 4 turns left is not a Gravity with 1, and a search that cannot tell them
+              * apart plans the wrong turn.
+              *
+              * MAGIC ROOM CANNOT PART THE ITEM LEAF AS A SIDE EFFECT. medicham2 implements the
+              * suppression as a SWAP — `itemRoomHide` parks the item in `_roomItem` — and `mediBody`'s
+              * `item` leaf already reads `m.item || m._roomItem` for exactly that reason (ROADMAP
+              * #462, which was the last turn-1 board-material game in the pinned pool).
+              * WONDER ROOM'S Def/SpD exchange is a damage-time read on both sides (:11693) and writes
+              * to no body at all. */
+             gravity_turns: num(F.gravity),
+             magicroom_turns: num(F.magicRoom),
+             wonderroom_turns: num(F.wonderRoom) },
     sides: { p1: side(S.actA || [], S.sfA, F.twA), p2: side(S.actB || [], S.sfB, F.twB) },
   };
 }
@@ -1323,13 +1589,31 @@ function readShowdown(battle, ctx) {
      * walking against `null` and report every move as present-in-one-engine-only — a manufactured
      * divergence, which is worse than the thing being held. */
     pp: [0, 1].map(i => (!ctx.ppHold && (sd.active || [])[i] ? sdPP((sd.active || [])[i]) : null)),
+    /* THE AUTHORITY'S SIDE OF THE SLOT CONDITIONS. `slotC` is named DELIBERATELY and not `sc`, because
+     * `SD_SLOT_KEYS` is derived by reading this function's own source for `slotC.<name>` — the same
+     * discipline `SD_VOLATILE_KEYS` and `SD_PSEUDO_KEYS` follow, and for the same reason: a hand-kept
+     * list would agree on the day it was written and diverge the first time either side moved. A short
+     * name like `sc` risks matching an unrelated expression elsewhere in this function and quietly
+     * inventing a compared key that nothing reads. */
+    slots: [0, 1].map(i => { const slotC = (sd.slotConditions || [])[i] || {};
+      return { futuremove: slotC.futuremove ? 1 : 0,
+               wish: slotC.wish ? 1 : 0,
+               healingwish: slotC.healingwish ? 1 : 0 }; }),
   });
   return {
     engine: 'showdown',
     field: { weather: xl('weather', F.weather), weather_turns: dur(F.weatherState),
              terrain: xl('terrain', F.terrain), terrain_turns: dur(F.terrainState),
              trickroom_turns: dur((F.pseudoWeather || {}).trickroom),
-             fairylock_turns: dur((F.pseudoWeather || {}).fairylock) },
+             fairylock_turns: dur((F.pseudoWeather || {}).fairylock),
+             /* 2026-09-05 — THE AUTHORITY'S SIDE OF THE THREE PSEUDO-WEATHERS. Written in exactly the
+              * shape of the two lines above BECAUSE `SD_PSEUDO_KEYS` IS DERIVED FROM THIS FUNCTION'S
+              * OWN SOURCE — `_srcKeys(readShowdown, /pseudoWeather\s*\|\|\s*\{\}\)\.(...)/)`. A read
+              * written any other way would be a compared leaf that every caller asking "is this leaf
+              * compared?" would be told is NOT compared, which is worse than not comparing it. */
+             gravity_turns: dur((F.pseudoWeather || {}).gravity),
+             magicroom_turns: dur((F.pseudoWeather || {}).magicroom),
+             wonderroom_turns: dur((F.pseudoWeather || {}).wonderroom) },
     sides: { p1: side(battle.p1), p2: side(battle.p2) },
   };
 }
@@ -1454,6 +1738,12 @@ function compare(medi, sd, stats) {
     if (A.screens.named && B.screens.named) walk(A.screens.named, B.screens.named, s + '.screens.named', out, stats);
     walk(A.tailwind, B.tailwind, s + '.tailwind', out, stats);
     walk(A.hazards, B.hazards, s + '.hazards', out, stats);
+    /* THE SLOT CONDITIONS, 2026-09-05. A PLAIN `walk`, not a `walkBody`: a slot record belongs to the
+     * SLOT and not to whoever is standing in it, so the post-faint hold must NOT apply — Healing Wish
+     * exists precisely to be collected after its user dies, and holding the leaf on a corpse would
+     * silence the one case the mechanic is for. Both sides always emit all three keys, so a shape
+     * mismatch cannot manufacture a difference. */
+    walk(A.slots, B.slots, s + '.slots', out, stats);
     walkParty(A.party, B.party, s + '.party', out, stats);
     walkActive(A.active, B.active, s + '.active', out, stats, cross);
     /* PP, PER SLOT, ONLY WHERE BOTH ENGINES CAN EXPRESS IT — the same rule and the same reason as
@@ -1725,10 +2015,19 @@ const SD_VOLATILE_KEYS = _srcKeys(sdBody, /\bv\.([a-z][a-z0-9]*)/g);
 const SD_SIDE_KEYS = _srcKeys(readShowdown, /sideConditions\s*\|\|\s*\{\}\)\.([a-z][a-z0-9]*)/g)
   .concat(GAME_RULES.SCREEN_KEYS).sort();
 const SD_PSEUDO_KEYS = _srcKeys(readShowdown, /pseudoWeather\s*\|\|\s*\{\}\)\.([a-z][a-z0-9]*)/g);
+/* THE SLOT CONDITIONS THIS FILE READS, 2026-09-05 — the fourth key set, and until this date there was
+ * no such thing. `uncomparableLeavesOf` below carried the literal comment "this file reads no slot
+ * condition" and answered NO for every slot leaf structurally, so a caller could not tell a leaf that
+ * IS now compared from one that never could be. Derived from `readShowdown`'s own source on the same
+ * rule as the three above: the only thing to read is the reader. */
+const SD_SLOT_KEYS = _srcKeys(readShowdown, /\bslotC\.([a-z][a-z0-9]*)/g);
 /* A DERIVATION THAT SILENTLY RETURNS NOTHING IS A SILENT DEFAULT, and this one would then tell every
  * caller that no leaf is compared — which reads as "everything is uncomparable" and is just as wrong
- * in the other direction. It is asserted at load, loudly, rather than checked by whoever remembers. */
-if (!SD_VOLATILE_KEYS.length || !SD_SIDE_KEYS.length) {
+ * in the other direction. It is asserted at load, loudly, rather than checked by whoever remembers.
+ * `SD_SLOT_KEYS` joined the assertion on 2026-09-05: an empty set there would silently restore the
+ * exact pre-2026-09-05 behaviour — every slot leaf reported uncomparable — while the comparison was in
+ * fact reading them, which is the worst of both answers. */
+if (!SD_VOLATILE_KEYS.length || !SD_SIDE_KEYS.length || !SD_SLOT_KEYS.length) {
   throw new Error('board_state.js: the compared-key derivation read NOTHING out of its own readers. '
     + 'Every caller asking "is this leaf compared?" would get a wrong answer. Not a pass.');
 }
@@ -1798,10 +2097,17 @@ function uncomparableLeavesOf(entry) {
   const w = writtenLeaves(entry);
   const out = [];
   const V = new Set(SD_VOLATILE_KEYS), S = new Set(SD_SIDE_KEYS), P = new Set(SD_PSEUDO_KEYS);
+  /* 2026-09-05 — THE SLOT LINE USED TO READ `for (const v of w.slot) out.push(...)` WITH NO TEST AT
+   * ALL, carrying the comment "this file reads no slot condition". That was true when it was written
+   * and it stopped being true in the same pass that added `SD_SLOT_KEYS`; leaving it would have told
+   * every caller that Wish, Healing Wish and Future Sight are uncomparable while the comparison read
+   * all three — a declaration outliving what it described, which is this repository's most expensive
+   * recurring failure. The four classes are now asked the same question in the same way. */
+  const L = new Set(SD_SLOT_KEYS);
   for (const v of w.volatile) if (!V.has(v)) out.push('volatile:' + v);
   for (const v of w.side) if (!S.has(v)) out.push('sideCondition:' + v);
   for (const v of w.pseudo) if (!P.has(v)) out.push('pseudoWeather:' + v);
-  for (const v of w.slot) out.push('slotCondition:' + v);   // this file reads no slot condition
+  for (const v of w.slot) if (!L.has(v)) out.push('slotCondition:' + v);
   return out.sort();
 }
 /* THE DECLARED HALF, MACHINE-READABLE SINCE 2026-08-28. `NOT_COMPARED` is prose, and prose cannot be
@@ -1815,6 +2121,6 @@ module.exports = { readMedi, readShowdown, compare, snapshot, family, mappingPro
                    writtenLeaves, uncomparableLeavesOf, DECLARED_LEAVES,
                    stableKey, PARTY_KEY_IDENTITY,
                    explain, MAPPINGS, NOT_COMPARED, PHYSICAL_SCREENS, SPECIAL_SCREENS,
-                   SD_VOLATILE_KEYS, SD_SIDE_KEYS, SD_PSEUDO_KEYS,
+                   SD_VOLATILE_KEYS, SD_SIDE_KEYS, SD_PSEUDO_KEYS, SD_SLOT_KEYS,
                    _internals: { num, layers, dur, sleptTurns, frozenTurns, mediBoosts, sdBoosts,
                                  mediScreens, sdScreens, sdPP, mediBody, sdBody } };

@@ -52,9 +52,20 @@ function compare(a, b) {
    * store files no longer need asserting by hand — a change to games.bo3.jsonl, games.ots.jsonl or
    * diff_swarm.js's predicates that alters the sample shows up in that digest. A change to any of
    * them that does NOT alter the sample is, correctly, not a difference. */
+  /* THE DRIVER LIMIT IS COMPUTED NOW, NOT TYPED — 2026-09-05. It read "no artifact records its
+   * digest" for as long as that was true, and on 2026-09-05 it stopped being true for new runs while
+   * staying true for every artifact already on disk. A limits list that says the same thing whatever
+   * it is handed is prose outliving what it described, which is the failure this repository is named
+   * after; so the line asks the two blocks in front of it. */
+  const bothStamped = !!(a.steering && a.steering.driver_code && b.steering && b.steering.driver_code);
   const limits = [
-    'THE DRIVER ITSELF. engine/game_differential.js is not in the engine release (it is the '
-      + 'instrument, not the engine) and no artifact records its digest. WIRE 4 asserted it by hand.',
+    bothStamped
+      ? 'the driver is CHECKED for this pair (steering.driver_code, both arms) — but only its local '
+        + 'static `require` closure. A computed require path or a dynamic import is still invisible.'
+      : 'THE DRIVER ITSELF. engine/game_differential.js is not in the engine release (it is the '
+        + 'instrument, not the engine) and at least one of these artifacts records no `driver_code` '
+        + 'digest. On 2026-09-05 an edit to engine/empirical_driver.js moved a run from 138 to 167 '
+        + 'divergences under otherwise byte-identical pins, and this check said COMPARABLE.',
     'data/protocol-events.json — the DECLARED SKIP LIST. It decides which Showdown lines are removed '
       + 'before alignment, so a change to it moves every class count in the table. Not stamped.',
     'the Showdown checkout beyond its commit hash — an uncommitted edit in SHOWDOWN_PATH is invisible '

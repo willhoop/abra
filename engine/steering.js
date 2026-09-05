@@ -55,9 +55,91 @@
 const fs = require('fs');
 const path = require('path');
 const { sha12 } = require('./engine_release.js');
+const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..');
 const LIVE_CENSUS = path.join(ROOT, 'data', 'mechanics-census.json');
+
+/* ---- THE CODE THAT REALISES THE POLICY, DIGESTED — 2026-09-05, MEASURE -------------------------
+ *
+ * ================= WHAT WENT WRONG, AGAIN, THROUGH THE DOOR THIS FILE LEFT OPEN ==================
+ *
+ * This file's header says a measurement is a photograph and *nothing in frame may move, INCLUDING
+ * FILES THE MEASURING AGENT NEVER OPENS*. It then froze the census, the behaviour tables and the team
+ * pool — every INPUT to the selection — and never froze the CODE that reads them.
+ *
+ * THE RECEIPT, 2026-09-05. Six whole-game runs were taken between 02:11 and 02:40 on one identical
+ * set of pins: release 688e696f00c8, census pin 9446a684709d, team pool 0d103fb9fa87, 961 games,
+ * turn cap 12, and byte-identical `driver_inputs` in all six. They read:
+ *
+ *     empirical  02:15   121 protocol / 34 board-material      prefer_narrowed = 20507
+ *     empirical  02:29   121 protocol / 34 board-material      prefer_narrowed = 20507
+ *     joint      02:26   138 protocol / 53 board-material      prefer_narrowed = 20353
+ *     joint      02:32   167 protocol / 69 board-material      prefer_narrowed = 0
+ *     joint      02:39   167 protocol / 69 board-material      prefer_narrowed = 0
+ *     empirical  02:40   147 protocol / 55 board-material      prefer_narrowed = 0
+ *
+ * That was reported as the joint arm being NON-DETERMINISTIC. It is not. `engine/empirical_driver.js`
+ * was rewritten at 02:27:26 — the Protect-amplification fix, which replaced a hard `prefer` narrowing
+ * with `preferPool()` — and `engine/game_differential.js` at 02:28:45. Every run before those writes
+ * played the narrowing policy and every run after played the sampled one; the arm reproduced EXACTLY
+ * on both sides of the edit (167/167 bit-identical, 121/121 bit-identical, down to `credit_events`
+ * and `shuffle_calls`). The variation was a code change, and it was invisible because no artifact
+ * recorded a digest of the code.
+ *
+ * `engine/arms_comparable.js` was run on the 138 and one of the 167s and answered **COMPARABLE — a
+ * difference between their numbers is the change under test**, and additionally called the pair a
+ * REPEAT. Its own printed limits already named the hole: *"THE DRIVER ITSELF... no artifact records
+ * its digest. WIRE 4 asserted it by hand."* A named limit is not a guard.
+ *
+ * ================= WHY IT IS DERIVED AND NOT A LIST ==============================================
+ *
+ * `engine_release.js`'s SOURCES list grew four times and every growth was found by a crash; the fix
+ * there was `requireClosure()`, which DERIVES the reachable set from the entry file. The same
+ * function serves here, so a driver file added tomorrow is digested the same day with nothing edited.
+ * A typed list of instrument files is the hand-maintained ban list of four in a new costume.
+ *
+ * FROZEN FILES ARE EXCLUDED, AND THAT IS NOT TIDINESS. A run reads the release's SNAPSHOT bytes
+ * through `REL.require`, never the live copy, so digesting the live copy of a frozen source would
+ * report a difference that did not touch the run — a guard that cries wolf is one people route
+ * around. Those files are stamped separately by `REL.stamp()` as `source_digests`.
+ *
+ * WHAT IT DOES NOT SEE, said out loud. Static local `require('./x.js')` only: a computed path or a
+ * dynamic import is invisible, exactly as it is to the release closure. The Showdown checkout is
+ * covered only by `showdown_commit`. `data/protocol-events.json` is still unstamped. */
+function driverCode(opts) {
+  opts = opts || {};
+  const ER = require('./engine_release.js');
+  const entryAbs = opts.entry || (require.main && require.main.filename) || null;
+  if (!entryAbs) {
+    throw new Error('steering.driverCode: no entry file. The instrument cannot digest itself, so a '
+      + 'run taken now could not be shown to have used the same code as any other run.');
+  }
+  const entry = path.relative(ROOT, entryAbs).split(path.sep).join('/');
+  const frozen = new Set(opts.frozen || []);
+  const clo = ER.requireClosure([entry], ROOT);
+  const files = {};
+  for (const f of [entry, ...clo.escapes.keys()].sort()) {
+    if (frozen.has(f)) continue;              // served from the snapshot, stamped as source_digests
+    files[f] = sha12(path.join(ROOT, f));     // THROWS: an undigestable instrument file is a refusal
+  }
+  const roll = Object.entries(files).map(([f, d]) => f + '@' + d).join('\n');
+  return {
+    derived_from: 'engine/steering.js driverCode -> engine_release.requireClosure(' + entry + ')',
+    entry,
+    frozen_excluded: [...frozen].filter(f => clo.escapes.has(f) || f === entry).sort(),
+    files,
+    digest: crypto.createHash('sha256').update(roll).digest('hex').slice(0, 12),
+    /* Unresolved edges are REPORTED, never swallowed. Two of the three seen on this tree are prose
+     * inside a block comment in engine_release.js (`./x.js`, `./literal`); they are carried anyway,
+     * because a reader deciding whether a closure was complete needs the list, not a summary. */
+    unresolved: clo.unresolved,
+    covers: 'the INSTRUMENT: every local .js reachable by static require from the entry point, minus '
+          + 'the engine-release SOURCES which are served from the snapshot and stamped separately.',
+    does_not_cover: 'a computed require path, a dynamic import, the Showdown checkout beyond '
+          + '`showdown_commit`, and data/protocol-events.json (read as data, not required).',
+  };
+}
 
 /* The version is part of the comparability check. If covWant's SCORING RULE ever changes, two arms
  * run either side of that change are not comparable even with identical census bytes — and the digest
@@ -211,6 +293,11 @@ function resolve(opts) {
     census_role: M.tableDriven ? 'CREDITED ONLY — it measures coverage and does not select'
                                : 'SELECTS THE SAMPLE — covWant reads it at every decision',
     driver_inputs: driverInputs || null,
+    /* THE CODE THAT REALISES THE POLICY. See `driverCode` above for the receipt. The caller passes
+     * the frozen set because it is the one holding the release handle — the same argument the
+     * `driverInputs` note makes one field up. A caller that passes nothing gets the closure computed
+     * here from `require.main`, which is right for every current caller and is recorded either way. */
+    driver_code: opts.driverCode || driverCode({ frozen: opts.frozenFiles }),
     input: 'data/mechanics-census.json',
     input_read_from: pinned ? path.relative(ROOT, src).replace(/\\/g, '/') : 'data/mechanics-census.json',
     input_digest: digest,
@@ -311,6 +398,37 @@ function comparable(a, b) {
         + 'change under test.');
     }
   }
+  /* THE INSTRUMENT ITSELF — 2026-09-05. Six runs on one identical set of pins read 121/138/147/167
+   * because `engine/empirical_driver.js` was rewritten between them, and this function answered
+   * COMPARABLE on a pair that spanned the edit. See `driverCode` above for the full receipt.
+   *
+   * EXACTLY-ONE-SIDE IS A REFUSAL, NOT A PASS. A new run against an artifact taken before this stamp
+   * existed genuinely cannot be shown to have run the same instrument, and "nothing recorded it" has
+   * to read as a refusal here or the stamp buys nothing on the first pair that matters — which is the
+   * pair being taken tonight. It is the same rule `baselineGuard` already applies to a missing `pins`
+   * block.
+   *
+   * BOTH-SIDES-MISSING KEEPS TODAY'S ANSWER, deliberately and with its reason: every artifact on disk
+   * predates this field, refusing all of them retroactively would change no fact about them, and
+   * `arms_comparable.js` has printed THE DRIVER ITSELF in its limits block the whole time. Those
+   * pairs were never checked on this axis and still are not. */
+  const ca = a.driver_code, cb = b.driver_code;
+  if (ca && cb) {
+    if (ca.digest !== cb.digest) {
+      const moved = Object.keys(Object.assign({}, ca.files, cb.files))
+        .filter(f => (ca.files || {})[f] !== (cb.files || {})[f]).sort();
+      bad.push('the INSTRUMENT differs: driver code ' + ca.digest + ' vs ' + cb.digest + '. '
+        + moved.length + ' file(s) moved between the arms — ' + moved.join(', ')
+        + '. The code that reads the tables selects the sample just as much as the tables do; on '
+        + '2026-09-05 one such edit moved a whole-game run from 138 to 167 divergences under pins '
+        + 'that were otherwise byte-identical.');
+    }
+  } else if (ca || cb) {
+    bad.push('only the ' + (ca ? 'before' : 'after') + '-arm records `driver_code`. The other predates '
+      + 'the instrument stamp, so nothing recorded which bytes of engine/game_differential.js and '
+      + 'engine/empirical_driver.js played its games. That is not "probably the same" — an edit to '
+      + 'exactly those files is what produced 138 and 167 from identical pins.');
+  }
   if (a.input_digest !== b.input_digest) {
     bad.push('the steering INPUT differs: ' + a.input + ' is ' + a.input_digest + ' in the before-arm and '
       + b.input_digest + ' in the after-arm (' + a.input_rows + ' vs ' + b.input_rows + ' rows, generated '
@@ -334,6 +452,6 @@ function comparable(a, b) {
   return { ok: !bad.length, reasons: bad };
 }
 
-module.exports = { resolve, comparable, vouches, POLICY, POLICY_RULE,
+module.exports = { resolve, comparable, vouches, driverCode, POLICY, POLICY_RULE,
                    POLICY_EMPIRICAL, POLICY_EMPIRICAL_RULE,
                    POLICY_JOINT, POLICY_JOINT_RULE, MODES, TABLE_DRIVEN, LIVE_CENSUS };

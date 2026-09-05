@@ -144,20 +144,46 @@ function loadPriors(bytes, where) {
   }
   const byKey = new Map();
   let moveRows = 0, leadRows = 0, acts = 0;
+  /* THE PROTECT FAMILY IS READ OFF THE TABLE'S OWN `kind` FIELD, NEVER TYPED. `engine/policy.js:351`
+   * stamps `kind` on every row through `engine/moves-meta.js:classify`, so the membership question is
+   * answered by the same artifact the weights come from. (Cross-checked against `data/tags.json`'s
+   * `shieldsUser` tag: identical for the five members this format can reach — protect, detect,
+   * spikyshield, banefulbunker, kingsshield.) It is a UNION over species rows, because a family
+   * member absent from one species' top-8 is still that family member when another species carries
+   * it. Used only by the counters below; no draw reads it. */
+  const family = new Set();
+  for (const v of Object.values(sp)) {
+    for (const m of ((v && v.moves) || []).concat((v && v.lead) || [])) {
+      if (m && m.mv && m.kind === 'protect') family.add(String(m.mv));
+    }
+  }
+  let famActs = 0;
   for (const [k, v] of Object.entries(sp)) {
     const moves = new Map(), lead = new Map();
     for (const m of (v.moves || [])) if (m && m.mv && m.p > 0) { moves.set(String(m.mv), m.p); moveRows++; }
     for (const m of (v.lead || [])) if (m && m.mv && m.p > 0) { lead.set(String(m.mv), m.p); leadRows++; }
     if (!moves.size) continue;                 // a row with no usable move distribution is not a row
     acts += (v.acts || 0);
-    byKey.set(norm(k), { moves, lead, acts: v.acts || 0 });
+    /* `famP` — the share of THIS species' recorded clicks that were a protect-family move. Kept on
+     * the row so the acts-weighted input rate below is computed from the same numbers the draw uses,
+     * rather than from a second pass over the JSON that could read the table differently. */
+    let famP = 0;
+    for (const [mv, p] of moves) if (family.has(mv)) famP += p;
+    famActs += famP * (v.acts || 0);
+    byKey.set(norm(k), { key: norm(k), moves, lead, acts: v.acts || 0, famP });
   }
   if (!byKey.size) {
     throw new Error('empirical_driver: ' + (where || 'move-priors') + ' parsed but every species row '
       + 'was empty after filtering p > 0.');
   }
+  FAMILY = family;      // published for the counters in drawMove; no draw reads it
   return { byKey, species: byKey.size, move_rows: moveRows, lead_rows: leadRows,
-           acts, generated: (j && j.generated) || null, from: where || null };
+           acts, generated: (j && j.generated) || null, from: where || null,
+           /* WHAT THIS TABLE ITSELF SAYS THE PROTECT RATE IS — the number the driver's realised rate
+            * has to be read against. Acts-weighted over every profiled row, because that is the
+            * denominator a click share is measured in. */
+           family: [...family].sort(),
+           input_family_share_pct: acts ? +(100 * famActs / acts).toFixed(3) : null };
 }
 
 /* THE VOLUNTARY-SWITCH RATE, READ AND NEVER TYPED.
@@ -308,6 +334,55 @@ function pickBody(debutants, veterans, pNew, uGroup, uPick) {
   return group[Math.min(group.length - 1, Math.floor(uPick * group.length))];
 }
 
+/* ---- THE `prefer` AXIS DOES NOT NARROW THIS ARM'S DRAW — 2026-09-05 ----------------------------
+ *
+ * THE DEFECT, MEASURED AT THE LINE. `empirical-click/v1` realised a protect-family share of 32.8% of
+ * its clicks against the 13.565% its OWN input table (`data/move-priors.json`, acts-weighted over
+ * 435,700 recorded acts) says it is sampling, and against 14.76% for real humans. It protected again
+ * after protecting 68.6% of the time where humans do it 10.5%. The weights were never the cause: on
+ * decisions where the body had its full four moves the arm realised 15.3% protect, which is the human
+ * rate. The amplification was ENTIRELY in which candidates reached the draw.
+ *
+ * `engine/game_differential.js`'s `DRIVER_AXES` gives two of the swarm's nine configurations a
+ * `prefer` set that contains the protect family — `pair-protect-bust` (byTag stalling/oneTurnGuard)
+ * and `pair-redirect-priority`, because every member of the family is +4 PRIORITY and so is inside
+ * `byTag('moves','priority')` as well. `empiricalPick` then took `use = pref` as a HARD narrowing at
+ * EVERY decision of every turn of every game in those configurations. Measured over 8,885 draws of a
+ * 120-game run: 1,975 decisions (22.2%) reached the sampler with exactly ONE candidate, and 1,183 of
+ * those single candidates were Protect. More than half of the arm's protect clicks were not sampled
+ * at all — the candidate list held nothing else.
+ *
+ * THAT IS A COVERAGE DEVICE APPLIED TO A BEHAVIOUR CLONE. Under `census-coverage-seeking/v1` a hard
+ * preference is coherent: nobody is playing a game, and the point is to stage a rare interaction. This
+ * arm exists BECAUSE the coverage arm's games never end, and its whole contract is that the click
+ * distribution is the table's. A narrowing that decides 22% of its decisions is not a staging device
+ * in that context; it is a second, undeclared policy overriding the declared one — and it took the
+ * SWITCH candidates with it, because a bench candidate never carries `prefer`, so the declared switch
+ * model was silently off in two configurations of nine.
+ *
+ * SO THE PAIR CONFIGURATIONS STAGE THROUGH THE TEAMS THEY SELECT, WHICH IS WHERE THE ARM CAN STILL
+ * HONESTLY STAGE. `diff_swarm.configs` already picks teams that carry both halves of the pair; what
+ * changes is that the interaction now happens at the rate the behaviour table produces it rather than
+ * on every turn. THE COVERAGE ARM IS NOT TOUCHED and still forces the click on every decision — it is
+ * the arm those configurations were built for, and Will's rule stands: *"thats why we have both."*
+ *
+ * THE KNOB RESTORES THE DEFECT, and exists so the probe can be shown RED. `MEDI_PREFER_HARD=1` puts
+ * the hard narrowing back exactly as it was; `tests/probe_protect_amplification.js` runs both ways.
+ * It is read once, here, so a run cannot be half one policy and half the other, and the value is
+ * reported in the counters so an artifact says which policy produced it. */
+const PREFER_HARD = process.env.MEDI_PREFER_HARD === '1';
+
+/* `pool` is the caller's full candidate list (moves AND bench). Returns the list the draw may use.
+ * The counters are the caller's block, incremented here so the two policies count identically. */
+function preferPool(pool, C) {
+  const pref = (pool || []).filter(c => c && c.prefer);
+  if (!pref.length || pref.length === pool.length) return pool;
+  if (C) C.prefer_would_have_narrowed++;
+  if (!PREFER_HARD) return pool;
+  if (C) C.prefer_narrowed++;
+  return pref;
+}
+
 /* ---- THE DRAW ----------------------------------------------------------------------------------
  * `ids`  the LEGAL move ids for this body, already filtered by the caller from Showdown's own
  *        request. Legality is never re-decided here.
@@ -321,6 +396,59 @@ function pickBody(debutants, veterans, pNew, uGroup, uPick) {
  * state from "no row at all" and it is counted separately, because a uniform draw wearing an
  * empirical label is the failure this arm exists to avoid. */
 const UNOBSERVED = 0.02;      // rollout_leaf.js:718 — "carried but never observed: rare, not impossible"
+/* THE NAME OF THE WEIGHTING RULE IN FORCE, STAMPED INTO EVERY PROBE DUMP. A dump that does not say
+ * which rule produced it cannot be compared with one taken after a rule change, and this file's whole
+ * subject is a rule change. */
+const DRAW_RULE = 'renormalise-over-legal/v1';
+
+/* ---- THE OBSERVATIONAL DRAW LOG — `MEDI_DRAW_PROBE=<file>` (2026-09-05) -------------------------
+ *
+ * OFF UNLESS THE VARIABLE NAMES A FILE, and it changes no weight, no variate and no returned move —
+ * it appends a copy of what `drawMove` was already about to do. An ordinary run is byte-identical.
+ *
+ * IT EXISTS BECAUSE THE FIRST FORK IN THIS DIAGNOSIS IS UNANSWERABLE FROM THE OUTSIDE. A realised
+ * protect share measured off the emitted stream says WHAT was clicked; it cannot say whether the
+ * sampler picked protect more often than its own weight said (a draw defect) or exactly as often as
+ * its weight said (a weight defect). Those need opposite fixes, so the run has to record both the
+ * weight vector and the pick. Every row here is one decision, so any candidate weighting rule can be
+ * re-scored against the SAME corpus of decisions without paying for another run.
+ *
+ * It writes on process exit rather than per call, because the caller runs two arms in one process and
+ * a partial file would look like a short run. */
+const PROBE_OUT = process.env.MEDI_DRAW_PROBE || null;
+const PROBE = PROBE_OUT ? [] : null;
+/* THE FAMILY AND THE COUNTER BLOCK, REACHED FROM INSIDE `drawMove`.
+ *
+ * `drawMove` is handed a row and a variate and nothing else — no counter block, no table handle — so
+ * a realised-rate counter has nowhere to land without changing its signature at the call site, which
+ * lives in `engine/game_differential.js`. These two module-level handles are the smaller change:
+ * `loadPriors` publishes the family it derived, `counters()` publishes the block it just minted, and
+ * `drawMove` increments through them. ONE table and ONE counter block per process is the caller's own
+ * construction (`EMP_PRIORS`/`EMP_C` are each built once), so there is nothing here to get out of
+ * step; if that ever stops being true these counters go stale silently, which is why the assertion is
+ * written down here rather than assumed.
+ *
+ * NOTHING BELOW STEERS A DRAW. They are counters. */
+let FAMILY = new Set();
+let LAST_C = null;
+if (PROBE_OUT) {
+  process.on('exit', () => {
+    try {
+      require('fs').writeFileSync(PROBE_OUT, JSON.stringify({
+        what: 'every drawMove decision: the legal ids, the weight the sampler gave each, and which it '
+            + 'returned. Observational; no draw is changed by this block.',
+        generated: new Date().toISOString(),
+        rule: DRAW_RULE, unobserved_floor: UNOBSERVED,
+        decisions: PROBE,
+      }) + '\n');
+      process.stderr.write('  MEDI_DRAW_PROBE wrote ' + PROBE.length + ' decisions to ' + PROBE_OUT + '\n');
+    } catch (e) {
+      /* NOT SWALLOWED. A probe that fails to write must say so, or a missing file reads as a run that
+       * never drew anything. */
+      process.stderr.write('  MEDI_DRAW_PROBE FAILED TO WRITE ' + PROBE_OUT + ': ' + e.message + '\n');
+    }
+  });
+}
 
 function drawMove(row, ids, lead, u) {
   if (!row || !ids || !ids.length) return null;
@@ -333,9 +461,25 @@ function drawMove(row, ids, lead, u) {
     weights.push([mv, w]); tot += w;
   }
   if (!(tot > 0)) return null;
-  let x = u * tot;
-  for (const [mv, w] of weights) { x -= w; if (x <= 0) return { id: mv, weights, informed }; }
-  return { id: weights[weights.length - 1][0], weights, informed };
+  let x = u * tot, picked = weights[weights.length - 1][0];
+  for (const [mv, w] of weights) { x -= w; if (x <= 0) { picked = mv; break; } }
+  if (PROBE) PROBE.push({ sp: row.key || null, lead: !!lead, u: +u.toFixed(6), tot: +tot.toFixed(6),
+                          picked, informed, w: weights.map(([mv, w]) => [mv, +w.toFixed(6)]) });
+  /* THE REALISED PROTECT SHARE, AND THE SHARE THE WEIGHTS THEMSELVES ASKED FOR, COUNTED AT THE LINE.
+   * Both, because they answer different questions and only the pair is diagnostic: `expected` is what
+   * this decision's weight vector said, `clicked` is what came out. They agree when the sampler is
+   * faithful, and a gap between them is a draw defect rather than a weighting one. */
+  if (LAST_C && FAMILY.size) {
+    let famW = 0, anyFam = false;
+    for (const [mv, w] of weights) if (FAMILY.has(mv)) { famW += w; anyFam = true; }
+    LAST_C.protect_draws++;
+    if (anyFam) {
+      LAST_C.protect_legal++;
+      LAST_C.protect_expected_x1e6 += Math.round(1e6 * famW / tot);
+      if (FAMILY.has(picked)) LAST_C.protect_clicked++;
+    }
+  }
+  return { id: picked, weights, informed };
 }
 
 /* ---- THE COUNTERS ------------------------------------------------------------------------------
@@ -343,7 +487,7 @@ function drawMove(row, ids, lead, u) {
  * run INCLUDING ITS ZERO, and every one names a state the driver can be in. There is no bucket for
  * "something else happened". */
 function counters() {
-  return {
+  const C = {
     decisions: 0,                 // every empirical decision this driver reached
     move_from_prior: 0,           // a move drawn from the species' recorded distribution
     lead_table_used: 0,           // ... of those, drawn from the turn-1 table
@@ -354,9 +498,26 @@ function counters() {
     switch_offered: 0,            // ... the draw said leave
     no_bench: 0,                  // decisions with nowhere to go
     trapped: 0,                   // showdown refused to offer a switch at all
-    prefer_narrowed: 0,           // a pair-* configuration restricted the pool before the draw
+    prefer_narrowed: 0,           // a pair-* configuration restricted the pool before the draw —
+                                  //   ZERO unless MEDI_PREFER_HARD=1 restores the pre-2026-09-05 rule
+    prefer_would_have_narrowed: 0,// ... how many decisions the old hard rule WOULD have narrowed. Kept
+                                  //   because "the axis stopped narrowing" and "no configuration
+                                  //   preferred anything" are different states and must not read alike
+    prefer_hard_narrowing: PREFER_HARD ? 1 : 0,  // WHICH policy this run used, in the artifact
     ban_narrowed: 0,              // an omit-* configuration removed at least one legal click
     no_move_candidates: 0,        // only switches were available (the caller's own fallbacks apply)
+    /* ---- THE PROTECT RATE, COUNTED AT THE LINE (2026-09-05) -------------------------------------
+     * The arm's realised protect-family share is the one number that can be checked against the
+     * driver's OWN INPUT without a second measurement: `move-priors.json` is acts-weighted 13.565%
+     * protect, so a realised share far from that is the driver failing to sample the table it claims
+     * to sample. `expected` is what the weight vectors asked for and `clicked` is what came out; a
+     * gap between THOSE two is a sampler defect, and their agreement moves the question onto the
+     * weights. Reported as a percentage by the caller; carried as an integer x1e6 sum so the
+     * artifact is exact rather than float-accumulated. */
+    protect_draws: 0,             // drawMove calls reached (the denominator for `legal`)
+    protect_legal: 0,             // ... with at least one protect-family move among the legal ids
+    protect_expected_x1e6: 0,     // ... sum over those of the weight share the family held
+    protect_clicked: 0,           // ... and the draw returned a family member
     first_no_prior_row: '',       // the first unprofiled species, named — a bare count sends the
                                   // reader back to guess which row it was
     /* ---- THE JOINT ARM'S OWN COUNTERS -----------------------------------------------------------
@@ -375,6 +536,8 @@ function counters() {
     joint_body_chose_debutant: 0, // ... and the debutant was taken
     joint_body_uniform: 0,        // the bench was all one kind — nothing to prefer
   };
+  LAST_C = C;                     // published for the protect counters in drawMove; see FAMILY above
+  return C;
 }
 
 /* Resolve a body to a row, counting HOW it resolved. `id` is Showdown's `species.id`; `baseId` is
@@ -394,4 +557,5 @@ function rowFor(P, C, id, baseId) {
 }
 
 module.exports = { loadPriors, switchRateFrom, drawMove, counters, rowFor, norm, UNOBSERVED,
+                   preferPool, PREFER_HARD, DRAW_RULE,
                    loadJoint, cellKey, switchRateAt, anchorAt, joinOrSplit, pickBody, CELL_MIN_N };

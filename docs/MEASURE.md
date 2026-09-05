@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 188 unsafe, 2 void (declared), 37 possibly stale, 27 ok, 0 missing
+  provenance: 189 unsafe, 2 void (declared), 34 possibly stale, 29 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
@@ -29,14 +29,43 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-04 22:58
+    moved after the fit: engine/medicham2-browser.js  2026-09-05 01:37
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-09-04 21:38
 ```
 
-_stamped 2026-09-04 23:52_
+_stamped 2026-09-05 02:59_
 
 <!-- /GENERATED -->
+
+## THE PINS FROZE EVERY INPUT AND NEVER FROZE THE INSTRUMENT, AND THE COMPARABILITY CHECK SAID **COMPARABLE** ABOUT TWO RUNS PLAYING DIFFERENT DRIVER CODE. THE "NON-REPRODUCIBLE JOINT ARM" IS **WITHDRAWN** — SIX RUNS ON ONE SET OF PINS ARE **BIT-IDENTICAL WITHIN EACH SIDE OF THE EDIT**. 2026-09-05, CHANGELOG 5.257.0
+
+**THIS IS THIS DIVISION'S SUBJECT AND THIS DIVISION MISSED IT, SO IT IS RECORDED THAT WAY.** A measurement here pins three things — the engine release, the census, the team pool — and **all three are INPUTS**. The code that reads them was never digested at all. `engine/game_differential.js` and `engine/empirical_driver.js` are read LIVE off the working tree by every run, and an edit to either one selects the sample just as surely as the tables do. The photograph rule in CLAUDE.md says nothing in frame may move; the instrument was standing outside the frame holding the camera.
+
+**AND THE CHECK BUILT TO CATCH EXACTLY THIS ANSWERED THE WRONG WAY, WHICH IS WORSE THAN NOT HAVING IT.** `engine/arms_comparable.js` was asked about two of tonight's runs and printed *"COMPARABLE. Both arms selected their sample the same way, so a difference between their numbers is the change under test."* The two runs were playing different driver code. **Its own limits block had named the hole in prose the whole time** — *"THE DRIVER ITSELF … no artifact records its digest. WIRE 4 asserted it by hand"* — which is the finding to keep: **a named limit is not a guard.** A file that describes its own blind spot reads, to anybody scanning it, exactly like a file that covers it.
+
+**THE CLAIM THAT IS WITHDRAWN, NAMED, BECAUSE IT WAS PUBLISHED THREE HOURS BEFORE IT WAS RETRACTED.** This version's changelog note records that `joint-empirical-click/v1` gave **167, 167 and 138** on identical pins, that the cause was under investigation, and that until it was settled every joint figure of the night — 110, 53, 167, 138 — was one draw from an uncharacterised distribution and could not be quoted. **It is settled and it was never a distribution.** Six runs on one identical set of pins split perfectly cleanly at the protect fix, which landed at 02:27:
+
+| runs on the driver as it was | protocol / board-material | `prefer_narrowed` |
+|---|---|---|
+| three of them | **121/34, 121/34, 138/53** | 20,507 / 20,507 / 20,353 |
+| three on the repaired driver | **167/69, 167/69, 147/55** | 0 / 0 / 0 |
+
+**Each side is bit-identical within itself, down to `credit_events` and `shuffle_calls`.** So the joint **53** STANDS and is reproducible; what is withdrawn is the diagnosis, not the observation. **The general rule for this division: a measurement that will not reproduce is a code-movement hypothesis before it is a randomness hypothesis**, and the cheapest test is not more runs — it is a digest of the thing doing the running.
+
+**WHAT LANDED, MEASURED RATHER THAN ASSERTED.** `engine/steering.js` digests the instrument's own require closure into `steering.driver_code`. `engine/game_differential.js` takes that digest at module load, takes it again at write time, and **VOIDS the run if it moved — withholding `diverged`, `mid_void` and `state` rather than captioning them**, which is the CLAUDE.md rule that a caption is not a quarantine applied to the instrument for the first time. `arms_comparable.js` now COMPUTES its limit line from the two artifacts in front of it, and `steering.comparable` treats **exactly one side carrying the stamp as a REFUSAL**, not a pass — because "nothing recorded it" has to read as a refusal or the stamp buys nothing on the first pair that matters.
+
+**THE SECOND CORRECTION, AND IT IS THE ORDINARY KIND: A FIGURE PUBLISHED TONIGHT NEEDS ITS INSTRUMENT NAMED.** The empirical arm on the repaired driver reads **147 protocol / 55 board-material**, not 47. **47 is not wrong** — it is the same run read by the comparator BEFORE the leaf widening, at 40 leaves rather than 54, and it remains correct as the second leg of the paired protect measurement. Two comparators, two readings, one run. **This division's rule stands unchanged and is the reason the discrepancy was traceable at all: name the ARTIFACT and the ARM beside every whole-game figure.**
+
+**THE PROTECT MEASUREMENT ITSELF WAS PAIRED PROPERLY AND IS THE ONE THING HERE THAT NEEDED NO CORRECTING.** 961 games each, release `688e696f00c8`, empirical arm, the driver rule the only difference, with the before leg **re-run under the knob** rather than lifted from a published artifact. **22.2% of decisions reached the sampler with exactly one candidate, 60% of them Protect**; with all four moves present the arm was already at **15.3%**, the human rate. Games that finish went **56% → 79%** (resolved **539 → 762**), and board-material went **34 → 47** — **an increase that is the expected consequence of the repair rather than evidence against it**, because a game that ends reaches positions the old arm never played. The residual rate is **1.53×** its own input for a separate, measured reason: the move-prior table is a marginal renormalised onto the four moves a body carries (row mass 0.917 over 8 becomes 0.521 over about 3.1) and Protect always survives the subsetting. Named, not tuned.
+
+**WHAT THIS DIVISION STILL OWES.**
+
+- **Leaf calibration — this division's one number — stays WITHHELD and was not run.** `data/winrate-backtest.json` is downstream of MEDICHAM and the gate is shut. No reliability curve is published in this version and none is implied by anything above.
+- **The MAG refit stays OWED and it is a REFIT, not a restamp.** No fit was started and no fitted vector was written.
+- **The noise floor for the whole-game differential is still unmeasured, across both arms.** Tonight sharpens why it matters: two figures 8 apart on the same run were a comparator width, and nothing in this repository states what an 8 is worth.
+- **Every artifact on disk predates the instrument stamp.** They were never checked on that axis and still are not; `steering.comparable` refuses a pair where only one side carries it, so the first honest instrument-checked comparison is a run yet to be taken.
+- **`node engine/status.js --write` was NOT run by this documentation pass and no `<!-- GENERATED -->` block was hand-edited.** The block at the top of this file is stamped to an earlier pass.
 
 ## THE RULER WAS HIDING THE DEFECT: A CHARGED MOVE STRUCK THE WRONG SLOT AND **NO INSTRUMENT HERE COULD HAVE SEEN IT**, BECAUSE THE OLD DRIVER AIMED EVERY FOE-AIMED CLICK AT ONE INDEX AND MADE RE-AIMING A NO-OP **BY CONSTRUCTION**. JOINT ARM **110 → 53**, EMPIRICAL ARM **35 → 34**, AND THE TWO MAY NOT BE PAIRED. 2026-09-05, CHANGELOG 5.256.0
 

@@ -10,6 +10,126 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.257.0] — 2026-09-05
+
+### Fixed
+- **THE DRIVER WAS NOT CHOOSING PROTECT TOO OFTEN — IT WAS BEING HANDED ONE OPTION.**
+  `engine/game_differential.js`'s `prefer` axis was a **HARD narrowing** applied at every decision, in
+  two swarm configs of nine whose preferred set contains the protect family. **22.2% of decisions
+  reached the sampler with exactly ONE candidate, 60% of them Protect** — so more than half the arm's
+  protect clicks were never sampled at all. **On decisions where the body had its full four moves the
+  arm already realised 15.3%, the human rate.** The axis no longer narrows the draw under the
+  empirical and joint arms; the coverage arm is untouched, and `MEDI_PREFER_HARD=1` restores the
+  defect.
+- **STRICTLY PAIRED, 961 GAMES EACH, RELEASE `688e696f00c8`, EMPIRICAL ARM, ONLY THE DRIVER RULE
+  DIFFERING:**
+
+  | | before | after | ruler |
+  |---|---|---|---|
+  | protect share of clicks | 32.77% | **20.79%** | input table 13.565%, humans 14.76% |
+  | P(protect \| protected last turn) | 68.58% | **36.48%** | humans 10.50% |
+  | resolved / open at cap | 539 / 418 | **762 / 189** | — |
+  | board-material / protocol | 34 / 121 | **47 / 147** | — |
+
+  **Games that finish went 56% → 79%.** Board-material rising to 47 is the expected consequence and
+  not a regression: **games that end reach late-turn positions the old arm never saw.**
+  The before leg was **re-run under the knob** rather than taken from the published artifact — the
+  comparator had moved at 02:32 — and it reproduced every published count exactly: 121 diverged, 34
+  RULE, 4 VOID, 9,665 turns, 418 open.
+- **ALL SIXTEEN REMAINING LEAVES ADDRESSED — COMPARED 40 → 54, AND THE STANDING HOLE IS 16 → 0.**
+  Fourteen wired, every one shown INVISIBLE before and caught after on a board already reading 40
+  leaves, each with a silent control. Half the eight per-body leaves **were not in `_vol` at all**
+  (`_mtLock`, `_aswDur`, `_metroN`), so wiring off the probe's `_vol` column would have missed three
+  and called them absent.
+- **TWO COULD NOT BE WIRED, AND BOTH REFUSALS ARE DERIVED RATHER THAN ASSERTED.**
+  `volatile:unburden` — **the engine holds nothing under that name**; `effSpeed` recomputes the
+  doubling from the current ability inside an `_hadItem && !m.item` guard, so there is no field to
+  compare. `volatile:powershift` — **no legal body can write it**: Champions un-bans the move
+  (`mods/champions/moves.ts:739-742`, `isNonstandard: null`) and then **nobody learns it**, zero
+  occurrences in either learnset file. The probe now **derives that carrier count every run and fails
+  the moment it is non-zero.**
+
+### Notes
+- **THE CAP IS 20 AND IT WAS MEASURED, NOT ASSUMED — WILL'S RULING.** Empirical arm, 961 games, ONE
+  release (`688e696f00c8` — `drift` said NO-DRIFT, so the cut returned the same id and staled nothing),
+  one census pin, one team store, **and a paired cap-12 control that reproduced the baseline on every
+  count** — 680/271/55/147, by-cause 52/95/128, verdicts 929/29/2. One variable.
+
+  | | cap 12 | cap 20 |
+  |---|---|---|
+  | resolved | 680 (70.8%) | **915 (95.2%)** |
+  | at the cap | 271 (28.2%) | **34 (3.5%)** |
+  | board-material | 55 | **60** |
+  | protocol | 147 | **162** |
+  | turns played / elapsed | 8,810 / 136.4s | 9,576 / 139.6s (**×1.087 / ×1.02**) |
+
+- **THE +5 IS DETERMINISTIC, NOT STATISTICAL, AND MUST NOT BE QUOTED AS A RATE MOVEMENT.** All seven
+  new board partings sit at turns **13, 14, 14, 15, 15, 16, 17** — turns the 12-cap physically cannot
+  reach. Split-half spread on the board-material RATE is 0.023–0.013 against an effect of 0.005.
+  **The cap did not raise the divergence rate; it extended the instrument's reach.** On the 927 games
+  certifiable as unperturbed: board-material 54 → 60 and protocol 143 → 159, **zero losses either way.**
+- **AND 80 OF THE 271 HAD ALREADY FINISHED ON TURN 12 AND WERE MISLABELLED BY THE LOOP.** The
+  genuinely-truncated population at cap 12 was **191, not 271** — of those, 155 resolve at turns 13–19.
+  **All 34 remaining cap-20 hitters come from the original 271; no new stalls.** The stall fraction did
+  NOT hold, so the residual protect defect is not doing the cap's job.
+- **A STATED MECHANISM IN THE CAP SWEEP IS WRONG AND IS CORRECTED HERE:** `docs/_reports/2026-09-05-cap-or-stall.md`
+  §5 attributes the 49-game perturbation to `S.maxTurns`. It is not that — `--turns 12` and `--turns 19`
+  **share** `S.maxTurns = 20` and still perturb the same 34 games, while 19 and 20 **differ** in it and
+  are byte-identical on all 917 resolved games.
+- **THE PREDICTION SCORED 1 OF 7 AND THE FAILURE MODE IS THE USEFUL PART:** directions all correct,
+  magnitudes all wrong in the same direction, because the cap was priced off the **pre**-protect-fix
+  sweep. The residual was easier than argued, not harder.
+- **THE RESIDUAL 1.53× ABOVE INPUT IS A DIFFERENT DEFECT, MEASURED AND NAMED RATHER THAN TUNED AWAY.**
+  `move-priors.json` is a marginal `P(move|species)` **renormalised onto the four moves one body
+  actually carries** — row mass 0.917 over 8 becomes 0.521 over ~3.1 — and **Protect always survives
+  the subsetting.** Not fixed tonight: it changes the driver's declared input, and fixing both at once
+  would make neither attributable.
+- **THE PREDICTION SCORED 5 OF 9 AND THE MISS IS NAMED:** the residual protect rate was called at
+  18.5% against a measured 20.79%.
+- **A LEAF COUNT IS THE AUTHORITY'S, NOT OURS.** `tests/probe_uncompared_leaves.js` walks Showdown's
+  own dex for this format, filters moves and items on `isNonstandard` and **abilities on having a
+  legal carrier** — unfiltered, the ability walk reports 316 and invents five leaves nothing in this
+  regulation can produce. The denominator cannot quietly shrink.
+- **THE "NON-REPRODUCIBLE ARM" IS WITHDRAWN. IT REPRODUCES EXACTLY, AND THE REAL DEFECT IS BIGGER.**
+  Six whole-game runs on ONE identical set of pins — release `688e696f00c8`, census `9446a684709d`,
+  pool `0d103fb9fa87`, 961 games, cap 12, byte-identical `driver_inputs` — split perfectly clean either
+  side of the protect fix landing at 02:27, **bit-identical on both sides down to `credit_events` and
+  `shuffle_calls`**:
+
+      before the edit:  121/34, 121/34, 138/53     prefer_narrowed = 20507, 20507, 20353
+      after  the edit:  167/69, 167/69, 147/55     prefer_narrowed = 0, 0, 0
+
+  **THE PINS FREEZE EVERY INPUT AND NEVER FREEZE THE CODE THAT READS THEM.** The release freezes the
+  engine, the census pin freezes the scenarios, the team-pool pin freezes the population — **the
+  INSTRUMENT itself was never digested.** So a driver rewrite moves every number while every pin still
+  matches, and nothing on disk records that it happened.
+- **AND THE COMPARABILITY CHECK WAS ASKED DIRECTLY AND SAID YES.** `engine/arms_comparable.js` was run
+  on the 138 and one of the 167s and answered **"COMPARABLE — a difference between their numbers is
+  the change under test"**, additionally calling the pair a REPEAT — **about two runs playing different
+  driver code.** Its own header already named the hole: *"THE DRIVER ITSELF… no artifact records its
+  digest. WIRE 4 asserted it by hand."* **A named limit is not a guard**, which is the fourth instance
+  of that shape tonight.
+- **SO THE JOINT FIGURES STAND AND ARE NOT WITHDRAWN.** The joint arm's 53 is reproducible. **The
+  correction runs the other way from the one first reported:** the empirical arm on the fixed driver
+  reads **55** board-material, not 47 — 47 predates the leaf widening. Both figures were briefly
+  reported wrongly to the owner and are corrected here rather than quietly restated.
+- **A WRITER AND A MEASURER OVERLAPPED, TWICE, AND BOTH ARE MINE TO OWN.** An agent's uncommitted
+  `MEDI_TRACE_DUMP` hook was swept into a commit while its runs were live, and the protect fix landed
+  mid-flight under another agent's measurement. Neither corrupted a result — every affected run served
+  frozen release bytes — but the rule this repo has is that a measurement is a photograph and nothing
+  in frame may move.
+- **RED AND ROUTED, NOT FILED AS KNOWN:** `tests/test-game-differential.js` has 4 failures — pinned
+  dice at `randomChance(90,100)` and `(1,4)`, and damage endpoints for knock-off order and Rough Skin.
+  None touches candidate selection. `board_state.js` was under live edit when they were seen; they
+  need a clean-tree re-run before they are diagnosed.
+- Census **829/829**, gate **2 of 9**, both FAILs the inherited staleness of `data/game-differential.json`
+  on release `0dec37ff5ad9`, which holds **46** and is deliberately not overwritten outside a
+  settled-tree pass.
+- Full accounts: `docs/_reports/2026-09-05-protect-amplification.md`,
+  `docs/_reports/2026-09-05-leaf-widening-all16.md`, `docs/_reports/2026-09-05-cap-or-stall.md`.
+
+---
+
 ## [5.256.0] — 2026-09-05
 
 ### Fixed
