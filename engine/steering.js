@@ -360,6 +360,28 @@ function vouches(s, opts) {
   return { ok: !bad.length, reasons: bad };
 }
 
+/* ---- THREE WORDS, NOT TWO — 2026-09-05, MEASURE ------------------------------------------------
+ *
+ * `comparable()` could say COMPARABLE or NOT COMPARABLE, and neither was true of a pair where the
+ * instrument stamp is ABSENT ON BOTH SIDES. Nothing about those two runs was shown to differ; nothing
+ * about them was shown to be the same either. Answering COMPARABLE there is the grandfather clause
+ * this whole wire exists to remove — every artifact on disk on the morning of 2026-09-05 predates the
+ * stamp, including the 138 and the 167 that were taken under DIFFERENT DRIVER CODE and that this
+ * function certified as a REPEAT.
+ *
+ * UNKNOWN IS NOT A SOFTER REFUSAL AND MUST NEVER BE READ AS ONE. `ok` is false for it, the exit code
+ * is the same, and the CLI prints the same do-not-publish line. The word exists because the two
+ * states route differently for a READER: NOT COMPARABLE means re-run one arm, UNKNOWN means nothing
+ * recorded the answer and the pair cannot be repaired after the fact — the runs are gone. Collapsing
+ * them into one word is how "a caption is not a quarantine" happens in the other direction.
+ *
+ * WHAT IS DELIBERATELY *NOT* RELABELLED IN THIS PASS. `vouches()`'s absence clauses (no steering
+ * block, no driver_inputs, no team_pool_digest) are absences too and stay in the PROVEN bucket. They
+ * already refuse, they have refused since WIRE 5, and rewording a live refusal is a separate decision
+ * from closing a hole that is currently answering COMPARABLE. Said out loud rather than left as an
+ * inconsistency for a later reader to discover. */
+const VERDICT = { OK: 'COMPARABLE', NO: 'NOT COMPARABLE', UNKNOWN: 'UNKNOWN' };
+
 /* Two artifacts' steering blocks: may their numbers be compared?
  *
  * FAILS CLOSED ON AN ABSENT BLOCK. Every artifact written before this file existed has no `steering`,
@@ -368,6 +390,17 @@ function vouches(s, opts) {
  * before/after pairs this wire exists to re-examine. */
 function comparable(a, b) {
   const bad = [];
+  /* THINGS THAT COULD NOT BE SHOWN EQUAL, kept apart from things SHOWN DIFFERENT — 2026-09-05.
+   * See VERDICT above for why the third word exists and why it is not a softer NOT COMPARABLE. */
+  const unknown = [];
+  const out = () => ({
+    ok: !bad.length && !unknown.length,
+    verdict: bad.length ? VERDICT.NO : unknown.length ? VERDICT.UNKNOWN : VERDICT.OK,
+    /* `reasons` carries BOTH, in that order, because every existing reader (arms_comparable.js's CLI,
+     * coverage.js's refusal line, game_differential.js's baselineGuard) prints this list and a reason
+     * that vanished from it would read as a pair that passed. The split is additive. */
+    reasons: bad.concat(unknown), proven: bad, unknowns: unknown,
+  });
   /* THE ONE-SIDED QUESTION FIRST, THROUGH THE SHARED DOOR. An arm that cannot identify its own
    * population cannot be shown equal to anything, and asking that here rather than inline is what
    * keeps `vouches()` the single list of selectors. */
@@ -375,7 +408,7 @@ function comparable(a, b) {
     const v = vouches(s);
     for (const r of v.reasons) bad.push(name + ' ' + r);
   }
-  if (bad.length) return { ok: false, reasons: bad };
+  if (bad.length) return out();
   if (a.policy !== b.policy) {
     bad.push('the selection POLICY differs: ' + a.policy + ' vs ' + b.policy
       + ' — the scoring rule itself moved, so identical inputs would still select different samples');
@@ -402,16 +435,21 @@ function comparable(a, b) {
    * because `engine/empirical_driver.js` was rewritten between them, and this function answered
    * COMPARABLE on a pair that spanned the edit. See `driverCode` above for the full receipt.
    *
-   * EXACTLY-ONE-SIDE IS A REFUSAL, NOT A PASS. A new run against an artifact taken before this stamp
-   * existed genuinely cannot be shown to have run the same instrument, and "nothing recorded it" has
-   * to read as a refusal here or the stamp buys nothing on the first pair that matters — which is the
-   * pair being taken tonight. It is the same rule `baselineGuard` already applies to a missing `pins`
-   * block.
+   * DIFFERING DIGESTS ARE A REFUSAL — the two arms provably played different code.
    *
-   * BOTH-SIDES-MISSING KEEPS TODAY'S ANSWER, deliberately and with its reason: every artifact on disk
-   * predates this field, refusing all of them retroactively would change no fact about them, and
-   * `arms_comparable.js` has printed THE DRIVER ITSELF in its limits block the whole time. Those
-   * pairs were never checked on this axis and still are not. */
+   * EITHER SIDE MISSING IS `UNKNOWN`, AND SO IS BOTH SIDES MISSING. The half-done version of this
+   * clause refused a one-sided pair and let a both-sides-missing pair through as COMPARABLE, on the
+   * ground that every artifact then on disk predated the field and refusing them retroactively would
+   * change no fact about them. That is exactly backwards, and the receipt is two files in this
+   * repository: `leaf-widening-all16-joint.json` (138) and `leaf-widening-all16-joint-BEFORE.json`
+   * (167) are BOTH unstamped, were taken on one identical set of pins, ran different driver code, and
+   * this function called them COMPARABLE and additionally a REPEAT. "Nothing recorded it" is not
+   * evidence of sameness in the one-sided case and it is not evidence of sameness in the two-sided
+   * case either; the two-sided case is simply the one where it was never even asked.
+   *
+   * IT IS NOT A REFUSAL EITHER, AND THE DIFFERENCE IS NOT COSMETIC. A refusal says re-run an arm. For
+   * these pairs there is no arm to re-run — the runs are on disk, their instrument is not recorded,
+   * and no work done today can recover it. The honest verdict is that the question was never asked. */
   const ca = a.driver_code, cb = b.driver_code;
   if (ca && cb) {
     if (ca.digest !== cb.digest) {
@@ -424,10 +462,17 @@ function comparable(a, b) {
         + 'that were otherwise byte-identical.');
     }
   } else if (ca || cb) {
-    bad.push('only the ' + (ca ? 'before' : 'after') + '-arm records `driver_code`. The other predates '
-      + 'the instrument stamp, so nothing recorded which bytes of engine/game_differential.js and '
-      + 'engine/empirical_driver.js played its games. That is not "probably the same" — an edit to '
+    unknown.push('only the ' + (ca ? 'before' : 'after') + '-arm records `driver_code`. The other '
+      + 'predates the instrument stamp, so nothing recorded which bytes of engine/game_differential.js '
+      + 'and engine/empirical_driver.js played its games. That is not "probably the same" — an edit to '
       + 'exactly those files is what produced 138 and 167 from identical pins.');
+  } else {
+    unknown.push('NEITHER arm records `driver_code`. Both predate the instrument stamp (2026-09-05), '
+      + 'so nothing on disk says which bytes of engine/game_differential.js, engine/empirical_driver.js '
+      + 'or engine/board_state.js played either set of games. This is the pair-shape that produced 138 '
+      + 'and 167 on one identical set of pins and was certified COMPARABLE, so it reads UNKNOWN and '
+      + 'not COMPARABLE. It cannot be repaired retroactively: re-take both arms under the stamp, or '
+      + 'quote the pair as unchecked on the instrument axis.');
   }
   if (a.input_digest !== b.input_digest) {
     bad.push('the steering INPUT differs: ' + a.input + ' is ' + a.input_digest + ' in the before-arm and '
@@ -449,9 +494,9 @@ function comparable(a, b) {
       + a.team_pool_picked + ' vs ' + b.team_pool_picked + ' picked). The game store moved between the '
       + 'arms, so they played different teams — the other half of the sample.');
   }
-  return { ok: !bad.length, reasons: bad };
+  return out();
 }
 
-module.exports = { resolve, comparable, vouches, driverCode, POLICY, POLICY_RULE,
+module.exports = { resolve, comparable, vouches, driverCode, VERDICT, POLICY, POLICY_RULE,
                    POLICY_EMPIRICAL, POLICY_EMPIRICAL_RULE,
                    POLICY_JOINT, POLICY_JOINT_RULE, MODES, TABLE_DRIVEN, LIVE_CENSUS };

@@ -312,7 +312,14 @@ console.log('\nPART 4 — two arms pinned differently are NOT a before/after, an
   const AC = require(D('engine', 'arms_comparable.js'));
   const base = () => ({ games: 45, turns_cap: 12, mode: G.MODE,
     pins: { digest: G.PIN_DIGEST, arms_run: G.PINS.arms_run },
+    /* `driver_code` IS PART OF THE FIXTURE — 2026-09-05. PART 4's subject is the PIN SET, and
+     * `arms_comparable` now also answers on the INSTRUMENT: a pair where neither side declares its
+     * driver code reads UNKNOWN rather than COMPARABLE, because two runs on one identical set of pins
+     * read 138 and 167 after engine/empirical_driver.js was rewritten between them. Both sides here
+     * carry the SAME digest, which holds that axis still and leaves the pin set as the only variable —
+     * omitting it would have turned this control red for a reason PART 4 is not about. */
     steering: { policy: 'census-coverage-seeking/v1', input: 'data/mechanics-census.json',
+                driver_code: { digest: 'cccccccccccc', files: { 'engine/game_differential.js': 'x' } },
                 input_digest: 'aaaaaaaaaaaa', input_rows: 299, team_pool_digest: 'bbbbbbbbbbbb' } });
   const same = AC.compare(base(), base());
   if (!same.ok) fail('THE CONTROL FAILED: two artifacts with the SAME pin set are reported as not '

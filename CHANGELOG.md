@@ -113,6 +113,32 @@ silently rewritten; what changed and why is stated.
   correction runs the other way from the one first reported:** the empirical arm on the fixed driver
   reads **55** board-material, not 47 — 47 predates the leaf widening. Both figures were briefly
   reported wrongly to the owner and are corrected here rather than quietly restated.
+- **THE INSTRUMENT IS PINNED NOW, AND THE HONEST COST IS VISIBLE RATHER THAN GRANDFATHERED.**
+  `steering.driverCode()` stamps a digest of the driver's own code into every artifact it writes,
+  **DERIVED** via `engine_release.requireClosure()` from the entry file — 16 reachable local `.js`,
+  11 after excluding the sources already served from the release snapshot — and it **throws rather
+  than skipping** a file it cannot digest. A typed list of instrument files would be the
+  hand-maintained ban list of four in a new costume; `engine_release.js`'s own SOURCES list grew four
+  times and **every growth was found by a crash**, which is why it derives.
+- **`arms_comparable.js` NOW REFUSES A PAIR WHOSE INSTRUMENT DIGESTS DIFFER, AND THE RED IS MEASURED
+  RATHER THAN DESCRIBED.** On commit `6f81649b` it answered **COMPARABLE, exit 0** on the real
+  `leaf-widening-all16-joint.json` (138) against `-BEFORE.json` (167) — **two runs playing different
+  driver code.** It now answers **UNKNOWN, exit 1.** The probe loads the pre-fix modules out of that
+  commit and prints both verdicts side by side. The gap was specifically **both sides missing**; the
+  differing-digest and one-side-missing cases already worked.
+- **74 OF 78 ARTIFACTS CARRY NO DRIVER DIGEST, INCLUDING `data/game-differential.json`, SO THEIR
+  VERDICT IS NOW `UNKNOWN` RATHER THAN `COMPARABLE`.** That includes a genuine controlled pair from
+  tonight (`fix-batch-7` 122 against `fix-batch-8` 120). **They are not withdrawn — they are quotable
+  only with the instrument axis named as unchecked, and the tool prints that sentence itself** rather
+  than leaving it to a caption. `UNKNOWN` is `ok:false` and exits 1, the same do-not-publish line as
+  NOT COMPARABLE; the word only tells a reader whether re-running an arm can fix it.
+- **CONTROLS HOLD IN BOTH DIRECTIONS.** Same instrument with a different cap refuses on the cap alone,
+  zero instrument reasons, on real artifacts. Same instrument with a different `engine_release` still
+  reads COMPARABLE. Two existing synthetic fixtures would have gone red on the new rule and now carry
+  the same `driver_code` on both sides, so their own subject is the only variable.
+- **THE DIGEST IS DELIBERATELY NOT PART OF THE RELEASE ID.** Folding it in would strand every existing
+  artifact and is a larger decision; this is a stamp the artifact carries and the comparability check
+  reads.
 - **A WRITER AND A MEASURER OVERLAPPED, TWICE, AND BOTH ARE MINE TO OWN.** An agent's uncommitted
   `MEDI_TRACE_DUMP` hook was swept into a commit while its runs were live, and the protect fix landed
   mid-flight under another agent's measurement. Neither corrupted a result — every affected run served

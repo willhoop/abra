@@ -4,9 +4,15 @@
  *
  *   node engine/arms_comparable.js <before.json> <after.json>
  *
- * exit 0  the two arms sampled the same population; a difference between them is the change under test
- * exit 1  they did not; a difference between them is partly the input
+ * exit 0  COMPARABLE      — the two arms sampled the same population; a difference is the change under test
+ * exit 1  NOT COMPARABLE or UNKNOWN — do not publish the pair as a before/after
  * exit 2  usage / unreadable file
+ *
+ * THE EXIT CODE HAS TWO WORDS BEHIND IT AND THE WORD IS IN THE OUTPUT, NOT THE CODE. NOT COMPARABLE
+ * means something was SHOWN to differ and one arm can be re-run; UNKNOWN means something could not be
+ * shown the same and no work done today can recover it, because the runs are already on disk. They
+ * share an exit code deliberately — both mean "not a before/after" — and they are separate lines in
+ * the output because they route a reader differently. Read the output, never the code alone.
  *
  * WHY A SEPARATE FILE AND NOT JUST THE `--baseline` CHECK INSIDE THE DIFFERENTIAL. The `--baseline`
  * flag protects a run being taken NOW. This protects a table being written from two artifacts that
@@ -35,11 +41,19 @@ const RUN_PARAMS = [
 
 function compare(a, b) {
   const reasons = [];
+  /* PROVEN DIFFERENT vs COULD NOT BE SHOWN THE SAME — see engine/steering.js VERDICT. Both are
+   * non-comparable and both exit 1; they are kept apart because they route a reader differently. */
+  const unknowns = [];
   const st = STEERING.comparable(a.steering, b.steering);
-  reasons.push(...st.reasons);
+  reasons.push(...(st.proven || st.reasons));
+  unknowns.push(...(st.unknowns || []));
   for (const [k, why] of RUN_PARAMS) {
     if (a[k] === undefined || b[k] === undefined) {
-      reasons.push('neither arm records `' + k + '`, so it cannot be shown equal — ' + why);
+      /* Said accurately: this fires when EITHER side is missing the field, and it used to read
+       * "neither arm records" in both cases — which points a reader at the wrong artifact. */
+      const who = a[k] === undefined && b[k] === undefined ? 'neither arm records'
+                : a[k] === undefined ? 'the before-arm does not record' : 'the after-arm does not record';
+      unknowns.push(who + ' `' + k + '`, so it cannot be shown equal — ' + why);
     } else if (a[k] !== b[k]) {
       reasons.push('`' + k + '` differs: ' + a[k] + ' vs ' + b[k] + ' — ' + why);
     }
@@ -57,21 +71,28 @@ function compare(a, b) {
    * staying true for every artifact already on disk. A limits list that says the same thing whatever
    * it is handed is prose outliving what it described, which is the failure this repository is named
    * after; so the line asks the two blocks in front of it. */
-  const bothStamped = !!(a.steering && a.steering.driver_code && b.steering && b.steering.driver_code);
+  const nStamped = [a, b].filter(x => x.steering && x.steering.driver_code).length;
   const limits = [
-    bothStamped
+    nStamped === 2
       ? 'the driver is CHECKED for this pair (steering.driver_code, both arms) — but only its local '
         + 'static `require` closure. A computed require path or a dynamic import is still invisible.'
-      : 'THE DRIVER ITSELF. engine/game_differential.js is not in the engine release (it is the '
-        + 'instrument, not the engine) and at least one of these artifacts records no `driver_code` '
-        + 'digest. On 2026-09-05 an edit to engine/empirical_driver.js moved a run from 138 to 167 '
-        + 'divergences under otherwise byte-identical pins, and this check said COMPARABLE.',
+      : 'THE DRIVER ITSELF, on ' + (nStamped ? 'ONE of these two artifacts' : 'BOTH of these artifacts')
+        + '. engine/game_differential.js is not in the engine release (it is the instrument, not the '
+        + 'engine) and ' + (nStamped ? 'one arm' : 'neither arm') + ' records a `driver_code` digest. '
+        + 'This is REPORTED ABOVE as UNKNOWN rather than waved through: on 2026-09-05 an edit to '
+        + 'engine/empirical_driver.js moved a run from 138 to 167 divergences under otherwise '
+        + 'byte-identical pins, and this check said COMPARABLE about exactly that pair.',
     'data/protocol-events.json — the DECLARED SKIP LIST. It decides which Showdown lines are removed '
       + 'before alignment, so a change to it moves every class count in the table. Not stamped.',
     'the Showdown checkout beyond its commit hash — an uncommitted edit in SHOWDOWN_PATH is invisible '
       + 'to `showdown_commit`.',
   ];
-  return { ok: !reasons.length, reasons, limits };
+  const verdict = reasons.length ? STEERING.VERDICT.NO
+                : unknowns.length ? STEERING.VERDICT.UNKNOWN : STEERING.VERDICT.OK;
+  /* `reasons` still carries BOTH so that every existing reader — coverage.js prints
+   * `r.reasons.join('; ')` — keeps seeing every line. `proven` is the narrow list. */
+  return { ok: verdict === STEERING.VERDICT.OK, verdict,
+           reasons: reasons.concat(unknowns), proven: reasons, unknowns, limits };
 }
 
 module.exports = { compare };
@@ -102,10 +123,26 @@ if (require.main === module) {
     console.log('\n  COMPARABLE. Both arms selected their sample the same way, so a difference between\n'
               + '  their numbers is the change under test.');
   } else {
-    console.log('\n  NOT COMPARABLE:');
-    for (const x of r.reasons) console.log('    - ' + x);
-    console.log('\n  A difference between these two arms is partly the input. Do not publish it as a\n'
-              + '  before/after; re-run both arms with --census pinned to the same file.');
+    if (r.proven.length) {
+      console.log('\n  NOT COMPARABLE — shown to differ:');
+      for (const x of r.proven) console.log('    - ' + x);
+    }
+    if (r.unknowns.length) {
+      console.log('\n  UNKNOWN — could not be shown the same:');
+      for (const x of r.unknowns) console.log('    - ' + x);
+    }
+    /* THE SAME DO-NOT-PUBLISH LINE FOR BOTH WORDS. UNKNOWN is not a softer NOT COMPARABLE, and the
+     * moment its output reads softer somebody publishes the pair with a caption — which is the
+     * failure mode CLAUDE.md names by hand ("a caption is not a quarantine"). */
+    console.log('\n  DO NOT PUBLISH THIS AS A BEFORE/AFTER.');
+    if (r.proven.length) {
+      console.log('  A difference between these two arms is partly the input; re-run the arm that moved.');
+    }
+    if (r.unknowns.length) {
+      console.log('  The UNKNOWN lines cannot be repaired after the fact — nothing recorded the answer\n'
+                + '  for those runs. Re-take both arms under the stamp, or quote the pair while saying\n'
+                + '  out loud which axis was never checked.');
+    }
   }
   console.log('\n  WHAT THIS CHECK CANNOT SEE:');
   for (const x of r.limits) console.log('    - ' + x);

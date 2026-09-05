@@ -166,7 +166,14 @@ console.log('\n4. THE KEY — derived from the format, not assumed');
 console.log('\n5. arms_comparable / steering.comparable REFUSES A CROSS-POLICY PAIR');
 {
   const inputs = [{ file: 'data/move-priors.json', digest: 'aaaaaaaaaaaa' }];
+  /* `driver_code` IS PART OF THE FIXTURE — 2026-09-05. This section's subject is the POLICY and the
+   * BEHAVIOUR TABLES, and `comparable()` now also answers on the INSTRUMENT: a pair where neither arm
+   * declares its driver code reads UNKNOWN, because two runs on identical pins read 138 and 167 after
+   * engine/empirical_driver.js was rewritten between them. A fixture that omitted the field would make
+   * this section's control assert something it never intended to be about. Both sides carry the same
+   * digest, so the instrument axis is held still and the tables are the only thing varying. */
   const common = { input_digest: 'ccc', input_rows: 1, input_generated: 'g',
+                   driver_code: { digest: 'ddddddddddd0', files: { 'engine/game_differential.js': 'x' } },
                    team_pool_digest: 'ppp', team_pool_teams: 1, team_pool_picked: 1 };
   const cov = Object.assign({ policy: STEERING.POLICY, driver_inputs: null }, common);
   const emp = Object.assign({ policy: STEERING.POLICY_EMPIRICAL, driver_inputs: inputs }, common);
@@ -184,6 +191,16 @@ console.log('\n5. arms_comparable / steering.comparable REFUSES A CROSS-POLICY P
   const d = STEERING.comparable(emp, Object.assign({}, emp, { driver_inputs: null }));
   ok(!d.ok && d.reasons.some(r => /records no `driver_inputs`/.test(r)),
     'an empirical arm with no declared tables is NOT comparable', JSON.stringify(d));
+  /* THE INSTRUMENT AXIS, exercised where the fixture that carries it lives. Same policy, same tables,
+   * different driver code — which is the shape that produced 138 and 167 on one set of pins. */
+  const e = STEERING.comparable(emp, Object.assign({}, emp,
+    { driver_code: { digest: 'eeeeeeeeeee1', files: { 'engine/empirical_driver.js': 'y' } } }));
+  ok(!e.ok && e.verdict === STEERING.VERDICT.NO && e.reasons.some(r => /INSTRUMENT differs/.test(r)),
+    'two arms with identical tables and DIFFERENT driver code are NOT comparable', JSON.stringify(e));
+  const f = STEERING.comparable(Object.assign({}, emp, { driver_code: undefined }),
+                                Object.assign({}, emp, { driver_code: undefined }));
+  ok(!f.ok && f.verdict === STEERING.VERDICT.UNKNOWN,
+    'two arms that BOTH predate the instrument stamp read UNKNOWN, not COMPARABLE', JSON.stringify(f));
 }
 
 /* ---- 6. THE MODE MUST BE NAMED BY ID ----------------------------------------------------------- */

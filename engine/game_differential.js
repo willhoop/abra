@@ -2554,12 +2554,17 @@ function baselineGuard() {
    * corner it measured", never "it measured this one". */
   if (!prev.pins || !prev.pins.digest) {
     cmp.ok = false;
+    /* ABSENCE READS `UNKNOWN`, MISMATCH READS `NOT COMPARABLE` — the same taxonomy engine/steering.js
+     * uses (see VERDICT there). Both still refuse and both still exit 3; the word tells the operator
+     * whether re-running an arm can fix it. It cannot fix an absence in an artifact already on disk. */
+    if (cmp.verdict !== STEERING.VERDICT.NO) cmp.verdict = STEERING.VERDICT.UNKNOWN;
     cmp.reasons = (cmp.reasons || []).concat(['the baseline declares no `pins` block — it predates '
       + 'ROADMAP #88, so nothing recorded which corner of the die it measured. Every pre-2026-08-07 '
       + 'run is `top-tie-in-order` by construction, but it never said so and this guard will not '
       + 'assume it.']);
   } else if (prev.pins.digest !== PIN_DIGEST) {
     cmp.ok = false;
+    cmp.verdict = STEERING.VERDICT.NO;
     cmp.reasons = (cmp.reasons || []).concat(['the PIN SET differs: ' + prev.pins.digest + ' ('
       + (prev.pins.arms_run || []).join(', ') + ') vs ' + PIN_DIGEST + ' (' + ARM_IDS.join(', ')
       + '). A different pin is a different instrument — a die pinned to max damage and a die pinned '
@@ -2568,16 +2573,21 @@ function baselineGuard() {
   BASELINE_CHECK = { artifact: BASELINE, baseline_release: prev.engine_release || null,
                      baseline_steering: prev.steering || null,
                      baseline_pins: (prev.pins && prev.pins.digest) || null, pins: PIN_DIGEST,
-                     ok: cmp.ok, reasons: cmp.reasons };
+                     ok: cmp.ok, verdict: cmp.verdict, reasons: cmp.reasons };
   console.log('\n  BASELINE COMPARABILITY vs ' + BASELINE + '  (release ' + (prev.engine_release || 'UNSTAMPED') + ')');
   if (cmp.ok) {
     console.log('    COMPARABLE — same selection policy, census ' + STEER_STAMP.input_digest
       + ', team pool ' + STEER_STAMP.team_pool_digest);
   } else {
-    console.error('    NOT COMPARABLE — this run would not be a controlled before/after:');
+    console.error('    ' + (cmp.verdict || 'NOT COMPARABLE')
+      + ' — this run would not be a controlled before/after:');
     for (const r of cmp.reasons) console.error('      - ' + r);
     console.error('    REFUSING TO RUN. Pin both arms to the same census with --census <file>, and take'
       + '\n    both arms without the ingest appending to the game store in between.');
+    if (cmp.verdict === STEERING.VERDICT.UNKNOWN) {
+      console.error('    An UNKNOWN cannot be fixed by re-running THIS arm — the baseline artifact is '
+        + 'already\n    on disk and nothing recorded the axis. Re-take the BEFORE arm under the stamp.');
+    }
     process.exit(3);
   }
 }
