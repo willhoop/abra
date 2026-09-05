@@ -55,18 +55,18 @@ games were in that state. Two guards now exist:
 `tests/test-quality.js` asserts both select an identical set of ids.
 
 <!-- BEGIN:FUNNEL -->
-Of **85,704** games collected, **21,980** are usable — **25.6%**.
+Of **86,229** games collected, **22,225** are usable — **25.8%**.
 
 Games are dropped for five reasons, in this order:
 
 | Stage | Games remaining |
 |---|---|
-| collected | 85,704 |
-| after removing named bots | 47,946 |
-| after removing accounts that behave like bots | 42,500 |
-| after removing forfeits | 27,643 |
-| after removing games under 3 turns | 27,426 |
-| after requiring all four brought to be revealed | **21,980** |
+| collected | 86,229 |
+| after removing named bots | 48,377 |
+| after removing accounts that behave like bots | 42,919 |
+| after removing forfeits | 27,942 |
+| after removing games under 3 turns | 27,723 |
+| after requiring all four brought to be revealed | **22,225** |
 <!-- END:FUNNEL -->
 
 1. **Named bots** — accounts whose usernames announce them.
@@ -94,12 +94,12 @@ The model CHOMP reads was, for a period, a description of one script's team rath
 metagame. That is the concrete reason this filter exists and why every engine must go through it.
 
 <!-- BEGIN:RAWREADERS -->
-**27 engine tools still read the store with neither the clean filter nor a declared reason.**
+**28 engine tools still read the store with neither the clean filter nor a declared reason.**
 `engine/selftest.js` fails while any remain, and names them:
 
-`engine/argmax_paired.js`, `engine/bench_speed_consolidate.js`, `engine/calibrate.py`, `engine/click_census.js`, `engine/click_counts.js`, `engine/coach.js`, `engine/derive_sets.js`, `engine/durable-ingest.js`, `engine/feature_engine_contrast.js`, `engine/forced_switch_audit.js`, `engine/medicham2-browser.js`, `engine/mega_census.js`, `engine/mega_sets_from_sheets.js`, `engine/mew_farm.js`, `engine/next_regulation_ingest.js`, `engine/replay_differential.js`, `engine/rollout_r1_join.py`, `engine/rollout_switch_census.js`, `engine/sheet_usage.js`, `engine/smogon_coverage.js`, `engine/stamp.js`, `engine/validate_store.js`, `tests/test-medicham-coverage.js`, `tests/test-next-regulation.js`, `tests/test-parse.js`, `tests/test-side-guard-chooser.js`, `tests/test-workflow-paths.js`
+`engine/argmax_paired.js`, `engine/bench_speed_consolidate.js`, `engine/calibrate.py`, `engine/click_census.js`, `engine/click_counts.js`, `engine/coach.js`, `engine/derive_sets.js`, `engine/durable-ingest.js`, `engine/feature_engine_contrast.js`, `engine/forced_switch_audit.js`, `engine/joint_click_census.js`, `engine/medicham2-browser.js`, `engine/mega_census.js`, `engine/mega_sets_from_sheets.js`, `engine/mew_farm.js`, `engine/next_regulation_ingest.js`, `engine/replay_differential.js`, `engine/rollout_r1_join.py`, `engine/rollout_switch_census.js`, `engine/sheet_usage.js`, `engine/smogon_coverage.js`, `engine/stamp.js`, `engine/validate_store.js`, `tests/test-medicham-coverage.js`, `tests/test-next-regulation.js`, `tests/test-parse.js`, `tests/test-side-guard-chooser.js`, `tests/test-workflow-paths.js`
 
-Anything they publish is computed over a store that is 74.4% unusable.
+Anything they publish is computed over a store that is 74.2% unusable.
 <!-- END:RAWREADERS -->
 
 
