@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [Unreleased] — 2026-09-06 — a weather forme comes off a corpse, and the class that parts a board silently is empty
+- **What changed.** `engine/medicham2-browser.js`, four fixes, each shown RED on the published bytes first. `revertWeatherFormeOnLeave` is now called from `noteFaint` — a weather forme comes off a CORPSE, not only off a body that switched. Pressure's extra PP is priced off the terrain-widened target list rather than `targetClass`'s static `move.target` word. Plus a Mental Herb update-pass fix and an accuracy-modifier chain fix. `tests/roster.js` also moved: its `--reds` stage had **4 unapplied plants NOT CAUGHT** before this batch, and reads 0 after.
+- **Measured.** Board-material **22 → 18 of 961**, protocol **91 → 89**, narration **70** (71 raw less 1 declared) — `data/game-differential.json`, release `1fc8ed7adfd7`, `--games 1200` (961 played), `--turns 20`, arm `middle`, `empirical-click/v1`, census pin `9446a684709d`, pool `data/team-pool-frozen`. **The class of games that part a board with NO protocol divergence anywhere is now EMPTY, 2 → 0.** Turn boundaries identical 10,465 → 10,483 of 10,548. Census 830/830/0, roster 140/129/475 with 0 DIFFER and 0 DID-NOT-FIRE on all three. Probes `tests/probe_weather_forme_faint.js`, `tests/probe_pressure_terrain_target.js`, `tests/probe_mental_herb_update.js`, `tests/probe_accuracy_modifier_chain.js`.
+- **Basis.** unchanged — same instrument, same pins, same arm; a figure moved and the story did not. MINOR.
+- **Supersedes.** Board-material ~~22~~ and protocol ~~91~~ from release `ab22bc503717`, both retracted.
+- **Owed to the next major.** The white paper, the deck, `docs/SUMMARY.md` and `docs/MODELS.md` still publish the superseded counts. **Not fixed and named:** a Cursed Body dice-address collision (measured — both engines drew one die for the same Hyper Voice and addressed it to different SLOTS); a non-Ghost Curse over-charged by 1 PP into Pressure; and the remaining 18, of which eleven are HP-only or HP-plus-faint.
+
+
 ## [Unreleased] — 2026-09-06 — the counter tables get the reader they always had, and the PDF rule grows from the ledger to the working document
 
 - **What changed — the red test.** `tests/test-artifact-keys.js` had been red since before this

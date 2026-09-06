@@ -154,6 +154,36 @@ const HAS = (n) => process.argv.includes(n);
  * run, `staged_board.js` and the driver are all reading one photograph. */
 const ER = require(D('engine', 'engine_release.js'));
 const REL = ER.open(ARG('--release') || null);
+/* ---- 2026-09-06 — THE ONE READ OF THE ENGINE'S SOURCE, AND IT STRIPS CARRIAGE RETURNS -----------
+ *
+ * EVERY MULTI-LINE PLANT ANCHOR IN THIS FILE WAS MATCHING ZERO TIMES, AND FOUR RULES' RED
+ * DEMONSTRATIONS WERE THEREFORE PROVING NOTHING WHILE READING AS ORDINARY OUTPUT.
+ *
+ * `engine/medicham2-browser.js` is **CRLF on disk** — all 41,819 lines, in the working tree and in
+ * every frozen release copy — and `core.autocrlf` is `true` here, so it checks out that way whatever
+ * the blob holds. An anchor written in this file carries a bare `\n`, so any anchor spanning two
+ * lines can never be found. Measured on release `ab22bc503717` (the published engine) and on
+ * `83874ed37e9e` (this pass's): the SAME four rules report *"the anchor matched 0 time(s)"* —
+ * `move/boosts-self`, `move/needs-a-stat-stage-to-act-on`, `move/needs-a-berry-already-eaten` and
+ * `move/status-inflict` — so this is not caused by any engine change and is not new today.
+ *
+ * TWO OF THOSE FOUR CARRY A COMMENT SAYING THEY WERE RE-AIMED FOR EXACTLY THIS, ON 2026-09-04, on
+ * the finding that *"engine/medicham2-browser.js is LF in this working tree"*. That was true of the
+ * tree it was written in and is false of this one, which is the whole reason the repair belongs at
+ * the READ and not in the anchors: an anchor tuned to one checkout's line endings is a coin flip on
+ * the next one. `.gitattributes` carries a block headed *"A LINE ENDING BLANKED THE GATE TWICE IN
+ * THREE DAYS"*, `docs/RUNNING-NOTES.md` records a third occurrence in `docs_scan.js` — where the fix
+ * was also made at the read (`stripCR`) rather than in the pattern — and this is the fourth.
+ *
+ * IT IS SAFE IN BOTH DIRECTIONS AND THAT WAS CHECKED RATHER THAN ASSUMED. No anchor in this file
+ * contains a carriage return: the only three CRs in `tests/roster.js` are inside COMMENTS (two of
+ * them inside the 2026-09-04 note quoted above). And the stripped string is only ever `eval`'d as
+ * JavaScript, which does not distinguish the two terminators — the CLEAN arm loads the release module
+ * normally, so the two arms differ by the plant and by line endings alone.
+ *
+ * ONE FUNCTION, THREE CALLERS (`critsLand`, `healStagingWorks`, the `--reds` loop), because "what is
+ * this engine's source text" is one fact and three copies of `.replace(/\r/g,'')` would drift. */
+const mediSource = () => REL.read('engine/medicham2-browser.js').replace(/\r\n/g, '\n');
 if (!process.argv.includes('--release')) process.argv.push('--release', REL.id);
 if (!process.argv.includes('--state')) process.argv.push('--state');
 
@@ -2287,7 +2317,7 @@ function critsLand() {
     && buildableSpecies(s.id) && Object.values(s.abilities || {}).some(a => CRIT_ARMOUR.has(idOf(a))));
   if (!mv || !tgt) { _CL2.why = 'no 100-accuracy raised-crit-ratio move, or no buildable body, exists '
     + 'to ask the question with'; return _CL2; }
-  const src = REL.read('engine/medicham2-browser.js');
+  const src = mediSource();
   if (src.split(CRIT_X15).length - 1 !== 1) {
     _CL2.why = 'the crit multiplier anchor is not in this release exactly once, so the question '
       + 'cannot be asked of it and the answer is UNKNOWN rather than no'; return _CL2; }
@@ -7897,8 +7927,21 @@ const RULES = [
    * shared writer instead, which is where BOTH doors end up. */
   break: { why: 'no status is ever written to any body — the move still resolves, still announces and '
               + 'still spends the turn',
-    /* RE-AIMED 2026-08-27 — `applyStatus` gained `eff` and `why`; the anchor matched zero times. */
-    patch: [['function applyStatus(t,st,src,eff,why){', 'function applyStatus(t,st,src,eff,why){if(1)return false;']] },
+    /* RE-AIMED 2026-08-27 — `applyStatus` gained `eff` and `why`; the anchor matched zero times.
+     *
+     * RE-AIMED AGAIN 2026-09-06, AND OFF THE PARAMETER LIST ENTIRELY THIS TIME. The 5.267.0 sleep-
+     * timer fix gave `applyStatus` a SIXTH parameter (`dstream`, the caller's dice stream), so the
+     * five-parameter anchor above matched zero times from that commit onward and this rule has been
+     * reporting *"an unapplied plant reads exactly like a comparator that found nothing"* ever since.
+     * That is the SECOND time in six weeks a signature change silently blinded this one rule.
+     *
+     * AN ANCHOR THAT NAMES A PARAMETER LIST IS A HOSTAGE TO EVERY LATER PARAMETER. This one names the
+     * declaration's OPENING, which is unique in the file (`function applyStatus(` appears once), and
+     * plants a stub in front of the real declaration — the later declaration keeps the body, under a
+     * name nothing calls, so every caller including any recursive one reaches the stub. A seventh
+     * parameter arrives without touching this line. */
+    patch: [['function applyStatus(',
+             'function applyStatus(){return false;}\nfunction _applyStatusPlantedAside(']] },
   match(e) {
     if (!e.status) return null;
     /* A SELF-INFLICTED STATUS FALLS THROUGH RATHER THAN REFUSING. Rest carries `status: 'slp'` AND a
@@ -8965,7 +9008,7 @@ function healStagingWorks() {
       + 'proof has nothing to aim at — which is a fault in this file rather than a finding' };
     return _HSW;
   }
-  const src = REL.read('engine/medicham2-browser.js');
+  const src = mediSource();
   const [find, repl] = rule.break.patch[0];
   if (src.split(find).length - 1 !== 1) {
     _HSW = { ok: false, why: 'the anchor `' + find.slice(0, 40) + '` is not in release ' + REL.id
@@ -9309,7 +9352,7 @@ function main() {
         continue;
       }
       if (!rule.break) continue;
-      const clean = REL.read('engine/medicham2-browser.js');
+      const clean = mediSource();
       let src = clean, err = null;
       for (const [find, repl] of rule.break.patch) {
         const n = src.split(find).length - 1;

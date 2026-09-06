@@ -1,0 +1,16 @@
+{
+  "written": "2026-09-06 BEFORE any measurement of the second release of batch H",
+  "by": "ENGINE, long-tail batch H, second fix measured on its own",
+  "release_before": "83874ed37e9e",
+  "sample": "node engine/game_differential.js --steering empirical --release <new> --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --write",
+  "fix": "Mental Herb is swept on the authority's Update event, beside the berries, so a volatile written straight into `_vol` (Cursed Body's Disable) wakes the item. It was reachable only from applyMoveVolatile and applyHealBlock.",
+  "predictions": {
+    "board_material": { "before": 19, "point": 18, "band": [17, 20], "why": "one named game closes: omit-weather t14 ...bo3-2661171085. Nothing else in the pinned pool writes one of the six volatiles off the move road AND holds a Mental Herb, so the band is narrow." },
+    "protocol": { "before": 90, "point": 89, "band": [88, 91], "why": "that game's protocol divergence at index 192 IS the missing `|-enditem|` / `|-end|` pair, so it should close outright. If the game then parts later on something else the number comes back to 90 and the game moves into narration — that is a TRANSFER, not a regression, and it is predicted here rather than explained afterwards." },
+    "narration_level": { "before": 70, "point": 70, "band": [70, 71], "why": "70 if the game runs clean to the cap; 71 if it survives as a later, board-clean protocol divergence. Both are consistent with the fix." },
+    "uncaused_board_partings": { "before": 0, "point": 0, "band": [0, 0], "why": "this game has a protocol divergence, so it cannot enter or leave that class." },
+    "census": { "point": "830 / 830 / 0", "why": "no new tag is wired; the herb's membership is the tag the engine already read." },
+    "roster": { "point": "items 140/0/0, abilities 129/0/0, moves 475/0/0 with 0 NOT CAUGHT", "why": "no roster stage pairs a Cursed Body carrier with a Mental Herb holder." }
+  },
+  "named_risk": "The sweep runs on EVERY live body on every in-move Update pass, so it also reaches Taunt, Encore, Torment, Attract and Heal Block written by roads other than applyMoveVolatile. If one of those roads currently agrees with the authority BECAUSE the herb was not firing, this opens a game. The eager call inside applyMoveVolatile makes the sweep a no-op on the move road, which is where all five of those normally arrive."
+}

@@ -1,0 +1,23 @@
+{
+  "written": "2026-09-06 BEFORE any measurement of release 83874ed37e9e",
+  "by": "ENGINE, long-tail batch H",
+  "release_before": "ab22bc503717",
+  "release_after": "83874ed37e9e",
+  "sample": "node engine/game_differential.js --steering empirical --release 83874ed37e9e --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --write",
+  "pins": { "games_flag": 1200, "turns_cap": 20, "arm": "middle", "steering": "empirical-click/v1", "team_store": "data/team-pool-frozen", "census_pin": "data/verification/census-pin-9446a684709d.json" },
+  "fixes": [
+    "revertWeatherFormeOnLeave is called from noteFaint — a weather forme comes off a CORPSE, not only off a body that switched",
+    "Pressure's extra PP is priced off the terrain-widened target list, not off targetClass's STATIC move.target word",
+    "the ModifyAccuracy handlers are accumulated in Showdown's 4096ths and applied once through Battle#modify, instead of multiplied as floats"
+  ],
+  "predictions": {
+    "board_material": { "before": 22, "point": 19, "band": [17, 24], "why": "three named games close: baseline t6 ...2661571698 (Expanding Force PP), omit-spread t7 ...2661455548 (Castform), omit-spread t15 ...2661122292 (Sleep Powder). The band is wide upward ONLY for the accuracy fix, which changes a to-hit threshold on every move carrying a modifier and can open a game that agreed by coincidence." },
+    "uncaused_board_partings": { "before": 2, "point": 0, "band": [0, 0], "why": "both remaining uncaused games are named and fixed. This is the arm with no coincidence in it — neither game has a protocol divergence for anything else to hide behind." },
+    "protocol": { "before": 91, "point": 90, "band": [86, 94], "why": "only the Sleep Powder game carries a protocol divergence (index 177, t15) and it should close. The two uncaused games have none, so they cannot move this number at all." },
+    "narration_level": { "before": 70, "point": 70, "band": [67, 74], "why": "no closed board divergence has a protocol row to TRANSFER into — the two uncaused games have no protocol divergence, and the Sleep Powder game's should close outright rather than survive as narration." },
+    "census": { "before": "830 live / 830 probed / 0 missing", "point": "830 / 830 / 0", "why": "no new tag is wired and no census row's mechanic changed. The accuracy fix moves a NUMBER inside a wire that is already probed." },
+    "roster": { "point": "items 140/0/0, abilities 129/0/0, moves 475/0/0 — unmoved", "why": "no roster stage exercises Castform's death, a terrain-widened Pressure click, or a sub-100 accuracy under Compound Eyes." },
+    "engine_diff": { "point": "0 of 6000 disagree, seed 20260804", "why": "that differential is a DAMAGE comparison and none of the three fixes is in the damage chain. If it moves, one of them reached further than its header claims." }
+  },
+  "named_risk": "The accuracy chain is the only one of the three that touches a hot path used by every game. Compound Eyes, Wide Lens and Zoom Lens now round differently from the float in both directions (75x1.3 was 97.5 and is 98; 75x1.1 was 82.5 and is 82). A game whose to-hit die sat in one of those gaps and happened to AGREE before can part now. That is the whole reason the board-material band goes up to 24 rather than being pinned at 19."
+}

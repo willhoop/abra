@@ -224,6 +224,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      then `-end`). A zero over a run holding a Mental Herb that fired means the two lines are being
      written somewhere else. */
   herbSpentBeforeEnd: 0,
+  /* 2026-09-06 -- the SUBSET of the line above that fired on the authority's `Update` event rather
+     than inside the click that wrote the volatile. It is the road Cursed Body's Disable takes, and a
+     zero across a run holding a Cursed Body Disable on a Mental Herb body means the sweep is present
+     and dead. It is a SUBSET, so a rise here with a flat `herbSpentBeforeEnd` is impossible and would
+     mean the two are counting different events. */
+  herbCuredAtUpdate: 0,
   /* 2026-08-23 -- one per `-ability|TARGET|NAME|boost` line written before a punish boost. `Battle#boost`
      emits it only when the handler did NOT pass `isSecondary`, and the ONLY legal punishesAttacker
      carrier with a boost in this format (Gooey) passes `true` -- so this is expected to stay at ZERO
@@ -237,6 +243,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * zero in `ppDeducted` means the whole wire is inert, which is the state this engine was in until
    * 2026-08-11. */
   ppDeducted: 0, ppPressureCharged: 0, ppRefusedAtSelection: 0, ppRefusedAtExecution: 0,
+  /* 2026-09-06 -- CLICKS PRICED ON A TERRAIN-WIDENED TARGET LIST. `targetClass` carries the STATIC
+   * `move.target` word, so Expanding Force under Psychic Terrain was priced as a single-target click
+   * while the authority prices it off `allAdjacentFoes`. A zero on a run holding a grounded Expanding
+   * Force under Psychic Terrain means the widening is not reaching the PP site. */
+  ppPressureTerrainWidened: 0,
   struggleUsed: 0, ppRestoredByItem: 0, ppRemovedByMove: 0,
   /* 2026-09-06 -- WHICH ROAD THE RECHARGE REFUSAL CAME DOWN, and there are two because the authority
      has two. `rechargeSpentAtBeforeMove` is the BeforeMove event at priority 11 -- the real one, and
@@ -1002,6 +1013,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-12 -- Gravity's x1.67 accuracy actually applied to a to-hit test. A zero while a Gravity
      is up means the field row is not on the path. */
   gravityAccuracyApplied: 0,
+  /* 2026-09-06 -- THE `ModifyAccuracy` CHAIN. `accModChained` counts to-hit tests that had at least
+     one chainable row; `accModChainMoved` the subset where it actually moved the number; and
+     `accModChainDifferedFromFloat` the subset where the authority's 4096ths arithmetic disagrees with
+     the float multiply this engine used until today. THE THIRD ONE IS THE WHOLE FINDING -- a run with
+     `accModChained` high and `accModChainDifferedFromFloat` at zero would mean the chain is installed
+     and cannot be told apart from what it replaced. */
+  accModChained: 0, accModChainMoved: 0, accModChainDifferedFromFloat: 0,
   /* 2026-08-12 -- a body left the field carrying a REWRITTEN type (Soak, Burn Up, Reflect Type) and
      the species' own types were restored, which is `clearVolatile`'s closing `setSpecies`. A zero
      after real games means the rebuild is not on the path. */
@@ -2554,6 +2572,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * revert is not reaching switchOut, which is precisely the shape that hid the type half of this
    * for as long as it did. */
   weatherFormeReverted: 0,
+  /* 2026-09-06 -- THE SAME REVERT ON THE OTHER ROAD. `faintMessages()` calls `clearVolatile(false)`
+   * exactly as a switch-out does (sim/battle.ts:2560), so a Castform that DIED in the rain sits on
+   * the bench as Castform/Normal in the authority. This engine reverted only on `switchOut`, and A
+   * FAINT NEVER GOES THROUGH `switchOut` -- the same sentence `noteFaint`'s type-restore block
+   * already carries about Protean. Counted APART from the switch-out road because a zero here beside
+   * a non-zero `weatherFormeReverted` is the exact state this defect was in. */
+  weatherFormeRevertedOnFaint: 0,
   /* 2026-08-23 -- THE ENTRY SYNC. `forecast` and `mimicry` both fire their field event from `onStart`,
    * so ARRIVING is one of the moments a field-driven forme follows. Counts entry passes that ran the
    * sync, not retypes -- `weatherRetyped`/`terrainRetyped` above are the ones that moved a body, and a
@@ -3817,6 +3842,10 @@ const MEDFAILS = { encoreAction: 0,
      fallback beside it was used. Must read 0: a hand number on every sub-100 move is the shape this
      table exists to avoid. */
   accModNoTagValue: 0, accModUntabledFirst: '',
+  /* 2026-09-06 -- an ACCMOD row that FIRED and carries no `mod:[num,den]` pair, so it could not join
+     the authority's chain and fell back to the float multiply. Named, because a silent fallback here
+     is the exact defect the chain was landed to fix, one row further along. */
+  accModNoChainPair: 0, accModNoChainPairFirst: '',
   /* WIRE 129 -- an ACCMOD row named a CONDITION _accWhen cannot evaluate. It resolves to false (the
    * modifier does not fire), which is the safe direction and the invisible one, so it is counted. */
   accModUnknownWhen: 0,
@@ -9910,15 +9939,64 @@ const accStageMul=(n)=>ACC_STAGE[clamp(Math.round(+n||0),-6,6)+6];
  * TWO ROWS ARE DEAD-BUT-ON (laxincense, wonderskin) and that is not a defect: an entity that cannot
  * appear cannot be applied, and switching them off would only move the same fact to a different
  * column. They are named here so the next reader does not have to re-derive them. */
+/* ---- 2026-09-06 -- `mod:` IS THE ROW THE ARITHMETIC READS. `mult:` IS A ROUNDED DISPLAY OF IT ----
+ *
+ * EVERY HANDLER IN THIS TABLE IS A `chainModify`, AND `chainModify` IS NOT A FLOAT MULTIPLY.
+ * Showdown accumulates each one into `event.modifier` in 4096ths (`sim/battle.ts:2318-2327`) and
+ * `runEvent` applies the accumulated value ONCE at the end through `Battle#modify`
+ * (`sim/battle.ts:929-933`, `:2329-2340`), which TRUNCATES:
+ *
+ *     chainModify(n,d): previousMod = tr(modifier*4096); nextMod = tr(n*4096/d);
+ *                       modifier    = ((previousMod * nextMod + 2048) >> 12) / 4096
+ *     modify(v, mod):   m = tr(mod*4096);  return tr((tr(v*m) + 2048 - 1) / 4096)
+ *
+ * so the authority's post-modifier accuracy is ALWAYS AN INTEGER and this engine's was a float.
+ *
+ * IT DECIDES HIT OR MISS AND IT WAS MEASURED, NOT ARGUED. Pinned pool, release `ab22bc503717`,
+ * `omit-spread t15 ...bo3-2661122292`: a Compound Eyes Vivillon's Sleep Powder into an Archaludon.
+ * The authority's own number, instrumented at `randomChance(accuracy,100)` rather than inferred,
+ * reads **98** on turns 13, 14, 15 and 16. This engine computed `75 * 1.3 = 97.5`. Both engines drew
+ * the SAME shared `acc` address (`20260813|15|acc|sleeppowder|p11|0`, nth 0) — recorded in
+ * `docs/ENGINE.md` as an undiagnosed card — so the die was never the difference: the THRESHOLD was.
+ * The authority slept it, this engine missed, and the board parted on `status` slp/brn plus three
+ * more leaves.
+ *
+ * THE NUMERATOR IS THE HANDLER'S OWN AND CANNOT BE RECOVERED FROM `mult`. `tr(1.3*4096)` is **5324**
+ * and Compound Eyes writes **5325**; `tr(1.1*4096)` is 4505, Wide Lens writes 4505 and Victory Star
+ * writes 4506. The engine already carries the identical lesson one file-section away, at
+ * `MEDI_FALLEN_APPROX`: *"it differs by exactly ONE 4096th at n=1 (4505 vs 4506) and n=3 (5324 vs
+ * 5325)"*. So `mult` cannot be promoted and the raw pair is carried beside it.
+ *
+ * READ, NOT REMEMBERED, AND RE-DERIVED ON EVERY PROBE RUN. Each `mod` below is the literal argument of
+ * that entity's `chainModify`, read off `Dex.forFormat('gen9championsvgc2026regmb')` on 2026-09-06;
+ * `tests/probe_accuracy_modifier_chain.js` re-derives all eleven from the live format every run and
+ * FAILS on a row that disagrees, exactly as `tests/test-engine-diff.js` already does for `mult`.
+ *
+ *     item:widelens         onSourceModifyAccuracy  [4505, 4096]
+ *     item:zoomlens         onSourceModifyAccuracy  [4915, 4096]
+ *     item:brightpowder     onModifyAccuracy        [3686, 4096]
+ *     item:laxincense       onModifyAccuracy        [3686, 4096]   (BANNED here — dead row)
+ *     ability:compoundeyes  onSourceModifyAccuracy  [5325, 4096]
+ *     ability:hustle        onSourceModifyAccuracy  [3277, 4096]
+ *     ability:sandveil      onModifyAccuracy        [3277, 4096]
+ *     ability:snowcloak     onModifyAccuracy        [3277, 4096]
+ *     ability:tangledfeet   onModifyAccuracy        0.5   -> nextMod tr(0.5*4096) = [2048, 4096]
+ *     ability:victorystar   onAnyModifyAccuracy     [4506, 4096]   (off — no legal carrier)
+ *     ability:wonderskin    onModifyAccuracy        NO chainModify — it `return 50`s, which is a
+ *                                                   relayVar replacement and stays `setTo`
+ *     condition:gravity     onModifyAccuracy        [6840, 4096]
+ *
+ * `mult` IS LEFT EXACTLY AS IT WAS and still drives nothing but the audit: `tests/test-engine-diff.js`
+ * compares it against the format's 2-dp reading and would go red on a silent removal. */
 const ACCMOD={
-  'item:widelens':      {side:'att',mult:1.1},
-  'item:zoomlens':      {side:'att',mult:1.2,when:'targetAlreadyMoved'},
-  'item:brightpowder':  {side:'def',mult:0.9},
-  'item:laxincense':    {side:'def',mult:0.9},
-  'ability:compoundeyes':{side:'att',mult:1.3},
-  'ability:hustle':      {side:'att',mult:0.8,when:'physical'},
-  'ability:sandveil':    {side:'def',mult:0.8,when:'sand'},
-  'ability:snowcloak':   {side:'def',mult:0.8,when:'snow'},
+  'item:widelens':      {side:'att',mult:1.1,mod:[4505,4096]},
+  'item:zoomlens':      {side:'att',mult:1.2,mod:[4915,4096],when:'targetAlreadyMoved'},
+  'item:brightpowder':  {side:'def',mult:0.9,mod:[3686,4096]},
+  'item:laxincense':    {side:'def',mult:0.9,mod:[3686,4096]},
+  'ability:compoundeyes':{side:'att',mult:1.3,mod:[5325,4096]},
+  'ability:hustle':      {side:'att',mult:0.8,mod:[3277,4096],when:'physical'},
+  'ability:sandveil':    {side:'def',mult:0.8,mod:[3277,4096],when:'sand'},
+  'ability:snowcloak':   {side:'def',mult:0.8,mod:[3277,4096],when:'snow'},
   'ability:wonderskin':  {side:'def',setTo:50,when:'status'},
   'ability:noguard':     {side:'both',never:true},
   /* ROADMAP #217 -- TANGLED FEET IS ON, AND ITS `off:` REASON HAD EXPIRED.
@@ -9942,7 +10020,7 @@ const ACCMOD={
    * modifier at all. The tag is a genuine false positive (`writesAccuracy` matches /accuracy/ and
    * catches `multiaccuracy`). Skill Link itself is live and probed under `multihitAlwaysMax`; what is
    * off here is an accuracy row it never had. */
-  'ability:tangledfeet': {side:'def',mult:0.5,when:'holderConfused'},
+  'ability:tangledfeet': {side:'def',mult:0.5,mod:[2048,4096],when:'holderConfused'},
   'ability:skilllink':   {side:'att',off:'artifact false positive — it writes multihit, not accuracy (re-measured 2026-08-11: its only handler is onModifyMove, touching move.multihit and move.multiaccuracy; Skill Link itself is live under multihitAlwaysMax)'},
   /* VICTORY STAR STAYS OFF AND ITS REASON IS CORRECTED, ROADMAP #217 -- HALF OF IT HAD EXPIRED TOO.
    *
@@ -9973,9 +10051,30 @@ const ACCMOD={
    * `side:'field'` IS A THIRD SIDE VALUE, NOT A THIRD TABLE. The row is applied once per hit rather
    * than once per body, because the field is not a body and applying it under the att/def loop would
    * double it. */
-  'condition:gravity':   {side:'field',fromTag:['move','gravity','groundsField','accuracyMult'],mult:6840/4096},
-  'ability:victorystar': {side:'att',mult:1.1,off:'ZERO legal carriers in Reg M-B (Victini is not in this format), so nothing could stage it. Its side-wide scope is real but no longer a blocker: _sf makes the side reachable since ROADMAP #213'},
+  'condition:gravity':   {side:'field',fromTag:['move','gravity','groundsField','accuracyMult'],mult:6840/4096,mod:[6840,4096]},
+  'ability:victorystar': {side:'att',mult:1.1,mod:[4506,4096],off:'ZERO legal carriers in Reg M-B (Victini is not in this format), so nothing could stage it. Its side-wide scope is real but no longer a blocker: _sf makes the side reachable since ROADMAP #213'},
 };
+/* ---- SHOWDOWN'S CHAIN, TRANSCRIBED. Two functions, both `sim/battle.ts`, both `Dex#trunc`-exact ---
+ *
+ * `tr` is `num >>> 0` (sim/dex.ts:391) and NOT `Math.floor`, which is the same choice the accuracy
+ * stage step 100 lines below already makes and for the same reason. Accuracy here is bounded by
+ * 3 x printed x the largest modifier, so the 32-bit wrap that separates the two cannot be reached.
+ *
+ * THE CHAIN IS ORDER-INSENSITIVE FOR THE PAIRS THIS FORMAT CAN PRODUCE and that is stated rather than
+ * assumed: `((prev*next + 2048) >> 12)` is symmetric in prev and next at the FIRST step (the seed is
+ * 4096), so two modifiers commute exactly. Three would not be guaranteed to, and three is reachable
+ * only under Gravity + an attacker row + a defender row; the walk below fixes the order as
+ * field -> attacker -> defender, which is the order this file already walked. */
+const _accTr = n => n >>> 0;
+function accChain(modifier,num,den){
+  const previousMod=_accTr(modifier*4096);
+  const nextMod=_accTr(num*4096/(den||1));
+  return ((previousMod*nextMod+2048)>>12)/4096;
+}
+function accApplyChain(value,modifier){
+  const m=_accTr(modifier*4096);
+  return _accTr((_accTr(value*m)+2048-1)/4096);
+}
 /* A CARRIER WITH NO ROW IS LOUD. A silent default here looks exactly like a working feature, which is
  * this project's signature failure -- and the tag set is generated, so a new Gen-10 evasion ability
  * arrives in the artifact and has to announce itself rather than quietly doing nothing. */
@@ -10903,6 +11002,27 @@ function hitChance(att,def,id,field,ctx){
   /* THE FIELD'S OWN ROWS, APPLIED ONCE. Not inside the att/def walk below: a field effect belongs to
    * neither body and running it there would apply it twice. Read off `field.gravity`, the counter the
    * engine already keeps for the move's other halves. */
+  /* 2026-09-06 -- ONE ACCUMULATOR FOR THE WHOLE `ModifyAccuracy` EVENT, applied ONCE below the walk.
+   * See the block above `ACCMOD` for the authority's two functions and for the game this closed. Under
+   * `MEDI_ACC_MOD_FLOAT=1` the accumulator is never consumed and each row multiplies `acc` directly,
+   * which is what this engine did until today. */
+  let _accMod=1, _accModRows=0, _accFloat=1;
+  const _accTake=(row,label)=>{
+    if(row&&Array.isArray(row.mod)&&row.mod.length===2){
+      _accMod=accChain(_accMod,row.mod[0],row.mod[1]); _accModRows++;
+      /* THE OLD ARITHMETIC, CARRIED ALONGSIDE AND CONSUMED BY NOTHING BUT A COUNTER. Without it
+       * `accModChainDifferedFromFloat` would be comparing the chain against itself, which is the
+       * green-test-that-asks-nothing failure. */
+      if(row.mult!=null)_accFloat*=row.mult;
+      return true;
+    }
+    /* A ROW WITH A `mult` AND NO `mod` CANNOT BE CHAINED and must not quietly fall back to a float:
+     * that is the silent default this whole table's header is about. It IS multiplied, so the
+     * mechanic is not lost, and the counter says which row did it. */
+    MEDFAILS.accModNoChainPair++;
+    if(!MEDFAILS.accModNoChainPairFirst)MEDFAILS.accModNoChainPairFirst=String(label);
+    return false;
+  };
   if(field&&field.gravity>0){
     const _g=ACCMOD['condition:gravity'];
     if(_g&&!_g.off){
@@ -10914,7 +11034,11 @@ function hitChance(att,def,id,field,ctx){
       try{const _t=TAGS.param(_g.fromTag[0],_g.fromTag[1],_g.fromTag[2]);
           if(_t&&+_t[_g.fromTag[3]]>0)_m=+_t[_g.fromTag[3]];}catch(e){}
       if(_m==null){_m=_g.mult;MEDFAILS.accModNoTagValue++;}
-      acc*=_m;MEDSEEN.gravityAccuracyApplied++;
+      /* THE TAG READ STAYS AS THE VALUE CHECK AND THE CHAIN TAKES THE PAIR. `groundsField.accuracyMult`
+       * is 1.669921875, which is 6840/4096 exactly -- so the two agree here and the read is kept
+       * because it is the thing that would go LOUD if the artifact stopped carrying it. */
+      if(ACC_MOD_FLOAT)acc*=_m; else _accTake(_g,'condition:gravity');
+      MEDSEEN.gravityAccuracyApplied++;
     }
   }
   for(const [who,mon] of [['att',att],['def',def]]){
@@ -10926,9 +11050,24 @@ function hitChance(att,def,id,field,ctx){
       if(!_accWhen(r.when,cond,mon))continue;
       /* Wonder Skin RETURNS 50 rather than scaling -- `return 50`, not a chainModify -- so a hard set
        * is what the reference does and Math.min would be a second, quieter rule. */
+      /* Wonder Skin RETURNS 50 rather than scaling -- `return 50`, not a chainModify -- so a hard set
+       * is what the reference does and Math.min would be a second, quieter rule. It replaces the
+       * event's relayVar and does NOT touch the accumulator, which is why it stays outside the chain. */
       if(r.setTo!=null)acc=r.setTo;
-      else if(r.mult!=null)acc*=r.mult;
+      else if(ACC_MOD_FLOAT){ if(r.mult!=null)acc*=r.mult; }
+      else if(!_accTake(r,kind+':'+(kind==='ability'?mon.ability:mon.item))&&r.mult!=null)acc*=r.mult;
     }
+  }
+  /* THE ACCUMULATED MODIFIER, APPLIED ONCE, EXACTLY WHERE `runEvent` APPLIES IT -- below every
+   * handler and above the accuracy/evasion stages. `modify()` truncates, so `acc` is an integer from
+   * here down and the stage step below it truncates a second time, which is the authority's shape:
+   * `runEvent('ModifyAccuracy')` then `trunc(accuracy * (3+boost)/3)`. */
+  if(!ACC_MOD_FLOAT&&_accModRows>0){
+    const _pre=acc;
+    acc=accApplyChain(acc,_accMod);
+    MEDSEEN.accModChained++;
+    if(acc!==_pre)MEDSEEN.accModChainMoved++;
+    if(acc!==_pre*_accFloat)MEDSEEN.accModChainDifferedFromFloat++;
   }
   /* ---- THE ACCURACY AND EVASION STAGES, COMBINED ONCE, CLAMPED ONCE, LOOKED UP ONCE, TRUNCATED ----
    *
@@ -20895,6 +21034,51 @@ function revertTempFormeOnLeave(m,where){
   if(!MEDSEEN.formeTempRevertedFirst)MEDSEEN.formeTempRevertedFirst=String(m.name)+' @'+where;
   return true;
 }
+/* 2026-09-06 -- THE WEATHER FORME COMES OFF ON *BOTH* ROADS OFF THE FIELD, AND IT LIVED ON ONE.
+ *
+ * `Pokemon#clearVolatile()` ends with `this.setSpecies(this.baseSpecies)` (sim/pokemon.ts:1565), and
+ * the authority reaches it from TWO places, not one:
+ *     sim/battle.ts:2560   `faintMessages()`   -> `pokemon.clearVolatile(false)`
+ *     the switch road      already served by `switchOut`
+ * so a Castform that DIES in the rain is Castform/Normal on the bench there, and was Castform-Rainy /
+ * Water here for the rest of the game. Measured on the pinned pool, release `ab22bc503717`,
+ * `omit-spread t7 ...bo3-2661455548`: `p2.party.castform.species` medi `castformrainy` / sd
+ * `castform` and `.types` medi `water` / sd `normal` -- one of the TWO remaining games that part a
+ * board with NO protocol divergence anywhere, so nothing in the artifact could name it.
+ *
+ * IT IS ONE FUNCTION AND NOT A SECOND COPY, which is the whole point: `switchOut` carried this block
+ * inline, and a faint-road copy of it would be exactly the FACTS-ARE-GLOBAL breach CLAUDE.md names --
+ * two implementations of "which body does a weather forme go back to" that agree today. The
+ * `switchOut` site now calls this and nothing else changed there.
+ *
+ * ON THE TAG'S OWN `revertsTo` / `revertsToTypes`, never on a stashed base: the artifact already
+ * names the body and the types to go back to. `restoresRatherThanChanges` members (Ice Face) are
+ * refused here exactly as `syncWeatherFormes` refuses them, because their break is `formeOnHit` and
+ * not the sky.
+ *
+ * `MEDI_FORECAST_NO_SWITCHOUT_REVERT=1` STILL SUPPRESSES BOTH ROADS, deliberately: it is the knob
+ * that restores the pre-2026-08-26 engine, and a knob that turned off half of a mechanic would make
+ * a red run unattributable. The faint road has its OWN counter instead, which is what separates the
+ * two without a second knob. */
+function revertWeatherFormeOnLeave(m,where){
+  if(!m||FORECAST_NO_REVERT)return false;
+  const fw=TAGS.param('ability',m.ability,'formeFollowsWeather');
+  if(!fw||fw.restoresRatherThanChanges)return false;
+  if(!Array.isArray(fw.revertsToTypes)||!fw.revertsToTypes.length)return false;
+  let moved=false;
+  if((m.types||[]).join('/')!==fw.revertsToTypes.join('/')){
+    m.types=fw.revertsToTypes.slice(); MEDSEEN.weatherFormeReverted++; moved=true;
+    if(where==='faint')MEDSEEN.weatherFormeRevertedOnFaint++;
+  }
+  const bk=fw.revertsTo?pasteKey(fw.revertsTo):null;
+  if(bk&&m.name!==bk&&!FORECAST_NAME_BLIND){
+    m.name=bk; weightFollowsForme(m);
+    if(!moved){ MEDSEEN.weatherFormeReverted++;
+                if(where==='faint')MEDSEEN.weatherFormeRevertedOnFaint++; }
+    moved=true;
+  }
+  return moved;
+}
 function abRewrite(m,ab){
   if(!m)return;
   /* 2026-08-29 -- AND AN ABSORBED GIFT ENDS WITH THE ABILITY THAT GRANTED IT. Flash Fire's
@@ -22041,14 +22225,12 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * ON THE TAG'S OWN `revertsTo`, never on a stashed base: the artifact already names the body to go
    * back to and the types to go back to, and a second copy of that fact is the FACTS-ARE-GLOBAL
    * breach. `restoresRatherThanChanges` members (Ice Face) are refused here exactly as they are
-   * refused by the sync, because their break is `formeOnHit` and not the sky. */
-  {const fw=FORECAST_NO_REVERT?null:TAGS.param('ability',out.ability,'formeFollowsWeather');
-   if(fw&&!fw.restoresRatherThanChanges&&Array.isArray(fw.revertsToTypes)&&fw.revertsToTypes.length){
-     if((out.types||[]).join('/')!==fw.revertsToTypes.join('/')){
-       out.types=fw.revertsToTypes.slice(); MEDSEEN.weatherFormeReverted++; }
-     const bk=fw.revertsTo?pasteKey(fw.revertsTo):null;
-     if(bk&&out.name!==bk&&!FORECAST_NAME_BLIND){out.name=bk; weightFollowsForme(out);}
-   }}
+   * refused by the sync, because their break is `formeOnHit` and not the sky.
+   *
+   * 2026-09-06 -- THE BLOCK THAT WAS HERE IS NOW `revertWeatherFormeOnLeave`, because `faintMessages()`
+   * reaches the SAME `clearVolatile` and a faint never comes through this function. One implementation,
+   * two callers; see that function's header for the game it closed. */
+  revertWeatherFormeOnLeave(out,'switch');
   /* THE STATE ADDED BY WIRES 42-54 LEAVES WITH THE BODY, and each of these is a volatile in the real
      game: the substitute is gone, Throat Chop's silence ends, the Gigaton Hammer lockout ends, the
      recharge is not owed by a body that left, the partial trap releases, and Protean converts again
@@ -22610,6 +22792,15 @@ function noteFaint(m){ if(!m)return; if(m._fEpoch!==_FAINT_EPOCH){m._fEpoch=_FAI
    * the species and reads the types off the REVERTED row in one call. Below it, an Aegislash would be
    * handed the Blade row's chart under the Shield's name. */
   revertTempFormeOnLeave(m,'faintFormeRevert');
+  /* 2026-09-06 -- AND THE WEATHER FORME, WHICH IS THE THIRD STATEMENT FROM THE SAME AUTHORITY LINE.
+   * `clearVolatile` -> `setSpecies(baseSpecies)` takes Castform-Rainy off a CORPSE exactly as it takes
+   * it off a body that pivoted, and this engine ran the revert in `switchOut` alone. ABOVE the
+   * `monRow(m.name)` type restore for the ordering reason the block below states: `setSpecies` IS
+   * `setType(species.types, true)`, so the authority reverts the NAME and then reads the types off the
+   * REVERTED row -- underneath it, a dead Castform-Rainy would be handed Water under Castform's name.
+   * `revertTempFormeOnLeave` above cannot serve this: it reads `_formeTempBase`, which the weather sync
+   * never sets, so it returned false on every Castform that ever died. */
+  if(!WEATHER_FORME_SURVIVES_FAINT)revertWeatherFormeOnLeave(m,'faint');
   {const _row=monRow(m.name);
    if(_row&&Array.isArray(_row.t)&&m.types&&m.types.join('/')!==_row.t.join('/')){
      m.types=_row.t.slice(); MEDSEEN.typesRestoredOnFaint++;
@@ -22678,6 +22869,17 @@ if(TRANSFORM_SURVIVES_FAINT)MEDFAILS.transformSurvivesFaintRestored=1;
 const TYPES_SURVIVE_FAINT=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_TYPES_SURVIVE_FAINT==='1');
 if(TYPES_SURVIVE_FAINT)MEDFAILS.typesSurviveFaintRestored=1;
+/* 2026-09-06 -- THE FIFTH KNOB ON THIS DOOR, and it is `clearVolatile`'s FOURTH statement.
+ * `MEDI_WEATHER_FORME_SURVIVES_FAINT=1` restores the behaviour this engine held until today: a
+ * Castform that DIED in the rain kept Castform-Rainy and its Water typing on the bench for the rest
+ * of the game, because the revert lived in `switchOut` and a faint never goes through it.
+ *
+ * ITS OWN KNOB AND NOT `MEDI_FORECAST_NO_SWITCHOUT_REVERT`, on the same argument the four knobs above
+ * make: that one suppresses BOTH roads, so a probe run under it could not tell "the faint road is
+ * missing" from "the whole mechanic is off" -- and the faint road is the only half this pass adds. */
+const WEATHER_FORME_SURVIVES_FAINT=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_WEATHER_FORME_SURVIVES_FAINT==='1');
+if(WEATHER_FORME_SURVIVES_FAINT)MEDFAILS.weatherFormeSurvivesFaintRestored=1;
 /* 2026-08-29 -- `MEDI_VOLLEY_REACT_DRAWN=1` restores the state this engine held until today: a volley
  * whose packet loop STOPPED at the KO still set every `onDamagingHit` reactor off once per arrival it
  * DREW, so a Dual Wingbeat that killed on its first arrival announced `|-hitcount|1` and tolled the
@@ -22731,6 +22933,24 @@ const ACC_EVA_SEPARATE=(typeof process!=='undefined'&&process.env
  * accuracy check with a stage on it happens to occur -- tests/test-mechanics.js reads exactly this to
  * refuse writing the census under a deliberate break. */
 if(ACC_EVA_SEPARATE)MEDFAILS.accEvaSeparateRestored=1;
+/* 2026-09-06 -- THE SENTENCE ABOVE ("there are none") STOPPED BEING TRUE TODAY, and it is corrected
+ * here rather than edited out of a dated paragraph. `MEDI_ACC_MOD_FLOAT=1` RESTORES THE FLOAT
+ * MULTIPLY: every ACCMOD row multiplied `acc` directly, in sequence, with no truncation anywhere --
+ * which is what this engine did for as long as the table existed.
+ *
+ * The authority does not multiply. Every row in that table is a `chainModify`, accumulated in 4096ths
+ * and applied ONCE by `runEvent` through `Battle#modify`, which truncates -- so its post-modifier
+ * accuracy is always an INTEGER. Compound Eyes on a 75-accuracy Sleep Powder is **98** there and was
+ * 97.5 here, and the shared `acc` die landed in the gap: pinned pool, release `ab22bc503717`,
+ * `omit-spread t15 ...bo3-2661122292`, board parted on `status` slp/brn. The authority's 98 was
+ * INSTRUMENTED at `randomChance(accuracy, 100)` on that exact game, not inferred.
+ *
+ * A SEPARATE KNOB FROM `MEDI_ACC_EVA_SEPARATE`, on that knob's own argument: this one is the MODIFIER
+ * step and that one is the STAGE step, and a single knob could not say which of the two a red run was
+ * about. Both may be set at once; that is the pre-2026-08-31 function in full. */
+const ACC_MOD_FLOAT=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_ACC_MOD_FLOAT==='1');
+if(ACC_MOD_FLOAT)MEDFAILS.accModFloatRestored=1;
 /* 2026-09-01 -- THE TWO `punishesAttacker` EFFECT-KIND KNOBS, DECLARED APART BECAUSE THE DEFECTS ARE.
  *
  * `MEDI_HAZARD_ON_ATTACKER_SIDE=1` puts the ATTACKER's side field back under a hazard punish, which is
@@ -22762,6 +22982,28 @@ const TERRAIN_TARGET_SINGLE=(typeof process!=='undefined'&&process.env
  * Expanding Force is clicked on a Psychic Terrain -- tests/test-mechanics.js reads exactly this to
  * refuse writing the census under a deliberate break. */
 if(TERRAIN_TARGET_SINGLE)MEDFAILS.terrainTargetSingleRestored=1;
+/* 2026-09-06 -- `MEDI_MENTAL_HERB_MOVE_ONLY=1` PUTS THE HERB BACK ON THE MOVE ROAD ALONE, which is
+ * where it lived until today: `mentalHerbCures` was called from `applyMoveVolatile` and
+ * `applyHealBlock` and from nowhere else, so a volatile written straight into `_vol` -- Cursed Body's
+ * Disable is the one the pool measures -- never woke the item up. See the sweep inside
+ * `_updateEvent` for the authority's `onUpdate` and for the game. */
+const MENTAL_HERB_MOVE_ONLY=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_MENTAL_HERB_MOVE_ONLY==='1');
+if(MENTAL_HERB_MOVE_ONLY)MEDFAILS.mentalHerbMoveOnlyRestored=1;
+/* 2026-09-06 -- `MEDI_PP_PRESSURE_STATIC_TARGET=1` PRICES PRESSURE OFF THE STATIC TARGET WORD AGAIN,
+ * which is what this engine did until today: `pressureScopeOf` reads `targetClass`, `targetClass`
+ * carries Showdown's STATIC `move.target`, and a terrain-widened Expanding Force therefore charged one
+ * Pressure body instead of both.
+ *
+ * A SEPARATE KNOB FROM `MEDI_TERRAIN_TARGET_SINGLE`, and the reason is the same one that knob's own
+ * header gives for being single: that one un-widens the move EVERYWHERE, so under it the PP price is
+ * un-widened too and the arm proves nothing about where the price is read. This one leaves the
+ * widening in place for damage and for the bodies hit and takes it away from the PP site alone, which
+ * is the only arrangement that can separate "the terrain rewrite is off" from "the PP site does not
+ * ask it". */
+const PP_PRESSURE_STATIC_TARGET=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_PP_PRESSURE_STATIC_TARGET==='1');
+if(PP_PRESSURE_STATIC_TARGET)MEDFAILS.ppPressureStaticTargetRestored=1;
 /* 2026-09-01 -- `MEDI_TERRAIN_SCALED_UNGATED=1` RESTORES THE UNGATED MOVE-LEVEL TERRAIN MULTIPLIER:
  * Expanding Force's and Misty Explosion's x1.5 and Rising Voltage's x2 paid on the terrain alone, with
  * nobody's feet checked. That is what this engine did for as long as the tag was read, and its own
@@ -24998,7 +25240,52 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR)TR.vend(_m,_v,_r.pb.endsSilently?'[silent]':undefined);
         }
       }
-      for(const e of _all){berryCureUpdate(e.m,e.s==='A'?actB:actA);berryPinchUpdate(e.m,e.s==='A'?actB:actA);berryPPUpdate(e.m,e.s==='A'?actB:actA);}
+      for(const e of _all){berryCureUpdate(e.m,e.s==='A'?actB:actA);berryPinchUpdate(e.m,e.s==='A'?actB:actA);berryPPUpdate(e.m,e.s==='A'?actB:actA);
+        /* 2026-09-06 -- AND MENTAL HERB, WHICH IS AN `onUpdate` ITEM AND HAD ONLY EVER BEEN REACHED
+         * FROM THE MOVE THAT WROTE THE VOLATILE.
+         *
+         * `mentalHerbCures` is called from `applyMoveVolatile` and from `applyHealBlock` and from
+         * nowhere else, so every road that writes one of the six volatiles WITHOUT going through
+         * `applyMoveVolatile` left the herb in the holder's pocket. Cursed Body is such a road: WIRE
+         * 52 writes `m._vol.disable` straight into the table, exactly the shape CLAUDE.md's
+         * FACTS-ARE-GLOBAL rule names -- a state written past the one function that owns the reaction
+         * to it.
+         *
+         * MEASURED on the pinned pool, release `83874ed37e9e`, `omit-weather t14 ...bo3-2661171085`:
+         *     |-start|p2b: Farigiraf|Disable|Thunderbolt|[from] ability: Cursed Body|[of] p1a: Gengar
+         *     |-enditem|p2b: Farigiraf|Mental Herb          <- the authority; absent here
+         *     |-end|p2b: Farigiraf|Disable                  <- the authority; absent here
+         * with `p2.party.farigiraf.item` medi `mentalherb` / sd `""` and `vol.disable` medi 3 / sd 0.
+         * The engine's own counters said which half was missing before anything was edited:
+         * `volDurationApplied +1` (the Disable landed) and `herbSpentBeforeEnd +0` (the herb never
+         * fired) on the same replay.
+         *
+         * IT IS ON THE UPDATE PASS AND NOT AT THE CURSED BODY SITE, because `mentalherb.onUpdate`
+         * (data/items.ts:3906-3917, not overridden by Champions) is a handler on the AUTHORITY'S
+         * `Update` event and this loop is that event -- the same argument the block above it makes for
+         * the berries, which are `onUpdate` items too. A call bolted onto WIRE 52 would fix the one
+         * road that happened to be measured and leave the next one.
+         *
+         * THE EAGER CALL INSIDE `applyMoveVolatile` STAYS AND IS NOT DUPLICATION: it is the same
+         * function, and by the time this sweep runs the volatile and the item are both already gone,
+         * so this is a no-op on the move road. Keeping it means the Taunt/Encore road's ORDER -- the
+         * herb spent inside the click, above the queued-action relocation Champions' Encore reads --
+         * is untouched by this change.
+         *
+         * THE MEMBERSHIP IS THE ITEM'S OWN `curesVolatile.cures`, never a list here, so an item added
+         * next regulation with the same shape arrives without an edit. `healblock` is asked of
+         * `_healBlock` rather than of `_vol`, because that volatile's owner is a separate field --
+         * `applyHealBlock`'s header says `_vol.healblock` is read by nothing. */
+        if(!MENTAL_HERB_MOVE_ONLY&&e.m.item){
+          const _mhc=TAGS.param('item',e.m.item,'curesVolatile');
+          if(_mhc&&Array.isArray(_mhc.cures)){
+            for(const _mv of _mhc.cures){
+              const _on=(_mv==='healblock')?(e.m._healBlock>0):!!(e.m._vol&&e.m._vol[_mv]>0);
+              if(_on&&mentalHerbCures(e.m,_mv)){MEDSEEN.herbCuredAtUpdate++;break;}
+            }
+          }
+        }
+      }
       /* ROADMAP #81 WIRE 11 -- `onAnyAfterMove` AND `onAnySwitchIn` FOR THE MID-TURN CASES, both of
        * White Herb's remaining triggers, landed on the pass that already runs after every action.
        * This is where the Unburden half becomes real: `_updateAll` runs BEFORE each action and the
@@ -26588,7 +26875,33 @@ function battleTurn(S,rng,actsForA,actsForB){
            * on a click that does nothing, not on one that lands. */
           const _sc=a.rescript?scriptedAimOf(m,_ppId):null;
           const _aim=_sc||reaimToSlot(a.target,it,actA,actB,_ppId,true);
-          const _pt=pressureTargetsOf(_ppId,a,m,_pFoes,_aim);
+          /* 2026-09-06 -- AND A MOVE WHOSE TARGET THE TERRAIN REWRITES IS PRICED ON THE REWRITTEN ONE.
+           *
+           * `pressureScopeOf` reads `targetClass`, which carries Showdown's STATIC `move.target`
+           * string -- and its own header says so ("`targetClass.target` is Showdown's STATIC
+           * `move.target` string and is correct as it stands"). It is correct for the 500 moves whose
+           * target word never moves and WRONG for the one whose `onModifyMove` rewrites it: Expanding
+           * Force under Psychic Terrain is `normal` in the dex and `allAdjacentFoes` at execution.
+           *
+           * THE AUTHORITY'S ORDER IS WHAT MAKES THIS OBSERVABLE, and it was read rather than assumed.
+           * `useMoveInner` runs `singleEvent('ModifyMove')` (which is where the rewrite happens),
+           * re-resolves `target` when `baseTarget !== move.target`, and only THEN calls
+           * `pokemon.getMoveTargets(move, target)` and charges Pressure off `pressureTargets`
+           * (sim/battle-actions.ts:467-482). So the widened list is the one the authority prices.
+           *
+           * MEASURED, on the pinned pool, release `ab22bc503717`, `baseline t6 ...bo3-2661571698`:
+           * a Meowstic's Expanding Force under Psychic Terrain into a Houndoom and a PRESSURE Absol.
+           * `p1.pp[1].expandingforce` medi 1 spent / sd 2. It is one of the TWO remaining games that
+           * part a board with NO protocol divergence anywhere -- the `[spread]` field the normaliser
+           * collapses is the only line that differs -- so no cause, no class and nothing to grep.
+           *
+           * `terrainWidensToSpread` IS THE ONE IMPLEMENTATION OF THIS FACT and is called here rather
+           * than copied: it is the same function the effect road and the damage-span road already
+           * ask, so the PP price and the bodies actually hit cannot come apart. A second table keyed
+           * on `expandingforce` here is exactly the FACTS-ARE-GLOBAL breach CLAUDE.md names. */
+          const _wide=!PP_PRESSURE_STATIC_TARGET&&terrainWidensToSpread(_ppId,m,field);
+          if(_wide)MEDSEEN.ppPressureTerrainWidened++;
+          const _pt=_wide?_live(_pFoes||[]):pressureTargetsOf(_ppId,a,m,_pFoes,_aim);
           const _ex=ppPressureExtra(_pt,m);
           if(_ex>0) ppDeduct(m,_ppId,_ex);
         }
