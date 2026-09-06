@@ -269,7 +269,37 @@ if (require.main === module && process.argv.includes('--selftest')) {
  * A MISS NEVER REBUILDS SILENTLY. It says so, loudly, and rebuilds — because the alternative is a
  * measurement that changes its own sample without telling anyone, which is ROADMAP #82 and the WIRE 5
  * failure. `--rebuild-pool` forces one. */
-const POOL_SOURCES = ['engine/diff_swarm.js', 'data/games.bo3.jsonl', 'data/games.ots.jsonl'];
+/* ROADMAP #547 — THE RECEIPT NAMES THE STORE THAT WAS ACTUALLY READ. (2026-09-06, MEASURE.)
+ *
+ * This was a flat literal naming `data/games.bo3.jsonl` and `data/games.ots.jsonl`, and it was stamped
+ * into every pool cache INCLUDING the ones built under `--team-store data/team-pool-frozen`. So a
+ * pinned run — the pin honoured, the teams genuinely drawn from the frozen store — wrote a
+ * `source_digests` block naming the LIVE store and carrying the LIVE store's content digest.
+ *
+ * A RECEIPT THAT NAMES THE WRONG STORE IS WORSE THAN NO RECEIPT. `engine/provenance.js` verifies each
+ * key by re-digesting the file it names, so this one VERIFIED — it was internally consistent and
+ * describing a file the run never opened. Measured on the artifact as found, 2026-09-06:
+ * `key` said games.bo3.jsonl at 109,006,606 bytes (the frozen store) while
+ * `source_digests['data/games.bo3.jsonl']` was `da8597c45bb8`, which is sha256 of the 227,347,410-byte
+ * LIVE file. The only reason it was caught is that somebody hashed the frozen file by hand.
+ *
+ * DERIVED FROM `storeDir`, never a second literal. The paths are repo-relative so `run_stamp.sha12`
+ * (and therefore provenance) resolves them exactly as it resolves every other source key; a store
+ * outside the repository is named by its absolute path and says so rather than being renamed to
+ * something inside it. */
+function poolSources(storeDir) {
+  const out = ['engine/diff_swarm.js'];
+  for (const b of ['games.bo3.jsonl', 'games.ots.jsonl']) {
+    const abs = storeDir ? path.resolve(ROOT, storeDir, b) : D('data', b);
+    const rel = path.relative(ROOT, abs);
+    /* `path.relative` returns an ABSOLUTE path when the target is on another drive, and a `..` path
+     * when it is merely outside the root — `sha12` resolves the second correctly (path.join
+     * normalises `..`) and cannot resolve the first, which then records MISSING and prints why. Both
+     * are honest; neither pretends the file is somewhere it is not. */
+    out.push((!rel || path.isAbsolute(rel)) ? abs.replace(/\\/g, '/') : rel.replace(/\\/g, '/'));
+  }
+  return out;
+}
 let POOL_FROM_CACHE = false;
 const POOL_CACHE = D('data', 'diff-team-pool.json');
 
@@ -326,7 +356,13 @@ function writePoolCache(key, teams, storeDir) {
        * on 2026-08-06. A cache is still an artifact: something downstream reads it and needs to know
        * what produced it. The store digests below are the CONTENT of what was read; `key` is the
        * fast size+mtime path and is documented above as a deliberate exception. */
-      source_digests: RS.sourceDigests(POOL_SOURCES),
+      /* ROADMAP #547 — DERIVED FROM `storeDir`, so a pinned run's receipt names the frozen store it
+       * read and an unpinned run's names the live one. It used to name the live store either way. */
+      source_digests: RS.sourceDigests(poolSources(storeDir)),
+      /* AND THE PIN ITSELF, IN WORDS, beside the digests. The digests say WHICH BYTES; this says
+       * whether a `--team-store` was in force at all, which is the question an operator reading a
+       * pool-pin audit is actually asking. `null` is an unpinned run reading the live store. */
+      store_dir: storeDir || null,
       what: 'The deduped team pool the whole-game differential draws from. Cached because rebuilding it '
           + 'read 110 MB and cost ~41 s on EVERY process start (ROADMAP #87).',
       key, source_content_digests: digests, pool_digest: pool, teams: teams.length,

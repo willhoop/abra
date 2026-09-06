@@ -72,7 +72,26 @@ const GAMES = +flag('--games', 45);
  * would make neither attributable, which is the mistake that voided 7,100 games in August.
  *
  * EVERY FIGURE MEASURED AT 12 IS A CLAIM ABOUT THE FIRST TWELVE TURNS and does not transfer. */
+/* ROADMAP #548 — `--turns` IS VALIDATED HERE, BEFORE A SINGLE GAME IS PLAYED. (2026-09-06, MEASURE.)
+ *
+ * `--turns 2` used to play the whole run and then die in the summary at
+ * `TypeError: Cannot read properties of undefined (reading 'identical')` — the turn-1..3 ladder was
+ * hard-coded `[1, 2, 3]` while the decay table ran `1..MAXTURNS`, and the cross-check zipped the two
+ * BY INDEX. Every game was thrown away for a flag the parser had already accepted.
+ *
+ * A LOW CAP NOW WORKS (the ladder is cut to the cap and SAYS it was cut — see `identicalAtEndOfTurn`).
+ * What is refused is a cap that is not a whole number of turns, and it is refused LOUDLY rather than
+ * clamped: a run that silently promoted `--turns 0` to `--turns 1` would report itself as something
+ * the operator did not ask for, which is the shape of defect this instrument exists to find. */
 const MAXTURNS = +flag('--turns', 20);
+if (!Number.isInteger(MAXTURNS) || MAXTURNS < 1) {
+  console.error('--turns ' + flag('--turns', 20) + ' is not a turn cap. It must be a whole number of '
+    + 'turns, 1 or more.\n  A game is played turn by turn, so there is no such thing as a cap of '
+    + (Number.isFinite(MAXTURNS) ? MAXTURNS : 'that') + '. REFUSING TO RUN rather than rounding it: a '
+    + 'run that quietly\n  played a different cap than the one on its command line would publish an '
+    + 'artifact whose\n  `turns_cap` nobody could reproduce.');
+  process.exit(2);
+}
 const ONLY = flag('--config', null);
 const WRITE = has('--write');
 const VERBOSE = has('--verbose');
@@ -6447,26 +6466,43 @@ function closetDeclaration() {
   };
 }
 
-const SW = SWARM.buildSwarm(Math.max((UNTIL_COVERED ? MAX_GAMES : GAMES) * 2, 18),
+/* ROADMAP #546 — THE SWARM IS BUILT ON DEMAND, NEVER AT REQUIRE TIME. (2026-09-06, MEASURE.)
+ *
+ * This was `const SW = SWARM.buildSwarm(...)` at module scope, ABOVE the `require.main` guard below,
+ * so merely `require`ing this file built a swarm. That is not a slow import, it is a WRITE: with no
+ * `--team-store` on the command line the build runs against the LIVE store, `diff_swarm.loadTeams`
+ * misses the size+mtime cache a pinned run left behind, and rewrites `data/diff-team-pool.json` with
+ * the live teams. Measured 2026-09-06: the pool cache carried the FROZEN key (games.bo3.jsonl at
+ * 109,006,606 bytes) 47 minutes after a pinned run, and a probe that only ever imported this module
+ * for a helper had replaced it with the live pool. Explaining that cost a whole pool-pin audit.
+ *
+ * ~50 probes and instruments import this file for `playGame`, `buildPair`, `pairsFor`, `SW` and the
+ * rest, so the module has to stay importable. Lazy, not moved: the build happens the first time
+ * something asks for the swarm — `swarm()` inside this file, `module.exports.SW` outside it — and a
+ * caller that never asks never touches the store. The digest block below moves inside the memo for
+ * the same reason: it DESCRIBES the swarm, so it cannot run before there is one. */
+let _SWARM = null;
+function swarm() {
+  if (_SWARM) return _SWARM;
+  _SWARM = SWARM.buildSwarm(Math.max((UNTIL_COVERED ? MAX_GAMES : GAMES) * 2, 18),
                             TEAM_STORE ? { storeDir: TEAM_STORE } : null);
 
-/* THE SECOND STEERING INPUT, AND IT IS NOT FROZEN EITHER (ROADMAP #81 WIRE 5).
- *
- * `buildSwarm` reads data/games.bo3.jsonl and data/games.ots.jsonl LIVE, dedupes to distinct teams and
- * picks by a STRIDE over the matching set — so ONE appended game shifts the stride and changes which
- * teams get played. OPS appends to that store continuously (both files moved during this wire's own
- * test runs). WIRE 4 controlled it by asserting size and mtime by hand before, between and after both
- * arms; this asserts the thing that actually matters instead — the TEAM KEYS actually picked.
- *
- * THE KEY, NOT THE GAME ID. `diff_swarm`'s own dedupe key is (species + sorted moves) per side, so two
- * ladder games with the same team collapse to one entry; digesting ids would report a difference where
- * the sample is identical. Digesting the keys per configuration says exactly what was played. */
-{
+  /* THE SECOND STEERING INPUT, AND IT IS NOT FROZEN EITHER (ROADMAP #81 WIRE 5).
+   *
+   * `buildSwarm` reads data/games.bo3.jsonl and data/games.ots.jsonl LIVE, dedupes to distinct teams and
+   * picks by a STRIDE over the matching set — so ONE appended game shifts the stride and changes which
+   * teams get played. OPS appends to that store continuously (both files moved during this wire's own
+   * test runs). WIRE 4 controlled it by asserting size and mtime by hand before, between and after both
+   * arms; this asserts the thing that actually matters instead — the TEAM KEYS actually picked.
+   *
+   * THE KEY, NOT THE GAME ID. `diff_swarm`'s own dedupe key is (species + sorted moves) per side, so two
+   * ladder games with the same team collapse to one entry; digesting ids would report a difference where
+   * the sample is identical. Digesting the keys per configuration says exactly what was played. */
   const crypto = require('crypto');
-  const pool = SW.out.map(c => c.config + '\t' + ((c.picked_teams || []).map(p => p.key).join('\t'))).join('\n');
+  const pool = _SWARM.out.map(c => c.config + '\t' + ((c.picked_teams || []).map(p => p.key).join('\t'))).join('\n');
   STEER_STAMP.team_pool_digest = crypto.createHash('sha256').update(pool).digest('hex').slice(0, 12);
-  STEER_STAMP.team_pool_teams = SW.teams.length;
-  STEER_STAMP.team_pool_picked = SW.out.reduce((a, c) => a + c.picked, 0);
+  STEER_STAMP.team_pool_teams = _SWARM.teams.length;
+  STEER_STAMP.team_pool_picked = _SWARM.out.reduce((a, c) => a + c.picked, 0);
   /* SAID OUT LOUD EITHER WAY. "Read live" is a real hazard and the reader must see which of the two
    * this run did — an unpinned run that looks like a pinned one is the whole problem. */
   STEER_STAMP.team_store_pinned_to = TEAM_STORE || null;
@@ -6474,8 +6510,8 @@ const SW = SWARM.buildSwarm(Math.max((UNTIL_COVERED ? MAX_GAMES : GAMES) * 2, 18
     + STEER_STAMP.team_pool_picked + ' teams picked from a corpus of ' + STEER_STAMP.team_pool_teams
     + (TEAM_STORE ? ' — PINNED to ' + TEAM_STORE + ')'
                   : ' — read LIVE from the game store, which OPS appends to)'));
+  return _SWARM;
 }
-baselineGuard();
 
 /* ROADMAP #31 — EVERY PAIR IS BUILT TWICE, AND THE TWO BUILDS DIFFER ONLY IN THE STONES.
  *
@@ -6486,7 +6522,7 @@ baselineGuard();
  * and the two rates are published apart. A pair carrying no stone at all produces two IDENTICAL games,
  * which is a free consistency check and is asserted rather than assumed. */
 function pairsFor(cfgId) {
-  const cfg = SW.out.find(c => c.config === cfgId);
+  const cfg = swarm().out.find(c => c.config === cfgId);
   const out = [];
   /* DROP THE CLOSET BEFORE PAIRING, NOT AFTER. Filtering pairs would silently halve the sample every
    * time one shelved body met a clean one; filtering TEAMS keeps the pairing dense and makes the cost
@@ -6656,7 +6692,7 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                     * regulation is covered without an edit; a name list is the failure this repo has a
                     * standing rule about. */
                    CLOSET_ABILITY, CLOSET_SPECIES, closetHits, closetDeclaration,
-                   plantedProof, pairsFor, COV_TARGETS, COV_UNMEASURABLE, PIN_CLAIMS, REL, SW,
+                   plantedProof, pairsFor, COV_TARGETS, COV_UNMEASURABLE, PIN_CLAIMS, REL,
                    runDirected, damageInterior, DIRECTED, EQUIV, equivProof, semantic, reduce, NORM_COUNTS,
                    knockOffArms, KO_TARGET_ITEMS,
                    plantedStateProof, STATE_PLANTS, BS_CTX, BS,
@@ -6730,7 +6766,22 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                                           selfDropSeen: Object.fromEntries(
                                             [...MID_SELFDROP_SEEN].sort((a, b) => b[1] - a[1])) }) };
 
+/* ROADMAP #546 — `SW` IS STILL A PROPERTY, IT IS JUST NOT BUILT UNTIL SOMEBODY READS IT.
+ * `tests/probe_bench_plants.js`, `probe_drag_exposure.js`, `probe_endstate_by_cause.js`,
+ * `probe_random_target_address.js` and `engine/replay_one.js` all read `G.SW.out`, and they keep
+ * working unchanged — the difference is that a probe which imports this module for `playGame` and
+ * never mentions `SW` no longer reads 110 MB of store and no longer overwrites the pool cache.
+ * `enumerable` so `Object.keys(module.exports)` still lists it; `configurable` so a test can stub it. */
+Object.defineProperty(module.exports, 'SW', { get: swarm, enumerable: true, configurable: true });
+
 if (require.main !== module) return;
+
+/* THE SWARM AND THE `--baseline` GUARD, IN THAT ORDER AND BOTH BELOW THE GUARD ABOVE (ROADMAP #546).
+ * `baselineGuard` reads STEER_STAMP.team_pool_digest, which only exists once the swarm has been
+ * built, so the build is asked for by name here rather than left to whichever line happens to touch
+ * `swarm()` first. It also keeps this run's console output in the order it has always been in. */
+swarm();
+baselineGuard();
 
 /* TRAP 4 FIRST, ALWAYS — the comparator proves it can find a planted divergence before any result
  * below is worth reading. */
@@ -6820,7 +6871,7 @@ const t0 = Date.now();
  * which is a different claim from "coverage was reached". */
 let COVERAGE_STOP = null;
 if (!has('--proof')) {
-  const live = SW.out.filter(c => !ONLY || c.config === ONLY);
+  const live = swarm().out.filter(c => !ONLY || c.config === ONLY);
   const perConfig = Math.max(1, Math.floor(GAMES / live.length));
   /* BUILT ONCE PER CONFIGURATION AND REUSED BY EVERY ARM. `pairsFor` calls `buildPair` four times per
    * pair and the batched scheduler asks for the same list repeatedly; rebuilding it per arm was
@@ -7834,7 +7885,18 @@ const STATE_SUMMARY = (() => {
              rate_of_all_games: results.length ? +(ident.length / results.length).toFixed(4) : null,
              rate_of_games_that_reached_it: reached.length ? +(ident.length / reached.length).toFixed(4) : null };
   };
-  const identicalAtEndOfTurn = [1, 2, 3].map(earlyRate);
+  /* ROADMAP #548 — THE LADDER STOPS AT THE CAP, AND SAYS SO. This was a flat `[1, 2, 3]`, which under
+   * `--turns 2` asked for a turn the run never played and then crashed the whole summary against the
+   * decay table below. The rungs above the cap are not zeroes and they are not omitted quietly: a run
+   * capped below 3 publishes `ladder_truncated_by_the_cap`, so a reader comparing two artifacts cannot
+   * mistake "we did not look" for "the board held". */
+  const LADDER = [1, 2, 3].filter(n => n <= MAXTURNS);
+  const identicalAtEndOfTurn = LADDER.map(earlyRate);
+  const ladderTruncated = MAXTURNS < 3
+    ? 'the turn-1..3 ladder was cut to turn ' + MAXTURNS + ' by --turns ' + MAXTURNS
+      + '; turns ' + [1, 2, 3].filter(n => n > MAXTURNS).join(' and ') + ' were never played and are '
+      + 'ABSENT, not zero'
+    : null;
 
   /* ---- THE DECAY, TURN BY TURN, WITH THE DENOMINATOR STATED AT EACH ENTRY -----------------------
    *
@@ -7862,13 +7924,25 @@ const STATE_SUMMARY = (() => {
       rate_given_it_reached_this_turn: reached.length ? +(agreed.length / reached.length).toFixed(4) : null,
       rate_of_all_games: results.length ? +(agreed.length / results.length).toFixed(4) : null });
   }
-  const decayCrossCheck = identicalAtEndOfTurn.map((e, i) => ({
-    turn: e.turn, from_kept_boards: e.identical, from_the_counters: agreementByTurn[i].identical,
-    agree: e.identical === agreementByTurn[i].identical }));
+  /* ROADMAP #548 — JOINED ON THE TURN NUMBER, NOT ON THE ARRAY INDEX. The two derivations happened to
+   * line up at index 0,1,2 only while the ladder was hard-coded to [1,2,3]; `agreementByTurn` is
+   * `1..MAXTURNS`, so any cap below 3 indexed off the end and threw. A cross-check that cannot find
+   * its partner reports UNPAIRED and fails the check — it does not skip the rung, because a silently
+   * dropped rung is a cross-check that agrees with itself. */
+  const byTurn = new Map(agreementByTurn.map(a => [a.turn, a]));
+  const decayCrossCheck = identicalAtEndOfTurn.map((e) => {
+    const a = byTurn.get(e.turn);
+    return { turn: e.turn, from_kept_boards: e.identical,
+             from_the_counters: a ? a.identical : null,
+             agree: !!a && e.identical === a.identical,
+             unpaired: a ? undefined : 'no `agreement_by_turn` row for turn ' + e.turn };
+  });
   if (decayCrossCheck.some(x => !x.agree)) {
-    console.log('  THE TWO DERIVATIONS OF THE TURN-1..3 RATE DISAGREE — one of them is wrong and no '
+    console.log('  THE TWO DERIVATIONS OF THE TURN-1..' + (LADDER[LADDER.length - 1] || 0)
+      + ' RATE DISAGREE — one of them is wrong and no '
       + 'number below can be trusted: ' + JSON.stringify(decayCrossCheck));
   }
+  if (ladderTruncated) console.log('  ' + ladderTruncated + '.');
 
   /* ---- WHAT EXACTLY IS DIFFERENT AT THE END OF TURN 1 -------------------------------------------
    * Aggregated by FIELD and by CAUSE across every game, because Will asked for a queue chosen by what
@@ -7965,6 +8039,9 @@ const STATE_SUMMARY = (() => {
     turn1_boards_identical: identicalAtEndOfTurn[0].identical,
     turn1_boards_identical_fraction: identicalAtEndOfTurn[0].rate_of_all_games,
     identical_at_end_of_turn: identicalAtEndOfTurn,
+    /* ROADMAP #548 — null on every normal run. Non-null says the ladder above is SHORT because the
+     * cap was short, so its missing rungs are unmeasured rather than perfect. */
+    ladder_truncated_by_the_cap: ladderTruncated,
     agreement_by_turn: agreementByTurn,
     agreement_by_turn_cross_check: decayCrossCheck,
     turn1: {
@@ -9080,7 +9157,7 @@ if (WRITE) {
       rows_never_credited_that_name_no_board_leaf: neverClicked.map(t => t.key).sort(),
       moves_clicked_but_never_connected: [...CLICKED_BUT_MISSED.keys()].filter(m => !OBSERVED.moves.has(m)).sort(),
     }) : null,
-    swarm: SW.out.map(c => ({ config: c.config, available: c.available, picked: c.picked,
+    swarm: swarm().out.map(c => ({ config: c.config, available: c.available, picked: c.picked,
                               games: results.filter(r => r.config === c.config).length })),
     declared_gaps: {
       mega_stones_stripped: 0,

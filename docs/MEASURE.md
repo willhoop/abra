@@ -38,6 +38,63 @@ _stamped 2026-09-06 14:08_
 
 <!-- /GENERATED -->
 
+## THREE INSTRUMENT DEFECTS, RED FIRST THEN GREEN — #546, #547, #548 ALL REAL, ALL FIXED, NONE REFUTED. 2026-09-06
+
+Full account with every command and every digest: `docs/_reports/2026-09-06-instrument-defects-546-548.md`.
+
+**THE WINDOW IN WHICH THE INSTRUMENT MOVED — 2026-09-06T18:56:28Z to 19:00:10Z.** Both files are inside
+`steering.driver_code`, so the edits were made as ONE batch and neither file has been touched since.
+Anything a differential started before 18:56:28Z is unaffected; anything after 19:00:10Z is on the new
+instrument; **a run spanning those three minutes is void and must be re-taken.** Driver code moved
+`3119d079dfa5` → `228006b5faca`. The ENGINE RELEASE did not move — `data/engine-release.json` still
+reads `57679ef9a4a3` and only appended cuts over an unchanged tree, which is the correct result: these
+two files are the instrument, not the engine.
+
+**#546 — `buildSwarm` RAN AT REQUIRE TIME, AND THAT IS A WRITE, NOT A SLOW IMPORT.** `require`ing
+`engine/game_differential.js` built a swarm from whatever store the CALLER's argv named, which with no
+`--team-store` is the live one — evicting a pinned pool from the single-slot cache. RED: an
+intercepting probe read `buildSwarm calls DURING require(): 1`, args `{"n":90,"opts":null}`, 2.9 s.
+GREEN: `0 … clean`, 0.8 s, and `1 … built lazily, on demand` the moment `G.SW` is touched. `SW` is now
+a getter, so the ~50 probes that read `G.SW.out` are unchanged.
+
+**#547 — THE RECEIPT NAMED THE WRONG STORE, AND IT VERIFIED WHILE DOING SO.** Demonstrated on the
+artifact as found rather than staged: `data/diff-team-pool.json` carried the FROZEN key
+(`games.bo3.jsonl:109006606`) beside `source_digests['data/games.bo3.jsonl'] = da8597c45bb8`, which is
+sha256 of the **227,347,410-byte LIVE file**. The frozen file digests `5e10d7ba991f`. **The pin was
+honoured and the stamp said otherwise**, and provenance could never have caught it: it verifies each
+key against the file that key NAMES, so a receipt naming the wrong file is internally consistent. Now
+derived from `storeDir`, with `store_dir` written in words beside the digests. **The sample is proven
+not to have moved**: same pin, same key, 8,778 → 8,778 teams, `pool_digest f807cbc40299` →
+`f807cbc40299`. Only the receipt changed.
+
+**#548 — `--turns` BELOW 3 THREW AFTER EVERY GAME HAD BEEN PLAYED.** RED: `--turns 2` reached
+`TypeError: Cannot read properties of undefined (reading 'identical')` at `:7866`, exit 1, with the
+whole run lost. The ladder is now cut to the cap and SAYS it was cut (`ladder_truncated_by_the_cap`;
+an unplayed rung is ABSENT, not zero), the cross-check joins on the TURN NUMBER rather than the array
+index and reports `unpaired` rather than skipping, and a cap that is not a whole number ≥ 1 is refused
+at parse time with exit 2. **It is refused, not clamped** — a run that quietly promoted `--turns 0` to
+`--turns 1` would publish a `turns_cap` nobody could reproduce. `--turns 1` and `--turns 2` now
+complete; `0`, `-1`, `2.5` and `abc` all exit 2.
+
+**`arms_comparable` WAS ASKED AND SAID NOT COMPARABLE, AND IT IS RIGHT.** Verbatim in the report; the
+load-bearing line is *"the INSTRUMENT differs: driver code 3119d079dfa5 vs 228006b5faca. 2 file(s)
+moved between the arms — engine/diff_swarm.js, engine/game_differential.js."* **No whole-game
+before/after may be published across that window.** The evidence that nothing else moved is NOT that
+check — it is the two paired demonstrations: `pool_digest` unchanged across #547, and the old
+index-join equal to the new turn-join, row for row, on the same artifact at the default cap.
+
+**WHAT IS STILL OPEN AND IS NOT CLAIMED FIXED.** `data/diff-team-pool.json` remains ONE slot shared by
+the pinned and the live pool, so a test that genuinely USES the swarm without a pin still evicts a
+pinned one — `tests/test-arm-steering.js` did exactly that during this session's gate batch at
+19:06:12Z. Not a regression (a bare `require` used to do it), self-healing at ~41 s, and the cache was
+restored to the frozen pool at 19:11:48Z. A per-store cache slot would end it; that is a change to the
+cache CONTRACT and was not taken unasked.
+
+**AND ONE RED THAT IS NOT THIS WORK.** `tests/test-artifact-keys.js` fails 1 of 6:
+`UNDECLARED: million-run-150k.json:engine_counters, million-run.json:engine_counters`. It belongs to
+`engine/million_run.js`, it was red before this session, and it is reported here rather than filed as
+a second row or called a known failure.
+
 ## THE SETTLED-TREE PUBLISH PASS. **THE WHOLE-GAME FIGURES 5.265.0 CORRECTLY LEFT BLANK ARE RESTORED — 27 / 93 / 70 ON RELEASE `57679ef9a4a3`, ON MEASURED COUNTS.** 2026-09-06, CHANGELOG 5.266.0
 
 **EVERY FIGURE BELOW WAS RE-READ FROM ITS ARTIFACT ON THIS PASS.** Nothing is carried from the brief;
