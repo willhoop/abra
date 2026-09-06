@@ -134,6 +134,28 @@ console.log('    ' + String(c.open).padStart(4) + '  OPEN'
           + '   (' + c.open_asserting_breakage + ' of them assert breakage — those are what the gate counts)');
 console.log('    ' + String(c.unregistered).padStart(4) + '  MEASURED BUT UNREGISTERED\n');
 
+/* ---- 3. THE DOCUMENTATION DEBT ------------------------------------------------------------------
+ *
+ * WILL, 2026-09-06: *"we can update the documents every major release and just keep a running notes
+ * page in between change the documentation rules"*. The full living-document set now moves on a MAJOR
+ * release; `docs/RUNNING-NOTES.md` moves every change and carries the debt in between.
+ *
+ * IT PRINTS HERE BECAUSE THAT IS THE ONLY THING THAT MAKES THE DEFERRAL SAFE. A backlog nobody sees
+ * is not deferred work, it is abandoned work with a promise attached — which is what fourteen
+ * `docs/HANDOFF-*.md` files are. `tests/test-docs-current.js` REFUSES past the cap; this file is where
+ * a reader finds out long before it gets there, beside the rest of what is open.
+ *
+ * DERIVED IN docs_scan.js AND CALLED, NOT REIMPLEMENTED. Two files that both decide one fact will
+ * disagree eventually, and the disagreement will be invisible because both keep working. */
+try {
+  console.log(require('./docs_scan.js').owedReport() + '\n');
+} catch (e) {
+  /* NOT SILENT. A missing backlog reads as no debt, which is the one wrong answer this block can
+   * give, so the failure is printed and named rather than swallowed. */
+  console.log('  DOCUMENTATION DEBT — NOT DERIVED: ' + String(e.message || e).split('\n')[0]);
+  console.log('    (engine/docs_scan.js could not answer. That is a broken instrument, not a clean board.)\n');
+}
+
 const bySection = {};
 for (const r of open) (bySection[r.section] = bySection[r.section] || []).push(r);
 /* `--engine` MEANS THE MEDICHAM BLOCK, which is what anyone asking actually wants. The first version

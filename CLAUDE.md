@@ -660,20 +660,63 @@ before the run rather than explaining it afterwards.
 **Re-running is not optional once it lifts.** A quarantined number does not become true when MEDICHAM
 becomes correct; it becomes re-runnable. The re-run list is ROADMAP #57.
 
-## Living docs — update these EVERY change (do not let them drift)
-Any change to a model, a result, or the site updates ALL of the following in the **same pass**, each
-with its matching PDF where applicable, plus a CHANGELOG entry and a version bump:
+## Living docs — a ROW every change, the DOCUMENTS every major release
+
+**CHANGED 2026-09-06 BY WILL:** *"we can update the documents every major release and just keep a
+running notes page in between change the documentation rules"*.
+
+### Every change — same pass, no exceptions
+- **`docs/RUNNING-NOTES.md`** — one row: what changed, the figure and the artifact it came from, any
+  figure this supersedes, and which living document owes the fold-in. **Same rigour as the white
+  paper.** Figures cite an artifact. A superseded number is struck out. A quarantined figure is not
+  written at all.
+- The division ledger your change belongs to — `docs/{ENGINE,MEASURE,SEARCH,OPS,WEB}.md` — then
+  `node engine/status.js --write` to restamp the generated blocks. **Never hand-edit inside a
+  `<!-- GENERATED -->` block, and never write a handoff document.** State is printed, not typed;
+  `docs/HANDOFF-*.md` are historical narrative and are not maintained.
+- `CHANGELOG.md` — Keep-a-Changelog. The version bump is unchanged.
+
+### Every MAJOR release — the full set, folded in from the rows
 - `docs/ABRA-whitepaper.md` (+ `.pdf`) — technical, with math + cited sources + honest results/CIs.
 - `docs/ABRA-deck-plain-english.md` (+ `.pdf`) — plain-English; links the white paper on the last slide.
 - `docs/ABRA-technical-docs.md` (+ `.pdf`) — ASD-STE100 Simplified Technical English, by Diátaxis.
 - `docs/SUMMARY.md` (+ `.pdf`) — whole-project + per-component summary table.
 - `docs/MODELS.md` — the per-model living ledger.
-- The division ledger your change belongs to — `docs/{ENGINE,MEASURE,SEARCH,OPS,WEB}.md` — and then
-  `node engine/status.js --write` to restamp the generated blocks. **Never hand-edit inside a
-  `<!-- GENERATED -->` block, and never write a handoff document.** State is printed, not typed;
-  `docs/HANDOFF-*.md` are historical narrative and are not maintained.
-- `CHANGELOG.md` — Keep-a-Changelog; the top version matches the artifacts.
-A result reported on the site or in the deck must match the number in the white paper and the model's
-JSON report. Rebuild PDFs from the `.md` (pandoc → HTML → weasyprint; see `docs/` build notes).
-This standard failed once by drifting to v1 while code moved to v2 — it is now written down so it is
-checked, not remembered.
+
+A major release is a CHANGELOG entry of the form `X.0.0`; nothing is typed to declare one. Rebuild the
+PDFs from the `.md` then (pandoc → HTML → weasyprint; see `docs/` build notes). A result on the site or
+in the deck must still match the white paper and the model's JSON report.
+
+### The measured reason
+Six version bumps in one night rebuilt the whole PDF set six times. **`docs/ENGINE.pdf` alone is
+28.8 MB per rebuild**, `.git` is **1.1 GB**, and pushes started returning **HTTP 408**. Separately and
+worse: GitHub hard-rejects any single file over **100 MB**, and `data/games.ladder.jsonl.gz` is
+**51.8 MB and growing hourly** — a wall this repo reaches on its own. Per-change PDF churn is the lever
+Will chose. **The documents were never the thing at risk; the ability to push was.**
+
+### THE ONE WAY THIS GOES WRONG, AND WHAT REFUSES IT
+*"We'll update the documents at the next major"* is the fourteen stale `docs/HANDOFF-*.md` files in a
+new costume — each typed at the end of a session, each stale within a day. A deferral is only a
+deferral if something COUNTS it and REFUSES past a bound. So:
+
+```bash
+node engine/docs_scan.js --owed     # the backlog owed to the next major, and how near the cap
+node engine/open_work.js            # prints the same block beside the open register rows
+```
+
+- **The notes row is gated per change**, exactly as the full set used to be. `.githooks/pre-commit`
+  blocks any commit touching `engine/`, `tests/`, `web/`, `build/`, a live document or the CHANGELOG
+  that does not also move the notes page. `tests/test-docs-current.js` clause 5 re-checks it against
+  git history, so `--no-verify` does not launder it.
+- **Deleting `docs/RUNNING-NOTES.md` ends nothing.** It is not the MEDICHAM sprint marker — the gate
+  fails on a missing page.
+- **The backlog is derived, never typed**: every row newer than the lowest unpinned version header
+  among the living documents. It empties itself when the major pass bumps those headers. Over
+  `OWED_CAP` (`engine/docs_scan.js`) the build FAILS — cut the major, or raise the cap in a diff
+  somebody can see.
+- **A `X.0.0` entry raises the floor in the same commit that writes it**, so the full pass cannot be
+  deferred past the major it was deferred to.
+- **DEFERRING THE DOCUMENTS NEVER DEFERS A RETRACTION.** A figure the notes page supersedes must come
+  OUT of the living document in that same pass — deleted, not captioned. The derived retraction
+  registry already fails the build on a restated figure, and a caption is not a quarantine. Only the
+  rewrite waits for the major; a number that has stopped being true does not wait for anything.

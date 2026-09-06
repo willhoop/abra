@@ -194,6 +194,73 @@ if [ -f "$SPRINT" ]; then
   fi
 fi
 
+# ── EVERY CHANGE RECORDS A ROW IN docs/RUNNING-NOTES.md — WILL, 2026-09-06 ─────────────────────
+#
+# "we can update the documents every major release and just keep a running notes page in between
+#  change the documentation rules"
+#
+# The full living-document set -- white paper, deck, technical docs, SUMMARY, MODELS and the PDFs --
+# now moves on a MAJOR release. The notes page moves on EVERY change, and it carries the debt in
+# between. The measured reason is in CLAUDE.md: docs/ENGINE.pdf alone is 28.8 MB per rebuild, .git is
+# 1.1 GB, and pushes were returning HTTP 408.
+#
+# WITHOUT THIS CLAUSE THE RULE IS THE FIFTEENTH HANDOFF DOCUMENT. There are fourteen docs/HANDOFF-*.md
+# files, each typed at the end of a session, each stale within a day, all now explicitly unmaintained.
+# What separates a deferral from an abandonment is that something refuses the commit when the record
+# is not written. That is this.
+#
+# IT IS THE SPRINT CLAUSE ABOVE, MADE PERMANENT AND WIDER. The sprint clause was a temporary bargain
+# that ENDED BY DELETING ITS MARKER. This one does not end, and deleting the notes page re-arms
+# nothing -- tests/test-docs-current.js clause 5a fails on a missing page.
+#
+# THE SCOPE IS DECIDED IN ONE PLACE. `--note-check` is engine/docs_scan.js's recordableChanges(), the
+# same function tests/test-docs-current.js clause 5b applies to committed history. Two files that
+# both decide one fact will disagree eventually and the disagreement will be invisible, so this
+# shells out rather than carrying a second regex -- the same reason status.js shells out to
+# provenance.js. Cost is one node start.
+NOTES="docs/RUNNING-NOTES.md"
+if command -v node >/dev/null 2>&1; then
+  # SAY THAT IT RAN. A gate that passes in silence is indistinguishable from a gate that skipped.
+  echo "pre-commit: running-notes gate -- every change records a row in $NOTES"
+  if ! NOTE_OUT=$(node engine/docs_scan.js --note-check $STAGED 2>&1); then
+    echo ""
+    echo "  BLOCKED: this commit changes something a reader reads and records nothing."
+    echo ""
+    echo "$NOTE_OUT" | sed 's/^/    /'
+    cat <<MSG
+
+  ------------------------------------------------------------------
+  WHAT THIS MEANS, PLAINLY. The living-document pass -- white paper,
+  deck, technical docs, SUMMARY, MODELS, PDFs -- is DEFERRED to the
+  next major release. It is not waived. $NOTES is
+  where the debt is recorded, and this commit adds to the debt without
+  writing it down.
+
+  HOW TO FIX IT: add a row to the top of $NOTES.
+
+    ## [<the version this lands as>] - <date> - one line naming what moved
+    - **What changed.** ...
+    - **Measured.** <figure> - \`data/<artifact>.json\`, n=<sample>.  Or: NO FIGURE.
+    - **Supersedes.** ~~<old figure>~~ retracted - and DELETED from the doc that stated it.
+    - **Owed to the next major.** which living document must absorb this, or none.
+
+  A row before the release that carries it goes under [Unreleased]; the
+  publish pass renames that heading to the version.
+
+  WHAT IS OWED SO FAR:   node engine/docs_scan.js --owed
+
+  DELETING THE NOTES PAGE DOES NOT END THIS. It is not the MEDICHAM
+  sprint marker; the docs-currency gate fails on a missing page.
+
+  DO NOT PASS --no-verify. If this gate is wrong, fix the gate.
+  ------------------------------------------------------------------
+MSG
+    exit 1
+  fi
+else
+  echo "pre-commit: node not on PATH -- running-notes gate SKIPPED (this is a hole, not a pass)"
+fi
+
 echo "pre-commit: living-docs gate (~2s)"
 FAILED=0
 
@@ -277,13 +344,15 @@ if [ "$FAILED" -ne 0 ]; then
   cat <<'MSG'
 
   ------------------------------------------------------------------
-  The living-docs rule: a change to a model, a result or the site moves
-  the white paper, the deck, the technical docs, SUMMARY, MODELS, the
-  division ledger, and CHANGELOG.md -- IN THE SAME PASS, with a version
-  bump. Not later, not "next commit".
+  The living-docs rule, as Will restated it on 2026-09-06: a change moves
+  docs/RUNNING-NOTES.md, the division ledger and CHANGELOG.md IN THE SAME
+  PASS. The white paper, the deck, the technical docs, SUMMARY, MODELS and
+  the PDFs move on a MAJOR release -- an X.0.0 entry -- folded in from the
+  rows of the notes page. Not later, not "next commit".
 
   Usually one of:
-    - CHANGELOG.md bumped, but a version-headed document still trails
+    - a document still trails the last X.0.0 release (the major pass was skipped)
+    - the backlog owed to the next major is over the cap: node engine/docs_scan.js --owed
     - a figure added that no artifact backs (generate it, cite it, or cut it)
     - a ROADMAP item cited that section 5 does not register
 

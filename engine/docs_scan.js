@@ -1055,8 +1055,191 @@ function uniqueOwners() {
   };
 }
 
+/* ---- THE RUNNING NOTES PAGE, AND WHAT IS OWED TO THE NEXT MAJOR --------------------------------
+ *
+ * WILL, 2026-09-06: *"we can update the documents every major release and just keep a running notes
+ * page in between change the documentation rules"*.
+ *
+ * The full living-document set now moves on a MAJOR release. `docs/RUNNING-NOTES.md` moves on every
+ * change, and it carries the debt in between. That trade is only safe if the debt is COUNTED, because
+ * this repository's one recurring failure is a record that outlives what it described — fourteen
+ * stale handoffs, a hand-maintained ban list of four, `DECLARED_DIVERGENCE`. *"We will update the
+ * documents at the next major"* is that failure in a new costume unless something prints the size of
+ * the promise.
+ *
+ * SO IT IS DERIVED FROM THREE FILES AND TYPED NOWHERE:
+ *
+ *   the notes page   every `## [X.Y.Z] — date — title` heading is one change that has been recorded
+ *   the living docs  the LOWEST version header among the unpinned ones is when they were last folded
+ *   CHANGELOG.md     the most recent `X.0.0` entry is the last MAJOR release
+ *
+ * OWED = every notes entry newer than the documents. It empties itself: the major-release pass bumps
+ * the document headers, every entry falls below the new floor, and the count returns to zero with
+ * nothing to remember to clear. Same property as the sprint marker that ends by being deleted.
+ *
+ * PINNED DOCUMENTS ARE EXCLUDED FROM THE FLOOR ON PURPOSE. A pin is a declared statement that a
+ * document is deliberately frozen at an old version (`docs/ARCHITECTURE.md` at 1.2), so taking the
+ * minimum over pins would peg the floor at 0.1 forever and report every entry ever written as owed —
+ * a number so large it says nothing, which is the same as not printing it. */
+const NOTES_LOG = 'docs/RUNNING-NOTES.md';
+
+/* THE CAP IS A POLICY NUMBER AND IS THE ONE HAND-TYPED VALUE HERE, SO IT IS ARGUED RATHER THAN
+ * ASSERTED. Measured on CHANGELOG.md, 2026-09-06: 266 releases in the 27 days since 5.0.0 (2026-08-10),
+ * ~10/day median and 42 on the busiest day. CLAUDE.md records what unbounded drift already cost —
+ * documents four days behind code, and the next session mischaracterised the whole model family. Four
+ * days is what Will has just traded away, so the bound cannot be four days; it must still be a bound.
+ * 100 entries is ~10 working days at the measured cadence.
+ *
+ * IT IS A GATE, NOT A HINT. `tests/test-docs-current.js` FAILS above it, which blocks the commit, and
+ * the only ways out are to do the major-release pass or to raise this constant in a diff somebody can
+ * see. That is the whole difference between a deferral and a silent abandonment. */
+const OWED_CAP = 100;
+const OWED_WARN = Math.floor(OWED_CAP / 2);
+
+/* WHAT COUNTS AS A CHANGE THAT MUST BE RECORDED — ONE IMPLEMENTATION, TWO CALLERS.
+ *
+ * `.githooks/pre-commit` judges the STAGED paths and `tests/test-docs-current.js` judges the paths in
+ * commits made since the notes page last moved. They must never disagree about what a recordable
+ * change is, and this repository's own rule says why: two files that both decide one fact will
+ * disagree eventually, and the disagreement will be invisible because both keep working. The hook is
+ * sh and cannot import this, so it SHELLS OUT to `--note-check` rather than carrying a second regex —
+ * the same reason `status.js` shells out to `provenance.js`.
+ *
+ * NOT recordable, and each exclusion has a reason:
+ *   docs/_reports/   a findings record, historical by construction; writing one is not a change
+ *   docs/_inbox/ _outbox/   the Cowork handoff folders; a draft is a proposal, not a landed change
+ *   docs/archive/    moving a file into history changes nothing a reader takes as current
+ *   the notes page itself   or the rule would be that touching it obliges you to touch it
+ *   data/            a generator re-running is not a documentation event; the hook already says so */
+const RECORDABLE = /^(?:engine|tests|web|build)\/|^docs\/|^(?:CHANGELOG|README|CLAUDE)\.md$/;
+const NOT_RECORDABLE = /^docs\/(?:_reports|_inbox|_outbox|archive)\//;
+function recordableChanges(paths) {
+  return [...new Set(paths.map(p => String(p).replace(/\\/g, '/').trim()).filter(Boolean))]
+    .filter(p => p !== NOTES_LOG)
+    .filter(p => RECORDABLE.test(p) && !NOT_RECORDABLE.test(p))
+    .sort();
+}
+
+/** Compare two dotted versions of two or three parts. `1.2` sorts below `1.2.1`. */
+function cmpVersion(a, b) {
+  const pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    const x = pa[i] || 0, y = pb[i] || 0;
+    if (x !== y) return x < y ? -1 : 1;
+  }
+  return 0;
+}
+
+/** The most recent `## [X.0.0]` entry in the CHANGELOG — the last MAJOR release, read not typed. */
+function lastMajor() {
+  const ch = fs.readFileSync(D('CHANGELOG.md'), 'utf8');
+  const m = ch.match(/^##\s*\[(\d+\.0\.0)\][^\n]*?(\d{4}-\d{2}-\d{2})?\s*$/m);
+  return m ? { version: m[1], date: m[2] || null } : null;
+}
+
+/** The declared pins, read from the baseline the gate already maintains. */
+function versionPins() {
+  const f = D('data', 'docs-currency-baseline.json');
+  if (!fs.existsSync(f)) return {};
+  return JSON.parse(fs.readFileSync(f, 'utf8')).version_pins || {};
+}
+
+/** `## [5.267.0] — 2026-09-06 — title` rows in the notes page, newest first as written. */
+function notesEntries({ read = readDoc } = {}) {
+  if (!fs.existsSync(D(NOTES_LOG))) return null;
+  const lines = read(NOTES_LOG).split('\n');
+  const out = [];
+  /* A FENCED BLOCK IS THE TEMPLATE, NOT A ROW. The page carries a copy-this-shape example inside
+   * ```, and counting it would mean the backlog reports a release that never happened — the same
+   * mistake `figuresInText` already refuses one function up, for the same reason. */
+  let fenced = false;
+  for (let i = 0; i < lines.length; i++) {
+    if (fenceOpen(lines[i])) { fenced = !fenced; continue; }
+    if (fenced) continue;
+    /* AN `[Unreleased]` HEADING COUNTS AS OWED, and the first draft of this said the opposite. A row
+     * written before the release that carries it is still a change the next major has to fold in, and
+     * if it is not counted then a heading nobody remembers to rename is a debt that never appears —
+     * which is the precise failure this whole clause exists to refuse. Counting it is the
+     * conservative direction: the worst case is that the backlog reads one high for a few hours. */
+    const m = lines[i].match(/^##\s*\[(Unreleased|\d+\.\d+(?:\.\d+)?)\]\s*—?\s*(\d{4}-\d{2}-\d{2})?\s*—?\s*(.*)$/i);
+    if (m) out.push({
+      version: /^unreleased$/i.test(m[1]) ? null : m[1],
+      unreleased: /^unreleased$/i.test(m[1]),
+      date: m[2] || null, title: m[3].trim(), line: i + 1,
+    });
+  }
+  return out;
+}
+
+/** The version the living documents were last brought current at: the lowest UNPINNED header. */
+function documentedAt() {
+  const pins = versionPins();
+  let low = null;
+  for (const d of livingDocs()) {
+    if (d.replace(/\\/g, '/') === NOTES_LOG) continue;    // the log tracks the top, not the pass
+    if (pins[d]) continue;                                 // a pin is a declared freeze, not drift
+    const v = versionHeader(readDoc(d));
+    if (!v) continue;
+    if (!low || cmpVersion(v.version, low.version) < 0) low = { version: v.version, doc: d };
+  }
+  return low;
+}
+
+/**
+ * What the next major release owes. Everything here is read; nothing is remembered.
+ *   missing          the notes page does not exist — the rule is not optional, so this is a failure
+ *   owed             notes entries newer than the documents' floor
+ *   over / warn      against OWED_CAP
+ */
+function owedToNextMajor() {
+  const top = changelogTop();
+  const maj = lastMajor();
+  const entries = notesEntries();
+  if (entries === null) return { missing: true, notes: NOTES_LOG, top, lastMajor: maj, cap: OWED_CAP };
+  const floor = documentedAt();
+  const owed = entries.filter(e => e.unreleased || !floor || cmpVersion(e.version, floor.version) > 0);
+  const dates = owed.map(e => e.date).filter(Boolean).sort();
+  const behind = floor && maj ? cmpVersion(floor.version, maj.version) < 0 : false;
+  return {
+    missing: false, notes: NOTES_LOG, top, lastMajor: maj,
+    documented_at: floor, entries: entries.length, owed,
+    oldest_owed: dates[0] || null,
+    documents_behind_last_major: behind,
+    cap: OWED_CAP, warn: OWED_WARN,
+    over: owed.length > OWED_CAP, warning: owed.length > OWED_WARN && owed.length <= OWED_CAP,
+  };
+}
+
+/** The printable backlog. Never throws — a caller printing state must not die on a missing file. */
+function owedReport() {
+  const o = owedToNextMajor();
+  const L = [];
+  if (o.missing) {
+    L.push(`  DOCUMENTATION DEBT — ${o.notes} IS ABSENT.`);
+    L.push('    The full living-doc set moves on a major release and the notes page carries every');
+    L.push('    change in between. Without it nothing records what the next major owes. Recreate it.');
+    return L.join('\n');
+  }
+  const at = o.documented_at ? `${o.documented_at.version} (lowest unpinned header: ${o.documented_at.doc})` : 'NOT DERIVED';
+  L.push(`  DOCUMENTATION DEBT — ${o.owed.length} of ${o.cap} notes entries owed to the next major`
+    + (o.over ? '   *** OVER CAP ***' : o.warning ? '   (past half the cap)' : ''));
+  L.push(`    documents last folded at ${at}`);
+  L.push(`    CHANGELOG top ${o.top}; last major ${o.lastMajor ? o.lastMajor.version + (o.lastMajor.date ? ' — ' + o.lastMajor.date : '') : 'NOT DERIVED'}`);
+  if (o.documents_behind_last_major) {
+    L.push('    THE DOCUMENTS ARE BEHIND THE LAST MAJOR RELEASE. A major is exactly when the full set');
+    L.push('    is due, so this is the pass that was skipped, not drift that is allowed to accumulate.');
+  }
+  if (o.oldest_owed) L.push(`    oldest unfolded note: ${o.oldest_owed}`);
+  for (const e of o.owed.slice(0, 12)) L.push(`      ${String(e.version || 'Unreleased').padEnd(10)} ${(e.date || '?').padEnd(10)}  ${e.title.slice(0, 74)}`);
+  if (o.owed.length > 12) L.push(`      ... and ${o.owed.length - 12} more (node engine/docs_scan.js --owed)`);
+  if (!o.owed.length) L.push('    nothing owed — the documents are level with the notes page.');
+  return L.join('\n');
+}
+
 module.exports = {
   D, liveDocs, livingDocs, archiveDocs, readDoc, versionHeader, changelogTop,
+  NOTES_LOG, OWED_CAP, OWED_WARN, cmpVersion, lastMajor, versionPins, recordableChanges,
+  notesEntries, documentedAt, owedToNextMajor, owedReport,
   quarantinedFigures, quarantineKey,
   figuresIn, figuresInText, fenceOpen, lexingProof, LEXING_CASES,
   isUniversal, artifactNumbers, artifactHas, paragraphs, citationsIn,
@@ -1067,6 +1250,28 @@ module.exports = {
 
 /* ---- CLI -------------------------------------------------------------------------------------- */
 if (require.main === module) {
+  /* `--owed` FIRST AND ALONE. The full census below reads every document and every artifact under
+   * data/ and takes seconds; the backlog reads three files. A reader asking "how far behind are the
+   * documents" must get an answer cheap enough to ask often, or they will stop asking. */
+  /* `--note-check <path>...` — the decision `.githooks/pre-commit` asks before letting a commit
+   * through. Exit 1 means: this commit changes something a reader reads and records nothing. */
+  if (process.argv.includes('--note-check')) {
+    const paths = process.argv.slice(process.argv.indexOf('--note-check') + 1);
+    const need = recordableChanges(paths);
+    const recorded = paths.some(p => String(p).replace(/\\/g, '/').trim() === NOTES_LOG);
+    if (!need.length) { console.log('note-check: nothing recordable in this change set'); process.exit(0); }
+    if (recorded) { console.log(`note-check: ${need.length} recordable path(s), and ${NOTES_LOG} moves with them`); process.exit(0); }
+    console.log(`note-check: ${need.length} recordable path(s) and NOTHING recorded in ${NOTES_LOG}`);
+    for (const p of need.slice(0, 10)) console.log('    ' + p);
+    if (need.length > 10) console.log(`    ... and ${need.length - 10} more`);
+    process.exit(1);
+  }
+  if (process.argv.includes('--owed')) {
+    const o = owedToNextMajor();
+    if (process.argv.includes('--json')) console.log(JSON.stringify(o, null, 2));
+    else console.log(owedReport());
+    process.exit(o.missing || o.over ? 1 : 0);
+  }
   const docs = liveDocs();
   const living = livingDocs();
   const versioned = living.map(d => ({ doc: d, v: versionHeader(readDoc(d)) }));

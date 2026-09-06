@@ -40,6 +40,18 @@
  *   3. a number in a living document must be generated, or cite an artifact, or be deleted.
  *      Rule 3 REPORTS. It deletes nothing and it fixes nothing.
  *
+ * RULE 1 WAS REPLACED ON 2026-09-06 — WILL: *"we can update the documents every major release and
+ * just keep a running notes page in between change the documentation rules"*. A version-headed
+ * document is now measured against the LAST MAJOR RELEASE rather than the CHANGELOG top, and a
+ * fourth rule carries what that stops measuring:
+ *
+ *   5. docs/RUNNING-NOTES.md exists, moved in the same commit as any code or document that moved,
+ *      and the backlog it owes the next major is under a declared cap. See notesRule().
+ *
+ * The measured reason for the trade is in CLAUDE.md and is about push size, not about documents.
+ * The reason rule 5 is a GATE and not a note is that "we will do the documents at the next major" is
+ * otherwise the fifteenth docs/HANDOFF-*.md.
+ *
  * AND THE ARCHIVE IS NOT A LAUNDRY. The previous version skipped docs/archive/ outright (line 89),
  * so `git mv docs/X.md docs/archive/` removed a document from every content rule silently. An
  * archived file is exempt only if it declares itself SUPERSEDED and names the file that replaced it;
@@ -332,12 +344,31 @@ function ratchet(name, current, baseline, describe) {
  * CLAUDE.md: "Any change to a model, a result, or the site updates ALL of the following in the SAME
  * pass ... plus a CHANGELOG entry and a version bump." The old check knew five filenames. This one
  * asks every markdown file whether it carries a version header, which is the document declaring
- * itself current — a property of the file, not of a list. */
+ * itself current — a property of the file, not of a list.
+ *
+ * THE BAR MOVED FROM THE CHANGELOG TOP TO THE LAST MAJOR — WILL, 2026-09-06: *"we can update the
+ * documents every major release and just keep a running notes page in between change the
+ * documentation rules"*. So a living document is no longer stale for trailing tonight's release; it
+ * is stale for trailing the last `X.0.0`, which is when the full pass is due.
+ *
+ * THIS IS A LOOSENING AND IT IS ONLY SAFE BECAUSE SOMETHING ELSE TIGHTENED. What this clause stops
+ * measuring — how far the documents trail the code — is now measured by name and by count in clause
+ * 5, gated against a cap, and printed on every run. Deleting clause 5 without restoring this bar
+ * would leave the drift unmeasured, which is the state that produced fourteen stale handoffs.
+ *
+ * THE MAJOR ITSELF IS THE ENFORCEMENT POINT. The commit that writes `## [6.0.0]` into the CHANGELOG
+ * raises this floor in the same instant, so that commit FAILS unless it also carries the white paper,
+ * the deck, the technical docs, SUMMARY and MODELS. "We will do the documents at the next major"
+ * cannot be deferred past the next major. */
 function versionRule(base, next) {
-  console.log('\n== 2. every version-headed doc tracks the CHANGELOG ==');
+  console.log('\n== 2. every version-headed doc is at or past the LAST MAJOR release ==');
   const top = S.changelogTop();
   ok(!!top, `CHANGELOG has a top version (${top || 'none found'})`);
   if (!top) return;
+  const maj = S.lastMajor();
+  ok(!!maj, `CHANGELOG has a major release to measure against (${maj ? maj.version : 'none found'})`);
+  if (!maj) return;
+  const floor = maj.version;
 
   const living = S.livingDocs();
   const pins = base.version_pins || {};
@@ -345,30 +376,32 @@ function versionRule(base, next) {
   const nextPins = {};
   for (const rel of living) {
     const v = S.versionHeader(S.readDoc(rel)).version;
-    if (v === top) { if (pins[rel]) nowCurrent.push(rel); continue; }
+    if (S.cmpVersion(v, floor) >= 0) { if (pins[rel]) nowCurrent.push(rel); continue; }
     if (!pins[rel]) {
       stale.push(`${rel} @ ${v}`);
       if (UPDATE) nextPins[rel] = { version: v, reason: 'ADOPTED AT BASELINE — give this a real reason or bring the document current' };
       continue;
     }
     /* A PIN IS A VERSION, NOT A LICENCE. If a pinned document's header MOVES and still does not
-     * equal the CHANGELOG top, somebody edited it in a pass that skipped the changelog — which is
-     * the original 3.3.0-vs-2.6.0 failure wearing a different number. */
-    if (pins[rel].version !== v) { movedPins.push(`${rel}: pinned at ${pins[rel].version}, now ${v}, top is ${top}`); continue; }
+     * reach the floor, somebody edited it in a pass that skipped the changelog — which is the
+     * original 3.3.0-vs-2.6.0 failure wearing a different number. */
+    if (pins[rel].version !== v) { movedPins.push(`${rel}: pinned at ${pins[rel].version}, now ${v}, floor is ${floor}`); continue; }
     nextPins[rel] = pins[rel];
   }
   ok(stale.length === 0 || UPDATE,
-    `every version-headed document is at ${top} or is a declared pin (${living.length} versioned, ${Object.keys(pins).length} pinned)` +
+    `every version-headed document is at or past ${floor} or is a declared pin (${living.length} versioned, ${Object.keys(pins).length} pinned, CHANGELOG top ${top})` +
     (stale.length ? ` — undeclared and stale:\n         ` + stale.join('\n         ') : ''));
   ok(movedPins.length === 0,
-    'no pinned document moved to a version that is neither its pin nor the CHANGELOG top' +
+    'no pinned document moved to a version that is neither its pin nor at the major floor' +
     (movedPins.length ? `:\n         ` + movedPins.join('\n         ') : ''));
   if (stale.length) {
-    console.log('         CLAUDE.md requires these to move in the SAME pass as the code.');
+    console.log(`         A MAJOR RELEASE IS THE FULL PASS. These trail ${floor}, so the pass that was`);
+    console.log('         due at that release did not happen for them. Fold in the rows of');
+    console.log('         docs/RUNNING-NOTES.md, rebuild the PDF, and bump the header.');
     console.log('         Bumping the header alone is NOT the fix — the content has to be brought current,');
     console.log('         or the version becomes another asserted number.');
   }
-  for (const rel of nowCurrent) console.log(`         pin retired (now at ${top}): ${rel}`);
+  for (const rel of nowCurrent) console.log(`         pin retired (now at or past the ${floor} floor): ${rel}`);
   /* Pins for documents that are current, gone, or no longer version-headed drop out automatically. */
   next.version_pins = nextPins;
 
@@ -459,6 +492,19 @@ function archiveIndexRule() {
 function figureRules(base, next) {
   const living = S.livingDocs();
   const known = base.known || {};
+  /* THE NOTES PAGE IS HELD TO THE CITATION RULE AND NOT TO THE CENSUS, AND THE ASYMMETRY IS THE
+   * POINT. Will's instruction was that the running notes carry "the same rigour" as the documents
+   * they defer, so 3b(b) — a figure attributed to an artifact that does not contain it — applies to
+   * it exactly as to the white paper. It carries no version header, so `livingDocs()` does not
+   * return it and it has to be added here by name.
+   *
+   * 3b(c) IS A PER-DOCUMENT COUNT THAT MAY ONLY FALL, AND THE NOTES PAGE IS APPEND-ONLY. Its count
+   * can only rise, so including it would build a gate guaranteed to go red for doing the right thing
+   * — the exact failure the ratchet comment above warns about, and the reason the MEDICHAM sprint log
+   * was exempted from the same clause on 2026-08-15. The rigour is not lost: rule 1, rule 1b, 3b(a)
+   * and 3b(b) all scan it, and 3b(b) is the STRONGEST of the three ("the document told you where to
+   * check and the file says something else"). What is given up is the weakest, a pressure gauge. */
+  const livingPlusNotes = [...living, S.NOTES_LOG].filter(d => fs.existsSync(D(d)));
 
   console.log('\n== 3b(a). a figure another document retracts is not restated as fact ==');
   /* THE MATCHING RULE CARRIES ITS OWN RED DEMONSTRATION — ROADMAP #370. This clause decides that two
@@ -487,7 +533,7 @@ function figureRules(base, next) {
   for (const h of viol) console.log(`         [known] ${h.doc}:${h.line}  ${h.figure}  (retracted by ${h.by[0]})`);
 
   console.log('\n== 3b(b). a figure attributed to an artifact is IN that artifact ==');
-  const mism = S.citationMismatches(living);
+  const mism = S.citationMismatches(livingPlusNotes);
   const mkey = h => `${h.doc}|${h.figure}|${h.cites.join(',')}`;
   const mseen = new Map(mism.map(h => [mkey(h), h]));
   const rm = ratchet('figures a cited artifact does not contain', [...mseen.keys()], known.citation_mismatches || [],
@@ -580,6 +626,92 @@ function figureRules(base, next) {
   }
 }
 
+/* ---- 5. THE RUNNING NOTES PAGE ----------------------------------------------------------------
+ *
+ * WILL, 2026-09-06: *"we can update the documents every major release and just keep a running notes
+ * page in between change the documentation rules"*.
+ *
+ * THE ONE WAY THIS RULE FAILS is that "we will update the documents at the next major" becomes the
+ * fifteenth `docs/HANDOFF-*.md` — fourteen files, each typed at the end of a session, each stale
+ * within a day, all now explicitly unmaintained. The difference between a deferral and an
+ * abandonment is entirely whether something COUNTS the debt and REFUSES past a bound. So:
+ *
+ *   5a  the notes page exists. Deleting it does not re-arm anything and does not end anything; it is
+ *       simply a missing instrument, and the gate says so. (This is deliberately UNLIKE the MEDICHAM
+ *       sprint marker, which was a temporary deferral that ended by being deleted. This is the rule.)
+ *   5b  no commit has moved code or a document since the notes page last moved. The hook enforces
+ *       this at the moment of the commit; this clause catches --no-verify and anything committed out
+ *       of band, and it reads git rather than trusting that the hook ran.
+ *   5c  the backlog owed to the next major is under the cap, and is PRINTED whether or not it is.
+ *
+ * 5b JUDGES COMMITTED HISTORY AND NOT THE WORKING TREE, on purpose. A session that has edited
+ * engine/ and not yet written its row is mid-pass, not in violation; failing there would make the
+ * gate red for the whole of every session, which is how a gate gets routed around. The commit is the
+ * moment the omission becomes permanent, which is the same argument .githooks/pre-commit makes about
+ * the silent-catch ratchet. */
+function notesRule() {
+  console.log('\n== 5. the running notes page moved with the code, and the backlog is bounded ==');
+  const NOTES = S.NOTES_LOG;
+  const exists = fs.existsSync(D(NOTES));
+  ok(exists, `${NOTES} exists — every change records a row here in the same pass`);
+  if (!exists) {
+    console.log('         The full living-document set moves on a MAJOR release and this page carries');
+    console.log('         every change in between. Without it, nothing says what the next major owes.');
+    return;
+  }
+
+  /* GIT IS ASKED DIRECTLY, AND A FAILURE TO ASK IS A FAILURE. A clause that cannot run must not
+   * report green: "a capability that cannot prove it ran is assumed broken" is this repository's own
+   * rule, and a silent pass here would hide exactly the drift the clause exists to find. */
+  const git = (args) => require('child_process')
+    .execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  let lastNoteCommit = null, since = [], gitErr = null;
+  try {
+    lastNoteCommit = git(['log', '-1', '--format=%H', '--', NOTES]).trim();
+    if (lastNoteCommit) {
+      const out = git(['log', '--format=%x00%H %ad', '--date=short', '--name-only', `${lastNoteCommit}..HEAD`]);
+      for (const block of out.split('\0')) {
+        if (!block.trim()) continue;
+        const [head, ...paths] = block.split('\n');
+        const need = S.recordableChanges(paths);
+        if (need.length) since.push({ head: head.trim(), need });
+      }
+    }
+  } catch (e) {
+    gitErr = e;
+    console.log('         git could not be read: ' + String(e.message || e).split('\n')[0]);
+  }
+  ok(!gitErr, 'git history is readable, so this clause can actually run');
+
+  if (!gitErr && !lastNoteCommit) {
+    /* BOOTSTRAP, NAMED AS SUCH. An untracked notes page has no history to compare against; that is a
+     * first write, not a clean bill, and it stops being true the moment it is committed. */
+    ok(true, `${NOTES} is not committed yet — BOOTSTRAP, nothing to compare (this clause arms itself on the first commit)`);
+  } else if (!gitErr) {
+    ok(since.length === 0,
+      `no commit has moved code or a document since ${NOTES} last did (${lastNoteCommit.slice(0, 8)})` +
+      (since.length ? ` — ${since.length} commit(s) recorded nothing:\n         ` +
+        since.slice(0, 8).map(c => `${c.head}\n           ` + c.need.slice(0, 6).join(', ')).join('\n         ') : ''));
+    if (since.length) {
+      console.log('         Each of those changed something a reader reads and wrote no row here. The');
+      console.log('         living-docs pass is DEFERRED to the major, not waived. Write the rows now,');
+      console.log('         from the commits above — a row written a week late is a handoff document.');
+    }
+  }
+
+  const o = S.owedToNextMajor();
+  console.log(S.owedReport());
+  ok(!o.over,
+    `the backlog owed to the next major is under the cap (${o.owed ? o.owed.length : '?'} of ${o.cap})`);
+  if (o.over) {
+    console.log('         THE DEFERRAL HAS BECOME AN ABANDONMENT. Cut the major release and fold the rows');
+    console.log('         into the white paper, the deck, the technical docs, SUMMARY and MODELS, or raise');
+    console.log('         OWED_CAP in engine/docs_scan.js — in a diff, with a reason, deliberately.');
+  }
+  ok(!o.documents_behind_last_major,
+    'no living document trails the last major release (clause 2 names them if any do)');
+}
+
 /* ---- PROVENANCE KEYS vs RATCHET KEYS — 2026-08-23 ----------------------------------------------
  *
  * A CHECK MAY ONLY DIRTY THE TREE FOR A FINDING. This file writes its baseline on every green run,
@@ -638,6 +770,7 @@ versionRule(base, next);
 archiveRule(base, next);
 archiveIndexRule();
 figureRules(base, next);
+notesRule();
 
 /* ---- 4. EVERY KEY THIS FILE WRITES IS CLASSIFIED ----------------------------------------------- */
 console.log('\n== 4. every key written to the baseline is classified provenance or ratchet ==');
