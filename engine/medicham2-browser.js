@@ -1106,6 +1106,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                                  equal to this one by construction and a counter that cannot
    *                                  disagree with another is not evidence. */
   stallSurvivedSkippedResidual: 0,
+  /* 2026-09-06 -- AND THE FOURTH, WHICH IS THE SAME SIGN AS THE ROW ABOVE ONE WALK LATER. The sweep
+   * moved from the moment the residual OPENS to the FOOT of its group walk, because `stall` carries no
+   * `onResidualOrder` and therefore sorts last in `fieldEvent`.
+   *   stallExpireAtResidualFoot      the walk RAN TO THE END and the clock was spent there. It is the
+   *                                  proof the new placement is REACHED; a zero over any run with a
+   *                                  completed turn in it means the call is present and unreachable.
+   *   stallHeldByUnfinishedResidual  the walk ended inside its LAST group with a side wiped, so the
+   *                                  clock was not spent. Earlier groups break out above this line
+   *                                  and are counted by `stallSurvivedSkippedResidual` on the outer
+   *                                  exit -- the two are exclusive by construction and neither is a
+   *                                  restatement of the other. */
+  stallExpireAtResidualFoot: 0, stallHeldByUnfinishedResidual: 0,
   /* 2026-08-29 -- THE SHIELD GATE ARMED OFF THE MOVE THE PLAYER CLICKED, AND THREE SITES SUBSTITUTE
    * THE MOVE AFTER THAT. Split three ways because one merged counter cannot tell a re-arm that found
    * nothing from a re-arm that changed the answer, and cannot tell either from the arming that was
@@ -1659,6 +1671,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                             whose duration was never sampled here. A legitimate third state,
    *                             counted apart so it cannot be mistaken for either of the two above. */
   sleepDurationDrawn: 0, sleepDurationFixedByMove: 0, sleepDurationDrawnLate: 0,
+  /* 2026-09-06 -- and WHICH STREAM the timer came out of.
+       sleepDurationDrawnUnderSecondary  the caller handed its own stream down because the authority
+                                         takes this draw inside `BattleActions#secondaries`, which the
+                                         middle arm addresses as `sec`. Dire Claw is the only member in
+                                         this format; a zero on a run that applied one means the stream
+                                         stopped being passed and every such sleep is back on `any`,
+                                         which is a different die at a different address. */
+  sleepDurationDrawnUnderSecondary: 0,
   /* ROADMAP #175 -- `suppressesOwnItem`. Klutz, which had no consumer, so a Lopunny, an Audino or a
    * Golurk was priced with a Leftovers, a Life Orb or a Focus Sash that does nothing. Counted per
    * SYNC rather than per suppression event, so it ticks every turn a carrier is on the field. */
@@ -3012,6 +3032,14 @@ const MEDFAILS = { encoreAction: 0,
                                       the OUTER exit of the turn, so it fires on a turn that ended by
                                       wiping a side -- a turn the authority's residual never opens. */
   stallEagerClearRestored: 0, stallLapseOffResidualRestored: 0,
+  /* 2026-09-06 -- the THIRD placement of the same sweep.
+       stallLapseAtResidualOpenRestored  MEDI_STALL_LAPSE_AT_RESIDUAL_OPEN=1 spends the clock where
+                                         the residual OPENS instead of at the FOOT of its walk, so a
+                                         residual that ends the battle (a burn or poison chip taking
+                                         the last body) still spends it -- where the authority's
+                                         `fieldEvent` returns before `stall`'s order-less handler is
+                                         ever reached. */
+  stallLapseAtResidualOpenRestored: 0,
   /* 2026-08-29 -- set at MODULE LOAD when MEDI_SHIELD_NO_REARM=1 takes the execution-time re-arm of
      the shield gate back out, so a body whose move was substituted mid-turn (Encore's override,
      Instruct's second action, a called move) is announced off whatever `mon.protect` already held.
@@ -3286,6 +3314,9 @@ const MEDFAILS = { encoreAction: 0,
    * back on purpose, so a deliberate restore arm and a broken engine can never be read as the same
    * thing. Same shape as damageSpanDrawRestored and multiHitOneIndexRestored. */
   sleepWakeCoinRestored: 0,
+  /* 2026-09-06 -- MEDI_SLEEP_START_ANY_ADDR=1 forces every sleep timer back onto the generic `any`
+     stream, which is where the secondary-sourced ones were drawn until today. */
+  sleepStartAnyAddrRestored: 0,
   /* ROADMAP #340 -- counts every switch-out that was put back on the END of the bench instead of into
    * the arriving body's slot, which MEDI_BENCH_APPEND=1 asks for on purpose. A run carrying the old
    * remove-and-append behaviour therefore says so out loud instead of looking exactly like the fix.
@@ -13635,6 +13666,16 @@ const SLEEP_START_TIMES=[2,3,3];
  * switch that silently makes the engine wrong is the silent default this repo keeps paying for. Same
  * shape as MEDI_DAMAGE_SPAN_DRAW, MEDI_MULTIHIT_ONE_INDEX and MEDI_RESIDUAL_COLLAPSE. */
 const SLEEP_WAKE_COIN_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SLEEP_WAKE_COIN==='1');
+/* 2026-09-06 -- MEDI_SLEEP_START_ANY_ADDR=1 PUTS EVERY SLEEP TIMER BACK ON THE GENERIC `any`
+ * STREAM. The timer draw is `slp.onStart`'s `sample([2,3,3])`, and the middle arm addresses a draw by
+ * the SCOPE it was made in -- so a sleep applied from inside `BattleActions#secondaries` is a `sec`
+ * draw in the authority and was an `any` draw here, which is a different address and therefore a
+ * different die. It bites only where a caller HANDS a stream down, so a run under this knob is
+ * byte-identical for every primary sleep move and differs on exactly the population the fix changes.
+ * Any run carrying it also carries a non-zero `MEDFAILS.sleepStartAnyAddrRestored`. Same shape as
+ * MEDI_SLEEP_WAKE_COIN above. */
+const SLEEP_START_ANY_ADDR=(typeof process!=='undefined'&&process.env
+                            &&process.env.MEDI_SLEEP_START_ANY_ADDR==='1');
 /* ROADMAP #340 -- MEDI_BENCH_APPEND=1 PUTS REMOVE-AND-APPEND BACK. The party order is the drag die's
  * index space (sim/battle.ts:1572 `possibleSwitches` walks `side.pokemon`, `getRandomSwitchable`
  * samples it), and the authority SWAPS the outgoing body into the arriving body's slot
@@ -13855,6 +13896,42 @@ const PROTECT_STALL_NO_LAPSE=(typeof process!=='undefined'&&process.env&&process
  * as MEDI_PROTECT_STALL_NO_LAPSE above. */
 const STALL_EAGER_CLEAR=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STALL_EAGER_CLEAR==='1');
 const STALL_LAPSE_OFF_RESIDUAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STALL_LAPSE_OFF_RESIDUAL==='1');
+/* 2026-09-06 -- THE THIRD PLACEMENT, AND IT IS THE ONE THE AUTHORITY ACTUALLY HAS.
+ *
+ * MEDI_STALL_LAPSE_AT_RESIDUAL_OPEN=1 puts the sweep back where 2026-08-26 left it -- at the moment
+ * the residual phase OPENS, above every group. That placement fixed the turn that never reaches the
+ * residual at all and it is still too early by one whole walk, because `stall` is not a handler that
+ * runs FIRST. It is one that runs LAST:
+ *
+ *     comparePriority   -((b.order || 4294967296) - (a.order || 4294967296)) || ...   sim/battle.ts:405
+ *
+ * and `data/conditions.ts` `stall` carries NO `onResidualOrder` at all. It is collected by
+ * `fieldEvent`'s `getKey = 'duration'` (sim/battle.ts:487) purely because it HAS a duration, so its
+ * `order` is undefined, `|| 4294967296` puts it below every numbered handler in the format, and the
+ * decrement at sim/battle.ts:516 is among the last things the walk does.
+ *
+ * SO A RESIDUAL THAT ENDS THE BATTLE NEVER REACHES IT. `fieldEvent` runs `faintMessages()` after each
+ * handler and returns the instant `this.ended` is set, and every residual that can KILL -- burn,
+ * poison, the sandstorm, Leech Seed, the trap chip -- carries a numbered order well above `stall`'s.
+ *
+ * MEASURED, ON ALL THREE OF THE GAMES THAT SAID SO, before a byte moved (tests/probe_stall_uncaused.js;
+ * these are the three of the five board-material games on release `57679ef9a4a3` that part a board with
+ * NO protocol divergence anywhere in the game):
+ *
+ *   omit-weather t7   Garchomp   me_n 1 -> 0    sd counter 3 duration 1 -> 3 duration 1   (`brn` KO, `|win|A`)
+ *   omit-weather t9   Staraptor  me_n 1 -> 0    sd counter 3 duration 1 -> 3 duration 1   (`brn` KO, `|win|A`)
+ *   omit-spread  t16  Overqwil   me_n 1 -> 0    sd counter 3 duration 1 -> 3 duration 1   (`psn` KO, `|win|B`)
+ *
+ * and the witness that it is the WALK and not the turn: on the t7 board a Sinistcha that Protected on
+ * that same final turn ends it at `duration 2` -- `onRestart`'s refresh, never decremented -- so the
+ * authority's residual did not spend ANY duration on that turn. The `|upkeep|` line is absent from both
+ * streams and the two protocols are identical from the first line to the last, which is exactly why no
+ * cause, no class and no `--dump-games` entry could ever have named these three.
+ *
+ * Any run carrying it also carries a non-zero `MEDFAILS.stallLapseAtResidualOpenRestored`. Same shape
+ * as MEDI_STALL_LAPSE_OFF_RESIDUAL above. */
+const STALL_LAPSE_AT_RESIDUAL_OPEN=(typeof process!=='undefined'&&process.env
+                                    &&process.env.MEDI_STALL_LAPSE_AT_RESIDUAL_OPEN==='1');
 /* 2026-08-29 -- MEDI_SHIELD_NO_REARM=1 PUTS BACK THE ARMING THAT ONLY EVER RAN AT THE TOP OF THE TURN.
  *
  * `_armShieldGate` was three `if` branches inside the pre-pass, so `_shieldPending` / `_guardPending` /
@@ -14444,8 +14521,35 @@ const AURA_STALE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_AU
  * `MEDFAILS.unnervePartialRestored`, and that flag is set on the KNOB rather than on a refusal that
  * actually changed an answer, so a run with no Unnerve body in it still says the knob was on. */
 const UNNERVE_PARTIAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_UNNERVE_PARTIAL==='1');
-function sleepDurationDraw(){
-  const r=medRng();
+/* 2026-09-06 -- THE DRAW TAKES THE CALLER'S STREAM, BECAUSE THE AUTHORITY'S ONE IS THE CALLER'S TOO.
+ *
+ * `slp.onStart` (data/mods/champions/conditions.ts:23) calls `this.sample([2,3,3])` -> `this.random(3)`,
+ * and the middle arm addresses a draw by the SCOPE it was made in, not by the handler that made it:
+ * `engine/game_differential.js` wraps `BattleActions#secondaries` as category `sec`
+ * (`around('secondaries','sec',1)`). A sleep applied from inside a secondary therefore draws its
+ * duration under `sec` in the authority, and this engine drew every one of them under `any`.
+ *
+ * TWO CATEGORIES ARE TWO INDEPENDENT DICE. Measured on the game that says so -- the pinned pool's
+ * `pair-protect-bust  ...bo3-2660356793 vs ...bo3-2660492912`, a Golurk put to sleep by a Dire Claw on
+ * turn 2 (tests/probe_status_clock_dice.js):
+ *
+ *     boundary   this engine  slpTime 3      the authority  startTime 2, time 2
+ *     t6         |cant|p1a: Golurk|slp       |-curestatus|p1a: Golurk|slp|[msg]
+ *
+ * and the address logs for the WHOLE game: `any` sd=0 me=3 shared=0, with this engine's extra draw
+ * reading `20260813|2|any|direclaw|p10|0` -- an address the authority never asks in that bucket,
+ * because it asked the identical question one bucket over.
+ *
+ * MEMBERSHIP IS ONE MOVE IN THIS FORMAT AND IT IS NOT NAMED HERE. Derived over the 500 legal moves:
+ * `slp` arrives from inside `secondaries` only through Dire Claw's `onHit` sample; hypnosis, sing,
+ * sleeppowder and spore are PRIMARY `status: 'slp'` and run outside that scope, and Rest overwrites
+ * the timer to 3 with no draw at all. The parameter is the shape, so a second member needs no edit.
+ *
+ * `stream` ABSENT MEANS `any`, WHICH IS THE AUTHORITY FOR EVERY PRIMARY-STATUS CALLER. It is not a
+ * silent default: `MEDSEEN.sleepDurationDrawnUnderSecondary` counts the calls that DID carry one, so
+ * a wire that stopped passing it reads zero rather than looking like a caller that had nothing to say. */
+function sleepDurationDraw(stream){
+  const r=(typeof stream==='function')?stream:medRng();
   const u=(typeof r==='function')?r():0.5;
   const i=Math.floor(u*SLEEP_START_TIMES.length);
   return SLEEP_START_TIMES[i<0?0:(i>SLEEP_START_TIMES.length-1?SLEEP_START_TIMES.length-1:i)];
@@ -18260,7 +18364,11 @@ function eTerrainRefusesSleepOn(t){
   if(t._invuln&&t._charging&&TAGS.has('move',t._charging,'semiInvulnerable'))return false;
   return true;
 }
-function applyStatus(t,st,src,eff,why){
+/* `dstream` — 2026-09-06. The RNG stream the CALLER is drawing from, handed down so a status applied
+ * inside a secondary takes its sleep timer out of the same bucket the authority does. Absent
+ * everywhere the authority is outside `BattleActions#secondaries`, which is every primary status
+ * move. See sleepDurationDraw for the derivation and the measurement. */
+function applyStatus(t,st,src,eff,why,dstream){
   /* WIRE 157 -- ABOVE `canTakeStatus`, WHICH IS THE TARGET'S OWN REFUSAL. This one belongs to the
    * SIDE, and it is asked first for the same reason Uproar's is: a status refused by a body standing
    * next to you never reaches your own immunity table at all. */
@@ -18331,7 +18439,15 @@ function applyStatus(t,st,src,eff,why){
   if(TR){const _a=ATTR.status(st,eff);TR.sta(t,st,_a.from,_a.of);}
   if(st==='slp'){t.slpTurns=0;
     if(SLEEP_WAKE_COIN_RESTORED){MEDFAILS.sleepWakeCoinRestored=1;t.slpTime=0;}
-    else{t.slpTime=sleepDurationDraw();MEDSEEN.sleepDurationDrawn++;}}
+    else{
+      /* MEDI_SLEEP_START_ANY_ADDR=1 puts every sleep timer back on the generic `any` stream, which is
+       * where all of them were drawn until today -- so the Dire Claw card can be shown RED rather than
+       * told it was. It only bites where a caller HANDED a stream, so a run under it is identical for
+       * every primary sleep move and differs on exactly the population the fix changes. */
+      const _ds=(dstream&&!SLEEP_START_ANY_ADDR)?dstream:null;
+      if(dstream&&SLEEP_START_ANY_ADDR)MEDFAILS.sleepStartAnyAddrRestored=1;
+      if(_ds)MEDSEEN.sleepDurationDrawnUnderSecondary++;
+      t.slpTime=sleepDurationDraw(_ds);MEDSEEN.sleepDurationDrawn++;}}
   if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;
   /* ROADMAP #175 -- SYNCHRONIZE, and it is `onAfterSetStatus` so it belongs at the BOTTOM of this
    * function rather than at any one call site. data/abilities.ts:4849-4858, no Champions override:
@@ -36201,8 +36317,14 @@ function battleTurn(S,rng,actsForA,actsForB){
               * four-move measurement. The descriptor still carries the move id, so the Electric
               * Terrain refusal below `applyStatus` keeps reading `formatSecondaryCount` off it and
               * keeps its silence for a secondary-sourced sleep. */
+             /* 2026-09-06 -- AND THE STREAM GOES DOWN WITH IT. `slp.onStart`'s `sample([2,3,3])` is a
+              * SECOND draw the authority takes inside this same `secondaries` scope, one call deeper:
+              * `onHit` -> `trySetStatus` -> `slp.onStart`. This engine drew it from `any` and the
+              * authority from `sec`, which are two independent dice at two different addresses. See
+              * sleepDurationDraw for the whole derivation and the Golurk measurement. */
              MEDSEEN.proceduralStatusApplied++;
-             applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i],m,ATTR.moveAnon(a.move.id));
+             applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i],m,ATTR.moveAnon(a.move.id),
+                         undefined,_R.sec);
            }}
           /* WIRE 156 -- FAKE OUT'S FLINCH IS A SECONDARY, AND THE HARDCODE THAT USED TO SIT HERE
            * SAID IT WAS NOT.
@@ -38327,12 +38449,21 @@ function battleTurn(S,rng,actsForA,actsForB){
      * Built here rather than at the first tie so it reads the same state the authority read; it costs
      * nothing on a board where no two clocks can tie, because `residualShadowNeeded` says so first. */
     residualShadowRank(field,sfA,sfB,actA,actB);
-    /* 2026-08-26 -- AND `stall`'S DURATION IS SPENT HERE, because THIS is where the residual opens.
+    /* ~~2026-08-26 -- AND `stall`'S DURATION IS SPENT HERE, because THIS is where the residual opens.
      * Above every remaining `break _TURN` and below the two that skip the residual entirely, which is
      * the whole point: a turn that ended before this line never spends the clock, exactly as
-     * `turnLoop` never runs the residual action once the battle is over. See `_stallExpire`. */
+     * `turnLoop` never runs the residual action once the battle is over. See `_stallExpire`.~~
+     *
+     * 2026-09-06 -- MOVED TO THE FOOT OF THE WALK, and the reasoning above is right about the TURN and
+     * wrong about the HANDLER. `stall` carries no `onResidualOrder`, so `comparePriority`'s
+     * `order || 4294967296` sorts it below every numbered handler in the format and the authority
+     * spends it at the END of `fieldEvent`, not at its start. A residual that KILLS -- and every
+     * residual that can kill is numbered far above `stall` -- returns before ever reaching it. The
+     * derivation, the three games it cost and the restore knob are at STALL_LAPSE_AT_RESIDUAL_OPEN.
+     * The call now lives below the group loop; only the OPEN-placement arm fires here. */
     if(PROTECT_STALL_NO_LAPSE)MEDFAILS.protectStallNoLapseRestored=1;
-    else if(!STALL_LAPSE_OFF_RESIDUAL)_stallExpire();
+    else if(STALL_LAPSE_AT_RESIDUAL_OPEN){MEDFAILS.stallLapseAtResidualOpenRestored=1;
+      if(!STALL_LAPSE_OFF_RESIDUAL)_stallExpire();}
     /* WIRE 74 -- THE FIELD CLOCKS TICK BEFORE THE RESIDUAL, NOT AFTER IT.
      *
      * They used to tick below the loop, so the sandstorm chipped on the turn it RAN OUT: a five-turn
@@ -39616,6 +39747,27 @@ function battleTurn(S,rng,actsForA,actsForB){
      * answer and not this loop's. */
     residualExpireAt(RESIDUAL_GROUPS[_gi].order,field,sfA,sfB,actA,actB);
     }
+    /* 2026-09-06 -- `stall`'S DURATION IS SPENT HERE, AT THE FOOT OF THE WALK, BECAUSE THAT IS WHERE
+     * THE AUTHORITY'S HANDLER SORTS.
+     *
+     * Every group above carries a number out of `RESIDUAL_GROUPS`, which is `onResidualOrder`.
+     * `data/conditions.ts` `stall` has none -- it is collected by `fieldEvent`'s `getKey = 'duration'`
+     * (sim/battle.ts:487) for HAVING a duration, not for having a handler -- and `comparePriority`
+     * reads a missing order as `4294967296` (sim/battle.ts:405). So it sorts below order 29, below
+     * every chip, and the decrement at sim/battle.ts:516 is among the last things `fieldEvent` does.
+     *
+     * THE GUARD IS THE GROUP LOOP'S OWN PREDICATE, NOT A NEW ONE. The loop breaks out at the TOP of
+     * each group on `sideWiped(S) && !faintQueueOwed()`, which is `fieldEvent`'s
+     * `faintMessages(); if (this.ended) return;` after every handler. Asking it once more here covers
+     * the one gap that leaves: a wipe inside the LAST group, after which no group-top check follows.
+     * A turn that ends anywhere in its residual therefore leaves the counter STANDING, exactly as the
+     * authority does -- and `stallSurvivedSkippedResidual`, on the outer exit, is the receipt.
+     *
+     * See STALL_LAPSE_AT_RESIDUAL_OPEN for the three games this cost and for the restore knob. */
+    if(!PROTECT_STALL_NO_LAPSE&&!STALL_LAPSE_OFF_RESIDUAL&&!STALL_LAPSE_AT_RESIDUAL_OPEN){
+      if(sideWiped(S)&&!faintQueueOwed())MEDSEEN.stallHeldByUnfinishedResidual++;
+      else {MEDSEEN.stallExpireAtResidualFoot++;_stallExpire();}
+    }
     /* ROADMAP #242 -- A CORPSE IS NOT ROOSTING EITHER, and this is the half moving the restore into
      * the walk would otherwise have dropped. The walk skips a fainted body (`residualEvent`'s own
      * first line), so the order-25 step above never reaches one -- but the authority takes the
@@ -40212,10 +40364,17 @@ function battleTurn(S,rng,actsForA,actsForB){
    * `_stallExpire`, called where the residual opens.
    *
    * WHAT IS LEFT HERE IS THE RECEIPT AND THE FLAG RESET. `stallSurvivedSkippedResidual` counts a body
-   * that carried a counter out of a turn whose residual never opened -- which, after `_stallExpire`
-   * has run, is the ONLY way `tookProtectTurns > 0 && !_stallFresh` can still be true. A zero over a
-   * run containing a decided game means the sweep is still firing on every exit; it is the proof that
-   * the new placement is REACHED rather than merely present. */
+   * that carried a counter out of a turn whose residual did not finish. A zero over a run containing a
+   * decided game means the sweep is still firing on every exit; it is the proof that the new placement
+   * is REACHED rather than merely present.
+   *
+   * 2026-09-06 -- AND THE POPULATION IT COUNTS IS WIDER NOW, WHICH IS THE WHOLE OF THAT DAY'S FIX. It
+   * used to be exactly "the residual never OPENED"; the sweep has moved to the FOOT of the residual
+   * walk, so it is now "the residual never FINISHED" -- a turn whose walk was cut short by a chip that
+   * ended the battle is in it too. Those are three of the five board-material games that carried no
+   * protocol divergence at all. The sentence that stood here, *"which, after `_stallExpire` has run, is
+   * the ONLY way `tookProtectTurns > 0 && !_stallFresh` can still be true"*, is left retracted rather
+   * than deleted: it was true of the OPEN placement and is not true of this one. */
   if(PROTECT_STALL_NO_LAPSE)MEDFAILS.protectStallNoLapseRestored=1;
   else if(STALL_LAPSE_OFF_RESIDUAL){MEDFAILS.stallLapseOffResidualRestored=1;_stallExpire();}
   else [...actA,...actB].forEach(m=>{

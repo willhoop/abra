@@ -1,0 +1,19 @@
+{
+  "written": "2026-09-06",
+  "by": "ENGINE / long-tail batch G",
+  "before_any_measurement": true,
+  "claim": "Champions' slp.onStart (data/mods/champions/conditions.ts:23) draws `this.sample([2,3,3])`. The middle arm addresses a draw by the SCOPE it was made in — game_differential wraps BattleActions#secondaries as category `sec`. A sleep applied from inside a secondary therefore draws its timer under `sec` in the authority, and medicham2 drew every timer under `any` via medRng(). Two categories are two independent dice.",
+  "evidence_before_the_fix": "pinned pool, pair-protect-bust ...bo3-2660356793 vs ...bo3-2660492912: a Golurk slept by Dire Claw on t2 got slpTime 3 here and startTime 2 there; at t6 this engine wrote |cant|slp and the authority |-curestatus|slp|[msg]. Whole-game `any` address log: sd=0 me=3 shared=0, this engine's extra draw reading 20260813|2|any|direclaw|p10|0.",
+  "fix": "applyStatus takes the caller's stream and hands it to sleepDurationDraw; the proceduralStatus site passes _R.sec. MEDI_SLEEP_START_ANY_ADDR=1 restores the old bucket.",
+  "predictions": [
+    { "what": "tests/probe_status_clock_dice.js golurk arm", "before": "slpTime 3 vs startTime 2, and the assertion vacuous because it only compared boundaries where both hold slp", "after": "slpTime 2 == startTime 2 and the game's protocol divergence at t6 gone" },
+    { "what": "whole-game BOARD-MATERIAL after BOTH batch-G fixes", "before": 27, "after": 23, "why": "3 stall games plus the golurk game; the archaludon game is a separate accuracy card and is NOT predicted to close" },
+    { "what": "whole-game PROTOCOL", "before": 93, "after": 92, "why": "the golurk game's protocol divergence closes; the three stall games never had one" },
+    { "what": "whole-game NARRATION", "before": 70, "after": "69 or 70", "why": "a protocol game that closes leaves the narration column too, unless it re-parts later in the game — this is the prediction most likely to miss" },
+    { "what": "census live/probed", "before": "830/830", "after": "830/830" }
+  ],
+  "explicitly_not_predicted": [
+    "the FREEZE card is NOT fixed here. Replayed on its own accusing game (baseline ...bo3-2655996768 vs ...bo3-2656208114) the boards NEVER part — board_div null — so it is a narration divergence, and the whole-game `any` and `acc` address logs are 4/4 and 13/13 SHARED, which refutes an address mismatch as its cause.",
+    "the second sleep card (omit-spread ...bo3-2661122292, t15) is an ACCURACY divergence on a Sleep Powder from a Vivillon, with the acc address SHARED between the engines — so it is an accuracy-formula difference and not a sleep one. Filed, not fixed."
+  ]
+}

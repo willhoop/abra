@@ -53,6 +53,13 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [5.267.0] — 2026-09-06 — a condition with no residual order sorts below every numbered handler
+- **What changed.** `engine/medicham2-browser.js`. `stall`'s duration is spent at the FOOT of the residual walk — it carries no `onResidualOrder`, so `comparePriority`'s `order || 4294967296` (`sim/battle.ts:405`) sorts it below every numbered handler, and a residual that KILLS never reaches the decrement. Second fix: the sleep timer took the caller's dice stream — `slp.onStart`'s `sample([2,3,3])` is drawn inside `BattleActions#secondaries`, addressed `sec` by the middle arm, and this engine drew it under `any`.
+- **Measured.** Board-material **27 → 22 of 961**, protocol **93 → 91**, narration level 70, census 830/830/0 — `data/game-differential.json`, release `ab22bc503717`, `--games 1200` (961 played), `--turns 20`, arm `middle`, `empirical-click/v1`, pool `0d103fb9fa87`. Uncaused board partings 5 → 2. Probes `tests/probe_stall_uncaused.js` and `tests/probe_status_clock_dice.js`, each shown RED under its own knob first.
+- **Supersedes.** Board-material ~~27~~ and protocol ~~93~~, both from release `57679ef9a4a3`. Three claims in the dispatching brief were wrong and are corrected here: Rapid Spin's partial-trap clause ALREADY has a probe (landed 5.265.0, `live: true` in the census); freeze is NOT board-material on its accusing game (`board_div` null, `any` and `acc` logs 4/4 and 13/13 SHARED, refuting an address mismatch) and belongs to the narration gate; and a new `sleeppowder` ACCURACY divergence at t15 was found where both engines asked the SAME address.
+- **Owed to the next major.** The white paper, the deck, `docs/SUMMARY.md` and `docs/MODELS.md` all still publish the superseded 27 / 93.
+
+
 ## [Unreleased] — 2026-09-06 — the division ledgers stop getting PDFs, and tonight's rules are written down
 
 - **What changed.** `build/build_pdfs.js` now excludes the division ledgers from the PDF set, under a

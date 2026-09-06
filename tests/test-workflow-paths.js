@@ -119,19 +119,29 @@ console.log('\n  ' + staged + ' static `git add` path(s) checked'
 if (!staged) bad('no `git add` path was found in any workflow — this test asserted nothing, which '
   + 'is worse than failing. Did the staging move out of the workflow files?');
 
-/* THE SECOND HALF: the tracked .gz must not silently lag the store it claims to mirror. A stale
+/* THE SECOND HALF: the tracked archive must not silently lag the store it claims to mirror. A stale
  * archive reads as a healthy repository right up until somebody clones it. Only meaningful where
- * the plain store exists (a fresh clone has only the .gz), so absence is skipped, not failed. */
+ * the plain store exists (a fresh clone has only the compressed side), so absence is skipped, not
+ * failed.
+ *
+ * WHAT IS TRACKED CHANGED ON 2026-09-06 AND THIS CLAUSE DID NOT HAVE TO. It used to mean "the three
+ * data/games.*.jsonl.gz monoliths are newer than their stores"; it now means "every row of every
+ * store is carried by a shard under data/parsed/". The wording is updated because a message naming
+ * a file that no longer exists is the stale-prose failure this repository is full of, but the call
+ * is the same one — `--check` still reports rather than repairs, and it is the authority on its own
+ * rule rather than a second implementation of it here. It costs ~9 s (it gunzips ~67 MB of shards),
+ * against ~0 s for the mtime comparison it replaces; that is the price of comparing counts instead
+ * of timestamps, and CLAUDE.md is explicit that "newer than its source" is no evidence at all. */
 const anyPlain = ['games.ladder', 'games.bo3', 'games.ots']
   .some(s => fs.existsSync(path.join(ROOT, 'data', s + '.jsonl')));
 if (anyPlain) {
   const r = cp.spawnSync(process.execPath, [path.join(ROOT, 'build', 'compress-stores.js'), '--check'],
     { cwd: ROOT, encoding: 'utf8' });
-  if (r.status === 0) ok('every tracked .gz store is current with its plain store');
-  else bad('a tracked .gz store is STALE — origin would carry an out-of-date corpus while every '
+  if (r.status === 0) ok('every store row is carried by a tracked shard under data/parsed/');
+  else bad('a store has rows in no shard — origin would carry an out-of-date corpus while every '
     + 'local run reads a newer one. Run: node build/compress-stores.js\n' + (r.stdout || '').trim());
 } else {
-  console.log('  --    no plain store present (fresh clone) — .gz currency not checked');
+  console.log('  --    no plain store present (fresh clone) — shard currency not checked');
 }
 
 console.log('\nWORKFLOW PATHS: ' + pass + ' passed, ' + fail + ' failed');

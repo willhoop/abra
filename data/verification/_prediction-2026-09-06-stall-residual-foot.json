@@ -1,0 +1,20 @@
+{
+  "written": "2026-09-06",
+  "by": "ENGINE / long-tail batch G",
+  "before_any_measurement": true,
+  "claim": "medicham2 spends `stall`'s duration:2 clock when the residual OPENS. Showdown spends it inside fieldEvent('Residual'), and the `stall` volatile carries NO onResidualOrder, so comparePriority's `order || 4294967296` (sim/battle.ts:405) sorts it AFTER every ordered handler. A residual that ends the battle at order 10 (a burn/poison chip) therefore returns before the decrement and leaves the counter standing; this engine had already spent it.",
+  "fix": "move the _stallExpire() call from the residual OPEN to the FOOT of the residual group walk, guarded by the same sideWiped/faintQueueOwed predicate the group-top break reads. MEDI_STALL_LAPSE_AT_RESIDUAL_OPEN=1 restores today's placement.",
+  "predictions": [
+    { "what": "tests/probe_stall_uncaused.js", "before": "3 FAIL (all three games, medi 0 / sd 3)", "after": "0 FAIL" },
+    { "what": "the same probe under MEDI_STALL_LAPSE_AT_RESIDUAL_OPEN=1", "after": "3 FAIL again — the knob is the red" },
+    { "what": "whole-game BOARD-MATERIAL, pinned pool 0d103fb9fa87, --games 1200, cap 20, arm middle, empirical", "before": 27, "after": 24 },
+    { "what": "whole-game PROTOCOL", "before": 93, "after": 93, "why": "all three games have protocol_diverged_at_turn null — there is no protocol row to transfer into" },
+    { "what": "whole-game NARRATION", "before": 70, "after": 70, "why": "same reason: closing these three is not a transfer, they leave the board list and enter nothing" },
+    { "what": "census live/probed", "before": "830/830", "after": "830/830", "why": "this is a residual-ORDER fact between two engines, not a mechanic the single-engine census can stage" },
+    { "what": "deliberate roster items/abilities/moves", "after": "unchanged 0/0 on all three stages" }
+  ],
+  "how_it_could_be_wrong": [
+    "if some OTHER order-less residual handler can end the battle before `stall` sorts, the foot placement is still too early for that case — declared, not measured here",
+    "a body that FAINTED earlier in the turn keeps its counter in this engine and has its volatiles cleared in Showdown; board_state's POST_FAINT holds the leaf, so neither placement is measured there. Unchanged by this fix and still declared."
+  ]
+}

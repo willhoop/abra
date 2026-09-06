@@ -155,6 +155,152 @@ _stamped 2026-09-06 14:08_
 
 <!-- /GENERATED -->
 
+## LONG-TAIL BATCH G — BOARD-MATERIAL **27 OF 961 -> 22 OF 961**, PROTOCOL **93 -> 91**, NARRATION LEVEL AT 70, CENSUS LEVEL AT 830/830. THREE OF THE FIVE GAMES THAT PART A BOARD WITH NO PROTOCOL DIVERGENCE ARE CLOSED, AND THE SLEEP TIMER WAS BEING DRAWN OUT OF A BUCKET THE AUTHORITY NEVER USES. 2026-09-06
+
+Two fixes, two new probes, each shown RED under its own restore knob before it was trusted. Release
+cut: **`ab22bc503717`**. Full account: `docs/_reports/2026-09-06-longtail-batch-G.md`.
+
+| clause | before `57679ef9a4a3` | after `ab22bc503717` |
+|---|---|---|
+| whole-game **BOARD-MATERIAL** | **27 of 961** | **22 of 961** |
+| whole-game PROTOCOL | 93 | **91** |
+| whole-game NARRATION | 70 (71 raw less 1 declared) | **70** (71 raw less 1 declared) |
+| board parted with **NO protocol divergence anywhere in the game** | **5** | **2** |
+| census | 830 / 830 / 0 missing | **830 / 830 / 0**, `run_ok` true |
+| roster items / abilities / moves | 140 / 129 / 475 matched, 0 DIFFER, 0 DID-NOT-FIRE | **identical, 0 / 0 on all three** |
+| staged mechanics (`data/all-mechanics-fire.json`) | 1,313 games, 0 threw | **1,313 games, 0 threw**; moves / abilities / items summaries byte-identical |
+| game differential (`data/engine-diff.json`) | 0 of 6000, seed 20260804 | **0 of 6000**, re-run on `ab22bc503717` |
+
+```
+node engine/game_differential.js --steering empirical --release ab22bc503717 --arm middle \
+     --end-state --state --census data/verification/census-pin-9446a684709d.json \
+     --games 1200 --turns 20 --team-store data/team-pool-frozen --write
+```
+
+961 games, `--games 1200` (the swarm is SIZED from it, so it is part of the sample definition and not
+a budget), cap 20, `middle`, `empirical-click/v1`, pool `0d103fb9fa87` PINNED to
+`data/team-pool-frozen`, showdown `20ad99ffc9a5`, `driver_code_stable: true`, 296 s. **Both fixes are
+POOL work and were called as pool work before the run** — each was diagnosed by replaying a game out
+of the pinned pool, so the pool was expected to move and the lab to sit still. It did.
+
+### `stall`'S DURATION IS SPENT AT THE **FOOT** OF THE RESIDUAL WALK, NOT WHERE THE RESIDUAL OPENS
+
+`tests/probe_stall_uncaused.js`, knob `MEDI_STALL_LAPSE_AT_RESIDUAL_OPEN=1`.
+
+The five uncaused games are **invisible to `--dump-games` by construction** — that dump writes the
+lines either side of a PROTOCOL split and these games have none — so the probe replays them and
+prints every boundary's stall clock plus both engines' whole final turn. Red first, on the published
+bytes: three games, one shape, `me tookProtectTurns 1 -> 0` against `sd counter 3 duration 1 -> 3
+duration 1`, and each final turn ending on a residual chip (`brn`, `brn`, `psn`) that KOs the last
+body, with no `|upkeep|` in either stream.
+
+**`stall` carries no `onResidualOrder`.** `fieldEvent` collects it only because it HAS a duration
+(`getKey = 'duration'`, sim/battle.ts:487) and `comparePriority` reads a missing order as
+`4294967296` (sim/battle.ts:405) — so it sorts below every numbered handler in the format and the
+`handler.state.duration--` at :516 is among the LAST things the walk does. `fieldEvent` returns the
+instant the battle ends, and every residual that can kill is numbered far above it. The 2026-08-26
+placement fixed the turn that never reaches the residual and was still one whole walk too early;
+`turnEndedInResidual` was carried here as declared-and-not-fixed. The witness that it is the WALK and
+not the TURN: on the t7 board a Sinistcha that Protected on that same final turn ends it at
+`duration 2` — `onRestart`'s refresh, never decremented.
+
+The call now sits below the residual group loop under the loop's OWN predicate,
+`sideWiped(S) && !faintQueueOwed()`. Counters: `stallExpireAtResidualFoot +29`,
+`stallLapsedUnrefreshed +8`, held +3. **The middle one is the control that matters** — an engine that
+simply stopped expiring stall counters passes every board arm in the file.
+
+### THE SLEEP TIMER TAKES THE CALLER'S DICE STREAM, BECAUSE THE AUTHORITY'S ONE DOES TOO
+
+`tests/probe_status_clock_dice.js`, knob `MEDI_SLEEP_START_ANY_ADDR=1`.
+
+Champions overrides `slp` (`data/mods/champions/conditions.ts:11-29`, `inherit: true`,
+`onStart` replaced): `this.effectState.startTime = this.sample([2, 3, 3])`. `onBeforeMove` is NOT
+overridden, so mainline's runs (`data/conditions.ts:66-80`) and there is **no draw at the wake site**
+— `Battle#sample` is one `random(3)` at application. A start time of 2 costs one missed turn, 3 costs
+two. The probe re-derives that table off the format every run and FAILS if it is not `[2,3,3]`,
+because CLAUDE.md records "2 or 3 turns" as a value typed from memory.
+
+The middle arm addresses a draw by **the scope it was made in**, and `game_differential.js` wraps
+`BattleActions#secondaries` as category `sec`. A sleep applied from inside a secondary therefore
+draws its timer under `sec` in the authority; this engine drew every timer through `medRng()`, which
+is `_R.any`. Two categories are two independent dice. Measured on the accusing game — a Golurk slept
+by a Dire Claw on t2 got `slpTime 3` here and `startTime 2` there, and at t6 wrote `|cant|slp` where
+the authority wrote `|-curestatus|slp|[msg]`. Whole-game `any` address log: **sd=0 me=3 shared=0**,
+this engine's extra draw reading `20260813|2|any|direclaw|p10|0`.
+
+`applyStatus` now takes the caller's stream. Membership is the parameter and not a name: derived over
+the 500 legal moves, `slp` reaches `secondaries` through exactly one handler in this format, and the
+four primary sleep moves run outside that scope.
+
+**THE PROBE WAS WRONG BEFORE THE ENGINE WAS.** Its first clock arm compared only ATTEMPTS SPENT and
+was **green over the defect** — both engines had spent 0 while one held a length of 3 and the other
+of 2. The LENGTH is the leaf that decides the wake turn. Both are asserted now.
+
+### ATTRIBUTION — FIVE GAMES CLOSED, NONE OPENED, AND THE FIFTH IS NOT LUCK
+
+Diffed against `git show HEAD:data/game-differential.json`: the three `stall` games belong to fix 1;
+the Golurk game and `pair-redirect-priority t4 …2659024897` (a Pelipper fainting where the
+authority's survived) belong to fix 2. The Pelipper game is not a sleep card on its face, so it gets
+its own ATTRIBUTION arm rather than a sentence claiming five repairs: it replays clean now, goes RED
+under `MEDI_SLEEP_START_ANY_ADDR=1`, and `sleepDurationDrawnUnderSecondary` rises 1 -> 2 when it is
+added — so it holds a secondary-sourced sleep of its own and is the same defect, not `nth`
+displacement.
+
+### THE PREDICTION RECORD — FIVE HITS, TWO NAMED MISSES, BOTH IN THE GOOD DIRECTION
+
+Written to `data/verification/_prediction-2026-09-06-{stall-residual-foot,sleep-start-stream}.json`
+BEFORE the run. HIT: stall alone 27 -> 24; narration must not rise (the three games have no protocol
+row to transfer into); census level; roster 0/0 on all three stages. MISS: both fixes together
+predicted 23 and read **22**, and protocol predicted 92 and read **91** — the Pelipper game was not
+foreseen.
+
+### THE HAND LIST
+
+**Removed — three, because the probes now carry them:**
+
+- **The `stall` family of uncaused board games** (ROADMAP #543's remainder). Closed and probed.
+- **SLEEP, the refuted-and-still-open diagnosis.** Diagnosed, fixed, probed, and the Champions start
+  table is now re-derived from the format on every run rather than remembered.
+- **Rapid Spin's partial-trap clear.** It was on this list as *"no probe anywhere"* and that is
+  STALE: the 5.265.0 pass landed it (`tests/test-mechanics.js`, `move/removesHazards`, *"Rapid Spin
+  pulls its OWN Leech Seed and its OWN partial trap — and a Ghost refuses all of it"*), and it reads
+  `live: true` in `data/mechanics-census.json` on this run. Verified, not re-fixed.
+
+**Owed and named, not fixed here:**
+
+- **FREEZE is not a board defect on the game that accuses it, and that is a MEASUREMENT.** Replayed
+  on `baseline …bo3-2655996768 vs …bo3-2656208114`: `protocol_div_turn = 7`, **`board_div = null`** —
+  the boards never part. The whole-game address logs are `any` **4/4 shared** and `acc` **13/13
+  shared**, which refutes an address mismatch as its cause, and Champions' `frz` arithmetic
+  (`startTime = 3`, `time-- ; time <= 0 || randomChance(1,4)`, short-circuiting) matches this
+  engine's `frzTurns >= 3 || rng() < 0.25` line for line. Undiagnosed, still open, and it belongs to
+  the **narration** gate rather than the board one.
+- **A `sleeppowder` ACCURACY card, and it is one of the remaining 22.** `omit-spread …bo3-2661122292`
+  t15: the authority's Sleep Powder hits and this engine's misses, and **both engines asked the same
+  address** (`20260813|15|acc|sleeppowder|p11|0`, `nth` 0) — so they drew the same number and the
+  difference is the accuracy THRESHOLD, not the die. Compound Eyes is already tabled at `x1.3`
+  (`'ability:compoundeyes':{side:'att',mult:1.3}`), so the obvious explanation is wired and the real
+  cause is not yet known.
+- **The other two uncaused games remain and they are the same two:** `baseline t6 …2661571698`
+  `p1.pp[1].expandingforce` medi 1 / sd 2, and `omit-spread t7 …2661455548`
+  `p2.party.castform.species` medi `castformrainy` / sd `castform` (and `.types`).
+- **`tests/test-engine-diff.js` exits 3** before and after this change — the pre-existing `--n`
+  default vs `data/engine-diff.json`'s 6,000 diagnosed at 5.265.0. Not caused here, not diagnosed
+  here.
+- **The `[from] move: <Move>` attribution on a swept line** and the `-sidestart` / `-sideend` effect
+  LABEL, both still blocked on `engine/tag_dex.js` exhausting the heap. Unchanged by this pass.
+
+**The gate is back to 7 pass / 2 fail, both failures measured disagreements on the CURRENT bytes.**
+The release bump staled `data/engine-diff.json`, and it was re-run rather than left reading
+`MEASURED AGAINST A DIFFERENT ENGINE`: `tests/test-engine-diff.js --n 6000 --seed 20260804`, **0 of
+6000 disagreed**, exit 0. (`--n 6000` is also why the standing `exit 3` does not arise: that is the
+150-default shrink guard, not a differential failure.) The roster, the census and
+`all-mechanics-fire` were re-run on the new release too and none of them moved.
+
+**Not touched, by instruction:** `engine/game_differential.js`, `engine/diff_swarm.js`,
+`engine/steering.js` — a second agent holds three filed instrument defects in them.
+`driver_code_stable` read `true` for the whole 296 s run, so nothing moved under this measurement.
+
 ## THE ENGINE'S OWN SCOREBOARD IS MEASURED AGAIN ON THE CURRENT BYTES. **BOARD-MATERIAL 27 OF 961, PROTOCOL 93, NARRATION 70**, RELEASE `57679ef9a4a3` — AND NO ENGINE SOURCE MOVED ON THIS PASS. 2026-09-06, CHANGELOG 5.266.0
 
 **WHAT THIS SECTION IS FOR.** 5.265.0 landed the hazard-sweep order fix, which moved
