@@ -1076,6 +1076,100 @@ const MID_VOID_FIELDS = new Map();
 const MID_ONE_SIDED_SHAPES = new Map();
 const vbump = (m, k) => m.set(k, (m.get(k) || 0) + 1);
 
+/* ---- 2026-09-06 — THE `any` BUCKET IS MEASURED NOW. IT STILL VOIDS NOTHING. --------------------
+ *
+ * `midGameVoid` below deliberately restricts its identity check to the five OUTCOME categories and
+ * says why: pooling `any` dragged a 98-99% identity to 70-78% and voided three quarters of a run, and
+ * the same engine measured 95.2% on one sample and 37.0% on another. That reasoning stands and this
+ * changes none of it — no game's void verdict moves, no address is consumed, `MID_OVERLAP_FLOOR` is
+ * not applied here and `PIN_DIGEST` does not move.
+ *
+ * WHAT IT CHANGES IS THAT THE BUCKET STOPS BEING INVISIBLE. Nine of the 46 board-material
+ * first-divergence rows on release `2a5fd78725e7` are a post-hit ability proc — six Poison Touch, one
+ * Flame Body, one Cursed Body, one Rough-Skin-against-Poison-Touch ordering — and every one of them
+ * turns on a coin the authority flips inside `runEvent('DamagingHit')`, which is outside `getDamage`,
+ * `hitStepAccuracy`, `secondaries` and `getConfusionDamage`, so `MIDW.cat` is `any`. Three more rows
+ * are a `|cant|par` against a `|move|`, which is `randomChance(1,8)` in `conditions.ts` and also
+ * `any`. Twelve of 46, and the instrument could not say whether they were the ENGINE getting the
+ * mechanic wrong or the two engines flipping DIFFERENT coins.
+ *
+ * A COUNT CANNOT ANSWER THAT AND AN ADDRESS CAN. If the two sides computed the same `any` address and
+ * disagreed anyway, the die is shared and the divergence is the engine's. If the address is on one
+ * side only, or the same moment is named with a different turn/target/nth, the coin is NOT shared and
+ * the row is the instrument's — which is a verdict to WITHHOLD on, exactly as the void rule does for
+ * the outcome categories, rather than a defect to go and fix in the simulator.
+ *
+ * PER GAME AND STAMPED ON THE ROW, not pooled, because the whole point is to join it to the game's
+ * own first-divergence CAUSE. Pooled it would be one more rate nobody can act on. */
+const MID_ANY = { games: 0, games_both_drew: 0, shapes: new Map(), fields: new Map(),
+                  rate_hist: new Map() };
+let MID_ANY_LAST = null;
+/* THE SAME ARITHMETIC `midGameVoid` USES ON THE OUTCOME CATEGORIES, on the `any` category, returning
+ * a verdict instead of applying one. `shared / min(|sd|,|me|)` — over the SMALLER side, because one
+ * engine asking more questions is not a disagreement; that is the same denominator and the same
+ * argument as the outcome check, and using a different one here would make the two numbers
+ * incomparable at exactly the moment somebody wants to compare them. */
+function midAnyIdentity(sd, me) {
+  const cat = a => String(a).split('|')[2];
+  const A = (sd || []).filter(a => cat(a) === 'any'), B = (me || []).filter(a => cat(a) === 'any');
+  MID_ANY.games++;
+  if (!A.length || !B.length) {
+    const why = !A.length && !B.length ? 'neither-drew' : (A.length ? 'medicham2-drew-none' : 'authority-drew-none');
+    vbump(MID_ANY.rate_hist, why);
+    return { verdict: why, sd: A.length, me: B.length, rate: null, unshared: [] };
+  }
+  MID_ANY.games_both_drew++;
+  const S = new Set(A), M2 = new Set(B);
+  const shared = B.filter(x => S.has(x)).length;
+  const denom = Math.min(A.length, B.length);
+  const rate = denom ? shared / denom : 0;
+  const sdOnly = A.filter(a => !M2.has(a)), meOnly = B.filter(a => !S.has(a));
+  const shape = a => { const p = String(a).split('|'); return p[2] + ' ' + p[3]; };
+  for (const a of sdOnly) vbump(MID_ANY.shapes, shape(a) + '  [sd only]');
+  for (const a of meOnly) vbump(MID_ANY.shapes, shape(a) + '  [me only]');
+  /* WHICH FIELD DISAGREES — turn, target or nth — matched against the other side's unshared
+   * addresses of the same category and move, exactly as the outcome half does it. `no-counterpart`
+   * means one engine took a draw the other never took at all, which is a DIFFERENT finding: a
+   * mechanic one engine treats as chance and the other as determined. */
+  const FI = { turn: 1, target: 4, nth: 5 };
+  const key = a => { const p = String(a).split('|'); return p[2] + '|' + p[3]; };
+  const idx = new Map();
+  for (const b of meOnly) { const k = key(b); if (!idx.has(k)) idx.set(k, []); idx.get(k).push(String(b).split('|')); }
+  for (const a of sdOnly) {
+    const pa = String(a).split('|'), cands = idx.get(key(a)) || [];
+    if (!cands.length) { vbump(MID_ANY.fields, 'no-counterpart on the authority side  (' + key(a) + ')'); continue; }
+    let best = null, bestN = 99;
+    for (const pb of cands) {
+      const d = Object.keys(FI).filter(f => pa[FI[f]] !== pb[FI[f]]);
+      if (d.length < bestN) { bestN = d.length; best = d; }
+    }
+    vbump(MID_ANY.fields, (best.length ? best.join('+') : 'identical?') + ' differs  (' + key(a) + ')');
+  }
+  /* THE BAND, NOT THE FLOOR. `MID_OVERLAP_FLOOR` is the void rule and is deliberately NOT applied
+   * here; these three names are a histogram so a reader can see the distribution the header talks
+   * about (95.2% on one sample, 37.0% on another) instead of one pooled average hiding it. */
+  const band = rate === 1 ? 'identical' : rate >= MID_OVERLAP_FLOOR ? 'agrees-above-the-void-floor'
+             : rate > 0 ? 'partly-shared' : 'nothing-shared';
+  vbump(MID_ANY.rate_hist, band);
+  /* ---- AND THE SYMMETRIC RATE BESIDE IT, BECAUSE THE ASYMMETRIC ONE ANSWERS A NARROWER QUESTION
+   * THAN A READER WILL ASSUME IT DOES — and the first version of this block was read that way.
+   *
+   * `rate` is `shared / min(|sd|,|me|)`. `identical` therefore means "every address the SMALLER side
+   * computed is on the other side", which on this pool is almost always medicham2's side: the
+   * authority takes 449 `any` draws for Close Combat's self-drop chance alone (`selfDrops`,
+   * battle-actions.ts:1325, `this.battle.random(100)` even when `chance` is undefined) that this
+   * engine never takes. So a game can read `identical` while the authority is flipping a coin at an
+   * address this engine never named — which is EXACTLY the Poison Touch shape, and reading the
+   * asymmetric number as "the coins are shared" would have filed those rows the wrong way.
+   *
+   * `shared / max(...)` is the symmetric one and is the number to read when the question is "did the
+   * two engines flip the SAME coins". Both are published; neither voids anything. */
+  const rateL = shared / Math.max(A.length, B.length);
+  return { verdict: band, sd: A.length, me: B.length, rate: +rate.toFixed(4),
+           rate_over_larger: +rateL.toFixed(4), sd_only: sdOnly.length, me_only: meOnly.length,
+           unshared: sdOnly.slice(0, 4).map(String).concat(meOnly.slice(0, 4).map(String)) };
+}
+
 /* THE VOID CHECK. Called after each game in the middle arm: if the two engines drew a different
  * number of values from any category while they were still agreeing, the streams have parted and any
  * divergence this game reports is the instrument's, not the engine's. */
@@ -1102,6 +1196,9 @@ let MID_SD_LOG_DROPPED = 0;
  * that the whole population arrived as one integer. A string is truthy in exactly the same places. */
 function midGameVoid() {
   const sd = MID_CTX_SEEN.sd, me = (typeof M.midEventLog === 'function') ? M.midEventLog() : [];
+  /* THE `any` MEASUREMENT, TAKEN FIRST because every exit below clears `MID_CTX_SEEN.sd`. It reads
+   * the same two logs and decides nothing — see the block above `MID_ANY` for why it may not. */
+  MID_ANY_LAST = midAnyIdentity(sd, me);
   /* A GAME WITH NO ADDRESSES ON A SIDE IS NOT A DESYNC, AND CALLING IT ONE IS A LEFTOVER FROM THE
    * COUNT-BASED CHECK. Under counts, an empty side meant the streams had parted. Under shared-address
    * identity the question is "of the addresses BOTH engines computed, did they agree", and a game
@@ -6653,7 +6750,12 @@ if (!has('--proof')) {
      * address after the first game is unreachable by the other engine. */
     if (arm.middle) {
       const _sdN = MID_CTX_SEEN.sd.length, _meN = (typeof M.midEventLog === 'function') ? M.midEventLog().length : -1;
-      MID_LAST_WHY = null; r._mid_void = midGameVoid(); r._mid_why = MID_LAST_WHY; midReset(); midClearNth();
+      MID_LAST_WHY = null; r._mid_void = midGameVoid(); r._mid_why = MID_LAST_WHY;
+      /* 2026-09-06 — the `any`-bucket verdict travels WITH THE GAME, because the question it answers
+       * is "is THIS game's first divergence the engine or a coin the two never shared", and that can
+       * only be asked by joining it to this row's own cause. */
+      r._any_ident = MID_ANY_LAST;
+      midReset(); midClearNth();
       if (VOID_DEBUG) console.log('   VOIDDBG cfg=' + cfgId + ' tag=' + String(pr.tag).slice(0, 28)
         + ' turns=' + r.turns + ' div=' + (r.div ? 'Y' : 'n') + ' err=' + (r.err ? String(r.err).slice(0, 30) : '-')
         + ' sd=' + _sdN + ' me=' + _meN + ' why=' + r._mid_why);
@@ -7424,6 +7526,77 @@ if (PRIMARY_ARM.middle) {
      * not match increments no counter at all, so widening it was previously unjudgeable. */
     range_form_seen_by_cat: Object.fromEntries([...MID_RANGE_SEEN].sort((a, b) => b[1] - a[1])),
     sd_addresses_dropped_as_not_this_game: MID_SD_LOG_DROPPED,
+    /* ---- 2026-09-06 — THE `any` BUCKET, MEASURED AND DECIDING NOTHING -------------------------
+     *
+     * See the block above `MID_ANY`. No game's void verdict is affected by anything in here, the
+     * overlap floor is not applied to it, and `PIN_DIGEST` does not move. It exists because twelve of
+     * the 46 board-material first-divergence rows on release `2a5fd78725e7` turn on a coin the
+     * authority flips OUTSIDE the four wrapped methods — the post-hit ability procs (Poison Touch,
+     * Flame Body, Cursed Body) fire inside `runEvent('DamagingHit')` and full paralysis is
+     * `randomChance(1,8)` in `conditions.ts` — so all of them address as `any`, and until now nothing
+     * could tell "our simulator applies this wrongly" from "the two engines flipped different coins".
+     *
+     * HOW TO READ IT. `by_cause` below joins the per-game verdict to the game's own first-divergence
+     * cause. A cause whose games are all `identical` on `any` is the ENGINE and is worth fixing. A
+     * cause whose games are `partly-shared` or `nothing-shared` is the INSTRUMENT and must be
+     * WITHHELD, not fixed — the same discipline the outcome categories get from the void rule. */
+    any_bucket: {
+      what: 'IDENTITY OF THE `any` ADDRESS BUCKET, per game. MEASURED ONLY — it voids nothing, '
+          + 'consumes nothing and is not subject to overlap_floor. `any` is every draw taken outside '
+          + 'getDamage / hitStepAccuracy / secondaries / getConfusionDamage, which is where the '
+          + 'post-hit ability procs and full paralysis live.',
+      why_it_is_not_a_void_rule: 'Pooling `any` into the void check dragged a 98-99% outcome identity '
+          + 'to 70-78% and voided three quarters of a run; the same engine measured 95.2% on one '
+          + 'sample and 37.0% on another. That decision stands and is not reopened here.',
+      games: MID_ANY.games, games_both_sides_drew: MID_ANY.games_both_drew,
+      verdicts: Object.fromEntries([...MID_ANY.rate_hist].sort((a, b) => b[1] - a[1])),
+      unshared_address_shapes: Object.fromEntries([...MID_ANY.shapes].sort((a, b) => b[1] - a[1]).slice(0, 40)),
+      unshared_address_field: Object.fromEntries([...MID_ANY.fields].sort((a, b) => b[1] - a[1]).slice(0, 40)),
+      unshared_address_field_rollup: (() => { const r = {};
+        for (const [k, n] of MID_ANY.fields) { const f = k.split('  (')[0]; r[f] = (r[f] || 0) + n; }
+        return Object.fromEntries(Object.entries(r).sort((a, b) => b[1] - a[1])); })(),
+      /* THE JOIN THAT IS THE WHOLE POINT: per first-divergence cause, what the `any` bucket did in
+       * those games. A cause list and an identity rate in the same artifact but not on the same row
+       * is what this repository calls a hand-classification. */
+      by_cause: (() => {
+        const m = new Map();
+        for (const r of results) {
+          if (!r.div || !r._any_ident) continue;
+          const cause = (r._cls && r._cls.cause) || '(unclassified)';
+          const e = m.get(cause) || { cause, games: 0, verdicts: {},
+                                      board_parted: 0, min_rate_over_smaller: null,
+                                      min_rate_over_larger: null, sd_only: 0, me_only: 0,
+                                      instrument_suspect: false };
+          e.games++;
+          const x = r._any_ident;
+          e.verdicts[x.verdict] = (e.verdicts[x.verdict] || 0) + 1;
+          if (r.stateDiv) e.board_parted++;
+          const mn = (a, b) => (a == null ? b : b == null ? a : Math.min(a, b));
+          e.min_rate_over_smaller = mn(e.min_rate_over_smaller, x.rate);
+          e.min_rate_over_larger = mn(e.min_rate_over_larger, x.rate_over_larger);
+          e.sd_only += (x.sd_only || 0); e.me_only += (x.me_only || 0);
+          /* THE VERDICT THIS TABLE EXISTS TO GIVE, and it is deliberately CONSERVATIVE: a cause is
+           * INSTRUMENT-SUSPECT the moment ANY of its games carried an `any` address one engine
+           * computed and the other did not. It is a reason to WITHHOLD, never a proof of innocence —
+           * `false` here means "the coins were shared, so look at the simulator", which is the
+           * actionable half. */
+          if (x.verdict === 'neither-drew') {
+            /* NEITHER ENGINE FLIPPED A COIN, so there is nothing to disagree about and this is the
+             * STRONGEST evidence in the run rather than the weakest — the same argument
+             * `midGameVoid`'s own `no-addresses` clause makes, and it was got backwards here first:
+             * the first version marked these suspect because `rate` was null. */
+          } else if ((x.sd_only || 0) || (x.me_only || 0) || x.rate == null) e.instrument_suspect = true;
+          m.set(cause, e);
+        }
+        /* EVERY BOARD-MATERIAL CAUSE IS KEPT WHATEVER ITS VERDICT. The first version filtered to the
+         * non-identical rows, which hid exactly the rows a reader most needs: a board-material cause
+         * whose coins WERE shared is the one worth fixing in the simulator. */
+        return [...m.values()]
+          .filter(e => e.board_parted > 0 || e.instrument_suspect)
+          .sort((a, b) => b.board_parted - a.board_parted || b.games - a.games)
+          .slice(0, 80);
+      })(),
+    },
   };
   console.log('  VOID (instrument desync): ' + voided + ' of ' + results.length
     + '   -- the two engines did not name the same events; these are NOT divergences');

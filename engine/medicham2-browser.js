@@ -677,6 +677,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * the format reaches it (Dragon Darts), so a zero on a board where it was clicked into a Protect
    * means the silence is not happening and the stream carries a line the authority does not. */
   smartTargetShieldSilent: 0,
+  /* 2026-09-06 -- SHIELD STAT PUNISHES ROUTED THROUGH `applyStatDrop` rather than written straight
+   * into `boosts`. King's Shield is the one member of `punishesContact` carrying `boosts` in this
+   * format, so this counts King's Shield refusals of a CONTACT move; a zero on a board where one was
+   * touched means the punish is back on the raw write and Contrary, Defiant and the Clear Body class
+   * are all being ignored again. */
+  shieldPunishThroughStatDrop: 0,
+  /* 2026-09-06 -- ABILITIES WHOSE `Start` WAS RUN BECAUSE THEY ARRIVED MID-BATTLE (Skill Swap both
+   * ends, Worry Seed / Entrainment / Simple Beam, Role Play). A zero over a run that contains one of
+   * those five moves means the arriving ability's entry handler is dead again, which is what a
+   * Skill-Swapped Sand Stream costs: the rest of that game with no sandstorm. */
+  abilityStartedOnRewrite: 0,
   /* 2026-08-24 -- LINES WRITTEN FROM A CONDITION'S `onBeforeMove`, ABOVE THE `|move|` LINE. One member
    * in this format (Chilly Reception's `-prepare ... [premajor]`). A zero on a turn it was clicked
    * means the derived row is not reaching this site and the stream is one line short. */
@@ -3866,6 +3877,22 @@ const MEDFAILS = { encoreAction: 0,
      (`accuracy` was the one that had none, and it cost Keen Eye and Illuminate entirely); anything
      the artifact learns to derive later arrives here rather than silently refusing nothing. */
   statDropBlockUnmapped: 0, statDropBlockUnmappedFirst: '',
+  /* 2026-09-06 -- a `punishesContact.boosts` entry that is NOT a drop, so it cannot go through
+     `applyStatDrop` (which subtracts a magnitude). Zero today: King's Shield's `{atk:-1}` is the only
+     entry the artifact derives. A positive one arriving upstream keeps the raw write and is named
+     here rather than being silently inverted into a drop. */
+  shieldPunishNotADrop: 0, shieldPunishNotADropFirst: '',
+  /* 2026-09-06 -- an ability arrived on a body with no side stamp, so "who are my foes" could not be
+     answered and its Start was skipped. Zero inside a real battle; a bare unit-test call that builds
+     two bodies and no sides lands here. Guessing would fire an Intimidate at nobody. */
+  abilityStartNoSide: 0, abilityStartNoSideFirst: '',
+  /* 2026-09-06 -- MEDI_NO_ABILITY_START_ON_REWRITE=1 is armed, so no mid-battle ability runs its own
+     Start. Non-zero means the run is NOT measuring this engine's shipped behaviour. */
+  abilityStartOnRewriteSkipped: 0,
+  /* 2026-09-06 -- MEDI_SHIELD_PUNISH_RAW_BOOST=1 is armed, so the shield's stat punish is back on a
+     raw write to `boosts` and Contrary, Defiant and the Clear Body class are all ignored. Non-zero
+     means the run is NOT measuring this engine's shipped behaviour. */
+  shieldPunishRawBoostRestored: 0,
   /* ROADMAP #213 -- a weather-gated status immunity asked on a body with no side stamp, so the field
      could not be read. Defaulting to "no weather" would turn Leaf Guard OFF in exactly the case a
      bare unit-test call makes, which is the silent-default shape; it is counted instead. */
@@ -13862,6 +13889,11 @@ const SEC_ADDR_PER_TARGET=(typeof process!=='undefined'&&process.env&&process.en
  * today. Any run carrying it also carries a non-zero `MEDFAILS.smartProtectLineRestored`. Same shape
  * as MEDI_SHIELD_SCOPED_FLAG above. */
 const SMART_PROTECT_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SMART_PROTECT_LINE==='1');
+/* 2026-09-06 -- MEDI_SHIELD_PUNISH_RAW_BOOST=1 PUTS THE SHIELD'S STAT PUNISH BACK ON A RAW WRITE TO
+ * `boosts`, i.e. King's Shield lowers Attack by one whatever the toucher's ability says, as this
+ * engine did until today. Any run carrying it also carries a non-zero
+ * `MEDFAILS.shieldPunishRawBoostRestored`. Same shape as MEDI_SMART_PROTECT_LINE above. */
+const SHIELD_PUNISH_RAW_BOOST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SHIELD_PUNISH_RAW_BOOST==='1');
 /* 2026-08-24 -- MEDI_NO_BEFOREMOVE_LINE=1 STOPS THE ENGINE WRITING A CONDITION'S `onBeforeMove` LINE,
  * i.e. Chilly Reception's `|-prepare|...|[premajor]` disappears from above its own `|move|` line, as
  * it was until today. Any run carrying it also carries a non-zero
@@ -20610,6 +20642,64 @@ function abRewrite(m,ab){
    }}
   if(m._preAb===undefined)m._preAb=m.ability;
   m.ability=ab;
+}
+/* 2026-09-06 -- AN ABILITY THAT ARRIVES MID-BATTLE RUNS ITS OWN `Start`, AND NOTHING HERE RAN IT.
+ *
+ * `abRewrite` above is the authority's `singleEvent('End', oldAbility, ...)` half and it was the ONLY
+ * half. The two doors the authority opens on the way IN:
+ *
+ *     Battle#skillSwap        sim/battle.ts:1339-1340
+ *       this.singleEvent('Start', sourceAbility, target.abilityState, target);
+ *       this.singleEvent('Start', targetAbility, source.abilityState, source);
+ *     Pokemon#setAbility      sim/pokemon.ts:1946-1949   (Worry Seed, Entrainment, Simple Beam)
+ *       if (ability.id && this.battle.gen > 3 && ...)
+ *         this.battle.singleEvent('Start', ability, this.abilityState, this, source);
+ *
+ * So every entry handler in the format was DEAD on a mid-battle rewrite -- no weather, no terrain, no
+ * Intimidate, no Screen Cleaner, no Frisk. MEASURED, not inferred: two of the 48 board-material
+ * first-divergence rows on release `583f3f5ff815` are exactly this, both a Skill Swap --
+ *     |-activate|p1b: Wyrdeer|Skill Swap|flashfire|intimidate|[of] p2a: Ceruledge
+ *       then |-unboost|p1b: Wyrdeer|atk|1        (the new Intimidate on the TARGET end)
+ *     |-activate|p2a: Medicham|Skill Swap|sandstream|purepower|[of] p1b: Tyranitar
+ *       then |-weather|Sandstorm|[from] ability: Sand Stream|[of] p2a: Medicham   (the SOURCE end)
+ * and the second one cost the whole rest of that game its sandstorm.
+ *
+ * IT IS `applyEntryEffects` + `applyEntryDrops`, THE SAME TWO THE SWITCH-IN PASS CALLS, because "what
+ * does this ability do when it starts" is one fact and a second implementation would drift from the
+ * switch-in one exactly as the Mold Breaker seam did (WIRE 128). `runEntryPass` itself is NOT called:
+ * it also lays side conditions, resolves hazards and re-syncs the field, none of which a Skill Swap
+ * does -- an entry PASS is a bigger event than an ability's Start, and firing the pass is the shape
+ * the `swap-inert` and `no-swap` controls in the probe exist to catch.
+ *
+ * WHAT IS DELIBERATELY NOT INCLUDED, so the residue is known rather than discovered: `imposterCopy`
+ * and `traceCopy` sit ABOVE `applyEntryEffects` in `runEntryPass` and are not called here, so a Trace
+ * that arrives by Skill Swap copies nothing. That is a real remaining gap and it is stated; Trace has
+ * to pick a target off a live foe list and the authority reaches it through the same `Start`, so it
+ * belongs in its own pass with its own probe rather than folded in silently here.
+ *
+ * THE SIDES COME OFF `m._sf._S`, the back-reference `battleInit` writes -- the same reader the
+ * `announcesOnEntry` branch inside `applyEntryEffects` already uses. A body with no side stamp cannot
+ * answer "who are my foes", so it is COUNTED and skipped rather than defaulted; guessing would fire
+ * an Intimidate at nobody.
+ *
+ * MEDI_NO_ABILITY_START_ON_REWRITE=1 puts the engine back to never running it. */
+const NO_ABILITY_START_ON_REWRITE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_NO_ABILITY_START_ON_REWRITE==='1');
+function abilityStarted(m,field){
+  if(NO_ABILITY_START_ON_REWRITE){MEDFAILS.abilityStartOnRewriteSkipped=1;return;}
+  if(!m||m.fainted||m.curHP<=0||!m.ability)return;
+  const _S=m._sf&&m._sf._S;
+  if(!_S){
+    MEDFAILS.abilityStartNoSide++;
+    if(!MEDFAILS.abilityStartNoSideFirst)MEDFAILS.abilityStartNoSideFirst=String(m.ability);
+    return;
+  }
+  const _own=(m._sf===_S.sfA)?_S.actA:_S.actB;
+  const _foes=(m._sf===_S.sfA)?_S.actB:_S.actA;
+  const _ally=(_own||[]).find(x=>x&&x!==m&&!x.fainted)||null;
+  MEDSEEN.abilityStartedOnRewrite++;
+  applyEntryEffects(m,field,_ally);
+  applyEntryDrops(m,(_foes||[]).filter(f=>f&&!f.fainted&&f.curHP>0));
 }
 /* The other half, called from `switchOut` beside the type restore and for the same reason: leaving the
  * field REBUILDS the body. Counted, because a restore that silently stops happening is invisible --
@@ -29132,7 +29222,12 @@ function battleTurn(S,rng,actsForA,actsForB){
                authority names the two abilities and the other body. Reads the post-swap holdings, so
                `m.ability` IS `targetAbility.name` and `t.ability` IS `sourceAbility.name` -- the
                authority's field order, off the same two variables the swap just wrote. */
-            if(TR)TR.abswap(m,t,m.ability,t.ability,!_isFoe);}
+            if(TR)TR.abswap(m,t,m.ability,t.ability,!_isFoe);
+            /* 2026-09-06 -- AND THE TWO ARRIVING ABILITIES RUN THEIR OWN `Start`, TARGET FIRST.
+             * `sim/battle.ts:1339-1340` is that order verbatim (`sourceAbility` onto the TARGET,
+             * then `targetAbility` onto the SOURCE) and it is BELOW the `-activate` at :1326-1328,
+             * which is why this sits after the line rather than before it. */
+            abilityStarted(t,field);abilityStarted(m,field);}
         }
         continue;
       }
@@ -29197,6 +29292,13 @@ function battleTurn(S,rng,actsForA,actsForB){
             /* Worry Seed's own second clause: writing Insomnia over a sleeping body wakes it. Read
              * off the param rather than the move name. */
             if(a.curesSleep&&t.status==='slp'){t.status='';t.slp=0;if(TR)TR.cure(t,'slp',ATTR.cured(false).from);}
+            /* 2026-09-06 -- AND THE ARRIVING ABILITY RUNS ITS OWN `Start`. `Pokemon#setAbility` ends
+             * `this.battle.singleEvent('Start', ability, this.abilityState, this, source)`
+             * (sim/pokemon.ts:1946-1949), BELOW the `-ability` line at :1939, which is why this sits
+             * after the emission. Nothing an Entrainment can hand over in this format carries an
+             * entry handler today -- the probe prints that membership on every run, 0 of 22 -- so
+             * this call is a REGRESSION GUARD here and the mechanic is demonstrated at the swap. */
+            abilityStarted(t,field);
           }
         } else mvFail(m);
         continue;
@@ -29263,6 +29365,10 @@ function battleTurn(S,rng,actsForA,actsForB){
             abRewrite(m,_want);          // ROADMAP #307 -- undone by leaving the field
             MEDSEEN.abilityCopiedToUser++;
             if(TR)TR.ab(m,m.ability,'[from] move: '+a.mv);
+            /* 2026-09-06 -- and the copied ability runs its own `Start` on the USER, through the same
+             * `setAbility` tail as `abilitywrite` above. Role Play's copy lands on the mover, so this
+             * is `m` and not `t`; a Role Play onto a weather setter puts the sky up. */
+            abilityStarted(m,field);
           }
         } else mvFail(m);
         continue;
@@ -32134,10 +32240,56 @@ function battleTurn(S,rng,actsForA,actsForB){
               if(TR)TR.dmg(m,'[from] move: '+tg._protectMove,tg);
               if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}
             if(_pc.inflicts&&!m.fainted)applyStatus(m,CODE_OF_STATUS[_pc.inflicts]||_pc.inflicts);
+            /* 2026-09-06 -- THE SHIELD'S STAT PUNISH IS `Battle#boost`, NOT A WRITE TO `boosts`.
+             *
+             *     data/moves.ts:9946-9948, kingsshield.condition.onTryHit (Champions inherits it
+             *     whole; the mod changes only `pp` and `isNonstandard`):
+             *       if (this.checkMoveMakesContact(move, source, target)) {
+             *         this.boost({ atk: -1 }, source, target, this.dex.getActiveMove("King's Shield"));
+             *       }
+             *
+             * `boost(boost, target, source, effect)` -- so the Attack that moves is the ATTACKER'S and
+             * the SOURCE of the drop is the shielder. Three facts hang off that call and this block
+             * had none of them: Contrary inverts the sign (`runEvent('ChangeBoost')`, sim/battle.ts:2020),
+             * Defiant and Competitive retaliate per stat lowered by a non-ally (`AfterEachBoost`,
+             * :2073), and the Clear Body class refuses it outright and writes
+             * `|-fail|<attacker>|unboost|[from] ability: ...`.
+             *
+             * EVERY OTHER STAT-DROP SITE IN THIS FILE ALREADY GOES THROUGH `applyStatDrop` -- twelve
+             * of them carry the WIRE 100b marker -- and this one wrote the vector straight in. That is
+             * CLAUDE.md's FACTS-ARE-GLOBAL rule broken: "what happens when a foe lowers my Attack" is
+             * a fact about the game, not a property of whichever branch applied it. It is the same
+             * shape WIRE 138 fixed for the move-driven drops, one site late.
+             *
+             * MEASURED, not inferred: `data/game-differential.json` on release `a985300cb8ed` carries
+             * two BOARD-MATERIAL first-divergence rows that are exactly this, both a Staraptor-Mega
+             * (Contrary, derived off its own species row) Brave Bird into an Aegislash King's Shield --
+             *     unrelated event mismatch :: |-boost|p2a|atk|1 <> |-unboost|p2a|atk|1
+             *     unrelated event mismatch :: |-boost|p2b|atk|1 <> |-unboost|p2b|atk|1
+             *
+             * A RAISE IS NOT A DROP AND IS NOT ROUTED HERE. `applyStatDrop` subtracts a magnitude, so
+             * only a negative entry can go through it; King's Shield is the ONE member of
+             * `punishesContact` carrying `boosts` today (printed by the probe on every run), and a
+             * positive one arriving upstream keeps the raw write and is COUNTED rather than silently
+             * inverted into a drop. MEDI_SHIELD_PUNISH_RAW_BOOST=1 puts the whole block back. */
             if(_pc.boosts&&m.boosts&&!m.fainted)for(const k in _pc.boosts){
-              const _s=SD2ENG[k];if(_s&&m.boosts[_s]!=null){const _b0=m.boosts[_s];
-                m.boosts[_s]=clamp(m.boosts[_s]+_pc.boosts[k],-6,6);
-                if(TR)TR.bst(m,_s,m.boosts[_s]-_b0);}
+              const _s=SD2ENG[k];if(!_s||m.boosts[_s]==null)continue;
+              const _n=+_pc.boosts[k];
+              if(SHIELD_PUNISH_RAW_BOOST||!(_n<0)){
+                if(SHIELD_PUNISH_RAW_BOOST)MEDFAILS.shieldPunishRawBoostRestored=1;
+                else{MEDFAILS.shieldPunishNotADrop++;
+                     if(!MEDFAILS.shieldPunishNotADropFirst)
+                       MEDFAILS.shieldPunishNotADropFirst=String(tg._protectMove)+'/'+k+' '+_n;}
+                const _b0=m.boosts[_s];
+                m.boosts[_s]=clamp(m.boosts[_s]+_n,-6,6);
+                if(TR)TR.bst(m,_s,m.boosts[_s]-_b0);
+                continue;
+              }
+              /* THE EFFECT NAME IS THE SHIELD'S OWN ID, read off the body rather than typed: the
+               * refusal reader compares it as an id, and `onlyFrom` members (Inner Focus and the rest
+               * of the Intimidate-only set) must see something that is NOT Intimidate. */
+              MEDSEEN.shieldPunishThroughStatDrop++;
+              applyStatDrop(m,_s,-_n,String(tg._protectMove||''),tg);
             }
           }
         }

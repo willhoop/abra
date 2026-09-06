@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-06T08:03:33.134Z",
+ "generated": "2026-09-06T08:15:29.300Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "d7d83e49fa6c",
- "engine_release_cut": "2026-09-06T07:39:02.807Z",
+ "engine_release": "a985300cb8ed",
+ "engine_release_cut": "2026-09-06T08:13:48.035Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "d93e7d06e6b0",
+  "engine/medicham2-browser.js": "67756e457a55",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "1c4ba432e563",
   "engine/position_features.js": "622482051bf4",
@@ -44,8 +44,8 @@
   "COULD-NOT-STAGE": 22
  },
  "arms_played": {
-  "top-tie-first": 813,
-  "bottom-tie-first": 260
+  "top-tie-first": 825,
+  "bottom-tie-first": 264
  },
  "scope": {
   "total": 500,
@@ -82,8 +82,19 @@
   },
   {
    "rule": "move/boosts-self",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor:       if(a.kind==='setup'){\n        const _fx=a.mv&&moveFx(a.mv);"
+   "ok": true,
+   "why": "the self-boost is skipped entirely — the click is still made, still costs the turn and still records itself as the last move",
+   "moved": {
+    "member": "acidarmor",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.def",
+     "boosts.def"
+    ]
+   }
   },
   {
    "rule": "move/plain-attack",
@@ -119,8 +130,19 @@
   },
   {
    "rule": "move/needs-a-stat-stage-to-act-on",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor:       if(a.kind==='setup'){\n        const _fx=a.mv&&moveFx(a.mv);"
+   "ok": true,
+   "why": "a stat stage written by a move's own boost block is dropped, so there is nothing for the subject to clear, copy, invert or swap",
+   "moved": {
+    "member": "guardswap",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.def",
+     "boosts.def"
+    ]
+   }
   },
   {
    "rule": "move/crit",
@@ -140,8 +162,19 @@
   },
   {
    "rule": "move/needs-the-user-off-full-hp",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: _s.curHP=Math.min(_s.st.hp,_s.curHP+_d);"
+   "ok": true,
+   "why": "a residual volatile takes HP off its victim and returns NOTHING to the body it is supposed to heal — the only residual heal path in this engine",
+   "moved": {
+    "member": "leechseed",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "move/self-boosts-after",
@@ -248,8 +281,19 @@
   },
   {
    "rule": "move/needs-a-berry-already-eaten",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor:   m._lastItem=String(itemId||'');\n  m._ateBerry=true;"
+   "ok": true,
+   "why": "a threshold berry restores nothing when it is eaten",
+   "moved": {
+    "member": "belch",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "move/drain",

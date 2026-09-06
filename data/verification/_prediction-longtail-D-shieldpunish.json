@@ -1,0 +1,52 @@
+{
+  "written_before_the_run": "2026-09-06",
+  "step": "LONG-TAIL BATCH D, FIX 1 - King's Shield's contact punish goes through `applyStatDrop`, the ONE stat-drop implementation, instead of writing the vector straight into `boosts`. data/moves.ts:9946-9948 is `this.boost({atk:-1}, source, target, getActiveMove(\"King's Shield\"))`, and three facts hang off that call which the raw write had none of: Contrary inverts the sign, Defiant/Competitive retaliate per stat lowered by a non-ally, and the Clear Body class refuses it and writes `|-fail|<attacker>|unboost|[from] ability: ...`.",
+  "what_changed": [
+    "engine/medicham2-browser.js (the punishesContact `boosts` branch, one knob, three counters)",
+    "tests/probe_shield_punish_boost.js (new, 5 arms)"
+  ],
+  "no_tag_regeneration": "data/tags.json is UNTOUCHED. `punishesContact {onContact:true, boosts:{atk:-1}}` and `invertsBoosts {inverts:true}` were already derived and already correct; the defect was one consumer bypassing the shared reader.",
+  "pins": {
+    "release": "PENDING - cut immediately before the run",
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "arm": "middle", "games": 1200, "turns_cap": 20, "steering": "empirical", "end_state": true
+  },
+  "baseline": {
+    "artifact": "data/game-differential.json",
+    "release": "a985300cb8ed",
+    "games": 961, "board_material": 50, "protocol_diverged": 114,
+    "boards_never_diverged": 911, "threw": 1, "void": 5
+  },
+  "which_scoreboard": "BOARD-MATERIAL. `boosts.atk` is a compared leaf and the probe shows the board comparator itself calling the three arms DIFF. Said before the run: this is the first fix in three batches that should move the bar, and it should move PROTOCOL by the same games.",
+  "prediction": {
+    "board_material": 48,
+    "boards_never_diverged": 913,
+    "protocol_diverged": 112,
+    "threw": 1,
+    "void": 5,
+    "band": {
+      "board_material": "48 to 50",
+      "protocol_diverged": "110 to 114"
+    },
+    "cause_rows_that_must_go_to_zero": [
+      "unrelated event mismatch :: |-boost|p2a|atk|1 <> |-unboost|p2a|atk|1  (n=1, BOARD-MATERIAL, same turn)",
+      "unrelated event mismatch :: |-boost|p2b|atk|1 <> |-unboost|p2b|atk|1  (n=1, BOARD-MATERIAL, same turn)"
+    ],
+    "reasoning": "Both rows were bucketed out of the FULL by-cause list in `end_state[0].summary.by_cause` (110 causes, 114 games, reconciles), not out of `state.first_board_divergences`, which is capped at 40 and is not the population. Both are `board_parted_same_turn`, so the board first parts AT this cause rather than five turns downstream, and both are the same fixture read off the dump: a Staraptor-Mega Brave Bird into an Aegislash King's Shield. Staraptor-Mega's only ability is Contrary, DERIVED off its own species row (`D.species.get('staraptormega').abilities` -> {\"0\":\"Contrary\"}), which is why the authority writes `-boost atk 1` where this engine wrote `-unboost atk 1`. 50 - 2 = 48 and 114 - 2 = 112.",
+    "why_it_might_miss_HIGH": "A game that stops diverging here can simply diverge later - that is what happened to 2 of the 17 Struggle rows in batch C. If either game re-parts, board-material lands at 49 or 50 with a NEW cause row naming something else, and the fix is still correct.",
+    "why_it_might_miss_LOW": "Defiant is 17,379 sheets and Competitive 3,431, against 418 King's Shield uses. A Defiant or Clear Body body touching a King's Shield in a game that was ALREADY diverging for another reason would have been masked, and unmasking it could close a THIRD game. Anything below 48 must be re-joined by cause before it is claimed - a game closing that this fix cannot explain is an attribution failure, not a bonus.",
+    "counters": {
+      "MEDSEEN.shieldPunishThroughStatDrop": "> 0 over the pool, and it must equal the number of contact clicks a King's Shield refused. A zero means the wire is dead and any delta belongs to something else.",
+      "MEDFAILS.shieldPunishNotADrop": 0,
+      "MEDFAILS.shieldPunishRawBoostRestored": 0
+    }
+  },
+  "lab_evidence_before_the_pool_run": {
+    "probe": "tests/probe_shield_punish_boost.js",
+    "clean": "ALL CLAUSES HELD (5 arms)",
+    "knob": "MEDI_SHIELD_PUNISH_RAW_BOOST=1 -> 13 FAILED, exactly the 13 that were red before the fix",
+    "red_first": "13 FAILED on release a985300cb8ed before a byte of engine code moved: contrary/defiant/clearbody all part on `boosts.atk` at the board comparator, plain and protect hold.",
+    "control": "`plain` is the SAME Malamar with Suction Cups instead of Contrary. The authority reads 0,-1 there and 0,+1 on `contrary`, so the knob demonstrably moves the authority - an identical pair would have meant the fixture never exercises the mechanic."
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "written_before_the_run": "2026-09-06",
+  "step": "LONG-TAIL BATCH D, FIX 2 - an ability that arrives mid-battle runs its own `Start`. `Battle#skillSwap` (sim/battle.ts:1339-1340) fires `singleEvent('Start', ...)` on BOTH bodies, target first; `Pokemon#setAbility` (sim/pokemon.ts:1946-1949) fires it on the one body it rewrites. `abRewrite()` here carried only the outgoing ability's `End`, so every entry handler in the format was dead on a rewrite.",
+  "what_changed": [
+    "engine/medicham2-browser.js (new `abilityStarted()` calling the SAME `applyEntryEffects` + `applyEntryDrops` the switch-in pass calls; four call sites - both ends of Skill Swap, the one-ended write, Role Play - one knob, three counters)",
+    "tests/probe_ability_start_on_rewrite.js (new, 5 arms)"
+  ],
+  "no_tag_regeneration": "data/tags.json is UNTOUCHED. `onSwitchInDrop` and `weatherSetter` were already derived and already consumed at the switch-in pass; the defect was that the rewrite road never called them.",
+  "pins": {
+    "release": "PENDING - cut immediately before the run",
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "arm": "middle", "games": 1200, "turns_cap": 20, "steering": "empirical", "end_state": true
+  },
+  "baseline": {
+    "artifact": "data/verification/longtail-D-shieldpunish.json",
+    "release": "583f3f5ff815",
+    "games": 961, "board_material": 48, "protocol_diverged": 113,
+    "boards_never_diverged": 913, "threw": 1, "void": 5
+  },
+  "which_scoreboard": "BOARD-MATERIAL. `boosts.atk` and `field.weather` are both compared leaves and the probe shows the board comparator itself calling both swap arms DIFF. Said before the run.",
+  "prediction": {
+    "board_material": 46,
+    "boards_never_diverged": 915,
+    "protocol_diverged": 111,
+    "threw": 1,
+    "void": 5,
+    "band": {
+      "board_material": "44 to 48",
+      "protocol_diverged": "108 to 114"
+    },
+    "cause_rows_that_must_go_to_zero": [
+      "event missing from medicham2 :: |-unboost|p1b|atk|1 <> |upkeep  (n=1, BOARD-MATERIAL) - a Skill Swap handing Intimidate to Ceruledge",
+      "event missing from medicham2 :: |-weather|sandstorm|[from]sandstream <> |move|p1b|knockoff  (n=1, BOARD-MATERIAL) - a Skill Swap handing Sand Stream to Medicham"
+    ],
+    "reasoning": "Both rows were bucketed out of the FULL by-cause list in `end_state[0].summary.by_cause` of the step-1 artifact, not out of the capped `state.first_board_divergences`, and both are `board_parted_same_turn`. Both are read off `data/divergence-turns.json`, where the `-activate|...|Skill Swap|...` line sits immediately above the split on each. 48 - 2 = 46 and 113 - 2 = 111.",
+    "why_it_might_miss_HIGH": "The sandstorm game is the risky one and it is risky in BOTH directions. Before the fix that battle ran its whole remaining length with NO WEATHER on our side and a sandstorm on the authority's, so every subsequent turn carried a residual chip we were not paying. Turning the sky on makes many turns newly agree - or exposes a second defect that the missing weather was masking, in which case the game re-parts on a NEW cause and board-material lands at 47.",
+    "why_it_might_miss_LOW": "Skill Swap is 198 corpus uses and Role Play, Worry Seed, Entrainment and Simple Beam share the fix. A rewrite in a game that was already diverging for another reason would have been masked; unmasking could close a third game. Anything below 46 must be re-joined by cause before it is claimed.",
+    "counters": {
+      "MEDSEEN.abilityStartedOnRewrite": "> 0 over the pool. A zero means the wire is dead and any delta belongs to something else.",
+      "MEDFAILS.abilityStartNoSide": 0,
+      "MEDFAILS.abilityStartOnRewriteSkipped": 0
+    }
+  },
+  "lab_evidence_before_the_pool_run": {
+    "probe": "tests/probe_ability_start_on_rewrite.js",
+    "clean": "ALL CLAUSES HELD (5 arms)",
+    "knob": "MEDI_NO_ABILITY_START_ON_REWRITE=1 -> 8 FAILED, exactly the 8 that were red before the fix",
+    "red_first": "8 FAILED on release 583f3f5ff815 before a byte of engine code moved. Both swap arms part on the BOARD comparator - `p1.active[].boosts.atk` on the Intimidate arm, `field.weather` plus four `hp` leaves on the weather arm - and all three controls hold.",
+    "control": "`swap-inert` is the same Wyrdeer clicking the same Skill Swap at the same target with Sap Sipper instead of Intimidate, and it must stay silent; `no-swap` is the same board with Agility instead. Both would break under a blanket 're-run the entry pass on any rewrite'.",
+    "a_probe_that_was_wrong_first": "The weather arm's FIRST draft was one turn and VACUOUS. Tyranitar stands on the field, so the sandstorm its own entry set was already up, and a Sand Stream arriving by swap re-set a sky that was already there - the authority wrote nothing, both engines agreed on nothing, and the probe went green through the defect. It now spends turn 1 putting RAIN up, and asserts that the authority's sky is DIFFERENT either side of the swap."
+  },
+  "what_is_NOT_fixed_and_is_stated": "`imposterCopy` and `traceCopy` sit above `applyEntryEffects` in `runEntryPass` and are NOT called from `abilityStarted`, so a Trace arriving by Skill Swap still copies nothing. Real, remaining, and it belongs in its own pass with its own probe rather than folded in silently."
+}

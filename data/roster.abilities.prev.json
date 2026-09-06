@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-06T08:02:49.507Z",
+ "generated": "2026-09-06T08:14:46.187Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "d7d83e49fa6c",
- "engine_release_cut": "2026-09-06T07:39:02.807Z",
+ "engine_release": "a985300cb8ed",
+ "engine_release_cut": "2026-09-06T08:13:48.035Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "d93e7d06e6b0",
+  "engine/medicham2-browser.js": "67756e457a55",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "1c4ba432e563",
   "engine/position_features.js": "622482051bf4",
@@ -44,7 +44,7 @@
   "COULD-NOT-STAGE": 141
  },
  "arms_played": {
-  "top-tie-first": 543,
+  "top-tie-first": 550,
   "bottom-tie-first": 24
  },
  "scope": {
@@ -244,8 +244,19 @@
   },
   {
    "rule": "ability/aids-its-ally",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const _fg=_pal&&TAGS.param('ability',_pal.ability,'reducesAllyDamage');"
+   "ok": true,
+   "why": "the ally damage reduction is dropped",
+   "moved": {
+    "member": "friendguard",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "ability/refuses-a-crit",

@@ -1,8 +1,8 @@
 {
-  "generated": "2026-09-06T08:19:35.750Z",
+  "generated": "2026-09-06T09:59:58.903Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.259.0",
+  "changelog_top_at_baseline": "5.260.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -183,7 +183,6 @@
       "docs/ABRA-whitepaper.md|0.073|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|0.109|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|0.548|data/pory-eval.json",
-      "docs/ABRA-whitepaper.md|0.5522%|data/policy-weights.json,data/click-censoring-census.json",
       "docs/ABRA-whitepaper.md|0.583|data/pory-eval.json",
       "docs/ABRA-whitepaper.md|1.6%|data/pory-eval.json",
       "docs/ABRA-whitepaper.md|18|data/slowking-eval.json,data/slowking-playstyle-eval.json",
@@ -211,7 +210,6 @@
       "docs/MODELS.md|1.4%|data/illusion.json",
       "docs/MODELS.md|1.605|data/collinearity-joint.json",
       "docs/MODELS.md|10,125|data/value-net.json",
-      "docs/MODELS.md|12.2%|data/policy-weights-joint.json,data/sheet-channel-value.json",
       "docs/MODELS.md|127|data/counterplay.json",
       "docs/MODELS.md|144|data/guru-matchups.json,data/core-matchups.json",
       "docs/MODELS.md|15,544|data/value-net.json",
@@ -233,10 +231,7 @@
       "docs/MODELS.md|61.4%|data/value-net.json",
       "docs/MODELS.md|7,228|data/guru-matchups.json,data/core-matchups.json",
       "docs/MODELS.md|90|data/counterplay.json",
-      "docs/MODELS.md|99|data/collinearity-joint.json",
-      "docs/MODELS.md|−1.0502|data/policy-weights.json",
-      "docs/SUMMARY.md|146,910|data/policy-weights.json",
-      "docs/SUMMARY.md|6,091|data/policy-weights.json"
+      "docs/MODELS.md|99|data/collinearity-joint.json"
     ],
     "untraceable_by_doc": {
       "docs/ABRA-technical-docs.md": 1,
