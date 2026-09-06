@@ -1040,6 +1040,143 @@ function ops() {
   }
 }
 
+/* ================================================================================================
+ * WEB — ADDED 2026-09-06, AND THE REASON IS THAT IT WAS MISSING.
+ * ================================================================================================
+ * `SECTIONS` was `{ ENGINE, MEASURE, SEARCH, OPS }`. WEB is a division with a ledger like the other
+ * four and it had no generated block, so EVERY NUMBER IN `docs/WEB.md` was hand-typed and could not
+ * self-correct. That is the fourteen-stale-handoffs mechanism living inside the ledger system that
+ * replaced them, and it is not hypothetical here: three withheld figures were republished out of
+ * that file on 2026-09-06, and on 2026-08-25 the committed site block told a visitor `6 of 8 gate
+ * clauses fail` against a live gate of `3 of 8`.
+ *
+ * WEB IS PAUSED AND THIS BLOCK DOES NOT AUTHOR A NUMBER — the division's own rule, applied to its
+ * ledger. Every figure below is READ: a timestamp out of a generated bundle, a count of rows in it,
+ * a sentence the bundle itself published, or the live gate as `engine/quarantine.js` computes it.
+ * Where the honest answer is that a figure is withheld, the line says WITHHELD and prints no number.
+ * Nothing here renders a site, and nothing under web/ is written by this file.
+ * ============================================================================================== */
+
+/* THE BUNDLES ARE PARSED, NEVER EXECUTED. `web/quarantine-data.js` and `web/status-data.js` are
+ * generated JS that assign one object literal; running them to read a field would execute page code
+ * inside the one command every session starts with. The scan is brace-balanced and string-aware, so
+ * a `}` inside a `why` sentence cannot end the object early — which it would, and those sentences
+ * are full of them. Returns null on anything it cannot parse, and the caller says so rather than
+ * printing a zero. */
+function webBundle(rel, marker) {
+  let src; try { src = fs.readFileSync(D(rel), 'utf8'); }
+  catch (e) { return logUnreadable(rel, e); }
+  const at = src.indexOf(marker);
+  if (at < 0) return null;
+  const start = src.indexOf('{', at + marker.length);
+  if (start < 0) return null;
+  let depth = 0, inStr = false, esc = false;
+  for (let i = start; i < src.length; i++) {
+    const ch = src[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === '\\') esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') { inStr = true; continue; }
+    if (ch === '{') depth++;
+    else if (ch === '}' && --depth === 0) {
+      try { return JSON.parse(src.slice(start, i + 1)); }
+      catch (e) { return logUnreadable(rel + ' (object literal did not parse)', e); }
+    }
+  }
+  return null;
+}
+
+function web() {
+  say('WEB — the site, and what it is allowed to publish');
+  /* THE PAUSE IS READ OFF ITS MARKER, NOT TYPED. `docs/MEDICHAM-SPRINT-NOTES.md` is the same file
+   * `engine/docs_scan.js` reads to defer the living-docs rule, and the sprint ENDS by deleting it —
+   * so the state cannot go stale into a sentence nobody updates. */
+  const sprint = fs.existsSync(D('docs', 'MEDICHAM-SPRINT-NOTES.md'));
+  say(sprint
+    ? '  PUBLISHING DEFERRED — docs/MEDICHAM-SPRINT-NOTES.md is present, so the MEDICHAM sprint is'
+      + ' open and a publish is Will\'s call. Deleting that file ends the sprint.'
+    : '  no sprint marker on disk (docs/MEDICHAM-SPRINT-NOTES.md absent) — the living-docs rule is'
+      + ' fully armed for this division too.');
+
+  /* THE COMMITTED SITE GATE AGAINST THE LIVE ONE. This is the drift that shipped on 2026-08-25 and
+   * survived three days: the page's numbers all CITED an artifact, so the figure audit scored it
+   * 100% traced. A citation proves a figure had a source; it never proves the source still says it. */
+  const qd = webBundle('web/quarantine-data.js', 'var Q =');
+  if (!qd) say('  web/quarantine-data.js: NOT DERIVED (absent or unparsable) — nothing here can say'
+             + ' what the site is currently telling a visitor.');
+  else {
+    const cl = Array.isArray(qd.clauses) ? qd.clauses : [];
+    const pubFail = cl.filter(c => c && c.ok === false);
+    say(`  web/quarantine-data.js: built ${day(qd.generated && new Date(qd.generated))}`
+      + `  — the site publishes ${pubFail.length} of ${cl.length} clauses failing`
+      + (qd.open === true ? ', gate OPEN' : ', gate CLOSED'));
+    if (QS) {
+      const gating = QS.gate.clauses.filter(c => c.gates !== false);
+      const liveFail = (QS.gate.gate_failing || QS.gate.failing);
+      say(`    the LIVE gate says ${liveFail.length} of ${gating.length} GATING clauses fail`
+        + `  (${QS.ok ? 'OPEN' : 'CLOSED'})`);
+      /* NAMES, NOT ONLY COUNTS. The 2026-08-25 drift had the right SHAPE and the wrong clauses, and
+       * two counts that happen to agree would have hidden it. */
+      const pubNames = new Set(cl.map(c => String(c && c.name)));
+      const liveNames = QS.gate.clauses.map(c => c.name);
+      const gone = [...pubNames].filter(n => !liveNames.includes(n));
+      const added = liveNames.filter(n => !pubNames.has(n));
+      const drift = pubFail.length !== liveFail.length || gone.length || added.length
+                  || (qd.open === true) !== QS.ok;
+      say(drift ? '    DRIFTED — the committed bundle is not what the gate says today.'
+                : '    the bundle agrees with the live gate on count, names and open/closed.');
+      if (gone.length) say('      published clause(s) the gate no longer has: ' + gone.join('; '));
+      if (added.length) say('      clause(s) the gate has and the bundle does not: ' + added.join('; '));
+    } else say('    the live gate could not be computed, so no comparison is made — see DIAGNOSTICS.');
+    const held = Array.isArray(qd.held) ? qd.held.length : (qd.held ? Object.keys(qd.held).length : null);
+    if (held !== null && QS) say(`    withheld set: ${held} artifact(s) in the bundle against `
+      + `${QS.set.size} quarantined today`);
+    const released = qd.R && typeof qd.R === 'object' ? Object.keys(qd.R).length : null;
+    if (released !== null) say(`    ${released} figure(s) are RELEASED to the pages; every other slot`
+      + ' carries no value at all, which is the withheld-not-annotated rule in the bundle itself');
+  }
+
+  const sd = webBundle('web/status-data.js', 'window.ABRA_BOARD =');
+  if (!sd) say('  web/status-data.js: NOT DERIVED (absent or unparsable)');
+  else {
+    /* COUNTED BY WALKING THE BUNDLE, because the slots are nested per section and a typed total here
+     * would be the hand-maintained list this whole file argues against. */
+    let slots = 0, quarantined = 0;
+    const walk = (o) => {
+      if (!o || typeof o !== 'object') return;
+      if (typeof o.state === 'string') { slots++; if (o.state === 'quarantined') quarantined++; }
+      for (const k of Object.keys(o)) walk(o[k]);
+    };
+    walk(sd);
+    say(`  web/status-data.js: built ${day(sd.built_at && new Date(sd.built_at))}`
+      + `  — ${quarantined} of ${slots} slot(s) carry state "quarantined" and publish no value`);
+    if (sd.status_js_ok === false) say('    its status.js capture FAILED when it was built: '
+      + String(sd.status_js_error || '(no error recorded)').split('\n')[0]);
+  }
+
+  /* AND THE LEDGER ITSELF, judged by the rule that was missing until today. `engine/docs_scan.js`
+   * had no quarantine clause at all, which is why three withheld figures were republished out of
+   * this very file with every check green: the citations were FAITHFUL. */
+  try {
+    const DS = require('./docs_scan.js');
+    const q = DS.quarantinedFigures(['docs/WEB.md']);
+    say(q.hits.length
+      ? `  docs/WEB.md: ${q.hits.length} figure(s) sourced from a QUARANTINED artifact are still`
+        + ` stated — ${q.hits.map(h => h.figure + ' <- ' + h.cites.join(',')).slice(0, 6).join('; ')}`
+      : '  docs/WEB.md: no figure in it is sourced from an artifact the gate currently withholds'
+        + ' (engine/docs_scan.js --quarantine).');
+    if (q.gate_open) say('    ...and that is because the GATE IS OPEN today, not because the file is'
+      + ' clean: with nothing withheld this clause can accuse nothing.');
+  } catch (e) { logUnreadable('engine/docs_scan.js quarantine clause', e);
+    say('  docs/WEB.md: NOT DERIVED (the docs quarantine clause did not run)'); }
+
+  say('  rebuild the bundles: node web/build-quarantine.js && node web/build-status.js'
+    + '   — a PUBLISH (app/) is Will\'s call and this file never makes one.');
+}
+
 /* ---- SELFTEST -------------------------------------------------------------------------------- */
 /* THE STANDING RULE: no check is committed until it has been shown FAILING on known-bad input.
  * `refit edge` printed CLEAN for two days over a contrast that had measured three columns moving,
@@ -1123,7 +1260,10 @@ if (process.argv.includes('--selftest')) {
 }
 
 /* ---- EMIT ------------------------------------------------------------------------------------ */
-const SECTIONS = { ENGINE: engine, MEASURE: measure, SEARCH: search, OPS: ops };
+/* WEB IS IN THE SET SINCE 2026-09-06. It is a division with a ledger and it was the only one whose
+ * numbers were typed — see `web()`. A paused division still needs its figures to self-correct;
+ * pausing the WORK is not the same as freezing the REPORT, and the two were confused here. */
+const SECTIONS = { ENGINE: engine, MEASURE: measure, SEARCH: search, OPS: ops, WEB: web };
 const blocks = {};
 for (const [name, fn] of Object.entries(SECTIONS)) {
   const start = out.length;
@@ -1294,9 +1434,29 @@ if (WRITE) {
      * newline is matched either way and the file is REWRITTEN IN THE ENDING IT ARRIVED IN rather than
      * converted, which would turn a two-line stamp into a whole-file diff. Found 2026-08-07. */
     const re = /(<!-- GENERATED: engine\/status\.js -->\r?\n)[\s\S]*?(<!-- \/GENERATED -->)/;
-    if (!re.test(src)) { console.log('  skip ' + name + '.md (no GENERATED block)'); continue; }
     const nl = /\r\n/.test(src) ? '\r\n' : '\n';
-    const stamped = src.replace(re, `$1\n\`\`\`\n${body}\n\`\`\`\n\n_stamped ${day(new Date())}_\n\n$2`)
+    /* A LEDGER WITH NO BLOCK GETS ONE, RATHER THAN A SKIP LINE NOBODY ACTS ON — 2026-09-06.
+     *
+     * This printed `skip WEB.md (no GENERATED block)` and moved on, and the consequence is the whole
+     * reason WEB was added to SECTIONS: every figure in that ledger stayed hand-typed. A skip that
+     * requires a person to notice it, open the file and type two marker lines is a step somebody has
+     * to remember, and this repository's entire receipt is that the step does not happen.
+     *
+     * PLACEMENT IS DERIVED AND CONSERVATIVE: immediately BEFORE the first `## ` heading, which is
+     * where the other four ledgers carry theirs — after the masthead, above the first section. No
+     * prose is moved, nothing is deleted, and the block starts EMPTY so the same writer fills it on
+     * this run. Appended at the end when a file has no `## ` heading at all. */
+    let text = src;
+    if (!re.test(text)) {
+      const lines = text.split(/\r\n|\n/);
+      const at = lines.findIndex(l => /^##\s/.test(l));
+      const block = ['<!-- GENERATED: engine/status.js -->', '<!-- /GENERATED -->', ''];
+      if (at < 0) lines.push('', ...block); else lines.splice(at, 0, ...block);
+      text = lines.join(nl);
+      console.log('  docs/' + name + '.md had NO GENERATED block — one was INSERTED '
+                + (at < 0 ? 'at the end of the file' : 'above the first `## ` heading (line ' + (at + 1) + ')'));
+    }
+    const stamped = text.replace(re, `$1\n\`\`\`\n${body}\n\`\`\`\n\n_stamped ${day(new Date())}_\n\n$2`)
       .split(/\r\n|\n/).join(nl);
     fs.writeFileSync(f, stamped);
     console.log('  stamped docs/' + name + '.md');

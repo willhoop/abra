@@ -816,8 +816,109 @@ function archiveState() {
   return out;
 }
 
+/* ================================================================================================
+ * RULE 4 — A DOCUMENT MAY NOT STATE A FIGURE SOURCED FROM A QUARANTINED ARTIFACT. 2026-09-06.
+ * ================================================================================================
+ * THIS FILE HAD NO QUARANTINE CLAUSE AT ALL, and that is exactly why three withheld figures were
+ * republished out of `docs/WEB.md` on 2026-09-06 with every check green. The citation rule above
+ * asks *"is this figure in the artifact it cites?"* — and a quarantined artifact answers YES. So
+ * `engine/status.js` withheld the number on one screen while this file cleared the document
+ * reprinting it on another. **The citations were FAITHFUL. That was the whole problem.**
+ *
+ * CLAUDE.md is explicit about the shape: *"A CAPTION IS NOT A QUARANTINE... the figure must be
+ * WITHHELD, not annotated. Printing it with a caveat is the bug."*
+ *
+ * THERE IS ALREADY A CITATION RATCHET AND THIS IS NOT A SECOND COPY OF IT — CHECKED FIRST, BECAUSE
+ * HAND-ROLLING A SECOND VERSION OF SOMETHING THAT EXISTS IS HOW `buildMon("Scizor")` RETURNED NULL.
+ * `engine/quarantine.js --check` walks docs/, web/ and app/ for the first ~50 characters of a
+ * quarantined artifact's OWN `verdict` / `headline` / `summary` STRING and ratchets the hits into
+ * `data/quarantine-stamp.json`. It is a different granularity and it is why nothing fired on
+ * 2026-09-06: it catches a document that quotes the SENTENCE ("MILTANK takes 55.5% of 535 DECISIVE
+ * PAIRS") and cannot see one that quotes only the NUMBER beside a faithful citation, which is what
+ * `docs/WEB.md` did. Verdict-sentence granularity there, FIGURE granularity here, and the figure
+ * lexer this rule needs already lives in this file and nowhere else.
+ *
+ * THE QUARANTINED SET IS DERIVED FROM `engine/quarantine.js`, NEVER TYPED HERE. A list of withheld
+ * artifacts in this file would be the hand-maintained ban list of four in a new costume, and it
+ * would be wrong the first time the gate opens. `state().withhold(file)` is the same function
+ * `status.js` asks, so the two can never disagree about what is held — including the day the gate
+ * opens, when this clause correctly accuses nobody.
+ *
+ * THERE IS NO PROSE ESCAPE, AND THAT IS DELIBERATE. The retraction rule skips a paragraph matching
+ * `QUALIFIED` ("previously", "stale", "was measured"), which is right for a figure a document is
+ * DISCUSSING. It is wrong here: an escape spelled with a word is a caption, and a caption is what
+ * this rule exists to refuse. A document that must not state the number does not state it.
+ *
+ * `isDistinctive` IS THE COINCIDENCE BAR AND IT IS THE ONE THIS FILE ALREADY USES. `policy-weights`
+ * holds tens of thousands of floats, so a bare two-digit integer matches it by chance; measured
+ * 2026-09-06, dropping the bar turned 132 findings into 468 — the "registry that fires on every
+ * occurrence of a small integer" failure recorded above, arriving through a different door.
+ *
+ * `withhold` IS A PARAMETER because a flag anybody can pass on the command line eventually gets
+ * passed — the same reasoning `engine/quarantine.js` gives for `withholder(gate, rows)`. It also
+ * lets the gate be driven RED on a synthetic set without touching the real one. */
+function quarantinedState(inject) {
+  if (inject) return { withhold: inject, open: false, why: 'injected by the caller' };
+  let Q; try { Q = require('./quarantine.js'); }
+  catch (e) { return { withhold: null, open: null,
+    why: 'engine/quarantine.js could not be loaded (' + String((e && e.message) || e).split('\n')[0]
+       + '), so NOTHING is checked against the withheld set — this is not a clean bill' }; }
+  try {
+    const s = Q.state();
+    return { withhold: s.withhold, open: s.ok,
+      why: s.ok ? 'THE GATE IS OPEN — nothing is quarantined today, so this clause can accuse '
+                + 'nothing. That is a fact about the gate, not about the documents.'
+                : s.set.size + ' artifact(s) are withheld by engine/quarantine.js' };
+  } catch (e) {
+    return { withhold: null, open: null,
+      why: 'engine/quarantine.js could not compute the gate (' + String((e && e.message) || e).split('\n')[0]
+         + '), so NOTHING is checked against the withheld set — this is not a clean bill' };
+  }
+}
+
+/** The key a ratchet holds. Line numbers move when prose moves; the CLAIM does not. */
+function quarantineKey(h) { return h.doc + '|' + h.figure + '|' + h.cite; }
+
+function quarantinedFigures(docs, { withhold, read = readDoc } = {}) {
+  const st = quarantinedState(withhold);
+  const hits = [];
+  /* A DOCUMENT THAT COULD NOT BE READ IS NOT A DOCUMENT THAT IS CLEAN, and skipping it silently
+   * would be this rule's own failure mode one layer down: an unreadable file would simply stop being
+   * accused, with nothing on the screen to say the scan had a hole in it. */
+  const unreadable = [];
+  if (!st.withhold) return { hits, unreadable, gate_open: st.open, why: st.why, cannot_answer: true };
+  for (const rel of (docs || liveDocs())) {
+    let text;
+    try { text = read(rel); }
+    catch (e) {
+      unreadable.push({ doc: rel, error: String((e && e.message) || e).split('\n')[0] });
+      continue;
+    }
+    for (const b of paragraphs(text)) {
+      const cites = citationsIn(b.lines).filter(c => st.withhold(c));
+      if (!cites.length) continue;
+      const body = b.lines.join('\n');
+      for (const f of figuresInText(body)) {
+        if (isUniversal(f)) continue;
+        if (!isDistinctive(f)) continue;
+        for (const c of cites) {
+          const nums = artifactNumbers(c);
+          if (!nums || !artifactHas(nums, f)) continue;
+          const h = { doc: rel, line: b.start, figure: f.raw, cite: c, cites,
+                      held: st.withhold(c), text: b.lines[0].trim().slice(0, 100) };
+          const k = quarantineKey(h);
+          if (!hits.some(x => quarantineKey(x) === k)) hits.push(h);
+          break;
+        }
+      }
+    }
+  }
+  return { hits, unreadable, gate_open: st.open, why: st.why, cannot_answer: false };
+}
+
 module.exports = {
   D, liveDocs, livingDocs, archiveDocs, readDoc, versionHeader, changelogTop,
+  quarantinedFigures, quarantineKey,
   figuresIn, figuresInText, fenceOpen, lexingProof, LEXING_CASES,
   isUniversal, artifactNumbers, artifactHas, paragraphs, citationsIn,
   retractionRegistry, retractionViolations, citationMismatches, untraceableCensus,
@@ -843,6 +944,12 @@ if (require.main === module) {
     retraction_registry: [...reg.values()].map(e => ({ value: e.value + (e.pct ? '%' : ''), strength: e.strength, sources: e.sources })),
     retraction_violations: retractionViolations(living, reg),
     citation_mismatches: citationMismatches(living),
+    /* SCANNED OVER `liveDocs()`, NOT `livingDocs()`, AND THE DIFFERENCE IS THE DEFECT ITSELF.
+     * `livingDocs()` is the version-HEADERED set; `docs/WEB.md` carries no header and is precisely
+     * where the withheld figures were republished. `data/docs-currency-baseline.json` already says
+     * what an unversioned file is exempt from — *"EXEMPT FROM RULE 1 ONLY - they are still scanned
+     * by the retracted-number rules"* — so the content rules cover every live document. */
+    quarantined_figures: quarantinedFigures(liveDocs()),
     untraceable: census,
   };
   if (process.argv.includes('--json')) { console.log(JSON.stringify(report, null, 2)); process.exit(0); }
@@ -868,6 +975,13 @@ figure lexer proof: ${report.lexing_proof.length - lex.length}/${report.lexing_p
   for (const h of report.retraction_violations) console.log(`  ${h.doc}:${h.line}  ${h.figure}  (retracted by ${h.by.join(', ')})\n      ${h.text}`);
   console.log(`\ncited-artifact mismatches: ${report.citation_mismatches.length}`);
   for (const h of report.citation_mismatches) console.log(`  ${h.doc}:${h.line}  ${h.figure}  not in ${h.cites.join(', ')}\n      ${h.text}`);
+  const qf = report.quarantined_figures;
+  console.log(`\nfigures sourced from a QUARANTINED artifact: `
+    + (qf.cannot_answer ? 'CANNOT ANSWER' : qf.hits.length) + `   [${qf.why}]`);
+  for (const h of qf.hits.slice(0, 40)) {
+    console.log(`  ${h.doc}:${h.line}  ${h.figure}  <- ${h.cite}\n      ${h.text}`);
+  }
+  if (qf.hits.length > 40) console.log(`  (+${qf.hits.length - 40} more — --json for the list)`);
   console.log(`\nuntraceable figures: ${census.total} across ${Object.keys(census.per).length} documents`);
   const top = Object.entries(census.per).sort((a, b) => b[1] - a[1]).slice(0, 15);
   for (const [d, n] of top) console.log(`  ${String(n).padStart(4)}  ${d}`);

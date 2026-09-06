@@ -5,17 +5,23 @@
  *   node engine/quarantine.js --check    GATE — fails if a quarantined figure is being printed
  *   node engine/quarantine.js --selftest drive every branch on synthetic input, red and green
  *   node engine/quarantine.js --whole-game  BOARD-MATERIAL games — the gating whole-game clause
- *   node engine/quarantine.js --narration   PROTOCOL first-divergence games — reports, does not gate
+ *   node engine/quarantine.js --narration   NARRATION-ONLY games — gates only once boards are clean
  *   node engine/quarantine.js --order-probe the move-vs-move turn-order floor
  *
- * THE TWO WHOLE-GAME COMMANDS ANSWER TWO DIFFERENT QUESTIONS AND NEITHER IS "THE" DIVERGENCE RATE.
+ * THE TWO WHOLE-GAME COMMANDS ANSWER TWO DISJOINT QUESTIONS AND NEITHER IS "THE" DIVERGENCE RATE.
  * Will's call, 2026-08-22: *"board-material now, narration as its own separate gate afterwards."*
  * `--whole-game` counts games whose BOARDS part (`state.games` less
- * `state.games_board_never_diverged`) and decides the gate. `--narration` counts games whose
- * PROTOCOL LINES part (`j.diverged`, less what is declared and cleared) and decides nothing. On
- * release `8ad06030e129` they read 77 of 961 and 167 of 961 — the same run, two quantities. Quote
- * one without its name and somebody spends an afternoon reconciling it; ROADMAP #387 is that
- * afternoon already spent once.
+ * `state.games_board_never_diverged`). `--narration` counts games whose protocol parts and whose
+ * board NEVER does (`end_state[0].summary.by_cause_totals.games_narration_only`, less what is
+ * declared and cleared). On release `db248fe67a5e` they read 50 of 961 and 105 of 961, and the raw
+ * protocol count is 151 = 105 + the 46 that do both. NEITHER TOTAL CAN BE DERIVED FROM THE OTHER —
+ * the board clause's 50 includes 4 games that part a board with the protocol identical all game, so
+ * they have no cause to attribute. Quote one without its name and somebody spends an afternoon
+ * reconciling it; ROADMAP #387 is that afternoon already spent once.
+ *
+ * WHICH ONE GATES IS COMPUTED, NOT TYPED — 2026-09-06. `--whole-game` gates always; `--narration`
+ * gates exactly when `--whole-game` reads zero, because "afterwards" was a sentence in a comment
+ * and a deferral whose end condition is prose has no end condition.
  *
  * WHY THIS EXISTS
  * ---------------
@@ -1421,6 +1427,19 @@ const REPORTS_NOT_GATES =
   + ' number on the line above this one; do not read the two as one quantity. Narration exits'
   + ' non-zero on its own through `node engine/quarantine.js --narration`.';
 
+/* ...AND THE SENTENCE IT CARRIES ON THE DAY THAT STOPS BEING TRUE — 2026-09-06.
+ *
+ * `gates` is no longer typed, it is COMPUTED from the board-material clause's own verdict (see
+ * `narrationClause`). "Afterwards" was a sentence in a comment, which is exactly what "we'll do
+ * narration later" looks like at the moment it becomes permanent. Both sentences live here, beside
+ * each other, so a reader can see that the flip is a MEASURED transition rather than a decision
+ * somebody has to remember to take. */
+const GATES_NOW =
+  ' THIS CLAUSE NOW HOLDS THE GATE SHUT. Will, 2026-08-22: board-material now, narration as its own'
+  + ' separate gate AFTERWARDS — and afterwards has arrived, because the BOARD-MATERIAL clause reads'
+  + ' zero. Nothing was switched on by hand: `gates` is that clause\'s own verdict, so this flipped'
+  + ' the moment the boards stopped parting and would flip back if one parted again.';
+
 /* THE ONLY KINDS THAT MAY BE SUBTRACTED, AND THEIR HEADINGS. A `kind` outside this table is not
  * declared — see the loop in `wholeGameClause`. Keeping the headings HERE, beside the rows, is what
  * makes "which claim is this row making" answerable without reading the printer.
@@ -2446,14 +2465,87 @@ function wholeGameClause(artifact) {
  * later inherits it without anybody remembering to. `quantity` is applied the same way and the same
  * spread lets the body override it, so a future branch can name a narrower quantity if it has one.
  * ============================================================================================== */
-function narrationClause(artifact, wgDecisionImpact) {
-  const r = narrationVerdict(artifact, wgDecisionImpact);
-  if (!r || typeof r !== 'object') return r;
-  return Object.assign({ quantity: 'protocol_first_divergence_games' }, r, { gates: false });
+/* ================================================================================================
+ * THE NARRATION QUANTITY IS THE ARTIFACT'S OWN BY-CAUSE ATTRIBUTION, NOT `diverged` — 2026-09-06.
+ * ================================================================================================
+ * MEASURED on release `db248fe67a5e`: `diverged` is 151 and 46 of those games ALSO part a board,
+ * which `wholeGameClause` already counts. A narration clause on 151 would be 30% a second copy of
+ * the GATING clause, and would be tightened or loosened by work that has nothing to do with
+ * narration. The artifact splits it per cause, RECONCILES the split (`by_cause_reconciles`) and
+ * publishes the bound it rests on, so this reads the split instead of recomputing it.
+ *
+ * NEITHER QUANTITY CAN BE DERIVED FROM THE OTHER, and that is why both clauses read their own field.
+ * The board clause's count is `state.games - state.games_board_never_diverged` = 50 on that artifact
+ * while `games_board_material` is 46: the gap is the games that part a board with the protocol
+ * IDENTICAL all game, which therefore have no cause to attribute. Both numbers are correct and they
+ * answer different questions.
+ *
+ * RETURNS NULL, NEVER A FALLBACK. An artifact that predates `by_cause_totals`, or whose own
+ * reconciliation flag is false, cannot tell narration from board-material — and falling back on
+ * `diverged` there would publish the other clause's count under this one's name, which is the exact
+ * confusion the 2026-09-04 split exists to end. The caller WITHHOLDS instead. */
+function narrationOnlyRows(j) {
+  const es = Array.isArray(j && j.end_state) ? j.end_state[0] : null;
+  const sum = es && typeof es === 'object' ? es.summary : null;
+  const t = sum && typeof sum === 'object' ? sum.by_cause_totals : null;
+  if (!t || t.by_cause_reconciles !== true || !Array.isArray(sum.by_cause)) return null;
+  const of = (m) => sum.by_cause.filter((r) => r && r.materiality === m);
+  return {
+    rows: of('NARRATION-ONLY'),
+    boardRows: of('BOARD-MATERIAL'),
+    games: +t.games_narration_only || 0,
+    causes: +t.NARRATION_ONLY || 0,
+    boardGames: +t.games_board_material || 0,
+    boardCauses: +t.BOARD_MATERIAL || 0,
+    bound: t.bounded_by || null,
+  };
 }
 
-function narrationVerdict(artifact, wgDecisionImpact) {
-  const NAME = 'whole-game differential / NARRATION — protocol first divergence';
+/* ================================================================================================
+ * `gates` IS COMPUTED FROM THE BOARD CLAUSE'S OWN VERDICT — 2026-09-06.
+ * ================================================================================================
+ * Will's ruling, 2026-08-22: *"board-material now, narration as its own separate gate afterwards"*,
+ * and CLAUDE.md's gloss on it — *"the narration gate is a GATE, not a backlog. It gets a clause and
+ * a count like every other, so that 'we'll do narration later' cannot become the fourteen stale
+ * handoffs in a new costume."*
+ *
+ * UNTIL TODAY "AFTERWARDS" WAS NOWHERE IN CODE. It was a paragraph under `gates: false` explaining
+ * why the flag was typed. A deferral whose end condition lives in a comment has no end condition:
+ * there is a step where a person has to remember, and this repository's whole receipt is that the
+ * step does not happen. So the flag is now the BOARD-MATERIAL clause's verdict. Narration begins
+ * holding the gate shut the instant that clause reads zero, automatically, with nobody deciding —
+ * and it stands back down by itself if a board parts again.
+ *
+ * THE BOARD CLAUSE IS PASSED IN WHERE THE CALLER ALREADY HAS ONE (`medichamIsCorrect` computes it
+ * for its own row) so one artifact is not parsed twice, and computed here otherwise. It is the same
+ * function either way — two implementations of one verdict disagree eventually and the disagreement
+ * is invisible because both keep working. */
+function narrationClause(artifact, wgDecisionImpact, boardClause) {
+  const board = boardClause === undefined ? wholeGameClause(artifact) : boardClause;
+  /* `pins` IS PART OF THE CONDITION, AND NOT AS TIDINESS. `PIN.audit` withholds any clause that
+   * cannot say what it was measured under, so a receiptless board clause reads `ok: false` in the
+   * assembled gate. Reading `ok` alone here would let this clause start gating on the strength of a
+   * verdict the gate itself refuses — two readers of one clause disagreeing, which is the shape this
+   * file exists to prevent. Same rule, applied at the one place that consumes the verdict early. */
+  const gates = !!(board && board.ok === true && board.pins);
+  const r = narrationVerdict(artifact, wgDecisionImpact, board);
+  if (!r || typeof r !== 'object') return r;
+  return Object.assign({ quantity: 'narration_only_undeclared_games' }, r, {
+    gates,
+    gates_because: gates
+      ? 'the BOARD-MATERIAL clause reads zero, so narration now gates (Will, 2026-08-22). This was '
+        + 'not switched on: it is that clause\'s own verdict, read on this run.'
+      : 'the BOARD-MATERIAL clause is still failing, so narration reports only (Will, 2026-08-22). '
+        + 'This flips by itself when that clause reads zero — it is not a decision anybody takes.',
+  });
+}
+
+function narrationVerdict(artifact, wgDecisionImpact, boardClause) {
+  /* THE NAME MOVED WITH THE QUANTITY ON 2026-09-06, and it had to. It said "protocol first
+   * divergence" — 151 games — while this clause now judges the 105 that diverge and NEVER part a
+   * board. A row whose title names a different number from the one underneath it is the exact
+   * mislabelled-quantity failure ROADMAP #387 was filed for. */
+  const NAME = 'whole-game differential / NARRATION — protocol divergence with no board effect';
   const DOOR = wholeGameDoor(NAME, artifact);
   if (DOOR.refused) return DOOR.refused;
   const j = DOOR.j, WGRCPT = DOOR.rcpt;
@@ -2468,6 +2560,21 @@ function narrationVerdict(artifact, wgDecisionImpact) {
     return { name: NAME, ok: false, generated: j.generated || null, pins: WGRCPT,
       why: 'THE PLANTED-DIVERGENCE PROOF DID NOT FIRE, so this run cannot be believed at all. An '
          + 'instrument blind to a divergence it planted itself says nothing about ' + div + '.' };
+  }
+  /* THE SPLIT, OR NOTHING. See `narrationOnlyRows` — WITHHELD, NOT FAILED, because an artifact that
+   * predates `by_cause_totals` is a fact about the WRITER and failing on it would be a claim about
+   * the engine made out of one. The caption-is-not-a-quarantine rule points this way: no number. */
+  const NO = narrationOnlyRows(j);
+  if (!NO) {
+    return { name: NAME, ok: false, withheld: true, cannot_answer: true,
+      generated: j.generated || null, pins: WGRCPT,
+      why: 'THIS ARTIFACT CARRIES NO RECONCILED `end_state[0].summary.by_cause_totals`, so '
+         + 'narration-only cannot be told from board-material and there is NO FALLBACK ONTO '
+         + '`diverged` (' + div + ') — on the last measured artifact 46 of 151 diverged games ALSO '
+         + 'part a board, so that number is 30% the other clause. Re-run with the end-state pass on: '
+         + 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
+         + '--arm middle --end-state --census <pin> --games 1200 --team-store data/team-pool-frozen '
+         + '--write' };
   }
   const rate = div / games;
   const base = readJson(D('data', 'whole-game-baseline.json'));
@@ -2578,30 +2685,56 @@ function narrationVerdict(artifact, wgDecisionImpact) {
    * the bytes it is now excusing. Four declarations in this project have been refuted — a closet
    * that cannot notice its own evidence ageing is a trap, not an exemption. */
   const WGCTX = { release: j.engine_release || j.release || null, generated: j.generated || null };
-  for (const c of (Array.isArray(j.classes) ? j.classes : [])) {
-    for (const k of (c.causes || [])) {
-      /* THE SHARED DOOR — see `declaredMatch`. The matching rule, the throw handling and the
-       * `DECLARED_KINDS` whitelist used to live inline here and were therefore this clause's alone,
-       * which is how the mechanics clause came to count a row this one had already declared. */
-      const d = declaredMatch(k.cause, EV, MATCHER_THREW, WGCTX);
-      if (d) {
-        declaredGames += (k.n || 0);
-        const row = declaredHits.find((r) => r.name === d.name);
-        if (row) row.n += (k.n || 0);
-        else declaredHits.push({ kind: d.kind, name: d.name, why: d.why, n: (k.n || 0),
-                                 closet: d.closet || null, evidence: d.evidence || null,
-                                 falsifiedBy: d.falsifiedBy || null,
-                                 evidence_stale: d.evidence_stale || null });
-        continue;
-      }
-      const imp = DI.clear('cause:' + String(k.cause || ''));
-      if (!imp) continue;
-      impactGames += (k.n || 0);
-      const row = impactHits.find((r) => r.key === imp.key);
-      if (row) row.n += (k.n || 0); else impactHits.push({ ...imp, n: (k.n || 0) });
+  /* IT ITERATES THE NARRATION-ONLY ROWS AND NOT `classes[].causes[]`, AND THAT IS THE ANTI-ABSORPTION
+   * RULE ITSELF RATHER THAN A TIDY-UP. A declaration may only subtract a cause the ARTIFACT
+   * classifies `NARRATION-ONLY` — a materiality it computed from the BOARD comparison, independently
+   * of anything anybody typed. Every narration declaration makes one claim underneath: this line's
+   * absence or position moves no board. That claim is measured here, per cause, so a row that
+   * matches a board-material cause cannot subtract even if its matcher is `() => true`. */
+  for (const k of NO.rows) {
+    /* THE SHARED DOOR — see `declaredMatch`. The matching rule, the throw handling and the
+     * `DECLARED_KINDS` whitelist used to live inline here and were therefore this clause's alone,
+     * which is how the mechanics clause came to count a row this one had already declared. */
+    const d = declaredMatch(k.cause, EV, MATCHER_THREW, WGCTX);
+    if (d) {
+      declaredGames += (k.games || 0);
+      const row = declaredHits.find((r) => r.name === d.name);
+      if (row) row.n += (k.games || 0);
+      else declaredHits.push({ kind: d.kind, name: d.name, why: d.why, n: (k.games || 0),
+                               closet: d.closet || null, evidence: d.evidence || null,
+                               falsifiedBy: d.falsifiedBy || null,
+                               evidence_stale: d.evidence_stale || null });
+      continue;
     }
+    const imp = DI.clear('cause:' + String(k.cause || ''));
+    if (!imp) continue;
+    impactGames += (k.games || 0);
+    const row = impactHits.find((r) => r.key === imp.key);
+    if (row) row.n += (k.games || 0); else impactHits.push({ ...imp, n: (k.games || 0) });
   }
-  const undeclared = Math.max(0, div - declaredGames - impactGames);
+  /* ==============================================================================================
+   * THE SAME MATCHERS, RUN OVER THE BOARD-MATERIAL ROWS, PURELY TO NAME WHAT THEY WOULD HAVE TAKEN.
+   * ==============================================================================================
+   * A declaration mechanism that can absorb any failure is not a gate. The loop above already makes
+   * that structurally impossible — a board-material cause is not in `NO.rows`, so nothing can be
+   * subtracted for it — but silence there would be the shape this whole file is about: a row could
+   * be quietly covering a cause that parts a board and nobody would ever see it.
+   *
+   * SO IT IS MEASURED AND PRINTED, AND IT SUBTRACTS NOTHING. It is the same falsifier the one real
+   * CLOSETED row already writes by hand — its `falsifiedBy` clause (b) is *"the board claim
+   * failing"* — promoted from a sentence into a check the run performs on every row, every time. A
+   * declaration cannot outlive its premise: the moment a declared cause starts parting a board the
+   * row stops applying and lights up. */
+  const absorbed = [];
+  for (const k of NO.boardRows) {
+    const d = declaredMatch(k.cause, EV, MATCHER_THREW, WGCTX);
+    if (d) { absorbed.push({ by: d.name, kind: d.kind, cause: k.cause, games: k.games || 0,
+                             board_parted: k.board_parted || 0 }); continue; }
+    const imp = DI.clear('cause:' + String(k.cause || ''));
+    if (imp) absorbed.push({ by: imp.key, kind: 'DECISION-IMPACT', cause: k.cause,
+                             games: k.games || 0, board_parted: k.board_parted || 0 });
+  }
+  const undeclared = Math.max(0, NO.games - declaredGames - impactGames);
   const _NL = String.fromCharCode(10);
   /* ==============================================================================================
    * WHAT LEFT THE SAMPLE BEFORE THE RATE WAS TAKEN — 2026-08-26.
@@ -2675,15 +2808,94 @@ function narrationVerdict(artifact, wgDecisionImpact) {
         + r.bound.toFixed(1) + "% — a floor, not a zero; fixed in " + r.fixed_in + ")").join("; ")
     : DI.why);
   const ok = undeclared === 0;
+  /* ---- THE FIVE LINES THE NARRATION QUANTITY MAY NOT BE PRINTED WITHOUT ------------------------ */
+  /* 1. A DECLARATION THAT TRIED TO TAKE A BOARD-MATERIAL CAUSE, NAMED. Subtracts nothing; see the
+   *    absorption scan above. Printed on a passing run too — an exemption that has quietly started
+   *    covering a parted board is exactly the thing that must not wait for a red line to be seen. */
+  const absorbedLine = absorbed.length
+    ? _NL + '  A DECLARED ROW MATCHED A BOARD-MATERIAL CAUSE AND WAS NOT SUBTRACTED [' + absorbed.length
+      + ']:' + absorbed.map((a) => _NL + '    `' + a.by + '` [' + a.kind + '] matched `' + a.cause
+          + '`, which parted a board in ' + a.board_parted + ' of its ' + a.games + ' game(s).'
+        + _NL + '      A narration declaration asserts no board moves; this artifact MEASURED one '
+        + 'that does. The row does not apply here and it may be falsified.').join('')
+    : '';
+  /* 2. THE WORD LOWER BOUND, EVERY TIME. A game records only its FIRST divergence
+   *    (`game_differential.js` writes `firstDiv` once and discards every later `pd`), so a defect
+   *    that is never the earliest disagreement in any game is INVISIBLE to this count however often
+   *    it fires. Two are named, measured and unfixed in docs/ENGINE.md and appear zero times in the
+   *    151-divergence artifact. A gate that could read zero with those still in the engine would be
+   *    the fourteen stale handoffs with a green light on. */
+  const lowerBoundLine = _NL + '  THIS IS A LOWER BOUND, NOT A COUNT OF DEFECTS: a game records only '
+    + 'its FIRST divergence, so a defect that is never earliest is not counted here at all. Two are '
+    + 'named and measured and do not appear in this number — no `|-ability|<x>|Fairy Aura` on the '
+    + 'carrier\'s entry or mega, and no `|-ability|<x>|Unnerve` on a switch-in.';
+  /* 3. THE BOUND THE ARTIFACT PUBLISHES ABOUT ITSELF, quoted rather than paraphrased. NARRATION-ONLY
+   *    means "no board effect among COMPARED leaves, within the cap" — never "cosmetic". */
+  const noBoundLine = NO.bound ? _NL + '  BOUNDED BY: ' + NO.bound : '';
+  /* 4. THE OTHER CLAUSE'S SHARE, so the two rows can never be read as one quantity. Disjoint by
+   *    construction and verified by the artifact's own `by_cause_reconciles`. */
+  const notBoardLine = _NL + '  NOT THIS CLAUSE: ' + NO.boardGames + ' further game(s) across '
+    + NO.boardCauses + ' cause(s) diverge in narration AND part a board. Those are counted by the '
+    + 'BOARD-MATERIAL clause and are NOT counted here; the two sets are disjoint and the artifact '
+    + 'reconciles them (`by_cause_reconciles: true`). Neither total can be derived from the other.';
+  /* 5. THE LARGEST BUCKETS, because 86 causes over 105 games is a TAIL and a bare percentage hides
+   *    one by construction. Derived from the rows, never typed. */
+  const largest = NO.rows.slice().sort((a, b) => (b.games || 0) - (a.games || 0)).slice(0, 5);
+  const singletons = NO.rows.filter((r) => (r.games || 0) === 1).length;
+  const largestLine = largest.length
+    ? _NL + '  LARGEST: ' + largest.map((r) => String(r.cause).slice(0, 78) + ' — ' + r.games).join(_NL + '           ')
+      + _NL + '  TAIL: ' + singletons + ' of ' + NO.rows.length + ' narration-only cause(s) occur in '
+      + 'exactly ONE game. That is why the threshold is zero rather than a rate: a tolerance is '
+      + 'cleared by fixing the few largest mechanisms while the tail stands undiagnosed.'
+    : '';
+  /* AND THE ONE INSTRUMENT DEFECT THIS CLAUSE CAN SEE FROM WHERE IT STANDS — 2026-09-06.
+   *
+   * `causeEvidence` indexes `j.first_divergences`, which the differential writes as a CAPPED SAMPLE.
+   * A declaration whose matcher requires evidence (the shipping CLOSETED row does) therefore
+   * DECLINES on any cause that did not fit in the cap — measured on release `db248fe67a5e`, only 52
+   * of 130 causes were in it, so 57% of the population could not be declared at all. It fails in the
+   * SAFE direction (decline -> counted undeclared -> gate stays shut), which is why nobody has been
+   * bitten, and it makes the declared count a function of the cap rather than of the decision.
+   *
+   * THE REPAIR IS ENGINE'S (write the rows a declaration names, uncapped) AND IS NOT DONE HERE. What
+   * IS done here is that the run says so with today's numbers instead of leaving it to be
+   * rediscovered: a limit that is only true in a comment is not a limit anybody can act on. */
+  const evidenceLine = (() => {
+    const have = new Set((Array.isArray(j.first_divergences) ? j.first_divergences : [])
+      .map((r) => String((r && r.cause) || '')));
+    const all = NO.rows.concat(NO.boardRows);
+    const blind = all.filter((r) => !have.has(String(r.cause || '')));
+    if (!blind.length) return '';
+    const blindGames = blind.reduce((a, r) => a + (r.games || 0), 0);
+    return _NL + '  EVIDENCE COVERAGE — ' + (all.length - blind.length) + ' of ' + all.length
+      + ' cause(s) (' + (all.reduce((a, r) => a + (r.games || 0), 0) - blindGames) + ' of '
+      + all.reduce((a, r) => a + (r.games || 0), 0) + ' games) carry a row in `first_divergences`, '
+      + 'which is a CAPPED sample. A DECLARED_DIVERGENCE matcher that requires evidence cannot be '
+      + 'judged on the other ' + blind.length + ' and DECLINES by construction — the safe direction, '
+      + 'and still wrong: whether a declaration is honoured is currently a function of the cap. The '
+      + 'repair is in engine/game_differential.js, not here.';
+  })();
+  const NARR_LINES = absorbedLine + lowerBoundLine + noBoundLine + notBoardLine + largestLine
+                   + evidenceLine;
+  /* THE GATING SENTENCE IS THE BOARD CLAUSE'S VERDICT, IN WORDS. See `narrationClause` — the flag is
+   * computed, and a flag nobody can read in the prose is a flag that gets skimmed past. */
+  const gatingNow = !!(boardClause && boardClause.ok === true);
+  const GATING_SENTENCE = gatingNow ? GATES_NOW
+    : REPORTS_NOT_GATES + ' The BOARD-MATERIAL clause is still failing'
+      + (boardClause && typeof boardClause.board_material === 'number'
+          ? ' (' + boardClause.board_material + ' of ' + boardClause.games + ')' : '')
+      + ', and this clause begins gating AUTOMATICALLY when that one reads zero.';
 
   return {
     name: NAME, ok, generated: j.generated || null, rate, baseline: base.rate, pins: WGRCPT,
     /* ============================================================================================
-     * `gates: false` — NARRATION REPORTS, IT DOES NOT HOLD THE GATE SHUT. WILL'S CALL, 2026-08-22.
+     * `gates` IS SET BY THE WRAPPER FROM THE BOARD CLAUSE'S VERDICT — 2026-09-06. WILL, 2026-08-22.
      * ============================================================================================
-     * *"board-material now, narration as its own separate gate afterwards"*. So this clause has its
-     * own row, its own count and its own verdict line on every run, and `medichamIsCorrect()` does
-     * not ask it for permission.
+     * *"board-material now, narration as its own separate gate afterwards"*. While the board clause
+     * is red this clause has its own row, its own count and its own verdict line on every run and
+     * `medichamIsCorrect()` does not ask it for permission. The instant the board clause reads zero,
+     * `narrationClause` computes `gates: true` and this one starts holding the quarantine shut —
+     * nobody decides it, and there is no step anybody has to remember. See `narrationClause`.
      *
      * WHY THAT IS NOT QUIETLY DROPPING IT, WHICH IS THE OBVIOUS OBJECTION AND A FAIR ONE. The thing
      * this project fails at is a real finding going unread — fourteen stale handoffs, a ban list of
@@ -2696,13 +2908,23 @@ function narrationVerdict(artifact, wgDecisionImpact) {
      * a blocking narration clause is exactly what Will's ruling removed from the critical path, and
      * re-adding it here under a different name would be overriding him.
      *
-     * WHAT IT COSTS, SAID PLAINLY RATHER THAN LEFT TO BE DISCOVERED: a regression that adds ONLY
-     * protocol divergences — new narration, identical boards — will no longer hold the gate shut.
-     * That is the deliberate content of the ruling, and it is the reason this row prints its count on
-     * a PASSING run as well as a failing one. */
-    gates: false,
-    quantity: 'protocol_first_divergence_games',
+     * WHAT IT COSTS WHILE THE BOARD CLAUSE IS RED, SAID PLAINLY RATHER THAN LEFT TO BE DISCOVERED: a
+     * regression that adds ONLY protocol divergences — new narration, identical boards — does not
+     * hold the gate shut TODAY. That is the deliberate content of the ruling, it ends by itself, and
+     * it is the reason this row prints its count on a PASSING run as well as a failing one. */
+    quantity: 'narration_only_undeclared_games',
     diverged: div, games,
+    /* THE QUANTITY AND ITS DISJOINT PARTNER, BOTH AS DATA. `narration_only` is the population this
+     * clause judges; `board_material_games` is the other clause's and is carried here only so a
+     * reader can see that 105 + 46 = 151 without opening the artifact. */
+    narration_only: NO.games, narration_only_causes: NO.rows.length,
+    narration_only_singleton_causes: singletons,
+    board_material_games: NO.boardGames, board_material_causes: NO.boardRows.length,
+    bounded_by: NO.bound,
+    lower_bound: true,
+    /* NAMED, NEVER SUMMED INTO THE VERDICT: a declaration that matched a cause the artifact measured
+     * as parting a board. It subtracts nothing; this is the receipt that it tried. */
+    declared_matched_board_material: absorbed,
     /* kept so a reader can see the trend without the trend being able to pass anything — and set to
      * null rather than guessed when the baseline was stamped under a different pin */
     progress: !comparable ? null
@@ -2735,19 +2957,21 @@ function narrationVerdict(artifact, wgDecisionImpact) {
      * with no word attached to either. A reader must never have to work out which of the two
      * whole-game clauses a bare `N of M` came from. */
     why: ok
-      ? `PROTOCOL FIRST DIVERGENCE: ZERO across ${games} games that anything is asked to answer for`
-        + (declaredGames || impactGames ? ` (${div} raw, ${declaredGames} declared, ${impactGames}`
-          + ` cleared on decision impact)` : '')
+      ? `NARRATION-ONLY: ZERO undeclared across ${games} games — every protocol divergence in this `
+        + `run either parts a board (and is the other clause's) or is declared`
+        + (declaredGames || impactGames ? ` (${NO.games} narration-only raw, ${declaredGames} `
+          + `declared, ${impactGames} cleared on decision impact)` : '')
         + `. Mode A pins every die on both sides, so this is the real bar and it has been met.`
-        + REPORTS_NOT_GATES
+        + GATING_SENTENCE + NARR_LINES
         + declaredLine + registerLine + impactLine + matcherLine + closetLine
-      : `PROTOCOL FIRST DIVERGENCE: ${undeclared} of ${games} = `
-        + `${(100 * undeclared / games).toFixed(1)}% of games have a `
-        + `turn at which the two engines' PROTOCOL LINES stop matching`
-        + (declaredGames || impactGames ? ` (${div} raw, less ${declaredGames} declared and`
-          + ` ${impactGames} cleared on decision impact)` : '')
+      : `NARRATION-ONLY: ${undeclared} of ${games} = `
+        + `${(100 * undeclared / games).toFixed(1)}% of games diverge in NARRATION and never part a `
+        + `board, across ${NO.rows.length} cause(s)`
+        + (declaredGames || impactGames ? ` (${NO.games} narration-only raw, less ${declaredGames} `
+          + `declared and ${impactGames} cleared on decision impact)` : '')
         + `. Mode A pins every die on both sides, so each one is a RULE they disagree about, not noise.`
-        + ` This clause reads RED until that is zero.` + REPORTS_NOT_GATES
+        + ` This clause reads RED until that is zero — a rate threshold would be cleared by the few `
+        + `biggest mechanisms while the tail stood.` + GATING_SENTENCE + NARR_LINES
         + declaredLine + registerLine + impactLine
         + matcherLine + closetLine
         + (!comparable
@@ -2755,12 +2979,16 @@ function narrationVerdict(artifact, wgDecisionImpact) {
                + ` run is \`${runMode}\`. One pin is one corner: those are two instruments, and`
                + ` subtracting one rate from the other invents a trend. Re-stamp under this pin`
                + ` (node engine/quarantine.js --stamp-whole-game) if it is the pin you mean to hold.`
-           : rose ? `  AND IT GOT WORSE: RAW ${pct}% against a raw baseline of`
+           : rose ? `  AND IT GOT WORSE — AND THIS TREND IS THE RAW PROTOCOL RATE (${div} of ${games}),`
+                  + ` NOT THE VERDICT QUANTITY ABOVE: the baseline was stamped on the raw first-divergence`
+                  + ` rate and comparing it with the narration-only count would subtract two different`
+                  + ` questions. RAW ${pct}% against a raw baseline of`
                   + ` ${(100 * base.rate).toFixed(1)}% (band ±${(100 * band).toFixed(1)} pts, 2 SE at`
                   + ` n=${games}). The trend is RAW on both sides deliberately — the baseline was stamped`
                   + ` before anything was declared or cleared, and subtracting today's exemptions from`
                   + ` one side only would manufacture progress.`
-                : `  Direction of travel: RAW ${pct}% against a raw baseline of`
+                : `  Direction of travel, on the RAW PROTOCOL rate (${div} of ${games}) and not on the`
+                  + ` verdict quantity above: RAW ${pct}% against a raw baseline of`
                   + ` ${(100 * base.rate).toFixed(1)}% — better, and better is not correct.`)
         + shapeLine,
   };
@@ -3151,10 +3379,15 @@ function orderProbeClause(inject) {
  * inference step: the audit does not go looking for an unreceipted clause's file, because a search
  * that returns null on an ambiguous match is the silent default rebuilt inside the guard against it. */
 function medichamIsCorrect() {
+  /* ONE BOARD CLAUSE, COMPUTED ONCE AND HANDED TO BOTH READERS. `narrationClause` now derives its
+   * `gates` flag from this verdict (see its header), and calling `wholeGameClause()` twice would
+   * parse a 600 KB artifact twice AND create a second place for one verdict to be decided. */
+  const board = wholeGameClause();
   const clauses = PIN.audit([differentialClause(), ...ROSTER_STAGES.map(s => {
     const r = rosterStage(s);
     return { ...r, name: `deliberate roster / ${s}` };
-  }), coverageClause(), wholeGameClause(), narrationClause(), mechanicsClause(), openDefectClause()]);
+  }), coverageClause(), board, narrationClause(undefined, undefined, board), mechanicsClause(),
+     openDefectClause()]);
   /* ==============================================================================================
    * A CLAUSE MAY REPORT WITHOUT GATING, AND IT MUST SAY SO IN ITS OWN RETURN — 2026-09-04.
    * ==============================================================================================
@@ -3760,8 +3993,16 @@ if (require.main === module) {
     console.log('  ' + r.why);
     console.log('');
     console.log('  exit ' + clauseExit(r)
-              + '   [0 the protocol never parts, 1 it does, 2 cannot answer]'
-              + '   — this clause does NOT hold the quarantine gate shut; --whole-game does.');
+              + '   [0 no narration-only game is undeclared, 1 at least one is, 2 cannot answer]');
+    console.log('  ' + (r.gates ? 'THIS CLAUSE NOW HOLDS THE QUARANTINE GATE SHUT — '
+                                : 'this clause does NOT hold the quarantine gate shut — ')
+              + String(r.gates_because || ''));
+    console.log('  THE QUANTITY CHANGED ON 2026-09-06 AND THE COMMAND DID NOT. This printed the raw'
+              + ' PROTOCOL first-divergence count (151 of 961 on release db248fe67a5e) until then; it'
+              + ' now prints the NARRATION-ONLY games — the ones that never part a board, 105 of that'
+              + ' same 151 — because the other 46 are the BOARD-MATERIAL clause\'s and a gate on the'
+              + ' union would be 30% a second copy of it. Any figure quoted from this command before'
+              + ' 2026-09-06 is the wider quantity.');
     console.log('');
     process.exit(clauseExit(r));
   }
@@ -3870,11 +4111,38 @@ if (require.main === module) {
      * What every arm below is about is the OTHER thing the clause decides, so each one is given a pin
      * that vouches and then tests its own question; the pin's own red and green arms are separate and
      * are named `PIN GUARD` so nothing can pass by having them share a fixture. */
+    /* THE BY-CAUSE HALF, ADDED 2026-09-06 WITH THE NARRATION QUANTITY. `narrationVerdict` now judges
+     * `end_state[0].summary.by_cause_totals.games_narration_only` and REFUSES an artifact that has no
+     * reconciled split, so every fixture that reaches that clause needs one. It is DERIVED from the
+     * fixture's own `classes` (default materiality NARRATION-ONLY, one row per cause, `n` games) so an
+     * arm cannot drift from the population it declares — and an arm that needs a board-material cause
+     * passes `end_state` explicitly and overrides it. The totals are computed here, not typed, so
+     * `by_cause_reconciles` is a fact about the fixture rather than a flag on it. */
+    const derivedEndState = (o) => {
+      const rows = [];
+      for (const c of (Array.isArray(o.classes) ? o.classes : [])) {
+        for (const k of (c.causes || [])) {
+          rows.push({ cause: k.cause, games: k.n || 0, board_parted: 0,
+                      board_never_parted: k.n || 0, materiality: 'NARRATION-ONLY' });
+        }
+      }
+      const sum = (m) => rows.filter((r) => r.materiality === m).reduce((a, r) => a + r.games, 0);
+      return [{ summary: { by_cause: rows, by_cause_totals: {
+        causes: rows.length, games: rows.reduce((a, r) => a + r.games, 0),
+        BOARD_MATERIAL: rows.filter((r) => r.materiality === 'BOARD-MATERIAL').length,
+        NARRATION_ONLY: rows.filter((r) => r.materiality === 'NARRATION-ONLY').length,
+        games_board_material: sum('BOARD-MATERIAL'), games_narration_only: sum('NARRATION-ONLY'),
+        games_unknown: 0, by_cause_reconciles: true,
+        bounded_by: 'fixture: NARRATION-ONLY is bounded by board_state.js NOT_COMPARED and the cap',
+      } } }];
+    };
     const PINNED = (extra) => {
       const cur = readJson(D('data', 'engine-release.json'));
       const id = (cur && (cur.id || cur.release || cur.current)) || null;
-      return Object.assign({ [PIN.K.id]: id,
+      const o = Object.assign({ [PIN.K.id]: id,
         [PIN.K.digests]: { 'engine/medicham2-browser.js': 'fixture0000f' } }, extra || {});
+      if (!o.end_state) o.end_state = derivedEndState(o);
+      return o;
     };
     /* AND THE POPULATION HALF. `steering.vouches()` asks for the SELECTOR, which under the empirical
      * policy is the behaviour tables, plus the team pool — the field `wholeGameClause` recorded and
@@ -4618,12 +4886,16 @@ if (require.main === module) {
         decisionImpact('REL').clear('move:someplayedmove') === null
         && /NO DECISION-IMPACT RUN/.test(decisionImpact('REL').why));
       /* THE WHOLE-GAME CLAUSE THROUGH ITS OWN INJECTION POINT: the same cause, cleared and not. */
-      const wgArt = { ...PINNED(), games: 100, diverged: 10, planted_divergence_proof_ok: true,
+      /* BUILT THROUGH `PINNED` WITH ITS CLASSES, NEVER SPREAD AND THEN EXTENDED. `PINNED` derives the
+       * fixture's `end_state` from the classes it is GIVEN, so `{ ...PINNED(), classes: [...] }`
+       * produces an artifact declaring ten diverged games and zero narration-only ones — a fixture
+       * that quietly asserts nothing, which is the green-test-asking-nothing shape. */
+      const wgArt = PINNED({ games: 100, diverged: 10, planted_divergence_proof_ok: true,
         mode: 'M',
         /* the published arm, so these cases exercise the SUBTRACTION rather than the population
          * refusal added 2026-09-03 — which has its own red block further down */
         steering: STEER_OK(),
-        classes: [{ cls: 'drag', causes: [{ cause: 'drag: a different body :: x', n: 10 }] }] };
+        classes: [{ cls: 'drag', causes: [{ cause: 'drag: a different body :: x', n: 10 }] }] });
       diWrite(GOOD);
       /* the reader closes over the rows it read, so the file is no longer needed after this line */
       const wgDI = decisionImpact('REL');
@@ -4802,14 +5074,32 @@ if (require.main === module) {
        * in one session. A reader must never have to work out which `N of M` this is. */
       ok('SPLIT — each clause NAMES ITS QUANTITY in the first words of its own verdict and in a '
         + '`quantity` field, so no reader has to guess which of the two an `N of M` came from',
-        /^BOARD-MATERIAL/.test(aB.why) && /^PROTOCOL FIRST DIVERGENCE/.test(bN.why)
+        /^BOARD-MATERIAL/.test(aB.why) && /^NARRATION-ONLY/.test(bN.why)
         && aB.quantity === 'board_material_games'
-        && bN.quantity === 'protocol_first_divergence_games',
+        && bN.quantity === 'narration_only_undeclared_games',
         aB.quantity + ' / ' + bN.quantity);
-      ok('SPLIT — the narration clause declares `gates: false` and the board clause does not, and '
-        + 'the narration verdict SAYS SO in words as well as in a field',
-        bN.gates === false && aB.gates !== false && /REPORTS, IT DOES NOT HOLD THE GATE SHUT/.test(bN.why),
-        'narration gates=' + bN.gates + '  board gates=' + aB.gates);
+      /* ==========================================================================================
+       * `gates` IS COMPUTED FROM THE OTHER CLAUSE, AND THIS IS THE ARM THAT PROVES IT — 2026-09-06.
+       * ==========================================================================================
+       * Will, 2026-08-22: board-material now, narration as its own separate gate AFTERWARDS. Until
+       * today "afterwards" was a sentence in a comment beside a typed `gates: false`, which is what
+       * "we'll do narration later" looks like the moment it becomes permanent. The two arms here are
+       * exactly the two sides of that condition and they are OPPOSITE: on ARM A the boards part, so
+       * narration reports; on ARM B no board parts, so narration starts holding the gate shut. A
+       * typed flag reads the same on both arms — that is the deliberate break this catches. */
+      const aN2 = narrationClause(ARM_A, INERT), bN2 = narrationClause(ARM_B, INERT);
+      ok('SPLIT / GATES — while the BOARD clause is failing the narration clause REPORTS and says so '
+        + 'in words as well as in a field',
+        aN2.gates === false && /REPORTS, IT DOES NOT HOLD THE GATE SHUT/.test(aN2.why)
+        && /still failing/.test(String(aN2.gates_because)),
+        'narration gates=' + aN2.gates + '  board gates=' + aB.gates);
+      ok('SPLIT / GATES — and on the arm where the BOARD clause READS ZERO the SAME clause GATES, '
+        + 'with nobody switching it on. "Afterwards" is a computed condition, not a comment',
+        bN2.gates === true && bB.ok === true && /NOW HOLDS THE GATE SHUT/.test(bN2.why),
+        'narration gates=' + bN2.gates + '  board ok=' + bB.ok);
+      ok('SPLIT / GATES — the flag MOVES between the two arms. A typed `gates: false` reads the same '
+        + 'on both, which is the unwired-knob shape this repository has a receipt for',
+        aN2.gates !== bN2.gates, aN2.gates + ' / ' + bN2.gates);
 
       /* -- THE UNCAUSED SET, WHICH IS THE FAILURE MODE OF THE SPLIT ---------------------------
        *
@@ -4914,9 +5204,14 @@ if (require.main === module) {
         refusedNarr.withheld === true && refusedNarr.gates === false, refusedNarr.gates);
       const noProofNarr = narrationClause(SPLIT({ games: 1000, diverged: 40, classes: [],
         planted_divergence_proof_ok: false, state: ARM_B.state }), INERT);
-      ok('SPLIT / RED — and so does the OTHER refusal family, which leaves through a different exit: '
-        + 'a planted protocol proof that did not fire',
-        noProofNarr.ok === false && noProofNarr.gates === false, noProofNarr.gates);
+      /* AND THE OTHER REFUSAL FAMILY, WHICH LEAVES THROUGH A DIFFERENT EXIT — a planted protocol
+       * proof that did not fire. Its fixture has CLEAN BOARDS, so since 2026-09-06 the flag it
+       * carries is `true`: with the board clause passing, narration gates, and a clause that cannot
+       * answer therefore holds the quarantine SHUT. That is the safe direction and it is asserted
+       * rather than assumed — the flag is computed on every exit, including the ones that refuse. */
+      ok('SPLIT / RED — a narration clause that CANNOT ANSWER holds the gate shut once boards are '
+        + 'clean: the flag is computed on the refusal paths too, not only on the verdict',
+        noProofNarr.ok === false && noProofNarr.gates === true, noProofNarr.gates);
       ok('SPLIT / GATE — and the SHIPPING assembler is the thing being described: the live gate '
         + 'carries exactly one reporting clause and it is the narration one',
         (() => { const g = medichamIsCorrect();
@@ -4936,11 +5231,28 @@ if (require.main === module) {
     {
       const MOODY_SD = '|-boost|p2a: Scovillain|spa|2';
       const MOODY_ME = '|-boost|p2a: Scovillain|def|2|[from] ability: moody';
-      const WG = (cause, rows, probe) => PINNED({ games: 100, diverged: rows.length, mode: 'M',
-        planted_divergence_proof_ok: true, steering: STEER_OK(),
+      /* `materiality` IS A PARAMETER BECAUSE THE ANTI-ABSORPTION RULE IS A CLAIM ABOUT IT — 2026-09-06.
+       * Every arm below stages a cause the ARTIFACT calls NARRATION-ONLY; the arms at the end of this
+       * block stage the identical cause with the artifact calling it BOARD-MATERIAL, and assert that
+       * the same declaration then subtracts nothing. One knob, two answers. */
+      const WG = (cause, rows, probe, materiality) => PINNED({ games: 100, diverged: rows.length,
+        mode: 'M', planted_divergence_proof_ok: true, steering: STEER_OK(),
         classes: [{ cls: cause.split(' :: ')[0], causes: [{ cause, n: rows.length }] }],
         first_divergences: rows.map((r) => ({ cause, showdown_before: [], ...r })),
-        order_probe: (probe || []).map((r) => ({ cause, ...r })) });
+        order_probe: (probe || []).map((r) => ({ cause, ...r })),
+        end_state: [{ summary: {
+          by_cause: [{ cause, games: rows.length,
+            board_parted: materiality === 'BOARD-MATERIAL' ? rows.length : 0,
+            board_never_parted: materiality === 'BOARD-MATERIAL' ? 0 : rows.length,
+            materiality: materiality || 'NARRATION-ONLY' }],
+          by_cause_totals: {
+            causes: 1, games: rows.length,
+            BOARD_MATERIAL: materiality === 'BOARD-MATERIAL' ? 1 : 0,
+            NARRATION_ONLY: materiality === 'BOARD-MATERIAL' ? 0 : 1,
+            games_board_material: materiality === 'BOARD-MATERIAL' ? rows.length : 0,
+            games_narration_only: materiality === 'BOARD-MATERIAL' ? 0 : rows.length,
+            games_unknown: 0, by_cause_reconciles: true,
+            bounded_by: 'fixture' } } }] });
       const INERT = { active: false, why: 'no run', clear: () => null };
       const dec = (cause, rows, probe) => narrationClause(WG(cause, rows, probe), INERT);
       const MOODY = '-boost field 3 :: |-boost|p2a|spa|2 <> |-boost|p2a|def|2';
@@ -4975,6 +5287,66 @@ if (require.main === module) {
             && /IMPOSSIBLE TO COMPARE/.test(r.why) && /\[1 game\(s\), 1 row\(s\)\]/.test(r.why),
             r.declared_by_kind);
         } finally { DECLARED_DIVERGENCE.pop(); }
+      }
+
+      /* ==========================================================================================
+       * THE ANTI-ABSORPTION RULE — A DECLARATION MAY ONLY SUBTRACT A CAUSE THE ARTIFACT CALLS
+       * NARRATION-ONLY. 2026-09-06, AND IT IS THE ONE THING IN THIS CLAUSE MOST LIKELY TO GO WRONG.
+       * ==========================================================================================
+       * A declaration mechanism that can absorb any failure is not a gate. Three properties already
+       * existed — the kinds are a whitelist, a CLOSETED row ages out with its evidence, and every row
+       * prints matched or not. The fourth is this one, and it is the load-bearing one: every
+       * narration declaration makes the SAME claim underneath, that this line's absence or position
+       * moves no board, and the artifact computes that claim independently, per cause, from the board
+       * comparison rather than from the declaration.
+       *
+       * THE KNOB IS `materiality` AND NOTHING ELSE MOVES. Same cause string, same evidence, same
+       * matcher — the only difference between the two arms is what the ARTIFACT measured about the
+       * board. A clause that subtracted on both would be one that trusts the sentence over the
+       * measurement, which is the whole failure this rule exists to make impossible. And it cannot be
+       * gamed by `match: () => true`: such a row matches board-material causes FIRST and is named. */
+      {
+        const ABS = 'ordering :: |-fail|p1a <> |upkeep';
+        const ROW = [{ showdown: '|-fail|p1a', medicham: '|upkeep' }];
+        DECLARED_DIVERGENCE.push({ kind: 'AUTHORITY-WRONG', name: 'a synthetic catch-all',
+          match: () => true, why: 'selftest only — never shipped' });
+        try {
+          const narrArm = narrationClause(WG(ABS, ROW, [], 'NARRATION-ONLY'), INERT);
+          const boardArm = narrationClause(WG(ABS, ROW, [], 'BOARD-MATERIAL'), INERT);
+          ok('ABSORPTION / GREEN — a declaration DOES subtract a cause the artifact classifies '
+            + 'NARRATION-ONLY. Without this arm the red one below would pass against a clause that '
+            + 'subtracts nothing at all',
+            narrArm.declared === 1 && narrArm.undeclared === 0 && narrArm.ok === true,
+            narrArm.declared + '/' + narrArm.undeclared);
+          ok('ABSORPTION / RED — the IDENTICAL declaration against the IDENTICAL cause subtracts '
+            + 'NOTHING once the artifact measures that cause as parting a board',
+            boardArm.declared === 0 && (boardArm.declared_matched_board_material || []).length === 1,
+            boardArm.declared + ' declared; absorbed='
+              + JSON.stringify(boardArm.declared_matched_board_material));
+          ok('ABSORPTION / RED — ...and it is NAMED on the run with the cause and the board count, '
+            + 'not silently dropped. An exemption that quietly stopped applying teaches nobody',
+            /A DECLARED ROW MATCHED A BOARD-MATERIAL CAUSE AND WAS NOT SUBTRACTED/.test(boardArm.why)
+            && /a synthetic catch-all/.test(boardArm.why) && /parted a board in 1 of its 1/.test(boardArm.why),
+            boardArm.why);
+          ok('ABSORPTION — the two arms differ ONLY in `materiality`, and the declared count MOVES '
+            + 'between them. Identical output across a varied knob would mean the knob is unwired',
+            narrArm.declared !== boardArm.declared,
+            narrArm.declared + ' / ' + boardArm.declared);
+        } finally { DECLARED_DIVERGENCE.pop(); }
+      }
+
+      /* THE LOWER BOUND AND THE OTHER CLAUSE'S SHARE ARE IN THE VERDICT TEXT, NOT ONLY IN A FIELD.
+       * A count that reads zero while two named, measured, unfixed non-emissions are still in the
+       * engine is not a gate; the word LOWER BOUND is what stops it being read as a defect count. */
+      {
+        const r = dec('ordering :: |x <> |y', [{ showdown: '|x', medicham: '|y' }]);
+        ok('the narration verdict carries the word LOWER BOUND, names the censoring (only the FIRST '
+          + 'divergence of a game is recorded) and names the two measured gaps it therefore cannot see',
+          /THIS IS A LOWER BOUND/.test(r.why) && /FIRST divergence/.test(r.why)
+          && /Fairy Aura/.test(r.why) && /Unnerve/.test(r.why), r.why);
+        ok('...and it names the BOARD-MATERIAL share separately, so the two clauses can never be '
+          + 'read as one quantity',
+          /NOT THIS CLAUSE:/.test(r.why) && /by_cause_reconciles/.test(r.why), r.why);
       }
 
       /* SPEED TIES ARE NOT DECLARED, AND THIS ASSERTS THE REFUSAL RATHER THAN LEAVING IT TO THE

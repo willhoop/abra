@@ -96,6 +96,25 @@ const STEER_FULL = () => ({ policy: STEERING.POLICY_EMPIRICAL,
 
 /* Two artifacts with deliberately DIFFERENT shape mixes. The causes are real protocol shapes so the
  * shape module classifies them the way it classifies a live run's. */
+/* ---- AND A THIRD TIME, ONE DAY LATER AGAIN — THE BY-CAUSE SPLIT, 2026-09-06 --------------------
+ *
+ * `narrationClause` stopped judging `j.diverged` and now judges
+ * `end_state[0].summary.by_cause_totals.games_narration_only` — the games that diverge in narration
+ * and NEVER part a board — because 46 of the 151 diverged games in the last real artifact ALSO part
+ * a board and are the BOARD-MATERIAL clause's. An artifact with no reconciled split is WITHHELD, on
+ * purpose and with no fallback, so a fixture that declares less than a real artifact does turns every
+ * arm below into a refusal. That is the third occurrence of the exact failure the two comment blocks
+ * above record, so the split is DERIVED from the fixture's own causes rather than typed beside them:
+ * every synthetic cause here is narration-only, and the totals are computed, never asserted. */
+const endStateFor = (causes) => {
+  const rows = causes.map((c) => ({ cause: c.cause, games: c.n, board_parted: 0,
+    board_never_parted: c.n, materiality: 'NARRATION-ONLY' }));
+  const total = rows.reduce((n, r) => n + r.games, 0);
+  return [{ summary: { by_cause: rows, by_cause_totals: {
+    causes: rows.length, games: total, BOARD_MATERIAL: 0, NARRATION_ONLY: rows.length,
+    games_board_material: 0, games_narration_only: total, games_unknown: 0,
+    by_cause_reconciles: true, bounded_by: 'fixture' } } }];
+};
 const art = (games, causes) => ({
   ...RELPIN,
   games, diverged: causes.reduce((n, c) => n + c.n, 0), threw: 0,
@@ -103,6 +122,7 @@ const art = (games, causes) => ({
   generated: new Date().toISOString(),
   steering: STEER_FULL(),
   classes: [{ cls: 'synthetic', games: causes.reduce((n, c) => n + c.n, 0), causes }],
+  end_state: endStateFor(causes),
 });
 
 const ARM_A = art(1000, [
