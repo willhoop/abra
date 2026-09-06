@@ -197,6 +197,28 @@ And a passing clause says nothing about what it does not sample: the damage diff
 - **Do not quote a QUARANTINED figure**, even with a caveat. Withheld means absent.
 - **Do not take a number from a `docs/_reports/` file as current state.**
 - **Do not commit the artifacts §2 rewrote** as though they were an outcome.
+- **Do not predict from `first_board_divergences` or `first_divergences`.** They are CAPPED — 40 rows
+  and 60 rows. Four agents in two nights predicted from them, and the cap hid the largest narration
+  bucket (32 bare `-fail` rows) until somebody bucketed the full `--dump-games` output. The by-cause
+  list is keyed on the first PROTOCOL divergence while the bar reads the first BOARD one, so three
+  batches were aimed by the wrong list.
+- **Do not read the field whose name looks right.** The board-material bar is `state.games` less
+  `state.games_board_never_diverged`; `by_cause_totals.games_board_material` is the by-cause
+  attribution and is a different number. Three near-misses in one night, one of which would have put
+  a wrong figure into six documents. Check both operands of every subtraction.
+- **Do not quote a differential figure without its `--games`.** The default is 45. It defines the
+  sample, not a budget — an unexplained 777-versus-961 cost a full pool-pin audit, and the answer was
+  a flag nobody had written down.
+
+### EVERY COMMIT RECORDS A ROW IN `docs/RUNNING-NOTES.md` — AND A ROW IS THE WHOLE OUTPUT
+
+The full living-document set — white paper, deck, technical docs, `SUMMARY.md`, `MODELS.md`, the PDFs
+— now folds in on a **MAJOR release only**. In between, **one row per change is the correct output; do
+not bump a living document.** `.githooks/pre-commit` blocks any commit touching `engine/`, `tests/`,
+`web/`, `build/`, a live document or the CHANGELOG that does not also stage the notes page, and
+`tests/test-docs-current.js` clause 5b re-checks it against committed history, so `--no-verify` does
+not launder it. **Put the row obligation in every brief** — an agent that returns without one leaves a
+commit the hook will refuse.
 
 ## 5. ROUTE IT. THE COORDINATOR PRINTS THE STATE AND THEN HANDS OUT BRIEFS.
 

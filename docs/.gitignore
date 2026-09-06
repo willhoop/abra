@@ -1,0 +1,24 @@
+# docs/.gitignore — the division ledgers keep no PDF.
+#
+# A division ledger is a WORKING DOCUMENT: append-only, read in the editor by the division that
+# writes it, restamped by `node engine/status.js --write`, and never handed to anyone as a document.
+# The deliverables — white paper, deck, technical docs, SUMMARY — keep their PDFs and are unaffected.
+#
+# THE MEASURED REASON (2026-09-06, docs/_reports/2026-09-06-repo-cleanup.md):
+# the five ledger PDFs are 132.4 MB of a 524 MB pack, 25% of this repository's whole history, and
+# docs/ENGINE.pdf alone is 108.4 MB across ten rebuilds — the single largest object class here.
+# PDFs do not delta-compress, so each rebuild pays close to full price again: 16.6 MB of pack per
+# pass over the five, 13.9 MB of it ENGINE.
+#
+# THE SAVING IS ENTIRELY FUTURE. Untracking these recovers ZERO bytes of existing history — the
+# blobs stay in the pack and only a history rewrite removes them, which this project has ruled out
+# (271 commit hashes resolve in tracked markdown today, and figures are traced back to runs by hash).
+#
+# This lives here rather than in the root .gitignore so that the ledger rule sits beside the ledgers.
+# build/build_pdfs.js derives the same set from .claude/agents/*.md and prints it on every run; if
+# a sixth division appears, add its ledger PDF here too.
+ENGINE.pdf
+MEASURE.pdf
+SEARCH.pdf
+OPS.pdf
+WEB.pdf

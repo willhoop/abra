@@ -38,6 +38,26 @@ _stamped 2026-09-06 14:08_
 
 <!-- /GENERATED -->
 
+## FOUR READING RULES FOR THE DIFFERENTIAL ARTIFACT, WRITTEN INTO `CLAUDE.md`. 2026-09-06
+
+None of these is an engine defect. All four are ways of reading `data/game-differential.json` that
+produce a well-formed wrong answer, which is this division's own failure mode rather than ENGINE's.
+Full account: `docs/_reports/2026-09-06-pdf-drop-and-rules.md`.
+
+- **`--games` is part of the sample definition.** Default 45 — `flag('--games', 45)`. Two runs at
+  different values are two questions, not one question at two budgets. An unexplained 777-versus-961
+  cost a full pool-pin audit; the pin was honoured. **Report the flags beside the pins.**
+- **`first_board_divergences` is `.slice(0, 40)` and `first_divergences` is `.slice(0, 60)`.** Four
+  agents in two nights predicted from a truncated list; the cap hid 32 bare `-fail` rows. The
+  by-cause list is keyed on the first PROTOCOL divergence while the bar reads the first BOARD one —
+  three batches were aimed by the wrong list.
+- **The board-material bar is `state.games` less `state.games_board_never_diverged`.**
+  `by_cause_totals.games_board_material` is the by-cause attribution and is a different number. Three
+  near-misses in one night. **Check both operands of every subtraction.**
+- **A receipt is written from the path the run opened.** The pool cache stamped digests from the LIVE
+  paths on a pinned run and `engine/provenance.js` verified it, because it checks each key against the
+  file that key NAMES. ROADMAP #547.
+
 ## THREE INSTRUMENT DEFECTS, RED FIRST THEN GREEN — #546, #547, #548 ALL REAL, ALL FIXED, NONE REFUTED. 2026-09-06
 
 Full account with every command and every digest: `docs/_reports/2026-09-06-instrument-defects-546-548.md`.

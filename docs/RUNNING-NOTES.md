@@ -53,6 +53,30 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [Unreleased] — 2026-09-06 — the division ledgers stop getting PDFs, and tonight's rules are written down
+
+- **What changed.** `build/build_pdfs.js` now excludes the division ledgers from the PDF set, under a
+  stated rule — *a division ledger is a working document and gets no PDF* — derived from
+  `.claude/agents/*.md` rather than a typed filename, and printed on every run so the exclusion can
+  prove it ran. The five ledger PDFs are untracked (`git rm --cached`, files left on disk) and ignored
+  via a new `docs/.gitignore`; the root `.gitignore` was not touched, because another agent holds it.
+  `CLAUDE.md` and `.claude/skills/start/SKILL.md` gained tonight's operating rules: the `--games` flag
+  is part of the sample definition, the capped divergence lists are not the population, the clause is
+  not the field whose name looks right, a receipt is written from the path the run opened, deleting a
+  tracked file recovers no history, the 100 MB push wall and its date, and why a history rewrite is
+  unavailable.
+- **Measured.** No model figure moved. The repository figures are derived from git, not from an
+  artifact, and the commands are in the report: the five ledger PDFs hold **132.4 MB of a 524.28 MiB
+  pack**, `docs/ENGINE.pdf` alone **108.4 MB across ten versions**, and one rebuild pass over the five
+  costs **16.6 MB of pack, 13.9 MB of it ENGINE**. **The saving is entirely future — untracking them
+  recovers zero bytes of existing history.** `node build/build_pdfs.js --check` went from 4 documents
+  to rebuild to 2, both pre-existing and neither a ledger; it exits 1 before and after.
+- **Supersedes.** Nothing. No published figure changed value.
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` and `docs/SUMMARY.md` describe the
+  publishing procedure and must record that division ledgers carry no PDF.
+
+---
+
 ## [Unreleased] — 2026-09-06 — the documentation rule itself
 
 Rows written before the release that carries them. The publish pass renames this heading to the

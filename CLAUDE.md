@@ -660,6 +660,58 @@ before the run rather than explaining it afterwards.
 **Re-running is not optional once it lifts.** A quarantined number does not become true when MEDICHAM
 becomes correct; it becomes re-runnable. The re-run list is ROADMAP #57.
 
+## READING THE DIFFERENTIAL: THE FLAGS ARE THE SAMPLE AND THE FIELD IS NOT THE CLAUSE
+
+*(2026-09-06. Four traps, all hit that night, all by agents who were being careful.)*
+
+**`--games` IS PART OF THE SAMPLE DEFINITION, NOT A BUDGET. RECORD IT IN EVERY REPORT.** The default
+is 45 (`engine/game_differential.js`, `flag('--games', 45)`), so two runs at different values are two
+different questions wearing one artifact name — the same shape as the live store serving 995 games and
+982 an hour apart. An unexplained **777 versus 961** triggered a full pool-pin audit: the pin was
+honoured, the engine was innocent, and the missing variable was a command-line flag nobody had written
+down. Report the pins AND the flags, or the number cannot be reproduced.
+
+**THE CAPPED LISTS ARE NOT THE POPULATION.** `state.first_board_divergences` is `.slice(0, 40)` and
+`state.first_divergences` is `.slice(0, 60)`. **Four agents in two nights predicted from them**, and
+the cap hid the single largest narration bucket — **32 bare `-fail` rows** — until somebody bucketed
+the full `--dump-games` output. Worse, the by-cause list is keyed on the first **PROTOCOL** divergence
+while the bar reads the first **BOARD** one, so **three batches were aimed by the wrong list.** A
+truncated list is evidence of what EXISTS, never of how much.
+
+**READ THE CLAUSE, NOT THE FIELD WHOSE NAME LOOKS RIGHT.** The board-material bar is
+`state.games` less `state.games_board_never_diverged`. `by_cause_totals.games_board_material` is the
+BY-CAUSE ATTRIBUTION and is a different number; narration's raw total is before the declared row is
+subtracted. **Three near-misses in one night, one of which would have published a wrong figure into
+six documents.** Check BOTH operands of every subtraction, and name the clause you read rather than
+the field you found.
+
+**A RECEIPT THAT NAMES THE WRONG STORE PASSES PROVENANCE FOR THE WRONG REASON.** The pool cache
+stamped digests taken from the LIVE paths during a pinned run, and `engine/provenance.js` verified it
+— correctly, because it checks each key against the file that key NAMES. The receipt agreed with
+itself and described a store the run never read. ROADMAP #547. **A receipt is written from the path
+the run actually opened, never from the canonical path for that kind of file.**
+
+## THE REPOSITORY HAS A HARD WALL, AND HISTORY IS PERMANENT
+
+*(Measured 2026-09-06. Full account and every command: `docs/_reports/2026-09-06-repo-cleanup.md`.)*
+
+**DELETING A TRACKED FILE RECOVERS ZERO BYTES OF HISTORY.** The blob stays in the pack forever. All
+of `data/verification/` is **96 MB in the working tree and 4.9 MB of packed history** — deleting it
+would have cost 203 files and saved nothing that matters. Cleanup aimed at the working tree is not
+repository cleanup. What actually worked was `git gc`: **1037 MiB → 525 MiB, nothing deleted.** Run
+that before proposing to remove anything.
+
+**THE 100 MB WALL, AND THE DATE.** GitHub hard-rejects any single file over 100 MB — a push failure,
+not a warning. `data/games.ladder.jsonl.gz` is **51.8 MB and grows 1.12 MB/day** (1.07–1.13 measured
+three ways), so it crosses 100,000,000 bytes around **2026-10-17** and takes the hourly ingest with
+it. Sharding is in flight. **State the growth budget in any change that touches the stores**, so a
+future session sees the wall from further off than six weeks.
+
+**A HISTORY REWRITE IS NOT AVAILABLE.** It would recover ~300 MB once and invalidate **271 distinct
+commit hashes that resolve today in tracked markdown** — and this project traces a figure back to the
+run that produced it BY COMMIT HASH. Rewriting history here does not lose bytes, it loses the
+evidence chain. Do not propose it; reduce what goes IN instead.
+
 ## Living docs — a ROW every change, the DOCUMENTS every major release
 
 **CHANGED 2026-09-06 BY WILL:** *"we can update the documents every major release and just keep a
@@ -686,6 +738,15 @@ running notes page in between change the documentation rules"*.
 A major release is a CHANGELOG entry of the form `X.0.0`; nothing is typed to declare one. Rebuild the
 PDFs from the `.md` then (pandoc → HTML → weasyprint; see `docs/` build notes). A result on the site or
 in the deck must still match the white paper and the model's JSON report.
+
+**A DIVISION LEDGER IS A WORKING DOCUMENT AND GETS NO PDF — WILL, 2026-09-06.** The five ledgers named
+in the section above are read in the editor by the division that writes them and handed to nobody, so
+they are excluded from the PDF set and their PDFs are untracked. `build/build_pdfs.js` derives that set
+from `.claude/agents/*.md` and prints it every run — the list is not typed, so a sixth division's ledger
+is excluded the day its agent file appears. Measured: the five ledger PDFs are **132.4 MB of a 524 MB
+pack, 25% of this repository's history**, `docs/ENGINE.pdf` alone **108.4 MB across ten rebuilds**, and
+a full pass over the five cost **16.6 MB of pack, 13.9 MB of it ENGINE**. **The saving is entirely
+future** — untracking them recovered zero bytes, per the rule two sections up.
 
 ### The measured reason
 Six version bumps in one night rebuilt the whole PDF set six times. **`docs/ENGINE.pdf` alone is

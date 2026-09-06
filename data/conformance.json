@@ -1,7 +1,7 @@
 {
- "generated": "2026-09-04T03:38:42.113Z",
+ "generated": "2026-09-06T19:58:31.309Z",
  "by": "engine/conformance.js",
- "files": 564,
+ "files": 617,
  "findings": [
   {
    "std": "S12",
@@ -101,6 +101,15 @@
     "move:ragepowder",
     "move:tailwind",
     "move:trickroom"
+   ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/empirical_driver.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "move:protect"
    ]
   },
   {
@@ -581,6 +590,36 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_choicelock_cleared.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_confusion_selfhit_address.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_contact_ability_transfer.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_defog_target_side.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_encore_stall_address.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_entity_kind.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
@@ -588,6 +627,12 @@
   {
    "std": "S12",
    "file": "tests/probe_fatigue_tag.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_imprison_seal.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -611,7 +656,25 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_multiaccuracy_address.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_nonpermanent_forme_revert.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_partingshot_conditional.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_pivot_magic_bounce.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -629,7 +692,31 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_selfdrop_address.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_stall_uncaused.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_status_clock_dice.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_stat_pick.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_sucker_redirect_refusal.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -1193,6 +1280,69 @@
    "file": "data/xatu.js",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/_diag41-sample.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_diag46-cards.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_diag46-sample.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_diag46b-cards.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_diag46b-sample.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_diag77-cards.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named ONLY in a comment, by engine/medicham2-browser.js — the write path is supplied at runtime (a flag or an environment variable), so no literal reaches a write call."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_diag77-sample.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
   },
   {
    "std": "S13",
