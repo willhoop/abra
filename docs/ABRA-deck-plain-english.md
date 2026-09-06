@@ -1,6 +1,14 @@
 # ABRA — the plain-English deck
 
-**Version 5.259.0 · 2026-09-06 · Will Hooper**
+**Version 5.260.0 · 2026-09-06 · Will Hooper**
+
+**5.260.0 - FOUR MORE FIXES. THE "DIFFERENT BOARD" SCORE STAYED AT 50 GAMES OUT OF 961; THE "DIFFERENT COMMENTARY" SCORE FELL FROM 151 TO 114.** All four were about the simulator saying the wrong thing, or saying nothing, rather than about it doing the wrong thing — which is why the board score did not move and we said in advance that it would not.
+
+**WHAT THEY WERE, IN PLAIN TERMS.** When a Pokemon has run out of every move it knows, it flails — and the real game announces that before it happens. Ours did not. When you use the move that reads the opponent's held item, the real game only names the item if the move actually connects; ours named it even when the move was blocked, missed, or hit something immune. A Pokemon recovering from a huge attack cannot act — and the real game applies that BEFORE it applies sleep, so a sleeping Pokemon that owes a recovery turn does not tick its sleep counter down. Ours ticked it, which meant it woke up a turn early. And finally: if everything a move could have hit has already fainted this turn, the real game prints "But it failed!" and ours printed nothing at all. **That last one was the single biggest gap left in the file, 32 games, and nobody had spotted it — because we had been reading a sample of forty games instead of the full list.**
+
+**WE WROTE DOWN WHAT WE EXPECTED BEFORE EACH RUN, AND WE MISSED THREE TIMES OUT OF FOUR — BY ONE, ONE AND TWO GAMES.** Every miss was the same mistake in the same direction: counting how many games mention a problem tells you the most that can be fixed, not how many will be. Some of those games have a second, unrelated problem sitting behind the first one, so repairing the first just reveals the second. That is now measured rather than guessed at: about nine in ten close outright.
+
+**ONE THING WORTH SAYING BECAUSE IT IS THE OPPOSITE OF OUR USUAL MISTAKE.** Four times this session, a new test accused the simulator of a fault the actual measurement does not count — because the test was fussier than the thing it was defending. One of them accused its own control group. We usually pay for tests that are too lenient; these were too strict, and a too-strict test invents work.
 
 **5.259.0 - WE CORRECTED TWO NUMBERS WE HAD PUBLISHED, AND IN BOTH CASES THE PROBLEM WAS WHERE WE SAID THEY CAME FROM.** The first said our "did they bring all four" filter keeps games a certain amount longer, and pointed at a file that has never contained that figure — not today, and not in any of the six versions it has ever had. We replaced it with the step that file really does record, and we deleted the ratio outright rather than guess at a new one. The second was a score for how well the engine's judgement predicts a winner. That score was faithfully copied from a real file, but the file is QUARANTINED because it was measured against a simulator we have since rewritten, so the honest thing is to print nothing at all. A warning label next to a number people still read is not a warning; it is a number.
 

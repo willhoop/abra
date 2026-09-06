@@ -1,6 +1,10 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.259.0 — 2026-09-06.**
+**Version: 5.260.0 — 2026-09-06.**
+
+**5.260.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND THE DIFFERENTIAL THAT WOULD SAY SO WAS RE-RUN RATHER THAN ASSUMED.** All four items in this version are ANNOUNCEMENT and REFUSAL-ORDER defects: a missing `-activate` above a move line, an item announcement sitting above the hit steps instead of inside them, `mustrecharge`'s position in the BeforeMove chain, and a missing `-fail` for a move with nothing to aim at. No stage, no multiplier and no truncation position in this document is affected. `tests/test-engine-diff.js --n 6000 --seed 20260804` was re-run on the settled release `a985300cb8ed` and reads **0 disagreements at the midpoint and 0 at every one of the sixteen roll indices**, which is the reading this page exists to carry.
+
+**ONE OF THE FOUR SITS ADJACENT TO THIS CHAIN AND IS WORTH NAMING FOR THAT REASON.** The item announcement moved into the per-target STEP LIST, beside the step that breaks screens — both are a move's own `onTryHit`, which the authority fires from inside `spreadMoveHit` at the top of the hit loop. The step list is the structure this page's ordering claims rest on, and the change adds an entry to it without moving any existing one.
 
 **5.259.0 - NOTHING IN THE DAMAGE CHAIN MOVED.** This version is a documentation correction to two published figures elsewhere — a mis-cited quality-filter statistic and a quarantined leaf calibration figure. No stage, no multiplier and no ordering in this document is affected, and the header moves only because the project version does.
 

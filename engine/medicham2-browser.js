@@ -238,6 +238,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * 2026-08-11. */
   ppDeducted: 0, ppPressureCharged: 0, ppRefusedAtSelection: 0, ppRefusedAtExecution: 0,
   struggleUsed: 0, ppRestoredByItem: 0, ppRemovedByMove: 0,
+  /* 2026-09-06 -- WHICH ROAD THE RECHARGE REFUSAL CAME DOWN, and there are two because the authority
+     has two. `rechargeSpentAtBeforeMove` is the BeforeMove event at priority 11 -- the real one, and
+     the one whose POSITION is the mechanic. `rechargeSpentOffMove` is the backstop below the gate,
+     which only a caller-supplied switch or pass can reach: the authority never offers one, because
+     `mustrecharge` carries `onLockMove: 'recharge'` and a locked body's request is `trapped: true`.
+     A non-zero there is a DRIVER handing this engine an action the format cannot produce, which is
+     worth seeing rather than folding into the same total. */
+  rechargeSpentAtBeforeMove: 0, rechargeSpentOffMove: 0,
+  /* 2026-09-06 -- `|-fail|<mover>` lines written because the move had NOTHING LEGAL TO AIM AT. A zero
+     over a run of real doubles games would mean the wire is dead: any turn in which a spread move
+     takes both foes and a slower ally still has a click queued produces one. */
+  noTargetFailAnnounced: 0,
+  /* 2026-09-06 -- `|-activate|USER|move: <it>` lines written above a move's own `|move|` line off
+     `setsOwnTypeAlways.announce`. The tag has exactly one member in this format, so this counter is
+     "how many Struggles were narrated" and it must track `struggleUsed` on any run where a body
+     reaches the empty bar. A zero beside a non-zero `struggleUsed` means the wire is dead. */
+  ownTypeAnnounced: 0,
   /* ROADMAP #152 -- THE FOUR NEW PATHS, EACH COUNTED, because a capability that cannot prove it ran is
    * assumed broken and all four are silent by construction.
    *   struggleFromEmptyMenu     Struggle reached through a DISABLED menu rather than an empty PP bar.
@@ -2842,6 +2859,15 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-09-05 -- set whenever MEDI_LEECHSEED_CHIP_WITHOUT_SEEDER=1 puts the sowerless chip back.
      MUST READ 0 on any shipping run. */
   leechSeedChipWithoutSeederRestored: 0,
+  /* 2026-09-06 -- bumped per suppressed line whenever MEDI_NO_OWNTYPE_ANNOUNCE=1 puts back the engine
+     that read `setsOwnTypeAlways.type` and ignored the same handler's `announce`. MUST READ 0 on any
+     shipping run; a non-zero says the restore arm is loaded, never that the wire broke. */
+  ownTypeAnnounceSuppressed: 0,
+  /* 2026-09-06 -- an `announce` record on `setsOwnTypeAlways` whose `event` this engine has no
+     emitter for. `T.announced` already counts an unknown event globally; this counts the ones that
+     arrive on THIS road, so a Champions change to the handler's shape is loud here rather than
+     folded into somebody else's total. */
+  ownTypeAnnounceUnknown: 0,
   /* ROADMAP #339 -- a drain heal reached the payment step with `dealt > 0` and an EMPTY per-target
      list, so the sum was rounded once as a fallback.
      2026-08-24 -- RETIRED BY CONSTRUCTION AND KEPT DECLARED SO NOBODY LOOKS FOR IT. The drain is now
@@ -2976,6 +3002,20 @@ const MEDFAILS = { encoreAction: 0,
   /* ROADMAP #359 -- set for the whole run when MEDI_ITEM_READ_SILENT=1 suppresses the item-read
      announcement again. */
   itemReadSilentRestored: 0,
+  /* 2026-09-06 -- set for the whole run when MEDI_ITEM_ANNOUNCE_AT_USE=1 puts the item announcement
+     back at `onTry` time, above every hit-step gate. MUST READ 0 on any shipping run. */
+  itemAnnounceAtUseRestored: 0,
+  /* 2026-09-06 -- set for the whole run when MEDI_RECHARGE_BELOW_STATUS=1 puts the recharge refusal
+     back below slp/frz/flinch/confusion/Attract/par. MUST READ 0 on any shipping run. */
+  rechargeBelowStatusRestored: 0,
+  /* 2026-09-06 -- set for the whole run when MEDI_NO_TARGET_SILENT=1 puts the silent targetless
+     refusal back. MUST READ 0 on any shipping run. */
+  noTargetFailSilentRestored: 0,
+  /* 2026-09-06 -- a targetless move whose `targetClass` row could not be read, so this engine could
+     not tell the FIELD branch (which the authority routes past the `-fail` entirely) from the
+     ordinary one. It falls through to the pre-change silence rather than guessing. tag_dex derives
+     `targetClass.target` for all 500 legal moves, so this MUST read 0. */
+  noTargetClassUnknown: 0,
   /* 2026-08-23 -- set for the whole run when MEDI_HERB_END_FIRST=1 restores the backwards
      `-end` before `-enditem` order on an item that frees a volatile. */
   herbEndFirstRestored: 0,
@@ -6574,6 +6614,11 @@ if(INSTRUCT_NO_AIM_REUSE)MEDFAILS.instructNoAimReuseRestored=1;
  * own class with no edit here -- the same reader `defaultTargetOf` uses. A move whose class cannot be
  * read is counted, loudly, and falls through to the pre-change road. */
 const AIM_BY_LOC=new Set(['normal','any','adjacentFoe','adjacentAlly','adjacentAllyOrSelf']);
+/* 2026-09-06 -- THE FOUR CLASSES `useMoveInner` ROUTES PAST ITS `-fail`, written as the authority
+ * writes them (sim/battle-actions.ts:504): `if (move.target === 'all' || move.target === 'foeSide' ||
+ * move.target === 'allySide' || move.target === 'allyTeam')` goes to `tryMoveHit`, and the targetless
+ * `-fail` is in the `else`. A field move with nobody on the far side does NOT announce a failure. */
+const FIELD_TARGET_CLASSES=new Set(['all','foeSide','allySide','allyTeam']);
 function aimTravelsByLoc(mvId){
   const tc=mvId?TAGS.param('move',mvId,'targetClass'):null;
   const cls=tc&&tc.target;
@@ -13544,6 +13589,39 @@ const LEECHSEED_HEAL_ATTRIBUTED=(typeof process!=='undefined'&&process.env&&proc
  * defect from the two narration fields. Any run carrying it also carries a non-zero
  * `MEDFAILS.leechSeedChipWithoutSeederRestored`. */
 const LEECHSEED_CHIP_WITHOUT_SEEDER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_LEECHSEED_CHIP_WITHOUT_SEEDER==='1');
+/* 2026-09-06 -- MEDI_NO_OWNTYPE_ANNOUNCE=1 PUTS BACK THE ENGINE THAT READ HALF OF ONE HANDLER.
+ * `setsOwnTypeAlways` is derived from an `onModifyMove` with two statements, and this engine
+ * consumed only the first: `move.type = '???'` reached `effMoveType` and `dmgRangeOneHit` since
+ * ROADMAP #144, while `this.add('-activate', pokemon, 'move: Struggle')` (data/moves.ts:18220)
+ * reached nothing. Any run carrying the knob also carries a non-zero
+ * `MEDFAILS.ownTypeAnnounceSuppressed`. */
+const NO_OWNTYPE_ANNOUNCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_OWNTYPE_ANNOUNCE==='1');
+/* 2026-09-06 -- MEDI_RECHARGE_BELOW_STATUS=1 PUTS THE RECHARGE REFUSAL BACK BELOW EVERY OTHER ONE.
+ * `mustrecharge` is `onBeforeMovePriority: 11` (data/conditions.ts:367) -- the HIGHEST in this format,
+ * above slp and frz at 10, flinch at 8, confusion at 3, Attract at 2 and par at 1 -- and this engine
+ * asked it LAST, outside the whole BeforeMove block. A sleeping body that owed a recharge therefore
+ * spent a sleep TICK the authority does not spend and carried the recharge into the next turn, which
+ * is a board leaf (`party.<x>.status_counter`) and not a narration difference. Any run carrying the
+ * knob also carries a non-zero `MEDFAILS.rechargeBelowStatusRestored`. */
+const RECHARGE_BELOW_STATUS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RECHARGE_BELOW_STATUS==='1');
+/* 2026-09-06 -- MEDI_NO_TARGET_SILENT=1 PUTS BACK THE ENGINE THAT REFUSED A TARGETLESS MOVE IN SILENCE.
+ * ROADMAP #84 derived the rule and wired half of it: `useMoveInner` writes
+ * `attrLastMove('[notarget]')` AND `add('-fail', pokemon)` (battle-actions.ts:508-513) before it
+ * returns, and this engine set `_mvRes = false` -- the Stomping Tantrum half -- and emitted nothing.
+ * Any run carrying the knob also carries a non-zero `MEDFAILS.noTargetFailSilentRestored`. */
+const NO_TARGET_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_TARGET_SILENT==='1');
+/* THE RECHARGE REFUSAL, SPELLED ONCE. Two call sites read it -- the BeforeMove position (priority 11)
+ * and the backstop for an action that never enters that block -- and CLAUDE.md's facts-are-global rule
+ * is the reason it is a function rather than the same four statements twice.
+ *
+ * `_mvRes = null`, NOT false, and that is the whole point of the split (ROADMAP #84): the handler
+ * returns null (data/conditions.ts:372) because the Pokemon never had an option to choose anything, so
+ * a Stomping Tantrum thrown the turn AFTER a recharge stays at 75 while one thrown after a Fake Out
+ * flinch is 150. Written as an explicit null so the three states are distinguishable in the state. */
+function spendRecharge(m){
+  m._recharge=false; m._mvRes=null; m._lastMove=m._lastMove||null;
+  if(TR)TR.cant(m,'recharge');
+}
 /* 2026-09-05 -- THE HEAL-SOURCE MODIFIER, IN ONE PLACE BECAUSE IT IS ONE FACT (CLAUDE.md: FACTS ARE
  * GLOBAL). Four sites pay a heal that Big Root's own list covers and each was about to grow its own
  * copy of "does the holder carry the item, and is this source on its list".
@@ -14120,6 +14198,14 @@ const REGEN_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_
  * file. Any run carrying it also carries a non-zero `MEDFAILS.itemReadSilentRestored`. Same shape as
  * MEDI_REGEN_SILENT above. */
 const ITEM_READ_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ITEM_READ_SILENT==='1');
+/* 2026-09-06 -- MEDI_ITEM_ANNOUNCE_AT_USE=1 PUTS THE ITEM ANNOUNCEMENT BACK ABOVE EVERY HIT-STEP GATE.
+ * `poltergeist.onTry` and `poltergeist.onTryHit` are two different moments and this engine ran both at
+ * the first one, so a Protected, immune or missed click still read the item out. The knob restores that
+ * position -- it does NOT suppress the line, which is what MEDI_ITEM_READ_SILENT is for, and the two
+ * are deliberately separate because a probe has to be able to tell "written in the wrong place" from
+ * "not written at all". Any run carrying it also carries a non-zero
+ * `MEDFAILS.itemAnnounceAtUseRestored`. */
+const ITEM_ANNOUNCE_AT_USE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ITEM_ANNOUNCE_AT_USE==='1');
 /* 2026-08-23 -- MEDI_HERB_END_FIRST=1 PUTS THE BACKWARDS ORDER BACK: the freed volatile's `-end` is
  * written before the `-enditem` that paid for it. It exists so `tests/probe_mental_herb_order.js` can
  * be shown RED on demand without swapping a file. Any run carrying it also carries a non-zero
@@ -25530,6 +25616,29 @@ function battleTurn(S,rng,actsForA,actsForB){
          delete m._vol.destinybond; MEDSEEN.destinyBondClearedOnMove++;
          if(setsDestinyBond(_dbId))m._dbHeldAtGate=true;
        }}
+      /* 2026-09-06 -- RECHARGE IS `onBeforeMovePriority: 11`, THE TOP OF THIS LIST, AND IT WAS ASKED
+       * LAST. Every priority in the block below is the authority's (data/conditions.ts): recharge 11,
+       * slp 10, frz 10, flinch 8, confusion 3, Attract 2 (data/moves.ts:742), par 1. Champions
+       * overrides the BODY of `par`, `slp` and `frz` and none of the three priorities.
+       *
+       * THE OLD POSITION WAS BELOW `par` AND OUTSIDE THIS WHOLE BLOCK, so a body that was asleep and
+       * owed a recharge paid the SLEEP: it wrote `|cant|slp`, spent a tick of a counter the authority
+       * does not touch, and carried the recharge into the following turn. That is a BOARD leaf --
+       * `party.<x>.status_counter` and `active[].vol.mustrecharge` both part on the same turn -- and
+       * the sleeper then wakes one turn late, which is the same shape ROADMAP #92 fixed for the
+       * flinch/sleep pair one comment up.
+       *
+       * IT SITS BELOW THE DESTINY BOND CLEAR ON PURPOSE. Destiny Bond's own handler is
+       * `onBeforeMovePriority: -1` (data/moves.ts:3512) -- the BOTTOM -- but it ALSO carries
+       * `onMoveAborted`, which `runMove` raises whenever BeforeMove returns falsy
+       * (sim/battle-actions.ts:256-257), so the volatile goes whether the body moves or is refused.
+       * Putting recharge above the clear would have kept a bond alive that the authority drops.
+       *
+       * THE BACKSTOP BELOW THE GATE STAYS, and it is not a second answer: both roads call
+       * `spendRecharge`, which is the only place the refusal is spelled. See the counter pair. */
+      if(m._recharge&&!RECHARGE_BELOW_STATUS){
+        MEDSEEN.rechargeSpentAtBeforeMove++; spendRecharge(m); continue;
+      }
       /* ROADMAP #92 -- THE ORDER OF THESE FIVE IS `onBeforeMovePriority`, WHICH IS AN AUTHORITY FACT
        * AND WAS WRONG HERE. A HIGHER NUMBER RUNS FIRST:
        *     slp        conditions.ts:64    priority 10
@@ -25745,7 +25854,19 @@ function battleTurn(S,rng,actsForA,actsForB){
          choose anything, so a Stomping Tantrum thrown the turn AFTER a Hyper Beam recharge stays at
          75 while one thrown after a Fake Out flinch is 150. Written as an explicit null rather than
          left undefined so the three states are distinguishable in the state itself. */
-      if(m._recharge){m._recharge=false;m._mvRes=null;m._lastMove=m._lastMove||null;if(TR)TR.cant(m,'recharge');continue;}
+      /* 2026-09-06 -- THE BACKSTOP, AND THE ORDERING MOVED UP. The refusal now runs at the TOP of the
+         BeforeMove block (priority 11, above slp/frz/flinch/confusion/Attract/par); this line is what
+         catches an action that never enters that block at all -- a caller-supplied `{kind:'switch'}`
+         or `{kind:'pass'}`, or a `_copied` external move. The authority cannot produce one, because
+         `mustrecharge` carries `onLockMove: 'recharge'` and a locked body's request is `trapped`, so
+         `rechargeSpentOffMove` reading non-zero means a DRIVER invented an escape the format does not
+         have. Under MEDI_RECHARGE_BELOW_STATUS=1 this is the only site again, which is the pre-fix
+         engine exactly. */
+      if(m._recharge){
+        if(RECHARGE_BELOW_STATUS)MEDFAILS.rechargeBelowStatusRestored=1;
+        else MEDSEEN.rechargeSpentOffMove++;
+        spendRecharge(m); continue;
+      }
       /* 2026-08-26 -- `this.queue.cancelMove(pokemon)`: GRAVITY DELETED THIS ACTION EARLIER IN THE TURN.
        *
        * SILENT, AND THAT IS THE POINT. A `|cant|` would be this engine inventing a line -- the
@@ -26265,6 +26386,33 @@ function battleTurn(S,rng,actsForA,actsForB){
            else if(_bm&&_bm.event==='-prepare'){MEDSEEN.volatileAnnouncedBeforeMove++;
              TR.prep(m,_bm.desc,_bm.arg||undefined);}
            else if(_bm)MEDFAILS.volatileBeforeMoveUnknownEvent=(MEDFAILS.volatileBeforeMoveUnknownEvent||0)+1;}
+          /* 2026-09-06 -- THE MOVE'S OWN `onModifyMove` ANNOUNCEMENT, WHICH SITS ABOVE ITS `|move|` LINE.
+           *
+           * `singleEvent('ModifyMove', move, ...)` is sim/battle-actions.ts:431 and
+           * `addMove('move', ...)` is :457 -- the same method, twenty-six lines apart -- so a handler
+           * that calls `this.add` writes ABOVE the move line, not below it. `setsOwnTypeAlways` is
+           * derived from a two-statement handler and this engine consumed only the first statement:
+           * `move.type = '???'` has reached the damage path since ROADMAP #144, and the announcement
+           * reached nothing. That was 17 of the 151 protocol first-divergences on release
+           * `db248fe67a5e` -- the largest single cause bucket in the artifact.
+           *
+           * NOTHING IS NAMED HERE. The record is `TAGS.param('move',id,'setsOwnTypeAlways').announce`,
+           * read by `tag_dex.js`'s `announceIn` off the handler's own `this.add` -- the same reader
+           * `survivesFromFull` and `fractionalPriority` use -- and `T.announced` composes
+           * `<prefix>: <this engine's id>`, so no Showdown display string enters the stream. A null
+           * record emits nothing, which is the whole reason it is a record and not a boolean.
+           *
+           * IT IS ABOVE `TR.mv` AND BELOW THE `-prepare` BLOCK on purpose: the volatile's
+           * `onBeforeMove` (priority 100) runs before the action is even dispatched, and this runs
+           * inside `useMoveInner`. Both engines' order is the authority's order, in the authority's
+           * sequence. */
+          {const _ot=TAGS.param('move',_mid,'setsOwnTypeAlways');
+           const _oa=_ot&&_ot.announce;
+           if(_oa&&_oa.event){
+             if(NO_OWNTYPE_ANNOUNCE)MEDFAILS.ownTypeAnnounceSuppressed++;
+             else if(_oa.event!=='-activate'&&_oa.event!=='-ability')MEDFAILS.ownTypeAnnounceUnknown++;
+             else{MEDSEEN.ownTypeAnnounced++;TR.announced(m,_oa,_mid);}
+           }}
           TR.mv(m,_mid,_tt||m);
         }
         /* ROADMAP #262 -- THE COMMIT SITE IS THE AUTHORITY'S `setActiveMove(move, pokemon, target)`,
@@ -31316,17 +31464,33 @@ function battleTurn(S,rng,actsForA,actsForB){
          * THE MEMBERSHIP IS NOT THE TAG. `readsTargetItem` has two carriers and Knock Off announces
          * nothing here; `announcesItem` is derived from the move's own `onTryHit` and is null on Knock
          * Off, so a line cannot leak onto its 3,834 clicks. The ITEM ID is this engine's own, never a
-         * Showdown display string -- `traceCanon` folds case and spaces on every field from 2 up. */
-        if(_ri&&_ri.announcesItem&&!ITEM_READ_SILENT&&targets[0]&&targets[0].item){
+         * Showdown display string -- `traceCanon` folds case and spaces on every field from 2 up.
+         *
+         * 2026-09-06 -- AND IT NO LONGER HAPPENS HERE. `onTry` and `onTryHit` are TWO MOMENTS and this
+         * block ran both at the first one. A MOVE's own `onTryHit` is
+         * `singleEvent('TryHit', moveData, {}, target, pokemon, move)` at battle-actions.ts:1044,
+         * inside `spreadMoveHit` -- which `hitStepMoveHitLoop` calls, and that is the LAST entry in
+         * `moveSteps` (:556-577). So the line is owed BELOW invulnerability, TryHit (Protect), the
+         * type immunity, the move-specific immunity, accuracy, break-protect and steal-boosts, and a
+         * refused click names NOTHING. Announcing here read the item out over a `|-miss|`, an
+         * `|-immune|` and a `|-activate|...|move: Protect` -- 7 of the 151 protocol first-divergences
+         * on release `db248fe67a5e`. The emission moved to `_stepAnnounceItem`, which sits in the
+         * step list beside `_stepClearScreens` (the other move-owned `onTryHit` in this format).
+         *
+         * WHAT STAYS HERE IS THE REFUSAL ABOVE, because `onTry` really is at use time, and the
+         * ITEM_READ_SILENT arm, because that knob is about whether the line exists at all. */
+        if(_ri&&_ri.announcesItem&&ITEM_READ_SILENT&&targets[0]&&targets[0].item){
+          MEDFAILS.itemReadSilentRestored=1;
+        } else if(_ri&&_ri.announcesItem&&ITEM_ANNOUNCE_AT_USE&&targets[0]&&targets[0].item){
+          /* THE RESTORE ARM: the pre-2026-09-06 position, above every hit-step gate. */
           const _ai=_ri.announcesItem;
+          MEDFAILS.itemAnnounceAtUseRestored=1;
           if(_ai.event==='-activate'){
             if(TR)TR.act(targets[0],_ai.desc,targets[0].item);
             MEDSEEN.targetItemAnnounced++;
           } else { MEDFAILS.targetItemEventUnknown++;
             if(!MEDFAILS.targetItemEventUnknownFirst)
               MEDFAILS.targetItemEventUnknownFirst=String(a.move.id)+' -> '+String(_ai.event); }
-        } else if(_ri&&_ri.announcesItem&&ITEM_READ_SILENT&&targets[0]&&targets[0].item){
-          MEDFAILS.itemReadSilentRestored=1;
         }
       }
       /* WIRE 47 -- CRASH ON MISS. High Jump Kick, Axe Kick and Supercell Slam (209 uses) missed
@@ -31365,7 +31529,36 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* ROADMAP #84 -- NOTHING LEGAL TO AIM AT IS A FAILURE THAT COUNTS. `useMoveInner` writes
        * `add('-fail', pokemon)` and `return false` (battle-actions.ts:509-511) without ever touching
        * `moveThisTurnResult`, so `useMove`'s own line then sets it to that false. */
-      if(!_hadTargets)m._mvRes=false;
+      /* ROADMAP #84's OTHER HALF, 2026-09-06. The comment directly above quotes the authority's two
+       * statements and this engine only ever ran the second:
+       *     this.battle.attrLastMove('[notarget]');
+       *     this.battle.add('-fail', pokemon);          <- never written here
+       *     return false;                               <- `_mvRes = false`, which WAS written
+       * A bare `|-fail|` this engine never wrote is the LARGEST protocol first-divergence bucket in
+       * `data/game-differential.json` (32 of 130 rows on release `25dc68013c82` carry one, though not
+       * all of them are this cause).
+       *
+       * THE FIELD BRANCH IS EXCLUDED BY THE AUTHORITY'S OWN CARVE-OUT, not by a guess:
+       * `useMoveInner` sends `all` / `foeSide` / `allySide` / `allyTeam` to `tryMoveHit` and the
+       * `-fail` lives in the `else`. The class comes out of `targetClass.target`, which is Showdown's
+       * own `move.target` string derived by tag_dex for all 500 legal moves -- the same reader
+       * `aimTravelsByLoc` and `defaultTargetOf` use, so the three can never disagree. A class this
+       * engine cannot read is COUNTED and falls through to the old silence rather than guessing.
+       *
+       * `[notarget]` IS AN ATTRIBUTE ON THE MOVE LINE, not an event: `attrLastMove` appends to the
+       * line already in the log. The differ truncates a `|move|` line to four fields
+       * (`move-target-field`, game_differential.js:2179) so it MOVES NO COUNTER -- it is written to
+       * match the authority byte for byte, and said here so nobody credits it. */
+      if(!_hadTargets){
+        m._mvRes=false;
+        const _ntc=TAGS.param('move',a.move.id,'targetClass');
+        const _ntCls=_ntc&&_ntc.target;
+        if(!_ntCls)MEDFAILS.noTargetClassUnknown++;
+        else if(FIELD_TARGET_CLASSES.has(_ntCls)){/* the authority's own carve-out: no line is owed */}
+        else if(NO_TARGET_SILENT)MEDFAILS.noTargetFailSilentRestored=1;
+        else{ MEDSEEN.noTargetFailAnnounced++;
+              if(TR){TR.attr('[notarget]');TR.fail(m);} }
+      }
       /* ROADMAP #84 -- and the two outcomes of the hit steps, which are NOT both `false`.
        * `_explicitFail` is Showdown's `atLeastOneFailure`: a hit step that returned literal `false`
        * against some target. Type immunity, a move-class immunity and semi-invulnerability all return
@@ -32466,6 +32659,43 @@ function battleTurn(S,rng,actsForA,actsForB){
        * COUNTED WITH ITS FIRST WITNESS. `screensBrokenByMove` at zero over a run with a Brick Break
        * in it would mean this step never fires, which is the failure mode the old block could not
        * have had (it fired unconditionally) and this one can. */
+      /* ===== 2026-09-06 -- THE OTHER MOVE-OWNED `onTryHit` IN THIS FORMAT: THE ITEM ANNOUNCEMENT ===
+       *
+       *     poltergeist.onTryHit(target, source, move) {
+       *       this.add('-activate', target, 'move: Poltergeist', this.dex.items.get(target.item).name); }
+       *     -- data/moves.ts:13610, and Champions does not override poltergeist.
+       *
+       * IT IS THE SAME `singleEvent('TryHit', moveData, ...)` AT battle-actions.ts:1044 that the
+       * screens step above is, so it belongs at the same position and for the same reason: the
+       * authority has already had six chances to drop this row, and a refused click names nothing.
+       * The block that used to write this line sat with `onTry` -- 200 lines up, above every gate --
+       * so a Protected, immune or missed Poltergeist still read the item out. That was 7 of the 151
+       * protocol first-divergences on release `db248fe67a5e`, in three shapes at once:
+       *     |-miss|p2b|p1a   |-immune|p2a   |-activate|p2a|move: Protect
+       *
+       * ONCE PER MOVE, ON THE FIRST SURVIVING ROW, because the authority's `spreadMoveHit` opens
+       * `const target = targets[0]` and fires the singleEvent on that body alone -- its own comment
+       * says *"no spread moves have any kind of onTryHit handler"*. A per-row emission would be a
+       * second line the day a spread carrier arrives, which is the quiet kind of wrong.
+       *
+       * A STEP, NOT A LINE, so the driver's `R.out` does the refusing and this cannot drift from the
+       * six gates that set it -- the FACTS-ARE-GLOBAL shape, and exactly what `_stepClearScreens`
+       * already relies on. */
+      let _itemAnnounced=false;
+      const _stepAnnounceItem=(R)=>{const tg=R.tg;
+        if(_itemAnnounced||ITEM_READ_SILENT||ITEM_ANNOUNCE_AT_USE)return;
+        const _ri=TAGS.param('move',a.move.id,'readsTargetItem');
+        if(!_ri||!_ri.announcesItem)return;
+        if(!tg||!tg.item)return;
+        _itemAnnounced=true;
+        const _ai=_ri.announcesItem;
+        if(_ai.event==='-activate'){
+          if(TR)TR.act(tg,_ai.desc,tg.item);
+          MEDSEEN.targetItemAnnounced++;
+        } else { MEDFAILS.targetItemEventUnknown++;
+          if(!MEDFAILS.targetItemEventUnknownFirst)
+            MEDFAILS.targetItemEventUnknownFirst=String(a.move.id)+' -> '+String(_ai.event); }
+      };
       const _stepClearScreens=(R)=>{const tg=R.tg;
         if(!tg||!tg._sf)return;
         if(!TAGS.has('move',a.move.id,'clearsScreens'))return;
@@ -36413,6 +36643,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * re-shaped completely. */
       const _STEPS=[_stepInvuln,_stepTryHit,_stepTypeImm,_stepTryImm,_stepAccuracy,
                     _stepBreakProtect,                                   // ROADMAP #272 -- step 5
+                    _stepAnnounceItem,                 // 2026-09-06 -- the move's own `onTryHit`, the announcing half
                     _stepClearScreens,                 // 2026-08-24 -- the move's own `onTryHit`
                     _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
                     _stepDamagingHit,_stepBuffOnHit,                  // 2026-08-22 -- ONE `DamagingHit`

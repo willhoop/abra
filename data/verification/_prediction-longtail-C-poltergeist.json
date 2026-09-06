@@ -1,0 +1,37 @@
+{
+  "written_before_the_run": "2026-09-06",
+  "step": "LONG-TAIL BATCH C, FIX 2 - the item announcement is a MOVE's own `onTryHit` (battle-actions.ts:1044, inside spreadMoveHit) and this engine emitted it beside `onTry`, above every hit-step gate",
+  "what_changed": ["engine/medicham2-browser.js (the emission moved out of the onTry precondition block into a new `_stepAnnounceItem` in the step list, beside `_stepClearScreens`; one knob, one counter)",
+                   "tests/probe_poltergeist_announce_step.js (new, 4 deterministic arms)"],
+  "pins": {"release": "3c082897e777",
+           "census": "data/verification/census-pin-9446a684709d.json",
+           "team_store": "data/team-pool-frozen",
+           "arm": "middle", "games": 1200, "turns_cap": 20, "steering": "empirical", "end_state": true},
+  "baseline": {"artifact": "data/verification/longtail-C-struggle.json",
+               "release": "778fbc72c360",
+               "games": 961, "board_material": 50, "protocol_diverged": 137,
+               "boards_never_diverged": 911, "threw": 1},
+  "which_scoreboard": "PROTOCOL. A refused click deals the same damage either way - none - so no board leaf can move. Said before the run: BOARD-MATERIAL sits exactly still.",
+  "prediction": {
+    "board_material": 50,
+    "boards_never_diverged": 911,
+    "protocol_diverged": 131,
+    "threw": 1,
+    "cause_rows_that_must_go_to_zero": [
+      "extra event emitted by medicham2 :: |-miss|p2b|p1a <> |-activate|p1a|poltergeist|charizarditey",
+      "extra event emitted by medicham2 :: |-immune|p2a <> |-activate|p2a|poltergeist|mentalherb",
+      "extra event emitted by medicham2 :: |-immune|p2a <> |-activate|p2a|poltergeist|focussash",
+      "extra event emitted by medicham2 :: |-activate|p2a|protect <> |-activate|p2a|poltergeist|mawilite",
+      "extra event emitted by medicham2 :: |-activate|p2a|protect <> |-activate|p2a|poltergeist|leftovers",
+      "extra event emitted by medicham2 :: |-activate|p2a|protect <> |-activate|p2a|poltergeist|feraligite",
+      "extra event emitted by medicham2 :: |-activate|p2b|protect <> |-activate|p2b|poltergeist|leftovers"
+    ],
+    "reasoning": "7 rows of the FULL by-cause list name this line - counted over `classes`, not over `state.first_board_divergences`, which is capped at 40 and is not the population. The struggle fix in the same batch closed 14 of its 17 rows outright and re-classified 3, an 82% close rate; 7 x 0.82 = 5.7, so I call SIX closing and ONE re-classifying onto a divergence behind it. 137 - 6 = 131. The risk is in the other direction from struggle: a Poltergeist is clicked EARLY, so there are more turns left in which a second defect can surface, and I would not be surprised by 132 or 133.",
+    "counters": {
+      "MEDSEEN.targetItemAnnounced": "> 0 - the line is still written on connected clicks, and it must now be STRICTLY FEWER than before, because the refused ones stopped writing it",
+      "MEDFAILS.itemAnnounceAtUseRestored": 0,
+      "MEDFAILS.itemReadSilentRestored": 0
+    }
+  },
+  "how_a_miss_would_read": "board_material moving at all means an announcement that could not touch a leaf did. protocol falling by MORE than 7 means something closed this fix cannot explain. protocol falling by fewer than 4 means most of these games carry a second defect and the bucket was smaller than its row count."
+}

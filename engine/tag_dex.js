@@ -1125,16 +1125,37 @@ const MOVE_TAGS = [
    * whole format before it was wired, because a bare `move.type =` match OVER-MATCHES BADLY: Aura
    * Wheel (forme), Raging Bull (forme), Terrain Pulse (terrain) and Weather Ball (sky) all write it
    * too and all four are already handled elsewhere by their own conditional tags. Requiring the
-   * handler to carry no `if` at all leaves exactly ONE member: struggle. */
-  { tag: 'setsOwnTypeAlways', param: 'the move overwrites its own type, with no condition', probe: 'setsOwnTypeAlways',
+   * handler to carry no `if` at all leaves exactly ONE member: struggle.
+   *
+   * 2026-09-06 -- `announce` IS THE SECOND STATEMENT OF THE SAME HANDLER, AND IT WAS BEING DROPPED.
+   *
+   *     onModifyMove(move, pokemon, target) {
+   *       move.type = '???';
+   *       this.add('-activate', pokemon, 'move: Struggle');     <- this line
+   *     }
+   *
+   * `singleEvent('ModifyMove')` is sim/battle-actions.ts:431 and `addMove('move', ...)` is :457, so
+   * the authority writes it IMMEDIATELY ABOVE the move line. It was the single largest protocol
+   * first-divergence bucket in `data/game-differential.json` -- 17 of 151 on release `db248fe67a5e`.
+   *
+   * IT IS `announceIn`, THE SAME READER THE OTHER TWO FAMILIES USE, so no event name and no prefix
+   * is typed here: the engine composes `<prefix>: <id>` from its own ids and `traceCanon` folds that
+   * onto the authority's `move: Struggle`. A handler that stops announcing yields `null` and the
+   * consumer emits nothing, which is why it is a record rather than a boolean.
+   *
+   * THE MEMBERSHIP WAS PRINTED BEFORE IT WAS WIRED, as the paragraph above requires and for the same
+   * reason: one member, `struggle`, `{event:'-activate', prefix:'move'}`. `announceIn` is scoped to
+   * the rules that call it and this is now the third. */
+  { tag: 'setsOwnTypeAlways', param: 'the move overwrites its own type, with no condition, and what it announces',
+    probe: 'setsOwnTypeAlways',
     why: 'Struggle is typeless (`???`). Unreachable until PP existed, and wrong against a Ghost the '
-       + 'moment it became reachable',
+       + 'moment it became reachable; and it announces itself above its own move line',
     of: m => {
       const src = String(m.onModifyMove || '');
       if (/\bif\s*\(/.test(src)) return null;
       const w = src.match(/move\.type\s*=\s*['"]([^'"]+)['"]/g) || [];
       if (w.length !== 1) return null;
-      return { type: /['"]([^'"]+)['"]/.exec(w[0])[1] };
+      return { type: /['"]([^'"]+)['"]/.exec(w[0])[1], announce: announceIn(m.onModifyMove) };
     } },
   /* CARD 35 -- THE MOVE-SPECIFIC IMMUNITY, AND EACH OF THE SIX HAS ITS OWN CONDITION.
    *

@@ -1,0 +1,29 @@
+{
+  "written_before_the_run": "2026-09-06",
+  "step": "LONG-TAIL BATCH C, FIX 3 - `mustrecharge` is onBeforeMovePriority 11, the highest in the format, and this engine asked it LAST (below par, outside the BeforeMove block)",
+  "what_changed": ["engine/medicham2-browser.js (`spendRecharge` extracted as the one implementation; the refusal hoisted to the top of the BeforeMove block, below the Destiny Bond clear; the old site kept as a counted backstop; one knob, three counters)",
+                   "tests/probe_recharge_priority.js (new, 3 arms)",
+                   "tests/probe_{struggle_announce,poltergeist_announce_step,recharge_priority}.js - the reducer now applies the differ's declared `source-tag` and `display-flags` equivalences"],
+  "pins": {"release": "25dc68013c82",
+           "census": "data/verification/census-pin-9446a684709d.json",
+           "team_store": "data/team-pool-frozen",
+           "arm": "middle", "games": 1200, "turns_cap": 20, "steering": "empirical", "end_state": true},
+  "baseline": {"artifact": "data/verification/longtail-C-poltergeist.json",
+               "release": "3c082897e777",
+               "games": 961, "board_material": 50, "protocol_diverged": 130,
+               "boards_never_diverged": 911, "threw": 1},
+  "which_scoreboard": "THE LAB, and the pool is expected to SIT STILL. Said before the run, with the reason: the defect needs a body to owe a recharge AND be asleep, frozen, flinched, confused, attracted or paralysed on the SAME turn. Two uncommon states at once. There is no cause row in `data/verification/longtail-C-poltergeist.json` that names a recharge at all - the only `|cant|` rows are three paralysis ones and a sleep cure - so I have NO evidence the pool contains a single instance.",
+  "prediction": {
+    "board_material": 50,
+    "boards_never_diverged": 911,
+    "protocol_diverged": 130,
+    "threw": 1,
+    "reasoning": "FLAT ON BOTH. This is the deliberate obscure-tail case Will's 2026-08-23 ruling covers: the roster and the census carry it, the pinned pool is not where it lives. A pool that moves at all would be a surprise and I would go looking for WHICH game before claiming it.",
+    "counters": {
+      "MEDSEEN.rechargeSpentAtBeforeMove": "> 0 over 961 games - Hyper Beam is 1,627 corpus clicks, so recharges certainly happen; this is the road they must now come down",
+      "MEDSEEN.rechargeSpentOffMove": "expected 0. The authority never offers a switch or a pass to a locked body (`onLockMove: 'recharge'` -> `trapped: true`), so a non-zero means the DRIVER handed this engine an action the format cannot produce.",
+      "MEDFAILS.rechargeBelowStatusRestored": 0
+    }
+  },
+  "how_a_miss_would_read": "if either figure moves, the co-occurrence is NOT as rare as this reasoning says and the moved games must be named by cause before anything is claimed. A figure that gets WORSE means hoisting the refusal above the status chain took a turn away from a body the authority lets act - most likely the Destiny Bond ordering or a `sleepUsable` move (Sleep Talk / Snore), which run AFTER their own `|cant|slp` and would now never be reached on a recharging body. That pairing is impossible in the authority for the same reason (the request offers only `recharge`), but it is the shape to check first."
+}

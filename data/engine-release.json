@@ -1,10 +1,10 @@
 {
-  "current": "db248fe67a5e",
-  "cut": "2026-09-06T04:08:24.424Z",
-  "why": "tests/probe_beatup_ally_order.js — freeze the tree under test",
-  "cuts": 11,
-  "latest_cut": "2026-09-06T04:52:25.535Z",
+  "current": "a985300cb8ed",
+  "cut": "2026-09-06T08:13:48.035Z",
+  "why": "longtail-batch-C-settled--line-endings-restored-to-LF-after-a-python-rewrite-flipped-the-whole-engine-to-CRLF",
+  "cuts": 7,
+  "latest_cut": "2026-09-06T08:26:36.276Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-06T04:52:25.557Z",
+  "pointer_written": "2026-09-06T08:26:36.291Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

@@ -149,6 +149,183 @@ _stamped 2026-09-06 01:28_
 
 <!-- /GENERATED -->
 
+## LONG-TAIL BATCH C — FOUR FIXES, ONE AT A TIME: BOARD-MATERIAL **50 OF 961 -> 50 OF 961**, PROTOCOL **151 -> 114**, CENSUS LEVEL AT 829/829. THE LARGEST BUCKET IN THE ARTIFACT WAS **ROADMAP #84's OTHER HALF** AND HAD NEVER BEEN NAMED. 2026-09-06, CHANGELOG 5.260.0
+
+Four mechanics, four frozen releases, four paired measurements, each with a `MEDI_*` restore knob and
+a probe shown RED first with a control that does not move. Pins IDENTICAL on every whole-game run:
+census `data/verification/census-pin-9446a684709d.json`, pool `data/team-pool-frozen`, arm `middle`,
+`--end-state`, steering `empirical`, cap 20, `driver_code_stable` true throughout. Full account:
+`docs/_reports/2026-09-06-longtail-batch-C.md`.
+
+| step | what landed | release | board-material | protocol |
+|---|---|---|---|---|
+| baseline | as published | `db248fe67a5e` | 50 | 151 |
+| 1 | Struggle's `-activate`, off the tag's own handler | `778fbc72c360` | **50** | **137** |
+| 2 | the item announcement moves down to `onTryHit` | `3c082897e777` | **50** | **130** |
+| 3 | `mustrecharge` at `onBeforeMovePriority` 11 | `25dc68013c82` | **50** | **130** |
+| 4 | a move with no legal target announces its failure | `d7d83e49fa6c` | **50** | **114** |
+| settled | line endings restored, artifact republished | `a985300cb8ed` | **50** | **114** |
+
+**EVERY BOARD-MATERIAL CALL WAS 50 AND EVERY ONE LANDED.** The four protocol calls were 136 / 131 /
+130 / 116 against 137 / 130 / 130 / 114 — three misses of one, one and two, all written to
+`data/verification/_prediction-longtail-C-*.json` BEFORE their runs. `node engine/status.js` reads
+**7 of 9**, and the two failures are the whole-game clauses on their measured counts.
+
+### STRUGGLE — THE TAG IS DERIVED FROM A TWO-STATEMENT HANDLER AND THIS ENGINE CONSUMED ONE
+
+`setsOwnTypeAlways` reads `move.type = '???'` and ignored `this.add('-activate', pokemon,
+'move: Struggle')` on the next line (`data/moves.ts:18220`). `singleEvent('ModifyMove')` is
+`battle-actions.ts:431` and `addMove('move', ...)` is `:457`, so the line sits IMMEDIATELY ABOVE the
+move line — **17 of 151 rows, the largest bucket at the time.** The param is `announceIn`, the reader
+`survivesFromFull` and `fractionalPriority` already use, so no event name and no prefix is typed;
+membership printed first and it is one member.
+
+**THE `data/tags.json` REGENERATION WAS A CHANGE WITH CONSEQUENCES AND WAS DIFFED AS ONE.** Nine
+leaves moved in total: the two new params, the tag's own `param`/`why` prose, `generated`, and
+**`cantUseTwice` and `privateWeather` flipping `used` false -> true** — the read-detector catching up
+with engine work that landed 2026-09-05, not a new derivation. Zero usage counts, zero linkage rows,
+zero entity memberships. `data/abra-tags.js` rebuilt; `build/build_tags_js.js --check` clean.
+
+`tests/probe_struggle_announce.js`, knob `MEDI_NO_OWNTYPE_ANNOUNCE`: three arms clear, the knob puts
+two clauses red on every one, and the emptying turn is read off the AUTHORITY's own request
+(`offered [struggle]`) rather than off the probe's PP arithmetic. **14 of 17 rows closed outright and
+3 re-classified onto divergences that had been hiding behind the missing line.**
+
+### POLTERGEIST — `onTry` AND `onTryHit` ARE TWO MOMENTS AND BOTH RAN AT THE FIRST
+
+A MOVE's own `onTryHit` is `singleEvent('TryHit', moveData, {}, target, pokemon, move)` at
+`battle-actions.ts:1044`, inside `spreadMoveHit`, which `hitStepMoveHitLoop` calls — the LAST entry in
+`moveSteps`. So the item announcement is owed BELOW invulnerability, Protect, type immunity, the
+move-specific immunity, accuracy and break-protect, and a refused click names NOTHING. This engine
+emitted it beside the `onTry` refusal, above all seven gates. The emission moved into
+`_stepAnnounceItem`, in the step list beside `_stepClearScreens` — the other move-owned `onTryHit` in
+this format — where the driver's `R.out` does the refusing.
+
+**THE PROBE'S CONTROL WAS DELETED BY A DIE ON THE FIRST ATTEMPT AND THAT IS THE LESSON.** Poltergeist
+is 90 accurate on a SHARED stream, so on `top-tie-first` — a corner arm that takes the extreme roll
+every time — all three control clicks missed and the file accused the engine of withholding a line it
+was never owed. The clicker now carries **No Guard**, checked off the species' own row; the fourth arm
+deliberately takes the ability away from the same body, because No Guard also bypasses
+semi-invulnerability. **8 rows closed, 1 re-classified.**
+
+### `mustrecharge` IS THE TOP `onBeforeMovePriority` IN THE FORMAT AND WAS ASKED LAST — AND IT IS A BOARD DEFECT
+
+recharge 11, slp and frz 10, flinch 8, confusion 3, Attract 2, par 1. A sleeping body that owed a
+recharge paid the SLEEP here: `|cant|slp`, a tick off a counter the authority does not touch, and the
+recharge carried into the next turn — `party.<x>.status_counter` AND `active[].vol.mustrecharge`, both
+board leaves. `spendRecharge` is now the ONE implementation, called from the hoisted BeforeMove
+position and from a COUNTED backstop below the gate. The Destiny Bond clear stays above it, because
+Destiny Bond also carries `onMoveAborted` and the volatile goes whether the body moves or is refused.
+
+**THE POOL WAS CALLED STILL BEFORE THE RUN AND IT WAS BYTE-IDENTICAL** — `classes`,
+`first_divergences`, `first_board_divergences` and `end_state` all identical strings, zero cause rows
+moved. Will's 2026-08-23 ruling working as designed: the lab carries the obscure tail. The wire is a
+READING and not an inference — `game_differential.js` runs the engine out of the release snapshot, so
+two turns were staged against the LIVE module: `rechargeSpentAtBeforeMove` 0 -> 1 with the sleep
+counter still 0, and `rechargeSpentOffMove` 0 -> 1 on a caller-supplied switch.
+
+### THE LARGEST BUCKET NOBODY HAD NAMED — 32 BARE `|-fail|` LINES, AND ROADMAP #84 HAD WIRED HALF OF IT
+
+`--dump-games 170` on `25dc68013c82` bucketed the FULL by-cause list rather than the capped
+`first_board_divergences`: **32 bare `|-fail|pXY`**, then 11 post-hit ability procs, 9 berry/item, 7
+freeze, 5 zero-magnitude boosts, 5 mega. `useMoveInner` writes `attrLastMove('[notarget]')` AND
+`add('-fail', pokemon)` when a non-field move has no legal target (`battle-actions.ts:508-513`); this
+engine set `_mvRes = false` and emitted nothing, with the authority's own `add('-fail')` quoted in the
+comment one line above. **The FIELD carve-out is the authority's own** — `all`/`foeSide`/`allySide`/
+`allyTeam` go to `tryMoveHit` and the `-fail` is in the `else` — read off `targetClass.target`, the
+same reader `aimTravelsByLoc` uses, and an unreadable class is COUNTED and falls through to silence.
+
+**17 rows closed and 1 re-classified. 15 of the 32 are NOT this cause and are untouched**: Ally
+Switch with no partner (3), `substitute|[weak]`, Yawn (2), Leech Seed (2), Last Resort, Trick,
+Instruct, Sucker Punch, Rage Powder, and two `-fail` lines written on the TARGET rather than the mover.
+
+### THE INSTRUMENT WAS THE SUSPECT FOUR TIMES AND WAS RIGHT THREE OF THEM
+
+Four separate times a new probe accused the engine of something `game_differential.js` cannot see, and
+each is now applied to all four probes with the differ's own rule id beside it: `|split|SIDE` carries
+the omniscient line THEN the spectator line and only the first is kept (:2078); `[miss]` is APPENDED
+to a `|move|` line that the differ truncates to four fields (:2179); `[of]` is dropped by `source-tag`
+(:2156) and `[silent]` by `display-flags` (:2171) — **that pair accused the CONTROL arm of two Yawn
+attribution gaps**; and `ability-announcement` (:2139) maps every `|-ability|` line to null. **A probe
+stricter than the measurement it defends reports defects the measurement cannot see.**
+
+### A PYTHON REWRITE FLIPPED THE ENGINE TO CRLF AND THE ROSTER'S RED PLANTS CAUGHT IT
+
+Python's text mode on Windows writes `\r\n`, so `engine/medicham2-browser.js` came out with 40,622
+CRLF endings where it had none. JavaScript does not care; **`tests/roster.js`'s red self-test plants
+are TEXT ANCHORS into that file** and two of them stopped matching, turning the abilities and moves
+clauses red with *"the anchor matched 0 time(s) — an unapplied plant reads exactly like a comparator
+that found nothing"*. Restored to LF, re-cut, and every clause the change staled was re-run.
+
+**TWO OF THE FOUR DEAD ANCHORS WERE PRE-EXISTING AND A SHIPPED ARTIFACT WAS HIDING THEM.** Tested
+against `git show HEAD:engine/medicham2-browser.js`: `move/boosts-self` and
+`move/needs-a-stat-stage-to-act-on` were mine, but **`ability/aids-its-ally`** (the ally-guard site
+learned about Mold Breaker and now reads `_fgAb`) and **`move/needs-the-user-off-full-hp`** (the Leech
+Seed seeder's return grew Big Root's multiplier on 2026-09-05) matched ZERO times at HEAD as well.
+They were invisible because `data/roster.{abilities,moves}.json` at HEAD carry `reds: []` — written by
+a run that never armed the self-test. **Third time an artifact has hidden a plant that could not go
+red.** Both re-aimed with the diagnosis beside them; all three stages now report **0 not-ok reds**
+across 18 / 29 / 35 demonstrations.
+
+### THE CLAUSES THIS PASS STALED WERE RE-RUN ON THE SETTLED RELEASE AND NONE MOVED
+
+Damage differential **0 of 6000** at the midpoint and at all sixteen corners, seed 20260804. Roster
+**items 140 / abilities 129 / moves 475**, `FIRED-AND-BOARDS-DIFFER` and `DID-NOT-FIRE` at **zero on
+all three stages**, `reds` not-ok at **zero on all three**. `all_mechanics_fire.js --kind all` — 1313
+games, 0 threw, 0 sheets unassembled. Census regenerated after every step: **829 live / 829 probed /
+0 missing, 0 hollow, 0 threw** every time. `data/game-differential.json` republished at **50 / 114**
+on `a985300cb8ed`, reproducing the step-4 run to the byte on `classes`, `first_divergences`,
+`state.first_board_divergences` and `end_state`.
+
+### THE HAND LIST
+
+**Removed — all three of the named-and-not-fixed items from the list below, plus one nobody had
+named, because a probe now carries each:**
+
+- **Struggle's `-activate` line** — `tests/probe_struggle_announce.js` (3 arms, knob
+  `MEDI_NO_OWNTYPE_ANNOUNCE`).
+- **Poltergeist announcing at use time** — `tests/probe_poltergeist_announce_step.js` (4 arms, knob
+  `MEDI_ITEM_ANNOUNCE_AT_USE`).
+- **`mustrecharge` outranking sleep and freeze** — `tests/probe_recharge_priority.js` (3 arms, knob
+  `MEDI_RECHARGE_BELOW_STATUS`), and it was BOARD-MATERIAL rather than the rare narration case the
+  old list called it.
+- **A move with no legal target** — `tests/probe_no_legal_target_fail.js` (3 arms, knob
+  `MEDI_NO_TARGET_SILENT`).
+
+**Added — one, DERIVED and NOT PROBED, and it is the next coherent bucket:**
+
+- **The immunity STEP is split three ways in the authority and pooled into one here — 5 games.**
+  `Pokemon#runImmunity` (`sim/pokemon.ts:2242-2268`) writes `|-immune|<body>|[from] ability: Levitate`
+  and is called from `hitStepTypeImmunity`, **step 2**. Soundproof, Bulletproof and Overcoat answer
+  `onTryHit` on the ABILITY, which is `runEvent('TryHit')`, **step 1**. A move's own `onTryImmunity` is
+  **step 3**. This engine asks all of them through `moveClassBlocked` inside `_stepTryImm` (step 3), so
+  a spread move meeting two immune bodies writes its two `|-immune|` lines in the wrong order — four
+  `ordering :: |-immune|pXY <> |-immune|pZW|[from]levitate` rows plus one Soundproof one. The fix is a
+  `stage` param on `immuneToMoveClass` derived from WHICH HOOK each ability declares, plus a split in
+  the step list: a tag regeneration AND a step-list change, which is the highest-risk shape in this
+  engine and belongs in its own pass.
+
+**Owed and named, carried forward:** the remaining 15 bare `-fail` rows (Ally Switch with no partner
+is the largest sub-shape at 3; then Yawn, Leech Seed, Substitute `[weak]`, Last Resort, Trick,
+Instruct, Sucker Punch, Rage Powder, and two written on the TARGET); the unattributed damage games,
+the berry-not-eaten games and the freeze-thaw games named in
+`docs/_reports/2026-09-05-longtail-batch-A.md`; the two narration gaps measured beside the Fairy Aura
+work (no `|-ability|<x>|Fairy Aura` on entry or mega, no `|-ability|<x>|Unnerve` on a switch-in) —
+though note that the differ DROPS every `|-ability|` line, so neither can ever appear in the whole-game
+figure and both belong to the narration gate alone. The 30% post-hit ability procs and the
+`active[].stall` rows remain filed as INSTRUMENT suspects rather than engine defects.
+
+**THE LIVING DOCUMENTS WERE UPDATED, AND A GATE IS WHY RATHER THAN A CHOICE.** The intention was to
+leave the white paper, the deck, the technical docs, `docs/MODELS.md`, `docs/SUMMARY.md` and
+`docs/DAMAGE-STAGES.md` to the session that was rebuilding them and their PDFs. Bumping `CHANGELOG.md`
+to 5.260.0 then turned `tests/test-docs-current.js` RED with six documents stranded at 5.259.0 — and
+the white paper's own lead paragraph was publishing `PROTOCOL FIRST-DIVERGENCE 151 OF 961`, which this
+pass supersedes, so the update was mandatory. Each gained a 5.260.0 block and a bumped header; the
+gate is back to **24 passed, 0 failed**, and `test-roadmap-register`, `test-artifact-rerunnable`,
+`engine/artifact_audit.js` and `test-no-silent-failure.js` are green on the changed files. **The six
+`.pdf` files are now stale against their `.md` and that is OWED to the docs session** — `build/` was
+not touched here.
+
 ## THREE HELD FIXES APPLIED ONE AT A TIME — BOARD-MATERIAL **56 OF 961 -> 50 OF 961**, PROTOCOL **158 -> 151**, CENSUS LEVEL AT 829/829, AND `data/game-differential.json` REPUBLISHED OFF A SETTLED TREE. 2026-09-06, CHANGELOG 5.258.0
 
 Three fixes that were derived, proven red-first and held unapplied, applied and **measured separately**

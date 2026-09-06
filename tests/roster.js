@@ -5755,9 +5755,21 @@ const RULES = [
      + 'land in either arm.\n'
      + '     THE NEGATIVE IS THE CARRIER ITSELF: it stands beside its ally taking nothing, and the '
      + 'ally\'s protections must not appear on it.',
+  /* THE ANCHOR WAS RE-AIMED 2026-09-06 AND IT HAD BEEN DEAD SINCE THE ALLY-GUARD SITE LEARNED ABOUT
+   * MOLD BREAKER. It read `_fg=_pal&&TAGS.param('ability',_pal.ability,...)`; the site now resolves
+   * the partner's ability through `suppressedAbility` first and reads `_fg=_fgAb&&...`, so the plant
+   * matched ZERO times and `--reds` reported it exactly that way: *"an unapplied plant reads exactly
+   * like a comparator that found nothing"*.
+   *
+   * IT WAS DEAD AT HEAD, NOT BROKEN BY THIS SESSION — the same string matches 0 times in
+   * `git show HEAD:engine/medicham2-browser.js`. It was invisible because the shipped
+   * `data/roster.abilities.json` carried `reds: []`, i.e. the artifact was written by a run that
+   * never armed the self-test. That is the third time an artifact has hidden a plant that could not
+   * go red (docs/ENGINE.md, 2026-09-04 and 2026-09-05); running `--reds` is what makes it visible and
+   * the gate FAIL is the check working. */
   break: { why: 'the ally damage reduction is dropped',
-    patch: [["const _fg=_pal&&TAGS.param('ability',_pal.ability,'reducesAllyDamage');",
-             "const _fg=null&&TAGS.param('ability',_pal.ability,'reducesAllyDamage');"]] },
+    patch: [["const _fg=_fgAb&&TAGS.param('ability',_fgAb,'reducesAllyDamage');",
+             "const _fg=null&&TAGS.param('ability',_fgAb,'reducesAllyDamage');"]] },
   match(e) {
     /* ONLY THE THREE `onAlly` HOOKS THIS RULE ACTUALLY STAGES, plus the ally damage one. `onAllyFaint`
      * (Receiver) and `onAllyAfterUseItem` (Symbiosis) are ally hooks too and this script creates
@@ -7373,9 +7385,15 @@ const RULES = [
    * SO THE ANCHOR IS THE SEEDER'S RETURN — the only residual heal in this engine, and exactly the
    * shape Aqua Ring's and Ingrain's would take if they existed. The chip is deliberately left alone:
    * a break that moves ONLY the healing half is the localisation. */
+  /* RE-AIMED AGAIN 2026-09-06, SAME MECHANISM, MOVED LINE. The seeder's return grew Big Root's
+   * multiplier on 2026-09-05 (`healWithSourceMult(_s,'leechseed',_d)`), so the old literal matched
+   * ZERO times and the plant could not be applied at all. Dead at HEAD as well as here — the old
+   * string matches 0 times in `git show HEAD:engine/medicham2-browser.js` — and hidden for the same
+   * reason as `ability/aids-its-ally` above: the shipped artifact carried `reds: []`. */
   break: { why: 'a residual volatile takes HP off its victim and returns NOTHING to the body it is '
               + 'supposed to heal — the only residual heal path in this engine',
-    patch: [['_s.curHP=Math.min(_s.st.hp,_s.curHP+_d);', '_s.curHP=_s.curHP;']] },
+    patch: [["_s.curHP=Math.min(_s.st.hp,_s.curHP+healWithSourceMult(_s,'leechseed',_d));",
+             '_s.curHP=_s.curHP;']] },
   match(e) {
     if (!healsOnResidual(e)) return null;
     const arm = armFor(e);

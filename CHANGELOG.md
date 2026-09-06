@@ -10,6 +10,87 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.260.0] — 2026-09-06
+
+### Fixed
+- **STRUGGLE ANNOUNCES ITSELF ABOVE ITS OWN `|move|` LINE, AND THE TAG THAT CARRIES IT WAS DERIVED
+  FROM HALF A HANDLER.** `struggle.onModifyMove` is two statements — `move.type = '???'` and
+  `this.add('-activate', pokemon, 'move: Struggle')` (`data/moves.ts:18218-18221`, no Champions
+  override) — and `setsOwnTypeAlways` read only the first. `singleEvent('ModifyMove')` is
+  `sim/battle-actions.ts:431` and `addMove('move', ...)` is `:457`, so the line sits immediately above
+  the move line. It was **17 of the 151 protocol first-divergence rows**, the largest single bucket in
+  `data/game-differential.json`. The param is read by `tag_dex.js`'s existing `announceIn` helper, so
+  no event name and no prefix is typed here; membership was printed before it was wired and it is one
+  member. Carried by `tests/probe_struggle_announce.js` (3 arms, knob `MEDI_NO_OWNTYPE_ANNOUNCE`).
+- **A MOVE'S OWN `onTryHit` RUNS BELOW EVERY HIT-STEP GATE, SO A REFUSED POLTERGEIST NAMES NOTHING.**
+  `onTry` and `onTryHit` are two different moments and this engine ran both at the first one, so a
+  Protected, immune or missed click still read the target's item out — 8 rows, in three shapes. The
+  emission moved into `_stepAnnounceItem`, placed in the step list beside `_stepClearScreens`, the
+  other move-owned `onTryHit` in this format. Carried by
+  `tests/probe_poltergeist_announce_step.js` (4 arms, knob `MEDI_ITEM_ANNOUNCE_AT_USE`).
+- **`mustrecharge` IS `onBeforeMovePriority: 11`, THE HIGHEST IN THE FORMAT, AND WAS ASKED LAST —
+  AND IT IS A BOARD DEFECT, NOT A NARRATION ONE.** recharge 11, slp and frz 10, flinch 8, confusion 3,
+  Attract 2, par 1. A sleeping body that owed a recharge paid the sleep here: it spent a tick off a
+  counter the authority does not touch and carried the recharge into the next turn, so
+  `party.<x>.status_counter` and `active[].vol.mustrecharge` both part. `spendRecharge` is now the one
+  implementation, called from the hoisted BeforeMove position and from a counted backstop below the
+  gate. Carried by `tests/probe_recharge_priority.js` (3 arms, knob `MEDI_RECHARGE_BELOW_STATUS`).
+- **A MOVE WITH NO LEGAL TARGET ANNOUNCES ITS OWN FAILURE — ROADMAP #84 HAD WIRED HALF OF IT.**
+  `useMoveInner` writes `attrLastMove('[notarget]')` AND `add('-fail', pokemon)` on the non-field
+  branch (`sim/battle-actions.ts:508-513`); this engine set `_mvRes = false` and emitted nothing, with
+  the authority's own `add('-fail')` quoted in the comment one line above. **A bare `|-fail|` was the
+  largest bucket in the artifact at 32 rows** and had never been named. The field carve-out is the
+  authority's own and is read off `targetClass.target`; an unreadable class is counted and falls
+  through to silence rather than guessing. Carried by `tests/probe_no_legal_target_fail.js` (3 arms,
+  knob `MEDI_NO_TARGET_SILENT`).
+- **TWO ROSTER RED SELF-TEST PLANTS COULD NOT BE APPLIED, AND THE SHIPPED ARTIFACTS WERE HIDING IT.**
+  `ability/aids-its-ally` and `move/needs-the-user-off-full-hp` are text anchors into
+  `medicham2-browser.js` and both matched ZERO times — the first because the ally-guard site learned
+  about Mold Breaker, the second because the Leech Seed seeder's return grew Big Root's multiplier on
+  2026-09-05. Both were dead at HEAD as well, invisible because `data/roster.{abilities,moves}.json`
+  carried `reds: []`, i.e. were written by a run that never armed the self-test. **Third occurrence of
+  this shape.** Re-aimed, and all three stages now report 0 not-ok reds across 18 / 29 / 35
+  demonstrations.
+
+### Changed
+- `data/tags.json` regenerated and `data/abra-tags.js` rebuilt from it. **Nine leaves differ and the
+  diff is stated rather than assumed:** the two new `setsOwnTypeAlways.announce` params, that tag's own
+  `param`/`why` prose, `generated`, and `cantUseTwice` / `privateWeather` flipping `used` false → true
+  — the read-detector catching up with engine work that landed 2026-09-05. Zero usage counts, zero
+  linkage rows and zero entity tag-memberships moved.
+- All four new probes now apply the four normalisation rules `game_differential.js` declares for
+  itself — `|split|` line selection, `move-target-field`, `source-tag`/`display-flags` and
+  `ability-announcement`. Each of the four was found by a probe accusing the engine of a divergence the
+  measurement it defends cannot see; one of them accused its own control arm.
+
+### Notes
+- **BOARD-MATERIAL 50 OF 961 → 50 OF 961. PROTOCOL FIRST DIVERGENCE 151 → 114.** Four fixes, four
+  frozen releases, four paired measurements on identical pins (census
+  `data/verification/census-pin-9446a684709d.json`, pool `data/team-pool-frozen`, arm `middle`,
+  steering `empirical`, cap 20). Every board-material call was 50 and every one landed; the four
+  protocol calls were 136 / 131 / 130 / 116 against 137 / 130 / 130 / 114, all written to
+  `data/verification/_prediction-longtail-C-*.json` before their runs.
+- Census level unchanged at **829 live / 829 probed / 0 missing** after every step. The clauses this
+  pass staled were re-run on the settled release `a985300cb8ed`: damage differential 0 of 6000 at the
+  midpoint and all sixteen corners; roster items 140 / abilities 129 / moves 475 with
+  FIRED-AND-BOARDS-DIFFER and DID-NOT-FIRE at zero on all three; `all_mechanics_fire --kind all`
+  1313 games, 0 threw. `node engine/status.js` reads 7 of 9, both failures being the whole-game
+  clauses on their measured counts.
+- **A Python rewrite flipped `engine/medicham2-browser.js` to CRLF** (Python's text mode translates
+  `\n` on Windows). JavaScript does not care; the roster's text anchors do, and that is how it was
+  caught. Restored to LF and every staled clause re-run.
+- **NEXT, DERIVED AND NOT PROBED:** the immunity step is split three ways in the authority —
+  `runImmunity`/Levitate at step 2, an ability's `onTryHit` (Soundproof, Bulletproof, Overcoat) at
+  step 1, a move's `onTryImmunity` at step 3 — and this engine pools all of them into `_stepTryImm`.
+  Five games. The fix needs a `stage` param on `immuneToMoveClass` plus a step-list split.
+- **NOT UPDATED IN THIS PASS AND OWED:** the white paper, the deck, the technical docs and
+  `docs/SUMMARY.md`. A second session was rebuilding those documents and their PDFs in the same
+  window; writing into them would have been a collision in which the later write silently wins.
+- Full account: `docs/_reports/2026-09-06-longtail-batch-C.md`. Nothing in this entry is committed by
+  the session that wrote it.
+
+---
+
 ## [5.259.0] — 2026-09-06
 
 ### Fixed

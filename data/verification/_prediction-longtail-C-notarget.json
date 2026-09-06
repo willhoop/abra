@@ -1,0 +1,30 @@
+{
+  "written_before_the_run": "2026-09-06",
+  "step": "LONG-TAIL BATCH C, FIX 4 - ROADMAP #84's other half: `useMoveInner` writes `attrLastMove('[notarget]')` AND `add('-fail', pokemon)` when a non-field move has no legal target (battle-actions.ts:508-513). This engine wrote only `_mvRes = false`.",
+  "what_changed": ["engine/medicham2-browser.js (the emission at the `!_hadTargets` site, the FIELD_TARGET_CLASSES carve-out read off `targetClass.target`, one knob, three counters)",
+                   "tests/probe_no_legal_target_fail.js (new, 3 arms)",
+                   "the four probes' reducers now also drop `-ability` lines, which the differ's `ability-announcement` rule maps to null"],
+  "pins": {"release": "d7d83e49fa6c",
+           "census": "data/verification/census-pin-9446a684709d.json",
+           "team_store": "data/team-pool-frozen",
+           "arm": "middle", "games": 1200, "turns_cap": 20, "steering": "empirical", "end_state": true},
+  "baseline": {"artifact": "data/verification/longtail-C-recharge.json",
+               "release": "25dc68013c82",
+               "games": 961, "board_material": 50, "protocol_diverged": 130,
+               "boards_never_diverged": 911, "threw": 1},
+  "which_scoreboard": "PROTOCOL. A `-fail` line writes no board leaf and `_mvRes` was already correct, so BOARD-MATERIAL should sit still. Said before the run.",
+  "how_the_bucket_was_SIZED": "off `data/divergence-turns.json` (125 of the 130 diverging games, dumped on release 25dc68013c82), NOT off `state.first_board_divergences`, which is capped at 40 and is not the population. 32 cards carry a bare `|-fail|pXy` as their first divergence. Of those, the ones whose `|move|` line names the MOVER as its own target - which is what `TR.mv(m,_mid,_tt||m)` writes when the action carries no live target - and whose move is SINGLE-target are the ones this fix can explain: playrough, thunderbolt, drainingkiss, stoneedge, energyball, bravebird, kowtowcleave, ironhead, foulplay, lowkick, hydropump = 11 named by hand. A further 6 are spread moves (earthpower, hypervoice, eruption, heatwave, matchagotcha x2) where the same rendering is AMBIGUOUS, because this engine names its own user on a spread move as a matter of course. The remaining 15 are other `-fail` causes entirely - Ally Switch with no partner (3), Substitute `[weak]` (1), Yawn (2), Leech Seed (2), Last Resort, Trick, Instruct, Sucker Punch, Rage Powder and two `-fail` lines written on the TARGET rather than the mover - and this fix does not touch them.",
+  "prediction": {
+    "board_material": 50,
+    "boards_never_diverged": 911,
+    "protocol_diverged": 116,
+    "threw": 1,
+    "reasoning": "11 certain + 6 ambiguous = 17 rows this fix can reach. The close rate on the two measured buckets tonight was 14/17 (struggle) and 8/8 (poltergeist) - call it 85%. But the ambiguous six are a coin flip on whether they are this cause at all, so: 11 x 0.85 = 9.4, plus 6 x 0.5 x 0.85 = 2.6, total 12. 130 - 12 = 118. I am calling 116 rather than 118 because a `-fail` is the LAST line of a failing move and these games are late-game (both foes down), so there is less turn left for a second divergence to hide behind than in the Poltergeist bucket - i.e. I expect a HIGHER close rate than 85%. The honest interval is 112 to 122.",
+    "counters": {
+      "MEDSEEN.noTargetFailAnnounced": "> 0 over 961 games, and it should be a LOT - the turn shape is ordinary",
+      "MEDFAILS.noTargetClassUnknown": 0,
+      "MEDFAILS.noTargetFailSilentRestored": 0
+    }
+  },
+  "how_a_miss_would_read": "protocol falling by MORE than 17 means the line is over-firing and closing games it should not - most likely a FIELD-class move whose `targetClass` row this engine read wrong, which the carve-out is there to prevent and `noTargetClassUnknown` would flag. board_material moving in the WORSE direction means the emission is not free: the `[notarget]` attribute or the `-fail` reached something that reads the log."
+}

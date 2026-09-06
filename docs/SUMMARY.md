@@ -1,6 +1,8 @@
 # ABRA — Project Summary
 
-**Version 5.259.0 · 2026-09-06 · Will Hooper**
+**Version 5.260.0 · 2026-09-06 · Will Hooper**
+
+**5.260.0 - FOUR MORE ENGINE FIXES, EACH MEASURED ALONE. BOARD-MATERIAL HOLDS AT 50 OF 961; PROTOCOL FIRST-DIVERGENCE FALLS 151 TO 114.** `data/game-differential.json` is republished at 50 / 114 on release `a985300cb8ed`, on the same pins as every run in the sequence. The four: Struggle's missing `-activate` line (151 -> 137); the item announcement moving down to `onTryHit`, so a Protected, immune or missed click names nothing (137 -> 130); `mustrecharge` restored to its real priority, which is a BOARD defect in the lab and moved the pinned pool by exactly nothing, as predicted; and a move with no legal target announcing its own failure (130 -> 114) — **the largest bucket in the artifact, 32 rows, and it had never been named.** `node engine/status.js` reads 7 of 9. Full account: `docs/_reports/2026-09-06-longtail-batch-C.md`.
 
 **5.259.0 - TWO PUBLISHED FIGURES ARE CORRECTED. NEITHER WAS A BAD MEASUREMENT; BOTH WERE BAD CITATIONS.** The full-bring sentence below credited `data/quality-filter.json` with a length ratio and a kept/dropped pair it has never held in any of its six commits, and no version of it has ever carried a mean-turn field. The counts move to the artifact's own funnel step, `provenance.funnel.after_min_turns` **26,142** to `provenance.funnel.after_full_bring` **18,908**, and the ratio is WITHDRAWN because nothing measures it now. In `docs/WEB.md`, a leaf calibration figure cited faithfully to a QUARANTINED artifact is now WITHHELD rather than captioned, as is MILTANK's head-to-head share, which was published there with no citation at all. Full account: `docs/_reports/2026-09-06-figure-corrections.md`.
 

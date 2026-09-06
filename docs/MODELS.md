@@ -1,6 +1,10 @@
 # ABRA — the model family (living reference)
 
-**Version 5.259.0 · Last updated 2026-09-06.**
+**Version 5.260.0 · Last updated 2026-09-06.**
+
+**5.260.0 - NO MODEL CHANGED, NO FITTED VECTOR WAS WRITTEN AND NOTHING QUARANTINED BECAME QUOTABLE. WHAT MOVED IS THE DISTANCE TO THE GATE.** Every model in this ledger sits downstream of MEDICHAM, so that distance is the only thing this file records. `data/game-differential.json` is republished on release `a985300cb8ed` at **board-material 50 of 961 and protocol first-divergence 114 of 961**, down from 151 on four fixes measured one at a time. `node engine/status.js` reads **7 of 9 clauses passing**; both failures are the whole-game clauses on their measured counts. Leaf calibration, the leaf-cost figure, the divergence and head-to-head results, the joint layer's numbers and every model report that reads a rollout stay WITHHELD rather than annotated.
+
+**THE ITEM THAT REACHES THIS LEDGER IS A METHOD RESULT, NOT A MODEL RESULT, AND IT IS ABOUT PREDICTIONS OF OUR OWN INSTRUMENTS.** Four predictions were written to disk before their runs. All four board-material calls landed exactly; three of the four protocol calls missed, by one, one and two games, always in the same direction and for the same reason — **a bucket's row count is an upper bound on how many games close, because repairing a game's FIRST divergence can expose a second one behind it.** Measured over the three buckets that moved, the close rate was 14/17, 8/8 and 16/17. That number is now something this project has measured three times rather than assumed, and it is the right prior for the next batch.
 
 **5.259.0 - NO MODEL CHANGED AND NO QUARANTINED FIGURE BECAME QUOTABLE. WHAT MOVED IS THAT TWO OF THEM STOPPED BEING PUBLISHED WHERE THE QUARANTINE COULD NOT SEE THEM.** `docs/WEB.md` was republishing MEDICHAM's leaf calibration out of `data/winrate-backtest.json` and MILTANK's head-to-head share with no artifact cited at all. Both are withheld there now, on the same terms this ledger already uses. The mechanism is worth recording: `engine/docs_scan.js` has no quarantine clause, so a faithful citation of a quarantined artifact PASSES every documentation gate, and `docs/WEB.md` receives no generated stamp from `engine/status.js --write`, so nothing in it can self-correct.
 

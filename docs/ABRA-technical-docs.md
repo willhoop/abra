@@ -1,6 +1,24 @@
 # ABRA — Technical Documentation
 
-**Version 5.259.0 · Last updated 2026-09-06**
+**Version 5.260.0 · Last updated 2026-09-06**
+
+**5.260.0 - FOUR ENGINE DEFECTS ARE CORRECTED. EACH ONE IS MEASURED ALONE.**
+
+**PUBLICATION.** `data/game-differential.json` holds board-material 50 of 961 and protocol first-divergence 114 of 961. **CONDITIONS.** Release `a985300cb8ed`. 961 games. Cap 20. Arm `middle`. Steering `empirical`. End-state comparison on. Census pin `data/verification/census-pin-9446a684709d.json`. Pool `--team-store data/team-pool-frozen`.
+
+**DEFECT 1.** The tag `setsOwnTypeAlways` is derived from a two-statement handler. The engine read one statement. **ACTION.** Derive the `announce` record with the existing `announceIn` reader. Emit the line above the move line. **RESULT.** Protocol 151 to 137.
+
+**DEFECT 2.** A move's own `onTryHit` runs inside `spreadMoveHit`, below every hit step. The engine emitted the item announcement beside `onTry`, above every hit step. **ACTION.** Move the emission into a step in the step list. **RESULT.** Protocol 137 to 130.
+
+**DEFECT 3.** The condition `mustrecharge` declares `onBeforeMovePriority: 11`. That is the highest value in this format. The engine asked it last. **CONSEQUENCE.** A sleeping body that owed a recharge spent a sleep tick that the authority does not spend. This is a board leaf. **ACTION.** Hoist the refusal to the top of the BeforeMove block. Keep one implementation. **RESULT.** Protocol 130 to 130. The pinned pool did not move. This was predicted before the run.
+
+**DEFECT 4.** `useMoveInner` writes `-fail` when a non-field move has no legal target. The engine wrote nothing. **SIZE.** 32 of 130 first-divergence rows carried a bare `-fail`. **ACTION.** Emit the line. Exclude the four field target classes, which the authority routes past the `-fail`. **RESULT.** Protocol 130 to 114.
+
+**METHOD.** Each fix runs on its own frozen release. Each fix has a probe that is red before the fix and green after it. Each fix has a knob that restores the defect and moves no byte of any control. Each step has a prediction written to disk before the run. **PREDICTION RESULT.** Four board-material calls, four hits. Four protocol calls, one hit and three misses of one, one and two games.
+
+**INSTRUMENT NOTE.** Four times a new probe reported a divergence that `engine/game_differential.js` does not count. The cause was the probe, not the engine. The four declared equivalences are now applied inside the probes: `|split|` line selection, move-line truncation, `[of]` and `[silent]` removal, and `-ability` line removal.
+
+**RE-RUN.** Damage differential 0 of 6000 at the midpoint and at all sixteen roll indices. Roster items 140, abilities 129, moves 475, with zero FIRED-AND-BOARDS-DIFFER and zero DID-NOT-FIRE on all three stages. Mechanics census 829 live, 829 probed, 0 missing.
 
 **5.259.0 - TWO CITED FIGURES ARE CORRECTED.** **RULE.** A figure must be present in the artifact it cites. **DEFECT 1.** The white paper and the summary attributed a length ratio and a kept/dropped pair to `data/quality-filter.json`. That file does not contain those values, and no version of it contains a mean-turn field. **ACTION.** Use the funnel step the artifact records, `provenance.funnel.after_min_turns` to `provenance.funnel.after_full_bring`. Withdraw the ratio. **DEFECT 2.** `docs/WEB.md` published a leaf calibration figure from a quarantined artifact, and a head-to-head share with no citation. **ACTION.** Withhold both figures. Give the condition and the command that make each quotable again.
 

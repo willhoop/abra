@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-05T00:34:28.691Z",
+ "generated": "2026-09-06T06:13:44.753Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -27,8 +27,8 @@
   {
    "tag": "setsOwnTypeAlways",
    "kind": "move",
-   "param": "the move overwrites its own type, with no condition",
-   "why": "Struggle is typeless (`???`). Unreachable until PP existed, and wrong against a Ghost the moment it became reachable",
+   "param": "the move overwrites its own type, with no condition, and what it announces",
+   "why": "Struggle is typeless (`???`). Unreachable until PP existed, and wrong against a Ghost the moment it became reachable; and it announces itself above its own move line",
    "consumedBy": "setsOwnTypeAlways",
    "used": true,
    "n": 1,
@@ -469,8 +469,8 @@
    "kind": "move",
    "param": "cannot be selected the turn after it is used",
    "why": "Gigaton Hammer, 160 BP and the only move in the format with the flag. Also NOT a contact move, so contact punishment does not apply to it",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "cantusetwice",
+   "used": true,
    "n": 1,
    "uses": 408,
    "examples": [
@@ -3408,8 +3408,8 @@
    "kind": "ability",
    "param": "the HOLDER moves resolve as if a weather were up, while the field says none",
    "why": "Mega Sol reaches 139 fields. Solar Beam becomes one turn, Weather Ball becomes Fire, and every weather-conditional tag reads the FIELD -- which reports no weather at all",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "onWeatherModifyDamage",
+   "used": true,
    "n": 1,
    "uses": 0,
    "examples": []
@@ -31251,7 +31251,11 @@
      "noPPBoosts": true
     },
     "setsOwnTypeAlways": {
-     "type": "???"
+     "type": "???",
+     "announce": {
+      "event": "-activate",
+      "prefix": "move"
+     }
     },
     "targetClass": {
      "target": "randomNormal",

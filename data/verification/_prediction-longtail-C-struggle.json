@@ -1,0 +1,36 @@
+{
+  "written_before_the_run": "2026-09-06",
+  "step": "LONG-TAIL BATCH C, FIX 1 - setsOwnTypeAlways carries the second statement of its own handler (`this.add('-activate', pokemon, 'move: Struggle')`, data/moves.ts:18220), and the engine emits it above its own `|move|` line",
+  "what_changed": ["engine/tag_dex.js (announce param on setsOwnTypeAlways, via the existing announceIn reader)",
+                   "data/tags.json (regenerated) + data/abra-tags.js (rebuilt from it)",
+                   "engine/medicham2-browser.js (one emission block above TR.mv, one knob, three counters)",
+                   "tests/probe_struggle_announce.js (new)"],
+  "pins": {"release": "PENDING - cut immediately before the run",
+           "census": "data/verification/census-pin-9446a684709d.json",
+           "team_store": "data/team-pool-frozen",
+           "arm": "middle", "games": 1200, "turns_cap": 20, "steering": "empirical", "end_state": true},
+  "baseline": {"artifact": "data/game-differential.json",
+               "release": "db248fe67a5e",
+               "games": 961, "board_material": 50, "protocol_diverged": 151,
+               "boards_never_diverged": 911, "threw": 1},
+  "which_scoreboard": "PROTOCOL. This line writes no board leaf. Said before the run: the LAB moves (a new probe, green with a knob that puts it red) and BOARD-MATERIAL should sit exactly still.",
+  "prediction": {
+    "board_material": 50,
+    "boards_never_diverged": 911,
+    "protocol_diverged": 136,
+    "threw": 1,
+    "cause_rows_that_must_go_to_zero": [
+      "event missing from medicham2 :: |-activate|p2a|struggle <> |move|p2a|struggle  (n=6)",
+      "event missing from medicham2 :: |-activate|p1b|struggle <> |move|p1b|struggle  (n=6)",
+      "event missing from medicham2 :: |-activate|p2b|struggle <> |move|p2b|struggle  (n=3)",
+      "event missing from medicham2 :: |-activate|p1a|struggle <> |move|p1a|struggle  (n=2)"
+    ],
+    "reasoning": "17 of the 151 first-divergence rows in data/game-differential.json name this exact missing line, counted over the FULL by-cause list and not over state.first_board_divergences, which is capped at 40 and is not the population. I predict 15 of the 17 CLOSE OUTRIGHT and 2 re-classify onto a later divergence that was sitting behind this one, because that is what happened to Leech Seed (2 of 3 closed) and it is the failure mode of predicting a whole bucket shut. 151 - 15 = 136. Board-material must not move: 105 of the 151 protocol-diverged games never diverge on a board at all, the games play PAST a protocol mismatch rather than stopping at it, and an `-activate` line changes no leaf.",
+    "counters": {
+      "MEDSEEN.ownTypeAnnounced": "> 0, and it must equal the number of Struggles narrated. A zero beside a non-zero MEDSEEN.struggleUsed means the wire is dead.",
+      "MEDFAILS.ownTypeAnnounceSuppressed": 0,
+      "MEDFAILS.ownTypeAnnounceUnknown": 0
+    }
+  },
+  "how_a_miss_would_read": "board_material moving in EITHER direction means the emission is not narration-only - most likely because playing past the mismatch changed which turn a board was first compared on. protocol falling by materially fewer than 15 means most of these games carried a second defect behind the Struggle line; falling by more than 17 means a game closed that this fix cannot explain and the attribution has to be re-joined by cause before anything is claimed."
+}
