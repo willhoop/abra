@@ -806,6 +806,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      engine did until today: the authority's `-end` came a turn earlier than ours and the target was
      silenced for a turn it should have had. */
   soundLockRestartRefused: 0,
+  /* 2026-09-05 -- GIGATON HAMMER'S `cantusetwice`, COUNTED AT BOTH MOMENTS BECAUSE THE AUTHORITY ONLY
+     HAS ONE OF THEM. `sim/battle.ts:1692` disables the slot at CHOICE time and there is no refusal at
+     use time at all; `sim/battle-actions.ts:267/:313` only add and remove a marker volatile so a
+     `-hint` can be printed. So `cantUseTwiceRefusedAtSelection` is the authority's clause and
+     `cantUseTwiceRefusedAtExec` was ours alone -- a repeat the authority PLAYS. `cantUseTwiceRepeatRan`
+     is the authority's `:267` condition evaluated here: a `cantusetwice` move executing on a body
+     whose last move was already it, which is only reachable through Encore or Instruct. A zero on a
+     board that staged one means the wire stopped firing. */
+  cantUseTwiceRefusedAtSelection: 0, cantUseTwiceRefusedAtExec: 0, cantUseTwiceRepeatRan: 0,
+  /* 2026-09-05 -- an ALLY's damage-reducing ability suppressed by an ability-ignoring attacker.
+     Friend Guard is the only legal `onAnyModifyDamage` carrier in this format and it carries
+     `flags: {breakable: 1}`, so `sim/battle.ts:837` refuses to run it whenever
+     `suppressingAbility(effectHolder)` is true -- and the effect HOLDER is the partner, not the
+     target. A zero on a board that stood a Mold Breaker opposite a Friend Guard means the gate
+     stopped firing; it rides beside `friendGuardChain`, which counts the multiplier being SPENT,
+     so the two together say which of the two roads a hit took. */
+  allyGuardBrokenByBreaker: 0,
   /* 2026-08-27 -- STEP 0, ANSWERED WHERE THE AUTHORITY ANSWERS IT: above the shield, which is step 1.
      `invulnDecidedAboveShield` counts a target the pre-pass refused (and emitted the `-miss` for);
      `invulnRowDropped` counts the row `_stepInvuln` then removed from the driver. They must move
@@ -2862,6 +2879,18 @@ const MEDFAILS = { encoreAction: 0,
      Stamped at load rather than at use so a probe can prove the knob reached the module the driver
      played BEFORE it classifies an arm -- same shape as shieldRefusalUnannouncedRestored. */
   shieldNoRearmRestored: 0,
+  /* 2026-09-05 -- set at MODULE LOAD when MEDI_CANTUSETWICE_EXEC_REFUSE=1 puts WIRE 44's whole
+     pre-fix mechanism back: the timed `_noRepeat` clock AND the execution-time refusal it fed. The
+     authority has neither -- `sim/battle.ts:1692` disables the SLOT at choice time and reads
+     `pokemon.lastMove` directly. Stamped at load rather than at use so a probe can prove the knob
+     reached the module the driver played BEFORE it classifies an arm -- same shape as
+     shieldNoRearmRestored directly above. */
+  cantUseTwiceExecRefuseRestored: 0,
+  /* 2026-09-05 -- set at MODULE LOAD when MEDI_ALLY_GUARD_UNBREAKABLE=1 puts back the RAW read of
+     the partner's ability in `_hitCtx`, i.e. a Friend Guard that no Mold Breaker can suppress.
+     Stamped at load rather than at use so a probe can prove the knob reached the module the driver
+     played BEFORE it classifies an arm. */
+  allyGuardUnbreakableRestored: 0,
   /* 2026-08-26 -- set for the whole run when MEDI_DISABLE_ONSTART_BLIND=1 puts the pre-fix read back
      on purpose, so a deliberate restore arm and a broken engine can never be read as the same thing.
      Same shape as suckerQueueBlindRestored. */
@@ -13543,6 +13572,48 @@ const STALL_LAPSE_OFF_RESIDUAL=(typeof process!=='undefined'&&process.env&&proce
  * also carries a non-zero `MEDFAILS.shieldNoRearmRestored`. Same shape as MEDI_STALL_EAGER_CLEAR. */
 const SHIELD_NO_REARM=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SHIELD_NO_REARM==='1');
 if(SHIELD_NO_REARM)MEDFAILS.shieldNoRearmRestored=1;
+/* 2026-09-05 -- MEDI_CANTUSETWICE_EXEC_REFUSE=1 PUTS WIRE 44's TWO WRONG HALVES BACK.
+ *
+ * `cantusetwice` is enforced in the authority in EXACTLY ONE PLACE and it is the request builder:
+ *
+ *     sim/battle.ts:1692
+ *       if (activeMove.flags['cantusetwice'] && pokemon.lastMove?.id === moveSlot.id)
+ *         pokemon.disableMove(pokemon.lastMove.id);
+ *
+ * There is NO refusal at use time. `sim/battle-actions.ts:267` adds a marker volatile (the comment
+ * above it reads "Used exclusively for a hint later") and `:313` removes it and prints
+ * `|-hint|Some effects can force a Pokemon to use <Move> again in a row.` -- a line that exists
+ * BECAUSE the repeat is legal. Encore and Instruct both bypass selection, so an Encored or
+ * Instructed Gigaton Hammer runs for its full 160 BP. Champions overrides neither move, and its own
+ * `encore` override (`data/mods/champions/moves.ts:286`) makes it easier still: it rewrites the
+ * ALREADY-QUEUED action with `queue.changeAction`.
+ *
+ * This engine had two things the authority does not: a refusal above the kind dispatch, and a TIMED
+ * lock (`_noRepeatT = (lockoutTurns||1)+1`, ticked at the foot of every turn) where the authority
+ * holds no clock and re-reads `lastMove` at every request. The clock is wrong on any turn the body
+ * never reached `moveUsed` -- a Taunted status click, a flinch, a full paralysis -- because
+ * `lastMove` is untouched there and the slot stays disabled while our counter ran down.
+ *
+ * With the knob on, the clock is armed and ticked again and BOTH readers go back to it, so a restore
+ * arm and a broken engine can never be read as the same thing. Any run carrying it also carries a
+ * non-zero `MEDFAILS.cantUseTwiceExecRefuseRestored`. */
+const CANTUSETWICE_EXEC_REFUSE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CANTUSETWICE_EXEC_REFUSE==='1');
+if(CANTUSETWICE_EXEC_REFUSE)MEDFAILS.cantUseTwiceExecRefuseRestored=1;
+/* 2026-09-05 -- MEDI_ALLY_GUARD_UNBREAKABLE=1 PUTS BACK THE RAW PARTNER-ABILITY READ.
+ *
+ * `_hitCtx` asked `TAGS.param('ability', _pal.ability, 'reducesAllyDamage')` off the partner's
+ * DECLARED ability and never through `suppressedAbility`, which every other reader of a breakable
+ * ability in this file goes through. Friend Guard is the one legal `onAnyModifyDamage` carrier here
+ * and it declares `flags: { breakable: 1 }`, so the authority skips it for an attacker whose move
+ * carries `ignoreAbility` -- and the clause is asked about the EFFECT HOLDER (`sim/battle.ts:837`),
+ * which for an `onAny...` handler is the ally beside the target rather than the target. A Mold
+ * Breaker therefore punches through a partner's Friend Guard, and this engine kept paying the 0.75.
+ *
+ * With the knob on the raw read comes back, so a restore arm and a broken engine can never be read
+ * as the same thing. Any run carrying it also carries a non-zero
+ * `MEDFAILS.allyGuardUnbreakableRestored`. */
+const ALLY_GUARD_UNBREAKABLE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ALLY_GUARD_UNBREAKABLE==='1');
+if(ALLY_GUARD_UNBREAKABLE)MEDFAILS.allyGuardUnbreakableRestored=1;
 /* 2026-08-26 -- MEDI_DISABLE_ONSTART_BLIND=1 TAKES DISABLE'S OWN TWO CLAUSES BACK OUT: the seal stops
  * asking whether the target's last move has any PP left and whether it was STRUGGLE, the way this
  * engine ran until today -- so a Protect clicked for the ninth time is still Disable-able here and is
@@ -14817,11 +14888,24 @@ function imprisonSealedBy(me,mvId,foes){
 function sealedMoveRefuses(me,id){
   return !!(me&&id&&me._vol&&me._vol.disable>0&&me._sealed&&me._sealed===id);
 }
+/* WIRE 44's STATE, DERIVED RATHER THAN STORED. `sim/battle.ts:1692` reads `pokemon.lastMove` at the
+ * moment it builds the request; nothing is armed and nothing expires. One function so the menu filter
+ * and the marker site below cannot come to disagree about what the lock is. */
+function cantUseTwiceLocked(me,id){
+  return !!(me&&id&&me._lastMove===id&&TAGS.param('move',id,'cantUseTwice'));
+}
 function moveDisabledBy(me,id){
   if(!me||!id) return null;
   if(sealedMoveRefuses(me,id))return 'disable';
   if(me._noSound>0&&TAGS.has('move',id,'sound'))return 'throatchop';
-  if(me._noRepeat===id)return 'noRepeat';
+  /* WIRE 44 -- THE AUTHORITY'S ONLY `cantusetwice` CLAUSE, AND IT IS A `lastMove` READ.
+   * `sim/battle.ts:1692` re-asks `pokemon.lastMove?.id === moveSlot.id` while it BUILDS each request,
+   * so there is no clock to run down and no state to arm: the slot is disabled for exactly as long as
+   * the body's last COMMITTED move is this one. `_lastMove` is written at this engine's `moveUsed`
+   * position (the commit site above the kind dispatch), which is the same rule, so the two agree on a
+   * turn the body never got to move. The restore knob reads the old clock instead. */
+  if(CANTUSETWICE_EXEC_REFUSE ? (me._noRepeat===id) : cantUseTwiceLocked(me,id)){
+    MEDSEEN.cantUseTwiceRefusedAtSelection++; return 'noRepeat'; }
   if(volatileForbidsMove(me,id)){ MEDSEEN.tauntRefusedAtSelection++; return _traceForbidder(me); }
   /* ROADMAP #144 -- AN EMPTY SLOT IS NOT ON THE MENU. Showdown never OFFERS a 0-PP move
    * (`Pokemon#getMoves` marks it disabled, and `Side#choose` rejects it), so the `|cant|nopp` path at
@@ -26225,6 +26309,16 @@ function battleTurn(S,rng,actsForA,actsForB){
          * on Struggle has no selectable slot anyway, and `lockMenuMove`'s `hasMove` clause drops a
          * lock that names a move the body does not carry. */
         if(_mid){
+          /* WIRE 44 -- THE AUTHORITY'S MARKER, RAISED WHERE THE AUTHORITY RAISES IT. `runMove` asks
+           * `move.flags['cantusetwice'] && pokemon.lastMove?.id === move.id` at
+           * `sim/battle-actions.ts:267`, which is ABOVE `pokemon.moveUsed` (:291) -- so it reads the
+           * PREVIOUS commit, and it must be asked before the line below overwrites it. The authority
+           * spends the marker at `:313` on a `|-hint|`; this engine emits no `-hint` at all (it is a
+           * DECLARED non-emission in data/protocol-events.json, and `sdStream` drops it from the
+           * authority's side too), so the counter is the whole of it here. A non-zero means a repeat
+           * the menu could not have offered actually ran, which is only reachable through Encore or
+           * Instruct. */
+          if(cantUseTwiceLocked(m,_mid)) MEDSEEN.cantUseTwiceRepeatRan++;
           m._lastMove=_mid;
           /* ROADMAP #534 -- AND THE SLOT IT WAS AIMED AT RIDES THE SAME SITE, FOR THE SAME REASON THE
            * CHOICE LOCK DOES. The authority writes both in ONE call:
@@ -30624,11 +30718,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          the top of the loop, exactly as `runMove` does on its first line, so the threshold here is
          the authority's `activeMoveActions > 1` and not the selection sites' `>= 1`. */
       if(firstTurnOnlyRefused(m,a.move.id,true)){{if(TR)TR.attrStill();mvFail(m);}continue;}   // Fake Out only works before you have moved
-      /* WIRE 44 -- GIGATON HAMMER (197 uses) cannot be clicked twice in a row. `_noRepeat` is armed
-         when the move lands and disarmed by the end-of-turn tick, so the block covers exactly the
-         following turn -- and it binds a CALLER-SUPPLIED action as well as a chosen one, the WIRE 24
-         rule, because a rollout driven from outside never asks chooseAction. */
-      if(m._noRepeat===a.move.id){{if(TR)TR.attrStill();mvFail(m);}continue;}
+      /* WIRE 44 -- AND THERE IS NO REFUSAL HERE, WHICH IS THE FIX. `cantusetwice` is a CHOICE-TIME
+         disable (`sim/battle.ts:1692`) and the authority carries no `onBeforeMove` for it at all: a
+         repeat that reaches execution is a repeat some effect FORCED, and the authority plays it and
+         then prints a hint saying so. Encore (which in Champions rewrites the queued action outright)
+         and Instruct are the two producers in this format, and this gate refused both of them --
+         160 BP turned into a `|move|...|[still]` and a `|-fail|`. The menu half is `moveDisabledBy`,
+         which is where the authority's one clause lives. The restore knob puts the old gate back. */
+      if(CANTUSETWICE_EXEC_REFUSE&&m._noRepeat===a.move.id){MEDSEEN.cantUseTwiceRefusedAtExec++;{if(TR)TR.attrStill();mvFail(m);}continue;}
       /* WIRE 45 -- THROAT CHOP (2,845 uses), from the target's side. The most-clicked mechanic left
          unwired: the move landed its damage and the two turns of silence it exists for did nothing.
          The DURATION comes from the artifact now (`blocksSoundMoves.turns`), not from a 2 typed here
@@ -32331,8 +32428,23 @@ function battleTurn(S,rng,actsForA,actsForB){
           const c={};
           const _tside=actA.indexOf(tg)>=0?actA:actB;
           const _pal=_tside.find(x=>x&&x!==tg&&!x.fainted&&x.curHP>0);
-          const _fg=_pal&&TAGS.param('ability',_pal.ability,'reducesAllyDamage');
+          /* 2026-09-05 -- AND IT IS ASKED THROUGH `suppressedAbility`, LIKE EVERY OTHER BREAKABLE READ.
+           * Friend Guard declares `flags: {breakable: 1}` and `sim/battle.ts:836-841` asks
+           * `suppressingAbility(effectHolder)` -- the PARTNER, because an `onAnyModifyDamage` handler is
+           * held by the ally and not by the body being hit. So a Mold Breaker / Teravolt / Turboblaze
+           * attacker suppresses it, and this site was reading `_pal.ability` raw. ROADMAP #542's seventh
+           * card is exactly this: 70 damage in the authority against 52 here, and
+           * `tr((70*3072 + 2048)/4096) = 52` to the unit.
+           *
+           * THE ATTACKER IS `m`, NOT `tg`'s SIDE. `suppressedAbility` returns the holder's own ability
+           * unchanged when the attacker IS the holder (a body cannot break itself, gen >= 8) and honours
+           * Ability Shield and Mycelium Might's `onlyCategory` for free -- three clauses this site would
+           * otherwise have had to restate, which is the two-copies-of-one-fact shape CLAUDE.md forbids. */
+          const _fgAb=_pal&&(ALLY_GUARD_UNBREAKABLE?_pal.ability
+            :suppressedAbility(m,_pal,a.move&&a.move.mv&&a.move.mv.bp>0?(a.move.mv.c==='P'?'Physical':'Special'):'Status'));
+          const _fg=_fgAb&&TAGS.param('ability',_fgAb,'reducesAllyDamage');
           if(_fg&&_fg.mult)c.allyDamageMult=+_fg.mult;
+          else if(_pal&&TAGS.param('ability',_pal.ability,'reducesAllyDamage'))MEDSEEN.allyGuardBrokenByBreaker++;
           /* Only a DAMAGING click takes the boost -- a Helping Hand on a status move does nothing and
            * must stay nothing. dmgRange's own `hasPower` guard is that test, so nothing is needed
            * here beyond passing the flag. */
@@ -37009,9 +37121,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_lc.confuse){ MEDSEEN.lockExpiredConfused++; applyConfusion(m,null,field,false,true); }
         }
       }
-      /* WIRE 44 -- ARM THE LOCKOUT. `lockoutTurns + 1` for the end-of-turn tick that fires on this
-         turn too, the same convention Encore, Heal Block and Yawn already use. */
-      {
+      /* WIRE 44 -- THE OLD TIMED LOCKOUT, NOW REACHABLE ONLY UNDER THE RESTORE KNOB. The clean engine
+         stores nothing: `cantUseTwiceLocked` derives the lock from `_lastMove` at the moment it is
+         asked, which is what `sim/battle.ts:1692` does. `lockoutTurns` is therefore no longer read by
+         anything but this restore path -- the tag still carries it, and the authority still has no
+         clock for it to describe. */
+      if(CANTUSETWICE_EXEC_REFUSE){
         const _c2=TAGS.param('move',a.move.id,'cantUseTwice');
         if(_c2&&!m.fainted){m._noRepeat=a.move.id;m._noRepeatT=(+_c2.lockoutTurns||1)+1;}
       }
@@ -38428,7 +38543,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          `throatchop@22` -- this clock ticks in the foot-of-turn block rather than at residual order
          22 -- and that gap is unchanged here. What was missing was the line, not its neighbourhood. */
       if(ENDTURN_CLOCKS_AT_FOOT&&x._noSound>0&&--x._noSound<=0){MEDSEEN.soundLockEnded++;if(TR)TR.vend(x,'Throat Chop','[silent]');}
-      if(x._noRepeatT>0&&--x._noRepeatT<=0)x._noRepeat=null;
+      if(CANTUSETWICE_EXEC_REFUSE&&x._noRepeatT>0&&--x._noRepeatT<=0)x._noRepeat=null;
       /* WIRE 144 -- THE LOCK-IN CLOCK, AND THE THREE LINES BELOW ARE SHOWDOWN'S RESIDUAL IN ITS OWN
        * ORDER. `Battle#residualEvent` decrements the effect's duration FIRST and calls `end` if it
        * reaches zero, `continue`-ing past `onResidual` when it does:
@@ -40023,6 +40138,11 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
      before 2026-08-25 does not export this and board_state.js skips the leaf LOUDLY rather than
      inventing the progression. */
   stallCounter,stallBoardCounter,STALL_SHARED,
+  /* 2026-09-05 -- THE SELECTION VERDICT, exported for the same reason `stallBoardCounter` is: a probe
+     comparing this engine's menu against the authority's `moveSlot.disabled` must ask THIS function
+     and not a second copy of the rule. It returns the REASON string ('disable', 'throatchop',
+     'noRepeat', 'nopp', ...) or null. */
+  moveDisabledBy,
   /* Same argument one step further on: the MEGA route lives in rollout_leaf and was the third of
    * four setters writing a literal 5. It calls this rather than growing its own rock read. */
   weatherTurns,

@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-05T04:39:52.957Z",
+ "generated": "2026-09-06T01:22:58.217Z",
  "by": "tests/roster.js",
  "stage": "abilities",
- "engine_release": "688e696f00c8",
- "engine_release_cut": "2026-09-05T04:24:10.632Z",
- "engine_release_cuts": 1,
+ "engine_release": "63cbcc2ef605",
+ "engine_release_cut": "2026-09-05T23:05:48.675Z",
+ "engine_release_cuts": 2,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "f19834b62c05",
+  "engine/medicham2-browser.js": "922e9d77cccb",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "1c4ba432e563",
   "engine/position_features.js": "622482051bf4",
@@ -4595,6 +4595,12 @@
      "without": -3
     },
     {
+     "turn": 10,
+     "path": "p2.active[0].vol.smackdown",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 11,
      "path": "p1.party.goodrahisui.ability",
      "with": "shellarmor",
@@ -4655,6 +4661,12 @@
      "without": -4
     },
     {
+     "turn": 11,
+     "path": "p2.active[0].vol.smackdown",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 12,
      "path": "p1.party.goodrahisui.ability",
      "with": "shellarmor",
@@ -4713,6 +4725,12 @@
      "path": "p2.active[0].boosts.accuracy",
      "with": -3,
      "without": -4
+    },
+    {
+     "turn": 12,
+     "path": "p2.active[0].vol.smackdown",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -6898,6 +6916,12 @@
      "without": 1
     },
     {
+     "turn": 1,
+     "path": "p2.active[0].vol.gastroacid",
+     "with": 0,
+     "without": 1
+    },
+    {
      "turn": 2,
      "path": "p1.pp[0].focusenergy",
      "with": 2,
@@ -7435,6 +7459,12 @@
      "without": 1
     },
     {
+     "turn": 1,
+     "path": "p2.active[0].vol.gastroacid",
+     "with": 0,
+     "without": 1
+    },
+    {
      "turn": 2,
      "path": "p1.active[0].vol.focusenergy",
      "with": 1,
@@ -7453,6 +7483,12 @@
      "without": 1
     },
     {
+     "turn": 2,
+     "path": "p2.active[0].vol.gastroacid",
+     "with": 0,
+     "without": 1
+    },
+    {
      "turn": 3,
      "path": "p1.active[0].vol.focusenergy",
      "with": 1,
@@ -7468,6 +7504,12 @@
      "turn": 3,
      "path": "p1.pp[0].gastroacid",
      "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].vol.gastroacid",
+     "with": 0,
      "without": 1
     },
     {
@@ -7480,6 +7522,12 @@
      "turn": 4,
      "path": "p1.pp[0].gastroacid",
      "with": null,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].vol.gastroacid",
+     "with": 0,
      "without": 1
     }
    ],
@@ -9466,6 +9514,12 @@
      "without": -3
     },
     {
+     "turn": 10,
+     "path": "p2.active[0].vol.smackdown",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 11,
      "path": "p1.party.goodrahisui.ability",
      "with": "shellarmor",
@@ -9526,6 +9580,12 @@
      "without": -4
     },
     {
+     "turn": 11,
+     "path": "p2.active[0].vol.smackdown",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 12,
      "path": "p1.party.goodrahisui.ability",
      "with": "shellarmor",
@@ -9584,6 +9644,12 @@
      "path": "p2.active[0].boosts.accuracy",
      "with": -3,
      "without": -4
+    },
+    {
+     "turn": 12,
+     "path": "p2.active[0].vol.smackdown",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []

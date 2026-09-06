@@ -113,6 +113,39 @@ silently rewritten; what changed and why is stated.
   correction runs the other way from the one first reported:** the empirical arm on the fixed driver
   reads **55** board-material, not 47 — 47 predates the leaf widening. Both figures were briefly
   reported wrongly to the owner and are corrected here rather than quietly restated.
+- **GIGATON HAMMER: WILL READ THE INTERACTION AND IT WAS EXACTLY RIGHT.** `cantusetwice` is enforced
+  in the authority in ONE place — `sim/battle.ts:1692`, the **request builder**. There is no refusal at
+  use time; `battle-actions.ts:267/:313` only set a marker and print
+  `|-hint|Some effects can force a Pokemon to use X again in a row.` — **a line that exists BECAUSE the
+  repeat is legal.** Encore (which Champions rewrites via `queue.changeAction`) and Instruct both
+  bypass selection, so the repeat swings for 160. **This engine refused it at execution AND held a turn
+  TIMER where the authority simply re-reads `lastMove`.** Both halves are gone. Probe
+  `tests/probe_gigaton_repeat.js`, 9 arms, knob `MEDI_CANTUSETWICE_EXEC_REFUSE=1`.
+- **AND THE `cantUseTwice` CENSUS ROW WAS PINNING THE BUG.** It asserted that a caller-supplied repeat
+  deals 0 — **encoding the defect as the expected answer**, so the mechanic could never go red. Re-aimed.
+- **THE "GIGATON HAMMER" DAMAGE CARD WAS NEVER A GIGATON HAMMER MECHANIC.** It is **Friend Guard**,
+  which is `breakable`, and `sim/battle.ts:837` gates on the **effect holder** — so **a Mold Breaker
+  punches through an ALLY's guard.** 70 in the authority against our 52, and
+  `tr((70*3072+2048)/4096) = 52` exactly. Fixed; probe `tests/probe_moldbreaker_ally_guard.js`, 5 arms,
+  knob `MEDI_ALLY_GUARD_UNBREAKABLE=1`.
+- **BEAT UP IS NOT A HIT COUNT EITHER, AND MY OWN BRIEF GUESSED WRONG.** I said "almost certainly the
+  `!ally.status` filter". **Both engines print `-hitcount 4`** — per-hit 9/7/10/7 against 6/7/10/9. It
+  is the **ORDER of `move.allies`**, which is `side.pokemon`, an array **Showdown permutes on every
+  switch-in** (`battle-actions.ts:131-133`). Derived and measured, **not probed and not fixed** —
+  filed as **#544**.
+- **BOARD-MATERIAL 60 → 59, protocol 162 → 161**, release `63cbcc2ef605`, 961 games at cap 20, same
+  pins. The only class that moved is `-damage field 3`, 10 → 9: the named Lucario game closed and
+  **nothing opened.** Census 829/829 either side, 0 missing / 0 hollow / 0 threw. Five staled clauses
+  re-run clean. **Every figure was written to disk before the run and landed at its point estimate.**
+  This is also **the first artifact carrying `steering.driver_code`**, so its comparability can be
+  checked rather than assumed.
+- **THE SEVEN, AFTER THE SPLIT:** four are Fairy Aura field presence (open, instrument still unbuilt),
+  one is Beat Up's ally order (#544), one was Friend Guard and is fixed, one is Vacuum Wave and remains
+  index-compatible. **#542's original roll-index-versus-multiplier split was wrong in every part.**
+- **A DECLARED NON-EMISSION, NOT A SILENT ONE:** we never emit the `-hint`, but `sdStream` drops it
+  from Showdown's side too, so it is invisible to the differential **in both directions**. Filed for
+  the narration gate rather than counted as a divergence.
+
 - **THE INSTRUMENT IS PINNED NOW, AND THE HONEST COST IS VISIBLE RATHER THAN GRANDFATHERED.**
   `steering.driverCode()` stamps a digest of the driver's own code into every artifact it writes,
   **DERIVED** via `engine_release.requireClosure()` from the entry file — 16 reachable local `.js`,

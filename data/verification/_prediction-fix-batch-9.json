@@ -1,0 +1,45 @@
+{
+  "what": "THE PREDICTION, WRITTEN TO DISK BEFORE THE RUN. ENGINE, 2026-09-05.",
+  "release": "63cbcc2ef605",
+  "baseline_artifact": "data/verification/cap20-empirical.json",
+  "baseline_release": "688e696f00c8",
+  "baseline_read_by_me_out_of_the_artifact": {
+    "games": 961,
+    "turns_cap": 20,
+    "arm": "middle",
+    "steering": "empirical",
+    "protocol_diverged": 162,
+    "games_board_never_diverged": 901,
+    "board_material": 60,
+    "threw": 1,
+    "end_state": { "SAME-END-STATE": 924, "DIFFERENT-END-STATE": 33, "ENDED-APART": 3, "THREW": 1 },
+    "census_level": "829 live / 829 probed / 0 missing"
+  },
+  "fixes_in_this_batch": [
+    {
+      "id": "cantusetwice",
+      "what": "`cantusetwice` is a CHOICE-TIME disable (sim/battle.ts:1692) and nothing else. The execution-time refusal is gone and the lock is derived from `_lastMove` instead of a turn timer.",
+      "scoreboard_called": "LAB ONLY. The pool holds Tinkaton and holds Gigaton Hammer, but a FORCED repeat needs an Encore or an Instruct landing on that same Tinkaton inside the window, and no cause in data/_diag77-cards.json names gigatonhammer at all.",
+      "point_estimate": "0 games close",
+      "band": "0 to 2 — the SELECTION half also changed shape (timer -> lastMove), so a Tinkaton that lost a turn to a flinch, a full paralysis or a Taunt now keeps the slot disabled a turn longer, which the empirical driver could notice"
+    },
+    {
+      "id": "moldbreaker-vs-ally-friendguard",
+      "what": "Friend Guard declares flags.breakable and sim/battle.ts:836-841 asks suppressingAbility(effectHolder) — the ALLY. `_hitCtx` read the partner's ability raw.",
+      "scoreboard_called": "POOL. Exactly one named game.",
+      "point_estimate": "1 game closes: config `omit-spread`, seed `gen9championsvgc2026regmbbo3-2663738910 vs gen9championsvgc2026regmbbo3-2663705570`, first board divergence at turn 4, `p1.party.lucario.hp` medicham 93 / showdown 75. It is in the baseline's first_board_divergences today.",
+      "band": "1 to 1 on that game; 0 to 2 on the total, because a game that closes here may simply diverge later"
+    }
+  ],
+  "predicted_after": {
+    "board_material": 59,
+    "board_material_band": "58 to 60",
+    "protocol_diverged": 161,
+    "protocol_band": "159 to 162",
+    "games_board_never_diverged": 902,
+    "threw": 1,
+    "end_state_SAME": "924 or 925",
+    "census_level": "829 live / 829 probed / 0 missing — UNCHANGED, and it was regenerated twice during this pass and read 829 both times",
+    "named_game_that_must_close": "omit-spread / 2663738910 vs 2663705570 (the Lucario). If it is still in first_board_divergences afterwards, the Friend Guard fix did not reach the pool and the attribution above is wrong."
+  }
+}

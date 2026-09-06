@@ -119,10 +119,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  829/829 probed mechanics live, 0 missing   (census 2026-09-05 02:07)
+  829/829 probed mechanics live, 0 missing   (census 2026-09-05 21:15)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 2.3 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-05 00:39)
+    never fired in the staged harness (all-mechanics-fire.json, 7 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-05 21:26)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -144,9 +144,144 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-05 02:59_
+_stamped 2026-09-05 21:31_
 
 <!-- /GENERATED -->
+
+## `cantusetwice` IS A **CHOICE-TIME DISABLE AND NOTHING ELSE**, SO AN ENCORED OR INSTRUCTED GIGATON HAMMER SWINGS FOR 160 — AND THE SEVENTH `-damage field 3` CARD WAS NEVER A GIGATON HAMMER MECHANIC AT ALL: BOARD-MATERIAL **60 OF 961 -> 59 OF 961**, PROTOCOL **162 -> 161**, CENSUS LEVEL AT 829/829. 2026-09-05
+
+Release `63cbcc2ef605`, 961 games, arm `middle`, `--end-state`, census pin `9446a684709d`, pool
+`data/team-pool-frozen`, steering `empirical`, cap 20 — the same pins the 60 was measured on. The new
+figure is in `data/verification/fix-batch-9.json`; the baseline is `data/verification/cap20-empirical.json`
+and every number below was read out of it by this pass rather than taken from a sweep.
+**`data/game-differential.json` was NOT rewritten**, so `node engine/status.js` still prints the older
+whole-game figure and its two clauses are the gate's only failures. Full account:
+`docs/_reports/2026-09-05-damage-seven-and-gigaton.md`.
+
+### GIGATON HAMMER — THE MECHANISM, AND WILL FOUND IT
+
+`cantusetwice` is enforced in the authority in **exactly one place**, and it is the request builder:
+`sim/battle.ts:1692`, `if (activeMove.flags['cantusetwice'] && pokemon.lastMove?.id === moveSlot.id)
+pokemon.disableMove(...)`. **There is no refusal at use time.** `sim/battle-actions.ts:267` adds a marker
+volatile whose own comment reads *"Used exclusively for a hint later"*, and `:313` removes it and prints
+`|-hint|Some effects can force a Pokemon to use <Move> again in a row.` — **a line that exists BECAUSE the
+repeat is legal.** Encore and Instruct both bypass selection, so the disable never applies. Champions
+overrides neither move (`gigatonhammer` appears under `data/mods/champions/` only at `learnsets.ts:14479`)
+and its own `encore` override (`data/mods/champions/moves.ts:286`) makes it easier still: it calls
+`queue.changeAction` and rewrites the already-queued action in place. Two `cantusetwice` moves exist in the
+dex and only Gigaton Hammer is legal here — `bloodmoon` is `Past`. Tinkaton is the sole carrier.
+
+**THIS ENGINE HAD TWO THINGS THE AUTHORITY DOES NOT.** WIRE 44 armed `_noRepeat` and then asked it at a
+second place: a refusal above the kind dispatch, which turned every forced repeat into
+`|move|...|[still]` + `|-fail|`. And the STATE was a **timer** — `_noRepeatT = (lockoutTurns||1)+1`, ticked
+at the foot of every turn — where the authority holds no clock and re-reads `lastMove` at every request.
+Those are not the same lock: on a turn the body never reached `moveUsed` (a Taunted status click, a flinch,
+a full paralysis) the authority's `lastMove` is untouched and the slot stays disabled, while our counter ran
+down anyway. Both halves are gone; `cantUseTwiceLocked` derives the lock from `_lastMove`, and the marker
+is raised at this engine's `moveUsed` position, which is where `battle-actions.ts:267` sits relative to
+`:291`.
+
+**RED FIRST, HEAD TO HEAD.** `tests/probe_gigaton_repeat.js`, knob `MEDI_CANTUSETWICE_EXEC_REFUSE=1`.
+**Nine arms, five red, four controls, all clear.** Before: `showdown ... move|tinkaton|gigatonhammer ->
+-damage|kingambit|87175` against `medicham ... move|tinkaton|gigatonhammer|still -> -fail|tinkaton`, boards
+parted on HP. After: identical, and the knob puts them back apart on every red. **The sensitivity check is
+the AUTHORITY'S OWN INSTRUMENTATION** — the count of `|-hint|` lines in Showdown's raw log, which is exactly
+the `:267` condition — so an arm claiming a repeat that produced no hint fails as a fixture rather than
+passing as a verdict. Two producers are staged (Instruct, deterministic and one turn; Encore, two turns and
+taking the shared `getRandomTarget` draw), each mirrored, plus the timer arm, plus four controls including
+`gap-then-gigaton`, which is the arm a fix that merely DELETED the mechanic would also pass — which is why
+the SELECTION lock is read at every boundary of every arm, from Showdown's own `moveSlot.disabled` against
+this engine's exported `moveDisabledBy`.
+
+**THE CENSUS PROBE FOR THIS TAG WAS PINNING THE BUG AND HAS BEEN RE-AIMED.** `tests/test-mechanics.js`
+asserted that a second CALLER-SUPPLIED Gigaton Hammer deals 0. `playerAction` is the Encore/Instruct road,
+not the menu, so the old probe was green on the one behaviour the authority never has and would have stayed
+green through the fix. It now asks the mechanic at both moments: the menu says `noRepeat` and the forced
+repeat still lands. **Census level is unchanged at 829 live / 829 probed / 0 missing, 0 hollow, 0 threw.**
+
+**AND THE `-hint` IS NOT EMITTED, WHICH IS A MEASURED FACT RATHER THAN AN OMISSION.** `-hint` is a DECLARED
+non-emission in `data/protocol-events.json` (*"client hint text; carries no rule"*), it is absent from
+`TRACE_EVENTS`, and `sdStream` therefore drops it from the AUTHORITY'S side as well — so the missing line is
+invisible to the whole-game differential in both directions and emitting it unclaimed would fail
+`tests/test-protocol-trace.js` PART 1. The probe asserts our hint count at exact 0 and prints Showdown's
+beside it, so the gap is recorded. **It is not fixed here** and it is not a board defect.
+
+### THE SEVENTH `-damage field 3` CARD — MOLD BREAKER AGAINST AN ALLY'S FRIEND GUARD
+
+ROADMAP #542 filed it as UNATTRIBUTED and called it *"a STEEL move that no aura can reach"*, which is right
+— the multiplier was never an aura. `friendguard` (`data/abilities.ts`) declares **`flags: { breakable: 1 }`**,
+and `sim/battle.ts:836-841` skips a breakable handler whenever `suppressingAbility(effectHolder)` is true.
+**The load-bearing word is `effectHolder`:** for an `onAnyModifyDamage` handler that is the ALLY beside the
+target, not the target — so a Mold Breaker punches through a partner's Friend Guard. `suppressingAbility`
+(`:365-368`) needs only `activeMove.ignoreAbility`, which `moldbreaker.onModifyMove` sets. Champions
+overrides neither ability. The sheets behind the card, read out of `data/team-pool-frozen`, name both
+bodies: a **Tinkaton with Mold Breaker** swinging, a **Maushold-Four with Friend Guard** beside the Lucario.
+The arithmetic is exact, not close: the authority deals 70, we dealt 52, and `tr((70*3072 + 2048)/4096) = 52`.
+
+**`_hitCtx` read `_pal.ability` RAW** and never went through `suppressedAbility` — the function in the same
+file that already reads the `breakable` tag, already refuses to let a body break itself, and already honours
+Ability Shield and Mycelium Might's `onlyCategory`. Every other breakable read in this engine goes through
+it. One site did not.
+
+**RED FIRST.** `tests/probe_moldbreaker_ally_guard.js`, knob `MEDI_ALLY_GUARD_UNBREAKABLE=1`. **Five arms,
+two red, three controls, all clear.** Showdown 68 / medicham 51 before, 68 / 68 after, 51 again under the
+knob. **The claim is a CROSS-ARM equality read off Showdown alone:** Mold Breaker + Friend Guard (68) EQUALS
+no Friend Guard on the board at all (68), and DIFFERS from Own Tempo + Friend Guard (51) — Own Tempo being
+the same Tinkaton's other legal ability, so the breaker is cleared on the same body rather than by swapping
+the attacker. Without that pair every "the engines agree" could be a board where Friend Guard did nothing.
+
+### THE ATTRIBUTION IS MEASURED, NOT ARGUED
+
+Both runs read 961 games, `threw` 1, the same census pin, the same pool and a stable driver digest
+(`e87506b2d737` over 11 files, unchanged across the whole run — the new `driverCodeGuard`). Joined on
+`config|seed`: **the named game closed and nothing else did.**
+`omit-spread | gen9championsvgc2026regmbbo3-2663738910 vs gen9championsvgc2026regmbbo3-2663705570`, first
+board divergence turn 4, `p1.party.lucario.hp medicham 93 / showdown 75`, is **gone** from
+`first_board_divergences`. **The only divergence class that moved is `-damage field 3`, 10 -> 9.** Every
+other class is identical, `first_divergences` is identical in membership and in cause, and end-state is
+unchanged at 924 / 33 / 3 / 0 / 1.
+
+**THE SCOREBOARD WAS CALLED IN WRITING FIRST**, to `data/verification/_prediction-fix-batch-9.json`, before
+the run: board-material 59, protocol 161, boards-never-diverged 902, threw 1, end-state unchanged, census
+level 829, the Gigaton fix moving **0** pool games as a lab-only fix, and the Lucario game named as the one
+that must close. **Every figure written to disk before the run landed at its point estimate; none was a band-hit
+and none missed.** The Gigaton half is confirmed
+lab-only by search: the string `gigatonhammer` does not appear anywhere in the new artifact.
+
+**THE FIVE CLAUSES THIS RELEASE STALED WERE RE-RUN AND NONE MOVED.** Damage differential **0 of 6000** at
+both corners, seed 20260804. Roster **items 140 / abilities 129 / moves 475**, with
+`FIRED-AND-BOARDS-DIFFER` and `DID-NOT-FIRE` at **zero on all three stages**.
+`all_mechanics_fire.js --kind all` (the default `--kind moves` is a trap that takes the gate to 3 of 9):
+moves resolved 495 of 500, abilities fired 104, items fired 64 — identical to the previous release.
+**The gate reads 2 of 9 failing and both failures are the whole-game clauses reading the deliberately
+un-republished `data/game-differential.json`.**
+
+### THE HAND LIST
+
+**Removed — two, and both left because a probe now carries them:**
+
+- **Gigaton Hammer's `cantusetwice`** — was a timed lockout enforced at execution; now the authority's
+  single choice-time clause, carried by `tests/probe_gigaton_repeat.js` (9 arms) and by the re-aimed
+  `cantUseTwice` census row.
+- **ROADMAP #542 bucket (c), the "Gigaton Hammer residue, no hypothesis"** — attributed, fixed and
+  measured; carried by `tests/probe_moldbreaker_ally_guard.js` (5 arms).
+
+**Owed and named, not fixed here:**
+
+- **ROADMAP #544 — Beat Up's ally ORDER.** #542 read the card as a hit COUNT and it is not: **both engines
+  print `\|-hitcount\|p1a: Milotic\|4`**, and the per-hit losses are **9, 7, 10, 7** in the authority against
+  **6, 7, 10, 9** here — hits 2 and 3 identical, hits 1 and 4 the two that move. `move.allies` is built from
+  `pokemon.side.pokemon`, an array Showdown PERMUTES on every switch-in (`sim/battle-actions.ts:131-133`
+  swaps the entrant and the outgoing body), and `beatUpAllies` walks the static `att._sf.team`. Derived from
+  the authority's source and from the card; **NOT probed and not fixed.**
+- **ROADMAP #542 (a) and (d) stand.** The four Fairy Aura field-presence games and the one index game are
+  untouched, and the Fairy Aura instrument that row owes has not been built.
+- **The `-hint` line.** Declared not-emitted, invisible to the differential on both sides, and left that way
+  rather than claimed — claiming it means `TRACE_EVENTS`, `engine/derive_protocol_events.js`,
+  `data/protocol-events.json` and a new PART 1 board, which is the narration gate's work and not this pass's.
+- **Nothing is committed.** The two probes, the engine change, release `63cbcc2ef605`, the re-run artifacts
+  and the ROADMAP rows are on disk only; the living-docs pass (white paper, deck, technical docs, SUMMARY,
+  MODELS, CHANGELOG + version bump) belongs to whoever commits them.
 
 ## THE COMPARATOR IS COMPLETE — **40 → 54 LEAVES, STANDING HOLE 16 → 0**, WITH BOTH REFUSALS **DERIVED**. AND THE STAND-IN THAT DRIVES EVERY ENGINE COMPARISON WAS BEING HANDED **ONE CANDIDATE ON 22.2% OF DECISIONS**, WHICH IS WHY ITS GAMES DID NOT END. 2026-09-05, CHANGELOG 5.257.0
 

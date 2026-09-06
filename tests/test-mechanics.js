@@ -10524,23 +10524,57 @@ probe('move', 'clearsBoosts', 'Haze wipes the boosts off both sides', () => {
                  + control.foe + '/' + control.own + ', after Haze ' + test.foe + '/' + test.own };
 });
 
-/* ARMED, 2026-08-04. `dealt 0` on the second click is also what an engine that never resolved the
- * move at all prints, so the control is the same body clicking a move with NO lockout twice. */
-probe('move', 'cantUseTwice', 'Gigaton Hammer cannot be clicked twice in a row', () => {
+/* ARMED 2026-08-04. RE-AIMED 2026-09-05, AND THE OLD VERSION WAS PINNING THE BUG.
+ *
+ * It asserted that a SECOND CALLER-SUPPLIED Gigaton Hammer deals 0. The authority does not do that.
+ * `cantusetwice` is enforced in exactly one place -- `sim/battle.ts:1692`, inside the REQUEST builder:
+ *
+ *     if (activeMove.flags['cantusetwice'] && pokemon.lastMove?.id === moveSlot.id)
+ *       pokemon.disableMove(pokemon.lastMove.id);
+ *
+ * There is no `onBeforeMove` and no refusal at execution at all. `sim/battle-actions.ts:267` adds a
+ * marker volatile and `:313` removes it and prints `|-hint|Some effects can force a Pokemon to use
+ * <Move> again in a row.` -- a line that exists precisely BECAUSE a forced repeat is legal. Encore
+ * (which Champions rewrites to change the already-queued action) and Instruct both bypass selection,
+ * so an Encored or Instructed Gigaton Hammer lands its full 160 BP.
+ *
+ * `playerAction` IS A CALLER-SUPPLIED ACTION, which is the Encore/Instruct road and not the menu. So
+ * the old probe was green on the one behaviour the authority never has, and it would have stayed
+ * green through the fix that removed it. It now asks the mechanic at BOTH moments:
+ *
+ *   MENU   -- `moveDisabledBy` (the function chooseAction filters with) says 'noRepeat' the turn
+ *             after the move is used, and says nothing of the sort for a move with no lockout.
+ *   FORCED -- the caller-supplied repeat still LANDS, because that is what Showdown does.
+ *
+ * tests/probe_gigaton_repeat.js is the head-to-head version of the same claim: five red arms over two
+ * producers against the real simulator, with `MEDI_CANTUSETWICE_EXEC_REFUSE=1` restoring the old
+ * refusal and parting every one of them. */
+probe('move', 'cantUseTwice', 'Gigaton Hammer leaves the MENU the turn after it is used, and a forced repeat still lands', () => {
   if (!MC.moves['gigatonhammer']) return { works: false, detail: 'gigatonhammer not in MC.moves' };
   const run = (mv) => {
     const { me, ally, f1, f2, S } = board('tinkaton', 'corviknight', 'garchomp', 'garchomp');
     M.battleTurn(S, rng5,
       new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
     const first = f1.curHP;
+    /* THE MENU, READ BETWEEN THE TWO TURNS -- this is the authority's whole clause. */
+    const menu = M.moveDisabledBy(me, mv) || '';
     M.battleTurn(S, rng5,
       new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-    return first - f1.curHP;
+    return { second: first - f1.curHP, menu };
   };
   const control = run('playrough'), test = run('gigatonhammer');
-  return { works: test === 0 && control > 0, arms: { control: control > 0, test: test > 0 },
-           detail: 'second consecutive Play Rough dealt ' + control + ' (a move with no lockout must '
-                 + 'still land), second consecutive Gigaton Hammer dealt ' + test + ' (must be 0)' };
+  const works = test.menu === 'noRepeat' && control.menu !== 'noRepeat'
+             && test.second > 0 && control.second > 0;
+  /* THE ARMS ARE WHAT THE ENGINE COMPUTED, not a verdict about it: the MENU STRING under each move
+     plus the damage the second, caller-supplied click dealt. A pair of booleans would have read
+     `{true,true}` here and this file's own hollow detector is right to refuse that -- the varied knob
+     is the move, and its two answers must be visibly different. */
+  return { works, arms: { control: [control.menu || '(offered)', control.second > 0],
+                          test: [test.menu || '(offered)', test.second > 0] },
+           detail: 'after one Gigaton Hammer the menu says "' + test.menu + '" (must be noRepeat) and '
+                 + 'a FORCED repeat still dealt ' + test.second + ' (must be > 0 -- the authority has '
+                 + 'no use-time refusal); after one Play Rough the menu says "' + control.menu
+                 + '" (must not be noRepeat) and the second one dealt ' + control.second };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). FOUR REAL TURNS, and the arms are unchanged
