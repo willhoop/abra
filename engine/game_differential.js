@@ -447,7 +447,11 @@ const MIDW = (() => {
                           * `getConfusionDamage`. A run whose confusion self-hits are all in the
                           * un-inverted read looks exactly like a run that has none, so the count is
                           * published rather than inferred from the divergence rate. */
-                         confusionDmgEnters: 0 });
+                         confusionDmgEnters: 0,
+                         /* 2026-09-06 -- how many times the authority entered `BattleActions#selfDrops`.
+                          * A zero on a run reporting post-hit-ability divergences means the wrapper is
+                          * not carrying them and the reading is about something else. */
+                         selfDropEnters: 0 });
   if (MID_UNSHARED) return fresh();
   if (!globalThis[K]) globalThis[K] = fresh();
   else {
@@ -880,6 +884,57 @@ let MID_RANGE_PINNED = 0, MID_RANGE_LIVE_DRAWS = 0;
  * cannot do this: a `sec` range draw incremented NEITHER of them (it fell past both into `midDraw`),
  * so the receipt that exists to police this pin was blind to the only category it was missing. */
 const MID_RANGE_SEEN = new Map();
+
+/* ---- 2026-09-06 -- THE SELF-DROP ROLL IS A DIE THE AUTHORITY NEVER READS, AND IT WAS SHIFTING THE
+ * POST-HIT ABILITY COIN BY ONE. -------------------------------------------------------------------
+ *
+ *     sim/battle-actions.ts:1316-1334   BattleActions#selfDrops
+ *       if (!isSecondary && moveData.self.boosts) {
+ *         const secondaryRoll = this.battle.random(100);               <-- ALWAYS DRAWN
+ *         if (typeof moveData.self.chance === 'undefined' || secondaryRoll < moveData.self.chance) {
+ *
+ * `selfDrops` runs at `spreadMoveHit` step 4 and `runEvent('DamagingHit')` -- Poison Touch, Flame
+ * Body, Cursed Body, Static, Poison Point, Effect Spore -- at step 6 of the same method. NEITHER is
+ * one of the four methods this file wraps, so both were addressed `<seed>|<turn>|any|<move>|<target>`
+ * and landed in ONE bucket in `nth` order. medicham2 does not take the self-drop draw at all, so on a
+ * self-drop move the authority's ability coin sat at `nth 1` while ours sat at `nth 0` -- two
+ * independent values for one event.
+ *
+ * MEASURED BEFORE THIS LANDED, one staged turn, both address logs side by side
+ * (`tests/probe_selfdrop_address.js`, a Poison Touch Sneasler clicking Close Combat):
+ *
+ *     authority   20260813|1|any|closecombat|p20|0     the self-drop roll, VALUE NEVER READ
+ *                 20260813|1|any|closecombat|p20|1     Poison Touch's 30%
+ *     this engine 20260813|1|any|closecombat|p20|0     Poison Touch's 30%, a DIFFERENT number
+ *
+ * and with three / four padding turns in front of the identical board the two engines PART, in both
+ * directions: `p2.party.swampert.status` "" against "psn", then "psn" against "". That is the shape
+ * `state.first_board_divergences` carries seven times over with `[from] ability: poisontouch` on the
+ * protocol line beside it.
+ *
+ * THE VALUE IS NEVER READ IN THIS REGULATION, AND THAT IS DERIVED RATHER THAN ASSUMED. All TEN legal
+ * moves carrying `self.boosts` -- armorcannon, closecombat, dracometeor, hammerarm, headlongrush,
+ * icehammer, leafstorm, makeitrain, overheat, superpower -- leave `self.chance` undefined, so the
+ * `typeof ... === 'undefined'` short-circuit fires first and `secondaryRoll` is discarded EVERY time.
+ * The probe re-derives that membership on every run and goes red if a member ever defines a chance.
+ *
+ * IT IS THE `tgtla` RULE THROUGH A DIFFERENT DOOR, and that precedent is followed exactly: the draw
+ * goes to a bucket medicham2 never names, and it keeps a REAL address-keyed value rather than being
+ * pinned, so the authority's own behaviour is unchanged -- what changes is only that it stops shifting
+ * the `nth` of everything else. Nothing in `engine/medicham2-browser.js` moves for this.
+ *
+ * NARROWED BY THE METHOD, NOT BY THE ARGUMENT, on this file's own standing rule that a denominator
+ * cannot say who is asking. Everything the bucket swallows is tallied in `MID_SELFDROP_SEEN` by
+ * `move|random(args)` and published, so a method scope that quietly grew to cover a nested draw the
+ * two engines DO share is visible rather than inferred.
+ *
+ * `MEDI_MID_SELFDROP_SHARED=1` PUTS IT BACK IN `any` so the defect can be shown RED rather than
+ * asserted -- the same shape as `MEDI_MID_RANGE_DRAWS` and `MEDI_TGT_ADDR_LEGACY`. The wrapper still
+ * runs under the knob, so `selfDropEnters` stays honest and `selfDropDraws` reads 0. */
+const SELFDROP_SHARED = (typeof process !== 'undefined' && process.env
+                         && process.env.MEDI_MID_SELFDROP_SHARED === '1');
+let MID_SELFDROP_DRAWS = 0;
+const MID_SELFDROP_SEEN = new Map();
 
 /* ==================================================================================================
  * MIDDLE ARM — REAL DICE THAT BOTH ENGINES AGREE ON, ADDRESSED BY CATEGORY (ROADMAP #262)
@@ -1351,6 +1406,12 @@ function midWrapShowdown(BattleActions) {
    * it -- read whole at sim/battle-actions.ts:1850-1862 -- so the `dmg`->`crit` relabel below cannot
    * fire here. `pokemon` is argument 0, the same signature position `getDamage` uses for its source. */
   if (!CONFUSION_DMG_CAT_LEGACY) around('getConfusionDamage', 'dmg', 0, 'confusionDmgEnters');
+  /* 2026-09-06 -- THE SELF-DROP ROLL'S OWN SCOPE. See SELFDROP_SHARED above. It is wrapped
+   * UNCONDITIONALLY, knob or no knob: `midAddrCat` is where the restore lands, so `selfDropEnters`
+   * counts the authority's real entries in both arms and a red probe cannot be confused with a board
+   * on which no self-drop move ever connected. `selfDrops(targets, source, move, moveData,
+   * isSecondary)` -- the attacker is argument 1, the same signature position `secondaries` uses. */
+  around('selfDrops', 'sdrop', 1, 'selfDropEnters');
   /* ---- ROADMAP #478 -- `runMove` IS NOT A CATEGORY, IT IS A SCOPE ------------------------------
    *
    * It sets no `MIDW.cat` and changes no address on its own. What it answers is the ONE question the
@@ -1438,6 +1499,14 @@ function midWrapBattle(Battle) {
  * where `tgtDrawsLookahead` is 0 has not removed anything from the shared bucket — both look exactly
  * like a working fix from the rate alone. */
 function midAddrCat() {
+  /* 2026-09-06 -- the self-drop bucket, and the restore knob's ONE landing point. Returning `any`
+   * here is byte-for-byte the pre-2026-09-06 instrument: the draw goes back into the shared bucket
+   * and shifts the ability coin exactly as it did. `MID_SELFDROP_DRAWS` counts only what was actually
+   * MOVED, so it reads 0 under the knob and a stopped fix cannot look like a working one. */
+  if (MIDW.cat === 'sdrop') {
+    if (SELFDROP_SHARED) return 'any';
+    MID_SELFDROP_DRAWS++; return 'sdrop';
+  }
   if (MIDW.cat !== 'tgt') return MIDW.cat;
   if (MIDW.inRunMove) { MIDW.tgtDrawsInMove++; return 'tgt'; }
   MIDW.tgtDrawsLookahead++; return 'tgtla';
@@ -1497,6 +1566,17 @@ function makeArm(spec) {
      * form with m === 16 is the damage roll and the two-argument form is the crit — the only place a
      * denominator IS a reliable discriminator, because the wrapper has already narrowed the caller. */
     if (spec.middle) {
+      /* 2026-09-06 -- WHAT THE SELF-DROP SCOPE SWALLOWS, TALLIED BEFORE `midAddrCat` DECIDES ANYTHING
+       * and in BOTH arms of the knob, so the population can be judged rather than hoped at. The scope
+       * is a whole method and `selfDrops` calls `moveHit`, so a nested draw is possible in principle;
+       * anything here that is not the `random(100)` of battle-actions.ts:1325 means the bucket is
+       * wider than the claim, and the probe fails on exactly that. */
+      if (MIDW.cat === 'sdrop') {
+        const _sb = this && this.activeMove !== undefined ? this : MIDW.battle;
+        const _smv = _sb && _sb.activeMove;
+        const _sk = (_smv ? _smv.id : '-') + '|random(' + m + (n === undefined ? '' : ',' + n) + ')';
+        MID_SELFDROP_SEEN.set(_sk, (MID_SELFDROP_SEEN.get(_sk) || 0) + 1);
+      }
       const cat = (MIDW.cat === 'dmg' && n !== undefined) ? 'crit' : midAddrCat();
       /* TALLIED BEFORE ANY DECISION — see MID_RANGE_SEEN. */
       if (n !== undefined) {
@@ -1889,6 +1969,21 @@ function armClaims(a) {
      * category that actually carries a confusion duration. This one drives the holder to `sec`
      * explicitly and asserts the same two things there — no address consumed, and the bottom of the
      * range returned — restoring the holder afterwards so no later claim inherits it. */
+    /* 2026-09-06 — THE SELF-DROP ROLL IS ADDRESSED IN ITS OWN BUCKET, AND THE KNOB PUTS IT BACK.
+     * Asserted in BOTH directions, like the range form above, so a claim that passes because the
+     * wrapper is dead cannot slip through: the draw must still CONSUME exactly one address (it is not
+     * pinned — the authority's behaviour is unchanged), and the address it consumes must carry
+     * `|sdrop|` on the clean arm and `|any|` under `MEDI_MID_SELFDROP_SHARED=1`. This is the pin
+     * behind seven `[from] ability: poisontouch` board divergences — `selfDrops` was taking `nth 0`
+     * in the `turn|any|<move>|<target>` bucket and pushing the ability's own 30% to `nth 1`, which
+     * medicham2 has no way to reach. */
+    P('the SELF-DROP roll has its OWN address bucket  [MEDI_MID_SELFDROP_SHARED=1 restores it]',
+      () => { const prev = MIDW.cat; MIDW.cat = 'sdrop';
+              try { const b = MID_CTX_SEEN.sd.length; a.random(100);
+                    const grew = MID_CTX_SEEN.sd.length - b;
+                    const last = String(MID_CTX_SEEN.sd[MID_CTX_SEEN.sd.length - 1] || '');
+                    return grew === 1 && (SELFDROP_SHARED ? /\|any\|/.test(last) : /\|sdrop\|/.test(last)); }
+              finally { MIDW.cat = prev; } });
     P('the RANGE form is pinned under `sec` too, not only `any`  [a confusion from a SECONDARY]',
       () => { const prev = MIDW.cat; MIDW.cat = 'sec';
               try { const b = MID_CTX_SEEN.sd.length; const v = a.random(2, 6);
@@ -2108,6 +2203,12 @@ const DICE_MODEL = 'split/v5: acc+crit+sec+dmg on the corner, stall on its own s
                  + 'activeTarget in scope — `tgt` inside runMove is SHARED with medicham2, `tgtla` '
                  + 'for the lookahead resolutions (resolveAction, getActionSpeed, beforeTurnMove) is '
                  + 'a bucket medicham2 never draws in, so the deciding draw is nth 0 on both sides; '
+                 + 'from 2026-09-06 `BattleActions#selfDrops` has its OWN address category `sdrop` '
+                 + 'for the same reason — its `random(100)` (battle-actions.ts:1325) is drawn on every '
+                 + 'self-drop move and READ BY NONE OF THE TEN LEGAL ONES, and while it sat in `any` '
+                 + 'it pushed the post-hit ability coin (Poison Touch, Flame Body, Cursed Body) to '
+                 + 'nth 1 on the authority against nth 0 here; it is NOT pinned, so the authority '
+                 + 'behaves identically; '
                  + 'the `middle` arm addresses every draw by event and hashes it FNV-1a + fmix32 '
                  + '(the finaliser landed 2026-08-27 — before it, the trailing `nth` field only '
                  + 'TRANSLATED the value and ten arrivals at one damage address shared 1.75 buckets '
@@ -6616,7 +6717,18 @@ module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CH
                                            * that reports confusion divergences means the wrap is not
                                            * carrying them and the reading is about something else. */
                                           confusionDmgEnters: MIDW.confusionDmgEnters,
-                                          confusionDmgCatLegacy: CONFUSION_DMG_CAT_LEGACY }) };
+                                          confusionDmgCatLegacy: CONFUSION_DMG_CAT_LEGACY,
+                                          /* 2026-09-06 -- the self-drop bucket's three receipts.
+                                           * `enters` is the authority's real entries into the method
+                                           * and counts in BOTH arms of the knob; `draws` is what was
+                                           * actually moved OUT of `any` and must read 0 under it;
+                                           * `seen` is every draw the method scope swallowed, so a
+                                           * scope that grew is visible rather than inferred. */
+                                          selfDropEnters: MIDW.selfDropEnters,
+                                          selfDropDraws: MID_SELFDROP_DRAWS,
+                                          selfDropShared: SELFDROP_SHARED,
+                                          selfDropSeen: Object.fromEntries(
+                                            [...MID_SELFDROP_SEEN].sort((a, b) => b[1] - a[1])) }) };
 
 if (require.main !== module) return;
 
@@ -7525,6 +7637,17 @@ if (PRIMARY_ARM.middle) {
      * decision. This is the receipt `range_form_pinned` could not give: a category the predicate does
      * not match increments no counter at all, so widening it was previously unjudgeable. */
     range_form_seen_by_cat: Object.fromEntries([...MID_RANGE_SEEN].sort((a, b) => b[1] - a[1])),
+    /* 2026-09-06 — the self-drop bucket. `selfdrop_enters` is how many times the authority actually
+     * ran the method and counts under the restore knob too; `selfdrop_draws` is what was MOVED out of
+     * the shared `any` space and reads 0 under `MEDI_MID_SELFDROP_SHARED=1`. A run with enters > 0 and
+     * draws === 0 on the clean arm is the fix having silently stopped firing, which looks exactly like
+     * one that works. `selfdrop_seen` is the population the method scope swallowed, keyed
+     * `move|random(args)` — every entry should be `random(100)`; anything else is a nested draw the
+     * scope is taking with it. */
+    selfdrop_enters: MIDW.selfDropEnters,
+    selfdrop_draws: MID_SELFDROP_DRAWS,
+    selfdrop_knob: SELFDROP_SHARED,
+    selfdrop_seen: Object.fromEntries([...MID_SELFDROP_SEEN].sort((a, b) => b[1] - a[1])),
     sd_addresses_dropped_as_not_this_game: MID_SD_LOG_DROPPED,
     /* ---- 2026-09-06 — THE `any` BUCKET, MEASURED AND DECIDING NOTHING -------------------------
      *

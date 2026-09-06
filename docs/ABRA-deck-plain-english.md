@@ -1,6 +1,22 @@
 # ABRA — the plain-English deck
 
-**Version 5.263.0 · 2026-09-06 · Will Hooper**
+**Version 5.264.0 · 2026-09-06 · Will Hooper**
+
+**5.264.0 - ONE CHANGE, AND IT IS TO OUR MEASURING RIG RATHER THAN TO THE GAME. THE "DIFFERENT BOARD" SCORE FELL FROM 34 GAMES OUT OF 961 TO 27; THE "DIFFERENT COMMENTARY" SCORE FELL FROM 100 TO 93.**
+
+**WHAT WAS WRONG, IN PLAIN TERMS.** When we check our simulator against the real one, we make both of them draw from the same list of random numbers, so that any disagreement has to be a rule and cannot be luck. Each draw has an address — this turn, this move, this target, the first draw, the second draw. The real simulator turns out to roll a die for a certain family of moves and then never look at the result: it is a leftover, and the value is thrown away every single time in this format. We did not roll that die, because there is nothing to roll it for. But the real one did, and it used up an address doing it. So every later draw in the same moment sat at a different address on their side than on ours, and the two engines quietly rolled DIFFERENT numbers for the same event — a burn, a poison, an ability going off. Seven games were decided by that and not by any rule.
+
+**THE FIX IS TO GIVE THE POINTLESS DIE ITS OWN DRAWER.** It still gets rolled, exactly as the real game rolls it, so nothing about their behaviour changes. It simply stops shifting everything behind it along by one. No line of the simulator itself was touched.
+
+**WE CHECKED FIVE SUSPECTED CASES AND ONLY THREE WERE THIS.** Poison Touch, Flame Body and Cursed Body were all confirmed, each against a control set up on the same Pokemon that we knew should agree. The sleep case was NOT this — we staged it, both engines put the target to sleep for the same three turns, and the disagreement is something else that is still open. The freeze case was predicted not to move and did not. We wrote both of those predictions down before running anything, which is the only reason we can call them refutations now instead of quietly dropping them.
+
+**THE PART WE ARE MOST CAREFUL ABOUT IS HOW WE ARE ALLOWED TO CLAIM THE IMPROVEMENT.** Changing the measuring rig means the old measurement and the new one are not strictly the same experiment, and we have a tool whose whole job is to say so. It said NOT COMPARABLE, and named both reasons. So we did not publish the improvement off that pair at all. We ran a THIRD version instead: the new code, with a switch flipped that puts the old behaviour back. The tool calls that pair comparable, and it reproduced the old result to every last digit — the same board score, the same commentary score, the same number of turns compared, the same number of games we could not use. That is what lets us say the improvement is due to this one change and nothing else. One honest caveat: the tool cannot see a switch flipped in the environment, so both files write down which way the switch was set, and a reader who trusted the tool alone here would be trusting a check that is blind to the one thing that moved.
+
+**TEN OF OUR TWELVE PREDICTIONS LANDED, AND WE NAME THE TWO THAT DID NOT.** We called the board score at 30 and it came in at 27, inside the range we had written down. And we claimed the new drawer would only ever catch that one kind of die; on real games it also catches a duration roll for Outrage. That one is harmless, and the check that would have quietly passed was tightened rather than left alone.
+
+**WHAT IS STILL BROKEN, NAMED.** Five games have boards that drift apart while nothing is ever said differently — the hardest kind, because there is no message to search for. Three of those five are one thing: a hidden counter for how many times a Pokemon has protected in a row. We tried the obvious setup to reproduce it and it did NOT reproduce, so the simple explanation is already handled and the real condition is something else. Saying that is worth more than a guess we would have to take back.
+
+**AND NOTHING WE ARE WAITING ON BECAME PUBLISHABLE.** Our headline number - how well the engine's own judgement predicts a winner - is still withheld, not printed with a warning label next to it. It becomes available when the engine gate opens and the measurement is run again, and not before.
 
 **5.263.0 - FIVE MORE FIXES. THE "DIFFERENT BOARD" SCORE FELL FROM 41 GAMES OUT OF 961 TO 34; THE "DIFFERENT COMMENTARY" SCORE FELL FROM 108 TO 100.**
 

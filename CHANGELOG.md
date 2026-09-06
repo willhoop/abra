@@ -10,6 +10,94 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.264.0] — 2026-09-06
+
+### Fixed
+- **A DIE THE AUTHORITY DRAWS AND NEVER READS WAS DECIDING BOARDS. THE GATING CLAUSE FALLS TO
+  BOARD-MATERIAL 27 OF 961 AND PROTOCOL FIRST DIVERGENCE TO 93 OF 961.**
+  `data/game-differential.json` is republished on release `d9e551ed0d5a` — **the release does not
+  move, because no engine source moved.** The change is one file and it is the INSTRUMENT:
+  `engine/game_differential.js`. `engine/medicham2-browser.js` is untouched. The gating figure is a
+  subtraction whose operands are both in `state` — `state.games` less
+  `state.games_board_never_diverged` — and the reporting figure is `state.protocol_diverged_games`.
+  Conditions, identical on every run in the pair: 961 games, cap 20, arm `middle`, steering
+  `empirical-click/v1`, `--end-state`, census pin
+  `data/verification/census-pin-9446a684709d.json`, pool `--team-store data/team-pool-frozen`,
+  `driver_code_stable` true throughout.
+- **THE CAUSE IS ONE STEP UPSTREAM OF WHERE THE HAND LIST AIMED.** `BattleActions#selfDrops` draws
+  `random(100)` at `sim/battle-actions.ts:1325` on every self-drop move, and no legal move in this
+  format ever reads the value: all ten moves carrying `self.boosts` leave `self.chance` undefined,
+  and Curse assigns one at runtime and leaves it undefined too. That dead draw sat in the shared
+  `any` address bucket at `nth 0`, so the post-hit ability coin was addressed `nth 1` on the
+  authority and `nth 0` here — **the two engines drew different numbers for the same event.** The
+  draw now has its own address category, `sdrop`, a bucket this engine never draws in, which is
+  ROADMAP #478's `tgtla` rule through a different door.
+- **THREE SUB-FAMILIES CONFIRMED, TWO REFUTED, AND THE REFUTATIONS ARE WRITTEN AS REFUTATIONS.**
+  Poison Touch, Flame Body and Cursed Body each reproduced with a control on the same bodies that
+  shares its address exactly. **Sleep is REFUTED** — staged Sleep Powder shares its address and both
+  engines slept the target the same three turns; it is a separate defect and it is still open.
+  **Freeze was predicted not to move and did not** — Champions' thaw sits below `setActiveMove` and
+  above the hit, so no self-drop draw can precede it; also separate, also still open.
+- **THE RECEIPTS ARE PUBLISHED IN THE ARTIFACT AND NAMED HERE BY FIELD.** `mid_void.selfdrop_enters` 2235,
+  `mid_void.selfdrop_draws` 1925, `mid_void.selfdrop_knob` false, and `mid_void.selfdrop_seen` keyed
+  `move|random(args)`. The `any` addresses the authority named and this engine never did fall to 18.
+
+### Changed
+- **THE DELTA IS NOT PUBLISHED AS A BEFORE/AFTER, BECAUSE `engine/arms_comparable.js` REFUSED THE
+  PAIR.** The addressing contract is hashed into `PIN_DIGEST`, so the pins moved
+  `bcb38e47d94f` → `de38d17e15a2`, and the instrument file moved with them. `arms_comparable`
+  answered **NOT COMPARABLE**, naming both causes. A **third arm** was run instead — identical
+  bytes, identical pins, with the restore knob `MEDI_MID_SELFDROP_SHARED=1` armed, written to
+  `data/verification/game-differential.selfdrop-shared.json`. `arms_comparable` calls that pair
+  **COMPARABLE**, and it reproduces the superseded publication to every digit. **That, and not the
+  raw pair, is what makes the fall attributable to one cause.**
+- **AND THE CAVEAT IS STATED RATHER THAN LEFT TO BE DISCOVERED: `arms_comparable` CANNOT SEE AN
+  ENVIRONMENT VARIABLE.** It calls the pair COMPARABLE while the arms differ by exactly the variable
+  under test. That is why `selfdrop_knob` and `selfdrop_draws` are published in BOTH artifacts — the
+  two files declare the difference themselves, and a reader who trusts `arms_comparable` alone on
+  this pair is trusting a check that is blind to the only thing that moved.
+- **WHAT THE THIRD ARM REPRODUCED, DIGIT BY DIGIT.** With the knob armed the run reads
+  board-material **34** of 961 (961 less **927** whose board never diverged), protocol first
+  divergence **100**, narration-only **70** (71 raw less 1 declared), **10429** of **10539** turn
+  boundaries identical, **5** void games and **1** that threw, **717** `any` addresses the authority
+  named and this engine never did, and **669** games whose `any` bucket read `identical`. Every one
+  of those equals the superseded 5.263.0 publication. With the knob unarmed the same run reads
+  **27** / **93** / **70**, 961 less **934**, **10452** of **10541** boundaries, 5 void and 1 threw,
+  **18** authority-only addresses and **702** `identical` verdicts.
+- **THE PREDICTION CARD READ TEN OF TWELVE, WITH TWO NAMED MISSES.** Board-material was called 30
+  against a measured 27, inside its own stated band of 26–34. And the claim that the `sdrop` bucket
+  swallows only `random(100)` **is false on the pool**: `outrage|random(2,4)` lands there through
+  the ELSE branch of `selfDrops`. It is inert — a range-form draw is pinned and consumes no shared
+  address — and the probe's assertion was corrected to a two-clause one rather than left standing.
+  Card: `data/verification/_prediction-selfdrop-address.json`, written before the measuring run.
+
+### Notes
+- **THE 5.263.0 PUBLICATION WAS ONE RUN BEHIND THE ARTIFACT AND THIS VERSION DISCHARGES IT.** The
+  white paper, the deck, the technical documentation, `docs/SUMMARY.md`, `docs/MODELS.md` and
+  `docs/DAMAGE-STAGES.md` all described the superseded counts; each now restates them and says which
+  run they came from. `node engine/status.js --write` was run and no `<!-- GENERATED -->` block was
+  hand-edited.
+- **WHAT THE GATE READS AFTER `node engine/status.js --write`.** `engine/status.js` computes nine
+  clauses and **two fail** — the whole-game BOARD-MATERIAL clause and the whole-game NARRATION
+  clause, both on measured counts. Eight of the nine GATE; narration is not one of them, by Will's
+  call of 2026-08-22, so of the gating clauses **one fails** and the gate reads CLOSED. The two
+  framings are the same state counted over two different sets, and they are never quoted side by
+  side. The census reads **829** live of **829** probed, **0** missing; the damage differential
+  reads **0 of 6000** at the midpoint and at each of the sixteen band indices on the same release.
+- **A GATE WENT RED MID-PASS AND WAS FIXED, NOT FILED.** Republishing the artifact turned
+  `tests/test-docs-current.js` red on two stale subtraction operands. The repair was to **name the
+  fields instead of copying the operand**, which is the durable form: an operand copied into prose
+  goes stale on the next republication, and a field name does not.
+- **NOTHING DOWNSTREAM MOVES AND NOTHING WITHHELD BECOMES QUOTABLE.** Leaf calibration, the
+  leaf/engine contrast, the click-censoring census, every rollout figure and the fitted weights are
+  all still absent rather than captioned. The MAG refit stays OWED, and it is a refit rather than a
+  restamp because the damage table these weights were fitted against has been regenerated.
+- **NEXT TARGET, NAMED WITH EVIDENCE.** Three of the five games that part a board with no protocol
+  divergence at all are one family: `p*.active[*].stall` reading `medi 0 / sd 3`. The obvious
+  staging — Protect then attack, and Protect-Protect then attack — does **not** reproduce it, so the
+  `duration: 2` grace is modelled and the condition is something else. It wants its own sweep across
+  the six legal `stall` movers and across a faint, a drag and a turn that never reaches the residual.
+
 ## [5.263.0] — 2026-09-06
 
 ### Fixed

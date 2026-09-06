@@ -1,6 +1,10 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.263.0 — 2026-09-06.**
+**Version: 5.264.0 — 2026-09-06.**
+
+**5.264.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND FOR ONCE THAT IS TRUE BY CONSTRUCTION RATHER THAN BY MEASUREMENT.** The only file changed this version is `engine/game_differential.js`, the measuring instrument. No engine source moved, so the engine release did not move either: `data/engine-diff.json` on release `d9e551ed0d5a` is the SAME run this page cited at 5.263.0, and it reads **0 of 6000** disagreements at the midpoint and **0 of 6000** at each of the sixteen band indices, seed 20260804, with 134 multi-hit comparisons skipped by construction. No stage, no multiplier and no ordering in this document changes.
+
+**THE ONE THING WORTH CARRYING ONTO THIS PAGE IS ABOUT DICE, NOT DAMAGE.** The defect corrected this version is that `BattleActions#selfDrops` draws a `random(100)` whose value no legal move in this format ever reads, and that dead draw was shifting the ADDRESS of every later draw in the same `any` bucket. **The damage roll is not in that bucket** — it is drawn inside `getDamage` and carries its own pinned category, which is why the sixteen band indices above are unaffected and were re-read rather than assumed. The header moves because the project version moves.
 
 **5.263.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND THE DIFFERENTIAL THAT WOULD SAY SO WAS RE-RUN RATHER THAN ASSUMED.** `data/engine-diff.json` on release `d9e551ed0d5a` reads **0 of 6000** disagreements at the midpoint and **0 of 6000** at each of the sixteen band indices, seed 20260804, with 134 multi-hit comparisons skipped by construction. No stage, no multiplier and no ordering in this document changes.
 

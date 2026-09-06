@@ -30,7 +30,7 @@ WEB — the site, and what it is allowed to publish
   rebuild the bundles: node web/build-quarantine.js && node web/build-status.js   — a PUBLISH (app/) is Will's call and this file never makes one.
 ```
 
-_stamped 2026-09-06 10:38_
+_stamped 2026-09-06 11:57_
 
 <!-- /GENERATED -->
 

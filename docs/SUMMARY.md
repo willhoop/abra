@@ -1,12 +1,35 @@
 # ABRA — Project Summary
 
-**Version 5.263.0 · 2026-09-06 · Will Hooper**
+**Version 5.264.0 · 2026-09-06 · Will Hooper**
+
+**5.264.0 - THE GATING CLAUSE FALLS FROM BOARD-MATERIAL 34 OF 961 TO 27, AND PROTOCOL FROM 100 TO 93, ON A DIE THE AUTHORITY DRAWS AND NEVER READS. THE FIX IS THE MEASURING INSTRUMENT AND NOT THE SIMULATOR.**
+
+| question | artifact and arm | answer |
+|---|---|---|
+| the whole-game clause that GATES | `data/game-differential.json`, EMPIRICAL arm | **board-material 27 of 961** — `state.games` less `state.games_board_never_diverged`, both read off `state` and neither copied here; release `d9e551ed0d5a`, cap 20, arm `middle`, steering `empirical-click/v1`, pool `data/team-pool-frozen` |
+| the whole-game clause that REPORTS | the same artifact and arm | **protocol first divergence 93 of 961**, `state.protocol_diverged_games` |
+| the narration clause | the same artifact | **70 of 961** — 71 raw less 1 declared, across 69 causes. Unmoved from 5.263.0 |
+| what the engine release did | `data/game-differential.json` | **it did not move.** Both arms are on `d9e551ed0d5a`, because no engine source changed. One instrument file changed |
+| whether the delta may be published as a before/after | `engine/arms_comparable.js` | **no.** It answered NOT COMPARABLE on the prior pair, naming the moved instrument file and the moved pins. The delta is measured against a THIRD arm with the restore knob armed, which the same tool calls COMPARABLE |
+| what the third arm reproduced | `data/verification/game-differential.selfdrop-shared.json` | the superseded publication in every field — board-material 34, protocol 100, narration 70, 10429 of 10539 boundaries identical, 5 void, 1 threw, 717 authority-only addresses, 669 `identical` verdicts |
+| the prediction card, written before the run | `data/verification/_prediction-selfdrop-address.json` | **10 of 12**, with both misses named: board-material called 30 against 27 inside a registered band of 26 to 34, and a bucket-membership claim that is false on the pool |
+| the overall engine gate | `node engine/status.js` | **two of nine clauses fail**, the two whole-game clauses, both on measured counts. Eight of the nine gate; one gating clause fails and the gate reads CLOSED |
+| the census, unmoved | `data/mechanics-census.json` | **829 live of 829 probed, 0 missing** |
+| the damage differential, unmoved | `data/engine-diff.json` | **0 of 6000** at the midpoint and at each of the sixteen band indices, seed 20260804 |
+
+**WHAT THE DEFECT WAS.** `BattleActions#selfDrops` draws `random(100)` on every self-drop move and no legal move in this format ever reads the value: all ten moves carrying `self.boosts` leave `self.chance` undefined, and Curse assigns `self` at runtime and leaves it undefined too. The dead draw sat in the shared `any` address bucket at `nth 0`, pushing the post-hit ability coin to `nth 1` on the authority against `nth 0` here — so the two engines drew **different numbers for the same event**. The repair gives it its own address category, `sdrop`, which this engine never draws in, so the authority's behaviour is byte-identical and only the addressing behind it stops shifting.
+
+**THREE CONFIRMED, TWO REFUTED, AND THE REFUTATIONS ARE PUBLISHED.** Poison Touch, Flame Body and Cursed Body each reproduced with a control on the same bodies. **Sleep is REFUTED** — staged Sleep Powder shares its address and both engines slept the target for the same three turns — and **freeze was predicted not to move and did not.** Both remain open as separate defects. Nine of the twelve games the hand list called one family were this; three were not.
+
+**WHAT IS STILL WITHHELD.** MEDICHAM is not correct, so leaf calibration, the leaf/engine contrast, the click-censoring census, every rollout figure and the fitted weights are absent from this document rather than captioned. The MAG refit stays OWED and is a refit rather than a restamp, because the damage table those weights were fitted against has been regenerated.
+
+**THE NEXT TARGET, NAMED WITH EVIDENCE.** Five of the 27 part a board while the protocol never diverges at all, and three of those five are one family: `p*.active[*].stall` reading `medi 0` against `sd 3`. The obvious staging does not reproduce it, so the `duration: 2` grace is modelled and the condition is something else.
 
 **5.263.0 - FIVE MORE ENGINE FIXES TAKE BOARD-MATERIAL FROM 41 OF 961 TO 34 AND PROTOCOL FROM 108 TO 100, AND THE BY-CAUSE TABLE THAT STEERED THE LAST THREE BATCHES WAS KEYED ON THE WRONG LIST.**
 
 | question | artifact and arm | answer |
 |---|---|---|
-| the whole-game clause that GATES | `data/game-differential.json`, EMPIRICAL arm | **board-material 34 of 961** — 961 games less the 927 whose board never diverged, both read off `state`; release `d9e551ed0d5a`, cap 20, arm `middle`, steering `empirical-click/v1`, pool `data/team-pool-frozen` |
+| the whole-game clause that GATES | `data/game-differential.json`, EMPIRICAL arm | **board-material 34 of 961** — `state.games` less `state.games_board_never_diverged`, both read off `state` and neither copied here; release `d9e551ed0d5a`, cap 20, arm `middle`, steering `empirical-click/v1`, pool `data/team-pool-frozen` |
 | the whole-game clause that REPORTS | the same artifact and arm | **protocol first divergence 100 of 961** |
 | the narration clause | the same artifact | **70 of 961** — 71 raw less 1 declared, across 69 causes. It read **71** at 5.262.0 |
 | the two columns together | the same artifact | 41 + 71 = **112** at 5.262.0 against 34 + 70 = **104** now. A repaired board moves a game OUT of the board column and INTO the narration one, so neither column may be read alone |

@@ -124,9 +124,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  829/829 probed mechanics live, 0 missing   (census 2026-09-06 09:50)
+  829/829 probed mechanics live, 0 missing   (census 2026-09-06 11:23)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 34 min old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 1.9 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-06 10:03)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -149,9 +149,174 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-06 10:38_
+_stamped 2026-09-06 11:57_
 
 <!-- /GENERATED -->
+
+## THE DICE-ADDRESS PASS — BOARD-MATERIAL **34 OF 961 -> 27 OF 961**, PROTOCOL **100 -> 93**, ON A DIE THE AUTHORITY DRAWS AND NEVER READS. THE FIX IS THE INSTRUMENT AND NOT THE ENGINE, AND THE ENGINE RELEASE DOES NOT MOVE. 2026-09-06
+
+One change, in `engine/game_differential.js` alone. `engine/medicham2-browser.js` is untouched and
+`engine_release.js drift d9e551ed0d5a` reads NO-DRIFT on all 26 frozen files, so the SAME release
+serves both arms. Full account: `docs/_reports/2026-09-06-dice-address-pass.md`.
+
+| | pre-change | KNOB CONTROL | after |
+|---|---|---|---|
+| board-material | 34 of 961 | **34** | **27 of 961** |
+| protocol first-divergence | 100 | **100** | **93** |
+| narration-only | 70 | **70** | 70 |
+| turn boundaries identical | 10429 / 10539 | **10429 / 10539** | 10452 / 10541 |
+| `any` addresses the authority named and we never did | 717 | **717** | **18** |
+| BOARD-parted causes naming poisontouch / flamebody / cursedbody | 9 games | **9** | **2** |
+| census | 829 / 829 / 0 | — | **829 / 829 / 0** |
+| `node engine/status.js` | 7 of 9 | — | **7 of 9**, the same two clauses |
+
+### WHAT IT WAS
+
+`BattleActions#selfDrops` draws `const secondaryRoll = this.battle.random(100)`
+(sim/battle-actions.ts:1325) on **every** self-drop move, and **not one legal move in this format
+reads the value** — all ten with a static `self.boosts` (armorcannon, closecombat, dracometeor,
+hammerarm, headlongrush, icehammer, leafstorm, makeitrain, overheat, superpower) leave `self.chance`
+undefined, and so does the eleventh, which the pool found rather than the derivation: `curse.onTryHit`
+ASSIGNS `move.self = { boosts: … }` at runtime for a non-Ghost user.
+
+`selfDrops` is step 4 of `spreadMoveHit` and `runEvent('DamagingHit')` — Poison Touch, Flame Body,
+Cursed Body, Static, Poison Point, Effect Spore — is step 6 of the same method. Champions overrides
+`spreadMoveHit`, keeps that order, and does not override `selfDrops`. Neither method is one the middle
+arm wraps, so both draws were addressed `<seed>|<turn>|any|<move>|<target>|<nth>` and shared a bucket:
+
+```
+authority   20260813|1|any|closecombat|p20|0     the self-drop roll, VALUE NEVER READ
+            20260813|1|any|closecombat|p20|1     Poison Touch's 30%
+this engine 20260813|1|any|closecombat|p20|0     Poison Touch's 30%, a DIFFERENT number
+```
+
+**NO INSTRUMENT HAD EVER SAID SO, AND THE FILE ITSELF HAD WRITTEN DOWN WHY.** `midGameVoid`'s identity
+is `shared / min(|sd|,|me|)`, and every address this engine named IS one the authority named — so all
+of these games read `identical`. That is verbatim the case `game_differential.js`'s `rate_over_larger`
+comment warns about: *"a game can read `identical` while the authority is flipping a coin at an
+address this engine never named — which is EXACTLY the Poison Touch shape."* The probe therefore
+checks SYMMETRIC set equality, which is the only form that can see it.
+
+### THE DIAGNOSIS WAS CHECKED PER SUB-FAMILY BEFORE ANYTHING MOVED — THREE CONFIRMED, TWO REFUTED
+
+Poison Touch (Sneasler + Close Combat), Flame Body (Toxicroak's Close Combat into Talonflame) and
+Cursed Body (Goodra's Draco Meteor into Gengar, no contact gate at all) all reproduce the two-address
+shape, each against a control on the same bodies with a non-self-drop move that shares its one address
+exactly. **Sleep does not**: a staged Sleep Powder shares `any|sleeppowder|p20|0` and both engines slept
+the target for the same three turns. **Freeze was predicted not to move and did not**: Champions'
+`frz.onBeforeMove` is a `randomChance(1,4)` below `setActiveMove` and above the hit, so no `selfDrops`
+draw can precede it. Both refusals were written into the prediction file BEFORE the run and both held.
+
+So the twelve-game family was **nine games of one instrument defect plus three separate open ones**,
+not twelve mechanic bugs and not one thing either.
+
+### THE FIX, AND WHY IT IS NOT THE ONE THE HAND LIST NAMED
+
+`selfDrops` is wrapped as address category **`sdrop`**, a bucket medicham2 never draws in, keeping a
+real address-keyed value rather than being pinned so the authority's behaviour is byte-identical. That
+is ROADMAP #478's `tgtla` rule through a different door.
+
+The hand-list item — *give the post-hit ability proc its own category on both sides* — would also
+work and is strictly larger: a new stream in medicham2, a new `MID_ADDR_CAT` row, and a `runEvent`
+wrap keyed on the event id, i.e. one fact with two copies across two files. The measurement named a
+narrower cause that a one-sided change closes: `selfDrops` is **690 of the 717** `any` addresses the
+authority named and this engine never did.
+
+**IT IS NOT SURGICAL AND IS NOT REPORTED AS ONE.** Pulling a draw out of the shared bucket re-rolls the
+value of every later `any` draw at the same address; that was written into the prediction before the run.
+
+### THE PIN DIGEST MOVED, SO THE DELTA IS MEASURED AGAINST A THIRD ARM
+
+`DICE_MODEL` carries the addressing contract and rides in `PIN_DIGEST`: **`bcb38e47d94f` ->
+`de38d17e15a2`**. `engine/arms_comparable.js` **REFUSES** the pre-change artifact against the new one,
+naming both the moved instrument file and the moved mode — so 34 -> 27 could not be published off that
+pair and is not. The delta is measured against `MEDI_MID_SELFDROP_SHARED=1` on the same bytes and the
+same pins (`data/verification/game-differential.selfdrop-shared.json`), which `arms_comparable` calls
+**COMPARABLE**, and which reproduces the pre-change artifact **to every digit** — 34 / 100 / 70, 5 void,
+1 threw, 10429 of 10539 boundaries, 717 authority-only addresses, 669 `identical`, 9 family games.
+
+**AND `arms_comparable` CANNOT SEE THE KNOB**, because it is an environment variable. It calls that
+pair comparable while they differ by exactly the change under test. That is why `selfdrop_knob` and
+`selfdrop_draws` are published in the artifact: the two files declare the difference themselves
+(`true`/0 against `false`/1925).
+
+### THE PREDICTION RECORD — TEN OF TWELVE, TWO NAMED MISSES
+
+Board-material called 30 (band 26–34), measured **27**. Protocol called 96 (92–100), measured **93**.
+Narration, census, both pin digests, both refused sub-families: hit. Two misses, both recorded:
+the post-hit-ability board-parted count was called 5 (band 3–8) and came in **below the band at 2**;
+and the claim that every draw the new bucket swallows is a `random(100)` is **FALSE on the pool** —
+`outrage|random(2,4)` appears three times, Outrage's `self: { volatileStatus: 'lockedmove' }` taking
+the ELSE branch into `moveHit`. It is inert (a two-argument `random` outside `getDamage` is pinned and
+consumes no address, in `sdrop` exactly as in `any`) and the probe's assertion is now the two-clause
+one: no ONE-ARGUMENT draw other than the `random(100)` may leave the shared bucket.
+
+### THE HAND LIST
+
+**Removed — turned into a probe this pass, so the differential carries it now:**
+
+- ~~the post-hit ability proc's own dice category, twelve of the 34 board-material games and the
+  single largest thing left on the bar~~ — `tests/probe_selfdrop_address.js`, eight arms, RED before
+  and RED under `MEDI_MID_SELFDROP_SHARED=1`, three controls green. **Nine of the twelve were the
+  `selfDrops` address and are closed. The other three are named below and are NOT this.**
+
+**Added — measured this pass and deliberately not taken:**
+
+- **The consecutive-shield counter — THREE of the five games that part a board with NO protocol
+  divergence, and the largest named family left.** `p*.active[*].stall` reads `medi 0 / sd 3`: the
+  authority's body still holds a `stall` volatile at counter 3, one successful shield and never
+  restarted, while `tookProtectTurns` reads 0 here. Nothing on the wire reports it. **AND THE OBVIOUS
+  STAGING DOES NOT REPRODUCE IT** — Protect-then-attack and Protect-Protect-then-attack both agree at
+  every boundary, so the `duration: 2` grace IS modelled and the condition is something else. It wants
+  a sweep across the six legal `stall` movers (banefulbunker, detect, endure, kingsshield, protect,
+  spikyshield — derived 2026-09-06) and across a faint, a drag, and a turn that never reaches the
+  residual. Guessing at it is how this pass would have gone wrong.
+- **The one Poison Touch game that survived is NOT an address defect.** Its `any` sets are equal
+  (`sd_only 0, me_only 0`), so the two engines drew the SAME value and still disagreed — a GATE
+  difference (an immunity, Shield Dust, a Covert Cloak, a Substitute), and a genuine engine question.
+- **The two sleep causes and the one freeze cause stand untouched**, as declared before the run.
+  `|-curestatus|p1a|slp|[msg] <> |cant|p1a|slp` is two games; the pool's `no-counterpart …
+  (any|sleeppowder)` pair is a separate question from the one this pass closed.
+- **OWED: a `VERIFIED BY:` marker for `tests/probe_selfdrop_address.js`.** It is named in
+  `PENDING_WIRE` with its blocker (it loads `tests/staged_board.js`, so it opens a release and plays
+  games) and the unaccounted count is unchanged at 99 — but a `docs/ROADMAP.md` marker would give it
+  a runner through `engine/register_reality.js`, which is what the other staged probes have.
+
+**Carried forward unchanged from batch F:** the Perish Song residual faint interleave, `-crit` on a
+different body, the confusion self-hit decision, the general `ignoringAbility()` clause at one site,
+the Levitate/Eelevate step split, the `immuneToMoveClass` stage split, the bare `moveClassBlocked`
+refusal, and `imposterCopy`/`traceCopy` on an ability rewrite.
+
+### WHAT WAS NOT DONE, SO NOBODY LOOKS FOR IT
+
+No version bump, no CHANGELOG entry, no `status.js --write`, no commit — all withheld by the brief.
+`data/policy-weights.json` and `engine/steering.js` untouched.
+
+**THE 5.263.0 PUBLICATION IS NOW ONE RUN BEHIND THE ARTIFACT, AND `tests/test-docs-current.js` SAW IT
+GO RED THE MOMENT THE ARTIFACT WAS REPUBLISHED** — two new entries under *figures a cited artifact
+does not contain*, both the operand `927` in `docs/ABRA-technical-docs.md` and `docs/SUMMARY.md`. It
+is GREEN again (24 passed, 0 failed, back to its baseline of 54) because both sentences now name
+`state.games` less `state.games_board_never_diverged` instead of copying the subtraction's operand —
+which is what those sentences were teaching in the first place, and is this repository's own rule
+about printing state rather than typing it.
+
+**THAT IS A REPAIR OF THE CITATION, NOT A PUBLICATION, AND THE PUBLICATION IS OWED.** The whitepaper,
+the deck, the technical docs, `SUMMARY.md` and `MODELS.md` still describe **34 of 961 / 100** at
+5.263.0, and the artifact now reads **27 / 93**. Discharging that means a version bump and a CHANGELOG
+entry, both of which this brief reserved. It is stated here rather than left for the next reader to
+find, because a living document one run behind the artifact is exactly the drift the living-docs rule
+exists to stop.
+
+**DISCHARGED AT 5.264.0 BY MEASURE, 2026-09-06 — THIS IS A POINTER, NOT A SECOND ACCOUNT.** The
+publication owed above was taken in a separate pass and the section above is left exactly as its
+author wrote it. The white paper, the deck, the technical documentation, `docs/SUMMARY.md`,
+`docs/MODELS.md` and `docs/DAMAGE-STAGES.md` now carry **27 / 93** with the superseded **34 / 100**
+restated rather than overwritten. `CHANGELOG.md` holds the 5.264.0 entry.
+`node engine/status.js --write` was run and no `<!-- GENERATED -->` block was hand-edited. The only
+figure this pass added that is not in the section above is the framing of the gate itself: **nine
+clauses, two failing, eight of which gate, so one gating clause fails** — the two counts are the
+same state over two different sets and are never quoted side by side. Full account:
+`docs/_reports/2026-09-06-publish-5264.md`.
 
 ## LONG-TAIL BATCH F — BOARD-MATERIAL **41 OF 961 -> 34 OF 961**, PROTOCOL **108 -> 100**, CENSUS LEVEL AT 829/829. FIVE FIXES, FIVE PROBES, AND THE LIST THE BAR ACTUALLY READS IS NOT THE ONE THREE BATCHES HAVE BEEN STEERED BY. 2026-09-06, CHANGELOG 5.262.0
 

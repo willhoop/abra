@@ -1,0 +1,37 @@
+{
+  "what": "THE PHANTOM SELF-DROP DIE GETS ITS OWN ADDRESS BUCKET. Written BEFORE the measuring run.",
+  "written": "2026-09-06",
+  "by": "ENGINE",
+  "change": "engine/game_differential.js only — BattleActions#selfDrops is wrapped as address category `sdrop`, a bucket medicham2 never draws in, exactly as ROADMAP #478 did for `tgtla`. engine/medicham2-browser.js is NOT touched; release d9e551ed0d5a is unchanged and the re-run uses it.",
+  "why": "MEASURED on staged boards (tests/probe_selfdrop_address.js): the authority's `random(100)` at sim/battle-actions.ts:1325 is drawn on every self-drop move, its value is read by NONE of the ten legal ones (all leave self.chance undefined), and it took `nth 0` in the shared `any` bucket — pushing the post-hit ability coin (Poison Touch / Flame Body / Cursed Body, all `randomChance(3,10)` inside runEvent('DamagingHit') at spreadMoveHit step 6) to `nth 1` on the authority against `nth 0` here.",
+
+  "certain": {
+    "pin_digest_before": "bcb38e47d94f",
+    "pin_digest_after": "de38d17e15a2",
+    "comparability": "THE PIN DIGEST MOVES, SO THE BEFORE AND AFTER ARE NOT A DELTA — they are a re-baseline. engine/arms_comparable.js must REFUSE the pair. Recorded here before the run so the refusal cannot be read as a surprise.",
+    "selfdrop_draws_gt_zero": true,
+    "selfdrop_seen_keys_all_random100": true,
+    "engine_release": "d9e551ed0d5a — unchanged, because no engine SOURCE moved"
+  },
+
+  "predicted": {
+    "board_material": { "point": 30, "band": [26, 34], "baseline": 34,
+      "reasoning": "TEN board-parted games in data/game-differential.json's any_bucket.by_cause name poisontouch (7), flamebody (1) or cursedbody (1 + 1 non-board). Only those whose coin sat BEHIND a self-drop draw can move: Poison Touch needs a CONTACT move and only 5 of the 10 self-drop moves make contact, and the one Cursed Body row names `disable|hypervoice`, which is not a self-drop move at all and is predicted NOT to close.",
+      "refuted_if": "> 34 — the fix would then be costing more games than it closes" },
+    "protocol_first_divergence": { "point": 96, "band": [92, 100], "baseline": 100 },
+    "narration_only": { "point": 70, "band": [65, 75], "baseline": 70,
+      "reasoning": "no narration mechanism is touched; movement here is churn, not signal" },
+    "games_board_never_diverged": { "point": 931, "baseline": 927 },
+    "posthit_ability_board_parted_causes": { "point": 5, "band": [3, 8], "baseline": 10,
+      "what": "rows in mid_void.any_bucket.by_cause with board_parted>0 whose cause names poisontouch / flamebody / cursedbody" },
+    "census": { "point": "829 live / 829 probed / 0 missing", "baseline": "829 / 829 / 0",
+      "reasoning": "this pass wires no mechanic; a census move would mean something else changed" }
+  },
+
+  "known_risk_stated_before_the_run": "THIS IS NOT A SURGICAL FIX AND MUST NOT BE REPORTED AS ONE. Removing a draw from the shared `any` bucket re-rolls the VALUE of every later `any` draw at the same turn/move/target address, and `closecombat` alone accounts for 449 authority-only `any` addresses in the 961-game pool. Games that currently agree BY LUCK can newly part, and games that currently part can newly agree for the wrong reason. The claim being tested is that the two engines now flip ONE coin per event; the game count is the consequence and can move either way.",
+
+  "not_claimed": [
+    "the sleep sub-family — STAGED AND NOT REPRODUCED. Vileplume's Sleep Powder shares `any|sleeppowder|p20|0` with the authority and both engines slept the target for the same three turns. The pool's two `no-counterpart on the authority side (any|sleeppowder)` addresses are a SEPARATE question and are not addressed by this change.",
+    "the freeze sub-family — NOT STAGED. Champions' frz thaw is a `randomChance(1,4)` inside `onBeforeMove`, which runs BELOW setActiveMove and ABOVE the hit, so no selfDrops draw can precede it on the same address. It is predicted NOT to move and is a separate defect if it does not close."
+  ]
+}

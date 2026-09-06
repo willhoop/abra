@@ -34,9 +34,92 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-09-06 09:58
 ```
 
-_stamped 2026-09-06 10:38_
+_stamped 2026-09-06 11:57_
 
 <!-- /GENERATED -->
+
+## THE PUBLISH PASS FOR THE DICE-ADDRESS FIX. **BOARD-MATERIAL 27 OF 961, PROTOCOL 93 OF 961, NARRATION 70 OF 961**, RELEASE `d9e551ed0d5a` — WHICH DID NOT MOVE. THE DELTA IS PUBLISHED AGAINST A THIRD ARM BECAUSE `arms_comparable` REFUSED THE OBVIOUS PAIR. 2026-09-06, CHANGELOG 5.264.0
+
+**EVERY FIGURE BELOW WAS RE-READ FROM ITS ARTIFACT ON THIS PASS.** Nothing is carried from the brief
+or from an earlier document. **No figure in the brief disagreed with its artifact this time**, which
+is worth recording because one did on the previous pass and two did on the one before that.
+
+| question | artifact | reading |
+|---|---|---|
+| the clause that GATES | `data/game-differential.json` | **board-material 27 of 961** — `state.games` less `state.games_board_never_diverged`. BOTH OPERANDS CHECKED, not the difference: 961 and 934 |
+| the clause that REPORTS | the same artifact | **protocol first divergence 93 of 961** — `state.protocol_diverged_games` |
+| the narration clause | the same artifact | **70 of 961** — `state.protocol_diverged_board_never_did` 71, less the 1 declared row, across 69 causes. UNMOVED from the superseded publication |
+| the uncaused games | the same artifact | **5** — `state.board_parted_before_the_protocol_did`, and 27 less the 22 whose protocol also parted reconciles to the same 5 |
+| the conditions | the same artifact | release `d9e551ed0d5a`, cap 20, arm `middle`, steering `empirical-click/v1`, `--end-state`, pool `--team-store data/team-pool-frozen`, census pin `data/verification/census-pin-9446a684709d.json`, `driver_code_stable` true |
+| the gate | `node engine/status.js` | **nine clauses, two failing** — both whole-game, both on MEASURED counts. **Eight of the nine GATE**, so one gating clause fails and the gate reads CLOSED |
+| the census | `data/mechanics-census.json` | **829 live of 829 probed, 0 missing**, `run_ok` true |
+| the damage differential | `data/engine-diff.json` | **0 of 6000** at the midpoint and at each of the sixteen band indices, seed 20260804, release `d9e551ed0d5a` |
+| the roster | `data/roster.{items,abilities,moves}.json` | items 140, abilities 129, moves 475 tested, all on release `d9e551ed0d5a` |
+
+### THE TWO FRAMINGS OF THE GATE ARE ONE STATE, AND THIS DIVISION WILL NOT PRINT THEM SIDE BY SIDE
+
+`engine/status.js` computes **nine** clauses. **Two fail**: the whole-game BOARD-MATERIAL clause and
+the whole-game NARRATION clause. **Eight of the nine GATE** — narration reports and does not hold the
+gate shut, by Will's call of 2026-08-22 — so **one gating clause fails** and the gate reads CLOSED.
+"Seven of nine" and "one of eight" are both true and are counted over different sets, so quoting them
+in one sentence reads as a contradiction to anyone who has not read the clause list. **Pick one and
+say which set it is over.** This ledger uses the nine-clause framing and names the gating subset.
+
+### THE MEASUREMENT HANDLING IS THE PART OF THIS PASS THAT BELONGS TO THIS DIVISION
+
+The engine account is ENGINE's and is not repeated here (`docs/ENGINE.md`, and
+`docs/_reports/2026-09-06-dice-address-pass.md`). What is MEASURE's is what happened when the
+instrument moved underneath the number.
+
+- **`engine/arms_comparable.js` REFUSED THE PAIR, AND THE REFUSAL WAS HONOURED.** The addressing
+  contract is hashed into `PIN_DIGEST`, so the pins moved `bcb38e47d94f` to `de38d17e15a2` and
+  `engine/game_differential.js` moved with them. The tool answered **NOT COMPARABLE** and named both
+  causes. **So the fall was not published off that pair.** This is the stamp added two versions ago
+  firing on a change this division did not make, and being paid rather than argued — the same
+  sequence as the eleven-file driver repair recorded further down this file.
+- **THE DELTA IS MEASURED AGAINST A THIRD ARM.** Identical bytes, identical pins, restore knob
+  `MEDI_MID_SELFDROP_SHARED=1` armed, written to
+  `data/verification/game-differential.selfdrop-shared.json`. `arms_comparable` calls that pair
+  **COMPARABLE**. It reproduces the superseded publication in every field this division checked:
+  board-material 34 (961 less 927), protocol 100, narration 70, 10429 of 10539 turn boundaries
+  identical, 5 void games, 1 threw, 717 `any` addresses named by the authority and not by this
+  engine, 669 games whose `any` bucket read `identical`. **A control that restores the old reading to
+  every digit is what makes a one-cause attribution a measurement rather than an assertion.**
+- **AND THE CONTROL'S OWN BLIND SPOT IS PUBLISHED, NOT ASSUMED AWAY.** `arms_comparable` cannot see
+  an environment variable, so it calls the pair COMPARABLE **while the arms differ by exactly the
+  variable under test**. That is a ruler agreeing because it cannot see, which is this division's
+  standing failure mode. The two artifacts therefore declare the difference themselves —
+  `mid_void.selfdrop_knob` true against false, `mid_void.selfdrop_draws` 0 against 1925 — and a
+  reader who trusts the tool alone on this pair is trusting a check blind to the only thing that
+  moved.
+- **THE PREDICTION CARD WAS WRITTEN BEFORE THE RUN AND READ TEN OF TWELVE**
+  (`data/verification/_prediction-selfdrop-address.json`). Board-material was called 30 against a
+  measured 27, inside its own registered band of 26 to 34. The second miss is the more useful one:
+  the claim that the new `sdrop` bucket takes only `random(100)` draws is **false on the pool**,
+  because `outrage|random(2,4)` enters it through the ELSE branch. It is inert — a range-form draw is
+  pinned and consumes no shared address — and the assertion was tightened rather than left standing.
+- **THE NARRATION COLUMN DID NOT MOVE, AND THAT IS EVIDENCE RATHER THAN AN ABSENCE OF IT.** Repairing
+  a board moves a game OUT of the board column and INTO narration, so a fall in board-material beside
+  a flat narration column is a fall in the two columns read together. Both columns are always read
+  together in this ledger for that reason.
+
+### WHAT THIS PASS DID NOT DO
+
+- **No refit.** `data/policy-weights.json` was not touched and no fit was started. `REFIT OWED`
+  stands, and it is a REFIT rather than a restamp: the damage table these weights were fitted against
+  has been regenerated, so the feature FUNCTION's input changed. A restamp would answer the fixture
+  gate, silence the table gate, and write over the evidence.
+- **No quarantined figure was released.** Leaf calibration — this division's one number — is still
+  WITHHELD, not annotated. `data/winrate-backtest.json` is downstream of MEDICHAM by its generator.
+  It becomes quotable when the gate opens AND `node engine/backtest_winrate.js` is re-run.
+- **No artifact was re-run.** This was a publication pass over a settled tree; every figure above was
+  read from a file another pass wrote, with its age checked against the clock first.
+- `node engine/status.js --write` WAS run by this pass, so the `<!-- GENERATED -->` block at the top
+  of this file is current and was not hand-edited.
+- **REPORTED, NOT CHASED:** `tests/test-web-quarantine-loaders.js` and `tests/test-web-status.js` are
+  PRE-EXISTING red on stale `web/` build products. WEB is paused; the gate itself prints the drift
+  (`web/quarantine-data.js` built 2026-08-25 against a clause list that has since changed). Not
+  touched by this pass, and named here so it is not rediscovered as new.
 
 ## THE PUBLISH PASS FOR BATCH F. **BOARD-MATERIAL 34 OF 961, PROTOCOL 100 OF 961, NARRATION 70 OF 961**, RELEASE `d9e551ed0d5a`. ONE FIGURE IN THE BRIEF DISAGREED WITH ITS ARTIFACT. 2026-09-06, CHANGELOG 5.263.0
 
