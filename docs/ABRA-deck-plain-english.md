@@ -1,6 +1,18 @@
 # ABRA — the plain-English deck
 
-**Version 5.261.0 · 2026-09-06 · Will Hooper**
+**Version 5.262.0 · 2026-09-06 · Will Hooper**
+
+**5.262.0 - SIX MORE FIXES. THE "DIFFERENT BOARD" SCORE FELL FROM 50 GAMES OUT OF 961 TO 41; THE "DIFFERENT COMMENTARY" SCORE FELL FROM 114 TO 108.**
+
+**WHAT THEY WERE, IN PLAIN TERMS.** When a Pokemon punishes an attacker for touching its shield, the real game lowers the attacker's Attack through the same door every other stat drop goes through — so an ability that inverts drops, an ability that hits back at whoever lowered a stat, and an ability that simply refuses to be lowered all get their say. Ours wrote the drop straight in, and all three abilities sat there doing nothing. When a Pokemon is handed a new ability part way through a battle, the real game starts that ability up; ours only shut the old one down, so a swapped sand-summoner summoned no sand. The real game checks twice during a move whether anybody needs to react — after the hit and again after the recoil — and we only checked once, which is why a berry kept being eaten at the wrong moment. A thieving ability was being paid too early. A Pokemon that pays its own health to escape left before the board had settled. And a move that gets pulled towards a different target kept trying to split itself between two.
+
+**WE WROTE DOWN WHAT WE EXPECTED BEFORE EACH RUN AND THEN RAN IT.** Every fix has a switch that puts the old behaviour back, and a small test that was shown failing before a single line of the simulator was changed. One of the six had its reasoning corrected by its own test before any code existed: we thought only some kinds of redirection cleared the flag, the test read the real game's source on every run, and it said plainly that all of them do.
+
+**A NUMBER WENT UP AND IT IS NOT A REGRESSION.** We now count two things separately: games where the two engines end up with a different board, and games where they only describe things differently. That second count went from 69 to 71. Fixing a board does not delete a game from the tally — it moves it from the first column into the second. Added together the two columns fell, from 115 games to 112. Saying this out loud is the point: a number that rises for a good reason looks exactly like a number that rises for a bad one, and only the explanation tells them apart.
+
+**THE MEASURING TOOL HAD DISQUALIFIED ITSELF.** The tool that decides which of our numbers are still trustworthy scans code for a reference to the simulator. Its own self-test contains a fake line of code with exactly that reference in it, written as text. So the tool decided it was part of the simulator, refused to trust itself, and took seven other reporting tools down with it. That is fixed, and the rule is now worked out rather than kept as a list: anything the gate has to read in order to decide is, by definition, something it is allowed to quote. Nine reports came back; nothing that depends on the simulator did.
+
+**AND THE HEADLINE NUMBER IS STILL NOT PUBLISHED.** Whether the model's win estimate is honest — the one number this whole project is judged on — is still not printed anywhere in this deck, because it is measured through a simulator that is not yet correct. It comes back when the gate opens, not when it feels ready.
 
 **5.260.0 - FOUR MORE FIXES. THE "DIFFERENT BOARD" SCORE STAYED AT 50 GAMES OUT OF 961; THE "DIFFERENT COMMENTARY" SCORE FELL FROM 151 TO 114.** All four were about the simulator saying the wrong thing, or saying nothing, rather than about it doing the wrong thing — which is why the board score did not move and we said in advance that it would not.
 

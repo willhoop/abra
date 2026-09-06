@@ -546,13 +546,13 @@ arms.
 
 ## 5a. STEP ONE IS BUILT — MEDICHAM emits the stream (3.58.0)
 
-`engine/medicham2-browser.js` emits **36 protocol event types** on request
+`engine/medicham2-browser.js` emits **44 protocol event types** on request
 (`battleInit(A, B, {trace: []})`, off by default; every emit site is a falsy test against a
 module-level sink that is null unless a caller asked for one).
 
 The event list is **derived, not typed** — `engine/derive_protocol_events.js` reads Showdown's own
 `add()` call sites and writes `data/protocol-events.json`, whose `showdownEvents`, `emittedCount`,
-`notEmittedCount` and `partialCount` read **91 / 38 / 56 / 10** — every non-emitted event carries a
+`notEmittedCount` and `partialCount` read **91 / 44 / 50 / 10** — every non-emitted event carries a
 written reason. *(Those four move. `-mega` and `detailschange` were on the declared-not-emitted list
 with the reason "mega evolution happens before `battleInit`, so there is no in-battle event to emit",
 and they moved into `TRACE_EVENTS` on 2026-08-07 when mega evolution became a mid-turn choice — read

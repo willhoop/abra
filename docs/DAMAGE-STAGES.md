@@ -1,6 +1,12 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.261.0 — 2026-09-06.**
+**Version: 5.262.0 — 2026-09-06.**
+
+**5.262.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND THE DIFFERENTIAL THAT WOULD SAY SO WAS RE-RUN RATHER THAN ASSUMED.** `data/engine-diff.json` on release `14b62cd5aeec` reads **0 of 6000** disagreements at the midpoint and **0 of 6000** at each of the sixteen band indices, seed 20260804, with 134 multi-hit comparisons skipped by construction. No stage, no multiplier and no ordering in this document changes.
+
+**ONE OF THE SIX SITS ADJACENT TO THIS CHAIN AND IS WORTH NAMING FOR THAT REASON.** King's Shield's stat punish now goes through `Battle#boost` rather than writing the vector into `boosts`. **The Attack STAGE that reaches the damage formula is the same number it always was when nothing interferes** — what changed is that three abilities are allowed to interfere with it: Contrary inverts the sign, the Defiant class retaliates, and the Clear Body class refuses the drop outright. The stage table on this page describes what the formula does with a stage; it does not describe how a stage is arrived at, and this fix is entirely on the second half. It is the FACTS-ARE-GLOBAL rule landing one site late: twelve other stat-drop sites in the same file already went through `applyStatDrop`.
+
+**THE OTHER FIVE ARE TIMING AND ADDRESSING AND TOUCH NO MULTIPLIER.** An ability arriving mid-battle running its own `Start`; the authority's second in-move `eachEvent('Update')` below the recoil; Pickpocket paid on `AfterMoveSecondary`; the status road settling before a Shed Tail departure; and a redirect clearing `move.smartTarget`. The header moves because the project version moves.
 
 **5.260.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND THE DIFFERENTIAL THAT WOULD SAY SO WAS RE-RUN RATHER THAN ASSUMED.** All four items in this version are ANNOUNCEMENT and REFUSAL-ORDER defects: a missing `-activate` above a move line, an item announcement sitting above the hit steps instead of inside them, `mustrecharge`'s position in the BeforeMove chain, and a missing `-fail` for a move with nothing to aim at. No stage, no multiplier and no truncation position in this document is affected. `tests/test-engine-diff.js --n 6000 --seed 20260804` was re-run on the settled release `a985300cb8ed` and reads **0 disagreements at the midpoint and 0 at every one of the sixteen roll indices**, which is the reading this page exists to carry.
 

@@ -1,10 +1,10 @@
 {
-  "current": "2a5fd78725e7",
-  "cut": "2026-09-06T09:22:09.916Z",
-  "why": "longtail D fix 2: an ability arriving mid-battle runs its own Start",
-  "cuts": 5,
-  "latest_cut": "2026-09-06T10:03:26.329Z",
+  "current": "14b62cd5aeec",
+  "cut": "2026-09-06T11:47:47.497Z",
+  "why": "long-tail batch E step 4: a redirect clears move.smartTarget, so a drawn Dragon Darts stops splitting",
+  "cuts": 2,
+  "latest_cut": "2026-09-06T11:52:45.843Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-06T10:03:26.347Z",
+  "pointer_written": "2026-09-06T11:52:45.858Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

@@ -10,6 +10,108 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.262.0] — 2026-09-06
+
+### Fixed
+- **SIX ENGINE DEFECTS, EACH MEASURED ALONE, TAKE THE GATING CLAUSE FROM 50 TO 41 AND THE PROTOCOL
+  COUNT FROM 114 TO 108.** `data/game-differential.json` is republished on release `14b62cd5aeec`:
+  **board-material 41 of 961** and **protocol first divergence 108 of 961**, 961 games, cap 20, arm
+  `middle`, steering `empirical-click/v1`, `--end-state`, census pin
+  `data/verification/census-pin-9446a684709d.json`, pool `--team-store data/team-pool-frozen`,
+  `driver_code_stable` true on every run. Every fix carries a `MEDI_*` restore knob and a probe shown
+  RED before any engine code existed, with a silent control that does not move.
+  - **King's Shield's stat punish wrote straight into `boosts` instead of going through
+    `Battle#boost`**, so **Contrary did not invert it, Defiant did not retaliate and Clear Body did
+    not refuse it** — three abilities silently doing nothing on that one site, while twelve other
+    stat-drop sites in the same file already went through `applyStatDrop`. 50 → 48, 114 → 113.
+  - **An ability arriving mid-battle never ran its own `Start`.** `abRewrite` carried only the
+    outgoing ability's `End`, so a Skill-Swapped Sand Stream set no sandstorm and a Skill-Swapped
+    Intimidate dropped nothing. 48 → 46, 113 → 111.
+  - **The authority's SECOND in-move `eachEvent('Update')`** (`data/mods/champions/scripts.ts:575`)
+    was absent from medicham2 — the root cause of four of the five Sitrus Berry timing games. The
+    engine's own `_updateEvent` header had DECLARED that omission since 2026-08-23 and nothing had
+    ever priced it. 46 → 44, 111 → 109.
+  - **Pickpocket sat twelve steps above its own event** and is paid on `AfterMoveSecondary` now.
+    44 → 43, 109 → 108.
+  - **The status road never settled its Update before a body left on Shed Tail.** 43 → 42.
+  - **A redirect did not clear `move.smartTarget`**, so a drawn Dragon Darts kept splitting.
+    42 → 41.
+- **THE WHOLE SITRUS BERRY TIMING FAMILY IS CLOSED — all five games.**
+- **`engine/quarantine.js` HAD QUARANTINED ITSELF.** Its `requiresOf` stripped comments but not
+  string literals, and the file's own selftest fixture map contains the literal
+  `require('./medicham2-browser.js')` — so the gate counted itself as play-layer code and dragged
+  in everything that requires it: `status.js`, `open_work.js`, `register_reality.js`, `docs_scan.js`,
+  `where.js`, `orient.js` and `sweep.js`. Fixed with a line-local string mask that handles `${}`
+  interpolation.
+
+### Added
+- **THE `any` DICE BUCKET IS MEASURABLE** (`mid_void.any_bucket` in `data/game-differential.json`).
+  It is INSTRUMENT-ONLY — it voids nothing and consumes nothing, proven three times to leave
+  `classes`, `first_divergences` and `end_state` byte-identical. It puts a verdict on 39 of the 46
+  board-material causes standing at batch D: **13 causes have shared coins, 26 do not and are
+  withheld**, including all six Poison Touch rows, which are filed as instrument on a measurement
+  rather than on suspicion.
+- **A NARRATION CLAUSE.** `node engine/status.js` now reads **9 gate clauses, 7 passing**; the two
+  failures are the whole-game BOARD-MATERIAL clause and the whole-game NARRATION clause, both on
+  measured counts rather than on withheld staleness. Narration reads **71 of 961** (72
+  narration-only raw, less 1 declared) across 70 causes. It REPORTS and does not hold the gate shut,
+  per Will's 2026-08-22 call, and begins gating automatically when BOARD-MATERIAL reads zero.
+- Four probes: `tests/probe_second_update_pass.js`, `tests/probe_pickpocket_event_position.js`,
+  `tests/probe_selfswitch_update_pass.js`, `tests/probe_smart_target_redirect.js`.
+
+### Changed
+- **THE QUARANTINE CLASSIFIER IS DERIVED, NOT TYPED.** An artifact the GATE READS is an
+  exit-condition input by construction, so the derivation walks the gate's own reads plus what those
+  inputs were built from. Four generators fall out — `game_differential.js`,
+  `derive_protocol_events.js`, `all_mechanics_fire.js`, `tag_dex.js` — and the typed list
+  survives only as a declared RESIDUAL of two, `million_run` and `medicham_coverage`, which the gate
+  does not read. **Withheld artifacts 72 → 63; exactly nine moved and every one is an instrument.
+  Nothing downstream moved** — the weights, the rollouts, the leaf backtest, the exploitability
+  search and the leaf contrasts are all still withheld.
+- **"MEASURES VERSUS CONSUMES" IS GENUINELY NOT DERIVABLE, AND THAT IS NOW MEASURED RATHER THAN
+  ASSERTED.** The strongest structural signal available separates nothing: all 44 play-layer modules
+  that write an artifact sit inside `champions_sim.js`'s closure, `fit_policy.js` and
+  `backtest_winrate.js` exactly as much as `game_differential.js`.
+- **THE FIGURE LEXER DERIVES ITS EXCLUSION FROM ROLE.** A digit run glued to a letter is part of a
+  token, not a measurement — the same statement `engine/quarantine.js` already makes about
+  filenames, applied to numbers, so it generalises past content hashes to release ids and format
+  names without naming any of them. This stopped `data/policy-weights.json`'s integer `featureHashes`
+  colliding with published figures by arithmetic coincidence.
+- **IT UNMASKED FOUR DOCUMENTS RESTATING `data/protocol-events.json` AS 38 / 56 WHERE THE ARTIFACT
+  READS 44 / 50**, and has read that since 2026-08-26. Corrected in `docs/ABRA-whitepaper.md`,
+  `docs/GAME-DIFFERENTIAL-DESIGN.md`, `docs/MODELS.md` and `docs/SUMMARY.md`.
+- **`docs/ABRA-deck-plain-english.md` WAS INVISIBLE TO THE SCANNER AND IS NOW CLEAN.** Dropping the
+  citation requirement was measured and REJECTED — it gives the deck 40 false hits. The evidence
+  that works is uniqueness of attribution: exactly one artifact in `data/` contains the figure and it
+  is withheld. `tests/test-docs-quarantine.js` is re-seeded to **52**, because the gate can now see a
+  document that cites nothing. A ratchet seeded on false positives protects nothing.
+- The version headers of `docs/ABRA-whitepaper.md`, `docs/ABRA-deck-plain-english.md`,
+  `docs/ABRA-technical-docs.md`, `docs/SUMMARY.md`, `docs/MODELS.md` and `docs/DAMAGE-STAGES.md` move
+  to 5.262.0, and the white paper and `docs/SUMMARY.md` restate the whole-game figures to 41 / 108.
+  `docs/ENGINE.md` and `docs/MEASURE.md` carry the accounts.
+
+### Notes
+- **`node engine/status.js --write` WAS RUN on a settled tree** — no other agent working and no
+  engine file moving — which is the pass three consecutive sessions have owed. Every
+  `<!-- GENERATED -->` block in the five division ledgers is current and none was hand-edited.
+  `docs/WEB.md` carries a generated block for the first time.
+- **The census is level at 829 live / 829 probed / 0 missing**, and no fix in this version cost a
+  probe.
+- **Leaf calibration is still WITHHELD and was not run.** `data/winrate-backtest.json` is downstream
+  of MEDICHAM and the gate is shut on the board-material clause. No reliability curve is published in
+  this version and none is implied by anything above.
+- **The MAG refit stays OWED and it is a REFIT, not a restamp.** No fit was started and no fitted
+  vector was written; `data/policy-weights.json` was not touched. The damage table under the fitted
+  vector moved from 318 species to 322, so the feature FUNCTION's input changed, and a restamp would
+  write over the evidence for the refit rather than answer it.
+- **Two WEB tests are red and were not chased.** `tests/test-web-quarantine-loaders.js` and
+  `tests/test-web-status.js` fail on stale `web/` build products, were demonstrated red at HEAD with
+  this session's changes stashed, and WEB is a paused division. They are reported, not filed.
+- Full account: `docs/_reports/2026-09-06-settled-publish-pass.md`, with the batch accounts in
+  `docs/_reports/2026-09-06-longtail-batch-D.md` and `docs/_reports/2026-09-06-longtail-batch-E.md`.
+
+---
+
 ## [5.261.0] — 2026-09-06
 
 ### Changed

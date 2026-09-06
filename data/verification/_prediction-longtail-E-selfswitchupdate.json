@@ -1,0 +1,48 @@
+{
+  "written": "2026-09-06",
+  "by": "ENGINE, long-tail batch E, step 3",
+  "rule": "This file is written BEFORE the measuring run. Every figure in it is a PREDICTION. A miss is recorded, never edited.",
+
+  "the_fix": "`eachEvent('Update')` (data/mods/champions/scripts.ts:538, mainline sim/battle-actions.ts:967) now runs in the STATUS road's pay-your-own-HP-and-leave branch, between the cost and the switch. The authority raises it for every move that CONNECTS — a status move's `spreadMoveHit` returns `true`, which becomes `damage[i] = 0`, so the loop does not break above the pass — and the selfSwitch is queued later still, in `useMove`, after `useMoveInner` returns. medicham2's `_stepUpdate` lives in the DAMAGING step list and its own header records that status moves never reach it.",
+
+  "why_it_is_board_material": "Harmless for every status move that STAYS: the between-action pass settles the same thing a moment later, at the same point in the stream. Not harmless for one that LEAVES — by the time that pass runs the body is on the bench and out of `actA`/`actB`, so it keeps an unspent pinch berry AND the HP it should have healed, on a body that comes back later.",
+
+  "baseline": {
+    "artifact": "data/verification/longtail-E-pickpocket.json",
+    "release": "57778abd6073",
+    "games": 961,
+    "board_material": 43,
+    "boards_never_diverged": 918,
+    "protocol_diverged": 108,
+    "threw": 1,
+    "void": 5
+  },
+
+  "the_one_game_named_before_the_run": {
+    "cause": "event missing from medicham2 :: |-enditem|p2a|sitrusberry|[eat] <> |switch|p2a|clefable,l50|H/H",
+    "config": "pair-protect-bust",
+    "seed": "gen9championsvgc2026regmbbo3-2659228530 vs gen9championsvgc2026regmbbo3-2659321485",
+    "what": "Orthworm Shed Tails from full: the sub goes up, ceil(145/2)=73 is paid leaving 72/145, the authority eats the Sitrus to 108 and only then leaves. medicham2 left on 72 holding it.",
+    "any_bucket_verdict": "identical — SHARED COINS"
+  },
+
+  "predicted_after": {
+    "board_material": 42,
+    "boards_never_diverged": 919,
+    "protocol_diverged": 107,
+    "threw": 1,
+    "void": 5,
+    "census_live": 829,
+    "counters": "MEDSEEN.selfSwitchUpdateRan non-zero on any corpus containing a Shed Tail; selfSwitchUpdateSettled non-zero on one where the user held something the pass can settle",
+    "probes": "tests/probe_selfswitch_update_pass.js GREEN with its knob moving the bench HP and its silent control unmoved; the two earlier probes still GREEN"
+  },
+
+  "why_it_might_miss_HIGH": "Shed Tail carries 177 sheets, so the pool may hold games where the pass now settles something on a body OTHER than the pivoting one — the event is field-wide. Anything it settles a moment early there was going to be settled at the top of the next action anyway, so no board should move, but a berry eaten one action earlier changes what a later handler reads and can surface a divergence the old ordering was standing in front of. That is exactly the shape of batch D's single miss.",
+  "why_it_might_miss_LOW": "The named game may carry a second defect behind this one, in which case board-material lands at 43.",
+
+  "not_claimed": [
+    "the OTHER pivot family (`pivotStatus` — Parting Shot, Chilly Reception) does NOT get the pass: its members change no HP and no status on the body that leaves, so there is nothing for the pass to settle, and widening it without a failing probe would be adding a call on an argument rather than on a measurement",
+    "no strength gain is claimed and none can be measured from here",
+    "the pinned pool should move by 1; the roster and census should not move at all"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "written": "2026-09-06",
+  "by": "ENGINE, long-tail batch E, step 2",
+  "rule": "This file is written BEFORE the measuring run. Every figure in it is a PREDICTION. A miss is recorded, never edited.",
+
+  "the_fix": "Pickpocket (`stealsItem{takesFrom:'attacker'}`) is paid on `AfterMoveSecondary` — sim/battle-actions.ts:1005, BELOW the recoil (:982) and BELOW the second `eachEvent('Update')` (:1003) — instead of inside medicham2's per-hit reaction block. Every HAND read is re-taken at payment time, because the authority takes them at :1005 and the hand can change in between. The same change also gives the robbed line its own emitter: the authority writes `[silent]` and `[from] ability: Pickpocket` as TWO fields and this engine folded them into one, which the differ's display-flags rule drops WHOLE, losing the attribution.",
+
+  "why_the_narration_half_is_in_the_same_fix_and_not_a_separate_one": "It is the same line and it was NOT visible before. With the theft paid twelve steps early the two `-enditem` lines never landed on the same index, so the aligner reported the ORDERING and never reached the fields. Moving the event is what exposed it — found by the probe's SILENT CONTROL, which went red on the field mismatch the moment the ordering was right. Landing the position alone would have moved board-material and left protocol where it was, and the report would have had to explain a null that was really a second defect.",
+
+  "baseline": {
+    "artifact": "data/verification/longtail-E-secondupdate.json",
+    "release": "9af3f4fcad16",
+    "games": 961,
+    "board_material": 44,
+    "boards_never_diverged": 917,
+    "protocol_diverged": 109,
+    "threw": 1,
+    "void": 5
+  },
+
+  "the_one_game_named_before_the_run": {
+    "cause": "extra event emitted by medicham2 :: |-damage|p2a|H/H|[from]recoil <> |-enditem|p2a|sitrusberry",
+    "config": "pair-protect-bust",
+    "seed": "gen9championsvgc2026regmbbo3-2663744309 vs gen9championsvgc2026regmb-2635629370",
+    "what": "Incineroar's Flare Blitz burns a Weavile's Focus Sash; the recoil takes Incineroar to 58/170, under half. The authority eats the Sitrus at :1003 and the empty-handed Weavile steals nothing at :1005. medicham2 stole the berry inside the hit loop and let Weavile eat it to 37/145.",
+    "any_bucket_verdict": "identical — SHARED COINS"
+  },
+
+  "scan_before_the_run": "`pickpocket` appears in the windows of exactly ONE of the 106 dumped diverging games on release 9af3f4fcad16 (the one above). So the narration half cannot close a second game in this pool, and it cannot open one either unless a game that currently agrees contains a theft — which no divergence card can tell me, and is stated here as the honest limit of the scan.",
+
+  "predicted_after": {
+    "board_material": 43,
+    "boards_never_diverged": 918,
+    "protocol_diverged": 108,
+    "threw": 1,
+    "void": 5,
+    "census_live": 829,
+    "counters": "MEDSEEN.pickpocketDeferred must equal pickpocketPaidAtEvent + pickpocketRefusedAtEvent; a shortfall is a payment site the move exited above",
+    "probes": "tests/probe_pickpocket_event_position.js GREEN with its knob moving the thief's hand and its silent control unmoved; tests/probe_second_update_pass.js still GREEN"
+  },
+
+  "why_it_might_miss_HIGH": "The theft now happens after the faint pass, so a thief that FAINTED to the same move is still in `_ppPending` and is still paid — which is the authority's behaviour (there is no hp test in the handler) but is a state this engine had never reached at this point in the action. If any pooled game has a thief die to the contact move that robbed it, the board could part somewhere new.",
+  "why_it_might_miss_LOW": "The named game may carry a second, independent defect behind this one — batch D's single miss was exactly that shape. If so board-material lands at 44 and protocol at 108 or 109.",
+
+  "not_claimed": [
+    "no strength gain is claimed and none can be measured from here",
+    "Berserk / Anger Shell is on the SAME `AfterMoveSecondary` event and is NOT moved: the authority's `defersHealingBerry` makes a pinch berry wait for that boost, and now that this engine settles pinch berries inside the move, moving the boost without the deferral would be a new wrong answer bought with a right one. It stays on the hand list.",
+    "the pinned pool should move by 1 and the roster/census by 0 — Pickpocket has four legal carriers and the case needs a recoil across a pinch line, so the lab has nothing staged for it beyond the new probe"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "written": "2026-09-06",
+  "by": "ENGINE, long-tail batch E, step 1",
+  "rule": "This file is written BEFORE the measuring run. Every figure in it is a PREDICTION. A miss is recorded, never edited.",
+
+  "the_fix": "medicham2 gains the authority's SECOND in-move `eachEvent('Update')` — data/mods/champions/scripts.ts:575 (mainline sim/battle-actions.ts:1003), below `applyRecoilDamage` (:554 / :982) and above `afterMoveSecondaryEvent` (:577 / :1005). The omission was DECLARED in `_updateEvent`'s own header on 2026-08-23 and never priced.",
+
+  "why_it_is_board_material_and_not_narration": "medicham2 calls `_updateAll()` from two sites and BOTH sit under `if(sideWiped(S)){...break _TURN;}` (medicham2-browser.js:25190 and :37700). A move that ends the battle therefore never reaches the pass at all, and the attacker keeps a berry the authority ate. Everywhere else the two engines coincide, because nothing is emitted between the recoil and the next action's pass — which is why the whole-game population shows exactly TWO games and not two hundred.",
+
+  "baseline": {
+    "artifact": "data/verification/longtail-E-baseline.json",
+    "release": "2a5fd78725e7",
+    "pins": {
+      "census": "data/verification/census-pin-9446a684709d.json",
+      "team_store": "data/team-pool-frozen",
+      "arm": "middle",
+      "steering": "empirical",
+      "turns_cap": 20,
+      "games_budget": 1200
+    },
+    "games": 961,
+    "board_material": 46,
+    "boards_never_diverged": 915,
+    "protocol_diverged": 111,
+    "threw": 1,
+    "void": 5
+  },
+
+  "the_two_games_named_before_the_run": [
+    {
+      "cause": "medicham2 stopped emitting while showdown continued :: |-enditem|p2b|sitrusberry|[eat]",
+      "config": "omit-weather",
+      "seed": "gen9championsvgc2026regmbbo3-2659479640 vs gen9championsvgc2026regmbbo3-2659599800",
+      "what": "Incineroar's Flare Blitz; Rough Skin then recoil put it on 81/170; showdown ate the Sitrus to 123 and medicham2 ended the battle at 81",
+      "any_bucket_verdict": "identical — SHARED COINS, so the dice are not the explanation"
+    },
+    {
+      "cause": "medicham2 stopped emitting while showdown continued :: |-enditem|p1b|sitrusberry|[eat]",
+      "config": "omit-spread",
+      "seed": "gen9championsvgc2026regmbbo3-2663596778 vs gen9championsvgc2026regmbbo3-2663887080",
+      "what": "Incineroar's Flare Blitz KOs Scrafty; recoil to 83/170; showdown ate the Sitrus to 125 and medicham2 ended the battle at 83",
+      "any_bucket_verdict": "identical — SHARED COINS"
+    }
+  ],
+
+  "predicted_after": {
+    "board_material": 44,
+    "boards_never_diverged": 917,
+    "protocol_diverged": 109,
+    "threw": 1,
+    "void": 5,
+    "census_live": 829,
+    "probe": "tests/probe_second_update_pass.js goes GREEN, and its control child on MEDI_NO_SECOND_INMOVE_UPDATE=1 keeps the attacker on 54/110 while the authority is on 81/110"
+  },
+
+  "why_it_might_miss_HIGH_more_divergences_than_predicted": "The pass now settles a berry INSIDE the move in every game that carries one, not only in the two that end there. That does not change a board on its own — the between-action pass settled the same berry a moment later — but a berry eaten one action earlier changes `effSpeed` for an Unburden holder and changes the HP a later handler reads, and either can surface a divergence the old ordering was standing in front of. Batch D's one miss was exactly this shape: two named causes went to zero and one game re-parted on a NEW cause.",
+
+  "why_it_might_miss_LOW_fewer_divergences_than_predicted": "Neither of the two named games is the ONLY thing wrong with it. If a game parts again immediately on a second cause the board count moves by 1 instead of 2. It is also possible that a third, unnamed game in the 5 board-parted rows the `any` join does not cover (board parted BEFORE the protocol did, so it carries no cause row) is the same defect and closes too — which would read as 43.",
+
+  "not_claimed": [
+    "no strength gain is claimed and none can be measured from here",
+    "the quarantine does not lift; no downstream figure becomes quotable",
+    "the pinned pool is expected to move by 2 and the roster/census by 0 — this is a COMMON mechanic (the second Update pass runs on every connecting move) whose VISIBLE consequence is rare, so the lab has nothing staged for it today"
+  ]
+}

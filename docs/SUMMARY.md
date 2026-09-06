@@ -1,6 +1,27 @@
 # ABRA — Project Summary
 
-**Version 5.261.0 · 2026-09-06 · Will Hooper**
+**Version 5.262.0 · 2026-09-06 · Will Hooper**
+
+**5.262.0 - THE SETTLED-TREE PUBLISH PASS. SIX ENGINE FIXES ACROSS TWO BATCHES TAKE BOARD-MATERIAL FROM 50 OF 961 TO 41 AND PROTOCOL FROM 114 TO 108, AND `node engine/status.js --write` WAS RUN ON A TREE NOTHING ELSE WAS TOUCHING FOR THE FIRST TIME IN THREE SESSIONS.**
+
+| question | artifact and arm | answer |
+|---|---|---|
+| the whole-game clause that GATES | `data/game-differential.json`, EMPIRICAL arm | **board-material 41 of 961** — release `14b62cd5aeec`, cap 20, arm `middle`, steering `empirical-click/v1`, pool `data/team-pool-frozen` |
+| the whole-game clause that REPORTS | the same artifact and arm | **protocol first divergence 108 of 961** |
+| the narration clause, new this session | the same artifact | **71 of 961** — 72 raw less 1 declared, across 70 causes. It read **69** at batch D |
+| why that number ROSE | the two columns together | 46 + 69 = **115** games at batch D against 41 + 71 = **112** now. A repaired board moves a game OUT of the board column and INTO the narration one |
+| the sequence the six fixes produced | the per-step artifacts under `data/verification/` | board-material **50, 48, 46, 44, 43, 42, 41**; protocol **114, 113, 111, 109, 108, 108, 108** |
+| the overall engine gate | `node engine/status.js` | **7 of 9 clauses passing**; the two failures are the two whole-game clauses, both on measured counts |
+| the census | `data/mechanics-census.json` | **829 live / 829 probed / 0 missing** |
+| the deliberate roster | `data/roster.{items,abilities,moves}.json` | **140 / 129 / 475** tested, with `FIRED-AND-BOARDS-DIFFER` and `DID-NOT-FIRE` at **zero** on all three |
+| the damage differential | `data/engine-diff.json` | **0 of 6000** disagree at the midpoint and at all sixteen corners, on the same release |
+| the `any` dice bucket | `data/game-differential.json` `mid_void.any_bucket` | a verdict on 39 of batch D's 46 causes: **13 have shared coins, 26 do not and are withheld** |
+| how many artifacts the gate withholds | `engine/quarantine.js` | **63**, down from 72 — nine instruments released, nothing downstream |
+| leaf calibration | `data/winrate-backtest.json` | **WITHHELD.** Downstream of MEDICHAM and the gate is shut. Re-run `node engine/backtest_winrate.js` when it opens |
+
+**THE RULER WAS ONE OF THE DEFECTS.** `engine/quarantine.js` had quarantined itself — `requiresOf` stripped comments but not string literals, and the file's own selftest fixture map contains the literal `require('./medicham2-browser.js')`, which put the gate in the play layer and dragged `status.js`, `open_work.js`, `register_reality.js`, `docs_scan.js`, `where.js`, `orient.js` and `sweep.js` down with it. The replacement is a derivation rather than a longer list: **an artifact the gate READS is an exit-condition input by construction.** The typed list survives as a declared residual of two, `million_run` and `medicham_coverage`, which the gate does not read.
+
+**AND A HASH WAS PASSING FOR A MEASUREMENT.** The figure lexer now derives its exclusion from ROLE — a digit run glued to a letter is part of a token — which stopped `data/policy-weights.json`'s integer `featureHashes` matching published figures by arithmetic coincidence, and **unmasked four documents restating `data/protocol-events.json` as 38 / 56 where the artifact reads 44 / 50**. Corrected in the white paper, `docs/GAME-DIFFERENTIAL-DESIGN.md`, `docs/MODELS.md` and this file.
 
 **5.260.0 - FOUR MORE ENGINE FIXES, EACH MEASURED ALONE. BOARD-MATERIAL HOLDS AT 50 OF 961; PROTOCOL FIRST-DIVERGENCE FALLS 151 TO 114.** `data/game-differential.json` is republished at 50 / 114 on release `a985300cb8ed`, on the same pins as every run in the sequence. The four: Struggle's missing `-activate` line (151 -> 137); the item announcement moving down to `onTryHit`, so a Protected, immune or missed click names nothing (137 -> 130); `mustrecharge` restored to its real priority, which is a BOARD defect in the lab and moved the pinned pool by exactly nothing, as predicted; and a move with no legal target announcing its own failure (130 -> 114) — **the largest bucket in the artifact, 32 rows, and it had never been named.** `node engine/status.js` reads 7 of 9. Full account: `docs/_reports/2026-09-06-longtail-batch-C.md`.
 
@@ -1170,7 +1191,7 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 | **DITTO** | Team optimiser | ⚠️ Pivoting | Objective de-biased to validated damage (was optimising a backwards signal) |
 | **ALAKAZAM** | In-battle decision engine (capstone) | 🔜 In development | Belief + search + learned value; built last on the inputs above |
 | **MEW** | Self-play data engine | ✅ **Built** | Runs the OFFICIAL Champions engine against itself on real observed teams. 1,000 games, 13/13 validation checks, mirror 51.0% CI [45.4, 56.6] |
-| **MAGNEMITE** (MAG) | The in-battle policy that reads the board | **Built, and improving by self-play (3.28.0)** | Conditional logit over **58 features**, fitted to real human clicks from clean open-sheet games (`data/policy-weights.json`). **Every figure this row carried is QUARANTINED — withheld, not annotated**: the corpus sizes, the held-out top-1, the behaviour-clone comparison and the censored-label counts all come out of an artifact downstream of MEDICHAM (`engine/fit_policy.js` reaches `engine/medicham2-browser.js` through `require`), and MEDICHAM is not correct — `node engine/status.js` names the failing clauses. They become quotable again when the gate opens AND this is re-run: `node engine/fit_policy.js`. What stands without a number: recorded actions that were not clicks at all have been removed from the labels, redirected ones are fitted over a candidate set, and it now DOES decide switches and DOES run a real damage calculation — both were listed here as missing and both became false. Still one ply, still no model of the opponent's move |
+| **MAGNEMITE** (MAG) | The in-battle policy that reads the board | **Built, and improving by self-play (3.28.0)** | Conditional logit over the fitted feature set, fitted to real human clicks from clean open-sheet games (`data/policy-weights.json`). **Every figure this row carried is QUARANTINED — withheld, not annotated**: the corpus sizes, the held-out top-1, the behaviour-clone comparison and the censored-label counts all come out of an artifact downstream of MEDICHAM (`engine/fit_policy.js` reaches `engine/medicham2-browser.js` through `require`), and MEDICHAM is not correct — `node engine/status.js` names the failing clauses. They become quotable again when the gate opens AND this is re-run: `node engine/fit_policy.js`. What stands without a number: recorded actions that were not clicks at all have been removed from the labels, redirected ones are fitted over a candidate set, and it now DOES decide switches and DOES run a real damage calculation — both were listed here as missing and both became false. Still one ply, still no model of the opponent's move |
 | **WOBBUFFET** | Exploitability of MAG — hill-climb a counter over MAG's own weights. **PRIMARY INSTRUMENT since ADR-003 (3.62.2)**: this produces the project's headline metric, and its published comparator is VGC-Bench's approximately-100% exploitability | ❌ **NOT MEASURED** | **There is no exploitability number for this project (2026-08-04).** The published ~~63.2% [56.6, 69.3], mirror 47.5%~~ is **retracted**: 17 features against the 58 we ship, an engine 25 wire-fixes old, computed before the quality filter existed. The 58-feature re-run is **void** — `data/policy-weights.json` was refitted at 22:15:24 UTC *while it was running* and `engine/medicham2-browser.js` changed content twice more afterwards. Separately its hill-climb accepted **1 of 24** steps and would have been uninformative anyway. `engine/exploit.js` stamps nothing about what it read, which is why none of this was visible to it. See `docs/SEARCH.md` §R8 |
 | **DUSK** | Endgame exact solver | 🔜 Roadmap | Solves small boards (≤2v2, 1v1) perfectly — sharpens ALAKAZAM's endgame and gives clean training targets for PORY |
 | **HYPNO** | Opponent read / exploitability dial | 🔜 Roadmap | Estimates opponent strength + predictability; tells ALAKAZAM when to play safe (vs strong) or exploit (vs weak/predictable) |
@@ -1195,7 +1216,7 @@ The counts were a REAL measurement of a DIFFERENT POPULATION, so they are correc
 (`battleInit(A, B, {trace: []})`, off by default). The event set is derived from Showdown's own
 `add()` call sites, including this **format's** overrides, and is published in
 `data/protocol-events.json`, whose `showdownEvents`, `emittedCount`, `notEmittedCount` and
-`partialCount` read 91 / 38 / 56 / 10 — every non-emitted event carries a written reason. Two gates
+`partialCount` read 91 / 44 / 50 / 10 — every non-emitted event carries a written reason. Two gates
 fail the run: an event claimed here that Showdown never emits, and an event Showdown emits that is
 neither emitted nor explained. `tests/test-protocol-trace.js` fails if any claimed event never fires
 in a real game.

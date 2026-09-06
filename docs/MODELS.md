@@ -1,6 +1,14 @@
 # ABRA — the model family (living reference)
 
-**Version 5.261.0 · Last updated 2026-09-06.**
+**Version 5.262.0 · Last updated 2026-09-06.**
+
+**5.262.0 - NO MODEL CHANGED, NO FITTED VECTOR WAS WRITTEN AND NOTHING QUARANTINED BECAME QUOTABLE. WHAT MOVED IS THE DISTANCE TO THE GATE, AND THE NUMBER OF ARTIFACTS THE GATE WAS WRONGLY WITHHOLDING.** Every model in this ledger sits downstream of MEDICHAM, so that distance is the only thing this file records. `data/game-differential.json` is republished on release `14b62cd5aeec` at **board-material 41 of 961 and protocol first divergence 108 of 961**, down from 50 / 114, on six engine fixes measured one at a time across two batches. `node engine/status.js` reads **7 of 9 clauses passing**; the two failures are the whole-game BOARD-MATERIAL and NARRATION clauses, both on measured counts.
+
+**THE ITEM THAT REACHES THIS LEDGER IS ABOUT WHICH MODELS' FIGURES ARE ALLOWED TO BE PRINTED AT ALL.** `engine/quarantine.js` had quarantined itself, and the repair released **nine artifacts — 72 withheld to 63**. Every one of the nine is an instrument: the mechanics census, the rate runner, the register audit, the register copy, the click-coverage probe and the gate's own two. **Not one model artifact moved.** MAG's weights, the joint weights, R1, R2, R3, R4, the leaf backtest, the leaf/engine contrast, the exploitability search and the click-censoring census are all still WITHHELD, and this ledger prints none of them. That is the correct outcome and it is worth stating as a result: a classifier repair that released a model figure would have been the repair being wrong.
+
+**MAG — THE REFIT STAYS OWED AND IT IS A REFIT, NOT A RESTAMP.** No fit was started and `data/policy-weights.json` was not touched. The damage table these weights were fitted against has been regenerated and now covers four more species than the 318 stamped into that file, so the feature FUNCTION's input changed; a restamp would answer the fixture gate, silence the table gate, and write over the evidence for the refit. `node engine/status.js` prints `REFIT OWED` with the three inputs that moved after the fit.
+
+**MEDICHAM — leaf calibration is WITHHELD**, not annotated. `data/winrate-backtest.json` is downstream of MEDICHAM: its generator `engine/backtest_winrate.js` reaches the simulator through `require`. It becomes quotable when the gate opens AND `node engine/backtest_winrate.js` is re-run. No reliability curve is published in this version.
 
 **5.260.0 - NO MODEL CHANGED, NO FITTED VECTOR WAS WRITTEN AND NOTHING QUARANTINED BECAME QUOTABLE. WHAT MOVED IS THE DISTANCE TO THE GATE.** Every model in this ledger sits downstream of MEDICHAM, so that distance is the only thing this file records. `data/game-differential.json` is republished on release `a985300cb8ed` at **board-material 50 of 961 and protocol first-divergence 114 of 961**, down from 151 on four fixes measured one at a time. `node engine/status.js` reads **7 of 9 clauses passing**; both failures are the whole-game clauses on their measured counts. Leaf calibration, the leaf-cost figure, the divergence and head-to-head results, the joint layer's numbers and every model report that reads a rollout stay WITHHELD rather than annotated.
 
@@ -1234,7 +1242,7 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 on request — `battleInit(A, B, {trace: []})`, off by default. The event set is derived from Showdown's
 own `add()` call sites, including this format's overrides, by `engine/derive_protocol_events.js`.
 
-`data/protocol-events.json`: **showdownEvents 91, emittedCount 38, notEmittedCount 56, partialCount
+`data/protocol-events.json`: **showdownEvents 91, emittedCount 44, notEmittedCount 50, partialCount
 10** — every non-emitted event carries a written reason. Two gates fail the run: claiming an event
 Showdown never emits, and leaving one it does emit unexplained. `tests/test-protocol-trace.js` fails
 if any claimed event never fires in a real game.

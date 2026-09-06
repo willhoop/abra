@@ -1,6 +1,36 @@
 # ABRA — Technical Documentation
 
-**Version 5.261.0 · Last updated 2026-09-06**
+**Version 5.262.0 · Last updated 2026-09-06**
+
+**5.262.0 - SIX ENGINE DEFECTS ARE CORRECTED. EACH ONE IS MEASURED ALONE.**
+
+**PUBLICATION.** `data/game-differential.json` holds board-material 41 of 961 and protocol first divergence 108 of 961. **CONDITIONS.** Release `14b62cd5aeec`. 961 games. Cap 20. Arm `middle`. Steering `empirical-click/v1`. End-state comparison on. Census pin `data/verification/census-pin-9446a684709d.json`. Pool `--team-store data/team-pool-frozen`. Driver code stable on all runs.
+
+**DEFECT 1.** King's Shield lowers the attacker's Attack with `Battle#boost`. The engine wrote the vector into `boosts` directly. Contrary did not invert the drop. Defiant did not retaliate. Clear Body did not refuse it. **ACTION.** Route the site through `applyStatDrop`, as the twelve other stat-drop sites in the file already do. **RESULT.** Board-material 50 to 48. Protocol 114 to 113.
+
+**DEFECT 2.** An ability that arrives during a battle must run its own `Start` handler. The engine ran only the outgoing ability's `End`. **ACTION.** Run the incoming ability's `Start` in `abRewrite`. **RESULT.** Board-material 48 to 46. Protocol 113 to 111.
+
+**INSTRUMENT.** The `any` dice bucket is measured. It writes `mid_void.any_bucket`. It decides nothing. **RESULT.** 13 of 39 causes have shared coins. 26 do not and are withheld.
+
+**DEFECT 3.** The authority runs a second `eachEvent('Update')` inside a move, below the recoil (`data/mods/champions/scripts.ts:575`). The engine ran one pass. **ACTION.** Add the second pass. **RESULT.** Board-material 46 to 44. Protocol 111 to 109.
+
+**DEFECT 4.** Pickpocket runs on `AfterMoveSecondary`. The engine ran it twelve steps above that event. **ACTION.** Move the handler to its own event. **RESULT.** Board-material 44 to 43. Protocol 109 to 108.
+
+**DEFECT 5.** The status road did not settle its Update before a body left on Shed Tail. **ACTION.** Settle the Update first. **RESULT.** Board-material 43 to 42.
+
+**DEFECT 6.** A redirect must clear `move.smartTarget`. The engine did not clear it, so a drawn Dragon Darts kept splitting. **ACTION.** Clear the flag in the redirect. **RESULT.** Board-material 42 to 41.
+
+**CORRECTION.** The first derivation for defect 6 was wrong. It said that a move-sourced redirect clears the flag and an ability-sourced redirect does not. The probe reads all four redirect blocks from the authority on every run. It went red before any engine code existed. Lightning Rod and Storm Drain also clear the flag. The rule is any redirect.
+
+**GATE.** `node engine/status.js` reads 7 of 9 clauses passing. The two failures are the whole-game BOARD-MATERIAL clause and the whole-game NARRATION clause. Both fail on measured counts.
+
+**NARRATION.** The narration clause counts games that diverge in narration and never part a board. It reads 71 of 961, from 72 raw less 1 declared, across 70 causes. It read 69 at batch D. **THE RISE IS NOT A REGRESSION.** A repaired board moves a game from the BOARD-MATERIAL column into this column. The two columns together fell from 115 games to 112.
+
+**CLASSIFIER.** `engine/quarantine.js` classified itself as play-layer code. Its `requiresOf` stripped comments and did not strip string literals. Its own selftest fixture contains the text `require('./medicham2-browser.js')`. **ACTION.** Mask string literals per line, including `${}` interpolation. Derive the exemption from the clauses the gate reads. **RESULT.** Withheld artifacts 72 to 63. Nine instruments were released. No downstream artifact moved.
+
+**LEXER.** The figure lexer excludes a digit run that is glued to a letter. Such a run is part of a token. It is not a measurement. **RESULT.** Four documents restating `data/protocol-events.json` as 38 / 56 were corrected to 44 / 50.
+
+**WITHHELD.** Leaf calibration is not published. `data/winrate-backtest.json` is downstream of MEDICHAM. Run `node engine/backtest_winrate.js` after the gate opens.
 
 **5.260.0 - FOUR ENGINE DEFECTS ARE CORRECTED. EACH ONE IS MEASURED ALONE.**
 

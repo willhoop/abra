@@ -1,0 +1,48 @@
+{
+  "written": "2026-09-06",
+  "by": "ENGINE, long-tail batch E, step 4",
+  "rule": "This file is written BEFORE the measuring run. Every figure in it is a PREDICTION. A miss is recorded, never edited.",
+
+  "the_fix": "A redirect turns `move.smartTarget` OFF, so a redirected Dragon Darts stops splitting and both darts land on the redirector. `Pokemon#getMoveTargets` runs `priorityEvent('RedirectTarget')` at sim/pokemon.ts:836 and only calls `getSmartTargets` at :838 if the flag survives — and all four legal redirectors clear it: followme (data/moves.ts:6065), ragepowder (:14617), lightningrod (data/abilities.ts:2346), stormdrain (:4641).",
+
+  "the_derivation_was_wrong_first_and_the_probe_caught_it": "The first version of this wire was going to be 'a MOVE-sourced redirect clears the flag, an ABILITY-sourced one does not'. tests/probe_smart_target_redirect.js reads the four blocks out of the authority's own text on every run and went RED on that claim BEFORE any engine line was written. The rule is simpler than the one I had: every redirector clears it. That check stays in the probe rather than being written down once, because a regulation that changed one of the four would otherwise leave the comment describing an engine nobody has.",
+
+  "baseline": {
+    "artifact": "data/game-differential.json",
+    "release": "cfe46f67bf1f",
+    "games": 961,
+    "board_material": 42,
+    "boards_never_diverged": 919,
+    "protocol_diverged": 108,
+    "threw": 1,
+    "void": 5
+  },
+
+  "the_one_game_named_before_the_run": {
+    "cause": "extra event emitted by medicham2 :: |-enditem|p1b|sitrusberry|[eat] <> |-damage|p1a|H/H",
+    "config": "pair-redirect-priority",
+    "seed": "gen9championsvgc2026regmbbo3-2657802642 vs gen9championsvgc2026regmbbo3-2657919785",
+    "what": "Rage Powder is up on Volcarona. Dragapult's Dragon Darts is drawn onto it; the authority puts BOTH darts into Volcarona (65/160 then 31/160, with the Sitrus settled between the two by the in-loop Update). medicham2 split them and sent the second into Rotom-Wash, 56/125 -> 1/125, a body the authority never touched.",
+    "any_bucket_verdict": "identical — SHARED COINS"
+  },
+
+  "predicted_after": {
+    "board_material": 41,
+    "boards_never_diverged": 920,
+    "protocol_diverged": 107,
+    "threw": 1,
+    "void": 5,
+    "census_live": 829,
+    "counters": "MEDSEEN.smartTargetSplitRefusedByRedirect non-zero AND MEDSEEN.smartTargetSplit still non-zero on the pinned pool — the pair is what says this scoped the flag rather than deleting the mechanic",
+    "probes": "tests/probe_smart_target_redirect.js GREEN with its knob moving the aimed body's HP and its silent control unmoved; the three earlier probes still GREEN"
+  },
+
+  "why_it_might_miss_HIGH": "Rage Powder carries 13,785 sheets and Dragon Darts 229, so the pair is rare but the redirect is not. A redirected dart landing on a DIFFERENT body changes every draw after it, so a game that currently agrees could part somewhere new — the same shape as the step-3 miss, where the named cause closed and the game re-parted on a Leftovers residual ordering.",
+  "why_it_might_miss_LOW": "The named game may carry a second defect behind this one, in which case board-material lands at 42.",
+
+  "not_claimed": [
+    "`wonderguard.onTryHit` (data/abilities.ts:5551) clears the same flag on an IMMUNITY and suppresses its own `-immune` line when it does. That is a different question and is NOT wired here.",
+    "no strength gain is claimed and none can be measured from here",
+    "the pinned pool should move by 1; the roster and census should not move at all"
+  ]
+}

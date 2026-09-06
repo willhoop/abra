@@ -2065,6 +2065,35 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                                 this is the ONLY non-zero one of the pair is a wire that never
    *                                 fires wearing the shape of one that does. */
   inMoveUpdateRan: 0, inMoveUpdateSkippedNoTarget: 0,
+  /* 2026-09-06 -- THE SECOND IN-MOVE UPDATE PASS, `data/mods/champions/scripts.ts:575` (mainline
+   * `sim/battle-actions.ts:1003`), which runs BELOW `applyRecoilDamage` and above
+   * `afterMoveSecondaryEvent`. Kept apart from `inMoveUpdateRan` for that counter's own reason: they
+   * are two call sites answering two questions, and the SECOND is the only one that can settle a
+   * pinch berry the RECOIL just earned. A zero here on a corpus that contains a recoil move means the
+   * second pass is unwired; `secondInMoveUpdateSettled` is the sharper reading -- how often it
+   * actually CHANGED something, which is the half a run can quote. */
+  secondInMoveUpdateRan: 0, secondInMoveUpdateSettled: 0,
+  /* 2026-09-06 -- PICKPOCKET, MOVED ONTO ITS OWN EVENT. Three counters because the theft is now
+   * DECIDED in one place and PAID in another, and the gap between them is where a deferred payment
+   * could quietly never happen:
+   *   pickpocketDeferred        an arrival qualified and the theft was owed to `AfterMoveSecondary`
+   *   pickpocketPaidAtEvent     it was paid there
+   *   pickpocketRefusedAtEvent  a hand read at :1005 refused it (the whole point of moving it)
+   * `Deferred` must equal `Paid + Refused` on any run; a shortfall is a payment site the move exited
+   * above, which is the silent-default shape this engine is organised against. */
+  pickpocketDeferred: 0, pickpocketPaidAtEvent: 0, pickpocketRefusedAtEvent: 0,
+  /* 2026-09-06 -- THE THIRD `eachEvent('Update')` SITE: the STATUS road, run before a body that has
+   * just paid its own HP leaves the field. Kept apart from the two damaging-road counters because a
+   * corpus can easily contain neither Shed Tail nor a recoil move, and a pooled total could not say
+   * which pass a zero belonged to. `Settled` is the sharper reading of the two. */
+  selfSwitchUpdateRan: 0, selfSwitchUpdateSettled: 0,
+  /* 2026-09-06 -- a `smartTarget` volley that did NOT split because the aim had been redirected, which
+   * is what all four legal redirectors do to the flag. It is the receipt for a refusal, so a zero on a
+   * corpus containing both a Dragon Darts and a Rage Powder means the wire never fires; `smartTargetSplit`
+   * beside it is the receipt for the split still happening when nothing redirected. Both must be
+   * non-zero on the pinned pool, which is the pair that says this scoped the flag rather than deleting
+   * the mechanic. */
+  smartTargetSplitRefusedByRedirect: 0,
   /* 2026-08-27 -- THE OTHER n-1 IN-MOVE UPDATE PASSES, raised BETWEEN the packets of a volley
    * (sim/battle-actions.ts:967 is inside the hit loop; the Champions override keeps it at
    * data/mods/champions/scripts.ts:538). `inMoveUpdateRan` counts the LAST hit's pass and has been
@@ -2788,6 +2817,19 @@ const MEDFAILS = { encoreAction: 0,
      back out on purpose, so a deliberate restore arm and an unwired pass can never be read as the
      same thing. Same shape as orbStaleRangeRestored. */
   inMoveUpdateSuppressed: 0,
+  /* 2026-09-06 -- set for the whole run when MEDI_NO_SECOND_INMOVE_UPDATE=1 takes the pass below the
+     recoil back out on purpose, so a deliberate restore arm and an unwired second pass can never be
+     read as the same thing. Same shape as inMoveUpdateSuppressed. */
+  secondInMoveUpdateSuppressed: 0,
+  /* 2026-09-06 -- set for the whole run when MEDI_PICKPOCKET_IN_HIT_LOOP=1 pays the theft at the old
+     site on purpose. Same shape as hazardBelowFaintRestored. */
+  pickpocketInHitLoopRestored: 0,
+  /* 2026-09-06 -- set for the whole run when MEDI_NO_SELFSWITCH_UPDATE=1 takes the STATUS-road Update
+     pass back out on purpose. Same shape as secondInMoveUpdateSuppressed. */
+  selfSwitchUpdateSuppressed: 0,
+  /* 2026-09-06 -- set for the whole run when MEDI_SMART_TARGET_SURVIVES_REDIRECT=1 lets the dart split
+     survive a redirect on purpose. Same shape as selfSwitchUpdateSuppressed. */
+  smartTargetSurvivesRedirectRestored: 0,
   /* 2026-08-27 -- set for the whole run when MEDI_MULTIHIT_UPDATE_ONCE=1 puts the Update event back
      to once per MOVE on purpose, so a deliberate restore arm and an unwired between-hit pass can
      never be read as the same thing. Same shape as inMoveUpdateSuppressed. */
@@ -4454,6 +4496,26 @@ const TRACE=(function(){
      * The move NAME is the dex's own `name` off the tag record, never typed here. */
     stealeat(m,it,mvName,of){
       this.push(['-enditem',ident(m),it,'[from] stealeat','[move] '+mvName,of?'[of] '+ident(of):'']); },
+    /* 2026-09-06 -- PICKPOCKET'S ROBBED LINE IS A SIX-FIELD `-enditem` AND IT NEEDS ITS OWN EMITTER
+     * FOR `stealeat`'s REASON, one field over. The authority is
+     *     this.add('-enditem', source, yourItem, '[silent]', '[from] ability: Pickpocket',
+     *              `[of] ${source}`)                                        data/abilities.ts:3243
+     * -- `[silent]` and `[from]` are TWO fields and the `[of]` is a THIRD, below both. `enditem`
+     * above places `of` at field 4 and `extra` at field 5, so it can write the three only in the
+     * WRONG ORDER, and the caller had been folding the first two into one string.
+     *
+     * THAT FOLD WAS NOT COSMETIC, and the `enditem` header two comments up had already written down
+     * exactly why: the differ's `display-flags` rule drops a FIELD matching /^\[silent\]/, so
+     * `'[silent][from] ability: pickpocket'` is dropped WHOLE and the attribution goes with it. The
+     * authority's `[silent]` is dropped and its `[from]` survives. Two engines, two different lines,
+     * and the one that looks like a formatting detail is the one that loses a field.
+     *
+     * FOUND BY tests/probe_pickpocket_event_position.js's SILENT CONTROL, not reasoned: with the
+     * event moved to its right place the two `-enditem` lines finally landed on the same index and
+     * the field mismatch was the first thing the aligner saw. It had been standing behind the
+     * ordering defect. */
+    enditemRobbed(m,it,abName,of){
+      this.push(['-enditem',ident(m),it,'[silent]','[from] ability: '+abName,of?'[of] '+ident(of):'']); },
     ab(m,a,extra){ this.push(['-ability',ident(m),a,extra]); },
     /* `|-transform|USER|TARGET` -- sim/pokemon.ts:1352, with the :1350 variant appending
      * `[from] <effect.fullname>` when something other than the move caused the copy. There is no
@@ -13848,6 +13910,39 @@ const STRUGGLE_KIND_ONLY=(typeof process!=='undefined'&&process.env&&process.env
  * restore a call that no longer happens. Any run carrying it also carries a non-zero
  * `MEDFAILS.inMoveUpdateSuppressed`. Same shape as MEDI_SUCKER_QUEUE_BLIND above. */
 const NO_INMOVE_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_INMOVE_UPDATE==='1');
+/* 2026-09-06 -- MEDI_NO_SECOND_INMOVE_UPDATE=1 TAKES THE *SECOND* IN-MOVE UPDATE PASS BACK OUT, i.e.
+ * `eachEvent('Update')` below the recoil (data/mods/champions/scripts.ts:575, mainline
+ * sim/battle-actions.ts:1003) does not happen, the way this engine ran until today. A SEPARATE knob
+ * from MEDI_NO_INMOVE_UPDATE above and not a widening of it: the two are different call sites with
+ * different populations -- the first pass runs inside the hit loop and the second runs after the
+ * recoil -- and one knob for both could not tell a run that lost the recoil pass from a run that lost
+ * the whole event. Any run carrying it also carries a non-zero
+ * `MEDFAILS.secondInMoveUpdateSuppressed`. Staged by tests/probe_second_update_pass.js. */
+const NO_SECOND_INMOVE_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_SECOND_INMOVE_UPDATE==='1');
+/* 2026-09-06 -- MEDI_PICKPOCKET_IN_HIT_LOOP=1 PAYS THE `stealsItem{takesFrom:'attacker'}` THEFT BACK
+ * INSIDE THE PER-HIT REACTION BLOCK, above the recoil and above the second Update pass, the way this
+ * engine ran until today. It RELOCATES rather than deletes -- both sites call the same eligibility
+ * reads -- because a knob that merely skipped the theft would look like an engine with no Pickpocket
+ * at all, which is a different and much louder defect than the ordering one. Any run carrying it also
+ * carries a non-zero `MEDFAILS.pickpocketInHitLoopRestored`. Same shape as MEDI_HAZARD_BELOW_FAINT. */
+const PICKPOCKET_IN_HIT_LOOP=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PICKPOCKET_IN_HIT_LOOP==='1');
+/* 2026-09-06 -- MEDI_NO_SELFSWITCH_UPDATE=1 TAKES THE `eachEvent('Update')` BACK OUT OF THE
+ * PAY-YOUR-OWN-HP-AND-LEAVE BRANCH, so a Shed Tail user carries an unspent pinch berry to the bench
+ * again, the way this engine ran until today. A THIRD knob rather than a widening of
+ * MEDI_NO_SECOND_INMOVE_UPDATE, for that knob's own reason: it is a different call site with a
+ * different population -- this one is on the STATUS road, which `_stepUpdate` cannot reach at all --
+ * and one knob for all three could not tell which pass a run had lost. Any run carrying it also
+ * carries a non-zero `MEDFAILS.selfSwitchUpdateSuppressed`. Staged by
+ * tests/probe_selfswitch_update_pass.js. */
+const NO_SELFSWITCH_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_SELFSWITCH_UPDATE==='1');
+/* 2026-09-06 -- MEDI_SMART_TARGET_SURVIVES_REDIRECT=1 LETS THE `smartTarget` SPLIT SURVIVE A
+ * REDIRECT, so Dragon Darts drawn by a Follow Me / Rage Powder / Lightning Rod still puts its second
+ * dart into the redirector's PARTNER, the way this engine ran until today. It RELOCATES nothing and
+ * deletes nothing else: the split is untouched on every un-redirected click, which is what the
+ * probe's silent control asserts. Any run carrying it also carries a non-zero
+ * `MEDFAILS.smartTargetSurvivesRedirectRestored`. Staged by
+ * tests/probe_smart_target_redirect.js. */
+const SMART_TARGET_SURVIVES_REDIRECT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SMART_TARGET_SURVIVES_REDIRECT==='1');
 /* 2026-08-27 -- MEDI_MULTIHIT_UPDATE_ONCE=1 PUTS THE UPDATE EVENT BACK TO ONCE PER MOVE, i.e. a
  * multi-hit volley raises it only after its LAST packet, the way this engine ran until today. It
  * exists so the mid-volley pinch berry can be shown MISSING on demand without swapping a file. ONE
@@ -30141,6 +30236,60 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(TR)TR.dmg(m);
           if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);continue;}
         }
+        /* ============ 2026-09-06 -- `eachEvent('Update')` BEFORE THE BODY LEAVES ==================
+         *
+         * `Battle#eachEvent('Update')` is raised INSIDE the hit loop -- data/mods/champions/
+         * scripts.ts:538, mainline sim/battle-actions.ts:967 -- for every move that CONNECTS, and a
+         * status move connects: `spreadMoveHit` returns `true` for it, which becomes `damage[i] = 0`,
+         * so `if (!moveDamage.some(val => val !== false)) break;` does not fire above the pass. The HP
+         * this branch has just paid is paid inside that same call (`moveHit` applies
+         * `volatileStatus` and then `onHit`, and Shed Tail's `onHit` is
+         * `this.directDamage(Math.ceil(source.maxhp / 2))`). The SWITCH is later still: `useMove`
+         * queues `selfSwitch` after `useMoveInner` has returned. So the authority's order is
+         * COST, UPDATE, LEAVE -- and this engine's was COST, LEAVE.
+         *
+         * `_stepUpdate` cannot reach here and its own header says why: it lives in the DAMAGING step
+         * list, and *"STATUS moves do not reach this step list at all, so their Update still waits for
+         * the between-action pass."* That is harmless for every status move that STAYS -- the
+         * between-action pass settles it a moment later, at the same point in the stream -- and it is
+         * not harmless for one that LEAVES, because by the time that pass runs the body is on the
+         * bench and out of `actA`/`actB` entirely.
+         *
+         * PRICED ON THE PINNED DIFFERENTIAL, release `57778abd6073`, one board-material game,
+         * `any`-bucket verdict SHARED COINS:
+         *
+         *     showdown   |-damage|p2a: Orthworm|72/145
+         *                |-enditem|p2a: Orthworm|Sitrus Berry|[eat]
+         *                |-heal|p2a: Orthworm|108/145|[from] item: Sitrus Berry
+         *                |switch|p2a: Clefable|Clefable, L50|170/170|[from] Shed Tail
+         *     medicham2  |-damage|p2a: Orthworm|72/145
+         *                |switch|p2a: Clefable|clefable, L50|170/170|[from] shedtail
+         *
+         * Orthworm went to the bench on 72/145 STILL HOLDING a berry the authority had eaten -- a
+         * party HP leaf and a party item leaf at once, on a body that comes back later.
+         *
+         * AND THE COST ALWAYS CROSSES THE LINE, which is why this is not a corner: the cost is
+         * `ceil(maxhp/2)` and the move's own failure clause is `hp <= ceil(maxhp/2)`, so a user at
+         * full HP lands on `floor(maxhp/2)` -- at or below the pinch threshold for every body in the
+         * regulation. `tests/probe_selfswitch_update_pass.js` needs no search at all.
+         *
+         * IT IS `_updateEvent` AND NOT `_updateAll`, for `_stepUpdate`'s reason: the White Herb sweep
+         * rides on `onAnyAfterMove`, a different event that merely shares this schedule.
+         *
+         * WHAT IS NOT CLAIMED: the OTHER pivot family (`pivotStatus` -- Parting Shot, Chilly
+         * Reception, U-turn's status cousins) does NOT get the pass here. Its members change no HP and
+         * no status on the body that leaves, so there is nothing for the pass to settle on it, and
+         * widening this without a failing probe would be adding a call on an argument rather than on a
+         * measurement. Named rather than folded in.
+         *
+         * MEDI_NO_SELFSWITCH_UPDATE=1 takes it back out. */
+        if(NO_SELFSWITCH_UPDATE)MEDFAILS.selfSwitchUpdateSuppressed=1;
+        else{
+          const _sig=()=>[...actA,...actB].map(x=>x?(x.curHP+'/'+(x.item||'-')+'/'+(x.status||'-')):'-').join('|');
+          const _b4=_sig();
+          _updateEvent(); MEDSEEN.selfSwitchUpdateRan++;
+          if(_sig()!==_b4)MEDSEEN.selfSwitchUpdateSettled++;
+        }
         const idx=own.indexOf(m);
         if(idx<0){mvFail(m);continue;}
         if(pivotFrom(a.mv,()=>switchOut(own,idx,bench,foes,sf,field,a.to||a.pivotTo,_ps||{passesBoosts:false,passesVolatiles:[]})))
@@ -31366,6 +31515,11 @@ function battleTurn(S,rng,actsForA,actsForB){
        * this branch was the only place that knew how. The two announcements stay HERE, where their
        * position relative to the `|move|` line is known. Everything below this line is the block that
        * used to compute the draw inline; the comments are kept because they are the derivation. */
+      /* 2026-09-06 -- WAS THE AIM REDIRECTED AT ALL. Read at the draw and consumed by the
+       * `smartTarget` split ~470 lines down; see that block for the derivation. It is a `let` at
+       * ACTION scope for `_allyHit`'s reason -- the two ends of the fact are in different places and
+       * a flag on the mon would survive into a turn that redirected nothing. */
+      let _aimRedirected=false;
       if(!a.move.spread&&targets.length){
         const _dr=redirectDrawnTo(m,targets[0],foes,mv,a.move.id,field,!!a.rescript,
                                   it.side==='A'?actA:actB);
@@ -31388,7 +31542,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * beating a type immunity". Redirection is NOT gated on immunity in Showdown -- Follow Me
            * redirects unconditionally and Rage Powder only asks `runStatusImmunity('powder')`, which
            * this engine already asks. The draw is right; the announcement was the defect. */
-          targets=[drawer];
+          targets=[drawer]; _aimRedirected=true;
           if(TR)TR.retarget(drawer);}
         /* WIRE 25 -- redirectsType. Lightning Rod (1,901) and Storm Drain draw a move of their TYPE
          * to themselves, and the engine only ever looked for the Follow Me / Rage Powder volatile.
@@ -31415,7 +31569,8 @@ function battleTurn(S,rng,actsForA,actsForB){
            * Intimidate uses and a different event. Two redirect families, two announcements, and this
            * engine had them exactly swapped -- silence where a line belongs and the wrong line where
            * silence does. */
-          targets=[_rod];if(TR){TR.act(_rod,_dr.announce);TR.retarget(_rod);}
+          targets=[_rod]; _aimRedirected=true;
+          if(TR){TR.act(_rod,_dr.announce);TR.retarget(_rod);}
         }
       }
       /* ROADMAP #403, THE SECOND ROAD -- THE REFUSAL IS ASKED OF THE BODY THE MOVE ARRIVES AT, AND
@@ -31836,8 +31991,50 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * PLACED AFTER REDIRECTION ON PURPOSE. A Follow Me or a Lightning Rod resolves first in the
        * authority too (`getMoveTargets` runs `priorityEvent('RedirectTarget')` and only THEN calls
-       * `getSmartTargets`), so the partner is the partner of whoever the darts ended up aimed at. */
-      if(!a.move.spread&&targets.length===1&&TAGS.param('move',a.move.id,'smartTarget')){
+       * `getSmartTargets`), so the partner is the partner of whoever the darts ended up aimed at.
+       *
+       * ============ 2026-09-06 -- AND THAT PARAGRAPH IS HALF THE RULE; THE OTHER HALF IS `!_aimRedirected` ====
+       *
+       * The order above is right and it is not the whole of `getMoveTargets`. A REDIRECT TURNS THE
+       * FLAG OFF ON ITS WAY PAST, so `getSmartTargets` is never called at all and the volley's two
+       * darts both land on the redirector:
+       *
+       *     followme.condition.onFoeRedirectTarget    if (move.smartTarget) move.smartTarget = false;
+       *                                                                          data/moves.ts:6065
+       *     ragepowder.condition.onFoeRedirectTarget  if (move.smartTarget) move.smartTarget = false;
+       *                                                                          data/moves.ts:14617
+       *     lightningrod.onAnyRedirectTarget          if (move.smartTarget) move.smartTarget = false;
+       *                                                                      data/abilities.ts:2346
+       *     stormdrain.onAnyRedirectTarget            if (move.smartTarget) move.smartTarget = false;
+       *                                                                      data/abilities.ts:4641
+       *
+       * ALL FOUR, MOVE AND ABILITY ALIKE — and the first version of this wire had it as "a MOVE
+       * clears it, an ABILITY does not". `tests/probe_smart_target_redirect.js` reads the four blocks
+       * out of the authority's own text on every run and went RED on that claim before a line of this
+       * was written, which is the only reason the wrong rule did not land. It is checked on every run
+       * rather than recorded here, because a regulation that changed one of the four would otherwise
+       * leave this comment describing an engine nobody has.
+       *
+       * PRICED ON THE PINNED DIFFERENTIAL, release `cfe46f67bf1f`, one board-material game,
+       * `any`-bucket verdict SHARED COINS:
+       *     showdown   |-damage|p1b: Volcarona|65/160   ...   |-damage|p1b: Volcarona|31/160
+       *     medicham2  |-damage|p1b: Volcarona|65/160   ...   |-damage|p1a: Rotom|1/125
+       * Rage Powder drew the darts onto Volcarona; the authority put BOTH into it and this engine
+       * split them, taking a Rotom-Wash from 56/125 to 1/125 that the authority never touched.
+       *
+       * A THIRD SITE IS NAMED AND NOT COVERED: `wonderguard.onTryHit` (data/abilities.ts:5551) also
+       * clears the flag, on an IMMUNITY, and suppresses its own `-immune` line when it does. That is
+       * a different question from a redirect and Wonder Guard's legal carriers do not learn to stand
+       * in front of a dart here; it is stated rather than folded in.
+       *
+       * MEDI_SMART_TARGET_SURVIVES_REDIRECT=1 puts the split back after a redirect. */
+      if(_aimRedirected&&!a.move.spread&&targets.length===1
+         &&TAGS.param('move',a.move.id,'smartTarget')){
+        if(SMART_TARGET_SURVIVES_REDIRECT)MEDFAILS.smartTargetSurvivesRedirectRestored=1;
+        else MEDSEEN.smartTargetSplitRefusedByRedirect++;
+      }
+      if((!_aimRedirected||SMART_TARGET_SURVIVES_REDIRECT)
+         &&!a.move.spread&&targets.length===1&&TAGS.param('move',a.move.id,'smartTarget')){
         const _dside=actA.indexOf(targets[0])>=0?actA:actB;
         const _mate=_dside.find(x=>x&&x!==targets[0]&&x!==m&&!x.fainted&&x.curHP>0);
         if(_mate)targets=[targets[0],_mate];
@@ -32879,6 +33076,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        * exactly the authority's `onDamage` / `onUpdate` split. The between-arrival seam inside
        * `_stepApply` keeps its own `_absPending` -- that one never leaves the step. */
       let _bustPending=null;
+      /* 2026-09-06 -- THE PICKPOCKET THEFTS THIS MOVE HAS EARNED, OWED TO `AfterMoveSecondary`.
+       * Declared at MOVE scope for `_bustPending`'s reason: the two ends are in different places.
+       * The per-hit reaction block DECIDES which bodies qualify (it is the only code that knows which
+       * arrival made contact); the site below the recoil PAYS them, because that is where the
+       * authority raises the event. See the payment block for the derivation. */
+      let _ppPending=null;
       /* WIRE 147 -- HOW MANY BODIES THE DARTS ARE SPLIT ACROSS, read once at the damage step because
        * `_stepDamage` never sets `R.out` and the surviving set is therefore stable across it. */
       let _smartRows=0;
@@ -34897,17 +35100,35 @@ function battleTurn(S,rng,actsForA,actsForB){
            * already after every hit in the turn, so the order the flag exists to enforce holds without
            * a branch. Counted if a member ever needs it inside the turn -- see berryPinchUpdate. */
           /* ROADMAP #308 -- MOVED OUT OF THE PER-HIT LOOP. See `_hpThresholdBoost` below the loop. */
+          /* 2026-09-06 -- AND THE THEFT ITSELF IS NOW *DEFERRED* RATHER THAN PAID HERE. Only the
+           * DECISION stays in this block; the payment happens below the recoil, where the authority
+           * raises the event. See `_ppPay` for the derivation and for what it cost. The eligibility
+           * reads that stay here are the ones that are true of THIS ARRIVAL and of no other moment --
+           * the contact flag and the attacker/target identity; every read of a HAND is re-taken at
+           * payment time, because the authority takes them at :1005 and a hand can change in between
+           * (which is the entire defect). */
           const _st=TAGS.param('ability',tg.ability,'stealsItem');
           if(_st&&_st.takesFrom==='attacker'&&m!==tg
-             &&stealFlagOK(_st,a.move.id,m,a.move.mv)
-             &&(!_st.requiresEmptyHand||!itemOn(tg))
-             &&itemOn(m)&&!itemRefusesTake(m)){
-            /* ROADMAP #462 -- the doors. `source.item` in the handler is the identity read. */
-            const _took=itemLose(m);
-            if(_took&&itemGive(tg,_took)){
-              MEDSEEN.itemStolenByAbility++;
-              if(TR){TR.enditem(m,_took,'[silent][from] ability: '+tg.ability,m);
-                     TR.item(tg,_took,'[from] ability: '+tg.ability,m);}
+             &&stealFlagOK(_st,a.move.id,m,a.move.mv)){
+            if(PICKPOCKET_IN_HIT_LOOP){
+              MEDFAILS.pickpocketInHitLoopRestored=1;
+              if((!_st.requiresEmptyHand||!itemOn(tg))&&itemOn(m)&&!itemRefusesTake(m)){
+                /* ROADMAP #462 -- the doors. `source.item` in the handler is the identity read. */
+                const _took=itemLose(m);
+                if(_took&&itemGive(tg,_took)){
+                  MEDSEEN.itemStolenByAbility++;
+                  if(TR){TR.enditem(m,_took,'[silent][from] ability: '+tg.ability,m);
+                         TR.item(tg,_took,'[from] ability: '+tg.ability,m);}
+                }
+              }
+            } else {
+              /* ONE ENTRY PER BODY, NOT PER ARRIVAL. `runEvent('AfterMoveSecondary', targets, ...)`
+               * walks the TARGET LIST once, so a three-packet volley into one thief raises the
+               * handler once and not three times. The old site got the same answer by accident --
+               * the attacker's hand was empty after the first steal -- which is an accident that
+               * stops holding the moment the payment moves. */
+              if(!_ppPending)_ppPending=[];
+              if(!_ppPending.some(e=>e.tg===tg)){_ppPending.push({tg:tg,st:_st});MEDSEEN.pickpocketDeferred++;}
             }
           }
         }
@@ -37068,6 +37289,140 @@ function battleTurn(S,rng,actsForA,actsForB){
           * a switch on the id, so this does the same rather than inventing a third rule. */
          if(TR)TR.dmg(m,ATTR.from(ATTR.cond(a.move.id==='struggle'?'recoil':a.move.id)));
          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}}
+      /* ============ 2026-09-06 -- THE AUTHORITY'S *SECOND* IN-MOVE `eachEvent('Update')` ==========
+       *
+       * data/mods/champions/scripts.ts:575 -- the Champions mod overrides `hitStepMoveHitLoop` and
+       * keeps BOTH passes verbatim (mainline sim/battle-actions.ts:1003):
+       *
+       *     this.battle.eachEvent('Update');                                 :538   [:967]
+       *     ...
+       *     this.battle.faintMessages(false, false, !pokemon.hp);            :547   [:976]
+       *     if (move.multihit ...) this.battle.add('-hitcount', ...);        :550   [:978]
+       *     if (move.totalDamage) this.applyRecoilDamage(...);               :554   [:982]
+       *     ...
+       *     if (!damage.some(val => !!val || val === 0)) return damage;      :572   [:1001]
+       *     this.battle.eachEvent('Update');                                 :575   [:1003]   <-- THIS
+       *     this.afterMoveSecondaryEvent(...);                               :577   [:1005]
+       *
+       * `_updateEvent`'s own header has DECLARED this omission since 2026-08-23 and the
+       * `_hpThresholdBoost` header repeated it as a "DECLARED REMAINDER". Neither priced it. The
+       * pinned whole-game differential on release `2a5fd78725e7` does: TWO board-material games, both
+       * the same shape, and the `any`-dice join says both drew SHARED COINS.
+       *
+       *     showdown   |-damage|p2b: Incineroar|81/170|[from] Recoil
+       *                |-enditem|p2b: Incineroar|Sitrus Berry|[eat]
+       *                |-heal|p2b: Incineroar|123/170|[from] item: Sitrus Berry
+       *     medicham2  |-damage|p2b: Incineroar|81/170|[from] Recoil        (and nothing further)
+       *
+       * WHY THE BETWEEN-ACTION PASS CANNOT COVER IT, which is the whole reason this is board-material
+       * rather than an ordering note: `_updateAll()` has exactly two call sites (:25190 and :37700)
+       * and BOTH sit under `if(sideWiped(S)){...break _TURN;}`. A move that ENDS THE BATTLE never
+       * reaches the pass, so the attacker walks off the field holding a berry the authority ate. In
+       * every other shape the two engines coincide -- nothing is emitted between the recoil and the
+       * next action's pass -- which is why the population is two games and not two hundred, and why a
+       * one-turn fixture cannot express it. `tests/probe_second_update_pass.js` stages the wipe.
+       *
+       * THE GATE IS `_reached > 0`, THE SAME ONE `_stepUpdate` CARRIES, AND IT IS THE AUTHORITY'S OWN
+       * POPULATION. The three ways to return above :575 are `hit === 1` (nothing landed), `nullDamage`
+       * (every packet was `false`) and the `damage.some(...)` test -- and that test PASSES for a
+       * substitute hit, because `damage[i] = md === true || !md ? 0 : md` makes it `0` and the clause
+       * is `!!val || val === 0`. `_reached` is this engine's count of rows past every gate and has the
+       * same membership: a miss, a Protect and a type immunity all leave it at zero.
+       *
+       * IT IS `_updateEvent` AND NOT `_updateAll`, for `_stepUpdate`'s reason: the White Herb sweep
+       * rides on `onAnyAfterMove`, which the authority raises a level ABOVE `useMoveInner`, so running
+       * the whole of `_updateAll` here would spend a herb mid-move -- a new wrong answer bought with a
+       * right one.
+       *
+       * RUNNING THE EVENT TWICE IN ONE MOVE IS SAFE AND THAT IS A PROPERTY OF THE HANDLERS, NOT AN
+       * ASSUMPTION: every one of them is a settle that clears its own trigger (`_flingSpend` is
+       * nulled, the pinch/cure/PP berries leave the pocket, the per-turn volatile is deleted), so a
+       * second pass over an unchanged board writes nothing. `secondInMoveUpdateSettled` MEASURES that
+       * rather than asserting it -- it counts only the passes that actually moved a body.
+       *
+       * WHAT THIS STILL DOES NOT DO, said rather than left to be found: a STATUS move never reaches
+       * this branch at all, so its own :575 pass is still owed. That is a different site and a
+       * different population -- the Shed Tail row of the same differential -- and it is not smuggled
+       * in here. */
+      if(_reached>0){
+        if(NO_SECOND_INMOVE_UPDATE)MEDFAILS.secondInMoveUpdateSuppressed=1;
+        else{
+          const _sig=()=>[...actA,...actB].map(x=>x?(x.curHP+'/'+(x.item||'-')+'/'+(x.status||'-')):'-').join('|');
+          const _b4=_sig();
+          _updateEvent(); MEDSEEN.secondInMoveUpdateRan++;
+          if(_sig()!==_b4)MEDSEEN.secondInMoveUpdateSettled++;
+        }
+      }
+      /* ============ 2026-09-06 -- `AfterMoveSecondary`, AND PICKPOCKET IS ON IT ==================
+       *
+       *     this.battle.eachEvent('Update');                                  battle-actions.ts:1003
+       *     this.afterMoveSecondaryEvent(targetsCopy.filter(v => !!v), ...);                  :1005
+       *
+       *     afterMoveSecondaryEvent(targets, pokemon, move) {                                 :812
+       *       this.battle.singleEvent('AfterMoveSecondary', move, null, targets[0], pokemon, move);
+       *       this.battle.runEvent('AfterMoveSecondary', targets, pokemon, move);
+       *     }
+       *
+       *     pickpocket.onAfterMoveSecondary(target, source, move)              data/abilities.ts:3230
+       *       if (source && source !== target && move?.flags['contact']) {
+       *         if (target.item || target.switchFlag || target.forceSwitchFlag ||
+       *             source.switchFlag === true) return;
+       *         const yourItem = source.takeItem(target);        <- THE SOURCE'S HAND, READ AT :1005
+       *
+       * (Champions overrides neither: `pickpocket` does not occur in data/mods/champions/abilities.ts,
+       * and the mod's own `hitStepMoveHitLoop` keeps :1003 and :1005 verbatim at scripts.ts:575/:577.)
+       *
+       * THIS ENGINE PAID THE THEFT INSIDE THE PER-HIT REACTION BLOCK -- twelve steps, one faint pass
+       * and one recoil ABOVE the event -- and its own header said so and called the position correct.
+       * The header's argument was about the punishes (Rough Skin fires first, which is true and is not
+       * the question); what it missed is that everything between the arrival and :1005 can CHANGE THE
+       * HAND THE HANDLER READS. Priced on the pinned differential at release `9af3f4fcad16`, one
+       * board-material game, `any`-bucket verdict SHARED COINS:
+       *
+       *     showdown   |-damage|p2a: Incineroar|58/170|[from] Recoil
+       *                |-enditem|p2a: Incineroar|Sitrus Berry|[eat]
+       *                |-heal|p2a: Incineroar|100/170|[from] item: Sitrus Berry
+       *     medicham2  |-enditem|p2a: Incineroar|sitrusberry|[silent][from] ability: pickpocket ...
+       *                |-item|p1b: Weavile|sitrusberry|[from] ability: pickpocket
+       *                |-enditem|p1b: Weavile|sitrusberry|[eat]      <- a berry that no longer existed
+       *                |-damage|p2a: Incineroar|58/170|[from] Recoil
+       *
+       * The recoil took Incineroar under half; the authority ate the pinch berry at :1003 and handed
+       * the thief an EMPTY HAND at :1005. This engine stole it before the recoil was even paid, so two
+       * bodies' items and two bodies' HP were wrong at once.
+       *
+       * EVERY HAND READ IS RE-TAKEN HERE AND NONE IS INHERITED FROM THE DECISION. `requiresEmptyHand`
+       * (the authority's `target.item`), `itemOn(m)` (`source.takeItem` returning falsy) and
+       * `itemRefusesTake` (the mega-stone rule) are all asked at :1005 in the authority, so they are
+       * asked at :1005 here. Carrying the decision's answers forward would have reproduced the defect
+       * one function further down.
+       *
+       * WHAT IS NOT CLAIMED: Berserk / Anger Shell is on this SAME event and is still paid by
+       * `_stepHpThresholdBoost`, above the recoil. Moving it belongs with `defersHealingBerry` -- the
+       * authority's `onTryEatItem` makes a pinch berry WAIT for that boost, and now that this engine
+       * settles pinch berries inside the move, moving the boost without the deferral would be a new
+       * wrong answer bought with a right one. Named here rather than folded in.
+       *
+       * MEDI_PICKPOCKET_IN_HIT_LOOP=1 pays it at the old site instead. Staged by
+       * tests/probe_pickpocket_event_position.js. */
+      if(_ppPending){
+        for(const _e of _ppPending){
+          const _tg=_e.tg,_st=_e.st;
+          /* EVERY REFUSAL IS COUNTED, so `pickpocketDeferred` MINUS `pickpocketPaidAtEvent` is
+           * accounted for and a theft that quietly never happened cannot hide as one that was
+           * legitimately refused. */
+          if(_st.requiresEmptyHand&&itemOn(_tg)){MEDSEEN.pickpocketRefusedAtEvent++;continue;}
+          if(!itemOn(m)||itemRefusesTake(m)){MEDSEEN.pickpocketRefusedAtEvent++;continue;}
+          /* ROADMAP #462 -- the doors. `source.item` in the handler is the identity read. */
+          const _took=itemLose(m);
+          if(_took&&itemGive(_tg,_took)){
+            MEDSEEN.itemStolenByAbility++; MEDSEEN.pickpocketPaidAtEvent++;
+            if(TR){TR.enditemRobbed(m,_took,_tg.ability,m);
+                   TR.item(_tg,_took,'[from] ability: '+_tg.ability,m);}
+          }
+        }
+        _ppPending=null;
+      }
       /* WIRE 19 -- DRAIN, the exact mirror of the recoil line above and absent entirely. 8,553 corpus
        * clicks: Matcha Gotcha 4,957, Giga Drain 1,255, Drain Punch 916, Draining Kiss 814. The damage
        * landed and the heal was simply never applied -- `dealt 51 to the foe; user 85 -> 85 hp` -- so

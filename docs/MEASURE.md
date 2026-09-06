@@ -15,28 +15,117 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
   provenance: 189 unsafe, 2 void (declared), 33 possibly stale, 30 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-06 00:08
+    moved after the fit: engine/medicham2-browser.js  2026-09-06 07:47
     moved after the fit: data/engine-data.js  2026-08-31 00:08
-    moved after the fit: data/abra-tags.js  2026-09-04 21:38
+    moved after the fit: data/abra-tags.js  2026-09-06 02:14
 ```
 
-_stamped 2026-09-06 01:28_
+_stamped 2026-09-06 08:18_
 
 <!-- /GENERATED -->
+
+## THE SETTLED-TREE PUBLISH PASS THAT WAS OWED FOR THREE SESSIONS. **BOARD-MATERIAL 41 OF 961, PROTOCOL 108 OF 961**, RELEASE `14b62cd5aeec`, AND `node engine/status.js --write` RAN WITH NOTHING ELSE IN FRAME. THE NARRATION COUNT ROSE 69 TO 71 AND THAT IS NOT A REGRESSION. 2026-09-06, CHANGELOG 5.262.0
+
+**EVERY FIGURE BELOW WAS RE-READ FROM ITS ARTIFACT ON THIS PASS, NOT CARRIED FROM A BRIEF OR AN
+EARLIER DOCUMENT.** That is the whole job of this division and it is stated first because three
+consecutive sessions published a version block against a tree another agent was writing.
+
+| question | artifact | reading |
+|---|---|---|
+| the clause that GATES | `data/game-differential.json` | **board-material 41 of 961** — `state.games` 961 less `state.games_board_never_diverged` 920 |
+| the clause that REPORTS | the same artifact | **protocol first divergence 108 of 961** — the artifact's `diverged` field |
+| the narration clause | the same artifact | **71 of 961** — 72 raw less 1 declared, across 70 causes |
+| the conditions | the same artifact | release `14b62cd5aeec`, cap 20, arm `middle`, steering `empirical-click/v1`, `--end-state`, pool `--team-store data/team-pool-frozen`, `driver_code_stable` true |
+| the gate | `node engine/status.js` | **7 of 9 clauses passing**; the two failures are the two whole-game clauses, both on MEASURED counts |
+| the census | `data/mechanics-census.json` | **829 live / 829 probed / 0 missing** |
+| the damage differential | `data/engine-diff.json` | **0 of 6000** at the midpoint and at each of the sixteen band indices, same release |
+| withheld artifacts | `engine/quarantine.js` | **63** |
+
+**NOTHING IN THE BRIEF DISAGREED WITH WHAT THE ARTIFACTS SAY.** Board-material, protocol, the
+release id, the cap, the arm, the steering policy, the pool, the census triple and the 7-of-9 gate
+reading all reproduce exactly. The one figure that needed deriving rather than reading is
+board-material, which is a SUBTRACTION and not a field — `status.js` performs it and prints both
+operands, and this division checked the operands rather than the difference.
+
+**THE NARRATION RISE IS THE ONLY THING HERE THAT COULD BE MISREAD, SO IT IS WRITTEN AS WHAT IT IS.**
+`data/verification/longtail-D-anybucket.json` holds `protocol_diverged_board_never_did` **70** at
+batch D's publication, which is **69** after the one declared row is subtracted;
+`data/game-differential.json` now holds **72** raw and **71** after the same subtraction. **A repaired
+board does not delete a game from the tally — it moves it out of the BOARD-MATERIAL column and into
+the NARRATION one**, because the two engines still describe that game differently and no longer
+disagree about state. The two columns together read 46 + 69 = **115** at batch D and 41 + 71 = **112**
+now, which is the three-game fall the six fixes bought. **A count that rises for a good reason looks
+identical to a count that rises for a bad one**, and the only thing that separates them is the
+sentence, so the sentence is mandatory wherever this pair is quoted.
+
+**WHAT `node engine/status.js --write` PRINTED, INCLUDING THE PART THAT IS NEW.** `docs/WEB.md`
+carries a `<!-- GENERATED -->` block for the first time, and the first thing it reports is a DRIFT:
+`web/quarantine-data.js` was built 2026-08-25 and publishes **3 of 8 clauses failing**, while the live
+gate says **1 of 8 GATING clauses fail** and is CLOSED. The bundle names a clause the gate no longer
+has (`whole-game differential / the same game on both engines`) and is missing the two the gate does
+have — the BOARD-MATERIAL and NARRATION clauses — and its withheld set holds 60 artifacts against 63
+today. **Zero figures are RELEASED to the pages**, which is the withheld-not-annotated rule holding
+inside the bundle itself. The rebuild is `node web/build-quarantine.js && node web/build-status.js`;
+it is WEB's call and WEB is paused, so it is reported here and not run.
+
+**THIS DIVISION'S ONE NUMBER IS STILL NOT PUBLISHED, AND THE STANDING BRIEF IS NOT DISCHARGED.**
+`data/winrate-backtest.json` was NOT re-run. It is downstream of MEDICHAM — its generator
+`engine/backtest_winrate.js` reaches the simulator through `require` — and the gate is shut on the
+board-material clause, so re-running it would produce a number that may not be quoted the moment it
+is written. **No reliability curve is published in this version and none is implied by anything in
+it.** It becomes runnable, not true, when the gate opens: `node engine/backtest_winrate.js`.
+
+**AND THE REFIT STAYS OWED, AS A REFIT.** No fit was started, no fitted vector was written and
+`data/policy-weights.json` was not touched. `feature_fixture --check` fires two gates — fixture
+identity and damage table — and a restamp answers the first while SILENCING the second, which would
+write over the evidence for the refit rather than answer it. `status.js` names the three inputs that
+moved after the fit: `engine/medicham2-browser.js`, `data/engine-data.js` and `data/abra-tags.js`.
+
+**WHAT WAS FIXED HERE RATHER THAN REPORTED.** `tests/test-roadmap-register.js` was RED on entry — one
+item a ledger schedules that the register does not name. It was not a scheduling gap: a batch-E
+sub-heading in `docs/ENGINE.md` wrote a within-batch step number in the `#N` shape the register gate
+reads as a ROADMAP citation. Reworded to name the step, and the gate reads 3 passed, 0 failed. **Two
+WEB tests, `tests/test-web-quarantine-loaders.js` and `tests/test-web-status.js`, are RED on stale
+`web/` build products.** They were demonstrated red at HEAD with this session's changes stashed, WEB
+is a paused division, and they are reported here rather than filed as known.
+
+Full account: `docs/_reports/2026-09-06-settled-publish-pass.md`.
+
+## THE 37 WERE THE RULER, AND THE RULER IS FIXED — **NINE ARTIFACTS RELEASED, THE HASH COINCIDENCE CLOSED, AND THE DECK IS NO LONGER INVISIBLE.** RATCHET **37 → 12**, THEN **12 → 52** BECAUSE THE GATE CAN NOW SEE A DOCUMENT THAT CITES NOTHING. 2026-09-06
+
+**BOTH CLASSIFIER DEFECTS BELOW ARE CLOSED, AND NEITHER FIX IS A TYPED LIST.**
+
+**1. THE EXEMPTION IS DERIVED FROM THE GATE'S OWN READS.** `MEASURES_THE_ENGINE` held two modules and needed to hold seven; extending it to seven would have been the ban-list-of-four in a new costume. Two changes replace it.
+
+- **`engine/quarantine.js` HAD QUARANTINED ITSELF OFF ITS OWN TEST FIXTURES.** `requiresOf` stripped comments and not STRING LITERALS, and this file's synthetic source map contains `"const M=require('./medicham2-browser.js');"`. Six fixture strings put the GATE in the play layer, and everything that requires the gate went with it — `status.js`, `open_work.js`, `register_reality.js`, `docs_scan.js`, `where.js`, `orient.js`, `sweep.js`. Every one is a printer or an index; none computes a quantity from MEDICHAM. Fixed with a line-local string mask that handles `${}` interpolation — a first version dropped a require that really executes inside a template, caught by reading the drop list rather than the count.
+- **AND THE REST IS READ OUT OF THE CLAUSES.** An artifact the GATE READS is an exit-condition input by construction: withholding it would have the gate decide MEDICHAM's fate off a number it also refuses to print. The derivation walks the gate's own reads plus everything those inputs were built FROM, which is what reaches `derive_protocol_events.js` without naming it. Four generators fall out — `game_differential.js`, `derive_protocol_events.js`, `all_mechanics_fire.js`, `tag_dex.js` — and the typed list is now the RESIDUAL of two, `million_run.js` and `medicham_coverage.js`, which the gate does not read.
+- **THE MEASURES/CONSUMES DISTINCTION IS NOT DERIVABLE, AND THAT IS NOW MEASURED RATHER THAN ASSERTED.** The file claimed it of two files; the strongest structural signal available — "does this module also drive the OFFICIAL engine" — separates nothing, because **all 44 play-layer modules that write an artifact sit inside `champions_sim.js`'s closure**, `fit_policy.js` and `backtest_winrate.js` exactly as much as `game_differential.js`.
+- **THE SIDE-EFFECT CHECK IS THE IMPORTANT ONE.** Withheld artifacts **72 → 63**. Exactly nine moved and every one is an instrument: the mechanics census, the rate runner (three files), the register audit, the register copy, the click-coverage probe, and the gate's own two. **Nothing downstream moved** — the weights, the rollouts, the leaf backtest, the exploitability search and the leaf contrasts are all still withheld. The exemption lands on the GENERATOR and never propagates to that artifact's readers, which is asserted with a control.
+- **AND THE LOUD HALF.** A gate input that comes out WITHHELD is the file contradicting itself. It cannot arise from the derivation but it can arise transitively, so it is named by `--check` rather than absorbed. Empty today.
+
+**2. THE COINCIDENCE ENGINE IS CLOSED, AND THE EXCLUSION IS A ROLE AND NOT A FIELD NAME.** `artifactNumbers` cut digit runs out of content hashes. The rule is that **a digit run glued to a letter is part of a token, not a measurement** — the same statement `engine/quarantine.js` already makes about filenames, applied to numbers, and it generalises past hashes to release ids, `turn19`, `v2` and format names without naming any of them. Cost, measured: 10,569 of 117,316 reachable numbers across `data/` (9.0%), and **neither the citation ratchet nor the untraceable ratchet gained a single offender** — no published figure was tracing through a glued digit run.
+
+**IT UNMASKED FOUR STALE FIGURES THAT A GIT SHA HAD BEEN COVERING FOR.** Four documents restated `data/protocol-events.json` as `emittedCount 38 / notEmittedCount 56`; the artifact reads **44 / 50**, and has since 2026-08-26. The `56` was passing the citation check on a collision with a digit run inside the pinned Showdown commit hash. Corrected in `docs/ABRA-whitepaper.md`, `docs/GAME-DIFFERENTIAL-DESIGN.md` (also `36 → 44` event types), `docs/MODELS.md`, `docs/SUMMARY.md`. A second false positive was also being masked by the first: a WALL-CLOCK TIME was read as a figure — *"still stands from 02:49"* scored as a claim of 49 — and the lexer now strips a range-checked `HH:MM`, with a `43:21` control so a ratio survives.
+
+**3. THE DECK IS NO LONGER INVISIBLE, AND IT IS CLEAN.** The clause needed the citation and the figure in the same block, and the plain-English deck names an artifact in **14 of its 354 paragraphs** — 96% of the document was outside the rule. **Dropping the citation requirement is not the fix and that was measured before it was rejected**: it gives the deck 40 hits and the technical docs 70, because `1,500` occurs in sixteen withheld artifacts and `6,000` in twenty-three. The evidence is **uniqueness of attribution** — exactly one artifact in all of `data/` contains the figure, and it is withheld — plus the requirement that the owner be an artifact some live document actually cites, without which the `_bench` and `_diag` scratch runs became the unique owner of ordinary four-digit numbers and accused six documents (75 hits → 54). **It finds 50 republications carrying no citation at all, and `docs/ABRA-deck-plain-english.md` scores ZERO** — which is now a result rather than a silence.
+
+**THE RATCHET IS RE-SEEDED TO 52 AND THE SPLIT IS STATED.** Of the original 104: 67 were fixed by the withdrawal pass, **18 were the classifier being wrong**, **7 were the hash coincidence**, and 12 were real. The 40 added on top are the uncited route, which nothing could see before today. **A ratchet seeded on false positives protects nothing** — 92 permitted keys were 92 places a genuine republication could land and be waved through by a line already in the list.
+
+**WHAT IS OWED.** `node engine/status.js --write` was again deliberately NOT run: an ENGINE agent was editing the simulator and `docs/ENGINE.md` throughout this pass. Full account: `docs/_reports/2026-09-06-quarantine-classifier-fix.md`.
 
 ## SIXTY-SEVEN WITHHELD FIGURES WERE STILL BEING PUBLISHED IN THE LIVING DOCUMENTS, EVERY CITATION FAITHFUL — **104 → 37**, AND THE 37 THAT STAND ARE THE RULER, NOT THE DEBT. 2026-09-06, CHANGELOG 5.261.0
 
