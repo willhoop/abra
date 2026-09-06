@@ -24,6 +24,15 @@ data/archive/**/games.*.ladder.jsonl
 # no existing pattern matches it. This line only keeps a stray UNCOMPRESSED file out.
 data/raw/**/*.jsonl
 
+# THE PARSED STORE SHARDS UNDER data/parsed/ ARE TRACKED ON PURPOSE — DO NOT ADD A RULE THAT
+# CATCHES THEM. They are what git carries INSTEAD of data/games.*.jsonl.gz as of 2026-09-06; see
+# the block further down that retires those three files. Written by build/compress-stores.js to
+# data/parsed/<store>/<YYYYMMDDTHHMM>-NN.jsonl.gz, ~0.2 MB per ingest run, write-once: never
+# rewritten, never compacted, so git stores each exactly once.
+# Verified 2026-09-06 with `git check-ignore -v data/parsed/games.ladder/20260906T1954-00.jsonl.gz`:
+# no existing pattern matches it. This line only keeps a stray UNCOMPRESSED file out.
+data/parsed/**/*.jsonl
+
 # Python bytecode. 14 .pyc files were committed before this rule existed; they are
 # machine- and version-specific build artifacts, not source.
 __pycache__/
@@ -62,6 +71,33 @@ data/games.ots.jsonl
 data/games.bo3.jsonl
 data/games.selfplay.raw-logs.jsonl
 data/.mew-shards/
+
+# ---- AND THE MONOLITHIC .gz IS RETIRED IN TURN — 2026-09-06 -------------------------------------
+#
+# gzip bought fourteen months and then ran out the same way. Measured 2026-09-06:
+# data/games.ladder.jsonl.gz was 54,323,899 B growing 1.12 MB/day, crossing the SAME hard 100 MB
+# limit around 2026-10-17 — which rejects the ingest Action's own push and stops the collector.
+# THE PER-FILE WALL IS THE REASON, ON ITS OWN. The pack-growth argument that was first written here
+# is retracted as unmeasured: the 59 ladder blobs already in history cost 91.5 MB packed, ~1.55 MB
+# per version, not 54 MB, because git deltas an append-only gzip's shared deflate prefix well.
+# These three do hold 137.9 MB of a 524.28 MiB pack, and untracking them recovers NONE of it —
+# history cannot be vacuumed. The saving is future, and the deadline is the point.
+#
+# So the parsed stores now use the write-once dated shards under data/parsed/ (see the block near
+# the top), exactly as the raw logs have since 2026-09-04. The reassembly was proven byte-identical
+# by sha256 on all three stores BEFORE these were untracked —
+# `node build/compress-stores.js --verify-parsed`, which stays runnable rather than remembered.
+#
+# THESE THREE ARE `git rm --cached`ed. An ignore rule does nothing to a path git is already
+# following — the note directly above records that games.ots.jsonl sat tracked for 30.4 MB with its
+# rule in place. Untracking is what makes the rule take effect.
+#
+# NAMED, NOT GLOBBED. `data/games.*.jsonl.gz` would also catch
+# data/games.gen9championsvgc2026regmabo3.jsonl.gz, which is the next-regulation collector's store
+# and IS tracked, by a mechanism this change does not touch (engine/next_regulation_ingest.js).
+data/games.ladder.jsonl.gz
+data/games.ots.jsonl.gz
+data/games.bo3.jsonl.gz
 
 # Subagent git worktrees. These are real git repos, so `git add -A` records them as
 # SUBMODULE references (mode 160000) with no .gitmodules entry — which makes the repo

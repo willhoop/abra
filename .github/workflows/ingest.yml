@@ -30,7 +30,7 @@ jobs:
 
       # THE STEP WHOSE ABSENCE KILLED THIS WORKFLOW FOR 24 DAYS.
       #
-      # The plain .jsonl stores are GITIGNORED — git tracks `<store>.jsonl.gz` instead (acf7124,
+      # The plain .jsonl stores are GITIGNORED — git tracks the compressed form instead (acf7124,
       # 2026-07-28, because the plain ladder file was approaching GitHub's hard 100 MB per-file
       # limit). So a fresh runner has NO plain store. Without this step `durable-ingest.js` creates
       # a brand-new file holding only this run's fetch, and any commit of it would replace the whole
@@ -40,17 +40,32 @@ jobs:
       # have done had it succeeded. It failed instead — "paths are ignored by one of your .gitignore
       # files", exit 1 under `bash -e` — every hour for ~570 runs. THE BUG IS THE ONLY REASON THE
       # DATA SURVIVED. Restore first, and record the baseline every guard below compares against.
-      - name: Restore the plain stores from the tracked .gz
+      #
+      # THE COMPRESSED FORM IS NOW SHARDS, NOT ONE .gz — 2026-09-06. data/games.ladder.jsonl.gz had
+      # reached 54,323,899 B growing 1.12 MB/day and crossed the SAME hard 100 MB limit around
+      # 2026-10-17, which would have rejected THIS JOB'S OWN PUSH. That deadline is the whole reason;
+      # pack growth is not — measured, the 59 ladder blobs in history cost 91.5 MB packed, ~1.55 MB
+      # per version, because git deltas an append-only gzip's shared prefix well. The parsed stores
+      # now use the write-once dated shards the raw logs have used since 2026-09-04
+      # (data/parsed/<store>/), no shard over ~4 MB, and the reassembly was proven byte-identical by
+      # sha256 on all three stores before anything was untracked —
+      # `node build/compress-stores.js --verify-parsed` is that check, kept runnable.
+      - name: Restore the plain stores from their tracked shards
         run: |
           set -eu
           for s in games.ladder games.bo3 games.ots; do
-            if [ -f "data/$s.jsonl.gz" ]; then
-              gunzip -c "data/$s.jsonl.gz" > "data/$s.jsonl"
-              echo "$s restored: $(wc -l < "data/$s.jsonl") records"
-            else
-              echo "::error::data/$s.jsonl.gz is missing from the checkout — refusing to run"
+            # An EMPTY shard directory is the dangerous case, not a missing one: --restore-parsed
+            # would print "nothing to restore" and exit 0, the ingest would then build a store from
+            # this run's fetch alone, and the shrink guard below is the only thing between that and
+            # a published corpus of ~300 games. Refuse here, where it is unambiguous.
+            if [ -z "$(ls -A "data/parsed/$s" 2>/dev/null)" ]; then
+              echo "::error::data/parsed/$s holds no shards in this checkout — refusing to run"
               exit 1
             fi
+          done
+          node build/compress-stores.js --restore-parsed
+          for s in games.ladder games.bo3 games.ots; do
+            echo "$s restored: $(wc -l < "data/$s.jsonl") records"
           done
           wc -l < data/games.ladder.jsonl > "$RUNNER_TEMP/base-ladder"
           wc -l < data/games.bo3.jsonl    > "$RUNNER_TEMP/base-bo3"
@@ -249,9 +264,9 @@ jobs:
           git config user.name  "abra-bot"
           git config user.email "abra-bot@users.noreply.github.com"
 
-          # COMMIT THE .gz, NOT THE PLAIN FILE. The plain .jsonl is gitignored; naming it here is
-          # what broke this workflow for 24 days. build/compress-stores.js writes the .gz that git
-          # actually tracks, and `--check` exits 1 if one lags its store.
+          # COMMIT THE COMPRESSED FORM, NOT THE PLAIN FILE. The plain .jsonl is gitignored; naming
+          # it here is what broke this workflow for 24 days. build/compress-stores.js writes the
+          # shards that git actually tracks, and `--check` exits 1 if a store has rows in no shard.
           node build/compress-stores.js
 
           # AND SHARD THIS RUN'S NEW RAW LOGS. One small gzip per run under data/raw/<store>/,
@@ -269,8 +284,11 @@ jobs:
           # by one of your .gitignore files"). A new path in this list is the same hazard, so the
           # list is walked and a missing entry is a loud ::warning:: instead of a dead run.
           add_artifacts() {
-            for f in data/games.ladder.jsonl.gz data/games.bo3.jsonl.gz data/games.ots.jsonl.gz \
-                     data/meta-usage.json data/live.js data/move-priors.observed.json \
+            # data/games.*.jsonl.gz IS NO LONGER IN THIS LIST — 2026-09-06. Those monoliths are
+            # untracked and no longer written; `git add` on one would be an ignored path, which is
+            # exactly the exit-1-under-`bash -e` that killed this workflow for 24 days. The parsed
+            # stores are staged by the shard glob further down, beside the raw shards.
+            for f in data/meta-usage.json data/live.js data/move-priors.observed.json \
                      data/bring-priors.json data/chomp-ev.json docs/ORIENTATION.md \
                      data/next-regulation.json; do
               if [ -e "$f" ]; then
@@ -303,6 +321,15 @@ jobs:
                 echo "raw log shard committed: $f ($(wc -c < "$f") bytes)"
               fi
             done
+            # THE PARSED STORE SHARDS — 2026-09-06. Same shape, same unmatched-glob discipline, same
+            # write-once guarantee, so this only ever ADDS files. These replace the three
+            # data/games.*.jsonl.gz monoliths that used to be named at the top of this function.
+            for f in data/parsed/*/*.jsonl.gz; do
+              if [ -e "$f" ]; then
+                git add "$f"
+                echo "parsed store shard committed: $f ($(wc -c < "$f") bytes)"
+              fi
+            done
           }
           # NOTE WHAT IS NOT HERE: data/move-priors.json. It is a frozen engine source and this job
           # must never write or commit it — see the derivation step above. The observed table is
@@ -326,18 +353,21 @@ jobs:
           # commit that on top of origin. The result always fast-forwards, so there is no merge at
           # all and no driver is involved.
           #
-          # NOTE THE .gz ROUND-TRIP. `git reset --hard origin/main` restores origin's COMPRESSED
-          # store and deletes nothing else, so ours must be saved as plain text first, origin's
-          # decompressed, ours appended, the result deduped and recompressed. Skipping the
+          # NOTE THE DECOMPRESS ROUND-TRIP. `git reset --hard origin/main` restores origin's
+          # COMPRESSED store and deletes nothing else, so ours must be saved as plain text first,
+          # origin's decompressed, ours appended, the result deduped and recompressed. Skipping the
           # decompress would append our text to origin's stale copy and lose everything between.
+          #
+          # `--restore-parsed` replaces the three `gunzip -c` lines (2026-09-06). It is the same
+          # operation with one addition that matters here: it UNIONS origin's shards with whatever
+          # the plain file already holds, first occurrence wins, so it cannot be a deletion even if
+          # the `cp`/`cat` below were removed. Origin's rows come first, exactly as before.
           for i in 1 2 3; do
             git fetch origin main || { echo "fetch failed"; sleep 5; continue; }
             cp data/games.ladder.jsonl "$RUNNER_TEMP/ours.jsonl"
             cp data/games.bo3.jsonl    "$RUNNER_TEMP/ours-bo3.jsonl" 2>/dev/null || true
             git reset --hard origin/main
-            gunzip -c data/games.ladder.jsonl.gz > data/games.ladder.jsonl
-            gunzip -c data/games.bo3.jsonl.gz    > data/games.bo3.jsonl
-            gunzip -c data/games.ots.jsonl.gz    > data/games.ots.jsonl || true
+            node build/compress-stores.js --restore-parsed
             cat "$RUNNER_TEMP/ours.jsonl" >> data/games.ladder.jsonl
             # `|| true` is load-bearing: GitHub runs this block under `bash -e`, so a bare
             # `[ -f x ] && cat x` returns 1 on the very first run (when the file does not exist yet)

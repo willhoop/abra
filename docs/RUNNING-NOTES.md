@@ -60,6 +60,32 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 - **Owed to the next major.** The white paper, the deck, `docs/SUMMARY.md` and `docs/MODELS.md` all still publish the superseded 27 / 93.
 
 
+## [Unreleased] — 2026-09-06 — the parsed stores are sharded ahead of the 100 MB wall, and the h2h reclaim is refused
+
+- **What changed.** `build/compress-stores.js` shards the parsed stores the way it has sharded the
+  raw logs since 2026-09-04 — write-once dated gzips under `data/parsed/<store>/`, capped at 32 MiB
+  of source — and gained `--restore-parsed` and `--verify-parsed`. The ingest path changed with it:
+  `.github/workflows/ingest.yml` restores and reconciles from shards and stages them by glob, and no
+  longer names the three `data/games.*.jsonl.gz` monoliths, which are untracked and left on disk.
+  `.gitignore` and `tests/test-workflow-paths.js` follow. `engine/quality.js` and `engine/quality.py`
+  were deliberately NOT touched — the first is a frozen engine source and a differential is running.
+- **Measured.** Reassembly is byte-identical on all three stores: sha256 `412858b71f21f14d` (ladder,
+  76,833 rows, 383,723,981 B), `da8597c45bb8d096` (bo3, 25,522 rows, 227,347,410 B),
+  `cd21077a4578afa3` (ots, 4,167 rows, 31,928,037 B) — computed off the live files before the code
+  existed, and reproduced by `node build/compress-stores.js --verify-parsed`, which is kept runnable
+  and was shown red on a damaged shard first. Repository figures derive from git rather than from an
+  artifact and are in `docs/_reports/2026-09-06-store-sharding-and-reclaim.md`: `.git` 526 MB to
+  591 MB, all of it the 19 new shard blobs, with the pack unmoved at 524.28 MiB.
+- **Supersedes.** Nothing. No published figure changed value. A pack-growth claim drafted into three
+  comment blocks during this pass was measured false and corrected before it left the working tree;
+  it never stood in a living document, so it is a correction and not a retraction. Report, section
+  1.7.
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` and `docs/SUMMARY.md` describe where the
+  corpus lives and how a clone materialises it; both must record `data/parsed/` and
+  `--restore-parsed`. The h2h reclaim owes nothing: it was refused, and no figure moved.
+
+---
+
 ## [Unreleased] — 2026-09-06 — the division ledgers stop getting PDFs, and tonight's rules are written down
 
 - **What changed.** `build/build_pdfs.js` now excludes the division ledgers from the PDF set, under a
