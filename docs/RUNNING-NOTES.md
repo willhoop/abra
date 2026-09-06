@@ -22,9 +22,20 @@ node engine/open_work.js            # prints the same block beside the open regi
 ```
 
 The backlog is every row below that is newer than the lowest unpinned version header among the living
-documents, plus everything still under `[Unreleased]`. It empties itself when the major pass bumps
-those headers. `tests/test-docs-current.js` FAILS when the backlog goes over the cap, when this page
-is missing, and when git shows a commit that moved code without moving this page.
+documents, plus everything still under `[Unreleased]`. It empties itself when a documentation pass
+bumps those headers. `tests/test-docs-current.js` FAILS when the backlog goes over the cap, when this
+page is missing, when git shows a commit that moved code without moving this page, and when a row's
+version disagrees with what the row declares happened (clause 5d).
+
+**Going over the cap owes a DOCUMENT PASS, not a major.** Fold the rows in at any version. A major is
+declared by a basis change and by nothing else — see *What counts as a major* in `CLAUDE.md`, which
+reads SemVer 2.0.0 clauses 6, 7 and 8 against an API that is the figures this project publishes:
+
+- **PATCH** — no published figure moved. The row says `**Supersedes.** Nothing.`
+- **MINOR** — a published figure moved under an unchanged basis. **A simulator fix is a MINOR here**,
+  not a patch, because it moves the figures.
+- **MAJOR** — the basis moved, so the old figures cannot be linked to the new ones and the documents
+  have to be rewritten rather than restamped. The quarantine gate opening is the archetypal case.
 
 ---
 
@@ -36,6 +47,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 ## [5.267.0] — 2026-09-06 — one line naming what moved
 - **What changed.** The mechanic, the instrument, or the document. Name the file.
 - **Measured.** <figure> — `data/<artifact>.json`, n=<sample>, against <baseline>.  Or: NO FIGURE.
+- **Basis.** unchanged.  Or: CHANGED — <what a reader can no longer be told>.
 - **Supersedes.** ~~<old figure>~~ retracted — it stood in `docs/<doc>.md` and has been DELETED there.
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
@@ -50,6 +62,47 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
   never defers a retraction.** The stale number comes OUT of the white paper in this pass; only the
   rewrite waits for the major.
 - **A quarantined figure is not written here at all.** A caption is not a quarantine.
+- **`Basis.` is a JUDGEMENT and is written as one.** Absent reads as `unchanged` and prints as
+  `[basis not stated]` in `node engine/docs_scan.js --owed`, so the omission is visible rather than
+  silent. Declaring `CHANGED` obliges the release to be `X.0.0` with the full document set folded in,
+  and clause 5d fails the build otherwise.
+
+---
+
+## [Unreleased] — 2026-09-06 — a major release is defined, and the counter that was to bound the deferral had never read a row
+
+- **What changed.** `CLAUDE.md` gained *What counts as a major*: ABRA's declared public API is the
+  FIGURES it publishes (SemVer 2.0.0 clause 1 permits an API existing "strictly in documentation"), so
+  PATCH moves no published figure, MINOR moves one under an unchanged basis, and MAJOR moves the basis
+  — the ESS *Guidelines on Revision Policy* (Eurostat 2013, KS-RA-13-016) Items 2.0/3.0/3.2/3.4
+  routine-versus-major revision distinction, whose back-casting and re-documentation obligations are
+  exactly the living-document fold-in. The judgement is DECLARED in one word per row (`**Basis.**`);
+  `engine/docs_scan.js` gained `majorPolicy()` and `tests/test-docs-current.js` gained clause 5d,
+  which refuses a basis change released as anything but `X.0.0`, an `X.0.0` naming no basis change,
+  and a PATCH bump whose row supersedes a figure.
+- **AND A DEFECT WAS FOUND IN THE INSTRUMENT THE WHOLE RULE RESTS ON.** `notesEntries()` anchors its
+  row pattern with `$`; `core.autocrlf` is `true` here, so the LF blob of this page checks out CRLF,
+  and a CR is a JavaScript line terminator that `$` cannot reach past. The backlog therefore reported
+  **`0 of 100` — "nothing owed"** against a page holding **four** rows, while
+  `tests/test-docs-current.js` passed **30 of 30**. A counter stuck at zero can never reach
+  `OWED_CAP`, so the cap could never have fired and the deferral was unbounded. Fixed at the read
+  (`stripCR`), not in the pattern; `.gitattributes` already carries a block headed *"A LINE ENDING
+  BLANKED THE GATE TWICE IN THREE DAYS"* and this is the third occurrence.
+- **Measured.** Backlog **0 → 4 of 100** owed, `node engine/docs_scan.js --owed`, read from
+  `docs/RUNNING-NOTES.md`, `CHANGELOG.md` and the living-document headers; documents last folded at
+  5.266.0, last major 5.0.0 (2026-08-10). Blast radius of the read fix over the whole document
+  surface: living documents **25 → 25**, citation mismatches **78 → 78**, notes entries **0 → 4** —
+  only the broken derivation moved. **23 of the live documents are CRLF on disk** and 0 now leak a CR
+  to a parser. The gate went **30 passed / 0 failed → 33 passed / 0 failed**; every ratchet in
+  `data/docs-currency-baseline.json` is unmoved and the file was not rewritten.
+- **Basis.** unchanged. No figure this project publishes changed its meaning or its value; a counter
+  that had never counted began counting.
+- **Supersedes.** ~~0 of 100 notes entries owed to the next major~~ retracted — it was printed by
+  `node engine/docs_scan.js --owed` and by `node engine/open_work.js` on 2026-09-06 and stood in no
+  living document, so it is withdrawn here rather than deleted from one.
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` and `docs/SUMMARY.md` describe the
+  documentation and release procedure; both must record the major/minor/patch definition and that the
+  cap owes a document pass rather than a major.
 
 ---
 

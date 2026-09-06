@@ -86,7 +86,66 @@ function livingDocs() {
 }
 /** Everything under docs/archive/. Scanned, never exempt by location. */
 function archiveDocs() { return listMd('docs/archive'); }
-function readDoc(rel) { return fs.readFileSync(D(rel), 'utf8'); }
+
+/* ---- ONE READ PATH, AND IT DROPS THE CARRIAGE RETURN — 2026-09-06 -----------------------------
+ *
+ * A LINE ENDING BLANKED THIS FILE'S BACKLOG COUNTER ON THE DAY IT WAS BUILT. `.gitattributes`
+ * already carries a block headed "A LINE ENDING BLANKED THE GATE TWICE IN THREE DAYS"; this is the
+ * third occurrence and the first one inside the documentation gate.
+ *
+ * `core.autocrlf` is `true` on this machine. The committed blob of `docs/RUNNING-NOTES.md` is LF and
+ * the checked-out working copy is CRLF, so every line handed to a parser here ends in a CR. In
+ * JavaScript a CR is a LINE TERMINATOR, so `.` does not match it and a `$` anchor cannot reach the
+ * end of the line past it. `notesEntries()` anchors its heading pattern with `$` and therefore
+ * matched NOTHING: measured 2026-09-06, `node engine/docs_scan.js --owed` reported
+ * "0 of 100 ... nothing owed" against a page holding FOUR rows, and `tests/test-docs-current.js`
+ * passed 30 of 30 while doing it.
+ *
+ * That is the whole deferral bargain reading green while blind. The backlog is what makes "we will
+ * do the documents at the next major" a deferral rather than an abandonment; a counter stuck at zero
+ * can never reach `OWED_CAP`, so the cap could never have fired.
+ *
+ * THE FIX IS AT THE READ, NOT IN THE PATTERN, and the reason is the canonical-path rule: patching
+ * one regex leaves the class alive in every other one. 27 of the 107 documents this module scans are
+ * CRLF in the working tree. Measured before and after over the whole surface, the only derivation
+ * that moves is the one that was broken — living documents 25 -> 25, citation mismatches 78 -> 78,
+ * notes entries 0 -> 4. A document's identity is its CONTENT; only the ENGINE RELEASE identifies a
+ * file by its bytes, which is why `.gitattributes` pins `eol` there and nothing is pinned here.  */
+function stripCR(text) { return String(text).replace(/\r\n/g, '\n'); }
+function slurp(abs) { return stripCR(fs.readFileSync(abs, 'utf8')); }
+function readDoc(rel) { return slurp(D(rel)); }
+
+/* THE RED DEMONSTRATION FOR THE READ, IN BOTH DIRECTIONS AND OVER THE LIVE SURFACE.
+ *
+ * `cases` pins the PARSER against a CRLF page — one heading that must be read after the strip and
+ * must NOT be read before it, so no one-sided edit satisfies the pair. `leaked` pins the WIRING:
+ * every document whose bytes on disk contain a CR must come back from `readDoc` without one. On a
+ * checkout that happens to be all-LF that second half proves nothing, so it reports the number of
+ * CRLF documents it actually found rather than a bare green line. */
+function crlfProof() {
+  const raw = '## [9.9.9] — 2026-01-01 — a synthetic row\r\n- **Basis.** unchanged\r\n';
+  const before = notesEntries({ read: () => raw }) || [];
+  const after = notesEntries({ read: () => stripCR(raw) }) || [];
+  const cases = [
+    { id: 'crlf-page-is-invisible-without-the-strip', why: 'The defect. A CR is a JavaScript line '
+      + 'terminator, so the heading pattern cannot reach its own end anchor past one.',
+      expected: 0, got: before.length, holds: before.length === 0 },
+    { id: 'crlf-page-is-read-after-the-strip', why: 'The fix. Without this the pair could be '
+      + 'satisfied by a parser that reads nothing at all.',
+      expected: 1, got: after.length, holds: after.length === 1 },
+  ];
+  const leaked = [];
+  let crlf_docs = 0;
+  for (const rel of liveDocs()) {
+    let bytes;
+    try { bytes = fs.readFileSync(D(rel), 'utf8'); } catch (e) { leaked.push(rel + ' (unreadable: '
+      + String((e && e.message) || e).split('\n')[0] + ')'); continue; }
+    if (!bytes.includes('\r')) continue;
+    crlf_docs++;
+    if (readDoc(rel).includes('\r')) leaked.push(rel);
+  }
+  return { cases, crlf_docs, leaked, holds: cases.every(c => c.holds) && leaked.length === 0 };
+}
 
 /* ---- rule 1: a version header must track the CHANGELOG --------------------------------------- */
 
@@ -106,7 +165,7 @@ function versionHeader(text) {
 
 /** The top version of the CHANGELOG — the one number every living document is measured against. */
 function changelogTop() {
-  const ch = fs.readFileSync(D('CHANGELOG.md'), 'utf8');
+  const ch = slurp(D('CHANGELOG.md'));
   return (ch.match(/##\s*\[(\d+\.\d+\.\d+)\]/) || [])[1] || null;
 }
 
@@ -1132,9 +1191,28 @@ function cmpVersion(a, b) {
 
 /** The most recent `## [X.0.0]` entry in the CHANGELOG — the last MAJOR release, read not typed. */
 function lastMajor() {
-  const ch = fs.readFileSync(D('CHANGELOG.md'), 'utf8');
+  const ch = slurp(D('CHANGELOG.md'));
   const m = ch.match(/^##\s*\[(\d+\.0\.0)\][^\n]*?(\d{4}-\d{2}-\d{2})?\s*$/m);
   return m ? { version: m[1], date: m[2] || null } : null;
+}
+
+/** Every released version in the CHANGELOG, newest first, as written. Read, never typed. */
+function changelogVersions() {
+  const ch = slurp(D('CHANGELOG.md'));
+  return [...ch.matchAll(/^##\s*\[(\d+\.\d+\.\d+)\]/gm)].map(m => m[1]);
+}
+
+/**
+ * Which part of the version moved between two releases. `null` when there is nothing to compare
+ * against, which is a state to PRINT and never a state to pass silently.
+ */
+function bumpKind(prev, next) {
+  if (!prev || !next) return null;
+  const a = String(prev).split('.').map(Number), b = String(next).split('.').map(Number);
+  if (b[0] !== a[0]) return 'major';
+  if (b[1] !== a[1]) return 'minor';
+  if (b[2] !== a[2]) return 'patch';
+  return 'none';
 }
 
 /** The declared pins, read from the baseline the gate already maintains. */
@@ -1168,7 +1246,52 @@ function notesEntries({ read = readDoc } = {}) {
       date: m[2] || null, title: m[3].trim(), line: i + 1,
     });
   }
+  /* THE BODY OF A ROW IS EVERYTHING UP TO THE NEXT ROW, so the two declared fields below are read
+   * from the row that wrote them and never from the page. Attached here rather than in a second pass
+   * because a second walk over the same file is a second place to get the fencing wrong. */
+  for (let k = 0; k < out.length; k++) {
+    const from = out[k].line, to = k + 1 < out.length ? out[k + 1].line - 1 : lines.length;
+    const body = lines.slice(from, to).join('\n');
+    out[k].basis = basisOf(body);
+    out[k].supersedes = supersedesOf(body);
+  }
   return out;
+}
+
+/* ---- THE TWO DECLARED FIELDS A ROW CARRIES, AND WHY THEY ARE DECLARED ------------------------
+ *
+ * `Basis.` IS A JUDGEMENT AND IS WRITTEN DOWN AS ONE. Nothing in this repository can decide whether
+ * a new figure SUPERSEDES the old one or merely REFINES it — that is a claim about what the two
+ * numbers mean, and the instrument that comes closest, `engine/arms_comparable.js`, answers it only
+ * for one artifact. So the row declares it in one word and this function reads the word. The failure
+ * this project keeps paying for is a judgement nobody wrote down, not a judgement as such.
+ *
+ * ABSENT READS AS UNCHANGED, AND THE ABSENCE IS PRINTED. Failing on a missing line would fail every
+ * row written before this rule existed, and back-filling them would be editing the log to agree with
+ * today — the one thing the page's own preamble forbids. So the soft edge is deliberate and it is
+ * VISIBLE: `owedReport()` prints `basis not stated` for any owed row that does not say. The hard
+ * edges are elsewhere — `OWED_CAP`, and the two clauses in `tests/test-docs-current.js` that refuse
+ * a basis change released as anything but `X.0.0` and an `X.0.0` released with no basis change. */
+function basisOf(body) {
+  const m = body.match(/^\s*[-*]?\s*\*\*Basis\.?\*\*\s*(.*)$/mi);
+  if (!m) return { stated: false, changed: false, text: null };
+  const text = m[1].trim();
+  return { stated: true, changed: /\bchanged\b/i.test(text) && !/\bunchanged\b/i.test(text), text };
+}
+
+/* `Supersedes.` IS ALREADY IN THE TEMPLATE and already has a canonical vocabulary: either the word
+ * "Nothing", or a strikethrough plus the word "retracted", which is the form the derived retraction
+ * registry reads. This reports which, so a PATCH release can be checked against it. */
+function supersedesOf(body) {
+  const m = body.match(/^\s*[-*]?\s*\*\*Supersedes\.?\*\*\s*([\s\S]*?)(?=\n\s*[-*]\s*\*\*|\n##|$)/mi);
+  if (!m) return { stated: false, nothing: false, retracts: false, text: null };
+  const text = m[1].trim();
+  return {
+    stated: true,
+    nothing: /^nothing\b/i.test(text),
+    retracts: /~~[^~]+~~/.test(text) && /\bretract/i.test(text),
+    text: text.split('\n')[0].slice(0, 120),
+  };
 }
 
 /** The version the living documents were last brought current at: the lowest UNPINNED header. */
@@ -1210,6 +1333,156 @@ function owedToNextMajor() {
   };
 }
 
+/* ---- WHAT MAKES A RELEASE MAJOR — THE POLICY, AS THREE REFUSALS ------------------------------
+ *
+ * WILL, 2026-09-06: *"whatever the best practices are study them and implement them and document
+ * them."* The definition and its citations are in CLAUDE.md; this function is only the part a
+ * machine can decide.
+ *
+ * THE DECLARED API IS THE PUBLISHED FIGURES. SemVer 2.0.0 clause 1 requires a public API and says it
+ * "could be declared in the code itself or exist strictly in documentation". ABRA ships no library
+ * and nobody pins a range against it; what a reader depends on is the numbers in the white paper,
+ * the deck, `docs/SUMMARY.md` and `docs/MODELS.md`. So clauses 6, 7 and 8 are read against those:
+ *   PATCH   an internal fix that moves no published figure          (clause 6)
+ *   MINOR   a published figure moves, under an unchanged basis      (clause 7)
+ *   MAJOR   the basis moves, so old and new cannot be linked        (clause 8)
+ *
+ * THE THREE REFUSALS BELOW ARE THE ONLY MECHANICAL PART, and each is asymmetric on purpose:
+ *
+ *   basis_change_not_major   a row declaring the basis CHANGED that did not release as `X.0.0`.
+ *   major_without_basis      an `X.0.0` release with no row declaring a basis change. Without this
+ *                            a major means whatever the person cutting it felt, which is the state
+ *                            this whole exercise exists to end.
+ *   patch_moved_a_figure     a PATCH bump whose row supersedes a figure. The reverse — a MINOR that
+ *                            moved nothing — is NOT an error: SemVer clause 7 says MINOR "MAY be
+ *                            incremented if substantial new functionality or improvements are
+ *                            introduced within the private code". Only one direction can lie.
+ *
+ * A ROW THAT CANNOT BE MATCHED TO A RELEASE IS REPORTED, NEVER PASSED. `unmatched` carries the
+ * versions this could not check, because a clause that quietly checks nothing is this repository's
+ * signature failure and the point of `ok(!gitErr, ...)` one file over. */
+function majorPolicy({ entries: injEntries, versions: injVersions } = {}) {
+  const entries = injEntries || notesEntries();
+  if (entries === null) {
+    return { missing: true, violations: [], unmatched: [], top: null, top_bump: null, checked: 0 };
+  }
+  const versions = injVersions || changelogVersions();
+  const released = new Set(versions);
+  const top = versions[0] || null;
+  const top_bump = bumpKind(versions[1], versions[0]);
+  const byVersion = new Map();
+  for (const e of entries) if (e.version && !byVersion.has(e.version)) byVersion.set(e.version, e);
+
+  const violations = [], unmatched = [];
+  let checked = 0;
+
+  for (const e of entries) {
+    if (!e.version) continue;                       // an `[Unreleased]` row has no bump to judge yet
+    if (!released.has(e.version)) { unmatched.push(e.version); continue; }
+    checked++;
+    const isMajor = /^\d+\.0\.0$/.test(e.version);
+    if (e.basis.changed && !isMajor) violations.push({
+      kind: 'basis_change_not_major', version: e.version, line: e.line,
+      why: `the row declares the basis CHANGED and released as ${e.version}. A basis change is a `
+         + 'MAJOR: the old figures cannot be linked to the new ones, so the documents have to be '
+         + 'rewritten rather than restamped. Release it as X.0.0 and fold the full set in.',
+    });
+    if (isMajor && !e.basis.changed) violations.push({
+      kind: 'major_without_basis', version: e.version, line: e.line,
+      why: `${e.version} is a MAJOR and its row does not declare what basis changed. State it — `
+         + '`**Basis.** CHANGED — <what a reader can no longer be told>` — or release it as a MINOR.',
+    });
+  }
+
+  /* THE PATCH CLAUSE IS ABOUT THE TOP RELEASE ONLY, because that is the one whose predecessor is
+   * unambiguous. Walking the whole CHANGELOG would judge 267 historical bumps against a rule that
+   * did not exist when they were written, which is a gate guaranteed to be red on arrival. */
+  if (top_bump === 'patch') {
+    const row = byVersion.get(top);
+    if (!row) unmatched.push(top + ' (top, PATCH bump)');
+    else if (row.supersedes.retracts || (row.supersedes.stated && !row.supersedes.nothing)) violations.push({
+      kind: 'patch_moved_a_figure', version: top, line: row.line,
+      why: `${top} is a PATCH bump and its row supersedes a figure: "${row.supersedes.text}". A `
+         + 'PATCH here means NO published figure moved. If one did, it is a MINOR.',
+    });
+  }
+  return { missing: false, violations, unmatched, top, top_bump, checked, entries: entries.length };
+}
+
+/* ---- THE RED DEMONSTRATION FOR THE POLICY, one case per refusal and one against each ------------
+ *
+ * SYNTHETIC ROWS THROUGH THE SHIPPING FUNCTION, not through a reimplementation of it beside the
+ * test. `engine/quarantine.js` learned that the expensive way: its first selftest asserted the gate
+ * rule against a five-line copy, and a deliberate break left the copy at 210 passed, 0 failed.
+ *
+ * Every refusal carries its opposite. Without the `-is-fine` half, each clause could be satisfied by
+ * a function that refuses everything, which is the same nothing as a function that refuses nothing. */
+const MAJOR_POLICY_CASES = [
+  { id: 'basis-change-released-as-a-minor-is-refused',
+    why: 'THE CENTRAL CASE. A basis change means the old figures cannot be linked to the new ones, '
+       + 'so the documents must be rewritten rather than restamped. Releasing it as a MINOR defers a '
+       + 'rewrite that the backlog cannot express.',
+    rows: [{ version: '5.267.0', basis: { stated: true, changed: true, text: 'CHANGED — the gate opened' },
+             supersedes: { stated: true, nothing: false, retracts: true, text: '~~27~~ retracted' } }],
+    versions: ['5.267.0', '5.266.0'], expect: ['basis_change_not_major'] },
+
+  { id: 'basis-change-released-as-a-major-is-fine',
+    why: 'The opposite. Without it the clause above is satisfied by refusing every row.',
+    rows: [{ version: '6.0.0', basis: { stated: true, changed: true, text: 'CHANGED — the gate opened' },
+             supersedes: { stated: true, nothing: false, retracts: true, text: '~~27~~ retracted' } }],
+    versions: ['6.0.0', '5.267.0'], expect: [] },
+
+  { id: 'a-major-that-names-no-basis-change-is-refused',
+    why: 'Without this a major means whatever the person cutting it felt that evening, which is the '
+       + 'judgement-nobody-wrote-down failure this rule exists to end. It also refuses the specific '
+       + 'shortcut of bumping X.0.0 to empty a backlog.',
+    rows: [{ version: '6.0.0', basis: { stated: false, changed: false, text: null },
+             supersedes: { stated: true, nothing: true, retracts: false, text: 'Nothing.' } }],
+    versions: ['6.0.0', '5.267.0'], expect: ['major_without_basis'] },
+
+  { id: 'a-patch-that-supersedes-a-figure-is-refused',
+    why: 'SemVer 2.0.0 clause 6: a patch is an internal fix. Read against an API that IS the '
+       + 'published figures, a release that moved one is not a patch.',
+    rows: [{ version: '5.266.1', basis: { stated: true, changed: false, text: 'unchanged' },
+             supersedes: { stated: true, nothing: false, retracts: true, text: '~~27~~ retracted' } }],
+    versions: ['5.266.1', '5.266.0'], expect: ['patch_moved_a_figure'] },
+
+  { id: 'a-patch-that-moves-no-figure-is-fine',
+    why: 'The store-sharding and ledger-PDF passes of 2026-09-06 are exactly this shape: real work, '
+       + 'no published figure moved. If this case failed the rule would forbid the PATCH it defines.',
+    rows: [{ version: '5.266.1', basis: { stated: true, changed: false, text: 'unchanged' },
+             supersedes: { stated: true, nothing: true, retracts: false, text: 'Nothing.' } }],
+    versions: ['5.266.1', '5.266.0'], expect: [] },
+
+  { id: 'a-minor-that-moves-no-figure-is-fine',
+    why: 'THE ASYMMETRY, PINNED. SemVer clause 7 says MINOR "MAY be incremented if substantial new '
+       + 'functionality or improvements are introduced within the private code". Only the patch '
+       + 'direction can lie, so only the patch direction is refused.',
+    rows: [{ version: '5.267.0', basis: { stated: true, changed: false, text: 'unchanged' },
+             supersedes: { stated: true, nothing: true, retracts: false, text: 'Nothing.' } }],
+    versions: ['5.267.0', '5.266.0'], expect: [] },
+
+  { id: 'a-row-ahead-of-its-release-is-reported-not-passed',
+    why: 'A row is often written before the version that carries it. That row cannot be judged, and '
+       + 'a clause that silently checks nothing is what `ok(!gitErr, ...)` exists to refuse.',
+    rows: [{ version: '9.9.9', basis: { stated: true, changed: true, text: 'CHANGED — anything' },
+             supersedes: { stated: true, nothing: true, retracts: false, text: 'Nothing.' } }],
+    versions: ['5.266.0'], expect: [], unmatched: 1 },
+];
+
+function majorPolicyProof() {
+  return MAJOR_POLICY_CASES.map(c => {
+    const rows = c.rows.map((r, i) => ({ unreleased: false, date: null, title: c.id, line: i + 1, ...r }));
+    const got = majorPolicy({ entries: rows, versions: c.versions });
+    const kinds = got.violations.map(v => v.kind).sort();
+    const want = [...c.expect].sort();
+    const unmatched = c.unmatched || 0;
+    return { id: c.id, why: c.why, expected: want, got: kinds, unmatched_expected: unmatched,
+             unmatched_got: got.unmatched.length,
+             holds: JSON.stringify(kinds) === JSON.stringify(want) && got.unmatched.length === unmatched };
+  });
+}
+
 /** The printable backlog. Never throws — a caller printing state must not die on a missing file. */
 function owedReport() {
   const o = owedToNextMajor();
@@ -1230,9 +1503,21 @@ function owedReport() {
     L.push('    is due, so this is the pass that was skipped, not drift that is allowed to accumulate.');
   }
   if (o.oldest_owed) L.push(`    oldest unfolded note: ${o.oldest_owed}`);
-  for (const e of o.owed.slice(0, 12)) L.push(`      ${String(e.version || 'Unreleased').padEnd(10)} ${(e.date || '?').padEnd(10)}  ${e.title.slice(0, 74)}`);
+  /* THE BASIS IS PRINTED PER ROW, INCLUDING WHEN IT IS NOT STATED. An unstated basis reads as
+   * unchanged, which is the safe default and also the one that can hide a major — so it is shown
+   * rather than assumed silently. A judgement that is cheap and visible is the whole design. */
+  const basisMark = (e) => (e.basis && e.basis.changed ? '[BASIS CHANGED] '
+    : e.basis && e.basis.stated ? '' : '[basis not stated] ');
+  for (const e of o.owed.slice(0, 12)) L.push(`      ${String(e.version || 'Unreleased').padEnd(10)} `
+    + `${(e.date || '?').padEnd(10)}  ${basisMark(e)}${e.title.slice(0, 74)}`);
   if (o.owed.length > 12) L.push(`      ... and ${o.owed.length - 12} more (node engine/docs_scan.js --owed)`);
   if (!o.owed.length) L.push('    nothing owed — the documents are level with the notes page.');
+  /* WHAT THE CAP ACTUALLY FORCES, SAID WHERE IT IS COUNTED. Going over it owes a DOCUMENT PASS, not
+   * a major: the backlog empties when the document headers move, at any version. A major is a
+   * different obligation with a different trigger, and conflating the two invites a version bumped
+   * to X.0.0 purely to clear a backlog — which would empty the word of the meaning it just gained. */
+  if (o.over || o.warning) L.push('    the cap owes a DOCUMENT PASS at any version, not a major. '
+    + 'A major is declared by a basis change.');
   return L.join('\n');
 }
 
@@ -1240,6 +1525,8 @@ module.exports = {
   D, liveDocs, livingDocs, archiveDocs, readDoc, versionHeader, changelogTop,
   NOTES_LOG, OWED_CAP, OWED_WARN, cmpVersion, lastMajor, versionPins, recordableChanges,
   notesEntries, documentedAt, owedToNextMajor, owedReport,
+  changelogVersions, bumpKind, basisOf, supersedesOf, majorPolicy,
+  majorPolicyProof, MAJOR_POLICY_CASES, stripCR, crlfProof,
   quarantinedFigures, quarantineKey,
   figuresIn, figuresInText, fenceOpen, lexingProof, LEXING_CASES,
   isUniversal, artifactNumbers, artifactHas, paragraphs, citationsIn,

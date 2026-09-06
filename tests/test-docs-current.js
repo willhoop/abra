@@ -643,6 +643,9 @@ function figureRules(base, next) {
  *       this at the moment of the commit; this clause catches --no-verify and anything committed out
  *       of band, and it reads git rather than trusting that the hook ran.
  *   5c  the backlog owed to the next major is under the cap, and is PRINTED whether or not it is.
+ *   5d  the version a row released as agrees with what the row DECLARES happened: a basis change is
+ *       an `X.0.0` and nothing else, an `X.0.0` names the basis that changed, and a PATCH bump
+ *       supersedes no figure. Added 2026-09-06 with the definition of a major.
  *
  * 5b JUDGES COMMITTED HISTORY AND NOT THE WORKING TREE, on purpose. A session that has edited
  * engine/ and not yet written its row is mid-pass, not in violation; failing there would make the
@@ -704,12 +707,66 @@ function notesRule() {
   ok(!o.over,
     `the backlog owed to the next major is under the cap (${o.owed ? o.owed.length : '?'} of ${o.cap})`);
   if (o.over) {
-    console.log('         THE DEFERRAL HAS BECOME AN ABANDONMENT. Cut the major release and fold the rows');
-    console.log('         into the white paper, the deck, the technical docs, SUMMARY and MODELS, or raise');
-    console.log('         OWED_CAP in engine/docs_scan.js — in a diff, with a reason, deliberately.');
+    console.log('         THE DEFERRAL HAS BECOME AN ABANDONMENT. Fold the rows into the white paper, the');
+    console.log('         deck, the technical docs, SUMMARY and MODELS — at ANY version; the cap owes a');
+    console.log('         DOCUMENT PASS, not a major. Or raise OWED_CAP in engine/docs_scan.js, in a diff,');
+    console.log('         with a reason, deliberately. Do NOT bump to X.0.0 to clear a backlog: a major is');
+    console.log('         declared by a basis change and nothing else (clause 5d).');
   }
   ok(!o.documents_behind_last_major,
     'no living document trails the last major release (clause 2 names them if any do)');
+
+  /* ---- 5d. THE RELEASE KIND AGREES WITH WHAT THE ROW SAYS HAPPENED ----------------------------
+   *
+   * WILL, 2026-09-06: *"whatever the best practices are study them and implement them and document
+   * them."* CLAUDE.md carries the definition and the citations; this clause is the part a machine
+   * can decide. ABRA's declared public API is the FIGURES IT PUBLISHES (SemVer 2.0.0 clause 1 allows
+   * an API that "exist[s] strictly in documentation"), so clauses 6, 7 and 8 read as: PATCH moves no
+   * published figure, MINOR moves one, MAJOR moves the BASIS so the old and new cannot be linked.
+   *
+   * WHAT THIS CLAUSE IS NOT. It does not decide whether a release is major — nothing can, and
+   * pretending otherwise would be the failure this repository names in its first paragraph. It
+   * checks that the DECLARATION and the VERSION agree, at the one place the declaration is written.
+   *
+   * IT PRINTS HOW MANY ROWS IT COULD CHECK, in the assertion itself. A row whose version is not yet
+   * in the CHANGELOG cannot be judged, and the honest count of nought is worth more on the screen
+   * than a green line that implies a hundred. */
+  /* THE READ PATH FIRST, because everything above it is worthless if the page came back unreadable.
+   * On 2026-09-06 it did: `core.autocrlf` gave this machine a CRLF checkout of an LF blob, the
+   * heading pattern could not reach its `$` past the CR, and the backlog printed "0 of 100 ...
+   * nothing owed" against a page holding four rows while this file passed 30 of 30. */
+  const crlf = S.crlfProof();
+  for (const c of crlf.cases) if (!c.holds) console.log(`         ${c.id}: expected ${c.expected}, got ${c.got}\n           ${c.why}`);
+  if (crlf.leaked.length) console.log('         CARRIAGE RETURNS REACHED A PARSER FROM: ' + crlf.leaked.slice(0, 8).join(', '));
+  ok(crlf.holds, `the notes page is read the same on a CRLF checkout as on an LF one `
+    + `(${crlf.cases.length}/${crlf.cases.length} demonstration cases; ${crlf.crlf_docs} of the live `
+    + `documents are CRLF on disk, ${crlf.leaked.length} leaked a CR to a parser)`);
+
+  const proof = S.majorPolicyProof();
+  for (const c of proof) if (!c.holds) console.log(`         ${c.id}: expected ${JSON.stringify(c.expected)}, `
+    + `got ${JSON.stringify(c.got)}\n           ${c.why}`);
+  ok(proof.every(c => c.holds), `the major/minor/patch rule holds in both directions `
+    + `(${proof.filter(c => c.holds).length}/${proof.length} demonstration cases)`);
+
+  const pol = S.majorPolicy();
+  if (pol.missing) {
+    ok(false, 'the notes page could not be read, so the release-kind clause checked nothing');
+  } else {
+    ok(pol.violations.length === 0,
+      `every released row's version agrees with the basis and supersession it declares ` +
+      `(${pol.checked} of ${pol.entries} row(s) matched a CHANGELOG release; top ${pol.top} is a ` +
+      `${pol.top_bump || 'first'} bump)`);
+    for (const v of pol.violations) {
+      console.log(`         ${v.kind}  ${v.version}  ${S.NOTES_LOG}:${v.line}`);
+      console.log('           ' + v.why);
+    }
+    if (pol.unmatched.length) {
+      console.log(`         NOT CHECKABLE — ${pol.unmatched.length} row version(s) are not in the `
+        + `CHANGELOG yet: ${pol.unmatched.slice(0, 6).join(', ')}`);
+      console.log('           A row written ahead of its release is normal. It becomes checkable on');
+      console.log('           the commit that publishes the version, and is counted as nothing until then.');
+    }
+  }
 }
 
 /* ---- PROVENANCE KEYS vs RATCHET KEYS — 2026-08-23 ----------------------------------------------

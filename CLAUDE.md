@@ -739,6 +739,82 @@ A major release is a CHANGELOG entry of the form `X.0.0`; nothing is typed to de
 PDFs from the `.md` then (pandoc → HTML → weasyprint; see `docs/` build notes). A result on the site or
 in the deck must still match the white paper and the model's JSON report.
 
+### WHAT COUNTS AS A MAJOR — WILL, 2026-09-06: *"whatever the best practices are study them and implement them and document them."*
+
+**THE DECLARED PUBLIC API OF ABRA IS THE FIGURES IT PUBLISHES.** Semantic Versioning 2.0.0 clause 1
+requires a public API and allows one that "exist[s] strictly in documentation". ABRA ships no library
+and nobody pins a version range against it; what a reader depends on is the numbers in the white
+paper, the deck, `docs/SUMMARY.md` and `docs/MODELS.md`. Read clauses 6, 7 and 8 against **those** and
+the whole scheme falls out:
+
+| | what moved | SemVer 2.0.0 |
+|---|---|---|
+| **PATCH** | no published figure moves | clause 6 — "an internal change that fixes incorrect behavior" |
+| **MINOR** | a published figure moves, under an unchanged BASIS | clause 7 |
+| **MAJOR** | the BASIS moves, so old and new cannot be linked | clause 8 |
+
+**THE BASIS IS THE QUESTION THE NUMBER ANSWERS.** If a reader can be told *"27 became 22"*, it is a
+MINOR. If the honest sentence is *"the 27 answered a question we no longer ask"*, it is a MAJOR. That
+distinction is not invented here — it is how official statistics have handled it for decades. The ESS
+*Guidelines on Revision Policy* (Eurostat, 2013, KS-RA-13-016) separate a **routine revision**,
+"changes in published data which are related to the regular data production process" (Item 2.0), from
+a **major revision**, "a change in the concepts, definitions and/or classifications used to produce
+the series", which "affect[s] a large part of the time series" and must therefore be **back-cast** so
+that the old and new series can be linked (Items 3.0 and 3.2). Item 3.4 is the obligation this repo
+already keeps: a major revision ships with documentation giving "the reasons for the revisions, ...
+their impact ... [and] a comparison between the 'new' and the 'old' series." **That is the full
+living-document fold-in, and it is why it is attached to the major and to nothing else.**
+
+- **The quarantine gate opening is the archetypal MAJOR.** Every artifact downstream of MEDICHAM stops
+  being withheld at once, and nothing that has been published survives unrewritten.
+- **Board-material 59 → 22 is a MINOR.** Same story, better number.
+- **A figure withheld and restored in one evening is NOT a basis change.** 5.266.0 re-measured on new
+  engine bytes and `engine/arms_comparable.js` answered COMPARABLE — that is a back-cast, and a series
+  that links is one series.
+- **A SIMULATOR BUG FIX IS NOT A PATCH HERE**, whatever muscle memory says. It moves the figures, so it
+  is a MINOR. PATCH is the store sharding and the ledger-PDF pass — real work whose row reads
+  `**Supersedes.** Nothing.`
+
+**IT IS A JUDGEMENT AND IT IS DECLARED IN ONE WORD.** Nothing can decide *supersedes or refines* from
+the numbers alone; `engine/arms_comparable.js` comes closest and answers for one artifact. So the notes
+row states it — `**Basis.** unchanged`, or `**Basis.** CHANGED — <what a reader can no longer be told>`
+— and `tests/test-docs-current.js` clause 5d refuses the three ways the declaration and the version can
+disagree: a basis change released as anything but `X.0.0`, an `X.0.0` that names no basis change, and a
+PATCH bump whose row supersedes a figure. **A MINOR that moved nothing is allowed** — clause 7 says
+MINOR *may* be used for improvements "within the private code" — so only the direction that can lie is
+refused.
+
+**AN ABSENT `Basis.` LINE READS AS UNCHANGED, AND THE ABSENCE IS PRINTED.** That soft edge is
+deliberate: failing on it would fail every row written before the rule, and back-filling those rows
+would be editing the log to agree with today, which the page's own preamble forbids.
+`node engine/docs_scan.js --owed` marks such rows `[basis not stated]` on every run. The hard edges are
+the cap and clause 5d.
+
+**THE CAP OWES A DOCUMENT PASS, NOT A MAJOR.** Over `OWED_CAP` the build fails; clear it by folding the
+rows into the documents **at any version**, or by raising the cap in a diff somebody can see. **Do not
+bump to `X.0.0` to empty a backlog** — that empties the word of the meaning it just gained. It BLOCKS
+rather than prompts because a prompt is a caption, and this repository has proved twice that a printed
+warning beside a number gets skimmed past (`PRE-CHANGE`, "one of the two known failures"). ESS Item 3.1
+reaches the same place from the other side: major revisions are pre-announced and put in the calendar
+precisely so they do not wait for somebody to feel ready.
+
+**THE INCENTIVE IS INVERTED HERE AND THAT IS THE RISK TO WATCH.** Under SemVer a major costs your
+users, so you under-cut it out of consideration. Here a major costs YOU — a full documentation pass —
+so the person deciding is the person paying. Expect under-declaration, and let the cap and the gate be
+what catches it rather than good intentions.
+
+**CalVer is the alternative and it does not apply.** calver.org's test is a large or constantly
+changing scope, or releases driven by external time pressure — Ubuntu's support windows, the timezone
+database. ABRA's releases are driven by measurements, and a date in the version would say nothing about
+whether a figure still stands. Keep a Changelog 1.1.0 remains the file format; it takes no position on
+what a major is beyond "mention whether you follow Semantic Versioning", which the CHANGELOG header
+already does.
+
+**TONIGHT'S TEN RELEASES: NONE OF THEM IS A MAJOR.** 5.258.0 through 5.266.0 are engine fixes and
+re-measurements — the numbers moved and the story did not, which is the definition of a MINOR. The one
+thing that would have changed is downward: the two infrastructure rows still under `[Unreleased]`
+(store sharding, ledger PDFs) both declare that no published figure moved, so both are **PATCH**.
+
 **A DIVISION LEDGER IS A WORKING DOCUMENT AND GETS NO PDF — WILL, 2026-09-06.** The five ledgers named
 in the section above are read in the editor by the division that writes them and handed to nobody, so
 they are excluded from the PDF set and their PDFs are untracked. `build/build_pdfs.js` derives that set
@@ -772,9 +848,17 @@ node engine/open_work.js            # prints the same block beside the open regi
 - **Deleting `docs/RUNNING-NOTES.md` ends nothing.** It is not the MEDICHAM sprint marker — the gate
   fails on a missing page.
 - **The backlog is derived, never typed**: every row newer than the lowest unpinned version header
-  among the living documents. It empties itself when the major pass bumps those headers. Over
-  `OWED_CAP` (`engine/docs_scan.js`) the build FAILS — cut the major, or raise the cap in a diff
-  somebody can see.
+  among the living documents. It empties itself when a documentation pass bumps those headers. Over
+  `OWED_CAP` (`engine/docs_scan.js`) the build FAILS — fold the rows in at ANY version, or raise the
+  cap in a diff somebody can see. **The cap owes a document pass, not a major**; see the major-release
+  definition above, and do not bump `X.0.0` to clear a backlog.
+- **AND THE COUNTER ITSELF IS THE THING TO DISTRUST.** It read `0 of 100 ... nothing owed` for its
+  whole first day against a page holding four rows, because `core.autocrlf` gives this machine a CRLF
+  checkout of an LF blob and a CR is a JavaScript line terminator, so the row pattern could not reach
+  its own `$`. `tests/test-docs-current.js` passed 30 of 30 while blind. Fixed at the read
+  (`stripCR` in `engine/docs_scan.js`), pinned in both directions, and 23 of the live documents are
+  CRLF on disk today. A backlog stuck at zero can never reach the cap, so the cap could never fire —
+  the deferral was unbounded and everything printed green.
 - **A `X.0.0` entry raises the floor in the same commit that writes it**, so the full pass cannot be
   deferred past the major it was deferred to.
 - **DEFERRING THE DOCUMENTS NEVER DEFERS A RETRACTION.** A figure the notes page supersedes must come
