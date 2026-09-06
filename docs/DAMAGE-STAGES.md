@@ -1,6 +1,12 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.262.0 — 2026-09-06.**
+**Version: 5.263.0 — 2026-09-06.**
+
+**5.263.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND THE DIFFERENTIAL THAT WOULD SAY SO WAS RE-RUN RATHER THAN ASSUMED.** `data/engine-diff.json` on release `d9e551ed0d5a` reads **0 of 6000** disagreements at the midpoint and **0 of 6000** at each of the sixteen band indices, seed 20260804, with 134 multi-hit comparisons skipped by construction. No stage, no multiplier and no ordering in this document changes.
+
+**ONE OF THE FIVE FIXES TOUCHES A RESIDUAL AMOUNT AND IS WORTH NAMING FOR THAT REASON.** A third tag, `scalesOwnStatusDamage`, now sits beside `refusesIndirectDamage` and `healsFromOwnStatus`: Magic Guard refuses a class of damage, Poison Heal converts one status into a heal, and Heatproof MULTIPLIES its own burn by one half. **This is not the damage formula on this page.** The burn chip is a residual, computed from max HP, and it is clamped to a minimum of 1 on both sides of the `Damage` event — which is why a 146-HP body takes 9 and then 4 rather than a single halved figure. The stage table below describes the move-damage chain and is untouched by it.
+
+**THE OTHER FOUR ARE TIMING AND ADDRESSING AND TOUCH NO MULTIPLIER.** `Battle#boost` refusing on an empty foe side; a damaging pivot that emptied a side not pivoting; the mega phase running below the previous action's `Update` pass; and a fainted body's ability no longer being ignored. The header moves because the project version moves.
 
 **5.262.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND THE DIFFERENTIAL THAT WOULD SAY SO WAS RE-RUN RATHER THAN ASSUMED.** `data/engine-diff.json` on release `14b62cd5aeec` reads **0 of 6000** disagreements at the midpoint and **0 of 6000** at each of the sixteen band indices, seed 20260804, with 134 multi-hit comparisons skipped by construction. No stage, no multiplier and no ordering in this document changes.
 

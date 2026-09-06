@@ -1,6 +1,26 @@
 # ABRA — Project Summary
 
-**Version 5.262.0 · 2026-09-06 · Will Hooper**
+**Version 5.263.0 · 2026-09-06 · Will Hooper**
+
+**5.263.0 - FIVE MORE ENGINE FIXES TAKE BOARD-MATERIAL FROM 41 OF 961 TO 34 AND PROTOCOL FROM 108 TO 100, AND THE BY-CAUSE TABLE THAT STEERED THE LAST THREE BATCHES WAS KEYED ON THE WRONG LIST.**
+
+| question | artifact and arm | answer |
+|---|---|---|
+| the whole-game clause that GATES | `data/game-differential.json`, EMPIRICAL arm | **board-material 34 of 961** — 961 games less the 927 whose board never diverged, both read off `state`; release `d9e551ed0d5a`, cap 20, arm `middle`, steering `empirical-click/v1`, pool `data/team-pool-frozen` |
+| the whole-game clause that REPORTS | the same artifact and arm | **protocol first divergence 100 of 961** |
+| the narration clause | the same artifact | **70 of 961** — 71 raw less 1 declared, across 69 causes. It read **71** at 5.262.0 |
+| the two columns together | the same artifact | 41 + 71 = **112** at 5.262.0 against 34 + 70 = **104** now. A repaired board moves a game OUT of the board column and INTO the narration one, so neither column may be read alone |
+| the sequence the five fixes produced | the per-step artifacts under `data/verification/` | board-material **41, 38, 36, 35, 35, 34**; protocol **108, 105, 103, 102, 101, 100** |
+| the overall engine gate | `node engine/status.js` | **7 of 9 clauses passing**; the two failures are the two whole-game clauses, both on measured counts |
+| the census, re-run after the last engine change | `data/mechanics-census.json` | **829 live of 829 probed, 0 missing** |
+| the damage differential, re-run on the same release | `data/engine-diff.json` | **0 of 6000** at the midpoint and at each of the sixteen band indices, seed 20260804 |
+| the deliberate roster, re-run on the same release | `data/roster.{items,abilities,moves}.json` | **items 140, abilities 129, moves 475** tested, `FIRED-AND-BOARDS-DIFFER` and `DID-NOT-FIRE` at zero on all three |
+
+**THE FIVE FIXES, IN ONE LINE EACH.** `Battle#boost` refuses when the boosted body's foe side is empty. A damaging pivot that emptied a side does not pivot. An ability may SCALE a status chip — the new tag `scalesOwnStatusDamage`, with Heatproof halving its own burn. The mega phase runs below the previous action's `Update` pass, so an entry White Herb is eaten first. A fainted body's ability is no longer ignored, so Pickpocket cannot steal from a corpse. Each carries a `MEDI_*` restore knob, a probe shown RED before any engine code existed, and a silent control that does not move.
+
+**THE FINDING THAT OUTRANKS THE FIXES.** `mid_void.any_bucket.by_cause` is keyed on each game's first PROTOCOL divergence, and the bar is read off `state.first_board_divergences`. Three batches were steered by the first list while the gate read the second. Re-read against the correct one: the Parental Bond `-hitcount` judgement carried forward from 5.262.0 is **CONFIRMED** — that game parts on a Parental Bond HP mismatch at turn 6, not on the `-hitcount` line; **25 of the 34 carry instrument-suspect causes**; **12 of the 34 are one family**, a status landing in one engine only, whose fix needs its own dice address category and its own pass; and **five games part a board with no protocol divergence at all**, which by construction never appear in a by-cause table.
+
+**PREDICTIONS 9 OF 10.** The miss is the mega/`Update` step's board-material, called 34 and measured 35. Its own prediction file named the mechanism: one narration-only game left the diverging set, and the shared-coin game was re-labelled onto a Pickpocket row it had been hiding. That relabelling is the fifth fix.
 
 **5.262.0 - THE SETTLED-TREE PUBLISH PASS. SIX ENGINE FIXES ACROSS TWO BATCHES TAKE BOARD-MATERIAL FROM 50 OF 961 TO 41 AND PROTOCOL FROM 114 TO 108, AND `node engine/status.js --write` WAS RUN ON A TREE NOTHING ELSE WAS TOUCHING FOR THE FIRST TIME IN THREE SESSIONS.**
 

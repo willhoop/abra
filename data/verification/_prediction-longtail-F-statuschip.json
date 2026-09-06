@@ -1,0 +1,38 @@
+{
+  "what": "LONG-TAIL BATCH F, STEP 3 — an ability may SCALE a status chip, not only refuse it or convert it. Heatproof's burn is half size.",
+  "written": "2026-09-06, BEFORE the measuring run, by ENGINE.",
+  "baseline": {
+    "release": "5927782b7aa3",
+    "artifact": "data/game-differential.json",
+    "board_material": 36,
+    "protocol_first_divergence": 103,
+    "narration_only": 72,
+    "games": 961,
+    "threw": 1,
+    "void": 5
+  },
+  "pins": {
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "arm": "middle",
+    "steering": "empirical",
+    "turns_cap": 20,
+    "games_budget": 1200,
+    "end_state": true
+  },
+  "the_rule": "data/abilities.ts:1838-1841 — heatproof.onDamage returns `damage / 2` when `effect.id === 'brn'`. The burn is `this.damage(pokemon.baseMaxhp / 16)` at onResidualOrder 10 (data/conditions.ts:15-18, not overridden by the Champions mod), and spreadDamage clamps with clampIntRange(.,1) on BOTH sides of the Damage event, so a 146-HP body takes max(1,floor(146/16))=9 and then max(1,floor(9/2))=4.",
+  "new_tag": "scalesOwnStatusDamage, derived in engine/tag_dex.js from the onDamage handler. MEMBERSHIP PRINTED BEFORE WIRING and it is ONE: heatproof, statuses ['brn'], mult 0.5. Every legal ability carrying an onDamage at all was listed first; the two that `return false` are refusesIndirectDamage and healsFromOwnStatus and are excluded explicitly, the four that answer a MOVE name no status, and Rock Head answers `recoil`.",
+  "probe": "tests/probe_status_chip_scaled.js, knob MEDI_STATUS_CHIP_UNSCALED. Shown RED first, reproducing the artifact's own values: showdown 142/146, medicham2 137/146, and the control body (the same Sinistcha carrying Hospitality) agreeing at 137 in both engines.",
+  "which_scoreboard": "THE LAB AND THE POOL. Heatproof is 56 sheets, so the pool carries exactly one game — expect board-material 36 -> 35. The CENSUS should GAIN a row, because `scalesOwnStatusDamage` is a new tag and the census is built off the tag table: expect live/probed to rise from 829 by however many rows the new tag creates, and missing to stay 0.",
+  "predicted": {
+    "board_material": 35,
+    "protocol_first_divergence": 102,
+    "threw": 1,
+    "void": 5,
+    "census_live_ge": 830,
+    "census_missing": 0
+  },
+  "why_it_might_miss_HIGH": "The one row is `-damage field 3`, a VALUE mismatch on a line both engines emit, so the game does not end there and can re-part on a later cause — the batch-D/E mechanism.",
+  "why_it_might_miss_LOW": "Heatproof is only two carriers in the format (Sinistcha and Sinistcha-Masterpiece), so a second affected game would have to be a second Sinistcha burn; the pool holds one.",
+  "census_caveat": "A census that gains rows changes WHICH scenarios all_mechanics_fire plays, so a mechanics count taken either side of this step is not a before/after. The whole-game run is pinned to census-pin-9446a684709d and is NOT affected."
+}

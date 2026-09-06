@@ -8881,6 +8881,44 @@ const ABILITY_TAGS = [
       return { statuses: st, fraction: f ? 1 / +f[1] : null, refusesTheDamage: true };
     } },
 
+  /* HEATPROOF — the THIRD thing an `onDamage` handler can do to a status chip, and the artifact had
+   * only the other two. Magic Guard REFUSES a class, Poison Heal CONVERTS one status into a heal,
+   * and this one simply SCALES the number:
+   *
+   *     onDamage(damage, target, source, effect) {
+   *       if (effect && effect.id === 'brn') { return damage / 2; }        data/abilities.ts:1838
+   *     }
+   *
+   * It is a separate tag for the same reason Poison Heal is separate from Magic Guard: a consumer
+   * folding them would read one field to decide between refusing, converting and multiplying.
+   *
+   * MEMBERSHIP, PRINTED BEFORE IT WAS WIRED (docs/LESSONS.md §4). Every legal ability in the format
+   * carrying an `onDamage` at all was listed first — eleven of them: angershell, berserk, disguise,
+   * gluttony, heatproof, iceface, magicguard, poisonheal, rockhead, sturdy, magicguard. Of those,
+   * `heatproof` is the ONLY one that returns a scaled `damage` for a named status; the two that
+   * return `false` are the two tags above and are excluded explicitly, the four that answer a MOVE
+   * (`effect.effectType === 'Move'`) name no status, and Rock Head answers `recoil`, which is not a
+   * status either. One member, and the ROUNDING is the authority's rather than assumed:
+   * `spreadDamage` clamps with `clampIntRange(targetDamage, 1)` BOTH SIDES of the `Damage` event
+   * (sim/battle.ts), so a 146-HP body takes `max(1, floor(146/16)) = 9` and then
+   * `max(1, floor(9/2)) = 4`, which is the 142-vs-137 pair the whole-game differential reported. */
+  { tag: 'scalesOwnStatusDamage', param: 'a named status chip is MULTIPLIED, not refused and not converted',
+    probe: 'scalesOwnStatusDamage',
+    why: 'Heatproof, 56 sheets. Its burn is HALF size, and the burn residual is the only chip in the '
+       + 'format that any legal ability scales — a whole-game divergence read `142/146` against `137/146`',
+    of: a => {
+      const src = String(a.onDamage || '').replace(/\s+/g, ' ');
+      /* the other two members of the family answer here and must not be dragged in */
+      if (/return false/.test(src) || /this\.heal\(/.test(src)) return null;
+      const m = src.match(/return\s+damage\s*\/\s*(\d+)/);
+      if (!m) return null;
+      const st = [...new Set([...src.matchAll(/effect\.id\s*===\s*["'](psn|tox|brn|par|frz|slp)["']/g)]
+        .map(x => x[1]))];
+      if (!st.length) return null;
+      return { statuses: st, mult: 1 / +m[1],
+               clamps: 'clampIntRange(.,1) on both sides of the Damage event' };
+    } },
+
   /* BERSERK / ANGER SHELL — a boost paid for CROSSING a fraction of max HP, which is a different
    * trigger from every threshold tag already here: `onDamage` records that the hit was a move,
    * `onAfterMoveSecondary` fires only when the bar went from ABOVE the line to AT-or-BELOW it. A

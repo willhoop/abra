@@ -42,7 +42,9 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_punish_side_and_sky.js`, `tests/probe_bigroot_family.js`,
 `tests/probe_leechseed_silent.js`, `tests/probe_second_update_pass.js`,
 `tests/probe_pickpocket_event_position.js`, `tests/probe_selfswitch_update_pass.js`,
-`tests/probe_smart_target_redirect.js`
+`tests/probe_smart_target_redirect.js`, `tests/probe_selfboost_empty_foe_side.js`,
+`tests/probe_pivot_after_battle_end.js`, `tests/probe_status_chip_scaled.js`,
+`tests/probe_entry_update_before_mega.js`, `tests/probe_pickpocket_on_a_corpse.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -122,10 +124,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  829/829 probed mechanics live, 0 missing   (census 2026-09-06 07:50)
-    the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 26 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-06 07:52)
+  829/829 probed mechanics live, 0 missing   (census 2026-09-06 09:50)
+    the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
+    never fired in the staged harness (all-mechanics-fire.json, 34 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-06 10:03)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -142,14 +144,182 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is da8597c45bb8 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 285/300 probed, 15 unprobed;  275/300 have an engine consumer, 25 have none
+  tag coverage: 285/301 probed, 16 unprobed;  276/301 have an engine consumer, 25 have none
     a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-06 08:18_
+_stamped 2026-09-06 10:38_
 
 <!-- /GENERATED -->
+
+## LONG-TAIL BATCH F — BOARD-MATERIAL **41 OF 961 -> 34 OF 961**, PROTOCOL **108 -> 100**, CENSUS LEVEL AT 829/829. FIVE FIXES, FIVE PROBES, AND THE LIST THE BAR ACTUALLY READS IS NOT THE ONE THREE BATCHES HAVE BEEN STEERED BY. 2026-09-06, CHANGELOG 5.262.0
+
+Five engine fixes, six frozen releases, five paired measurements, each with a `MEDI_*` restore knob
+and a probe shown RED first with a SILENT control that does not move. Pins IDENTICAL on every
+whole-game run: census `data/verification/census-pin-9446a684709d.json`, pool
+`data/team-pool-frozen`, arm `middle`, `--end-state`, steering `empirical`, cap 20,
+`driver_code_stable` true throughout. Full account:
+`docs/_reports/2026-09-06-longtail-batch-F.md`.
+
+| step | what landed | release | board-material | protocol |
+|---|---|---|---|---|
+| baseline | as batch E published | `14b62cd5aeec` | 41 | 108 |
+| 1 | `Battle#boost` refuses when the boosted body's FOE SIDE is empty | `c273d4301fd1` | **38** | **105** |
+| 2 | a damaging pivot that emptied a side does not pivot | `5927782b7aa3` | **36** | **103** |
+| 3 | an ability may SCALE a status chip — Heatproof's burn is half size | `a35ef476d6db` | **35** | **102** |
+| 4 | the mega phase runs BELOW the previous action's `Update` pass | `8f446527f6f4` | 35 | **101** |
+| 5 | a fainted body's ability is ignored — Pickpocket steals nothing from a corpse | `03160242219b` | **34** | **100** |
+| — | the browser tag bundle rebuilt; settled tree; reproduced to the number | `d9e551ed0d5a` | 34 | 100 |
+
+**NINE OF TEN PREDICTED VALUES HIT.** The one miss is step 4's board-material, called 34 and measured
+35, and it is the mechanism its own prediction file named: one narration-only game left the diverging
+set (protocol 102 -> 101, narration 72 -> 71, the bar unmoved) and the shared-coin game RE-LABELLED
+from the White Herb ordering onto a Pickpocket row it had been standing in front of. **That
+relabelling is where step 5 came from**, and closing it took the bar to 34.
+
+**THE BASELINE WAS NOT RE-RUN AND DID NOT NEED TO BE.** The live simulator had CRLF endings on
+arrival (`core.autocrlf` is true) against a release that froze the LF copy; normalising it made
+`engine_release.js drift 14b62cd5aeec` read **NO-DRIFT** on all 26 files, so batch E's 41 / 108 is
+byte-reproducible. Every edit after that was written LF with the CR count asserted at 0 before each
+cut.
+
+### THE FIVE WIRES, EACH READ OFF THE AUTHORITY RATHER THAN REMEMBERED
+
+1. **`Battle#boost`'s THIRD refusal** — `if (this.gen > 5 && !target.side.foePokemonLeft()) return
+   false;` (sim/battle.ts:2028). `pokemonLeft` is decremented inside `faintMessages` (:2550)
+   INDEPENDENTLY of its `checkWin` argument, and the hit loop calls it as
+   `faintMessages(false, false, !pokemon.hp)` — so on the swing that empties the other side the count
+   hits zero while the battle is not yet won, and `useMoveInner`'s `selfBoost` (battle-actions.ts:520)
+   is refused. **The in-loop `selfDrops` payment deliberately does NOT get the guard**: it runs above
+   the decrement, so Close Combat's own drop is still paid on the winning swing.
+2. **A pivot that emptied a side does not pivot.** `selfSwitch` sets a FLAG (:1311) and `runAction`
+   turns it into a request LATER, with `this.faintMessages(); if (this.ended) return true;`
+   (sim/battle.ts:2832-2833) in between — and THAT `faintMessages` takes its default `checkWin`.
+3. **`scalesOwnStatusDamage`, a THIRD tag beside `refusesIndirectDamage` and `healsFromOwnStatus`.**
+   Magic Guard refuses a class, Poison Heal converts one status into a heal, Heatproof MULTIPLIES:
+   `return damage / 2` on `brn` (data/abilities.ts:1838). `spreadDamage` clamps with
+   `clampIntRange(.,1)` on BOTH sides of the `Damage` event, so a 146-HP body takes 9 and then 4 —
+   the `142/146` against `137/146` the differential reported. **Membership printed before wiring and
+   it is ONE**: all eleven legal abilities carrying an `onDamage` were listed first.
+4. **The mega phase is an ACTION at queue order 104** and it was standing inside the block that
+   stands for the tail of the PREVIOUS action. `runAction` closes every action, the switch included,
+   with `eachEvent('Update')` (:2858), so an entry White Herb is spent one whole action before the
+   mega. The gate is still read where it was read; only the call is deferred.
+5. **A fainted body's ability is ignored.** Pickpocket's handler has no fainted test; the refusal is
+   `runEvent`'s `effectHolder.ignoringAbility()`, which opens `if (gen >= 5 && !this.isActive) return
+   true` while `faintMessages` clears `isActive` (:2564). **It is the other half of batch E's
+   Pickpocket fix** and was invisible until that landed, because the theft used to be paid above
+   `faintMessages` where the thief was not a corpse yet.
+
+### THE LIST THE BAR READS IS `state.first_board_divergences`, NOT THE `any`-BUCKET BY-CAUSE TABLE
+
+`mid_void.any_bucket.by_cause` is keyed on each game's first **PROTOCOL** divergence, and its
+`board_parted` column says *how many games with this protocol cause also parted a board*, not that
+the protocol cause IS the board cause. `state.first_board_divergences` carries 34 entries, one per
+board-material game, with the turn and the exact leaves.
+
+**That settles a question batch E handed forward.** The `-hitcount` Parental Bond clause was left
+untaken as *"it cannot move the bar — check that judgement before repeating it."* Checked against the
+board list: that game's board parts at turn 6 on `p1.party.incineroar.hp 127 vs 119` and
+`p2.party.kangaskhan.hp 76 vs 80`, a Parental Bond HP mismatch, not on the `-hitcount` line.
+**The judgement stands.** One correction to its filing: its `any` verdict is `neither-drew`, so it is
+UNREADABLE rather than shared-coin.
+
+**AND THE RESIDUE IS MOSTLY THE RULER.** Of the 34, twelve are one family — a STATUS landed in one
+engine and not the other (Poison Touch six times, Flame Body, Cursed Body, a sleep counter, a freeze
+thaw) — and 25 of the 34 carry a protocol cause the `any`-bucket join MEASURES as instrument-suspect.
+Their fix is the one batch D named and did not take: give the post-hit ability proc its own address
+CATEGORY on both sides, as ROADMAP #478 did for `tgt`. It moves `PIN_DIGEST` and belongs in its own
+pass. **Five further games part a board with NO protocol divergence at all**
+(`board_parted_before_the_protocol_did` = 5 — three Protect stall counters, one PP, one forme), which
+by construction have no row in the by-cause table.
+
+### A GATE WENT RED MID-PASS AND IT WAS THIS PASS'S OWN
+
+`engine/artifact_audit.js` reported `data/abra-tags.js` out of sync with `data/tags.json` — 23 tag
+rows. It was fix 3 entirely: `tags.tags` is an ARRAY, the new row landed at index 286 and 22 rows
+shifted (confirmed against `git show HEAD:data/tags.json` — 308 rows before, 309 after).
+`build/build_tags_js.js` rebuilt the bundle, the audit reads **no gaps found**, the tree was re-cut as
+`d9e551ed0d5a` and every artifact was re-run on it. **The node engine never read the stale bundle** —
+`engine/tags.js` opens `data/tags.json` — but a red gate is fixed in the session that sees it, and
+until the five artifacts were re-run `status.js` read `MEASURED AGAINST A DIFFERENT ENGINE` on four
+clauses, which is the staleness-reads-as-divergence trap batch D recorded.
+
+### THE CLAUSES THIS PASS STALED WERE RE-RUN ON `d9e551ed0d5a` AND NONE MOVED
+
+Damage differential **0 of 6000** at the midpoint, at both endpoint arms and at all fourteen interior
+indices. Roster **items 140 / abilities 129 / moves 475**, `FIRED-AND-BOARDS-DIFFER` and
+`DID-NOT-FIRE` at **zero on all three stages**. `all_mechanics_fire.js --kind all --write` — 1313
+games, 0 threw, 0 sheets unassembled. `tests/test-game-diff.js`, `tests/walk_tags.js`,
+`tests/test-engine-consistency.js` and `tests/test-docs-current.js` (24 passed, 0 failed) all green.
+Census regenerated after the last engine change: **829 live / 829 probed / 0 missing, 0 hollow,
+0 threw, 0 unarmed.** `node engine/status.js` reads **7 of 9**, the two failures being the whole-game
+clauses on their measured counts — board-material **34 of 961 = 3.5%**, narration-only **70 of 961**.
+
+### THE HAND LIST
+
+**Removed — turned into probes this pass, so the census and the differential carry them now:**
+
+- ~~a `selfBoost` paid on a swing that emptied the other side~~ — `tests/probe_selfboost_empty_foe_side.js`
+- ~~a pivot that pivots after the battle has ended~~ — `tests/probe_pivot_after_battle_end.js`
+- ~~an ability that scales a status chip~~ — `tests/probe_status_chip_scaled.js`, tag
+  `scalesOwnStatusDamage`
+- ~~the entry White Herb settling after the mega instead of before it~~ —
+  `tests/probe_entry_update_before_mega.js`
+- ~~Pickpocket stealing from a corpse~~ — `tests/probe_pickpocket_on_a_corpse.js`
+- **~~The Sitrus Berry timing family~~ is gone with batch E, and the `-hitcount` Parental Bond clause
+  is CONFIRMED rather than removed:** the board list shows that game parting on a Parental Bond HP
+  mismatch, so taking the `-hitcount` line moves narration and not the bar. It stays on the list as a
+  NARRATION item.
+
+**Added — derived in full this pass and deliberately NOT taken:**
+
+- **Perish Song's residual faint interleave — 1 board-material game, DERIVED, not wired.**
+  `Battle#fieldEvent` calls `this.faintMessages()` after every handler and the duration-expiry branch
+  `continue`s past it, so a body whose perish counter EXPIRES queues a faint and skips the drain while
+  the next body whose counter merely TICKS drains it. medicham2's residual walk is group-major and
+  drains only for the weather group; its own header declares that granularity as an approximation. The
+  faithful fix touches every residual in the game and needs its own pass and its own before/after.
+- **`-crit` on a different body — 1 game.** A spread Rock Slide crits the target behind a SUBSTITUTE
+  in the authority and the one beside it here. A crit-address question whose fix may live in the dice
+  addressing, which moves `PIN_DIGEST`.
+- **The confusion self-hit decision — 1 game.** One engine hits itself and the other does not, and the
+  boards then cannot be expressed to each other.
+- **The general `ignoringAbility()` clause is wired at ONE site.** Fix 5 covers the Pickpocket
+  payment; the other ability roads in the file are not audited against the `!isActive` arm, and a
+  second one arriving needs its own probe.
+
+**Carried forward unchanged from batch D:** the Levitate/Eelevate step-1-versus-step-2 rows, the
+`immuneToMoveClass` stage split, the bare `moveClassBlocked` refusal, `imposterCopy`/`traceCopy` on an
+ability rewrite, and **the post-hit ability proc's own dice category — now measured at TWELVE of the
+34 board-material games and the single largest thing left on the bar.**
+
+### THE LIVING-DOCUMENT UPDATE IS OWED AND WAS DELIBERATELY NOT TAKEN
+
+**DISCHARGED AT 5.263.0, ON A SETTLED TREE.** The account below stands as written and is not
+rewritten. `CHANGELOG.md` is at **5.263.0**, and the white paper, the deck, the technical docs,
+`docs/SUMMARY.md`, `docs/MODELS.md` and `docs/DAMAGE-STAGES.md` all carry a block publishing
+**board-material 34 of 961, protocol 100 of 961 and narration 70 of 961 on release `d9e551ed0d5a`**,
+superseding the 41 / 108 / 71 those documents had been carrying. `node engine/status.js --write` was
+run last in the sequence with no other agent working and no engine file moving, so every
+`<!-- GENERATED -->` block in this ledger is current and none was hand-edited.
+
+**ONE FIGURE IN THE BRIEF DISAGREED WITH ITS ARTIFACT AND THE ARTIFACT WON.** The publish brief
+carried narration **71**; the CLAUSE reads **70**. Both are in the artifact and they are different
+quantities — `end_state[0].summary.by_cause_totals.games_narration_only` is 71 RAW, and
+`engine/quarantine.js` subtracts the one declared row before the clause is stated. The account below
+already says 70, so nothing in this ledger changed; the brief was quoting the raw. The same shape
+one field over: `by_cause_totals.games_board_material` reads **29**, which is the by-cause
+attribution over the 100 protocol-diverged games and NOT the clause quantity — the clause is 34, and
+29 + the 5 games that part a board with no protocol divergence is where the difference goes.
+
+`CHANGELOG.md` is **NOT** bumped and no version block was added to the white paper, the deck, the
+technical docs, `docs/SUMMARY.md` or `docs/MODELS.md`; `node engine/status.js --write` was **NOT**
+run, so the `<!-- GENERATED -->` block above this section is stamped to an earlier pass and its gate
+and census counts are that pass's. All of that is by instruction. **What is owed:** a version block in
+each living document carrying **board-material 34 of 961 and protocol 100 on release
+`d9e551ed0d5a`**, superseding batch E's 41 / 108 on `14b62cd5aeec`.
 
 ## LONG-TAIL BATCH E — BOARD-MATERIAL **46 OF 961 -> 41 OF 961**, PROTOCOL **111 -> 108**, CENSUS LEVEL AT 829/829. FOUR FIXES, FOUR PROBES, AND FOUR OF THE FIVE CLOSED GAMES SHARE ONE ROOT CAUSE THE ENGINE HAD ALREADY WRITTEN DOWN AND NEVER PRICED. 2026-09-06, CHANGELOG 5.262.0
 

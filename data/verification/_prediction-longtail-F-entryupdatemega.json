@@ -1,0 +1,34 @@
+{
+  "what": "LONG-TAIL BATCH F, STEP 4 — the Update pass that closes a switch action runs BEFORE the mega action, so an entry White Herb eats first.",
+  "written": "2026-09-06, BEFORE the measuring run, by ENGINE.",
+  "baseline": {
+    "release": "a35ef476d6db",
+    "artifact": "data/game-differential.json",
+    "board_material": 35,
+    "protocol_first_divergence": 102,
+    "narration_only": 72,
+    "games": 961,
+    "threw": 1,
+    "void": 5
+  },
+  "pins": {
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "arm": "middle",
+    "steering": "empirical",
+    "turns_cap": 20,
+    "games_budget": 1200,
+    "end_state": true
+  },
+  "the_rule": "sim/battle.ts:2857-2858 — `if (this.gen >= 5 && action.choice !== 'start') { this.eachEvent('Update'); ... }` closes EVERY action, the switch included. A mega is its own action at queue order 104 (switch 103, moves 200), so the herb — an onUpdate — is settled one whole action before the mega. medicham2 has no megaEvo action and triggered `_megaPhase` at the TOP of the loop iteration, i.e. inside the block that stands for the tail of the PREVIOUS action, above `_updateAll()`.",
+  "probe": "tests/probe_entry_update_before_mega.js, knob MEDI_MEGA_BEFORE_UPDATE. Shown RED first: showdown herb@40 before mega@42, medicham2 herb@12 AFTER mega@10, and the game parting on `|-enditem|p1a: Absol|White Herb <> |detailschange|p2a: Abomasnow`.",
+  "which_scoreboard": "THE POOL. White Herb is 5,482 sheets and Intimidate 23,235; the artifact carries one board-parted row of this shape. Expect the roster and census to sit still — no tag changes.",
+  "predicted": {
+    "board_material": 34,
+    "protocol_first_divergence": 101,
+    "threw": 1,
+    "void": 5
+  },
+  "why_it_might_miss_HIGH": "The row is an ORDERING, so both lines exist in both engines and the game plays on — the batch-D/E re-parting mechanism applies in full. There is also a SECOND ordering row of the same shape in the artifact against an Abomasnow-Mega that is instrument-suspect rather than shared-coin; if it is the same defect the drop could be 2 rather than 1, which would show as a MISS LOW.",
+  "why_it_might_miss_LOW": "See above — the second `whiteherb <> detailschange` row. It was NOT counted in this prediction because its any-bucket verdict is instrument-suspect and the brief forbids fixing against an unreadable draw; if it closes anyway that is a bonus and is recorded as a miss."
+}

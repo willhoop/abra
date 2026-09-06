@@ -1,6 +1,30 @@
 # ABRA — Technical Documentation
 
-**Version 5.262.0 · Last updated 2026-09-06**
+**Version 5.263.0 · Last updated 2026-09-06**
+
+**5.263.0 - FIVE ENGINE DEFECTS ARE CORRECTED. EACH ONE IS MEASURED ALONE.**
+
+**PUBLICATION.** `data/game-differential.json` holds board-material 34 of 961 and protocol first divergence 100 of 961. The board-material figure is a subtraction. It is 961 games less the 927 games whose board never diverged. Both operands are in `state`. **CONDITIONS.** Release `d9e551ed0d5a`. 961 games. Cap 20. Arm `middle`. Steering `empirical-click/v1`. End-state comparison on. Census pin `data/verification/census-pin-9446a684709d.json`. Pool `--team-store data/team-pool-frozen`. Driver code stable on all runs.
+
+**DEFECT 1.** `Battle#boost` refuses a boost when the boosted body's foe side is empty. See `sim/battle.ts:2028`. `faintMessages` decrements `pokemonLeft` independently of its `checkWin` argument. On the swing that empties the other side the count is zero before the battle is won. **ACTION.** Add the refusal to the engine. Do not add it to the in-loop `selfDrops` payment. That payment runs above the decrement. **RESULT.** Board-material 41 to 38. Protocol 108 to 105.
+
+**DEFECT 2.** A damaging pivot that emptied a side must not pivot. `selfSwitch` sets a flag. `runAction` turns the flag into a request later. `this.faintMessages(); if (this.ended) return true;` runs between the two at `sim/battle.ts:2832`. **ACTION.** Test for the ended battle above the switch request. **RESULT.** Board-material 38 to 36. Protocol 105 to 103.
+
+**DEFECT 3.** An ability can scale a status chip. Heatproof halves its own burn damage. The engine had two tags for status abilities. It had `refusesIndirectDamage` and `healsFromOwnStatus`. It had no tag for a multiplier. **ACTION.** Add the tag `scalesOwnStatusDamage`. Print the membership before you wire it. The membership is one ability. **RESULT.** Board-material 36 to 35. Protocol 103 to 102.
+
+**DEFECT 4.** The mega phase runs below the previous action's `Update` pass. An entry White Herb is eaten before the mega. **ACTION.** Defer the call. Do not move the gate. **RESULT.** Board-material 35. Protocol 102 to 101.
+
+**DEFECT 5.** A fainted body's ability is ignored. `ignoringAbility()` returns true on `!isActive`. `faintMessages` clears `isActive`. Pickpocket therefore steals nothing from a corpse. **ACTION.** Pay the ability through the refusal. **NOTE.** This defect was invisible before 5.262.0 moved the Pickpocket payment. The theft was paid above `faintMessages` before that change. **RESULT.** Board-material 35 to 34. Protocol 101 to 100.
+
+**METHOD.** Each defect carries a `MEDI_*` restore knob. Each defect carries a probe. Each probe was shown RED before any engine code existed. Each probe carries a silent control that does not move. The probes are `tests/probe_selfboost_empty_foe_side.js`, `tests/probe_pivot_after_battle_end.js`, `tests/probe_status_chip_scaled.js`, `tests/probe_entry_update_before_mega.js` and `tests/probe_pickpocket_on_a_corpse.js`.
+
+**CORRECTION TO PROCEDURE.** Do not select work from `mid_void.any_bucket.by_cause`. That table is keyed on the first PROTOCOL divergence. The gating clause is read from `state.first_board_divergences`. The two lists are different. Neither list can be derived from the other. **EFFECT OF THE CORRECTION.** The Parental Bond `-hitcount` judgement of 5.262.0 is confirmed. That game parts on a Parental Bond HP mismatch at turn 6. 25 of the 34 board-material games carry instrument-suspect causes. 12 of the 34 are one family. In that family a status lands in one engine and not in the other. The fix for the family is a dice address category for the post-hit ability proc. That fix moves `PIN_DIGEST`. Do it in its own pass. 5 of the 34 games have no protocol divergence. Those games have no by-cause row.
+
+**PREDICTION RESULT.** 10 values were predicted. 9 were correct. Defect 4's board-material was called 34 and measured 35. The prediction file names the mechanism. One narration-only game left the diverging set. One shared-coin game was re-labelled onto a Pickpocket row. That re-labelling identified defect 5.
+
+**NARRATION CLAUSE.** The clause reads 70 of 961. That is 71 raw less 1 declared. It covers 69 causes. It read 71 at 5.262.0. Read the two whole-game columns together. They read 41 + 71 = 112 at 5.262.0. They read 34 + 70 = 104 now. **RULE.** Do not quote "7 of 9 clauses" beside "1 of 8 gating clauses". The gate has nine clauses. Eight of the nine gate. The two figures are one state in two denominators.
+
+**MAINTENANCE ACTION COMPLETED.** The new tag shifted the array in `data/tags.json`. 22 rows moved. `data/abra-tags.js` became stale. `engine/artifact_audit.js` reported 23 tag rows. **ACTION.** Run `node build/build_tags_js.js`. Cut the tree again. Re-run every staled artifact. **RESULT.** The audit reports no gaps. The release is `d9e551ed0d5a`. The damage differential reads 0 of 6000 at the midpoint and at each of the sixteen band indices. The roster reads items 140, abilities 129 and moves 475 tested with zero `FIRED-AND-BOARDS-DIFFER` and zero `DID-NOT-FIRE`. The census reads 829 live of 829 probed with 0 missing.
 
 **5.262.0 - SIX ENGINE DEFECTS ARE CORRECTED. EACH ONE IS MEASURED ALONE.**
 

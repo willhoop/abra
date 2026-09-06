@@ -1,6 +1,14 @@
 # ABRA — the model family (living reference)
 
-**Version 5.262.0 · Last updated 2026-09-06.**
+**Version 5.263.0 · Last updated 2026-09-06.**
+
+**5.263.0 - NO MODEL CHANGED, NO FITTED VECTOR WAS WRITTEN AND NOTHING QUARANTINED BECAME QUOTABLE. THE ONLY THING THAT MOVED IS THE DISTANCE TO THE GATE.** Every model in this ledger sits downstream of MEDICHAM, so that distance is the only thing this file records. `data/game-differential.json` is republished on release `d9e551ed0d5a` at **board-material 34 of 961 and protocol first divergence 100 of 961**, down from 41 / 108, on five engine fixes measured one at a time. The narration clause reads **70 of 961**, 71 raw less 1 declared. `node engine/status.js` reads **7 of 9 clauses passing**; the two failures are the whole-game BOARD-MATERIAL and NARRATION clauses, both on measured counts.
+
+**EVERY MODEL FIGURE IN THIS LEDGER IS STILL WITHHELD, AND THAT IS THE CORRECT OUTCOME.** MAG's weights, the joint weights, R1, R2, R3, R4, the leaf backtest, the leaf/engine contrast, the exploitability search and the click-censoring census are all downstream of a simulator that two measured clauses say is not correct. None of them is printed here, and none is printed with a caveat — a caption is not a quarantine. They become re-runnable, not true, when the gate opens.
+
+**MAG — THE REFIT STAYS OWED AND IT IS STILL A REFIT, NOT A RESTAMP.** No fit was started and `data/policy-weights.json` was not touched. `node engine/status.js` prints `REFIT OWED` with three inputs that moved after the fit: `engine/medicham2-browser.js`, `data/engine-data.js` and `data/abra-tags.js`. The damage table these weights were fitted against has been regenerated and now covers four more species than the 318 stamped into the file, so the feature FUNCTION's input changed. A restamp would answer the fixture gate, silence the table gate, and write over the evidence for the refit.
+
+**LEAF CALIBRATION — THIS DIVISION'S ONE NUMBER — IS NOT PUBLISHED THIS VERSION EITHER.** `data/winrate-backtest.json` is downstream of MEDICHAM by its generator, so the figure is withheld rather than annotated. It becomes quotable when the gate opens AND `node engine/backtest_winrate.js` is re-run. Nothing about the five fixes in this version changes that; they shorten the distance to the condition and do not satisfy it.
 
 **5.262.0 - NO MODEL CHANGED, NO FITTED VECTOR WAS WRITTEN AND NOTHING QUARANTINED BECAME QUOTABLE. WHAT MOVED IS THE DISTANCE TO THE GATE, AND THE NUMBER OF ARTIFACTS THE GATE WAS WRONGLY WITHHOLDING.** Every model in this ledger sits downstream of MEDICHAM, so that distance is the only thing this file records. `data/game-differential.json` is republished on release `14b62cd5aeec` at **board-material 41 of 961 and protocol first divergence 108 of 961**, down from 50 / 114, on six engine fixes measured one at a time across two batches. `node engine/status.js` reads **7 of 9 clauses passing**; the two failures are the whole-game BOARD-MATERIAL and NARRATION clauses, both on measured counts.
 

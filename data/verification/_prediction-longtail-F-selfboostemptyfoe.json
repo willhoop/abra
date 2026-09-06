@@ -1,0 +1,41 @@
+{
+  "what": "LONG-TAIL BATCH F, STEP 1 — Battle#boost refuses when the boosted body's foe side has no Pokemon left, so an after-loop `selfBoost` paid on the wiping KO must stop being paid.",
+  "written": "2026-09-06, BEFORE the measuring run, by ENGINE.",
+  "baseline": {
+    "release": "14b62cd5aeec",
+    "artifact": "data/game-differential.json",
+    "board_material": 41,
+    "protocol_first_divergence": 108,
+    "narration_only": 72,
+    "games": 961,
+    "threw": 1,
+    "void": 5,
+    "note": "The live tree was normalised to LF and `engine_release.js drift 14b62cd5aeec` reads NO-DRIFT, so the baseline is byte-reproducible and was NOT re-run."
+  },
+  "pins": {
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "arm": "middle",
+    "steering": "empirical",
+    "turns_cap": 20,
+    "games_budget": 1200,
+    "end_state": true
+  },
+  "the_rule": "sim/battle.ts:2028 — `if (this.gen > 5 && !target.side.foePokemonLeft()) return false;`. `pokemonLeft` is decremented inside faintMessages (sim/battle.ts:2550) regardless of its checkWin argument, and the after-loop selfBoost payment (sim/battle-actions.ts:520) sits BELOW that decrement while `selfDrops` (scripts.ts:385) sits above it. So the guard belongs at exactly one site.",
+  "probe": "tests/probe_selfboost_empty_foe_side.js, knob MEDI_SELFBOOST_IGNORES_EMPTY_FOE_SIDE. Shown RED first: every fixture and authority assertion green, and exactly the two engine assertions red — `medicham2 refuses it too` reads 1 drop against the authority's 0, and the wiping game parts on `|-unboost|p1a: Kommo-o|def|1` where the authority emitted nothing further.",
+  "which_scoreboard": "THE POOL, not the lab. Clanging Scales is a real ladder click and all three rows are pinned-pool games. The census/roster are expected to sit still: no tag changes, no new mechanic, and the roster stages no side wipe.",
+  "predicted": {
+    "board_material": 38,
+    "protocol_first_divergence": 105,
+    "narration_only": null,
+    "threw": 1,
+    "void": 5,
+    "census_live": 829,
+    "census_probed": 829,
+    "census_missing": 0
+  },
+  "why_three": "The by-cause table on 14b62cd5aeec carries THREE board-parted rows that are all this one click: `|-damage|p2b|H/H|[from]lifeorb <> |-unboost|p2b|def|1` (SHARED-COIN), `|-damage|p1b|H/H|[from]lifeorb <> |-unboost|p1b|def|1` (instrument-suspect, same shape), and `showdown stopped emitting while medicham2 continued :: |-unboost|p2b|def|1` (instrument-suspect). Each is one game.",
+  "why_it_might_miss_HIGH": "The batch-D and batch-E mechanism: a game whose named cause closes plays on and re-parts on a DIFFERENT cause the `-unboost` was standing in front of. Two of the three end the battle at that exact line, so there is little game left to re-part on — but the Life Orb pair each continue for at least one more line.",
+  "why_it_might_miss_LOW": "If a game outside the three carries an after-loop selfBoost on a wiping KO whose first divergence is attributed elsewhere, the count could fall further than 38. Only Clanging Scales and Scale Shot carry `selfBoost` in this format, and Scale Shot is 90-accuracy multihit, so the population is small either way.",
+  "narration_note": "Closing a board divergence often MOVES the game into the narration column rather than removing it. narration_only is deliberately left null: it is not this step's target and predicting it would be a guess."
+}

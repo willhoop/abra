@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 189 unsafe, 2 void (declared), 33 possibly stale, 30 ok, 0 missing
+  provenance: 189 unsafe, 2 void (declared), 35 possibly stale, 28 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
@@ -29,14 +29,85 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-06 07:47
+    moved after the fit: engine/medicham2-browser.js  2026-09-06 09:44
     moved after the fit: data/engine-data.js  2026-08-31 00:08
-    moved after the fit: data/abra-tags.js  2026-09-06 02:14
+    moved after the fit: data/abra-tags.js  2026-09-06 09:58
 ```
 
-_stamped 2026-09-06 08:18_
+_stamped 2026-09-06 10:38_
 
 <!-- /GENERATED -->
+
+## THE PUBLISH PASS FOR BATCH F. **BOARD-MATERIAL 34 OF 961, PROTOCOL 100 OF 961, NARRATION 70 OF 961**, RELEASE `d9e551ed0d5a`. ONE FIGURE IN THE BRIEF DISAGREED WITH ITS ARTIFACT. 2026-09-06, CHANGELOG 5.263.0
+
+**EVERY FIGURE BELOW WAS RE-READ FROM ITS ARTIFACT ON THIS PASS.** Nothing is carried from the brief
+or from an earlier document, which is the whole job of this division and is stated first because a
+brief is prose and prose cannot track a corpus.
+
+| question | artifact | reading |
+|---|---|---|
+| the clause that GATES | `data/game-differential.json` | **board-material 34 of 961** — `state.games` 961 less `state.games_board_never_diverged` 927. BOTH OPERANDS CHECKED, not the difference |
+| the clause that REPORTS | the same artifact | **protocol first divergence 100 of 961** — `diverged`, and `state.protocol_diverged_games` agrees |
+| the narration clause | the same artifact | **70 of 961** — 71 raw less 1 declared, across 69 causes |
+| the conditions | the same artifact | release `d9e551ed0d5a`, cut 2026-09-06T13:58:23Z, cap 20, arm `middle`, steering `empirical-click/v1`, `--end-state`, pool `--team-store data/team-pool-frozen`, `driver_code_stable` true |
+| the gate | `node engine/status.js` | **7 of 9 clauses**, 2 failing — both whole-game, both on MEASURED counts |
+| the census | `data/mechanics-census.json` | **829 live / 829 probed / 0 missing**, 0 threw, 0 hollow, 0 unarmed |
+| the damage differential | `data/engine-diff.json` | **0 of 6000** at the midpoint and at each of the sixteen band indices, seed 20260804, same release |
+| the deliberate roster | `data/roster.{items,abilities,moves}.json` | **140 / 129 / 475** tested, `FIRED-AND-BOARDS-DIFFER` 0 and `DID-NOT-FIRE` 0 on all three, same release |
+| withheld artifacts | `engine/quarantine.js` via `status.js` | **63** downstream of MEDICHAM and not printed |
+
+### THE ONE DISAGREEMENT: NARRATION 71 IN THE BRIEF, 70 IN THE CLAUSE
+
+Both numbers are in the artifact and they are different quantities.
+`end_state[0].summary.by_cause_totals.games_narration_only` reads **71** — that is the RAW count.
+`engine/quarantine.js` subtracts the one declared row before stating the clause, and `status.js`
+prints *"NARRATION-ONLY: 70 of 961 … (71 narration-only raw, less 1 declared and 0 cleared on
+decision impact)"*. **The clause is 70.** The engine ledger's batch F account already said 70; the
+brief was quoting the raw.
+
+**IT IS THE SAME TRAP THE BRIEF ITSELF WARNED ABOUT ONE FIELD OVER, AND THAT IS THE POINT.**
+`by_cause_totals.games_board_material` reads **29**, which is the by-cause attribution over the 100
+protocol-diverged games and is NOT the clause quantity. The clause is **34**, and the difference is
+exactly the **5** games in `state.board_parted_before_the_protocol_did` — games that part a board
+while the protocol never diverges, so they can carry no protocol cause and appear in no by-cause
+table. 29 + 5 = 34 reconciles, and `by_cause_reconciles` is `true`.
+
+**SO THIS ARTIFACT PUBLISHES FOUR PLAUSIBLE VALUES OF "HOW MANY GAMES ARE WRONG" — 34, 29, 71 and
+70 — AND ONLY TWO OF THEM ARE CLAUSES.** A summary total is not a gate quantity. Read the operands.
+
+### WHAT THIS DIVISION'S OWN NUMBER READS, AND WHY IT IS STILL NOT PUBLISHED
+
+**Leaf calibration is WITHHELD, not annotated.** `data/winrate-backtest.json` is downstream of
+MEDICHAM — its generator reaches `engine/medicham2-browser.js` through `require` — and the gate is
+still failing two clauses, so the figure does not get printed with a caveat. It becomes quotable when
+the gate opens AND `node engine/backtest_winrate.js` is re-run. Five engine fixes shortened the
+distance to that condition; none of them satisfied it.
+
+**AND THE STANDING BRIEF FOR THIS DIVISION CARRIES A STALE DESCRIPTION OF THAT ARTIFACT, WHICH IS
+WORTH RECORDING BECAUSE IT IS THIS DIVISION'S OWN FAILURE MODE.** The brief says the backtest "scored
+only 350 games at 40 rollouts". The artifact on disk stamps `n_games_scored` **1378** and
+`rollouts_per_game` **200**, measured 2026-08-04. The sample was replaced at some point and the
+sentence describing it was not. **No verdict from that artifact is restated here** — it is
+quarantined, and one of its headline figures is on the retraction register. What is recorded is only
+the shape of the sample, so that the re-run is scoped against what is actually there rather than
+against a remembered 350.
+
+### WHAT THE REFIT READS, UNCHANGED
+
+`REFIT OWED`, weights fitted 2026-08-28 15:46, with three inputs moved after the fit —
+`engine/medicham2-browser.js`, `data/engine-data.js` and `data/abra-tags.js`.
+`feature_fixture --check` fails on two gates, fixture identity and the damage table; the table was regenerated from
+318 species to 322, so **the feature FUNCTION's input changed and this is a REFIT, not a restamp.**
+No fit was started. `data/policy-weights.json` was not touched. A restamp here would answer the
+fixture gate, silence the table gate and write over the evidence.
+
+### PROVENANCE, AND THE PART OF IT THAT IS STILL ASSUMED
+
+`engine/provenance.js` reads **189 unsafe, 2 void (declared), 35 possibly stale, 28 ok, 0 missing**.
+Two figures are WITHHELD on an UNSAFE input rather than captioned — the interaction matrix
+(`data/interaction-matrix.json`) and the release ladder (`data/wire-ladder.json`), the latter because
+`data/games.bo3.jsonl` has a different content digest than it did at read time. That is the store
+moving under an artifact, which a frozen release does not prevent and never claimed to.
 
 ## THE SETTLED-TREE PUBLISH PASS THAT WAS OWED FOR THREE SESSIONS. **BOARD-MATERIAL 41 OF 961, PROTOCOL 108 OF 961**, RELEASE `14b62cd5aeec`, AND `node engine/status.js --write` RAN WITH NOTHING ELSE IN FRAME. THE NARRATION COUNT ROSE 69 TO 71 AND THAT IS NOT A REGRESSION. 2026-09-06, CHANGELOG 5.262.0
 

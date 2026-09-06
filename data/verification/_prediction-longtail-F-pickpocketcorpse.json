@@ -1,0 +1,36 @@
+{
+  "what": "LONG-TAIL BATCH F, STEP 5 — a fainted body's ability is ignored, so a Pickpocket that died to the contact hit steals nothing.",
+  "written": "2026-09-06, BEFORE the measuring run, by ENGINE.",
+  "baseline": {
+    "release": "8f446527f6f4",
+    "artifact": "data/game-differential.json",
+    "board_material": 35,
+    "protocol_first_divergence": 101,
+    "narration_only": 71,
+    "games": 961,
+    "threw": 1,
+    "void": 5
+  },
+  "pins": {
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "arm": "middle",
+    "steering": "empirical",
+    "turns_cap": 20,
+    "games_budget": 1200,
+    "end_state": true
+  },
+  "how_it_was_found": "It was REVEALED by step 4, not present before it. The game that carried the White Herb ordering re-parted on this row the moment the ordering closed — diffed game by game out of divergence-turns-F3/F4: seed gen9championsvgc2026regmbbo3-2660048410 was relabelled from `ordering :: |-enditem|p1b|whiteherb <> |detailschange|p2a|raichumegay,l50` to `extra event emitted by medicham2 :: |move|p2a|waterfall <> |-enditem|p2b|widelens|[from]pickpocket`.",
+  "the_rule": "Pickpocket's own handler (data/abilities.ts:3230) has NO hp or fainted test. The refusal is one level up: runEvent skips an Ability handler when `effectHolder.ignoringAbility()`, and `ignoringAbility()` opens `if (this.battle.gen >= 5 && !this.isActive) return true;` (sim/pokemon.ts). `faintMessages` sets `pokemon.isActive = false` (sim/battle.ts:2564). So every ability handler on a corpse is skipped, `End` alone excepted.",
+  "why_it_only_appeared_now": "Batch E moved the Pickpocket payment from the per-hit reaction block to the authority's own position, AfterMoveSecondary at sim/battle-actions.ts:1005, which is BELOW faintMessages at scripts.ts:547. That fix is correct and it is what put the handler on a dead body for the first time.",
+  "probe": "tests/probe_pickpocket_on_a_corpse.js, knob MEDI_PICKPOCKET_ON_A_CORPSE. Shown RED first: the authority steals 0 times from a corpse and 1 time from the same thief when a weaker contact move leaves it alive; medicham2 steals in BOTH.",
+  "which_scoreboard": "THE POOL. Pickpocket is 175 sheets and the artifact carries one board-parted row. The census and roster should sit still — no tag changes.",
+  "predicted": {
+    "board_material": 34,
+    "protocol_first_divergence": 100,
+    "threw": 1,
+    "void": 5
+  },
+  "why_it_might_miss_HIGH": "The same game has now re-parted twice in two steps. If it carries a third cause behind this one it will stay in the board column and board-material will read 35 again — that is exactly what happened at step 4 and it is the mechanism to expect.",
+  "why_it_might_miss_LOW": "The instrument-suspect `|-enditem|p1b|roseliberry|[eat]` and `|-enditem|p2b|mentalherb` rows are a different family and are not expected to move."
+}

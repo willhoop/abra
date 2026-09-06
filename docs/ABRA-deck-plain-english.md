@@ -1,6 +1,18 @@
 # ABRA — the plain-English deck
 
-**Version 5.262.0 · 2026-09-06 · Will Hooper**
+**Version 5.263.0 · 2026-09-06 · Will Hooper**
+
+**5.263.0 - FIVE MORE FIXES. THE "DIFFERENT BOARD" SCORE FELL FROM 41 GAMES OUT OF 961 TO 34; THE "DIFFERENT COMMENTARY" SCORE FELL FROM 108 TO 100.**
+
+**WHAT THEY WERE, IN PLAIN TERMS.** In the real game, when the last Pokemon on the other side faints, a move that would raise its user's own stats simply does not get to. Ours raised them anyway. In the real game, a Pokemon that attacks and then swaps out does not swap out if that attack ended the battle. Ours kept swapping. Some Pokemon have an ability that makes a burn hurt them half as much; we knew about abilities that ignore a status entirely and abilities that turn one into healing, but not about abilities that merely turn one down, so the burn was doing full damage. A Pokemon that mega evolves does so after everything else on the board has settled, which means an item that fixes a lowered stat gets eaten first; we ran the mega too early. And a Pokemon with a pickpocketing ability cannot steal an item after it has fainted; ours was robbing the attacker from beyond the grave.
+
+**THE LAST ONE ONLY BECAME VISIBLE BECAUSE OF THE ONE BEFORE IT.** We fixed the timing of the pickpocket last session, which moved the theft to a moment when the thief might already be dead. Nothing was broken by that fix; something that had always been wrong simply stopped being hidden behind it. That is worth saying because it is the opposite of the usual story: the count went the right way both times, and the second problem was created by nobody.
+
+**THE BIGGEST THING WE LEARNED IS NOT A FIX.** For three rounds of this work we have been picking what to fix from a table. The table sorts games by the first place the two engines said something different. The score we are actually judged on sorts games by the first place the two engines had a different board. Those are two different lists, and for three rounds we were reading the first one and moving the second one. Re-reading against the right list changed what is worth doing next: a quarter of what is left is our measuring rig rather than the game, twelve of the remaining thirty-four are one single problem wearing five names, and five of them do not appear on the old table at all because nothing was ever said differently in those games — the boards just quietly drifted apart.
+
+**A NUMBER WENT UP LAST TIME AND THIS TIME IT WENT DOWN.** Games where only the commentary differs fell from 71 to 70. Added to the board column that is 112 games before and 104 now. We keep reporting the two together because fixing a board does not delete a game, it moves it between columns, and a column read alone can be made to say anything.
+
+**WE PREDICTED TEN NUMBERS AND GOT NINE.** The one we missed we had already explained in writing before the run: we said one game would move between columns and one would get re-filed under a different cause, and it did — and the thing it got re-filed under turned out to be the fifth fix. A prediction that misses for a reason you wrote down first is more use than one that hits.
 
 **5.262.0 - SIX MORE FIXES. THE "DIFFERENT BOARD" SCORE FELL FROM 50 GAMES OUT OF 961 TO 41; THE "DIFFERENT COMMENTARY" SCORE FELL FROM 114 TO 108.**
 

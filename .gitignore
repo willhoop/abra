@@ -171,3 +171,6 @@ divergences-*.html
 # build/... — here the collector's own reconcile step — writes, and the plain .jsonl is ignored.
 # The name IS the format id, so a store cannot be ambiguous about which regulation is in it.
 data/games.gen9champions*.jsonl
+
+# Probe run logs written by a session; findings live in docs/_reports/, not here.
+tmpprobe/

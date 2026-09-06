@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-06T11:52:47.442Z",
- "engine_release": "14b62cd5aeec",
- "engine_release_cut": "2026-09-06T11:47:47.497Z",
+ "generated": "2026-09-06T14:04:42.760Z",
+ "engine_release": "d9e551ed0d5a",
+ "engine_release_cut": "2026-09-06T13:58:23.023Z",
  "engine_release_cuts": 2,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "252659aed8f9",
+  "engine/medicham2-browser.js": "d5d7632c025e",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "1c4ba432e563",
   "engine/position_features.js": "622482051bf4",
@@ -25,14 +25,14 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "3c733e7a0bfb",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "9f1443e299e2",
-  "data/tags.json": "b4f11eeb3145",
+  "data/abra-tags.js": "b624b04f0c3a",
+  "data/tags.json": "a3a3a88a1b0f",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623"
  },
- "release": "14b62cd5aeec",
+ "release": "d9e551ed0d5a",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -55414,7 +55414,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 5.5
+   "seconds": 14
   },
   "abilities": {
    "exist": 316,
@@ -55431,7 +55431,7 @@
    "diverged_including_shelved": 2,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 9.8
+   "seconds": 24.7
   },
   "then_what": {
    "rows": 64,
@@ -55457,7 +55457,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 4.6
+   "seconds": 11.8
   },
   "board_state": {
    "rows": 15,
@@ -56172,8 +56172,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "14b62cd5aeec",
-    "roster_generated": "2026-09-06T11:52:21.350Z",
+    "roster_release": "d9e551ed0d5a",
+    "roster_generated": "2026-09-06T14:03:56.186Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

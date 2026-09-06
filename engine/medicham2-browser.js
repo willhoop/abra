@@ -637,6 +637,24 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * Clanging Scales and Scale Shot; a zero with either of them clicked means the `via` derivation is
    * not reaching the engine and every one of those clicks paid at `selfDrops`' position instead. */
   selfBoostPaidAfterLoop: 0,
+  /* 2026-09-06 -- ...and the ones REFUSED because the swing had just emptied the other side, which
+   * is `Battle#boost`'s third guard (sim/battle.ts:2028). Zero on a run where no Clanging Scales
+   * or Scale Shot ever won a game is correct and expected; zero on a run where one did means the
+   * guard is not reaching the payment. */
+  selfBoostRefusedEmptyFoeSide: 0,
+  /* 2026-09-06 -- a damaging pivot whose own click emptied a side, so the authority had already won
+   * the battle by the time the switch request would have been made (sim/battle.ts:2832-2833). Zero
+   * on a run where no U-turn / Flip Turn / Volt Switch ever won a game is correct; zero on a run
+   * where one did means the clause is not reaching the pivot. */
+  pivotRefusedBattleEnded: 0,
+  /* 2026-09-06 -- residual status chips HALVED (or otherwise multiplied) by the holder's own ability,
+   * `scalesOwnStatusDamage`. One member today, Heatproof on `brn`, so a zero on a run with no burned
+   * Sinistcha is correct and a zero on a run with one means the tag is not reaching the residual. */
+  statusChipScaled: 0,
+  /* 2026-09-06 -- action iterations that ran the mega/charge phases from BELOW the previous action's
+   * Update pass, which is where the authority's order 104 sits. A zero on a run with any mega in it
+   * means the phases are being reached from somewhere else. */
+  megaPhaseBelowUpdate: 0,
   /* ROADMAP #448, 2026-08-27 -- WHICH NESTING THE `kind==='affect'` BRANCH TOOK, one per move that
      reached its target list. `spreadStatusStepOuter` is the authority's shape (step outside, target
      inside, `trySpreadMoveHit`'s `moveSteps`); `spreadStatusPerTargetRestored` is the pre-fix shape
@@ -2082,6 +2100,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * `Deferred` must equal `Paid + Refused` on any run; a shortfall is a payment site the move exited
    * above, which is the silent-default shape this engine is organised against. */
   pickpocketDeferred: 0, pickpocketPaidAtEvent: 0, pickpocketRefusedAtEvent: 0,
+  /* 2026-09-06 -- ...and the subset of those refusals that were refused because the THIEF had died to
+   * the very hit that would have triggered it. `ignoringAbility()` answers true on a body whose
+   * `isActive` faintMessages has cleared, so the authority never calls the handler at all. */
+  pickpocketRefusedCorpse: 0,
   /* 2026-09-06 -- THE THIRD `eachEvent('Update')` SITE: the STATUS road, run before a body that has
    * just paid its own HP leaves the field. Kept apart from the two damaging-road counters because a
    * corpus can easily contain neither Shed Tail nor a recoil move, and a pooled total could not say
@@ -14178,6 +14200,40 @@ const FALLEN_APPROX=(typeof process!=='undefined'&&process.env&&process.env.MEDI
  * a position. Any run carrying it also carries a non-zero `MEDFAILS.selfBoostInLoopRestored`. Same
  * shape as MEDI_HAZARD_BELOW_FAINT above. */
 const SELFBOOST_IN_LOOP=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELFBOOST_IN_LOOP==='1');
+/* 2026-09-06 -- MEDI_SELFBOOST_IGNORES_EMPTY_FOE_SIDE=1 PAYS THE AFTER-LOOP `selfBoost` EVEN WHEN
+ * THE OTHER SIDE HAS JUST BEEN EMPTIED, i.e. a Clanging Scales that takes the last body down still
+ * writes its own `-unboost`, exactly as this engine did until today. `Battle#boost`'s third refusal
+ * (`if (this.gen > 5 && !target.side.foePokemonLeft()) return false;`, sim/battle.ts:2028) is what
+ * the default now honours. Any run carrying the knob also carries a non-zero
+ * `MEDFAILS.selfBoostEmptyFoeRestored`. */
+const SELFBOOST_EMPTY_FOE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELFBOOST_IGNORES_EMPTY_FOE_SIDE==='1');
+/* 2026-09-06 -- MEDI_PIVOT_AFTER_BATTLE_END=1 LETS A U-TURN / FLIP TURN / VOLT SWITCH THAT TOOK THE
+ * LAST BODY DOWN STILL LEAVE THE FIELD, exactly as this engine did until today. `selfSwitch` sets a
+ * FLAG (sim/battle-actions.ts:1311) and `Battle#runAction` turns it into a switch request LATER --
+ * with `this.faintMessages(); if (this.ended) return true;` (sim/battle.ts:2832-2833) in between,
+ * ABOVE the switch block at :2874. Any run carrying the knob also carries a non-zero
+ * `MEDFAILS.pivotAfterBattleEndRestored`. */
+const PIVOT_AFTER_END=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PIVOT_AFTER_BATTLE_END==='1');
+/* 2026-09-06 -- MEDI_STATUS_CHIP_UNSCALED=1 PAYS THE FULL STATUS CHIP EVEN ON A BODY WHOSE ABILITY
+ * HALVES IT, i.e. a Heatproof burn is 1/16 again rather than 1/32, exactly as this engine did until
+ * today. `scalesOwnStatusDamage` is the third thing an `onDamage` handler can do to a chip -- the
+ * other two are `refusesIndirectDamage` (Magic Guard) and `healsFromOwnStatus` (Poison Heal), both
+ * of which this engine already read. Any run carrying the knob also carries a non-zero
+ * `MEDFAILS.statusChipUnscaledRestored`. */
+const STATUS_CHIP_UNSCALED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STATUS_CHIP_UNSCALED==='1');
+/* 2026-09-06 -- MEDI_MEGA_BEFORE_UPDATE=1 RUNS THE MEGA AND CHARGE PHASES AT THE TOP OF THE ACTION
+ * ITERATION AGAIN, i.e. ABOVE the previous action's settles and above `_updateAll()`, exactly as this
+ * engine did until today. The authority closes EVERY action -- the switch included -- with
+ * `eachEvent('Update')` (sim/battle.ts:2858) and the mega is a SEPARATE action at queue order 104, so
+ * an entry White Herb is spent one whole action before the mega. Any run carrying the knob also
+ * carries a non-zero `MEDFAILS.megaBeforeUpdateRestored`. */
+const MEGA_BEFORE_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MEGA_BEFORE_UPDATE==='1');
+/* 2026-09-06 -- MEDI_PICKPOCKET_ON_A_CORPSE=1 LETS A THIEF THAT DIED TO THE CONTACT HIT STILL STEAL,
+ * exactly as this engine did until today. `runEvent` skips an Ability handler whose holder answers
+ * `ignoringAbility()`, and that function opens `if (this.battle.gen >= 5 && !this.isActive) return
+ * true;` (sim/pokemon.ts) while `faintMessages` sets `pokemon.isActive = false` (sim/battle.ts:2564).
+ * Any run carrying the knob also carries a non-zero `MEDFAILS.pickpocketOnCorpseRestored`. */
+const PICKPOCKET_ON_CORPSE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PICKPOCKET_ON_A_CORPSE==='1');
 /* ROADMAP #144, 2026-08-23 -- MEDI_DMG_OWNTYPE_BLIND=1 PUTS THE DAMAGE PATH BACK TO THE PRINTED TYPE:
  * `dmgRangeOneHit` stops reading `setsOwnTypeAlways`, so Struggle is priced as a NORMAL move again --
  * x1.5 STAB out of a Normal body and ZERO into a Ghost, which is where the differential's residual
@@ -22971,6 +23027,35 @@ function sideWiped(S){
 function battleOver(S){
   return S.turn>=(S.maxTurns||20)||sideWiped(S);
 }
+/* 2026-09-06 -- `Battle#boost`'s THIRD REFUSAL, AND IT IS NOT `sideWiped` WEARING ANOTHER NAME.
+ *
+ *     if (!target?.hp) return 0;                                             sim/battle.ts:2026
+ *     if (!target.isActive) return false;                                                 :2027
+ *     if (this.gen > 5 && !target.side.foePokemonLeft()) return false;                    :2028
+ *
+ * The third asks about ONE side -- the FOE of whoever is being boosted -- where `sideWiped(S)` asks
+ * about either. On every board reachable today the two coincide, because a body that is alive to be
+ * boosted has not emptied its own side; they are still not the same question, and this one is the
+ * authority's and is asked of a BODY rather than of a battle. Written as its own function so that
+ * "may this body be boosted" has ONE implementation here, per CLAUDE.md's facts-are-global rule.
+ *
+ * IT FIRES ON A BOARD THE AUTHORITY HAS NOT YET DECLARED OVER, and that is the whole reachability
+ * argument. `pokemonLeft` is decremented inside `faintMessages` (sim/battle.ts:2550) INDEPENDENTLY
+ * of its `checkWin` argument, and `hitStepMoveHitLoop` calls it as
+ * `faintMessages(false, false, !pokemon.hp)` (scripts.ts:547) -- checkWin FALSE while the attacker
+ * lives. So the count reaches zero, the battle is not yet won, and `useMoveInner`'s `selfBoost` call
+ * one frame later (battle-actions.ts:520) is refused by this clause and by nothing else.
+ *
+ * A BODY ON NEITHER SIDE REFUSES NOTHING AND IS COUNTED. Answering `true` for an unlocatable body
+ * would silently delete boosts; answering `false` quietly would hide a reader that has lost its
+ * state. `MEDFAILS.foeSideUnlocatable` is the loud half and must stay at 0. */
+function foeSideEmptyFor(S,f){
+  if(!S||!f)return false;
+  const onA=(S.actA&&S.actA.indexOf(f)>=0)||(S.benchA&&S.benchA.indexOf(f)>=0);
+  const onB=(S.actB&&S.actB.indexOf(f)>=0)||(S.benchB&&S.benchB.indexOf(f)>=0);
+  if(onA===onB){MEDFAILS.foeSideUnlocatable=(MEDFAILS.foeSideUnlocatable||0)+1;return false;}
+  return _live(onA?S.actB:S.actA).length+_live(onA?S.benchB:S.benchA).length===0;
+}
 /* WIRE 139 -- A MOVE TARGETS A SLOT, AND FIVE OF THE SEVEN BRANCHES STILL TARGETED A POKEMON.
  *
  * Will, 2026-08-08: *"we gotta target slots, not mons, maybe that would help with things pivoting
@@ -25232,11 +25317,30 @@ function battleTurn(S,rng,actsForA,actsForB){
        * applied outside a turn cannot read a stale queue -- that road is counted, not silently taken.
        * `_TURN` has `break`s in it and the drop is on the outer side of all of them. */
       ENCORE_Q={acts,at:actIdx};
-      if(!_megaPhaseDone&&acts[actIdx]&&(acts[actIdx]._pri||0)<6)_megaPhase(actIdx);
-      /* ROADMAP #322 -- 104 THEN 107. Same trigger as the mega phase, strictly after it: the first
-       * action that is not a bare switch is exactly "the switches are done", and the mega phase runs
-       * on the line above. See the header on `_chargePhase`. */
-      if(!_chargePhaseDone&&acts[actIdx]&&(acts[actIdx]._pri||0)<6)_chargePhase(actIdx);
+      /* 2026-09-06 -- THE MEGA AND CHARGE PHASES ARE ACTIONS OF THEIR OWN AND THEY WERE STANDING IN
+       * THE PREVIOUS ACTION'S TAIL.
+       *
+       * Everything from `midClearActiveMove` down to `_updateAll()` below is the authority's tail of
+       * action k -- `clearActiveMove()` (:2828), the settles, `faintMessages(); if (this.ended)
+       * return true;` (:2832-2833) and `eachEvent('Update')` (:2858). A megaEvo is action k+1: it
+       * carries queue order 104, between `switch` (103) and every move (200), which is exactly what
+       * `TURN_ORDER` in this file already says. So it belongs BELOW that whole block, not above it.
+       *
+       * MEASURED, one board-material game on release `a35ef476d6db`: an Intimidate switched in,
+       * lowered Attack on both foes, and the authority spent the White Herb THERE -- on the pass that
+       * closes the switch action -- before evolving a Raichu, while this engine evolved first and ate
+       * the herb afterwards. `ordering :: |-enditem|p1b|whiteherb <> |detailschange|p2a|raichumegay`.
+       *
+       * THE GATE IS STILL READ WHERE IT WAS READ, above `_resortTail`, and only the CALL is deferred.
+       * The gate asks `acts[actIdx]._pri < 6`, i.e. "the bare switches are done", and the re-sort
+       * below can change which entry sits at `actIdx` -- so evaluating it after the re-sort would be
+       * asking a different question, not the same one later. One boolean for both phases because the
+       * two gates are the identical expression, and both functions carry their own done-flag.
+       *
+       * IT IS NOW BELOW THE `sideWiped` BREAK TOO, which is correct rather than incidental: the
+       * authority's `if (this.ended) return true` at :2833 is above the mega action as well. */
+      const _phasesDue=(!(_megaPhaseDone&&_chargePhaseDone))&&acts[actIdx]&&(acts[actIdx]._pri||0)<6;
+      if(MEGA_BEFORE_UPDATE&&_phasesDue){MEDFAILS.megaBeforeUpdateRestored=1;_megaPhase(actIdx);_chargePhase(actIdx);}
       /* ROADMAP #240 -- the post-action re-sort, gated on the head of the live queue. `actIdx > 0`
        * because nothing has happened yet before the first action: the top-of-turn sort IS the
        * authority's `commitChoices` sort, and `runAction` has not run. See `_resortTail`. */
@@ -25283,6 +25387,10 @@ function battleTurn(S,rng,actsForA,actsForB){
        * one there: the loop-top schedule cannot see the action that ended it. */
       if(sideWiped(S)){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedMidAction++;break _TURN;}
       _updateAll();
+      /* ...AND THE MEGA / CHARGE PHASES RUN HERE, one line below the Update pass that closes the
+       * previous action. See the gate above for why the CONDITION is read up there and only the call
+       * is deferred. ROADMAP #322's "104 THEN 107" ordering is preserved exactly. */
+      if(!MEGA_BEFORE_UPDATE&&_phasesDue){MEDSEEN.megaPhaseBelowUpdate++;_megaPhase(actIdx);_chargePhase(actIdx);}
       _oppSnap=opportunistSnapshot(actA,actB);
       const it=acts[actIdx];const m=it.mon;
       /* 2026-08-26 -- DID A SIDE GUARD'S REFUSAL GET WALKED THROUGH BY `runEvent('HitProtect')` ON
@@ -37411,6 +37519,32 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* EVERY REFUSAL IS COUNTED, so `pickpocketDeferred` MINUS `pickpocketPaidAtEvent` is
            * accounted for and a theft that quietly never happened cannot hide as one that was
            * legitimately refused. */
+          /* 2026-09-06 -- AND A CORPSE STEALS NOTHING, WHICH IS NOT PICKPOCKET'S RULE AT ALL.
+           * The handler above has no hp test and no fainted test; the refusal is one level up, in
+           * `runEvent`:
+           *
+           *     } else if (eventid !== 'End' && effect.effectType === 'Ability' &&
+           *                (effectHolder instanceof Pokemon) && effectHolder.ignoringAbility())
+           *                                                                    sim/battle.ts
+           *     ignoringAbility() { if (this.battle.gen >= 5 && !this.isActive) return true; ... }
+           *                                                                    sim/pokemon.ts
+           *     faintMessages(): pokemon.fainted = true; pokemon.isActive = false;   :2563-2564
+           *
+           * So EVERY ability handler on a fainted body is skipped, `End` alone excepted. That is a
+           * general clause and only this one site is wired for it -- said plainly rather than left
+           * to be discovered: the other ability roads in this file are not audited against
+           * `ignoringAbility`'s `!isActive` arm here, and a second one arriving needs its own probe.
+           *
+           * IT IS THE OTHER HALF OF BATCH E's PICKPOCKET FIX AND IT WAS INVISIBLE UNTIL THAT LANDED.
+           * The theft used to be paid inside the per-hit reaction block, ABOVE `faintMessages`, where
+           * the thief was not a corpse yet. Measured on release `8f446527f6f4`, one board-material
+           * game: a Talonflame's Dual Wing Beat killed a Tinkaton and this engine handed the CORPSE
+           * the attacker's Wide Lens -- two bodies' items wrong, one of them a party leaf that lasts
+           * the rest of the game. tests/probe_pickpocket_on_a_corpse.js. */
+          if(_tg.fainted){
+            if(PICKPOCKET_ON_CORPSE)MEDFAILS.pickpocketOnCorpseRestored=1;
+            else{MEDSEEN.pickpocketRefusedCorpse++;MEDSEEN.pickpocketRefusedAtEvent++;continue;}
+          }
           if(_st.requiresEmptyHand&&itemOn(_tg)){MEDSEEN.pickpocketRefusedAtEvent++;continue;}
           if(!itemOn(m)||itemRefusesTake(m)){MEDSEEN.pickpocketRefusedAtEvent++;continue;}
           /* ROADMAP #462 -- the doors. `source.item` in the handler is the identity read. */
@@ -37501,7 +37635,24 @@ function battleTurn(S,rng,actsForA,actsForB){
       {
         const _sb2=selfBoostVia(a.move.id);
         const _tbl=(_sb2==='selfBoost'&&_reached>0&&!SELFBOOST_IN_LOOP)?(a.move.mv&&a.move.mv.self):null;
-        if(_tbl&&!m.fainted&&m.boosts){
+        /* 2026-09-06 -- AND THE AUTHORITY REFUSES IT OUTRIGHT ONCE THE OTHER SIDE IS EMPTY. This is
+         * `Battle#boost`'s third guard (sim/battle.ts:2028) and it is reachable HERE and at no other
+         * boost site in this file, because `faintMessages` has already counted the KO'd body off
+         * (scripts.ts:547) and `useMoveInner` pays this one below it (battle-actions.ts:520).
+         *
+         * THE IN-LOOP `selfDrops` PAYMENT DELIBERATELY DOES NOT GET THIS GUARD, and the asymmetry is
+         * the reason it goes here rather than into a shared boost writer: `selfDrops` runs at
+         * scripts.ts:385, ABOVE the decrement, so Close Combat's own drop is still paid on the swing
+         * that wins the game and adding the clause there would delete a boost the authority pays.
+         *
+         * MEASURED, three board-material games on release 14b62cd5aeec, all one click: a Kommo-o's
+         * Clanging Scales takes the last body down and this engine wrote `|-unboost|<it>|def|1` that
+         * the authority never wrote -- twice against a Life Orb toll and once past the end of
+         * showdown's stream entirely. tests/probe_selfboost_empty_foe_side.js. */
+        const _sbRefused=!!_tbl&&!SELFBOOST_EMPTY_FOE&&foeSideEmptyFor(S,m);
+        if(_tbl&&SELFBOOST_EMPTY_FOE&&foeSideEmptyFor(S,m))MEDFAILS.selfBoostEmptyFoeRestored=1;
+        if(_sbRefused)MEDSEEN.selfBoostRefusedEmptyFoeSide++;
+        if(_tbl&&!_sbRefused&&!m.fainted&&m.boosts){
           MEDSEEN.selfBoostPaidAfterLoop++;
           const _sg2=invSign(m);   // WIRE 100b -- Contrary flips this exactly as it flips selfDrops
           for(const k in _tbl){const _st3=SD2ENG[k];
@@ -37705,7 +37856,39 @@ function battleTurn(S,rng,actsForA,actsForB){
          `dealt` and `_reached` are read exactly as before; nothing about the pivot's own conditions
          has changed. The `!m.fainted && m.curHP > 0` gate is the `pokemon.hp` guard and now sits below
          the three things that can kill the user, which is the whole point of the move. */
-      if(!m.fainted&&m.curHP>0&&dealt>0&&TAGS.has('move',a.move.id,'pivotDamaging')){
+      /* 2026-09-06 -- ...AND A PIVOT THAT ENDED THE BATTLE DOES NOT PIVOT. `selfSwitch` is a FLAG, not
+       * a switch: `useMoveInner` writes `source.switchFlag = move.id` (sim/battle-actions.ts:1311)
+       * and `Battle#runAction` is what turns the flag into a request -- with two statements in
+       * between that this engine has no equivalent of at this point in the action:
+       *
+       *     this.faintMessages();                                          sim/battle.ts:2832
+       *     if (this.ended) return true;                                                :2833
+       *     const switches = this.sides.map(side => side.active.some(...switchFlag));   :2874
+       *     for (const playerSwitch of switches) if (playerSwitch) this.makeRequest(..) :2906
+       *
+       * THAT `faintMessages()` TAKES ITS DEFAULT `checkWin = true`, which is the whole difference
+       * from the one inside the hit loop (`faintMessages(false, false, !pokemon.hp)`,
+       * scripts.ts:547). So the wiping KO wins the battle HERE and :2833 returns above the switch,
+       * and the flag stays set on a body that never leaves.
+       *
+       * `sideWiped(S)` IS THIS ENGINE'S OWN `checkWin` and not a second copy of the rule -- the same
+       * predicate the three `break _TURN` sites read, and the same one `_stepAfterFaint` asks. Its
+       * header already says why this window exists at all: medicham2's win test is at the TOP OF THE
+       * NEXT ACTION, so everything between a wiping KO and that point is paid here and refused
+       * there.
+       *
+       * MEASURED, two board-material games on release c273d4301fd1: a Flip Turn KOs the last body
+       * and the authority stops emitting, while this engine wrote
+       * `|switch|p2a: Pelipper|pelipper, L50|71/135|[from] flipturn` after it.
+       * tests/probe_pivot_after_battle_end.js.
+       *
+       * NOT WIDENED TO THE STATUS PIVOT, and said rather than left to be found: `pivotStatus`
+       * (Parting Shot, Chilly Reception, Baton Pass, Shed Tail) deals no damage, so a status pivot
+       * cannot be the click that empties a side and the clause would have no arm to fire on. */
+      if(!m.fainted&&m.curHP>0&&dealt>0&&TAGS.has('move',a.move.id,'pivotDamaging')
+         &&(()=>{ if(!sideWiped(S))return true;
+                  if(PIVOT_AFTER_END){MEDFAILS.pivotAfterBattleEndRestored=1;return true;}
+                  MEDSEEN.pivotRefusedBattleEnded++; return false; })()){
         const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
         const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;
         const idx=own.indexOf(m);
@@ -38820,10 +39003,37 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
       }
       const _mgi=_ph||((m.status==='brn'||m.status==='psn'||m.status==='tox')&&refusesIndirect(m));
-      if(m.status==='brn'&&!_mgi){m.curHP-=Math.max(1,Math.floor(m.st.hp/16));if(TR)TR.dmg(m,'[from] brn');}
-      if(m.status==='psn'&&!_mgi){m.curHP-=Math.max(1,Math.floor(m.st.hp/8));if(TR)TR.dmg(m,'[from] psn');}   // regular poison: a flat 1/8
+      /* 2026-09-06 -- AND AN ABILITY MAY *SCALE* THE CHIP, WHICH IS A THIRD THING AND NOT A SOFTER
+       * VERSION OF EITHER OF THE OTHER TWO. Magic Guard REFUSES a class (`refusesIndirect` above),
+       * Poison Heal CONVERTS one status into a heal (`_ph` above), and Heatproof multiplies:
+       *
+       *     heatproof.onDamage(damage, target, source, effect) {
+       *       if (effect && effect.id === 'brn') { return damage / 2; }   data/abilities.ts:1838
+       *     }
+       *
+       * THE ROUNDING IS THE AUTHORITY'S AND IT CLAMPS TWICE. `Battle#damage` -> `spreadDamage` runs
+       * `targetDamage = this.clampIntRange(targetDamage, 1)` ABOVE `runEvent('Damage')` and again
+       * BELOW it (sim/battle.ts), and `clampIntRange` floors before it clamps. So the chip is
+       * `max(1, floor(maxhp/16))` and what a scaler leaves is `max(1, floor(that * mult))` -- 9 then
+       * 4 on a 146-HP body, which is the `142/146` against `137/146` the whole-game differential
+       * reported. Halving the FRACTION instead would give `floor(146/32) = 4` here and would be one
+       * point out wherever the two roundings disagree.
+       *
+       * IT IS APPLIED TO ALL THREE CHIPS THROUGH ONE FUNCTION, gated by the tag's own `statuses`
+       * list, so an ability that scales poison joins by EXISTING rather than by an edit here. Today
+       * the tag has exactly one member and it names `brn`; that was PRINTED before this was wired. */
+      const _chipScale=(n)=>{
+        const _sc=TAGS.param('ability',m.ability,'scalesOwnStatusDamage');
+        if(!(_sc&&Array.isArray(_sc.statuses)&&_sc.statuses.includes(m.status)))return n;
+        if(!(+_sc.mult>0&&+_sc.mult!==1))return n;
+        if(STATUS_CHIP_UNSCALED){MEDFAILS.statusChipUnscaledRestored=1;return n;}
+        MEDSEEN.statusChipScaled++;
+        return Math.max(1,Math.floor(n*+_sc.mult));
+      };
+      if(m.status==='brn'&&!_mgi){m.curHP-=_chipScale(Math.max(1,Math.floor(m.st.hp/16)));if(TR)TR.dmg(m,'[from] brn');}
+      if(m.status==='psn'&&!_mgi){m.curHP-=_chipScale(Math.max(1,Math.floor(m.st.hp/8)));if(TR)TR.dmg(m,'[from] psn');}   // regular poison: a flat 1/8
       if(m.status==='tox'){m.toxTurns=(m.toxTurns||0)+1;                        // Toxic: n x 1/16, escalating
-        if(!_mgi){m.curHP-=Math.max(1,Math.floor(m.st.hp/16))*Math.min(15,m.toxTurns);if(TR)TR.dmg(m,'[from] psn');}}
+        if(!_mgi){m.curHP-=_chipScale(Math.max(1,Math.floor(m.st.hp/16))*Math.min(15,m.toxTurns));if(TR)TR.dmg(m,'[from] psn');}}
       }
       /* WIRE 29 -- passiveHeal, from the item's own tag instead of a Leftovers name check. The tag
        * carries the fraction (0.0625 = 1/16) and the name check carried the same number typed out, so
