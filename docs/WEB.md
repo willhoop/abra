@@ -109,16 +109,30 @@ roster, which is what the Open item below used to ask for.
   there is no Pokémon here rather than inventing one.
 
 - **Carry the caveat onto the page.** The Stadium prints MEDICHAM's Brier loss against a coin, and
-  MILTANK's cabinet says its 55.5% is biased high by the stopping rule. A CI is not simplified away
-  for a cleaner card.
+  MILTANK's cabinet says its head-to-head share is biased high by the stopping rule. A CI is not
+  simplified away for a cleaner card.
 
-  **And when the caveat itself goes stale, quote the artifact and strike the old claim.** This entry
-  used to read *"MEDICHAM's win rate is below chance and the Stadium says so"*. That was the
-  2026-07-23 reading. `data/winrate-backtest.json`, measured 2026-08-04, puts the live in-game leaf at
-  **51.0%** of 1,314 decisive calls, 95% CI **[48.3, 53.7]** — worse than a coin on Brier, but an
-  interval that *contains* chance, so "below chance, systematically inverted" is a stronger claim than
-  the evidence now supports. A memorable caveat is exactly the kind of sentence that survives the
-  measurement it came from.
+  **AND WHERE THE ARTIFACT UNDER THE CAVEAT IS QUARANTINED, A CAVEAT IS NOT ENOUGH — THE FIGURE IS
+  WITHHELD.** This bullet used to name MILTANK's share against MAG greedy as a bare percentage with no
+  artifact cited at all, which is two defects in one sentence. It is withheld, not annotated.
+  MILTANK's head-to-head share: QUARANTINED — the figure is withheld, not annotated.
+  `data/rollout-r4.json` is downstream of MEDICHAM, and `engine/quarantine.js` withholds every figure
+  downstream of the simulator while MEDICHAM is not correct. `docs/SEARCH.md` gives the same ruling on
+  the same figure — it is not retracted, it is unquotable — and an uncited figure is worse again,
+  because there is nothing for a reader to check it against. It becomes quotable again when the gate
+  opens AND this is re-run: `node engine/rollout_r4.js`.
+
+  **And when the caveat itself goes stale, strike the old claim — and when the artifact under it is
+  QUARANTINED, strike it and print NOTHING in its place.** This entry read *"MEDICHAM's win rate is
+  below chance and the Stadium says so"*, which was the 2026-07-23 reading, and was then rewritten to
+  quote a leaf calibration figure faithfully out of `data/winrate-backtest.json`. A faithful citation
+  of a quarantined artifact is still a republication. Leaf calibration: QUARANTINED — the figure is
+  withheld, not annotated. `data/winrate-backtest.json` is downstream of MEDICHAM: it was measured on
+  2026-08-04 against an `engine/medicham2-browser.js` of **134,648** bytes, which the artifact records
+  in its own `measured_against` block, and the live simulator is more than twenty times that size — so
+  it is a claim about a build that no longer exists. No point estimate, no interval and no sample size
+  is carried in its place. It becomes quotable again when the gate opens AND this is re-run:
+  `node engine/backtest_winrate.js`.
 
 - **An interactive control may not interpolate.** A dial with stops at two measured points and a
   smooth path between them is authoring a number at every position on that path. So every control on
@@ -332,8 +346,9 @@ roster, which is what the Open item below used to ask for.
   recording why it was possible.** `web/models.html` went from THE DECIDERS (MAG, DITTO, the value
   nets, KADABRA) straight to the ALAKAZAM capstone. **MILTANK — the shipping search player — was not
   on the map at all**, so nothing on the page showed that a search exists, that it imagines ~200
-  games per option, or that its judge names the winner on 51.0% of decisive calls with a CI of
-  [48.3, 53.7]. A map that omits the thing choosing the moves is not a map of the models.
+  games per option, or that its judge's calibration had ever been measured — a figure now WITHHELD
+  under the MEDICHAM quarantine, per the ruling above. A map that omits the thing choosing the moves
+  is not a map of the models.
   Added in this pass: a **THE SEARCH** band carrying MILTANK, **GARY** (the imagined opponent, named
   2026-08-06 and drawn in the quarantine colour because it defaults to a coin) and **DUSK** (planned,
   the endgame tablebase), plus a drawn **language boundary** — 127 JavaScript files must play because
@@ -344,8 +359,9 @@ roster, which is what the Open item below used to ask for.
   RETIRED alongside PORY, which genuinely is retracted; and ALAKAZAM's build order read
   *"… → value net → belief → search"*, which is the wrong order for a game whose median length is 6
   turns, because a rollout that reaches a real terminal state has no position left to approximate.
-  **WEB still authors no number here** — the 51.0% is cited to `data/winrate-backtest.json`, the two
-  defaults to their source lines, and the 6-turn median to `docs/POKER-TO-POKEMON.md` §4b.
+  **WEB still authors no number here** — the leaf calibration figure this bullet carried is WITHHELD
+  under the MEDICHAM quarantine rather than cited, the two defaults go to their source lines, and the
+  6-turn median to `docs/POKER-TO-POKEMON.md` §4b.
   *Open part:* the SEARCH band's figures are **typed, not wired**. `web/status-data.js` carries no
   scalar for the leaf's accuracy or for `foePolicy`, so these will drift exactly the way *"3k good
   games"* and *"5,368 real teams"* did. Wiring them is the follow-up, and it needs MEASURE to stamp

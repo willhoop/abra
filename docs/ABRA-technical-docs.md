@@ -1,6 +1,8 @@
 # ABRA — Technical Documentation
 
-**Version 5.258.0 · Last updated 2026-09-06**
+**Version 5.259.0 · Last updated 2026-09-06**
+
+**5.259.0 - TWO CITED FIGURES ARE CORRECTED.** **RULE.** A figure must be present in the artifact it cites. **DEFECT 1.** The white paper and the summary attributed a length ratio and a kept/dropped pair to `data/quality-filter.json`. That file does not contain those values, and no version of it contains a mean-turn field. **ACTION.** Use the funnel step the artifact records, `provenance.funnel.after_min_turns` to `provenance.funnel.after_full_bring`. Withdraw the ratio. **DEFECT 2.** `docs/WEB.md` published a leaf calibration figure from a quarantined artifact, and a head-to-head share with no citation. **ACTION.** Withhold both figures. Give the condition and the command that make each quotable again.
 
 **5.258.0 - THE PUBLISHED WHOLE-GAME FIGURE IS RE-MEASURED AND REPUBLISHED.** **PUBLICATION.** `data/game-differential.json` is republished off a settled tree. It holds board-material 50 of 961 and protocol first-divergence 151 of 961. **CONDITIONS.** Release `db248fe67a5e`. 961 games. Cap 20. Arm `middle`. Steering `empirical`. End-state comparison on. Census pin `data/verification/census-pin-9446a684709d.json`. Pool `--team-store data/team-pool-frozen`. **PRIOR STATE.** The file held 46, measured on a superseded release, for 1.3 days. Both whole-game clauses failed on withheld staleness. **CURRENT STATE.** Both clauses fail on the measured counts. **DETAIL.** 911 games never part a board. 4 of the 50 part a board with no protocol divergence in the game. 10376 of 10539 compared turn boundaries are identical. **PROOF OF PUBLICATION.** The settled-tree run reproduces the last fix step byte for byte on `classes`, `first_divergences`, `state.first_board_divergences` and the by-cause summary.
 

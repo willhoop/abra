@@ -1,6 +1,8 @@
 # ABRA — the model family (living reference)
 
-**Version 5.258.0 · Last updated 2026-09-06.**
+**Version 5.259.0 · Last updated 2026-09-06.**
+
+**5.259.0 - NO MODEL CHANGED AND NO QUARANTINED FIGURE BECAME QUOTABLE. WHAT MOVED IS THAT TWO OF THEM STOPPED BEING PUBLISHED WHERE THE QUARANTINE COULD NOT SEE THEM.** `docs/WEB.md` was republishing MEDICHAM's leaf calibration out of `data/winrate-backtest.json` and MILTANK's head-to-head share with no artifact cited at all. Both are withheld there now, on the same terms this ledger already uses. The mechanism is worth recording: `engine/docs_scan.js` has no quarantine clause, so a faithful citation of a quarantined artifact PASSES every documentation gate, and `docs/WEB.md` receives no generated stamp from `engine/status.js --write`, so nothing in it can self-correct.
 
 **5.258.0 - NO MODEL CHANGED, NO FITTED VECTOR WAS WRITTEN AND NO QUARANTINED FIGURE BECOMES QUOTABLE. WHAT MOVED IS THE DISTANCE TO THE GATE, AND FOR THE FIRST TIME IN FOUR VERSIONS IT MOVED IN THE PUBLISHED ARTIFACT RATHER THAN IN A VERIFICATION ONE.** Every model in this ledger sits downstream of MEDICHAM, so the only thing this file records is that distance. `data/game-differential.json` was republished off a settled tree on release `db248fe67a5e` - 961 games, cap 20, empirical arm, pool `data/team-pool-frozen` - and holds **board-material 50 of 961 and protocol first-divergence 151 of 961**. Both whole-game clauses had been failing on WITHHELD STALENESS rather than on a count; they now fail on the counts. `node engine/status.js` reads **7 of 9 clauses passing**. Leaf calibration, the leaf-cost figure, the divergence and head-to-head results, the joint layer's numbers and every model report that reads a rollout stay WITHHELD rather than annotated.
 

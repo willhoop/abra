@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-27T23:38:54.607Z",
+  "generated": "2026-09-06T08:19:35.750Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.187.0",
+  "changelog_top_at_baseline": "5.259.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -186,21 +186,17 @@
       "docs/ABRA-whitepaper.md|0.5522%|data/policy-weights.json,data/click-censoring-census.json",
       "docs/ABRA-whitepaper.md|0.583|data/pory-eval.json",
       "docs/ABRA-whitepaper.md|1.6%|data/pory-eval.json",
-      "docs/ABRA-whitepaper.md|1.71|data/quality-filter.json",
       "docs/ABRA-whitepaper.md|18|data/slowking-eval.json,data/slowking-playstyle-eval.json",
-      "docs/ABRA-whitepaper.md|19,589|data/quality-filter.json",
       "docs/ABRA-whitepaper.md|236|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|31%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|4.54|data/xatu.json,data/policy-eval.json",
       "docs/ABRA-whitepaper.md|47%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|51%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|67%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
-      "docs/ABRA-whitepaper.md|7.4|data/quality-filter.json",
       "docs/ABRA-whitepaper.md|71%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|71.6%|data/xatu.json,data/policy-eval.json",
       "docs/ABRA-whitepaper.md|73%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|756|data/slowking-eval.json,data/slowking-playstyle-eval.json",
-      "docs/ABRA-whitepaper.md|8,713|data/quality-filter.json",
       "docs/MODELS.md|0.0155|data/counterplay.json",
       "docs/MODELS.md|0.0386|data/counterplay.json",
       "docs/MODELS.md|0.0617|data/counterplay.json",
@@ -239,12 +235,8 @@
       "docs/MODELS.md|90|data/counterplay.json",
       "docs/MODELS.md|99|data/collinearity-joint.json",
       "docs/MODELS.md|−1.0502|data/policy-weights.json",
-      "docs/SUMMARY.md|1.71|data/quality-filter.json",
       "docs/SUMMARY.md|146,910|data/policy-weights.json",
-      "docs/SUMMARY.md|19,589|data/quality-filter.json",
-      "docs/SUMMARY.md|6,091|data/policy-weights.json",
-      "docs/SUMMARY.md|7.4|data/quality-filter.json",
-      "docs/SUMMARY.md|8,713|data/quality-filter.json"
+      "docs/SUMMARY.md|6,091|data/policy-weights.json"
     ],
     "untraceable_by_doc": {
       "docs/ABRA-technical-docs.md": 1,

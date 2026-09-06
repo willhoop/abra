@@ -1,6 +1,8 @@
 # ABRA — the plain-English deck
 
-**Version 5.258.0 · 2026-09-06 · Will Hooper**
+**Version 5.259.0 · 2026-09-06 · Will Hooper**
+
+**5.259.0 - WE CORRECTED TWO NUMBERS WE HAD PUBLISHED, AND IN BOTH CASES THE PROBLEM WAS WHERE WE SAID THEY CAME FROM.** The first said our "did they bring all four" filter keeps games a certain amount longer, and pointed at a file that has never contained that figure — not today, and not in any of the six versions it has ever had. We replaced it with the step that file really does record, and we deleted the ratio outright rather than guess at a new one. The second was a score for how well the engine's judgement predicts a winner. That score was faithfully copied from a real file, but the file is QUARANTINED because it was measured against a simulator we have since rewritten, so the honest thing is to print nothing at all. A warning label next to a number people still read is not a warning; it is a number.
 
 **5.258.0 - THE NUMBER WE PUBLISH AND THE NUMBER WE MEASURED ARE THE SAME NUMBER AGAIN. IT IS 50 GAMES OUT OF 961.** For several nights running, this page has had to say that the score everyone reads was deliberately not being rewritten, because the engine and the measuring tool were both being edited and rewriting a score in the middle of that is how a number appears that nobody can trace. Tonight the tree was settled, so it was rewritten. **`data/game-differential.json` now holds 50 games out of 961 where our simulator and the real one end up with a different board, and 151 out of 961 where their running commentary stops matching.** The file had been carrying 46 from an older engine for a day and a bit, and while it did, both of the questions the project uses it to answer were failing for the wrong reason - they were failing because the file was out of date, not because of anything measured. **Now they fail on real counts, which is worse-sounding and much more useful.**
 

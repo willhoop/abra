@@ -1,6 +1,8 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.258.0 — 2026-09-06.**
+**Version: 5.259.0 — 2026-09-06.**
+
+**5.259.0 - NOTHING IN THE DAMAGE CHAIN MOVED.** This version is a documentation correction to two published figures elsewhere — a mis-cited quality-filter statistic and a quarantined leaf calibration figure. No stage, no multiplier and no ordering in this document is affected, and the header moves only because the project version does.
 
 **5.258.0 - NO DAMAGE STAGE MOVED AND NO MULTIPLIER VALUE CHANGED, BUT TWO OF TONIGHT'S FIVE ITEMS SIT CLOSE ENOUGH TO THIS CHAIN THAT SAYING SO IS THE POINT OF THE BLOCK.** Nothing in this document's stage table, its multiplier classes or its ordering changes. **FAIRY AURA IS A BASE-POWER MODIFIER AND ITS MULTIPLIER WAS ALWAYS CORRECT** - what was wrong was the FIELD it read. `field.aura` had two writers where the identically-shaped `recomputeWeatherSuppression` has four, so a holder that had left, returned or been killed went on pricing Fairy moves at a value that was itself right. **A stage table cannot see that defect and would have called this engine clean**, because the stage is asked *what does this multiplier do* and the defect was *is this multiplier present*. **BIG ROOT IS AN ORDERING FACT ON THE HEAL CHAIN, NOT THE DAMAGE CHAIN**, and it is the same shape one road over: `Battle#heal` truncates the base value BEFORE it runs `TryHeal`, so `trunc(155/16) = 9` then `modify(9, 5324, 4096) = 12`, while folding the multiplier into the fraction reaches 12 by luck and truncating after a float multiply reaches 11. **Truncation position is the thing this page exists to pin, and it was wrong on a chain this page does not cover.**
 

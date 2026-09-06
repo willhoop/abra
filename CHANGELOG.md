@@ -10,6 +10,68 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.259.0] — 2026-09-06
+
+### Fixed
+- **THE WHITE PAPER AND THE SUMMARY CITED THREE FIGURES TO AN ARTIFACT THAT HAS NEVER HELD THEM.**
+  The full-bring paragraph read *"measured 2026-07-31, the games it keeps are 1.71x longer on average
+  (7.4 vs 4.3 mean turns; 19,589 kept vs 8,713 dropped)"*, citing `data/quality-filter.json`. That
+  file has **six commits in its entire history** and **not one of them contains either count**;
+  stronger, **no version of it has ever carried a mean-turn field at all** — the only turn keys it has
+  ever had are `min_turns` and `after_min_turns`. So the citation could not have supported any of the
+  three on any day since the file existed. **This is not a stale citation. It is a citation that never
+  held**, which is the worse of the two: staleness is a clock problem and has a clock fix, while a
+  figure sitting next to a path it was never in looks exactly like a figure that was read out of it.
+- **THE COUNTS ARE CORRECTED TO THE ARTIFACT'S OWN FUNNEL; THE RATIO IS WITHDRAWN, NOT RESTATED.**
+  `data/quality-filter.json` at version 1.3.0, `provenance.measured_on` 2026-08-27,
+  `provenance.store_size` **67,384**, records `provenance.funnel.after_min_turns` **26,142** and
+  `provenance.funnel.after_full_bring` **18,908** — so the rule keeps 18,908 and drops 7,234, that
+  second figure being the subtraction of two named fields rather than a field. The 1.71x ratio and the
+  7.4 / 4.3 mean turns are **WITHDRAWN**: nothing in the project measures a mean turn count today, and
+  a reconstruction over the raw stores does not reproduce the published pair. The length-conditioning
+  CLAIM is untouched and stands on the artifact's own `rules.require_full_bring.known_limitation`;
+  only its magnitude is withheld. It becomes quotable again when a pass through `engine/quality.js`
+  over a pinned store writes a mean-turn field and something reads it.
+- **WHERE THE ORIGINAL FIGURES CAME FROM, RECORDED SO THE CORRECTION IS NOT A DELETION.** They entered
+  at commit `fd59a4c7` on 2026-07-31 and were a REAL one-off measurement of a DIFFERENT POPULATION:
+  the UNION of the three raw, unfiltered stores as they stood that afternoon. `require_full_bring` in
+  the artifact runs after the bot, behavioural-bot, forfeit and min-turns rules; that measurement
+  applied it to raw stores with none of them, which is why its counts are roughly four times the
+  funnel's. They are therefore CORRECTED as a misattribution rather than called false — and they are
+  deliberately not entered in the derived retraction registry, because the review that made them
+  (`docs/THESIS-DEFENCE-REVIEW-2026-07-31.md`) states them as its own direct measurement of that
+  population on that date, which remains a true dated statement.
+- **`docs/WEB.md` WAS REPUBLISHING TWO QUARANTINED FIGURES AND BOTH ARE NOW WITHHELD.** The ledger
+  quoted MEDICHAM's leaf calibration out of `data/winrate-backtest.json` — faithfully, which is the
+  point: the artifact really does contain those values, so every documentation gate PASSED. The
+  artifact is downstream of MEDICHAM and was measured on 2026-08-04 against an
+  `engine/medicham2-browser.js` of **134,648** bytes, against a live simulator more than twenty times
+  that size. CLAUDE.md is explicit that a caption is not a quarantine, so the figure is withheld and
+  nothing is printed in its place; the entry now names the condition and the command,
+  `node engine/backtest_winrate.js`. **Three separate copies of that figure were in the file**, at the
+  Stadium caveat and twice in the model-map entry — leaving any one behind would have been the same
+  defect in a quieter place.
+- **MILTANK'S HEAD-TO-HEAD SHARE WAS PUBLISHED IN THE SAME FILE WITH NO ARTIFACT CITED AT ALL.** It is
+  `data/rollout-r4.json`, quarantined on the same grounds, and `docs/SEARCH.md` already gives the
+  ruling — *"not retracted; unquotable"*. It is withheld, with `node engine/rollout_r4.js` named as
+  what re-runs it. An uncited figure is its own defect and the more dangerous of the two, because
+  there is nothing for a reader to check it against and nothing for the citation gate to compare.
+
+### Notes
+- **Why nothing caught either of these, which is the part that generalises.** `engine/docs_scan.js`
+  contains no quarantine clause: its citation rule asks *"is this figure in the artifact it cites?"*,
+  and a quarantined artifact answers yes. `engine/status.js` withholds the figure while `docs_scan.js`
+  clears the document that republishes it. Separately, `engine/status.js --write` stamps ENGINE,
+  MEASURE, SEARCH and OPS and not WEB, and `docs/WEB.md` holds no `<!-- GENERATED -->` block — so
+  every number in the WEB ledger is hand-typed and cannot self-correct. Both are filed for MEASURE;
+  neither is fixed here.
+- No engine job, differential, census, roster or release cut was run in this pass, and
+  `engine/status.js --write` was not run — an ENGINE agent was editing the simulator and the tags
+  throughout. Every artifact read here was checked against the clock first or read at `HEAD`.
+- Full account: `docs/_reports/2026-09-06-figure-corrections.md`.
+
+---
+
 ## [5.258.0] — 2026-09-06
 
 ### Fixed
