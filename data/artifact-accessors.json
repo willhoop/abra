@@ -76,21 +76,29 @@
       "accessor": "engine/feature_fixture.js",
       "family": "policy-weights featureHashes.features",
       "why": "Ablation fit. Same one door — feature_fixture.verify() — reached only by an explicit `--check <file>`. Declared as WHO MAY READ IT, not as evidence it is read today."
+    },
+    "million-run.json:engine_counters": {
+      "accessor": "engine/million_run.js",
+      "function": "instrumentChecks(rows, counters) — engine/million_run.js:1269",
+      "family": "engine counter delta",
+      "why": "141 keys, 140 not flat, and they are the field names of the `MEDSEEN` object literal in engine/medicham2-browser.js — code identifiers on BOTH sides, never a name a human or a sheet writes. The one function that INDEXES the table is instrumentChecks(), which reads counters.flinch and counters.secondaryVolatileApplied by hard-coded literal and publishes its verdict beside the table as `instrument_checks`. Same shape as porygon2-species.json:mons and tag-consumption.json:by_tag — writer and reader are the same file, so keys and lookups cannot diverge today, and this entry is the WARNING if a second consumer appears. STATED PRECISELY, so this cannot be quoted as more than it is: instrumentChecks() indexes the live object before the artifact is written, and NOTHING reads the file's copy of the table by key. What reads the file is analysis: docs/_reports/2026-09-04-dead-counters-audit.md classifies 134 counter fields as PROVEN BY RUN and 363 as UNMEASURED purely from which keys are present here, and tests/test-counter-init.js exists BECAUSE this table carried `retaliateWhenLowered: null` in both artifacts — the only non-finite value in either. A table that is the sole record of which engine counters have ever moved is not dead.",
+      "supersedes": "deliberately_undeclared.superseded_2026_09_06 — the 2026-09-04 disposition DEAD TABLE, nothing reads it."
+    },
+    "million-run-150k.json:engine_counters": {
+      "accessor": "engine/million_run.js",
+      "function": "instrumentChecks(rows, counters) — engine/million_run.js:1269",
+      "family": "engine counter delta",
+      "why": "148 keys, 147 not flat. Same shape, same generator line, an older and larger run. Every clause above applies unchanged, including the `retaliateWhenLowered: null` that tests/test-counter-init.js cites.",
+      "supersedes": "deliberately_undeclared.superseded_2026_09_06 — the 2026-09-04 disposition DEAD TABLE, nothing reads it."
     }
   },
   "deliberately_undeclared": {
-    "note": "These tables trip the detector and are LEFT RED on purpose. A declaration is a claim that a reader exists; naming one that does not is the citation-shaped failure this repo has already paid for (a figure with a receipt and no source). tests/test-artifact-keys.js reads only `accessors`, so nothing here makes the gate green — that is the intent.",
-    "million-run.json:engine_counters": {
-      "disposition": "DEAD TABLE — nothing reads it",
-      "why": "141 keys, 140 not flat. Written at engine/million_run.js:1463 as `engine_counters: seenDelta`, and seenDelta is built at :1241-1242 as a per-run DELTA OF M.MEDSEEN — the simulator's bulk counter object. Nothing anywhere reads data/million-run.json back: engine/million_run.js never reads its own OUT (no readFileSync(OUT), no prev baseline, unlike tests/test-tag-consumed.js), and the only other mentions in the tree are quarantine METADATA listing the filename (web/quarantine-data.js, web/stadium.html, app/*) and tests/test-docs-current.js's figure census, which scans numeric VALUES across every data/*.json and never indexes a key. In-process, instrumentChecks() at :1269 reads exactly TWO names by hard-coded literal — counters.flinch and counters.secondaryVolatileApplied — from the LIVE object before the artifact is written; that is 2 of 141, and it is not a read of this artifact.",
-      "class": "Same finding as docs/_reports/2026-09-04-sweep-instrument.md §4 — 783 of 1048 counter fields that nothing reads, of which MEDSEEN itself is 544 of 644. This is that object published one layer down into an artifact, where bulk exposure makes it read as instrumented.",
-      "honest_remedy": "Either give it a named reader, or stop publishing the whole delta and publish only the counters something checks. Both are ENGINE/million_run decisions, not a key-convention decision, so neither is taken here."
-    },
-    "million-run-150k.json:engine_counters": {
-      "disposition": "DEAD TABLE — nothing reads it",
-      "why": "148 keys, 147 not flat. Byte-identical shape to million-run.json:engine_counters, written by the same line of the same generator on an older/larger run. Every clause above applies unchanged.",
-      "class": "See million-run.json:engine_counters.",
-      "honest_remedy": "See million-run.json:engine_counters."
+    "note": "EMPTY SINCE 2026-09-06, and the section stays so the reversal below is readable. These are tables that trip the detector and are LEFT RED on purpose. A declaration is a claim that a reader exists; naming one that does not is the citation-shaped failure this repo has already paid for (a figure with a receipt and no source). tests/test-artifact-keys.js reads only `accessors`, so nothing here makes the gate green — that is the intent.",
+    "superseded_2026_09_06": {
+      "what_it_said": "million-run.json:engine_counters and million-run-150k.json:engine_counters, both filed 2026-09-04 with the disposition 'DEAD TABLE — nothing reads it' and the remedy 'either give it a named reader, or stop publishing the whole delta'. ROADMAP #539 carried the decision and said the RED was correct and must not be cleared by declaring an accessor.",
+      "what_refuted_it": "The premise was that nothing reads the tables. Two things in this repository read them, and one of them is a test that would not exist otherwise. (1) docs/_reports/2026-09-04-dead-counters-audit.md derives its PROVEN BY RUN / UNMEASURED split — 134 and 363 counter fields — from which keys are present in these two artifacts and nowhere else. (2) tests/test-counter-init.js was written because these two artifacts both carry `retaliateWhenLowered: null`, JSON.stringify(NaN), the only non-finite value in either; its file header cites them by name. The 2026-09-04 finding was true of PROGRAMMATIC readers and it was read as true of all readers.",
+      "why_the_other_remedy_was_not_taken": "Stopping publication cannot clear the red and would destroy that evidence. The gate judges the two files ON DISK. Both were generated 2026-08-11 against release 84f466e7e0d2, both carry `GENERATED — do not hand-edit`, and regenerating them means playing games through MEDICHAM, which is under an ENGINE agent tonight and is the thing under quarantine. So removing the key from the writer would leave the gate red until a re-run, and stripping it from the two artifacts by hand would delete the lines tests/test-counter-init.js cites as its founding evidence. engine/million_run.js is unchanged by this pass.",
+      "what_is_still_open": "The audit's separate proposal — publish `engine_counters_zero` beside the delta, so a counter that stayed at zero is NAMED rather than silently omitted — is untouched here and is not a key-convention question. seenDelta keeps only the keys that MOVED, so this table can never report a zero."
     }
   }
 }

@@ -69,6 +69,63 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [Unreleased] — 2026-09-06 — the counter tables get the reader they always had, and the PDF rule grows from the ledger to the working document
+
+- **What changed — the red test.** `tests/test-artifact-keys.js` had been red since before this
+  session on `UNDECLARED: million-run-150k.json:engine_counters, million-run.json:engine_counters`.
+  **The artifact side was right and the 2026-09-04 premise was wrong.** *Nothing reads them* held for
+  PROGRAMMATIC readers and was read as true of all readers. The dead-counters audit derives its
+  PROVEN BY RUN / UNMEASURED split — 134 fields and 363 — from which keys are present in those two
+  artifacts and nowhere else, and `tests/test-counter-init.js` exists BECAUSE both carry
+  `retaliateWhenLowered: null`, the only non-finite value in either. Both tables are now declared
+  against the one function that indexes them, `instrumentChecks(rows, counters)` at
+  `engine/million_run.js:1269`, two keys by hard-coded literal — with the limit stated in the entry:
+  nothing reads the FILE’s copy by key. `engine/million_run.js` is UNCHANGED. The other remedy could
+  not clear the red and would have destroyed that evidence: the gate judges the two files ON DISK,
+  both were generated 2026-08-11 and both carry `GENERATED — do not hand-edit`, and regenerating them
+  means playing games through MEDICHAM. ROADMAP #539 is closed with the refutation written beside the
+  original text rather than over it; its `engine_counters_zero` half stays open. The fitted weights
+  were not touched.
+- **What changed — the PDF rule.** `build/build_pdfs.js` now excludes WORKING DOCUMENTS rather than
+  only division ledgers. Clause 1 stays derived from `.claude/agents/*.md`; clause 2 is a DECLARED
+  RESIDUAL — `docs/ROADMAP.md` and `docs/RUNNING-NOTES.md` — with a reason each, and the clause is
+  printed beside every excluded name so a declared entry can never read as a derived one. **The shared
+  property could not be derived, and five candidates were measured over all 78 `docs/*.md` before
+  saying so:** named-by-a-program matched 56 of them; named-in-code-with-comments-stripped still 45,
+  and it catches DEFENSE, METHODOLOGY and ORIENTATION, which have published PDF links; only 24 carry
+  a version header, so the currency clause would drop 54 PDFs; body shape does not separate at all
+  (ROADMAP 44.3% table rows, RUNNING-NOTES 0.0%, SUMMARY 22.4%, ROLE-ATLAS 98.8%); and a git-history
+  rule cannot classify a document created this week, which is the one that most needed classifying.
+  **The residual is CHECKED, not trusted.** The build THROWS on an entry naming a document that is not
+  there, on an entry that has become a ledger, and — the clause that protects the saving — on ANY
+  excluded document whose PDF is still tracked. `docs/ROADMAP.pdf` is untracked (`git rm --cached`,
+  file left on disk) and both names are in `docs/.gitignore`.
+- **Measured.** NO MODEL FIGURE MOVED. `node tests/test-artifact-keys.js` reads **5 passed / 1 failed
+  / exit 1 before** and **6 passed / 0 failed / exit 0 after**, with the detector untouched: 53 tables
+  found, 37 flat-lowercase and structurally immune, **16 that can be missed before and after**, all 16
+  now declared. Shown RED on a deliberate break first — removing one declaration reprints the
+  UNDECLARED clause by name, and pointing another at a missing file fails the dangling-accessor clause
+  (4 passed / 2 failed). The repository figures are derived from git rather than from an artifact:
+  `docs/ROADMAP.pdf` is **7,229,637 B** in the tree across **eight** tracked versions holding **16.42
+  MB raw / 5.19 MB packed**, and the version at the most recent bump `d7ed4b75` packs to **4,092,583 B
+  — 4.09 MB of pack per rebuild**. `docs/RUNNING-NOTES.pdf` has never been built; priced once to a
+  scratch path it is **241,109 B** today at 190 lines, about 0.14 MB packed at ROADMAP’s 57% ratio.
+  **Per-bump saving ≈ 4.2 MB of pack**, on top of the 16.6 MB the ledger clause already removed.
+  **UNTRACKING RECOVERS ZERO BYTES OF EXISTING HISTORY** — the blobs stay in the pack, only a history
+  rewrite removes them, and the saving is entirely future. `node build/build_pdfs.js --check` **exited
+  1 before** on exactly two items, a stale `ROADMAP.pdf` and a missing `RUNNING-NOTES.pdf`, and **exits
+  0 after** — not because anything was rebuilt, but because those two items were the two documents the
+  rule now excludes. Each of the three new refusals was shown red on a deliberate break.
+- **Basis.** unchanged. No published figure moved, and nothing in either job touches a model, a
+  simulator or a fitted weight.
+- **Supersedes.** Nothing. No figure changed value; the 2026-09-04 DEAD TABLE disposition was a
+  judgement, not a figure, and it is recorded as superseded rather than deleted.
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` and `docs/SUMMARY.md` describe the
+  publishing procedure and must record that a working document — ledger, register or notes log —
+  carries no PDF. `docs/ARTIFACT-ACCESS-RULES.md` must record that the engine counter delta is
+  declared against an in-generator reader.
+
+---
 ## [Unreleased] — 2026-09-06 — a major release is defined, and the counter that was to bound the deferral had never read a row
 
 - **What changed.** `CLAUDE.md` gained *What counts as a major*: ABRA's declared public API is the

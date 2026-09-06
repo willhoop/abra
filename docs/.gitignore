@@ -1,4 +1,4 @@
-# docs/.gitignore — the division ledgers keep no PDF.
+# docs/.gitignore — a WORKING DOCUMENT keeps no PDF.
 #
 # A division ledger is a WORKING DOCUMENT: append-only, read in the editor by the division that
 # writes it, restamped by `node engine/status.js --write`, and never handed to anyone as a document.
@@ -22,3 +22,23 @@ MEASURE.pdf
 SEARCH.pdf
 OPS.pdf
 WEB.pdf
+
+# THE RULE IS THE WORKING DOCUMENT, NOT THE LEDGER — 2026-09-06, second pass.
+# A ledger is one KIND of working document. Two more were left in on the day the rule landed, and
+# build/build_pdfs.js now carries them as a DECLARED RESIDUAL with a reason each, because the shared
+# property could not be derived — five candidate derivations were measured over all 78 docs/*.md and
+# every one over- or under-matched; they are listed in that file's header.
+#
+# ROADMAP.md is the register, read as gate input by open_work / quarantine / register_reality /
+# seed_source_audit, and it moves most sessions. MEASURED: docs/ROADMAP.pdf is 7,229,637 B in the
+# tree across EIGHT tracked versions holding 16.42 MB raw / 5.19 MB packed, and the version at the
+# most recent bump d7ed4b75 packs to 4,092,583 B — 4.09 MB of permanent history per rebuild.
+#
+# RUNNING-NOTES.md gains a row every change by design (.githooks/pre-commit blocks a commit that
+# does not move it). Its PDF has never been built; priced once to a scratch path it is 241,109 B
+# TODAY at 190 lines, and docs/ENGINE.pdf at 108.4 MB is what that number becomes.
+#
+# UNTRACKING RECOVERS ZERO BYTES OF EXISTING HISTORY, here as above. build/build_pdfs.js THROWS if
+# an excluded document's PDF is still tracked, so this file and that one cannot drift apart quietly.
+ROADMAP.pdf
+RUNNING-NOTES.pdf
