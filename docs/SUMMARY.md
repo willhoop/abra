@@ -1,6 +1,24 @@
 # ABRA — Project Summary
 
-**Version 5.264.0 · 2026-09-06 · Will Hooper**
+**Version 5.265.0 · 2026-09-06 · Will Hooper**
+
+**5.265.0 - THE LAB MOVED AND THE POOL DID NOT, AS CALLED IN ADVANCE. A HAZARD SWEEP RAN ITS CLAUSES IN ONE FIXED ORDER WHILE THE THREE CARRIERS EACH USE A DIFFERENT ONE — A DEFECT NO BOARD PROBE COULD SEE. AND THE ENGINE SOURCE MOVING PUTS EVERY FAILING GATE CLAUSE BACK INTO "MEASURED AGAINST A DIFFERENT ENGINE", SO NO WHOLE-GAME FIGURE IS PUBLISHED THIS VERSION.**
+
+| question | artifact | answer |
+|---|---|---|
+| mechanics live in the census | `data/mechanics-census.json` | **830 live of 830 probed**, 0 missing, `run_ok` true, 0 hollow and 0 thrown |
+| the whole-game clauses | withheld | the artifact behind them was measured on a release the tree no longer is. **No count is repeated here** |
+| the damage differential | withheld | same reason, same release |
+| the deliberate roster, all three stages | withheld | same reason, same release |
+| the gate | `node engine/status.js` | **nine clauses, seven failing** — all seven on the release mismatch, none on a measured disagreement. Eight of the nine GATE, so six gating clauses fail and the gate reads CLOSED |
+
+**WHAT WAS FIXED, AND WHY NOTHING WE HAD COULD SEE IT.** `sweepField` ran one clause order for all three carriers of the hazard sweep. Staged against the authority on an identical board, the spin family writes its Leech Seed `-end` above its `-sideend`, Defog writes the target's side before its own, and Tidy Up writes its Substitute `-end` below both side lines. **The board is identical under every one of those orders**, so three green board probes sat over it for as long as they have existed. It is a narration defect, and narration is a gate of its own here rather than something waved through. The repair is driven off params already in `data/tags.json` — no move named in code, no tag regeneration.
+
+**WHAT WAS ADDED.** A census row for the two Rapid Spin clauses nothing asserted. The move has four clauses in this format and Champions changes only its PP; the own-hazard clear had a board probe, the own-Leech-Seed clear rode on Mortal Spin's arm, and the partial-trap clear had **no probe anywhere** — a counter the engine wrote and nothing read. Also `tests/probe_hazard_sweep_order.js`, which asserts the emitted sequence in both engines and was re-run on this pass rather than accepted on report: green, with the parent re-running itself under the restore knob and all three arms going red.
+
+**AND THE SECOND QUESTION HAD A BETTER ANSWER THAN EXPECTED.** Leech Seed's heal was already asserted ON THE BOARD, not merely on a protocol line: two live census probes read the sower's HP with the sower deliberately below full, one asserting the gain equals the drain taken off the victim — the transfer arithmetic — and one starting the sower on 1 HP and asserting it rose. The comfortable answer pointed the other way and the measurement did not.
+
+**THE POOL WAS CALLED FLAT BEFORE THE RUN AND WAS FLAT.** Rapid Spin appears 0 times on the frozen pool's sheets. A matched pair differing only in the release, with the same census pin, the same frozen team store, the same arm and the same steering, read 777 games, 98 diverged and 2 threw on both sides, with logs byte-identical apart from the release id. One attribution inside that pair is carried as OPEN rather than accepted: it read 777 where the published run read a larger sample under the same declared pins, and the offered cause does not survive reading the cache it names. The pair is valid against itself; the difference against the published run is owed a diagnosis before the next publishing run.
 
 **5.264.0 - THE GATING CLAUSE FALLS FROM BOARD-MATERIAL 34 OF 961 TO 27, AND PROTOCOL FROM 100 TO 93, ON A DIE THE AUTHORITY DRAWS AND NEVER READS. THE FIX IS THE MEASURING INSTRUMENT AND NOT THE SIMULATOR.**
 

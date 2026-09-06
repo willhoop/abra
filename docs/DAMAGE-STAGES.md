@@ -1,6 +1,10 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.264.0 — 2026-09-06.**
+**Version: 5.265.0 — 2026-09-06.**
+
+**5.265.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND THIS TIME THE DIFFERENTIAL THAT WOULD SAY SO IS WITHHELD RATHER THAN QUOTED.** The engine change in this version is an ORDERING one — `sweepField` ran one clause order for all three carriers of the hazard sweep, and the authority uses three. It touches no stage, no multiplier and no rounding on this page. But it did move `engine/medicham2-browser.js`, so the tree is release `57679ef9a4a3` while `data/engine-diff.json` was measured on `d9e551ed0d5a`, and `engine/status.js` calls that clause MEASURED AGAINST A DIFFERENT ENGINE. **Every count in that artifact is withheld and none is repeated on this page.** That is deliberate and it is the harder of the two available sentences: the damage chain almost certainly did not move, and "almost certainly" is not a measurement. The re-run is `SHOWDOWN_PATH=... node tests/test-engine-diff.js --n 6000 --seed 20260804`.
+
+**AND THE HABIT THAT MAKES THAT RE-RUN LOOK RED IS NAMED HERE ONCE.** `tests/test-engine-diff.js` invoked with no `--n` defaults to 150 comparisons against a published 6,000-comparison artifact, so `engine/publish_guard.js` refuses the shrink and sets a non-zero exit. **No engine state can make that invocation green.** An exit code from a run at the default `--n` is a statement about the publish guard and not about this document's stage table.
 
 **5.264.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND FOR ONCE THAT IS TRUE BY CONSTRUCTION RATHER THAN BY MEASUREMENT.** The only file changed this version is `engine/game_differential.js`, the measuring instrument. No engine source moved, so the engine release did not move either: `data/engine-diff.json` on release `d9e551ed0d5a` is the SAME run this page cited at 5.263.0, and it reads **0 of 6000** disagreements at the midpoint and **0 of 6000** at each of the sixteen band indices, seed 20260804, with 134 multi-hit comparisons skipped by construction. No stage, no multiplier and no ordering in this document changes.
 

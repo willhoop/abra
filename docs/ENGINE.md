@@ -44,7 +44,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_pickpocket_event_position.js`, `tests/probe_selfswitch_update_pass.js`,
 `tests/probe_smart_target_redirect.js`, `tests/probe_selfboost_empty_foe_side.js`,
 `tests/probe_pivot_after_battle_end.js`, `tests/probe_status_chip_scaled.js`,
-`tests/probe_entry_update_before_mega.js`, `tests/probe_pickpocket_on_a_corpse.js`
+`tests/probe_entry_update_before_mega.js`, `tests/probe_pickpocket_on_a_corpse.js`,
+`tests/probe_hazard_sweep_order.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -64,6 +65,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
+| `probe_hazard_sweep_order.js` | does a `removesHazards` sweep run its clauses in the ORDER the handler runs them — the family is DERIVED off `data/tags.json` on every run and the file FAILS BY NAME if a carrier ever has a clause shape no arm stages. The three legal shapes disagree with each other and this engine had ONE order for all of them: the spin family is `leechseed -> own hazards -> partial trap`, Defog is `target screens -> target hazards -> own hazards -> terrain`, Tidy Up is `every doll -> own hazards -> foe hazards`. Nothing is typed — both engines play the identical script and the assertion is that the `(event, subject, effect)` SEQUENCE agrees; the CONTROL is the same body clicking a non-sweeping move, which must write no `-end`/`-sideend` in either engine. `MEDI_SWEEP_LEGACY_ORDER=1` restores the old order verbatim (it RELOCATES and skips nothing, so the board is identical under it) and the parent re-runs itself under the knob and FAILS if the child passes — it goes red on all three arms | the `[from] move: <Move>` ATTRIBUTION on the swept lines, which is PRINTED and not asserted: the authority attributes the spin family's and Defog's and leaves Tidy Up's bare, the discriminator is a HANDLER fact no param in `data/tags.json` carries, and deriving one needs `tag_dex.js`, which exhausts the heap. And the effect LABEL (`move: stealthrock` against `Stealth Rock`), which the differential's own `effect-namespace` equivalence collapses, so it is not a divergence by the instrument that decides the protocol number |
 | `probe_default_target_side.js` | when a move is SUBSTITUTED into an action — Encore at selection, Encore at execution (WIRE 143), or the called-move branch (Copycat / Metronome / Sleep Talk / Mirror Move) — does it take its target from its own target class, the way `Battle#getRandomTarget` answers `self`, `all`, `allySide`, `allyTeam`, `adjacentAllyOrSelf` and `adjacentAlly` BEFORE it ever looks at a foe. Twelve arms over two engines under the differential's own `middle` pin: six red (an Encored Helping Hand, mirrored whole, and again against the format's OTHER live priority refuser, and again with the refuser's ability traded away so only the wrong SIDE is left; an Encored Coaching, where no priority is involved and +1/+1 lands on a foe; and a COPIED Coaching, which is the second draw site and not Encore at all) and six controls (a plain clicked Helping Hand, which was NEVER broken; the foe axis clicked directly and again through the override; the far-side draw at priority 0 on both doors, which fails if a die moves; and a `self` move where the near-side branch fires and nothing may change). Nothing is typed — the four counted facts are read off BOTH streams and compared to each other, deliberately coarse (`cant` as holder-side/ability, a single-turn mark as side/label, a boost as side/stat/stage, the move line as move->side) so an arm cannot fail on a spelling difference between the narrators and cannot pass while a body on the wrong half of the field takes the effect | the 87 near-side moves whose aim `playerAction` discards before it reaches an action — Protect, Tailwind, Rain Dance and Wide Guard all return a kind carrying no target, so only the four `adjacentAlly` chooseables are observable from outside at all. And Instruct, which reaches the authority through `runMove(..., targetLoc)` rather than through `getRandomTarget` and is a different rule |
 | `probe_partingshot_conditional.js` | is a `selfSwitch` field a PROMISE or a DEFAULT the handler can take back — the ONE move in this format whose own `onHit` deletes it (`data/moves.ts:13180`, one hit in the whole dex) when its stat drop landed on NOBODY, with one ability named as an exception. Nineteen arms over two engines under the differential's own `middle` pin: five red across THREE doors (an ability refusing both stats, staged on two different bodies; the ALLY door, where the refusal is on the body beside the target and covers Grass types only; both stats at the STAT FLOOR, driven there over five turns with no ability anywhere; and one of each, which neither door reaches alone) and fourteen controls, every red paired with one on the SAME BODY. The controls are the half that matters, because a fix keyed on "a stat was refused" strands bodies that are correct today: a PARTIAL refusal, which `Battle#boost` counts as a SUCCESS; an INVERTED drop; a partial floor on either stat; the format's other legal status pivot, whose `selfSwitch` nothing deletes; and a bare voluntary switch. Nothing is typed — the observable is the whole BOARD at every boundary plus which body is standing in the user's slot, Showdown supplies the answer, and each arm asserts the branch COUNTS (cancel exactly 1 on a red, 0 on a control; the exception exactly 1 on the Mirror Armor arm) because that arm agreed BEFORE the fix as well | the stat floor UNDER Mirror Armor, which cannot be reached from a foe's drops at all — every drop bounces, so nothing a foe does moves it toward -6; and the NARRATION at the floor, where the authority writes `|-unboost|TARGET|atk|0` and this engine writes `|-fail|…|ability: Clear Body` (board-identical, so this instrument is blind to it by construction) |
 | `probe_instruct_shield.js` | does the ONE move in this format that hands ANOTHER BODY AN EXTRA ACTION ask the shield first — the population is DERIVED on every run out of the handlers themselves (of every legal move whose handler touches the action queue, exactly one calls `resolveAction({choice:'move', pokemon: target})` and the other twelve only REORDER an action that already exists), and Champions is asked directly whether it rewrites Instruct (it does not: 259 moves overridden, `learnsets.ts:12384` is the only mention). Thirteen arms over two engines under the differential's own `top-tie-first` pin: five red (all four `shieldsUser.blocksStatus === true` members — Protect 149,746, Detect 5,554, Spiky Shield 2,103, Baneful Bunker 1,746 — plus a Gholdengo behind its OWN Protect, which fixes WHERE the call goes, because `protect.condition` declares `onTryHitPriority: 3` and Good as Gold declares none) and seven controls, every one of them a way the new caller could over-fire: King's Shield, the sole `blocksStatus === false` member, which the authority fails for its own `failinstruct` flag; the same Gholdengo with the shield taken away; a STALE shield over two turns; ENDURE, a `stallingMove` that is not a `shieldsUser`; a target with no last move at all; and a repeat that actually costs HP. Nothing is typed — Showdown is the expectation, `MEDI_INSTRUCT_NO_SHIELD=1` must part every red and move no control, the two counters are asserted at EXACT per-arm equality on BOTH loads, and `shieldBlocksStatusUnknown` is asserted at zero so the file cannot pass through a silent default | the ALLY door, which the authority treats identically (`checkMoveBypassesProtect` never looks at sides) and which the driver's script format cannot express, so every arm aims at a foe; and the repeat's AIM — ROADMAP #534, carried as a DECLARED `KNOWN-OPEN` arm that must part identically clean and under the knob or the file fails |
@@ -124,9 +126,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  829/829 probed mechanics live, 0 missing   (census 2026-09-06 11:23)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-06 12:37)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 1.9 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 3.1 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-06 10:03)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -149,9 +151,180 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-06 11:57_
+_stamped 2026-09-06 13:12_
 
 <!-- /GENERATED -->
+
+## A HAZARD SWEEP RAN ITS OWN CLAUSES IN ITS OWN ORDER, AND THE THREE CARRIERS DO NOT AGREE ON ONE. CENSUS **829 → 830**, POOL FLAT AND CALLED FLAT BEFORE THE RUN. 2026-09-06, CHANGELOG 5.265.0
+
+Will asked two questions: *"have we tested Rapid Spin getting rid of hazards and things like Leech
+Seed?"* and *"have we tested that Leech Seed actually HEALS the user?"* Full account:
+`docs/_reports/2026-09-06-rapidspin-and-leechseed-heal.md`.
+
+### THE ANSWERS, BEFORE THE WORK
+
+**Rapid Spin has FOUR clauses and the census carried two and a half of them.** Derived, not recalled —
+`mod_audit` reports rapidspin's ONLY Champions difference from mainline as `pp 40 -> 20`, so the
+mainline handler IS this format's:
+
+| clause | covered before today |
+|---|---|
+| the own side's hazards | YES — a board probe, and it reads the OUTCOME (a benched body walks in and loses 0) |
+| the user's own Leech Seed | only through MORTAL SPIN's arm of the same probe; Rapid Spin's own was never asserted |
+| the user's own partial trap | **NOTHING.** `MEDSEEN.partialTrapSwept` was written by the engine and read by no test |
+| the 100% +1 Speed secondary | only by CLASS, on Flame Charge |
+
+And the clauses it does NOT have, stated because a mainline-shaped guess gets them wrong: it does not
+touch the TARGET's side, it does not pull the target's seed, it takes no screen and no terrain, and it
+writes no `-fail` when it sweeps an empty field.
+
+**HAZARDS ARE COMPARED, so "structurally invisible" was refuted rather than assumed.**
+`engine/board_state.js` builds `hazards: {stealthrock, spikes, toxicspikes, stickyweb}` on both sides
+(`readMedi` :1484, `readSD` :1573) and `compare()` walks them unconditionally for p1 AND p2 (:1740).
+A hazard bug WOULD be board-material. The hole was in the probes.
+
+**LEECH SEED'S HEAL WAS ALREADY ASSERTED ON THE BOARD, and this is the half worth writing down**
+because the question was sharp and the comfortable answer pointed the other way. Two live census
+probes read the sower's HP, not a line, and both run the sower BELOW full HP — so the
+`heal()`-returns-false-at-full shape that would make a green test ask nothing does not apply:
+*"Leech Seed pays the seeder at order 8"* asserts `hp === floor(victim.maxhp/8)` on a sower parked at
+exactly its own burn tick, which is the TRANSFER ARITHMETIC; *"the drain pays whoever is standing in
+the SEEDER's slot"* starts the sower on 1 HP and asserts it went UP.
+`tests/probe_leechseed_silent.js` is the protocol half and is not what carries this.
+
+### THE DEFECT, FOUND BY STAGING RATHER THAN BY READING
+
+`sweepField` ran `hazards -> screens -> terrain -> leechseed -> trap -> substitutes`. **The authority
+has three different orders for the three carriers**, read off the handlers and then OBSERVED in a real
+Champions battle before anything was edited:
+
+```
+  |-end|p1a: Excadrill|Leech Seed|[from] move: Rapid Spin|[of] p1a: Excadrill
+  |-sideend|p1: A|Stealth Rock|[from] move: Rapid Spin|[of] p1a: Excadrill
+  |-end|p1a: Excadrill|Infestation|[partiallytrapped]
+
+  |-sideend|p2: B|Reflect
+  |-sideend|p2: B|Stealth Rock|[from] move: Defog|[of] p1a: Corviknight
+  |-sideend|p1: A|Stealth Rock|[from] move: Defog|[of] p1a: Corviknight
+
+  |-end|p1a: Maushold|Substitute
+  |-sideend|p1: A|Stealth Rock
+  |-sideend|p2: B|Stealth Rock
+```
+
+So the spin family wrote its `-sideend` ABOVE its Leech Seed `-end`, Defog wrote its own side before
+the target's and its screen LAST, and Tidy Up wrote its Substitute `-end` BELOW both side lines.
+**The board is identical under every one of those, which is exactly why three board probes sat green
+over it for as long as they have existed.**
+
+**ONE ORDER SATISFIES ALL THREE AND IT IS NOT A COINCIDENCE.** The three handlers share a skeleton:
+what the move pulls off a BODY that is not a side condition goes first (the doll, the seed), the SIDE
+conditions next, the field and the trap last. `substitutes -> leechseed -> screens -> hazards ->
+terrain -> trap`. Every step is gated on a param **already in `data/tags.json`** and no move is named,
+which is the only reason this could land while the `tag_dex` heap blocker stands. The hazard BAG order
+leads with the target's side when the tag says the screens come off the target
+(`screensFrom: 'target'`) — a shape claim, and if a later carrier breaks that correlation the two
+`-sideend` lines swap and the differential's `ordering` class says so.
+
+### THE PROBES
+
+- **`tests/probe_hazard_sweep_order.js`** (new). Derives the `removesHazards` family off
+  `data/tags.json`, prints every param, and FAILS BY NAME if a carrier ever has a clause shape no arm
+  stages. One arm per shape, both engines, same script, asserting the `(event, subject, effect)`
+  SEQUENCE. Control: the same Excadrill clicking a non-sweeping move writes no `-end`/`-sideend` in
+  either engine. Counters asserted (`hazardSwept` +5, `sweepInAuthorityOrder` +3). The parent re-runs
+  ITSELF under `MEDI_SWEEP_LEGACY_ORDER=1` and requires the child to fail — it does, on all three arms.
+- **A census probe for the two unprobed Rapid Spin clauses**, `census 829 → 830`. An Excadrill seeded
+  by a Whimsicott, trapped by a Toxapex Infestation, rocks on its own side; `[own seed, own trap, own
+  rocks, own Speed stage]`. Iron Head `[1,1,1,0]`, Rapid Spin `[0,0,0,1]`, **Rapid Spin into a GHOST
+  `[1,1,1,0]`** — the sweep is `onAfterHit`, so a Normal move that cannot hit sweeps nothing and does
+  not even boost. Shown RED per clause independently by deleting the clause from the TAG before
+  medicham2 loads, with no repository file edited: killing `trap` reads `[0,1,0,1]`, killing `seed`
+  reads `[1,0,0,1]`.
+
+### WHICH SCOREBOARD THIS WAS SUPPOSED TO MOVE, CALLED BEFORE THE RUN
+
+**The lab, not the pool** — and the pool was flat, as called. Occurrences on the frozen pool's sheets:
+**Rapid Spin 0**, Mortal Spin 47, Defog 51, Tidy Up 13. Will's question is about a move the pinned
+ladder pool does not contain.
+
+Matched pair, three pins, only `--release` differing — census pin
+`census-pin-9446a684709d.json`, `--team-store data/team-pool-frozen`, arm `middle`,
+`--steering empirical`:
+
+| release | games | diverged | threw |
+|---|---|---|---|
+| `d9e551ed0d5a` (before) | 777 | 98 | 2 |
+| `57679ef9a4a3` (after) | 777 | 98 | 2 |
+
+The two run logs are byte-identical apart from the release id and a pool-cache rebuild note.
+**Neither run was `--write`, so `data/game-differential.json` is untouched and its published
+27/961 · 93 · 70 stand unchanged and uncompared** — these runs read 777 games because the frozen
+pool's cache rebuilt, so they are a valid pair against EACH OTHER and not against the published
+figure. `node engine/status.js`: **830/830 live, 0 missing.**
+
+### THE HAND LIST
+
+**Removed — three, because the census and the probes now carry them:** Rapid Spin's own Leech Seed
+clause, its partial-trap clause (which had no probe at all), and the clause ORDER of the whole
+`removesHazards` family.
+
+**Owed and named, not fixed here:**
+
+- **The `[from] move: <Move>` attribution on a swept line.** The authority attributes the spin family's
+  and Defog's and leaves Tidy Up's BARE; this engine attributes none. Nothing in `data/tags.json` can
+  tell the two apart — it is a HANDLER fact needing a derived `removesHazards` param, and
+  `engine/tag_dex.js` still **exhausts the heap** (reproduced this session: `Reached heap limit`,
+  `data/tags.json` untouched, mtime unmoved). `probe_hazard_sweep_order.js` PRINTS the gap rather than
+  asserting a defect it cannot fix.
+- **The `-sidestart` / `-sideend` effect LABEL is not uniform upstream and this engine writes
+  `move: <id>` for all of it.** Derived from the conditions: `Reflect`, `Safeguard`, `Mist` and
+  **`Spikes`** announce a BARE name; `Light Screen`, `Aurora Veil`, `Tailwind`, `Stealth Rock`,
+  `Sticky Web`, `Toxic Spikes` and `Lucky Chant` announce `move: NAME`; Safeguard's and Tailwind's
+  `-sidestart` carry a further `[persistent]` field this engine never writes. The differential's own
+  `effect-namespace` equivalence collapses the namespace half, so only `[persistent]` is
+  instrument-visible today. `sideBuff` already carries `startsAs` for exactly this reason and `hazard`
+  and `halvesDamage` do not — the same tag_dex blocker.
+- **`tests/test-engine-diff.js` exits 3** both before and after this change — verified by stashing.
+  Pre-existing, not caused here, and not diagnosed here.
+
+### ADDED BY THE 5.265.0 PUBLISH PASS — WHAT THIS COSTS THE GATE, AND ONE THING THAT IS NOT RED
+
+**THE EXIT 3 IS DIAGNOSED AND IT IS NOT A DIFFERENTIAL FAILURE.** `tests/test-engine-diff.js` defaults
+`--n` to 150 while `data/engine-diff.json` holds 6,000, so `engine/publish_guard.js` refuses the shrink
+and sets a non-zero exit — ROADMAP #257's protection working. **No engine state can make that
+invocation green**, and the file's own header says so. The run that answers the gate clause passes
+`--n 6000 --seed 20260804`. Recorded here so the next reader does not carry it as a red mechanic, which
+is the "known failure" shape CLAUDE.md bans.
+
+**AND MOVING `engine/medicham2-browser.js` PUT EVERY FAILING CLAUSE BACK INTO "MEASURED AGAINST A
+DIFFERENT ENGINE".** The tree is release `57679ef9a4a3`; the whole-game differential, the damage differential, the
+three roster stages and `data/all-mechanics-fire.json` were all measured on `d9e551ed0d5a`.
+`engine/status.js` computes nine clauses and seven fail, **all seven for that reason alone** — six artifacts,
+and not one clause red on a measured disagreement; eight of the nine gate, so six gating clauses fail and
+the gate reads CLOSED. **Their counts are withheld and none is
+restated in the 5.265.0 documents.** This is the honest cost of a correct fix and not a regression: a
+narration repair that provably moves no board still invalidates every artifact stamped on the old
+release. Owed, in the order the gate names them:
+
+```
+SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> --arm middle \
+    --end-state --census <pin> --games 1200 --team-store data/team-pool-frozen --write
+SHOWDOWN_PATH=... node tests/test-engine-diff.js --n 6000 --seed 20260804
+SHOWDOWN_PATH=... node tests/roster.js --stage items --write     (then abilities, then moves)
+SHOWDOWN_PATH=... node engine/all_mechanics_fire.js --kind all --write
+```
+
+**ONE ATTRIBUTION IN THE MATCHED PAIR ABOVE IS CARRIED AS OPEN.** The pair read 777 games where the
+published artifact reads a larger sample under the same declared pins, and the cause offered was the
+frozen pool's cache rebuilding. `engine/diff_swarm.js` keys `data/diff-team-pool.json` on the SIZE and
+MTIME of the store it was told to read, and a miss rebuilds deterministically from that same store — so
+a rebuild alone cannot change a draw. Measured on this pass: the cache on disk now holds the LIVE
+store's pool (13,571 teams, key `games.bo3.jsonl` at 227,347,410 bytes) rather than the frozen one, so
+the next pinned run pays a rebuild but still draws from `data/team-pool-frozen`. The pair is valid
+against itself — both arms drew the same 777 — and the difference against the published run is
+unexplained. **Settle it before the next `--write`**, because a sample that changes size under fixed
+pins is the "not the same question" failure CLAUDE.md records.
 
 ## THE DICE-ADDRESS PASS — BOARD-MATERIAL **34 OF 961 -> 27 OF 961**, PROTOCOL **100 -> 93**, ON A DIE THE AUTHORITY DRAWS AND NEVER READS. THE FIX IS THE INSTRUMENT AND NOT THE ENGINE, AND THE ENGINE RELEASE DOES NOT MOVE. 2026-09-06
 

@@ -15,28 +15,92 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
+    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
+    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 189 unsafe, 2 void (declared), 35 possibly stale, 28 ok, 0 missing
+  provenance: 188 unsafe, 2 void (declared), 38 possibly stale, 26 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
+    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-06 09:44
+    moved after the fit: engine/medicham2-browser.js  2026-09-06 12:38
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-09-06 09:58
 ```
 
-_stamped 2026-09-06 11:57_
+_stamped 2026-09-06 13:12_
 
 <!-- /GENERATED -->
+
+## THE PUBLISH PASS FOR THE HAZARD-SWEEP ORDER FIX. **CENSUS 830 LIVE OF 830 PROBED, 0 MISSING** — AND NO WHOLE-GAME FIGURE, BECAUSE THE ENGINE SOURCE MOVED AND EVERY FAILING CLAUSE NOW READS "MEASURED AGAINST A DIFFERENT ENGINE". 2026-09-06, CHANGELOG 5.265.0
+
+**EVERY FIGURE BELOW WAS RE-READ FROM ITS ARTIFACT ON THIS PASS.** Nothing is carried from the brief.
+**One thing in the brief disagreed with the artifact and it is the headline of this section**, so it is
+stated first rather than buried: the brief said the published whole-game figures *stand*, and
+`engine/status.js` **withholds them** — the tree is release `57679ef9a4a3` and every one of those
+artifacts was measured on `d9e551ed0d5a`. That is not the brief being careless. The engine moved after
+the brief was written, at 12:38, when the sweep-order fix landed in `engine/medicham2-browser.js`.
+
+| question | artifact | reading |
+|---|---|---|
+| the census | `data/mechanics-census.json` | **830 live of 830 probed, 0 missing**, `run_ok` true, armed 830, unarmed 0, threw 0, hollow 0. Nothing went down |
+| the gate | `node engine/status.js` | **nine clauses, seven failing.** Eight of the nine GATE — narration is the one that does not — so six of the eight gating clauses fail and the gate reads CLOSED |
+| why all seven fail | the same | MEASURED AGAINST A DIFFERENT ENGINE — checked clause by clause, not inferred from the headline. `data/game-differential.json`, `data/engine-diff.json`, the three `data/roster.*.json` stages and `data/all-mechanics-fire.json` ran on `d9e551ed0d5a`; the tree is `57679ef9a4a3` |
+| what is NOT failing on its own merits | the same | **nothing.** No clause is red on a measured disagreement this pass. The whole-game BOARD-MATERIAL and NARRATION clauses fail on the release mismatch like the rest, and **their counts are WITHHELD, not annotated** — no number for either appears in this section or in the 5.265.0 documents |
+| the two that PASS | the same | coverage — all 412 moves above 25 clicks are measured by the roster or the census — and "no open, known engine defect" over 112 verdicts read |
+| provenance | `node engine/provenance.js` | 188 unsafe, 2 void (declared), 38 possibly stale, 26 ok, 0 missing |
+| the new probe, re-run rather than accepted on report | `tests/probe_hazard_sweep_order.js` | GREEN. `hazardSwept` moved by 5, `sweepInAuthorityOrder` by 3, `sweepLegacyOrderRestored` 0. Under `MEDI_SWEEP_LEGACY_ORDER=1` the child exits 1 with all three arms red |
+| the repo, measured because a push failed | the filesystem | `.git` **977 MB**; `docs/ENGINE.pdf` **30,034,494 bytes**, rebuilt on every version bump |
+
+### WHAT THIS DIVISION IS SAYING NO TO, AND WHY IT IS THE WHOLE JOB
+
+**A CORRECT FIX INVALIDATED SEVEN ARTIFACTS AND THE FIX IS STILL CORRECT.** The sweep-order repair
+provably moves no board — that is why three green board probes sat over the defect — and it still moves
+the ENGINE DIGEST, which is what every artifact stamp is a claim about. `d9e551ed0d5a` and
+`57679ef9a4a3` are different bytes, so a count taken on the first is not a weaker answer about the
+second; it is an answer about something else. **Restating it with "unchanged since" attached is exactly
+the caption this project has twice paid to learn is not a quarantine.** The re-measurement is owed and
+its four commands are written down in `docs/ENGINE.md` rather than described.
+
+**THE MATCHED PAIR IS EVIDENCE OF FLATNESS AND IT IS NOT A SUBSTITUTE FOR THE PUBLISHED RUN.** Both
+arms — same census pin, same `data/team-pool-frozen`, same arm, same steering, only `--release`
+differing — read 777 games, 98 diverged, 2 threw, with logs byte-identical apart from the release id.
+That is a strong FLAT result and it was called flat in advance on a derived reason, Rapid Spin
+appearing 0 times on the frozen pool's sheets. It is still 777 games and the published clause is
+answered by a larger sample, so it cannot be promoted into the gate's answer. **The unit is the
+decisive pair, and these two arms are one.**
+
+**AND THE REASON GIVEN FOR THE SMALLER SAMPLE DOES NOT SURVIVE READING THE CACHE.** The account attributes
+777-versus-the-published-count to the frozen pool's cache rebuilding. `engine/diff_swarm.js#loadTeams`
+keys `data/diff-team-pool.json` on the SIZE and MTIME of the store it was handed, and a MISS rebuilds
+from that same store — deterministically, by construction, with a loud line. So a rebuild changes the
+41 seconds it costs, not the teams it yields. Measured here rather than argued: the cache on disk holds
+**13,571 teams** under the key `games.bo3.jsonl:227347410`, which is the **live** store
+(`data/team-pool-frozen/games.bo3.jsonl` is 109,006,606 bytes), so the next pinned run will miss and
+rebuild — correctly, from the frozen store. **The sample difference is therefore unexplained**, it is
+recorded as open rather than reconciled with a plausible sentence, and it is owed before the next
+`--write`. A sample that changes size under fixed pins is the "not the same question" failure.
+
+**ONE RED READING RETIRED, WITH ITS MECHANISM.** `tests/test-engine-diff.js` exiting 3 is
+`engine/publish_guard.js` refusing to overwrite a 6,000-comparison artifact with a 150-comparison one at
+the default `--n`. It is ROADMAP #257's protection firing, no engine state can make that invocation
+green, and it must not be carried as a red differential — that is the "one of the two known failures"
+shape by another name.
+
+### THE STANDING PRIORITY IS UNCHANGED AND IS NOT SERVED BY THIS PASS
+
+`data/winrate-backtest.json` is still QUARANTINED — downstream of MEDICHAM, so the figure is withheld
+rather than captioned, and it becomes re-runnable rather than true when the gate opens. Leaf calibration
+is this division's one number and it has not been measured against the current leaf. **Nothing in this
+pass moved it and this section does not pretend otherwise.**
+
+---
 
 ## THE PUBLISH PASS FOR THE DICE-ADDRESS FIX. **BOARD-MATERIAL 27 OF 961, PROTOCOL 93 OF 961, NARRATION 70 OF 961**, RELEASE `d9e551ed0d5a` — WHICH DID NOT MOVE. THE DELTA IS PUBLISHED AGAINST A THIRD ARM BECAUSE `arms_comparable` REFUSED THE OBVIOUS PAIR. 2026-09-06, CHANGELOG 5.264.0
 

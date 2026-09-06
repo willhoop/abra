@@ -10,6 +10,84 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.265.0] — 2026-09-06
+
+### Fixed
+- **A HAZARD SWEEP RAN ITS CLAUSES IN ONE FIXED ORDER, AND THE THREE CARRIERS EACH USE A DIFFERENT
+  ONE.** `sweepField` in `engine/medicham2-browser.js` ran one order for every carrier:
+  `hazards -> screens -> terrain -> leechseed -> trap -> substitutes`. Observed in a real Champions battle before
+  anything was edited, the authority writes the spin family's Leech Seed `-end` ABOVE its
+  `-sideend`, writes Defog's target side before its own, and writes Tidy Up's Substitute `-end`
+  BELOW both side lines. **The board is identical under every one of those orders, which is exactly
+  why three green board probes sat over it.** Fixed to the authority's own order,
+  `substitutes -> leechseed -> screens -> hazards -> terrain -> trap`,
+  with the hazard bag leading on the target's side when the tag says the screens come off it. Every step is gated on a param already in `data/tags.json`; no
+  move is named in code and no tag regeneration was needed. Restore knob
+  `MEDI_SWEEP_LEGACY_ORDER=1`, counters `MEDSEEN.sweepInAuthorityOrder` and
+  `MEDFAILS.sweepLegacyOrderRestored`.
+
+### Added
+- **A CENSUS PROBE FOR THE TWO RAPID SPIN CLAUSES NOTHING ASSERTED — `data/mechanics-census.json`
+  reads 830 live of 830 probed and 0 missing.** Rapid Spin has four clauses in this format and
+  Champions changes only its PP; the own-hazard clear had a real board probe, the own-Leech-Seed
+  clear was exercised only through Mortal Spin's arm, and **the partial-trap clear had no probe
+  anywhere** — `MEDSEEN.partialTrapSwept` was written by the engine and read by nothing, which is
+  this project's "a capability that cannot prove it ran is assumed broken" shape. The new probe was
+  shown RED per clause by deleting each clause from the tag before the engine loads, with no
+  repository file edited.
+- `tests/probe_hazard_sweep_order.js` — derives the carrier family off `data/tags.json`, fails by
+  name if a carrier has a clause shape no arm stages, and asserts the `(event, subject, effect)`
+  SEQUENCE in both engines. Re-run on this pass rather than taken on report: green, with the parent
+  re-running itself under the restore knob and all three arms going red, `hazardSwept` moving by 5
+  and `sweepInAuthorityOrder` by 3.
+
+### Changed
+- **THE ENGINE SOURCE MOVED, SO EVERY FAILING GATE CLAUSE NOW READS MEASURED AGAINST A DIFFERENT ENGINE AND
+  THEIR COUNTS ARE WITHHELD RATHER THAN REPUBLISHED.** The tree is release `57679ef9a4a3`; the
+  whole-game differential, the damage differential, the three roster stages and the staged-mechanics
+  artifact were all measured on `d9e551ed0d5a`. `engine/status.js` computes nine clauses and **seven
+  fail** — and **all seven fail for that one reason**, across six artifacts. Not one clause is currently
+  red on a measured disagreement; they are red on not having been measured against these bytes at all,
+  and those are not the same thing. Eight of the nine GATE — narration is the one that
+  does not — so six of the eight gating clauses fail and the gate reads CLOSED. **No whole-game
+  figure is restated in this version.** A re-measurement is owed on `57679ef9a4a3` and the four
+  commands are named in `docs/MEASURE.md`.
+
+### Notes
+- **LEECH SEED'S HEAL WAS ALREADY ASSERTED ON THE BOARD, NOT ONLY ON THE PROTOCOL LINE.** Two live
+  census probes read the SOWER's HP with the sower deliberately below full, so the shape where a
+  full-HP sower produces no line and the test asserts nothing does not apply: one parks the sower at
+  exactly its own burn tick and asserts the gain equals the drain taken off the victim, which is the
+  transfer arithmetic; the other starts it on 1 HP and asserts it rose.
+- **THE PINNED POOL WAS FLAT AND WAS CALLED FLAT BEFORE THE RUN, ON A DERIVED REASON.** Rapid Spin
+  appears 0 times on the frozen pool's sheets. A matched pair with the same census pin, the same
+  `data/team-pool-frozen` store, the same arm and the same steering, differing only in the release,
+  read 777 games, 98 diverged and 2 threw on BOTH sides, with the two logs byte-identical apart from
+  the release id. That is the lab-versus-pool split working as ruled on 2026-08-23: the census moved
+  and the pool correctly did not.
+- **ONE ATTRIBUTION IN THAT PAIR COULD NOT BE CONFIRMED AND IS RECORDED AS OPEN.** The pair read 777
+  games where the published artifact reads 961 under the same declared pins, and the cause offered
+  was a pool-cache rebuild. `engine/diff_swarm.js` keys `data/diff-team-pool.json` on the size and
+  mtime of the store it was told to read, and a MISS rebuilds deterministically from that same
+  store — so a rebuild alone does not change a draw. The pair remains internally valid, because both
+  arms drew the same 777; the sample difference against the published run is unexplained and is owed
+  a diagnosis before the next `--write`. Measured on this pass: the cache on disk currently holds the
+  LIVE store's pool, so the next pinned run will pay a rebuild.
+- `tests/test-engine-diff.js` exiting 3 is **diagnosed, not carried**: `--n` defaults to 150 against a
+  published 6,000-comparison artifact, so `engine/publish_guard.js` refuses the shrink and sets a
+  non-zero exit. No engine state can make that invocation green; the run that answers the clause
+  passes `--n 6000`.
+- `data/docs-currency-baseline.json` gains two hand entries with reasons, for the census figure of
+  the previous version standing inside dated blocks in `docs/ABRA-whitepaper.md` and
+  `docs/SUMMARY.md`. **Neither document was edited.** The artifact moved underneath a dated record,
+  and a dated record is not rewritten in place.
+- **REPO HEALTH, MEASURED AND NOT ACTED ON.** `.git` is 977 MB and `docs/ENGINE.pdf` is 30.0 MB,
+  rebuilt on every version bump. That is the number behind the HTTP 408s on push. Changing the PDF
+  build set is a change to the documentation standard and is Will's call, so it is recorded rather
+  than made.
+
+---
+
 ## [5.264.0] — 2026-09-06
 
 ### Fixed

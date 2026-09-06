@@ -1,6 +1,16 @@
 # ABRA — the plain-English deck
 
-**Version 5.264.0 · 2026-09-06 · Will Hooper**
+**Version 5.265.0 · 2026-09-06 · Will Hooper**
+
+**5.265.0 - A MOVE THAT CLEANS UP THE FIELD WAS DOING THE RIGHT THINGS IN THE WRONG ORDER, AND NO TEST WE HAD COULD SEE IT.**
+
+**THE TWO QUESTIONS THIS VERSION ANSWERS.** *Have we tested Rapid Spin clearing hazards and things like Leech Seed?* Partly. The move does four things — it sweeps your own side of the field, it pulls the Leech Seed off you, it frees you from a wrap, and it gives you a Speed boost. We had a real test for the first, a second-hand one for the Leech Seed, and **nothing at all** for the wrap: the simulator kept a counter for it that no test ever looked at. *Have we tested that Leech Seed actually heals the one who planted it?* Yes, properly — two tests read the planter's health with the planter deliberately hurt first, so the test could not pass by accident on a Pokemon that was already full.
+
+**WHAT THE SECOND QUESTION TURNED UP.** Three different moves clean up the field, and the real game writes down what they did in three different orders. We used one order for all three. **The end position is identical either way**, which is why every board test we had passed over it for as long as it existed. It is a commentary difference, not a board difference — and commentary is its own bar here, not something to wave through. It is fixed to match the real game, driven off information we already had rather than by naming the moves in the code.
+
+**WHAT WE CAN AND CANNOT REPORT.** Our list of tested mechanics is now **830 of 830, with none missing**. But changing the simulator means every big measurement taken before the change was taken on different code, so **those numbers are withheld rather than repeated with a note attached** — a note is not a quarantine, and this project has paid for that twice. Nine health checks run and seven are failing — **every one of them because the measurement is older than the change, not because anything was caught doing the wrong thing.** That is worse than a failure we can point at, not better, and it is why the honest answer this version is a blank rather than a repeated number. Re-running them is the next job and the commands are written down.
+
+**AND WE SAID IN ADVANCE THAT THE LADDER SCORE WOULD NOT MOVE, AND IT DID NOT.** Rapid Spin does not appear once in the frozen set of real ladder teams we measure against, so a fix to it cannot show up there. We ran the same games on the old code and the new code and got the same result on both sides, down to identical logs. That is the split working as intended: the lab catches the rare thing, the ladder sample tells us whether it matters.
 
 **5.264.0 - ONE CHANGE, AND IT IS TO OUR MEASURING RIG RATHER THAN TO THE GAME. THE "DIFFERENT BOARD" SCORE FELL FROM 34 GAMES OUT OF 961 TO 27; THE "DIFFERENT COMMENTARY" SCORE FELL FROM 100 TO 93.**
 

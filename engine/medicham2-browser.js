@@ -1615,6 +1615,9 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * is being played as a spin, which is a real defect and not a quiet one. */
   hazardSwept: 0, sideConditionSwept: 0, terrainSweptByMove: 0,
   leechSeedSwept: 0, partialTrapSwept: 0, substituteSwept: 0,
+  /* 2026-09-06 -- the sweep ran its clauses in the AUTHORITY'S order. A zero here with a non-zero
+   * `hazardSwept` means the legacy order is live, which is exactly what the restore knob does. */
+  sweepInAuthorityOrder: 0,
   /* ROADMAP #223 -- the residual drain paid a body OTHER than the one that clicked, because the seeder
    * had left and somebody else is standing in its slot. A zero after games with switching in them
    * means the slot lookup is not on the path, not that the case is rare. */
@@ -2622,6 +2625,7 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-09-04 -- MEDI_DEFOG_FOE_SIDE_LEGACY=1 is armed: the sweep is back on "the side the mover is
      not on" instead of the target's side. Must read 0 on any shipping run. */
   defogFoeSideLegacyRestored: 0,
+  sweepLegacyOrderRestored: 0,
   /* AND THE LOUD FALLBACK BESIDE IT. The sweep ran with `_landed > 0` and no surviving row could name
      a side, so it fell back to the far side -- which IS the pre-fix bug, arriving silently. Must read 0. */
   sweepFieldNoTargetSide: 0, sweepFieldNoTargetSideFirst: '',
@@ -21211,17 +21215,88 @@ function layHazard(sf,hz,cap,setter,sideLabel,say){
  * be shown RED rather than told it was. Must read 0 on any shipping run. */
 const DEFOG_FOE_SIDE_LEGACY=(typeof process!=='undefined'&&process.env
                              &&process.env.MEDI_DEFOG_FOE_SIDE_LEGACY==='1');
+/* ---- 2026-09-06 -- THE SWEEP RAN ITS OWN CLAUSES IN ITS OWN ORDER, AND THE AUTHORITY'S ORDER IS
+ * NOT THAT ONE. Three carriers, three DIFFERENT orders, all read off the handlers and then observed
+ * in a real Champions battle rather than reasoned about:
+ *
+ *   RAPID SPIN / MORTAL SPIN   `onAfterHit` is, statement by statement:
+ *        removeVolatile('leechseed')  ->  the sideConditions loop  ->  removeVolatile('partiallytrapped')
+ *      OBSERVED (Excadrill Rapid Spin, seeded, trapped, rocks on its own side):
+ *        |-boost|p1a: Excadrill|spe|1
+ *        |-end|p1a: Excadrill|Leech Seed|[from] move: Rapid Spin|[of] p1a: Excadrill
+ *        |-sideend|p1: A|Stealth Rock|[from] move: Rapid Spin|[of] p1a: Excadrill
+ *        |-end|p1a: Excadrill|Infestation|[partiallytrapped]
+ *
+ *   DEFOG   `onHit` walks `removeTarget = [reflect, lightscreen, auroraveil, safeguard, mist,
+ *      ...removeAll]` on the TARGET's side first, then `removeAll` on the SOURCE's side, then
+ *      `clearTerrain()`. OBSERVED (Corviknight Defog at a foe, rocks and a Reflect on both sides):
+ *        |-sideend|p2: B|Reflect
+ *        |-sideend|p2: B|Stealth Rock|[from] move: Defog|[of] p1a: Corviknight
+ *        |-sideend|p1: A|Stealth Rock|[from] move: Defog|[of] p1a: Corviknight
+ *
+ *   TIDY UP   `onHit` clears every Substitute on the field FIRST, then walks
+ *      `[pokemon.side, ...foeSidesWithConditions()]`. OBSERVED (Maushold Tidy Up, own doll up, rocks
+ *      on both sides):
+ *        |-end|p1a: Maushold|Substitute
+ *        |-sideend|p1: A|Stealth Rock
+ *        |-sideend|p2: B|Stealth Rock
+ *
+ * THIS ENGINE RAN hazards -> screens -> terrain -> leechseed -> trap -> substitutes, which is wrong
+ * for all three: the spin family emitted its `-sideend` above its Leech Seed `-end`, Defog emitted
+ * its own side before the target's and its screens last, and Tidy Up emitted its Substitute `-end`
+ * below both side lines. Board-identical, protocol-ordered differently -- the `ordering` class.
+ *
+ * ONE ORDER SATISFIES ALL THREE AND IT IS NOT A COINCIDENCE, because the three handlers share a
+ * skeleton: whatever the move pulls off a BODY that is not a side condition comes first (the doll,
+ * the seed), the SIDE conditions come next, and the field and the trap come last. Every step below
+ * is gated on the param that already exists in `data/tags.json` -- no move is named here, and no new
+ * tag data was needed, which is why this could land while `tag_dex.js`'s heap blocker stands.
+ *
+ * THE BAG ORDER IS DERIVED FROM `screensFrom`, and that is a shape claim rather than a name: a
+ * carrier that takes conditions off the TARGET's side is one whose handler is written
+ * target-side-first (Defog's `removeTarget` loop), and a carrier with no target-side clause walks
+ * its own side first (Tidy Up's `[pokemon.side, ...foeSides]`). If a later carrier ever breaks that
+ * correlation the `-sideend` pair swaps and the differential's `ordering` class says so.
+ *
+ * `MEDI_SWEEP_LEGACY_ORDER=1` puts the old order back verbatim so the probe can be shown RED. It
+ * RELOCATES rather than skips -- every clause still fires and the board is identical either way,
+ * which is the whole point of the arm. */
+const SWEEP_LEGACY_ORDER=(typeof process!=='undefined'&&process.env
+                          &&process.env.MEDI_SWEEP_LEGACY_ORDER==='1');
 function sweepField(rm,user,srcSf,tgtSf,field,acts){
   if(!rm)return 0;
   let n=0;
   const _lab=sf=>sf&&sf.side==='A'?'p1':'p2';
   const _bags=[];
-  if(rm.hazardsFrom==='self'||rm.hazardsFrom==='both')_bags.push(srcSf);
+  /* THE TARGET'S SIDE LEADS WHEN THE HANDLER TAKES ANYTHING OFF IT -- see the header. Legacy order
+   * always pushed the source first. */
+  const _tgtLeads=!SWEEP_LEGACY_ORDER&&rm.screensFrom==='target';
+  const _pushSrc=()=>{ if(rm.hazardsFrom==='self'||rm.hazardsFrom==='both')_bags.push(srcSf); };
   /* DE-DUPLICATED BY IDENTITY. An ally-aimed Defog has srcSf === tgtSf and the authority's two loops
    * then run over ONE side; pushing it twice would be harmless today (the second pass finds the bags
    * already empty) and would silently double `n` the moment a caller reads the return value. */
-  if((rm.hazardsFrom==='target'||rm.hazardsFrom==='both')&&tgtSf!==srcSf)_bags.push(tgtSf);
-  for(const sf of _bags){
+  const _pushTgt=()=>{ if((rm.hazardsFrom==='target'||rm.hazardsFrom==='both')&&tgtSf!==srcSf)_bags.push(tgtSf); };
+  if(_tgtLeads){_pushTgt();_pushSrc();} else {_pushSrc();_pushTgt();}
+
+  /* `getAllActive()` is EVERY body on the field, its own side included -- read off the iterator by
+   * tag_dex rather than assumed, and the probe asserts the foe's doll specifically because a wire
+   * that only cleared the user's would still look like it fired. */
+  const _subs=()=>{ if(rm.removesSubstitutes==='all'&&acts)for(const m of acts){
+    if(m&&!m.fainted&&m._sub>0){m._sub=0;n++;MEDSEEN.substituteSwept++;if(TR)TR.vend(m,'Substitute');}
+  } };
+  /* THE USER'S OWN, not the target's: `pokemon.removeVolatile('leechseed')` in the spin handlers
+   * names the ATTACKER. A wire that pulled the target's seed would be a different move. */
+  const _seed=()=>{ if(rm.removesOwnLeechSeed&&user&&user._seededBy){user._seededBy=null;n++;
+    MEDSEEN.leechSeedSwept++; if(TR)TR.vend(user,'move: Leech Seed');} };
+  const _screens=()=>{ if(rm.alsoRemoves&&rm.alsoRemoves.length){
+    const sf=rm.screensFrom==='target'?tgtSf:srcSf;
+    if(sf&&sf.sc)for(const id of rm.alsoRemoves){
+      if(!(sf.sc[id]>0))continue;
+      delete sf.sc[id]; n++; MEDSEEN.sideConditionSwept++;
+      if(TR)TR.sendSide(_lab(sf),id);
+    }
+  } };
+  const _haz=()=>{ for(const sf of _bags){
     if(!sf||!sf.hz)continue;
     for(const hz of (rm.hazards||[])){
       if(!(sf.hz[hz]>0))continue;
@@ -21229,33 +21304,25 @@ function sweepField(rm,user,srcSf,tgtSf,field,acts){
       n++; MEDSEEN.hazardSwept++;
       if(TR)TR.sendSide(_lab(sf),hz);
     }
-  }
-  if(rm.alsoRemoves&&rm.alsoRemoves.length){
-    const sf=rm.screensFrom==='target'?tgtSf:srcSf;
-    if(sf&&sf.sc)for(const id of rm.alsoRemoves){
-      if(!(sf.sc[id]>0))continue;
-      delete sf.sc[id]; n++; MEDSEEN.sideConditionSwept++;
-      if(TR)TR.sendSide(_lab(sf),id);
-    }
-  }
+  } };
   /* ROADMAP #175 -- a Defog that takes the terrain down takes the Mimicry type with it, and the sync
    * runs over the ACTS this call was handed rather than over a roster this function does not have. */
-  if(rm.clearsTerrain&&field&&field.terrain){field.terrain='';n++;MEDSEEN.terrainSweptByMove++;
-    syncFieldTypes(field,acts||[]);}
-  /* THE USER'S OWN, not the target's: `pokemon.removeVolatile('leechseed')` in the spin handlers
-   * names the ATTACKER. A wire that pulled the target's seed would be a different move. */
-  if(rm.removesOwnLeechSeed&&user&&user._seededBy){user._seededBy=null;n++;MEDSEEN.leechSeedSwept++;
-    if(TR)TR.vend(user,'move: Leech Seed');}
-  if(rm.removesOwnPartialTrap&&user&&user._trap){const _tmv=user._trap.mv;user._trap=null;n++;MEDSEEN.partialTrapSwept++;
-    if(TR)TR.vend(user,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');}
-  /* `getAllActive()` is EVERY body on the field, its own side included -- read off the iterator by
-   * tag_dex rather than assumed, and the probe asserts the foe's doll specifically because a wire
-   * that only cleared the user's would still look like it fired. */
-  if(rm.removesSubstitutes==='all'&&acts)for(const m of acts){
-    if(m&&!m.fainted&&m._sub>0){m._sub=0;n++;MEDSEEN.substituteSwept++;if(TR)TR.vend(m,'Substitute');}
+  const _terrain=()=>{ if(rm.clearsTerrain&&field&&field.terrain){field.terrain='';n++;
+    MEDSEEN.terrainSweptByMove++; syncFieldTypes(field,acts||[]);} };
+  const _trap=()=>{ if(rm.removesOwnPartialTrap&&user&&user._trap){const _tmv=user._trap.mv;
+    user._trap=null;n++;MEDSEEN.partialTrapSwept++;
+    if(TR)TR.vend(user,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');} };
+
+  if(SWEEP_LEGACY_ORDER){
+    MEDFAILS.sweepLegacyOrderRestored=1;
+    _haz();_screens();_terrain();_seed();_trap();_subs();
+  } else {
+    _subs();_seed();_screens();_haz();_terrain();_trap();
+    MEDSEEN.sweepInAuthorityOrder++;
   }
   return n;
 }
+
 /* BRING A BENCHED POKEMON IN. Shared by faint replacement and by voluntary/pivot switching.
    WHICH mon: live(bench)[0], the same choice refill() has always made. A rollout needs SOME policy
    and the honest first version reuses the existing one rather than inventing a matchup heuristic

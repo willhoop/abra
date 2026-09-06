@@ -1,6 +1,16 @@
 # ABRA — Technical Documentation
 
-**Version 5.264.0 · Last updated 2026-09-06**
+**Version 5.265.0 · Last updated 2026-09-06**
+
+**5.265.0 - ONE ENGINE DEFECT IS CORRECTED. IT IS AN ORDERING DEFECT. THE BOARD DOES NOT CHANGE.**
+
+**DEFECT.** `sweepField` in `engine/medicham2-browser.js` ran one clause order for every carrier. The order was `hazards -> screens -> terrain -> leechseed -> trap -> substitutes`. The authority uses three different orders. It writes the spin family's Leech Seed `-end` above its `-sideend`. It writes Defog's target side before its own side. It writes Tidy Up's Substitute `-end` below both side lines. **EFFECT.** The emitted sequence differs. The board state does not. A board probe cannot see this defect. **ACTION.** Order the clauses `substitutes -> leechseed -> screens -> hazards -> terrain -> trap`. Lead the hazard bag on the target's side when the tag says the screens come off the target. Gate every step on a param already in `data/tags.json`. Do not name a move in code. Do not regenerate the tags. **RESTORE.** `MEDI_SWEEP_LEGACY_ORDER=1`. **COUNTERS.** `MEDSEEN.sweepInAuthorityOrder`, `MEDFAILS.sweepLegacyOrderRestored`.
+
+**COVERAGE.** Rapid Spin has four clauses in this format. Champions changes only its PP. Two clauses had no assertion of their own. The partial-trap clause had none anywhere. A census probe now stages all four. `data/mechanics-census.json` reads 830 live of 830 probed and 0 missing.
+
+**PROOF.** `tests/probe_hazard_sweep_order.js`. It derives the carrier family from `data/tags.json`. It fails by name if a carrier has a clause shape no arm stages. It plays each shape in both engines. It asserts the `(event, subject, effect)` sequence. The parent re-runs the child under the restore knob. The child must fail. It fails on all three arms.
+
+**PUBLICATION.** No whole-game figure is published in this version. The tree is release `57679ef9a4a3`. The whole-game differential, the damage differential, the three roster stages and the staged-mechanics artifact were measured on release `d9e551ed0d5a`. `engine/status.js` computes nine clauses. Seven fail. **All seven fail because the artifact was measured against a different engine.** Six artifacts are affected. No clause fails on a measured disagreement in this version. Unmeasured is not the same state as measured-and-red. It is worse. Eight of the nine clauses gate. Narration does not gate. Six of the eight gating clauses fail. The gate reads CLOSED. **Do not restate a withheld count with a caveat. Withhold it.** The re-measurement commands are in `docs/MEASURE.md`.
 
 **5.264.0 - ONE INSTRUMENT DEFECT IS CORRECTED. THE ENGINE IS NOT CHANGED.**
 

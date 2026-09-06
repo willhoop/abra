@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-06T15:23:01.994Z",
+  "generated": "2026-09-06T16:37:19.436Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 829,
-  "live": 829,
+  "probed": 830,
+  "live": 830,
   "missing": 0,
-  "armed": 829,
+  "armed": 830,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -3390,6 +3390,16 @@
     },
     {
       "kind": "move",
+      "tag": "removesHazards",
+      "label": "Rapid Spin pulls its OWN Leech Seed and its OWN partial trap — and a Ghost refuses all of it",
+      "live": true,
+      "detail": "[own Leech Seed, own partial trap, own rocks, own Speed stage] — an Excadrill seeded by a Whimsicott, trapped by a Toxapex Infestation, with Stealth Rock on its own side. IRON HEAD (control) [1,1,1,0] (must be 1,1,1,0 — nothing moves). RAPID SPIN [0,0,0,1] (must be 0,0,0,1). RAPID SPIN INTO A GHOST [1,1,1,0] (must be 1,1,1,0 — a Normal move that cannot hit reaches no onAfterHit, so the sweep is refused and the secondary never fires either). staged=true — a false there means the fixture never seeded or trapped anything",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "blocksHealing",
       "label": "Psychic Noise stops the target healing",
       "live": true,
@@ -4023,7 +4033,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.8% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -19,7 +19,7 @@ rather than tools:
 WEB — the site, and what it is allowed to publish
   no sprint marker on disk (docs/MEDICHAM-SPRINT-NOTES.md absent) — the living-docs rule is fully armed for this division too.
   web/quarantine-data.js: built 2026-08-25 19:07  — the site publishes 3 of 8 clauses failing, gate CLOSED
-    the LIVE gate says 1 of 8 GATING clauses fail  (CLOSED)
+    the LIVE gate says 6 of 8 GATING clauses fail  (CLOSED)
     DRIFTED — the committed bundle is not what the gate says today.
       published clause(s) the gate no longer has: whole-game differential / the same game on both engines
       clause(s) the gate has and the bundle does not: whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect
@@ -30,7 +30,7 @@ WEB — the site, and what it is allowed to publish
   rebuild the bundles: node web/build-quarantine.js && node web/build-status.js   — a PUBLISH (app/) is Will's call and this file never makes one.
 ```
 
-_stamped 2026-09-06 11:57_
+_stamped 2026-09-06 13:12_
 
 <!-- /GENERATED -->
 

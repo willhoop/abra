@@ -13472,6 +13472,69 @@ probe('move', 'removesHazards', 'Tidy Up tidies both sides and every Substitute;
                  + 'A -1 in any slot means the fixture never staged it' };
 });
 
+/* RAPID SPIN'S OTHER TWO CLAUSES, 2026-09-06. The probe above asserts the spin family's Leech Seed
+ * clause on MORTAL SPIN and the hazard clause on RAPID SPIN, and between them they left two things
+ * that nothing in this repository asked:
+ *
+ *   - `removesOwnPartialTrap` had NO probe at all. `MEDSEEN.partialTrapSwept` was incremented by the
+ *     engine and read by nothing, which is the shape CLAUDE.md calls a capability that cannot prove
+ *     it ran. A trapped body clicking Rapid Spin is half the reason the move is on a team.
+ *   - Rapid Spin's OWN Leech Seed removal rode on Mortal Spin's arm. Same tag param, same wire — but
+ *     the param is per-move, and a regeneration could drop it from one carrier and not the other.
+ *
+ * THE THIRD ARM IS THE ONE THAT MATTERS MOST AND IT IS A REFUSAL. The whole sweep hangs off
+ * `onAfterHit` (`onlyOnConnect: true` in the tag), so a Normal move into a GHOST — which never hits
+ * — must sweep NOTHING: no seed, no trap, no hazards, and no +1 Speed either. A wire that fired on
+ * the CLICK instead of on the HIT passes every other arm here and fails this one.
+ *
+ * DERIVED, not typed: Excadrill is a legal Rapid Spin carrier and Toxapex a legal Infestation carrier
+ * (`engine/champions_sim.js` moveCarriers); Dragapult is the Ghost and carries Infestation too.
+ * Verified against the official simulator on this board before the probe was written — an Excadrill
+ * seeded by a Whimsicott, trapped by a Toxapex Infestation, rocks on its own side, one Rapid Spin:
+ *     |-boost|p1a: Excadrill|spe|1
+ *     |-end|p1a: Excadrill|Leech Seed|[from] move: Rapid Spin|[of] p1a: Excadrill
+ *     |-sideend|p1: A|Stealth Rock|[from] move: Rapid Spin|[of] p1a: Excadrill
+ *     |-end|p1a: Excadrill|Infestation|[partiallytrapped]
+ * The ORDER of those four lines is asserted separately, by tests/probe_hazard_sweep_order.js. */
+probe('move', 'removesHazards',
+      'Rapid Spin pulls its OWN Leech Seed and its OWN partial trap — and a Ghost refuses all of it', () => {
+  const run = (mv, foeSp) => {
+    const me = bare('excadrill'), ally = bare('corviknight');
+    const f1 = bare(foeSp), f2 = bare('whimsicott');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(f1); unfaintable(me);
+    me._sf.hz = me._sf.hz || {}; me._sf.hz.stealthrock = 1;
+    /* Seed and trap the SAME body, on two turns, from two different foes. */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, { kind: 'pass' }], [f2, M.playerAction(f2, 'leechseed', me, S.field)]]));
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'infestation', me, S.field)], [f2, { kind: 'pass' }]]));
+    const staged = !!me._seededBy && !!me._trap;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { staged, shape: [me._seededBy ? 1 : 0, me._trap ? 1 : 0,
+                             (me._sf.hz || {}).stealthrock || 0, me.boosts.sp] };
+  };
+  /* THE BODY THAT TRAPS IS ALSO THE BODY THE SPIN IS AIMED AT, so the first two arms differ by the
+   * clicked move alone and the third differs by the aimed TYPE alone. */
+  const control = run('ironhead', 'toxapex');
+  const test = run('rapidspin', 'toxapex');
+  const ghost = run('rapidspin', 'dragapult');
+  const eq = (r, want) => JSON.stringify(r.shape) === JSON.stringify(want);
+  const stagedAll = control.staged && test.staged && ghost.staged;
+  return { works: stagedAll && eq(control, [1, 1, 1, 0]) && eq(test, [0, 0, 0, 1])
+                  && eq(ghost, [1, 1, 1, 0]),
+           arms: { control: control.shape, test: test.shape, ghost: ghost.shape },
+           detail: '[own Leech Seed, own partial trap, own rocks, own Speed stage] — an Excadrill '
+                 + 'seeded by a Whimsicott, trapped by a Toxapex Infestation, with Stealth Rock on '
+                 + 'its own side. IRON HEAD (control) ' + JSON.stringify(control.shape)
+                 + ' (must be 1,1,1,0 — nothing moves). RAPID SPIN ' + JSON.stringify(test.shape)
+                 + ' (must be 0,0,0,1). RAPID SPIN INTO A GHOST ' + JSON.stringify(ghost.shape)
+                 + ' (must be 1,1,1,0 — a Normal move that cannot hit reaches no onAfterHit, so the '
+                 + 'sweep is refused and the secondary never fires either). staged=' + stagedAll
+                 + ' — a false there means the fixture never seeded or trapped anything' };
+});
+
 probe('move', 'blocksHealing', 'Psychic Noise stops the target healing', () => {
   const run = (noise) => {
     const { me, ally, f1, f2, S } = board('alakazam', 'incineroar', 'milotic', 'garchomp');

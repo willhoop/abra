@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-19T23:54:20.537Z",
+  "generated": "2026-09-06T16:19:04.442Z",
   "by": "engine/mod_audit.js",
   "what": "Every value the Champions mod changes from mainline gen 9, across every field of every legal move, ability, item, species and overridden condition — plus the scripts.ts methods a value diff cannot verify.",
   "why": "Three status rates, four secondary chances, two move TYPES and Unseen Fist were all found by Will asking, one at a time, after the gate had already opened. The question \"did Champions change this?\" had no answer anybody could run. Now it does.",
