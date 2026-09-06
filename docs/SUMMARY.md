@@ -1,6 +1,32 @@
 # ABRA — Project Summary
 
-**Version 5.265.0 · 2026-09-06 · Will Hooper**
+**Version 5.266.0 · 2026-09-06 · Will Hooper**
+
+**5.266.0 - THE WHOLE-GAME FIGURES 5.265.0 CORRECTLY LEFT BLANK ARE RESTORED, ON MEASURED COUNTS AND ON THE CURRENT BYTES. BOARD-MATERIAL 27 OF 961, PROTOCOL 93, NARRATION 70, RELEASE `57679ef9a4a3` — THE SAME THREE NUMBERS 5.264.0 PUBLISHED, MEASURED A SECOND TIME ON A DIFFERENT ENGINE RATHER THAN CARRIED FORWARD.**
+
+| question | artifact | answer |
+|---|---|---|
+| whole-game / **BOARD-MATERIAL**, the gating clause | `data/game-differential.json` | **27 of 961 = 2.8%.** `state.games` **961** less `state.games_board_never_diverged` **934**, both operands off `state`. **`by_cause_totals.games_board_material` reads 22 and is NOT the bar** |
+| whole-game / protocol first divergence | same | **93 of 961** — `state.protocol_diverged_games` |
+| whole-game / narration-only, reports and does not gate | same | **70 of 961 = 7.3%** across 69 causes — **71** raw (`state.protocol_diverged_board_never_did`) less **1** declared row |
+| board-material games with no protocol cause at all | same | **5** — 27 less the 22 whose protocol also parted. Nothing to grep: no cause, no class, no shape |
+| is it a new measurement or a restated one | `engine/arms_comparable.js` | **COMPARABLE, exit 0.** `git show HEAD:data/game-differential.json` reads `d9e551ed0d5a` with 961 / 934 / 93 / 71; the new one reads `57679ef9a4a3` with the identical five numbers |
+| the damage differential | `data/engine-diff.json` | **6,000 compared, 0 disagreed**, seed 20260804, 134 multi-hit skipped by construction |
+| the deliberate roster, all three stages | `data/roster.{items,abilities,moves}.json` | `FIRED-AND-BOARDS-DIFFER` **0** and `DID-NOT-FIRE` **0** on all three; 140 of 148, 129 of 202, 475 of 500 tested |
+| staged mechanics | `data/all-mechanics-fire.json` | 1,313 games played, **0 threw** |
+| mechanics live in the census | `data/mechanics-census.json` | **830 live of 830 probed**, 0 missing, `run_ok` true — unchanged |
+| the gate | `node engine/status.js` | **nine clauses, two failing**, and **both on measured disagreements on the current bytes**. Eight of the nine GATE, so one gating clause fails and the gate reads CLOSED |
+| leaf calibration | withheld | downstream of MEDICHAM; not run. It becomes quotable when the gate opens AND `node engine/backtest_winrate.js` is re-run |
+
+**WHY THE BLANK WAS RIGHT, AND WHY RESTORING IT IS THE RESULT.** 5.265.0 published no whole-game count anywhere. The hazard-sweep order fix had moved `engine/medicham2-browser.js`, so six artifacts had been measured on release `d9e551ed0d5a` while the tree was `57679ef9a4a3`, and seven of nine clauses failed on the release mismatch alone — an answer about other bytes, which is worse than a red one and was published as such rather than captioned. **This version moves from unmeasured back to measured-and-red.** That is the direction, and it is the reverse of the step 5.265.0 recorded.
+
+**THE PREDICTION WAS WRITTEN BEFORE THE RUN AND READ SIX OF SIX WITH NO MISSES.** `data/verification/_prediction-remeasure-57679ef9a4a3.json`, `written_before_the_run: true`, no tolerance band claimed. It called games, board-material, protocol, narration raw, the pool digest and the teams/picked pair, and every one landed. The named risk was registered too — that the 961-game draw is a *different* sample from the 777-game one rather than a superset — and did not materialise.
+
+**THE 777-GAME SAMPLE LEFT OPEN LAST VERSION IS DIAGNOSED, AND THE LESSON IS BIGGER THAN THE BUG.** It was `--games`, reproduced deterministically: `--games 960` gives pool `b2b61ec40281`, 1,597 picked and 777 games; `--games 1200` gives pool `0d103fb9fa87`, 1,968 picked and 961 games. **`--games` is part of the sample DEFINITION, not a budget** — two runs on identical declared pins with different `--games` draw different strides and are not a before/after. `arms_comparable.js` already refuses on it, so the guard existed; what failed is that the report recorded the pins and not the command.
+
+**THE POOL PIN IS HONOURED, CONFIRMED WITH EVIDENCE.** The frozen `games.bo3.jsonl` is 109,006,606 bytes with sha1 `2fd61bf80133`; the live one is 227,347,410 bytes with sha1 `1a47b971bc46`; the pinned run's `source_content_digests` carries the frozen prefix. Replaying `buildSwarm(2400, { storeDir: 'data/team-pool-frozen' })` reproduced the pin, 8,778 teams, 1,968 picked and digest `0d103fb9fa87`. **Nothing is withdrawn.**
+
+**THREE DEFECTS ARE FILED AND NONE IS FIXED — ROADMAP #546, #547, #548.** A require-time `buildSwarm` above the main guard; a pool cache stamping its `source_digests` from the LIVE paths even on a pinned run, so one header carries two disagreeing digests of the same nominal file; and a crash for any `--turns` below 3. All three are in the measuring tools, not the engine. No release SOURCE was edited.
 
 **5.265.0 - THE LAB MOVED AND THE POOL DID NOT, AS CALLED IN ADVANCE. A HAZARD SWEEP RAN ITS CLAUSES IN ONE FIXED ORDER WHILE THE THREE CARRIERS EACH USE A DIFFERENT ONE — A DEFECT NO BOARD PROBE COULD SEE. AND THE ENGINE SOURCE MOVING PUTS EVERY FAILING GATE CLAUSE BACK INTO "MEASURED AGAINST A DIFFERENT ENGINE", SO NO WHOLE-GAME FIGURE IS PUBLISHED THIS VERSION.**
 

@@ -1,6 +1,32 @@
 # ABRA — Technical Documentation
 
-**Version 5.265.0 · Last updated 2026-09-06**
+**Version 5.266.0 · Last updated 2026-09-06**
+
+**5.266.0 - THE WHOLE-GAME FIGURES ARE MEASURED AGAIN AND PUBLISHED AGAIN. NO ENGINE SOURCE CHANGED.**
+
+**PUBLICATION.** The tree is release `57679ef9a4a3`. `data/game-differential.json` is republished on that release. It was generated at `2026-09-06T17:42:35Z`. The published figures are **board-material 27 of 961**, **protocol first divergence 93 of 961** and **narration-only 70 of 961**. Version 5.265.0 published none of these. That was correct. The artifacts were measured on release `d9e551ed0d5a`. The tree was `57679ef9a4a3`. `engine/status.js` withheld the figures. **This version restores them. It does not repeat them.** Full account: `docs/_reports/2026-09-06-publish-5266.md`.
+
+**HOW EACH FIGURE IS DERIVED.** Board-material is a subtraction. Read both operands off `state`. `state.games` is 961. `state.games_board_never_diverged` is 934. The result is 27. Protocol is `state.protocol_diverged_games`. It is 93. Narration is `state.protocol_diverged_board_never_did`. It is 71. Subtract one declared row. The result is 70. **Do not use `by_cause_totals.games_board_material`. It reads 22. It is not the bar.** The difference of 5 is the set of games that part a board while the protocol does not diverge. Those games have no cause and no class.
+
+**PINS.** 961 games. Turn cap 20. Arm `middle`. Steering `empirical-click/v1`. Flag `--end-state`. Census pin `data/verification/census-pin-9446a684709d.json`. Team store `data/team-pool-frozen`. Pool digest `0d103fb9fa87`. Teams in corpus 8,778. Teams picked 1,968.
+
+**PROOF THAT THIS IS A NEW MEASUREMENT.** Read the previous artifact with `git show HEAD:data/game-differential.json`. It records release `d9e551ed0d5a` and the values 961, 934, 93, 71. The new artifact records release `57679ef9a4a3` and the same values. `engine/arms_comparable.js` compares the two arms. It answers **COMPARABLE** and exits 0. It does not refuse. It declares three blind spots. It cannot see a computed require path in the driver. It cannot see `data/protocol-events.json`. It cannot see an uncommitted edit in `SHOWDOWN_PATH`.
+
+**GATE.** `engine/status.js` computes nine clauses. **Two fail.** They are the whole-game board-material clause and the whole-game narration clause. **Both fail on measured counts.** Neither fails on staleness. Eight of the nine clauses gate. Narration does not gate. **One of the eight gating clauses fails.** The gate reads CLOSED. Do not print the nine-clause count and the eight-clause count together.
+
+**RE-RUN ARTIFACTS.** `data/engine-diff.json` compares 6,000 pairs. It reports 0 disagreements. The seed is 20260804. It skips 134 multi-hit comparisons by construction. `data/roster.items.json` reports 0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`. It tests 140 of 148. `data/roster.abilities.json` reports 0 and 0. It tests 129 of 202. `data/roster.moves.json` reports 0 and 0. It tests 475 of 500. `data/all-mechanics-fire.json` plays 1,313 games. It reports 0 threw. `data/mechanics-census.json` reads 830 live of 830 probed and 0 missing.
+
+**PREDICTION.** `data/verification/_prediction-remeasure-57679ef9a4a3.json` was written before the run. It carries `written_before_the_run: true`. It claims no tolerance band. It predicts six values. All six are correct.
+
+**DEFECT CLOSED BY DIAGNOSIS.** Version 5.265.0 recorded an unexplained sample of 777 games. The cause is the `--games` flag. Run with `--games 960`. The pool digest is `b2b61ec40281`. The picked count is 1,597. The primary arm plays 777 games. Run with `--games 1200`. The pool digest is `0d103fb9fa87`. The picked count is 1,968. The primary arm plays 961 games. **RULE. `--games` is part of the sample definition. It is not a budget.** Two runs with different `--games` are not a before/after. `engine/arms_comparable.js` refuses on that difference. **Record the whole command in the report.**
+
+**POOL PIN.** The flag `--team-store data/team-pool-frozen` reads the frozen files. The frozen `games.bo3.jsonl` is 109,006,606 bytes. Its sha1 prefix is `2fd61bf80133`. The live `games.bo3.jsonl` is 227,347,410 bytes. Its sha1 prefix is `1a47b971bc46`. The cache field `source_content_digests` records the frozen prefix. Replay `buildSwarm(2400, { storeDir: 'data/team-pool-frozen' })`. It returns 8,778 teams and 1,968 picked. The re-derived digest is `0d103fb9fa87`. All four steering fields agree. **No figure is withdrawn.**
+
+**CACHE.** `data/diff-team-pool.json` is a cache. It is gitignored. It holds one slot. **It is never an input.** Its key is the size and the mtime of the store it was given. A key mismatch causes a rebuild from the given store. `engine/game_differential.js` derives `team_pool_digest` from the returned teams. It does not read the cache header.
+
+**THREE DEFECTS ARE FILED. NONE IS FIXED.** ROADMAP #546. `engine/game_differential.js:6450` calls `SWARM.buildSwarm(...)` at module scope. The main guard is at `:6733`. A `require` of the module therefore loads teams. It reads `--team-store` from the caller's argv. ROADMAP #547. `engine/diff_swarm.js:329` writes `source_digests` from the literal `POOL_SOURCES` at `:272`. That literal names the live paths. A pinned cache therefore carries a live-store receipt. ROADMAP #548. `engine/game_differential.js` throws for `--turns` below 3. `identicalAtEndOfTurn` is `[1, 2, 3]` at `:7837`. `agreementByTurn` runs `1..MAXTURNS` at `:7857`. The cross-check at `:7866` indexes the shorter array.
+
+**STILL WITHHELD.** Leaf calibration is withheld. `data/winrate-backtest.json` is downstream of MEDICHAM. It was not run. The leaf/engine contrast, the click-censoring census, R1 to R4, the exploitability search and the fitted weights are also withheld. The MAG refit is owed. It is a refit and not a restamp. The stamp in `data/policy-weights.json` records **318** species. `engine/feature_fixture.js --check` reports a wider table and a different digest. The feature function's input changed.
 
 **5.265.0 - ONE ENGINE DEFECT IS CORRECTED. IT IS AN ORDERING DEFECT. THE BOARD DOES NOT CHANGE.**
 

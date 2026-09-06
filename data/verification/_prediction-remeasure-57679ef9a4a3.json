@@ -1,0 +1,59 @@
+{
+  "what": "MEASURE, 2026-09-06. Prediction written BEFORE the whole-game re-measurement on release 57679ef9a4a3, so a miss is recorded rather than explained afterwards.",
+  "written_at": "2026-09-06T17:45:00Z",
+  "written_before_the_run": true,
+  "run_being_predicted": {
+    "command": "node engine/game_differential.js --steering empirical --release 57679ef9a4a3 --arm middle --end-state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --state --write",
+    "pins": {
+      "engine_release": "57679ef9a4a3",
+      "census_pin": "data/verification/census-pin-9446a684709d.json",
+      "team_store": "data/team-pool-frozen",
+      "arm": "middle",
+      "driver": "empirical-click/v1",
+      "turns_cap": 20,
+      "games_requested": 1200
+    }
+  },
+  "baseline": {
+    "artifact": "data/game-differential.json as published at 5.264.0/5.265.0",
+    "engine_release": "d9e551ed0d5a",
+    "same_pins_except_release": true,
+    "games": 961,
+    "board_material": 27,
+    "board_material_formula": "state.games - state.games_board_never_diverged = 961 - 934",
+    "protocol_diverged_games": 93,
+    "narration_only_raw": 71,
+    "narration_only_published": 70,
+    "narration_note": "raw is end_state[0].summary.by_cause_totals.games_narration_only; the published clause subtracts 1 declared row",
+    "team_pool_digest": "0d103fb9fa87",
+    "team_pool_teams": 8778,
+    "team_pool_picked": 1968
+  },
+  "what_moved_between_the_two_releases": {
+    "sources_changed": 1,
+    "files": ["engine/medicham2-browser.js"],
+    "change": "sweepField runs its clauses in the authority's order (Rapid Spin / Mortal Spin / Defog / Tidy Up)"
+  },
+  "prediction": {
+    "verdict": "FLAT — every headline count identical to the baseline",
+    "games": 961,
+    "board_material": 27,
+    "protocol_diverged_games": 93,
+    "narration_only_raw": 71,
+    "team_pool_digest": "0d103fb9fa87",
+    "team_pool_teams": 8778,
+    "team_pool_picked": 1968,
+    "confidence": "high on games / pool digest (these are a deterministic function of the frozen store and --games, measured this session); moderate on the three divergence counts"
+  },
+  "why": [
+    "The only frozen SOURCE that changed is engine/medicham2-browser.js, and the change is the ORDER of the four hazard-sweep clauses inside sweepField.",
+    "A matched pinned pair across exactly these two releases (d9e551ed0d5a vs 57679ef9a4a3, same census pin, same frozen team store, arm middle, empirical driver) read 777 games / 98 diverged / 2 threw on BOTH legs, with byte-identical logs apart from the release id. That pair was measured on 2026-09-06 and is the direct evidence for FLAT.",
+    "Rapid Spin appears 0 times on the frozen pool's sheets. Mortal Spin 47, Defog 51, Tidy Up 13 do appear, and the matched pair was flat anyway, so the reordering is unobserved at the pool.",
+    "The pool digest and game count are a pure function of (frozen store bytes, --games). Measured this session: --games 1200 -> 8778 teams, 1968 picked, digest 0d103fb9fa87, and the published run stamped exactly those three values."
+  ],
+  "what_would_make_this_prediction_wrong": [
+    "The matched pair ran at --games 960, which draws a DIFFERENT 777-game sample (stride depends on per-config quota), not a subset of the 961-game sample. So 961 games contain teams the pair never played, and a Mortal Spin / Defog / Tidy Up ordering difference could surface in one of them.",
+    "If that happens the expected shape is +/-1 or 2 in protocol and narration, in the ordering class, with board-material unchanged."
+  ],
+  "call_it_a_miss_if": "any of games, board_material, protocol_diverged_games, narration_only_raw, team_pool_digest differs from the values above. No tolerance band is claimed."
+}

@@ -2,9 +2,9 @@
   "current": "57679ef9a4a3",
   "cut": "2026-09-06T16:39:06.369Z",
   "why": "ENGINE 2026-09-06: sweepField runs its clauses in the authority's order (Rapid Spin / Mortal Spin / Defog / Tidy Up)",
-  "cuts": 3,
-  "latest_cut": "2026-09-06T16:51:45.402Z",
-  "latest_why": "tests/probe_bigroot_family.js — freeze the tree under test",
-  "pointer_written": "2026-09-06T16:51:45.416Z",
+  "cuts": 4,
+  "latest_cut": "2026-09-06T17:37:39.419Z",
+  "latest_why": "MEASURE re-measure: whole-game + roster + mechanics on the sweep-order tree",
+  "pointer_written": "2026-09-06T17:37:39.434Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

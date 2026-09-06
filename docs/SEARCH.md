@@ -14,19 +14,19 @@ mid-run silently invalidates the run, and the run still prints a result.
 SEARCH — does MILTANK choose better than MAG
   R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r1-explore1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
   R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
   R3 divergence: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
   R4 does it win: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
   runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-06 12:38):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
@@ -36,7 +36,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-09-06 13:12_
+_stamped 2026-09-06 14:08_
 
 <!-- /GENERATED -->
 

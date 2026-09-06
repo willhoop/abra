@@ -1,9 +1,9 @@
 {
- "generated": "2026-09-06T13:52:52.615Z",
+ "generated": "2026-09-06T14:03:56.186Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "03160242219b",
- "engine_release_cut": "2026-09-06T13:44:18.355Z",
+ "engine_release": "d9e551ed0d5a",
+ "engine_release_cut": "2026-09-06T13:58:23.023Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
@@ -27,7 +27,7 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "3c733e7a0bfb",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "9f1443e299e2",
+  "data/abra-tags.js": "b624b04f0c3a",
   "data/tags.json": "a3a3a88a1b0f",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",

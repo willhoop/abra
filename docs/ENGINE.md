@@ -128,8 +128,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 ENGINE — does the simulator do what Pokémon does
   830/830 probed mechanics live, 0 missing   (census 2026-09-06 12:37)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 3.1 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-06 10:03)
+    never fired in the staged harness (all-mechanics-fire.json, 27 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-06 13:44)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -151,9 +151,60 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-06 13:12_
+_stamped 2026-09-06 14:08_
 
 <!-- /GENERATED -->
+
+## THE ENGINE'S OWN SCOREBOARD IS MEASURED AGAIN ON THE CURRENT BYTES. **BOARD-MATERIAL 27 OF 961, PROTOCOL 93, NARRATION 70**, RELEASE `57679ef9a4a3` — AND NO ENGINE SOURCE MOVED ON THIS PASS. 2026-09-06, CHANGELOG 5.266.0
+
+**WHAT THIS SECTION IS FOR.** 5.265.0 landed the hazard-sweep order fix, which moved
+`engine/medicham2-browser.js` at 12:38 and therefore staled every artifact that measures this
+division. Seven of nine clauses failed on the release mismatch and **no whole-game count could be
+published anywhere.** The re-measurement is done. This division's numbers are back, they are red where
+they are red because something measured them so, and nothing here is carried from a previous version.
+Full account: `docs/_reports/2026-09-06-publish-5266.md`. Written by MEASURE; **no file this division
+owns was edited.**
+
+### THE NUMBERS, RE-READ FROM THE ARTIFACTS
+
+| clause | artifact | reading on `57679ef9a4a3` |
+|---|---|---|
+| game differential | `data/engine-diff.json` | **0 of 6000** at the midpoint and at each of the sixteen band indices, seed 20260804. 134 multi-hit comparisons skipped by construction |
+| deliberate roster / items | `data/roster.items.json` | **0** `FIRED-AND-BOARDS-DIFFER`, **0** `DID-NOT-FIRE`; 140 matched of 148 in scope, 8 could-not-stage |
+| deliberate roster / abilities | `data/roster.abilities.json` | **0 / 0**; 129 matched of 202 in scope, 45 control-not-quiet, 1 deferred by owner |
+| deliberate roster / moves | `data/roster.moves.json` | **0 / 0**; 475 matched of 500 in scope, 22 could-not-stage, 3 deferred by owner |
+| staged mechanics | `data/all-mechanics-fire.json` | 1,313 games played, **0 threw** |
+| the census | `data/mechanics-census.json` | **830 live of 830 probed, 0 missing**, `run_ok` true. It did not move |
+| whole-game / **BOARD-MATERIAL** | `data/game-differential.json` | **FAIL — 27 of 961.** `state.games` 961 less `state.games_board_never_diverged` 934 |
+| whole-game / NARRATION | same | **FAIL — 70 of 961** across 69 causes: 71 raw less 1 declared |
+
+**BOTH FAILURES ARE MEASURED DISAGREEMENTS ON THE CURRENT BYTES.** That sentence is the whole point of
+the pass. Seven clauses failing because the ruler was pointed at the wrong build is not a weaker
+version of two clauses failing on a rule the engine gets wrong — it is an answer about other bytes, and
+this ledger said so at 5.265.0 rather than restating a count with a caveat.
+
+### THE NEXT TARGET IS STILL THE FIVE UNCAUSED GAMES, AND THEY ARE THE SAME FIVE
+
+**27 board-material games, 22 of which also part the protocol, leaves 5 that part a BOARD while the
+protocol never diverges at all.** They carry no cause, no class, no shape and no row in the narration
+clause, so there is nothing to grep — which is exactly why they are worth this division's attention
+before anything with a bucket behind it. `state.first_board_divergences` names them: turn 6
+`…bo3-2661571698` `p1.pp[1].expandingforce`; turn 7 `…bo3-2660414382` `p1.active[1].stall`; turn 9
+`…bo3-2635949496` `p1.active[0].stall`; turn 16 `…bo3-2655675221` `p2.active[1].stall`; turn 7
+`…bo3-2661455548` `p2.party.castform.species` and `.types`. **Three of the five are the `stall` family
+already filed as ROADMAP #543** — the authority's body still holding a `stall` volatile at counter 3
+where this engine reads 0 — and that row is unchanged by this pass.
+
+**AND THE DENOMINATOR THAT LOOKS BETTER IS NOT THIS CLAUSE'S.** 10,452 of 10,541 turn boundaries
+compared were identical. A game counts once if ANY boundary parted, so a per-boundary rate always reads
+greener and is not what the gate uses.
+
+### WHAT THIS PASS DID NOT DO
+
+`engine/medicham2-browser.js` was not touched. No release SOURCE was edited and no release was cut.
+Three defects found during the pass are **filed and not fixed** — ROADMAP #546, #547, #548 — and all
+three are in the measuring instruments rather than in the simulator. Patching an instrument mid-pass is
+how a run gets quietly destroyed, and the division rule is that you file what you trip over.
 
 ## A HAZARD SWEEP RAN ITS OWN CLAUSES IN ITS OWN ORDER, AND THE THREE CARRIERS DO NOT AGREE ON ONE. CENSUS **829 → 830**, POOL FLAT AND CALLED FLAT BEFORE THE RUN. 2026-09-06, CHANGELOG 5.265.0
 

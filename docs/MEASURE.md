@@ -15,16 +15,16 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 188 unsafe, 2 void (declared), 38 possibly stale, 26 ok, 0 missing
+  provenance: 188 unsafe, 2 void (declared), 34 possibly stale, 30 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
@@ -34,9 +34,155 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-09-06 09:58
 ```
 
-_stamped 2026-09-06 13:12_
+_stamped 2026-09-06 14:08_
 
 <!-- /GENERATED -->
+
+## THE SETTLED-TREE PUBLISH PASS. **THE WHOLE-GAME FIGURES 5.265.0 CORRECTLY LEFT BLANK ARE RESTORED — 27 / 93 / 70 ON RELEASE `57679ef9a4a3`, ON MEASURED COUNTS.** 2026-09-06, CHANGELOG 5.266.0
+
+**EVERY FIGURE BELOW WAS RE-READ FROM ITS ARTIFACT ON THIS PASS.** Nothing is carried from the brief;
+where the brief and an artifact could have disagreed, the artifact was taken. Full account:
+`docs/_reports/2026-09-06-publish-5266.md`.
+
+**THE ONE SENTENCE THAT MATTERS.** 5.265.0 published no whole-game count anywhere and was right to.
+The engine had moved after the last measurement, so `status.js` withheld the lot rather than captioning
+it. **A withheld figure is not a gap in the record — it is the record. Restoring it is a re-measurement,
+and it is written as one.**
+
+### THE PUBLISHED FIGURES, WITH BOTH OPERANDS OF EVERY SUBTRACTION
+
+`data/game-differential.json`, generated `2026-09-06T17:42:35.067Z`, `engine_release` `57679ef9a4a3`.
+
+| published | value | derived from |
+|---|---:|---|
+| games | **961** | `state.games` |
+| **BOARD-MATERIAL**, the gating clause | **27** | `state.games` **961** less `state.games_board_never_diverged` **934** |
+| **PROTOCOL** first divergence | **93** | `state.protocol_diverged_games` |
+| **NARRATION-ONLY**, reports and does not gate | **70** | **71** raw (`state.protocol_diverged_board_never_did`, identically `end_state[0].summary.by_cause_totals.games_narration_only`) less **1** declared row, across 69 causes |
+| uncaused board-material | **5** | 27 less the **22** whose protocol also parted |
+| turn boundaries | 10,452 of 10,541 identical | **not this clause's denominator**; a game counts once if ANY boundary parted, so a per-boundary rate always reads greener |
+
+**THE TRAP WAS CHECKED, NOT AVOIDED FROM MEMORY.** `by_cause_totals.games_board_material` reads **22**
+in this artifact. It is **not** the bar. Publish it and this version loses the five games that part a
+board while the protocol never diverges — the ones with no cause and nothing to grep. Narration has the
+mirror-image trap: 71 is the raw and 70 is the published, and the row between them is the perish drain
+Will closeted on 2026-08-28. **Check both operands of every subtraction; this has been a near-miss
+three times.**
+
+### IT IS A RE-MEASUREMENT, AND THE EVIDENCE IS THE POINT
+
+`git show HEAD:data/game-differential.json` — the artifact as 5.264.0 and 5.265.0 found it — reads
+release `d9e551ed0d5a`, 961 games, 934 board-never-diverged, 93 protocol, 71 narration-raw, pool
+`0d103fb9fa87`. The new artifact reads `57679ef9a4a3` and the identical five numbers. **The same
+question, asked twice, on two engines, with the same answer.** `engine/arms_comparable.js` on that pair:
+
+```
+  before  …/gd-head.json    release d9e551ed0d5a   steering 9446a684709d   961 games
+  after   data\game-differential.json   release 57679ef9a4a3   steering 9446a684709d   961 games
+  COMPARABLE. Both arms selected their sample the same way, so a difference between
+  their numbers is the change under test.
+EXIT=0
+```
+
+**It did not refuse**, and its three declared blind spots are unchanged rather than closed: a computed
+require path in the driver, `data/protocol-events.json` being unstamped, and an uncommitted edit inside
+`SHOWDOWN_PATH`.
+
+### THE GATE, IN ONE FRAMING RATHER THAN TWO
+
+`node engine/status.js` computes **nine clauses. Two fail — the whole-game BOARD-MATERIAL and NARRATION
+clauses — and both fail on measured disagreements on the current bytes.** Eight of the nine GATE,
+narration being the one that does not, so exactly one of the eight gating clauses fails and the gate
+reads CLOSED. **These are the same state counted over two different sets and they are never printed
+side by side.** At 5.265.0 seven of nine failed and every one of the seven on the release mismatch
+alone; this pass moves the project from unmeasured back to measured-and-red, which is the direction.
+
+### THE PREDICTION CARD — SIX OF SIX, NO MISSES, WRITTEN FIRST
+
+`data/verification/_prediction-remeasure-57679ef9a4a3.json`, `written_before_the_run: true`, no
+tolerance band claimed: games 961, board-material 27, protocol 93, narration raw 71, pool digest
+`0d103fb9fa87`, teams and picked 8778 / 1968 — all six predicted, all six measured. The named risk was
+registered in advance too: that the 961-game draw is a *different* sample from the 777-game one rather
+than a superset, so 184 unplayed teams could have surfaced an ordering difference. It did not
+materialise. **A flat prediction is worth publishing exactly when it was written down first**, because
+that is the only version of it that could have been wrong in a way nobody could argue about afterwards.
+
+### THE 777-GAME SAMPLE: IT WAS `--games`, AND THE RULE IS WORTH MORE THAN THE DIAGNOSIS
+
+5.265.0 recorded the discrepancy as OPEN rather than guessing. Reproduced deterministically against the
+frozen store: **`--games 960` gives pool `b2b61ec40281`, 1,597 picked and 777 games; `--games 1200`
+gives pool `0d103fb9fa87`, 1,968 picked and 961 games.** The rapidspin pair ran at 960 and the published
+run at 1200. The pool cache is not implicated, and the earlier reading of `loadTeams` — keyed on size
+and mtime, a miss rebuilds deterministically, so a rebuild moves elapsed time and not teams — was right.
+It simply did not have the missing variable.
+
+**`--games` IS PART OF THE SAMPLE DEFINITION, NOT A BUDGET.** Two runs on identical declared pins with
+different `--games` draw different strides and are not a before/after. `arms_comparable.js` already
+refuses on `games` differing, so the guard exists — **what failed is that a report recorded the pins and
+not the command.** A run whose command is not written down cannot be audited by anybody, including the
+person who made it. Record the whole command.
+
+### THE POOL PIN IS HONOURED — A CONFIRMATION WITH ITS EVIDENCE, NOT AN ASSURANCE
+
+| file | bytes | sha1(12) |
+|---|---:|---|
+| `data/team-pool-frozen/games.bo3.jsonl` | 109,006,606 | **2fd61bf80133** |
+| `data/games.bo3.jsonl` (live) | 227,347,410 | 1a47b971bc46 |
+| `data/team-pool-frozen/games.ots.jsonl` | 31,928,037 | 535ee1cd9b0d |
+| `data/games.ots.jsonl` (live) | 31,928,037 | 535ee1cd9b0d |
+
+The pinned run's cache carries `source_content_digests` `games.bo3.jsonl` **`2fd61bf80133`** — the
+frozen digest, not the live one. The OTS half has not moved since 2026-08-12 and is byte-identical
+either way, so only bo3 discriminates, and it discriminates cleanly. Replaying
+`buildSwarm(2400, { storeDir: 'data/team-pool-frozen' })` and re-deriving the digest exactly as
+`engine/game_differential.js:6466-6472` does it returned
+`{"digest":"0d103fb9fa87","teams":8778,"picked":1968,"store_dir":"data/team-pool-frozen"}`, reproducing
+all four steering fields. **The digest is over the picked team KEYS per configuration, so it is a
+receipt for the population and not merely for the path** — a swapped frozen store would move it.
+**Nothing published on that pool is withdrawn.**
+
+`data/diff-team-pool.json` is a gitignored single-slot **CACHE and never an input.** It was found
+holding live-store teams because two probes rebuilt it 47 minutes AFTER the published differential
+finished, which is the require-time `buildSwarm` filed below and not evidence about the pinned run.
+
+### THREE DEFECTS FILED, NONE FIXED — ROADMAP #546, #547, #548
+
+Each was verified against the source on this pass rather than taken on report.
+
+- **#546** — `engine/game_differential.js:6450` calls `SWARM.buildSwarm(...)` at module scope, **above**
+  its own main guard at `:6733`. Requiring the module for `buildPair` or `ARM_BY_ID` costs about 41 s
+  and rewrites the pool cache from whatever store the *caller's* argv names.
+- **#547** — `engine/diff_swarm.js:329`, inside `writePoolCache(key, teams, storeDir)`, stamps
+  `source_digests: RS.sourceDigests(POOL_SOURCES)` from the fixed literal at `:272`, which names the
+  LIVE paths, while the per-file loop at `:310` honours `storeDir` correctly. Measured on the pinned
+  cache now on disk: `source_content_digests` carries the frozen `2fd61bf80133` and `source_digests`
+  carries `data/games.bo3.jsonl` `da8597c45bb8`, the live one — two digests of the same nominal file in
+  one header, disagreeing. **A receipt that describes the wrong store is worse than no receipt.**
+- **#548** — `engine/game_differential.js` throws for any `--turns` below 3. `identicalAtEndOfTurn` is
+  `[1, 2, 3].map(earlyRate)` at `:7837`; `agreementByTurn` runs `1..MAXTURNS` at `:7857-7864` with
+  `MAXTURNS` from `+flag('--turns', 20)` at `:75`; the cross-check at `:7865-7867` indexes
+  `agreementByTurn[i]` for `i` in 0..2. No real run is affected — the caps are 12 and 20 — and the crash
+  is after the games are played.
+
+### WHAT THIS DIVISION STILL WITHHOLDS
+
+**Leaf calibration is not published and was not run.** `data/winrate-backtest.json` is downstream of
+MEDICHAM by its generator and the gate is CLOSED; it becomes quotable when the gate opens AND
+`node engine/backtest_winrate.js` is re-run. Restoring the whole-game counts shortens the distance to
+that condition and does not satisfy it. Also withheld and not annotated: the leaf/engine contrast, the
+click-censoring census, R1–R4, the exploitability search, and `data/policy-weights.json` with the joint
+weights — 63 artifacts in total.
+
+**THE MAG REFIT STAYS OWED, AS A REFIT AND NOT A RESTAMP.** `data/policy-weights.json` was not touched
+and no fit was started. The damage table those weights were fitted against has been regenerated and now
+covers 322 species against the 318 stamped into the file, so the feature FUNCTION's input changed. A
+restamp would answer the fixture gate, silence the table gate, and write over the evidence for the
+refit.
+
+**RED, REPORTED, NOT CHASED AND NOT FILED AS KNOWN.** `tests/test-web-quarantine-loaders.js` and
+`tests/test-web-status.js` both exit 1 on stale `web/` build products — `web/quarantine-data.js` built
+2026-08-25 and `web/status-data.js` built 2026-08-10, against a gate that has since gained the two
+whole-game clauses. WEB is paused; the reds are live, dated and owned by that division.
 
 ## THE PUBLISH PASS FOR THE HAZARD-SWEEP ORDER FIX. **CENSUS 830 LIVE OF 830 PROBED, 0 MISSING** — AND NO WHOLE-GAME FIGURE, BECAUSE THE ENGINE SOURCE MOVED AND EVERY FAILING CLAUSE NOW READS "MEASURED AGAINST A DIFFERENT ENGINE". 2026-09-06, CHANGELOG 5.265.0
 

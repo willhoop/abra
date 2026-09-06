@@ -10,6 +10,102 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.266.0] — 2026-09-06
+
+### Added
+- **THE WHOLE-GAME FIGURES 5.265.0 WITHHELD ARE RESTORED, ON MEASURED COUNTS AND ON THE CURRENT
+  BYTES: BOARD-MATERIAL 27 OF 961, PROTOCOL FIRST DIVERGENCE 93 OF 961, NARRATION-ONLY 70 OF 961.**
+  5.265.0 published no whole-game count anywhere, and that was correct — the hazard-sweep order fix
+  moved `engine/medicham2-browser.js`, so every whole-game artifact had been measured on release
+  `d9e551ed0d5a` while the tree was `57679ef9a4a3`, and `engine/status.js` withheld rather than
+  captioned. **This is a restoration, not a silent reappearance.** `data/game-differential.json` is
+  republished on release `57679ef9a4a3`, generated `2026-09-06T17:42:35Z`, with pins: 961 games,
+  cap 20, arm `middle`, steering `empirical-click/v1`, `--end-state`, census pin
+  `data/verification/census-pin-9446a684709d.json`, pool `--team-store data/team-pool-frozen`,
+  `team_pool_digest` `0d103fb9fa87` over 1,968 teams picked from a corpus of 8,778. The gating
+  quantity is a SUBTRACTION and both operands are read off `state`: `state.games` **961** less
+  `state.games_board_never_diverged` **934**. The reporting quantity is
+  `state.protocol_diverged_games` **93**. Narration is `state.protocol_diverged_board_never_did`
+  **71** raw less **1** declared row, across 69 causes. **`by_cause_totals.games_board_material`
+  reads 22 in this artifact and is NOT the bar** — the 5-game difference is exactly the games that
+  part a board while the protocol never diverges at all, which have no cause and nothing to grep.
+  Full account: `docs/_reports/2026-09-06-publish-5266.md`.
+- **IT IS A RE-MEASUREMENT AND NOT A RESTATEMENT, AND THAT IS SHOWN RATHER THAN ASSERTED.**
+  `git show HEAD:data/game-differential.json` — the artifact as 5.264.0 and 5.265.0 found it — reads
+  release `d9e551ed0d5a` with 961 / 934 / 93 / 71 and pool `0d103fb9fa87`. The new artifact reads
+  release `57679ef9a4a3` and the identical five numbers. `engine/arms_comparable.js` answers
+  **COMPARABLE, exit 0** on that pair and did not refuse; its three declared blind spots — a computed
+  require path in the driver, `data/protocol-events.json` being unstamped, and an uncommitted edit
+  inside `SHOWDOWN_PATH` — are unchanged and are not claimed closed.
+- **THE PREDICTION CARD READ SIX OF SIX WITH NO MISSES**, written before the run to
+  `data/verification/_prediction-remeasure-57679ef9a4a3.json` with `written_before_the_run: true` and
+  no tolerance band. Flat was called in advance on all five quantities plus the pool digest. The
+  named risk — that the 961-game draw is a different sample from the 777-game one rather than a
+  superset — did not materialise.
+
+### Fixed
+- **THE UNEXPLAINED 777-GAME SAMPLE IS DIAGNOSED, AND IT IS `--games`, NOT THE POOL CACHE.**
+  5.265.0 recorded the discrepancy as OPEN rather than guessing at it. Reproduced deterministically
+  against the frozen store: `--games 960` gives pool `b2b61ec40281`, 1,597 picked and **777** games;
+  `--games 1200` gives pool `0d103fb9fa87`, 1,968 picked and **961** games. The rapidspin pair ran at
+  960 and the published run at 1200. **`--games` is part of the sample definition, not a budget** —
+  two runs on identical declared pins and different `--games` draw different strides and are not a
+  before/after. `arms_comparable.js` already refuses on `games` differing, so the guard exists; what
+  failed is that a report recorded the pins and not the command, and a run whose command is not
+  written down cannot be audited.
+
+### Notes
+- **THE POOL PIN IS HONOURED. NOTHING IS WITHDRAWN, AND THIS IS A CONFIRMATION WITH EVIDENCE RATHER
+  THAN AN ASSURANCE.** `--team-store data/team-pool-frozen` reads the frozen bytes: the pinned
+  cache's `source_content_digests` for `games.bo3.jsonl` is `2fd61bf80133`, the sha1 of
+  `data/team-pool-frozen/games.bo3.jsonl` (109,006,606 bytes), against the live store's
+  `1a47b971bc46` (227,347,410 bytes). Replaying `buildSwarm` at 2400 with the `storeDir` option set
+  to `data/team-pool-frozen` on this pass reproduced all four steering fields exactly —
+  `team_store_pinned_to`, `team_pool_teams` 8778, `team_pool_picked` 1968 and `team_pool_digest`
+  `0d103fb9fa87`. The digest is taken over the picked team keys per configuration, so it is a receipt
+  for the population and not merely for the path.
+- `data/diff-team-pool.json` is a gitignored single-slot **CACHE, never an input**. It is keyed on the
+  size and mtime of the store it was handed, a pinned run whose key does not match MISSES and rebuilds
+  from the frozen bytes, and `engine/game_differential.js` derives `team_pool_digest` from the teams
+  `buildSwarm` returned rather than from the cache header. It was found holding live-store teams
+  because two probes rebuilt it 47 minutes AFTER the published differential finished — the
+  require-time `buildSwarm` filed as ROADMAP #546.
+- **THE GATE, IN ONE FRAMING RATHER THAN TWO.** `engine/status.js` computes **nine clauses and two
+  fail** — the whole-game BOARD-MATERIAL clause and the whole-game NARRATION clause — and **both fail
+  on measured disagreements on the current bytes**, not on staleness. Eight of the nine GATE, narration
+  being the one that does not, so one of the eight gating clauses fails and the gate reads CLOSED.
+  Those are the same state counted over two different sets and they are never quoted side by side. At
+  5.265.0 seven of nine failed and every one on the release mismatch alone; **moving from unmeasured
+  back to measured-and-red is the direction this version travelled.**
+- Every artifact the release mismatch had staled was re-run on `57679ef9a4a3`: `data/engine-diff.json`
+  **6,000 compared, 0 disagreed**, seed 20260804, 134 multi-hit comparisons skipped by construction;
+  `data/roster.items.json` **0** `FIRED-AND-BOARDS-DIFFER` and **0** `DID-NOT-FIRE` with 140 of 148
+  tested; `data/roster.abilities.json` **0 / 0** with 129 of 202 tested and 45 unattributable;
+  `data/roster.moves.json` **0 / 0** with 475 of 500 tested; `data/all-mechanics-fire.json` 1,313
+  games played and **0 threw**. `data/mechanics-census.json` reads **830 live of 830 probed, 0
+  missing**, `run_ok` true, and did not move.
+- **THREE DEFECTS ARE FILED AND NONE IS FIXED — ROADMAP #546, #547 and #548.** The require-time
+  `buildSwarm` above the main guard (`engine/game_differential.js:6450` against `:6733`);
+  `writePoolCache` stamping `source_digests` from the LIVE `POOL_SOURCES` literal even on a pinned run
+  (`engine/diff_swarm.js:329` and `:272`), so one cache header carries two digests of the same nominal
+  file that disagree — a receipt that describes the wrong store is worse than no receipt; and
+  `game_differential.js` throwing for any `--turns` below 3, because `identicalAtEndOfTurn` is
+  `[1, 2, 3]` at `:7837` while `agreementByTurn` runs `1..MAXTURNS` at `:7857` and the cross-check at
+  `:7866` indexes the shorter array. No release SOURCE was edited on this pass.
+- **LEAF CALIBRATION IS STILL WITHHELD AND WAS NOT RUN.** `data/winrate-backtest.json` is downstream
+  of MEDICHAM by its generator and the gate is CLOSED; it becomes quotable when the gate opens AND
+  `node engine/backtest_winrate.js` is re-run. So are the leaf/engine contrast, the click-censoring
+  census, R1–R4, the exploitability search and the fitted weights — 63 artifacts in total.
+- **THE MAG REFIT STAYS OWED, AS A REFIT RATHER THAN A RESTAMP.** `data/policy-weights.json` was not
+  touched and no fit was started. The damage table those weights were fitted against has been
+  regenerated and now covers 322 species against the 318 stamped into the file, so the feature
+  FUNCTION's input changed. A restamp would answer the fixture gate, silence the table gate, and write
+  over the evidence for the refit.
+- `tests/test-web-quarantine-loaders.js` and `tests/test-web-status.js` are red on stale `web/` build
+  products — `web/quarantine-data.js` built 2026-08-25 and `web/status-data.js` built 2026-08-10,
+  against a gate that has since gained the two whole-game clauses. WEB is paused. **Reported, dated
+  and owned by another division; not filed as a known failure and not chased here.**
+
 ## [5.265.0] — 2026-09-06
 
 ### Fixed

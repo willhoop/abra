@@ -1,6 +1,22 @@
 # ABRA — the plain-English deck
 
-**Version 5.265.0 · 2026-09-06 · Will Hooper**
+**Version 5.266.0 · 2026-09-06 · Will Hooper**
+
+**5.266.0 - LAST VERSION WE PUBLISHED A BLANK WHERE OUR MAIN SCORE GOES. WE HAVE MEASURED IT AGAIN AND THE SCORE IS BACK.**
+
+**WHY IT WAS BLANK, IN ONE SENTENCE.** We changed the simulator, and every big measurement we had was taken before that change — so the honest thing was to withhold the numbers rather than reprint them with a note attached. **A note is not a quarantine.** This version re-ran the measurement on the changed code, so the numbers are earned again rather than carried over.
+
+**THE THREE NUMBERS THAT COME BACK.** Out of **961** real ladder games played move-for-move against the official game, **27** end up in a position our simulator and the real one disagree about. **93** have a moment where the two write down different commentary. **70** of those 93 differ only in the commentary and never in the position. The first of those three is the one that has to reach zero before we are allowed to trust anything built on top.
+
+**AND THEY ARE THE SAME THREE NUMBERS AS LAST TIME, WHICH IS THE POINT.** The old measurement, on the old code, read 27 / 93 / 70. The new measurement, on the new code, reads 27 / 93 / 70. That is the same question asked twice on two different builds with the same answer — not a number copied forward. We also said in advance, in writing, that it would come out flat, and it did: **six predictions, six hits, no misses.**
+
+**WE ALSO CLOSED A LOOSE END WE HAD ADMITTED TO.** Last version we said one of our test runs used 777 games where another used 961, that we did not know why, and that we would not guess. We know why now: somebody typed a different number of games on the command line. That sounds trivial and it is not — **how many games you ask for changes WHICH games you get**, so two runs with different counts are not a before-and-after even when everything else matches. The real failure was that the run's command was never written down, so nobody could check. It is now a rule: write down the whole command.
+
+**ONE THING WE CHECKED HARD AND IT CAME BACK CLEAN.** Our measurements are supposed to run against a frozen copy of real ladder teams so the ground does not move under them. We proved it really is reading the frozen copy — the frozen file and the live file have different fingerprints, and the run's receipt carries the frozen one — and we rebuilt the whole team selection from scratch and got the same 8,778 teams, the same 1,968 picked, and the same fingerprint. **Nothing published on that pool is withdrawn.**
+
+**AND WE FILED THREE NEW PROBLEMS WITHOUT FIXING ANY OF THEM.** They are all in the measuring tools rather than the game: one tool does 41 seconds of work just from being loaded; one writes a receipt naming the wrong data file; and one crashes outright if you ask it for fewer than three turns. Filing them and not fixing them is the rule here — a fix landing in the middle of a measurement is how a result gets quietly destroyed.
+
+**WHAT WE STILL CANNOT TELL YOU.** Our headline number — whether the model's confidence is honest, so that when it says 90% it wins 90% — is still withheld and was not run. It stays withheld until the simulator is correct. We are one failing check away from that, and that check is now failing because of something we measured rather than because we have not looked.
 
 **5.265.0 - A MOVE THAT CLEANS UP THE FIELD WAS DOING THE RIGHT THINGS IN THE WRONG ORDER, AND NO TEST WE HAD COULD SEE IT.**
 

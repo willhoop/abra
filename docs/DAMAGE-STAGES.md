@@ -1,6 +1,13 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.265.0 — 2026-09-06.**
+**Version: 5.266.0 — 2026-09-06.**
+
+**5.266.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND THIS TIME THE DIFFERENTIAL THAT SAYS SO IS RE-RUN AND PUBLISHED RATHER THAN WITHHELD.** 5.265.0 withheld it: the hazard-sweep order fix had moved `engine/medicham2-browser.js`, so `data/engine-diff.json` had been measured on release `d9e551ed0d5a` while the tree was `57679ef9a4a3`, and a damage verdict about other bytes is not a damage verdict. The re-run is done on the current release. **`data/engine-diff.json` on release `57679ef9a4a3` reads 0 disagreements of 6,000 comparisons**, seed 20260804, requested 6,000, clean at the midpoint and at every one of the sixteen band indices. No file in the damage chain was edited on this pass and no release SOURCE was touched.
+
+**THE SKIP IS A FAMILY AND IT IS STATED EVERY TIME, BECAUSE IT IS NOT A ROUNDING ERROR.** 134 comparisons were not made. They are the multi-hit moves: 14 of the 500 legal moves carry the `multiHit` tag and are skipped by construction, because one `moveHit` call is one packet. Eleven were drawn and skipped; three were never drawn at all. **The volley loop has still never been damage-compared**, and a clean 0 of 6,000 says nothing about it.
+
+**AND THE HABIT THAT MAKES THIS RE-RUN LOOK RED IS THE SAME ONE NAMED AT 5.265.0.** `tests/test-engine-diff.js` invoked with no `--n` defaults to 150 comparisons against a published 6,000-comparison artifact. A smaller sample is not a contradiction of the larger one, and reading it as a regression is how a green chain gets reported red.
+
 
 **5.265.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND THIS TIME THE DIFFERENTIAL THAT WOULD SAY SO IS WITHHELD RATHER THAN QUOTED.** The engine change in this version is an ORDERING one — `sweepField` ran one clause order for all three carriers of the hazard sweep, and the authority uses three. It touches no stage, no multiplier and no rounding on this page. But it did move `engine/medicham2-browser.js`, so the tree is release `57679ef9a4a3` while `data/engine-diff.json` was measured on `d9e551ed0d5a`, and `engine/status.js` calls that clause MEASURED AGAINST A DIFFERENT ENGINE. **Every count in that artifact is withheld and none is repeated on this page.** That is deliberate and it is the harder of the two available sentences: the damage chain almost certainly did not move, and "almost certainly" is not a measurement. The re-run is `SHOWDOWN_PATH=... node tests/test-engine-diff.js --n 6000 --seed 20260804`.
 
